@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Activity, BarChart3 } from "lucide-react";
 import { AiInsights } from "@/components/dashboard/ai-insights";
+import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { BreakdownTable } from "@/components/dashboard/breakdown-table";
 import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -28,7 +29,9 @@ function DashboardPage() {
   const [preset, setPreset] = useState<DatePreset | "custom">("30d");
   const [from, setFrom] = useState(initial.from);
   const [to, setTo] = useState(initial.to);
-  const [granularity, setGranularity] = useState<"day" | "week" | "month">("day");
+  const [granularity, setGranularity] = useState<"day" | "week" | "month">(
+    "day",
+  );
 
   const filtered = useMemo(
     () => filterSeries(DAILY_SERIES, from, to),
@@ -91,20 +94,21 @@ function DashboardPage() {
             <div className="mb-2 flex items-center gap-2 text-[var(--color-primary)]">
               <BarChart3 className="h-5 w-5" aria-hidden />
               <span className="text-xs font-semibold uppercase tracking-[0.14em]">
-                Ledger
+                Ledger · aplus
               </span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-fg)] sm:text-3xl">
-              Revenue desk
+              Trading desk + revenue
             </h1>
-            <p className="mt-1.5 max-w-xl text-sm text-[var(--color-muted)]">
-              Sample SaaS book plus live dual futures charts (MNQ mini vs ES) for
-              index comparison — ProFX-style OHLC, desk analyst, and SMT relative read.
+            <p className="mt-1.5 max-w-2xl text-sm text-[var(--color-muted)]">
+              Dual MNQ/ES live charts, Trading-Automation ops console (backtest ·
+              premarket · rules), and sample SaaS analytics — one surface for
+              Grok and Claude.
             </p>
           </div>
           <div className="flex items-center gap-2 self-start rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-subtle)] sm:self-auto">
             <Activity className="h-3.5 w-3.5 text-[var(--color-up)]" aria-hidden />
-            <span>Revenue sample · live MNQ/ES when available</span>
+            <span>keatrng-cpu/Trading-Automation ported</span>
           </div>
         </header>
 
@@ -131,6 +135,10 @@ function DashboardPage() {
         </div>
 
         <div className="space-y-4 sm:space-y-5">
+          <DualIndexCharts />
+
+          <AplusOps />
+
           <KpiCards
             revenue={metrics.revenue}
             growth={metrics.growth}
@@ -138,8 +146,6 @@ function DashboardPage() {
             customers={metrics.customers}
             newMrr={metrics.newMrr}
           />
-
-          <DualIndexCharts />
 
           <AiInsights snapshot={snapshot} />
 
@@ -153,8 +159,8 @@ function DashboardPage() {
         </div>
 
         <footer className="mt-10 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-subtle)]">
-          Revenue figures are synthetic. Futures OHLC from Yahoo continuous
-          contracts (MNQ=F / ES=F / NQ=F) with synthetic fallback — ProFX bar shape.
+          aplus rules/metrics from Trading-Automation · futures OHLC Yahoo
+          continuous · revenue sample offline · AI never gates trades
         </footer>
       </div>
     </div>
