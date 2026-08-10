@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
+import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEngineHeartbeatRoute = ApiEngineHeartbeatRouteImport.update({
+  id: '/api/engine/heartbeat',
+  path: '/api/engine/heartbeat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
+  id: '/api/engine/journal',
+  path: '/api/engine/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
+  '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
+  '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
+  '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/engine/heartbeat' | '/api/engine/journal'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/engine/heartbeat' | '/api/engine/journal'
+  id: '__root__' | '/' | '/api/engine/heartbeat' | '/api/engine/journal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
+  ApiEngineJournalRoute: typeof ApiEngineJournalRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/engine/heartbeat': {
+      id: '/api/engine/heartbeat'
+      path: '/api/engine/heartbeat'
+      fullPath: '/api/engine/heartbeat'
+      preLoaderRoute: typeof ApiEngineHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/engine/journal': {
+      id: '/api/engine/journal'
+      path: '/api/engine/journal'
+      fullPath: '/api/engine/journal'
+      preLoaderRoute: typeof ApiEngineJournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
+  ApiEngineJournalRoute: ApiEngineJournalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
