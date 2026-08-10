@@ -23,14 +23,14 @@ export const APLUS_RULES = {
   confluenceFloorCalibration: 0.67,
   /**
    * Grade-based risk on paper / backtest book ($100k).
-   * A+ 3% · A/A- 2% · B 1% · below path 0.
+   * A+ 3% · A/A- 2% · B 1% · C 0.5% · below path 0.
    */
   riskByGrade: {
     "A+": 0.03,
     A: 0.02,
     "A-": 0.02,
     B: 0.01,
-    C: 0.01,
+    C: 0.005,
     skip: 0,
   } as Record<RiskGrade, number>,
   /** Default display risk (mid band / A-path). */

@@ -243,7 +243,7 @@ function WeekTable({
             })}
           </ul>
           <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
-            Auto-taken at decision · $100k paper · 1–3% by grade (micros) · RTH exit walk
+            Auto-taken at decision · $100k paper · 0.5–3% by grade (micros) · RTH exit walk
           </p>
         </div>
       ) : (
@@ -515,7 +515,7 @@ function AnalysisCard({
               </div>
             </div>
             <p className="mt-2 text-[10px] text-[var(--color-subtle)]">
-              Paper $100k · size A+ 3% / A 2% / B 1% in micros · floor 0.67 · RTH walk
+              Paper $100k · A+ 3% · A 2% · B 1% · C 0.5% micros · floor 0.67 · RTH walk
             </p>
           </div>
 

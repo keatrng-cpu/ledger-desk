@@ -203,7 +203,7 @@ function MasterplacePage() {
             </div>
             <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
               Paper ${APLUS_RULES.paperEquity.toLocaleString()} · floor{" "}
-              {APLUS_RULES.confluenceFloor} · risk 1–3% by grade · PATH only
+              {APLUS_RULES.confluenceFloor} · risk 0.5–3% by grade · PATH only
             </p>
           </div>
           <Button
@@ -413,7 +413,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="R"
                     title="Risk & coach"
-                    sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · B 1% · halt rules`}
+                    sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · B 1% · C 0.5% · halt rules`}
                   />
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <RiskPanel desk={desk} />
