@@ -34,6 +34,14 @@ export const APLUS_RULES = {
   targetTradesPerMonth: { min: 10, max: 15 },
   htfTopDownGate: "absolute" as const,
   model: "SMC/ICT + TJR sweep→BOS/MSS→retrace + PB risk",
+  /** Profitability path targets (desk enforcement for action). */
+  profitPath: {
+    targetWinRate: 0.7,
+    targetExpectancyR: 0.35,
+    minSampleTrades: 100,
+    actionFloor: 0.67,
+    onlyExecuteGrades: ["A+", "A"] as const,
+  },
   dualPeer: { NQ: "ES", ES: "NQ", MNQ: "MES", MES: "MNQ" } as Record<
     string,
     string

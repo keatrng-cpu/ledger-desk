@@ -21,6 +21,7 @@ import {
 } from "./strategies";
 import type { HtfBiasRead } from "./structure";
 import { smtRead } from "./structure";
+import { applyProfitPathToCandidate } from "./profit-path";
 
 export type SetupSide = "long" | "short";
 
@@ -426,9 +427,11 @@ export function scanSetups(
     }
   }
 
-  candidates.sort((a, b) => b.confluence - a.confluence);
+  // Profit path: incomplete-pattern veto + calibration floor (0.67) for action
+  const pathCandidates = candidates.map(applyProfitPathToCandidate);
+  pathCandidates.sort((a, b) => b.confluence - a.confluence);
 
-  const best = candidates[0];
+  const best = pathCandidates[0];
   let focus = "Stand down — no setup clears engine-aligned gates.";
   if (best && best.actionable) {
     focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} [${best.strategyPrimary || "model"}] (${best.grade}, ${best.confluence.toFixed(2)}). ${best.strategyWhy[0] ?? best.reasons[0] ?? ""}`;
@@ -441,7 +444,7 @@ export function scanSetups(
   return {
     floor,
     aPlus: APLUS_RULES.aPlusThreshold,
-    candidates: candidates.slice(0, 8),
+    candidates: pathCandidates.slice(0, 8),
     blocked,
     focus,
     smt,

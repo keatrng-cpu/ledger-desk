@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AlertTriangle, CheckCircle2, NotebookPen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
@@ -220,6 +221,14 @@ export function SetupScanner({
   onLog?: (c: SetupCandidate) => void;
   entryAllowed?: boolean;
 }) {
+  const [pathOnly, setPathOnly] = useState(true);
+  const shown = pathOnly
+    ? scan.candidates.filter(
+        (c) => c.actionable || c.grade === "A+" || c.grade === "A-",
+      )
+    : scan.candidates;
+  const display = pathOnly && shown.length === 0 ? scan.candidates.slice(0, 4) : shown;
+
   return (
     <section>
       <header className="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -228,13 +237,25 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Full engine catalog · 19 components · 9 strategy tags · floor{" "}
-            {scan.floor} · A+ ≥ {scan.aPlus} · conditions + HTF hard gates
+            Profit path: action only A/A+ (calib floor 0.67) · incomplete veto · full catalog · test floor {scan.floor} · A+ ≥ {scan.aPlus}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] text-[var(--color-muted)]">
-          <Target className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-          {scan.smt.state.replace(/_/g, " ")}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPathOnly((v) => !v)}
+            className={
+              pathOnly
+                ? "rounded-full border border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_10%,transparent)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-up)]"
+                : "rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] text-[var(--color-muted)]"
+            }
+          >
+            {pathOnly ? "Path grades only" : "Show all grades"}
+          </button>
+          <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] text-[var(--color-muted)]">
+            <Target className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+            {scan.smt.state.replace(/_/g, " ")}
+          </div>
         </div>
       </header>
 
@@ -277,7 +298,7 @@ export function SetupScanner({
       )}
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {scan.candidates.map((c) => (
+        {display.map((c) => (
           <SetupCard
             key={c.id}
             c={c}

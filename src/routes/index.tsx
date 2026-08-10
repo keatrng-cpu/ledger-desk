@@ -21,6 +21,7 @@ import { PremarketPanel } from "@/components/desk/premarket-panel";
 import { RiskPanel } from "@/components/desk/risk-panel";
 import { SessionHud } from "@/components/desk/session-hud";
 import { SetupScanner } from "@/components/desk/setup-scanner";
+import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { Button } from "@/components/ui/button";
 import {
@@ -184,6 +185,7 @@ function MasterplacePage() {
               {[
                 ["#htf", "1 Bias"],
                 ["#scanner", "2 Setups"],
+                ["#path", "Path 70%"],
                 ["#charts", "3 Charts"],
                 ["#liquidity", "4 Liquidity"],
                 ["#journal", "5 Journal"],
@@ -213,6 +215,10 @@ function MasterplacePage() {
                 onLog={setLogCandidate}
                 entryAllowed={entryAllowed}
               />
+            </div>
+
+            <div id="path" className="space-y-3">
+              <ProfitPathPanel equity={equity} />
             </div>
 
             <div id="charts">
