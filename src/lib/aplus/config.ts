@@ -62,8 +62,8 @@ export const APLUS_RULES = {
   /** Paper + backtest account. */
   accountEquity: 100_000,
   paperEquity: 100_000,
-  targetTradesPerYear: { min: 105, max: 135, center: 120 },
-  targetTradesPerMonth: { min: 10, max: 15 },
+  targetTradesPerYear: { min: 90, max: 120, center: 108 },
+  targetTradesPerMonth: { min: 8, max: 12, center: 9 },
   htfTopDownGate: "absolute" as const,
   model: "SMC/ICT + TJR sweep→BOS/MSS→retrace + PB risk",
   profitPath: {

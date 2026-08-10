@@ -967,7 +967,7 @@ export function TradezellaChat({
           ? `\n[Charts attached: ${userShots.map((s) => s.tf).join(", ")}]`
           : "";
 
-      const result: TradezellaChatResult = await analyzeTradezellaChat({
+      const raw = await analyzeTradezellaChat({
         data: {
           message: userMsg.text + tfNote,
           imageDataUrl: userShots[0]?.dataUrl ?? null,
@@ -976,6 +976,27 @@ export function TradezellaChat({
           deskContext,
         },
       });
+
+      // Server fn may return payload or wrap; never crash on missing analysis
+      const result = (raw && typeof raw === "object" && "analysis" in (raw as object)
+        ? raw
+        : (raw as { data?: TradezellaChatResult })?.data) as
+        | TradezellaChatResult
+        | undefined;
+
+      if (!result?.analysis) {
+        setError(
+          "Backtest returned empty result (timeout or serialize). Try a single week, e.g. backtest week of July 8 2024.",
+        );
+        const fail: ChatMessage = {
+          id: uid(),
+          role: "assistant",
+          text: "No analysis payload — try a smaller window (one week) or retry. Full months can take 30–60s.",
+          ts: Date.now(),
+        };
+        setMessages((m) => [...m, fail]);
+        return;
+      }
 
       let marked: MarkedChart[] = [];
       if (userShots.length > 0) {
@@ -1001,7 +1022,17 @@ export function TradezellaChat({
       };
       setMessages((m) => [...m, assistant]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed");
+      const msg = e instanceof Error ? e.message : "Analysis failed";
+      setError(msg);
+      setMessages((m) => [
+        ...m,
+        {
+          id: uid(),
+          role: "assistant",
+          text: `Error: ${msg}`,
+          ts: Date.now(),
+        },
+      ]);
     } finally {
       setBusy(false);
     }

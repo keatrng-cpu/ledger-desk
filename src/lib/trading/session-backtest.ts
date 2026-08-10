@@ -15,6 +15,7 @@ import { summarizeDetectors } from "./detectors";
 import { assessConditions } from "./conditions";
 import { getSessionClock } from "./sessions";
 import { scanSetups, type SetupCandidate } from "./scanner";
+import { ALWAYS_SCAN } from "./strategies";
 import {
   analyzeTradezella,
   analysisToMarkdown,
@@ -556,7 +557,9 @@ export async function runWeekBacktest(
   const coveredDays = allDays.filter((d) => barDays.has(d));
   const uncoveredDays = allDays.filter((d) => !barDays.has(d));
 
-  const MAX_DAYS = 15;
+  // Full month coverage for ~9 PATH/mo pace; week gets all week days
+  const MAX_DAYS =
+    window.kind === "day" ? 3 : window.kind === "week" ? 7 : 23;
   let truncated = false;
   let days =
     coveredDays.length > 0
@@ -580,9 +583,12 @@ export async function runWeekBacktest(
   };
 
   // Snapshots: 10:00 (primary) and 11:00 (secondary) — both causal, pick best path slot
+  // Multiple NY AM snapshots — pick best PATH per day (all strategies scored each time)
   const DECISION_SLOTS: { hour: number; minute: number; label: string }[] = [
+    { hour: 9, minute: 45, label: "09:45 ET" },
     { hour: 10, minute: 0, label: "10:00 ET" },
-    { hour: 10, minute: 45, label: "10:45 ET" },
+    { hour: 10, minute: 30, label: "10:30 ET" },
+    { hour: 11, minute: 0, label: "11:00 ET" },
   ];
   const STRUCTURE_TF_MIN = 15;
 
@@ -686,13 +692,17 @@ export async function runWeekBacktest(
       const clock = getSessionClock(new Date(decisionMs));
       const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
       const forSym = (sym: string) => {
-        const pool = scan.candidates.filter((c) => c.symbol === sym);
+        const pool = scan.candidates
+          .filter((c) => c.symbol === sym)
+          .slice()
+          .sort((a, b) => b.confluence - a.confluence);
+        // Prefer PATH-grade with HTF; then any scored — always multi-strategy pool
         return (
           pool.find((c) => c.actionable) ??
           pool.find(
             (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
           ) ??
-          pool.find((c) => c.grade === "A+" || c.grade === "A-") ??
+          pool.find((c) => c.confluence >= PROFIT_ACTION_FLOOR) ??
           pool[0] ??
           null
         );
@@ -950,12 +960,35 @@ export async function runWeekBacktest(
       : "Log paper only PATH rows."
   } Deadspots: ${deadTop || "none"}. Risk ${APLUS_RULES.riskPct * 100}% · causal 10:00/11:00 ET.`;
   analysis.chartAttached = false;
+  // Strategy coverage (all ALWAYS_SCAN models)
+  const stratCounts: Record<string, number> = {};
+  for (const id of ALWAYS_SCAN) stratCounts[id] = 0;
+  for (const r of rows) {
+    if (!r.best) continue;
+    const primary = r.best.strategyPrimary || "unclassified";
+    stratCounts[primary] = (stratCounts[primary] || 0) + 1;
+    for (const s of r.best.strategies || []) {
+      if (s !== primary) stratCounts[s] = (stratCounts[s] || 0) + 0; // ensure key
+    }
+  }
+  const stratLine = ALWAYS_SCAN.map(
+    (id) => `${id}:${stratCounts[id] || 0}`,
+  ).join(" · ");
+  const monthTarget = APLUS_RULES.targetTradesPerMonth.center;
+  const paceNote =
+    window.kind === "range" || /month|july|jan|feb|mar|apr|may|jun|aug|sep|oct|nov|dec/i.test(window.label)
+      ? `Month pace: ${pnl.taken}/${monthTarget} PATH target (aim ~${monthTarget}/mo · band ${APLUS_RULES.targetTradesPerMonth.min}–${APLUS_RULES.targetTradesPerMonth.max}).`
+      : window.kind === "week"
+        ? `Week pace: ${pnl.taken} PATH (~${monthTarget}/mo ≈ ${Math.round(monthTarget / 4)}/wk).`
+        : `${pnl.taken} PATH.`;
+
   analysis.stats.trades = pnl.taken;
   analysis.stats.winRate = pnl.winRate ?? undefined;
   analysis.stats.netPnl = pnl.sumUsd;
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
+  analysis.summary = `${paceNote} Strategies scanned: ${stratLine}. ` + analysis.summary;
   if (pnl.taken) {
     analysis.summary =
       `TAKEN ${pnl.taken} PATH trades · WR ${
@@ -1019,6 +1052,8 @@ export async function runWeekBacktest(
     },
   ];
   analysis.nextActions = [
+    paceNote,
+    `All strategies always scored: ${ALWAYS_SCAN.join(", ")}.`,
     pnl.taken
       ? `Review ${pnl.taken} TAKEN fills: exit reason + R. Re-run losers for missed HTF/model.`
       : "No PATH this window — do not force B grades. Widen only via better confluence, not lower floor.",

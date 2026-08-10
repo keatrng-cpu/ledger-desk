@@ -14,6 +14,7 @@ import {
 import { WEIGHTS, type ComponentKey } from "./engine-weights";
 import type { SessionClock } from "./sessions";
 import {
+  ALWAYS_SCAN,
   classify,
   primaryTag,
   strategyLabel,
@@ -449,16 +450,6 @@ export function scanSetups(
     focus,
     smt,
     conditions: { left: condL, right: condR },
-    catalog: [
-      "mechanical",
-      "blake_mech",
-      "tjr",
-      "judas",
-      "pdi",
-      "patty",
-      "continuation",
-      "ronan",
-      "smt",
-    ],
+    catalog: [...ALWAYS_SCAN],
   };
 }
