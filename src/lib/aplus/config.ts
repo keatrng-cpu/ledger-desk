@@ -12,16 +12,31 @@ export const CONTRACTS = {
 
 export type ContractKey = keyof typeof CONTRACTS;
 
-/** Active calibration (RULES_CALIBRATION.md / config.py TEST overlay). */
+export type RiskGrade = "A+" | "A" | "A-" | "B" | "C" | "skip";
+
+/** Active calibration (RULES_CALIBRATION.md / desk paper book). */
 export const APLUS_RULES = {
   /** Production A+ tag threshold (journal label). */
   aPlusThreshold: 0.75,
-  /** Active confluence floor — TEST 0.50 in config.py; calibration doc says 0.67. */
-  /** Path / execute floor — calibrated 0.67 (was TEST 0.50). */
+  /** Path / execute floor — calibrated 0.67. */
   confluenceFloor: 0.67,
   confluenceFloorCalibration: 0.67,
-  riskPct: 0.005,
-  riskPctCeiling: 0.01,
+  /**
+   * Grade-based risk on paper / backtest book ($100k).
+   * A+ 3% · A/A- 2% · B 1% · below path 0.
+   */
+  riskByGrade: {
+    "A+": 0.03,
+    A: 0.02,
+    "A-": 0.02,
+    B: 0.01,
+    C: 0.01,
+    skip: 0,
+  } as Record<RiskGrade, number>,
+  /** Default display risk (mid band / A-path). */
+  riskPct: 0.02,
+  /** Hard cap — never size above A+ band. */
+  riskPctCeiling: 0.03,
   minRr: 1.0,
   tpMaxR: 3.0,
   dailyLossLimitPct: 0.02,
@@ -30,12 +45,13 @@ export const APLUS_RULES = {
   useMicros: true,
   symbols: ["NQ", "ES"] as const,
   session: "ny" as const,
-  accountEquity: 10_000,
+  /** Paper + backtest account. */
+  accountEquity: 100_000,
+  paperEquity: 100_000,
   targetTradesPerYear: { min: 105, max: 135, center: 120 },
   targetTradesPerMonth: { min: 10, max: 15 },
   htfTopDownGate: "absolute" as const,
   model: "SMC/ICT + TJR sweep→BOS/MSS→retrace + PB risk",
-  /** Profitability path targets (desk enforcement for action). */
   profitPath: {
     targetWinRate: 0.7,
     targetExpectancyR: 0.35,
@@ -49,6 +65,72 @@ export const APLUS_RULES = {
   >,
 } as const;
 
-export function riskDollars(equity = APLUS_RULES.accountEquity): number {
-  return equity * APLUS_RULES.riskPct;
+/** Map confluence score → risk grade label for sizing. */
+export function riskGradeFromScore(score: number): RiskGrade {
+  if (score >= APLUS_RULES.aPlusThreshold) return "A+";
+  if (score >= APLUS_RULES.confluenceFloor) return "A";
+  if (score >= APLUS_RULES.confluenceFloor - 0.12) return "B";
+  if (score > 0) return "C";
+  return "skip";
+}
+
+/** Risk % of equity for a grade (clamped 0–ceiling). */
+export function riskPctForGrade(grade: RiskGrade | string): number {
+  const g = (grade in APLUS_RULES.riskByGrade ? grade : "skip") as RiskGrade;
+  const pct = APLUS_RULES.riskByGrade[g] ?? 0;
+  return Math.min(Math.max(pct, 0), APLUS_RULES.riskPctCeiling);
+}
+
+export function riskPctForScore(score: number): number {
+  return riskPctForGrade(riskGradeFromScore(score));
+}
+
+export function riskDollars(
+  equity = APLUS_RULES.accountEquity,
+  gradeOrScore?: RiskGrade | number,
+): number {
+  let pct: number = APLUS_RULES.riskPct;
+  if (typeof gradeOrScore === "number") pct = riskPctForScore(gradeOrScore);
+  else if (typeof gradeOrScore === "string") pct = riskPctForGrade(gradeOrScore);
+  return equity * pct;
+}
+
+/** Contracts so stop risk ≈ riskDollars (micros preferred). Min 1 if risk > 0. */
+export function sizeContracts(opts: {
+  symbol: string;
+  riskPts: number;
+  equity?: number;
+  gradeOrScore?: RiskGrade | number;
+}): { contracts: number; riskPct: number; riskDollars: number; pv: number } {
+  const equity = opts.equity ?? APLUS_RULES.paperEquity;
+  const pct =
+    typeof opts.gradeOrScore === "number"
+      ? riskPctForScore(opts.gradeOrScore)
+      : typeof opts.gradeOrScore === "string"
+        ? riskPctForGrade(opts.gradeOrScore)
+        : APLUS_RULES.riskPct;
+  const dollars = equity * pct;
+  const key = (
+    opts.symbol in CONTRACTS ? opts.symbol : "MNQ"
+  ) as ContractKey;
+  // Prefer micro when useMicros
+  const microKey = APLUS_RULES.useMicros
+    ? ((CONTRACTS[key].micro in CONTRACTS
+        ? CONTRACTS[key].micro
+        : key) as ContractKey)
+    : key;
+  const pv = CONTRACTS[microKey]?.pointValue ?? CONTRACTS.MNQ.pointValue;
+  const riskPts = Math.max(opts.riskPts, 0.25);
+  const perContractRisk = riskPts * pv;
+  let contracts =
+    perContractRisk > 0 ? Math.floor(dollars / perContractRisk) : 0;
+  if (pct > 0 && contracts < 1) contracts = 1;
+  // Cap extreme size (safety)
+  contracts = Math.min(contracts, 200);
+  return {
+    contracts,
+    riskPct: pct,
+    riskDollars: dollars,
+    pv,
+  };
 }

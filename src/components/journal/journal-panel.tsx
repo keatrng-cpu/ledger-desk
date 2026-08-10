@@ -201,7 +201,7 @@ export function JournalPanel({
   onChanged?: () => void;
 } = {}) {
   const [trades, setTrades] = useState<JournalTrade[] | null>(null);
-  const [equity, setEquity] = useState(10_000);
+  const [equity, setEquity] = useState(100_000);
   const [equityDraft, setEquityDraft] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

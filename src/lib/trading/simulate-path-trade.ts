@@ -6,7 +6,13 @@
  */
 
 import type { OhlcBar } from "@/lib/market/types";
-import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
+import {
+  APLUS_RULES,
+  CONTRACTS,
+  sizeContracts,
+  riskGradeFromScore,
+  type ContractKey,
+} from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
 
 export type TradeExitReason =
@@ -30,9 +36,14 @@ export interface SimulatedTrade {
   exitReason: TradeExitReason;
   /** +R multiple at exit (negative = loss) */
   rMultiple: number | null;
-  /** Dollar P&L using micro point value + 1 contract commission */
+  /** Dollar P&L on paper book (grade-sized micros − commission) */
   pnlUsd: number | null;
   contracts: number;
+  /** Risk % used for size (1–3% by grade) */
+  riskPct: number;
+  riskDollars: number;
+  grade: string;
+  equity: number;
   entryTimeIso: string;
   exitTimeIso: string | null;
   barsHeld: number;
@@ -57,10 +68,17 @@ function parseZoneMid(entryZone: string): number | null {
   return null;
 }
 
-function pointValue(symbol: string): { pv: number; commission: number } {
+function pointValue(symbol: string): { pv: number; commission: number; key: ContractKey } {
   const key = (symbol in CONTRACTS ? symbol : "MNQ") as ContractKey;
+  if (APLUS_RULES.useMicros) {
+    const micro = CONTRACTS[key].micro as ContractKey;
+    if (micro in CONTRACTS) {
+      const c = CONTRACTS[micro];
+      return { pv: c.pointValue, commission: c.commission, key: micro };
+    }
+  }
   const c = CONTRACTS[key] ?? CONTRACTS.MNQ;
-  return { pv: c.pointValue, commission: c.commission };
+  return { pv: c.pointValue, commission: c.commission, key };
 }
 
 /**
@@ -75,8 +93,11 @@ export function simulatePathTrade(opts: {
   forwardBars: OhlcBar[];
   /** Risk distance override in points; default from stop structure or ~0.15% */
   riskPtsFallback?: number;
+  /** Paper / backtest equity (default $100k). */
+  equity?: number;
 }): SimulatedTrade {
   const { best, entryPrice, decisionMs, forwardBars } = opts;
+  const equity = opts.equity ?? APLUS_RULES.paperEquity;
   const side = best.side;
   const symbol = best.symbol;
 
@@ -140,6 +161,14 @@ export function simulatePathTrade(opts: {
     }
   }
 
+  const grade = riskGradeFromScore(best.confluence);
+  const sizing = sizeContracts({
+    symbol,
+    riskPts,
+    equity,
+    gradeOrScore: best.confluence,
+  });
+
   const base: SimulatedTrade = {
     taken: true,
     symbol,
@@ -153,7 +182,11 @@ export function simulatePathTrade(opts: {
     exitReason: "no_fill",
     rMultiple: null,
     pnlUsd: null,
-    contracts: 1,
+    contracts: sizing.contracts,
+    riskPct: sizing.riskPct,
+    riskDollars: sizing.riskDollars,
+    grade,
+    equity,
     entryTimeIso: new Date(decisionMs).toISOString(),
     exitTimeIso: null,
     barsHeld: 0,
@@ -229,7 +262,8 @@ export function simulatePathTrade(opts: {
   const signedPts = side === "long" ? exit - entryPrice : entryPrice - exit;
   const rMultiple = riskPts > 0 ? signedPts / riskPts : 0;
   const { pv, commission } = pointValue(symbol);
-  const pnlUsd = signedPts * pv * 1 - commission;
+  const contracts = base.contracts;
+  const pnlUsd = signedPts * pv * contracts - commission * contracts;
 
   return {
     ...base,
@@ -237,6 +271,7 @@ export function simulatePathTrade(opts: {
     exitReason: reason,
     rMultiple: Math.round(rMultiple * 100) / 100,
     pnlUsd: Math.round(pnlUsd * 100) / 100,
+    contracts,
     exitTimeIso: exitT ? new Date(exitT).toISOString() : null,
     barsHeld: held,
   };

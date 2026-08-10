@@ -164,7 +164,7 @@ const TRADE_COLUMNS = `id, mode, source, symbol, side, status, opened_at,
 /* Settings                                                           */
 /* ------------------------------------------------------------------ */
 
-const DEFAULT_EQUITY = 10_000;
+const DEFAULT_EQUITY = 100_000;
 
 async function readEquity(sql: Sql, userId: string): Promise<number> {
   const rows = await sql<{ equity: number }>`

@@ -243,8 +243,7 @@ function WeekTable({
             })}
           </ul>
           <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
-            Auto-taken at decision close · 1 micro · stop vs 1R/2R · RTH exit walk ·
-            risk 0.5% model
+            Auto-taken at decision · $100k paper · 1–3% by grade (micros) · RTH exit walk
           </p>
         </div>
       ) : (
@@ -516,7 +515,7 @@ function AnalysisCard({
               </div>
             </div>
             <p className="mt-2 text-[10px] text-[var(--color-subtle)]">
-              1 micro · floor 0.67 · stop vs 1R/2R · RTH walk after entry
+              Paper $100k · size A+ 3% / A 2% / B 1% in micros · floor 0.67 · RTH walk
             </p>
           </div>
 
@@ -573,7 +572,8 @@ function AnalysisCard({
                         {tr.exitReason}
                       </span>
                       <span className="text-[10px] text-[var(--color-subtle)]">
-                        {d.best?.grade} {d.best?.confluence.toFixed(2)} · HTF{" "}
+                        {d.best?.grade} {d.best?.confluence.toFixed(2)} ·{" "}
+                        {tr.contracts}ct · {(tr.riskPct * 100).toFixed(0)}% · HTF{" "}
                         {d.htf}
                       </span>
                     </li>

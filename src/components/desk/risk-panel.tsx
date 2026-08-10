@@ -96,8 +96,9 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
 
   const rows = [
     ["Account equity", `$${equity.toLocaleString()}`],
-    ["Risk / trade", `${(r.riskPct * 100).toFixed(1)}% · $${riskDollars.toFixed(0)}`],
-    ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap`],
+    ["Risk / trade", `A+ 3% · A 2% · B 1% (default ${(r.riskPct * 100).toFixed(0)}%)`],
+    ["$ risk band", `$${(equity * 0.01).toFixed(0)}–$${(equity * APLUS_RULES.riskPctCeiling).toFixed(0)} on $${equity.toLocaleString()}`],
+    ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap (A+)`],
     ["R:R band", `${APLUS_RULES.minRr}:1 – 1:${APLUS_RULES.tpMaxR}`],
     ["Setups / killzone", String(r.maxSetups)],
     ["Daily halt", `${(r.dailyLimitPct * 100).toFixed(0)}%`],

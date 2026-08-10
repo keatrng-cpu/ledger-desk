@@ -961,7 +961,7 @@ export async function runWeekBacktest(
       `TAKEN ${pnl.taken} PATH trades · WR ${
         pnl.winRate != null ? (pnl.winRate * 100).toFixed(0) + "%" : "—"
       } · ${pnl.sumR >= 0 ? "+" : ""}${pnl.sumR}R · $${pnl.sumUsd >= 0 ? "" : "-"}${Math.abs(pnl.sumUsd).toFixed(0)} ` +
-      `(1 micro · floor ${PROFIT_ACTION_FLOOR}). ` +
+      `(paper $100k · grade 1–3% · floor ${PROFIT_ACTION_FLOOR}). ` +
       analysis.summary;
   }
 
@@ -1003,9 +1003,9 @@ export async function runWeekBacktest(
           : "No PATH to take",
     },
     {
-      item: "Risk model 0.5% / 1 micro",
+      item: "Risk model $100k · 1–3% by grade",
       status: "pass",
-      detail: "Sim uses 1 micro + commission; desk risk 0.5%",
+      detail: "A+ 3% · A/A- 2% · B 1% · micros sized to stop risk",
     },
     {
       item: "Selectivity (skips journaled as edge)",

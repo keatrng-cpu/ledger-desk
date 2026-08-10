@@ -5,7 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AlertTriangle, NotebookPen, X } from "lucide-react";
 import type { SetupCandidate } from "@/lib/trading/scanner";
-import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
+import {
+  APLUS_RULES,
+  CONTRACTS,
+  riskPctForScore,
+  riskGradeFromScore,
+  type ContractKey,
+} from "@/lib/aplus/config";
 import {
   openTrade,
   type JournalTrade,
@@ -130,7 +136,10 @@ export function LogSetupDialog({
     if (!entry || !stop || !contracts || !contract) return null;
     return Math.abs(entry - stop) * contract.pointValue * contracts;
   }, [entry, stop, contracts, contract]);
-  const allowedRisk = equity * APLUS_RULES.riskPct;
+  const gradePct = riskPctForScore(candidate.confluence);
+  const gradeLabel = riskGradeFromScore(candidate.confluence);
+  const allowedRisk = equity * gradePct;
+
   const oversized = plannedRisk != null && plannedRisk > allowedRisk;
 
   const submit = handleSubmit(async (values) => {
@@ -325,13 +334,16 @@ export function LogSetupDialog({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Allowed ({(APLUS_RULES.riskPct * 100).toFixed(1)}% of ${equity.toLocaleString()})</span>
+                <span>
+                  Allowed ({(gradePct * 100).toFixed(0)}% {gradeLabel} of $
+                  {equity.toLocaleString()})
+                </span>
                 <span>${allowedRisk.toFixed(2)}</span>
               </div>
               {oversized && (
                 <p className="mt-1.5 flex items-center gap-1.5 font-sans font-medium">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Oversized — exceeds the {(APLUS_RULES.riskPct * 100).toFixed(1)}% risk
+                  Oversized — exceeds the {(gradePct * 100).toFixed(0)}% {gradeLabel} risk
                   rule. Reduce contracts or tighten the stop.
                 </p>
               )}
