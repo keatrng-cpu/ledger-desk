@@ -11,6 +11,7 @@ import {
   Swords,
   Target,
   TrendingUp,
+  Brain,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -28,6 +29,7 @@ import { SetupScanner } from "@/components/desk/setup-scanner";
 import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
+import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { Button } from "@/components/ui/button";
 import {
   fetchTradingDesk,
@@ -47,6 +49,7 @@ export const Route = createFileRoute("/")({
 const DESK_POLL_MS = 30_000;
 
 type DeskCategory =
+  | "brain"
   | "trade"
   | "path"
   | "backtest"
@@ -61,6 +64,13 @@ const CATEGORIES: {
   hint: string;
   icon: typeof Target;
 }[] = [
+  {
+    id: "brain",
+    label: "Veteran",
+    short: "Brain",
+    hint: "Memory · discretion · TAKE/SKIP",
+    icon: Brain,
+  },
   {
     id: "trade",
     label: "Trade now",
@@ -110,7 +120,7 @@ function MasterplacePage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
-  const [cat, setCat] = useState<DeskCategory>("trade");
+  const [cat, setCat] = useState<DeskCategory>("brain");
   const [risk, setRisk] = useState<RiskState | null>(null);
   const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
@@ -343,6 +353,18 @@ function MasterplacePage() {
 
             {/* Category panels — only one active for focus */}
             <div className="min-h-[50vh]">
+              {cat === "brain" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="V"
+                    title="Veteran brain"
+                    sub="SMC/ICT discretion · remembers backtests & journal · never overrides hard gates"
+                  />
+                  <VeteranBrainPanel desk={desk} risk={risk} />
+                  <TradingCoach desk={desk} />
+                </div>
+              )}
+
               {cat === "trade" && (
                 <div className="space-y-5">
                   <SectionHead
@@ -412,13 +434,10 @@ function MasterplacePage() {
                 <div className="space-y-5">
                   <SectionHead
                     n="R"
-                    title="Risk & coach"
+                    title="Risk governor"
                     sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · B 1% · C 0.5% · halt rules`}
                   />
-                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    <RiskPanel desk={desk} />
-                    <TradingCoach desk={desk} />
-                  </div>
+                  <RiskPanel desk={desk} />
                 </div>
               )}
 

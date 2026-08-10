@@ -19,6 +19,7 @@ import {
 } from "@/lib/journal/server";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { rememberLiveSetup } from "@/lib/trading/desk-memory";
 
 const SYMBOLS = Object.keys(CONTRACTS) as ContractKey[];
 
@@ -169,6 +170,16 @@ export function LogSetupDialog({
           .join(" · "),
       };
       const trade = await openTrade({ data: input });
+      rememberLiveSetup({
+        symbol: input.symbol,
+        side: input.side,
+        grade: candidate.grade,
+        score: candidate.confluence,
+        mode: input.mode === "live" ? "live" : "paper",
+      });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("ledger-memory"));
+      }
       onOpenChange(false);
       onLogged?.(trade);
     } catch (e) {

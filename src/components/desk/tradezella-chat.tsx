@@ -29,6 +29,7 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import type { LogMode } from "@/components/desk/setup-scanner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { updateBookFromBacktest, remember } from "@/lib/trading/desk-memory";
 
 type Role = "user" | "assistant" | "system";
 
@@ -1005,6 +1006,34 @@ export function TradezellaChat({
         } catch (e) {
           console.warn("markup failed", e);
         }
+      }
+
+      // Persist for veteran brain memory
+      if (result.mode === "week_backtest" && result.days?.length) {
+        const trades = result.days
+          .map((d) => d.trade)
+          .filter((tr) => tr && tr.taken && tr.rMultiple != null);
+        const wins = trades.filter((tr) => (tr!.rMultiple ?? 0) > 0).length;
+        const losses = trades.length - wins;
+        const sumR = trades.reduce((s, tr) => s + (tr!.rMultiple ?? 0), 0);
+        const wr = trades.length ? wins / trades.length : null;
+        updateBookFromBacktest({
+          label: result.analysis.title || "Backtest",
+          taken: trades.length,
+          wins,
+          losses,
+          sumR: Math.round(sumR * 100) / 100,
+          wr,
+        });
+        window.dispatchEvent(new Event("ledger-memory"));
+      } else if (result.analysis?.summary) {
+        remember(
+          "session",
+          result.analysis.title || "Analysis",
+          result.analysis.summary.slice(0, 200),
+          ["tz"],
+        );
+        window.dispatchEvent(new Event("ledger-memory"));
       }
 
       const assistant: ChatMessage = {
