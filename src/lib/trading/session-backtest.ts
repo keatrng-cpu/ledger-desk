@@ -21,6 +21,11 @@ import {
   type TradezellaAnalysis,
 } from "./tradezella-analyze";
 import { PROFIT_ACTION_FLOOR, PROFIT_TARGET_WR } from "./profit-path";
+import {
+  simulatePathTrade,
+  summarizeTrades,
+  type SimulatedTrade,
+} from "./simulate-path-trade";
 import { APLUS_RULES } from "@/lib/aplus/config";
 
 export interface DateWindow {
@@ -48,6 +53,8 @@ export interface DayBacktestRow {
   sessionBars?: number;
   /** Why slot is dead / skipped */
   deadspot?: string | null;
+  /** Simulated PATH fill + P&L (only when taken) */
+  trade?: SimulatedTrade | null;
 }
 
 export interface WeekBacktestReport {
@@ -63,6 +70,16 @@ export interface WeekBacktestReport {
   totalDaySlots: number;
   analysis: TradezellaAnalysis;
   markdown: string;
+  trades?: SimulatedTrade[];
+  pnl?: {
+    taken: number;
+    wins: number;
+    losses: number;
+    winRate: number | null;
+    sumR: number;
+    expectancyR: number | null;
+    sumUsd: number;
+  };
 }
 
 const MONTHS: Record<string, number> = {
@@ -368,6 +385,32 @@ export function causalClosedBars(
   return bars.filter((b) => b.t + dur <= decisionMs);
 }
 
+function takePathTrade(
+  best: SetupCandidate | null,
+  pathEligible: boolean,
+  decisionMs: number,
+  rth1m: OhlcBar[],
+  ltf1m: OhlcBar[],
+): SimulatedTrade | null {
+  if (!pathEligible || !best) return null;
+  // Entry = last closed LTF 1m at decision (causal)
+  const entryBar =
+    [...ltf1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1) ??
+    [...rth1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1);
+  if (!entryBar) return null;
+  // Forward walk: RTH bars after entry (same day preferred, allow rest of session)
+  const dayKey = dateKeyEt(decisionMs);
+  const forward = rth1m.filter(
+    (b) => b.t > decisionMs && dateKeyEt(b.t) === dayKey,
+  );
+  return simulatePathTrade({
+    best,
+    entryPrice: entryBar.c,
+    decisionMs,
+    forwardBars: forward,
+  });
+}
+
 /** Hard assert: no bar may open at or after decision, and bucket must be closed. */
 export function assertCausal(
   bars: OhlcBar[],
@@ -489,6 +532,7 @@ export async function runWeekBacktest(
     bars: leftL.ltf1m, // LTF default
     htf1h: leftL.htf1h,
     htf4h: leftL.htf4h,
+    rth1m: leftL.rth1m,
     count: leftL.ltf1m.length,
     first: leftL.first,
     last: leftL.last,
@@ -499,6 +543,7 @@ export async function runWeekBacktest(
     bars: rightL.ltf1m,
     htf1h: rightL.htf1h,
     htf4h: rightL.htf4h,
+    rth1m: rightL.rth1m,
     count: rightL.ltf1m.length,
     first: rightL.first,
     last: rightL.last,
@@ -640,14 +685,19 @@ export async function runWeekBacktest(
       const div = smtDivergence(ltfL.length >= 20 ? ltfL : structureL, ltfR.length >= 20 ? ltfR : structureR);
       const clock = getSessionClock(new Date(decisionMs));
       const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
-      const best =
-        scan.candidates.find((c) => c.actionable) ??
-        scan.candidates.find(
-          (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
-        ) ??
-        scan.candidates.find((c) => c.grade === "A+" || c.grade === "A-") ??
-        scan.candidates[0] ??
-        null;
+      const forSym = (sym: string) => {
+        const pool = scan.candidates.filter((c) => c.symbol === sym);
+        return (
+          pool.find((c) => c.actionable) ??
+          pool.find(
+            (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
+          ) ??
+          pool.find((c) => c.grade === "A+" || c.grade === "A-") ??
+          pool[0] ??
+          null
+        );
+      };
+      const best = forSym(left.symbol);
       const cond = assessConditions(lBars);
       const det = summarizeDetectors(lBars);
       const causalOk = causalL.ok && assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN).ok;
@@ -740,6 +790,13 @@ export async function runWeekBacktest(
       },
     ];
 
+    const tradeL = takePathTrade(
+      pick.best,
+      pick.pathEligible,
+      pick.decisionMs,
+      left.rth1m,
+      left.bars,
+    );
     rows.push({
       date: day,
       symbol: left.symbol,
@@ -755,6 +812,7 @@ export async function runWeekBacktest(
       decisionIso: new Date(pick.decisionMs).toISOString(),
       sessionBars: pick.sessionBars,
       deadspot,
+      trade: tradeL,
     });
 
     if (right.symbol !== left.symbol) {
@@ -793,6 +851,13 @@ export async function runWeekBacktest(
             bestR.htfOk &&
             condR.tradeable,
         );
+        const tradeR = takePathTrade(
+          bestR,
+          pathR,
+          decisionMs,
+          right.rth1m,
+          right.bars,
+        );
         rows.push({
           date: day,
           symbol: right.symbol,
@@ -818,12 +883,17 @@ export async function runWeekBacktest(
             : bestR
               ? `below path ${bestR.grade}`
               : "no ES path setup",
+          trade: tradeR,
         });
       }
     }
   }
 
   const pathEligibleCount = rows.filter((r) => r.pathEligible).length;
+  const trades = rows
+    .map((r) => r.trade)
+    .filter((t): t is SimulatedTrade => Boolean(t && t.taken && t.rMultiple != null));
+  const pnl = summarizeTrades(trades);
   const queue = days.map((d) => `${d} · NY AM review`);
 
   const bestDays = rows.filter((r) => r.pathEligible);
@@ -880,10 +950,20 @@ export async function runWeekBacktest(
       : "Log paper only PATH rows."
   } Deadspots: ${deadTop || "none"}. Risk ${APLUS_RULES.riskPct * 100}% · causal 10:00/11:00 ET.`;
   analysis.chartAttached = false;
-  analysis.stats.trades = pathEligibleCount;
+  analysis.stats.trades = pnl.taken;
+  analysis.stats.winRate = pnl.winRate ?? undefined;
+  analysis.stats.netPnl = pnl.sumUsd;
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
+  if (pnl.taken) {
+    analysis.summary =
+      `TAKEN ${pnl.taken} PATH trades · WR ${
+        pnl.winRate != null ? (pnl.winRate * 100).toFixed(0) + "%" : "—"
+      } · ${pnl.sumR >= 0 ? "+" : ""}${pnl.sumR}R · $${pnl.sumUsd >= 0 ? "" : "-"}${Math.abs(pnl.sumUsd).toFixed(0)} ` +
+      `(1 micro · floor ${PROFIT_ACTION_FLOOR}). ` +
+      analysis.summary;
+  }
   analysis.disclaimer =
     "CAUSAL DUAL-LAYER: HTF bias from RTH→1h/4h (sparse multi-week); LTF from NY 08:30–11:00 1m only. Decisions 10:00/11:00 ET, closed bars only — no future, no full-day close peek. Educational — not an order.";
   analysis.nextActions = [
@@ -894,16 +974,30 @@ export async function runWeekBacktest(
   const md = [
     analysisToMarkdown(analysis),
     "",
+    "### P&L (PATH taken)",
+    pnl.taken
+      ? `- **${pnl.taken} trades** · WR ${pnl.winRate != null ? (pnl.winRate * 100).toFixed(0) + "%" : "—"} · **${pnl.sumR >= 0 ? "+" : ""}${pnl.sumR}R** · **$${pnl.sumUsd.toFixed(2)}** · E[${pnl.expectancyR ?? "—"}R]`
+      : "- No PATH trades taken this window.",
+    ...trades.map(
+      (tr) =>
+        `- ${tr.entryTimeIso.slice(0, 10)} ${tr.symbol} ${tr.side} → ${tr.exitReason} · ${tr.rMultiple != null && tr.rMultiple >= 0 ? "+" : ""}${tr.rMultiple}R · $${tr.pnlUsd}`,
+    ),
+    "",
     "### Day-by-day (real data)",
     ...rows.map((r) => {
       const b = r.best;
+      const tr = r.trade;
       return `- **${r.date} ${r.symbol}** HTF ${r.htf} · mid ${r.mid} · ${r.regime} · ${
         r.pathEligible ? "PATH" : "skip"
       }${
         b
           ? ` · ${b.side} ${b.grade} ${b.confluence.toFixed(2)} · ${b.strategyPrimary || ""}`
           : ""
-      }${r.deadspot ? ` · dead: ${r.deadspot}` : ""}${r.sessionBars != null ? ` · bars=${r.sessionBars}` : ""}`;
+      }${
+        tr && tr.rMultiple != null
+          ? ` · **${tr.rMultiple >= 0 ? "+" : ""}${tr.rMultiple}R / $${tr.pnlUsd}** (${tr.exitReason})`
+          : ""
+      }${r.deadspot ? ` · dead: ${r.deadspot}` : ""}`;
     }),
     "",
     "### Data coverage",
@@ -1015,6 +1109,8 @@ export async function runWeekBacktest(
     totalDaySlots: rows.length,
     analysis,
     markdown: md,
+    trades,
+    pnl,
   };
 }
 

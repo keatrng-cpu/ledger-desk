@@ -104,26 +104,69 @@ function WeekTable({
   const pathRows = days.filter((d) => d.pathEligible);
   const skipRows = days.filter((d) => !d.pathEligible);
   const ordered = [...pathRows, ...skipRows];
+  const trades = days
+    .map((d) => d.trade)
+    .filter((tr): tr is NonNullable<typeof tr> => Boolean(tr?.taken && tr.rMultiple != null));
+  const wins = trades.filter((tr) => (tr.rMultiple ?? 0) > 0).length;
+  const sumR = trades.reduce((s, tr) => s + (tr.rMultiple ?? 0), 0);
+  const sumUsd = trades.reduce((s, tr) => s + (tr.pnlUsd ?? 0), 0);
+  const wr = trades.length ? wins / trades.length : null;
 
   return (
     <div className="mt-3 space-y-3">
-      {/* Direct headline */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* Direct headline + realized P&L */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
           <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Path (≥0.67)
+            Taken
+          </p>
+          <p className="font-mono text-lg font-semibold text-[var(--color-fg)]">
+            {trades.length}
+            <span className="text-xs font-normal text-[var(--color-subtle)]">
+              /{pathRows.length} path
+            </span>
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Win rate
+          </p>
+          <p className="font-mono text-lg font-semibold text-[var(--color-fg)]">
+            {wr != null ? `${(wr * 100).toFixed(0)}%` : "—"}
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Net R
           </p>
           <p
             className={
-              pathRows.length
+              sumR > 0
                 ? "font-mono text-lg font-semibold text-[var(--color-up)]"
-                : "font-mono text-lg font-semibold text-[var(--color-fg)]"
+                : sumR < 0
+                  ? "font-mono text-lg font-semibold text-[var(--color-down)]"
+                  : "font-mono text-lg font-semibold text-[var(--color-fg)]"
             }
           >
-            {pathRows.length}
-            <span className="text-xs font-normal text-[var(--color-subtle)]">
-              /{days.length}
-            </span>
+            {trades.length ? `${sumR >= 0 ? "+" : ""}${sumR.toFixed(2)}R` : "—"}
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Net $
+          </p>
+          <p
+            className={
+              sumUsd > 0
+                ? "font-mono text-lg font-semibold text-[var(--color-up)]"
+                : sumUsd < 0
+                  ? "font-mono text-lg font-semibold text-[var(--color-down)]"
+                  : "font-mono text-lg font-semibold text-[var(--color-fg)]"
+            }
+          >
+            {trades.length
+              ? `${sumUsd >= 0 ? "+" : "-"}$${Math.abs(sumUsd).toFixed(0)}`
+              : "—"}
           </p>
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
@@ -136,18 +179,10 @@ function WeekTable({
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
           <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Skip / B
+            Skip
           </p>
           <p className="font-mono text-lg font-semibold text-[var(--color-muted)]">
             {skipRows.length}
-          </p>
-        </div>
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Rule
-          </p>
-          <p className="text-[11px] font-medium text-[var(--color-fg)]">
-            Take PATH only
           </p>
         </div>
       </div>
@@ -158,12 +193,16 @@ function WeekTable({
             Take these (PATH)
           </p>
           <ul className="space-y-1 text-xs text-[var(--color-fg)]">
-            {pathRows.map((d) => (
+            {pathRows.map((d) => {
+              const tr = d.trade;
+              const r = tr?.rMultiple;
+              const usd = tr?.pnlUsd;
+              return (
               <li
                 key={`p-${d.date}-${d.symbol}`}
                 className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono"
               >
-                <span className="text-[var(--color-up)]">PATH</span>
+                <span className="text-[var(--color-up)]">TAKEN</span>
                 <span>{d.date}</span>
                 <span>{d.symbol}</span>
                 <span
@@ -178,14 +217,34 @@ function WeekTable({
                 <span>
                   {d.best?.grade} {d.best?.confluence.toFixed(2)}
                 </span>
+                {r != null && (
+                  <span
+                    className={
+                      r > 0
+                        ? "font-semibold text-[var(--color-up)]"
+                        : "font-semibold text-[var(--color-down)]"
+                    }
+                  >
+                    {r >= 0 ? "+" : ""}
+                    {r.toFixed(2)}R
+                    {usd != null
+                      ? ` · ${usd >= 0 ? "+" : "-"}$${Math.abs(usd).toFixed(0)}`
+                      : ""}
+                    <span className="ml-1 font-normal text-[var(--color-subtle)]">
+                      {tr?.exitReason}
+                    </span>
+                  </span>
+                )}
                 <span className="text-[var(--color-subtle)]">
                   HTF {d.htf} · {d.best?.strategyPrimary || "—"}
                 </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
           <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
-            Log paper each PATH row · max 2 / killzone · risk 0.5%
+            Auto-taken at decision close · 1 micro · stop vs 1R/2R · RTH exit walk ·
+            risk 0.5% model
           </p>
         </div>
       ) : (
@@ -209,6 +268,9 @@ function WeekTable({
                 <th className="px-2 py-1.5">Setup</th>
                 <th className="px-2 py-1.5">Score</th>
                 <th className="px-2 py-1.5">Path</th>
+                <th className="px-2 py-1.5">R</th>
+                <th className="px-2 py-1.5">$</th>
+                <th className="px-2 py-1.5">Exit</th>
                 <th className="px-2 py-1.5">Why not</th>
               </tr>
             </thead>
@@ -258,6 +320,35 @@ function WeekTable({
                       }
                     >
                       {d.pathEligible ? "YES" : "no"}
+                    </td>
+                    <td
+                      className={
+                        d.trade?.rMultiple != null && d.trade.rMultiple > 0
+                          ? "px-2 py-1.5 font-mono font-semibold text-[var(--color-up)]"
+                          : d.trade?.rMultiple != null && d.trade.rMultiple < 0
+                            ? "px-2 py-1.5 font-mono font-semibold text-[var(--color-down)]"
+                            : "px-2 py-1.5 font-mono text-[var(--color-subtle)]"
+                      }
+                    >
+                      {d.trade?.rMultiple != null
+                        ? `${d.trade.rMultiple >= 0 ? "+" : ""}${d.trade.rMultiple.toFixed(2)}`
+                        : "—"}
+                    </td>
+                    <td
+                      className={
+                        d.trade?.pnlUsd != null && d.trade.pnlUsd > 0
+                          ? "px-2 py-1.5 font-mono text-[var(--color-up)]"
+                          : d.trade?.pnlUsd != null && d.trade.pnlUsd < 0
+                            ? "px-2 py-1.5 font-mono text-[var(--color-down)]"
+                            : "px-2 py-1.5 font-mono text-[var(--color-subtle)]"
+                      }
+                    >
+                      {d.trade?.pnlUsd != null
+                        ? `${d.trade.pnlUsd >= 0 ? "+" : "-"}$${Math.abs(d.trade.pnlUsd).toFixed(0)}`
+                        : "—"}
+                    </td>
+                    <td className="px-2 py-1.5 text-[10px] text-[var(--color-subtle)]">
+                      {d.trade?.exitReason ?? "—"}
                     </td>
                     <td className="max-w-[10rem] truncate px-2 py-1.5 text-[10px] text-[var(--color-subtle)]" title={d.deadspot || ""}>
                       {d.pathEligible

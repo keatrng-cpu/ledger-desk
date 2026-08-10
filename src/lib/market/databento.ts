@@ -364,6 +364,8 @@ export interface BacktestLayers {
   htf4h: OhlcBar[];
   /** NY 08:30–11:00 ET 1m only — entry / detectors. */
   ltf1m: OhlcBar[];
+  /** RTH 09:30–16:00 ET 1m — post-entry P&L walk (not used for HTF bias). */
+  rth1m: OhlcBar[];
   raw1mCount: number;
   first: string;
   last: string;
@@ -431,7 +433,7 @@ export async function fetchBacktestLayers(
   async function loadChunk(
     rs: number,
     re: number,
-  ): Promise<{ h1: OhlcBar[]; h4: OhlcBar[]; ltf: OhlcBar[]; raw: number }> {
+  ): Promise<{ h1: OhlcBar[]; h4: OhlcBar[]; ltf: OhlcBar[]; rth: OhlcBar[]; raw: number }> {
     let start = new Date(rs).toISOString();
     let end = new Date(re).toISOString();
     let result = await getRangeOnce(key, symbol, start, end);
@@ -444,7 +446,7 @@ export async function fetchBacktestLayers(
     }
     if (!result.ok) {
       console.warn(`[databento] layers ${symbol} chunk HTTP ${result.status}`);
-      return { h1: [], h4: [], ltf: [], raw: 0 };
+      return { h1: [], h4: [], ltf: [], rth: [], raw: 0 };
     }
     const one = parseCsv(result.text, MAX_BARS_BACKTEST);
     const rth = rthBars(one);
@@ -452,6 +454,7 @@ export async function fetchBacktestLayers(
       h1: aggregateBars(rth, 60),
       h4: aggregateBars(rth, 240),
       ltf: nyAmBars(one),
+      rth,
       raw: one.length,
     };
   }
@@ -460,6 +463,7 @@ export async function fetchBacktestLayers(
   const htf1hParts: OhlcBar[] = [];
   const htf4hParts: OhlcBar[] = [];
   const ltfParts: OhlcBar[] = [];
+  const rthParts: OhlcBar[] = [];
   let raw1mCount = 0;
   for (let i = 0; i < ranges.length; i += 3) {
     const batch = ranges.slice(i, i + 3);
@@ -469,6 +473,7 @@ export async function fetchBacktestLayers(
       htf1hParts.push(...p.h1);
       htf4hParts.push(...p.h4);
       ltfParts.push(...p.ltf);
+      rthParts.push(...p.rth);
     }
   }
 
@@ -481,16 +486,19 @@ export async function fetchBacktestLayers(
   const htf1h = dedupe(htf1hParts);
   const htf4h = dedupe(htf4hParts);
   const ltf1m = dedupe(ltfParts);
+  const rth1m = dedupe(rthParts);
 
   if (htf1h.length < 20 && ltf1m.length < 30) return null;
 
   const firstT = Math.min(
     htf1h[0]?.t ?? Infinity,
     ltf1m[0]?.t ?? Infinity,
+    rth1m[0]?.t ?? Infinity,
   );
   const lastT = Math.max(
     htf1h[htf1h.length - 1]?.t ?? 0,
     ltf1m[ltf1m.length - 1]?.t ?? 0,
+    rth1m[rth1m.length - 1]?.t ?? 0,
   );
 
   return {
@@ -499,6 +507,7 @@ export async function fetchBacktestLayers(
     htf1h,
     htf4h,
     ltf1m,
+    rth1m,
     raw1mCount,
     first: new Date(firstT).toISOString(),
     last: new Date(lastT).toISOString(),
