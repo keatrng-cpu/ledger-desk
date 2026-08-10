@@ -51,15 +51,15 @@ interface ChatMessage {
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "system",
-  text: "TZ Lab · type “backtest week of May 12 2026” for real Databento multi-day analysis (no screenshots). Or attach multi-TF charts / CSV. Log paper · Log live · Skip — nothing auto-journals.",
+  text: "TZ Lab · try “backtest july 2026” or “back test july 2026” (typos OK). Real Databento, causal 10:00 ET decisions — no future bars. Charts/CSV optional. Log paper · live · Skip.",
   ts: Date.now(),
 };
 
 const QUICK = [
-  "backtest week of May 12 2026 MNQ ES",
-  "backtest 2026-05-05 to 2026-05-09 MNQ",
-  "backtest 2026-08-07 MNQ ES",
-  "WR 64.3% · 14 trades · MNQ · NY AM · HTF bull · sweep + IFVG",
+  "backtest july 2026 MNQ ES",
+  "backtest week of July 14 2026 MNQ ES",
+  "backtest 2026-07-01 to 2026-07-15 MNQ",
+  "back test july 2026",
 ];
 
 function uid() {
@@ -719,7 +719,7 @@ export function TradezellaChat({
         {busy && (
           <div className="flex items-center gap-2 text-xs text-[var(--color-subtle)]">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Analyzing + marking {shots.length || "your"} charts…
+            Running backtest / analysis (Databento can take 15–40s)…
           </div>
         )}
         {skipNote && (

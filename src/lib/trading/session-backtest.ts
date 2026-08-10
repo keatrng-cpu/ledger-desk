@@ -65,20 +65,98 @@ const MONTHS: Record<string, number> = {
   oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11,
 };
 
-export function parseBacktestIntent(message: string): DateWindow | null {
-  const lower = message.trim().toLowerCase();
+export function normalizeBacktestQuery(message: string): string {
+  let s = message.trim().toLowerCase();
+  // "back test" / "back-testing" → backtest
+  s = s.replace(/\bback[\s\-]*test(?:ing)?\b/g, "backtest");
+  s = s.replace(/\bback[\s\-]*tests\b/g, "backtest");
+  // common year typos: 20266 → 2026, 20267 → 2026, 2025 6 → keep
+  s = s.replace(/\b(20\d{2})\d\b/g, "$1");
+  // "july2026" → "july 2026"
+  s = s.replace(
+    /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(20\d{2})\b/g,
+    "$1 $2",
+  );
+  return s;
+}
 
+export function parseBacktestIntent(message: string): DateWindow | null {
+  const lower = normalizeBacktestQuery(message);
+  if (!/\b(backtest|bt|replay|session)\b/.test(lower) && !/\bweek of\b/.test(lower)) {
+    // still allow pure date range without verb if looks like "2026-07-01 to 2026-07-31"
+    if (!/\d{4}-\d{2}-\d{2}\s*(?:to|through|[-–])/.test(lower)) {
+      // month-only without verb: require backtest keyword
+    }
+  }
+
+  const wantsBacktest =
+    /\b(backtest|bt|replay)\b/.test(lower) ||
+    /\bweek of\b/.test(lower) ||
+    /\bsession(s)?\b/.test(lower);
+
+  // Explicit ISO range
   const isoRange = lower.match(
     /(\d{4}-\d{2}-\d{2})\s*(?:to|through|[-–]|until)\s*(\d{4}-\d{2}-\d{2})/,
   );
-  if (isoRange) {
+  if (isoRange && (wantsBacktest || true)) {
     const a = Date.parse(isoRange[1]! + "T00:00:00-04:00");
     const b = Date.parse(isoRange[2]! + "T23:59:59-04:00");
     if (Number.isFinite(a) && Number.isFinite(b) && b > a) {
+      const days = Math.round((b - a) / 86400000);
       return {
         startMs: a,
         endMs: b,
         label: `${isoRange[1]} → ${isoRange[2]}`,
+        kind: days > 7 ? "range" : days > 1 ? "week" : "day",
+      };
+    }
+  }
+
+  // Full month: "july 2026" / "jul 2026" / "backtest july"
+  const monthYear = lower.match(
+    /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{4})\b/,
+  );
+  if (monthYear && wantsBacktest) {
+    const mon = MONTHS[monthYear[1]!.toLowerCase()];
+    const year = Number(monthYear[2]);
+    if (mon != null && year >= 2018 && year <= 2030) {
+      // first → last calendar day of month (ET)
+      const startMs = Date.parse(
+        `${year}-${pad(mon + 1)}-01T00:00:00-04:00`,
+      );
+      // last day: day 0 of next month
+      const last = new Date(Date.UTC(year, mon + 1, 0));
+      const endMs = Date.parse(
+        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59-04:00`,
+      );
+      return {
+        startMs,
+        endMs,
+        label: `${monthYear[1]} ${year}`.replace(/^\w/, (c) => c.toUpperCase()),
+        kind: "range",
+      };
+    }
+  }
+
+  // Month only with implied year (current or 2026): "backtest july"
+  const monthOnly = lower.match(
+    /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b(?!\s+\d{1,2})/,
+  );
+  if (monthOnly && wantsBacktest && !monthYear) {
+    const mon = MONTHS[monthOnly[1]!.toLowerCase()];
+    const year = 2026;
+    if (mon != null) {
+      const startMs = Date.parse(
+        `${year}-${pad(mon + 1)}-01T00:00:00-04:00`,
+      );
+      const last = new Date(Date.UTC(year, mon + 1, 0));
+      const endMs = Date.parse(
+        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59-04:00`,
+      );
+      return {
+        startMs,
+        endMs,
+        label: `${monthOnly[1]} ${year}`,
         kind: "range",
       };
     }
@@ -87,8 +165,7 @@ export function parseBacktestIntent(message: string): DateWindow | null {
   const isoDay = lower.match(/\b(\d{4}-\d{2}-\d{2})\b/);
   const wantsWeek =
     /\bweek\b/.test(lower) ||
-    /\bbacktest\b/.test(lower) ||
-    /\bbt\b/.test(lower) ||
+    wantsBacktest ||
     /\bsession(s)?\b/.test(lower);
 
   const weekOf = lower.match(
@@ -111,26 +188,48 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     const year = Number(weekOf2[3] || 2026);
     if (mon != null) anchor = new Date(Date.UTC(year, mon, day, 16, 0, 0));
   } else if (isoDay && wantsWeek) {
-    anchor = new Date(isoDay[1]! + "T16:00:00Z");
-  } else if (/\b(backtest|bt|analyze)\b/.test(lower) && isoDay) {
-    const a = Date.parse(isoDay[1]! + "T00:00:00-04:00");
-    const b = Date.parse(isoDay[1]! + "T23:59:59-04:00");
-    return { startMs: a, endMs: b, label: isoDay[1]!, kind: "day" };
+    // single day if no "week" word; week if week present
+    if (/\bweek\b/.test(lower)) {
+      anchor = new Date(isoDay[1]! + "T16:00:00Z");
+    } else if (wantsBacktest) {
+      const a = Date.parse(isoDay[1]! + "T00:00:00-04:00");
+      const b = Date.parse(isoDay[1]! + "T23:59:59-04:00");
+      return { startMs: a, endMs: b, label: isoDay[1]!, kind: "day" };
+    }
   }
 
+  // "july 12 2026" day
   if (!anchor) {
     const md = lower.match(
       /\b([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?\b/,
     );
-    if (md && MONTHS[md[1]!.toLowerCase()] != null && wantsWeek) {
+    if (md && MONTHS[md[1]!.toLowerCase()] != null && wantsBacktest) {
       const mon = MONTHS[md[1]!.toLowerCase()]!;
       const day = Number(md[2]);
       const year = Number(md[3] || 2026);
-      anchor = new Date(Date.UTC(year, mon, day, 16, 0, 0));
+      if (day >= 1 && day <= 31) {
+        // if "week" in message expand; else single day
+        if (/\bweek\b/.test(lower)) {
+          anchor = new Date(Date.UTC(year, mon, day, 16, 0, 0));
+        } else {
+          const startMs = Date.parse(
+            `${year}-${pad(mon + 1)}-${pad(day)}T00:00:00-04:00`,
+          );
+          const endMs = Date.parse(
+            `${year}-${pad(mon + 1)}-${pad(day)}T23:59:59-04:00`,
+          );
+          return {
+            startMs,
+            endMs,
+            label: `${year}-${pad(mon + 1)}-${pad(day)}`,
+            kind: "day",
+          };
+        }
+      }
     }
   }
 
-  if (!anchor || !wantsWeek) return null;
+  if (!anchor) return null;
 
   const et = etParts(anchor.getTime());
   const utcGuess = Date.UTC(et.year, et.month - 1, et.day, 12, 0, 0);
@@ -207,6 +306,66 @@ function sliceDay(bars: OhlcBar[], dateKey: string): OhlcBar[] {
   return bars.filter((b) => dateKeyEt(b.t) === dateKey);
 }
 
+/** Only 1m bars fully closed at decision (bar open t covers [t,t+1m)). */
+export function causalOneMinute(bars: OhlcBar[], decisionMs: number): OhlcBar[] {
+  return bars.filter((b) => b.t + 60_000 <= decisionMs);
+}
+
+/**
+ * Aggregate only from causal 1m, then keep fully closed N-minute buckets.
+ * Prevents look-ahead from incomplete final buckets.
+ */
+export function causalAggregate(
+  bars1m: OhlcBar[],
+  decisionMs: number,
+  intervalMinutes: number,
+): OhlcBar[] {
+  const causal = causalOneMinute(bars1m, decisionMs);
+  if (intervalMinutes <= 1) return causal;
+  const agg = aggregateBars(causal, intervalMinutes);
+  const dur = intervalMinutes * 60_000;
+  return agg.filter((b) => b.t + dur <= decisionMs);
+}
+
+/** Hard assert: no bar may open at or after decision, and bucket must be closed. */
+export function assertCausal(
+  bars: OhlcBar[],
+  decisionMs: number,
+  intervalMinutes: number,
+): { ok: boolean; detail: string; maxBarEnd: number | null } {
+  if (!bars.length) {
+    return { ok: false, detail: "no bars", maxBarEnd: null };
+  }
+  const dur = Math.max(1, intervalMinutes) * 60_000;
+  let maxEnd = 0;
+  for (const b of bars) {
+    const end = b.t + dur;
+    if (end > decisionMs + 1) {
+      return {
+        ok: false,
+        detail: `LOOK-AHEAD: bar ending ${new Date(end).toISOString()} > decision ${new Date(decisionMs).toISOString()}`,
+        maxBarEnd: end,
+      };
+    }
+    if (end > maxEnd) maxEnd = end;
+  }
+  return {
+    ok: true,
+    detail: `causal OK · last bar closed ${new Date(maxEnd).toISOString()} ≤ decision ${new Date(decisionMs).toISOString()}`,
+    maxBarEnd: maxEnd,
+  };
+}
+
+/** Decision clock: NY AM snapshot 10:00 ET, never in the future vs wall clock. */
+export function decisionMsForDay(dateKey: string, hourEt = 10, minuteEt = 0): number {
+  const raw = Date.parse(
+    `${dateKey}T${String(hourEt).padStart(2, "0")}:${String(minuteEt).padStart(2, "0")}:00-04:00`,
+  );
+  // no live future: cannot decide with bars that have not happened yet
+  return Math.min(raw, Date.now());
+}
+
+
 function parseSymbols(message: string): IndexSymbol[] {
   const up = message.toUpperCase();
   const out: IndexSymbol[] = [];
@@ -249,7 +408,8 @@ export async function runWeekBacktest(
 
   const symbols = parseSymbols(message);
   const fetchStart = window.startMs - 21 * 86400000;
-  const fetchEnd = window.endMs;
+  // Never pull pure-future range past wall clock (no cheating with unreleased bars)
+  const fetchEnd = Math.min(window.endMs, Date.now());
 
   const seriesList = await Promise.all(
     symbols.map((s) => fetchDatabentoAbsoluteRange(s, fetchStart, fetchEnd, 1)),
@@ -279,17 +439,34 @@ export async function runWeekBacktest(
 
   const left = seriesList[0]!;
   const right = seriesList[1] ?? seriesList[0]!;
-  const days = tradingDaysInWindow(window.startMs, window.endMs);
+  let days = tradingDaysInWindow(window.startMs, window.endMs);
+  const MAX_DAYS = 12;
+  let truncated = false;
+  if (days.length > MAX_DAYS) {
+    days = days.slice(0, MAX_DAYS);
+    truncated = true;
+  }
   const rows: DayBacktestRow[] = [];
 
-  const left15 = { ...left, bars: aggregateBars(left.bars, 15) };
-  const right15 = { ...right, bars: aggregateBars(right.bars, 15) };
+  // Do NOT pre-aggregate the full month then peek — rebuild causal series per day.
+  const DECISION_HOUR_ET = 10; // NY AM snapshot — only info available at 10:00 ET
+  const STRUCTURE_TF_MIN = 15;
 
   for (const day of days) {
-    const cutoff = Date.parse(`${day}T17:00:00-04:00`);
-    const lBars = left15.bars.filter((b) => b.t <= cutoff);
-    const rBars = right15.bars.filter((b) => b.t <= cutoff);
-    if (lBars.length < 40) {
+    let decisionMs = decisionMsForDay(day, DECISION_HOUR_ET, 0);
+    // If decision is before market data (weekend/holiday weirdness), skip
+    if (!Number.isFinite(decisionMs)) continue;
+
+    const l1 = causalOneMinute(left.bars, decisionMs);
+    const r1 = causalOneMinute(right.bars, decisionMs);
+    const lBars = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
+    const rBars = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
+
+    const causalL = assertCausal(lBars, decisionMs, STRUCTURE_TF_MIN);
+    const causalR = assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN);
+    const causal1 = assertCausal(l1, decisionMs, 1);
+
+    if (lBars.length < 40 || !causalL.ok || !causal1.ok) {
       rows.push({
         date: day,
         symbol: left.symbol,
@@ -300,18 +477,26 @@ export async function runWeekBacktest(
         tradeable: false,
         best: null,
         pathEligible: false,
-        gates: [{ name: "data", pass: false, detail: "too few bars" }],
-        notes: "Insufficient history",
+        gates: [
+          {
+            name: "Causal integrity",
+            pass: causalL.ok && causal1.ok,
+            detail: causalL.ok ? causal1.detail : causalL.detail,
+          },
+          { name: "data", pass: false, detail: "too few causal bars at decision" },
+        ],
+        notes: "Insufficient causal history (no future data used)",
       });
       continue;
     }
 
-    const dayL = sliceDay(left.bars, day);
+    // Session change ONLY using bars closed by decision (not full-day close)
+    const dayL = l1.filter((b) => dateKeyEt(b.t) === day);
+    const dayR = r1.filter((b) => dateKeyEt(b.t) === day);
     const chg =
       dayL.length > 1
         ? ((dayL[dayL.length - 1]!.c - dayL[0]!.o) / dayL[0]!.o) * 100
         : 0;
-    const dayR = sliceDay(right.bars, day);
     const chgR =
       dayR.length > 1
         ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
@@ -320,8 +505,8 @@ export async function runWeekBacktest(
     const biasL = analyzeStructure(left.symbol, lBars, chg);
     const biasR = analyzeStructure(right.symbol, rBars, chgR);
     const div = smtDivergence(lBars, rBars);
-    const nyAmMs = Date.parse(`${day}T10:00:00-04:00`);
-    const clock = getSessionClock(new Date(nyAmMs));
+    const clock = getSessionClock(new Date(decisionMs));
+    // scan/detectors/conditions — same causal bars only
     const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
     const best =
       scan.candidates.find((c) => c.actionable) ??
@@ -333,6 +518,11 @@ export async function runWeekBacktest(
     const det = summarizeDetectors(lBars);
 
     const gates = [
+      {
+        name: "Causal integrity",
+        pass: causalL.ok && causalR.ok && causal1.ok,
+        detail: `${causalL.detail} · no bar after ${new Date(decisionMs).toISOString()}`,
+      },
       {
         name: "HTF gate",
         pass: best ? best.htfOk : biasL.topDown !== "neutral",
@@ -346,7 +536,7 @@ export async function runWeekBacktest(
       {
         name: "Killzone NY",
         pass: true,
-        detail: "Evaluated at 10:00 ET snapshot",
+        detail: `Decision ${DECISION_HOUR_ET}:00 ET · closed bars only`,
       },
       {
         name: "Path floor",
@@ -362,6 +552,10 @@ export async function runWeekBacktest(
       },
     ];
 
+    // If causal integrity fails, force non-actionable
+    const pathEligible =
+      Boolean(best?.actionable) && causalL.ok && causalR.ok && causal1.ok;
+
     rows.push({
       date: day,
       symbol: left.symbol,
@@ -370,10 +564,10 @@ export async function runWeekBacktest(
       ltf: biasL.ltf,
       regime: cond.regime,
       tradeable: cond.tradeable,
-      best,
-      pathEligible: Boolean(best?.actionable),
+      best: pathEligible || best ? best : best,
+      pathEligible,
       gates,
-      notes: scan.focus,
+      notes: `${scan.focus} · decision ${new Date(decisionMs).toISOString()}`,
     });
 
     if (right.symbol !== left.symbol) {
@@ -384,6 +578,8 @@ export async function runWeekBacktest(
             (c.actionable || c.grade !== "skip"),
         ) ?? null;
       const condR = assessConditions(rBars);
+      const pathR =
+        Boolean(bestR?.actionable) && causalL.ok && causalR.ok;
       rows.push({
         date: day,
         symbol: right.symbol,
@@ -393,15 +589,15 @@ export async function runWeekBacktest(
         regime: condR.regime,
         tradeable: condR.tradeable,
         best: bestR,
-        pathEligible: Boolean(bestR?.actionable),
+        pathEligible: pathR,
         gates: gates.map((g) =>
           g.name === "HTF gate"
             ? { ...g, detail: `${right.symbol} ${biasR.topDown}` }
             : g,
         ),
         notes: bestR
-          ? `${bestR.side} ${bestR.grade} ${bestR.confluence}`
-          : scan.smt.note,
+          ? `${bestR.side} ${bestR.grade} ${bestR.confluence} · causal`
+          : `${scan.smt.note} · causal`,
       });
     }
   }
@@ -439,7 +635,13 @@ export async function runWeekBacktest(
   });
 
   analysis.title = `Databento backtest · ${window.label}`;
-  analysis.summary = `Real CME data (${symbols.join("+")}). ${pathEligibleCount} path-eligible slot(s) of ${rows.length}. ${
+  if (truncated) {
+    analysis.nextActions = [
+      `Window truncated to first ${MAX_DAYS} sessions for speed — ask a specific week for full detail.`,
+      ...analysis.nextActions,
+    ];
+  }
+  analysis.summary = `Real CME data (${symbols.join("+")}). ${pathEligibleCount} path-eligible slot(s) of ${rows.length}${truncated ? ` (first ${MAX_DAYS} sessions)` : ""}. ${
     pathEligibleCount === 0
       ? "No A-path setups cleared — correct for selectivity."
       : "Review eligible days; Log paper only those grades."
@@ -449,6 +651,12 @@ export async function runWeekBacktest(
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
+  analysis.disclaimer =
+    "CAUSAL BACKTEST: each day decides at 10:00 ET using only bars fully closed by then. No same-day close, no future sessions, no incomplete buckets. Educational — not an order.";
+  analysis.nextActions = [
+    "Causal rule: decision 10:00 ET · closed 1m/15m only · no full-day close peek.",
+    ...analysis.nextActions.filter((a) => !/causal/i.test(a)),
+  ];
 
   const md = [
     analysisToMarkdown(analysis),
@@ -539,10 +747,10 @@ export function parseTradezellaCsv(csv: string): {
 }
 
 export function isBacktestIntent(message: string): boolean {
-  const lower = message.toLowerCase();
+  const lower = normalizeBacktestQuery(message);
   if (parseBacktestIntent(message)) return true;
   return (
-    (/\b(backtest|bt)\b/.test(lower) || /\bweek of\b/.test(lower)) &&
+    (/\b(backtest|bt|replay)\b/.test(lower) || /\bweek of\b/.test(lower)) &&
     (/\b20\d{2}\b/.test(lower) ||
       /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.test(lower) ||
       /\d{4}-\d{2}-\d{2}/.test(lower))

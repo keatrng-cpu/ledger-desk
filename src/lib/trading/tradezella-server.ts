@@ -80,7 +80,7 @@ export const analyzeTradezellaChat = createServerFn({ method: "POST" })
       };
     }
 
-    // Real-data week / day backtest
+    // Real-data week / day / month backtest
     if (isBacktestIntent(msg)) {
       const window = parseBacktestIntent(msg);
       if (window) {
@@ -94,6 +94,25 @@ export const analyzeTradezellaChat = createServerFn({ method: "POST" })
           queue: week.queue,
         };
       }
+      // Recognized as backtest but date not parsed — never silent
+      const analysis = analyzeTradezella({
+        message: msg,
+        deskContext: data.deskContext,
+      });
+      analysis.title = "Could not parse backtest dates";
+      analysis.summary =
+        'I heard a backtest request but could not parse the dates. Try: "backtest july 2026", "backtest week of July 14 2026", or "backtest 2026-07-01 to 2026-07-15 MNQ ES".';
+      analysis.nextActions = [
+        'Example: backtest july 2026 MNQ ES',
+        'Example: backtest week of July 14 2026',
+        'Example: backtest 2026-07-07 MNQ',
+        "Typo years like 20266 are auto-fixed to 2026.",
+      ];
+      return {
+        analysis,
+        markdown: analysisToMarkdown(analysis),
+        mode: "text",
+      };
     }
 
     const analysis = analyzeTradezella({
