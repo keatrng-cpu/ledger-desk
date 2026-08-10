@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Camera,
+  Download,
   ImagePlus,
   Loader2,
   MessagesSquare,
+  NotebookPen,
   Send,
   Trash2,
   X,
@@ -14,6 +16,16 @@ import {
   type TradezellaChatResult,
 } from "@/lib/trading/tradezella-server";
 import type { TradezellaAnalysis } from "@/lib/trading/tradezella-analyze";
+import {
+  CHART_TIMEFRAMES,
+  markAllCharts,
+  type ChartShot,
+  type ChartTimeframe,
+  type MarkedChart,
+} from "@/lib/trading/chart-markup";
+import { analysisToSetupCandidate } from "@/lib/trading/analysis-to-candidate";
+import type { SetupCandidate } from "@/lib/trading/scanner";
+import type { LogMode } from "@/components/desk/setup-scanner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,8 +35,10 @@ interface ChatMessage {
   id: string;
   role: Role;
   text: string;
-  imageDataUrl?: string | null;
-  imageName?: string | null;
+  /** Original uploads */
+  shots?: ChartShot[];
+  /** Annotated returns */
+  marked?: MarkedChart[];
   analysis?: TradezellaAnalysis;
   markdown?: string;
   ts: number;
@@ -33,15 +47,14 @@ interface ChatMessage {
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "system",
-  text: "TradeZella lab · paste session stats and/or drop a backtest chart. I map HTF/MTF/LTF, conditions, confluences, strategies, S/L, targets, and setup cards to our engine (TJR · mechanical · Judas · PDI · Patty · SMT…). Not an order — structure only.",
+  text: "TradeZella lab · attach 4–5 charts (1m · 5m · 15m · 1h · 4h), paste stats, Analyze. You get marked charts back + setup card. Choose Log paper / Log live / Skip — nothing auto-journals.",
   ts: Date.now(),
 };
 
 const QUICK = [
-  "WR 64.3% · 14 trades · net $2500 · MNQ May — grade vs path 70%",
-  "Chart attached: mark HTF bias, sweep, IFVG, S/L and targets",
-  "Complete NY AM backtest checklist for this session",
-  "Which strategies fired? List confluences present vs missing",
+  "WR 64.3% · 14 trades · net $2500 · MNQ · NY AM · HTF bull · sellside sweep + IFVG",
+  "Mark all TFs: bias, sweep, entry, S/L, targets",
+  "Complete multi-TF backtest checklist",
 ];
 
 function uid() {
@@ -67,13 +80,83 @@ function BiasPill({ bias }: { bias: string }) {
   );
 }
 
-function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
+function downloadDataUrl(dataUrl: string, name: string) {
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = name;
+  a.click();
+}
+
+function AnalysisCard({
+  a,
+  marked,
+  onLog,
+  onSkip,
+}: {
+  a: TradezellaAnalysis;
+  marked?: MarkedChart[];
+  onLog?: (c: SetupCandidate, mode: LogMode) => void;
+  onSkip?: () => void;
+}) {
+  const candidate = analysisToSetupCandidate(a);
+
   return (
     <div className="mt-2 space-y-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs">
       <div>
         <p className="text-sm font-semibold text-[var(--color-fg)]">{a.title}</p>
         <p className="mt-1 text-[var(--color-muted)]">{a.summary}</p>
       </div>
+
+      {/* Marked charts returned */}
+      {marked && marked.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+            Marked charts returned ({marked.length})
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {marked.map((m) => (
+              <div
+                key={m.tf + m.name}
+                className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]"
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-2 py-1">
+                  <span className="font-mono text-[10px] font-semibold text-[var(--color-primary)]">
+                    {m.tf.toUpperCase()}
+                  </span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+                    onClick={() => downloadDataUrl(m.dataUrl, m.name)}
+                  >
+                    <Download className="h-3 w-3" />
+                    Save
+                  </button>
+                </div>
+                <img
+                  src={m.dataUrl}
+                  alt={`Marked ${m.tf}`}
+                  className="max-h-56 w-full object-contain bg-[var(--color-bg)]"
+                />
+                <p className="px-2 py-1 text-[10px] text-[var(--color-subtle)]">
+                  {m.focus}
+                </p>
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="mt-2"
+            onClick={() => {
+              for (const m of marked) downloadDataUrl(m.dataUrl, m.name);
+            }}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Download all marked
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
@@ -104,7 +187,7 @@ function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
         </div>
         <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
           <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Path target
+            Path
           </p>
           <p className="font-mono font-semibold text-[var(--color-primary)]">
             {(a.systemAlignment.pathWrTarget * 100).toFixed(0)}%
@@ -140,7 +223,6 @@ function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
         <p className="text-[var(--color-muted)]">
           {a.conditions.regime} · {a.conditions.volatility} vol ·{" "}
           {a.conditions.session} · news {a.conditions.news}
-          {a.conditions.tradeable ? " · tradeable env" : " · stand down env"}
         </p>
       </div>
 
@@ -154,7 +236,7 @@ function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
               <span
                 key={s.id}
                 title={s.why}
-                className="rounded-full border border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_10%,transparent)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-primary)]"
+                className="rounded-full border border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_12%,transparent)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-primary)]"
               >
                 {s.label}
               </span>
@@ -194,38 +276,60 @@ function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
           </div>
           <p className="mt-1 text-[var(--color-muted)]">R:R {s.rr}</p>
           <p className="mt-1 text-[var(--color-muted)]">
-            <span className="text-[var(--color-up)]">+</span>{" "}
-            {s.confluencesPresent.join(", ") || "—"}
+            + {s.confluencesPresent.join(", ") || "—"}
           </p>
           <p className="text-[var(--color-muted)]">
-            <span className="text-[var(--color-down)]">−</span>{" "}
-            {s.confluencesMissing.slice(0, 6).join(", ") || "—"}
+            − {s.confluencesMissing.slice(0, 6).join(", ") || "—"}
           </p>
-          <p className="mt-1 text-[var(--color-subtle)]">{s.notes}</p>
         </div>
       ))}
 
-      <div>
-        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Confluences present
+      {/* Log or not */}
+      <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] p-2.5">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+          Journal this setup?
         </p>
-        <div className="flex flex-wrap gap-1">
-          {a.confluences
-            .filter((c) => c.present)
-            .map((c) => (
-              <span
-                key={c.key}
-                className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--color-muted)]"
-              >
-                {c.key}
-              </span>
-            ))}
-          {!a.confluences.some((c) => c.present) && (
-            <span className="text-[var(--color-subtle)]">
-              none parsed — use chart + keywords (sweep, ifvg, smt…)
-            </span>
-          )}
+        <p className="mb-2 text-[11px] text-[var(--color-subtle)]">
+          Optional — nothing is logged until you choose. Skip keeps the review
+          only.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={!candidate || !onLog}
+            onClick={() => candidate && onLog?.(candidate, "paper")}
+            title="Open paper log dialog"
+          >
+            <NotebookPen className="h-3.5 w-3.5" />
+            Log paper
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={!candidate || !onLog}
+            onClick={() => candidate && onLog?.(candidate, "live")}
+            className="text-[var(--color-warn)]"
+            title="Open live log dialog"
+          >
+            Log live
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => onSkip?.()}
+          >
+            Skip — don’t log
+          </Button>
         </div>
+        {!candidate && (
+          <p className="mt-1.5 text-[10px] text-[var(--color-warn)]">
+            No executable side in setup — add long/short + levels to enable log.
+          </p>
+        )}
       </div>
 
       <div>
@@ -270,15 +374,21 @@ function AnalysisCard({ a }: { a: TradezellaAnalysis }) {
   );
 }
 
-export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
+export function TradezellaChat({
+  desk,
+  onLog,
+}: {
+  desk?: DeskPayload | null;
+  /** Wire to desk journal dialog (paper/live). */
+  onLog?: (c: SetupCandidate, mode: LogMode) => void;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [text, setText] = useState("");
-  const [pendingImage, setPendingImage] = useState<{
-    dataUrl: string;
-    name: string;
-  } | null>(null);
+  const [shots, setShots] = useState<ChartShot[]>([]);
+  const [activeTf, setActiveTf] = useState<ChartTimeframe>("15m");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [skipNote, setSkipNote] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -286,20 +396,26 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  const onFile = (file: File | null) => {
+  const onFile = (file: File | null, tf: ChartTimeframe) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Upload an image (PNG/JPG of the TradeZella chart).");
+      setError("Upload an image (PNG/JPG).");
       return;
     }
     if (file.size > 4_500_000) {
-      setError("Image too large (max ~4.5MB). Compress or crop the chart.");
+      setError("Image too large (max ~4.5MB).");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || "");
-      setPendingImage({ dataUrl, name: file.name });
+      setShots((prev) => {
+        const rest = prev.filter((s) => s.tf !== tf);
+        return [...rest, { tf, dataUrl, name: file.name }].sort(
+          (a, b) =>
+            CHART_TIMEFRAMES.indexOf(a.tf) - CHART_TIMEFRAMES.indexOf(b.tf),
+        );
+      });
       setError(null);
     };
     reader.readAsDataURL(file);
@@ -307,22 +423,24 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
 
   const send = useCallback(async () => {
     const msg = text.trim();
-    if (!msg && !pendingImage) return;
+    if (!msg && shots.length === 0) return;
     setBusy(true);
     setError(null);
+    setSkipNote(null);
 
+    const userShots = [...shots];
     const userMsg: ChatMessage = {
       id: uid(),
       role: "user",
-      text: msg || "(chart only — run system checklist)",
-      imageDataUrl: pendingImage?.dataUrl,
-      imageName: pendingImage?.name,
+      text:
+        msg ||
+        `(${userShots.length} chart${userShots.length === 1 ? "" : "s"}: ${userShots.map((s) => s.tf).join(", ")})`,
+      shots: userShots,
       ts: Date.now(),
     };
     setMessages((m) => [...m, userMsg]);
     setText("");
-    const img = pendingImage;
-    setPendingImage(null);
+    setShots([]);
 
     try {
       const deskContext = desk
@@ -332,19 +450,34 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
             killzone: desk.clock.killzoneLabel,
             smt: desk.scan.smt.note,
             bestSetup: desk.scan.candidates[0]
-              ? `${desk.scan.candidates[0].symbol} ${desk.scan.candidates[0].side} ${desk.scan.candidates[0].grade} ${desk.scan.candidates[0].confluence}`
+              ? `${desk.scan.candidates[0].symbol} ${desk.scan.candidates[0].side} ${desk.scan.candidates[0].grade}`
               : undefined,
           }
         : undefined;
 
+      // Analyze with first chart as primary attachment + TF list in message
+      const tfNote =
+        userShots.length > 0
+          ? `\n[Charts attached: ${userShots.map((s) => s.tf).join(", ")}]`
+          : "";
+
       const result: TradezellaChatResult = await analyzeTradezellaChat({
         data: {
-          message: userMsg.text,
-          imageDataUrl: img?.dataUrl ?? null,
-          imageName: img?.name ?? null,
+          message: userMsg.text + tfNote,
+          imageDataUrl: userShots[0]?.dataUrl ?? null,
+          imageName: userShots.map((s) => `${s.tf}:${s.name}`).join(", ") || null,
           deskContext,
         },
       });
+
+      let marked: MarkedChart[] = [];
+      if (userShots.length > 0) {
+        try {
+          marked = await markAllCharts(userShots, result.analysis);
+        } catch (e) {
+          console.warn("markup failed", e);
+        }
+      }
 
       const assistant: ChatMessage = {
         id: uid(),
@@ -352,6 +485,8 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
         text: result.analysis.summary,
         analysis: result.analysis,
         markdown: result.markdown,
+        marked,
+        shots: userShots,
         ts: Date.now(),
       };
       setMessages((m) => [...m, assistant]);
@@ -360,10 +495,14 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
     } finally {
       setBusy(false);
     }
-  }, [text, pendingImage, desk]);
+  }, [text, shots, desk]);
+
+  const missingTfs = CHART_TIMEFRAMES.filter(
+    (tf) => !shots.some((s) => s.tf === tf),
+  );
 
   return (
-    <section className="flex min-h-[420px] flex-col rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+    <section className="flex min-h-[480px] flex-col rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] px-3 py-2.5 sm:px-4">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-primary-dim)] text-[var(--color-primary)]">
@@ -371,11 +510,11 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">
-              TradeZella lab · chart & session chat
+              TradeZella lab · multi-TF charts
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              Drop charts · paste WR/trades/PnL · get HTF/MTF/LTF · S/L · targets ·
-              strategies · confluences
+              1m · 5m · 15m · 1h · 4h → marked copies back · Log paper / live or
+              Skip
             </p>
           </div>
         </div>
@@ -386,9 +525,9 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
           onClick={() => {
             setMessages([WELCOME]);
             setError(null);
-            setPendingImage(null);
+            setShots([]);
+            setSkipNote(null);
           }}
-          title="Clear chat"
         >
           <Trash2 className="h-3.5 w-3.5" />
           Clear
@@ -401,14 +540,14 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
             key={q}
             type="button"
             onClick={() => setText(q)}
-            className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1 text-left text-[10px] text-[var(--color-muted)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]"
+            className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1 text-left text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
           >
-            {q.length > 52 ? `${q.slice(0, 52)}…` : q}
+            {q.length > 48 ? `${q.slice(0, 48)}…` : q}
           </button>
         ))}
       </div>
 
-      <div className="max-h-[min(520px,55vh)] flex-1 space-y-3 overflow-y-auto px-3 py-3 sm:px-4">
+      <div className="max-h-[min(560px,58vh)] flex-1 space-y-3 overflow-y-auto px-3 py-3 sm:px-4">
         {messages.map((m) => (
           <div
             key={m.id}
@@ -419,34 +558,58 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
           >
             <div
               className={cn(
-                "max-w-[min(100%,36rem)] rounded-[var(--radius-md)] px-3 py-2 text-sm",
+                "max-w-[min(100%,40rem)] rounded-[var(--radius-md)] px-3 py-2 text-sm",
                 m.role === "user" &&
                   "bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface-2))] text-[var(--color-fg)]",
                 m.role === "assistant" &&
                   "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)]",
                 m.role === "system" &&
-                  "border border-dashed border-[var(--color-border)] bg-transparent text-[var(--color-subtle)]",
+                  "border border-dashed border-[var(--color-border)] text-[var(--color-subtle)]",
               )}
             >
-              {m.imageDataUrl && (
-                <div className="mb-2 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)]">
-                  <img
-                    src={m.imageDataUrl}
-                    alt={m.imageName || "TradeZella chart"}
-                    className="max-h-48 w-full object-contain bg-[var(--color-surface-2)]"
-                  />
+              {m.shots && m.shots.length > 0 && m.role === "user" && (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {m.shots.map((s) => (
+                    <div
+                      key={s.tf}
+                      className="overflow-hidden rounded border border-[var(--color-border)]"
+                    >
+                      <p className="bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[9px]">
+                        {s.tf}
+                      </p>
+                      <img
+                        src={s.dataUrl}
+                        alt={s.tf}
+                        className="h-16 w-24 object-cover"
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
               <p className="whitespace-pre-wrap">{m.text}</p>
-              {m.analysis && <AnalysisCard a={m.analysis} />}
+              {m.analysis && (
+                <AnalysisCard
+                  a={m.analysis}
+                  marked={m.marked}
+                  onLog={onLog}
+                  onSkip={() =>
+                    setSkipNote(
+                      "Skipped journal — review kept in chat only. Good discipline.",
+                    )
+                  }
+                />
+              )}
             </div>
           </div>
         ))}
         {busy && (
           <div className="flex items-center gap-2 text-xs text-[var(--color-subtle)]">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Mapping to engine rules…
+            Analyzing + marking {shots.length || "your"} charts…
           </div>
+        )}
+        {skipNote && (
+          <p className="text-xs text-[var(--color-primary)]">{skipNote}</p>
         )}
         <div ref={bottomRef} />
       </div>
@@ -455,27 +618,72 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
         <p className="px-4 text-xs text-[var(--color-down)]">{error}</p>
       )}
 
-      {pendingImage && (
-        <div className="flex items-center gap-2 border-t border-[var(--color-border)] px-3 py-2">
-          <Camera className="h-4 w-4 text-[var(--color-primary)]" />
-          <img
-            src={pendingImage.dataUrl}
-            alt=""
-            className="h-12 w-16 rounded border border-[var(--color-border)] object-cover"
-          />
-          <span className="min-w-0 flex-1 truncate text-xs text-[var(--color-muted)]">
-            {pendingImage.name}
-          </span>
-          <button
-            type="button"
-            aria-label="Remove image"
-            onClick={() => setPendingImage(null)}
-            className="rounded p-1 text-[var(--color-subtle)] hover:text-[var(--color-fg)]"
-          >
-            <X className="h-4 w-4" />
-          </button>
+      {/* Multi-TF tray */}
+      <div className="border-t border-[var(--color-border)] px-3 py-2">
+        <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
+          Backtest charts (add all 5 when you have them)
+        </p>
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {CHART_TIMEFRAMES.map((tf) => {
+            const has = shots.find((s) => s.tf === tf);
+            return (
+              <button
+                key={tf}
+                type="button"
+                onClick={() => {
+                  setActiveTf(tf);
+                  fileRef.current?.click();
+                }}
+                className={cn(
+                  "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  has
+                    ? "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_10%,transparent)] text-[var(--color-up)]"
+                    : activeTf === tf
+                      ? "border-[var(--color-primary)] text-[var(--color-primary)]"
+                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]",
+                )}
+              >
+                {tf}
+                {has ? " ✓" : " +"}
+              </button>
+            );
+          })}
         </div>
-      )}
+        {shots.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {shots.map((s) => (
+              <div
+                key={s.tf}
+                className="relative overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)]"
+              >
+                <span className="absolute left-1 top-1 rounded bg-[var(--color-bg)]/80 px-1 font-mono text-[9px] text-[var(--color-primary)]">
+                  {s.tf}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${s.tf}`}
+                  className="absolute right-1 top-1 rounded bg-[var(--color-bg)]/80 p-0.5 text-[var(--color-subtle)] hover:text-[var(--color-fg)]"
+                  onClick={() =>
+                    setShots((prev) => prev.filter((x) => x.tf !== s.tf))
+                  }
+                >
+                  <X className="h-3 w-3" />
+                </button>
+                <img
+                  src={s.dataUrl}
+                  alt={s.tf}
+                  className="h-16 w-24 object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        {missingTfs.length > 0 && shots.length > 0 && (
+          <p className="mb-1 text-[10px] text-[var(--color-warn)]">
+            Still missing: {missingTfs.join(", ")} (optional but recommended)
+          </p>
+        )}
+      </div>
 
       <div className="border-t border-[var(--color-border)] p-3">
         <div className="flex items-end gap-2">
@@ -484,18 +692,21 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              onFile(e.target.files?.[0] ?? null, activeTf);
+              e.target.value = "";
+            }}
           />
           <Button
             type="button"
             size="sm"
             variant="secondary"
             onClick={() => fileRef.current?.click()}
-            title="Attach TradeZella chart screenshot"
             className="shrink-0"
+            title={`Add ${activeTf} chart`}
           >
             <ImagePlus className="h-4 w-4" />
-            Chart
+            {activeTf}
           </Button>
           <textarea
             value={text}
@@ -507,13 +718,13 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
               }
             }}
             rows={2}
-            placeholder="Paste TradeZella stats or describe the chart… (Enter to send)"
+            placeholder="Paste TradeZella stats + context… (Enter to analyze)"
             className="min-h-[44px] flex-1 resize-y rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-fg)] placeholder:text-[var(--color-subtle)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
           />
           <Button
             type="button"
             size="sm"
-            disabled={busy || (!text.trim() && !pendingImage)}
+            disabled={busy || (!text.trim() && shots.length === 0)}
             onClick={() => void send()}
             className="shrink-0"
           >
@@ -525,9 +736,10 @@ export function TradezellaChat({ desk }: { desk?: DeskPayload | null }) {
             Analyze
           </Button>
         </div>
-        <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
-          Tip: paste e.g. “WR 64.3% · 14 trades · $2500 · MNQ · NY AM · bullish HTF ·
-          sellside sweep + IFVG” with a chart for the fullest setup card.
+        <p className="mt-1.5 flex items-center gap-1 text-[10px] text-[var(--color-subtle)]">
+          <Camera className="h-3 w-3" />
+          Click each TF chip to attach that screenshot. We copy every chart back
+          marked with bias, entry, S/L, targets, confluences.
         </p>
       </div>
     </section>

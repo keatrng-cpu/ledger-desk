@@ -228,7 +228,13 @@ function MasterplacePage() {
             </div>
 
             <div id="tz" className="space-y-3">
-              <TradezellaChat desk={desk} />
+              <TradezellaChat
+                desk={desk}
+                onLog={(c, mode) => {
+                  setLogMode(mode);
+                  setLogCandidate(c);
+                }}
+              />
             </div>
 
             <div id="charts">
