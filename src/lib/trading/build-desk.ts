@@ -152,7 +152,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
       const divergence = smtDivergence(left.bars, right.bars);
-      const scan = scanSetups(biasL, biasR, clock, divergence);
+      const scan = scanSetups(biasL, biasR, clock, divergence, left.bars, right.bars);
 
       // News gate: a scheduled high-impact release inside the risk window kills
       // actionability the same way bad data does — the engine skips these too.

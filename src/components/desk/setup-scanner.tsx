@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, NotebookPen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
+import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 
 function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
@@ -18,6 +19,21 @@ function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
       )}
     >
       {g}
+    </span>
+  );
+}
+
+function StratChip({ id, primary }: { id: string; primary?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide",
+        primary
+          ? "border-[color-mix(in_oklab,var(--color-primary)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_12%,transparent)] text-[var(--color-primary)]"
+          : "border-[var(--color-border)] text-[var(--color-muted)]",
+      )}
+    >
+      {strategyLabel(id)}
     </span>
   );
 }
@@ -41,7 +57,7 @@ function SetupCard({
       )}
     >
       <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-[var(--color-fg)]">
               {c.symbol}{" "}
@@ -63,18 +79,32 @@ function SetupCard({
             )}
             {c.actionable && !entryAllowed && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-warn)]">
-                <AlertTriangle className="h-3 w-3" /> risk gate — no entries
+                <AlertTriangle className="h-3 w-3" /> risk gate
               </span>
             )}
           </div>
           <p className="mt-0.5 text-xs text-[var(--color-subtle)]">{c.title}</p>
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {c.strategyPrimary ? (
+              <StratChip id={c.strategyPrimary} primary />
+            ) : (
+              <span className="text-[10px] text-[var(--color-subtle)]">
+                no strategy tag
+              </span>
+            )}
+            {c.strategies
+              .filter((s) => s !== c.strategyPrimary)
+              .map((s) => (
+                <StratChip key={s} id={s} />
+              ))}
+          </div>
         </div>
         <div className="flex items-start gap-2">
           <div className="text-right font-mono">
             <p className="text-lg font-semibold tabular text-[var(--color-fg)]">
               {c.confluence.toFixed(2)}
             </p>
-            <p className="text-[10px] text-[var(--color-subtle)]">pre-score</p>
+            <p className="text-[10px] text-[var(--color-subtle)]">engine score</p>
           </div>
           {onLog && (
             <Button
@@ -94,6 +124,28 @@ function SetupCard({
           )}
         </div>
       </div>
+
+      <div className="mb-2 flex flex-wrap gap-1">
+        {c.components.slice(0, 10).map((comp) => (
+          <span
+            key={comp}
+            className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--color-muted)]"
+          >
+            {comp}
+          </span>
+        ))}
+        {c.components.length > 10 && (
+          <span className="text-[9px] text-[var(--color-subtle)]">
+            +{c.components.length - 10}
+          </span>
+        )}
+      </div>
+
+      <p className="mb-2 text-[10px] text-[var(--color-subtle)]">
+        {c.regime} · {c.volatility} vol · HTF{" "}
+        {c.htfOk ? "ok" : "block"} · KZ {c.killzoneOk ? "ok" : "out"} · cond{" "}
+        {c.conditionsOk ? "ok" : "block"}
+      </p>
 
       <div className="mb-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
         <div>
@@ -118,13 +170,19 @@ function SetupCard({
         </div>
       </div>
 
+      {c.strategyWhy.length > 0 && (
+        <p className="mb-2 text-[11px] text-[var(--color-muted)]">
+          {c.strategyWhy[0]}
+        </p>
+      )}
+
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div>
           <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-[var(--color-up)]">
             Present
           </p>
           <ul className="space-y-0.5 text-xs text-[var(--color-muted)]">
-            {c.reasons.slice(0, 4).map((r) => (
+            {c.reasons.slice(0, 6).map((r) => (
               <li key={r} className="flex gap-1.5">
                 <span className="text-[var(--color-up)]">+</span>
                 {r}
@@ -137,7 +195,7 @@ function SetupCard({
             Missing
           </p>
           <ul className="space-y-0.5 text-xs text-[var(--color-muted)]">
-            {c.missing.slice(0, 4).map((r) => (
+            {c.missing.slice(0, 6).map((r) => (
               <li key={r} className="flex gap-1.5">
                 <span className="text-[var(--color-down)]">−</span>
                 {r}
@@ -159,9 +217,7 @@ export function SetupScanner({
   entryAllowed = true,
 }: {
   scan: ScanResult;
-  /** Opens the journal dialog for a candidate. Journaling skips is valuable too. */
   onLog?: (c: SetupCandidate) => void;
-  /** False when the risk governor has halted entries (daily/weekly/KZ cap). */
   entryAllowed?: boolean;
 }) {
   return (
@@ -172,9 +228,8 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Desk pre-score — NOT engine confluence; engine floor 0.75 never
-            cleared in calibration · floor {scan.floor} · A+ ≥ {scan.aPlus} ·
-            rules decide, never the LLM
+            Full engine catalog · 19 components · 9 strategy tags · floor{" "}
+            {scan.floor} · A+ ≥ {scan.aPlus} · conditions + HTF hard gates
           </p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] text-[var(--color-muted)]">
@@ -183,9 +238,31 @@ export function SetupScanner({
         </div>
       </header>
 
-      <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-muted)]">
-        <span className="font-medium text-[var(--color-primary)]">SMT · </span>
-        {scan.smt.note}
+      <div className="mb-3 flex flex-wrap gap-1.5">
+        {scan.catalog.map((id) => (
+          <span
+            key={id}
+            className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]"
+          >
+            {strategyLabel(id)}
+          </span>
+        ))}
+      </div>
+
+      <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
+          <span className="font-medium text-[var(--color-primary)]">SMT · </span>
+          {scan.smt.note}
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
+          <span className="font-medium text-[var(--color-primary)]">
+            Conditions ·{" "}
+          </span>
+          L {scan.conditions.left.regime}/{scan.conditions.left.volatility}
+          {scan.conditions.left.tradeable ? " ok" : " BLOCK"} · R{" "}
+          {scan.conditions.right.regime}/{scan.conditions.right.volatility}
+          {scan.conditions.right.tradeable ? " ok" : " BLOCK"}
+        </div>
       </div>
 
       {scan.blocked.length > 0 && (
