@@ -24,6 +24,84 @@ export interface SessionClock {
   sessionPhase: string;
 }
 
+/** ET wall-clock parts of an epoch-ms timestamp (DST-correct via Intl). */
+export interface EtWallParts {
+  year: number;
+  month: number; // 1-12
+  day: number; // 1-31
+  hour: number; // 0-23
+  minute: number;
+  second: number;
+  weekday: number; // 0=Sun … 6=Sat
+}
+
+const ET_PARTS_FMT = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  weekday: "short",
+});
+
+const WEEKDAY_MAP: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+/**
+ * Convert an epoch-ms timestamp to America/New_York wall-clock parts.
+ * No external deps — Intl handles DST by construction.
+ */
+export function etWallParts(tMs: number): EtWallParts {
+  const parts = ET_PARTS_FMT.formatToParts(new Date(tMs));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const hourRaw = get("hour");
+  return {
+    year: Number(get("year")),
+    month: Number(get("month")),
+    day: Number(get("day")),
+    hour: Number(hourRaw === "24" ? "0" : hourRaw),
+    minute: Number(get("minute")),
+    second: Number(get("second")),
+    weekday: WEEKDAY_MAP[get("weekday")] ?? 0,
+  };
+}
+
+/**
+ * Epoch ms of an ET wall-clock moment ("YYYY-MM-DD" + "HH:MM").
+ * Iterative offset search against Intl — converges in ≤2 passes, DST-correct.
+ */
+export function etWallToEpochMs(dateIso: string, timeEt: string): number {
+  const [y, mo, d] = dateIso.split("-").map(Number);
+  const [h, mi] = timeEt.split(":").map(Number);
+  const target = Date.UTC(y ?? 1970, (mo ?? 1) - 1, d ?? 1, h ?? 0, mi ?? 0);
+  let guess = target;
+  for (let i = 0; i < 3; i++) {
+    const p = etWallParts(guess);
+    const wall = Date.UTC(
+      p.year,
+      p.month - 1,
+      p.day,
+      p.hour,
+      p.minute,
+      p.second,
+    );
+    const diff = target - wall;
+    if (diff === 0) break;
+    guess += diff;
+  }
+  return guess;
+}
+
 function etParts(d = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
