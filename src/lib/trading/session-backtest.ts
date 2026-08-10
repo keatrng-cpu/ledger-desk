@@ -642,13 +642,23 @@ export async function runWeekBacktest(
       const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
       const best =
         scan.candidates.find((c) => c.actionable) ??
+        scan.candidates.find(
+          (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
+        ) ??
         scan.candidates.find((c) => c.grade === "A+" || c.grade === "A-") ??
         scan.candidates[0] ??
         null;
       const cond = assessConditions(lBars);
       const det = summarizeDetectors(lBars);
       const causalOk = causalL.ok && assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN).ok;
-      const pathEligible = Boolean(best?.actionable) && causalOk && cond.tradeable;
+      // Path rate = 0.67 floor (calibration). Need HTF + conditions + causal — not killzone clock quirks.
+      const pathEligible = Boolean(
+        best &&
+          best.confluence >= PROFIT_ACTION_FLOOR &&
+          best.htfOk &&
+          causalOk &&
+          cond.tradeable,
+      );
 
       snaps.push({
         decisionMs,
@@ -777,7 +787,12 @@ export async function runWeekBacktest(
           scan.candidates.find((c) => c.symbol === right.symbol) ??
           null;
         const condR = assessConditions(rBars);
-        const pathR = Boolean(bestR?.actionable) && condR.tradeable;
+        const pathR = Boolean(
+          bestR &&
+            bestR.confluence >= PROFIT_ACTION_FLOOR &&
+            bestR.htfOk &&
+            condR.tradeable,
+        );
         rows.push({
           date: day,
           symbol: right.symbol,
@@ -902,6 +917,91 @@ export async function runWeekBacktest(
     "### Queue",
     ...queue.map((q) => `- [ ] ${q}`),
   ].join("\n");
+
+
+  // Surface real board into analysis card (not generic UNKNOWN)
+  const pathRows = rows.filter((r) => r.pathEligible && r.best);
+  const sample = pathRows[0] ?? rows.find((r) => r.best && r.htf !== "n/a") ?? rows[0];
+  if (sample) {
+    const side = sample.best?.side;
+    analysis.timeframes = analysis.timeframes.map((tf) => {
+      if (tf.tf === "HTF") {
+        return {
+          ...tf,
+          bias:
+            sample.htf === "bull"
+              ? "bull"
+              : sample.htf === "bear"
+                ? "bear"
+                : "neutral",
+          notes: `${sample.symbol} top-down ${sample.htf} @ ${sample.date}${sample.decisionIso ? ` · ${sample.decisionIso}` : ""}`,
+        };
+      }
+      if (tf.tf === "MTF") {
+        return {
+          ...tf,
+          bias:
+            sample.mid === "bull"
+              ? "bull"
+              : sample.mid === "bear"
+                ? "bear"
+                : "neutral",
+          notes: `mid ${sample.mid} · regime ${sample.regime}`,
+        };
+      }
+      if (tf.tf === "LTF") {
+        return {
+          ...tf,
+          bias:
+            sample.ltf === "bull"
+              ? "bull"
+              : sample.ltf === "bear"
+                ? "bear"
+                : side === "long"
+                  ? "bull"
+                  : side === "short"
+                    ? "bear"
+                    : "unknown",
+          notes: sample.best
+            ? `${sample.best.side} ${sample.best.grade} ${sample.best.confluence.toFixed(2)} · ${sample.best.strategyPrimary || ""}`
+            : sample.notes,
+        };
+      }
+      return tf;
+    });
+    if (pathRows.length) {
+      analysis.setups = pathRows.slice(0, 4).map((r, i) => {
+        const b = r.best!;
+        return {
+          id: `path-${r.date}-${r.symbol}-${i}`,
+          strategy: b.strategyPrimary || "tjr",
+          side: b.side,
+          grade:
+            b.confluence >= 0.75
+              ? ("A+" as const)
+              : b.confluence >= PROFIT_ACTION_FLOOR
+                ? ("A" as const)
+                : b.grade === "B"
+                  ? ("B" as const)
+                  : ("skip" as const),
+          confluenceScore: b.confluence,
+          entry: b.entryZone,
+          stop: b.invalidation,
+          targets: b.targets?.length ? b.targets : ["1R", "structure TP"],
+          rr: "1:1 – 1:3",
+          conditions: [
+            `HTF ${r.htf}`,
+            `regime ${r.regime}`,
+            r.decisionIso || "10:00 ET",
+          ],
+          confluencesPresent: b.components || b.reasons?.slice(0, 6) || [],
+          confluencesMissing: b.missing || [],
+          invalidation: b.invalidation,
+          notes: `PATH · ${r.date} ${r.symbol} · score≥${PROFIT_ACTION_FLOOR}`,
+        };
+      });
+    }
+  }
 
   return {
     ok: true,

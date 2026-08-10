@@ -17,7 +17,8 @@ export const APLUS_RULES = {
   /** Production A+ tag threshold (journal label). */
   aPlusThreshold: 0.75,
   /** Active confluence floor — TEST 0.50 in config.py; calibration doc says 0.67. */
-  confluenceFloor: 0.5,
+  /** Path / execute floor — calibrated 0.67 (was TEST 0.50). */
+  confluenceFloor: 0.67,
   confluenceFloorCalibration: 0.67,
   riskPct: 0.005,
   riskPctCeiling: 0.01,

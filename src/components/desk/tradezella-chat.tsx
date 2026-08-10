@@ -100,84 +100,223 @@ function WeekTable({
   queue?: string[];
 }) {
   if (!days?.length) return null;
+
+  const pathRows = days.filter((d) => d.pathEligible);
+  const skipRows = days.filter((d) => !d.pathEligible);
+  const ordered = [...pathRows, ...skipRows];
+
   return (
-    <div className="mt-2 space-y-2">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-        Real-data day board ({days.length} slots)
-      </p>
-      <div className="max-h-64 overflow-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
-        <table className="w-full text-left text-[11px]">
-          <thead className="sticky top-0 bg-[var(--color-surface-2)] text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            <tr>
-              <th className="px-2 py-1.5">Date</th>
-              <th className="px-2 py-1.5">Sym</th>
-              <th className="px-2 py-1.5">HTF</th>
-              <th className="px-2 py-1.5">Best</th>
-              <th className="px-2 py-1.5">Path</th>
-            </tr>
-          </thead>
-          <tbody>
-            {days.map((d, i) => (
-              <tr
-                key={`${d.date}-${d.symbol}-${i}`}
-                className="border-t border-[var(--color-border)]"
-              >
-                <td className="px-2 py-1 font-mono text-[var(--color-fg)]">
-                  {d.date}
-                </td>
-                <td className="px-2 py-1 font-mono">{d.symbol}</td>
-                <td className="px-2 py-1">{d.htf}</td>
-                <td className="px-2 py-1 text-[var(--color-muted)]">
-                  {d.best
-                    ? `${d.best.side} ${d.best.grade} ${d.best.confluence.toFixed(2)}`
-                    : "—"}
-                </td>
-                <td
-                  className={
-                    d.pathEligible
-                      ? "px-2 py-1 font-semibold text-[var(--color-up)]"
-                      : "px-2 py-1 text-[var(--color-subtle)]"
-                  }
-                >
-                  {d.pathEligible ? "YES" : "no"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {queue && queue.length > 0 && (
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-            Queue
+    <div className="mt-3 space-y-3">
+      {/* Direct headline */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Path (≥0.67)
           </p>
-          <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
-            {queue.map((q) => (
-              <li key={q}>☐ {q}</li>
-            ))}
-          </ul>
+          <p
+            className={
+              pathRows.length
+                ? "font-mono text-lg font-semibold text-[var(--color-up)]"
+                : "font-mono text-lg font-semibold text-[var(--color-fg)]"
+            }
+          >
+            {pathRows.length}
+            <span className="text-xs font-normal text-[var(--color-subtle)]">
+              /{days.length}
+            </span>
+          </p>
         </div>
-      )}
-      {days[0]?.gates && (
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-            Gates (sample day)
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Floor
           </p>
-          <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
-            {days[0].gates.map((g) => (
-              <li key={g.name}>
+          <p className="font-mono text-lg font-semibold text-[var(--color-primary)]">
+            0.67
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Skip / B
+          </p>
+          <p className="font-mono text-lg font-semibold text-[var(--color-muted)]">
+            {skipRows.length}
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Rule
+          </p>
+          <p className="text-[11px] font-medium text-[var(--color-fg)]">
+            Take PATH only
+          </p>
+        </div>
+      </div>
+
+      {pathRows.length > 0 ? (
+        <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-up)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_8%,transparent)] px-3 py-2">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-up)]">
+            Take these (PATH)
+          </p>
+          <ul className="space-y-1 text-xs text-[var(--color-fg)]">
+            {pathRows.map((d) => (
+              <li
+                key={`p-${d.date}-${d.symbol}`}
+                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono"
+              >
+                <span className="text-[var(--color-up)]">PATH</span>
+                <span>{d.date}</span>
+                <span>{d.symbol}</span>
                 <span
                   className={
-                    g.pass ? "text-[var(--color-up)]" : "text-[var(--color-down)]"
+                    d.best?.side === "long"
+                      ? "text-[var(--color-up)]"
+                      : "text-[var(--color-down)]"
+                  }
+                >
+                  {d.best?.side?.toUpperCase()}
+                </span>
+                <span>
+                  {d.best?.grade} {d.best?.confluence.toFixed(2)}
+                </span>
+                <span className="text-[var(--color-subtle)]">
+                  HTF {d.htf} · {d.best?.strategyPrimary || "—"}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
+            Log paper each PATH row · max 2 / killzone · risk 0.5%
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-muted)]">
+          <strong className="text-[var(--color-fg)]">No PATH days</strong> at
+          floor 0.67. Correct selectivity — do not force B/skip grades.
+        </div>
+      )}
+
+      <div>
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+          Day board · PATH first · floor 0.67
+        </p>
+        <div className="max-h-72 overflow-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
+          <table className="w-full text-left text-[11px]">
+            <thead className="sticky top-0 z-[1] bg-[var(--color-surface-2)] text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+              <tr>
+                <th className="px-2 py-1.5">Date</th>
+                <th className="px-2 py-1.5">Sym</th>
+                <th className="px-2 py-1.5">HTF</th>
+                <th className="px-2 py-1.5">Setup</th>
+                <th className="px-2 py-1.5">Score</th>
+                <th className="px-2 py-1.5">Path</th>
+                <th className="px-2 py-1.5">Why not</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ordered.map((d, i) => {
+                const conf = d.best?.confluence;
+                return (
+                  <tr
+                    key={`${d.date}-${d.symbol}-${i}`}
+                    className={
+                      d.pathEligible
+                        ? "border-t border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-up)_7%,transparent)]"
+                        : "border-t border-[var(--color-border)]"
+                    }
+                  >
+                    <td className="px-2 py-1.5 font-mono text-[var(--color-fg)]">
+                      {d.date.slice(5)}
+                    </td>
+                    <td className="px-2 py-1.5 font-mono">{d.symbol}</td>
+                    <td className="px-2 py-1.5">{d.htf}</td>
+                    <td className="px-2 py-1.5 text-[var(--color-muted)]">
+                      {d.best ? (
+                        <span>
+                          <span
+                            className={
+                              d.best.side === "long"
+                                ? "text-[var(--color-up)]"
+                                : "text-[var(--color-down)]"
+                            }
+                          >
+                            {d.best.side}
+                          </span>{" "}
+                          {d.best.grade}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-2 py-1.5 font-mono">
+                      {conf != null ? conf.toFixed(2) : "—"}
+                    </td>
+                    <td
+                      className={
+                        d.pathEligible
+                          ? "px-2 py-1.5 font-bold text-[var(--color-up)]"
+                          : "px-2 py-1.5 text-[var(--color-subtle)]"
+                      }
+                    >
+                      {d.pathEligible ? "YES" : "no"}
+                    </td>
+                    <td className="max-w-[10rem] truncate px-2 py-1.5 text-[10px] text-[var(--color-subtle)]" title={d.deadspot || ""}>
+                      {d.pathEligible
+                        ? "—"
+                        : d.deadspot
+                          ? d.deadspot.replace(/^setup below path\s*/i, "").slice(0, 48)
+                          : conf != null && conf < 0.67
+                            ? `<0.67`
+                            : "gates"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {days[0]?.gates && (
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+            Gates (first day sample)
+          </p>
+          <ul className="grid gap-0.5 text-[11px] sm:grid-cols-2">
+            {days[0].gates.map((g) => (
+              <li key={g.name} className="flex gap-1.5 text-[var(--color-muted)]">
+                <span
+                  className={
+                    g.pass
+                      ? "font-mono text-[var(--color-up)]"
+                      : "font-mono text-[var(--color-down)]"
                   }
                 >
                   {g.pass ? "OK" : "NO"}
-                </span>{" "}
-                {g.name} — {g.detail}
+                </span>
+                <span>
+                  <span className="text-[var(--color-fg)]">{g.name}</span>
+                  <span className="text-[var(--color-subtle)]">
+                    {" "}
+                    — {g.detail}
+                  </span>
+                </span>
               </li>
             ))}
           </ul>
         </div>
+      )}
+
+      {queue && queue.length > 0 && (
+        <details className="text-[11px] text-[var(--color-muted)]">
+          <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+            Queue ({queue.length} sessions)
+          </summary>
+          <ul className="mt-1 max-h-28 space-y-0.5 overflow-auto pl-1">
+            {queue.map((q) => (
+              <li key={q}>☐ {q}</li>
+            ))}
+          </ul>
+        </details>
       )}
     </div>
   );
@@ -204,7 +343,21 @@ function AnalysisCard({
     <div className="mt-2 space-y-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs">
       <div>
         <p className="text-sm font-semibold text-[var(--color-fg)]">{a.title}</p>
-        <p className="mt-1 text-[var(--color-muted)]">{a.summary}</p>
+        {days && days.length > 0 ? (
+          <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-muted)]">
+            Floor <span className="font-mono text-[var(--color-primary)]">0.67</span>
+            {" · "}
+            PATH{" "}
+            <span className="font-mono text-[var(--color-up)]">
+              {days.filter((d) => d.pathEligible).length}
+            </span>
+            /{days.length}
+            {" · "}
+            causal NY 08:30–11:00 · dual-layer HTF
+          </p>
+        ) : (
+          <p className="mt-1 text-[var(--color-muted)]">{a.summary}</p>
+        )}
       </div>
 
       <WeekTable days={days} queue={queue} />
