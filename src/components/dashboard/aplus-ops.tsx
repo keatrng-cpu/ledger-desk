@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Crosshair, Gauge, Shield, Terminal } from "lucide-react";
+import { Crosshair, Gauge, Shield, Terminal, UploadCloud } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -25,11 +25,26 @@ import {
   buildBacktestPayload,
   buildNarrative,
   buildPremarketSnapshot,
+  type BacktestPayload,
   type Bias,
+  type PremarketSnapshot,
 } from "@/lib/aplus/sample-run";
+import {
+  latestEngineRun,
+  uploadEngineRun,
+  type JsonValue,
+} from "@/lib/engine/ingest";
 import { cn, formatPct } from "@/lib/utils";
 
 type Tab = "backtest" | "premarket" | "rules";
+
+type UploadKind = "backtest" | "knowledge" | "premarket";
+
+interface EngineData<T> {
+  payload: T;
+  ingestedAt: string;
+  label: string | null;
+}
 
 function fmt(n: number | null | undefined, d = 2) {
   if (n == null || !Number.isFinite(n)) return "—";
@@ -102,9 +117,99 @@ function Section({
 
 export function AplusOps() {
   const [tab, setTab] = useState<Tab>("backtest");
-  const backtest = useMemo(() => buildBacktestPayload(), []);
-  const premarket = useMemo(() => buildPremarketSnapshot(), []);
+  const demoBacktest = useMemo(() => buildBacktestPayload(), []);
+  const demoPremarket = useMemo(() => buildPremarketSnapshot(), []);
   const narrative = useMemo(() => buildNarrative(), []);
+
+  // REAL engine ingest — validated payloads stored via src/lib/engine/ingest.
+  const [engineBacktest, setEngineBacktest] =
+    useState<EngineData<BacktestPayload> | null>(null);
+  const [enginePremarket, setEnginePremarket] =
+    useState<EngineData<PremarketSnapshot> | null>(null);
+  const [uploadKind, setUploadKind] = useState<UploadKind>("backtest");
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
+
+  const loadEngine = useCallback(async () => {
+    try {
+      const [bt, pm] = await Promise.all([
+        latestEngineRun({ data: { kind: "backtest" } }),
+        latestEngineRun({ data: { kind: "premarket" } }),
+      ]);
+      if (bt.ok && bt.run) {
+        setEngineBacktest({
+          payload: bt.run.payload as unknown as BacktestPayload,
+          ingestedAt: bt.run.ingestedAt,
+          label: bt.run.label,
+        });
+      }
+      if (pm.ok && pm.run) {
+        setEnginePremarket({
+          payload: pm.run.payload as unknown as PremarketSnapshot,
+          ingestedAt: pm.run.ingestedAt,
+          label: pm.run.label,
+        });
+      }
+    } catch {
+      // signed out / db unavailable — demo fallback stays active
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadEngine();
+  }, [loadEngine]);
+
+  const onUploadFile = useCallback(
+    async (file: File) => {
+      setUploading(true);
+      setUploadMsg(null);
+      try {
+        const text = await file.text();
+        const payload = JSON.parse(text) as JsonValue;
+        const res = await uploadEngineRun({
+          data: { kind: uploadKind, label: file.name, payload },
+        });
+        if (res.ok) {
+          setUploadMsg({
+            ok: true,
+            text: `Ingested ${res.kind} run (${file.name}) at ${res.ingestedAt.slice(0, 19).replace("T", " ")}Z`,
+          });
+          await loadEngine();
+        } else {
+          setUploadMsg({ ok: false, text: res.error });
+        }
+      } catch (e) {
+        setUploadMsg({
+          ok: false,
+          text:
+            e instanceof Error
+              ? `Upload failed: ${e.message}`
+              : "Upload failed",
+        });
+      } finally {
+        setUploading(false);
+      }
+    },
+    [uploadKind, loadEngine],
+  );
+
+  const backtest = engineBacktest?.payload ?? demoBacktest;
+  const premarket = enginePremarket?.payload ?? demoPremarket;
+  const isLive =
+    tab === "backtest"
+      ? engineBacktest != null
+      : tab === "premarket"
+        ? enginePremarket != null
+        : false;
+  const liveIngestedAt =
+    tab === "backtest"
+      ? engineBacktest?.ingestedAt
+      : tab === "premarket"
+        ? enginePremarket?.ingestedAt
+        : undefined;
   const m = backtest.metrics;
 
   const histData = backtest.histogram.map((count, i) => ({
@@ -181,8 +286,20 @@ export function AplusOps() {
             {backtest.symbol} · {backtest.bars.toLocaleString()} bars ·{" "}
             {backtest.first_ts.slice(0, 10)} → {backtest.last_ts.slice(0, 10)}
           </span>
-          <span className="text-[var(--color-warn)]">demo offline sample</span>
+          {isLive && liveIngestedAt ? (
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] px-2 py-0.5 text-[var(--color-up)]">
+              live engine data · ingested{" "}
+              {liveIngestedAt.slice(0, 16).replace("T", " ")}Z
+            </span>
+          ) : null}
         </div>
+
+        {!isLive && tab !== "rules" ? (
+          <div className="rounded-[var(--radius-md)] border-l-4 border-[var(--color-warn)] bg-[color-mix(in_oklab,var(--color-warn)_12%,var(--color-surface-2))] px-3 py-2.5 text-sm text-[var(--color-fg)]">
+            <b className="uppercase tracking-wide">Demo data</b> — no engine run
+            ingested yet. Upload Trading-Automation data.json below.
+          </div>
+        ) : null}
 
         {tab === "backtest" && (
           <>
@@ -823,6 +940,55 @@ export function AplusOps() {
             </Section>
           </>
         )}
+
+        <Section title="Engine ingest — upload Trading-Automation JSON">
+          <div className="flex flex-wrap items-center gap-2">
+            <UploadCloud
+              className="h-4 w-4 shrink-0 text-[var(--color-primary)]"
+              aria-hidden
+            />
+            <select
+              value={uploadKind}
+              onChange={(e) => setUploadKind(e.target.value as UploadKind)}
+              disabled={uploading}
+              aria-label="Engine run kind"
+              className="min-h-8 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 font-mono text-xs text-[var(--color-fg)]"
+            >
+              <option value="backtest">backtest (data.json)</option>
+              <option value="knowledge">knowledge (confluence.json)</option>
+              <option value="premarket">premarket snapshot</option>
+            </select>
+            <input
+              type="file"
+              accept=".json,application/json"
+              disabled={uploading}
+              aria-label="Engine JSON file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void onUploadFile(file);
+                e.target.value = "";
+              }}
+              className="text-xs text-[var(--color-muted)] file:mr-2 file:min-h-8 file:cursor-pointer file:rounded-[var(--radius-sm)] file:border file:border-[var(--color-border)] file:bg-[var(--color-surface-3)] file:px-2.5 file:text-xs file:font-medium file:text-[var(--color-fg)]"
+            />
+          </div>
+          {uploadMsg ? (
+            <p
+              className={cn(
+                "mt-2 font-mono text-xs",
+                uploadMsg.ok
+                  ? "text-[var(--color-up)]"
+                  : "text-[var(--color-down)]",
+              )}
+            >
+              {uploadMsg.text}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-[var(--color-subtle)]">
+              Validated with zod against the engine payload shapes — extra
+              fields pass through, missing core fields are rejected.
+            </p>
+          )}
+        </Section>
       </CardContent>
     </Card>
   );
