@@ -1,3 +1,4 @@
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import { useEffect, useMemo, useState } from "react";
 import {
   Crosshair,
@@ -85,6 +86,10 @@ function Tile({
 }
 
 export function ProfitPathPanel({ equity }: { equity?: number }) {
+  const pathFeed = useDeskSynapse((s) => s.feeds.path);
+  const posture = useDeskSynapse((s) => s.posture);
+  const boosts = useDeskSynapse((s) => s.strategyBoosts);
+
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
   const [path, setPath] = useState<ProfitPathSnapshot | null>(null);

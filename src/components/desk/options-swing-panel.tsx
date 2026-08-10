@@ -16,6 +16,7 @@ import {
   type SwingVerdict,
 } from "@/lib/trading/options-swing";
 import { cn } from "@/lib/utils";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictClass(v: SwingVerdict): string {
   const t = swingVerdictTone(v);
@@ -30,6 +31,9 @@ function verdictClass(v: SwingVerdict): string {
 
 export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
   const signal = useMemo(() => evaluateOptionsSwing(desk), [desk]);
+  const posture = useDeskSynapse((s) => s.posture);
+  const tradeFeed = useDeskSynapse((s) => s.feeds.trade);
+  const pathFeed = useDeskSynapse((s) => s.feeds.path);
   const playbook = useMemo(() => optionsSwingPlaybook(), []);
 
   return (
@@ -58,6 +62,9 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </span>
       </header>
 
+      <p className="mb-2 text-[11px] text-[var(--color-muted)]">
+        Cross-tab: {posture.verdict} · {tradeFeed[0] ?? "—"} · {pathFeed[0] ?? "—"}
+      </p>
       {/* Time occurs banner */}
       <div
         className={cn(

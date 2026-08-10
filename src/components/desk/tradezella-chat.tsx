@@ -34,6 +34,7 @@ import {
   remember,
   type BacktestFillRecord,
 } from "@/lib/trading/desk-memory";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 type Role = "user" | "assistant" | "system";
 
@@ -887,6 +888,10 @@ export function TradezellaChat({
   /** Wire to desk journal dialog (paper/live). */
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
 }) {
+  const publishBacktest = useDeskSynapse((s) => s.publishBacktest);
+  const publishMemory = useDeskSynapse((s) => s.publishMemory);
+  const btFeed = useDeskSynapse((s) => s.feeds.backtest);
+  const posture = useDeskSynapse((s) => s.posture);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [text, setText] = useState("");
   const [shots, setShots] = useState<ChartShot[]>([]);
@@ -1042,6 +1047,16 @@ export function TradezellaChat({
           processWins,
           summary: result.analysis.summary,
         });
+        const wins = fills.filter((f) => f.r > 0).length;
+        const sumR = fills.reduce((s, f) => s + f.r, 0);
+        publishBacktest({
+          label: result.analysis.title || "Backtest",
+          taken: fills.length,
+          wr: fills.length ? wins / fills.length : null,
+          sumR: Math.round(sumR * 100) / 100,
+          fills,
+        });
+        publishMemory();
         window.dispatchEvent(new Event("ledger-memory"));
       } else if (result.analysis?.summary) {
         remember(

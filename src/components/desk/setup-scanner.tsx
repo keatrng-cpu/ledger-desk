@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
   return (
@@ -236,9 +237,14 @@ export function SetupScanner({
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
   entryAllowed?: boolean;
 }) {
+  const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
+  const boosts = useDeskSynapse((s) => s.strategyBoosts);
+  const rankCandidates = useDeskSynapse((s) => s.rankCandidates);
+  const tradeFeed = useDeskSynapse((s) => s.feeds.trade);
+
   const [pathOnly, setPathOnly] = useState(true);
   const shown = pathOnly
-    ? scan.candidates.filter(
+    ? rankCandidates(scan.candidates).filter(
         (c) => c.actionable || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+" || c.grade === "A+" || c.grade === "A-",
       )
     : scan.candidates;

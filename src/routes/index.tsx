@@ -33,6 +33,8 @@ import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import { SynapseRail } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
@@ -130,6 +132,11 @@ const CATEGORIES: {
 
 function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
+  const publishDesk = useDeskSynapse((s) => s.publishDesk);
+  const publishRisk = useDeskSynapse((s) => s.publishRisk);
+  const publishMemory = useDeskSynapse((s) => s.publishMemory);
+  const synapsePosture = useDeskSynapse((s) => s.posture);
+  const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
@@ -142,12 +149,14 @@ function MasterplacePage() {
   const loadRisk = useCallback(async () => {
     try {
       const [rs, s] = await Promise.all([getRiskState(), getSettings()]);
+      publishRisk(rs);
       setRisk(rs);
       setEquity(s.equity);
+      return rs;
     } catch {
-      /* signed out */
+      return null;
     }
-  }, []);
+  }, [publishRisk]);
 
   const entryAllowed = risk
     ? !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit
@@ -157,23 +166,38 @@ function MasterplacePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchTradingDesk({
-        data: { left: "MNQ", right: "ES" },
-      });
+      const [res, rs] = await Promise.all([
+        fetchTradingDesk({
+          data: { left: "MNQ", right: "ES" },
+        }),
+        loadRisk(),
+      ]);
       if (!res.ok) {
         setError(res.error);
       } else {
         setDesk(res);
+        publishDesk(res, rs);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Desk load failed");
     } finally {
       setLoading(false);
     }
-    void loadRisk();
-  }, [loadRisk]);
+  }, [loadRisk, publishDesk]);
 
+  
   useEffect(() => {
+    const sync = () => publishMemory();
+    sync();
+    window.addEventListener("ledger-memory", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      window.removeEventListener("ledger-memory", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, [publishMemory]);
+
+useEffect(() => {
     void load();
   }, [load]);
 
@@ -200,7 +224,10 @@ function MasterplacePage() {
   const active = CATEGORIES.find((c) => c.id === cat)!;
 
   // Profitability snapshot chips from desk
-  const best = desk?.scan.candidates.find((c) => c.actionable);
+  const best =
+    (fusedSetups[0] &&
+      desk?.scan.candidates.find((c) => c.id === fusedSetups[0]!.id)) ||
+    desk?.scan.candidates.find((c) => c.actionable);
   const focusLine = desk?.scan.focus?.slice(0, 90);
   const brainSnap = desk
     ? runVeteranBrain(
@@ -352,6 +379,18 @@ function MasterplacePage() {
                 </button>
               </>
             )}
+            {fusedSetups[0] && (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <span
+                  className="hidden font-mono text-[var(--color-primary)] sm:inline"
+                  title={fusedSetups[0].reasons.join(" · ")}
+                >
+                  Fused {fusedSetups[0].symbol} {fusedSetups[0].side}{" "}
+                  {fusedSetups[0].fusedScore.toFixed(2)}
+                </span>
+              </>
+            )}
           </div>
         )}
 
@@ -418,6 +457,8 @@ function MasterplacePage() {
 
             {/* Category panels — only one active for focus */}
             <div className="min-h-[50vh]">
+              <SynapseRail tab={cat} />
+
               {cat === "brain" && (
                 <div className="space-y-5">
                   <SectionHead

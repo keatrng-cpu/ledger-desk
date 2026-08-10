@@ -23,6 +23,7 @@ import {
 } from "@/lib/trading/veteran-brain";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictStyle(v: DiscretionVerdict): string {
   switch (v) {
@@ -66,6 +67,9 @@ export function VeteranBrainPanel({
   risk?: RiskState | null;
 }) {
   const [mem, setMem] = useState<DeskMemoryState>(() => loadDeskMemory());
+  const fused = useDeskSynapse((s) => s.fusedSetups);
+  const feeds = useDeskSynapse((s) => s.feeds);
+  const boosts = useDeskSynapse((s) => s.strategyBoosts);
   const [q, setQ] = useState("");
   const [pin, setPin] = useState("");
   const [asked, setAsked] = useState<string | undefined>();
@@ -217,6 +221,30 @@ export function VeteranBrainPanel({
         </p>
       </div>
 
+      {/* Cross-tab feeds */}
+      <div className="mb-3 grid gap-1 sm:grid-cols-2">
+        {(["trade", "path", "backtest", "swing", "risk", "tape"] as const).map(
+          (tab) => (
+            <div
+              key={tab}
+              className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5 text-[10px]"
+            >
+              <p className="font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+                {tab}
+              </p>
+              <p className="mt-0.5 text-[var(--color-muted)]">
+                {(feeds[tab] ?? [])[0] ?? "—"}
+              </p>
+            </div>
+          ),
+        )}
+      </div>
+      {fused[0] && (
+        <p className="mb-2 font-mono text-[11px] text-[var(--color-primary)]">
+          Fused #1 {fused[0].symbol} {fused[0].side} {fused[0].strategy}{" "}
+          {fused[0].fusedScore.toFixed(2)} · size×{fused[0].sizeMult.toFixed(2)}
+        </p>
+      )}
       {/* Backtest rates → live */}
       <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
         <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
