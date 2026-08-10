@@ -22,6 +22,7 @@ import { RiskPanel } from "@/components/desk/risk-panel";
 import { SessionHud } from "@/components/desk/session-hud";
 import { SetupScanner } from "@/components/desk/setup-scanner";
 import { ProfitPathPanel } from "@/components/desk/profit-path";
+import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { Button } from "@/components/ui/button";
 import {
@@ -187,6 +188,7 @@ function MasterplacePage() {
                 ["#htf", "1 Bias"],
                 ["#scanner", "2 Setups"],
                 ["#path", "Path 70%"],
+                ["#tz", "TZ Lab"],
                 ["#charts", "3 Charts"],
                 ["#liquidity", "4 Liquidity"],
                 ["#journal", "5 Journal"],
@@ -223,6 +225,10 @@ function MasterplacePage() {
 
             <div id="path" className="space-y-3">
               <ProfitPathPanel equity={equity} />
+            </div>
+
+            <div id="tz" className="space-y-3">
+              <TradezellaChat desk={desk} />
             </div>
 
             <div id="charts">
