@@ -117,6 +117,21 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       const scan = scanSetups(biasL, biasR, clock);
 
+      // Data-quality gate: a synthetic series or a badly lagged quote makes
+      // structure + scanner untrustworthy — nothing is actionable on bad data.
+      const seriesLive = left.source === "yahoo" && right.source === "yahoo";
+      const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
+      const quotesFresh = maxLagSec <= 120;
+      const dataQualityOk = seriesLive && quotesFresh;
+      if (!dataQualityOk) {
+        const reason = seriesLive
+          ? `Data quality: lagged feed (worst quote lag ${Math.round(maxLagSec)}s > 120s)`
+          : "Data quality: synthetic feed — no live Yahoo data";
+        for (const c of scan.candidates) c.actionable = false;
+        scan.blocked.push(reason);
+        scan.focus = `${reason} — stand down.`;
+      }
+
       const checklist = [
         {
           id: "session",
@@ -143,10 +158,17 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           detail: scan.focus,
         },
         {
+          // TODO: replace with the real risk governor (daily/weekly halts,
+          // per-KZ setup counts, equity drawdown) — see INTEGRATION-P1.md.
+          // For now this honestly reflects data quality + weekday only.
           id: "risk",
           label: "Risk model armed",
-          ok: true,
-          detail: `${APLUS_RULES.riskPct * 100}% · max ${APLUS_RULES.maxSetupsPerSession}/KZ · micros`,
+          ok: dataQualityOk && clock.isWeekday,
+          detail: !dataQualityOk
+            ? "Data quality gate failed — stand down"
+            : !clock.isWeekday
+              ? "Weekend — risk not armed"
+              : `${APLUS_RULES.riskPct * 100}% · max ${APLUS_RULES.maxSetupsPerSession}/KZ · micros`,
         },
       ];
 

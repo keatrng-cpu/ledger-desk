@@ -234,15 +234,16 @@ function priorDayHl(bars: OhlcBar[]): {
   };
 }
 
+/** Plain majority vote: more bulls → bull, more bears → bear, tie → neutral. */
 function voteBias(...votes: Bias[]): Bias {
-  let b = 0;
-  let r = 0;
+  let bulls = 0;
+  let bears = 0;
   for (const v of votes) {
-    if (v === "bull") b++;
-    if (v === "bear") r++;
+    if (v === "bull") bulls++;
+    if (v === "bear") bears++;
   }
-  if (b > r + 0) return b >= 2 ? "bull" : b > r ? "bull" : "neutral";
-  if (r > b) return r >= 2 ? "bear" : "bear";
+  if (bulls > bears) return "bull";
+  if (bears > bulls) return "bear";
   return "neutral";
 }
 

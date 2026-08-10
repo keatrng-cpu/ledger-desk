@@ -59,7 +59,7 @@ function SetupCard({ c }: { c: SetupCandidate }) {
           <p className="text-lg font-semibold tabular text-[var(--color-fg)]">
             {c.confluence.toFixed(2)}
           </p>
-          <p className="text-[10px] text-[var(--color-subtle)]">confluence</p>
+          <p className="text-[10px] text-[var(--color-subtle)]">pre-score</p>
         </div>
       </div>
 
@@ -130,7 +130,9 @@ export function SetupScanner({ scan }: { scan: ScanResult }) {
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Confluence floor {scan.floor} · A+ ≥ {scan.aPlus} · rules decide, never the LLM
+            Desk pre-score — NOT engine confluence; engine floor 0.75 never
+            cleared in calibration · floor {scan.floor} · A+ ≥ {scan.aPlus} ·
+            rules decide, never the LLM
           </p>
         </div>
         <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] text-[var(--color-muted)]">

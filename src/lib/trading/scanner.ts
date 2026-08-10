@@ -1,6 +1,9 @@
 /**
- * Setup scanner — deterministic confluence-style candidates.
- * Mirrors Trading-Automation scanner intent without full Python engine.
+ * Setup scanner — deterministic desk pre-score candidates.
+ * Mirrors Trading-Automation scanner intent without the full Python engine.
+ * The `confluence` field is kept for type stability, but it is a desk
+ * PRE-SCORE — NOT engine confluence (engine floor 0.75 never cleared in
+ * calibration). All user-visible copy must say "pre-score".
  */
 
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -57,7 +60,7 @@ export function scanSetups(
 
   const candidates: SetupCandidate[] = [];
 
-  const build = (read: HtfBiasRead, peer: HtfBiasRead) => {
+  const build = (read: HtfBiasRead) => {
     // Long idea
     {
       const reasons: string[] = [];
@@ -189,6 +192,8 @@ export function scanSetups(
       if (smt.edge === "left" && smt.state.includes("bear")) {
         score += 0.08;
         reasons.push("SMT weakness support");
+      } else if (smt.state === "locked") {
+        score += 0.02;
       } else missing.push("bearish SMT");
 
       const killzoneOk = clock.inTradeWindow;
@@ -227,21 +232,19 @@ export function scanSetups(
         actionable,
       });
     }
-
-    void peer;
   };
 
-  build(left, right);
-  build(right, left);
+  build(left);
+  build(right);
 
   candidates.sort((a, b) => b.confluence - a.confluence);
 
   const best = candidates[0];
   let focus = "Stand down — no A-grade idea clears gates.";
   if (best && best.actionable) {
-    focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} (${best.grade}, conf ${best.confluence}). ${best.reasons[0] ?? ""}`;
+    focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} (${best.grade}, pre-score ${best.confluence}). ${best.reasons[0] ?? ""}`;
   } else if (best && best.grade !== "skip") {
-    focus = `Nearest: ${best.symbol} ${best.side} @ ${best.confluence} (${best.grade}) — missing: ${best.missing.slice(0, 2).join(", ") || "alignment"}.`;
+    focus = `Nearest: ${best.symbol} ${best.side} @ pre-score ${best.confluence} (${best.grade}) — missing: ${best.missing.slice(0, 2).join(", ") || "alignment"}.`;
   } else if (blocked.length) {
     focus = blocked[0]!;
   }
