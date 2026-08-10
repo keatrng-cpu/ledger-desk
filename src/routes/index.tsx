@@ -30,6 +30,8 @@ import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
+import { runVeteranBrain } from "@/lib/trading/veteran-brain";
+import { loadDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
 import {
   fetchTradingDesk,
@@ -189,6 +191,21 @@ function MasterplacePage() {
   // Profitability snapshot chips from desk
   const best = desk?.scan.candidates.find((c) => c.actionable);
   const focusLine = desk?.scan.focus?.slice(0, 90);
+  const brainSnap = desk
+    ? runVeteranBrain(
+        desk,
+        typeof window !== "undefined" ? loadDeskMemory() : undefined,
+        undefined,
+        risk
+          ? {
+              dailyHaltHit: risk.dailyHaltHit,
+              weeklyHaltHit: risk.weeklyHaltHit,
+              killzoneCapHit: risk.killzoneCapHit,
+            }
+            : null,
+      )
+    : null;
+
 
   return (
     <div className="min-h-dvh bg-[var(--color-bg)]">
@@ -286,6 +303,25 @@ function MasterplacePage() {
               <span className="hidden max-w-md truncate text-[var(--color-subtle)] lg:inline">
                 · {focusLine}
               </span>
+            )}
+            {brainSnap && (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <button
+                  type="button"
+                  onClick={() => setCat("brain")}
+                  className={
+                    brainSnap.verdict === "TAKE"
+                      ? "font-mono font-semibold text-[var(--color-up)]"
+                      : brainSnap.verdict === "REDUCE"
+                        ? "font-mono font-semibold text-[var(--color-warn)]"
+                        : "font-mono font-semibold text-[var(--color-subtle)]"
+                  }
+                  title={brainSnap.headline}
+                >
+                  Brain {brainSnap.verdict} ×{brainSnap.sizeMult}
+                </button>
+              </>
             )}
           </div>
         )}

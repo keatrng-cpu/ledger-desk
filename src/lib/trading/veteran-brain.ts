@@ -13,6 +13,7 @@ import {
 } from "./desk-memory";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { PROFIT_ACTION_FLOOR } from "./profit-path";
+import { ALWAYS_SCAN, type StrategyId } from "./strategies";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -29,6 +30,19 @@ export interface BrainLayer {
   tone: LayerTone;
   score: number; // -2 .. +2 contribution
   detail: string;
+}
+
+export interface TabRead {
+  tab: string;
+  status: "ok" | "warn" | "hot" | "idle";
+  line: string;
+}
+
+export interface StrategyRead {
+  id: StrategyId | string;
+  status: "ready" | "forming" | "absent" | "blocked";
+  score: number;
+  note: string;
 }
 
 export interface VeteranBrief {
@@ -52,6 +66,12 @@ export interface VeteranBrief {
   setup: SetupCandidate | null;
   /** Short script the UI can show as "veteran says" */
   monologue: string[];
+  /** Auto-read of every desk tab */
+  tabReads: TabRead[];
+  /** Auto score of every strategy model */
+  strategyBoard: StrategyRead[];
+  /** What the brain is doing automatically right now */
+  autoActions: string[];
   asked?: string;
   answer?: string;
 }
@@ -457,6 +477,136 @@ export function runVeteranBrain(
     });
   }
 
+
+  // ---- Auto-read every desk "tab" + all strategies (no user click needed) ----
+  const tabReads: TabRead[] = [
+    {
+      tab: "Trade",
+      status: clock.inTradeWindow
+        ? rawBest && rawBest.confluence >= PROFIT_ACTION_FLOOR
+          ? "hot"
+          : "ok"
+        : "idle",
+      line: `${clock.killzoneLabel} · HTF ${bias.left.topDown}/${bias.right.topDown} · ${
+        rawBest
+          ? `${rawBest.symbol} ${rawBest.side} ${rawBest.grade} ${rawBest.confluence.toFixed(2)}`
+          : "no path idea"
+      }`,
+    },
+    {
+      tab: "Path",
+      status:
+        wr != null && wr >= 0.7 ? "ok" : wr != null && wr < 0.55 ? "warn" : "idle",
+      line: `Floor ${PROFIT_ACTION_FLOOR} · target ~${monthTarget}/mo · book ${memory.book.pathTaken} PATH · WR ${
+        wr != null ? (wr * 100).toFixed(0) + "%" : "—"
+      } · ΣR ${memory.book.sumR}`,
+    },
+    {
+      tab: "Backtest",
+      status: memory.book.lastBacktestLabel ? "ok" : "idle",
+      line: memory.book.lastBacktestLabel
+        ? `${memory.book.lastBacktestLabel}: ${memory.book.lastBacktestPath ?? 0} PATH · WR ${
+            memory.book.lastBacktestWr != null
+              ? (memory.book.lastBacktestWr * 100).toFixed(0) + "%"
+              : "—"
+          } · ${memory.book.lastBacktestSumR ?? 0}R`
+        : "No BT in memory — run week/month in Backtest tab (auto-ingested)",
+    },
+    {
+      tab: "Tape",
+      status: "ok",
+      line: `${desk.quotes.left.symbol} ${desk.quotes.left.price} · ${desk.quotes.right.symbol} ${desk.quotes.right.price} · feed ${desk.feed} · levels ${desk.levels?.[0]?.items?.length ?? 0}+`,
+    },
+    {
+      tab: "Risk",
+      status:
+        liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit
+          ? "warn"
+          : "ok",
+      line: liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit
+        ? "HALT — no new risk"
+        : `Open · grade 0.5–3% · risk-off 50%@1R · max ${risk.maxSetups}/KZ`,
+    },
+    {
+      tab: "Veteran",
+      status:
+        verdict === "TAKE" ? "hot" : verdict === "REDUCE" ? "warn" : "ok",
+      line: `${verdict} · size ×${sizeMult} · conf ${(confidence * 100).toFixed(0)}%`,
+    },
+    {
+      tab: "Lab",
+      status: "idle",
+      line: "Deep rules on demand — live path uses Trade + Path + Backtest only",
+    },
+  ];
+
+  // Strategy board: every ALWAYS_SCAN model ranked from live candidates
+  const strategyBoard: StrategyRead[] = ALWAYS_SCAN.map((id) => {
+    const hits = candidates.filter(
+      (c) =>
+        c.strategyPrimary === id || (c.strategies || []).includes(id),
+    );
+    const top = hits.sort((a, b) => b.confluence - a.confluence)[0];
+    if (!top) {
+      return {
+        id,
+        status: "absent" as const,
+        score: 0,
+        note: "Not firing on current bars",
+      };
+    }
+    if (!top.htfOk || vetoes.length) {
+      return {
+        id,
+        status: "blocked" as const,
+        score: top.confluence,
+        note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} — HTF/gate block`,
+      };
+    }
+    if (top.confluence >= PROFIT_ACTION_FLOOR) {
+      return {
+        id,
+        status: "ready" as const,
+        score: top.confluence,
+        note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} · PATH-eligible`,
+      };
+    }
+    return {
+      id,
+      status: "forming" as const,
+      score: top.confluence,
+      note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} · need ${PROFIT_ACTION_FLOOR}+`,
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  const readyStrats = strategyBoard.filter((s) => s.status === "ready");
+  const autoActions: string[] = [
+    "Auto-scanned Trade · Path · Backtest · Tape · Risk · Lab",
+    `Auto-scored ${ALWAYS_SCAN.length} strategies: ${readyStrats.length} ready`,
+    verdict === "TAKE" && rawBest
+      ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} full grade · risk-off 50%@1R · log paper first`
+      : verdict === "REDUCE" && rawBest
+        ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} half size · same invalidation`
+        : "AUTO PLAN: flat — no PATH stack complete",
+    memory.book.lastBacktestLabel
+      ? `Memory linked to last BT (${memory.book.lastBacktestLabel})`
+      : "Waiting for first backtest ingest",
+  ];
+
+  // Enrich monologue with auto tab + strategy summary
+  monologue.unshift(
+    `I just read every tab. Trade=${tabReads[0]!.line}. Path=${tabReads[1]!.line}.`,
+  );
+  if (readyStrats[0]) {
+    monologue.push(
+      `Strongest model right now: ${readyStrats[0].id} — ${readyStrats[0].note}.`,
+    );
+  } else {
+    monologue.push(
+      `No strategy is PATH-ready. Closest: ${strategyBoard[0]?.id ?? "—"} ${strategyBoard[0]?.note ?? ""}.`,
+    );
+  }
+
   return {
     name: "Veteran · SMC/ICT",
     posture,
@@ -472,6 +622,9 @@ export function runVeteranBrain(
     sizeMult,
     setup: rawBest,
     monologue,
+    tabReads,
+    strategyBoard,
+    autoActions,
     asked,
     answer,
   };
