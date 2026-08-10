@@ -16,6 +16,7 @@ import {
   type TradezellaChatResult,
 } from "@/lib/trading/tradezella-server";
 import type { TradezellaAnalysis } from "@/lib/trading/tradezella-analyze";
+import type { DayBacktestRow } from "@/lib/trading/session-backtest";
 import {
   CHART_TIMEFRAMES,
   markAllCharts,
@@ -41,20 +42,24 @@ interface ChatMessage {
   marked?: MarkedChart[];
   analysis?: TradezellaAnalysis;
   markdown?: string;
+  mode?: "text" | "week_backtest" | "csv";
+  days?: DayBacktestRow[];
+  queue?: string[];
   ts: number;
 }
 
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "system",
-  text: "TradeZella lab · attach 4–5 charts (1m · 5m · 15m · 1h · 4h), paste stats, Analyze. You get marked charts back + setup card. Choose Log paper / Log live / Skip — nothing auto-journals.",
+  text: "TZ Lab · type “backtest week of May 12 2026” for real Databento multi-day analysis (no screenshots). Or attach multi-TF charts / CSV. Log paper · Log live · Skip — nothing auto-journals.",
   ts: Date.now(),
 };
 
 const QUICK = [
-  "WR 64.3% · 14 trades · net $2500 · MNQ · NY AM · HTF bull · sellside sweep + IFVG",
-  "Mark all TFs: bias, sweep, entry, S/L, targets",
-  "Complete multi-TF backtest checklist",
+  "backtest week of May 12 2026 MNQ ES",
+  "backtest 2026-05-05 to 2026-05-09 MNQ",
+  "backtest 2026-08-07 MNQ ES",
+  "WR 64.3% · 14 trades · MNQ · NY AM · HTF bull · sweep + IFVG",
 ];
 
 function uid() {
@@ -87,14 +92,109 @@ function downloadDataUrl(dataUrl: string, name: string) {
   a.click();
 }
 
+function WeekTable({
+  days,
+  queue,
+}: {
+  days?: DayBacktestRow[];
+  queue?: string[];
+}) {
+  if (!days?.length) return null;
+  return (
+    <div className="mt-2 space-y-2">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+        Real-data day board ({days.length} slots)
+      </p>
+      <div className="max-h-64 overflow-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
+        <table className="w-full text-left text-[11px]">
+          <thead className="sticky top-0 bg-[var(--color-surface-2)] text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            <tr>
+              <th className="px-2 py-1.5">Date</th>
+              <th className="px-2 py-1.5">Sym</th>
+              <th className="px-2 py-1.5">HTF</th>
+              <th className="px-2 py-1.5">Best</th>
+              <th className="px-2 py-1.5">Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            {days.map((d, i) => (
+              <tr
+                key={`${d.date}-${d.symbol}-${i}`}
+                className="border-t border-[var(--color-border)]"
+              >
+                <td className="px-2 py-1 font-mono text-[var(--color-fg)]">
+                  {d.date}
+                </td>
+                <td className="px-2 py-1 font-mono">{d.symbol}</td>
+                <td className="px-2 py-1">{d.htf}</td>
+                <td className="px-2 py-1 text-[var(--color-muted)]">
+                  {d.best
+                    ? `${d.best.side} ${d.best.grade} ${d.best.confluence.toFixed(2)}`
+                    : "—"}
+                </td>
+                <td
+                  className={
+                    d.pathEligible
+                      ? "px-2 py-1 font-semibold text-[var(--color-up)]"
+                      : "px-2 py-1 text-[var(--color-subtle)]"
+                  }
+                >
+                  {d.pathEligible ? "YES" : "no"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {queue && queue.length > 0 && (
+        <div>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+            Queue
+          </p>
+          <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
+            {queue.map((q) => (
+              <li key={q}>☐ {q}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {days[0]?.gates && (
+        <div>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+            Gates (sample day)
+          </p>
+          <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
+            {days[0].gates.map((g) => (
+              <li key={g.name}>
+                <span
+                  className={
+                    g.pass ? "text-[var(--color-up)]" : "text-[var(--color-down)]"
+                  }
+                >
+                  {g.pass ? "OK" : "NO"}
+                </span>{" "}
+                {g.name} — {g.detail}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AnalysisCard({
   a,
   marked,
+  days,
+  queue,
   onLog,
   onSkip,
 }: {
   a: TradezellaAnalysis;
   marked?: MarkedChart[];
+  days?: DayBacktestRow[];
+  queue?: string[];
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
   onSkip?: () => void;
 }) {
@@ -106,6 +206,8 @@ function AnalysisCard({
         <p className="text-sm font-semibold text-[var(--color-fg)]">{a.title}</p>
         <p className="mt-1 text-[var(--color-muted)]">{a.summary}</p>
       </div>
+
+      <WeekTable days={days} queue={queue} />
 
       {/* Marked charts returned */}
       {marked && marked.length > 0 && (
@@ -385,6 +487,8 @@ export function TradezellaChat({
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [text, setText] = useState("");
   const [shots, setShots] = useState<ChartShot[]>([]);
+  const [csvText, setCsvText] = useState<string | null>(null);
+  const csvRef = useRef<HTMLInputElement>(null);
   const [activeTf, setActiveTf] = useState<ChartTimeframe>("15m");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -423,24 +527,28 @@ export function TradezellaChat({
 
   const send = useCallback(async () => {
     const msg = text.trim();
-    if (!msg && shots.length === 0) return;
+    if (!msg && shots.length === 0 && !csvText) return;
     setBusy(true);
     setError(null);
     setSkipNote(null);
 
     const userShots = [...shots];
+    const userCsv = csvText;
     const userMsg: ChatMessage = {
       id: uid(),
       role: "user",
       text:
         msg ||
-        `(${userShots.length} chart${userShots.length === 1 ? "" : "s"}: ${userShots.map((s) => s.tf).join(", ")})`,
+        (userCsv
+          ? "(TradeZella CSV import)"
+          : `(${userShots.length} chart${userShots.length === 1 ? "" : "s"}: ${userShots.map((s) => s.tf).join(", ")})`),
       shots: userShots,
       ts: Date.now(),
     };
     setMessages((m) => [...m, userMsg]);
     setText("");
     setShots([]);
+    setCsvText(null);
 
     try {
       const deskContext = desk
@@ -466,6 +574,7 @@ export function TradezellaChat({
           message: userMsg.text + tfNote,
           imageDataUrl: userShots[0]?.dataUrl ?? null,
           imageName: userShots.map((s) => `${s.tf}:${s.name}`).join(", ") || null,
+          csvText: userCsv,
           deskContext,
         },
       });
@@ -487,6 +596,9 @@ export function TradezellaChat({
         markdown: result.markdown,
         marked,
         shots: userShots,
+        mode: result.mode,
+        days: result.days,
+        queue: result.queue,
         ts: Date.now(),
       };
       setMessages((m) => [...m, assistant]);
@@ -495,7 +607,7 @@ export function TradezellaChat({
     } finally {
       setBusy(false);
     }
-  }, [text, shots, desk]);
+  }, [text, shots, csvText, desk]);
 
   const missingTfs = CHART_TIMEFRAMES.filter(
     (tf) => !shots.some((s) => s.tf === tf),
@@ -513,8 +625,8 @@ export function TradezellaChat({
               TradeZella lab · multi-TF charts
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              1m · 5m · 15m · 1h · 4h → marked copies back · Log paper / live or
-              Skip
+              Ask “backtest week of …” for real Databento · multi-TF charts · CSV ·
+              Log / Skip
             </p>
           </div>
         </div>
@@ -591,6 +703,8 @@ export function TradezellaChat({
                 <AnalysisCard
                   a={m.analysis}
                   marked={m.marked}
+                  days={m.days}
+                  queue={m.queue}
                   onLog={onLog}
                   onSkip={() =>
                     setSkipNote(
@@ -678,6 +792,11 @@ export function TradezellaChat({
             ))}
           </div>
         )}
+        {csvText && (
+          <p className="mb-1 text-[10px] text-[var(--color-primary)]">
+            CSV loaded ({csvText.split("\n").length} lines) — Analyze to grade
+          </p>
+        )}
         {missingTfs.length > 0 && shots.length > 0 && (
           <p className="mb-1 text-[10px] text-[var(--color-warn)]">
             Still missing: {missingTfs.join(", ")} (optional but recommended)
@@ -708,6 +827,30 @@ export function TradezellaChat({
             <ImagePlus className="h-4 w-4" />
             {activeTf}
           </Button>
+          <input
+            ref={csvRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const txt = await f.text();
+              setCsvText(txt);
+              setError(null);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => csvRef.current?.click()}
+            className="shrink-0"
+            title="Import TradeZella CSV export"
+          >
+            CSV
+          </Button>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -724,7 +867,7 @@ export function TradezellaChat({
           <Button
             type="button"
             size="sm"
-            disabled={busy || (!text.trim() && shots.length === 0)}
+            disabled={busy || (!text.trim() && shots.length === 0 && !csvText)}
             onClick={() => void send()}
             className="shrink-0"
           >

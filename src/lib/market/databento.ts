@@ -251,6 +251,72 @@ export async function fetchDatabentoBars(
   };
 }
 
+
+
+/**
+ * Absolute window fetch (session / week backtests).
+ * start/end are ISO or ms; pulls 1m then optionally aggregates.
+ */
+export async function fetchDatabentoAbsoluteRange(
+  symbol: IndexSymbol,
+  startMs: number,
+  endMs: number,
+  intervalMinutes: number = 1,
+): Promise<SymbolSeries | null> {
+  const key = readApiKey();
+  if (!key) return null;
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return null;
+  }
+
+  let start = new Date(startMs).toISOString();
+  let end = new Date(endMs).toISOString();
+  let result = await getRangeOnce(key, symbol, start, end);
+
+  if (!result.ok && result.status === 422) {
+    const maxEnd = parseMaxEnd(result.body);
+    if (maxEnd && maxEnd > startMs) {
+      end = new Date(Math.min(endMs, maxEnd)).toISOString();
+      result = await getRangeOnce(key, symbol, start, end);
+    }
+  }
+
+  if (!result.ok) {
+    console.warn(`[databento] abs ${symbol} HTTP ${result.status}`);
+    return null;
+  }
+
+  let bars = parseCsv(result.text);
+  if (bars.length < 10) return null;
+  // clip to requested window
+  bars = bars.filter((b) => b.t >= startMs - 60_000 && b.t <= endMs + 60_000);
+  if (intervalMinutes > 1) {
+    bars = aggregateBars(bars, intervalMinutes);
+  }
+  if (bars.length < 10) return null;
+
+  const first = bars[0]!;
+  const last = bars[bars.length - 1]!;
+  const prev = bars.length > 2 ? bars[bars.length - 2]!.c : first.o;
+
+  return {
+    symbol,
+    yahoo: continuous(symbol),
+    label: LABEL[symbol],
+    source: "databento",
+    price: last.c,
+    changePct: prev ? ((last.c - prev) / prev) * 100 : 0,
+    marketTimeMs: last.t,
+    marketTimeIso: new Date(last.t).toISOString(),
+    previousClose: prev,
+    first: new Date(first.t).toISOString(),
+    last: new Date(last.t).toISOString(),
+    interval: `${intervalMinutes}m`,
+    count: bars.length,
+    bars,
+  };
+}
+
 /** Last bar as LiveQuote — true exchange bar time, not Yahoo print lag. */
 export function quoteFromDatabentoSeries(series: SymbolSeries): LiveQuote {
   const last = series.bars[series.bars.length - 1]!;
