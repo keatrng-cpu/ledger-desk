@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2, Shield } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { APLUS_RULES } from "@/lib/aplus/config";
+import { PATH_MONTH_CAP, APLUS_PROBE_RISK } from "@/lib/trading/profit-rules";
 import { getRiskState } from "@/lib/journal/server";
 import type { RiskState } from "@/lib/journal/risk";
 import { cn } from "@/lib/utils";
@@ -106,6 +107,11 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
         ? `${(APLUS_RULES.scaleOut.tp1Fraction * 100).toFixed(0)}% @ +1R → BE stop → runner +2R`
         : "Off",
     ],
+    ["One book/day", "MNQ or ES — never both same bias"],
+    ["blake longs", "Demoted to B+/paper until WR recovers"],
+    ["Primary model", "mechanical (+ SMT/TJR companion)"],
+    ["PATH / month", `Cap ${PATH_MONTH_CAP} · then A+ only`],
+    ["A+ size", `${(APLUS_PROBE_RISK * 100).toFixed(0)}% probe until n≥20 WR≥65%`],
     ["Setups / killzone", String(r.maxSetups)],
     ["Daily halt", `${(r.dailyLimitPct * 100).toFixed(0)}%`],
     ["Weekly halt", `${(r.weeklyLimitPct * 100).toFixed(0)}%`],

@@ -29,6 +29,20 @@ import {
   type SimulatedTrade,
 } from "./simulate-path-trade";
 import { APLUS_RULES } from "@/lib/aplus/config";
+import {
+  emptyBookCounters,
+  monthKeyFromMs,
+  pathTakeGate,
+  pickOneBookPerDay,
+  promotePrimaryStrategy,
+  resolveRiskGradeForTake,
+  formatSkipAsProcessWin,
+  goldStandardNote,
+  isGoldStandardSetup,
+  describeProfitRules,
+  PATH_MONTH_CAP,
+  type BookCounters,
+} from "./profit-rules";
 
 export interface DateWindow {
   startMs: number;
@@ -393,15 +407,15 @@ function takePathTrade(
   decisionMs: number,
   rth1m: OhlcBar[],
   ltf1m: OhlcBar[],
+  riskGradeOverride?: import("@/lib/aplus/config").RiskGrade,
 ): SimulatedTrade | null {
   if (!best) return null;
-  if (!pathEligible && !isPathTake(best)) return null;
-  // Entry = last closed LTF 1m at decision (causal)
+  // Only take when day-loop set pathEligible after profit rules (one-book, cap, demote)
+  if (!pathEligible) return null;
   const entryBar =
     [...ltf1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1) ??
     [...rth1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1);
   if (!entryBar) return null;
-  // Forward walk: RTH bars after entry (same day preferred, allow rest of session)
   const dayKey = dateKeyEt(decisionMs);
   const forward = rth1m.filter(
     (b) => b.t > decisionMs && dateKeyEt(b.t) === dayKey,
@@ -411,6 +425,7 @@ function takePathTrade(
     entryPrice: entryBar.c,
     decisionMs,
     forwardBars: forward,
+    riskGradeOverride,
   });
 }
 
@@ -571,6 +586,11 @@ export async function runWeekBacktest(
   if (coveredDays.length === 0 && allDays.length > MAX_DAYS) truncated = true;
 
   const rows: DayBacktestRow[] = [];
+  let bookCounters: BookCounters = emptyBookCounters(
+    monthKeyFromMs(window.startMs),
+  );
+  const processWins: string[] = [];
+
   const dataCoverage = {
     bars: left.count,
     htf1h: left.htf1h.length,
@@ -821,13 +841,240 @@ export async function runWeekBacktest(
       },
     ];
 
+    // --- Profit rules: promote primary, dual-book pick, month cap, blake demote ---
+    const mk = monthKeyFromMs(pick.decisionMs);
+    if (mk !== bookCounters.monthKey) {
+      bookCounters = emptyBookCounters(mk);
+    }
+
+    let bestL = pick.best ? promotePrimaryStrategy(pick.best) : null;
+    let bestR: SetupCandidate | null = null;
+    let biasRrow = pick.biasR;
+    let condRrow = pick.cond;
+    let dayRbars = 0;
+    let smtNoteR = pick.smtNote;
+
+    if (right.symbol !== left.symbol) {
+      const decisionMs = pick.decisionMs;
+      const lBars2 = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
+      const rBars2 = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
+      const htfL2 = causalClosedBars(left.htf1h, decisionMs, 60);
+      const htfR2 = causalClosedBars(right.htf1h, decisionMs, 60);
+      const structureL2 = htfL2.length >= 30 ? htfL2 : lBars2;
+      const structureR2 = htfR2.length >= 30 ? htfR2 : rBars2;
+      if (rBars2.length >= 20 || structureR2.length >= 20) {
+        const dayR = causalOneMinute(right.bars, decisionMs).filter(
+          (b) => dateKeyEt(b.t) === day,
+        );
+        dayRbars = dayR.length;
+        const chgR =
+          dayR.length > 1
+            ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
+            : 0;
+        const biasL2 = analyzeStructure(left.symbol, structureL2, 0);
+        const biasR2 = analyzeStructure(right.symbol, structureR2, chgR);
+        biasRrow = biasR2;
+        const div = smtDivergence(
+          lBars2.length >= 20 ? lBars2 : structureL2,
+          rBars2.length >= 20 ? rBars2 : structureR2,
+        );
+        const clock = getSessionClock(new Date(decisionMs));
+        const scanR = scanSetups(biasL2, biasR2, clock, div, lBars2, rBars2);
+        smtNoteR = scanR.smt.note;
+        bestR =
+          scanR.candidates.find(
+            (c) => c.symbol === right.symbol && c.actionable,
+          ) ??
+          scanR.candidates.find(
+            (c) =>
+              c.symbol === right.symbol &&
+              c.strategyComplete &&
+              c.htfOk &&
+              (c.pathBand === "A+" ||
+                c.pathBand === "A" ||
+                c.pathBand === "A-" ||
+                c.pathBand === "B+"),
+          ) ??
+          scanR.candidates.find((c) => c.symbol === right.symbol) ??
+          null;
+        if (bestR) bestR = promotePrimaryStrategy(bestR);
+        condRrow = assessConditions(rBars2);
+      }
+    }
+
+    // Soft path flags before gates
+    const softPath = (c: SetupCandidate | null, tradeable: boolean) =>
+      Boolean(
+        c &&
+          tradeable &&
+          c.htfOk &&
+          (isPathTake(c) ||
+            c.pathBand === "A+" ||
+            c.pathBand === "A" ||
+            c.pathBand === "A-" ||
+            c.pathBand === "B+"),
+      );
+
+    let pathL = softPath(bestL, pick.cond.tradeable) && pick.pathEligible;
+    let pathR = softPath(bestR, condRrow.tradeable);
+
+    // Rule 1: one book per day when both would path
+    let chosenSym: string | null = null;
+    let dualWhy = "";
+    if (pathL && pathR && bestL && bestR) {
+      const pick1 = pickOneBookPerDay(bestL, bestR, bookCounters);
+      dualWhy = pick1.why;
+      if (pick1.chosen?.symbol === left.symbol) {
+        pathR = false;
+        chosenSym = left.symbol;
+      } else {
+        pathL = false;
+        chosenSym = right.symbol;
+      }
+    } else if (pathL) chosenSym = left.symbol;
+    else if (pathR) chosenSym = right.symbol;
+
+    // Rule 2/4 gates
+    const gateL = bestL
+      ? pathTakeGate(bestL, bookCounters, {
+          alreadyTookSymbolToday: null,
+        })
+      : null;
+    const gateR = bestR
+      ? pathTakeGate(bestR, bookCounters, {
+          alreadyTookSymbolToday: chosenSym === left.symbol ? left.symbol : null,
+        })
+      : null;
+
+    if (gateL && !gateL.take) {
+      if (gateL.forceBand && bestL) {
+        bestL = {
+          ...bestL,
+          pathBand: gateL.forceBand,
+          riskGrade: gateL.forceRiskGrade || "B+",
+          actionable: false,
+          reasons: [...bestL.reasons, gateL.detail],
+        };
+      }
+      pathL = false;
+    }
+    if (gateR && !gateR.take) {
+      if (gateR.forceBand && bestR) {
+        bestR = {
+          ...bestR,
+          pathBand: gateR.forceBand,
+          riskGrade: gateR.forceRiskGrade || "B+",
+          actionable: false,
+          reasons: [...bestR.reasons, gateR.detail],
+        };
+      }
+      pathR = false;
+    }
+
+    // Re-apply one-book if gates changed
+    if (pathL && pathR) {
+      const pick1 = pickOneBookPerDay(bestL, bestR, bookCounters);
+      dualWhy = pick1.why;
+      if (pick1.chosen?.symbol === left.symbol) pathR = false;
+      else pathL = false;
+    }
+
+    const riskL =
+      bestL && pathL ? resolveRiskGradeForTake(bestL, bookCounters) : undefined;
+    const riskR =
+      bestR && pathR ? resolveRiskGradeForTake(bestR, bookCounters) : undefined;
+
     const tradeL = takePathTrade(
-      pick.best,
-      pick.pathEligible,
+      bestL,
+      pathL,
       pick.decisionMs,
       left.rth1m,
       left.bars,
+      riskL,
     );
+    const tradeR =
+      right.symbol !== left.symbol
+        ? takePathTrade(
+            bestR,
+            pathR,
+            pick.decisionMs,
+            right.rth1m,
+            right.bars,
+            riskR,
+          )
+        : null;
+
+    // Update counters after takes
+    const registerTake = (tr: SimulatedTrade | null, best: SetupCandidate | null) => {
+      if (!tr?.taken || tr.rMultiple == null || !best) return;
+      bookCounters.pathThisMonth += 1;
+      const band = best.pathBand || best.grade;
+      if (band === "A+" || best.grade === "A+") {
+        bookCounters.aPlusTaken += 1;
+        if (tr.rMultiple > 0) bookCounters.aPlusWins += 1;
+      }
+      const prim = best.completeStrategy || best.strategyPrimary;
+      if (prim === "blake_mech" && best.side === "long") {
+        bookCounters.blakeLongTaken += 1;
+        if (tr.rMultiple > 0) bookCounters.blakeLongWins += 1;
+      }
+    };
+    registerTake(tradeL, bestL);
+    registerTake(tradeR, bestR);
+
+    const goldL = bestL ? goldStandardNote(bestL) : null;
+    const goldR = bestR ? goldStandardNote(bestR) : null;
+
+    // Rule 6: journal skips as process wins
+    if (!pathL) {
+      const reason =
+        gateL?.detail ||
+        deadspot ||
+        dualWhy ||
+        (bestL ? `no path ${bestL.grade}` : "no candidate");
+      processWins.push(
+        formatSkipAsProcessWin({
+          date: day,
+          symbol: left.symbol,
+          reason,
+          bestScore: bestL?.confluence,
+        }),
+      );
+    }
+    if (right.symbol !== left.symbol && !pathR) {
+      const reason =
+        gateR?.detail ||
+        dualWhy ||
+        (bestR ? `no path ${bestR.grade}` : "no ES path");
+      processWins.push(
+        formatSkipAsProcessWin({
+          date: day,
+          symbol: right.symbol,
+          reason,
+          bestScore: bestR?.confluence,
+        }),
+      );
+    }
+
+    const profitGates = [
+      ...gates,
+      {
+        name: "One book/day",
+        pass: !(pathL && pathR),
+        detail: dualWhy || (chosenSym ? `PATH ${chosenSym}` : "flat / single"),
+      },
+      {
+        name: "Month PATH cap",
+        pass: bookCounters.pathThisMonth <= PATH_MONTH_CAP,
+        detail: `${bookCounters.pathThisMonth}/${PATH_MONTH_CAP} · after cap A+ only`,
+      },
+      {
+        name: "blake long demote",
+        pass: !(gateL?.reason === "blake_long_demoted" || gateR?.reason === "blake_long_demoted"),
+        detail: "blake_mech longs → B+/paper until WR recovers",
+      },
+    ];
+
     rows.push({
       date: day,
       symbol: left.symbol,
@@ -836,87 +1083,60 @@ export async function runWeekBacktest(
       ltf: pick.biasL.ltf,
       regime: pick.cond.regime,
       tradeable: pick.cond.tradeable,
-      best: pick.best,
-      pathEligible: pick.pathEligible,
-      gates,
-      notes: `${pick.scanFocus} · ${pick.label}`,
+      best: bestL,
+      pathEligible: pathL,
+      gates: profitGates,
+      notes: [
+        pick.scanFocus,
+        pick.label,
+        goldL,
+        dualWhy && !pathL ? dualWhy : null,
+        gateL && !gateL.take ? gateL.detail : null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       decisionIso: new Date(pick.decisionMs).toISOString(),
       sessionBars: pick.sessionBars,
-      deadspot,
+      deadspot: pathL
+        ? null
+        : gateL?.detail || deadspot || dualWhy || "skip (process win)",
       trade: tradeL,
     });
 
     if (right.symbol !== left.symbol) {
-      // Re-scan ES at same winning decision for dual book
-      const decisionMs = pick.decisionMs;
-      const lBars = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
-      const rBars = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
-      const htfL2 = causalClosedBars(left.htf1h, decisionMs, 60);
-      const htfR2 = causalClosedBars(right.htf1h, decisionMs, 60);
-      const structureL2 = htfL2.length >= 30 ? htfL2 : lBars;
-      const structureR2 = htfR2.length >= 30 ? htfR2 : rBars;
-      if (rBars.length >= 20 || structureR2.length >= 20) {
-        const dayR = causalOneMinute(right.bars, decisionMs).filter(
-          (b) => dateKeyEt(b.t) === day,
-        );
-        const chgR =
-          dayR.length > 1
-            ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
-            : 0;
-        const chgL = 0;
-        const biasL = analyzeStructure(left.symbol, structureL2, chgL);
-        const biasR = analyzeStructure(right.symbol, structureR2, chgR);
-        const div = smtDivergence(lBars.length >= 20 ? lBars : structureL2, rBars.length >= 20 ? rBars : structureR2);
-        const clock = getSessionClock(new Date(decisionMs));
-        const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
-        const bestR =
-          scan.candidates.find(
-            (c) => c.symbol === right.symbol && c.actionable,
-          ) ??
-          scan.candidates.find((c) => c.symbol === right.symbol) ??
-          null;
-        const condR = assessConditions(rBars);
-        const pathR = Boolean(
-          bestR &&
-            bestR.confluence >= PROFIT_ACTION_FLOOR &&
-            bestR.htfOk &&
-            condR.tradeable,
-        );
-        const tradeR = takePathTrade(
-          bestR,
-          pathR,
-          decisionMs,
-          right.rth1m,
-          right.bars,
-        );
-        rows.push({
-          date: day,
-          symbol: right.symbol,
-          htf: biasR.topDown,
-          mid: biasR.mid,
-          ltf: biasR.ltf,
-          regime: condR.regime,
-          tradeable: condR.tradeable,
-          best: bestR,
-          pathEligible: pathR,
-          gates: gates.map((g) =>
-            g.name === "HTF gate"
-              ? { ...g, detail: `${right.symbol} ${biasR.topDown}` }
-              : g,
-          ),
-          notes: bestR
-            ? `${bestR.side} ${bestR.grade} ${bestR.confluence} · ${pick.label}`
-            : `${scan.smt.note} · ${pick.label}`,
-          decisionIso: new Date(decisionMs).toISOString(),
-          sessionBars: dayR.length,
-          deadspot: pathR
-            ? null
-            : bestR
-              ? `below path ${bestR.grade}`
-              : "no ES path setup",
-          trade: tradeR,
-        });
-      }
+      rows.push({
+        date: day,
+        symbol: right.symbol,
+        htf: biasRrow.topDown,
+        mid: biasRrow.mid,
+        ltf: biasRrow.ltf,
+        regime: condRrow.regime,
+        tradeable: condRrow.tradeable,
+        best: bestR,
+        pathEligible: pathR,
+        gates: profitGates.map((g) =>
+          g.name === "HTF gate"
+            ? { ...g, detail: `${right.symbol} ${biasRrow.topDown}` }
+            : g,
+        ),
+        notes: [
+          bestR
+            ? `${bestR.side} ${bestR.grade} ${bestR.confluence}`
+            : smtNoteR,
+          pick.label,
+          goldR,
+          dualWhy && !pathR ? dualWhy : null,
+          gateR && !gateR.take ? gateR.detail : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        decisionIso: new Date(pick.decisionMs).toISOString(),
+        sessionBars: dayRbars,
+        deadspot: pathR
+          ? null
+          : gateR?.detail || dualWhy || "skip (process win)",
+        trade: tradeR,
+      });
     }
   }
 
@@ -1026,7 +1246,16 @@ export async function runWeekBacktest(
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
-  analysis.summary = `${paceNote} Strategies scanned: ${stratLine}. PATH by model: ${pathStratLine}. ` + analysis.summary;
+  const rulesLine = describeProfitRules().join(" · ");
+  const processLine =
+    processWins.length > 0
+      ? `Process wins (skips): ${processWins.length} journaled.`
+      : "No skips journaled.";
+  const goldN = rows.filter((r) => r.best && isGoldStandardSetup(r.best) && r.pathEligible).length;
+  analysis.summary =
+    `${paceNote} ${processLine} Gold-template takes: ${goldN}. Strategies scanned: ${stratLine}. PATH by model: ${pathStratLine}. Rules: ${rulesLine}. ` +
+    analysis.summary;
+
   if (pnl.taken) {
     analysis.summary =
       `TAKEN ${pnl.taken} PATH trades · WR ${
@@ -1091,6 +1320,8 @@ export async function runWeekBacktest(
   ];
   analysis.nextActions = [
     paceNote,
+    ...describeProfitRules(),
+    `Process wins logged: ${processWins.length}`,
     `All strategies always scored: ${ALWAYS_SCAN.join(", ")}.`,
     pnl.taken
       ? `Review ${pnl.taken} TAKEN fills: exit reason + R. Re-run losers for missed HTF/model.`

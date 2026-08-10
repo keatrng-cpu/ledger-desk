@@ -26,7 +26,7 @@ export const APLUS_RULES = {
    * A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C 0.5% journal · skip 0.
    */
   riskByGrade: {
-    "A+": 0.03,
+    "A+": 0.03, // full size only after profit-rules unlock; probe uses A=2%
     A: 0.02,
     "A-": 0.01,
     "B+": 0.005, // 0.5% — micro edge sample

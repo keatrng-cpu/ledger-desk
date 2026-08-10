@@ -13,6 +13,13 @@ import {
 } from "./desk-memory";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { PROFIT_ACTION_FLOOR } from "./profit-path";
+import {
+  describeProfitRules,
+  isBlakeLongDemoted,
+  isGoldStandardSetup,
+  countersFromMemory,
+  PATH_MONTH_CAP,
+} from "./profit-rules";
 import { ALWAYS_SCAN, type StrategyId } from "./strategies";
 
 export type DiscretionVerdict =
@@ -99,6 +106,7 @@ export function runVeteranBrain(
   } | null,
 ): VeteranBrief {
   const memory = mem ?? loadDeskMemory();
+  const counters = countersFromMemory(memory);
   const { clock, bias, scan, risk, news } = desk;
   const candidates = scan.candidates ?? [];
   const rawBest =
@@ -222,6 +230,19 @@ export function runVeteranBrain(
     if (multiStrat) {
       score += 0.5;
       green.push(`Multi-strategy: ${(rawBest.strategies || []).join(", ")}`);
+    }
+    if (isBlakeLongDemoted(rawBest, counters)) {
+      score -= 1.5;
+      yellow.push("blake_mech long demoted — paper/B+ only");
+      vetoes.push("blake_mech long demoted until WR recovers");
+    }
+    if (isGoldStandardSetup(rawBest)) {
+      score += 0.75;
+      green.push("GOLD Jul-20 template: short + mechanical");
+    }
+    if (counters.pathThisMonth >= PATH_MONTH_CAP && rawBest.pathBand !== "A+") {
+      score -= 1;
+      yellow.push(`Month PATH cap ${PATH_MONTH_CAP} — A+ only or stand down`);
     }
   } else {
     layers.push({

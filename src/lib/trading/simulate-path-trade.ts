@@ -147,6 +147,8 @@ export function simulatePathTrade(opts: {
   forwardBars: OhlcBar[];
   riskPtsFallback?: number;
   equity?: number;
+  /** Override risk grade (A+ probe 2%, B+ 0.5%, etc.) */
+  riskGradeOverride?: RiskGrade;
 }): SimulatedTrade {
   const { best, entryPrice, decisionMs, forwardBars } = opts;
   const equity = opts.equity ?? APLUS_RULES.paperEquity;
@@ -209,7 +211,7 @@ export function simulatePathTrade(opts: {
     }
   }
 
-  const grade = resolveGrade(best);
+  const grade = opts.riskGradeOverride ?? resolveGrade(best);
   const sizing = sizeContracts({
     symbol,
     riskPts,

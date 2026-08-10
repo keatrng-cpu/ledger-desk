@@ -18,6 +18,7 @@ import {
   qualityScore,
   type PathBand,
 } from "./strategy-grade";
+import { promotePrimaryStrategy, goldStandardNote } from "./profit-rules";
 
 export const PROFIT_TARGET_WR = 0.7;
 export const PROFIT_TARGET_EXPECTANCY_R = 0.35;
@@ -185,7 +186,13 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     );
   }
 
-  return next;
+  // Rule 3: mechanical (+ companion) primary
+  const promoted = promotePrimaryStrategy(next);
+  const gold = goldStandardNote(promoted);
+  if (gold) {
+    promoted.reasons = [...promoted.reasons, gold];
+  }
+  return promoted;
 }
 
 export function filterPathTrades<T extends { grade?: string; pathBand?: string }>(
