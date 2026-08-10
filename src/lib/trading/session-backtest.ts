@@ -1003,9 +1003,14 @@ export async function runWeekBacktest(
           : "No PATH to take",
     },
     {
-      item: "Risk model $100k · 1–3% by grade",
+      item: "Risk model $100k · 0.5–3% by grade",
       status: "pass",
       detail: "A+ 3% · A/A- 2% · B 1% · C 0.5% · micros sized to stop risk",
+    },
+    {
+      item: "Take risk off @ +1R",
+      status: "pass",
+      detail: "50% banked at TP1 · stop to BE · runner to TP2 (open risk ≈ 0)",
     },
     {
       item: "Selectivity (skips journaled as edge)",

@@ -42,6 +42,20 @@ export const APLUS_RULES = {
   dailyLossLimitPct: 0.02,
   weeklyLossLimitPct: 0.05,
   maxSetupsPerSession: 2,
+  /**
+   * Take risk off (scale-out) — mandatory on paper/backtest book.
+   * At +1R: bank `tp1Fraction` of size, move stop to break-even.
+   * Runner: remainder to +2R (or structure TP2). Open risk after TP1 ≈ 0.
+   */
+  scaleOut: {
+    enabled: true,
+    /** Share of contracts closed at TP1 (1R). */
+    tp1Fraction: 0.5,
+    /** After TP1, stop moves to entry (risk-free runner). */
+    moveStopToBeAfterTp1: true,
+    /** Optional BE buffer in R (0 = exact entry). */
+    beBufferR: 0,
+  },
   useMicros: true,
   symbols: ["NQ", "ES"] as const,
   session: "ny" as const,

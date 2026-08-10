@@ -25,7 +25,7 @@ function buildCoachNotes(desk: DeskPayload): {
     best
       ? `Best raw idea: ${best.symbol} ${best.side} conf ${best.confluence} (${best.grade}). Missing: ${best.missing.slice(0, 3).join(", ") || "none"}.`
       : "No candidates scored.",
-    `Risk slot: $${risk.riskDollars.toFixed(0)} (${(risk.riskPct * 100).toFixed(1)}%). Never average losers; never move stop further.`,
+    `Risk slot: $${risk.riskDollars.toFixed(0)} (${(risk.riskPct * 100).toFixed(1)}%). At +1R bank 50% and BE stop — never average losers; never widen stop.`,
     bias.left.dealing
       ? `${bias.left.symbol} dealing ${bias.left.dealing.zone} — longs prefer discount, shorts premium.`
       : "Mark dealing range on both charts.",

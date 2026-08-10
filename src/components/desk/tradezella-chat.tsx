@@ -515,7 +515,7 @@ function AnalysisCard({
               </div>
             </div>
             <p className="mt-2 text-[10px] text-[var(--color-subtle)]">
-              Paper $100k · A+ 3% · A 2% · B 1% · C 0.5% micros · floor 0.67 · RTH walk
+              Paper $100k · A+ 3% · A 2% · B 1% · C 0.5% · risk-off 50% @1R → BE · RTH walk
             </p>
           </div>
 
@@ -576,6 +576,11 @@ function AnalysisCard({
                         {tr.contracts}ct · {(tr.riskPct * 100).toFixed(0)}% · HTF{" "}
                         {d.htf}
                       </span>
+                      {tr.riskOff && tr.scaleNote && (
+                        <span className="w-full text-[10px] text-[var(--color-primary)]">
+                          Risk-off · {tr.scaleNote}
+                        </span>
+                      )}
                     </li>
                   );
                 })}

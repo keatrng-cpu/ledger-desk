@@ -1,8 +1,7 @@
 /**
- * Causal PATH trade simulation.
+ * Causal PATH trade simulation with scale-out risk-off.
  * Entry only at decision (closed bar). Walks FORWARD bars after entry for P&L.
- * Looking at post-entry bars is legitimate fill simulation — not look-ahead bias
- * for the decision (decision already made).
+ * At +1R: bank portion of size, move stop to BE (open risk ≈ 0). Runner to TP2.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
@@ -19,9 +18,20 @@ export type TradeExitReason =
   | "stop"
   | "tp1"
   | "tp2"
+  | "tp1_tp2"
+  | "tp1_be"
+  | "tp1_close"
   | "session_close"
   | "no_fill"
   | "skipped";
+
+export interface ScaleLeg {
+  at: string;
+  price: number;
+  contracts: number;
+  r: number;
+  note: string;
+}
 
 export interface SimulatedTrade {
   taken: boolean;
@@ -34,12 +44,12 @@ export interface SimulatedTrade {
   riskPts: number;
   exit: number | null;
   exitReason: TradeExitReason;
-  /** +R multiple at exit (negative = loss) */
+  /** Weighted R across scale legs */
   rMultiple: number | null;
   /** Dollar P&L on paper book (grade-sized micros − commission) */
   pnlUsd: number | null;
   contracts: number;
-  /** Risk % used for size (1–3% by grade) */
+  /** Risk % used for size (0.5–3% by grade) */
   riskPct: number;
   riskDollars: number;
   grade: string;
@@ -47,6 +57,10 @@ export interface SimulatedTrade {
   entryTimeIso: string;
   exitTimeIso: string | null;
   barsHeld: number;
+  /** Risk-off applied (partial at 1R + BE) */
+  riskOff: boolean;
+  scaleLegs: ScaleLeg[];
+  scaleNote: string;
 }
 
 function parseFirstPrice(text: string | undefined | null): number | null {
@@ -57,7 +71,7 @@ function parseFirstPrice(text: string | undefined | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function parseZoneMid(entryZone: string): number | null {
+export function parseZoneMid(entryZone: string): number | null {
   const nums = [...entryZone.matchAll(/(\d{3,6}(?:\.\d+)?)/g)].map((m) =>
     Number(m[1]),
   );
@@ -68,7 +82,11 @@ function parseZoneMid(entryZone: string): number | null {
   return null;
 }
 
-function pointValue(symbol: string): { pv: number; commission: number; key: ContractKey } {
+function pointValue(symbol: string): {
+  pv: number;
+  commission: number;
+  key: ContractKey;
+} {
   const key = (symbol in CONTRACTS ? symbol : "MNQ") as ContractKey;
   if (APLUS_RULES.useMicros) {
     const micro = CONTRACTS[key].micro as ContractKey;
@@ -81,48 +99,59 @@ function pointValue(symbol: string): { pv: number; commission: number; key: Cont
   return { pv: c.pointValue, commission: c.commission, key };
 }
 
+function hitStop(
+  side: "long" | "short",
+  bar: OhlcBar,
+  stop: number,
+): boolean {
+  return side === "long" ? bar.l <= stop : bar.h >= stop;
+}
+
+function hitTarget(
+  side: "long" | "short",
+  bar: OhlcBar,
+  target: number,
+): boolean {
+  return side === "long" ? bar.h >= target : bar.l <= target;
+}
+
 /**
- * Simulate one PATH trade.
- * @param forwardBars RTH 1m bars with t > decisionMs (same session day preferred)
- * @param entryPrice decision close (causal last print)
+ * Simulate one PATH trade with optional scale-out risk-off.
  */
 export function simulatePathTrade(opts: {
   best: SetupCandidate;
   entryPrice: number;
   decisionMs: number;
   forwardBars: OhlcBar[];
-  /** Risk distance override in points; default from stop structure or ~0.15% */
   riskPtsFallback?: number;
-  /** Paper / backtest equity (default $100k). */
   equity?: number;
 }): SimulatedTrade {
   const { best, entryPrice, decisionMs, forwardBars } = opts;
   const equity = opts.equity ?? APLUS_RULES.paperEquity;
   const side = best.side;
   const symbol = best.symbol;
+  const so = APLUS_RULES.scaleOut;
 
-  // Structural stop from invalidation text, else ~0.12% of price
   const invPx = parseFirstPrice(best.invalidation);
-  let stop: number;
+  let initialStop: number;
   if (invPx != null) {
-    stop =
+    initialStop =
       side === "long"
         ? Math.min(invPx, entryPrice * 0.9985)
         : Math.max(invPx, entryPrice * 1.0015);
   } else {
     const pad = entryPrice * 0.0012;
-    stop = side === "long" ? entryPrice - pad : entryPrice + pad;
+    initialStop = side === "long" ? entryPrice - pad : entryPrice + pad;
   }
 
-  // Ensure minimum risk ticks
   const minRisk = entryPrice * 0.0006;
-  let riskPts = Math.abs(entryPrice - stop);
+  let riskPts = Math.abs(entryPrice - initialStop);
   if (riskPts < minRisk) {
     riskPts = opts.riskPtsFallback ?? minRisk;
-    stop = side === "long" ? entryPrice - riskPts : entryPrice + riskPts;
+    initialStop =
+      side === "long" ? entryPrice - riskPts : entryPrice + riskPts;
   }
 
-  // Targets: parse structure, clamp 1R–3R
   const t1raw = parseFirstPrice(best.targets[0]);
   const t2raw = parseFirstPrice(best.targets[1]);
   let tp1 =
@@ -130,10 +159,8 @@ export function simulatePathTrade(opts: {
   let tp2 =
     side === "long" ? entryPrice + riskPts * 2.0 : entryPrice - riskPts * 2.0;
 
-  // Only accept structure targets on the correct side of entry
   if (t1raw != null) {
-    const okSide =
-      side === "long" ? t1raw > entryPrice : t1raw < entryPrice;
+    const okSide = side === "long" ? t1raw > entryPrice : t1raw < entryPrice;
     const rDist = Math.abs(t1raw - entryPrice);
     if (
       okSide &&
@@ -144,8 +171,7 @@ export function simulatePathTrade(opts: {
     }
   }
   if (t2raw != null) {
-    const okSide =
-      side === "long" ? t2raw > entryPrice : t2raw < entryPrice;
+    const okSide = side === "long" ? t2raw > entryPrice : t2raw < entryPrice;
     const rDist = Math.abs(t2raw - entryPrice);
     if (
       okSide &&
@@ -169,12 +195,18 @@ export function simulatePathTrade(opts: {
     gradeOrScore: best.confluence,
   });
 
+  const totalContracts = sizing.contracts;
+  const scaleLegs: ScaleLeg[] = [];
+  let scaleNote = so.enabled
+    ? `Risk-off: ${(so.tp1Fraction * 100).toFixed(0)}% @ TP1 → BE stop → runner TP2`
+    : "Full size to first exit";
+
   const base: SimulatedTrade = {
     taken: true,
     symbol,
     side,
     entry: entryPrice,
-    stop,
+    stop: initialStop,
     tp1,
     tp2,
     riskPts,
@@ -182,7 +214,7 @@ export function simulatePathTrade(opts: {
     exitReason: "no_fill",
     rMultiple: null,
     pnlUsd: null,
-    contracts: sizing.contracts,
+    contracts: totalContracts,
     riskPct: sizing.riskPct,
     riskDollars: sizing.riskDollars,
     grade,
@@ -190,9 +222,11 @@ export function simulatePathTrade(opts: {
     entryTimeIso: new Date(decisionMs).toISOString(),
     exitTimeIso: null,
     barsHeld: 0,
+    riskOff: so.enabled && totalContracts >= 2,
+    scaleLegs,
+    scaleNote,
   };
 
-  // Walk forward only — bars after decision
   const path = forwardBars
     .filter((b) => b.t > decisionMs)
     .sort((a, b) => a.t - b.t);
@@ -201,57 +235,180 @@ export function simulatePathTrade(opts: {
     return { ...base, taken: true, exitReason: "no_fill" };
   }
 
+  const { pv, commission } = pointValue(symbol);
+
+  // --- Scale-out path ---
+  if (so.enabled && totalContracts >= 2) {
+    const partial = Math.max(1, Math.floor(totalContracts * so.tp1Fraction));
+    const runner = totalContracts - partial;
+    let stop = initialStop;
+    let tookTp1 = false;
+    let realizedPtsWeighted = 0; // sum (pts * contracts)
+    let lastExit = entryPrice;
+    let lastT = decisionMs;
+    let held = 0;
+    let reason: TradeExitReason = "session_close";
+
+    for (const b of path) {
+      held++;
+
+      // Stop on remaining (before targets same bar — conservative)
+      if (hitStop(side, b, stop)) {
+        const pts = side === "long" ? stop - entryPrice : entryPrice - stop;
+        const openCt = tookTp1 ? runner : totalContracts;
+        realizedPtsWeighted += pts * openCt;
+        scaleLegs.push({
+          at: new Date(b.t).toISOString(),
+          price: stop,
+          contracts: openCt,
+          r: riskPts > 0 ? pts / riskPts : 0,
+          note: tookTp1 ? "runner stop @ BE/trail" : "full stop",
+        });
+        lastExit = stop;
+        lastT = b.t;
+        reason = tookTp1 ? "tp1_be" : "stop";
+        break;
+      }
+
+      // TP1 partial
+      if (!tookTp1 && hitTarget(side, b, tp1)) {
+        const pts = side === "long" ? tp1 - entryPrice : entryPrice - tp1;
+        realizedPtsWeighted += pts * partial;
+        scaleLegs.push({
+          at: new Date(b.t).toISOString(),
+          price: tp1,
+          contracts: partial,
+          r: riskPts > 0 ? pts / riskPts : 0,
+          note: `risk-off ${(so.tp1Fraction * 100).toFixed(0)}% @ ~1R`,
+        });
+        tookTp1 = true;
+        lastExit = tp1;
+        lastT = b.t;
+        if (so.moveStopToBeAfterTp1) {
+          const buf = riskPts * (so.beBufferR ?? 0);
+          stop =
+            side === "long" ? entryPrice + buf : entryPrice - buf;
+        }
+        // if runner is 0, done
+        if (runner <= 0) {
+          reason = "tp1";
+          break;
+        }
+        // same bar can also hit TP2 after TP1
+      }
+
+      // Runner TP2
+      if (tookTp1 && runner > 0 && hitTarget(side, b, tp2)) {
+        const pts = side === "long" ? tp2 - entryPrice : entryPrice - tp2;
+        realizedPtsWeighted += pts * runner;
+        scaleLegs.push({
+          at: new Date(b.t).toISOString(),
+          price: tp2,
+          contracts: runner,
+          r: riskPts > 0 ? pts / riskPts : 0,
+          note: "runner @ TP2",
+        });
+        lastExit = tp2;
+        lastT = b.t;
+        reason = "tp1_tp2";
+        break;
+      }
+
+      // If only TP2 hit without TP1 (gap) — full size at TP2
+      if (!tookTp1 && hitTarget(side, b, tp2)) {
+        const pts = side === "long" ? tp2 - entryPrice : entryPrice - tp2;
+        realizedPtsWeighted += pts * totalContracts;
+        scaleLegs.push({
+          at: new Date(b.t).toISOString(),
+          price: tp2,
+          contracts: totalContracts,
+          r: riskPts > 0 ? pts / riskPts : 0,
+          note: "gap through TP1 → full @ TP2",
+        });
+        lastExit = tp2;
+        lastT = b.t;
+        reason = "tp2";
+        break;
+      }
+    }
+
+    // Session close remaining
+    const stillOpen =
+      scaleLegs.reduce((s, l) => s + l.contracts, 0) < totalContracts;
+    if (stillOpen) {
+      const last = path[path.length - 1]!;
+      const openCt =
+        totalContracts - scaleLegs.reduce((s, l) => s + l.contracts, 0);
+      const pts =
+        side === "long" ? last.c - entryPrice : entryPrice - last.c;
+      realizedPtsWeighted += pts * openCt;
+      scaleLegs.push({
+        at: new Date(last.t).toISOString(),
+        price: last.c,
+        contracts: openCt,
+        r: riskPts > 0 ? pts / riskPts : 0,
+        note: tookTp1 ? "runner session close" : "session close",
+      });
+      lastExit = last.c;
+      lastT = last.t;
+      held = path.length;
+      reason = tookTp1 ? "tp1_close" : "session_close";
+    }
+
+    const rMultiple =
+      riskPts > 0 && totalContracts > 0
+        ? realizedPtsWeighted / (riskPts * totalContracts)
+        : 0;
+    const avgPts =
+      totalContracts > 0 ? realizedPtsWeighted / totalContracts : 0;
+    const pnlUsd =
+      avgPts * pv * totalContracts - commission * totalContracts;
+
+    return {
+      ...base,
+      exit: lastExit,
+      exitReason: reason,
+      rMultiple: Math.round(rMultiple * 100) / 100,
+      pnlUsd: Math.round(pnlUsd * 100) / 100,
+      contracts: totalContracts,
+      exitTimeIso: new Date(lastT).toISOString(),
+      barsHeld: held,
+      riskOff: true,
+      scaleLegs,
+      scaleNote: scaleLegs.map((l) => `${l.contracts}ct ${l.note}`).join(" · "),
+    };
+  }
+
+  // --- Full size (no scale: 1 contract or disabled) ---
   let exit: number | null = null;
   let reason: TradeExitReason = "session_close";
   let exitT: number | null = null;
   let held = 0;
+  let stop = initialStop;
 
   for (const b of path) {
     held++;
-    if (side === "long") {
-      // stop first (conservative: same bar stop before TP)
-      if (b.l <= stop) {
-        exit = stop;
-        reason = "stop";
-        exitT = b.t;
-        break;
-      }
-      if (b.h >= tp2) {
-        exit = tp2;
-        reason = "tp2";
-        exitT = b.t;
-        break;
-      }
-      if (b.h >= tp1) {
-        exit = tp1;
-        reason = "tp1";
-        exitT = b.t;
-        break;
-      }
-    } else {
-      if (b.h >= stop) {
-        exit = stop;
-        reason = "stop";
-        exitT = b.t;
-        break;
-      }
-      if (b.l <= tp2) {
-        exit = tp2;
-        reason = "tp2";
-        exitT = b.t;
-        break;
-      }
-      if (b.l <= tp1) {
-        exit = tp1;
-        reason = "tp1";
-        exitT = b.t;
-        break;
-      }
+    if (hitStop(side, b, stop)) {
+      exit = stop;
+      reason = "stop";
+      exitT = b.t;
+      break;
+    }
+    if (hitTarget(side, b, tp2)) {
+      exit = tp2;
+      reason = "tp2";
+      exitT = b.t;
+      break;
+    }
+    if (hitTarget(side, b, tp1)) {
+      exit = tp1;
+      reason = "tp1";
+      exitT = b.t;
+      break;
     }
   }
 
   if (exit == null) {
-    // Session close = last bar close
     const last = path[path.length - 1]!;
     exit = last.c;
     reason = "session_close";
@@ -261,9 +418,8 @@ export function simulatePathTrade(opts: {
 
   const signedPts = side === "long" ? exit - entryPrice : entryPrice - exit;
   const rMultiple = riskPts > 0 ? signedPts / riskPts : 0;
-  const { pv, commission } = pointValue(symbol);
-  const contracts = base.contracts;
-  const pnlUsd = signedPts * pv * contracts - commission * contracts;
+  const pnlUsd =
+    signedPts * pv * totalContracts - commission * totalContracts;
 
   return {
     ...base,
@@ -271,9 +427,12 @@ export function simulatePathTrade(opts: {
     exitReason: reason,
     rMultiple: Math.round(rMultiple * 100) / 100,
     pnlUsd: Math.round(pnlUsd * 100) / 100,
-    contracts,
+    contracts: totalContracts,
     exitTimeIso: exitT ? new Date(exitT).toISOString() : null,
     barsHeld: held,
+    riskOff: false,
+    scaleLegs: [],
+    scaleNote: "Full size (no scale)",
   };
 }
 
@@ -286,6 +445,7 @@ export function summarizeTrades(trades: SimulatedTrade[]): {
   expectancyR: number | null;
   sumUsd: number;
   avgR: number | null;
+  riskOffCount: number;
 } {
   const taken = trades.filter((t) => t.taken && t.rMultiple != null);
   const wins = taken.filter((t) => (t.rMultiple ?? 0) > 0).length;
@@ -302,7 +462,6 @@ export function summarizeTrades(trades: SimulatedTrade[]): {
     expectancyR: n ? Math.round((sumR / n) * 100) / 100 : null,
     sumUsd: Math.round(sumUsd * 100) / 100,
     avgR: n ? Math.round((sumR / n) * 100) / 100 : null,
+    riskOffCount: taken.filter((t) => t.riskOff).length,
   };
 }
-
-export { parseZoneMid };

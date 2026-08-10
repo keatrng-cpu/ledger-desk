@@ -100,6 +100,12 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
     ["$ risk band", `$${(equity * 0.01).toFixed(0)}–$${(equity * APLUS_RULES.riskPctCeiling).toFixed(0)} on $${equity.toLocaleString()}`],
     ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap (A+)`],
     ["R:R band", `${APLUS_RULES.minRr}:1 – 1:${APLUS_RULES.tpMaxR}`],
+    [
+      "Take risk off",
+      APLUS_RULES.scaleOut.enabled
+        ? `${(APLUS_RULES.scaleOut.tp1Fraction * 100).toFixed(0)}% @ +1R → BE stop → runner +2R`
+        : "Off",
+    ],
     ["Setups / killzone", String(r.maxSetups)],
     ["Daily halt", `${(r.dailyLimitPct * 100).toFixed(0)}%`],
     ["Weekly halt", `${(r.weeklyLimitPct * 100).toFixed(0)}%`],
