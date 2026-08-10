@@ -90,7 +90,7 @@ export function ReplayReport() {
             <CardDescription>
               No-lookahead walk of MNQ+ES 5d/15m through the live scanner;
               every non-skip candidate simulated forward. Answers what floor
-              0.50 vs 0.67 admits — with data, not opinion.
+              0.50 vs 0.65 admits — with data, not opinion.
             </CardDescription>
           </div>
         </div>
@@ -242,14 +242,14 @@ export function ReplayReport() {
                         key={f.floor}
                         className={cn(
                           "border-t border-[var(--color-border)]",
-                          (f.floor === 0.5 || f.floor === 0.67) &&
+                          (f.floor === 0.5 || f.floor === 0.65) &&
                             "bg-[var(--color-surface-2)]",
                         )}
                       >
                         <td className="py-1.5 pr-3 text-[var(--color-fg)]">
                           {f.floor.toFixed(2)}
                           {f.floor === 0.5 ? " (TEST)" : ""}
-                          {f.floor === 0.67 ? " (calib)" : ""}
+                          {f.floor === 0.65 ? " (calib)" : ""}
                         </td>
                         <td className="py-1.5 pr-3 text-right tabular">
                           {f.admitted}

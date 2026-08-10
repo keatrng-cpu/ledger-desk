@@ -719,7 +719,7 @@ export async function runWeekBacktest(
       const cond = assessConditions(lBars);
       const det = summarizeDetectors(lBars);
       const causalOk = causalL.ok && assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN).ok;
-      // Path rate = 0.67 floor (calibration). Need HTF + conditions + causal — not killzone clock quirks.
+      // Path rate = 0.65 floor (calibration). Need HTF + conditions + causal — not killzone clock quirks.
       const pathEligible = Boolean(
         best &&
           best.confluence >= PROFIT_ACTION_FLOOR &&
@@ -1048,7 +1048,7 @@ export async function runWeekBacktest(
             : "No PATH — HTF gate held selectivity",
     },
     {
-      item: "PATH floor 0.67 only",
+      item: "PATH floor 0.65 only",
       status: "pass",
       detail: `${pathN} taken · ${rows.length - pathN} skipped below floor or gates`,
     },

@@ -252,7 +252,7 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Profit path: action only A/A+ (calib floor 0.67) · incomplete veto · full catalog · test floor {scan.floor} · A+ ≥ {scan.aPlus}
+            Profit path: action only A/A+ (calib floor 0.65) · incomplete veto · full catalog · test floor {scan.floor} · A+ ≥ {scan.aPlus}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

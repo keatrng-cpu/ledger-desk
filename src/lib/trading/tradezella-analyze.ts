@@ -410,7 +410,7 @@ export function analyzeTradezella(input: AnalyzeInput): TradezellaAnalysis {
       notes:
         score >= PROFIT_ACTION_FLOOR
           ? "Path-eligible if HTF+session+conditions clear and pattern complete."
-          : "Below path floor (0.67) — journal as review/SKIP, do not execute for profit path.",
+          : "Below path floor (0.65) — journal as review/SKIP, do not execute for profit path.",
     });
 
     // Secondary: SMT dual confirmation setup if dual indexes mentioned
@@ -548,7 +548,7 @@ export function analyzeTradezella(input: AnalyzeInput): TradezellaAnalysis {
       observedWr,
       wrVsTarget,
       selectivityNote:
-        "Profit path executes only A/A+ (score ≥ 0.67). Incomplete IFVG+structure without displacement/MSS is vetoed.",
+        "Profit path executes only A/A+ (score ≥ 0.65). Incomplete IFVG+structure without displacement/MSS is vetoed.",
       actionFloor: PROFIT_ACTION_FLOOR,
       aPlusFloor: PROFIT_A_PLUS,
     },

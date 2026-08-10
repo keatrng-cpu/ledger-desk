@@ -435,7 +435,7 @@ export function scanSetups(
     }
   }
 
-  // Profit path: incomplete-pattern veto + calibration floor (0.67) for action
+  // Profit path: incomplete-pattern veto + calibration floor (0.65) for action
   const pathCandidates = candidates.map(applyProfitPathToCandidate);
   pathCandidates.sort((a, b) => b.confluence - a.confluence);
 

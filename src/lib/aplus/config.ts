@@ -18,9 +18,9 @@ export type RiskGrade = "A+" | "A" | "A-" | "B" | "C" | "skip";
 export const APLUS_RULES = {
   /** Production A+ tag threshold (journal label). */
   aPlusThreshold: 0.75,
-  /** Path / execute floor — calibrated 0.67. */
-  confluenceFloor: 0.67,
-  confluenceFloorCalibration: 0.67,
+  /** Path / execute floor — calibrated 0.65. */
+  confluenceFloor: 0.65,
+  confluenceFloorCalibration: 0.65,
   /**
    * Grade-based risk on paper / backtest book ($100k).
    * A+ 3% · A 2% · A- 1% · B paper · C 0.5% journal · skip 0.
@@ -70,7 +70,7 @@ export const APLUS_RULES = {
     targetWinRate: 0.7,
     targetExpectancyR: 0.35,
     minSampleTrades: 100,
-    actionFloor: 0.67,
+    actionFloor: 0.65,
     onlyExecuteGrades: ["A+", "A"] as const,
   },
   dualPeer: { NQ: "ES", ES: "NQ", MNQ: "MES", MES: "MNQ" } as Record<

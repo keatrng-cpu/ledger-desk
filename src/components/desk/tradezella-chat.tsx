@@ -175,7 +175,7 @@ function WeekTable({
             Floor
           </p>
           <p className="font-mono text-lg font-semibold text-[var(--color-primary)]">
-            0.67
+            0.65
           </p>
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-2">
@@ -250,13 +250,13 @@ function WeekTable({
       ) : (
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-muted)]">
           <strong className="text-[var(--color-fg)]">No PATH days</strong> at
-          floor 0.67. Correct selectivity — do not force B/skip grades.
+          floor 0.65. Correct selectivity — do not force B/skip grades.
         </div>
       )}
 
       <div>
         <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Day board · PATH first · floor 0.67
+          Day board · PATH first · floor 0.65
         </p>
         <div className="max-h-72 overflow-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
           <table className="w-full text-left text-[11px]">
@@ -355,8 +355,8 @@ function WeekTable({
                         ? "—"
                         : d.deadspot
                           ? d.deadspot.replace(/^setup below path\s*/i, "").slice(0, 48)
-                          : conf != null && conf < 0.67
-                            ? `<0.67`
+                          : conf != null && conf < 0.65
+                            ? `<0.65`
                             : "gates"}
                     </td>
                   </tr>
@@ -626,8 +626,8 @@ function AnalysisCard({
                           ? d.deadspot
                               .replace(/^setup below path\s*/i, "")
                               .slice(0, 72)
-                          : d.best && d.best.confluence < 0.67
-                            ? `score ${d.best.confluence.toFixed(2)} < 0.67 floor`
+                          : d.best && d.best.confluence < 0.65
+                            ? `score ${d.best.confluence.toFixed(2)} < 0.65 floor`
                             : d.best && !d.best.htfOk
                               ? `HTF ${d.htf} blocks ${d.best.side}`
                               : "gates"}
