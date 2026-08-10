@@ -39,6 +39,10 @@ import {
   formatPaperChip,
   resetPaperAccount,
 } from "@/lib/trading/paper-account";
+import {
+  fetchYearStudySeed,
+  hydrateFromYearStudy,
+} from "@/lib/trading/bt-seed";
 import { SynapseRail } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory } from "@/lib/trading/desk-memory";
@@ -204,6 +208,24 @@ function MasterplacePage() {
     return () => {
       window.removeEventListener("ledger-memory", sync);
       window.removeEventListener("focus", sync);
+    };
+  }, [publishMemory]);
+
+  // Auto-learn 2024 year study into brain rates (once)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const seed = await fetchYearStudySeed(2024);
+      if (!seed || cancelled) return;
+      // Force once when full year available so rates replace thin samples
+      const force = (seed.monthsRun ?? 0) >= 12;
+      hydrateFromYearStudy(seed, { force, applyEquity: false });
+      publishMemory();
+      setEquity(getPaperAccount().equity);
+      window.dispatchEvent(new Event("ledger-memory"));
+    })();
+    return () => {
+      cancelled = true;
     };
   }, [publishMemory]);
 

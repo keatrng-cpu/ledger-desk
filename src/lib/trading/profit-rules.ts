@@ -15,6 +15,11 @@ import type { DeskMemoryState } from "./desk-memory";
 import { loadDeskMemory } from "./desk-memory";
 
 export const PATH_MONTH_CAP = APLUS_RULES.targetTradesPerMonth.center; // 9
+/** After this many consecutive full losses, next day stand down (unless A+ tight) */
+export const MAX_CONSEC_LOSSES = 2;
+/** Max PATH same direction in a rolling week */
+export const MAX_SAME_SIDE_WEEK = 3;
+
 export const APLUS_FULL_SIZE_MIN_N = 20;
 export const APLUS_FULL_SIZE_MIN_WR = 0.65;
 /** Temporary A+ risk until sample proves out */
@@ -37,6 +42,10 @@ export interface BookCounters {
   aPlusWins: number;
   blakeLongTaken: number;
   blakeLongWins: number;
+  consecLosses: number;
+  lastSides: string[]; // recent PATH sides
+  weekKey: string;
+  pathThisWeek: number;
 }
 
 export function monthKeyFromMs(ms: number): string {
@@ -47,7 +56,7 @@ export function monthKeyFromMs(ms: number): string {
   return `${y}-${m}`;
 }
 
-export function emptyBookCounters(monthKey: string): BookCounters {
+export function emptyBookCounters(monthKey: string, weekKey = ""): BookCounters {
   return {
     pathThisMonth: 0,
     monthKey,
@@ -55,6 +64,10 @@ export function emptyBookCounters(monthKey: string): BookCounters {
     aPlusWins: 0,
     blakeLongTaken: 0,
     blakeLongWins: 0,
+    consecLosses: 0,
+    lastSides: [],
+    weekKey,
+    pathThisWeek: 0,
   };
 }
 
@@ -104,16 +117,17 @@ export function isBlakeLongDemoted(
 
 /** Rule 3: strategy rank — higher = preferred primary */
 export function strategyPriority(id: string): number {
+  // 2024 year study: TJR 3/3 +1.98E[R]; mechanical alone ~flat
   const rank: Record<string, number> = {
-    mechanical: 100,
-    tjr: 90,
-    smt: 85,
+    tjr: 110,
+    mechanical: 95,
+    smt: 90,
     judas: 70,
     pdi: 65,
     patty: 60,
     continuation: 55,
     ronan: 50,
-    blake_mech: 40, // demoted relative to mechanical
+    blake_mech: 35,
   };
   return rank[id] ?? 10;
 }
@@ -133,7 +147,10 @@ export function promotePrimaryStrategy(c: SetupCandidate): SetupCandidate {
 
   unique.sort((a, b) => strategyPriority(b) - strategyPriority(a));
   let best = unique[0]!;
-  if (hasMech && hasCompanion) {
+  // 2024: TJR first when present; else mechanical + companion stack
+  if (unique.includes("tjr")) {
+    best = "tjr";
+  } else if (hasMech && hasCompanion) {
     best = "mechanical";
   }
 
@@ -202,6 +219,35 @@ export function pathTakeGate(
       take: false,
       reason: "month_cap",
       detail: `PATH month cap ${PATH_MONTH_CAP} hit — only A+ allowed (now ${counters.pathThisMonth})`,
+    };
+  }
+
+  // Loss streak cool-down
+  if (counters.consecLosses >= MAX_CONSEC_LOSSES && band !== "A+") {
+    return {
+      take: false,
+      reason: "other",
+      detail: `Cool-down after ${counters.consecLosses} consec losses — A+ tight only`,
+    };
+  }
+
+  // Same-side overtrade
+  const side = c.side;
+  const recentSame = counters.lastSides.filter((s) => s === side).length;
+  if (recentSame >= MAX_SAME_SIDE_WEEK && band !== "A+") {
+    return {
+      take: false,
+      reason: "other",
+      detail: `Same-side cap: ${recentSame} recent ${side}s — wait flip or A+ only`,
+    };
+  }
+
+  // Demote pure B+ chop unless gold/mechanical short with score
+  if (band === "B+" && (c.confluence ?? 0) < 0.58) {
+    return {
+      take: false,
+      reason: "not_path_band",
+      detail: "B+ below 0.58 — skip micro edge noise",
     };
   }
 
@@ -361,10 +407,11 @@ export function describeProfitRules(): string[] {
   return [
     `1. One book/day — MNQ or ES, never both same bias`,
     `2. blake_mech longs demoted to B+/paper until WR recovers`,
-    `3. mechanical (+ SMT/TJR) primary rank`,
+    `3. TJR primary (2024 100% WR) · mechanical needs companion or Q≥0.68`,
     `4. Hard cap ${PATH_MONTH_CAP} PATH/mo — after that A+ only`,
     `5. A+ size ${APLUS_PROBE_RISK * 100}% until n≥${APLUS_FULL_SIZE_MIN_N} WR≥${APLUS_FULL_SIZE_MIN_WR * 100}%`,
-    `6. Skips journaled as process wins`,
-    `7. Gold template: short + mechanical + risk-off (Jul 20 style)`,
+    `6. Skips journaled as process wins · wide stops rejected`,
+    `7. Gold: short + mechanical/TJR + risk-off · A- favored over soft A`,
+    `8. Year-2024 seed: 22 PATH · 55% WR · +5.6R — brain rates loaded`,
   ];
 }

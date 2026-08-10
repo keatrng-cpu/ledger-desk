@@ -147,8 +147,8 @@ function buildBoosts(memory: DeskMemoryState): Record<string, StrategyBoost> {
   }
   // Ensure catalog defaults
   for (const id of [
-    "mechanical",
     "tjr",
+    "mechanical",
     "smt",
     "judas",
     "blake_mech",
@@ -160,8 +160,9 @@ function buildBoosts(memory: DeskMemoryState): Record<string, StrategyBoost> {
     if (!out[id]) {
       out[id] = {
         id,
-        boost: id === "mechanical" ? 0.01 : id === "blake_mech" ? -0.02 : 0,
-        sizeMult: id === "blake_mech" ? 0.75 : 1,
+        boost:
+          id === "tjr" ? 0.03 : id === "mechanical" ? 0.01 : id === "blake_mech" ? -0.03 : 0,
+        sizeMult: id === "blake_mech" ? 0.5 : id === "tjr" ? 1.1 : 1,
         reason: `${id}: no BT sample yet`,
         wr: null,
         n: 0,

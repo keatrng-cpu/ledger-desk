@@ -79,7 +79,7 @@ const KEY_V1 = "ledger.desk.memory.v1";
 const MAX_ITEMS = 120;
 const MAX_FILLS = 200;
 
-function emptyBucket(): RateBucket {
+export function emptyBucket(): RateBucket {
   return { n: 0, wins: 0, sumR: 0 };
 }
 

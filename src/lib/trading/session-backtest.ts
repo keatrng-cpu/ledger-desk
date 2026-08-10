@@ -1013,14 +1013,51 @@ export async function runWeekBacktest(
           )
         : null;
     // Compound equity within the run for subsequent days
-    if (tradeL?.taken && tradeL.pnlUsd != null) paperEquity += tradeL.pnlUsd;
-    if (tradeR?.taken && tradeR.pnlUsd != null) paperEquity += tradeR.pnlUsd;
+    // Drop quality-skipped "takes"
+    let finalTradeL = tradeL;
+    let finalTradeR = tradeR;
+    let finalPathL = pathL;
+    let finalPathR = pathR;
+    if (tradeL?.qualitySkip) {
+      finalPathL = false;
+      finalTradeL = { ...tradeL, taken: false, rMultiple: null, pnlUsd: null };
+    }
+    if (tradeR?.qualitySkip) {
+      finalPathR = false;
+      finalTradeR = { ...tradeR, taken: false, rMultiple: null, pnlUsd: null };
+    }
+    // Require enough forward path: if no_fill / 0 bars, not PATH
+    if (finalTradeL && finalTradeL.taken && (finalTradeL.barsHeld ?? 0) === 0 && finalTradeL.exitReason === "no_fill") {
+      finalPathL = false;
+      finalTradeL = { ...finalTradeL, taken: false };
+    }
+    if (finalTradeR && finalTradeR.taken && (finalTradeR.barsHeld ?? 0) === 0 && finalTradeR.exitReason === "no_fill") {
+      finalPathR = false;
+      finalTradeR = { ...finalTradeR, taken: false };
+    }
+
+    if (finalTradeL?.taken && finalTradeL.pnlUsd != null) paperEquity += finalTradeL.pnlUsd;
+    if (finalTradeR?.taken && finalTradeR.pnlUsd != null) paperEquity += finalTradeR.pnlUsd;
     paperEquity = Math.max(100, paperEquity);
 
     // Update counters after takes
     const registerTake = (tr: SimulatedTrade | null, best: SetupCandidate | null) => {
-      if (!tr?.taken || tr.rMultiple == null || !best) return;
+      if (!tr || !best) return;
+      // quality skip: not a take
+      if (tr.qualitySkip || !tr.taken || tr.rMultiple == null) {
+        if (tr.qualitySkip) {
+          // count as process skip for path
+        }
+        return;
+      }
       bookCounters.pathThisMonth += 1;
+      bookCounters.pathThisWeek += 1;
+      bookCounters.lastSides = [...bookCounters.lastSides, best.side].slice(-8);
+      if ((tr.rMultiple ?? 0) <= 0) {
+        bookCounters.consecLosses += 1;
+      } else {
+        bookCounters.consecLosses = 0;
+      }
       const band = best.pathBand || best.grade;
       if (band === "A+" || best.grade === "A+") {
         bookCounters.aPlusTaken += 1;
@@ -1032,8 +1069,10 @@ export async function runWeekBacktest(
         if (tr.rMultiple > 0) bookCounters.blakeLongWins += 1;
       }
     };
-    registerTake(tradeL, bestL);
-    registerTake(tradeR, bestR);
+    registerTake(finalTradeL, bestL);
+    registerTake(finalTradeR, bestR);
+    pathL = finalPathL;
+    pathR = finalPathR;
 
     const goldL = bestL ? goldStandardNote(bestL) : null;
     const goldR = bestR ? goldStandardNote(bestR) : null;
@@ -1097,7 +1136,7 @@ export async function runWeekBacktest(
       regime: pick.cond.regime,
       tradeable: pick.cond.tradeable,
       best: bestL,
-      pathEligible: pathL,
+      pathEligible: finalPathL,
       gates: profitGates,
       notes: [
         pick.scanFocus,
@@ -1105,15 +1144,20 @@ export async function runWeekBacktest(
         goldL,
         dualWhy && !pathL ? dualWhy : null,
         gateL && !gateL.take ? gateL.detail : null,
+        finalTradeL?.qualitySkip ? `skip: ${finalTradeL.qualitySkip}` : null,
       ]
         .filter(Boolean)
         .join(" · "),
       decisionIso: new Date(pick.decisionMs).toISOString(),
       sessionBars: pick.sessionBars,
-      deadspot: pathL
+      deadspot: finalPathL
         ? null
-        : gateL?.detail || deadspot || dualWhy || "skip (process win)",
-      trade: tradeL,
+        : finalTradeL?.qualitySkip ||
+          gateL?.detail ||
+          deadspot ||
+          dualWhy ||
+          "skip (process win)",
+      trade: finalTradeL,
     });
 
     if (right.symbol !== left.symbol) {
@@ -1126,7 +1170,7 @@ export async function runWeekBacktest(
         regime: condRrow.regime,
         tradeable: condRrow.tradeable,
         best: bestR,
-        pathEligible: pathR,
+        pathEligible: finalPathR,
         gates: profitGates.map((g) =>
           g.name === "HTF gate"
             ? { ...g, detail: `${right.symbol} ${biasRrow.topDown}` }
@@ -1145,10 +1189,13 @@ export async function runWeekBacktest(
           .join(" · "),
         decisionIso: new Date(pick.decisionMs).toISOString(),
         sessionBars: dayRbars,
-        deadspot: pathR
+        deadspot: finalPathR
           ? null
-          : gateR?.detail || dualWhy || "skip (process win)",
-        trade: tradeR,
+          : finalTradeR?.qualitySkip ||
+            gateR?.detail ||
+            dualWhy ||
+            "skip (process win)",
+        trade: finalTradeR,
       });
     }
   }

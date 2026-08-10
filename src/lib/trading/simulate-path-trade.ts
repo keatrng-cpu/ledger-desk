@@ -15,6 +15,20 @@ import {
 } from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
 
+/** Hard day-trade risk caps (points). Wider than this = structural invalidation too far → skip. */
+export const MAX_RISK_PTS: Record<string, number> = {
+  MNQ: 48,
+  NQ: 48,
+  MES: 18,
+  ES: 18,
+  MYM: 80,
+  YM: 80,
+  M2K: 8,
+  RTY: 8,
+};
+export const DEFAULT_MAX_RISK_PTS = 48;
+/** Prefer ATR-ish min structure — stops tighter than this get padded to minRisk already */
+
 export type TradeExitReason =
   | "stop"
   | "tp1"
@@ -58,6 +72,11 @@ export interface SimulatedTrade {
   riskOff: boolean;
   scaleLegs: ScaleLeg[];
   scaleNote: string;
+  /** True when structural stop was wider than max day-trade risk */
+  stopClamped: boolean;
+  structuralRiskPts: number;
+  /** Reject take — stop too wide / no forward path */
+  qualitySkip: string | null;
 }
 
 function parseFirstPrice(text: string | undefined | null): number | null {
@@ -176,6 +195,26 @@ export function simulatePathTrade(opts: {
       side === "long" ? entryPrice - riskPts : entryPrice + riskPts;
   }
 
+  // Clamp / veto absurd invalidation distances (main loss source: 500–800pt stops)
+  const maxRisk =
+    MAX_RISK_PTS[symbol] ??
+    MAX_RISK_PTS[symbol.replace(/^M/, "")] ??
+    DEFAULT_MAX_RISK_PTS;
+  const structuralRiskPts = riskPts;
+  let qualitySkip: string | null = null;
+  let stopClamped = false;
+  if (structuralRiskPts > maxRisk) {
+    stopClamped = true;
+    if (structuralRiskPts > maxRisk * 1.25) {
+      // Too far — invalidation is not a day-trade stop
+      qualitySkip = `stop ${structuralRiskPts.toFixed(1)}pts > max ${maxRisk} (structural)`;
+    } else {
+      riskPts = maxRisk;
+      initialStop =
+        side === "long" ? entryPrice - riskPts : entryPrice + riskPts;
+    }
+  }
+
   const t1raw = parseFirstPrice(best.targets[0]);
   const t2raw = parseFirstPrice(best.targets[1]);
   let tp1 =
@@ -212,6 +251,38 @@ export function simulatePathTrade(opts: {
   }
 
   const grade = opts.riskGradeOverride ?? resolveGrade(best);
+
+  if (qualitySkip) {
+    return {
+      taken: false,
+      symbol,
+      side,
+      entry: entryPrice,
+      stop: initialStop,
+      tp1,
+      tp2,
+      riskPts: structuralRiskPts,
+      exit: null,
+      exitReason: "skipped",
+      rMultiple: null,
+      pnlUsd: null,
+      contracts: 0,
+      riskPct: 0,
+      riskDollars: 0,
+      grade,
+      equity,
+      entryTimeIso: new Date(decisionMs).toISOString(),
+      exitTimeIso: null,
+      barsHeld: 0,
+      riskOff: false,
+      scaleLegs: [],
+      scaleNote: qualitySkip,
+      stopClamped: true,
+      structuralRiskPts,
+      qualitySkip,
+    };
+  }
+
   const sizing = sizeContracts({
     symbol,
     riskPts,
@@ -244,6 +315,9 @@ export function simulatePathTrade(opts: {
       riskOff: false,
       scaleLegs: [],
       scaleNote: "Band B/skip — paper only, not live-sized",
+      stopClamped,
+      structuralRiskPts,
+      qualitySkip: "band not sized",
     };
   }
 
@@ -277,6 +351,9 @@ export function simulatePathTrade(opts: {
     riskOff: so.enabled && totalContracts >= 2,
     scaleLegs,
     scaleNote,
+    stopClamped,
+    structuralRiskPts,
+    qualitySkip: null,
   };
 
   const path = forwardBars
