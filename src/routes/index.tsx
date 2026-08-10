@@ -2,11 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
-  ChevronDown,
-  ChevronUp,
+  Crosshair,
+  FlaskConical,
+  LineChart,
   Loader2,
   RefreshCw,
+  Shield,
   Swords,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -34,6 +38,7 @@ import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -41,32 +46,83 @@ export const Route = createFileRoute("/")({
 
 const DESK_POLL_MS = 30_000;
 
+type DeskCategory =
+  | "trade"
+  | "path"
+  | "backtest"
+  | "tape"
+  | "risk"
+  | "lab";
+
+const CATEGORIES: {
+  id: DeskCategory;
+  label: string;
+  short: string;
+  hint: string;
+  icon: typeof Target;
+}[] = [
+  {
+    id: "trade",
+    label: "Trade now",
+    short: "Trade",
+    hint: "Bias · setups · go / no-go",
+    icon: Crosshair,
+  },
+  {
+    id: "path",
+    label: "Path 0.70",
+    short: "Path",
+    hint: "WR · grades · journal",
+    icon: TrendingUp,
+  },
+  {
+    id: "backtest",
+    label: "Backtest",
+    short: "BT",
+    hint: "Week PnL · PATH takes",
+    icon: Target,
+  },
+  {
+    id: "tape",
+    label: "Tape",
+    short: "Tape",
+    hint: "MNQ/ES · liquidity",
+    icon: LineChart,
+  },
+  {
+    id: "risk",
+    label: "Risk",
+    short: "Risk",
+    hint: "Limits · coach",
+    icon: Shield,
+  },
+  {
+    id: "lab",
+    label: "Lab",
+    short: "Lab",
+    hint: "Deep rules · replay",
+    icon: FlaskConical,
+  },
+];
+
 function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
-  const [showLab, setShowLab] = useState(false);
+  const [cat, setCat] = useState<DeskCategory>("trade");
   const [risk, setRisk] = useState<RiskState | null>(null);
-  // APLUS_RULES is `as const`, so widen off the literal type before setState.
   const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
   const [logMode, setLogMode] = useState<"paper" | "live">("paper");
 
-  /**
-   * Risk state is auth-scoped and fetched separately from the (unauthenticated)
-   * desk build. Signed-out / preview sessions simply get no governor UI rather
-   * than an error — but note the desk NEVER shows entries as allowed while the
-   * governor is unknown-and-halted, because `entryAllowed` defaults to true only
-   * when there is no risk state at all (nothing logged yet = nothing to halt).
-   */
   const loadRisk = useCallback(async () => {
     try {
       const [rs, s] = await Promise.all([getRiskState(), getSettings()]);
       setRisk(rs);
       setEquity(s.equity);
     } catch {
-      /* signed out / no DB — governor UI stays hidden */
+      /* signed out */
     }
   }, []);
 
@@ -91,8 +147,6 @@ function MasterplacePage() {
     } finally {
       setLoading(false);
     }
-    // Governor rides the same poll as the desk so the banner never lags behind
-    // the tape it is gating.
     void loadRisk();
   }, [loadRisk]);
 
@@ -115,34 +169,42 @@ function MasterplacePage() {
     return () => window.clearInterval(id);
   }, []);
 
+  const onLog = useCallback((c: SetupCandidate, mode: "paper" | "live") => {
+    setLogMode(mode);
+    setLogCandidate(c);
+  }, []);
+
+  const active = CATEGORIES.find((c) => c.id === cat)!;
+
+  // Profitability snapshot chips from desk
+  const best = desk?.scan.candidates.find((c) => c.actionable);
+  const focusLine = desk?.scan.focus?.slice(0, 90);
+
   return (
     <div className="min-h-dvh bg-[var(--color-bg)]">
       <div
-        className="pointer-events-none fixed inset-0 opacity-[0.3]"
+        className="pointer-events-none fixed inset-0 opacity-[0.25]"
         style={{
           backgroundImage:
-            "radial-gradient(ellipse 70% 40% at 50% -10%, color-mix(in oklab, var(--color-primary) 14%, transparent), transparent)",
+            "radial-gradient(ellipse 60% 35% at 50% -8%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent)",
         }}
         aria-hidden
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-[calc(var(--grok-banner-h,0px)+0.75rem)] sm:px-6 lg:px-8">
-        {/* Brand header */}
-        <header className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="mb-1.5 flex items-center gap-2 text-[var(--color-primary)]">
-              <Swords className="h-5 w-5" aria-hidden />
-              <span className="text-xs font-semibold uppercase tracking-[0.14em]">
-                Ledger Masterplace
+      <div className="relative mx-auto max-w-7xl px-3 pb-24 pt-[calc(var(--grok-banner-h,0px)+0.5rem)] sm:px-5 lg:px-8">
+        {/* Compact brand */}
+        <header className="mb-2 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-[var(--color-primary)]">
+              <Swords className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">
+                Ledger · profit desk
               </span>
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-fg)] sm:text-3xl">
-              Private trading desk
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-[var(--color-muted)]">
-              Everything in one place: HTF bias, premarket, dual MNQ/ES tape,
-              liquidity, confluence scanner, risk, and a coach Grok + Claude can
-              extend — organized for selectivity, not noise.
+            <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
+              Floor {APLUS_RULES.confluenceFloor} · path WR{" "}
+              {(APLUS_RULES.profitPath.targetWinRate * 100).toFixed(0)}% · risk{" "}
+              {(APLUS_RULES.riskPct * 100).toFixed(1)}% · PATH only
             </p>
           </div>
           <Button
@@ -151,23 +213,78 @@ function MasterplacePage() {
             size="sm"
             disabled={loading}
             onClick={() => void load()}
+            className="shrink-0"
           >
             {loading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <RefreshCw className="h-3.5 w-3.5" />
             )}
-            Refresh desk
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </header>
 
+        {/* Always-on session / halt */}
         {desk && <SessionHud desk={desk} wallNow={wallNow} />}
         {risk && <HaltBanner risk={risk} />}
+
+        {/* One-line profitability status */}
+        {desk && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[11px]">
+            <span className="font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+              Now
+            </span>
+            <span className="text-[var(--color-fg)]">
+              {desk.clock.killzoneLabel}
+            </span>
+            <span className="text-[var(--color-border-strong)]">·</span>
+            <span
+              className={
+                desk.clock.inTradeWindow
+                  ? "text-[var(--color-up)]"
+                  : "text-[var(--color-subtle)]"
+              }
+            >
+              {desk.clock.inTradeWindow ? "Window open" : "No entry window"}
+            </span>
+            <span className="text-[var(--color-border-strong)]">·</span>
+            <span className="text-[var(--color-muted)]">
+              HTF {desk.bias.left.topDown}/{desk.bias.right.topDown}
+            </span>
+            {best ? (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <span className="font-mono text-[var(--color-up)]">
+                  {best.symbol} {best.side} {best.grade}{" "}
+                  {best.confluence.toFixed(2)}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <span className="text-[var(--color-subtle)]">No PATH setup</span>
+              </>
+            )}
+            {!entryAllowed && (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <span className="font-semibold text-[var(--color-down)]">
+                  HALTED
+                </span>
+              </>
+            )}
+            {focusLine && (
+              <span className="hidden max-w-md truncate text-[var(--color-subtle)] lg:inline">
+                · {focusLine}
+              </span>
+            )}
+          </div>
+        )}
 
         {loading && !desk && (
           <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
             <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
-            Building structure desk from live tape…
+            Building desk…
           </div>
         )}
 
@@ -178,122 +295,153 @@ function MasterplacePage() {
         )}
 
         {desk && (
-          <div className="mt-5 space-y-8">
-            {/* Nav anchors */}
+          <>
+            {/* Category nav — sticky, profitability-first */}
             <nav
-              className="flex flex-wrap gap-1.5"
-              aria-label="Desk sections"
+              className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-1 mt-3 mb-4 overflow-x-auto bg-[color-mix(in_oklab,var(--color-bg)_92%,transparent)] px-1 py-2 backdrop-blur-md"
+              aria-label="Profit categories"
             >
-              {[
-                ["#htf", "1 Bias"],
-                ["#scanner", "2 Setups"],
-                ["#path", "Path 70%"],
-                ["#tz", "TZ Lab"],
-                ["#charts", "3 Charts"],
-                ["#liquidity", "4 Liquidity"],
-                ["#journal", "5 Journal"],
-                ["#risk", "6 Risk"],
-                ["#coach", "7 Coach"],
-                ["#lab", "Lab"],
-              ].map(([href, label]) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-muted)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]"
-                >
-                  {label}
-                </a>
-              ))}
+              <div className="flex min-w-max gap-1.5 sm:min-w-0 sm:flex-wrap">
+                {CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const on = cat === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCat(c.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-left transition-colors",
+                        on
+                          ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
+                          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "h-3.5 w-3.5 shrink-0",
+                          on
+                            ? "text-[var(--color-primary)]"
+                            : "text-[var(--color-subtle)]",
+                        )}
+                      />
+                      <span className="text-xs font-semibold">
+                        <span className="sm:hidden">{c.short}</span>
+                        <span className="hidden sm:inline">{c.label}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 px-1 text-[10px] text-[var(--color-subtle)]">
+                <span className="font-medium text-[var(--color-muted)]">
+                  {active.label}
+                </span>
+                {" — "}
+                {active.hint}
+              </p>
             </nav>
 
-            <div id="htf">
-              <HtfBiasBoard left={desk.bias.left} right={desk.bias.right} />
-            </div>
+            {/* Category panels — only one active for focus */}
+            <div className="min-h-[50vh]">
+              {cat === "trade" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="1"
+                    title="Bias & window"
+                    sub="Top-down gate first — no LTF without HTF"
+                  />
+                  <HtfBiasBoard
+                    left={desk.bias.left}
+                    right={desk.bias.right}
+                  />
+                  <PremarketPanel desk={desk} />
+                  <SectionHead
+                    n="2"
+                    title="PATH setups"
+                    sub={`Only ≥${APLUS_RULES.confluenceFloor} + HTF · Log paper/live or skip`}
+                  />
+                  <SetupScanner
+                    scan={desk.scan}
+                    onLog={onLog}
+                    entryAllowed={entryAllowed}
+                  />
+                </div>
+              )}
 
-            <PremarketPanel desk={desk} />
+              {cat === "path" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="A"
+                    title="Path to 0.70 WR"
+                    sub="Grade filter · expectancy · only A-path counts"
+                  />
+                  <ProfitPathPanel equity={equity} />
+                  <SectionHead
+                    n="B"
+                    title="Journal"
+                    sub="Paper first · skips are edge"
+                  />
+                  <JournalPanel onChanged={() => void loadRisk()} />
+                </div>
+              )}
 
-            <div id="scanner">
-              <SetupScanner
-                scan={desk.scan}
-                onLog={(c, mode) => {
-                  setLogMode(mode);
-                  setLogCandidate(c);
-                }}
-                entryAllowed={entryAllowed}
-              />
-            </div>
+              {cat === "backtest" && (
+                <div className="space-y-4">
+                  <SectionHead
+                    n="BT"
+                    title="Real-data backtest"
+                    sub="Ask week/month · PATH auto-taken · R + $ PnL"
+                  />
+                  <TradezellaChat desk={desk} onLog={onLog} />
+                </div>
+              )}
 
-            <div id="path" className="space-y-3">
-              <ProfitPathPanel equity={equity} />
-            </div>
+              {cat === "tape" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="T"
+                    title="Dual tape"
+                    sub="MNQ · ES · mark levels from liquidity"
+                  />
+                  <DualIndexCharts />
+                  <LiquidityPanel desk={desk} />
+                </div>
+              )}
 
-            <div id="tz" className="space-y-3">
-              <TradezellaChat
-                desk={desk}
-                onLog={(c, mode) => {
-                  setLogMode(mode);
-                  setLogCandidate(c);
-                }}
-              />
-            </div>
+              {cat === "risk" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="R"
+                    title="Risk & coach"
+                    sub={`${(APLUS_RULES.riskPct * 100).toFixed(1)}% / trade · daily/weekly halt · never override`}
+                  />
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <RiskPanel desk={desk} />
+                    <TradingCoach desk={desk} />
+                  </div>
+                </div>
+              )}
 
-            <div id="charts">
-              <header className="mb-3">
-                <h2 className="text-sm font-semibold tracking-tight text-[var(--color-fg)]">
-                  3 · Dual tape (MNQ mini · ES)
-                </h2>
-                <p className="text-xs text-[var(--color-subtle)]">
-                  Live Yahoo prints · mark PDH/PDL, EQH/EQL, and dealing range from
-                  section 4
-                </p>
-              </header>
-              <DualIndexCharts />
-            </div>
-
-            <div id="liquidity">
-              <LiquidityPanel desk={desk} />
-            </div>
-
-            <div id="journal">
-              <JournalPanel onChanged={() => void loadRisk()} />
-            </div>
-
-            <div
-              id="risk"
-              className="grid grid-cols-1 gap-4 lg:grid-cols-2"
-            >
-              <RiskPanel desk={desk} />
-              <div id="coach">
-                <TradingCoach desk={desk} />
-              </div>
-            </div>
-
-            {/* Collapsible lab: deep aplus ops */}
-            <div id="lab" className="border-t border-[var(--color-border)] pt-6">
-              <button
-                type="button"
-                onClick={() => setShowLab((v) => !v)}
-                className="mb-4 flex w-full items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-left transition-colors hover:border-[var(--color-border-strong)]"
-              >
-                <span className="flex items-center gap-2 text-sm font-medium text-[var(--color-fg)]">
-                  <BookOpen className="h-4 w-4 text-[var(--color-primary)]" />
-                  Lab — deep aplus backtest / rules (Trading-Automation)
-                </span>
-                {showLab ? (
-                  <ChevronUp className="h-4 w-4 text-[var(--color-subtle)]" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-[var(--color-subtle)]" />
-                )}
-              </button>
-              {showLab && (
+              {cat === "lab" && (
                 <div className="space-y-6">
+                  <SectionHead
+                    n="L"
+                    title="Deep lab"
+                    sub="Rules catalog · replay · bridge — not for session noise"
+                  />
+                  <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-muted)]">
+                    <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
+                    Use during review, not mid-killzone. Live path stays in Trade
+                    / Path / Backtest.
+                  </div>
                   <AplusOps />
                   <ReplayReport />
                   <BridgeStatus />
                 </div>
               )}
             </div>
-          </div>
+          </>
         )}
 
         {logCandidate && (
@@ -308,12 +456,36 @@ function MasterplacePage() {
           />
         )}
 
-        <footer className="mt-12 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-subtle)]">
-          Private masterplace · rules from Trading-Automation · structure is
-          deterministic · Grok & Claude explain, never override risk gates · last
-          desk build {desk ? new Date(desk.fetchedAt).toLocaleString() : "—"}
+        <footer className="mt-10 border-t border-[var(--color-border)] pt-4 text-center text-[10px] text-[var(--color-subtle)]">
+          PATH ≥ {APLUS_RULES.confluenceFloor} · max{" "}
+          {APLUS_RULES.maxSetupsPerSession}/KZ · micros · desk{" "}
+          {desk ? new Date(desk.fetchedAt).toLocaleString() : "—"}
         </footer>
       </div>
     </div>
+  );
+}
+
+function SectionHead({
+  n,
+  title,
+  sub,
+}: {
+  n: string;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <header className="flex items-baseline gap-2 border-b border-[var(--color-border)] pb-2">
+      <span className="font-mono text-[10px] font-semibold text-[var(--color-primary)]">
+        {n}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold tracking-tight text-[var(--color-fg)]">
+          {title}
+        </h2>
+        <p className="text-[11px] text-[var(--color-subtle)]">{sub}</p>
+      </div>
+    </header>
   );
 }
