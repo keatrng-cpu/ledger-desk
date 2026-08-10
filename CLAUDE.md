@@ -1,65 +1,62 @@
-# CLAUDE.md — Ledger Desk (+ Trading-Automation port)
+# CLAUDE.md — Ledger Masterplace (private trading desk)
 
-You (Claude) can read this repo for:
+This is the user's **private trading masterplace**. You (Claude) and Grok help them
+become profitable by **explaining and organizing** — never by inventing fills or
+overriding risk gates.
 
-1. **Dual MNQ/ES futures desk** (Yahoo live prints)
-2. **aplus ops console** ported from `keatrng-cpu/Trading-Automation`
+## Product map (top → bottom)
 
-## Source of truth for trading rules
-Upstream: **https://github.com/keatrng-cpu/Trading-Automation** (`CLAUDE.md`, `RULES_CALIBRATION.md`, `aplus/config.py`).
+1. **Session HUD** — ET clock, killzone, risk slot, live MNQ/ES prints, focus line  
+2. **Automatic HTF bias** — structure from OHLC (absolute gate)  
+3. **Premarket / session brief** — checklist + narrative  
+4. **Active setup scanner** — confluence grades A+/A-/B/skip, present vs missing  
+5. **Dual tape** — MNQ mini vs ES (Yahoo second-precision prints)  
+6. **Liquidity & key levels** — EQH/EQL, session H/L, PDH/PDL, dealing range  
+7. **Risk governor** — non-negotiables from Trading-Automation  
+8. **Desk coach** — posture + focus action (deterministic from scores)  
+9. **Lab** — deep aplus backtest / rules (collapsible)
 
-If this file and Trading-Automation CLAUDE.md disagree on risk/floor numbers, **Trading-Automation wins** for engine behaviour. This desk is a display + demo surface.
+## Source of trading rules
+Upstream engine: **https://github.com/keatrng-cpu/Trading-Automation**
 
-## Dual charts
-- **MNQ mini** vs **ES** side by side (toggle NQ/ES)
-- Real Yahoo continuous: `MNQ=F`, `ES=F`, `NQ=F`
-- OHLC shape: `{ t: ms, o, h, l, c, v }` — same idea as ProFX `bars.js`
-- Live last print: `src/lib/market/yahoo.ts` → `fetchYahooLiveQuote`
-  - Chart meta `regularMarketTime` (unix **seconds**) + `regularMarketPrice`
-  - UI: Print (ET w/ seconds), UTC, Fetched, lag seconds
-  - Client poll: `fetchLiveQuotes` every 2s in `dual-index-charts.tsx`
-- Correlation: time-aligned bar returns
-- SMT note: relative performance line chart
+| Active | Value |
+|--------|--------|
+| Confluence floor | 0.50 TEST (calib 0.67) |
+| A+ tag | ≥ 0.75 |
+| Risk | 0.5% (1% ceiling) |
+| Setups / KZ | 2 |
+| R:R | 1:1–1:3 |
+| Daily / weekly halt | 2% / 5% |
+| HTF top_down | **absolute gate** |
+| Symbols | dual NQ/ES · micros preferred |
 
-## aplus ops (ported modules)
-| Path | Upstream |
-|------|----------|
-| `src/lib/aplus/config.ts` | `aplus/config.py` + RULES_CALIBRATION |
-| `src/lib/aplus/analytics.ts` | `aplus/analytics.py` (NET pnl metrics) |
-| `src/lib/aplus/confluence.ts` | `knowledge/confluence.json` |
-| `src/lib/aplus/sample-run.ts` | dashboard `data.json` shape (demo) |
-| `src/components/dashboard/aplus-ops.tsx` | `aplus/dashboard_page.html` |
+**AI never gates a trade.** Rules + structure decide; you narrate.
 
-Tabs: **Backtest** · **Premarket** · **Rules / knowledge**
+## Key code
 
-### Active calibration (display)
-- Confluence floor **0.50 TEST** (config.py) — production calib **0.67** (RULES_CALIBRATION)
-- A+ tag ≥ **0.75**
-- Max **2** setups / killzone · risk **0.5%** (1% ceiling) · R:R 1:1–1:3
-- Daily **2%** / weekly **5%** loss halt
-- HTF **top_down absolute gate**
-- Dual **NQ+ES** · micros preferred · NY session
-- AI **never gates** a trade — rules + brain only
-
-### Demo honesty
-`sample-run.ts` is offline demo dual-run data for the UI. It is **not** a live Python engine backtest. Label it clearly. Real runs: `python -m aplus backtest …` in Trading-Automation.
-
-## Do not invent pit-level latency
-Yahoo free futures can lag ~600s. Report lag honestly. Databento GLBX → profxtrader / Trading-Automation data layer.
-
-## Key market files
 | Path | Role |
 |------|------|
-| `src/lib/market/types.ts` | Shared types |
-| `src/lib/market/yahoo.ts` | Yahoo fetch/parse/live quote |
-| `src/lib/market/fetch-dual.ts` | Server functions |
-| `src/components/dashboard/dual-index-charts.tsx` | Dual UI + polling |
-| `src/components/dashboard/candlestick-pane.tsx` | lightweight-charts |
-| `src/routes/index.tsx` | Page composition |
+| `src/lib/trading/sessions.ts` | NY killzones |
+| `src/lib/trading/structure.ts` | HTF bias, swings, liquidity, SMT |
+| `src/lib/trading/scanner.ts` | Setup candidates + confluence |
+| `src/lib/trading/build-desk.ts` | Server: Yahoo + full desk payload |
+| `src/lib/aplus/*` | Trading-Automation port (metrics, rules, knowledge) |
+| `src/lib/market/*` | Dual Yahoo OHLC + live quotes |
+| `src/components/desk/*` | Masterplace UI sections |
+| `src/routes/index.tsx` | Organized page shell |
+
+## How to help the user
+
+- **Premarket:** Read section 1–2 checklist; call out HTF + PDH/PDL + killzone.  
+- **During session:** Prefer **actionable** scanner rows only; list missing confluences honestly.  
+- **Liquidity:** Point to buyside/sellside pools and whether swept.  
+- **HTF bias:** Treat `topDown` as hard gate — no long if HTF bear.  
+- **Risk:** Always size from risk governor dollars; never suggest averaging down.  
+- **Data lag:** Yahoo free futures can lag ~10m — report print lag; don't claim pit real-time.  
+- **Repo:** https://github.com/keatrng-cpu/ledger-desk  
 
 ## When extending
-- Keep ProFX / Trading-Automation bar shape stable
-- Prefer POST server fns with validated symbol/range
-- Synthetic fallback must still paint charts offline
-- Never claim exchange-native real-time without Databento entitlement
-- Never lower confluence floor in UI copy below what config says without labeling TEST
+- Keep structure **deterministic** (TypeScript math, not LLM scores).  
+- Label demo/sample vs live Yahoo.  
+- Mobile-first; sections numbered for orientation.  
+- Do not lower confluence floor in copy without TEST label.

@@ -1,166 +1,230 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Activity, BarChart3 } from "lucide-react";
-import { AiInsights } from "@/components/dashboard/ai-insights";
-import { AplusOps } from "@/components/dashboard/aplus-ops";
-import { BreakdownTable } from "@/components/dashboard/breakdown-table";
-import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
-import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
-import { KpiCards } from "@/components/dashboard/kpi-cards";
-import { TrendCharts } from "@/components/dashboard/trend-charts";
-import type { MetricsSnapshot } from "@/lib/ai/analyze";
 import {
-  DAILY_SERIES,
-  aggregateTrend,
-  channelBreakdown,
-  filterSeries,
-  rangeForPreset,
-  segmentBreakdown,
-  summarize,
-  type DatePreset,
-} from "@/lib/data/sample-revenue";
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  RefreshCw,
+  Swords,
+} from "lucide-react";
+import { AplusOps } from "@/components/dashboard/aplus-ops";
+import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
+import { HtfBiasBoard } from "@/components/desk/htf-bias-board";
+import { LiquidityPanel } from "@/components/desk/liquidity-panel";
+import { PremarketPanel } from "@/components/desk/premarket-panel";
+import { RiskPanel } from "@/components/desk/risk-panel";
+import { SessionHud } from "@/components/desk/session-hud";
+import { SetupScanner } from "@/components/desk/setup-scanner";
+import { TradingCoach } from "@/components/desk/trading-coach";
+import { Button } from "@/components/ui/button";
+import {
+  fetchTradingDesk,
+  type DeskPayload,
+} from "@/lib/trading/build-desk";
+import { formatUtcClock } from "@/lib/market/yahoo";
 
 export const Route = createFileRoute("/")({
-  component: DashboardPage,
+  component: MasterplacePage,
 });
 
-function DashboardPage() {
-  const initial = rangeForPreset("30d");
-  const [preset, setPreset] = useState<DatePreset | "custom">("30d");
-  const [from, setFrom] = useState(initial.from);
-  const [to, setTo] = useState(initial.to);
-  const [granularity, setGranularity] = useState<"day" | "week" | "month">(
-    "day",
-  );
+const DESK_POLL_MS = 30_000;
 
-  const filtered = useMemo(
-    () => filterSeries(DAILY_SERIES, from, to),
-    [from, to],
-  );
+function MasterplacePage() {
+  const [desk, setDesk] = useState<DeskPayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
+  const [showLab, setShowLab] = useState(false);
 
-  const metrics = useMemo(() => summarize(filtered), [filtered]);
-  const segments = useMemo(() => segmentBreakdown(filtered), [filtered]);
-  const channels = useMemo(() => channelBreakdown(filtered), [filtered]);
-  const trend = useMemo(
-    () => aggregateTrend(filtered, granularity),
-    [filtered, granularity],
-  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchTradingDesk({
+        data: { left: "MNQ", right: "ES" },
+      });
+      if (!res.ok) {
+        setError(res.error);
+      } else {
+        setDesk(res);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Desk load failed");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const snapshot: MetricsSnapshot = useMemo(
-    () => ({
-      from,
-      to,
-      revenue: metrics.revenue,
-      growth: metrics.growth,
-      churn: metrics.churn,
-      customers: metrics.customers,
-      newMrr: metrics.newMrr,
-      churnedMrr: metrics.churnedMrr,
-      arpu: metrics.arpu,
-      topSegment: segments[0]?.segment ?? "—",
-      topChannel: channels[0]?.channel ?? "—",
-      segments: segments.map((s) => ({
-        segment: s.segment,
-        revenue: s.revenue,
-        growth: s.growth,
-        churn: s.churn,
-      })),
-      channels: channels.map((c) => ({
-        channel: c.channel,
-        revenue: c.revenue,
-        share: c.share,
-        growth: c.growth,
-      })),
-    }),
-    [from, to, metrics, segments, channels],
-  );
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, DESK_POLL_MS);
+    return () => window.clearInterval(id);
+  }, [load]);
+
+  useEffect(() => {
+    const id = window.setInterval(
+      () => setWallNow(formatUtcClock(Date.now())),
+      1000,
+    );
+    return () => window.clearInterval(id);
+  }, []);
 
   return (
     <div className="min-h-dvh bg-[var(--color-bg)]">
       <div
-        className="pointer-events-none fixed inset-0 opacity-[0.35]"
+        className="pointer-events-none fixed inset-0 opacity-[0.3]"
         style={{
           backgroundImage:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent), linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px)",
-          backgroundSize: "100% 100%, 48px 48px, 48px 48px",
-          maskImage: "linear-gradient(to bottom, black 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 40% at 50% -10%, color-mix(in oklab, var(--color-primary) 14%, transparent), transparent)",
         }}
         aria-hidden
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-[calc(var(--grok-banner-h,0px)+1rem)] sm:px-6 lg:px-8">
-        <header className="mb-6 flex flex-col gap-4 border-b border-[var(--color-border)] pb-6 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-[calc(var(--grok-banner-h,0px)+0.75rem)] sm:px-6 lg:px-8">
+        {/* Brand header */}
+        <header className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-[var(--color-primary)]">
-              <BarChart3 className="h-5 w-5" aria-hidden />
+            <div className="mb-1.5 flex items-center gap-2 text-[var(--color-primary)]">
+              <Swords className="h-5 w-5" aria-hidden />
               <span className="text-xs font-semibold uppercase tracking-[0.14em]">
-                Ledger · aplus
+                Ledger Masterplace
               </span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-[var(--color-fg)] sm:text-3xl">
-              Trading desk + revenue
+              Private trading desk
             </h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-[var(--color-muted)]">
-              Dual MNQ/ES live charts, Trading-Automation ops console (backtest ·
-              premarket · rules), and sample SaaS analytics — one surface for
-              Grok and Claude.
+            <p className="mt-1 max-w-2xl text-sm text-[var(--color-muted)]">
+              Everything in one place: HTF bias, premarket, dual MNQ/ES tape,
+              liquidity, confluence scanner, risk, and a coach Grok + Claude can
+              extend — organized for selectivity, not noise.
             </p>
           </div>
-          <div className="flex items-center gap-2 self-start rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-subtle)] sm:self-auto">
-            <Activity className="h-3.5 w-3.5 text-[var(--color-up)]" aria-hidden />
-            <span>keatrng-cpu/Trading-Automation ported</span>
-          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={loading}
+            onClick={() => void load()}
+          >
+            {loading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            Refresh desk
+          </Button>
         </header>
 
-        <div className="mb-6">
-          <DateRangeFilter
-            preset={preset === "custom" ? "30d" : preset}
-            from={from}
-            to={to}
-            onPreset={(p) => {
-              setPreset(p);
-              const r = rangeForPreset(p);
-              setFrom(r.from);
-              setTo(r.to);
-              if (p === "7d" || p === "30d") setGranularity("day");
-              else if (p === "90d") setGranularity("week");
-              else setGranularity("month");
-            }}
-            onCustom={(f, t) => {
-              setFrom(f);
-              setTo(t);
-              setPreset("custom");
-            }}
-          />
-        </div>
+        {desk && <SessionHud desk={desk} wallNow={wallNow} />}
 
-        <div className="space-y-4 sm:space-y-5">
-          <DualIndexCharts />
+        {loading && !desk && (
+          <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
+            <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+            Building structure desk from live tape…
+          </div>
+        )}
 
-          <AplusOps />
+        {error && !desk && (
+          <p className="mt-6 rounded-[var(--radius-md)] border border-[var(--color-down)]/30 px-4 py-3 text-sm text-[var(--color-down)]">
+            {error}
+          </p>
+        )}
 
-          <KpiCards
-            revenue={metrics.revenue}
-            growth={metrics.growth}
-            churn={metrics.churn}
-            customers={metrics.customers}
-            newMrr={metrics.newMrr}
-          />
+        {desk && (
+          <div className="mt-5 space-y-8">
+            {/* Nav anchors */}
+            <nav
+              className="flex flex-wrap gap-1.5"
+              aria-label="Desk sections"
+            >
+              {[
+                ["#htf", "1 Bias"],
+                ["#scanner", "2 Setups"],
+                ["#charts", "3 Charts"],
+                ["#liquidity", "4 Liquidity"],
+                ["#risk", "5 Risk"],
+                ["#coach", "6 Coach"],
+                ["#lab", "Lab"],
+              ].map(([href, label]) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-muted)] transition-colors hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
 
-          <AiInsights snapshot={snapshot} />
+            <div id="htf">
+              <HtfBiasBoard left={desk.bias.left} right={desk.bias.right} />
+            </div>
 
-          <TrendCharts
-            data={trend}
-            granularity={granularity}
-            onGranularity={setGranularity}
-          />
+            <PremarketPanel desk={desk} />
 
-          <BreakdownTable segments={segments} channels={channels} />
-        </div>
+            <div id="scanner">
+              <SetupScanner scan={desk.scan} />
+            </div>
 
-        <footer className="mt-10 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-subtle)]">
-          aplus rules/metrics from Trading-Automation · futures OHLC Yahoo
-          continuous · revenue sample offline · AI never gates trades
+            <div id="charts">
+              <header className="mb-3">
+                <h2 className="text-sm font-semibold tracking-tight text-[var(--color-fg)]">
+                  3 · Dual tape (MNQ mini · ES)
+                </h2>
+                <p className="text-xs text-[var(--color-subtle)]">
+                  Live Yahoo prints · mark PDH/PDL, EQH/EQL, and dealing range from
+                  section 4
+                </p>
+              </header>
+              <DualIndexCharts />
+            </div>
+
+            <div id="liquidity">
+              <LiquidityPanel desk={desk} />
+            </div>
+
+            <div
+              id="risk"
+              className="grid grid-cols-1 gap-4 lg:grid-cols-2"
+            >
+              <RiskPanel desk={desk} />
+              <div id="coach">
+                <TradingCoach desk={desk} />
+              </div>
+            </div>
+
+            {/* Collapsible lab: deep aplus ops */}
+            <div id="lab" className="border-t border-[var(--color-border)] pt-6">
+              <button
+                type="button"
+                onClick={() => setShowLab((v) => !v)}
+                className="mb-4 flex w-full items-center justify-between gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-left transition-colors hover:border-[var(--color-border-strong)]"
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-[var(--color-fg)]">
+                  <BookOpen className="h-4 w-4 text-[var(--color-primary)]" />
+                  Lab — deep aplus backtest / rules (Trading-Automation)
+                </span>
+                {showLab ? (
+                  <ChevronUp className="h-4 w-4 text-[var(--color-subtle)]" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-[var(--color-subtle)]" />
+                )}
+              </button>
+              {showLab && <AplusOps />}
+            </div>
+          </div>
+        )}
+
+        <footer className="mt-12 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-subtle)]">
+          Private masterplace · rules from Trading-Automation · structure is
+          deterministic · Grok & Claude explain, never override risk gates · last
+          desk build {desk ? new Date(desk.fetchedAt).toLocaleString() : "—"}
         </footer>
       </div>
     </div>
