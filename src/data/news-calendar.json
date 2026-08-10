@@ -1,0 +1,15 @@
+[
+  { "date": "2026-08-12", "timeEt": "08:30", "name": "CPI (Jul)", "impact": "high" },
+  { "date": "2026-08-13", "timeEt": "08:30", "name": "PPI (Jul)", "impact": "high" },
+  { "date": "2026-08-14", "timeEt": "08:30", "name": "Retail Sales (Jul)", "impact": "high" },
+  { "date": "2026-08-19", "timeEt": "14:00", "name": "FOMC Minutes (Jul meeting)", "impact": "high" },
+  { "date": "2026-08-26", "timeEt": "08:30", "name": "GDP Q2 (2nd est)", "impact": "medium" },
+  { "date": "2026-08-26", "timeEt": "08:30", "name": "PCE / Personal Income (Jul)", "impact": "high" },
+  { "date": "2026-09-01", "timeEt": "10:00", "name": "ISM Manufacturing PMI (Aug)", "impact": "high" },
+  { "date": "2026-09-03", "timeEt": "10:00", "name": "ISM Services PMI (Aug)", "impact": "high" },
+  { "date": "2026-09-04", "timeEt": "08:30", "name": "NFP / Employment Situation (Aug)", "impact": "high" },
+  { "date": "2026-09-10", "timeEt": "08:30", "name": "PPI (Aug)", "impact": "high" },
+  { "date": "2026-09-11", "timeEt": "08:30", "name": "CPI (Aug)", "impact": "high" },
+  { "date": "2026-09-16", "timeEt": "08:30", "name": "Retail Sales (Aug)", "impact": "high" },
+  { "date": "2026-09-16", "timeEt": "14:00", "name": "FOMC Rate Decision", "impact": "high" }
+]
