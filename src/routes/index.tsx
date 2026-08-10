@@ -240,7 +240,7 @@ function MasterplacePage() {
               id="risk"
               className="grid grid-cols-1 gap-4 lg:grid-cols-2"
             >
-              <RiskPanel desk={desk} />
+              <RiskPanel desk={desk} liveRisk={risk} />
               <div id="coach">
                 <TradingCoach desk={desk} />
               </div>

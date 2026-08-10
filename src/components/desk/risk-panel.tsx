@@ -69,8 +69,21 @@ function LimitBar({
   );
 }
 
-export function RiskPanel({ desk }: { desk: DeskPayload }) {
+export function RiskPanel({
+  desk,
+  liveRisk,
+}: {
+  desk: DeskPayload;
+  /**
+   * Pass the parent's already-polled RiskState (e.g. index.tsx, which also
+   * drives HaltBanner + scanner gating off the same value) so this panel can
+   * never show a halt state the rest of the page disagrees with. Omit only
+   * when mounting RiskPanel standalone — it then self-polls as a fallback.
+   */
+  liveRisk?: RiskState | null;
+}) {
   const r = desk.risk;
+  const selfPoll = liveRisk === undefined;
   const [live, setLive] = useState<RiskState | null>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
 
@@ -84,14 +97,16 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
   }, []);
 
   useEffect(() => {
+    if (!selfPoll) return;
     void load();
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
     }, RISK_POLL_MS);
     return () => window.clearInterval(id);
-  }, [load]);
+  }, [load, selfPoll]);
 
-  const equity = live?.equity ?? r.equity;
+  const effective = selfPoll ? live : liveRisk;
+  const equity = effective?.equity ?? r.equity;
   const riskDollars = equity * r.riskPct;
 
   const rows = [
@@ -122,36 +137,36 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
       </header>
 
       {/* Live state — realized PnL vs halts, killzone entries, open trades */}
-      {live ? (
+      {effective ? (
         <div className="mb-4 space-y-3">
           <LimitBar
             label="Day PnL vs −2% halt"
-            pnl={live.dayPnl}
-            limit={live.dailyLimit}
-            halted={live.dailyHaltHit}
+            pnl={effective.dayPnl}
+            limit={effective.dailyLimit}
+            halted={effective.dailyHaltHit}
           />
           <LimitBar
             label="Week PnL vs −5% halt"
-            pnl={live.weekPnl}
-            limit={live.weeklyLimit}
-            halted={live.weeklyHaltHit}
+            pnl={effective.weekPnl}
+            limit={effective.weeklyLimit}
+            halted={effective.weeklyHaltHit}
           />
           <div className="flex flex-wrap gap-2 font-mono text-[11px]">
             <span
               className={cn(
                 "rounded-full border px-2.5 py-1",
-                live.killzoneCapHit
+                effective.killzoneCapHit
                   ? "border-[color-mix(in_oklab,var(--color-warn)_55%,var(--color-border))] text-[var(--color-warn)]"
                   : "border-[var(--color-border)] text-[var(--color-muted)]",
               )}
             >
-              {live.entriesThisKillzone}/{live.killzoneCap} entries ·{" "}
-              {live.killzoneLabel}
+              {effective.entriesThisKillzone}/{effective.killzoneCap} entries ·{" "}
+              {effective.killzoneLabel}
             </span>
             <span className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-[var(--color-muted)]">
-              {live.openTrades} open trade{live.openTrades === 1 ? "" : "s"}
+              {effective.openTrades} open trade{effective.openTrades === 1 ? "" : "s"}
             </span>
-            {(live.dailyHaltHit || live.weeklyHaltHit) && (
+            {(effective.dailyHaltHit || effective.weeklyHaltHit) && (
               <span className="rounded-full border border-[color-mix(in_oklab,var(--color-down)_55%,var(--color-border))] px-2.5 py-1 font-semibold text-[var(--color-down)]">
                 HALTED — no new entries
               </span>

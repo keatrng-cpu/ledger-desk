@@ -14,7 +14,7 @@
 
 import type { OhlcBar } from "@/lib/market/types";
 import { getSessionClock } from "./sessions";
-import { analyzeStructure, type HtfBiasRead } from "./structure";
+import { analyzeStructure, etSessionKey, type HtfBiasRead } from "./structure";
 import { scanSetups } from "./scanner";
 
 /* ------------------------------------------------------------------ */
@@ -180,12 +180,21 @@ function simulate(
 /* Bar-by-bar walk (no lookahead)                                       */
 /* ------------------------------------------------------------------ */
 
-/** Percent change of the slice's last close vs its day's first open. */
+/**
+ * Percent change of the slice's last close vs its CME session's first open
+ * (18:00 ET roll, via `etSessionKey` — same session boundary `structure.ts`
+ * uses everywhere else). Previously grouped by plain UTC calendar date: for
+ * roughly the first ~5 hours of every session (18:00–23:00 ET, still "today"
+ * in UTC during EST) that misattributed the new session's early bars to the
+ * PRIOR session's range, understating/overstating changePct — the only
+ * signal driving SMT scoring in replay (scanSetups here gets no swing
+ * divergence, only the changePct-spread fallback in smtRead).
+ */
 function dayChangePct(slice: OhlcBar[]): number {
   const last = slice[slice.length - 1]!;
-  const dayKey = new Date(last.t).toISOString().slice(0, 10);
+  const dayKey = etSessionKey(last.t);
   for (const b of slice) {
-    if (new Date(b.t).toISOString().slice(0, 10) === dayKey) {
+    if (etSessionKey(b.t) === dayKey) {
       return b.o > 0 ? ((last.c - b.o) / b.o) * 100 : 0;
     }
   }
@@ -292,8 +301,18 @@ export interface FloorRow {
   admitted: number;
   admittedPct: number;
   fillRate: number;
+  /**
+   * Trades that actually resolved win/loss (not unfilled, not timeout) at
+   * each R target — the true denominator behind winRate/expectancy. A UI
+   * MUST gate on these, not on `admitted`: a floor can admit candidates that
+   * all fill and all time out, which is n=0 resolved but was previously
+   * rendered as a confident "0% win, 0.00R" — indistinguishable from "3
+   * trades, all losers."
+   */
+  resolved1R: number;
   winRate1R: number;
   expectancy1R: number;
+  resolved2R: number;
   winRate2R: number;
   expectancy2R: number;
 }
@@ -305,8 +324,14 @@ export interface CalibrationReport {
   floors: FloorRow[];
 }
 
+// Lower edge is 0, not 0.4: the scanner's own skip cutoff is
+// `floor - 0.12` (scanner.ts grade()), which is 0.38 at the current 0.50
+// floor — a "B" candidate at 0.38–0.40 is a real, non-skip outcome that used
+// to land in `outcomes` but match no bucket here, so bucket totals silently
+// undercounted `report.total`. 0 as the floor keeps this correct regardless
+// of where APLUS_RULES.confluenceFloor moves.
 const BUCKET_EDGES: { label: string; min: number; max: number }[] = [
-  { label: "0.4–0.5", min: 0.4, max: 0.5 },
+  { label: "<0.5", min: 0, max: 0.5 },
   { label: "0.5–0.6", min: 0.5, max: 0.6 },
   { label: "0.6–0.7", min: 0.6, max: 0.7 },
   { label: "0.7+", min: 0.7, max: Infinity },
@@ -354,8 +379,10 @@ export function calibrationReport(outcomes: ReplayOutcome[]): CalibrationReport 
       admitted: s.n,
       admittedPct: outcomes.length ? s.n / outcomes.length : 0,
       fillRate: s.fillRate,
+      resolved1R: s.resolved1R,
       winRate1R: s.winRate1R,
       expectancy1R: s.expectancy1R,
+      resolved2R: s.resolved2R,
       winRate2R: s.winRate2R,
       expectancy2R: s.expectancy2R,
     };

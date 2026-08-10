@@ -261,25 +261,25 @@ export function ReplayReport() {
                           {f.admitted ? pct(f.fillRate) : "—"}
                         </td>
                         <td className="py-1.5 pr-3 text-right tabular">
-                          {f.admitted ? pct(f.winRate1R) : "—"}
+                          {f.resolved1R ? pct(f.winRate1R) : "—"}
                         </td>
                         <td
                           className={cn(
                             "py-1.5 pr-3 text-right tabular",
-                            f.admitted ? expCls(f.expectancy1R) : "",
+                            f.resolved1R ? expCls(f.expectancy1R) : "",
                           )}
                         >
-                          {f.admitted
+                          {f.resolved1R
                             ? `${f.expectancy1R >= 0 ? "+" : ""}${f.expectancy1R.toFixed(2)}R`
                             : "—"}
                         </td>
                         <td
                           className={cn(
                             "py-1.5 text-right tabular",
-                            f.admitted ? expCls(f.expectancy2R) : "",
+                            f.resolved2R ? expCls(f.expectancy2R) : "",
                           )}
                         >
-                          {f.admitted
+                          {f.resolved2R
                             ? `${f.expectancy2R >= 0 ? "+" : ""}${f.expectancy2R.toFixed(2)}R`
                             : "—"}
                         </td>

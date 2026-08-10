@@ -21,37 +21,17 @@ export interface IngestResult {
 }
 
 /**
- * Claim a batch id. Returns false when the id was already ingested — the PK
- * conflict is the race-safe test, so two concurrent retries cannot both win.
- * Batches without an id are never deduplicated (documented in ENGINE_BRIDGE.md).
- */
-async function claimBatch(
-  userId: string,
-  batchId: string,
-  eventCount: number,
-): Promise<boolean> {
-  const sql = await getSql();
-  const rows = await sql.query<{ batch_id: string }>(
-    `insert into engine_ingest_batches (batch_id, user_id, event_count)
-     values ($1, $2, $3)
-     on conflict (user_id, batch_id) do nothing
-     returning batch_id`,
-    [batchId, userId, eventCount],
-  );
-  return rows.length > 0;
-}
-
-async function releaseBatch(userId: string, batchId: string): Promise<void> {
-  const sql = await getSql();
-  await sql.query(
-    `delete from engine_ingest_batches where user_id = $1 and batch_id = $2`,
-    [userId, batchId],
-  );
-}
-
-/**
  * Insert engine journal rows into `desk_events` with source='engine'.
  * Idempotent per `batchId`: a repeat id inserts nothing and reports duplicate.
+ *
+ * Claim + insert run as ONE statement (a `with` CTE chain), not two
+ * round-trips with a compensating delete on failure. A single SQL statement
+ * is atomic by Postgres's own rules even without an explicit transaction, so
+ * there is no window where the batch id gets claimed but the events don't
+ * land — the earlier two-statement version had exactly that window, and if
+ * the compensating `delete` also failed (e.g. the same connection blip that
+ * broke the insert), the batch id was claimed forever: every retry would
+ * report `duplicate: true` with zero rows ever inserted, silently.
  */
 export async function ingestEngineEvents(
   userId: string,
@@ -62,48 +42,55 @@ export async function ingestEngineEvents(
     return { inserted: 0, duplicate: false, batchId };
   }
 
-  if (batchId) {
-    const claimed = await claimBatch(userId, batchId, events.length);
-    if (!claimed) return { inserted: 0, duplicate: true, batchId };
-  }
-
   const sql = await getSql();
-  const params: unknown[] = [];
-  const tuples = events.map((e) => {
-    const base = params.length;
-    params.push(
-      userId,
-      e.ts,
-      e.event,
-      e.symbol,
-      e.prescore,
-      e.reason,
-      e.pnl,
-      e.r,
-      JSON.stringify(e.payload),
-    );
-    return (
-      `($${base + 1}, $${base + 2}::timestamptz, $${base + 3}, $${base + 4}, ` +
-      `$${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, ` +
-      `'${ENGINE_SOURCE}', $${base + 9}::jsonb)`
-    );
-  });
+  const ts = events.map((e) => e.ts);
+  const event = events.map((e) => e.event);
+  const symbol = events.map((e) => e.symbol ?? null);
+  const prescore = events.map((e) => e.prescore ?? null);
+  const reason = events.map((e) => e.reason ?? null);
+  const pnl = events.map((e) => e.pnl ?? null);
+  const r = events.map((e) => e.r ?? null);
+  const payload = events.map((e) => JSON.stringify(e.payload ?? null));
 
-  try {
-    await sql.query(
-      `insert into desk_events
-         (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
-       values ${tuples.join(", ")}`,
-      params,
+  const unnestCols =
+    `unnest($${batchId ? 4 : 2}::timestamptz[], $${batchId ? 5 : 3}::text[], ` +
+    `$${batchId ? 6 : 4}::text[], $${batchId ? 7 : 5}::double precision[], ` +
+    `$${batchId ? 8 : 6}::text[], $${batchId ? 9 : 7}::double precision[], ` +
+    `$${batchId ? 10 : 8}::double precision[], $${batchId ? 11 : 9}::jsonb[]) ` +
+    `as u(ts, event, symbol, prescore, reason, pnl, r, payload)`;
+
+  if (batchId) {
+    const rows = await sql.query<{ n: number }>(
+      `with claim as (
+         insert into engine_ingest_batches (batch_id, user_id, event_count)
+         values ($1, $2, $3)
+         on conflict (user_id, batch_id) do nothing
+         returning 1
+       ), ins as (
+         insert into desk_events
+           (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
+         select $2, u.ts, u.event, u.symbol, u.prescore, u.reason, u.pnl, u.r,
+                '${ENGINE_SOURCE}', u.payload
+         from claim, ${unnestCols}
+         returning 1
+       )
+       select count(*)::int as n from ins`,
+      [batchId, userId, events.length, ts, event, symbol, prescore, reason, pnl, r, payload],
     );
-  } catch (err) {
-    // Compensate the claim so a retry of the same batch id can succeed. (The
-    // Neon path is a pool, so a real transaction across statements is not
-    // available through the shared `Sql` surface.)
-    if (batchId) await releaseBatch(userId, batchId).catch(() => undefined);
-    throw err;
+    const inserted = rows[0]?.n ?? 0;
+    return inserted > 0
+      ? { inserted, duplicate: false, batchId }
+      : { inserted: 0, duplicate: true, batchId };
   }
 
+  await sql.query(
+    `insert into desk_events
+       (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
+     select $1, u.ts, u.event, u.symbol, u.prescore, u.reason, u.pnl, u.r,
+            '${ENGINE_SOURCE}', u.payload
+     from ${unnestCols}`,
+    [userId, ts, event, symbol, prescore, reason, pnl, r, payload],
+  );
   return { inserted: events.length, duplicate: false, batchId };
 }
 

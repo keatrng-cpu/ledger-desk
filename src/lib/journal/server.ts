@@ -202,6 +202,70 @@ export const updateEquity = createServerFn({ method: "POST" })
   });
 
 /* ------------------------------------------------------------------ */
+/* Risk governor (shared — computed here so openTrade can enforce it,   */
+/* not just getRiskState display it)                                   */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Realized PnL / entry counts scoped to `mode = 'live'` ONLY. Paper trades
+ * must never move the live halt: a paper loss can't falsely trip the live
+ * daily/weekly halt, and a paper win can't falsely clear one that should be
+ * active. (Was previously unscoped — both aggregates summed live+paper
+ * together, which could both mask a real halt and fire a false one.)
+ */
+async function computeLiveRiskState(
+  sql: Sql,
+  userId: string,
+): Promise<RiskState> {
+  const now = new Date();
+  const clock = getSessionClock(now);
+  const dayStart = tradingDayStart(now);
+  const weekStart = tradingWeekStart(now);
+  const kz = currentKillzoneWindow(clock.killzone, now);
+
+  const [equity, aggregates] = await Promise.all([
+    readEquity(sql, userId),
+    sql<{
+      day_pnl: number;
+      week_pnl: number;
+      kz_entries: number;
+      open_trades: number;
+    }>`
+      select
+        coalesce(sum(pnl) filter (
+          where status = 'closed' and mode = 'live' and closed_at >= ${dayStart}
+        ), 0)::double precision as day_pnl,
+        coalesce(sum(pnl) filter (
+          where status = 'closed' and mode = 'live' and closed_at >= ${weekStart}
+        ), 0)::double precision as week_pnl,
+        count(*) filter (
+          where mode = 'live' and opened_at >= ${kz.startUtc} and opened_at < ${kz.endUtc}
+        ) as kz_entries,
+        count(*) filter (where mode = 'live' and status = 'open') as open_trades
+      from desk_trades
+      where user_id = ${userId}`,
+  ]);
+
+  const agg = aggregates[0] ?? {
+    day_pnl: 0,
+    week_pnl: 0,
+    kz_entries: 0,
+    open_trades: 0,
+  };
+
+  return computeRiskFlags({
+    equity,
+    dayPnl: Number(agg.day_pnl),
+    weekPnl: Number(agg.week_pnl),
+    entriesThisKillzone: Number(agg.kz_entries),
+    openTrades: Number(agg.open_trades),
+    clock,
+    dayStart,
+    weekStart,
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Open / close trades                                                */
 /* ------------------------------------------------------------------ */
 
@@ -251,6 +315,31 @@ export const openTrade = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<JournalTrade> => {
     const sql = await getSql();
+
+    // Server-side halt enforcement. The governor was previously advisory-only
+    // (UI hid the Log button off a client poll that can be up to 30s stale) —
+    // nothing stopped a direct call to this function from opening a live
+    // trade past a halt. Paper trades are exempt: they exist specifically to
+    // keep building the sample while live is halted (ROADMAP Phase 4).
+    if (data.mode === "live") {
+      const risk = await computeLiveRiskState(sql, context.userId);
+      if (risk.dailyHaltHit) {
+        throw new Error(
+          `Daily halt active: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}. No new live entries today.`,
+        );
+      }
+      if (risk.weeklyHaltHit) {
+        throw new Error(
+          `Weekly halt active: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}. No new live entries this week.`,
+        );
+      }
+      if (risk.killzoneCapHit) {
+        throw new Error(
+          `Killzone cap reached (${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}). No new live entries this window.`,
+        );
+      }
+    }
+
     const now = new Date();
     const id = crypto.randomUUID();
     const present = data.componentsPresent
@@ -499,46 +588,7 @@ export const getRiskState = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }): Promise<RiskState> => {
     const sql = await getSql();
-    const now = new Date();
-    const clock = getSessionClock(now);
-    const dayStart = tradingDayStart(now);
-    const weekStart = tradingWeekStart(now);
-    const kz = currentKillzoneWindow(clock.killzone, now);
-
-    const [equity, aggregates] = await Promise.all([
-      readEquity(sql, context.userId),
-      sql<{
-        day_pnl: number;
-        week_pnl: number;
-        kz_entries: number;
-        open_trades: number;
-      }>`
-        select
-          coalesce(sum(pnl) filter (where status = 'closed' and closed_at >= ${dayStart}), 0)::double precision as day_pnl,
-          coalesce(sum(pnl) filter (where status = 'closed' and closed_at >= ${weekStart}), 0)::double precision as week_pnl,
-          count(*) filter (where opened_at >= ${kz.startUtc} and opened_at < ${kz.endUtc}) as kz_entries,
-          count(*) filter (where status = 'open') as open_trades
-        from desk_trades
-        where user_id = ${context.userId}`,
-    ]);
-
-    const agg = aggregates[0] ?? {
-      day_pnl: 0,
-      week_pnl: 0,
-      kz_entries: 0,
-      open_trades: 0,
-    };
-
-    return computeRiskFlags({
-      equity,
-      dayPnl: Number(agg.day_pnl),
-      weekPnl: Number(agg.week_pnl),
-      entriesThisKillzone: Number(agg.kz_entries),
-      openTrades: Number(agg.open_trades),
-      clock,
-      dayStart,
-      weekStart,
-    });
+    return computeLiveRiskState(sql, context.userId);
   });
 
 /** Re-export for UI risk-sizing display (equity * riskPct). */
