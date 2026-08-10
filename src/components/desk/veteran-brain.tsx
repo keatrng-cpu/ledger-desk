@@ -212,9 +212,26 @@ export function VeteranBrainPanel({
           ))}
         </ul>
         <p className="mt-2 font-mono text-[11px] text-[var(--color-fg)]">
-          Size ×{brief.sizeMult} · conf {(brief.confidence * 100).toFixed(0)}% ·{" "}
-          {brief.posture}
+          Size ×{brief.sizeMult.toFixed(2)} · BT bias ×{brief.rateSizeBias.toFixed(2)} · conf{" "}
+          {(brief.confidence * 100).toFixed(0)}% · {brief.posture}
         </p>
+      </div>
+
+      {/* Backtest rates → live */}
+      <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          Backtest rates → live
+        </p>
+        <p className="font-mono text-[11px] text-[var(--color-fg)]">
+          {brief.rateSummary}
+        </p>
+        {brief.rateAdvice.length > 0 && (
+          <ul className="mt-1.5 space-y-0.5 text-[11px] text-[var(--color-muted)]">
+            {brief.rateAdvice.map((a) => (
+              <li key={a}>→ {a}</li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Auto tab reads */}

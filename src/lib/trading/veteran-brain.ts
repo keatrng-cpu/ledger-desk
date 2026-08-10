@@ -9,6 +9,10 @@ import type { SetupCandidate } from "./scanner";
 import {
   loadDeskMemory,
   memoryDigest,
+  rateCardForSetup,
+  topStrategyRates,
+  bucketWr,
+  bucketExpectancy,
   type DeskMemoryState,
 } from "./desk-memory";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -79,6 +83,11 @@ export interface VeteranBrief {
   strategyBoard: StrategyRead[];
   /** What the brain is doing automatically right now */
   autoActions: string[];
+  /** Live setup vs backtest rates */
+  rateAdvice: string[];
+  rateSummary: string;
+  /** Suggested size mult from BT rates (0.5–1.1) */
+  rateSizeBias: number;
   asked?: string;
   answer?: string;
 }
@@ -109,13 +118,59 @@ export function runVeteranBrain(
   const counters = countersFromMemory(memory);
   const { clock, bias, scan, risk, news } = desk;
   const candidates = scan.candidates ?? [];
-  const rawBest =
+  let rawBest =
     candidates.find((c) => c.actionable) ??
     candidates.find(
       (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
     ) ??
     candidates[0] ??
     null;
+
+  // Prefer strategies with strong BT rates when choosing among path candidates
+  const pathPool = candidates.filter(
+    (c) =>
+      c.actionable ||
+      c.pathBand === "A+" ||
+      c.pathBand === "A" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+",
+  );
+  if (pathPool.length > 1) {
+    const ranked = pathPool
+      .map((c) => {
+        const card = rateCardForSetup(memory, {
+          strategy: c.completeStrategy || c.strategyPrimary,
+          side: c.side,
+          band: c.pathBand || c.grade,
+          symbol: c.symbol,
+        });
+        const wr = card.strategy
+          ? (card.strategy.wins / Math.max(1, card.strategy.n))
+          : 0.5;
+        return {
+          c,
+          score:
+            (c.qualityScore ?? c.confluence) * 10 +
+            card.sizeBias * 2 +
+            wr * 3 +
+            (c.side === "short" && (c.strategyPrimary === "mechanical" || c.completeStrategy === "mechanical")
+              ? 1.5
+              : 0),
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+    rawBest = ranked[0]!.c;
+  }
+
+  const rateCard = rawBest
+    ? rateCardForSetup(memory, {
+        strategy: rawBest.completeStrategy || rawBest.strategyPrimary,
+        side: rawBest.side,
+        band: rawBest.pathBand || rawBest.grade,
+        symbol: rawBest.symbol,
+      })
+    : rateCardForSetup(memory, {});
+  const topRates = topStrategyRates(memory, 2);
 
   const layers: BrainLayer[] = [];
   const vetoes: string[] = [];
@@ -342,7 +397,7 @@ export function runVeteranBrain(
     score += 0.5;
   }
 
-  // 7) Memory / book
+  // 7) Memory / book + backtest rates → live
   const wr = bookWr(memory);
   const monthTarget = APLUS_RULES.targetTradesPerMonth.center;
   if (wr != null && wr < 0.55 && memory.book.pathTaken >= 8) {
@@ -373,6 +428,59 @@ export function runVeteranBrain(
       score: 0,
       detail: memoryDigest(memory),
     });
+  }
+
+  // 7b) Backtest rates applied to live setup
+  const stratWr = bucketWr(rateCard.strategy ?? undefined);
+  const stratExp = bucketExpectancy(rateCard.strategy ?? undefined);
+  if (rateCard.strategy && rateCard.strategy.n >= 3) {
+    const detail = `BT ${rawBest?.completeStrategy || rawBest?.strategyPrimary || "model"}: ${rateCard.strategy.n}t WR ${stratWr != null ? (stratWr * 100).toFixed(0) + "%" : "—"} · E[R] ${stratExp?.toFixed(2) ?? "—"} · size×${rateCard.sizeBias.toFixed(2)}`;
+    if (rateCard.sizeBias <= 0.5 || (stratWr != null && stratWr < 0.45)) {
+      layers.push({
+        id: "bt_rates",
+        label: "BT rates",
+        tone: "fail",
+        score: -1.25,
+        detail,
+      });
+      score -= 1.25;
+      yellow.push(...rateCard.advice.slice(0, 2));
+    } else if (rateCard.sizeBias >= 1.05 && stratWr != null && stratWr >= 0.65) {
+      layers.push({
+        id: "bt_rates",
+        label: "BT rates",
+        tone: "pass",
+        score: 0.75,
+        detail,
+      });
+      score += 0.75;
+      green.push(...rateCard.advice.slice(0, 2));
+    } else {
+      layers.push({
+        id: "bt_rates",
+        label: "BT rates",
+        tone: "info",
+        score: 0,
+        detail,
+      });
+    }
+  } else {
+    layers.push({
+      id: "bt_rates",
+      label: "BT rates",
+      tone: "info",
+      score: 0,
+      detail:
+        topRates.length > 0
+          ? `Top BT: ${topRates.map((r) => `${r.id} ${(r.wr * 100).toFixed(0)}%/${r.n}`).join(" · ")}`
+          : "No BT rates yet — run week/month backtest to train brain",
+    });
+  }
+  for (const a of rateCard.advice) {
+    if (!yellow.includes(a) && !green.includes(a)) {
+      if (rateCard.sizeBias < 1) yellow.push(a);
+      else green.push(a);
+    }
   }
 
   // Pins act as discretionary reminders
@@ -438,6 +546,14 @@ export function runVeteranBrain(
     verdict = "REDUCE";
     sizeMult = 0.5;
     yellow.push("Veteran size-down: book WR soft");
+  }
+  // Backtest rates size bias
+  if (verdict === "TAKE" || verdict === "REDUCE") {
+    sizeMult = Math.max(0, Math.min(1.25, sizeMult * rateCard.sizeBias));
+    if (rateCard.sizeBias <= 0.5 && verdict === "TAKE") {
+      verdict = "REDUCE";
+      yellow.push("BT rates forced REDUCE");
+    }
   }
 
   const confidence = clamp01((score + 4) / 8);
@@ -604,6 +720,9 @@ export function runVeteranBrain(
   const autoActions: string[] = [
     "Auto-scanned Trade · Path · Backtest · Tape · Risk · Lab",
     `Auto-scored ${ALWAYS_SCAN.length} strategies: ${readyStrats.length} ready`,
+    memory.book.pathTaken > 0
+      ? `BT book live: ${memory.book.pathTaken} PATH · WR ${wr != null ? (wr * 100).toFixed(0) + "%" : "—"} · size bias ×${rateCard.sizeBias.toFixed(2)}`
+      : "BT book empty — run backtest to train rates",
     verdict === "TAKE" && rawBest
       ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} full grade · risk-off 50%@1R · log paper first`
       : verdict === "REDUCE" && rawBest
@@ -627,6 +746,12 @@ export function runVeteranBrain(
       `No strategy is PATH-ready. Closest: ${strategyBoard[0]?.id ?? "—"} ${strategyBoard[0]?.note ?? ""}.`,
     );
   }
+  if (memory.book.pathTaken > 0) {
+    monologue.push(
+      `From your backtests: book ${memory.book.pathTaken} PATH · WR ${wr != null ? (wr * 100).toFixed(0) + "%" : "—"} · ΣR ${memory.book.sumR}. I size live off those rates.`,
+    );
+  }
+  if (rateCard.advice[0]) monologue.push(rateCard.advice[0]!);
 
   return {
     name: "Veteran · SMC/ICT",
@@ -646,6 +771,17 @@ export function runVeteranBrain(
     tabReads,
     strategyBoard,
     autoActions,
+    rateAdvice: rateCard.advice,
+    rateSummary:
+      topRates.length > 0
+        ? topRates
+            .map(
+              (r) =>
+                `${r.id} n=${r.n} WR ${(r.wr * 100).toFixed(0)}% E[R] ${r.expR.toFixed(2)}`,
+            )
+            .join(" · ")
+        : "No strategy rates — run a backtest",
+    rateSizeBias: rateCard.sizeBias,
     asked,
     answer,
   };

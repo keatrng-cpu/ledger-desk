@@ -29,7 +29,11 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import type { LogMode } from "@/components/desk/setup-scanner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { updateBookFromBacktest, remember } from "@/lib/trading/desk-memory";
+import {
+  ingestBacktestResult,
+  remember,
+  type BacktestFillRecord,
+} from "@/lib/trading/desk-memory";
 
 type Role = "user" | "assistant" | "system";
 
@@ -1008,22 +1012,35 @@ export function TradezellaChat({
         }
       }
 
-      // Persist for veteran brain memory
+      // Persist full fills + rates for veteran brain live analysis
       if (result.mode === "week_backtest" && result.days?.length) {
-        const trades = result.days
-          .map((d) => d.trade)
-          .filter((tr) => tr && tr.taken && tr.rMultiple != null);
-        const wins = trades.filter((tr) => (tr!.rMultiple ?? 0) > 0).length;
-        const losses = trades.length - wins;
-        const sumR = trades.reduce((s, tr) => s + (tr!.rMultiple ?? 0), 0);
-        const wr = trades.length ? wins / trades.length : null;
-        updateBookFromBacktest({
+        const fills: BacktestFillRecord[] = [];
+        let processWins = 0;
+        for (const d of result.days) {
+          if (!d.pathEligible) processWins += 1;
+          if (!d.trade?.taken || d.trade.rMultiple == null) continue;
+          fills.push({
+            date: d.date,
+            symbol: d.symbol,
+            side: d.trade.side,
+            strategy:
+              d.best?.completeStrategy ||
+              d.best?.strategyPrimary ||
+              "untagged",
+            band: String(d.best?.pathBand || d.best?.grade || "—"),
+            grade: String(d.best?.grade || "—"),
+            score: d.best?.confluence ?? 0,
+            r: d.trade.rMultiple ?? 0,
+            usd: d.trade.pnlUsd ?? 0,
+            exit: d.trade.exitReason || "—",
+            windowLabel: result.analysis.title || "Backtest",
+          });
+        }
+        ingestBacktestResult({
           label: result.analysis.title || "Backtest",
-          taken: trades.length,
-          wins,
-          losses,
-          sumR: Math.round(sumR * 100) / 100,
-          wr,
+          fills,
+          processWins,
+          summary: result.analysis.summary,
         });
         window.dispatchEvent(new Event("ledger-memory"));
       } else if (result.analysis?.summary) {
