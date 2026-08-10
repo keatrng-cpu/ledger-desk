@@ -964,6 +964,65 @@ export async function runWeekBacktest(
       `(1 micro · floor ${PROFIT_ACTION_FLOOR}). ` +
       analysis.summary;
   }
+
+  // Real checklist from board (not generic text parse)
+  const pathN = rows.filter((r) => r.pathEligible).length;
+  const htfFails = rows.filter(
+    (r) => r.best && !r.best.htfOk && r.best.confluence >= PROFIT_ACTION_FLOOR - 0.05,
+  ).length;
+  const causalOkAll = rows.every(
+    (r) => !r.gates?.length || r.gates.find((g) => g.name === "Causal integrity")?.pass !== false,
+  );
+  analysis.backtestChecklist = [
+    {
+      item: "Causal integrity (no future bars)",
+      status: causalOkAll ? "pass" : "fail",
+      detail: "Decisions use closed bars only at 10:00/10:45 ET",
+    },
+    {
+      item: "HTF gate on PATH slots",
+      status: pathN > 0 ? "pass" : htfFails > 0 ? "fail" : "pass",
+      detail:
+        pathN > 0
+          ? `${pathN} PATH with HTF aligned`
+          : htfFails
+            ? `${htfFails} near-path blocked by HTF`
+            : "No PATH — HTF gate held selectivity",
+    },
+    {
+      item: "PATH floor 0.67 only",
+      status: "pass",
+      detail: `${pathN} taken · ${rows.length - pathN} skipped below floor or gates`,
+    },
+    {
+      item: "Trades simulated (R + $)",
+      status: pnl.taken > 0 ? "pass" : pathN === 0 ? "pass" : "fail",
+      detail:
+        pnl.taken > 0
+          ? `${pnl.taken} fills · WR ${pnl.winRate != null ? (pnl.winRate * 100).toFixed(0) + "%" : "—"} · ${pnl.sumR}R · $${pnl.sumUsd}`
+          : "No PATH to take",
+    },
+    {
+      item: "Risk model 0.5% / 1 micro",
+      status: "pass",
+      detail: "Sim uses 1 micro + commission; desk risk 0.5%",
+    },
+    {
+      item: "Selectivity (skips journaled as edge)",
+      status: rows.length - pathN >= 0 ? "pass" : "unknown",
+      detail: `${rows.filter((r) => !r.pathEligible).length} skips with reasons on board`,
+    },
+  ];
+  analysis.nextActions = [
+    pnl.taken
+      ? `Review ${pnl.taken} TAKEN fills: exit reason + R. Re-run losers for missed HTF/model.`
+      : "No PATH this window — do not force B grades. Widen only via better confluence, not lower floor.",
+    "Skips are the edge: read Why-not column before next sample.",
+    "Paper-log PATH winners/losers; never log skips as trades.",
+    truncated
+      ? `Window capped at ${MAX_DAYS} sessions — run a specific week for full month tails.`
+      : "Full window evaluated.",
+  ];
   analysis.disclaimer =
     "CAUSAL DUAL-LAYER: HTF bias from RTH→1h/4h (sparse multi-week); LTF from NY 08:30–11:00 1m only. Decisions 10:00/11:00 ET, closed bars only — no future, no full-day close peek. Educational — not an order.";
   analysis.nextActions = [

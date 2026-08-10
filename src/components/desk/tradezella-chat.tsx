@@ -429,35 +429,230 @@ function AnalysisCard({
   onSkip?: () => void;
 }) {
   const candidate = analysisToSetupCandidate(a);
+  const isBoard = Boolean(days && days.length > 0);
+  const pathRows = days?.filter((d) => d.pathEligible) ?? [];
+  const skipRows = days?.filter((d) => !d.pathEligible) ?? [];
+  const trades =
+    days
+      ?.map((d) => d.trade)
+      .filter(
+        (tr): tr is NonNullable<typeof tr> =>
+          Boolean(tr?.taken && tr.rMultiple != null),
+      ) ?? [];
+  const sumR = trades.reduce((s, tr) => s + (tr.rMultiple ?? 0), 0);
+  const sumUsd = trades.reduce((s, tr) => s + (tr.pnlUsd ?? 0), 0);
+  const wins = trades.filter((tr) => (tr.rMultiple ?? 0) > 0).length;
+  const wr = trades.length ? wins / trades.length : null;
 
   return (
     <div className="mt-2 space-y-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3 text-xs">
       <div>
         <p className="text-sm font-semibold text-[var(--color-fg)]">{a.title}</p>
-        {days && days.length > 0 ? (
-          <p className="mt-1 text-[11px] leading-relaxed text-[var(--color-muted)]">
-            Floor <span className="font-mono text-[var(--color-primary)]">0.67</span>
-            {" · "}
-            PATH{" "}
-            <span className="font-mono text-[var(--color-up)]">
-              {days.filter((d) => d.pathEligible).length}
-            </span>
-            /{days.length}
-            {" · "}
-            causal NY 08:30–11:00 · dual-layer HTF
-          </p>
-        ) : (
+        {!isBoard && (
           <p className="mt-1 text-[var(--color-muted)]">{a.summary}</p>
         )}
       </div>
 
-      <WeekTable days={days} queue={queue} />
+      {/* ===== RESULTS FIRST (real backtest) ===== */}
+      {isBoard && (
+        <>
+          {/* 1. PnL hero */}
+          <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_8%,var(--color-surface))] p-3">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+              1 · Results (PATH auto-taken)
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div>
+                <p className="text-[9px] uppercase text-[var(--color-subtle)]">
+                  Taken
+                </p>
+                <p className="font-mono text-xl font-semibold text-[var(--color-fg)]">
+                  {trades.length}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase text-[var(--color-subtle)]">
+                  Win rate
+                </p>
+                <p className="font-mono text-xl font-semibold text-[var(--color-fg)]">
+                  {wr != null ? `${(wr * 100).toFixed(0)}%` : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase text-[var(--color-subtle)]">
+                  Net R
+                </p>
+                <p
+                  className={
+                    sumR > 0
+                      ? "font-mono text-xl font-semibold text-[var(--color-up)]"
+                      : sumR < 0
+                        ? "font-mono text-xl font-semibold text-[var(--color-down)]"
+                        : "font-mono text-xl font-semibold text-[var(--color-fg)]"
+                  }
+                >
+                  {trades.length
+                    ? `${sumR >= 0 ? "+" : ""}${sumR.toFixed(2)}R`
+                    : "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase text-[var(--color-subtle)]">
+                  Net $
+                </p>
+                <p
+                  className={
+                    sumUsd > 0
+                      ? "font-mono text-xl font-semibold text-[var(--color-up)]"
+                      : sumUsd < 0
+                        ? "font-mono text-xl font-semibold text-[var(--color-down)]"
+                        : "font-mono text-xl font-semibold text-[var(--color-fg)]"
+                  }
+                >
+                  {trades.length
+                    ? `${sumUsd >= 0 ? "+" : "-"}$${Math.abs(sumUsd).toFixed(0)}`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            <p className="mt-2 text-[10px] text-[var(--color-subtle)]">
+              1 micro · floor 0.67 · stop vs 1R/2R · RTH walk after entry
+            </p>
+          </div>
 
-      {/* Marked charts returned */}
+          {/* 2. Trades taken */}
+          <div>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-up)]">
+              2 · Trades taken ({trades.length})
+            </p>
+            {trades.length === 0 ? (
+              <p className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-muted)]">
+                No PATH fills this window. Edge is in the skips below.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {pathRows.map((d) => {
+                  const tr = d.trade;
+                  if (!tr || tr.rMultiple == null) return null;
+                  return (
+                    <li
+                      key={`t-${d.date}-${d.symbol}`}
+                      className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 font-mono text-[11px]"
+                    >
+                      <span className="font-semibold text-[var(--color-up)]">
+                        TAKEN
+                      </span>
+                      <span className="text-[var(--color-fg)]">{d.date}</span>
+                      <span>{d.symbol}</span>
+                      <span
+                        className={
+                          tr.side === "long"
+                            ? "text-[var(--color-up)]"
+                            : "text-[var(--color-down)]"
+                        }
+                      >
+                        {tr.side.toUpperCase()}
+                      </span>
+                      <span className="text-[var(--color-subtle)]">
+                        @{tr.entry.toFixed(2)}
+                      </span>
+                      <span
+                        className={
+                          tr.rMultiple > 0
+                            ? "font-semibold text-[var(--color-up)]"
+                            : "font-semibold text-[var(--color-down)]"
+                        }
+                      >
+                        {tr.rMultiple >= 0 ? "+" : ""}
+                        {tr.rMultiple.toFixed(2)}R ·{" "}
+                        {tr.pnlUsd != null
+                          ? `${tr.pnlUsd >= 0 ? "+" : "-"}$${Math.abs(tr.pnlUsd).toFixed(0)}`
+                          : ""}
+                      </span>
+                      <span className="text-[var(--color-subtle)]">
+                        {tr.exitReason}
+                      </span>
+                      <span className="text-[10px] text-[var(--color-subtle)]">
+                        {d.best?.grade} {d.best?.confluence.toFixed(2)} · HTF{" "}
+                        {d.htf}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* 3. Skips + reason */}
+          <div>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+              3 · Skips ({skipRows.length}) — why not taken
+            </p>
+            <div className="max-h-48 overflow-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
+              <table className="w-full text-left text-[11px]">
+                <thead className="sticky top-0 bg-[var(--color-surface-2)] text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  <tr>
+                    <th className="px-2 py-1.5">Date</th>
+                    <th className="px-2 py-1.5">Sym</th>
+                    <th className="px-2 py-1.5">Best</th>
+                    <th className="px-2 py-1.5">Score</th>
+                    <th className="px-2 py-1.5">Reason skipped</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {skipRows.map((d, i) => (
+                    <tr
+                      key={`s-${d.date}-${d.symbol}-${i}`}
+                      className="border-t border-[var(--color-border)]"
+                    >
+                      <td className="px-2 py-1 font-mono">{d.date.slice(5)}</td>
+                      <td className="px-2 py-1 font-mono">{d.symbol}</td>
+                      <td className="px-2 py-1 text-[var(--color-muted)]">
+                        {d.best
+                          ? `${d.best.side} ${d.best.grade}`
+                          : "—"}
+                      </td>
+                      <td className="px-2 py-1 font-mono">
+                        {d.best ? d.best.confluence.toFixed(2) : "—"}
+                      </td>
+                      <td className="px-2 py-1 text-[10px] text-[var(--color-subtle)]">
+                        {d.deadspot
+                          ? d.deadspot
+                              .replace(/^setup below path\s*/i, "")
+                              .slice(0, 72)
+                          : d.best && d.best.confluence < 0.67
+                            ? `score ${d.best.confluence.toFixed(2)} < 0.67 floor`
+                            : d.best && !d.best.htfOk
+                              ? `HTF ${d.htf} blocks ${d.best.side}`
+                              : "gates"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Full board collapsed */}
+          <details className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <summary className="cursor-pointer px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+              Full day board ({days!.length} slots) · expand
+            </summary>
+            <div className="border-t border-[var(--color-border)] p-2">
+              <WeekTable days={days} queue={queue} />
+            </div>
+          </details>
+        </>
+      )}
+
+      {/* Non-board: original week table if any edge case */}
+      {!isBoard && <WeekTable days={days} queue={queue} />}
+
+      {/* Marked charts */}
       {marked && marked.length > 0 && (
         <div>
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-            Marked charts returned ({marked.length})
+            Marked charts ({marked.length})
           </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {marked.map((m) => (
@@ -483,217 +678,171 @@ function AnalysisCard({
                   alt={`Marked ${m.tf}`}
                   className="max-h-56 w-full object-contain bg-[var(--color-bg)]"
                 />
-                <p className="px-2 py-1 text-[10px] text-[var(--color-subtle)]">
-                  {m.focus}
-                </p>
               </div>
             ))}
           </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            className="mt-2"
-            onClick={() => {
-              for (const m of marked) downloadDataUrl(m.dataUrl, m.name);
-            }}
-          >
-            <Download className="h-3.5 w-3.5" />
-            Download all marked
-          </Button>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            WR
-          </p>
-          <p className="font-mono font-semibold text-[var(--color-fg)]">
-            {a.stats.winRate != null
-              ? `${(a.stats.winRate * 100).toFixed(1)}%`
-              : "—"}
-          </p>
-        </div>
-        <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Trades
-          </p>
-          <p className="font-mono font-semibold text-[var(--color-fg)]">
-            {a.stats.trades ?? "—"}
-          </p>
-        </div>
-        <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Net
-          </p>
-          <p className="font-mono font-semibold text-[var(--color-fg)]">
-            {a.stats.netPnl != null ? `$${a.stats.netPnl}` : "—"}
-          </p>
-        </div>
-        <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Path
-          </p>
-          <p className="font-mono font-semibold text-[var(--color-primary)]">
-            {(a.systemAlignment.pathWrTarget * 100).toFixed(0)}%
-          </p>
-        </div>
-      </div>
-
-      <p className="text-[var(--color-muted)]">{a.systemAlignment.wrVsTarget}</p>
-
-      <div>
-        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          HTF · MTF · LTF
-        </p>
-        <div className="space-y-1.5">
-          {a.timeframes.map((tf) => (
-            <div key={tf.tf} className="flex flex-wrap items-start gap-2">
-              <span className="w-10 font-mono text-[10px] font-bold text-[var(--color-fg)]">
-                {tf.tf}
-              </span>
-              <BiasPill bias={tf.bias} />
-              <span className="min-w-0 flex-1 text-[var(--color-muted)]">
-                {tf.label} — {tf.notes}
-              </span>
+      {/* Secondary context — collapsed for board runs */}
+      <details
+        className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]"
+        open={!isBoard}
+      >
+        <summary className="cursor-pointer px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          {isBoard ? "Details (HTF · setups · journal)" : "Analysis details"}
+        </summary>
+        <div className="space-y-3 border-t border-[var(--color-border)] p-3">
+          {!isBoard && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5">
+                <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  WR
+                </p>
+                <p className="font-mono font-semibold text-[var(--color-fg)]">
+                  {a.stats.winRate != null
+                    ? `${(a.stats.winRate * 100).toFixed(1)}%`
+                    : "—"}
+                </p>
+              </div>
+              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5">
+                <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  Trades
+                </p>
+                <p className="font-mono font-semibold text-[var(--color-fg)]">
+                  {a.stats.trades ?? "—"}
+                </p>
+              </div>
+              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5">
+                <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  Net
+                </p>
+                <p className="font-mono font-semibold text-[var(--color-fg)]">
+                  {a.stats.netPnl != null ? `$${a.stats.netPnl}` : "—"}
+                </p>
+              </div>
+              <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5">
+                <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  Path
+                </p>
+                <p className="font-mono font-semibold text-[var(--color-primary)]">
+                  {(a.systemAlignment.pathWrTarget * 100).toFixed(0)}%
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+          )}
 
-      <div>
-        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Conditions
-        </p>
-        <p className="text-[var(--color-muted)]">
-          {a.conditions.regime} · {a.conditions.volatility} vol ·{" "}
-          {a.conditions.session} · news {a.conditions.news}
-        </p>
-      </div>
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+              HTF · MTF · LTF
+            </p>
+            <div className="space-y-1.5">
+              {a.timeframes.map((tf) => (
+                <div key={tf.tf} className="flex flex-wrap items-start gap-2">
+                  <span className="w-10 font-mono text-[10px] font-bold text-[var(--color-fg)]">
+                    {tf.tf}
+                  </span>
+                  <BiasPill bias={tf.bias} />
+                  <span className="min-w-0 flex-1 text-[var(--color-muted)]">
+                    {tf.label} — {tf.notes}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {a.strategiesHit.length > 0 && (
-        <div>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-            Strategies
-          </p>
-          <div className="flex flex-wrap gap-1">
-            {a.strategiesHit.map((s) => (
-              <span
+          {!isBoard &&
+            a.setups.map((s) => (
+              <div
                 key={s.id}
-                title={s.why}
-                className="rounded-full border border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_12%,transparent)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-primary)]"
+                className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5"
               >
-                {s.label}
-              </span>
+                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-[var(--color-fg)]">
+                    Setup · {String(s.strategy)} · {s.side.toUpperCase()}
+                  </span>
+                  <span className="rounded-full border border-[var(--color-border)] px-1.5 py-0.5 font-mono text-[10px]">
+                    {s.grade} · {s.confluenceScore.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-[var(--color-muted)]">
+                  Entry {s.entry} · S/L {s.stop}
+                </p>
+              </div>
             ))}
+
+          <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] p-2.5">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+              Journal PATH fills?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={!candidate || !onLog}
+                onClick={() => candidate && onLog?.(candidate, "paper")}
+              >
+                <NotebookPen className="h-3.5 w-3.5" />
+                Log paper
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={!candidate || !onLog}
+                onClick={() => candidate && onLog?.(candidate, "live")}
+                className="text-[var(--color-warn)]"
+              >
+                Log live
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => onSkip?.()}
+              >
+                Skip — don’t log
+              </Button>
+            </div>
           </div>
         </div>
-      )}
+      </details>
 
-      {a.setups.map((s) => (
-        <div
-          key={s.id}
-          className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5"
-        >
-          <div className="mb-1.5 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-[var(--color-fg)]">
-              Setup · {String(s.strategy)} · {s.side.toUpperCase()}
-            </span>
-            <span className="rounded-full border border-[var(--color-border)] px-1.5 py-0.5 font-mono text-[10px]">
-              {s.grade} · {s.confluenceScore.toFixed(2)}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 gap-1 sm:grid-cols-3">
-            <p>
-              <span className="text-[var(--color-subtle)]">Entry </span>
-              <span className="font-mono text-[var(--color-fg)]">{s.entry}</span>
-            </p>
-            <p>
-              <span className="text-[var(--color-subtle)]">S/L </span>
-              <span className="font-mono text-[var(--color-down)]">{s.stop}</span>
-            </p>
-            <p>
-              <span className="text-[var(--color-subtle)]">TP </span>
-              <span className="font-mono text-[var(--color-up)]">
-                {s.targets.join(" · ")}
-              </span>
-            </p>
-          </div>
-          <p className="mt-1 text-[var(--color-muted)]">R:R {s.rr}</p>
-          <p className="mt-1 text-[var(--color-muted)]">
-            + {s.confluencesPresent.join(", ") || "—"}
-          </p>
-          <p className="text-[var(--color-muted)]">
-            − {s.confluencesMissing.slice(0, 6).join(", ") || "—"}
-          </p>
-        </div>
-      ))}
-
-      {/* Log or not */}
-      <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] p-2.5">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Journal this setup?
-        </p>
-        <p className="mb-2 text-[11px] text-[var(--color-subtle)]">
-          Optional — nothing is logged until you choose. Skip keeps the review
-          only.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={!candidate || !onLog}
-            onClick={() => candidate && onLog?.(candidate, "paper")}
-            title="Open paper log dialog"
-          >
-            <NotebookPen className="h-3.5 w-3.5" />
-            Log paper
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={!candidate || !onLog}
-            onClick={() => candidate && onLog?.(candidate, "live")}
-            className="text-[var(--color-warn)]"
-            title="Open live log dialog"
-          >
-            Log live
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => onSkip?.()}
-          >
-            Skip — don’t log
-          </Button>
-        </div>
-        {!candidate && (
-          <p className="mt-1.5 text-[10px] text-[var(--color-warn)]">
-            No executable side in setup — add long/short + levels to enable log.
-          </p>
-        )}
-      </div>
-
+      {/* Checklist — clear legend */}
       <div>
         <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Backtest checklist
+          System checklist
+        </p>
+        <p className="mb-1.5 text-[10px] text-[var(--color-subtle)]">
+          <span className="text-[var(--color-up)]">OK</span> = met ·{" "}
+          <span className="text-[var(--color-down)]">NO</span> = failed ·{" "}
+          <span className="text-[var(--color-warn)]">N/A</span> = not verified
+          from this data (not a fail)
         </p>
         <ul className="space-y-0.5">
           {a.backtestChecklist.map((b) => (
             <li key={b.item} className="flex gap-2 text-[var(--color-muted)]">
               <span
                 className={cn(
-                  "font-mono text-[10px] uppercase",
+                  "w-7 shrink-0 font-mono text-[10px] uppercase",
                   b.status === "pass" && "text-[var(--color-up)]",
                   b.status === "fail" && "text-[var(--color-down)]",
                   b.status === "unknown" && "text-[var(--color-warn)]",
                 )}
+                title={
+                  b.status === "unknown"
+                    ? "Not verified from available data — not a fail"
+                    : b.status === "fail"
+                      ? "Failed requirement"
+                      : "Passed"
+                }
               >
-                {b.status === "pass" ? "OK" : b.status === "fail" ? "NO" : "??"}
+                {b.status === "pass"
+                  ? "OK"
+                  : b.status === "fail"
+                    ? "NO"
+                    : "N/A"}
               </span>
               <span>
                 {b.item}
