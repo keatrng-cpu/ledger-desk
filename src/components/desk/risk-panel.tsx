@@ -3,6 +3,8 @@ import { Loader2, Shield } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { PATH_MONTH_CAP, APLUS_PROBE_RISK } from "@/lib/trading/profit-rules";
+import { getPaperAccount, formatPaperChip, resetPaperAccount } from "@/lib/trading/paper-account";
+import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import { getRiskState } from "@/lib/journal/server";
 import type { RiskState } from "@/lib/journal/risk";
 import { cn } from "@/lib/utils";
@@ -71,6 +73,10 @@ function LimitBar({
 }
 
 export function RiskPanel({ desk }: { desk: DeskPayload }) {
+  const memory = useDeskSynapse((s) => s.memory);
+  const publishMemory = useDeskSynapse((s) => s.publishMemory);
+  const paper = getPaperAccount(memory);
+
   const r = desk.risk;
   const [live, setLive] = useState<RiskState | null>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
@@ -97,6 +103,8 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
 
   const rows = [
     ["Account equity", `$${equity.toLocaleString()}`],
+    ["Paper equity", `$${Math.round(paper.equity).toLocaleString()} (start $${paper.startEquity.toLocaleString()} · peak $${Math.round(paper.peakEquity).toLocaleString()} · DD ${paper.drawdownPct}%)`],
+    ["Paper book", `PATH ${paper.pathTaken} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(2)} · PnL $${paper.sumUsd.toFixed(0)}`],
     ["Risk / trade", `A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal (default ${(r.riskPct * 100).toFixed(0)}%)`],
     ["$ risk band", `$${(equity * 0.01).toFixed(0)}–$${(equity * APLUS_RULES.riskPctCeiling).toFixed(0)} on $${equity.toLocaleString()}`],
     ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap (A+)`],
@@ -199,6 +207,24 @@ export function RiskPanel({ desk }: { desk: DeskPayload }) {
         One idea per instrument. Zero trades on a quiet day is correct. Live
         trading stays locked until mode + credentials + risk ack.
       </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--color-border)] pt-3">
+        <button
+          type="button"
+          className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-[11px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.confirm("Reset paper account to $100,000 and clear PATH stats?")) {
+              resetPaperAccount();
+              publishMemory();
+              window.dispatchEvent(new Event("ledger-memory"));
+            }
+          }}
+        >
+          Reset paper book to $100k
+        </button>
+        <span className="text-[10px] text-[var(--color-subtle)]">
+          Equity & stats persist in this browser
+        </span>
+      </div>
     </section>
   );
 }

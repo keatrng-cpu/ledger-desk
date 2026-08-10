@@ -34,6 +34,11 @@ import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import {
+  getPaperAccount,
+  formatPaperChip,
+  resetPaperAccount,
+} from "@/lib/trading/paper-account";
 import { SynapseRail } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory } from "@/lib/trading/desk-memory";
@@ -137,12 +142,14 @@ function MasterplacePage() {
   const publishMemory = useDeskSynapse((s) => s.publishMemory);
   const synapsePosture = useDeskSynapse((s) => s.posture);
   const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
+  const memoryBook = useDeskSynapse((s) => s.memory);
+  const paper = getPaperAccount(memoryBook);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("brain");
   const [risk, setRisk] = useState<RiskState | null>(null);
-  const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
+  const [equity, setEquity] = useState<number>(() => getPaperAccount().equity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
   const [logMode, setLogMode] = useState<"paper" | "live">("paper");
 
@@ -187,7 +194,10 @@ function MasterplacePage() {
 
   
   useEffect(() => {
-    const sync = () => publishMemory();
+    const sync = () => {
+      publishMemory();
+      setEquity(getPaperAccount().equity);
+    };
     sync();
     window.addEventListener("ledger-memory", sync);
     window.addEventListener("focus", sync);
@@ -196,6 +206,11 @@ function MasterplacePage() {
       window.removeEventListener("focus", sync);
     };
   }, [publishMemory]);
+
+  // Keep React equity in sync with persistent paper book
+  useEffect(() => {
+    setEquity(paper.equity);
+  }, [paper.equity]);
 
 useEffect(() => {
     void load();
@@ -552,7 +567,7 @@ useEffect(() => {
                   <SectionHead
                     n="R"
                     title="Risk governor"
-                    sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal · halt rules`}
+                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(1)} · A+3/A2/A-1/B+0.5`}
                   />
                   <RiskPanel desk={desk} />
                 </div>

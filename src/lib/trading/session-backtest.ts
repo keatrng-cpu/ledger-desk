@@ -29,6 +29,7 @@ import {
   type SimulatedTrade,
 } from "./simulate-path-trade";
 import { APLUS_RULES } from "@/lib/aplus/config";
+import { getPaperAccount, PAPER_START_EQUITY } from "./paper-account";
 import {
   emptyBookCounters,
   monthKeyFromMs,
@@ -408,9 +409,9 @@ function takePathTrade(
   rth1m: OhlcBar[],
   ltf1m: OhlcBar[],
   riskGradeOverride?: import("@/lib/aplus/config").RiskGrade,
+  equity?: number,
 ): SimulatedTrade | null {
   if (!best) return null;
-  // Only take when day-loop set pathEligible after profit rules (one-book, cap, demote)
   if (!pathEligible) return null;
   const entryBar =
     [...ltf1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1) ??
@@ -426,6 +427,7 @@ function takePathTrade(
     decisionMs,
     forwardBars: forward,
     riskGradeOverride,
+    equity: equity ?? PAPER_START_EQUITY,
   });
 }
 
@@ -590,6 +592,11 @@ export async function runWeekBacktest(
     monthKeyFromMs(window.startMs),
   );
   const processWins: string[] = [];
+  // Size off current paper book equity (persisted) so risk compounds
+  let paperEquity =
+    typeof window !== "undefined"
+      ? getPaperAccount().equity
+      : PAPER_START_EQUITY;
 
   const dataCoverage = {
     bars: left.count,
@@ -991,6 +998,7 @@ export async function runWeekBacktest(
       left.rth1m,
       left.bars,
       riskL,
+      paperEquity,
     );
     const tradeR =
       right.symbol !== left.symbol
@@ -1001,8 +1009,13 @@ export async function runWeekBacktest(
             right.rth1m,
             right.bars,
             riskR,
+            paperEquity,
           )
         : null;
+    // Compound equity within the run for subsequent days
+    if (tradeL?.taken && tradeL.pnlUsd != null) paperEquity += tradeL.pnlUsd;
+    if (tradeR?.taken && tradeR.pnlUsd != null) paperEquity += tradeR.pnlUsd;
+    paperEquity = Math.max(100, paperEquity);
 
     // Update counters after takes
     const registerTake = (tr: SimulatedTrade | null, best: SetupCandidate | null) => {

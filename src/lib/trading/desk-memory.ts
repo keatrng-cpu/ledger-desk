@@ -47,6 +47,9 @@ export interface DeskMemoryState {
   pins: string[];
   book: {
     equity: number;
+    /** High-water mark for drawdown */
+    peakEquity: number;
+    startEquity: number;
     pathTaken: number;
     pathWins: number;
     pathLosses: number;
@@ -87,6 +90,8 @@ function empty(): DeskMemoryState {
     pins: [],
     book: {
       equity: 100_000,
+      peakEquity: 100_000,
+      startEquity: 100_000,
       pathTaken: 0,
       pathWins: 0,
       pathLosses: 0,
@@ -160,7 +165,16 @@ export function loadDeskMemory(): DeskMemoryState {
       ...empty(),
       ...parsed,
       version: 2,
-      book: { ...empty().book, ...parsed.book },
+      book: {
+        ...empty().book,
+        ...parsed.book,
+        peakEquity:
+          (parsed.book as { peakEquity?: number }).peakEquity ??
+          Math.max(parsed.book.equity ?? 100_000, 100_000),
+        startEquity:
+          (parsed.book as { startEquity?: number }).startEquity ?? 100_000,
+        equity: parsed.book.equity > 0 ? parsed.book.equity : 100_000,
+      },
       rates: {
         ...empty().rates,
         ...parsed.rates,
@@ -262,6 +276,14 @@ export function ingestBacktestResult(opts: {
   state.book.pathLosses += losses;
   state.book.sumR = Math.round((state.book.sumR + sumR) * 100) / 100;
   state.book.sumUsd = Math.round((state.book.sumUsd + sumUsd) * 100) / 100;
+  // Equity actually moves with paper PnL and holds in localStorage
+  if (!state.book.startEquity) state.book.startEquity = 100_000;
+  if (!state.book.equity || state.book.equity < 100) state.book.equity = 100_000;
+  if (!state.book.peakEquity) state.book.peakEquity = state.book.equity;
+  state.book.equity =
+    Math.round((state.book.equity + sumUsd) * 100) / 100;
+  state.book.equity = Math.max(100, state.book.equity);
+  state.book.peakEquity = Math.max(state.book.peakEquity, state.book.equity);
   state.book.lastBacktestLabel = opts.label;
   state.book.lastBacktestPath = taken;
   state.book.lastBacktestWr = wr;
@@ -419,7 +441,7 @@ export function memoryDigest(state?: DeskMemoryState): string {
     .join(" · ");
   const pins = s.pins.length ? `Pins: ${s.pins.join(" | ")}` : "No pins";
   return [
-    `Book PATH ${s.book.pathTaken} · WR ${wr} · Σ ${s.book.sumR >= 0 ? "+" : ""}${s.book.sumR}R · $${s.book.sumUsd.toFixed(0)}`,
+    `Paper $${Math.round(s.book.equity).toLocaleString()} · PATH ${s.book.pathTaken} · WR ${wr} · Σ ${s.book.sumR >= 0 ? "+" : ""}${s.book.sumR}R · PnL $${s.book.sumUsd.toFixed(0)}`,
     lastBt,
     topStrat ? `Rates ${topStrat}` : "Rates empty — run a backtest",
     pins,
