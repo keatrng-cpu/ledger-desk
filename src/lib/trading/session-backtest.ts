@@ -22,6 +22,7 @@ import {
   type TradezellaAnalysis,
 } from "./tradezella-analyze";
 import { PROFIT_ACTION_FLOOR, PROFIT_TARGET_WR } from "./profit-path";
+import { isPathTake } from "./strategy-grade";
 import {
   simulatePathTrade,
   summarizeTrades,
@@ -393,7 +394,8 @@ function takePathTrade(
   rth1m: OhlcBar[],
   ltf1m: OhlcBar[],
 ): SimulatedTrade | null {
-  if (!pathEligible || !best) return null;
+  if (!best) return null;
+  if (!pathEligible && !isPathTake(best)) return null;
   // Entry = last closed LTF 1m at decision (causal)
   const entryBar =
     [...ltf1m].filter((b) => b.t + 60_000 <= decisionMs).at(-1) ??
@@ -719,13 +721,20 @@ export async function runWeekBacktest(
       const cond = assessConditions(lBars);
       const det = summarizeDetectors(lBars);
       const causalOk = causalL.ok && assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN).ok;
-      // Path rate = 0.65 floor (calibration). Need HTF + conditions + causal — not killzone clock quirks.
+      // A+ / A / A- all taken. Floor 0.65 + HTF + conditions + causal.
       const pathEligible = Boolean(
         best &&
-          best.confluence >= PROFIT_ACTION_FLOOR &&
-          best.htfOk &&
           causalOk &&
-          cond.tradeable,
+          cond.tradeable &&
+          best.htfOk &&
+          (isPathTake(best) ||
+            ((best.pathBand === "A+" ||
+              best.pathBand === "A" ||
+              best.pathBand === "A-" ||
+              best.grade === "A-" ||
+              best.grade === "A+" ||
+              best.riskGrade === "A-") &&
+              (best.qualityScore ?? best.confluence) >= PROFIT_ACTION_FLOOR)),
       );
 
       snaps.push({
@@ -1063,7 +1072,7 @@ export async function runWeekBacktest(
     {
       item: "Risk model $100k · 0.5–3% by grade",
       status: "pass",
-      detail: "A+ 3% · A/A- 2% · B 1% · C 0.5% · micros sized to stop risk",
+      detail: "A+ 3% · A 2% · A- 1% TAKE · B paper · C journal",
     },
     {
       item: "Take risk off @ +1R",

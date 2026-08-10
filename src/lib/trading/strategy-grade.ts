@@ -263,3 +263,32 @@ export function bandLiveAllowed(band: PathBand): boolean {
 export function bandPaperOnly(band: PathBand): boolean {
   return band === "B";
 }
+
+/** True when candidate should be auto-taken (A+ / A / A- path). */
+export function isPathTake(c: {
+  actionable?: boolean;
+  pathBand?: string | null;
+  grade?: string | null;
+  riskGrade?: string | null;
+  strategyComplete?: boolean;
+  htfOk?: boolean;
+  confluence?: number;
+} | null | undefined): boolean {
+  if (!c) return false;
+  if (c.actionable) return true;
+  const band = c.pathBand || c.riskGrade || c.grade || "";
+  const pathBand =
+    band === "A+" || band === "A" || band === "A-";
+  if (pathBand && c.htfOk !== false && c.strategyComplete !== false) {
+    return true;
+  }
+  // Explicit A- grade at/above floor
+  if (
+    (c.grade === "A-" || c.riskGrade === "A-" || c.pathBand === "A-") &&
+    c.htfOk !== false &&
+    (c.confluence ?? 0) >= PROFIT_ACTION_FLOOR - 0.001
+  ) {
+    return true;
+  }
+  return false;
+}

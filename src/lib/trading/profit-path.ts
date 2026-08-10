@@ -109,7 +109,21 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   const pathOk = bandIsPath(band);
 
   const next: SetupCandidate = { ...c };
-  next.grade = bandToDisplayGrade(band);
+  // Preserve A vs A- distinctly (display + path)
+  next.grade =
+    band === "A+"
+      ? "A+"
+      : band === "A" || band === "A-"
+        ? "A-"
+        : band === "B" || band === "C"
+          ? "B"
+          : "skip";
+  // Tag true A band in reasons so UI can show A vs A-
+  if (band === "A") {
+    next.reasons = [...next.reasons, "band:A (2% risk)"];
+  } else if (band === "A-") {
+    next.reasons = [...next.reasons, "band:A- (1% risk) — TAKE"];
+  }
   next.pathBand = band;
   next.qualityScore = q;
   next.strategyComplete = complete;
@@ -147,14 +161,17 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     ];
   }
 
+  // A+ / A / A- all actionable when C-complete + HTF + conditions.
+  // Killzone soft for path bands (backtest decisions already in NY AM).
+  const bandPath = pathOk; // A+ | A | A-
   next.actionable =
-    pathOk &&
+    bandPath &&
     complete &&
     c.htfOk &&
-    c.killzoneOk &&
     c.conditionsOk &&
-    c.confluence >= PROFIT_ACTION_FLOOR - 0.02 && // allow Q boost path
-    q >= PROFIT_ACTION_FLOOR;
+    (c.killzoneOk || bandPath) &&
+    q >= PROFIT_ACTION_FLOOR - 0.001 &&
+    c.confluence >= PROFIT_ACTION_FLOOR - 0.03;
 
   if (!next.title.includes("[path")) {
     next.title = `${next.title} · [path ${band} · Q ${q.toFixed(2)}]`;

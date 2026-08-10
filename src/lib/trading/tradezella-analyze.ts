@@ -439,7 +439,7 @@ export function analyzeTradezella(input: AnalyzeInput): TradezellaAnalysis {
     observedWr == null
       ? "No WR parsed — paste TradeZella WR (e.g. 64.3%) for path comparison."
       : observedWr >= PROFIT_TARGET_WR
-        ? `Session WR ${(observedWr * 100).toFixed(1)}% ≥ path target 70% — still verify grades were A/A+ only.`
+        ? `Session WR ${(observedWr * 100).toFixed(1)}% ≥ path target 70% — still verify grades were A+/A/A- path.`
         : `Session WR ${(observedWr * 100).toFixed(1)}% below path 70%. Filter to A-path grades only next sample.`;
 
   const backtestChecklist: TradezellaAnalysis["backtestChecklist"] = [
@@ -548,7 +548,7 @@ export function analyzeTradezella(input: AnalyzeInput): TradezellaAnalysis {
       observedWr,
       wrVsTarget,
       selectivityNote:
-        "Profit path executes only A/A+ (score ≥ 0.65). Incomplete IFVG+structure without displacement/MSS is vetoed.",
+        "Profit path executes A+/A/A- (score ≥ 0.65). Incomplete IFVG+structure without displacement/MSS is vetoed.",
       actionFloor: PROFIT_ACTION_FLOOR,
       aPlusFloor: PROFIT_A_PLUS,
     },

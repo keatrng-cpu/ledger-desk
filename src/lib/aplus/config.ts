@@ -71,7 +71,7 @@ export const APLUS_RULES = {
     targetExpectancyR: 0.35,
     minSampleTrades: 100,
     actionFloor: 0.65,
-    onlyExecuteGrades: ["A+", "A"] as const,
+    onlyExecuteGrades: ["A+", "A", "A-"] as const,
   },
   dualPeer: { NQ: "ES", ES: "NQ", MNQ: "MES", MES: "MNQ" } as Record<
     string,

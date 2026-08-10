@@ -28,6 +28,7 @@
 import type { OhlcBar } from "@/lib/market/types";
 import type { SetupCandidate, SetupSide } from "./scanner";
 import type { HtfBiasRead } from "./structure";
+import { isPathTake } from "./strategy-grade";
 
 /** One micro contract per paper trade — fixed, not risk-scaled. */
 export const PAPER_CONTRACTS = 1;
@@ -246,7 +247,7 @@ export function evaluatePaperCycle(
   );
 
   for (const candidate of candidates) {
-    if (!candidate.actionable) continue;
+    if (!candidate.actionable && !isPathTake(candidate)) continue;
     const key = `${candidate.symbol}|${candidate.side}`;
     if (taken.has(key)) continue; // one paper position per symbol+side
     const read = readFor(bias, candidate.symbol);
