@@ -12,6 +12,7 @@ import {
   Target,
   TrendingUp,
   Brain,
+  Layers,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -30,6 +31,8 @@ import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
+import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
+import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
@@ -53,6 +56,7 @@ const DESK_POLL_MS = 30_000;
 type DeskCategory =
   | "brain"
   | "trade"
+  | "swing"
   | "path"
   | "backtest"
   | "tape"
@@ -79,6 +83,13 @@ const CATEGORIES: {
     short: "Trade",
     hint: "Bias · setups · go / no-go",
     icon: Crosshair,
+  },
+  {
+    id: "swing",
+    label: "Options",
+    short: "Swing",
+    hint: "Robinhood · when time occurs",
+    icon: Layers,
   },
   {
     id: "path",
@@ -205,6 +216,7 @@ function MasterplacePage() {
             : null,
       )
     : null;
+  const swingSnap = desk ? evaluateOptionsSwing(desk) : null;
 
 
   return (
@@ -323,6 +335,23 @@ function MasterplacePage() {
                 </button>
               </>
             )}
+            {swingSnap && (
+              <>
+                <span className="text-[var(--color-border-strong)]">·</span>
+                <button
+                  type="button"
+                  onClick={() => setCat("swing")}
+                  className={
+                    swingSnap.timeOccurs
+                      ? "font-mono font-semibold text-[var(--color-primary)]"
+                      : "font-mono font-semibold text-[var(--color-subtle)]"
+                  }
+                  title={swingSnap.focus}
+                >
+                  RH {swingSnap.verdict}
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -423,6 +452,17 @@ function MasterplacePage() {
                     onLog={onLog}
                     entryAllowed={entryAllowed}
                   />
+                </div>
+              )}
+
+              {cat === "swing" && (
+                <div className="space-y-5">
+                  <SectionHead
+                    n="S"
+                    title="Options swing"
+                    sub="Robinhood long debit · arms only when HTF + Mon–Thu + news clear"
+                  />
+                  <OptionsSwingPanel desk={desk} />
                 </div>
               )}
 
