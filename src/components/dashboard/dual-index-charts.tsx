@@ -69,17 +69,23 @@ function fmtPrice(n: number) {
   });
 }
 
-function SourceBadge({ source }: { source: "yahoo" | "synthetic" }) {
+function SourceBadge({ source }: { source: "yahoo" | "synthetic" | "databento" }) {
   return (
     <span
       className={cn(
         "rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-        source === "yahoo"
+        source === "databento"
           ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
-          : "border-[var(--color-border)] text-[var(--color-subtle)]",
+          : source === "yahoo"
+            ? "border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] text-[var(--color-primary)]"
+            : "border-[var(--color-border)] text-[var(--color-subtle)]",
       )}
     >
-      {source === "yahoo" ? "Yahoo print" : "Synthetic"}
+      {source === "databento"
+        ? "Databento"
+        : source === "yahoo"
+          ? "Yahoo print"
+          : "Synthetic"}
     </span>
   );
 }
@@ -147,7 +153,7 @@ function SymbolHeader({
   quote: LiveQuote | null;
   fallbackPrice: number;
   fallbackChange: number;
-  source: "yahoo" | "synthetic";
+  source: "yahoo" | "synthetic" | "databento";
   hover: CandleHover | null;
   wallNowMs: number;
   flash: "up" | "down" | null;

@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import {
+  fetchDatabentoBars,
+  hasDatabentoKey,
+  quoteFromDatabentoSeries,
+} from "@/lib/market/databento";
+import {
   fetchYahooBars,
   fetchYahooLiveQuote,
   syntheticBars,
@@ -43,6 +48,7 @@ export interface DeskPayload {
     items: { name: string; price: number; kind: string }[];
   }[];
   news: NewsRead;
+  feed: "databento" | "yahoo" | "synthetic" | "mixed";
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
 }
 
@@ -51,7 +57,39 @@ export interface DeskError {
   error: string;
 }
 
-async function load(symbol: IndexSymbol, range: YahooRange, interval: YahooInterval) {
+async function load(
+  symbol: IndexSymbol,
+  range: YahooRange,
+  interval: YahooInterval,
+): Promise<SymbolSeries> {
+  if (hasDatabentoKey()) {
+    const minutes =
+      interval === "1m"
+        ? 1
+        : interval === "5m"
+          ? 5
+          : interval === "15m"
+            ? 15
+            : interval === "60m"
+              ? 60
+              : 15;
+    try {
+      const db = await fetchDatabentoBars(
+        symbol,
+        range === "3mo"
+          ? "3mo"
+          : range === "1mo"
+            ? "1mo"
+            : range === "5d"
+              ? "5d"
+              : "1d",
+        minutes,
+      );
+      if (db && db.bars.length >= 30) return db;
+    } catch {
+      /* fallthrough */
+    }
+  }
   try {
     const s = await fetchYahooBars(symbol, range, interval);
     if (s) return s;
@@ -61,7 +99,13 @@ async function load(symbol: IndexSymbol, range: YahooRange, interval: YahooInter
   return syntheticBars(symbol);
 }
 
-async function quote(symbol: IndexSymbol) {
+async function quote(
+  symbol: IndexSymbol,
+  series?: SymbolSeries | null,
+): Promise<LiveQuote> {
+  if (series?.source === "databento" && series.bars.length) {
+    return quoteFromDatabentoSeries(series);
+  }
   try {
     const q = await fetchYahooLiveQuote(symbol);
     if (q) return q;
@@ -86,18 +130,20 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // 1mo 15m: 5d left the prior trading week only partially covered, so
       // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
       // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
-      const [left, right, lq, rq] = await Promise.all([
+      const [left, right] = await Promise.all([
         load(data.left, "1mo", "15m"),
         load(data.right, "1mo", "15m"),
-        quote(data.left),
-        quote(data.right),
+      ]);
+      const [lq, rq] = await Promise.all([
+        quote(data.left, left),
+        quote(data.right, right),
       ]);
 
-      if (lq.source === "yahoo") {
+      if (lq.source === "yahoo" || lq.source === "databento") {
         left.price = lq.price;
         left.changePct = lq.changePct;
       }
-      if (rq.source === "yahoo") {
+      if (rq.source === "yahoo" || rq.source === "databento") {
         right.price = rq.price;
         right.changePct = rq.changePct;
       }
@@ -119,20 +165,30 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         scan.blocked.push(`News caution: ${news.reason}`);
       }
 
-      // Data-quality gate: a synthetic series or a badly lagged quote makes
-      // structure + scanner untrustworthy — nothing is actionable on bad data.
-      const seriesLive = left.source === "yahoo" && right.source === "yahoo";
+      // Live = databento or yahoo. Databento historical lag can be larger than
+      // Yahoo free-print lag; allow 6h for DB bars, 120s for Yahoo.
+      const liveSource = (s: string) => s === "yahoo" || s === "databento";
+      const seriesLive = liveSource(left.source) && liveSource(right.source);
       const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
-      const quotesFresh = maxLagSec <= 120;
+      const lagLimit =
+        left.source === "databento" || right.source === "databento"
+          ? 6 * 3600
+          : 120;
+      const quotesFresh = maxLagSec <= lagLimit;
       const dataQualityOk = seriesLive && quotesFresh;
       if (!dataQualityOk) {
         const reason = seriesLive
-          ? `Data quality: lagged feed (worst quote lag ${Math.round(maxLagSec)}s > 120s)`
-          : "Data quality: synthetic feed — no live Yahoo data";
+          ? `Data quality: lagged feed (worst lag ${Math.round(maxLagSec)}s > ${lagLimit}s)`
+          : "Data quality: synthetic feed — no Databento/Yahoo data";
         for (const c of scan.candidates) c.actionable = false;
         scan.blocked.push(reason);
         scan.focus = `${reason} — stand down.`;
       }
+
+      const feed: DeskPayload["feed"] =
+        left.source === right.source
+          ? (left.source as DeskPayload["feed"])
+          : "mixed";
 
       const checklist = [
         {
@@ -160,9 +216,14 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           detail: scan.focus,
         },
         {
-          // TODO: replace with the real risk governor (daily/weekly halts,
-          // per-KZ setup counts, equity drawdown) — see INTEGRATION-P1.md.
-          // For now this honestly reflects data quality + weekday only.
+          id: "feed",
+          label: "Market feed",
+          ok: seriesLive,
+          detail: hasDatabentoKey()
+            ? `Databento preferred (${feed}) · GLBX.MDP3 continuous`
+            : "Yahoo only — set DATABENTO_API_KEY for CME",
+        },
+        {
           id: "risk",
           label: "Risk model armed",
           ok: dataQualityOk && clock.isWeekday,
@@ -198,6 +259,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           { symbol: right.symbol, items: referenceLevels(biasR) },
         ],
         news,
+        feed,
         checklist,
       };
     } catch (e) {
