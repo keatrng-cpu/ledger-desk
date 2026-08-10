@@ -700,9 +700,17 @@ export async function runWeekBacktest(
         return (
           pool.find((c) => c.actionable) ??
           pool.find(
+            (c) =>
+              c.strategyComplete &&
+              c.htfOk &&
+              (c.pathBand === "A+" ||
+                c.pathBand === "A" ||
+                c.pathBand === "A-"),
+          ) ??
+          pool.find(
             (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
           ) ??
-          pool.find((c) => c.confluence >= PROFIT_ACTION_FLOOR) ??
+          pool.find((c) => c.strategyComplete) ??
           pool[0] ??
           null
         );
@@ -974,6 +982,23 @@ export async function runWeekBacktest(
   const stratLine = ALWAYS_SCAN.map(
     (id) => `${id}:${stratCounts[id] || 0}`,
   ).join(" · ");
+  // PATH by strategy (taken fills)
+  const pathByStrat: Record<string, { n: number; wins: number; sumR: number }> = {};
+  for (const r of rows) {
+    if (!r.pathEligible || !r.trade?.taken || r.trade.rMultiple == null) continue;
+    const id = r.best?.completeStrategy || r.best?.strategyPrimary || "untagged";
+    if (!pathByStrat[id]) pathByStrat[id] = { n: 0, wins: 0, sumR: 0 };
+    pathByStrat[id].n++;
+    if ((r.trade.rMultiple ?? 0) > 0) pathByStrat[id].wins++;
+    pathByStrat[id].sumR += r.trade.rMultiple ?? 0;
+  }
+  const pathStratLine =
+    Object.entries(pathByStrat)
+      .map(
+        ([id, s]) =>
+          `${id} ${s.n}t WR ${s.n ? ((s.wins / s.n) * 100).toFixed(0) : "—"}% ${s.sumR >= 0 ? "+" : ""}${s.sumR.toFixed(1)}R`,
+      )
+      .join(" · ") || "no PATH fills";
   const monthTarget = APLUS_RULES.targetTradesPerMonth.center;
   const paceNote =
     window.kind === "range" || /month|july|jan|feb|mar|apr|may|jun|aug|sep|oct|nov|dec/i.test(window.label)
@@ -988,7 +1013,7 @@ export async function runWeekBacktest(
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
-  analysis.summary = `${paceNote} Strategies scanned: ${stratLine}. ` + analysis.summary;
+  analysis.summary = `${paceNote} Strategies scanned: ${stratLine}. PATH by model: ${pathStratLine}. ` + analysis.summary;
   if (pnl.taken) {
     analysis.summary =
       `TAKEN ${pnl.taken} PATH trades · WR ${

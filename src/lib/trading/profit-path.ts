@@ -1,5 +1,6 @@
 /**
- * Profit path — graded selectivity toward ≥0.70 win rate.
+ * Profit path — strategy-native two-axis grading toward ≥0.70 WR + ~9 PATH/mo.
+ * Q quality · C strategy-complete · never take incomplete as path.
  * Math is deterministic. AI never decides trades.
  */
 
@@ -8,6 +9,15 @@ import type { ClosedTrade, Metrics } from "@/lib/aplus/analytics";
 import { computeMetrics } from "@/lib/aplus/analytics";
 import type { ComponentKey } from "./engine-weights";
 import type { SetupCandidate } from "./scanner";
+import {
+  bandIsPath,
+  bandToDisplayGrade,
+  bandToRiskGrade,
+  bestCompleteStrategy,
+  pathBand,
+  qualityScore,
+  type PathBand,
+} from "./strategy-grade";
 
 export const PROFIT_TARGET_WR = 0.7;
 export const PROFIT_TARGET_EXPECTANCY_R = 0.35;
@@ -15,6 +25,7 @@ export const PROFIT_MIN_SAMPLE = 100;
 export const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
 export const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
 
+/** Legacy incomplete patterns — now superseded by per-strategy templates. */
 export const INCOMPLETE_PATTERNS: {
   presentAny: ComponentKey[];
   mustHaveAny: ComponentKey[];
@@ -36,6 +47,7 @@ export function isIncompletePattern(components: string[]): {
   incomplete: boolean;
   note: string | null;
 } {
+  // Kept for analytics; path eligibility uses strategy templates instead.
   const set = new Set(components);
   for (const p of INCOMPLETE_PATTERNS) {
     if (p.presentAny.length === 1 && p.presentAny[0] === "ifvg") {
@@ -59,45 +71,112 @@ export function isIncompletePattern(components: string[]): {
   return { incomplete: false, note: null };
 }
 
-export type ProfitGrade = "A+" | "A" | "B" | "C" | "skip";
+export type ProfitGrade = "A+" | "A" | "A-" | "B" | "C" | "skip";
 
 export function profitGrade(score: number, incomplete: boolean): ProfitGrade {
   if (incomplete) return "C";
   if (score >= PROFIT_A_PLUS) return "A+";
-  if (score >= PROFIT_ACTION_FLOOR) return "A";
-  if (score >= APLUS_RULES.confluenceFloor) return "B";
-  if (score >= APLUS_RULES.confluenceFloor - 0.12) return "C";
+  if (score >= PROFIT_ACTION_FLOOR + 0.03) return "A";
+  if (score >= PROFIT_ACTION_FLOOR) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
+  if (score >= APLUS_RULES.confluenceFloor - 0.18) return "C";
   return "skip";
 }
 
-export function isProfitPathEligible(g: ProfitGrade): boolean {
-  return g === "A+" || g === "A";
+export function isProfitPathEligible(g: ProfitGrade | PathBand): boolean {
+  return g === "A+" || g === "A" || g === "A-";
 }
 
 export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
-  const { incomplete, note } = isIncompletePattern(c.components);
-  const pg = profitGrade(c.confluence, incomplete);
-  const eligible = isProfitPathEligible(pg);
-  const next: SetupCandidate = { ...c };
-  next.grade =
-    pg === "A+" ? "A+" : pg === "A" ? "A-" : pg === "B" ? "B" : "skip";
-  if (incomplete && note) {
-    next.missing = [`incomplete: ${note}`, ...next.missing];
-    next.reasons = [...next.reasons, "veto: incomplete pattern"];
+  const components = c.components || [];
+  const strategies = (c.strategies || []).map(String);
+  if (c.strategyPrimary && !strategies.includes(c.strategyPrimary)) {
+    strategies.unshift(c.strategyPrimary);
   }
+
+  const completeHit = bestCompleteStrategy(strategies, components);
+  const complete = Boolean(completeHit?.complete);
+  const q = qualityScore({
+    confluence: c.confluence,
+    strategies,
+    htfOk: c.htfOk,
+    killzoneOk: c.killzoneOk,
+    conditionsOk: c.conditionsOk,
+    components,
+  });
+  const band = pathBand({ quality: q, complete, htfOk: c.htfOk });
+  const riskGrade = bandToRiskGrade(band);
+  const pathOk = bandIsPath(band);
+
+  const next: SetupCandidate = { ...c };
+  next.grade = bandToDisplayGrade(band);
+  next.pathBand = band;
+  next.qualityScore = q;
+  next.strategyComplete = complete;
+  next.completeStrategy = completeHit?.id ?? c.strategyPrimary ?? "";
+  next.completeNote = completeHit?.note ?? "no strategy stack";
+  next.riskGrade = riskGrade;
+
+  if (!complete && completeHit) {
+    next.missing = [
+      `C incomplete: ${completeHit.note}`,
+      ...completeHit.missing.map((m) => `need:${m}`),
+      ...next.missing.filter((m) => !m.startsWith("incomplete:")),
+    ];
+    next.reasons = [...next.reasons, `veto: ${completeHit.note}`];
+  } else if (complete && completeHit) {
+    next.reasons = [
+      ...next.reasons,
+      `C complete: ${completeHit.note}`,
+      `Q ${q.toFixed(2)} · band ${band}`,
+    ];
+    // Promote complete strategy as primary when better classified
+    if (completeHit.id) {
+      next.strategyPrimary = completeHit.id;
+      if (!next.strategies.includes(completeHit.id as never)) {
+        next.strategies = [completeHit.id as never, ...next.strategies];
+      }
+    }
+  }
+
+  // Multi-strategy tag
+  if (new Set(strategies).size >= 2) {
+    next.reasons = [
+      ...next.reasons,
+      `multi-strategy ×${new Set(strategies).size}`,
+    ];
+  }
+
   next.actionable =
-    c.actionable &&
-    eligible &&
-    !incomplete &&
+    pathOk &&
+    complete &&
     c.htfOk &&
     c.killzoneOk &&
     c.conditionsOk &&
-    c.confluence >= PROFIT_ACTION_FLOOR;
+    c.confluence >= PROFIT_ACTION_FLOOR - 0.02 && // allow Q boost path
+    q >= PROFIT_ACTION_FLOOR;
+
   if (!next.title.includes("[path")) {
-    next.title = `${next.title} · [path ${pg}]`;
+    next.title = `${next.title} · [path ${band} · Q ${q.toFixed(2)}]`;
+  } else {
+    next.title = next.title.replace(
+      /\[path[^\]]*\]/,
+      `[path ${band} · Q ${q.toFixed(2)}]`,
+    );
   }
+
   return next;
 }
+
+export function filterPathTrades<T extends { grade?: string; pathBand?: string }>(
+  rows: T[],
+): T[] {
+  return rows.filter((r) => {
+    const b = r.pathBand || r.grade;
+    return b === "A+" || b === "A" || b === "A-" || b === "A";
+  });
+}
+
 
 export interface GradeBucketStats {
   grade: string;
@@ -126,8 +205,9 @@ export interface GradedTrade extends ClosedTrade {
 function gradeFromScore(score?: number): string {
   if (score == null) return "unknown";
   if (score >= PROFIT_A_PLUS) return "A+";
-  if (score >= PROFIT_ACTION_FLOOR) return "A";
-  if (score >= APLUS_RULES.confluenceFloor) return "B";
+  if (score >= PROFIT_ACTION_FLOOR + 0.03) return "A";
+  if (score >= PROFIT_ACTION_FLOOR) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
   return "other";
 }
 
@@ -141,15 +221,17 @@ export function metricsByGrade(
     const key =
       g.includes("A+") || g === "A+"
         ? "A+"
-        : g.startsWith("A")
-          ? "A"
-          : g.startsWith("B")
-            ? "B"
-            : "other";
+        : g === "A-" || g.includes("A-")
+          ? "A-"
+          : g.startsWith("A")
+            ? "A"
+            : g.startsWith("B")
+              ? "B"
+              : "other";
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(t);
   }
-  const order = ["A+", "A", "B", "other"];
+  const order = ["A+", "A", "A-", "B", "other"];
   return order
     .filter((k) => groups.has(k))
     .map((k) => {
@@ -231,7 +313,7 @@ export function buildProfitPath(
 
   const pathTrades = trades.filter((t) => {
     const g = (t.grade || gradeFromScore(t.confluence)).toUpperCase();
-    return g.startsWith("A");
+    return g === "A+" || g === "A" || g === "A-" || g.startsWith("A");
   });
   const pathOnly = computeMetrics(pathTrades, eq);
   const pathTradeCount = pathTrades.length;
@@ -250,10 +332,10 @@ export function buildProfitPath(
     );
   }
   nextActions.push(
-    `Only execute path grade A or A+ (score ≥ ${PROFIT_ACTION_FLOOR}). B/C/skip = journal as SKIP, never enter.`,
+    `Execute path A+ (3%) / A (2%) / A- (1%) when strategy-complete. B = paper only · C = journal · never incomplete live.`,
   );
   nextActions.push(
-    "Refuse incomplete patterns: iFVG+structure without mechanical/MSS/displacement.",
+    "Path requires strategy-complete template (mechanical/tjr/judas/pdi/…). Incomplete = C, not path.",
   );
   if (pathOnly.trades >= 10 && pathOnly.winRate < PROFIT_TARGET_WR) {
     nextActions.push(

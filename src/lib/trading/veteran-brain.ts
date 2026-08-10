@@ -183,32 +183,32 @@ export function runVeteranBrain(
     green.push("HTF stack readable");
   }
 
-  // 3) Model / strategy completeness
+  // 3) Model / strategy completeness (strategy-native C axis)
   if (rawBest) {
     const missing = rawBest.missing || [];
-    const hasMech = (rawBest.components || []).includes("mechanical_model");
-    const hasSweep = (rawBest.components || []).includes("sweep_significant");
     const multiStrat = (rawBest.strategies || []).length >= 2;
-    if (rawBest.confluence >= PROFIT_ACTION_FLOOR && hasMech && hasSweep) {
+    const complete = Boolean(rawBest.strategyComplete);
+    const band = rawBest.pathBand || rawBest.grade;
+    if (complete && rawBest.confluence >= PROFIT_ACTION_FLOOR - 0.02) {
       layers.push({
         id: "model",
         label: "Model",
         tone: "pass",
         score: 1.5,
-        detail: `${rawBest.strategyPrimary || "model"} complete · ${rawBest.grade} ${rawBest.confluence.toFixed(2)}`,
+        detail: `${rawBest.completeStrategy || rawBest.strategyPrimary || "model"} C-complete · band ${band} · Q ${(rawBest.qualityScore ?? rawBest.confluence).toFixed(2)}`,
       });
       score += 1.5;
-      green.push(`Complete model · ${rawBest.strategyPrimary}`);
+      green.push(`C-complete · ${rawBest.completeStrategy || rawBest.strategyPrimary}`);
     } else if (rawBest.confluence >= PROFIT_ACTION_FLOOR) {
       layers.push({
         id: "model",
         label: "Model",
         tone: "warn",
         score: 0.5,
-        detail: `Score ok but incomplete — missing ${missing.slice(0, 3).join(", ") || "pieces"}`,
+        detail: `Q ok but C incomplete — ${rawBest.completeNote || missing.slice(0, 3).join(", ") || "pieces"}`,
       });
       score += 0.5;
-      yellow.push("Partial model — veteran wants full sequence");
+      yellow.push("Partial — need strategy template complete");
     } else {
       layers.push({
         id: "model",
@@ -385,22 +385,22 @@ export function runVeteranBrain(
     sizeMult = 0;
   } else if (
     rawBest &&
-    rawBest.confluence >= PROFIT_ACTION_FLOOR &&
+    rawBest.actionable &&
     rawBest.htfOk &&
     clock.inTradeWindow &&
     score >= 3
   ) {
     verdict = "TAKE";
-    sizeMult = 1;
+    sizeMult = rawBest.pathBand === "A-" ? 1 : 1; // size from grade risk already
   } else if (
     rawBest &&
-    rawBest.confluence >= PROFIT_ACTION_FLOOR &&
+    (rawBest.actionable || rawBest.strategyComplete) &&
     rawBest.htfOk &&
     clock.inTradeWindow &&
     score >= 1.5
   ) {
     verdict = "REDUCE";
-    sizeMult = 0.5; // half grade size (veteran cut)
+    sizeMult = 0.5;
   } else if (rawBest && rawBest.confluence >= APLUS_RULES.confluenceFloor - 0.08) {
     verdict = "WATCH";
     sizeMult = 0;

@@ -48,6 +48,13 @@ export interface SetupCandidate {
   actionable: boolean;
   regime: string;
   volatility: string;
+  /** Two-axis path band (A+ / A / A- path · B paper · C journal) */
+  pathBand?: "A+" | "A" | "A-" | "B" | "C" | "skip";
+  qualityScore?: number;
+  strategyComplete?: boolean;
+  completeStrategy?: string;
+  completeNote?: string;
+  riskGrade?: string;
 }
 
 export interface ScanResult {
@@ -305,16 +312,16 @@ function scoreDirection(
   const hasSweep =
     present.includes("sweep_significant") ||
     present.includes("mechanical_model");
+  // Soft pre-filter — strategy-native path applied in applyProfitPathToCandidate
   const actionable =
     g !== "skip" &&
-    g !== "B" &&
     htfOk &&
     killzoneOk &&
     clock.isWeekday &&
     conditionsOk &&
-    hasEntryModel &&
-    hasSweep &&
-    score >= APLUS_RULES.confluenceFloor;
+    (hasEntryModel || present.includes("mechanical_model")) &&
+    (hasSweep || present.includes("structure") || present.includes("mss")) &&
+    score >= APLUS_RULES.confluenceFloor - 0.05;
 
   const titleParts = [
     primary ? strategyLabel(primary) : "Unclassified",

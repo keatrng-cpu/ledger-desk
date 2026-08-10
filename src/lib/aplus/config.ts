@@ -23,14 +23,14 @@ export const APLUS_RULES = {
   confluenceFloorCalibration: 0.67,
   /**
    * Grade-based risk on paper / backtest book ($100k).
-   * A+ 3% · A/A- 2% · B 1% · C 0.5% · below path 0.
+   * A+ 3% · A 2% · A- 1% · B paper · C 0.5% journal · skip 0.
    */
   riskByGrade: {
     "A+": 0.03,
     A: 0.02,
-    "A-": 0.02,
-    B: 0.01,
-    C: 0.005,
+    "A-": 0.01,
+    B: 0.0, // paper only — not live risk
+    C: 0.005, // journal micro only
     skip: 0,
   } as Record<RiskGrade, number>,
   /** Default display risk (mid band / A-path). */
@@ -82,8 +82,9 @@ export const APLUS_RULES = {
 /** Map confluence score → risk grade label for sizing. */
 export function riskGradeFromScore(score: number): RiskGrade {
   if (score >= APLUS_RULES.aPlusThreshold) return "A+";
-  if (score >= APLUS_RULES.confluenceFloor) return "A";
-  if (score >= APLUS_RULES.confluenceFloor - 0.12) return "B";
+  if (score >= APLUS_RULES.confluenceFloor + 0.03) return "A";
+  if (score >= APLUS_RULES.confluenceFloor) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
   if (score > 0) return "C";
   return "skip";
 }

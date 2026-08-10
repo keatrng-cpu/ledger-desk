@@ -161,7 +161,7 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
           </div>
           <p className="mt-1 max-w-2xl text-xs text-[var(--color-subtle)]">
             Execute only path grade <strong className="text-[var(--color-muted)]">A / A+</strong>{" "}
-            (score ≥ {PROFIT_ACTION_FLOOR}). Incomplete patterns vetoed.{" "}
+            (Q ≥ {PROFIT_ACTION_FLOOR} + C complete per strategy). B paper · C journal.{" "}
             {live ? (
               <span className="text-[var(--color-up)]">Live journal</span>
             ) : (

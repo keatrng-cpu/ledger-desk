@@ -11,6 +11,7 @@ import {
   sizeContracts,
   riskGradeFromScore,
   type ContractKey,
+  type RiskGrade,
 } from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
 
@@ -44,12 +45,9 @@ export interface SimulatedTrade {
   riskPts: number;
   exit: number | null;
   exitReason: TradeExitReason;
-  /** Weighted R across scale legs */
   rMultiple: number | null;
-  /** Dollar P&L on paper book (grade-sized micros − commission) */
   pnlUsd: number | null;
   contracts: number;
-  /** Risk % used for size (0.5–3% by grade) */
   riskPct: number;
   riskDollars: number;
   grade: string;
@@ -57,7 +55,6 @@ export interface SimulatedTrade {
   entryTimeIso: string;
   exitTimeIso: string | null;
   barsHeld: number;
-  /** Risk-off applied (partial at 1R + BE) */
   riskOff: boolean;
   scaleLegs: ScaleLeg[];
   scaleNote: string;
@@ -115,9 +112,32 @@ function hitTarget(
   return side === "long" ? bar.h >= target : bar.l <= target;
 }
 
-/**
- * Simulate one PATH trade with optional scale-out risk-off.
- */
+function resolveGrade(best: SetupCandidate): RiskGrade {
+  const rg = best.riskGrade;
+  if (
+    rg === "A+" ||
+    rg === "A" ||
+    rg === "A-" ||
+    rg === "B" ||
+    rg === "C" ||
+    rg === "skip"
+  ) {
+    return rg;
+  }
+  const pb = best.pathBand;
+  if (
+    pb === "A+" ||
+    pb === "A" ||
+    pb === "A-" ||
+    pb === "B" ||
+    pb === "C" ||
+    pb === "skip"
+  ) {
+    return pb === "skip" ? "skip" : pb;
+  }
+  return riskGradeFromScore(best.confluence);
+}
+
 export function simulatePathTrade(opts: {
   best: SetupCandidate;
   entryPrice: number;
@@ -187,13 +207,41 @@ export function simulatePathTrade(opts: {
     }
   }
 
-  const grade = riskGradeFromScore(best.confluence);
+  const grade = resolveGrade(best);
   const sizing = sizeContracts({
     symbol,
     riskPts,
     equity,
-    gradeOrScore: best.confluence,
+    gradeOrScore: grade,
   });
+
+  if (sizing.contracts < 1 || sizing.riskPct <= 0) {
+    return {
+      taken: false,
+      symbol,
+      side,
+      entry: entryPrice,
+      stop: initialStop,
+      tp1,
+      tp2,
+      riskPts,
+      exit: null,
+      exitReason: "skipped",
+      rMultiple: null,
+      pnlUsd: null,
+      contracts: 0,
+      riskPct: 0,
+      riskDollars: 0,
+      grade,
+      equity,
+      entryTimeIso: new Date(decisionMs).toISOString(),
+      exitTimeIso: null,
+      barsHeld: 0,
+      riskOff: false,
+      scaleLegs: [],
+      scaleNote: "Band B/skip — paper only, not live-sized",
+    };
+  }
 
   const totalContracts = sizing.contracts;
   const scaleLegs: ScaleLeg[] = [];
@@ -237,13 +285,12 @@ export function simulatePathTrade(opts: {
 
   const { pv, commission } = pointValue(symbol);
 
-  // --- Scale-out path ---
   if (so.enabled && totalContracts >= 2) {
     const partial = Math.max(1, Math.floor(totalContracts * so.tp1Fraction));
     const runner = totalContracts - partial;
     let stop = initialStop;
     let tookTp1 = false;
-    let realizedPtsWeighted = 0; // sum (pts * contracts)
+    let realizedPtsWeighted = 0;
     let lastExit = entryPrice;
     let lastT = decisionMs;
     let held = 0;
@@ -251,8 +298,6 @@ export function simulatePathTrade(opts: {
 
     for (const b of path) {
       held++;
-
-      // Stop on remaining (before targets same bar — conservative)
       if (hitStop(side, b, stop)) {
         const pts = side === "long" ? stop - entryPrice : entryPrice - stop;
         const openCt = tookTp1 ? runner : totalContracts;
@@ -270,7 +315,6 @@ export function simulatePathTrade(opts: {
         break;
       }
 
-      // TP1 partial
       if (!tookTp1 && hitTarget(side, b, tp1)) {
         const pts = side === "long" ? tp1 - entryPrice : entryPrice - tp1;
         realizedPtsWeighted += pts * partial;
@@ -286,18 +330,14 @@ export function simulatePathTrade(opts: {
         lastT = b.t;
         if (so.moveStopToBeAfterTp1) {
           const buf = riskPts * (so.beBufferR ?? 0);
-          stop =
-            side === "long" ? entryPrice + buf : entryPrice - buf;
+          stop = side === "long" ? entryPrice + buf : entryPrice - buf;
         }
-        // if runner is 0, done
         if (runner <= 0) {
           reason = "tp1";
           break;
         }
-        // same bar can also hit TP2 after TP1
       }
 
-      // Runner TP2
       if (tookTp1 && runner > 0 && hitTarget(side, b, tp2)) {
         const pts = side === "long" ? tp2 - entryPrice : entryPrice - tp2;
         realizedPtsWeighted += pts * runner;
@@ -314,7 +354,6 @@ export function simulatePathTrade(opts: {
         break;
       }
 
-      // If only TP2 hit without TP1 (gap) — full size at TP2
       if (!tookTp1 && hitTarget(side, b, tp2)) {
         const pts = side === "long" ? tp2 - entryPrice : entryPrice - tp2;
         realizedPtsWeighted += pts * totalContracts;
@@ -332,7 +371,6 @@ export function simulatePathTrade(opts: {
       }
     }
 
-    // Session close remaining
     const stillOpen =
       scaleLegs.reduce((s, l) => s + l.contracts, 0) < totalContracts;
     if (stillOpen) {
@@ -379,7 +417,6 @@ export function simulatePathTrade(opts: {
     };
   }
 
-  // --- Full size (no scale: 1 contract or disabled) ---
   let exit: number | null = null;
   let reason: TradeExitReason = "session_close";
   let exitT: number | null = null;
