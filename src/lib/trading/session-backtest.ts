@@ -4,9 +4,10 @@
  */
 
 import {
-  fetchDatabentoAbsoluteRange,
+  fetchBacktestLayers,
   aggregateBars,
   hasDatabentoKey,
+  type BacktestLayers,
 } from "@/lib/market/databento";
 import type { IndexSymbol, OhlcBar } from "@/lib/market/types";
 import { analyzeStructure, smtDivergence } from "./structure";
@@ -41,6 +42,12 @@ export interface DayBacktestRow {
   pathEligible: boolean;
   gates: { name: string; pass: boolean; detail: string }[];
   notes: string;
+  /** ISO decision timestamp (causal) */
+  decisionIso?: string;
+  /** Closed 1m bars available at decision on that session day */
+  sessionBars?: number;
+  /** Why slot is dead / skipped */
+  deadspot?: string | null;
 }
 
 export interface WeekBacktestReport {
@@ -290,6 +297,30 @@ function dateKeyEt(ms: number): string {
   return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
 }
 
+/** NY killzone load window: 08:30–11:00 ET (inclusive start, exclusive end). */
+export const NY_LOAD_START = { hour: 8, minute: 30 };
+export const NY_LOAD_END = { hour: 11, minute: 0 };
+
+/**
+ * Keep only 1m bars inside NY 08:30–11:00 ET each day.
+ * Cuts dead weight (overnight/lunch/PM) so month backtests stay dense and fair.
+ */
+export function nySessionWindowBars(
+  bars: OhlcBar[],
+  start = NY_LOAD_START,
+  end = NY_LOAD_END,
+): OhlcBar[] {
+  const startM = start.hour * 60 + start.minute;
+  const endM = end.hour * 60 + end.minute;
+  return bars.filter((b) => {
+    const p = etParts(b.t);
+    if (p.weekday === 0 || p.weekday === 6) return false;
+    const m = p.hour * 60 + p.minute;
+    return m >= startM && m < endM;
+  });
+}
+
+
 function tradingDaysInWindow(startMs: number, endMs: number): string[] {
   const days: string[] = [];
   for (let t = startMs; t <= endMs; t += 86400000) {
@@ -325,6 +356,16 @@ export function causalAggregate(
   const agg = aggregateBars(causal, intervalMinutes);
   const dur = intervalMinutes * 60_000;
   return agg.filter((b) => b.t + dur <= decisionMs);
+}
+
+/** Causal filter for pre-aggregated HTF series (1h/4h). Bar must be fully closed. */
+export function causalClosedBars(
+  bars: OhlcBar[],
+  decisionMs: number,
+  intervalMinutes: number,
+): OhlcBar[] {
+  const dur = Math.max(1, intervalMinutes) * 60_000;
+  return bars.filter((b) => b.t + dur <= decisionMs);
 }
 
 /** Hard assert: no bar may open at or after decision, and bucket must be closed. */
@@ -407,19 +448,21 @@ export async function runWeekBacktest(
   }
 
   const symbols = parseSymbols(message);
-  const fetchStart = window.startMs - 21 * 86400000;
-  // Never pull pure-future range past wall clock (no cheating with unreleased bars)
+  // HTF lookback scales with window: enough 1h bars, not months of dead 1m
+  const lookbackDays =
+    window.kind === "day" ? 18 : window.kind === "week" ? 25 : 32;
+  const fetchStart = window.startMs - lookbackDays * 86400000;
   const fetchEnd = Math.min(window.endMs, Date.now());
 
-  const seriesList = await Promise.all(
-    symbols.map((s) => fetchDatabentoAbsoluteRange(s, fetchStart, fetchEnd, 1)),
+  const layersList = await Promise.all(
+    symbols.map((s) => fetchBacktestLayers(s, fetchStart, fetchEnd)),
   );
 
-  if (seriesList.some((s) => !s || s.bars.length < 50)) {
+  if (layersList.some((s) => !s || (s.htf1h.length < 20 && s.ltf1m.length < 30))) {
     const analysis = analyzeTradezella({
       message:
         message +
-        `\n[Databento returned insufficient bars for ${window.label}. Check license window / symbols.]`,
+        `\n[Databento dual-layer insufficient for ${window.label}. Check license / symbols.]`,
     });
     return {
       ok: false,
@@ -437,168 +480,331 @@ export async function runWeekBacktest(
     };
   }
 
-  const left = seriesList[0]!;
-  const right = seriesList[1] ?? seriesList[0]!;
-  let days = tradingDaysInWindow(window.startMs, window.endMs);
-  const MAX_DAYS = 12;
-  let truncated = false;
-  if (days.length > MAX_DAYS) {
-    days = days.slice(0, MAX_DAYS);
-    truncated = true;
-  }
-  const rows: DayBacktestRow[] = [];
+  const leftL = layersList[0]!;
+  const rightL = layersList[1] ?? layersList[0]!;
 
-  // Do NOT pre-aggregate the full month then peek — rebuild causal series per day.
-  const DECISION_HOUR_ET = 10; // NY AM snapshot — only info available at 10:00 ET
+  // Convenience aliases used by the day loop
+  const left = {
+    symbol: leftL.symbol,
+    bars: leftL.ltf1m, // LTF default
+    htf1h: leftL.htf1h,
+    htf4h: leftL.htf4h,
+    count: leftL.ltf1m.length,
+    first: leftL.first,
+    last: leftL.last,
+    raw1mCount: leftL.raw1mCount,
+  };
+  const right = {
+    symbol: rightL.symbol,
+    bars: rightL.ltf1m,
+    htf1h: rightL.htf1h,
+    htf4h: rightL.htf4h,
+    count: rightL.ltf1m.length,
+    first: rightL.first,
+    last: rightL.last,
+    raw1mCount: rightL.raw1mCount,
+  };
+
+  // Coverage from LTF sessions (has data in killzone window)
+  const allDays = tradingDaysInWindow(window.startMs, window.endMs);
+  const barDays = new Set(left.bars.map((b) => dateKeyEt(b.t)));
+  const coveredDays = allDays.filter((d) => barDays.has(d));
+  const uncoveredDays = allDays.filter((d) => !barDays.has(d));
+
+  const MAX_DAYS = 15;
+  let truncated = false;
+  let days =
+    coveredDays.length > 0
+      ? coveredDays.slice(0, MAX_DAYS)
+      : allDays.slice(0, MAX_DAYS);
+  if (coveredDays.length > MAX_DAYS) truncated = true;
+  if (coveredDays.length === 0 && allDays.length > MAX_DAYS) truncated = true;
+
+  const rows: DayBacktestRow[] = [];
+  const dataCoverage = {
+    bars: left.count,
+    htf1h: left.htf1h.length,
+    htf4h: left.htf4h.length,
+    raw1mScanned: left.raw1mCount,
+    first: left.first,
+    last: left.last,
+    calendarDays: allDays.length,
+    coveredDays: coveredDays.length,
+    uncoveredDays: uncoveredDays.length,
+    evaluatedDays: days.length,
+  };
+
+  // Snapshots: 10:00 (primary) and 11:00 (secondary) — both causal, pick best path slot
+  const DECISION_SLOTS: { hour: number; minute: number; label: string }[] = [
+    { hour: 10, minute: 0, label: "10:00 ET" },
+    { hour: 10, minute: 45, label: "10:45 ET" },
+  ];
   const STRUCTURE_TF_MIN = 15;
 
   for (const day of days) {
-    let decisionMs = decisionMsForDay(day, DECISION_HOUR_ET, 0);
-    // If decision is before market data (weekend/holiday weirdness), skip
-    if (!Number.isFinite(decisionMs)) continue;
+    // Multi-snapshot causal scan — never mixes future of either slot
+    type Snap = {
+      decisionMs: number;
+      label: string;
+      best: SetupCandidate | null;
+      pathEligible: boolean;
+      biasL: ReturnType<typeof analyzeStructure>;
+      biasR: ReturnType<typeof analyzeStructure>;
+      cond: ReturnType<typeof assessConditions>;
+      det: ReturnType<typeof summarizeDetectors>;
+      scanFocus: string;
+      smtNote: string;
+      sessionBars: number;
+      causalOk: boolean;
+      causalDetail: string;
+      lBars: import("@/lib/market/types").OhlcBar[];
+      rBars: import("@/lib/market/types").OhlcBar[];
+    };
 
-    const l1 = causalOneMinute(left.bars, decisionMs);
-    const r1 = causalOneMinute(right.bars, decisionMs);
-    const lBars = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
-    const rBars = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
+    const snaps: Snap[] = [];
 
-    const causalL = assertCausal(lBars, decisionMs, STRUCTURE_TF_MIN);
-    const causalR = assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN);
-    const causal1 = assertCausal(l1, decisionMs, 1);
+    for (const slot of DECISION_SLOTS) {
+      const decisionMs = decisionMsForDay(day, slot.hour, slot.minute);
+      if (!Number.isFinite(decisionMs)) continue;
 
-    if (lBars.length < 40 || !causalL.ok || !causal1.ok) {
-      rows.push({
-        date: day,
-        symbol: left.symbol,
-        htf: "n/a",
-        mid: "n/a",
-        ltf: "n/a",
-        regime: "n/a",
-        tradeable: false,
-        best: null,
-        pathEligible: false,
-        gates: [
-          {
-            name: "Causal integrity",
-            pass: causalL.ok && causal1.ok,
-            detail: causalL.ok ? causal1.detail : causalL.detail,
+      // LTF: NY 08:30–11:00 1m (already filtered) + 15m for detectors
+      const l1 = causalOneMinute(left.bars, decisionMs);
+      const r1 = causalOneMinute(right.bars, decisionMs);
+      const ltfL = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
+      const ltfR = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
+      // HTF: sparse 1h (and 4h backup) — multi-week structure without 1m overload
+      const htfL = causalClosedBars(left.htf1h, decisionMs, 60);
+      const htfR = causalClosedBars(right.htf1h, decisionMs, 60);
+      const htf4L = causalClosedBars(left.htf4h, decisionMs, 240);
+      const structureL = htfL.length >= 30 ? htfL : htf4L.length >= 20 ? htf4L : ltfL;
+      const structureR = htfR.length >= 30 ? htfR : htf4L.length >= 20 ? htfR : ltfR;
+      const lBars = ltfL; // detectors / conditions on LTF
+      const rBars = ltfR;
+      const causalL = assertCausal(lBars, decisionMs, STRUCTURE_TF_MIN);
+      const causalH = assertCausal(structureL, decisionMs, structureL === htfL ? 60 : structureL === htf4L ? 240 : STRUCTURE_TF_MIN);
+      const causal1 = assertCausal(l1, decisionMs, 1);
+      const daySession = l1.filter((b) => dateKeyEt(b.t) === day);
+
+      if (
+        (structureL.length < 20 && lBars.length < 30) ||
+        !causalL.ok ||
+        !causal1.ok ||
+        daySession.length < 5
+      ) {
+        snaps.push({
+          decisionMs,
+          label: slot.label,
+          best: null,
+          pathEligible: false,
+          biasL: analyzeStructure(left.symbol, lBars.length ? lBars : left.bars.slice(0, 0), 0),
+          biasR: analyzeStructure(right.symbol, rBars.length ? rBars : right.bars.slice(0, 0), 0),
+          cond: {
+            regime: "dead",
+            volatility: "low",
+            tradeable: false,
+            er: 0,
+            atrRatio: 0,
+            reasons: ["insufficient causal bars"],
           },
-          { name: "data", pass: false, detail: "too few causal bars at decision" },
-        ],
-        notes: "Insufficient causal history (no future data used)",
+          det: summarizeDetectors(lBars),
+          scanFocus: "deadspot",
+          smtNote: "",
+          sessionBars: daySession.length,
+          causalOk: causalL.ok && causal1.ok,
+          causalDetail:
+            daySession.length < 5
+              ? `deadspot: only ${daySession.length} session 1m by ${slot.label}`
+              : causalL.detail,
+          lBars,
+          rBars,
+        });
+        continue;
+      }
+
+      const dayL = daySession;
+      const dayR = causalOneMinute(right.bars, decisionMs).filter(
+        (b) => dateKeyEt(b.t) === day,
+      );
+      const chg =
+        dayL.length > 1
+          ? ((dayL[dayL.length - 1]!.c - dayL[0]!.o) / dayL[0]!.o) * 100
+          : 0;
+      const chgR =
+        dayR.length > 1
+          ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
+          : 0;
+
+      // Bias from HTF 1h/4h; entries/detectors from NY AM LTF only
+      const biasL = analyzeStructure(left.symbol, structureL, chg);
+      const biasR = analyzeStructure(right.symbol, structureR, chgR);
+      const div = smtDivergence(ltfL.length >= 20 ? ltfL : structureL, ltfR.length >= 20 ? ltfR : structureR);
+      const clock = getSessionClock(new Date(decisionMs));
+      const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
+      const best =
+        scan.candidates.find((c) => c.actionable) ??
+        scan.candidates.find((c) => c.grade === "A+" || c.grade === "A-") ??
+        scan.candidates[0] ??
+        null;
+      const cond = assessConditions(lBars);
+      const det = summarizeDetectors(lBars);
+      const causalOk = causalL.ok && assertCausal(rBars, decisionMs, STRUCTURE_TF_MIN).ok;
+      const pathEligible = Boolean(best?.actionable) && causalOk && cond.tradeable;
+
+      snaps.push({
+        decisionMs,
+        label: slot.label,
+        best,
+        pathEligible,
+        biasL,
+        biasR,
+        cond,
+        det,
+        scanFocus: scan.focus,
+        smtNote: scan.smt.note,
+        sessionBars: daySession.length,
+        causalOk,
+        causalDetail: causalL.detail,
+        lBars,
+        rBars,
       });
-      continue;
     }
 
-    // Session change ONLY using bars closed by decision (not full-day close)
-    const dayL = l1.filter((b) => dateKeyEt(b.t) === day);
-    const dayR = r1.filter((b) => dateKeyEt(b.t) === day);
-    const chg =
-      dayL.length > 1
-        ? ((dayL[dayL.length - 1]!.c - dayL[0]!.o) / dayL[0]!.o) * 100
-        : 0;
-    const chgR =
-      dayR.length > 1
-        ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
-        : 0;
-
-    const biasL = analyzeStructure(left.symbol, lBars, chg);
-    const biasR = analyzeStructure(right.symbol, rBars, chgR);
-    const div = smtDivergence(lBars, rBars);
-    const clock = getSessionClock(new Date(decisionMs));
-    // scan/detectors/conditions — same causal bars only
-    const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
-    const best =
-      scan.candidates.find((c) => c.actionable) ??
-      scan.candidates.find((c) => c.grade === "A+" || c.grade === "A-") ??
-      scan.candidates[0] ??
-      null;
-
-    const cond = assessConditions(lBars);
-    const det = summarizeDetectors(lBars);
+    // Prefer path-eligible snapshot; else denser session bars; else 10:00
+    snaps.sort((a, b) => {
+      if (a.pathEligible !== b.pathEligible) return a.pathEligible ? -1 : 1;
+      if ((a.best?.confluence ?? 0) !== (b.best?.confluence ?? 0))
+        return (b.best?.confluence ?? 0) - (a.best?.confluence ?? 0);
+      return b.sessionBars - a.sessionBars;
+    });
+    const pick = snaps[0]!;
+    const deadspot =
+      pick.sessionBars < 5
+        ? "no/thin session data at decision (holiday, early close, or coverage gap)"
+        : !pick.causalOk
+          ? "causal integrity failed"
+          : !pick.cond.tradeable
+            ? `conditions dead: ${(pick.cond.reasons?.[0] || pick.cond.regime)}`
+            : pick.best && !pick.pathEligible
+              ? `setup below path (${pick.best.grade} ${pick.best.confluence}) missing: ${(pick.best.missing || []).slice(0, 3).join(", ")}`
+              : pick.pathEligible
+                ? null
+                : "no A-path setup at snapshots";
 
     const gates = [
       {
         name: "Causal integrity",
-        pass: causalL.ok && causalR.ok && causal1.ok,
-        detail: `${causalL.detail} · no bar after ${new Date(decisionMs).toISOString()}`,
+        pass: pick.causalOk,
+        detail: pick.causalDetail,
+      },
+      {
+        name: "Data coverage",
+        pass: pick.sessionBars >= 30,
+        detail: `${pick.sessionBars} session 1m by ${pick.label} · series ${dataCoverage.first.slice(0, 10)}→${dataCoverage.last.slice(0, 10)}`,
       },
       {
         name: "HTF gate",
-        pass: best ? best.htfOk : biasL.topDown !== "neutral",
-        detail: `${left.symbol} ${biasL.topDown} / ${right.symbol} ${biasR.topDown}`,
+        pass: pick.best ? pick.best.htfOk : pick.biasL.topDown !== "neutral",
+        detail: `${left.symbol} ${pick.biasL.topDown} / ${right.symbol} ${pick.biasR.topDown}`,
       },
       {
         name: "Conditions",
-        pass: cond.tradeable,
-        detail: `${cond.regime} · ${cond.volatility}`,
+        pass: pick.cond.tradeable,
+        detail: `${pick.cond.regime} · ${pick.cond.volatility} · ${(pick.cond.reasons || []).join("; ")}`,
       },
       {
-        name: "Killzone NY",
+        name: "Killzone / snapshot",
         pass: true,
-        detail: `Decision ${DECISION_HOUR_ET}:00 ET · closed bars only`,
+        detail: `Best of ${snaps.map((s) => s.label).join(", ")} → ${pick.label}`,
       },
       {
         name: "Path floor",
-        pass: best
-          ? best.confluence >= PROFIT_ACTION_FLOOR && best.actionable
-          : false,
-        detail: best ? `score ${best.confluence} · ${best.grade}` : "no candidate",
+        pass: pick.pathEligible,
+        detail: pick.best
+          ? `score ${pick.best.confluence} · ${pick.best.grade} · ${pick.best.strategyPrimary || ""}`
+          : "no candidate",
       },
       {
         name: "Mechanical / complete model",
-        pass: det.mechanical.complete,
-        detail: det.mechanical.state,
+        pass: pick.det.mechanical.complete,
+        detail: pick.det.mechanical.state,
       },
     ];
-
-    // If causal integrity fails, force non-actionable
-    const pathEligible =
-      Boolean(best?.actionable) && causalL.ok && causalR.ok && causal1.ok;
 
     rows.push({
       date: day,
       symbol: left.symbol,
-      htf: biasL.topDown,
-      mid: biasL.mid,
-      ltf: biasL.ltf,
-      regime: cond.regime,
-      tradeable: cond.tradeable,
-      best: pathEligible || best ? best : best,
-      pathEligible,
+      htf: pick.biasL.topDown,
+      mid: pick.biasL.mid,
+      ltf: pick.biasL.ltf,
+      regime: pick.cond.regime,
+      tradeable: pick.cond.tradeable,
+      best: pick.best,
+      pathEligible: pick.pathEligible,
       gates,
-      notes: `${scan.focus} · decision ${new Date(decisionMs).toISOString()}`,
+      notes: `${pick.scanFocus} · ${pick.label}`,
+      decisionIso: new Date(pick.decisionMs).toISOString(),
+      sessionBars: pick.sessionBars,
+      deadspot,
     });
 
     if (right.symbol !== left.symbol) {
-      const bestR =
-        scan.candidates.find(
-          (c) =>
-            c.symbol === right.symbol &&
-            (c.actionable || c.grade !== "skip"),
-        ) ?? null;
-      const condR = assessConditions(rBars);
-      const pathR =
-        Boolean(bestR?.actionable) && causalL.ok && causalR.ok;
-      rows.push({
-        date: day,
-        symbol: right.symbol,
-        htf: biasR.topDown,
-        mid: biasR.mid,
-        ltf: biasR.ltf,
-        regime: condR.regime,
-        tradeable: condR.tradeable,
-        best: bestR,
-        pathEligible: pathR,
-        gates: gates.map((g) =>
-          g.name === "HTF gate"
-            ? { ...g, detail: `${right.symbol} ${biasR.topDown}` }
-            : g,
-        ),
-        notes: bestR
-          ? `${bestR.side} ${bestR.grade} ${bestR.confluence} · causal`
-          : `${scan.smt.note} · causal`,
-      });
+      // Re-scan ES at same winning decision for dual book
+      const decisionMs = pick.decisionMs;
+      const lBars = causalAggregate(left.bars, decisionMs, STRUCTURE_TF_MIN);
+      const rBars = causalAggregate(right.bars, decisionMs, STRUCTURE_TF_MIN);
+      const htfL2 = causalClosedBars(left.htf1h, decisionMs, 60);
+      const htfR2 = causalClosedBars(right.htf1h, decisionMs, 60);
+      const structureL2 = htfL2.length >= 30 ? htfL2 : lBars;
+      const structureR2 = htfR2.length >= 30 ? htfR2 : rBars;
+      if (rBars.length >= 20 || structureR2.length >= 20) {
+        const dayR = causalOneMinute(right.bars, decisionMs).filter(
+          (b) => dateKeyEt(b.t) === day,
+        );
+        const chgR =
+          dayR.length > 1
+            ? ((dayR[dayR.length - 1]!.c - dayR[0]!.o) / dayR[0]!.o) * 100
+            : 0;
+        const chgL = 0;
+        const biasL = analyzeStructure(left.symbol, structureL2, chgL);
+        const biasR = analyzeStructure(right.symbol, structureR2, chgR);
+        const div = smtDivergence(lBars.length >= 20 ? lBars : structureL2, rBars.length >= 20 ? rBars : structureR2);
+        const clock = getSessionClock(new Date(decisionMs));
+        const scan = scanSetups(biasL, biasR, clock, div, lBars, rBars);
+        const bestR =
+          scan.candidates.find(
+            (c) => c.symbol === right.symbol && c.actionable,
+          ) ??
+          scan.candidates.find((c) => c.symbol === right.symbol) ??
+          null;
+        const condR = assessConditions(rBars);
+        const pathR = Boolean(bestR?.actionable) && condR.tradeable;
+        rows.push({
+          date: day,
+          symbol: right.symbol,
+          htf: biasR.topDown,
+          mid: biasR.mid,
+          ltf: biasR.ltf,
+          regime: condR.regime,
+          tradeable: condR.tradeable,
+          best: bestR,
+          pathEligible: pathR,
+          gates: gates.map((g) =>
+            g.name === "HTF gate"
+              ? { ...g, detail: `${right.symbol} ${biasR.topDown}` }
+              : g,
+          ),
+          notes: bestR
+            ? `${bestR.side} ${bestR.grade} ${bestR.confluence} · ${pick.label}`
+            : `${scan.smt.note} · ${pick.label}`,
+          decisionIso: new Date(decisionMs).toISOString(),
+          sessionBars: dayR.length,
+          deadspot: pathR
+            ? null
+            : bestR
+              ? `below path ${bestR.grade}`
+              : "no ES path setup",
+        });
+      }
     }
   }
 
@@ -641,20 +847,32 @@ export async function runWeekBacktest(
       ...analysis.nextActions,
     ];
   }
-  analysis.summary = `Real CME data (${symbols.join("+")}). ${pathEligibleCount} path-eligible slot(s) of ${rows.length}${truncated ? ` (first ${MAX_DAYS} sessions)` : ""}. ${
+  const dead = rows.filter((r) => r.deadspot);
+  const deadReasons = new Map<string, number>();
+  for (const r of dead) {
+    const k = (r.deadspot || "unknown").slice(0, 60);
+    deadReasons.set(k, (deadReasons.get(k) || 0) + 1);
+  }
+  const deadTop = [...deadReasons.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([k, n]) => `${k} (×${n})`)
+    .join("; ");
+
+  analysis.summary = `Real CME dual-layer (${symbols.join("+")}) · LTF ${dataCoverage.bars} NY-AM 1m + HTF ${dataCoverage.htf1h}×1h/${dataCoverage.htf4h}×4h · coverage ${dataCoverage.coveredDays}/${dataCoverage.calendarDays} sessions (${dataCoverage.first.slice(0, 10)}→${dataCoverage.last.slice(0, 10)}). ${pathEligibleCount} path-eligible of ${rows.length} slots${truncated ? ` (capped ${MAX_DAYS})` : ""}. ${
     pathEligibleCount === 0
-      ? "No A-path setups cleared — correct for selectivity."
-      : "Review eligible days; Log paper only those grades."
-  } Risk ${APLUS_RULES.riskPct * 100}% · max ${APLUS_RULES.maxSetupsPerSession}/KZ.`;
+      ? "No A-path clears — selectivity held."
+      : "Log paper only PATH rows."
+  } Deadspots: ${deadTop || "none"}. Risk ${APLUS_RULES.riskPct * 100}% · causal 10:00/11:00 ET.`;
   analysis.chartAttached = false;
   analysis.stats.trades = pathEligibleCount;
   analysis.stats.symbol = symbols[0];
   analysis.stats.dateRange = window.label;
   analysis.stats.sessionLabel = "ny_am";
   analysis.disclaimer =
-    "CAUSAL BACKTEST: each day decides at 10:00 ET using only bars fully closed by then. No same-day close, no future sessions, no incomplete buckets. Educational — not an order.";
+    "CAUSAL DUAL-LAYER: HTF bias from RTH→1h/4h (sparse multi-week); LTF from NY 08:30–11:00 1m only. Decisions 10:00/11:00 ET, closed bars only — no future, no full-day close peek. Educational — not an order.";
   analysis.nextActions = [
-    "Causal rule: decision 10:00 ET · closed 1m/15m only · no full-day close peek.",
+    "Causal rule: NY 08:30–11:00 load window · decision 10:00/11:00 ET · closed bars only.",
     ...analysis.nextActions.filter((a) => !/causal/i.test(a)),
   ];
 
@@ -670,8 +888,16 @@ export async function runWeekBacktest(
         b
           ? ` · ${b.side} ${b.grade} ${b.confluence.toFixed(2)} · ${b.strategyPrimary || ""}`
           : ""
-      }`;
+      }${r.deadspot ? ` · dead: ${r.deadspot}` : ""}${r.sessionBars != null ? ` · bars=${r.sessionBars}` : ""}`;
     }),
+    "",
+    "### Data coverage",
+    `- LTF NY 08:30–11:00 1m: ${dataCoverage.bars} · HTF 1h: ${dataCoverage.htf1h} · HTF 4h: ${dataCoverage.htf4h} (scanned raw 1m ${dataCoverage.raw1mScanned} then discarded)`,
+    `- Range: ${dataCoverage.first} → ${dataCoverage.last}`,
+    `- Sessions with data: ${dataCoverage.coveredDays}/${dataCoverage.calendarDays}`,
+    dataCoverage.uncoveredDays
+      ? `- Uncovered (no feed): ${uncoveredDays.slice(0, 8).join(", ")}${uncoveredDays.length > 8 ? "…" : ""}`
+      : "- Uncovered: none",
     "",
     "### Queue",
     ...queue.map((q) => `- [ ] ${q}`),

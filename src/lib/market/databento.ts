@@ -13,6 +13,8 @@ import type { IndexSymbol, LiveQuote, OhlcBar, SymbolSeries } from "./types";
 const DATABENTO_URL = "https://hist.databento.com/v0/timeseries.get_range";
 const DEFAULT_DATASET = process.env.DATABENTO_DATASET || "GLBX.MDP3";
 const MAX_BARS = 6000;
+/** Full month backtests need more than a few sessions of 1m bars. */
+const MAX_BARS_BACKTEST = 80_000;
 
 /** Map desk symbols → Databento continuous root (front month .c.0). */
 const ROOT: Record<IndexSymbol, string> = {
@@ -109,7 +111,7 @@ export function aggregateBars(bars: OhlcBar[], minutes: number): OhlcBar[] {
   return out;
 }
 
-function parseCsv(text: string): OhlcBar[] {
+function parseCsv(text: string, maxBars: number = MAX_BARS): OhlcBar[] {
   const lines = text.split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length < 2) return [];
   const header = lines[0]!.split(",").map((h) => h.trim().toLowerCase());
@@ -158,7 +160,7 @@ function parseCsv(text: string): OhlcBar[] {
     bars.push({ t, o, h, l, c, v });
   }
   bars.sort((a, b) => a.t - b.t);
-  return bars.length > MAX_BARS ? bars.slice(-MAX_BARS) : bars;
+  return bars.length > maxBars ? bars.slice(-maxBars) : bars;
 }
 
 async function getRangeOnce(
@@ -269,27 +271,61 @@ export async function fetchDatabentoAbsoluteRange(
     return null;
   }
 
-  let start = new Date(startMs).toISOString();
-  let end = new Date(endMs).toISOString();
-  let result = await getRangeOnce(key, symbol, start, end);
+  // Chunk long windows so we never silently keep only the LAST N bars
+  // (that was truncating early sessions out of month backtests).
+  const CHUNK_MS = 5 * 24 * 3600 * 1000; // 5 days of 1m ≈ ~7k bars RTH+ETH
+  const all: OhlcBar[] = [];
+  let cursor = startMs;
+  let lastError = "";
 
-  if (!result.ok && result.status === 422) {
-    const maxEnd = parseMaxEnd(result.body);
-    if (maxEnd && maxEnd > startMs) {
-      end = new Date(Math.min(endMs, maxEnd)).toISOString();
-      result = await getRangeOnce(key, symbol, start, end);
+  while (cursor < endMs) {
+    const chunkEnd = Math.min(cursor + CHUNK_MS, endMs);
+    let start = new Date(cursor).toISOString();
+    let end = new Date(chunkEnd).toISOString();
+    let result = await getRangeOnce(key, symbol, start, end);
+
+    if (!result.ok && result.status === 422) {
+      const maxEnd = parseMaxEnd(result.body);
+      if (maxEnd && maxEnd > cursor) {
+        end = new Date(Math.min(chunkEnd, maxEnd)).toISOString();
+        result = await getRangeOnce(key, symbol, start, end);
+        // if license ends mid-window, still take what we can then stop
+        if (result.ok) {
+          const part = parseCsv(result.text, MAX_BARS_BACKTEST);
+          all.push(...part);
+          break;
+        }
+      }
+      lastError = `HTTP ${result.status}`;
+      // skip dead chunk, advance
+      cursor = chunkEnd;
+      continue;
     }
+
+    if (!result.ok) {
+      lastError = `HTTP ${result.status}`;
+      console.warn(`[databento] abs chunk ${symbol} ${start} ${lastError}`);
+      cursor = chunkEnd;
+      continue;
+    }
+
+    const part = parseCsv(result.text, MAX_BARS_BACKTEST);
+    all.push(...part);
+    cursor = chunkEnd;
   }
 
-  if (!result.ok) {
-    console.warn(`[databento] abs ${symbol} HTTP ${result.status}`);
+  if (all.length < 10) {
+    console.warn(`[databento] abs ${symbol} empty (${lastError || "no rows"})`);
     return null;
   }
 
-  let bars = parseCsv(result.text);
-  if (bars.length < 10) return null;
-  // clip to requested window
-  bars = bars.filter((b) => b.t >= startMs - 60_000 && b.t <= endMs + 60_000);
+  // Dedupe by timestamp, sort
+  const byT = new Map<number, OhlcBar>();
+  for (const b of all) byT.set(b.t, b);
+  let bars = [...byT.values()].sort((a, b) => a.t - b.t);
+  // Clip soft to window (±2m)
+  bars = bars.filter((b) => b.t >= startMs - 120_000 && b.t <= endMs + 120_000);
+
   if (intervalMinutes > 1) {
     bars = aggregateBars(bars, intervalMinutes);
   }
@@ -317,7 +353,158 @@ export async function fetchDatabentoAbsoluteRange(
   };
 }
 
-/** Last bar as LiveQuote — true exchange bar time, not Yahoo print lag. */
+
+
+export interface BacktestLayers {
+  symbol: IndexSymbol;
+  source: "databento";
+  /** 1h OHLC for HTF / multi-day structure (sparse). */
+  htf1h: OhlcBar[];
+  /** 4h OHLC for weekly-ish structure (very sparse). */
+  htf4h: OhlcBar[];
+  /** NY 08:30–11:00 ET 1m only — entry / detectors. */
+  ltf1m: OhlcBar[];
+  raw1mCount: number;
+  first: string;
+  last: string;
+}
+
+function etMinutes(ms: number): { weekday: number; minutes: number } {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date(ms));
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "0";
+  const wdMap: Record<string, number> = {
+    Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+  };
+  let hour = Number(get("hour") === "24" ? "0" : get("hour"));
+  const minute = Number(get("minute"));
+  return { weekday: wdMap[get("weekday")] ?? 0, minutes: hour * 60 + minute };
+}
+
+/** Keep RTH-ish 1m for HTF aggregation only (09:30–16:00 ET) — denser swings than full ETH. */
+function rthBars(bars: OhlcBar[]): OhlcBar[] {
+  return bars.filter((b) => {
+    const { weekday, minutes } = etMinutes(b.t);
+    if (weekday === 0 || weekday === 6) return false;
+    return minutes >= 9 * 60 + 30 && minutes < 16 * 60;
+  });
+}
+
+/** NY killzone 08:30–11:00 ET 1m. */
+function nyAmBars(bars: OhlcBar[]): OhlcBar[] {
+  return bars.filter((b) => {
+    const { weekday, minutes } = etMinutes(b.t);
+    if (weekday === 0 || weekday === 6) return false;
+    return minutes >= 8 * 60 + 30 && minutes < 11 * 60;
+  });
+}
+
+/**
+ * Dual-layer historical load for backtests:
+ * - HTF: 1h + 4h from RTH 1m (low bar count, multi-week structure)
+ * - LTF: NY 08:30–11:00 1m only (entry model)
+ * Raw 1m is discarded after each chunk → no 38k-bar memory spike.
+ */
+export async function fetchBacktestLayers(
+  symbol: IndexSymbol,
+  startMs: number,
+  endMs: number,
+): Promise<BacktestLayers | null> {
+  const key = readApiKey();
+  if (!key) return null;
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    return null;
+  }
+
+  const CHUNK_MS = 7 * 24 * 3600 * 1000;
+  const ranges: { start: number; end: number }[] = [];
+  for (let c = startMs; c < endMs; c += CHUNK_MS) {
+    ranges.push({ start: c, end: Math.min(c + CHUNK_MS, endMs) });
+  }
+
+  async function loadChunk(
+    rs: number,
+    re: number,
+  ): Promise<{ h1: OhlcBar[]; h4: OhlcBar[]; ltf: OhlcBar[]; raw: number }> {
+    let start = new Date(rs).toISOString();
+    let end = new Date(re).toISOString();
+    let result = await getRangeOnce(key, symbol, start, end);
+    if (!result.ok && result.status === 422) {
+      const maxEnd = parseMaxEnd(result.body);
+      if (maxEnd && maxEnd > rs) {
+        end = new Date(Math.min(re, maxEnd)).toISOString();
+        result = await getRangeOnce(key, symbol, start, end);
+      }
+    }
+    if (!result.ok) {
+      console.warn(`[databento] layers ${symbol} chunk HTTP ${result.status}`);
+      return { h1: [], h4: [], ltf: [], raw: 0 };
+    }
+    const one = parseCsv(result.text, MAX_BARS_BACKTEST);
+    const rth = rthBars(one);
+    return {
+      h1: aggregateBars(rth, 60),
+      h4: aggregateBars(rth, 240),
+      ltf: nyAmBars(one),
+      raw: one.length,
+    };
+  }
+
+  // Parallelism 3 — faster month loads without hammering API
+  const htf1hParts: OhlcBar[] = [];
+  const htf4hParts: OhlcBar[] = [];
+  const ltfParts: OhlcBar[] = [];
+  let raw1mCount = 0;
+  for (let i = 0; i < ranges.length; i += 3) {
+    const batch = ranges.slice(i, i + 3);
+    const parts = await Promise.all(batch.map((r) => loadChunk(r.start, r.end)));
+    for (const p of parts) {
+      raw1mCount += p.raw;
+      htf1hParts.push(...p.h1);
+      htf4hParts.push(...p.h4);
+      ltfParts.push(...p.ltf);
+    }
+  }
+
+  const dedupe = (bars: OhlcBar[]) => {
+    const m = new Map<number, OhlcBar>();
+    for (const b of bars) m.set(b.t, b);
+    return [...m.values()].sort((a, b) => a.t - b.t);
+  };
+
+  const htf1h = dedupe(htf1hParts);
+  const htf4h = dedupe(htf4hParts);
+  const ltf1m = dedupe(ltfParts);
+
+  if (htf1h.length < 20 && ltf1m.length < 30) return null;
+
+  const firstT = Math.min(
+    htf1h[0]?.t ?? Infinity,
+    ltf1m[0]?.t ?? Infinity,
+  );
+  const lastT = Math.max(
+    htf1h[htf1h.length - 1]?.t ?? 0,
+    ltf1m[ltf1m.length - 1]?.t ?? 0,
+  );
+
+  return {
+    symbol,
+    source: "databento",
+    htf1h,
+    htf4h,
+    ltf1m,
+    raw1mCount,
+    first: new Date(firstT).toISOString(),
+    last: new Date(lastT).toISOString(),
+  };
+}
+
 export function quoteFromDatabentoSeries(series: SymbolSeries): LiveQuote {
   const last = series.bars[series.bars.length - 1]!;
   const prev = series.previousClose ?? last.o;

@@ -51,7 +51,7 @@ interface ChatMessage {
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "system",
-  text: "TZ Lab · try “backtest july 2026” or “back test july 2026” (typos OK). Real Databento, causal 10:00 ET decisions — no future bars. Charts/CSV optional. Log paper · live · Skip.",
+  text: "TZ Lab · “backtest july 2026” uses dual-layer data: HTF 1h/4h (sparse) + NY 08:30–11:00 1m only. Causal 10:00/10:45 ET — no future. Log paper · live · Skip.",
   ts: Date.now(),
 };
 
