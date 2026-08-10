@@ -4,4 +4,11 @@ cd /workspace
 if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:8080/; then
   exit 0
 fi
+# Export secrets for the Node process without printing them
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
 npm run dev >>/tmp/app-startup.log 2>&1 &

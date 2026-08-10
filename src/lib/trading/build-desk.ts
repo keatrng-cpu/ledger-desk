@@ -170,9 +170,11 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const liveSource = (s: string) => s === "yahoo" || s === "databento";
       const seriesLive = liveSource(left.source) && liveSource(right.source);
       const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
+      // Historical license windows lag live by ~8–12h on free/standard CME
+      // entitlements — do not treat that as a dead feed (Yahoo free lag is still 120s).
       const lagLimit =
         left.source === "databento" || right.source === "databento"
-          ? 6 * 3600
+          ? 14 * 3600
           : 120;
       const quotesFresh = maxLagSec <= lagLimit;
       const dataQualityOk = seriesLive && quotesFresh;

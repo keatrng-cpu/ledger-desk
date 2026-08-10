@@ -6,6 +6,8 @@
  * Set DATABENTO_API_KEY in the environment. Never commit the key.
  */
 
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { IndexSymbol, LiveQuote, OhlcBar, SymbolSeries } from "./types";
 
 const DATABENTO_URL = "https://hist.databento.com/v0/timeseries.get_range";
@@ -25,8 +27,25 @@ const LABEL: Record<IndexSymbol, string> = {
   ES: "ES E-mini S&P (CME)",
 };
 
+/** Read key from process.env or workspace .env (dev sandbox). Never log the value. */
+function readApiKey(): string {
+  const fromEnv = process.env.DATABENTO_API_KEY?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const envPath = join(process.cwd(), ".env");
+    if (existsSync(envPath)) {
+      const text = readFileSync(envPath, "utf8");
+      const m = text.match(/^DATABENTO_API_KEY=(.+)$/m);
+      if (m?.[1]) return m[1].trim().replace(/^["']|["']$/g, "");
+    }
+  } catch {
+    /* ignore */
+  }
+  return "";
+}
+
 export function hasDatabentoKey(): boolean {
-  return Boolean(process.env.DATABENTO_API_KEY?.trim());
+  return Boolean(readApiKey());
 }
 
 function authHeader(key: string): string {
@@ -37,12 +56,26 @@ function continuous(symbol: IndexSymbol): string {
   return `${ROOT[symbol]}.c.0`;
 }
 
-function rangeIso(days: number): { start: string; end: string } {
-  // Historical endpoint often lags live by hours–a day depending on entitlement.
-  // End slightly behind "now" to avoid empty trailing ranges.
-  const end = new Date(Date.now() - 30 * 60 * 1000);
+/**
+ * Historical license windows lag live. Default end = now − 10h; 422 responses
+ * that include a max end time are retried automatically in fetchDatabentoBars.
+ */
+function rangeIso(days: number, endMs?: number): { start: string; end: string } {
+  const end = new Date(endMs ?? Date.now() - 10 * 60 * 60 * 1000);
   const start = new Date(end.getTime() - days * 24 * 3600 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
+}
+
+/** Parse Databento 422 "end time before <iso>" hint. */
+function parseMaxEnd(body: string): number | null {
+  const m = body.match(/before\s+(\d{4}-\d{2}-\d{2}T[0-9:.]+Z?)/i);
+  if (!m?.[1]) return null;
+  let iso = m[1];
+  if (!iso.endsWith("Z") && !iso.includes("+")) iso += "Z";
+  // strip excess fractional digits
+  iso = iso.replace(/(\.\d{3})\d+/, "$1");
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms - 60_000 : null;
 }
 
 function daysFor(range: "1d" | "5d" | "1mo" | "3mo"): number {
@@ -128,15 +161,12 @@ function parseCsv(text: string): OhlcBar[] {
   return bars.length > MAX_BARS ? bars.slice(-MAX_BARS) : bars;
 }
 
-export async function fetchDatabentoBars(
+async function getRangeOnce(
+  key: string,
   symbol: IndexSymbol,
-  range: "1d" | "5d" | "1mo" | "3mo" = "1mo",
-  intervalMinutes: number = 15,
-): Promise<SymbolSeries | null> {
-  const key = process.env.DATABENTO_API_KEY?.trim();
-  if (!key) return null;
-
-  const { start, end } = rangeIso(daysFor(range));
+  start: string,
+  end: string,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
   const params = new URLSearchParams({
     dataset: DEFAULT_DATASET,
     symbols: continuous(symbol),
@@ -148,30 +178,48 @@ export async function fetchDatabentoBars(
     pretty_px: "true",
     pretty_ts: "true",
   });
-
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 45_000);
-  let res: Response;
   try {
-    res = await fetch(`${DATABENTO_URL}?${params}`, {
+    const res = await fetch(`${DATABENTO_URL}?${params}`, {
       headers: { Authorization: authHeader(key) },
       signal: controller.signal,
     });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body: text };
+    return { ok: true, text };
   } catch {
-    return null;
+    return { ok: false, status: 0, body: "network" };
   } finally {
     clearTimeout(timer);
   }
+}
 
-  if (!res.ok) {
-    // 401/403/402 are configuration issues — surface via null → Yahoo fallback
-    console.warn(
-      `[databento] ${symbol} HTTP ${res.status} ${await res.text().catch(() => "")}`,
-    );
+export async function fetchDatabentoBars(
+  symbol: IndexSymbol,
+  range: "1d" | "5d" | "1mo" | "3mo" = "1mo",
+  intervalMinutes: number = 15,
+): Promise<SymbolSeries | null> {
+  const key = readApiKey();
+  if (!key) return null;
+
+  let { start, end } = rangeIso(daysFor(range));
+  let result = await getRangeOnce(key, symbol, start, end);
+
+  if (!result.ok && result.status === 422) {
+    const maxEnd = parseMaxEnd(result.body);
+    if (maxEnd) {
+      ({ start, end } = rangeIso(daysFor(range), maxEnd));
+      result = await getRangeOnce(key, symbol, start, end);
+    }
+  }
+
+  if (!result.ok) {
+    console.warn(`[databento] ${symbol} HTTP ${result.status}`);
     return null;
   }
 
-  const text = await res.text();
+  const text = result.text;
   let bars = parseCsv(text);
   if (bars.length < 30) return null;
 
