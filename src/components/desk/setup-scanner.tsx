@@ -39,13 +39,15 @@ function StratChip({ id, primary }: { id: string; primary?: boolean }) {
   );
 }
 
+export type LogMode = "paper" | "live";
+
 function SetupCard({
   c,
   onLog,
   entryAllowed = true,
 }: {
   c: SetupCandidate;
-  onLog?: (c: SetupCandidate) => void;
+  onLog?: (c: SetupCandidate, mode: LogMode) => void;
   entryAllowed?: boolean;
 }) {
   return (
@@ -108,20 +110,33 @@ function SetupCard({
             <p className="text-[10px] text-[var(--color-subtle)]">engine score</p>
           </div>
           {onLog && (
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={() => onLog(c)}
-              title={
-                entryAllowed
-                  ? "Log this setup to the journal"
-                  : "Risk gate active — journal it as a skip"
-              }
-            >
-              <NotebookPen className="h-3.5 w-3.5" />
-              Log
-            </Button>
+            <div className="flex flex-col items-stretch gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => onLog(c, "paper")}
+                title="Log as PAPER trade (recommended until path proven)"
+                className="border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))]"
+              >
+                <NotebookPen className="h-3.5 w-3.5" />
+                Paper
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => onLog(c, "live")}
+                title={
+                  entryAllowed
+                    ? "Log as LIVE trade"
+                    : "Risk gate active — still journalable as live intent"
+                }
+                className="text-[var(--color-warn)]"
+              >
+                Live
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -218,7 +233,7 @@ export function SetupScanner({
   entryAllowed = true,
 }: {
   scan: ScanResult;
-  onLog?: (c: SetupCandidate) => void;
+  onLog?: (c: SetupCandidate, mode: LogMode) => void;
   entryAllowed?: boolean;
 }) {
   const [pathOnly, setPathOnly] = useState(true);

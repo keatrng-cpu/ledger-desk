@@ -50,6 +50,7 @@ function MasterplacePage() {
   // APLUS_RULES is `as const`, so widen off the literal type before setState.
   const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
+  const [logMode, setLogMode] = useState<"paper" | "live">("paper");
 
   /**
    * Risk state is auth-scoped and fetched separately from the (unauthenticated)
@@ -212,7 +213,10 @@ function MasterplacePage() {
             <div id="scanner">
               <SetupScanner
                 scan={desk.scan}
-                onLog={setLogCandidate}
+                onLog={(c, mode) => {
+                  setLogMode(mode);
+                  setLogCandidate(c);
+                }}
                 entryAllowed={entryAllowed}
               />
             </div>
@@ -288,6 +292,7 @@ function MasterplacePage() {
             open={!!logCandidate}
             onOpenChange={(o) => !o && setLogCandidate(null)}
             onLogged={() => void loadRisk()}
+            defaultMode={logMode}
           />
         )}
 
