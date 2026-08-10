@@ -707,7 +707,8 @@ export async function runWeekBacktest(
               c.htfOk &&
               (c.pathBand === "A+" ||
                 c.pathBand === "A" ||
-                c.pathBand === "A-"),
+                c.pathBand === "A-" ||
+                c.pathBand === "B+"),
           ) ??
           pool.find(
             (c) => c.confluence >= PROFIT_ACTION_FLOOR && c.htfOk,
@@ -731,10 +732,13 @@ export async function runWeekBacktest(
             ((best.pathBand === "A+" ||
               best.pathBand === "A" ||
               best.pathBand === "A-" ||
+              best.pathBand === "B+" ||
               best.grade === "A-" ||
               best.grade === "A+" ||
-              best.riskGrade === "A-") &&
-              (best.qualityScore ?? best.confluence) >= PROFIT_ACTION_FLOOR)),
+              best.riskGrade === "A-" ||
+              best.riskGrade === "B+") &&
+              (best.qualityScore ?? best.confluence) >=
+                PROFIT_ACTION_FLOOR - 0.05)),
       );
 
       snaps.push({
@@ -1072,7 +1076,7 @@ export async function runWeekBacktest(
     {
       item: "Risk model $100k · 0.5–3% by grade",
       status: "pass",
-      detail: "A+ 3% · A 2% · A- 1% TAKE · B paper · C journal",
+      detail: "A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal",
     },
     {
       item: "Take risk off @ +1R",

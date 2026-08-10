@@ -118,6 +118,7 @@ function resolveGrade(best: SetupCandidate): RiskGrade {
     rg === "A+" ||
     rg === "A" ||
     rg === "A-" ||
+    rg === "B+" ||
     rg === "B" ||
     rg === "C" ||
     rg === "skip"
@@ -129,6 +130,7 @@ function resolveGrade(best: SetupCandidate): RiskGrade {
     pb === "A+" ||
     pb === "A" ||
     pb === "A-" ||
+    pb === "B+" ||
     pb === "B" ||
     pb === "C" ||
     pb === "skip"

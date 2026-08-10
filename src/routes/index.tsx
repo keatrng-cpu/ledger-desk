@@ -230,7 +230,7 @@ function MasterplacePage() {
             </div>
             <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
               Paper ${APLUS_RULES.paperEquity.toLocaleString()} · floor{" "}
-              {APLUS_RULES.confluenceFloor} · risk A+3/A2/A-1 · strategy-complete path · PATH only
+              {APLUS_RULES.confluenceFloor} · risk A+3/A2/A-1/B+0.5 · strategy-complete path · PATH only
             </p>
           </div>
           <Button
@@ -471,7 +471,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="R"
                     title="Risk governor"
-                    sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · A- 1% · B paper · C journal · halt rules`}
+                    sub={`Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal · halt rules`}
                   />
                   <RiskPanel desk={desk} />
                 </div>

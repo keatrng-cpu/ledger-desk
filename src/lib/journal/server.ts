@@ -216,7 +216,7 @@ const openTradeSchema = z
     mode: modeSchema.default("live"),
     source: sourceSchema.default("desk"),
     prescore: z.number().min(0).max(1).optional(),
-    grade: z.enum(["A+", "A-", "B", "skip"]).optional(),
+    grade: z.enum(["A+", "A-", "B+", "B", "skip"]).optional(),
     killzone: z.string().max(32).optional(),
     componentsPresent: z.array(z.string().max(200)).max(30).optional(),
     componentsMissing: z.array(z.string().max(200)).max(30).optional(),

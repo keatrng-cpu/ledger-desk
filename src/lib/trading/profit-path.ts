@@ -71,20 +71,21 @@ export function isIncompletePattern(components: string[]): {
   return { incomplete: false, note: null };
 }
 
-export type ProfitGrade = "A+" | "A" | "A-" | "B" | "C" | "skip";
+export type ProfitGrade = "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
 
 export function profitGrade(score: number, incomplete: boolean): ProfitGrade {
   if (incomplete) return "C";
   if (score >= PROFIT_A_PLUS) return "A+";
   if (score >= PROFIT_ACTION_FLOOR + 0.03) return "A";
   if (score >= PROFIT_ACTION_FLOOR) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.05) return "B+";
   if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
   if (score >= APLUS_RULES.confluenceFloor - 0.18) return "C";
   return "skip";
 }
 
 export function isProfitPathEligible(g: ProfitGrade | PathBand): boolean {
-  return g === "A+" || g === "A" || g === "A-";
+  return g === "A+" || g === "A" || g === "A-" || g === "B+";
 }
 
 export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
@@ -123,6 +124,8 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     next.reasons = [...next.reasons, "band:A (2% risk)"];
   } else if (band === "A-") {
     next.reasons = [...next.reasons, "band:A- (1% risk) — TAKE"];
+  } else if (band === "B+") {
+    next.reasons = [...next.reasons, "band:B+ (0.5% risk) — TAKE micro"];
   }
   next.pathBand = band;
   next.qualityScore = q;
@@ -190,7 +193,7 @@ export function filterPathTrades<T extends { grade?: string; pathBand?: string }
 ): T[] {
   return rows.filter((r) => {
     const b = r.pathBand || r.grade;
-    return b === "A+" || b === "A" || b === "A-" || b === "A";
+    return b === "A+" || b === "A" || b === "A-" || b === "B+";
   });
 }
 
@@ -224,6 +227,7 @@ function gradeFromScore(score?: number): string {
   if (score >= PROFIT_A_PLUS) return "A+";
   if (score >= PROFIT_ACTION_FLOOR + 0.03) return "A";
   if (score >= PROFIT_ACTION_FLOOR) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.05) return "B+";
   if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
   return "other";
 }
@@ -242,13 +246,15 @@ export function metricsByGrade(
           ? "A-"
           : g.startsWith("A")
             ? "A"
-            : g.startsWith("B")
-              ? "B"
-              : "other";
+            : g.includes("B+") || g === "B+"
+              ? "B+"
+              : g.startsWith("B")
+                ? "B"
+                : "other";
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(t);
   }
-  const order = ["A+", "A", "A-", "B", "other"];
+  const order = ["A+", "A", "A-", "B+", "B", "other"];
   return order
     .filter((k) => groups.has(k))
     .map((k) => {
@@ -330,7 +336,14 @@ export function buildProfitPath(
 
   const pathTrades = trades.filter((t) => {
     const g = (t.grade || gradeFromScore(t.confluence)).toUpperCase();
-    return g === "A+" || g === "A" || g === "A-" || g.startsWith("A");
+    return (
+      g === "A+" ||
+      g === "A" ||
+      g === "A-" ||
+      g === "B+" ||
+      g.startsWith("A") ||
+      g.includes("B+")
+    );
   });
   const pathOnly = computeMetrics(pathTrades, eq);
   const pathTradeCount = pathTrades.length;

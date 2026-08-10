@@ -12,7 +12,7 @@ export const CONTRACTS = {
 
 export type ContractKey = keyof typeof CONTRACTS;
 
-export type RiskGrade = "A+" | "A" | "A-" | "B" | "C" | "skip";
+export type RiskGrade = "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
 
 /** Active calibration (RULES_CALIBRATION.md / desk paper book). */
 export const APLUS_RULES = {
@@ -23,12 +23,13 @@ export const APLUS_RULES = {
   confluenceFloorCalibration: 0.65,
   /**
    * Grade-based risk on paper / backtest book ($100k).
-   * A+ 3% · A 2% · A- 1% · B paper · C 0.5% journal · skip 0.
+   * A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C 0.5% journal · skip 0.
    */
   riskByGrade: {
     "A+": 0.03,
     A: 0.02,
     "A-": 0.01,
+    "B+": 0.005, // 0.5% — micro edge sample
     B: 0.0, // paper only — not live risk
     C: 0.005, // journal micro only
     skip: 0,
@@ -71,7 +72,7 @@ export const APLUS_RULES = {
     targetExpectancyR: 0.35,
     minSampleTrades: 100,
     actionFloor: 0.65,
-    onlyExecuteGrades: ["A+", "A", "A-"] as const,
+    onlyExecuteGrades: ["A+", "A", "A-", "B+"] as const,
   },
   dualPeer: { NQ: "ES", ES: "NQ", MNQ: "MES", MES: "MNQ" } as Record<
     string,
@@ -84,6 +85,7 @@ export function riskGradeFromScore(score: number): RiskGrade {
   if (score >= APLUS_RULES.aPlusThreshold) return "A+";
   if (score >= APLUS_RULES.confluenceFloor + 0.03) return "A";
   if (score >= APLUS_RULES.confluenceFloor) return "A-";
+  if (score >= APLUS_RULES.confluenceFloor - 0.05) return "B+";
   if (score >= APLUS_RULES.confluenceFloor - 0.1) return "B";
   if (score > 0) return "C";
   return "skip";

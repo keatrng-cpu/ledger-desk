@@ -49,7 +49,7 @@ export interface SetupCandidate {
   regime: string;
   volatility: string;
   /** Two-axis path band (A+ / A / A- path · B paper · C journal) */
-  pathBand?: "A+" | "A" | "A-" | "B" | "C" | "skip";
+  pathBand?: "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
   qualityScore?: number;
   strategyComplete?: boolean;
   completeStrategy?: string;

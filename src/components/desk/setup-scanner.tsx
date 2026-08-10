@@ -239,7 +239,7 @@ export function SetupScanner({
   const [pathOnly, setPathOnly] = useState(true);
   const shown = pathOnly
     ? scan.candidates.filter(
-        (c) => c.actionable || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.grade === "A+" || c.grade === "A-",
+        (c) => c.actionable || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+" || c.grade === "A+" || c.grade === "A-",
       )
     : scan.candidates;
   const display = pathOnly && shown.length === 0 ? scan.candidates.slice(0, 4) : shown;

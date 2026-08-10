@@ -12,7 +12,7 @@ import { ALWAYS_SCAN, type StrategyId } from "./strategies";
 const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
 const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
 
-export type PathBand = "A+" | "A" | "A-" | "B" | "C" | "skip";
+export type PathBand = "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
 
 export interface StrategyTemplate {
   id: StrategyId;
@@ -220,13 +220,15 @@ export function pathBand(opts: {
   if (opts.quality >= PROFIT_A_PLUS) return "A+";
   if (opts.quality >= PROFIT_ACTION_FLOOR + 0.03) return "A";
   if (opts.quality >= PROFIT_ACTION_FLOOR) return "A-";
+  // B+ = strategy-complete, Q within 0.05 below floor (e.g. 0.60–0.65)
+  if (opts.quality >= PROFIT_ACTION_FLOOR - 0.05) return "B+";
   if (opts.quality >= PROFIT_ACTION_FLOOR - 0.1) return "B";
   if (opts.quality >= PROFIT_ACTION_FLOOR - 0.18) return "C";
   return "skip";
 }
 
 export function bandIsPath(band: PathBand): boolean {
-  return band === "A+" || band === "A" || band === "A-";
+  return band === "A+" || band === "A" || band === "A-" || band === "B+";
 }
 
 export function bandToDisplayGrade(
@@ -234,7 +236,7 @@ export function bandToDisplayGrade(
 ): "A+" | "A-" | "B" | "skip" {
   if (band === "A+") return "A+";
   if (band === "A" || band === "A-") return "A-";
-  if (band === "B" || band === "C") return "B";
+  if (band === "B+" || band === "B" || band === "C") return "B";
   return "skip";
 }
 
@@ -242,17 +244,16 @@ export function bandToRiskGrade(band: PathBand): RiskGrade {
   if (band === "A+") return "A+";
   if (band === "A") return "A";
   if (band === "A-") return "A-";
+  if (band === "B+") return "B+";
   if (band === "B") return "B";
   if (band === "C") return "C";
   return "skip";
 }
 
-/** Size mult within grade risk: A full, A- half of A band already via riskPct */
 export function bandSizeMult(band: PathBand): number {
-  if (band === "A+" || band === "A") return 1;
-  if (band === "A-") return 1; // 1% risk already in riskByGrade A-
-  if (band === "B") return 0; // paper only
-  if (band === "C") return 0; // journal only by default for live path
+  if (band === "A+" || band === "A" || band === "A-" || band === "B+") return 1;
+  if (band === "B") return 0;
+  if (band === "C") return 0;
   return 0;
 }
 
@@ -278,15 +279,18 @@ export function isPathTake(c: {
   if (c.actionable) return true;
   const band = c.pathBand || c.riskGrade || c.grade || "";
   const pathBand =
-    band === "A+" || band === "A" || band === "A-";
+    band === "A+" || band === "A" || band === "A-" || band === "B+";
   if (pathBand && c.htfOk !== false && c.strategyComplete !== false) {
     return true;
   }
-  // Explicit A- grade at/above floor
   if (
-    (c.grade === "A-" || c.riskGrade === "A-" || c.pathBand === "A-") &&
+    (c.grade === "A-" ||
+      c.riskGrade === "A-" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+" ||
+      c.riskGrade === "B+") &&
     c.htfOk !== false &&
-    (c.confluence ?? 0) >= PROFIT_ACTION_FLOOR - 0.001
+    (c.confluence ?? 0) >= PROFIT_ACTION_FLOOR - 0.05
   ) {
     return true;
   }
