@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
+import { BridgeStatus } from "@/components/bridge/bridge-status";
+import { HaltBanner } from "@/components/journal/halt-banner";
+import { JournalPanel } from "@/components/journal/journal-panel";
+import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
+import { ReplayReport } from "@/components/lab/replay-report";
 import { HtfBiasBoard } from "@/components/desk/htf-bias-board";
 import { LiquidityPanel } from "@/components/desk/liquidity-panel";
 import { PremarketPanel } from "@/components/desk/premarket-panel";
@@ -22,6 +27,10 @@ import {
   fetchTradingDesk,
   type DeskPayload,
 } from "@/lib/trading/build-desk";
+import { getRiskState, getSettings } from "@/lib/journal/server";
+import type { RiskState } from "@/lib/journal/risk";
+import type { SetupCandidate } from "@/lib/trading/scanner";
+import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 
 export const Route = createFileRoute("/")({
@@ -36,6 +45,31 @@ function MasterplacePage() {
   const [loading, setLoading] = useState(true);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [showLab, setShowLab] = useState(false);
+  const [risk, setRisk] = useState<RiskState | null>(null);
+  // APLUS_RULES is `as const`, so widen off the literal type before setState.
+  const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
+  const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
+
+  /**
+   * Risk state is auth-scoped and fetched separately from the (unauthenticated)
+   * desk build. Signed-out / preview sessions simply get no governor UI rather
+   * than an error — but note the desk NEVER shows entries as allowed while the
+   * governor is unknown-and-halted, because `entryAllowed` defaults to true only
+   * when there is no risk state at all (nothing logged yet = nothing to halt).
+   */
+  const loadRisk = useCallback(async () => {
+    try {
+      const [rs, s] = await Promise.all([getRiskState(), getSettings()]);
+      setRisk(rs);
+      setEquity(s.equity);
+    } catch {
+      /* signed out / no DB — governor UI stays hidden */
+    }
+  }, []);
+
+  const entryAllowed = risk
+    ? !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit
+    : true;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,7 +88,10 @@ function MasterplacePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+    // Governor rides the same poll as the desk so the banner never lags behind
+    // the tape it is gating.
+    void loadRisk();
+  }, [loadRisk]);
 
   useEffect(() => {
     void load();
@@ -122,6 +159,7 @@ function MasterplacePage() {
         </header>
 
         {desk && <SessionHud desk={desk} wallNow={wallNow} />}
+        {risk && <HaltBanner risk={risk} />}
 
         {loading && !desk && (
           <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
@@ -148,8 +186,9 @@ function MasterplacePage() {
                 ["#scanner", "2 Setups"],
                 ["#charts", "3 Charts"],
                 ["#liquidity", "4 Liquidity"],
-                ["#risk", "5 Risk"],
-                ["#coach", "6 Coach"],
+                ["#journal", "5 Journal"],
+                ["#risk", "6 Risk"],
+                ["#coach", "7 Coach"],
                 ["#lab", "Lab"],
               ].map(([href, label]) => (
                 <a
@@ -169,7 +208,11 @@ function MasterplacePage() {
             <PremarketPanel desk={desk} />
 
             <div id="scanner">
-              <SetupScanner scan={desk.scan} />
+              <SetupScanner
+                scan={desk.scan}
+                onLog={setLogCandidate}
+                entryAllowed={entryAllowed}
+              />
             </div>
 
             <div id="charts">
@@ -187,6 +230,10 @@ function MasterplacePage() {
 
             <div id="liquidity">
               <LiquidityPanel desk={desk} />
+            </div>
+
+            <div id="journal">
+              <JournalPanel onChanged={() => void loadRisk()} />
             </div>
 
             <div
@@ -216,9 +263,26 @@ function MasterplacePage() {
                   <ChevronDown className="h-4 w-4 text-[var(--color-subtle)]" />
                 )}
               </button>
-              {showLab && <AplusOps />}
+              {showLab && (
+                <div className="space-y-6">
+                  <AplusOps />
+                  <ReplayReport />
+                  <BridgeStatus />
+                </div>
+              )}
             </div>
           </div>
+        )}
+
+        {logCandidate && (
+          <LogSetupDialog
+            candidate={logCandidate}
+            equity={equity}
+            killzone={desk?.clock.killzone}
+            open={!!logCandidate}
+            onOpenChange={(o) => !o && setLogCandidate(null)}
+            onLogged={() => void loadRisk()}
+          />
         )}
 
         <footer className="mt-12 border-t border-[var(--color-border)] pt-6 text-center text-xs text-[var(--color-subtle)]">

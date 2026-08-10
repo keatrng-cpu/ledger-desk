@@ -16,9 +16,9 @@ agency's own schedule on 2026-08-10:
 | Employment Situation (NFP) Sep 4, 08:30 | bls.gov/schedule/news_release/empsit.htm |
 | GDP Q2 2nd est + PCE (Jul) Aug 26, 08:30 (same day per BEA) | bea.gov/news/schedule |
 | Retail Sales (Advance) Aug 14 + Sep 16, 08:30 | census.gov/retail/release_schedule.html |
-| ISM Mfg Sep 1 + Services Sep 3, 10:00 | ismworld.org rob-report-calendar |
-| FOMC decision Sep 15–16 meeting (statement Sep 16 14:00) | federalreserve.gov/monetarypolicy/fomccalendars.htm |
-| FOMC minutes Aug 19 14:00 | Derived: Fed states minutes release exactly 3 weeks after the policy decision (Jul 29 + 21d = Aug 19; pattern confirmed on every 2026 meeting listed) |
+| ISM Mfg Sep 1 + Services Sep 3, 10:00 | ismworld.org July Manufacturing + Services report pages ("will be released at 10:00 a.m. ET on …"). NOTE: the `rob-report-calendar` page is captcha-walled and cannot be fetched programmatically — use the current month's report pages instead. |
+| FOMC decision Sep 15–16 meeting (statement Sep 16 14:00) | federalreserve.gov/monetarypolicy/fomccalendars.htm + newsevents/2026-september.htm |
+| FOMC minutes Aug 19 14:00 | **Published, not derived**: federalreserve.gov/newsevents/2026-august.htm lists "FOMC Minutes / Meeting of July 28-29" on the 19th at 2:00 p.m. (The Fed's own wording is minutes are *generally* released three weeks after the policy decision — treat the 3-week rule as a hint, never as a source.) |
 
 ## Weekly maintenance (do this every Sunday)
 
@@ -28,8 +28,23 @@ agency's own schedule on 2026-08-10:
    file always covers "today + ~5 weeks".
 3. Keep `timeEt` in ET. BLS/BEA/Census releases are 08:30, ISM 10:00, FOMC
    statement 14:00, minutes 14:00. If an agency shifts a time, the schedule
-   page is the truth.
+   page is the truth. Caveat: only BLS ("All times on calendar are Eastern
+   Time"), ISM ("a.m. ET") and the Fed state a timezone explicitly. BEA and
+   Census print a bare "8:30 am" — ET is the long-standing convention for both,
+   but it is not verifiable from their pages.
 4. High = CPI, PPI, NFP, Retail Sales, PCE, FOMC (decision + minutes), ISM,
    GDP advance. Medium = GDP 2nd/3rd estimates and anything secondary.
 5. Never invent a date. If a release cannot be verified from the issuing
    agency, leave it out — `newsRead` degrades gracefully to "clear".
+
+## Known coverage gaps (independent verification, 2026-08-10)
+
+The dates in the file are all correct, but the file is **not exhaustive**, and
+`newsRead` returning "clear" therefore does not prove the tape is quiet. Absent
+in-window agency releases, highest risk first:
+
+- **Weekly initial jobless claims — every Thursday 08:30 ET (DOL/ETA).** Lands
+  inside the NY AM killzone 52 times a year and is entirely missing. Add these
+  before trusting the gate on a Thursday morning.
+- JOLTS Sep 1 10:00 · Beige Book Sep 2 14:00 · BEA International Trade Sep 3
+  08:30 · BLS Import/Export Price Indexes Aug 18 + Sep 16 08:30.

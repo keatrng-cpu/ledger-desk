@@ -50,9 +50,15 @@ export function scanSetups(
   left: HtfBiasRead,
   right: HtfBiasRead,
   clock: SessionClock,
+  /**
+   * Optional swing-based SMT divergence (structure.smtDivergence). When given it
+   * becomes the primary SMT signal and the %-change spread is demoted to color;
+   * omitted, smtRead keeps its original two-arg behavior.
+   */
+  divergence?: Parameters<typeof smtRead>[2],
 ): ScanResult {
   const floor = APLUS_RULES.confluenceFloor;
-  const smt = smtRead(left, right);
+  const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
   if (!clock.isWeekday) blocked.push("Weekend — plan only, no session entries");
   if (!clock.inTradeWindow)

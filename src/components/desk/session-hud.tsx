@@ -7,6 +7,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import { NewsChip } from "@/components/desk/news-chip";
 import { cn } from "@/lib/utils";
 
 export function SessionHud({
@@ -48,6 +49,8 @@ export function SessionHud({
           <Zap className="h-3.5 w-3.5" />
           {clock.killzoneLabel}
         </div>
+
+        <NewsChip />
 
         <div className="hidden items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-muted)] sm:flex">
           <Crosshair className="h-3.5 w-3.5 text-[var(--color-primary)]" />

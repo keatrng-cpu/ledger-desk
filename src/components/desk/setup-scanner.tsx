@@ -1,4 +1,5 @@
-import { AlertTriangle, CheckCircle2, Target } from "lucide-react";
+import { AlertTriangle, CheckCircle2, NotebookPen, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,15 @@ function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
   );
 }
 
-function SetupCard({ c }: { c: SetupCandidate }) {
+function SetupCard({
+  c,
+  onLog,
+  entryAllowed = true,
+}: {
+  c: SetupCandidate;
+  onLog?: (c: SetupCandidate) => void;
+  entryAllowed?: boolean;
+}) {
   return (
     <article
       className={cn(
@@ -47,19 +56,42 @@ function SetupCard({ c }: { c: SetupCandidate }) {
               </span>
             </h3>
             <GradeBadge g={c.grade} />
-            {c.actionable && (
+            {c.actionable && entryAllowed && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
                 <CheckCircle2 className="h-3 w-3" /> actionable
+              </span>
+            )}
+            {c.actionable && !entryAllowed && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-warn)]">
+                <AlertTriangle className="h-3 w-3" /> risk gate — no entries
               </span>
             )}
           </div>
           <p className="mt-0.5 text-xs text-[var(--color-subtle)]">{c.title}</p>
         </div>
-        <div className="text-right font-mono">
-          <p className="text-lg font-semibold tabular text-[var(--color-fg)]">
-            {c.confluence.toFixed(2)}
-          </p>
-          <p className="text-[10px] text-[var(--color-subtle)]">pre-score</p>
+        <div className="flex items-start gap-2">
+          <div className="text-right font-mono">
+            <p className="text-lg font-semibold tabular text-[var(--color-fg)]">
+              {c.confluence.toFixed(2)}
+            </p>
+            <p className="text-[10px] text-[var(--color-subtle)]">pre-score</p>
+          </div>
+          {onLog && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => onLog(c)}
+              title={
+                entryAllowed
+                  ? "Log this setup to the journal"
+                  : "Risk gate active — journal it as a skip"
+              }
+            >
+              <NotebookPen className="h-3.5 w-3.5" />
+              Log
+            </Button>
+          )}
         </div>
       </div>
 
@@ -121,7 +153,17 @@ function SetupCard({ c }: { c: SetupCandidate }) {
   );
 }
 
-export function SetupScanner({ scan }: { scan: ScanResult }) {
+export function SetupScanner({
+  scan,
+  onLog,
+  entryAllowed = true,
+}: {
+  scan: ScanResult;
+  /** Opens the journal dialog for a candidate. Journaling skips is valuable too. */
+  onLog?: (c: SetupCandidate) => void;
+  /** False when the risk governor has halted entries (daily/weekly/KZ cap). */
+  entryAllowed?: boolean;
+}) {
   return (
     <section>
       <header className="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -159,7 +201,12 @@ export function SetupScanner({ scan }: { scan: ScanResult }) {
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {scan.candidates.map((c) => (
-          <SetupCard key={c.id} c={c} />
+          <SetupCard
+            key={c.id}
+            c={c}
+            onLog={onLog}
+            entryAllowed={entryAllowed}
+          />
         ))}
       </div>
     </section>

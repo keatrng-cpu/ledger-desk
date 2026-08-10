@@ -10,8 +10,14 @@ import {
 } from "@/lib/market/yahoo";
 import type { IndexSymbol, LiveQuote, SymbolSeries } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
-import { analyzeStructure, type HtfBiasRead } from "./structure";
+import {
+  analyzeStructure,
+  referenceLevels,
+  smtDivergence,
+  type HtfBiasRead,
+} from "./structure";
 import { scanSetups, type ScanResult } from "./scanner";
+import { newsRead, type NewsRead } from "./news";
 
 export interface DeskPayload {
   ok: true;
@@ -36,6 +42,7 @@ export interface DeskPayload {
     symbol: string;
     items: { name: string; price: number; kind: string }[];
   }[];
+  news: NewsRead;
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
 }
 
@@ -64,28 +71,8 @@ async function quote(symbol: IndexSymbol) {
   return syntheticQuote(symbol);
 }
 
-function levelsFrom(read: HtfBiasRead) {
-  const items: { name: string; price: number; kind: string }[] = [];
-  if (read.pdh != null)
-    items.push({ name: "PDH", price: read.pdh, kind: "prior" });
-  if (read.pdl != null)
-    items.push({ name: "PDL", price: read.pdl, kind: "prior" });
-  if (read.dayOpen != null)
-    items.push({ name: "Day open", price: read.dayOpen, kind: "open" });
-  if (read.dealing) {
-    items.push({ name: "Range high", price: read.dealing.high, kind: "range" });
-    items.push({ name: "EQ", price: read.dealing.eq, kind: "range" });
-    items.push({ name: "Range low", price: read.dealing.low, kind: "range" });
-  }
-  for (const l of read.liquidity.slice(0, 4)) {
-    items.push({
-      name: l.label,
-      price: l.price,
-      kind: l.side,
-    });
-  }
-  return items.sort((a, b) => b.price - a.price);
-}
+// levelsFrom() was replaced by structure.referenceLevels(), which adds PWH/PWL
+// and the midnight / 8:30 / 9:30 ET opens on top of the same row shape.
 
 export const fetchTradingDesk = createServerFn({ method: "POST" })
   .validator((input: { left?: IndexSymbol; right?: IndexSymbol }) => {
@@ -96,10 +83,12 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<DeskPayload | DeskError> => {
     try {
       const clock = getSessionClock();
-      // 5d 15m for structure + liquidity; solid mid-context
+      // 1mo 15m: 5d left the prior trading week only partially covered, so
+      // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
+      // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
       const [left, right, lq, rq] = await Promise.all([
-        load(data.left, "5d", "15m"),
-        load(data.right, "5d", "15m"),
+        load(data.left, "1mo", "15m"),
+        load(data.right, "1mo", "15m"),
         quote(data.left),
         quote(data.right),
       ]);
@@ -115,7 +104,20 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
 
       const biasL = analyzeStructure(left.symbol, left.bars, left.changePct);
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
-      const scan = scanSetups(biasL, biasR, clock);
+      // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
+      const divergence = smtDivergence(left.bars, right.bars);
+      const scan = scanSetups(biasL, biasR, clock, divergence);
+
+      // News gate: a scheduled high-impact release inside the risk window kills
+      // actionability the same way bad data does — the engine skips these too.
+      const news = newsRead(new Date());
+      if (news.verdict === "blackout") {
+        for (const c of scan.candidates) c.actionable = false;
+        scan.blocked.push(`News blackout: ${news.reason}`);
+        scan.focus = `News blackout — ${news.reason} Stand down.`;
+      } else if (news.verdict === "caution") {
+        scan.blocked.push(`News caution: ${news.reason}`);
+      }
 
       // Data-quality gate: a synthetic series or a badly lagged quote makes
       // structure + scanner untrustworthy — nothing is actionable on bad data.
@@ -192,9 +194,10 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           micros: APLUS_RULES.useMicros,
         },
         levels: [
-          { symbol: left.symbol, items: levelsFrom(biasL) },
-          { symbol: right.symbol, items: levelsFrom(biasR) },
+          { symbol: left.symbol, items: referenceLevels(biasL) },
+          { symbol: right.symbol, items: referenceLevels(biasR) },
         ],
+        news,
         checklist,
       };
     } catch (e) {
