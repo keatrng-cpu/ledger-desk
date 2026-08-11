@@ -17,6 +17,7 @@ import {
   type HtfBiasRead,
 } from "./structure";
 import { scanSetups, type ScanResult } from "./scanner";
+import { drawOnLiquidity, type DrawRead } from "./draw";
 import { newsRead, type NewsRead } from "./news";
 
 export interface DeskPayload {
@@ -43,6 +44,8 @@ export interface DeskPayload {
     items: { name: string; price: number; kind: string }[];
   }[];
   news: NewsRead;
+  /** Where price is likely drawn, per symbol — empirical, from past sessions. */
+  draws: { left: DrawRead; right: DrawRead };
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
 }
 
@@ -106,7 +109,15 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
       const divergence = smtDivergence(left.bars, right.bars);
-      const scan = scanSetups(biasL, biasR, clock, divergence);
+
+      // Draw on liquidity — which specific level is price likely headed to,
+      // scored from PAST sessions' actual remaining-excursion distribution
+      // plus current distance/liquidity/bias. Feeds the scanner's targets.
+      const drawL = drawOnLiquidity(biasL, left.bars);
+      const drawR = drawOnLiquidity(biasR, right.bars);
+      const draws = { [left.symbol]: drawL, [right.symbol]: drawR };
+
+      const scan = scanSetups(biasL, biasR, clock, divergence, draws);
 
       // News gate: a scheduled high-impact release inside the risk window kills
       // actionability the same way bad data does — the engine skips these too.
@@ -198,6 +209,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           { symbol: right.symbol, items: referenceLevels(biasR) },
         ],
         news,
+        draws: { left: drawL, right: drawR },
         checklist,
       };
     } catch (e) {

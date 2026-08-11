@@ -97,6 +97,17 @@ async function yahooChart(
   return json;
 }
 
+/**
+ * Max single-bar close-to-close move accepted as a real print, not a bad
+ * tick. Index futures circuit-breaker halts trip around 7-13%; 25% leaves
+ * generous room for a real gap (weekend reopen, news) while still catching
+ * the Yahoo failure modes this exists for: a stray 0, a decimal-place error,
+ * a corrupted illiquid/after-hours print. Structure analysis treats HTF bias
+ * as an ABSOLUTE gate on trades (CLAUDE.md) — one bad bar becoming a real
+ * swing point can flip it, so bad prints are dropped here, not downstream.
+ */
+const MAX_BAR_MOVE_PCT = 0.25;
+
 export function parseYahooChart(payload: YahooChartResult): OhlcBar[] {
   const result = payload.chart?.result?.[0];
   if (!result?.timestamp?.length) return [];
@@ -117,7 +128,13 @@ export function parseYahooChart(payload: YahooChartResult): OhlcBar[] {
       !Number.isFinite(o) ||
       !Number.isFinite(h) ||
       !Number.isFinite(l) ||
-      !Number.isFinite(c)
+      !Number.isFinite(c) ||
+      // Economic sanity, not just "is it a number": a zero/negative print is
+      // never a real index-future price and must not become a swing point.
+      o <= 0 ||
+      h <= 0 ||
+      l <= 0 ||
+      c <= 0
     ) {
       continue;
     }
@@ -142,7 +159,20 @@ export function parseYahooChart(payload: YahooChartResult): OhlcBar[] {
       dedup.push(b);
     }
   }
-  return dedup;
+
+  // Outlier pass, in time order: drop any bar whose close jumps > MAX_BAR_MOVE_PCT
+  // from the last ACCEPTED close (so one bad tick can't also poison the bar
+  // right after it by becoming the new reference point).
+  const clean: OhlcBar[] = [];
+  let prevClose: number | null = null;
+  for (const b of dedup) {
+    if (prevClose != null && Math.abs(b.c - prevClose) / prevClose > MAX_BAR_MOVE_PCT) {
+      continue;
+    }
+    clean.push(b);
+    prevClose = b.c;
+  }
+  return clean;
 }
 
 const MAX_BARS = 800;
@@ -160,7 +190,15 @@ export async function fetchYahooLiveQuote(
     const json = await yahooChart(meta.yahoo, "1d", "1m");
     if (!json) return null;
     const m = json.chart?.result?.[0]?.meta;
-    if (!m?.regularMarketPrice || !m.regularMarketTime) return null;
+    // `!m.regularMarketPrice` only rejects 0/undefined — `!(-5)` is `false`
+    // in JS, so a negative print would otherwise pass straight through.
+    if (
+      !m?.regularMarketPrice ||
+      m.regularMarketPrice <= 0 ||
+      !m.regularMarketTime
+    ) {
+      return null;
+    }
 
     const price = m.regularMarketPrice;
     const prev =

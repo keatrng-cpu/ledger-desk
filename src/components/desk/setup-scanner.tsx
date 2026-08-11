@@ -110,13 +110,44 @@ function SetupCard({
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Targets
+            Draw / targets
           </p>
           <p className="font-mono text-[var(--color-muted)]">
             {c.targets.slice(0, 2).join(" · ")}
           </p>
         </div>
       </div>
+
+      {/* The specific level this setup is drawn toward, and the empirical
+          evidence for it — not just "a level exists up there". */}
+      {c.draw && (
+        <div className="mb-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+              Likely draw
+            </p>
+            <p className="font-mono text-[11px] text-[var(--color-fg)]">
+              {c.draw.name} {c.draw.price.toFixed(2)}
+              <span
+                className={cn(
+                  "ml-2",
+                  c.draw.reachProbability >= 0.5
+                    ? "text-[var(--color-up)]"
+                    : "text-[var(--color-warn)]",
+                )}
+              >
+                {(c.draw.reachProbability * 100).toFixed(0)}% reach
+              </span>
+              <span className="ml-2 text-[var(--color-subtle)]">
+                {c.draw.distanceAtr.toFixed(2)} ATR
+              </span>
+            </p>
+          </div>
+          <p className="mt-0.5 text-[10px] leading-relaxed text-[var(--color-subtle)]">
+            {c.draw.why.slice(0, 3).join(" · ")}
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div>

@@ -16,7 +16,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
-import { CONTRACTS, type ContractKey } from "@/lib/aplus/config";
+import { computeTradePnl } from "@/lib/journal/pnl";
 import type { PaperExitEvent, PaperIntent, OpenPaperTrade } from "@/lib/trading/paper";
 import {
   countEngineEventsToday,
@@ -27,26 +27,35 @@ import {
 export const PAPER_MODE = "paper" as const;
 export const PAPER_SOURCE = "paper" as const;
 
-/** Point value + commission for a symbol; MNQ-like defaults for unknown ones. */
-function contractSpec(symbol: string) {
-  const key = symbol.toUpperCase() as ContractKey;
-  return CONTRACTS[key] ?? CONTRACTS.MNQ;
-}
-
-/** Net paper PnL in dollars — round-turn commission charged, slippage 0. */
-export function paperPnl(exit: PaperExitEvent, contracts: number): {
-  pnl: number;
-  commission: number;
-} {
-  const spec = contractSpec(exit.symbol);
-  const points =
-    exit.side === "long" ? exit.exit - exit.entry : exit.entry - exit.exit;
-  const commission = spec.commission * contracts * 2;
-  const gross = points * spec.pointValue * contracts;
-  return {
-    pnl: Math.round((gross - commission) * 100) / 100,
-    commission,
-  };
+/**
+ * Net paper PnL — delegates to the SHARED money math in `@/lib/journal/pnl`,
+ * the same function live `closeTrade` uses.
+ *
+ * Paper and live stay separate everywhere that matters (separate rows via
+ * mode='paper', separate analytics, and the live risk governor ignores paper
+ * entirely) — but they must be COMPUTED identically, or the paper track
+ * record isn't evidence for anything. This previously double-charged
+ * commission and stored a price-ratio `r` that ignored costs, so paper R was
+ * always exactly -1.00/+2.00 while the same live trade booked -1.05.
+ *
+ * `stop` is required here (not the PaperExitEvent's price-based `r`) so the
+ * persisted `r` is NET, matching live.
+ */
+export function paperPnl(
+  exit: PaperExitEvent,
+  contracts: number,
+  stop: number,
+): { pnl: number; commission: number; r: number | null } {
+  const { pnl, commission, r } = computeTradePnl({
+    symbol: exit.symbol,
+    side: exit.side,
+    entry: exit.entry,
+    exit: exit.exit,
+    stop,
+    contracts,
+    slippage: 0, // paper fills are modeled at the exact level, no slippage
+  });
+  return { pnl, commission, r };
 }
 
 interface PaperTradeRow {
@@ -120,14 +129,20 @@ export const commitPaperCycle = createServerFn({ method: "POST" })
 
     for (const intent of data.entries) {
       const id = `paper-${intent.symbol}-${intent.side}-${Date.parse(now)}-${opened}`;
-      await sql.query(
+      // Bare `on conflict do nothing` (not `on conflict (id)`) so the partial
+      // unique index from migrations/0005 — one OPEN position per
+      // mode+symbol+side — also resolves to a silent skip. Two racing cycles
+      // can no longer both open the same position: the loser inserts nothing
+      // and `returning` comes back empty.
+      const inserted = await sql.query<{ id: string }>(
         `insert into desk_trades
            (id, user_id, mode, source, symbol, side, status, opened_at,
             entry, stop, target, contracts, reason, prescore, grade,
             components_present, components_missing)
          values ($1, $2, $3, $4, $5, $6, 'open', $7::timestamptz,
                  $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16::jsonb)
-         on conflict (id) do nothing`,
+         on conflict do nothing
+         returning id`,
         [
           id,
           context.userId,
@@ -147,6 +162,8 @@ export const commitPaperCycle = createServerFn({ method: "POST" })
           JSON.stringify([]),
         ],
       );
+      // Lost the race (or a position was already open) — no row, no event.
+      if (!inserted.length) continue;
       await sql.query(
         `insert into desk_events
            (user_id, ts, event, symbol, prescore, reason, source, payload)
@@ -165,30 +182,38 @@ export const commitPaperCycle = createServerFn({ method: "POST" })
     }
 
     for (const exit of data.exits) {
-      const rows = await sql.query<{ contracts: number }>(
-        `select contracts from desk_trades
+      // Read the stop too: the persisted `r` must be NET (computed from the
+      // planned 1R), not the price-ratio `r` the client sent.
+      const rows = await sql.query<{ contracts: number; stop: string | number }>(
+        `select contracts, stop from desk_trades
           where id = $1 and user_id = $2 and mode = $3 and status = 'open'`,
         [exit.tradeId, context.userId, PAPER_MODE],
       );
-      const contracts = rows[0]?.contracts;
-      if (contracts == null) continue; // already closed, or not ours
-      const { pnl, commission } = paperPnl(exit, contracts);
-      await sql.query(
+      const row = rows[0];
+      if (row?.contracts == null) continue; // already closed, or not ours
+      const contracts = row.contracts;
+      const { pnl, commission, r } = paperPnl(exit, contracts, num(row.stop));
+      const updated = await sql.query<{ id: string }>(
         `update desk_trades
             set status = 'closed', closed_at = $1::timestamptz, exit = $2,
                 pnl = $3, r = $4, commission = $5, slippage = 0, reason = $6
-          where id = $7 and user_id = $8 and status = 'open'`,
+          where id = $7 and user_id = $8 and status = 'open'
+          returning id`,
         [
           now,
           exit.exit,
           pnl,
-          exit.r,
+          r,
           commission,
           exit.reason,
           exit.tradeId,
           context.userId,
         ],
       );
+      // Only log the EXIT event if THIS call actually closed the row. Two
+      // racing cycles would otherwise each append an EXIT for one close,
+      // double-counting exits in the audit tape.
+      if (!updated.length) continue;
       await sql.query(
         `insert into desk_events
            (user_id, ts, event, symbol, reason, pnl, r, source, payload)
@@ -199,7 +224,7 @@ export const commitPaperCycle = createServerFn({ method: "POST" })
           exit.symbol,
           exit.reason,
           pnl,
-          exit.r,
+          r,
           PAPER_SOURCE,
           JSON.stringify({ trade_id: exit.tradeId, paper: true, outcome: exit.outcome }),
         ],

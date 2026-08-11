@@ -14,6 +14,7 @@ import { z } from "zod";
 import { getSql, type Sql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
+import { computeTradePnl, isKnownSymbol } from "./pnl";
 import { getSessionClock } from "@/lib/trading/sessions";
 import {
   computeRiskFlags,
@@ -349,6 +350,22 @@ export const openTrade = createServerFn({ method: "POST" })
       ? JSON.stringify(data.componentsMissing)
       : null;
 
+    // A partial unique index (migrations/0005) allows only ONE open position
+    // per mode+symbol+side. Surface that as a readable message instead of a
+    // raw Postgres constraint error — and note it is per MODE, so an open
+    // paper position never blocks the equivalent live entry.
+    const existing = await sql.query<{ id: string }>(
+      `select id from desk_trades
+        where user_id = $1 and mode = $2 and symbol = $3 and side = $4
+          and status = 'open'`,
+      [context.userId, data.mode, data.symbol, data.side],
+    );
+    if (existing.length) {
+      throw new Error(
+        `Already holding an open ${data.mode} ${data.side} in ${data.symbol}. Close it before adding another — one idea per instrument.`,
+      );
+    }
+
     const rows = await sql.query<TradeRow>(
       `insert into desk_trades (
          id, user_id, mode, source, symbol, side, status, opened_at, entry,
@@ -413,22 +430,20 @@ export const closeTrade = createServerFn({ method: "POST" })
     const trade = open[0];
     if (!trade) throw new Error("Open trade not found");
 
-    const contract = CONTRACTS[trade.symbol as ContractKey];
-    if (!contract) throw new Error(`Unknown contract symbol: ${trade.symbol}`);
+    if (!isKnownSymbol(trade.symbol)) {
+      throw new Error(`Unknown contract symbol: ${trade.symbol}`);
+    }
 
-    const dir = trade.side === "long" ? 1 : -1;
-    const commission = contract.commission * trade.contracts;
-    const gross =
-      (data.exit - trade.entry) * contract.pointValue * trade.contracts * dir;
-    const pnl = gross - commission - data.slippage;
-    // 1R = planned dollar risk (|entry - stop| * pointValue * contracts).
-    const riskDollars =
-      trade.stop != null
-        ? Math.abs(trade.entry - trade.stop) *
-          contract.pointValue *
-          trade.contracts
-        : 0;
-    const r = riskDollars > 0 ? pnl / riskDollars : null;
+    // Shared money math — paper uses the exact same function (see pnl.ts).
+    const { pnl, commission, r } = computeTradePnl({
+      symbol: trade.symbol,
+      side: trade.side,
+      entry: trade.entry,
+      exit: data.exit,
+      stop: trade.stop,
+      contracts: trade.contracts,
+      slippage: data.slippage,
+    });
 
     const now = new Date();
     const rows = await sql.query<TradeRow>(

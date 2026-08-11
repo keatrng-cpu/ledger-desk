@@ -11,6 +11,7 @@ import {
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
 import { BridgeStatus } from "@/components/bridge/bridge-status";
+import { AnalyticsPanel } from "@/components/journal/analytics-panel";
 import { HaltBanner } from "@/components/journal/halt-banner";
 import { JournalPanel } from "@/components/journal/journal-panel";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
@@ -28,6 +29,7 @@ import {
   type DeskPayload,
 } from "@/lib/trading/build-desk";
 import { getRiskState, getSettings } from "@/lib/journal/server";
+import { captureSnapshot } from "@/lib/journal/snapshots";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -50,26 +52,38 @@ function MasterplacePage() {
   const [equity, setEquity] = useState<number>(APLUS_RULES.accountEquity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
 
+  // Three states, not two: (1) still loading — fail SAFE, no green light on
+  // a page a genuinely-halted user just refreshed; (2) loaded but no session
+  // at all (signed-out preview) — there's no governor to speak of, so fall
+  // back to allowed (matches the existing "no governor UI" behavior below —
+  // the server still authoritatively rejects on write regardless); (3)
+  // loaded with real data — use the actual flags.
+  const [riskFetchState, setRiskFetchState] = useState<
+    "loading" | "no-session" | "ok"
+  >("loading");
+
   /**
    * Risk state is auth-scoped and fetched separately from the (unauthenticated)
    * desk build. Signed-out / preview sessions simply get no governor UI rather
-   * than an error — but note the desk NEVER shows entries as allowed while the
-   * governor is unknown-and-halted, because `entryAllowed` defaults to true only
-   * when there is no risk state at all (nothing logged yet = nothing to halt).
+   * than an error.
    */
   const loadRisk = useCallback(async () => {
     try {
       const [rs, s] = await Promise.all([getRiskState(), getSettings()]);
       setRisk(rs);
       setEquity(s.equity);
+      setRiskFetchState("ok");
     } catch {
-      /* signed out / no DB — governor UI stays hidden */
+      setRiskFetchState("no-session"); // signed out / no DB — governor UI stays hidden
     }
   }, []);
 
-  const entryAllowed = risk
-    ? !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit
-    : true;
+  const entryAllowed =
+    riskFetchState === "loading"
+      ? false
+      : riskFetchState === "no-session" || !risk
+        ? true
+        : !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -187,8 +201,9 @@ function MasterplacePage() {
                 ["#charts", "3 Charts"],
                 ["#liquidity", "4 Liquidity"],
                 ["#journal", "5 Journal"],
-                ["#risk", "6 Risk"],
-                ["#coach", "7 Coach"],
+                ["#analytics", "6 Analytics"],
+                ["#risk", "7 Risk"],
+                ["#coach", "8 Coach"],
                 ["#lab", "Lab"],
               ].map(([href, label]) => (
                 <a
@@ -236,6 +251,10 @@ function MasterplacePage() {
               <JournalPanel onChanged={() => void loadRisk()} />
             </div>
 
+            <div id="analytics">
+              <AnalyticsPanel />
+            </div>
+
             <div
               id="risk"
               className="grid grid-cols-1 gap-4 lg:grid-cols-2"
@@ -281,7 +300,40 @@ function MasterplacePage() {
             killzone={desk?.clock.killzone}
             open={!!logCandidate}
             onOpenChange={(o) => !o && setLogCandidate(null)}
-            onLogged={() => void loadRisk()}
+            onLogged={(trade) => {
+              void loadRisk();
+              // Freeze decision-time context against this trade. Reviewing a
+              // loss later from a chart that already shows the outcome is
+              // hindsight; this is what was actually on screen.
+              if (desk) {
+                void captureSnapshot({
+                  data: {
+                    tradeId: trade.id,
+                    symbol: trade.symbol,
+                    killzone: desk.clock.killzone,
+                    htfLeft: desk.bias.left.topDown,
+                    htfRight: desk.bias.right.topDown,
+                    newsVerdict: desk.news.verdict,
+                    dataQualityOk: !desk.scan.blocked.some((b) =>
+                      b.startsWith("Data quality"),
+                    ),
+                    bestPrescore: desk.scan.candidates[0]?.confluence ?? null,
+                    actionableCount: desk.scan.candidates.filter(
+                      (c) => c.actionable,
+                    ).length,
+                    payload: {
+                      clock: desk.clock,
+                      bias: desk.bias,
+                      scan: desk.scan,
+                      draws: desk.draws,
+                      levels: desk.levels,
+                      news: desk.news,
+                      quotes: desk.quotes,
+                    } as never,
+                  },
+                }).catch(() => undefined);
+              }
+            }}
           />
         )}
 

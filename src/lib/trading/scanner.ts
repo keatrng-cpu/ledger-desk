@@ -10,6 +10,11 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import type { SessionClock } from "./sessions";
 import type { HtfBiasRead } from "./structure";
 import { smtRead } from "./structure";
+import {
+  drawTargetsForSide,
+  type DrawRead,
+  type LiquidityTarget,
+} from "./draw";
 
 export type SetupSide = "long" | "short";
 
@@ -25,6 +30,12 @@ export interface SetupCandidate {
   entryZone: string;
   invalidation: string;
   targets: string[];
+  /**
+   * The specific liquidity level this setup is drawn toward, with its
+   * empirical reach rate from past sessions. Null when no draw read was
+   * supplied or nothing viable sits in the trade's direction.
+   */
+  draw: LiquidityTarget | null;
   killzoneOk: boolean;
   htfOk: boolean;
   actionable: boolean;
@@ -37,6 +48,32 @@ export interface ScanResult {
   blocked: string[];
   focus: string;
   smt: ReturnType<typeof smtRead>;
+}
+
+/**
+ * Resolve the draw for one symbol/side into display labels + the primary
+ * target. Labels carry the empirical base rate so the card shows WHY that
+ * level is the target, not just that it exists.
+ */
+function drawFor(
+  draws: Record<string, DrawRead | undefined> | undefined,
+  symbol: string,
+  side: SetupSide,
+): { labels: string[]; primary: LiquidityTarget | null } {
+  const draw = draws?.[symbol];
+  if (!draw) return { labels: [], primary: null };
+  const list = drawTargetsForSide(draw, side);
+  if (!list.length) return { labels: [], primary: null };
+  return {
+    labels: list
+      .slice(0, 3)
+      .map(
+        (t) =>
+          `${t.name} ${t.price.toFixed(2)} · ${(t.reachProbability * 100).toFixed(0)}%`,
+      ),
+    // Highest-scoring reachable level, not merely the nearest one.
+    primary: [...list].sort((a, b) => b.score - a.score)[0] ?? null,
+  };
 }
 
 function grade(score: number, floor: number): SetupCandidate["grade"] {
@@ -56,6 +93,14 @@ export function scanSetups(
    * omitted, smtRead keeps its original two-arg behavior.
    */
   divergence?: Parameters<typeof smtRead>[2],
+  /**
+   * Optional per-symbol draw-on-liquidity reads (trading/draw.ts). When given,
+   * targets become the SPECIFIC levels price is empirically likely to reach
+   * (with base rates from past sessions) instead of generic level names, and
+   * a candidate whose direction has no viable draw is penalized — a setup
+   * pointing at nothing is not a setup.
+   */
+  draws?: Record<string, DrawRead | undefined>,
 ): ScanResult {
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
@@ -127,6 +172,24 @@ export function scanSetups(
         reasons.push("Below PDH — room toward prior high");
       }
 
+      // Draw on liquidity: is there a level above that price is empirically
+      // likely to reach from here? A long into nothing is not a trade.
+      const drawL = drawFor(draws, read.symbol, "long");
+      if (drawL.primary) {
+        if (drawL.primary.reachProbability >= 0.5) {
+          score += 0.08;
+          reasons.push(
+            `Draw: ${drawL.primary.name} ${drawL.primary.price.toFixed(2)} (${(drawL.primary.reachProbability * 100).toFixed(0)}% base rate, ${drawL.primary.distanceAtr.toFixed(2)} ATR)`,
+          );
+        } else {
+          missing.push(
+            `strong draw above (best ${drawL.primary.name} only ${(drawL.primary.reachProbability * 100).toFixed(0)}%)`,
+          );
+        }
+      } else if (draws) {
+        missing.push("no liquidity draw above — nothing to target");
+      }
+
       score = Math.min(0.98, score);
       const g = grade(score, floor);
       const actionable =
@@ -147,11 +210,14 @@ export function scanSetups(
         invalidation: read.pdl
           ? `Below PDL ${read.pdl.toFixed(2)} / last sellside`
           : "Below last protected low",
-        targets: [
-          read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "Mid range",
-          read.pdh ? `PDH ${read.pdh.toFixed(2)}` : "Prior day high",
-          "External buyside pool",
-        ],
+        targets: drawL.labels.length
+          ? drawL.labels
+          : [
+              read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "Mid range",
+              read.pdh ? `PDH ${read.pdh.toFixed(2)}` : "Prior day high",
+              "External buyside pool",
+            ],
+        draw: drawL.primary,
         killzoneOk,
         htfOk,
         actionable,
@@ -208,6 +274,23 @@ export function scanSetups(
         reasons.push(`Killzone: ${clock.killzoneLabel}`);
       } else missing.push("active killzone");
 
+      // Draw on liquidity below — same logic as the long path, mirrored.
+      const drawS = drawFor(draws, read.symbol, "short");
+      if (drawS.primary) {
+        if (drawS.primary.reachProbability >= 0.5) {
+          score += 0.08;
+          reasons.push(
+            `Draw: ${drawS.primary.name} ${drawS.primary.price.toFixed(2)} (${(drawS.primary.reachProbability * 100).toFixed(0)}% base rate, ${drawS.primary.distanceAtr.toFixed(2)} ATR)`,
+          );
+        } else {
+          missing.push(
+            `strong draw below (best ${drawS.primary.name} only ${(drawS.primary.reachProbability * 100).toFixed(0)}%)`,
+          );
+        }
+      } else if (draws) {
+        missing.push("no liquidity draw below — nothing to target");
+      }
+
       score = Math.min(0.98, score);
       const g = grade(score, floor);
       const actionable =
@@ -228,11 +311,14 @@ export function scanSetups(
         invalidation: read.pdh
           ? `Above PDH ${read.pdh.toFixed(2)} / last buyside`
           : "Above last protected high",
-        targets: [
-          read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "Mid range",
-          read.pdl ? `PDL ${read.pdl.toFixed(2)}` : "Prior day low",
-          "External sellside pool",
-        ],
+        targets: drawS.labels.length
+          ? drawS.labels
+          : [
+              read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "Mid range",
+              read.pdl ? `PDL ${read.pdl.toFixed(2)}` : "Prior day low",
+              "External sellside pool",
+            ],
+        draw: drawS.primary,
         killzoneOk,
         htfOk,
         actionable,
