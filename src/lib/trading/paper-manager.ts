@@ -61,6 +61,8 @@ export interface PaperTrade {
   scaleLegs: { at: string; price: number; contracts: number; r: number; note: string }[];
   reason: string;
   pathBand?: string;
+  /** Already pushed into desk-memory brain rates */
+  ingested?: boolean;
 }
 
 function parseNums(text: string | undefined | null): number[] {
@@ -425,21 +427,25 @@ function finalizeClose(
   }, 0);
   t.rMultiple = +totalR.toFixed(3);
   t.pnlUsd = +totalUsd.toFixed(2);
-  ingestPaperFill({
-    symbol: t.displaySymbol,
-    side: t.side,
-    strategy: t.strategy,
-    band: t.pathBand || t.grade,
-    grade: t.grade,
-    score: t.score,
-    r: t.rMultiple,
-    usd: t.pnlUsd,
-    exit: t.exitReason || "close",
-    entry: t.entry,
-    exitPx: t.exit,
-    reason: t.exitReason,
-    applyEquity: true,
-  });
+  if (!t.ingested) {
+    ingestPaperFill({
+      symbol: t.displaySymbol,
+      side: t.side,
+      strategy: t.strategy,
+      band: t.pathBand || t.grade,
+      grade: t.grade,
+      score: t.score,
+      r: t.rMultiple!,
+      usd: t.pnlUsd!,
+      exit: t.exitReason || "close",
+      entry: t.entry,
+      exitPx: t.exit,
+      reason: t.exitReason,
+      applyEquity: true,
+      tradeId: t.id,
+    });
+    t.ingested = true;
+  }
   setOpenPaperCount(
     loadPaperTrades().filter((x) => x.status === "open" && x.id !== t.id).length,
   );
@@ -643,21 +649,25 @@ export function closePaperTrade(
   }, 0);
   t.rMultiple = +totalR.toFixed(3);
   t.pnlUsd = +totalUsd.toFixed(2);
-  ingestPaperFill({
-    symbol: t.displaySymbol,
-    side: t.side,
-    strategy: t.strategy,
-    band: t.pathBand || t.grade,
-    grade: t.grade,
-    score: t.score,
-    r: t.rMultiple,
-    usd: t.pnlUsd,
-    exit: reason,
-    entry: t.entry,
-    exitPx: exitPrice,
-    reason,
-    applyEquity: true,
-  });
+  if (!t.ingested) {
+    ingestPaperFill({
+      symbol: t.displaySymbol,
+      side: t.side,
+      strategy: t.strategy,
+      band: t.pathBand || t.grade,
+      grade: t.grade,
+      score: t.score,
+      r: t.rMultiple!,
+      usd: t.pnlUsd!,
+      exit: reason,
+      entry: t.entry,
+      exitPx: exitPrice,
+      reason,
+      applyEquity: true,
+      tradeId: t.id,
+    });
+    t.ingested = true;
+  }
   savePaperTrades(all);
   setOpenPaperCount(listOpenPaperTrades().filter((x) => x.id !== id).length);
   if (typeof window !== "undefined") {
@@ -707,6 +717,70 @@ export function closeOpenAtStructureLow(
     }
   }
   return closed;
+}
+
+/**
+ * Sync all closed paper trades into desk-memory (equity + rates + brain).
+ * Idempotent via trade.ingested / tradeId in memory.
+ * Call on app load and after any paper event so the whole UI stays connected.
+ */
+export function reconcilePaperBookToMemory(): {
+  synced: number;
+  equity: number;
+  open: number;
+} {
+  const all = loadPaperTrades();
+  let synced = 0;
+  for (const tr of all) {
+    if (tr.status !== "closed") continue;
+    if (tr.ingested) continue;
+    if (tr.rMultiple == null || tr.pnlUsd == null) {
+      // recompute if missing
+      const sign = tr.side === "long" ? 1 : -1;
+      if (tr.exit != null && tr.riskPts > 0) {
+        tr.rMultiple =
+          Math.round(
+            ((sign * (tr.exit - tr.entry)) / tr.riskPts) * 1000,
+          ) / 1000;
+        tr.pnlUsd =
+          Math.round(
+            (sign * (tr.exit - tr.entry) * pointValue(tr.symbol) * tr.contracts -
+              commission(tr.symbol) * tr.contracts) *
+              100,
+          ) / 100;
+      } else continue;
+    }
+    ingestPaperFill({
+      symbol: tr.displaySymbol,
+      side: tr.side,
+      strategy: tr.strategy,
+      band: tr.pathBand || tr.grade,
+      grade: tr.grade,
+      score: tr.score,
+      r: tr.rMultiple,
+      usd: tr.pnlUsd,
+      exit: tr.exitReason || "reconcile",
+      entry: tr.entry,
+      exitPx: tr.exit,
+      reason: tr.exitReason || "reconcile",
+      applyEquity: true,
+      tradeId: tr.id,
+    });
+    tr.ingested = true;
+    synced += 1;
+  }
+  if (synced) savePaperTrades(all);
+  setOpenPaperCount(all.filter((x) => x.status === "open").length);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ledger-memory"));
+    window.dispatchEvent(new Event("ledger-paper"));
+  }
+  const acc = getPaperAccount();
+  return {
+    synced,
+    equity: acc.equity,
+    open: all.filter((x) => x.status === "open").length,
+  };
 }
 
 export function paperTradeHistory(limit = 20): PaperTrade[] {

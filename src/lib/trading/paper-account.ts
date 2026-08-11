@@ -24,6 +24,14 @@ export interface PaperAccountSnapshot {
   winRate: number | null;
   expectancyR: number | null;
   drawdownPct: number;
+  /** One-click paper fills only */
+  paperTaken: number;
+  paperWins: number;
+  paperSumR: number;
+  paperSumUsd: number;
+  paperWinRate: number | null;
+  openPaperCount: number;
+  lastPaperLabel?: string;
   lastBacktestLabel?: string;
   lastBacktestWr?: number | null;
   lastBacktestSumR?: number | null;
@@ -47,9 +55,11 @@ export function getPaperAccount(state?: DeskMemoryState): PaperAccountSnapshot {
     s.book.pathTaken > 0 ? s.book.sumR / s.book.pathTaken : null;
   const dd =
     peak > 0 ? Math.max(0, ((peak - equity) / peak) * 100) : 0;
+  const paperTaken = s.book.paperTaken ?? 0;
+  const paperWins = s.book.paperWins ?? 0;
   return {
     equity,
-    startEquity: PAPER_START_EQUITY,
+    startEquity: s.book.startEquity || PAPER_START_EQUITY,
     peakEquity: peak,
     sumR: s.book.sumR,
     sumUsd: s.book.sumUsd,
@@ -59,6 +69,13 @@ export function getPaperAccount(state?: DeskMemoryState): PaperAccountSnapshot {
     winRate: wr,
     expectancyR: exp,
     drawdownPct: Math.round(dd * 100) / 100,
+    paperTaken,
+    paperWins,
+    paperSumR: s.book.paperSumR ?? 0,
+    paperSumUsd: s.book.paperSumUsd ?? 0,
+    paperWinRate: paperTaken > 0 ? paperWins / paperTaken : null,
+    openPaperCount: s.book.openPaperCount ?? 0,
+    lastPaperLabel: s.book.lastPaperLabel,
     lastBacktestLabel: s.book.lastBacktestLabel,
     lastBacktestWr: s.book.lastBacktestWr,
     lastBacktestSumR: s.book.lastBacktestSumR,
@@ -77,7 +94,7 @@ export function applyPaperPnl(usd: number, r?: number): PaperAccountSnapshot {
   state.book.equity = next;
   state.book.peakEquity = Math.max(peakFromState(state), next);
   if (r != null && Number.isFinite(r)) {
-    /* rates already handled by ingest; this is equity-only helper */
+    /* rates already handled by ingest */
   }
   state.book.updatedAt = Date.now();
   saveDeskMemory(state);
@@ -97,6 +114,15 @@ export function resetPaperAccount(opts?: {
   state.book.pathLosses = 0;
   state.book.sumR = 0;
   state.book.sumUsd = 0;
+  state.book.paperTaken = 0;
+  state.book.paperWins = 0;
+  state.book.paperLosses = 0;
+  state.book.paperSumR = 0;
+  state.book.paperSumUsd = 0;
+  state.book.lastPaperLabel = undefined;
+  state.book.lastPaperR = undefined;
+  state.book.lastPaperUsd = undefined;
+  state.book.openPaperCount = 0;
   state.book.lastBacktestLabel = undefined;
   state.book.lastBacktestPath = undefined;
   state.book.lastBacktestWr = undefined;
@@ -119,9 +145,16 @@ export function resetPaperAccount(opts?: {
 
 export function formatPaperChip(s?: PaperAccountSnapshot): string {
   const a = s ?? getPaperAccount();
-  const wr =
-    a.winRate != null ? `${(a.winRate * 100).toFixed(0)}%` : "—";
   const pnl = a.equity - a.startEquity;
   const pnlStr = `${pnl >= 0 ? "+" : ""}$${Math.round(pnl).toLocaleString()}`;
-  return `Paper $${Math.round(a.equity).toLocaleString()} (${pnlStr}) · PATH ${a.pathTaken} · WR ${wr} · ΣR ${a.sumR >= 0 ? "+" : ""}${a.sumR.toFixed(1)}`;
+  const live =
+    a.paperTaken > 0
+      ? ` · live ${a.paperTaken} WR ${
+          a.paperWinRate != null
+            ? (a.paperWinRate * 100).toFixed(0) + "%"
+            : "—"
+        } ΣR ${a.paperSumR >= 0 ? "+" : ""}${a.paperSumR.toFixed(1)}`
+      : " · live 0";
+  const open = a.openPaperCount > 0 ? ` · OPEN ${a.openPaperCount}` : "";
+  return `Paper $${Math.round(a.equity).toLocaleString()} (${pnlStr})${live}${open}`;
 }

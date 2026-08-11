@@ -26,6 +26,7 @@ import {
   managePaperTradesAgainstPrice,
   listOpenPaperTrades,
   closeOpenAtStructureLow,
+  reconcilePaperBookToMemory,
   type PaperTrade,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
@@ -170,12 +171,14 @@ function MasterplacePage() {
 
   const loadRisk = useCallback(async () => {
     try {
-      const [rs, s] = await Promise.all([getRiskState(), getSettings()]);
+      const [rs] = await Promise.all([getRiskState(), getSettings()]);
       publishRisk(rs);
       setRisk(rs);
-      setEquity(s.equity);
+      // Paper book equity is client desk-memory — never overwrite with server settings $100k
+      setEquity(getPaperAccount().equity);
       return rs;
     } catch {
+      setEquity(getPaperAccount().equity);
       return null;
     }
   }, [publishRisk]);
@@ -199,6 +202,13 @@ function MasterplacePage() {
       } else {
         setDesk(res);
         publishDesk(res, rs);
+        try {
+          reconcilePaperBookToMemory();
+        } catch {
+          /* */
+        }
+        publishMemory();
+        setEquity(getPaperAccount().equity);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Desk load failed");
@@ -209,15 +219,23 @@ function MasterplacePage() {
 
   
   useEffect(() => {
+    // Pull closed paper fills into brain/equity once (and on focus)
     const sync = () => {
+      try {
+        reconcilePaperBookToMemory();
+      } catch {
+        /* */
+      }
       publishMemory();
       setEquity(getPaperAccount().equity);
     };
-    sync();
+    sync(); // reconcile on boot
     window.addEventListener("ledger-memory", sync);
+    window.addEventListener("ledger-paper", sync);
     window.addEventListener("focus", sync);
     return () => {
       window.removeEventListener("ledger-memory", sync);
+      window.removeEventListener("ledger-paper", sync);
       window.removeEventListener("focus", sync);
     };
   }, [publishMemory]);
@@ -346,6 +364,8 @@ useEffect(() => {
     }
     const { closed } = managePaperTradesAgainstPrice(prices);
     if (closed.length) {
+      reconcilePaperBookToMemory();
+      publishMemory();
       const last = closed[closed.length - 1]!;
       setLastPaperClosed(last);
       setPaperToast(
@@ -372,6 +392,8 @@ useEffect(() => {
       [desk.right.symbol]: desk.quotes.right.price,
     });
     if (closed.length) {
+      reconcilePaperBookToMemory();
+      publishMemory();
       const last = closed[closed.length - 1]!;
       setLastPaperClosed(last);
       setPaperToast(
@@ -471,8 +493,22 @@ useEffect(() => {
               </span>
             </div>
             <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
-              Paper ${APLUS_RULES.paperEquity.toLocaleString()} · floor{" "}
-              {APLUS_RULES.confluenceFloor} · risk A+3/A2/A-1/B+0.5 · strategy-complete path · PATH only
+              Paper $
+              {Math.round(paper.equity).toLocaleString()}
+              {paper.paperTaken > 0
+                ? ` · live ${paper.paperTaken} WR ${
+                    paper.paperWinRate != null
+                      ? (paper.paperWinRate * 100).toFixed(0) + "%"
+                      : "—"
+                  } · ΣR ${paper.paperSumR >= 0 ? "+" : ""}${paper.paperSumR.toFixed(1)} · PnL ${
+                    paper.equity - paper.startEquity >= 0 ? "+" : ""
+                  }$${Math.round(paper.equity - paper.startEquity).toLocaleString()}`
+                : " · live paper 0 fills"}
+              {paper.openPaperCount > 0
+                ? ` · OPEN ${paper.openPaperCount}`
+                : ""}
+              {" · "}
+              floor {APLUS_RULES.confluenceFloor} · PATH only
             </p>
           </div>
           <Button

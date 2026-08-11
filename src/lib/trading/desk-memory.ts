@@ -452,8 +452,28 @@ export function ingestPaperFill(opts: {
   reason?: string;
   /** When true (default), move book equity by usd */
   applyEquity?: boolean;
+  /** Idempotency key from paper trade id */
+  tradeId?: string;
 }): DeskMemoryState {
   const state = loadDeskMemory();
+  // Skip if this paper trade already ingested
+  if (opts.tradeId) {
+    const dup = state.rates.recentFills.some(
+      (f) =>
+        (f as { tradeId?: string }).tradeId === opts.tradeId ||
+        (f.windowLabel === "paper-live" &&
+          f.symbol === opts.symbol &&
+          f.side === opts.side &&
+          Math.abs(f.r - opts.r) < 0.001 &&
+          Math.abs((f.usd || 0) - opts.usd) < 0.5),
+    );
+    const dupItem = state.items.some(
+      (i) =>
+        i.kind === "paper" &&
+        (i.payload as { tradeId?: string } | undefined)?.tradeId === opts.tradeId,
+    );
+    if (dup || dupItem) return state;
+  }
   const r = opts.r;
   const usd = opts.usd;
   const strategy = opts.strategy || "paper";
@@ -502,7 +522,7 @@ export function ingestPaperFill(opts: {
     });
   }
 
-  const fill: BacktestFillRecord = {
+  const fill: BacktestFillRecord & { tradeId?: string } = {
     date: new Date().toISOString().slice(0, 10),
     symbol: opts.symbol,
     side: opts.side,
@@ -514,6 +534,7 @@ export function ingestPaperFill(opts: {
     usd,
     exit: opts.reason || opts.exit,
     windowLabel: "paper-live",
+    tradeId: opts.tradeId,
   };
   state.rates.recentFills = [fill, ...state.rates.recentFills].slice(
     0,
