@@ -15,6 +15,7 @@ import {
   bucketExpectancy,
   type DeskMemoryState,
 } from "./desk-memory";
+import { narrativeCoachLines } from "./market-narrative";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { PROFIT_ACTION_FLOOR } from "./profit-path";
 import {
@@ -284,7 +285,7 @@ export function runVeteranBrain(
     }
     if (multiStrat) {
       score += 0.5;
-      green.push(`Multi-strategy: ${(rawBest.strategies || []).join(", ")}`);
+      green.push(`Models graded alone: ${(rawBest.strategies || []).join(", ")}`);
     }
     if (isBlakeLongDemoted(rawBest, counters)) {
       score -= 1.5;
@@ -395,6 +396,48 @@ export function runVeteranBrain(
       detail: `Slot $${risk.riskDollars.toFixed(0)} · grade 0.5–3% · risk-off 50%@1R`,
     });
     score += 0.5;
+  }
+
+  // 6b) Liquidity / confirmation narrative (SMC sequence)
+  const narrPkg = (desk as { narrative?: { left: any; right: any; summary: string } }).narrative;
+  if (narrPkg) {
+    const pick =
+      narrPkg.left.confirmation === "armed_entry" ||
+      narrPkg.left.confirmation === "confirmed"
+        ? narrPkg.left
+        : narrPkg.right.confirmation === "armed_entry" ||
+            narrPkg.right.confirmation === "confirmed"
+          ? narrPkg.right
+          : narrPkg.left;
+    const nTone =
+      pick.confirmation === "armed_entry"
+        ? "pass"
+        : pick.confirmation === "sweep_only"
+          ? "warn"
+          : "info";
+    layers.push({
+      id: "narrative",
+      label: "Liquidity story",
+      tone: nTone as "pass" | "warn" | "info" | "fail",
+      score:
+        pick.confirmation === "armed_entry"
+          ? 0.5
+          : pick.confirmation === "sweep_only"
+            ? -0.75
+            : 0,
+      detail: `${pick.class} · ${pick.confirmation} · entry ${pick.entryModel} · DOL ${pick.dol.target}`,
+    });
+    if (pick.confirmation === "armed_entry") {
+      score += 0.5;
+      green.push(
+        `Story armed (${pick.class}): ${pick.entryModel} — retest only`,
+      );
+    } else if (pick.confirmation === "sweep_only") {
+      score -= 0.75;
+      yellow.push("Sweep alone is not an entry — wait displacement + MSS");
+    }
+    // stash for monologue enrichment
+    (desk as any).__narrLines = narrativeCoachLines(pick).slice(0, 4);
   }
 
   // 7) Memory / book + backtest rates → live
@@ -752,6 +795,9 @@ export function runVeteranBrain(
     );
   }
   if (rateCard.advice[0]) monologue.push(rateCard.advice[0]!);
+  const narrLines = (desk as { __narrLines?: string[] }).__narrLines;
+  if (narrLines?.length) monologue.push(...narrLines);
+
 
   return {
     name: "Veteran · SMC/ICT",

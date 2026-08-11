@@ -32,6 +32,7 @@ import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
+import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
@@ -525,6 +526,15 @@ useEffect(() => {
                     title="PATH setups"
                     sub={`Only ≥${APLUS_RULES.confluenceFloor} + HTF · Log paper/live or skip`}
                   />
+                  {desk.narrative && (
+                    <MarketNarrativePanel
+                      left={desk.narrative.left}
+                      right={desk.narrative.right}
+                      leftLabel={desk.left.symbol}
+                      rightLabel={desk.right.symbol}
+                      summary={desk.narrative.summary}
+                    />
+                  )}
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}

@@ -23,6 +23,12 @@ import {
 } from "./structure";
 import { scanSetups, type ScanResult } from "./scanner";
 import { newsRead, type NewsRead } from "./news";
+import { summarizeDetectors } from "./detectors";
+import {
+  buildMarketNarrative,
+  dualNarrativeSummary,
+  type MarketNarrative,
+} from "./market-narrative";
 
 export interface DeskPayload {
   ok: true;
@@ -50,6 +56,8 @@ export interface DeskPayload {
   news: NewsRead;
   feed: "databento" | "yahoo" | "synthetic" | "mixed";
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
+  /** Liquidity + confirmation + entry narrative (per book) */
+  narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
 }
 
 export interface DeskError {
@@ -153,6 +161,19 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
       const divergence = smtDivergence(left.bars, right.bars);
       const scan = scanSetups(biasL, biasR, clock, divergence, left.bars, right.bars);
+      const detL = summarizeDetectors(left.bars);
+      const detR = summarizeDetectors(right.bars);
+      const dirL: "bull" | "bear" =
+        biasL.topDown === "bear" ? "bear" : "bull";
+      const dirR: "bull" | "bear" =
+        biasR.topDown === "bear" ? "bear" : "bull";
+      const narrL = buildMarketNarrative(biasL, detL, clock, dirL, left.bars);
+      const narrR = buildMarketNarrative(biasR, detR, clock, dirR, right.bars);
+      const narrative = {
+        left: narrL,
+        right: narrR,
+        summary: dualNarrativeSummary(narrL, narrR),
+      };
 
       // News gate: a scheduled high-impact release inside the risk window kills
       // actionability the same way bad data does — the engine skips these too.
@@ -163,6 +184,30 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         scan.focus = `News blackout — ${news.reason} Stand down.`;
       } else if (news.verdict === "caution") {
         scan.blocked.push(`News caution: ${news.reason}`);
+      }
+
+      // Research rule: sweep alone is never an entry
+      for (const c of scan.candidates) {
+        const n = c.symbol === left.symbol ? narrL : narrR;
+        if (n.confirmation === "sweep_only" && c.actionable) {
+          c.actionable = false;
+          c.reasons = [
+            ...c.reasons,
+            "veto: sweep without confirmation (displacement+MSS)",
+          ];
+        }
+        // Prefer models that match narrative story (tag only — no score stack)
+        if (n.preferredStrategies.length && c.strategyPrimary) {
+          const pref = n.preferredStrategies.includes(
+            c.strategyPrimary as never,
+          );
+          if (pref) {
+            c.reasons = [
+              ...c.reasons,
+              `narrative fit: ${n.class} ↔ ${c.strategyPrimary}`,
+            ];
+          }
+        }
       }
 
       // Live = databento or yahoo. Databento historical lag can be larger than
@@ -218,6 +263,16 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           detail: scan.focus,
         },
         {
+          id: "liquidity",
+          label: "Liquidity / confirmation",
+          ok:
+            narrL.confirmation === "armed_entry" ||
+            narrR.confirmation === "armed_entry" ||
+            narrL.confirmation === "confirmed" ||
+            narrR.confirmation === "confirmed",
+          detail: narrative.summary,
+        },
+        {
           id: "feed",
           label: "Market feed",
           ok: seriesLive,
@@ -263,6 +318,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         news,
         feed,
         checklist,
+        narrative,
       };
     } catch (e) {
       return {

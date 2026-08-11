@@ -23,6 +23,11 @@ import {
 import type { HtfBiasRead } from "./structure";
 import { smtRead } from "./structure";
 import { applyProfitPathToCandidate } from "./profit-path";
+import {
+  gradeAllStrategies,
+  structureLayerScore,
+  type StrategyMarketGrade,
+} from "./strategy-grade";
 
 export type SetupSide = "long" | "short";
 
@@ -55,6 +60,8 @@ export interface SetupCandidate {
   completeStrategy?: string;
   completeNote?: string;
   riskGrade?: string;
+  strategyBoard?: StrategyMarketGrade[];
+  structureScore?: number;
 }
 
 export interface ScanResult {
@@ -283,9 +290,20 @@ function scoreDirection(
   add("rejection", rejection, rejection ? "rejection wick" : undefined);
   add("daily_bias", read.daily === direction, `daily_bias ${read.daily}`);
 
-  let score = 0;
-  for (const k of present) score += WEIGHTS[k] ?? 0;
-  score = Math.min(0.99, +score.toFixed(4));
+  // Component bag is raw market truth. Score is NOT sum-of-all-strategies.
+  // 1) SMC/ICT structure layer  2) each model graded alone  3) best model wins
+  const htfOk = read.topDown === direction;
+  const killzoneOk = clock.inTradeWindow;
+  const conditionsOk = conditions.tradeable;
+
+  const structureScore = structureLayerScore(present);
+  const strategyBoard = gradeAllStrategies(present, {
+    htfOk,
+    killzoneOk,
+    conditionsOk,
+  });
+  const bestModel = strategyBoard[0]!;
+  const score = bestModel.fit;
 
   const matches = classify({
     direction,
@@ -299,12 +317,11 @@ function scoreDirection(
     ifvgInverted: ifvg.inverted,
     significantSweep: sig,
   });
-  const primary = primaryTag(matches);
-  const stratIds = matches.map((m) => m.strategy);
+  const primary = String(bestModel.id || primaryTag(matches));
+  const stratIds = strategyBoard
+    .filter((b) => b.fit >= 0.35 || b.complete)
+    .map((b) => b.id as import("./strategies").StrategyId);
 
-  const htfOk = read.topDown === direction;
-  const killzoneOk = clock.inTradeWindow;
-  const conditionsOk = conditions.tradeable;
   const g = grade(score, APLUS_RULES.confluenceFloor);
 
   const hasEntryModel =
@@ -312,23 +329,20 @@ function scoreDirection(
   const hasSweep =
     present.includes("sweep_significant") ||
     present.includes("mechanical_model");
-  // Soft pre-filter — strategy-native path applied in applyProfitPathToCandidate
   const actionable =
     g !== "skip" &&
     htfOk &&
     killzoneOk &&
     clock.isWeekday &&
     conditionsOk &&
+    bestModel.complete &&
     (hasEntryModel || present.includes("mechanical_model")) &&
     (hasSweep || present.includes("structure") || present.includes("mss")) &&
     score >= APLUS_RULES.confluenceFloor - 0.05;
 
   const titleParts = [
-    primary ? strategyLabel(primary) : "Unclassified",
-    ...stratIds
-      .filter((s) => s !== primary)
-      .slice(0, 2)
-      .map(strategyLabel),
+    bestModel.label ||
+      (primary ? strategyLabel(primary as never) : "Unclassified"),
   ];
 
   const zone = ifvg.zone;
@@ -348,16 +362,32 @@ function scoreDirection(
     grade: g,
     title: `${read.symbol} ${side} — ${titleParts.join(" · ")}`,
     reasons: [
-      ...stratIds.map((s) => `strategy:${s}`),
-      ...reasons.slice(0, 12),
+      `smc structure Q ${structureScore.toFixed(2)}`,
+      `best model: ${bestModel.label} fit ${bestModel.fit.toFixed(2)} (alone)`,
+      ...strategyBoard.slice(0, 4).map(
+        (b) =>
+          `${b.label}: fit ${b.fit.toFixed(2)}${b.complete ? " ✓" : " · " + b.missing.slice(0, 2).join(",")}`,
+      ),
+      ...reasons.slice(0, 8),
     ],
-    missing: missing
-      .filter((m) => !present.includes(m as ComponentKey))
-      .slice(0, 12),
+    missing: [
+      ...(bestModel.complete
+        ? []
+        : bestModel.missing.map((m) => `${bestModel.label}:${m}`)),
+      ...missing
+        .filter((m) => !present.includes(m as ComponentKey))
+        .slice(0, 8),
+    ],
     components: present,
     strategies: stratIds,
     strategyPrimary: primary,
-    strategyWhy: matches.flatMap((m) => m.reasons),
+    strategyWhy: [
+      bestModel.structureNote,
+      bestModel.note,
+      ...matches.flatMap((m) => m.reasons).slice(0, 4),
+    ],
+    strategyBoard,
+    structureScore,
     entryZone,
     invalidation:
       direction === "bull"

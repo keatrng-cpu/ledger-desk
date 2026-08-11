@@ -28,6 +28,61 @@ export const ALWAYS_SCAN: StrategyId[] = [
   "smt",
 ];
 
+/**
+ * Which market story each model is built for.
+ * Graded alone — never stacked for a higher confluence score.
+ */
+export const STRATEGY_NARRATIVE: Record<
+  StrategyId,
+  { story: "continuation" | "reversal" | "either"; entry: string; liquidity: string }
+> = {
+  mechanical: {
+    story: "either",
+    entry: "Ordered retest after sweep→displace→invert",
+    liquidity: "Significant sweep starts the sequence",
+  },
+  tjr: {
+    story: "either",
+    entry: "IFVG/FVG retest after significant sweep + structure",
+    liquidity: "Sweep then MSS — entry on retrace not chase",
+  },
+  judas: {
+    story: "reversal",
+    entry: "Session open sweep reverse into array retest",
+    liquidity: "Judas swing grabs session SSL/BSL then reverses",
+  },
+  pdi: {
+    story: "reversal",
+    entry: "CISD/displacement into IFVG",
+    liquidity: "Sweep + change in state of delivery",
+  },
+  patty: {
+    story: "reversal",
+    entry: "Sweep + displace into FVG",
+    liquidity: "External grab then delivery",
+  },
+  continuation: {
+    story: "continuation",
+    entry: "Pullback IFVG with mid bias held",
+    liquidity: "Internal liquidity; DOL toward external",
+  },
+  blake_mech: {
+    story: "either",
+    entry: "IFVG + structure/CISD + displacement",
+    liquidity: "Sweep preferred but structure path allowed",
+  },
+  ronan: {
+    story: "continuation",
+    entry: "Bias-aligned array with multi-TF agreement",
+    liquidity: "Seeks PD arrays in discount/premium",
+  },
+  smt: {
+    story: "either",
+    entry: "Relative strength — needs separate entry model",
+    liquidity: "Divergence at liquidity pools across indices",
+  },
+};
+
 export interface StrategyMatch {
   strategy: StrategyId;
   reasons: string[];

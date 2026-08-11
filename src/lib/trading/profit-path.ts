@@ -13,9 +13,9 @@ import {
   bandIsPath,
   bandToDisplayGrade,
   bandToRiskGrade,
-  bestCompleteStrategy,
+  bestStrategyGrade,
+  gradeAllStrategies,
   pathBand,
-  qualityScore,
   type PathBand,
 } from "./strategy-grade";
 import { promotePrimaryStrategy, goldStandardNote } from "./profit-rules";
@@ -91,27 +91,30 @@ export function isProfitPathEligible(g: ProfitGrade | PathBand): boolean {
 
 export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   const components = c.components || [];
-  const strategies = (c.strategies || []).map(String);
-  if (c.strategyPrimary && !strategies.includes(c.strategyPrimary)) {
-    strategies.unshift(c.strategyPrimary);
-  }
-
-  const completeHit = bestCompleteStrategy(strategies, components);
-  const complete = Boolean(completeHit?.complete);
-  const q = qualityScore({
-    confluence: c.confluence,
-    strategies,
+  // Grade each strategy independently vs market + shared SMC structure.
+  // Multi-strategy tags never inflate score.
+  const board = gradeAllStrategies(components, {
     htfOk: c.htfOk,
     killzoneOk: c.killzoneOk,
     conditionsOk: c.conditionsOk,
-    components,
   });
-  const band = pathBand({ quality: q, complete, htfOk: c.htfOk });
+  const best =
+    board[0] ??
+    bestStrategyGrade(components, {
+      htfOk: c.htfOk,
+      killzoneOk: c.killzoneOk,
+      conditionsOk: c.conditionsOk,
+    });
+  const complete = best.complete;
+  const q = best.fit;
+  const band = best.band;
   const riskGrade = bandToRiskGrade(band);
   const pathOk = bandIsPath(band);
 
   const next: SetupCandidate = { ...c };
-  // Preserve A vs A- distinctly (display + path)
+  next.strategyBoard = board;
+  next.structureScore = best.structureQ;
+  next.confluence = q;
   next.grade =
     band === "A+"
       ? "A+"
@@ -120,7 +123,6 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
         : band === "B" || band === "C"
           ? "B"
           : "skip";
-  // Tag true A band in reasons so UI can show A vs A-
   if (band === "A") {
     next.reasons = [...next.reasons, "band:A (2% risk)"];
   } else if (band === "A-") {
@@ -131,39 +133,41 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   next.pathBand = band;
   next.qualityScore = q;
   next.strategyComplete = complete;
-  next.completeStrategy = completeHit?.id ?? c.strategyPrimary ?? "";
-  next.completeNote = completeHit?.note ?? "no strategy stack";
+  next.completeStrategy = String(best.id);
+  next.completeNote = best.note;
   next.riskGrade = riskGrade;
+  next.strategyPrimary = String(best.id);
+  next.strategies = board
+    .filter((b) => b.fit >= 0.35 || b.complete)
+    .map((b) => b.id as never);
 
-  if (!complete && completeHit) {
+  if (!complete) {
     next.missing = [
-      `C incomplete: ${completeHit.note}`,
-      ...completeHit.missing.map((m) => `need:${m}`),
+      `C incomplete: ${best.note}`,
+      ...best.missing.map((m) => `need:${m}`),
       ...next.missing.filter((m) => !m.startsWith("incomplete:")),
     ];
-    next.reasons = [...next.reasons, `veto: ${completeHit.note}`];
-  } else if (complete && completeHit) {
     next.reasons = [
       ...next.reasons,
-      `C complete: ${completeHit.note}`,
-      `Q ${q.toFixed(2)} · band ${band}`,
+      `veto: ${best.note}`,
+      `structure Q ${best.structureQ.toFixed(2)} · model Q ${best.modelQ.toFixed(2)}`,
     ];
-    // Promote complete strategy as primary when better classified
-    if (completeHit.id) {
-      next.strategyPrimary = completeHit.id;
-      if (!next.strategies.includes(completeHit.id as never)) {
-        next.strategies = [completeHit.id as never, ...next.strategies];
-      }
-    }
+  } else {
+    next.reasons = [
+      ...next.reasons,
+      `C complete: ${best.note} (single model)`,
+      `Q ${q.toFixed(2)} · band ${band} · structure ${best.structureQ.toFixed(2)}`,
+    ];
   }
 
-  // Multi-strategy tag
-  if (new Set(strategies).size >= 2) {
-    next.reasons = [
-      ...next.reasons,
-      `multi-strategy ×${new Set(strategies).size}`,
-    ];
-  }
+  // Board snapshot — informational only
+  next.reasons = [
+    ...next.reasons,
+    `models alone: ${board
+      .slice(0, 4)
+      .map((b) => `${b.label} ${b.fit.toFixed(2)}${b.complete ? "✓" : ""}`)
+      .join(" · ")}`,
+  ];
 
   // A+ / A / A- all actionable when C-complete + HTF + conditions.
   // Killzone soft for path bands (backtest decisions already in NY AM).
