@@ -65,7 +65,7 @@ function firstNumber(s: string | undefined): number | undefined {
 function defaultsFrom(
   candidate: SetupCandidate,
   mode: "paper" | "live" = "paper",
-  equity = APLUS_RULES.paperEquity,
+  equity: number = 100_000,
 ): Partial<FormValues> {
   const levels = buildPaperLevels(candidate, equity);
   return {
