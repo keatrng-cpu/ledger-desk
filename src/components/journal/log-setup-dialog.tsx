@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { rememberLiveSetup } from "@/lib/trading/desk-memory";
+import { buildPaperLevels } from "@/lib/trading/paper-manager";
 
 const SYMBOLS = Object.keys(CONTRACTS) as ContractKey[];
 
@@ -64,18 +65,17 @@ function firstNumber(s: string | undefined): number | undefined {
 function defaultsFrom(
   candidate: SetupCandidate,
   mode: "paper" | "live" = "paper",
+  equity = APLUS_RULES.paperEquity,
 ): Partial<FormValues> {
-  const symbol = (SYMBOLS as string[]).includes(candidate.symbol)
-    ? (candidate.symbol as ContractKey)
-    : "MNQ";
+  const levels = buildPaperLevels(candidate, equity);
   return {
-    symbol,
-    side: candidate.side,
+    symbol: levels.symbol,
+    side: levels.side,
     mode,
-    entry: firstNumber(candidate.entryZone),
-    stop: firstNumber(candidate.invalidation),
-    target: firstNumber(candidate.targets[0]),
-    contracts: 1,
+    entry: levels.entry,
+    stop: levels.stop,
+    target: levels.tp1,
+    contracts: levels.contracts,
   };
 }
 
@@ -122,8 +122,8 @@ export function LogSetupDialog({
 
   // Re-prefill when the dialog opens on a (possibly different) candidate/mode.
   useEffect(() => {
-    if (open) reset(defaultsFrom(candidate, defaultMode));
-  }, [open, candidate, defaultMode, reset]);
+    if (open) reset(defaultsFrom(candidate, defaultMode, equity));
+  }, [open, candidate, defaultMode, equity, reset]);
 
   const [entry, stop, contracts, symbol, mode] = watch([
     "entry",

@@ -117,10 +117,9 @@ function SetupCard({
                 size="sm"
                 variant="secondary"
                 onClick={() => onLog(c, "paper")}
-                title="Log as PAPER trade (recommended until path proven)"
+                title="One-click PAPER entry — auto size, auto manage exits on live data"
                 className="border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))]"
-              >
-                <NotebookPen className="h-3.5 w-3.5" />
+              >Log paper<NotebookPen className="h-3.5 w-3.5" />
                 Paper
               </Button>
               <Button

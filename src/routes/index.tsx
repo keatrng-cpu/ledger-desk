@@ -20,6 +20,12 @@ import { BridgeStatus } from "@/components/bridge/bridge-status";
 import { HaltBanner } from "@/components/journal/halt-banner";
 import { JournalPanel } from "@/components/journal/journal-panel";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
+import { PaperBookPanel } from "@/components/desk/paper-book-panel";
+import {
+  openPaperTradeInstant,
+  managePaperTradesAgainstPrice,
+  type PaperTrade,
+} from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
 import { HtfBiasBoard } from "@/components/desk/htf-bias-board";
 import { LiquidityPanel } from "@/components/desk/liquidity-panel";
@@ -156,6 +162,8 @@ function MasterplacePage() {
   const [risk, setRisk] = useState<RiskState | null>(null);
   const [equity, setEquity] = useState<number>(() => getPaperAccount().equity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
+  const [paperToast, setPaperToast] = useState<string | null>(null);
+  const [lastPaperClosed, setLastPaperClosed] = useState<PaperTrade | null>(null);
   const [logMode, setLogMode] = useState<"paper" | "live">("paper");
 
   const loadRisk = useCallback(async () => {
@@ -254,10 +262,73 @@ useEffect(() => {
     return () => window.clearInterval(id);
   }, []);
 
-  const onLog = useCallback((c: SetupCandidate, mode: "paper" | "live") => {
-    setLogMode(mode);
-    setLogCandidate(c);
-  }, []);
+  const onLog = useCallback(
+    (c: SetupCandidate, mode: "paper" | "live") => {
+      if (mode === "paper") {
+        const lastPrice =
+          desk?.left.symbol === c.symbol
+            ? desk.quotes.left.price
+            : desk?.right.symbol === c.symbol
+              ? desk.quotes.right.price
+              : desk?.quotes.left.price;
+        const res = openPaperTradeInstant(c, {
+          lastPrice,
+          killzone: desk?.clock.killzone,
+        });
+        if (res.ok) {
+          setPaperToast(
+            `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}`,
+          );
+          setEquity(getPaperAccount().equity);
+          window.setTimeout(() => setPaperToast(null), 6000);
+        } else {
+          setPaperToast(`Paper log failed: ${res.error}`);
+          window.setTimeout(() => setPaperToast(null), 6000);
+        }
+        return;
+      }
+      setLogMode(mode);
+      setLogCandidate(c);
+    },
+    [desk],
+  );
+
+  useEffect(() => {
+    if (!desk) return;
+    const prices: Record<string, number> = {
+      [desk.left.symbol]: desk.quotes.left.price,
+      [desk.right.symbol]: desk.quotes.right.price,
+    };
+    if (desk.left.symbol === "ES" || desk.right.symbol === "ES") {
+      prices.MES =
+        desk.left.symbol === "ES"
+          ? desk.quotes.left.price
+          : desk.quotes.right.price;
+    }
+    if (
+      desk.left.symbol === "NQ" ||
+      desk.left.symbol === "MNQ" ||
+      desk.right.symbol === "NQ" ||
+      desk.right.symbol === "MNQ"
+    ) {
+      const px =
+        desk.left.symbol === "NQ" || desk.left.symbol === "MNQ"
+          ? desk.quotes.left.price
+          : desk.quotes.right.price;
+      prices.MNQ = px;
+      prices.NQ = px;
+    }
+    const { closed } = managePaperTradesAgainstPrice(prices);
+    if (closed.length) {
+      const last = closed[closed.length - 1]!;
+      setLastPaperClosed(last);
+      setPaperToast(
+        `PAPER OUT · ${last.displaySymbol} ${last.exitReason} · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
+      );
+      setEquity(getPaperAccount().equity);
+      window.setTimeout(() => setPaperToast(null), 8000);
+    }
+  }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
 
   const active = CATEGORIES.find((c) => c.id === cat)!;
 
@@ -328,6 +399,11 @@ useEffect(() => {
         </header>
 
         {/* Always-on session / halt */}
+        {paperToast && (
+          <div className="mb-3 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_12%,var(--color-surface))] px-3 py-2 font-mono text-xs text-[var(--color-fg)]">
+            {paperToast}
+          </div>
+        )}
         {desk && <SessionHud desk={desk} wallNow={wallNow} />}
         {risk && <HaltBanner risk={risk} />}
 
@@ -535,6 +611,7 @@ useEffect(() => {
                       summary={desk.narrative.summary}
                     />
                   )}
+                  <PaperBookPanel lastClosed={lastPaperClosed} />
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}
