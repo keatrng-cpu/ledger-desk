@@ -724,63 +724,88 @@ export function closeOpenAtStructureLow(
  * Idempotent via trade.ingested / tradeId in memory.
  * Call on app load and after any paper event so the whole UI stays connected.
  */
+let _reconciling = false;
+
+/**
+ * Sync closed paper trades into desk-memory. Idempotent.
+ * Does NOT dispatch window events (avoids sync↔reconcile infinite loop).
+ * Callers should publishMemory / setEquity after.
+ */
 export function reconcilePaperBookToMemory(): {
   synced: number;
   equity: number;
   open: number;
 } {
-  const all = loadPaperTrades();
-  let synced = 0;
-  for (const tr of all) {
-    if (tr.status !== "closed") continue;
-    if (tr.ingested) continue;
-    if (tr.rMultiple == null || tr.pnlUsd == null) {
-      // recompute if missing
-      const sign = tr.side === "long" ? 1 : -1;
-      if (tr.exit != null && tr.riskPts > 0) {
-        tr.rMultiple =
-          Math.round(
-            ((sign * (tr.exit - tr.entry)) / tr.riskPts) * 1000,
-          ) / 1000;
-        tr.pnlUsd =
-          Math.round(
-            (sign * (tr.exit - tr.entry) * pointValue(tr.symbol) * tr.contracts -
-              commission(tr.symbol) * tr.contracts) *
-              100,
-          ) / 100;
-      } else continue;
+  if (typeof window === "undefined") {
+    return { synced: 0, equity: PAPER_START_EQUITY, open: 0 };
+  }
+  if (_reconciling) {
+    const acc = getPaperAccount();
+    return {
+      synced: 0,
+      equity: acc.equity,
+      open: listOpenPaperTrades().length,
+    };
+  }
+  _reconciling = true;
+  try {
+    const all = loadPaperTrades();
+    let synced = 0;
+    for (const tr of all) {
+      if (tr.status !== "closed") continue;
+      if (tr.ingested) continue;
+      if (tr.rMultiple == null || tr.pnlUsd == null) {
+        const sign = tr.side === "long" ? 1 : -1;
+        if (tr.exit != null && tr.riskPts > 0) {
+          tr.rMultiple =
+            Math.round(
+              ((sign * (tr.exit - tr.entry)) / tr.riskPts) * 1000,
+            ) / 1000;
+          tr.pnlUsd =
+            Math.round(
+              (sign *
+                (tr.exit - tr.entry) *
+                pointValue(tr.symbol) *
+                tr.contracts -
+                commission(tr.symbol) * tr.contracts) *
+                100,
+            ) / 100;
+        } else continue;
+      }
+      ingestPaperFill({
+        symbol: tr.displaySymbol,
+        side: tr.side,
+        strategy: tr.strategy,
+        band: tr.pathBand || tr.grade,
+        grade: tr.grade,
+        score: tr.score,
+        r: tr.rMultiple,
+        usd: tr.pnlUsd,
+        exit: tr.exitReason || "reconcile",
+        entry: tr.entry,
+        exitPx: tr.exit,
+        reason: tr.exitReason || "reconcile",
+        applyEquity: true,
+        tradeId: tr.id,
+      });
+      tr.ingested = true;
+      synced += 1;
     }
-    ingestPaperFill({
-      symbol: tr.displaySymbol,
-      side: tr.side,
-      strategy: tr.strategy,
-      band: tr.pathBand || tr.grade,
-      grade: tr.grade,
-      score: tr.score,
-      r: tr.rMultiple,
-      usd: tr.pnlUsd,
-      exit: tr.exitReason || "reconcile",
-      entry: tr.entry,
-      exitPx: tr.exit,
-      reason: tr.exitReason || "reconcile",
-      applyEquity: true,
-      tradeId: tr.id,
-    });
-    tr.ingested = true;
-    synced += 1;
+    if (synced) savePaperTrades(all);
+    // update open count without nested event storms
+    const open = all.filter((x) => x.status === "open").length;
+    const state = getPaperAccount();
+    // setOpenPaperCount saves memory — only if changed
+    try {
+      setOpenPaperCount(open);
+    } catch {
+      /* */
+    }
+    const acc = getPaperAccount();
+    return { synced, equity: acc.equity, open };
+  } finally {
+    _reconciling = false;
   }
-  if (synced) savePaperTrades(all);
-  setOpenPaperCount(all.filter((x) => x.status === "open").length);
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event("ledger-memory"));
-    window.dispatchEvent(new Event("ledger-paper"));
-  }
-  const acc = getPaperAccount();
-  return {
-    synced,
-    equity: acc.equity,
-    open: all.filter((x) => x.status === "open").length,
-  };
 }
 
 export function paperTradeHistory(limit = 20): PaperTrade[] {

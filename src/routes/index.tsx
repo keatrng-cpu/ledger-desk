@@ -219,8 +219,22 @@ function MasterplacePage() {
 
   
   useEffect(() => {
-    // Pull closed paper fills into brain/equity once (and on focus)
-    const sync = () => {
+    // Boot: one-shot reconcile closed paper → memory (no event loop)
+    try {
+      reconcilePaperBookToMemory();
+    } catch {
+      /* */
+    }
+    publishMemory();
+    setEquity(getPaperAccount().equity);
+
+    // Memory updates only refresh UI — do NOT re-enter reconcile
+    const onMemory = () => {
+      publishMemory();
+      setEquity(getPaperAccount().equity);
+    };
+    // Paper book changes: reconcile once then refresh
+    const onPaper = () => {
       try {
         reconcilePaperBookToMemory();
       } catch {
@@ -229,14 +243,13 @@ function MasterplacePage() {
       publishMemory();
       setEquity(getPaperAccount().equity);
     };
-    sync(); // reconcile on boot
-    window.addEventListener("ledger-memory", sync);
-    window.addEventListener("ledger-paper", sync);
-    window.addEventListener("focus", sync);
+    window.addEventListener("ledger-memory", onMemory);
+    window.addEventListener("ledger-paper", onPaper);
+    window.addEventListener("focus", onPaper);
     return () => {
-      window.removeEventListener("ledger-memory", sync);
-      window.removeEventListener("ledger-paper", sync);
-      window.removeEventListener("focus", sync);
+      window.removeEventListener("ledger-memory", onMemory);
+      window.removeEventListener("ledger-paper", onPaper);
+      window.removeEventListener("focus", onPaper);
     };
   }, [publishMemory]);
 
