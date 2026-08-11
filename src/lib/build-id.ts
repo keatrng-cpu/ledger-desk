@@ -1,0 +1,4 @@
+/** Build identity so preview never silently serves stale UI. */
+export const BUILD_ID = "1695a03";
+export const BUILD_LABEL = "desk-1695a03";
+export const BUILD_AT = "2026-08-11T17:11Z";

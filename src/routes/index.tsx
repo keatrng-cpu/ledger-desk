@@ -67,6 +67,7 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 import { cn } from "@/lib/utils";
+import { BUILD_ID, BUILD_LABEL } from "@/lib/build-id";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -503,6 +504,12 @@ useEffect(() => {
               <Swords className="h-4 w-4 shrink-0" aria-hidden />
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em]">
                 Ledger · profit desk
+              </span>
+              <span
+                className="rounded border border-[var(--color-border)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--color-subtle)]"
+                title={BUILD_LABEL}
+              >
+                {BUILD_ID}
               </span>
             </div>
             <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">

@@ -128,6 +128,24 @@ function authPopupPlugin(): Plugin {
 // opens a second dev-server port, which breaks the single-port preview.
 // The dev server starts once `src/router.tsx` and `src/routes/` exist — see
 // AGENTS.md § "First scaffold".
+
+function noCacheDevPlugin(): Plugin {
+  return {
+    name: "app-builder:no-cache",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use((_req, res, next) => {
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, max-age=0",
+        );
+        res.setHeader("Pragma", "no-cache");
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   server: {
     host: "0.0.0.0",
@@ -142,6 +160,7 @@ export default defineConfig(({ command }) => ({
     include: ["lightweight-charts"],
   },
   plugins: [
+    noCacheDevPlugin(),
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),
