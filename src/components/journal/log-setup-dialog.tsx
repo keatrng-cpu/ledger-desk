@@ -5,7 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AlertTriangle, NotebookPen, X } from "lucide-react";
 import type { SetupCandidate } from "@/lib/trading/scanner";
-import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
+import {
+  APLUS_RULES,
+  CONTRACTS,
+  riskPctForScore,
+  riskGradeFromScore,
+  type ContractKey,
+} from "@/lib/aplus/config";
 import {
   openTrade,
   type JournalTrade,
@@ -13,6 +19,8 @@ import {
 } from "@/lib/journal/server";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { rememberLiveSetup } from "@/lib/trading/desk-memory";
+import { buildPaperLevels } from "@/lib/trading/paper-manager";
 
 const SYMBOLS = Object.keys(CONTRACTS) as ContractKey[];
 
@@ -54,18 +62,20 @@ function firstNumber(s: string | undefined): number | undefined {
   return m ? Number(m[0]) : undefined;
 }
 
-function defaultsFrom(candidate: SetupCandidate): Partial<FormValues> {
-  const symbol = (SYMBOLS as string[]).includes(candidate.symbol)
-    ? (candidate.symbol as ContractKey)
-    : "MNQ";
+function defaultsFrom(
+  candidate: SetupCandidate,
+  mode: "paper" | "live" = "paper",
+  equity: number = 100_000,
+): Partial<FormValues> {
+  const levels = buildPaperLevels(candidate, equity);
   return {
-    symbol,
-    side: candidate.side,
-    mode: "live",
-    entry: firstNumber(candidate.entryZone),
-    stop: firstNumber(candidate.invalidation),
-    target: firstNumber(candidate.targets[0]),
-    contracts: 1,
+    symbol: levels.symbol,
+    side: levels.side,
+    mode,
+    entry: levels.entry,
+    stop: levels.stop,
+    target: levels.tp1,
+    contracts: levels.contracts,
   };
 }
 
@@ -84,6 +94,7 @@ export function LogSetupDialog({
   open,
   onOpenChange,
   onLogged,
+  defaultMode = "paper",
 }: {
   candidate: SetupCandidate;
   /** Account equity from desk_settings (getSettings). */
@@ -93,36 +104,43 @@ export function LogSetupDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLogged?: (trade: JournalTrade) => void;
+  /** Prefill paper vs live — set by Paper / Live buttons on the scanner. */
+  defaultMode?: "paper" | "live";
 }) {
   const {
     register,
     handleSubmit,
     watch,
     reset,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultsFrom(candidate),
+    defaultValues: defaultsFrom(candidate, defaultMode),
   });
 
-  // Re-prefill when the dialog opens on a (possibly different) candidate.
+  // Re-prefill when the dialog opens on a (possibly different) candidate/mode.
   useEffect(() => {
-    if (open) reset(defaultsFrom(candidate));
-  }, [open, candidate, reset]);
+    if (open) reset(defaultsFrom(candidate, defaultMode, equity));
+  }, [open, candidate, defaultMode, equity, reset]);
 
-  const [entry, stop, contracts, symbol] = watch([
+  const [entry, stop, contracts, symbol, mode] = watch([
     "entry",
     "stop",
     "contracts",
     "symbol",
+    "mode",
   ]);
   const contract = CONTRACTS[symbol ?? "MNQ"];
   const plannedRisk = useMemo(() => {
     if (!entry || !stop || !contracts || !contract) return null;
     return Math.abs(entry - stop) * contract.pointValue * contracts;
   }, [entry, stop, contracts, contract]);
-  const allowedRisk = equity * APLUS_RULES.riskPct;
+  const gradePct = riskPctForScore(candidate.confluence);
+  const gradeLabel = riskGradeFromScore(candidate.confluence);
+  const allowedRisk = equity * gradePct;
+
   const oversized = plannedRisk != null && plannedRisk > allowedRisk;
 
   const submit = handleSubmit(async (values) => {
@@ -139,11 +157,29 @@ export function LogSetupDialog({
         prescore: candidate.confluence,
         grade: candidate.grade,
         killzone,
-        componentsPresent: candidate.reasons,
+        componentsPresent: candidate.components ?? candidate.reasons,
         componentsMissing: candidate.missing,
-        reason: candidate.title,
+        reason: [
+          candidate.title,
+          candidate.strategyPrimary
+            ? `strategy:${candidate.strategyPrimary}`
+            : null,
+          `mode:${values.mode}`,
+        ]
+          .filter(Boolean)
+          .join(" · "),
       };
       const trade = await openTrade({ data: input });
+      rememberLiveSetup({
+        symbol: input.symbol,
+        side: input.side,
+        grade: candidate.grade,
+        score: candidate.confluence,
+        mode: input.mode === "live" ? "live" : "paper",
+      });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("ledger-memory"));
+      }
       onOpenChange(false);
       onLogged?.(trade);
     } catch (e) {
@@ -162,7 +198,7 @@ export function LogSetupDialog({
             <div>
               <Dialog.Title className="flex items-center gap-2 text-sm font-semibold text-[var(--color-fg)]">
                 <NotebookPen className="h-4 w-4 text-[var(--color-primary)]" />
-                Log setup — {candidate.symbol}{" "}
+                Log {mode === "live" ? "LIVE" : "PAPER"} — {candidate.symbol}{" "}
                 <span
                   className={
                     candidate.side === "long"
@@ -190,7 +226,50 @@ export function LogSetupDialog({
           </div>
 
           <form onSubmit={(e) => void submit(e)} className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div>
+              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
+                Journal as
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setValue("mode", "paper", { shouldDirty: true })}
+                  className={cn(
+                    "rounded-[var(--radius-md)] border px-3 py-2.5 text-left transition-colors",
+                    mode === "paper"
+                      ? "border-[color-mix(in_oklab,var(--color-primary)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_12%,transparent)]"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-2)] hover:border-[var(--color-border-strong)]",
+                  )}
+                >
+                  <span className="block text-sm font-semibold text-[var(--color-fg)]">
+                    Paper
+                  </span>
+                  <span className="mt-0.5 block text-[10px] text-[var(--color-subtle)]">
+                    Simulated — builds path sample risk-free
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setValue("mode", "live", { shouldDirty: true })}
+                  className={cn(
+                    "rounded-[var(--radius-md)] border px-3 py-2.5 text-left transition-colors",
+                    mode === "live"
+                      ? "border-[color-mix(in_oklab,var(--color-warn)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_12%,transparent)]"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-2)] hover:border-[var(--color-border-strong)]",
+                  )}
+                >
+                  <span className="block text-sm font-semibold text-[var(--color-warn)]">
+                    Live
+                  </span>
+                  <span className="mt-0.5 block text-[10px] text-[var(--color-subtle)]">
+                    Real capital — only after A-path is proven
+                  </span>
+                </button>
+              </div>
+              <input type="hidden" {...register("mode")} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <label className="block text-xs">
                 <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
                   Symbol
@@ -210,15 +289,6 @@ export function LogSetupDialog({
                 <select {...register("side")} className={fieldClass}>
                   <option value="long">long</option>
                   <option value="short">short</option>
-                </select>
-              </label>
-              <label className="block text-xs">
-                <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
-                  Mode
-                </span>
-                <select {...register("mode")} className={fieldClass}>
-                  <option value="live">live</option>
-                  <option value="paper">paper</option>
                 </select>
               </label>
             </div>
@@ -275,13 +345,16 @@ export function LogSetupDialog({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Allowed ({(APLUS_RULES.riskPct * 100).toFixed(1)}% of ${equity.toLocaleString()})</span>
+                <span>
+                  Allowed ({(gradePct * 100).toFixed(0)}% {gradeLabel} of $
+                  {equity.toLocaleString()})
+                </span>
                 <span>${allowedRisk.toFixed(2)}</span>
               </div>
               {oversized && (
                 <p className="mt-1.5 flex items-center gap-1.5 font-sans font-medium">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Oversized — exceeds the {(APLUS_RULES.riskPct * 100).toFixed(1)}% risk
+                  Oversized — exceeds the {(gradePct * 100).toFixed(0)}% {gradeLabel} risk
                   rule. Reduce contracts or tighten the stop.
                 </p>
               )}
@@ -300,7 +373,11 @@ export function LogSetupDialog({
                 </Button>
               </Dialog.Close>
               <Button type="submit" size="sm" disabled={isSubmitting}>
-                {isSubmitting ? "Logging…" : "Log trade"}
+                {isSubmitting
+                  ? "Logging…"
+                  : mode === "live"
+                    ? "Save LIVE trade"
+                    : "Save PAPER trade"}
               </Button>
             </div>
           </form>

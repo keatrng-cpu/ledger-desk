@@ -8,6 +8,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { computeMetrics, type ClosedTrade } from "@/lib/aplus/analytics";
+import { metricsByGrade, type GradedTrade } from "@/lib/trading/profit-path";
 import {
   closeTrade,
   getSettings,
@@ -18,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function toClosedTrade(t: JournalTrade): ClosedTrade {
+function toClosedTrade(t: JournalTrade): GradedTrade {
   return {
     id: t.id,
     symbol: t.symbol,
@@ -33,6 +34,7 @@ function toClosedTrade(t: JournalTrade): ClosedTrade {
     slippage: t.slippage,
     reason: t.reason ?? "",
     confluence: t.prescore ?? undefined,
+    grade: t.grade ?? undefined,
   };
 }
 
@@ -199,7 +201,7 @@ export function JournalPanel({
   onChanged?: () => void;
 } = {}) {
   const [trades, setTrades] = useState<JournalTrade[] | null>(null);
-  const [equity, setEquity] = useState(10_000);
+  const [equity, setEquity] = useState(100_000);
   const [equityDraft, setEquityDraft] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

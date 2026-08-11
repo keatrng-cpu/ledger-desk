@@ -1,7 +1,8 @@
 /**
- * Port of knowledge/confluence.json from Trading-Automation.
- * Offline-learned component fire rates + lessons for the desk.
+ * Port of knowledge/confluence.json + engine weights from Trading-Automation.
  */
+
+import { RAW_WEIGHTS, WEIGHTS, type ComponentKey } from "@/lib/trading/engine-weights";
 
 export interface ConfluenceKnowledge {
   version: number;
@@ -18,7 +19,6 @@ export interface ConfluenceKnowledge {
   lessons: string[];
 }
 
-/** Snapshot from repo knowledge/confluence.json (NQ window). */
 export const CONFLUENCE_KNOWLEDGE: ConfluenceKnowledge = {
   version: 1,
   samples: 843,
@@ -48,6 +48,7 @@ export const CONFLUENCE_KNOWLEDGE: ConfluenceKnowledge = {
     rejection: 40.7,
     propulsion: 1.4,
     daily_bias: 35.1,
+    smt: 0, // added post-knowledge snapshot
   },
   coldComponents: [
     "mechanical_model",
@@ -63,30 +64,35 @@ export const CONFLUENCE_KNOWLEDGE: ConfluenceKnowledge = {
     "Cold: mechanical_model, order_block, breaker, mitigation, propulsion — detection gap or scarce.",
     "Mechanical model (sweep→displace→invert→retest) is rare. Refuse partial sequences.",
     "HTF top_down remains an absolute gate — not a weighted input.",
+    "Strategy catalog always-on: mechanical, tjr, judas, pdi, patty, continuation, blake_mech, ronan, smt.",
   ],
 };
 
 export interface ComponentWeight {
-  name: string;
+  name: ComponentKey | string;
   weight: number;
   firePct: number;
+  raw: number;
 }
 
-/** Display weights (illustrative — production weights live in strategy/scanner). */
-export const COMPONENT_WEIGHTS: ComponentWeight[] = [
-  { name: "htf2_bias", weight: 0.12, firePct: 21.6 },
-  { name: "structure", weight: 0.1, firePct: 68.7 },
-  { name: "mechanical_model", weight: 0.14, firePct: 4.5 },
-  { name: "sweep_significant", weight: 0.1, firePct: 34.5 },
-  { name: "mss", weight: 0.08, firePct: 22.2 },
-  { name: "ifvg", weight: 0.08, firePct: 100 },
-  { name: "order_block", weight: 0.07, firePct: 0 },
-  { name: "pd", weight: 0.06, firePct: 61.4 },
-  { name: "weekly_pd", weight: 0.05, firePct: 27.4 },
-  { name: "displacement", weight: 0.05, firePct: 13.3 },
-  { name: "opening_bias", weight: 0.04, firePct: 28.8 },
-  { name: "mid_bias", weight: 0.04, firePct: 34.4 },
-  { name: "rejection", weight: 0.03, firePct: 40.7 },
-  { name: "cisd", weight: 0.02, firePct: 33.2 },
-  { name: "sponsored", weight: 0.02, firePct: 29.7 },
-];
+/** Engine-aligned display weights (from scanner.py RAW_WEIGHTS). */
+export const COMPONENT_WEIGHTS: ComponentWeight[] = (
+  Object.keys(RAW_WEIGHTS) as ComponentKey[]
+).map((name) => ({
+  name,
+  weight: WEIGHTS[name],
+  raw: RAW_WEIGHTS[name],
+  firePct: CONFLUENCE_KNOWLEDGE.componentFirePct[name] ?? 0,
+}));
+
+export const STRATEGY_CATALOG = [
+  "mechanical",
+  "blake_mech",
+  "tjr",
+  "judas",
+  "pdi",
+  "patty",
+  "continuation",
+  "ronan",
+  "smt",
+] as const;

@@ -2,7 +2,7 @@
  * Replay calibration harness — walks a bar series with NO LOOKAHEAD, feeds
  * each truncated prefix to the existing analyzeStructure/scanSetups (imported
  * read-only), and simulates every emitted candidate forward to answer the
- * floor question ("what does 0.50 vs 0.67 admit?") with data.
+ * floor question ("what does 0.50 vs 0.65 admit?") with data.
  *
  * HONESTY CAVEATS (repeated in the UI):
  * - 15m Yahoo bars — intrabar order of touches is unknown, so when a stop
@@ -338,7 +338,7 @@ const BUCKET_EDGES: { label: string; min: number; max: number }[] = [
 ];
 
 /** Floors we care about: TEST 0.50, mid, calibration 0.67, 0.70, A+ 0.75. */
-const FLOOR_CANDIDATES = [0.5, 0.6, 0.67, 0.7, 0.75];
+const FLOOR_CANDIDATES = [0.5, 0.6, 0.65, 0.7, 0.75];
 
 function stats(rows: ReplayOutcome[]) {
   const filled = rows.filter((r) => r.entryFilled);

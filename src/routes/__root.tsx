@@ -3,7 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { CreatedWithGrokBanner } from "@/components/created-with-grok-banner";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Ledger Masterplace";
+const APP_NAME = "Ledger Profit Desk";
 const host = import.meta.env.VITE_PUBLIC_HOSTNAME;
 const ogImage = host
   ? `https://og.grok.me/v1/card.png?host=${encodeURIComponent(host)}&title=${encodeURIComponent(APP_NAME)}`
@@ -18,7 +18,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Private trading masterplace — HTF bias, premarket, dual MNQ/ES charts, liquidity, confluence scanner, risk governor, and AI coach.",
+          "Ledger Profit Desk — Veteran brain, paper book, PATH backtests, dual MNQ/ES, SMC/ICT. Build must show badge next to title.",
       },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "theme-color", content: "#09090b" },

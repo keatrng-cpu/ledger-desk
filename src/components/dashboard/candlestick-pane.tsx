@@ -1,14 +1,4 @@
 import { useEffect, useRef } from "react";
-import {
-  CandlestickSeries,
-  ColorType,
-  CrosshairMode,
-  HistogramSeries,
-  createChart,
-  type IChartApi,
-  type ISeriesApi,
-  type UTCTimestamp,
-} from "lightweight-charts";
 import type { OhlcBar } from "@/lib/market/types";
 
 export interface CandleHover {
@@ -31,7 +21,7 @@ interface CandlestickPaneProps {
 
 function toCandleData(bars: OhlcBar[]) {
   return bars.map((b) => ({
-    time: Math.floor(b.t / 1000) as UTCTimestamp,
+    time: Math.floor(b.t / 1000) as number,
     open: b.o,
     high: b.h,
     low: b.l,
@@ -39,210 +29,155 @@ function toCandleData(bars: OhlcBar[]) {
   }));
 }
 
-function toVolumeData(bars: OhlcBar[]) {
+function toVolumeData(bars: OhlcBar[], up: string, down: string) {
   return bars.map((b) => ({
-    time: Math.floor(b.t / 1000) as UTCTimestamp,
-    value: b.v,
-    color:
-      b.c >= b.o ? "rgba(52, 211, 153, 0.35)" : "rgba(248, 113, 113, 0.35)",
+    time: Math.floor(b.t / 1000) as number,
+    value: b.v ?? 0,
+    color: b.c >= b.o ? up : down,
   }));
 }
 
-function nearestBar(bars: OhlcBar[], timeMs: number): OhlcBar | null {
-  if (!bars.length) return null;
-  let best = bars[0]!;
-  let dist = Math.abs(best.t - timeMs);
-  for (let i = 1; i < bars.length; i++) {
-    const b = bars[i]!;
-    const d = Math.abs(b.t - timeMs);
-    if (d < dist) {
-      dist = d;
-      best = b;
-    }
-  }
-  if (dist > 6 * 60 * 60 * 1000) return null;
-  return best;
-}
-
+/**
+ * Client-only candlestick pane (lightweight-charts is browser/canvas).
+ * Dynamic-imports the lib so SSR never resolves it.
+ */
 export function CandlestickPane({
   bars,
   height = 280,
   onHover,
   syncTimeMs,
-  accentUp = "#34d399",
-  accentDown = "#f87171",
+  accentUp = "#22c55e",
+  accentDown = "#ef4444",
 }: CandlestickPaneProps) {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const candleRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<any>(null);
+  const candleRef = useRef<any>(null);
+  const volRef = useRef<any>(null);
   const onHoverRef = useRef(onHover);
-  const barsRef = useRef(bars);
-  const applyingSync = useRef(false);
   onHoverRef.current = onHover;
-  barsRef.current = bars;
 
   useEffect(() => {
-    const el = hostRef.current;
-    if (!el) return;
+    if (typeof window === "undefined" || !elRef.current) return;
+    let disposed = false;
+    let chart: any;
 
-    const chart = createChart(el, {
-      height,
-      autoSize: true,
-      layout: {
-        background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#71717a",
-        fontFamily: "IBM Plex Sans, system-ui, sans-serif",
-        fontSize: 11,
-      },
-      grid: {
-        vertLines: { color: "rgba(39, 39, 42, 0.7)" },
-        horzLines: { color: "rgba(39, 39, 42, 0.7)" },
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: {
-          color: "rgba(45, 212, 191, 0.35)",
-          width: 1,
-          style: 2,
-          labelBackgroundColor: "#18181c",
+    (async () => {
+      const lwc = await import("lightweight-charts");
+      if (disposed || !elRef.current) return;
+      const {
+        createChart,
+        ColorType,
+        CrosshairMode,
+        CandlestickSeries,
+        HistogramSeries,
+      } = lwc;
+
+      chart = createChart(elRef.current, {
+        height,
+        layout: {
+          background: { type: ColorType.Solid, color: "transparent" },
+          textColor: "#a1a1aa",
         },
-        horzLine: {
-          color: "rgba(45, 212, 191, 0.35)",
-          width: 1,
-          style: 2,
-          labelBackgroundColor: "#18181c",
+        grid: {
+          vertLines: { color: "rgba(63,63,70,0.35)" },
+          horzLines: { color: "rgba(63,63,70,0.35)" },
         },
-      },
-      rightPriceScale: {
-        borderColor: "#27272a",
-        scaleMargins: { top: 0.08, bottom: 0.22 },
-      },
-      timeScale: {
-        borderColor: "#27272a",
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      localization: {
-        priceFormatter: (p: number) =>
-          p >= 1000
-            ? p.toLocaleString("en-US", { maximumFractionDigits: 2 })
-            : p.toFixed(2),
-      },
-    });
+        crosshair: { mode: CrosshairMode.Normal },
+        rightPriceScale: { borderVisible: false },
+        timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
+      });
+      chartRef.current = chart;
 
-    const candles = chart.addSeries(CandlestickSeries, {
-      upColor: accentUp,
-      downColor: accentDown,
-      borderUpColor: accentUp,
-      borderDownColor: accentDown,
-      wickUpColor: accentUp,
-      wickDownColor: accentDown,
-    });
+      const candle = chart.addSeries(CandlestickSeries, {
+        upColor: accentUp,
+        downColor: accentDown,
+        borderVisible: false,
+        wickUpColor: accentUp,
+        wickDownColor: accentDown,
+      });
+      candleRef.current = candle;
 
-    const volume = chart.addSeries(HistogramSeries, {
-      priceFormat: { type: "volume" },
-      priceScaleId: "vol",
-    });
-    chart.priceScale("vol").applyOptions({
-      scaleMargins: { top: 0.82, bottom: 0 },
-    });
+      const vol = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: "volume" },
+        priceScaleId: "vol",
+      });
+      chart.priceScale("vol").applyOptions({
+        scaleMargins: { top: 0.8, bottom: 0 },
+      });
+      volRef.current = vol;
 
-    chartRef.current = chart;
-    candleRef.current = candles;
-    volumeRef.current = volume;
-
-    chart.subscribeCrosshairMove((param) => {
-      if (applyingSync.current) return;
-      const cb = onHoverRef.current;
-      if (!cb) return;
-      if (!param.time || !param.seriesData) {
-        cb(null);
-        return;
+      if (bars.length) {
+        candle.setData(toCandleData(bars) as any);
+        vol.setData(toVolumeData(bars, accentUp + "99", accentDown + "99") as any);
+        chart.timeScale().fitContent();
       }
-      const d = param.seriesData.get(candles) as
-        | {
-            open: number;
-            high: number;
-            low: number;
-            close: number;
-            time: UTCTimestamp;
-          }
-        | undefined;
-      if (!d) {
-        cb(null);
-        return;
-      }
-      const t =
-        typeof param.time === "number"
-          ? param.time * 1000
-          : Date.parse(String(param.time)) || 0;
-      cb({ time: t, o: d.open, h: d.high, l: d.low, c: d.close });
-    });
 
-    const ro = new ResizeObserver(() => {
-      if (el.clientWidth > 0) {
-        chart.applyOptions({ width: el.clientWidth });
-      }
-    });
-    ro.observe(el);
+      chart.subscribeCrosshairMove((param: any) => {
+        const cb = onHoverRef.current;
+        if (!cb) return;
+        if (!param?.time || !param.seriesData) {
+          cb(null);
+          return;
+        }
+        const d = param.seriesData.get(candle) as
+          | { open: number; high: number; low: number; close: number; time: number }
+          | undefined;
+        if (!d) {
+          cb(null);
+          return;
+        }
+        cb({
+          time: Number(d.time) * 1000,
+          o: d.open,
+          h: d.high,
+          l: d.low,
+          c: d.close,
+        });
+      });
+    })();
 
     return () => {
-      ro.disconnect();
-      chart.remove();
+      disposed = true;
+      chart?.remove();
       chartRef.current = null;
       candleRef.current = null;
-      volumeRef.current = null;
+      volRef.current = null;
     };
-  }, [height, accentUp, accentDown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (!candleRef.current || !volumeRef.current || !chartRef.current) return;
-    if (!bars.length) {
-      candleRef.current.setData([]);
-      volumeRef.current.setData([]);
-      return;
-    }
-    candleRef.current.setData(toCandleData(bars));
-    volumeRef.current.setData(toVolumeData(bars));
-    chartRef.current.timeScale().fitContent();
-  }, [bars]);
+    const candle = candleRef.current;
+    const vol = volRef.current;
+    const chart = chartRef.current;
+    if (!candle || !vol || !chart || !bars.length) return;
+    candle.setData(toCandleData(bars) as any);
+    vol.setData(toVolumeData(bars, accentUp + "99", accentDown + "99") as any);
+    chart.timeScale().fitContent();
+  }, [bars, accentUp, accentDown]);
 
   useEffect(() => {
     const chart = chartRef.current;
-    const series = candleRef.current;
-    if (!chart || !series) return;
-    if (syncTimeMs == null) {
-      applyingSync.current = true;
-      chart.clearCrosshairPosition();
-      applyingSync.current = false;
-      return;
-    }
-    const bar = nearestBar(barsRef.current, syncTimeMs);
-    if (!bar) return;
-    applyingSync.current = true;
+    if (!chart || syncTimeMs == null) return;
+    const t = Math.floor(syncTimeMs / 1000);
     try {
-      chart.setCrosshairPosition(
-        bar.c,
-        Math.floor(bar.t / 1000) as UTCTimestamp,
-        series,
-      );
+      chart.setCrosshairPosition(undefined as any, t as any, candleRef.current);
     } catch {
       /* ignore */
     }
-    // Release after paint so user moves still propagate
-    requestAnimationFrame(() => {
-      applyingSync.current = false;
-    });
   }, [syncTimeMs]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    chart.applyOptions({ height });
+  }, [height]);
 
   return (
     <div
-      ref={hostRef}
-      className="w-full"
+      ref={elRef}
+      className="w-full overflow-hidden rounded-md"
       style={{ height }}
-      role="img"
-      aria-label="Candlestick chart"
     />
   );
 }

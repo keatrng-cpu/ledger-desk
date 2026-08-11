@@ -10,14 +10,15 @@ export interface OhlcBar {
 
 export type IndexSymbol = "MNQ" | "ES" | "NQ";
 
-/** Second-precision last print from Yahoo chart meta. */
+export type MarketSource = "databento" | "yahoo" | "synthetic";
+
+/** Second-precision last print (Yahoo meta or last Databento bar). */
 export interface LiveQuote {
   symbol: IndexSymbol;
   yahoo: string;
   price: number;
-  /** Yahoo regularMarketTime — exchange print time, ms epoch (second precision). */
+  /** Exchange / bar print time, ms epoch */
   marketTimeMs: number;
-  /** ISO of marketTimeMs */
   marketTimeIso: string;
   previousClose: number;
   change: number;
@@ -25,23 +26,20 @@ export interface LiveQuote {
   dayHigh: number | null;
   dayLow: number | null;
   volume: number | null;
-  /** Server wall-clock when we received this payload, ms */
   fetchedAtMs: number;
   fetchedAtIso: string;
-  /** How stale vs Yahoo's marketTime when we fetched: fetchedAtMs - marketTimeMs */
   lagSec: number;
   timezone: string;
-  source: "yahoo" | "synthetic";
+  source: MarketSource;
 }
 
 export interface SymbolSeries {
   symbol: IndexSymbol;
   yahoo: string;
   label: string;
-  source: "yahoo" | "synthetic";
+  source: MarketSource;
   price: number;
   changePct: number;
-  /** Last trade print time from Yahoo (ms), if live */
   marketTimeMs: number | null;
   marketTimeIso: string | null;
   previousClose: number | null;

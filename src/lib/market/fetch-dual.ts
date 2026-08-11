@@ -6,6 +6,11 @@ import type {
   LiveQuotesPayload,
 } from "./types";
 import {
+  fetchDatabentoBars,
+  hasDatabentoKey,
+  quoteFromDatabentoSeries,
+} from "./databento";
+import {
   alignedReturnPairs,
   buildComparisonNote,
   fetchYahooBars,
@@ -21,13 +26,12 @@ export type DualRangeKey = "1d" | "5d" | "1mo" | "3mo";
 
 const RANGE_MAP: Record<
   DualRangeKey,
-  { range: YahooRange; interval: YahooInterval }
+  { range: YahooRange; interval: YahooInterval; minutes: number }
 > = {
-  // 1m bars for session — freshest Yahoo continuous tape we can get free
-  "1d": { range: "1d", interval: "1m" },
-  "5d": { range: "5d", interval: "5m" },
-  "1mo": { range: "1mo", interval: "60m" },
-  "3mo": { range: "3mo", interval: "1d" },
+  "1d": { range: "1d", interval: "1m", minutes: 1 },
+  "5d": { range: "5d", interval: "5m", minutes: 5 },
+  "1mo": { range: "1mo", interval: "60m", minutes: 60 },
+  "3mo": { range: "3mo", interval: "1d", minutes: 60 * 24 },
 };
 
 const VALID_RANGE = new Set<DualRangeKey>(["1d", "5d", "1mo", "3mo"]);
@@ -57,7 +61,20 @@ async function loadSymbol(
   symbol: IndexSymbol,
   range: YahooRange,
   interval: YahooInterval,
+  minutes: number,
 ) {
+  if (hasDatabentoKey()) {
+    try {
+      const db = await fetchDatabentoBars(
+        symbol,
+        range === "3mo" ? "3mo" : range === "1mo" ? "1mo" : range === "5d" ? "5d" : "1d",
+        minutes >= 1440 ? 60 : minutes,
+      );
+      if (db && db.bars.length >= 20) return db;
+    } catch {
+      /* fall through */
+    }
+  }
   try {
     const live = await fetchYahooBars(symbol, range, interval);
     if (live) return live;
@@ -77,7 +94,6 @@ async function loadQuote(symbol: IndexSymbol) {
   return syntheticQuote(symbol);
 }
 
-/** Full dual series + initial live quotes (heavier). */
 export const fetchDualIndexes = createServerFn({ method: "POST" })
   .validator((input: {
     rangeKey?: DualRangeKey;
@@ -88,22 +104,28 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
     const cfg = RANGE_MAP[data.rangeKey] ?? RANGE_MAP["5d"];
     const fetchedAtMs = Date.now();
     try {
-      const [left, right, leftQ, rightQ] = await Promise.all([
-        loadSymbol(data.left, cfg.range, cfg.interval),
-        loadSymbol(data.right, cfg.range, cfg.interval),
-        loadQuote(data.left),
-        loadQuote(data.right),
+      const [left, right] = await Promise.all([
+        loadSymbol(data.left, cfg.range, cfg.interval, cfg.minutes),
+        loadSymbol(data.right, cfg.range, cfg.interval, cfg.minutes),
       ]);
 
-      // Prefer live quote prints for header price / session change
-      if (leftQ.source === "yahoo") {
+      const leftQ =
+        left.source === "databento"
+          ? quoteFromDatabentoSeries(left)
+          : await loadQuote(data.left);
+      const rightQ =
+        right.source === "databento"
+          ? quoteFromDatabentoSeries(right)
+          : await loadQuote(data.right);
+
+      if (leftQ.source === "yahoo" || leftQ.source === "databento") {
         left.price = leftQ.price;
         left.changePct = leftQ.changePct;
         left.marketTimeMs = leftQ.marketTimeMs;
         left.marketTimeIso = leftQ.marketTimeIso;
         left.previousClose = leftQ.previousClose;
       }
-      if (rightQ.source === "yahoo") {
+      if (rightQ.source === "yahoo" || rightQ.source === "databento") {
         right.price = rightQ.price;
         right.changePct = rightQ.changePct;
         right.marketTimeMs = rightQ.marketTimeMs;
@@ -117,7 +139,7 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
       return {
         ok: true,
         range: data.rangeKey,
-        interval: cfg.interval,
+        interval: left.interval || cfg.interval,
         fetchedAt: new Date(fetchedAtMs).toISOString(),
         fetchedAtMs,
         left,
@@ -139,10 +161,6 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Lightweight second-precision poll — only last prints + lag.
- * Call every 1–2s from the client while the dual desk is visible.
- */
 export const fetchLiveQuotes = createServerFn({ method: "POST" })
   .validator((input: { left?: IndexSymbol; right?: IndexSymbol }) => {
     const left = (
@@ -157,6 +175,7 @@ export const fetchLiveQuotes = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<LiveQuotesPayload | DualIndexError> => {
     const fetchedAtMs = Date.now();
     try {
+      // Live poll: Yahoo still wins for second prints; Databento Live would be separate.
       const [left, right] = await Promise.all([
         loadQuote(data.left),
         loadQuote(data.right),
