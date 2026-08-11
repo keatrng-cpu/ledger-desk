@@ -332,11 +332,67 @@ function commission(symbol: ContractKey): number {
 }
 
 /**
- * Manage open paper trades against a live price print.
- * Applies scale-out + BE + full exit when levels hit.
+ * Price feed for management — last + optional bar range for proper hit detection.
+ * Short: stop if high >= stop; TP if low <= target.
+ * Long: stop if low <= stop; TP if high >= target.
+ */
+export type ManagePrice = {
+  last: number;
+  high?: number;
+  low?: number;
+};
+
+function resolvePrice(
+  t: PaperTrade,
+  prices: Partial<Record<string, number | ManagePrice>>,
+): ManagePrice | null {
+  const keys = [
+    t.displaySymbol,
+    t.symbol,
+    t.displaySymbol.replace(/^M/, ""),
+    t.symbol.replace(/^M/, ""),
+  ];
+  for (const k of keys) {
+    const v = prices[k];
+    if (v == null) continue;
+    if (typeof v === "number" && Number.isFinite(v)) {
+      return { last: v, high: v, low: v };
+    }
+    if (typeof v === "object" && Number.isFinite(v.last)) {
+      return {
+        last: v.last,
+        high: v.high ?? v.last,
+        low: v.low ?? v.last,
+      };
+    }
+  }
+  return null;
+}
+
+function finalizeClose(
+  t: PaperTrade,
+  sign: number,
+): void {
+  const totalR = t.scaleLegs.reduce(
+    (s, l) => s + l.r * (l.contracts / t.contracts),
+    0,
+  );
+  const totalUsd = t.scaleLegs.reduce((s, l) => {
+    const u =
+      sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
+    return s + u - commission(t.symbol) * l.contracts;
+  }, 0);
+  t.rMultiple = +totalR.toFixed(3);
+  t.pnlUsd = +totalUsd.toFixed(2);
+  applyPaperPnl(t.pnlUsd, t.rMultiple);
+}
+
+/**
+ * Manage open paper trades against live prints (and bar H/L when available).
+ * Scale-out 50% @ TP1 → BE, runner @ TP2; stop on working stop.
  */
 export function managePaperTradesAgainstPrice(
-  prices: Partial<Record<string, number>>,
+  prices: Partial<Record<string, number | ManagePrice>>,
 ): { closed: PaperTrade[]; updated: PaperTrade[] } {
   const all = loadPaperTrades();
   const closed: PaperTrade[] = [];
@@ -344,73 +400,50 @@ export function managePaperTradesAgainstPrice(
   const so = APLUS_RULES.scaleOut;
 
   for (const t of all) {
-    if (t.status !== "open") continue;
-    const px =
-      prices[t.displaySymbol] ??
-      prices[t.symbol] ??
-      prices[t.displaySymbol.replace(/^M/, "")] ??
-      null;
-    if (px == null || !Number.isFinite(px)) continue;
+    if (t.status !== "open" || t.contractsOpen <= 0) continue;
+    const feed = resolvePrice(t, prices);
+    if (!feed) continue;
 
-    let dirty = false;
+    const high = feed.high ?? feed.last;
+    const low = feed.low ?? feed.last;
     const sign = t.side === "long" ? 1 : -1;
     const rPts = (price: number) => (sign * (price - t.entry)) / t.riskPts;
 
-    // Stop hit (working stop)
+    let dirty = false;
+
+    // 1) STOP first (conservative — if stop and target same bar, stop wins)
     const stopHit =
-      t.side === "long" ? px <= t.workingStop : px >= t.workingStop;
-    if (stopHit && t.contractsOpen > 0) {
-      const r = rPts(t.workingStop);
-      const legUsd =
-        sign *
-        (t.workingStop - t.entry) *
-        pointValue(t.symbol) *
-        t.contractsOpen;
-      const fee = commission(t.symbol) * t.contractsOpen;
-      const pnl = legUsd - fee;
+      t.side === "long" ? low <= t.workingStop : high >= t.workingStop;
+    if (stopHit) {
+      const fill = t.workingStop;
+      const r = rPts(fill);
       t.scaleLegs.push({
         at: new Date().toISOString(),
-        price: t.workingStop,
+        price: fill,
         contracts: t.contractsOpen,
         r,
-        note: t.workingStop === t.entry || Math.abs(t.workingStop - t.entry) < 0.01
-          ? "BE stop"
-          : "stop",
+        note:
+          Math.abs(fill - t.entry) < 0.01 || fill === t.entry
+            ? "BE stop"
+            : "stop",
       });
       t.contractsOpen = 0;
       t.status = "closed";
       t.closedAt = Date.now();
-      t.exit = t.workingStop;
+      t.exit = fill;
       t.exitReason =
         Math.abs(r) < 0.05 ? "be_stop" : r < 0 ? "stop" : "trail_stop";
-      // Weighted R from all legs
-      const totalR = t.scaleLegs.reduce(
-        (s, l) => s + l.r * (l.contracts / t.contracts),
-        0,
-      );
-      const totalUsd = t.scaleLegs.reduce((s, l) => {
-        const u =
-          sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
-        return s + u - commission(t.symbol) * l.contracts;
-      }, 0);
-      t.rMultiple = +totalR.toFixed(3);
-      t.pnlUsd = +totalUsd.toFixed(2);
-      applyPaperPnl(t.pnlUsd, t.rMultiple);
+      finalizeClose(t, sign);
       closed.push(t);
-      dirty = true;
       continue;
     }
 
-    // TP1 scale-out
-    const tp1Hit =
-      t.side === "long" ? px >= t.tp1 : px <= t.tp1;
-    const alreadyTp1 = t.scaleLegs.some((l) => l.note.includes("TP1"));
-    if (so.enabled && tp1Hit && !alreadyTp1 && t.contractsOpen >= 1) {
-      const closeN =
-        t.contractsOpen >= 2
-          ? Math.max(1, Math.floor(t.contractsOpen * so.tp1Fraction))
-          : 0; // single contract: hold for BE path via full TP
-      if (closeN > 0) {
+    // 2) TP1 scale-out
+    const tp1Hit = t.side === "long" ? high >= t.tp1 : low <= t.tp1;
+    const alreadyTp1 = t.scaleLegs.some((l) => l.note.toLowerCase().includes("tp1"));
+    if (so.enabled && tp1Hit && !alreadyTp1) {
+      if (t.contractsOpen >= 2) {
+        const closeN = Math.max(1, Math.floor(t.contractsOpen * so.tp1Fraction));
         const r = rPts(t.tp1);
         t.scaleLegs.push({
           at: new Date().toISOString(),
@@ -421,15 +454,35 @@ export function managePaperTradesAgainstPrice(
         });
         t.contractsOpen -= closeN;
         if (so.moveStopToBeAfterTp1) {
-          t.workingStop = t.entry + sign * (so.beBufferR * t.riskPts);
+          t.workingStop = tickRound(
+            t.symbol,
+            t.entry + sign * (so.beBufferR * t.riskPts),
+          );
         }
         dirty = true;
+      } else if (t.contractsOpen === 1) {
+        // Single micro: full close at TP1 (can't split meaningfully)
+        const r = rPts(t.tp1);
+        t.scaleLegs.push({
+          at: new Date().toISOString(),
+          price: t.tp1,
+          contracts: 1,
+          r,
+          note: "TP1 full (1ct)",
+        });
+        t.contractsOpen = 0;
+        t.status = "closed";
+        t.closedAt = Date.now();
+        t.exit = t.tp1;
+        t.exitReason = "tp1";
+        finalizeClose(t, sign);
+        closed.push(t);
+        continue;
       }
     }
 
-    // TP2 / runner
-    const tp2Hit =
-      t.side === "long" ? px >= t.tp2 : px <= t.tp2;
+    // 3) TP2 runner (or full if no scale)
+    const tp2Hit = t.side === "long" ? high >= t.tp2 : low <= t.tp2;
     if (tp2Hit && t.contractsOpen > 0) {
       const r = rPts(t.tp2);
       t.scaleLegs.push({
@@ -446,52 +499,8 @@ export function managePaperTradesAgainstPrice(
       t.exitReason = alreadyTp1 || t.scaleLegs.some((l) => l.note.includes("TP1"))
         ? "tp1_tp2"
         : "tp2";
-      const totalR = t.scaleLegs.reduce(
-        (s, l) => s + l.r * (l.contracts / t.contracts),
-        0,
-      );
-      const totalUsd = t.scaleLegs.reduce((s, l) => {
-        const u =
-          sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
-        return s + u - commission(t.symbol) * l.contracts;
-      }, 0);
-      t.rMultiple = +totalR.toFixed(3);
-      t.pnlUsd = +totalUsd.toFixed(2);
-      applyPaperPnl(t.pnlUsd, t.rMultiple);
+      finalizeClose(t, sign);
       closed.push(t);
-      dirty = true;
-      continue;
-    }
-
-    // Single-contract: full close at TP1 if scale can't split
-    if (
-      so.enabled &&
-      tp1Hit &&
-      t.contracts === 1 &&
-      t.contractsOpen === 1 &&
-      !t.scaleLegs.length
-    ) {
-      const r = rPts(t.tp1);
-      t.scaleLegs.push({
-        at: new Date().toISOString(),
-        price: t.tp1,
-        contracts: 1,
-        r,
-        note: "TP1 full (1ct)",
-      });
-      t.contractsOpen = 0;
-      t.status = "closed";
-      t.closedAt = Date.now();
-      t.exit = t.tp1;
-      t.exitReason = "tp1";
-      t.rMultiple = +r.toFixed(3);
-      t.pnlUsd = +(
-        sign * (t.tp1 - t.entry) * pointValue(t.symbol) -
-        commission(t.symbol)
-      ).toFixed(2);
-      applyPaperPnl(t.pnlUsd, t.rMultiple);
-      closed.push(t);
-      dirty = true;
       continue;
     }
 

@@ -24,6 +24,7 @@ import { PaperBookPanel } from "@/components/desk/paper-book-panel";
 import {
   openPaperTradeInstant,
   managePaperTradesAgainstPrice,
+  listOpenPaperTrades,
   type PaperTrade,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
@@ -295,28 +296,33 @@ useEffect(() => {
 
   useEffect(() => {
     if (!desk) return;
-    const prices: Record<string, number> = {
-      [desk.left.symbol]: desk.quotes.left.price,
-      [desk.right.symbol]: desk.quotes.right.price,
+    const lastBar = (bars: { h: number; l: number; c: number }[]) =>
+      bars.length ? bars[bars.length - 1]! : null;
+    const lb = lastBar(desk.left.bars as { h: number; l: number; c: number }[]);
+    const rb = lastBar(desk.right.bars as { h: number; l: number; c: number }[]);
+    const pack = (
+      sym: string,
+      quote: number,
+      bar: { h: number; l: number; c: number } | null,
+    ) => ({
+      last: quote,
+      high: bar ? Math.max(bar.h, quote) : quote,
+      low: bar ? Math.min(bar.l, quote) : quote,
+    });
+    const prices: Record<string, { last: number; high: number; low: number }> = {
+      [desk.left.symbol]: pack(desk.left.symbol, desk.quotes.left.price, lb),
+      [desk.right.symbol]: pack(desk.right.symbol, desk.quotes.right.price, rb),
     };
-    if (desk.left.symbol === "ES" || desk.right.symbol === "ES") {
-      prices.MES =
-        desk.left.symbol === "ES"
-          ? desk.quotes.left.price
-          : desk.quotes.right.price;
+    // micros / aliases so MES/MNQ paper books match ES/NQ prints
+    if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
+    if (desk.right.symbol === "ES") prices.MES = prices[desk.right.symbol]!;
+    if (desk.left.symbol === "NQ" || desk.left.symbol === "MNQ") {
+      prices.MNQ = prices[desk.left.symbol]!;
+      prices.NQ = prices[desk.left.symbol]!;
     }
-    if (
-      desk.left.symbol === "NQ" ||
-      desk.left.symbol === "MNQ" ||
-      desk.right.symbol === "NQ" ||
-      desk.right.symbol === "MNQ"
-    ) {
-      const px =
-        desk.left.symbol === "NQ" || desk.left.symbol === "MNQ"
-          ? desk.quotes.left.price
-          : desk.quotes.right.price;
-      prices.MNQ = px;
-      prices.NQ = px;
+    if (desk.right.symbol === "NQ" || desk.right.symbol === "MNQ") {
+      prices.MNQ = prices[desk.right.symbol]!;
+      prices.NQ = prices[desk.right.symbol]!;
     }
     const { closed } = managePaperTradesAgainstPrice(prices);
     if (closed.length) {
@@ -329,6 +335,48 @@ useEffect(() => {
       window.setTimeout(() => setPaperToast(null), 8000);
     }
   }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
+  // Re-check open paper exits every 5s while positions exist (don't wait full desk poll)
+  useEffect(() => {
+    if (!desk) return;
+    if (!listOpenPaperTrades().length) return;
+    const id = window.setInterval(() => {
+      if (!listOpenPaperTrades().length) return;
+      const lastBar = (bars: { h: number; l: number; c: number }[]) =>
+        bars.length ? bars[bars.length - 1]! : null;
+      const lb = lastBar(desk.left.bars as { h: number; l: number; c: number }[]);
+      const rb = lastBar(desk.right.bars as { h: number; l: number; c: number }[]);
+      const pack = (quote: number, bar: { h: number; l: number; c: number } | null) => ({
+        last: quote,
+        high: bar ? Math.max(bar.h, quote) : quote,
+        low: bar ? Math.min(bar.l, quote) : quote,
+      });
+      const prices: Record<string, { last: number; high: number; low: number }> = {
+        [desk.left.symbol]: pack(desk.quotes.left.price, lb),
+        [desk.right.symbol]: pack(desk.quotes.right.price, rb),
+      };
+      if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
+      if (desk.right.symbol === "ES") prices.MES = prices[desk.right.symbol]!;
+      if (desk.left.symbol === "NQ" || desk.left.symbol === "MNQ") {
+        prices.MNQ = prices[desk.left.symbol]!;
+        prices.NQ = prices[desk.left.symbol]!;
+      }
+      if (desk.right.symbol === "NQ" || desk.right.symbol === "MNQ") {
+        prices.MNQ = prices[desk.right.symbol]!;
+        prices.NQ = prices[desk.right.symbol]!;
+      }
+      const { closed } = managePaperTradesAgainstPrice(prices);
+      if (closed.length) {
+        const last = closed[closed.length - 1]!;
+        setLastPaperClosed(last);
+        setPaperToast(
+          `PAPER OUT · ${last.displaySymbol} ${last.exitReason} · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
+        );
+        setEquity(getPaperAccount().equity);
+      }
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [desk, desk?.fetchedAt]);
+
 
   const active = CATEGORIES.find((c) => c.id === cat)!;
 
