@@ -135,6 +135,12 @@ export default defineConfig(({ command }) => ({
     strictPort: true,
   },
   resolve: { tsconfigPaths: true },
+  ssr: {
+    noExternal: ["lightweight-charts"],
+  },
+  optimizeDeps: {
+    include: ["lightweight-charts"],
+  },
   plugins: [
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
