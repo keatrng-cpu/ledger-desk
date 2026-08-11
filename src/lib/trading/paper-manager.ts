@@ -163,8 +163,21 @@ export function buildPaperLevels(
   // Targets: ALWAYS honor structure TP when on correct side of entry.
   // Old 0.9R gate dropped user TPs like 7770 (~0.8R) and left synthetic 7767 —
   // so live never "took" the planned target.
-  const t1raw = firstPrice(c.targets[0]);
-  const t2raw = firstPrice(c.targets[1]);
+  const allTps = (c.targets || [])
+    .flatMap((s) => parseNums(s))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  const below = allTps.filter((n) => n < entry).sort((a, b) => b - a); // near → deep
+  const above = allTps.filter((n) => n > entry).sort((a, b) => a - b);
+  // Short: TP1 = nearest target below entry; TP2 = deepest (session low)
+  // Long: TP1 = nearest above; TP2 = highest
+  const t1raw =
+    side === "short"
+      ? (below[0] ?? firstPrice(c.targets[0]))
+      : (above[0] ?? firstPrice(c.targets[0]));
+  const t2raw =
+    side === "short"
+      ? (below[below.length - 1] ?? firstPrice(c.targets[1]))
+      : (above[above.length - 1] ?? firstPrice(c.targets[1]));
   let tp1 = side === "long" ? entry + riskPts : entry - riskPts;
   let tp2 = side === "long" ? entry + riskPts * 2 : entry - riskPts * 2;
 
@@ -545,6 +558,97 @@ export function managePaperTradesAgainstPrice(
     savePaperTrades(all);
   }
   return { closed, updated };
+}
+
+
+/**
+ * Manually / structure-close an open paper trade at a fill price.
+ * Used for "close at the 7763 low" style structure TPs.
+ */
+export function closePaperTrade(
+  id: string,
+  exitPrice: number,
+  reason: string = "structure_tp",
+): PaperTrade | null {
+  const all = loadPaperTrades();
+  const t = all.find((x) => x.id === id && x.status === "open");
+  if (!t) return null;
+  if (!Number.isFinite(exitPrice) || exitPrice <= 0) return null;
+
+  const sign = t.side === "long" ? 1 : -1;
+  const r = (sign * (exitPrice - t.entry)) / Math.max(t.riskPts, 1e-6);
+  const openCt = t.contractsOpen;
+
+  t.scaleLegs.push({
+    at: new Date().toISOString(),
+    price: exitPrice,
+    contracts: openCt,
+    r,
+    note: reason === "structure_tp" ? `structure TP @ ${exitPrice}` : reason,
+  });
+  t.contractsOpen = 0;
+  t.status = "closed";
+  t.closedAt = Date.now();
+  t.exit = exitPrice;
+  t.exitReason = reason;
+
+  const totalR = t.scaleLegs.reduce(
+    (s, l) => s + l.r * (l.contracts / t.contracts),
+    0,
+  );
+  const totalUsd = t.scaleLegs.reduce((s, l) => {
+    const u =
+      sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
+    return s + u - commission(t.symbol) * l.contracts;
+  }, 0);
+  t.rMultiple = +totalR.toFixed(3);
+  t.pnlUsd = +totalUsd.toFixed(2);
+  applyPaperPnl(t.pnlUsd, t.rMultiple);
+  savePaperTrades(all);
+  return t;
+}
+
+/** Close every open paper position (optional per-symbol or single fill). */
+export function closeAllOpenPaper(
+  exitPrice: number,
+  reason: string = "structure_tp",
+): PaperTrade[] {
+  const closed: PaperTrade[] = [];
+  for (const t of listOpenPaperTrades()) {
+    const c = closePaperTrade(t.id, exitPrice, reason);
+    if (c) closed.push(c);
+  }
+  return closed;
+}
+
+/**
+ * If short and mark is at/through structure low (or long through high),
+ * close remaining size at that structure level.
+ */
+export function closeOpenAtStructureLow(
+  structurePx: number,
+  markBySymbol: Partial<Record<string, number>>,
+): PaperTrade[] {
+  const closed: PaperTrade[] = [];
+  for (const t of listOpenPaperTrades()) {
+    const mark =
+      markBySymbol[t.displaySymbol] ??
+      markBySymbol[t.symbol] ??
+      markBySymbol[t.displaySymbol.replace(/^M/, "")] ??
+      null;
+    if (mark == null) continue;
+    if (t.side === "short" && mark <= structurePx + 0.25) {
+      // fill at structure low (or better if mark lower)
+      const fill = Math.min(structurePx, mark);
+      const c = closePaperTrade(t.id, fill, "structure_tp");
+      if (c) closed.push(c);
+    } else if (t.side === "long" && mark >= structurePx - 0.25) {
+      const fill = Math.max(structurePx, mark);
+      const c = closePaperTrade(t.id, fill, "structure_tp");
+      if (c) closed.push(c);
+    }
+  }
+  return closed;
 }
 
 export function paperTradeHistory(limit = 20): PaperTrade[] {

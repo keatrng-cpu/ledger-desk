@@ -25,6 +25,7 @@ import {
   openPaperTradeInstant,
   managePaperTradesAgainstPrice,
   listOpenPaperTrades,
+  closeOpenAtStructureLow,
   type PaperTrade,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
@@ -331,6 +332,33 @@ useEffect(() => {
       window.setTimeout(() => setPaperToast(null), 8000);
     }
   }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
+  // Structure TP: ES session low 7763 — close remaining short size when mark tags it
+  useEffect(() => {
+    if (!desk) return;
+    const esPx =
+      desk.left.symbol === "ES"
+        ? desk.quotes.left.price
+        : desk.right.symbol === "ES"
+          ? desk.quotes.right.price
+          : null;
+    if (esPx == null) return;
+    const closed = closeOpenAtStructureLow(7763, {
+      ES: esPx,
+      MES: esPx,
+      [desk.left.symbol]: desk.quotes.left.price,
+      [desk.right.symbol]: desk.quotes.right.price,
+    });
+    if (closed.length) {
+      const last = closed[closed.length - 1]!;
+      setLastPaperClosed(last);
+      setPaperToast(
+        `PAPER OUT · structure 7763 · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
+      );
+      setEquity(getPaperAccount().equity);
+      window.setTimeout(() => setPaperToast(null), 8000);
+    }
+  }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
+
   // Re-check open paper exits every 5s while positions exist (don't wait full desk poll)
   useEffect(() => {
     if (!desk) return;
@@ -654,7 +682,37 @@ useEffect(() => {
                       summary={desk.narrative.summary}
                     />
                   )}
-                  <PaperBookPanel lastClosed={lastPaperClosed} />
+                  <PaperBookPanel
+                    lastClosed={lastPaperClosed}
+                    liveMarks={
+                      desk
+                        ? {
+                            [desk.left.symbol]: desk.quotes.left.price,
+                            [desk.right.symbol]: desk.quotes.right.price,
+                            ES:
+                              desk.left.symbol === "ES"
+                                ? desk.quotes.left.price
+                                : desk.right.symbol === "ES"
+                                  ? desk.quotes.right.price
+                                  : undefined,
+                            MES:
+                              desk.left.symbol === "ES"
+                                ? desk.quotes.left.price
+                                : desk.right.symbol === "ES"
+                                  ? desk.quotes.right.price
+                                  : undefined,
+                          }
+                        : undefined
+                    }
+                    onClosed={(tr) => {
+                      setLastPaperClosed(tr);
+                      setPaperToast(
+                        `PAPER OUT · ${tr.displaySymbol} ${tr.exitReason} @ ${tr.exit} · R ${tr.rMultiple?.toFixed(2)} · $${tr.pnlUsd?.toFixed(0)}`,
+                      );
+                      setEquity(getPaperAccount().equity);
+                      window.setTimeout(() => setPaperToast(null), 8000);
+                    }}
+                  />
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}
