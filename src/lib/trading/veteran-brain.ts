@@ -26,6 +26,11 @@ import {
   PATH_MONTH_CAP,
 } from "./profit-rules";
 import { ALWAYS_SCAN, type StrategyId } from "./strategies";
+import {
+  listOpenPaperTrades,
+  loadPaperTrades,
+} from "./paper-manager";
+import { recentByKind } from "./desk-memory";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -473,6 +478,75 @@ export function runVeteranBrain(
     });
   }
 
+
+  // 7a) Live paper book — open risk + recent fills feed discretion
+  const openPaper =
+    typeof window !== "undefined" ? listOpenPaperTrades() : [];
+  const paperItems =
+    typeof window !== "undefined" ? recentByKind("paper", 6) : [];
+  const paperOpenMem =
+    typeof window !== "undefined" ? recentByKind("paper_open", 3) : [];
+  if (openPaper.length > 0) {
+    const lines = openPaper.map(
+      (tr) =>
+        `${tr.displaySymbol} ${tr.side} ${tr.contractsOpen}ct @ ${tr.entry} SL ${tr.workingStop} TP ${tr.tp1}/${tr.tp2} (${tr.grade})`,
+    );
+    layers.push({
+      id: "paper_open",
+      label: "Paper open",
+      tone: "warn",
+      score: -0.25,
+      detail: lines.join(" · "),
+    });
+    yellow.push(
+      `Open paper: ${openPaper.length} — manage exits before new PATH risk`,
+    );
+    // One book: if open ES short, don't stack same-bias NQ short etc.
+    score -= 0.25;
+  }
+  const pTaken = memory.book.paperTaken ?? 0;
+  const pWins = memory.book.paperWins ?? 0;
+  if (pTaken > 0 || paperItems.length > 0) {
+    const pWr = pTaken > 0 ? pWins / pTaken : null;
+    const last = memory.book.lastPaperLabel;
+    const lastR = memory.book.lastPaperR;
+    layers.push({
+      id: "paper_tape",
+      label: "Paper tape",
+      tone:
+        pWr != null && pWr >= 0.65
+          ? "pass"
+          : pWr != null && pWr < 0.45 && pTaken >= 3
+            ? "fail"
+            : "info",
+      score:
+        pWr != null && pWr >= 0.65
+          ? 0.4
+          : pWr != null && pWr < 0.45 && pTaken >= 3
+            ? -0.6
+            : 0.1,
+      detail: `Live paper ${pTaken} · WR ${pWr != null ? (pWr * 100).toFixed(0) + "%" : "—"} · ΣR ${memory.book.paperSumR ?? 0} · last ${last ?? "—"} ${lastR != null ? lastR + "R" : ""}`,
+    });
+    if (pWr != null && pWr >= 0.65) {
+      score += 0.4;
+      green.push("Live paper tape supports process");
+    } else if (pWr != null && pWr < 0.45 && pTaken >= 3) {
+      score -= 0.6;
+      yellow.push("Live paper cold — only A+ or structure-confirmed");
+    }
+    if (paperItems[0]) {
+      green.push(`Last paper: ${paperItems[0].title} — ${paperItems[0].summary.slice(0, 80)}`);
+    }
+  } else if (paperOpenMem[0]) {
+    layers.push({
+      id: "paper_tape",
+      label: "Paper tape",
+      tone: "info",
+      score: 0,
+      detail: paperOpenMem[0].summary,
+    });
+  }
+
   // 7b) Backtest rates applied to live setup
   const stratWr = bucketWr(rateCard.strategy ?? undefined);
   const stratExp = bucketExpectancy(rateCard.strategy ?? undefined);
@@ -682,6 +756,30 @@ export function runVeteranBrain(
       } · ΣR ${memory.book.sumR}`,
     },
     {
+      tab: "Paper",
+      status:
+        (typeof window !== "undefined" ? listOpenPaperTrades().length : 0) > 0
+          ? "hot"
+          : (memory.book.paperTaken ?? 0) > 0
+            ? "ok"
+            : "idle",
+      line: (() => {
+        const opens =
+          typeof window !== "undefined" ? listOpenPaperTrades() : [];
+        const pt = memory.book.paperTaken ?? 0;
+        const pw = memory.book.paperWins ?? 0;
+        const pwr = pt > 0 ? ((pw / pt) * 100).toFixed(0) + "%" : "—";
+        if (opens.length) {
+          return `OPEN ${opens.length}: ${opens
+            .map((tr) => `${tr.displaySymbol} ${tr.side} @ ${tr.entry} TP ${tr.tp1}`)
+            .join(" · ")} · closed ${pt} WR ${pwr} ΣR ${memory.book.paperSumR ?? 0}`;
+        }
+        return pt
+          ? `Live paper ${pt} · WR ${pwr} · ΣR ${memory.book.paperSumR ?? 0} · last ${memory.book.lastPaperLabel ?? "—"}`
+          : "No live paper yet — Log paper on Trade feeds brain rates";
+      })(),
+    },
+    {
       tab: "Backtest",
       status: memory.book.lastBacktestLabel ? "ok" : "idle",
       line: memory.book.lastBacktestLabel
@@ -795,6 +893,17 @@ export function runVeteranBrain(
     );
   }
   if (rateCard.advice[0]) monologue.push(rateCard.advice[0]!);
+  if (typeof window !== "undefined") {
+    const opens = listOpenPaperTrades();
+    if (opens.length) {
+      monologue.push(
+        `Open paper risk: ${opens.map((tr) => `${tr.displaySymbol} ${tr.side} @ ${tr.entry}→TP ${tr.tp1}`).join(" | ")}`,
+      );
+    }
+    const lastPaper = recentByKind("paper", 1)[0];
+    if (lastPaper) monologue.push(`Paper memory: ${lastPaper.title} · ${lastPaper.summary.slice(0, 100)}`);
+  }
+
   const narrLines = (desk as { __narrLines?: string[] }).__narrLines;
   if (narrLines?.length) monologue.push(...narrLines);
 

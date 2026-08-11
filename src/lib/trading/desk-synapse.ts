@@ -273,6 +273,16 @@ function buildFeeds(ctx: {
       ? memory.book.pathWins / memory.book.pathTaken
       : null;
 
+  const paperTaken = memory.book.paperTaken ?? 0;
+  const paperWr =
+    paperTaken > 0
+      ? (memory.book.paperWins ?? 0) / paperTaken
+      : null;
+  const paperLine =
+    paperTaken > 0
+      ? `Live paper ${paperTaken} · WR ${paperWr != null ? (paperWr * 100).toFixed(0) + "%" : "—"} · ΣR ${memory.book.paperSumR ?? 0} · last ${memory.book.lastPaperLabel ?? "—"}`
+      : "Live paper empty — Log paper feeds brain rates";
+
   const trade = [
     desk
       ? `HTF ${desk.bias.left.symbol} ${desk.bias.left.topDown} / ${desk.bias.right.symbol} ${desk.bias.right.topDown}`
@@ -280,6 +290,7 @@ function buildFeeds(ctx: {
     top
       ? `Fused #1 ${top.symbol} ${top.side} ${top.strategy} Q ${top.fusedScore.toFixed(2)} · size×${top.sizeMult.toFixed(2)}`
       : "No fused setup",
+    paperLine,
     desk?.scan.focus ?? "",
   ].filter(Boolean);
 
@@ -288,6 +299,7 @@ function buildFeeds(ctx: {
     bookWr != null
       ? `Book WR ${(bookWr * 100).toFixed(0)}% on ${memory.book.pathTaken} PATH · ΣR ${memory.book.sumR}`
       : "Book empty — BT trains path rates",
+    paperLine,
     top?.actionable
       ? `Live path candidate: ${top.symbol} ${top.band}`
       : "No live PATH candidate",
@@ -317,7 +329,8 @@ function buildFeeds(ctx: {
     risk
       ? `Halt D/W: ${risk.dailyHaltHit ? "DAILY" : "ok"} / ${risk.weeklyHaltHit ? "WEEKLY" : "ok"}`
       : "Risk state loading…",
-    `Paper $${APLUS_RULES.paperEquity.toLocaleString()} · A+ probe 2% · cap ${PATH_MONTH_CAP}/mo`,
+    `Paper equity $${Math.round(memory.book.equity).toLocaleString()} · A+ probe 2% · cap ${PATH_MONTH_CAP}/mo`,
+    paperLine,
     desk
       ? `Slot $${desk.risk.riskDollars.toFixed(0)} · micros ${desk.risk.micros ? "on" : "off"}`
       : "",
@@ -326,10 +339,11 @@ function buildFeeds(ctx: {
   const brainLines = brain
     ? [
         `${brain.verdict} · ${brain.headline}`,
+        paperLine,
         brain.rateSummary,
         ...brain.rateAdvice.slice(0, 2),
       ]
-    : ["Brain waiting for desk"];
+    : ["Brain waiting for desk", paperLine];
 
   const tape = desk
     ? [

@@ -7,6 +7,8 @@ export type MemoryKind =
   | "backtest"
   | "journal"
   | "live_setup"
+  | "paper"
+  | "paper_open"
   | "discretion"
   | "note"
   | "session";
@@ -60,6 +62,16 @@ export interface DeskMemoryState {
     lastBacktestWr?: number | null;
     lastBacktestSumR?: number | null;
     lastBacktestSumUsd?: number | null;
+    /** Live paper (one-click book) — separate from BT seed but feeds same rates */
+    paperTaken?: number;
+    paperWins?: number;
+    paperLosses?: number;
+    paperSumR?: number;
+    paperSumUsd?: number;
+    lastPaperLabel?: string;
+    lastPaperR?: number | null;
+    lastPaperUsd?: number | null;
+    openPaperCount?: number;
     updatedAt: number;
   };
   /** Rolling rates from backtests (and optional live) */
@@ -420,6 +432,147 @@ export function rememberLiveSetup(opts: {
   return state;
 }
 
+/**
+ * Ingest a closed paper trade into book + rates + memory tape.
+ * Brain, synapse, and path rates all read this.
+ * Equity: set applyEquity true unless applyPaperPnl already moved equity.
+ */
+export function ingestPaperFill(opts: {
+  symbol: string;
+  side: string;
+  strategy?: string;
+  band?: string;
+  grade?: string;
+  score?: number;
+  r: number;
+  usd: number;
+  exit: string;
+  entry?: number;
+  exitPx?: number;
+  reason?: string;
+  /** When true (default), move book equity by usd */
+  applyEquity?: boolean;
+}): DeskMemoryState {
+  const state = loadDeskMemory();
+  const r = opts.r;
+  const usd = opts.usd;
+  const strategy = opts.strategy || "paper";
+  const band = opts.band || opts.grade || "—";
+  const win = r > 0;
+
+  state.book.pathTaken += 1;
+  if (win) state.book.pathWins += 1;
+  else state.book.pathLosses += 1;
+  state.book.sumR = Math.round((state.book.sumR + r) * 100) / 100;
+  state.book.sumUsd = Math.round((state.book.sumUsd + usd) * 100) / 100;
+  state.book.paperTaken = (state.book.paperTaken ?? 0) + 1;
+  state.book.paperWins = (state.book.paperWins ?? 0) + (win ? 1 : 0);
+  state.book.paperLosses = (state.book.paperLosses ?? 0) + (win ? 0 : 1);
+  state.book.paperSumR =
+    Math.round(((state.book.paperSumR ?? 0) + r) * 100) / 100;
+  state.book.paperSumUsd =
+    Math.round(((state.book.paperSumUsd ?? 0) + usd) * 100) / 100;
+  state.book.lastPaperLabel = `${opts.symbol} ${opts.side} ${opts.reason || opts.exit}`;
+  state.book.lastPaperR = Math.round(r * 1000) / 1000;
+  state.book.lastPaperUsd = Math.round(usd * 100) / 100;
+
+  if (opts.applyEquity !== false) {
+    if (!state.book.startEquity) state.book.startEquity = 100_000;
+    if (!state.book.equity || state.book.equity < 100) state.book.equity = 100_000;
+    if (!state.book.peakEquity) state.book.peakEquity = state.book.equity;
+    state.book.equity =
+      Math.round((state.book.equity + usd) * 100) / 100;
+    state.book.equity = Math.max(100, state.book.equity);
+    state.book.peakEquity = Math.max(state.book.peakEquity, state.book.equity);
+  }
+  state.book.updatedAt = Date.now();
+
+  bump(state.rates.byStrategy, strategy, r);
+  bump(state.rates.byBand, band, r);
+  bump(state.rates.bySide, opts.side, r);
+  bump(state.rates.bySymbol, opts.symbol, r);
+  if (
+    opts.side === "short" &&
+    (strategy === "mechanical" || strategy.includes("mech"))
+  ) {
+    state.rates.gold = mergeBucket(state.rates.gold, {
+      n: 1,
+      wins: win ? 1 : 0,
+      sumR: r,
+    });
+  }
+
+  const fill: BacktestFillRecord = {
+    date: new Date().toISOString().slice(0, 10),
+    symbol: opts.symbol,
+    side: opts.side,
+    strategy,
+    band,
+    grade: opts.grade || band,
+    score: opts.score ?? 0,
+    r,
+    usd,
+    exit: opts.reason || opts.exit,
+    windowLabel: "paper-live",
+  };
+  state.rates.recentFills = [fill, ...state.rates.recentFills].slice(
+    0,
+    MAX_FILLS,
+  );
+
+  const item: MemoryItem = {
+    id: uid(),
+    kind: "paper",
+    ts: Date.now(),
+    title: `PAPER ${opts.symbol} ${opts.side.toUpperCase()} ${win ? "WIN" : "LOSS"}`,
+    summary: `${r >= 0 ? "+" : ""}${r.toFixed(2)}R · $${usd.toFixed(0)} · ${opts.reason || opts.exit}${opts.entry != null && opts.exitPx != null ? ` · ${opts.entry}→${opts.exitPx}` : ""} · ${strategy}`,
+    tags: ["paper", opts.symbol, opts.side, strategy, band, win ? "win" : "loss"],
+    payload: { ...opts, fill },
+  };
+  state.items = [item, ...state.items].slice(0, MAX_ITEMS);
+  saveDeskMemory(state);
+  return state;
+}
+
+/** Remember a paper entry so brain sees open risk. */
+export function rememberPaperOpen(opts: {
+  symbol: string;
+  side: string;
+  strategy?: string;
+  grade?: string;
+  band?: string;
+  score?: number;
+  entry: number;
+  stop: number;
+  tp1: number;
+  tp2?: number;
+  contracts: number;
+  riskPts: number;
+}): DeskMemoryState {
+  const state = loadDeskMemory();
+  state.book.openPaperCount = (state.book.openPaperCount ?? 0) + 1;
+  state.book.updatedAt = Date.now();
+  const item: MemoryItem = {
+    id: uid(),
+    kind: "paper_open",
+    ts: Date.now(),
+    title: `PAPER IN ${opts.symbol} ${opts.side.toUpperCase()}`,
+    summary: `${opts.contracts}ct @ ${opts.entry} · SL ${opts.stop} · TP1 ${opts.tp1}${opts.tp2 != null ? ` · TP2 ${opts.tp2}` : ""} · ${opts.strategy || "—"} · ${opts.grade || opts.band || ""}`,
+    tags: ["paper", "open", opts.symbol, opts.side, opts.strategy || ""],
+    payload: { ...opts },
+  };
+  state.items = [item, ...state.items].slice(0, MAX_ITEMS);
+  saveDeskMemory(state);
+  return state;
+}
+
+export function setOpenPaperCount(n: number): void {
+  const state = loadDeskMemory();
+  state.book.openPaperCount = Math.max(0, n);
+  state.book.updatedAt = Date.now();
+  saveDeskMemory(state);
+}
+
 export function recentByKind(kind: MemoryKind, n = 8): MemoryItem[] {
   return loadDeskMemory().items.filter((i) => i.kind === kind).slice(0, n);
 }
@@ -440,8 +593,18 @@ export function memoryDigest(state?: DeskMemoryState): string {
     .map(([k, b]) => `${k} ${(bucketWr(b)! * 100).toFixed(0)}%/${b.n}`)
     .join(" · ");
   const pins = s.pins.length ? `Pins: ${s.pins.join(" | ")}` : "No pins";
+  const paperLine =
+    (s.book.paperTaken ?? 0) > 0
+      ? `Live paper ${s.book.paperTaken} · WR ${
+          s.book.paperTaken
+            ? ((((s.book.paperWins ?? 0) / s.book.paperTaken) * 100).toFixed(0) + "%")
+            : "—"
+        } · ΣR ${s.book.paperSumR ?? 0} · last ${s.book.lastPaperLabel ?? "—"} ${s.book.lastPaperR != null ? s.book.lastPaperR + "R" : ""}`
+      : "No live paper fills yet";
+  const openN = s.book.openPaperCount ?? 0;
   return [
     `Paper $${Math.round(s.book.equity).toLocaleString()} · PATH ${s.book.pathTaken} · WR ${wr} · Σ ${s.book.sumR >= 0 ? "+" : ""}${s.book.sumR}R · PnL $${s.book.sumUsd.toFixed(0)}`,
+    paperLine + (openN ? ` · OPEN ${openN}` : ""),
     lastBt,
     topStrat ? `Rates ${topStrat}` : "Rates empty — run a backtest",
     pins,

@@ -42,7 +42,7 @@ import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
-import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
   formatPaperChip,
@@ -264,6 +264,24 @@ useEffect(() => {
     return () => window.clearInterval(id);
   }, []);
 
+  // Paper open/close → brain + synapse memory refresh
+  useEffect(() => {
+    const sync = () => {
+      try {
+        getDeskSynapse().publishMemory();
+      } catch {
+        /* */
+      }
+      setEquity(getPaperAccount().equity);
+    };
+    window.addEventListener("ledger-paper", sync);
+    window.addEventListener("ledger-memory", sync);
+    return () => {
+      window.removeEventListener("ledger-paper", sync);
+      window.removeEventListener("ledger-memory", sync);
+    };
+  }, []);
+
   const onLog = useCallback(
     (c: SetupCandidate, mode: "paper" | "live") => {
       if (mode === "paper") {
@@ -282,6 +300,11 @@ useEffect(() => {
             `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}`,
           );
           setEquity(getPaperAccount().equity);
+          try {
+            getDeskSynapse().publishMemory();
+          } catch {
+            /* */
+          }
           window.setTimeout(() => setPaperToast(null), 6000);
         } else {
           setPaperToast(`Paper log failed: ${res.error}`);
@@ -710,6 +733,11 @@ useEffect(() => {
                         `PAPER OUT · ${tr.displaySymbol} ${tr.exitReason} @ ${tr.exit} · R ${tr.rMultiple?.toFixed(2)} · $${tr.pnlUsd?.toFixed(0)}`,
                       );
                       setEquity(getPaperAccount().equity);
+                      try {
+                        getDeskSynapse().publishMemory();
+                      } catch {
+                        /* */
+                      }
                       window.setTimeout(() => setPaperToast(null), 8000);
                     }}
                   />

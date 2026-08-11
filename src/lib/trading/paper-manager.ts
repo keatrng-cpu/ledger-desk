@@ -19,9 +19,14 @@ import {
   type RiskGrade,
 } from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
-import { getPaperAccount, applyPaperPnl, PAPER_START_EQUITY } from "./paper-account";
+import { getPaperAccount, PAPER_START_EQUITY } from "./paper-account";
+import {
+  ingestPaperFill,
+  rememberPaperOpen,
+  setOpenPaperCount,
+} from "./desk-memory";
 import { MAX_RISK_PTS } from "./simulate-path-trade";
-import { rememberLiveSetup } from "./desk-memory";
+
 
 const STORAGE_KEY = "ledger-paper-trades-v1";
 
@@ -328,13 +333,27 @@ export function openPaperTradeInstant(
     all.unshift(trade);
     savePaperTrades(all);
 
-    rememberLiveSetup({
+    rememberPaperOpen({
       symbol: trade.displaySymbol,
       side: trade.side,
-      grade: c.grade,
-      score: c.confluence,
-      mode: "paper",
+      strategy: trade.strategy,
+      grade: trade.grade,
+      band: trade.pathBand,
+      score: trade.score,
+      entry: trade.entry,
+      stop: trade.stop,
+      tp1: trade.tp1,
+      tp2: trade.tp2,
+      contracts: trade.contracts,
+      riskPts: trade.riskPts,
     });
+    setOpenPaperCount(listOpenPaperTrades().length + 0); // will recount
+    setOpenPaperCount(
+      loadPaperTrades().filter((x) => x.status === "open").length,
+    );
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("ledger-memory"));
+    }
 
     return { ok: true, trade };
   } catch (e) {
@@ -406,8 +425,29 @@ function finalizeClose(
   }, 0);
   t.rMultiple = +totalR.toFixed(3);
   t.pnlUsd = +totalUsd.toFixed(2);
-  applyPaperPnl(t.pnlUsd, t.rMultiple);
+  ingestPaperFill({
+    symbol: t.displaySymbol,
+    side: t.side,
+    strategy: t.strategy,
+    band: t.pathBand || t.grade,
+    grade: t.grade,
+    score: t.score,
+    r: t.rMultiple,
+    usd: t.pnlUsd,
+    exit: t.exitReason || "close",
+    entry: t.entry,
+    exitPx: t.exit,
+    reason: t.exitReason,
+    applyEquity: true,
+  });
+  setOpenPaperCount(
+    loadPaperTrades().filter((x) => x.status === "open" && x.id !== t.id).length,
+  );
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ledger-memory"));
+  }
 }
+
 
 /**
  * Manage open paper trades against live prints (and bar H/L when available).
@@ -603,8 +643,26 @@ export function closePaperTrade(
   }, 0);
   t.rMultiple = +totalR.toFixed(3);
   t.pnlUsd = +totalUsd.toFixed(2);
-  applyPaperPnl(t.pnlUsd, t.rMultiple);
+  ingestPaperFill({
+    symbol: t.displaySymbol,
+    side: t.side,
+    strategy: t.strategy,
+    band: t.pathBand || t.grade,
+    grade: t.grade,
+    score: t.score,
+    r: t.rMultiple,
+    usd: t.pnlUsd,
+    exit: reason,
+    entry: t.entry,
+    exitPx: exitPrice,
+    reason,
+    applyEquity: true,
+  });
   savePaperTrades(all);
+  setOpenPaperCount(listOpenPaperTrades().filter((x) => x.id !== id).length);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ledger-memory"));
+  }
   return t;
 }
 
