@@ -109,8 +109,8 @@ const MONTHS: Record<string, number> = {
 export function normalizeBacktestQuery(message: string): string {
   let s = message.trim().toLowerCase();
   // "back test" / "back-testing" → backtest
-  s = s.replace(/\bback[\s\-]*test(?:ing)?\b/g, "backtest");
-  s = s.replace(/\bback[\s\-]*tests\b/g, "backtest");
+  s = s.replace(/\bback[\s-]*test(?:ing)?\b/g, "backtest");
+  s = s.replace(/\bback[\s-]*tests\b/g, "backtest");
   // common year typos: 20266 → 2026, 20267 → 2026, 2025 6 → keep
   s = s.replace(/\b(20\d{2})\d\b/g, "$1");
   // "july2026" → "july 2026"
@@ -580,7 +580,7 @@ export async function runWeekBacktest(
   const MAX_DAYS =
     window.kind === "day" ? 3 : window.kind === "week" ? 7 : 23;
   let truncated = false;
-  let days =
+  const days =
     coveredDays.length > 0
       ? coveredDays.slice(0, MAX_DAYS)
       : allDays.slice(0, MAX_DAYS);

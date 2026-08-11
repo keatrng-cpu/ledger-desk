@@ -156,7 +156,7 @@ export function bucketExpectancy(b: RateBucket | undefined): number | null {
 export function loadDeskMemory(): DeskMemoryState {
   if (typeof window === "undefined") return empty();
   try {
-    let raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(KEY);
     if (!raw) {
       // migrate v1
       const v1 = window.localStorage.getItem(KEY_V1);

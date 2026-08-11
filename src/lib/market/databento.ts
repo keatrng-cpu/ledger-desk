@@ -280,7 +280,7 @@ export async function fetchDatabentoAbsoluteRange(
 
   while (cursor < endMs) {
     const chunkEnd = Math.min(cursor + CHUNK_MS, endMs);
-    let start = new Date(cursor).toISOString();
+    const start = new Date(cursor).toISOString();
     let end = new Date(chunkEnd).toISOString();
     let result = await getRangeOnce(key, symbol, start, end);
 
@@ -384,7 +384,7 @@ function etMinutes(ms: number): { weekday: number; minutes: number } {
   const wdMap: Record<string, number> = {
     Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
   };
-  let hour = Number(get("hour") === "24" ? "0" : get("hour"));
+  const hour = Number(get("hour") === "24" ? "0" : get("hour"));
   const minute = Number(get("minute"));
   return { weekday: wdMap[get("weekday")] ?? 0, minutes: hour * 60 + minute };
 }
@@ -434,7 +434,7 @@ export async function fetchBacktestLayers(
     rs: number,
     re: number,
   ): Promise<{ h1: OhlcBar[]; h4: OhlcBar[]; ltf: OhlcBar[]; rth: OhlcBar[]; raw: number }> {
-    let start = new Date(rs).toISOString();
+    const start = new Date(rs).toISOString();
     let end = new Date(re).toISOString();
     let result = await getRangeOnce(key, symbol, start, end);
     if (!result.ok && result.status === 422) {

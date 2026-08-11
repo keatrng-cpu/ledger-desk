@@ -125,7 +125,7 @@ function parseStats(text: string): TradezellaStats {
     t.match(/(?:net\s*)?(?:p(?:rofit)?(?:\s*\/?\s*l(?:oss)?)?|pnl)[:\s]*\$?\s*([+-]?[0-9]+(?:\.[0-9]+)?[kKmM]?)/i) ||
     t.match(/\$\s*([+-]?[0-9]+(?:\.[0-9]+)?)\s*(?:net|pnl|profit)?/i);
   if (pnl) {
-    let v = pnl[1]!.toLowerCase();
+    const v = pnl[1]!.toLowerCase();
     let n = parseFloat(v);
     if (v.endsWith("k")) n *= 1000;
     if (v.endsWith("m")) n *= 1_000_000;

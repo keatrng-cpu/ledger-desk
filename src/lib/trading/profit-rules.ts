@@ -309,8 +309,9 @@ export function pickOneBookPerDay(
     right &&
     left.side === right.side;
 
-  if (sameBias || true) {
-    // Always one book per day when both path-eligible
+  // One book per day ALWAYS when both are path-eligible — not only when the
+  // two books share a bias. `sameBias` still selects the wording below.
+  {
     if (ls >= rs) {
       return {
         chosen: left,

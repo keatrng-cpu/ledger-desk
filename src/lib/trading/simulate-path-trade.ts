@@ -323,7 +323,7 @@ export function simulatePathTrade(opts: {
 
   const totalContracts = sizing.contracts;
   const scaleLegs: ScaleLeg[] = [];
-  let scaleNote = so.enabled
+  const scaleNote = so.enabled
     ? `Risk-off: ${(so.tp1Fraction * 100).toFixed(0)}% @ TP1 → BE stop → runner TP2`
     : "Full size to first exit";
 
@@ -502,7 +502,7 @@ export function simulatePathTrade(opts: {
   let reason: TradeExitReason = "session_close";
   let exitT: number | null = null;
   let held = 0;
-  let stop = initialStop;
+  const stop = initialStop;
 
   for (const b of path) {
     held++;

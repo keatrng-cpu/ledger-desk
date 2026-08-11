@@ -64,6 +64,7 @@ import {
 import { getRiskState, getSettings } from "@/lib/journal/server";
 import { AnalyticsPanel } from "@/components/journal/analytics-panel";
 import { captureSnapshot } from "@/lib/journal/snapshots";
+import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -344,6 +345,26 @@ useEffect(() => {
           killzone: desk?.clock.killzone,
         });
         if (res.ok) {
+          // Mirror the localStorage book into desk_trades so analytics, CSV
+          // export and the unlock evidence see it. Fire-and-forget: a failure
+          // (signed out, no DB) must never block the working paper book.
+          void mirrorPaperOpen({
+            data: {
+              id: res.trade.id,
+              symbol: res.trade.displaySymbol,
+              side: res.trade.side,
+              entry: res.trade.entry,
+              stop: res.trade.stop,
+              target: res.trade.tp1 ?? null,
+              contracts: res.trade.contracts,
+              openedAt: new Date(res.trade.openedAt).toISOString(),
+              prescore: res.trade.score ?? null,
+              grade: res.trade.grade ?? null,
+              killzone: desk?.clock.killzone ?? null,
+              strategy: res.trade.strategy ?? null,
+              reason: res.trade.reason ?? null,
+            },
+          }).catch(() => undefined);
           setPaperToast(
             `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}`,
           );
@@ -394,6 +415,19 @@ useEffect(() => {
     }
     const { closed } = managePaperTradesAgainstPrice(prices);
     if (closed.length) {
+      // Mirror each close so the durable record matches the working book.
+      for (const t of closed) {
+        if (t.exit == null) continue;
+        void mirrorPaperClose({
+          data: {
+            id: t.id,
+            exit: t.exit,
+            closedAt: new Date(t.closedAt ?? Date.now()).toISOString(),
+            contracts: t.contracts,
+            reason: t.exitReason ?? "paper exit",
+          },
+        }).catch(() => undefined);
+      }
       reconcilePaperBookToMemory();
       publishMemory();
       const last = closed[closed.length - 1]!;
