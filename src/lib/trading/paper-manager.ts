@@ -160,7 +160,9 @@ export function buildPaperLevels(
     stop = side === "long" ? entry - riskPts : entry + riskPts;
   }
 
-  // Targets: prefer structure if ≥ 0.9R and ≤ tpMaxR, else synthetic 1R/2R
+  // Targets: ALWAYS honor structure TP when on correct side of entry.
+  // Old 0.9R gate dropped user TPs like 7770 (~0.8R) and left synthetic 7767 —
+  // so live never "took" the planned target.
   const t1raw = firstPrice(c.targets[0]);
   const t2raw = firstPrice(c.targets[1]);
   let tp1 = side === "long" ? entry + riskPts : entry - riskPts;
@@ -168,22 +170,29 @@ export function buildPaperLevels(
 
   if (t1raw != null) {
     const ok = side === "long" ? t1raw > entry : t1raw < entry;
-    const r = Math.abs(t1raw - entry) / riskPts;
-    if (ok && r >= 0.9 && r <= APLUS_RULES.tpMaxR) tp1 = t1raw;
+    const r = Math.abs(t1raw - entry) / Math.max(riskPts, 1e-6);
+    // Accept any correct-side target from 0.35R up to tpMaxR (user plan wins)
+    if (ok && r >= 0.35 && r <= APLUS_RULES.tpMaxR + 0.25) {
+      tp1 = t1raw;
+    }
   }
   if (t2raw != null) {
     const ok = side === "long" ? t2raw > entry : t2raw < entry;
-    const r = Math.abs(t2raw - entry) / riskPts;
-    if (ok && r > Math.abs(tp1 - entry) / riskPts && r <= APLUS_RULES.tpMaxR) {
+    const r = Math.abs(t2raw - entry) / Math.max(riskPts, 1e-6);
+    if (
+      ok &&
+      r > Math.abs(tp1 - entry) / Math.max(riskPts, 1e-6) * 0.95 &&
+      r <= APLUS_RULES.tpMaxR + 0.5
+    ) {
       tp2 = t2raw;
     }
   }
 
-  // Critical: target must be correct side of entry (fixes inverted target bugs)
+  // Geometry guard (never invert)
   if (side === "short" && tp1 >= entry) tp1 = entry - riskPts;
   if (side === "long" && tp1 <= entry) tp1 = entry + riskPts;
-  if (side === "short" && tp2 >= tp1) tp2 = entry - riskPts * 2;
-  if (side === "long" && tp2 <= tp1) tp2 = entry + riskPts * 2;
+  if (side === "short" && tp2 >= tp1) tp2 = Math.min(tp1 - riskPts * 0.5, entry - riskPts * 2);
+  if (side === "long" && tp2 <= tp1) tp2 = Math.max(tp1 + riskPts * 0.5, entry + riskPts * 2);
 
   entry = tickRound(symbol, entry);
   stop = tickRound(symbol, stop);
@@ -404,8 +413,25 @@ export function managePaperTradesAgainstPrice(
     const feed = resolvePrice(t, prices);
     if (!feed) continue;
 
-    const high = feed.high ?? feed.last;
-    const low = feed.low ?? feed.last;
+    // Only trust last print for exit decisions.
+    // Bar H/L from HTF/desk series often spans the whole candle and can
+    // "stop out" a brand-new trade on the same bar it was opened.
+    // Optional wicks only if they are tighter than 1.5R from last (micro noise).
+    let high = feed.last;
+    let low = feed.last;
+    if (feed.high != null && feed.low != null) {
+      const span = feed.high - feed.low;
+      const maxWick = Math.max(t.riskPts * 0.35, t.entry * 0.0003);
+      if (span <= maxWick) {
+        high = feed.high;
+        low = feed.low;
+      }
+    }
+    // Grace: for 15s after open, only use last print (avoid open-bar ghost fills)
+    if (Date.now() - t.openedAt < 15_000) {
+      high = feed.last;
+      low = feed.last;
+    }
     const sign = t.side === "long" ? 1 : -1;
     const rPts = (price: number) => (sign * (price - t.entry)) / t.riskPts;
 
@@ -438,16 +464,20 @@ export function managePaperTradesAgainstPrice(
       continue;
     }
 
-    // 2) TP1 scale-out
+    // 2) TP1 scale-out — hit if print reaches OR trades through target
     const tp1Hit = t.side === "long" ? high >= t.tp1 : low <= t.tp1;
+    const tp1Fill =
+      t.side === "long"
+        ? Math.max(t.tp1, feed.last) // long: fill at least target
+        : Math.min(t.tp1, feed.last); // short: fill at target or better
     const alreadyTp1 = t.scaleLegs.some((l) => l.note.toLowerCase().includes("tp1"));
     if (so.enabled && tp1Hit && !alreadyTp1) {
       if (t.contractsOpen >= 2) {
         const closeN = Math.max(1, Math.floor(t.contractsOpen * so.tp1Fraction));
-        const r = rPts(t.tp1);
+        const r = rPts(tp1Fill);
         t.scaleLegs.push({
           at: new Date().toISOString(),
-          price: t.tp1,
+          price: tp1Fill,
           contracts: closeN,
           r,
           note: "TP1 scale-out → BE",
@@ -462,10 +492,10 @@ export function managePaperTradesAgainstPrice(
         dirty = true;
       } else if (t.contractsOpen === 1) {
         // Single micro: full close at TP1 (can't split meaningfully)
-        const r = rPts(t.tp1);
+        const r = rPts(tp1Fill);
         t.scaleLegs.push({
           at: new Date().toISOString(),
-          price: t.tp1,
+          price: tp1Fill,
           contracts: 1,
           r,
           note: "TP1 full (1ct)",
@@ -473,7 +503,7 @@ export function managePaperTradesAgainstPrice(
         t.contractsOpen = 0;
         t.status = "closed";
         t.closedAt = Date.now();
-        t.exit = t.tp1;
+        t.exit = tp1Fill;
         t.exitReason = "tp1";
         finalizeClose(t, sign);
         closed.push(t);
@@ -483,11 +513,15 @@ export function managePaperTradesAgainstPrice(
 
     // 3) TP2 runner (or full if no scale)
     const tp2Hit = t.side === "long" ? high >= t.tp2 : low <= t.tp2;
+    const tp2Fill =
+      t.side === "long"
+        ? Math.max(t.tp2, feed.last)
+        : Math.min(t.tp2, feed.last);
     if (tp2Hit && t.contractsOpen > 0) {
-      const r = rPts(t.tp2);
+      const r = rPts(tp2Fill);
       t.scaleLegs.push({
         at: new Date().toISOString(),
-        price: t.tp2,
+        price: tp2Fill,
         contracts: t.contractsOpen,
         r,
         note: "TP2 runner",
@@ -495,7 +529,7 @@ export function managePaperTradesAgainstPrice(
       t.contractsOpen = 0;
       t.status = "closed";
       t.closedAt = Date.now();
-      t.exit = t.tp2;
+      t.exit = tp2Fill;
       t.exitReason = alreadyTp1 || t.scaleLegs.some((l) => l.note.includes("TP1"))
         ? "tp1_tp2"
         : "tp2";
@@ -511,6 +545,10 @@ export function managePaperTradesAgainstPrice(
     savePaperTrades(all);
   }
   return { closed, updated };
+}
+
+export function paperTradeHistory(limit = 20): PaperTrade[] {
+  return loadPaperTrades().slice(0, limit);
 }
 
 export function formatPaperTradeLine(t: PaperTrade): string {

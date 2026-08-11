@@ -30,8 +30,6 @@ export function PaperBookPanel({
     return () => window.removeEventListener("ledger-paper", sync);
   }, [lastClosed]);
 
-  if (!open.length && !recent.length && !lastClosed) return null;
-
   return (
     <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_oklab,var(--color-primary)_25%,var(--color-border))] bg-[var(--color-surface)] p-3">
       <header className="mb-2 flex items-center gap-2">
@@ -74,13 +72,32 @@ export function PaperBookPanel({
         </p>
       )}
 
-      {(lastClosed || recent[0]) && (
-        <div className="mt-2 flex items-start gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-up)_30%,var(--color-border))] px-2.5 py-2 text-[11px]">
-          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-up)]" />
-          <p className="font-mono text-[var(--color-muted)]">
-            Last exit:{" "}
-            {formatPaperTradeLine(lastClosed || recent[0]!)}
+      {(recent.length > 0 || lastClosed) && (
+        <div className="mt-2 space-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+            Recent closed
           </p>
+          <ul className="space-y-1">
+            {(lastClosed && !recent.find((r) => r.id === lastClosed.id)
+              ? [lastClosed, ...recent]
+              : recent
+            )
+              .slice(0, 5)
+              .map((t) => (
+                <li
+                  key={t.id}
+                  className="rounded border border-[var(--color-border)] px-2 py-1.5 font-mono text-[10px] text-[var(--color-muted)]"
+                >
+                  {formatPaperTradeLine(t)}
+                  {t.exit != null && (
+                    <span className="text-[var(--color-subtle)]">
+                      {" "}
+                      · exit {t.exit}
+                    </span>
+                  )}
+                </li>
+              ))}
+          </ul>
         </div>
       )}
     </section>

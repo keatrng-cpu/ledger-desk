@@ -296,22 +296,18 @@ useEffect(() => {
 
   useEffect(() => {
     if (!desk) return;
-    const lastBar = (bars: { h: number; l: number; c: number }[]) =>
-      bars.length ? bars[bars.length - 1]! : null;
-    const lb = lastBar(desk.left.bars as { h: number; l: number; c: number }[]);
-    const rb = lastBar(desk.right.bars as { h: number; l: number; c: number }[]);
-    const pack = (
-      sym: string,
-      quote: number,
-      bar: { h: number; l: number; c: number } | null,
-    ) => ({
-      last: quote,
-      high: bar ? Math.max(bar.h, quote) : quote,
-      low: bar ? Math.min(bar.l, quote) : quote,
-    });
+    // Last print only — HTF bar H/L false-stops new paper trades
     const prices: Record<string, { last: number; high: number; low: number }> = {
-      [desk.left.symbol]: pack(desk.left.symbol, desk.quotes.left.price, lb),
-      [desk.right.symbol]: pack(desk.right.symbol, desk.quotes.right.price, rb),
+      [desk.left.symbol]: {
+        last: desk.quotes.left.price,
+        high: desk.quotes.left.price,
+        low: desk.quotes.left.price,
+      },
+      [desk.right.symbol]: {
+        last: desk.quotes.right.price,
+        high: desk.quotes.right.price,
+        low: desk.quotes.right.price,
+      },
     };
     // micros / aliases so MES/MNQ paper books match ES/NQ prints
     if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
@@ -341,18 +337,17 @@ useEffect(() => {
     if (!listOpenPaperTrades().length) return;
     const id = window.setInterval(() => {
       if (!listOpenPaperTrades().length) return;
-      const lastBar = (bars: { h: number; l: number; c: number }[]) =>
-        bars.length ? bars[bars.length - 1]! : null;
-      const lb = lastBar(desk.left.bars as { h: number; l: number; c: number }[]);
-      const rb = lastBar(desk.right.bars as { h: number; l: number; c: number }[]);
-      const pack = (quote: number, bar: { h: number; l: number; c: number } | null) => ({
-        last: quote,
-        high: bar ? Math.max(bar.h, quote) : quote,
-        low: bar ? Math.min(bar.l, quote) : quote,
-      });
       const prices: Record<string, { last: number; high: number; low: number }> = {
-        [desk.left.symbol]: pack(desk.quotes.left.price, lb),
-        [desk.right.symbol]: pack(desk.quotes.right.price, rb),
+        [desk.left.symbol]: {
+          last: desk.quotes.left.price,
+          high: desk.quotes.left.price,
+          low: desk.quotes.left.price,
+        },
+        [desk.right.symbol]: {
+          last: desk.quotes.right.price,
+          high: desk.quotes.right.price,
+          low: desk.quotes.right.price,
+        },
       };
       if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
       if (desk.right.symbol === "ES") prices.MES = prices[desk.right.symbol]!;
