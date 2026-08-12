@@ -189,6 +189,9 @@ function scoreDirection(
       : det.mechanical.direction === "short"
         ? "bear"
         : null;
+  // `complete` already implies the sequence is alive (detectors.ts A2:
+  // complete === legsComplete && alive), so an expired or invalidated model
+  // can no longer light the engine's highest-weight component.
   const mechHit =
     det.mechanical.complete &&
     det.mechanical.state === "complete" &&
@@ -238,10 +241,15 @@ function scoreDirection(
       ((direction === "bull" && det.sweep.latest.side === "sellside") ||
         (direction === "bear" && det.sweep.latest.side === "buyside")),
   );
+  // A sweep only counts from the mechanical model while that sequence is
+  // still ALIVE (detectors.ts A2). Before liveness existed, a sweep whose
+  // sequence had been dead for hundreds of bars kept lighting this component.
   const sig =
     sideSweep.some((l) => sigSweepKinds(l.label)) ||
     detSweepOk ||
-    (det.mechanical.sweep != null && mechDir === direction);
+    (det.mechanical.alive &&
+      det.mechanical.sweep != null &&
+      mechDir === direction);
   add(
     "sweep_significant",
     sig,
@@ -428,14 +436,36 @@ function scoreDirection(
   };
 }
 
-export function scanSetups(
+/**
+ * Everything a caller can vary. Bars are OPTIONAL only so that a caller with
+ * genuinely no series can still get structure-only scoring — but note what
+ * omitting them costs: `summarizeDetectors([])` returns nothing,
+ * `assessConditions([])` gates on nothing, and the draw engine is skipped
+ * (needs ≥30 bars). Pass the bars.
+ */
+export interface ScoreCandidatesOptions {
+  /** Timestamp-aligned swing divergence (structure.ts `smtDivergence`). */
+  divergence?: Parameters<typeof smtRead>[2];
+  leftBars?: OhlcBar[];
+  rightBars?: OhlcBar[];
+}
+
+/**
+ * THE scorer. Phase A3: live, replay, backtest and the paper loop all reach
+ * the market through this one function, so a component added here cannot be
+ * present in one context and missing in another. Callers differ only in what
+ * they PASS, never in how it is scored.
+ *
+ * `scanSetups` below is the positional-argument façade kept for existing
+ * callers; it does nothing but forward here.
+ */
+export function scoreCandidates(
   left: HtfBiasRead,
   right: HtfBiasRead,
   clock: SessionClock,
-  divergence?: Parameters<typeof smtRead>[2],
-  leftBars?: OhlcBar[],
-  rightBars?: OhlcBar[],
+  opts: ScoreCandidatesOptions = {},
 ): ScanResult {
+  const { divergence, leftBars, rightBars } = opts;
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
@@ -537,4 +567,24 @@ export function scanSetups(
     conditions: { left: condL, right: condR },
     catalog: [...ALWAYS_SCAN],
   };
+}
+
+/**
+ * Positional façade over `scoreCandidates` — the historical signature used by
+ * `build-desk.ts` and `session-backtest.ts`. Kept so those callers are
+ * untouched; there is no second implementation behind it.
+ */
+export function scanSetups(
+  left: HtfBiasRead,
+  right: HtfBiasRead,
+  clock: SessionClock,
+  divergence?: Parameters<typeof smtRead>[2],
+  leftBars?: OhlcBar[],
+  rightBars?: OhlcBar[],
+): ScanResult {
+  return scoreCandidates(left, right, clock, {
+    divergence,
+    leftBars,
+    rightBars,
+  });
 }

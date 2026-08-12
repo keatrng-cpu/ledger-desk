@@ -19,17 +19,34 @@
  *   render, or a reconcile pass cannot double-insert.
  * - Money math goes through the SAME `computeTradePnl` as live, so paper and
  *   live remain comparable (they stay separately REPORTED — see analytics.ts).
+ *
+ * ONE WRITE PATH (ROADMAP D1)
+ * The row-level writes live in `mirrorOpenRow` / `mirrorCloseRow`, which take
+ * an `Sql` and a user id and are exported for reuse. The two server functions
+ * below are thin auth+validation wrappers, and the login-time backfill
+ * (`paper-backfill.ts`) calls the SAME two functions in a loop. A second
+ * implementation of the insert, the conflict handling, or the close math is
+ * exactly how paper and live drifted apart the first time — there is one.
  */
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSql } from "@/lib/db";
+import { getSql, type Sql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { computeTradePnl } from "./pnl";
 
 const sideSchema = z.enum(["long", "short"]);
 
-const openSchema = z.object({
+/**
+ * Wire shape of a paper OPEN.
+ *
+ * `symbol` is the RESOLVED contract (MES/MNQ when micros are on), never the
+ * display label (ES/NQ). Sending the label priced a micro position at
+ * full-size economics — a 10x PnL error. Every producer of this payload
+ * (`routes/index.tsx`, `paper-backfill.ts`) must send `PaperTrade.symbol`, not
+ * `PaperTrade.displaySymbol`.
+ */
+export const paperOpenSchema = z.object({
   id: z.string().min(1).max(80),
   symbol: z.string().min(1).max(16),
   side: sideSchema,
@@ -42,48 +59,66 @@ const openSchema = z.object({
   grade: z.string().max(16).nullable().optional(),
   killzone: z.string().max(32).nullable().optional(),
   strategy: z.string().max(120).nullable().optional(),
+  /** MarketConditions.regime at entry — Phase C regime matrix. */
+  regime: z.string().max(32).nullable().optional(),
   reason: z.string().max(500).nullable().optional(),
 });
 
-export type MirrorOpenInput = z.input<typeof openSchema>;
+export type MirrorOpenInput = z.input<typeof paperOpenSchema>;
+export type MirrorOpenData = z.output<typeof paperOpenSchema>;
 
 /**
- * Record a paper OPEN. `on conflict do nothing` makes this safe to call on
+ * THE paper-open insert. `on conflict do nothing` makes this safe to call on
  * every reconcile pass — the first write wins and later ones are no-ops.
+ * Returns whether THIS call created the row.
  */
+export async function mirrorOpenRow(
+  sql: Sql,
+  userId: string,
+  data: MirrorOpenData,
+): Promise<boolean> {
+  const rows = await sql.query<{ id: string }>(
+    `insert into desk_trades (
+       id, user_id, mode, source, symbol, side, status, opened_at,
+       entry, stop, target, contracts, reason, prescore, grade, killzone,
+       strategy, regime
+     ) values ($1, $2, 'paper', 'paper', $3, $4, 'open', $5::timestamptz,
+               $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+     on conflict do nothing
+     returning id`,
+    [
+      data.id,
+      userId,
+      data.symbol,
+      data.side,
+      data.openedAt,
+      data.entry,
+      data.stop,
+      data.target ?? null,
+      data.contracts,
+      data.reason ?? data.strategy ?? null,
+      data.prescore ?? null,
+      data.grade ?? null,
+      data.killzone ?? null,
+      // Persist attribution in its own columns. Folding strategy into `reason`
+      // made it unqueryable — the Phase C scoreboard could never group by it.
+      data.strategy ?? null,
+      data.regime ?? null,
+    ],
+  );
+  return rows.length > 0;
+}
+
+/** Record a paper OPEN (auth-scoped wrapper around `mirrorOpenRow`). */
 export const mirrorPaperOpen = createServerFn({ method: "POST" })
-  .validator((input: unknown) => openSchema.parse(input))
+  .validator((input: unknown) => paperOpenSchema.parse(input))
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<{ mirrored: boolean }> => {
     const sql = await getSql();
-    const rows = await sql.query<{ id: string }>(
-      `insert into desk_trades (
-         id, user_id, mode, source, symbol, side, status, opened_at,
-         entry, stop, target, contracts, reason, prescore, grade, killzone
-       ) values ($1, $2, 'paper', 'paper', $3, $4, 'open', $5::timestamptz,
-                 $6, $7, $8, $9, $10, $11, $12, $13)
-       on conflict do nothing
-       returning id`,
-      [
-        data.id,
-        context.userId,
-        data.symbol,
-        data.side,
-        data.openedAt,
-        data.entry,
-        data.stop,
-        data.target ?? null,
-        data.contracts,
-        data.reason ?? data.strategy ?? null,
-        data.prescore ?? null,
-        data.grade ?? null,
-        data.killzone ?? null,
-      ],
-    );
-    return { mirrored: rows.length > 0 };
+    return { mirrored: await mirrorOpenRow(sql, context.userId, data) };
   });
 
-const closeSchema = z.object({
+export const paperCloseSchema = z.object({
   id: z.string().min(1).max(80),
   exit: z.number().finite().positive(),
   closedAt: z.string().datetime(),
@@ -92,70 +127,84 @@ const closeSchema = z.object({
   reason: z.string().max(500).nullable().optional(),
 });
 
-export type MirrorCloseInput = z.input<typeof closeSchema>;
+export type MirrorCloseInput = z.input<typeof paperCloseSchema>;
+export type MirrorCloseData = z.output<typeof paperCloseSchema>;
 
 /**
- * Record a paper CLOSE. PnL/R are recomputed SERVER-side from the stored open
+ * THE paper-close write. PnL/R are recomputed SERVER-side from the stored open
  * row via the shared `computeTradePnl` — never trusted from the client — so a
  * mirrored paper trade is costed exactly like a live one.
+ *
+ * Returns whether THIS call closed the row: a missing open row (never
+ * mirrored) and an already-closed row both return false, which is what makes a
+ * repeated backfill pass a no-op instead of a duplicate EXIT event.
  */
+export async function mirrorCloseRow(
+  sql: Sql,
+  userId: string,
+  data: MirrorCloseData,
+): Promise<boolean> {
+  const open = await sql.query<{
+    symbol: string;
+    side: "long" | "short";
+    entry: number;
+    stop: number | null;
+    contracts: number;
+  }>(
+    `select symbol, side, entry, stop, contracts
+       from desk_trades
+      where id = $1 and user_id = $2 and mode = 'paper' and status = 'open'`,
+    [data.id, userId],
+  );
+  const row = open[0];
+  if (!row) return false; // never mirrored, or already closed
+
+  const contracts = data.contracts ?? row.contracts;
+  const { pnl, commission, r } = computeTradePnl({
+    symbol: row.symbol,
+    side: row.side,
+    entry: row.entry,
+    exit: data.exit,
+    stop: row.stop,
+    contracts,
+    slippage: 0, // paper fills are modeled at the level
+  });
+
+  const updated = await sql.query<{ id: string }>(
+    `update desk_trades
+        set status = 'closed', closed_at = $1::timestamptz, exit = $2,
+            pnl = $3, r = $4, commission = $5, slippage = 0,
+            contracts = $6, reason = coalesce($7, reason)
+      where id = $8 and user_id = $9 and mode = 'paper' and status = 'open'
+      returning id`,
+    [
+      data.closedAt,
+      data.exit,
+      pnl,
+      r,
+      commission,
+      contracts,
+      data.reason ?? null,
+      data.id,
+      userId,
+    ],
+  );
+  if (!updated.length) return false;
+
+  await sql`
+    insert into desk_events (user_id, ts, event, symbol, reason, pnl, r, source, payload)
+    values (${userId}, ${data.closedAt}, 'EXIT', ${row.symbol},
+            ${data.reason ?? "paper exit"}, ${pnl}, ${r}, 'paper',
+            ${JSON.stringify({ trade_id: data.id, mirrored: true })}::jsonb)`;
+
+  return true;
+}
+
+/** Record a paper CLOSE (auth-scoped wrapper around `mirrorCloseRow`). */
 export const mirrorPaperClose = createServerFn({ method: "POST" })
-  .validator((input: unknown) => closeSchema.parse(input))
+  .validator((input: unknown) => paperCloseSchema.parse(input))
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<{ closed: boolean }> => {
     const sql = await getSql();
-    const open = await sql.query<{
-      symbol: string;
-      side: "long" | "short";
-      entry: number;
-      stop: number | null;
-      contracts: number;
-    }>(
-      `select symbol, side, entry, stop, contracts
-         from desk_trades
-        where id = $1 and user_id = $2 and mode = 'paper' and status = 'open'`,
-      [data.id, context.userId],
-    );
-    const row = open[0];
-    if (!row) return { closed: false }; // never mirrored, or already closed
-
-    const contracts = data.contracts ?? row.contracts;
-    const { pnl, commission, r } = computeTradePnl({
-      symbol: row.symbol,
-      side: row.side,
-      entry: row.entry,
-      exit: data.exit,
-      stop: row.stop,
-      contracts,
-      slippage: 0, // paper fills are modeled at the level
-    });
-
-    const updated = await sql.query<{ id: string }>(
-      `update desk_trades
-          set status = 'closed', closed_at = $1::timestamptz, exit = $2,
-              pnl = $3, r = $4, commission = $5, slippage = 0,
-              contracts = $6, reason = coalesce($7, reason)
-        where id = $8 and user_id = $9 and mode = 'paper' and status = 'open'
-        returning id`,
-      [
-        data.closedAt,
-        data.exit,
-        pnl,
-        r,
-        commission,
-        contracts,
-        data.reason ?? null,
-        data.id,
-        context.userId,
-      ],
-    );
-    if (!updated.length) return { closed: false };
-
-    await sql`
-      insert into desk_events (user_id, ts, event, symbol, reason, pnl, r, source, payload)
-      values (${context.userId}, ${data.closedAt}, 'EXIT', ${row.symbol},
-              ${data.reason ?? "paper exit"}, ${pnl}, ${r}, 'paper',
-              ${JSON.stringify({ trade_id: data.id, mirrored: true })}::jsonb)`;
-
-    return { closed: true };
+    return { closed: await mirrorCloseRow(sql, context.userId, data) };
   });

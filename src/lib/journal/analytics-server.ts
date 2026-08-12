@@ -44,6 +44,10 @@ type Row = {
   prescore: number | null;
   grade: string | null;
   killzone: string | null;
+  // migrations/0008_strategy.sql — null on every row logged before it, and on
+  // any row whose writer has not been wired yet (see INTEGRATION-D.md).
+  strategy: string | null;
+  regime: string | null;
 };
 
 const iso = (v: string | Date): string =>
@@ -69,8 +73,20 @@ function toAnalyticsTrade(row: Row): AnalyticsTrade {
     confluence: row.prescore ?? undefined,
     grade: row.grade,
     killzone: row.killzone,
+    // Passed through as-is: null means "never recorded", and analytics.ts
+    // counts those separately rather than guessing a model or a regime.
+    strategy: row.strategy,
+    regime: row.regime,
   };
 }
+
+/**
+ * One column list, used by both branches of `readClosed`. Two hand-maintained
+ * copies is how a new column reaches the all-time query and silently misses
+ * the windowed one.
+ */
+const CLOSED_COLUMNS = `id, symbol, side, opened_at, closed_at, entry, exit, pnl, r,
+        commission, slippage, reason, prescore, grade, killzone, strategy, regime`;
 
 /** Closed trades for ONE mode, oldest-first. Never call without a mode. */
 async function readClosed(
@@ -81,8 +97,7 @@ async function readClosed(
 ): Promise<AnalyticsTrade[]> {
   const rows = sinceIso
     ? await sql.query<Row>(
-        `select id, symbol, side, opened_at, closed_at, entry, exit, pnl, r,
-                commission, slippage, reason, prescore, grade, killzone
+        `select ${CLOSED_COLUMNS}
            from desk_trades
           where user_id = $1 and mode = $2 and status = 'closed'
             and closed_at >= $3::timestamptz
@@ -90,8 +105,7 @@ async function readClosed(
         [userId, mode, sinceIso],
       )
     : await sql.query<Row>(
-        `select id, symbol, side, opened_at, closed_at, entry, exit, pnl, r,
-                commission, slippage, reason, prescore, grade, killzone
+        `select ${CLOSED_COLUMNS}
            from desk_trades
           where user_id = $1 and mode = $2 and status = 'closed'
           order by closed_at asc`,
@@ -200,6 +214,10 @@ const CSV_COLUMNS = [
   "prescore",
   "grade",
   "killzone",
+  // Attribution (0008). Exported so the record leaving this app can still
+  // answer "which model, in which market" outside the panel.
+  "strategy",
+  "regime",
   "reason",
 ] as const;
 

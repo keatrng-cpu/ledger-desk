@@ -1,8 +1,15 @@
 /**
  * Replay calibration harness — walks a bar series with NO LOOKAHEAD, feeds
- * each truncated prefix to the existing analyzeStructure/scanSetups (imported
- * read-only), and simulates every emitted candidate forward to answer the
- * floor question ("what does 0.50 vs 0.65 admit?") with data.
+ * each truncated prefix to the existing analyzeStructure + the shared
+ * `scoreCandidates` (imported read-only), and simulates every emitted
+ * candidate forward to answer the floor question ("what does 0.50 vs 0.65
+ * admit?") with data.
+ *
+ * Phase A1: this harness now hands the scorer the SAME inputs the live desk
+ * gets — bar slices and a swing-divergence read — so the detector stack, the
+ * conditions gate and the draw engine all run. Every calibration number
+ * produced before that change described a desk with those switched off and is
+ * void; see INTEGRATION-A.md.
  *
  * HONESTY CAVEATS (repeated in the UI):
  * - 15m Yahoo bars — intrabar order of touches is unknown, so when a stop
@@ -14,8 +21,13 @@
 
 import type { OhlcBar } from "@/lib/market/types";
 import { getSessionClock } from "./sessions";
-import { analyzeStructure, etSessionKey, type HtfBiasRead } from "./structure";
-import { scanSetups } from "./scanner";
+import {
+  analyzeStructure,
+  etSessionKey,
+  smtDivergence,
+  type HtfBiasRead,
+} from "./structure";
+import { scoreCandidates } from "./scanner";
 
 /* ------------------------------------------------------------------ */
 /* Options + result shapes                                              */
@@ -187,8 +199,10 @@ function simulate(
  * roughly the first ~5 hours of every session (18:00–23:00 ET, still "today"
  * in UTC during EST) that misattributed the new session's early bars to the
  * PRIOR session's range, understating/overstating changePct — the only
- * signal driving SMT scoring in replay (scanSetups here gets no swing
- * divergence, only the changePct-spread fallback in smtRead).
+ * signal driving the changePct-spread fallback in smtRead. Since A1 the
+ * scorer also receives a real `smtDivergence(slice, peerSlice)` read, which
+ * takes priority — but changePct still colours the note and still decides SMT
+ * when no swing divergence is active.
  */
 function dayChangePct(slice: OhlcBar[]): number {
   const last = slice[slice.length - 1]!;
@@ -238,7 +252,18 @@ export function replayScan(
       peerSlice,
       dayChangePct(peerSlice),
     );
-    const scan = scanSetups(read, peerRead, clock);
+    // Phase A1. `slice` is bars[0..i] and `peerSlice` is every peer bar with
+    // t <= bars[i].t — both are strict PREFIXES, so handing them to the
+    // scorer adds no lookahead whatsoever; it only stops hiding the detector
+    // stack from the calibration harness. Until this call passed them the
+    // scanner ran with barsL = [], which meant summarizeDetectors returned
+    // nothing, assessConditions gated on nothing, and the draw engine was
+    // skipped — so replay scored a desk that does not exist.
+    const scan = scoreCandidates(read, peerRead, clock, {
+      divergence: smtDivergence(slice, peerSlice),
+      leftBars: slice,
+      rightBars: peerSlice,
+    });
 
     for (const cand of scan.candidates) {
       if (cand.symbol !== opts.symbol) continue; // peer only feeds SMT

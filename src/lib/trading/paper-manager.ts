@@ -9,6 +9,8 @@
  * - Size from grade × paper equity (micros)
  * - Scale-out: 50% @ +1R → BE, runner @ +2R / TP2
  * - Exit when live print hits stop / targets
+ * - Time / context stops + dynamic targets from the draw (trading/management.ts)
+ * - One book per day — MNQ or ES, never both (profit-rules.ts rule 1)
  */
 
 import {
@@ -18,6 +20,7 @@ import {
   type ContractKey,
   type RiskGrade,
 } from "@/lib/aplus/config";
+import { tradingDayStart } from "@/lib/journal/risk";
 import type { SetupCandidate } from "./scanner";
 import { getPaperAccount, PAPER_START_EQUITY } from "./paper-account";
 import {
@@ -26,9 +29,22 @@ import {
   setOpenPaperCount,
 } from "./desk-memory";
 import { MAX_RISK_PTS } from "./simulate-path-trade";
+import type { DrawRead } from "./draw";
+import type { NewsEvent } from "./news";
+import { getSessionClock } from "./sessions";
+import { PROGRESS_R, retarget, shouldFlatten } from "./management";
 
 
 const STORAGE_KEY = "ledger-paper-trades-v1";
+
+/**
+ * The BOOK a symbol belongs to. MNQ and NQ are one book, MES and ES another —
+ * the micro is the same instrument at 1/10th the multiplier, so holding both
+ * is not diversification. Used by the one-book-per-day rule.
+ */
+export function bookRoot(symbol: string): string {
+  return symbol.replace(/^M(?=NQ$|ES$)/, "");
+}
 
 export type PaperStatus = "open" | "closed";
 
@@ -63,6 +79,24 @@ export interface PaperTrade {
   pathBand?: string;
   /** Already pushed into desk-memory brain rates */
   ingested?: boolean;
+  /**
+   * Killzone id at entry — read by the time stop (management.ts) to know when
+   * the window the idea was taken in has closed. Optional: records written
+   * before Phase B simply skip that rule.
+   */
+  killzone?: string;
+  /**
+   * Max favourable excursion so far, in R. A PRICE ratio used only by the
+   * no-progress time stop — NOT the booked R, which is net of commission
+   * (see finalizeClose).
+   */
+  mfeR?: number;
+  /**
+   * Latest management note — a re-target or the time/context stop that closed
+   * the trade. Kept off `reason` (which is the entry thesis as mirrored to
+   * desk_trades) so neither field grows without bound.
+   */
+  manageNote?: string;
 }
 
 function parseNums(text: string | undefined | null): number[] {
@@ -273,6 +307,38 @@ export function listOpenPaperTrades(): PaperTrade[] {
 }
 
 /**
+ * Rule 1 of profit-rules.ts — ONE BOOK PER DAY.
+ *
+ * Returns the book already taken this trading day (18:00 ET roll, same
+ * boundary as the live risk governor), or null when the day is still open.
+ * Open OR closed counts: the rule caps how many correlated ideas the day
+ * gets, not how many are running at once.
+ *
+ * WHY PAPER ENFORCES THIS AND NOT THE REST OF THE GATE
+ * Paper exists to build the sample, so it is deliberately exempt from the
+ * halt, the ~9/month PATH cap and the loss-streak cool-down — those cap the
+ * RATE at which evidence accumulates, and Phase C needs n≥30 before any of it
+ * can be read. One-book-per-day is a different kind of rule: NQ and ES are
+ * ~0.9 correlated, so taking both is one idea at double risk. A paper record
+ * that quietly allowed it would overstate diversification and understate
+ * drawdown — it would be evidence for a book nobody would actually run. The
+ * cap on the sample RATE is a cost; a cap on its HONESTY is not acceptable.
+ * (Live enforces the whole gate — see journal/server.ts openTrade.)
+ */
+export function bookTakenToday(now = Date.now()): {
+  book: string;
+  symbol: string;
+  at: number;
+} | null {
+  const dayStart = tradingDayStart(new Date(now)).getTime();
+  for (const t of loadPaperTrades()) {
+    if (t.openedAt < dayStart || t.openedAt > now) continue;
+    return { book: bookRoot(t.displaySymbol), symbol: t.displaySymbol, at: t.openedAt };
+  }
+  return null;
+}
+
+/**
  * One-click open paper trade from setup — no dialog.
  */
 export function openPaperTradeInstant(
@@ -280,6 +346,15 @@ export function openPaperTradeInstant(
   opts?: { lastPrice?: number; killzone?: string },
 ): { ok: true; trade: PaperTrade } | { ok: false; error: string } {
   try {
+    // Rule 1 — one book per day. Checked BEFORE any level math so the message
+    // names the conflict rather than a downstream geometry failure.
+    const taken = bookTakenToday();
+    if (taken && taken.book !== bookRoot(c.symbol)) {
+      return {
+        ok: false,
+        error: `One book per day: already took ${taken.symbol} this session (since 18:00 ET). ${c.symbol} is a second correlated book — that is one idea at double risk, not two trades.`,
+      };
+    }
     const levels = buildPaperLevels(c, getPaperAccount().equity, opts?.lastPrice);
     if (!levels.entry || !levels.stop) {
       return { ok: false, error: "Could not resolve entry/stop from setup" };
@@ -329,6 +404,7 @@ export function openPaperTradeInstant(
         .filter(Boolean)
         .join(" · "),
       pathBand: c.pathBand,
+      killzone: opts?.killzone,
     };
 
     const all = loadPaperTrades();
@@ -385,16 +461,21 @@ export type ManagePrice = {
   low?: number;
 };
 
-function resolvePrice(
-  t: PaperTrade,
-  prices: Partial<Record<string, number | ManagePrice>>,
-): ManagePrice | null {
-  const keys = [
+/** Every key a caller might have used for this trade's instrument. */
+function symbolKeys(t: PaperTrade): string[] {
+  return [
     t.displaySymbol,
     t.symbol,
     t.displaySymbol.replace(/^M/, ""),
     t.symbol.replace(/^M/, ""),
   ];
+}
+
+function resolvePrice(
+  t: PaperTrade,
+  prices: Partial<Record<string, number | ManagePrice>>,
+): ManagePrice | null {
+  const keys = symbolKeys(t);
   for (const k of keys) {
     const v = prices[k];
     if (v == null) continue;
@@ -465,17 +546,63 @@ function finalizeClose(
 }
 
 
+function resolveDraw(
+  t: PaperTrade,
+  draws: Partial<Record<string, DrawRead | null>>,
+): DrawRead | null {
+  for (const k of symbolKeys(t)) {
+    const v = draws[k];
+    if (v) return v;
+  }
+  return null;
+}
+
+/**
+ * Optional context for the management tick.
+ *
+ * Everything here is opt-in EXCEPT the time/context stops, which default ON:
+ * they need only the clock and the bundled news calendar, both deterministic,
+ * so requiring the caller to pass anything would mean shipping B2 switched off.
+ * Dynamic targets are opt-in — with no `draws`, targets behave exactly as they
+ * did before Phase B.
+ */
+export interface ManageContext {
+  /** Evaluation instant. Defaults to Date.now(). */
+  now?: number;
+  /**
+   * Draw read per instrument (the desk payload's `draws`, keyed "NQ"/"ES" or
+   * "MNQ"/"MES"). Omit and targets are never re-ranked.
+   */
+  draws?: Partial<Record<string, DrawRead | null>>;
+  /** News calendar override — tests and replay only. */
+  calendar?: NewsEvent[];
+  /** Set false to suppress time/context stops (replay harnesses). Default true. */
+  enableTimeStops?: boolean;
+}
+
 /**
  * Manage open paper trades against live prints (and bar H/L when available).
  * Scale-out 50% @ TP1 → BE, runner @ TP2; stop on working stop.
+ *
+ * Per tick, per open position, in this order:
+ *   1. record max favourable excursion (feeds the no-progress time stop)
+ *   2. re-rank targets against the draw           (B3, only when `draws` given)
+ *   3. stop  → 4. TP1 → 5. TP2                    (unchanged price events)
+ *   6. time / context stops                       (B2)
+ * Price events are evaluated before time stops on purpose: a stop or target
+ * that actually printed on this tick is a fact, a time stop is a decision.
  */
 export function managePaperTradesAgainstPrice(
   prices: Partial<Record<string, number | ManagePrice>>,
+  ctx?: ManageContext,
 ): { closed: PaperTrade[]; updated: PaperTrade[] } {
   const all = loadPaperTrades();
   const closed: PaperTrade[] = [];
   const updated: PaperTrade[] = [];
   const so = APLUS_RULES.scaleOut;
+  const now = ctx?.now ?? Date.now();
+  const timeStopsOn = ctx?.enableTimeStops !== false;
+  const clock = getSessionClock(new Date(now));
 
   for (const t of all) {
     if (t.status !== "open" || t.contractsOpen <= 0) continue;
@@ -497,7 +624,7 @@ export function managePaperTradesAgainstPrice(
       }
     }
     // Grace: for 15s after open, only use last print (avoid open-bar ghost fills)
-    if (Date.now() - t.openedAt < 15_000) {
+    if (now - t.openedAt < 15_000) {
       high = feed.last;
       low = feed.last;
     }
@@ -505,6 +632,44 @@ export function managePaperTradesAgainstPrice(
     const rPts = (price: number) => (sign * (price - t.entry)) / t.riskPts;
 
     let dirty = false;
+
+    // 0a) Max favourable excursion — the only durable evidence the no-progress
+    // time stop can read. Persisted ONLY on the first crossing of the progress
+    // floor: writing every new tick high would hit localStorage (and fire two
+    // window events) on every poll of a winning trade.
+    const prevMfe = t.mfeR ?? -Infinity;
+    const curR = rPts(t.side === "long" ? high : low);
+    if (Number.isFinite(curR) && curR > prevMfe) {
+      t.mfeR = +curR.toFixed(3);
+      if (prevMfe < PROGRESS_R && t.mfeR >= PROGRESS_R) dirty = true;
+    }
+
+    // 0b) Dynamic targets from the draw (B3). No draw supplied → untouched,
+    // so a caller that passes no context behaves exactly as it did before.
+    const draw = ctx?.draws ? resolveDraw(t, ctx.draws) : null;
+    if (draw) {
+      const rt = retarget(t, draw, { last: feed.last });
+      if (rt.changed) {
+        const nextTp1 = tickRound(t.symbol, rt.tp1);
+        const nextTp2 = tickRound(t.symbol, rt.tp2);
+        // Re-assert the invariant AFTER tick rounding: rounding can nudge a
+        // level by half a tick, and half a tick the wrong way is still the
+        // wrong way. If it does, keep the targets we already had.
+        const dist = (px: number) => sign * (px - t.entry);
+        const safe =
+          dist(nextTp1) > 0 &&
+          dist(nextTp2) >= dist(nextTp1) &&
+          dist(nextTp1) <= dist(t.tp1) &&
+          dist(nextTp2) >= dist(t.tp2) &&
+          sign * (nextTp1 - feed.last) > 0;
+        if (safe) {
+          t.tp1 = nextTp1;
+          t.tp2 = nextTp2;
+          t.manageNote = rt.notes.join(" · ");
+          dirty = true;
+        }
+      }
+    }
 
     // 1) STOP first (conservative — if stop and target same bar, stop wins)
     const stopHit =
@@ -607,6 +772,39 @@ export function managePaperTradesAgainstPrice(
       continue;
     }
 
+    // 4) TIME / CONTEXT STOPS (B2) — killzone ended, session end, news
+    // blackout imminent, N bars with no progress. Evaluated last: anything
+    // above this line was a real price event on this tick and outranks a
+    // decision. Fills at the last print (a market-out), and books through the
+    // same finalizeClose, so R stays NET of commission.
+    if (timeStopsOn) {
+      const decision = shouldFlatten(t, {
+        now,
+        clock,
+        last: feed.last,
+        calendar: ctx?.calendar,
+      });
+      if (decision.flatten && decision.reason) {
+        const fill = feed.last;
+        t.scaleLegs.push({
+          at: new Date(now).toISOString(),
+          price: fill,
+          contracts: t.contractsOpen,
+          r: rPts(fill),
+          note: `flat: ${decision.reason}`,
+        });
+        t.contractsOpen = 0;
+        t.status = "closed";
+        t.closedAt = now;
+        t.exit = fill;
+        t.exitReason = `flat_${decision.reason}`;
+        t.manageNote = decision.detail;
+        finalizeClose(t, sign);
+        closed.push(t);
+        continue;
+      }
+    }
+
     if (dirty) updated.push(t);
   }
 
@@ -648,36 +846,11 @@ export function closePaperTrade(
   t.exit = exitPrice;
   t.exitReason = reason;
 
-  const totalR = t.scaleLegs.reduce(
-    (s, l) => s + l.r * (l.contracts / t.contracts),
-    0,
-  );
-  const totalUsd = t.scaleLegs.reduce((s, l) => {
-    const u =
-      sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
-    return s + u - commission(t.symbol) * l.contracts;
-  }, 0);
-  t.rMultiple = +totalR.toFixed(3);
-  t.pnlUsd = +totalUsd.toFixed(2);
-  if (!t.ingested) {
-    ingestPaperFill({
-      symbol: t.displaySymbol,
-      side: t.side,
-      strategy: t.strategy,
-      band: t.pathBand || t.grade,
-      grade: t.grade,
-      score: t.score,
-      r: t.rMultiple!,
-      usd: t.pnlUsd!,
-      exit: reason,
-      entry: t.entry,
-      exitPx: exitPrice,
-      reason,
-      applyEquity: true,
-      tradeId: t.id,
-    });
-    t.ingested = true;
-  }
+  // Booked through the SAME finalizeClose as every automatic exit. This path
+  // used to compute its own `rMultiple` from the leg-weighted PRICE ratio,
+  // which is gross — a structure-TP close was reported ~2-3% kinder than the
+  // identical live trade, the exact defect finalizeClose was fixed for.
+  finalizeClose(t, sign);
   savePaperTrades(all);
   setOpenPaperCount(listOpenPaperTrades().filter((x) => x.id !== id).length);
   if (typeof window !== "undefined") {
@@ -804,7 +977,6 @@ export function reconcilePaperBookToMemory(): {
     if (synced) savePaperTrades(all);
     // update open count without nested event storms
     const open = all.filter((x) => x.status === "open").length;
-    const state = getPaperAccount();
     // setOpenPaperCount saves memory — only if changed
     try {
       setOpenPaperCount(open);

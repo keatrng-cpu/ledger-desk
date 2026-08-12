@@ -10,12 +10,30 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
+import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
+import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronChecklistRoute = ApiCronChecklistRouteImport.update({
+  id: '/api/cron/checklist',
+  path: '/api/cron/checklist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
+  id: '/api/cron/review',
+  path: '/api/cron/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronWeeklyRoute = ApiCronWeeklyRouteImport.update({
+  id: '/api/cron/weekly',
+  path: '/api/cron/weekly',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEngineHeartbeatRoute = ApiEngineHeartbeatRouteImport.update({
@@ -31,30 +49,61 @@ const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/cron/checklist': typeof ApiCronChecklistRoute
+  '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/cron/checklist': typeof ApiCronChecklistRoute
+  '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/cron/checklist': typeof ApiCronChecklistRoute
+  '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/engine/heartbeat' | '/api/engine/journal'
+  fullPaths:
+    | '/'
+    | '/api/cron/checklist'
+    | '/api/cron/review'
+    | '/api/cron/weekly'
+    | '/api/engine/heartbeat'
+    | '/api/engine/journal'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/engine/heartbeat' | '/api/engine/journal'
-  id: '__root__' | '/' | '/api/engine/heartbeat' | '/api/engine/journal'
+  to:
+    | '/'
+    | '/api/cron/checklist'
+    | '/api/cron/review'
+    | '/api/cron/weekly'
+    | '/api/engine/heartbeat'
+    | '/api/engine/journal'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/cron/checklist'
+    | '/api/cron/review'
+    | '/api/cron/weekly'
+    | '/api/engine/heartbeat'
+    | '/api/engine/journal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCronChecklistRoute: typeof ApiCronChecklistRoute
+  ApiCronReviewRoute: typeof ApiCronReviewRoute
+  ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
 }
@@ -66,6 +115,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/checklist': {
+      id: '/api/cron/checklist'
+      path: '/api/cron/checklist'
+      fullPath: '/api/cron/checklist'
+      preLoaderRoute: typeof ApiCronChecklistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/review': {
+      id: '/api/cron/review'
+      path: '/api/cron/review'
+      fullPath: '/api/cron/review'
+      preLoaderRoute: typeof ApiCronReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/weekly': {
+      id: '/api/cron/weekly'
+      path: '/api/cron/weekly'
+      fullPath: '/api/cron/weekly'
+      preLoaderRoute: typeof ApiCronWeeklyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/engine/heartbeat': {
@@ -87,6 +157,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCronChecklistRoute: ApiCronChecklistRoute,
+  ApiCronReviewRoute: ApiCronReviewRoute,
+  ApiCronWeeklyRoute: ApiCronWeeklyRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
 }

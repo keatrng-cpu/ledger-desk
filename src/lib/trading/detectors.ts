@@ -49,6 +49,27 @@ export const MM_DISPLACE_WITHIN = 6;
 /** Swing fractal width for sweep reference points (left/right bars). */
 export const MM_SWING_WIDTH = 3;
 
+/**
+ * Mechanical model lifecycle: an ARMED sequence (`displaced` / `inverted` /
+ * `retest_ready`) is abandoned this many bars after its most recent leg when
+ * the retest never arrives. 24 bars × 15m = 6h — one full RTH session. A zone
+ * price has not returned to within a session has been repriced past; the
+ * engine treats it as consumed.
+ *
+ * Before this existed the state machine had NO expiry whatsoever, and because
+ * the selection rule ranked purely by state a `retest_ready` from 300+ bars
+ * ago outranked every fresh sequence forever.
+ */
+export const MM_MAX_ARMED_AGE = 24;
+
+/**
+ * A COMPLETE sequence stops being a live signal this many bars after its
+ * retest. 8 bars × 15m = 2h. Deliberately shorter than MM_MAX_ARMED_AGE: an
+ * un-triggered zone can still be revisited, but an entry that has already
+ * been offered and not taken cannot be re-taken.
+ */
+export const MM_MAX_COMPLETE_AGE = 8;
+
 /** Minimum bars before any detector output (ATR + fractals need history). */
 export const MIN_BARS = ATR_PERIOD + 2 * MM_SWING_WIDTH + 3;
 
@@ -428,6 +449,22 @@ export interface SweepEvent {
   closeBackInside: number;
 }
 
+/**
+ * Why a sequence stopped being live. Evaluated in this order, first hit wins:
+ * price-action invalidation before mere ageing.
+ */
+export type MechanicalInvalidation =
+  /** Price CLOSED beyond the sweep's own extreme — the model's stop level. */
+  | "structure_break"
+  /** The opposite pool was swept after this sequence armed. */
+  | "contrary_sweep"
+  /** `swept` with no qualifying displacement inside MM_DISPLACE_WITHIN bars. */
+  | "displacement_window_closed"
+  /** Armed longer than MM_MAX_ARMED_AGE bars with no retest. */
+  | "stale_armed"
+  /** Retest happened more than MM_MAX_COMPLETE_AGE bars ago. */
+  | "stale_complete";
+
 export interface MechanicalSequence {
   state: MechanicalState;
   /** Trade direction the completed model implies (sweep low → long). */
@@ -443,8 +480,28 @@ export interface MechanicalSequence {
     createdT: number;
   } | null;
   retest: { index: number; t: number; price: number } | null;
-  /** True ONLY when all four legs are present. Partial sequences stay false. */
+  /**
+   * TRADEABLE completion: all four legs present AND the sequence is still
+   * alive (`legsComplete && alive`). Partial sequences stay false, and so
+   * does a completed sequence that has since been invalidated or aged out —
+   * consumers score this field, so a dead model must not light it.
+   */
   complete: boolean;
+  /** Raw leg presence, ignoring liveness. Diagnostics only. */
+  legsComplete: boolean;
+  /**
+   * Live = neither expired nor invalidated. A dead sequence is still returned
+   * (with the furthest state it reached plus `invalidation`) when nothing
+   * live exists, so the desk can say WHY there is no mechanical setup.
+   */
+  alive: boolean;
+  /** Why the sequence died; null while alive. */
+  invalidation: MechanicalInvalidation | null;
+  /**
+   * Bars from the sequence's most recent leg (retest → zone → displacement →
+   * sweep, whichever is latest) to the last bar handed in.
+   */
+  ageBars: number;
 }
 
 /**
@@ -497,10 +554,15 @@ export function detectSweeps(bars: OhlcBar[]): SweepEvent[] {
 /**
  * Mechanical model (engine weight 0.14 — its highest): sweep → displacement
  * in the opposite direction within MM_DISPLACE_WITHIN (6) bars → FVG or iFVG
- * created by that displacement → retest of the zone. Emits the most advanced
- * (then most recent) sequence. `complete` is true ONLY with all legs —
- * partial sequences are reported with their state but never marked complete
- * (engine lesson: "refuse partial sequences").
+ * created by that displacement → retest of the zone. `complete` is true ONLY
+ * with all legs — partial sequences are reported with their state but never
+ * marked complete (engine lesson: "refuse partial sequences").
+ *
+ * SELECTION (changed in Phase A2): still-ALIVE first, then how far the
+ * sequence got, then recency. Previously it ranked by state alone with
+ * recency as a tiebreak only WITHIN an equal rank, so a `retest_ready` whose
+ * zone had been abandoned 300 bars earlier permanently outranked every fresh
+ * sequence — and nothing in the file ever expired or invalidated a sequence.
  */
 export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
   const idle: MechanicalSequence = {
@@ -511,8 +573,16 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
     zone: null,
     retest: null,
     complete: false,
+    legsComplete: false,
+    // `idle` is not a live setup — it is the absence of one. Seeding it dead
+    // means any live sequence wins outright, and a dead-but-real sequence
+    // still beats it on rank so the desk can report what died.
+    alive: false,
+    invalidation: null,
+    ageBars: 0,
   };
   if (bars.length < MIN_BARS) return idle;
+  const lastIndex = bars.length - 1;
 
   const sweeps = detectSweeps(bars);
   if (!sweeps.length) return idle;
@@ -542,6 +612,10 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
       zone: null,
       retest: null,
       complete: false,
+      legsComplete: false,
+      alive: true,
+      invalidation: null,
+      ageBars: 0,
     };
 
     // Leg 2: opposite-direction displacement within MM_DISPLACE_WITHIN bars.
@@ -616,20 +690,73 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
                   : Math.max(b.l, seq.zone.bottom),
             };
             seq.state = "complete";
-            seq.complete = true;
+            seq.legsComplete = true;
             break;
           }
         }
       }
     }
 
-    if (
-      rank[seq.state] > rank[best.state] ||
-      (rank[seq.state] === rank[best.state] &&
-        (seq.sweep?.index ?? -1) > (best.sweep?.index ?? -1))
-    ) {
-      best = seq;
+    /* -------------------------------------------------------------- */
+    /* Lifecycle: expiry + invalidation (Phase A2)                      */
+    /* -------------------------------------------------------------- */
+
+    // "Armed" = the latest leg this sequence actually reached. Everything
+    // after this point is measured from it, not from the sweep, so a
+    // sequence that keeps progressing keeps resetting its own clock.
+    const armIndex =
+      seq.zone?.createdIndex ?? seq.displacement?.index ?? sweep.index;
+    seq.ageBars = lastIndex - (seq.retest?.index ?? armIndex);
+
+    // (1) Structure break — a CLOSE beyond the sweep's own wick extreme. That
+    // level is what the entire model is predicated on holding (it is also the
+    // trade's stop), so it invalidates from the moment the sweep prints, not
+    // only after arming.
+    let structureBreak = false;
+    for (let j = sweep.index + 1; j <= lastIndex; j++) {
+      const c = bars[j]!.c;
+      if (
+        direction === "long" ? c < sweep.wickExtreme : c > sweep.wickExtreme
+      ) {
+        structureBreak = true;
+        break;
+      }
     }
+
+    // (2) Contrary sweep after arming — the OPPOSITE pool has since been
+    // hunted, so this sequence is no longer the live story regardless of how
+    // far through the state machine it got.
+    const contrarySweep = sweeps.some(
+      (s) => s.index > armIndex && s.side !== sweep.side,
+    );
+
+    // (3)–(5) Ageing. Order below is deliberate: price-action invalidation
+    // outranks mere elapsed time when reporting the reason.
+    seq.invalidation = structureBreak
+      ? "structure_break"
+      : contrarySweep
+        ? "contrary_sweep"
+        : seq.state === "swept" && seq.ageBars > MM_DISPLACE_WITHIN
+          ? // The displacement window closed empty — leg 2 can no longer
+            // arrive for this sweep, so the sequence can never advance.
+            "displacement_window_closed"
+          : seq.state === "complete"
+            ? seq.ageBars > MM_MAX_COMPLETE_AGE
+              ? "stale_complete"
+              : null
+            : seq.ageBars > MM_MAX_ARMED_AGE
+              ? "stale_armed"
+              : null;
+    seq.alive = seq.invalidation === null;
+    seq.complete = seq.legsComplete && seq.alive;
+
+    // ALIVE first, then rank, then recency. Each term is 0 when equal, so
+    // `||` falls through to the next tiebreak.
+    const better =
+      (seq.alive ? 1 : 0) - (best.alive ? 1 : 0) ||
+      rank[seq.state] - rank[best.state] ||
+      (seq.sweep?.index ?? -1) - (best.sweep?.index ?? -1);
+    if (better > 0) best = seq;
   }
 
   return best;

@@ -159,6 +159,15 @@ export function LogSetupDialog({
         killzone,
         componentsPresent: candidate.components ?? candidate.reasons,
         componentsMissing: candidate.missing,
+        // Attribution + the profit-rule inputs the server gate reads. Passing
+        // these explicitly is what turns the HTF gate on server-side (it
+        // defaults permissive when absent) and what gives Phase C something to
+        // group by — the scoreboard is blank without them.
+        strategyPrimary: candidate.strategyPrimary,
+        pathBand: candidate.pathBand,
+        regime: candidate.regime,
+        htfOk: candidate.htfOk,
+        actionable: candidate.actionable,
         reason: [
           candidate.title,
           candidate.strategyPrimary

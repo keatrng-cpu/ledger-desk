@@ -12,10 +12,20 @@ import {
   exportTradesCsv,
   type AnalyticsPayload,
 } from "@/lib/journal/analytics-server";
-import type { AnalyticsReport, Bucket } from "@/lib/journal/analytics";
+import type {
+  AnalyticsReport,
+  Bucket,
+  MatrixCell,
+  RegimeMatrix,
+  StrategyVerdict,
+  StrategyVerdictResult,
+} from "@/lib/journal/analytics";
 import {
+  cellLabel,
   MIN_MEANINGFUL_N,
+  MIN_STRATEGY_N,
   STATISTICALLY_MEANINGFUL_N,
+  TRAILING_WINDOW,
 } from "@/lib/journal/analytics";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -116,6 +126,339 @@ function BucketTable({
             </tbody>
           </table>
         </div>
+      )}
+    </div>
+  );
+}
+
+function SectionHead({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <>
+      <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
+        {title}
+      </p>
+      {hint && (
+        <p className="mb-1.5 text-[10px] text-[var(--color-subtle)]">{hint}</p>
+      )}
+    </>
+  );
+}
+
+const kzLabel = (k: string) => k.replace(/_/g, " ");
+
+/**
+ * C4 — per-symbol expectancy, given its own block rather than a row in the
+ * table grid. The ROADMAP's instruction is to NOT add instruments until the
+ * current book proves positive, so the number that decides it has to be the
+ * one you cannot miss.
+ */
+function BookCoverage({ report }: { report: AnalyticsReport }) {
+  const symbols = report.bySymbol.filter((b) => b.n > 0);
+  return (
+    <div>
+      <SectionHead
+        title="Per-symbol expectancy · book coverage"
+        hint={`Do not add an instrument until the current book is positive at n>=${MIN_STRATEGY_N}. Adding books to an unproven book multiplies an unknown.`}
+      />
+      {symbols.length === 0 ? (
+        <p className="text-xs text-[var(--color-subtle)]">
+          No closed trades — nothing to cover.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {symbols.map((b) => (
+            <StatTile
+              key={b.key}
+              label={b.label}
+              value={b.meaningful ? rr(b.expectancyR) : "—"}
+              tone={
+                b.meaningful
+                  ? b.expectancyR > 0
+                    ? "up"
+                    : b.expectancyR < 0
+                      ? "down"
+                      : undefined
+                  : undefined
+              }
+              sub={
+                b.n >= MIN_STRATEGY_N
+                  ? `n=${b.n} · at the ${MIN_STRATEGY_N}-trade bar · ${money(b.netPnl)}`
+                  : `n=${b.n} · ${MIN_STRATEGY_N - b.n} more to the bar`
+              }
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const VERDICT_STYLE: Record<StrategyVerdict, { label: string; cls: string }> = {
+  promote: {
+    label: "promote",
+    cls: "border-[var(--color-up)] text-[var(--color-up)]",
+  },
+  demote: {
+    label: "demote",
+    cls: "border-[var(--color-down)] text-[var(--color-down)]",
+  },
+  hold: {
+    label: "hold",
+    cls: "border-[var(--color-border)] text-[var(--color-muted)]",
+  },
+  "insufficient-data": {
+    label: "no read",
+    cls: "border-[var(--color-border)] text-[var(--color-subtle)]",
+  },
+};
+
+/** C3 — the verdict as a pill; the numbers behind it live in `title`. */
+function VerdictPill({ v }: { v: StrategyVerdictResult }) {
+  const s = VERDICT_STYLE[v.verdict];
+  return (
+    <span
+      title={v.reason}
+      className={cn(
+        "inline-block rounded-full border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+        s.cls,
+      )}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+/**
+ * C1 + C3 — the per-strategy scoreboard.
+ *
+ * Two independent gates, because they answer different questions: win rate and
+ * profit factor print at n>=MIN_MEANINGFUL_N, but EXPECTANCY — the number that
+ * makes someone abandon a model — stays "—" until n>=MIN_STRATEGY_N.
+ */
+function StrategyBoard({ report }: { report: AnalyticsReport }) {
+  const verdictOf = new Map(report.verdicts.map((v) => [v.strategy, v]));
+  return (
+    <div>
+      <SectionHead
+        title="Per-strategy scoreboard"
+        hint={`Expectancy is withheld until n>=${MIN_STRATEGY_N}. Verdict reads the trailing ${TRAILING_WINDOW} closes only — hover it for the numbers.`}
+      />
+      {report.byStrategy.length === 0 ? (
+        <p className="text-xs text-[var(--color-subtle)]">
+          No closed trade carries a strategy label
+          {report.unattributedN > 0
+            ? ` — all ${report.unattributedN} closed trade${report.unattributedN === 1 ? " is" : "s are"} unattributed.`
+            : "."}{" "}
+          Attribution starts at migration 0008; nothing logged before it can be
+          scored.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-xs">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                <th className="py-1 pr-3 font-medium">Strategy</th>
+                <th className="py-1 pr-3 text-right font-medium">n</th>
+                <th className="py-1 pr-3 text-right font-medium">Win</th>
+                <th className="py-1 pr-3 text-right font-medium">Net</th>
+                <th className="py-1 pr-3 text-right font-medium">PF</th>
+                <th className="py-1 pr-3 text-right font-medium">Expectancy</th>
+                <th className="py-1 text-right font-medium">
+                  Trailing {TRAILING_WINDOW}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.byStrategy.map((s) => {
+                const v = verdictOf.get(s.key);
+                return (
+                  <tr
+                    key={s.key}
+                    className="border-t border-[var(--color-border)]"
+                  >
+                    <td className="py-1.5 pr-3 text-[var(--color-fg)]">
+                      {s.label}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right tabular text-[var(--color-muted)]">
+                      {s.n}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right tabular">
+                      {s.meaningful ? pct(s.winRate) : "—"}
+                    </td>
+                    <td
+                      className={cn(
+                        "py-1.5 pr-3 text-right tabular",
+                        s.netPnl > 0 && "text-[var(--color-up)]",
+                        s.netPnl < 0 && "text-[var(--color-down)]",
+                      )}
+                    >
+                      {money(s.netPnl)}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right tabular text-[var(--color-muted)]">
+                      {!s.meaningful
+                        ? "—"
+                        : s.profitFactor == null
+                          ? "no loss"
+                          : s.profitFactor.toFixed(2)}
+                    </td>
+                    <td
+                      className={cn(
+                        "py-1.5 pr-3 text-right tabular",
+                        s.expectancyReadable ? expCls(s.expectancyR) : "",
+                      )}
+                      title={
+                        s.expectancyReadable
+                          ? undefined
+                          : `n < ${MIN_STRATEGY_N} — ${s.tradesToReadable} more closes before a strategy-level expectancy means anything`
+                      }
+                    >
+                      {s.expectancyReadable ? rr(s.expectancyR) : "—"}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {v ? <VerdictPill v={v} /> : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {report.unattributedN > 0 && report.byStrategy.length > 0 && (
+        <p className="mt-1.5 text-[10px] text-[var(--color-warn)]">
+          {report.unattributedN} closed trade
+          {report.unattributedN === 1 ? "" : "s"} carry no strategy label and are
+          excluded from this table.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** One matrix cell: expectancy over n, or "—" when the slice is too thin. */
+function MatrixValue({ cell }: { cell: MatrixCell | undefined }) {
+  if (!cell) {
+    return <span className="text-[var(--color-subtle)]">·</span>;
+  }
+  return (
+    <span
+      className="flex flex-col items-end leading-tight"
+      title={
+        cell.meaningful
+          ? `${cellLabel(cell)} · ${pct(cell.winRate)} win · ${money(cell.netPnl)}`
+          : `${cellLabel(cell)} · n=${cell.n} < ${MIN_MEANINGFUL_N} — not readable`
+      }
+    >
+      <span className={cell.meaningful ? expCls(cell.expectancyR) : ""}>
+        {cell.meaningful ? rr(cell.expectancyR) : "—"}
+      </span>
+      <span className="text-[9px] text-[var(--color-subtle)]">n={cell.n}</span>
+    </span>
+  );
+}
+
+/**
+ * C2 — strategy x regime x killzone.
+ *
+ * Built to answer "when should I NOT use this model", so the losing cells get
+ * named in full underneath rather than left for the reader to spot. Every cell
+ * shows its own n; a cell under MIN_MEANINGFUL_N shows "—" and never a rate.
+ */
+function RegimeMatrixTable({ matrix }: { matrix: RegimeMatrix }) {
+  const byKey = new Map(matrix.cells.map((c) => [c.key, c]));
+  const rows = matrix.cells
+    .map((c) => `${c.strategy}|${c.regime}`)
+    .filter((v, i, a) => a.indexOf(v) === i);
+
+  return (
+    <div>
+      <SectionHead
+        title="Regime matrix · when NOT to use each model"
+        hint={`Strategy x regime x killzone. Every cell carries its own n; below n=${MIN_MEANINGFUL_N} it reads "—", because a three-way slice is the thinnest sample on this page.`}
+      />
+      {matrix.cells.length === 0 ? (
+        <p className="text-xs text-[var(--color-subtle)]">
+          Empty — no closed trade carries strategy, regime and killzone together
+          {matrix.unclassified > 0
+            ? ` (${matrix.unclassified} unclassified closed trade${matrix.unclassified === 1 ? "" : "s"}).`
+            : "."}{" "}
+          This is a wiring gap, not a trading result.
+        </p>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-mono text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                  <th className="py-1 pr-3 font-medium">Strategy</th>
+                  <th className="py-1 pr-3 font-medium">Regime</th>
+                  {matrix.killzones.map((kz) => (
+                    <th key={kz} className="py-1 pl-3 text-right font-medium">
+                      {kzLabel(kz)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => {
+                  const [strategy = "", regime = ""] = row.split("|");
+                  return (
+                    <tr
+                      key={row}
+                      className="border-t border-[var(--color-border)]"
+                    >
+                      <td className="py-1.5 pr-3 text-[var(--color-fg)]">
+                        {strategy}
+                      </td>
+                      <td className="py-1.5 pr-3 text-[var(--color-muted)]">
+                        {regime}
+                      </td>
+                      {matrix.killzones.map((kz) => (
+                        <td key={kz} className="py-1.5 pl-3 text-right tabular">
+                          <MatrixValue cell={byKey.get(`${row}|${kz}`)} />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {matrix.avoid.length > 0 ? (
+            <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-down)_35%,var(--color-border))] px-3 py-2">
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-[var(--color-down)]">
+                Stop taking these
+              </p>
+              <ul className="space-y-0.5 font-mono text-[11px] text-[var(--color-muted)]">
+                {matrix.avoid.map((c) => (
+                  <li key={c.key}>
+                    <span className="text-[var(--color-fg)]">
+                      {cellLabel(c)}
+                    </span>{" "}
+                    = <span className="text-[var(--color-down)]">
+                      {rr(c.expectancyR)}
+                    </span>{" "}
+                    over {c.n} trades · {money(c.netPnl)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
+              No combination has a readable negative expectancy yet — nothing
+              can be ruled out on evidence.
+            </p>
+          )}
+
+          {matrix.unclassified > 0 && (
+            <p className="mt-1.5 text-[10px] text-[var(--color-warn)]">
+              {matrix.unclassified} closed trade
+              {matrix.unclassified === 1 ? "" : "s"} missing strategy, regime or
+              killzone — not in any cell above.
+            </p>
+          )}
+        </>
       )}
     </div>
   );
@@ -269,6 +612,15 @@ function ReportView({ report }: { report: AnalyticsReport }) {
         ))}
       </ul>
 
+      {/* C4 — the instrument decision, before any of the finer slices. */}
+      <BookCoverage report={report} />
+
+      {/* C1 + C3 — which model, and what measurement says to do about it. */}
+      <StrategyBoard report={report} />
+
+      {/* C2 — and where each model stops working. */}
+      <RegimeMatrixTable matrix={report.matrix} />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <BucketTable
           title="By pre-score"
@@ -280,7 +632,6 @@ function ReportView({ report }: { report: AnalyticsReport }) {
           hint="Which session pays. Cut what doesn't."
           buckets={report.byKillzone}
         />
-        <BucketTable title="By symbol" buckets={report.bySymbol} />
         <BucketTable title="By grade" buckets={report.byGrade} />
         <BucketTable title="By side" buckets={report.bySide} />
         <BucketTable

@@ -65,6 +65,8 @@ import { getRiskState, getSettings } from "@/lib/journal/server";
 import { AnalyticsPanel } from "@/components/journal/analytics-panel";
 import { captureSnapshot } from "@/lib/journal/snapshots";
 import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
+import { syncPaperBookToDb } from "@/lib/journal/paper-backfill";
+import { SnapshotReview } from "@/components/desk/snapshot-review";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -227,6 +229,18 @@ function MasterplacePage() {
         ? true
         : !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit;
 
+  // D1 — the record used to split: paper works signed-OUT (localStorage) while
+  // the mirror needs auth, so trades logged before signing in never reached
+  // desk_trades. Backfill on mount and on every paper-book change; the server
+  // side is idempotent, and syncPaperBookToDb never throws when signed out.
+  useEffect(() => {
+    const sync = () => void syncPaperBookToDb().catch(() => undefined);
+    sync();
+    if (typeof window === "undefined") return;
+    window.addEventListener("ledger-paper", sync);
+    return () => window.removeEventListener("ledger-paper", sync);
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -387,6 +401,7 @@ useEffect(() => {
               grade: res.trade.grade ?? null,
               killzone: desk?.clock.killzone ?? null,
               strategy: res.trade.strategy ?? null,
+              regime: c.regime ?? null,
               reason: res.trade.reason ?? null,
             },
           }).catch(() => undefined);
@@ -438,7 +453,13 @@ useEffect(() => {
       prices.MNQ = prices[desk.right.symbol]!;
       prices.NQ = prices[desk.right.symbol]!;
     }
-    const { closed } = managePaperTradesAgainstPrice(prices);
+      const drawCtx = {
+        draws: {
+          [desk.left.symbol]: desk.draws.left,
+          [desk.right.symbol]: desk.draws.right,
+        },
+      };
+    const { closed } = managePaperTradesAgainstPrice(prices, drawCtx);
     if (closed.length) {
       mirrorClosedPaperTrades(closed);
       reconcilePaperBookToMemory();
@@ -510,7 +531,12 @@ useEffect(() => {
         prices.MNQ = prices[desk.right.symbol]!;
         prices.NQ = prices[desk.right.symbol]!;
       }
-      const { closed } = managePaperTradesAgainstPrice(prices);
+      const { closed } = managePaperTradesAgainstPrice(prices, {
+        draws: {
+          [desk.left.symbol]: desk.draws.left,
+          [desk.right.symbol]: desk.draws.right,
+        },
+      });
       if (closed.length) {
         mirrorClosedPaperTrades(closed);
         const last = closed[closed.length - 1]!;
@@ -949,6 +975,9 @@ useEffect(() => {
                   </div>
                   <AplusOps />
                   <ReplayReport />
+                  {/* Decision-time context — captureSnapshot had been writing
+                      this on every log with nothing able to read it back. */}
+                  <SnapshotReview />
                   <BridgeStatus />
                 </div>
               )}

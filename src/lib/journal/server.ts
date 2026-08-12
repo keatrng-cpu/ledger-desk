@@ -17,6 +17,15 @@ import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 import { computeTradePnl, isKnownSymbol } from "./pnl";
 import { getSessionClock } from "@/lib/trading/sessions";
 import {
+  emptyBookCounters,
+  monthKeyFromMs,
+  pathTakeGate,
+  PATH_MONTH_CAP,
+  type BookCounters,
+  type PathGateResult,
+} from "@/lib/trading/profit-rules";
+import type { SetupCandidate } from "@/lib/trading/scanner";
+import {
   computeRiskFlags,
   currentKillzoneWindow,
   tradingDayStart,
@@ -267,6 +276,265 @@ async function computeLiveRiskState(
 }
 
 /* ------------------------------------------------------------------ */
+/* Profit rules (ROADMAP B1)                                          */
+/*                                                                    */
+/* `pathTakeGate` (trading/profit-rules.ts) enforces the month cap,    */
+/* the consecutive-loss cool-down, the blake_mech demotion and         */
+/* one-book-per-day. It was called from session-backtest.ts ONLY, so   */
+/* the backtest was run under STRICTER rules than the desk enforced —  */
+/* which means backtest PnL described a system that was not being      */
+/* traded. Everything below promotes that same function, with counters */
+/* read from this journal, onto the live open path.                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The BOOK a symbol belongs to. MNQ and NQ are one book, MES and ES another —
+ * the micro is the same instrument at 1/10th the multiplier, so holding both
+ * is not diversification, and one-book-per-day must compare at this level.
+ * (Deliberately duplicated from trading/paper-manager.ts `bookRoot` rather
+ * than imported: that module reaches for localStorage and has no business in
+ * the server bundle.)
+ */
+function bookOf(symbol: string): string {
+  return symbol.replace(/^M(?=NQ$|ES$)/, "");
+}
+
+/** `strategy:mechanical` out of the reason line the desk writes at log time. */
+function strategyFromReason(reason: string | null | undefined): string | null {
+  const m = /strategy:([a-z0-9_]+)/i.exec(reason ?? "");
+  return m ? m[1]!.toLowerCase() : null;
+}
+
+/**
+ * Book counters for one mode, read from the journal.
+ *
+ * Deliberate gaps, stated rather than guessed:
+ * - `blakeLongTaken/Wins` stay 0. The journal has no reliable per-strategy
+ *   attribution yet (migration 0008 added the column; the writer is
+ *   INTEGRATION-D's). 0 means `blakeLongRecovered` is false, i.e. blake_mech
+ *   longs stay demoted — the rule's own default until a sample says otherwise.
+ * - `pathThisMonth` counts ENTRIES this UTC calendar month, matching
+ *   `monthKeyFromMs`, which the backtest also keys on UTC.
+ * - `consecLosses` counts back from the most recent close while pnl <= 0,
+ *   the same "loss" test the backtest applies (`rMultiple <= 0`).
+ */
+async function readBookCounters(
+  sql: Sql,
+  userId: string,
+  mode: "live" | "paper",
+  now: Date,
+): Promise<{ counters: BookCounters; bookTakenToday: string | null }> {
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
+  );
+  const dayStart = tradingDayStart(now);
+  const weekStart = tradingWeekStart(now);
+
+  const [agg, recentClosed, weekOpens] = await Promise.all([
+    sql.query<{
+      path_this_month: number;
+      path_this_week: number;
+      aplus_taken: number;
+      aplus_wins: number;
+    }>(
+      `select
+         count(*) filter (where opened_at >= $3) as path_this_month,
+         count(*) filter (where opened_at >= $4) as path_this_week,
+         count(*) filter (where status = 'closed' and grade = 'A+') as aplus_taken,
+         count(*) filter (where status = 'closed' and grade = 'A+' and pnl > 0) as aplus_wins
+       from desk_trades
+       where user_id = $1 and mode = $2`,
+      [userId, mode, monthStart, weekStart],
+    ),
+    sql.query<{ pnl: number | null }>(
+      `select pnl from desk_trades
+        where user_id = $1 and mode = $2 and status = 'closed'
+        order by closed_at desc
+        limit 20`,
+      [userId, mode],
+    ),
+    sql.query<{ symbol: string; side: string; opened_at: string | Date }>(
+      `select symbol, side, opened_at from desk_trades
+        where user_id = $1 and mode = $2 and opened_at >= $3
+        order by opened_at asc
+        limit 100`,
+      [userId, mode, weekStart],
+    ),
+  ]);
+
+  const counters = emptyBookCounters(monthKeyFromMs(now.getTime()));
+  const a = agg[0];
+  if (a) {
+    counters.pathThisMonth = Number(a.path_this_month);
+    counters.pathThisWeek = Number(a.path_this_week);
+    counters.aPlusTaken = Number(a.aplus_taken);
+    counters.aPlusWins = Number(a.aplus_wins);
+  }
+
+  let consec = 0;
+  for (const row of recentClosed) {
+    if (row.pnl == null || Number(row.pnl) > 0) break;
+    consec += 1;
+  }
+  counters.consecLosses = consec;
+
+  // Same window and same tail length the backtest keeps (`slice(-8)`).
+  counters.lastSides = weekOpens.map((r) => r.side).slice(-8);
+
+  const dayMs = dayStart.getTime();
+  const first = weekOpens.find(
+    (r) => new Date(r.opened_at).getTime() >= dayMs,
+  );
+
+  return {
+    counters,
+    bookTakenToday: first ? bookOf(first.symbol) : null,
+  };
+}
+
+/**
+ * The facts `pathTakeGate` reads, assembled from what an open request
+ * actually carries. Everything the live path does not know is set to the
+ * value that does NOT loosen a rule — with one stated exception:
+ *
+ *   `htfOk` defaults to TRUE. The client does not send it yet (the scanner
+ *   computes it, the log dialog drops it), and defaulting it to false would
+ *   reject every live entry outright rather than enforce a gate. Pass
+ *   `htfOk: false` explicitly to have the absolute HTF gate enforced here as
+ *   well — see INTEGRATION-B.md §1.
+ */
+function candidateFromOpenInput(data: {
+  symbol: string;
+  side: "long" | "short";
+  prescore?: number;
+  grade?: string;
+  pathBand?: string;
+  strategyPrimary?: string;
+  htfOk?: boolean;
+  actionable?: boolean;
+  reason?: string;
+}): SetupCandidate {
+  const strategy =
+    data.strategyPrimary?.toLowerCase() ?? strategyFromReason(data.reason) ?? "";
+  const band = data.pathBand ?? data.grade ?? "";
+  return {
+    id: "live-open",
+    // Book level, not contract level — see bookOf.
+    symbol: bookOf(data.symbol),
+    side: data.side,
+    confluence: data.prescore ?? 0,
+    grade:
+      data.grade === "A+" || data.grade === "A-" || data.grade === "skip"
+        ? data.grade
+        : "B",
+    title: "live open",
+    reasons: [],
+    missing: [],
+    components: [],
+    strategies: [],
+    strategyPrimary: strategy,
+    strategyWhy: [],
+    entryZone: "",
+    invalidation: "",
+    targets: [],
+    killzoneOk: true,
+    htfOk: data.htfOk !== false,
+    conditionsOk: true,
+    actionable: data.actionable === true,
+    regime: "",
+    volatility: "",
+    pathBand: band ? (band as SetupCandidate["pathBand"]) : undefined,
+    completeStrategy: strategy || undefined,
+    riskGrade: data.grade,
+  };
+}
+
+/** The subset of an open request the profit rules actually read. */
+export interface OpenGateInput {
+  symbol: string;
+  side: "long" | "short";
+  mode: "live" | "paper";
+  prescore?: number;
+  grade?: string;
+  pathBand?: string;
+  strategyPrimary?: string;
+  htfOk?: boolean;
+  actionable?: boolean;
+  reason?: string;
+}
+
+/**
+ * Throws the readable rejection when the profit rules refuse this open, and
+ * returns silently when they do not.
+ *
+ * LIVE runs the whole of `pathTakeGate` — month cap, loss cool-down, blake
+ * demotion, same-side cap, band floor, one-book-per-day — so the live desk and
+ * the session backtest are finally the same rule set. That comparability is
+ * the entire point of B1: without it, backtest PnL describes a system nobody
+ * is trading.
+ *
+ * PAPER is exempt from all of it EXCEPT one-book-per-day. Paper exists to
+ * build the sample, and the cap / cool-down / band rules throttle the RATE at
+ * which evidence accumulates while Phase C still needs n>=30. One book per day
+ * is a different kind of rule: NQ and ES are ~0.9 correlated, so taking both
+ * is one idea at double risk. A paper record that allowed it would overstate
+ * diversification and understate drawdown — it would be evidence for a book
+ * nobody would run. Throttling the sample RATE is a cost worth paying;
+ * corrupting its HONESTY is not.
+ *
+ * Paper cannot simply read `pathTakeGate`'s verdict, because that function
+ * short-circuits: a paper-exempt rule (say month_cap) returns first and the
+ * dual-book branch is never reached. So paper reproduces exactly that branch's
+ * comparison — `alreadyTookSymbolToday !== c.symbol` — instead.
+ *
+ * Exported so the gate can be exercised directly against a database; the
+ * server fn around it adds auth and validation, never rules.
+ */
+export async function assertOpenAllowed(
+  sql: Sql,
+  userId: string,
+  data: OpenGateInput,
+  now = new Date(),
+): Promise<void> {
+  const { counters, bookTakenToday } = await readBookCounters(
+    sql,
+    userId,
+    data.mode,
+    now,
+  );
+  if (data.mode === "live") {
+    const gate = pathTakeGate(candidateFromOpenInput(data), counters, {
+      alreadyTookSymbolToday: bookTakenToday,
+    });
+    if (!gate.take) throw new Error(pathGateError(gate, "live", counters));
+    return;
+  }
+  if (bookTakenToday && bookTakenToday !== bookOf(data.symbol)) {
+    throw new Error(
+      `One book per day: already took ${bookTakenToday} on the paper book this session (since 18:00 ET). ${bookOf(data.symbol)} is a second correlated book — that is one idea at double risk, not two trades.`,
+    );
+  }
+}
+
+/** Readable, in the same voice as the halt errors above. */
+function pathGateError(
+  gate: PathGateResult,
+  mode: "live" | "paper",
+  counters: BookCounters,
+): string {
+  const head: Record<PathGateResult["reason"], string> = {
+    ok: "Profit rule",
+    dual_book_block: "One book per day",
+    month_cap: `PATH month cap ${counters.pathThisMonth}/${PATH_MONTH_CAP}`,
+    blake_long_demoted: "Demoted model",
+    htf: "HTF top-down gate",
+    not_path_band: "Not a PATH band",
+    other: "Profit rule",
+  };
+  return `${head[gate.reason]}: ${gate.detail}. No new ${mode} entry — this is the same pathTakeGate (trading/profit-rules.ts) the session backtest runs, so the backtest and the book stay one system.`;
+}
+
+/* ------------------------------------------------------------------ */
 /* Open / close trades                                                */
 /* ------------------------------------------------------------------ */
 
@@ -286,6 +554,22 @@ const openTradeSchema = z
     componentsPresent: z.array(z.string().max(200)).max(30).optional(),
     componentsMissing: z.array(z.string().max(200)).max(30).optional(),
     reason: z.string().max(500).optional(),
+    /* --- Profit-rule inputs (B1). All optional and all backward-compatible: */
+    /* a caller that sends none of them is gated on grade + journal history.  */
+    /** `SetupCandidate.pathBand` — the two-axis band, finer than `grade`. */
+    pathBand: z.enum(["A+", "A", "A-", "B+", "B", "C", "skip"]).optional(),
+    /** `SetupCandidate.strategyPrimary`. Falls back to `strategy:x` in reason. */
+    strategyPrimary: z.string().max(64).optional(),
+    /** Absolute HTF gate. Omitted = true; see candidateFromOpenInput. */
+    htfOk: z.boolean().optional(),
+    /** `SetupCandidate.actionable` — lets a scanner-actionable setup through. */
+    actionable: z.boolean().optional(),
+    /**
+     * `MarketConditions.regime` at decision time (trend / chop / dead ...).
+     * Persisted for the Phase C regime matrix — "when NOT to use this model"
+     * is unanswerable without it. Omitted stays NULL; never inferred.
+     */
+    regime: z.string().max(32).optional(),
   })
   .superRefine((v, ctx) => {
     // Stop must sit on the loss side of entry; target on the profit side.
@@ -341,6 +625,11 @@ export const openTrade = createServerFn({ method: "POST" })
       }
     }
 
+    // Profit-rule gate (ROADMAP B1) — same pathTakeGate the backtest runs.
+    // Live gets the whole gate; paper gets one-book-per-day only. The why is
+    // documented on assertOpenAllowed above.
+    await assertOpenAllowed(sql, context.userId, data);
+
     const now = new Date();
     const id = crypto.randomUUID();
     const present = data.componentsPresent
@@ -370,10 +659,10 @@ export const openTrade = createServerFn({ method: "POST" })
       `insert into desk_trades (
          id, user_id, mode, source, symbol, side, status, opened_at, entry,
          stop, target, contracts, reason, prescore, grade, killzone,
-         components_present, components_missing
+         components_present, components_missing, strategy, regime
        ) values (
          $1, $2, $3, $4, $5, $6, 'open', $7, $8, $9, $10, $11, $12, $13,
-         $14, $15, $16::jsonb, $17::jsonb
+         $14, $15, $16::jsonb, $17::jsonb, $18, $19
        )
        returning ${TRADE_COLUMNS}`,
       [
@@ -394,6 +683,14 @@ export const openTrade = createServerFn({ method: "POST" })
         data.killzone ?? null,
         present,
         missing,
+        // Attribution for the Phase C scoreboard / regime matrix: the explicit
+        // field, else the `strategy:x` the log dialog already writes into
+        // reason. NULL stays NULL — never guess a model; an unattributed trade
+        // is reported as unattributed rather than assigned to something.
+        data.strategyPrimary?.toLowerCase() ??
+          strategyFromReason(data.reason) ??
+          null,
+        data.regime ?? null,
       ],
     );
 
