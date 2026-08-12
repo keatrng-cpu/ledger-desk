@@ -7,6 +7,8 @@
  * NOT UTC calendar dates. Weekly PWH/PWL use Sun 18:00 ET → Fri 17:00 ET.
  * SMT: swing-divergence engine (smtDivergence) aligns two series by exact
  * timestamp and flags higher-high / lower-low failures between them.
+ *
+ * Liquidity: internal + external SSL/BSL (not session-only).
  */
 
 import type { OhlcBar } from "@/lib/market/types";
@@ -23,8 +25,10 @@ export interface Swing {
 export interface LiquidityPool {
   price: number;
   side: "buyside" | "sellside";
+  /** internal = inside dealing range; external = PDH/PDL/PWH/PWL or outside range */
+  scope: "internal" | "external";
   label: string;
-  strength: number; // equal-high/low count proxy
+  strength: number;
   swept: boolean;
 }
 
@@ -33,7 +37,7 @@ export interface DealingRange {
   low: number;
   eq: number;
   zone: "premium" | "discount" | "equilibrium";
-  position: number; // 0 low → 1 high
+  position: number;
 }
 
 export interface HtfBiasRead {
@@ -42,27 +46,19 @@ export interface HtfBiasRead {
   daily: Bias;
   mid: Bias;
   ltf: Bias;
-  confidence: number; // 0-1
+  confidence: number;
   summary: string;
   swings: Swing[];
   lastBOS: { direction: Bias; level: number; t: number } | null;
   dealing: DealingRange | null;
   liquidity: LiquidityPool[];
-  /** Prior completed session high (session = 18:00 ET → 17:00 ET roll). */
   pdh: number | null;
-  /** Prior completed session low (session = 18:00 ET → 17:00 ET roll). */
   pdl: number | null;
-  /** Current session open (first bar after the 18:00 ET roll). */
   dayOpen: number | null;
-  /** Prior completed week high (week = Sun 18:00 ET → Fri 17:00 ET). */
   pwh: number | null;
-  /** Prior completed week low (week = Sun 18:00 ET → Fri 17:00 ET). */
   pwl: number | null;
-  /** 0:00 ET open of the current session's calendar day. */
   midnightOpen: number | null;
-  /** 8:30 ET open of the current session's calendar day. */
   nyOpen830: number | null;
-  /** 9:30 ET open of the current session's calendar day. */
   nyOpen930: number | null;
   changePct: number;
   last: number;
@@ -135,24 +131,86 @@ function dealingRange(bars: OhlcBar[], lookback = 80): DealingRange | null {
   return { high, low, eq, zone, position };
 }
 
-function liquidityPools(bars: OhlcBar[], swings: Swing[]): LiquidityPool[] {
+/**
+ * Map internal + external liquidity — not session extremes alone.
+ * Sellside (SSL): PDL/PWL external, EQL/range/swings internal, Asia/London/NY SSL.
+ */
+function liquidityPools(
+  bars: OhlcBar[],
+  swings: Swing[],
+  dealing: DealingRange | null,
+  levels: {
+    pdh: number | null;
+    pdl: number | null;
+    pwh: number | null;
+    pwl: number | null;
+  },
+): LiquidityPool[] {
   const pools: LiquidityPool[] = [];
   const tol = (() => {
     if (bars.length < 20) return 1;
     const recent = bars.slice(-40);
-    const atr =
-      recent.reduce((a, b) => a + (b.h - b.l), 0) / recent.length;
-    return atr * 0.15;
+    const atr = recent.reduce((a, b) => a + (b.h - b.l), 0) / recent.length;
+    return Math.max(atr * 0.12, 0.25);
   })();
+  const last = bars[bars.length - 1]!;
+  const rangeHi = dealing?.high ?? null;
+  const rangeLo = dealing?.low ?? null;
 
-  // Cluster equal highs / lows
-  const highs = swings.filter((s) => s.kind === "high").slice(-12);
-  const lows = swings.filter((s) => s.kind === "low").slice(-12);
+  const scopeOf = (price: number): "internal" | "external" => {
+    if (rangeHi == null || rangeLo == null) return "external";
+    if (price >= rangeLo - tol && price <= rangeHi + tol) return "internal";
+    return "external";
+  };
+
+  const push = (
+    price: number | null | undefined,
+    side: "buyside" | "sellside",
+    label: string,
+    strength: number,
+    scopeOverride?: "internal" | "external",
+  ) => {
+    if (price == null || !Number.isFinite(price)) return;
+    const scope = scopeOverride ?? scopeOf(price);
+    const swept =
+      side === "buyside"
+        ? last.h > price + tol * 0.05
+        : last.l < price - tol * 0.05;
+    const dup = pools.find(
+      (p) =>
+        p.side === side &&
+        p.scope === scope &&
+        Math.abs(p.price - price) <= tol,
+    );
+    if (dup) {
+      if (strength > dup.strength) {
+        dup.price = price;
+        dup.label = label;
+        dup.strength = strength;
+        dup.swept = swept;
+      }
+      return;
+    }
+    pools.push({ price, side, scope, label, strength, swept });
+  };
+
+  push(levels.pdl, "sellside", "PDL (external SSL)", 5, "external");
+  push(levels.pwl, "sellside", "PWL (external SSL)", 6, "external");
+  push(levels.pdh, "buyside", "PDH (external BSL)", 5, "external");
+  push(levels.pwh, "buyside", "PWH (external BSL)", 6, "external");
+
+  if (dealing) {
+    push(dealing.low, "sellside", "Range low (internal SSL)", 4, "internal");
+    push(dealing.high, "buyside", "Range high (internal BSL)", 4, "internal");
+  }
+
+  const highs = swings.filter((s) => s.kind === "high").slice(-24);
+  const lows = swings.filter((s) => s.kind === "low").slice(-24);
 
   const cluster = (
     pts: Swing[],
     side: "buyside" | "sellside",
-    label: string,
+    baseLabel: string,
   ) => {
     const used = new Set<number>();
     for (let i = 0; i < pts.length; i++) {
@@ -166,18 +224,15 @@ function liquidityPools(bars: OhlcBar[], swings: Swing[]): LiquidityPool[] {
         }
       }
       if (group.length >= 2) {
-        const price =
-          group.reduce((a, g) => a + g.price, 0) / group.length;
-        const last = bars[bars.length - 1]!;
-        const swept =
-          side === "buyside" ? last.h > price : last.l < price;
-        pools.push({
+        const price = group.reduce((a, g) => a + g.price, 0) / group.length;
+        const scope = scopeOf(price);
+        push(
           price,
           side,
-          label: `${label} ×${group.length}`,
-          strength: group.length,
-          swept,
-        });
+          `${baseLabel} ×${group.length} (${scope})`,
+          3 + group.length,
+          scope,
+        );
       }
     }
   };
@@ -185,45 +240,86 @@ function liquidityPools(bars: OhlcBar[], swings: Swing[]): LiquidityPool[] {
   cluster(highs, "buyside", "EQH");
   cluster(lows, "sellside", "EQL");
 
-  // Session extremes (last ~1 session of bars)
-  const dayBars = bars.slice(-Math.min(bars.length, 96));
-  if (dayBars.length) {
-    let sh = -Infinity;
-    let sl = Infinity;
-    for (const b of dayBars) {
-      sh = Math.max(sh, b.h);
-      sl = Math.min(sl, b.l);
+  for (const s of lows.slice(-10)) {
+    const scope = scopeOf(s.price);
+    push(
+      s.price,
+      "sellside",
+      scope === "external"
+        ? "Swing low (external SSL)"
+        : "Swing low (internal SSL)",
+      scope === "external" ? 3.5 : 2.5,
+      scope,
+    );
+  }
+  for (const s of highs.slice(-10)) {
+    const scope = scopeOf(s.price);
+    push(
+      s.price,
+      "buyside",
+      scope === "external"
+        ? "Swing high (external BSL)"
+        : "Swing high (internal BSL)",
+      scope === "external" ? 3.5 : 2.5,
+      scope,
+    );
+  }
+
+  type SessBucket = { hi: number; lo: number; n: number };
+  const asia: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
+  const london: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
+  const ny: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
+  const day: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
+  const lookback = bars.slice(-Math.min(bars.length, 200));
+  for (const b of lookback) {
+    const p = etWallParts(b.t);
+    const h = p.hour + p.minute / 60;
+    if (h >= 18 || h < 2) {
+      asia.hi = Math.max(asia.hi, b.h);
+      asia.lo = Math.min(asia.lo, b.l);
+      asia.n++;
     }
-    const last = bars[bars.length - 1]!;
-    pools.push({
-      price: sh,
-      side: "buyside",
-      label: "Session high",
-      strength: 3,
-      swept: last.h >= sh - tol * 0.1,
-    });
-    pools.push({
-      price: sl,
-      side: "sellside",
-      label: "Session low",
-      strength: 3,
-      swept: last.l <= sl + tol * 0.1,
-    });
+    if (h >= 2 && h < 8) {
+      london.hi = Math.max(london.hi, b.h);
+      london.lo = Math.min(london.lo, b.l);
+      london.n++;
+    }
+    if (h >= 8 && h < 17) {
+      ny.hi = Math.max(ny.hi, b.h);
+      ny.lo = Math.min(ny.lo, b.l);
+      ny.n++;
+    }
+    day.hi = Math.max(day.hi, b.h);
+    day.lo = Math.min(day.lo, b.l);
+    day.n++;
+  }
+  if (asia.n > 0) {
+    push(asia.lo, "sellside", "Asia low (SSL)", 3.2, scopeOf(asia.lo));
+    push(asia.hi, "buyside", "Asia high (BSL)", 3.0, scopeOf(asia.hi));
+  }
+  if (london.n > 0) {
+    push(london.lo, "sellside", "London low (SSL)", 3.2, scopeOf(london.lo));
+    push(london.hi, "buyside", "London high (BSL)", 3.0, scopeOf(london.hi));
+  }
+  if (ny.n > 0) {
+    push(ny.lo, "sellside", "NY low (SSL)", 3.0, scopeOf(ny.lo));
+    push(ny.hi, "buyside", "NY high (BSL)", 2.8, scopeOf(ny.hi));
+  }
+  if (day.n > 0) {
+    push(day.lo, "sellside", "Session low (SSL)", 2.5, scopeOf(day.lo));
+    push(day.hi, "buyside", "Session high (BSL)", 2.5, scopeOf(day.hi));
   }
 
   return pools
-    .sort((a, b) => b.strength - a.strength)
-    .slice(0, 8);
+    .sort((a, b) => {
+      if (a.scope !== b.scope) return a.scope === "external" ? -1 : 1;
+      return b.strength - a.strength;
+    })
+    .slice(0, 20);
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-/**
- * CME futures session key for a timestamp: a trading day runs
- * 18:00 ET → 17:00 ET next day, so bars at/after 18:00 ET belong to the
- * NEXT calendar day's session. Key = "YYYY-MM-DD" of the session's close day.
- * DST-correct by construction (Intl-based ET wall clock).
- */
 export function etSessionKey(tMs: number): string {
   const p = etWallParts(tMs);
   if (p.hour >= 18) {
@@ -233,14 +329,10 @@ export function etSessionKey(tMs: number): string {
   return `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
 }
 
-/**
- * Trading-week key for a session key: week = Sun 18:00 ET → Fri 17:00 ET,
- * so session dates Mon–Fri map to the Monday of their week.
- */
 function etWeekKey(sessionKey: string): string {
   const [y, m, d] = sessionKey.split("-").map(Number);
   const dt = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1));
-  const dow = dt.getUTCDay(); // 0=Sun … 6=Sat
+  const dow = dt.getUTCDay();
   const backToMonday = dow === 0 ? 6 : dow - 1;
   dt.setUTCDate(dt.getUTCDate() - backToMonday);
   return dt.toISOString().slice(0, 10);
@@ -278,12 +370,6 @@ function extremes(bars: OhlcBar[]): { hi: number; lo: number } | null {
   return Number.isFinite(hi) && Number.isFinite(lo) ? { hi, lo } : null;
 }
 
-/**
- * Session-correct levels: PDH/PDL from the prior completed CME session
- * (18:00 ET roll), PWH/PWL from the prior completed trading week
- * (Sun 18:00 ET → Fri 17:00 ET; partial if data doesn't span the week),
- * plus the 0:00 / 8:30 / 9:30 ET opens of the current session's day.
- */
 function sessionLevels(bars: OhlcBar[]): SessionLevels {
   if (bars.length < 10) return { ...EMPTY_SESSION_LEVELS };
 
@@ -298,7 +384,6 @@ function sessionLevels(bars: OhlcBar[]): SessionLevels {
   const curKey = sessions[sessions.length - 1]!;
   const curBars = bySession.get(curKey)!;
 
-  // Prior completed session extremes
   let pdh: number | null = null;
   let pdl: number | null = null;
   if (sessions.length >= 2) {
@@ -307,7 +392,6 @@ function sessionLevels(bars: OhlcBar[]): SessionLevels {
     pdl = prev?.lo ?? null;
   }
 
-  // Prior completed week extremes (week = Mon-keyed sessions)
   const curWeek = etWeekKey(curKey);
   const priorWeeks = sessions
     .map(etWeekKey)
@@ -326,16 +410,15 @@ function sessionLevels(bars: OhlcBar[]): SessionLevels {
     pwl = wk?.lo ?? null;
   }
 
-  // Opens on the current session's calendar day (ET wall clock)
   const openAt = (hh: number, mm: number): number | null => {
     const target = hh * 60 + mm;
     for (const b of curBars) {
       const p = etWallParts(b.t);
       const dk = `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
-      if (dk !== curKey) continue; // skip prior-evening bars (18:00–23:59)
+      if (dk !== curKey) continue;
       const min = p.hour * 60 + p.minute;
       if (min >= target && min < target + 45) return b.o;
-      if (min >= target + 45) return null; // sorted — passed the slot
+      if (min >= target + 45) return null;
     }
     return null;
   };
@@ -352,7 +435,6 @@ function sessionLevels(bars: OhlcBar[]): SessionLevels {
   };
 }
 
-/** Plain majority vote: more bulls → bull, more bears → bear, tie → neutral. */
 function voteBias(...votes: Bias[]): Bias {
   let bulls = 0;
   let bears = 0;
@@ -418,7 +500,6 @@ export function analyzeStructure(
     nyOpen930,
   } = sessionLevels(bars);
 
-  // Premium + bull LTF fighting top-down = weaker
   let topDown = voteBias(daily, mid, bos?.direction ?? "neutral");
   if (dealing?.zone === "premium" && topDown === "bull" && mid === "bear") {
     topDown = "neutral";
@@ -431,7 +512,8 @@ export function analyzeStructure(
   for (const x of [daily, mid, ltf, bos?.direction ?? "neutral"]) {
     if (x === topDown && topDown !== "neutral") aligned++;
   }
-  const confidence = topDown === "neutral" ? 0.35 : Math.min(0.95, 0.4 + aligned * 0.15);
+  const confidence =
+    topDown === "neutral" ? 0.35 : Math.min(0.95, 0.4 + aligned * 0.15);
 
   const last = bars[bars.length - 1]!.c;
   const summary =
@@ -450,7 +532,12 @@ export function analyzeStructure(
     swings: swingsMid.slice(-10),
     lastBOS: bos,
     dealing,
-    liquidity: liquidityPools(bars, swingsMid),
+    liquidity: liquidityPools(bars, swingsMid, dealing, {
+      pdh,
+      pdl,
+      pwh,
+      pwl,
+    }),
     pdh,
     pdl,
     dayOpen,
@@ -464,18 +551,11 @@ export function analyzeStructure(
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* SMT — swing divergence between two correlated series               */
-/* ------------------------------------------------------------------ */
-
 export interface SmtDivergenceRead {
   active: boolean;
   kind: "bullish" | "bearish" | null;
-  /** Side that printed the new extreme (the sweep side). */
   leader: "left" | "right" | null;
-  /** Reference swing-high prices used for the higher-high comparison. */
   refHigh: { left: number | null; right: number | null };
-  /** Reference swing-low prices used for the lower-low comparison. */
   refLow: { left: number | null; right: number | null };
   note: string;
 }
@@ -488,14 +568,6 @@ const NO_DIVERGENCE: Omit<SmtDivergenceRead, "note"> = {
   refLow: { left: null, right: null },
 };
 
-/**
- * Real SMT: align two bar series by exact timestamp, find the most recent
- * significant swing high/low in each over a recent window, and flag
- * divergence — bearish when one side prints a higher high while the other
- * fails to (within tolerance), bullish when one prints a lower low while
- * the other holds. Divergence must have formed within the last
- * `recentBars` aligned bars to be active.
- */
 export function smtDivergence(
   leftBars: OhlcBar[],
   rightBars: OhlcBar[],
@@ -504,7 +576,6 @@ export function smtDivergence(
   const window = opts.window ?? 48;
   const recentBars = opts.recentBars ?? 12;
 
-  // Align by exact timestamp
   const rightByT = new Map(rightBars.map((b) => [b.t, b]));
   const alignedL: OhlcBar[] = [];
   const alignedR: OhlcBar[] = [];
@@ -523,7 +594,6 @@ export function smtDivergence(
   const winR = alignedR.slice(-window);
   const n = winL.length;
 
-  // Per-side tolerance — instruments trade at different price scales
   const tolOf = (bars: OhlcBar[]) => {
     const atr = bars.reduce((a, b) => a + (b.h - b.l), 0) / bars.length;
     return atr * 0.1;
@@ -531,7 +601,6 @@ export function smtDivergence(
   const tolL = tolOf(winL);
   const tolR = tolOf(winR);
 
-  // Swings inside the aligned window (indexes match across sides)
   const swingsL = swingPoints(winL, 2, 2);
   const swingsR = swingPoints(winR, 2, 2);
   const idxOf = (bars: OhlcBar[], t: number) =>
@@ -551,13 +620,12 @@ export function smtDivergence(
   interface Candidate {
     kind: "bullish" | "bearish";
     leader: "left" | "right";
-    at: number; // aligned index of the new extreme
+    at: number;
     refHigh: SmtDivergenceRead["refHigh"];
     refLow: SmtDivergenceRead["refLow"];
   }
   const candidates: Candidate[] = [];
 
-  // Bearish: one prints a higher high, the other fails (within tolerance)
   if (hL && hR) {
     const dL = hL.last.price - hL.prev.price;
     const dR = hR.last.price - hR.prev.price;
@@ -585,7 +653,6 @@ export function smtDivergence(
     }
   }
 
-  // Bullish: one prints a lower low, the other holds (within tolerance)
   if (lL && lR) {
     const dL = lL.prev.price - lL.last.price;
     const dR = lR.prev.price - lR.last.price;
@@ -613,7 +680,6 @@ export function smtDivergence(
     }
   }
 
-  // Most recent divergence wins; must sit inside the recency window
   candidates.sort((a, b) => b.at - a.at);
   const best = candidates[0];
   if (!best || best.at < 0 || n - 1 - best.at > recentBars) {
@@ -642,16 +708,6 @@ export function smtDivergence(
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Reference-level ladder                                             */
-/* ------------------------------------------------------------------ */
-
-/**
- * Full reference ladder for a symbol: prior-session PDH/PDL (18:00 ET
- * roll), prior-week PWH/PWL, session + 0:00/8:30/9:30 ET opens, dealing
- * range, and top liquidity pools — sorted descending by price.
- * Intended replacement for build-desk's levelsFrom.
- */
 export function referenceLevels(
   read: HtfBiasRead,
 ): { name: string; price: number; kind: string }[] {
@@ -673,18 +729,16 @@ export function referenceLevels(
     items.push({ name: "EQ", price: read.dealing.eq, kind: "range" });
     items.push({ name: "Range low", price: read.dealing.low, kind: "range" });
   }
-  for (const l of read.liquidity.slice(0, 4)) {
-    items.push({ name: l.label, price: l.price, kind: l.side });
+  for (const l of read.liquidity.slice(0, 8)) {
+    items.push({
+      name: l.label,
+      price: l.price,
+      kind: `${l.side}:${l.scope}`,
+    });
   }
   return items.sort((a, b) => b.price - a.price);
 }
 
-/**
- * SMT read. When a swing-divergence result (from smtDivergence) is
- * provided it is the PRIMARY signal — the changePct spread becomes
- * secondary color. Without it, behavior is unchanged (changePct proxy),
- * keeping scanner.ts's two-arg call fully backward compatible.
- */
 export function smtRead(
   left: HtfBiasRead,
   right: HtfBiasRead,
@@ -695,8 +749,6 @@ export function smtRead(
   const spread = l - r;
 
   if (divergence?.active && divergence.kind) {
-    // Edge sits on the side that HELD (relative strength/weakness),
-    // opposite the sweep leader.
     const edge: "left" | "right" =
       divergence.leader === "left" ? "right" : "left";
     const sweepSym =

@@ -1,37 +1,14 @@
 /**
  * Draw on liquidity — WHICH level is price actually going to?
  *
- * The scanner used to emit generic targets ("EQ", "PDH", "external pool")
- * read straight off current price action. That answers "what levels exist",
- * not "which one is the magnet", and those are different questions: a pool
- * 4 ATR away with one touch is not the same target as a triple-equal-high
- * 0.8 ATR away with an hour of session left.
- *
- * This module answers the second question by combining:
- *
- *   PAST DATA (empirical, from the bar history itself — not assumed):
- *     - Typical session range for this instrument, by session (18:00 ET roll).
- *     - The distribution of REMAINING favorable excursion from this point in
- *       the session to its close, measured across every prior session in the
- *       window. That yields a real base rate: "from 11:40 ET, price travelled
- *       at least 0.9 ATR further up in 62% of past sessions."
- *
- *   CURRENT DATA:
- *     - Distance to each candidate level, normalized in ATR.
- *     - Liquidity magnitude — how many stops plausibly rest there (equal-high
- *       cluster count, level class, whether it is already swept).
- *     - HTF bias alignment (the absolute gate — a draw against HTF is
- *       downgraded, never promoted).
- *     - How much of a typical session's range is already spent.
- *
- * Everything is deterministic TypeScript math (CLAUDE.md: structure is
- * deterministic; the LLM narrates, it never scores).
+ * Session high/low is ONE class of liquidity — not the whole map.
+ * External SSL/BSL (PDH/PDL, PWH/PWL, swings outside dealing range) and
+ * internal EQH/EQL clusters are the primary magnets.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
 import { etSessionKey, type Bias, type HtfBiasRead } from "./structure";
 
-/** Minimum prior sessions before an empirical base rate is trustworthy. */
 export const MIN_SESSIONS_FOR_BASE_RATE = 4;
 
 export type DrawSide = "above" | "below";
@@ -39,52 +16,36 @@ export type DrawSide = "above" | "below";
 export interface LiquidityTarget {
   name: string;
   price: number;
-  /** prior | weekly | pool | range | open | session */
   kind: string;
   side: DrawSide;
   distancePoints: number;
-  /** Distance normalized by ATR — the only cross-instrument comparable unit. */
   distanceAtr: number;
-  /** 0-1 proxy for resting stop volume (cluster size + level class). */
   liquidityWeight: number;
-  /** Already traded through — the stops there are gone. */
   swept: boolean;
-  /** Empirical P(price travels at least this far, from this time of session). */
   reachProbability: number;
-  /** Composite rank. Higher = more likely to be THE draw. */
   score: number;
   why: string[];
 }
 
 export interface DrawRead {
   symbol: string;
-  /** Most likely magnet overall (either direction). */
   primary: LiquidityTarget | null;
-  /** Best draw above and below — the two-sided picture. */
   above: LiquidityTarget | null;
   below: LiquidityTarget | null;
   alternates: LiquidityTarget[];
   atr: number;
-  /** Median session range (points) across the sampled sessions. */
   medianSessionRange: number;
-  /** How much of a typical session's range this session has already covered. */
   sessionRangeUsedPct: number;
-  /** Sessions available for the base rate. Below MIN_ → probabilities are weak. */
   sessionsSampled: number;
   baseRateReliable: boolean;
   note: string;
 }
-
-/* ------------------------------------------------------------------ */
-/* Session statistics from past bars                                   */
-/* ------------------------------------------------------------------ */
 
 export interface SessionSlice {
   key: string;
   bars: OhlcBar[];
 }
 
-/** Group bars into CME sessions (18:00 ET roll) — same boundary as structure.ts. */
 export function groupSessions(bars: OhlcBar[]): SessionSlice[] {
   const map = new Map<string, OhlcBar[]>();
   for (const b of bars) {
@@ -98,7 +59,6 @@ export function groupSessions(bars: OhlcBar[]): SessionSlice[] {
     .map(([key, list]) => ({ key, bars: list }));
 }
 
-/** Average true range over the last `period` bars (excluding gaps). */
 export function atrOf(bars: OhlcBar[], period = 14): number {
   if (bars.length < 2) return 0;
   const slice = bars.slice(-Math.min(bars.length, period + 1));
@@ -125,24 +85,12 @@ function median(xs: number[]): number {
   return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
 }
 
-/**
- * Empirical remaining-excursion samples.
- *
- * For every COMPLETED prior session, find the bar at (roughly) the same
- * elapsed position as now, then measure how much further price travelled up
- * and down between there and the session close. That is the honest base rate
- * for "can it still reach a level X points away today" — measured, not
- * assumed from a formula.
- */
 export function remainingExcursions(
   sessions: SessionSlice[],
   elapsedFraction: number,
 ): { up: number[]; down: number[] } {
   const up: number[] = [];
   const down: number[] = [];
-  // Drop the last session: it is the in-progress one, so its "remaining"
-  // excursion is truncated by now, not by the session end — including it
-  // would bias every probability downward.
   for (const s of sessions.slice(0, -1)) {
     if (s.bars.length < 6) continue;
     const idx = Math.min(
@@ -162,35 +110,23 @@ export function remainingExcursions(
   return { up, down };
 }
 
-/** Fraction of samples that travelled at least `distance`. */
 export function empiricalReachRate(samples: number[], distance: number): number {
   if (!samples.length) return 0;
   if (distance <= 0) return 1;
-  const hits = samples.filter((s) => s >= distance).length;
-  return hits / samples.length;
+  return samples.filter((s) => s >= distance).length / samples.length;
 }
 
-/* ------------------------------------------------------------------ */
-/* Candidate levels                                                    */
-/* ------------------------------------------------------------------ */
-
-/**
- * Liquidity weight by level class — a proxy for how many stops rest there.
- * Equal highs/lows are where retail stops cluster, so a multi-touch pool
- * outranks a single structural print. Prior-day and prior-week extremes are
- * the reference levels the most participants watch.
- */
 const KIND_WEIGHT: Record<string, number> = {
-  weekly: 0.95, // PWH/PWL — widest audience
-  prior: 0.9, // PDH/PDL
-  pool: 0.85, // EQH/EQL clusters (scaled further by touch count)
-  session: 0.6, // session high/low
-  range: 0.45, // dealing-range extremes / EQ
-  open: 0.35, // midnight / 8:30 / 9:30 opens — magnets, but thin stops
+  weekly: 0.95,
+  prior: 0.9,
+  external: 0.92,
+  pool: 0.85,
+  session: 0.55,
+  range: 0.5,
+  open: 0.35,
 };
 
 function poolTouchBoost(label: string): number {
-  // "EQH ×3" -> 3 touches. More equal touches = more stops stacked.
   const m = /×(\d+)/.exec(label);
   const touches = m ? Number(m[1]) : 2;
   return Math.min(1, 0.7 + (touches - 2) * 0.12);
@@ -204,7 +140,6 @@ export interface RawLevel {
   weight: number;
 }
 
-/** Every level worth considering as a draw, from the structure read. */
 export function candidateLevels(read: HtfBiasRead): RawLevel[] {
   const out: RawLevel[] = [];
   const push = (
@@ -237,29 +172,26 @@ export function candidateLevels(read: HtfBiasRead): RawLevel[] {
     push("EQ", read.dealing.eq, "range");
   }
   for (const pool of read.liquidity) {
-    const kind = pool.label.startsWith("Session") ? "session" : "pool";
-    push(
-      pool.label,
-      pool.price,
-      kind,
-      pool.swept,
-      kind === "pool" ? poolTouchBoost(pool.label) : 1,
-    );
+    const isSession = /session/i.test(pool.label);
+    const kind = isSession
+      ? "session"
+      : pool.scope === "external"
+        ? "external"
+        : "pool";
+    const scale =
+      kind === "pool"
+        ? poolTouchBoost(pool.label)
+        : kind === "external"
+          ? Math.min(1.15, 0.9 + pool.strength * 0.04)
+          : 1;
+    push(pool.label, pool.price, kind, pool.swept, scale);
   }
   return out;
 }
 
-/**
- * Collapse levels sitting within a tolerance of each other into a single
- * magnet. The merged level keeps the strongest class's weight plus a
- * confluence bonus per extra level stacked there — PDL AND session low AND
- * range low on one price is a materially heavier draw than a lone range low.
- *
- * Tolerance is ATR-scaled so it works across MNQ (~35pt ATR) and ES (~9pt).
- */
 export function mergeCoincident(levels: RawLevel[], atr: number): RawLevel[] {
   if (!levels.length) return [];
-  const tol = Math.max(atr * 0.08, 0.25); // never tighter than one tick
+  const tol = Math.max(atr * 0.08, 0.25);
   const sorted = [...levels].sort((a, b) => a.price - b.price);
   const out: RawLevel[] = [];
   let group: RawLevel[] = [sorted[0]!];
@@ -269,7 +201,6 @@ export function mergeCoincident(levels: RawLevel[], atr: number): RawLevel[] {
       out.push(group[0]!);
       return;
     }
-    // Strongest member leads the name; the rest are listed as confluence.
     const ranked = [...group].sort((a, b) => b.weight - a.weight);
     const lead = ranked[0]!;
     const extras = ranked.slice(1).map((g) => g.name);
@@ -278,8 +209,6 @@ export function mergeCoincident(levels: RawLevel[], atr: number): RawLevel[] {
       name: `${lead.name} +${extras.length}`,
       price: group.reduce((a, g) => a + g.price, 0) / group.length,
       kind: lead.kind,
-      // Swept only if EVERY level there has been taken — one untouched level
-      // in the stack means resting liquidity remains.
       swept: group.every((g) => g.swept),
       weight: Math.min(1, lead.weight * confluenceBoost),
     });
@@ -298,29 +227,18 @@ export function mergeCoincident(levels: RawLevel[], atr: number): RawLevel[] {
   return out;
 }
 
-/* ------------------------------------------------------------------ */
-/* The draw read                                                       */
-/* ------------------------------------------------------------------ */
-
 function biasAlignment(side: DrawSide, bias: Bias): number {
   if (bias === "neutral") return 0.85;
   if (bias === "bull") return side === "above" ? 1 : 0.6;
   return side === "below" ? 1 : 0.6;
 }
 
-/**
- * Rank the liquidity levels price is most likely drawn to.
- *
- * @param read  structure read for the symbol (levels + HTF bias)
- * @param bars  full bar history (past sessions drive the base rates)
- */
 export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
   const atr = atrOf(bars, 14);
   const sessions = groupSessions(bars);
   const current = sessions[sessions.length - 1];
   const priorSessions = sessions.slice(0, -1);
 
-  // Where are we in the session? Drives which base-rate slice applies.
   const elapsed =
     current && current.bars.length
       ? Math.min(
@@ -328,7 +246,8 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
           current.bars.length /
             Math.max(
               current.bars.length,
-              median(priorSessions.map((s) => s.bars.length)) || current.bars.length,
+              median(priorSessions.map((s) => s.bars.length)) ||
+                current.bars.length,
             ),
         )
       : 0.5;
@@ -367,23 +286,15 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
   const last = read.last;
   const targets: LiquidityTarget[] = [];
 
-  // Levels that sit at (nearly) the same price are ONE magnet, not three.
-  // Real data routinely stacks PDL + session low + range low on the same
-  // print; listing them separately both spams the card and hides the fact
-  // that a confluence of level types is a STRONGER draw than any one alone.
   for (const lvl of mergeCoincident(candidateLevels(read), atr)) {
     const distancePoints = Math.abs(lvl.price - last);
-    // Skip levels essentially at price — they are not a draw, they're here.
     if (distancePoints < atr * 0.1) continue;
     const side: DrawSide = lvl.price > last ? "above" : "below";
     const distanceAtr = atr > 0 ? distancePoints / atr : 0;
     const samples = side === "above" ? up : down;
     const reachProbability = empiricalReachRate(samples, distancePoints);
-
     const align = biasAlignment(side, read.topDown);
-    // A swept pool has already had its stops taken — much weaker magnet.
     const sweptFactor = lvl.swept ? 0.4 : 1;
-
     const score =
       reachProbability * 0.5 +
       lvl.weight * sweptFactor * 0.3 +
@@ -396,9 +307,11 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
         : `base rate weak (${samples.length} prior sessions)`,
     );
     why.push(`${distanceAtr.toFixed(2)} ATR away`);
-    if (lvl.kind === "pool") why.push("equal-high/low stop cluster");
+    if (lvl.kind === "pool") why.push("internal equal-high/low stop cluster");
+    if (lvl.kind === "external") why.push("external SSL/BSL beyond dealing range");
     if (lvl.kind === "weekly") why.push("prior-week extreme — widest audience");
-    if (lvl.kind === "prior") why.push("prior-session extreme");
+    if (lvl.kind === "prior") why.push("prior-session extreme (external)");
+    if (lvl.kind === "session") why.push("session extreme — not the only liquidity");
     if (lvl.swept) why.push("already swept — stops likely gone");
     if (read.topDown !== "neutral") {
       why.push(
@@ -429,15 +342,7 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
   const primary = targets[0] ?? null;
 
   const note = primary
-    ? `${read.symbol}: likely draw is ${primary.name} @ ${primary.price.toFixed(2)} (${primary.side}, ${(primary.reachProbability * 100).toFixed(0)}% base rate, ${primary.distanceAtr.toFixed(2)} ATR).${
-        baseRateReliable
-          ? ""
-          : ` Base rate from only ${sessionsSampled} sessions — treat as weak.`
-      }${
-        usedPct > 1
-          ? ` Session has already covered ${(usedPct * 100).toFixed(0)}% of a typical range — expansion beyond here is less common.`
-          : ""
-      }`
+    ? `${read.symbol}: likely draw is ${primary.name} @ ${primary.price.toFixed(2)} (${primary.side}, ${(primary.reachProbability * 100).toFixed(0)}% base rate, ${primary.distanceAtr.toFixed(2)} ATR).`
     : `${read.symbol}: no level far enough from price to be a draw.`;
 
   return {
@@ -455,11 +360,6 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
   };
 }
 
-/**
- * Targets for one side of a trade, ordered nearest-first — what the scanner
- * should actually show instead of generic level names. Only levels in the
- * trade's favor, and only ones price can plausibly still reach today.
- */
 export function drawTargetsForSide(
   draw: DrawRead,
   side: "long" | "short",

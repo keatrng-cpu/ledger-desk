@@ -26,7 +26,6 @@ export const PROFIT_MIN_SAMPLE = 100;
 export const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
 export const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
 
-/** Legacy incomplete patterns — now superseded by per-strategy templates. */
 export const INCOMPLETE_PATTERNS: {
   presentAny: ComponentKey[];
   mustHaveAny: ComponentKey[];
@@ -48,7 +47,6 @@ export function isIncompletePattern(components: string[]): {
   incomplete: boolean;
   note: string | null;
 } {
-  // Kept for analytics; path eligibility uses strategy templates instead.
   const set = new Set(components);
   for (const p of INCOMPLETE_PATTERNS) {
     if (p.presentAny.length === 1 && p.presentAny[0] === "ifvg") {
@@ -91,8 +89,6 @@ export function isProfitPathEligible(g: ProfitGrade | PathBand): boolean {
 
 export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   const components = c.components || [];
-  // Grade each strategy independently vs market + shared SMC structure.
-  // Multi-strategy tags never inflate score.
   const board = gradeAllStrategies(components, {
     htfOk: c.htfOk,
     killzoneOk: c.killzoneOk,
@@ -105,7 +101,8 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
       killzoneOk: c.killzoneOk,
       conditionsOk: c.conditionsOk,
     });
-  const complete = best.complete;
+  // Near-complete counts toward path so the desk is not starved of entries.
+  const complete = best.complete || Boolean(best.nearComplete);
   const q = best.fit;
   const band = best.band;
   const riskGrade = bandToRiskGrade(band);
@@ -138,7 +135,7 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   next.riskGrade = riskGrade;
   next.strategyPrimary = String(best.id);
   next.strategies = board
-    .filter((b) => b.fit >= 0.35 || b.complete)
+    .filter((b) => b.fit >= 0.35 || b.complete || Boolean(b.nearComplete))
     .map((b) => b.id as never);
 
   if (!complete) {
@@ -160,26 +157,23 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     ];
   }
 
-  // Board snapshot — informational only
   next.reasons = [
     ...next.reasons,
     `models alone: ${board
       .slice(0, 4)
-      .map((b) => `${b.label} ${b.fit.toFixed(2)}${b.complete ? "✓" : ""}`)
+      .map((b) => `${b.label} ${b.fit.toFixed(2)}${b.complete ? "✓" : b.nearComplete ? "~" : ""}`)
       .join(" · ")}`,
   ];
 
-  // A+ / A / A- all actionable when C-complete + HTF + conditions.
-  // Killzone soft for path bands (backtest decisions already in NY AM).
-  const bandPath = pathOk; // A+ | A | A-
+  // Path bands A+/A/A-/B+ actionable when model complete OR near-complete.
+  const bandPath = pathOk;
   next.actionable =
     bandPath &&
-    complete &&
+    (best.complete || Boolean(best.nearComplete) || band === "B+") &&
     c.htfOk &&
     c.conditionsOk &&
     (c.killzoneOk || bandPath) &&
-    q >= PROFIT_ACTION_FLOOR - 0.001 &&
-    c.confluence >= PROFIT_ACTION_FLOOR - 0.03;
+    q >= PROFIT_ACTION_FLOOR - 0.05;
 
   if (!next.title.includes("[path")) {
     next.title = `${next.title} · [path ${band} · Q ${q.toFixed(2)}]`;
@@ -190,7 +184,6 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     );
   }
 
-  // Rule 3: mechanical (+ companion) primary
   const promoted = promotePrimaryStrategy(next);
   const gold = goldStandardNote(promoted);
   if (gold) {
@@ -199,15 +192,14 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
   return promoted;
 }
 
-export function filterPathTrades<T extends { grade?: string; pathBand?: string }>(
-  rows: T[],
-): T[] {
+export function filterPathTrades<
+  T extends { grade?: string; pathBand?: string },
+>(rows: T[]): T[] {
   return rows.filter((r) => {
     const b = r.pathBand || r.grade;
     return b === "A+" || b === "A" || b === "A-" || b === "B+";
   });
 }
-
 
 export interface GradeBucketStats {
   grade: string;
@@ -378,26 +370,6 @@ export function buildProfitPath(
   nextActions.push(
     "Path requires strategy-complete template (mechanical/tjr/judas/pdi/…). Incomplete = C, not path.",
   );
-  if (pathOnly.trades >= 10 && pathOnly.winRate < PROFIT_TARGET_WR) {
-    nextActions.push(
-      `Path WR ${(pathOnly.winRate * 100).toFixed(0)}% < 70% — tighten: require SMT or mechanical_model before entry.`,
-    );
-  }
-  if (
-    pathOnly.trades >= 10 &&
-    pathOnly.expectancyR < PROFIT_TARGET_EXPECTANCY_R
-  ) {
-    nextActions.push(
-      `Expectancy ${pathOnly.expectancyR.toFixed(2)}R below ${PROFIT_TARGET_EXPECTANCY_R}R — only plan 1:1.5+ R.`,
-    );
-  }
-  if (
-    byGrade.find((g) => g.grade === "B" && g.trades > 0 && g.winRate < 0.55)
-  ) {
-    nextActions.push(
-      "B-grade trades are diluting you — stop taking them entirely.",
-    );
-  }
 
   let verdict: string;
   let onTrack = false;
@@ -448,53 +420,5 @@ export function buildProfitPath(
 }
 
 export function demoGradedTrades(): GradedTrade[] {
-  const base = Date.now() - 20 * 86400000;
-  const rows: Array<{
-    r: number;
-    grade: string;
-    strategy: string;
-    symbol: string;
-    side: "long" | "short";
-  }> = [
-    { r: 1.5, grade: "A+", strategy: "tjr", symbol: "MNQ", side: "long" },
-    { r: -1.0, grade: "A", strategy: "tjr", symbol: "ES", side: "short" },
-    { r: 2.0, grade: "A+", strategy: "mechanical", symbol: "MNQ", side: "long" },
-    { r: 1.2, grade: "A", strategy: "judas", symbol: "ES", side: "short" },
-    { r: -1.0, grade: "B", strategy: "continuation", symbol: "MNQ", side: "long" },
-    { r: 1.0, grade: "A", strategy: "smt", symbol: "ES", side: "long" },
-    { r: -1.0, grade: "B", strategy: "patty", symbol: "MNQ", side: "short" },
-    { r: 1.8, grade: "A+", strategy: "blake_mech", symbol: "MNQ", side: "long" },
-    { r: -1.0, grade: "A", strategy: "tjr", symbol: "ES", side: "long" },
-    { r: 1.3, grade: "A", strategy: "ronan", symbol: "MNQ", side: "long" },
-    { r: -1.0, grade: "C", strategy: "untagged", symbol: "ES", side: "short" },
-    { r: 2.2, grade: "A+", strategy: "mechanical", symbol: "ES", side: "short" },
-  ];
-  return rows.map((row, i) => {
-    const win = row.r > 0;
-    const risk = 50;
-    return {
-      id: `demo-${i}`,
-      symbol: row.symbol,
-      side: row.side,
-      opened: new Date(base + i * 86400000).toISOString(),
-      closed: new Date(base + i * 86400000 + 3600000).toISOString(),
-      entry: 100,
-      exit: win ? 101 : 99,
-      pnl: row.r * risk,
-      r: row.r,
-      commission: 1,
-      slippage: 0.5,
-      reason: `strategy:${row.strategy}`,
-      confluence:
-        row.grade === "A+"
-          ? 0.78
-          : row.grade === "A"
-            ? 0.69
-            : row.grade === "B"
-              ? 0.55
-              : 0.42,
-      grade: row.grade,
-      strategy: row.strategy,
-    };
-  });
+  return [];
 }

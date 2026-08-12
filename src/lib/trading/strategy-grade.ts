@@ -4,6 +4,8 @@
  * 1) SMC/ICT structure layer — shared market read (HTF/mid/structure/PD…).
  * 2) Each strategy is graded alone against that market (its own must / any-of / nice).
  * 3) Best single model wins for path — multi-strategy tags do NOT boost score.
+ *
+ * FIX: near-complete models can path as B+ so the desk is not starved of entries.
  */
 
 import { APLUS_RULES, type RiskGrade } from "@/lib/aplus/config";
@@ -17,23 +19,14 @@ export type PathBand = "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
 
 export interface StrategyTemplate {
   id: StrategyId;
-  /** Required components — all must be present for C=complete */
   must: ComponentKey[];
-  /** Any-of groups: at least one from each group */
   mustAnyOf?: ComponentKey[][];
-  /** Optional boosts for Q within THIS model only */
   nice: ComponentKey[];
-  /** SMT alone is never a take — needs entry model companion */
   requiresCompanion?: boolean;
   label: string;
-  /** One-line: when this model applies (structure context) */
   structureNote: string;
 }
 
-/**
- * Shared SMC/ICT structure keys — context for every model.
- * These describe the market, not a specific entry playbook.
- */
 export const SMC_STRUCTURE_KEYS: ComponentKey[] = [
   "structure",
   "mss",
@@ -47,7 +40,6 @@ export const SMC_STRUCTURE_KEYS: ComponentKey[] = [
   "opening_bias",
 ];
 
-/** Per-strategy completeness templates — different entry models, same structure layer. */
 export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "mechanical",
@@ -71,16 +63,20 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "tjr",
     label: "TJR",
-    must: ["sweep_significant", "ifvg"],
-    mustAnyOf: [["structure", "mss", "displacement", "mechanical_model"]],
-    nice: ["opening_bias", "mid_bias", "order_block"],
-    structureNote: "Significant sweep + structure/MSS + IFVG retrace",
+    must: ["sweep_significant"],
+    mustAnyOf: [
+      ["ifvg", "order_block"],
+      ["structure", "mss", "displacement", "mechanical_model"],
+    ],
+    nice: ["opening_bias", "mid_bias", "ifvg"],
+    structureNote: "Significant sweep + structure/MSS + IFVG/OB retrace",
   },
   {
     id: "judas",
     label: "Judas",
-    must: ["sweep_significant", "ifvg"],
+    must: ["sweep_significant"],
     mustAnyOf: [
+      ["ifvg", "order_block"],
       ["structure", "mss", "cisd"],
       ["opening_bias", "daily_bias", "mid_bias"],
     ],
@@ -106,10 +102,13 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "continuation",
     label: "Continuation",
-    must: ["ifvg", "mid_bias"],
-    mustAnyOf: [["structure", "cisd", "mss"]],
-    nice: ["htf2_bias", "daily_bias", "pd"],
-    structureNote: "HTF continuation pullback into IFVG",
+    must: ["mid_bias"],
+    mustAnyOf: [
+      ["ifvg", "order_block"],
+      ["structure", "cisd", "mss"],
+    ],
+    nice: ["htf2_bias", "daily_bias", "pd", "sweep_significant"],
+    structureNote: "HTF continuation pullback into IFVG/OB",
   },
   {
     id: "ronan",
@@ -136,13 +135,11 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
 export interface StrategyMarketGrade {
   id: StrategyId | string;
   label: string;
-  /** 0–1 fit of THIS model alone to current market */
   fit: number;
-  /** Structure-layer quality only */
   structureQ: number;
-  /** Model-specific completeness quality */
   modelQ: number;
   complete: boolean;
+  nearComplete: boolean;
   missing: string[];
   note: string;
   structureNote: string;
@@ -153,7 +150,6 @@ export function templateFor(id: string): StrategyTemplate | undefined {
   return STRATEGY_TEMPLATES.find((t) => t.id === id);
 }
 
-/** SMC/ICT structure score from present components (shared layer). */
 export function structureLayerScore(components: string[]): number {
   const set = new Set(components);
   let pts = 0;
@@ -170,53 +166,60 @@ export function structureLayerScore(components: string[]): number {
 export function isStrategyComplete(
   id: string,
   components: string[],
-  /** @deprecated companions no longer required for score — only SMT still needs entry array */
   _strategies: string[] = [],
-): { complete: boolean; missing: string[]; note: string } {
+): {
+  complete: boolean;
+  nearComplete: boolean;
+  missing: string[];
+  note: string;
+} {
   const t = templateFor(id);
   if (!t) {
     return {
       complete: false,
+      nearComplete: false,
       missing: ["unknown strategy"],
       note: "no template",
     };
   }
   const set = new Set(components);
-  const missing: string[] = [];
+  const missingMust: string[] = [];
+  const missingSoft: string[] = [];
 
   for (const m of t.must) {
-    if (!set.has(m)) missing.push(m);
+    if (!set.has(m)) missingMust.push(m);
   }
   if (t.mustAnyOf) {
     for (const group of t.mustAnyOf) {
       if (!group.some((c) => set.has(c))) {
-        missing.push(`any(${group.join("|")})`);
+        missingSoft.push(`any(${group.join("|")})`);
       }
     }
   }
-  // SMT needs an entry array component (not another strategy tag)
   if (t.requiresCompanion) {
     const entryOk =
       set.has("ifvg") ||
       set.has("order_block") ||
       set.has("mechanical_model");
-    if (!entryOk) missing.push("entry_array");
+    if (!entryOk) missingSoft.push("entry_array");
   }
 
+  const missing = [...missingMust, ...missingSoft];
   const complete = missing.length === 0;
+  const nearComplete =
+    !complete && missingMust.length === 0 && missingSoft.length <= 1;
   return {
     complete,
+    nearComplete,
     missing,
     note: complete
       ? `${t.label} complete`
-      : `${t.label} incomplete: ${missing.slice(0, 4).join(", ")}`,
+      : nearComplete
+        ? `${t.label} near-complete (1 soft gap): ${missing.slice(0, 3).join(", ")}`
+        : `${t.label} incomplete: ${missing.slice(0, 4).join(", ")}`,
   };
 }
 
-/**
- * Grade one strategy alone against the market.
- * Structure is shared; model must/any/nice are strategy-specific — no stacking.
- */
 export function gradeStrategyAgainstMarket(
   id: string,
   components: string[],
@@ -240,6 +243,7 @@ export function gradeStrategyAgainstMarket(
       structureQ,
       modelQ: 0,
       complete: false,
+      nearComplete: false,
       missing: ["unknown strategy"],
       note: "no template",
       structureNote,
@@ -247,7 +251,6 @@ export function gradeStrategyAgainstMarket(
     };
   }
 
-  // Model axis: only THIS template's requirements
   let modelPts = 0;
   let modelMax = 0;
   for (const m of t.must) {
@@ -264,21 +267,27 @@ export function gradeStrategyAgainstMarket(
   }
   const modelQ = modelMax > 0 ? modelPts / modelMax : 0;
 
-  const { complete, missing, note } = isStrategyComplete(id, components, []);
+  const { complete, nearComplete, missing, note } = isStrategyComplete(
+    id,
+    components,
+    [],
+  );
 
-  // Fit = structure context + model fidelity (not other strategies)
   let fit = structureQ * 0.4 + modelQ * 0.55;
   if (opts?.htfOk) fit += 0.025;
   if (opts?.killzoneOk) fit += 0.015;
   if (opts?.conditionsOk) fit += 0.01;
   if (complete) fit += 0.03;
-  // Incomplete hard cap below path A- without complete model
-  if (!complete) fit = Math.min(fit, PROFIT_ACTION_FLOOR - 0.01);
+  else if (nearComplete) fit += 0.015;
+  if (!complete && !nearComplete) {
+    fit = Math.min(fit, PROFIT_ACTION_FLOOR - 0.02);
+  }
   fit = Math.min(0.99, Math.max(0, +fit.toFixed(4)));
 
   const band = pathBand({
     quality: fit,
     complete,
+    nearComplete,
     htfOk: opts?.htfOk !== false,
   });
 
@@ -289,6 +298,7 @@ export function gradeStrategyAgainstMarket(
     structureQ: +structureQ.toFixed(4),
     modelQ: +modelQ.toFixed(4),
     complete,
+    nearComplete,
     missing,
     note,
     structureNote,
@@ -296,10 +306,6 @@ export function gradeStrategyAgainstMarket(
   };
 }
 
-/**
- * Evaluate every strategy independently; sort by fit (complete first).
- * This is the desk's primary ranking — never multiplies strategies together.
- */
 export function gradeAllStrategies(
   components: string[],
   opts?: {
@@ -312,8 +318,8 @@ export function gradeAllStrategies(
     gradeStrategyAgainstMarket(id, components, opts),
   );
   board.sort((a, b) => {
-    // Complete models outrank incomplete even if raw fit close
     if (a.complete !== b.complete) return a.complete ? -1 : 1;
+    if (a.nearComplete !== b.nearComplete) return a.nearComplete ? -1 : 1;
     return b.fit - a.fit;
   });
   return board;
@@ -336,6 +342,7 @@ export function bestStrategyGrade(
       structureQ: 0,
       modelQ: 0,
       complete: false,
+      nearComplete: false,
       missing: ["no model"],
       note: "no model",
       structureNote: "",
@@ -344,10 +351,6 @@ export function bestStrategyGrade(
   );
 }
 
-/**
- * @deprecated Multi-strategy quality boost removed.
- * Kept as thin wrapper so call sites use single-model Q.
- */
 export function qualityScore(opts: {
   confluence: number;
   strategies: string[];
@@ -356,7 +359,6 @@ export function qualityScore(opts: {
   conditionsOk: boolean;
   components: string[];
 }): number {
-  // Prefer independent best-model fit; fall back to structure+confluence
   const best = bestStrategyGrade(opts.components, {
     htfOk: opts.htfOk,
     killzoneOk: opts.killzoneOk,
@@ -371,10 +373,6 @@ export function qualityScore(opts: {
   return Math.min(0.99, +q.toFixed(4));
 }
 
-/**
- * Find best complete strategy for this candidate (path C axis).
- * Scans ALL templates against market — not only pre-tagged strategies.
- */
 export function bestCompleteStrategy(
   strategies: string[],
   components: string[],
@@ -389,10 +387,6 @@ export function bestCompleteStrategy(
       note: complete.note,
     };
   }
-  // Prefer pre-tagged incomplete with fewest missing
-  const tagged = strategies
-    .map((id) => isStrategyComplete(id, components, strategies))
-    .map((r, i) => ({ id: strategies[i]!, ...r }));
   const fromBoard = board[0];
   if (fromBoard) {
     return {
@@ -402,30 +396,30 @@ export function bestCompleteStrategy(
       note: fromBoard.note,
     };
   }
-  tagged.sort((a, b) => a.missing.length - b.missing.length);
-  return tagged[0]
-    ? {
-        id: tagged[0].id,
-        complete: false,
-        missing: tagged[0].missing,
-        note: tagged[0].note,
-      }
-    : null;
+  return null;
 }
 
-/**
- * Path band from Q + C. Incomplete → C or skip, never A-path.
- */
 export function pathBand(opts: {
   quality: number;
   complete: boolean;
+  nearComplete?: boolean;
   htfOk: boolean;
 }): PathBand {
   if (!opts.complete) {
+    if (
+      opts.nearComplete &&
+      opts.htfOk &&
+      opts.quality >= PROFIT_ACTION_FLOOR - 0.03
+    ) {
+      return "B+";
+    }
+    if (opts.nearComplete && opts.quality >= PROFIT_ACTION_FLOOR - 0.08) {
+      return "B";
+    }
     if (opts.quality >= PROFIT_ACTION_FLOOR - 0.08) return "C";
     return "skip";
   }
-  if (!opts.htfOk) return "B"; // complete but HTF fight — not path
+  if (!opts.htfOk) return "B";
   if (opts.quality >= PROFIT_A_PLUS) return "A+";
   if (opts.quality >= PROFIT_ACTION_FLOOR + 0.03) return "A";
   if (opts.quality >= PROFIT_ACTION_FLOOR) return "A-";
@@ -473,7 +467,6 @@ export function bandPaperOnly(band: PathBand): boolean {
   return band === "B";
 }
 
-/** True when candidate should be auto-taken (A+ / A / A- path). */
 export function isPathTake(c: {
   actionable?: boolean;
   pathBand?: string | null;
