@@ -18,7 +18,15 @@ import {
   type AnalyticsTrade,
 } from "./analytics";
 
-const DEFAULT_EQUITY = 10_000;
+/**
+ * Fallback starting equity when the user has no `desk_settings` row.
+ *
+ * MUST track APLUS_RULES.accountEquity (and PAPER_START_EQUITY, which is
+ * APLUS_RULES.paperEquity). A hardcoded 10_000 here meant the equity curve,
+ * return % and drawdown % in AnalyticsPanel were computed off a base 10x
+ * smaller than the one the paper book and RiskPanel display, on the same tab.
+ */
+const DEFAULT_EQUITY = APLUS_RULES.accountEquity;
 
 type Row = {
   id: string;

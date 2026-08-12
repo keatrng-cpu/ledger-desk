@@ -478,7 +478,10 @@ export function ingestPaperFill(opts: {
   const usd = opts.usd;
   const strategy = opts.strategy || "paper";
   const band = opts.band || opts.grade || "—";
-  const win = r > 0;
+  // Win/loss by NET dollars, matching analytics.ts (`t.pnl > 0`). Using gross
+  // R meant a trade that cleared the stop but not the commission counted as a
+  // WIN in the header chip / Risk tab and a LOSS in AnalyticsPanel.
+  const win = usd != null && Number.isFinite(usd) ? usd > 0 : r > 0;
 
   state.book.pathTaken += 1;
   if (win) state.book.pathWins += 1;

@@ -483,6 +483,17 @@ export const closeTrade = createServerFn({ method: "POST" })
 
 const listTradesSchema = z.object({
   status: z.enum(["open", "closed"]).optional(),
+  /**
+   * REQUIRED in spirit: live and paper must never be summed into one metric.
+   * Defaults to 'live' rather than "all" so that a caller which forgets to
+   * specify cannot silently blend a clean paper sample into the live record.
+   * Pass 'all' only for a view that visibly separates them by the `mode` field.
+   *
+   * This defaulted to everything until paper rows started landing in
+   * desk_trades (paper-mirror.ts), at which point Path win rate — the metric
+   * the whole unlock ladder gates on — began quietly averaging paper in.
+   */
+  mode: z.enum(["live", "paper", "all"]).default("live"),
   limit: z.number().int().min(1).max(500).default(200),
   offset: z.number().int().min(0).default(0),
 });
@@ -492,19 +503,24 @@ export const listTrades = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<JournalTrade[]> => {
     const sql = await getSql();
-    const rows = data.status
-      ? await sql.query<TradeRow>(
-          `select ${TRADE_COLUMNS} from desk_trades
-           where user_id = $1 and status = $2
-           order by opened_at desc limit $3 offset $4`,
-          [context.userId, data.status, data.limit, data.offset],
-        )
-      : await sql.query<TradeRow>(
-          `select ${TRADE_COLUMNS} from desk_trades
-           where user_id = $1
-           order by opened_at desc limit $2 offset $3`,
-          [context.userId, data.limit, data.offset],
-        );
+    const where: string[] = ["user_id = $1"];
+    const params: unknown[] = [context.userId];
+    if (data.status) {
+      params.push(data.status);
+      where.push(`status = $${params.length}`);
+    }
+    if (data.mode !== "all") {
+      params.push(data.mode);
+      where.push(`mode = $${params.length}`);
+    }
+    params.push(data.limit, data.offset);
+    const rows = await sql.query<TradeRow>(
+      `select ${TRADE_COLUMNS} from desk_trades
+        where ${where.join(" and ")}
+        order by opened_at desc
+        limit $${params.length - 1} offset $${params.length}`,
+      params,
+    );
     return rows.map(mapTrade);
   });
 

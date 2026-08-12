@@ -425,7 +425,17 @@ function finalizeClose(
       sign * (l.price - t.entry) * pointValue(t.symbol) * l.contracts;
     return s + u - commission(t.symbol) * l.contracts;
   }, 0);
-  t.rMultiple = +totalR.toFixed(3);
+  // R must be NET of commission, matching live (@/lib/journal/pnl.ts). The
+  // leg-weighted `totalR` above is a raw PRICE ratio, so a full stop-out
+  // booked exactly -1.00R while the same live trade booked -1.03R. A paper
+  // record that is systematically ~2-3% kinder than live is not evidence for
+  // unlocking live. Derive R from the net dollars instead.
+  const riskUsd =
+    t.riskDollars > 0
+      ? t.riskDollars
+      : t.riskPts * pointValue(t.symbol) * t.contracts;
+  const netR = riskUsd > 0 ? totalUsd / riskUsd : totalR;
+  t.rMultiple = +netR.toFixed(3);
   t.pnlUsd = +totalUsd.toFixed(2);
   if (!t.ingested) {
     ingestPaperFill({

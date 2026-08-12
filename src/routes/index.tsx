@@ -78,6 +78,28 @@ export const Route = createFileRoute("/")({
 
 const DESK_POLL_MS = 30_000;
 
+/**
+ * Mirror closed paper trades into desk_trades. Used by EVERY close path —
+ * the desk poll, the 5s manage tick, and the structure-TP close. Missing it
+ * on any one path leaves those rows `status='open'` in the durable record
+ * forever while the localStorage book shows them closed.
+ * Fire-and-forget: never blocks or breaks the working book.
+ */
+function mirrorClosedPaperTrades(closed: PaperTrade[]): void {
+  for (const t of closed) {
+    if (t.exit == null) continue;
+    void mirrorPaperClose({
+      data: {
+        id: t.id,
+        exit: t.exit,
+        closedAt: new Date(t.closedAt ?? Date.now()).toISOString(),
+        contracts: t.contracts,
+        reason: t.exitReason ?? "paper exit",
+      },
+    }).catch(() => undefined);
+  }
+}
+
 type DeskCategory =
   | "brain"
   | "trade"
@@ -351,7 +373,10 @@ useEffect(() => {
           void mirrorPaperOpen({
             data: {
               id: res.trade.id,
-              symbol: res.trade.displaySymbol,
+              // `symbol` is the resolved contract (ES -> MES when micros are
+              // on); `displaySymbol` is the label. Sending the label made the
+              // server price a micro at full-size — a 10x PnL error.
+              symbol: res.trade.symbol,
               side: res.trade.side,
               entry: res.trade.entry,
               stop: res.trade.stop,
@@ -415,19 +440,7 @@ useEffect(() => {
     }
     const { closed } = managePaperTradesAgainstPrice(prices);
     if (closed.length) {
-      // Mirror each close so the durable record matches the working book.
-      for (const t of closed) {
-        if (t.exit == null) continue;
-        void mirrorPaperClose({
-          data: {
-            id: t.id,
-            exit: t.exit,
-            closedAt: new Date(t.closedAt ?? Date.now()).toISOString(),
-            contracts: t.contracts,
-            reason: t.exitReason ?? "paper exit",
-          },
-        }).catch(() => undefined);
-      }
+      mirrorClosedPaperTrades(closed);
       reconcilePaperBookToMemory();
       publishMemory();
       const last = closed[closed.length - 1]!;
@@ -456,6 +469,7 @@ useEffect(() => {
       [desk.right.symbol]: desk.quotes.right.price,
     });
     if (closed.length) {
+      mirrorClosedPaperTrades(closed);
       reconcilePaperBookToMemory();
       publishMemory();
       const last = closed[closed.length - 1]!;
@@ -498,6 +512,7 @@ useEffect(() => {
       }
       const { closed } = managePaperTradesAgainstPrice(prices);
       if (closed.length) {
+        mirrorClosedPaperTrades(closed);
         const last = closed[closed.length - 1]!;
         setLastPaperClosed(last);
         setPaperToast(
