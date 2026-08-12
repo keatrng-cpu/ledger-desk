@@ -15,3 +15,6 @@ screenshots/
 .playwright/
 coverage/
 .cache/
+
+# Embedded Postgres fallback data (local dev only)
+.pglite/

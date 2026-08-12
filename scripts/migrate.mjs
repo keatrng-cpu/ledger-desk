@@ -14,13 +14,46 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import pg from "pg";
 
-const databaseUrl = process.env.DATABASE_URL;
+/**
+ * Connection string for MIGRATIONS, in priority order.
+ *
+ * Direct (non-pooling) first, deliberately: DDL through a transaction-mode
+ * pooler like pgbouncer is unreliable — prepared statements and session state
+ * do not survive it, which is how a migration half-applies. Runtime queries
+ * want the opposite (pooled), so src/lib/db.ts orders these differently on
+ * purpose.
+ *
+ * Accepting the managed-integration names means connecting Vercel's Supabase
+ * or Neon integration migrates on the next build with no manual env entry.
+ */
+const MIGRATION_URL_VARS = [
+  "POSTGRES_URL_NON_POOLING",
+  "DATABASE_URL_UNPOOLED",
+  "DATABASE_URL",
+  "SUPABASE_DB_URL",
+  "NETLIFY_DATABASE_URL_UNPOOLED",
+  "NETLIFY_DATABASE_URL",
+  "POSTGRES_URL",
+];
+
+let databaseUrl;
+let urlVar;
+for (const name of MIGRATION_URL_VARS) {
+  const raw = process.env[name];
+  if (raw && raw.trim()) {
+    databaseUrl = raw.trim();
+    urlVar = name;
+    break;
+  }
+}
+
 if (!databaseUrl) {
   console.log(
-    "[migrate] DATABASE_URL not set — skipping (the PGLite fallback migrates itself).",
+    `[migrate] no connection string (checked ${MIGRATION_URL_VARS.join(", ")}) — skipping; the PGLite fallback migrates itself.`,
   );
   process.exit(0);
 }
+console.log(`[migrate] using ${urlVar}`);
 
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "..", "migrations");
 

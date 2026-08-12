@@ -19,7 +19,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { dbSource } from "@/lib/db";
+import { dbSource, databaseUrlVar } from "@/lib/db";
 
 export interface StorageHealth {
   /** "neon" = durable Postgres. "pglite" = in-memory fallback. */
@@ -28,6 +28,8 @@ export interface StorageHealth {
   durable: boolean;
   /** True when running a real deployment rather than local dev. */
   deployed: boolean;
+  /** Which env var supplied the connection string, when durable. */
+  via: string | null;
   /** Present only when there is something to worry about. */
   warning: string | null;
 }
@@ -42,11 +44,12 @@ export const getStorageHealth = createServerFn({ method: "GET" }).handler(
       backend: dbSource,
       durable,
       deployed,
+      via: databaseUrlVar ?? null,
       warning: durable
         ? null
         : deployed
-          ? "NOT SAVING — DATABASE_URL is unset, so this deployment is running the in-memory fallback. Every trade, snapshot and metric is discarded on each cold start. Set DATABASE_URL to a Postgres (Neon) connection string in the host's environment settings."
-          : "Local in-memory database — data resets when the dev server restarts. Expected in dev; set DATABASE_URL to persist.",
+          ? "NOT SAVING — no Postgres connection string found, so this deployment is running the ephemeral fallback and every trade, snapshot and metric is discarded on each cold start. Set DATABASE_URL (or connect Vercel's Supabase/Neon integration, which supplies POSTGRES_URL automatically) in the host's environment settings."
+          : "Local embedded database (.pglite on disk). It survives restarts now, but it is per-machine and not a deployment. Set DATABASE_URL to share one record across devices.",
     };
   },
 );

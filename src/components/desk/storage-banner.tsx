@@ -32,7 +32,7 @@ export function StorageBanner() {
     return (
       <div className="flex items-center justify-end gap-1.5 px-1 py-1 font-mono text-[10px] text-[var(--color-subtle)]">
         <Database className="h-3 w-3 text-[var(--color-up)]" />
-        <span>{health?.durable ? "postgres" : "…"}</span>
+        <span>{health?.durable ? `postgres · ${health.via ?? "?"}` : "…"}</span>
         <span className="text-[var(--color-border-strong)]">·</span>
         <span title="Generated at build time — mismatch with your deploy means the page is cached">
           build {BUILD_ID}

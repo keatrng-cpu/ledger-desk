@@ -1,18 +1,59 @@
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
 
-// An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
-// "unset" — otherwise production would silently run on the PGLite fallback.
-const rawDatabaseUrl =
-  typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+/**
+ * Connection-string env vars, in priority order.
+ *
+ * WHY MORE THAN ONE: the managed integrations do not agree on a name, and
+ * requiring exactly `DATABASE_URL` is how a correctly-provisioned database
+ * still leaves the app silently running the throwaway in-memory fallback.
+ *   - Vercel's Supabase/Neon integrations inject `POSTGRES_URL` (pooled) and
+ *     `POSTGRES_URL_NON_POOLING` (direct).
+ *   - Netlify's Neon extension injects `NETLIFY_DATABASE_URL`.
+ *   - Supabase's own docs use `SUPABASE_DB_URL`.
+ * Connect any of those and this app persists with ZERO manual env entry.
+ *
+ * Pooled first for runtime: serverless opens many short-lived connections and
+ * a direct connection pool exhausts Postgres' connection limit fast.
+ */
+const RUNTIME_URL_VARS = [
+  "DATABASE_URL",
+  "POSTGRES_URL",
+  "SUPABASE_DB_URL",
+  "NETLIFY_DATABASE_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "POSTGRES_PRISMA_URL",
+] as const;
+
+function firstConfigured(names: readonly string[]): {
+  url: string | undefined;
+  via: string | undefined;
+} {
+  if (typeof process === "undefined") return { url: undefined, via: undefined };
+  for (const name of names) {
+    const raw = process.env[name];
+    // An empty/whitespace value (an easy misconfig in deploy UIs) means unset —
+    // otherwise production silently runs on the throwaway fallback.
+    if (raw && raw.trim()) return { url: raw.trim(), via: name };
+  }
+  return { url: undefined, via: undefined };
+}
+
+const resolved = firstConfigured(RUNTIME_URL_VARS);
+const databaseUrl = resolved.url;
+
+/** Which env var supplied the connection string (for storage-health / debug). */
+export const databaseUrlVar: string | undefined = resolved.via;
 
 /**
- * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
- * sandbox), otherwise a local embedded **PGLite** (Postgres compiled to WASM) so
- * the app has a working database even with nothing configured — the live preview
- * included. Swap in Neon later by just setting `DATABASE_URL`; no code changes.
+ * Active backend: real Postgres (Neon/Supabase/any) when one of
+ * RUNTIME_URL_VARS is set, otherwise the embedded PGLite fallback so the app
+ * still runs with nothing configured.
+ *
+ * The fallback now persists to disk locally (see PGLITE_DIR), but a serverless
+ * filesystem is ephemeral and per-instance — a DEPLOYED build on the fallback
+ * is still losing data on every cold start, which storage-health.ts reports
+ * and the UI banner shows in red.
  */
 export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
 
@@ -103,13 +144,35 @@ function createNeonSql(): Promise<Sql> {
   return globalRef.__pgSqlPromise__;
 }
 
+/**
+ * Where the PGLite fallback keeps its data.
+ *
+ * Constructing PGLite with no `dataDir` gives a purely IN-MEMORY database, so
+ * every process restart destroyed the journal, the paper mirror, snapshots and
+ * analytics — silently, because the app still renders perfectly on an empty
+ * DB. Locally that meant losing the record on every dev-server restart.
+ *
+ * A dataDir fixes local development completely. It does NOT make a serverless
+ * deployment durable: the filesystem there is ephemeral and per-instance, so a
+ * deployed build still needs DATABASE_URL. `storage-health.ts` reports exactly
+ * that, and the UI banner says so.
+ *
+ * Override with PGLITE_DATA_DIR; set it to ":memory:" to opt back into the old
+ * throwaway behavior (useful for tests that want a guaranteed-clean DB).
+ */
+const PGLITE_DIR = process.env.PGLITE_DATA_DIR?.trim() || ".pglite";
+
 async function createPgliteSql(): Promise<Sql> {
   // Embedded Postgres, imported on demand so it never loads on the Neon path.
-  // One in-memory instance per process, shared across HMR module instances, so
-  // data survives source edits (it resets on dev-server restart).
+  // One instance per process, shared across HMR module instances.
   globalRef.__pgliteInstance__ ??= (async () => {
     const { PGlite } = await import("@electric-sql/pglite");
+    const memoryOnly = PGLITE_DIR === ":memory:";
     const pg = new PGlite({
+      // Persist to disk so the record survives a restart. Serverless hosts get
+      // a fresh filesystem per instance, which is why DATABASE_URL still
+      // matters there — see storage-health.ts.
+      ...(memoryOnly ? {} : { dataDir: PGLITE_DIR }),
       parsers: {
         [OID_INT8]: Number,
         [OID_DATE]: identity,
