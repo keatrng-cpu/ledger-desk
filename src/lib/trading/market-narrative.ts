@@ -14,6 +14,7 @@
 import type { OhlcBar } from "@/lib/market/types";
 import type { DetectorSummary } from "./detectors";
 import type { HtfBiasRead } from "./structure";
+import { drawOnLiquidity as rankLiquidityDraw } from "./draw";
 import type { SessionClock } from "./sessions";
 import type { StrategyId } from "./strategies";
 
@@ -53,7 +54,21 @@ export interface DrawOnLiquidity {
   target: string;
   targetPrice: number | null;
   reason: string;
+  /**
+   * MODEL PRIOR (0-1) from the narrative rules below — how much this ICT
+   * sequence argues for the direction. NOT a measured frequency. Do not
+   * render it next to `baseRate` without labelling which is which.
+   */
   confidence: number;
+  /**
+   * MEASURED frequency (0-1): across past sessions, how often price actually
+   * travelled far enough from this point in the session to reach
+   * `targetPrice`. Sourced from trading/draw.ts. Null when bars were not
+   * supplied or no level ranked in the draw direction.
+   */
+  baseRate?: number | null;
+  /** True when targetPrice came from the empirical ranker, not the fallback. */
+  empirical?: boolean;
 }
 
 export interface MarketNarrative {
@@ -345,18 +360,56 @@ function preferredFor(
   return ["smt", "ronan"];
 }
 
+/**
+ * Reconcile the rule-based DOL with the empirical level ranker.
+ *
+ * The narrative rules decide the DIRECTION (SSL swept + HTF bull -> deliver
+ * up). trading/draw.ts decides WHICH LEVEL in that direction price actually
+ * tends to reach, and attaches the measured base rate. Without this the desk
+ * showed two different "draw" answers — the narrative panel naming the
+ * nearest pool with a hardcoded 0.75 prior, the setup cards naming the
+ * highest-scoring level with a measured rate — and no way to tell that the
+ * two percentages meant completely different things.
+ */
+function withEmpiricalTarget(
+  dol: DrawOnLiquidity,
+  read: HtfBiasRead,
+  bars?: OhlcBar[],
+): DrawOnLiquidity {
+  if (dol.direction === "neutral" || !bars || bars.length < 30) {
+    return { ...dol, baseRate: null, empirical: false };
+  }
+  const ranked = rankLiquidityDraw(read, bars);
+  const want = dol.direction === "bull" ? "above" : "below";
+  const pick = [dol.direction === "bull" ? ranked.above : ranked.below]
+    .filter((t): t is NonNullable<typeof t> => !!t && t.side === want)[0];
+  if (!pick) return { ...dol, baseRate: null, empirical: false };
+  return {
+    ...dol,
+    target: `${pick.name} ${pick.price.toFixed(2)}`,
+    targetPrice: pick.price,
+    reason: `${dol.reason} · ${(pick.reachProbability * 100).toFixed(0)}% of past sessions reached this far`,
+    baseRate: pick.reachProbability,
+    empirical: true,
+  };
+}
+
 export function buildMarketNarrative(
   read: HtfBiasRead,
   det: DetectorSummary,
   clock: SessionClock,
   direction: "bull" | "bear",
-  _bars?: OhlcBar[],
+  bars?: OhlcBar[],
 ): MarketNarrative {
   const liquidity = buildLiquidityMap(read, det);
   const cls = classifyNarrative(read, liquidity, direction);
   const conf = confirmationState(det, direction, liquidity);
   const entry = entryModel(det, direction, conf);
-  const dol = drawOnLiquidity(read, liquidity, cls);
+  const dol = withEmpiricalTarget(
+    drawOnLiquidity(read, liquidity, cls),
+    read,
+    bars,
+  );
 
   const sequence: string[] = [];
   const waitFor: string[] = [];
