@@ -19,6 +19,8 @@ export type DbSource = "neon" | "pglite";
 const RUNTIME_URL_VARS = [
   "DATABASE_URL",
   "POSTGRES_URL",
+  // Netlify's Supabase extension injects this exact name.
+  "SUPABASE_DATABASE_URL",
   "SUPABASE_DB_URL",
   "NETLIFY_DATABASE_URL",
   "POSTGRES_URL_NON_POOLING",
