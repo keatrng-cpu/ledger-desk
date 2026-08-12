@@ -1,0 +1,54 @@
+# Netlify deploy for Ledger Profit Desk (TanStack Start + Nitro)
+# Connect this repo at https://app.netlify.com → Add new site → Import from GitHub
+# Repo: keatrng-cpu/ledger-desk · branch: main
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  # Nitro netlify preset is auto-selected when NETLIFY=true (set by Netlify CI).
+  # See vite.config.ts nitro preset switch.
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Skip optional heavy local tooling if any
+  NPM_FLAGS = "--legacy-peer-deps"
+
+# SPA / SSR: Nitro emits the correct redirects for Functions.
+# Explicit catch-all only if you ever switch to pure static (not recommended).
+
+# Serverless functions timeout — desk fetches Databento/Yahoo can be slow
+[functions]
+  node_bundler = "esbuild"
+  # Free: 10s · Pro: up to 26s (or 900s background). Raise if desk load times out.
+  # directory is produced by Nitro into .netlify/functions-internal
+
+# Headers: no-cache for the HTML shell so you never fight stale Masterplace UI
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Scheduled jobs (replaces vercel.json crons). Requires Pro for production schedules.
+# Paths must match your /api/cron/* routes. Auth: Authorization: Bearer $CRON_SECRET
+# Uncomment after setting CRON_SECRET in Netlify env and confirming routes work.
+#
+# [[plugins]]
+#   package = "@netlify/plugin-scheduled-functions"
+#
+# Or use Netlify UI → Functions → Scheduled:
+#   GET /.netlify/functions/...  OR your SSR paths:
+#   /api/cron/checklist  — 15 13,14 * * 1-5  (UTC)
+#   /api/cron/review     — 15 20,21 * * 1-5
+#   /api/cron/weekly     — 0 22,23 * * 0

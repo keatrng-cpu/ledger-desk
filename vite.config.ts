@@ -124,10 +124,8 @@ function authPopupPlugin(): Plugin {
 }
 
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
-// Keep `nitro` gated to `build` (the Vercel deploy target): enabled in dev it
-// opens a second dev-server port, which breaks the single-port preview.
-// The dev server starts once `src/router.tsx` and `src/routes/` exist — see
-// AGENTS.md § "First scaffold".
+// Keep `nitro` gated to `build` so it never opens a second dev-server port.
+// Preset: Netlify CI sets NETLIFY=true → netlify; otherwise vercel (Grok/Vercel).
 
 function noCacheDevPlugin(): Plugin {
   return {
@@ -144,6 +142,14 @@ function noCacheDevPlugin(): Plugin {
       });
     },
   };
+}
+
+/** Nitro deploy target: Netlify CI auto-sets NETLIFY=true. */
+function nitroPreset(): "netlify" | "vercel" {
+  if (process.env.NETLIFY === "true" || process.env.NITRO_PRESET === "netlify") {
+    return "netlify";
+  }
+  return "vercel";
 }
 
 export default defineConfig(({ command }) => ({
@@ -171,7 +177,7 @@ export default defineConfig(({ command }) => ({
     ...(command === "build"
       ? [
           nitro({
-            preset: "vercel",
+            preset: nitroPreset(),
             // Auto-registers server/middleware/* (the PWA install page +
             // manifest + head-tag middleware). Nitro v3 defaults serverDir to
             // false, so removing this silently unwires /?install=1 on deploys.
