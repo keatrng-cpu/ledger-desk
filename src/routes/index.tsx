@@ -67,6 +67,7 @@ import { captureSnapshot } from "@/lib/journal/snapshots";
 import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
 import { syncPaperBookToDb } from "@/lib/journal/paper-backfill";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
+import { StorageBanner } from "@/components/desk/storage-banner";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -646,6 +647,9 @@ useEffect(() => {
           </div>
         )}
         {desk && <SessionHud desk={desk} wallNow={wallNow} />}
+        {/* Storage + build identity: silent data loss and a stale page are the
+            two failures that look like nothing is wrong. */}
+        <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
 
         {/* One-line profitability status */}
