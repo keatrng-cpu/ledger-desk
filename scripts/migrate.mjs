@@ -58,6 +58,21 @@ console.log(`[migrate] using ${urlVar}`);
 
 const migrationsDir = join(dirname(fileURLToPath(import.meta.url)), "..", "migrations");
 
+// Supabase's own dashboard prints the connection string with a literal
+// "[YOUR-PASSWORD]" placeholder to be substituted, not a value to keep. Fail
+// fast and specifically on it instead of letting Postgres reject an obviously
+// wrong password and report a generic 28P01.
+if (databaseUrl.includes("[YOUR-PASSWORD]") || databaseUrl.includes("[password]")) {
+  console.error(
+    "[migrate] the connection string still contains the literal placeholder " +
+      "[YOUR-PASSWORD] — remove the brackets and put your real database " +
+      "password in its place (Supabase -> Connect -> copy the string, then " +
+      "substitute the password; the brackets mark where it goes, they are " +
+      "not part of it).",
+  );
+  process.exit(1);
+}
+
 async function main() {
   const pool = new pg.Pool({ connectionString: databaseUrl, max: 1 });
   const client = await pool.connect();
@@ -106,11 +121,74 @@ async function main() {
   }
 }
 
+/**
+ * Turn a connection failure into the fix.
+ *
+ * A bad connection string fails the BUILD (correct — shipping a site whose
+ * database is unreachable just moves the failure to every page load), so the
+ * message here is the only thing standing between the operator and a guess.
+ * Never print the connection string itself: it carries the password.
+ */
+function connectionHint(err) {
+  const code = err?.code;
+  const msg = String(err?.message ?? "");
+
+  if (code === "28P01" || /password authentication failed/i.test(msg)) {
+    const user = /for user "([^"]+)"/.exec(msg)?.[1];
+    const lines = [
+      "The server was reached but REJECTED the password.",
+      "  1. Is the literal placeholder [YOUR-PASSWORD] still in the string? Replace it.",
+      "  2. Special characters in the password must be percent-encoded",
+      "     (@ -> %40, # -> %23, ? -> %3F, / -> %2F, : -> %3A).",
+      "  3. Forgotten it? Supabase -> Project Settings -> Database ->",
+      "     Reset database password, then rebuild the string.",
+    ];
+    if (user === "postgres") {
+      lines.push(
+        "  4. The username is plain 'postgres', so this is the DIRECT connection",
+        "     string. Serverless hosts usually need the SESSION POOLER string,",
+        "     whose username looks like postgres.<project-ref> and whose host is",
+        "     aws-0-<region>.pooler.supabase.com (IPv4). Supabase -> Connect ->",
+        "     Session pooler.",
+      );
+    }
+    return lines.join("\n");
+  }
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") {
+    return "Host did not resolve — check for a typo in the hostname.";
+  }
+  if (code === "ETIMEDOUT" || code === "ECONNREFUSED") {
+    return [
+      "Reached DNS but could not open a connection.",
+      "  New Supabase projects are IPv6-only on db.<ref>.supabase.co, and most",
+      "  serverless builders have no IPv6 egress. Use the SESSION POOLER string",
+      "  (aws-0-<region>.pooler.supabase.com), which is IPv4.",
+    ].join("\n");
+  }
+  if (code === "3D000") {
+    return "That database name does not exist on the server (usually 'postgres').";
+  }
+  return null;
+}
+
 main().catch((err) => {
   console.error("[migrate] failed:", err?.message || err);
   // pg errors carry the context needed to debug a bad SQL file.
   for (const key of ["code", "detail", "hint", "position", "where"]) {
     if (err?.[key] != null) console.error(`[migrate]   ${key}: ${err[key]}`);
+  }
+  const hint = connectionHint(err);
+  if (hint) {
+    console.error("");
+    console.error("[migrate] HOW TO FIX");
+    for (const line of hint.split("\n")) console.error(`[migrate] ${line}`);
+    console.error("");
+    console.error(
+      "[migrate] The build fails on purpose: deploying against an unreachable",
+    );
+    console.error(
+      "[migrate] database only moves the error to every page load.",
+    );
   }
   process.exit(1);
 });
