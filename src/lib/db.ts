@@ -144,23 +144,43 @@ function createNeonSql(): Promise<Sql> {
   return globalRef.__pgSqlPromise__;
 }
 
+/** Running on a host whose filesystem is read-only apart from /tmp. */
+function isServerless(): boolean {
+  if (typeof process === "undefined") return false;
+  return Boolean(
+    process.env.VERCEL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.NETLIFY ||
+      process.env.LAMBDA_TASK_ROOT,
+  );
+}
+
 /**
  * Where the PGLite fallback keeps its data.
  *
  * Constructing PGLite with no `dataDir` gives a purely IN-MEMORY database, so
- * every process restart destroyed the journal, the paper mirror, snapshots and
- * analytics — silently, because the app still renders perfectly on an empty
- * DB. Locally that meant losing the record on every dev-server restart.
+ * every process restart destroyed the journal, paper mirror, snapshots and
+ * analytics — silently, because the app renders perfectly on an empty DB.
  *
  * A dataDir fixes local development completely. It does NOT make a serverless
- * deployment durable: the filesystem there is ephemeral and per-instance, so a
- * deployed build still needs DATABASE_URL. `storage-health.ts` reports exactly
- * that, and the UI banner says so.
+ * deployment durable: that filesystem is ephemeral and per-instance, so a
+ * deployed build still needs a real connection string (storage-health.ts says
+ * so, loudly).
  *
- * Override with PGLITE_DATA_DIR; set it to ":memory:" to opt back into the old
- * throwaway behavior (useful for tests that want a guaranteed-clean DB).
+ * CRITICAL: a serverless filesystem is READ-ONLY except /tmp. Pointing PGLite
+ * at a repo-relative "./.pglite" there makes construction THROW, which takes
+ * down every server function that touches the database — the app dies with a
+ * generic "An unknown error has occurred" purely because a storage nicety could
+ * not write. So: /tmp when serverless, and the whole thing is wrapped in a
+ * fallback to in-memory below. Durability is an optimization; availability is
+ * not negotiable.
+ *
+ * Override with PGLITE_DATA_DIR; ":memory:" opts out entirely (useful for
+ * tests that want a guaranteed-clean database).
  */
-const PGLITE_DIR = process.env.PGLITE_DATA_DIR?.trim() || ".pglite";
+const PGLITE_DIR =
+  process.env.PGLITE_DATA_DIR?.trim() ||
+  (isServerless() ? "/tmp/pglite" : ".pglite");
 
 async function createPgliteSql(): Promise<Sql> {
   // Embedded Postgres, imported on demand so it never loads on the Neon path.
@@ -168,18 +188,33 @@ async function createPgliteSql(): Promise<Sql> {
   globalRef.__pgliteInstance__ ??= (async () => {
     const { PGlite } = await import("@electric-sql/pglite");
     const memoryOnly = PGLITE_DIR === ":memory:";
-    const pg = new PGlite({
-      // Persist to disk so the record survives a restart. Serverless hosts get
-      // a fresh filesystem per instance, which is why DATABASE_URL still
-      // matters there — see storage-health.ts.
-      ...(memoryOnly ? {} : { dataDir: PGLITE_DIR }),
-      parsers: {
-        [OID_INT8]: Number,
-        [OID_DATE]: identity,
-        [OID_INTERVAL]: identity,
-      },
-    });
-    await pg.waitReady;
+
+    const build = async (dataDir: string | null) => {
+      const pg = new PGlite({
+        ...(dataDir ? { dataDir } : {}),
+        parsers: {
+          [OID_INT8]: Number,
+          [OID_DATE]: identity,
+          [OID_INTERVAL]: identity,
+        },
+      });
+      await pg.waitReady;
+      return pg;
+    };
+
+    let pg;
+    try {
+      pg = await build(memoryOnly ? null : PGLITE_DIR);
+    } catch (err) {
+      // Read-only or unwritable path: degrade to in-memory rather than taking
+      // the whole app down. The storage banner already tells the user nothing
+      // is being persisted, which is the honest outcome either way.
+      console.warn(
+        `[db] PGLite could not open "${PGLITE_DIR}" (${err instanceof Error ? err.message : err}); falling back to in-memory. Data will NOT persist.`,
+      );
+      pg = await build(null);
+    }
+
     await pg.exec(
       "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
     );
