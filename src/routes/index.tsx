@@ -40,6 +40,7 @@ import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
+import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
@@ -1010,6 +1011,7 @@ useEffect(() => {
                     / Path / Backtest.
                   </div>
                   <AplusOps />
+                  <SmcPlaybook />
                   <ReplayReport />
                   {/* Decision-time context — captureSnapshot had been writing
                       this on every log with nothing able to read it back. */}

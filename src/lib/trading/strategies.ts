@@ -34,52 +34,70 @@ export const ALWAYS_SCAN: StrategyId[] = [
  */
 export const STRATEGY_NARRATIVE: Record<
   StrategyId,
-  { story: "continuation" | "reversal" | "either"; entry: string; liquidity: string }
+  { story: "continuation" | "reversal" | "either"; entry: string; liquidity: string; school: string; confirm: string }
 > = {
   mechanical: {
     story: "either",
     entry: "Ordered retest after sweep→displace→invert",
     liquidity: "Significant sweep starts the sequence",
+    school: "Blake Mech",
+    confirm: "Inversion + unfilled FVG after hunt",
   },
   tjr: {
     story: "either",
     entry: "IFVG/FVG retest after significant sweep + structure",
-    liquidity: "Sweep then MSS — entry on retrace not chase",
+    liquidity: "HTF sweep first (1H/4H, PDH/PDL, EQH/EQL) — non-negotiable",
+    school: "TJR",
+    confirm: "5m BOS or IFVG or 79% close or SMT — then retrace, never chase",
   },
   judas: {
     story: "reversal",
     entry: "Session open sweep reverse into array retest",
-    liquidity: "Judas swing grabs session SSL/BSL then reverses",
+    liquidity: "Judas swing grabs session SSL/BSL then reverses (AMD manipulate)",
+    school: "ICT",
+    confirm: "Displacement + MSS after the raid into premium/discount array",
   },
   pdi: {
     story: "reversal",
     entry: "CISD/displacement into IFVG",
     liquidity: "Sweep + change in state of delivery",
+    school: "Blake / PDI",
+    confirm: "Inverted FVG after significant sweep",
   },
   patty: {
     story: "reversal",
-    entry: "Sweep + displace into FVG",
-    liquidity: "External grab then delivery",
+    entry: "1–5m IFVG after 9:30 manip into 15m/1H gap or intermediate H/L",
+    liquidity: "Pre-market accumulation then open raid of key level",
+    school: "Patty Swing",
+    confirm: "Open window + displacement/CISD — one trade, day done",
   },
   continuation: {
     story: "continuation",
     entry: "Pullback IFVG with mid bias held",
-    liquidity: "Internal liquidity; DOL toward external",
+    liquidity: "IRL taken; DOL toward ERL",
+    school: "SMC",
+    confirm: "With-trend MSS + array in discount (long) / premium (short)",
   },
   blake_mech: {
     story: "either",
     entry: "IFVG + structure/CISD + displacement",
-    liquidity: "Sweep preferred but structure path allowed",
+    liquidity: "Sweep preferred but structure path allowed (ATH continuation)",
+    school: "Blake Mech",
+    confirm: "Inversion of FVG after hunt",
   },
   ronan: {
     story: "continuation",
     entry: "Bias-aligned array with multi-TF agreement",
-    liquidity: "Seeks PD arrays in discount/premium",
+    liquidity: "HTF unfilled FVG / inefficiency + DOL",
+    school: "Ronan (PB coach)",
+    confirm: "HTF narrative first, then LTF structure/CISD/disp",
   },
   smt: {
     story: "either",
     entry: "Relative strength — needs separate entry model",
-    liquidity: "Divergence at liquidity pools across indices",
+    liquidity: "Divergence at liquidity pools across indices (ES vs NQ)",
+    school: "ICT / all",
+    confirm: "Companion (TJR/mech/IFVG) required — SMT alone is not a take",
   },
 };
 

@@ -69,7 +69,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
       ["structure", "mss", "displacement", "mechanical_model"],
     ],
     nice: ["opening_bias", "mid_bias", "ifvg"],
-    structureNote: "Significant sweep + structure/MSS + IFVG/OB retrace",
+    structureNote: "Significant HTF sweep + 5m BOS/IFVG/79%/SMT then retrace",
   },
   {
     id: "judas",
@@ -97,7 +97,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     must: ["ifvg", "sweep_significant"],
     mustAnyOf: [["displacement", "cisd", "mss"]],
     nice: ["opening_bias", "daily_bias"],
-    structureNote: "Patty model: sweep + displace into array",
+    structureNote: "9:30–11 ET: open manip into 15m/1H level then 1–5m IFVG",
   },
   {
     id: "continuation",

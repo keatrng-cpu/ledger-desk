@@ -88,16 +88,19 @@ export interface MarketNarrative {
 }
 
 const RULES = [
-  "Never enter on the liquidity sweep itself — sweep = setup only.",
+  "Never enter on the liquidity sweep itself — sweep / raid / Judas = setup only.",
   "Confirmation = displacement + MSS/CISD after the sweep (intent proven).",
-  "Entry = retest of FVG / IFVG / order block after confirmation.",
-  "Continuation: HTF bias held, internal liquidity taken, enter pullback into discount (long) / premium (short).",
-  "Reversal: external liquidity swept against prior leg, then MSS + IFVG retest.",
-  "DOL (draw on liquidity): target opposing unmitigated BSL/SSL or PDH/PDL.",
-  "IFVG = FVG inverted by displacement close-through after sweep — enter on retest.",
-  "Mechanical: sweep → displace → invert → retest (ordered sequence).",
-  "Judas: session open sweep of liquidity, then reverse with array retest.",
-  "SMT: relative strength/weakness across indices — companion entry model required.",
+  "Entry = retest of FVG (CE 50%) / IFVG / last opposing OB / OTE 62–79%.",
+  "Buy only from discount PD arrays; sell only from premium. EQ is lower quality.",
+  "Continuation: HTF held, IRL taken, pullback into discount (long) / premium (short).",
+  "Reversal: ERL swept against prior leg, then MSS + IFVG retest.",
+  "DOL = next unmitigated ERL (BSL/SSL, PDH/PDL, EQH/EQL). IRL = partials.",
+  "EQH/EQL densest stops, then session/PDH/PDL, then swings / Asia.",
+  "Do not drop to LTF until price is at a valid HTF/MTF POI.",
+  "Mechanical: sweep → displace → invert → retest (ordered).",
+  "TJR: HTF sweep first, then 5m BOS/IFVG/79%/SMT — never chase the raid.",
+  "Patty: pre-market AMD → 9:30 manip into 15m/1H level → 1–5m IFVG. One trade.",
+  "SMT: relative strength across indices — companion entry model required.",
 ];
 
 function buildLiquidityMap(
