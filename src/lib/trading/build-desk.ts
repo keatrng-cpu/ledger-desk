@@ -220,26 +220,92 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         }
       }
 
-      // Live = databento or yahoo. Databento historical lag can be larger than
-      // Yahoo free-print lag; allow 6h for DB bars, 120s for Yahoo.
+      /**
+       * DATA QUALITY — two independent questions, not one.
+       *
+       * This used to be a single gate: any quote lag over 120s set
+       * `actionable = false` on EVERY candidate and overwrote the focus line
+       * with "stand down". That conflated two facts that fail separately:
+       *
+       *   1. Is the STRUCTURE valid? (bars) — a 15m bar that closed ten
+       *      minutes ago is still a perfectly valid 15m bar. HTF bias,
+       *      sweeps, FVGs, OTE and the whole canon stack do not degrade
+       *      because the last tick is stale.
+       *   2. Can I PRICE A FILL right now? (quote) — this genuinely needs a
+       *      current print.
+       *
+       * And the threshold could never be met: Yahoo's free futures feed lags
+       * ~600s BY DESIGN, so a 120s limit meant the desk vetoed itself on
+       * every poll, permanently, while the analysis underneath was fine.
+       * That is a threshold set for a feed we do not have.
+       *
+       * Now graded. Structure keeps working when the tape is slow; only
+       * execution-grade claims require an execution-grade quote — and the
+       * desk says which of the two is missing instead of "stand down".
+       */
       const liveSource = (s: string) => s === "yahoo" || s === "databento";
       const seriesLive = liveSource(left.source) && liveSource(right.source);
       const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
-      // Historical license windows lag live by ~8–12h on free/standard CME
-      // entitlements — do not treat that as a dead feed (Yahoo free lag is still 120s).
-      const lagLimit =
+
+      /**
+       * Fresh enough to price a fill against. Yahoo free will essentially
+       * never clear this, which is the honest read: Yahoo is a structure
+       * feed, not an execution feed. Databento historical windows lag by
+       * hours on standard CME entitlements and are likewise structure-only.
+       */
+      const QUOTE_EXECUTION_SEC = 120;
+      /**
+       * Beyond this the quote is too old to even sanity-check a level
+       * against, so the whole read is untrustworthy. One 15m bar.
+       */
+      const QUOTE_USABLE_SEC = 900;
+      const usableLimit =
         left.source === "databento" || right.source === "databento"
           ? 14 * 3600
-          : 120;
-      const quotesFresh = maxLagSec <= lagLimit;
-      const dataQualityOk = seriesLive && quotesFresh;
-      if (!dataQualityOk) {
-        const reason = seriesLive
-          ? `Data quality: lagged feed (worst lag ${Math.round(maxLagSec)}s > ${lagLimit}s)`
-          : "Data quality: synthetic feed — no Databento/Yahoo data";
+          : QUOTE_USABLE_SEC;
+
+      const quoteExecutionGrade = maxLagSec <= QUOTE_EXECUTION_SEC;
+      const quoteUsable = maxLagSec <= usableLimit;
+      /**
+       * Can the STRUCTURE be believed? Real bars from a real source, and a
+       * quote recent enough to verify those levels against. Deliberately
+       * independent of `quoteExecutionGrade` — that is the whole point of
+       * the split, and `snapshots` keys its own `dataQualityOk` off the
+       * "Data quality" prefix, which now only appears for these two hard
+       * failures rather than for a merely slow tape.
+       */
+      const structureTrustworthy = seriesLive && quoteUsable;
+
+      if (!seriesLive) {
+        // No real bars at all — nothing here is analysis, let alone a trade.
+        const reason = "Data quality: synthetic feed — no Databento/Yahoo data";
         for (const c of scan.candidates) c.actionable = false;
         scan.blocked.push(reason);
         scan.focus = `${reason} — stand down.`;
+      } else if (!quoteUsable) {
+        // Real bars, but the tape is so stale the structure cannot be
+        // trusted against current price either. Still a full stand-down.
+        const reason = `Data quality: feed stale (${Math.round(maxLagSec)}s > ${usableLimit}s) — structure unverifiable`;
+        for (const c of scan.candidates) c.actionable = false;
+        scan.blocked.push(reason);
+        scan.focus = `${reason} — stand down.`;
+      } else if (!quoteExecutionGrade) {
+        /**
+         * DEGRADED, not dead. Bars are real and recent enough for the
+         * structure to be true, but the quote is not execution-grade — so
+         * the setups stay scored, visible and reviewable, and only the
+         * claim "you can fill this right now at this price" is withdrawn.
+         *
+         * `actionable` still drops, because it specifically gates entry and
+         * firing at a price you cannot verify is how a paper sample gets
+         * quietly corrupted. What changes is that this no longer masquerades
+         * as a dead desk: the focus line keeps the real read, and the block
+         * names the ONE thing that is wrong.
+         */
+        for (const c of scan.candidates) c.actionable = false;
+        scan.blocked.push(
+          `Execution blocked: quote ${Math.round(maxLagSec)}s old (> ${QUOTE_EXECUTION_SEC}s) — ${left.source} is a structure feed, not an execution feed. Analysis below is valid.`,
+        );
       }
 
       const feed: DeskPayload["feed"] =
@@ -293,12 +359,16 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         {
           id: "risk",
           label: "Risk model armed",
-          ok: dataQualityOk && clock.isWeekday,
-          detail: !dataQualityOk
-            ? "Data quality gate failed — stand down"
-            : !clock.isWeekday
-              ? "Weekend — risk not armed"
-              : `${APLUS_RULES.riskPct * 100}% · max ${APLUS_RULES.maxSetupsPerSession}/KZ · micros`,
+          // Structure being valid is what arms the risk model; a stale quote
+          // blocks the FILL, not the analysis, and now says which it is.
+          ok: structureTrustworthy && quoteExecutionGrade && clock.isWeekday,
+          detail: !structureTrustworthy
+            ? "Structure unverifiable — stand down"
+            : !quoteExecutionGrade
+              ? `Structure valid · execution blocked (quote ${Math.round(maxLagSec)}s old)`
+              : !clock.isWeekday
+                ? "Weekend — risk not armed"
+                : `${APLUS_RULES.riskPct * 100}% · max ${APLUS_RULES.maxSetupsPerSession}/KZ · micros`,
         },
       ];
 
