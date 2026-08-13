@@ -488,6 +488,45 @@ export function analyzeTradezella(input: AnalyzeInput): TradezellaAnalysis {
       status: score >= PROFIT_ACTION_FLOOR ? "pass" : score > 0 ? "fail" : "unknown",
       detail: `Action floor ${PROFIT_ACTION_FLOOR}, A+ ${PROFIT_A_PLUS}`,
     },
+    {
+      item: "Premium/discount half (buy discount, sell premium)",
+      status: /discount|premium|equilibrium|dealing/i.test(message)
+        ? "pass"
+        : "unknown",
+      detail: "PD arrays only in the correct half of the dealing range",
+    },
+    {
+      item: "IRL partials → ERL runner (DOL)",
+      status: /irl|erl|dol|draw on|pdh|pdl|eqh|eql/i.test(message)
+        ? "pass"
+        : "unknown",
+      detail: "Internal FVG/OB = scale-out; external EQH/EQL/PDH/PDL = full target",
+    },
+    {
+      item: "Did not enter the sweep (Judas = setup)",
+      status: /entered?\s*(the\s*)?(sweep|raid|judas)/i.test(message)
+        ? "fail"
+        : mentioned.has("sweep_significant")
+          ? "pass"
+          : "unknown",
+      detail: "Raid fills size. Entry is the first clean retrace after MSS.",
+    },
+    {
+      item: "Journal: emotion B/D/A + rules followed",
+      status: /emotion|psych|fear|fomo|followed|micromanag/i.test(message)
+        ? "pass"
+        : "unknown",
+      detail: "TJR/PB require psych tags — not just P&L",
+    },
+    {
+      item: "HTF→MTF→LTF order (no LTF until POI)",
+      status: /ltf first|dropped to 1m|chased/i.test(message)
+        ? "fail"
+        : timeframes[0]!.bias !== "unknown"
+          ? "pass"
+          : "unknown",
+      detail: "Daily/4H/1H narrative first. 5m/1m only at the HTF POI.",
+    },
   ];
 
   const nextActions: string[] = [];

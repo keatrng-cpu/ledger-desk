@@ -38,6 +38,11 @@ import {
   MIN_EFFECTIVE_N as REAL_DISCRETION_MIN_N,
   type DiscretionResult as RealDiscretionResult,
 } from "@/lib/journal/discretion";
+import {
+  scoreCanonStack,
+  canonCoachLines,
+  type CanonStack,
+} from "./smc-canon";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -103,6 +108,8 @@ export interface VeteranBrief {
   rateSizeBias: number;
   asked?: string;
   answer?: string;
+  /** Live ICT/SMC/TJR/PB confluence stack */
+  canonStack: CanonStack;
 }
 
 function clamp01(n: number): number {
@@ -672,6 +679,71 @@ export function runVeteranBrain(
     }
   }
 
+  // 8b) Canon stack — independent ICT/SMC/TJR/PB factors
+  const narrPick = narrPkg
+    ? narrPkg.left.confirmation === "armed_entry" ||
+      narrPkg.left.confirmation === "confirmed"
+      ? narrPkg.left
+      : narrPkg.right.confirmation === "armed_entry" ||
+          narrPkg.right.confirmation === "confirmed"
+        ? narrPkg.right
+        : narrPkg.left
+    : null;
+  const book =
+    rawBest && rawBest.symbol === bias.right.symbol ? bias.right : bias.left;
+  const canonStack = scoreCanonStack({
+    side: rawBest ? rawBest.side : null,
+    htf: book.topDown,
+    mtf: book.mid,
+    dealingZone: book.dealing?.zone ?? null,
+    swept: narrPick?.liquidity?.lastSweep ?? "none",
+    confirmation: narrPick?.confirmation ?? "none",
+    inKillzone: clock.inTradeWindow,
+    killzoneLabel: clock.killzoneLabel,
+    smt:
+      smtNote.includes("div") ||
+      smtNote.includes("lead") ||
+      smtNote.includes("lag"),
+    components: rawBest?.components ?? [],
+    strategy: rawBest?.completeStrategy || rawBest?.strategyPrimary,
+  });
+  layers.push({
+    id: "canon",
+    label: "Canon stack",
+    tone:
+      canonStack.grade === "A+" || canonStack.grade === "A"
+        ? "pass"
+        : canonStack.grade === "A-" || canonStack.grade === "B"
+          ? "warn"
+          : "fail",
+    score:
+      canonStack.grade === "A+"
+        ? 1
+        : canonStack.grade === "A"
+          ? 0.6
+          : canonStack.grade === "A-"
+            ? 0.15
+            : canonStack.grade === "B"
+              ? -0.25
+              : -0.75,
+    detail: `${canonStack.grade} · ${canonStack.mustHits}/${canonStack.mustNeed} must · ${canonStack.thesis}`,
+  });
+  if (canonStack.grade === "A+" || canonStack.grade === "A") {
+    score += canonStack.grade === "A+" ? 1 : 0.6;
+    green.push(`Canon ${canonStack.grade}: ${canonStack.thesis}`);
+  } else if (canonStack.grade === "skip") {
+    score -= 0.75;
+    yellow.push(
+      canonStack.factors
+        .filter((f) => f.must && !f.pass)
+        .map((f) => f.label)
+        .join(" + ") || "Canon incomplete",
+    );
+  } else {
+    score += canonStack.grade === "A-" ? 0.15 : -0.25;
+  }
+
+
   // Verdict from score + hard vetoes
   let verdict: DiscretionVerdict = "STAND_DOWN";
   let sizeMult = 0;
@@ -862,8 +934,8 @@ export function runVeteranBrain(
     },
     {
       tab: "Lab",
-      status: "idle",
-      line: "Deep rules on demand — live path uses Trade + Path + Backtest only",
+      status: canonStack.grade === "A+" || canonStack.grade === "A" ? "ok" : "idle",
+      line: `Canon ${canonStack.grade} · ${canonStack.mustHits}/${canonStack.mustNeed} · school ${canonStack.schoolHint ?? "smc"}`,
     },
   ];
 
@@ -955,6 +1027,8 @@ export function runVeteranBrain(
 
   const narrLines = (desk as { __narrLines?: string[] }).__narrLines;
   if (narrLines?.length) monologue.push(...narrLines);
+  monologue.push(...canonCoachLines(canonStack));
+
 
 
   return {
@@ -988,6 +1062,7 @@ export function runVeteranBrain(
     rateSizeBias: rateCard.sizeBias,
     asked,
     answer,
+    canonStack,
   };
 }
 

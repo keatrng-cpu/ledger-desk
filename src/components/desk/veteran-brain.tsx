@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import { SmcPlaybook } from "@/components/desk/smc-playbook";
 
 function verdictStyle(v: DiscretionVerdict): string {
   switch (v) {
@@ -222,6 +223,9 @@ export function VeteranBrainPanel({
       </div>
 
       {/* Cross-tab feeds */}
+      <div className="mb-3">
+        <SmcPlaybook stack={brief.canonStack} compact />
+      </div>
       <div className="mb-3 grid gap-1 sm:grid-cols-2">
         {(["trade", "path", "backtest", "swing", "risk", "tape"] as const).map(
           (tab) => (
