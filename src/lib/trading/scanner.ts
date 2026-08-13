@@ -19,6 +19,7 @@ import {
   oteZoneOverlap,
   consequentEncroachment,
 } from "./fib";
+import { biasDisrespect } from "./htf-invalidation";
 import type { SessionClock } from "./sessions";
 import {
   ALWAYS_SCAN,
@@ -61,6 +62,13 @@ export interface SetupCandidate {
   targets: string[];
   killzoneOk: boolean;
   htfOk: boolean;
+  /**
+   * True when this candidate trades AGAINST the HTF read and the gate
+   * released because the bias was disrespected + distributed
+   * (htf-invalidation.ts). A counter-bias trade must never be
+   * indistinguishable from a with-bias one — sizing and review both care.
+   */
+  htfDisrespected?: boolean;
   conditionsOk: boolean;
   actionable: boolean;
   regime: string;
@@ -580,15 +588,39 @@ export function scoreCandidates(
     candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt, book));
   }
 
+  /**
+   * HTF top-down gate — absolute UNTIL the bias is disrespected.
+   *
+   * The gate stays absolute in the normal case. What changed on 2026-08-13
+   * is that it now has the release path the trading model always specified:
+   * a bias holds until price sweeps liquidity, displaces against it, breaks
+   * structure and drags both lower timeframes with it. At that point the
+   * old read is spent, and gating on it blocks the correct side of a
+   * reversal for the entire move (which is exactly what happened that day).
+   *
+   * The release requires the FULL signature (htf-invalidation.ts) — never a
+   * partial one — and is recorded on the candidate rather than applied
+   * silently, so a counter-bias trade is always visibly a counter-bias
+   * trade.
+   */
   for (const c of candidates) {
     const read = c.symbol === left.symbol ? left : right;
+    const det = c.symbol === left.symbol ? detL : detR;
+    const bars = c.symbol === left.symbol ? barsL : barsR;
     const need = c.side === "long" ? "bull" : "bear";
-    if (read.topDown !== need) {
-      c.htfOk = false;
-      c.actionable = false;
-      if (!c.missing.includes("HTF top-down gate")) {
-        c.missing.unshift("HTF top-down gate");
-      }
+    if (read.topDown === need) continue;
+
+    const disrespect = biasDisrespect(read, det, need, bars.length);
+    if (disrespect.disrespected) {
+      // Bias invalidated: the gate releases, and says so on the record.
+      c.htfDisrespected = true;
+      c.reasons.push(disrespect.reason);
+      continue;
+    }
+    c.htfOk = false;
+    c.actionable = false;
+    if (!c.missing.includes("HTF top-down gate")) {
+      c.missing.unshift("HTF top-down gate");
     }
   }
 

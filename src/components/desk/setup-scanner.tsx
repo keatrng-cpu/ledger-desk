@@ -258,6 +258,17 @@ function SetupCard({
                 <CheckCircle2 className="h-3 w-3" /> actionable
               </span>
             )}
+            {/* A counter-HTF trade must never look like a with-bias one. The
+                gate released because the bias was disrespected and price
+                distributed the other way — say so on the face of the card. */}
+            {c.htfDisrespected && (
+              <span
+                title="HTF bias was disrespected: liquidity raid + displacement + structure break + both lower timeframes flipped. The gate released; this trades against the stale HTF read."
+                className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-warn)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-warn)]"
+              >
+                HTF flipped
+              </span>
+            )}
           </div>
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}
