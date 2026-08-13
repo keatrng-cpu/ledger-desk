@@ -68,7 +68,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
       ["ifvg", "order_block"],
       ["structure", "mss", "displacement", "mechanical_model"],
     ],
-    nice: ["opening_bias", "mid_bias", "ifvg"],
+    nice: ["opening_bias", "mid_bias", "ifvg", "ote"],
     structureNote: "Significant HTF sweep + 5m BOS/IFVG/79%/SMT then retrace",
   },
   {
@@ -80,7 +80,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
       ["structure", "mss", "cisd"],
       ["opening_bias", "daily_bias", "mid_bias"],
     ],
-    nice: ["displacement", "weekly_pd"],
+    nice: ["displacement", "weekly_pd", "ote"],
     structureNote: "Judas sweep of session liquidity then reverse",
   },
   {

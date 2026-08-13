@@ -12,6 +12,13 @@ import {
   type FvgResult,
 } from "./detectors";
 import { WEIGHTS, type ComponentKey } from "./engine-weights";
+import {
+  buildImpulseLeg,
+  readOte,
+  inOte,
+  oteZoneOverlap,
+  consequentEncroachment,
+} from "./fib";
 import type { SessionClock } from "./sessions";
 import {
   ALWAYS_SCAN,
@@ -311,6 +318,43 @@ function scoreDirection(
   const sponsored = ifvg.zone != null && ifvg.zone.middleBodyAtrRatio >= 1.5;
   add("sponsored", sponsored, sponsored ? "sponsored FVG" : undefined);
 
+  /**
+   * OTE — Optimal Trade Entry (trading/fib.ts).
+   *
+   * The leg is anchored on the SWEEP's wick extreme when one exists, which
+   * is the ICT construction: the raid makes the extreme, the displacement
+   * away from it defines the leg, and you buy/sell the 61.8%-79%
+   * retracement back into it. Anchoring on the sweep (rather than the
+   * window's own extreme) is what makes this a post-manipulation entry
+   * rather than a generic pullback measurement.
+   *
+   * Until 2026-08-13 this component did not exist in any form — the desk
+   * named OTE in its rules and strategy copy while computing nothing. The
+   * cost showed up the same day: an open that manipulated into equilibrium
+   * and a gap then reversed to the highs had no OTE read to price the
+   * reversal entry with.
+   */
+  const sweepAnchor =
+    det.sweep.latest &&
+    ((direction === "bull" && det.sweep.latest.side === "sellside") ||
+      (direction === "bear" && det.sweep.latest.side === "buyside"))
+      ? det.sweep.latest
+      : null;
+  const impulseLeg = buildImpulseLeg(bars, direction, {
+    originPrice: sweepAnchor?.wickExtreme,
+    originIndex: sweepAnchor?.index,
+  });
+  const oteRead = readOte(impulseLeg);
+  const lastClose = bars.length ? bars[bars.length - 1]!.c : Number.NaN;
+  const oteHit = inOte(oteRead, lastClose);
+  add(
+    "ote",
+    oteHit,
+    oteHit && oteRead
+      ? `ote ${oteRead.zoneLow.toFixed(2)}–${oteRead.zoneHigh.toFixed(2)} (opt ${oteRead.optimal.toFixed(2)})`
+      : undefined,
+  );
+
   // Honest cold components: separate breaker/propulsion detectors not fully ported
   add("breaker", false);
   add("mitigation", Boolean(ob && ob.mitigated && obAligned));
@@ -388,14 +432,32 @@ function scoreDirection(
       (primary ? strategyLabel(primary as never) : "Unclassified"),
   ];
 
+  /**
+   * Entry price, in ICT construction order — most specific first.
+   *
+   * 1. OTE x array overlap. Two independent reasons agreeing on one price is
+   *    the highest-quality entry there is, so when the retracement band and
+   *    the FVG/OB intersect, that intersection IS the entry.
+   * 2. Consequent Encroachment — the 50% of the gap, not its edges. ICT
+   *    prices an FVG at CE; quoting the whole gap (as this did) makes the
+   *    planned 1R depend on which edge you happened to fill at, which is why
+   *    the same setup could book materially different R.
+   * 3. The OTE band alone, when there is no array to intersect with.
+   * 4. Dealing-range half — the old coarse fallback, unchanged.
+   */
   const zone = ifvg.zone;
-  const entryZone = zone
-    ? `${zone.bottom.toFixed(2)} – ${zone.top.toFixed(2)}`
-    : read.dealing
-      ? direction === "bull"
-        ? `${read.dealing.low.toFixed(2)} – ${read.dealing.eq.toFixed(2)}`
-        : `${read.dealing.eq.toFixed(2)} – ${read.dealing.high.toFixed(2)}`
-      : "await array";
+  const overlap = zone ? oteZoneOverlap(oteRead, zone.top, zone.bottom) : null;
+  const entryZone = overlap
+    ? `${overlap.low.toFixed(2)} – ${overlap.high.toFixed(2)} (OTE×array, CE ${overlap.mid.toFixed(2)})`
+    : zone
+      ? `${zone.bottom.toFixed(2)} – ${zone.top.toFixed(2)} (CE ${consequentEncroachment(zone.top, zone.bottom).toFixed(2)})`
+      : oteRead
+        ? `${oteRead.zoneLow.toFixed(2)} – ${oteRead.zoneHigh.toFixed(2)} (OTE, opt ${oteRead.optimal.toFixed(2)})`
+        : read.dealing
+          ? direction === "bull"
+            ? `${read.dealing.low.toFixed(2)} – ${read.dealing.eq.toFixed(2)}`
+            : `${read.dealing.eq.toFixed(2)} – ${read.dealing.high.toFixed(2)}`
+          : "await array";
 
   return {
     id: `${read.symbol}-${side}`,

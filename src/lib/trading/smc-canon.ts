@@ -414,7 +414,19 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     has(components, "mss", "cisd", "displacement", "structure");
   const poi =
     has(components, "ifvg", "order_block", "pd", "breaker", "mitigation");
-  const oteOverlap = has(components, "ifvg", "order_block") && pdHalf;
+  /**
+   * A POI array AND a real OTE retracement pointing at the same price.
+   *
+   * This factor has been labelled "FVG/OB + OTE" since it was written while
+   * checking `pdHalf` (premium/discount) as a stand-in for OTE, because no
+   * Fibonacci math existed anywhere in the repo to check against. Now that
+   * trading/fib.ts computes a real 61.8%-79% band and scanner.ts emits an
+   * `ote` component from the post-sweep impulse leg, this asks the question
+   * the label always claimed: is the entry array sitting in the OTE zone,
+   * on the correct half of the range?
+   */
+  const oteOverlap =
+    has(components, "ifvg", "order_block") && has(components, "ote") && pdHalf;
 
   const factors: CanonFactor[] = [
     {
@@ -487,8 +499,10 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       must: false,
       pass: oteOverlap,
       detail: oteOverlap
-        ? "Array overlap in OTE half"
-        : "No FVG+OB overlap — still valid if musts hit",
+        ? "FVG/OB sits in the 62–79% OTE band, correct half"
+        : has(components, "ote")
+          ? "In OTE band but no aligned FVG/OB — still valid if musts hit"
+          : "Not in the 62–79% OTE band — still valid if musts hit",
     },
     {
       id: "mtf",
