@@ -315,6 +315,17 @@ function MasterplacePage() {
   const paper = getPaperAccount(memoryBook);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Hydration guard for brainSnap below. `typeof window !== "undefined"` is
+  // NOT sufficient here — it's already true on the client's very FIRST
+  // render, before React has reconciled against the server HTML. So the SSR
+  // pass reads no memory (no window), and the client's first paint reads
+  // real localStorage, and their text output differs -> React error #418.
+  // Gating on a useEffect-set flag instead means the client's first paint
+  // matches the server's exactly (no memory either), and the real,
+  // localStorage-derived numbers arrive one tick later via a normal
+  // re-render, which is allowed to differ.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("brain");
   const [risk, setRisk] = useState<RiskState | null>(null);
@@ -717,7 +728,7 @@ useEffect(() => {
   const brainSnap = desk
     ? runVeteranBrain(
         desk,
-        typeof window !== "undefined" ? loadDeskMemory() : undefined,
+        mounted ? loadDeskMemory() : undefined,
         undefined,
         risk
           ? {
