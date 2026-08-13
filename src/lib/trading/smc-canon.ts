@@ -383,10 +383,31 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
   const pdHalf =
     (side === "long" && dealingZone === "discount") ||
     (side === "short" && dealingZone === "premium");
+  /**
+   * A raid arms the side OPPOSITE to the liquidity it took.
+   *
+   *   SSL taken (lows swept, shorts trapped)  -> arms LONG
+   *   BSL taken (highs swept, longs trapped)  -> arms SHORT
+   *
+   * This is the canon's own rule ("Sweep / raid / Judas = manipulation.
+   * Never the entry.") and it matches scanner.ts's `sweep_significant`,
+   * which filters sellside pools for bull and buyside pools for bear.
+   *
+   * WHAT WAS WRONG: this expression used to end with `|| swept !== "none"`,
+   * which made a variable literally named `sweepForSide` true for ANY raid
+   * in ANY direction — defeating both correct clauses above it and
+   * disagreeing with the scanner's own polarity. Observed cost: on
+   * 2026-08-13 the open took SELLSIDE liquidity (textbook manipulation
+   * arming a bullish reversal) and the canon graded it a passing must-factor
+   * for a SHORT, reaching "A+ 5/5" on the wrong side of the reversal.
+   *
+   * A sweep in the SAME direction as the trade is not a setup at all — it is
+   * the draw/target being consumed, which is where you take profit, not
+   * where you enter.
+   */
   const sweepForSide =
     (side === "long" && swept === "ssl") ||
-    (side === "short" && swept === "bsl") ||
-    swept !== "none";
+    (side === "short" && swept === "bsl");
   const ltfOk =
     confirmation === "confirmed" ||
     confirmation === "armed_entry" ||
@@ -413,9 +434,14 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       detail:
         swept === "none"
           ? "No raid yet — wait for SSL (long) or BSL (short)"
-          : confirmation === "sweep_only"
-            ? `${swept.toUpperCase()} swept — setup only, not entry`
-            : `${swept.toUpperCase()} swept · ${confirmation}`,
+          : // The raid happened but on the wrong side for this trade. Name the
+            // side it DOES arm — that is the actionable read, and the case
+            // this desk missed on 2026-08-13 by silently passing it instead.
+            !sweepForSide
+            ? `${swept.toUpperCase()} raid arms ${swept === "ssl" ? "LONG" : "SHORT"}, not ${side ?? "this side"} — reversal is the other way`
+            : confirmation === "sweep_only"
+              ? `${swept.toUpperCase()} swept — setup only, not entry`
+              : `${swept.toUpperCase()} swept · ${confirmation}`,
     },
     {
       id: "pd_half",
