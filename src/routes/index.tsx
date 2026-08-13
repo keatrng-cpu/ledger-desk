@@ -997,20 +997,29 @@ useEffect(() => {
                     right={desk.bias.right}
                   />
                   <PremarketPanel desk={desk} />
+                  {/* The setups come DIRECTLY under the header that names
+                      them. Previously this header was followed by the market
+                      narrative and the whole paper book, with the actual
+                      SetupScanner last on the tab — so the one thing the
+                      "Trade now" tab exists for was the furthest thing from
+                      the top, and section 2's header labelled something else
+                      entirely. */}
                   <SectionHead
                     n="2"
                     title="PATH setups"
                     sub={`Only ≥${APLUS_RULES.confluenceFloor} + HTF · Log paper/live or skip`}
                   />
-                  {desk.narrative && (
-                    <MarketNarrativePanel
-                      left={desk.narrative.left}
-                      right={desk.narrative.right}
-                      leftLabel={desk.left.symbol}
-                      rightLabel={desk.right.symbol}
-                      summary={desk.narrative.summary}
-                    />
-                  )}
+                  <SetupScanner
+                    scan={desk.scan}
+                    onLog={onLog}
+                    entryAllowed={entryAllowed}
+                  />
+
+                  <SectionHead
+                    n="3"
+                    title="Open positions"
+                    sub="Live-managed paper book — scale-outs, BE stops, time stops"
+                  />
                   <PaperBookPanel
                     lastClosed={lastPaperClosed}
                     liveMarks={
@@ -1047,11 +1056,23 @@ useEffect(() => {
                       window.setTimeout(() => setPaperToast(null), 8000);
                     }}
                   />
-                  <SetupScanner
-                    scan={desk.scan}
-                    onLog={onLog}
-                    entryAllowed={entryAllowed}
-                  />
+
+                  {desk.narrative && (
+                    <>
+                      <SectionHead
+                        n="4"
+                        title="Market narrative"
+                        sub="Why price is where it is — context, not a trigger"
+                      />
+                      <MarketNarrativePanel
+                        left={desk.narrative.left}
+                        right={desk.narrative.right}
+                        leftLabel={desk.left.symbol}
+                        rightLabel={desk.right.symbol}
+                        summary={desk.narrative.summary}
+                      />
+                    </>
+                  )}
                 </div>
               )}
 
