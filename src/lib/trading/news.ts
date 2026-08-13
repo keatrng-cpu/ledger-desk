@@ -22,7 +22,14 @@ export type NewsVerdict = "blackout" | "caution" | "clear";
 export interface NewsRead {
   verdict: NewsVerdict;
   reason: string;
-  nextEvent: { name: string; timeEt: string; minutesAway: number } | null;
+  nextEvent: {
+    name: string;
+    timeEt: string;
+    minutesAway: number;
+    /** Calendar date (YYYY-MM-DD) — needed for a stable per-event alert key. */
+    date: string;
+    impact: "high" | "medium";
+  } | null;
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -118,6 +125,8 @@ export function newsRead(
           name: next.event.name,
           timeEt: next.event.timeEt,
           minutesAway: next.minutesAway,
+          date: next.event.date,
+          impact: next.event.impact,
         }
       : null,
   };

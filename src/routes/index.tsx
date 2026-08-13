@@ -27,6 +27,7 @@ import {
   listOpenPaperTrades,
   closeOpenAtStructureLow,
   reconcilePaperBookToMemory,
+  buildPaperLevels,
   type PaperTrade,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
@@ -71,7 +72,17 @@ import { AnalyticsPanel } from "@/components/journal/analytics-panel";
 import { captureSnapshot } from "@/lib/journal/snapshots";
 import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
 import { syncPaperBookToDb } from "@/lib/journal/paper-backfill";
+import { recordShadowOrder } from "@/lib/execution/shadow";
+import { orderIntentFromPaperLevels } from "@/lib/execution/order-intent";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
+import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
+import { AlertsPanel } from "@/components/desk/alerts-panel";
+import {
+  raiseSetupArmedAlert,
+  raisePositionFlattenedAlert,
+  raiseNewsBlackoutAlert,
+  checkScheduledJobs,
+} from "@/lib/alerts/trigger-server";
 import { StorageBanner } from "@/components/desk/storage-banner";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
@@ -105,7 +116,116 @@ function mirrorClosedPaperTrades(closed: PaperTrade[]): void {
         reason: t.exitReason ?? "paper exit",
       },
     }).catch(() => undefined);
+
+    // "Position flattened" (B4) is specifically the time/context-stop close
+    // (management.ts's shouldFlatten, tagged exitReason "flat_*") — NOT a
+    // normal stop or target hit, which is the plan working as intended and
+    // not alert-worthy. See send-server.ts's positionFlattenedAlert doc.
+    if (t.exitReason?.startsWith("flat_")) {
+      const r = t.rMultiple ?? null;
+      void raisePositionFlattenedAlert({
+        data: {
+          tradeId: t.id,
+          symbol: t.displaySymbol,
+          side: t.side,
+          reason: t.manageNote || t.exitReason,
+          r,
+        },
+      }).catch(() => undefined);
+    }
   }
+}
+
+/**
+ * ROADMAP E4 — record the order the desk WOULD have placed for the current
+ * best ACTIONABLE candidate, on every desk poll. This was built (shadow.ts)
+ * but never called from anywhere — a fully orphaned table, per the 2026-08-12
+ * audit. Wiring it here is exactly what its own docstring prescribes: "the
+ * 30s poll is the natural home."
+ *
+ * Idempotent by design: clientOrderId is derived from
+ * symbol+side+strategy+killzone+day, so re-polling the SAME armed setup
+ * writes the row once (on-conflict-do-nothing), not once per poll. A new
+ * killzone, a new day, or a genuinely different strategy/side gets a new row.
+ * Fire-and-forget and silently no-ops when signed out (authMiddleware) — this
+ * is a research record, never a blocker for anything else on the page.
+ */
+function recordArmedShadow(desk: DeskPayload, equity: number): void {
+  const candidate = desk.scan.candidates.find((c) => c.actionable);
+  if (!candidate) return;
+
+  const lastPrice =
+    desk.left.symbol === candidate.symbol
+      ? desk.quotes.left.price
+      : desk.right.symbol === candidate.symbol
+        ? desk.quotes.right.price
+        : desk.quotes.left.price;
+
+  const levels = buildPaperLevels(candidate, equity, lastPrice);
+  if (!levels.entry || !levels.stop) return;
+
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const strategy = candidate.completeStrategy || candidate.strategyPrimary || "unknown";
+  const killzone = desk.clock.killzone || "nokz";
+  const clientOrderId = `shadow-${levels.symbol}-${levels.side}-${strategy}-${killzone}-${dayKey}`;
+
+  // orderIntentFromPaperLevels throws (OrderIntentError) on invalid geometry —
+  // never let a bad candidate break the poll loop over a record nobody is
+  // blocked on.
+  try {
+    const intent = orderIntentFromPaperLevels(levels, {
+      clientOrderId,
+      equity,
+      killzone: desk.clock.killzone,
+      strategy,
+      score: candidate.confluence,
+      note: candidate.title,
+    });
+    void recordShadowOrder({ data: { intent, source: "desk" } }).catch(
+      () => undefined,
+    );
+  } catch {
+    /* invalid geometry on this poll tick — skip, try again next poll */
+  }
+}
+
+/**
+ * The remaining 2 of 4 B4 real-time alerts (halt_hit is wired directly in
+ * journal/server.ts's openTrade; position_flattened is wired in
+ * mirrorClosedPaperTrades above). Both dedupe server-side by their own key
+ * (setup: per candidate id; news: per calendar event), so calling this every
+ * 30s poll is correct and produces at most one notification each.
+ */
+function raiseDeskAlerts(desk: DeskPayload): void {
+  const armed = desk.scan.candidates.find((c) => c.actionable);
+  if (armed) {
+    void raiseSetupArmedAlert({
+      data: {
+        symbol: armed.symbol,
+        side: armed.side,
+        candidateId: armed.id,
+        grade: armed.grade,
+        confluence: armed.confluence,
+        killzone: desk.clock.killzone,
+      },
+    }).catch(() => undefined);
+  }
+
+  const next = desk.news.nextEvent;
+  if (next && next.impact === "high" && next.minutesAway >= 0 && next.minutesAway <= 20) {
+    void raiseNewsBlackoutAlert({
+      data: {
+        startsAt: `${next.date}T${next.timeEt}`,
+        event: next.name,
+        impact: next.impact,
+      },
+    }).catch(() => undefined);
+  }
+
+  // The 3 scheduled summaries (checklist/review/weekly) — see
+  // trigger-server.ts's header for why this is a client poll, not a real
+  // cron, and what that trades away.
+  void checkScheduledJobs().catch(() => undefined);
 }
 
 type DeskCategory =
@@ -283,6 +403,8 @@ function MasterplacePage() {
         }
         publishMemory();
         setEquity(getPaperAccount().equity);
+        recordArmedShadow(res, getPaperAccount().equity);
+        raiseDeskAlerts(res);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Desk load failed");
@@ -991,6 +1113,9 @@ useEffect(() => {
                     sub={`Paper $${Math.round(paper.equity).toLocaleString()} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(1)} · A+3/A2/A-1/B+0.5`}
                   />
                   <RiskPanel desk={desk} liveRisk={risk} />
+                  {/* Push subscribe control — the alerts pipeline existed
+                      fully built with zero callers until 2026-08-12. */}
+                  <AlertsPanel />
                   {/* Live and paper analytics — separate reports, explicit
                       switch, never blended into a single number. */}
                   <AnalyticsPanel />
@@ -1014,6 +1139,9 @@ useEffect(() => {
                   {/* Decision-time context — captureSnapshot had been writing
                       this on every log with nothing able to read it back. */}
                   <SnapshotReview />
+                  {/* Shadow log — recordArmedShadow (this file's poll loop)
+                      is the producer; this was the missing reader. */}
+                  <ShadowOrderReview />
                   <BridgeStatus />
                 </div>
               )}
@@ -1066,6 +1194,17 @@ useEffect(() => {
               discretion,
               logCandidate.completeStrategy || logCandidate.strategyPrimary,
             )}
+            // Veteran-brain vetoes (HTF conflict, blake_mech demotion — now
+            // backed by real Postgres counts, halt state) for THIS exact
+            // candidate, when the brief was computed against it. brainSnap is
+            // desk-wide (one "rawBest" pick per render); only surface vetoes
+            // when they actually apply to what's being logged, not desk-wide
+            // noise for a different setup.
+            brainVetoes={
+              brainSnap?.setup?.id === logCandidate.id
+                ? brainSnap.vetoes
+                : undefined
+            }
           />
         )}
 

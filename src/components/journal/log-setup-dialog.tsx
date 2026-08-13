@@ -98,6 +98,7 @@ export function LogSetupDialog({
   onLogged,
   defaultMode = "paper",
   discretion,
+  brainVetoes,
 }: {
   candidate: SetupCandidate;
   /** Account equity from desk_settings (getSettings). */
@@ -115,6 +116,14 @@ export function LogSetupDialog({
    * the dialog still works standalone; contracts simply prefill neutral.
    */
   discretion?: DiscretionResult;
+  /**
+   * Veteran-brain hard vetoes (runVeteranBrain) for THIS exact candidate —
+   * HTF conflict, blake_mech demotion (now backed by real trade counts, not
+   * a permanent hardcoded 0), halt state. Informational, same as
+   * `discretion` — nothing here disables the form. Undefined when the brief
+   * was computed for a different candidate than the one being logged.
+   */
+  brainVetoes?: string[];
 }) {
   const discretionMult = discretion?.factor ?? 1.0;
   const {
@@ -378,6 +387,26 @@ export function LogSetupDialog({
                 </p>
               )}
             </div>
+
+            {/* Veteran-brain hard vetoes — deterministic rule violations
+                (HTF conflict, blake_mech demotion, halt state), not a
+                subjective opinion. Shown above the discretion box because a
+                veto is a harder signal than a sizing suggestion. Same
+                philosophy as everywhere else in this dialog: informational,
+                the trader keeps final say. */}
+            {brainVetoes && brainVetoes.length > 0 && (
+              <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-3 py-2 font-mono text-[11px] leading-relaxed text-[var(--color-down)]">
+                <div className="flex items-center gap-1.5 font-sans font-medium">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  Veteran brain — hard veto
+                </div>
+                <ul className="mt-0.5 list-inside list-disc opacity-90">
+                  {brainVetoes.slice(0, 3).map((v) => (
+                    <li key={v}>{v}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Discretion readout — the real measured-history factor already
                 baked into the Contracts prefill above, shown so "why this

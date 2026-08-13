@@ -16,6 +16,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 import { computeTradePnl, isKnownSymbol } from "./pnl";
 import { getSessionClock } from "@/lib/trading/sessions";
+import { sendAlert, haltHitAlert } from "@/lib/alerts/send-server";
 import {
   emptyBookCounters,
   monthKeyFromMs,
@@ -619,19 +620,25 @@ export const openTrade = createServerFn({ method: "POST" })
     if (data.mode === "live") {
       const risk = await computeLiveRiskState(sql, context.userId);
       if (risk.dailyHaltHit) {
-        throw new Error(
-          `Daily halt active: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}. No new live entries today.`,
+        const detail = `Day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}.`;
+        void sendAlert(context.userId, haltHitAlert({ scope: "daily", detail })).catch(
+          () => undefined,
         );
+        throw new Error(`Daily halt active: ${detail} No new live entries today.`);
       }
       if (risk.weeklyHaltHit) {
-        throw new Error(
-          `Weekly halt active: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}. No new live entries this week.`,
+        const detail = `Week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}.`;
+        void sendAlert(context.userId, haltHitAlert({ scope: "weekly", detail })).catch(
+          () => undefined,
         );
+        throw new Error(`Weekly halt active: ${detail} No new live entries this week.`);
       }
       if (risk.killzoneCapHit) {
-        throw new Error(
-          `Killzone cap reached (${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}). No new live entries this window.`,
+        const detail = `${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}.`;
+        void sendAlert(context.userId, haltHitAlert({ scope: "killzone", detail })).catch(
+          () => undefined,
         );
+        throw new Error(`Killzone cap reached (${detail}) No new live entries this window.`);
       }
     }
 

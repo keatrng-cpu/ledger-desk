@@ -1,6 +1,11 @@
-import { useMemo } from "react";
-import { Bot, Sparkles } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { Bot, Loader2, Sparkles } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import {
+  askDeskCoach,
+  type CoachNarration,
+} from "@/lib/coach/claude-server";
+import { Button } from "@/components/ui/button";
 
 /** Local deterministic coach — explains computed structure only. */
 function buildCoachNotes(desk: DeskPayload): {
@@ -40,6 +45,52 @@ function buildCoachNotes(desk: DeskPayload): {
 
 export function TradingCoach({ desk }: { desk: DeskPayload }) {
   const notes = useMemo(() => buildCoachNotes(desk), [desk]);
+  const [narration, setNarration] = useState<CoachNarration | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [question, setQuestion] = useState("");
+
+  /**
+   * On demand only — this endpoint costs money per call, so it is never wired
+   * to the 30s desk poll. Sends an explicit, bounded subset of desk state
+   * (see claude-server.ts's contextSchema), never the whole payload.
+   */
+  const ask = useCallback(async () => {
+    setAsking(true);
+    try {
+      const best = desk.scan.candidates[0];
+      const res = await askDeskCoach({
+        data: {
+          question: question.trim() || undefined,
+          killzone: desk.clock.killzoneLabel,
+          sessionPhase: desk.clock.sessionPhase,
+          htfLeft: `${desk.bias.left.symbol} ${desk.bias.left.topDown}`,
+          htfRight: `${desk.bias.right.symbol} ${desk.bias.right.topDown}`,
+          newsVerdict: desk.news.verdict,
+          smtNote: desk.scan.smt.note,
+          dealingZone: desk.bias.left.dealing?.zone ?? null,
+          bestSymbol: best?.symbol ?? null,
+          bestSide: best?.side ?? null,
+          bestGrade: best?.grade ?? null,
+          bestConfluence: best?.confluence ?? null,
+          bestPresent: best?.reasons?.slice(0, 12),
+          bestMissing: best?.missing?.slice(0, 12),
+          actionableCount: desk.scan.candidates.filter((c) => c.actionable).length,
+          blocked: desk.scan.blocked?.slice(0, 6),
+          focus: desk.scan.focus ?? null,
+        },
+      });
+      setNarration(res);
+    } catch (e) {
+      setNarration({
+        configured: true,
+        text: null,
+        error: e instanceof Error ? e.message : "Narration failed",
+        model: null,
+      });
+    } finally {
+      setAsking(false);
+    }
+  }, [desk, question]);
 
   return (
     <section className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_22%,var(--color-border))] bg-[var(--color-surface)] p-3 sm:p-4">
@@ -50,7 +101,7 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">
-              6 · Desk coach (Grok + Claude ready)
+              6 · Desk coach
             </h2>
             <p className="text-xs text-[var(--color-subtle)]">
               Explains numbers already computed — never gates or invents fills
@@ -79,9 +130,53 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
         <p className="mt-1 text-sm text-[var(--color-fg)]">{notes.action}</p>
       </div>
 
+      {/* Real Claude narration, on demand. Everything above this line is
+          deterministic TypeScript and renders identically whether or not the
+          model is configured. */}
+      <div className="mt-3 border-t border-[var(--color-border)] pt-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !asking) void ask();
+            }}
+            placeholder="Ask about this setup (optional)…"
+            className="min-w-0 flex-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-xs text-[var(--color-fg)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+          />
+          <Button size="sm" onClick={() => void ask()} disabled={asking}>
+            {asking ? (
+              <>
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                Thinking…
+              </>
+            ) : (
+              "Ask Claude"
+            )}
+          </Button>
+        </div>
+
+        {narration?.text && (
+          <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] px-3 py-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-primary)]">
+              Claude · narration only — not a signal
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--color-fg)]">
+              {narration.text}
+            </p>
+          </div>
+        )}
+        {narration?.error && (
+          <p className="mt-2 text-xs text-[var(--color-warn)]">
+            {narration.error}
+          </p>
+        )}
+      </div>
+
       <p className="mt-3 text-[11px] text-[var(--color-subtle)]">
-        Point Claude at keatrng-cpu/ledger-desk + Trading-Automation. Ask Grok
-        here for debriefs — structure scores stay ground truth.
+        Structure scores stay ground truth — narration explains them, never
+        overrides them.
       </p>
     </section>
   );
