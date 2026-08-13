@@ -31,6 +31,13 @@ import {
   loadPaperTrades,
 } from "./paper-manager";
 import { recentByKind } from "./desk-memory";
+// Aliased: journal/discretion.ts's own DiscretionVerdict ("demote"/"favor"/…)
+// is a different type from this file's own DiscretionVerdict export
+// ("TAKE"/"REDUCE"/…) a few lines below — same name, unrelated meaning.
+import {
+  MIN_EFFECTIVE_N as REAL_DISCRETION_MIN_N,
+  type DiscretionResult as RealDiscretionResult,
+} from "@/lib/journal/discretion";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -119,6 +126,22 @@ export function runVeteranBrain(
     weeklyHaltHit?: boolean;
     killzoneCapHit?: boolean;
   } | null,
+  /**
+   * Real per-strategy discretion, server-computed from Postgres live+paper
+   * history (journal/discretion.ts via getDiscretionState) — keyed the same
+   * way rateCardForSetup below is: completeStrategy || strategyPrimary.
+   *
+   * Optional and additive: everything downstream still runs off `rateCard`
+   * (the localStorage/backtest-only estimate) exactly as before. When a real
+   * entry exists for the chosen candidate's strategy AND clears
+   * MIN_EFFECTIVE_N, it OVERRIDES rateCard's sizeBias and strategy bucket in
+   * place — this is what makes the "BT ..." lines below, the size×, and
+   * every other rateCard-derived reason actually describe real trades
+   * instead of a 19-trade static seed. Below that sample floor, the
+   * pre-existing backtest-only estimate keeps narrating — cold start should
+   * not read as silence.
+   */
+  realDiscretion?: Record<string, RealDiscretionResult> | null,
 ): VeteranBrief {
   const memory = mem ?? loadDeskMemory();
   const counters = countersFromMemory(memory);
@@ -168,7 +191,7 @@ export function runVeteranBrain(
     rawBest = ranked[0]!.c;
   }
 
-  const rateCard = rawBest
+  const rawRateCard = rawBest
     ? rateCardForSetup(memory, {
         strategy: rawBest.completeStrategy || rawBest.strategyPrimary,
         side: rawBest.side,
@@ -176,6 +199,32 @@ export function runVeteranBrain(
         symbol: rawBest.symbol,
       })
     : rateCardForSetup(memory, {});
+
+  // Substitute the real, server-measured factor in place of the
+  // localStorage/backtest-only estimate wherever we have enough real
+  // evidence to trust it. Every downstream reference to `rateCard` below
+  // (headline, monologue, green/yellow reasons, sizeMult) inherits this
+  // automatically — one substitution point instead of patching ~15 call
+  // sites individually, and it fails safe: no match or too little sample
+  // leaves rawRateCard untouched.
+  const realKey = rawBest?.completeStrategy || rawBest?.strategyPrimary;
+  const real = realKey ? realDiscretion?.[realKey] : undefined;
+  const rateCard =
+    real && real.effectiveN >= REAL_DISCRETION_MIN_N
+      ? {
+          ...rawRateCard,
+          sizeBias: real.factor,
+          strategy: {
+            n: Math.round(real.effectiveN),
+            wins: Math.round((real.winRate ?? 0) * real.effectiveN),
+            sumR: (real.expectancyR ?? 0) * real.effectiveN,
+          },
+          advice: [
+            `LIVE+PAPER (not just BT): ${real.reason}`,
+            ...rawRateCard.advice,
+          ],
+        }
+      : rawRateCard;
   const topRates = topStrategyRates(memory, 2);
 
   const layers: BrainLayer[] = [];

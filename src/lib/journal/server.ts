@@ -308,11 +308,15 @@ function strategyFromReason(reason: string | null | undefined): string | null {
 /**
  * Book counters for one mode, read from the journal.
  *
- * Deliberate gaps, stated rather than guessed:
- * - `blakeLongTaken/Wins` stay 0. The journal has no reliable per-strategy
- *   attribution yet (migration 0008 added the column; the writer is
- *   INTEGRATION-D's). 0 means `blakeLongRecovered` is false, i.e. blake_mech
- *   longs stay demoted — the rule's own default until a sample says otherwise.
+ * - `blakeLongTaken/Wins` — REAL counts as of migration 0008 + the Phase C
+ *   writers (INTEGRATION-D). Before that, this comment said they "stay 0"
+ *   because the journal had no reliable per-strategy attribution; the
+ *   `strategy` column now exists and is populated on open (see
+ *   `candidateFromOpenInput` above and paper-mirror.ts), so the query below
+ *   reads it directly instead of hardcoding the pessimistic default. Until
+ *   enough rows carry `strategy = 'blake_mech'`, this still reports 0/0 —
+ *   honestly, from an empty result set, not from a constant — and
+ *   `blakeLongRecovered` correctly keeps the demotion in place either way.
  * - `pathThisMonth` counts ENTRIES this UTC calendar month, matching
  *   `monthKeyFromMs`, which the backtest also keys on UTC.
  * - `consecLosses` counts back from the most recent close while pnl <= 0,
@@ -336,12 +340,16 @@ async function readBookCounters(
       path_this_week: number;
       aplus_taken: number;
       aplus_wins: number;
+      blake_long_taken: number;
+      blake_long_wins: number;
     }>(
       `select
          count(*) filter (where opened_at >= $3) as path_this_month,
          count(*) filter (where opened_at >= $4) as path_this_week,
          count(*) filter (where status = 'closed' and grade = 'A+') as aplus_taken,
-         count(*) filter (where status = 'closed' and grade = 'A+' and pnl > 0) as aplus_wins
+         count(*) filter (where status = 'closed' and grade = 'A+' and pnl > 0) as aplus_wins,
+         count(*) filter (where status = 'closed' and strategy = 'blake_mech' and side = 'long') as blake_long_taken,
+         count(*) filter (where status = 'closed' and strategy = 'blake_mech' and side = 'long' and pnl > 0) as blake_long_wins
        from desk_trades
        where user_id = $1 and mode = $2`,
       [userId, mode, monthStart, weekStart],
@@ -369,6 +377,8 @@ async function readBookCounters(
     counters.pathThisWeek = Number(a.path_this_week);
     counters.aPlusTaken = Number(a.aplus_taken);
     counters.aPlusWins = Number(a.aplus_wins);
+    counters.blakeLongTaken = Number(a.blake_long_taken);
+    counters.blakeLongWins = Number(a.blake_long_wins);
   }
 
   let consec = 0;

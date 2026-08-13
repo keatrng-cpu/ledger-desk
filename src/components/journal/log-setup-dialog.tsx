@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { rememberLiveSetup } from "@/lib/trading/desk-memory";
 import { buildPaperLevels } from "@/lib/trading/paper-manager";
+import type { DiscretionResult } from "@/lib/journal/discretion";
 
 const SYMBOLS = Object.keys(CONTRACTS) as ContractKey[];
 
@@ -66,8 +67,9 @@ function defaultsFrom(
   candidate: SetupCandidate,
   mode: "paper" | "live" = "paper",
   equity: number = 100_000,
+  discretionMult?: number,
 ): Partial<FormValues> {
-  const levels = buildPaperLevels(candidate, equity);
+  const levels = buildPaperLevels(candidate, equity, undefined, discretionMult);
   return {
     symbol: levels.symbol,
     side: levels.side,
@@ -95,6 +97,7 @@ export function LogSetupDialog({
   onOpenChange,
   onLogged,
   defaultMode = "paper",
+  discretion,
 }: {
   candidate: SetupCandidate;
   /** Account equity from desk_settings (getSettings). */
@@ -106,7 +109,14 @@ export function LogSetupDialog({
   onLogged?: (trade: JournalTrade) => void;
   /** Prefill paper vs live — set by Paper / Live buttons on the scanner. */
   defaultMode?: "paper" | "live";
+  /**
+   * Real measured-edge sizing factor for this candidate's strategy
+   * (journal/discretion.ts, fetched server-side by index.tsx). Optional so
+   * the dialog still works standalone; contracts simply prefill neutral.
+   */
+  discretion?: DiscretionResult;
 }) {
+  const discretionMult = discretion?.factor ?? 1.0;
   const {
     register,
     handleSubmit,
@@ -117,13 +127,13 @@ export function LogSetupDialog({
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultsFrom(candidate, defaultMode),
+    defaultValues: defaultsFrom(candidate, defaultMode, undefined, discretionMult),
   });
 
   // Re-prefill when the dialog opens on a (possibly different) candidate/mode.
   useEffect(() => {
-    if (open) reset(defaultsFrom(candidate, defaultMode, equity));
-  }, [open, candidate, defaultMode, equity, reset]);
+    if (open) reset(defaultsFrom(candidate, defaultMode, equity, discretionMult));
+  }, [open, candidate, defaultMode, equity, discretionMult, reset]);
 
   const [entry, stop, contracts, symbol, mode] = watch([
     "entry",
@@ -368,6 +378,37 @@ export function LogSetupDialog({
                 </p>
               )}
             </div>
+
+            {/* Discretion readout — the real measured-history factor already
+                baked into the Contracts prefill above, shown so "why this
+                size" is answerable without opening the journal. Purely
+                informational: contracts stay editable either way, same as
+                every other field. */}
+            {discretion && discretion.verdict !== "insufficient-data" && (
+              <div
+                className={cn(
+                  "rounded-[var(--radius-md)] border px-3 py-2 font-mono text-[11px] leading-relaxed",
+                  discretion.verdict === "demote"
+                    ? "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] text-[var(--color-down)]"
+                    : discretion.verdict === "caution"
+                      ? "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)] text-[var(--color-warn)]"
+                      : discretion.verdict === "favor"
+                        ? "border-[color-mix(in_oklab,var(--color-up)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_8%,transparent)] text-[var(--color-up)]"
+                        : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted)]",
+                )}
+              >
+                <div className="flex items-center justify-between font-sans font-medium">
+                  <span>
+                    Discretion —{" "}
+                    {discretion.verdict === "demote"
+                      ? "DEMOTED"
+                      : discretion.verdict.toUpperCase()}
+                  </span>
+                  <span>×{discretion.factor.toFixed(2)} size</span>
+                </div>
+                <p className="mt-0.5 opacity-90">{discretion.reason}</p>
+              </div>
+            )}
 
             {errors.root && (
               <p className="text-xs text-[var(--color-down)]">

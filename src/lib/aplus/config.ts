@@ -112,20 +112,34 @@ export function riskDollars(
   return equity * pct;
 }
 
-/** Contracts so stop risk ≈ riskDollars (micros preferred). Min 1 if risk > 0. */
+/**
+ * Contracts so stop risk ≈ riskDollars (micros preferred). Min 1 if risk > 0.
+ *
+ * `discretionMult` — the one place measured history (journal/discretion.ts)
+ * is allowed to touch real position size. It is clamped to [0.6, 1.15] here
+ * too (belt-and-suspenders against a bad caller) and the resulting pct is
+ * re-clamped against `riskPctCeiling` AFTER multiplying, so no combination of
+ * grade + discretion can ever size a trade above the house risk ceiling —
+ * discretion can only ever shrink size below the grade-implied dollars, or
+ * lift it partway back toward the ceiling, never past it.
+ */
 export function sizeContracts(opts: {
   symbol: string;
   riskPts: number;
   equity?: number;
   gradeOrScore?: RiskGrade | number;
+  /** Sizing multiplier from measured live+paper+backtest performance. Default 1.0 (neutral). */
+  discretionMult?: number;
 }): { contracts: number; riskPct: number; riskDollars: number; pv: number } {
   const equity = opts.equity ?? APLUS_RULES.paperEquity;
-  const pct =
+  const basePct =
     typeof opts.gradeOrScore === "number"
       ? riskPctForScore(opts.gradeOrScore)
       : typeof opts.gradeOrScore === "string"
         ? riskPctForGrade(opts.gradeOrScore)
         : APLUS_RULES.riskPct;
+  const mult = Math.min(1.15, Math.max(0.6, opts.discretionMult ?? 1.0));
+  const pct = Math.min(basePct * mult, APLUS_RULES.riskPctCeiling);
   const dollars = equity * pct;
   const key = (
     opts.symbol in CONTRACTS ? opts.symbol : "MNQ"

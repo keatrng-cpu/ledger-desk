@@ -299,7 +299,7 @@ export function bucketOf(
  * whitespace string is a MISSING label, not a category — bucketing "" would
  * create a nameless strategy row that looks like a real model.
  */
-function normalizeKey(v: string | null | undefined): string | null {
+export function normalizeKey(v: string | null | undefined): string | null {
   if (v == null) return null;
   const s = v.trim();
   return s.length ? s : null;

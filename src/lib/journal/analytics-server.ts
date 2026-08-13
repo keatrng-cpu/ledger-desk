@@ -88,8 +88,13 @@ function toAnalyticsTrade(row: Row): AnalyticsTrade {
 const CLOSED_COLUMNS = `id, symbol, side, opened_at, closed_at, entry, exit, pnl, r,
         commission, slippage, reason, prescore, grade, killzone, strategy, regime`;
 
-/** Closed trades for ONE mode, oldest-first. Never call without a mode. */
-async function readClosed(
+/**
+ * Closed trades for ONE mode, oldest-first. Never call without a mode.
+ * Exported for discretion-server.ts, which reads both modes to blend a
+ * measured-edge sizing factor — the one place live and paper are
+ * legitimately combined (see journal/discretion.ts for why that is safe).
+ */
+export async function readClosed(
   sql: Sql,
   userId: string,
   mode: "live" | "paper",

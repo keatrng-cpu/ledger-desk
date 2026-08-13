@@ -86,6 +86,13 @@ export interface PaperTrade {
    */
   killzone?: string;
   /**
+   * Discretion multiplier actually applied to size at open (journal/discretion.ts).
+   * 1.0 (or absent, for records logged before this existed) means neutral —
+   * no measured-history adjustment. Recorded for audit: "why was this sized
+   * at 0.75x" should always be answerable from the trade itself.
+   */
+  discretionFactor?: number;
+  /**
    * Max favourable excursion so far, in R. A PRICE ratio used only by the
    * no-progress time stop — NOT the booked R, which is net of commission
    * (see finalizeClose).
@@ -146,15 +153,24 @@ export interface BuiltPaperLevels {
   riskPct: number;
   riskDollars: number;
   grade: RiskGrade | string;
+  /** Discretion multiplier actually applied to size (journal/discretion.ts). 1.0 = neutral / none supplied. */
+  discretionFactor: number;
 }
 
 /**
  * Build correct key-area levels + contract size from a scanner setup.
+ *
+ * `discretionMult` — real measured-edge sizing multiplier from
+ * journal/discretion.ts, keyed by the caller to this candidate's strategy
+ * and fetched server-side (getDiscretionState). Optional and defaults to
+ * neutral (1.0) so every existing caller keeps its current behavior until
+ * it is explicitly wired up.
  */
 export function buildPaperLevels(
   c: SetupCandidate,
   equity?: number,
   lastPrice?: number,
+  discretionMult?: number,
 ): BuiltPaperLevels {
   const displaySymbol = c.symbol;
   const symbol = resolveContractSymbol(c.symbol);
@@ -260,6 +276,7 @@ export function buildPaperLevels(
     riskPts,
     equity: eq,
     gradeOrScore: grade === "skip" ? "B+" : grade,
+    discretionMult,
   });
 
   return {
@@ -275,6 +292,7 @@ export function buildPaperLevels(
     riskPct: sizing.riskPct,
     riskDollars: sizing.riskDollars,
     grade,
+    discretionFactor: discretionMult ?? 1.0,
   };
 }
 
@@ -343,7 +361,7 @@ export function bookTakenToday(now = Date.now()): {
  */
 export function openPaperTradeInstant(
   c: SetupCandidate,
-  opts?: { lastPrice?: number; killzone?: string },
+  opts?: { lastPrice?: number; killzone?: string; discretionMult?: number },
 ): { ok: true; trade: PaperTrade } | { ok: false; error: string } {
   try {
     // Rule 1 — one book per day. Checked BEFORE any level math so the message
@@ -355,7 +373,12 @@ export function openPaperTradeInstant(
         error: `One book per day: already took ${taken.symbol} this session (since 18:00 ET). ${c.symbol} is a second correlated book — that is one idea at double risk, not two trades.`,
       };
     }
-    const levels = buildPaperLevels(c, getPaperAccount().equity, opts?.lastPrice);
+    const levels = buildPaperLevels(
+      c,
+      getPaperAccount().equity,
+      opts?.lastPrice,
+      opts?.discretionMult,
+    );
     if (!levels.entry || !levels.stop) {
       return { ok: false, error: "Could not resolve entry/stop from setup" };
     }
@@ -399,12 +422,16 @@ export function openPaperTradeInstant(
         `strategy:${c.completeStrategy || c.strategyPrimary || "—"}`,
         `band:${c.pathBand || c.grade}`,
         opts?.killzone ? `kz:${opts.killzone}` : null,
+        levels.discretionFactor !== 1.0
+          ? `discretion:${levels.discretionFactor.toFixed(2)}x`
+          : null,
         "mode:paper auto",
       ]
         .filter(Boolean)
         .join(" · "),
       pathBand: c.pathBand,
       killzone: opts?.killzone,
+      discretionFactor: levels.discretionFactor,
     };
 
     const all = loadPaperTrades();

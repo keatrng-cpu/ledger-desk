@@ -62,6 +62,11 @@ import {
   type DeskPayload,
 } from "@/lib/trading/build-desk";
 import { getRiskState, getSettings } from "@/lib/journal/server";
+import {
+  getDiscretionState,
+  discretionFor,
+  type DiscretionPayload,
+} from "@/lib/journal/discretion-server";
 import { AnalyticsPanel } from "@/components/journal/analytics-panel";
 import { captureSnapshot } from "@/lib/journal/snapshots";
 import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
@@ -207,11 +212,24 @@ function MasterplacePage() {
     "loading" | "no-session" | "ok"
   >("loading");
 
+  // Real per-strategy sizing/verdict factor from journal/discretion.ts — see
+  // that file for what feeds it. null while loading or signed out; every
+  // consumer must go through discretionFor(), which degrades to neutral
+  // (×1.0) rather than block on a miss.
+  const [discretion, setDiscretion] = useState<DiscretionPayload | null>(
+    null,
+  );
+
   const loadRisk = useCallback(async () => {
     try {
-      const [rs] = await Promise.all([getRiskState(), getSettings()]);
+      const [rs, , disc] = await Promise.all([
+        getRiskState(),
+        getSettings(),
+        getDiscretionState(),
+      ]);
       publishRisk(rs);
       setRisk(rs);
+      setDiscretion(disc);
       // Paper book equity is client desk-memory — never overwrite with server settings $100k
       setEquity(getPaperAccount().equity);
       setRiskFetchState("ok");
@@ -219,6 +237,7 @@ function MasterplacePage() {
     } catch {
       setEquity(getPaperAccount().equity);
       setRiskFetchState("no-session");
+      setDiscretion(null);
       return null;
     }
   }, [publishRisk]);
@@ -377,9 +396,18 @@ useEffect(() => {
             : desk?.right.symbol === c.symbol
               ? desk.quotes.right.price
               : desk?.quotes.left.price;
+        // Real measured-edge multiplier (journal/discretion.ts), keyed off the
+        // same strategy field paper-manager.ts already attributes trades to.
+        // Applied silently to size — paper stays one-click/frictionless by
+        // design, so the enforcement here IS the size, not a confirm dialog.
+        const disc = discretionFor(
+          discretion,
+          c.completeStrategy || c.strategyPrimary,
+        );
         const res = openPaperTradeInstant(c, {
           lastPrice,
           killzone: desk?.clock.killzone,
+          discretionMult: disc.factor,
         });
         if (res.ok) {
           // Mirror the localStorage book into desk_trades so analytics, CSV
@@ -407,7 +435,10 @@ useEffect(() => {
             },
           }).catch(() => undefined);
           setPaperToast(
-            `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}`,
+            `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}` +
+              (disc.factor !== 1.0
+                ? ` · discretion ×${disc.factor.toFixed(2)} (${disc.verdict}, n=${disc.effectiveN.toFixed(0)})`
+                : ""),
           );
           setEquity(getPaperAccount().equity);
           try {
@@ -425,7 +456,7 @@ useEffect(() => {
       setLogMode(mode);
       setLogCandidate(c);
     },
-    [desk],
+    [desk, discretion],
   );
 
   useEffect(() => {
@@ -572,6 +603,7 @@ useEffect(() => {
               killzoneCapHit: risk.killzoneCapHit,
             }
             : null,
+        discretion?.byStrategy,
       )
     : null;
   const swingSnap = desk ? evaluateOptionsSwing(desk) : null;
@@ -1030,6 +1062,10 @@ useEffect(() => {
               }
             }}
             defaultMode={logMode}
+            discretion={discretionFor(
+              discretion,
+              logCandidate.completeStrategy || logCandidate.strategyPrimary,
+            )}
           />
         )}
 
