@@ -13,6 +13,18 @@ import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import type { HtfBiasRead } from "@/lib/trading/structure";
+import type { MarketNarrative } from "@/lib/trading/market-narrative";
+import {
+  scoreCanonStack,
+  canonInputForCandidate,
+  type CanonStack,
+} from "@/lib/trading/smc-canon";
+import {
+  discretionFor,
+  type DiscretionPayload,
+} from "@/lib/journal/discretion-server";
+import type { DiscretionResult } from "@/lib/journal/discretion";
 
 function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
   return (
@@ -44,6 +56,76 @@ function StratChip({ id, primary }: { id: string; primary?: boolean }) {
       )}
     >
       {strategyLabel(id)}
+    </span>
+  );
+}
+
+/**
+ * SMC/ICT canon grade — the independent "is the STORY complete" read,
+ * distinct from the raw engine confluence number. A candidate can carry a
+ * high engine score off shared structure points while its own canon
+ * sequence (sweep -> confirmation -> POI -> killzone) is still missing a
+ * must-have — this badge is what makes that visible on the card instead of
+ * only inside the veteran-brain panel for one desk-wide pick.
+ */
+function CanonBadge({ stack }: { stack: CanonStack }) {
+  const tone =
+    stack.grade === "A+" || stack.grade === "A"
+      ? "up"
+      : stack.grade === "A-" || stack.grade === "B"
+        ? "primary"
+        : "down";
+  return (
+    <span
+      title={`${stack.thesis} — ${stack.mustHits}/${stack.mustNeed} must-have`}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold",
+        tone === "up" &&
+          "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
+        tone === "primary" &&
+          "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
+        tone === "down" &&
+          "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
+      )}
+    >
+      SMC {stack.grade} · {stack.mustHits}/{stack.mustNeed}
+    </span>
+  );
+}
+
+/**
+ * Real measured-history sizing factor (journal/discretion.ts), keyed to
+ * THIS candidate's own strategy — the same number that actually scales
+ * sizeContracts() on log, not a display-only estimate. Hidden below
+ * MIN_EFFECTIVE_N (insufficient-data) to match the LogSetupDialog readout —
+ * a strategy with no real sample yet should read as silent, not as ×1.00.
+ */
+function DiscretionBadge({ d }: { d: DiscretionResult }) {
+  if (d.verdict === "insufficient-data") return null;
+  const tone =
+    d.verdict === "favor"
+      ? "up"
+      : d.verdict === "demote"
+        ? "down"
+        : d.verdict === "caution"
+          ? "warn"
+          : "primary";
+  return (
+    <span
+      title={d.reason}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold",
+        tone === "up" &&
+          "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
+        tone === "down" &&
+          "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
+        tone === "warn" &&
+          "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
+        tone === "primary" &&
+          "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
+      )}
+    >
+      ×{d.factor.toFixed(2)} {d.verdict} (n={d.effectiveN.toFixed(0)})
     </span>
   );
 }
@@ -132,10 +214,16 @@ function SetupCard({
   c,
   onLog,
   entryAllowed = true,
+  canon,
+  discretion,
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
   entryAllowed?: boolean;
+  /** Per-candidate SMC/ICT canon grade — see canonInputForCandidate. */
+  canon?: CanonStack;
+  /** Per-candidate real discretion factor — see journal/discretion.ts. */
+  discretion?: DiscretionResult;
 }) {
   const [showDetail, setShowDetail] = useState(false);
   return (
@@ -174,6 +262,18 @@ function SetupCard({
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}
           </p>
+          {/* The brain's two independent reads on THIS candidate: is the
+              canon story complete (structure/rules), and does real
+              live+paper+backtest history favor or demote its strategy
+              (journal/discretion.ts — the same number that scales size on
+              log). Neither gates the card; both are the "guidance" the
+              engine score alone can't show. */}
+          {(canon || discretion) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              {canon && <CanonBadge stack={canon} />}
+              {discretion && <DiscretionBadge d={discretion} />}
+            </div>
+          )}
         </div>
         <div className="shrink-0 text-right font-mono">
           <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
@@ -361,14 +461,34 @@ function SetupCard({
   );
 }
 
+/** How much a candidate's guided sort key moves per canon grade. */
+const CANON_SORT_BONUS: Record<CanonStack["grade"], number> = {
+  "A+": 0.06,
+  A: 0.03,
+  "A-": 0,
+  B: -0.04,
+  skip: -0.12,
+};
+
 export function SetupScanner({
   scan,
   onLog,
   entryAllowed = true,
+  bias,
+  narrative,
+  clock,
+  discretion,
 }: {
   scan: ScanResult;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
   entryAllowed?: boolean;
+  /** Per-book HTF read — matched to each candidate by symbol for its own canon grade. */
+  bias?: { left: HtfBiasRead; right: HtfBiasRead };
+  /** Per-book liquidity/confirmation narrative — same matching. */
+  narrative?: { left: MarketNarrative; right: MarketNarrative };
+  clock?: { inTradeWindow: boolean; killzoneLabel: string };
+  /** Real per-strategy sizing factor (journal/discretion.ts via getDiscretionState). */
+  discretion?: DiscretionPayload | null;
 }) {
   const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
   const boosts = useDeskSynapse((s) => s.strategyBoosts);
@@ -381,7 +501,47 @@ export function SetupScanner({
         (c) => c.actionable || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+" || c.grade === "A+" || c.grade === "A-",
       )
     : scan.candidates;
-  const display = pathOnly && shown.length === 0 ? scan.candidates.slice(0, 4) : shown;
+  const ranked = pathOnly && shown.length === 0 ? scan.candidates.slice(0, 4) : shown;
+
+  /**
+   * Per-candidate canon grade + real discretion, computed once here so both
+   * the card render and the guided sort below use the identical numbers —
+   * two consumers of one computation, not two computations that could drift.
+   */
+  const guided = ranked.map((c) => {
+    const isRightBook = bias != null && c.symbol === bias.right.symbol;
+    const book = bias ? (isRightBook ? bias.right : bias.left) : undefined;
+    const narr = narrative ? (isRightBook ? narrative.right : narrative.left) : null;
+    const canon =
+      book && clock
+        ? scoreCanonStack(canonInputForCandidate(c, book, narr, clock))
+        : undefined;
+    const disc = discretionFor(discretion, c.completeStrategy || c.strategyPrimary);
+    return { c, canon, disc };
+  });
+
+  /**
+   * The guided order: real history and canon completeness can move a
+   * candidate up or down the list, not just decorate it — this is the
+   * literal "brain guiding the card" the desk poll used to skip. Confluence
+   * stays the dominant term (rules decide); canon and discretion are bounded
+   * nudges layered on top of the existing cross-tab synapse rank, same
+   * pattern as sizeContracts' discretionMult clamp.
+   */
+  const display = [...guided]
+    .sort((a, b) => {
+      const scoreA =
+        a.c.confluence +
+        (a.canon ? CANON_SORT_BONUS[a.canon.grade] : 0) +
+        (a.disc.factor - 1) * 0.15;
+      const scoreB =
+        b.c.confluence +
+        (b.canon ? CANON_SORT_BONUS[b.canon.grade] : 0) +
+        (b.disc.factor - 1) * 0.15;
+      return scoreB - scoreA;
+    })
+    .map((g) => g.c);
+  const guidedById = new Map(guided.map((g) => [g.c.id, g]));
 
   return (
     <section>
@@ -458,6 +618,8 @@ export function SetupScanner({
             c={c}
             onLog={onLog}
             entryAllowed={entryAllowed}
+            canon={guidedById.get(c.id)?.canon}
+            discretion={guidedById.get(c.id)?.disc}
           />
         ))}
       </div>

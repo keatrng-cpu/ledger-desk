@@ -36,7 +36,7 @@ interface YearStratRow {
   sumR: number;
 }
 
-function backtestPriorFor(strategy: string): BacktestPrior | null {
+export function backtestPriorFor(strategy: string): BacktestPrior | null {
   const byStrat = (btSeed2024 as { byStrat?: Record<string, YearStratRow> })
     .byStrat;
   const row = byStrat?.[strategy];

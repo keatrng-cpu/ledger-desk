@@ -42,6 +42,7 @@ import {
 import {
   scoreCanonStack,
   canonCoachLines,
+  canonInputForCandidate,
   type CanonStack,
 } from "./smc-canon";
 
@@ -461,7 +462,7 @@ export function runVeteranBrain(
   }
 
   // 6b) Liquidity / confirmation narrative (SMC sequence)
-  const narrPkg = (desk as { narrative?: { left: any; right: any; summary: string } }).narrative;
+  const narrPkg = desk.narrative;
   if (narrPkg) {
     const pick =
       narrPkg.left.confirmation === "armed_entry" ||
@@ -681,33 +682,36 @@ export function runVeteranBrain(
   }
 
   // 8b) Canon stack — independent ICT/SMC/TJR/PB factors
-  const narrPick = narrPkg
-    ? narrPkg.left.confirmation === "armed_entry" ||
-      narrPkg.left.confirmation === "confirmed"
-      ? narrPkg.left
-      : narrPkg.right.confirmation === "armed_entry" ||
-          narrPkg.right.confirmation === "confirmed"
-        ? narrPkg.right
-        : narrPkg.left
-    : null;
   const book =
     rawBest && rawBest.symbol === bias.right.symbol ? bias.right : bias.left;
-  const canonStack = scoreCanonStack({
-    side: rawBest ? rawBest.side : null,
-    htf: book.topDown,
-    mtf: book.mid,
-    dealingZone: book.dealing?.zone ?? null,
-    swept: narrPick?.liquidity?.lastSweep ?? "none",
-    confirmation: narrPick?.confirmation ?? "none",
-    inKillzone: clock.inTradeWindow,
-    killzoneLabel: clock.killzoneLabel,
-    smt:
-      smtNote.includes("div") ||
-      smtNote.includes("lead") ||
-      smtNote.includes("lag"),
-    components: rawBest?.components ?? [],
-    strategy: rawBest?.completeStrategy || rawBest?.strategyPrimary,
-  });
+  // Own-book narrative, not narrPick's "whichever side confirms" heuristic —
+  // scoring rawBest's canon stack off the OTHER book's liquidity/confirmation
+  // state would grade it against a story that isn't its own.
+  const ownNarrative =
+    rawBest && narrPkg
+      ? rawBest.symbol === bias.right.symbol
+        ? narrPkg.right
+        : narrPkg.left
+      : null;
+  const canonStack = rawBest
+    ? scoreCanonStack(
+        canonInputForCandidate(rawBest, book, ownNarrative, {
+          inTradeWindow: clock.inTradeWindow,
+          killzoneLabel: clock.killzoneLabel,
+        }),
+      )
+    : scoreCanonStack({
+        side: null,
+        htf: book.topDown,
+        mtf: book.mid,
+        dealingZone: book.dealing?.zone ?? null,
+        swept: "none",
+        confirmation: "none",
+        inKillzone: clock.inTradeWindow,
+        killzoneLabel: clock.killzoneLabel,
+        smt: false,
+        components: [],
+      });
   layers.push({
     id: "canon",
     label: "Canon stack",

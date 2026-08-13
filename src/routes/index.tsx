@@ -1013,6 +1013,13 @@ useEffect(() => {
                     scan={desk.scan}
                     onLog={onLog}
                     entryAllowed={entryAllowed}
+                    bias={desk.bias}
+                    narrative={desk.narrative}
+                    clock={{
+                      inTradeWindow: desk.clock.inTradeWindow,
+                      killzoneLabel: desk.clock.killzoneLabel,
+                    }}
+                    discretion={discretion}
                   />
 
                   <SectionHead

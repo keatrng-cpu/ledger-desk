@@ -72,6 +72,7 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
           bestSide: best?.side ?? null,
           bestGrade: best?.grade ?? null,
           bestConfluence: best?.confluence ?? null,
+          bestStrategy: best?.completeStrategy || best?.strategyPrimary || null,
           bestPresent: best?.reasons?.slice(0, 12),
           bestMissing: best?.missing?.slice(0, 12),
           actionableCount: desk.scan.candidates.filter((c) => c.actionable).length,

@@ -33,6 +33,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { getSql } from "@/lib/db";
+import { readClosed } from "@/lib/journal/analytics-server";
+import { normalizeKey } from "@/lib/journal/analytics";
+import { computeDiscretion, neutralDiscretion } from "@/lib/journal/discretion";
+import { backtestPriorFor } from "@/lib/journal/discretion-server";
 
 /** Anthropic Messages API. */
 const API_URL = "https://api.anthropic.com/v1/messages";
@@ -101,6 +106,14 @@ const contextSchema = z.object({
   bestConfluence: z.number().nullable().optional(),
   bestPresent: z.array(z.string().max(60)).max(20).optional(),
   bestMissing: z.array(z.string().max(60)).max(20).optional(),
+  /**
+   * A LABEL only — which strategy to look up real discretion/history for.
+   * The client cannot use this to fabricate a number: the server
+   * independently queries Postgres for whatever this names, same as every
+   * other identifier passed to a server fn in this codebase. Worst case a
+   * bad value is a wrong-strategy lookup, never a fabricated statistic.
+   */
+  bestStrategy: z.string().max(60).nullable().optional(),
   actionableCount: z.number().int().nullable().optional(),
   blocked: z.array(z.string().max(160)).max(10).optional(),
   focus: z.string().max(300).nullable().optional(),
@@ -147,7 +160,106 @@ const SYSTEM_PROMPT = [
   "is 'nothing is set up, stand down', say exactly that in one line.",
 ].join("\n");
 
-function buildUserMessage(c: z.output<typeof contextSchema>): string {
+/**
+ * The other half of the loop: MNQ/ES -> HTF bias -> confluence scanner ->
+ * risk governor -> [you are here] -> journal + analytics + memory +
+ * discretion -> back to the next read.
+ *
+ * Without this, the coach only ever saw the current bar — it could describe
+ * today's structure but had no way to say "you're on a 3-loss streak, this
+ * is exactly the pattern that's cost you before" or "blake_mech is real-data
+ * demoted, that's the same model this setup wants to use." Those are the
+ * two sentences a desk coach exists to say, and they require the journal.
+ *
+ * Fetched SERVER-SIDE from Postgres, never trusted from the client — the
+ * client only names WHICH strategy to look up (bestStrategy), it cannot
+ * supply the numbers themselves. Live and paper stay reported separately,
+ * same discipline as analytics.ts and journal/discretion.ts everywhere else
+ * in this app: "LIVE AND PAPER ARE NEVER MIXED."
+ */
+interface LoopContext {
+  liveN: number;
+  liveWinRate: number | null;
+  liveSumR: number | null;
+  liveStreak: string | null;
+  paperN: number;
+  paperWinRate: number | null;
+  paperSumR: number | null;
+  discretionLine: string | null;
+}
+
+const RECENT_WINDOW = 30;
+
+function recentStats(
+  closed: { pnl: number; r: number; closed: string }[],
+): { n: number; winRate: number | null; sumR: number | null } {
+  const window = [...closed]
+    .sort((a, b) => new Date(b.closed).getTime() - new Date(a.closed).getTime())
+    .slice(0, RECENT_WINDOW);
+  if (!window.length) return { n: 0, winRate: null, sumR: null };
+  const wins = window.filter((t) => t.pnl > 0).length;
+  const withR = window.filter((t) => Number.isFinite(t.r));
+  return {
+    n: window.length,
+    winRate: wins / window.length,
+    sumR: withR.length ? withR.reduce((a, t) => a + t.r, 0) : null,
+  };
+}
+
+function lossStreak(closed: { pnl: number; closed: string }[]): number {
+  const byRecent = [...closed].sort(
+    (a, b) => new Date(b.closed).getTime() - new Date(a.closed).getTime(),
+  );
+  let n = 0;
+  for (const t of byRecent) {
+    if (t.pnl > 0) break;
+    n += 1;
+  }
+  return n;
+}
+
+async function buildLoopContext(
+  userId: string,
+  strategy: string | null | undefined,
+): Promise<LoopContext> {
+  const sql = await getSql();
+  const [live, paper] = await Promise.all([
+    readClosed(sql, userId, "live", null),
+    readClosed(sql, userId, "paper", null),
+  ]);
+
+  const liveStats = recentStats(live);
+  const paperStats = recentStats(paper);
+  const streak = lossStreak(live);
+
+  let discretionLine: string | null = null;
+  const key = normalizeKey(strategy ?? null);
+  if (key) {
+    const liveForStrat = live.filter((t) => normalizeKey(t.strategy) === key);
+    const paperForStrat = paper.filter((t) => normalizeKey(t.strategy) === key);
+    const result =
+      liveForStrat.length || paperForStrat.length
+        ? computeDiscretion(key, liveForStrat, paperForStrat, backtestPriorFor(key))
+        : neutralDiscretion(key);
+    discretionLine = result.reason;
+  }
+
+  return {
+    liveN: liveStats.n,
+    liveWinRate: liveStats.winRate,
+    liveSumR: liveStats.sumR,
+    liveStreak: streak >= 2 ? `${streak} consecutive live losses` : null,
+    paperN: paperStats.n,
+    paperWinRate: paperStats.winRate,
+    paperSumR: paperStats.sumR,
+    discretionLine,
+  };
+}
+
+function buildUserMessage(
+  c: z.output<typeof contextSchema>,
+  loop: LoopContext,
+): string {
   const lines: string[] = ["Current desk state:"];
   const add = (label: string, v: unknown) => {
     if (v == null || v === "" || (Array.isArray(v) && v.length === 0)) return;
@@ -167,6 +279,23 @@ function buildUserMessage(c: z.output<typeof contextSchema>): string {
   add("Actionable candidates", c.actionableCount);
   add("Blocked by", c.blocked);
   add("Desk focus line", c.focus);
+
+  lines.push("");
+  lines.push("Journal — real Postgres history, trailing 30 closes, LIVE and PAPER kept separate:");
+  add(
+    "  Live",
+    loop.liveN
+      ? `n=${loop.liveN} · WR ${loop.liveWinRate != null ? (loop.liveWinRate * 100).toFixed(0) + "%" : "—"} · sumR ${loop.liveSumR != null ? loop.liveSumR.toFixed(2) : "—"}`
+      : "no closed live trades yet",
+  );
+  add(
+    "  Paper",
+    loop.paperN
+      ? `n=${loop.paperN} · WR ${loop.paperWinRate != null ? (loop.paperWinRate * 100).toFixed(0) + "%" : "—"} · sumR ${loop.paperSumR != null ? loop.paperSumR.toFixed(2) : "—"}`
+      : "no closed paper trades yet",
+  );
+  add("  Streak", loop.liveStreak);
+  add("  Discretion for this candidate's strategy", loop.discretionLine);
 
   lines.push("");
   lines.push(
@@ -201,6 +330,23 @@ export const askDeskCoach = createServerFn({ method: "POST" })
       };
     }
 
+    // Real journal/analytics/discretion state — the loop's own memory, not
+    // client-supplied. A DB hiccup degrades to an empty loop context rather
+    // than blocking narration entirely: the coach still has current-bar
+    // structure to talk about even without history.
+    const loop = await buildLoopContext(context.userId, data.bestStrategy).catch(
+      (): LoopContext => ({
+        liveN: 0,
+        liveWinRate: null,
+        liveSumR: null,
+        liveStreak: null,
+        paperN: 0,
+        paperWinRate: null,
+        paperSumR: null,
+        discretionLine: null,
+      }),
+    );
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
@@ -215,7 +361,7 @@ export const askDeskCoach = createServerFn({ method: "POST" })
           model: MODEL,
           max_tokens: MAX_TOKENS,
           system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: buildUserMessage(data) }],
+          messages: [{ role: "user", content: buildUserMessage(data, loop) }],
         }),
         signal: controller.signal,
       });

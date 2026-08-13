@@ -11,6 +11,9 @@
 
 import type { StrategyId } from "./strategies";
 import type { ComponentKey } from "./engine-weights";
+import type { SetupCandidate } from "./scanner";
+import type { HtfBiasRead } from "./structure";
+import type { MarketNarrative } from "./market-narrative";
 
 export type SchoolId = "ict" | "smc" | "tjr" | "blake" | "patty" | "ronan";
 
@@ -310,6 +313,47 @@ export interface CanonInput {
 function has(comps: string[], ...keys: string[]): boolean {
   const set = new Set(comps);
   return keys.some((k) => set.has(k));
+}
+
+/**
+ * Build the canon input for ONE candidate, from ITS OWN book's bias and
+ * narrative — not a desk-wide approximation.
+ *
+ * WHY THIS EXISTS: `runVeteranBrain` (veteran-brain.ts) used to build a
+ * `CanonInput` inline for a single desk-wide "rawBest" pick, borrowing
+ * whichever book's narrative looked most confirmed even when scoring the
+ * OTHER book's candidate. That was a reasonable shortcut for a one-paragraph
+ * brief. It stops being reasonable the moment more than one candidate needs
+ * a canon grade — the scanner routinely shows MNQ long/short and ES
+ * long/short side by side, and each one's stack must be judged against its
+ * OWN book, not borrowed from whichever book happens to read strongest.
+ *
+ * `smt` is intentionally a caller-supplied boolean rather than re-derived
+ * here: after the 2026-08-13 fix, SMT direction and book attribution are
+ * computed once in scanner.ts (scoreDirection) and already live on
+ * `candidate.reasons`/`components` as `smt`. Re-deriving it from prose here
+ * would reintroduce exactly the kind of duplicated, driftable logic this
+ * function exists to remove.
+ */
+export function canonInputForCandidate(
+  c: SetupCandidate,
+  book: Pick<HtfBiasRead, "topDown" | "mid" | "dealing">,
+  narrative: MarketNarrative | null,
+  clock: { inTradeWindow: boolean; killzoneLabel: string },
+): CanonInput {
+  return {
+    side: c.side,
+    htf: book.topDown,
+    mtf: book.mid,
+    dealingZone: book.dealing?.zone ?? null,
+    swept: narrative?.liquidity?.lastSweep ?? "none",
+    confirmation: narrative?.confirmation ?? "none",
+    inKillzone: clock.inTradeWindow,
+    killzoneLabel: clock.killzoneLabel,
+    smt: c.components.includes("smt"),
+    components: c.components,
+    strategy: c.completeStrategy || c.strategyPrimary,
+  };
 }
 
 /** Live stack vs the shared skeleton. Independent factors — not strategy-summed. */
