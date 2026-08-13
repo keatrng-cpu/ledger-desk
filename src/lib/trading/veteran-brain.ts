@@ -26,6 +26,7 @@ import {
   PATH_MONTH_CAP,
 } from "./profit-rules";
 import { ALWAYS_SCAN, type StrategyId } from "./strategies";
+import type { StrategyMarketGrade } from "./strategy-grade";
 import {
   listOpenPaperTrades,
   loadPaperTrades,
@@ -939,14 +940,34 @@ export function runVeteranBrain(
     },
   ];
 
-  // Strategy board: every ALWAYS_SCAN model ranked from live candidates
+  /**
+   * Strategy board — every ALWAYS_SCAN model at its OWN measured fit.
+   *
+   * WHAT WAS WRONG: this filtered candidates by tag membership and then
+   * reported `top.confluence` — the WINNING model's score — against every one
+   * of the nine names. Because the tag cutoff is loose (profit-path.ts admits
+   * a model at fit >= 0.35), one candidate typically carries most of the nine
+   * tags, so all nine rows selected the same candidate and printed the same
+   * number. The board read "9 strategies scanned" while showing one score
+   * nine times.
+   *
+   * The nine genuinely distinct fits already existed the whole time:
+   * `gradeAllStrategies` computes them (strategy-grade.ts) and every candidate
+   * carries the full board on `c.strategyBoard`. This reads that instead.
+   *
+   * Status now means something per model: `complete` is the model's own
+   * must-conditions being met, not a shared confluence number clearing a
+   * floor. Global vetoes (halt, news blackout) still block everything —
+   * correctly, since a halt is not model-specific.
+   */
   const strategyBoard: StrategyRead[] = ALWAYS_SCAN.map((id) => {
-    const hits = candidates.filter(
-      (c) =>
-        c.strategyPrimary === id || (c.strategies || []).includes(id),
-    );
-    const top = hits.sort((a, b) => b.confluence - a.confluence)[0];
-    if (!top) {
+    let best: { g: StrategyMarketGrade; c: SetupCandidate } | null = null;
+    for (const c of candidates) {
+      const g = c.strategyBoard?.find((b) => b.id === id);
+      if (!g) continue;
+      if (!best || g.fit > best.g.fit) best = { g, c };
+    }
+    if (!best) {
       return {
         id,
         status: "absent" as const,
@@ -954,27 +975,33 @@ export function runVeteranBrain(
         note: "Not firing on current bars",
       };
     }
-    if (!top.htfOk || vetoes.length) {
+    const { g, c } = best;
+    const missing = g.missing.length
+      ? ` · missing ${g.missing.slice(0, 2).join("+")}`
+      : "";
+    const detail = `${c.symbol} ${c.side} fit ${g.fit.toFixed(2)} ${g.band}${g.complete ? " · complete" : missing}`;
+
+    if (vetoes.length || !c.htfOk) {
       return {
         id,
         status: "blocked" as const,
-        score: top.confluence,
-        note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} — HTF/gate block`,
+        score: g.fit,
+        note: `${detail} — ${vetoes.length ? "gate veto" : "HTF block"}`,
       };
     }
-    if (top.confluence >= PROFIT_ACTION_FLOOR) {
+    if (g.complete && g.fit >= PROFIT_ACTION_FLOOR) {
       return {
         id,
         status: "ready" as const,
-        score: top.confluence,
-        note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} · PATH-eligible`,
+        score: g.fit,
+        note: `${detail} · PATH-eligible`,
       };
     }
     return {
       id,
       status: "forming" as const,
-      score: top.confluence,
-      note: `${top.symbol} ${top.side} ${top.grade} ${top.confluence.toFixed(2)} · need ${PROFIT_ACTION_FLOOR}+`,
+      score: g.fit,
+      note: `${detail} · needs complete + ${PROFIT_ACTION_FLOOR}`,
     };
   }).sort((a, b) => b.score - a.score);
 

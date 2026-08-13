@@ -145,14 +145,45 @@ export function promotePrimaryStrategy(c: SetupCandidate): SetupCandidate {
   const hasCompanion =
     unique.includes("smt") || unique.includes("tjr") || unique.includes("judas");
 
-  unique.sort((a, b) => strategyPriority(b) - strategyPriority(a));
-  let best = unique[0]!;
-  // 2024: TJR first when present; else mechanical + companion stack
-  if (unique.includes("tjr")) {
-    best = "tjr";
-  } else if (hasMech && hasCompanion) {
-    best = "mechanical";
-  }
+  /**
+   * MEASURED FIT DECIDES; the priority table only breaks ties.
+   *
+   * WHAT WAS WRONG: this used to read `if (unique.includes("tjr")) best =
+   * "tjr"` — an unconditional override. `c.strategies` admits every model
+   * scoring fit >= 0.35 (profit-path.ts), and because `structureQ` is shared
+   * across all nine templates, TJR is in that list on almost every candidate.
+   * So `strategyPrimary` was force-set to "tjr" regardless of which model
+   * actually graded highest.
+   *
+   * That is not a cosmetic mislabel. `strategyPrimary` is what gets written
+   * to `desk_trades.strategy` at log time, which is what the Phase C
+   * scoreboard groups by, what `strategyVerdict` promotes/demotes on, and
+   * what journal/discretion.ts keys its real sizing factor to. Nine different
+   * setups were all booking to one label, so every per-strategy statistic in
+   * the app was measuring a mixture rather than a model.
+   *
+   * Now: pick the model with the highest MEASURED fit among those actually
+   * present, preferring one whose own must-conditions are complete. The
+   * static `strategyPriority` table survives only as a tiebreak when two
+   * models grade within FIT_TIE of each other — a genuine tie is the only
+   * case where an author's preference ordering is the honest answer.
+   */
+  const FIT_TIE = 0.02;
+  const gradeOf = (id: string) => c.strategyBoard?.find((b) => b.id === id);
+
+  const ranked = [...unique].sort((a, b) => {
+    const ga = gradeOf(a);
+    const gb = gradeOf(b);
+    // A model with no measured grade cannot outrank one that has it.
+    if (ga && !gb) return -1;
+    if (!ga && gb) return 1;
+    if (ga && gb) {
+      if (ga.complete !== gb.complete) return ga.complete ? -1 : 1;
+      if (Math.abs(gb.fit - ga.fit) > FIT_TIE) return gb.fit - ga.fit;
+    }
+    return strategyPriority(b) - strategyPriority(a);
+  });
+  const best = ranked[0]!;
 
   const next = { ...c };
   next.strategyPrimary = best;

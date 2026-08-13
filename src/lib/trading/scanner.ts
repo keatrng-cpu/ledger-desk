@@ -168,6 +168,12 @@ function scoreDirection(
   conditions: MarketConditions,
   clock: SessionClock,
   smt: ReturnType<typeof smtRead>,
+  /**
+   * Which book this read is. SMT is a statement about ONE symbol relative to
+   * the other — the divergence credits the symbol that HELD, not both — so
+   * scoring it correctly requires knowing which side we are scoring.
+   */
+  book: "left" | "right",
 ): SetupCandidate {
   const side: SetupSide = direction === "bull" ? "long" : "short";
   const present: ComponentKey[] = [];
@@ -221,15 +227,33 @@ function scoreDirection(
   );
   add("order_block", obAligned, obAligned ? "order_block retest" : undefined);
 
-  const smtBlob = `${smt.state} ${smt.note}`.toLowerCase();
-  const smtHits =
-    smt.edge !== "none" &&
-    (smtBlob.includes(direction) ||
-      (direction === "bull" &&
-        /bull|long|strength|lead|higher low|relat/.test(smtBlob)) ||
-      (direction === "bear" &&
-        /bear|short|weak|lag|lower high|relat/.test(smtBlob)));
-  add("smt", smtHits, smtHits ? `smt: ${smt.state}` : undefined);
+  /**
+   * SMT divergence — typed, not regex-matched on prose.
+   *
+   * WHAT WAS WRONG: this used to build a lowercase blob of `state + note` and
+   * regex it. The bull pattern and the bear pattern BOTH contained `relat`,
+   * and `smtRead` returns the states `relative_strength` / `relative_weakness`
+   * — so on any relative-performance read the component fired for LONG and
+   * SHORT simultaneously, inflating both sides of the same book at once.
+   *
+   * WHAT IT MEANS NOW, per the ICT definition: SMT is a DIVERGENCE — one
+   * index makes the extreme and the correlated one fails to confirm. Only
+   * `bullish_smt` / `bearish_smt` are that. `relative_strength` and
+   * `relative_weakness` are relative performance, a different (weaker) fact,
+   * and crediting them as SMT was inflating confluence with something the
+   * framework does not count. They no longer fire this component.
+   *
+   * And the credit goes to ONE book: `smt.edge` names the side that HELD
+   * (the tradeable one). The book that swept does not get the confluence.
+   */
+  const smtDirectional =
+    smt.state === "bullish_smt"
+      ? "bull"
+      : smt.state === "bearish_smt"
+        ? "bear"
+        : null;
+  const smtHits = smtDirectional === direction && smt.edge === book;
+  add("smt", smtHits, smtHits ? `smt: ${smt.state} (holds ${read.symbol})` : undefined);
 
   const sweeps = read.liquidity.filter((l) => l.swept);
   const sideSweep =
@@ -486,12 +510,12 @@ export function scoreCandidates(
   const detR = summarizeDetectors(barsR);
 
   const candidates: SetupCandidate[] = [];
-  for (const [read, det, bars, cond] of [
-    [left, detL, barsL, condL] as const,
-    [right, detR, barsR, condR] as const,
+  for (const [read, det, bars, cond, book] of [
+    [left, detL, barsL, condL, "left"] as const,
+    [right, detR, barsR, condR, "right"] as const,
   ]) {
-    candidates.push(scoreDirection("bull", read, det, bars, cond, clock, smt));
-    candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt));
+    candidates.push(scoreDirection("bull", read, det, bars, cond, clock, smt, book));
+    candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt, book));
   }
 
   for (const c of candidates) {
