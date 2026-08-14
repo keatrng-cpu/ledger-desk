@@ -30,6 +30,7 @@ import {
   dualNarrativeSummary,
   type MarketNarrative,
 } from "./market-narrative";
+import { buildSessionBrief, type SessionBrief } from "./session-brief";
 
 export interface DeskPayload {
   ok: true;
@@ -61,6 +62,8 @@ export interface DeskPayload {
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
   /** Liquidity + confirmation + entry narrative (per book) */
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
+  /** Bull/bear paths + no-trade day — priced levels with ET windows. */
+  brief?: SessionBrief;
 }
 
 export interface DeskError {
@@ -400,6 +403,15 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         feed,
         checklist,
         narrative,
+        brief: buildSessionBrief({
+          clock,
+          bias: { left: biasL, right: biasR },
+          scan,
+          news,
+          draws: { left: drawL, right: drawR },
+          feed,
+          narrative,
+        }),
       };
     } catch (e) {
       return {

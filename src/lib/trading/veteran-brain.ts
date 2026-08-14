@@ -396,6 +396,19 @@ export function runVeteranBrain(
   }
 
   // 5) News
+  const brief = desk.brief;
+  if (brief?.verdict === "stand_down") {
+    layers.push({
+      id: "session_brief",
+      label: "Session",
+      tone: "fail",
+      score: -1,
+      detail: brief.headline,
+    });
+    vetoes.push(brief.standDownReasons[0] ?? brief.headline);
+  } else if (brief?.verdict === "reduce") {
+    yellow.push(brief.headline);
+  }
   if (news.verdict === "blackout") {
     layers.push({
       id: "news",
