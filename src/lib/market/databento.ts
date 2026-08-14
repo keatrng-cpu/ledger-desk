@@ -59,11 +59,33 @@ function continuous(symbol: IndexSymbol): string {
 }
 
 /**
- * Historical license windows lag live. Default end = now − 10h; 422 responses
- * that include a max end time are retried automatically in fetchDatabentoBars.
+ * How far behind "now" to end the request window, in minutes.
+ *
+ * WHY THIS IS A DIAL AND NOT A CONSTANT. A Databento account WITHOUT a live
+ * CME entitlement can only read historical windows, which lag real time by
+ * hours — so this defaulted to 600 (10h) to avoid 422s on every call. The
+ * moment a real entitlement is purchased, that same 600 becomes actively
+ * harmful: it would keep serving ten-hour-old bars from a feed that is now
+ * capable of near-real-time, and the desk's own lag gate would keep reporting
+ * a stale feed you are paying not to have.
+ *
+ * So: buy the entitlement, set DATABENTO_DELAY_MINUTES to a small value
+ * (0-2), redeploy. No code change. Lower it too far without the entitlement
+ * and the API answers 422 with the maximum end time it will serve, which
+ * `fetchDatabentoBars` already parses and retries against — so a wrong value
+ * degrades to the old behaviour instead of breaking the feed.
  */
+const DEFAULT_DELAY_MINUTES = 600;
+
+function delayMinutes(): number {
+  const raw = process.env.DATABENTO_DELAY_MINUTES?.trim();
+  if (!raw) return DEFAULT_DELAY_MINUTES;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_DELAY_MINUTES;
+}
+
 function rangeIso(days: number, endMs?: number): { start: string; end: string } {
-  const end = new Date(endMs ?? Date.now() - 10 * 60 * 60 * 1000);
+  const end = new Date(endMs ?? Date.now() - delayMinutes() * 60 * 1000);
   const start = new Date(end.getTime() - days * 24 * 3600 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
 }
