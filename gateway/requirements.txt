@@ -1,0 +1,4 @@
+# Pinned to floors, not exact versions — this process runs unattended and
+# should pick up patch fixes. Bump the floors deliberately, not by accident.
+databento>=0.34
+psycopg[binary]>=3.1

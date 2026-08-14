@@ -18,3 +18,8 @@ coverage/
 
 # Embedded Postgres fallback data (local dev only)
 .pglite/
+
+# Python gateway (gateway/)
+gateway/__pycache__/
+gateway/*.pyc
+gateway/.venv/

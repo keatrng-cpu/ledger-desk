@@ -37,6 +37,7 @@ import type {
   DualIndexPayload,
   IndexSymbol,
   LiveQuote,
+  MarketSource,
 } from "@/lib/market/types";
 import {
   formatExchangeClock,
@@ -69,23 +70,27 @@ function fmtPrice(n: number) {
   });
 }
 
-function SourceBadge({ source }: { source: "yahoo" | "synthetic" | "databento" }) {
+function SourceBadge({ source }: { source: MarketSource }) {
   return (
     <span
       className={cn(
         "rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-        source === "databento"
-          ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
-          : source === "yahoo"
-            ? "border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] text-[var(--color-primary)]"
-            : "border-[var(--color-border)] text-[var(--color-subtle)]",
+        source === "live_gateway"
+          ? "border-[color-mix(in_oklab,var(--color-up)_55%,var(--color-border))] text-[var(--color-up)]"
+          : source === "databento"
+            ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
+            : source === "yahoo"
+              ? "border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))] text-[var(--color-primary)]"
+              : "border-[var(--color-border)] text-[var(--color-subtle)]",
       )}
     >
-      {source === "databento"
-        ? "Databento"
-        : source === "yahoo"
-          ? "Yahoo print"
-          : "Synthetic"}
+      {source === "live_gateway"
+        ? "Live tick"
+        : source === "databento"
+          ? "Databento"
+          : source === "yahoo"
+            ? "Yahoo print"
+            : "Synthetic"}
     </span>
   );
 }
@@ -153,7 +158,7 @@ function SymbolHeader({
   quote: LiveQuote | null;
   fallbackPrice: number;
   fallbackChange: number;
-  source: "yahoo" | "synthetic" | "databento";
+  source: MarketSource;
   hover: CandleHover | null;
   wallNowMs: number;
   flash: "up" | "down" | null;

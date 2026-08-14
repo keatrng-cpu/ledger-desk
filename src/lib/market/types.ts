@@ -10,7 +10,13 @@ export interface OhlcBar {
 
 export type IndexSymbol = "MNQ" | "ES" | "NQ";
 
-export type MarketSource = "databento" | "yahoo" | "synthetic";
+/**
+ * "live_gateway" = the Python Databento-Live process
+ * (gateway/databento_live_gateway.py) via Postgres — see
+ * market/live-gateway.ts. Sub-2s freshness when the gateway is running;
+ * every consumer must check `lagSec` regardless of source, same as always.
+ */
+export type MarketSource = "databento" | "yahoo" | "live_gateway" | "synthetic";
 
 /** Second-precision last print (Yahoo meta or last Databento bar). */
 export interface LiveQuote {

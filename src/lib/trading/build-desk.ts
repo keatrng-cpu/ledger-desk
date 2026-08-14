@@ -13,6 +13,7 @@ import {
   type YahooInterval,
   type YahooRange,
 } from "@/lib/market/yahoo";
+import { readLiveTick, quoteFromLiveTick } from "@/lib/market/live-gateway";
 import type { IndexSymbol, LiveQuote, SymbolSeries } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
 import {
@@ -123,6 +124,26 @@ async function quote(
   symbol: IndexSymbol,
   series?: SymbolSeries | null,
 ): Promise<LiveQuote> {
+  /**
+   * Tier 0 — the live gateway (market/live-gateway.ts), when one is actually
+   * deployed and its latest tick is fresh. Requested 2026-08-13: 15m/1H
+   * structure tolerates a lagged print, but a 1m/5m OTE entry trigger needs
+   * the CURRENT price, and neither existing source can give that — Yahoo
+   * free futures lag ~600s by design, Databento historical windows lag
+   * hours without a live entitlement. This is the only tier that can clear
+   * the desk's QUOTE_EXECUTION_SEC (120s) gate on an ordinary day.
+   *
+   * Silent no-op with no gateway deployed: readLiveTick returns null
+   * (checked inside, never throws) and every existing caller falls through
+   * to exactly the chain that already ran before this tier existed. Shipping
+   * this changes nothing observable until a gateway process is actually
+   * running and authenticated.
+   */
+  const gatewayTick = await readLiveTick(symbol).catch(() => null);
+  if (gatewayTick) {
+    const previousClose = series?.previousClose ?? gatewayTick.price;
+    return quoteFromLiveTick(gatewayTick, series?.yahoo ?? symbol, previousClose);
+  }
   if (series?.source === "databento" && series.bars.length) {
     return quoteFromDatabentoSeries(series);
   }
@@ -159,11 +180,11 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         quote(data.right, right),
       ]);
 
-      if (lq.source === "yahoo" || lq.source === "databento") {
+      if (lq.source === "yahoo" || lq.source === "databento" || lq.source === "live_gateway") {
         left.price = lq.price;
         left.changePct = lq.changePct;
       }
-      if (rq.source === "yahoo" || rq.source === "databento") {
+      if (rq.source === "yahoo" || rq.source === "databento" || rq.source === "live_gateway") {
         right.price = rq.price;
         right.changePct = rq.changePct;
       }
