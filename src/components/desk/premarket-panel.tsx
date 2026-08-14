@@ -16,6 +16,7 @@ import {
   type PricedLevel,
   type SessionBrief,
 } from "@/lib/trading/session-brief";
+import { buildSmcTape, type SmcAlert, type SmcArray } from "@/lib/trading/smc-board";
 import { cn } from "@/lib/utils";
 
 function fmt(n: number): string {
@@ -88,13 +89,16 @@ function VerdictBanner({ brief }: { brief: SessionBrief }) {
 }
 
 function LevelRow({ l }: { l: PricedLevel }) {
+  const when = [l.tf, l.at].filter(Boolean).join(" · ");
   return (
     <li className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-[var(--color-border)]/60 py-1.5 last:border-0">
       <span className="text-xs text-[var(--color-fg)]">{l.name}</span>
       <span className="font-mono text-xs tabular text-[var(--color-fg)]">
         {fmt(l.price)}
       </span>
-      <span className="text-[10px] text-[var(--color-subtle)]">{l.window}</span>
+      <span className="text-[10px] text-[var(--color-subtle)]">
+        {when || l.window}
+      </span>
       <span
         className={cn(
           "text-[10px] font-medium uppercase tracking-wide",
@@ -102,6 +106,69 @@ function LevelRow({ l }: { l: PricedLevel }) {
         )}
       >
         {l.swept ? "swept" : l.scope}
+      </span>
+    </li>
+  );
+}
+
+function alertTone(a: SmcAlert): string {
+  if (a.kind === "distribution" || a.kind === "manipulation") return "down";
+  if (a.kind === "accumulation") return "up";
+  if (a.side === "bear") return "down";
+  if (a.side === "bull") return "up";
+  return "warn";
+}
+
+function AlertStrip({ alerts }: { alerts: SmcAlert[] }) {
+  if (!alerts.length) return null;
+  return (
+    <ul className="mb-2 flex flex-wrap gap-1.5">
+      {alerts.map((a) => {
+        const tone = alertTone(a);
+        return (
+          <li
+            key={a.id}
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] font-medium",
+              tone === "down" &&
+                "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
+              tone === "up" &&
+                "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]",
+              tone === "warn" &&
+                "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
+            )}
+            title={a.label}
+          >
+            {a.tf} · {a.label} · {a.at}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ArrayRow({ a }: { a: SmcArray }) {
+  return (
+    <li className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-0.5 border-b border-[var(--color-border)]/60 py-1.5 last:border-0">
+      <span className="text-xs text-[var(--color-fg)]">
+        {a.label}
+        <span
+          className={cn(
+            "ml-1.5 text-[10px] uppercase",
+            a.side === "bull" ? "text-[var(--color-up)]" : "text-[var(--color-down)]",
+          )}
+        >
+          {a.side}
+        </span>
+      </span>
+      <span className="font-mono text-xs tabular text-[var(--color-fg)]">
+        {fmt(a.bottom)}–{fmt(a.top)}
+      </span>
+      <span className="text-[10px] text-[var(--color-subtle)]">
+        {a.tf} · {a.at}
+      </span>
+      <span className="text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
+        {a.state}
       </span>
     </li>
   );
@@ -290,7 +357,12 @@ export function PremarketPanel({ desk }: { desk: DeskPayload }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {[left, right].map((b) => (
+        {[
+          { book: left, bars: desk.left.bars },
+          { book: right, bars: desk.right.bars },
+        ].map(({ book: b, bars }) => {
+          const tape = buildSmcTape(bars);
+          return (
           <div
             key={b.symbol}
             className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-4"
@@ -315,6 +387,7 @@ export function PremarketPanel({ desk }: { desk: DeskPayload }) {
                   : ""}
               </p>
             )}
+            <AlertStrip alerts={tape.alerts} />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-down)]">
@@ -343,8 +416,24 @@ export function PremarketPanel({ desk }: { desk: DeskPayload }) {
                 </ul>
               </div>
             </div>
+            <div className="mt-3">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">
+                Arrays · FVG / iFVG / OB / BB / RB
+              </p>
+              <ul>
+                {tape.arrays.slice(0, 8).map((a) => (
+                  <ArrayRow key={`${a.kind}-${a.tf}-${a.mid}-${a.t}`} a={a} />
+                ))}
+                {!tape.arrays.length && (
+                  <li className="text-xs text-[var(--color-subtle)]">
+                    No fresh arrays on 4H / 1H / 15m
+                  </li>
+                )}
+              </ul>
+            </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">

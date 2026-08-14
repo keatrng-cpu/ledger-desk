@@ -30,6 +30,8 @@ export interface LiquidityPool {
   label: string;
   strength: number;
   swept: boolean;
+  t?: number;
+  tf?: "15m" | "1h" | "4h" | "session" | "daily" | "weekly";
 }
 
 export interface DealingRange {
@@ -212,6 +214,7 @@ function liquidityPools(
     label: string,
     strength: number,
     scopeOverride?: "internal" | "external",
+    extra?: { t?: number; tf?: LiquidityPool["tf"] },
   ) => {
     if (price == null || !Number.isFinite(price)) return;
     const scope = scopeOverride ?? scopeOf(price);
@@ -231,20 +234,31 @@ function liquidityPools(
         dup.label = label;
         dup.strength = strength;
         dup.swept = swept;
+        if (extra?.t) dup.t = extra.t;
+        if (extra?.tf) dup.tf = extra.tf;
       }
       return;
     }
-    pools.push({ price, side, scope, label, strength, swept });
+    pools.push({
+      price,
+      side,
+      scope,
+      label,
+      strength,
+      swept,
+      t: extra?.t,
+      tf: extra?.tf,
+    });
   };
 
-  push(levels.pdl, "sellside", "PDL (external SSL)", 5, "external");
-  push(levels.pwl, "sellside", "PWL (external SSL)", 6, "external");
-  push(levels.pdh, "buyside", "PDH (external BSL)", 5, "external");
-  push(levels.pwh, "buyside", "PWH (external BSL)", 6, "external");
+  push(levels.pdl, "sellside", "PDL (external SSL)", 5, "external", { tf: "daily" });
+  push(levels.pwl, "sellside", "PWL (external SSL)", 6, "external", { tf: "weekly" });
+  push(levels.pdh, "buyside", "PDH (external BSL)", 5, "external", { tf: "daily" });
+  push(levels.pwh, "buyside", "PWH (external BSL)", 6, "external", { tf: "weekly" });
 
   if (dealing) {
-    push(dealing.low, "sellside", "Range low (internal SSL)", 4, "internal");
-    push(dealing.high, "buyside", "Range high (internal BSL)", 4, "internal");
+    push(dealing.low, "sellside", "Range low (internal SSL)", 4, "internal", { tf: "15m" });
+    push(dealing.high, "buyside", "Range high (internal BSL)", 4, "internal", { tf: "15m" });
   }
 
   const highs = swings.filter((s) => s.kind === "high").slice(-24);
@@ -275,6 +289,7 @@ function liquidityPools(
           `${baseLabel} ×${group.length} (${scope})`,
           3 + group.length,
           scope,
+          { t: group[group.length - 1]!.t, tf: "15m" },
         );
       }
     }
@@ -293,6 +308,7 @@ function liquidityPools(
         : "Swing low (internal SSL)",
       scope === "external" ? 3.5 : 2.5,
       scope,
+      { t: s.t, tf: "15m" },
     );
   }
   for (const s of highs.slice(-10)) {
@@ -305,52 +321,50 @@ function liquidityPools(
         : "Swing high (internal BSL)",
       scope === "external" ? 3.5 : 2.5,
       scope,
+      { t: s.t, tf: "15m" },
     );
   }
 
-  type SessBucket = { hi: number; lo: number; n: number };
-  const asia: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
-  const london: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
-  const ny: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
-  const day: SessBucket = { hi: -Infinity, lo: Infinity, n: 0 };
+  type SessBucket = { hi: number; lo: number; n: number; hiT: number; loT: number };
+  const asia: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
+  const london: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
+  const ny: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
+  const day: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
   const lookback = bars.slice(-Math.min(bars.length, 200));
   for (const b of lookback) {
     const p = etWallParts(b.t);
     const h = p.hour + p.minute / 60;
-    if (h >= 18 || h < 2) {
-      asia.hi = Math.max(asia.hi, b.h);
-      asia.lo = Math.min(asia.lo, b.l);
-      asia.n++;
-    }
-    if (h >= 2 && h < 8) {
-      london.hi = Math.max(london.hi, b.h);
-      london.lo = Math.min(london.lo, b.l);
-      london.n++;
-    }
-    if (h >= 8 && h < 17) {
-      ny.hi = Math.max(ny.hi, b.h);
-      ny.lo = Math.min(ny.lo, b.l);
-      ny.n++;
-    }
-    day.hi = Math.max(day.hi, b.h);
-    day.lo = Math.min(day.lo, b.l);
-    day.n++;
+    const hit = (s: SessBucket) => {
+      if (b.h >= s.hi) {
+        s.hi = b.h;
+        s.hiT = b.t;
+      }
+      if (b.l <= s.lo) {
+        s.lo = b.l;
+        s.loT = b.t;
+      }
+      s.n++;
+    };
+    if (h >= 18 || h < 2) hit(asia);
+    if (h >= 2 && h < 8) hit(london);
+    if (h >= 8 && h < 17) hit(ny);
+    hit(day);
   }
   if (asia.n > 0) {
-    push(asia.lo, "sellside", "Asia low (SSL)", 3.2, scopeOf(asia.lo));
-    push(asia.hi, "buyside", "Asia high (BSL)", 3.0, scopeOf(asia.hi));
+    push(asia.lo, "sellside", "Asia low (SSL)", 3.2, scopeOf(asia.lo), { t: asia.loT, tf: "session" });
+    push(asia.hi, "buyside", "Asia high (BSL)", 3.0, scopeOf(asia.hi), { t: asia.hiT, tf: "session" });
   }
   if (london.n > 0) {
-    push(london.lo, "sellside", "London low (SSL)", 3.2, scopeOf(london.lo));
-    push(london.hi, "buyside", "London high (BSL)", 3.0, scopeOf(london.hi));
+    push(london.lo, "sellside", "London low (SSL)", 3.2, scopeOf(london.lo), { t: london.loT, tf: "session" });
+    push(london.hi, "buyside", "London high (BSL)", 3.0, scopeOf(london.hi), { t: london.hiT, tf: "session" });
   }
   if (ny.n > 0) {
-    push(ny.lo, "sellside", "NY low (SSL)", 3.0, scopeOf(ny.lo));
-    push(ny.hi, "buyside", "NY high (BSL)", 2.8, scopeOf(ny.hi));
+    push(ny.lo, "sellside", "NY low (SSL)", 3.0, scopeOf(ny.lo), { t: ny.loT, tf: "session" });
+    push(ny.hi, "buyside", "NY high (BSL)", 2.8, scopeOf(ny.hi), { t: ny.hiT, tf: "session" });
   }
   if (day.n > 0) {
-    push(day.lo, "sellside", "Session low (SSL)", 2.5, scopeOf(day.lo));
-    push(day.hi, "buyside", "Session high (BSL)", 2.5, scopeOf(day.hi));
+    push(day.lo, "sellside", "Session low (SSL)", 2.5, scopeOf(day.lo), { t: day.loT, tf: "session" });
+    push(day.hi, "buyside", "Session high (BSL)", 2.5, scopeOf(day.hi), { t: day.hiT, tf: "session" });
   }
 
   return pools

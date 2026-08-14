@@ -32,6 +32,8 @@ export interface LiquidityPool {
   label: string;
   strength: number;
   swept: boolean;
+  t?: number;
+  tf?: "15m" | "1h" | "4h" | "session" | "daily" | "weekly";
 }
 
 export function mapLiquidityPools(
@@ -68,6 +70,7 @@ export function mapLiquidityPools(
     label: string,
     strength: number,
     scopeOverride?: "internal" | "external",
+    extra?: { t?: number; tf?: LiquidityPool["tf"] },
   ) => {
     if (price == null || !Number.isFinite(price)) return;
     const scope = scopeOverride ?? scopeOf(price);
@@ -87,22 +90,33 @@ export function mapLiquidityPools(
         dup.label = label;
         dup.strength = strength;
         dup.swept = swept;
+        if (extra?.t) dup.t = extra.t;
+        if (extra?.tf) dup.tf = extra.tf;
       }
       return;
     }
-    pools.push({ price, side, scope, label, strength, swept });
+    pools.push({
+      price,
+      side,
+      scope,
+      label,
+      strength,
+      swept,
+      t: extra?.t,
+      tf: extra?.tf,
+    });
   };
 
   // EXTERNAL HTF references
-  push(levels.pdl, "sellside", "PDL (external SSL)", 5, "external");
-  push(levels.pwl, "sellside", "PWL (external SSL)", 6, "external");
-  push(levels.pdh, "buyside", "PDH (external BSL)", 5, "external");
-  push(levels.pwh, "buyside", "PWH (external BSL)", 6, "external");
+  push(levels.pdl, "sellside", "PDL (external SSL)", 5, "external", { tf: "daily" });
+  push(levels.pwl, "sellside", "PWL (external SSL)", 6, "external", { tf: "weekly" });
+  push(levels.pdh, "buyside", "PDH (external BSL)", 5, "external", { tf: "daily" });
+  push(levels.pwh, "buyside", "PWH (external BSL)", 6, "external", { tf: "weekly" });
 
   // Dealing-range extremes (internal boundary)
   if (dealing) {
-    push(dealing.low, "sellside", "Range low (internal SSL)", 4, "internal");
-    push(dealing.high, "buyside", "Range high (internal BSL)", 4, "internal");
+    push(dealing.low, "sellside", "Range low (internal SSL)", 4, "internal", { tf: "15m" });
+    push(dealing.high, "buyside", "Range high (internal BSL)", 4, "internal", { tf: "15m" });
   }
 
   // Equal highs / lows
@@ -134,6 +148,7 @@ export function mapLiquidityPools(
           `${base} ×${group.length} (${scope})`,
           3 + group.length,
           scope,
+          { t: group[group.length - 1]!.t, tf: "15m" },
         );
       }
     }
@@ -152,6 +167,7 @@ export function mapLiquidityPools(
         : "Swing low (internal SSL)",
       scope === "external" ? 3.5 : 2.5,
       scope,
+      { t: s.t, tf: "15m" },
     );
   }
   for (const s of highs.slice(-6)) {
@@ -164,6 +180,7 @@ export function mapLiquidityPools(
         : "Swing high (internal BSL)",
       scope === "external" ? 3.5 : 2.5,
       scope,
+      { t: s.t, tf: "15m" },
     );
   }
 
@@ -172,12 +189,20 @@ export function mapLiquidityPools(
   if (dayBars.length) {
     let sh = -Infinity;
     let sl = Infinity;
+    let shT = dayBars[0]!.t;
+    let slT = dayBars[0]!.t;
     for (const b of dayBars) {
-      sh = Math.max(sh, b.h);
-      sl = Math.min(sl, b.l);
+      if (b.h >= sh) {
+        sh = b.h;
+        shT = b.t;
+      }
+      if (b.l <= sl) {
+        sl = b.l;
+        slT = b.t;
+      }
     }
-    push(sh, "buyside", "Session high (BSL)", 3, scopeOf(sh));
-    push(sl, "sellside", "Session low (SSL)", 3, scopeOf(sl));
+    push(sh, "buyside", "Session high (BSL)", 3, scopeOf(sh), { t: shT, tf: "session" });
+    push(sl, "sellside", "Session low (SSL)", 3, scopeOf(sl), { t: slT, tf: "session" });
   }
 
   return pools

@@ -31,6 +31,8 @@ export interface PricedLevel {
   scope: "internal" | "external" | "session";
   swept: boolean;
   side: "bsl" | "ssl";
+  at?: string;
+  tf?: string;
 }
 
 export interface PathPlan {
@@ -138,6 +140,8 @@ function toLevel(p: LiquidityPool): PricedLevel {
     scope: p.scope,
     swept: p.swept,
     side: p.side === "buyside" ? "bsl" : "ssl",
+    at: p.t ? etStamp(p.t) : undefined,
+    tf: p.tf,
   };
 }
 

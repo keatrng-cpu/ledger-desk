@@ -815,7 +815,54 @@ useEffect(() => {
             {paperToast}
           </div>
         )}
-        {desk && <SessionHud desk={desk} wallNow={wallNow} />}
+        {desk && (
+          <SessionHud desk={desk} wallNow={wallNow}>
+            <nav
+              className="mx-auto mt-2 max-w-7xl overflow-x-auto"
+              aria-label="Profit categories"
+            >
+              <div className="flex min-w-max gap-1.5 sm:min-w-0 sm:flex-wrap">
+                {CATEGORIES.map((c) => {
+                  const Icon = c.icon;
+                  const on = cat === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setCat(c.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-left transition-colors",
+                        on
+                          ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
+                          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "h-3.5 w-3.5 shrink-0",
+                          on
+                            ? "text-[var(--color-primary)]"
+                            : "text-[var(--color-subtle)]",
+                        )}
+                      />
+                      <span className="text-xs font-semibold">
+                        <span className="sm:hidden">{c.short}</span>
+                        <span className="hidden sm:inline">{c.label}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1.5 px-1 text-[10px] text-[var(--color-subtle)]">
+                <span className="font-medium text-[var(--color-muted)]">
+                  {active.label}
+                </span>
+                {" — "}
+                {active.hint}
+              </p>
+            </nav>
+          </SessionHud>
+        )}
         {/* Storage + build identity: silent data loss and a stale page are the
             two failures that look like nothing is wrong. */}
         <StorageBanner />
@@ -937,52 +984,6 @@ useEffect(() => {
 
         {desk && (
           <>
-            {/* Category nav — sticky, profitability-first */}
-            <nav
-              className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-1 mt-3 mb-4 overflow-x-auto bg-[color-mix(in_oklab,var(--color-bg)_92%,transparent)] px-1 py-2 backdrop-blur-md"
-              aria-label="Profit categories"
-            >
-              <div className="flex min-w-max gap-1.5 sm:min-w-0 sm:flex-wrap">
-                {CATEGORIES.map((c) => {
-                  const Icon = c.icon;
-                  const on = cat === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCat(c.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-left transition-colors",
-                        on
-                          ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
-                          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          "h-3.5 w-3.5 shrink-0",
-                          on
-                            ? "text-[var(--color-primary)]"
-                            : "text-[var(--color-subtle)]",
-                        )}
-                      />
-                      <span className="text-xs font-semibold">
-                        <span className="sm:hidden">{c.short}</span>
-                        <span className="hidden sm:inline">{c.label}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-1.5 px-1 text-[10px] text-[var(--color-subtle)]">
-                <span className="font-medium text-[var(--color-muted)]">
-                  {active.label}
-                </span>
-                {" — "}
-                {active.hint}
-              </p>
-            </nav>
-
             {/* Category panels — only one active for focus */}
             <div className="min-h-[50vh]">
               <SynapseRail tab={cat} />
