@@ -86,6 +86,7 @@ import {
   checkScheduledJobs,
 } from "@/lib/alerts/trigger-server";
 import { StorageBanner } from "@/components/desk/storage-banner";
+import { tryApexAutofire, AUTOFIRE_CONFLUENCE_FLOOR } from "@/lib/execution/apex-autofire";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -189,6 +190,60 @@ function recordArmedShadow(desk: DeskPayload, equity: number): void {
   } catch {
     /* invalid geometry on this poll tick — skip, try again next poll */
   }
+}
+
+/**
+ * ROADMAP addendum, 2026-08-14 — Apex evaluation-phase autofire. Rides the
+ * SAME poll tick and the SAME best-actionable-candidate lookup as
+ * `recordArmedShadow` above; this is a cheap client-side pre-filter only
+ * (actionable + confluence floor) to avoid a round-trip on every poll for a
+ * candidate that obviously will not qualify — it is NOT the real gate. The
+ * real gate (Apex account phase, the autofire switch, halts, pathTakeGate,
+ * per-account trailing-drawdown) lives entirely in `tryApexAutofire` on the
+ * server, because the phase-lock reads `process.env` and must never be
+ * evaluated in the browser bundle (see that file's header). This function
+ * fires on every poll where a qualifying candidate is present; the server
+ * fn is what actually decides whether anything gets sent, and it refuses
+ * far more often than it sends by design.
+ *
+ * Fire-and-forget, same as every other poll-loop side effect on this page —
+ * a slow or failed autofire attempt must never block the desk from
+ * rendering. Result is logged (not toasted): the journal panel and the
+ * shadow-order review already surface a fired trade, and a page-load toast
+ * for something that happens with no click would be easy to miss/dismiss
+ * without reading — console is the honest channel until this has run for
+ * real and earns a dedicated UI treatment.
+ */
+function maybeAutofire(desk: DeskPayload, equity: number): void {
+  const candidate = desk.scan.candidates.find(
+    (c) => c.actionable && c.confluence >= AUTOFIRE_CONFLUENCE_FLOOR,
+  );
+  if (!candidate) return;
+
+  const lastPrice =
+    desk.left.symbol === candidate.symbol
+      ? desk.quotes.left.price
+      : desk.right.symbol === candidate.symbol
+        ? desk.quotes.right.price
+        : desk.quotes.left.price;
+
+  void tryApexAutofire({
+    data: {
+      candidate,
+      equity,
+      killzone: desk.clock.killzone,
+      lastPrice,
+    },
+  })
+    .then((res) => {
+      // Only the firing case is logged — a routine refusal (switch off,
+      // wrong phase, gate unmet) happens on most polls by design and would
+      // just be console noise, same restraint `recordArmedShadow` uses.
+      if (res.fired) {
+        console.info("[apex-autofire]", res.reason);
+      }
+    })
+    .catch(() => undefined);
 }
 
 /**
@@ -419,6 +474,7 @@ function MasterplacePage() {
         recordArmedShadow(res, getPaperAccount().equity);
         observeAndTickGhosts(res);
         raiseDeskAlerts(res);
+        maybeAutofire(res, getPaperAccount().equity);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Desk load failed");

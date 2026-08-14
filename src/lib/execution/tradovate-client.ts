@@ -32,12 +32,29 @@ const TOKEN_MARGIN_MS = 60_000;
 /** Network timeout. Netlify functions cap well below this; fail fast. */
 const REQUEST_TIMEOUT_MS = 12_000;
 
+export interface TradovateAccount {
+  id: number;
+  name: string;
+}
+
 interface CachedToken {
   accessToken: string;
   expiresAtMs: number;
-  /** Tradovate returns the account list with the token; cached alongside. */
+  /**
+   * Primary account (first active in Tradovate's own list) — kept for the
+   * single-account send path.
+   */
   accountId: number | null;
   accountSpec: string | null;
+  /**
+   * EVERY active account under this login — e.g. the 5 Apex evaluation
+   * sub-accounts (APEX-644704-01..05) that live under one Tradovate
+   * username. `tradovate-orders.ts`'s fan-out send iterates this list rather
+   * than depending on Tradovate's own Group Copier, which explicitly
+   * excludes prop-firm/evaluation accounts from cross-account linking —
+   * confirmed from Tradovate's own support docs, not assumed.
+   */
+  allAccounts: TradovateAccount[];
 }
 
 const tokenCache = new Map<ExecutionEnv, CachedToken>();
@@ -134,17 +151,21 @@ export async function tradovateToken(
     expiresAtMs,
     accountId: null,
     accountSpec: null,
+    allAccounts: [],
   };
 
-  // Resolve the trading account once per token — every order needs both the
-  // numeric id and the spec/name.
+  // Resolve every account under this login once per token — every order
+  // needs the numeric id and spec/name, and a multi-account send (Apex's 5
+  // sibling evaluations) needs all of them, not just one.
   try {
     const accounts = await fetchJson<
       { id: number; name: string; active?: boolean }[]
     >(`${tradovateBaseUrl(env)}/account/list`, {
       headers: { authorization: `Bearer ${res.accessToken}` },
     });
-    const account = accounts.find((a) => a.active !== false) ?? accounts[0];
+    const active = accounts.filter((a) => a.active !== false);
+    token.allAccounts = active.map((a) => ({ id: a.id, name: a.name }));
+    const account = active[0] ?? accounts[0];
     if (account) {
       token.accountId = account.id;
       token.accountSpec = account.name;

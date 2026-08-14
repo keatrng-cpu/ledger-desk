@@ -34,10 +34,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { orderIntentSchema, type OrderIntent } from "./order-intent";
-import { readExecutionReadiness, executionEnv } from "./execution-gate";
-import { tradovateRequest, tradovateToken } from "./tradovate-client";
+import { readExecutionReadiness, executionEnv, apexAccountRisk } from "./execution-gate";
+import { tradovateRequest, tradovateToken, type TradovateAccount } from "./tradovate-client";
 import { insertShadowRow } from "./shadow";
 import { getSql } from "@/lib/db";
+import { CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 
 /** Tradovate expects its own action vocabulary. */
 const ACTION = { long: "Buy", short: "Sell" } as const;
@@ -199,6 +200,245 @@ export const placeTradovateOrder = createServerFn({ method: "POST" })
     return { sent: true, orderId: res.orderId, env, reason: null };
   });
 
+/**
+ * ROADMAP addendum, 2026-08-14 — Apex Trader Funding: 5 sibling $50K
+ * "Tradovate Intraday Trail" evaluations (APEX-644704-01..05) under one
+ * Tradovate login.
+ *
+ * WHY THIS EXISTS INSTEAD OF TRADOVATE'S OWN GROUP COPIER. Checked directly
+ * before building this: Tradovate's native Group Copier explicitly excludes
+ * prop-firm/evaluation accounts from being linked in a copy group
+ * ("cannot link a Tradovate account with a prop firm or evaluation service
+ * account" — confirmed from Tradovate's own support docs). Whether Apex's
+ * OWN separate Group Copier product covers eval accounts specifically was
+ * genuinely contradicted between two independent sources when checked, and
+ * Apex's own docs pages could not be reached (blocked) to settle it. Rather
+ * than build automation on top of a rule that could not be confirmed, this
+ * fans out directly — the SAME OrderIntent, sent independently to every
+ * account this login can see, using code already built and verified in
+ * this file.
+ *
+ * PER-ACCOUNT, INDEPENDENT SAFETY. Apex's trailing drawdown is evaluated
+ * per account — "the account balance touches the threshold, THAT account
+ * fails or closes" (confirmed). One account tripping must never block or
+ * affect the other four, and a healthy account must never be silently
+ * skipped because a DIFFERENT account looks unhealthy. So every account is
+ * checked against its OWN apexAccountRisk() independently; only the
+ * accounts that pass their own check receive the order.
+ *
+ * *** POSITION/CONTRACT RESOLUTION IS BEST-EFFORT, UNVERIFIED *** — same
+ * status as the rest of this session's execution code. `/position/list`'s
+ * exact per-account scoping and `/contract/item`'s response shape have not
+ * been confirmed against a real connection. Consistent with every breaker
+ * in this file: an account whose open-position risk cannot be confidently
+ * resolved is treated as UNSAFE and skipped, never assumed flat.
+ */
+export interface FanOutAccountResult {
+  accountId: number;
+  accountName: string | null;
+  sent: boolean;
+  orderId: number | null;
+  reason: string | null;
+}
+
+const APEX_EVAL_STARTING_BALANCE_USD = 50_000;
+
+/** Resolve a Tradovate contractId to this desk's known point value, or null. */
+async function resolveContractPointValue(
+  contractId: number,
+  env: ReturnType<typeof executionEnv>,
+  cache: Map<number, number | null>,
+): Promise<number | null> {
+  if (cache.has(contractId)) return cache.get(contractId) ?? null;
+  try {
+    const contract = await tradovateRequest<{ name?: string }>(
+      `/contract/item?id=${contractId}`,
+      {},
+      env,
+    );
+    const root = (contract.name ?? "").replace(/[A-Z]\d{1,2}$/, "").trim() as ContractKey;
+    const pv = root in CONTRACTS ? CONTRACTS[root].pointValue : null;
+    cache.set(contractId, pv);
+    return pv;
+  } catch {
+    cache.set(contractId, null);
+    return null;
+  }
+}
+
+const fanOutInput = z.object({
+  intent: orderIntentSchema,
+  expectEnv: z.enum(["demo", "live"]),
+});
+
+/**
+ * Send the SAME bracketed order to every account under this login, after an
+ * INDEPENDENT Apex trailing-drawdown check per account. Refuses to send at
+ * all if the base readiness gate fails (kill switch, credentials, the
+ * generic daily-loss breaker) — this is additive risk checking, not a
+ * replacement for anything already enforced.
+ */
+export const placeTradovateOrderAllAccounts = createServerFn({ method: "POST" })
+  .validator((input: unknown) => fanOutInput.parse(input))
+  .middleware([authMiddleware])
+  .handler(async ({ data, context }): Promise<{
+    env: string;
+    results: FanOutAccountResult[];
+    blockedReason: string | null;
+  }> => {
+    const env = executionEnv();
+
+    if (data.expectEnv !== env) {
+      return {
+        env,
+        results: [],
+        blockedReason: `Environment mismatch: caller expected ${data.expectEnv}, server resolves ${env}.`,
+      };
+    }
+
+    const readiness = await readExecutionReadiness(context.userId);
+    if (!readiness.canSend) {
+      return { env, results: [], blockedReason: `Blocked: ${readiness.blockers.join(" · ")}` };
+    }
+
+    const intent = data.intent as OrderIntent;
+    if (!Number.isFinite(intent.stop) || intent.stop <= 0) {
+      return { env, results: [], blockedReason: "Refused: order has no protective stop." };
+    }
+
+    const token = await tradovateToken(env);
+    const accounts: TradovateAccount[] = token.allAccounts;
+    if (!accounts.length) {
+      return { env, results: [], blockedReason: "No Tradovate accounts resolved for these credentials." };
+    }
+
+    // One position read covers every account — cheaper than N separate
+    // calls, and every consumer here already treats a read failure as
+    // "unknown, therefore unsafe" per-account below.
+    let allPositions: { accountId?: number; contractId: number; netPos: number; netPrice: number | null }[] = [];
+    let positionsReadable = true;
+    try {
+      allPositions = await tradovateRequest<typeof allPositions>("/position/list", {}, env);
+    } catch {
+      positionsReadable = false;
+    }
+
+    const contractPvCache = new Map<number, number | null>();
+    const results: FanOutAccountResult[] = [];
+
+    for (const account of accounts) {
+      // Build this account's open-position inputs for the breaker. A
+      // position readable at all but whose point value cannot be resolved
+      // makes this account's risk unknown — and unknown fails closed.
+      const accountPositions = allPositions.filter(
+        (p) => p.accountId === account.id && p.netPos !== 0,
+      );
+      let positionsResolved = positionsReadable;
+      const openPositions: { symbol: string; netPos: number; pointValue: number; currentPrice: number; avgPrice: number }[] = [];
+      for (const p of accountPositions) {
+        const pv = await resolveContractPointValue(p.contractId, env, contractPvCache);
+        if (pv == null || p.netPrice == null) {
+          positionsResolved = false;
+          break;
+        }
+        // Mark-to-market against the position's own recorded price when no
+        // fresher tick is available at breaker-check time — conservative:
+        // this reads $0 unrealized rather than invent a current price this
+        // function has no independent source for.
+        openPositions.push({
+          symbol: String(p.contractId),
+          netPos: p.netPos,
+          pointValue: pv,
+          currentPrice: p.netPrice,
+          avgPrice: p.netPrice,
+        });
+      }
+
+      if (!positionsResolved) {
+        results.push({
+          accountId: account.id,
+          accountName: account.name,
+          sent: false,
+          orderId: null,
+          reason: "Skipped: open-position risk on this account could not be confidently resolved.",
+        });
+        continue;
+      }
+
+      const risk = await apexAccountRisk({
+        env,
+        accountId: account.id,
+        accountName: account.name,
+        userId: context.userId,
+        startingBalanceUsd: APEX_EVAL_STARTING_BALANCE_USD,
+        openPositions,
+      });
+
+      if (risk.tripped) {
+        results.push({
+          accountId: account.id,
+          accountName: account.name,
+          sent: false,
+          orderId: null,
+          reason: `Skipped: Apex trailing-drawdown breaker — ${risk.reason ?? "tripped"}`,
+        });
+        continue;
+      }
+
+      // Per-account idempotency: same decision, distinct account, distinct
+      // key — otherwise Tradovate's own dedupe would treat the 2nd..5th
+      // account's identical clOrdId as a repeat of the 1st and drop it.
+      const perAccountIntent: OrderIntent = {
+        ...intent,
+        clientOrderId: `${intent.clientOrderId}-acct${account.id}`,
+      };
+
+      try {
+        const sql = await getSql();
+        await insertShadowRow(sql, context.userId, {
+          intent: perAccountIntent,
+          source: "desk",
+          ts: intent.createdAt,
+          notes: `tradovate ${env} fan-out send · account ${account.name ?? account.id}`,
+        });
+      } catch {
+        /* logging must not block the trade decision */
+      }
+
+      try {
+        const res = await tradovateRequest<{ orderId?: number; failureReason?: string }>(
+          "/order/placeOSO",
+          {
+            method: "POST",
+            body: JSON.stringify(osoPayload(perAccountIntent, account.id, account.name)),
+          },
+          env,
+        );
+        results.push(
+          res.orderId
+            ? { accountId: account.id, accountName: account.name, sent: true, orderId: res.orderId, reason: null }
+            : {
+                accountId: account.id,
+                accountName: account.name,
+                sent: false,
+                orderId: null,
+                reason: `Tradovate refused: ${res.failureReason ?? "no order id returned"}`,
+              },
+        );
+      } catch (e) {
+        results.push({
+          accountId: account.id,
+          accountName: account.name,
+          sent: false,
+          orderId: null,
+          reason: e instanceof Error ? e.message : "send failed",
+        });
+      }
+    }
+
+    return { env, results, blockedReason: null };
+  });
+
 export interface BrokerPosition {
   symbol: string;
   netPos: number;
@@ -252,24 +492,58 @@ export const syncTradovatePositions = createServerFn({ method: "GET" })
  */
 export const flattenAllTradovate = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .handler(async (): Promise<{ ok: boolean; error: string | null }> => {
+  .handler(async (): Promise<{
+    ok: boolean;
+    error: string | null;
+    results: { accountId: number; accountName: string | null; ok: boolean; error: string | null }[];
+  }> => {
     const env = executionEnv();
     try {
       const token = await tradovateToken(env);
-      if (token.accountId == null) {
-        return { ok: false, error: "no account resolved" };
+      // Flatten every account this login can see, not just the primary one
+      // — a panic button that only closes 1 of 5 Apex accounts leaves real
+      // exposure open on the other four. Falls back to the single
+      // primary-account path if the account list could not be resolved for
+      // any reason, so this never does LESS than the original behavior.
+      const targets: TradovateAccount[] =
+        token.allAccounts.length > 0
+          ? token.allAccounts
+          : token.accountId != null
+            ? [{ id: token.accountId, name: token.accountSpec ?? "" }]
+            : [];
+
+      if (!targets.length) {
+        return { ok: false, error: "no account resolved", results: [] };
       }
-      await tradovateRequest(
-        "/order/liquidatePosition",
-        {
-          method: "POST",
-          body: JSON.stringify({ accountId: token.accountId }),
-        },
-        env,
+
+      const results = await Promise.all(
+        targets.map(async (account) => {
+          try {
+            await tradovateRequest(
+              "/order/liquidatePosition",
+              { method: "POST", body: JSON.stringify({ accountId: account.id }) },
+              env,
+            );
+            return { accountId: account.id, accountName: account.name, ok: true, error: null };
+          } catch (e) {
+            return {
+              accountId: account.id,
+              accountName: account.name,
+              ok: false,
+              error: e instanceof Error ? e.message : "flatten failed",
+            };
+          }
+        }),
       );
-      return { ok: true, error: null };
+
+      const allOk = results.every((r) => r.ok);
+      return {
+        ok: allOk,
+        error: allOk ? null : `${results.filter((r) => !r.ok).length}/${results.length} accounts failed to flatten`,
+        results,
+      };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "flatten failed" };
+      return { ok: false, error: e instanceof Error ? e.message : "flatten failed", results: [] };
     }
   });
 

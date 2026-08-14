@@ -125,6 +125,189 @@ async function dayLoss(userId: string): Promise<{ pct: number; tripped: boolean 
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Apex Trader Funding — per-account trailing-drawdown breaker         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Apex's own rule, confirmed against their published docs (2026-08-14):
+ * the funded/eval account phase gates whether automation is even LEGAL to
+ * run, independent of anything technical. Full automation is explicitly
+ * PROHIBITED on a funded Apex Performance Account — bots, algorithms and AI
+ * trading are banned there; only human-supervised semi-automated trading is
+ * allowed. It IS explicitly permitted during the evaluation phase.
+ *
+ * This is not a risk preference — it is set once, deliberately, outside the
+ * app, by whoever knows which phase the account is actually in. Getting it
+ * wrong risks the account being terminated for a rules violation, not just
+ * losing money.
+ */
+export type ApexAccountPhase = "evaluation" | "funded" | "none";
+
+export function apexAccountPhase(): ApexAccountPhase {
+  const raw = env("APEX_ACCOUNT_PHASE")?.toLowerCase();
+  if (raw === "evaluation" || raw === "funded") return raw;
+  return "none"; // unset -> autofire refuses to run at all, see apex-autofire.ts
+}
+
+/**
+ * $ trail per Apex product, confirmed for the 50K "Tradovate Intraday
+ * Trail" evaluation (the product on APEX-644704-01..05): starting threshold
+ * $47,500 on a $50,000 balance = a $2,500 trail. On Tradovate specifically,
+ * this NEVER stops trailing during the eval (unlike Rithmic evals, which
+ * lock at the profit target) — touching the threshold at any moment fails
+ * the account immediately.
+ *
+ * This map only has the one confirmed size. An account whose size is not
+ * in here fails closed (see accountTrailUsd below) rather than guess a
+ * number for an unconfirmed product.
+ */
+const APEX_TRAIL_BY_SIZE_USD: Record<number, number> = {
+  50_000: 2_500,
+};
+
+/**
+ * Safety margin below the real published trail. This breaker is DEFENSE IN
+ * DEPTH behind Tradovate/Apex's own platform-level risk engine (the same
+ * one that, since March 2026, rejects any order without an attached
+ * bracket) — it is not the only thing standing between a bug and a blown
+ * account, but it must never be the LAST line either. Tripping at 90% of
+ * the real trail means a modest error in this file's own equity math still
+ * trips before the account's actual threshold, never after.
+ */
+const APEX_SAFETY_MARGIN = 0.9;
+
+export interface ApexAccountRisk {
+  accountId: number;
+  accountName: string | null;
+  /** Current equity: broker cash balance + mark-to-market on open positions. */
+  equity: number | null;
+  peakEquity: number | null;
+  /** equity - (peak * APEX_SAFETY_MARGIN of the real trail). */
+  threshold: number | null;
+  tripped: boolean;
+  reason: string | null;
+}
+
+function accountTrailUsd(startingBalanceUsd: number): number | null {
+  return APEX_TRAIL_BY_SIZE_USD[startingBalanceUsd] ?? null;
+}
+
+/**
+ * Per-account Apex trailing-drawdown check. Fails CLOSED on every ambiguity
+ * — an unconfirmed cash-balance response shape, a network error, an unknown
+ * account size — reads as tripped, never as healthy. This is the correct
+ * default for a breaker: if it cannot prove the account is safe, it must
+ * not certify it is.
+ *
+ * *** NOT YET VERIFIED AGAINST A REAL CONNECTION *** — same status as the
+ * live-tick gateway. `/cashBalance/getCashBalanceSnapshot` is Tradovate's
+ * documented-in-community-references endpoint for a real-time balance
+ * snapshot; the exact response shape has not been confirmed against a live
+ * account. Because this fails closed, a wrong shape means autofire simply
+ * never sends (safe, if annoying) rather than wrongly certifying a tripped
+ * account as healthy — verify this against Tradovate's API reference and a
+ * real demo account before relying on it to actually gate anything.
+ */
+export async function apexAccountRisk(params: {
+  env: ExecutionEnv;
+  accountId: number;
+  accountName: string | null;
+  userId: string;
+  startingBalanceUsd: number;
+  /** Mark-to-market inputs for open positions on this account, if any. */
+  openPositions: { symbol: string; netPos: number; pointValue: number; currentPrice: number; avgPrice: number }[];
+}): Promise<ApexAccountRisk> {
+  const base: Omit<ApexAccountRisk, "tripped" | "reason"> = {
+    accountId: params.accountId,
+    accountName: params.accountName,
+    equity: null,
+    peakEquity: null,
+    threshold: null,
+  };
+
+  const trailUsd = accountTrailUsd(params.startingBalanceUsd);
+  if (trailUsd == null) {
+    return {
+      ...base,
+      tripped: true,
+      reason: `no confirmed Apex trail amount for a $${params.startingBalanceUsd.toLocaleString()} account — refusing rather than guessing`,
+    };
+  }
+
+  let cashBalance: number;
+  try {
+    const { tradovateRequest } = await import("./tradovate-client");
+    const res = await tradovateRequest<{ cashBalance?: number; netLiqValue?: number }>(
+      "/cashBalance/getCashBalanceSnapshot",
+      { method: "POST", body: JSON.stringify({ accountId: params.accountId }) },
+      params.env,
+    );
+    const value = res.netLiqValue ?? res.cashBalance;
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return { ...base, tripped: true, reason: "cash balance response had no usable numeric value" };
+    }
+    cashBalance = value;
+  } catch (e) {
+    return {
+      ...base,
+      tripped: true,
+      reason: `could not read cash balance: ${e instanceof Error ? e.message : "unknown error"}`,
+    };
+  }
+
+  /**
+   * netPos is signed (positive = long, negative = short), so this one
+   * expression is correct for both sides without a direction branch: a
+   * short (negative netPos) priced against a rally (currentPrice >
+   * avgPrice) multiplies negative x positive = a loss, correctly; the same
+   * short against a selloff multiplies negative x negative = a gain,
+   * correctly.
+   */
+  const unrealized = params.openPositions.reduce(
+    (sum, p) => sum + p.netPos * p.pointValue * (p.currentPrice - p.avgPrice),
+    0,
+  );
+  const equity = cashBalance + unrealized;
+
+  let peakEquity = equity;
+  try {
+    const sql = await getSql();
+    const rows = await sql.query<{ peak_equity: number | string }>(
+      `select peak_equity from apex_account_peak where user_id = $1 and account_id = $2`,
+      [params.userId, String(params.accountId)],
+    );
+    const stored = rows[0] ? Number(rows[0].peak_equity) : null;
+    peakEquity = stored != null ? Math.max(stored, equity) : equity;
+    await sql.query(
+      `insert into apex_account_peak (user_id, account_id, account_name, peak_equity, updated_at)
+       values ($1, $2, $3, $4, now())
+       on conflict (user_id, account_id) do update
+         set peak_equity = excluded.peak_equity, account_name = excluded.account_name, updated_at = now()`,
+      [params.userId, String(params.accountId), params.accountName, peakEquity],
+    );
+  } catch {
+    // Cannot persist/read the peak -> cannot prove the account is above its
+    // trail. Fail closed rather than trade on an un-trackable peak.
+    return { ...base, equity, tripped: true, reason: "could not read/update peak equity in Postgres" };
+  }
+
+  const threshold = peakEquity - trailUsd * APEX_SAFETY_MARGIN;
+  const tripped = equity <= threshold;
+
+  return {
+    accountId: params.accountId,
+    accountName: params.accountName,
+    equity,
+    peakEquity,
+    threshold,
+    tripped,
+    reason: tripped
+      ? `equity $${equity.toFixed(2)} <= threshold $${threshold.toFixed(2)} (peak $${peakEquity.toFixed(2)} - ${(trailUsd * APEX_SAFETY_MARGIN).toFixed(0)} margin-adjusted trail)`
+      : null,
+  };
+}
+
 export async function readExecutionReadiness(
   userId: string,
 ): Promise<ExecutionReadiness> {
