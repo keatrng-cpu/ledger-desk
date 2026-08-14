@@ -18,8 +18,9 @@ import { getSessionClock, type SessionClock } from "./sessions";
 import {
   analyzeStructure,
   referenceLevels,
-  smtDivergence,
+  smtDivergenceStack,
   type HtfBiasRead,
+  type SmtStack,
 } from "./structure";
 import { scanSetups, type ScanResult } from "./scanner";
 import { drawOnLiquidity, type DrawRead } from "./draw";
@@ -59,6 +60,8 @@ export interface DeskPayload {
   /** Where price is likely drawn, per symbol — empirical, from past sessions. */
   draws: { left: DrawRead; right: DrawRead };
   feed: "databento" | "yahoo" | "synthetic" | "mixed";
+  /** 15m / 1H / 4H SMT stack. scan.smt is the highest-TF active crack. */
+  smtStack?: SmtStack;
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
   /** Liquidity + confirmation + entry narrative (per book) */
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
@@ -165,7 +168,8 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const biasL = analyzeStructure(left.symbol, left.bars, left.changePct);
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
-      const divergence = smtDivergence(left.bars, right.bars);
+      const smtStack = smtDivergenceStack(left.bars, right.bars);
+      const divergence = smtStack.primary;
       // Draw on liquidity — which specific level price is empirically likely
       // to reach, from past sessions' remaining-excursion distribution plus
       // current distance / liquidity / bias. scanSetups computes its own from
@@ -401,6 +405,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         news,
         draws: { left: drawL, right: drawR },
         feed,
+        smtStack,
         checklist,
         narrative,
         brief: buildSessionBrief({
@@ -411,6 +416,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           draws: { left: drawL, right: drawR },
           feed,
           narrative,
+          smtStack,
         }),
       };
     } catch (e) {

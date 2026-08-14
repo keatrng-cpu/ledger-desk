@@ -245,6 +245,26 @@ export function PremarketPanel({ desk }: { desk: DeskPayload }) {
     <section className="space-y-3">
       <VerdictBanner brief={brief} />
 
+      {brief.smtLine && (
+        <div
+          className={cn(
+            "rounded-[var(--radius-md)] border px-3 py-2.5",
+            /bearish|short lean/i.test(brief.smtLine)
+              ? "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))]"
+              : /bullish|long lean/i.test(brief.smtLine)
+                ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))]"
+                : "border-[var(--color-border)] bg-[var(--color-surface)]",
+          )}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-subtle)]">
+            HTF SMT · 4H then 1H then 15m
+          </p>
+          <p className="mt-1 text-sm leading-snug text-[var(--color-fg)]">
+            {brief.smtLine}
+          </p>
+        </div>
+      )}
+
       {brief.reasons.length > 0 && (
         <ul className="space-y-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5">
           {brief.reasons.map((r) => (

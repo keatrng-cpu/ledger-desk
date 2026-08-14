@@ -10,7 +10,7 @@ import type { MarketNarrative } from "./market-narrative";
 import type { ScanResult } from "./scanner";
 import type { SessionClock } from "./sessions";
 import { etWallParts } from "./sessions";
-import type { Bias, HtfBiasRead, LiquidityPool } from "./structure";
+import type { Bias, HtfBiasRead, LiquidityPool, SmtStack } from "./structure";
 
 export type DayVerdict = "trade" | "reduce" | "stand_down";
 export type DayKind =
@@ -68,6 +68,7 @@ export interface SessionBriefInput {
   draws: { left: DrawRead; right: DrawRead };
   feed: "databento" | "yahoo" | "synthetic" | "mixed";
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
+  smtStack?: SmtStack;
 }
 
 export interface SessionBrief {
@@ -84,6 +85,7 @@ export interface SessionBrief {
   bull: PathPlan;
   bear: PathPlan;
   primaryPath: "bull" | "bear" | "none";
+  smtLine: string;
   gates: { id: string; label: string; ok: boolean; detail: string }[];
 }
 
@@ -463,7 +465,7 @@ function classifyDay(opts: {
 }
 
 export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): SessionBrief {
-  const { clock, bias, scan, news, draws, feed, narrative } = desk;
+  const { clock, bias, scan, news, draws, feed, narrative, smtStack } = desk;
   const left = bookSlice(bias.left);
   const right = bookSlice(bias.right);
   const date = etDateKey(now);
@@ -501,6 +503,28 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
 
   const bull = buildPath("long", primaryBook, otherBook, primaryNarr, primaryDraw, clock);
   const bear = buildPath("short", primaryBook, otherBook, primaryNarr, primaryDraw, clock);
+
+  const htfSmt = smtStack?.h4.active ? smtStack.h4 : smtStack?.h1.active ? smtStack.h1 : smtStack?.primary;
+  const smtLine = htfSmt?.active
+    ? htfSmt.note
+    : scan.smt.note;
+
+  if (htfSmt?.active && htfSmt.kind === "bearish") {
+    bear.lean = Math.min(1, bear.lean + 0.22);
+    bear.why.unshift(smtLine);
+    if (bear.status === "invalid" && primaryBook.session !== "bull") bear.status = "wait";
+  }
+  if (htfSmt?.active && htfSmt.kind === "bullish") {
+    bull.lean = Math.min(1, bull.lean + 0.22);
+    bull.why.unshift(smtLine);
+    if (bull.status === "invalid" && primaryBook.session !== "bear") bull.status = "wait";
+  }
+  if (htfSmt?.active) {
+    day.reasons.unshift(smtLine);
+    if (day.kind === "mixed_books") {
+      day.score = Math.min(100, day.score + 10);
+    }
+  }
 
   let primaryPath: SessionBrief["primaryPath"] = "none";
   if (day.verdict === "stand_down") primaryPath = "none";
@@ -571,9 +595,9 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     },
     {
       id: "smt",
-      label: "SMT",
-      ok: scan.smt.edge !== "none",
-      detail: scan.smt.note,
+      label: htfSmt?.timeframe ? `${htfSmt.timeframe.toUpperCase()} SMT` : "SMT",
+      ok: Boolean(htfSmt?.active) || scan.smt.edge !== "none",
+      detail: smtLine,
     },
     {
       id: "path",
@@ -602,6 +626,7 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     bull,
     bear,
     primaryPath,
+    smtLine,
     gates,
   };
 }

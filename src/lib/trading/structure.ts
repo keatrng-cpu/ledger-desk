@@ -12,7 +12,7 @@
  */
 
 import type { OhlcBar } from "@/lib/market/types";
-import { etWallParts } from "./sessions";
+import { etWallParts, etWallToEpochMs } from "./sessions";
 
 export type Bias = "bull" | "bear" | "neutral";
 
@@ -605,6 +605,8 @@ export function analyzeStructure(
   };
 }
 
+export type SmtTimeframe = "15m" | "1h" | "4h";
+
 export interface SmtDivergenceRead {
   active: boolean;
   kind: "bullish" | "bearish" | null;
@@ -612,6 +614,18 @@ export interface SmtDivergenceRead {
   refHigh: { left: number | null; right: number | null };
   refLow: { left: number | null; right: number | null };
   note: string;
+  timeframe?: SmtTimeframe;
+  sweepPrice?: number | null;
+  holdPrice?: number | null;
+  sweepAtEt?: string;
+}
+
+export interface SmtStack {
+  ltf: SmtDivergenceRead;
+  h1: SmtDivergenceRead;
+  h4: SmtDivergenceRead;
+  /** Highest-TF active crack wins — 4H > 1H > 15m. */
+  primary: SmtDivergenceRead;
 }
 
 const NO_DIVERGENCE: Omit<SmtDivergenceRead, "note"> = {
@@ -622,13 +636,49 @@ const NO_DIVERGENCE: Omit<SmtDivergenceRead, "note"> = {
   refLow: { left: null, right: null },
 };
 
+function etStampShort(t: number): string {
+  const p = etWallParts(t);
+  return `${pad2(p.hour)}:${pad2(p.minute)} ET`;
+}
+
+/**
+ * Session-aligned resample. 4H buckets from the 18:00 ET CME open
+ * (18 / 22 / 02 / 06 / 10 / 14 ET) so Robinhood/TV 4H SMT matches the desk.
+ */
+export function resampleSessionBars(bars: OhlcBar[], hours: 1 | 4): OhlcBar[] {
+  const buckets = new Map<number, OhlcBar>();
+  for (const b of bars) {
+    const p = etWallParts(b.t);
+    let h = p.hour;
+    if (hours === 4) {
+      const fromOpen = (h - 18 + 24) % 24;
+      h = (18 + Math.floor(fromOpen / 4) * 4) % 24;
+    }
+    const key = etWallToEpochMs(
+      `${p.year}-${pad2(p.month)}-${pad2(p.day)}`,
+      `${pad2(h)}:00`,
+    );
+    const cur = buckets.get(key);
+    if (!cur) {
+      buckets.set(key, { t: key, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v });
+    } else {
+      cur.h = Math.max(cur.h, b.h);
+      cur.l = Math.min(cur.l, b.l);
+      cur.c = b.c;
+      cur.v += b.v;
+    }
+  }
+  return [...buckets.values()].sort((a, b) => a.t - b.t);
+}
+
 export function smtDivergence(
   leftBars: OhlcBar[],
   rightBars: OhlcBar[],
-  opts: { window?: number; recentBars?: number } = {},
+  opts: { window?: number; recentBars?: number; timeframe?: SmtTimeframe } = {},
 ): SmtDivergenceRead {
   const window = opts.window ?? 48;
   const recentBars = opts.recentBars ?? 12;
+  const timeframe = opts.timeframe ?? "15m";
 
   const rightByT = new Map(rightBars.map((b) => [b.t, b]));
   const alignedL: OhlcBar[] = [];
@@ -640,8 +690,8 @@ export function smtDivergence(
       alignedR.push(r);
     }
   }
-  if (alignedL.length < 12) {
-    return { ...NO_DIVERGENCE, note: "Too few aligned bars for SMT." };
+  if (alignedL.length < (timeframe === "4h" ? 6 : 12)) {
+    return { ...NO_DIVERGENCE, timeframe, note: `Too few aligned ${timeframe} bars for SMT.` };
   }
 
   const winL = alignedL.slice(-window);
@@ -655,21 +705,69 @@ export function smtDivergence(
   const tolL = tolOf(winL);
   const tolR = tolOf(winR);
 
-  const swingsL = swingPoints(winL, 2, 2);
-  const swingsR = swingPoints(winR, 2, 2);
+  const swingsL = swingPoints(winL, timeframe === "4h" ? 1 : 2, timeframe === "4h" ? 1 : 2);
+  const swingsR = swingPoints(winR, timeframe === "4h" ? 1 : 2, timeframe === "4h" ? 1 : 2);
   const idxOf = (bars: OhlcBar[], t: number) =>
     bars.findIndex((b) => b.t === t);
 
-  const lastTwo = (swings: Swing[], kind: "high" | "low") => {
+  const lastTwo = (
+    swings: Swing[],
+    bars: OhlcBar[],
+    kind: "high" | "low",
+  ) => {
     const of = swings.filter((s) => s.kind === kind);
-    if (of.length < 2) return null;
-    return { prev: of[of.length - 2]!, last: of[of.length - 1]! };
+    const lastBar = bars[bars.length - 1];
+    if (!lastBar) {
+      return of.length >= 2
+        ? { prev: of[of.length - 2]!, last: of[of.length - 1]! }
+        : null;
+    }
+
+    // HTF: current swing = extreme of the last two 4H/1H bars (live + prior)
+    // vs the last confirmed swing before that. Stops a fresh down-bar from
+    // hiding the HH/LH crack that just printed (Aug 14 MNQ 30287 vs ES 7831).
+    if (timeframe === "4h" || timeframe === "1h") {
+      const look = bars.slice(-2);
+      if (!look.length) return null;
+      let peak = look[0]!;
+      for (const b of look) {
+        if (kind === "high" ? b.h >= peak.h : b.l <= peak.l) peak = b;
+      }
+      const currentPrice = kind === "high" ? peak.h : peak.l;
+      const prior =
+        [...of].reverse().find((s) => s.t < peak.t) ??
+        of.filter((s) => s.t < peak.t).at(-1);
+      if (!prior) return null;
+      return {
+        prev: prior,
+        last: { t: peak.t, price: currentPrice, kind },
+      };
+    }
+
+    const lastConfirmed = of[of.length - 1];
+    const livePrice = kind === "high" ? lastBar.h : lastBar.l;
+    const liveMoreExtreme =
+      !lastConfirmed ||
+      (kind === "high"
+        ? livePrice > lastConfirmed.price
+        : livePrice < lastConfirmed.price);
+    const last: Swing = liveMoreExtreme
+      ? { t: lastBar.t, price: livePrice, kind }
+      : lastConfirmed!;
+    const prev =
+      lastConfirmed && lastConfirmed.t !== last.t
+        ? lastConfirmed
+        : of.length >= 2
+          ? of[of.length - 2]!
+          : of[0];
+    if (!prev || prev.t === last.t) return null;
+    return { prev, last };
   };
 
-  const hL = lastTwo(swingsL, "high");
-  const hR = lastTwo(swingsR, "high");
-  const lL = lastTwo(swingsL, "low");
-  const lR = lastTwo(swingsR, "low");
+  const hL = lastTwo(swingsL, winL, "high");
+  const hR = lastTwo(swingsR, winR, "high");
+  const lL = lastTwo(swingsL, winL, "low");
+  const lR = lastTwo(swingsR, winR, "low");
 
   interface Candidate {
     kind: "bullish" | "bearish";
@@ -739,18 +837,37 @@ export function smtDivergence(
   if (!best || best.at < 0 || n - 1 - best.at > recentBars) {
     return {
       ...NO_DIVERGENCE,
+      timeframe,
       note: best
-        ? "Swing divergence found but stale (outside recent window)."
-        : "No swing divergence — highs and lows moving together.",
+        ? `${timeframe} SMT found but stale (outside last ${recentBars} bars).`
+        : `No ${timeframe} swing divergence — highs and lows moving together.`,
     };
   }
 
-  const sweep = best.leader === "left" ? "left" : "right";
-  const holder = best.leader === "left" ? "right" : "left";
+  const sweepPrice =
+    best.kind === "bearish"
+      ? best.leader === "left"
+        ? best.refHigh.left
+        : best.refHigh.right
+      : best.leader === "left"
+        ? best.refLow.left
+        : best.refLow.right;
+  const holdPrice =
+    best.kind === "bearish"
+      ? best.leader === "left"
+        ? best.refHigh.right
+        : best.refHigh.left
+      : best.leader === "left"
+        ? best.refLow.right
+        : best.refLow.left;
+  const atBar = winL[best.at] ?? winR[best.at];
+  const sweepAtEt = atBar ? etStampShort(atBar.t) : undefined;
+  const px = (n: number | null | undefined) =>
+    n != null ? n.toFixed(2) : "—";
   const note =
     best.kind === "bearish"
-      ? `Bearish SMT: ${sweep} printed a higher high while ${holder} failed — crack at the highs.`
-      : `Bullish SMT: ${sweep} printed a lower low while ${holder} held — crack at the lows.`;
+      ? `${timeframe} bearish SMT: sweeper HH ${px(sweepPrice)} vs holder ${px(holdPrice)} failed${sweepAtEt ? ` · ${sweepAtEt}` : ""} — short the holder.`
+      : `${timeframe} bullish SMT: sweeper LL ${px(sweepPrice)} vs holder ${px(holdPrice)} held${sweepAtEt ? ` · ${sweepAtEt}` : ""} — long the holder.`;
 
   return {
     active: true,
@@ -759,7 +876,38 @@ export function smtDivergence(
     refHigh: best.refHigh,
     refLow: best.refLow,
     note,
+    timeframe,
+    sweepPrice: sweepPrice ?? null,
+    holdPrice: holdPrice ?? null,
+    sweepAtEt,
   };
+}
+
+export function smtDivergenceStack(
+  leftBars: OhlcBar[],
+  rightBars: OhlcBar[],
+): SmtStack {
+  const ltf = smtDivergence(leftBars, rightBars, {
+    window: 48,
+    recentBars: 16,
+    timeframe: "15m",
+  });
+  const left1 = resampleSessionBars(leftBars, 1);
+  const right1 = resampleSessionBars(rightBars, 1);
+  const h1 = smtDivergence(left1, right1, {
+    window: 48,
+    recentBars: 18,
+    timeframe: "1h",
+  });
+  const left4 = resampleSessionBars(leftBars, 4);
+  const right4 = resampleSessionBars(rightBars, 4);
+  const h4 = smtDivergence(left4, right4, {
+    window: 36,
+    recentBars: 8,
+    timeframe: "4h",
+  });
+  const primary = h4.active ? h4 : h1.active ? h1 : ltf;
+  return { ltf, h1, h4, primary };
 }
 
 export function referenceLevels(
@@ -810,16 +958,24 @@ export function smtRead(
     const holdSym = edge === "left" ? left.symbol : right.symbol;
     const color = ` Spread ${spread >= 0 ? "+" : ""}${spread.toFixed(2)}pp (${left.symbol}−${right.symbol}).`;
     if (divergence.kind === "bearish") {
+      const px =
+        divergence.sweepPrice != null && divergence.holdPrice != null
+          ? ` ${sweepSym} ${divergence.sweepPrice.toFixed(2)} HH vs ${holdSym} ${divergence.holdPrice.toFixed(2)} failed${divergence.sweepAtEt ? ` · ${divergence.sweepAtEt}` : ""}.`
+          : "";
       return {
         state: "bearish_smt",
         edge,
-        note: `Swing SMT: ${sweepSym} higher high, ${holdSym} failed — bearish divergence, short lean on ${holdSym}.${color}`,
+        note: `${(divergence.timeframe ?? "swing").toUpperCase()} SMT:${px} Bearish — short lean on ${holdSym}.${color}`,
       };
     }
+    const px =
+      divergence.sweepPrice != null && divergence.holdPrice != null
+        ? ` ${sweepSym} ${divergence.sweepPrice.toFixed(2)} LL vs ${holdSym} ${divergence.holdPrice.toFixed(2)} held${divergence.sweepAtEt ? ` · ${divergence.sweepAtEt}` : ""}.`
+        : "";
     return {
       state: "bullish_smt",
       edge,
-      note: `Swing SMT: ${sweepSym} lower low, ${holdSym} held — bullish divergence, long lean on ${holdSym}.${color}`,
+      note: `${(divergence.timeframe ?? "swing").toUpperCase()} SMT:${px} Bullish — long lean on ${holdSym}.${color}`,
     };
   }
 
