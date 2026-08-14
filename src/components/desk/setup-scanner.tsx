@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -25,6 +25,11 @@ import {
   type DiscretionPayload,
 } from "@/lib/journal/discretion-server";
 import type { DiscretionResult } from "@/lib/journal/discretion";
+import {
+  ghostForCandidate,
+  subscribeGhosts,
+  type GhostTrade,
+} from "@/lib/trading/ghost-book";
 
 function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
   return (
@@ -210,6 +215,69 @@ function BlockerStrip({
   );
 }
 
+function GhostBanner({ g }: { g: GhostTrade }) {
+  const a = g.analysis;
+  const won = g.status === "won";
+  const lost = g.status === "lost";
+  const missed = g.status === "missed" || g.status === "expired";
+  const tone = won ? "up" : lost ? "down" : "warn";
+  const label =
+    won
+      ? `HIT TARGET${g.r != null ? `  ${g.r >= 0 ? "+" : ""}${g.r.toFixed(2)}R` : ""}`
+      : lost
+        ? `FAILED${g.r != null ? `  ${g.r.toFixed(2)}R` : ""}`
+        : g.status === "filled"
+          ? "IN PLAY — filled, managing"
+          : g.status === "missed"
+            ? "MISSED — target without fill"
+            : "EXPIRED — never filled";
+  return (
+    <div
+      className={cn(
+        "mb-2 rounded-[var(--radius-sm)] border px-2.5 py-2",
+        tone === "up" &&
+          "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_10%,transparent)]",
+        tone === "down" &&
+          "border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)]",
+        tone === "warn" &&
+          "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)]",
+      )}
+    >
+      <p
+        className={cn(
+          "text-[11px] font-semibold uppercase tracking-wide",
+          tone === "up" && "text-[var(--color-up)]",
+          tone === "down" && "text-[var(--color-down)]",
+          tone === "warn" && "text-[var(--color-warn)]",
+        )}
+      >
+        {label}
+      </p>
+      {a && (
+        <div className="mt-1 space-y-1 text-[11px] leading-snug text-[var(--color-fg)]">
+          <p className="font-medium">{a.headline}</p>
+          {a.why.slice(0, 2).map((w) => (
+            <p key={w} className="text-[var(--color-muted)]">
+              {w}
+            </p>
+          ))}
+          <p className="text-[var(--color-subtle)]">{a.lesson}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function useGhost(c: SetupCandidate): GhostTrade | null {
+  const [g, setG] = useState<GhostTrade | null>(() => ghostForCandidate(c));
+  useEffect(() => {
+    const sync = () => setG(ghostForCandidate(c));
+    sync();
+    return subscribeGhosts(sync);
+  }, [c.symbol, c.side, c.completeStrategy, c.strategyPrimary]);
+  return g;
+}
+
 function SetupCard({
   c,
   onLog,
@@ -226,13 +294,28 @@ function SetupCard({
   discretion?: DiscretionResult;
 }) {
   const [showDetail, setShowDetail] = useState(false);
+  const ghost = useGhost(c);
+  const done =
+    ghost &&
+    (ghost.status === "won" ||
+      ghost.status === "lost" ||
+      ghost.status === "missed" ||
+      ghost.status === "expired");
   return (
     <article
       className={cn(
         "rounded-[var(--radius-md)] border bg-[var(--color-surface)] p-3 sm:p-4",
-        c.actionable
-          ? "border-[color-mix(in_oklab,var(--color-up)_35%,var(--color-border))]"
-          : "border-[var(--color-border)]",
+        ghost?.status === "won" &&
+          "border-[color-mix(in_oklab,var(--color-up)_55%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_6%,var(--color-surface))]",
+        ghost?.status === "lost" &&
+          "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))]",
+        !ghost?.status &&
+          (c.actionable
+            ? "border-[color-mix(in_oklab,var(--color-up)_35%,var(--color-border))]"
+            : "border-[var(--color-border)]"),
+        ghost?.status === "watching" && "border-[var(--color-border)]",
+        ghost?.status === "filled" &&
+          "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]",
       )}
     >
       {/* ROW 1 — the decision line. Symbol, side, grade and score together,
@@ -253,7 +336,17 @@ function SetupCard({
               </span>
             </h3>
             <GradeBadge g={c.grade} />
-            {c.actionable && entryAllowed && (
+            {ghost?.status === "won" && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
+                <CheckCircle2 className="h-3 w-3" /> hit target
+              </span>
+            )}
+            {ghost?.status === "lost" && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-down)]">
+                failed
+              </span>
+            )}
+            {!done && c.actionable && entryAllowed && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
                 <CheckCircle2 className="h-3 w-3" /> actionable
               </span>
@@ -307,7 +400,11 @@ function SetupCard({
       <ScoreMeter score={c.confluence} />
 
       <div className="mt-2.5" />
-      <BlockerStrip c={c} entryAllowed={entryAllowed} />
+      {ghost && ghost.status !== "watching" ? (
+        <GhostBanner g={ghost} />
+      ) : (
+        <BlockerStrip c={c} entryAllowed={entryAllowed} />
+      )}
 
       {/* ROW 2 — the plan. Three numbers a trader acts on, evenly weighted. */}
       <div className="mb-2 grid grid-cols-3 gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-2 text-xs">
@@ -331,7 +428,7 @@ function SetupCard({
 
       {/* ROW 3 — actions, full width and unambiguous. The paper button used to
           render its label twice ("Log paper 📝 Paper"). */}
-      {onLog && (
+      {onLog && !done && (
         <div className="mb-2 grid grid-cols-2 gap-2">
           <Button
             type="button"

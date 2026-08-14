@@ -75,6 +75,7 @@ import { mirrorPaperOpen, mirrorPaperClose } from "@/lib/journal/paper-mirror";
 import { syncPaperBookToDb } from "@/lib/journal/paper-backfill";
 import { recordShadowOrder } from "@/lib/execution/shadow";
 import { orderIntentFromPaperLevels } from "@/lib/execution/order-intent";
+import { observeAndTickGhosts, markGhostTaken } from "@/lib/trading/ghost-book";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
@@ -416,6 +417,7 @@ function MasterplacePage() {
         publishMemory();
         setEquity(getPaperAccount().equity);
         recordArmedShadow(res, getPaperAccount().equity);
+        observeAndTickGhosts(res);
         raiseDeskAlerts(res);
       }
     } catch (e) {
@@ -544,6 +546,7 @@ useEffect(() => {
           discretionMult: disc.factor,
         });
         if (res.ok) {
+          markGhostTaken(c.symbol, c.side);
           // Mirror the localStorage book into desk_trades so analytics, CSV
           // export and the unlock evidence see it. Fire-and-forget: a failure
           // (signed out, no DB) must never block the working paper book.
