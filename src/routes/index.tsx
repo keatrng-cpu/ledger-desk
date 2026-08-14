@@ -29,6 +29,7 @@ import {
   reconcilePaperBookToMemory,
   buildPaperLevels,
   type PaperTrade,
+  type ManagePrice,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
 import { HtfBiasBoard } from "@/components/desk/htf-bias-board";
@@ -654,17 +655,21 @@ useEffect(() => {
 
   useEffect(() => {
     if (!desk) return;
-    // Last print only — HTF bar H/L false-stops new paper trades
-    const prices: Record<string, { last: number; high: number; low: number }> = {
+    // Last print only — HTF bar H/L false-stops new paper trades.
+    // `lagSec` rides along so paper-manager's freshness gate can refuse to
+    // book a fill against a quote the desk itself would not let you ENTER on.
+    const prices: Record<string, ManagePrice> = {
       [desk.left.symbol]: {
         last: desk.quotes.left.price,
         high: desk.quotes.left.price,
         low: desk.quotes.left.price,
+        lagSec: desk.quotes.left.lagSec,
       },
       [desk.right.symbol]: {
         last: desk.quotes.right.price,
         high: desk.quotes.right.price,
         low: desk.quotes.right.price,
+        lagSec: desk.quotes.right.lagSec,
       },
     };
     // micros / aliases so MES/MNQ paper books match ES/NQ prints
@@ -734,16 +739,28 @@ useEffect(() => {
     if (!listOpenPaperTrades().length) return;
     const id = window.setInterval(() => {
       if (!listOpenPaperTrades().length) return;
-      const prices: Record<string, { last: number; high: number; low: number }> = {
+      /**
+       * Visibility gate — the desk poll at the top of this file has had one
+       * since it was written; this loop never did. Without it, backgrounding
+       * the tab froze `desk` (no poll to refresh it) while this interval kept
+       * firing every 5s, evaluating stops, targets and time stops against a
+       * price that stopped moving minutes or hours ago. The freshness gate in
+       * paper-manager now refuses those fills on its own, but not running the
+       * tick at all is both cheaper and clearer about the intent.
+       */
+      if (document.visibilityState !== "visible") return;
+      const prices: Record<string, ManagePrice> = {
         [desk.left.symbol]: {
           last: desk.quotes.left.price,
           high: desk.quotes.left.price,
           low: desk.quotes.left.price,
+          lagSec: desk.quotes.left.lagSec,
         },
         [desk.right.symbol]: {
           last: desk.quotes.right.price,
           high: desk.quotes.right.price,
           low: desk.quotes.right.price,
+          lagSec: desk.quotes.right.lagSec,
         },
       };
       if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;

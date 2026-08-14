@@ -89,3 +89,27 @@ export interface LiveQuotesPayload {
   left: LiveQuote;
   right: LiveQuote;
 }
+
+/**
+ * How old a quote may be and still price a FILL against.
+ *
+ * ONE definition, deliberately, because this number decides two things that
+ * must never drift apart:
+ *
+ *   - ENTRY: `build-desk.ts` refuses to mark a candidate `actionable` when
+ *     the quote is older than this ("Execution blocked: quote Ns old").
+ *   - EXIT:  `paper-manager.ts` refuses to book a stop/target/time-stop fill
+ *     against a quote older than this.
+ *
+ * Before the exit half existed, the desk would decline to let you ENTER on a
+ * quote it considered unfit, then happily book a STOP against that same
+ * unfit quote seconds later — inventing a fill at a price that was never
+ * live and writing the resulting R into the sample that Phase C is supposed
+ * to read. A measurement instrument that is strict on the way in and loose
+ * on the way out does not measure anything.
+ *
+ * Yahoo free futures (~600s lag) essentially never clear this bar, which is
+ * the honest read: Yahoo is a structure feed, not an execution feed. Clearing
+ * it requires the live tick gateway (`market/live-gateway.ts`).
+ */
+export const QUOTE_EXECUTION_MAX_LAG_SEC = 120;

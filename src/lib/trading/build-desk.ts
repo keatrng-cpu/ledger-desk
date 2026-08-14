@@ -14,7 +14,12 @@ import {
   type YahooRange,
 } from "@/lib/market/yahoo";
 import { readLiveTick, quoteFromLiveTick } from "@/lib/market/live-gateway";
-import type { IndexSymbol, LiveQuote, SymbolSeries } from "@/lib/market/types";
+import {
+  QUOTE_EXECUTION_MAX_LAG_SEC,
+  type IndexSymbol,
+  type LiveQuote,
+  type SymbolSeries,
+} from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
 import {
   analyzeStructure,
@@ -292,7 +297,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
        * feed, not an execution feed. Databento historical windows lag by
        * hours on standard CME entitlements and are likewise structure-only.
        */
-      const QUOTE_EXECUTION_SEC = 120;
+      const QUOTE_EXECUTION_SEC = QUOTE_EXECUTION_MAX_LAG_SEC;
       /**
        * Beyond this the quote is too old to even sanity-check a level
        * against, so the whole read is untrustworthy. One 15m bar.

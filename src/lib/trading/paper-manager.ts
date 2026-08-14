@@ -29,6 +29,7 @@ import {
   setOpenPaperCount,
 } from "./desk-memory";
 import { MAX_RISK_PTS } from "./simulate-path-trade";
+import { QUOTE_EXECUTION_MAX_LAG_SEC } from "@/lib/market/types";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock } from "./sessions";
@@ -486,6 +487,16 @@ export type ManagePrice = {
   last: number;
   high?: number;
   low?: number;
+  /**
+   * Age of this print in seconds (the desk payload's `LiveQuote.lagSec`).
+   *
+   * Omitted means UNKNOWN, which is treated as unfit to price a fill — see
+   * the freshness gate in `managePaperTradesAgainstPrice`. A caller that has
+   * the number must pass it; a caller that genuinely has no concept of lag
+   * (replay/backtest, where every bar is its own present) passes
+   * `enableFreshnessGate: false` instead of faking a zero.
+   */
+  lagSec?: number;
 };
 
 /** Every key a caller might have used for this trade's instrument. */
@@ -507,6 +518,8 @@ function resolvePrice(
     const v = prices[k];
     if (v == null) continue;
     if (typeof v === "number" && Number.isFinite(v)) {
+      // A bare number carries no age. Left undefined on purpose so the
+      // freshness gate treats it as unknown rather than as fresh.
       return { last: v, high: v, low: v };
     }
     if (typeof v === "object" && Number.isFinite(v.last)) {
@@ -514,6 +527,7 @@ function resolvePrice(
         last: v.last,
         high: v.high ?? v.last,
         low: v.low ?? v.last,
+        lagSec: v.lagSec,
       };
     }
   }
@@ -605,6 +619,24 @@ export interface ManageContext {
   calendar?: NewsEvent[];
   /** Set false to suppress time/context stops (replay harnesses). Default true. */
   enableTimeStops?: boolean;
+  /**
+   * Set false ONLY where "how old is this price" is meaningless — replay and
+   * backtest, where each bar IS the present. Live callers must leave this on;
+   * turning it off in the live desk re-opens the invented-fill bug it exists
+   * to close. Default true.
+   */
+  enableFreshnessGate?: boolean;
+  /** Override the shared fill-freshness budget. Defaults to QUOTE_EXECUTION_MAX_LAG_SEC. */
+  maxLagSec?: number;
+}
+
+/** One position skipped this tick because its quote was too old to fill against. */
+export interface DeferredExit {
+  id: string;
+  displaySymbol: string;
+  /** Undefined when the caller passed no age at all (unknown = unfit). */
+  lagSec: number | undefined;
+  reason: string;
 }
 
 /**
@@ -622,19 +654,69 @@ export interface ManageContext {
 export function managePaperTradesAgainstPrice(
   prices: Partial<Record<string, number | ManagePrice>>,
   ctx?: ManageContext,
-): { closed: PaperTrade[]; updated: PaperTrade[] } {
+): { closed: PaperTrade[]; updated: PaperTrade[]; deferred: DeferredExit[] } {
   const all = loadPaperTrades();
   const closed: PaperTrade[] = [];
   const updated: PaperTrade[] = [];
+  const deferred: DeferredExit[] = [];
   const so = APLUS_RULES.scaleOut;
   const now = ctx?.now ?? Date.now();
   const timeStopsOn = ctx?.enableTimeStops !== false;
+  const freshnessOn = ctx?.enableFreshnessGate !== false;
+  const maxLagSec = ctx?.maxLagSec ?? QUOTE_EXECUTION_MAX_LAG_SEC;
   const clock = getSessionClock(new Date(now));
 
   for (const t of all) {
     if (t.status !== "open" || t.contractsOpen <= 0) continue;
     const feed = resolvePrice(t, prices);
     if (!feed) continue;
+
+    /**
+     * FRESHNESS — the exit half of the desk's execution-freshness rule.
+     *
+     * DELIBERATELY NOT A BLANKET SKIP. The four exit paths below are not
+     * equally corrupted by a stale quote, and treating them as if they were
+     * would freeze the paper book on any Yahoo-fed desk (~600s lag) — no
+     * fills, no sample, and the whole ROADMAP measurement loop stalls. Each
+     * path is handled by what it actually books:
+     *
+     *   STOP (`fill = t.workingStop`) — books the PRE-COMMITTED stop level,
+     *     not the market print. A stale quote delays *detection*; it does not
+     *     change the price written. Allowed to fire. (It is if anything
+     *     optimistic — it ignores gap-through slippage — but that is a
+     *     separate, pre-existing modelling choice, not staleness.)
+     *
+     *   TP1 / TP2 (`Math.max(target, feed.last)`) — "target or better", where
+     *     `better` comes from the print. A stale print can book a fill ABOVE
+     *     the target that never traded, inflating R directly into the sample.
+     *     When stale, the fill is CLAMPED to the target exactly: the level was
+     *     reached, so the target fill is real; the bonus is not.
+     *
+     *   TIME / CONTEXT STOP (`fill = feed.last`) — books the print itself, so
+     *     a stale quote is a wholly fictional price. Refused when stale; the
+     *     position stays open and flattens on the next fresh tick.
+     *
+     *   DRAW RE-RANK — rewrites tp1/tp2 from the print, so a stale read
+     *     silently moves future fills. Skipped when stale.
+     *
+     * `lagSec == null` (unknown age) counts as stale. A caller that cannot say
+     * how old its price is has not established that it is fresh, and this is a
+     * measurement instrument: unknown is not a pass.
+     */
+    const lag = feed.lagSec;
+    const staleForFill =
+      freshnessOn && (lag == null || !Number.isFinite(lag) || lag > maxLagSec);
+    if (staleForFill) {
+      deferred.push({
+        id: t.id,
+        displaySymbol: t.displaySymbol,
+        lagSec: lag == null || !Number.isFinite(lag) ? undefined : lag,
+        reason:
+          lag == null || !Number.isFinite(lag)
+            ? "quote age unknown — target fills clamped, time stops held"
+            : `quote ${Math.round(lag)}s old (> ${maxLagSec}s) — target fills clamped, time stops held`,
+      });
+    }
 
     // Only trust last print for exit decisions.
     // Bar H/L from HTF/desk series often spans the whole candle and can
@@ -673,7 +755,10 @@ export function managePaperTradesAgainstPrice(
 
     // 0b) Dynamic targets from the draw (B3). No draw supplied → untouched,
     // so a caller that passes no context behaves exactly as it did before.
-    const draw = ctx?.draws ? resolveDraw(t, ctx.draws) : null;
+    // `!staleForFill`: retarget rewrites tp1/tp2 from the print, so a stale
+    // read silently relocates future fills. Skipped rather than deferred —
+    // the next fresh tick re-ranks against the same draw anyway.
+    const draw = ctx?.draws && !staleForFill ? resolveDraw(t, ctx.draws) : null;
     if (draw) {
       const rt = retarget(t, draw, { last: feed.last });
       if (rt.changed) {
@@ -727,8 +812,12 @@ export function managePaperTradesAgainstPrice(
 
     // 2) TP1 scale-out — hit if print reaches OR trades through target
     const tp1Hit = t.side === "long" ? high >= t.tp1 : low <= t.tp1;
-    const tp1Fill =
-      t.side === "long"
+    // "Target or better" only when the print is fresh enough to be believed.
+    // Stale -> clamp to the target: the level was reached (that is what
+    // tp1Hit established), but the improvement is an artefact of an old quote.
+    const tp1Fill = staleForFill
+      ? t.tp1
+      : t.side === "long"
         ? Math.max(t.tp1, feed.last) // long: fill at least target
         : Math.min(t.tp1, feed.last); // short: fill at target or better
     const alreadyTp1 = t.scaleLegs.some((l) => l.note.toLowerCase().includes("tp1"));
@@ -774,8 +863,10 @@ export function managePaperTradesAgainstPrice(
 
     // 3) TP2 runner (or full if no scale)
     const tp2Hit = t.side === "long" ? high >= t.tp2 : low <= t.tp2;
-    const tp2Fill =
-      t.side === "long"
+    // Same clamp as TP1 — see the freshness block above.
+    const tp2Fill = staleForFill
+      ? t.tp2
+      : t.side === "long"
         ? Math.max(t.tp2, feed.last)
         : Math.min(t.tp2, feed.last);
     if (tp2Hit && t.contractsOpen > 0) {
@@ -804,7 +895,10 @@ export function managePaperTradesAgainstPrice(
     // above this line was a real price event on this tick and outranks a
     // decision. Fills at the last print (a market-out), and books through the
     // same finalizeClose, so R stays NET of commission.
-    if (timeStopsOn) {
+    // `!staleForFill`: a time stop books `feed.last` as the fill price, so a
+    // stale print here is a price that never traded. Held, not cancelled —
+    // the decision re-evaluates and flattens on the next fresh tick.
+    if (timeStopsOn && !staleForFill) {
       const decision = shouldFlatten(t, {
         now,
         clock,
@@ -838,7 +932,7 @@ export function managePaperTradesAgainstPrice(
   if (closed.length || updated.length) {
     savePaperTrades(all);
   }
-  return { closed, updated };
+  return { closed, updated, deferred };
 }
 
 
