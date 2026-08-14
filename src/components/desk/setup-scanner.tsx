@@ -269,6 +269,14 @@ function SetupCard({
                 HTF flipped
               </span>
             )}
+            {c.missing.includes("LTF delivery against") && (
+              <span
+                title="Session is delivering the other way. Do not fade a live impulse with leftover HTF components."
+                className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-down)]"
+              >
+                Fade LTF — off
+              </span>
+            )}
           </div>
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}

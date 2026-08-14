@@ -88,6 +88,14 @@ function Card({ read }: { read: HtfBiasRead }) {
         <BiasChip label="Mid" value={read.mid} />
         <BiasChip label="LTF" value={read.ltf} />
         <BiasChip
+          label={
+            read.sessionStrength
+              ? `Sess ${Math.round(read.sessionStrength * 100)}%`
+              : "Session"
+          }
+          value={read.sessionStance ?? "neutral"}
+        />
+        <BiasChip
           label="Zone"
           value={read.dealing?.zone ?? "—"}
         />

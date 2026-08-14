@@ -65,7 +65,7 @@ export function assessConditions(bars: OhlcBar[]): MarketConditions {
   const baseAtr = atr(bars, Math.min(bars.length - 1, DEFAULT_BASELINE_ATR_N));
   const atrRatio = baseAtr ? curAtr / baseAtr : 0;
 
-  const regime: MarketConditions["regime"] =
+  let regime: MarketConditions["regime"] =
     er >= DEFAULT_ER_TREND
       ? "trending"
       : er >= DEFAULT_ER_TREND / 2
@@ -78,8 +78,16 @@ export function assessConditions(bars: OhlcBar[]): MarketConditions {
   const reasons: string[] = [];
   let tradeable = true;
   if (regime === "dead") {
-    tradeable = false;
-    reasons.push(`dead regime (efficiency ${er.toFixed(2)}) — chop, stand aside`);
+    const sessionEr = efficiencyRatio(bars, 12);
+    if (sessionEr >= DEFAULT_ER_TREND) {
+      regime = "trending";
+      reasons.push(
+        `session impulse ER ${sessionEr.toFixed(2)} overrides overnight chop`,
+      );
+    } else {
+      tradeable = false;
+      reasons.push(`dead regime (efficiency ${er.toFixed(2)}) — chop, stand aside`);
+    }
   }
   if (atrRatio < DEFAULT_MIN_ATR_RATIO) {
     tradeable = false;

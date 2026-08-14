@@ -62,6 +62,9 @@ export interface HtfBiasRead {
   nyOpen930: number | null;
   changePct: number;
   last: number;
+  /** Live session delivery (last ~12 bars). Day-trades ride this — do not fade it. */
+  sessionStance: Bias;
+  sessionStrength: number;
 }
 
 function swingPoints(bars: OhlcBar[], left = 3, right = 3): Swing[] {
@@ -110,6 +113,46 @@ function lastBos(
     }
   }
   return null;
+}
+
+function liveStructureShift(
+  bars: OhlcBar[],
+  swings: Swing[],
+): { direction: Bias; level: number; t: number } | null {
+  if (!bars.length) return null;
+  const last = bars[bars.length - 1]!;
+  const lastHigh = [...swings].reverse().find((s) => s.kind === "high");
+  const lastLow = [...swings].reverse().find((s) => s.kind === "low");
+  if (lastLow && last.c < lastLow.price && last.l < lastLow.price) {
+    return { direction: "bear", level: lastLow.price, t: last.t };
+  }
+  if (lastHigh && last.c > lastHigh.price && last.h > lastHigh.price) {
+    return { direction: "bull", level: lastHigh.price, t: last.t };
+  }
+  return lastBos(swings);
+}
+
+function sessionImpulse(
+  bars: OhlcBar[],
+  n = 12,
+): { bias: Bias; strength: number } {
+  if (bars.length < n + 2) return { bias: "neutral", strength: 0 };
+  const slice = bars.slice(-n);
+  const net = slice[slice.length - 1]!.c - slice[0]!.c;
+  let path = 0;
+  let range = 0;
+  for (let i = 1; i < slice.length; i++) {
+    path += Math.abs(slice[i]!.c - slice[i - 1]!.c);
+    range += slice[i]!.h - slice[i]!.l;
+  }
+  const atr = range / Math.max(1, slice.length - 1);
+  const er = path > 0 ? Math.abs(net) / path : 0;
+  const ext = atr > 0 ? Math.abs(net) / (atr * 2.2) : 0;
+  const strength = Math.min(1, Math.max(er, ext * 0.7));
+  if (atr <= 0) return { bias: "neutral", strength: 0 };
+  if (net > atr * 0.55 && strength >= 0.22) return { bias: "bull", strength };
+  if (net < -atr * 0.55 && strength >= 0.22) return { bias: "bear", strength };
+  return { bias: "neutral", strength };
 }
 
 function dealingRange(bars: OhlcBar[], lookback = 80): DealingRange | null {
@@ -475,6 +518,8 @@ export function analyzeStructure(
       nyOpen930: null,
       changePct,
       last: bars[bars.length - 1]?.c ?? 0,
+      sessionStance: "neutral",
+      sessionStrength: 0,
     };
   }
 
@@ -486,8 +531,13 @@ export function analyzeStructure(
 
   const daily = trendFromSwings(swingsAll);
   const mid = trendFromSwings(swingsMid);
-  const ltf = trendFromSwings(swingsLtf);
-  const bos = lastBos(swingsMid);
+  let ltf = trendFromSwings(swingsLtf);
+  const impulse = sessionImpulse(bars, 12);
+  const live = liveStructureShift(bars, swingsLtf.length ? swingsLtf : swingsMid);
+  const bos = live ?? lastBos(swingsMid);
+  if (impulse.bias !== "neutral" && impulse.strength >= 0.32) {
+    ltf = impulse.bias;
+  }
   const dealing = dealingRange(bars);
   const {
     pdh,
@@ -516,10 +566,12 @@ export function analyzeStructure(
     topDown === "neutral" ? 0.35 : Math.min(0.95, 0.4 + aligned * 0.15);
 
   const last = bars[bars.length - 1]!.c;
+  const sessionStance = impulse.bias;
+  const sessionStrength = +impulse.strength.toFixed(3);
   const summary =
     topDown === "neutral"
       ? `${symbol}: mixed structure — no absolute HTF edge. Wait for alignment.`
-      : `${symbol}: HTF ${topDown.toUpperCase()} (conf ${(confidence * 100).toFixed(0)}%). Daily ${daily} · mid ${mid} · LTF ${ltf}${dealing ? ` · price in ${dealing.zone}` : ""}.`;
+      : `${symbol}: HTF ${topDown.toUpperCase()} (conf ${(confidence * 100).toFixed(0)}%). Daily ${daily} · mid ${mid} · LTF ${ltf}${dealing ? ` · price in ${dealing.zone}` : ""} · session ${sessionStance}${sessionStrength ? ` ${Math.round(sessionStrength * 100)}%` : ""}.`;
 
   return {
     symbol,
@@ -548,6 +600,8 @@ export function analyzeStructure(
     nyOpen930,
     changePct,
     last,
+    sessionStance,
+    sessionStrength,
   };
 }
 

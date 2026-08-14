@@ -144,14 +144,26 @@ function sigSweepKinds(label: string): boolean {
 function resolveIfvg(
   direction: "bull" | "bear",
   det: DetectorSummary,
+  lastPrice: number,
 ): { hit: boolean; inverted: boolean; zone: FvgResult | null } {
   const latest = det.fvg.latest;
   if (!latest) return { hit: false, inverted: false, zone: null };
+
+  // Consumed POI: last already closed through the array against the trade.
+  // Overnight bull FVG at 30228 is not a long when last is 30149.
+  if (
+    latest.fill === "full" ||
+    (direction === "bull" && lastPrice < latest.bottom) ||
+    (direction === "bear" && lastPrice > latest.top)
+  ) {
+    return { hit: false, inverted: latest.inverted, zone: null };
+  }
+
   if (direction === "bull") {
     if (latest.kind === "bear" && latest.inverted) {
       return { hit: true, inverted: true, zone: latest };
     }
-    if (latest.kind === "bull" && latest.fill !== "full" && !latest.inverted) {
+    if (latest.kind === "bull" && !latest.inverted) {
       return { hit: true, inverted: false, zone: latest };
     }
     if (det.fvg.inverted > 0 && det.fvg.inversionRetested > 0) {
@@ -161,7 +173,7 @@ function resolveIfvg(
     if (latest.kind === "bull" && latest.inverted) {
       return { hit: true, inverted: true, zone: latest };
     }
-    if (latest.kind === "bear" && latest.fill !== "full" && !latest.inverted) {
+    if (latest.kind === "bear" && !latest.inverted) {
       return { hit: true, inverted: false, zone: latest };
     }
     if (det.fvg.inverted > 0) {
@@ -169,9 +181,9 @@ function resolveIfvg(
     }
   }
   return {
-    hit: det.fvg.open > 0 || det.fvg.inverted > 0,
-    inverted: det.fvg.inverted > 0,
-    zone: latest,
+    hit: false,
+    inverted: latest.inverted,
+    zone: null,
   };
 }
 
@@ -226,7 +238,7 @@ function scoreDirection(
   add("mid_bias", read.mid === direction, `mid_bias ${read.mid}`);
   add("htf2_bias", read.ltf === direction, `htf2/ltf ${read.ltf}`);
 
-  const ifvg = resolveIfvg(direction, det);
+  const ifvg = resolveIfvg(direction, det, read.last);
   add(
     "ifvg",
     ifvg.hit,
@@ -621,6 +633,31 @@ export function scoreCandidates(
     c.actionable = false;
     if (!c.missing.includes("HTF top-down gate")) {
       c.missing.unshift("HTF top-down gate");
+    }
+  }
+
+  // With-bias fade veto — Claude's disrespect release is for COUNTER-bias
+  // trades. This blocks the opposite bug: HTF still bull, leftover bull FVG,
+  // but LTF is delivering lower (the 0.76 long into the 8/14 dump).
+  for (const c of candidates) {
+    const read = c.symbol === left.symbol ? left : right;
+    const need = c.side === "long" ? "bull" : "bear";
+    const session = read.sessionStance ?? "neutral";
+    const strong = (read.sessionStrength ?? 0) >= 0.28;
+    if (!strong || session === "neutral" || session === need) continue;
+    c.actionable = false;
+    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    if (
+      c.pathBand === "A+" ||
+      c.pathBand === "A" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+"
+    ) {
+      c.pathBand = "C";
+    }
+    if (!c.missing.includes("LTF delivery against")) {
+      c.missing.unshift("LTF delivery against");
     }
   }
 
