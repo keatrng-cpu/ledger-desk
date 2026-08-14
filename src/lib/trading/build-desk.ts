@@ -22,6 +22,7 @@ import {
   type HtfBiasRead,
   type SmtStack,
 } from "./structure";
+import { buildSmcTape, type SmcTape } from "./smc-board";
 import { scanSetups, type ScanResult } from "./scanner";
 import { drawOnLiquidity, type DrawRead } from "./draw";
 import { newsRead, type NewsRead } from "./news";
@@ -62,6 +63,8 @@ export interface DeskPayload {
   feed: "databento" | "yahoo" | "synthetic" | "mixed";
   /** 15m / 1H / 4H SMT stack. scan.smt is the highest-TF active crack. */
   smtStack?: SmtStack;
+  /** Multi-TF SMC tape — arrays + alerts the scanner and brain both read. */
+  smc?: { left: SmcTape; right: SmcTape };
   checklist: { id: string; label: string; ok: boolean; detail: string }[];
   /** Liquidity + confirmation + entry narrative (per book) */
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
@@ -170,14 +173,22 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
       const smtStack = smtDivergenceStack(left.bars, right.bars);
       const divergence = smtStack.primary;
-      // Draw on liquidity — which specific level price is empirically likely
-      // to reach, from past sessions' remaining-excursion distribution plus
-      // current distance / liquidity / bias. scanSetups computes its own from
-      // the bars it already receives; these carry it into the desk payload.
+      const smc = {
+        left: buildSmcTape(left.bars),
+        right: buildSmcTape(right.bars),
+      };
       const drawL = drawOnLiquidity(biasL, left.bars);
       const drawR = drawOnLiquidity(biasR, right.bars);
 
-      const scan = scanSetups(biasL, biasR, clock, divergence, left.bars, right.bars);
+      const scan = scanSetups(
+        biasL,
+        biasR,
+        clock,
+        divergence,
+        left.bars,
+        right.bars,
+        smc,
+      );
       const detL = summarizeDetectors(left.bars);
       const detR = summarizeDetectors(right.bars);
       const dirL: "bull" | "bear" =
@@ -406,6 +417,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         draws: { left: drawL, right: drawR },
         feed,
         smtStack,
+        smc,
         checklist,
         narrative,
         brief: buildSessionBrief({

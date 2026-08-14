@@ -359,3 +359,79 @@ export function buildSmcTape(bars: OhlcBar[]): SmcTape {
     alerts: dedupeAlerts([...h4.alerts, ...h1.alerts, ...ltf.alerts]),
   };
 }
+
+export function tapeHitsForSide(
+  tape: SmcTape | undefined,
+  direction: "bull" | "bear",
+): {
+  breaker: boolean;
+  rejection: boolean;
+  sponsored: boolean;
+  ifvg: boolean;
+  fvg: boolean;
+  ob: boolean;
+  mss: boolean;
+  displacement: boolean;
+  distribution: boolean;
+  manipulation: boolean;
+  fights: boolean;
+  supports: boolean;
+  notes: string[];
+} {
+  const empty = {
+    breaker: false,
+    rejection: false,
+    sponsored: false,
+    ifvg: false,
+    fvg: false,
+    ob: false,
+    mss: false,
+    displacement: false,
+    distribution: false,
+    manipulation: false,
+    fights: false,
+    supports: false,
+    notes: [] as string[],
+  };
+  if (!tape) return empty;
+  const live = tape.arrays.filter((a) => a.state !== "mitigated");
+  const has = (kind: SmcKind, side: "bull" | "bear") =>
+    live.some((a) => a.kind === kind && a.side === side);
+  const pick = (kind: SmcKind, side: "bull" | "bear") =>
+    live.find((a) => a.kind === kind && a.side === side);
+  const alert = (kind: SmcAlertKind, side?: "bull" | "bear") =>
+    tape.alerts.find((a) => a.kind === kind && (side ? a.side === side : true));
+  const opp = direction === "bull" ? "bear" : "bull";
+  const notes: string[] = [];
+  const bb = pick("bb", direction);
+  if (bb) notes.push(`${bb.tf} breaker ${bb.at}`);
+  const rb = pick("rb", direction);
+  if (rb) notes.push(`${rb.tf} rejection ${rb.at}`);
+  const sp = pick("sponsored", direction);
+  if (sp) notes.push(`${sp.label} ${sp.at}`);
+  const iv = pick("ifvg", direction);
+  if (iv) notes.push(`${iv.tf} iFVG ${iv.at}`);
+  const mss = alert("mss", direction);
+  if (mss) notes.push(mss.label);
+  const dist =
+    alert("distribution", direction) || alert("accumulation", direction);
+  if (dist) notes.push(dist.label);
+  const fight =
+    Boolean(alert("distribution", opp)) || Boolean(alert("accumulation", opp));
+  if (fight) notes.push("tape delivering the other way");
+  return {
+    breaker: Boolean(bb),
+    rejection: Boolean(rb),
+    sponsored: Boolean(sp),
+    ifvg: Boolean(iv),
+    fvg: has("fvg", direction) || Boolean(sp),
+    ob: has("ob", direction),
+    mss: Boolean(mss),
+    displacement: Boolean(alert("displacement", direction)),
+    distribution: Boolean(dist),
+    manipulation: Boolean(alert("manipulation")),
+    fights: fight,
+    supports: Boolean(mss || dist || sp || bb),
+    notes,
+  };
+}

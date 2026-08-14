@@ -200,6 +200,24 @@ function fuseSetups(
     const reasons = [...(c.reasons || []).slice(0, 2)];
     if (b.n > 0) reasons.push(b.reason);
     if (gold) reasons.push("GOLD short+mechanical template");
+    const tape =
+      desk.smc &&
+      (c.symbol === desk.bias.right.symbol ? desk.smc.right : desk.smc.left);
+    const tapeDir = c.side === "long" ? "bull" : "bear";
+    const tapeAgree = tape?.alerts.some(
+      (a) =>
+        a.side === tapeDir &&
+        (a.kind === "distribution" ||
+          a.kind === "mss" ||
+          a.kind === "manipulation"),
+    );
+    const tapeFight = tape?.alerts.some(
+      (a) =>
+        a.side !== tapeDir &&
+        (a.kind === "distribution" || a.kind === "mss"),
+    );
+    if (tapeAgree && tape) reasons.push(tape.alerts.find((a) => a.side === tapeDir)!.label);
+    if (tapeFight) reasons.push("SMC tape fights this side");
     // Swing alignment
     if (
       swing?.timeOccurs &&
@@ -220,7 +238,9 @@ function fuseSetups(
       (c.qualityScore ?? c.confluence) +
       b.boost +
       (gold ? 0.03 : 0) +
-      (card.sizeBias - 1) * 0.05;
+      (card.sizeBias - 1) * 0.05 +
+      (tapeAgree ? 0.04 : 0) +
+      (tapeFight ? -0.08 : 0);
     if (
       swing?.timeOccurs &&
       ((swing.side === "put" && c.side === "short") ||
@@ -292,6 +312,9 @@ function buildFeeds(ctx: {
       : "No fused setup",
     paperLine,
     desk?.scan.focus ?? "",
+    desk?.smc
+      ? `SMC ${desk.bias.left.symbol} ${desk.smc.left.alerts[0]?.label ?? "—"} · ${desk.bias.right.symbol} ${desk.smc.right.alerts[0]?.label ?? "—"}`
+      : "",
   ].filter(Boolean);
 
   const path = [
@@ -349,8 +372,13 @@ function buildFeeds(ctx: {
     ? [
         `Feed ${desk.feed} · ${desk.quotes.left.symbol} ${desk.quotes.left.price} · ${desk.quotes.right.symbol} ${desk.quotes.right.price}`,
         desk.scan.smt.note,
-        `Levels ${desk.levels?.[0]?.items?.length ?? 0}+ marked`,
-      ]
+        desk.smc
+          ? `${desk.bias.left.symbol}: ${desk.smc.left.arrays.slice(0, 2).map((a) => a.label).join(", ") || "no array"} · ${desk.smc.left.alerts[0]?.label ?? "no alert"}`
+          : `Levels ${desk.levels?.[0]?.items?.length ?? 0}+ marked`,
+        desk.smc
+          ? `${desk.bias.right.symbol}: ${desk.smc.right.arrays.slice(0, 2).map((a) => a.label).join(", ") || "no array"} · ${desk.smc.right.alerts[0]?.label ?? "no alert"}`
+          : "",
+      ].filter(Boolean)
     : ["Tape idle"];
 
   const lab = [

@@ -30,6 +30,7 @@ import {
 } from "./strategies";
 import type { HtfBiasRead } from "./structure";
 import { smtRead } from "./structure";
+import { tapeHitsForSide, type SmcTape } from "./smc-board";
 import { applyProfitPathToCandidate } from "./profit-path";
 import {
   drawOnLiquidity,
@@ -201,6 +202,7 @@ function scoreDirection(
    * scoring it correctly requires knowing which side we are scoring.
    */
   book: "left" | "right",
+  tape?: SmcTape,
 ): SetupCandidate {
   const side: SetupSide = direction === "bull" ? "long" : "short";
   const present: ComponentKey[] = [];
@@ -238,11 +240,17 @@ function scoreDirection(
   add("mid_bias", read.mid === direction, `mid_bias ${read.mid}`);
   add("htf2_bias", read.ltf === direction, `htf2/ltf ${read.ltf}`);
 
+  const tapeHits = tapeHitsForSide(tape, direction);
+
   const ifvg = resolveIfvg(direction, det, read.last);
   add(
     "ifvg",
-    ifvg.hit,
-    ifvg.hit ? `ifvg${ifvg.inverted ? " (inverted)" : ""}` : undefined,
+    ifvg.hit || tapeHits.ifvg,
+    ifvg.hit
+      ? `ifvg${ifvg.inverted ? " (inverted)" : ""}`
+      : tapeHits.ifvg
+        ? "ifvg (tape)"
+        : undefined,
   );
 
   const ob = det.orderBlock.latest;
@@ -252,7 +260,11 @@ function scoreDirection(
       ((direction === "bull" && ob.kind === "bull") ||
         (direction === "bear" && ob.kind === "bear")),
   );
-  add("order_block", obAligned, obAligned ? "order_block retest" : undefined);
+  add(
+    "order_block",
+    obAligned || tapeHits.ob,
+    obAligned ? "order_block retest" : tapeHits.ob ? "order_block (tape)" : undefined,
+  );
 
   /**
    * SMT divergence — typed, not regex-matched on prose.
@@ -313,15 +325,20 @@ function scoreDirection(
   add("weekly_pd", wpd === direction, wpd ? `weekly_pd ${wpd}` : undefined);
 
   const disp = Boolean(
-    det.displacement.latest &&
-      det.displacement.latest.direction === direction,
+    (det.displacement.latest &&
+      det.displacement.latest.direction === direction) ||
+      tapeHits.displacement,
   );
   const structure = read.lastBOS?.direction === direction;
   const cisd = Boolean(structure && disp);
   add("cisd", cisd, cisd ? "cisd (BOS+displacement)" : undefined);
   add("displacement", disp, disp ? "displacement" : undefined);
   add("structure", Boolean(structure), structure ? "structure BOS" : undefined);
-  add("mss", Boolean(structure && disp), structure && disp ? "mss" : undefined);
+  add(
+    "mss",
+    Boolean((structure && disp) || tapeHits.mss),
+    structure && disp ? "mss" : tapeHits.mss ? "mss (tape)" : undefined,
+  );
 
   const openBias = openingBiasFrom(read);
   add(
@@ -335,7 +352,9 @@ function scoreDirection(
     (direction === "bear" && read.dealing?.zone === "premium");
   add("pd", Boolean(pdOk), pdOk ? `pd ${read.dealing?.zone}` : undefined);
 
-  const sponsored = ifvg.zone != null && ifvg.zone.middleBodyAtrRatio >= 1.5;
+  const sponsored =
+    (ifvg.zone != null && ifvg.zone.middleBodyAtrRatio >= 1.5) ||
+    tapeHits.sponsored;
   add("sponsored", sponsored, sponsored ? "sponsored FVG" : undefined);
 
   /**
@@ -375,10 +394,16 @@ function scoreDirection(
       : undefined,
   );
 
-  // Honest cold components: separate breaker/propulsion detectors not fully ported
-  add("breaker", false);
+  // Honest components from the multi-TF tape (smc-board.ts) — breaker was
+  // always false before; propulsion lights when a sponsored gap + displacement
+  // agree on this side.
+  add("breaker", tapeHits.breaker, tapeHits.breaker ? "breaker (tape)" : undefined);
   add("mitigation", Boolean(ob && ob.mitigated && obAligned));
-  add("propulsion", false);
+  add(
+    "propulsion",
+    tapeHits.sponsored && disp,
+    tapeHits.sponsored && disp ? "propulsion (sponsored + displacement)" : undefined,
+  );
 
   let rejection = false;
   if (bars.length >= 3) {
@@ -394,8 +419,14 @@ function scoreDirection(
         (b.h - Math.max(b.o, b.c)) / range >= 0.45;
     }
   }
-  add("rejection", rejection, rejection ? "rejection wick" : undefined);
+  add(
+    "rejection",
+    rejection || tapeHits.rejection,
+    rejection || tapeHits.rejection ? "rejection wick / block" : undefined,
+  );
   add("daily_bias", read.daily === direction, `daily_bias ${read.daily}`);
+  if (tapeHits.fights) missing.push("tape delivering the other way");
+  if (tapeHits.supports) reasons.push(...tapeHits.notes.slice(0, 3));
 
   // Component bag is raw market truth. Score is NOT sum-of-all-strategies.
   // 1) SMC/ICT structure layer  2) each model graded alone  3) best model wins
@@ -554,6 +585,8 @@ export interface ScoreCandidatesOptions {
   divergence?: Parameters<typeof smtRead>[2];
   leftBars?: OhlcBar[];
   rightBars?: OhlcBar[];
+  leftTape?: SmcTape;
+  rightTape?: SmcTape;
 }
 
 /**
@@ -571,7 +604,7 @@ export function scoreCandidates(
   clock: SessionClock,
   opts: ScoreCandidatesOptions = {},
 ): ScanResult {
-  const { divergence, leftBars, rightBars } = opts;
+  const { divergence, leftBars, rightBars, leftTape, rightTape } = opts;
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
@@ -596,8 +629,8 @@ export function scoreCandidates(
     [left, detL, barsL, condL, "left"] as const,
     [right, detR, barsR, condR, "right"] as const,
   ]) {
-    candidates.push(scoreDirection("bull", read, det, bars, cond, clock, smt, book));
-    candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt, book));
+    candidates.push(scoreDirection("bull", read, det, bars, cond, clock, smt, book, book === "left" ? leftTape : rightTape));
+    candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt, book, book === "left" ? leftTape : rightTape));
   }
 
   /**
@@ -736,10 +769,13 @@ export function scanSetups(
   divergence?: Parameters<typeof smtRead>[2],
   leftBars?: OhlcBar[],
   rightBars?: OhlcBar[],
+  tapes?: { left?: SmcTape; right?: SmcTape },
 ): ScanResult {
   return scoreCandidates(left, right, clock, {
     divergence,
     leftBars,
     rightBars,
+    leftTape: tapes?.left,
+    rightTape: tapes?.right,
   });
 }

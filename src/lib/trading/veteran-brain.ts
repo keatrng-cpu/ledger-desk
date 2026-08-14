@@ -395,6 +395,57 @@ export function runVeteranBrain(
     });
   }
 
+  // 4b) Multi-TF SMC tape — same board Trade now shows
+  const tapeBook =
+    rawBest && desk.smc
+      ? rawBest.symbol === desk.bias.right.symbol
+        ? desk.smc.right
+        : desk.smc.left
+      : desk.smc?.right ?? desk.smc?.left;
+  if (tapeBook) {
+    const dir = rawBest?.side === "long" ? "bull" : rawBest?.side === "short" ? "bear" : null;
+    const want = tapeBook.alerts.filter((a) => !dir || a.side === dir);
+    const fight = tapeBook.alerts.filter((a) => dir && a.side !== dir && (a.kind === "distribution" || a.kind === "mss"));
+    const fresh = tapeBook.arrays.filter((a) => a.state === "fresh" || a.state === "inverted").slice(0, 3);
+    const detail = [
+      want[0]?.label,
+      fresh[0] ? `${fresh[0].tf} ${fresh[0].label}` : null,
+      fight[0] ? `fights: ${fight[0].label}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    if (fight.length && rawBest) {
+      layers.push({
+        id: "smc_tape",
+        label: "SMC tape",
+        tone: "fail",
+        score: -1.25,
+        detail: detail || "Tape delivering against this side",
+      });
+      score -= 1.25;
+      yellow.push(fight[0]!.label);
+      vetoes.push("SMC tape fights this side — do not fade live displacement");
+    } else if (want.some((a) => a.kind === "distribution" || a.kind === "mss" || a.kind === "manipulation")) {
+      layers.push({
+        id: "smc_tape",
+        label: "SMC tape",
+        tone: "pass",
+        score: 0.75,
+        detail: detail || "Tape agrees",
+      });
+      score += 0.75;
+      green.push(want[0]!.label);
+    } else {
+      layers.push({
+        id: "smc_tape",
+        label: "SMC tape",
+        tone: "info",
+        score: 0,
+        detail: detail || `${tapeBook.arrays.length} arrays · ${tapeBook.alerts.length} alerts`,
+      });
+    }
+  }
+
   // 5) News
   const brief = desk.brief;
   if (brief?.verdict === "stand_down") {
@@ -874,6 +925,18 @@ export function runVeteranBrain(
   // ---- Auto-read every desk "tab" + all strategies (no user click needed) ----
   const tabReads: TabRead[] = [
     {
+      tab: "Tape",
+      status: desk.smc
+        ? desk.smc.left.alerts.some((a) => a.urgent) ||
+          desk.smc.right.alerts.some((a) => a.urgent)
+          ? "hot"
+          : "ok"
+        : "idle",
+      line: desk.smc
+        ? `${desk.bias.left.symbol} ${desk.smc.left.alerts[0]?.label ?? desk.smc.left.arrays[0]?.label ?? "quiet"} · ${desk.bias.right.symbol} ${desk.smc.right.alerts[0]?.label ?? desk.smc.right.arrays[0]?.label ?? "quiet"}`
+        : "SMC tape not on desk",
+    },
+    {
       tab: "Trade",
       status: clock.inTradeWindow
         ? rawBest && rawBest.confluence >= PROFIT_ACTION_FLOOR
@@ -1041,7 +1104,7 @@ export function runVeteranBrain(
 
   // Enrich monologue with auto tab + strategy summary
   monologue.unshift(
-    `I just read every tab. Trade=${tabReads[0]!.line}. Path=${tabReads[1]!.line}.`,
+    `I just read every tab. ${tabReads.map((t) => `${t.tab}=${t.line}`).slice(0, 3).join(" · ")}`,
   );
   if (readyStrats[0]) {
     monologue.push(
@@ -1070,7 +1133,14 @@ export function runVeteranBrain(
   }
 
   const narrLines = (desk as { __narrLines?: string[] }).__narrLines;
-  if (narrLines?.length) monologue.push(...narrLines);
+  if (desk.smc) {
+    const t =
+      rawBest?.symbol === desk.bias.right.symbol ? desk.smc.right : desk.smc.left;
+    const a = t.alerts[0];
+    const arr = t.arrays[0];
+    if (a) monologue.push(`Tape: ${a.tf} ${a.label} · ${a.at}.`);
+    if (arr) monologue.push(`Array: ${arr.tf} ${arr.label} ${arr.bottom.toFixed(2)}–${arr.top.toFixed(2)} (${arr.state}) ${arr.at}.`);
+  }
   monologue.push(...canonCoachLines(canonStack));
 
 
