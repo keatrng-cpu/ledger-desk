@@ -121,6 +121,41 @@ export function normalizeBacktestQuery(message: string): string {
   return s;
 }
 
+/**
+ * Hard ceiling on how much history one parsed request may FETCH.
+ *
+ * `fetchBacktestLayers` chunks its window into one billable Databento range
+ * request PER WEEK, for BOTH symbols in parallel (databento.ts's CHUNK_MS
+ * loop). The existing `MAX_DAYS` cap further down only limits how many days
+ * get ANALYSED — it runs after the fetch, so it caps compute, not spend. An
+ * unbounded window therefore turned a single request into hundreds of
+ * billable calls: "backtest 2018-01-01 to 2026-08-14" is ~450 weeks × 2
+ * symbols ≈ 900 range requests.
+ *
+ * That matters more than a normal input-validation miss because
+ * `analyzeTradezellaChat`, which reaches this parser, is one of the few
+ * server functions with no `authMiddleware` — so the amplification is
+ * reachable without signing in.
+ *
+ * 400 days is generously above any real use (the widest intent this parser
+ * can otherwise produce is a single year) while capping the blast radius at
+ * ~58 weeks × 2 symbols ≈ 116 requests. Clamped, never rejected: a caller
+ * asking for ten years still gets the most recent 400 days and a truthful
+ * label, rather than a silent empty result.
+ */
+export const MAX_BACKTEST_FETCH_DAYS = 400;
+
+function clampWindow(w: DateWindow): DateWindow {
+  const maxMs = MAX_BACKTEST_FETCH_DAYS * 86_400_000;
+  if (w.endMs - w.startMs <= maxMs) return w;
+  const startMs = w.endMs - maxMs;
+  return {
+    ...w,
+    startMs,
+    label: `${w.label} (clamped to last ${MAX_BACKTEST_FETCH_DAYS}d)`,
+  };
+}
+
 export function parseBacktestIntent(message: string): DateWindow | null {
   const lower = normalizeBacktestQuery(message);
   if (!/\b(backtest|bt|replay|session)\b/.test(lower) && !/\bweek of\b/.test(lower)) {
@@ -144,12 +179,15 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     const b = Date.parse(isoRange[2]! + "T23:59:59-04:00");
     if (Number.isFinite(a) && Number.isFinite(b) && b > a) {
       const days = Math.round((b - a) / 86400000);
-      return {
+      // Clamped here specifically: this is the ONLY branch that accepts an
+      // arbitrary user-supplied span. Every other branch below derives its
+      // window from a month/week/day keyword and is bounded by construction.
+      return clampWindow({
         startMs: a,
         endMs: b,
         label: `${isoRange[1]} → ${isoRange[2]}`,
         kind: days > 7 ? "range" : days > 1 ? "week" : "day",
-      };
+      });
     }
   }
 

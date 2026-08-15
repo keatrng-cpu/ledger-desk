@@ -158,12 +158,35 @@ function buildBoosts(memory: DeskMemoryState): Record<string, StrategyBoost> {
     "ronan",
   ]) {
     if (!out[id]) {
+      /**
+       * NEUTRAL AT n=0 — no sample, no opinion.
+       *
+       * This branch previously handed out a real edge (`boost`) and a real
+       * position-size multiplier (tjr ×1.1, blake_mech ×0.5) in the same
+       * object that honestly reported `wr: null, n: 0`. Those numbers were
+       * not measured from anything; they were a guess about strategies the
+       * book had never traded, and they were live: `boost` feeds
+       * `fusedScore` -> `rankCandidates`, which orders the scanner and picks
+       * the headline candidate, and `sizeMult` renders as `size×` on the
+       * brain card.
+       *
+       * That is the same defect as the hardcoded `blakeLongTaken/Wins = 0`
+       * already fixed in `journal/server.ts` (which now reads real SQL
+       * counts) — an invented statistic dressed as a measurement. The house
+       * rule is that a number the desk cannot measure does not get to move a
+       * score or a size, and `journal/discretion.ts` is the reference
+       * implementation: below `MIN_EFFECTIVE_N` it returns exactly 1.0 and
+       * the verdict "insufficient-data".
+       *
+       * The real per-strategy ranking arrives from measured history the
+       * moment a sample exists — via the `t.n >= 3/5/8` branches above.
+       * Until then every catalog strategy starts level.
+       */
       out[id] = {
         id,
-        boost:
-          id === "tjr" ? 0.03 : id === "mechanical" ? 0.01 : id === "blake_mech" ? -0.03 : 0,
-        sizeMult: id === "blake_mech" ? 0.5 : id === "tjr" ? 1.1 : 1,
-        reason: `${id}: no BT sample yet`,
+        boost: 0,
+        sizeMult: 1,
+        reason: `${id}: no sample yet — neutral (no boost, no size change)`,
         wr: null,
         n: 0,
       };
