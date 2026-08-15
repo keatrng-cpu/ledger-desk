@@ -87,6 +87,7 @@ import {
   checkScheduledJobs,
 } from "@/lib/alerts/trigger-server";
 import { StorageBanner } from "@/components/desk/storage-banner";
+import { PropFirmPanel } from "@/components/desk/propfirm-panel";
 import { tryApexAutofire, AUTOFIRE_CONFLUENCE_FLOOR } from "@/lib/execution/apex-autofire";
 import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
@@ -1110,8 +1111,22 @@ useEffect(() => {
                     discretion={discretion}
                   />
 
+                  {/* Prop firm sits directly under the setups it scores.
+                      Same candidates, different question: the discretionary
+                      engine asks "is this a good trade", this asks "can a
+                      trailing-drawdown account afford it right now". */}
                   <SectionHead
                     n="3"
+                    title="Prop firm"
+                    sub="Eval rules + payout buffers · sized by trail room, not % equity"
+                  />
+                  <PropFirmPanel
+                    candidates={desk.scan.candidates}
+                    equity={equity}
+                  />
+
+                  <SectionHead
+                    n="4"
                     title="Open positions"
                     sub="Live-managed paper book — scale-outs, BE stops, time stops"
                   />
@@ -1155,7 +1170,7 @@ useEffect(() => {
                   {desk.narrative && (
                     <>
                       <SectionHead
-                        n="4"
+                        n="5"
                         title="Market narrative"
                         sub="Why price is where it is — context, not a trigger"
                       />

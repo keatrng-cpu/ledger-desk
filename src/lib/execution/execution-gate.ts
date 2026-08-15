@@ -151,19 +151,36 @@ export function apexAccountPhase(): ApexAccountPhase {
 }
 
 /**
- * $ trail per Apex product, confirmed for the 50K "Tradovate Intraday
- * Trail" evaluation (the product on APEX-644704-01..05): starting threshold
- * $47,500 on a $50,000 balance = a $2,500 trail. On Tradovate specifically,
- * this NEVER stops trailing during the eval (unlike Rithmic evals, which
- * lock at the profit target) — touching the threshold at any moment fails
- * the account immediately.
+ * $ trail per Apex product for the 50K Intraday Trailing evaluation on
+ * Tradovate (the product on APEX-644704-01..05).
  *
- * This map only has the one confirmed size. An account whose size is not
- * in here fails closed (see accountTrailUsd below) rather than guess a
- * number for an unconfirmed product.
+ * *** CORRECTED 2026-08-15: $2,000, NOT $2,500. ***
+ *
+ * $2,500 is the LEGACY figure, and it only governs accounts purchased before
+ * 2026-03-01, when Apex retired its previous product line. Verified against
+ * Apex's own help center: the current 50K Intraday starts with a $48,000
+ * threshold on a $50,000 balance — a $2,000 trail.
+ *
+ * Why this mattered rather than being a rounding error: the breaker below
+ * trips at `peak - trail * SAFETY_MARGIN`. With the legacy $2,500 that is
+ * `peak - 2250`, but the account actually FAILS at `peak - 2000` — which
+ * price reaches FIRST on the way down. The breaker would therefore have
+ * fired only after the account was already dead. Too small a trail is safe
+ * (trips early); too large is worthless.
+ *
+ * On Tradovate specifically the trail NEVER stops following the peak during
+ * an evaluation (Rithmic evals lock at the profit target — different
+ * product, deliberately not encoded). Peak includes UNREALIZED gains.
+ *
+ * Source: apextraderfunding.com/help-center/intraday-trailing-drawdown-accounts/
+ *         intraday-trailing-drawdown-explained/
+ *
+ * This map holds only confirmed sizes. Anything else fails closed (see
+ * accountTrailUsd) rather than guessing a number for an unconfirmed product.
+ * Legacy accounts are deliberately absent — see propfirm/rules.ts.
  */
 const APEX_TRAIL_BY_SIZE_USD: Record<number, number> = {
-  50_000: 2_500,
+  50_000: 2_000,
 };
 
 /**
