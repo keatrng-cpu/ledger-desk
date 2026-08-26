@@ -76,6 +76,11 @@ function continuous(symbol: IndexSymbol): string {
  * degrades to the old behaviour instead of breaking the feed.
  */
 const DEFAULT_DELAY_MINUTES = 600;
+/** Optimistic first probe when env delay is the historical 10h default. */
+const PROBE_DELAY_MINUTES = 15;
+
+/** License-discovered lag (minutes). Null until the first 422 or success. */
+let discoveredDelayMin: number | null = null;
 
 function delayMinutes(): number {
   const raw = process.env.DATABENTO_DELAY_MINUTES?.trim();
@@ -84,11 +89,20 @@ function delayMinutes(): number {
   return Number.isFinite(n) && n >= 0 ? n : DEFAULT_DELAY_MINUTES;
 }
 
+function effectiveDelayMin(): number {
+  if (discoveredDelayMin != null) return discoveredDelayMin;
+  const configured = delayMinutes();
+  // Don't wait 10h if the key can serve closer — probe 15m once per process.
+  if (configured >= 60) return PROBE_DELAY_MINUTES;
+  return configured;
+}
+
 function rangeIso(days: number, endMs?: number): { start: string; end: string } {
-  const end = new Date(endMs ?? Date.now() - delayMinutes() * 60 * 1000);
+  const end = new Date(endMs ?? Date.now() - effectiveDelayMin() * 60 * 1000);
   const start = new Date(end.getTime() - days * 24 * 3600 * 1000);
   return { start: start.toISOString(), end: end.toISOString() };
 }
+
 
 /** Parse Databento 422 "end time before <iso>" hint. */
 function parseMaxEnd(body: string): number | null {
@@ -233,10 +247,19 @@ export async function fetchDatabentoBars(
   if (!result.ok && result.status === 422) {
     const maxEnd = parseMaxEnd(result.body);
     if (maxEnd) {
+      discoveredDelayMin = Math.max(
+        0,
+        Math.round((Date.now() - maxEnd) / 60_000),
+      );
       ({ start, end } = rangeIso(daysFor(range), maxEnd));
       result = await getRangeOnce(key, symbol, start, end);
+    } else {
+      discoveredDelayMin = delayMinutes();
     }
+  } else if (result.ok && discoveredDelayMin == null) {
+    discoveredDelayMin = effectiveDelayMin();
   }
+
 
   if (!result.ok) {
     console.warn(`[databento] ${symbol} HTTP ${result.status}`);

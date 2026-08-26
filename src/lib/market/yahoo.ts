@@ -72,9 +72,14 @@ interface YahooChartResult {
   };
 }
 
+const YAHOO_HOSTS = [
+  "query1.finance.yahoo.com",
+  "query2.finance.yahoo.com",
+] as const;
+
 const YAHOO_HEADERS = {
   "User-Agent":
-    "Mozilla/5.0 (compatible; LedgerDesk/1.0; +https://x.ai)",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
   Accept: "application/json",
 } as const;
 
@@ -83,19 +88,41 @@ async function yahooChart(
   range: YahooRange,
   interval: YahooInterval,
 ): Promise<YahooChartResult | null> {
-  const url =
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahoo)}` +
-    `?interval=${interval}&range=${range}&includePrePost=false`;
-  const res = await fetch(url, {
-    headers: YAHOO_HEADERS,
-    signal: AbortSignal.timeout(20_000),
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const json = (await res.json()) as YahooChartResult;
-  if (json.chart?.error) return null;
-  return json;
+  const bust = Date.now();
+  const qs =
+    `interval=${interval}&range=${range}&includePrePost=true&_=${bust}`;
+  const timeoutMs = interval === "1m" && range === "1d" ? 8_000 : 15_000;
+  const fetchOne = async (host: (typeof YAHOO_HOSTS)[number]) => {
+    const url = `https://${host}/v8/finance/chart/${encodeURIComponent(yahoo)}?${qs}`;
+    const res = await fetch(url, {
+      headers: YAHOO_HEADERS,
+      signal: AbortSignal.timeout(timeoutMs),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`yahoo ${res.status}`);
+    const json = (await res.json()) as YahooChartResult;
+    if (json.chart?.error) throw new Error(json.chart.error.description ?? "chart");
+    if (!json.chart?.result?.[0]) throw new Error("empty");
+    return json;
+  };
+  if (interval === "1m") {
+    try {
+      return await Promise.any(YAHOO_HOSTS.map(fetchOne));
+    } catch {
+      return null;
+    }
+  }
+  for (const host of YAHOO_HOSTS) {
+    try {
+      return await fetchOne(host);
+    } catch {
+      /* next host */
+    }
+  }
+  return null;
 }
+
+
 
 /**
  * Max single-bar close-to-close move accepted as a real print, not a bad
@@ -438,7 +465,7 @@ export function buildComparisonNote(
   const corrTxt =
     corr == null
       ? "correlation n/a"
-      : `ρ=${corr.toFixed(2)} (${corr > 0.85 ? "tight" : corr > 0.5 ? "moderate" : "loose"} lock)`;
+      : `\u03c1=${corr.toFixed(2)} (${corr > 0.85 ? "tight" : corr > 0.5 ? "moderate" : "loose"} lock)`;
   if (Math.abs(spread) < 0.12) {
     return `Indexes tracking together (${corrTxt}). No clear SMT edge — wait for a crack.`;
   }
