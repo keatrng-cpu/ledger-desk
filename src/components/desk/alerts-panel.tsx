@@ -118,12 +118,11 @@ export function AlertsPanel() {
         <p className="mt-1.5 text-xs text-[var(--color-down)]">{message}</p>
       )}
       <p className="mt-1.5 text-[10px] leading-relaxed text-[var(--color-subtle)]">
-        Fires on: a setup arming, a halt/killzone cap hit, a paper position
-        auto-flattened by a time/context stop, and a high-impact news window
-        ~15 min out. The 3 daily/weekly summaries (premarket checklist,
-        session review, week close) check in on this browser's own poll —
-        they need a tab open sometime in their target hour to fire, since
-        this desk has no server-side cron running in production.
+        Fires on: an A+/A/A- PATH arming (computer beep + OS banner if you
+        clicked Arm alarm in the HUD), a halt/killzone cap, a paper flatten,
+        and a high-impact news window ~15 min out. Keep the desk tab open
+        through NY AM — the speaker alarm needs this page. 08:20 CDT Grok
+        brief is a separate daily automation.
       </p>
 
       {recent && recent.length > 0 && (

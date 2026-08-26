@@ -82,6 +82,12 @@ import { observeAndTickGhosts, markGhostTaken } from "@/lib/trading/ghost-book";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
+import { PathAlarmBar } from "@/components/desk/path-alarm-bar";
+import { LiveSessionCard } from "@/components/desk/live-session-card";
+import {
+  considerPathAlarm,
+  isHighProbPath,
+} from "@/lib/alerts/path-alarm";
 import {
   raiseSetupArmedAlert,
   raisePositionFlattenedAlert,
@@ -260,14 +266,15 @@ function maybeAutofire(desk: DeskPayload, equity: number): void {
  * 30s poll is correct and produces at most one notification each.
  */
 function raiseDeskAlerts(desk: DeskPayload): void {
-  const armed = desk.scan.candidates.find((c) => c.actionable);
+  const armed = desk.scan.candidates.find((c) => isHighProbPath(c));
   if (armed) {
+    considerPathAlarm(desk, armed);
     void raiseSetupArmedAlert({
       data: {
         symbol: armed.symbol,
         side: armed.side,
         candidateId: armed.id,
-        grade: armed.grade,
+        grade: armed.pathBand || armed.grade,
         confluence: armed.confluence,
         killzone: desk.clock.killzone,
       },
@@ -952,6 +959,7 @@ useEffect(() => {
         )}
         {desk && (
           <SessionHud desk={desk} wallNow={wallNow}>
+            <PathAlarmBar />
             <nav
               className="mx-auto mt-2 max-w-7xl overflow-x-auto"
               aria-label="Profit categories"
@@ -1147,6 +1155,7 @@ useEffect(() => {
                     right={desk.bias.right}
                   />
                   <PremarketPanel desk={desk} />
+                  <LiveSessionCard />
                   {/* The setups come DIRECTLY under the header that names
                       them. Previously this header was followed by the market
                       narrative and the whole paper book, with the actual

@@ -202,6 +202,15 @@ export function resolveKillzone(hour: number, minute: number): {
   };
 }
 
+/**
+ * First 15 minutes of RTH — Judas / cash-open raid. Not an entry window.
+ * 09:30–09:45 America/New_York.
+ */
+export function isJudasWindow(hour: number, minute: number): boolean {
+  const m = hour * 60 + minute;
+  return m >= 9 * 60 + 30 && m < 9 * 60 + 45;
+}
+
 export function getSessionClock(now = new Date()): SessionClock {
   const p = etParts(now);
   const kz = resolveKillzone(p.hour, p.minute);
