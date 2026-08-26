@@ -8,8 +8,9 @@ import type {
 import {
   fetchDatabentoBars,
   hasDatabentoKey,
-  quoteFromDatabentoSeries,
 } from "./databento";
+import { readLiveTick, quoteFromLiveTick } from "./live-gateway";
+import { pickFreshestQuote, stitchLiveSession } from "./freshest";
 import {
   alignedReturnPairs,
   buildComparisonNote,
@@ -21,6 +22,7 @@ import {
   type YahooInterval,
   type YahooRange,
 } from "./yahoo";
+
 
 export type DualRangeKey = "1d" | "5d" | "1mo" | "3mo";
 
@@ -63,6 +65,7 @@ async function loadSymbol(
   interval: YahooInterval,
   minutes: number,
 ) {
+  let historical: Awaited<ReturnType<typeof fetchDatabentoBars>> = null;
   if (hasDatabentoKey()) {
     try {
       const db = await fetchDatabentoBars(
@@ -70,29 +73,31 @@ async function loadSymbol(
         range === "3mo" ? "3mo" : range === "1mo" ? "1mo" : range === "5d" ? "5d" : "1d",
         minutes >= 1440 ? 60 : minutes,
       );
-      if (db && db.bars.length >= 20) return db;
+      if (db && db.bars.length >= 20) historical = db;
     } catch {
       /* fall through */
     }
   }
+  let live = null;
   try {
-    const live = await fetchYahooBars(symbol, range, interval);
-    if (live) return live;
+    live = await fetchYahooBars(symbol, range, interval);
   } catch {
     /* fall through */
   }
-  return syntheticBars(symbol);
+  return stitchLiveSession(historical, live) ?? syntheticBars(symbol);
 }
 
-async function loadQuote(symbol: IndexSymbol) {
-  try {
-    const q = await fetchYahooLiveQuote(symbol);
-    if (q) return q;
-  } catch {
-    /* fall through */
-  }
-  return syntheticQuote(symbol);
+async function loadQuote(symbol: IndexSymbol, previousClose?: number) {
+  const [tick, yahoo] = await Promise.all([
+    readLiveTick(symbol).catch(() => null),
+    fetchYahooLiveQuote(symbol).catch(() => null),
+  ]);
+  const gw = tick
+    ? quoteFromLiveTick(tick, yahoo?.yahoo ?? symbol, previousClose || tick.price)
+    : null;
+  return pickFreshestQuote(gw, yahoo) ?? syntheticQuote(symbol);
 }
+
 
 export const fetchDualIndexes = createServerFn({ method: "POST" })
   .validator((input: {
@@ -109,29 +114,26 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
         loadSymbol(data.right, cfg.range, cfg.interval, cfg.minutes),
       ]);
 
-      const leftQ =
-        left.source === "databento"
-          ? quoteFromDatabentoSeries(left)
-          : await loadQuote(data.left);
-      const rightQ =
-        right.source === "databento"
-          ? quoteFromDatabentoSeries(right)
-          : await loadQuote(data.right);
+      const [leftQ, rightQ] = await Promise.all([
+        loadQuote(data.left, left.previousClose ?? undefined),
+        loadQuote(data.right, right.previousClose ?? undefined),
+      ]);
 
-      if (leftQ.source === "yahoo" || leftQ.source === "databento") {
+      if (leftQ.source !== "synthetic") {
         left.price = leftQ.price;
         left.changePct = leftQ.changePct;
         left.marketTimeMs = leftQ.marketTimeMs;
         left.marketTimeIso = leftQ.marketTimeIso;
         left.previousClose = leftQ.previousClose;
       }
-      if (rightQ.source === "yahoo" || rightQ.source === "databento") {
+      if (rightQ.source !== "synthetic") {
         right.price = rightQ.price;
         right.changePct = rightQ.changePct;
         right.marketTimeMs = rightQ.marketTimeMs;
         right.marketTimeIso = rightQ.marketTimeIso;
         right.previousClose = rightQ.previousClose;
       }
+
 
       const pairs = alignedReturnPairs(left.bars, right.bars);
       const corr = pearsonCorr(pairs.left, pairs.right);
@@ -175,7 +177,6 @@ export const fetchLiveQuotes = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<LiveQuotesPayload | DualIndexError> => {
     const fetchedAtMs = Date.now();
     try {
-      // Live poll: Yahoo still wins for second prints; Databento Live would be separate.
       const [left, right] = await Promise.all([
         loadQuote(data.left),
         loadQuote(data.right),
