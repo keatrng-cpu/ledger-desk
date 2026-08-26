@@ -10,10 +10,12 @@ import {
   type PathAlarmState,
 } from "@/lib/alerts/path-alarm";
 import { ritualWindow } from "@/lib/trading/live-session";
+import type { DeskPayload } from "@/lib/trading/build-desk";
+import { CopyClaudeHandoff } from "@/components/desk/copy-claude-handoff";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function PathAlarmBar() {
+export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
   const [state, setState] = useState<PathAlarmState>(() => getPathAlarmState());
   const [ritual, setRitual] = useState(() => ritualWindow());
   const [msg, setMsg] = useState<string | null>(null);
@@ -87,6 +89,7 @@ export function PathAlarmBar() {
       >
         Test beep
       </Button>
+      {desk && <CopyClaudeHandoff desk={desk} />}
 
       <span
         className={cn(

@@ -959,7 +959,7 @@ useEffect(() => {
         )}
         {desk && (
           <SessionHud desk={desk} wallNow={wallNow}>
-            <PathAlarmBar />
+            <PathAlarmBar desk={desk} />
             <nav
               className="mx-auto mt-2 max-w-7xl overflow-x-auto"
               aria-label="Profit categories"

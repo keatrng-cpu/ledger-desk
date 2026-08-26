@@ -1,8 +1,10 @@
 # Agent notes (Grok / Claude / Cursor)
 
-This is the **Ledger Desk** app: revenue analytics + dual MNQ/ES futures charts.
+**Ledger Desk** — private MNQ/ES SMC/ICT masterplace.
 
-Primary dual-index code lives under `src/lib/market/` and `src/components/dashboard/dual-index-charts.tsx`.
-See `CLAUDE.md` and `README.md` for the full map.
+Full protocol, numbers, live SOP, and code map: **[CLAUDE.md](./CLAUDE.md)**  
+Follow that file. If it conflicts with this note, CLAUDE.md wins. If CLAUDE.md conflicts with `src/lib/aplus/config.ts`, **code wins**.
 
-Preview contract: serve on `0.0.0.0:8080` via `startup.sh` / `npm run dev`.
+Preview: `0.0.0.0:8080` via `startup.sh` / `npm run dev`.
+
+Live desk dump for another agent: HUD **Copy for Claude** (`src/lib/trading/claude-handoff.ts`).

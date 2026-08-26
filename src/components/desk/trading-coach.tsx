@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import { Bot, Loader2, Sparkles } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
-import {
-  askDeskCoach,
-  type CoachNarration,
-} from "@/lib/coach/claude-server";
+import { askDeskCoach, type CoachNarration } from "@/lib/coach/claude-server";
+import { buildClaudeHandoff } from "@/lib/trading/claude-handoff";
+import { CopyClaudeHandoff } from "@/components/desk/copy-claude-handoff";
 import { Button } from "@/components/ui/button";
 
 /** Local deterministic coach — explains computed structure only. */
@@ -78,6 +77,7 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
           actionableCount: desk.scan.candidates.filter((c) => c.actionable).length,
           blocked: desk.scan.blocked?.slice(0, 6),
           focus: desk.scan.focus ?? null,
+          snapshot: buildClaudeHandoff(desk).slice(0, 8000),
         },
       });
       setNarration(res);
@@ -156,6 +156,7 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
               "Ask Claude"
             )}
           </Button>
+          <CopyClaudeHandoff desk={desk} />
         </div>
 
         {narration?.text && (

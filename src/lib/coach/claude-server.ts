@@ -45,7 +45,7 @@ const API_VERSION = "2023-06-01";
 const MODEL = "claude-sonnet-5";
 
 /** Bounded output — this is a paragraph of narration, not an essay. */
-const MAX_TOKENS = 700;
+const MAX_TOKENS = 1100;
 
 /** Wall-clock ceiling so a hung request cannot hold a serverless invocation. */
 const TIMEOUT_MS = 30_000;
@@ -117,6 +117,8 @@ const contextSchema = z.object({
   actionableCount: z.number().int().nullable().optional(),
   blocked: z.array(z.string().max(160)).max(10).optional(),
   focus: z.string().max(300).nullable().optional(),
+  /** Full desk snapshot (claude-handoff.ts). Bounded so cost stays finite. */
+  snapshot: z.string().max(8000).optional(),
 });
 
 export type CoachContext = z.input<typeof contextSchema>;
@@ -137,16 +139,18 @@ export interface CoachNarration {
  */
 const SYSTEM_PROMPT = [
   "You are a desk assistant inside a private ICT/SMC futures trading desk (MNQ/ES).",
+  "Follow CLAUDE.md: floor 0.65, A+/A/A- only, one book, Judas 9:30-9:45 ET stand,",
+  "RR >= 1, HTF absolute, mechanical+SMT/TJR primary, Yahoo ~10m lag.",
   "",
-  "HARD RULES:",
+  "HARD RULES FOR THIS ENDPOINT:",
   "- You NEVER give a trade signal, entry, target, stop, or size. The desk's",
   "  deterministic TypeScript scoring already decided all of that before you",
   "  were called. You explain what it computed; you do not second-guess it,",
   "  and you never tell the trader to take or skip a trade.",
   "- You never invent a number. If a number was not given to you, say it is",
   "  not in the data rather than estimating one.",
-  "- You never claim to see a chart, a price feed, or anything live. You only",
-  "  have the fields below.",
+  "- You never claim to see a live chart beyond the snapshot fields.",
+  "- If a LEDGER DESK HANDOFF snapshot is present, that is the full desk.",
   "",
   "WHAT YOU ARE FOR: making the already-computed state legible — which",
   "confluences are present versus missing and what that implies about setup",
@@ -279,6 +283,11 @@ function buildUserMessage(
   add("Actionable candidates", c.actionableCount);
   add("Blocked by", c.blocked);
   add("Desk focus line", c.focus);
+
+  if (c.snapshot) {
+    lines.push("", "Full desk snapshot (authoritative for this call):");
+    lines.push(c.snapshot);
+  }
 
   lines.push("");
   lines.push("Journal — real Postgres history, trailing 30 closes, LIVE and PAPER kept separate:");

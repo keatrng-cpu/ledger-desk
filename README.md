@@ -2,26 +2,26 @@
 
 Private **trading masterplace** for becoming profitable with Grok + Claude as desk coaches.
 
-## Organized flow (top → bottom)
+## Organized flow
 
-1. **Session HUD** — ET clock, killzone, risk, live MNQ/ES, focus line  
-2. **Automatic HTF bias** — structure from live OHLC (absolute gate)  
-3. **Premarket brief** — checklist + narrative  
-4. **Setup scanner** — confluence grades, present/missing components  
-5. **Dual tape** — MNQ mini vs ES candlesticks + relative performance  
-6. **Liquidity & levels** — EQH/EQL, PDH/PDL, dealing range  
-7. **Risk governor** — Trading-Automation non-negotiables  
-8. **Desk coach** — posture + focus action  
-9. **Lab** — deep aplus backtest / rules (collapsible)
+1. **Session HUD** — ET clock, killzone, quotes, lag, Arm alarm, Copy for Claude  
+2. **Veteran brain** — journal + BT memory + discretion  
+3. **Trade now** — HTF, session brief, PATH scanner, paper log  
+4. **Dual tape** — MNQ vs ES + liquidity / SMT  
+5. **Path 0.70** — grades, 9/mo cap, WR  
+6. **Backtest** — real-data weeks, no lookahead  
+7. **Risk** — halts, push + speaker alerts  
+8. **Lab** — rules, replay, shadow, bridge  
+
+## Rules (summary — source of truth is `src/lib/aplus/config.ts`)
+
+PATH floor **0.65** · A+ ≥0.75 · A+ 2% probe / A 2% / A− 1% / B+ 0.5% · paper $100k · ≥1R · 9 PATH/mo · one book · HTF absolute · Judas 09:30–09:45 ET stand · micros MNQ/MES · AI never changes the numbers
 
 ## Stack
-TanStack Start · React 19 · Tailwind v4 · lightweight-charts · Recharts · Yahoo continuous futures
-
-## Rules (summary)
-Risk 0.5% · floor 0.50 TEST (calib 0.67) · max 2/killzone · HTF absolute · dual NQ+ES micros · AI never gates trades
+TanStack Start · React 19 · Tailwind v4 · lightweight-charts · Yahoo + Databento + optional live gateway
 
 ## Related
-- [Trading-Automation](https://github.com/keatrng-cpu/Trading-Automation) — Python engine source of truth  
+- [Trading-Automation](https://github.com/keatrng-cpu/Trading-Automation) — Python engine  
 - [profxtrader](https://github.com/keatrng-cpu/profxtrader) — Databento + Professor  
 
 ## Run
@@ -29,4 +29,4 @@ Risk 0.5% · floor 0.50 TEST (calib 0.67) · max 2/killzone · HTF absolute · d
 npm install && npm run dev
 ```
 
-See **CLAUDE.md** for agent protocol.
+Agents: **CLAUDE.md**. Env: `.env.example`.
