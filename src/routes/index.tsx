@@ -64,6 +64,8 @@ import {
   fetchTradingDesk,
   type DeskPayload,
 } from "@/lib/trading/build-desk";
+import { fetchLiveQuotes } from "@/lib/market/fetch-dual";
+
 import { getRiskState, getSettings } from "@/lib/journal/server";
 import {
   getDiscretionState,
@@ -100,7 +102,9 @@ export const Route = createFileRoute("/")({
   component: MasterplacePage,
 });
 
-const DESK_POLL_MS = 30_000;
+const DESK_POLL_MS = 20_000;
+const QUOTE_POLL_MS = 5_000;
+
 
 /**
  * Mirror closed paper trades into desk_trades. Used by EVERY close path —
@@ -554,6 +558,63 @@ useEffect(() => {
     }, DESK_POLL_MS);
     return () => window.clearInterval(id);
   }, [load]);
+
+  useEffect(() => {
+    if (!desk) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled || document.visibilityState === "hidden") return;
+      try {
+        const res = await fetchLiveQuotes({
+          data: { left: "MNQ", right: "ES" },
+        });
+        if (!res.ok || cancelled) return;
+        setDesk((prev) => {
+          if (!prev) return prev;
+          const next: DeskPayload = {
+            ...prev,
+            quotes: { left: res.left, right: res.right },
+            left: {
+              ...prev.left,
+              price: res.left.price,
+              changePct: res.left.changePct,
+              marketTimeMs: res.left.marketTimeMs,
+              marketTimeIso: res.left.marketTimeIso,
+            },
+            right: {
+              ...prev.right,
+              price: res.right.price,
+              changePct: res.right.changePct,
+              marketTimeMs: res.right.marketTimeMs,
+              marketTimeIso: res.right.marketTimeIso,
+            },
+          };
+          try {
+            observeAndTickGhosts(next);
+          } catch {
+            /* */
+          }
+          return next;
+        });
+      } catch {
+        /* keep last quotes */
+      }
+    };
+    void tick();
+    const id = window.setInterval(() => void tick(), QUOTE_POLL_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") void tick();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+    // Start once a desk exists; do not reset on every quote patch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desk ? "ready" : "boot"]);
+
 
   useEffect(() => {
     const id = window.setInterval(

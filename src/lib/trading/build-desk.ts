@@ -15,6 +15,12 @@ import {
 } from "@/lib/market/yahoo";
 import { readLiveTick, quoteFromLiveTick } from "@/lib/market/live-gateway";
 import {
+  applyQuoteToLastBar,
+  pickFreshestQuote,
+  stampSeriesFromBars,
+  stitchLiveSession,
+} from "@/lib/market/freshest";
+import {
   QUOTE_EXECUTION_MAX_LAG_SEC,
   type IndexSymbol,
   type LiveQuote,
@@ -88,6 +94,7 @@ async function load(
   range: YahooRange,
   interval: YahooInterval,
 ): Promise<SymbolSeries> {
+  let historical: SymbolSeries | null = null;
   if (hasDatabentoKey()) {
     const minutes =
       interval === "1m"
@@ -111,17 +118,19 @@ async function load(
               : "1d",
         minutes,
       );
-      if (db && db.bars.length >= 30) return db;
+      if (db && db.bars.length >= 30) historical = db;
     } catch {
       /* fallthrough */
     }
   }
+  let live: SymbolSeries | null = null;
   try {
-    const s = await fetchYahooBars(symbol, range, interval);
-    if (s) return s;
+    live = await fetchYahooBars(symbol, range, interval);
   } catch {
     /* fallthrough */
   }
+  const stitched = stitchLiveSession(historical, live);
+  if (stitched) return stitched;
   return syntheticBars(symbol);
 }
 
@@ -129,37 +138,25 @@ async function quote(
   symbol: IndexSymbol,
   series?: SymbolSeries | null,
 ): Promise<LiveQuote> {
-  /**
-   * Tier 0 — the live gateway (market/live-gateway.ts), when one is actually
-   * deployed and its latest tick is fresh. Requested 2026-08-13: 15m/1H
-   * structure tolerates a lagged print, but a 1m/5m OTE entry trigger needs
-   * the CURRENT price, and neither existing source can give that — Yahoo
-   * free futures lag ~600s by design, Databento historical windows lag
-   * hours without a live entitlement. This is the only tier that can clear
-   * the desk's QUOTE_EXECUTION_SEC (120s) gate on an ordinary day.
-   *
-   * Silent no-op with no gateway deployed: readLiveTick returns null
-   * (checked inside, never throws) and every existing caller falls through
-   * to exactly the chain that already ran before this tier existed. Shipping
-   * this changes nothing observable until a gateway process is actually
-   * running and authenticated.
-   */
-  const gatewayTick = await readLiveTick(symbol).catch(() => null);
-  if (gatewayTick) {
-    const previousClose = series?.previousClose ?? gatewayTick.price;
-    return quoteFromLiveTick(gatewayTick, series?.yahoo ?? symbol, previousClose);
-  }
-  if (series?.source === "databento" && series.bars.length) {
-    return quoteFromDatabentoSeries(series);
-  }
-  try {
-    const q = await fetchYahooLiveQuote(symbol);
-    if (q) return q;
-  } catch {
-    /* */
-  }
-  return syntheticQuote(symbol);
+  const previousClose = series?.previousClose ?? series?.bars.at(-1)?.c ?? 0;
+  const yahooSym = series?.yahoo ?? symbol;
+
+  const [gatewayTick, yahooQ] = await Promise.all([
+    readLiveTick(symbol).catch(() => null),
+    fetchYahooLiveQuote(symbol).catch(() => null),
+  ]);
+
+  const gw = gatewayTick
+    ? quoteFromLiveTick(gatewayTick, yahooSym, previousClose || gatewayTick.price)
+    : null;
+  const db =
+    series?.source === "databento" && series.bars.length
+      ? quoteFromDatabentoSeries(series)
+      : null;
+
+  return pickFreshestQuote(gw, yahooQ, db) ?? syntheticQuote(symbol);
 }
+
 
 // levelsFrom() was replaced by structure.referenceLevels(), which adds PWH/PWL
 // and the midnight / 8:30 / 9:30 ET opens on top of the same row shape.
@@ -180,19 +177,40 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         load(data.left, "1mo", "15m"),
         load(data.right, "1mo", "15m"),
       ]);
-      const [lq, rq] = await Promise.all([
+      const [lq0, rq0] = await Promise.all([
         quote(data.left, left),
         quote(data.right, right),
       ]);
+      let lq = lq0;
+      let rq = rq0;
 
       if (lq.source === "yahoo" || lq.source === "databento" || lq.source === "live_gateway") {
         left.price = lq.price;
         left.changePct = lq.changePct;
+        left.marketTimeMs = lq.marketTimeMs;
+        left.marketTimeIso = lq.marketTimeIso;
+        const patched = applyQuoteToLastBar(left.bars, lq);
+        if (patched !== left.bars) {
+          const next = stampSeriesFromBars(left, patched);
+          left.bars = next.bars;
+          left.count = next.count;
+          left.last = next.last;
+        }
       }
       if (rq.source === "yahoo" || rq.source === "databento" || rq.source === "live_gateway") {
         right.price = rq.price;
         right.changePct = rq.changePct;
+        right.marketTimeMs = rq.marketTimeMs;
+        right.marketTimeIso = rq.marketTimeIso;
+        const patched = applyQuoteToLastBar(right.bars, rq);
+        if (patched !== right.bars) {
+          const next = stampSeriesFromBars(right, patched);
+          right.bars = next.bars;
+          right.count = next.count;
+          right.last = next.last;
+        }
       }
+
 
       const biasL = analyzeStructure(left.symbol, left.bars, left.changePct);
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
@@ -287,7 +305,9 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
        * execution-grade claims require an execution-grade quote — and the
        * desk says which of the two is missing instead of "stand down".
        */
-      const liveSource = (s: string) => s === "yahoo" || s === "databento";
+      const liveSource = (s: string) =>
+        s === "yahoo" || s === "databento" || s === "live_gateway";
+
       const seriesLive = liveSource(left.source) && liveSource(right.source);
       const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
 
@@ -353,9 +373,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       }
 
       const feed: DeskPayload["feed"] =
-        left.source === right.source
-          ? (left.source as DeskPayload["feed"])
+        left.source === right.source &&
+        (left.source === "yahoo" ||
+          left.source === "databento" ||
+          left.source === "synthetic")
+          ? left.source
           : "mixed";
+
 
       const checklist = [
         {

@@ -24,14 +24,26 @@ function QuoteChip({
   symbol,
   price,
   changePct,
+  source,
+  lagSec,
 }: {
   symbol: string;
   price: number;
   changePct: number;
+  source: string;
+  lagSec: number;
 }) {
   const up = changePct >= 0;
+  const tag =
+    source === "live_gateway"
+      ? "LIVE"
+      : source === "yahoo"
+        ? "Y!"
+        : source === "databento"
+          ? "DB"
+          : "SYN";
   return (
-    <span className="font-mono text-[11px] text-[var(--color-fg)]">
+    <span className="font-mono text-[11px] text-[var(--color-fg)]" title={`${source} · lag ${Math.round(lagSec)}s`}>
       {symbol}{" "}
       <span className={up ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
         {px(price)}
@@ -40,9 +52,13 @@ function QuoteChip({
           {changePct.toFixed(2)}%
         </span>
       </span>
+      <span className="ml-1 text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">
+        {tag}
+      </span>
     </span>
   );
 }
+
 
 function matchingGhost(desk: DeskPayload, ghosts: GhostTrade[]): GhostTrade | null {
   const focus = desk.scan.candidates.find((c) => c.actionable) ?? desk.scan.candidates[0];
@@ -197,13 +213,18 @@ export function SessionHud({
             symbol={quotes.left.symbol}
             price={quotes.left.price}
             changePct={quotes.left.changePct}
+            source={quotes.left.source}
+            lagSec={quotes.left.lagSec}
           />
           <span className="text-[var(--color-subtle)]">|</span>
           <QuoteChip
             symbol={quotes.right.symbol}
             price={quotes.right.price}
             changePct={quotes.right.changePct}
+            source={quotes.right.source}
+            lagSec={quotes.right.lagSec}
           />
+
           <span
             className={cn(
               "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
