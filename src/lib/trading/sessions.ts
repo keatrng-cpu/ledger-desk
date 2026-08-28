@@ -211,6 +211,23 @@ export function isJudasWindow(hour: number, minute: number): boolean {
   return m >= 9 * 60 + 30 && m < 9 * 60 + 45;
 }
 
+/**
+ * NY AM live-ingest window — 08:30–11:00 America/New_York, weekdays.
+ * Gateway streams only here. Outside it, desk falls back to Yahoo/Databento historical.
+ */
+export const NY_AM_LIVE_START_MIN = 8 * 60 + 30;
+export const NY_AM_LIVE_END_MIN = 11 * 60;
+
+export function isNyAmLiveWindow(
+  hour: number,
+  minute: number,
+  weekday: number,
+): boolean {
+  if (weekday < 1 || weekday > 5) return false;
+  const m = hour * 60 + minute;
+  return m >= NY_AM_LIVE_START_MIN && m < NY_AM_LIVE_END_MIN;
+}
+
 export function getSessionClock(now = new Date()): SessionClock {
   const p = etParts(now);
   const kz = resolveKillzone(p.hour, p.minute);

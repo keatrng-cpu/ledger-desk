@@ -66,6 +66,7 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import psycopg
 
@@ -89,6 +90,13 @@ SYMBOLS = ["ES.c.0", "NQ.c.0"]
 # table (which needs sub-second freshness) and the bar table share one
 # subscription instead of opening two connections.
 SCHEMA = "ohlcv-1s"
+
+# Stream only NY AM. Desk PATH lives 08:30–11:00 ET; holding the Live socket
+# all session is wasted CME messages. Connect 5 min early so 08:30 news is in.
+NY_AM_TZ = ZoneInfo("America/New_York")
+NY_AM_START = (8, 25)  # 08:25 ET
+NY_AM_END = (11, 5)  # 11:05 ET
+WINDOW_POLL_SEC = 30
 
 # Reconnect backoff. Never spin hot against the vendor on a bad key/network.
 RECONNECT_MIN_SEC = 2
@@ -116,6 +124,18 @@ class MinuteAgg:
     l: float  # noqa: E741 — matches the desk's OhlcBar field name
     c: float
     v: int
+
+
+def in_ny_am_window(now: datetime | None = None) -> bool:
+    """Weekday 08:25–11:05 America/New_York."""
+    n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
+    if n.weekday() >= 5:
+        return False
+    start = n.replace(
+        hour=NY_AM_START[0], minute=NY_AM_START[1], second=0, microsecond=0
+    )
+    end = n.replace(hour=NY_AM_END[0], minute=NY_AM_END[1], second=0, microsecond=0)
+    return start <= n < end
 
 
 class LiveGateway:
@@ -215,6 +235,9 @@ class LiveGateway:
         for record in client:
             if not self._running:
                 break
+            if not in_ny_am_window():
+                log.info("NY AM window closed — dropping live socket")
+                break
             symbol_map = getattr(client, "symbology", None)
             dbn_symbol = None
             instrument_id = getattr(record, "instrument_id", None)
@@ -236,6 +259,11 @@ class LiveGateway:
     def run_forever(self) -> None:
         backoff = RECONNECT_MIN_SEC
         while self._running:
+            if not in_ny_am_window():
+                log.info("outside 08:25–11:05 ET — live socket idle")
+                time.sleep(WINDOW_POLL_SEC)
+                backoff = RECONNECT_MIN_SEC
+                continue
             try:
                 self.run_once()
                 backoff = RECONNECT_MIN_SEC  # clean iteration exit -> reset

@@ -28,8 +28,7 @@ entry-timing limitation stated above.
 
 ## What it does
 
-1. Connects to Databento Live, subscribes to 1-second OHLCV bars for
-   `ES.c.0` / `NQ.c.0` (continuous front-month) on `GLBX.MDP3`.
+1. Connects to Databento Live **only 08:25–11:05 ET weekdays** (desk PATH window 08:30–11:00). Outside that it idles — no live socket.
 2. On every record: upserts the latest price into `live_market_ticks`
    (one row per symbol — this is what gives you sub-5-second freshness) and
    aggregates 1s bars into `live_market_bars_1m`.

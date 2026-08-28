@@ -27,6 +27,7 @@ import {
   type SymbolSeries,
 } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
+import { buildLiveSays, type LiveSays } from "./live-says";
 import {
   analyzeStructure,
   referenceLevels,
@@ -82,6 +83,8 @@ export interface DeskPayload {
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
   /** Bull/bear paths + no-trade day — priced levels with ET windows. */
   brief?: SessionBrief;
+  /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 08:30–11:00 ET. */
+  liveSays: LiveSays;
 }
 
 export interface DeskError {
@@ -440,8 +443,8 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         },
       ];
 
-      return {
-        ok: true,
+      const payload = {
+        ok: true as const,
         fetchedAt: new Date().toISOString(),
         clock,
         left,
@@ -481,6 +484,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           smtStack,
         }),
       };
+      return { ...payload, liveSays: buildLiveSays(payload) };
     } catch (e) {
       return {
         ok: false,

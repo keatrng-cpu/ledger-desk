@@ -27,6 +27,11 @@ export const TICK_FRESH_MS = 5_000;
 /** Beyond this, a 1m bar is not current — the gateway has stalled. */
 export const BAR_FRESH_MS = 90_000;
 
+/** Gateway writes ES/NQ. Desk left book is MNQ — same NQ print. */
+function tickSymbol(symbol: IndexSymbol): "ES" | "NQ" {
+  return symbol === "ES" ? "ES" : "NQ";
+}
+
 export interface LiveGatewayTick {
   symbol: IndexSymbol;
   price: number;
@@ -53,7 +58,7 @@ export async function readLiveTick(
       `select price, bid, ask, ts, received_at
          from live_market_ticks
         where symbol = $1`,
-      [symbol],
+      [tickSymbol(symbol)],
     );
     const row = rows[0];
     if (!row) return null;
@@ -140,7 +145,7 @@ export async function readLiveBars(
         where symbol = $1
         order by bar_time desc
         limit $2`,
-      [symbol, limit],
+      [tickSymbol(symbol), limit],
     );
     if (!rows.length) return [];
 

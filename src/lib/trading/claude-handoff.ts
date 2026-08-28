@@ -40,6 +40,17 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
     `ritual ${ritual.id} ${ritual.label} · ${ritual.et} · judas=${judas ? "YES STAND" : "no"}`,
     qLine("LEFT", desk.quotes.left),
     qLine("RIGHT", desk.quotes.right),
+    desk.liveSays
+      ? `LIVE DATA SAYS ${JSON.stringify({
+          live: desk.liveSays.live,
+          window: desk.liveSays.window,
+          source: desk.liveSays.source,
+          lagSec: desk.liveSays.lagSec,
+          mnq: desk.liveSays.mnq,
+          es: desk.liveSays.es,
+          path: desk.liveSays.path,
+        })}`
+      : "LIVE DATA SAYS { live: false }",
     `HTF ${desk.bias.left.symbol} ${desk.bias.left.topDown} (${Math.round(desk.bias.left.confidence * 100)}%) sess ${desk.bias.left.sessionStance}`,
     `HTF ${desk.bias.right.symbol} ${desk.bias.right.topDown} (${Math.round(desk.bias.right.confidence * 100)}%) sess ${desk.bias.right.sessionStance}`,
   ];

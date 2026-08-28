@@ -65,6 +65,7 @@ import {
   type DeskPayload,
 } from "@/lib/trading/build-desk";
 import { fetchLiveQuotes } from "@/lib/market/fetch-dual";
+import { buildLiveSays } from "@/lib/trading/live-says";
 
 import { getRiskState, getSettings } from "@/lib/journal/server";
 import {
@@ -84,6 +85,7 @@ import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
 import { PathAlarmBar } from "@/components/desk/path-alarm-bar";
 import { LiveSessionCard } from "@/components/desk/live-session-card";
+import { LiveSaysPanel } from "@/components/desk/live-says-panel";
 import {
   considerPathAlarm,
   isHighProbPath,
@@ -596,6 +598,7 @@ useEffect(() => {
               marketTimeIso: res.right.marketTimeIso,
             },
           };
+          next.liveSays = buildLiveSays(next);
           try {
             observeAndTickGhosts(next);
           } catch {
@@ -1154,6 +1157,7 @@ useEffect(() => {
                     left={desk.bias.left}
                     right={desk.bias.right}
                   />
+                  <LiveSaysPanel says={desk.liveSays} />
                   <PremarketPanel desk={desk} />
                   <LiveSessionCard />
                   {/* The setups come DIRECTLY under the header that names
