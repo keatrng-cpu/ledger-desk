@@ -32,6 +32,7 @@ import {
   loadPaperTrades,
 } from "./paper-manager";
 import { recentByKind } from "./desk-memory";
+import { loadLastDebrief } from "./trade-debrief";
 // Aliased: journal/discretion.ts's own DiscretionVerdict ("demote"/"favor"/…)
 // is a different type from this file's own DiscretionVerdict export
 // ("TAKE"/"REDUCE"/…) a few lines below — same name, unrelated meaning.
@@ -669,6 +670,35 @@ export function runVeteranBrain(
     });
   }
 
+  const lastDebrief =
+    typeof window !== "undefined" ? loadLastDebrief() : null;
+  if (lastDebrief) {
+    const fresh = Date.now() - lastDebrief.at < 6 * 3600_000;
+    layers.push({
+      id: "last_debrief",
+      label: "Last debrief",
+      tone:
+        lastDebrief.result === "win"
+          ? "pass"
+          : lastDebrief.result === "loss"
+            ? "fail"
+            : "info",
+      score:
+        lastDebrief.result === "win"
+          ? 0.2
+          : lastDebrief.result === "loss"
+            ? -0.2
+            : 0,
+      detail: `${lastDebrief.headline} · ${lastDebrief.lesson}`,
+    });
+    if (fresh) {
+      if (lastDebrief.result === "win") green.push(lastDebrief.lesson);
+      else if (lastDebrief.result === "loss")
+        yellow.push(`Last failed: ${lastDebrief.lesson}`);
+      else yellow.push(`Last miss/skip: ${lastDebrief.lesson}`);
+    }
+  }
+
   // 7b) Backtest rates applied to live setup
   const stratWr = bucketWr(rateCard.strategy ?? undefined);
   const stratExp = bucketExpectancy(rateCard.strategy ?? undefined);
@@ -1130,6 +1160,11 @@ export function runVeteranBrain(
     }
     const lastPaper = recentByKind("paper", 1)[0];
     if (lastPaper) monologue.push(`Paper memory: ${lastPaper.title} · ${lastPaper.summary.slice(0, 100)}`);
+    if (lastDebrief) {
+      monologue.push(
+        `Debrief: ${lastDebrief.result.toUpperCase()} ${lastDebrief.symbol} ${lastDebrief.side} — ${lastDebrief.lesson}`,
+      );
+    }
   }
 
   const narrLines = (desk as { __narrLines?: string[] }).__narrLines;

@@ -14,6 +14,7 @@ import {
   todayGhosts,
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
+import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief";
 import { cn } from "@/lib/utils";
 
 function px(n: number): string {
@@ -81,7 +82,15 @@ export function SessionHud({
 }) {
   const { clock, risk, scan, quotes, left, right, bias, brief, smtStack } = desk;
   const [ghosts, setGhosts] = useState<GhostTrade[]>(() => todayGhosts());
+  const [lastDebrief, setLastDebrief] = useState(() =>
+    typeof window !== "undefined" ? loadLastDebrief() : null,
+  );
   useEffect(() => subscribeGhosts(() => setGhosts(todayGhosts())), []);
+  useEffect(
+    () =>
+      subscribeDebriefs(() => setLastDebrief(loadLastDebrief())),
+    [],
+  );
 
   const ghost = matchingGhost(desk, ghosts);
   const worstLagSec = Math.max(quotes.left.lagSec, quotes.right.lagSec);
@@ -101,6 +110,17 @@ export function SessionHud({
   const smtBear = /bear/i.test(smtNote);
 
   const focus = useMemo(() => {
+    const freshDebrief =
+      lastDebrief && Date.now() - lastDebrief.at < 2 * 3600_000
+        ? lastDebrief
+        : null;
+    if (freshDebrief && (freshDebrief.result === "win" || freshDebrief.result === "loss")) {
+      return {
+        mode: (freshDebrief.result === "win" ? "done" : "failed") as "done" | "failed",
+        line: freshDebrief.headline,
+        detail: freshDebrief.lesson,
+      };
+    }
     if (ghost?.status === "won" && ghost.analysis) {
       return {
         mode: "done" as const,
@@ -142,7 +162,7 @@ export function SessionHud({
       line: raw || "Stand down — no PATH card",
       detail: best?.missing.slice(0, 2).join(" · ") ?? "",
     };
-  }, [ghost, brief, best, clock.inTradeWindow, scan.focus]);
+  }, [ghost, brief, best, clock.inTradeWindow, scan.focus, lastDebrief]);
 
   const modeTone =
     focus.mode === "go" || focus.mode === "done"

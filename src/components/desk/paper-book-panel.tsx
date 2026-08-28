@@ -181,6 +181,11 @@ export function PaperBookPanel({
                       · exit {tr.exit}
                     </span>
                   )}
+                  {tr.debrief && (
+                    <p className="mt-0.5 font-sans text-[10px] text-[var(--color-fg)]">
+                      {tr.debrief.lesson}
+                    </p>
+                  )}
                 </li>
               ))}
           </ul>

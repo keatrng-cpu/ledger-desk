@@ -21,6 +21,7 @@ import { HaltBanner } from "@/components/journal/halt-banner";
 import { JournalPanel } from "@/components/journal/journal-panel";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
 import { PaperBookPanel } from "@/components/desk/paper-book-panel";
+import { TradeDebriefPanel } from "@/components/desk/trade-debrief-panel";
 import {
   openPaperTradeInstant,
   managePaperTradesAgainstPrice,
@@ -1172,6 +1173,7 @@ useEffect(() => {
                     title="PATH setups"
                     sub={`Only ≥${APLUS_RULES.confluenceFloor} + HTF · Log paper/live or skip`}
                   />
+                  <TradeDebriefPanel lastPaper={lastPaperClosed?.debrief} />
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}

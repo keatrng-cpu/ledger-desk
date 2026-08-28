@@ -34,6 +34,7 @@ import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock } from "./sessions";
 import { PROGRESS_R, retarget, shouldFlatten } from "./management";
+import { debriefPaper, pushDebrief, type TradeDebrief } from "./trade-debrief";
 
 
 const STORAGE_KEY = "ledger-paper-trades-v1";
@@ -105,6 +106,8 @@ export interface PaperTrade {
    * desk_trades) so neither field grows without bound.
    */
   manageNote?: string;
+  /** Post-trade analysis — written on close, read by brain + Trade tab. */
+  debrief?: TradeDebrief;
 }
 
 function parseNums(text: string | undefined | null): number[] {
@@ -578,6 +581,8 @@ function finalizeClose(
     });
     t.ingested = true;
   }
+  t.debrief = debriefPaper(t);
+  pushDebrief(t.debrief);
   setOpenPaperCount(
     loadPaperTrades().filter((x) => x.status === "open" && x.id !== t.id).length,
   );

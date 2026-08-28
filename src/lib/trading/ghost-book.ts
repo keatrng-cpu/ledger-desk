@@ -10,6 +10,7 @@ import { remember } from "./desk-memory";
 import { buildPaperLevels } from "./paper-manager";
 import type { SetupCandidate } from "./scanner";
 import { getSessionClock, etWallToEpochMs } from "./sessions";
+import { debriefGhost, pushDebrief } from "./trade-debrief";
 
 const KEY = "ledger.ghost-book.v1";
 const MAX = 80;
@@ -341,6 +342,8 @@ function rememberGhost(g: GhostTrade): void {
     ["ghost", g.symbol, g.side, g.strategy, g.status],
     { ghostId: g.id, r: g.r, status: g.status, taken: g.taken },
   );
+  const d = debriefGhost(g);
+  if (d) pushDebrief(d);
 }
 
 export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = new Set()): GhostTrade[] {
