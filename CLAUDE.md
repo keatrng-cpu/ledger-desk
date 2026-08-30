@@ -105,6 +105,7 @@ HUD is sticky: clock, killzone, GO/STAND/WAIT, quotes, lag, **Arm alarm**.
 | `src/lib/trading/smc-board.ts` | FVG/IFVG/OB/BB/MSS/BOS/displacement tape |
 | `src/lib/trading/smc-canon.ts` | Named ICT/TJR/PB models |
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
+| `src/lib/trading/week-ahead.ts` | Sunday week plan (levels, daily bias, news, PATH filters) |
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |
 | `src/lib/trading/claude-handoff.ts` | Clipboard snapshot for you |

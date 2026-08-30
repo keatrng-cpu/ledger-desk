@@ -74,6 +74,21 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   if (desk.brief) {
     lines.push(`brief ${desk.brief.verdict} ${desk.brief.score} — ${desk.brief.headline}`);
   }
+  if (desk.weekAhead) {
+    const w = desk.weekAhead;
+    lines.push(`WEEK ${w.plan.weekLabel} · ${w.plan.htfBias}`);
+    if (w.focus) {
+      lines.push(
+        `WEEK ${w.today ? "TODAY" : "NEXT"} ${w.focus.weekday} ${w.focus.date} · ${w.focus.dailyBias}`,
+      );
+      lines.push(`WEEK tape: ${w.focus.likelyTape}`);
+      lines.push(`WEEK trade: ${w.focus.trade}`);
+      lines.push(`WEEK skip: ${w.focus.skipIf}`);
+    }
+    lines.push(
+      `WEEK NQ PWH ${w.plan.nq.pwh} EQ ${w.plan.nq.eq} PWL ${w.plan.nq.pwl} · ES PWH ${w.plan.es.pwh} PWL ${w.plan.es.pwl}`,
+    );
+  }
   if (desk.narrative?.summary) lines.push(`narrative ${desk.narrative.summary.slice(0, 280)}`);
 
   const failed = desk.checklist.filter((c) => !c.ok);

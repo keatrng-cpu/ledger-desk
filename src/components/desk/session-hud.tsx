@@ -15,6 +15,7 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief";
+import { weekAheadFocusLine } from "@/lib/trading/week-ahead";
 import { cn } from "@/lib/utils";
 
 function px(n: number): string {
@@ -217,6 +218,12 @@ export function SessionHud({
         </div>
 
         <NewsChip />
+
+        {weekAheadFocusLine(desk.weekAhead) && (
+          <div className="hidden max-w-[280px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] lg:block">
+            {weekAheadFocusLine(desk.weekAhead)}
+          </div>
+        )}
 
         <div className="hidden items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-muted)] sm:flex">
           <Crosshair className="h-3.5 w-3.5 text-[var(--color-primary)]" />

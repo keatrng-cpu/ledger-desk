@@ -44,7 +44,9 @@ The dates in the file are all correct, but the file is **not exhaustive**, and
 in-window agency releases, highest risk first:
 
 - **Weekly initial jobless claims — every Thursday 08:30 ET (DOL/ETA).** Lands
-  inside the NY AM killzone 52 times a year and is entirely missing. Add these
-  before trusting the gate on a Thursday morning.
-- JOLTS Sep 1 10:00 · Beige Book Sep 2 14:00 · BEA International Trade Sep 3
-  08:30 · BLS Import/Export Price Indexes Aug 18 + Sep 16 08:30.
+  inside the NY AM killzone. **Added 2026-09-03 as medium** (week-ahead 2026-08-30).
+  Remaining Thursdays still missing.
+- JOLTS Sep 1 10:00 · **added high** (same window as ISM Mfg).
+- ADP Employment Sep 2 08:15 · **added high** (ADP Research calendar; sits in NY AM).
+- Still absent: Beige Book Sep 2 14:00 · BEA International Trade Sep 3 08:30 ·
+  remaining weekly claims · BLS Import/Export Price Indexes Sep 16 08:30.

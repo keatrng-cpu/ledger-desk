@@ -18,6 +18,7 @@ import {
 } from "@/lib/trading/session-brief";
 import { buildSmcTape, type SmcAlert, type SmcArray } from "@/lib/trading/smc-board";
 import { cn } from "@/lib/utils";
+import { WeekAheadPanel } from "@/components/desk/week-ahead-panel";
 
 function fmt(n: number): string {
   return n.toLocaleString("en-US", {
@@ -310,6 +311,7 @@ export function PremarketPanel({ desk }: { desk: DeskPayload }) {
 
   return (
     <section className="space-y-3">
+      <WeekAheadPanel week={desk.weekAhead} />
       <VerdictBanner brief={brief} />
 
       {brief.smtLine && (

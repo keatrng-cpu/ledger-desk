@@ -46,6 +46,7 @@ import {
   type MarketNarrative,
 } from "./market-narrative";
 import { buildSessionBrief, type SessionBrief } from "./session-brief";
+import { resolveWeekAhead, type WeekAheadRead } from "./week-ahead";
 
 export interface DeskPayload {
   ok: true;
@@ -83,6 +84,8 @@ export interface DeskPayload {
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
   /** Bull/bear paths + no-trade day — priced levels with ET windows. */
   brief?: SessionBrief;
+  /** Sunday week-ahead — levels, daily bias, news, PATH filters. */
+  weekAhead: WeekAheadRead | null;
   /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 08:30–11:00 ET. */
   liveSays: LiveSays;
 }
@@ -483,6 +486,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           narrative,
           smtStack,
         }),
+        weekAhead: resolveWeekAhead(),
       };
       return { ...payload, liveSays: buildLiveSays(payload) };
     } catch (e) {

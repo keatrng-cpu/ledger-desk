@@ -46,6 +46,7 @@ import {
   canonInputForCandidate,
   type CanonStack,
 } from "./smc-canon";
+import { resolveWeekAhead, weekAheadFocusLine } from "./week-ahead";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -492,6 +493,27 @@ export function runVeteranBrain(
         : "Calendar clear",
     });
     score += 0.25;
+  }
+
+  const week = desk.weekAhead ?? resolveWeekAhead();
+  if (week?.focus) {
+    const nfpStand =
+      week.focus.kind === "nfp" &&
+      (clock.etHour < 10 || (clock.etHour === 10 && clock.etMinute < 15));
+    layers.push({
+      id: "week_ahead",
+      label: "Week ahead",
+      tone: nfpStand || week.focus.kind === "a_plus_only" ? "warn" : "info",
+      score: nfpStand ? -0.5 : 0,
+      detail: `${week.focus.weekday} · ${week.focus.dailyBias} — ${week.focus.pathNote}`,
+    });
+    yellow.push(weekAheadFocusLine(week) ?? week.focus.dailyBias);
+    if (nfpStand) {
+      yellow.push("NFP: no entries 08:15–09:00 ET. Second impulse only.");
+    }
+    if (week.focus.kind === "a_plus_only") {
+      yellow.push("ADP / AVGO day — A+ only, flatten before the close.");
+    }
   }
 
   // 6) Risk governor (desk rules + optional live risk state)
@@ -973,7 +995,7 @@ export function runVeteranBrain(
           ? "hot"
           : "ok"
         : "idle",
-      line: `${clock.killzoneLabel} · HTF ${bias.left.topDown}/${bias.right.topDown} · ${
+      line: `${clock.killzoneLabel} · ${weekAheadFocusLine(week) ?? "no week plan"} · ${
         rawBest
           ? `${rawBest.symbol} ${rawBest.side} ${rawBest.grade} ${rawBest.confluence.toFixed(2)}`
           : "no path idea"
@@ -1163,6 +1185,12 @@ export function runVeteranBrain(
     if (lastDebrief) {
       monologue.push(
         `Debrief: ${lastDebrief.result.toUpperCase()} ${lastDebrief.symbol} ${lastDebrief.side} — ${lastDebrief.lesson}`,
+      );
+    }
+    const weekLine = weekAheadFocusLine(week);
+    if (weekLine) {
+      monologue.push(
+        `Week: ${weekLine}. ${week?.focus?.skipIf ? `Skip if ${week.focus.skipIf}` : ""}`,
       );
     }
   }

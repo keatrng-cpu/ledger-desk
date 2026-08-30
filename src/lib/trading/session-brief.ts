@@ -11,6 +11,7 @@ import type { ScanResult } from "./scanner";
 import type { SessionClock } from "./sessions";
 import { etWallParts } from "./sessions";
 import type { Bias, HtfBiasRead, LiquidityPool, SmtStack } from "./structure";
+import { weekDayFor } from "./week-ahead";
 
 export type DayVerdict = "trade" | "reduce" | "stand_down";
 export type DayKind =
@@ -372,8 +373,9 @@ function classifyDay(opts: {
   scan: ScanResult;
   clock: SessionClock;
   feed: SessionBriefInput["feed"];
+  weekKind?: string;
 }): { kind: DayKind; verdict: DayVerdict; score: number; reasons: string[]; stand: string[] } {
-  const { news, todayHigh, left, right, scan, clock, feed } = opts;
+  const { news, todayHigh, left, right, scan, clock, feed, weekKind } = opts;
   const reasons: string[] = [];
   const stand: string[] = [];
   let score = 72;
@@ -415,6 +417,32 @@ function classifyDay(opts: {
   if (clock.weekday === 5 && clock.etHour >= 11) {
     score -= 16;
     reasons.push("Friday after 11:00 ET — liquidity thins, reduce or flatten");
+  }
+  if (weekKind === "nfp") {
+    kind = "news_day";
+    score -= 14;
+    reasons.push(
+      "NFP Friday — seek-and-destroy. No entries 08:15–09:00 ET. Fade the second impulse after 09:45, not the print.",
+    );
+    if (clock.etHour < 10 || (clock.etHour === 10 && clock.etMinute < 15)) {
+      score -= 8;
+      reasons.push("NFP window still open — A+ mechanical after 10:15 ET only, else skip is a process win");
+    }
+  } else if (weekKind === "a_plus_only") {
+    kind = "news_day";
+    score -= 10;
+    reasons.push("Week plan: A+ only (ADP 08:15 ET + AVGO after close). Cap one PATH. Flatten before the cash close.");
+  } else if (weekKind === "range_build") {
+    if (kind === "trend_day") kind = "accumulation";
+    score -= 6;
+    reasons.push("Week plan: Monday range-build — reduced size until Friday H/L is raided.");
+  } else if (weekKind === "two_way") {
+    kind = "news_day";
+    score -= 8;
+    reasons.push("Week plan: ISM/JOLTS 10:00 ET — stand 09:50–10:15, trade the reaction not the number.");
+  } else if (weekKind === "selective") {
+    score -= 6;
+    reasons.push("Week plan: ISM Services 10:00 ET. Do not stack a second book ahead of NFP.");
   }
   if (news.verdict === "blackout") {
     score -= 45;
@@ -473,6 +501,7 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
   const left = bookSlice(bias.left);
   const right = bookSlice(bias.right);
   const date = etDateKey(now);
+  const weekDay = weekDayFor(date);
   const today = newsOnDate(date);
   const todayHigh = today.some((e) => e.impact === "high");
   const todayNews = today.map((e) => {
@@ -493,6 +522,7 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     scan,
     clock,
     feed,
+    weekKind: weekDay?.kind,
   });
 
   // Primary book = the one whose session agrees with itself; mixed HTF → session winner.
@@ -528,6 +558,12 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     if (day.kind === "mixed_books") {
       day.score = Math.min(100, day.score + 10);
     }
+  }
+
+  if (weekDay) {
+    day.reasons.unshift(
+      `${weekDay.weekday} week plan · ${weekDay.dailyBias} — ${weekDay.trade}`,
+    );
   }
 
   let primaryPath: SessionBrief["primaryPath"] = "none";
