@@ -49,6 +49,15 @@ AI **never changes** numbers in `src/lib/aplus/config.ts`. If copy and code disa
 
 Computer **Arm alarm** (HUD) beeps only on A+/A/A− PATH. Needs the desk tab open.
 
+### Sunday restamp (every Sunday night)
+
+1. `src/lib/trading/week-ahead.ts` — next cash week’s daily bias, news, skip-if, PATH note. Live CWH/CWL come from bars; do **not** overwrite PWH/PWL (prior week).
+2. `src/lib/trading/month-ahead.ts` — last Sunday of the prior month, or any Sunday if levels/odds/actuals drifted. Swap in a new `MonthPlan` when the month rolls. Live CMH/CML come from bars.
+3. `src/data/week-prints.json` — stamp official actuals only after they print. No future actuals.
+4. `src/data/news-calendar.json` — official schedules only (BLS / ISM / BEA / Census / Fed).
+
+Do not invent fills. Do not touch `src/lib/aplus/config.ts`.
+
 ### Every live ping — output contract
 
 1. **VERDICT** first: `TAKE` / `STAND` / `MANAGE` (one word).
@@ -105,7 +114,8 @@ HUD is sticky: clock, killzone, GO/STAND/WAIT, quotes, lag, **Arm alarm**.
 | `src/lib/trading/smc-board.ts` | FVG/IFVG/OB/BB/MSS/BOS/displacement tape |
 | `src/lib/trading/smc-canon.ts` | Named ICT/TJR/PB models |
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
-| `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. |
+| `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. Sep 2026 weeks 1–5 are seeded. |
+| `src/lib/trading/month-ahead.ts` | Month bias / phases (Labor → CPI → FOMC → Digest → PCE). Live CMH/CML overlay. Swap on the last Sunday of the prior month. |
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |
 | `src/lib/trading/claude-handoff.ts` | Clipboard snapshot for you |

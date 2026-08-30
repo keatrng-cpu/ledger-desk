@@ -6,8 +6,8 @@ news chip. All times are **ET wall clock** (`timeEt`, 24h "HH:MM"); dates are
 
 ## Current coverage
 
-2026-08-10 → 2026-09-16. Every date below was verified against the issuing
-agency's own schedule on 2026-08-10:
+2026-08-10 → 2026-10-02. Every date below was verified against the issuing
+agency's own schedule (BLS / NY Fed / Fed calendar / BEA) on 2026-08-30:
 
 | Event | Source (fetched 2026-08-10) |
 |---|---|

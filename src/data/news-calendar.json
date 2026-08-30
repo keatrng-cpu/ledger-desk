@@ -8,11 +8,20 @@
   { "date": "2026-09-01", "timeEt": "10:00", "name": "ISM Manufacturing PMI (Aug)", "impact": "high" },
   { "date": "2026-09-01", "timeEt": "10:00", "name": "JOLTS Job Openings (Jul)", "impact": "high" },
   { "date": "2026-09-02", "timeEt": "08:15", "name": "ADP Employment (Aug)", "impact": "high" },
+  { "date": "2026-09-02", "timeEt": "14:00", "name": "Beige Book", "impact": "medium" },
   { "date": "2026-09-03", "timeEt": "08:30", "name": "Initial Jobless Claims", "impact": "medium" },
   { "date": "2026-09-03", "timeEt": "10:00", "name": "ISM Services PMI (Aug)", "impact": "high" },
   { "date": "2026-09-04", "timeEt": "08:30", "name": "NFP / Employment Situation (Aug)", "impact": "high" },
+  { "date": "2026-09-08", "timeEt": "11:00", "name": "NY Fed SCE", "impact": "medium" },
   { "date": "2026-09-10", "timeEt": "08:30", "name": "PPI (Aug)", "impact": "high" },
   { "date": "2026-09-11", "timeEt": "08:30", "name": "CPI (Aug)", "impact": "high" },
   { "date": "2026-09-16", "timeEt": "08:30", "name": "Retail Sales (Aug)", "impact": "high" },
-  { "date": "2026-09-16", "timeEt": "14:00", "name": "FOMC Rate Decision", "impact": "high" }
+  { "date": "2026-09-16", "timeEt": "14:00", "name": "FOMC Rate Decision + SEP", "impact": "high" },
+  { "date": "2026-09-16", "timeEt": "14:30", "name": "FOMC Press Conference", "impact": "high" },
+  { "date": "2026-09-18", "timeEt": "09:15", "name": "Industrial Production (Aug)", "impact": "medium" },
+  { "date": "2026-09-24", "timeEt": "08:30", "name": "Initial Jobless Claims", "impact": "medium" },
+  { "date": "2026-09-29", "timeEt": "10:00", "name": "JOLTS Job Openings (Aug)", "impact": "high" },
+  { "date": "2026-09-30", "timeEt": "08:15", "name": "ADP Employment (Sep)", "impact": "high" },
+  { "date": "2026-09-30", "timeEt": "08:30", "name": "GDP Q2 (3rd est) / PCE (Aug)", "impact": "high" },
+  { "date": "2026-10-02", "timeEt": "08:30", "name": "NFP / Employment Situation (Sep)", "impact": "high" }
 ]

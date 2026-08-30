@@ -89,6 +89,22 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
       `WEEK NQ PWH ${w.plan.nq.pwh} EQ ${w.plan.nq.eq} PWL ${w.plan.nq.pwl}${w.plan.nq.cwh != null ? ` CWH ${w.plan.nq.cwh} CWL ${w.plan.nq.cwl}` : ""} · ES PWH ${w.plan.es.pwh} PWL ${w.plan.es.pwl}${w.plan.es.cwh != null ? ` CWH ${w.plan.es.cwh} CWL ${w.plan.es.cwl}` : ""}`,
     );
   }
+  if (desk.monthAhead) {
+    const m = desk.monthAhead;
+    const p = m.phase ?? m.nextPhase;
+    lines.push(`MONTH ${m.plan.monthLabel} · ${m.plan.thesis}`);
+    if (p) {
+      lines.push(
+        `MONTH ${m.phase ? "NOW" : "NEXT"} ${p.label} ${p.start}–${p.end} · ${p.dailyBias}`,
+      );
+      lines.push(`MONTH strategy: ${p.strategy}`);
+      lines.push(`MONTH quota: ${p.pathQuota} · book: ${p.book}`);
+      lines.push(`MONTH skip: ${p.skipIf}`);
+    }
+    lines.push(
+      `MONTH NQ PWH ${m.plan.nq.pwh} EQ ${m.plan.nq.eq} PWL ${m.plan.nq.pwl}${m.plan.nq.cmh != null ? ` CMH ${m.plan.nq.cmh} CML ${m.plan.nq.cml}` : ""} · ES PWH ${m.plan.es.pwh} PWL ${m.plan.es.pwl}`,
+    );
+  }
   if (desk.narrative?.summary) lines.push(`narrative ${desk.narrative.summary.slice(0, 280)}`);
 
   const failed = desk.checklist.filter((c) => !c.ok);

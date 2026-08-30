@@ -47,6 +47,7 @@ import {
   type CanonStack,
 } from "./smc-canon";
 import { resolveWeekAhead, weekAheadFocusLine } from "./week-ahead";
+import { resolveMonthAhead, monthAheadFocusLine } from "./month-ahead";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -497,22 +498,48 @@ export function runVeteranBrain(
 
   const week = desk.weekAhead ?? resolveWeekAhead();
   if (week?.focus) {
-    const nfpStand =
-      week.focus.kind === "nfp" &&
+    const eventStand =
+      (week.focus.kind === "nfp" || week.focus.kind === "event") &&
       (clock.etHour < 10 || (clock.etHour === 10 && clock.etMinute < 15));
+    const holiday = week.focus.kind === "holiday";
     layers.push({
       id: "week_ahead",
       label: "Week ahead",
-      tone: nfpStand || week.focus.kind === "a_plus_only" ? "warn" : "info",
-      score: nfpStand ? -0.5 : 0,
+      tone:
+        holiday || eventStand || week.focus.kind === "a_plus_only" ? "warn" : "info",
+      score: holiday ? -1 : eventStand ? -0.5 : 0,
       detail: `${week.focus.weekday} · ${week.focus.dailyBias} — ${week.focus.pathNote}`,
     });
     yellow.push(weekAheadFocusLine(week) ?? week.focus.dailyBias);
-    if (nfpStand) {
-      yellow.push("NFP: no entries 08:15–09:00 ET. Second impulse only.");
+    if (holiday) {
+      yellow.push("Cash holiday — Globex is fake. No PATH.");
+    }
+    if (eventStand) {
+      yellow.push(
+        `${week.focus.kind === "nfp" ? "NFP" : "Event"}: no entries 08:15–09:00 ET. Second impulse only.`,
+      );
     }
     if (week.focus.kind === "a_plus_only") {
-      yellow.push("ADP / AVGO day — A+ only, flatten before the close.");
+      yellow.push("A+ only today. Flatten before any after-close binary.");
+    }
+  }
+
+  const month = desk.monthAhead ?? resolveMonthAhead();
+  if (month?.phase) {
+    const tight =
+      month.phase.id === "fomc" ||
+      month.phase.id === "holiday_cpi" ||
+      month.phase.id === "labor";
+    layers.push({
+      id: "month_ahead",
+      label: "Month ahead",
+      tone: tight ? "warn" : "info",
+      score: month.phase.id === "fomc" ? -0.25 : 0,
+      detail: `${month.phase.label} · ${month.phase.pathQuota} · ${month.phase.book}`,
+    });
+    yellow.push(monthAheadFocusLine(month) ?? month.phase.dailyBias);
+    if (month.phase.id === "fomc") {
+      yellow.push("FOMC week — flatten before 13:45 ET Wednesday. Delivery is Thu/Fri.");
     }
   }
 
@@ -995,7 +1022,7 @@ export function runVeteranBrain(
           ? "hot"
           : "ok"
         : "idle",
-      line: `${clock.killzoneLabel} · ${weekAheadFocusLine(week) ?? "no week plan"} · ${
+      line: `${clock.killzoneLabel} · ${monthAheadFocusLine(month) ?? ""} · ${weekAheadFocusLine(week) ?? "no week plan"} · ${
         rawBest
           ? `${rawBest.symbol} ${rawBest.side} ${rawBest.grade} ${rawBest.confluence.toFixed(2)}`
           : "no path idea"
@@ -1191,6 +1218,12 @@ export function runVeteranBrain(
     if (weekLine) {
       monologue.push(
         `Week: ${weekLine}. ${week?.focus?.skipIf ? `Skip if ${week.focus.skipIf}` : ""}`,
+      );
+    }
+    const monthLine = monthAheadFocusLine(month);
+    if (monthLine) {
+      monologue.push(
+        `Month: ${monthLine}. ${month?.phase ? `${month.phase.pathQuota} ${month.phase.book}` : ""}`,
       );
     }
   }

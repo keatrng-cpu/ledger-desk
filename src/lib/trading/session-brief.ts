@@ -12,6 +12,7 @@ import type { SessionClock } from "./sessions";
 import { etWallParts } from "./sessions";
 import type { Bias, HtfBiasRead, LiquidityPool, SmtStack } from "./structure";
 import { weekDayFor } from "./week-ahead";
+import { monthPhaseFor } from "./month-ahead";
 
 export type DayVerdict = "trade" | "reduce" | "stand_down";
 export type DayKind =
@@ -374,8 +375,11 @@ function classifyDay(opts: {
   clock: SessionClock;
   feed: SessionBriefInput["feed"];
   weekKind?: string;
+  weekNote?: string;
+  monthPhaseId?: string;
+  monthNote?: string;
 }): { kind: DayKind; verdict: DayVerdict; score: number; reasons: string[]; stand: string[] } {
-  const { news, todayHigh, left, right, scan, clock, feed, weekKind } = opts;
+  const { news, todayHigh, left, right, scan, clock, feed, weekKind, weekNote, monthPhaseId, monthNote } = opts;
   const reasons: string[] = [];
   const stand: string[] = [];
   let score = 72;
@@ -418,31 +422,41 @@ function classifyDay(opts: {
     score -= 16;
     reasons.push("Friday after 11:00 ET — liquidity thins, reduce or flatten");
   }
-  if (weekKind === "nfp") {
+  if (weekKind === "nfp" || weekKind === "event") {
     kind = "news_day";
     score -= 14;
     reasons.push(
-      "NFP Friday — seek-and-destroy. No entries 08:15–09:00 ET. Fade the second impulse after 09:45, not the print.",
+      weekNote ??
+        "Event morning — seek-and-destroy. No entries 08:15–09:00 ET. Fade the second impulse after 09:45, not the print.",
     );
     if (clock.etHour < 10 || (clock.etHour === 10 && clock.etMinute < 15)) {
       score -= 8;
-      reasons.push("NFP window still open — A+ mechanical after 10:15 ET only, else skip is a process win");
+      reasons.push("Event window still open — A+ mechanical after 10:15 ET only, else skip is a process win");
     }
+  } else if (weekKind === "holiday") {
+    score -= 50;
+    stand.push("Cash holiday — Globex is thin and fake. No PATH.");
   } else if (weekKind === "a_plus_only") {
     kind = "news_day";
     score -= 10;
-    reasons.push("Week plan: A+ only (ADP 08:15 ET + AVGO after close). Cap one PATH. Flatten before the cash close.");
+    reasons.push(weekNote ?? "Week plan: A+ only. Cap one PATH. Flatten before any after-close binary.");
   } else if (weekKind === "range_build") {
     if (kind === "trend_day") kind = "accumulation";
     score -= 6;
-    reasons.push("Week plan: Monday range-build — reduced size until Friday H/L is raided.");
+    reasons.push(weekNote ?? "Week plan: Monday range-build — reduced size until last extremes are raided.");
   } else if (weekKind === "two_way") {
     kind = "news_day";
     score -= 8;
-    reasons.push("Week plan: ISM/JOLTS 10:00 ET — stand 09:50–10:15, trade the reaction not the number.");
+    reasons.push(weekNote ?? "Week plan: two-way news day — stand the print, trade the reaction.");
   } else if (weekKind === "selective") {
     score -= 6;
-    reasons.push("Week plan: ISM Services 10:00 ET. Do not stack a second book ahead of NFP.");
+    reasons.push(weekNote ?? "Week plan: selective. One book. Do not stack.");
+  }
+  if (monthPhaseId === "fomc" && clock.weekday === 3 && clock.etHour >= 12) {
+    score -= 20;
+    stand.push("FOMC Wednesday — flatten before 13:45 ET. Do not invent a PATH from the statement tick.");
+  } else if (monthNote && (monthPhaseId === "fomc" || monthPhaseId === "holiday_cpi" || monthPhaseId === "labor")) {
+    reasons.push(monthNote);
   }
   if (news.verdict === "blackout") {
     score -= 45;
@@ -502,6 +516,7 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
   const right = bookSlice(bias.right);
   const date = etDateKey(now);
   const weekDay = weekDayFor(date);
+  const monthPhase = monthPhaseFor(date);
   const today = newsOnDate(date);
   const todayHigh = today.some((e) => e.impact === "high");
   const todayNews = today.map((e) => {
@@ -523,6 +538,9 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     clock,
     feed,
     weekKind: weekDay?.kind,
+    weekNote: weekDay?.pathNote,
+    monthPhaseId: monthPhase?.id,
+    monthNote: monthPhase ? `${monthPhase.label}: ${monthPhase.dailyBias}` : undefined,
   });
 
   // Primary book = the one whose session agrees with itself; mixed HTF → session winner.

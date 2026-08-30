@@ -47,6 +47,7 @@ import {
 } from "./market-narrative";
 import { buildSessionBrief, type SessionBrief } from "./session-brief";
 import { overlayWeekAhead, resolveWeekAhead, type WeekAheadRead } from "./week-ahead";
+import { overlayMonthAhead, resolveMonthAhead, type MonthAheadRead } from "./month-ahead";
 
 export interface DeskPayload {
   ok: true;
@@ -86,6 +87,8 @@ export interface DeskPayload {
   brief?: SessionBrief;
   /** Sunday week-ahead — levels, daily bias, news, PATH filters. */
   weekAhead: WeekAheadRead | null;
+  /** Month bias / phases — restamp last Sunday of the prior month. */
+  monthAhead: MonthAheadRead | null;
   /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 08:30–11:00 ET. */
   liveSays: LiveSays;
 }
@@ -487,6 +490,10 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           smtStack,
         }),
         weekAhead: overlayWeekAhead(resolveWeekAhead(), [
+          { symbol: left.symbol, bars: left.bars },
+          { symbol: right.symbol, bars: right.bars },
+        ]),
+        monthAhead: overlayMonthAhead(resolveMonthAhead(), [
           { symbol: left.symbol, bars: left.bars },
           { symbol: right.symbol, bars: right.bars },
         ]),

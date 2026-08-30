@@ -16,6 +16,7 @@ import {
 } from "@/lib/trading/ghost-book";
 import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief";
 import { weekAheadFocusLine } from "@/lib/trading/week-ahead";
+import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
 import { cn } from "@/lib/utils";
 
 function px(n: number): string {
@@ -218,6 +219,12 @@ export function SessionHud({
         </div>
 
         <NewsChip />
+
+        {monthAheadFocusLine(desk.monthAhead) && (
+          <div className="hidden max-w-[220px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] xl:block">
+            {monthAheadFocusLine(desk.monthAhead)}
+          </div>
+        )}
 
         {weekAheadFocusLine(desk.weekAhead) && (
           <div className="hidden max-w-[280px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] lg:block">
