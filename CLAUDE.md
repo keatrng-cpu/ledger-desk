@@ -48,6 +48,7 @@ AI **never changes** numbers in `src/lib/aplus/config.ts`. If copy and code disa
 | 09:00 | 10:00 | Recap. After 10:00 ET, **A+ only** unless already in a trade |
 
 Computer **Arm alarm** (HUD) beeps only on A+/A/A− PATH. Needs the desk tab open.
+**Auto paper** (HUD, default on) fills the same PATH into the paper book in NY AM via `openPaperTradeInstant` so stats / debrief / brain see it. Judas 9:30–9:45 A+ only; news/event blackout; one book; blake_mech longs stay manual. Not live Apex.
 
 ### Sunday restamp (every Sunday night)
 

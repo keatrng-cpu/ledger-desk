@@ -63,7 +63,7 @@ export function PaperBookPanel({
           </h3>
           <p className="text-[10px] text-[var(--color-subtle)]">
             Structure TP default ES low {DEFAULT_STRUCTURE_TP} · scale @ nearer
-            target · close remaining on structure low
+            target · Auto paper on HUD fills PATH in NY AM into this book + stats
           </p>
         </div>
       </header>

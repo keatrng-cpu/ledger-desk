@@ -106,6 +106,12 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 import { cn } from "@/lib/utils";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
+import {
+  autoPaperShouldTake,
+  rememberAutoPaperKey,
+  releaseAutoPaperKey,
+  noteAutoPaperSkip,
+} from "@/lib/trading/auto-paper";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -725,6 +731,38 @@ useEffect(() => {
     },
     [desk, discretion],
   );
+
+  // Auto paper: same onLog("paper") path as the Trade Now button, so equity,
+  // desk-memory stats, debrief, journal mirror, and the veteran brain all
+  // see the fill. Gate lives in autoPaperShouldTake (NY AM, PATH A+/A/A−).
+  useEffect(() => {
+    if (!desk) return;
+
+    const tryAuto = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
+      const pick = autoPaperShouldTake(desk);
+      if (!pick.take) {
+        if (pick.skip) noteAutoPaperSkip(pick.skip);
+        return;
+      }
+      const band = pick.take.pathBand || pick.take.grade;
+      rememberAutoPaperKey(
+        pick.take,
+        `${pick.take.symbol} ${pick.take.side} ${band}`,
+      );
+      onLog(pick.take, "paper");
+      if (listOpenPaperTrades().length === 0) {
+        releaseAutoPaperKey();
+        noteAutoPaperSkip("Paper log failed");
+      }
+    };
+
+    tryAuto();
+    document.addEventListener("visibilitychange", tryAuto);
+    return () => document.removeEventListener("visibilitychange", tryAuto);
+  }, [desk, onLog]);
 
   useEffect(() => {
     if (!desk) return;

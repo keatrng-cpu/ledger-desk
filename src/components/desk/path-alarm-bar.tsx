@@ -9,6 +9,12 @@ import {
   testPathAlarm,
   type PathAlarmState,
 } from "@/lib/alerts/path-alarm";
+import {
+  getAutoPaperState,
+  setAutoPaper,
+  subscribeAutoPaper,
+  type AutoPaperState,
+} from "@/lib/trading/auto-paper";
 import { ritualWindow } from "@/lib/trading/live-session";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { CopyClaudeHandoff } from "@/components/desk/copy-claude-handoff";
@@ -17,16 +23,21 @@ import { cn } from "@/lib/utils";
 
 export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
   const [state, setState] = useState<PathAlarmState>(() => getPathAlarmState());
+  const [auto, setAuto] = useState<AutoPaperState>(() => getAutoPaperState());
   const [ritual, setRitual] = useState(() => ritualWindow());
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => subscribePathAlarm(setState), []);
+  useEffect(() => subscribeAutoPaper(setAuto), []);
   useEffect(() => {
     const on = () => setState(getPathAlarmState());
+    const onAuto = () => setAuto(getAutoPaperState());
     window.addEventListener("ledger-path-alarm", on);
+    window.addEventListener("ledger-auto-paper", onAuto);
     const id = window.setInterval(() => setRitual(ritualWindow()), 15_000);
     return () => {
       window.removeEventListener("ledger-path-alarm", on);
+      window.removeEventListener("ledger-auto-paper", onAuto);
       window.clearInterval(id);
     };
   }, []);
@@ -40,6 +51,29 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
 
   return (
     <div className="mx-auto mt-1.5 flex max-w-7xl flex-wrap items-center gap-1.5">
+      {auto.on ? (
+        <button
+          type="button"
+          onClick={() => setAuto(setAutoPaper(false))}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+            "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
+          )}
+          title="Trade Now auto-fills PATH A+/A/A− paper in NY AM and books stats"
+        >
+          Auto paper on
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAuto(setAutoPaper(true))}
+          className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]"
+          title="Click to let Trade Now fill paper PATH and write stats"
+        >
+          Auto paper off
+        </button>
+      )}
+
       {state.armed ? (
         <button
           type="button"
@@ -106,9 +140,14 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
         {ritual.label} · {ritual.et}
       </span>
 
-      {state.lastTitle && state.lastAt && (
-        <span className="truncate text-[10px] text-[var(--color-muted)]">
-          Last: {state.lastTitle}
+      {auto.on && auto.lastTitle && (
+        <span className="truncate text-[10px] text-[var(--color-up)]">
+          Auto: {auto.lastTitle}
+        </span>
+      )}
+      {auto.on && !auto.lastTitle && auto.lastSkip && (
+        <span className="hidden truncate text-[10px] text-[var(--color-subtle)] lg:inline">
+          Auto wait · {auto.lastSkip}
         </span>
       )}
       {msg && <span className="text-[10px] text-[var(--color-up)]">{msg}</span>}
