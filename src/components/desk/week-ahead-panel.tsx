@@ -14,10 +14,21 @@ function BookCol({ label, b }: { label: string; b: WeekBookLevels }) {
       </p>
       <p className="mt-0.5 font-mono text-sm text-[var(--color-fg)]">
         settle {px(b.settle)}
+        {b.live ? (
+          <span className="ml-1.5 text-[10px] font-sans uppercase tracking-wider text-[var(--color-up)]">
+            live
+          </span>
+        ) : null}
       </p>
       <p className="font-mono text-[11px] text-[var(--color-muted)]">
         PWH {px(b.pwh)} · EQ {px(b.eq)} · PWL {px(b.pwl)}
       </p>
+      {(b.cwh != null || b.cwl != null) && (
+        <p className="font-mono text-[11px] text-[var(--color-fg)]">
+          CWH {b.cwh != null ? px(b.cwh) : "—"} · CWL{" "}
+          {b.cwl != null ? px(b.cwl) : "—"}
+        </p>
+      )}
       <p className="mt-1 text-[11px] leading-snug text-[var(--color-muted)]">
         ↑ {b.drawUp}
       </p>
@@ -53,12 +64,18 @@ function DayRow({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-fg)]">
           {d.weekday} {d.date.slice(5)}
-          {active ? " · today" : next ? " · next" : ""}
+          {active ? " · today" : next ? " · next" : d.printed ? " · printed" : ""}
         </p>
         <p className="text-[11px] text-[var(--color-muted)]">{d.dailyBias}</p>
       </div>
       <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">
-        {d.news.map((n) => `${n.timeEt} ${n.name}`).join(" · ") || "No high-impact"}
+        {d.news
+          .map((n) =>
+            n.actual
+              ? `${n.timeEt} ${n.name} ${n.actual}${n.vs ? ` vs ${n.vs}` : ""}`
+              : `${n.timeEt} ${n.name}`,
+          )
+          .join(" · ") || "No high-impact"}
       </p>
       {(active || next) && (
         <div className="mt-1.5 space-y-1 text-[12px] leading-snug text-[var(--color-fg)]">
@@ -89,6 +106,7 @@ export function WeekAheadPanel({ week }: { week: WeekAheadRead | null }) {
         <div>
           <h3 className="text-sm font-semibold text-[var(--color-fg)]">
             Week ahead · {plan.weekLabel}
+            {week.live ? " · live tape" : ""}
           </h3>
           <p className="text-[11px] text-[var(--color-muted)]">
             {phase === "prep" ? "Sunday prep — cash opens Mon" : plan.headline}

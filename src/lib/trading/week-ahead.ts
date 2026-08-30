@@ -1,8 +1,11 @@
 /**
  * Week-ahead plan the desk, session brief, brain, and HUD all read.
- * Static, dated, no LLM. Swap/add a WeekPlan when Sunday maintenance runs.
+ * Sunday seed is static. Live CWH/CWL overlay from bars (no lookahead).
+ * Official prints land in src/data/week-prints.json when Grok restamps them.
  */
 
+import rawPrints from "@/data/week-prints.json";
+import type { OhlcBar } from "@/lib/market/types";
 import { etWallParts } from "./sessions";
 
 export type WeekDayKind =
@@ -22,6 +25,10 @@ export interface WeekBookLevels {
   drawUp: string;
   drawDown: string;
   note: string;
+  /** Current-week high from tape (this week only, no future bars). */
+  cwh?: number | null;
+  cwl?: number | null;
+  live?: boolean;
 }
 
 export interface WeekDayPlan {
@@ -29,11 +36,19 @@ export interface WeekDayPlan {
   weekday: string;
   dailyBias: string;
   kind: WeekDayKind;
-  news: { timeEt: string; name: string; impact: "high" | "medium"; note: string }[];
+  news: {
+    timeEt: string;
+    name: string;
+    impact: "high" | "medium";
+    note: string;
+    actual?: string;
+    vs?: string;
+  }[];
   likelyTape: string;
   trade: string;
   skipIf: string;
   pathNote: string;
+  printed?: boolean;
 }
 
 export interface WeekPlan {
@@ -61,7 +76,19 @@ export interface WeekAheadRead {
   next: WeekDayPlan | null;
   phase: "prep" | "live" | "done";
   focus: WeekDayPlan | null;
+  live: boolean;
+  refreshedAt: string;
 }
+
+export interface WeekPrint {
+  date: string;
+  name: string;
+  actual?: string;
+  vs?: string;
+  note?: string;
+}
+
+const PRINTS: WeekPrint[] = (Array.isArray(rawPrints) ? rawPrints : []) as WeekPrint[];
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -269,18 +296,20 @@ export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
   for (const plan of PLANS) {
     const prepDay = addDays(plan.weekStart, -1);
     if (dateKey < prepDay || dateKey > plan.weekEnd) continue;
-    const today = plan.days.find((d) => d.date === dateKey) ?? null;
-    const next =
-      plan.days.find((d) => d.date > dateKey) ?? null;
+    const stamped = stampPrints(plan, dateKey);
+    const today = stamped.days.find((d) => d.date === dateKey) ?? null;
+    const next = stamped.days.find((d) => d.date > dateKey) ?? null;
     const phase: WeekAheadRead["phase"] =
       dateKey < plan.weekStart ? "prep" : dateKey > plan.weekEnd ? "done" : "live";
     return {
-      plan,
+      plan: stamped,
       dateKey,
       today,
       next,
       phase,
       focus: today ?? next,
+      live: false,
+      refreshedAt: now.toISOString(),
     };
   }
   return null;
@@ -300,3 +329,136 @@ export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
   const tag = read.today ? "TODAY" : "NEXT";
   return `${tag} ${read.focus.weekday} · ${read.focus.dailyBias}`;
 }
+
+function stampPrints(plan: WeekPlan, dateKey: string): WeekPlan {
+  const days = plan.days.map((d) => {
+    const printed = d.date < dateKey;
+    const news = d.news.map((n) => {
+      const hit = PRINTS.find(
+        (p) =>
+          p.date === d.date &&
+          (p.name === n.name ||
+            n.name.toLowerCase().includes(p.name.toLowerCase()) ||
+            p.name.toLowerCase().includes(n.name.toLowerCase().slice(0, 12))),
+      );
+      if (!hit) return n;
+      return {
+        ...n,
+        actual: hit.actual,
+        vs: hit.vs,
+        note: hit.note
+          ? `${n.note} · ACTUAL ${hit.actual ?? "—"} vs ${hit.vs ?? "exp"} — ${hit.note}`
+          : n.note,
+      };
+    });
+    return { ...d, news, printed };
+  });
+  return { ...plan, days };
+}
+
+function barDateKey(t: number): { key: string; hour: number } {
+  const p = etWallParts(t);
+  return {
+    key: `${p.year}-${pad2(p.month)}-${pad2(p.day)}`,
+    hour: p.hour,
+  };
+}
+
+function barInWeek(
+  t: number,
+  weekStart: string,
+  weekEnd: string,
+  today: string,
+): boolean {
+  const { key, hour } = barDateKey(t);
+  if (key > today || key > weekEnd) return false;
+  if (key >= weekStart) return true;
+  const prep = addDays(weekStart, -1);
+  return key === prep && hour >= 18;
+}
+
+export function weekRangeFromBars(
+  bars: OhlcBar[],
+  weekStart: string,
+  weekEnd: string,
+  now = new Date(),
+): { high: number; low: number; n: number } | null {
+  const today = etDateKey(now);
+  let high = -Infinity;
+  let low = Infinity;
+  let n = 0;
+  for (const b of bars) {
+    if (!barInWeek(b.t, weekStart, weekEnd, today)) continue;
+    if (b.h > high) high = b.h;
+    if (b.l < low) low = b.l;
+    n += 1;
+  }
+  if (n < 3 || !Number.isFinite(high) || !Number.isFinite(low)) return null;
+  return { high, low, n };
+}
+
+function overlayBook(
+  seed: WeekBookLevels,
+  range: { high: number; low: number; n: number } | null,
+): WeekBookLevels {
+  if (!range) return seed;
+  const cwh = +range.high.toFixed(2);
+  const cwl = +range.low.toFixed(2);
+  const liveEq = +((cwh + cwl) / 2).toFixed(2);
+  const tookPwh = cwh >= seed.pwh - 0.25;
+  const tookPwl = cwl <= seed.pwl + 0.25;
+  return {
+    ...seed,
+    cwh,
+    cwl,
+    live: true,
+    eq: liveEq,
+    drawUp: tookPwh
+      ? `CWH ${cwh.toFixed(2)} took PWH ${seed.pwh.toFixed(2)} — next ${seed.drawUp}`
+      : `CWH ${cwh.toFixed(2)} then PWH ${seed.pwh.toFixed(2)} · ${seed.drawUp}`,
+    drawDown: tookPwl
+      ? `CWL ${cwl.toFixed(2)} took PWL ${seed.pwl.toFixed(2)} — next ${seed.drawDown}`
+      : `CWL ${cwl.toFixed(2)} then PWL ${seed.pwl.toFixed(2)} · ${seed.drawDown}`,
+    note: `${seed.note} LIVE CWH ${cwh.toFixed(2)} / CWL ${cwl.toFixed(2)} from this week’s tape (no lookahead).`,
+  };
+}
+
+function isNq(symbol: string): boolean {
+  return /NQ/i.test(symbol);
+}
+function isEs(symbol: string): boolean {
+  return /ES/i.test(symbol);
+}
+
+/**
+ * Stamp live weekly range onto the Sunday seed.
+ * Prior-week PWH/PWL stay. CWH/CWL + EQ come from bars dated this week only.
+ */
+export function overlayWeekAhead(
+  read: WeekAheadRead | null,
+  books: { symbol: string; bars: OhlcBar[] }[],
+  now = new Date(),
+): WeekAheadRead | null {
+  if (!read) return null;
+  const { plan } = read;
+  let nq = plan.nq;
+  let es = plan.es;
+  for (const b of books) {
+    const range = weekRangeFromBars(b.bars, plan.weekStart, plan.weekEnd, now);
+    if (isNq(b.symbol)) nq = overlayBook(nq, range);
+    if (isEs(b.symbol)) es = overlayBook(es, range);
+  }
+  const nextPlan = { ...plan, nq, es };
+  const today = nextPlan.days.find((d) => d.date === read.dateKey) ?? null;
+  const next = nextPlan.days.find((d) => d.date > read.dateKey) ?? null;
+  return {
+    ...read,
+    plan: nextPlan,
+    today,
+    next,
+    focus: today ?? next,
+    live: Boolean(nq.live || es.live),
+    refreshedAt: now.toISOString(),
+  };
+}
+

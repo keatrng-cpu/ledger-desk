@@ -46,7 +46,7 @@ import {
   type MarketNarrative,
 } from "./market-narrative";
 import { buildSessionBrief, type SessionBrief } from "./session-brief";
-import { resolveWeekAhead, type WeekAheadRead } from "./week-ahead";
+import { overlayWeekAhead, resolveWeekAhead, type WeekAheadRead } from "./week-ahead";
 
 export interface DeskPayload {
   ok: true;
@@ -486,7 +486,10 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           narrative,
           smtStack,
         }),
-        weekAhead: resolveWeekAhead(),
+        weekAhead: overlayWeekAhead(resolveWeekAhead(), [
+          { symbol: left.symbol, bars: left.bars },
+          { symbol: right.symbol, bars: right.bars },
+        ]),
       };
       return { ...payload, liveSays: buildLiveSays(payload) };
     } catch (e) {

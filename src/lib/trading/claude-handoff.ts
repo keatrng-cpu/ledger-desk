@@ -86,7 +86,7 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
       lines.push(`WEEK skip: ${w.focus.skipIf}`);
     }
     lines.push(
-      `WEEK NQ PWH ${w.plan.nq.pwh} EQ ${w.plan.nq.eq} PWL ${w.plan.nq.pwl} · ES PWH ${w.plan.es.pwh} PWL ${w.plan.es.pwl}`,
+      `WEEK NQ PWH ${w.plan.nq.pwh} EQ ${w.plan.nq.eq} PWL ${w.plan.nq.pwl}${w.plan.nq.cwh != null ? ` CWH ${w.plan.nq.cwh} CWL ${w.plan.nq.cwl}` : ""} · ES PWH ${w.plan.es.pwh} PWL ${w.plan.es.pwl}${w.plan.es.cwh != null ? ` CWH ${w.plan.es.cwh} CWL ${w.plan.es.cwl}` : ""}`,
     );
   }
   if (desk.narrative?.summary) lines.push(`narrative ${desk.narrative.summary.slice(0, 280)}`);
