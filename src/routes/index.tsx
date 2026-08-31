@@ -342,7 +342,7 @@ const CATEGORIES: {
     id: "swing",
     label: "Options",
     short: "Swing",
-    hint: "Robinhood · when time occurs",
+    hint: "QQQ/SPY · $1k · 15% risk",
     icon: Layers,
   },
   {
@@ -1304,8 +1304,8 @@ useEffect(() => {
                 <div className="space-y-5">
                   <SectionHead
                     n="S"
-                    title="Options swing"
-                    sub="Robinhood long debit · arms only when HTF + Mon–Thu + news clear"
+                    title="Robinhood QQQ / SPY"
+                    sub="$1,000 sleeve · 15% = $150 max debit · PATH / SMT / event · estimates from ES/NQ"
                   />
                   <OptionsSwingPanel desk={desk} />
                 </div>

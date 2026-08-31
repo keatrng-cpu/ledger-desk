@@ -91,7 +91,7 @@ Grade **each strategy against the tape independently**, then overlay SMC structu
 |-----|------|
 | Veteran | Brain + coach (Ask Claude) |
 | Trade | HTF, session brief, PATH scanner, paper log |
-| Options | Robinhood swing — only when the time occurs |
+| Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Day: PATH 1–2 DTE (0DTE A+ after 9:45). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Path | WR / grades / profit path |
 | Backtest | TradeZella chat, real-data weeks, no lookahead |
 | Tape | Dual MNQ/ES charts + liquidity |
@@ -117,6 +117,7 @@ HUD is sticky: clock, killzone, GO/STAND/WAIT, quotes, lag, **Arm alarm**.
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
 | `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. Sep 2026 weeks 1–5 are seeded. |
 | `src/lib/trading/month-ahead.ts` | Month bias / phases (Labor → CPI → FOMC → Digest → PCE). Live CMH/CML overlay. Swap on the last Sunday of the prior month. |
+| `src/lib/trading/options-desk.ts` | QQQ/SPY RH sleeve ($1k / 15%). Estimates from ES/10 · NQ/40. Long debit or vertical. |
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |
 | `src/lib/trading/claude-handoff.ts` | Clipboard snapshot for you |

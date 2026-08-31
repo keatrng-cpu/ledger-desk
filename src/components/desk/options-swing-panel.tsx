@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
@@ -10,31 +10,166 @@ import {
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import {
-  evaluateOptionsSwing,
-  optionsSwingPlaybook,
-  swingVerdictTone,
-  type SwingVerdict,
-} from "@/lib/trading/options-swing";
+  evaluateOptionsDesk,
+  optionsDeskPlaybook,
+  type RhStrategyCard,
+  type RhVerdict,
+  type UnderlierQuote,
+} from "@/lib/trading/options-desk";
+import {
+  loadRhSleeve,
+  saveRhSleeve,
+  subscribeRhSleeve,
+  type RhSleeve,
+} from "@/lib/trading/options-sleeve";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
-function verdictClass(v: SwingVerdict): string {
-  const t = swingVerdictTone(v);
-  if (t === "up")
+function verdictClass(v: RhVerdict): string {
+  if (v === "ARMED")
     return "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_12%,transparent)] text-[var(--color-up)]";
-  if (t === "down")
-    return "border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-down)_12%,transparent)] text-[var(--color-down)]";
-  if (t === "warn")
+  if (v === "WATCH")
     return "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_12%,transparent)] text-[var(--color-warn)]";
   return "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-muted)]";
 }
 
+function usd(n: number): string {
+  return `$${Math.round(n).toLocaleString()}`;
+}
+
+function StrategyCard({ card }: { card: RhStrategyCard }) {
+  return (
+    <article className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
+      <header className="mb-1.5 flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-[var(--color-fg)]">{card.name}</p>
+          <p className="text-[10px] text-[var(--color-subtle)]">
+            {card.horizon} · {card.whyHighProb}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold",
+            verdictClass(card.verdict),
+          )}
+        >
+          {card.verdict}
+        </span>
+      </header>
+
+      {card.ticket && (
+        <div className="mb-2 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
+          <p className="font-mono text-[12px] text-[var(--color-fg)]">
+            {card.ticket.product === "debit_spread" ? "SPREAD" : "BUY"} {card.ticket.contracts}{" "}
+            {card.ticket.underlier} {card.ticket.side.toUpperCase()}
+            <span className="text-[var(--color-muted)]">
+              {" "}
+              · DTE {card.ticket.dteTarget} · Δ {card.ticket.deltaMin}–{card.ticket.deltaMax} · pay{" "}
+              {usd(card.ticket.estDebitTotal)} · max loss {usd(card.ticket.maxLoss)}
+            </span>
+          </p>
+          <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">{card.ticket.strikeNote}</p>
+          <p className="mt-0.5 text-[11px] text-[var(--color-fg)]">Hold {card.ticket.hold}</p>
+          <p className="text-[11px] text-[var(--color-muted)]">Invalid: {card.ticket.invalidation}</p>
+          <ul className="mt-1 space-y-0.5 text-[11px] text-[var(--color-muted)]">
+            {card.ticket.targets.map((t) => (
+              <li key={t}>→ {t}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
+          {(card.reasons.length ? card.reasons : ["—"]).map((r) => (
+            <li key={r} className="flex gap-1">
+              <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-up)]" />
+              {r}
+            </li>
+          ))}
+        </ul>
+        <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
+          {(card.blocks.length ? card.blocks : ["None"]).map((r) => (
+            <li key={r} className="flex gap-1">
+              <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-down)]" />
+              {r}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  );
+}
+
+function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
+  return (
+    <div
+      className={cn(
+        "rounded-[var(--radius-md)] border px-3 py-2",
+        primary
+          ? "border-[color-mix(in_oklab,var(--color-primary)_40%,var(--color-border))]"
+          : "border-[var(--color-border)]",
+      )}
+    >
+      <p className="text-sm font-semibold text-[var(--color-fg)]">
+        {q.underlier}{" "}
+        <span className="font-mono text-[11px] text-[var(--color-muted)]">
+          ~{q.spotEst.toFixed(2)} ← {q.proxy}
+        </span>
+        {primary ? (
+          <span className="ml-2 text-[10px] uppercase text-[var(--color-primary)]">primary</span>
+        ) : null}
+      </p>
+      <p className="text-[11px] text-[var(--color-muted)]">
+        HTF {q.htf} · {q.dealing ?? "n/a"} · sess {q.session} · {q.changePct >= 0 ? "+" : ""}
+        {q.changePct.toFixed(2)}% · {q.role} · IV {(q.ivUsed * 100).toFixed(0)}%
+      </p>
+      <table className="mt-1.5 w-full text-left text-[10px] text-[var(--color-muted)]">
+        <thead>
+          <tr className="text-[var(--color-subtle)]">
+            <th className="font-medium">Tenor</th>
+            <th className="font-medium">Single</th>
+            <th className="font-medium">Spread</th>
+            <th className="font-medium">$150</th>
+          </tr>
+        </thead>
+        <tbody>
+          {q.menu.map((m) => (
+            <tr key={m.label}>
+              <td className="py-0.5 text-[var(--color-fg)]">{m.label}</td>
+              <td>{usd(m.single)}</td>
+              <td>{usd(m.spread)}</td>
+              <td className={m.fitsSingle || m.fitsSpread ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
+                {m.fitsSingle ? "1-lot" : m.fitsSpread ? "vertical" : "too rich"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
-  const signal = useMemo(() => evaluateOptionsSwing(desk), [desk]);
+  const [sleeve, setSleeve] = useState<RhSleeve>(() => loadRhSleeve());
+  useEffect(() => subscribeRhSleeve(setSleeve), []);
+
+  const book = useMemo(() => evaluateOptionsDesk(desk, sleeve), [desk, sleeve]);
   const posture = useDeskSynapse((s) => s.posture);
   const tradeFeed = useDeskSynapse((s) => s.feeds.trade);
   const pathFeed = useDeskSynapse((s) => s.feeds.path);
-  const playbook = useMemo(() => optionsSwingPlaybook(), []);
+  const playbook = useMemo(() => optionsDeskPlaybook(), []);
+
+  const onEquity = (v: string) => {
+    const n = Number(v.replace(/[^0-9.]/g, ""));
+    if (!Number.isFinite(n)) return;
+    setSleeve(saveRhSleeve({ equity: n }));
+  };
+  const onRisk = (v: string) => {
+    const n = Number(v.replace(/[^0-9.]/g, "")) / 100;
+    if (!Number.isFinite(n)) return;
+    setSleeve(saveRhSleeve({ riskPct: n }));
+  };
 
   return (
     <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_oklab,var(--color-primary)_28%,var(--color-border))] bg-[var(--color-surface)] p-3 sm:p-4">
@@ -45,105 +180,88 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">
-              Options swing · Robinhood
+              Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              Long debit only · SPY←ES · QQQ←NQ · arms only when time occurs
+              Not the $100k futures book · long debit / vertical only · estimates from ES/NQ
             </p>
           </div>
         </div>
         <span
           className={cn(
             "rounded-full border px-2.5 py-1 font-mono text-[11px] font-bold tracking-wide",
-            verdictClass(signal.verdict),
+            verdictClass(book.best?.verdict ?? "STAND"),
           )}
         >
-          {signal.verdict}
+          {book.best ? `${book.best.verdict} · ${book.best.ticket?.underlier}` : "STAND"}
         </span>
       </header>
+
+      <div className="mb-3 flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <label className="text-[10px] uppercase text-[var(--color-subtle)]">
+          Capital
+          <input
+            type="number"
+            min={200}
+            max={25000}
+            step={100}
+            value={sleeve.equity}
+            onChange={(e) => onEquity(e.target.value)}
+            className="mt-0.5 block w-24 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 font-mono text-[12px] text-[var(--color-fg)]"
+          />
+        </label>
+        <label className="text-[10px] uppercase text-[var(--color-subtle)]">
+          Risk %
+          <input
+            type="number"
+            min={5}
+            max={25}
+            step={1}
+            value={Math.round(sleeve.riskPct * 100)}
+            onChange={(e) => onRisk(e.target.value)}
+            className="mt-0.5 block w-16 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 font-mono text-[12px] text-[var(--color-fg)]"
+          />
+        </label>
+        <p className="pb-1 font-mono text-[12px] text-[var(--color-fg)]">
+          Max debit {usd(book.maxDebit)}{" "}
+          <span className="text-[var(--color-subtle)]">= 1 thesis · never both QQQ and SPY</span>
+        </p>
+      </div>
 
       <p className="mb-2 text-[11px] text-[var(--color-muted)]">
         Cross-tab: {posture.verdict} · {tradeFeed[0] ?? "—"} · {pathFeed[0] ?? "—"}
       </p>
-      {/* Time occurs banner */}
+
       <div
         className={cn(
           "mb-3 rounded-[var(--radius-md)] border px-3 py-2.5",
-          signal.timeOccurs
+          book.best
             ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_10%,var(--color-surface-2))]"
             : "border-[var(--color-border)] bg-[var(--color-surface-2)]",
         )}
       >
         <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
           <CalendarClock className="h-3.5 w-3.5" />
-          {signal.timeOccurs ? "Time occurs — swing armed" : "Waiting for time"}
+          {book.best ? "Best RH ticket" : "No high-prob ticket"}
         </p>
-        <p className="mt-1 text-sm font-medium text-[var(--color-fg)]">
-          {signal.focus}
-        </p>
-        <p className="mt-1 text-[11px] text-[var(--color-muted)]">
-          {signal.timing.label} · conf{" "}
-          {(signal.confidence * 100).toFixed(0)}% · HTF {signal.htf}
-          {signal.dealing ? ` · ${signal.dealing}` : ""}
-        </p>
+        <p className="mt-1 text-sm font-medium text-[var(--color-fg)]">{book.focus}</p>
+        {book.best?.ticket && (
+          <p className="mt-1 text-[11px] text-[var(--color-muted)]">{book.best.ticket.robinhood}</p>
+        )}
       </div>
 
-      {/* Plan card */}
-      {signal.plan && (
-        <div className="mb-3 grid gap-2 sm:grid-cols-2">
-          <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-              Robinhood ticket
-            </p>
-            <p className="mt-1 font-mono text-sm text-[var(--color-fg)]">
-              BUY {signal.plan.side.toUpperCase()} {signal.plan.underlier}
-            </p>
-            <ul className="mt-1.5 space-y-0.5 text-[11px] text-[var(--color-muted)]">
-              <li>
-                DTE {signal.plan.dteMin}–{signal.plan.dteMax} (target ~
-                {signal.plan.dteTarget})
-              </li>
-              <li>
-                Delta ~{signal.plan.deltaMin}–{signal.plan.deltaMax}
-              </li>
-              <li>
-                Max premium ${signal.plan.riskDollars.toLocaleString()} (
-                {(signal.plan.riskPct * 100).toFixed(2)}%)
-              </li>
-              <li>
-                Hold {signal.plan.holdSessionsMin}–{signal.plan.holdSessionsMax}{" "}
-                sessions
-              </li>
-            </ul>
-          </div>
-          <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-              Manage
-            </p>
-            <p className="mt-1 text-[11px] text-[var(--color-fg)]">
-              <span className="text-[var(--color-subtle)]">Invalid: </span>
-              {signal.plan.invalidation}
-            </p>
-            <ul className="mt-1.5 space-y-0.5 text-[11px] text-[var(--color-muted)]">
-              {signal.plan.targets.map((t) => (
-                <li key={t}>→ {t}</li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[10px] leading-relaxed text-[var(--color-subtle)]">
-              {signal.plan.robinhoodNote}
-            </p>
-          </div>
-        </div>
-      )}
+      <div className="mb-3 grid gap-2 sm:grid-cols-2">
+        <QuoteSheet q={book.quotes.qqq} primary={book.primary === "QQQ"} />
+        <QuoteSheet q={book.quotes.spy} primary={book.primary === "SPY"} />
+      </div>
 
-      {/* Checklist */}
       <div className="mb-3">
         <p className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
           <ShieldAlert className="h-3 w-3" />
-          When the time occurs (all must pass)
+          Shared gates
         </p>
         <ul className="grid gap-1 sm:grid-cols-2">
-          {signal.checklist.map((c) => (
+          {book.gates.map((c) => (
             <li
               key={c.id}
               className="flex items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5 text-[11px]"
@@ -153,11 +271,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               ) : (
                 <XCircle className="h-3.5 w-3.5 shrink-0 text-[var(--color-down)]" />
               )}
-              <span
-                className={
-                  c.ok ? "text-[var(--color-fg)]" : "text-[var(--color-muted)]"
-                }
-              >
+              <span className={c.ok ? "text-[var(--color-fg)]" : "text-[var(--color-muted)]"}>
                 {c.label}
               </span>
             </li>
@@ -165,28 +279,25 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </ul>
       </div>
 
-      <div className="mb-3 grid gap-2 sm:grid-cols-2">
-        <div className="rounded border border-[var(--color-border)] px-2 py-1.5">
-          <p className="text-[9px] uppercase text-[var(--color-up)]">Reasons</p>
-          <ul className="mt-0.5 space-y-0.5 text-[11px] text-[var(--color-muted)]">
-            {(signal.reasons.length ? signal.reasons : ["—"]).map((r) => (
-              <li key={r} className="flex gap-1">
-                <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-up)]" />
-                {r}
-              </li>
-            ))}
-          </ul>
+      <div className="mb-3">
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          Day book
+        </p>
+        <div className="space-y-2">
+          {book.day.map((c) => (
+            <StrategyCard key={c.id} card={c} />
+          ))}
         </div>
-        <div className="rounded border border-[var(--color-border)] px-2 py-1.5">
-          <p className="text-[9px] uppercase text-[var(--color-down)]">Blocks</p>
-          <ul className="mt-0.5 space-y-0.5 text-[11px] text-[var(--color-muted)]">
-            {(signal.blocks.length ? signal.blocks : ["None"]).map((r) => (
-              <li key={r} className="flex gap-1">
-                <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-down)]" />
-                {r}
-              </li>
-            ))}
-          </ul>
+      </div>
+
+      <div className="mb-3">
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          Swing book
+        </p>
+        <div className="space-y-2">
+          {book.swing.map((c) => (
+            <StrategyCard key={c.id} card={c} />
+          ))}
         </div>
       </div>
 

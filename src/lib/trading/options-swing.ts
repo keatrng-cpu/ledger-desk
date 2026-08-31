@@ -11,7 +11,7 @@
 import type { DeskPayload } from "./build-desk";
 import type { SessionClock } from "./sessions";
 import type { NewsRead } from "./news";
-import { APLUS_RULES } from "@/lib/aplus/config";
+import { loadRhSleeve, rhMaxDebit } from "./options-sleeve";
 
 export type OptionSide = "call" | "put";
 export type SwingUnderlier = "SPY" | "QQQ";
@@ -64,12 +64,10 @@ export interface SwingSignal {
   timeOccurs: boolean;
 }
 
-const EQUITY = APLUS_RULES.paperEquity;
-
 export const SWING_RISK_PCT = {
-  A: 0.01,
-  B: 0.005,
-  probe: 0.0025,
+  A: 0.15,
+  B: 0.1,
+  probe: 0.075,
 } as const;
 
 function weekdayEt(clock: SessionClock): number {
@@ -183,6 +181,12 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     blocks.push(`News ${desk.news.verdict}: ${desk.news.reason}`);
   if (timing.fridayCaution) blocks.push("Friday — no new multi-day premium");
   if (!timing.entrySessionOk) blocks.push("Outside swing arm session");
+  if (desk.monthAhead?.phase?.id === "labor") {
+    blocks.push("Labor / NFP week — HTF swing is WATCH, use SMT or event tickets");
+  }
+  if (desk.weekAhead?.today?.kind === "nfp" || desk.weekAhead?.today?.kind === "holiday") {
+    blocks.push("Week card forbids new multi-day premium today");
+  }
 
   if (!best) {
     blocks.push("No absolute HTF bull/bear on ES or NQ proxy");
@@ -246,6 +250,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
   let plan: SwingContractPlan | null = null;
   if (best && (timeOccurs || verdict === "WATCH")) {
     const riskPct = timeOccurs ? SWING_RISK_PCT.A : SWING_RISK_PCT.probe;
+    const sleeve = loadRhSleeve();
     plan = {
       underlier: best.underlier,
       side: best.side,
@@ -255,7 +260,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
       deltaMin: 0.35,
       deltaMax: 0.5,
       riskPct,
-      riskDollars: Math.round(EQUITY * riskPct),
+      riskDollars: rhMaxDebit(sleeve),
       holdSessionsMin: 2,
       holdSessionsMax: 10,
       invalidation:
@@ -268,7 +273,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
         "Time stop: thesis not working by session 5–7 → reduce",
       ],
       robinhoodNote:
-        "Robinhood: BUY TO OPEN long call/put only. Defined risk = debit paid. No naked short. Set GTC profit + mental invalidation. Do not average losers.",
+        "Robinhood: BUY TO OPEN long call/put or a debit spread. Defined risk = debit paid, capped at 15% of the $1,000 sleeve. No naked short. Do not average losers.",
     };
   }
 
@@ -312,7 +317,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     {
       id: "risk",
       ok: true,
-      label: `Premium risk capped (A ${SWING_RISK_PCT.A * 100}% / probe ${SWING_RISK_PCT.probe * 100}%)`,
+      label: `RH sleeve risk ${(SWING_RISK_PCT.A * 100).toFixed(0)}% of $1,000 = max debit`,
     },
   ];
 
@@ -343,14 +348,13 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
 
 export function optionsSwingPlaybook(): string[] {
   return [
-    "Only long debit calls/puts on Robinhood (defined risk = premium).",
-    "SPY follows ES HTF · QQQ follows NQ HTF — absolute gate.",
+    "RH sleeve $1,000 · risk 15% = $150 max debit. Not the $100k futures book.",
+    "SPY follows ES HTF · QQQ follows NQ HTF — absolute gate. One underlier.",
     "Arm only Mon–Thu when news clear; NY AM preferred.",
-    "DTE 14–45 (target ~28) · delta ~0.35–0.50 · no 0DTE swings.",
-    "Risk 0.5–1% equity in premium; never average a loser.",
-    "Trim ~50% at +50–80% premium; invalidate if HTF flips.",
-    "Friday: manage only — no new short-dated swings.",
-    "Separate from futures PATH day trades — one thesis preferred.",
+    "ATM weeklies often > $150 — use a vertical rather than OTM lottery.",
+    "Trim ~50% at +50–80% of debit; invalidate if HTF flips.",
+    "Friday / Labor week: manage only — no new 21–45 DTE.",
+    "Separate from futures PATH — one thesis preferred.",
   ];
 }
 

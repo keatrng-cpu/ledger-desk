@@ -5,6 +5,7 @@
 
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow } from "./sessions";
+import { evaluateOptionsDesk } from "./options-desk";
 import { ritualWindow, LIVE_PULSE_CONTRACT } from "./live-session";
 import { APLUS_RULES } from "@/lib/aplus/config";
 
@@ -133,6 +134,22 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   if (lv.length) {
     lines.push("", `LEVELS ${desk.levels[0]?.symbol}:`);
     for (const it of lv) lines.push(`- ${it.name} ${px(it.price)} (${it.kind})`);
+  }
+
+  try {
+    const opt = evaluateOptionsDesk(desk);
+    lines.push("", `OPTIONS ${opt.focus}`);
+    if (opt.best?.ticket) {
+      const t = opt.best.ticket;
+      lines.push(
+        `OPTIONS best ${opt.best.id} ${t.contracts} ${t.underlier} ${t.side} ${t.product} pay~$${t.estDebitTotal} max$${t.maxLoss}`,
+      );
+    }
+    lines.push(
+      `OPTIONS sleeve $${opt.sleeve.equity} risk ${(opt.sleeve.riskPct * 100).toFixed(0)}% cap $${opt.maxDebit} primary ${opt.primary}`,
+    );
+  } catch {
+    /* options desk is additive */
   }
 
   lines.push(
