@@ -17,11 +17,8 @@ import {
 import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief";
 import { weekAheadFocusLine } from "@/lib/trading/week-ahead";
 import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
+import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path-board";
 import { cn } from "@/lib/utils";
-
-function px(n: number): string {
-  return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
-}
 
 function QuoteChip({
   symbol,
@@ -49,7 +46,7 @@ function QuoteChip({
     <span className="font-mono text-[11px] text-[var(--color-fg)]" title={`${source} · lag ${Math.round(lagSec)}s`}>
       {symbol}{" "}
       <span className={up ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
-        {px(price)}
+        {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
         <span className="ml-1 text-[10px]">
           {up ? "+" : ""}
           {changePct.toFixed(2)}%
@@ -82,17 +79,19 @@ export function SessionHud({
   wallNow: string;
   children?: ReactNode;
 }) {
-  const { clock, risk, scan, quotes, left, right, bias, brief, smtStack } = desk;
+  const { clock, risk, scan, quotes, left, right, brief, smtStack } = desk;
   const [ghosts, setGhosts] = useState<GhostTrade[]>(() => todayGhosts());
   const [lastDebrief, setLastDebrief] = useState(() =>
     typeof window !== "undefined" ? loadLastDebrief() : null,
   );
+  const [paperReady, setPaperReady] = useState(false);
   useEffect(() => subscribeGhosts(() => setGhosts(todayGhosts())), []);
   useEffect(
     () =>
       subscribeDebriefs(() => setLastDebrief(loadLastDebrief())),
     [],
   );
+  useEffect(() => setPaperReady(true), []);
 
   const ghost = matchingGhost(desk, ghosts);
   const worstLagSec = Math.max(quotes.left.lagSec, quotes.right.lagSec);
@@ -110,6 +109,7 @@ export function SessionHud({
       ? scan.smt.note
       : "";
   const smtBear = /bear/i.test(smtNote);
+  const pathV = pricePathVerdict(desk, paperReady);
 
   const focus = useMemo(() => {
     const freshDebrief =
@@ -188,9 +188,6 @@ export function SessionHud({
               ? "STAND"
               : "WAIT";
 
-  const leftSess = `${bias.left.sessionStance} ${Math.round((bias.left.sessionStrength ?? 0) * 100)}%`;
-  const rightSess = `${bias.right.sessionStance} ${Math.round((bias.right.sessionStrength ?? 0) * 100)}%`;
-
   return (
     <div className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-4 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_94%,transparent)] px-4 py-2 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       {synthetic && (
@@ -221,13 +218,13 @@ export function SessionHud({
         <NewsChip />
 
         {monthAheadFocusLine(desk.monthAhead) && (
-          <div className="hidden max-w-[220px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] xl:block">
+          <div className="hidden max-w-[180px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] xl:block">
             {monthAheadFocusLine(desk.monthAhead)}
           </div>
         )}
 
         {weekAheadFocusLine(desk.weekAhead) && (
-          <div className="hidden max-w-[280px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] lg:block">
+          <div className="hidden max-w-[220px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] lg:block">
             {weekAheadFocusLine(desk.weekAhead)}
           </div>
         )}
@@ -307,47 +304,21 @@ export function SessionHud({
       </div>
 
       <div className="mx-auto mt-1 flex max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
-        <span>
-          HTF {bias.left.topDown}/{bias.right.topDown}
-        </span>
-        <span className="text-[var(--color-border-strong)]">·</span>
-        <span>
-          Sess {bias.left.symbol} {leftSess} / {bias.right.symbol} {rightSess}
+        <span
+          className={cn(
+            "font-mono text-[11px] font-semibold",
+            pathV.word === "TAKE" && "text-[var(--color-up)]",
+            pathV.word === "MANAGE" && "text-[var(--color-warn)]",
+            pathV.word === "STAND" && "text-[var(--color-muted)]",
+          )}
+        >
+          {pricePathHudLine(desk, paperReady)}
         </span>
         {smtNote && (
           <>
             <span className="text-[var(--color-border-strong)]">·</span>
             <span className={smtBear ? "text-[var(--color-down)]" : "text-[var(--color-up)]"}>
-              {smtNote.length > 88 ? `${smtNote.slice(0, 88)}…` : smtNote}
-            </span>
-          </>
-        )}
-        {brief && (
-          <>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span>
-              Day {brief.score} {brief.verdict.replace("_", " ")}
-            </span>
-          </>
-        )}
-        {best?.targets[0] && focus.mode !== "done" && focus.mode !== "failed" && (
-          <>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span className="font-mono">
-              {best.entryZone.split("(")[0]?.trim()} → {best.targets[0].match(/\d{3,}(?:\.\d+)?/)?.[0] ?? ""}
-            </span>
-          </>
-        )}
-        {ghost?.r != null && (ghost.status === "won" || ghost.status === "lost") && (
-          <>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span
-              className={
-                ghost.r >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"
-              }
-            >
-              Ghost {ghost.r >= 0 ? "+" : ""}
-              {ghost.r.toFixed(2)}R
+              {smtNote.length > 64 ? `${smtNote.slice(0, 64)}…` : smtNote}
             </span>
           </>
         )}

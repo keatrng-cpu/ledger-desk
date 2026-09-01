@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
@@ -7,9 +7,7 @@ import {
   LineChart,
   Loader2,
   RefreshCw,
-  Shield,
   Swords,
-  Target,
   TrendingUp,
   Brain,
   Layers,
@@ -46,7 +44,7 @@ import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
-import { evaluateOptionsSwing } from "@/lib/trading/options-swing";
+import { PricePathBoard } from "@/components/desk/price-path-board";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
@@ -322,62 +320,48 @@ const CATEGORIES: {
   label: string;
   short: string;
   hint: string;
-  icon: typeof Target;
+  icon: typeof Crosshair;
 }[] = [
   {
-    id: "brain",
-    label: "Veteran",
-    short: "Brain",
-    hint: "Memory · discretion · TAKE/SKIP",
-    icon: Brain,
-  },
-  {
     id: "trade",
-    label: "Trade now",
-    short: "Trade",
-    hint: "Bias · setups · go / no-go",
+    label: "Now",
+    short: "Now",
+    hint: "Draw · PATH · paper",
     icon: Crosshair,
   },
   {
     id: "swing",
     label: "Options",
-    short: "Swing",
-    hint: "QQQ/SPY · $1k · 15% risk",
+    short: "Opt",
+    hint: "QQQ/SPY · $1k · 15%",
     icon: Layers,
   },
   {
-    id: "path",
-    label: "Path 0.70",
-    short: "Path",
-    hint: "WR · grades · journal",
-    icon: TrendingUp,
-  },
-  {
-    id: "backtest",
-    label: "Backtest",
-    short: "BT",
-    hint: "Week PnL · PATH takes",
-    icon: Target,
-  },
-  {
     id: "tape",
-    label: "Tape",
+    label: "Charts",
     short: "Tape",
-    hint: "MNQ/ES · liquidity",
+    hint: "MNQ/ES · levels",
     icon: LineChart,
   },
   {
-    id: "risk",
-    label: "Risk",
-    short: "Risk",
-    hint: "Limits · coach",
-    icon: Shield,
+    id: "brain",
+    label: "Brain",
+    short: "Brain",
+    hint: "TAKE / STAND",
+    icon: Brain,
+  },
+  {
+    id: "path",
+    label: "Book",
+    short: "Book",
+    hint: "WR · journal · BT",
+    icon: TrendingUp,
   },
   {
     id: "lab",
     label: "Lab",
     short: "Lab",
-    hint: "Deep rules · replay",
+    hint: "Risk · rules · replay",
     icon: FlaskConical,
   },
 ];
@@ -387,8 +371,6 @@ function MasterplacePage() {
   const publishDesk = useDeskSynapse((s) => s.publishDesk);
   const publishRisk = useDeskSynapse((s) => s.publishRisk);
   const publishMemory = useDeskSynapse((s) => s.publishMemory);
-  const synapsePosture = useDeskSynapse((s) => s.posture);
-  const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
   const memoryBook = useDeskSynapse((s) => s.memory);
   const paper = getPaperAccount(memoryBook);
   const [error, setError] = useState<string | null>(null);
@@ -405,7 +387,7 @@ function MasterplacePage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
-  const [cat, setCat] = useState<DeskCategory>("brain");
+  const [cat, setCat] = useState<DeskCategory>("trade");
   const [risk, setRisk] = useState<RiskState | null>(null);
   const [equity, setEquity] = useState<number>(() => getPaperAccount().equity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
@@ -904,14 +886,8 @@ useEffect(() => {
   }, [desk, desk?.fetchedAt]);
 
 
-  const active = CATEGORIES.find((c) => c.id === cat)!;
+  const active = CATEGORIES.find((c) => c.id === cat) ?? CATEGORIES[0]!;
 
-  // Profitability snapshot chips from desk
-  const best =
-    (fusedSetups[0] &&
-      desk?.scan.candidates.find((c) => c.id === fusedSetups[0]!.id)) ||
-    desk?.scan.candidates.find((c) => c.actionable);
-  const focusLine = desk?.scan.focus?.slice(0, 90);
   const brainSnap = desk
     ? runVeteranBrain(
         desk,
@@ -927,7 +903,6 @@ useEffect(() => {
         discretion?.byStrategy,
       )
     : null;
-  const swingSnap = desk ? evaluateOptionsSwing(desk) : null;
 
 
   return (
@@ -1048,111 +1023,8 @@ useEffect(() => {
             </nav>
           </SessionHud>
         )}
-        {/* Storage + build identity: silent data loss and a stale page are the
-            two failures that look like nothing is wrong. */}
         <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
-
-        {/* One-line profitability status */}
-        {desk && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[11px]">
-            <span className="font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-              Now
-            </span>
-            <span className="text-[var(--color-fg)]">
-              {desk.clock.killzoneLabel}
-            </span>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span
-              className={
-                desk.clock.inTradeWindow
-                  ? "text-[var(--color-up)]"
-                  : "text-[var(--color-subtle)]"
-              }
-            >
-              {desk.clock.inTradeWindow ? "Window open" : "No entry window"}
-            </span>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span className="text-[var(--color-muted)]">
-              HTF {desk.bias.left.topDown}/{desk.bias.right.topDown}
-            </span>
-            {best ? (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <span className="font-mono text-[var(--color-up)]">
-                  {best.symbol} {best.side} {best.grade}{" "}
-                  {best.confluence.toFixed(2)}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <span className="text-[var(--color-subtle)]">No PATH setup</span>
-              </>
-            )}
-            {!entryAllowed && (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <span className="font-semibold text-[var(--color-down)]">
-                  HALTED
-                </span>
-              </>
-            )}
-            {focusLine && (
-              <span className="hidden max-w-md truncate text-[var(--color-subtle)] lg:inline">
-                · {focusLine}
-              </span>
-            )}
-            {brainSnap && (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <button
-                  type="button"
-                  onClick={() => setCat("brain")}
-                  className={
-                    brainSnap.verdict === "TAKE"
-                      ? "font-mono font-semibold text-[var(--color-up)]"
-                      : brainSnap.verdict === "REDUCE"
-                        ? "font-mono font-semibold text-[var(--color-warn)]"
-                        : "font-mono font-semibold text-[var(--color-subtle)]"
-                  }
-                  title={brainSnap.headline}
-                >
-                  Brain {brainSnap.verdict} ×{brainSnap.sizeMult}
-                </button>
-              </>
-            )}
-            {swingSnap && (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <button
-                  type="button"
-                  onClick={() => setCat("swing")}
-                  className={
-                    swingSnap.timeOccurs
-                      ? "font-mono font-semibold text-[var(--color-primary)]"
-                      : "font-mono font-semibold text-[var(--color-subtle)]"
-                  }
-                  title={swingSnap.focus}
-                >
-                  RH {swingSnap.verdict}
-                </button>
-              </>
-            )}
-            {fusedSetups[0] && (
-              <>
-                <span className="text-[var(--color-border-strong)]">·</span>
-                <span
-                  className="hidden font-mono text-[var(--color-primary)] sm:inline"
-                  title={fusedSetups[0].reasons.join(" · ")}
-                >
-                  Fused {fusedSetups[0].symbol} {fusedSetups[0].side}{" "}
-                  {fusedSetups[0].fusedScore.toFixed(2)}
-                </span>
-              </>
-            )}
-          </div>
-        )}
 
         {loading && !desk && (
           <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
@@ -1169,9 +1041,8 @@ useEffect(() => {
 
         {desk && (
           <>
-            {/* Category panels — only one active for focus */}
-            <div className="min-h-[50vh]">
-              <SynapseRail tab={cat} />
+            <div className="mt-3 min-h-[50vh] space-y-4">
+              {cat !== "trade" && <SynapseRail tab={cat} />}
 
               {cat === "brain" && (
                 <div className="space-y-5">
@@ -1186,30 +1057,12 @@ useEffect(() => {
               )}
 
               {cat === "trade" && (
-                <div className="space-y-5">
+                <div className="space-y-4">
+                  <PricePathBoard desk={desk} />
                   <SectionHead
                     n="1"
-                    title="Bias & window"
-                    sub="Top-down gate first — no LTF without HTF"
-                  />
-                  <HtfBiasBoard
-                    left={desk.bias.left}
-                    right={desk.bias.right}
-                  />
-                  <LiveSaysPanel says={desk.liveSays} />
-                  <PremarketPanel desk={desk} />
-                  <LiveSessionCard />
-                  {/* The setups come DIRECTLY under the header that names
-                      them. Previously this header was followed by the market
-                      narrative and the whole paper book, with the actual
-                      SetupScanner last on the tab — so the one thing the
-                      "Trade now" tab exists for was the furthest thing from
-                      the top, and section 2's header labelled something else
-                      entirely. */}
-                  <SectionHead
-                    n="2"
-                    title="PATH setups"
-                    sub={`Only ≥${APLUS_RULES.confluenceFloor} + HTF · Log paper/live or skip`}
+                    title="PATH"
+                    sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · Trade Now or skip`}
                   />
                   <TradeDebriefPanel lastPaper={lastPaperClosed?.debrief} />
                   <SetupScanner
@@ -1224,48 +1077,29 @@ useEffect(() => {
                     }}
                     discretion={discretion}
                   />
-
-                  {/* Prop firm sits directly under the setups it scores.
-                      Same candidates, different question: the discretionary
-                      engine asks "is this a good trade", this asks "can a
-                      trailing-drawdown account afford it right now". */}
                   <SectionHead
-                    n="3"
-                    title="Prop firm"
-                    sub="Eval rules + payout buffers · sized by trail room, not % equity"
-                  />
-                  <PropFirmPanel
-                    candidates={desk.scan.candidates}
-                    equity={equity}
-                  />
-
-                  <SectionHead
-                    n="4"
-                    title="Open positions"
-                    sub="Live-managed paper book — scale-outs, BE stops, time stops"
+                    n="2"
+                    title="Paper"
+                    sub="Live-managed · scale-outs, BE, time stops · auto paper NY AM"
                   />
                   <PaperBookPanel
                     lastClosed={lastPaperClosed}
-                    liveMarks={
-                      desk
-                        ? {
-                            [desk.left.symbol]: desk.quotes.left.price,
-                            [desk.right.symbol]: desk.quotes.right.price,
-                            ES:
-                              desk.left.symbol === "ES"
-                                ? desk.quotes.left.price
-                                : desk.right.symbol === "ES"
-                                  ? desk.quotes.right.price
-                                  : undefined,
-                            MES:
-                              desk.left.symbol === "ES"
-                                ? desk.quotes.left.price
-                                : desk.right.symbol === "ES"
-                                  ? desk.quotes.right.price
-                                  : undefined,
-                          }
-                        : undefined
-                    }
+                    liveMarks={{
+                      [desk.left.symbol]: desk.quotes.left.price,
+                      [desk.right.symbol]: desk.quotes.right.price,
+                      ES:
+                        desk.left.symbol === "ES"
+                          ? desk.quotes.left.price
+                          : desk.right.symbol === "ES"
+                            ? desk.quotes.right.price
+                            : undefined,
+                      MES:
+                        desk.left.symbol === "ES"
+                          ? desk.quotes.left.price
+                          : desk.right.symbol === "ES"
+                            ? desk.quotes.right.price
+                            : undefined,
+                    }}
                     onClosed={(tr) => {
                       setLastPaperClosed(tr);
                       setPaperToast(
@@ -1280,14 +1114,22 @@ useEffect(() => {
                       window.setTimeout(() => setPaperToast(null), 8000);
                     }}
                   />
-
-                  {desk.narrative && (
-                    <>
-                      <SectionHead
-                        n="5"
-                        title="Market narrative"
-                        sub="Why price is where it is — context, not a trigger"
-                      />
+                  <DeskFold
+                    title="Context"
+                    sub="HTF · live · week/month · prop · narrative"
+                  >
+                    <HtfBiasBoard
+                      left={desk.bias.left}
+                      right={desk.bias.right}
+                    />
+                    <LiveSaysPanel says={desk.liveSays} />
+                    <PremarketPanel desk={desk} />
+                    <LiveSessionCard />
+                    <PropFirmPanel
+                      candidates={desk.scan.candidates}
+                      equity={equity}
+                    />
+                    {desk.narrative && (
                       <MarketNarrativePanel
                         left={desk.narrative.left}
                         right={desk.narrative.right}
@@ -1295,8 +1137,8 @@ useEffect(() => {
                         rightLabel={desk.right.symbol}
                         summary={desk.narrative.summary}
                       />
-                    </>
-                  )}
+                    )}
+                  </DeskFold>
                 </div>
               )}
 
@@ -1311,7 +1153,7 @@ useEffect(() => {
                 </div>
               )}
 
-              {cat === "path" && (
+              {(cat === "path" || cat === "backtest") && (
                 <div className="space-y-5">
                   <SectionHead
                     n="A"
@@ -1325,15 +1167,10 @@ useEffect(() => {
                     sub="Paper first · skips are edge"
                   />
                   <JournalPanel onChanged={() => void loadRisk()} />
-                </div>
-              )}
-
-              {cat === "backtest" && (
-                <div className="space-y-4">
                   <SectionHead
-                    n="BT"
+                    n="C"
                     title="Real-data backtest"
-                    sub="Ask week/month · PATH auto-taken · R + $ PnL"
+                    sub="Ask week/month · PATH auto-taken · R + $ PnL · no lookahead"
                   />
                   <TradezellaChat desk={desk} onLog={onLog} />
                 </div>
@@ -1351,7 +1188,7 @@ useEffect(() => {
                 </div>
               )}
 
-              {cat === "risk" && (
+              {(cat === "lab" || cat === "risk") && (
                 <div className="space-y-5">
                   <SectionHead
                     n="R"
@@ -1359,37 +1196,23 @@ useEffect(() => {
                     sub={`Paper $${Math.round(paper.equity).toLocaleString()} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(1)} · A+3/A2/A-1/B+0.5`}
                   />
                   <RiskPanel desk={desk} liveRisk={risk} />
-                  {/* Push subscribe control — the alerts pipeline existed
-                      fully built with zero callers until 2026-08-12. */}
                   <AlertsPanel />
-                  {/* Live and paper analytics — separate reports, explicit
-                      switch, never blended into a single number. */}
                   <AnalyticsPanel />
-                </div>
-              )}
-
-              {cat === "lab" && (
-                <div className="space-y-6">
-                  <SectionHead
-                    n="L"
+                  <DeskFold
                     title="Deep lab"
-                    sub="Rules catalog · replay · bridge — not for session noise"
-                  />
-                  <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-muted)]">
-                    <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
-                    Use during review, not mid-killzone. Live path stays in Trade
-                    / Path / Backtest.
-                  </div>
-                  <AplusOps />
-                  <SmcPlaybook />
-                  <ReplayReport />
-                  {/* Decision-time context — captureSnapshot had been writing
-                      this on every log with nothing able to read it back. */}
-                  <SnapshotReview />
-                  {/* Shadow log — recordArmedShadow (this file's poll loop)
-                      is the producer; this was the missing reader. */}
-                  <ShadowOrderReview />
-                  <BridgeStatus />
+                    sub="Rules · replay · snapshots · shadow · bridge"
+                  >
+                    <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2 text-xs text-[var(--color-muted)]">
+                      <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
+                      Review after the session. Live path stays in Now / Book.
+                    </div>
+                    <AplusOps />
+                    <SmcPlaybook />
+                    <ReplayReport />
+                    <SnapshotReview />
+                    <ShadowOrderReview />
+                    <BridgeStatus />
+                  </DeskFold>
                 </div>
               )}
             </div>
@@ -1486,5 +1309,43 @@ function SectionHead({
         <p className="text-[11px] text-[var(--color-subtle)]">{sub}</p>
       </div>
     </header>
+  );
+}
+
+function DeskFold({
+  title,
+  sub,
+  children,
+}: {
+  title: string;
+  sub?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="group rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <summary className="cursor-pointer list-none px-3 py-2 [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center justify-between gap-2">
+          <span className="min-w-0">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
+              {title}
+            </span>
+            {sub ? (
+              <span className="ml-2 text-[11px] font-normal text-[var(--color-muted)]">
+                {sub}
+              </span>
+            ) : null}
+          </span>
+          <span className="shrink-0 text-[10px] uppercase tracking-wide text-[var(--color-subtle)] group-open:hidden">
+            show
+          </span>
+          <span className="hidden shrink-0 text-[10px] uppercase tracking-wide text-[var(--color-subtle)] group-open:inline">
+            hide
+          </span>
+        </span>
+      </summary>
+      <div className="space-y-3 border-t border-[var(--color-border)] px-3 py-3">
+        {children}
+      </div>
+    </details>
   );
 }

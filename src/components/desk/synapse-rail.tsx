@@ -4,9 +4,9 @@ import { Activity, Link2 } from "lucide-react";
 
 const TAB_LABEL: Record<SynapseTab, string> = {
   brain: "Brain",
-  trade: "Trade",
-  swing: "Swing",
-  path: "Path",
+  trade: "Now",
+  swing: "Opt",
+  path: "Book",
   backtest: "BT",
   tape: "Tape",
   risk: "Risk",

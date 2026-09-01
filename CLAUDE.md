@@ -89,16 +89,14 @@ Grade **each strategy against the tape independently**, then overlay SMC structu
 
 | Tab | What |
 |-----|------|
-| Veteran | Brain + coach (Ask Claude) |
-| Trade | HTF, session brief, PATH scanner, paper log |
+| Now | **Where price is going** (draw/HTF/PATH board) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
 | Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Day: PATH 1–2 DTE (0DTE A+ after 9:45). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
-| Path | WR / grades / profit path |
-| Backtest | TradeZella chat, real-data weeks, no lookahead |
-| Tape | Dual MNQ/ES charts + liquidity |
-| Risk | Halts, alerts, Arm alarm, analytics |
-| Lab | Rules, replay, snapshots, shadow, bridge |
+| Charts | Dual MNQ/ES tape + liquidity |
+| Brain | Veteran + coach (Ask Claude). Never overrides hard gates. |
+| Book | WR / grades / profit path, journal, TradeZella backtest (no lookahead) |
+| Lab | Risk governor, alerts, analytics, rules/replay/snapshots/shadow/bridge |
 
-HUD is sticky: clock, killzone, GO/STAND/WAIT, quotes, lag, **Arm alarm**.
+HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw line** (`TAKE/STAND/MANAGE · MNQ ↓xxxx · ES ↓xxxx`), Arm alarm. Six tabs. Destination first.
 
 ---
 
@@ -121,6 +119,7 @@ HUD is sticky: clock, killzone, GO/STAND/WAIT, quotes, lag, **Arm alarm**.
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |
 | `src/lib/trading/claude-handoff.ts` | Clipboard snapshot for you |
+| `src/components/desk/price-path-board.tsx` | Draw/HTF/PATH destination. TAKE / STAND / MANAGE. HUD line on every tab. |
 | `src/lib/trading/build-desk.ts` | Assembles payload (freshest quotes) |
 | `src/lib/trading/veteran-brain.ts` | Discretion over journal+BT+desk |
 | `src/lib/trading/ghost-book.ts` | Shadow PATH vs tape |
