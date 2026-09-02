@@ -29,6 +29,8 @@ export interface TradeDebrief {
   worked: string[];
   failed: string[];
   lesson: string;
+  /** Live next-action after a miss — from ghost analysis. */
+  next?: string;
   stats: {
     paperN: number;
     paperWr: number | null;
@@ -230,6 +232,7 @@ export function debriefGhost(g: GhostTrade): TradeDebrief | null {
     worked: a.whatWorked,
     failed: a.whatFailed,
     lesson: a.lesson,
+    next: a.next,
     stats: statsFor(g.strategy, g.side),
   };
 }

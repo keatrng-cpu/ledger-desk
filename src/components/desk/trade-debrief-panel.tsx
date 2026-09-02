@@ -93,6 +93,14 @@ function DebriefBody({ d, compact }: { d: TradeDebrief; compact?: boolean }) {
             </span>
             {d.lesson}
           </p>
+          {d.next && (
+            <p className="mt-1.5 text-[12px] font-medium text-[var(--color-fg)]">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">
+                Now ·{" "}
+              </span>
+              {d.next}
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap gap-1.5 font-mono text-[10px] text-[var(--color-muted)]">
             <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5">
               Paper {d.stats.paperN} · WR {pct(d.stats.paperWr)} · ΣR{" "}

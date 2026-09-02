@@ -229,8 +229,8 @@ function GhostBanner({ g }: { g: GhostTrade }) {
         : g.status === "filled"
           ? "IN PLAY — filled, managing"
           : g.status === "missed"
-            ? "MISSED — target without fill"
-            : "EXPIRED — never filled";
+            ? `MISSED — ${a?.tag ?? "target without fill"}`
+            : `EXPIRED — ${a?.tag ?? "never filled"}`;
   return (
     <div
       className={cn(
@@ -256,11 +256,14 @@ function GhostBanner({ g }: { g: GhostTrade }) {
       {a && (
         <div className="mt-1 space-y-1 text-[11px] leading-snug text-[var(--color-fg)]">
           <p className="font-medium">{a.headline}</p>
-          {a.why.slice(0, 2).map((w) => (
+          {a.why.slice(0, 4).map((w) => (
             <p key={w} className="text-[var(--color-muted)]">
               {w}
             </p>
           ))}
+          {a.next && (
+            <p className="font-medium text-[var(--color-fg)]">NOW · {a.next}</p>
+          )}
           <p className="text-[var(--color-subtle)]">{a.lesson}</p>
         </div>
       )}

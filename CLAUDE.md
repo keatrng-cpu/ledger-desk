@@ -122,7 +122,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/components/desk/price-path-board.tsx` | Draw/HTF/PATH destination. TAKE / STAND / MANAGE. HUD line on every tab. |
 | `src/lib/trading/build-desk.ts` | Assembles payload (freshest quotes) |
 | `src/lib/trading/veteran-brain.ts` | Discretion over journal+BT+desk |
-| `src/lib/trading/ghost-book.ts` | Shadow PATH vs tape |
+| `src/lib/trading/ghost-book.ts` | Shadow PATH vs tape. Miss = read HTF/SMT/news/Judas/both books/remaining draw, then NOW action — never a canned "clean skip". |
 | `src/lib/trading/paper-manager.ts` | One-click paper + real-tape exits |
 | `src/lib/market/freshest.ts` | Gateway > lowest lagSec |
 | `src/lib/market/yahoo.ts` | Host race, includePrePost |
