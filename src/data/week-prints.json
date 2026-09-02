@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "date": "2026-09-01",
+    "name": "ISM Manufacturing PMI (Aug)",
+    "actual": "54.6",
+    "vs": "exp 55.2 / prev 55.6",
+    "note": "Prices Paid held 71.1. Softer headline, still expansion."
+  },
+  {
+    "date": "2026-09-01",
+    "name": "JOLTS Job Openings (Jul)",
+    "actual": "7.271M",
+    "vs": "exp ~7.3M / prev 7.182M",
+    "note": "Little changed."
+  },
+  {
+    "date": "2026-09-02",
+    "name": "ADP Employment (Aug)",
+    "actual": "+38k",
+    "vs": "exp +47k / prev +46k",
+    "note": "Softest since Jan. Manufacturing -17k."
+  }
+]
