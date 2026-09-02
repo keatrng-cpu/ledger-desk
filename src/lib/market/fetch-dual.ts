@@ -9,11 +9,12 @@ import {
   fetchDatabentoBars,
   hasDatabentoKey,
 } from "./databento";
-import { readLiveTick, quoteFromLiveTick } from "./live-gateway";
+import { readLiveTickFresh, quoteFromLiveTick } from "./live-gateway";
 import { pickFreshestQuote, stitchLiveSession } from "./freshest";
 import {
   alignedReturnPairs,
   buildComparisonNote,
+  YAHOO_MAP,
   fetchYahooBars,
   fetchYahooLiveQuote,
   pearsonCorr,
@@ -88,14 +89,20 @@ async function loadSymbol(
 }
 
 async function loadQuote(symbol: IndexSymbol, previousClose?: number) {
-  const [tick, yahoo] = await Promise.all([
-    readLiveTick(symbol).catch(() => null),
-    fetchYahooLiveQuote(symbol).catch(() => null),
-  ]);
-  const gw = tick
-    ? quoteFromLiveTick(tick, yahoo?.yahoo ?? symbol, previousClose || tick.price)
-    : null;
-  return pickFreshestQuote(gw, yahoo) ?? syntheticQuote(symbol);
+  // Gateway first. If a live tick is already in Postgres, skip Yahoo —
+  // waiting on the delayed chart is what made Trade Now feel frozen, and
+  // hammering Yahoo while the gateway is up is how you get rate-limited
+  // for free. No extra Databento spend.
+  const tick = await readLiveTickFresh(symbol);
+  if (tick) {
+    return quoteFromLiveTick(
+      tick,
+      YAHOO_MAP[symbol].yahoo,
+      previousClose || tick.price,
+    );
+  }
+  const yahoo = await fetchYahooLiveQuote(symbol).catch(() => null);
+  return pickFreshestQuote(yahoo) ?? syntheticQuote(symbol);
 }
 
 

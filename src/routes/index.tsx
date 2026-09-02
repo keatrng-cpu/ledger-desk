@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BookOpen,
@@ -64,6 +64,7 @@ import {
   type DeskPayload,
 } from "@/lib/trading/build-desk";
 import { fetchLiveQuotes } from "@/lib/market/fetch-dual";
+import { applyQuoteToLastBar, stampSeriesFromBars } from "@/lib/market/freshest";
 import { buildLiveSays } from "@/lib/trading/live-says";
 
 import { getRiskState, getSettings } from "@/lib/journal/server";
@@ -116,7 +117,10 @@ export const Route = createFileRoute("/")({
 });
 
 const DESK_POLL_MS = 20_000;
-const QUOTE_POLL_MS = 5_000;
+/** Live gateway tick is already in Postgres — 1s is free. */
+const QUOTE_LIVE_MS = 1_000;
+/** Yahoo delayed print. Match the tape, don't hammer the free host. */
+const QUOTE_YAHOO_MS = 2_000;
 
 
 /**
@@ -305,6 +309,71 @@ function raiseDeskAlerts(desk: DeskPayload): void {
   void checkScheduledJobs().catch(() => undefined);
 }
 
+function quoteDelayMs(
+  left: { source: string; lagSec: number },
+  right: { source: string; lagSec: number },
+): number {
+  const live =
+    (left.source === "live_gateway" && left.lagSec <= 5) ||
+    (right.source === "live_gateway" && right.lagSec <= 5);
+  return live ? QUOTE_LIVE_MS : QUOTE_YAHOO_MS;
+}
+
+function patchDeskQuotes(
+  prev: DeskPayload,
+  leftQ: DeskPayload["quotes"]["left"],
+  rightQ: DeskPayload["quotes"]["right"],
+): DeskPayload {
+  const leftBars = applyQuoteToLastBar(prev.left.bars, leftQ);
+  const rightBars = applyQuoteToLastBar(prev.right.bars, rightQ);
+  const left = stampSeriesFromBars(prev.left, leftBars);
+  const right = stampSeriesFromBars(prev.right, rightBars);
+  left.price = leftQ.price;
+  left.changePct = leftQ.changePct;
+  left.marketTimeMs = leftQ.marketTimeMs;
+  left.marketTimeIso = leftQ.marketTimeIso;
+  right.price = rightQ.price;
+  right.changePct = rightQ.changePct;
+  right.marketTimeMs = rightQ.marketTimeMs;
+  right.marketTimeIso = rightQ.marketTimeIso;
+  const next: DeskPayload = {
+    ...prev,
+    quotes: { left: leftQ, right: rightQ },
+    left,
+    right,
+  };
+  next.liveSays = buildLiveSays(next);
+  return next;
+}
+
+function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
+  const prices: Record<string, ManagePrice> = {
+    [desk.left.symbol]: {
+      last: desk.quotes.left.price,
+      high: desk.quotes.left.price,
+      low: desk.quotes.left.price,
+      lagSec: desk.quotes.left.lagSec,
+    },
+    [desk.right.symbol]: {
+      last: desk.quotes.right.price,
+      high: desk.quotes.right.price,
+      low: desk.quotes.right.price,
+      lagSec: desk.quotes.right.lagSec,
+    },
+  };
+  if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
+  if (desk.right.symbol === "ES") prices.MES = prices[desk.right.symbol]!;
+  if (desk.left.symbol === "NQ" || desk.left.symbol === "MNQ") {
+    prices.MNQ = prices[desk.left.symbol]!;
+    prices.NQ = prices[desk.left.symbol]!;
+  }
+  if (desk.right.symbol === "NQ" || desk.right.symbol === "MNQ") {
+    prices.MNQ = prices[desk.right.symbol]!;
+    prices.NQ = prices[desk.right.symbol]!;
+  }
+  return prices;
+}
+
 type DeskCategory =
   | "brain"
   | "trade"
@@ -394,6 +463,7 @@ function MasterplacePage() {
   const [paperToast, setPaperToast] = useState<string | null>(null);
   const [lastPaperClosed, setLastPaperClosed] = useState<PaperTrade | null>(null);
   const [logMode, setLogMode] = useState<"paper" | "live">("paper");
+  const deskRef = useRef<DeskPayload | null>(null);
 
   // Three states, not two, so the entry gate cannot fail OPEN while loading:
   // a user genuinely halted from a prior session must not see a green light
@@ -546,7 +616,11 @@ function MasterplacePage() {
     setEquity(paper.equity);
   }, [paper.equity]);
 
-useEffect(() => {
+  useEffect(() => {
+    deskRef.current = desk;
+  }, [desk]);
+
+  useEffect(() => {
     void load();
   }, [load]);
 
@@ -560,54 +634,78 @@ useEffect(() => {
   useEffect(() => {
     if (!desk) return;
     let cancelled = false;
+    let inFlight = false;
+    let delay = QUOTE_YAHOO_MS;
+    let timer: number | null = null;
+
+    const applyPaper = (next: DeskPayload) => {
+      if (!listOpenPaperTrades().length) return;
+      const { closed } = managePaperTradesAgainstPrice(managePricesFromDesk(next), {
+        draws: {
+          [next.left.symbol]: next.draws.left,
+          [next.right.symbol]: next.draws.right,
+        },
+      });
+      if (!closed.length) return;
+      mirrorClosedPaperTrades(closed);
+      const last = closed[closed.length - 1]!;
+      setLastPaperClosed(last);
+      setPaperToast(
+        `PAPER OUT · ${last.displaySymbol} ${last.exitReason} · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
+      );
+      setEquity(getPaperAccount().equity);
+      window.setTimeout(() => setPaperToast(null), 8000);
+    };
+
     const tick = async () => {
-      if (cancelled || document.visibilityState === "hidden") return;
+      if (cancelled || inFlight || document.visibilityState === "hidden") return;
+      inFlight = true;
       try {
         const res = await fetchLiveQuotes({
           data: { left: "MNQ", right: "ES" },
         });
         if (!res.ok || cancelled) return;
+        delay = quoteDelayMs(res.left, res.right);
+        let patched: DeskPayload | null = null;
         setDesk((prev) => {
           if (!prev) return prev;
-          const next: DeskPayload = {
-            ...prev,
-            quotes: { left: res.left, right: res.right },
-            left: {
-              ...prev.left,
-              price: res.left.price,
-              changePct: res.left.changePct,
-              marketTimeMs: res.left.marketTimeMs,
-              marketTimeIso: res.left.marketTimeIso,
-            },
-            right: {
-              ...prev.right,
-              price: res.right.price,
-              changePct: res.right.changePct,
-              marketTimeMs: res.right.marketTimeMs,
-              marketTimeIso: res.right.marketTimeIso,
-            },
-          };
-          next.liveSays = buildLiveSays(next);
+          const next = patchDeskQuotes(prev, res.left, res.right);
           try {
             observeAndTickGhosts(next);
           } catch {
             /* */
           }
+          patched = next;
+          deskRef.current = next;
           return next;
         });
+        if (patched) applyPaper(patched);
       } catch {
         /* keep last quotes */
+      } finally {
+        inFlight = false;
       }
     };
-    void tick();
-    const id = window.setInterval(() => void tick(), QUOTE_POLL_MS);
+
+    const loop = () => {
+      if (cancelled) return;
+      timer = window.setTimeout(() => {
+        void tick().finally(() => {
+          if (!cancelled) loop();
+        });
+      }, delay);
+    };
+
+    void tick().finally(() => {
+      if (!cancelled) loop();
+    });
     const onVis = () => {
       if (document.visibilityState === "visible") void tick();
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
-      window.clearInterval(id);
+      if (timer != null) window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVis);
     };
     // Start once a desk exists; do not reset on every quote patch.
@@ -826,65 +924,32 @@ useEffect(() => {
     }
   }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
 
-  // Re-check open paper exits every 5s while positions exist (don't wait full desk poll)
+  // Backup paper manage — quote tick is the fast path. This only exists so a
+  // hung Yahoo poll cannot leave a stop unfilled for 20s. Reads deskRef so it
+  // never closes over a stale quote.
   useEffect(() => {
-    if (!desk) return;
-    if (!listOpenPaperTrades().length) return;
     const id = window.setInterval(() => {
+      const d = deskRef.current;
+      if (!d || document.visibilityState !== "visible") return;
       if (!listOpenPaperTrades().length) return;
-      /**
-       * Visibility gate — the desk poll at the top of this file has had one
-       * since it was written; this loop never did. Without it, backgrounding
-       * the tab froze `desk` (no poll to refresh it) while this interval kept
-       * firing every 5s, evaluating stops, targets and time stops against a
-       * price that stopped moving minutes or hours ago. The freshness gate in
-       * paper-manager now refuses those fills on its own, but not running the
-       * tick at all is both cheaper and clearer about the intent.
-       */
-      if (document.visibilityState !== "visible") return;
-      const prices: Record<string, ManagePrice> = {
-        [desk.left.symbol]: {
-          last: desk.quotes.left.price,
-          high: desk.quotes.left.price,
-          low: desk.quotes.left.price,
-          lagSec: desk.quotes.left.lagSec,
-        },
-        [desk.right.symbol]: {
-          last: desk.quotes.right.price,
-          high: desk.quotes.right.price,
-          low: desk.quotes.right.price,
-          lagSec: desk.quotes.right.lagSec,
-        },
-      };
-      if (desk.left.symbol === "ES") prices.MES = prices[desk.left.symbol]!;
-      if (desk.right.symbol === "ES") prices.MES = prices[desk.right.symbol]!;
-      if (desk.left.symbol === "NQ" || desk.left.symbol === "MNQ") {
-        prices.MNQ = prices[desk.left.symbol]!;
-        prices.NQ = prices[desk.left.symbol]!;
-      }
-      if (desk.right.symbol === "NQ" || desk.right.symbol === "MNQ") {
-        prices.MNQ = prices[desk.right.symbol]!;
-        prices.NQ = prices[desk.right.symbol]!;
-      }
-      const { closed } = managePaperTradesAgainstPrice(prices, {
+      const { closed } = managePaperTradesAgainstPrice(managePricesFromDesk(d), {
         draws: {
-          [desk.left.symbol]: desk.draws.left,
-          [desk.right.symbol]: desk.draws.right,
+          [d.left.symbol]: d.draws.left,
+          [d.right.symbol]: d.draws.right,
         },
       });
-      if (closed.length) {
-        mirrorClosedPaperTrades(closed);
-        const last = closed[closed.length - 1]!;
-        setLastPaperClosed(last);
-        setPaperToast(
-          `PAPER OUT · ${last.displaySymbol} ${last.exitReason} · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
-        );
-        setEquity(getPaperAccount().equity);
-      }
-    }, 5000);
+      if (!closed.length) return;
+      mirrorClosedPaperTrades(closed);
+      const last = closed[closed.length - 1]!;
+      setLastPaperClosed(last);
+      setPaperToast(
+        `PAPER OUT · ${last.displaySymbol} ${last.exitReason} · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
+      );
+      setEquity(getPaperAccount().equity);
+      window.setTimeout(() => setPaperToast(null), 8000);
+    }, 3_000);
     return () => window.clearInterval(id);
-  }, [desk, desk?.fetchedAt]);
-
+  }, []);
 
   const active = CATEGORIES.find((c) => c.id === cat) ?? CATEGORIES[0]!;
 

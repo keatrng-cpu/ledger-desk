@@ -130,7 +130,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/market/live-gateway.ts` | Tick file from `gateway/` |
 | `src/lib/alerts/path-alarm.ts` | Speaker + OS notify on PATH |
 | `src/lib/coach/claude-server.ts` | In-app Anthropic **narration only** |
-| `src/routes/index.tsx` | Shell, 20s desk / 5s quote poll |
+| `src/routes/index.tsx` | Shell. 20s desk (PATH/HTF). Quote: 1s if live_gateway, 2s Yahoo. Gateway-first — no extra Databento spend. |
 | `gateway/databento_live_gateway.py` | CME live → tick file |
 
 ---

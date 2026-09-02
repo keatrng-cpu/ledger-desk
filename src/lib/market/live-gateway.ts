@@ -42,6 +42,18 @@ export interface LiveGatewayTick {
   ageMs: number;
 }
 
+/** Latest tick, or null if absent/stale/slow. 150ms cap so a hung DB
+ *  never blocks the free Yahoo fallback. */
+export async function readLiveTickFresh(
+  symbol: IndexSymbol,
+  waitMs = 150,
+): Promise<LiveGatewayTick | null> {
+  return Promise.race([
+    readLiveTick(symbol).catch(() => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs)),
+  ]);
+}
+
 /** Latest tick for one symbol, or null when absent/stale/unreachable. */
 export async function readLiveTick(
   symbol: IndexSymbol,

@@ -91,7 +91,7 @@ async function yahooChart(
   const bust = Date.now();
   const qs =
     `interval=${interval}&range=${range}&includePrePost=true&_=${bust}`;
-  const timeoutMs = interval === "1m" && range === "1d" ? 8_000 : 15_000;
+  const timeoutMs = interval === "1m" && range === "1d" ? 5_000 : 15_000;
   const fetchOne = async (host: (typeof YAHOO_HOSTS)[number]) => {
     const url = `https://${host}/v8/finance/chart/${encodeURIComponent(yahoo)}?${qs}`;
     const res = await fetch(url, {

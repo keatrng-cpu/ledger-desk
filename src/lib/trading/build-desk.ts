@@ -6,6 +6,7 @@ import {
   quoteFromDatabentoSeries,
 } from "@/lib/market/databento";
 import {
+  YAHOO_MAP,
   fetchYahooBars,
   fetchYahooLiveQuote,
   syntheticBars,
@@ -13,7 +14,7 @@ import {
   type YahooInterval,
   type YahooRange,
 } from "@/lib/market/yahoo";
-import { readLiveTick, quoteFromLiveTick } from "@/lib/market/live-gateway";
+import { readLiveTickFresh, quoteFromLiveTick } from "@/lib/market/live-gateway";
 import {
   applyQuoteToLastBar,
   pickFreshestQuote,
@@ -148,22 +149,24 @@ async function quote(
   series?: SymbolSeries | null,
 ): Promise<LiveQuote> {
   const previousClose = series?.previousClose ?? series?.bars.at(-1)?.c ?? 0;
-  const yahooSym = series?.yahoo ?? symbol;
+  const yahooSym = series?.yahoo ?? YAHOO_MAP[symbol].yahoo;
 
-  const [gatewayTick, yahooQ] = await Promise.all([
-    readLiveTick(symbol).catch(() => null),
-    fetchYahooLiveQuote(symbol).catch(() => null),
-  ]);
+  const gatewayTick = await readLiveTickFresh(symbol);
+  if (gatewayTick) {
+    return quoteFromLiveTick(
+      gatewayTick,
+      yahooSym,
+      previousClose || gatewayTick.price,
+    );
+  }
 
-  const gw = gatewayTick
-    ? quoteFromLiveTick(gatewayTick, yahooSym, previousClose || gatewayTick.price)
-    : null;
+  const yahooQ = await fetchYahooLiveQuote(symbol).catch(() => null);
   const db =
     series?.source === "databento" && series.bars.length
       ? quoteFromDatabentoSeries(series)
       : null;
 
-  return pickFreshestQuote(gw, yahooQ, db) ?? syntheticQuote(symbol);
+  return pickFreshestQuote(yahooQ, db) ?? syntheticQuote(symbol);
 }
 
 
