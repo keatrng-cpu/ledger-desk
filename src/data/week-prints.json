@@ -19,5 +19,19 @@
     "actual": "+38k",
     "vs": "exp +47k / prev +46k",
     "note": "Softest since Jan. Manufacturing -17k."
+  },
+  {
+    "date": "2026-09-03",
+    "name": "Initial Jobless Claims",
+    "actual": "206k",
+    "vs": "exp 205k / prev 204k",
+    "note": "In-line. 4-wk avg ~207k."
+  },
+  {
+    "date": "2026-09-03",
+    "name": "ISM Services PMI (Aug)",
+    "actual": "55.4",
+    "vs": "exp 54.2 / prev 54.1",
+    "note": "Hotter. Prices 72.6 (4yr high), Emp 47.8 still contraction, New Orders 60.9."
   }
 ]
