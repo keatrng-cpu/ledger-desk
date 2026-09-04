@@ -33,5 +33,12 @@
     "actual": "55.4",
     "vs": "exp 54.2 / prev 54.1",
     "note": "Hotter. Prices 72.6 (4yr high), Emp 47.8 still contraction, New Orders 60.9."
+  },
+  {
+    "date": "2026-09-04",
+    "name": "Nonfarm Payrolls (Aug)",
+    "actual": "+162k",
+    "vs": "exp ~+55k / July first-print -23k",
+    "note": "BLS official. U-rate 4.1% unchanged. AHE +0.3% to $37.75 / +3.1% y/y. Participation 61.6%. Revisions: June +20k→+31k, July -23k→+21k (+55k combined). Hot."
   }
 ]
