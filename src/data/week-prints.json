@@ -40,5 +40,19 @@
     "actual": "+162k",
     "vs": "exp ~+55k / July first-print -23k",
     "note": "BLS official. U-rate 4.1% unchanged. AHE +0.3% to $37.75 / +3.1% y/y. Participation 61.6%. Revisions: June +20k→+31k, July -23k→+21k (+55k combined). Hot."
+  },
+  {
+    "date": "2026-09-10",
+    "name": "PPI (Aug)",
+    "actual": "+0.4% MoM / +5.4% YoY",
+    "vs": "exp +0.4% / ~5.3%; core +0.2% vs +0.3%",
+    "note": "Goods +1.1% (energy +4.2%, diesel +24.1%). Services +0.1%. Final demand less food/energy/trade +0.3%. Hot energy, core softer."
+  },
+  {
+    "date": "2026-09-10",
+    "name": "Initial Jobless Claims",
+    "actual": "206k",
+    "vs": "exp 205k / prev 207k",
+    "note": "In-line. 4-wk avg 206k. Continuing ~1.774M."
   }
 ]
