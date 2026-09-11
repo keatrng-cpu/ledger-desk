@@ -54,5 +54,12 @@
     "actual": "206k",
     "vs": "exp 205k / prev 207k",
     "note": "In-line. 4-wk avg 206k. Continuing ~1.774M."
+  },
+  {
+    "date": "2026-09-11",
+    "name": "CPI (Aug)",
+    "actual": "+0.4% MoM / +3.4% YoY",
+    "vs": "exp +0.4% / 3.4%; core +0.3% vs +0.2% / 2.4%",
+    "note": "Headline in-line. Core MoM slightly hot. Gasoline +3.9% drove ~1/3 of rise; energy +2.1%; shelter +0.3%. Core YoY eased to 2.4%."
   }
 ]
