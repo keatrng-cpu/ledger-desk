@@ -100,10 +100,10 @@ export const MONTH_SEP_2026: MonthPlan = {
   headline:
     "Data-then-Fed month — not a clean trend. Labor → CPI → FOMC. News is liquidity, not a directional call.",
   thesis:
-    "Conditional two-way on NQ. ES is the stronger book. Last prints that matter before Sep 16 are the labor + CPI stack, not speeches.",
+    "Conditional two-way on NQ. ES is the stronger book. Labor + CPI stack printed; FOMC Wed is the delivery window.",
   htfBias:
     "NQ weaker (duration + hike repricing), −2.9% 3-month, ~1,480 pts off Jun 16 ATH 30,975. ES holds better, ~116 pts off Aug 13 ATH 7,838. SMT shorts need NQ to take a high ES does not (or NQ to take a low ES refuses).",
-  fed: "Funds 3.50–3.75%. July 9–3 hold; three wanted a hike. Sep 16 is SEP + dots. Statement 14:00 ET, presser 14:30 ET. Live bet is hold vs +25, not a cut. Odds stale until NFP Fri 9/4 and CPI Fri 9/11 restamp them.",
+  fed: "Funds 3.50–3.75%. July 9–3 hold; three wanted a hike. Sep 16 is SEP + dots. Statement 14:00 ET, presser 14:30 ET. Post-NFP (+162k hot, U 4.1%) + CPI (core +0.3% slightly hot) CME FedWatch ~85–90% for +25. Base case hike, not hold.",
   seasonality:
     "September is the weakest S&P month on a long sample (~−0.6% to −1.2%). Tendency, not a setup. Do not short “because September.” Size down and demand A / A+.",
   nq: {
@@ -123,7 +123,7 @@ export const MONTH_SEP_2026: MonthPlan = {
     ath: 7838.5,
     eq: 7719,
     drawUp: "7,783 then ATH 7,838.50",
-    drawDown: "Hold-zone 7,700 then 7,690 then 7,655",
+    drawDown: "Hold-zone 7,700 then 7,670 then 7,655",
     note: "SMT companion. Not the primary book unless NQ is dead and ES has the clean raid.",
   },
   liqNq: {
