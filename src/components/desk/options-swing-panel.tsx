@@ -22,6 +22,15 @@ import {
   subscribeRhSleeve,
   type RhSleeve,
 } from "@/lib/trading/options-sleeve";
+import {
+  closeRhFill,
+  loadRhIncome,
+  logRhFill,
+  readRhIncome,
+  subscribeRhIncome,
+  type RhFill,
+  type RhIncomeRead,
+} from "@/lib/trading/rh-income";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
@@ -65,12 +74,14 @@ function StrategyCard({ card }: { card: RhStrategyCard }) {
             <span className="text-[var(--color-muted)]">
               {" "}
               · DTE {card.ticket.dteTarget} · Δ {card.ticket.deltaMin}–{card.ticket.deltaMax} · pay{" "}
-              {usd(card.ticket.estDebitTotal)} · max loss {usd(card.ticket.maxLoss)}
+              {usd(card.ticket.estDebitTotal)} · cut {usd(card.ticket.workingStop)} · ceiling{" "}
+              {usd(card.ticket.maxLoss)}
             </span>
           </p>
           <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">{card.ticket.strikeNote}</p>
           <p className="mt-0.5 text-[11px] text-[var(--color-fg)]">Hold {card.ticket.hold}</p>
           <p className="text-[11px] text-[var(--color-muted)]">Invalid: {card.ticket.invalidation}</p>
+          <p className="text-[11px] text-[var(--color-warn)]">{card.ticket.cutRule}</p>
           <ul className="mt-1 space-y-0.5 text-[11px] text-[var(--color-muted)]">
             {card.ticket.targets.map((t) => (
               <li key={t}>→ {t}</li>
@@ -153,6 +164,16 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
 export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
   const [sleeve, setSleeve] = useState<RhSleeve>(() => loadRhSleeve());
   useEffect(() => subscribeRhSleeve(setSleeve), []);
+  const [income, setIncome] = useState<RhIncomeRead>(() => readRhIncome());
+  const [fills, setFills] = useState<RhFill[]>([]);
+  useEffect(() => {
+    const sync = () => {
+      setIncome(readRhIncome());
+      setFills(loadRhIncome().fills.slice(0, 6));
+    };
+    sync();
+    return subscribeRhIncome(sync);
+  }, []);
 
   const book = useMemo(() => evaluateOptionsDesk(desk, sleeve), [desk, sleeve]);
   const posture = useDeskSynapse((s) => s.posture);
@@ -183,7 +204,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              Not the $100k futures book · long debit / vertical only · estimates from ES/NQ
+              $1,000 sleeve · cut −25% of debit · Databento $199/mo first · not the $100k book
             </p>
           </div>
         </div>
@@ -228,6 +249,63 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </p>
       </div>
 
+      <div className="mb-3 grid gap-2 sm:grid-cols-3">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+          <p className="text-[10px] uppercase text-[var(--color-subtle)]">Week vs Databento</p>
+          <p className="font-mono text-sm text-[var(--color-fg)]">
+            {usd(income.weekPnl)} / {usd(income.weekFloor)}
+          </p>
+          <p className="text-[10px] text-[var(--color-muted)]">{income.weekKey} · $50 covers rent</p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+          <p className="text-[10px] uppercase text-[var(--color-subtle)]">Month rent</p>
+          <p className="font-mono text-sm text-[var(--color-fg)]">
+            {usd(income.monthPnl)} / {usd(income.monthRent)}
+          </p>
+          <p className="text-[10px] text-[var(--color-muted)]">
+            {income.monthCovered ? "Databento paid" : "Not break-even yet"}
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+          <p className="text-[10px] uppercase text-[var(--color-subtle)]">Stretch</p>
+          <p className="font-mono text-sm text-[var(--color-fg)]">{usd(income.stretch)}/wk</p>
+          <p className="text-[10px] text-[var(--color-muted)]">Not a take-mandate</p>
+        </div>
+      </div>
+      <p className="mb-3 text-[11px] text-[var(--color-muted)]">{income.honest}</p>
+
+      <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          SMC sequence · {desk.smcMaster.thesis}
+        </p>
+        <div className="grid gap-1 sm:grid-cols-2">
+          {([desk.smcMaster.left, desk.smcMaster.right] as const).map((b) => (
+            <p key={b.symbol} className="font-mono text-[10px] text-[var(--color-muted)]">
+              <span className="text-[var(--color-fg)]">{b.symbol}</span> {b.word} {b.mustPass}/{b.mustNeed}
+              {b.layers
+                .filter((l) => l.must)
+                .map((l) => (
+                  <span
+                    key={l.id}
+                    className={
+                      l.state === "pass"
+                        ? " text-[var(--color-up)]"
+                        : l.state === "fail"
+                          ? " text-[var(--color-down)]"
+                          : " text-[var(--color-warn)]"
+                    }
+                  >
+                    {" "}
+                    {l.state === "pass" ? "●" : l.state === "fail" ? "×" : "○"}
+                    {l.label.split(" ")[0]}
+                  </span>
+                ))}
+            </p>
+          ))}
+        </div>
+        <p className="mt-1 text-[10px] text-[var(--color-subtle)]">{desk.smcMaster.vsSchools}</p>
+      </div>
+
       <p className="mb-2 text-[11px] text-[var(--color-muted)]">
         Cross-tab: {posture.verdict} · {tradeFeed[0] ?? "—"} · {pathFeed[0] ?? "—"}
       </p>
@@ -246,9 +324,61 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </p>
         <p className="mt-1 text-sm font-medium text-[var(--color-fg)]">{book.focus}</p>
         {book.best?.ticket && (
-          <p className="mt-1 text-[11px] text-[var(--color-muted)]">{book.best.ticket.robinhood}</p>
+          <>
+            <p className="mt-1 text-[11px] text-[var(--color-muted)]">{book.best.ticket.robinhood}</p>
+            <button
+              type="button"
+              className="mt-2 rounded border border-[var(--color-border)] px-2 py-1 font-mono text-[11px] text-[var(--color-fg)]"
+              onClick={() => {
+                const t = book.best!.ticket!;
+                logRhFill({
+                  underlier: t.underlier,
+                  side: t.side,
+                  debit: t.estDebitTotal,
+                  note: `${book.best!.name} · cut $${t.workingStop}`,
+                });
+              }}
+            >
+              Log RH fill @ {usd(book.best.ticket.estDebitTotal)}
+            </button>
+          </>
         )}
       </div>
+
+      {fills.length > 0 && (
+        <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+            Sleeve journal
+          </p>
+          <ul className="space-y-1">
+            {fills.map((f) => (
+              <li key={f.id} className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[var(--color-muted)]">
+                <span className="text-[var(--color-fg)]">
+                  {f.underlier} {f.side} · debit {usd(f.debit)}
+                </span>
+                {f.closedAt ? (
+                  <span className={(f.pnl ?? 0) >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
+                    {usd(f.pnl ?? 0)}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[10px]"
+                    onClick={() => {
+                      const raw = window.prompt("Exit credit $ (what RH paid you back)", String(Math.round(f.debit * 0.75)));
+                      const n = Number(raw);
+                      if (Number.isFinite(n)) closeRhFill(f.id, n);
+                    }}
+                  >
+                    Close
+                  </button>
+                )}
+                <span className="text-[10px]">{f.note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mb-3 grid gap-2 sm:grid-cols-2">
         <QuoteSheet q={book.quotes.qqq} primary={book.primary === "QQQ"} />

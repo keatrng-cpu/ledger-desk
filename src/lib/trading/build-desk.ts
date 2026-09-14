@@ -29,6 +29,7 @@ import {
 } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
 import { buildLiveSays, type LiveSays } from "./live-says";
+import { gradeSmcMaster, type SmcMasterRead } from "./smc-master";
 import {
   analyzeStructure,
   referenceLevels,
@@ -92,6 +93,8 @@ export interface DeskPayload {
   monthAhead: MonthAheadRead | null;
   /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 09:20–11:00 ET. */
   liveSays: LiveSays;
+  /** Live SMC sequence (priced DOL + sweep polarity + one book). */
+  smcMaster: SmcMasterRead;
 }
 
 export interface DeskError {
@@ -501,7 +504,12 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           { symbol: right.symbol, bars: right.bars },
         ]),
       };
-      return { ...payload, liveSays: buildLiveSays(payload) };
+      const smcMaster = gradeSmcMaster(payload);
+      return {
+        ...payload,
+        smcMaster,
+        liveSays: buildLiveSays({ ...payload, smcMaster }),
+      };
     } catch (e) {
       return {
         ok: false,

@@ -335,8 +335,9 @@ function buildFeeds(ctx: {
       : "No fused setup",
     paperLine,
     desk?.scan.focus ?? "",
+    desk?.smcMaster ? `SMC ${desk.smcMaster.thesis}` : "",
     desk?.smc
-      ? `SMC ${desk.bias.left.symbol} ${desk.smc.left.alerts[0]?.label ?? "—"} · ${desk.bias.right.symbol} ${desk.smc.right.alerts[0]?.label ?? "—"}`
+      ? `SMC tape ${desk.bias.left.symbol} ${desk.smc.left.alerts[0]?.label ?? "—"} · ${desk.bias.right.symbol} ${desk.smc.right.alerts[0]?.label ?? "—"}`
       : "",
   ].filter(Boolean);
 
@@ -349,6 +350,9 @@ function buildFeeds(ctx: {
     top?.actionable
       ? `Live path candidate: ${top.symbol} ${top.band}`
       : "No live PATH candidate",
+    desk?.smcMaster?.oneBook
+      ? `SMC ${desk.smcMaster.oneBook.word} ${desk.smcMaster.oneBook.symbol} ${desk.smcMaster.oneBook.mustPass}/${desk.smcMaster.oneBook.mustNeed}`
+      : "SMC sequence idle",
   ];
 
   const backtest = [

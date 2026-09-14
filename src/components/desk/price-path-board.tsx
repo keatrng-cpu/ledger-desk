@@ -193,11 +193,19 @@ export function pricePathVerdict(
     const bias = desk.bias[book];
     const draw = desk.draws[book].primary;
     const cand = path.symbol === bias.symbol ? path : desk.scan.candidates.find((c) => c.symbol === bias.symbol);
-    const take = cand && isHighProbPath(cand) && cand.htfOk;
+    const seq = desk.smcMaster[book];
+    const take = cand && isHighProbPath(cand) && cand.htfOk && seq.word === "TAKE";
     if (take && cand) {
       return {
         word: "TAKE",
-        line: `${cand.symbol} ${cand.side.toUpperCase()} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets[0] ?? "structure"} · one book`,
+        line: `${cand.symbol} ${cand.side.toUpperCase()} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
+        book,
+      };
+    }
+    if (seq.word === "WAIT") {
+      return {
+        word: "STAND",
+        line: `WAIT ${seq.symbol} — ${seq.missing}`,
         book,
       };
     }
@@ -240,6 +248,34 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
           {v.word}
         </span>
       </header>
+      <p className="mb-2 font-mono text-[11px] text-[var(--color-muted)]">{desk.smcMaster.thesis}</p>
+      <div className="mb-2 grid gap-0.5 sm:grid-cols-2">
+        {(["left", "right"] as const).map((side) => {
+          const b = desk.smcMaster[side];
+          return (
+            <p key={side} className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-[10px]">
+              <span className="text-[var(--color-subtle)]">{b.symbol}</span>
+              {b.layers
+                .filter((l) => l.must)
+                .map((l) => (
+                  <span
+                    key={l.id}
+                    className={
+                      l.state === "pass"
+                        ? "text-[var(--color-up)]"
+                        : l.state === "fail"
+                          ? "text-[var(--color-down)]"
+                          : "text-[var(--color-warn)]"
+                    }
+                    title={`${l.label}: ${l.detail}`}
+                  >
+                    {l.state === "pass" ? "●" : l.state === "fail" ? "×" : "○"} {l.label}
+                  </span>
+                ))}
+            </p>
+          );
+        })}
+      </div>
       <p className="mb-2 text-sm font-medium text-[var(--color-fg)]">{v.line}</p>
       {smt && (
         <p className="mb-2 truncate text-[11px] text-[var(--color-muted)]">SMT {smt}</p>

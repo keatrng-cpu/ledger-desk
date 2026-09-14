@@ -1272,7 +1272,7 @@ function MasterplacePage() {
                       Review after the session. Live path stays in Now / Book.
                     </div>
                     <AplusOps />
-                    <SmcPlaybook />
+                    <SmcPlaybook stack={desk.smcMaster.oneBook?.canon} />
                     <ReplayReport />
                     <SnapshotReview />
                     <ShadowOrderReview />

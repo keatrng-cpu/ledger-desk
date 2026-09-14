@@ -14,6 +14,7 @@ export function LiveSaysPanel({ says }: { says: LiveSays }) {
     htf: says.htf,
     smt: says.smt,
     path: says.path,
+    smc: says.smc,
   };
 
   return (

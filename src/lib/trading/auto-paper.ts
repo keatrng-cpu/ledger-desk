@@ -147,6 +147,14 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   const candidate = desk.scan.candidates.find((c) => isHighProbPath(c));
   if (!candidate) return { take: null, skip: "No A+/A/A− PATH" };
 
+  const seq =
+    candidate.symbol === desk.smcMaster.left.symbol
+      ? desk.smcMaster.left
+      : desk.smcMaster.right;
+  if (seq.word !== "TAKE") {
+    return { take: null, skip: `SMC sequence ${seq.word}: ${seq.missing}` };
+  }
+
   const band = String(candidate.pathBand || candidate.grade);
   if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+") {
     return { take: null, skip: "Judas 9:30–9:45 — A+ only" };
@@ -168,6 +176,6 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
 
   return {
     take: candidate,
-    why: `NY AM PATH ${band} Q ${candidate.confluence.toFixed(2)}`,
+    why: `NY AM PATH ${band} Q ${candidate.confluence.toFixed(2)} · SMC TAKE ${seq.mustPass}/${seq.mustNeed}`,
   };
 }

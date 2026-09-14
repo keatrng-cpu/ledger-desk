@@ -17,6 +17,8 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | A+ tag | ≥ **0.75** |
 | Execute grades | A+ · A · A− (B+ paper 0.5% only) |
 | Paper equity | **$100,000** |
+| RH sleeve | **$1,000** · risk **15% = $150** max debit. Working stop **−25% of debit** (never 1/3, never full premium). Sell when futures invalidates **or** −25%, whichever first. |
+| Databento rent | **$199/mo ≈ $50/week** first hurdle. **$1,000/week** is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+ or lower 0.65. |
 | Risk by grade | A+ **2% probe** until n≥20 A+ WR≥65% then 3% · A **2%** · A− **1%** · B+ **0.5%** · B paper 0 · C journal 0.5% |
 | R:R | **≥ 1:1**, TP clamp 1–3R |
 | Scale | +1R close 50%, stop → BE |
@@ -61,13 +63,14 @@ Do not invent fills. Do not touch `src/lib/aplus/config.ts`.
 
 ### Every live ping — output contract
 
-1. **VERDICT** first: `TAKE` / `STAND` / `MANAGE` (one word).
+1. **VERDICT** first: `TAKE` / `STAND` / `MANAGE` (one word). TAKE requires SMC sequence TAKE **and** PATH A+/A/A−.
 2. One book. HTF + **draw on liquidity with PRICE** (SSL/BSL, IRL vs ERL).
-3. What just got swept, **price + timezone**.
-4. Displacement real? MSS/CISD? IFVG/FVG? OB/BB? SMT vs the other index?
-5. If TAKE: grade, strategy, entry, SL beyond sweep, T1 ≥1R, T2, invalidation.
-6. If STAND: the **one** missing confluence.
-7. Quote source + `lagSec`. Never invent prices.
+3. SMC sequence: DOL → sweep polarity → dealing-range → LTF shift → retrace. Name the missing must-layer if not TAKE.
+4. What just got swept, **price + timezone**.
+5. Displacement real? MSS/CISD? IFVG/FVG? OB/BB? SMT vs the other index?
+6. If TAKE: grade, strategy, entry, SL beyond sweep, T1 ≥1R, T2, invalidation. RH: working stop = 25% of debit.
+7. If STAND: the **one** missing confluence.
+8. Quote source + `lagSec`. Never invent prices.
 
 ---
 
@@ -83,14 +86,16 @@ Liquidity: BSL = equal/previous/session highs (buy stops). SSL = equal/previous/
 
 Grade **each strategy against the tape independently**, then overlay SMC structure. Do **not** require every model to stack for a high score.
 
+Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR is sweep→5m confirm — we add dealing-range + retrace + one book. Blake IFVG without the raid is B+. Sequence or STAND.
+
 ---
 
 ## UI map (categories)
 
 | Tab | What |
 |-----|------|
-| Now | **Where price is going** (draw/HTF/PATH board) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
-| Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Day: PATH 1–2 DTE (0DTE A+ after 9:45). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
+| Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
+| Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Charts | Dual MNQ/ES tape + liquidity |
 | Brain | Veteran + coach (Ask Claude). Never overrides hard gates. |
 | Book | WR / grades / profit path, journal, TradeZella backtest (no lookahead) |
@@ -112,10 +117,12 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/trading/structure.ts` | HTF, swings, SMT stack, PDH/PDL |
 | `src/lib/trading/smc-board.ts` | FVG/IFVG/OB/BB/MSS/BOS/displacement tape |
 | `src/lib/trading/smc-canon.ts` | Named ICT/TJR/PB models |
+| `src/lib/trading/smc-master.ts` | Live sequence grade (DOL → sweep polarity → dealing-range → LTF → retrace). TAKE iff all musts + PATH. |
+| `src/lib/trading/rh-income.ts` | RH sleeve journal vs Databento rent. Floor $50/wk · rent $199/mo · stretch $1,000/wk · working stop 25%. |
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
 | `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. Sep 2026 weeks 1–5 are seeded. |
 | `src/lib/trading/month-ahead.ts` | Month bias / phases (Labor → CPI → FOMC → Digest → PCE). Live CMH/CML overlay. Swap on the last Sunday of the prior month. |
-| `src/lib/trading/options-desk.ts` | QQQ/SPY RH sleeve ($1k / 15%). Estimates from ES/10 · NQ/40. Long debit or vertical. |
+| `src/lib/trading/options-desk.ts` | QQQ/SPY RH sleeve ($1k / 15%). Estimates from ES/10 · NQ/40. Long debit or vertical. Working stop −25% of debit. Gated on SMC sequence. |
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |
 | `src/lib/trading/claude-handoff.ts` | Clipboard snapshot for you |

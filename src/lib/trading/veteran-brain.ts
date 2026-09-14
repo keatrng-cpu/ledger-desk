@@ -891,6 +891,33 @@ export function runVeteranBrain(
     score += canonStack.grade === "A-" ? 0.15 : -0.25;
   }
 
+  const seqBook = desk.smcMaster
+    ? rawBest && rawBest.symbol === desk.smcMaster.right.symbol
+      ? desk.smcMaster.right
+      : desk.smcMaster.left
+    : null;
+  if (seqBook) {
+    layers.push({
+      id: "smc-seq",
+      label: "SMC sequence",
+      tone:
+        seqBook.word === "TAKE" ? "pass" : seqBook.word === "WAIT" ? "warn" : "fail",
+      score:
+        seqBook.word === "TAKE" ? 0.5 : seqBook.word === "WAIT" ? 0 : -0.5,
+      detail: `${seqBook.word} ${seqBook.mustPass}/${seqBook.mustNeed} · ${seqBook.missing}`,
+    });
+    if (seqBook.word === "TAKE") {
+      score += 0.5;
+      green.push(`SMC sequence TAKE ${seqBook.symbol} ${seqBook.mustPass}/${seqBook.mustNeed}`);
+    } else if (seqBook.word === "WAIT") {
+      yellow.push(`SMC WAIT: ${seqBook.missing}`);
+    } else {
+      const fail = seqBook.layers.find((l) => l.must && l.state === "fail");
+      if (fail) yellow.push(`SMC STAND — ${fail.label}: ${fail.detail}`);
+      else yellow.push(`SMC sequence STAND: ${seqBook.missing}`);
+    }
+  }
+
 
   // Verdict from score + hard vetoes
   let verdict: DiscretionVerdict = "STAND_DOWN";
@@ -925,6 +952,16 @@ export function runVeteranBrain(
   } else {
     verdict = "STAND_DOWN";
     sizeMult = 0;
+  }
+
+  if (
+    (verdict === "TAKE" || verdict === "REDUCE") &&
+    seqBook &&
+    seqBook.word !== "TAKE"
+  ) {
+    verdict = seqBook.word === "WAIT" ? "WATCH" : "STAND_DOWN";
+    sizeMult = 0;
+    yellow.push(`SMC sequence ${seqBook.word}: ${seqBook.missing} — not TAKE`);
   }
 
   // Cold book forces REDUCE even on TAKE

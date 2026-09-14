@@ -36,6 +36,13 @@ export interface LiveSays {
     q: number;
     actionable: boolean;
   } | null;
+  smc: {
+    word: string;
+    thesis: string;
+    vsSchools: string;
+    left: { symbol: string; word: string; mustPass: number; mustNeed: number; missing: string };
+    right: { symbol: string; word: string; mustPass: number; mustNeed: number; missing: string };
+  } | null;
   reason: string;
 }
 
@@ -120,6 +127,27 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
           grade: String(best.pathBand || best.grade),
           q: Number(best.confluence.toFixed(2)),
           actionable: best.actionable,
+        }
+      : null,
+    smc: desk.smcMaster
+      ? {
+          word: desk.smcMaster.oneBook?.word ?? "STAND",
+          thesis: desk.smcMaster.thesis,
+          vsSchools: desk.smcMaster.vsSchools,
+          left: {
+            symbol: desk.smcMaster.left.symbol,
+            word: desk.smcMaster.left.word,
+            mustPass: desk.smcMaster.left.mustPass,
+            mustNeed: desk.smcMaster.left.mustNeed,
+            missing: desk.smcMaster.left.missing,
+          },
+          right: {
+            symbol: desk.smcMaster.right.symbol,
+            word: desk.smcMaster.right.word,
+            mustPass: desk.smcMaster.right.mustPass,
+            mustNeed: desk.smcMaster.right.mustNeed,
+            missing: desk.smcMaster.right.missing,
+          },
         }
       : null,
     reason,

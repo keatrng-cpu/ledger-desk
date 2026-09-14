@@ -21,6 +21,7 @@ import {
   type SwingSignal,
 } from "./options-swing";
 import { loadRhSleeve, rhMaxDebit, type RhSleeve } from "./options-sleeve";
+import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -47,6 +48,9 @@ export interface RhTicket {
   estDebitEach: number;
   estDebitTotal: number;
   maxLoss: number;
+  workingStop: number;
+  workingStopPct: number;
+  cutRule: string;
   riskPctOfSleeve: number;
   hold: string;
   invalidation: string;
@@ -273,7 +277,7 @@ function rhLine(t: {
   dte: number;
 }): string {
   const verb = t.product === "debit_spread" ? "DEBIT SPREAD" : "BUY TO OPEN";
-  return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · max loss = debit. No naked short. Do not average.`;
+  return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · cut −${Math.round(RH_WORKING_STOP_PCT * 100)}% ($${rhWorkingStop(t.total)}) · defined max = debit. No naked short. Do not average.`;
 }
 
 function toTicket(
@@ -292,6 +296,7 @@ function toTicket(
 ): RhTicket | null {
   const sized = sizeProduct(underlier, side, spot, dte, (deltaLo + deltaHi) / 2, iv, cap);
   if (!sized) return null;
+  const workingStop = rhWorkingStop(sized.total);
   return {
     underlier,
     side,
@@ -306,6 +311,9 @@ function toTicket(
     estDebitEach: sized.each,
     estDebitTotal: sized.total,
     maxLoss: sized.total,
+    workingStop,
+    workingStopPct: RH_WORKING_STOP_PCT,
+    cutRule: `Sell when futures invalidates OR debit −${Math.round(RH_WORKING_STOP_PCT * 100)}% ($${workingStop}), whichever first. Never 1/3. Never hold to $0.`,
     riskPctOfSleeve: sized.total / sleeve.equity,
     hold,
     invalidation,
@@ -399,10 +407,21 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
     if (day?.kind === "a_plus_only" && band !== "A+") {
       blocks.push("Week card is A+ only");
     }
+    const seq =
+      c.symbol === desk.smcMaster.left.symbol
+        ? desk.smcMaster.left
+        : desk.smcMaster.right;
+    if (seq.word === "STAND") {
+      blocks.push(`SMC sequence: ${seq.missing}`);
+    } else if (seq.word === "WAIT") {
+      blocks.push(`SMC WAIT: ${seq.missing}`);
+    } else {
+      reasons.push(`SMC TAKE ${seq.mustPass}/${seq.mustNeed}`);
+    }
   }
 
   const armed = blocks.length === 0 && Boolean(c);
-  const watch = Boolean(c) && blocks.every((b) => /NY AM|Judas|Event window|range-build/.test(b));
+  const watch = Boolean(c) && blocks.every((b) => /NY AM|Judas|Event window|range-build|SMC WAIT/.test(b));
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
@@ -422,9 +441,9 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
           "NY AM. Flat 11:00 ET unless +50% premium and HTF still aligned.",
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
-            "Trim 50% at +40–60% of debit",
+            `Working stop $${rhWorkingStop(cap)} / −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
+            "Trim 50% at +40–60% of debit, stop → BE",
             "Hard time stop 11:00 ET",
-            `Max loss $${cap} — do not roll`,
           ],
         )
       : null;
@@ -483,6 +502,13 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
     if (hint.displace) reasons.push("Displacement / MSS tagged");
     if (hint.ifvg) reasons.push("IFVG tagged");
     reasons.push("1 contract max — 0DTE gamma on a $1,000 sleeve");
+    const seq =
+      c.symbol === desk.smcMaster.left.symbol
+        ? desk.smcMaster.left
+        : desk.smcMaster.right;
+    if (seq.word !== "TAKE") {
+      blocks.push(`0DTE needs SMC TAKE (have ${seq.word} · ${seq.missing})`);
+    }
   }
 
   const armed = blocks.length === 0 && Boolean(c) && band === "A+";
@@ -505,7 +531,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
           sleeve,
           "Minutes. Flat 11:00 ET. No overnight 0DTE.",
           "Failed displacement or reclaim of the raid extreme",
-          ["+30–50% of debit out half", "Flat rest at structure or 11:00"],
+          ["Working stop −25% of debit or failed displacement", "Flat rest at structure or 11:00"],
         )
       : null;
 
@@ -819,9 +845,14 @@ export function evaluateOptionsDesk(
       label: dayPlan ? `Week card ${dayPlan.kind}` : "No week card",
     },
     {
+      id: "smc",
+      ok: desk.smcMaster.oneBook?.word !== "STAND",
+      label: desk.smcMaster.thesis,
+    },
+    {
       id: "sleeve",
       ok: cap >= 50,
-      label: `Sleeve $${sleeve.equity.toLocaleString()} · risk ${(sleeve.riskPct * 100).toFixed(0)}% = $${cap}`,
+      label: `Sleeve $${sleeve.equity.toLocaleString()} · risk ${(sleeve.riskPct * 100).toFixed(0)}% = $${cap} · cut −${Math.round(RH_WORKING_STOP_PCT * 100)}%`,
     },
   ];
 
@@ -849,13 +880,12 @@ export function evaluateOptionsDesk(
 
 export function optionsDeskPlaybook(): string[] {
   return [
-    "Sleeve $1,000. Risk 15% = $150 max debit per thesis. That $150 is the whole loss — do not buy $1,000 of premium and hope a 15% stop holds on 0DTE.",
-    "QQQ ← NQ · SPY ← ES. Never buy both the same day. QQQ usually fits the cap; SPY ATM weeklies often need a vertical.",
-    "Estimates use ES/10 and NQ/40 plus a 17–20% IV. Robinhood chain is the fill. If the ask is > $150, skip or tighten the spread — do not chase OTM lotto.",
-    "Day default: 1–2 DTE PATH continuation, 1–2 contracts. 0DTE is A+ after 9:45 with raid + MSS/IFVG, 1 contract only.",
-    "SMT lead 3–7 DTE is the cleanest swing when NQ and ES disagree. Prefer QQQ puts when NQ is the weaker book.",
-    "Event days: first impulse is the sweep. Debit the second after 10:15, usually a spread.",
-    "Labor / NFP week: no new 21–45 DTE. Friday manage only.",
-    "Trim 50% at +40–80% of debit. Time-stop day tickets 11:00 ET. Never average. Separate from the $100k futures paper book.",
+    "Sleeve $1,000. Debit cap 15% = $150. Working stop is −25% of THAT debit — not 1/3, not the full premium. Sell when futures invalidates or −25%, whichever first.",
+    `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
+    "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
+    "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",
+    "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract.",
+    "SMT lead 3–7 DTE when NQ and ES disagree. Event days: first impulse is the sweep; debit the second after 10:15.",
+    "Trim 50% at +40–60% of debit, stop to BE. Time-stop day tickets 11:00 ET. Never average. Separate from the $100k futures paper book.",
   ];
 }

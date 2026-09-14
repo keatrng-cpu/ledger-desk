@@ -108,6 +108,29 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   }
   if (desk.narrative?.summary) lines.push(`narrative ${desk.narrative.summary.slice(0, 280)}`);
 
+  const smc = desk.smcMaster;
+  if (smc) {
+    lines.push("", "SMC MASTER:");
+    lines.push(`THESIS ${smc.thesis}`);
+    lines.push(`VS SCHOOLS ${smc.vsSchools}`);
+    for (const b of [smc.left, smc.right]) {
+      const musts = b.layers
+        .filter((l) => l.must)
+        .map((l) => `${l.state === "pass" ? "●" : l.state === "fail" ? "×" : "○"}${l.id}`)
+        .join(" ");
+      lines.push(
+        `- ${b.symbol} ${b.word} ${b.side ?? "flat"} ${b.mustPass}/${b.mustNeed} PATH ${b.pathBand ?? "—"} · ${b.missing}`,
+      );
+      lines.push(`  layers ${musts}`);
+      lines.push(`  entry ${b.entry} | inv ${b.invalidation} | T1 ${b.t1}`);
+    }
+    if (smc.oneBook) {
+      lines.push(
+        `ONE BOOK ${smc.oneBook.symbol} ${smc.oneBook.word} · canon ${smc.oneBook.canon.grade} ${smc.oneBook.canon.mustHits}/${smc.oneBook.canon.mustNeed}`,
+      );
+    }
+  }
+
   const failed = desk.checklist.filter((c) => !c.ok);
   if (failed.length) {
     lines.push(`checklist FAIL: ${failed.map((c) => c.label).join(" · ")}`);
@@ -142,11 +165,12 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
     if (opt.best?.ticket) {
       const t = opt.best.ticket;
       lines.push(
-        `OPTIONS best ${opt.best.id} ${t.contracts} ${t.underlier} ${t.side} ${t.product} pay~$${t.estDebitTotal} max$${t.maxLoss}`,
+        `OPTIONS best ${opt.best.id} ${t.contracts} ${t.underlier} ${t.side} ${t.product} pay~$${t.estDebitTotal} cut$${t.workingStop} (−${Math.round(t.workingStopPct * 100)}%) max$${t.maxLoss}`,
       );
+      lines.push(`OPTIONS cut ${t.cutRule}`);
     }
     lines.push(
-      `OPTIONS sleeve $${opt.sleeve.equity} risk ${(opt.sleeve.riskPct * 100).toFixed(0)}% cap $${opt.maxDebit} primary ${opt.primary}`,
+      `OPTIONS sleeve $${opt.sleeve.equity} risk ${(opt.sleeve.riskPct * 100).toFixed(0)}% cap $${opt.maxDebit} primary ${opt.primary} · rent $199/mo first · stretch $1000/wk not a take-mandate`,
     );
   } catch {
     /* options desk is additive */
