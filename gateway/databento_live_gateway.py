@@ -157,7 +157,9 @@ def rec_ts(rec) -> datetime:  # noqa: ANN001
     ts = getattr(rec, "pretty_ts_event", None)
     if ts is not None:
         if hasattr(ts, "to_pydatetime"):
-            dt = ts.to_pydatetime()
+            # warn=False: pandas otherwise emits "Discarding nonzero
+            # nanoseconds" on every 1s record. Microsecond precision is fine.
+            dt = ts.to_pydatetime(warn=False)
             return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
         if isinstance(ts, datetime):
             return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
@@ -303,6 +305,14 @@ class LiveGateway:
             if not in_ny_am_window():
                 log.info("NY AM window closed — dropping live socket")
                 break
+            # Only price records reach the aggregator. A SymbolMappingMsg
+            # carries an instrument_id that DOES resolve (the client registers
+            # the mapping before yielding the message), so the symbol check
+            # below is not enough on its own — first run 2026-09-14 wrote
+            # O=0 / L=0 minute bars because the mapping message seeded the
+            # MinuteAgg with zeros and min() kept them.
+            if not isinstance(record, db.OHLCVMsg):
+                continue
             mapping = getattr(client, "symbology_map", None) or getattr(
                 client, "symbology", None
             )
