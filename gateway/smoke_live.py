@@ -79,7 +79,9 @@ def main() -> int:
         if sym is None and hasattr(client, "symbology"):
             sym = client.symbology.get(iid)  # older attribute name
 
-        close = getattr(record, "close", None)
+        close = getattr(record, "pretty_close", None)
+        if close is None:
+            close = getattr(record, "close", None)
         if close is None:
             # SymbolMappingMsg / SystemMsg / ErrorMsg etc. - show them once, keep going
             if rtype in ("ErrorMsg", "SystemMsg") or seen_types[rtype] == 1:
@@ -91,11 +93,17 @@ def main() -> int:
 
         if sym is None:
             unresolved += 1
-        ts = getattr(record, "ts_event", None) or (getattr(record, "hd", None) and record.hd.ts_event)
-        ts_iso = datetime.fromtimestamp(ts / 1e9, tz=timezone.utc).isoformat() if ts else "?"
+        ts = getattr(record, "pretty_ts_event", None) or getattr(record, "ts_event", None)
+        if hasattr(ts, "isoformat"):
+            ts_iso = str(ts)
+        else:
+            ts_iso = datetime.fromtimestamp(ts / 1e9, tz=timezone.utc).isoformat() if ts else "?"
+        o = getattr(record, "pretty_open", record.open)
+        h = getattr(record, "pretty_high", record.high)
+        l = getattr(record, "pretty_low", record.low)  # noqa: E741
         print(
             f"  {sym or f'iid={iid}'}  {ts_iso}  "
-            f"O={record.open:.2f} H={record.high:.2f} L={record.low:.2f} C={record.close:.2f} V={record.volume}"
+            f"O={float(o):.2f} H={float(h):.2f} L={float(l):.2f} C={float(close):.2f} V={record.volume}"
         )
         got += 1
         if got >= want or time.monotonic() - t0 > budget_s:

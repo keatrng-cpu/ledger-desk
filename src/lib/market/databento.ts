@@ -104,16 +104,54 @@ function rangeIso(days: number, endMs?: number): { start: string; end: string } 
 }
 
 
-/** Parse Databento 422 "end time before <iso>" hint. */
-function parseMaxEnd(body: string): number | null {
-  const m = body.match(/before\s+(\d{4}-\d{2}-\d{2}T[0-9:.]+Z?)/i);
-  if (!m?.[1]) return null;
-  let iso = m[1];
-  if (!iso.endsWith("Z") && !iso.includes("+")) iso += "Z";
-  // strip excess fractional digits
+/** Parse an ISO/ns timestamp from Databento error payloads. */
+function parseIsoToMs(raw: string): number | null {
+  let iso = raw.trim().replace(" ", "T");
   iso = iso.replace(/(\.\d{3})\d+/, "$1");
+  if (!iso.endsWith("Z") && !/[+-]\d{2}:\d{2}$/.test(iso)) iso += "Z";
   const ms = Date.parse(iso);
-  return Number.isFinite(ms) ? ms - 60_000 : null;
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * Parse Databento 422 max-end. Live Standard still 422s `end=now` because
+ * historical batches ~15–20m behind the Live socket. Current body is JSON:
+ *   detail.payload.available_end / "data available up to '…'"
+ * Older copies said "end time before <iso>".
+ */
+function parseMaxEnd(body: string): number | null {
+  try {
+    const j = JSON.parse(body) as {
+      detail?: { payload?: { available_end?: string }; message?: string };
+      payload?: { available_end?: string };
+    };
+    const ae = j?.detail?.payload?.available_end ?? j?.payload?.available_end;
+    if (typeof ae === "string") {
+      const ms = parseIsoToMs(ae);
+      if (ms != null) return ms;
+    }
+    const msg = j?.detail?.message;
+    if (typeof msg === "string") {
+      const fromMsg = parseMaxEndFromText(msg);
+      if (fromMsg != null) return fromMsg;
+    }
+  } catch {
+    /* not JSON — fall through to regex */
+  }
+  return parseMaxEndFromText(body);
+}
+
+function parseMaxEndFromText(text: string): number | null {
+  const available = text.match(/available up to\s+'([^']+)'/i);
+  if (available?.[1]) {
+    const ms = parseIsoToMs(available[1]);
+    if (ms != null) return ms;
+  }
+  const before = text.match(/before\s+(\d{4}-\d{2}-\d{2}T[0-9:.]+Z?)/i);
+  if (!before?.[1]) return null;
+  const ms = parseIsoToMs(before[1]);
+  // "before X" is exclusive — step one minute back.
+  return ms != null ? ms - 60_000 : null;
 }
 
 function daysFor(range: "1d" | "5d" | "1mo" | "3mo"): number {
@@ -250,6 +288,9 @@ export async function fetchDatabentoBars(
       discoveredDelayMin = Math.max(
         0,
         Math.round((Date.now() - maxEnd) / 60_000),
+      );
+      console.info(
+        `[databento] ${symbol} 422 → available_end ${new Date(maxEnd).toISOString()} delay≈${discoveredDelayMin}m`,
       );
       ({ start, end } = rangeIso(daysFor(range), maxEnd));
       result = await getRangeOnce(key, symbol, start, end);

@@ -20,7 +20,7 @@ export interface LiveSaysPrint {
 
 export interface LiveSays {
   live: boolean;
-  window: "08:30–11:00 ET" | "off";
+  window: "09:20–11:00 ET" | "off";
   inWindow: boolean;
   asOf: string;
   source: MarketSource | "none";
@@ -79,7 +79,7 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
 
   let reason: string;
   if (!inWindow) {
-    reason = "Outside 08:30–11:00 ET live window. Gateway idle. Yahoo/Databento structure only.";
+    reason = "Outside 09:20–11:00 ET live window. Gateway idle. Yahoo/Databento structure only.";
   } else if (!live) {
     reason = `In NY AM window but no live tick (lag ${lagSec}s, source ${source}). Start gateway/databento_live_gateway.py with a live CME key.`;
   } else {
@@ -101,7 +101,7 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
 
   return {
     live,
-    window: inWindow ? "08:30–11:00 ET" : "off",
+    window: inWindow ? "09:20–11:00 ET" : "off",
     inWindow,
     asOf: desk.clock.nowEt,
     source,

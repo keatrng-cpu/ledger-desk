@@ -34,22 +34,12 @@ silently produces STALE rows, and the TypeScript reader is what refuses to
 trust them, not this script. This script's only job is to write honestly and
 reconnect when it drops.
 
-*** NOT YET RUN AGAINST A REAL CONNECTION ***
-Written against Databento's documented Live API shape (`db.Live()`,
-`.subscribe(dataset=, schema=, stype_in="continuous", symbols=[...])`,
-continuous `.c.0` symbology is confirmed supported on Live as of their own
-2026 blog post on the feature). The exact record-iteration idiom below
-(`for record in client:`) is the package's standard streaming pattern to the
-best of available knowledge, but the specific docs page confirming it could
-not be fully retrieved while writing this. BEFORE THE FIRST REAL RUN:
-  1. pip install -e ".[databento]"  (or: pip install databento>=0.34)
-  2. Read https://databento.com/docs/api-reference-live/client/live and
-     confirm the iteration/callback shape matches what is below — adjust if
-     the installed version's API differs.
-  3. Run with DATABENTO_API_KEY set and watch the log for the first few
-     records before trusting it unattended.
-This mirrors the existing house discipline in aplus/connect.py's
-check_databento() — verify against the real thing before relying on it.
+*** VERIFIED AGAINST A REAL CONNECTION 2026-09-14 ***
+databento 0.83.0 Live: `for record in client` yields OHLCVMsg after subscribe
+(no explicit start()). Symbology is `client.symbology_map` (instrument_id →
+"ESU6"/"NQU6", not "ES"/"NQ"). Prices are DBN int64 — use pretty_close /
+pretty_open / pretty_high / pretty_low, never raw close (that is 1e-9 units
+and would write 29173000000000 into Postgres). smoke_live.py is the check.
 
 DEPLOYMENT
 Any host that can run a long-lived Python process: Fly.io, Railway, a small
@@ -83,6 +73,24 @@ logging.basicConfig(
 )
 log = logging.getLogger("live_gateway")
 
+
+def load_env_local() -> None:
+    """Load gateway/.env.local then repo .env so this runs without run-local.ps1."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for p in (os.path.join(here, ".env.local"), os.path.join(here, "..", ".env")):
+        if not os.path.exists(p):
+            continue
+        with open(p, encoding="utf-8") as f:
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+load_env_local()
+
 DATASET = os.environ.get("DATABENTO_DATASET", "GLBX.MDP3")
 SYMBOLS = ["ES.c.0", "NQ.c.0"]
 # 1s OHLCV — the finest fixed-interval schema Databento offers. Aggregated up
@@ -114,14 +122,45 @@ RECONNECT_MAX_SEC = 60
 
 
 def resolve_desk_symbol(dbn_symbol: str) -> str | None:
-    """Databento's continuous root ('ES', 'NQ') back to this desk's
-    IndexSymbol vocabulary. MNQ has no direct continuous mapping requested
-    here — the desk's MNQ read already comes from ES/NQ-derived structure
-    elsewhere; this gateway only ever needs to feed ES and NQ ticks."""
-    root = dbn_symbol.split(".")[0]
-    if root in ("ES", "NQ"):
-        return root
+    """Databento Live maps continuous ES.c.0 / NQ.c.0 to the front month
+    (ESU6, NQU6 in Sep 2026). Desk vocabulary is ES / NQ. MNQ is the same
+    NQ print — live-gateway.ts remaps MNQ → NQ on read."""
+    if not dbn_symbol:
+        return None
+    root = dbn_symbol.strip().upper().split(".")[0]
+    month = "FGHJKMNQUVXZ"
+    if root == "ES" or (root.startswith("ES") and len(root) >= 3 and root[2] in month):
+        return "ES"
+    if root == "NQ" or (root.startswith("NQ") and len(root) >= 3 and root[2] in month):
+        return "NQ"
     return None
+
+
+def rec_px(rec, pretty: str, raw: str) -> float:  # noqa: ANN001
+    """OHLCVMsg.close is DBN int64 (1e-9). pretty_close is the index price."""
+    v = getattr(rec, pretty, None)
+    if v is not None:
+        return float(v)
+    n = float(getattr(rec, raw, 0) or 0)
+    if abs(n) > 1e8:  # raw DBN units leaked through
+        n = n / 1e9
+    return n
+
+
+def rec_ts(rec) -> datetime:  # noqa: ANN001
+    ts = getattr(rec, "pretty_ts_event", None)
+    if ts is not None:
+        if hasattr(ts, "to_pydatetime"):
+            dt = ts.to_pydatetime()
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        if isinstance(ts, datetime):
+            return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+    ns = getattr(rec, "ts_event", None) or (
+        getattr(rec, "hd", None) and rec.hd.ts_event
+    )
+    if ns:
+        return datetime.fromtimestamp(int(ns) / 1e9, tz=timezone.utc)
+    return datetime.now(timezone.utc)
 
 
 @dataclass
@@ -210,13 +249,8 @@ class LiveGateway:
                   symbol, bar_time.isoformat(), agg.o, agg.h, agg.l, agg.c, agg.v)
 
     def handle_ohlcv1s(self, symbol: str, rec) -> None:  # noqa: ANN001 — dbn record type
-        price = float(rec.close) if hasattr(rec, "close") else float(rec.price)
-        ts_event = getattr(rec, "ts_event", None) or getattr(rec, "hd", None) and rec.hd.ts_event
-        ts_dt = (
-            datetime.fromtimestamp(ts_event / 1e9, tz=timezone.utc)
-            if ts_event
-            else datetime.now(timezone.utc)
-        )
+        price = rec_px(rec, "pretty_close", "close")
+        ts_dt = rec_ts(rec)
 
         # Tick table: always the latest print, every record.
         self.upsert_tick(symbol, price, ts_dt)
@@ -224,9 +258,9 @@ class LiveGateway:
         # 1m aggregation from 1s bars.
         minute_ns = (int(ts_dt.timestamp()) // 60) * 60 * 1_000_000_000
         cur = self._minute.get(symbol)
-        o = float(rec.open) if hasattr(rec, "open") else price
-        h = float(rec.high) if hasattr(rec, "high") else price
-        l = float(rec.low) if hasattr(rec, "low") else price  # noqa: E741
+        o = rec_px(rec, "pretty_open", "open")
+        h = rec_px(rec, "pretty_high", "high")
+        l = rec_px(rec, "pretty_low", "low")  # noqa: E741
         v = int(rec.volume) if hasattr(rec, "volume") else 0
 
         if cur is None or cur.minute_start_ns != minute_ns:
@@ -253,20 +287,19 @@ class LiveGateway:
         )
         log.info("subscribed: dataset=%s schema=%s symbols=%s", DATASET, SCHEMA, SYMBOLS)
 
-        # Standard streaming idiom for this client — SEE THE MODULE
-        # DOCSTRING: verify this against the installed package version's
-        # docs before the first real run.
         for record in client:
             if not self._running:
                 break
             if not in_ny_am_window():
                 log.info("NY AM window closed — dropping live socket")
                 break
-            symbol_map = getattr(client, "symbology", None)
+            mapping = getattr(client, "symbology_map", None) or getattr(
+                client, "symbology", None
+            )
             dbn_symbol = None
             instrument_id = getattr(record, "instrument_id", None)
-            if symbol_map is not None and instrument_id is not None:
-                dbn_symbol = symbol_map.get(instrument_id)
+            if mapping is not None and instrument_id is not None:
+                dbn_symbol = mapping.get(instrument_id)
             if dbn_symbol is None:
                 # Symbol-mapping record or one we can't resolve yet — skip,
                 # do not guess. A wrong symbol on a price row is worse than
@@ -303,6 +336,7 @@ class LiveGateway:
 
 
 def main() -> int:
+    load_env_local()
     dsn = os.environ.get("DATABASE_URL")
     api_key = os.environ.get("DATABENTO_API_KEY")
     if not dsn:

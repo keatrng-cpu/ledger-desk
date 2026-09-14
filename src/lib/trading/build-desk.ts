@@ -90,7 +90,7 @@ export interface DeskPayload {
   weekAhead: WeekAheadRead | null;
   /** Month bias / phases — restamp last Sunday of the prior month. */
   monthAhead: MonthAheadRead | null;
-  /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 08:30–11:00 ET. */
+  /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 09:20–11:00 ET. */
   liveSays: LiveSays;
 }
 

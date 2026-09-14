@@ -212,10 +212,11 @@ export function isJudasWindow(hour: number, minute: number): boolean {
 }
 
 /**
- * NY AM live-ingest window — 08:30–11:00 America/New_York, weekdays.
- * Gateway streams only here. Outside it, desk falls back to Yahoo/Databento historical.
+ * NY AM live-ingest window — 09:20–11:00 America/New_York, weekdays.
+ * Matches gateway/databento_live_gateway.py (premarket brief → end of NY AM PATH).
+ * The 08:30 news candle is NOT live; desk reads it from Databento historical / Yahoo.
  */
-export const NY_AM_LIVE_START_MIN = 8 * 60 + 30;
+export const NY_AM_LIVE_START_MIN = 9 * 60 + 20;
 export const NY_AM_LIVE_END_MIN = 11 * 60;
 
 export function isNyAmLiveWindow(
