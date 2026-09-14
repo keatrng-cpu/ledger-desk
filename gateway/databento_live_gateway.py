@@ -91,12 +91,22 @@ SYMBOLS = ["ES.c.0", "NQ.c.0"]
 # subscription instead of opening two connections.
 SCHEMA = "ohlcv-1s"
 
-# Stream only NY AM. Desk PATH lives 08:30–11:00 ET; holding the Live socket
-# all session is wasted CME messages. Connect 5 min early so 08:30 news is in.
+# Stream only NY AM. Desk PATH lives 09:30–11:00 ET (Judas 09:30–09:45 is
+# no-entry, so the socket is up for the raid but the first fill is ~09:45).
+# Holding the Live socket all session is wasted CME messages. 09:20 matches the
+# premarket-brief slot in CLAUDE.md; the 08:30 news candle is NOT covered live —
+# the desk reads that from Databento historical / Yahoo like every other bar.
 NY_AM_TZ = ZoneInfo("America/New_York")
-NY_AM_START = (8, 25)  # 08:25 ET
-NY_AM_END = (11, 5)  # 11:05 ET
+NY_AM_START = (9, 20)  # 09:20 ET
+NY_AM_END = (11, 0)  # 11:00 ET
 WINDOW_POLL_SEC = 30
+
+# When "1": exit 0 once today's window has closed (or if started after it),
+# instead of idling until tomorrow. This is the mode for a scheduled local run
+# (Windows Task Scheduler at 08:15 CT / 09:15 ET) — the process should not
+# linger overnight on a desk PC. Unset = original always-on behaviour for a
+# VPS / Fly.io host.
+EXIT_AFTER_WINDOW = os.environ.get("GATEWAY_EXIT_AFTER_WINDOW", "").strip() == "1"
 
 # Reconnect backoff. Never spin hot against the vendor on a bad key/network.
 RECONNECT_MIN_SEC = 2
@@ -126,8 +136,12 @@ class MinuteAgg:
     v: int
 
 
+def window_label() -> str:
+    return f"{NY_AM_START[0]:02d}:{NY_AM_START[1]:02d}-{NY_AM_END[0]:02d}:{NY_AM_END[1]:02d} ET"
+
+
 def in_ny_am_window(now: datetime | None = None) -> bool:
-    """Weekday 08:25–11:05 America/New_York."""
+    """Weekday NY_AM_START–NY_AM_END America/New_York."""
     n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
     if n.weekday() >= 5:
         return False
@@ -136,6 +150,16 @@ def in_ny_am_window(now: datetime | None = None) -> bool:
     )
     end = n.replace(hour=NY_AM_END[0], minute=NY_AM_END[1], second=0, microsecond=0)
     return start <= n < end
+
+
+def window_closed_for_today(now: datetime | None = None) -> bool:
+    """True once today's window end has passed (or it is a weekend) — the
+    scheduled-run mode uses this to exit instead of idling to tomorrow."""
+    n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
+    if n.weekday() >= 5:
+        return True
+    end = n.replace(hour=NY_AM_END[0], minute=NY_AM_END[1], second=0, microsecond=0)
+    return n >= end
 
 
 class LiveGateway:
@@ -260,7 +284,10 @@ class LiveGateway:
         backoff = RECONNECT_MIN_SEC
         while self._running:
             if not in_ny_am_window():
-                log.info("outside 08:25–11:05 ET — live socket idle")
+                if EXIT_AFTER_WINDOW and window_closed_for_today():
+                    log.info("window %s closed for today — exiting (GATEWAY_EXIT_AFTER_WINDOW=1)", window_label())
+                    return
+                log.info("outside %s — live socket idle", window_label())
                 time.sleep(WINDOW_POLL_SEC)
                 backoff = RECONNECT_MIN_SEC
                 continue
