@@ -36,10 +36,34 @@ $env:GATEWAY_EXIT_AFTER_WINDOW = "1"
 $env:PYTHONUNBUFFERED = "1"
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+function Log-Line([string]$line) { Write-Host $line; Add-Content -Path $logFile -Value $line -Encoding UTF8 }
 $logFile = Join-Path $logDir ((Get-Date).ToString("yyyy-MM-dd") + ".log")
 
-"=== run-local start $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')) ===" | Tee-Object -FilePath $logFile -Append
-& python (Join-Path $here "databento_live_gateway.py") 2>&1 | Tee-Object -FilePath $logFile -Append
+# Resolve a REAL interpreter. Under Task Scheduler the Microsoft Store alias
+# (...\WindowsApps\python.exe) can fail silently; prefer the concrete install.
+$python = $env:GATEWAY_PYTHON
+if (-not $python) {
+    $candidates = @(
+        (Get-ChildItem "$env:LOCALAPPDATA\Python\pythoncore-*\python.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName),
+        (Get-ChildItem "$env:LOCALAPPDATA\Programs\Python\Python3*\python.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName),
+        ((Get-Command python -ErrorAction SilentlyContinue | Where-Object { $_.Source -notlike '*WindowsApps*' }).Source),
+        ((Get-Command python -ErrorAction SilentlyContinue).Source)
+    ) | Where-Object { $_ }
+    $python = $candidates | Select-Object -First 1
+}
+if (-not $python -or -not (Test-Path $python)) {
+    Log-Line "=== run-local FATAL $((Get-Date).ToString('HH:mm:ss')): no python interpreter found ==="
+    exit 1
+}
+
+Log-Line "=== run-local start $((Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')) | python=$python ==="
+
+# A native command's stderr must not terminate this script (Windows PowerShell
+# 5.1 wraps it in NativeCommandError under "Stop"). The gateway logs to stdout
+# now, but anything the databento client prints to stderr still lands here.
+$ErrorActionPreference = "Continue"
+& $python (Join-Path $here "databento_live_gateway.py") 2>&1 | ForEach-Object { Log-Line "$_" }
 $code = $LASTEXITCODE
-"=== run-local exit $code $((Get-Date).ToString('HH:mm:ss')) ===" | Tee-Object -FilePath $logFile -Append
+$ErrorActionPreference = "Stop"
+Log-Line "=== run-local exit $code $((Get-Date).ToString('HH:mm:ss')) ==="
 exit $code

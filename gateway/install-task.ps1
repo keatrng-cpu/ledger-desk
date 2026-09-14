@@ -27,9 +27,14 @@ $action = New-ScheduledTaskAction `
 
 $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 08:15
 
+# -AllowStartIfOnBatteries / -DontStopIfGoingOnBatteries: this is a laptop.
+# The Task Scheduler defaults (AC-only) left the task permanently "Queued"
+# on 2026-09-14 and would kill a live stream the moment the cord came out.
 $settings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -WakeToRun `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Hours 3) `
     -MultipleInstances IgnoreNew `
     -RestartCount 2 -RestartInterval (New-TimeSpan -Minutes 1)

@@ -70,6 +70,11 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
+    # stdout, not the logging default of stderr: Windows PowerShell 5.1 turns a
+    # native command's stderr into a terminating NativeCommandError under
+    # $ErrorActionPreference = "Stop" + 2>&1, which killed run-local.ps1 on the
+    # first INFO line (2026-09-14). Fly/Railway/systemd capture both anyway.
+    stream=sys.stdout,
 )
 log = logging.getLogger("live_gateway")
 
@@ -338,7 +343,7 @@ class LiveGateway:
         while self._running:
             if not in_ny_am_window():
                 if EXIT_AFTER_WINDOW and window_closed_for_today():
-                    log.info("window %s closed for today — exiting (GATEWAY_EXIT_AFTER_WINDOW=1)", window_label())
+                    log.info("window %s closed for today - exiting (GATEWAY_EXIT_AFTER_WINDOW=1)", window_label())
                     return
                 log.info("outside %s — live socket idle", window_label())
                 time.sleep(WINDOW_POLL_SEC)
