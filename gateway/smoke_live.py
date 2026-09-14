@@ -1,6 +1,6 @@
 """
 One-shot Live smoke test. Connects with the real key, subscribes exactly as
-the gateway does (GLBX.MDP3 / ohlcv-1s / continuous ES.c.0 + NQ.c.0), prints
+the gateway does (GLBX.MDP3 / ohlcv-1s / explicit front quarterly e.g. ESZ6 + NQZ6), prints
 the first N price records, and exits. Writes NOTHING to Postgres.
 
 This is the "verify against the real thing before the first unattended run"
@@ -31,7 +31,19 @@ except ImportError:
     raise SystemExit(2)
 
 DATASET = os.environ.get("DATABENTO_DATASET", "GLBX.MDP3")
-SYMBOLS = ["ES.c.0", "NQ.c.0"]
+def _front(root):
+    # mirror of databento_live_gateway.front_quarterly (kept inline so this file stays standalone)
+    from datetime import date, timedelta
+    t = date.today(); q0 = (t.month - 1) // 3
+    for i in range(8):
+        q = q0 + i; year = t.year + q // 4; month = (q % 4) * 3 + 3
+        first = date(year, month, 1); ff = 1 + ((4 - first.weekday()) % 7); expiry = date(year, month, ff + 14)
+        if t < expiry - timedelta(days=8):
+            return f"{root}{'HMUZ'[q % 4]}{year % 10}"
+    raise RuntimeError("no contract")
+
+
+SYMBOLS = [_front("ES"), _front("NQ")]
 SCHEMA = "ohlcv-1s"
 
 
@@ -63,7 +75,7 @@ def main() -> int:
     print(f"key ...{key[-4:]} | want {want} records within {budget_s:.0f}s | {datetime.now(timezone.utc).isoformat()}")
 
     client = db.Live(key=key)
-    client.subscribe(dataset=DATASET, schema=SCHEMA, stype_in="continuous", symbols=SYMBOLS)
+    client.subscribe(dataset=DATASET, schema=SCHEMA, stype_in="raw_symbol", symbols=SYMBOLS)
     print("subscribed - waiting for records...")
 
     t0 = time.monotonic()

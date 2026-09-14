@@ -16,7 +16,10 @@ const MAX_BARS = 6000;
 /** Full month backtests need more than a few sessions of 1m bars. */
 const MAX_BARS_BACKTEST = 80_000;
 
-/** Map desk symbols → Databento continuous root (front month .c.0). */
+/** Databento roots. The CONTRACT is chosen by frontQuarterly() below, not by Databento's
+ * continuous rules: on 2026-09-14 `.c.0`, `.v.0` AND `.n.0` all still resolved to ESU6 while
+ * Yahoo ES=F was already on ESZ6 — a +67.75 pt (ES) / +297 pt (NQ) basis that freshest.ts
+ * stitched into the book as a phantom displacement on every poll. */
 const ROOT: Record<IndexSymbol, string> = {
   NQ: "NQ",
   MNQ: "MNQ",
@@ -54,8 +57,43 @@ function authHeader(key: string): string {
   return `Basic ${Buffer.from(`${key}:`).toString("base64")}`;
 }
 
+const MONTH_CODE = ["H", "M", "U", "Z"] as const; // Mar Jun Sep Dec
+
+/** Third Friday of (year, month0) in UTC. */
+function thirdFriday(year: number, month0: number): Date {
+  const first = new Date(Date.UTC(year, month0, 1));
+  const firstFridayDay = 1 + ((5 - first.getUTCDay() + 7) % 7);
+  return new Date(Date.UTC(year, month0, firstFridayDay + 14));
+}
+
+/**
+ * Front quarterly contract by the rule Yahoo ES=F / NQ=F follow: the front is the nearest
+ * quarterly (H/M/U/Z) whose 3rd-Friday expiry is still more than 8 days away. The roll lands on
+ * the Thursday 8 days before expiry (CME equity-index roll date — 2026-09-10 for ESU6→ESZ6).
+ * Exported so the gateway and tests can assert the same answer. `now` is injectable for tests.
+ */
+export function frontQuarterly(root: string, now: Date = new Date()): string {
+  const t = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  let y = now.getUTCFullYear();
+  for (let i = 0; i < 8; i++) {
+    const q = Math.floor(now.getUTCMonth() / 3) + i; // quarter index from current quarter
+    const year = y + Math.floor(q / 4);
+    const month0 = (q % 4) * 3 + 2; // 2,5,8,11
+    const expiry = thirdFriday(year, month0).getTime();
+    const rollDate = expiry - 8 * 86_400_000;
+    if (t < rollDate) return `${root}${MONTH_CODE[q % 4]}${year % 10}`;
+  }
+  throw new Error("frontQuarterly: no contract found");
+}
+
+/** Raw CME symbol for the desk symbol, e.g. ES → "ESZ6" during the Sep-2026 roll week. */
+function contractSymbol(symbol: IndexSymbol): string {
+  return frontQuarterly(ROOT[symbol]);
+}
+
+/** Kept for callers that only want a display label of what was fetched. */
 function continuous(symbol: IndexSymbol): string {
-  return `${ROOT[symbol]}.c.0`;
+  return contractSymbol(symbol);
 }
 
 /**
@@ -245,9 +283,9 @@ async function getRangeOnce(
 ): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
   const params = new URLSearchParams({
     dataset: DEFAULT_DATASET,
-    symbols: continuous(symbol),
+    symbols: contractSymbol(symbol),
     schema: "ohlcv-1m",
-    stype_in: "continuous",
+    stype_in: "raw_symbol",
     start,
     end,
     encoding: "csv",

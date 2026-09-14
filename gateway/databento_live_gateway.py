@@ -97,7 +97,38 @@ def load_env_local() -> None:
 load_env_local()
 
 DATASET = os.environ.get("DATABENTO_DATASET", "GLBX.MDP3")
-SYMBOLS = ["ES.c.0", "NQ.c.0"]
+# The CONTRACT is chosen here, not by Databento's continuous rules. On 2026-09-14
+# `.c.0`, `.v.0` and `.n.0` all still resolved to ESU6 while Yahoo ES=F was on
+# ESZ6 (+67.75 pt basis; NQ +297). The desk's structure bars come from Yahoo and
+# from databento.ts using the SAME rule below (frontQuarterly), so every source
+# sits on one contract. Rule: front = nearest quarterly (H/M/U/Z) whose 3rd-Friday
+# expiry is more than 8 days away -> roll on the Thursday 8 days before expiry.
+ROOTS = ["ES", "NQ"]
+
+
+def third_friday(year: int, month: int) -> "date":
+    from datetime import date
+    first = date(year, month, 1)
+    first_friday = 1 + ((4 - first.weekday()) % 7)  # weekday(): Mon=0 .. Fri=4
+    return date(year, month, first_friday + 14)
+
+
+def front_quarterly(root: str, today: "date | None" = None) -> str:
+    from datetime import date, timedelta
+    t = today or datetime.now(timezone.utc).date()
+    codes = "HMUZ"
+    q0 = (t.month - 1) // 3
+    for i in range(8):
+        q = q0 + i
+        year = t.year + q // 4
+        month = (q % 4) * 3 + 3  # 3,6,9,12
+        expiry = third_friday(year, month)
+        if t < expiry - timedelta(days=8):
+            return f"{root}{codes[q % 4]}{year % 10}"
+    raise RuntimeError("front_quarterly: no contract found")
+
+
+SYMBOLS = [front_quarterly(r) for r in ROOTS]
 # 1s OHLCV — the finest fixed-interval schema Databento offers. Aggregated up
 # into 1m bars below rather than requested as ohlcv-1m directly, so the tick
 # table (which needs sub-second freshness) and the bar table share one
@@ -133,8 +164,8 @@ RECONNECT_MAX_SEC = 60
 
 
 def resolve_desk_symbol(dbn_symbol: str) -> str | None:
-    """Databento Live maps continuous ES.c.0 / NQ.c.0 to the front month
-    (ESU6, NQU6 in Sep 2026). Desk vocabulary is ES / NQ. MNQ is the same
+    """Raw CME symbols (ESZ6, NQZ6, ...) chosen by front_quarterly(). Desk
+    vocabulary is ES / NQ. MNQ is the same
     NQ print — live-gateway.ts remaps MNQ → NQ on read."""
     if not dbn_symbol:
         return None
@@ -299,7 +330,7 @@ class LiveGateway:
         client.subscribe(
             dataset=DATASET,
             schema=SCHEMA,
-            stype_in="continuous",
+            stype_in="raw_symbol",
             symbols=SYMBOLS,
         )
         log.info("subscribed: dataset=%s schema=%s symbols=%s", DATASET, SCHEMA, SYMBOLS)
