@@ -116,6 +116,12 @@ WINDOW_POLL_SEC = 30
 # VPS / Fly.io host.
 EXIT_AFTER_WINDOW = os.environ.get("GATEWAY_EXIT_AFTER_WINDOW", "").strip() == "1"
 
+# TEST ONLY. When "1": ignore the NY AM window entirely so an operator can
+# prove the socket -> Postgres write path for a minute at any hour Globex is
+# open (e.g. `timeout 60 python databento_live_gateway.py`). Never set this on
+# the scheduled task or a VPS — it would stream (and pay for) the whole session.
+FORCE_WINDOW = os.environ.get("GATEWAY_FORCE_WINDOW", "").strip() == "1"
+
 # Reconnect backoff. Never spin hot against the vendor on a bad key/network.
 RECONNECT_MIN_SEC = 2
 RECONNECT_MAX_SEC = 60
@@ -181,6 +187,8 @@ def window_label() -> str:
 
 def in_ny_am_window(now: datetime | None = None) -> bool:
     """Weekday NY_AM_START–NY_AM_END America/New_York."""
+    if FORCE_WINDOW and now is None:
+        return True
     n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
     if n.weekday() >= 5:
         return False
@@ -194,6 +202,8 @@ def in_ny_am_window(now: datetime | None = None) -> bool:
 def window_closed_for_today(now: datetime | None = None) -> bool:
     """True once today's window end has passed (or it is a weekend) — the
     scheduled-run mode uses this to exit instead of idling to tomorrow."""
+    if FORCE_WINDOW and now is None:
+        return False
     n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
     if n.weekday() >= 5:
         return True
