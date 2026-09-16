@@ -38,13 +38,60 @@ export function mergeNewerBars(base: OhlcBar[], overlay: OhlcBar[]): OhlcBar[] {
   return [...map.values()].sort((a, b) => a.t - b.t);
 }
 
-/** Patch the forming bar so last H/L/C tracks the latest print. */
-export function applyQuoteToLastBar(bars: OhlcBar[], quote: LiveQuote): OhlcBar[] {
+/** "15m" / "1m" / "1h" → ms. Unknown → 15m (the desk's structure interval). */
+export function intervalMs(interval: string | undefined): number {
+  const m = /^(\d+)\s*(m|h|d)$/i.exec((interval ?? "").trim());
+  if (!m) return 15 * 60_000;
+  const n = Number(m[1]);
+  const unit = m[2]!.toLowerCase();
+  return n * (unit === "m" ? 60_000 : unit === "h" ? 3_600_000 : 86_400_000);
+}
+
+/**
+ * Bars whose interval has fully elapsed as of `asOfMs`. Detectors (sweep,
+ * displacement, FVG, MSS) must only ever see these: a forming bar has no
+ * close yet, so "body >= 1.5 ATR" or "closed back inside the level" is not a
+ * fact about it. The forming bar is still used for price LOCATION (dealing
+ * zone, entry distance) by callers that pass the full series.
+ */
+export function closedBars(bars: OhlcBar[], interval: string | number, asOfMs: number): OhlcBar[] {
+  const ms = typeof interval === "number" ? interval : intervalMs(interval);
+  let n = bars.length;
+  while (n > 0 && bars[n - 1]!.t + ms > asOfMs) n--;
+  return n === bars.length ? bars : bars.slice(0, n);
+}
+
+/**
+ * Track the latest print in the FORMING bar.
+ *
+ * If the quote falls inside the last bar's interval, patch that bar's H/L/C.
+ * If the quote is NEWER than the last bar's interval — the normal case when
+ * bars are ~15 min behind (Databento historical) and the quote is live — open
+ * a new partial bar at the quote's bucket instead. Before 2026-09-16 this
+ * function smeared a print from up to 15 minutes later into a bar that had
+ * already closed, so the displacement detector saw a body that never existed
+ * and the sweep detector saw wicks that never printed on that bar.
+ */
+export function applyQuoteToLastBar(
+  bars: OhlcBar[],
+  quote: LiveQuote,
+  interval: string | number = "15m",
+): OhlcBar[] {
   if (!bars.length) return bars;
   const last = bars[bars.length - 1]!;
   if (quote.marketTimeMs + 1000 < last.t) return bars;
   const price = quote.price;
   if (!Number.isFinite(price) || price <= 0) return bars;
+  const ms = typeof interval === "number" ? interval : intervalMs(interval);
+
+  if (quote.marketTimeMs >= last.t + ms) {
+    // Quote belongs to a later bucket: leave the closed bar alone.
+    const buckets = Math.floor((quote.marketTimeMs - last.t) / ms);
+    const t = last.t + buckets * ms;
+    const fresh: OhlcBar = { t, o: price, h: price, l: price, c: price, v: 0 };
+    return bars.concat(fresh);
+  }
+
   const patched: OhlcBar = {
     ...last,
     c: price,

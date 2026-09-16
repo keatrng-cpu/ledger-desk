@@ -17,6 +17,7 @@ import {
 import { readLiveTickFresh, quoteFromLiveTick } from "@/lib/market/live-gateway";
 import {
   applyQuoteToLastBar,
+  closedBars,
   pickFreshestQuote,
   stampSeriesFromBars,
   stitchLiveSession,
@@ -204,7 +205,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left.changePct = lq.changePct;
         left.marketTimeMs = lq.marketTimeMs;
         left.marketTimeIso = lq.marketTimeIso;
-        const patched = applyQuoteToLastBar(left.bars, lq);
+        const patched = applyQuoteToLastBar(left.bars, lq, left.interval);
         if (patched !== left.bars) {
           const next = stampSeriesFromBars(left, patched);
           left.bars = next.bars;
@@ -217,7 +218,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         right.changePct = rq.changePct;
         right.marketTimeMs = rq.marketTimeMs;
         right.marketTimeIso = rq.marketTimeIso;
-        const patched = applyQuoteToLastBar(right.bars, rq);
+        const patched = applyQuoteToLastBar(right.bars, rq, right.interval);
         if (patched !== right.bars) {
           const next = stampSeriesFromBars(right, patched);
           right.bars = next.bars;
@@ -248,8 +249,11 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         right.bars,
         smc,
       );
-      const detL = summarizeDetectors(left.bars);
-      const detR = summarizeDetectors(right.bars);
+      // Detectors only ever see CLOSED bars. The forming bar (patched with the
+      // live print above) is for price location, never for "displacement" or
+      // "closed back inside" — those are facts about a bar that has finished.
+      const detL = summarizeDetectors(closedBars(left.bars, left.interval, left.marketTimeMs ?? Date.now()));
+      const detR = summarizeDetectors(closedBars(right.bars, right.interval, right.marketTimeMs ?? Date.now()));
       const dirL: "bull" | "bear" =
         biasL.topDown === "bear" ? "bear" : "bull";
       const dirR: "bull" | "bear" =

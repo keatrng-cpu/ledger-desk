@@ -778,7 +778,10 @@ export interface DetectorSummary {
   };
   displacement: {
     count: number;
+    /** Most recent displacement within RECENT_DISPLACEMENT_BARS of the end, else null. */
     latest: DisplacementEvent | null;
+    /** Most recent ever, regardless of age (history / debrief only). */
+    lastEver: DisplacementEvent | null;
   };
   orderBlock: {
     count: number;
@@ -787,9 +790,30 @@ export interface DetectorSummary {
   };
   sweep: {
     count: number;
+    /** Most recent sweep within RECENT_SWEEP_BARS of the end, else null. */
     latest: SweepEvent | null;
+    /** Most recent ever, regardless of age (history / debrief only). */
+    lastEver: SweepEvent | null;
   };
   mechanical: MechanicalSequence;
+}
+
+/**
+ * Recency windows for `latest`. Before 2026-09-16 `latest` was the last event
+ * in the whole series, so a sweep from two days ago lit today's
+ * `sweep_significant` component and a displacement from yesterday satisfied
+ * the LTF-shift layer. On the desk's 15m structure series:
+ *   - sweep: 24 bars = 6h — a London-open raid (03:00 ET) still counts at the
+ *     NY open; anything older is not "the raid" this session trades.
+ *   - displacement: 12 bars = 3h — the impulse has to belong to this morning.
+ */
+export const RECENT_SWEEP_BARS = 24;
+export const RECENT_DISPLACEMENT_BARS = 12;
+
+function recent<T extends { index: number }>(events: T[], total: number, window: number): T | null {
+  if (!events.length) return null;
+  const last = events[events.length - 1]!;
+  return total - 1 - last.index <= window ? last : null;
 }
 
 /**
@@ -818,9 +842,8 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
     },
     displacement: {
       count: displacements.length,
-      latest: displacements.length
-        ? displacements[displacements.length - 1]!
-        : null,
+      latest: recent(displacements, bars.length, RECENT_DISPLACEMENT_BARS),
+      lastEver: displacements.length ? displacements[displacements.length - 1]! : null,
     },
     orderBlock: {
       count: blocks.length,
@@ -829,7 +852,8 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
     },
     sweep: {
       count: sweeps.length,
-      latest: sweeps.length ? sweeps[sweeps.length - 1]! : null,
+      latest: recent(sweeps, bars.length, RECENT_SWEEP_BARS),
+      lastEver: sweeps.length ? sweeps[sweeps.length - 1]! : null,
     },
     mechanical,
   };

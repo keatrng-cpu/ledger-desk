@@ -217,20 +217,32 @@ function BlockerStrip({
 
 function GhostBanner({ g }: { g: GhostTrade }) {
   const a = g.analysis;
+  // Outcome words say WHAT happened to the thesis, never "failed":
+  //   won      -> target printed after a fill            (direction right, filled)
+  //   missed   -> target printed with NO fill            (direction right, not filled)
+  //   lost     -> the invalidation traded after a fill   (a confluence was disrespected)
+  //   expired  -> invalidation traded with no fill, or the window closed
+  // A miss is not a loss and an invalidation is not "wrong direction" — it is
+  // the sweep / HTF / array that price refused to respect. Name that.
   const won = g.status === "won";
   const lost = g.status === "lost";
-  const missed = g.status === "missed" || g.status === "expired";
-  const tone = won ? "up" : lost ? "down" : "warn";
+  const thesisBroke =
+    g.status === "expired" && /invalidation/i.test(a?.tag ?? "");
+  const missed = g.status === "missed";
+  const disrespected = a?.whatFailed?.[0] ?? "invalidation traded";
+  const tone = won || missed ? "up" : lost || thesisBroke ? "down" : "warn";
   const label =
     won
       ? `HIT TARGET${g.r != null ? `  ${g.r >= 0 ? "+" : ""}${g.r.toFixed(2)}R` : ""}`
       : lost
-        ? `FAILED${g.r != null ? `  ${g.r.toFixed(2)}R` : ""}`
+        ? `INVALIDATED — ${disrespected}${g.r != null ? `  ${g.r.toFixed(2)}R` : ""}`
         : g.status === "filled"
           ? "IN PLAY — filled, managing"
-          : g.status === "missed"
-            ? `MISSED — ${a?.tag ?? "target without fill"}`
-            : `EXPIRED — ${a?.tag ?? "never filled"}`;
+          : missed
+            ? `DIRECTION RIGHT · no fill — ${a?.tag ?? "target printed without you"}`
+            : thesisBroke
+              ? `THESIS INVALIDATED · never filled — ${disrespected}`
+              : `EXPIRED · never filled — ${a?.tag ?? "window closed"}`;
   return (
     <div
       className={cn(
@@ -346,7 +358,12 @@ function SetupCard({
             )}
             {ghost?.status === "lost" && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-down)]">
-                failed
+                invalidated
+              </span>
+            )}
+            {ghost?.status === "missed" && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
+                direction right · no fill
               </span>
             )}
             {!done && c.actionable && entryAllowed && (

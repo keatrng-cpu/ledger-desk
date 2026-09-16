@@ -151,20 +151,26 @@ export function SessionHud({
         detail: brief.standDownReasons[0] ?? brief.reasons[0] ?? "",
       };
     }
-    if (best?.actionable && clock.inTradeWindow) {
+    // ONE verdict. The GO pill used to read `best.actionable` on its own,
+    // which ignores Judas, news, the SMC sequence, the 0.65 floor and the
+    // one-book rule that the draw line already applies — so the HUD could
+    // say GO and TAKE/STAND different things at the same time.
+    if (pathV.word === "TAKE") {
       return {
         mode: "go" as const,
-        line: `${best.symbol} ${best.side.toUpperCase()} ${best.grade} ${best.confluence.toFixed(2)} · ${best.strategyPrimary ?? "model"}`,
-        detail: best.strategyWhy[0] ?? best.reasons[0] ?? scan.focus,
+        line: pathV.line,
+        detail: best?.strategyWhy[0] ?? best?.reasons[0] ?? scan.focus,
       };
     }
-    const raw = (scan.focus || "").replace(/^Focus:\s*/i, "");
+    if (pathV.word === "MANAGE") {
+      return { mode: "live" as const, line: pathV.line, detail: "Do not add. Let the plan work." };
+    }
     return {
       mode: "wait" as const,
-      line: raw || "Stand down — no PATH card",
+      line: pathV.line,
       detail: best?.missing.slice(0, 2).join(" · ") ?? "",
     };
-  }, [ghost, brief, best, clock.inTradeWindow, scan.focus, lastDebrief]);
+  }, [ghost, brief, best, scan.focus, lastDebrief, pathV.word, pathV.line]);
 
   const modeTone =
     focus.mode === "go" || focus.mode === "done"
@@ -181,7 +187,7 @@ export function SessionHud({
       : focus.mode === "done"
         ? "HIT"
         : focus.mode === "failed"
-          ? "FAIL"
+          ? "INVALID"
           : focus.mode === "live"
             ? "IN PLAY"
             : focus.mode === "stand"

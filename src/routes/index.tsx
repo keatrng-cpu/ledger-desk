@@ -324,8 +324,8 @@ function patchDeskQuotes(
   leftQ: DeskPayload["quotes"]["left"],
   rightQ: DeskPayload["quotes"]["right"],
 ): DeskPayload {
-  const leftBars = applyQuoteToLastBar(prev.left.bars, leftQ);
-  const rightBars = applyQuoteToLastBar(prev.right.bars, rightQ);
+  const leftBars = applyQuoteToLastBar(prev.left.bars, leftQ, prev.left.interval);
+  const rightBars = applyQuoteToLastBar(prev.right.bars, rightQ, prev.right.interval);
   const left = stampSeriesFromBars(prev.left, leftBars);
   const right = stampSeriesFromBars(prev.right, rightBars);
   left.price = leftQ.price;

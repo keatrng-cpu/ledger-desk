@@ -466,19 +466,58 @@ function analyze(g: GhostTrade, ctx?: AnalyzeCtx): GhostAnalysis {
     };
   }
   if (g.status === "lost") {
+    // A stop-out is a CONFLUENCE that price refused to respect, not a wrong
+    // direction call. Name the one that broke, in this order of evidence.
+    const disrespected: string[] = [];
+    if (ctx) {
+      const book = bookOf(ctx.desk, g.symbol);
+      const bias = ctx.desk.bias[book];
+      const narr = ctx.desk.narrative[book];
+      const want = g.side === "long" ? "bull" : "bear";
+      if (bias.topDown !== "neutral" && bias.topDown !== want) {
+        disrespected.push(`HTF ${bias.topDown} — card traded against the absolute gate`);
+      }
+      const raidSide = narr.liquidity.lastSweep; // ssl feeds longs, bsl feeds shorts
+      if ((g.side === "long" && raidSide === "bsl") || (g.side === "short" && raidSide === "ssl")) {
+        disrespected.push("Wrong sweep polarity — the raid was against this side");
+      }
+      if (narr.liquidity.lastSweepExtreme != null) {
+        const beyond =
+          g.side === "long"
+            ? g.stop < narr.liquidity.lastSweepExtreme
+            : g.stop > narr.liquidity.lastSweepExtreme;
+        if (!beyond) {
+          disrespected.push(`Raid did not hold — price continued through ${narr.liquidity.lastSweepLevel?.toFixed(2) ?? "the swept level"} (true break, not a sweep)`);
+        }
+      }
+      const zone = bias.dealing?.zone;
+      if ((g.side === "long" && zone === "premium") || (g.side === "short" && zone === "discount")) {
+        disrespected.push(`Entered in ${zone} — wrong half of the dealing range`);
+      }
+      if (narr.confirmation === "none" || narr.confirmation === "sweep_only") {
+        disrespected.push("Displacement failed — no follow-through after the shift");
+      }
+      if (ctx.desk.news?.verdict === "blackout") {
+        disrespected.push("News blackout — the impulse was the release, not the model");
+      }
+    }
+    if (!disrespected.length) {
+      disrespected.push(`Invalidation ${g.stop.toFixed(2)} traded — the array was spent before the card printed`);
+    }
     return {
       result: "lost",
-      headline: `${g.symbol} ${g.side} failed ${rTxt} — ${g.exitReason ?? "stop"}`,
+      headline: `${g.symbol} ${g.side} invalidated ${rTxt} — ${disrespected[0]}`,
       why: [
         `Stop ${g.stop.toFixed(2)} tagged before target ${g.tp1.toFixed(2)}. Invalidation was the tell.`,
-        "Either the raid continued (true break) or the array was already spent when the card printed.",
+        ...disrespected.slice(1, 3),
         g.smtNote ? `SMT context: ${g.smtNote}` : "No HTF SMT confirmation on the ticket.",
       ],
       whatWorked: ["Stop did its job — defined risk"],
-      whatFailed: [`${g.strategy} did not deliver`, "Grade is probability, not a promise"],
+      whatFailed: disrespected,
       lesson: g.taken
-        ? "Take the R, journal the miss on structure, do not add."
-        : "You skipped and it failed — that skip was a process win. Keep doing that when the tape disagrees after entry.",
+        ? "Take the R, journal WHICH confluence broke, do not add."
+        : "You skipped and it invalidated — that skip was a process win. Keep doing that when the tape disagrees after entry.",
+      tag: "invalidation",
     };
   }
   return {

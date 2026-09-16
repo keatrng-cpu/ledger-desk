@@ -9,8 +9,8 @@ import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 import type { HtfBiasRead } from "@/lib/trading/structure";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
-import { isJudasWindow } from "@/lib/trading/sessions";
-import { listOpenPaperTrades } from "@/lib/trading/paper-manager";
+import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
+import { bookTakenToday, listOpenPaperTrades } from "@/lib/trading/paper-manager";
 import { cn } from "@/lib/utils";
 
 function px(n: number): string {
@@ -148,8 +148,14 @@ export function pricePathVerdict(
   if (desk.news?.verdict === "blackout") {
     return { word: "STAND", line: desk.news.reason || "News blackout", book: null };
   }
-  if (isJudasWindow(clock.etHour, clock.etMinute)) {
-    return { word: "STAND", line: "Judas 9:30–9:45 — name the raid", book: null };
+  // Time gates from the WALL clock, not the desk build's clock: the desk is
+  // rebuilt every 20s (longer when the tab is hidden), so at 09:45:00 the
+  // stale build would keep saying "Judas" for up to a poll while the quote
+  // ticked live underneath it.
+  const wall = etWallParts(Date.now());
+  if (isJudasWindow(wall.hour, wall.minute)) {
+    const left = 45 - wall.minute;
+    return { word: "STAND", line: `Judas 9:30–9:45 — name the raid · ${left}m to go`, book: null };
   }
   if (!clock.inTradeWindow) {
     const l = desk.draws.left.primary;
@@ -189,6 +195,16 @@ export function pricePathVerdict(
   const book: "left" | "right" | null =
     leftS === 0 && rightS === 0 ? null : leftS >= rightS ? "left" : "right";
 
+  // Quote freshness vetoes a TAKE immediately, even between desk polls: the
+  // 1-2s quote poll patches lagSec into desk.quotes long before the next
+  // 20s build recomputes `actionable`.
+  const worstLag = Math.max(desk.quotes.left.lagSec ?? 0, desk.quotes.right.lagSec ?? 0);
+  const staleQuote = worstLag > 120;
+
+  // One book per day. The paper book is the record; if MNQ already printed a
+  // fill today, an ES TAKE is the same idea at double risk — say so.
+  const taken = paperReady ? bookTakenToday() : null;
+
   if (path && book) {
     const bias = desk.bias[book];
     const draw = desk.draws[book].primary;
@@ -196,19 +212,46 @@ export function pricePathVerdict(
     const seq = desk.smcMaster[book];
     const take = cand && isHighProbPath(cand) && cand.htfOk && seq.word === "TAKE";
     if (take && cand) {
+      if (staleQuote) {
+        return {
+          word: "STAND",
+          line: `${cand.symbol} ${cand.side.toUpperCase()} sequence complete — quote ${Math.round(worstLag)}s old, no fill on a stale print`,
+          book,
+        };
+      }
+      if (taken && taken.book !== cand.symbol.replace(/^M/, "")) {
+        return {
+          word: "STAND",
+          line: `${cand.symbol} ${cand.side.toUpperCase()} sequence complete — one book: ${taken.symbol} already traded today`,
+          book,
+        };
+      }
       return {
         word: "TAKE",
         line: `${cand.symbol} ${cand.side.toUpperCase()} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
         book,
       };
     }
-    if (seq.word === "WAIT") {
-      return {
-        word: "STAND",
-        line: `WAIT ${seq.symbol} — ${seq.missing}`,
-        book,
-      };
-    }
+    // Not TAKE: name the layer that is holding it, with the tape reason.
+    // "No A+/A/A- PATH" was printed here even while an A+ PATH existed and
+    // the real blocker was a must-layer — the trader could not tell which.
+    const head = seq.word === "WAIT" ? "WAIT" : "STAND";
+    return {
+      word: "STAND",
+      line: `${head} ${seq.symbol}${seq.side ? ` ${seq.side.toUpperCase()}` : ""} · ${seq.missing} — ${seq.missingDetail}`,
+      book,
+    };
+  }
+
+  // No PATH on either book: still tell the trader what the sequence is
+  // waiting on for the preferred book, not just "no PATH".
+  const seq = book ? desk.smcMaster[book] : desk.smcMaster.oneBook;
+  if (seq && seq.word !== "TAKE") {
+    return {
+      word: "STAND",
+      line: `${seq.symbol}${seq.side ? ` ${seq.side.toUpperCase()}` : ""} · ${seq.missing} — ${seq.missingDetail}`,
+      book,
+    };
   }
   const missing =
     path?.missing[0] ??
@@ -272,6 +315,11 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
                     {l.state === "pass" ? "●" : l.state === "fail" ? "×" : "○"} {l.label}
                   </span>
                 ))}
+              {b.word !== "TAKE" && (
+                <span className="basis-full text-[10px] text-[var(--color-muted)]">
+                  ↳ {b.missingDetail}
+                </span>
+              )}
             </p>
           );
         })}

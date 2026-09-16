@@ -47,6 +47,12 @@ export interface LiquidityMap {
   nearestSsl: number | null;
   lastSweep: LiquiditySide;
   lastSweepLabel: string | null;
+  /** Bar time of the raid that set `lastSweep` (detector sweep only). */
+  lastSweepT: number | null;
+  /** The level that was raided — the invalidation lives beyond its wick. */
+  lastSweepLevel: number | null;
+  /** Wick extreme of the raid bar. */
+  lastSweepExtreme: number | null;
 }
 
 export interface DrawOnLiquidity {
@@ -154,22 +160,21 @@ function buildLiquidityMap(
     });
   }
 
+  // A raid is a wick THROUGH the pool with a CLOSE back inside, on a closed
+  // bar, recently (detectors.ts RECENT_SWEEP_BARS). The pool list's `swept`
+  // flag only says the last bar is beyond the level — a breakout also does
+  // that, and before 2026-09-16 the fallback below let a breakout stand in
+  // as "the sweep" and arm reversal entries into a trend. The pool flags stay
+  // for the liquidity map display; they no longer define lastSweep.
   const last = det.sweep.latest;
   let lastSweep: LiquiditySide = "none";
   let lastSweepLabel: string | null = null;
   if (last) {
     lastSweep = last.side === "buyside" ? "bsl" : "ssl";
-    lastSweepLabel = `${last.side} sweep`;
-  } else {
-    const sweptB = bsl.find((x) => x.swept);
-    const sweptS = ssl.find((x) => x.swept);
-    if (sweptB) {
-      lastSweep = "bsl";
-      lastSweepLabel = sweptB.label;
-    } else if (sweptS) {
-      lastSweep = "ssl";
-      lastSweepLabel = sweptS.label;
-    }
+    const pool = (last.side === "buyside" ? bsl : ssl).find(
+      (x) => Math.abs(x.price - last.sweptLevel) <= Math.max(0.5, last.sweptLevel * 0.0005),
+    );
+    lastSweepLabel = pool ? `${pool.label} swept` : `${last.side} sweep`;
   }
 
   const unsweptB = bsl
@@ -186,6 +191,9 @@ function buildLiquidityMap(
     nearestSsl: unsweptS[0]?.price ?? null,
     lastSweep,
     lastSweepLabel,
+    lastSweepT: last?.t ?? null,
+    lastSweepLevel: last?.sweptLevel ?? null,
+    lastSweepExtreme: last?.wickExtreme ?? null,
   };
 }
 
@@ -265,15 +273,21 @@ function confirmationState(
   direction: "bull" | "bear",
   liq: LiquidityMap,
 ): ConfirmationState {
+  // Sweep POLARITY: a long needs sell-side taken (SSL raid), a short needs
+  // buy-side taken. Any-side "lastSweep !== none" used to pass here, so a
+  // BSL raid could confirm a long — the exact trade the raid was against.
+  const raid = det.sweep.latest;
   const sweepOk =
-    liq.lastSweep !== "none" ||
-    (det.sweep.latest != null &&
-      ((direction === "bull" && det.sweep.latest.side === "sellside") ||
-        (direction === "bear" && det.sweep.latest.side === "buyside")));
+    raid != null &&
+    ((direction === "bull" && raid.side === "sellside") ||
+      (direction === "bear" && raid.side === "buyside"));
 
+  // The shift has to come AFTER the raid it confirms. A displacement that
+  // printed before the sweep is the leg INTO liquidity, not the reversal.
   const disp =
     det.displacement.latest != null &&
-    det.displacement.latest.direction === direction;
+    det.displacement.latest.direction === direction &&
+    (raid == null || det.displacement.latest.index > raid.index);
 
   const mech =
     det.mechanical.complete &&

@@ -190,8 +190,10 @@ function showOsNote(fire: PathAlarmFire): void {
 }
 
 /**
- * Call on every desk poll. Dedupe per candidate+day. Judas 9:30–9:45 ET
- * suppresses everything except A+ (the raid is the setup, not the entry).
+ * Call on every desk poll. Dedupe per candidate+day. Fires only when the
+ * SMC sequence for that book is TAKE (all must-layers incl. retrace) AND the
+ * PATH band is A+/A/A-. Judas 9:30-9:45 ET suppresses everything: the raid
+ * is the setup, not the entry, and smc-master STANDs it anyway.
  */
 export function considerPathAlarm(
   desk: DeskPayload,
@@ -203,10 +205,21 @@ export function considerPathAlarm(
 
   const clock = desk.clock;
   const band = String(candidate.pathBand || candidate.grade);
-  if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+") {
-    return null;
-  }
+  if (isJudasWindow(clock.etHour, clock.etMinute)) return null;
   if (desk.news?.verdict === "blackout") return null;
+
+  // Beep only on a COMPLETE sequence. A PATH grade alone is the scanner's
+  // component score; the alarm used to fire on it while smc-master still
+  // said WAIT (no retrace) or STAND (wrong sweep polarity) — so the trader
+  // ran to the screen to be told not to trade.
+  const root = (s: string) => s.replace(/^M/, "");
+  const seq =
+    root(candidate.symbol) === root(desk.smcMaster.left.symbol)
+      ? desk.smcMaster.left
+      : root(candidate.symbol) === root(desk.smcMaster.right.symbol)
+        ? desk.smcMaster.right
+        : null;
+  if (!seq || seq.word !== "TAKE") return null;
 
   const day = etDay(Date.now());
   const key = alarmKey(candidate, day);

@@ -35,7 +35,10 @@ export interface SmcMasterBook {
   symbol: string;
   side: "long" | "short" | null;
   word: "TAKE" | "WAIT" | "STAND";
+  /** Label of the first must-layer that is not passing (or "Sequence complete"). */
   missing: string;
+  /** Why that layer is not passing, in tape terms — the one line a trader needs. */
+  missingDetail: string;
   layers: SmcLayer[];
   mustPass: number;
   mustNeed: number;
@@ -64,6 +67,8 @@ export interface SmcMasterInput {
   news: NewsRead;
   smtStack?: SmtStack;
   smc?: { left: SmcTape; right: SmcTape };
+  /** Live prints — the retrace layer is a fact about WHERE price is now. */
+  quotes?: { left: { price: number }; right: { price: number } };
 }
 
 function factorState(
@@ -96,6 +101,7 @@ function gradeBook(
   news: NewsRead,
   smtOn: boolean,
   tape: SmcTape | undefined,
+  price: number | null,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias);
   const side =
@@ -154,39 +160,72 @@ function gradeBook(
     price: dol?.price,
   });
 
-  const retracePass = narrative.confirmation === "armed_entry";
   const shiftPrinted =
     narrative.confirmation === "confirmed" ||
     narrative.confirmation === "sweep_displace" ||
     narrative.confirmation === "armed_entry";
-  layers.push({
-    id: "retrace",
-    label: "Retrace into array",
-    must: true,
-    state: retracePass ? "pass" : "wait",
-    detail: retracePass
-      ? "Armed retrace — limit at FVG CE / IFVG / last OB. Never the impulse print."
-      : shiftPrinted
-        ? "Shift printed — wait the first clean retrace, do not chase"
-        : "No retrace until LTF shift exists",
-  });
 
+  // The array the retrace goes INTO: same side as the trade, still fresh, and
+  // formed after the raid (an array from before the sweep is the leg into
+  // liquidity, not the reversal's footprint). Nearest to price wins.
   const want: "bull" | "bear" | null =
     side === "long" ? "bull" : side === "short" ? "bear" : null;
-  const fresh = want
-    ? tape?.arrays.find(
+  const raidT = narrative.liquidity.lastSweepT;
+  const candidates = want
+    ? (tape?.arrays ?? []).filter(
         (a) =>
           a.side === want &&
           (a.kind === "ifvg" || a.kind === "fvg" || a.kind === "ob") &&
-          (a.state === "fresh" || a.state === "partial"),
+          (a.state === "fresh" || a.state === "partial") &&
+          (raidT == null || a.t >= raidT),
       )
-    : undefined;
+    : [];
+  const fresh =
+    price != null
+      ? [...candidates].sort(
+          (a, b) => Math.abs(a.mid - price) - Math.abs(b.mid - price),
+        )[0]
+      : candidates[0];
   const mss = want
     ? tape?.alerts.find(
         (a) =>
           a.side === want && (a.kind === "mss" || a.kind === "displacement"),
       )
     : undefined;
+
+  // RETRACE = price is IN the array now (± a quarter of its height). Before
+  // 2026-09-16 this layer passed on narrative "armed_entry", which only meant
+  // "a sweep, a shift and SOME array exist" — true at the top of the impulse,
+  // i.e. exactly the print the desk says never to chase.
+  let retraceState: SmcLayerState = "wait";
+  let retraceDetail: string;
+  if (!shiftPrinted) {
+    retraceDetail = "No retrace until LTF shift exists";
+  } else if (!fresh) {
+    retraceDetail = "Shift printed — no fresh FVG/IFVG/OB on this side after the raid yet";
+  } else if (price == null) {
+    retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} — no live print to place you`;
+  } else {
+    const pad = Math.max((fresh.top - fresh.bottom) * 0.25, 0.25);
+    const inside = price >= fresh.bottom - pad && price <= fresh.top + pad;
+    if (inside) {
+      retraceState = "pass";
+      retraceDetail = `In ${fresh.tf} ${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} · limit at CE ${fresh.mid.toFixed(2)}`;
+    } else {
+      const away = price > fresh.top ? price - fresh.top : fresh.bottom - price;
+      const dir = price > fresh.top ? "above" : "below";
+      retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} is ${away.toFixed(2)}pt ${dir} price — wait for it, do not chase ${price.toFixed(2)}`;
+    }
+  }
+  layers.push({
+    id: "retrace",
+    label: "Retrace into array",
+    must: true,
+    state: retraceState,
+    detail: retraceDetail,
+    price: fresh?.mid,
+  });
+
   layers.push({
     id: "array",
     label: "Live PD array",
@@ -222,16 +261,23 @@ function gradeBook(
   else if (mustWait || !pathOk) word = "WAIT";
   else if (mustPass === mustNeed && pathOk) word = "TAKE";
 
+  const blocker = mustFail ?? mustWait ?? null;
   const missing =
-    mustFail?.label ??
-    mustWait?.label ??
-    (!pathOk ? "No A+/A/A− PATH" : "Sequence complete");
+    blocker?.label ?? (!pathOk ? "No A+/A/A− PATH" : "Sequence complete");
+  const missingDetail =
+    blocker?.detail ??
+    (!pathOk
+      ? cand
+        ? `${cand.symbol} ${cand.side} grades ${String(cand.pathBand || cand.grade)} Q ${cand.confluence.toFixed(2)} — below the PATH bar`
+        : "No candidate on this book"
+      : "All must-layers pass");
 
   return {
     symbol: bias.symbol,
     side,
     word,
     missing,
+    missingDetail,
     layers,
     mustPass,
     mustNeed,
@@ -260,6 +306,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.news,
     smtOn,
     desk.smc?.left,
+    desk.quotes?.left.price ?? null,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -270,6 +317,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.news,
     smtOn,
     desk.smc?.right,
+    desk.quotes?.right.price ?? null,
   );
 
   const ranked = [left, right].sort((a, b) => {
