@@ -68,5 +68,12 @@
     "actual": "+1.2% MoM / +6.0% YoY",
     "vs": "exp ~+0.8% / prev -0.5% (rev from -0.6%)",
     "note": "Hot. Ex-autos +1.4%; control group +1.4%. Strong rebound after July soft."
+  },
+  {
+    "date": "2026-09-16",
+    "name": "FOMC Rate Decision",
+    "actual": "+25bps to 3.75–4.00%",
+    "vs": "exp +25bps / prev 3.50–3.75%",
+    "note": "Unanimous 12-0. SEP median end-2026 4.1% (was 3.8%); 12 of 18 see one more hike this year. Hawkish."
   }
 ]
