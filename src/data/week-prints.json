@@ -61,5 +61,12 @@
     "actual": "+0.4% MoM / +3.4% YoY",
     "vs": "exp +0.4% / 3.4%; core +0.3% vs +0.2% / 2.4%",
     "note": "Headline in-line. Core MoM slightly hot. Gasoline +3.9% drove ~1/3 of rise; energy +2.1%; shelter +0.3%. Core YoY eased to 2.4%."
+  },
+  {
+    "date": "2026-09-16",
+    "name": "Retail Sales (Aug)",
+    "actual": "+1.2% MoM / +6.0% YoY",
+    "vs": "exp ~+0.8% / prev -0.5% (rev from -0.6%)",
+    "note": "Hot. Ex-autos +1.4%; control group +1.4%. Strong rebound after July soft."
   }
 ]
