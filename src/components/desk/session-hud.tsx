@@ -129,16 +129,21 @@ export function SessionHud({
   }, [shock?.active, shock?.at]);
   const [, forceTick] = useState(0);
   useEffect(() => {
-    if (!shock?.active && !shock?.tail) return;
+    if (!paperReady || (!shock?.active && !shock?.tail)) return;
     const id = setInterval(() => forceTick((n) => n + 1), 1000);
     return () => clearInterval(id);
-  }, [shock?.active, shock?.tail]);
+  }, [paperReady, shock?.active, shock?.tail]);
+  // Date.now() only after mount — during SSR/first hydration paperReady is
+  // false, so the countdown text is absent on both server and client (no
+  // hydration mismatch); it appears once the client takes over.
   const shockLeftMs =
-    shock?.active && shock.lockUntilMs
-      ? shock.lockUntilMs - Date.now()
-      : shock?.tail && shock.tailUntilMs
-        ? shock.tailUntilMs - Date.now()
-        : 0;
+    !paperReady
+      ? 0
+      : shock?.active && shock.lockUntilMs
+        ? shock.lockUntilMs - Date.now()
+        : shock?.tail && shock.tailUntilMs
+          ? shock.tailUntilMs - Date.now()
+          : 0;
   const shockMmss =
     shockLeftMs > 0
       ? `${Math.floor(shockLeftMs / 60_000)}:${String(Math.floor((shockLeftMs % 60_000) / 1000)).padStart(2, "0")}`
@@ -235,13 +240,13 @@ export function SessionHud({
           SYNTHETIC DATA — no live feed; structure/scanner untrustworthy
         </div>
       )}
-      {shock?.active && (
+      {paperReady && shock?.active && (
         <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse only.
         </div>
       )}
-      {!shock?.active && shock?.tail && (
+      {paperReady && !shock?.active && shock?.tail && (
         <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           Post-shock tail {shockMmss} — A+ only, fresh sequence after the shock. {shock.line}
