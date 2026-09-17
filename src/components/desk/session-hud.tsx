@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertOctagon,
   Clock,
@@ -18,6 +18,7 @@ import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief"
 import { weekAheadFocusLine } from "@/lib/trading/week-ahead";
 import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
 import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path-board";
+import { shockSiren } from "@/lib/alerts/path-alarm";
 import { cn } from "@/lib/utils";
 
 function QuoteChip({
@@ -111,6 +112,38 @@ export function SessionHud({
   const smtBear = /bear/i.test(smtNote);
   const pathV = pricePathVerdict(desk, paperReady);
 
+  // Tape circuit breaker: siren ONCE on the transition into a shock, and a
+  // live countdown so the strip re-renders every second while locked.
+  const shock = desk.shock;
+  const lastShockAt = useRef<number | null>(null);
+  useEffect(() => {
+    if (shock?.active && shock.at && lastShockAt.current !== shock.at) {
+      lastShockAt.current = shock.at;
+      try {
+        shockSiren();
+      } catch {
+        /* audio blocked before a user gesture — the strip still shows */
+      }
+    }
+    if (!shock?.active) lastShockAt.current = shock?.at ?? lastShockAt.current;
+  }, [shock?.active, shock?.at]);
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    if (!shock?.active && !shock?.tail) return;
+    const id = setInterval(() => forceTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [shock?.active, shock?.tail]);
+  const shockLeftMs =
+    shock?.active && shock.lockUntilMs
+      ? shock.lockUntilMs - Date.now()
+      : shock?.tail && shock.tailUntilMs
+        ? shock.tailUntilMs - Date.now()
+        : 0;
+  const shockMmss =
+    shockLeftMs > 0
+      ? `${Math.floor(shockLeftMs / 60_000)}:${String(Math.floor((shockLeftMs % 60_000) / 1000)).padStart(2, "0")}`
+      : "0:00";
+
   const focus = useMemo(() => {
     const freshDebrief =
       lastDebrief && Date.now() - lastDebrief.at < 2 * 3600_000
@@ -200,6 +233,18 @@ export function SessionHud({
         <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_18%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           SYNTHETIC DATA — no live feed; structure/scanner untrustworthy
+        </div>
+      )}
+      {shock?.active && (
+        <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
+          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
+          {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse only.
+        </div>
+      )}
+      {!shock?.active && shock?.tail && (
+        <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
+          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
+          Post-shock tail {shockMmss} — A+ only, fresh sequence after the shock. {shock.line}
         </div>
       )}
 

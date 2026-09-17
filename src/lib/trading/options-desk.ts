@@ -414,6 +414,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
   if (!clock.isWeekday) blocks.push("Weekend");
   if (clock.killzone !== "ny_am") blocks.push(`Not NY AM (${clock.killzoneLabel})`);
   if (desk.news?.verdict === "blackout") blocks.push(desk.news.reason || "News blackout");
+  if (desk.shock?.tail && !desk.shock.active) blocks.push(`Post-shock tail — A+ only, no new RH debit · ${desk.shock.line}`);
   if (day?.kind === "holiday") blocks.push("Cash holiday");
   if (eventKind(day?.kind) && !afterSecondImpulse(clock)) {
     blocks.push("Event window — wait second impulse after 10:15 ET");

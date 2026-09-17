@@ -45,6 +45,7 @@ import { scanSetups, type ScanResult } from "./scanner";
 import { drawOnLiquidity, type DrawRead } from "./draw";
 import { newsRead, type NewsRead } from "./news";
 import { summarizeDetectors } from "./detectors";
+import { readShock, type ShockRead } from "./shock";
 import {
   buildMarketNarrative,
   dualNarrativeSummary,
@@ -63,6 +64,8 @@ export interface DeskPayload {
   quotes: { left: LiveQuote; right: LiveQuote };
   /** Cash SPY/QQQ spots for the Robinhood sleeve. Null = fall back to ES/10, NQ/40 (labelled). */
   proxies: { SPY: ProxySpot | null; QQQ: ProxySpot | null };
+  /** Tape circuit breaker — unscheduled catastrophic candle. See shock.ts. */
+  shock: ShockRead;
   bias: { left: HtfBiasRead; right: HtfBiasRead };
   scan: ScanResult;
   risk: {
@@ -278,15 +281,49 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         summary: dualNarrativeSummary(narrL, narrR),
       };
 
+      // Tape circuit breaker BEFORE the scheduled-news gate: an unscheduled
+      // shock (tweet, leak, headline) has no calendar entry, so it must be
+      // caught from price. When locked it overrides the verdict to blackout,
+      // which the whole desk (TAKE / auto-paper / alarm / options) already
+      // refuses on. Uses the same closed bars the detectors ran on.
+      const nowMs = Date.now();
+      const shock = readShock(
+        { symbol: left.symbol, closedBars: closedL, quote: { price: lq.price, marketTimeMs: lq.marketTimeMs } },
+        { symbol: right.symbol, closedBars: closedR, quote: { price: rq.price, marketTimeMs: rq.marketTimeMs } },
+        nowMs,
+      );
+
       // News gate: a scheduled high-impact release inside the risk window kills
       // actionability the same way bad data does — the engine skips these too.
-      const news = newsRead(new Date());
+      const newsBase = newsRead(new Date());
+      const news: NewsRead =
+        shock.active
+          ? {
+              verdict: "blackout",
+              reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m lock — impulse is the news, not the model`,
+              nextEvent: newsBase.nextEvent,
+            }
+          : newsBase;
       if (news.verdict === "blackout") {
         for (const c of scan.candidates) c.actionable = false;
         scan.blocked.push(`News blackout: ${news.reason}`);
         scan.focus = `News blackout — ${news.reason} Stand down.`;
       } else if (news.verdict === "caution") {
         scan.blocked.push(`News caution: ${news.reason}`);
+      }
+
+      // Post-shock tail: lock lifted but the tape is still repricing. A+ only,
+      // and every card must build a NEW sequence after the shock (the SMC
+      // array/sweep floor is applied in smc-master via desk.shock.freshFloorMs).
+      if (shock.tail) {
+        for (const c of scan.candidates) {
+          const band = String(c.pathBand || c.grade);
+          if (band !== "A+" && c.actionable) {
+            c.actionable = false;
+            c.reasons = [...c.reasons, `post-shock tail (${Math.ceil((shock.tailUntilMs! - nowMs) / 60_000)}m) — A+ only`];
+          }
+        }
+        scan.blocked.push(`Post-shock tail — A+ only · ${shock.line}`);
       }
 
       // Research rule: sweep alone is never an entry
@@ -479,6 +516,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         right,
         quotes: { left: lq, right: rq },
         proxies: { SPY: spySpot, QQQ: qqqSpot },
+        shock,
         bias: { left: biasL, right: biasR },
         scan,
         risk: {
@@ -521,7 +559,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           { symbol: right.symbol, bars: right.bars },
         ]),
       };
-      const smcMaster = gradeSmcMaster(payload);
+      const smcMaster = gradeSmcMaster({ ...payload, shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null });
       return {
         ...payload,
         smcMaster,

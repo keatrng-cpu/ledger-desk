@@ -366,6 +366,20 @@ function analyzeMissed(g: GhostTrade, ctx: AnalyzeCtx): GhostAnalysis {
 }
 
 function analyzeExpired(g: GhostTrade, ctx: AnalyzeCtx): GhostAnalysis {
+  if (/shock/i.test(g.exitReason ?? "")) {
+    return {
+      result: "expired",
+      headline: `${g.symbol} ${g.side} killed by a shock — pre-shock card is dead`,
+      why: [
+        "An unscheduled catastrophic candle printed after this card armed.",
+        "The array it was waiting for belongs to the old regime. A fill now is chasing the spike.",
+      ],
+      whatWorked: ["Stood down through the shock — the impulse is the news, not the model"],
+      whatFailed: ["Nothing you did — the tape changed regime under the card"],
+      lesson: "After a shock: new raid → new displacement → new array, or stand. Second impulse only.",
+      tag: "shock",
+    };
+  }
   const { desk, last } = ctx;
   const book = bookOf(desk, g.symbol);
   const bias = desk.bias[book];
@@ -535,9 +549,17 @@ export function resolveAgainst(
   bars: OhlcBar[],
   last: number,
   now: number,
+  shockFloorMs?: number | null,
 ): GhostTrade {
   if (g.status === "won" || g.status === "lost" || g.status === "expired" || g.status === "missed") {
     return g;
+  }
+  // A shock kills every card that was watching/armed before it. The array the
+  // card was waiting for belongs to the pre-shock regime; a fill now would be
+  // chasing the spike. A card already FILLED is left to its stop/target (the
+  // spike often reverses) — this only expires the unfilled ones.
+  if (shockFloorMs && g.status === "watching" && g.seenAt < shockFloorMs) {
+    return { ...g, status: "expired", exitReason: "shock — pre-shock card, sequence dead", exitAt: now };
   }
   const sessionOpen = etWallToEpochMs(g.dayKey, "06:00");
   const after = bars
@@ -744,7 +766,7 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
     return {
       before: g.status,
       last,
-      updated: resolveAgainst(g, series.bars ?? [], last, now),
+      updated: resolveAgainst(g, series.bars ?? [], last, now, desk.shock?.active || desk.shock?.tail ? desk.shock.freshFloorMs : null),
     };
   });
   const peers = resolved.map((x) => x.updated);

@@ -69,6 +69,8 @@ export interface SmcMasterInput {
   smc?: { left: SmcTape; right: SmcTape };
   /** Live prints — the retrace layer is a fact about WHERE price is now. */
   quotes?: { left: { price: number }; right: { price: number } };
+  /** Post-shock: arrays/sweeps before this ms don't count (fresh sequence only). */
+  shockFloorMs?: number | null;
 }
 
 function factorState(
@@ -102,6 +104,7 @@ function gradeBook(
   smtOn: boolean,
   tape: SmcTape | undefined,
   price: number | null,
+  shockFloorMs: number | null,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias);
   const side =
@@ -171,13 +174,16 @@ function gradeBook(
   const want: "bull" | "bear" | null =
     side === "long" ? "bull" : side === "short" ? "bear" : null;
   const raidT = narrative.liquidity.lastSweepT;
+  // After a shock, the array must have formed AFTER the shock too — a
+  // pre-shock FVG is a relic of the old regime, not a retrace target.
+  const floorT = Math.max(raidT ?? 0, shockFloorMs ?? 0) || null;
   const candidates = want
     ? (tape?.arrays ?? []).filter(
         (a) =>
           a.side === want &&
           (a.kind === "ifvg" || a.kind === "fvg" || a.kind === "ob") &&
           (a.state === "fresh" || a.state === "partial") &&
-          (raidT == null || a.t >= raidT),
+          (floorT == null || a.t >= floorT),
       )
     : [];
   const fresh =
@@ -307,6 +313,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     smtOn,
     desk.smc?.left,
     desk.quotes?.left.price ?? null,
+    desk.shockFloorMs ?? null,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -318,6 +325,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     smtOn,
     desk.smc?.right,
     desk.quotes?.right.price ?? null,
+    desk.shockFloorMs ?? null,
   );
 
   const ranked = [left, right].sort((a, b) => {

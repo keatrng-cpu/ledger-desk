@@ -70,6 +70,12 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   }
 
   lines.push(`news ${desk.news.verdict}${desk.news.nextEvent ? ` · ${desk.news.nextEvent.name} ${desk.news.nextEvent.timeEt} ET in ${desk.news.nextEvent.minutesAway}m` : ""}`);
+  if (desk.shock?.active || desk.shock?.tail) {
+    const e = desk.shock.event;
+    lines.push(
+      `SHOCK ${desk.shock.active ? "LOCK" : "TAIL"} ${desk.shock.line}${e ? ` · ${e.symbol} ${e.side} ${e.pts}pt ${e.atrMult}xATR ${e.kind} @ ${new Date(e.at).toISOString()}` : ""} · age ${desk.shock.ageSec}s`,
+    );
+  }
   if (desk.scan.smt?.note) lines.push(`SMT ${desk.scan.smt.edge}: ${desk.scan.smt.note}`);
   if (desk.smtStack?.primary?.note) lines.push(`SMT stack ${desk.smtStack.primary.note}`);
   if (desk.brief) {

@@ -170,6 +170,33 @@ function playAlarmTone(side: "long" | "short"): void {
   });
 }
 
+/**
+ * Distinct urgent siren for a tape shock — a fast descending triple, different
+ * from the PATH chime so the trader knows it means STAND DOWN, not "go". Fired
+ * once on the shock transition by the HUD; unaffected by the arm/mute state
+ * (a circuit breaker is not something you silence).
+ */
+export function shockSiren(): void {
+  const c = ctx();
+  if (!c) return;
+  void c.resume();
+  const now = c.currentTime;
+  [1174.66, 880, 659.25, 493.88, 659.25, 493.88].forEach((f, i) => {
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.value = f;
+    const t0 = now + i * 0.16;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.28, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+    osc.connect(g);
+    g.connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.16);
+  });
+}
+
 function showOsNote(fire: PathAlarmFire): void {
   if (typeof Notification === "undefined") return;
   if (Notification.permission !== "granted") return;
