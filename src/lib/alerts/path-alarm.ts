@@ -8,7 +8,7 @@
 
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
-import { isJudasWindow } from "@/lib/trading/sessions";
+import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
 
 export const PATH_ALARM_STORAGE = "ledger-path-alarm";
 export const PATH_ALARM_EVENT = "ledger-path-alarm-fire";
@@ -205,7 +205,9 @@ export function considerPathAlarm(
 
   const clock = desk.clock;
   const band = String(candidate.pathBand || candidate.grade);
-  if (isJudasWindow(clock.etHour, clock.etMinute)) return null;
+  // Wall clock, not the desk build's clock: the build can be up to a poll old.
+  const wall = etWallParts(Date.now());
+  if (isJudasWindow(wall.hour, wall.minute)) return null;
   if (desk.news?.verdict === "blackout") return null;
 
   // Beep only on a COMPLETE sequence. A PATH grade alone is the scanner's

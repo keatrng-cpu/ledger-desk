@@ -208,6 +208,34 @@ const MAX_BARS = 800;
  * Live last print — uses 1m chart meta so we get regularMarketTime (unix seconds)
  * and regularMarketPrice without the blocked v7 quote API.
  */
+/** A cash-equity spot (SPY / QQQ) for the options desk. Null on any failure. */
+export interface ProxySpot {
+  ticker: string;
+  price: number;
+  marketTimeMs: number;
+  lagSec: number;
+  source: "yahoo";
+}
+
+export async function fetchYahooSpot(ticker: "SPY" | "QQQ"): Promise<ProxySpot | null> {
+  const fetchedAtMs = Date.now();
+  try {
+    const json = await yahooChart(ticker, "1d", "1m");
+    const m = json?.chart?.result?.[0]?.meta;
+    if (!m?.regularMarketPrice || m.regularMarketPrice <= 0 || !m.regularMarketTime) return null;
+    const marketTimeMs = m.regularMarketTime * 1000;
+    return {
+      ticker,
+      price: m.regularMarketPrice,
+      marketTimeMs,
+      lagSec: Math.max(0, Math.round((fetchedAtMs - marketTimeMs) / 1000)),
+      source: "yahoo",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchYahooLiveQuote(
   symbol: IndexSymbol,
 ): Promise<LiveQuote | null> {

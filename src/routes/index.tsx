@@ -65,6 +65,7 @@ import {
 } from "@/lib/trading/build-desk";
 import { fetchLiveQuotes } from "@/lib/market/fetch-dual";
 import { applyQuoteToLastBar, stampSeriesFromBars } from "@/lib/market/freshest";
+import { etWallParts } from "@/lib/trading/sessions";
 import { buildLiveSays } from "@/lib/trading/live-says";
 
 import { getRiskState, getSettings } from "@/lib/journal/server";
@@ -742,12 +743,14 @@ function MasterplacePage() {
   const onLog = useCallback(
     (c: SetupCandidate, mode: "paper" | "live") => {
       if (mode === "paper") {
-        const lastPrice =
+        const q =
           desk?.left.symbol === c.symbol
-            ? desk.quotes.left.price
+            ? desk.quotes.left
             : desk?.right.symbol === c.symbol
-              ? desk.quotes.right.price
-              : desk?.quotes.left.price;
+              ? desk.quotes.right
+              : desk?.quotes.left;
+        const lastPrice = q?.price;
+        const wall = etWallParts(Date.now());
         // Real measured-edge multiplier (journal/discretion.ts), keyed off the
         // same strategy field paper-manager.ts already attributes trades to.
         // Applied silently to size — paper stays one-click/frictionless by
@@ -758,6 +761,9 @@ function MasterplacePage() {
         );
         const res = openPaperTradeInstant(c, {
           lastPrice,
+          lagSec: q?.lagSec,
+          et: { hour: wall.hour, minute: wall.minute },
+          newsVerdict: desk?.news?.verdict,
           killzone: desk?.clock.killzone,
           discretionMult: disc.factor,
         });

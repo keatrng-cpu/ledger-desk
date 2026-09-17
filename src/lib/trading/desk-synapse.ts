@@ -312,8 +312,8 @@ function buildFeeds(ctx: {
     ctx;
   const top = fused[0];
   const bookWr =
-    memory.book.pathTaken > 0
-      ? memory.book.pathWins / memory.book.pathTaken
+    (memory.book.paperTaken ?? 0) > 0
+      ? (memory.book.paperWins ?? 0) / (memory.book.paperTaken ?? 0)
       : null;
 
   const paperTaken = memory.book.paperTaken ?? 0;
@@ -344,7 +344,7 @@ function buildFeeds(ctx: {
   const path = [
     `Target WR ${(PROFIT_TARGET_WR * 100).toFixed(0)}% · floor ${PROFIT_ACTION_FLOOR}`,
     bookWr != null
-      ? `Book WR ${(bookWr * 100).toFixed(0)}% on ${memory.book.pathTaken} PATH · ΣR ${memory.book.sumR}`
+      ? `Paper book WR ${(bookWr * 100).toFixed(0)}% on ${memory.book.paperTaken ?? 0} fills · ΣR ${memory.book.sumR}`
       : "Book empty — BT trains path rates",
     paperLine,
     top?.actionable
@@ -434,8 +434,8 @@ function buildPosture(ctx: {
 }): DeskSynapseState["posture"] {
   const { brain, swing, memory, fused, boosts } = ctx;
   const bookWr =
-    memory.book.pathTaken > 0
-      ? memory.book.pathWins / memory.book.pathTaken
+    (memory.book.paperTaken ?? 0) > 0
+      ? (memory.book.paperWins ?? 0) / (memory.book.paperTaken ?? 0)
       : null;
   const prefer = Object.values(boosts)
     .filter((b) => b.boost > 0.02 || (b.wr != null && b.wr >= 0.65 && b.n >= 5))
@@ -456,9 +456,9 @@ function buildPosture(ctx: {
       (top
         ? `Fused ${top.symbol} ${top.side} ${top.fusedScore.toFixed(2)}`
         : "Stand down — no fused edge"),
-    pathPace: `PATH book ${memory.book.pathTaken} · target ~${PATH_MONTH_CAP}/mo`,
+    pathPace: `Paper fills ${memory.book.paperTaken ?? 0} · target ~${PATH_MONTH_CAP} PATH/mo`,
     bookWr,
-    monthPathEst: memory.book.pathTaken,
+    monthPathEst: memory.book.paperTaken ?? 0,
     prefer: [...new Set(prefer)].slice(0, 5),
     avoid: [...new Set([...avoid, "blake_mech long", "dual book same day"])].slice(
       0,

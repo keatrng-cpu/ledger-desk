@@ -13,6 +13,8 @@ import {
   syntheticQuote,
   type YahooInterval,
   type YahooRange,
+  fetchYahooSpot,
+  type ProxySpot,
 } from "@/lib/market/yahoo";
 import { readLiveTickFresh, quoteFromLiveTick } from "@/lib/market/live-gateway";
 import {
@@ -59,6 +61,8 @@ export interface DeskPayload {
   left: SymbolSeries;
   right: SymbolSeries;
   quotes: { left: LiveQuote; right: LiveQuote };
+  /** Cash SPY/QQQ spots for the Robinhood sleeve. Null = fall back to ES/10, NQ/40 (labelled). */
+  proxies: { SPY: ProxySpot | null; QQQ: ProxySpot | null };
   bias: { left: HtfBiasRead; right: HtfBiasRead };
   scan: ScanResult;
   risk: {
@@ -193,9 +197,11 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         load(data.left, "1mo", "15m"),
         load(data.right, "1mo", "15m"),
       ]);
-      const [lq0, rq0] = await Promise.all([
+      const [lq0, rq0, spySpot, qqqSpot] = await Promise.all([
         quote(data.left, left),
         quote(data.right, right),
+        fetchYahooSpot("SPY"),
+        fetchYahooSpot("QQQ"),
       ]);
       let lq = lq0;
       let rq = rq0;
@@ -231,11 +237,17 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const biasL = analyzeStructure(left.symbol, left.bars, left.changePct);
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
-      const smtStack = smtDivergenceStack(left.bars, right.bars);
+      // SMT and the SMC tape are CONFIRMATIONS, not price location: they run
+      // on closed bars only. A forming bar can print a transient HH on NQ
+      // before ES prints its own (fake SMT), and a partial candle can read as
+      // a displacement / MSS that never closes that way.
+      const closedL = closedBars(left.bars, left.interval, left.marketTimeMs ?? Date.now());
+      const closedR = closedBars(right.bars, right.interval, right.marketTimeMs ?? Date.now());
+      const smtStack = smtDivergenceStack(closedL, closedR);
       const divergence = smtStack.primary;
       const smc = {
-        left: buildSmcTape(left.bars),
-        right: buildSmcTape(right.bars),
+        left: buildSmcTape(closedL),
+        right: buildSmcTape(closedR),
       };
       const drawL = drawOnLiquidity(biasL, left.bars);
       const drawR = drawOnLiquidity(biasR, right.bars);
@@ -252,8 +264,8 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // Detectors only ever see CLOSED bars. The forming bar (patched with the
       // live print above) is for price location, never for "displacement" or
       // "closed back inside" — those are facts about a bar that has finished.
-      const detL = summarizeDetectors(closedBars(left.bars, left.interval, left.marketTimeMs ?? Date.now()));
-      const detR = summarizeDetectors(closedBars(right.bars, right.interval, right.marketTimeMs ?? Date.now()));
+      const detL = summarizeDetectors(closedL);
+      const detR = summarizeDetectors(closedR);
       const dirL: "bull" | "bear" =
         biasL.topDown === "bear" ? "bear" : "bull";
       const dirR: "bull" | "bear" =
@@ -466,6 +478,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left,
         right,
         quotes: { left: lq, right: rq },
+        proxies: { SPY: spySpot, QQQ: qqqSpot },
         bias: { left: biasL, right: biasR },
         scan,
         risk: {

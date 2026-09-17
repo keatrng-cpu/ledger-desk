@@ -32,7 +32,7 @@ import { MAX_RISK_PTS } from "./simulate-path-trade";
 import { QUOTE_EXECUTION_MAX_LAG_SEC } from "@/lib/market/types";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
-import { getSessionClock } from "./sessions";
+import { getSessionClock, isJudasWindow } from "./sessions";
 import { PROGRESS_R, retarget, shouldFlatten } from "./management";
 import { debriefPaper, pushDebrief, type TradeDebrief } from "./trade-debrief";
 
@@ -365,9 +365,47 @@ export function bookTakenToday(now = Date.now()): {
  */
 export function openPaperTradeInstant(
   c: SetupCandidate,
-  opts?: { lastPrice?: number; killzone?: string; discretionMult?: number },
+  opts?: {
+    lastPrice?: number;
+    killzone?: string;
+    discretionMult?: number;
+    /** Age of `lastPrice`. Required for a fill to be honest; omitted = unknown = refused. */
+    lagSec?: number;
+    /** Wall-clock ET at the click; Judas is a no-entry window for paper too. */
+    et?: { hour: number; minute: number };
+    newsVerdict?: "blackout" | "caution" | "clear" | string;
+  },
 ): { ok: true; trade: PaperTrade } | { ok: false; error: string } {
   try {
+    // The paper book is the ONLY sample behind the n>=20 A+ unlock, the brain
+    // rates and every scoreboard. Until 2026-09-16 this button bypassed every
+    // hard gate but one-book: a click during Judas, in a news blackout, on a
+    // C-grade counter-HTF card, at a 600s-old Yahoo print wrote a fill that
+    // stats treated as a rule-compliant PATH trade. A sample that can be
+    // corrupted on demand says nothing about edge, so the gates live HERE,
+    // not only in the UI.
+    const band = String(c.pathBand || c.grade || "");
+    if (!c.actionable && !["A+", "A", "A-", "A−", "B+"].includes(band)) {
+      return {
+        ok: false,
+        error: `${c.symbol} ${c.side} is ${band || "ungraded"} and not actionable — journal it as a skip, it is not a paper trade.`,
+      };
+    }
+    if (opts?.lagSec == null || !Number.isFinite(opts.lagSec)) {
+      return { ok: false, error: "No quote age on this fill — refusing to book at an unknown lag." };
+    }
+    if (opts.lagSec > QUOTE_EXECUTION_MAX_LAG_SEC) {
+      return {
+        ok: false,
+        error: `Quote ${Math.round(opts.lagSec)}s old (> ${QUOTE_EXECUTION_MAX_LAG_SEC}s) — a fill on a stale print is an invented fill.`,
+      };
+    }
+    if (opts.et && isJudasWindow(opts.et.hour, opts.et.minute)) {
+      return { ok: false, error: "Judas 9:30–9:45 ET — name the raid, no entries (paper included)." };
+    }
+    if (opts.newsVerdict === "blackout") {
+      return { ok: false, error: "News blackout — the impulse is the release, not the model." };
+    }
     // Rule 1 — one book per day. Checked BEFORE any level math so the message
     // names the conflict rather than a downstream geometry failure.
     const taken = bookTakenToday();

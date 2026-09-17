@@ -165,8 +165,8 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   }
 
   const band = String(candidate.pathBand || candidate.grade);
-  if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+") {
-    return { take: null, skip: "Judas 9:30–9:45 — A+ only" };
+  if (isJudasWindow(clock.etHour, clock.etMinute)) {
+    return { take: null, skip: "Judas 9:30–9:45 — name the raid, no entries" };
   }
 
   const counters = countersFromMemory(loadDeskMemory());

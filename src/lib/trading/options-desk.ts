@@ -174,10 +174,41 @@ function componentsHint(c: SetupCandidate | undefined) {
   };
 }
 
-/** SPY ≈ ES/10, QQQ ≈ NQ/40. Estimate only — RH chain is the fill. */
-export function estimateSpot(underlier: SwingUnderlier, esPx: number, nqPx: number): number {
+/** Accept a cash spot when it is fresh enough to price a ticket off. */
+const PROXY_SPOT_MAX_LAG_SEC = 900;
+
+/**
+ * Cash spot for the underlier. Prefers the real SPY/QQQ Yahoo print carried
+ * on the desk; falls back to the ES/10, NQ/40 ratio ONLY when that is
+ * missing or stale, and says so via `spotSource`. The ratio drifts with the
+ * futures basis (fair value, dividends, the quarterly roll) — a 1% miss on
+ * a 700-handle underlier is 7 points, which is more than a 0-2 DTE strike
+ * step, so a ticket priced off it can sit on the wrong strike.
+ */
+export function estimateSpot(
+  underlier: SwingUnderlier,
+  esPx: number,
+  nqPx: number,
+  proxies?: DeskPayload["proxies"],
+): number {
+  const p = proxies?.[underlier];
+  if (p && p.price > 0 && p.lagSec <= PROXY_SPOT_MAX_LAG_SEC) return p.price;
   if (underlier === "SPY") return esPx / 10;
   return nqPx / 40;
+}
+
+/** "SPY 764.20 (Yahoo 4s)" or "SPY ≈ 763.40 (ES/10 est.)" — for the card copy. */
+export function spotSource(
+  underlier: SwingUnderlier,
+  esPx: number,
+  nqPx: number,
+  proxies?: DeskPayload["proxies"],
+): string {
+  const p = proxies?.[underlier];
+  if (p && p.price > 0 && p.lagSec <= PROXY_SPOT_MAX_LAG_SEC) {
+    return `${underlier} ${p.price.toFixed(2)} (Yahoo ${p.lagSec}s)`;
+  }
+  return `${underlier} ≈ ${estimateSpot(underlier, esPx, nqPx).toFixed(2)} (${underlier === "SPY" ? "ES/10" : "NQ/40"} est.)`;
 }
 
 /**
@@ -425,7 +456,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
-  const spot = estimateSpot(underlier, esPx, nqPx);
+  const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const ticket =
     c && verdict !== "STAND"
       ? toTicket(
@@ -516,7 +547,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
-  const spot = estimateSpot(underlier, esPx, nqPx);
+  const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const ticket =
     c && verdict !== "STAND"
       ? toTicket(
@@ -626,7 +657,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
   const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
   const watch = (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
-  const spot = estimateSpot(underlier, esPx, nqPx);
+  const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const ticket =
     verdict !== "STAND"
       ? toTicket(
@@ -694,7 +725,7 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
   const verdict: RhVerdict = armed ? "ARMED" : watch && !armed ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
-  const spot = estimateSpot(underlier, esPx, nqPx);
+  const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const ticket =
     c && verdict !== "STAND"
       ? toTicket(
@@ -745,7 +776,7 @@ function htfSwingCard(
   const plan = swing.plan;
   const side = plan?.side ?? "put";
   const underlier = plan?.underlier ?? "QQQ";
-  const spot = estimateSpot(underlier, esPx, nqPx);
+  const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const extraBlocks = [...swing.blocks];
   if (desk.monthAhead?.phase?.id === "labor" && verdict === "ARMED") {
     extraBlocks.push("Labor / NFP week — do not pay 21–45 DTE into Friday");
@@ -801,8 +832,8 @@ export function evaluateOptionsDesk(
   const spyRole: UnderlierQuote["role"] = nqWeaker ? "lag" : nqStronger ? "lag" : "flat";
 
   const quotes = {
-    spy: underlierSheet("SPY", es, estimateSpot("SPY", esPx, nqPx), spyRole, cap),
-    qqq: underlierSheet("QQQ", nq, estimateSpot("QQQ", esPx, nqPx), qqqRole, cap),
+    spy: underlierSheet("SPY", es, estimateSpot("SPY", esPx, nqPx, desk.proxies), spyRole, cap),
+    qqq: underlierSheet("QQQ", nq, estimateSpot("QQQ", esPx, nqPx, desk.proxies), qqqRole, cap),
   };
 
   const path = pathCandidate(desk);

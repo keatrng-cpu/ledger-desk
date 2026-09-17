@@ -52,6 +52,8 @@ export interface SmcAlert {
   kind: SmcAlertKind;
   tf: SmcTf;
   side: "bull" | "bear";
+  /** Event bar time (ms) — consumers order and age alerts by this, not by `at`. */
+  t: number;
   at: string;
   price: number;
   label: string;
@@ -222,6 +224,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
   if (d && d.t >= recentCut) {
     alerts.push({
       id: `${tf}-disp-${d.t}`,
+      t: d.t,
       kind: "displacement",
       tf,
       side: d.direction,
@@ -241,6 +244,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
     if (b.price > a.price && b.t >= recentCut) {
       alerts.push({
         id: `${tf}-bos-bull-${b.t}`,
+        t: b.t,
         kind: "bos",
         tf,
         side: "bull",
@@ -257,6 +261,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
     if (b.price < a.price && b.t >= recentCut) {
       alerts.push({
         id: `${tf}-bos-bear-${b.t}`,
+        t: b.t,
         kind: "bos",
         tf,
         side: "bear",
@@ -273,6 +278,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
     const raidSide = sweep.side === "buyside" ? "bear" : "bull";
     alerts.push({
       id: `${tf}-manip-${sweep.t}`,
+      t: sweep.t,
       kind: "manipulation",
       tf,
       side: raidSide,
@@ -285,6 +291,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
     if (d && Math.abs(d.index - sweep.index) <= 8) {
       alerts.push({
         id: `${tf}-mss-${d.t}`,
+        t: d.t,
         kind: "mss",
         tf,
         side: d.direction,
@@ -296,6 +303,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
       if (sweep.side === "buyside" && d.direction === "bear") {
         alerts.push({
           id: `${tf}-dist-${d.t}`,
+          t: d.t,
           kind: "distribution",
           tf,
           side: "bear",
@@ -308,6 +316,7 @@ function tapeOn(bars: OhlcBar[], tf: SmcTf): { arrays: SmcArray[]; alerts: SmcAl
       if (sweep.side === "sellside" && d.direction === "bull") {
         alerts.push({
           id: `${tf}-dist-${d.t}`,
+          t: d.t,
           kind: "accumulation",
           tf,
           side: "bull",
