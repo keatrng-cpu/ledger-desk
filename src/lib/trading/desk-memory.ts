@@ -95,6 +95,10 @@ export function emptyBucket(): RateBucket {
   return { n: 0, wins: 0, sumR: 0 };
 }
 
+export function emptyDeskMemory(): DeskMemoryState {
+  return empty();
+}
+
 function empty(): DeskMemoryState {
   return {
     version: 2,

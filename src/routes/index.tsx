@@ -57,7 +57,7 @@ import {
 } from "@/lib/trading/bt-seed";
 import { SynapseRail } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
-import { loadDeskMemory } from "@/lib/trading/desk-memory";
+import { loadDeskMemory, emptyDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
 import {
   fetchTradingDesk,
@@ -442,7 +442,6 @@ function MasterplacePage() {
   const publishRisk = useDeskSynapse((s) => s.publishRisk);
   const publishMemory = useDeskSynapse((s) => s.publishMemory);
   const memoryBook = useDeskSynapse((s) => s.memory);
-  const paper = getPaperAccount(memoryBook);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   // Hydration guard for brainSnap below. `typeof window !== "undefined"` is
@@ -456,6 +455,11 @@ function MasterplacePage() {
   // re-render, which is allowed to differ.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // SSR-safe header numbers: default until mounted (matches the server paint),
+  // real localStorage-backed values one tick later. Fixes React #418 — the
+  // store seeds memory from localStorage at creation, so the client's first
+  // render otherwise differs from the server's.
+  const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
   const [risk, setRisk] = useState<RiskState | null>(null);
