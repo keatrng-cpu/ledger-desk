@@ -42,6 +42,32 @@ function buildCoachNotes(desk: DeskPayload): {
   return { posture, bullets, action };
 }
 
+function VoiceCard({
+  label,
+  voice,
+}: {
+  label: string;
+  voice: CoachNarration["voices"]["grok"];
+}) {
+  if (!voice) return null;
+  return (
+    <div className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] px-3 py-2.5">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-primary)]">
+        {label} · narration only — not a signal
+      </p>
+      {voice.text ? (
+        <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--color-fg)]">
+          {voice.text}
+        </p>
+      ) : (
+        <p className="mt-1 text-xs text-[var(--color-warn)]">
+          {voice.error ?? "No text."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function TradingCoach({ desk }: { desk: DeskPayload }) {
   const notes = useMemo(() => buildCoachNotes(desk), [desk]);
   const [narration, setNarration] = useState<CoachNarration | null>(null);
@@ -87,6 +113,7 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
         text: null,
         error: e instanceof Error ? e.message : "Narration failed",
         model: null,
+        voices: { grok: null, claude: null },
       });
     } finally {
       setAsking(false);
@@ -131,9 +158,9 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
         <p className="mt-1 text-sm text-[var(--color-fg)]">{notes.action}</p>
       </div>
 
-      {/* Real Claude narration, on demand. Everything above this line is
-          deterministic TypeScript and renders identically whether or not the
-          model is configured. */}
+      {/* Dual peer narration, on demand. Everything above this line is
+          deterministic TypeScript and renders identically whether or not
+          a model is configured. */}
       <div className="mt-3 border-t border-[var(--color-border)] pt-3">
         <div className="flex flex-wrap items-center gap-2">
           <input
@@ -150,26 +177,22 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
             {asking ? (
               <>
                 <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                Thinking…
+                Both thinking…
               </>
             ) : (
-              "Ask Claude"
+              "Ask Grok + Claude"
             )}
           </Button>
           <CopyClaudeHandoff desk={desk} />
         </div>
 
-        {narration?.text && (
-          <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] px-3 py-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-primary)]">
-              Claude · narration only — not a signal
-            </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--color-fg)]">
-              {narration.text}
-            </p>
+        {(narration?.voices.grok || narration?.voices.claude) && (
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <VoiceCard label="Grok" voice={narration.voices.grok} />
+            <VoiceCard label="Claude" voice={narration.voices.claude} />
           </div>
         )}
-        {narration?.error && (
+        {narration?.error && !narration.voices.grok && !narration.voices.claude && (
           <p className="mt-2 text-xs text-[var(--color-warn)]">
             {narration.error}
           </p>

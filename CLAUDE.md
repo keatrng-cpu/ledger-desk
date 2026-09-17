@@ -97,7 +97,7 @@ Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR
 | Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
 | Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Charts | Dual MNQ/ES tape + liquidity |
-| Brain | Veteran + coach (Ask Claude). Never overrides hard gates. |
+| Brain | Veteran + coach (Ask Grok + Claude, peers, parallel). Never overrides hard gates. |
 | Book | WR / grades / profit path, journal, TradeZella backtest (no lookahead) |
 | Lab | Risk governor, alerts, analytics, rules/replay/snapshots/shadow/bridge |
 
@@ -136,7 +136,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/market/databento.ts` | GLBX.MDP3 historical |
 | `src/lib/market/live-gateway.ts` | Tick file from `gateway/` |
 | `src/lib/alerts/path-alarm.ts` | Speaker + OS notify on PATH |
-| `src/lib/coach/claude-server.ts` | In-app Anthropic **narration only** |
+| `src/lib/coach/claude-server.ts` | In-app Grok + Claude **narration only** — peers, one click, parallel. Never a gate. |
 | `src/routes/index.tsx` | Shell. 20s desk (PATH/HTF). Quote: 1s if live_gateway, 2s Yahoo. Gateway-first — no extra Databento spend. |
 | `gateway/databento_live_gateway.py` | CME live → tick file |
 
@@ -146,7 +146,8 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 
 - `DATABENTO_API_KEY` + `DATABENTO_DELAY_MINUTES` (`600` without live; `0` with live)
 - `DATABASE_URL` (Neon) or paper/journal die on cold start
-- `ANTHROPIC_API_KEY` — in-app **Ask Claude** (read-only narration)
+- `XAI_API_KEY` — in-app **Ask Grok** (read-only narration; grok-4.5). Server-only. Peer with Claude, not primary.
+- `ANTHROPIC_API_KEY` — in-app **Ask Claude** (read-only narration). Peer with Grok, not a fallback.
 - `VAPID_*` — web push
 - `CRON_SECRET` — scheduled checklist/review
 - Tradovate flags stay **demo / disarmed** unless the trader explicitly arms live
@@ -161,7 +162,7 @@ Preview: `0.0.0.0:8080` via `startup.sh` / `npm run dev`.
 - Do not gold-plate. Do not lower the 0.65 floor.
 - Label synthetic vs Yahoo vs Databento vs `live_gateway`.
 - Push to **main** so Grok and Claude share one tree.
-- In-app Ask Claude must remain **narration** (no size/signal). Cursor/Grok chat **may** TAKE/STAND using this file + handoff.
+- In-app Ask Grok + Claude must remain **narration** (no size/signal). They fire as peers. Cursor/Grok chat **may** TAKE/STAND using this file + handoff.
 
 ## When the trader asks “is this a short/long?”
 

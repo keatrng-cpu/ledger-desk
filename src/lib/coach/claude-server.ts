@@ -1,5 +1,8 @@
 /**
- * Real Claude narration over already-computed desk state.
+ * Real Grok (xAI) + Claude (Anthropic) narration over already-computed desk
+ * state. Peers, not a stack: when both keys are set they fire in parallel on
+ * the same snapshot so the trader sees both reads. Neither is primary. Neither
+ * gates, scores, or sizes — that stays deterministic TypeScript.
  *
  * WHY THIS EXISTS. The desk coach panel was labelled "Grok + Claude ready"
  * and the TZ chat was labelled a "chat", but the 2026-08-12 audit found zero
@@ -25,9 +28,9 @@
  * ── COST ─────────────────────────────────────────────────────────────────
  * Charged per call, so this is ON DEMAND ONLY — a button, never the 30s desk
  * poll. Authenticated (a paid endpoint must never be anonymous), rate limited
- * per user, and capped at a small max_tokens. Absent an API key it degrades
+ * per user, and capped at a small max_tokens. Absent both keys it degrades
  * to `configured: false` and the UI keeps showing the deterministic coach,
- * exactly as before.
+ * exactly as before. One click fires both peers when both keys exist.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -39,10 +42,14 @@ import { normalizeKey } from "@/lib/journal/analytics";
 import { computeDiscretion, neutralDiscretion } from "@/lib/journal/discretion";
 import { backtestPriorFor } from "@/lib/journal/discretion-server";
 
-/** Anthropic Messages API. */
-const API_URL = "https://api.anthropic.com/v1/messages";
-const API_VERSION = "2023-06-01";
-const MODEL = "claude-sonnet-5";
+/** xAI Chat Completions (OpenAI-compatible). Peer narrator — not primary. */
+const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
+const GROK_MODEL = "grok-4.5";
+
+/** Anthropic Messages API. Peer narrator — not a fallback. */
+const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_API_VERSION = "2023-06-01";
+const ANTHROPIC_MODEL = "claude-sonnet-5";
 
 /** Bounded output — this is a paragraph of narration, not an essay. */
 const MAX_TOKENS = 1100;
@@ -80,9 +87,17 @@ function rateLimited(userId: string, now: number): boolean {
   return false;
 }
 
-function apiKey(): string | null {
-  const raw = process.env.ANTHROPIC_API_KEY;
+function envKey(name: string): string | null {
+  const raw = process.env[name];
   return raw && raw.trim() ? raw.trim() : null;
+}
+
+function grokKey(): string | null {
+  return envKey("XAI_API_KEY");
+}
+
+function anthropicKey(): string | null {
+  return envKey("ANTHROPIC_API_KEY");
 }
 
 /**
@@ -123,14 +138,27 @@ const contextSchema = z.object({
 
 export type CoachContext = z.input<typeof contextSchema>;
 
-export interface CoachNarration {
-  /** False when ANTHROPIC_API_KEY is unset — UI keeps the deterministic coach. */
-  configured: boolean;
-  /** Prose. Deliberately the ONLY payload — no score, no verdict, no size. */
+export interface CoachVoice {
+  model: string;
   text: string | null;
-  /** Present when the call could not be made or failed. Safe to render. */
+  error: string | null;
+}
+
+export interface CoachNarration {
+  /** False when both XAI_API_KEY and ANTHROPIC_API_KEY are unset. */
+  configured: boolean;
+  /**
+   * Combined prose when only one voice answered. Prefer `voices` — both
+   * peers are shown side by side. Deliberately no score/verdict/size.
+   */
+  text: string | null;
+  /** Present when neither voice could narrate. Safe to render. */
   error: string | null;
   model: string | null;
+  voices: {
+    grok: CoachVoice | null;
+    claude: CoachVoice | null;
+  };
 }
 
 /**
@@ -138,7 +166,9 @@ export interface CoachNarration {
  * rather than restating it loosely: the desk's own rules are the spec.
  */
 const SYSTEM_PROMPT = [
-  "You are a desk assistant inside a private ICT/SMC futures trading desk (MNQ/ES).",
+  "You are a desk colleague inside a private ICT/SMC futures trading desk (MNQ/ES).",
+  "Grok and Claude read this snapshot independently as peers — neither is primary.",
+  "Do not hedge to match the other model. Be concrete. Name the next reaction.",
   "Follow CLAUDE.md: floor 0.65, A+/A/A- only, one book, Judas 9:30-9:45 ET stand,",
   "RR >= 1, HTF absolute, mechanical+SMT/TJR primary, Yahoo ~10m lag.",
   "",
@@ -156,7 +186,7 @@ const SYSTEM_PROMPT = [
   "confluences are present versus missing and what that implies about setup",
   "quality, how the HTF bias and the killzone interact, what would have to",
   "change for a B-grade setup to become A-grade, and what the trader should",
-  "be watching next.",
+  "be watching next (the reaction that raises probability without lowering the floor).",
   "",
   "STYLE: an experienced desk colleague. Concrete and specific to the numbers",
   "given. 150 words or less unless asked a direct question that needs more.",
@@ -315,18 +345,167 @@ function buildUserMessage(
   return lines.join("\n");
 }
 
+interface ProviderResult {
+  model: string;
+  text: string | null;
+  error: string | null;
+}
+
+function httpError(provider: "xAI" | "Anthropic", status: number): string {
+  if (status === 401) {
+    return provider === "xAI"
+      ? "xAI rejected the API key (401). Check XAI_API_KEY."
+      : "Anthropic rejected the API key (401). Check ANTHROPIC_API_KEY.";
+  }
+  if (status === 429) {
+    return provider === "xAI"
+      ? "xAI rate limit or quota reached (429). Try again shortly."
+      : "Anthropic rate limit or quota reached (429). Try again shortly.";
+  }
+  return `Narration failed (${provider} HTTP ${status}).`;
+}
+
+async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    return await run(controller.signal);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callGrok(key: string, userMessage: string): Promise<ProviderResult> {
+  try {
+    const res = await withTimeout((signal) =>
+      fetch(GROK_API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          model: GROK_MODEL,
+          max_tokens: MAX_TOKENS,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userMessage },
+          ],
+        }),
+        signal,
+      }),
+    );
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`[coach] xAI ${res.status}:`, detail.slice(0, 500));
+      return { model: GROK_MODEL, text: null, error: httpError("xAI", res.status) };
+    }
+
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string | { type?: string; text?: string }[] } }[];
+    };
+    const raw = json.choices?.[0]?.message?.content;
+    const text =
+      typeof raw === "string"
+        ? raw.trim()
+        : Array.isArray(raw)
+          ? raw
+              .map((p) => (typeof p === "string" ? p : p.text ?? ""))
+              .join("\n")
+              .trim()
+          : "";
+
+    return {
+      model: GROK_MODEL,
+      text: text || null,
+      error: text ? null : "Model returned no text.",
+    };
+  } catch (err) {
+    const aborted = err instanceof Error && err.name === "AbortError";
+    console.error("[coach] xAI narration failed:", err);
+    return {
+      model: GROK_MODEL,
+      text: null,
+      error: aborted
+        ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
+        : "Narration failed — network or service error.",
+    };
+  }
+}
+
+async function callClaude(key: string, userMessage: string): Promise<ProviderResult> {
+  try {
+    const res = await withTimeout((signal) =>
+      fetch(ANTHROPIC_API_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": ANTHROPIC_API_VERSION,
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: MAX_TOKENS,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userMessage }],
+        }),
+        signal,
+      }),
+    );
+
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`[coach] Anthropic ${res.status}:`, detail.slice(0, 500));
+      return {
+        model: ANTHROPIC_MODEL,
+        text: null,
+        error: httpError("Anthropic", res.status),
+      };
+    }
+
+    const json = (await res.json()) as {
+      content?: { type: string; text?: string }[];
+    };
+    const text = (json.content ?? [])
+      .filter((b) => b.type === "text" && b.text)
+      .map((b) => b.text)
+      .join("\n")
+      .trim();
+
+    return {
+      model: ANTHROPIC_MODEL,
+      text: text || null,
+      error: text ? null : "Model returned no text.",
+    };
+  } catch (err) {
+    const aborted = err instanceof Error && err.name === "AbortError";
+    console.error("[coach] Anthropic narration failed:", err);
+    return {
+      model: ANTHROPIC_MODEL,
+      text: null,
+      error: aborted
+        ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
+        : "Narration failed — network or service error.",
+    };
+  }
+}
+
 export const askDeskCoach = createServerFn({ method: "POST" })
   .validator((input: unknown) => contextSchema.parse(input ?? {}))
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<CoachNarration> => {
-    const key = apiKey();
-    if (!key) {
+    const xai = grokKey();
+    const anthropic = anthropicKey();
+    const emptyVoices = { grok: null, claude: null };
+    if (!xai && !anthropic) {
       return {
         configured: false,
         text: null,
         error:
-          "ANTHROPIC_API_KEY is not set on this deployment — the deterministic coach above still works. Add the key in Netlify → Site settings → Environment variables to enable narration.",
+          "Neither XAI_API_KEY nor ANTHROPIC_API_KEY is set — the deterministic coach above still works. Add both in Netlify → Site settings → Environment variables so Grok and Claude narrate as peers.",
         model: null,
+        voices: emptyVoices,
       };
     }
 
@@ -334,8 +513,11 @@ export const askDeskCoach = createServerFn({ method: "POST" })
       return {
         configured: true,
         text: null,
-        error: `Rate limit: ${RATE_LIMIT_MAX} narrations per minute. This endpoint costs money per call.`,
-        model: MODEL,
+        error: `Rate limit: ${RATE_LIMIT_MAX} dual narrations per minute. This endpoint costs money per call.`,
+        model: [xai ? GROK_MODEL : null, anthropic ? ANTHROPIC_MODEL : null]
+          .filter(Boolean)
+          .join(" + "),
+        voices: emptyVoices,
       };
     }
 
@@ -356,69 +538,25 @@ export const askDeskCoach = createServerFn({ method: "POST" })
       }),
     );
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": key,
-          "anthropic-version": API_VERSION,
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: MAX_TOKENS,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: buildUserMessage(data, loop) }],
-        }),
-        signal: controller.signal,
-      });
+    const userMessage = buildUserMessage(data, loop);
 
-      if (!res.ok) {
-        // Log detail server-side; return a generic, non-leaking message.
-        const detail = await res.text().catch(() => "");
-        console.error(`[coach] Anthropic ${res.status}:`, detail.slice(0, 500));
-        return {
-          configured: true,
-          text: null,
-          error:
-            res.status === 401
-              ? "Anthropic rejected the API key (401). Check ANTHROPIC_API_KEY."
-              : res.status === 429
-                ? "Anthropic rate limit or quota reached (429). Try again shortly."
-                : `Narration failed (HTTP ${res.status}).`,
-          model: MODEL,
-        };
-      }
+    // Peers fire together. One hanging or 401 must not block the other.
+    const [grok, claude] = await Promise.all([
+      xai ? callGrok(xai, userMessage) : Promise.resolve(null),
+      anthropic ? callClaude(anthropic, userMessage) : Promise.resolve(null),
+    ]);
 
-      const json = (await res.json()) as {
-        content?: { type: string; text?: string }[];
-      };
-      const text = (json.content ?? [])
-        .filter((b) => b.type === "text" && b.text)
-        .map((b) => b.text)
-        .join("\n")
-        .trim();
+    const texts = [grok?.text, claude?.text].filter((t): t is string => Boolean(t));
+    const errors = [grok?.error, claude?.error].filter((e): e is string => Boolean(e));
+    const models = [grok?.text ? grok.model : null, claude?.text ? claude.model : null]
+      .filter(Boolean)
+      .join(" + ");
 
-      return {
-        configured: true,
-        text: text || null,
-        error: text ? null : "Model returned no text.",
-        model: MODEL,
-      };
-    } catch (err) {
-      const aborted = err instanceof Error && err.name === "AbortError";
-      console.error("[coach] narration failed:", err);
-      return {
-        configured: true,
-        text: null,
-        error: aborted
-          ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
-          : "Narration failed — network or service error.",
-        model: MODEL,
-      };
-    } finally {
-      clearTimeout(timer);
-    }
+    return {
+      configured: true,
+      text: texts[0] ?? null,
+      error: texts.length ? null : errors.join(" · ") || "Narration failed.",
+      model: models || grok?.model || claude?.model || null,
+      voices: { grok, claude },
+    };
   });
