@@ -12,7 +12,6 @@
 import { APLUS_RULES, type RiskGrade } from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
 import type { DeskMemoryState } from "./desk-memory";
-import { loadDeskMemory } from "./desk-memory";
 
 export const PATH_MONTH_CAP = APLUS_RULES.targetTradesPerMonth.center; // 9
 /** After this many consecutive full losses, next day stand down (unless A+ tight) */
@@ -419,19 +418,69 @@ export function goldStandardNote(c: SetupCandidate): string | null {
   return "GOLD (Jul-20 style): short + mechanical + path — preferred template";
 }
 
-/** Merge counters from desk memory book stats (best-effort) */
+/**
+ * Same storage key as paper-manager.ts. Read directly (window-guarded) rather
+ * than imported: this module is also used by journal/server.ts, and
+ * paper-manager pulls in client-only session/alarm code.
+ */
+const PAPER_TRADES_KEY = "ledger-paper-trades-v1";
+
+/**
+ * Real fills THIS month from the browser's paper book. Used by the client
+ * counters below; the server path reads desk_trades instead.
+ */
+function paperFillsForMonth(monthKey: string): {
+  path: number;
+  aPlusTaken: number;
+  aPlusWins: number;
+} {
+  const out = { path: 0, aPlusTaken: 0, aPlusWins: 0 };
+  if (typeof window === "undefined") return out;
+  let rows: unknown;
+  try {
+    rows = JSON.parse(window.localStorage.getItem(PAPER_TRADES_KEY) ?? "[]");
+  } catch {
+    return out;
+  }
+  if (!Array.isArray(rows)) return out;
+  for (const r of rows as Array<Record<string, unknown>>) {
+    const openedAt = typeof r.openedAt === "number" ? r.openedAt : NaN;
+    if (!Number.isFinite(openedAt) || monthKeyFromMs(openedAt) !== monthKey) continue;
+    out.path += 1;
+    const grade = String(r.riskGrade ?? r.grade ?? "");
+    if (grade === "A+") {
+      if (r.status === "closed") {
+        out.aPlusTaken += 1;
+        if (typeof r.pnlUsd === "number" && r.pnlUsd > 0) out.aPlusWins += 1;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Client-side counters for the PATH gates.
+ *
+ * Until 2026-09-16 this read `book.pathTaken` from desk memory, which the
+ * 2024 backtest seed hydrates to 22 on every page load — so pathThisMonth
+ * was 14 (cap 9 + 5) forever, `pathTakeGate` said "month cap hit, A+ only"
+ * every day, and auto-paper never took an A or A- card. It also hardcoded
+ * aPlusTaken = 0, so the 2% -> 3% A+ unlock could never trigger on the
+ * client. Both now come from real fills dated this month.
+ */
 export function countersFromMemory(
   mem?: DeskMemoryState,
   monthKey?: string,
 ): BookCounters {
-  const m = mem ?? (typeof window !== "undefined" ? loadDeskMemory() : null);
   const key = monthKey ?? monthKeyFromMs(Date.now());
   const c = emptyBookCounters(key);
-  if (!m) return c;
-  // Approximate: use pathTaken as monthly if same session; real monthly tracked in BT loop
-  c.pathThisMonth = Math.min(m.book.pathTaken, PATH_MONTH_CAP + 5);
-  c.aPlusTaken = 0;
-  c.aPlusWins = 0;
+  const fills = paperFillsForMonth(key);
+  c.pathThisMonth = fills.path;
+  c.aPlusTaken = fills.aPlusTaken;
+  c.aPlusWins = fills.aPlusWins;
+  // `mem` is accepted for call-site compatibility; the seeded book stats it
+  // carries are backtest history, not this month's ledger.
+  void mem;
   return c;
 }
 

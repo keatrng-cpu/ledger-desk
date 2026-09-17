@@ -155,6 +155,15 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
     return { take: null, skip: `SMC sequence ${seq.word}: ${seq.missing}` };
   }
 
+  // Never book a fill on a stale print. The desk rebuild already drops
+  // `actionable` on a stale quote, but the 1-2s quote poll patches lagSec in
+  // between builds, and a tab returning from the background can carry a
+  // pre-hidden price. 120s is the same execution gate the HUD shows.
+  const worstLag = Math.max(desk.quotes.left.lagSec ?? 0, desk.quotes.right.lagSec ?? 0);
+  if (worstLag > 120) {
+    return { take: null, skip: `Quote ${Math.round(worstLag)}s old — no fill on a stale print` };
+  }
+
   const band = String(candidate.pathBand || candidate.grade);
   if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+") {
     return { take: null, skip: "Judas 9:30–9:45 — A+ only" };
