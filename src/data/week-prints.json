@@ -75,5 +75,26 @@
     "actual": "+25bps to 3.75–4.00%",
     "vs": "exp +25bps / prev 3.50–3.75%",
     "note": "Unanimous 12-0. SEP median end-2026 4.1% (was 3.8%); 12 of 18 see one more hike this year. Hawkish."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Initial Jobless Claims",
+    "actual": "196k",
+    "vs": "exp ~208k / prev 206k unrevised",
+    "note": "DOL official week ending Sep 12. -10k. 4-wk avg 203,250. Continuing 1.730M / IUR 1.1%. Soft claims, still-tight labor."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Housing Starts (Aug)",
+    "actual": "1.275M SAAR / -2.6% MoM",
+    "vs": "exp ~1.31M / July rev 1.309M (was 1.239M)",
+    "note": "Census CB26-147. SF starts 918k +7.6%. Permits 1.394M -2.7%. Completions 1.128M -11.9%. Mixed, not a PATH trigger."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Philly Fed MBOS (Sep)",
+    "actual": "37.8",
+    "vs": "prev 47.4",
+    "note": "Still expansion, cooled. New orders 29.2, shipments 27.7. Official Philly Fed 08:30 ET."
   }
 ]
