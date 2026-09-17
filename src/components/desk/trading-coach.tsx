@@ -134,6 +134,10 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
             <p className="text-xs text-[var(--color-subtle)]">
               Explains numbers already computed — never gates or invents fills
             </p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-[var(--color-muted)]">
+              XAI {desk.coach?.xai ? "ACTIVE" : "MISSING"} · Anthropic{" "}
+              {desk.coach?.anthropic ? "ACTIVE" : "MISSING"} · peers
+            </p>
           </div>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-primary)]">

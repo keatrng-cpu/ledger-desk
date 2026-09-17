@@ -100,6 +100,11 @@ function anthropicKey(): string | null {
   return envKey("ANTHROPIC_API_KEY");
 }
 
+/** Presence only — never returns the secret. Safe on the desk payload / Claude handoff. */
+export function coachKeysPresent(): { xai: boolean; anthropic: boolean } {
+  return { xai: Boolean(grokKey()), anthropic: Boolean(anthropicKey()) };
+}
+
 /**
  * The desk facts the narration is allowed to see. A closed, explicit shape
  * rather than the whole DeskPayload: it keeps the prompt small (cost), and

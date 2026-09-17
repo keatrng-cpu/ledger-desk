@@ -103,6 +103,8 @@ export interface DeskPayload {
   liveSays: LiveSays;
   /** Live SMC sequence (priced DOL + sweep polarity + one book). */
   smcMaster: SmcMasterRead;
+  /** Key presence only — never the secret. Claude handoff reads this. */
+  coach: { xai: boolean; anthropic: boolean };
 }
 
 export interface DeskError {
@@ -560,10 +562,15 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         ]),
       };
       const smcMaster = gradeSmcMaster({ ...payload, shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null });
+      const coach = {
+        xai: Boolean(process.env.XAI_API_KEY?.trim()),
+        anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
+      };
       return {
         ...payload,
         smcMaster,
-        liveSays: buildLiveSays({ ...payload, smcMaster }),
+        coach,
+        liveSays: buildLiveSays({ ...payload, smcMaster, coach }),
       };
     } catch (e) {
       return {

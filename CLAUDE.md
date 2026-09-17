@@ -146,8 +146,8 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 
 - `DATABENTO_API_KEY` + `DATABENTO_DELAY_MINUTES` (`600` without live; `0` with live)
 - `DATABASE_URL` (Neon) or paper/journal die on cold start
-- `XAI_API_KEY` — in-app **Ask Grok** (read-only narration; grok-4.5). Server-only. Peer with Claude, not primary.
-- `ANTHROPIC_API_KEY` — in-app **Ask Claude** (read-only narration). Peer with Grok, not a fallback.
+- `XAI_API_KEY` — **ACTIVE** on Netlify `ledgeyourtrades` (secret, runtime+functions, set 2026-09-17). Do **not** ask the trader to paste it. Do **not** treat as missing. Do **not** commit it. Peer with Claude, not primary. In-app Ask Grok + Claude fires both.
+- `ANTHROPIC_API_KEY` — **ACTIVE** on the same site. Peer with Grok, not a fallback.
 - `VAPID_*` — web push
 - `CRON_SECRET` — scheduled checklist/review
 - Tradovate flags stay **demo / disarmed** unless the trader explicitly arms live
