@@ -97,6 +97,25 @@
     }
   }
 
+  /* High-confluence flash — Q >= HIGH_CONFLUENCE_THRESHOLD (scanner.ts).
+     A steady pulse on the up-color glow, not a color CHANGE, so it reads as
+     "this one is hot" without competing with the grade/tone colors already
+     doing the real signalling (won/lost/actionable). prefers-reduced-motion
+     below already turns every animation into one static frame. */
+  .flash-high-confluence {
+    animation: flash-high-confluence 1.4s ease-in-out infinite;
+  }
+
+  @keyframes flash-high-confluence {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-up) 55%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-up) 0%, transparent);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .shimmer {
       animation: none;

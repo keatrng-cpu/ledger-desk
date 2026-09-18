@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { APLUS_RULES } from "@/lib/aplus/config";
-import type { ScanResult, SetupCandidate } from "@/lib/trading/scanner";
+import { HIGH_CONFLUENCE_THRESHOLD, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
@@ -331,6 +331,12 @@ function SetupCard({
         ghost?.status === "watching" && "border-[var(--color-border)]",
         ghost?.status === "filled" &&
           "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]",
+        // High-confluence flash: only while the card is still a live decision
+        // (no ghost yet, or still watching) — a resolved won/lost/missed card
+        // flashing "hot" would be reporting urgency that already passed.
+        c.confluence >= HIGH_CONFLUENCE_THRESHOLD &&
+          (!ghost || ghost.status === "watching") &&
+          "flash-high-confluence",
       )}
     >
       {/* ROW 1 — the decision line. Symbol, side, grade and score together,
@@ -408,11 +414,27 @@ function SetupCard({
           )}
         </div>
         <div className="shrink-0 text-right font-mono">
-          <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
+          <p
+            className={cn(
+              "text-2xl font-semibold leading-none tabular",
+              c.confluence >= HIGH_CONFLUENCE_THRESHOLD
+                ? "text-[var(--color-up)]"
+                : "text-[var(--color-fg)]",
+            )}
+          >
             {c.confluence.toFixed(2)}
           </p>
-          <p className="mt-0.5 text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            engine
+          <p
+            className={cn(
+              "mt-0.5 text-[9px] uppercase tracking-wider",
+              c.confluence >= HIGH_CONFLUENCE_THRESHOLD
+                ? "font-semibold text-[var(--color-up)]"
+                : "text-[var(--color-subtle)]",
+            )}
+          >
+            {c.confluence >= HIGH_CONFLUENCE_THRESHOLD
+              ? `≥${(HIGH_CONFLUENCE_THRESHOLD * 100).toFixed(0)}% engine`
+              : "engine"}
           </p>
         </div>
       </div>

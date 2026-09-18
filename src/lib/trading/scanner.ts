@@ -45,6 +45,19 @@ import {
 
 export type SetupSide = "long" | "short";
 
+/**
+ * UI-only display threshold for the "flash" treatment on a card's confluence
+ * score. NOT a trading rule, not a win-probability, not read anywhere in the
+ * scoring or gating path (grep confirms: only setup-scanner.tsx and
+ * price-path-board.tsx import it). `confluence` itself is the deterministic
+ * weighted-component engine score APLUS_RULES.aPlusThreshold etc. already
+ * gate on (src/lib/aplus/config.ts) — this just decides when to visually
+ * flag "this one is hot" on top of a score that already exists. Deliberately
+ * NOT in aplus/config.ts: that file is the non-negotiable trading numbers:
+ * this is decoration on the display of one of them, not a new rule.
+ */
+export const HIGH_CONFLUENCE_THRESHOLD = 0.9;
+
 export interface SetupCandidate {
   id: string;
   symbol: string;

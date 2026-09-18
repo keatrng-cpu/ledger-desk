@@ -633,7 +633,21 @@ function MasterplacePage() {
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") void load();
     }, DESK_POLL_MS);
-    return () => window.clearInterval(id);
+    // The quote-poll effect below already does this (calls tick() the
+    // instant the tab becomes visible again); this effect only did it on the
+    // NEXT scheduled tick, so returning to a backgrounded tab could show a
+    // desk build up to DESK_POLL_MS stale (longer if the browser throttled
+    // the background timer further) while the quotes above it were already
+    // live. Same catch-up, so "actively refreshing" means the same thing in
+    // both places.
+    const onVis = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [load]);
 
   useEffect(() => {

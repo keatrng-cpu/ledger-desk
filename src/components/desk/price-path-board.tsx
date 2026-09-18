@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 import type { HtfBiasRead } from "@/lib/trading/structure";
-import type { SetupCandidate } from "@/lib/trading/scanner";
+import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "@/lib/trading/scanner";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
 import { bookTakenToday, listOpenPaperTrades } from "@/lib/trading/paper-manager";
@@ -99,7 +99,14 @@ function BookCol({
           {(draw.primary.side === "below" ? draw.above : draw.below)!.name}
         </p>
       )}
-      <p className="mt-1.5 text-[11px] text-[var(--color-muted)]">
+      <p
+        className={cn(
+          "mt-1.5 text-[11px]",
+          path && path.confluence >= HIGH_CONFLUENCE_THRESHOLD
+            ? "flash-high-confluence rounded-[var(--radius-sm)] font-semibold text-[var(--color-up)]"
+            : "text-[var(--color-muted)]",
+        )}
+      >
         {path ? (
           <>
             PATH {path.side} {path.pathBand || path.grade} Q {path.confluence.toFixed(2)}
@@ -109,6 +116,23 @@ function BookCol({
           "No PATH card"
         )}
       </p>
+      {/* Entry + Target here too, not only on the scanner card below — this
+          section is the one place meant to hold everything needed to read
+          the trade: bias (above), circumstances (the must-layer dots in the
+          header), and now entry/target, so nothing requires cross-referencing
+          a second component to answer "where do I get in, where do I get out". */}
+      {path && (
+        <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-1.5 font-mono text-[10px]">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">Entry</p>
+            <p className="mt-0.5 break-words text-[var(--color-fg)]">{path.entryZone}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">Target</p>
+            <p className="mt-0.5 break-words text-[var(--color-fg)]">{path.targets[0] ?? "—"}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
