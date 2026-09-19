@@ -13,6 +13,11 @@
  * Yahoo serves 15m history for roughly the trailing 60 days. That is the
  * structure interval the desk trades on, so it is the interval taught here.
  *
+ * Named-month captures (August 2026 ESU6/NQU6) go through Databento:
+ *   python3 scripts/build-learn-figures.py  # after history is written
+ * The August 2026 file in src/data/learn-history.json was pulled as
+ * GLBX.MDP3 ohlcv-1m → 15m, contracts ESU6/NQU6 (front quarterly for Aug).
+ *
  * Run: npx tsx scripts/capture-learn-history.mjs
  */
 

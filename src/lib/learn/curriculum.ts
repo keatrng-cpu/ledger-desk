@@ -273,7 +273,7 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
 MODULE_ORDER.push({
   id: "walkthroughs",
   title: "Walkthroughs — real tape",
-  oneLine: "Captured 15m NY AM. Engine on every closed bar. This file: 0 TAKE — refusals + chase R.",
+  oneLine: "August 2026 15m ESU6/NQU6. Engine: 0 TAKE · 19 PATH-grade refusals · chase R shown.",
   mechanism: "Causal replay of src/data/learn-history.json. Decision bar first; future hidden until reveal.",
   rule: "Decide before the divider. Outcome-first is hindsight.",
   trigger: "Real bars. Ties resolve against the trade. Pool tally is the whole month, not the pretty subset.",

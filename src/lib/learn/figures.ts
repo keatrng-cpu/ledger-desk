@@ -1,24 +1,20 @@
 /**
  * Teaching figures — deterministic price series with annotations.
  *
- * WHY THESE ARE SYNTHETIC, AND WHY THAT IS STATED EVERYWHERE
- * A lesson needs the SAME shape every time it is opened: the sweep has to be
- * the sweep, the gap has to be a gap. Live tape will not cooperate, and a
- * lesson that silently changes shape teaches nothing. So these are generated
- * from a fixed seed — reproducible to the tick.
+ * WHY THESE ARE SYNTHETIC UNTIL A HISTORIC SLICE EXISTS
+ * A lesson needs the SAME shape every time it is opened. Live tape will not
+ * cooperate. August 2026 Databento 15m slices (`learn-figures.json`) replace
+ * the seed when present; the generators below remain the fallback.
  *
- * The cost of that is the one real risk in a teaching surface inside a trading
- * app: a diagram being mistaken for a signal. Every figure is therefore
- * labelled as an illustration at the render layer, uses its own bare axis
- * rather than the live chart's, and carries no symbol, no clock and no live
- * price. Nothing here is ever wired to the alarm, the scanner or the book.
+ * The one real risk in a teaching surface inside a trading app: a diagram
+ * being mistaken for a signal. Every figure is labelled as an illustration,
+ * uses its own axis, and is never wired to the alarm, the scanner or the book.
  *
- * WHAT IS *NOT* SYNTHETIC
- * Every RULE and THRESHOLD in the curriculum is imported from the engine
- * (`aplus/config.ts`, `profit-rules.ts`, `sessions.ts`), never typed as a
- * literal. The picture is an illustration; the numbers are the real ones. If a
- * gate moves, the lesson moves with it — see curriculum.ts.
+ * WHAT IS NEVER SYNTHETIC
+ * Every RULE and THRESHOLD in the curriculum is imported from the engine.
  */
+
+import historic from "@/data/learn-figures.json";
 
 export type FigureTone = "good" | "bad" | "warn" | "accent" | "neutral";
 
@@ -27,6 +23,8 @@ export interface FigureBar {
   h: number;
   l: number;
   c: number;
+  /** Present on historic slices; ignored by the renderer. */
+  t?: number;
 }
 
 export type FigureMark =
@@ -55,6 +53,9 @@ export interface Figure {
   marks: FigureMark[];
   /** Renders a green or red border — for right/wrong comparison pairs. */
   verdict?: "right" | "wrong";
+  /** Historic stamp, e.g. "ESU6 15m · Tue Aug 4 09:30–16:00 ET". */
+  stamp?: string;
+  symbol?: string;
 }
 
 /* ── Deterministic generation ─────────────────────────────────────────────── */
@@ -255,6 +256,11 @@ export const FIGURES: Record<string, Figure> = {
   risk: riskShape(),
 };
 
+const HISTORIC = (historic as { figures?: Record<string, Figure> }).figures ?? {};
+
+/** Prefer the August 2026 Databento slice. Synthetic seed is the fallback. */
 export function getFigure(id: string): Figure | null {
+  const real = HISTORIC[id];
+  if (real?.bars?.length) return real;
   return FIGURES[id] ?? null;
 }

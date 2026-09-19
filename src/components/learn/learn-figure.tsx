@@ -276,7 +276,7 @@ export function LearnFigure({ figure }: { figure: Figure }) {
           fontSize={8}
           opacity={0.75}
         >
-          illustration — not live tape
+          {figure.stamp ? "historic — Aug 2026 tape" : "illustration — not live tape"}
         </text>
       </svg>
 

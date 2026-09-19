@@ -458,6 +458,9 @@ function chasePlan(s: Snapshot): TradePlan | null {
   const stop = long ? s.raid.wickExtreme - 0.25 : s.raid.wickExtreme + 0.25;
   const riskPts = r2(Math.abs(entry - stop));
   if (!(riskPts > 0)) return null;
+  // After a squeeze the close can sit on the wrong side of the raid wick.
+  // A long with stop above entry is not a chase, it is a broken geometry.
+  if (long ? stop >= entry : stop <= entry) return null;
   const t1 = s.dol && (long ? s.dol.price > entry : s.dol.price < entry) ? r2(s.dol.price) : null;
   const rangeT = s.range ? (long ? s.range.high : s.range.low) : null;
   const t2 =
@@ -858,6 +861,7 @@ export function selectForTeaching(all: LearnCase[], perSymbol = 8): LearnCase[] 
     const losses = mine.filter((c) => c.outcome === "loss").sort((a, b) => b.confluence - a.confluence);
     const other = mine
       .filter((c) => !["win", "loss"].includes(c.outcome))
+      .filter((c) => c.chase != null || c.word !== "STAND")
       .sort((a, b) => {
         const ap = a.layers.filter((l) => l.must && l.state === "pass").length;
         const bp = b.layers.filter((l) => l.must && l.state === "pass").length;

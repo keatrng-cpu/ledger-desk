@@ -19,6 +19,7 @@
  */
 
 import type { Figure, FigureBar, FigureMark } from "./figures";
+import { getFigure } from "./figures";
 import { tape, type Tape } from "./tape";
 
 export type Verdict = "TAKE" | "WAIT" | "STAND";
@@ -37,6 +38,8 @@ export interface Scenario {
 }
 
 function fig(id: string, caption: string, t: Tape, marks: FigureMark[]): Figure {
+  const real = getFigure(id);
+  if (real?.bars?.length && real.id === id) return real;
   return { id, caption, bars: t.bars, marks };
 }
 
