@@ -302,6 +302,89 @@ const u2 = await pg.query(
 );
 check("a second user keeps a separate chain from genesis", u2.rows[0].n, 1);
 
+/* ── 6. The server path (attest-server.ts) ───────────────────────────────── */
+
+console.log("\nserver path");
+
+const { appendAttestation, chainHealth, findUnattestedTrades } = await import(
+  "../src/lib/journal/attest-server.ts"
+);
+
+// Duck-typed Sql: attest-server imports the type only, so a shim suffices.
+const sql = Object.assign(
+  async (strings, ...values) => {
+    let text = "";
+    strings.forEach((s, i) => {
+      text += s + (i < values.length ? `$${i + 1}` : "");
+    });
+    return (await pg.query(text, values)).rows;
+  },
+  { query: async (text, params = []) => (await pg.query(text, params)).rows },
+);
+
+const U = "u-server";
+const trades = [
+  { ...baseTrade, id: "s-1", user_id: U, status: "open", closed_at: null, exit: null, pnl: null, r: null },
+  { ...baseTrade, id: "s-2", user_id: U, pnl: -37.5, r: -1 },
+  { ...baseTrade, id: "s-3", user_id: U },
+];
+for (const t of trades) {
+  await pg.query(
+    `insert into desk_trades
+       (id, user_id, mode, source, symbol, side, status, opened_at, closed_at,
+        entry, stop, target, exit, contracts, pnl, r, commission, slippage,
+        reason, prescore, grade, killzone)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+    [t.id, t.user_id, t.mode, t.source, t.symbol, t.side, t.status, t.opened_at,
+     t.closed_at, t.entry, t.stop, t.target, t.exit, t.contracts, t.pnl, t.r,
+     t.commission, t.slippage, t.reason, t.prescore, t.grade, t.killzone],
+  );
+}
+
+const openRes = await appendAttestation(sql, trades[0], "open");
+check("appendAttestation seals an open", openRes.ok, true);
+truthy("...returning the link hash", /^[0-9a-f]{64}$/.test(openRes.hash));
+
+await appendAttestation(sql, trades[1], "open");
+await appendAttestation(sql, trades[1], "close");
+
+const health1 = await chainHealth(sql, U);
+check("server-built chain verifies", health1.verdict.ok, true);
+check("...with the links it wrote", health1.verdict.checked, 3);
+
+// s-3 is closed in desk_trades but was never attested — exactly the gap the
+// never-throw failure posture permits. It must be reported, not hidden.
+const gaps = await findUnattestedTrades(sql, U);
+check("an unattested trade is reported as a gap", gaps.length, 1);
+check("...naming the trade", gaps[0].tradeId, "s-3");
+check("...and what it is missing", gaps[0].missing.join(","), "open,close");
+truthy("chain health line mentions the unsealed trade", /unsealed/.test(health1.line));
+
+// s-2 opened AND closed, so it must not be reported as a gap.
+truthy("a fully sealed trade is not reported", !gaps.some((g) => g.tradeId === "s-2"));
+
+// Concurrency: parallel appends must serialise onto one chain, never fork.
+const burst = await Promise.all(
+  Array.from({ length: 6 }, (_, i) =>
+    appendAttestation(sql, { ...baseTrade, id: `c-${i}`, user_id: U }, "open"),
+  ),
+);
+check("every concurrent append succeeds", burst.filter((r) => r.ok).length, 6);
+const hashes = new Set(burst.map((r) => r.hash));
+check("...with distinct hashes", hashes.size, 6);
+const health2 = await chainHealth(sql, U);
+check("the chain is still a single unbroken chain after a burst", health2.verdict.ok, true);
+check("...containing every link", health2.verdict.checked, 9);
+
+// A silent edit to a sealed trade must be catchable after the fact.
+await pg.query("update desk_trades set pnl = 500, r = 4 where id = 's-2'");
+const afterEdit = await chainHealth(sql, U);
+check("editing desk_trades does NOT break the chain (it seals history, not state)", afterEdit.verdict.ok, true);
+const sealedS2 = await pg.query(
+  "select body from desk_attestations where trade_id = 's-2' and event = 'close'",
+);
+check("...and the sealed body still holds the ORIGINAL loss", sealedS2.rows[0].body.pnl, -37.5);
+
 await pg.close();
 
 /* ── Result ──────────────────────────────────────────────────────────────── */

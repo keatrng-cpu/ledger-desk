@@ -35,8 +35,20 @@ import {
   type Seal,
 } from "./attest";
 
-/** Retries for a lost race on the chain tip. */
-const MAX_APPEND_ATTEMPTS = 5;
+/**
+ * Retries for a lost race on the chain tip.
+ *
+ * A chain has exactly one tip, so concurrent appends for the same user are
+ * serialised by the unique index and the losers retry. With N simultaneous
+ * writers the unluckiest can lose up to N-1 races, so this must exceed any
+ * plausible burst: auto-paper firing while a manual trade is logged, a
+ * multi-leg close, a backfill running against a live session. Twelve with
+ * backoff covers far more than this desk will ever produce at once, and a
+ * writer that still loses does not corrupt anything — it reports a gap.
+ */
+const MAX_APPEND_ATTEMPTS = 12;
+/** Jittered backoff so retrying writers stop colliding in lockstep. */
+const RETRY_BASE_MS = 8;
 
 /** Postgres unique-violation. */
 function isUniqueViolation(err: unknown): boolean {
@@ -100,7 +112,10 @@ export async function appendAttestation(
     } catch (err) {
       lastError = err;
       if (!isUniqueViolation(err)) break;
-      // Lost the race for the tip; re-read and extend the new one.
+      // Lost the race for the tip. Back off with jitter before re-reading, so
+      // contending writers desynchronise instead of colliding again in step.
+      const wait = Math.round(RETRY_BASE_MS * 2 ** attempt * (0.5 + Math.random()));
+      await new Promise((resolve) => setTimeout(resolve, Math.min(wait, 500)));
     }
   }
 
