@@ -20,6 +20,7 @@
 import { useState } from "react";
 import { MODULES, type LearnModule } from "@/lib/learn/curriculum";
 import { getFigure } from "@/lib/learn/figures";
+import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios";
 import { LearnFigure } from "./learn-figure";
 
 export function LearnTab() {
@@ -104,8 +105,82 @@ function StepButton({
   );
 }
 
+function verdictStyle(v: Verdict): { color: string; bg: string } {
+  if (v === "TAKE") return { color: "var(--color-up)", bg: "color-mix(in oklab, var(--color-up) 14%, transparent)" };
+  if (v === "WAIT") return { color: "var(--color-warn)", bg: "color-mix(in oklab, var(--color-warn) 14%, transparent)" };
+  return { color: "var(--color-down)", bg: "color-mix(in oklab, var(--color-down) 14%, transparent)" };
+}
+
+/**
+ * The scenario set for a subject.
+ *
+ * One at a time rather than a stack: the point is to look at a shape, decide,
+ * and then read the verdict — which only works if the next scenario is not
+ * already visible underneath with its answer showing.
+ */
+function Scenarios({ items }: { items: Scenario[] }) {
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const active = items[Math.min(idx, items.length - 1)]!;
+  const style = verdictStyle(active.verdict);
+
+  function go(i: number) {
+    setIdx(i);
+    setRevealed(false);
+  }
+
+  return (
+    <section className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          Scenarios — {items.length}
+        </h3>
+        <div className="flex flex-wrap gap-1">
+          {items.map((sc, i) => (
+            <button
+              key={sc.id}
+              type="button"
+              onClick={() => go(i)}
+              aria-current={i === idx ? "true" : undefined}
+              className={`rounded-[var(--radius-sm)] px-2 py-1 text-[11px] transition-colors ${
+                i === idx
+                  ? "bg-[var(--color-primary)] text-[var(--color-primary-fg)]"
+                  : "bg-[var(--color-surface-3)] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+              }`}
+            >
+              {sc.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p className="mb-2 text-sm text-[var(--color-fg)]">{active.situation}</p>
+
+      <LearnFigure figure={active.figure} />
+
+      {revealed ? (
+        <div className="mt-2 rounded-[var(--radius-sm)] p-3" style={{ background: style.bg }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: style.color }}>
+            {active.verdict}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--color-fg)]">{active.read}</p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setRevealed(true)}
+          className="mt-2 w-full rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border-strong)] py-2 text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+        >
+          Decide first — then reveal the verdict
+        </button>
+      )}
+    </section>
+  );
+}
+
 function ModuleView({ module: m }: { module: LearnModule }) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
+  const scenarios = scenariosFor(m.id);
   return (
     <>
       <header>
@@ -128,6 +203,9 @@ function ModuleView({ module: m }: { module: LearnModule }) {
       <Block label="The rule" body={m.rule} tone="accent" />
       <Block label="Trigger" body={m.trigger} tone="mono" />
       <Block label="How this is usually got wrong" body={m.error} tone="warn" />
+
+      {scenarios.length > 0 && <Scenarios items={scenarios} />}
+
       <Block label="What this desk does" body={m.desk} tone="muted" />
 
       <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_7%,transparent)] p-3">

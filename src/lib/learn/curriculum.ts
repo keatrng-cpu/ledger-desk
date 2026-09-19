@@ -35,7 +35,13 @@ import { SHOCK_RANGE_MULT, SHOCK_LOCK_MS } from "@/lib/trading/shock";
 
 export interface LearnModule {
   id: string;
-  /** Position in the sequence a trade is actually read in. */
+  /**
+   * Position in the sequence a trade is actually read in.
+   *
+   * DERIVED from array order at export, never written by hand — inserting a
+   * module in the middle otherwise means renumbering every literal below it,
+   * and the one that gets missed is silent.
+   */
   step: number;
   title: string;
   /** One line, for the index. */
@@ -63,10 +69,9 @@ export interface LearnModule {
 
 const pct = (n: number) => `${(n * 100).toFixed(n * 100 % 1 === 0 ? 0 : 1)}%`;
 
-export const MODULES: LearnModule[] = [
+const MODULE_ORDER: Omit<LearnModule, "step">[] = [
   {
     id: "sequence",
-    step: 1,
     title: "The sequence",
     oneLine: "Five layers, in order. Miss one and there is no trade.",
     mechanism:
@@ -82,8 +87,55 @@ export const MODULES: LearnModule[] = [
       "Open the Now tab. Which layer is the desk naming as missing right now, and can you see why on the chart before reading the text?",
   },
   {
+    id: "bias-structure",
+    title: "Setting bias — reading structure",
+    oneLine: "Higher high AND higher low means bull. One of the two means nothing.",
+    mechanism:
+      "Bias comes from swing structure and nothing else. Take the last two swing highs and the last two swing lows. If the newest high is above the previous high AND the newest low is above the previous low, structure is bull. If the newest high is below the previous AND the newest low is below the previous, structure is bear. Every other combination — higher high with a lower low, or lower high with a higher low — returns NEUTRAL, because the market is expanding or compressing rather than trending.",
+    rule:
+      "Demand both conditions. A new high on its own is not a bull structure; price makes new highs all the way into a top.",
+    trigger:
+      "HH + HL = bull. LH + LL = bear. HH + LL = expansion, neutral. LH + HL = compression, neutral. Neutral is an answer, and it means no book.",
+    error:
+      "Calling a higher high 'bullish' without checking the low. That single omission is what turns an expansion into a phantom trend, and it is the most common way a bias is set wrong before a single other layer is read.",
+    desk: "structure.ts computes exactly this from the last four swings of each kind, per timeframe. It is deliberately blunt — no indicator, no smoothing — because a bias rule you cannot verify by eye on the chart is a bias rule you will not trust at 09:45.",
+    figures: [],
+    check: "On the current chart: where are the last two swing highs and lows, and do BOTH conditions hold?",
+  },
+  {
+    id: "bias-conflict",
+    title: "Which bias to lean toward",
+    oneLine: "Three timeframes vote. Then location can overrule the vote.",
+    mechanism:
+      "Daily, mid timeframe and the last break of structure each cast a vote, and the majority sets the top-down bias. Confidence rises with agreement: the more timeframes that align, the higher it goes. But the vote is not final. If the majority says bull while price is in PREMIUM and the mid timeframe says bear, the bias is forced to neutral — and the mirror for bear in discount. That override exists because a majority built on a slow daily read can point you at the exact top.",
+    rule:
+      "Lean toward the direction that survives BOTH the vote and the location test. When the override fires, the honest answer is neutral — not 'pick the one you prefer'.",
+    trigger:
+      "Majority of (daily, mid, last BOS). Then: premium + bull vote + mid bear → NEUTRAL. Discount + bear vote + mid bull → NEUTRAL. Confidence starts at 0.4 and adds 0.15 per aligned timeframe, capped at 0.95; a neutral read sits at 0.35.",
+    error:
+      "Resolving a timeframe conflict by picking the higher timeframe automatically. The higher timeframe is slower, which means in a turn it is also the most wrong. Location is what breaks the tie.",
+    desk: "structure.ts votes and then applies the two premium/discount overrides before publishing topDown. Session stance is tracked separately over the last ~12 bars — intraday delivery is not to be faded, even when it disagrees with the daily.",
+    figures: [],
+    check: "What is the desk's confidence right now, and how many timeframes are actually agreeing to produce it?",
+  },
+  {
+    id: "bias-against",
+    title: "Trading against the bias",
+    oneLine: "The HTF gate is absolute until price disrespects it AND distributes.",
+    mechanism:
+      "A bias is not permanent, but it does not end because price bounced. Reversals have a signature: the market sweeps liquidity (manipulation), displaces the other way, and then keeps delivering in that direction (distribution). Manipulation on its own is ordinary — every trend is full of sweeps that resolve in the trend's direction. Only manipulation plus distribution, recently, is evidence that control changed hands.",
+    rule:
+      "Do not take a counter-bias trade on a sweep alone. Require the full signature, require it to be recent, and document that the trade is counter-bias when you take it.",
+    trigger:
+      "Sweep AND displacement the counter-bias way AND continued delivery, all inside the recency window. Missing any one of the three leaves the gate shut.",
+    error:
+      "Treating the first strong bounce as a reversal. It usually is not, and a counter-bias entry taken early carries both a bad entry and a bias fighting it.",
+    desk: "htf-invalidation.ts answers this and only ever returns true for the side OPPOSING the current bias. Every requirement is returned with a pass/fail so the release is auditable — a counter-bias trade must never look identical to a with-bias one in the journal, because sizing and review both care which it was.",
+    figures: [],
+    check: "If you wanted to trade against the current HTF read today, which of the three requirements can you actually point at?",
+  },
+  {
     id: "dol",
-    step: 2,
     title: "Draw on liquidity",
     oneLine: "Price is always going somewhere specific. Name it with a price.",
     mechanism:
@@ -100,7 +152,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "liquidity",
-    step: 3,
     title: "Internal vs external liquidity",
     oneLine: "ERL is the edges. IRL is everything between.",
     mechanism:
@@ -117,7 +168,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "range",
-    step: 4,
     title: "The dealing range",
     oneLine: "Sell the upper half, buy the lower half. Not the other way round.",
     mechanism:
@@ -128,12 +178,11 @@ export const MODULES: LearnModule[] = [
     error:
       "Shorting a market that has already fallen to the bottom of its range because it 'looks weak'. It looks weak because it is where buyers are waiting.",
     desk: "structure.ts computes the dealing range and labels the zone; the dealing-range layer in smc-master.ts is a must-layer, so being in the wrong half is enough on its own to make the answer STAND.",
-    figures: ["dealing-range"],
+    figures: [],
     check: "Which half of the range is price in right now, and does that permit the side you were leaning toward?",
   },
   {
     id: "sweep",
-    step: 5,
     title: "The raid — and why a breakout is not one",
     oneLine: "A wick through that closes back inside. Anything else is acceptance.",
     mechanism:
@@ -144,13 +193,11 @@ export const MODULES: LearnModule[] = [
     error:
       "Treating any touch of a level as a sweep. This is the single most expensive error in the model, because it inverts the trade: you fade a breakout and the stop is on the correct side of a move that is still accelerating.",
     desk: "market-narrative.ts takes the last sweep ONLY from a real detector raid — a wick through with a close back inside — and requires the polarity to match the direction: a short needs a buyside raid, a long needs a sellside one. It used to fall back to a pool's 'swept' flag, which scored a breakout as a raid; that fallback was removed.",
-    figures: ["sweep-real", "sweep-fake"],
-    pairing: "contrast",
+    figures: [],
     check: "Find the most recent level price traded through. Did it close back inside, or beyond?",
   },
   {
     id: "shift",
-    step: 6,
     title: "Displacement and the shift",
     oneLine: "A wide body that CLOSES through structure. Drifting through it does not count.",
     mechanism:
@@ -161,12 +208,11 @@ export const MODULES: LearnModule[] = [
     error:
       "Taking the shift from a candle that formed before the sweep. That candle is the leg into the raid and points the wrong way.",
     desk: "detectors.ts bounds both sweep and displacement by recency and smc-master.ts requires the displacement index to be greater than the raid index, so a pre-raid shift can never satisfy the layer.",
-    figures: ["mss"],
+    figures: [],
     check: "Has a body closed through structure since the last raid, or is price still drifting?",
   },
   {
     id: "arrays",
-    step: 7,
     title: "PD arrays — where the entry lives",
     oneLine: "Fast moves leave gaps. Price comes back to them.",
     mechanism:
@@ -183,7 +229,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "retrace",
-    step: 8,
     title: "The retrace — do not chase",
     oneLine: "Price has to come back to you. If it has not, you do not have a trade yet.",
     mechanism:
@@ -195,13 +240,11 @@ export const MODULES: LearnModule[] = [
     error:
       "Chasing because the move looks like it is leaving. The cost is not the missed trade — it is the same trade taken at four times the risk.",
     desk: "The retrace layer requires price INSIDE a fresh same-side array, using a pad of 25% of the array height. When price is outside, it prints the distance and the instruction not to chase, rather than a generic wait.",
-    figures: ["retrace-right", "retrace-chase"],
-    pairing: "contrast",
+    figures: [],
     check: "Is price inside the array right now, or is the desk telling you how many points away it is?",
   },
   {
     id: "smt",
-    step: 9,
     title: "SMT divergence",
     oneLine: "When NQ and ES disagree, one of them is lying.",
     mechanism:
@@ -219,7 +262,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "time",
-    step: 10,
     title: "Time — killzones and the Judas swing",
     oneLine: "The first fifteen minutes of the New York session are designed to take your money.",
     mechanism:
@@ -236,7 +278,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "risk",
-    step: 11,
     title: "Risk — R is the only unit",
     oneLine: "Stop beyond the raid. Everything else is measured in multiples of that distance.",
     mechanism:
@@ -252,7 +293,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "gates",
-    step: 12,
     title: "The gates — why the desk refuses",
     oneLine: "Frequency is the enemy. Most of the rules exist to stop you trading.",
     mechanism:
@@ -268,7 +308,6 @@ export const MODULES: LearnModule[] = [
   },
   {
     id: "discretion",
-    step: 13,
     title: "Discretion — what the rules cannot decide",
     oneLine: "The gates tell you when you may. Discretion is everything after that.",
     mechanism:
@@ -283,6 +322,9 @@ export const MODULES: LearnModule[] = [
     check: "Look at your last stand-down. Did the tape prove the skip right? If it did not, was the gate wrong or was the read wrong?",
   },
 ];
+
+/** Steps numbered from position, so the order in the array is the truth. */
+export const MODULES: LearnModule[] = MODULE_ORDER.map((m, i) => ({ ...m, step: i + 1 }));
 
 export function moduleById(id: string): LearnModule | null {
   return MODULES.find((m) => m.id === id) ?? null;

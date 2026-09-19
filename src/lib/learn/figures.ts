@@ -113,87 +113,6 @@ const loOf = (b: FigureBar[], i: number) => b[i]!.l;
 
 /* ── The figures ──────────────────────────────────────────────────────────── */
 
-/** Equal highs, then a raid through them that closes back inside. */
-function sweepReal(): Figure {
-  const bars = series(100, [
-    { n: 6, drift: 1.6 },
-    { n: 5, drift: -1.4 },
-    { n: 5, drift: 1.5, wickUp: 0 },
-    { n: 4, drift: -1.2 },
-    // The raid: pokes above, closes back under.
-    { n: 1, drift: -2.5, wickUp: 7 },
-    { n: 7, drift: -2.2 },
-  ]);
-  const raidIdx = 20;
-  const pool = Math.max(hiOf(bars, 15), hiOf(bars, 5));
-  return {
-    id: "sweep-real",
-    caption: "A raid: wick through the pool, body closes back inside.",
-    verdict: "right",
-    bars,
-    marks: [
-      { kind: "level", price: pool, label: "BSL — equal highs", tone: "warn", dash: true },
-      { kind: "point", bar: raidIdx, price: bars[raidIdx]!.h, label: "swept, closed back under", tone: "good" },
-      { kind: "split", bar: raidIdx, label: "sequence starts here", tone: "accent" },
-    ],
-  };
-}
-
-/** The same pool, but price closes and holds above it — that is a breakout. */
-function sweepFake(): Figure {
-  const bars = series(
-    100,
-    [
-      { n: 6, drift: 1.6 },
-      { n: 5, drift: -1.4 },
-      { n: 5, drift: 1.5 },
-      { n: 4, drift: -1.2 },
-      // Closes ABOVE and keeps going — acceptance, not rejection.
-      { n: 1, drift: 6, wickUp: 2 },
-      { n: 7, drift: 2.4 },
-    ],
-    7,
-  );
-  const pool = Math.max(hiOf(bars, 15), hiOf(bars, 5));
-  return {
-    id: "sweep-fake",
-    caption: "Not a raid: price closed above the pool and held. That is acceptance.",
-    verdict: "wrong",
-    bars,
-    marks: [
-      { kind: "level", price: pool, label: "BSL — equal highs", tone: "warn", dash: true },
-      { kind: "point", bar: 20, price: bars[20]!.c, label: "closed ABOVE — no rejection", tone: "bad" },
-    ],
-  };
-}
-
-/** Premium / discount around equilibrium. */
-function dealingRange(): Figure {
-  const bars = series(100, [
-    { n: 7, drift: 2.2 },
-    { n: 6, drift: -2.0 },
-    { n: 8, drift: 1.8 },
-    { n: 7, drift: -1.6 },
-  ]);
-  let hi = -Infinity;
-  let lo = Infinity;
-  for (const b of bars) {
-    hi = Math.max(hi, b.h);
-    lo = Math.min(lo, b.l);
-  }
-  const eq = (hi + lo) / 2;
-  return {
-    id: "dealing-range",
-    caption: "Shorts belong in the upper half, longs in the lower half.",
-    bars,
-    marks: [
-      { kind: "zone", top: hi, bottom: eq, label: "premium — sell here", tone: "bad" },
-      { kind: "zone", top: eq, bottom: lo, label: "discount — buy here", tone: "good" },
-      { kind: "level", price: eq, label: "EQ (50%)", tone: "neutral", dash: true },
-    ],
-  };
-}
-
 /** A gap left by a fast three-bar move. */
 function fvg(): Figure {
   const bars = series(100, [
@@ -221,86 +140,6 @@ function fvg(): Figure {
         from: 5,
       },
       { kind: "point", bar: 6, price: bars[6]!.c, label: "displacement bar", tone: "accent" },
-    ],
-  };
-}
-
-/** Displacement through structure = the shift. */
-function mss(): Figure {
-  const bars = series(100, [
-    { n: 5, drift: 1.4 },
-    { n: 4, drift: -1.6 },
-    { n: 4, drift: 1.2, wickUp: 5 },
-    { n: 3, drift: -1.0 },
-    { n: 1, drift: -7, displace: true },
-    { n: 7, drift: -1.8 },
-  ]);
-  const swingLow = Math.min(loOf(bars, 8), loOf(bars, 9));
-  return {
-    id: "mss",
-    caption:
-      "A wide body CLOSES through the last protected low. Structure has shifted; drifting through it has not.",
-    bars,
-    marks: [
-      { kind: "level", price: swingLow, label: "protected low", tone: "warn", dash: true },
-      { kind: "point", bar: 16, price: bars[16]!.c, label: "MSS — closed through", tone: "good" },
-    ],
-  };
-}
-
-/** Entering on the retrace vs chasing the impulse. */
-function retraceBars(): FigureBar[] {
-  return series(100, [
-    { n: 4, drift: 1.4, noise: 3, wickUp: 6 }, // rally into the raid
-    { n: 1, drift: -13, noise: 1 },            // displacement down
-    { n: 2, drift: -1.2, noise: 3 },
-    { n: 5, drift: 2.0, noise: 3 },            // retrace UP into the gap
-    { n: 8, drift: -1.9, noise: 4 },
-  ]);
-}
-
-/**
- * The gap, built the way a bearish FVG actually is: the low of the bar BEFORE
- * the displacement down to the high of the bar AFTER it. Taking it from the
- * displacement bar's own open instead produces a band the height of the whole
- * move — which is not what anyone trades, and swamps the drawing.
- */
-function retraceGap(bars: FigureBar[]): { top: number; bottom: number } {
-  return { top: bars[3]!.l, bottom: bars[5]!.h };
-}
-
-function retraceRight(): Figure {
-  const bars = retraceBars();
-  const gap = retraceGap(bars);
-  // The retrace peak — the bar that trades back up into the gap.
-  let peak = 7;
-  for (let i = 7; i < 13; i++) if (bars[i]!.h > bars[peak]!.h) peak = i;
-  return {
-    id: "retrace-right",
-    caption: "Wait for price to come back INTO the array, then take the rejection.",
-    verdict: "right",
-    bars,
-    marks: [
-      { kind: "zone", top: gap.top, bottom: gap.bottom, label: "FVG — the array", tone: "accent", from: 3 },
-      { kind: "point", bar: peak, price: bars[peak]!.h, label: "entry on the retest", tone: "good" },
-      { kind: "level", price: gap.top, label: "stop just above", tone: "bad", dash: true },
-    ],
-  };
-}
-
-function retraceChase(): Figure {
-  const bars = retraceBars();
-  const gap = retraceGap(bars);
-  return {
-    id: "retrace-chase",
-    caption:
-      "Selling the impulse instead. The stop has to sit above the array either way, so the same idea costs several times the risk — and the ordinary retrace takes you out before it works.",
-    verdict: "wrong",
-    bars,
-    marks: [
-      { kind: "zone", top: gap.top, bottom: gap.bottom, label: "FVG — still unfilled", tone: "accent", from: 3 },
-      { kind: "point", bar: 6, price: bars[6]!.c, label: "chased here", tone: "bad" },
-      { kind: "level", price: gap.top, label: "stop STILL goes here", tone: "bad", dash: true },
     ],
   };
 }
@@ -404,13 +243,7 @@ function riskShape(): Figure {
 }
 
 export const FIGURES: Record<string, Figure> = {
-  "sweep-real": sweepReal(),
-  "sweep-fake": sweepFake(),
-  "dealing-range": dealingRange(),
   fvg: fvg(),
-  mss: mss(),
-  "retrace-right": retraceRight(),
-  "retrace-chase": retraceChase(),
   liquidity: liquidityMap(),
   "smt-nq": smtLead(),
   "smt-es": smtLag(),
