@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { withBudget } from "@/lib/market/budget";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import {
   fetchDatabentoBars,
@@ -112,46 +113,63 @@ export interface DeskError {
   error: string;
 }
 
+/**
+ * Hard ceiling on the Databento leg of a desk build, in ms.
+ *
+ * WHY THIS EXISTS (measured 2026-09-19, weekend tape)
+ * The server function runs in Netlify's streaming mode, and the edge cuts a
+ * stream that has been silent for ~30s, returning a 565-byte "Inactivity
+ * Timeout" page with a 504. Desk builds were taking 23-33s — straddling that
+ * line — so roughly every other poll died, and the desk printed the edge's
+ * raw HTML in its error banner. The time went into fetchDatabentoBars: a
+ * 45s per-request abort, a 422 discovery round-trip, and chunked history
+ * loads, all run BEFORE Yahoo was even started.
+ *
+ * Databento is the better source (real CME bars, fewer gaps) and Yahoo is a
+ * sufficient one for structure. A slow Databento must therefore degrade the
+ * desk to Yahoo, never take it down. The series carries its `source`, so the
+ * degradation is visible on the HUD rather than silent.
+ *
+ * Budget chosen so the whole build lands comfortably under the 20s poll
+ * cadence: ~12s here, Yahoo's own 15s abort in parallel, quotes after.
+ */
+const DATABENTO_BUDGET_MS = 12_000;
+
 async function load(
   symbol: IndexSymbol,
   range: YahooRange,
   interval: YahooInterval,
 ): Promise<SymbolSeries> {
-  let historical: SymbolSeries | null = null;
-  if (hasDatabentoKey()) {
-    const minutes =
-      interval === "1m"
-        ? 1
-        : interval === "5m"
-          ? 5
-          : interval === "15m"
-            ? 15
-            : interval === "60m"
-              ? 60
-              : 15;
-    try {
-      const db = await fetchDatabentoBars(
-        symbol,
-        range === "3mo"
-          ? "3mo"
-          : range === "1mo"
-            ? "1mo"
-            : range === "5d"
-              ? "5d"
-              : "1d",
-        minutes,
-      );
-      if (db && db.bars.length >= 30) historical = db;
-    } catch {
-      /* fallthrough */
-    }
-  }
-  let live: SymbolSeries | null = null;
-  try {
-    live = await fetchYahooBars(symbol, range, interval);
-  } catch {
-    /* fallthrough */
-  }
+  const minutes =
+    interval === "1m"
+      ? 1
+      : interval === "5m"
+        ? 5
+        : interval === "15m"
+          ? 15
+          : interval === "60m"
+            ? 60
+            : 15;
+
+  // Databento and Yahoo are independent sources that get STITCHED, so they
+  // are fetched concurrently. They used to run back to back — Databento's
+  // full timeout, then Yahoo's — which is how the critical path reached 30s.
+  const databento = hasDatabentoKey()
+    ? withBudget(
+        fetchDatabentoBars(
+          symbol,
+          range === "3mo" ? "3mo" : range === "1mo" ? "1mo" : range === "5d" ? "5d" : "1d",
+          minutes,
+        ).catch(() => null),
+        DATABENTO_BUDGET_MS,
+        null,
+      )
+    : Promise.resolve(null);
+  const yahoo = fetchYahooBars(symbol, range, interval).catch(() => null);
+
+  const [db, live] = await Promise.all([databento, yahoo]);
+  const historical = db && db.bars.length >= 30 ? db : null;
+
   const stitched = stitchLiveSession(historical, live);
   if (stitched) return stitched;
   return syntheticBars(symbol);

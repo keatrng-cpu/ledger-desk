@@ -121,6 +121,29 @@ export const Route = createFileRoute("/")({
 });
 
 const DESK_POLL_MS = 20_000;
+
+/**
+ * Turn a failed desk poll into one line a trader can act on.
+ *
+ * When Netlify's edge gives up on a silent streaming function it returns a
+ * 504 whose body is a small HTML page ("Inactivity Timeout ... Too much time
+ * has passed without sending any data for document"). The server-function
+ * client surfaces that body as the error message, and until 2026-09-19 the
+ * desk printed it verbatim — a screen of raw HTML tags in the error banner.
+ * The condition it describes is ordinary (an upstream market-data fetch ran
+ * long) and self-healing (the next poll usually succeeds), so it should read
+ * that way.
+ */
+function describeDeskError(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e ?? "");
+  if (/inactivity timeout|<html|<head|<title/i.test(raw) || /504/.test(raw)) {
+    return "Desk build ran long and the edge gave up (504) — market data upstream was slow. Retrying on the next poll.";
+  }
+  if (/failed to fetch|networkerror|load failed/i.test(raw)) {
+    return "Network dropped mid-poll — retrying on the next poll.";
+  }
+  return raw.length > 240 ? `${raw.slice(0, 240)}…` : raw || "Desk load failed";
+}
 /** Live gateway tick is already in Postgres — 1s is free. */
 const QUOTE_LIVE_MS = 1_000;
 /** Yahoo delayed print. Match the tape, don't hammer the free host. */
@@ -540,7 +563,15 @@ function MasterplacePage() {
     return () => window.removeEventListener("ledger-paper", sync);
   }, []);
 
+  // One desk build in flight at a time. The quote poll below already guards
+  // this; the desk poll never did, so when a build ran past the 20s cadence
+  // the next tick fired anyway and invocations stacked — each a full market
+  // fetch, each slower than the last, until the edge timed one out.
+  const deskInFlight = useRef(false);
+
   const load = useCallback(async () => {
+    if (deskInFlight.current) return;
+    deskInFlight.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -568,8 +599,9 @@ function MasterplacePage() {
         maybeAutofire(res, getPaperAccount().equity);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Desk load failed");
+      setError(describeDeskError(e));
     } finally {
+      deskInFlight.current = false;
       setLoading(false);
     }
   }, [loadRisk, publishDesk]);
