@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Brain,
   Layers,
+  GraduationCap,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -46,6 +47,7 @@ import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
+import { LearnTab } from "@/components/learn/learn-tab";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
@@ -378,6 +380,7 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 
 type DeskCategory =
   | "brain"
+  | "learn"
   | "trade"
   | "swing"
   | "path"
@@ -434,6 +437,14 @@ const CATEGORIES: {
     short: "Lab",
     hint: "Risk · rules · replay",
     icon: FlaskConical,
+  },
+  // Last on purpose: the only tab that is not opened during a live session.
+  {
+    id: "learn",
+    label: "Learn",
+    short: "Learn",
+    hint: "SMC · sequence · discretion",
+    icon: GraduationCap,
   },
 ];
 
@@ -1132,7 +1143,12 @@ function MasterplacePage() {
         {desk && (
           <>
             <div className="mt-3 min-h-[50vh] space-y-4">
-              {cat !== "trade" && <SynapseRail tab={cat} />}
+              {/* Learn carries no synapse feed: it is the one tab that is not a
+                  live surface, and a live rail above a lesson is the clutter
+                  this rework exists to remove. Now has its own board instead. */}
+              {cat !== "trade" && cat !== "learn" && <SynapseRail tab={cat} />}
+
+              {cat === "learn" && <LearnTab />}
 
               {cat === "brain" && (
                 <div className="space-y-5">

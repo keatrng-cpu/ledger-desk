@@ -18,6 +18,8 @@
     "seal": "npx tsx scripts/seal-chain.mjs",
     "seal:check": "npx tsx scripts/seal-chain.mjs --check",
     "verify:attest": "npx tsx scripts/verify-attestation.mjs",
+    "verify:plan": "npx tsx scripts/verify-trade-plan.mjs",
+    "verify:learn": "npx tsx scripts/verify-curriculum.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
