@@ -206,7 +206,7 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: "Fresh or partial. Mitigated = done. Don't expect the same orders twice.",
     error: "Using a gap that's already filled.",
     desk: "smc-board.ts states: fresh/partial/inverted/mitigated/breaker. Retrace layer only accepts post-raid same-side.",
-    figures: ["fvg"],
+    figures: ["fvg", "ifvg", "ob"],
     check: "Fresh unmitigated array on your side, after the raid?",
   },
   {
@@ -249,7 +249,7 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: "No entries 09:30–09:45 ET. After 10:00 ET, A+ only unless already in.",
     error: "Taking 09:32 as the day's direction. More often the trap.",
     desk: `sessions.ts isJudasWindow(). News ±15m. Shock ${SHOCK_RANGE_MULT}× trailing range locks ${SHOCK_LOCK_MS / 60000}m from tape alone.`,
-    figures: [],
+    figures: ["judas"],
     check: "What window is the clock in, and does it permit an entry?",
   },
   {
