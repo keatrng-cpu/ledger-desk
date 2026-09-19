@@ -57,6 +57,16 @@ export interface SetupChartProps {
   /** "TAKE" / "WAIT" / "STAND", for the corner badge. */
   word?: string;
   className?: string;
+  /** Bars shown. Defaults to the live desk's window. */
+  visibleBars?: number;
+  /**
+   * Index (in `bars`) of the decision bar, for replays. Draws a divider and
+   * dims everything to its right so what was knowable at the decision is
+   * visually separate from what happened next.
+   */
+  decisionIndex?: number | null;
+  /** Suppress the empty-plan caption (a replay explains itself elsewhere). */
+  hideEmptyCaption?: boolean;
 }
 
 interface Scale {
@@ -121,8 +131,14 @@ export function SetupChart({
   emptyDetail,
   word,
   className,
+  visibleBars,
+  decisionIndex = null,
+  hideEmptyCaption = false,
 }: SetupChartProps) {
-  const view = useMemo(() => bars.slice(-VISIBLE_BARS), [bars]);
+  const window_ = visibleBars ?? VISIBLE_BARS;
+  const offset = Math.max(0, bars.length - window_);
+  const view = useMemo(() => bars.slice(-window_), [bars, window_]);
+  const decisionInView = decisionIndex == null ? null : decisionIndex - offset;
   const scale = useMemo(() => buildScale(view, plan), [view, plan]);
 
   const shownArrays = useMemo(() => {
@@ -266,6 +282,39 @@ export function SetupChart({
             </g>
           );
         })}
+
+        {/* ── Replay: the decision bar and the future to its right ─────────── */}
+        {decisionInView != null && decisionInView >= 0 && decisionInView < view.length - 1 && (
+          <>
+            <rect
+              x={scale.x(decisionInView) + scale.step / 2}
+              y={PAD_T}
+              width={PAD_L + PLOT_W - (scale.x(decisionInView) + scale.step / 2)}
+              height={PLOT_H}
+              fill="var(--color-bg)"
+              opacity={0.35}
+            />
+            <line
+              x1={scale.x(decisionInView) + scale.step / 2}
+              x2={scale.x(decisionInView) + scale.step / 2}
+              y1={PAD_T}
+              y2={PAD_T + PLOT_H}
+              stroke="var(--color-fg)"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+              opacity={0.6}
+            />
+            <text
+              x={scale.x(decisionInView) + scale.step / 2 + 4}
+              y={PAD_T + PLOT_H - 4}
+              fill="var(--color-fg)"
+              fontSize={9}
+              opacity={0.7}
+            >
+              decision → what followed
+            </text>
+          </>
+        )}
 
         {/* ── Candles ──────────────────────────────────────────────────────── */}
         {view.map((b, i) => {
@@ -451,7 +500,7 @@ export function SetupChart({
         </text>
       </svg>
 
-      {!plan && (
+      {!plan && !hideEmptyCaption && (
         <figcaption className="border-t border-[var(--color-border)] px-3 py-2 text-xs text-[var(--color-muted)]">
           <span className="text-[var(--color-warn)]">No plan priced yet.</span>{" "}
           {emptyDetail ?? "Waiting on the sequence — nothing to draw."}

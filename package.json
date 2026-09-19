@@ -20,6 +20,9 @@
     "verify:attest": "npx tsx scripts/verify-attestation.mjs",
     "verify:plan": "npx tsx scripts/verify-trade-plan.mjs",
     "verify:learn": "npx tsx scripts/verify-curriculum.mjs",
+    "verify:cases": "npx tsx scripts/verify-cases.mjs",
+    "learn:capture": "npx tsx scripts/capture-learn-history.mjs",
+    "learn:build": "npx tsx scripts/build-learn-cases.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

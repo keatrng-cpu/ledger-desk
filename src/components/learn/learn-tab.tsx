@@ -22,6 +22,7 @@ import { MODULES, type LearnModule } from "@/lib/learn/curriculum";
 import { getFigure } from "@/lib/learn/figures";
 import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios";
 import { LearnFigure } from "./learn-figure";
+import { Walkthroughs } from "./walkthroughs";
 
 export function LearnTab() {
   const [openId, setOpenId] = useState<string>(MODULES[0]!.id);
@@ -181,15 +182,27 @@ function Scenarios({ items }: { items: Scenario[] }) {
 function ModuleView({ module: m }: { module: LearnModule }) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
   const scenarios = scenariosFor(m.id);
+  const header = (
+    <header>
+      <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
+        Step {m.step} of {MODULES.length}
+      </p>
+      <h2 className="text-lg font-semibold tracking-tight">{m.title}</h2>
+      <p className="mt-0.5 text-sm text-[var(--color-primary)]">{m.oneLine}</p>
+    </header>
+  );
+  if (m.id === "walkthroughs") {
+    return (
+      <>
+        {header}
+        <Block label="What this is" body={m.mechanism} />
+        <Walkthroughs />
+      </>
+    );
+  }
   return (
     <>
-      <header>
-        <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
-          Step {m.step} of {MODULES.length}
-        </p>
-        <h2 className="text-lg font-semibold tracking-tight">{m.title}</h2>
-        <p className="mt-0.5 text-sm text-[var(--color-primary)]">{m.oneLine}</p>
-      </header>
+      {header}
 
       {figures.length > 0 && (
         <div className={figures.length > 1 ? "grid gap-3 md:grid-cols-2" : ""}>

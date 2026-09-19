@@ -323,6 +323,25 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
   },
 ];
 
+/**
+ * The walkthroughs module. Its body is rendered by <Walkthroughs/> from real
+ * cases rather than from these fields, which exist so it has a place in the
+ * sequence and an honest description.
+ */
+MODULE_ORDER.push({
+  id: "walkthroughs",
+  title: "Walkthroughs — real tape",
+  oneLine: "A month of real bars, the live engine on every closed bar, wins and losses kept.",
+  mechanism:
+    "Everything above was a rule. This is the rules meeting real tape: the desk's own assembly run causally over captured 15m history in the NY AM window, one closed bar at a time. At each decision you see exactly what the desk printed, then what the bars did next.",
+  rule: "Read the steps, decide, then reveal. The point is the decision you make before the future is visible.",
+  trigger: "Real data. Nothing generated, nothing curated toward winners. Intrabar ties resolve against the trade.",
+  error: "Reading the outcome first. A walkthrough read backwards teaches hindsight, which is the one skill that pays nothing.",
+  desk: "Built by scripts/build-learn-cases.mjs from src/data/learn-history.json. Rebuild deliberately when the curriculum should advance to newer tape.",
+  figures: [],
+  check: "After each case: would you have taken it before the reveal? Count how often the desk's refusal was right.",
+});
+
 /** Steps numbered from position, so the order in the array is the truth. */
 export const MODULES: LearnModule[] = MODULE_ORDER.map((m, i) => ({ ...m, step: i + 1 }));
 

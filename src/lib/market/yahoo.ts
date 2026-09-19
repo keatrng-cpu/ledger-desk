@@ -83,7 +83,7 @@ const YAHOO_HEADERS = {
   Accept: "application/json",
 } as const;
 
-async function yahooChart(
+export async function yahooChart(
   yahoo: string,
   range: YahooRange,
   interval: YahooInterval,
