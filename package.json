@@ -15,9 +15,9 @@
     "preview": "vite preview --host 0.0.0.0 --port 8080",
     "typecheck": "tsc --noEmit",
     "test": "node --test 'scripts/**/*.test.mjs'",
-    "seal": "tsx scripts/seal-chain.mjs",
-    "seal:check": "tsx scripts/seal-chain.mjs --check",
-    "verify:attest": "tsx scripts/verify-attestation.mjs",
+    "seal": "npx tsx scripts/seal-chain.mjs",
+    "seal:check": "npx tsx scripts/seal-chain.mjs --check",
+    "verify:attest": "npx tsx scripts/verify-attestation.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
