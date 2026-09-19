@@ -147,9 +147,9 @@ function fvg(): Figure {
 /** IRL vs ERL — where the money sits. */
 function liquidityMap(): Figure {
   const bars = series(100, [
-    { n: 6, drift: 1.8 },
-    { n: 5, drift: -1.6 },
-    { n: 6, drift: 1.4 },
+    { n: 6, drift: 1.8 }, // first rally — its peak is an INTERNAL high
+    { n: 5, drift: -1.6 }, // pullback — its trough is an INTERNAL low
+    { n: 6, drift: 2.2 }, // second rally makes the SESSION high
     { n: 8, drift: -1.2 },
   ]);
   let hi = -Infinity;
@@ -158,8 +158,13 @@ function liquidityMap(): Figure {
     hi = Math.max(hi, b.h);
     lo = Math.min(lo, b.l);
   }
-  const midHigh = hiOf(bars, 16);
-  const midLow = loOf(bars, 10);
+  // Internal levels are the swings INSIDE the range: the first rally's peak
+  // (bars 0-5) and the pullback's trough (bars 6-10). An earlier version took
+  // bar 16's high, which was the session high itself, so "IRL" rendered on
+  // top of "ERL — session high" and its dashed line vanished under the red
+  // one. The suite now asserts every internal level sits strictly inside.
+  const firstPeak = bars.slice(0, 6).reduce((m, b) => Math.max(m, b.h), -Infinity);
+  const pullbackLow = bars.slice(6, 11).reduce((m, b) => Math.min(m, b.l), Infinity);
   return {
     id: "liquidity",
     caption: "External liquidity is the session's edges. Internal liquidity is everything between.",
@@ -167,8 +172,8 @@ function liquidityMap(): Figure {
     marks: [
       { kind: "level", price: hi, label: "ERL — session high (BSL)", tone: "bad" },
       { kind: "level", price: lo, label: "ERL — session low (SSL)", tone: "good" },
-      { kind: "level", price: midHigh, label: "IRL", tone: "neutral", dash: true },
-      { kind: "level", price: midLow, label: "IRL", tone: "neutral", dash: true },
+      { kind: "level", price: firstPeak, label: "IRL — first swing high", tone: "neutral", dash: true },
+      { kind: "level", price: pullbackLow, label: "IRL — pullback low", tone: "neutral", dash: true },
     ],
   };
 }

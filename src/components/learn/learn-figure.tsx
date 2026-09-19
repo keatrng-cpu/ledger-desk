@@ -78,6 +78,40 @@ function buildScale(bars: FigureBar[], marks: FigureMark[]): Scale | null {
   };
 }
 
+/** Vertical room one 9px label needs. */
+const LABEL_H = 11;
+
+/**
+ * Assign a label y to every level mark so no two overlap.
+ *
+ * Default slot is just above the line. Levels are walked top-down; if a
+ * label's slot would sit within LABEL_H of an already-placed label, it is
+ * moved just below its own line instead. Two levels closer than a label
+ * height in BOTH directions is a degenerate figure and is left to the eye —
+ * the suite catches the specific case of an internal level at an extreme.
+ */
+function placeLevelLabels(
+  marks: FigureMark[],
+  scale: Scale,
+): { m: FigureMark; i: number; labelY: number }[] {
+  const levels = marks
+    .map((m, i) => ({ m, i }))
+    .filter((x): x is { m: Extract<FigureMark, { kind: "level" }>; i: number } => x.m.kind === "level")
+    .sort((a, b) => b.m.price - a.m.price); // top of chart first
+  const taken: number[] = [];
+  const out: { m: FigureMark; i: number; labelY: number }[] = [];
+  for (const { m, i } of levels) {
+    const lineY = scale.y(m.price);
+    let labelY = lineY - 4; // above the line
+    if (taken.some((y) => Math.abs(y - labelY) < LABEL_H)) labelY = lineY + LABEL_H; // below instead
+    taken.push(labelY);
+    out.push({ m, i, labelY });
+  }
+  // Non-level marks are rendered by their own passes; return levels in
+  // original order so keys stay stable.
+  return out.sort((a, b) => a.i - b.i);
+}
+
 export function LearnFigure({ figure }: { figure: Figure }) {
   const scale = buildScale(figure.bars, figure.marks);
   if (!scale) return null;
@@ -177,8 +211,11 @@ export function LearnFigure({ figure }: { figure: Figure }) {
           );
         })}
 
-        {/* Levels. */}
-        {figure.marks.map((m, i) =>
+        {/* Levels. Labels are placed with collision avoidance: two levels
+            within a label's height of each other would print on top of one
+            another (an IRL drawn at the session high did exactly that), so
+            a label whose slot is taken drops below its line instead. */}
+        {placeLevelLabels(figure.marks, scale).map(({ m, i, labelY }) =>
           m.kind === "level" ? (
             <g key={`l${i}`}>
               <line
@@ -195,7 +232,7 @@ export function LearnFigure({ figure }: { figure: Figure }) {
                   on top of a callout at the same height. */}
               <text
                 x={PAD_L + 3}
-                y={scale.y(m.price) - 4}
+                y={labelY}
                 fill={toneColor(m.tone)}
                 fontSize={9}
                 fontWeight={500}
