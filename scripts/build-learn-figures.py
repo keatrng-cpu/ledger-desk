@@ -31,7 +31,9 @@ def et(ms: int) -> datetime:
 
 def stamp(bars: list, symbol: str) -> str:
     a, b = et(bars[0]["t"]), et(bars[-1]["t"])
-    return f"{symbol} 15m · {a.strftime('%a %b %-d %H:%M')}–{b.strftime('%H:%M ET')}"
+    # %-d (unpadded day) is a glibc extension and raises on Windows; build
+    # the day number by hand so the stamp is identical on every platform.
+    return f"{symbol} 15m · {a.strftime('%a %b')} {a.day} {a.strftime('%H:%M')}–{b.strftime('%H:%M ET')}"
 
 
 def ohlc(bars):
@@ -229,6 +231,56 @@ def assert_figure(f):
         want = {"bias-bull": "bull", "bias-bear": "bear", "bias-expansion": "expansion", "bias-coil": "coil"}[fid]
         if kind != want:
             raise SystemExit(f"{fid}: tape reads {kind}, claimed {want}")
+    pts = [m for m in f["marks"] if m["kind"] == "point"]
+    lvls = [m for m in f["marks"] if m["kind"] == "level"]
+    if fid == "shift-clean":
+        prot = next(m["price"] for m in lvls if "protected" in m["label"])
+        mss = next(m for m in pts if "MSS" in m["label"])
+        raid = next(m for m in pts if m["label"] == "raid")
+        if not bars[mss["bar"]]["c"] < prot:
+            raise SystemExit(f"shift-clean: MSS bar close {bars[mss['bar']]['c']} not below protected {prot}")
+        if not mss["bar"] > raid["bar"]:
+            raise SystemExit("shift-clean: MSS must print AFTER the raid")
+    if fid == "shift-wick":
+        prot = next(m["price"] for m in lvls if "protected" in m["label"])
+        pt = pts[0]
+        b = bars[pt["bar"]]
+        if not (b["l"] < prot and b["c"] > prot):
+            raise SystemExit(f"shift-wick: bar must wick below {prot} and close above (l={b['l']} c={b['c']})")
+    if fid == "shift-early":
+        d = next(m for m in pts if "displacement" in m["label"])
+        r = next(m for m in pts if "raid" in m["label"])
+        if not d["bar"] < r["bar"]:
+            raise SystemExit("shift-early: displacement must print BEFORE the raid")
+    if fid == "sweep-stale":
+        r = pts[0]
+        sp = next(m for m in f["marks"] if m["kind"] == "split")
+        if sp["bar"] - r["bar"] < 24:
+            raise SystemExit(f"sweep-stale: only {sp['bar'] - r['bar']} bars after the raid; recency window is 24")
+    if fid == "retrace-never":
+        zone = next(m for m in f["marks"] if m["kind"] == "zone")
+        start = zone["from"] + 3
+        if any(b["h"] >= zone["bottom"] - 0.05 for b in bars[start:]):
+            raise SystemExit("retrace-never: a later bar DID reach the gap")
+    if fid.startswith("against-"):
+        ssl = next(m["price"] for m in lvls if "SSL" in m["label"])
+        raid = next(m for m in pts if "raid" in m["label"].lower())
+        rb = bars[raid["bar"]]
+        if not (rb["l"] < ssl and rb["c"] > ssl):
+            raise SystemExit(f"{fid}: raid bar must wick below SSL {ssl} and close above (l={rb['l']} c={rb['c']})")
+        if fid == "against-full":
+            d = next(m for m in pts if "displacement" in m["label"])
+            db = bars[d["bar"]]
+            if not (d["bar"] > raid["bar"] and db["c"] > db["o"] and db["c"] > rb["c"]):
+                raise SystemExit("against-full: displacement must be a later up-bar closing above the raid close")
+        if fid == "against-sweep-only":
+            if any("displacement" in m["label"] for m in pts):
+                raise SystemExit("against-sweep-only must not carry a displacement mark")
+        if fid == "against-stale":
+            d = next(m for m in pts if "displacement" in m["label"])
+            sp = next(m for m in f["marks"] if m["kind"] == "split")
+            if sp["bar"] - d["bar"] < 30:
+                raise SystemExit(f"against-stale: only {sp['bar'] - d['bar']} bars after displacement; need 30")
 
 
 # ── finders ──────────────────────────────────────────────────────────────
@@ -434,6 +486,240 @@ def find_retrace(bars, min_gap=1.75):
             if best is None or score > best[0]:
                 best = (score, sl, bot, top, g, inn, b["c"])
             break
+    return best
+
+
+
+def atr(bars, i, n=14):
+    win = bars[max(0, i - n) : i]
+    if not win:
+        return 0.0
+    return sum(b["h"] - b["l"] for b in win) / len(win)
+
+
+def raid_at(bars, i, side, look=8, min_pierce=0.75):
+    """(pool, pierce) if bar i wicks through the prior pool and closes back inside."""
+    if i < look:
+        return None
+    prior = bars[i - look : i]
+    b = bars[i]
+    if side == "bsl":
+        pool = max(x["h"] for x in prior)
+        if b["h"] <= pool + 0.25 or b["c"] >= pool:
+            return None
+        pierce = b["h"] - pool
+    else:
+        pool = min(x["l"] for x in prior)
+        if b["l"] >= pool - 0.25 or b["c"] <= pool:
+            return None
+        pierce = pool - b["l"]
+    if pierce < min_pierce:
+        return None
+    return pool, pierce
+
+
+def bear_structure_before(bars, i, win=30):
+    st = structure_strict(bars[max(0, i - win) : i])
+    return st is not None and st[0] == "bear"
+
+
+def last_pivot_low_before(bars, i, win=14):
+    lo = max(0, i - win)
+    _, lows = pivots(bars[lo:i])
+    if not lows:
+        return None
+    j = lo + lows[-1]
+    return j, bars[j]["l"]
+
+
+def find_shift_clean(bars):
+    """BSL raid, then a bear displacement that CLOSES through the last protected low."""
+    best = None
+    for i in range(20, len(bars) - 8):
+        if not ny_am(bars[i]):
+            continue
+        r = raid_at(bars, i, "bsl")
+        if not r:
+            continue
+        pool, pierce = r
+        pl = last_pivot_low_before(bars, i)
+        if not pl:
+            continue
+        pj, prot = pl
+        a = atr(bars, i)
+        if a <= 0:
+            continue
+        for j in range(i + 1, min(len(bars), i + 7)):
+            b = bars[j]
+            body = b["o"] - b["c"]
+            if body >= 2.0 * a and b["c"] < prot:
+                lo = max(0, i - 12)
+                sl = bars[lo : j + 5]
+                score = body / a + pierce / a
+                if best is None or score > best[0]:
+                    best = (score, sl, i - lo, j - lo, pool, prot, b["c"])
+                break
+    return best
+
+
+def find_shift_wick(bars):
+    """A protected pivot low that gets wicked through and closed back above — a raid, not a shift."""
+    best = None
+    for i in range(20, len(bars) - 6):
+        if not ny_am(bars[i]):
+            continue
+        pl = last_pivot_low_before(bars, i)
+        if not pl:
+            continue
+        pj, prot = pl
+        b = bars[i]
+        if not (b["l"] < prot - 0.25 and b["c"] > prot):
+            continue
+        # Price must have been ABOVE the level going in (an up-leg into it).
+        if bars[i - 1]["c"] < prot:
+            continue
+        depth = prot - b["l"]
+        if depth < 0.75:
+            continue
+        lo = max(0, i - 12)
+        sl = bars[lo : i + 6]
+        score = depth / max(atr(bars, i), 0.01)
+        if best is None or score > best[0]:
+            best = (score, sl, i - lo, prot, b["l"])
+    return best
+
+
+def find_shift_early(bars):
+    """A bear displacement FOLLOWED by a BSL raid — the body was the leg into the sweep."""
+    best = None
+    for d in range(20, len(bars) - 10):
+        if not ny_am(bars[d]):
+            continue
+        a = atr(bars, d)
+        if a <= 0:
+            continue
+        db = bars[d]
+        if (db["o"] - db["c"]) < 2.0 * a:
+            continue
+        for i in range(d + 1, min(len(bars), d + 6)):
+            r = raid_at(bars, i, "bsl")
+            if not r:
+                continue
+            pool, pierce = r
+            lo = max(0, d - 8)
+            sl = bars[lo : i + 6]
+            score = (db["o"] - db["c"]) / a + pierce / a
+            if best is None or score > best[0]:
+                best = (score, sl, d - lo, i - lo, pool, db["c"], bars[i]["h"])
+            break
+    return best
+
+
+def find_sweep_stale(bars):
+    """A clean BSL raid, then 26+ bars of drift with no displacement: the raid expired."""
+    best = None
+    for i in range(20, len(bars) - 30):
+        if not ny_am(bars[i]):
+            continue
+        r = raid_at(bars, i, "bsl")
+        if not r:
+            continue
+        pool, pierce = r
+        a = atr(bars, i)
+        if a <= 0:
+            continue
+        after = bars[i + 1 : i + 27]
+        if any(abs(b["c"] - b["o"]) >= 1.5 * a for b in after):
+            continue
+        closes = [b["c"] for b in after]
+        if max(closes) - min(closes) > 2.5 * a:
+            continue
+        lo = max(0, i - 8)
+        sl = bars[lo : i + 29]
+        score = pierce / a
+        if best is None or score > best[0]:
+            best = (score, sl, i - lo, pool, bars[i]["h"])
+    return best
+
+
+def find_retrace_never(bars, min_gap=1.75):
+    """Bearish FVG (bar i-2 low above bar i high), then 12 bars that never trade back up into it."""
+    best = None
+    for i in range(2, len(bars) - 14):
+        a, mid, c = bars[i - 2], bars[i - 1], bars[i]
+        if not ny_am(mid):
+            continue
+        bot, top = c["h"], a["l"]
+        if top - bot < min_gap:
+            continue
+        after = bars[i + 1 : i + 13]
+        if any(b["h"] >= bot - 0.05 for b in after):
+            continue
+        lo = max(0, i - 10)
+        sl = bars[lo : i + 13]
+        score = (top - bot) * (1.3 if ny_am(mid) else 0.6)
+        if best is None or score > best[0]:
+            best = (score, sl, bot, top, (i - 2) - lo, len(sl) - 1)
+    return best
+
+
+def find_against(bars, kind):
+    """Bear structure into a sellside raid; then sweep-only / full signature / stale."""
+    best = None
+    for i in range(40, len(bars) - 36):
+        if not ny_am(bars[i]):
+            continue
+        if not bear_structure_before(bars, i):
+            continue
+        r = raid_at(bars, i, "ssl")
+        if not r:
+            continue
+        pool, pierce = r
+        a = atr(bars, i)
+        if a <= 0:
+            continue
+        # first bull displacement after the raid, if any within 6 bars
+        d = None
+        for j in range(i + 1, min(len(bars), i + 7)):
+            b = bars[j]
+            if (b["c"] - b["o"]) >= 2.0 * a and b["c"] > bars[i]["c"]:
+                d = j
+                break
+        if kind == "sweep-only":
+            if d is not None:
+                continue
+            after = bars[i + 1 : i + 9]
+            if max(b["c"] for b in after) > bars[i]["c"] + 1.5 * a:
+                continue
+            lo = max(0, i - 16)
+            sl = bars[lo : i + 9]
+            score = pierce / a
+            if best is None or score > best[0]:
+                best = (score, sl, i - lo, None, pool, None)
+        elif kind == "full":
+            if d is None:
+                continue
+            nxt = bars[d + 1 : d + 6]
+            if sum(1 for b in nxt if b["c"] > bars[d]["c"]) < 3:
+                continue
+            lo = max(0, i - 16)
+            sl = bars[lo : d + 7]
+            score = (bars[d]["c"] - bars[d]["o"]) / a + pierce / a
+            if best is None or score > best[0]:
+                best = (score, sl, i - lo, d - lo, pool, None)
+        elif kind == "stale":
+            if d is None:
+                continue
+            later = bars[d + 6 : d + 32]
+            if len(later) < 26:
+                continue
+            if any(b["c"] > bars[d]["c"] + 0.5 * a for b in later):
+                continue
+            lo = max(0, i - 8)
+            sl = bars[lo : d + 33]
+            score = pierce / a
+            if best is None or score > best[0]:
+                best = (score, sl, i - lo, d - lo, pool, d - lo + 30)
     return best
 
 
@@ -677,6 +963,108 @@ if rt:
     )
 else:
     misses.append("retrace-into")
+
+# ── the eleven scenarios that were still synthetic ──────────────────────────
+for sym_name, book in (("ESU6", ES), ("NQU6", NQ)):
+    if "shift-clean" not in figures:
+        hit = find_shift_clean(book)
+        if hit:
+            _, sl, ri, mi, pool, prot, close = hit
+            figures["shift-clean"] = fig(
+                "shift-clean",
+                "Raid, then a wide body that CLOSES through the protected low. Structure shifted.",
+                sl,
+                [
+                    {"kind": "level", "price": prot, "label": "protected low", "tone": "warn", "dash": True},
+                    {"kind": "level", "price": pool, "label": "BSL", "tone": "bad", "dash": True},
+                    {"kind": "point", "bar": ri, "price": sl[ri]["h"], "label": "raid", "tone": "warn"},
+                    {"kind": "point", "bar": mi, "price": close, "label": "MSS — closed through", "tone": "good"},
+                ],
+                sym_name,
+            )
+    if "shift-wick" not in figures:
+        hit = find_shift_wick(book)
+        if hit:
+            _, sl, i, prot, low = hit
+            figures["shift-wick"] = fig(
+                "shift-wick",
+                "Through on the wick, back above on the close. That is a raid of the lows, not a shift.",
+                sl,
+                [
+                    {"kind": "level", "price": prot, "label": "protected low", "tone": "warn", "dash": True},
+                    {"kind": "point", "bar": i, "price": low, "label": "no close through", "tone": "bad"},
+                ],
+                sym_name,
+            )
+    if "shift-early" not in figures:
+        hit = find_shift_early(book)
+        if hit:
+            _, sl, di, ri, pool, dclose, rhigh = hit
+            figures["shift-early"] = fig(
+                "shift-early",
+                "The wide body printed BEFORE the raid. It is the leg into the sweep, not the reaction to it.",
+                sl,
+                [
+                    {"kind": "point", "bar": di, "price": dclose, "label": "displacement (earlier)", "tone": "bad"},
+                    {"kind": "level", "price": pool, "label": "BSL", "tone": "warn", "dash": True},
+                    {"kind": "point", "bar": ri, "price": rhigh, "label": "raid (later)", "tone": "warn"},
+                ],
+                sym_name,
+            )
+    if "sweep-stale" not in figures:
+        hit = find_sweep_stale(book)
+        if hit:
+            _, sl, ri, pool, high = hit
+            figures["sweep-stale"] = fig(
+                "sweep-stale",
+                "A clean raid, then 26 bars of drift and no displacement. The raid expired.",
+                sl,
+                [
+                    {"kind": "level", "price": pool, "label": "BSL", "tone": "warn", "dash": True},
+                    {"kind": "point", "bar": ri, "price": high, "label": "raided — 26 bars ago", "tone": "bad"},
+                    {"kind": "split", "bar": ri + 24, "label": "recency window ends", "tone": "accent"},
+                ],
+                sym_name,
+            )
+    if "retrace-never" not in figures:
+        hit = find_retrace_never(book)
+        if hit:
+            _, sl, bot, top, g, last = hit
+            figures["retrace-never"] = fig(
+                "retrace-never",
+                "The gap was left and never revisited. A correct read that offered no entry.",
+                sl,
+                [
+                    {"kind": "zone", "top": top, "bottom": bot, "label": "FVG — never filled", "tone": "accent", "from": g},
+                    {"kind": "point", "bar": last, "price": sl[last]["c"], "label": "price is here", "tone": "bad"},
+                ],
+                sym_name,
+            )
+    for kind, fid, caption in (
+        ("sweep-only", "against-sweep-only", "Bear structure, a sellside raid, and then nothing. Manipulation without distribution."),
+        ("full", "against-full", "Bear structure, a sellside raid, a wide body up, and continued delivery. The full signature."),
+        ("stale", "against-stale", "The signature printed — and then price went nowhere for 30 bars. Right shape, wrong age."),
+    ):
+        if fid in figures:
+            continue
+        hit = find_against(book, kind)
+        if not hit:
+            continue
+        _, sl, ri, di, pool, spl = hit
+        marks = [
+            {"kind": "level", "price": pool, "label": "SSL", "tone": "warn", "dash": True},
+            {"kind": "point", "bar": ri, "price": sl[ri]["l"], "label": "sellside raid", "tone": "warn"},
+        ]
+        if di is not None:
+            marks.append({"kind": "point", "bar": di, "price": sl[di]["c"], "label": "displacement up" if kind == "full" else "displacement — but stale", "tone": "good" if kind == "full" else "bad"})
+        if spl is not None and spl < len(sl):
+            marks.append({"kind": "split", "bar": spl, "label": "30 bars later", "tone": "accent"})
+        figures[fid] = fig(fid, caption, sl, marks, sym_name)
+
+for fid in ("shift-clean", "shift-wick", "shift-early", "sweep-stale", "retrace-never", "against-sweep-only", "against-full", "against-stale"):
+    if fid not in figures:
+        misses.append(fid)
+
 
 for f in figures.values():
     assert_figure(f)

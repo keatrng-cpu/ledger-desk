@@ -18,6 +18,8 @@ import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios
 import { scenarioCall, type Call } from "@/lib/learn/drill";
 import { LearnFigure } from "./learn-figure";
 import { Walkthroughs } from "./walkthroughs";
+import { CanonBox } from "./canon-box";
+import { canonFor } from "@/lib/learn/canon";
 import { DrillCall, WhyBox } from "./drill-call";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 
@@ -182,6 +184,7 @@ function Scenarios({ items }: { items: Scenario[] }) {
 function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayload }) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
   const scenarios = scenariosFor(m.id);
+  const canon = canonFor(m.id);
   const [called, setCalled] = useState(false);
   const live = liveFacts(m.id, desk, called);
   const book = desk.smcMaster.oneBook;
@@ -231,6 +234,8 @@ function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayloa
             <Spec k="Trap" v={m.error} warn />
             <Spec k="Code" v={m.desk} muted />
           </dl>
+
+          {canon && <CanonBox key={`${m.id}-canon`} block={canon} />}
 
           <DrillCall
             key={`${m.id}-live`}

@@ -22,7 +22,7 @@
     "verify:learn": "npx tsx scripts/verify-curriculum.mjs && npx tsx scripts/verify-figures.mjs",
     "verify:cases": "npx tsx scripts/verify-cases.mjs",
     "learn:capture": "npx tsx scripts/capture-learn-history.mjs",
-    "learn:figures": "python3 scripts/build-learn-figures.py",
+    "learn:figures": "python3 scripts/build-learn-figures.py && npx tsx scripts/build-learn-conflicts.mjs",
     "learn:build": "npx tsx scripts/build-learn-cases.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
