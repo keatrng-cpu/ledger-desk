@@ -73,253 +73,195 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
   {
     id: "sequence",
     title: "The sequence",
-    oneLine: "Five layers, in order. Miss one and there is no trade.",
-    mechanism:
-      "Every trade this desk takes is the same five-step read: where price is drawn to, a raid of the opposite liquidity, the correct half of the dealing range, a lower-timeframe shift, and a retrace into a fresh array. They are ordered because each one only means something if the one before it happened. A gap that formed before the raid is the leg INTO the sweep, not a place to enter after it.",
-    rule:
-      "Read them in order and stop at the first one missing. The missing layer is the answer to 'why not', and it is the only thing worth saying out loud.",
-    trigger: `All five must pass AND the PATH band must be A+/A/A− before the word is TAKE. Any must-layer failing makes it STAND, regardless of how good the rest looks.`,
-    error:
-      "Collecting confluences instead of sequencing them. Four strong signals in the wrong order is not a better trade than three in the right one — it is a different trade that has not happened yet.",
-    desk: `smc-master.ts grades the layers and will only print TAKE when every must-layer passes and the PATH band clears the floor of ${APLUS_RULES.confluenceFloor}. The 'missing' line on the Now tab is literally the first failing layer.`,
+    oneLine: "DOL → sweep polarity → dealing-range → LTF shift → retrace. Miss one = no trade.",
+    mechanism: "Each layer only means something if the one before it happened. A gap from before the raid is the leg into the sweep, not an entry.",
+    rule: "Read in order. Stop at the first miss. That miss is the only 'why not' worth saying.",
+    trigger: `TAKE iff all musts pass AND PATH A+/A/A− (floor ${APLUS_RULES.confluenceFloor}). Any must-fail → STAND.`,
+    error: "Stacking four signals in the wrong order. That's a different trade that hasn't happened yet.",
+    desk: `smc-master.ts. Now tab 'missing' = first failing must-layer.`,
     figures: [],
-    check:
-      "Open the Now tab. Which layer is the desk naming as missing right now, and can you see why on the chart before reading the text?",
+    check: "Which must-layer is missing on the live book?",
   },
   {
     id: "bias-structure",
     title: "Setting bias — reading structure",
-    oneLine: "Higher high AND higher low means bull. One of the two means nothing.",
-    mechanism:
-      "Bias comes from swing structure and nothing else. Take the last two swing highs and the last two swing lows. If the newest high is above the previous high AND the newest low is above the previous low, structure is bull. If the newest high is below the previous AND the newest low is below the previous, structure is bear. Every other combination — higher high with a lower low, or lower high with a higher low — returns NEUTRAL, because the market is expanding or compressing rather than trending.",
-    rule:
-      "Demand both conditions. A new high on its own is not a bull structure; price makes new highs all the way into a top.",
-    trigger:
-      "HH + HL = bull. LH + LL = bear. HH + LL = expansion, neutral. LH + HL = compression, neutral. Neutral is an answer, and it means no book.",
-    error:
-      "Calling a higher high 'bullish' without checking the low. That single omission is what turns an expansion into a phantom trend, and it is the most common way a bias is set wrong before a single other layer is read.",
-    desk: "structure.ts computes exactly this from the last four swings of each kind, per timeframe. It is deliberately blunt — no indicator, no smoothing — because a bias rule you cannot verify by eye on the chart is a bias rule you will not trust at 09:45.",
+    oneLine: "HH+HL = bull. LH+LL = bear. One of the two = nothing.",
+    mechanism: "Last two swing highs and last two swing lows. Mixed (HH+LL or LH+HL) is expansion/compression → NEUTRAL.",
+    rule: "Demand both. A new high into a lower low is not a bull trend.",
+    trigger: "HH+HL bull · LH+LL bear · else NEUTRAL · no book.",
+    error: "Calling HH 'bullish' without checking the low.",
+    desk: "structure.ts — last four swings each side, no smoother.",
     figures: [],
-    check: "On the current chart: where are the last two swing highs and lows, and do BOTH conditions hold?",
+    check: "Last two highs and lows: do BOTH conditions hold?",
   },
   {
     id: "bias-conflict",
     title: "Which bias to lean toward",
-    oneLine: "Three timeframes vote. Then location can overrule the vote.",
-    mechanism:
-      "Daily, mid timeframe and the last break of structure each cast a vote, and the majority sets the top-down bias. Confidence rises with agreement: the more timeframes that align, the higher it goes. But the vote is not final. If the majority says bull while price is in PREMIUM and the mid timeframe says bear, the bias is forced to neutral — and the mirror for bear in discount. That override exists because a majority built on a slow daily read can point you at the exact top.",
-    rule:
-      "Lean toward the direction that survives BOTH the vote and the location test. When the override fires, the honest answer is neutral — not 'pick the one you prefer'.",
-    trigger:
-      "Majority of (daily, mid, last BOS). Then: premium + bull vote + mid bear → NEUTRAL. Discount + bear vote + mid bull → NEUTRAL. Confidence starts at 0.4 and adds 0.15 per aligned timeframe, capped at 0.95; a neutral read sits at 0.35.",
-    error:
-      "Resolving a timeframe conflict by picking the higher timeframe automatically. The higher timeframe is slower, which means in a turn it is also the most wrong. Location is what breaks the tie.",
-    desk: "structure.ts votes and then applies the two premium/discount overrides before publishing topDown. Session stance is tracked separately over the last ~12 bars — intraday delivery is not to be faded, even when it disagrees with the daily.",
+    oneLine: "D / mid / last BOS vote. Location can veto the majority.",
+    mechanism: "Majority sets top-down. Premium + bull vote + mid bear → forced NEUTRAL (mirror for discount + bear + mid bull).",
+    rule: "Lean only if vote AND location survive. Override = no book, not 'pick a side'.",
+    trigger: "Conf starts 0.4, +0.15 per aligned TF, cap 0.95. Neutral sits 0.35.",
+    error: "Always taking the higher TF. In a turn it is the most wrong.",
+    desk: "structure.ts votes then applies the two premium/discount overrides. Session stance is last ~12 bars, separate.",
     figures: [],
-    check: "What is the desk's confidence right now, and how many timeframes are actually agreeing to produce it?",
+    check: "Live confidence, and how many TFs actually agree?",
   },
   {
     id: "bias-against",
     title: "Trading against the bias",
-    oneLine: "The HTF gate is absolute until price disrespects it AND distributes.",
-    mechanism:
-      "A bias is not permanent, but it does not end because price bounced. Reversals have a signature: the market sweeps liquidity (manipulation), displaces the other way, and then keeps delivering in that direction (distribution). Manipulation on its own is ordinary — every trend is full of sweeps that resolve in the trend's direction. Only manipulation plus distribution, recently, is evidence that control changed hands.",
-    rule:
-      "Do not take a counter-bias trade on a sweep alone. Require the full signature, require it to be recent, and document that the trade is counter-bias when you take it.",
-    trigger:
-      "Sweep AND displacement the counter-bias way AND continued delivery, all inside the recency window. Missing any one of the three leaves the gate shut.",
-    error:
-      "Treating the first strong bounce as a reversal. It usually is not, and a counter-bias entry taken early carries both a bad entry and a bias fighting it.",
-    desk: "htf-invalidation.ts answers this and only ever returns true for the side OPPOSING the current bias. Every requirement is returned with a pass/fail so the release is auditable — a counter-bias trade must never look identical to a with-bias one in the journal, because sizing and review both care which it was.",
+    oneLine: "HTF is absolute until sweep + displacement + distribution, recently.",
+    mechanism: "A bounce is not a reversal. Only manipulation plus continued delivery the other way, inside recency, releases the gate.",
+    rule: "No counter-bias on a sweep alone. Document it when you take it.",
+    trigger: "Sweep AND counter displacement AND continued delivery, all recent. Miss one → gate shut.",
+    error: "First strong bounce as the reversal. Early counter-bias = bad entry + fighting HTF.",
+    desk: "htf-invalidation.ts only returns true for the OPPOSING side, with pass/fail per requirement.",
     figures: [],
-    check: "If you wanted to trade against the current HTF read today, which of the three requirements can you actually point at?",
+    check: "Against today's HTF: which of the three can you actually point at?",
   },
   {
     id: "dol",
     title: "Draw on liquidity",
-    oneLine: "Price is always going somewhere specific. Name it with a price.",
-    mechanism:
-      "Markets move between pools of resting orders. Above old highs sit buy stops; below old lows sit sell stops. Price is drawn toward whichever pool is large, close and unprotected — not toward an indicator, and not toward 'up'. The draw is a destination with a number.",
-    rule:
-      "Before anything else, say where price is going and at what price. If you cannot name the level, you do not have a directional read, you have a feeling.",
-    trigger:
-      "A draw is tradable when it sits in the direction of the higher-timeframe bias and has a measured reach rate from past sessions. A draw behind price is where it came from, not a target.",
-    error:
-      "Naming a direction instead of a level. 'Bearish' is not a draw; 'PDL at 24,020, reached 68% of sessions' is.",
-    desk: "draw.ts scores every pool by distance, liquidity weight and how often that class of level has actually been reached, then prices the primary draw. The Now tab shows it with its reach rate — that percentage is measured, not assumed.",
+    oneLine: "A destination with a price. Not 'up'.",
+    mechanism: "BSL above old highs, SSL below old lows. Drawn to the pool that is large, close, unprotected.",
+    rule: "Name the level first. No price = no directional read.",
+    trigger: "Tradable draw = HTF direction + measured reach from past sessions. A draw behind you is history.",
+    error: "'Bearish' is not a draw. 'PDL 24020, reached 68% of sessions' is.",
+    desk: "draw.ts scores distance × weight × reach rate. Now tab prints the priced draw.",
     figures: ["liquidity"],
-    check: "What is the desk's current primary draw, and how far is it in points?",
+    check: "Primary draw, price, points away?",
   },
   {
     id: "liquidity",
     title: "Internal vs external liquidity",
-    oneLine: "ERL is the edges. IRL is everything between.",
-    mechanism:
-      "External liquidity (ERL) is the session's own high and low — the obvious pools everybody can see. Internal liquidity (IRL) is the smaller highs and lows inside the range, plus unfilled gaps. Price characteristically runs from internal to external, and from external back to internal.",
-    rule:
-      "Take the first target at the nearest internal level and the runner at the external one. That is why the desk prints two targets rather than one.",
-    trigger:
-      "When price has just taken ERL, the next draw is usually IRL in the opposite direction. When it has filled IRL, the next draw is usually ERL.",
-    error:
-      "Targeting the far edge from the start and giving back a completed move because the near pool was never banked.",
-    desk: `The desk's T1 is the nearest internal draw and T2 the external one, and the scale-out rule bank ${pct(APLUS_RULES.scaleOut.tp1Fraction)} at +1R with the stop to break-even — so the runner to ERL is carried at zero risk.`,
+    oneLine: "ERL = session H/L. IRL = everything between.",
+    mechanism: "Runs IRL→ERL then ERL→IRL. T1 is the near pool, T2 the far edge.",
+    rule: "Bank T1 at nearest IRL. Carry T2 to ERL at zero risk after BE.",
+    trigger: "Took ERL → next draw is usually IRL the other way. Filled IRL → next is ERL.",
+    error: "Targeting the far edge from the start and giving the completed move back.",
+    desk: `T1 nearest IRL, T2 ERL. Scale ${pct(APLUS_RULES.scaleOut.tp1Fraction)} at +1R, stop → BE.`,
     figures: ["liquidity"],
-    check: "Is price currently closer to internal or external liquidity, and which way does that point the next leg?",
+    check: "Closer to IRL or ERL, and which way is the next leg?",
   },
   {
     id: "range",
     title: "The dealing range",
-    oneLine: "Sell the upper half, buy the lower half. Not the other way round.",
-    mechanism:
-      "Take the swing high and swing low that define the current leg. The midpoint is equilibrium. Above it price is at a premium — expensive, and the better place to be a seller. Below it price is at a discount — cheap, and the better place to be a buyer. This is the whole of 'buy low, sell high', made mechanical.",
-    rule:
-      "Shorts are only taken in premium, longs only in discount. A short taken in discount is selling something already cheap into the pool that is about to be bid.",
-    trigger: "Above EQ (the 50% of the range) = premium. Below = discount. There is no third option.",
-    error:
-      "Shorting a market that has already fallen to the bottom of its range because it 'looks weak'. It looks weak because it is where buyers are waiting.",
-    desk: "structure.ts computes the dealing range and labels the zone; the dealing-range layer in smc-master.ts is a must-layer, so being in the wrong half is enough on its own to make the answer STAND.",
+    oneLine: "Short premium. Long discount. No third option.",
+    mechanism: "Swing high/low of the current leg. Midpoint = EQ. Above = expensive. Below = cheap.",
+    rule: "A short in discount is selling cheap into the bid.",
+    trigger: "Above EQ = premium. Below = discount.",
+    error: "Shorting the range low because it 'looks weak'. That's where buyers wait.",
+    desk: "structure.ts labels the zone. Dealing-range is a must-layer — wrong half = STAND.",
     figures: [],
-    check: "Which half of the range is price in right now, and does that permit the side you were leaning toward?",
+    check: "Which half is live price in, and does it permit your side?",
   },
   {
     id: "sweep",
-    title: "The raid — and why a breakout is not one",
-    oneLine: "A wick through that closes back inside. Anything else is acceptance.",
-    mechanism:
-      "A raid takes the stops resting beyond a pool and then rejects: price trades through the level, triggers the orders, and closes back on the original side. That close is the entire signal — it says the move beyond the level found no acceptance and the liquidity has been collected. A candle that closes beyond the level and stays there is the opposite event: acceptance, continuation, and the start of a new leg away from you.",
-    rule:
-      "Demand a wick through the pool AND a close back inside. If the close is beyond the level, the level broke — do not fade it.",
-    trigger: `Wick pierces the level, body closes back inside, and the raid must be RECENT — this desk only counts one inside the last ${RECENT_SWEEP_BARS} bars (${(RECENT_SWEEP_BARS / 4).toFixed(0)} hours on 15m). A raid from yesterday is history, not a trigger.`,
-    error:
-      "Treating any touch of a level as a sweep. This is the single most expensive error in the model, because it inverts the trade: you fade a breakout and the stop is on the correct side of a move that is still accelerating.",
-    desk: "market-narrative.ts takes the last sweep ONLY from a real detector raid — a wick through with a close back inside — and requires the polarity to match the direction: a short needs a buyside raid, a long needs a sellside one. It used to fall back to a pool's 'swept' flag, which scored a breakout as a raid; that fallback was removed.",
+    title: "The raid — vs a breakout",
+    oneLine: "Wick through, close back inside. Close beyond = acceptance.",
+    mechanism: "Raid collects stops then rejects. Close beyond the level is continuation — do not fade it.",
+    rule: "Wick + close back. Close beyond → the level broke.",
+    trigger: `Recent only: last ${RECENT_SWEEP_BARS} bars (${(RECENT_SWEEP_BARS / 4).toFixed(0)}h on 15m). Yesterday is history.`,
+    error: "Any touch counted as a sweep. That's fading a breakout with the stop on the wrong side of acceleration.",
+    desk: "market-narrative.ts: real detector raid only. Short needs BSL raid, long needs SSL. Breakout flag is not a raid.",
     figures: [],
-    check: "Find the most recent level price traded through. Did it close back inside, or beyond?",
+    check: "Last level traded through — closed inside or beyond?",
   },
   {
     id: "shift",
     title: "Displacement and the shift",
-    oneLine: "A wide body that CLOSES through structure. Drifting through it does not count.",
-    mechanism:
-      "After the raid, the move that matters is displacement: an unusually large body relative to recent range, travelling away from the swept level. When that displacement closes through the last protected swing point, structure has shifted (MSS). The size is the evidence — it says the move was participation, not drift.",
-    rule:
-      "Wait for a body that closes through the protected level. A wick through, or a slow grind through on small bodies, is not a shift.",
-    trigger: `A body large relative to the trailing average range, closing beyond the protected swing, and formed AFTER the raid — this desk only counts displacement inside the last ${RECENT_DISPLACEMENT_BARS} bars and only when it prints later than the raid it belongs to.`,
-    error:
-      "Taking the shift from a candle that formed before the sweep. That candle is the leg into the raid and points the wrong way.",
-    desk: "detectors.ts bounds both sweep and displacement by recency and smc-master.ts requires the displacement index to be greater than the raid index, so a pre-raid shift can never satisfy the layer.",
+    oneLine: "Wide body that CLOSES through structure. Drift doesn't count.",
+    mechanism: "After the raid: large body vs trailing range, away from the sweep, through the protected swing (MSS).",
+    rule: "Wait for the close through. Wick-through or grind is not a shift.",
+    trigger: `Displacement in last ${RECENT_DISPLACEMENT_BARS} bars AND index > raid index. Pre-raid body is the leg into the sweep.`,
+    error: "Taking a shift from a candle that printed before the sweep.",
+    desk: "detectors.ts recency-bounds both. smc-master.ts requires displacement after the raid.",
     figures: [],
-    check: "Has a body closed through structure since the last raid, or is price still drifting?",
+    check: "Has a body closed through structure since the last raid?",
   },
   {
     id: "arrays",
     title: "PD arrays — where the entry lives",
-    oneLine: "Fast moves leave gaps. Price comes back to them.",
-    mechanism:
-      "When price moves fast it leaves inefficiency: a band that one side of the market never got to trade. On three bars, if the first bar's high never meets the third bar's low, that untouched band is a fair value gap. An order block is the last opposing candle before such a move. An inverted FVG is a gap that failed and now acts as resistance from the other side. All of them are the same idea — unfinished business at a known price.",
-    rule:
-      "Enter from inside an array, not from open space. The array gives you a defined boundary, which is what makes the stop small.",
-    trigger:
-      "The array must be on the side you are trading, unmitigated, and formed AFTER the raid. Consequent encroachment — the array's midpoint — is where the limit rests.",
-    error:
-      "Using an array that has already been filled once. A mitigated gap has done its job; expecting a second reaction from it is expecting the same order flow twice.",
-    desk: "smc-board.ts tracks every array with a state (fresh / partial / inverted / mitigated / breaker), and the retrace layer only accepts a fresh same-side array timestamped after the raid. The chart on the Now tab shades at most four so the picture stays readable.",
+    oneLine: "FVG / IFVG / OB. Enter from the array, not open space.",
+    mechanism: "3-bar inefficiency: bar1 high never meets bar3 low. OB = last opposing candle before the move. IFVG = failed gap, now the other side.",
+    rule: "Unmitigated, same side, formed AFTER the raid. Limit at CE (mid).",
+    trigger: "Fresh or partial. Mitigated = done. Don't expect the same orders twice.",
+    error: "Using a gap that's already filled.",
+    desk: "smc-board.ts states: fresh/partial/inverted/mitigated/breaker. Retrace layer only accepts post-raid same-side.",
     figures: ["fvg"],
-    check: "Is there a fresh, unmitigated array on your side that formed after the raid? If not, there is no entry yet.",
+    check: "Fresh unmitigated array on your side, after the raid?",
   },
   {
     id: "retrace",
     title: "The retrace — do not chase",
-    oneLine: "Price has to come back to you. If it has not, you do not have a trade yet.",
-    mechanism:
-      "The entry is the retest, not the impulse. After displacement, price typically returns into the array it left behind before continuing. Entering on the retrace puts your stop just beyond the array — a small, defined distance. Entering on the impulse puts your stop in exactly the same place, but your entry is far from it, so the identical idea costs several times the risk and the ordinary retrace takes you out before the trade works.",
-    rule:
-      "Place a limit inside the array and let price come. If price is not inside the array, the answer is WAIT, not a market order.",
-    trigger:
-      "Price must be inside the array, within a quarter of its height as tolerance. Outside that, the desk names the distance and says wait.",
-    error:
-      "Chasing because the move looks like it is leaving. The cost is not the missed trade — it is the same trade taken at four times the risk.",
-    desk: "The retrace layer requires price INSIDE a fresh same-side array, using a pad of 25% of the array height. When price is outside, it prints the distance and the instruction not to chase, rather than a generic wait.",
+    oneLine: "Limit in the array. If price isn't there, WAIT.",
+    mechanism: "Impulse leaves the array; entry is the retest. Chase = same stop, several times the R.",
+    rule: "No market order into the impulse.",
+    trigger: "Inside the array ±25% of height. Outside → desk prints the distance.",
+    error: "Chasing because 'it's leaving'. The miss isn't the cost — 4× risk on the same idea is.",
+    desk: "Retrace must-layer: price IN a fresh same-side array, pad 25%. Else names points away.",
     figures: [],
-    check: "Is price inside the array right now, or is the desk telling you how many points away it is?",
+    check: "Inside the array, or how many points away?",
   },
   {
     id: "smt",
     title: "SMT divergence",
-    oneLine: "When NQ and ES disagree, one of them is lying.",
-    mechanism:
-      "The two index futures normally move together. When one makes a higher high and the other fails to — or one makes a lower low and the other holds — the disagreement says the move lacks broad participation. The index that failed to confirm is showing you where the real order flow is. NQ usually leads.",
-    rule:
-      "Use SMT as confirmation of a raid you already have, never as a signal by itself. A divergence with no sweep is an observation.",
-    trigger:
-      "Higher high on one index against a lower high on the other (or the low-side mirror), in the same window, on the same timeframe.",
-    error:
-      "Trading the divergence on its own. Indices diverge constantly in chop; without the raid it carries no information about where the stops were.",
-    desk: "structure.ts builds a 15m/1H/4H SMT stack and the scanner treats it as a confluence component, never as a gate. The Charts tab shows both books side by side so the disagreement is visible rather than described.",
+    oneLine: "NQ vs ES: HH vs LH (or LL vs HL) in the same window.",
+    mechanism: "One book takes the extreme, the other refuses. The one that failed is the real order flow. NQ usually leads.",
+    rule: "Confirms a raid you already have. Divergence with no sweep is an observation.",
+    trigger: "HH vs LH (or LL vs HL), same TF, same window.",
+    error: "Trading SMT alone. Indices diverge in chop constantly.",
+    desk: "structure.ts 15m/1H/4H stack. Scanner confluence, never a gate. Charts tab is the picture.",
     figures: ["smt-nq", "smt-es"],
     pairing: "compare",
-    check: "Are the two books agreeing on their most recent high or low right now?",
+    check: "Do the two books agree on the most recent high or low?",
   },
   {
     id: "time",
-    title: "Time — killzones and the Judas swing",
-    oneLine: "The first fifteen minutes of the New York session are designed to take your money.",
-    mechanism:
-      "Liquidity arrives in windows. The open produces an initial move that frequently reverses — the Judas swing — because it exists to trip the stops of everyone positioned before the session. After that raid, the actual session direction develops. The same setup is worth far more at 10:00 than at 09:32.",
-    rule:
-      "Name the raid during the open, take nothing. Trade the leg that follows it.",
-    trigger:
-      "No entries 09:30–09:45 ET. After 10:00 ET, A+ only unless already in a trade.",
-    error:
-      "Taking the open's first impulse as the day's direction. It is more often the trap than the trend.",
-    desk: `sessions.ts exposes isJudasWindow() for 09:30–09:45 ET and the desk refuses entries inside it; auto-paper is A+ only in that window. High-impact news carries a ±15 minute blackout, and an unscheduled shock — a bar ${SHOCK_RANGE_MULT}× the trailing range — locks the desk for ${SHOCK_LOCK_MS / 60000} minutes from the tape alone, with no news feed involved.`,
+    title: "Time — killzones and Judas",
+    oneLine: "09:30–09:45 ET: name the raid, take nothing.",
+    mechanism: "Open often exists to trip pre-session stops. Real direction develops after.",
+    rule: "Trade the leg that follows Judas, not the first impulse.",
+    trigger: "No entries 09:30–09:45 ET. After 10:00 ET, A+ only unless already in.",
+    error: "Taking 09:32 as the day's direction. More often the trap.",
+    desk: `sessions.ts isJudasWindow(). News ±15m. Shock ${SHOCK_RANGE_MULT}× trailing range locks ${SHOCK_LOCK_MS / 60000}m from tape alone.`,
     figures: [],
-    check: "What window is the clock in right now, and does it permit an entry at all?",
+    check: "What window is the clock in, and does it permit an entry?",
   },
   {
     id: "risk",
     title: "Risk — R is the only unit",
-    oneLine: "Stop beyond the raid. Everything else is measured in multiples of that distance.",
-    mechanism:
-      "R is the distance from entry to stop. Expressing everything in R makes trades comparable across instruments and sizes: a 30-point MNQ trade and a 6-point ES trade are the same trade if both are 1R risked for 2R. Position size is then a division, not a judgement — risk dollars divided by R in dollars.",
-    rule:
-      "The stop goes beyond the raid wick, because that is the price the market has already proved it rejects. The target must be at least as far away as the stop, or there is no trade to take.",
-    trigger: `Minimum ${APLUS_RULES.minRr.toFixed(1)}:1 reward-to-risk, targets clamped to ${APLUS_RULES.tpMaxR.toFixed(0)}R. Risk by grade: A+ ${pct(APLUS_RULES.riskByGrade["A+"])} · A ${pct(APLUS_RULES.riskByGrade.A)} · A− ${pct(APLUS_RULES.riskByGrade["A-"])} · B+ ${pct(APLUS_RULES.riskByGrade["B+"])}. A+ trades at the ${pct(APLUS_PROBE_RISK)} probe until n≥${APLUS_FULL_SIZE_MIN_N} A+ trades at ≥${pct(APLUS_FULL_SIZE_MIN_WR)} win rate, then ${pct(APLUS_FULL_RISK)}.`,
-    error:
-      "Sizing off a stop you have not placed yet, or widening the stop after entry so the loss is 'not real'. Both convert a known 1R into an unknown one.",
-    desk: `At +1R the desk banks ${pct(APLUS_RULES.scaleOut.tp1Fraction)} and moves the stop to break-even, so open risk after T1 is approximately zero. Daily halt at ${pct(APLUS_RULES.dailyLossLimitPct)}, weekly at ${pct(APLUS_RULES.weeklyLossLimitPct)}.`,
+    oneLine: "Stop beyond the raid wick. T1 ≥ 1R or there is no trade.",
+    mechanism: "R = entry→stop. Size = risk $ / R $. MNQ 30pt and ES 6pt are the same trade if both are 1R for 2R.",
+    rule: "Don't size a stop you haven't placed. Don't widen after entry.",
+    trigger: `Min ${APLUS_RULES.minRr.toFixed(1)}:1 · TP clamp ${APLUS_RULES.tpMaxR.toFixed(0)}R · A+ ${pct(APLUS_RULES.riskByGrade["A+"])} · A ${pct(APLUS_RULES.riskByGrade.A)} · A− ${pct(APLUS_RULES.riskByGrade["A-"])} · B+ ${pct(APLUS_RULES.riskByGrade["B+"])}. A+ probe ${pct(APLUS_PROBE_RISK)} until n≥${APLUS_FULL_SIZE_MIN_N} A+ WR≥${pct(APLUS_FULL_SIZE_MIN_WR)}, then ${pct(APLUS_FULL_RISK)}.`,
+    error: "Sizing off a mental stop, or widening so the loss 'isn't real'.",
+    desk: `+1R banks ${pct(APLUS_RULES.scaleOut.tp1Fraction)}, stop → BE. Daily halt ${pct(APLUS_RULES.dailyLossLimitPct)} · weekly ${pct(APLUS_RULES.weeklyLossLimitPct)}.`,
     figures: ["risk"],
-    check: "For the current plan: how many points is 1R, and does T1 clear it?",
+    check: "This plan: points in 1R, and does T1 clear it?",
   },
   {
     id: "gates",
     title: "The gates — why the desk refuses",
-    oneLine: "Frequency is the enemy. Most of the rules exist to stop you trading.",
-    mechanism:
-      "An edge that is real on nine trades a month becomes noise on ninety, because the marginal trade is always the worst one available. Caps on frequency are not conservatism — they are what keeps the average trade near the top of your distribution instead of the middle of it.",
-    rule:
-      "One book per day. Take the best setup, not the first. When the month's allocation is spent, the bar rises to A+ or you stand.",
-    trigger: `Confluence floor ${APLUS_RULES.confluenceFloor} to execute · A+ tag at ${APLUS_RULES.aPlusThreshold} · ${PATH_MONTH_CAP} PATH per month, then A+ only · max ${APLUS_RULES.maxSetupsPerSession} per killzone · ${MAX_CONSEC_LOSSES} consecutive losses stops the day · max ${MAX_SAME_SIDE_WEEK} same-side trades per week · daily ${pct(APLUS_RULES.dailyLossLimitPct)} / weekly ${pct(APLUS_RULES.weeklyLossLimitPct)} halt.`,
-    error:
-      "Treating a skipped day as a wasted one. On a dirty week the skip IS the edge, and it is the only part of the process with a guaranteed positive expectancy.",
-    desk: "profit-rules.ts enforces every one of these mechanically and the counters come from real fills, not from intent. The desk will refuse an entry it has already allowed twice in the same killzone.",
+    oneLine: "Nine trades a month stay an edge. Ninety become the middle of the distribution.",
+    mechanism: "Caps keep the average trade at the top of your set, not the first thing that prints.",
+    rule: "One book/day. Best setup, not first. After the month cap: A+ only or stand.",
+    trigger: `Floor ${APLUS_RULES.confluenceFloor} · A+ ${APLUS_RULES.aPlusThreshold} · ${PATH_MONTH_CAP}/mo then A+ · max ${APLUS_RULES.maxSetupsPerSession}/KZ · ${MAX_CONSEC_LOSSES} consec losses = day stop · max ${MAX_SAME_SIDE_WEEK} same-side/week · ${pct(APLUS_RULES.dailyLossLimitPct)}/${pct(APLUS_RULES.weeklyLossLimitPct)} halt.`,
+    error: "Treating a skip as a wasted day. On a dirty week the skip IS the edge.",
+    desk: "profit-rules.ts from real fills, not intent. Second fill in the same killzone is refused.",
     figures: [],
-    check: "How many PATH trades has this month used, and what does that make the current bar?",
+    check: "PATH used this month, and what does that make the current bar?",
   },
   {
     id: "discretion",
-    title: "Discretion — what the rules cannot decide",
-    oneLine: "The gates tell you when you may. Discretion is everything after that.",
-    mechanism:
-      "A mechanical system can verify that a sequence completed; it cannot tell you that today's tape is thin, that the same level has already rejected twice, or that you are trading to recover a loss. Those are judgements, and they are where the remaining edge lives once the gates are respected. The discipline is to make them BEFORE the trade and record them, so they can be scored later rather than remembered flatteringly.",
-    rule:
-      "Write the reason at entry, in tape terms, and write the invalidation. A trade whose reason you cannot state in one sentence is not a trade you understand.",
-    trigger: `A setup at or above ${HIGH_CONFLUENCE_THRESHOLD.toFixed(2)} confluence flashes on the desk. That is an instruction to LOOK, not to take — the sweep-polarity gate can still be refusing it, and it should be obeyed when it does.`,
-    error:
-      "Reading 'failed' as 'the direction was wrong'. A failed setup means a confluence was disrespected or liquidity and bias stopped agreeing — often while the direction was still correct. Those are different failures and they have different fixes.",
-    desk: "ghost-book.ts scores the setups you did NOT take against what the tape then did, so discipline becomes measurable instead of anecdotal. Most journals only record what you did; the ones that record what you skipped are the ones that show whether the gates are helping.",
+    title: "Discretion — after the gates",
+    oneLine: "Gates say you may. Discretion is everything after that, written before the click.",
+    mechanism: "The engine can't see thin tape, a level that already rejected twice, or revenge. Those judgements get scored only if you recorded them.",
+    rule: "One-sentence reason + invalidation at entry. Can't state it → you don't understand it.",
+    trigger: `≥${HIGH_CONFLUENCE_THRESHOLD.toFixed(2)} confluence = LOOK, not take. Sweep-polarity can still refuse.`,
+    error: "Reading 'failed' as 'direction was wrong'. Failed = a confluence broke. Direction can still have been right.",
+    desk: "ghost-book.ts scores the skips against what the tape then did.",
     figures: [],
-    check: "Look at your last stand-down. Did the tape prove the skip right? If it did not, was the gate wrong or was the read wrong?",
+    check: "Last stand-down: did the skip print right, and was that the gate or the read?",
   },
 ];
 
@@ -331,15 +273,14 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
 MODULE_ORDER.push({
   id: "walkthroughs",
   title: "Walkthroughs — real tape",
-  oneLine: "A month of real bars, the live engine on every closed bar, wins and losses kept.",
-  mechanism:
-    "Everything above was a rule. This is the rules meeting real tape: the desk's own assembly run causally over captured 15m history in the NY AM window, one closed bar at a time. At each decision you see exactly what the desk printed, then what the bars did next.",
-  rule: "Read the steps, decide, then reveal. The point is the decision you make before the future is visible.",
-  trigger: "Real data. Nothing generated, nothing curated toward winners. Intrabar ties resolve against the trade.",
-  error: "Reading the outcome first. A walkthrough read backwards teaches hindsight, which is the one skill that pays nothing.",
-  desk: "Built by scripts/build-learn-cases.mjs from src/data/learn-history.json. Rebuild deliberately when the curriculum should advance to newer tape.",
+  oneLine: "Captured 15m NY AM. Engine on every closed bar. This file: 0 TAKE — refusals + chase R.",
+  mechanism: "Causal replay of src/data/learn-history.json. Decision bar first; future hidden until reveal.",
+  rule: "Decide before the divider. Outcome-first is hindsight.",
+  trigger: "Real bars. Ties resolve against the trade. Pool tally is the whole month, not the pretty subset.",
+  error: "Reading the result then the setup. Pays nothing.",
+  desk: "scripts/build-learn-cases.mjs → learn-cases.json. Rebuild when the capture should move forward.",
   figures: [],
-  check: "After each case: would you have taken it before the reveal? Count how often the desk's refusal was right.",
+  check: "Would you have taken it before reveal? Count how often STAND was the right word.",
 });
 
 /** Steps numbered from position, so the order in the array is the truth. */

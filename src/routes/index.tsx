@@ -1180,7 +1180,7 @@ function MasterplacePage() {
                   this rework exists to remove. Now has its own board instead. */}
               {cat !== "trade" && cat !== "learn" && <SynapseRail tab={cat} />}
 
-              {cat === "learn" && <LearnTab />}
+              {cat === "learn" && <LearnTab desk={desk} />}
 
               {cat === "brain" && (
                 <div className="space-y-5">

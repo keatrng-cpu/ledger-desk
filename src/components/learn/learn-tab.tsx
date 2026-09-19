@@ -23,8 +23,9 @@ import { getFigure } from "@/lib/learn/figures";
 import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios";
 import { LearnFigure } from "./learn-figure";
 import { Walkthroughs } from "./walkthroughs";
+import type { DeskPayload } from "@/lib/trading/build-desk";
 
-export function LearnTab() {
+export function LearnTab({ desk }: { desk: DeskPayload }) {
   const [openId, setOpenId] = useState<string>(MODULES[0]!.id);
   const active = MODULES.find((m) => m.id === openId) ?? MODULES[0]!;
 
@@ -64,7 +65,7 @@ export function LearnTab() {
       </nav>
 
       <article className="flex min-w-0 flex-col gap-3">
-        <ModuleView module={active} />
+        <ModuleView module={active} desk={desk} />
         <div className="flex justify-between gap-2 border-t border-[var(--color-border)] pt-3">
           <StepButton
             module={MODULES[MODULES.indexOf(active) - 1]}
@@ -179,87 +180,172 @@ function Scenarios({ items }: { items: Scenario[] }) {
   );
 }
 
-function ModuleView({ module: m }: { module: LearnModule }) {
+function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayload }) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
   const scenarios = scenariosFor(m.id);
-  const header = (
-    <header>
-      <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
-        Step {m.step} of {MODULES.length}
-      </p>
-      <h2 className="text-lg font-semibold tracking-tight">{m.title}</h2>
-      <p className="mt-0.5 text-sm text-[var(--color-primary)]">{m.oneLine}</p>
-    </header>
-  );
-  if (m.id === "walkthroughs") {
-    return (
-      <>
-        {header}
-        <Block label="What this is" body={m.mechanism} />
-        <Walkthroughs />
-      </>
-    );
-  }
+  const live = liveFacts(m.id, desk);
   return (
     <>
-      {header}
-
-      {figures.length > 0 && (
-        <div className={figures.length > 1 ? "grid gap-3 md:grid-cols-2" : ""}>
-          {figures.map((f) => (
-            <LearnFigure key={f.id} figure={f} />
-          ))}
-        </div>
-      )}
-
-      <Block label="How it works" body={m.mechanism} />
-      <Block label="The rule" body={m.rule} tone="accent" />
-      <Block label="Trigger" body={m.trigger} tone="mono" />
-      <Block label="How this is usually got wrong" body={m.error} tone="warn" />
-
-      {scenarios.length > 0 && <Scenarios items={scenarios} />}
-
-      <Block label="What this desk does" body={m.desk} tone="muted" />
-
-      <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_7%,transparent)] p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-          Apply it to the tape in front of you
+      <header>
+        <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
+          Step {m.step} of {MODULES.length}
         </p>
-        <p className="mt-1 text-sm leading-snug text-[var(--color-fg)]">{m.check}</p>
-      </div>
+        <h2 className="text-lg font-semibold tracking-tight">{m.title}</h2>
+        <p className="mt-0.5 text-sm text-[var(--color-primary)]">{m.oneLine}</p>
+      </header>
+
+      <LiveStrip rows={live} />
+
+      {m.id === "walkthroughs" ? (
+        <Walkthroughs />
+      ) : (
+        <>
+          {figures.length > 0 && (
+            <div>
+              {m.pairing === "compare" && (
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
+                  Same window · two books
+                </p>
+              )}
+              <div className={figures.length > 1 ? "grid gap-3 md:grid-cols-2" : ""}>
+                {figures.map((f) => (
+                  <LearnFigure key={f.id} figure={f} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_minmax(0,1fr)]">
+            <Spec k="Rule" v={m.rule} />
+            <Spec k="Trigger" v={m.trigger} mono />
+            <Spec k="Trap" v={m.error} warn />
+            <Spec k="Code" v={m.desk} muted />
+          </dl>
+
+          {scenarios.length > 0 && <Scenarios items={scenarios} />}
+        </>
+      )}
     </>
   );
 }
 
-function Block({
-  label,
-  body,
-  tone = "plain",
+function Spec({
+  k,
+  v,
+  mono,
+  warn,
+  muted,
 }: {
-  label: string;
-  body: string;
-  tone?: "plain" | "accent" | "mono" | "warn" | "muted";
+  k: string;
+  v: string;
+  mono?: boolean;
+  warn?: boolean;
+  muted?: boolean;
 }) {
-  const bodyClass =
-    tone === "mono"
-      ? "tabular font-mono text-[12px] leading-relaxed text-[var(--color-fg)]"
-      : tone === "warn"
-        ? "text-sm leading-relaxed text-[var(--color-fg)]"
-        : tone === "muted"
-          ? "text-[13px] leading-relaxed text-[var(--color-muted)]"
-          : "text-sm leading-relaxed text-[var(--color-fg)]";
-  const labelColor =
-    tone === "accent"
-      ? "text-[var(--color-primary)]"
-      : tone === "warn"
-        ? "text-[var(--color-down)]"
-        : "text-[var(--color-subtle)]";
   return (
-    <section>
-      <h3 className={`text-[10px] font-semibold uppercase tracking-wide ${labelColor}`}>
-        {label}
-      </h3>
-      <p className={`mt-1 ${bodyClass}`}>{body}</p>
-    </section>
+    <>
+      <dt
+        className={`text-[10px] font-semibold uppercase tracking-wide ${
+          warn ? "text-[var(--color-down)]" : "text-[var(--color-subtle)]"
+        }`}
+      >
+        {k}
+      </dt>
+      <dd
+        className={
+          mono
+            ? "tabular font-mono text-[12px] leading-snug text-[var(--color-fg)]"
+            : muted
+              ? "text-[12px] leading-snug text-[var(--color-muted)]"
+              : "text-[13px] leading-snug text-[var(--color-fg)]"
+        }
+      >
+        {v}
+      </dd>
+    </>
   );
+}
+
+function LiveStrip({ rows }: { rows: { k: string; v: string }[] }) {
+  if (!rows.length) return null;
+  return (
+    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 sm:grid-cols-4">
+      {rows.map((r) => (
+        <div key={r.k} className="min-w-0">
+          <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">{r.k}</dt>
+          <dd className="truncate tabular text-[12px] font-medium text-[var(--color-fg)]">{r.v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function liveFacts(id: string, desk: DeskPayload): { k: string; v: string }[] {
+  const lag = Math.round(Math.max(desk.quotes.left.lagSec, desk.quotes.right.lagSec));
+  const feed = `${desk.quotes.left.source} ${lag}s`;
+  const book = desk.smcMaster.oneBook;
+  const left = desk.bias.left;
+  const right = desk.bias.right;
+  const base = [
+    { k: "Feed", v: feed },
+    {
+      k: "Live",
+      v: `${desk.quotes.left.symbol} ${desk.quotes.left.price.toFixed(2)} · ${desk.quotes.right.symbol} ${desk.quotes.right.price.toFixed(2)}`,
+    },
+  ];
+  if (id === "sequence" || id === "sweep" || id === "shift" || id === "retrace" || id === "arrays") {
+    return [
+      ...base,
+      { k: "SMC", v: book ? `${book.symbol} ${book.word} ${book.mustPass}/${book.mustNeed}` : desk.smcMaster.thesis },
+      { k: "Missing", v: book ? `${book.missing}${book.missingDetail ? ` — ${book.missingDetail}` : ""}` : "—" },
+    ];
+  }
+  if (id.startsWith("bias") || id === "range") {
+    return [
+      ...base,
+      {
+        k: "HTF",
+        v: `${left.symbol} ${left.topDown} ${(left.confidence * 100).toFixed(0)}% · ${right.symbol} ${right.topDown} ${(right.confidence * 100).toFixed(0)}%`,
+      },
+      {
+        k: "Zone",
+        v: `${left.symbol} ${left.dealing?.zone ?? "—"} · ${right.symbol} ${right.dealing?.zone ?? "—"}`,
+      },
+    ];
+  }
+  if (id === "dol" || id === "liquidity") {
+    const dL = desk.draws.left;
+    const dR = desk.draws.right;
+    return [
+      ...base,
+      { k: "Draw L", v: dL?.primary ? `${dL.primary.name} ${dL.primary.price.toFixed(2)}` : "—" },
+      { k: "Draw R", v: dR?.primary ? `${dR.primary.name} ${dR.primary.price.toFixed(2)}` : "—" },
+    ];
+  }
+  if (id === "smt") {
+    return [
+      ...base,
+      { k: "SMT", v: desk.scan.smt?.note ?? desk.smtStack?.primary?.note ?? "—" },
+      { k: "Book", v: book ? `${book.symbol} ${book.side ?? "flat"}` : "one-book none" },
+    ];
+  }
+  if (id === "time") {
+    return [
+      ...base,
+      { k: "Clock", v: `${desk.clock.nowEt} · ${desk.clock.killzoneLabel}` },
+      { k: "News", v: desk.news.verdict + (desk.news.nextEvent ? ` · ${desk.news.nextEvent.name} ${desk.news.nextEvent.timeEt}` : "") },
+    ];
+  }
+  if (id === "risk" || id === "gates") {
+    return [
+      ...base,
+      { k: "Risk", v: `$${desk.risk.riskDollars.toFixed(0)} · ${(desk.risk.riskPct * 100).toFixed(1)}% · floor ${desk.risk.floor}` },
+      { k: "PATH", v: book?.pathBand ?? desk.scan.candidates[0]?.pathBand ?? "—" },
+    ];
+  }
+  return [
+    ...base,
+    { k: "SMC", v: book ? `${book.word}` : "—" },
+    { k: "Missing", v: book?.missing ?? "—" },
+  ];
 }

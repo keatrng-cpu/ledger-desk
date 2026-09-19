@@ -562,7 +562,13 @@ function buildSteps(
 ): { steps: CaseStep[]; lesson: string } {
   const steps: CaseStep[] = [];
   const b = s.book;
-  const layer = (id: string) => b.layers.find((l) => l.id === id || l.label.toLowerCase().includes(id));
+  const layer = (id: string) =>
+    b.layers.find(
+      (l) =>
+        l.id === id ||
+        l.id === ({ dealing: "pd_half", shift: "ltf", draw: "dol" } as Record<string, string>)[id] ||
+        l.label.toLowerCase().includes(id),
+    );
   const toneOf = (l?: SmcLayer): CaseStep["tone"] =>
     !l ? "info" : l.state === "pass" ? "pass" : l.state === "fail" ? "fail" : "wait";
 

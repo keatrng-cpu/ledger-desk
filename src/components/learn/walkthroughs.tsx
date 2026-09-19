@@ -90,17 +90,35 @@ export function Walkthroughs() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-muted)]">
-        <span className="font-semibold text-[var(--color-fg)]">The month, honestly.</span>{" "}
-        Real 15m bars captured {FILE.historyCapturedAt.slice(0, 10)}, NY AM window, the live desk's own engine
-        on every closed bar. It printed TAKE <span className="tabular text-[var(--color-fg)]">{FILE.pool.takes}</span>{" "}
-        times and refused <span className="tabular text-[var(--color-fg)]">{FILE.pool.stands}</span> PATH-grade setups
-        with a named missing layer. Taking those refused setups anyway would have gone{" "}
-        <span className="tabular text-[var(--color-fg)]">
-          {chaseTally.w}W / {chaseTally.l}L / {chaseTally.s}S · {chaseTally.sum >= 0 ? "+" : ""}
-          {chaseTally.sum}R
-        </span>{" "}
-        across {chaseTally.n} chases, ties resolved against the trade.
+      <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] sm:grid-cols-4">
+          <div>
+            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Capture</dt>
+            <dd className="tabular text-[var(--color-fg)]">
+              {FILE.interval} · {FILE.historyCapturedAt.slice(0, 10)} · NY AM
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Engine</dt>
+            <dd className="tabular text-[var(--color-fg)]">
+              TAKE {FILE.pool.takes} · STAND {FILE.pool.stands} · ΣR {FILE.pool.sumR >= 0 ? "+" : ""}
+              {FILE.pool.sumR}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">If taken anyway</dt>
+            <dd className="tabular text-[var(--color-fg)]">
+              {chaseTally.w}W / {chaseTally.l}L / {chaseTally.s}S · {chaseTally.sum >= 0 ? "+" : ""}
+              {chaseTally.sum}R
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Fills</dt>
+            <dd className="tabular text-[var(--color-fg)]">
+              {FILE.pool.wins}W {FILE.pool.losses}L {FILE.pool.scratch}S {FILE.pool.unfilled}U
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <div className="flex flex-wrap gap-1">
@@ -170,8 +188,7 @@ export function Walkthroughs() {
 
       <ol className="flex flex-col gap-2">
         {c.steps.map((st, i) => {
-          // The outcome steps stay hidden until revealed — that is the exercise.
-          const isFuture = /^7/.test(st.title) || (/^6/.test(st.title) && c.outcome !== "stand" && false);
+          const isFuture = /^7/.test(st.title);
           if (isFuture && !revealed) return null;
           const color =
             st.tone === "pass" ? "var(--color-up)" : st.tone === "fail" ? "var(--color-down)" : st.tone === "wait" ? "var(--color-warn)" : "var(--color-muted)";
@@ -188,8 +205,18 @@ export function Walkthroughs() {
 
       {revealed && (
         <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_7%,transparent)] p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">The lesson</p>
-          <p className="mt-1 text-sm leading-relaxed text-[var(--color-fg)]">{c.lesson}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+            {c.word}
+            {c.r != null ? ` · ${c.r >= 0 ? "+" : ""}${c.r.toFixed(2)}R` : ""}
+            {c.chase?.r != null
+              ? ` · chase ${c.chase.outcome} ${c.chase.r >= 0 ? "+" : ""}${c.chase.r.toFixed(2)}R`
+              : ""}
+          </p>
+          <p className="mt-1 text-sm leading-snug text-[var(--color-fg)]">
+            {c.missing}
+            {c.missingDetail ? ` — ${c.missingDetail}` : ""}
+            {c.exitReason && c.outcome !== "stand" ? ` · ${c.exitReason}` : ""}
+          </p>
         </div>
       )}
 
