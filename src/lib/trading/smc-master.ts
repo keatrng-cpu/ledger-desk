@@ -13,6 +13,7 @@ import {
   scoreCanonStack,
   type CanonStack,
 } from "./smc-canon";
+import { buildTradePlan, type TradePlan } from "./trade-plan";
 import type { SmcTape } from "./smc-board";
 import type { HtfBiasRead, SmtStack } from "./structure";
 import type { DrawRead } from "./draw";
@@ -48,6 +49,14 @@ export interface SmcMasterBook {
   t1: string;
   t2: string;
   pathBand: string | null;
+  /**
+   * The same plan as NUMBERS. `entry`/`invalidation`/`t1`/`t2` above are prose
+   * and can only be printed; this can be drawn, measured and checked against
+   * the live price. Both are views of one derivation — see trade-plan.ts.
+   * Null until the tape has produced enough to price a plan, which before a
+   * completed sequence is the normal and correct answer.
+   */
+  plan: TradePlan | null;
 }
 
 export interface SmcMasterRead {
@@ -297,6 +306,23 @@ function gradeBook(
     t1: cand?.targets[0] ?? (dol ? `${dol.name} ${dol.price.toFixed(2)}` : "IRL"),
     t2: cand?.targets[1] ?? "ERL runner",
     pathBand: cand ? String(cand.pathBand || cand.grade) : null,
+    // Numbers from the SAME objects the strings above are formatted from:
+    // `fresh` is the array the retrace layer selected, `dol` the draw it
+    // priced, the sweep extreme the raid it demanded. Nothing new is decided
+    // here, so the drawing cannot disagree with the grade.
+    plan: buildTradePlan({
+      symbol: bias.symbol,
+      side,
+      price: price ?? 0,
+      entryArray: fresh ?? null,
+      sweepExtreme: narrative.liquidity.lastSweepExtreme,
+      sweepT: narrative.liquidity.lastSweepT,
+      dol: dolAgrees ? dol : null,
+      range: bias.dealing
+        ? { high: bias.dealing.high, low: bias.dealing.low, eq: bias.dealing.eq }
+        : null,
+      arrays: tape?.arrays ?? [],
+    }),
   };
 }
 

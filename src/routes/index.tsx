@@ -45,6 +45,7 @@ import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { PricePathBoard } from "@/components/desk/price-path-board";
+import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
@@ -1148,6 +1149,11 @@ function MasterplacePage() {
               {cat === "trade" && (
                 <div className="space-y-4">
                   <PricePathBoard desk={desk} />
+                  {/* The destination board says WHERE price is going in words;
+                      this says it in a picture, from the same plan object. It
+                      sits directly under the verdict because that is the order
+                      the decision is made in: verdict, then look. */}
+                  <SetupChartPanel desk={desk} />
                   <SectionHead
                     n="1"
                     title="PATH"
