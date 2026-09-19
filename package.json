@@ -19,7 +19,7 @@
     "seal:check": "npx tsx scripts/seal-chain.mjs --check",
     "verify:attest": "npx tsx scripts/verify-attestation.mjs",
     "verify:plan": "npx tsx scripts/verify-trade-plan.mjs",
-    "verify:learn": "npx tsx scripts/verify-curriculum.mjs",
+    "verify:learn": "npx tsx scripts/verify-curriculum.mjs && npx tsx scripts/verify-figures.mjs",
     "verify:cases": "npx tsx scripts/verify-cases.mjs",
     "learn:capture": "npx tsx scripts/capture-learn-history.mjs",
     "learn:figures": "python3 scripts/build-learn-figures.py",

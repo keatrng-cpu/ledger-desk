@@ -18,12 +18,12 @@
 
 import type { Figure, FigureBar, FigureMark, FigureTone } from "@/lib/learn/figures";
 
-const W = 560;
-const H = 260;
-const PAD_L = 6;
-const PAD_R = 8;
-const PAD_T = 10;
-const PAD_B = 8;
+const W = 640;
+const H = 280;
+const PAD_L = 8;
+const PAD_R = 58;
+const PAD_T = 16;
+const PAD_B = 16;
 const PLOT_W = W - PAD_L - PAD_R;
 const PLOT_H = H - PAD_T - PAD_B;
 
@@ -46,6 +46,8 @@ interface Scale {
   x: (i: number) => number;
   y: (p: number) => number;
   step: number;
+  lo: number;
+  hi: number;
 }
 
 function buildScale(bars: FigureBar[], marks: FigureMark[]): Scale | null {
@@ -56,8 +58,6 @@ function buildScale(bars: FigureBar[], marks: FigureMark[]): Scale | null {
     lo = Math.min(lo, b.l);
     hi = Math.max(hi, b.h);
   }
-  // Annotations must be in frame for the same reason plan levels must be on
-  // the live chart: a callout drawn off-canvas teaches the wrong distance.
   for (const m of marks) {
     if (m.kind === "level" || m.kind === "point") {
       lo = Math.min(lo, m.price);
@@ -68,11 +68,13 @@ function buildScale(bars: FigureBar[], marks: FigureMark[]): Scale | null {
     }
   }
   const span = hi - lo || 1;
-  lo -= span * 0.1;
-  hi += span * 0.1;
+  lo -= span * 0.08;
+  hi += span * 0.08;
   const step = PLOT_W / bars.length;
   return {
     step,
+    lo,
+    hi,
     x: (i) => PAD_L + i * step + step / 2,
     y: (p) => PAD_T + ((hi - p) / (hi - lo)) * PLOT_H,
   };
@@ -243,19 +245,21 @@ export function LearnFigure({ figure }: { figure: Figure }) {
           ) : null,
         )}
 
-        {/* Points — ring plus a leader label that stays inside the frame. */}
+        {/* Points — ring on the wick/close that the mark names. Label flips
+            above a high, below a low, so it never sits on the candle. */}
         {figure.marks.map((m, i) => {
           if (m.kind !== "point") return null;
+          const bar = figure.bars[m.bar];
           const x = scale.x(m.bar);
           const y = scale.y(m.price);
-          // Flip the label to whichever side has room.
-          const rightSide = x < W * 0.55;
+          const atHigh = bar != null && m.price >= (bar.h + bar.l) / 2;
+          const rightSide = x < PAD_L + PLOT_W * 0.62;
           return (
             <g key={`p${i}`}>
               <circle cx={x} cy={y} r={4} fill="none" stroke={toneColor(m.tone)} strokeWidth={1.5} />
               <text
                 x={rightSide ? x + 7 : x - 7}
-                y={y - 6}
+                y={atHigh ? y - 7 : y + 12}
                 textAnchor={rightSide ? "start" : "end"}
                 fill={toneColor(m.tone)}
                 fontSize={9}
@@ -267,16 +271,38 @@ export function LearnFigure({ figure }: { figure: Figure }) {
           );
         })}
 
-        {/* Illustration stamp — never let a diagram read as live tape. */}
+        {/* Price gutter — the drawing is a chart, not a cartoon. */}
+        <text x={W - PAD_R + 4} y={scale.y(scale.hi) + 3} fill="var(--color-subtle)" fontSize={9} style={{ fontVariantNumeric: "tabular-nums" }}>
+          {scale.hi.toFixed(2)}
+        </text>
+        <text x={W - PAD_R + 4} y={scale.y(scale.lo) + 3} fill="var(--color-subtle)" fontSize={9} style={{ fontVariantNumeric: "tabular-nums" }}>
+          {scale.lo.toFixed(2)}
+        </text>
+        {figure.marks
+          .filter((m): m is Extract<FigureMark, { kind: "level" }> => m.kind === "level")
+          .map((m, i) => (
+            <text
+              key={`g${i}`}
+              x={W - PAD_R + 4}
+              y={scale.y(m.price) + 3}
+              fill={toneColor(m.tone)}
+              fontSize={9}
+              fontWeight={500}
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {m.price.toFixed(2)}
+            </text>
+          ))}
+
         <text
           x={W - PAD_R}
-          y={H - 2}
+          y={H - 3}
           textAnchor="end"
           fill="var(--color-subtle)"
           fontSize={8}
           opacity={0.75}
         >
-          {figure.stamp ? "historic — Aug 2026 tape" : "illustration — not live tape"}
+          {figure.stamp ? "historic tape" : "illustration — not live"}
         </text>
       </svg>
 

@@ -725,7 +725,7 @@ export function buildCases(
   const tradeWindowOnly = opts.tradeWindowOnly ?? true;
   const nyAmOnly = opts.nyAmOnly ?? true;
   const nearMissFloor = opts.nearMissFloor ?? APLUS_RULES.confluenceFloor;
-  const maxNearMisses = opts.maxNearMisses ?? 10;
+  const maxNearMisses = opts.maxNearMisses ?? 18;
   const nearMissMinPass = opts.nearMissMinPass ?? 5;
 
   const cases: LearnCase[] = [];
