@@ -15,6 +15,7 @@ import { getSql, type Sql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 import { computeTradePnl, isKnownSymbol } from "./pnl";
+import { appendAttestation } from "./attest-server";
 import { getSessionClock } from "@/lib/trading/sessions";
 import { sendAlert, haltHitAlert } from "@/lib/alerts/send-server";
 import {
@@ -719,6 +720,11 @@ export const openTrade = createServerFn({ method: "POST" })
               ${data.source},
               ${JSON.stringify({ tradeId: id, side: data.side, entry: data.entry, stop: data.stop ?? null, target: data.target ?? null, contracts: data.contracts, grade: data.grade ?? null, killzone: data.killzone ?? null })}::jsonb)`;
 
+    // Seal the entry into the tamper-evident chain. Never throws — a fill that
+    // happened is recorded either way, and a gap is reported by
+    // findUnattestedTrades() rather than papered over. See attest-server.ts.
+    await appendAttestation(sql, { ...rows[0]!, user_id: context.userId }, "open");
+
     return mapTrade(rows[0]!);
   });
 
@@ -787,6 +793,11 @@ export const closeTrade = createServerFn({ method: "POST" })
               ${trade.prescore}, ${data.reason ?? `exit @ ${data.exit}`},
               ${pnl}, ${r}, ${trade.source},
               ${JSON.stringify({ tradeId: trade.id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
+
+    // Seal the realised outcome — exit, pnl and R as they actually printed.
+    // This is the link that matters: it is the losers that a record has to be
+    // able to prove it did not quietly drop.
+    await appendAttestation(sql, { ...rows[0], user_id: context.userId }, "close");
 
     return mapTrade(rows[0]);
   });
