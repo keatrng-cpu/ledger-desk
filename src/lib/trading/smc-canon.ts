@@ -70,8 +70,12 @@ export const SCHOOLS: Record<SchoolId, SchoolCanon> = {
       "OTE 61.8–79% of impulse (70.5 sweet spot)",
       "LTF MSS + displacement, enter retest",
     ],
-    timeFilter: "London + NY AM; Silver Bullet 10–11 / 14–15 ET",
-    entry: "Judas/sweep into OB or FVG (CE 50%) in discount (long) / premium (short)",
+    // His own numbers vary by year and asset: London 2–5 (2017/2024) or 1–5
+    // (2016); indices 8:30–11 NY (2022 Ep 2/17/41); Silver Bullet 3–4, 10–11,
+    // 14–15 (2023-05-15); noon–13:00 no-trade (Ep 5). The desk's 09:30–09:45
+    // no-entry window is a DESK rule, not his — his opening range is 09:30–10:00.
+    timeFilter: "London 2–5 · NY indices 8:30–11 · Silver Bullet 3–4 / 10–11 / 14–15 ET · no trade 12–13",
+    entry: "Sweep, then displacement 'preferably closing' through structure, into an FVG at CE (50%) or OB in discount (long) / premium (short)",
     journal: "Observations, minute markers, what the algorithm did, positive framing",
     discretion: "Highest — models flex once liquidity engineering is internalized",
   },
@@ -95,57 +99,74 @@ export const SCHOOLS: Record<SchoolId, SchoolCanon> = {
   tjr: {
     id: "tjr",
     name: "TJR (Tyler Riches)",
-    origin: "One sequence after ICT overload + blow-ups",
-    style: "mechanical",
+    // Research 2026-09-19: blow-ups verified (his own timeline); "after ICT
+    // overload" not found in his words. "If a setup isn't obvious, skip it"
+    // — every step is a discretionary call, so the style is hybrid, whatever
+    // downstream copies call it.
+    origin: "Multiple blown accounts 2017–19, then one sequence; discretionary by his own account",
+    style: "hybrid",
     sequence: [
-      "HTF liquidity sweep first (1H/4H, PDH/PDL, session, EQH/EQL) — non-negotiable",
-      "5m confirmation: BOS or IFVG or 79% extension close or SMT",
+      "HTF liquidity sweep first (1H/4H, PDH/PDL, session H/L, EQH/EQL, trendline) — non-negotiable",
+      "5m CONTEXT: BOS/CHoCH, IFVG, SMT as a filter",
+      "1m TRIGGER: IFVG, BOS, or his '79% extension closure' (his vocabulary, not ICT's OTE — mechanic unverified)",
       "Enter on the shift or first clean retrace — never chase",
-      "Target next DOL",
+      "Target the next low-resistance draw on liquidity",
     ],
-    timeFilter: "NY session / active kill zone",
-    entry: "After 5m confirm, not on the sweep",
-    journal: "Pair, session, every confluence, risk, emotions — TradeZella weekly review",
-    discretion: "Low on core; filters from data (lose when HTF alignment weak)",
+    timeFilter: "Session opens — Asia 18:00, London 03:00, NY 09:30 ET — after the manipulation, never blindly at the open",
+    entry: "After 5m context, on the 1m trigger; 'close back inside' on the sweep is a community rendering, not his stated rule",
+    journal: "Every trade with screenshots and notes (TradeZella affiliate); field list and weekly cadence unverified",
+    discretion: "High — his own copy; risk 1–2% per trade, R:R ≥ 2:1 on the checklist. No verified statements; a 2026 exposé disputes the livestream P&L",
   },
   blake: {
     id: "blake",
     name: "Blake Mech / PDI",
-    origin: "PB Trading — mechanical while in school; high-ATH continuation",
+    // PDI = Pre Distribution Inversion (his course index). "While in school"
+    // belongs to Patrick, not Blake. Rules below are from leaked re-uploads of
+    // the paid Mech Model videos — secondhand, labelled as such in the canon.
+    origin: "PB Trading co-founder — Mech Model + PDI (Pre Distribution Inversion); works at all-time highs where bias is unclear",
     style: "mechanical",
     sequence: [
-      "Swing structure",
-      "Liquidity hunt",
-      "Inversion (IFVG) + unfilled FVG",
-      "CISD / displacement",
-      "Retest inversion",
+      "HTF bias + draw: Daily/4H/1H/15m FVGs respected or disrespected",
+      "Price at a key level: HTF PD array, FVG, CISD, PDH/PDL, session pool",
+      "Swing low → swing high → LOWER LOW that sweeps liquidity (sweep required)",
+      "Inversion (IFVG) on the highest TF inside the manipulation leg, body close through the gap",
+      "T1 at 1:1, stop to break-even; target an unfilled 5m/15m FVG",
     ],
-    timeFilter: "NY open window",
-    entry: "IFVG + structure/CISD + displacement — sweep preferred",
-    journal: "Process + model adherence; student case reviews",
-    discretion: "Start mechanical, recognize A+ narratives inside the model",
+    timeFilter: "09:30–11:00 and 13:00–15:00 ET; avoid lunch; max two signals per session",
+    entry: "Inversion body-close (the edge), stop below the inversion candle low — tighter than the sweep wick",
+    journal: "Not found; TradeZella affiliate",
+    discretion: "Claims 70–80% WR with no sample size; at 1:1 the model NEEDS ~70% to be positive expectancy",
   },
   patty: {
     id: "patty",
     name: "Patty Swing",
-    origin: "PB — pre-market AMD + 9:30 manipulation",
+    // "Patty swing" is a real 2026 model name in the community; no PB-authored
+    // rule set for it was retrieved. What IS verified from Patty's own videos
+    // is conditions theory. The 9:30-manipulation sequence the desk carried
+    // was unverified and is replaced by the PB Theory IFVG method (student
+    // notes of his videos).
+    origin: "PB Trading co-founder (Patrick 'Patty' Lovelace) — PB Theory; 'patty swing' rules unverified",
     style: "hybrid",
     sequence: [
-      "Pre-market accumulation (Asia/London range)",
-      "9:30 open manipulation into 15m/1H gap or intermediate H/L",
-      "1–5m inverse / displacement",
-      "Target opposing liquidity",
-      "One trade — if it works, day objective met",
+      "Price reaches an HTF (1H/4H) FVG — do not trade immediately on the touch",
+      "Wait for a 5m FVG or structure at the level",
+      "Stop at the swing low of the 5m FVG; break-even at the previous internal high",
+      "Target the nearest significant liquidity",
+      "Session objective met → no more trades (checklist: 'OBJECTIVES ALREADY MET')",
     ],
-    timeFilter: "9:30–11:00 ET only",
-    entry: "IFVG after HTF POI respect, post-open manip",
-    journal: "Emotions B/D/A, rules followed, stop/target micromanagement, psych rating",
-    discretion: "Conditions theory — react to facts, don't predict",
+    timeFilter: "Checklist: 10:00–14:00 ET plus macros 09:45–10:15 and 13:45–14:30 — not '09:30–11:00 only'",
+    entry: "5m confirmation at the HTF gap; community trades the 'patty swing' with a 1m IFVG for 1:1",
+    journal: "Not found beyond TradeZella affiliate links",
+    discretion: "Conditions theory — if-then-execute on 5m/15m gaps; react, don't predict (verified, own videos Jan 2026)",
   },
   ronan: {
     id: "ronan",
     name: "Ronan (PB coach)",
-    origin: "Student → 10k months → coach. Same PB models, HTF narrative first",
+    // Research 2026-09-19: the only trace of Ronan anywhere is one student
+    // review naming him as helpful in the PB Discord. No channel, bio, model,
+    // "10k months" or student-to-coach story exists. Everything below is
+    // generic PB Theory and must be read as UNVERIFIED.
+    origin: "UNVERIFIED — a PB Discord mentor by a single student mention; no published model",
     style: "hybrid",
     sequence: [
       "HTF unfilled FVG / inefficiency + DOL",
