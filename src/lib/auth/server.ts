@@ -35,7 +35,7 @@ import { getCookie } from "@tanstack/react-start/server";
 import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
-import { emailAndPasswordEnabled } from "./email-password";
+import { emailAndPasswordEnabled, emailAndPasswordOptions } from "./email-password";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
 import {
@@ -93,13 +93,23 @@ const explicitBaseURL = env("BETTER_AUTH_URL");
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
 const previewAllowedHosts: string[] = [...PREVIEW_ALLOWED_HOSTS];
-// Local `npm run dev` (port 8080 contract). Browsers may send Origin as any of
-// these for the same server — trusting only `localhost` rejects `127.0.0.1` and
-// breaks email/password with "Invalid origin".
+// Local `npm run dev` (port 8080 by default). Browsers may send Origin as any
+// of these for the same server — trusting only `localhost` rejects `127.0.0.1`
+// and breaks email/password with "Invalid origin".
+//
+// The port is configurable because 8080 is not always available (a second dev
+// server on the machine takes it, and Vite then serves on another port), and a
+// hardcoded port turns that into an opaque "Invalid origin" on sign-in rather
+// than an obvious port clash. Set AUTH_DEV_PORT to match `vite dev --port`.
+//
+// These are LOOPBACK origins only: reachable from this machine and nowhere
+// else, so making the port configurable does not widen the trust boundary. In
+// production BETTER_AUTH_URL is set and the deployed origin is what matters.
+const LOCAL_DEV_PORT = env("AUTH_DEV_PORT") ?? "8080";
 const LOCAL_DEV_ORIGINS: string[] = [
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  "http://[::1]:8080",
+  `http://localhost:${LOCAL_DEV_PORT}`,
+  `http://127.0.0.1:${LOCAL_DEV_PORT}`,
+  `http://[::1]:${LOCAL_DEV_PORT}`,
 ];
 const baseURL = explicitBaseURL ?? {
   // Include loopback hosts so dynamic baseURL resolves for local email/password
@@ -108,7 +118,7 @@ const baseURL = explicitBaseURL ?? {
   // `auto` → trust both http:// and https:// expansions of allowedHosts
   // (preview is https; local dev is http).
   protocol: "auto" as const,
-  fallback: "http://localhost:8080",
+  fallback: `http://localhost:${LOCAL_DEV_PORT}`,
 };
 
 // Origins Better Auth accepts on credentialed POSTs (sign-up/sign-in, etc.).
@@ -205,7 +215,7 @@ export const auth = betterAuth({
   session: { cookieCache: { enabled: true, maxAge: 300 } },
 
   // Local email/password — toggled only via `./email-password` (not a plugin).
-  ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),
+  ...(emailAndPasswordEnabled ? { emailAndPassword: emailAndPasswordOptions } : {}),
 
   // `__Host-` prefixed cookies: the browser REFUSES any same-named cookie that
   // carries a `Domain` attribute, so a sibling `*.grok.me` app cannot "toss" a

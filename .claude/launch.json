@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "desk",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "dev", "--host", "127.0.0.1", "--port", "8123"],
+      "env": { "AUTH_DEV_PORT": "8123" },
+      "port": 8123
+    }
+  ]
+}

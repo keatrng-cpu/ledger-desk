@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
@@ -19,6 +21,16 @@ import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journa
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronChecklistRoute = ApiCronChecklistRouteImport.update({
@@ -49,6 +61,8 @@ const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -57,6 +71,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -66,6 +82,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -76,6 +94,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
@@ -84,6 +104,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
@@ -92,6 +114,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/login'
+    | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
@@ -101,6 +125,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
@@ -115,6 +141,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/checklist': {
@@ -157,6 +197,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
