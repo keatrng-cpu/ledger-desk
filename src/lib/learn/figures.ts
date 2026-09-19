@@ -15,6 +15,7 @@
  */
 
 import historic from "@/data/learn-figures.json";
+import { CONTRAST_VERDICT } from "./drill";
 
 export type FigureTone = "good" | "bad" | "warn" | "accent" | "neutral";
 
@@ -261,6 +262,9 @@ const HISTORIC = (historic as { figures?: Record<string, Figure> }).figures ?? {
 /** Prefer the August 2026 Databento slice. Synthetic seed is the fallback. */
 export function getFigure(id: string): Figure | null {
   const real = HISTORIC[id];
-  if (real?.bars?.length) return real;
-  return FIGURES[id] ?? null;
+  const base = real?.bars?.length ? real : (FIGURES[id] ?? null);
+  if (!base) return null;
+  const verdict = CONTRAST_VERDICT[id];
+  if (verdict && base.verdict !== verdict) return { ...base, verdict };
+  return base;
 }

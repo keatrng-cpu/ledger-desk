@@ -114,7 +114,7 @@ function placeLevelLabels(
   return out.sort((a, b) => a.i - b.i);
 }
 
-export function LearnFigure({ figure }: { figure: Figure }) {
+export function LearnFigure({ figure, hideCaption }: { figure: Figure; hideCaption?: boolean }) {
   const scale = buildScale(figure.bars, figure.marks);
   if (!scale) return null;
 
@@ -127,7 +127,7 @@ export function LearnFigure({ figure }: { figure: Figure }) {
 
   return (
     <figure className={`overflow-hidden rounded-[var(--radius-md)] border ${border} bg-[var(--color-surface)]`}>
-      {figure.verdict && (
+      {figure.verdict && !hideCaption && (
         <div
           className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wide"
           style={{
@@ -307,7 +307,7 @@ export function LearnFigure({ figure }: { figure: Figure }) {
       </svg>
 
       <figcaption className="border-t border-[var(--color-border)] px-3 py-2 text-[11px] leading-snug text-[var(--color-muted)]">
-        {figure.caption}
+        {hideCaption ? "Decide first — caption after the call." : figure.caption}
       </figcaption>
     </figure>
   );

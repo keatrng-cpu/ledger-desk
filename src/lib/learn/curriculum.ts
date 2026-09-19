@@ -65,6 +65,13 @@ export interface LearnModule {
   pairing?: "contrast" | "compare";
   /** Asks the trader to apply the rule to the tape in front of them. */
   check: string;
+  /**
+   * Self-explanation prompt on the figure pair (Chi). Optional — modules
+   * without a drawing skip Ring 1 and go straight to the live call.
+   */
+  why?: string;
+  /** The desk's why, shown only after the trader writes one. */
+  whyAnswer?: string;
 }
 
 const pct = (n: number) => `${(n * 100).toFixed(n * 100 % 1 === 0 ? 0 : 1)}%`;
@@ -91,8 +98,12 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: "HH+HL bull · LH+LL bear · else NEUTRAL · no book.",
     error: "Calling HH 'bullish' without checking the low.",
     desk: "structure.ts — last four swings each side, no smoother.",
-    figures: [],
+    figures: ["bias-bull", "bias-expansion"],
+    pairing: "contrast",
     check: "Last two highs and lows: do BOTH conditions hold?",
+    why: "Why is the left one a trend and the right one not?",
+    whyAnswer:
+      "Trend needs both conditions. A higher high into a lower low is expansion — the range widened. There is no direction to lean on. That is the shape most often taken as a breakout.",
   },
   {
     id: "bias-conflict",
@@ -151,8 +162,12 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: "Above EQ = premium. Below = discount.",
     error: "Shorting the range low because it 'looks weak'. That's where buyers wait.",
     desk: "structure.ts labels the zone. Dealing-range is a must-layer — wrong half = STAND.",
-    figures: [],
+    figures: ["range-premium-short", "range-discount-short"],
+    pairing: "contrast",
     check: "Which half is live price in, and does it permit your side?",
+    why: "Why may a short live on the left and not the right?",
+    whyAnswer:
+      "Left last print is premium of EQ — expensive. Right is discount — selling cheap into the bid. Dealing-range is a must-layer. No third option.",
   },
   {
     id: "sweep",
@@ -163,8 +178,12 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: `Recent only: last ${RECENT_SWEEP_BARS} bars (${(RECENT_SWEEP_BARS / 4).toFixed(0)}h on 15m). Yesterday is history.`,
     error: "Any touch counted as a sweep. That's fading a breakout with the stop on the wrong side of acceleration.",
     desk: "market-narrative.ts: real detector raid only. Short needs BSL raid, long needs SSL. Breakout flag is not a raid.",
-    figures: [],
+    figures: ["sweep-clean", "sweep-breakout"],
+    pairing: "contrast",
     check: "Last level traded through — closed inside or beyond?",
+    why: "Why is the left one a raid and the right one acceptance?",
+    whyAnswer:
+      "Left wicked through and closed back inside — stops collected, then rejected. Right closed through and held. Fade the first. Do not fade the second.",
   },
   {
     id: "shift",
@@ -199,8 +218,11 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     trigger: "Inside the array ±25% of height. Outside → desk prints the distance.",
     error: "Chasing because 'it's leaving'. The miss isn't the cost — 4× risk on the same idea is.",
     desk: "Retrace must-layer: price IN a fresh same-side array, pad 25%. Else names points away.",
-    figures: [],
+    figures: ["retrace-into"],
     check: "Inside the array, or how many points away?",
+    why: "Is the marked close inside the array, or did it only tag it?",
+    whyAnswer:
+      "Entry is a close inside the gap. A wick that tagged it and closed out is not in the array. Chase is the same stop with several times the R.",
   },
   {
     id: "smt",
@@ -214,6 +236,9 @@ const MODULE_ORDER: Omit<LearnModule, "step">[] = [
     figures: ["smt-nq", "smt-es"],
     pairing: "compare",
     check: "Do the two books agree on the most recent high or low?",
+    why: "What did NQ do that ES refused?",
+    whyAnswer:
+      "NQ printed the higher high. ES printed a lower high in the same window. The book that failed the extreme is the real order flow. SMT without a sweep is an observation, not a trade.",
   },
   {
     id: "time",

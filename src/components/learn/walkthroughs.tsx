@@ -1,24 +1,20 @@
 /**
- * Real-tape walkthroughs.
+ * Ring 3 — real-tape walkthroughs.
  *
- * Every case here was FOUND, not drawn: the live desk's own assembly run
- * causally over a captured month of 15m bars, one closed bar at a time, in
- * the NY AM window. What you see at the decision is exactly what the desk
- * would have printed at that moment; what follows is what the tape did.
+ * The trader names TAKE / WAIT / STAND and the missing must-layer BEFORE the
+ * engine's word, the plan, the chase R, or step 6 are on screen. Outcome-first
+ * is hindsight. Chips show date and book only until that case is committed.
  *
- * The chart is the live desk's own chart component on real bars, so a lesson
- * looks like the thing it is teaching you to read. Everything to the right of
- * the divider is the future, hidden until you decide.
- *
- * Nothing is curated toward winners. The pool tally in the header is the
- * whole month, and the "if you had not waited" line under a refused setup is
- * a simulation with intrabar ties resolved AGAINST the trade.
+ * Every case was FOUND by running the live assembly causally over captured
+ * 15m bars. Ties resolve against the trade.
  */
 
 import { useMemo, useState } from "react";
 import type { LearnCase, CaseOutcome } from "@/lib/learn/cases";
 import casesJson from "@/data/learn-cases.json";
 import { SetupChart } from "@/components/desk/setup-chart";
+import { DrillCall } from "./drill-call";
+import type { CallScore } from "@/lib/learn/drill";
 
 interface CasesFile {
   builtAt: string;
@@ -57,9 +53,9 @@ export function Walkthroughs() {
   const cases = FILE.cases;
   const [idx, setIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [seen, setSeen] = useState<Record<string, CallScore["grade"]>>({});
   const c = cases[Math.min(idx, cases.length - 1)];
 
-  // The honest month: every chase counterfactual, summed.
   const chaseTally = useMemo(() => {
     let w = 0, l = 0, s = 0, sum = 0;
     for (const k of cases) {
@@ -72,14 +68,15 @@ export function Walkthroughs() {
     return { w, l, s, sum: Math.round(sum * 100) / 100, n: w + l + s };
   }, [cases]);
 
+  const hits = Object.values(seen).filter((g) => g === "hit").length;
+  const nSeen = Object.keys(seen).length;
+
   if (!c) {
     return <p className="text-sm text-[var(--color-muted)]">No cases built yet — run `npx tsx scripts/build-learn-cases.mjs`.</p>;
   }
 
   const shownBars = revealed ? c.bars : c.bars.slice(0, c.decisionIndex + 1);
-  // For a refused setup there is no desk plan; draw the chase plan so the
-  // trader can see where the entry, stop and target would have sat.
-  const plan = c.plan ?? c.chase?.plan ?? null;
+  const plan = revealed ? (c.plan ?? c.chase?.plan ?? null) : null;
   const badge = badgeText(c);
   const bStyle = outcomeStyle(badge.key);
 
@@ -88,9 +85,17 @@ export function Walkthroughs() {
     setRevealed(false);
   }
 
+  function commit(score: CallScore) {
+    setSeen((prev) => ({ ...prev, [c.id]: score.grade }));
+    setRevealed(true);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+          Ring 3 · transfer · future hidden until you call
+        </p>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] sm:grid-cols-4">
           <div>
             <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Capture</dt>
@@ -113,9 +118,9 @@ export function Walkthroughs() {
             </dd>
           </div>
           <div>
-            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Fills</dt>
+            <dt className="text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">Your calls</dt>
             <dd className="tabular text-[var(--color-fg)]">
-              {FILE.pool.wins}W {FILE.pool.losses}L {FILE.pool.scratch}S {FILE.pool.unfilled}U
+              {nSeen ? `${hits} hit / ${nSeen}` : "none yet"}
             </dd>
           </div>
         </dl>
@@ -123,9 +128,8 @@ export function Walkthroughs() {
 
       <div className="flex flex-wrap gap-1">
         {cases.map((k, i) => {
-          const b = badgeText(k);
-          const st = outcomeStyle(b.key);
           const on = i === idx;
+          const grade = seen[k.id];
           return (
             <button
               key={k.id}
@@ -137,10 +141,10 @@ export function Walkthroughs() {
               }`}
             >
               <span className="block text-[var(--color-fg)]">
-                {k.decisionEt.replace(" ET", "")} · {k.symbol} {k.side ?? ""}
+                {k.decisionEt.replace(" ET", "")} · {k.symbol}
               </span>
-              <span className="tabular" style={{ color: st.color }}>
-                Q{k.confluence.toFixed(2)} · {b.text}
+              <span className="tabular text-[var(--color-subtle)]">
+                {grade ? (grade === "hit" ? "hit" : grade === "word" ? "word" : "miss") : "unseen"}
               </span>
             </button>
           );
@@ -150,58 +154,59 @@ export function Walkthroughs() {
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-base font-semibold tracking-tight">
-            {c.symbol} {c.side?.toUpperCase() ?? ""} · {c.decisionEt}
+            {c.symbol} · {c.decisionEt}
           </h3>
           <p className="text-[11px] text-[var(--color-muted)]">
-            Confluence {c.confluence.toFixed(2)} ({c.grade}) · desk printed{" "}
-            <span className="font-semibold text-[var(--color-fg)]">{c.word}</span>
-            {c.word !== "TAKE" ? ` — ${c.missing}` : ""}
+            {revealed
+              ? `Confluence ${c.confluence.toFixed(2)} (${c.grade}) · desk printed ${c.word}${c.word !== "TAKE" ? ` — ${c.missing}` : ""}`
+              : "Tape through the decision bar. Name the word. Then the missing layer."}
           </p>
         </div>
-        <span className="rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ color: bStyle.color, background: bStyle.bg }}>
-          {badge.text}
-        </span>
+        {revealed && (
+          <span className="rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ color: bStyle.color, background: bStyle.bg }}>
+            {badge.text}
+          </span>
+        )}
       </header>
 
       <SetupChart
         bars={shownBars}
         plan={plan}
-        word={c.word}
+        word={revealed ? c.word : undefined}
         visibleBars={100}
         decisionIndex={revealed ? c.decisionIndex : null}
         hideEmptyCaption
       />
 
-      {!revealed ? (
-        <button
-          type="button"
-          onClick={() => setRevealed(true)}
-          className="w-full rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border-strong)] py-2 text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)]"
-        >
-          Read the steps, decide what you would do — then reveal what the tape did
-        </button>
-      ) : (
+      <DrillCall
+        key={c.id}
+        prompt="Cold window. TAKE, WAIT, or STAND. If not TAKE, the one missing must-layer."
+        truth={{ word: c.word, missing: c.missing }}
+        onCommit={commit}
+      />
+
+      {revealed && (
         <p className="text-[10px] text-[var(--color-subtle)]">
           Right of the divider is the future. {c.plan ? "Lines are the desk's plan." : c.chase ? "Lines are the CHASE plan — the trade the desk refused." : ""}
         </p>
       )}
 
-      <ol className="flex flex-col gap-2">
-        {c.steps.map((st, i) => {
-          const isFuture = /^7/.test(st.title);
-          if (isFuture && !revealed) return null;
-          const color =
-            st.tone === "pass" ? "var(--color-up)" : st.tone === "fail" ? "var(--color-down)" : st.tone === "wait" ? "var(--color-warn)" : "var(--color-muted)";
-          return (
-            <li key={i} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color }}>
-                {st.title}
-              </p>
-              <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-fg)]">{st.body}</p>
-            </li>
-          );
-        })}
-      </ol>
+      {revealed && (
+        <ol className="flex flex-col gap-2">
+          {c.steps.map((st, i) => {
+            const color =
+              st.tone === "pass" ? "var(--color-up)" : st.tone === "fail" ? "var(--color-down)" : st.tone === "wait" ? "var(--color-warn)" : "var(--color-muted)";
+            return (
+              <li key={i} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color }}>
+                  {st.title}
+                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-[var(--color-fg)]">{st.body}</p>
+              </li>
+            );
+          })}
+        </ol>
+      )}
 
       {revealed && (
         <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_7%,transparent)] p-3">

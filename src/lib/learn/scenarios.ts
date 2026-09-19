@@ -39,7 +39,11 @@ export interface Scenario {
 
 function fig(id: string, caption: string, t: Tape, marks: FigureMark[]): Figure {
   const real = getFigure(id);
-  if (real?.bars?.length && real.id === id) return real;
+  if (real?.bars?.length && real.id === id) {
+    // Historic slice, but this is a SCENARIO — Ring 2. Drop contrast
+    // right/wrong banners; the scenario's own TAKE/WAIT/STAND is the verdict.
+    return { ...real, caption, verdict: undefined };
+  }
   return { id, caption, bars: t.bars, marks };
 }
 

@@ -10,6 +10,9 @@
 import { readFileSync } from "node:fs";
 import { structureOf } from "../src/lib/learn/scenarios.ts";
 import { getFigure } from "../src/lib/learn/figures.ts";
+import { MODULES } from "../src/lib/learn/curriculum.ts";
+import { scoreCall, scenarioCall, CONTRAST_VERDICT } from "../src/lib/learn/drill.ts";
+import { SCENARIOS } from "../src/lib/learn/scenarios.ts";
 
 const file = JSON.parse(readFileSync("src/data/learn-figures.json", "utf8"));
 let pass = 0;
@@ -122,6 +125,50 @@ if (sw) {
     ok("sweep-clean: close back inside", bar.c < pool.price);
     ok("sweep-clean: point is the wick", Math.abs(pt.price - bar.h) < 0.011);
   }
+}
+
+const hit = scoreCall(
+  { word: "STAND", missing: "POI in correct half" },
+  { word: "STAND", missing: "POI in correct half" },
+);
+ok("score: exact STAND+layer is a hit", hit.grade === "hit");
+const alias = scoreCall(
+  { word: "STAND", missing: "POI in correct half" },
+  { word: "STAND", missing: "POI in correct premium/discount" },
+);
+ok("score: half aliases premium/discount", alias.grade === "hit");
+const take = scoreCall(
+  { word: "TAKE", missing: "Sequence complete" },
+  { word: "TAKE", missing: "Sequence complete" },
+);
+ok("score: TAKE is a hit", take.grade === "hit");
+const miss = scoreCall(
+  { word: "TAKE", missing: "Sequence complete" },
+  { word: "STAND", missing: "Liquidity sweep" },
+);
+ok("score: TAKE vs STAND is a miss", miss.grade === "miss");
+const wordOnly = scoreCall(
+  { word: "WAIT", missing: "Kill zone" },
+  { word: "WAIT", missing: "Retrace into array" },
+);
+ok("score: right word wrong layer", wordOnly.grade === "word");
+
+for (const sc of SCENARIOS) {
+  const call = scenarioCall(sc.id, sc.verdict);
+  ok(`${sc.id}: scenario word matches`, call.word === sc.verdict);
+  if (sc.verdict === "TAKE") ok(`${sc.id}: TAKE names complete`, call.missing === "Sequence complete");
+  else ok(`${sc.id}: STAND/WAIT names a layer`, call.missing.length > 3);
+}
+
+for (const [id, v] of Object.entries(CONTRAST_VERDICT)) {
+  const f = getFigure(id);
+  ok(`contrast ${id} exists`, f != null);
+  ok(`contrast ${id} verdict ${v}`, f?.verdict === v, f?.verdict);
+}
+
+for (const m of MODULES.filter((x) => x.pairing === "contrast")) {
+  ok(`${m.id}: two figures`, m.figures.length === 2);
+  ok(`${m.id}: has why`, Boolean(m.why && m.whyAnswer && m.whyAnswer.length > 20));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

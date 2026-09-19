@@ -1,28 +1,24 @@
 /**
  * The Learn tab.
  *
- * Not a manual. A manual is read once and then rots, because it restates
- * numbers the engine owns. Every threshold on this surface is imported from
- * `aplus/config.ts`, `profit-rules.ts`, `scanner.ts`, `detectors.ts` and
- * `shock.ts` (see `learn/curriculum.ts`), so the lesson and the gate cannot
- * drift apart — if the floor moves, the sentence moves.
+ * Three rings, one skill: name the first failing must-layer, then TAKE or STAND.
  *
- * Ordered by the sequence a trade is actually read in rather than by topic,
- * because the order IS the model. Each module ends with a question about the
- * tape in front of you, so the concept gets applied while it is still warm
- * rather than filed.
+ *   Ring 1  SCHEMA    worked figure + the near-miss of the same object
+ *   Ring 2  RETRIEVE  call the word before the engine's answer is on screen
+ *   Ring 3  TRANSFER  real-tape walkthrough, clock running, one word
  *
- * The figures are illustrations and say so at the render layer. Inside a
- * trading app the one dangerous confusion is a teaching diagram being read as
- * a signal, so none of this touches the scanner, the alarm or the book.
+ * Every threshold is imported (see curriculum.ts). None of this touches the
+ * scanner, the alarm or the book.
  */
 
 import { useState } from "react";
 import { MODULES, type LearnModule } from "@/lib/learn/curriculum";
 import { getFigure } from "@/lib/learn/figures";
 import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios";
+import { scenarioCall, type Call } from "@/lib/learn/drill";
 import { LearnFigure } from "./learn-figure";
 import { Walkthroughs } from "./walkthroughs";
+import { DrillCall, WhyBox } from "./drill-call";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 
 export function LearnTab({ desk }: { desk: DeskPayload }) {
@@ -65,7 +61,7 @@ export function LearnTab({ desk }: { desk: DeskPayload }) {
       </nav>
 
       <article className="flex min-w-0 flex-col gap-3">
-        <ModuleView module={active} desk={desk} />
+        <ModuleView key={active.id} module={active} desk={desk} />
         <div className="flex justify-between gap-2 border-t border-[var(--color-border)] pt-3">
           <StepButton
             module={MODULES[MODULES.indexOf(active) - 1]}
@@ -125,6 +121,7 @@ function Scenarios({ items }: { items: Scenario[] }) {
   const [revealed, setRevealed] = useState(false);
   const active = items[Math.min(idx, items.length - 1)]!;
   const style = verdictStyle(active.verdict);
+  const truth = scenarioCall(active.id, active.verdict);
 
   function go(i: number) {
     setIdx(i);
@@ -135,7 +132,7 @@ function Scenarios({ items }: { items: Scenario[] }) {
     <section className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-          Scenarios — {items.length}
+          Ring 2 · retrieve — {items.length}
         </h3>
         <div className="flex flex-wrap gap-1">
           {items.map((sc, i) => (
@@ -158,23 +155,25 @@ function Scenarios({ items }: { items: Scenario[] }) {
 
       <p className="mb-2 text-sm text-[var(--color-fg)]">{active.situation}</p>
 
-      <LearnFigure figure={active.figure} />
+      <LearnFigure figure={active.figure} hideCaption={!revealed} />
 
-      {revealed ? (
+      <div className="mt-2">
+        <DrillCall
+          key={active.id}
+          prompt="Same object, different dress. Name the word. If not TAKE, name the missing layer."
+          truth={truth}
+          onCommit={() => setRevealed(true)}
+        />
+      </div>
+
+      {revealed && (
         <div className="mt-2 rounded-[var(--radius-sm)] p-3" style={{ background: style.bg }}>
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: style.color }}>
             {active.verdict}
+            {truth.word !== "TAKE" ? ` · ${truth.missing}` : ""}
           </p>
           <p className="mt-1 text-sm leading-relaxed text-[var(--color-fg)]">{active.read}</p>
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setRevealed(true)}
-          className="mt-2 w-full rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border-strong)] py-2 text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)]"
-        >
-          Decide first — then reveal the verdict
-        </button>
       )}
     </section>
   );
@@ -183,7 +182,14 @@ function Scenarios({ items }: { items: Scenario[] }) {
 function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayload }) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
   const scenarios = scenariosFor(m.id);
-  const live = liveFacts(m.id, desk);
+  const [called, setCalled] = useState(false);
+  const live = liveFacts(m.id, desk, called);
+  const book = desk.smcMaster.oneBook;
+  const liveTruth: Call = {
+    word: book?.word ?? "STAND",
+    missing: book?.missing ?? "Sequence complete",
+  };
+
   return (
     <>
       <header>
@@ -202,11 +208,13 @@ function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayloa
         <>
           {figures.length > 0 && (
             <div>
-              {m.pairing === "compare" && (
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
-                  Same window · two books
-                </p>
-              )}
+              <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
+                {m.pairing === "compare"
+                  ? "Ring 1 · same window · two books"
+                  : m.pairing === "contrast"
+                    ? "Ring 1 · schema · the object and its near-miss"
+                    : "Ring 1 · schema"}
+              </p>
               <div className={figures.length > 1 ? "grid gap-3 md:grid-cols-2" : ""}>
                 {figures.map((f) => (
                   <LearnFigure key={f.id} figure={f} />
@@ -215,12 +223,21 @@ function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayloa
             </div>
           )}
 
+          {m.why && m.whyAnswer && <WhyBox key={m.id} prompt={m.why} answer={m.whyAnswer} />}
+
           <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_minmax(0,1fr)]">
             <Spec k="Rule" v={m.rule} />
             <Spec k="Trigger" v={m.trigger} mono />
             <Spec k="Trap" v={m.error} warn />
             <Spec k="Code" v={m.desk} muted />
           </dl>
+
+          <DrillCall
+            key={`${m.id}-live`}
+            prompt={m.check}
+            truth={liveTruth}
+            onCommit={() => setCalled(true)}
+          />
 
           {scenarios.length > 0 && <Scenarios items={scenarios} />}
         </>
@@ -280,7 +297,7 @@ function LiveStrip({ rows }: { rows: { k: string; v: string }[] }) {
   );
 }
 
-function liveFacts(id: string, desk: DeskPayload): { k: string; v: string }[] {
+function liveFacts(id: string, desk: DeskPayload, called: boolean): { k: string; v: string }[] {
   const lag = Math.round(Math.max(desk.quotes.left.lagSec, desk.quotes.right.lagSec));
   const feed = `${desk.quotes.left.source} ${lag}s`;
   const book = desk.smcMaster.oneBook;
@@ -296,8 +313,8 @@ function liveFacts(id: string, desk: DeskPayload): { k: string; v: string }[] {
   if (id === "sequence" || id === "sweep" || id === "shift" || id === "retrace" || id === "arrays") {
     return [
       ...base,
-      { k: "SMC", v: book ? `${book.symbol} ${book.word} ${book.mustPass}/${book.mustNeed}` : desk.smcMaster.thesis },
-      { k: "Missing", v: book ? `${book.missing}${book.missingDetail ? ` — ${book.missingDetail}` : ""}` : "—" },
+      { k: "SMC", v: called ? (book ? `${book.symbol} ${book.word} ${book.mustPass}/${book.mustNeed}` : desk.smcMaster.thesis) : "call first" },
+      { k: "Missing", v: called ? (book ? `${book.missing}${book.missingDetail ? ` — ${book.missingDetail}` : ""}` : "—") : "call first" },
     ];
   }
   if (id.startsWith("bias") || id === "range") {
@@ -345,7 +362,7 @@ function liveFacts(id: string, desk: DeskPayload): { k: string; v: string }[] {
   }
   return [
     ...base,
-    { k: "SMC", v: book ? `${book.word}` : "—" },
-    { k: "Missing", v: book?.missing ?? "—" },
+    { k: "SMC", v: called ? (book ? `${book.word}` : "—") : "call first" },
+    { k: "Missing", v: called ? (book?.missing ?? "—") : "call first" },
   ];
 }
