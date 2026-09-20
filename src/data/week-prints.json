@@ -1,1 +1,107 @@
-PLACEHOLDER
+[
+  {
+    "date": "2026-09-01",
+    "name": "ISM Manufacturing PMI (Aug)",
+    "actual": "54.6",
+    "vs": "exp 55.2 / prev 55.6",
+    "note": "Prices Paid held 71.1. Softer headline, still expansion."
+  },
+  {
+    "date": "2026-09-01",
+    "name": "JOLTS Job Openings (Jul)",
+    "actual": "7.271M",
+    "vs": "exp ~7.3M / prev 7.182M",
+    "note": "Little changed."
+  },
+  {
+    "date": "2026-09-02",
+    "name": "ADP Employment (Aug)",
+    "actual": "+38k",
+    "vs": "exp +47k / prev +46k",
+    "note": "Softest since Jan. Manufacturing -17k."
+  },
+  {
+    "date": "2026-09-03",
+    "name": "ISM Services PMI (Aug)",
+    "actual": "55.4",
+    "vs": "exp 54.2 / prev 54.1",
+    "note": "Hotter. Prices 72.6 (4yr high), Emp 47.8 still contraction, New Orders 60.9."
+  },
+  {
+    "date": "2026-09-03",
+    "name": "Initial Jobless Claims",
+    "actual": "206k",
+    "vs": "exp 205k / prev 204k",
+    "note": "In-line. 4-wk avg ~207k."
+  },
+  {
+    "date": "2026-09-04",
+    "name": "Nonfarm Payrolls (Aug)",
+    "actual": "+162k",
+    "vs": "exp ~+55k / July first-print -23k",
+    "note": "BLS official. U-rate 4.1% unchanged. AHE +0.3% to $37.75 / +3.1% y/y. Participation 61.6%. Revisions: June +20k→+31k, July -23k→+21k (+55k combined). Hot."
+  },
+  {
+    "date": "2026-09-10",
+    "name": "Initial Jobless Claims",
+    "actual": "206k",
+    "vs": "exp 205k / prev 207k",
+    "note": "In-line. 4-wk avg 206k. Continuing ~1.774M."
+  },
+  {
+    "date": "2026-09-10",
+    "name": "PPI (Aug)",
+    "actual": "+0.4% MoM / +5.4% YoY",
+    "vs": "exp +0.4% / ~5.3%; core +0.2% vs +0.3%",
+    "note": "Goods +1.1% (energy +4.2%, diesel +24.1%). Services +0.1%. Final demand less food/energy/trade +0.3%. Hot energy, core softer."
+  },
+  {
+    "date": "2026-09-11",
+    "name": "CPI (Aug)",
+    "actual": "+0.4% MoM / +3.4% YoY",
+    "vs": "exp +0.4% / 3.4%; core +0.3% vs +0.2% / 2.4%",
+    "note": "Headline in-line. Core MoM slightly hot. Gasoline +3.9% drove ~1/3 of rise; energy +2.1%; shelter +0.3%. Core YoY eased to 2.4%."
+  },
+  {
+    "date": "2026-09-16",
+    "name": "FOMC Rate Decision",
+    "actual": "+25bps to 3.75–4.00%",
+    "vs": "exp +25bps / prev 3.50–3.75%",
+    "note": "Unanimous 12-0. SEP median end-2026 4.1% (was 3.8%); 12 of 18 see one more hike this year. Hawkish."
+  },
+  {
+    "date": "2026-09-16",
+    "name": "Retail Sales (Aug)",
+    "actual": "+1.2% MoM / +6.0% YoY",
+    "vs": "exp ~+0.8% / prev -0.5% (rev from -0.6%)",
+    "note": "Hot. Ex-autos +1.4%; control group +1.4%. Strong rebound after July soft."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Housing Starts (Aug)",
+    "actual": "1.275M SAAR / -2.6% MoM",
+    "vs": "exp ~1.31M / July rev 1.309M (was 1.239M)",
+    "note": "Census CB26-147. SF starts 918k +7.6%. Permits 1.394M -2.7%. Completions 1.128M -11.9%. Mixed, not a PATH trigger."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Initial Jobless Claims",
+    "actual": "196k",
+    "vs": "exp ~208k / prev 206k unrevised",
+    "note": "DOL official week ending Sep 12. -10k. 4-wk avg 203,250. Continuing 1.730M / IUR 1.1%. Soft claims, still-tight labor."
+  },
+  {
+    "date": "2026-09-17",
+    "name": "Philly Fed MBOS (Sep)",
+    "actual": "37.8",
+    "vs": "prev 47.4",
+    "note": "Still expansion, cooled. New orders 29.2, shipments 27.7. Official Philly Fed 08:30 ET."
+  },
+  {
+    "date": "2026-09-18",
+    "name": "Industrial Production (Aug)",
+    "actual": "0.0% MoM / +1.4% YoY",
+    "vs": "exp +0.3% / prev +0.2%",
+    "note": "Fed G.17. Flat. Mfg -0.3% (first drop of year), utilities +1.8% (heat). Cap util 76.3%."
+  }
+]
