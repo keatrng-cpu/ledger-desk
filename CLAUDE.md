@@ -32,7 +32,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | Judas | **09:30–09:45 ET — no entries** (A+ exception only if fully complete after the raid, still wait the window) |
 | News | high-impact **±15m blackout** |
 | Micros | **MNQ/MES preferred** |
-| Data | Yahoo futures **~10 min delay**. Databento historical ~15–20m with live entitlement (`DATABENTO_DELAY_MINUTES=0`). Sub-second prints need the gateway (`gateway/.env.local` + NY 09:20–11:00 ET). Say the lag. |
+| Data | Yahoo futures **~10 min delay**. Databento historical ~15–20m with live entitlement (`DATABENTO_DELAY_MINUTES=0`). Sub-second prints need the gateway (`gateway/.env.local` + NY 09:00–11:30 ET; its 1m bars also replace the lagged closed bars in that window). Say the lag. |
 
 Skips on dirty weeks are **process wins**. Gold-standard book = **short + mechanical + clean risk-off** (Jul 20 style).
 

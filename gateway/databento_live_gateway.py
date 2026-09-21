@@ -137,17 +137,24 @@ SCHEMA = "ohlcv-1s"
 
 # Stream only NY AM. Desk PATH lives 09:30–11:00 ET (Judas 09:30–09:45 is
 # no-entry, so the socket is up for the raid but the first fill is ~09:45).
-# Holding the Live socket all session is wasted CME messages. 09:20 matches the
-# premarket-brief slot in CLAUDE.md; the 08:30 news candle is NOT covered live —
-# the desk reads that from Databento historical / Yahoo like every other bar.
+# Holding the Live socket all session is wasted CME messages.
+#
+# 2026-09-21: widened from 09:20–11:00 to 09:00–11:30 at the trader's call —
+# "no lag in the desk from 9:00 to 11:30 ET". The pre-open half hour lets the
+# desk mark the 09:00–09:30 tape live instead of ten minutes late, and the
+# 11:00–11:30 tail covers the last A+ window and any open management. The
+# 08:30 news candle is still NOT covered live — the desk reads that from
+# Databento historical / Yahoo like every other bar. Cost: 2.5h/day of
+# ohlcv-1s on two symbols instead of 1h40m — still a fraction of the flat
+# Live subscription. src/lib/trading/sessions.ts NY_AM_LIVE_* must match.
 NY_AM_TZ = ZoneInfo("America/New_York")
-NY_AM_START = (9, 20)  # 09:20 ET
-NY_AM_END = (11, 0)  # 11:00 ET
+NY_AM_START = (9, 0)  # 09:00 ET
+NY_AM_END = (11, 30)  # 11:30 ET
 WINDOW_POLL_SEC = 30
 
 # When "1": exit 0 once today's window has closed (or if started after it),
 # instead of idling until tomorrow. This is the mode for a scheduled local run
-# (Windows Task Scheduler at 08:15 CT / 09:15 ET) — the process should not
+# (Windows Task Scheduler at 07:55 CT / 08:55 ET) — the process should not
 # linger overnight on a desk PC. Unset = original always-on behaviour for a
 # VPS / Fly.io host.
 EXIT_AFTER_WINDOW = os.environ.get("GATEWAY_EXIT_AFTER_WINDOW", "").strip() == "1"

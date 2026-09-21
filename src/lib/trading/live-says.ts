@@ -6,7 +6,7 @@
  */
 
 import type { DeskPayload } from "./build-desk";
-import { isNyAmLiveWindow } from "./sessions";
+import { isNyAmLiveWindow, NY_AM_LIVE_LABEL } from "./sessions";
 import type { MarketSource } from "@/lib/market/types";
 
 const LIVE_LAG_MAX_SEC = 5;
@@ -20,7 +20,7 @@ export interface LiveSaysPrint {
 
 export interface LiveSays {
   live: boolean;
-  window: "09:20–11:00 ET" | "off";
+  window: typeof NY_AM_LIVE_LABEL | "off";
   inWindow: boolean;
   asOf: string;
   source: MarketSource | "none";
@@ -86,7 +86,7 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
 
   let reason: string;
   if (!inWindow) {
-    reason = "Outside 09:20–11:00 ET live window. Gateway idle. Yahoo/Databento structure only.";
+    reason = `Outside ${NY_AM_LIVE_LABEL} live window. Gateway idle. Yahoo/Databento structure only.`;
   } else if (!live) {
     reason = `In NY AM window but no live tick (lag ${lagSec}s, source ${source}). Start gateway/databento_live_gateway.py with a live CME key.`;
   } else {
@@ -108,7 +108,7 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
 
   return {
     live,
-    window: inWindow ? "09:20–11:00 ET" : "off",
+    window: inWindow ? NY_AM_LIVE_LABEL : "off",
     inWindow,
     asOf: desk.clock.nowEt,
     source,

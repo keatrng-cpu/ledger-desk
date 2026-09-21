@@ -24,7 +24,7 @@ because a 1m/5m entry trigger (OTE retest, mechanical sequence) needs the
 This costs money every month it runs. Verified against the Databento portal
 2026-09-14: live CME (GLBX.MDP3) requires the **Standard plan, $199/mo flat**
 ("Unlock with Standard" — usage-based live billing was retired March 2025, so
-there is no cheaper Databento tier and the 09:20–11:00 window does **not**
+there is no cheaper Databento tier and the 09:00–11:30 window does **not**
 reduce that bill). Standard also bundles 16+ years of L0 history and 1 year
 of L1, so the separate usage-based historical charges (~$28/mo on this
 account) go to zero — net incremental ≈ $171/mo. Hosting is $0 if you run it
@@ -34,7 +34,7 @@ without it, just with the entry-timing limitation stated above.
 
 ## What it does
 
-1. Connects to Databento Live **only 09:20–11:00 ET weekdays** (premarket brief → end of NY AM PATH window; Judas 09:30–09:45 is inside it but no-entry). Outside that it idles — no live socket. The 08:30 news candle is *not* covered live; the desk reads it from historical/Yahoo like any other bar. With `GATEWAY_EXIT_AFTER_WINDOW=1` it exits at 11:00 instead of idling (scheduled-run mode, below).
+1. Connects to Databento Live **only 09:00–11:30 ET weekdays** (pre-open tape → end of the NY AM A+ tail; Judas 09:30–09:45 is inside it but no-entry). Outside that it idles — no live socket. The 08:30 news candle is *not* covered live; the desk reads it from historical/Yahoo like any other bar. With `GATEWAY_EXIT_AFTER_WINDOW=1` it exits at 11:30 instead of idling (scheduled-run mode, below).
 2. On every record: upserts the latest price into `live_market_ticks`
    (one row per symbol — this is what gives you sub-5-second freshness) and
    aggregates 1s bars into `live_market_bars_1m`.
@@ -62,7 +62,7 @@ cheapest host is the PC you are already sitting at.
    `DATABASE_URL=<the Session Pooler string Netlify uses>` and
    `DATABENTO_API_KEY=<key on a Standard plan>`.
 3. `powershell -ExecutionPolicy Bypass -File gateway\install-task.ps1`
-   — registers **"LedgerDesk Live Gateway"**, weekdays 08:15 CT (= 09:15 ET),
+   — registers **"LedgerDesk Live Gateway"**, weekdays 07:55 CT (= 08:55 ET),
    `-WakeToRun`, 3 h hard limit. It launches `run-local.ps1`, which loads
    `.env.local`, sets `GATEWAY_EXIT_AFTER_WINDOW=1`, and tees stdout to
    `gateway/logs/YYYY-MM-DD.log`.
@@ -72,7 +72,7 @@ cheapest host is the PC you are already sitting at.
    verified against a real socket).
 
 Caveats: runs only while you are logged in (no stored credential); the PC
-must be awake at 08:15 CT (`-WakeToRun` handles sleep, not shutdown). If
+must be awake at 07:55 CT (`-WakeToRun` handles sleep, not shutdown). If
 either bites, use Option B.
 
 ## Option B — any host that runs a long-lived process

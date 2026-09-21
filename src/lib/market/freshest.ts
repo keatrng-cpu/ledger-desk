@@ -38,6 +38,32 @@ export function mergeNewerBars(base: OhlcBar[], overlay: OhlcBar[]): OhlcBar[] {
   return [...map.values()].sort((a, b) => a.t - b.t);
 }
 
+/**
+ * Roll 1m bars up into `minutes`-wide buckets on epoch boundaries — the same
+ * boundaries Yahoo and Databento 15m bars sit on, so a bucket here replaces
+ * one there exactly. The last bucket is the FORMING bar (its 1m bars are
+ * closed, the bucket is not), which applyQuoteToLastBar then patches with
+ * the live tick.
+ */
+export function aggregateBars(bars: OhlcBar[], minutes: number): OhlcBar[] {
+  if (minutes <= 1 || !bars.length) return bars;
+  const ms = minutes * 60_000;
+  const out: OhlcBar[] = [];
+  for (const b of bars) {
+    const t = Math.floor(b.t / ms) * ms;
+    const last = out[out.length - 1];
+    if (last && last.t === t) {
+      last.h = Math.max(last.h, b.h);
+      last.l = Math.min(last.l, b.l);
+      last.c = b.c;
+      last.v = (last.v ?? 0) + (b.v ?? 0);
+    } else {
+      out.push({ t, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v ?? 0 });
+    }
+  }
+  return out;
+}
+
 /** "15m" / "1m" / "1h" → ms. Unknown → 15m (the desk's structure interval). */
 export function intervalMs(interval: string | undefined): number {
   const m = /^(\d+)\s*(m|h|d)$/i.exec((interval ?? "").trim());

@@ -1,6 +1,6 @@
 # Register (or refresh) the Windows Task Scheduler job that runs the live
-# gateway every weekday at 08:15 local. This PC is America/Chicago, and CT/ET
-# shift DST together, so 08:15 CT is always 09:15 ET - five minutes before the
+# gateway every weekday at 07:55 local. This PC is America/Chicago, and CT/ET
+# shift DST together, so 07:55 CT is always 08:55 ET - five minutes before the
 # gateway's own 09:20 ET window opens.
 #
 # Run once from an elevated or normal PowerShell:
@@ -10,7 +10,7 @@
 #   Unregister-ScheduledTask -TaskName "LedgerDesk Live Gateway" -Confirm:$false
 #
 # LogonType Interactive = runs only while you are logged in (no password
-# prompt, no stored credential). You are at the desk at 08:15 CT anyway.
+# prompt, no stored credential). You are at the desk at 07:55 CT anyway.
 # ExecutionTimeLimit 3h is a hard backstop; the script exits itself at 11:00 ET.
 
 $ErrorActionPreference = "Stop"
@@ -25,7 +25,7 @@ $action = New-ScheduledTaskAction `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -File `"$runner`"" `
     -WorkingDirectory $here
 
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 08:15
+$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 07:55
 
 # -AllowStartIfOnBatteries / -DontStopIfGoingOnBatteries: this is a laptop.
 # The Task Scheduler defaults (AC-only) left the task permanently "Queued"

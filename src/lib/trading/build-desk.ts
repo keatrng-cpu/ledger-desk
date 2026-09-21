@@ -17,10 +17,12 @@ import {
   fetchYahooSpot,
   type ProxySpot,
 } from "@/lib/market/yahoo";
-import { readLiveTickFresh, quoteFromLiveTick } from "@/lib/market/live-gateway";
+import { readLiveTickFresh, quoteFromLiveTick, readLiveBars } from "@/lib/market/live-gateway";
 import {
+  aggregateBars,
   applyQuoteToLastBar,
   closedBars,
+  mergeNewerBars,
   pickFreshestQuote,
   stampSeriesFromBars,
   stitchLiveSession,
@@ -30,6 +32,7 @@ import {
   type IndexSymbol,
   type LiveQuote,
   type SymbolSeries,
+  type OhlcBar,
 } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
 import { buildLiveSays, type LiveSays } from "./live-says";
@@ -100,7 +103,7 @@ export interface DeskPayload {
   weekAhead: WeekAheadRead | null;
   /** Month bias / phases — restamp last Sunday of the prior month. */
   monthAhead: MonthAheadRead | null;
-  /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 09:20–11:00 ET. */
+  /** Trade Now "LIVE DATA SAYS { }" — live_gateway tick when 09:00–11:30 ET. */
   liveSays: LiveSays;
   /** Live SMC sequence (priced DOL + sweep polarity + one book). */
   smcMaster: SmcMasterRead;
@@ -135,6 +138,14 @@ export interface DeskError {
  */
 const DATABENTO_BUDGET_MS = 12_000;
 
+/**
+ * The gateway's 1m bars are one Postgres query away; a slow pooler must not
+ * hold the desk build. Past this the closed bars simply stay Yahoo's.
+ */
+const GATEWAY_BARS_BUDGET_MS = 1_500;
+/** 1m bars pulled from the gateway per build: 4h covers the whole window. */
+const GATEWAY_BARS_LIMIT = 240;
+
 async function load(
   symbol: IndexSymbol,
   range: YahooRange,
@@ -166,13 +177,37 @@ async function load(
       )
     : Promise.resolve(null);
   const yahoo = fetchYahooBars(symbol, range, interval).catch(() => null);
+  // The gateway's own closed 1m bars, when it is streaming (09:00–11:30 ET).
+  // Yahoo's bars run ~10 minutes behind the print and Databento historical
+  // 15–20; inside the live window the last two or three 15m bars of the
+  // desk were therefore always partial or missing, and a raid or
+  // displacement on them was graded ten minutes after it happened. The
+  // reader returns [] whenever the newest bar is older than BAR_FRESH_MS,
+  // so a dead gateway costs nothing and changes nothing.
+  const gateway = withBudget(
+    readLiveBars(symbol, GATEWAY_BARS_LIMIT).catch(() => [] as OhlcBar[]),
+    GATEWAY_BARS_BUDGET_MS,
+    [] as OhlcBar[],
+  );
 
-  const [db, live] = await Promise.all([databento, yahoo]);
+  const [db, live, gw] = await Promise.all([databento, yahoo, gateway]);
   const historical = db && db.bars.length >= 30 ? db : null;
 
   const stitched = stitchLiveSession(historical, live);
-  if (stitched) return stitched;
-  return syntheticBars(symbol);
+  if (!stitched) return syntheticBars(symbol);
+  if (!gw.length) return stitched;
+
+  // Overlay the gateway's buckets at and after the stitched series' last bar
+  // — the only bars that can be stale — and label the series live when the
+  // newest bar came from the socket.
+  const rolled = aggregateBars(gw, minutes);
+  const merged = mergeNewerBars(stitched.bars, rolled);
+  const newestGw = rolled[rolled.length - 1]!.t;
+  const newestBase = stitched.bars[stitched.bars.length - 1]!.t;
+  return stampSeriesFromBars(
+    { ...stitched, source: newestGw >= newestBase ? "live_gateway" : stitched.source },
+    merged,
+  );
 }
 
 async function quote(
