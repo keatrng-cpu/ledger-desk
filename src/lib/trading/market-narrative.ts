@@ -11,6 +11,7 @@
  * Each strategy maps to a preferred narrative class; graded alone (see strategy-grade).
  */
 
+import { GATE } from "./gate-tuning";
 import type { OhlcBar } from "@/lib/market/types";
 import type { DetectorSummary } from "./detectors";
 import type { HtfBiasRead } from "./structure";
@@ -284,10 +285,16 @@ function confirmationState(
 
   // The shift has to come AFTER the raid it confirms. A displacement that
   // printed before the sweep is the leg INTO liquidity, not the reversal.
+  // With GATE.sameBarDisplacement the raid candle itself may be the
+  // displacement — one 15m print that sweeps the pool and closes far back
+  // through it. Without it, the shift must print on a LATER bar.
   const disp =
     det.displacement.latest != null &&
     det.displacement.latest.direction === direction &&
-    (raid == null || det.displacement.latest.index > raid.index);
+    (raid == null ||
+      (GATE.sameBarDisplacement
+        ? det.displacement.latest.index >= raid.index
+        : det.displacement.latest.index > raid.index));
 
   const mech =
     det.mechanical.complete &&

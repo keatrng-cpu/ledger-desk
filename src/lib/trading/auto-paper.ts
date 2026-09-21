@@ -154,6 +154,17 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   if (seq.word !== "TAKE") {
     return { take: null, skip: `SMC sequence ${seq.word}: ${seq.missing}` };
   }
+  // An ARMED take (gate-tuning.ts armedIsTake) is a TAKE whose entry is a
+  // limit resting at consequent encroachment — price is NOT in the array
+  // yet. openPaperTradeInstant books the fill at the zone mid the moment it
+  // is called, which for an armed card would be a fill at a price that has
+  // not traded: an invented fill. The alarm may fire on the word; the paper
+  // book waits for the touch, i.e. for the retrace layer to pass on the
+  // live print.
+  const retrace = seq.layers.find((l) => l.id === "retrace");
+  if (retrace && retrace.state !== "pass") {
+    return { take: null, skip: `Armed — limit at CE, waiting for the touch: ${retrace.detail}` };
+  }
 
   // Never book a fill on a stale print. The desk rebuild already drops
   // `actionable` on a stale quote, but the 1-2s quote poll patches lagSec in

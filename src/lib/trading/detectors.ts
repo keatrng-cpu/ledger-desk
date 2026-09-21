@@ -9,6 +9,7 @@
  * weights from src/lib/aplus/confluence.ts).
  */
 
+import { GATE } from "./gate-tuning";
 import type { OhlcBar } from "@/lib/market/types";
 
 /* ------------------------------------------------------------------ */
@@ -22,6 +23,11 @@ export const ATR_PERIOD = 14;
  * Displacement: candle body |c-o| must be >= K × rolling ATR(14) of bar
  * ranges. Engine default K = 1.5 — a body 1.5× the average range is an
  * institutional push, not noise.
+ */
+/**
+ * Original displacement multiple. The LIVE value is GATE.displacementK
+ * (gate-tuning.ts); this constant stays exported for the curriculum and the
+ * calibration harness that quote the original rule.
  */
 export const DISPLACEMENT_K = 1.5;
 
@@ -318,7 +324,7 @@ export function detectDisplacements(bars: OhlcBar[]): DisplacementEvent[] {
     const a = atr[i]!;
     if (!Number.isFinite(a) || a <= 0) continue;
     const bs = body(b);
-    if (bs >= DISPLACEMENT_K * a && b.c !== b.o) {
+    if (bs >= GATE.displacementK * a && b.c !== b.o) {
       out.push({
         index: i,
         t: b.t,
@@ -807,6 +813,7 @@ export interface DetectorSummary {
  *     NY open; anything older is not "the raid" this session trades.
  *   - displacement: 12 bars = 3h — the impulse has to belong to this morning.
  */
+/** Original recency windows. Live values are GATE.recent*Bars (gate-tuning.ts). */
 export const RECENT_SWEEP_BARS = 24;
 export const RECENT_DISPLACEMENT_BARS = 12;
 
@@ -842,7 +849,7 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
     },
     displacement: {
       count: displacements.length,
-      latest: recent(displacements, bars.length, RECENT_DISPLACEMENT_BARS),
+      latest: recent(displacements, bars.length, GATE.recentDisplacementBars),
       lastEver: displacements.length ? displacements[displacements.length - 1]! : null,
     },
     orderBlock: {
@@ -852,7 +859,7 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
     },
     sweep: {
       count: sweeps.length,
-      latest: recent(sweeps, bars.length, RECENT_SWEEP_BARS),
+      latest: recent(sweeps, bars.length, GATE.recentSweepBars),
       lastEver: sweeps.length ? sweeps[sweeps.length - 1]! : null,
     },
     mechanical,

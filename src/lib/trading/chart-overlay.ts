@@ -150,9 +150,13 @@ export function buildChartOverlay(desk: DeskPayload, symbol: string, bars: OhlcB
     .map((a) => ({ t: a.t, price: a.price, kind: a.kind as OverlayStructure["kind"], side: a.side, label: a.label }))
     .slice(-6);
 
-  const range = bias.dealing
-    ? { high: bias.dealing.high, low: bias.dealing.low, eq: bias.dealing.eq, zone: bias.dealing.zone }
-    : null;
+  // The range the pd_half layer actually graded on (impulse leg or 80-bar
+  // window — smc-master.ts decides), so the tint and the verdict agree.
+  const range = book.dealing
+    ? { high: book.dealing.high, low: book.dealing.low, eq: book.dealing.eq, zone: book.dealing.zone }
+    : bias.dealing
+      ? { high: bias.dealing.high, low: bias.dealing.low, eq: bias.dealing.eq, zone: bias.dealing.zone }
+      : null;
 
   const dol = draw.primary;
   const drawOut = dol ? { price: dol.price, name: dol.name, reachProbability: dol.reachProbability, side: dol.side } : null;

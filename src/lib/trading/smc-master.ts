@@ -6,6 +6,7 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { GATE } from "./gate-tuning";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
 import {
@@ -14,6 +15,8 @@ import {
   type CanonStack,
 } from "./smc-canon";
 import { buildTradePlan, type TradePlan } from "./trade-plan";
+import { buildImpulseLeg, isUsableLeg, retracementRatio } from "./fib";
+import type { OhlcBar } from "@/lib/market/types";
 import type { SmcTape } from "./smc-board";
 import type { HtfBiasRead, SmtStack } from "./structure";
 import type { DrawRead } from "./draw";
@@ -32,10 +35,26 @@ export interface SmcLayer {
   price?: number;
 }
 
+/**
+ * The dealing range the pd_half layer graded against, so the chart tints the
+ * same box the verdict used. `source` says which rule produced it.
+ */
+export interface DealingRead {
+  high: number;
+  low: number;
+  eq: number;
+  zone: "premium" | "discount" | "equilibrium";
+  source: "window" | "impulse";
+  /** Impulse only: 0 = at the leg's extreme, 1 = back at the raid. */
+  ratio: number | null;
+}
+
 export interface SmcMasterBook {
   symbol: string;
   side: "long" | "short" | null;
   word: "TAKE" | "WAIT" | "STAND";
+  /** The range premium/discount was measured on. Null when none exists. */
+  dealing: DealingRead | null;
   /** Label of the first must-layer that is not passing (or "Sequence complete"). */
   missing: string;
   /** Why that layer is not passing, in tape terms — the one line a trader needs. */
@@ -78,6 +97,13 @@ export interface SmcMasterInput {
   smc?: { left: SmcTape; right: SmcTape };
   /** Live prints — the retrace layer is a fact about WHERE price is now. */
   quotes?: { left: { price: number }; right: { price: number } };
+  /**
+   * The bars each book was read from. Needed only for the impulse-leg
+   * dealing range (GATE.dealingRange === "impulse"); build-desk passes its
+   * series, which carry `bars`, through the spread.
+   */
+  left?: { bars: OhlcBar[] };
+  right?: { bars: OhlcBar[] };
   /** Post-shock: arrays/sweeps before this ms don't count (fresh sequence only). */
   shockFloorMs?: number | null;
 }
@@ -95,12 +121,76 @@ function factorState(
 function pickCandidate(
   scan: ScanResult,
   bias: HtfBiasRead,
+  narrative: MarketNarrative,
 ): SetupCandidate | undefined {
   const book = scan.candidates.filter((c) => c.symbol === bias.symbol);
   const need = bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null;
+  // GATE.sideFromRaid: the raid names the side. SSL taken arms a long, BSL
+  // taken arms a short — graded only when the HTF gate allows that side.
+  if (GATE.sideFromRaid) {
+    const swept = narrative.liquidity.lastSweep;
+    const raidSide = swept === "ssl" ? "long" : swept === "bsl" ? "short" : null;
+    if (raidSide && (need == null || need === raidSide)) {
+      const onSide = book.filter((c) => c.side === raidSide);
+      const pick =
+        onSide.find((c) => isHighProbPath(c)) ??
+        [...onSide].sort((a, b) => b.confluence - a.confluence)[0];
+      if (pick) return pick;
+    }
+  }
   const aligned = need ? book.find((c) => c.side === need) : undefined;
   const path = book.find((c) => isHighProbPath(c));
   return path ?? aligned ?? [...book].sort((a, b) => b.confluence - a.confluence)[0];
+}
+
+/**
+ * Premium / discount measured on the post-raid impulse leg.
+ *
+ * ICT's dealing range for an entry is the leg the displacement made away from
+ * the sweep: raid extreme → impulse extreme. Discount (for a long) is the
+ * lower half of THAT leg, and OTE its 62–79%. The 80-bar window range in
+ * structure.ts is a different object — a 20-hour box — and in a trend it
+ * calls every pullback "premium", which is why pd_half failed on ~75-80% of
+ * trade-window bars in the 2026-09-21 replay. Null when there is no raid of
+ * the trade's polarity to anchor on; the caller then uses the window.
+ */
+function impulseDealing(
+  bars: OhlcBar[] | undefined,
+  side: "long" | "short" | null,
+  narrative: MarketNarrative,
+  price: number | null,
+): DealingRead | null {
+  if (!bars?.length || !side) return null;
+  const lq = narrative.liquidity;
+  const want = side === "long" ? "ssl" : "bsl";
+  if (lq.lastSweep !== want || lq.lastSweepT == null || lq.lastSweepExtreme == null) return null;
+  let idx = -1;
+  for (let i = bars.length - 1; i >= 0; i--) {
+    if (bars[i]!.t <= lq.lastSweepT) {
+      idx = i;
+      break;
+    }
+  }
+  if (idx < 0) return null;
+  const leg = buildImpulseLeg(bars, side === "long" ? "bull" : "bear", {
+    originPrice: lq.lastSweepExtreme,
+    originIndex: idx,
+    lookback: Math.max(2, bars.length - idx),
+  });
+  if (!isUsableLeg(leg)) return null;
+  const ratio = price != null ? retracementRatio(leg, price) : null;
+  const high = Math.max(leg.from, leg.to);
+  const low = Math.min(leg.from, leg.to);
+  // 0 = at the impulse extreme (no retrace yet), 1 = back at the raid. Past
+  // 1 the raid extreme is broken and the leg's premise is gone — that is
+  // the wrong half by definition, not a deeper discount.
+  let zone: DealingRead["zone"];
+  if (ratio == null) zone = "equilibrium";
+  else if (ratio > 1) zone = side === "long" ? "premium" : "discount";
+  else if (ratio >= 0.55) zone = side === "long" ? "discount" : "premium";
+  else if (ratio <= 0.45) zone = side === "long" ? "premium" : "discount";
+  else zone = "equilibrium";
+  return { high, low, eq: (high + low) / 2, zone, source: "impulse", ratio };
 }
 
 function gradeBook(
@@ -114,19 +204,38 @@ function gradeBook(
   tape: SmcTape | undefined,
   price: number | null,
   shockFloorMs: number | null,
+  bars: OhlcBar[] | undefined,
 ): SmcMasterBook {
-  const cand = pickCandidate(scan, bias);
+  const cand = pickCandidate(scan, bias, narrative);
   const side =
     cand?.side ??
     (bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null);
+
+  // The range premium/discount is graded on. Impulse leg when the knob says
+  // so AND a raid of this side's polarity exists to anchor it; the 80-bar
+  // window otherwise (and always under the original rule set).
+  const windowDealing: DealingRead | null = bias.dealing
+    ? {
+        high: bias.dealing.high,
+        low: bias.dealing.low,
+        eq: bias.dealing.eq,
+        zone: bias.dealing.zone,
+        source: "window",
+        ratio: null,
+      }
+    : null;
+  const dealing =
+    (GATE.dealingRange === "impulse" ? impulseDealing(bars, side, narrative, price) : null) ??
+    windowDealing;
+
   const canon = scoreCanonStack(
     cand
-      ? canonInputForCandidate(cand, bias, narrative, clock)
+      ? { ...canonInputForCandidate(cand, bias, narrative, clock), dealingZone: dealing?.zone ?? null }
       : {
           side,
           htf: bias.topDown,
           mtf: bias.mid,
-          dealingZone: bias.dealing?.zone ?? null,
+          dealingZone: dealing?.zone ?? null,
           swept: narrative.liquidity.lastSweep,
           confirmation: narrative.confirmation,
           inKillzone: clock.inTradeWindow,
@@ -221,7 +330,7 @@ function gradeBook(
   } else if (price == null) {
     retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} — no live print to place you`;
   } else {
-    const pad = Math.max((fresh.top - fresh.bottom) * 0.25, 0.25);
+    const pad = Math.max((fresh.top - fresh.bottom) * GATE.retracePad, 0.25);
     const inside = price >= fresh.bottom - pad && price <= fresh.top + pad;
     if (inside) {
       retraceState = "pass";
@@ -271,26 +380,46 @@ function gradeBook(
   const mustWait = musts.find((l) => l.state === "wait");
   const pathOk = isHighProbPath(cand);
 
+  // Armed: every must-layer passes except the retrace, which is WAITING with
+  // a named fresh array (price outside it, not missing). With
+  // GATE.armedIsTake that is a TAKE whose entry is a limit at consequent
+  // encroachment — the plan below already carries the price. Without it the
+  // word stays WAIT until a closed bar prints inside the array.
+  const retraceLayer = musts.find((l) => l.id === "retrace");
+  const armed =
+    GATE.armedIsTake &&
+    !mustFail &&
+    retraceLayer?.state === "wait" &&
+    fresh != null &&
+    musts.every((l) => l.id === "retrace" || l.state === "pass");
+
   let word: SmcMasterBook["word"] = "STAND";
   if (mustFail) word = "STAND";
+  else if (armed && pathOk) word = "TAKE";
   else if (mustWait || !pathOk) word = "WAIT";
   else if (mustPass === mustNeed && pathOk) word = "TAKE";
 
-  const blocker = mustFail ?? mustWait ?? null;
+  const blocker = mustFail ?? (armed ? null : mustWait) ?? null;
   const missing =
-    blocker?.label ?? (!pathOk ? "No A+/A/A− PATH" : "Sequence complete");
+    blocker?.label ?? (!pathOk ? "No A+/A/A− PATH" : armed ? "Armed — limit at CE" : "Sequence complete");
   const missingDetail =
     blocker?.detail ??
     (!pathOk
       ? cand
         ? `${cand.symbol} ${cand.side} grades ${String(cand.pathBand || cand.grade)} Q ${cand.confluence.toFixed(2)} — below the PATH bar`
         : "No candidate on this book"
-      : "All must-layers pass");
+      : armed && retraceLayer
+        // The armed TAKE's instruction IS the retrace detail: the array and
+        // the CE price. "All must-layers pass" would hide the fact that the
+        // entry is a resting limit, not a market order.
+        ? retraceLayer.detail
+        : "All must-layers pass");
 
   return {
     symbol: bias.symbol,
     side,
     word,
+    dealing,
     missing,
     missingDetail,
     layers,
@@ -318,9 +447,7 @@ function gradeBook(
       sweepExtreme: narrative.liquidity.lastSweepExtreme,
       sweepT: narrative.liquidity.lastSweepT,
       dol: dolAgrees ? dol : null,
-      range: bias.dealing
-        ? { high: bias.dealing.high, low: bias.dealing.low, eq: bias.dealing.eq }
-        : null,
+      range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
       arrays: tape?.arrays ?? [],
     }),
   };
@@ -340,6 +467,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.smc?.left,
     desk.quotes?.left.price ?? null,
     desk.shockFloorMs ?? null,
+    desk.left?.bars,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -352,6 +480,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.smc?.right,
     desk.quotes?.right.price ?? null,
     desk.shockFloorMs ?? null,
+    desk.right?.bars,
   );
 
   const ranked = [left, right].sort((a, b) => {

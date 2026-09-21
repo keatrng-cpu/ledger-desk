@@ -225,6 +225,8 @@ function snapshot(symbol: CaseSymbol, peer: CaseSymbol, slice: OhlcBar[], peerSl
     smc,
     quotes: { left: { price: now.c }, right: { price: peerSlice[peerSlice.length - 1]!.c } },
     shockFloorMs: null,
+    left: { bars: slice },
+    right: { bars: peerSlice },
   });
 
   const book = master.left;

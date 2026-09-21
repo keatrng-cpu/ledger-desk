@@ -66,6 +66,7 @@ for (const [symbol, peer] of [["MNQ", "ES"], ["ES", "MNQ"]]) {
       draws: { left: drawOnLiquidity(biasL, slice), right: drawOnLiquidity(biasR, peerSlice) },
       narrative: { left: narrL, right: narrR }, news: newsRead(new Date(now.t)), smtStack, smc,
       quotes: { left: { price: now.c }, right: { price: peerSlice[peerSlice.length - 1].c } }, shockFloorMs: null,
+      left: { bars: slice }, right: { bars: peerSlice },
     });
     const b = master.left;
     sampled++;
