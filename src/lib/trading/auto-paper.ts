@@ -109,7 +109,7 @@ export type AutoPaperPick =
 
 /**
  * Pure pick. Caller opens via openPaperTradeInstant so stats stay one path.
- * NY AM only, not Judas (unless A+), not news blackout, one book, PATH A+/A/A−.
+ * NY AM only. Judas 9:30–9:45 A+ only (clock is not a hard veto). News blackout. One book. PATH A+/A/A−.
  */
 export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   const s = load();
@@ -165,8 +165,8 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   }
 
   const band = String(candidate.pathBand || candidate.grade);
-  if (isJudasWindow(clock.etHour, clock.etMinute)) {
-    return { take: null, skip: "Judas 9:30–9:45 — name the raid, no entries" };
+  if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+" && band !== "A＋") {
+    return { take: null, skip: "Judas 9:30–9:45 — A+ only; clock does not veto a complete A+ sequence" };
   }
 
   const counters = countersFromMemory(loadDeskMemory());
