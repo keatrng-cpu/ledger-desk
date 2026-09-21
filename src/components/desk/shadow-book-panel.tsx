@@ -196,7 +196,7 @@ function ReasonRow({ r }: { r: ReasonScore }) {
         </div>
       </div>
       <div className={`text-[10px] font-semibold ${tone}`}>
-        {r.verdict === "earning" ? "earning its keep" : r.verdict === "costing" ? "costing — sweep" : `early ${dec}/${MIN_VERDICT_N}`}
+        {r.verdict === "earning" ? "earning its keep" : r.verdict === "costing" ? "costing — sweep" : r.verdict === "neutral" ? "no edge either way" : `early ${dec}/${MIN_VERDICT_N}`}
       </div>
     </li>
   );

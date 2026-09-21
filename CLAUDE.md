@@ -94,11 +94,11 @@ Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR
 
 | Tab | What |
 |-----|------|
-| Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
+| Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → **timeframe ladder** (Y→30s, top-down, `tf-ladder.ts`) → **the trade, drawn** (SMC overlay, green TAKE / red flip flash) → **shadow strip** (today's refusals paper-traded) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
 | Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Charts | Dual MNQ/ES tape + liquidity |
 | Brain | Veteran + coach (Ask Grok + Claude, peers, parallel). Never overrides hard gates. |
-| Book | WR / grades / profit path, journal, TradeZella backtest (no lookahead) |
+| Book | WR / grades / profit path, journal, **shadow book** (refusals paper-traded both ways · gate scorecard · the little things — `shadow-book.ts`, `discretion-memory.ts`; never the paper book), TradeZella backtest (no lookahead) |
 | Lab | Risk governor, alerts, analytics, rules/replay/snapshots/shadow/bridge |
 
 HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw line** (`TAKE/STAND/MANAGE · MNQ ↓xxxx · ES ↓xxxx`), Arm alarm. Six tabs. Destination first.
@@ -130,6 +130,10 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/trading/build-desk.ts` | Assembles payload (freshest quotes) |
 | `src/lib/trading/veteran-brain.ts` | Discretion over journal+BT+desk |
 | `src/lib/trading/ghost-book.ts` | Shadow PATH vs tape. Miss = read HTF/SMT/news/Judas/both books/remaining draw, then NOW action — never a canned "clean skip". |
+| `src/lib/trading/shadow-book.ts` | The refusals paper-traded: every PATH card the sequence STANDs/WAITs on opens a limit leg (CE) and a chase leg, resolved on closed bars + prints, ties against. Path, tags, analysis. `shadow_trades` ledger via `shadow-book-server.ts`; `shadow-store.ts` client; `src/data/shadow-replay.json` seed (Jul–Aug 2026). Evidence about gates — never a fill, never a gate. |
+| `src/lib/trading/discretion-memory.ts` | Gate scorecard from shadows: per refusing layer chase/limit n·WR·exp·$, verdict (earning / costing → sweep / neutral / early), feature lifts ("little things"), digest for brain + handoff. |
+| `src/lib/trading/tf-ladder.ts` | 14 rungs 1y→30s (daily 2y, 15m, 1m + gateway, 30s from prints). Direction from the top, swing/intraday/micro bands → phase + alignment. Narrative; `topDown` stays the gate. |
+| `src/lib/trading/gate-tuning.ts` | Sequence knobs + the 2026-09-21 sweep table (18 variants, 0 takes). Live: sameBarDisplacement + sideFromRaid. Change only via `scripts/sweep-gates.mjs`. |
 | `src/lib/trading/paper-manager.ts` | One-click paper + real-tape exits |
 | `src/lib/market/freshest.ts` | Gateway > lowest lagSec |
 | `src/lib/market/yahoo.ts` | Host race, includePrePost |

@@ -15,6 +15,9 @@
  *                           n ≥ MIN_VERDICT_N). The layer is the one to
  *                           sweep next (scripts/sweep-gates.mjs), not to
  *                           delete: this is evidence, not permission.
+ *   neutral               — n is there and the chase sits between the two
+ *                           thresholds: refusing costs nothing, chasing pays
+ *                           nothing. The gate is free to keep.
  *   too early             — below the sample floor. The honest state for
  *                           the first weeks.
  *
@@ -61,7 +64,7 @@ export interface LegScore extends Bucket {
   exp: number | null;
 }
 
-export type GateVerdict = "earning" | "costing" | "early";
+export type GateVerdict = "earning" | "costing" | "neutral" | "early";
 
 export interface ReasonScore {
   reasonId: string;
@@ -139,7 +142,7 @@ function verdictFor(chase: LegScore): GateVerdict {
   if (decidedN(chase) < MIN_VERDICT_N || chase.exp == null) return "early";
   if (chase.exp <= GATE_RIGHT_EXP) return "earning";
   if (chase.exp >= GATE_COST_EXP) return "costing";
-  return "early";
+  return "neutral";
 }
 
 function legLine(l: LegScore): string {
@@ -154,7 +157,9 @@ export function reasonLine(r: ReasonScore): string {
       ? "gate earning its keep"
       : r.verdict === "costing"
         ? "gate costing money — sweep it"
-        : `too early (${decidedN(r.chase)}/${MIN_VERDICT_N} chased)`;
+        : r.verdict === "neutral"
+          ? "no edge either way — chasing these does not pay, refusing them costs nothing"
+          : `too early (${decidedN(r.chase)}/${MIN_VERDICT_N} chased)`;
   return `${r.reason}: ${head} · chase ${legLine(r.chase)} · limit ${legLine(r.limit)}`;
 }
 
