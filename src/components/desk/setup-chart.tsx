@@ -14,26 +14,34 @@
  *      trader reads before risking money, a plausible-looking wrong chart is
  *      the worst possible artifact.
  *   3. Draw the data the desk already has. Sub-millisecond, pixel-exact, and
- *      — the part that matters — it renders from the SAME `TradePlan` the
- *      grade is computed from, so the drawing cannot disagree with the verdict
+ *      — the part that matters — it renders from the SAME objects the grade
+ *      is computed from, so the drawing cannot disagree with the verdict
  *      sitting next to it.
  *
  * This is (3). It is also the only one of the three compatible with the house
  * rule that nothing in the poll loop is an LLM.
  *
- * WHAT IS DRAWN, AND WHAT IS DELIBERATELY NOT
- * The desk's complaint was that it reads as a wall of words. The answer to
- * that is not to draw every object the tape knows about — that just moves the
- * clutter into pixels. Only what a trader acts on is drawn: the raid, the
- * array being entered, the stop, the targets, and where price is now relative
- * to all of them. Mitigated arrays, opposite-side arrays and anything outside
- * the visible price band are dropped.
+ * TWO LAYERS
+ * The OVERLAY (chart-overlay.ts) is what an SMC trader marks before deciding
+ * anything: liquidity pools with their labels, the live PD arrays as boxes
+ * from the bar that made them, structure breaks, the last raid, the dealing
+ * range, and the draw on liquidity. It is drawn on every bar, pre-market and
+ * in-session, with or without a trade. The PLAN (trade-plan.ts) — entry,
+ * stop, targets — is drawn on top only when the sequence has priced one.
+ * Before this split, a STAND day showed bare candles, which told the trader
+ * nothing about WHY it was a stand.
+ *
+ * WHAT IS DELIBERATELY NOT DRAWN
+ * Mitigated arrays, pools outside the visible band, structure older than two
+ * hours, and anything past the caps in chart-overlay.ts. Clutter in pixels is
+ * still clutter.
  */
 
 import { useMemo } from "react";
 import type { OhlcBar } from "@/lib/market/types";
 import type { TradePlan } from "@/lib/trading/trade-plan";
 import type { SmcArray } from "@/lib/trading/smc-board";
+import type { ChartOverlay, OverlayPool } from "@/lib/trading/chart-overlay";
 
 const W = 720;
 const H = 340;
@@ -45,13 +53,23 @@ const PLOT_W = W - PAD_L - PAD_R;
 const PLOT_H = H - PAD_T - PAD_B;
 
 /** Bars shown. Enough for structure, few enough that bodies stay readable. */
-const VISIBLE_BARS = 60;
-/** Hard cap on shaded PD arrays — past this the chart is noise, not a chart. */
-const MAX_ARRAYS = 4;
+export const VISIBLE_BARS = 60;
+/** Hard cap on shaded PD arrays when only a plan (no overlay) is given. */
+const MAX_PLAN_ARRAYS = 4;
+/** Minimum vertical gap between two left-side labels before one is dropped. */
+const LABEL_GAP = 11;
+/**
+ * The draw on liquidity is pulled INTO frame when it is within this many
+ * visible-band heights of the edge. Further than that, squeezing the candles
+ * to fit it would hide the structure, so it becomes an edge arrow instead.
+ */
+const DRAW_INFRAME_SPANS = 0.6;
 
 export interface SetupChartProps {
   bars: OhlcBar[];
   plan: TradePlan | null;
+  /** The always-on SMC markup. Null = plan-only (replays, figures). */
+  overlay?: ChartOverlay | null;
   /** Shown when there is no plan yet — the missing must-layer, in tape terms. */
   emptyDetail?: string;
   /** "TAKE" / "WAIT" / "STAND", for the corner badge. */
@@ -84,7 +102,11 @@ interface Scale {
  * catch: a target drawn off-canvas, or a stop that looks closer to entry than
  * it is, is a misleading chart rather than an ugly one.
  */
-export function buildScale(bars: OhlcBar[], plan: TradePlan | null): Scale | null {
+export function buildScale(
+  bars: OhlcBar[],
+  plan: TradePlan | null,
+  overlay?: ChartOverlay | null,
+): Scale | null {
   if (!bars.length) return null;
   let lo = Infinity;
   let hi = -Infinity;
@@ -92,6 +114,7 @@ export function buildScale(bars: OhlcBar[], plan: TradePlan | null): Scale | nul
     lo = Math.min(lo, b.l);
     hi = Math.max(hi, b.h);
   }
+  const barSpan = hi - lo || 1;
   // Plan levels must be IN FRAME. A chart that crops the target silently
   // tells the trader the trade is tighter than it is.
   if (plan) {
@@ -102,6 +125,18 @@ export function buildScale(bars: OhlcBar[], plan: TradePlan | null): Scale | nul
     if (plan.entryZone) {
       lo = Math.min(lo, plan.entryZone.bottom);
       hi = Math.max(hi, plan.entryZone.top);
+    }
+  }
+  if (overlay) {
+    // Pools are pre-filtered to (near) the band, so they widen it only a
+    // little; the draw is pulled in when close and arrowed when far.
+    for (const p of overlay.pools) {
+      lo = Math.min(lo, p.price);
+      hi = Math.max(hi, p.price);
+    }
+    if (overlay.draw && drawInFrame(overlay.draw.price, lo, hi, barSpan)) {
+      lo = Math.min(lo, overlay.draw.price);
+      hi = Math.max(hi, overlay.draw.price);
     }
   }
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
@@ -119,15 +154,39 @@ export function buildScale(bars: OhlcBar[], plan: TradePlan | null): Scale | nul
   };
 }
 
+function drawInFrame(price: number, lo: number, hi: number, barSpan: number): boolean {
+  if (price >= lo && price <= hi) return true;
+  const beyond = price > hi ? price - hi : lo - price;
+  return beyond <= barSpan * DRAW_INFRAME_SPANS;
+}
+
 function arrayFill(a: SmcArray): string {
-  if (a.kind === "ob" || a.kind === "bb") return "var(--color-chart-4)";
+  if (a.kind === "ob" || a.kind === "bb" || a.kind === "rb") return "var(--color-chart-4)";
   if (a.kind === "ifvg") return "var(--color-chart-2)";
   return "var(--color-chart-3)";
+}
+
+function arrayName(a: SmcArray): string {
+  const kind = a.kind === "bb" ? "breaker" : a.kind === "rb" ? "rejection" : a.kind;
+  // A breaker's state IS "breaker"; repeating it reads as a stutter.
+  const state = a.state === "fresh" || a.state === kind ? "" : ` · ${a.state}`;
+  return `${a.tf} ${a.side} ${kind}${state}`;
+}
+
+/**
+ * Pool and draw names from structure.ts carry a parenthetical class —
+ * "PWH (external BSL)", "Swing low (internal SSL)" — that the line's own
+ * colour and the BSL/SSL prefix already say. Strip it so the label is the
+ * name a trader would write: "BSL PWH".
+ */
+function shortName(label: string): string {
+  return label.replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
 }
 
 export function SetupChart({
   bars,
   plan,
+  overlay = null,
   emptyDetail,
   word,
   className,
@@ -139,10 +198,17 @@ export function SetupChart({
   const offset = Math.max(0, bars.length - window_);
   const view = useMemo(() => bars.slice(-window_), [bars, window_]);
   const decisionInView = decisionIndex == null ? null : decisionIndex - offset;
-  const scale = useMemo(() => buildScale(view, plan), [view, plan]);
+  const scale = useMemo(() => buildScale(view, plan, overlay), [view, plan, overlay]);
 
+  // With an overlay the arrays are the tape's live arrays on both sides
+  // (capped upstream). Without one — replays, figures — fall back to the
+  // plan's own arrays on the traded side, as before.
   const shownArrays = useMemo(() => {
-    if (!plan || !scale) return [];
+    if (!scale) return [];
+    if (overlay) {
+      return overlay.arrays.filter((a) => a.top >= scale.lo && a.bottom <= scale.hi);
+    }
+    if (!plan) return [];
     const side = plan.side === "long" ? "bull" : "bear";
     return plan.arrays
       .filter(
@@ -153,8 +219,8 @@ export function SetupChart({
           a.bottom <= scale.hi,
       )
       .sort((a, b) => b.t - a.t)
-      .slice(0, MAX_ARRAYS);
-  }, [plan, scale]);
+      .slice(0, MAX_PLAN_ARRAYS);
+  }, [plan, overlay, scale]);
 
   if (!scale || !view.length) {
     return (
@@ -169,65 +235,151 @@ export function SetupChart({
   const long = plan?.side === "long";
   const firstT = view[0]!.t;
   const lastT = view[view.length - 1]!.t;
+  const lastClose = view[view.length - 1]!.c;
+  const range = plan?.range ?? overlay?.range ?? null;
+  const symbol = plan?.symbol ?? overlay?.symbol ?? "";
+  const side = plan?.side ?? null;
+  const badgeWord = word ?? overlay?.word;
 
-  // Index of the raid bar, so the marker lands on the candle that swept.
-  const sweepIdx =
+  /** Index in `view` of the bar containing time t; 0 if before the window. */
+  const idxOf = (t: number): number => {
+    if (t <= firstT) return 0;
+    for (let i = view.length - 1; i >= 0; i--) if (view[i]!.t <= t) return i;
+    return 0;
+  };
+  /** Left x of the bar containing t — where a box or line begins. */
+  const xStart = (t: number | undefined): number =>
+    t == null || t <= firstT ? PAD_L : scale.x(idxOf(t)) - scale.step / 2;
+  const clampY = (y: number) => Math.min(PAD_T + PLOT_H, Math.max(PAD_T, y));
+
+  // The raid: plan's sweep when priced, else the overlay's last sweep.
+  const sweep =
     plan?.sweep?.t != null
-      ? view.findIndex((b, i) => {
-          const next = view[i + 1];
-          return b.t <= plan.sweep!.t! && (!next || next.t > plan.sweep!.t!);
-        })
-      : -1;
+      ? { price: plan.sweep.price, t: plan.sweep.t, above: !long }
+      : overlay?.sweep
+        ? { price: overlay.sweep.price, t: overlay.sweep.t, above: overlay.sweep.side === "buyside" }
+        : null;
+  const sweepIdx = sweep ? idxOf(sweep.t) : -1;
+
+  // Draw on liquidity: in frame → a line; out of frame → an edge arrow.
+  const draw = overlay?.draw ?? null;
+  const drawVisible = draw != null && draw.price >= scale.lo && draw.price <= scale.hi;
+
+  // ── Left-side labels, collision-resolved by priority ─────────────────────
+  // Order matters: the first entry at a given height wins. Externals and the
+  // draw are what a trader reads first, so they outrank internal pools.
+  const leftLabels = dedupeByY(
+    [
+      ...(drawVisible && draw
+        ? [
+            {
+              p: draw.price,
+              c: "var(--color-up)",
+              text: `DOL ${shortName(draw.name)} ${draw.price.toFixed(2)} · ${(draw.reachProbability * 100).toFixed(0)}%`,
+              x: PAD_L + 3,
+            },
+          ]
+        : []),
+      ...(overlay?.pools ?? [])
+        .filter((p) => p.price >= scale.lo && p.price <= scale.hi)
+        .sort(poolPriority)
+        .map((p) => ({
+          p: p.price,
+          c: poolColor(p),
+          text: `${p.swept ? "✕ " : ""}${p.side === "buyside" ? "BSL" : "SSL"} ${shortName(p.label)}`,
+          x: PAD_L + 3,
+        })),
+      ...(range
+        ? [{ p: range.eq, c: "var(--color-muted)", text: `EQ ${range.eq.toFixed(2)}`, x: PAD_L + 3 }]
+        : []),
+    ],
+    scale,
+    LABEL_GAP,
+  );
+
+  // ── Right gutter: plan first, then the draw, then external pools ─────────
+  const gutter = dedupeByY(
+    [
+      ...(plan
+        ? [
+            { p: plan.price, c: "var(--color-fg)", t: "live" },
+            { p: plan.entry, c: "var(--color-primary)", t: "entry" },
+            { p: plan.stop, c: "var(--color-down)", t: "stop" },
+            ...(plan.t1 != null
+              ? [{ p: plan.t1, c: "var(--color-up)", t: plan.rr1 != null ? `T1 ${plan.rr1.toFixed(1)}R` : "T1" }]
+              : []),
+            ...(plan.t2 != null
+              ? [{ p: plan.t2, c: "var(--color-up)", t: plan.rr2 != null ? `T2 ${plan.rr2.toFixed(1)}R` : "T2" }]
+              : []),
+          ]
+        : overlay
+          ? [{ p: lastClose, c: "var(--color-fg)", t: "last" }]
+          : []),
+      ...(drawVisible && draw ? [{ p: draw.price, c: "var(--color-up)", t: "DOL" }] : []),
+      ...(overlay?.pools ?? [])
+        .filter((p) => p.scope === "external" && !p.swept && p.price >= scale.lo && p.price <= scale.hi)
+        .map((p) => ({ p: p.price, c: poolColor(p), t: shortName(p.label) })),
+    ],
+    scale,
+    16,
+  );
+
+  // Array labels sit at the top-left of each box, one per 9px of height at
+  // a given origin; boxes that share a price band AND a start bar (a 15m FVG
+  // inside a 1H OB) would otherwise print their names on top of each other.
+  // Nearest-to-price wins the slot — the order chart-overlay.ts emits them.
+  const arrayLabelSlots = new Set<SmcArray>();
+  {
+    const taken: { x: number; y: number }[] = [];
+    for (const a of shownArrays) {
+      const y = scale.y(a.top);
+      const x = xStart(a.t);
+      if (taken.every((t) => Math.abs(t.y - y) >= 9 || Math.abs(t.x - x) >= 90)) {
+        taken.push({ x, y });
+        arrayLabelSlots.add(a);
+      }
+    }
+  }
+
+  const ariaLabel = plan
+    ? `${plan.symbol} ${plan.side} — entry ${plan.entry}, stop ${plan.stop}${plan.t1 != null ? `, target ${plan.t1}` : ""}`
+    : overlay
+      ? `${overlay.symbol} ${overlay.word} — ${overlay.pools.length} liquidity pools, ${overlay.arrays.length} arrays${draw ? `, draw ${draw.name} ${draw.price}` : ""}`
+      : "Setup chart, no plan priced";
 
   return (
     <figure className={`panel overflow-hidden ${className ?? ""}`}>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="block w-full"
-        role="img"
-        aria-label={
-          plan
-            ? `${plan.symbol} ${plan.side} — entry ${plan.entry}, stop ${plan.stop}${plan.t1 != null ? `, target ${plan.t1}` : ""}`
-            : "Setup chart, no plan priced"
-        }
-      >
+      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={ariaLabel}>
         {/* ── Dealing range: premium above EQ, discount below ─────────────── */}
-        {plan?.range && (
+        {range && (
           <>
             <rect
               x={PAD_L}
-              y={scale.y(plan.range.high)}
+              y={clampY(scale.y(range.high))}
               width={PLOT_W}
-              height={Math.max(0, scale.y(plan.range.eq) - scale.y(plan.range.high))}
+              height={Math.max(0, clampY(scale.y(range.eq)) - clampY(scale.y(range.high)))}
               fill="var(--color-down)"
               opacity={0.05}
             />
             <rect
               x={PAD_L}
-              y={scale.y(plan.range.eq)}
+              y={clampY(scale.y(range.eq))}
               width={PLOT_W}
-              height={Math.max(0, scale.y(plan.range.low) - scale.y(plan.range.eq))}
+              height={Math.max(0, clampY(scale.y(range.low)) - clampY(scale.y(range.eq)))}
               fill="var(--color-up)"
               opacity={0.05}
             />
-            <line
-              x1={PAD_L}
-              x2={PAD_L + PLOT_W}
-              y1={scale.y(plan.range.eq)}
-              y2={scale.y(plan.range.eq)}
-              stroke="var(--color-subtle)"
-              strokeWidth={1}
-              strokeDasharray="1 5"
-            />
-            <text
-              x={PAD_L + 3}
-              y={scale.y(plan.range.eq) - 3}
-              fill="var(--color-muted)"
-              fontSize={9}
-              fontWeight={500}
-            >
-              EQ {plan.range.eq.toFixed(2)}
-            </text>
+            {range.eq >= scale.lo && range.eq <= scale.hi && (
+              <line
+                x1={PAD_L}
+                x2={PAD_L + PLOT_W}
+                y1={scale.y(range.eq)}
+                y2={scale.y(range.eq)}
+                stroke="var(--color-subtle)"
+                strokeWidth={1}
+                strokeDasharray="1 5"
+              />
+            )}
           </>
         )}
 
@@ -255,33 +407,136 @@ export function SetupChart({
           </>
         )}
 
-        {/* ── PD arrays ────────────────────────────────────────────────────── */}
+        {/* ── PD arrays: a box from the bar that made it, extended right ───── */}
         {shownArrays.map((a) => {
           const y = scale.y(a.top);
           const h = Math.max(1.5, scale.y(a.bottom) - y);
+          const x0 = xStart(a.t);
+          const isPlanSide = plan == null || (plan.side === "long" ? "bull" : "bear") === a.side;
+          const strong = a.state === "fresh" || a.state === "inverted";
+          const labelled = arrayLabelSlots.has(a);
           return (
-            <g key={`${a.kind}-${a.t}-${a.top}`}>
+            <g key={`${a.kind}-${a.tf}-${a.t}-${a.top}`}>
               <rect
-                x={PAD_L}
+                x={x0}
                 y={y}
-                width={PLOT_W}
+                width={PAD_L + PLOT_W - x0}
                 height={h}
                 fill={arrayFill(a)}
-                opacity={a.state === "fresh" ? 0.18 : 0.09}
+                opacity={(strong ? 0.18 : 0.09) * (isPlanSide ? 1 : 0.6)}
               />
-              <text
-                x={PAD_L + 3}
-                y={y + Math.min(h - 2, 9)}
-                fill="var(--color-muted)"
-                fontSize={8}
-                style={{ textTransform: "uppercase" }}
-              >
-                {a.tf} {a.kind}
-                {a.state !== "fresh" ? ` · ${a.state}` : ""}
-              </text>
+              <line
+                x1={x0}
+                x2={PAD_L + PLOT_W}
+                y1={y}
+                y2={y}
+                stroke={arrayFill(a)}
+                strokeWidth={0.75}
+                opacity={isPlanSide ? 0.7 : 0.4}
+              />
+              <line
+                x1={x0}
+                x2={PAD_L + PLOT_W}
+                y1={y + h}
+                y2={y + h}
+                stroke={arrayFill(a)}
+                strokeWidth={0.75}
+                opacity={isPlanSide ? 0.7 : 0.4}
+              />
+              {labelled && (
+                // At the box's origin, where the candles are already history,
+                // not at the right edge where the live bars are. A plate
+                // keeps it legible over the wicks it does cover.
+                <g>
+                  <rect
+                    x={x0 + 1}
+                    y={y + 1}
+                    width={arrayName(a).length * 4.4 + 4}
+                    height={9}
+                    rx={2}
+                    fill="var(--color-bg)"
+                    opacity={0.6}
+                  />
+                  <text
+                    x={x0 + 3}
+                    y={y + 8}
+                    fill="var(--color-muted)"
+                    fontSize={7.5}
+                    style={{ textTransform: "uppercase" }}
+                  >
+                    {arrayName(a)}
+                  </text>
+                </g>
+              )}
             </g>
           );
         })}
+
+        {/* ── Liquidity pools: the lines a trader draws first ──────────────── */}
+        {(overlay?.pools ?? [])
+          .filter((p) => p.price >= scale.lo && p.price <= scale.hi)
+          .map((p) => (
+            <line
+              key={`pool-${p.side}-${p.price}`}
+              x1={PAD_L}
+              x2={PAD_L + PLOT_W}
+              y1={scale.y(p.price)}
+              y2={scale.y(p.price)}
+              stroke={poolColor(p)}
+              strokeWidth={p.scope === "external" ? 1.2 : 0.8}
+              strokeDasharray={p.scope === "external" ? undefined : "4 3"}
+              opacity={p.swept ? 0.35 : p.scope === "external" ? 0.85 : 0.6}
+            />
+          ))}
+
+        {/* ── Structure: MSS / BOS at the level, displacement on the bar ───── */}
+        {(overlay?.structure ?? [])
+          .filter((s) => s.price >= scale.lo && s.price <= scale.hi)
+          .map((s) => {
+            const i = idxOf(s.t);
+            const x = scale.x(i);
+            const y = scale.y(s.price);
+            const up = s.side === "bull";
+            if (s.kind === "displacement") {
+              const bar = view[i]!;
+              const cy = scale.y(up ? bar.l : bar.h) + (up ? 8 : -8);
+              return (
+                <path
+                  key={`disp-${s.t}`}
+                  d={up ? `M${x - 3.5},${cy + 3} L${x + 3.5},${cy + 3} L${x},${cy - 3} Z` : `M${x - 3.5},${cy - 3} L${x + 3.5},${cy - 3} L${x},${cy + 3} Z`}
+                  fill="var(--color-warn)"
+                  opacity={0.9}
+                />
+              );
+            }
+            const color = s.kind === "mss" ? "var(--color-primary)" : "var(--color-fg)";
+            return (
+              <g key={`${s.kind}-${s.t}`}>
+                <line
+                  x1={Math.max(PAD_L, x - scale.step * 4)}
+                  x2={Math.min(PAD_L + PLOT_W, x + scale.step * 2)}
+                  y1={y}
+                  y2={y}
+                  stroke={color}
+                  strokeWidth={1}
+                  opacity={0.8}
+                />
+                <text
+                  // Right of the segment normally; left of it when the break
+                  // is on the newest bars, so it never sits on the live candle.
+                  x={x > PAD_L + PLOT_W * 0.85 ? Math.max(PAD_L, x - scale.step * 4) - 2 : Math.min(PAD_L + PLOT_W - 24, x + scale.step * 2 + 2)}
+                  textAnchor={x > PAD_L + PLOT_W * 0.85 ? "end" : "start"}
+                  y={Math.min(PAD_T + PLOT_H - 2, Math.max(PAD_T + 9, y + (up ? -2 : 8)))}
+                  fill={color}
+                  fontSize={8}
+                  fontWeight={600}
+                  opacity={0.9}
+                >
+                  {s.kind.toUpperCase()} {up ? "↑" : "↓"}
+                </text>
+              </g>
+            );
+          })}
 
         {/* ── Replay: the decision bar and the future to its right ─────────── */}
         {decisionInView != null && decisionInView >= 0 && decisionInView < view.length - 1 && (
@@ -326,25 +581,18 @@ export function SetupChart({
           const bw = Math.max(1.5, scale.step * 0.6);
           return (
             <g key={b.t} opacity={0.92}>
-              <line
-                x1={x}
-                x2={x}
-                y1={scale.y(b.h)}
-                y2={scale.y(b.l)}
-                stroke={color}
-                strokeWidth={1}
-              />
+              <line x1={x} x2={x} y1={scale.y(b.h)} y2={scale.y(b.l)} stroke={color} strokeWidth={1} />
               <rect x={x - bw / 2} y={bodyTop} width={bw} height={bodyH} fill={color} />
             </g>
           );
         })}
 
         {/* ── The raid ─────────────────────────────────────────────────────── */}
-        {plan?.sweep && sweepIdx >= 0 && (
+        {sweep && sweepIdx >= 0 && sweep.price >= scale.lo && sweep.price <= scale.hi && (
           <g>
             <circle
               cx={scale.x(sweepIdx)}
-              cy={scale.y(plan.sweep.price)}
+              cy={scale.y(sweep.price)}
               r={3.5}
               fill="none"
               stroke="var(--color-warn)"
@@ -352,16 +600,54 @@ export function SetupChart({
             />
             <text
               x={scale.x(sweepIdx) + 6}
-              // A short's raid is the HIGH of the frame, so its label goes
-              // BELOW the wick or it clips the top edge; a long's raid is the
-              // low, so its label goes above. This was inverted and the label
-              // ran off-canvas on exactly the setup the desk trades most.
-              y={scale.y(plan.sweep.price) + (long ? -7 : 13)}
+              // A buyside raid is the HIGH of the frame, so its label goes
+              // BELOW the wick or it clips the top edge; a sellside raid is
+              // the low, so its label goes above.
+              y={scale.y(sweep.price) + (sweep.above ? 13 : -7)}
               fill="var(--color-warn)"
               fontSize={9}
               fontWeight={500}
             >
-              raid {plan.sweep.price.toFixed(2)}
+              raid {sweep.price.toFixed(2)}
+            </text>
+          </g>
+        )}
+
+        {/* ── Draw on liquidity ────────────────────────────────────────────── */}
+        {draw && drawVisible && (
+          <line
+            x1={PAD_L}
+            x2={PAD_L + PLOT_W}
+            y1={scale.y(draw.price)}
+            y2={scale.y(draw.price)}
+            stroke="var(--color-up)"
+            strokeWidth={1.25}
+            strokeDasharray="6 3"
+            opacity={0.9}
+          />
+        )}
+        {draw && !drawVisible && (
+          <g>
+            <rect
+              x={PAD_L + PLOT_W - 178}
+              y={draw.price > scale.hi ? PAD_T + 2 : PAD_T + PLOT_H - 15}
+              width={176}
+              height={13}
+              rx={3}
+              fill="var(--color-bg)"
+              opacity={0.9}
+            />
+            <text
+              x={PAD_L + PLOT_W - 4}
+              y={draw.price > scale.hi ? PAD_T + 12 : PAD_T + PLOT_H - 5}
+              textAnchor="end"
+              fill="var(--color-up)"
+              fontSize={9}
+              fontWeight={600}
+            >
+              {draw.price > scale.hi ? "▲" : "▼"} DOL {draw.name} {draw.price.toFixed(2)} (
+              {draw.price > lastClose ? "+" : ""}
+              {(draw.price - lastClose).toFixed(0)})
             </text>
           </g>
         )}
@@ -374,110 +660,94 @@ export function SetupChart({
                 x={PAD_L}
                 y={scale.y(plan.entryZone.top)}
                 width={PLOT_W}
-                height={Math.max(
-                  2,
-                  scale.y(plan.entryZone.bottom) - scale.y(plan.entryZone.top),
-                )}
+                height={Math.max(2, scale.y(plan.entryZone.bottom) - scale.y(plan.entryZone.top))}
                 fill="var(--color-primary)"
                 opacity={0.22}
               />
             )}
             <PlanLine y={scale.y(plan.entry)} color="var(--color-primary)" dash="5 3" />
             <PlanLine y={scale.y(plan.stop)} color="var(--color-down)" />
-            {plan.t1 != null && (
-              <PlanLine y={scale.y(plan.t1)} color="var(--color-up)" dash="5 3" />
-            )}
-            {plan.t2 != null && (
-              <PlanLine y={scale.y(plan.t2)} color="var(--color-up)" dash="2 4" />
-            )}
+            {plan.t1 != null && <PlanLine y={scale.y(plan.t1)} color="var(--color-up)" dash="5 3" />}
+            {plan.t2 != null && <PlanLine y={scale.y(plan.t2)} color="var(--color-up)" dash="2 4" />}
             <PlanLine y={scale.y(plan.price)} color="var(--color-fg)" dash="1 3" />
           </>
         )}
+        {!plan && overlay && (
+          <PlanLine y={scale.y(lastClose)} color="var(--color-fg)" dash="1 3" />
+        )}
 
-        {/* ── Price gutter. Only levels that matter — not a grid ───────────── */}
-        {plan &&
-          dedupeByY(
-            [
-              { p: plan.price, c: "var(--color-fg)", t: "live" },
-              { p: plan.entry, c: "var(--color-primary)", t: "entry" },
-              { p: plan.stop, c: "var(--color-down)", t: "stop" },
-              ...(plan.t1 != null
-                ? [
-                    {
-                      p: plan.t1,
-                      c: "var(--color-up)",
-                      t: plan.rr1 != null ? `T1 ${plan.rr1.toFixed(1)}R` : "T1",
-                    },
-                  ]
-                : []),
-              ...(plan.t2 != null
-                ? [
-                    {
-                      p: plan.t2,
-                      c: "var(--color-up)",
-                      t: plan.rr2 != null ? `T2 ${plan.rr2.toFixed(1)}R` : "T2",
-                    },
-                  ]
-                : []),
-            ],
-            scale,
-          ).map((l) => (
-            <g key={`${l.t}-${l.p}`}>
-              <text
-                x={W - PAD_R + 6}
-                y={scale.y(l.p) + 3}
-                fill={l.c}
-                fontSize={10}
-                fontWeight={500}
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {l.p.toFixed(2)}
-              </text>
-              <text
-                x={W - PAD_R + 6}
-                y={scale.y(l.p) + 13}
-                fill={l.c}
-                fontSize={8}
-                opacity={0.7}
-                style={{ textTransform: "uppercase" }}
-              >
-                {l.t}
+        {/* ── Left labels (pools, draw, EQ) ────────────────────────────────── */}
+        {leftLabels.map((l) => {
+          // Above the line by default; below it when "above" would run into
+          // the corner badge or off the top edge.
+          const ly = scale.y(l.p);
+          const below = ly - 10 < PAD_T + 16;
+          const top = below ? ly + 1 : ly - 10;
+          return (
+            <g key={`ll-${l.text}-${l.p}`}>
+              <rect
+                x={l.x - 1}
+                y={top}
+                width={l.text.length * 4.6 + 4}
+                height={10}
+                rx={2}
+                fill="var(--color-bg)"
+                opacity={0.75}
+              />
+              <text x={l.x + 1} y={top + 8} fill={l.c} fontSize={8} fontWeight={600}>
+                {l.text}
               </text>
             </g>
-          ))}
+          );
+        })}
+
+        {/* ── Price gutter. Only levels that matter — not a grid ───────────── */}
+        {gutter.map((l) => (
+          <g key={`${l.t}-${l.p}`}>
+            <text
+              x={W - PAD_R + 6}
+              y={scale.y(l.p) + 3}
+              fill={l.c}
+              fontSize={10}
+              fontWeight={500}
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
+              {l.p.toFixed(2)}
+            </text>
+            <text
+              x={W - PAD_R + 6}
+              y={scale.y(l.p) + 13}
+              fill={l.c}
+              fontSize={8}
+              opacity={0.7}
+              style={{ textTransform: "uppercase" }}
+            >
+              {l.t}
+            </text>
+          </g>
+        ))}
 
         {/* ── Corner badge ─────────────────────────────────────────────────── */}
-        {plan && (
+        {(plan || overlay) && (
           <g>
             {/* Backing plate: the badge sits over the risk band, and coloured
                 text on a coloured band is unreadable at 10px. */}
             <rect
               x={PAD_L}
               y={PAD_T - 1}
-              width={badgeWidth(plan.symbol, plan.side, word, plan.riskOverCap)}
+              width={badgeWidth(symbol, side, badgeWord, plan?.riskOverCap ?? false)}
               height={14}
               rx={3}
               fill="var(--color-bg)"
               opacity={0.92}
             />
-            <text
-              x={PAD_L + 4}
-              y={PAD_T + 9}
-              fill="var(--color-fg)"
-              fontSize={10}
-              fontWeight={600}
-            >
-              {plan.symbol} {plan.side.toUpperCase()}
-              {word ? ` · ${word}` : ""}
+            <text x={PAD_L + 4} y={PAD_T + 9} fill="var(--color-fg)" fontSize={10} fontWeight={600}>
+              {symbol}
+              {side ? ` ${side.toUpperCase()}` : ""}
+              {badgeWord ? ` · ${badgeWord}` : ""}
             </text>
-            {plan.riskOverCap && (
-              <text
-                x={PAD_L + 4}
-                y={PAD_T + 23}
-                fill="var(--color-down)"
-                fontSize={9}
-                fontWeight={600}
-              >
+            {plan?.riskOverCap && (
+              <text x={PAD_L + 4} y={PAD_T + 23} fill="var(--color-down)" fontSize={9} fontWeight={600}>
                 RISK OVER CAP
               </text>
             )}
@@ -485,17 +755,10 @@ export function SetupChart({
         )}
 
         {/* ── Time footer ──────────────────────────────────────────────────── */}
-        <text x={PAD_L} y={H - 6} fill="var(--color-subtle)"
-          fontSize={9}>
+        <text x={PAD_L} y={H - 6} fill="var(--color-subtle)" fontSize={9}>
           {etStamp(firstT)}
         </text>
-        <text
-          x={PAD_L + PLOT_W}
-          y={H - 6}
-          textAnchor="end"
-          fill="var(--color-subtle)"
-          fontSize={9}
-        >
+        <text x={PAD_L + PLOT_W} y={H - 6} textAnchor="end" fill="var(--color-subtle)" fontSize={9}>
           {etStamp(lastT)} ET
         </text>
       </svg>
@@ -510,14 +773,27 @@ export function SetupChart({
   );
 }
 
+function poolColor(p: OverlayPool): string {
+  // Buy stops rest above highs: raiding them is the short's fuel, so the
+  // line takes the down colour. Sell stops below lows take the up colour.
+  return p.side === "buyside" ? "var(--color-down)" : "var(--color-up)";
+}
+
+/** External first, then unswept, then strength. First wins a label slot. */
+function poolPriority(a: OverlayPool, b: OverlayPool): number {
+  if (a.scope !== b.scope) return a.scope === "external" ? -1 : 1;
+  if (a.swept !== b.swept) return a.swept ? 1 : -1;
+  return b.strength - a.strength;
+}
+
 /** Rough text width for the badge plate — 10px semibold averages ~5.6px/char. */
 function badgeWidth(
   symbol: string,
-  side: string,
+  side: string | null,
   word: string | undefined,
   overCap: boolean,
 ): number {
-  const text = `${symbol} ${side.toUpperCase()}${word ? ` · ${word}` : ""}`;
+  const text = `${symbol}${side ? ` ${side.toUpperCase()}` : ""}${word ? ` · ${word}` : ""}`;
   return Math.max(overCap ? 86 : 0, text.length * 5.6 + 8);
 }
 
@@ -536,19 +812,19 @@ function PlanLine({ y, color, dash }: { y: number; color: string; dash?: string 
 }
 
 /**
- * Drop gutter labels that would overlap.
+ * Drop labels that would overlap.
  *
  * Two prices 0.3pt apart render on top of each other and produce an unreadable
  * smear exactly where the trader is looking hardest. Earlier entries win, and
  * the list is ordered by importance, so `live` and `entry` survive a collision
  * with a target rather than the other way round.
  */
-function dedupeByY<T extends { p: number }>(items: T[], scale: Scale): T[] {
+function dedupeByY<T extends { p: number }>(items: T[], scale: Scale, gap: number): T[] {
   const kept: T[] = [];
   for (const it of items) {
     if (!Number.isFinite(it.p)) continue;
     const y = scale.y(it.p);
-    if (kept.every((k) => Math.abs(scale.y(k.p) - y) >= 16)) kept.push(it);
+    if (kept.every((k) => Math.abs(scale.y(k.p) - y) >= gap)) kept.push(it);
   }
   return kept;
 }

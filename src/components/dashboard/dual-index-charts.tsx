@@ -45,6 +45,8 @@ import {
   normalizedPct,
 } from "@/lib/market/yahoo";
 import { cn, formatPct } from "@/lib/utils";
+import type { DeskPayload } from "@/lib/trading/build-desk";
+import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 
 /** Poll Yahoo last-print every 2s while visible. */
 const QUOTE_POLL_MS = 2000;
@@ -217,7 +219,25 @@ function SymbolHeader({
   );
 }
 
-export function DualIndexCharts() {
+/**
+ * Overlay + plan for one pane, from the live desk, if the desk trades this
+ * symbol. The Charts tab keeps its own bar payload (its own ranges and
+ * pairs); the SMC markup comes from the desk's 15m read and is drawn onto
+ * whatever bars this pane shows — the levels are prices, not bars.
+ */
+function paneMarkup(desk: DeskPayload | null | undefined, symbol: string, bars: DualIndexPayload["left"]["bars"]) {
+  if (!desk) return { overlay: null, plan: null };
+  const overlay = buildChartOverlay(desk, symbol, bars);
+  const book =
+    desk.smcMaster.left.symbol === symbol
+      ? desk.smcMaster.left
+      : desk.smcMaster.right.symbol === symbol
+        ? desk.smcMaster.right
+        : null;
+  return { overlay, plan: book?.plan ?? null };
+}
+
+export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) {
   const [rangeKey, setRangeKey] = useState<DualRangeKey>("1d");
   const [pairIdx, setPairIdx] = useState(0);
   const [payload, setPayload] = useState<DualIndexPayload | null>(null);
@@ -361,6 +381,15 @@ export function DualIndexCharts() {
     }, BARS_RELOAD_MS);
     return () => window.clearInterval(id);
   }, [polling, loadBars]);
+
+  const leftMarkup = useMemo(
+    () => (payload ? paneMarkup(desk, payload.left.symbol, payload.left.bars) : { overlay: null, plan: null }),
+    [desk, payload],
+  );
+  const rightMarkup = useMemo(
+    () => (payload ? paneMarkup(desk, payload.right.symbol, payload.right.bars) : { overlay: null, plan: null }),
+    [desk, payload],
+  );
 
   const relData = useMemo(() => {
     if (!payload) return [];
@@ -642,6 +671,7 @@ export function DualIndexCharts() {
                     height={300}
                     onHover={setLeftHover}
                     syncTimeMs={rightHover?.time ?? null}
+                    {...leftMarkup}
                   />
                 </div>
               </div>
@@ -663,6 +693,7 @@ export function DualIndexCharts() {
                     height={300}
                     onHover={setRightHover}
                     syncTimeMs={leftHover?.time ?? null}
+                    {...rightMarkup}
                   />
                 </div>
               </div>

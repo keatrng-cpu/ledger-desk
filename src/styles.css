@@ -116,6 +116,46 @@
     }
   }
 
+  /* TAKE flash — the desk printed TAKE (smc-master.ts word). A faster,
+     stronger pulse than the high-confluence glow, and a faint green wash on
+     the frame itself, because this is the one signal that asks for an action
+     and it has to be visible from across the room. */
+  .flash-take {
+    animation: flash-take 0.9s ease-in-out infinite;
+  }
+
+  @keyframes flash-take {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-up) 85%, transparent);
+      background: color-mix(in oklab, var(--color-up) 8%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 7px color-mix(in oklab, var(--color-up) 0%, transparent);
+      background: transparent;
+    }
+  }
+
+  /* WARN flash — HTF bias flipped between polls, one book switched, news
+     blackout, or the tape shock breaker (setup-chart-panel.tsx). Red, and
+     it wins over the TAKE flash: a TAKE printed on the bar the bias flipped
+     is a TAKE to re-read, not to send. */
+  .flash-warn {
+    animation: flash-warn 0.7s ease-in-out infinite;
+  }
+
+  @keyframes flash-warn {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-down) 85%, transparent);
+      background: color-mix(in oklab, var(--color-down) 10%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 7px color-mix(in oklab, var(--color-down) 0%, transparent);
+      background: transparent;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .shimmer {
       animation: none;

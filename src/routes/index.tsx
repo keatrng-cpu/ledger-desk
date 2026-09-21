@@ -1326,7 +1326,7 @@ function MasterplacePage() {
                     title="Dual tape"
                     sub="MNQ · ES · mark levels from liquidity"
                   />
-                  <DualIndexCharts />
+                  <DualIndexCharts desk={desk} />
                   <LiquidityPanel desk={desk} />
                 </div>
               )}
