@@ -34,6 +34,9 @@ import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
+import { evidenceFor } from "@/lib/trading/discretion-memory";
+import { refusingLayer } from "@/lib/trading/shadow-book";
+import { useShadowBook } from "@/lib/trading/shadow-store";
 import { SetupChart, VISIBLE_BARS } from "./setup-chart";
 
 /** The book to draw, and the bars that belong to it. */
@@ -61,6 +64,7 @@ function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.l
 
 export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   const [teaching, setTeaching] = useState(false);
+  const shadows = useShadowBook();
   const picked = pickBook(desk);
   const book = picked?.book ?? null;
   const bars = picked?.bars ?? [];
@@ -177,6 +181,25 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
           {book.missingDetail ? ` — ${book.missingDetail}` : ""}
         </p>
       )}
+
+      {/* What the shadow book knows about THIS refusal. Evidence about the
+          gate, from every time it refused a PATH card — never permission. */}
+      {book.word !== "TAKE" && (() => {
+        const layer = refusingLayer(book);
+        const ev = layer ? evidenceFor(layer.id, [...shadows.live, ...shadows.replay]) : null;
+        if (!layer) return null;
+        const tone =
+          ev?.verdict === "earning"
+            ? "text-[var(--color-up)]"
+            : ev?.verdict === "costing"
+              ? "text-[var(--color-down)]"
+              : "text-[var(--color-muted)]";
+        return (
+          <p className={`tabular text-[10px] ${tone}`}>
+            {ev ? `Shadow book on "${layer.label}": ${ev.line.replace(/^[^:]+: /, "")}` : `Shadow book on "${layer.label}": no refusals measured yet — the next one opens both legs automatically.`}
+          </p>
+        );
+      })()}
 
       {plan && (
         <p className="tabular text-[10px] text-[var(--color-subtle)]">

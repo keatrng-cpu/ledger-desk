@@ -3,6 +3,8 @@
  * Copy from the HUD; paste into any Claude chat so they see the same desk.
  */
 
+import { discretionDigest } from "./discretion-memory";
+import { getAllShadows } from "./shadow-store";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow } from "./sessions";
 import { evaluateOptionsDesk } from "./options-desk";
@@ -181,6 +183,24 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
     );
   } catch {
     /* options desk is additive */
+  }
+
+  if (desk.ladder) {
+    lines.push(
+      "",
+      `LADDER ${desk.ladder.left.symbol} ${desk.ladder.left.strip} · ${desk.ladder.left.direction} · ${desk.ladder.left.phase} · align ${(desk.ladder.left.alignment * 100).toFixed(0)}%`,
+      `LADDER ${desk.ladder.right.symbol} ${desk.ladder.right.strip} · ${desk.ladder.right.direction} · ${desk.ladder.right.phase} · align ${(desk.ladder.right.alignment * 100).toFixed(0)}%`,
+      `TOP-DOWN ${desk.ladder.left.summary}`,
+    );
+  }
+
+  try {
+    if (typeof window !== "undefined") {
+      const shadows = getAllShadows();
+      if (shadows.length) lines.push("", "SHADOW BOOK (refusals paper-traded — evidence, not permission)", ...discretionDigest(shadows, 6).split("\n"));
+    }
+  } catch {
+    /* additive */
   }
 
   lines.push(

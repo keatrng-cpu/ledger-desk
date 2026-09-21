@@ -84,6 +84,10 @@ import { syncPaperBookToDb } from "@/lib/journal/paper-backfill";
 import { recordShadowOrder } from "@/lib/execution/shadow";
 import { orderIntentFromPaperLevels } from "@/lib/execution/order-intent";
 import { observeAndTickGhosts, markGhostTaken } from "@/lib/trading/ghost-book";
+import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store";
+import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
+import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
+import { recordPrint } from "@/lib/market/print-bars";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
@@ -595,6 +599,13 @@ function MasterplacePage() {
         setEquity(getPaperAccount().equity);
         recordArmedShadow(res, getPaperAccount().equity);
         observeAndTickGhosts(res);
+        // The refusals, paper-traded: opens the shadow legs for any PATH card
+        // the sequence turned down and ticks the open ones on this build.
+        try {
+          observeShadowBook(res);
+        } catch {
+          /* never blocks the desk */
+        }
         raiseDeskAlerts(res);
         maybeAutofire(res, getPaperAccount().equity);
       }
@@ -606,7 +617,12 @@ function MasterplacePage() {
     }
   }, [loadRisk, publishDesk]);
 
-  
+  // Pull the shadow ledger (other devices, other days) and the replay seed
+  // once; the poll loop keeps it current from there.
+  useEffect(() => {
+    void hydrateShadowBook();
+  }, []);
+
   useEffect(() => {
     // Boot: one-shot reconcile closed paper → memory (no event loop)
     try {
@@ -729,12 +745,20 @@ function MasterplacePage() {
         });
         if (!res.ok || cancelled) return;
         delay = quoteDelayMs(res.left, res.right);
+        // Every print feeds the ladder's 30s rung (print-bars.ts).
+        recordPrint(res.left.symbol, res.left.price, res.left.marketTimeMs);
+        recordPrint(res.right.symbol, res.right.price, res.right.marketTimeMs);
         let patched: DeskPayload | null = null;
         setDesk((prev) => {
           if (!prev) return prev;
           const next = patchDeskQuotes(prev, res.left, res.right);
           try {
             observeAndTickGhosts(next);
+          } catch {
+            /* */
+          }
+          try {
+            observeShadowBook(next);
           } catch {
             /* */
           }
@@ -1197,11 +1221,16 @@ function MasterplacePage() {
               {cat === "trade" && (
                 <div className="space-y-4">
                   <PricePathBoard desk={desk} />
+                  {/* Every timeframe from the year to the 30s, read top-down,
+                      before the picture: direction from the top, phase from
+                      the middle, timing from the bottom. */}
+                  <TfLadderPanel desk={desk} />
                   {/* The destination board says WHERE price is going in words;
                       this says it in a picture, from the same plan object. It
                       sits directly under the verdict because that is the order
                       the decision is made in: verdict, then look. */}
                   <SetupChartPanel desk={desk} />
+                  <ShadowBookPanel mode="compact" />
                   <SectionHead
                     n="1"
                     title="PATH"
@@ -1310,6 +1339,12 @@ function MasterplacePage() {
                     sub="Paper first · skips are edge"
                   />
                   <JournalPanel onChanged={() => void loadRisk()} />
+                  <SectionHead
+                    n="B2"
+                    title="Shadow book"
+                    sub="The refusals, paper-traded · gate scorecard · the little things"
+                  />
+                  <ShadowBookPanel mode="full" />
                   <SectionHead
                     n="C"
                     title="Real-data backtest"

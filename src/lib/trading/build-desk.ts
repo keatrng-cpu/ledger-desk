@@ -36,6 +36,7 @@ import {
 } from "@/lib/market/types";
 import { getSessionClock, type SessionClock } from "./sessions";
 import { buildLiveSays, type LiveSays } from "./live-says";
+import { buildTfLadder, type TfLadder } from "./tf-ladder";
 import { gradeSmcMaster, type SmcMasterRead } from "./smc-master";
 import {
   analyzeStructure,
@@ -109,6 +110,15 @@ export interface DeskPayload {
   smcMaster: SmcMasterRead;
   /** Key presence only — never the secret. Claude handoff reads this. */
   coach: { xai: boolean; anthropic: boolean };
+  /**
+   * The series behind the timeframe ladder: daily bars (2y, for the 1d/1w/
+   * 1M/1y rungs) and 1m bars (last 8h, for the 1m–10m rungs). The 15m rungs
+   * come from `left.bars` / `right.bars`; the 30s rung is built client-side
+   * from prints. Empty arrays when the fetch missed its budget.
+   */
+  mtf: { left: { daily: OhlcBar[]; minute: OhlcBar[] }; right: { daily: OhlcBar[]; minute: OhlcBar[] } };
+  /** Top-down read per book, from the series above (no 30s rung server-side). */
+  ladder: { left: TfLadder; right: TfLadder };
 }
 
 export interface DeskError {
@@ -137,6 +147,43 @@ export interface DeskError {
  * cadence: ~12s here, Yahoo's own 15s abort in parallel, quotes after.
  */
 const DATABENTO_BUDGET_MS = 12_000;
+
+/**
+ * The ladder's extra series. Daily bars move once a day and are cached for
+ * ten minutes; 1m bars are cached for 20s (one poll) so a burst of polls
+ * does not fan out into a burst of Yahoo calls. Both are budgeted: a slow
+ * fetch returns the cached or empty series and the ladder marks the rung
+ * "no data" rather than holding the desk.
+ */
+const DAILY_CACHE_MS = 10 * 60_000;
+const MINUTE_CACHE_MS = 20_000;
+const LADDER_BUDGET_MS = 6_000;
+/** 1m bars shipped per book — 8h covers every LTF rung with room. */
+const MINUTE_KEEP = 480;
+const seriesCache = new Map<string, { at: number; bars: OhlcBar[] }>();
+
+async function loadCached(key: string, ttlMs: number, fetcher: () => Promise<OhlcBar[]>): Promise<OhlcBar[]> {
+  const hit = seriesCache.get(key);
+  const now = Date.now();
+  if (hit && now - hit.at < ttlMs) return hit.bars;
+  const bars = await withBudget(fetcher().catch(() => [] as OhlcBar[]), LADDER_BUDGET_MS, [] as OhlcBar[]);
+  if (bars.length) seriesCache.set(key, { at: now, bars });
+  return bars.length ? bars : (hit?.bars ?? []);
+}
+
+function loadDaily(symbol: IndexSymbol): Promise<OhlcBar[]> {
+  return loadCached(`daily:${symbol}`, DAILY_CACHE_MS, async () => (await fetchYahooBars(symbol, "2y", "1d"))?.bars ?? []);
+}
+
+function loadMinute(symbol: IndexSymbol): Promise<OhlcBar[]> {
+  return loadCached(`minute:${symbol}`, MINUTE_CACHE_MS, async () => {
+    const yahoo = (await fetchYahooBars(symbol, "1d", "1m"))?.bars ?? [];
+    // Inside the live window the gateway's 1m bars are the fresher closed
+    // bars; overlay them from the Yahoo series' last bar forward.
+    const gw = await withBudget(readLiveBars(symbol, 240).catch(() => [] as OhlcBar[]), GATEWAY_BARS_BUDGET_MS, [] as OhlcBar[]);
+    return (gw.length ? mergeNewerBars(yahoo, gw) : yahoo).slice(-MINUTE_KEEP);
+  });
+}
 
 /**
  * The gateway's 1m bars are one Postgres query away; a slow pooler must not
@@ -251,9 +298,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // 1mo 15m: 5d left the prior trading week only partially covered, so
       // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
       // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
-      const [left, right] = await Promise.all([
+      const [left, right, dailyL, dailyR, minuteL, minuteR] = await Promise.all([
         load(data.left, "1mo", "15m"),
         load(data.right, "1mo", "15m"),
+        loadDaily(data.left),
+        loadDaily(data.right),
+        loadMinute(data.left),
+        loadMinute(data.right),
       ]);
       const [lq0, rq0, spySpot, qqqSpot] = await Promise.all([
         quote(data.left, left),
@@ -615,6 +666,15 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         ]),
       };
       const smcMaster = gradeSmcMaster({ ...payload, shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null });
+      const mtf = {
+        left: { daily: dailyL, minute: minuteL },
+        right: { daily: dailyR, minute: minuteR },
+      };
+      const ladderNow = Date.now();
+      const ladder = {
+        left: buildTfLadder({ symbol: left.symbol, daily: dailyL, m15: left.bars, m1: minuteL, nowMs: ladderNow, engineTopDown: biasL.topDown }),
+        right: buildTfLadder({ symbol: right.symbol, daily: dailyR, m15: right.bars, m1: minuteR, nowMs: ladderNow, engineTopDown: biasR.topDown }),
+      };
       const coach = {
         xai: Boolean(process.env.XAI_API_KEY?.trim()),
         anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
@@ -623,7 +683,9 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         ...payload,
         smcMaster,
         coach,
-        liveSays: buildLiveSays({ ...payload, smcMaster, coach }),
+        mtf,
+        ladder,
+        liveSays: buildLiveSays({ ...payload, smcMaster, coach, mtf, ladder }),
       };
     } catch (e) {
       return {

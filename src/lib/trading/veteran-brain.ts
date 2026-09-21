@@ -48,6 +48,8 @@ import {
 } from "./smc-canon";
 import { resolveWeekAhead, weekAheadFocusLine } from "./week-ahead";
 import { resolveMonthAhead, monthAheadFocusLine } from "./month-ahead";
+import { buildScorecard, fmtR } from "./discretion-memory";
+import { getAllShadows } from "./shadow-store";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -746,6 +748,63 @@ export function runVeteranBrain(
         yellow.push(`Last failed: ${lastDebrief.lesson}`);
       else yellow.push(`Last miss/skip: ${lastDebrief.lesson}`);
     }
+  }
+
+  // 7a1) Top-down ladder — the year to the 30s, conjoined. Narration plus a
+  // nudge: a with-trend card in the reversal-forming phase is the textbook
+  // entry window; a card against the HTF direction is counter-trend.
+  try {
+    const lad = desk.ladder ? (rawBest && rawBest.symbol === desk.right.symbol ? desk.ladder.right : desk.ladder.left) : null;
+    if (lad) {
+      const want = rawBest?.side === "long" ? "bull" : rawBest?.side === "short" ? "bear" : null;
+      const withTrend = want != null && lad.direction === want;
+      const counter = want != null && lad.direction !== "neutral" && lad.direction !== want;
+      const entryWindow = withTrend && (lad.phase === "reversal-forming" || lad.phase === "expansion" || lad.phase === "htf-retrace-ending");
+      layers.push({
+        id: "ladder",
+        label: "Top-down",
+        tone: counter ? "fail" : entryWindow ? "pass" : "info",
+        score: counter ? -0.75 : entryWindow ? 0.5 : withTrend ? 0.1 : 0,
+        detail: `${lad.strip} · ${lad.direction} · ${lad.phase} · align ${(lad.alignment * 100).toFixed(0)}%`,
+      });
+      if (counter) yellow.push(`Counter-trend vs the ladder (${lad.direction} from the year down) — HTF gate territory`);
+      else if (entryWindow) green.push(`Ladder: ${lad.phase.replace(/-/g, " ")} with the ${lad.direction} — with-trend entry window`);
+      else if (withTrend) yellow.push(`Ladder: ${lad.phase.replace(/-/g, " ")} — with the trend but not the window yet`);
+    }
+  } catch {
+    /* ladder is additive */
+  }
+
+  // 7a2) Shadow book — what the refusals did. Reads the gate scorecard for
+  // the layer currently refusing the best book and says whether that gate
+  // has been earning its keep or costing money. Narration and a small
+  // score nudge only; the gate itself is untouched.
+  try {
+    const shadows = typeof window !== "undefined" ? getAllShadows() : [];
+    if (shadows.length) {
+      const card = buildScorecard(shadows);
+      const refusing = (desk.smcMaster?.oneBook ?? desk.smcMaster?.left)?.layers.find((l) => l.must && l.state !== "pass");
+      const mine = refusing ? card.byReason.find((r) => r.reasonId === refusing.id) : null;
+      const tot = card.total.chase;
+      const dec = tot.wins + tot.losses + tot.scratch;
+      const detail = mine
+        ? mine.line
+        : `Shadow book: chase n=${dec} ${fmtR(tot.exp)}/t · limit n=${card.total.limit.wins + card.total.limit.losses + card.total.limit.scratch} ${fmtR(card.total.limit.exp)}/t${card.sweepNext ? ` · next sweep "${card.sweepNext.reason}"` : ""}`;
+      layers.push({
+        id: "shadow",
+        label: "Shadow book",
+        tone: mine?.verdict === "costing" ? "warn" : mine?.verdict === "earning" ? "pass" : "info",
+        score: mine?.verdict === "costing" ? 0.25 : mine?.verdict === "earning" ? -0.25 : 0,
+        detail,
+      });
+      if (mine?.verdict === "costing") {
+        yellow.push(`"${mine.reason}" has refused winners (${fmtR(mine.chase.exp)}/t over ${mine.chase.wins + mine.chase.losses + mine.chase.scratch}) — sweep that gate, do not override it`);
+      } else if (mine?.verdict === "earning") {
+        green.push(`"${mine.reason}" is earning its keep (${fmtR(mine.chase.exp)}/t chased) — the stand is the trade`);
+      }
+    }
+  } catch {
+    /* shadow book is additive */
   }
 
   // 7b) Backtest rates applied to live setup

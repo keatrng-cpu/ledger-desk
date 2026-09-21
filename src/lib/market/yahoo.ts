@@ -30,7 +30,7 @@ export const YAHOO_MAP: Record<
   },
 };
 
-export type YahooRange = "1d" | "5d" | "1mo" | "3mo" | "6mo" | "1y";
+export type YahooRange = "1d" | "5d" | "1mo" | "3mo" | "6mo" | "1y" | "2y";
 export type YahooInterval =
   | "1m"
   | "5m"
