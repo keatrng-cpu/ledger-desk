@@ -15,7 +15,7 @@ Private **trading masterplace** for becoming profitable with Grok + Claude as de
 
 ## Rules (summary — source of truth is `src/lib/aplus/config.ts`)
 
-PATH floor **0.65** · A+ ≥0.75 · A+ 2% probe / A 2% / A− 1% / B+ 0.5% · paper $100k · ≥1R · 9 PATH/mo · one book · HTF absolute · Judas 09:30–09:45 ET stand · micros MNQ/MES · AI never changes the numbers
+PATH floor **0.65** · A+ ≥0.75 · A+ 2% probe / A 2% / A− 1% / B+ 0.5% · paper $100k · ≥1R · 9 PATH/mo · one book · HTF absolute · Judas 09:30–09:45 ET name-the-raid (A+ may TAKE) · micros MNQ/MES · AI never changes the numbers
 
 ## Stack
 TanStack Start · React 19 · Tailwind v4 · lightweight-charts · Yahoo + Databento + optional live gateway

@@ -22,17 +22,17 @@
   },
   {
     "date": "2026-09-03",
-    "name": "Initial Jobless Claims",
-    "actual": "206k",
-    "vs": "exp 205k / prev 204k",
-    "note": "In-line. 4-wk avg ~207k."
-  },
-  {
-    "date": "2026-09-03",
     "name": "ISM Services PMI (Aug)",
     "actual": "55.4",
     "vs": "exp 54.2 / prev 54.1",
     "note": "Hotter. Prices 72.6 (4yr high), Emp 47.8 still contraction, New Orders 60.9."
+  },
+  {
+    "date": "2026-09-03",
+    "name": "Initial Jobless Claims",
+    "actual": "206k",
+    "vs": "exp 205k / prev 204k",
+    "note": "In-line. 4-wk avg ~207k."
   },
   {
     "date": "2026-09-04",
@@ -43,17 +43,17 @@
   },
   {
     "date": "2026-09-10",
-    "name": "PPI (Aug)",
-    "actual": "+0.4% MoM / +5.4% YoY",
-    "vs": "exp +0.4% / ~5.3%; core +0.2% vs +0.3%",
-    "note": "Goods +1.1% (energy +4.2%, diesel +24.1%). Services +0.1%. Final demand less food/energy/trade +0.3%. Hot energy, core softer."
-  },
-  {
-    "date": "2026-09-10",
     "name": "Initial Jobless Claims",
     "actual": "206k",
     "vs": "exp 205k / prev 207k",
     "note": "In-line. 4-wk avg 206k. Continuing ~1.774M."
+  },
+  {
+    "date": "2026-09-10",
+    "name": "PPI (Aug)",
+    "actual": "+0.4% MoM / +5.4% YoY",
+    "vs": "exp +0.4% / ~5.3%; core +0.2% vs +0.3%",
+    "note": "Goods +1.1% (energy +4.2%, diesel +24.1%). Services +0.1%. Final demand less food/energy/trade +0.3%. Hot energy, core softer."
   },
   {
     "date": "2026-09-11",
@@ -64,24 +64,17 @@
   },
   {
     "date": "2026-09-16",
-    "name": "Retail Sales (Aug)",
-    "actual": "+1.2% MoM / +6.0% YoY",
-    "vs": "exp ~+0.8% / prev -0.5% (rev from -0.6%)",
-    "note": "Hot. Ex-autos +1.4%; control group +1.4%. Strong rebound after July soft."
-  },
-  {
-    "date": "2026-09-16",
     "name": "FOMC Rate Decision",
     "actual": "+25bps to 3.75–4.00%",
     "vs": "exp +25bps / prev 3.50–3.75%",
     "note": "Unanimous 12-0. SEP median end-2026 4.1% (was 3.8%); 12 of 18 see one more hike this year. Hawkish."
   },
   {
-    "date": "2026-09-17",
-    "name": "Initial Jobless Claims",
-    "actual": "196k",
-    "vs": "exp ~208k / prev 206k unrevised",
-    "note": "DOL official week ending Sep 12. -10k. 4-wk avg 203,250. Continuing 1.730M / IUR 1.1%. Soft claims, still-tight labor."
+    "date": "2026-09-16",
+    "name": "Retail Sales (Aug)",
+    "actual": "+1.2% MoM / +6.0% YoY",
+    "vs": "exp ~+0.8% / prev -0.5% (rev from -0.6%)",
+    "note": "Hot. Ex-autos +1.4%; control group +1.4%. Strong rebound after July soft."
   },
   {
     "date": "2026-09-17",
@@ -92,9 +85,23 @@
   },
   {
     "date": "2026-09-17",
+    "name": "Initial Jobless Claims",
+    "actual": "196k",
+    "vs": "exp ~208k / prev 206k unrevised",
+    "note": "DOL official week ending Sep 12. -10k. 4-wk avg 203,250. Continuing 1.730M / IUR 1.1%. Soft claims, still-tight labor."
+  },
+  {
+    "date": "2026-09-17",
     "name": "Philly Fed MBOS (Sep)",
     "actual": "37.8",
     "vs": "prev 47.4",
     "note": "Still expansion, cooled. New orders 29.2, shipments 27.7. Official Philly Fed 08:30 ET."
+  },
+  {
+    "date": "2026-09-18",
+    "name": "Industrial Production (Aug)",
+    "actual": "0.0% MoM / +1.4% YoY",
+    "vs": "exp +0.3% / prev +0.2%",
+    "note": "Fed G.17. Flat. Mfg -0.3% (first drop of year), utilities +1.8% (heat). Cap util 76.3%."
   }
 ]

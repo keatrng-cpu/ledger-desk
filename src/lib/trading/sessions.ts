@@ -203,8 +203,10 @@ export function resolveKillzone(hour: number, minute: number): {
 }
 
 /**
- * First 15 minutes of RTH — Judas / cash-open raid. Not an entry window.
+ * First 15 minutes of RTH — Judas / cash-open raid.
  * 09:30–09:45 America/New_York.
+ * Name the raid. The clock is not a must-fail: a complete A+ sequence
+ * still TAKEs. News blackout remains the only time-adjacent veto.
  */
 export function isJudasWindow(hour: number, minute: number): boolean {
   const m = hour * 60 + minute;
