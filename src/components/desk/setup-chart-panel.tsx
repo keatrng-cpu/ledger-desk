@@ -27,16 +27,14 @@
  * exactly the split attention the rule exists to prevent.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { SmcLayer, SmcMasterBook } from "@/lib/trading/smc-master";
 import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
+import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
 import { SetupChart, VISIBLE_BARS } from "./setup-chart";
-
-/** How long a bias/side/book flip keeps the red flash up (ms). Three polls. */
-const FLIP_FLASH_MS = 75_000;
 
 /** The book to draw, and the bars that belong to it. */
 function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.left.bars } | null {
@@ -61,56 +59,6 @@ function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.l
   return { book, bars };
 }
 
-interface Flip {
-  reason: string;
-  until: number;
-}
-
-/**
- * Detect a change between polls that the trader must see.
- *
- * Compared per poll (`desk.fetchedAt`), not per render, so a re-render from
- * a click cannot fire it. The first poll after mount has nothing to compare
- * against and never flashes — a fresh tab is not a flip.
- */
-function useFlipDetector(desk: DeskPayload, book: SmcMasterBook, topDown: string): Flip | null {
-  const prev = useRef<{ symbol: string; topDown: string; side: string | null; at: string } | null>(null);
-  const [flip, setFlip] = useState<Flip | null>(null);
-
-  useEffect(() => {
-    const cur = { symbol: book.symbol, topDown, side: book.side, at: desk.fetchedAt };
-    const p = prev.current;
-    prev.current = cur;
-    if (!p || p.at === cur.at) return;
-    // Only the SAME symbol's read can flip. `smcMaster.oneBook` is a per-poll
-    // ranking (rank word, then must-layers passed), so it can alternate
-    // between books on a tie; comparing MNQ's bias to ES's would flash red on
-    // nothing. The charted symbol moving is shown in the badge, not flashed.
-    if (p.symbol !== cur.symbol) return;
-    let reason: string | null = null;
-    if (p.topDown !== cur.topDown) {
-      reason = `${cur.symbol} HTF bias flipped ${p.topDown} → ${cur.topDown}`;
-    } else if (p.side && cur.side && p.side !== cur.side) {
-      reason = `${cur.symbol} book side flipped ${p.side} → ${cur.side}`;
-    }
-    if (reason) setFlip({ reason, until: Date.now() + FLIP_FLASH_MS });
-  }, [desk.fetchedAt, book.symbol, book.side, topDown]);
-
-  // Clear the flash when its window closes, without waiting for a poll.
-  useEffect(() => {
-    if (!flip) return;
-    const ms = flip.until - Date.now();
-    if (ms <= 0) {
-      setFlip(null);
-      return;
-    }
-    const id = window.setTimeout(() => setFlip(null), ms);
-    return () => window.clearTimeout(id);
-  }, [flip]);
-
-  return flip;
-}
-
 export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   const [teaching, setTeaching] = useState(false);
   const picked = pickBook(desk);
@@ -125,7 +73,7 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
     [desk, book, bars],
   );
   const topDown = overlay?.topDown ?? "neutral";
-  const flip = useFlipDetector(desk, book ?? desk.smcMaster.left, topDown);
+  const flip = useBiasFlip(desk.fetchedAt, book?.symbol ?? "", topDown, book?.side ?? null);
 
   if (!book) return null;
 
@@ -135,13 +83,8 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   // Red beats green: a TAKE on the bar the bias flipped is a TAKE to re-read.
   const warnReason = overlay?.warn.active ? overlay.warn.reason : flip ? flip.reason : null;
   const take = book.word === "TAKE";
-  const frame = warnReason
-    ? "flash-warn rounded-[var(--radius-lg)]"
-    : take
-      ? "flash-take rounded-[var(--radius-lg)]"
-      : hot && book.word === "WAIT"
-        ? "flash-high-confluence rounded-[var(--radius-lg)]"
-        : "";
+  const frameClass = chartFrameClass({ warn: warnReason != null, take, hotWait: hot && book.word === "WAIT" });
+  const frame = frameClass ? `${frameClass} rounded-[var(--radius-lg)]` : "";
 
   const caution = desk.news?.verdict === "caution" ? desk.news.reason : null;
 

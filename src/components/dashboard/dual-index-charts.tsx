@@ -47,6 +47,7 @@ import {
 import { cn, formatPct } from "@/lib/utils";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
+import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
 
 /** Poll Yahoo last-print every 2s while visible. */
 const QUOTE_POLL_MS = 2000;
@@ -391,6 +392,24 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
     [desk, payload],
   );
 
+  // The same red/green frame as the Now tab's setup chart, per pane.
+  const leftFlip = useBiasFlip(
+    desk?.fetchedAt ?? "",
+    payload?.left.symbol ?? "",
+    leftMarkup.overlay?.topDown ?? "neutral",
+    leftMarkup.plan?.side ?? null,
+  );
+  const rightFlip = useBiasFlip(
+    desk?.fetchedAt ?? "",
+    payload?.right.symbol ?? "",
+    rightMarkup.overlay?.topDown ?? "neutral",
+    rightMarkup.plan?.side ?? null,
+  );
+  const leftWarn = leftMarkup.overlay?.warn.active ? leftMarkup.overlay.warn.reason : leftFlip?.reason ?? null;
+  const rightWarn = rightMarkup.overlay?.warn.active ? rightMarkup.overlay.warn.reason : rightFlip?.reason ?? null;
+  const leftFrame = chartFrameClass({ warn: leftWarn != null, take: leftMarkup.overlay?.flashTake ?? false });
+  const rightFrame = chartFrameClass({ warn: rightWarn != null, take: rightMarkup.overlay?.flashTake ?? false });
+
   const relData = useMemo(() => {
     if (!payload) return [];
     const L = normalizedPct(payload.left.bars);
@@ -653,7 +672,17 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 p-3 sm:p-4">
+              <div className={cn("rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 p-3 sm:p-4", leftFrame)}>
+                {leftWarn && (
+                  <p role="alert" className="mb-2 rounded-[var(--radius-sm)] bg-[color-mix(in_oklab,var(--color-down)_14%,transparent)] px-2 py-1 text-xs font-medium text-[var(--color-down)]">
+                    {leftWarn}
+                  </p>
+                )}
+                {!leftWarn && leftMarkup.overlay?.word === "TAKE" && (
+                  <p className="mb-2 rounded-[var(--radius-sm)] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)] px-2 py-1 text-xs font-semibold text-[var(--color-up)]">
+                    TAKE — {leftMarkup.overlay.missing}
+                  </p>
+                )}
                 <SymbolHeader
                   symbol={payload.left.symbol}
                   label={payload.left.label}
@@ -675,7 +704,17 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
                   />
                 </div>
               </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 p-3 sm:p-4">
+              <div className={cn("rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 p-3 sm:p-4", rightFrame)}>
+                {rightWarn && (
+                  <p role="alert" className="mb-2 rounded-[var(--radius-sm)] bg-[color-mix(in_oklab,var(--color-down)_14%,transparent)] px-2 py-1 text-xs font-medium text-[var(--color-down)]">
+                    {rightWarn}
+                  </p>
+                )}
+                {!rightWarn && rightMarkup.overlay?.word === "TAKE" && (
+                  <p className="mb-2 rounded-[var(--radius-sm)] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)] px-2 py-1 text-xs font-semibold text-[var(--color-up)]">
+                    TAKE — {rightMarkup.overlay.missing}
+                  </p>
+                )}
                 <SymbolHeader
                   symbol={payload.right.symbol}
                   label={payload.right.label}
