@@ -63,10 +63,10 @@ export function ritualWindow(now = new Date()): RitualWindow {
   if (m >= 8 * 60 + 30 && m < 8 * 60 + 45) {
     return {
       id: "judas",
-      label: "Judas — stand",
+      label: "Judas — name the raid",
       local: "08:30–08:44 CDT",
       et: "09:30–09:44 ET",
-      grokMode: "No entries. Name the raid (BSL vs SSL) and whether displacement is real.",
+      grokMode: "Name the raid (BSL vs SSL). Clock is not a veto. TAKE only if SMC sequence is complete and PATH is A+.",
     };
   }
   // 08:45–09:00 CDT = 09:45–10:00 ET pulse
