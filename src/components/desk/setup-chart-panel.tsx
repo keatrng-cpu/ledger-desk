@@ -34,7 +34,7 @@ import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
-import { evidenceFor } from "@/lib/trading/discretion-memory";
+import { evidenceFor, fmtR, managementLine, pathStats } from "@/lib/trading/discretion-memory";
 import { refusingLayer } from "@/lib/trading/shadow-book";
 import { useShadowBook } from "@/lib/trading/shadow-store";
 import { SetupChart, VISIBLE_BARS } from "./setup-chart";
@@ -210,8 +210,47 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
         </p>
       )}
 
+      {/* What a card like this usually does after the fill — so the median
+          drawdown is labelled normal before it happens, and the value of
+          waiting for CE is a number, not a feeling. */}
+      {plan && <ExpectedPath desk={desk} book={book} shadows={[...shadows.live, ...shadows.replay]} />}
+
       {teaching && <Key />}
     </section>
+  );
+}
+
+/**
+ * The expected path, from the shadow book's most similar cards.
+ */
+function ExpectedPath({ desk, book, shadows }: { desk: DeskPayload; book: SmcMasterBook; shadows: Parameters<typeof pathStats>[0] }) {
+  void desk;
+  const layer = refusingLayer(book);
+  const stats = useMemo(
+    () => pathStats(shadows, { symbol: book.symbol, side: book.side ?? undefined, reasonId: layer?.id }),
+    [shadows, book.symbol, book.side, layer?.id],
+  );
+  if (!stats || !stats.decided) return null;
+  const pctTxt = (n: number | null) => (n == null ? "—" : `${(n * 100).toFixed(0)}%`);
+  return (
+    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-[11px]">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-medium text-[var(--color-fg)]">What a card like this usually does</span>
+        <span className="text-[10px] text-[var(--color-subtle)]">
+          {stats.scope} · n={stats.decided} filled of {stats.cards} cards
+        </span>
+      </div>
+      <div className="tabular grid grid-cols-2 gap-x-3 gap-y-0.5 text-[var(--color-muted)] sm:grid-cols-4">
+        <span>fills <b className="text-[var(--color-fg)]">{pctTxt(stats.fillRate)}</b>{stats.medianBarsToFill != null ? ` · ${stats.medianBarsToFill} bars` : ""}</span>
+        <span>drawdown first <b className="text-[var(--color-warn)]">{stats.maeP50 != null ? `−${stats.maeP50.toFixed(2)}R` : "—"}</b>{stats.maeP90 != null ? ` (p90 −${stats.maeP90.toFixed(2)}R)` : ""}</span>
+        <span>stop first <b className="text-[var(--color-down)]">{pctTxt(stats.stopFirst)}</b> · T1 <b className="text-[var(--color-up)]">{pctTxt(stats.t1Rate)}</b></span>
+        <span>held <b className="text-[var(--color-fg)]">{stats.medianBarsHeld ?? "—"}</b> bars</span>
+        <span>per fill <b className={stats.expPerFill != null && stats.expPerFill >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>{fmtR(stats.expPerFill)}</b></span>
+        <span>per card <b className={stats.evPerCard != null && stats.evPerCard >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>{fmtR(stats.evPerCard)}</b> (unfilled = 0)</span>
+        <span className="sm:col-span-2">chasing instead <b className={stats.chaseExp != null && stats.chaseExp >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>{fmtR(stats.chaseExp)}</b>/t (n={stats.chaseN}) — you are paid to wait</span>
+      </div>
+      <p className="mt-1 text-[10px] leading-snug text-[var(--color-subtle)]">{managementLine()}</p>
+    </div>
   );
 }
 

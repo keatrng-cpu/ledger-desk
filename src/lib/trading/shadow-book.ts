@@ -99,7 +99,10 @@ export interface ShadowTrade {
   exitReason?: string;
   r?: number;
   pnl?: number;
-  /** Extremes of the live prints seen since open (excursion, for the debrief). */
+  /** Excursion after the fill, in R: best it went for us / worst against. */
+  mfe?: number;
+  mae?: number;
+  /** Extremes seen since the fill — closed bars and live prints. */
   seenHi: number;
   seenLo: number;
   /** Running scale-out state. */
@@ -399,9 +402,16 @@ function close(s: ShadowTrade, t: number, exitPx: number, reason: string, kind: 
   const banked = s.banked + exitR * s.remaining;
   const r = r3(banked);
   const status: ShadowStatus = r > 0.05 ? "won" : r < -0.05 ? "lost" : "scratch";
+  const fill = s.fillPrice ?? s.entry;
+  const hi = Math.max(s.seenHi, exitPx);
+  const lo = Math.min(s.seenLo, exitPx);
+  const mfe = r2(Math.max(0, (s.side === "long" ? hi - fill : fill - lo) / (s.riskPts || 1)));
+  const mae = r2(Math.max(0, (s.side === "long" ? fill - lo : hi - fill) / (s.riskPts || 1)));
   return {
     ...s,
     status,
+    mfe,
+    mae,
     exitAt: t,
     exitPrice: r2(exitPx),
     exitReason: reason,
@@ -437,6 +447,8 @@ function applyRange(s: ShadowTrade, t: number, rng: Touch, closedBar: boolean): 
         status: "open",
         fillAt: t,
         fillPrice: cur.entry,
+        seenHi: cur.entry,
+        seenLo: cur.entry,
         barsSinceFill: 0,
         path: [...cur.path, { t, kind: "fill", text: `${etTime(t)} ET · filled at ${px(cur.entry)}${closedBar ? " (bar touched CE)" : " (print)"}` }],
         updatedAt: t,
@@ -446,7 +458,10 @@ function applyRange(s: ShadowTrade, t: number, rng: Touch, closedBar: boolean): 
     }
   }
 
-  // Open: stop first (ties against), then T1, then T2.
+  // Open: every range the position lives through is excursion.
+  cur = { ...cur, seenHi: Math.max(cur.seenHi, rng.h), seenLo: Math.min(cur.seenLo, rng.l) };
+
+  // Stop first (ties against), then T1, then T2.
   if (hitsDown(cur.stopLevel)) {
     const why = cur.t1Hit
       ? `runner stopped at break-even ${px(cur.stopLevel)}`
@@ -531,8 +546,7 @@ export function tickShadow(s: ShadowTrade, bars: OhlcBar[], last: number | null,
 
   // The live print — only while the day is still open.
   if (last != null && Number.isFinite(last) && last > 0 && now < flatAt) {
-    const seen = { ...cur, seenHi: Math.max(cur.seenHi, last), seenLo: Math.min(cur.seenLo, last) };
-    cur = applyRange(seen, now, { h: last, l: last }, false);
+    cur = applyRange(cur, now, { h: last, l: last }, false);
     if (isTerminal(cur)) return cur;
   }
 
@@ -569,12 +583,7 @@ export function analyzeShadow(s: ShadowTrade): ShadowAnalysis {
   const r = s.r ?? 0;
   const rTxt = `${r >= 0 ? "+" : ""}${r.toFixed(2)}R`;
   const legTxt = s.leg === "chase" ? "chasing the print" : "the resting limit";
-  const excursion =
-    s.fillPrice != null
-      ? s.side === "long"
-        ? { mfe: r2((s.seenHi - s.fillPrice) / (s.riskPts || 1)), mae: r2((s.fillPrice - s.seenLo) / (s.riskPts || 1)) }
-        : { mfe: r2((s.fillPrice - s.seenLo) / (s.riskPts || 1)), mae: r2((s.seenHi - s.fillPrice) / (s.riskPts || 1)) }
-      : null;
+  const excursion = s.mfe != null && s.mae != null ? { mfe: s.mfe, mae: s.mae } : null;
   const ex = excursion ? `Excursion: +${excursion.mfe.toFixed(2)}R favourable / −${excursion.mae.toFixed(2)}R adverse on the prints.` : "";
   const gate = `${s.reason} (${s.reasonDetail})`;
 

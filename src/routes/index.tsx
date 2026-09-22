@@ -85,6 +85,7 @@ import { recordShadowOrder } from "@/lib/execution/shadow";
 import { orderIntentFromPaperLevels } from "@/lib/execution/order-intent";
 import { observeAndTickGhosts, markGhostTaken } from "@/lib/trading/ghost-book";
 import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store";
+import { applyWordHysteresis, createHysteresisState } from "@/lib/trading/word-hysteresis";
 import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
 import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
 import { recordPrint } from "@/lib/market/print-bars";
@@ -475,6 +476,9 @@ const CATEGORIES: {
   },
 ];
 
+/** TAKE-hold state for word-hysteresis.ts — lives for the tab's lifetime. */
+const wordHold = createHysteresisState();
+
 function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
   const publishDesk = useDeskSynapse((s) => s.publishDesk);
@@ -588,8 +592,11 @@ function MasterplacePage() {
       if (!res.ok) {
         setError(res.error);
       } else {
-        setDesk(res);
-        publishDesk(res, rs);
+        // A printed TAKE holds through the array edge (word-hysteresis.ts)
+        // before anything downstream reads the word.
+        const held = applyWordHysteresis(res, wordHold);
+        setDesk(held);
+        publishDesk(held, rs);
         try {
           reconcilePaperBookToMemory();
         } catch {
@@ -597,17 +604,17 @@ function MasterplacePage() {
         }
         publishMemory();
         setEquity(getPaperAccount().equity);
-        recordArmedShadow(res, getPaperAccount().equity);
-        observeAndTickGhosts(res);
+        recordArmedShadow(held, getPaperAccount().equity);
+        observeAndTickGhosts(held);
         // The refusals, paper-traded: opens the shadow legs for any PATH card
         // the sequence turned down and ticks the open ones on this build.
         try {
-          observeShadowBook(res);
+          observeShadowBook(held);
         } catch {
           /* never blocks the desk */
         }
-        raiseDeskAlerts(res);
-        maybeAutofire(res, getPaperAccount().equity);
+        raiseDeskAlerts(held);
+        maybeAutofire(held, getPaperAccount().equity);
       }
     } catch (e) {
       setError(describeDeskError(e));
@@ -751,7 +758,7 @@ function MasterplacePage() {
         let patched: DeskPayload | null = null;
         setDesk((prev) => {
           if (!prev) return prev;
-          const next = patchDeskQuotes(prev, res.left, res.right);
+          const next = applyWordHysteresis(patchDeskQuotes(prev, res.left, res.right), wordHold);
           try {
             observeAndTickGhosts(next);
           } catch {

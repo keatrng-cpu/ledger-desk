@@ -7,6 +7,7 @@
  */
 
 import { GATE } from "./gate-tuning";
+import { APLUS_RULES } from "@/lib/aplus/config";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
 import {
@@ -341,6 +342,56 @@ function gradeBook(
       retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} is ${away.toFixed(2)}pt ${dir} price — wait for it, do not chase ${price.toFixed(2)}`;
     }
   }
+  // The numeric plan, priced from the SAME objects the layers were graded
+  // from: `fresh` is the array the retrace layer selected, `dol` the draw it
+  // priced, the sweep extreme the raid it demanded. Built here, before the
+  // target layer, because that layer is a fact about the plan.
+  const plan = buildTradePlan({
+    symbol: bias.symbol,
+    side,
+    price: price ?? 0,
+    entryArray: fresh ?? null,
+    sweepExtreme: narrative.liquidity.lastSweepExtreme,
+    sweepT: narrative.liquidity.lastSweepT,
+    dol: dolAgrees ? dol : null,
+    range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
+    arrays: tape?.arrays ?? [],
+  });
+
+  // TARGET PRICED ≥ 1:1. The trade must have somewhere to go before it has
+  // somewhere to enter. Measured 2026-09-21 on two months of refusals
+  // (shadow book): plans with NO priced T1 were the worst trades in the
+  // book — the desk's own limit −0.24R/t at 23% WR (n=52), a chase −0.10R/t
+  // at 35% (n=78) — while every band of priced T1 was positive. The R:R
+  // floor is the hard rule (APLUS_RULES.minRr); below it the same tape paid
+  // +0.11R/t on the limit and 0.00R on the chase, so the floor costs little
+  // and is the rule. WAIT, not fail: a draw can form ahead of the array on
+  // the next bars.
+  let targetState: SmcLayerState = "wait";
+  let targetDetail: string;
+  if (!fresh) {
+    targetDetail = "Needs the entry array first — then a draw ≥ 1R ahead of it";
+  } else if (!plan) {
+    targetDetail = "No live print to price the plan from";
+  } else if (plan.t1 == null) {
+    targetDetail = dol
+      ? `No draw ahead of CE ${plan.entry.toFixed(2)} — ${dol.name} ${dol.price.toFixed(2)} sits ${side === "long" ? "below" : "above"} the entry. No target, no trade.`
+      : `No draw priced ahead of CE ${plan.entry.toFixed(2)} — no target, no trade.`;
+  } else if (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr) {
+    targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} is ${plan.rr1.toFixed(2)}R from CE ${plan.entry.toFixed(2)} (stop ${plan.stop.toFixed(2)}, ${plan.riskPts.toFixed(2)}pt) — below the ${APLUS_RULES.minRr.toFixed(1)}:1 floor`;
+  } else {
+    targetState = "pass";
+    targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""} · risk ${plan.riskPts.toFixed(2)}pt`;
+  }
+  layers.push({
+    id: "target",
+    label: "Target priced ≥ 1:1",
+    must: true,
+    state: targetState,
+    detail: targetDetail,
+    price: plan?.t1 ?? undefined,
+  });
+
   layers.push({
     id: "retrace",
     label: "Retrace into array",
@@ -435,21 +486,9 @@ function gradeBook(
     t1: cand?.targets[0] ?? (dol ? `${dol.name} ${dol.price.toFixed(2)}` : "IRL"),
     t2: cand?.targets[1] ?? "ERL runner",
     pathBand: cand ? String(cand.pathBand || cand.grade) : null,
-    // Numbers from the SAME objects the strings above are formatted from:
-    // `fresh` is the array the retrace layer selected, `dol` the draw it
-    // priced, the sweep extreme the raid it demanded. Nothing new is decided
-    // here, so the drawing cannot disagree with the grade.
-    plan: buildTradePlan({
-      symbol: bias.symbol,
-      side,
-      price: price ?? 0,
-      entryArray: fresh ?? null,
-      sweepExtreme: narrative.liquidity.lastSweepExtreme,
-      sweepT: narrative.liquidity.lastSweepT,
-      dol: dolAgrees ? dol : null,
-      range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
-      arrays: tape?.arrays ?? [],
-    }),
+    // The same plan the target layer graded — one object, so the drawing
+    // cannot disagree with the grade.
+    plan,
   };
 }
 

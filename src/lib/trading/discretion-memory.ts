@@ -240,6 +240,124 @@ export function featureLifts(shadows: ShadowTrade[], leg: "chase" | "limit" = "c
   return out.sort((a, b) => Math.abs(b.lift) * Math.sqrt(b.n) - Math.abs(a.lift) * Math.sqrt(a.n)).slice(0, top);
 }
 
+/* ── The expected path — what a card like this usually does ───────────── */
+
+export interface PathStats {
+  scope: string;
+  /** Limit leg: cards, fills, decided. */
+  cards: number;
+  fills: number;
+  decided: number;
+  fillRate: number | null;
+  medianBarsToFill: number | null;
+  /** Median / p90 adverse excursion before the exit, in R (decided fills). */
+  maeP50: number | null;
+  maeP90: number | null;
+  mfeP50: number | null;
+  /** Share of decided fills that ended at the stop. */
+  stopFirst: number | null;
+  t1Rate: number | null;
+  medianBarsHeld: number | null;
+  expPerFill: number | null;
+  /** ΣR over every card, unfilled counted as 0 — what waiting is worth. */
+  evPerCard: number | null;
+  /** The chase, for contrast. */
+  chaseExp: number | null;
+  chaseN: number;
+}
+
+function pct(arr: number[], p: number): number | null {
+  if (!arr.length) return null;
+  const a = [...arr].sort((x, y) => x - y);
+  return a[Math.min(a.length - 1, Math.floor(p * a.length))] ?? null;
+}
+
+/**
+ * The distribution a trader should expect after the fill, from the shadows
+ * most like the card in front of them. Narrows scope only while the sample
+ * stays ≥ MIN_PATH_N decided fills: symbol+side+layer → side+layer → layer →
+ * everything. The scope is returned so the card can say which one it used.
+ */
+export const MIN_PATH_N = 20;
+export function pathStats(
+  shadows: ShadowTrade[],
+  like: { symbol?: string; side?: "long" | "short"; reasonId?: string },
+): PathStats | null {
+  const limits = shadows.filter((s) => s.leg === "limit");
+  if (!limits.length) return null;
+  const scopes: { name: string; f: (s: ShadowTrade) => boolean }[] = [
+    { name: `${like.symbol ?? ""} ${like.side ?? ""} · ${like.reasonId ?? ""}`.trim(), f: (s) => (!like.symbol || s.symbol === like.symbol) && (!like.side || s.side === like.side) && (!like.reasonId || s.reasonId === like.reasonId) },
+    { name: `${like.side ?? ""} · ${like.reasonId ?? ""}`.trim(), f: (s) => (!like.side || s.side === like.side) && (!like.reasonId || s.reasonId === like.reasonId) },
+    { name: like.reasonId ?? "all", f: (s) => !like.reasonId || s.reasonId === like.reasonId },
+    { name: "all refusals", f: () => true },
+  ];
+  let chosen = scopes[scopes.length - 1]!;
+  for (const sc of scopes) {
+    const dec = limits.filter((s) => sc.f(s) && isDecided(s)).length;
+    if (dec >= MIN_PATH_N) {
+      chosen = sc;
+      break;
+    }
+  }
+  const set = limits.filter(chosen.f);
+  const filled = set.filter((s) => s.fillAt != null);
+  const decided = set.filter(isDecided);
+  const barsToFill = filled.map((s) => Math.max(0, Math.round(((s.fillAt ?? 0) - s.openedAt) / (15 * 60_000))));
+  const maes = decided.map((s) => s.mae).filter((x): x is number => x != null);
+  const mfes = decided.map((s) => s.mfe).filter((x): x is number => x != null);
+  const held = decided.map((s) => s.barsSinceFill);
+  const sumR = decided.reduce((a, s) => a + (s.r ?? 0), 0);
+  const chase = shadows.filter((s) => s.leg === "chase" && chosen.f(s) && isDecided(s));
+  const chaseSum = chase.reduce((a, s) => a + (s.r ?? 0), 0);
+  const cards = set.filter((s) => s.status !== "resting" && s.status !== "open").length;
+  return {
+    scope: chosen.name,
+    cards,
+    fills: filled.length,
+    decided: decided.length,
+    fillRate: cards ? filled.filter((s) => isDecided(s)).length / cards : null,
+    medianBarsToFill: pct(barsToFill, 0.5),
+    maeP50: pct(maes, 0.5),
+    maeP90: pct(maes, 0.9),
+    mfeP50: pct(mfes, 0.5),
+    stopFirst: decided.length ? decided.filter((s) => s.status === "lost").length / decided.length : null,
+    t1Rate: decided.length ? decided.filter((s) => s.t1Hit).length / decided.length : null,
+    medianBarsHeld: pct(held, 0.5),
+    expPerFill: decided.length ? sumR / decided.length : null,
+    evPerCard: cards ? sumR / cards : null,
+    chaseExp: chase.length ? chaseSum / chase.length : null,
+    chaseN: chase.length,
+  };
+}
+
+/**
+ * What touching an open trade costs — measured, not felt.
+ *
+ * Re-simulated 2026-09-21 over the 122 filled plans with a priced T1 in the
+ * replay seed (scripts in the session log; the rules below vs the desk's
+ * own: 50% at the DOL, stop to break-even, runner to the range). Every
+ * "protect early" variant lost expectancy on that tape. Shown on open
+ * positions so the itch meets its price. Rebuild when the seed rebuilds.
+ */
+export const MANAGEMENT_EVIDENCE = {
+  measuredOn: "2026-09-21",
+  n: 122,
+  baseline: 0.5,
+  rows: [
+    { itch: "Move stop to break-even once +1R shows", costR: -0.07, wr: "40→35%" },
+    { itch: "Lock +0.5R once halfway to T1", costR: -0.07, wr: "40→42%" },
+    { itch: "Trail the runner under a 3-bar swing", costR: -0.3, wr: "40→42%" },
+    { itch: "Bank 50% at +1R instead of the draw", costR: -0.42, wr: "40→48%" },
+    { itch: "Cap T1 at 3R (the TP clamp)", costR: -0.12, wr: "40→46%" },
+    { itch: "Take it all at +1R, no runner", costR: -0.54, wr: "40→48%" },
+  ],
+} as const;
+
+export function managementLine(): string {
+  const r = MANAGEMENT_EVIDENCE.rows;
+  return `Touching it costs (n=${MANAGEMENT_EVIDENCE.n}, ${MANAGEMENT_EVIDENCE.measuredOn}): ${r.map((x) => `${x.itch} ${fmtR(x.costR)}/t`).join(" · ")}. The plan as priced: ${fmtR(MANAGEMENT_EVIDENCE.baseline)}/t. Sit.`;
+}
+
 /** The evidence line for one refusing layer, for the Trade Now board. */
 export function evidenceFor(reasonId: string, shadows: ShadowTrade[]): ReasonScore | null {
   const card = buildScorecard(shadows.filter((s) => s.reasonId === reasonId));

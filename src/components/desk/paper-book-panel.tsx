@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { managementLine } from "@/lib/trading/discretion-memory";
 import { Bot, CheckCircle2, CircleDot } from "lucide-react";
 import {
   closePaperTrade,
@@ -68,6 +69,11 @@ export function PaperBookPanel({
         </div>
       </header>
 
+      {open.length > 0 && (
+        <p className="mb-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-warn)_35%,transparent)] px-2 py-1 text-[10px] leading-snug text-[var(--color-muted)]">
+          {managementLine()}
+        </p>
+      )}
       {open.length > 0 ? (
         <ul className="space-y-1.5">
           {open.map((t) => {
