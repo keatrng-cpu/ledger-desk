@@ -20,8 +20,8 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | RH sleeve | **$1,000** · risk **15% = $150** max debit. Working stop **−25% of debit** (never 1/3, never full premium). Sell when futures invalidates **or** −25%, whichever first. |
 | Databento rent | **$199/mo ≈ $50/week** first hurdle. **$1,000/week** is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+ or lower 0.65. |
 | Risk by grade | A+ **2% probe** until n≥20 A+ WR≥65% then 3% · A **2%** · A− **1%** · B+ **0.5%** · B paper 0 · C journal 0.5% |
-| R:R | **≥ 1:1**, TP clamp 1–3R |
-| Scale | +1R close 50%, stop → BE |
+| R:R | **≥ 1:1** — enforced by the `smc-master` **Target priced** must-layer (WAIT with no T1 ahead of CE or T1 < 1R; measured 2026-09-21: no-target plans −0.24R/t). TP clamp 1–3R is a display rule — as a T1 cap it measured −0.12R/t, so it is not applied. |
+| Scale | 50% off at **T1 (the draw)**, stop → BE, runner to T2 — the rule as coded and measured (+0.50R/t on 122 filled plans). Banking at +1R instead measured −0.42R/t; BE at +1R MFE −0.07; trailing −0.30. Do not "protect early". |
 | PATH / month | **~9** (after 9 → A+ only or stand) |
 | Per killzone | max **2** |
 | Daily / weekly halt | **2% / 5%** |
@@ -117,7 +117,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/trading/structure.ts` | HTF, swings, SMT stack, PDH/PDL |
 | `src/lib/trading/smc-board.ts` | FVG/IFVG/OB/BB/MSS/BOS/displacement tape |
 | `src/lib/trading/smc-canon.ts` | Named ICT/TJR/PB models |
-| `src/lib/trading/smc-master.ts` | Live sequence grade (DOL → sweep polarity → dealing-range → LTF → retrace). TAKE iff all musts + PATH. |
+| `src/lib/trading/smc-master.ts` | Live sequence grade (DOL → sweep polarity → dealing-range → LTF → **target priced ≥1:1** → retrace). TAKE iff all musts + PATH. `word-hysteresis.ts` (client) holds a printed TAKE through the array edge ≤30 min. |
 | `src/lib/trading/rh-income.ts` | RH sleeve journal vs Databento rent. Floor $50/wk · rent $199/mo · stretch $1,000/wk · working stop 25%. |
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
 | `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. Sep 2026 weeks 1–5 are seeded. |

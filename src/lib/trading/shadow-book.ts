@@ -285,6 +285,11 @@ export function openShadows(
     if (!book || !book.plan || !book.side) continue;
     if (book.word === "TAKE") continue;
     const plan = book.plan;
+    // A plan with no target ahead, or one below the R:R floor, is not a trade
+    // the desk can take under ANY gate setting (smc-master's "Target priced"
+    // layer). Shadowing it would measure a trade that cannot exist and pour
+    // its −0.24R/t (2026-09-21 seed) into every other layer's numbers.
+    if (plan.t1 == null || (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr)) continue;
     const cand =
       desk.scan.candidates.find((c) => c.symbol === book.symbol && c.side === book.side && isHighProbPath(c)) ??
       null;
