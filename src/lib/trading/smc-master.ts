@@ -6,6 +6,7 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { reachTier } from "./entry-trigger";
 import { GATE } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
@@ -381,7 +382,14 @@ function gradeBook(
     targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} is ${plan.rr1.toFixed(2)}R from CE ${plan.entry.toFixed(2)} (stop ${plan.stop.toFixed(2)}, ${plan.riskPts.toFixed(2)}pt) — below the ${APLUS_RULES.minRr.toFixed(1)}:1 floor`;
   } else {
     targetState = "pass";
-    targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""} · risk ${plan.riskPts.toFixed(2)}pt`;
+    // The draw's MEASURED reach rate, not just its price. Shadow book
+    // 2026-09-22, limit leg: draws reached in >80% of past sessions ran
+    // +0.34R/card at 39% WR and filled 66% of the time; 60–80% ran flat
+    // (0.00R, 22% WR); under 60% ran −0.21R at 14% WR and filled 35%.
+    // Monotone in expectancy, win rate and fill rate — so the target is
+    // labelled, not gated (the bottom bucket is only n=20).
+    const reach = reachTier(plan.draw?.reachProbability);
+    targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""} · risk ${plan.riskPts.toFixed(2)}pt · target ${reach.tier} (${reach.note})`;
   }
   layers.push({
     id: "target",

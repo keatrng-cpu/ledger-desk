@@ -91,6 +91,9 @@ import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
 import { OvernightBoard } from "@/components/desk/overnight-board";
 import { DECIDE_START_MIN, DECIDE_END_MIN } from "@/lib/trading/overnight-swing";
 import { recordPrint } from "@/lib/market/print-bars";
+import { tickPending } from "@/lib/trading/pending-order";
+import { pendingFillToast } from "@/components/desk/entry-trigger-panel";
+import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
@@ -301,6 +304,51 @@ function maybeAutofire(desk: DeskPayload, equity: number): void {
       }
     })
     .catch(() => undefined);
+}
+
+/**
+ * Fill any resting limit the live print has reached.
+ *
+ * The fill price is the LIMIT, never the print — an order resting at
+ * 24180.25 does not fill at 24179.00 because the tape traded through it. The
+ * paper open is booked with `lastPrice` set to that limit, so
+ * `buildPaperLevels` (which prefers the entry zone's mid) lands on the same
+ * number the trader committed to.
+ *
+ * This is the mechanism behind the desk's largest measured difference: over
+ * 387 refusals on the same tape, resting at consequent encroachment returned
+ * +0.35R per card against +0.007R for paying the print.
+ */
+function fillRestingLimits(desk: DeskPayload): string | null {
+  const prices: Record<string, number> = {
+    [desk.left.symbol]: desk.quotes.left.price,
+    [desk.right.symbol]: desk.quotes.right.price,
+  };
+  const { filled, expired } = tickPending(prices, Date.now());
+  for (const o of expired) {
+    console.info("[pending] expired", o.symbol, o.limit, o.note);
+  }
+  if (!filled.length) return null;
+  const o = filled[0]!;
+  const candidate = desk.scan.candidates.find(
+    (c) => c.symbol === o.symbol && c.side === o.side,
+  );
+  if (!candidate) {
+    return `Limit at ${o.limit.toFixed(2)} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
+  }
+  const lagSec =
+    o.symbol === desk.left.symbol ? desk.quotes.left.lagSec : desk.quotes.right.lagSec;
+  const wall = etWallParts(Date.now());
+  const res = openPaperTradeInstant(candidate, {
+    lastPrice: o.limit,
+    killzone: desk.clock.killzone,
+    lagSec,
+    et: { hour: wall.hour, minute: wall.minute },
+    newsVerdict: desk.news?.verdict,
+  });
+  return res.ok
+    ? pendingFillToast(o)
+    : `Limit at ${o.limit.toFixed(2)} touched but the paper book refused it: ${res.error}`;
 }
 
 /**
@@ -616,6 +664,19 @@ function MasterplacePage() {
           /* never blocks the desk */
         }
         raiseDeskAlerts(held);
+        // The touch is the moment worth being called to the screen: every
+        // must-layer already passing and price now at the plan's price.
+        try {
+          considerEntryAlarm(held);
+        } catch {
+          /* */
+        }
+        try {
+          const toast = fillRestingLimits(held);
+          if (toast) setPaperToast(toast);
+        } catch {
+          /* */
+        }
         maybeAutofire(held, getPaperAccount().equity);
       }
     } catch (e) {
@@ -770,6 +831,12 @@ function MasterplacePage() {
             observeShadowBook(next);
           } catch {
             /* */
+          }
+          try {
+            const toast = fillRestingLimits(next);
+            if (toast) setPaperToast(toast);
+          } catch {
+            /* a pending fill must never break the quote poll */
           }
           patched = next;
           deskRef.current = next;

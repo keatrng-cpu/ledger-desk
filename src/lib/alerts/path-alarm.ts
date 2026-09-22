@@ -6,6 +6,7 @@
  * Must be armed by a user click (AudioContext + Notification permission).
  */
 
+import { isWatchable, readEntry, touchKey } from "@/lib/trading/entry-trigger";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
@@ -288,6 +289,81 @@ export function considerPathAlarm(
     window.dispatchEvent(new CustomEvent(PATH_ALARM_EVENT, { detail: fire }));
   }
   return fire;
+}
+
+/**
+ * The CE-touch alarm — the one the trader actually needs.
+ *
+ * `considerPathAlarm` above fires on a COMPLETE sequence, which on this tape
+ * happens about never (the 2026-09-21 replay found 0 TAKEs in a month). So
+ * the trader was never called to the screen at all. This fires on the other
+ * moment, the one that carries the measured edge: every must-layer passing
+ * EXCEPT the retrace, and price now arriving at the plan's entry price.
+ *
+ * That is the only condition a trader cannot make happen by waiting, and the
+ * shadow book priced the difference — resting at consequent encroachment
+ * returned +0.35R per card against +0.007R for paying the print.
+ *
+ * Fires once per plan per day. Judas, news blackout and the trade window are
+ * respected exactly as the PATH alarm respects them: this is a call to the
+ * screen, not a permission to trade.
+ */
+export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
+  const s = load();
+  if (!s.armed || s.muted) return null;
+
+  const wall = etWallParts(Date.now());
+  if (isJudasWindow(wall.hour, wall.minute)) return null;
+  if (desk.news?.verdict === "blackout") return null;
+  if (!desk.clock.inTradeWindow) return null;
+
+  const books = [desk.smcMaster?.oneBook, desk.smcMaster?.left, desk.smcMaster?.right];
+  for (const book of books) {
+    if (!book?.plan || !isWatchable(book)) continue;
+    const price =
+      book.symbol === desk.left.symbol
+        ? desk.quotes.left.price
+        : book.symbol === desk.right.symbol
+          ? desk.quotes.right.price
+          : null;
+    if (price == null || !Number.isFinite(price) || price <= 0) continue;
+
+    const read = readEntry(book.plan, price, null);
+    if (!read?.inZone) continue;
+
+    const key = touchKey(book, etDay(Date.now()));
+    if (s.lastKey === key) return null;
+
+    const plan = book.plan;
+    const title = `TOUCH · ${book.symbol} ${String(book.side).toUpperCase()} at CE ${plan.entry.toFixed(2)}`;
+    const body = [
+      `stop ${plan.stop.toFixed(2)} · ${plan.riskPts.toFixed(2)}pt`,
+      plan.t1 != null ? `T1 ${plan.t1.toFixed(2)}${plan.rr1 != null ? ` (${plan.rr1.toFixed(1)}R)` : ""}` : null,
+      book.word === "TAKE" ? "sequence complete" : `waiting on: ${book.missing}`,
+      desk.clock.killzoneLabel,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const fire: PathAlarmFire = {
+      key,
+      title,
+      body,
+      symbol: book.symbol,
+      side: book.side === "short" ? "short" : "long",
+      grade: book.pathBand ?? "—",
+      confluence: 0,
+      at: Date.now(),
+    };
+    save({ ...s, lastKey: key, lastAt: fire.at, lastTitle: title });
+    playAlarmTone(fire.side);
+    showOsNote(fire);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(PATH_ALARM_EVENT, { detail: fire }));
+    }
+    return fire;
+  }
+  return null;
 }
 
 export function testPathAlarm(side: "long" | "short" = "short"): void {

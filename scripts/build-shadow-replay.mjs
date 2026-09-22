@@ -31,6 +31,7 @@ const { drawOnLiquidity } = await import("../src/lib/trading/draw.ts");
 const { newsRead } = await import("../src/lib/trading/news.ts");
 const { gradeSmcMaster } = await import("../src/lib/trading/smc-master.ts");
 const { openShadows, tickShadow, analyzeShadow, isTerminal } = await import("../src/lib/trading/shadow-book.ts");
+const { buildTfLadder } = await import("../src/lib/trading/tf-ladder.ts");
 const { buildScorecard, discretionDigest } = await import("../src/lib/trading/discretion-memory.ts");
 
 const BAR_MS = 15 * 60_000;
@@ -65,9 +66,19 @@ function deskAt(symbol, peer, slice, peerSlice) {
     narrative: { left: narrL, right: narrR }, news, smtStack, smc, quotes, shockFloorMs: null,
     left: { bars: slice }, right: { bars: peerSlice },
   });
+  // The ladder's rungs are stamped onto every shadow's tags (shadowTags ->
+  // ladderTags), which is how "did alignment matter" becomes answerable at
+  // all. The seed built before 2026-09-22 has them all as n/a; rebuilding
+  // fills them in. Daily bars are resampled from the 15m history — coarser
+  // than the live desk's 2y daily feed, so the 1w/1M/1y rungs read from
+  // fewer periods here and say so via their own `bars` count.
+  const ladder = {
+    left: buildTfLadder({ symbol, daily: [], m15: slice, m1: [], nowMs: now.t, engineTopDown: biasL.topDown }),
+    right: buildTfLadder({ symbol: peer, daily: [], m15: peerSlice, m1: [], nowMs: now.t, engineTopDown: biasR.topDown }),
+  };
   return {
     clock, bias: { left: biasL, right: biasR }, scan, smcMaster,
-    narrative: { left: narrL, right: narrR }, draws, news, smtStack,
+    narrative: { left: narrL, right: narrR }, draws, news, smtStack, ladder,
     left: { symbol, bars: slice }, right: { symbol: peer, bars: peerSlice }, quotes,
   };
 }

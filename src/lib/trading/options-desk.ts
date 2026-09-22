@@ -227,6 +227,29 @@ export function estimateDebitContract(
   return Math.max(15, Math.round(dollars / 5) * 5);
 }
 
+/**
+ * Round-trip bid/ask on a one-contract ticket, in dollars.
+ *
+ * SPY and QQQ options are penny-wide (~$0.01–$0.03). A single long costs two
+ * crossings; a vertical costs four, because both legs are crossed on the way
+ * in and on the way out. At $0.02 a side that is $4 on a single and $8 on a
+ * vertical — which sounds trivial until the debit is $60, at which point the
+ * spread is 13% of the position before the market moves. Measured on the
+ * 2026-09-21 overnight sim, that fee alone turned every $150-sized vertical
+ * negative under every filter tested.
+ */
+const SPREAD_PER_SIDE_USD = 2;
+export function roundTripCost(product: RhProduct): number {
+  return product === "debit_spread" ? SPREAD_PER_SIDE_USD * 4 : SPREAD_PER_SIDE_USD * 2;
+}
+
+/**
+ * The most of a debit the round trip may eat before the structure is too
+ * small to be worth trading. A single at $60 pays 7%; a vertical at $60 pays
+ * 13% and has to find that back before the thesis has even started.
+ */
+export const MAX_SPREAD_SHARE = 0.09;
+
 function estimateSpreadContract(spot: number, dte: number, iv: number, widthPts: number): number {
   const buy = estimateDebitContract(spot, dte, 0.4, iv);
   const sell = estimateDebitContract(spot, dte, 0.2, iv);
@@ -281,7 +304,12 @@ function sizeProduct(
   }
   const width = pickWidth(underlier, dte);
   const spread = estimateSpreadContract(spot, dte, iv, width);
-  if (spread <= cap) {
+  // A vertical whose four-leg round trip eats more than MAX_SPREAD_SHARE of
+  // its own debit is not a cheaper way into the trade, it is a worse one.
+  // Returning null here means STAND — which is the honest answer when the
+  // sleeve cannot buy a structure that survives its own fees.
+  const spreadShare = spread > 0 ? roundTripCost("debit_spread") / spread : 1;
+  if (spread <= cap && spreadShare <= MAX_SPREAD_SHARE) {
     const n = Math.min(nMax, Math.max(1, Math.floor(cap / spread)));
     const k = roundStrike(spot);
     const longK = side === "put" ? k : k;

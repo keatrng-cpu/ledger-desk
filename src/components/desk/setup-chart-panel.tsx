@@ -38,6 +38,7 @@ import { evidenceFor, fmtR, managementLine, pathStats } from "@/lib/trading/disc
 import { refusingLayer } from "@/lib/trading/shadow-book";
 import { useShadowBook } from "@/lib/trading/shadow-store";
 import { SetupChart, VISIBLE_BARS } from "./setup-chart";
+import { EntryTriggerPanel } from "./entry-trigger-panel";
 
 /** The book to draw, and the bars that belong to it. */
 function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.left.bars } | null {
@@ -145,6 +146,11 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
         word={book.word}
         emptyDetail={book.missingDetail || book.missing}
       />
+
+      {/* Is this plan worth watching right now, where the order goes, and
+          what the click costs — the three answers between the picture and
+          the trade. */}
+      <EntryTriggerPanel desk={desk} book={book} />
 
       {/* What entry still needs. The must-layers ARE the confluences; a pill
           per layer shows which have printed and which the desk is waiting on,
