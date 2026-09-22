@@ -409,6 +409,13 @@ export const ENTRY_EVIDENCE = {
       as: "no change — the 1m capture and the harness are committed so the question stays answerable",
     },
     {
+      id: "ladder-direction",
+      finding:
+        "IDEA 7 ANSWERED, and it is direction rather than degree. With the ladder now stamped on every shadow, NY AM limit cards split hard on whether the ladder AGREED with the trade: tf_dir=with ran +0.08R/card (n=30) while tf_dir=against ran −0.69R/card (n=13). The graded alignment percentage did NOT separate the same way (>=75% ran −0.12R/card, 50–75% +0.16R) — so what matters is the binary disagreement, not how many rungs agree. Note what tf_dir=against means: the engine's HTF gate PERMITTED the trade while the ladder, read from the year down, disagreed. That is the disagreement tf-ladder.ts already narrates in its summary.",
+      shipped: false,
+      as: "not a gate — n=13 in the losing bucket, one in-sample pass. It argues for making the ladder-vs-engine disagreement louder, which the ladder summary already states, and for sizing DOWN on disagreement rather than refusing.",
+    },
+    {
       id: "rr-bands",
       finding: "No R:R band to exclude on the limit leg — per-card expectancy is positive in every band from 1–2R to >5R and win rate decays with distance exactly as it should. On the chase, 73% of legs realise below 1:1 at the print, which the minRr gate already bans; the surviving 27% have no edge.",
       shipped: true,
