@@ -32,6 +32,8 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | blake_mech longs | **paper / B+ only** until WR recovers |
 | Judas | **09:30–09:45 ET — no entries** (A+ exception only if fully complete after the raid, still wait the window) |
 | News | high-impact **±15m blackout** |
+| Investments sweep | Monthly, **realized closed options P&L only**. Waterfall: **rent ($199) → sleeve restore to $1,000 → split**. Rate is earned: **20%** until 20 closed months, 30% after, 40% only after a clean year. Losing or open month sweeps **0**. One-way — swept dollars never return to the sleeve. |
+| Investments ban | **QQQ · QQQM · SPY · VOO · IVV · SPLG may never be held** while the sleeve trades QQQ/SPY options — IRC 1091 wash-sale entanglement. Ballast is **VTI/ITOT**. Not tax advice; conservative default, CPA files it. |
 | Micros | **MNQ/MES preferred** |
 | Data | Yahoo futures **~10 min delay**. Databento historical ~15–20m with live entitlement (`DATABENTO_DELAY_MINUTES=0`). Sub-second prints need the gateway (`gateway/.env.local` + NY 09:00–11:30 ET; its 1m bars also replace the lagged closed bars in that window). Say the lag. |
 
@@ -101,6 +103,7 @@ Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR
 | Brain | Veteran + coach (Ask Grok + Claude, peers, parallel). Never overrides hard gates. |
 | Book | WR / grades / profit path, journal, **shadow book** (refusals paper-traded both ways · gate scorecard · the little things — `shadow-book.ts`, `discretion-memory.ts`; never the paper book), TradeZella backtest (no lookahead) |
 | Lab | Risk governor, alerts, analytics, rules/replay/snapshots/shadow/bridge |
+| Invest | **Years.** Shares actually held, funded by the monthly sweep. Waterfall → rent alarm → three sleeves (ballast 55 / compounders 30 / dry powder 15) → dossiers. Verdicts are **CORE/ADD/HOLD/TRIM/OUT — never TAKE**. Reads no PATH word, no floor, no killzone, no Judas. Never flashes. |
 
 HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw line** (`TAKE/STAND/MANAGE · MNQ ↓xxxx · ES ↓xxxx`), Arm alarm. Six tabs. Destination first.
 
@@ -145,6 +148,12 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/alerts/path-alarm.ts` | Speaker + OS notify on PATH |
 | `src/lib/coach/claude-server.ts` | In-app Grok + Claude **narration only** — peers, one click, parallel. Never a gate. |
 | `src/routes/index.tsx` | Shell. 20s desk (PATH/HTF). Quote: 1s if live_gateway, 2s Yahoo. Gateway-first — no extra Databento spend. |
+| `src/lib/invest/policy.ts` | The sweep waterfall. Rent → restore → earned split. Pure, monthly, one-way. `rentVsSweep` prices the data bill against the sweep it displaces. |
+| `src/lib/invest/universe.ts` | Dossier schema + the wash-sale ban list + the completeness gate (blank field = cannot ADD) + concentration vs the sleeve's own bet. |
+| `src/lib/invest/dossiers.ts` | The research. One page per name, caveats always stated, **no composite score**. `RISK_FREE` is the 10y the multiples are judged against. |
+| `src/lib/invest/book.ts` | Three sleeves, drift, and a rebalance that refuses to invent work below $25/$500. Benchmark is VTI, and under 36 months it says so. |
+| `src/lib/invest/store.ts` | Positions + append-only sweep log (localStorage; buys accumulate and never reset the long-term clock). |
+| `src/data/invest-universe.json` | Dated fundamentals snapshot. Free Alpha Vantage key is **25 req/day** → committed, never polled. Refresh: `npm run capture:invest`. |
 | `gateway/databento_live_gateway.py` | CME live → tick file |
 
 ---

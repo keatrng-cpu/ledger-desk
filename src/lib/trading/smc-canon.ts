@@ -161,12 +161,17 @@ export const SCHOOLS: Record<SchoolId, SchoolCanon> = {
   },
   ronan: {
     id: "ronan",
-    name: "Ronan (PB coach)",
-    // Research 2026-09-19: the only trace of Ronan anywhere is one student
-    // review naming him as helpful in the PB Discord. No channel, bio, model,
-    // "10k months" or student-to-coach story exists. Everything below is
-    // generic PB Theory and must be read as UNVERIFIED.
-    origin: "UNVERIFIED — a PB Discord mentor by a single student mention; no published model",
+    name: "Ronan (PB coach) — BionicNQ",
+    // Research 2026-09-19 found no trace of Ronan beyond one student review
+    // naming him as helpful in the PB Discord: no channel, bio, model, or
+    // student-to-coach story. On 2026-09-22 the trader supplied the missing
+    // handle — the YouTube channel is BionicNQ. That closes the identity gap
+    // but NOT the evidence gap: the sequence below is still generic PB Theory
+    // reconstructed from the crew, not from a published model of his, and it
+    // stays UNVERIFIED until someone watches the channel and writes down what
+    // is actually taught there.
+    origin:
+      "PARTIALLY VERIFIED — identified by the trader as the BionicNQ YouTube channel (2026-09-22); no published written model, sequence below is reconstructed PB Theory",
     style: "hybrid",
     sequence: [
       "HTF unfilled FVG / inefficiency + DOL",

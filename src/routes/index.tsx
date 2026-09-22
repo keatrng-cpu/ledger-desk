@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Landmark,
   BookOpen,
   Crosshair,
   FlaskConical,
@@ -48,6 +49,7 @@ import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
+import { InvestPanel } from "@/components/desk/invest-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
@@ -460,6 +462,7 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 type DeskCategory =
   | "brain"
   | "learn"
+  | "invest"
   | "trade"
   | "swing"
   | "path"
@@ -516,6 +519,16 @@ const CATEGORIES: {
     short: "Lab",
     hint: "Risk · rules · replay",
     icon: FlaskConical,
+  },
+  // Years, not minutes. Sits beside Learn because both are read between
+  // sessions rather than during one — and because putting a five-year book
+  // next to the PATH board is how a hold becomes a trade.
+  {
+    id: "invest",
+    label: "Invest",
+    short: "Inv",
+    hint: "Shares · sweep · 2035",
+    icon: Landmark,
   },
   // Last on purpose: the only tab that is not opened during a live session.
   {
@@ -1279,9 +1292,10 @@ function MasterplacePage() {
               {/* Learn carries no synapse feed: it is the one tab that is not a
                   live surface, and a live rail above a lesson is the clutter
                   this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" && cat !== "learn" && <SynapseRail tab={cat} />}
+              {cat !== "trade" && cat !== "learn" && cat !== "invest" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
+              {cat === "invest" && <InvestPanel />}
 
               {cat === "brain" && (
                 <div className="space-y-5">

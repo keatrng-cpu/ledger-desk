@@ -25,7 +25,9 @@
     "learn:figures": "python3 scripts/build-learn-figures.py && npx tsx scripts/build-learn-engine.mjs",
     "learn:build": "npx tsx scripts/build-learn-cases.mjs",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "verify:invest": "npx tsx scripts/verify-invest.mjs",
+    "capture:invest": "node scripts/capture-invest-universe.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
