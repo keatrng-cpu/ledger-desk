@@ -315,9 +315,10 @@ function maybeAutofire(desk: DeskPayload, equity: number): void {
  * `buildPaperLevels` (which prefers the entry zone's mid) lands on the same
  * number the trader committed to.
  *
- * This is the mechanism behind the desk's largest measured difference: over
- * 387 refusals on the same tape, resting at consequent encroachment returned
- * +0.35R per card against +0.007R for paying the print.
+ * The pooled "+0.35R resting vs +0.007R chasing" figure that first motivated
+ * this turned out to be a London-killzone artifact (entry-trigger.ts), so the
+ * mechanism stands on its own logic rather than on that number: the plan
+ * named a price, and this fills there or not at all.
  */
 function fillRestingLimits(desk: DeskPayload): string | null {
   const prices: Record<string, number> = {

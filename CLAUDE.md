@@ -21,7 +21,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | Databento rent | **$199/mo ≈ $50/week** first hurdle. **$1,000/week** is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+ or lower 0.65. |
 | Risk by grade | A+ **2% probe** until n≥20 A+ WR≥65% then 3% · A **2%** · A− **1%** · B+ **0.5%** · B paper 0 · C journal 0.5% |
 | R:R | **≥ 1:1** — enforced by the `smc-master` **Target priced** must-layer (WAIT with no T1 ahead of CE or T1 < 1R; measured 2026-09-21: no-target plans −0.24R/t). TP clamp 1–3R is a display rule — as a T1 cap it measured −0.12R/t, so it is not applied. |
-| Entry | **Rest the limit at CE** — never pay the print. Measured +0.35R/card resting vs +0.007R chasing over 387 refusals. The CE-touch alarm calls you; FORMING (>1 ATR away) means look away. Target reach <60% is labelled unlikely (−0.21R/card). |
+| Entry | **Rest the limit at CE** — never pay the print. Not an edge claim: the pooled +0.35R/card figure is 58% London, and in NY AM refused cards lose either way (−0.181R resting / −0.040R chasing, n=53 on 1m bars) — which is the gates working. The CE-touch alarm calls you; FORMING (>1 ATR away) means look away. Target reach <60% is labelled unlikely (−0.21R/card). **1m micro-timing measured and rejected**: confirmation entries and micro stops both fail in NY AM (`scripts/measure-micro-entry.mjs`). |
 | Scale | 50% off at **T1 (the draw)**, stop → BE, runner to T2 — the rule as coded and measured (+0.50R/t on 122 filled plans). Banking at +1R instead measured −0.42R/t; BE at +1R MFE −0.07; trailing −0.30. Do not "protect early". |
 | PATH / month | **~9** (after 9 → A+ only or stand) |
 | Per killzone | max **2** |

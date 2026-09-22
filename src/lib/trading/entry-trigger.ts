@@ -5,18 +5,33 @@
  * On 2026-09-22 the trader's live record was 4 trades, 4 wins, +$113 over two
  * weeks. The direction call works. What does not work yet is the entry: the
  * desk prices a plan on every poll and then says nothing more, so the moment
- * price actually arrives at that price passes unannounced. The shadow book
- * measured exactly what that costs — resting at consequent encroachment paid
- * +0.35R per card while paying the print paid +0.007R, over the same 387
- * refusals on the same tape. Same setups. Fifty times the money. The only
- * difference is waiting for the price you already computed.
+ * price actually arrives at that price passes unannounced.
+ *
+ * A NUMBER THIS FILE USED TO CLAIM, AND WHY IT IS GONE
+ * The first version justified all of this with "resting at CE paid +0.35R per
+ * card against +0.007R paying the print". That figure is real but it is
+ * POOLED, and 58% of the shadow book opens in the London killzone — a window
+ * the trader is asleep for. Split by killzone on 38,000 1m Databento bars
+ * (scripts/measure-micro-entry.mjs): London refusals returned +0.396R/card
+ * resting, NY AM refusals returned −0.181R/card resting and −0.040R/card
+ * chasing (n=53 cards, 32 fills). Read correctly that is GOOD news about the
+ * gates — in the window the trader actually trades, the cards the sequence
+ * refused lose money whichever way you enter them, which is what a working
+ * refusal looks like. It is not a measured edge for the entry trigger, so
+ * this file no longer claims one.
+ *
+ * What remains true without any statistics: the plan's price is where the
+ * order belongs, and an order resting there cannot be turned into a market
+ * click by impatience. That is the reason for the tier and the alarm.
  *
  * So this module turns the plan into three things the trader can act on:
  *
  *   TIER     — is this plan worth watching right now? Measured: an array
  *              more than 1 ATR from price ran −0.027R per card (n=95, and
  *              it only filled 43% of the time) while everything closer ran
- *              +0.444R. With two trades a week, attention is the scarce
+ *              +0.444R. Pooled across killzones like everything else here,
+ *              so treat it as a way to spend attention rather than a proven
+ *              edge. With two trades a week, attention is the scarce
  *              resource; FORMING means look away.
  *   TOUCH    — price has entered the entry zone. This is the alarm.
  *   COST     — what the loss you have not had yet does to the week, priced

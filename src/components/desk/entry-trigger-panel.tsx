@@ -5,9 +5,11 @@
  * the trader does next: is this worth watching, put the order where the plan
  * says, and know the loss before it happens rather than after.
  *
- * The button rests a limit; it does not take a trade. That distinction is
- * the whole measured edge — +0.35R per card resting at consequent
- * encroachment against +0.007R paying the print.
+ * The button rests a limit; it does not take a trade. The justification is
+ * not a statistic — the pooled "+0.35R resting" figure turned out to live
+ * entirely in the London killzone (see entry-trigger.ts) — it is that the
+ * plan named a price, and an order sitting at that price cannot be turned
+ * into a market click by impatience.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -132,7 +134,7 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
             Rest the limit at {plan.entry.toFixed(2)}
           </button>
           <span className="text-[10px] text-[var(--color-subtle)]">
-            Decide now, fill on the touch — the measured difference is +0.35R a card against +0.007R paying the print.
+            Decide now, fill on the touch — the plan already named this price, and a resting order cannot be talked into a worse one.
           </span>
         </div>
       )}

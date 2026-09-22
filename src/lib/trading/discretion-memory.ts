@@ -366,6 +366,8 @@ export const MANAGEMENT_EVIDENCE = {
  */
 export const ENTRY_EVIDENCE = {
   verifiedOn: "2026-09-22",
+  killzoneWarning:
+    "Every per-card number below is POOLED unless it says otherwise, and 58% of the shadow population is the London killzone. See the killzone-split row before quoting any of them.",
   baseline: { limitPerCard: 0.213, chasePerCard: 0.007, limitCI: "[-0.095, +0.553]", n: 194 },
   rows: [
     {
@@ -391,6 +393,20 @@ export const ENTRY_EVIDENCE = {
       finding: "Confirms the existing hard rule rather than adding edge: refusals on the book that was NOT the one-book pick ran −0.291R on the chase (n=19) and −0.099R on the limit (n=20). Sign correct, sample too small to be new information.",
       shipped: true,
       as: "existing one-book gate",
+    },
+    {
+      id: "killzone-split",
+      finding:
+        "THE CORRECTION THAT MATTERS. The headline '+0.35R/card resting at CE' is pooled, and 58% of the shadow book opens in the LONDON killzone. Split on 38,000 1m Databento bars: London refusals returned +0.396R/card resting; NY AM refusals returned −0.181R/card resting and −0.040R/card chasing (n=53 cards, 32 fills). In the window the trader actually sits, the cards the sequence refused lose money whichever way they are entered — which is what a working gate looks like, not a missing edge. Every entry number quoted anywhere must say which killzone it came from.",
+      shipped: true,
+      as: "corrected in entry-trigger.ts, pending-order.ts, path-alarm.ts, the panel copy and CLAUDE.md; the entry trigger no longer claims a measured edge",
+    },
+    {
+      id: "micro-timing",
+      finding:
+        "1m entry timing MEASURED AND REJECTED (scripts/measure-micro-entry.mjs over src/data/learn-history-1m.json). Harness validated: pooled baseline +0.299R/fill at 33% WR against the 15m book's +0.35R at 34%. Neither variant helps the window that counts — in NY AM, a 1m confirmation entry ran −0.162R/fill (vs −0.299 baseline, and it pays a 44% wider stop) and a micro stop at the 1m swing ran −0.826R/fill at a 4% win rate. In London the micro stop looked spectacular (+1.421R/fill) at a 13% win rate, which is a lottery ticket rather than a method. No change shipped.",
+      shipped: false,
+      as: "no change — the 1m capture and the harness are committed so the question stays answerable",
     },
     {
       id: "rr-bands",

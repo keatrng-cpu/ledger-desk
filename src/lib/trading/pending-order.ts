@@ -2,12 +2,17 @@
  * The resting limit — deciding once, at the price you already computed.
  *
  * WHY
- * The desk's measured edge is not a signal, it is a price. Over 387 refusals
- * on the same tape, a limit resting at consequent encroachment returned
- * +0.35R per card while paying the print returned +0.007R. The plan already
- * carries that price on every poll; what was missing was a way to commit to
- * it and walk away. A trader watching for the touch will take the print —
- * that is what the chase leg measures, and it is worth fifty times less.
+ * The desk already computes the price; what was missing was a way to commit
+ * to it and walk away. A trader watching for a touch takes the print instead,
+ * and the print is not the plan.
+ *
+ * This file does NOT rest on a measured entry edge. The "+0.35R resting vs
+ * +0.007R chasing" figure that first motivated it is pooled across killzones,
+ * and splitting it on 1m bars showed the whole of it sits in London: in NY AM
+ * the refused cards lose either way (−0.181R/card resting, −0.040R chasing,
+ * n=53). The argument for a resting order is simpler and does not need a
+ * statistic — it is the price the plan named, decided while calm, executed
+ * without a second decision.
  *
  * So: one click at 10:05 rests an order at CE. The poll loop checks it
  * against every live print. If price arrives, the paper book opens at the

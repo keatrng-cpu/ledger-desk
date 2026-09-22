@@ -300,9 +300,9 @@ export function considerPathAlarm(
  * moment, the one that carries the measured edge: every must-layer passing
  * EXCEPT the retrace, and price now arriving at the plan's entry price.
  *
- * That is the only condition a trader cannot make happen by waiting, and the
- * shadow book priced the difference — resting at consequent encroachment
- * returned +0.35R per card against +0.007R for paying the print.
+ * That is the only condition a trader cannot make happen by waiting. It is
+ * also the moment the desk can add something the trader cannot: it is
+ * watching all 1,170 polls of the session and they are not.
  *
  * Fires once per plan per day. Judas, news blackout and the trade window are
  * respected exactly as the PATH alarm respects them: this is a call to the
