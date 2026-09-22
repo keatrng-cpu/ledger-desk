@@ -3,6 +3,9 @@
  * Copy from the HUD; paste into any Claude chat so they see the same desk.
  */
 
+import { gradeOvernight, overnightLine } from "./overnight-swing";
+import { loadRhSleeve } from "./options-sleeve";
+import { loadRhIncome } from "./rh-income";
 import { discretionDigest } from "./discretion-memory";
 import { getAllShadows } from "./shadow-store";
 import type { DeskPayload } from "./build-desk";
@@ -192,6 +195,21 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
       `LADDER ${desk.ladder.right.symbol} ${desk.ladder.right.strip} · ${desk.ladder.right.direction} · ${desk.ladder.right.phase} · align ${(desk.ladder.right.alignment * 100).toFixed(0)}%`,
       `TOP-DOWN ${desk.ladder.left.summary}`,
     );
+  }
+
+  try {
+    if (typeof window !== "undefined") {
+      const read = gradeOvernight({
+        desk,
+        now: Date.parse(desk.fetchedAt) || 0,
+        sleeve: loadRhSleeve(),
+        fills: loadRhIncome().fills,
+        spot: desk.proxies?.QQQ?.price ?? null,
+      });
+      lines.push("", `OVERNIGHT ${overnightLine(read)}`, `OVERNIGHT WHY ${read.missingDetail}`);
+    }
+  } catch {
+    /* additive */
   }
 
   try {

@@ -24,6 +24,17 @@ export interface RhFill {
   exit?: number;
   pnl?: number;
   note: string;
+  /**
+   * Contract facts the OVERNIGHT board needs and prose cannot carry
+   * (overnight-swing.ts). Optional so every existing fill still parses; the
+   * board falls back to reading "14dte" / "d.75" out of `note` and says so
+   * when it has to. Without these it cannot grade expiry risk or the gap
+   * that breaks the position — which is exactly the decision it exists for.
+   */
+  dte?: number;
+  delta?: number;
+  /** ET calendar date of expiry, "YYYY-MM-DD". */
+  expiry?: string;
 }
 
 export interface RhIncomeState {

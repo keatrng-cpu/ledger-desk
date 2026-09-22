@@ -95,7 +95,7 @@ Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR
 | Tab | What |
 |-----|------|
 | Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → **timeframe ladder** (Y→30s, top-down, `tf-ladder.ts`) → **the trade, drawn** (SMC overlay, green TAKE / red flip flash) → **shadow strip** (today's refusals paper-traded) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
-| Options | Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
+| Options | **Overnight board first** (`overnight-swing.ts`, 15:00–15:55 ET): HOLD / TRIM / FLATTEN on 6 must-layers — expiry, event-while-blind, direction, DTE≥14 · Δ≥0.70, ticket cap, 1% gap. QQQ/SPY options are **unmanageable 16:15→09:30** (17h15m; 65h15m Fri) so the −25% stop does not exist overnight; SPX/XSP/VIX/RUT do trade Cboe GTH 20:15–09:25 limit-only. Never carry into expiry day (broker force-sells from 15:30 ET, auto-exercise at $0.01 ITM). Then the Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Charts | Dual MNQ/ES tape + liquidity |
 | Brain | Veteran + coach (Ask Grok + Claude, peers, parallel). Never overrides hard gates. |
 | Book | WR / grades / profit path, journal, **shadow book** (refusals paper-traded both ways · gate scorecard · the little things — `shadow-book.ts`, `discretion-memory.ts`; never the paper book), TradeZella backtest (no lookahead) |
@@ -122,6 +122,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/trading/session-brief.ts` | Bull/bear/no-trade day |
 | `src/lib/trading/week-ahead.ts` | Sunday week plan. Live CWH/CWL overlay from bars (no lookahead). Official prints: `src/data/week-prints.json`. Sep 2026 weeks 1–5 are seeded. |
 | `src/lib/trading/month-ahead.ts` | Month bias / phases (Labor → CPI → FOMC → Digest → PCE). Live CMH/CML overlay. Swap on the last Sunday of the prior month. |
+| `src/lib/trading/overnight-swing.ts` | The 15:00 ET carry decision, graded like the Now desk. Mechanics, not signal — direction still comes from the sequence. Drift verified (QQQ +0.054%/night t=3.11 over 10y) but concentrated in the 02:00–03:00 ET European hour, and **no option structure showed a distinguishable overnight edge after the spread**. Board + `overnight-board.tsx`; `scripts/verify-overnight.mjs` 27/27. |
 | `src/lib/trading/options-desk.ts` | QQQ/SPY RH sleeve ($1k / 15%). Estimates from ES/10 · NQ/40. Long debit or vertical. Working stop −25% of debit. Gated on SMC sequence. |
 | `src/lib/trading/sessions.ts` | Killzones + `isJudasWindow` |
 | `src/lib/trading/live-session.ts` | CDT ritual + pulse contract |

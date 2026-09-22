@@ -88,6 +88,8 @@ import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store
 import { applyWordHysteresis, createHysteresisState } from "@/lib/trading/word-hysteresis";
 import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
 import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
+import { OvernightBoard } from "@/components/desk/overnight-board";
+import { DECIDE_START_MIN, DECIDE_END_MIN } from "@/lib/trading/overnight-swing";
 import { recordPrint } from "@/lib/market/print-bars";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
@@ -1232,6 +1234,13 @@ function MasterplacePage() {
                       before the picture: direction from the top, phase from
                       the middle, timing from the bottom. */}
                   <TfLadderPanel desk={desk} />
+                  {/* 15:00–15:55 ET: the overnight decision is due, and the
+                      trader is looking at the Now tab, not the Options tab. */}
+                  {desk.clock.isWeekday &&
+                    desk.clock.etHour * 60 + desk.clock.etMinute >= DECIDE_START_MIN &&
+                    desk.clock.etHour * 60 + desk.clock.etMinute <= DECIDE_END_MIN && (
+                      <OvernightBoard desk={desk} />
+                    )}
                   {/* The destination board says WHERE price is going in words;
                       this says it in a picture, from the same plan object. It
                       sits directly under the verdict because that is the order
@@ -1328,6 +1337,9 @@ function MasterplacePage() {
                     title="Robinhood QQQ / SPY"
                     sub="$1,000 sleeve · 15% = $150 max debit · PATH / SMT / event · estimates from ES/NQ"
                   />
+                  {/* The overnight question is asked before the intraday
+                      cards, because at 15:00 it is the only one left. */}
+                  <OvernightBoard desk={desk} />
                   <OptionsSwingPanel desk={desk} />
                 </div>
               )}

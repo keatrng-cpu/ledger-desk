@@ -353,6 +353,61 @@ export const MANAGEMENT_EVIDENCE = {
   ],
 } as const;
 
+/**
+ * What the shadow book says about the ENTRY, adversarially verified
+ * 2026-09-22 (387 shadows, 194 limit cards / 193 chase, day-clustered
+ * bootstrap, ~90 single-tag tests + ~1,000 two-way combos).
+ *
+ * Every row here was re-derived by an independent pass that tried to refute
+ * it. The ones that survived are shown; the ones that did not are shown too,
+ * as `shipped: false`, because a rule this desk ALMOST adopted is worth
+ * remembering. Nothing here is a gate — the verification's own conclusion
+ * was that no single tag clears the bar for one, given the test count.
+ */
+export const ENTRY_EVIDENCE = {
+  verifiedOn: "2026-09-22",
+  baseline: { limitPerCard: 0.213, chasePerCard: 0.007, limitCI: "[-0.095, +0.553]", n: 194 },
+  rows: [
+    {
+      id: "proximity",
+      finding: "An array more than 1 ATR from price is the losing bucket: limit −0.027R/card (n=95, fills only 43%) vs +0.444R/card for everything closer. The middle band (0.5–1 ATR) is the limit's best (+0.763R/fill) and the chase's worst — a mid-distance array is a good place to REST an order and a bad place to pay the print.",
+      shipped: true,
+      as: "shadow-book slice + a proximity note on the plan; NOT a gate — the retrace layer already requires price inside the array, so a far card can never be a TAKE.",
+    },
+    {
+      id: "fill-window",
+      finding: "REFUTED. Shortening the 12-bar limit window looked free and is not: late fills are BETTER (bars 7–12 +0.972R vs bars 0–6 +0.253R). Cutting to 6 bars costs 38% of expectancy; extending to 24 adds 13 fills at 15% WR. Leave it at 12.",
+      shipped: false,
+      as: "no change",
+    },
+    {
+      id: "armed-entry",
+      finding: "The narrative state `armed_entry` is the genuinely bad one: the limit fills only 32% of the time and loses −0.570R when it does (n=22). `sweep_only` is second worst (−0.317R, 38% fill). `confirmed` INVERTS by leg — the chase loses −0.110R paying an extension that already printed while the limit makes +0.723R buying the retrace into it.",
+      shipped: false,
+      as: "provisional — n=22 and n=16 are under the untradeable line",
+    },
+    {
+      id: "one-book",
+      finding: "Confirms the existing hard rule rather than adding edge: refusals on the book that was NOT the one-book pick ran −0.291R on the chase (n=19) and −0.099R on the limit (n=20). Sign correct, sample too small to be new information.",
+      shipped: true,
+      as: "existing one-book gate",
+    },
+    {
+      id: "rr-bands",
+      finding: "No R:R band to exclude on the limit leg — per-card expectancy is positive in every band from 1–2R to >5R and win rate decays with distance exactly as it should. On the chase, 73% of legs realise below 1:1 at the print, which the minRr gate already bans; the surviving 27% have no edge.",
+      shipped: true,
+      as: "the Target-priced ≥1:1 layer shipped 2026-09-21 is the whole fix",
+    },
+  ],
+  caveat:
+    "~90 single-tag tests and ~1,000 two-way combos over 41 trading days: roughly 4–5 buckets should clear |t|>2 on noise alone. Treat every row as a hypothesis for the live shadow book to confirm, not as a rule.",
+} as const;
+
+export function entryEvidenceLine(): string {
+  const shipped = ENTRY_EVIDENCE.rows.filter((r) => r.shipped).length;
+  return `Entry evidence (${ENTRY_EVIDENCE.verifiedOn}, n=${ENTRY_EVIDENCE.baseline.n} cards, limit ${fmtR(ENTRY_EVIDENCE.baseline.limitPerCard)}/card CI ${ENTRY_EVIDENCE.baseline.limitCI}): ${shipped} of ${ENTRY_EVIDENCE.rows.length} candidates survived verification. ${ENTRY_EVIDENCE.caveat}`;
+}
+
 export function managementLine(): string {
   const r = MANAGEMENT_EVIDENCE.rows;
   return `Touching it costs (n=${MANAGEMENT_EVIDENCE.n}, ${MANAGEMENT_EVIDENCE.measuredOn}): ${r.map((x) => `${x.itch} ${fmtR(x.costR)}/t`).join(" · ")}. The plan as priced: ${fmtR(MANAGEMENT_EVIDENCE.baseline)}/t. Sit.`;
