@@ -21,6 +21,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | Databento rent | **$199/mo ≈ $50/week** first hurdle. **$1,000/week** is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+ or lower 0.65. |
 | Risk by grade | A+ **2% probe** until n≥20 A+ WR≥65% then 3% · A **2%** · A− **1%** · B+ **0.5%** · B paper 0 · C journal 0.5% |
 | R:R | **≥ 1:1** — enforced by the `smc-master` **Target priced** must-layer (WAIT with no T1 ahead of CE or T1 < 1R; measured 2026-09-21: no-target plans −0.24R/t). TP clamp 1–3R is a display rule — as a T1 cap it measured −0.12R/t, so it is not applied. |
+| Entry | **Rest the limit at CE** — never pay the print. Measured +0.35R/card resting vs +0.007R chasing over 387 refusals. The CE-touch alarm calls you; FORMING (>1 ATR away) means look away. Target reach <60% is labelled unlikely (−0.21R/card). |
 | Scale | 50% off at **T1 (the draw)**, stop → BE, runner to T2 — the rule as coded and measured (+0.50R/t on 122 filled plans). Banking at +1R instead measured −0.42R/t; BE at +1R MFE −0.07; trailing −0.30. Do not "protect early". |
 | PATH / month | **~9** (after 9 → A+ only or stand) |
 | Per killzone | max **2** |
@@ -134,6 +135,7 @@ HUD is sticky on every tab: clock, killzone, GO/STAND/WAIT, quotes, lag, **draw 
 | `src/lib/trading/shadow-book.ts` | The refusals paper-traded: every PATH card the sequence STANDs/WAITs on opens a limit leg (CE) and a chase leg, resolved on closed bars + prints, ties against. Path, tags, analysis. `shadow_trades` ledger via `shadow-book-server.ts`; `shadow-store.ts` client; `src/data/shadow-replay.json` seed (Jul–Aug 2026). Evidence about gates — never a fill, never a gate. |
 | `src/lib/trading/discretion-memory.ts` | Gate scorecard from shadows: per refusing layer chase/limit n·WR·exp·$, verdict (earning / costing → sweep / neutral / early), feature lifts ("little things"), digest for brain + handoff. |
 | `src/lib/trading/tf-ladder.ts` | 14 rungs 1y→30s (daily 2y, 15m, 1m + gateway, 30s from prints). Direction from the top, swing/intraday/micro bands → phase + alignment. Narrative; `topDown` stays the gate. |
+| `src/lib/trading/entry-trigger.ts` | Tier (LIVE/ARMED/FORMING/WALKED-OFF by ATR distance), the CE-touch alarm test, the loss priced on the **sleeve** before the click, the runner's value, and the draw's measured reach as a target label. `pending-order.ts` rests a limit at CE and fills on the touch, not the print (+0.35R/card vs +0.007R measured). `verify-entry-trigger.mjs` 30/30. |
 | `src/lib/trading/gate-tuning.ts` | Sequence knobs + the 2026-09-21 sweep table (18 variants, 0 takes). Live: sameBarDisplacement + sideFromRaid. Change only via `scripts/sweep-gates.mjs`. |
 | `src/lib/trading/paper-manager.ts` | One-click paper + real-tape exits |
 | `src/lib/market/freshest.ts` | Gateway > lowest lagSec |

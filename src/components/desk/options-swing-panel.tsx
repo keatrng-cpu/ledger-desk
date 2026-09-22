@@ -331,10 +331,34 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               className="mt-2 rounded border border-[var(--color-border)] px-2 py-1 font-mono text-[11px] text-[var(--color-fg)]"
               onClick={() => {
                 const t = book.best!.ticket!;
+                // Ask for the CONTRACT, pre-filled with the plan's own
+                // numbers. An estimate recorded as a fill is the one thing
+                // this journal must never contain, and the overnight board
+                // cannot grade expiry risk without the real DTE.
+                const dteRaw = window.prompt(
+                  `DTE of the contract you actually filled (plan target: ${t.dteTarget})`,
+                  String(t.dteTarget),
+                );
+                if (dteRaw === null) return;
+                const deltaRaw = window.prompt(
+                  `Delta of that contract (plan band: ${t.deltaMin.toFixed(2)}–${t.deltaMax.toFixed(2)})`,
+                  ((t.deltaMin + t.deltaMax) / 2).toFixed(2),
+                );
+                if (deltaRaw === null) return;
+                const debitRaw = window.prompt(
+                  `Debit actually paid, $ (est ${usd(t.estDebitTotal)})`,
+                  String(t.estDebitTotal),
+                );
+                if (debitRaw === null) return;
+                const dte = Number(dteRaw);
+                const delta = Number(deltaRaw);
+                const debit = Number(debitRaw);
                 logRhFill({
                   underlier: t.underlier,
                   side: t.side,
-                  debit: t.estDebitTotal,
+                  debit: Number.isFinite(debit) && debit > 0 ? debit : t.estDebitTotal,
+                  dte: Number.isFinite(dte) && dte >= 0 ? dte : undefined,
+                  delta: Number.isFinite(delta) && delta > 0 ? delta : undefined,
                   note: `${book.best!.name} · cut $${t.workingStop}`,
                 });
               }}
@@ -344,6 +368,17 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
           </>
         )}
       </div>
+
+      {fills.length === 0 && (
+        <p className="mb-3 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,transparent)] px-3 py-2 text-[11px] leading-snug text-[var(--color-warn)]">
+          Sleeve journal is empty. Every number this desk gives you about YOUR
+          trading — the week against the Databento rent, the loss preview, the
+          discretion multiplier, the n≥20 A+ unlock — is computed from these
+          fills. Until they are in, the brain is advising a trader it has never
+          seen, and the 4-for-4 that proves the direction call works is
+          invisible to every part of the system that could learn from it.
+        </p>
+      )}
 
       {fills.length > 0 && (
         <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
