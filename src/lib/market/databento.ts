@@ -12,7 +12,26 @@ import type { IndexSymbol, LiveQuote, OhlcBar, SymbolSeries } from "./types";
 
 const DATABENTO_URL = "https://hist.databento.com/v0/timeseries.get_range";
 const DEFAULT_DATASET = process.env.DATABENTO_DATASET || "GLBX.MDP3";
-const MAX_BARS = 6000;
+/**
+ * Bars kept, AT THE REQUESTED INTERVAL.
+ *
+ * 2026-09-23: this was 6000 with RAW-bar semantics. Databento is fetched as
+ * `ohlcv-1m` and aggregated afterwards, and parseCsv truncated the 1m payload
+ * BEFORE aggregation — so 6000 one-minute bars is about 100 hours, roughly 4.3
+ * Globex sessions, which becomes ~400 fifteen-minute bars no matter how wide
+ * the requested range was.
+ *
+ * That put the Databento path below target-odds.ts's MIN_SESSIONS_FOR_ODDS
+ * (12) exactly as the Yahoo path was, so a desk on Databento could never price
+ * a first-passage race. Same bug, second source. The cap now means OUTPUT
+ * bars and the raw budget is scaled by the interval at the call site, matching
+ * yahoo.ts's 1600 (~17 sessions of 15m).
+ *
+ * This keeps more of a payload already fetched — the request window is set by
+ * `rangeIso(daysFor(range))`, not by this number — so it costs no extra call
+ * and no extra money: Standard bundles the history outright.
+ */
+const MAX_BARS = 1600;
 /** Full month backtests need more than a few sessions of 1m bars. */
 const MAX_BARS_BACKTEST = 80_000;
 
@@ -346,7 +365,9 @@ export async function fetchDatabentoBars(
   }
 
   const text = result.text;
-  let bars = parseCsv(text);
+  // Budget the RAW 1m rows by the interval we are about to aggregate into,
+  // so the cap delivers MAX_BARS bars of the interval the caller asked for.
+  let bars = parseCsv(text, MAX_BARS * Math.max(1, intervalMinutes));
   if (bars.length < 30) return null;
 
   if (intervalMinutes > 1) {
