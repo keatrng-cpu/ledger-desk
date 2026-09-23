@@ -56,8 +56,28 @@ const PLOT_H = H - PAD_T - PAD_B;
 export const VISIBLE_BARS = 60;
 /** Hard cap on shaded PD arrays when only a plan (no overlay) is given. */
 const MAX_PLAN_ARRAYS = 4;
-/** Minimum vertical gap between two left-side labels before one is dropped. */
-const LABEL_GAP = 11;
+/**
+ * Hard cap with a live overlay. The tape can carry a dozen arrays; a chart
+ * showing a dozen boxes is not a chart, it is a stained-glass window. Six is
+ * the plan's side plus the nearest few on the other.
+ */
+const MAX_OVERLAY_ARRAYS = 6;
+/**
+ * Minimum vertical gap between two left-side labels before one is dropped.
+ *
+ * The chip is 10px tall around 8px text, so 11 left one pixel of daylight and
+ * the labels read as a single smear — "BSL Range high" sitting on "BSL PDH"
+ * sitting on the badge. A real SMC chart never stacks level names; it drops
+ * the weaker one. 16 is the chip plus a clear gap.
+ */
+const LABEL_GAP = 16;
+/**
+ * The corner badge (symbol · side · word, plus RISK OVER CAP on a second row)
+ * owns the top-left. Level labels that would land inside it are pushed right
+ * of it rather than drawn underneath it.
+ */
+const BADGE_H = 16;
+const BADGE_H_RISK = 30;
 /**
  * The draw on liquidity is pulled INTO frame when it is within this many
  * visible-band heights of the edge. Further than that, squeezing the candles
@@ -166,11 +186,19 @@ function arrayFill(a: SmcArray): string {
   return "var(--color-chart-3)";
 }
 
+/**
+ * What a trader writes on the chart, not what the type system calls it.
+ *
+ * "15M BEAR IFVG · PARTIAL" is 23 characters of box-width that overlaps the
+ * next array and the candles under it. The timeframe and kind are what you
+ * read; the side is already the box colour, and the state only matters when
+ * the array is NOT fresh — and even then "partial" is the only state worth
+ * the pixels, because it is the one that changes where you enter.
+ */
 function arrayName(a: SmcArray): string {
-  const kind = a.kind === "bb" ? "breaker" : a.kind === "rb" ? "rejection" : a.kind;
-  // A breaker's state IS "breaker"; repeating it reads as a stutter.
-  const state = a.state === "fresh" || a.state === kind ? "" : ` · ${a.state}`;
-  return `${a.tf} ${a.side} ${kind}${state}`;
+  const kind = (a.kind === "bb" ? "BRK" : a.kind === "rb" ? "REJ" : a.kind === "sponsored" ? "FVG+" : a.kind).toUpperCase();
+  const partial = a.state === "partial" ? "·part" : "";
+  return `${a.tf.toUpperCase()} ${kind}${partial}`;
 }
 
 /**
@@ -206,7 +234,29 @@ export function SetupChart({
   const shownArrays = useMemo(() => {
     if (!scale) return [];
     if (overlay) {
-      return overlay.arrays.filter((a) => a.top >= scale.lo && a.bottom <= scale.hi);
+      // A real SMC chart does not draw every gap on the tape — it draws the
+      // one you would enter and the structure around it. Drawing all of them
+      // is how the 2026-09-23 screenshot ended up with four overlapping box
+      // labels across the same forty pixels of price.
+      //
+      // Keep the plan's side first (that is the trade), nearest price first
+      // within each side (that is the one you would actually fill), and cap.
+      // Boxes off the plan's side are still drawn — you need to see what is
+      // in the way — but they lose the label slot to the ones that matter.
+      const inFrame = overlay.arrays.filter((a) => a.top >= scale.lo && a.bottom <= scale.hi);
+      const want = plan?.side === "long" ? "bull" : plan?.side === "short" ? "bear" : null;
+      const ref = plan?.price ?? view[view.length - 1]?.c ?? null;
+      const near = (a: SmcArray) => (ref == null ? 0 : Math.abs((a.top + a.bottom) / 2 - ref));
+      return [...inFrame]
+        .sort((a, b) => {
+          if (want) {
+            const sa = a.side === want ? 0 : 1;
+            const sb = b.side === want ? 0 : 1;
+            if (sa !== sb) return sa - sb;
+          }
+          return near(a) - near(b);
+        })
+        .slice(0, MAX_OVERLAY_ARRAYS);
     }
     if (!plan) return [];
     const side = plan.side === "long" ? "bull" : "bear";
@@ -334,7 +384,9 @@ export function SetupChart({
     for (const a of shownArrays) {
       const y = scale.y(a.top);
       const x = xStart(a.t);
-      if (taken.every((t) => Math.abs(t.y - y) >= 9 || Math.abs(t.x - x) >= 90)) {
+      // 9px against 8px text meant two names one pixel apart counted as
+      // "resolved". 16 is the line box; 150 is roughly the widest name.
+      if (taken.every((t) => Math.abs(t.y - y) >= 16 || Math.abs(t.x - x) >= 150)) {
         taken.push({ x, y });
         arrayLabelSlots.add(a);
       }
@@ -681,12 +733,20 @@ export function SetupChart({
           // Above the line by default; below it when "above" would run into
           // the corner badge or off the top edge.
           const ly = scale.y(l.p);
-          const below = ly - 10 < PAD_T + 16;
+          const badgeH = plan?.riskOverCap ? BADGE_H_RISK : BADGE_H;
+          const below = ly - 10 < PAD_T + badgeH;
           const top = below ? ly + 1 : ly - 10;
+          // Still inside the badge after flipping below it? Start the chip to
+          // the RIGHT of the badge instead of painting over it. This is the
+          // three-labels-on-one-corner case in the 2026-09-23 screenshot.
+          const collides = top < PAD_T + badgeH;
+          const lx = collides
+            ? PAD_L + badgeWidth(symbol, side, badgeWord, plan?.riskOverCap ?? false) + 6
+            : l.x;
           return (
             <g key={`ll-${l.text}-${l.p}`}>
               <rect
-                x={l.x - 1}
+                x={lx - 1}
                 y={top}
                 width={l.text.length * 4.6 + 4}
                 height={10}
@@ -694,7 +754,7 @@ export function SetupChart({
                 fill="var(--color-bg)"
                 opacity={0.75}
               />
-              <text x={l.x + 1} y={top + 8} fill={l.c} fontSize={8} fontWeight={600}>
+              <text x={lx + 1} y={top + 8} fill={l.c} fontSize={8} fontWeight={600}>
                 {l.text}
               </text>
             </g>
