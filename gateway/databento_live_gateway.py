@@ -182,6 +182,11 @@ EXIT_AFTER_WINDOW = os.environ.get("GATEWAY_EXIT_AFTER_WINDOW", "").strip() == "
 # the scheduled task or a VPS — it would stream (and pay for) the whole session.
 FORCE_WINDOW = os.environ.get("GATEWAY_FORCE_WINDOW", "").strip() == "1"
 
+# Restore the old narrow NY-AM window. Off by default as of 2026-09-23: the
+# Live subscription is flat-rate, so streaming the whole session costs nothing
+# and the desk stops being blind outside 08:15–11:30.
+NY_AM_ONLY = os.environ.get("GATEWAY_NY_AM_ONLY", "").strip() == "1"
+
 # Reconnect backoff. Never spin hot against the vendor on a bad key/network.
 RECONNECT_MIN_SEC = 2
 RECONNECT_MAX_SEC = 60
@@ -244,13 +249,61 @@ class MinuteAgg:
 
 
 def window_label() -> str:
+    if not NY_AM_ONLY:
+        return "Globex open (Sun 17:00 ET to Fri 16:00 ET, less the 16:00-17:00 halt)"
     return f"{NY_AM_START[0]:02d}:{NY_AM_START[1]:02d}-{NY_AM_END[0]:02d}:{NY_AM_END[1]:02d} ET"
 
 
+# CME Globex runs Sunday 17:00 ET through Friday 16:00 ET, with a daily
+# maintenance halt 16:00–17:00 ET Monday to Thursday. Outside those hours
+# there is no tape to stream.
+GLOBEX_OPEN_HOUR = 17  # Sunday open, and the daily re-open
+GLOBEX_CLOSE_HOUR = 16  # Friday close, and the daily halt
+
+
+def globex_open(now: datetime | None = None) -> bool:
+    """Is there a CME tape right now?
+
+    Sunday before 17:00 ET, Friday after 16:00, all of Saturday, and the
+    16:00–17:00 maintenance halt are all closed.
+    """
+    n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
+    wd = n.weekday()  # Mon=0 … Sun=6
+    if wd == 5:  # Saturday
+        return False
+    if wd == 6:  # Sunday — opens at 17:00 ET
+        return n.hour >= GLOBEX_OPEN_HOUR
+    if wd == 4 and n.hour >= GLOBEX_CLOSE_HOUR:  # Friday close
+        return False
+    # Mon–Thu: the only gap is the daily halt.
+    return not (GLOBEX_CLOSE_HOUR <= n.hour < GLOBEX_OPEN_HOUR)
+
+
 def in_ny_am_window(now: datetime | None = None) -> bool:
-    """Weekday NY_AM_START–NY_AM_END America/New_York."""
+    """When the socket should be up.
+
+    2026-09-23: this used to be a narrow NY-AM window, on the assumption that
+    holding the Live socket longer cost more. It does not. Verified against
+    the Databento portal 2026-09-14 and restated in README.md: live CME
+    requires the Standard plan at $199 FLAT, usage-based live billing having
+    been retired in March 2025. The window has NEVER reduced that bill — it
+    only ever avoided holding a socket nobody was reading.
+
+    So the default is now ALL SESSION: stream whenever Globex is open. The
+    trader asked for it, it costs nothing, and it removes the class of bug
+    where the desk is blind to a move that happened fifteen minutes before
+    somebody looked. Set GATEWAY_NY_AM_ONLY=1 to restore the old window.
+
+    NOTE the dependency this creates: always-on means many more reconnects
+    (the daily halt, overnight drops, network blips), and a reconnect used to
+    flush a PARTIAL minute as if it were a whole one. That is fixed in the
+    same change — see LiveGateway.run_once. Widening this without that fix
+    would have multiplied a known corruption path.
+    """
     if FORCE_WINDOW and now is None:
         return True
+    if not NY_AM_ONLY:
+        return globex_open(now)
     n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
     if n.weekday() >= 5:
         return False
@@ -265,6 +318,10 @@ def window_closed_for_today(now: datetime | None = None) -> bool:
     """True once today's window end has passed (or it is a weekend) — the
     scheduled-run mode uses this to exit instead of idling to tomorrow."""
     if FORCE_WINDOW and now is None:
+        return False
+    # All-session mode never "finishes for today" — the tape rolls into the
+    # next session an hour later. Only the scheduled NY-AM run exits.
+    if not NY_AM_ONLY:
         return False
     n = (now or datetime.now(timezone.utc)).astimezone(NY_AM_TZ)
     if n.weekday() >= 5:
@@ -347,6 +404,25 @@ class LiveGateway:
             cur.c = price
             cur.v += v
 
+    def drop_partial_minutes(self, why: str) -> None:
+        """Throw away every in-progress 1m aggregate.
+
+        `self._minute` lives on the instance and used to survive a reconnect,
+        so the first record after a drop would see a new minute_start_ns and
+        flush the PRE-DISCONNECT partial as though it were a complete bar —
+        stamped with a fresh received_at, and with the missing minutes simply
+        absent. Downstream, aggregateBars() rolls those into a 15m bucket and
+        mergeNewerBars() lets it REPLACE Yahoo's complete one, so the sweep and
+        displacement detectors grade a bar whose high and low omit part of the
+        tape, labelled live_gateway.
+
+        A partial minute is not a bar. Dropping it loses at most 59 seconds;
+        keeping it corrupts a detector silently, which is worse.
+        """
+        if self._minute:
+            log.info("dropping %d partial minute bar(s) — %s", len(self._minute), why)
+            self._minute.clear()
+
     def run_once(self) -> None:
         """One connect-subscribe-stream cycle. Raises on disconnect/error —
         the caller's reconnect loop decides what happens next."""
@@ -408,6 +484,9 @@ class LiveGateway:
                 self.run_once()
                 backoff = RECONNECT_MIN_SEC  # clean iteration exit -> reset
             except Exception:  # noqa: BLE001 — log and reconnect, never crash silent
+                # The partial minute in flight when the socket died is not a
+                # bar and must never be written as one.
+                self.drop_partial_minutes("reconnect after stream error")
                 log.exception("stream error — reconnecting in %ss", backoff)
             if not self._running:
                 break
