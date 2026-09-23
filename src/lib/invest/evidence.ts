@@ -54,10 +54,105 @@ export interface SourcedFact {
  * rather than inline in dossiers.ts so that attaching a citation is a small,
  * reviewable diff instead of an edit to a 400-line research file.
  *
- * Empty today, and that is the accurate state: nothing here has been checked
- * against a primary source in this session.
+ * The first verification pass (2026-09-22) checked six of nine operators
+ * against SEC EDGAR and CORRECTED ONE: this book had Apple's CEO as Tim Cook
+ * with the succession described as a pending question, when John Ternus had
+ * in fact been CEO since 2026-09-01. That error survived being written down,
+ * reviewed and committed, and was caught only by opening a filing — which is
+ * the entire argument for this file existing.
  */
-export const SOURCES: Record<string, SourcedFact> = {};
+export const SOURCES: Record<string, SourcedFact> = {
+  // Verified 2026-09-22 against SEC EDGAR. Each URL is the exact document
+  // read, not a search page. A signed Section 302 certification on a 10-Q is
+  // the strongest available evidence of who holds the office TODAY: it is
+  // signed by the principal executive officer under penalty of perjury and
+  // is filed quarterly, so it goes stale far more slowly than a proxy.
+  "ETN.governance.ceo": {
+    value: "Paulo Ruiz",
+    url: "https://www.sec.gov/Archives/edgar/data/1551182/000155118226000030/etn06302026ex311.htm",
+    checkedAt: "2026-09-22",
+  },
+  "CEG.governance.ceo": {
+    value: "Joseph Dominguez",
+    url: "https://www.sec.gov/Archives/edgar/data/1868275/000186827526000104/ceg-20260630x10qxexh311.htm",
+    checkedAt: "2026-09-22",
+  },
+  "V.governance.ceo": {
+    value: "Ryan McInerney",
+    url: "https://www.sec.gov/Archives/edgar/data/1403161/000140316126000104/vex31163026.htm",
+    checkedAt: "2026-09-22",
+  },
+  "MSFT.governance.ceo": {
+    value: "Satya Nadella",
+    url: "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-ex31_1.htm",
+    checkedAt: "2026-09-22",
+  },
+  "GOOGL.governance.ceo": {
+    value: "Sundar Pichai",
+    url: "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/googexhibit3101q22026.htm",
+    checkedAt: "2026-09-22",
+  },
+  // The correction. A Form 3 is the officer's own sworn Section 16 filing and
+  // exists only because the role actually commenced — stronger than any
+  // announcement, and it is what settles this one.
+  "NVDA.governance.ceo": {
+    value: "Jen-Hsun Huang",
+    url: "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000075/nvda2027q2ex311.htm",
+    checkedAt: "2026-09-22",
+  },
+  "COST.governance.ceo": {
+    value: "Ron M. Vachris",
+    url: "https://www.sec.gov/Archives/edgar/data/909832/000090983226000051/costex31110q51026.htm",
+    checkedAt: "2026-09-22",
+  },
+  "LLY.governance.ceo": {
+    value: "David A. Ricks",
+    url: "https://www.sec.gov/Archives/edgar/data/59478/000005947826000081/lly-06302026x10qxexhibit311.htm",
+    checkedAt: "2026-09-22",
+  },
+  "AAPL.governance.ceo": {
+    value: "John Ternus",
+    url: "https://www.sec.gov/Archives/edgar/data/320193/000114036126035325/ef20081427_8ka.htm",
+    checkedAt: "2026-09-22",
+  },
+};
+
+/**
+ * A governance fact that a NEWER document contradicts an OLDER one on.
+ *
+ * Kept separate and printed loudly because of what turned up on the first
+ * verification pass: Constellation's most recent proxy statement (DEF 14A,
+ * filed 2026-03-19) says under Board Governance that the CEO and Board Chair
+ * roles are separate. That stopped being true on 2026-08-04, when the board
+ * elected the sitting CEO as chair. Reading the newest PROXY — the document
+ * this tab originally said would settle governance questions — returns the
+ * wrong answer. Only the 8-K has it.
+ *
+ * The lesson generalises: for "who holds this office right now", filing
+ * RECENCY beats filing TYPE. An 8-K Item 5.02 or a signed 10-Q certification
+ * is fresher evidence than an annual proxy, and a proxy is a snapshot of the
+ * date it was filed rather than a standing description.
+ */
+export const STALENESS_TRAPS = [
+  {
+    ticker: "AAPL",
+    stale:
+      "This desk's own dossier, and Apple's DEF 14A (2026-01-08) and 10-Q (2026-07-31): Tim Cook, Chief Executive Officer.",
+    current:
+      "8-K/A filed 2026-09-01 and Ternus' own Form 3: John Ternus became CEO effective 2026-09-01; Cook became Executive Chair.",
+    url: "https://www.sec.gov/Archives/edgar/data/320193/000114036126035325/ef20081427_8ka.htm",
+    lesson:
+      "A fact can be true for fifteen years and then stop. The dossier asserted Cook from memory and was wrong for three weeks without anything in the system noticing.",
+  },
+  {
+    ticker: "CEG",
+    stale: "DEF 14A filed 2026-03-19: 'Chief Executive Officer and Board Chair roles are separate.'",
+    current:
+      "8-K filed 2026-08-05: Lawless retired as Chair 2026-08-04 and the board elected Dominguez, the sitting CEO, to chair it.",
+    url: "https://www.sec.gov/Archives/edgar/data/1868275/000186827526000089/ceg-20260804.htm",
+    lesson: "For who-holds-the-office, recency beats document type. The newest proxy can be the wrong answer.",
+  },
+] as const;
 
 export function evidenceFor(ticker: string, field: string): EvidenceLevel {
   const key = `${ticker}.${field}`;

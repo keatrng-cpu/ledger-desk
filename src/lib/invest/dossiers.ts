@@ -174,11 +174,11 @@ export const COMPOUNDERS: Dossier[] = [
       ceo: "Sundar Pichai",
       founderLed: false,
       ceoSince: 2015,
-      chair: null,
+      chair: "John L. Hennessy (independent, separate from the CEO)",
       dualClass: true,
       insiderPct: 1.596,
       successionNote:
-        "Founders Page and Brin retain supervoting Class B stock and therefore control the company without running it. Buying GOOGL means accepting you have no vote.",
+        "Founder control is not a figure of speech here, it is a majority. From the company's own beneficial-ownership table (proxy, as of 2026-04-06): Class B carries ten votes to Class A's one, giving Larry Page 27.4% of total voting power and Sergey Brin 25.3% — 52.7% together. All officers and directors hold 54.3%. Buying GOOGL means buying an economic interest in a company whose outcome you cannot vote on, while two people who do not run it can decide anything. The independent chair is real but cannot outvote that.",
     },
     killRule:
       "An antitrust remedy that actually severs default search placement or forces divestiture of YouTube or Ad Manager — not a fine, not an appeal, an executed structural remedy.",
@@ -203,10 +203,11 @@ export const COMPOUNDERS: Dossier[] = [
       ceo: "Satya Nadella",
       founderLed: false,
       ceoSince: 2014,
-      chair: null,
+      chair: "Satya Nadella — the CEO, since June 2021",
       dualClass: false,
       insiderPct: 0.091,
-      successionNote: null,
+      successionNote:
+        "Nadella chairs the board he reports to, having been appointed Chairman in June 2021 on top of the CEO role he has held since February 2014. Combined chair/CEO is the weaker governance structure — the board's independence from the executive it supervises is reduced — and it is worth holding against the twelve-year operating record rather than ignoring because the record is good.",
     },
     killRule:
       "Azure growth below 10% for four consecutive quarters, or an OpenAI stake written down while capex stays elevated. Either one breaks the 'capex becomes revenue' claim.",
@@ -230,7 +231,7 @@ export const COMPOUNDERS: Dossier[] = [
       ceo: "Ryan McInerney",
       founderLed: false,
       ceoSince: 2023,
-      chair: null,
+      chair: "John F. Lundgren (independent, since January 2024)",
       dualClass: true,
       insiderPct: 0.085,
       successionNote:
@@ -255,13 +256,14 @@ export const COMPOUNDERS: Dossier[] = [
     useIn2035: "Yes. This is the least AI-dependent holding in the book and that is the reason it is here.",
     cycle: "structural",
     governance: {
-      ceo: "Ron Vachris",
+      ceo: "Ron M. Vachris",
       founderLed: false,
       ceoSince: 2024,
-      chair: null,
+      chair: "Hamilton E. James (non-executive, since August 2017)",
       dualClass: false,
       insiderPct: 0.163,
-      successionNote: "CEO seat changed hands recently; the operating culture is the asset, not the operator.",
+      successionNote:
+        "Vachris became CEO on 2024-01-01, succeeding Craig Jelinek, having been President and COO — an internal promotion into a culture he already ran operationally. Independent non-executive chair, the structure you want. Caveat on the EVIDENCE rather than the company: the freshest SEC document naming him is 111 days old (10-Q certification dated 2026-06-03), because FY2026 ended around 2026-08-30 and neither the 10-K nor the next proxy is filed yet. No Item 5.02 8-K exists for that gap, which is affirmative evidence of no change, but it is inference from absence.",
     },
     killRule: "Membership renewal rate falling below 88% in the US, or a membership fee increase that fails to stick.",
     maxWeight: 0.06,
@@ -281,13 +283,14 @@ export const COMPOUNDERS: Dossier[] = [
       "Conditional, and this is the honest answer: the current franchise faces patent expiry in the 2030s. Whether Lilly matters in 2035 depends on the pipeline, not on today's revenue.",
     cycle: "cyclical",
     governance: {
-      ceo: "David Ricks",
+      ceo: "David A. Ricks",
       founderLed: false,
       ceoSince: 2017,
-      chair: null,
+      chair: "David A. Ricks — the CEO, since 2017",
       dualClass: false,
       insiderPct: 0.157,
-      successionNote: null,
+      successionNote:
+        "Title as filed is Chair, President, and Chief Executive Officer — all three in one person since 2017, the most concentrated governance structure in this book. Lilly discloses a lead independent director as the counterweight. That concentration matters more than usual here because the pipeline decisions determining whether this company exists in its current form in 2035 are made by the same person who chairs the board reviewing them.",
     },
     killRule:
       "Incretin pricing cut by US policy below the level that funds R&D, or two consecutive phase-3 pipeline failures in the post-GLP-1 programmes.",
@@ -320,14 +323,14 @@ export const WATCH: Dossier[] = [
       "Unresolved. If AI capex normalises 40% this is the name that takes it, and 'the bottleneck of the build-out' is a description of today rather than a durable position.",
     cycle: "exposed",
     governance: {
-      ceo: "Jensen Huang",
+      ceo: "Jen-Hsun Huang",
       founderLed: true,
       ceoSince: 1993,
-      chair: null,
+      chair: "none — NVIDIA has no chairperson by design; Stephen C. Neal is Lead Director",
       dualClass: false,
-      insiderPct: 4.008,
+      insiderPct: 3.58,
       successionNote:
-        "Founder-CEO for 33 years and 4.0% insider ownership — by far the highest owner-operator alignment in this universe. It is also the highest key-person risk in the book.",
+        "Founder-CEO since inception in 1993 and 3.58% beneficial ownership (870,604,104 shares as of 2026-03-23) — by far the highest owner-operator alignment here, and the highest key-person risk in the book. The board has NO chairperson by deliberate design, using an independent Lead Director instead; the proxy frames that as giving each member an equal voice, and the other reading is that the founder faces no single counterweight. The filings write Jen-Hsun, never Jensen — string-matching EDGAR for the popular spelling returns nothing.",
     },
     killRule:
       "An export-control regime that cuts data-center revenue run-rate by 30%, or a hyperscaler's in-house silicon displacing a full training generation.",
@@ -348,21 +351,21 @@ export const WATCH: Dossier[] = [
     useIn2035: "Yes on the installed base; the open question is whether it leads or rents the AI layer.",
     cycle: "structural",
     governance: {
-      ceo: "Tim Cook",
+      ceo: "John Ternus",
       founderLed: false,
-      ceoSince: 2011,
-      chair: null,
+      ceoSince: 2026,
+      chair: "Tim Cook — Executive Chair, not independent",
       dualClass: false,
       insiderPct: 1.648,
       successionNote:
-        "A CEO transition is the live governance question here and has been widely reported as imminent. That is a research item to resolve before buying, not a headline to react to.",
+        "THE SUCCESSION HAS HAPPENED. John Ternus, previously SVP of Hardware Engineering, became CEO effective 2026-09-01 (board appointed him 2026-04-17). Tim Cook moved to Executive Chair and Art Levinson from Chair to Lead Independent Director. Three weeks into a new chief executive at a company whose last two CEOs held the job for 14 and 11 years, there is no capital-allocation record to assess — the operator column is genuinely unknown rather than merely new. Note also that Cook as EXECUTIVE chair is not an independent one, so the outgoing CEO still sits above the incoming one.",
     },
     killRule:
       "Loss of the Google search default payment without replacement, or two consecutive years of services revenue decline.",
     maxWeight: 0.06,
     regulatory: "App Store economics under attack in the EU and US simultaneously.",
     caveat:
-      "38.9 trailing and 35.1 forward — the smallest gap between the two of any megacap here, meaning the market expects little earnings growth to bail out the multiple. Analyst ratings are also the weakest in this universe: 5 sell-side sell or strong-sell ratings against 25 buys, where MSFT has zero. Not disqualifying, but it is the only megacap here with visible dissent.",
+      "Three problems that compound. (1) The price implies 15.7% annual earnings growth for a decade — heroic — while 38.9 trailing against 35.1 forward is the smallest gap of any megacap here, meaning the market expects almost no growth to bail the multiple out. (2) Analyst ratings are the weakest in this universe: 5 sell or strong-sell against 25 buys, where MSFT has zero. (3) The CEO changed 21 days ago. Paying a heroic growth assumption for an operator with no record is the specific combination this book exists to avoid. NOTE: this dossier previously named Tim Cook as CEO and called the succession a pending question — that was asserted from memory and was wrong. It was corrected only because a primary-source check was run.",
   },
   {
     ticker: "ETN",
@@ -375,19 +378,20 @@ export const WATCH: Dossier[] = [
     useIn2035: "Yes — electricity demand is the most durable part of the AI story and the least dependent on which model wins.",
     cycle: "cyclical",
     governance: {
-      ceo: "",
+      ceo: "Paulo Ruiz",
       founderLed: false,
-      ceoSince: null,
-      chair: null,
+      ceoSince: 2025,
+      chair: "Gregory R. Page (non-executive)",
       dualClass: false,
       insiderPct: 0.072,
-      successionNote: null,
+      successionNote:
+        "Ruiz became CEO 2025-06-01, succeeding Craig Arnold who retired 2025-05-31 — so the operator has under two years in the seat and no capital-allocation record of his own yet. Chair is independent and non-executive, which is the governance structure you want. A CFO transition also completed in 2026 (Leonetti out, David B. Foster appointed 2026-02-26): a new CEO and a new CFO inside a year is worth watching.",
     },
     killRule: "Data center electrical orders declining two consecutive quarters while backlog shrinks.",
     maxWeight: 0.05,
     regulatory: null,
     caveat:
-      "BLOCKED, and for two independent reasons. First, I could not confirm the current CEO from a primary source, so the governance column is blank and the gate refuses it — go read the proxy. Second, and more interesting: quarterly EARNINGS GROWTH IS -15.9% while revenue grew 21.4%, at a 44.4 trailing P/E. The picks-and-shovels story is being priced as a growth compounder while its actual earnings are falling. That deserves an answer before a dollar goes in.",
+      "Operator now VERIFIED from a signed 10-Q certification (Paulo Ruiz), so the gate that was blocking this is satisfied. The substantive problem remains and is the reason to keep reading rather than buying: quarterly EARNINGS GROWTH IS -15.9% while revenue grew 21.4%, at a 44.4 trailing P/E, and the price implies 17.4% annual earnings growth for a decade. The picks-and-shovels story is priced as a growth compounder while actual earnings fall. That gap needs an answer, and a CEO 15 months into the job has not yet shown how he closes it.",
   },
   {
     ticker: "CEG",
@@ -400,13 +404,14 @@ export const WATCH: Dossier[] = [
     useIn2035: "Yes, structurally — the reactors will still be there and electricity demand is not falling.",
     cycle: "cyclical",
     governance: {
-      ceo: "Joe Dominguez",
+      ceo: "Joseph Dominguez",
       founderLed: false,
       ceoSince: 2022,
-      chair: null,
+      chair: "Joseph Dominguez — the CEO, since 2026-08-04",
       dualClass: false,
       insiderPct: 0.335,
-      successionNote: null,
+      successionNote:
+        "GOVERNANCE CHANGE the proxy does not reflect. Robert Lawless retired as Chair on 2026-08-04 and the board elected Dominguez — already CEO — to chair it (8-K filed 2026-08-05). The company's most recent DEF 14A still states the roles are separate; that statement is now false. Charles Harrington is Lead Independent Director. Combining chair and CEO weakens the board's independence from the executive it supervises, which matters more here than usual because this business is priced on multi-decade contracts the same executive signs.",
     },
     killRule:
       "A data center power purchase agreement cancelled or renegotiated downward, or merchant power prices falling below the contracted floor for two quarters.",

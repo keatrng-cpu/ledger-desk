@@ -108,10 +108,18 @@ ok("the refusal cites the statute", canAdd(fakeVoo).reason.includes("1091"));
 console.log("\ncompleteness gate");
 ok("VTI is buyable", canAdd(dossierFor("VTI")).canAdd);
 ok("MSFT is buyable", canAdd(dossierFor("MSFT")).canAdd);
-// ETN is carried with a blank CEO on purpose — the gate must refuse it.
-const etn = dossierFor("ETN");
-check("ETN is refused", canAdd(etn).canAdd, false);
-ok("ETN refusal names the blank field", completeness(etn).missing.includes("governance.ceo"));
+// ETN was the blank-CEO case until its operator was verified on 2026-09-22.
+// The gate is therefore pinned against a SYNTHETIC blank instead, so this
+// test keeps testing the mechanism rather than whichever real name happens
+// to be incomplete on a given day.
+ok("ETN is now buyable — its operator was verified", canAdd(dossierFor("ETN")).canAdd);
+const blankCeo = { ...dossierFor("MSFT"), ticker: "MSFT", governance: { ...dossierFor("MSFT").governance, ceo: "  " } };
+check("a blank operator is still refused", canAdd(blankCeo).canAdd, false);
+ok("and the refusal names the blank field", completeness(blankCeo).missing.includes("governance.ceo"));
+const blankKill = { ...dossierFor("MSFT"), killRule: "" };
+ok("a blank kill rule is refused", !canAdd(blankKill).canAdd);
+const blankMoat = { ...dossierFor("MSFT"), moat: "" };
+ok("a blank moat is refused", !canAdd(blankMoat).canAdd);
 // A name whose fundamentals were never captured must also be refused.
 const notCaptured = { ...dossierFor("MSFT"), ticker: "AVGO" };
 check("uncaptured fundamentals block the buy", canAdd(notCaptured).canAdd, false);
@@ -214,7 +222,9 @@ ok("36 months is", excessVsBenchmark(12, 9, 36).meaningful);
 // ─────────────────────────────────────────────────────────────────────────
 const { impliedGrowth, sensitivity, qualityRead, trendRead, analyse, BASE_RATES, HORIZON_EVIDENCE, DEFAULT_ERP } =
   await import("../src/lib/invest/factors.ts");
-const { evidenceFor, unsourced, strictGate, evidenceSummary } = await import("../src/lib/invest/evidence.ts");
+const { evidenceFor, unsourced, strictGate, evidenceSummary, STALENESS_TRAPS } = await import(
+  "../src/lib/invest/evidence.ts"
+);
 const { killQueries, killQuery, isDue, formatResult, CHECK_INTERVAL_DAYS } = await import(
   "../src/lib/invest/kill-watch.ts"
 );
@@ -260,13 +270,36 @@ check("every base rate carries a source URL", BASE_RATES.filter((b) => /^https?:
 ok("the concentration base rate justifies the per-name caps", BASE_RATES.some((b) => /4%/.test(b.claim)));
 
 console.log("\nevidence ladder");
-check("no operator is verified yet — that is the honest state", evidenceSummary().verified, 0);
-ok("and the summary says they are asserted from memory", evidenceSummary().line.includes("asserted from memory"));
-check("a stated CEO reads as asserted", evidenceFor("MSFT", "governance.ceo"), "asserted");
-check("a blank CEO reads as blank", evidenceFor("ETN", "governance.ceo"), "blank");
-ok("strict gate refuses an unsourced operator", !strictGate(dossierFor("MSFT")).canAdd);
+// 2026-09-22: all nine operators checked against SEC EDGAR. The ladder's
+// whole point is that this number is visible and can only go up honestly.
+check("all nine operators verified", evidenceSummary().verified, 9);
+check("nothing left unsourced", evidenceSummary().unsourced, 0);
+ok("and the summary says so", evidenceSummary().line.includes("verified against primary sources"));
+check("a sourced CEO reads as verified", evidenceFor("MSFT", "governance.ceo"), "verified");
+check("a sourced CEO reads as verified for the corrected name too", evidenceFor("AAPL", "governance.ceo"), "verified");
+check("an unknown ticker reads blank", evidenceFor("ZZZZ", "governance.ceo"), "blank");
+ok("strict gate now passes a verified operator", strictGate(dossierFor("MSFT")).canAdd);
 ok("strict gate passes a fund", strictGate(dossierFor("VTI")).canAdd);
-ok("the backlog names the document that would settle it", unsourced()[0].wouldSettle.includes("DEF 14A"));
+// The mechanism must still refuse an unsourced one.
+ok("strict gate refuses a name with no source attached", !strictGate({ ...dossierFor("MSFT"), ticker: "AVGO" }).canAdd);
+
+console.log("\nthe corrections the check produced");
+const traps = STALENESS_TRAPS.map((t) => t.ticker);
+ok("Apple's succession is recorded as a trap", traps.includes("AAPL"));
+ok("Constellation's chair change is recorded as a trap", traps.includes("CEG"));
+ok("every trap carries the document that settles it", STALENESS_TRAPS.every((t) => /^https:\/\/www\.sec\.gov/.test(t.url)));
+check("Apple's CEO is Ternus, not Cook", dossierFor("AAPL").governance.ceo, "John Ternus");
+check("and the dossier says the succession happened", dossierFor("AAPL").governance.ceoSince, 2026);
+ok("and the caveat admits the earlier entry was wrong", /was asserted from memory and was wrong/.test(dossierFor("AAPL").caveat));
+check("ETN's operator is Paulo Ruiz", dossierFor("ETN").governance.ceo, "Paulo Ruiz");
+check("NVIDIA is spelled as the filings spell it", dossierFor("NVDA").governance.ceo, "Jen-Hsun Huang");
+ok("and NVIDIA's no-chairperson structure is recorded", /no chairperson by design/.test(dossierFor("NVDA").governance.chair));
+// Combined chair/CEO is a governance fact worth being able to query.
+const combined = ["MSFT", "LLY", "CEG"].filter((t) => {
+  const g = dossierFor(t).governance;
+  return g.chair && g.chair.includes(g.ceo);
+});
+check("three names have the CEO chairing their own board", combined.length, 3);
 
 console.log("\nkill watch");
 const NOW2 = Date.parse("2026-09-22T12:00:00Z");
