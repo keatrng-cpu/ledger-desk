@@ -19,6 +19,26 @@ export const RH_SLEEVE_DEFAULT: RhSleeve = {
   riskPct: 0.15,
 };
 
+/**
+ * LEGACY MODEL. $1,000 is treated as the account and 15% of it ($150) as the
+ * maximum debit per ticket.
+ *
+ * The trader replaced this on 2026-09-23: the sleeve now risks up to a
+ * $1,000 DEBIT per trade with the loss capped at 15% OF THE DEBIT. Under the
+ * old model those two were the same $150 number and could safely be
+ * conflated; under the new one they are $1,000 and 15%-of-what-you-paid, and
+ * conflating them would overstate size by up to 6.7x or understate risk by
+ * the same factor.
+ *
+ * `src/lib/trading/sleeve-sizing.ts` is the authority now. This function is
+ * kept because four modules still call it — options-desk.ts:855,
+ * options-swing.ts:263, overnight-swing.ts:303 and entry-trigger-panel.tsx:72
+ * — and repointing all four in one edit would change live risk numbers in
+ * several places at once, which is the specific thing trading.md forbids.
+ * Each call site needs deciding INDIVIDUALLY: some of them want the debit
+ * ceiling (MAX_DEBIT_USD) and some want the loss cap, and today they cannot
+ * tell because one number answered both.
+ */
 export function rhMaxDebit(s: RhSleeve = RH_SLEEVE_DEFAULT): number {
   return Math.round(s.equity * s.riskPct);
 }

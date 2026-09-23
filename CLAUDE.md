@@ -17,7 +17,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | A+ tag | ≥ **0.75** |
 | Execute grades | A+ · A · A− (B+ paper 0.5% only) |
 | Paper equity | **$100,000** |
-| RH sleeve | **$1,000** · risk **15% = $150** max debit. Working stop **−25% of debit** (never 1/3, never full premium). Sell when futures invalidates **or** −25%, whichever first. |
+| RH sleeve | **$1,000 max DEBIT per trade**, loss capped **15% of the debit paid** (trader's call 2026-09-23 — replaces "$1,000 account / $150 max debit"). **Size from the stop, not from a fixed debit** (`sleeve-sizing.ts`): contracts = risk budget / (underlying move to invalidation × delta × 100), so a tighter invalidation buys more contracts at the same risk. **Exit on the LEVEL** — the futures plan's invalidation, same trigger as the futures book; the 15% is a disaster backstop, not the plan. **A 15% brake on 1 DTE is a CLOCK** — theta alone removes it inside ~3.6h, so 15% needs **≥2 DTE** for a 4h hold, which conflicts with "0DTE A+ after 9:45". `rhMaxDebit` still returns the OLD $150 and 4 modules still call it — migrate each deliberately. |
 | Databento rent | **$199/mo ≈ $50/week** first hurdle. **$1,000/week** is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+ or lower 0.65. |
 | Risk by grade | A+ **2% probe** until n≥20 A+ WR≥65% then 3% · A **2%** · A− **1%** · B+ **0.5%** · B paper 0 · C journal 0.5% |
 | R:R | **≥ 1:1** — enforced by the `smc-master` **Target priced** must-layer (WAIT with no T1 ahead of CE or T1 < 1R; measured 2026-09-21: no-target plans −0.24R/t). TP clamp 1–3R is a display rule — as a T1 cap it measured −0.12R/t, so it is not applied. |
