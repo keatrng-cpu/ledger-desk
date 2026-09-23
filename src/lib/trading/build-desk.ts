@@ -378,10 +378,32 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // "closed back inside" — those are facts about a bar that has finished.
       const detL = summarizeDetectors(closedL);
       const detR = summarizeDetectors(closedR);
+      // 2026-09-23: the narrative bakes sweep polarity and displacement
+      // direction into ONE value per book, and smc-master grades the sweep and
+      // ltf layers against it. Deriving that direction from topDown alone
+      // meant that whenever GATE.sideFromRaid selected the other side — which
+      // the path diagnostic showed happens on ~300 of ~450 trade-window bars,
+      // because in a bear HTF the sweeps are SSL raids that arm LONGS — those
+      // two must-layers were graded against the OPPOSITE trade's confirmation
+      // and failed on data that described a different setup. sweep was the
+      // first blocker on 245 bars.
+      //
+      // The raid is the fact; the bias is the opinion. When a raid exists the
+      // narrative is now built for the side that raid arms, so the layers
+      // grade the trade the sequence is actually considering. An SSL raid arms
+      // a long, a BSL raid arms a short.
+      const raidDir = (
+        b: typeof biasL,
+        d: typeof detL,
+      ): "bull" | "bear" | null => {
+        const probe = buildMarketNarrative(b, d, clock, "bull");
+        const swept = probe.liquidity.lastSweep;
+        return swept === "ssl" ? "bull" : swept === "bsl" ? "bear" : null;
+      };
       const dirL: "bull" | "bear" =
-        biasL.topDown === "bear" ? "bear" : "bull";
+        raidDir(biasL, detL) ?? (biasL.topDown === "bear" ? "bear" : "bull");
       const dirR: "bull" | "bear" =
-        biasR.topDown === "bear" ? "bear" : "bull";
+        raidDir(biasR, detR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
       const narrL = buildMarketNarrative(biasL, detL, clock, dirL, left.bars);
       const narrR = buildMarketNarrative(biasR, detR, clock, dirR, right.bars);
       const narrative = {

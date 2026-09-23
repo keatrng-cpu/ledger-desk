@@ -62,8 +62,21 @@ for (const [symbol, peer] of [["MNQ", "ES"], ["ES", "MNQ"]]) {
     const smc = { left: buildSmcTape(slice), right: buildSmcTape(peerSlice) };
     const scan = scanSetups(biasL, biasR, clock, smtStack.primary, slice, peerSlice, smc);
     const detL = summarizeDetectors(slice), detR = summarizeDetectors(peerSlice);
-    const narrL = buildMarketNarrative(biasL, detL, clock, biasL.topDown === "bear" ? "bear" : "bull", slice);
-    const narrR = buildMarketNarrative(biasR, detR, clock, biasR.topDown === "bear" ? "bear" : "bull", peerSlice);
+    // Mirror build-desk: the narrative is built for the side the RAID arms,
+    // not for topDown. Grading sweep/ltf against the opposite trade's
+    // confirmation is what made sweep the first blocker on 245 bars.
+    const raidDir = (b, d, cl) => {
+      const swept = buildMarketNarrative(b, d, cl, "bull").liquidity.lastSweep;
+      return swept === "ssl" ? "bull" : swept === "bsl" ? "bear" : null;
+    };
+    const narrL = buildMarketNarrative(
+      biasL, detL, clock,
+      raidDir(biasL, detL, clock) ?? (biasL.topDown === "bear" ? "bear" : "bull"), slice,
+    );
+    const narrR = buildMarketNarrative(
+      biasR, detR, clock,
+      raidDir(biasR, detR, clock) ?? (biasR.topDown === "bear" ? "bear" : "bull"), peerSlice,
+    );
     const master = gradeSmcMaster({
       clock, bias: { left: biasL, right: biasR }, scan,
       draws: { left: drawOnLiquidity(biasL, slice), right: drawOnLiquidity(biasR, peerSlice) },

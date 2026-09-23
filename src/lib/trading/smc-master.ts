@@ -262,6 +262,14 @@ function gradeBook(
       (f.id === "ltf" &&
         (narrative.confirmation === "sweep_only" ||
           narrative.confirmation === "none")) ||
+      // 2026-09-23: pd_half was HARD-FAILING. It fails on 75-80% of
+      // trade-window bars and is also the single most REVERSIBLE state on
+      // the board — premium becomes discount by price simply moving. A
+      // mislabelled FAIL sets the word to STAND, tells the trader the
+      // session is dead, and makes shouldMarkUp refuse to draw the chart,
+      // for a condition a ten-minute retrace would have satisfied. Same
+      // for dol when a magnet exists but currently sits behind the trade.
+      (f.id === "pd_half" && dealing != null) ||
       (f.id === "time" && !clock.inTradeWindow);
     return {
       id: f.id,

@@ -334,6 +334,14 @@ export interface CanonInput {
   smt: boolean;
   components: string[];
   strategy?: StrategyId | string | null;
+  /**
+   * The HTF bias has been invalidated on the tape (scanner.ts biasDisrespect),
+   * so a counter-bias trade is the REVERSAL rather than a fight. This is the
+   * one exception CLAUDE.md allows to the absolute HTF gate; before
+   * 2026-09-23 the flag was set and never read, so the exception did not
+   * exist in practice.
+   */
+  htfDisrespected?: boolean;
 }
 
 function has(comps: string[], ...keys: string[]): boolean {
@@ -379,6 +387,8 @@ export function canonInputForCandidate(
     smt: c.components.includes("smt"),
     components: c.components,
     strategy: c.completeStrategy || c.strategyPrimary,
+    // Carry the release through so the canon layer and the scanner agree.
+    htfDisrespected: c.htfDisrespected === true,
   };
 }
 
@@ -398,7 +408,12 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     strategy,
   } = input;
 
+  // `htfDisrespected` is the documented release: the HTF bias has been
+  // invalidated on the tape, so the counter-bias trade is the REVERSAL
+  // rather than a fight. Without this the canon layer silently re-imposed
+  // the gate scanner.ts had just released, and the two disagreed.
   const alignedHtf =
+    input.htfDisrespected === true ||
     (side === "long" && htf === "bull") ||
     (side === "short" && htf === "bear");
   const alignedMtf =

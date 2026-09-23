@@ -671,7 +671,17 @@ export function scoreCandidates(
     const disrespect = biasDisrespect(read, det, need, bars.length);
     if (disrespect.disrespected) {
       // Bias invalidated: the gate releases, and says so on the record.
+      // 2026-09-23: this set the flag and continued, but htfOk was ALREADY
+      // false from scoreDirection, so nothing was released. htfDisrespected
+      // was read in exactly one place repo-wide: a badge in the scanner UI.
+      // The one exception CLAUDE.md documents to the absolute HTF gate was
+      // dead code — and it is the exception that matters most. The path
+      // diagnostic shows ~300 of ~450 trade-window bars grade a side the
+      // raid armed AGAINST the higher timeframe: in a bear HTF the sweeps
+      // are SSL raids, which arm longs. The desk wanted a short, the tape
+      // armed a long, and it refused both. That is the reversal it missed.
       c.htfDisrespected = true;
+      c.htfOk = true;
       c.reasons.push(disrespect.reason);
       continue;
     }
