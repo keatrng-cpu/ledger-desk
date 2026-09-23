@@ -1040,28 +1040,60 @@ export function closeAllOpenPaper(
  * If short and mark is at/through structure low (or long through high),
  * close remaining size at that structure level.
  */
-export function closeOpenAtStructureLow(
+/**
+ * Close positions on ONE book when price tags a structural level on THAT book.
+ *
+ * WHAT THIS USED TO DO, AND WHAT IT COST
+ * The previous signature took a bare price and a map of marks for every
+ * symbol, matched a position to whichever mark shared its name, and — this is
+ * the part that did the damage — accepted a LONG whenever `mark >= level`.
+ * The live poll loop called it with a hardcoded ES level of 7763 and marks
+ * for both books, so an MNQ long at 30,800 satisfied `30800 >= 7762.75` and
+ * was force-closed at its own mark on the first tick after it opened, tagged
+ * as a structure take-profit.
+ *
+ * Every long paper trade on both books was therefore flattened instantly.
+ * That killed the runner the measured +0.50R/trade scale rule depends on, and
+ * wrote fabricated "structure TP" exits into the very sample that gates the
+ * A+ full-size unlock. Paper statistics recorded before 2026-09-23 should be
+ * treated as contaminated for longs.
+ *
+ * WHY THE LONG BRANCH WAS WRONG IN PRINCIPLE, not just in scope
+ * A structure LOW is a short's objective. For a long it is the opposite — a
+ * level price falls THROUGH, which is a stop, not a take-profit. Closing a
+ * long at a structure low and labelling it `structure_tp` mislabels a loss
+ * as a target. So the level now carries the side it belongs to, and there is
+ * no branch that can close the other one.
+ */
+export function closeOpenAtStructureLevel(
+  /** The book this level belongs to. A level from one book never touches another. */
+  symbol: string,
+  /** Which positions this level is an objective FOR. */
+  side: "long" | "short",
   structurePx: number,
-  markBySymbol: Partial<Record<string, number>>,
+  /** Live mark for that symbol only. */
+  mark: number,
 ): PaperTrade[] {
   const closed: PaperTrade[] = [];
+  if (!Number.isFinite(structurePx) || !Number.isFinite(mark) || mark <= 0) return closed;
+
+  const want = symbol.toUpperCase();
   for (const t of listOpenPaperTrades()) {
-    const mark =
-      markBySymbol[t.displaySymbol] ??
-      markBySymbol[t.symbol] ??
-      markBySymbol[t.displaySymbol.replace(/^M/, "")] ??
-      null;
-    if (mark == null) continue;
-    if (t.side === "short" && mark <= structurePx + 0.25) {
-      // fill at structure low (or better if mark lower)
-      const fill = Math.min(structurePx, mark);
-      const c = closePaperTrade(t.id, fill, "structure_tp");
-      if (c) closed.push(c);
-    } else if (t.side === "long" && mark >= structurePx - 0.25) {
-      const fill = Math.max(structurePx, mark);
-      const c = closePaperTrade(t.id, fill, "structure_tp");
-      if (c) closed.push(c);
-    }
+    if (t.side !== side) continue;
+    // Match the book explicitly. The old name-fuzzing (stripping a leading M)
+    // is what let an ES level reach an MNQ position.
+    const names = [t.displaySymbol, t.symbol].map((x) => x?.toUpperCase());
+    if (!names.includes(want)) continue;
+
+    // The mark must actually REACH the level, not merely sit on the correct
+    // side of it — "on the correct side" is true from the moment the trade
+    // opens and is what made this fire instantly.
+    const tagged = side === "short" ? mark <= structurePx + 0.25 : mark >= structurePx - 0.25;
+    if (!tagged) continue;
+
+    const fill = side === "short" ? Math.min(structurePx, mark) : Math.max(structurePx, mark);
+    const c = closePaperTrade(t.id, fill, "structure_tp");
+    if (c) closed.push(c);
   }
   return closed;
 }

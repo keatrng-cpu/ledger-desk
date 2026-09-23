@@ -26,7 +26,6 @@ import {
   openPaperTradeInstant,
   managePaperTradesAgainstPrice,
   listOpenPaperTrades,
-  closeOpenAtStructureLow,
   reconcilePaperBookToMemory,
   buildPaperLevels,
   type PaperTrade,
@@ -1076,35 +1075,15 @@ function MasterplacePage() {
       window.setTimeout(() => setPaperToast(null), 8000);
     }
   }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
-  // Structure TP: ES session low 7763 — close remaining short size when mark tags it
-  useEffect(() => {
-    if (!desk) return;
-    const esPx =
-      desk.left.symbol === "ES"
-        ? desk.quotes.left.price
-        : desk.right.symbol === "ES"
-          ? desk.quotes.right.price
-          : null;
-    if (esPx == null) return;
-    const closed = closeOpenAtStructureLow(7763, {
-      ES: esPx,
-      MES: esPx,
-      [desk.left.symbol]: desk.quotes.left.price,
-      [desk.right.symbol]: desk.quotes.right.price,
-    });
-    if (closed.length) {
-      mirrorClosedPaperTrades(closed);
-      reconcilePaperBookToMemory();
-      publishMemory();
-      const last = closed[closed.length - 1]!;
-      setLastPaperClosed(last);
-      setPaperToast(
-        `PAPER OUT · structure 7763 · R ${last.rMultiple?.toFixed(2)} · $${last.pnlUsd?.toFixed(0)}`,
-      );
-      setEquity(getPaperAccount().equity);
-      window.setTimeout(() => setPaperToast(null), 8000);
-    }
-  }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
+  // REMOVED 2026-09-23. This effect ran `closeOpenAtStructureLow(7763, ...)` on
+  // every quote tick with marks for BOTH books. 7763 was one session's ES low,
+  // hardcoded, left in the permanent poll loop — and because the old function
+  // closed a LONG whenever its mark sat above the level, an MNQ long at 30,800
+  // satisfied `30800 >= 7762.75` and was flattened at its own mark the instant
+  // it opened, booked as a structure take-profit. Every long on either book,
+  // every session. See closeOpenAtStructureLevel in paper-manager.ts. A real
+  // version of this belongs on the plan's own T1, per book, not on a constant
+  // typed in during one afternoon.
 
   // Backup paper manage — quote tick is the fast path. This only exists so a
   // hung Yahoo poll cannot leave a stop unfilled for 20s. Reads deskRef so it
