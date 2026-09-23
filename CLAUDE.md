@@ -35,7 +35,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | Investments sweep | Monthly, **realized closed options P&L only**. Waterfall: **rent ($199) → sleeve restore to $1,000 → split**. Rate is earned: **20%** until 20 closed months, 30% after, 40% only after a clean year. Losing or open month sweeps **0**. One-way — swept dollars never return to the sleeve. |
 | Investments ban | **QQQ · QQQM · SPY · VOO · IVV · SPLG may never be held** while the sleeve trades QQQ/SPY options — IRC 1091 wash-sale entanglement. Ballast is **VTI/ITOT**. Not tax advice; conservative default, CPA files it. |
 | Micros | **MNQ/MES preferred** |
-| Data | Yahoo futures **~10 min delay**. Databento historical ~15–20m with live entitlement (`DATABENTO_DELAY_MINUTES=0`). Sub-second prints need the gateway (`gateway/.env.local` + NY 09:00–11:30 ET; its 1m bars also replace the lagged closed bars in that window). Say the lag. |
+| Data | Yahoo futures **~10 min delay**. Databento historical ~15–20m with live entitlement (`DATABENTO_DELAY_MINUTES=0`). Sub-second prints need the gateway (`gateway/.env.local` + NY **08:15–11:30 ET**; its 1m bars also replace the lagged closed bars in that window). The 08:15 start is deliberate — the socket is up BEFORE the 08:30 release so the desk marks the shock live, while the ±15m blackout still forbids entries until 08:45. Watching and trading are different windows. Widening costs nothing: Databento live is $199 FLAT. Say the lag. |
 
 Skips on dirty weeks are **process wins**. Gold-standard book = **short + mechanical + clean risk-off** (Jul 20 style).
 

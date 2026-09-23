@@ -25,7 +25,7 @@ $action = New-ScheduledTaskAction `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -File `"$runner`"" `
     -WorkingDirectory $here
 
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 07:55
+$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At 07:10
 
 # -AllowStartIfOnBatteries / -DontStopIfGoingOnBatteries: this is a laptop.
 # The Task Scheduler defaults (AC-only) left the task permanently "Queued"
@@ -45,7 +45,7 @@ if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
     Set-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal | Out-Null
     Write-Host "Updated task '$taskName'."
 } else {
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "ledger-desk Databento live tick gateway, weekdays 09:20-11:00 ET" | Out-Null
+    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "ledger-desk Databento live tick gateway, weekdays 08:15-11:30 ET (live through the 08:30 release)" | Out-Null
     Write-Host "Registered task '$taskName'."
 }
 

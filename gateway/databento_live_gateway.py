@@ -142,19 +142,36 @@ SCHEMA = "ohlcv-1s"
 # 2026-09-21: widened from 09:20–11:00 to 09:00–11:30 at the trader's call —
 # "no lag in the desk from 9:00 to 11:30 ET". The pre-open half hour lets the
 # desk mark the 09:00–09:30 tape live instead of ten minutes late, and the
-# 11:00–11:30 tail covers the last A+ window and any open management. The
-# 08:30 news candle is still NOT covered live — the desk reads that from
-# Databento historical / Yahoo like every other bar. Cost: 2.5h/day of
-# ohlcv-1s on two symbols instead of 1h40m — still a fraction of the flat
-# Live subscription. src/lib/trading/sessions.ts NY_AM_LIVE_* must match.
+# 11:00–11:30 tail covers the last A+ window and any open management.
+#
+# 2026-09-23: widened again to 08:15, to cover the 08:30 ET release LIVE.
+# The trader asked for 08:45 ET (07:45 CT) for "pre market analysis and shock
+# events", and the second half of that goal argues for going earlier still:
+# BLS/BEA/Census print at 08:30, so a socket opened at 08:45 connects fifteen
+# minutes AFTER the largest scheduled shock of the morning has already
+# happened. 08:45 is exactly right as a TRADING boundary — the ±15m
+# high-impact blackout runs 08:15–08:45, so that is when entries become legal
+# again — but it is the wrong DATA boundary. 08:15 puts the socket up before
+# the print, so the desk marks the release candle and the reaction at
+# sub-second resolution instead of reading them back ten minutes late from
+# Yahoo.
+#
+# This costs NOTHING. Verified against the Databento portal 2026-09-14 and
+# restated in gateway/README.md: live CME requires the Standard plan at $199
+# FLAT, usage-based live billing having been retired in March 2025. The window
+# has never reduced that bill — it exists to avoid holding a pointless socket,
+# not to save money. So the only real cost of starting earlier is 45 more
+# minutes of a Python process on a PC that is already on.
+#
+# src/lib/trading/sessions.ts NY_AM_LIVE_* must match.
 NY_AM_TZ = ZoneInfo("America/New_York")
-NY_AM_START = (9, 0)  # 09:00 ET
+NY_AM_START = (8, 15)  # 08:15 ET — live THROUGH the 08:30 release
 NY_AM_END = (11, 30)  # 11:30 ET
 WINDOW_POLL_SEC = 30
 
 # When "1": exit 0 once today's window has closed (or if started after it),
 # instead of idling until tomorrow. This is the mode for a scheduled local run
-# (Windows Task Scheduler at 07:55 CT / 08:55 ET) — the process should not
+# (Windows Task Scheduler at 07:10 CT / 08:10 ET) — the process should not
 # linger overnight on a desk PC. Unset = original always-on behaviour for a
 # VPS / Fly.io host.
 EXIT_AFTER_WINDOW = os.environ.get("GATEWAY_EXIT_AFTER_WINDOW", "").strip() == "1"

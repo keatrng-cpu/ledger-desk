@@ -220,9 +220,13 @@ export function isJudasWindow(hour: number, minute: number): boolean {
  * live, not ten minutes late. The 08:30 news candle is NOT live; the desk
  * reads it from Databento historical / Yahoo.
  */
-export const NY_AM_LIVE_START_MIN = 9 * 60;
+// 08:15 so the gateway is already connected when the 08:30 ET release
+// prints — see the window comment in gateway/databento_live_gateway.py.
+// These two must stay in step or the desk will claim live data it does not
+// have, which is worse than knowing it is lagged.
+export const NY_AM_LIVE_START_MIN = 8 * 60 + 15;
 export const NY_AM_LIVE_END_MIN = 11 * 60 + 30;
-export const NY_AM_LIVE_LABEL = "09:00–11:30 ET";
+export const NY_AM_LIVE_LABEL = "08:15–11:30 ET";
 
 export function isNyAmLiveWindow(
   hour: number,

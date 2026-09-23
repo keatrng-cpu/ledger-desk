@@ -24,7 +24,7 @@ because a 1m/5m entry trigger (OTE retest, mechanical sequence) needs the
 This costs money every month it runs. Verified against the Databento portal
 2026-09-14: live CME (GLBX.MDP3) requires the **Standard plan, $199/mo flat**
 ("Unlock with Standard" — usage-based live billing was retired March 2025, so
-there is no cheaper Databento tier and the 09:00–11:30 window does **not**
+there is no cheaper Databento tier and the 08:15–11:30 window does **not**
 reduce that bill). Standard also bundles 16+ years of L0 history and 1 year
 of L1, so the separate usage-based historical charges (~$28/mo on this
 account) go to zero — net incremental ≈ $171/mo. Hosting is $0 if you run it
@@ -34,7 +34,7 @@ without it, just with the entry-timing limitation stated above.
 
 ## What it does
 
-1. Connects to Databento Live **only 09:00–11:30 ET weekdays** (pre-open tape → end of the NY AM A+ tail; Judas 09:30–09:45 is inside it but no-entry). Outside that it idles — no live socket. The 08:30 news candle is *not* covered live; the desk reads it from historical/Yahoo like any other bar. With `GATEWAY_EXIT_AFTER_WINDOW=1` it exits at 11:30 instead of idling (scheduled-run mode, below).
+1. Connects to Databento Live **only 08:15–11:30 ET weekdays** (through the 08:30 release → end of the NY AM A+ tail; Judas 09:30–09:45 is inside it but no-entry). Outside that it idles — no live socket. **The 08:30 news candle IS covered live as of 2026-09-23** — that was the point of moving the start from 09:00 to 08:15. Note the asymmetry it creates and do not confuse them: the socket is up at 08:15, but the ±15m high-impact blackout means no entry is legal until 08:45. You watch the print; you do not trade it. With `GATEWAY_EXIT_AFTER_WINDOW=1` it exits at 11:30 instead of idling (scheduled-run mode, below).
 2. On every record: upserts the latest price into `live_market_ticks`
    (one row per symbol — this is what gives you sub-5-second freshness) and
    aggregates 1s bars into `live_market_bars_1m`.
@@ -54,8 +54,10 @@ side, write-only to Postgres.
 
 ## Option A — run it on the desk PC, free (Windows Task Scheduler)
 
-The window is only 100 minutes a day and you are at the desk for it, so the
-cheapest host is the PC you are already sitting at.
+The window is 3h15m a day and you are at the desk for most of it, so the
+cheapest host is the PC you are already sitting at. The task fires at 07:10 CT
+with `-StartWhenAvailable -WakeToRun`, so it wakes the machine and still runs
+if the trigger is missed — but the PC must not be powered off at the wall.
 
 1. `pip install -r gateway/requirements.txt`
 2. Create `gateway/.env.local` (gitignored) with two lines:
