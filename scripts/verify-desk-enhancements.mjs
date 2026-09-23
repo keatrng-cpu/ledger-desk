@@ -1,0 +1,148 @@
+/**
+ * Stop coherence, the override log, and ladder conflict.
+ *
+ * Each of these three exists because of a specific thing the desk measured
+ * and then did nothing with, so each test here is really asking "does this
+ * still say the honest thing":
+ *   1. stop-coherence — the sleeve's −25% stop and the futures stop are in
+ *      different units and have never been compared. On 0–2 DTE the stop can
+ *      be reached by the clock alone, and the file must say CLOCK when it is.
+ *   2. override-log — the sequence fires ~never while the trader wins live.
+ *      The log must refuse to draw a conclusion at n=4, because four wins is
+ *      four coin flips.
+ *   3. ladder-conflict — tf_dir=against ran −0.69R/card but n=13. It must
+ *      warn and halve size, and must NEVER refuse.
+ *
+ * Run: npx tsx scripts/verify-desk-enhancements.mjs
+ */
+const { coherence, minDteForHold, dailyDecayFrac } = await import("../src/lib/trading/stop-coherence.ts");
+const { overrideScorecard, crossCheck, summarise, overridePrompt, MIN_N_FOR_READ } = await import(
+  "../src/lib/trading/override-log.ts"
+);
+const { ladderConflict, conflictLedger, LADDER_EVIDENCE, GATE_N_REQUIRED } = await import(
+  "../src/lib/trading/ladder-conflict.ts"
+);
+
+let pass = 0;
+let fail = 0;
+const check = (name, got, want) => {
+  const ok = JSON.stringify(got) === JSON.stringify(want);
+  ok ? pass++ : fail++;
+  console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
+};
+const ok = (name, cond) => check(name, !!cond, true);
+
+console.log("\nstop coherence — do the two books agree where the trade is wrong?");
+// The sleeve's actual shape: $150 debit, ~0.5 delta, 1 DTE, against an MNQ
+// plan risking 60 points.
+const day = coherence({ symbol: "MNQ", riskPts: 60, debitUsd: 150, delta: 0.5, dte: 1, holdHours: 4 });
+check("1 DTE / 4h is tighter than the futures stop", day.verdict, "option-tighter");
+check("the option stop is ~30 MNQ points", Math.round(day.optionStopPts), 30);
+ok("ratio is about half the plan's stop", day.ratio > 0.45 && day.ratio < 0.55);
+ok("decay already eats most of the stop", day.decayToStop > 0.5);
+ok("the line is labelled an estimate", day.line.startsWith("ESTIMATE"));
+ok("assumptions always travel with it", day.assumptions.length >= 3);
+
+// Hold it all day on a 1 DTE and the stop stops being about price at all.
+const clock = coherence({ symbol: "MNQ", riskPts: 60, debitUsd: 150, delta: 0.5, dte: 1, holdHours: 8 });
+check("1 DTE held 8h is a CLOCK, not a level", clock.verdict, "clock");
+ok("and it says so in those words", /CLOCK, not a level/.test(clock.line));
+
+// More time restores price as the thing being risked.
+const swing = coherence({ symbol: "MNQ", riskPts: 60, debitUsd: 4300, delta: 0.75, dte: 21, holdHours: 8 });
+ok("a 21 DTE deep-ITM ticket is not a clock", swing.verdict !== "clock");
+ok("decay is small at 21 DTE", swing.decayToStop < 0.1);
+
+// A wider option stop than the plan's is the SAFE direction and says so.
+const loose = coherence({ symbol: "MNQ", riskPts: 15, debitUsd: 150, delta: 0.5, dte: 7, holdHours: 4 });
+check("a small plan stop makes the option stop looser", loose.verdict, "option-looser");
+ok("and it tells you to sell on invalidation instead", /invalidation/.test(loose.line));
+
+// Missing ticket data must produce an honest refusal, not a confident number.
+const blind = coherence({ symbol: "MNQ", riskPts: 60, debitUsd: 0, delta: 0, dte: 1 });
+check("unknown ticket yields no number", blind.optionStopPts, null);
+ok("and asks for the actual DTE/delta/debit", /Log the actual/.test(blind.line));
+check("an unknown symbol yields no number", coherence({ symbol: "ZZZ", riskPts: 60, debitUsd: 150, delta: 0.5, dte: 5 }).optionStopPts, null);
+
+ok("decay at 1 DTE is total", dailyDecayFrac(1) === 1);
+ok("decay at 30 DTE is small", dailyDecayFrac(30) < 0.02);
+ok("a 4h hold needs at least 2 DTE", minDteForHold(4) >= 2);
+ok("a longer hold needs at least as much time", minDteForHold(12) >= minDteForHold(4));
+
+console.log("\noverride log — which gate was wrong, not whether overriding works");
+const four = [
+  { id: "1", at: "2026-09-08", symbol: "MNQ", side: "long", book: "options", missing: ["pd_half"], deskWord: "STAND", grade: "B+", resultR: 1.2, resultUsd: 28, reason: "draw was clean", ladderAgreed: true },
+  { id: "2", at: "2026-09-10", symbol: "MNQ", side: "long", book: "options", missing: ["pd_half", "ltf"], deskWord: "STAND", grade: "B+", resultR: 0.9, resultUsd: 27, reason: "same read", ladderAgreed: true },
+  { id: "3", at: "2026-09-15", symbol: "ES", side: "short", book: "options", missing: ["ltf"], deskWord: "WAIT", grade: "A-", resultR: 1.1, resultUsd: 30, reason: "raid then shift", ladderAgreed: true },
+  { id: "4", at: "2026-09-17", symbol: "MNQ", side: "long", book: "options", missing: ["pd_half"], deskWord: "STAND", grade: "B+", resultR: 1.0, resultUsd: 28, reason: "draw", ladderAgreed: false },
+];
+const s4 = summarise(four);
+check("four closed overrides", s4.closed, 4);
+check("all four winners", s4.wins, 4);
+ok("and it refuses to conclude anything", /coin flips/.test(s4.line));
+
+const card = overrideScorecard(four);
+const pd = card.find((r) => r.layer === "pd_half");
+check("pd_half counted three times", pd.n, 3);
+check("and is still too early to read", pd.verdict, "too-early");
+ok("the row says so rather than implying a finding", /not evidence/.test(pd.line));
+ok("every layer at n<12 is too-early", card.every((r) => r.n >= MIN_N_FOR_READ || r.verdict === "too-early"));
+
+// With a real n the verdicts must actually fire, in both directions.
+const many = (n, layer, r) =>
+  Array.from({ length: n }, (_, i) => ({
+    id: `${layer}-${i}`, at: "2026-01-01", symbol: "MNQ", side: "long", book: "futures",
+    missing: [layer], deskWord: "STAND", grade: "B+", resultR: r, resultUsd: 0, reason: "x", ladderAgreed: true,
+  }));
+const paysRow = overrideScorecard(many(14, "pd_half", 0.8))[0];
+check("a profitable override lane reads override-pays", paysRow.verdict, "override-pays");
+ok("and routes the change through the sweep script", /sweep-gates/.test(paysRow.line));
+const rightRow = overrideScorecard(many(14, "ltf", -0.6))[0];
+check("a losing override lane says the gate was right", rightRow.verdict, "gate-was-right");
+ok("and says the layer should be obeyed", /should be obeyed/.test(rightRow.line));
+check("a flat lane is neutral", overrideScorecard(many(14, "dol", 0.02))[0].verdict, "neutral");
+
+// The cross-check against the shadow book is the interesting output.
+const agreeing = crossCheck(overrideScorecard(many(14, "pd_half", 0.8)), { pd_half: "costing" });
+check("live and shadows agreeing is flagged as agreement", agreeing[0].agree, true);
+const clashing = crossCheck(overrideScorecard(many(14, "pd_half", 0.8)), { pd_half: "earning" });
+check("live and shadows clashing is flagged", clashing[0].agree, false);
+ok("and forbids changing a gate on a disagreement", /Do not change a gate/.test(clashing[0].line));
+
+check("an empty log says what it costs", summarise([]).closed, 0);
+ok("and explains why the reason must be written first", /before the outcome is known/.test(summarise([]).line));
+ok("the prompt demands the reason up front", /before you know how it ends/.test(overridePrompt(["pd_half"], "STAND")));
+check("no missing layers means no prompt", overridePrompt([], "TAKE"), "");
+
+console.log("\nladder conflict — warn and halve, never refuse");
+const L = (direction, decidedBy = "1d") => ({ direction, decidedBy, reads: [], symbol: "MNQ" });
+const agree = ladderConflict(L("bull"), "long");
+check("agreement is agreement", agree.level, "agree");
+check("and does not size up", agree.sizeMult, 1);
+ok("and calls the +0.08R a small positive, not a reason to add", /not a reason to size up/.test(agree.line));
+
+const clash = ladderConflict(L("bear", "1w"), "long");
+check("disagreement is conflict", clash.level, "conflict");
+check("suggested size is halved", clash.sizeMult, 0.5);
+ok("it warns", clash.warn);
+ok("it explicitly is NOT a refusal", /NOT a refusal/.test(clash.line));
+ok("it names the n in the losing bucket", clash.line.includes(String(LADDER_EVIDENCE.againstN)));
+ok("it names the rung that decided", clash.line.includes("1w"));
+ok("size multiplier is never zero — this cannot refuse", ladderConflict(L("bear"), "long").sizeMult > 0);
+
+check("a neutral ladder neither helps nor hurts", ladderConflict(L("neutral"), "long").level, "neutral");
+check("no ladder is neutral", ladderConflict(null, "long").level, "neutral");
+check("no ladder does not resize", ladderConflict(null, "long").sizeMult, 1);
+check("a short against a bull ladder conflicts", ladderConflict(L("bull"), "short").level, "conflict");
+
+const led = conflictLedger([]);
+check("the ledger starts seeded from the shadow measurement", led.againstN, LADDER_EVIDENCE.againstN);
+check("and is not yet gateable", led.gateable, false);
+check("needing 27 more disagreements", led.needed, GATE_N_REQUIRED - LADDER_EVIDENCE.againstN);
+ok("and it says so plainly", /more disagreements needed/.test(led.line));
+const grown = conflictLedger(Array.from({ length: 30 }, () => ({ agreed: false, resultR: -0.5 })));
+ok("enough live disagreements makes it gateable", grown.gateable);
+ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
+
+console.log(`\n${pass} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);
