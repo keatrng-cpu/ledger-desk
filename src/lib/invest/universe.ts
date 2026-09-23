@@ -138,7 +138,11 @@ export interface Fundamentals {
   insiderPct: number | null;
   institutionPct: number | null;
   sector: string | null;
-  /** True when this row has never been captured — blocks ADD. */
+  /**
+   * True when this row has never been captured — blocks ADD for a company.
+   * Funds are set false: OVERVIEW returns nothing for an ETF, so queueing one
+   * spends a request from a 25/day budget to receive an empty object.
+   */
   pendingCapture: boolean;
 }
 
