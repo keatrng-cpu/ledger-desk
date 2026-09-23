@@ -29,6 +29,12 @@ import {
   setOpenPaperCount,
 } from "./desk-memory";
 import { MAX_RISK_PTS } from "./simulate-path-trade";
+import {
+  emptyBookCounters,
+  monthKeyFromMs,
+  resolveRiskGradeForTake,
+  type BookCounters,
+} from "./profit-rules";
 import { QUOTE_EXECUTION_MAX_LAG_SEC } from "@/lib/market/types";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
@@ -79,6 +85,18 @@ export interface PaperTrade {
   scaleLegs: { at: string; price: number; contracts: number; r: number; note: string }[];
   reason: string;
   pathBand?: string;
+  /**
+   * The band the CARD carried, before rule 5's A+ probe demotion touched
+   * `grade`. `grade` is the sizing grade — the A+ probe rewrites it to "A" —
+   * so it can no longer answer "was this an A+ setup", and that question is
+   * what the n>=20 unlock counts. `pathBand` answers it whenever the candidate
+   * supplied one; this is the fallback for the cards that do not, which before
+   * the probe existed were identifiable from `grade` alone.
+   *
+   * Absent on every record written before 2026-09-23 — those are read through
+   * `pathBand` / `grade`, which for them still carry the card's own band.
+   */
+  cardBand?: string;
   /** Already pushed into desk-memory brain rates */
   ingested?: boolean;
   /**
@@ -156,9 +174,51 @@ export interface BuiltPaperLevels {
   contracts: number;
   riskPct: number;
   riskDollars: number;
+  /**
+   * The grade the SIZE came from. For an A+ card this is "A" until the book
+   * earns full size (rule 5), which is why it is reported separately from
+   * `cardGrade` — a ticket that printed "A+" beside a 2% risk figure would
+   * read as a bug rather than as the probe.
+   */
   grade: RiskGrade | string;
+  /** The band the card was graded at, untouched by the A+ probe demotion. */
+  cardGrade: RiskGrade | string;
   /** Discretion multiplier actually applied to size (journal/discretion.ts). 1.0 = neutral / none supplied. */
   discretionFactor: number;
+}
+
+/**
+ * The A+ sample, counted off the paper book, for rule 5's probe check.
+ *
+ * Rule 5 (profit-rules.ts) sizes an A+ card at the A probe until the book has
+ * earned full size — n>=20 closed A+ trades at WR>=65%. The paper book is that
+ * sample, so it is also the only thing that can answer the question, and it
+ * has to answer synchronously: levels are built during a click, with no await
+ * to spend on a round trip.
+ *
+ * ONLY the two A+ fields are real. The rest keep their empty values because
+ * nothing on rule 5's path reads them, and a half-guessed `pathThisMonth`
+ * here is exactly the kind of number a later caller would mistake for the
+ * month cap. A caller that needs the whole set passes its own (the server
+ * reads all of it from `desk_trades` — journal/server.ts readBookCounters).
+ *
+ * Counted the way the backtest counts (session-backtest.ts registerTake):
+ * resolved trades only, keyed on the CARD's band and never on the sizing
+ * grade. Keying on the sizing grade would let the demotion delete the sample
+ * that lifts it — an A+ card booked as "A" would never count toward the 20.
+ *
+ * Off the browser (SSR, replay harness, scripts) the book reads empty and the
+ * probe therefore holds. An unknown history is not an unlock.
+ */
+export function paperAPlusCounters(now = Date.now()): BookCounters {
+  const counters = emptyBookCounters(monthKeyFromMs(now));
+  for (const t of loadPaperTrades()) {
+    if (t.status !== "closed" || t.rMultiple == null) continue;
+    if ((t.pathBand || t.cardBand || t.grade) !== "A+") continue;
+    counters.aPlusTaken += 1;
+    if (t.rMultiple > 0) counters.aPlusWins += 1;
+  }
+  return counters;
 }
 
 /**
@@ -169,12 +229,20 @@ export interface BuiltPaperLevels {
  * and fetched server-side (getDiscretionState). Optional and defaults to
  * neutral (1.0) so every existing caller keeps its current behavior until
  * it is explicitly wired up.
+ *
+ * `counters` — the book the A+ probe is judged against. Defaults to the paper
+ * book (`paperAPlusCounters`), which is the sample the unlock is written
+ * against. A caller holding authoritative counters — the server, which reads
+ * them from `desk_trades`, or a replay driving its own book — passes them
+ * rather than letting a ticket be sized off whatever happens to be in this
+ * browser's localStorage.
  */
 export function buildPaperLevels(
   c: SetupCandidate,
   equity?: number,
   lastPrice?: number,
   discretionMult?: number,
+  counters?: BookCounters,
 ): BuiltPaperLevels {
   const displaySymbol = c.symbol;
   const symbol = resolveContractSymbol(c.symbol);
@@ -274,7 +342,38 @@ export function buildPaperLevels(
   tp2 = tickRound(symbol, tp2);
   riskPts = Math.abs(entry - stop);
 
-  const grade = (c.riskGrade || c.pathBand || c.grade || "A-") as RiskGrade;
+  /**
+   * RULE 5 — an A+ card is sized at the A probe until the book earns full size.
+   *
+   * This line used to size straight off the card's band, and `riskByGrade`
+   * prices A+ at 3%. So every A+ paper fill risked $3,000 of the $100,000 book
+   * where the hard rule says $2,000 — a 50% oversize, on the one card type
+   * whose win rate is what earns the 3% in the first place. The unlock needs
+   * n>=20 A+ at WR>=65% and the book has 4, so full size was being spent
+   * before it was earned, and every A+ R in the sample was measured at a size
+   * nobody was entitled to trade.
+   *
+   * The backtest has always routed through `resolveRiskGradeForTake`
+   * (session-backtest.ts) and the shadow book through `APLUS_PROBE_RISK`
+   * (shadow-book.ts). The paper book was the only one sizing off the raw band,
+   * which meant the three books were not measuring the same system. Rule 5
+   * lives in ONE function so that when the unlock flips, all of them follow it
+   * on the same tick.
+   *
+   * Guarded on A+ rather than applied to every card: `resolveRiskGradeForTake`
+   * re-resolves the band itself and answers "skip" to anything it does not
+   * recognise, which would re-size the unbanded cards this function has always
+   * defaulted to A-. The probe is the only rule being imported here.
+   *
+   * `cardGrade` stays the card's own band. The demotion is a SIZING decision —
+   * it does not re-grade the setup, and the A+ sample must still be able to
+   * find this trade.
+   */
+  const cardGrade = (c.riskGrade || c.pathBand || c.grade || "A-") as RiskGrade;
+  const grade: RiskGrade =
+    cardGrade === "A+"
+      ? resolveRiskGradeForTake(c, counters ?? paperAPlusCounters())
+      : cardGrade;
   const sizing = sizeContracts({
     symbol,
     riskPts,
@@ -296,6 +395,7 @@ export function buildPaperLevels(
     riskPct: sizing.riskPct,
     riskDollars: sizing.riskDollars,
     grade,
+    cardGrade,
     discretionFactor: discretionMult ?? 1.0,
   };
 }
@@ -464,6 +564,12 @@ export function openPaperTradeInstant(
         `strategy:${c.completeStrategy || c.strategyPrimary || "—"}`,
         `band:${c.pathBand || c.grade}`,
         opts?.killzone ? `kz:${opts.killzone}` : null,
+        // Why an A+ card was sized as an A. Recorded for the same reason the
+        // discretion multiplier is: "why was this sized like that" has to be
+        // answerable from the trade alone, without re-deriving the counters.
+        levels.cardGrade === "A+" && levels.grade !== "A+"
+          ? `A+ probe: sized ${levels.grade} (rule 5, unlock not earned)`
+          : null,
         levels.discretionFactor !== 1.0
           ? `discretion:${levels.discretionFactor.toFixed(2)}x`
           : null,
@@ -472,6 +578,7 @@ export function openPaperTradeInstant(
         .filter(Boolean)
         .join(" · "),
       pathBand: c.pathBand,
+      cardBand: String(levels.cardGrade),
       killzone: opts?.killzone,
       discretionFactor: levels.discretionFactor,
     };

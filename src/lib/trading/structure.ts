@@ -9,6 +9,18 @@
  * timestamp and flags higher-high / lower-low failures between them.
  *
  * Liquidity: internal + external SSL/BSL (not session-only).
+ *
+ * CLOSED BARS vs THE FORMING BAR. The desk patches the live print into the
+ * last bar before calling in here, so the newest bar is usually still in
+ * progress. A price LOCATION (where we are in the range, what wick has taken
+ * out which pool, what the last print is) is honestly read off that bar. A
+ * TREND or a BREAK — "price closed beyond the level" — is not: it is a claim
+ * about a bar that has finished, and a tick that reverts before the close
+ * turns it into a lie that flips the HTF gate and un-flips it on the next
+ * poll. Callers that can separate the two pass `opts.closed`; everything that
+ * votes into `topDown` / `lastBOS` is then graded on that prefix alone, and
+ * the forming bar's break is reported separately as `reversalAlert` — seen
+ * early, authorising nothing.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
@@ -42,6 +54,28 @@ export interface DealingRange {
   position: number;
 }
 
+/**
+ * A break of structure that is true only on the bar still forming.
+ *
+ * The trader wants reversals noticed sooner, not authorised sooner. A tick one
+ * point under the last swing low at 10:07, inside a 15m bar that closes back
+ * above it at 10:15, is worth looking at and is not a BOS. So it is reported
+ * here on its own, and nothing that gates a trade reads this field: `topDown`,
+ * `lastBOS` and every layer built on them are graded on closed bars. Null
+ * whenever the caller did not hand over a closed prefix — with no forming bar
+ * there is nothing to be early about.
+ */
+export interface ReversalAlert {
+  direction: Bias;
+  /** The swing the forming bar is trading through. */
+  level: number;
+  /** Open time of the forming bar. Unconfirmed until that bar closes. */
+  t: number;
+  /** The whole point: this contradicts the HTF gate the board is showing. */
+  againstTopDown: boolean;
+  note: string;
+}
+
 export interface HtfBiasRead {
   symbol: string;
   topDown: Bias;
@@ -67,6 +101,8 @@ export interface HtfBiasRead {
   /** Live session delivery (last ~12 bars). Day-trades ride this — do not fade it. */
   sessionStance: Bias;
   sessionStrength: number;
+  /** Forming-bar break. Narrative only — never a vote, never a gate. */
+  reversalAlert: ReversalAlert | null;
 }
 
 function swingPoints(bars: OhlcBar[], left = 3, right = 3): Swing[] {
@@ -117,7 +153,17 @@ function lastBos(
   return null;
 }
 
-function liveStructureShift(
+/**
+ * The newest break: the last bar's own body through the last swing, falling
+ * back to the swing sequence when it has not broken anything.
+ *
+ * It used to be named `liveStructureShift` and was handed the patched series,
+ * so "closed beyond the level" was asserted from a bar with minutes left to
+ * run. `bars` here must be CLOSED — this is what `lastBOS` and therefore the
+ * absolute HTF gate are built from, and a claim that reverts on the next poll
+ * is worse than no claim.
+ */
+function structureShift(
   bars: OhlcBar[],
   swings: Swing[],
 ): { direction: Bias; level: number; t: number } | null {
@@ -132,6 +178,29 @@ function liveStructureShift(
     return { direction: "bull", level: lastHigh.price, t: last.t };
   }
   return lastBos(swings);
+}
+
+/**
+ * The same test run against the bar that has NOT closed, and deliberately
+ * without the swing-sequence fallback: a fallback would make this fire on
+ * structure that broke bars ago, which is not news. It answers one question —
+ * is price, right now, trading through the level that would flip the read? —
+ * and the answer is narrative until that bar closes.
+ */
+function formingShift(
+  forming: OhlcBar | null,
+  swings: Swing[],
+): { direction: Exclude<Bias, "neutral">; level: number } | null {
+  if (!forming) return null;
+  const lastHigh = [...swings].reverse().find((s) => s.kind === "high");
+  const lastLow = [...swings].reverse().find((s) => s.kind === "low");
+  if (lastLow && forming.c < lastLow.price && forming.l < lastLow.price) {
+    return { direction: "bear", level: lastLow.price };
+  }
+  if (lastHigh && forming.c > lastHigh.price && forming.h > lastHigh.price) {
+    return { direction: "bull", level: lastHigh.price };
+  }
+  return null;
 }
 
 function sessionImpulse(
@@ -504,10 +573,17 @@ function voteBias(...votes: Bias[]): Bias {
   return "neutral";
 }
 
+/**
+ * `opts.closed` is the closed-bar prefix of `bars` — what `closedBars()` in
+ * freshest.ts returns. Pass it whenever the last bar may still be forming.
+ * Omitting it says "every bar here has closed", which is true for replay, the
+ * backtest and the capture scripts, and leaves their grading bit-identical.
+ */
 export function analyzeStructure(
   symbol: string,
   bars: OhlcBar[],
   changePct: number,
+  opts?: { closed?: OhlcBar[] },
 ): HtfBiasRead {
   if (bars.length < 30) {
     return {
@@ -534,21 +610,37 @@ export function analyzeStructure(
       last: bars[bars.length - 1]?.c ?? 0,
       sessionStance: "neutral",
       sessionStrength: 0,
+      reversalAlert: null,
     };
   }
 
-  const swingsAll = swingPoints(bars, 4, 4);
-  const midBars = bars.slice(-Math.min(bars.length, 120));
-  const ltfBars = bars.slice(-Math.min(bars.length, 48));
+  /**
+   * Two views of the same tape. `closed` grades — swings, trend, the session
+   * impulse and the BOS are all statements about bars that finished, and an
+   * unfinished bar understates its own range and net move as well as its
+   * close. `bars` locates — the dealing range, the session levels, the swept
+   * flags and `last` are where price IS, which is exactly what the forming
+   * bar is good for. A caller with nothing to separate gets the old behaviour.
+   */
+  const closed =
+    opts?.closed?.length && opts.closed.length <= bars.length
+      ? opts.closed
+      : bars;
+  const forming = closed.length < bars.length ? bars[bars.length - 1]! : null;
+
+  const swingsAll = swingPoints(closed, 4, 4);
+  const midBars = closed.slice(-Math.min(closed.length, 120));
+  const ltfBars = closed.slice(-Math.min(closed.length, 48));
   const swingsMid = swingPoints(midBars, 3, 3);
   const swingsLtf = swingPoints(ltfBars, 2, 2);
 
   const daily = trendFromSwings(swingsAll);
   const mid = trendFromSwings(swingsMid);
   let ltf = trendFromSwings(swingsLtf);
-  const impulse = sessionImpulse(bars, 12);
-  const live = liveStructureShift(bars, swingsLtf.length ? swingsLtf : swingsMid);
-  const bos = live ?? lastBos(swingsMid);
+  const impulse = sessionImpulse(closed, 12);
+  const ltfSwings = swingsLtf.length ? swingsLtf : swingsMid;
+  const bos = structureShift(closed, ltfSwings) ?? lastBos(swingsMid);
+  const formingBreak = formingShift(forming, ltfSwings);
   if (impulse.bias !== "neutral" && impulse.strength >= 0.32) {
     ltf = impulse.bias;
   }
@@ -582,10 +674,27 @@ export function analyzeStructure(
   const last = bars[bars.length - 1]!.c;
   const sessionStance = impulse.bias;
   const sessionStrength = +impulse.strength.toFixed(3);
+  const reversalAlert: ReversalAlert | null =
+    formingBreak && forming
+      ? {
+          direction: formingBreak.direction,
+          level: formingBreak.level,
+          t: forming.t,
+          againstTopDown:
+            topDown !== "neutral" && formingBreak.direction !== topDown,
+          note: `${symbol}: forming bar trading ${formingBreak.direction === "bear" ? "below" : "above"} ${formingBreak.level.toFixed(2)} — not a BOS until it closes there. HTF gate stays ${topDown}.`,
+        }
+      : null;
+  // The alert rides the summary only when it CONTRADICTS the gate — that is
+  // the case the trader wants in front of him a bar early. A forming break in
+  // the direction the board already shows is confirmation, not news.
   const summary =
-    topDown === "neutral"
+    (topDown === "neutral"
       ? `${symbol}: mixed structure — no absolute HTF edge. Wait for alignment.`
-      : `${symbol}: HTF ${topDown.toUpperCase()} (conf ${(confidence * 100).toFixed(0)}%). Daily ${daily} · mid ${mid} · LTF ${ltf}${dealing ? ` · price in ${dealing.zone}` : ""} · session ${sessionStance}${sessionStrength ? ` ${Math.round(sessionStrength * 100)}%` : ""}.`;
+      : `${symbol}: HTF ${topDown.toUpperCase()} (conf ${(confidence * 100).toFixed(0)}%). Daily ${daily} · mid ${mid} · LTF ${ltf}${dealing ? ` · price in ${dealing.zone}` : ""} · session ${sessionStance}${sessionStrength ? ` ${Math.round(sessionStrength * 100)}%` : ""}.`) +
+    (reversalAlert?.againstTopDown
+      ? ` ⚠ ${reversalAlert.direction.toUpperCase()} break forming through ${reversalAlert.level.toFixed(2)} — watch, not a gate until that bar closes.`
+      : "");
 
   return {
     symbol,
@@ -616,6 +725,7 @@ export function analyzeStructure(
     last,
     sessionStance,
     sessionStrength,
+    reversalAlert,
   };
 }
 

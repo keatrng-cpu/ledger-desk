@@ -32,7 +32,10 @@
  *              +0.444R. Pooled across killzones like everything else here,
  *              so treat it as a way to spend attention rather than a proven
  *              edge. With two trades a week, attention is the scarce
- *              resource; FORMING means look away.
+ *              resource; FORMING means look away. The distance is SIGNED:
+ *              those buckets were measured on cards price had not reached
+ *              yet, and a plan price has already gone past is a different
+ *              object wearing the same number.
  *   TOUCH    — price has entered the entry zone. This is the alarm.
  *   COST     — what the loss you have not had yet does to the week, priced
  *              before the click rather than discovered after it.
@@ -71,12 +74,23 @@ export const TIER_GONE_ATR = 3;
 
 export interface EntryRead {
   tier: EntryTier;
-  /** Distance from price to the NEAR edge of the array, in ATR. 0 = inside. */
+  /**
+   * Distance from price to the NEAR edge of the array, in ATR. 0 = inside.
+   * Null when the caller had no ATR: the tier still has to be bucketed
+   * against something, but a ratio taken against an invented scale is not
+   * an ATR and is never printed as one.
+   */
   awayAtr: number | null;
-  /** Same distance in points. */
+  /** Same distance in points. Always real — points need no scale. */
   awayPts: number | null;
   /** True when the live print is inside the entry zone (± the retrace pad). */
   inZone: boolean;
+  /**
+   * True when price sits on the STOP side of the array — the retrace has
+   * already gone through the entry, so the plan is behind price rather than
+   * in front of it.
+   */
+  behind: boolean;
   /** One line: what to do about this plan right now. */
   action: string;
   /** Why the tier is what it is, in tape terms. */
@@ -85,8 +99,28 @@ export interface EntryRead {
 
 /**
  * Where a plan sits relative to price, and therefore whether it deserves
- * attention. `atr` comes from the draw read; without it the tier falls back
- * to the array's own height, which is the next best scale on the tape.
+ * attention.
+ *
+ * THE DISTANCE IS SIGNED, AND THAT IS THE WHOLE POINT
+ * Until 2026-09-23 this measured |price − array| and threw the sign away, so
+ * a setup that had already resolved graded identically to one still forming.
+ * A long with the array at 29800–29820 and the stop at 29780 read "armed —
+ * set the alert" at 29760, forty points THROUGH its own invalidation, and the
+ * panel's rest-limit button is enabled for every tier except `gone`.
+ *
+ * The side decides which way is forward. A long is entered on a retrace DOWN
+ * into a discount array, so price above the array is the move still to come
+ * and price below it is the move already past the entry — and further out,
+ * past the stop. A short mirrors it exactly. This is not a judgement call:
+ * `tickPending` fills a long at `price <= limit` and books the fill AT THE
+ * LIMIT, so a limit rested below price fills instantly at a price the tape
+ * left behind, carrying the plan's original risk into a trade that no longer
+ * has it. Refusing that click is what `behind` is for.
+ *
+ * `atr` comes from the draw read; without it the tier falls back to the
+ * array's own height, which is the next best scale on the tape but is not a
+ * volatility reading. The copy below says so rather than quoting figures
+ * measured against a real one.
  */
 export function readEntry(
   plan: TradePlan | null,
@@ -96,40 +130,63 @@ export function readEntry(
   if (!plan || !plan.entryZone) return null;
   const { top, bottom } = plan.entryZone;
   const height = top - bottom;
-  const scale = atr != null && atr > 0 ? atr : height > 0 ? height * 4 : null;
+  // An ATR the caller actually measured, or nothing. path-alarm.ts passes
+  // null on every poll, so the fallback is the common case rather than the
+  // rare one, and whatever it scales has to be labelled as its own thing.
+  const atrKnown = atr != null && Number.isFinite(atr) && atr > 0;
+  const scale = atrKnown ? atr : height > 0 ? height * 4 : null;
   if (scale == null || !(scale > 0)) return null;
 
   // The same pad the retrace layer uses, so "inside" means the same thing
   // on this board as it does in the sequence.
   const pad = Math.max(height * 0.25, 0.25);
   const inZone = price >= bottom - pad && price <= top + pad;
+  const long = plan.side === "long";
+  const behind = !inZone && (long ? price < bottom : price > top);
+  // Past the invalidation, not merely past the entry. Worth separating
+  // because the two say different things to the trader: one plan is spent,
+  // the other is dead.
+  const stopped = behind && (long ? price < plan.stop : price > plan.stop);
   const awayPts = inZone ? 0 : price > top ? price - top : bottom - price;
-  const awayAtr = awayPts / scale;
+  const awayScale = awayPts / scale;
+  const awayAtr = atrKnown ? awayScale : null;
 
   let tier: EntryTier;
-  if (inZone || awayAtr <= TIER_LIVE_ATR) tier = "live";
-  else if (awayAtr <= TIER_ARMED_ATR) tier = "armed";
-  else if (awayAtr <= TIER_GONE_ATR) tier = "forming";
+  if (behind) tier = "gone";
+  else if (inZone || awayScale <= TIER_LIVE_ATR) tier = "live";
+  else if (awayScale <= TIER_ARMED_ATR) tier = "armed";
+  else if (awayScale <= TIER_GONE_ATR) tier = "forming";
   else tier = "gone";
 
   const zoneTxt = `${bottom.toFixed(2)}–${top.toFixed(2)}`;
-  const action =
-    tier === "live"
+  // Points are always true; the ATR figure only exists when an ATR did.
+  const dist = atrKnown ? `${awayScale.toFixed(2)} ATR` : `${awayPts.toFixed(2)}pt`;
+
+  const action = behind
+    ? stopped
+      ? `Price ${price.toFixed(2)} is through the stop at ${plan.stop.toFixed(2)} — this idea is already invalidated. Nothing to rest; wait for the sequence to price a new one.`
+      : `Price ${price.toFixed(2)} is past CE ${plan.entry.toFixed(2)} on the stop side — a limit there would book a fill the tape has already left behind. Wait for a new plan.`
+    : tier === "live"
       ? inZone
         ? `Price is IN the array — the limit at CE ${plan.entry.toFixed(2)} is live now.`
         : `${awayPts.toFixed(2)}pt from the array — rest the limit at CE ${plan.entry.toFixed(2)} and stop watching the screen.`
       : tier === "armed"
-        ? `${awayAtr.toFixed(2)} ATR away — set the alert, do not sit here. The touch is what you are waiting for, not the chart.`
+        ? `${dist} away — set the alert, do not sit here. The touch is what you are waiting for, not the chart.`
         : tier === "forming"
-          ? `${awayAtr.toFixed(2)} ATR away — this is a plan for later. Look away; the alarm will call you.`
-          : `${awayAtr.toFixed(2)} ATR away — price has walked off this plan. Wait for the sequence to price a new one.`;
+          ? `${dist} away — this is a plan for later. Look away; the alarm will call you.`
+          : `${dist} away — price has walked off this plan. Wait for the sequence to price a new one.`;
 
-  const detail =
-    tier === "forming" || tier === "gone"
-      ? `Array ${zoneTxt} is ${awayPts.toFixed(2)}pt (${awayAtr.toFixed(2)} ATR) from ${price.toFixed(2)}. Cards this far out ran −0.03R each and filled 43% of the time; cards inside 1 ATR ran +0.44R.`
-      : `Array ${zoneTxt}${inZone ? " — price inside" : ` — ${awayPts.toFixed(2)}pt (${awayAtr.toFixed(2)} ATR) away`}. This is the band that pays: +0.44R per card inside 1 ATR.`;
+  // The distance buckets were measured on cards price had NOT yet reached,
+  // and against a real ATR. Quote them only where both of those hold.
+  const detail = behind
+    ? `Array ${zoneTxt} sits ${awayPts.toFixed(2)}pt on the far side of ${price.toFixed(2)}: the retrace went through the entry${stopped ? ` and through the stop at ${plan.stop.toFixed(2)}` : ""}. The distance buckets do not describe this — they were measured on plans still ahead of price.`
+    : !atrKnown
+      ? `Array ${zoneTxt}${inZone ? " — price inside" : ` — ${awayPts.toFixed(2)}pt away`}. No ATR on this read, so the tier is scaled by the array's own height — a ruler, not a volatility reading, so the measured per-card R figures are not quoted against it.`
+      : tier === "forming" || tier === "gone"
+        ? `Array ${zoneTxt} is ${awayPts.toFixed(2)}pt (${awayScale.toFixed(2)} ATR) from ${price.toFixed(2)}. Cards this far out ran −0.03R each and filled 43% of the time; cards inside 1 ATR ran +0.44R.`
+        : `Array ${zoneTxt}${inZone ? " — price inside" : ` — ${awayPts.toFixed(2)}pt (${awayScale.toFixed(2)} ATR) away`}. This is the band that pays: +0.44R per card inside 1 ATR.`;
 
-  return { tier, awayAtr, awayPts, inZone, action, detail };
+  return { tier, awayAtr, awayPts, inZone, behind, action, detail };
 }
 
 /* ── The touch ───────────────────────────────────────────────────────────── */

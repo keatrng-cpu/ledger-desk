@@ -342,9 +342,28 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         }
       }
 
+      /**
+       * A SYNTHETIC QUOTE IS NOT A PRICE.
+       *
+       * When every source fails, `quote()` falls back to `syntheticQuote()`:
+       * a constant out of YAHOO_MAP, stamped `lagSec: 0` and
+       * `marketTimeMs: now`. Every freshness gate on this desk keys on
+       * `lagSec`, never on `source` — so the one number nobody measured
+       * arrived looking fresher than anything real. Execution grade passed,
+       * "Risk model armed" printed green, the shock detector compared live
+       * bars against a constant, the options sleeve was priced off it, and
+       * auto-paper would have booked a fill at a hardcoded number into the
+       * very sample that gates the A+ unlock. The HUD did show a synthetic
+       * badge; not one gate read it.
+       *
+       * Hence: the SOURCE decides, not the lag, and a synthetic quote stands
+       * the desk down in the same branch as a dead series.
+       */
+      const liveSource = (s: string) =>
+        s === "yahoo" || s === "databento" || s === "live_gateway";
+      const seriesLive = liveSource(left.source) && liveSource(right.source);
+      const quotesLive = liveSource(lq.source) && liveSource(rq.source);
 
-      const biasL = analyzeStructure(left.symbol, left.bars, left.changePct);
-      const biasR = analyzeStructure(right.symbol, right.bars, right.changePct);
       // Real SMT: timestamp-aligned swing divergence, not a %-change proxy.
       // SMT and the SMC tape are CONFIRMATIONS, not price location: they run
       // on closed bars only. A forming bar can print a transient HH on NQ
@@ -352,6 +371,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // a displacement / MSS that never closes that way.
       const closedL = closedBars(left.bars, left.interval, left.marketTimeMs ?? Date.now());
       const closedR = closedBars(right.bars, right.interval, right.marketTimeMs ?? Date.now());
+      // Structure was the one engine still grading the patched bar, so a
+      // single tick under a swing low at 10:07 printed a BOS and vetoed every
+      // long on the board until 10:15 put price back above it. It now grades
+      // the closed prefix and reports the forming bar's break as
+      // `bias.*.reversalAlert` — seen a bar early, authorising nothing.
+      const biasL = analyzeStructure(left.symbol, left.bars, left.changePct, { closed: closedL });
+      const biasR = analyzeStructure(right.symbol, right.bars, right.changePct, { closed: closedR });
       const smtStack = smtDivergenceStack(closedL, closedR);
       const divergence = smtStack.primary;
       const smc = {
@@ -417,10 +443,14 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // caught from price. When locked it overrides the verdict to blackout,
       // which the whole desk (TAKE / auto-paper / alarm / options) already
       // refuses on. Uses the same closed bars the detectors ran on.
+      // The live-move leg gets `null` rather than a synthetic quote: the gap
+      // between real bars and a hardcoded constant is thousands of points, so
+      // feeding it here manufactures a catastrophic candle that never traded.
+      // readShock takes a null quote and falls back to the closed bars alone.
       const nowMs = Date.now();
       const shock = readShock(
-        { symbol: left.symbol, closedBars: closedL, quote: { price: lq.price, marketTimeMs: lq.marketTimeMs } },
-        { symbol: right.symbol, closedBars: closedR, quote: { price: rq.price, marketTimeMs: rq.marketTimeMs } },
+        { symbol: left.symbol, closedBars: closedL, quote: quotesLive ? { price: lq.price, marketTimeMs: lq.marketTimeMs } : null },
+        { symbol: right.symbol, closedBars: closedR, quote: quotesLive ? { price: rq.price, marketTimeMs: rq.marketTimeMs } : null },
         nowMs,
       );
 
@@ -504,10 +534,6 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
        * execution-grade claims require an execution-grade quote — and the
        * desk says which of the two is missing instead of "stand down".
        */
-      const liveSource = (s: string) =>
-        s === "yahoo" || s === "databento" || s === "live_gateway";
-
-      const seriesLive = liveSource(left.source) && liveSource(right.source);
       const maxLagSec = Math.max(lq.lagSec, rq.lagSec);
 
       /**
@@ -527,11 +553,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           ? 14 * 3600
           : QUOTE_USABLE_SEC;
 
-      const quoteExecutionGrade = maxLagSec <= QUOTE_EXECUTION_SEC;
-      const quoteUsable = maxLagSec <= usableLimit;
+      // `quotesLive` leads both tests: a lag of zero on a number nobody
+      // measured is not freshness, and both of these are read as freshness.
+      const quoteExecutionGrade = quotesLive && maxLagSec <= QUOTE_EXECUTION_SEC;
+      const quoteUsable = quotesLive && maxLagSec <= usableLimit;
       /**
        * Can the STRUCTURE be believed? Real bars from a real source, and a
-       * quote recent enough to verify those levels against. Deliberately
+       * real quote recent enough to verify those levels against. Deliberately
        * independent of `quoteExecutionGrade` — that is the whole point of
        * the split, and `snapshots` keys its own `dataQualityOk` off the
        * "Data quality" prefix, which now only appears for these two hard
@@ -539,9 +567,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
        */
       const structureTrustworthy = seriesLive && quoteUsable;
 
-      if (!seriesLive) {
-        // No real bars at all — nothing here is analysis, let alone a trade.
-        const reason = "Data quality: synthetic feed — no Databento/Yahoo data";
+      if (!seriesLive || !quotesLive) {
+        // One branch on purpose. No real bars and a hardcoded quote are the
+        // same failure: nothing below this line describes the market, so
+        // nothing below it is analysis, let alone a trade.
+        const reason = !seriesLive
+          ? "Data quality: synthetic feed — no Databento/Yahoo data"
+          : "Data quality: synthetic quote — no live print; the price is a constant";
         for (const c of scan.candidates) c.actionable = false;
         scan.blocked.push(reason);
         scan.focus = `${reason} — stand down.`;
@@ -618,10 +650,14 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         {
           id: "feed",
           label: "Market feed",
-          ok: seriesLive,
-          detail: hasDatabentoKey()
-            ? `Databento preferred (${feed}) · GLBX.MDP3 continuous`
-            : "Yahoo only — set DATABENTO_API_KEY for CME",
+          // Bars AND quote. The row a human reads to answer "is any of this
+          // real?" must fail when either half is made up.
+          ok: seriesLive && quotesLive,
+          detail: !quotesLive
+            ? "Synthetic quote — no live print from gateway / Yahoo / Databento"
+            : hasDatabentoKey()
+              ? `Databento preferred (${feed}) · GLBX.MDP3 continuous`
+              : "Yahoo only — set DATABENTO_API_KEY for CME",
         },
         {
           id: "risk",

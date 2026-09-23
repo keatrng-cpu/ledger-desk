@@ -92,7 +92,12 @@ import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
 import { OvernightBoard } from "@/components/desk/overnight-board";
 import { DECIDE_START_MIN, DECIDE_END_MIN } from "@/lib/trading/overnight-swing";
 import { recordPrint } from "@/lib/market/print-bars";
-import { tickPending } from "@/lib/trading/pending-order";
+import {
+  tickPending,
+  confirmPendingFill,
+  releasePending,
+  type PendingPrint,
+} from "@/lib/trading/pending-order";
 import { pendingFillToast } from "@/components/desk/entry-trigger-panel";
 import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
@@ -322,16 +327,26 @@ function maybeAutofire(desk: DeskPayload, equity: number): void {
  * named a price, and this fills there or not at all.
  */
 function fillRestingLimits(desk: DeskPayload): string | null {
-  const prices: Record<string, number> = {
-    [desk.left.symbol]: desk.quotes.left.price,
-    [desk.right.symbol]: desk.quotes.right.price,
+  // Each print carries its OWN age. tickPending refuses to register a touch
+  // from a quote older than the execution budget, which is the whole point:
+  // before 2026-09-23 this passed bare numbers and a limit could "fill" on a
+  // ten-minute-old Yahoo print at a level the tape had long since left.
+  const prices: Record<string, PendingPrint> = {
+    [desk.left.symbol]: { price: desk.quotes.left.price, lagSec: desk.quotes.left.lagSec },
+    [desk.right.symbol]: { price: desk.quotes.right.price, lagSec: desk.quotes.right.lagSec },
   };
-  const { filled, expired } = tickPending(prices, Date.now());
+  const { touched, expired, stale } = tickPending(prices, Date.now());
   for (const o of expired) {
     console.info("[pending] expired", o.symbol, o.limit, o.note);
   }
-  if (!filled.length) return null;
-  const o = filled[0]!;
+  // A limit the tape reached on a print too old to act on. The order is still
+  // resting; say why nothing happened rather than showing silence.
+  if (!touched.length && stale.length) {
+    const st = stale[0]!;
+    return `Limit at ${st.order.limit.toFixed(2)} was reached, but ${st.reason} — still resting, nothing booked.`;
+  }
+  if (!touched.length) return null;
+  const o = touched[0]!;
   const candidate = desk.scan.candidates.find(
     (c) => c.symbol === o.symbol && c.side === o.side,
   );
@@ -348,9 +363,15 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     et: { hour: wall.hour, minute: wall.minute },
     newsVerdict: desk.news?.verdict,
   });
-  return res.ok
-    ? pendingFillToast(o)
-    : `Limit at ${o.limit.toFixed(2)} touched but the paper book refused it: ${res.error}`;
+  if (res.ok) {
+    // Only NOW is it a fill. Before this the order stayed in `touched`, so a
+    // refusal by the paper book leaves it resting instead of consuming it —
+    // the rollback that did not exist when this wrote `filled` up front.
+    confirmPendingFill(o.id, Date.now());
+    return pendingFillToast(o);
+  }
+  releasePending(o.id, `paper book refused: ${res.error}`, Date.now());
+  return `Limit at ${o.limit.toFixed(2)} touched but the paper book refused it: ${res.error}. The order is still resting.`;
 }
 
 /**
@@ -403,11 +424,28 @@ function quoteDelayMs(
   return live ? QUOTE_LIVE_MS : QUOTE_YAHOO_MS;
 }
 
+/**
+ * The 1-2s quote poll, patched onto the desk the 20s build produced.
+ *
+ * 2026-09-23: this is the door the server-side synthetic guard does NOT
+ * close. `loadQuote` (fetch-dual.ts) falls back to `syntheticQuote()` — a
+ * hardcoded constant stamped `lagSec: 0` — and while `fetchDualIndexes`
+ * checks `source !== "synthetic"` before using it, `fetchLiveQuotes` returns
+ * it straight through. So every one to two seconds the client could write
+ * that constant into `desk.quotes` AND, via applyQuoteToLastBar, into the
+ * last BAR — re-injecting it into the very payload build-desk had just
+ * gated, at zero apparent lag.
+ *
+ * A synthetic quote is not a price. Refusing it here keeps the previous
+ * real one and its real (growing) lag, which is what the freshness gates
+ * are built to read.
+ */
 function patchDeskQuotes(
   prev: DeskPayload,
   leftQ: DeskPayload["quotes"]["left"],
   rightQ: DeskPayload["quotes"]["right"],
 ): DeskPayload {
+  if (leftQ.source === "synthetic" || rightQ.source === "synthetic") return prev;
   const leftBars = applyQuoteToLastBar(prev.left.bars, leftQ, prev.left.interval);
   const rightBars = applyQuoteToLastBar(prev.right.bars, rightQ, prev.right.interval);
   const left = stampSeriesFromBars(prev.left, leftBars);
