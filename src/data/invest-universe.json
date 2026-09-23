@@ -21,7 +21,11 @@
       "insiderPct": 0.091,
       "institutionPct": 75.796,
       "sector": "TECHNOLOGY",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 467.01,
+      "ma200": 431.66,
+      "high52": 549.2,
+      "low52": 348.54
     },
     "GOOGL": {
       "ticker": "GOOGL",
@@ -41,7 +45,11 @@
       "insiderPct": 1.596,
       "institutionPct": 80.991,
       "sector": "COMMUNICATION SERVICES",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 345.53,
+      "ma200": 337.69,
+      "high52": 408.1,
+      "low52": 235.23
     },
     "AAPL": {
       "ticker": "AAPL",
@@ -61,7 +69,11 @@
       "insiderPct": 1.648,
       "institutionPct": 66.341,
       "sector": "TECHNOLOGY",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 320.62,
+      "ma200": 286.61,
+      "high52": 344.27,
+      "low52": 242.76
     },
     "NVDA": {
       "ticker": "NVDA",
@@ -81,7 +93,11 @@
       "insiderPct": 4.008,
       "institutionPct": 71.411,
       "sector": "TECHNOLOGY",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 214.27,
+      "ma200": 198.38,
+      "high52": 236,
+      "low52": 163.9
     },
     "V": {
       "ticker": "V",
@@ -101,7 +117,11 @@
       "insiderPct": 0.085,
       "institutionPct": 90.182,
       "sector": "FINANCIAL SERVICES",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 367.5,
+      "ma200": 336.14,
+      "high52": 385.57,
+      "low52": 292.74
     },
     "COST": {
       "ticker": "COST",
@@ -121,7 +141,11 @@
       "insiderPct": 0.163,
       "institutionPct": 74.429,
       "sector": "CONSUMER DEFENSIVE",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 936.18,
+      "ma200": 960.3,
+      "high52": 1094.76,
+      "low52": 840.35
     },
     "LLY": {
       "ticker": "LLY",
@@ -141,7 +165,11 @@
       "insiderPct": 0.157,
       "institutionPct": 85.319,
       "sector": "HEALTHCARE",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 1177.36,
+      "ma200": 1066.35,
+      "high52": 1292.65,
+      "low52": 707.59
     },
     "ETN": {
       "ticker": "ETN",
@@ -161,7 +189,11 @@
       "insiderPct": 0.072,
       "institutionPct": 87.899,
       "sector": "INDUSTRIALS",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 415.86,
+      "ma200": 384.29,
+      "high52": 478,
+      "low52": 309.33
     },
     "CEG": {
       "ticker": "CEG",
@@ -181,7 +213,11 @@
       "insiderPct": 0.335,
       "institutionPct": 82.959,
       "sector": "UTILITIES",
-      "pendingCapture": false
+      "pendingCapture": false,
+      "ma50": 271.16,
+      "ma200": 292.84,
+      "high52": 410.41,
+      "low52": 228.28
     },
     "VTI": {
       "ticker": "VTI",
@@ -202,7 +238,11 @@
       "institutionPct": null,
       "sector": "INDEX",
       "pendingCapture": false,
-      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture."
+      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture.",
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "ITOT": {
       "ticker": "ITOT",
@@ -223,7 +263,11 @@
       "institutionPct": null,
       "sector": "INDEX",
       "pendingCapture": false,
-      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture."
+      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture.",
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "VXUS": {
       "ticker": "VXUS",
@@ -244,7 +288,11 @@
       "institutionPct": null,
       "sector": "INDEX",
       "pendingCapture": false,
-      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture."
+      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture.",
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "SGOV": {
       "ticker": "SGOV",
@@ -265,7 +313,11 @@
       "institutionPct": null,
       "sector": "CASH",
       "pendingCapture": false,
-      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture."
+      "note": "ETF — COMPANY_OVERVIEW returns no row for funds, and none is needed: a fund has no CEO, moat or earnings to gate on. Never queue this for capture.",
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "AVGO": {
       "ticker": "AVGO",
@@ -285,7 +337,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "TECHNOLOGY",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "TSM": {
       "ticker": "TSM",
@@ -305,7 +361,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "TECHNOLOGY",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "ASML": {
       "ticker": "ASML",
@@ -325,7 +385,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "TECHNOLOGY",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "MA": {
       "ticker": "MA",
@@ -345,7 +409,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "FINANCIAL SERVICES",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "EQIX": {
       "ticker": "EQIX",
@@ -365,7 +433,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "REAL ESTATE",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "NEE": {
       "ticker": "NEE",
@@ -385,7 +457,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "UTILITIES",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     },
     "JNJ": {
       "ticker": "JNJ",
@@ -405,7 +481,11 @@
       "insiderPct": null,
       "institutionPct": null,
       "sector": "HEALTHCARE",
-      "pendingCapture": true
+      "pendingCapture": true,
+      "ma50": null,
+      "ma200": null,
+      "high52": null,
+      "low52": null
     }
   }
 }

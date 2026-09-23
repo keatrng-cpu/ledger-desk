@@ -138,6 +138,11 @@ export interface Fundamentals {
   insiderPct: number | null;
   institutionPct: number | null;
   sector: string | null;
+  /** 50/200-day moving averages and the 52-week range, for trendRead. */
+  ma50?: number | null;
+  ma200?: number | null;
+  high52?: number | null;
+  low52?: number | null;
   /**
    * True when this row has never been captured — blocks ADD for a company.
    * Funds are set false: OVERVIEW returns nothing for an ETF, so queueing one

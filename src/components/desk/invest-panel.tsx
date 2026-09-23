@@ -32,6 +32,8 @@ import { buildBook, rebalanceCheck, verdictFor, SLEEVE_TARGET } from "@/lib/inve
 import { ALL_DOSSIERS, RISK_FREE } from "@/lib/invest/dossiers";
 import { canAdd, fundamentalsFor, snapshotCapturedAt, type InvestVerdict } from "@/lib/invest/universe";
 import { loadPositions, loadSweeps, closedMonths, totalSwept } from "@/lib/invest/store";
+import { impliedGrowth, sensitivity, qualityRead, trendRead, BASE_RATES, HORIZON_EVIDENCE } from "@/lib/invest/factors";
+import { evidenceSummary, evidenceFor } from "@/lib/invest/evidence";
 
 const VERDICT_CLS: Record<InvestVerdict, string> = {
   CORE: "border-[color-mix(in_oklab,var(--color-up)_50%,transparent)] bg-[color-mix(in_oklab,var(--color-up)_12%,transparent)] text-[var(--color-up)]",
@@ -182,6 +184,38 @@ export function InvestPanel() {
         </Card>
       )}
 
+      {/* 2b — WHAT THIS CAN AND CANNOT ANSWER */}
+      <Card title="What this tab can and cannot predict">
+        <div className="mb-2 space-y-1">
+          {HORIZON_EVIDENCE.map((h) => (
+            <p key={h.horizon} className="text-[11px] leading-relaxed">
+              <span
+                className={`mr-1.5 rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                  h.usable ? VERDICT_CLS.CORE : VERDICT_CLS.HOLD
+                }`}
+              >
+                {h.horizon} · {h.window}
+              </span>
+              <span className="text-[var(--color-muted)]">{h.verdict}</span>
+            </p>
+          ))}
+        </div>
+        <div className="space-y-1 border-t border-[var(--color-border)] pt-2">
+          {BASE_RATES.map((b) => (
+            <p key={b.id} className="text-[11px] leading-relaxed text-[var(--color-muted)]">
+              <a href={b.url} target="_blank" rel="noreferrer" className="underline">
+                {b.source.split(",")[0]}
+              </a>
+              {" · "}
+              {b.claim} <span className="text-[var(--color-warn)]">{b.soWhat}</span>
+            </p>
+          ))}
+        </div>
+        <p className="mt-2 border-t border-[var(--color-border)] pt-2 text-[11px] text-[var(--color-muted)]">
+          {evidenceSummary().line}
+        </p>
+      </Card>
+
       {/* 3 — THE BOOK */}
       <Card title="The book">
         {book.positions.length === 0 ? (
@@ -288,6 +322,40 @@ export function InvestPanel() {
                       </span>{" "}
                       · beta {f.beta ?? "—"} · insiders {f.insiderPct ?? "—"}% · inst{" "}
                       {f.institutionPct ?? "—"}%
+                    </p>
+                  )}
+                  {d.kind === "company" &&
+                    (() => {
+                      const g = impliedGrowth(f);
+                      if (g.growth == null) return null;
+                      const band = sensitivity(f)
+                        .map((x) => (x.growth == null ? "—" : `${(x.growth * 100).toFixed(1)}%`))
+                        .join(" / ");
+                      const q = qualityRead(f);
+                      const t = trendRead(f);
+                      return (
+                        <>
+                          <p className="rounded border border-[var(--color-border)] p-1.5">
+                            <span className="text-[var(--color-muted)]">The price already assumes · </span>
+                            <span className="font-semibold tabular-nums">
+                              {(g.growth * 100).toFixed(1)}% earnings growth a year for {g.years} years
+                            </span>{" "}
+                            <span className="text-[var(--color-muted)]">
+                              ({g.demand}) — {band} across a 3.5–5.5% equity risk premium. Not a forecast: this is
+                              the assumption inside today's price, so you can disagree with it.
+                            </span>
+                          </p>
+                          <p className="text-[var(--color-muted)]">
+                            Quality · {q.legs.map((l) => `${l.label} ${l.reads}`).join(" · ")}
+                          </p>
+                          <p className="text-[var(--color-muted)]">Trend · {t.line}</p>
+                        </>
+                      );
+                    })()}
+                  {d.kind === "company" && evidenceFor(d.ticker, "governance.ceo") !== "verified" && (
+                    <p className="text-[var(--color-warn)]">
+                      Operator is asserted, not verified — no primary source attached. Settle it from the DEF 14A
+                      proxy before treating it as checked.
                     </p>
                   )}
                   {d.caveat && (

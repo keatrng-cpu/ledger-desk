@@ -205,5 +205,103 @@ check("6 months is not evidence", young.meaningful, false);
 ok("and it says three years", young.line.includes("Three years"));
 ok("36 months is", excessVsBenchmark(12, 9, 36).meaningful);
 
-console.log(`\n${pass} passed, ${fail} failed`);
+
+// ─────────────────────────────────────────────────────────────────────────
+// The analysis layer, the evidence ladder, and kill-rule monitoring.
+// These were added after the tab shipped; the point of each test is that
+// the module REFUSES something, because every one of them is a place where
+// a confident-sounding wrong answer would be expensive.
+// ─────────────────────────────────────────────────────────────────────────
+const { impliedGrowth, sensitivity, qualityRead, trendRead, analyse, BASE_RATES, HORIZON_EVIDENCE, DEFAULT_ERP } =
+  await import("../src/lib/invest/factors.ts");
+const { evidenceFor, unsourced, strictGate, evidenceSummary } = await import("../src/lib/invest/evidence.ts");
+const { killQueries, killQuery, isDue, formatResult, CHECK_INTERVAL_DAYS } = await import(
+  "../src/lib/invest/kill-watch.ts"
+);
+const { fundamentalsFor: fund } = await import("../src/lib/invest/universe.ts");
+
+console.log("\nimplied growth — the price, inverted");
+const msft = impliedGrowth(fund("MSFT"));
+ok("MSFT resolves to a growth rate", msft.growth != null && msft.growth > 0 && msft.growth < 0.5);
+ok("and it is demanding or heroic, not modest", ["demanding", "heroic", "reasonable"].includes(msft.demand));
+ok("the line names the discount rate and the ERP", msft.line.includes("ERP") && msft.line.includes("10y"));
+check("uncaptured name returns null rather than a guess", impliedGrowth(fund("AVGO")).growth, null);
+check("unknown ticker returns null", impliedGrowth(null).growth, null);
+
+// A higher required return must demand MORE growth to justify the same price.
+const lowErp = impliedGrowth(fund("MSFT"), { erp: 0.035 }).growth;
+const highErp = impliedGrowth(fund("MSFT"), { erp: 0.055 }).growth;
+ok("raising the ERP raises the growth the price requires", highErp > lowErp);
+check("sensitivity spans three ERPs", sensitivity(fund("MSFT")).length, 3);
+
+// A cheaper multiple must require less growth than an expensive one.
+const googl = impliedGrowth(fund("GOOGL")).growth;
+const cost = impliedGrowth(fund("COST")).growth;
+ok("COST (45 P/E) requires more growth than GOOGL (17.8 P/E)", cost > googl);
+
+console.log("\nquality — parts, never a blend");
+const etnQ = qualityRead(fund("ETN"));
+ok("ETN's falling earnings are called out", etnQ.legs.some((l) => /FALLING/.test(l.reads)));
+ok("CEG's falling earnings are called out", qualityRead(fund("CEG")).legs.some((l) => /FALLING/.test(l.reads)));
+check("uncaptured name yields no legs", qualityRead(fund("JNJ")).legs.length, 0);
+ok("there is no composite score anywhere in the read", !("score" in analyse(fund("MSFT"))));
+
+console.log("\ntrend — context, explicitly not a signal");
+check("CEG 50d is below its 200d", trendRead(fund("CEG")).goldenCross, false);
+check("MSFT 50d is above its 200d", trendRead(fund("MSFT")).goldenCross, true);
+ok("and the line says it gates nothing", trendRead(fund("MSFT")).line.includes("gates nothing"));
+check("no moving averages yields nulls", trendRead(fund("JNJ")).goldenCross, null);
+
+console.log("\nhorizon honesty");
+check("short horizon is not usable", HORIZON_EVIDENCE.find((h) => h.horizon === "short").usable, false);
+check("mid horizon is not usable", HORIZON_EVIDENCE.find((h) => h.horizon === "mid").usable, false);
+check("long horizon is the only claim", HORIZON_EVIDENCE.find((h) => h.horizon === "long").usable, true);
+check("every base rate carries a source URL", BASE_RATES.filter((b) => /^https?:/.test(b.url)).length, BASE_RATES.length);
+ok("the concentration base rate justifies the per-name caps", BASE_RATES.some((b) => /4%/.test(b.claim)));
+
+console.log("\nevidence ladder");
+check("no operator is verified yet — that is the honest state", evidenceSummary().verified, 0);
+ok("and the summary says they are asserted from memory", evidenceSummary().line.includes("asserted from memory"));
+check("a stated CEO reads as asserted", evidenceFor("MSFT", "governance.ceo"), "asserted");
+check("a blank CEO reads as blank", evidenceFor("ETN", "governance.ceo"), "blank");
+ok("strict gate refuses an unsourced operator", !strictGate(dossierFor("MSFT")).canAdd);
+ok("strict gate passes a fund", strictGate(dossierFor("VTI")).canAdd);
+ok("the backlog names the document that would settle it", unsourced()[0].wouldSettle.includes("DEF 14A"));
+
+console.log("\nkill watch");
+const NOW2 = Date.parse("2026-09-22T12:00:00Z");
+const qs = killQueries(NOW2);
+ok("only companies are watched", qs.every((q) => dossierFor(q.ticker).kind === "company"));
+ok("funds are never watched", !qs.some((q) => ["VTI", "ITOT", "VXUS", "SGOV"].includes(q.ticker)));
+ok("every query quotes its own pre-written rule", qs.every((q) => q.query.includes(q.killRule)));
+ok("every query asks for primary sources", qs.every((q) => /primary sources/.test(q.query)));
+ok("every query is date-bounded", qs.every((q) => /^\d{4}-\d{2}-\d{2}$/.test(q.fromDate)));
+check("a 7-day window looks back 7 days", killQuery(dossierFor("NVDA"), NOW2, 7).fromDate, "2026-09-15");
+
+check("never checked is due", isDue({ lastCheckedAt: null }, NOW2).due, true);
+check("checked yesterday is not due", isDue({ lastCheckedAt: "2026-09-21T12:00:00Z" }, NOW2).due, false);
+ok(
+  "and it says why a five-year book is not checked daily",
+  isDue({ lastCheckedAt: "2026-09-21T12:00:00Z" }, NOW2).line.includes("screen"),
+);
+check("checked 8 days ago is due", isDue({ lastCheckedAt: "2026-09-14T12:00:00Z" }, NOW2).due, true);
+
+// The most important refusal in the file: a model never judges a kill rule.
+const unjudged = formatResult({
+  ticker: "NVDA",
+  killRule: "export controls cut data-center run-rate 30%",
+  summary: "Nothing found.",
+  citations: [{ url: "https://sec.gov/x", title: null }],
+  tripped: null,
+  checkedAt: "2026-09-22",
+});
+ok("an unjudged result says UNJUDGED", unjudged.includes("UNJUDGED"));
+ok("and says nothing judged it for you", unjudged.includes("judged this for you"));
+const noSources = formatResult({
+  ticker: "NVDA", killRule: "x", summary: "s", citations: [], tripped: null, checkedAt: "2026-09-22",
+});
+ok("no sources is framed as no information, not good news", noSources.includes("not as good news"));
+
+console.log(`
+${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
