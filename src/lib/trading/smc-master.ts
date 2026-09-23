@@ -309,7 +309,16 @@ function gradeBook(
     ? (tape?.arrays ?? []).filter(
         (a) =>
           a.side === want &&
-          (a.kind === "ifvg" || a.kind === "fvg" || a.kind === "ob") &&
+          // "sponsored" is an FVG whose middle candle is >= 1.5x ATR — the
+          // SAME threshold as GATE.displacementK. Omitting it meant the array
+          // created by a qualifying displacement was renamed out of the pool
+          // that needs it: the stronger the displacement, the more certain the
+          // exclusion. A sponsored gap is an FVG with a strength tag, not a
+          // different object.
+          (a.kind === "ifvg" ||
+            a.kind === "fvg" ||
+            a.kind === "sponsored" ||
+            a.kind === "ob") &&
           (a.state === "fresh" || a.state === "partial") &&
           (floorT == null || a.t >= floorT),
       )

@@ -358,7 +358,9 @@ export interface OrderBlock {
   rangeBottom: number;
   /** Index of the displacement candle that validated this block. */
   displacementIndex: number;
-  /** Mitigated = price traded back into the FULL range zone after the move. */
+  /** Mitigated = SPENT: a bar CLOSED beyond the block, so it did not hold.
+   *  (Before 2026-09-23 this was a mere TOUCH of the full range, which
+   *  deleted the block on the same bar that made it tradeable.) */
   mitigated: boolean;
   mitigatedIndex: number | null;
   mitigatedT: number | null;
@@ -412,11 +414,19 @@ export function detectOrderBlocks(bars: OhlcBar[]): OrderBlock[] {
     // Mitigation scan: bars AFTER the displacement candle only (revisit).
     for (let j = d.index + 1; j < bars.length; j++) {
       const b = bars[j]!;
-      const touches =
+      // 2026-09-23: this tested a TOUCH of the block's full range, and
+      // smc-board drops mitigated arrays from the tape — while the retrace
+      // layer requires price to be INSIDE the block. The bar that put price
+      // in the zone was the bar that deleted the zone, so on closed-bar
+      // replay an OB could never satisfy retrace.
+      //
+      // Mitigated now means SPENT: a bar CLOSED beyond the far edge, so the
+      // block failed to hold. Price sitting inside it is the entry.
+      const through =
         d.direction === "bull"
-          ? b.l <= block.rangeTop // price dips back into a bull OB below
-          : b.h >= block.rangeBottom; // price lifts back into a bear OB above
-      if (touches) {
+          ? b.c < block.rangeBottom // closed BELOW a bull OB — it did not hold
+          : b.c > block.rangeTop; // closed ABOVE a bear OB
+      if (through) {
         block.mitigated = true;
         block.mitigatedIndex = j;
         block.mitigatedT = b.t;
