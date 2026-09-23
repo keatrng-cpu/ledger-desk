@@ -30,6 +30,8 @@
 import { useMemo, useState } from "react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { SmcLayer, SmcMasterBook } from "@/lib/trading/smc-master";
+import { walkthrough } from "@/lib/trading/setup-steps";
+import type { SetupCandidate } from "@/lib/trading/scanner";
 import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
@@ -152,9 +154,13 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
           the trade. */}
       <EntryTriggerPanel desk={desk} book={book} />
 
-      {/* What entry still needs. The must-layers ARE the confluences; a pill
-          per layer shows which have printed and which the desk is waiting on,
-          so "STAND" is never a bare word. */}
+      {/* What entry still needs, IN ORDER. The flat pill row is kept below
+          as the at-a-glance summary, but the sequence is causal — there is no
+          point watching for an LTF shift before a sweep has printed — so the
+          numbered walkthrough leads, and it carries the one line the grid
+          cannot: what has to happen next, and why the engine grade and the
+          sequence word are both right when they disagree. */}
+      <SequenceWalkthrough book={book} candidate={candidate} />
       <LayerStrip layers={book.layers} />
 
       {/* The same plan as typeable numbers. Derived from `plan`, never re-stated. */}
@@ -267,6 +273,84 @@ function ExpectedPath({ desk, book, shadows }: { desk: DeskPayload; book: SmcMas
  * dimmer. The detail is the tooltip so the strip stays one line — the
  * missing layer's detail is already printed in full under the chart.
  */
+/**
+ * The sequence as a numbered process rather than a scoreboard.
+ *
+ * On screen today the desk can show STAND · 3/9 and A+ · 0.87 within one
+ * scroll and explain neither. Both are correct and they measure different
+ * things — the grade is how well the MODEL fits, the word is how much of the
+ * TRADE has printed — and this is where that gets said out loud.
+ */
+function SequenceWalkthrough({
+  book,
+  candidate,
+}: {
+  book: SmcMasterBook;
+  candidate: SetupCandidate | undefined;
+}) {
+  // The engine numbers are the ones on the scanner card the trader is looking
+  // at, passed in rather than re-derived so the reconciliation quotes the
+  // figures actually on screen.
+  const w = useMemo(
+    () =>
+      walkthrough(book, {
+        score: candidate?.confluence ?? null,
+        grade: candidate?.grade ?? null,
+        model: candidate?.strategyPrimary ?? null,
+      }),
+    [book, candidate],
+  );
+
+  return (
+    <section className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5">
+      <header className="mb-2 flex items-baseline gap-2">
+        <h4 className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+          The setup, step by step
+        </h4>
+        <span className="text-[11px] tabular-nums text-[var(--color-muted)]">
+          {w.mustPass}/{w.mustNeed} musts
+        </span>
+        <span className="ml-auto text-[11px] font-semibold">{w.word}</span>
+      </header>
+
+      <ol className="mb-2 space-y-0.5">
+        {w.steps.map((st) => (
+          <li
+            key={st.id}
+            className={`flex items-start gap-2 rounded px-1.5 py-1 text-[11px] leading-snug ${
+              st.current
+                ? "border border-[color-mix(in_oklab,var(--color-warn)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)]"
+                : ""
+            }`}
+          >
+            <span className="w-4 shrink-0 text-right tabular-nums text-[var(--color-muted)]">{st.n}</span>
+            <span
+              className={`w-3 shrink-0 ${
+                st.status === "done"
+                  ? "text-[var(--color-up)]"
+                  : st.status === "failed"
+                    ? "text-[var(--color-down)]"
+                    : "text-[var(--color-warn)]"
+              }`}
+              aria-hidden
+            >
+              {st.status === "done" ? "✓" : st.status === "failed" ? "✕" : "○"}
+            </span>
+            <span className={st.status === "done" ? "text-[var(--color-muted)]" : ""}>
+              <span className="font-medium">{st.label}</span>
+              {!st.must && <span className="ml-1 text-[var(--color-muted)]">(optional)</span>}
+              {st.detail && <span className="ml-1 text-[var(--color-muted)]">— {st.detail}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <p className="mb-1 text-[11px] font-medium leading-relaxed">{w.nextAction}</p>
+      <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">{w.reconcile}</p>
+    </section>
+  );
+}
+
 function LayerStrip({ layers }: { layers: SmcLayer[] }) {
   const musts = layers.filter((l) => l.must);
   const extras = layers.filter((l) => !l.must);
