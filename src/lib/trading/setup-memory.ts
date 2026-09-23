@@ -102,6 +102,13 @@ export interface SetupRecord {
   note: string | null;
   /** True only when the note was captured before the outcome was known. */
   notePreRegistered: boolean;
+  /**
+   * Was the trade actually taken as the plan specified — size, stop, target?
+   * Null when nobody recorded it, which is treated as "unknown", not "yes".
+   */
+  followedPlan: boolean | null;
+  /** Named rule breaks, e.g. "debit $300 over the $150 cap". */
+  violations: string[];
 }
 
 /**
@@ -197,6 +204,7 @@ export function attribute(exp: SetupExpectation, out: SetupOutcome, side: "long"
 export interface ShapeRecord {
   fingerprint: string;
   shape: string;
+  /** Compliant closed trades only — the ones that measure the setup. */
   n: number;
   wins: number;
   wr: number;
@@ -212,9 +220,35 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/**
+ * A trade that did not follow its own plan measures the TRADER, not the SETUP.
+ *
+ * This became concrete on 2026-09-23. The desk graded an MNQ short at Q 0.97
+ * and refused it — among other layers, because the plan was only 0.55R
+ * (entry 30974.00, stop 31022.00, downside draw 30947.50: 26.5 points of
+ * reward against 48 of risk, under the 1:1 floor). The trader took it anyway
+ * as QQQ puts at a $300 debit — twice the $150 sleeve cap — did not honour
+ * the stop or the target, and closed +$70.
+ *
+ * Logged naively that row says "this shape pays". It says nothing of the
+ * kind. It says a different trade, at double the size, with discretionary
+ * exits, happened to close green on a plan whose own ceiling was 0.55R. Let
+ * that into the shape statistics and the memory starts recommending setups on
+ * the strength of trades that were never taken as designed — which is how a
+ * learning system teaches itself to break its own rules.
+ *
+ * So non-compliant records are EXCLUDED from the shape's statistics and
+ * counted separately. They are not deleted and not hidden: the discipline
+ * record is its own number worth watching, and it belongs to the trader
+ * rather than to the setup.
+ */
+export function compliant(r: SetupRecord): boolean {
+  return r.followedPlan === true && r.violations.length === 0;
+}
+
 /** Group closed records by shape and report each one's record. */
 export function recallShapes(records: SetupRecord[]): ShapeRecord[] {
-  const closed = records.filter((r) => r.outcome != null);
+  const closed = records.filter((r) => r.outcome != null && compliant(r));
   const byFp = new Map<string, SetupRecord[]>();
   for (const r of closed) {
     if (!byFp.has(r.fingerprint)) byFp.set(r.fingerprint, []);
@@ -267,6 +301,50 @@ export function recallShapes(records: SetupRecord[]): ShapeRecord[] {
       };
     })
     .sort((a, b) => b.n - a.n);
+}
+
+export interface DisciplineRead {
+  closed: number;
+  followed: number;
+  broke: number;
+  /** Every distinct rule that has been broken, with how often. */
+  violations: Record<string, number>;
+  /** Realised R on the broken ones. Green here is the dangerous case. */
+  brokeExpR: number;
+  line: string;
+}
+
+/**
+ * The trader's own record, kept deliberately apart from every setup number.
+ *
+ * The line pays particular attention to PROFITABLE violations, because those
+ * are the ones that do the damage: a rule break that loses money corrects
+ * itself, and a rule break that pays teaches the wrong lesson at exactly the
+ * moment nobody wants to hear it.
+ */
+export function disciplineRead(records: SetupRecord[]): DisciplineRead {
+  const closed = records.filter((r) => r.outcome != null);
+  const broke = closed.filter((r) => !compliant(r));
+  const violations: Record<string, number> = {};
+  for (const r of broke) for (const v of r.violations) violations[v] = (violations[v] ?? 0) + 1;
+  const brokeExpR = broke.length
+    ? round2(broke.reduce((s, r) => s + (r.outcome?.resultR ?? 0), 0) / broke.length)
+    : 0;
+
+  return {
+    closed: closed.length,
+    followed: closed.length - broke.length,
+    broke: broke.length,
+    violations,
+    brokeExpR,
+    line: !closed.length
+      ? "Nothing logged yet."
+      : !broke.length
+        ? `${closed.length} closed, all taken as planned.`
+        : brokeExpR > 0
+          ? `${broke.length} of ${closed.length} closed trades broke a rule, and they averaged ${brokeExpR >= 0 ? "+" : ""}${brokeExpR}R — PROFITABLE violations, which is the dangerous kind. A break that loses corrects itself; a break that pays teaches the wrong lesson. None of these count toward any setup's record.`
+          : `${broke.length} of ${closed.length} closed trades broke a rule, averaging ${brokeExpR}R. None count toward any setup's record.`,
+  };
 }
 
 /**

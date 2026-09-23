@@ -15,7 +15,7 @@
 const { walkthrough, shouldMarkUp, MARKUP_MIN_PROGRESS } = await import(
   "../src/lib/trading/setup-steps.ts"
 );
-const { fingerprint, shapeLabel, attribute, recallShapes, recallFor, MIN_N_FOR_LESSON } =
+const { fingerprint, shapeLabel, attribute, recallShapes, recallFor, compliant, disciplineRead, MIN_N_FOR_LESSON } =
   await import("../src/lib/trading/setup-memory.ts");
 
 let pass = 0;
@@ -141,6 +141,7 @@ const rec = (i, r, o = {}) => ({
   fingerprint: fingerprint(a), shape: shapeLabel(a), model: "Judas", killzone: "NY AM",
   word: "STAND", missingAtEntry: ["sweep"], expectation: exp,
   outcome: O({ resultR: r, ...o }), note: null, notePreRegistered: false,
+  followedPlan: true, violations: [],
 });
 const few = recallShapes([rec(1, 1), rec(2, -1), rec(3, 1)]);
 check("three records is one shape", few.length, 1);
@@ -165,6 +166,40 @@ ok("a thin history is shown but disclaimed", /Too few to mean anything/.test(rec
 ok("a real history is surfaced", /SEEN BEFORE/.test(recallFor(many, fingerprint(a))));
 check("an unknown shape says nothing", recallFor(many, "no|such|shape"), null);
 ok("the floor is a real constant", MIN_N_FOR_LESSON >= 5);
+
+
+console.log("\ncompliance — a trade that broke its plan measures the trader, not the setup");
+// The real 2026-09-23 trade: the desk refused an MNQ short whose own plan was
+// 0.55R; taken as QQQ puts at a $300 debit (2x the $150 cap), stop and target
+// both ignored, closed +$70. Green, and it must teach the shape nothing.
+const broke = {
+  ...rec(500, 0.23),
+  followedPlan: false,
+  violations: ["debit $300 over the $150 sleeve cap", "stop not honoured", "target not honoured"],
+};
+check("a rule-breaking record is not compliant", compliant(broke), false);
+check("a clean record is compliant", compliant(rec(501, 1)), true);
+ok("unknown compliance is treated as not-compliant", !compliant({ ...rec(502, 1), followedPlan: null }));
+
+// The point: a green violation must not inflate the shape it was taken on.
+const clean3 = [rec(1, -1), rec(2, -1), rec(3, -1)];
+check("three clean losers give n=3", recallShapes(clean3)[0].n, 3);
+check("adding a green rule-break does NOT change n", recallShapes([...clean3, broke])[0].n, 3);
+check("nor its expectancy", recallShapes([...clean3, broke])[0].expR, recallShapes(clean3)[0].expR);
+
+console.log("\nthe discipline record is its own number");
+const d = disciplineRead([...clean3, broke]);
+check("four closed", d.closed, 4);
+check("three followed", d.followed, 3);
+check("one broke", d.broke, 1);
+check("the cap breach is named", d.violations["debit $300 over the $150 sleeve cap"], 1);
+ok("a PROFITABLE violation is called the dangerous kind", /dangerous kind/.test(d.line));
+ok("and says a break that pays teaches the wrong lesson", /teaches the wrong lesson/.test(d.line));
+ok("and that it counts toward no setup", /count toward any setup/.test(d.line));
+const dLose = disciplineRead([...clean3, { ...broke, outcome: O({ resultR: -1 }) }]);
+ok("a losing violation is reported without the alarm", !/dangerous kind/.test(dLose.line));
+ok("all-clean says so", /all taken as planned/.test(disciplineRead(clean3).line));
+check("nothing logged", disciplineRead([]).closed, 0);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
