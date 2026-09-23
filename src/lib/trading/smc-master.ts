@@ -76,6 +76,11 @@ export interface SmcMasterBook {
    * the live price. Both are views of one derivation — see trade-plan.ts.
    * Null until the tape has produced enough to price a plan, which before a
    * completed sequence is the normal and correct answer.
+   *
+   * It also carries `plan.worth` — what the structure is expected to pay, from
+   * two first-passage races on this book's own recent sessions. That is the
+   * number to render beside the click; every field of it is null below the
+   * odds floor rather than a percentage off four sessions.
    */
   plan: TradePlan | null;
 }
@@ -285,8 +290,16 @@ function gradeBook(
     label: "Draw on liquidity",
     must: true,
     state: !dol ? "wait" : dolAgrees ? "pass" : "fail",
+    // The percentage here is the EXCURSION rate — what fraction of prior
+    // sessions ever travelled this far from this point — and the stop is not
+    // in it. That is the right number for "is this magnet in reach at all",
+    // and the wrong one for "will this trade get paid"; the race that answers
+    // the second lives on the plan (trade-plan.ts, PlanWorth). Labelled
+    // "touch" so the two are never read as the same claim, and carrying its
+    // sample count, because a rate off four sessions can only be 0/25/50/75/
+    // 100 and otherwise renders exactly like one off forty.
     detail: dol
-      ? `${dol.name} ${dol.price.toFixed(2)} · ${(dol.reachProbability * 100).toFixed(0)}% · ${dol.side}`
+      ? `${dol.name} ${dol.price.toFixed(2)} · ${(dol.reachProbability * 100).toFixed(0)}% touch over ${draw.sessionsSampled} sessions${draw.baseRateReliable ? "" : " (below the base-rate floor)"} · ${dol.side}`
       : "No magnet yet",
     price: dol?.price,
   });
@@ -374,6 +387,11 @@ function gradeBook(
     dol: dolAgrees ? dol : null,
     range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
     arrays: tape?.arrays ?? [],
+    // The same bars every other layer was graded on, so the target odds are
+    // this instrument on this timeframe. Without them the plan still prices
+    // entry, stop and R — it simply carries no odds rather than borrowing
+    // someone else's history.
+    bars,
   });
 
   // TARGET PRICED ≥ 1:1. The trade must have somewhere to go before it has
@@ -406,7 +424,22 @@ function gradeBook(
     // Monotone in expectancy, win rate and fill rate — so the target is
     // labelled, not gated (the bottom bucket is only n=20).
     const reach = reachTier(plan.draw?.reachProbability);
-    targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""} · risk ${plan.riskPts.toFixed(2)}pt · target ${reach.tier} (${reach.note})`;
+    // `reachTier` takes a bare number and cannot know how many sessions are
+    // behind it, so the SAMPLE COUNT is attached here by the caller that does
+    // know. Until its signature carries an n of its own, a 100% off four
+    // sessions and an 85% off forty arrive at it identically.
+    const reachTxt = `draw touch ${reach.tier} over ${draw.sessionsSampled} sessions (${reach.note})`;
+    // And what the whole structure is worth, which is the number the click is
+    // actually made against. Not a gate: the hard rule is the minRr floor
+    // above, and this is labelled for the same reason the reach tier is —
+    // it is a frequency from a small sample of recent sessions, not a
+    // forecast. `headline` is null-safe and says "unpriced" below the floor.
+    targetDetail =
+      `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
+      `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
+      ` · risk ${plan.riskPts.toFixed(2)}pt` +
+      ` · ${plan.worth?.headline ?? "worth unpriced — no session history on this book"}` +
+      ` · ${reachTxt}`;
   }
   layers.push({
     id: "target",

@@ -28,6 +28,7 @@ import {
   listOpenPaperTrades,
   reconcilePaperBookToMemory,
   buildPaperLevels,
+  paperAPlusCounters,
   type PaperTrade,
   type ManagePrice,
 } from "@/lib/trading/paper-manager";
@@ -230,7 +231,21 @@ function recordArmedShadow(desk: DeskPayload, equity: number): void {
         ? desk.quotes.right.price
         : desk.quotes.left.price;
 
-  const levels = buildPaperLevels(candidate, equity, lastPrice);
+  // Size the record off the SAME book the ticket would be sized off. Rule 5's
+  // A+ probe reads `counters`, and `buildPaperLevels` otherwise resolves them
+  // itself on the way past — two reads of one sample that can disagree the
+  // moment either side gains its own source. Naming it here keeps the shadow
+  // row and the paper ticket on one book and makes which book visible at the
+  // call site. That book is this browser's paper localStorage, not the
+  // server's `desk_trades`: this poll holds no authoritative counters, and an
+  // unknown history must stay locked rather than be read as an unlock.
+  const levels = buildPaperLevels(
+    candidate,
+    equity,
+    lastPrice,
+    undefined,
+    paperAPlusCounters(),
+  );
   if (!levels.entry || !levels.stop) return;
 
   const dayKey = new Date().toISOString().slice(0, 10);
@@ -999,7 +1014,22 @@ function MasterplacePage() {
               contracts: res.trade.contracts,
               openedAt: new Date(res.trade.openedAt).toISOString(),
               prescore: res.trade.score ?? null,
-              grade: res.trade.grade ?? null,
+              // The CARD's band, never the sizing grade. Rule 5's A+ probe
+              // rewrites `grade` to "A" on an A+ card until n>=20 A+ at
+              // WR>=65% is earned, and the server counts that sample as
+              // `status='closed' and grade='A+'` (readBookCounters,
+              // journal/server.ts) — so mirroring the sizing grade deletes
+              // every A+ row the unlock exists to accumulate and freezes the
+              // count at whatever it held on 2026-09-23. Same precedence the
+              // armed-alert path already uses, with `cardBand` ahead of it
+              // because that field IS the pre-demotion band; `pathBand` then
+              // `grade` cover the rows written before it existed. Refuses to
+              // invent a band: with none of the three this mirrors null.
+              grade:
+                res.trade.cardBand ||
+                res.trade.pathBand ||
+                res.trade.grade ||
+                null,
               killzone: desk?.clock.killzone ?? null,
               strategy: res.trade.strategy ?? null,
               regime: c.regime ?? null,

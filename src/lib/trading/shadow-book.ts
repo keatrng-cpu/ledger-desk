@@ -26,7 +26,11 @@
  * Both are resolved on real tape only: closed 15m bars with intrabar ties
  * AGAINST the trade, plus the live prints between bars, with the paper
  * book's own scale-out (T1 banks the configured fraction, stop → break-even,
- * runner to T2), a 32-bar time stop and a flat at the cash close.
+ * runner to T2), a 32-bar time stop and a flat at the cash close. The tie
+ * rule is applied at the fill as well as at the stop: a target reached on
+ * the same closed bar that filled the limit is refused, because that OHLC is
+ * equally consistent with the target printing first and the fill never being
+ * a trade at all.
  *
  * A shadow is NOT a paper trade. It never touches the paper book, the
  * journal, the attestation chain, sizing or any gate. It is evidence about
@@ -444,9 +448,14 @@ function applyRange(s: ShadowTrade, t: number, rng: Touch, closedBar: boolean): 
   const hitsDown = (lv: number) => (long ? touchesBelow(lv) : touchesAbove(lv)); // adverse direction
 
   let cur = s;
+  // Whether THIS range is the one that filled a resting limit. Inside a closed
+  // bar that is the difference between a trade and an arithmetic artefact,
+  // so it is tracked rather than inferred from fillAt.
+  let filledHere = false;
   if (cur.status === "resting") {
     // A short's limit sits above price: filled when the range reaches it.
     if (long ? touchesBelow(cur.entry) : touchesAbove(cur.entry)) {
+      filledHere = true;
       cur = {
         ...cur,
         status: "open",
@@ -463,8 +472,16 @@ function applyRange(s: ShadowTrade, t: number, rng: Touch, closedBar: boolean): 
     }
   }
 
-  // Open: every range the position lives through is excursion.
-  cur = { ...cur, seenHi: Math.max(cur.seenHi, rng.h), seenLo: Math.min(cur.seenLo, rng.l) };
+  // Open: every range the position lives through is excursion — except the
+  // FAVOURABLE half of the bar that filled it. A 15m OHLC cannot order the
+  // touches inside itself, so the run toward the target may have printed
+  // before price came back to CE, in which case it was never this trade's.
+  // The adverse extreme of that bar is still taken in full: overstating heat
+  // is the safe side of the same tie rule that sends stops against the trade.
+  const fillBarCap = closedBar && filledHere;
+  const rngHi = fillBarCap && long ? Math.min(rng.h, cur.fillPrice ?? cur.entry) : rng.h;
+  const rngLo = fillBarCap && !long ? Math.max(rng.l, cur.fillPrice ?? cur.entry) : rng.l;
+  cur = { ...cur, seenHi: Math.max(cur.seenHi, rngHi), seenLo: Math.min(cur.seenLo, rngLo) };
 
   // Stop first (ties against), then T1, then T2.
   if (hitsDown(cur.stopLevel)) {
@@ -473,7 +490,14 @@ function applyRange(s: ShadowTrade, t: number, rng: Touch, closedBar: boolean): 
       : `stopped at ${px(cur.stopLevel)} (−1R)${closedBar && cur.t1 != null && hitsUp(cur.t1) ? " — bar also reached T1; tie goes against the trade" : ""}`;
     return close(cur, t, cur.stopLevel, why, cur.t1Hit ? "be" : "stop");
   }
-  if (!cur.t1Hit && cur.t1 != null && hitsUp(cur.t1)) {
+  // A target on the bar that filled the limit is not credited, for the same
+  // reason a same-bar T2 is not (below): one closed bar cannot say whether
+  // price reached T1 before or after it came back to CE, and "ran to T1, then
+  // retraced into the limit" is not a trade that ever existed. Crediting it
+  // inflates the LIMIT leg specifically — the leg every headline entry figure
+  // in this repo is built from. Ties go against the trade; this is that rule
+  // applied to the fill, where it was previously applied only to the stop.
+  if (!cur.t1Hit && cur.t1 != null && hitsUp(cur.t1) && !fillBarCap) {
     const frac = APLUS_RULES.scaleOut.enabled ? APLUS_RULES.scaleOut.tp1Fraction : 0;
     const r1 = rOf(cur, cur.t1);
     const banked = cur.banked + r1 * frac;

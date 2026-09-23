@@ -298,7 +298,13 @@ export function ShadowBookPanel({ mode }: { mode: "compact" | "full" }) {
             )}
             {cardAll.sweepNext && (
               <p className="mt-2 text-[11px] text-[var(--color-down)]">
-                Next sweep: "{cardAll.sweepNext.reason}" — its refusals paid {fmtR(cardAll.sweepNext.chase.exp)}/t. Measure it with scripts/sweep-gates.mjs before touching the gate.
+                {/* The VERDICT is computed inside one killzone (sweepNext.primary);
+                    printing the pooled mean beneath it recreates exactly the
+                    error this scorecard exists to prevent — a London number
+                    under an NY AM conclusion. Quote the window that decided. */}
+                Next sweep: "{cardAll.sweepNext.reason}" — in {cardAll.sweepNext.primary?.killzone ?? "its busiest window"} its refusals paid{" "}
+                {fmtR(cardAll.sweepNext.primary?.chase.exp ?? cardAll.sweepNext.chase.exp)}/t
+                {cardAll.sweepNext.primary ? ` (${cardAll.sweepNext.primary.line})` : ""}. Measure it with scripts/sweep-gates.mjs before touching the gate.
               </p>
             )}
           </div>

@@ -4,6 +4,7 @@
  * writes a short SMC post-trade so the brain learns skips too.
  */
 
+import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import type { DeskPayload } from "./build-desk";
 import { remember } from "./desk-memory";
@@ -112,16 +113,66 @@ function parseZone(text: string): { lo: number; hi: number } | null {
   return { lo: Math.min(nums[0]!, nums[1]!), hi: Math.max(nums[0]!, nums[1]!) };
 }
 
+/**
+ * A ghost is the counterfactual of a card you COULD have clicked and didn't.
+ * It refuses a card the scanner already marked non-actionable — HTF gate,
+ * closed killzone, dead conditions, incomplete model — because that card
+ * could not have been taken at any size, so filling it against tape and
+ * writing "the gate refused a winner" into desk memory teaches a trade that
+ * never existed. Refusals are the SHADOW book's job (both legs priced, the
+ * refusing layer named); this book only tracks what the gates released.
+ *
+ * Grade breadth is unchanged: B+ is still a real execute grade (paper 0.5%),
+ * so it still earns a ghost. The floor is read from config, never restated.
+ */
 function trackable(c: SetupCandidate): boolean {
+  if (!c.actionable) return false;
+  if (c.confluence < APLUS_RULES.confluenceFloor) return false;
   if (c.grade === "A+" || c.grade === "A-") return true;
-  if (c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+")
-    return true;
-  return c.confluence >= 0.65;
+  return (
+    c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+"
+  );
 }
 
 function ghostId(c: SetupCandidate, day: string): string {
   const strat = c.completeStrategy || c.strategyPrimary || "model";
   return `ghost-${c.symbol}-${c.side}-${strat}-${day}`;
+}
+
+/**
+ * How many times one card may re-price itself into a new ghost in a day.
+ * Without a cap a candidate whose zone jitters would mint a row per poll and
+ * flood the book with near-duplicate experiments.
+ */
+const MAX_REVISIONS = 3;
+
+/** Every row this card has already opened today, oldest first. */
+function ghostRevisions(byId: Map<string, GhostTrade>, base: string): GhostTrade[] {
+  const out: GhostTrade[] = [];
+  for (const [id, g] of byId) {
+    if (id === base || id.startsWith(`${base}#`)) out.push(g);
+  }
+  return out.sort((a, b) => a.seenAt - b.seenAt);
+}
+
+/**
+ * Is the candidate still describing the plan this ghost froze? Thresholds are
+ * expressed in the ghost's own risk so they scale with the instrument: the
+ * fill zones must still overlap, the resting limit and the invalidation must
+ * each be within 0.1R of where they were, and the target within 0.25R — the
+ * target is what separates "won" from "missed", so it gets the looser but
+ * still explicit band.
+ */
+function samePlan(
+  prev: GhostTrade,
+  zone: { lo: number; hi: number },
+  levels: { entry: number; stop: number; tp1: number },
+): boolean {
+  const risk = Math.abs(prev.entry - prev.stop) || 1;
+  if (zone.lo > prev.entryHi || zone.hi < prev.entryLo) return false;
+  if (Math.abs(levels.entry - prev.entry) > risk * 0.1) return false;
+  if (Math.abs(levels.stop - prev.stop) > risk * 0.1) return false;
+  return Math.abs(levels.tp1 - prev.tp1) <= risk * 0.25;
 }
 
 function px(n: number): string {
@@ -561,15 +612,29 @@ export function resolveAgainst(
   if (shockFloorMs && g.status === "watching" && g.seenAt < shockFloorMs) {
     return { ...g, status: "expired", exitReason: "shock — pre-shock card, sequence dead", exitAt: now };
   }
-  const sessionOpen = etWallToEpochMs(g.dayKey, "06:00");
+  // LOOK-AHEAD. Only tape that printed AFTER the card existed may resolve it.
+  // A bar opening at `t` covers [t, t+interval), so any bar with t < seenAt
+  // contains minutes the desk had not yet graded — its extremes are not this
+  // card's. Replaying from 06:00 ET (what this did before) stamped a card
+  // seen at 10:30 "won" or "missed" off the 07:15 sweep and then persisted
+  // that debrief to desk memory. Bars at or after the ghost's own cash close
+  // are excluded for the same reason in reverse: the day card is flat there,
+  // whatever the overnight did. Between seenAt and the next bar close the
+  // live print below is the only evidence, exactly as shadow-book.ts works.
+  const flatAt = etWallToEpochMs(g.dayKey, "16:00");
   const after = bars
-    .filter((b) => b.t >= sessionOpen)
+    .filter((b) => b.t >= g.seenAt && b.t < flatAt)
     .sort((a, b) => a.t - b.t);
   const clock = getSessionClock(new Date(now));
+  // 16:10 ET onward, not "hour >= 16 AND minute >= 10" — that predicate left
+  // 17:05 alive and killed 16:30.
+  const afterCashClose =
+    clock.etHour > 16 || (clock.etHour === 16 && clock.etMinute >= 10);
   const expired =
-    !clock.isWeekday ||
-    (clock.etHour >= 16 && clock.etMinute >= 10) ||
-    now - g.seenAt > 6 * 3600_000;
+    !clock.isWeekday || afterCashClose || now - g.seenAt > 6 * 3600_000;
+  // A synthetic or missing quote is not a print. Resolving against one would
+  // fill a long at 0 and stop it out on the same tick.
+  const printable = Number.isFinite(last) && last > 0;
 
   const hitZone = (h: number, l: number) =>
     g.side === "short" ? h >= g.entryLo : l <= g.entryHi;
@@ -618,6 +683,11 @@ export function resolveAgainst(
           markExit("won", g.tp1, b.t, "target");
           break;
         }
+        // Filled and still open. Every later bar is now a position, not a
+        // fill candidate: the loop below walks them for stop/target only.
+        // Falling through here let a later bar that never revisited the zone
+        // be scored "target without fill" on a ghost that WAS filled.
+        break;
       } else if (hitTp(b.h, b.l) && !hitZone(b.h, b.l)) {
         markExit("missed", g.tp1, b.t, "target without fill");
         break;
@@ -626,13 +696,13 @@ export function resolveAgainst(
         break;
       }
     }
-    if (status === "watching" && hitZone(last, last)) {
+    if (status === "watching" && printable && hitZone(last, last)) {
       markFill(g.entry, now);
     }
   }
 
   if (status === "filled") {
-    for (const b of after.filter((x) => x.t >= (fillAt ?? g.seenAt))) {
+    for (const b of after.filter((x) => x.t >= Math.max(fillAt ?? 0, g.seenAt))) {
       if (hitStop(b.h, b.l) && hitTp(b.h, b.l)) {
         markExit("lost", g.stop, b.t, "stop (both printed — stop first)");
         break;
@@ -646,7 +716,7 @@ export function resolveAgainst(
         break;
       }
     }
-    if (status === "filled") {
+    if (status === "filled" && printable) {
       if (hitStop(last, last)) markExit("lost", g.stop, now, "stop (print)");
       else if (hitTp(last, last)) markExit("won", g.tp1, now, "target (print)");
     }
@@ -710,20 +780,42 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
 
   for (const c of desk.scan.candidates) {
     if (!trackable(c)) continue;
-    const last =
-      c.symbol === desk.left.symbol ? desk.quotes.left.price : desk.quotes.right.price;
+    const onLeft = c.symbol === desk.left.symbol;
+    const quote = onLeft ? desk.quotes.left : desk.quotes.right;
+    const series = onLeft ? desk.left : desk.right;
+    // Synthetic bars and synthetic quotes are a deterministic placeholder the
+    // market layer emits when every feed failed. Opening a ghost on them
+    // would resolve a plan against a candle nobody traded.
+    if (quote.source === "synthetic" || series.source === "synthetic") continue;
+    const last = quote.price;
+    if (!Number.isFinite(last) || last <= 0) continue;
     const levels = buildPaperLevels(c, 100_000, last);
     if (!levels.entry || !levels.stop) continue;
     const zone = parseZone(c.entryZone) ?? {
       lo: Math.min(levels.entry, levels.tp1),
       hi: Math.max(levels.entry, levels.stop),
     };
-    const id = ghostId(c, day);
-    const prev = byId.get(id);
+    const base = ghostId(c, day);
+    const revisions = ghostRevisions(byId, base);
+    const prev = revisions[revisions.length - 1] ?? null;
     if (prev && (prev.status === "won" || prev.status === "lost" || prev.status === "missed" || prev.status === "expired")) {
-      if (takenIds.has(c.id) || takenIds.has(id)) prev.taken = true;
+      if (takenIds.has(c.id) || takenIds.has(prev.id)) prev.taken = true;
       continue;
     }
+    // FROZEN AT FIRST SIGHT. The old draft kept prev.seenAt but re-read every
+    // level from the current candidate, so 10:30's entry, stop and target got
+    // tested against tape dated from the first sighting. A ghost is one
+    // experiment about one plan: while the plan still stands, nothing about
+    // it moves. Only `taken` (the trader clicked Log) is allowed to change.
+    if (prev && samePlan(prev, zone, levels)) {
+      if (takenIds.has(c.id) || takenIds.has(prev.id)) prev.taken = true;
+      continue;
+    }
+    // The plan moved materially, so this is a different experiment and gets
+    // its own row rather than overwriting the one already being scored. The
+    // cap stops a jittering candidate from minting a ghost every poll.
+    if (prev && revisions.length >= MAX_REVISIONS) continue;
+    const id = prev ? `${base}#${revisions.length + 1}` : base;
     const blocked = [
       ...desk.scan.blocked.slice(0, 3),
       ...(c.actionable ? [] : c.missing.slice(0, 2)),
@@ -736,7 +828,7 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
       strategy: c.completeStrategy || c.strategyPrimary || "model",
       grade: String(c.pathBand || c.grade),
       confluence: c.confluence,
-      seenAt: prev?.seenAt ?? now,
+      seenAt: now,
       killzoneOk: desk.clock.inTradeWindow,
       killzoneLabel: desk.clock.killzoneLabel,
       blocked,
@@ -746,10 +838,10 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
       stop: levels.stop,
       tp1: levels.tp1,
       targetLabel: c.targets[0] ?? "",
-      taken: Boolean(prev?.taken || takenIds.has(c.id) || takenIds.has(id)),
-      status: prev?.status ?? "watching",
-      fillAt: prev?.fillAt,
-      fillPrice: prev?.fillPrice,
+      // A revision starts unfilled. Carrying the old plan's fill forward would
+      // credit a touch of a zone this plan never had.
+      taken: takenIds.has(c.id) || takenIds.has(id),
+      status: "watching",
       htfNote: `${c.symbol} ${c.htfOk ? "HTF ok" : "HTF off"}`,
       smtNote: desk.smtStack?.primary.active
         ? desk.smtStack.primary.note
@@ -762,7 +854,14 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
   const resolved = rows.map((g) => {
     const book = bookOf(desk, g.symbol);
     const series = book === "left" ? desk.left : desk.right;
-    const last = book === "left" ? desk.quotes.left.price : desk.quotes.right.price;
+    const quote = book === "left" ? desk.quotes.left : desk.quotes.right;
+    const last = quote.price;
+    // Synthetic is the market layer's placeholder for "every feed failed".
+    // Holding the ghost where it is costs one poll; advancing it against a
+    // generated candle writes a fill, an R and a debrief that never happened.
+    if (quote.source === "synthetic" || series.source === "synthetic") {
+      return { before: g.status, last, updated: g };
+    }
     return {
       before: g.status,
       last,

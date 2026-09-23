@@ -798,9 +798,18 @@ export function runVeteranBrain(
         detail,
       });
       if (mine?.verdict === "costing") {
-        yellow.push(`"${mine.reason}" has refused winners (${fmtR(mine.chase.exp)}/t over ${mine.chase.wins + mine.chase.losses + mine.chase.scratch}) — sweep that gate, do not override it`);
+        // mine.verdict is scoped to ONE killzone (mine.primary). Quoting the
+        // pooled mean here would put a London number under an NY AM verdict,
+        // which is the precise shape of the retracted "+0.35R resting" claim.
+        const kz = mine.primary;
+        yellow.push(
+          `"${mine.reason}" has refused winners in ${kz?.killzone ?? "its busiest window"} (${fmtR(kz?.chase.exp ?? mine.chase.exp)}/t over ${(kz?.chase ?? mine.chase).wins + (kz?.chase ?? mine.chase).losses + (kz?.chase ?? mine.chase).scratch}) — sweep that gate, do not override it`,
+        );
       } else if (mine?.verdict === "earning") {
-        green.push(`"${mine.reason}" is earning its keep (${fmtR(mine.chase.exp)}/t chased) — the stand is the trade`);
+        const kz = mine.primary;
+        green.push(
+          `"${mine.reason}" is earning its keep in ${kz?.killzone ?? "its busiest window"} (${fmtR(kz?.chase.exp ?? mine.chase.exp)}/t chased) — the stand is the trade`,
+        );
       }
     }
   } catch {

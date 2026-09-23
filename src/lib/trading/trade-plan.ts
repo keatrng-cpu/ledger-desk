@@ -22,11 +22,28 @@
  * cannot be derived it is `null`, and the chart draws nothing rather than
  * drawing a guess. A plausible-looking line at a price that was never computed
  * is worse than a gap, because a gap is visibly a gap.
+ *
+ * AND WHAT THE PLAN IS WORTH
+ * Prices alone still leave the trader multiplying in their head. The plan now
+ * also carries the two first-passage races behind it — T1 against the stop,
+ * T2 against breakeven once the stop has moved there — and the expectancy
+ * that falls out of them, so "1.8R to T1" and "72% reach" stop being two
+ * numbers on different parts of the board that nothing ever combined. See
+ * `PlanWorth`, and target-odds.ts for why the 72% was never the number the
+ * trade was asking about.
  */
 
+import type { OhlcBar } from "../market/types";
 import type { SmcArray } from "./smc-board";
-import type { LiquidityTarget } from "./draw";
+import { groupSessions, type LiquidityTarget, type SessionSlice } from "./draw";
 import { MAX_RISK_PTS, DEFAULT_MAX_RISK_PTS } from "./simulate-path-trade";
+import {
+  expectedR,
+  runnerWorthIt,
+  targetOdds,
+  MIN_SESSIONS_FOR_ODDS,
+  type TargetOdds,
+} from "./target-odds";
 
 export type PlanSide = "long" | "short";
 
@@ -35,6 +52,65 @@ export interface PlanLevel {
   kind: "entry" | "stop" | "t1" | "t2" | "sweep" | "eq" | "price";
   price: number;
   label: string;
+}
+
+/**
+ * What the trade is worth, priced before the click.
+ *
+ * TWO DIFFERENT QUESTIONS, AND THE BOARD WAS ONLY ANSWERING THE EASY ONE
+ * `draw.ts` measures maximum favourable excursion: "in what fraction of prior
+ * sessions did price EVER travel this far from here". That is a real,
+ * carefully time-conditioned measurement and it is the right answer to the
+ * question "is this level in reach at all" — it is what `pT1Touch` carries
+ * and what `plan.draw.reachProbability` has always been.
+ *
+ * It is not the question a trade asks. A trade asks "does T1 print BEFORE my
+ * stop does", a first-passage race between two levels, and the stop does not
+ * appear in the excursion number at all. The gap is never in the trader's
+ * favour: measured on the committed 15m history
+ * (scripts/measure-target-odds.mjs), ES 15% into the session on a 2R target
+ * reads 61% by touch and 36% by the race — +0.83R of claimed expectancy
+ * against +0.08R of real one, concentrated in the NY AM window this desk
+ * actually trades. `pT1First` is the race. Both are kept, and each is
+ * labelled with the question it answers, because deleting the touch number
+ * would throw away a good measurement of a different thing.
+ *
+ * NULL IS THE HONEST ANSWER BELOW THE FLOOR
+ * Every numeric field here is `null` unless the race cleared
+ * `MIN_SESSIONS_FOR_ODDS` prior sessions. A percentage from four sessions can
+ * only be 0, 25, 50, 75 or 100 and renders identically to one from forty;
+ * a headline number has no room for that caveat, so below the floor there is
+ * no headline number. `n` and `reliable` travel with every field and `line`
+ * still describes the shape.
+ */
+export interface PlanWorth {
+  /** p(T1 before the stop) — the race. Null below the odds floor. */
+  pT1First: number | null;
+  /** p(T1 ever touched), ignoring the stop — the excursion question. */
+  pT1Touch: number | null;
+  /** How many percentage points the touch number overstates the race by. */
+  overstatementPts: number | null;
+  /** p(T2 before breakeven | T1 printed) — the runner's own race. */
+  pT2GivenT1: number | null;
+  /** Expected R of the desk's own scale rule: 50% at T1, stop to BE, runner. */
+  expR: number | null;
+  /** The same trade taken all-out at T1, for comparison. */
+  expRAllOutT1: number | null;
+  /** True when the structure is negative expectancy on these odds. */
+  negative: boolean | null;
+  /** p(T2|T1)·rr2 > rr1 — whether the runner earns what it gives up. */
+  runnerWorthIt: boolean | null;
+  /** The runner's edge in R. Positive means hold it. */
+  runnerEdgeR: number | null;
+  /** Prior sessions behind the T1 race. */
+  n: number;
+  reliable: boolean;
+  /** One compact clause a board line can append. Always safe to print. */
+  headline: string;
+  /** The full expectancy sentence. */
+  line: string;
+  /** The full runner sentence. */
+  runnerLine: string;
 }
 
 export interface TradePlan {
@@ -74,6 +150,25 @@ export interface TradePlan {
 
   /** Flat list for axis labelling — derived, never a second source of truth. */
   levels: PlanLevel[];
+
+  /**
+   * The two first-passage races behind this plan, each carrying its own n.
+   *
+   * Optional rather than `| null` for one reason: `learn/cases.ts` builds a
+   * TradePlan literal by hand for the chase counterfactual, and that plan has
+   * no session history behind it. So `undefined` means "nobody priced this",
+   * `null` means "priced, and there was no usable history" — both render as
+   * no odds, and neither may be read as a zero.
+   */
+  odds?: TargetOdds | null;
+
+  /**
+   * The plan's expectancy, with the runner decision attached. This is the
+   * number a trader needs before the click and the desk has never shown it:
+   * `rr1` and the draw's reach percentage lived in different places and
+   * nothing ever multiplied them.
+   */
+  worth?: PlanWorth | null;
 }
 
 export interface BuildPlanInput {
@@ -88,6 +183,17 @@ export interface BuildPlanInput {
   dol: LiquidityTarget | null;
   range: { high: number; low: number; eq: number } | null;
   arrays?: SmcArray[];
+  /**
+   * The bar history the book was graded from — the SAME series, so the odds
+   * describe this instrument on this timeframe and nothing else.
+   *
+   * Optional. Without it the plan still prices entry, stop and R exactly as
+   * before and simply carries no odds; there is no substitute history and a
+   * borrowed one would be a fabricated measurement. Callers that have bars
+   * (smc-master passes `desk.left.bars` / `desk.right.bars` straight through)
+   * should pass them.
+   */
+  bars?: OhlcBar[];
 }
 
 /** Risk cap for a symbol, matching the simulator's table. */
@@ -98,6 +204,85 @@ function maxRiskFor(symbol: string): number {
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+function medianOf(xs: number[]): number {
+  if (!xs.length) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
+}
+
+/**
+ * How far into a typical session the current one has run, 0–0.95.
+ *
+ * The races have to start from the same point in the session that the live
+ * trade does — a target with four hours left is a different bet from the same
+ * target with twenty minutes left, and scoring both against a whole-session
+ * sample is how a late target ends up quoted at a morning's odds.
+ *
+ * DUPLICATED ON PURPOSE, AND IT SHOULD NOT STAY THAT WAY. `drawOnLiquidity`
+ * computes this identically and then keeps it as a local, so `DrawRead` has
+ * no field to read it from. This mirrors that derivation rather than
+ * inventing a second one; if draw.ts ever changes its clock these two drift
+ * apart silently. The fix is one exported field on `DrawRead` — see the
+ * report accompanying this change. This file does not own draw.ts.
+ */
+function elapsedFractionOf(sessions: SessionSlice[]): number {
+  const current = sessions[sessions.length - 1];
+  if (!current?.bars.length) return 0.5;
+  const prior = sessions.slice(0, -1);
+  const typical = medianOf(prior.map((s) => s.bars.length));
+  return Math.min(
+    0.95,
+    current.bars.length / Math.max(current.bars.length, typical || current.bars.length),
+  );
+}
+
+/**
+ * Turn the two races into the one thing a trader reads before clicking.
+ *
+ * Nothing here is a gate. The desk's hard target rule is `minRr` and it is
+ * enforced in smc-master; a negative expectancy on a thin sample of recent
+ * sessions is evidence, not an invalidation, and turning it into a refusal
+ * would be a gate change rather than a measurement. It is labelled instead,
+ * exactly as the draw's reach tier is.
+ */
+function priceWorth(odds: TargetOdds, rr1: number | null, rr2: number | null): PlanWorth {
+  const race = odds.t1;
+  const exp = expectedR(odds, rr1, rr2);
+  const runner = runnerWorthIt(odds.t2GivenT1?.pTargetFirst ?? null, rr1, rr2);
+  const n = race?.n ?? 0;
+  const reliable = race?.reliable ?? false;
+  // Below the floor every number becomes null. `line` survives because it
+  // says out loud that it is a shape; a bare percentage cannot.
+  const only = <T>(v: T | null | undefined): T | null => (reliable ? (v ?? null) : null);
+  const pct = (p: number | null) => (p == null ? "?" : `${(p * 100).toFixed(0)}%`);
+
+  const expR = only(exp.expR);
+  const headline = reliable
+    ? `worth ${expR == null ? "?" : `${expR >= 0 ? "+" : ""}${expR}R`} · T1 ${pct(race?.pTargetFirst ?? null)} before the stop (touch alone says ${pct(race?.pTouchIgnoringStop ?? null)}) · n=${n} sessions`
+    : `worth unpriced — ${n} prior session${n === 1 ? "" : "s"}, below the ${MIN_SESSIONS_FOR_ODDS} a race needs`;
+
+  return {
+    pT1First: only(race?.pTargetFirst),
+    pT1Touch: only(race?.pTouchIgnoringStop),
+    overstatementPts: only(race?.overstatementPts),
+    pT2GivenT1: reliable && odds.t2GivenT1?.reliable ? (odds.t2GivenT1.pTargetFirst ?? null) : null,
+    expR,
+    expRAllOutT1: only(exp.expRAllOutT1),
+    // `expectedR` reports `negative: false` when it could not price anything
+    // at all, which reads as "positive expectancy" to anyone checking the
+    // flag. An unpriced trade is neither — it is unknown.
+    negative: expR == null ? null : exp.negative,
+    runnerWorthIt: reliable && odds.t2GivenT1?.reliable ? runner.worth : null,
+    runnerEdgeR: reliable && odds.t2GivenT1?.reliable ? runner.edge : null,
+    n,
+    reliable,
+    headline,
+    line: exp.line,
+    runnerLine: runner.line,
+  };
 }
 
 /**
@@ -172,6 +357,36 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
 
   const rr = (target: number | null): number | null =>
     target == null ? null : round2(Math.abs(target - entry) / riskPts);
+  const rr1 = rr(t1);
+  const rr2 = rr(t2);
+
+  // WHAT THE TARGETS ARE ACTUALLY WORTH.
+  // Two first-passage races on this instrument's own recent sessions: T1
+  // against the stop, then T2 against breakeven — a second race, because the
+  // desk's scale rule moves the stop there the moment T1 prints, so the
+  // runner is not the first race extended. Both start from the same point in
+  // the session the live trade does.
+  //
+  // KNOWN BIAS, STATED RATHER THAN HIDDEN: the T2 race also starts from the
+  // current elapsed point, so it gives the runner the whole rest of the
+  // session instead of whatever is left after T1 prints. That is optimistic
+  // for T2, by an amount nothing here has measured. Correcting it needs a
+  // measured time-to-T1, which target-odds.ts does not compute and this file
+  // will not invent.
+  const sessions = input.bars?.length ? groupSessions(input.bars) : [];
+  // One session is the in-progress one, which raceOdds drops — with fewer
+  // than two there is nothing to race against at all.
+  const odds =
+    sessions.length >= 2
+      ? targetOdds(sessions, elapsedFractionOf(sessions), {
+          side,
+          entry,
+          stop,
+          t1,
+          t2,
+        })
+      : null;
+  const worth = odds ? priceWorth(odds, rr1, rr2) : null;
 
   const levels: PlanLevel[] = [
     { kind: "price", price: round2(price), label: "live" },
@@ -196,8 +411,8 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
     riskOverCap: riskPts > maxRiskFor(symbol),
     t1,
     t2,
-    rr1: rr(t1),
-    rr2: rr(t2),
+    rr1,
+    rr2,
     sweep: sweepExtreme != null ? { price: round2(sweepExtreme), t: sweepT } : null,
     range: range
       ? { high: round2(range.high), low: round2(range.low), eq: round2(range.eq) }
@@ -207,6 +422,8 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
       : null,
     arrays: input.arrays ?? [],
     levels,
+    odds,
+    worth,
   };
 }
 

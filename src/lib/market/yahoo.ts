@@ -202,7 +202,22 @@ export function parseYahooChart(payload: YahooChartResult): OhlcBar[] {
   return clean;
 }
 
-const MAX_BARS = 800;
+/**
+ * Bars kept per series.
+ *
+ * 2026-09-23: raised from 800. A Globex session is about 92 fifteen-minute
+ * bars, so 800 was 8.7 sessions — and target-odds.ts refuses to quote a
+ * first-passage race below MIN_SESSIONS_FOR_ODDS (12). The odds were
+ * therefore null in every live configuration while the measurement script,
+ * which reads the 45-session committed history, showed them working. The
+ * feature was correctly refusing rather than broken, but it was refusing on a
+ * limit nobody had connected to the fetch.
+ *
+ * Yahoo's 1mo/15m response already carries ~2,000 bars; this only stopped
+ * throwing them away. 1600 is ~17 sessions, comfortably over the floor with
+ * room for holidays and half days.
+ */
+const MAX_BARS = 1600;
 
 /**
  * Live last print — uses 1m chart meta so we get regularMarketTime (unix seconds)

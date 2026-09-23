@@ -34,7 +34,11 @@
  * WHAT IS DELIBERATELY NOT DRAWN
  * Mitigated arrays, pools outside the visible band, structure older than two
  * hours, and anything past the caps in chart-overlay.ts. Clutter in pixels is
- * still clutter.
+ * still clutter. Three more refusals live further down: a nested array does
+ * not get its own box (the containing one is drawn and the inner EDGE is
+ * marked), session bells are not drawn on bars coarser than 30 minutes, and
+ * killzone dimming is dropped when no bar in the window is inside one —
+ * dimming everything says nothing.
  */
 
 import { useMemo } from "react";
@@ -42,6 +46,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import type { TradePlan } from "@/lib/trading/trade-plan";
 import type { SmcArray } from "@/lib/trading/smc-board";
 import type { ChartOverlay, OverlayPool } from "@/lib/trading/chart-overlay";
+import { etWallParts, resolveKillzone } from "@/lib/trading/sessions";
 
 const W = 720;
 const H = 340;
@@ -54,7 +59,23 @@ const H = 340;
  */
 const RAIL_X = 5;
 const RAIL_W = 9;
-const PAD_L = 18;
+/**
+ * The R rail — the second nine-pixel column, and the answer to "how big is
+ * this trade?" before any number is read.
+ *
+ * Entry, stop and T1 were already three horizontal lines, but the DISTANCE
+ * between them is the trade and three lines do not carry it: a 0.55R plan and
+ * a 2R plan draw the same three lines. The full-width risk/reward tints below
+ * help, but they sit under six boxes and a hundred candles at 0.1 opacity, so
+ * the comparison the eye needs — this block against that block — never
+ * happens. Here the two blocks are adjacent in one column at one x, with
+ * nothing else in it, and the 1R step marks step the risk block's own height
+ * up the page. A target that does not reach the first step is a sub-1R plan,
+ * visibly, from across the room.
+ */
+const R_RAIL_X = 16;
+const R_RAIL_W = 9;
+const PAD_L = 29;
 /**
  * The gutter carries every level's NAME as well as its price now, so it is
  * sized for both: ~50px of tabular price on the left of the column, ~60px of
@@ -103,6 +124,65 @@ const RAIL_LABEL_MIN_H = 38;
  * to fit it would hide the structure, so it becomes an edge arrow instead.
  */
 const DRAW_INFRAME_SPANS = 0.6;
+/**
+ * An R-rail block shorter than this cannot carry its rotated "1R" / "2.1R"
+ * without clipping, so it is left as bare colour. The block's HEIGHT is the
+ * fact; the text is the confirmation.
+ */
+const R_LABEL_MIN_H = 24;
+/**
+ * The session bells. SMC is a time-based method and this chart had no time
+ * structure at all beyond the two corner stamps.
+ *
+ * 09:30 is the cash open and the start of the Judas window (no entries until
+ * 09:45). 10:00 is the desk's own cutoff — after it, A+ only unless already in
+ * a trade. 11:30 is where the live gateway's NY window ends, so it is the last
+ * bar with sub-second prints behind it. Note the NY AM killzone itself ends at
+ * 11:00 per sessions.ts, and the dimming below uses that clock, not this list.
+ */
+const SESSION_MARKS: { minute: number; label: string }[] = [
+  { minute: 9 * 60 + 30, label: "09:30" },
+  { minute: 10 * 60, label: "10:00" },
+  { minute: 11 * 60 + 30, label: "11:30" },
+];
+/**
+ * Above this many bells the window is spanning so many sessions that the
+ * verticals become the grid this chart refuses to draw, so none are drawn.
+ */
+const MAX_TIME_MARKS = 8;
+/**
+ * Bars coarser than this cannot carry an intraday bell honestly — a 1H bar
+ * CONTAINS 09:30 rather than starting at it, and a line on its left edge
+ * would be off by up to an hour.
+ */
+const MAX_MARK_SPACING_MS = 30 * 60_000;
+/**
+ * Candle opacity inside a trade window, and outside one.
+ *
+ * Outside is pushed back, not hidden: the Asia range and the London extremes
+ * are drawn FROM bars nobody trades, so a chart that erased them would erase
+ * the levels the session is priced against.
+ */
+const KZ_ON = 0.92;
+const KZ_OFF = 0.32;
+/**
+ * The bottom strip of the plot belongs to the time axis — two rows of it.
+ * Every other label that can be pushed to the floor — the raid, the structure
+ * breaks — stops above the strip, so a stamp never shares a row with a price
+ * annotation.
+ */
+const TIME_AXIS_H = 20;
+/**
+ * Horizontal room a stamp needs before the next one can share its row.
+ *
+ * "09:30" is ~20px at 7.5px, and on 15m bars the 10:00 bell is two bars —
+ * about 19px — later, so the first render printed "09:3010:00" as one word.
+ * Closer than this the stamp moves to the upper row instead of being dropped:
+ * 10:00 is the desk's A+-only cutoff and is not worth losing to a collision.
+ */
+const TIME_LABEL_GAP = 26;
+/** Below this the two rows would still touch, so the later stamp is dropped. */
+const TIME_LABEL_MIN = 10;
 
 export interface SetupChartProps {
   bars: OhlcBar[];
@@ -221,6 +301,75 @@ function arrayName(a: SmcArray): string {
 }
 
 /**
+ * A drawn array and everything sitting inside it.
+ *
+ * A 15m FVG inside a 1H OB is not two objects a trader reads separately — it
+ * is one zone with a tighter edge in it. Drawn as two boxes it came out as a
+ * box inside a box with two labels forty pixels apart, which is the collision
+ * problem again in a different costume.
+ */
+interface ArrayGroup {
+  outer: SmcArray;
+  inner: SmcArray[];
+}
+
+/**
+ * True when b's price span sits wholly inside a's, with enough room left for
+ * the containment to be legible.
+ *
+ * The 0.92 is not a tolerance on equality — it is the point below which the
+ * inner box is so nearly the outer box that marking an inner edge would draw
+ * a second line on top of the first. Two arrays that close are one zone, and
+ * the larger one is drawn.
+ */
+function containsArray(a: SmcArray, b: SmcArray): boolean {
+  const ah = a.top - a.bottom;
+  const bh = b.top - b.bottom;
+  if (!(ah > 0) || !(bh > 0)) return false;
+  return b.top <= a.top && b.bottom >= a.bottom && bh < ah * 0.92;
+}
+
+/**
+ * Collapse containment into groups: one outer box per group, everything it
+ * swallows listed beside it.
+ *
+ * Exported for the same reason buildScale is: it decides what the trader does
+ * NOT see, and a grouping bug hides an array rather than drawing an ugly one.
+ * Widest first, so an array always lands in the largest box that holds it and
+ * a three-deep nest still resolves to one group rather than two.
+ */
+export function groupNestedArrays(arrays: SmcArray[]): ArrayGroup[] {
+  const groups: ArrayGroup[] = [];
+  for (const a of [...arrays].sort((x, y) => y.top - y.bottom - (x.top - x.bottom))) {
+    const host = groups.find((g) => containsArray(g.outer, a));
+    if (host) host.inner.push(a);
+    else groups.push({ outer: a, inner: [] });
+  }
+  return groups;
+}
+
+/**
+ * One name for the whole group.
+ *
+ * The entry array owns the name whenever it is in the group — it is the only
+ * box whose identity changes what the trader does — and the box around it is
+ * named after it with ⊂. Otherwise the outer is named and what it holds is
+ * counted, because "1H OB ⊃ 15M FVG" is the sentence a trader would write and
+ * a list of three is a paragraph.
+ */
+function groupName(g: ArrayGroup, entry: SmcArray | null): string {
+  if (entry && entry !== g.outer) {
+    const rest = g.inner.length - 1;
+    return `ENTRY ${arrayName(entry)} ⊂ ${arrayName(g.outer)}${rest > 0 ? ` +${rest}` : ""}`;
+  }
+  const head = `${entry ? "ENTRY " : ""}${arrayName(g.outer)}`;
+  if (!g.inner.length) return head;
+  return g.inner.length === 1
+    ? `${head} ⊃ ${arrayName(g.inner[0]!)}`
+    : `${head} ⊃ ${g.inner.length} inside`;
+}
+
+/**
  * Pool and draw names from structure.ts carry a parenthetical class —
  * "PWH (external BSL)", "Swing low (internal SSL)" — that the line's own
  * colour and the BSL/SSL prefix already say. Strip it so the label is the
@@ -228,6 +377,18 @@ function arrayName(a: SmcArray): string {
  */
 function shortName(label: string): string {
   return label.replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * One R, printed the same way everywhere on this chart.
+ *
+ * Below 1R the second decimal is the whole point — 0.55R and 0.6R are the
+ * same trade, but the gutter printing one while the R rail printed the other
+ * reads as two measurements disagreeing, which is the one thing a chart
+ * drawn from a single plan object must never do.
+ */
+function rLabel(r: number): string {
+  return `${r.toFixed(r < 1 ? 2 : 1)}R`;
 }
 
 export function SetupChart({
@@ -246,6 +407,48 @@ export function SetupChart({
   const view = useMemo(() => bars.slice(-window_), [bars, window_]);
   const decisionInView = decisionIndex == null ? null : decisionIndex - offset;
   const scale = useMemo(() => buildScale(view, plan, overlay), [view, plan, overlay]);
+
+  /**
+   * ET time structure: where the session bells fall in this window, and which
+   * bars are inside a trade window at all.
+   *
+   * Both facts come from sessions.ts — the same clock the HUD and the gates
+   * read — so the chart cannot disagree with the killzone the desk is quoting.
+   * It refuses in two places rather than guessing: no bells on bars too coarse
+   * to carry them, and no dimming when every bar is on the same side of the
+   * window, because a uniformly dim chart is just a dim chart.
+   */
+  const timeStructure = useMemo(() => {
+    const inWindow: boolean[] = [];
+    const hit = new Map<number, string>();
+    if (!view.length) return { marks: [] as { i: number; label: string }[], inWindow, dimOutside: false };
+    const gaps: number[] = [];
+    for (let i = 1; i < view.length; i++) gaps.push(view[i]!.t - view[i - 1]!.t);
+    gaps.sort((a, b) => a - b);
+    const spacing = gaps.length ? (gaps[Math.floor(gaps.length / 2)] ?? Infinity) : Infinity;
+    const fineEnough = spacing <= MAX_MARK_SPACING_MS;
+    let prev: { day: number; minute: number } | null = null;
+    for (let i = 0; i < view.length; i++) {
+      const p = etWallParts(view[i]!.t);
+      const minute = p.hour * 60 + p.minute;
+      inWindow.push(resolveKillzone(p.hour, p.minute).inTradeWindow);
+      if (fineEnough && prev) {
+        // The first bar at or after each bell. SESSION_MARKS is ascending, so
+        // when an overnight gap jumps several at once the latest one wins the
+        // index rather than three lines landing on the same pixel column.
+        for (const m of SESSION_MARKS) {
+          if (minute >= m.minute && (p.day !== prev.day || prev.minute < m.minute)) hit.set(i, m.label);
+        }
+      }
+      prev = { day: p.day, minute };
+    }
+    const marks = [...hit].map(([i, label]) => ({ i, label }));
+    return {
+      marks: marks.length <= MAX_TIME_MARKS ? marks : [],
+      inWindow,
+      dimOutside: inWindow.some((v) => v) && inWindow.some((v) => !v),
+    };
+  }, [view]);
 
   // With an overlay the arrays are the tape's live arrays on both sides
   // (capped upstream). Without one — replays, figures — fall back to the
@@ -309,6 +512,37 @@ export function SetupChart({
   const symbol = plan?.symbol ?? overlay?.symbol ?? "";
   const side = plan?.side ?? null;
   const badgeWord = word ?? overlay?.word;
+  /**
+   * Where the replay divider stands, or null when the decision bar is the
+   * newest bar and there is no future to separate from it. Held here because
+   * the time stamps at the plot's foot have to give its caption right of way.
+   */
+  const replayEdge =
+    decisionInView != null && decisionInView >= 0 && decisionInView < view.length - 1
+      ? scale.x(decisionInView) + scale.step / 2
+      : null;
+
+  /**
+   * Which session stamps get printed, and on which of the two rows.
+   *
+   * The lines are always drawn — a boundary costs half a pixel of ink and
+   * carries itself. The STAMP is what collides, so it is staggered first and
+   * only dropped when even two rows cannot separate it.
+   */
+  const timeLabelRow = new Map<number, number>();
+  {
+    let lastX = -Infinity;
+    let lastRow = 1;
+    for (const m of timeStructure.marks) {
+      const x = scale.x(m.i) - scale.step / 2;
+      const gap = x - lastX;
+      if (gap < TIME_LABEL_MIN) continue;
+      const row = gap >= TIME_LABEL_GAP ? 0 : lastRow === 0 ? 1 : 0;
+      timeLabelRow.set(m.i, row);
+      lastX = x;
+      lastRow = row;
+    }
+  }
 
   // Which of the drawn boxes the plan actually enters.
   //
@@ -324,6 +558,13 @@ export function SetupChart({
     Math.abs(a.top - zone.top) < 0.006 &&
     Math.abs(a.bottom - zone.bottom) < 0.006;
   const entryDrawn = shownArrays.some(isEntryArray);
+
+  // Containment collapsed to one object each, and the group holding the entry
+  // drawn LAST so the teal box and its 1.5px stroke sit on top of whatever
+  // contains it rather than under it.
+  const arrayGroups = groupNestedArrays(shownArrays)
+    .map((g) => ({ ...g, entry: [g.outer, ...g.inner].find(isEntryArray) ?? null }))
+    .sort((a, b) => Number(a.entry != null) - Number(b.entry != null));
 
   /** Index in `view` of the bar containing time t; 0 if before the window. */
   const idxOf = (t: number): number => {
@@ -397,10 +638,10 @@ export function SetupChart({
             { p: plan.entry, c: "var(--color-primary)", t: "entry", dim: false },
             { p: plan.stop, c: "var(--color-down)", t: "stop", dim: false },
             ...(plan.t1 != null
-              ? [{ p: plan.t1, c: "var(--color-up)", t: plan.rr1 != null ? `T1 ${plan.rr1.toFixed(1)}R` : "T1", dim: false }]
+              ? [{ p: plan.t1, c: "var(--color-up)", t: plan.rr1 != null ? `T1 ${rLabel(plan.rr1)}` : "T1", dim: false }]
               : []),
             ...(plan.t2 != null
-              ? [{ p: plan.t2, c: "var(--color-up)", t: plan.rr2 != null ? `T2 ${plan.rr2.toFixed(1)}R` : "T2", dim: false }]
+              ? [{ p: plan.t2, c: "var(--color-up)", t: plan.rr2 != null ? `T2 ${rLabel(plan.rr2)}` : "T2", dim: false }]
               : []),
           ]
         : overlay
@@ -428,29 +669,104 @@ export function SetupChart({
     GUTTER_GAP,
   );
 
-  // Array labels sit at the top-left of each box, one per 9px of height at
-  // a given origin; boxes that share a price band AND a start bar (a 15m FVG
-  // inside a 1H OB) would otherwise print their names on top of each other.
-  // The entry array takes the slot ahead of everything else — it is the only
-  // box whose name changes what the trader does — and nearest-to-price wins
-  // the rest, the order chart-overlay.ts emits them in.
-  const arrayLabelSlots = new Set<SmcArray>();
+  // One label per GROUP, at the top-left of the box that names it. Nesting
+  // used to produce two names forty pixels apart describing one zone; now the
+  // second name is a suffix on the first, and only collisions BETWEEN groups
+  // can still cost a label. The entry's group takes its slot ahead of
+  // everything else — it is the only name that changes what the trader does —
+  // and nearest-to-price wins the rest, the order chart-overlay.ts emits in.
+  const groupLabelAnchor = (g: { outer: SmcArray; entry: SmcArray | null }) => g.entry ?? g.outer;
+  const labelledGroups = new Set<(typeof arrayGroups)[number]>();
   {
     const taken: { x: number; y: number }[] = [];
     const byImportance = entryDrawn
-      ? [...shownArrays].sort((a, b) => Number(isEntryArray(b)) - Number(isEntryArray(a)))
-      : shownArrays;
-    for (const a of byImportance) {
+      ? [...arrayGroups].sort((a, b) => Number(b.entry != null) - Number(a.entry != null))
+      : arrayGroups;
+    for (const g of byImportance) {
+      const a = groupLabelAnchor(g);
       const y = scale.y(a.top);
       const x = xStart(a.t);
       // 9px against 8px text meant two names one pixel apart counted as
       // "resolved". 16 is the line box; 150 is roughly the widest name.
       if (taken.every((t) => Math.abs(t.y - y) >= 16 || Math.abs(t.x - x) >= 150)) {
         taken.push({ x, y });
-        arrayLabelSlots.add(a);
+        labelledGroups.add(g);
       }
     }
   }
+
+  /**
+   * One array's ink.
+   *
+   * `mode` is the whole difference. "box" paints a zone, "entry" paints the
+   * one the limit rests in, and "edge" marks where a tighter array's boundary
+   * falls INSIDE a zone that is already painted — no second fill, no second
+   * border, no second label. That third mode is what stops a 15m FVG inside a
+   * 1H OB from reading as two trades instead of one.
+   */
+  const arrayInk = (a: SmcArray, mode: "box" | "edge" | "entry", key: string) => {
+    const y = scale.y(a.top);
+    const h = Math.max(1.5, scale.y(a.bottom) - y);
+    const x0 = xStart(a.t);
+    const w = PAD_L + PLOT_W - x0;
+    if (mode === "entry") {
+      return (
+        <g key={key}>
+          <rect x={x0} y={y} width={w} height={h} fill="var(--color-primary)" opacity={0.3} />
+          <rect
+            x={x0}
+            y={y}
+            width={w}
+            height={h}
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth={1.5}
+          />
+        </g>
+      );
+    }
+    // One box on this chart is the trade; the others are what is in the way.
+    // Drawn at equal weight the eye cannot tell them apart, so everything
+    // else is pushed back whenever an entry is on screen.
+    const isPlanSide = plan == null || (plan.side === "long" ? "bull" : "bear") === a.side;
+    const strong = a.state === "fresh" || a.state === "inverted";
+    const edgeOpacity = (isPlanSide ? 0.7 : 0.4) * (entryDrawn ? 0.55 : 1);
+    const dash = mode === "edge" ? "3 3" : undefined;
+    return (
+      <g key={key}>
+        {mode === "box" && (
+          <rect
+            x={x0}
+            y={y}
+            width={w}
+            height={h}
+            fill={arrayFill(a)}
+            opacity={(strong ? 0.18 : 0.09) * (isPlanSide ? 1 : 0.6) * (entryDrawn ? 0.5 : 1)}
+          />
+        )}
+        <line
+          x1={x0}
+          x2={PAD_L + PLOT_W}
+          y1={y}
+          y2={y}
+          stroke={arrayFill(a)}
+          strokeWidth={0.75}
+          strokeDasharray={dash}
+          opacity={edgeOpacity}
+        />
+        <line
+          x1={x0}
+          x2={PAD_L + PLOT_W}
+          y1={y + h}
+          y2={y + h}
+          stroke={arrayFill(a)}
+          strokeWidth={0.75}
+          strokeDasharray={dash}
+          opacity={edgeOpacity}
+        />
+      </g>
+    );
+  };
 
   const ariaLabel = plan
     ? `${plan.symbol} ${plan.side} — entry ${plan.entry}, stop ${plan.stop}${plan.t1 != null ? `, target ${plan.t1}` : ""}`
@@ -463,6 +779,53 @@ export function SetupChart({
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={ariaLabel}>
         {/* ── Dealing range: the rail at the edge, EQ across the plot ─────── */}
         {range && <RangeRail range={range} scale={scale} />}
+
+        {/* ── R as a SHAPE: risk block, reward block, 1R steps ─────────────── */}
+        {plan && <RiskRail plan={plan} scale={scale} />}
+
+        {/* ── Time structure: the session bells, behind everything ─────────── */}
+        {timeStructure.marks.map((m) => {
+          const x = scale.x(m.i) - scale.step / 2;
+          // At the BOTTOM, where a time axis belongs and where buildScale's 6%
+          // padding leaves ~18px of clear canvas under the lowest wick. The
+          // first try put these at the top and every one of them landed under
+          // the opaque corner badge, because a window that starts at the open
+          // puts all three bells in the first hundred pixels.
+          //
+          // The one thing down there is the replay's "decision → what
+          // followed" caption, so a stamp that would land in it is dropped:
+          // the line still carries the boundary, and two texts in one place is
+          // the collision this chart was pruned of.
+          const captionAt = replayEdge;
+          const clash = captionAt != null && x > captionAt - 34 && x < captionAt + 120;
+          const row = timeLabelRow.get(m.i);
+          return (
+            <g key={`t-${m.i}`}>
+              <line
+                x1={x}
+                x2={x}
+                y1={PAD_T}
+                y2={PAD_T + PLOT_H}
+                stroke="var(--color-muted)"
+                strokeWidth={0.5}
+                strokeDasharray="2 5"
+                opacity={0.35}
+              />
+              {!clash && row != null && (
+                <text
+                  x={x + 2}
+                  y={PAD_T + PLOT_H - 3 - row * 8}
+                  fill="var(--color-muted)"
+                  fontSize={7.5}
+                  opacity={0.65}
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {m.label}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
         {/* ── Risk and reward bands, so R is a SIZE and not a number ───────── */}
         {plan && (
@@ -488,65 +851,21 @@ export function SetupChart({
           </>
         )}
 
-        {/* ── PD arrays: a box from the bar that made it, extended right ───── */}
-        {shownArrays.map((a) => {
-          const y = scale.y(a.top);
-          const h = Math.max(1.5, scale.y(a.bottom) - y);
-          const x0 = xStart(a.t);
-          const isPlanSide = plan == null || (plan.side === "long" ? "bull" : "bear") === a.side;
-          const strong = a.state === "fresh" || a.state === "inverted";
-          const labelled = arrayLabelSlots.has(a);
-          const isEntry = isEntryArray(a);
-          // One box on this chart is the trade; the others are what is in the
-          // way. Drawn at equal weight the eye cannot tell them apart, so the
-          // entry takes the plan's own colour at full strength and everything
-          // else is pushed back behind it whenever an entry is on screen.
-          const context = (strong ? 0.18 : 0.09) * (isPlanSide ? 1 : 0.6) * (entryDrawn ? 0.5 : 1);
-          const edgeOpacity = (isPlanSide ? 0.7 : 0.4) * (entryDrawn ? 0.55 : 1);
-          const name = isEntry ? `ENTRY ${arrayName(a)}` : arrayName(a);
+        {/* ── PD arrays: one object per containment group, extended right ──── */}
+        {arrayGroups.map((g) => {
+          const key = `${g.outer.kind}-${g.outer.tf}-${g.outer.t}-${g.outer.top}`;
+          const isEntry = g.entry != null;
+          const anchor = groupLabelAnchor(g);
+          const y = scale.y(anchor.top);
+          const x0 = xStart(anchor.t);
+          const name = groupName(g, g.entry);
           return (
-            <g key={`${a.kind}-${a.tf}-${a.t}-${a.top}`}>
-              <rect
-                x={x0}
-                y={y}
-                width={PAD_L + PLOT_W - x0}
-                height={h}
-                fill={isEntry ? "var(--color-primary)" : arrayFill(a)}
-                opacity={isEntry ? 0.3 : context}
-              />
-              {isEntry ? (
-                <rect
-                  x={x0}
-                  y={y}
-                  width={PAD_L + PLOT_W - x0}
-                  height={h}
-                  fill="none"
-                  stroke="var(--color-primary)"
-                  strokeWidth={1.5}
-                />
-              ) : (
-                <>
-                  <line
-                    x1={x0}
-                    x2={PAD_L + PLOT_W}
-                    y1={y}
-                    y2={y}
-                    stroke={arrayFill(a)}
-                    strokeWidth={0.75}
-                    opacity={edgeOpacity}
-                  />
-                  <line
-                    x1={x0}
-                    x2={PAD_L + PLOT_W}
-                    y1={y + h}
-                    y2={y + h}
-                    stroke={arrayFill(a)}
-                    strokeWidth={0.75}
-                    opacity={edgeOpacity}
-                  />
-                </>
+            <g key={key}>
+              {arrayInk(g.outer, g.entry === g.outer ? "entry" : "box", `${key}-o`)}
+              {g.inner.map((b, n) =>
+                arrayInk(b, b === g.entry ? "entry" : "edge", `${key}-i${n}`),
               )}
-              {labelled && (
+              {labelledGroups.has(g) && (
                 // At the box's origin, where the candles are already history,
                 // not at the right edge where the live bars are. A plate
                 // keeps it legible over the wicks it does cover.
@@ -634,7 +953,7 @@ export function SetupChart({
                   // is on the newest bars, so it never sits on the live candle.
                   x={x > PAD_L + PLOT_W * 0.85 ? Math.max(PAD_L, x - scale.step * 4) - 2 : Math.min(PAD_L + PLOT_W - 24, x + scale.step * 2 + 2)}
                   textAnchor={x > PAD_L + PLOT_W * 0.85 ? "end" : "start"}
-                  y={Math.min(PAD_T + PLOT_H - 2, Math.max(PAD_T + 9, y + (up ? -2 : 8)))}
+                  y={Math.min(PAD_T + PLOT_H - TIME_AXIS_H, Math.max(PAD_T + 9, y + (up ? -2 : 8)))}
                   fill={color}
                   fontSize={8}
                   fontWeight={600}
@@ -646,40 +965,12 @@ export function SetupChart({
             );
           })}
 
-        {/* ── Replay: the decision bar and the future to its right ─────────── */}
-        {decisionInView != null && decisionInView >= 0 && decisionInView < view.length - 1 && (
-          <>
-            <rect
-              x={scale.x(decisionInView) + scale.step / 2}
-              y={PAD_T}
-              width={PAD_L + PLOT_W - (scale.x(decisionInView) + scale.step / 2)}
-              height={PLOT_H}
-              fill="var(--color-bg)"
-              opacity={0.35}
-            />
-            <line
-              x1={scale.x(decisionInView) + scale.step / 2}
-              x2={scale.x(decisionInView) + scale.step / 2}
-              y1={PAD_T}
-              y2={PAD_T + PLOT_H}
-              stroke="var(--color-fg)"
-              strokeWidth={1}
-              strokeDasharray="3 3"
-              opacity={0.6}
-            />
-            <text
-              x={scale.x(decisionInView) + scale.step / 2 + 4}
-              y={PAD_T + PLOT_H - 4}
-              fill="var(--color-fg)"
-              fontSize={9}
-              opacity={0.7}
-            >
-              decision → what followed
-            </text>
-          </>
-        )}
-
         {/* ── Candles ──────────────────────────────────────────────────────── */}
+        {/* Bars outside a trade window are pushed back rather than annotated.
+            The tradeable stretch of the day is then the bright part of the
+            chart, which needs no copy and costs no ink — the window comes
+            from sessions.ts (London / NY AM / NY PM), the same clock the HUD
+            and the gates read. */}
         {view.map((b, i) => {
           const x = scale.x(i);
           const up = b.c >= b.o;
@@ -687,13 +978,74 @@ export function SetupChart({
           const bodyTop = scale.y(Math.max(b.o, b.c));
           const bodyH = Math.max(1, scale.y(Math.min(b.o, b.c)) - bodyTop);
           const bw = Math.max(1.5, scale.step * 0.6);
+          const dim = timeStructure.dimOutside && timeStructure.inWindow[i] === false;
           return (
-            <g key={b.t} opacity={0.92}>
+            <g key={b.t} opacity={dim ? KZ_OFF : KZ_ON}>
               <line x1={x} x2={x} y1={scale.y(b.h)} y2={scale.y(b.l)} stroke={color} strokeWidth={1} />
               <rect x={x - bw / 2} y={bodyTop} width={bw} height={bodyH} fill={color} />
             </g>
           );
         })}
+
+        {/* ── Replay: the decision bar, and the future to its right ─────────── */}
+        {/* Drawn AFTER the candles, not before. The dimming rect used to be
+            painted first, so every candle it was meant to push back was then
+            drawn over it at full strength and the "future" read exactly as
+            bright as the history. */}
+        {decisionInView != null && decisionInView >= 0 && decisionInView < view.length && (() => {
+          const edge = replayEdge;
+          const cx = scale.x(decisionInView);
+          const floor = PAD_T + PLOT_H;
+          const yLow = scale.y(view[decisionInView]!.l);
+          return (
+            <g>
+              {edge != null && (
+                <>
+                  <rect
+                    x={edge}
+                    y={PAD_T}
+                    width={PAD_L + PLOT_W - edge}
+                    height={PLOT_H}
+                    fill="var(--color-bg)"
+                    opacity={0.35}
+                  />
+                  <line
+                    x1={edge}
+                    x2={edge}
+                    y1={PAD_T}
+                    y2={floor}
+                    stroke="var(--color-fg)"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                    opacity={0.6}
+                  />
+                  <text x={edge + 4} y={floor - 4} fill="var(--color-fg)" fontSize={9} opacity={0.7}>
+                    decision → what followed
+                  </text>
+                </>
+              )}
+              {/* The bar ITSELF, not just the boundary beside it. A divider
+                  says where the future starts; reviewing an entry needs the
+                  candle the call was made on, and on a replay whose decision
+                  bar is the newest bar there was no divider at all. */}
+              <line
+                x1={cx}
+                x2={cx}
+                y1={Math.min(yLow + 3, floor - 9)}
+                y2={floor - 8}
+                stroke="var(--color-fg)"
+                strokeWidth={0.75}
+                strokeDasharray="1 2"
+                opacity={0.7}
+              />
+              <path
+                d={`M${cx - 4},${floor - 1} L${cx + 4},${floor - 1} L${cx},${floor - 8} Z`}
+                fill="var(--color-fg)"
+                opacity={0.85}
+              />
+            </g>
+          );
+        })()}
 
         {/* ── The raid: the wick THROUGH the level, not a ring near it ─────── */}
         {sweep && sweepIdx >= 0 && sweep.price >= scale.lo && sweep.price <= scale.hi && (() => {
@@ -724,7 +1076,7 @@ export function SetupChart({
           // labels use.
           const flip = cx > PAD_L + PLOT_W * 0.72;
           const ty = Math.min(
-            PAD_T + PLOT_H - 3,
+            PAD_T + PLOT_H - TIME_AXIS_H,
             Math.max(PAD_T + 9, yExt + (sweep.above ? 14 : -9)),
           );
           return (
@@ -1018,6 +1370,131 @@ function RangeRail({
           opacity={0.6}
         />
       )}
+    </g>
+  );
+}
+
+/**
+ * R as a shape, in its own column.
+ *
+ * WHY THIS EXISTS
+ * The plan lines already put entry, stop and the targets on the chart, and the
+ * gutter already prints "T1 0.6R". Both are numbers, and a number is read
+ * after the decision has already started forming. What the eye decides on is
+ * SIZE: the risk block is 1R by construction, the reward block is drawn to
+ * scale beside it, and the step marks repeat the risk block's own height up
+ * the page. A 0.55R plan is then a stub next to a tall red block that does not
+ * reach the first step, and a 2R plan is twice the block — no reading
+ * required. The desk took a 0.55R plan this week with all three lines on
+ * screen, which is what a chart with no measure column looks like.
+ *
+ * WHAT IT REFUSES
+ * A stop at entry has no R: the denominator is zero, so nothing is drawn
+ * rather than a rail scaled off a made-up risk. A target the plan did not
+ * price is not a zero-reward block, it is no block. And it never re-derives
+ * R — rr1/rr2 come from trade-plan.ts, so the shape and the number beside it
+ * cannot disagree.
+ */
+function RiskRail({ plan, scale }: { plan: TradePlan; scale: Scale }) {
+  const clamp = (y: number) => Math.min(PAD_T + PLOT_H, Math.max(PAD_T, y));
+  const yEntry = scale.y(plan.entry);
+  const yStop = scale.y(plan.stop);
+  const riskPx = Math.abs(yStop - yEntry);
+  if (!Number.isFinite(riskPx) || riskPx < 0.5) return null;
+
+  const cx = R_RAIL_X + R_RAIL_W / 2;
+  const block = (a: number, b: number, fill: string, opacity: number, key: string, label?: string) => {
+    const top = clamp(Math.min(a, b));
+    const bottom = clamp(Math.max(a, b));
+    const h = bottom - top;
+    if (!(h > 0)) return null;
+    const cy = top + h / 2;
+    return (
+      <g key={key}>
+        <rect x={R_RAIL_X} y={top} width={R_RAIL_W} height={h} rx={1.5} fill={fill} opacity={opacity} />
+        {label && h >= R_LABEL_MIN_H && (
+          <text
+            x={cx}
+            y={cy}
+            transform={`rotate(-90 ${cx} ${cy})`}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill={fill}
+            fontSize={6.5}
+            fontWeight={700}
+            letterSpacing={0.4}
+            opacity={0.95}
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
+            {label}
+          </text>
+        )}
+      </g>
+    );
+  };
+
+  // Sub-1R is a hard-gate failure (R:R ≥ 1:1, enforced by the smc-master
+  // "target priced" must-layer), so the reward block wears the warning colour
+  // instead of the win colour. This is a display rule reading the gate, never
+  // a gate: the chart does not decide anything, it shows what was decided.
+  const short1R = plan.rr1 != null && plan.rr1 < 1;
+  const rTxt = (r: number | null) => (r == null ? undefined : rLabel(r));
+  const yT1 = plan.t1 != null ? scale.y(plan.t1) : null;
+  const yT2 = plan.t2 != null ? scale.y(plan.t2) : null;
+
+  // Each step is one risk block further in the direction the trade is trying
+  // to go, taken from where the STOP sits rather than from the side string —
+  // the stop is always on the risk side, so the steps cannot end up pointing
+  // away from the blocks they are measuring. Three is where a target stops
+  // being a target and starts being a wish; past that the marks are only ink.
+  const dir = yStop > yEntry ? -1 : 1;
+  const steps: number[] = [];
+  for (let k = 1; k <= 3; k++) {
+    const y = yEntry + dir * riskPx * k;
+    if (y >= PAD_T && y <= PAD_T + PLOT_H) steps.push(y);
+  }
+
+  return (
+    <g>
+      {/* A track the blocks sit in, so this column reads as a gauge and not
+          as a second premium/discount rail — they are neighbours, and red
+          beside red at the top of the frame otherwise merges into one bar. */}
+      <rect
+        x={R_RAIL_X}
+        y={PAD_T}
+        width={R_RAIL_W}
+        height={PLOT_H}
+        rx={1.5}
+        fill="var(--color-muted)"
+        opacity={0.07}
+      />
+      {block(yEntry, yStop, "var(--color-down)", 0.5, "risk", "1R")}
+      {yT1 != null && block(yEntry, yT1, short1R ? "var(--color-warn)" : "var(--color-up)", 0.5, "t1", rTxt(plan.rr1))}
+      {/* The runner's extra, drawn beyond T1 rather than over it — half the
+          position is already off at T1, so the two are not the same reward. */}
+      {yT2 != null && block(yT1 ?? yEntry, yT2, "var(--color-up)", 0.22, "t2", rTxt(plan.rr2))}
+      {steps.map((y, k) => (
+        <line
+          key={`step-${k}`}
+          x1={R_RAIL_X - 2}
+          x2={R_RAIL_X + R_RAIL_W + 2}
+          y1={y}
+          y2={y}
+          stroke="var(--color-muted)"
+          strokeWidth={0.6}
+          strokeDasharray="2 2"
+          opacity={0.55}
+        />
+      ))}
+      <line
+        x1={R_RAIL_X - 2}
+        x2={R_RAIL_X + R_RAIL_W + 2}
+        y1={yEntry}
+        y2={yEntry}
+        stroke="var(--color-fg)"
+        strokeWidth={1}
+        opacity={0.8}
+      />
     </g>
   );
 }

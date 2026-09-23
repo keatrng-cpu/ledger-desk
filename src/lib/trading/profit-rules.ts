@@ -19,6 +19,19 @@ export const MAX_CONSEC_LOSSES = 2;
 /** Max PATH same direction in a rolling week */
 export const MAX_SAME_SIDE_WEEK = 3;
 
+/**
+ * The bands that consume a slot under the ~9 PATH/month cap.
+ *
+ * ONE list, read by both `pathTakeGate` below and the counter that feeds it.
+ * While the two disagreed the cap stopped meaning anything: the counter
+ * admitted every paper row and the gate admitted only these, so the book could
+ * trip a cap it had never actually filled. B (paper, 0% risk) and C (journal
+ * micro, 0.5%) are deliberately absent — they are logged for the sample, they
+ * are not PATH trades, and they must never spend a PATH slot. This list does
+ * not decide what may be TAKEN; that is the gate, the floor and the sequence.
+ */
+export const PATH_BANDS: ReadonlySet<string> = new Set(["A+", "A", "A-", "B+"]);
+
 export const APLUS_FULL_SIZE_MIN_N = 20;
 export const APLUS_FULL_SIZE_MIN_WR = 0.65;
 /** Temporary A+ risk until sample proves out */
@@ -293,8 +306,7 @@ export function pathTakeGate(
     };
   }
 
-  const pathBands = new Set(["A+", "A", "A-", "B+"]);
-  if (!pathBands.has(String(band)) && !c.actionable) {
+  if (!PATH_BANDS.has(String(band)) && !c.actionable) {
     return { take: false, reason: "not_path_band", detail: `band ${band}` };
   }
 
@@ -426,8 +438,62 @@ export function goldStandardNote(c: SetupCandidate): string | null {
 const PAPER_TRADES_KEY = "ledger-paper-trades-v1";
 
 /**
- * Real fills THIS month from the browser's paper book. Used by the client
- * counters below; the server path reads desk_trades instead.
+ * The band a paper row was TAKEN at, normalised, or "" when the row carries
+ * none that can be read.
+ *
+ * Precedence matches `pathTakeGate` above (`pathBand || riskGrade || grade`)
+ * and `paperAPlusCounters` in paper-manager.ts, because the cap, the A+ sample
+ * and the gate all have to answer "what band was this card" the same way or
+ * they are measuring three different books. `cardBand` is where the
+ * candidate's `riskGrade` lands on a paper row: it is the PRE-demotion band,
+ * written since 2026-09-23 and absent on every row older than that, which is
+ * why it cannot be read first-and-only. `grade` is last on purpose — it is the
+ * SIZING grade, and rule 5's probe rewrites it from "A+" to "A", so on its own
+ * it can no longer name the card.
+ *
+ * Normalises the two dashes a band can be typed with and nothing else. An
+ * unrecognised string stays unrecognised; it is never coerced to the nearest
+ * band.
+ */
+function recordedBand(r: Record<string, unknown>): string {
+  for (const key of ["pathBand", "cardBand", "grade"] as const) {
+    const raw = r[key];
+    if (typeof raw !== "string") continue;
+    const band = raw.trim().replace(/[\u2212\u2013]/g, "-");
+    if (band) return band;
+  }
+  return "";
+}
+
+/**
+ * Real fills from the browser's paper book. Used by the client counters below;
+ * the server path reads desk_trades instead.
+ *
+ * TWO COUNTS OVER TWO WINDOWS — they answer different questions.
+ *
+ * `path` feeds the monthly cap and is scoped to `monthKey`. Until 2026-09-23
+ * it incremented on EVERY paper row in the month, so a B-band paper fill and a
+ * C-grade journal micro — neither of which `pathTakeGate` would admit as a
+ * PATH trade — each burned one of the nine slots. The cap tripped early and
+ * the gate then refused live A and A- cards with "month cap hit, A+ only".
+ * Against a fixed $199/mo data bill that refusal is expensive in both
+ * directions of the arithmetic: break-even average R is 1.07R at 8 trades a
+ * month and 1.81R at 4. Rows are now filtered to `PATH_BANDS`. A row whose
+ * band cannot be read at all still counts — an unreadable band is not evidence
+ * of a free slot, and the protective direction on an overtrade cap is to count
+ * it.
+ *
+ * `aPlusTaken/Wins` is rule 5's unlock sample and is deliberately NOT scoped to
+ * the month. The unlock needs n>=20 while the cap is 9/month, so a
+ * month-scoped sample can never reach it: the probe would hold on arithmetic
+ * rather than on evidence. It is counted over the whole book, the way
+ * `paperAPlusCounters` (paper-manager.ts) and the server's `readBookCounters`
+ * (journal/server.ts) already count it. Resolved rows only, keyed on the
+ * card's band rather than the sizing grade — keying on the sizing grade meant
+ * the probe's own "A+" -> "A" rewrite deleted the sample that lifts it, so
+ * from 2026-09-23 this client counter could never see an A+ trade at all. A
+ * closed row carrying neither a dollar P&L nor an R is UNKNOWN and is left out
+ * of the sample entirely rather than booked as a loss.
  */
 function paperFillsForMonth(monthKey: string): {
   path: number;
@@ -444,16 +510,25 @@ function paperFillsForMonth(monthKey: string): {
   }
   if (!Array.isArray(rows)) return out;
   for (const r of rows as Array<Record<string, unknown>>) {
-    const openedAt = typeof r.openedAt === "number" ? r.openedAt : NaN;
-    if (!Number.isFinite(openedAt) || monthKeyFromMs(openedAt) !== monthKey) continue;
-    out.path += 1;
-    const grade = String(r.riskGrade ?? r.grade ?? "");
-    if (grade === "A+") {
-      if (r.status === "closed") {
+    const band = recordedBand(r);
+
+    if (band === "A+" && r.status === "closed") {
+      const resolved =
+        typeof r.pnlUsd === "number" && Number.isFinite(r.pnlUsd)
+          ? r.pnlUsd
+          : typeof r.rMultiple === "number" && Number.isFinite(r.rMultiple)
+            ? r.rMultiple
+            : null;
+      if (resolved != null) {
         out.aPlusTaken += 1;
-        if (typeof r.pnlUsd === "number" && r.pnlUsd > 0) out.aPlusWins += 1;
+        if (resolved > 0) out.aPlusWins += 1;
       }
     }
+
+    const openedAt = typeof r.openedAt === "number" ? r.openedAt : NaN;
+    if (!Number.isFinite(openedAt) || monthKeyFromMs(openedAt) !== monthKey) continue;
+    if (band && !PATH_BANDS.has(band)) continue;
+    out.path += 1;
   }
   return out;
 }
@@ -466,7 +541,15 @@ function paperFillsForMonth(monthKey: string): {
  * was 14 (cap 9 + 5) forever, `pathTakeGate` said "month cap hit, A+ only"
  * every day, and auto-paper never took an A or A- card. It also hardcoded
  * aPlusTaken = 0, so the 2% -> 3% A+ unlock could never trigger on the
- * client. Both now come from real fills dated this month.
+ * client. Both now come from real fills: `pathThisMonth` from this month's
+ * PATH-band rows, the A+ sample from the whole book (see above — a 20-trade
+ * unlock cannot be counted inside a 9-trade month).
+ *
+ * `pathThisWeek`, `lastSides` and `consecLosses` are still left at their empty
+ * values here, so the client gate does not enforce the same-side cap or the
+ * loss cool-down. The server (journal/server.ts readBookCounters) does. Not
+ * fixed in this pass: unlike the month cap those defaults fail OPEN, which is
+ * a different and more careful change than this one.
  */
 export function countersFromMemory(
   mem?: DeskMemoryState,
