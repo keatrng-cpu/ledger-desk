@@ -35,7 +35,8 @@
     "verify:gateway": "npx tsx scripts/verify-gateway-window.mjs",
     "verify:sleeve": "npx tsx scripts/verify-sleeve-sizing.mjs",
     "verify:cards": "npx tsx scripts/verify-card-freshness.mjs",
-    "log": "npx tsx scripts/log-trade.mjs"
+    "log": "npx tsx scripts/log-trade.mjs",
+    "verify:markup": "npx tsx scripts/verify-setup-anticipation.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

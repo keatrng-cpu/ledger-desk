@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Landmark,
@@ -38,7 +45,10 @@ import { LiquidityPanel } from "@/components/desk/liquidity-panel";
 import { PremarketPanel } from "@/components/desk/premarket-panel";
 import { RiskPanel } from "@/components/desk/risk-panel";
 import { SessionHud } from "@/components/desk/session-hud";
-import { SetupScanner } from "@/components/desk/setup-scanner";
+import {
+  SetupScanner,
+  type CardTape,
+} from "@/components/desk/setup-scanner";
 import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
@@ -674,6 +684,61 @@ function MasterplacePage() {
       : riskFetchState === "no-session" || !risk
         ? true
         : !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit;
+
+  /**
+   * Everything a scanner card needs to draw its OWN setup, keyed by symbol.
+   *
+   * The scanner has never held bars, a quote or the live sequence, and it must
+   * not start fetching them: this route already has all three on the desk
+   * payload, and a second read could produce a chart that disagrees with the
+   * grade printed beside it. So they are handed down, from the same objects
+   * the gate is computed from — quotes for `live` versus `armed`, the
+   * narrative's pools for the raid that has to happen, smc-master for the
+   * entry array and the layers already failed for the session.
+   *
+   * Memoised on `desk` alone. The scanner recomputes each card's anticipation
+   * from this object, so a new identity every render would defeat that memo on
+   * a list that repaints every 20 seconds.
+   */
+  const scannerTape = useMemo((): Record<string, CardTape> | undefined => {
+    if (!desk) return undefined;
+    const book = (side: "left" | "right"): CardTape => {
+      const liq = desk.narrative[side].liquidity;
+      const m = desk.smcMaster?.[side];
+      return {
+        bars: desk[side].bars,
+        price: desk.quotes[side].price ?? null,
+        draw: desk.draws[side].primary,
+        pools: {
+          bsl: liq.nearestBsl,
+          ssl: liq.nearestSsl,
+          lastSide: liq.lastSweep,
+          lastLevel: liq.lastSweepLevel,
+        },
+        sequence: m
+          ? {
+              side: m.side,
+              zone: m.plan?.entryZone ?? null,
+              dead: m.layers.filter((l) => l.state === "fail").map((l) => l.id),
+              // The verdict and every layer grade, carried whole. The markup
+              // must never recompute this: the canon stack it used to count
+              // has five musts where smc-master gates on nine.
+              word: m.word,
+              mustPass: m.mustPass,
+              mustNeed: m.mustNeed,
+              states: Object.fromEntries(m.layers.map((l) => [l.id, l.state])),
+            }
+          : null,
+      };
+    };
+    // Both books keyed by symbol. When one book is charted twice (same symbol
+    // on both sides is not a state the desk builds) the later write wins, and
+    // it is the same tape either way.
+    return {
+      [desk.left.symbol]: book("left"),
+      [desk.right.symbol]: book("right"),
+    };
+  }, [desk]);
 
   // D1 — the record used to split: paper works signed-OUT (localStorage) while
   // the mirror needs auth, so trades logged before signing in never reached
@@ -1387,6 +1452,7 @@ function MasterplacePage() {
                       killzoneLabel: desk.clock.killzoneLabel,
                     }}
                     discretion={discretion}
+                    tape={scannerTape}
                   />
                   <SectionHead
                     n="2"

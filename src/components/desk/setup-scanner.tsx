@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -30,6 +30,83 @@ import {
   subscribeGhosts,
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
+import { anticipate } from "@/lib/trading/setup-anticipation";
+import { SetupMiniChart } from "./setup-mini-chart";
+import type { OhlcBar } from "@/lib/market/types";
+import type { LiquidityTarget } from "@/lib/trading/draw";
+
+/**
+ * Everything a card needs to draw ITS OWN setup, keyed by symbol upstream.
+ *
+ * WHY THIS IS A PROP AND NOT A FETCH
+ * The scanner is a pure render of `ScanResult`. It has never held bars, a
+ * quote, or the live sequence, and it should not start: the desk build already
+ * owns all three and any second read of them could disagree with the grade on
+ * the card. So the tape is handed down from the route that already has it, and
+ * every field is optional — a scanner mounted without it (tests, replays,
+ * anywhere the desk payload is not in hand) renders exactly the cards it
+ * rendered before this existed.
+ *
+ * `zone`, `sweepLevel` and `deadLayers` come from `smcMaster` — the same object
+ * the gate is computed from — because a markup derived from anything else could
+ * draw an entry array the sequence never priced.
+ */
+export interface CardTape {
+  bars?: OhlcBar[];
+  /** Freshest quote for this book. Decides `live` versus `armed`. */
+  price?: number | null;
+  /** Named draw, used only when the candidate does not carry its own. */
+  draw?: LiquidityTarget | null;
+  pools?: CardPools | null;
+  sequence?: CardSequence | null;
+}
+
+/**
+ * The pools, so the raid can be DRAWN before it happens.
+ *
+ * Both sides are carried because the tape is keyed by symbol and the card
+ * picks by its own side: a long is waiting on SSL, a short on BSL. `lastSide`
+ * and `lastLevel` are the raid that already printed — they replace the
+ * anticipated pool only when the raid was on the side this card needs, because
+ * a BSL raid says nothing about the SSL a long is still waiting for.
+ */
+export interface CardPools {
+  /** Nearest unswept buy-side pool. */
+  bsl: number | null;
+  /** Nearest unswept sell-side pool. */
+  ssl: number | null;
+  lastSide: "bsl" | "ssl" | "none";
+  lastLevel: number | null;
+}
+
+/**
+ * The live sequence for this book, straight off smc-master.
+ *
+ * `side` is carried and checked rather than assumed: smc-master grades ONE
+ * side per book, so a card on the other side would otherwise inherit an entry
+ * array and a set of failed layers belonging to the opposite trade. On a
+ * two-sided session that is not a cosmetic mismatch — it is a markup drawn for
+ * a trade nobody is proposing.
+ */
+export interface CardSequence {
+  side: "long" | "short" | null;
+  /** The entry array's edges, from the priced plan. */
+  zone: { top: number; bottom: number } | null;
+  /** Layer ids failed for the session — drawn struck through, not dashed. */
+  dead: string[];
+  /**
+   * smc-master's own verdict and layer grades, carried whole.
+   *
+   * The markup used to recompute "is the sequence complete" from the canon
+   * stack's five musts while the desk gates on nine. The flash therefore fired
+   * on a weaker gate than TAKE — inside Judas, below the floor, with the R:R
+   * unpriced. Nothing downstream recomputes this any more; it is handed over.
+   */
+  word: "TAKE" | "WAIT" | "STAND";
+  mustPass: number;
+  mustNeed: number;
+  states: Record<string, "pass" | "wait" | "fail">;
+}
 
 function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
   return (
@@ -299,6 +376,7 @@ function SetupCard({
   entryAllowed = true,
   canon,
   discretion,
+  tape,
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
@@ -307,9 +385,70 @@ function SetupCard({
   canon?: CanonStack;
   /** Per-candidate real discretion factor — see journal/discretion.ts. */
   discretion?: DiscretionResult;
+  /** This book's bars and live sequence, for the card's own markup chart. */
+  tape?: CardTape;
 }) {
   const [showDetail, setShowDetail] = useState(false);
   const ghost = useGhost(c);
+
+  /**
+   * The markup, computed once per card per poll.
+   *
+   * `anticipate` is pure and cheap, but the scanner renders a LIST and the desk
+   * repaints every 20 seconds, so it is memoised on the three inputs that can
+   * actually change it. The candidate's own draw wins over the book-level one:
+   * `c.draw` is the level THIS setup is aimed at, and the book's primary draw
+   * can point the other way on a two-sided session.
+   */
+  const anticipation = useMemo(() => {
+    // The pool THIS card is waiting on. A long needs sell-side taken, a short
+    // buy-side; the already-printed raid substitutes only when it was on that
+    // same side.
+    const want = c.side === "long" ? "ssl" : "bsl";
+    const p = tape?.pools ?? null;
+    const sweepLevel = !p
+      ? null
+      : p.lastSide === want && p.lastLevel != null
+        ? p.lastLevel
+        : want === "ssl"
+          ? p.ssl
+          : p.bsl;
+    // Nothing from the sequence is inherited across sides — see CardSequence.
+    const seq = tape?.sequence && tape.sequence.side === c.side ? tape.sequence : null;
+    return anticipate({
+      c,
+      canon,
+      sequence: seq
+        ? { word: seq.word, mustPass: seq.mustPass, mustNeed: seq.mustNeed, states: seq.states }
+        : null,
+      entryAllowed,
+      // `c.draw === null` is the scanner SAYING there is no draw in this
+      // direction (scanner.ts pushes "no liquidity draw in trade direction"
+      // alongside it). `??` could not tell that deliberate null from the
+      // undefined of a book with too few bars, so it substituted the book's
+      // primary magnet — which in that case points the wrong way by
+      // construction, and the card drew a long a target below its entry.
+      draw: c.draw !== undefined ? c.draw : (tape?.draw ?? null),
+      price: tape?.price ?? null,
+      zone: seq?.zone ?? null,
+      sweepLevel,
+      deadLayers: seq?.dead,
+    });
+  }, [c, canon, tape]);
+  const bars = tape?.bars;
+  const zone =
+    tape?.sequence && tape.sequence.side === c.side ? tape.sequence.zone : null;
+  /**
+   * Is this card carrying its own markup?
+   *
+   * It matters beyond the chart itself: the card's existing
+   * `flash-high-confluence` pulse fires on the ENGINE score alone, which is the
+   * exact signal this markup exists to stop a trader acting on. Where the chart
+   * is drawn, the chart owns the flash — green only at `entry === "live"`, when
+   * every must has printed and price is in the array. Where it is not drawn
+   * (no bars) the old pulse is untouched.
+   */
+  const chartShown = anticipation.draw && bars != null && bars.length > 0;
   const done =
     ghost &&
     (ghost.status === "won" ||
@@ -333,8 +472,10 @@ function SetupCard({
           "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]",
         // High-confluence flash: only while the card is still a live decision
         // (no ghost yet, or still watching) — a resolved won/lost/missed card
-        // flashing "hot" would be reporting urgency that already passed.
+        // flashing "hot" would be reporting urgency that already passed. And
+        // never alongside the markup, which flashes on the sequence instead.
         c.confluence >= HIGH_CONFLUENCE_THRESHOLD &&
+          !chartShown &&
           (!ghost || ghost.status === "watching") &&
           "flash-high-confluence",
       )}
@@ -446,6 +587,23 @@ function SetupCard({
         <GhostBanner g={ghost} />
       ) : (
         <BlockerStrip c={c} entryAllowed={entryAllowed} />
+      )}
+
+      {/* THE MARKUP — this card's own setup, drawn the way an SMC trader marks
+          one before it exists: the pool, the raid, the displacement and the
+          entry array all on the chart, each carrying whether it has PRINTED, is
+          AWAITED, or is DEAD for the session. Two qualifying cards means two
+          charts, so ES short and MNQ long are each drawn as their own setup
+          rather than sharing one picture of whichever book the desk picked.
+          `anticipation.draw` is the threshold (setup-anticipation.ts), and no
+          bars means no chart — the card is then exactly what it was before. */}
+      {chartShown && bars && (
+        <SetupMiniChart
+          bars={bars}
+          a={anticipation}
+          zone={zone}
+          className="mb-2"
+        />
       )}
 
       {/* ROW 2 — the plan. Three numbers a trader acts on, evenly weighted. */}
@@ -636,6 +794,7 @@ export function SetupScanner({
   narrative,
   clock,
   discretion,
+  tape,
 }: {
   scan: ScanResult;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
@@ -647,6 +806,12 @@ export function SetupScanner({
   clock?: { inTradeWindow: boolean; killzoneLabel: string };
   /** Real per-strategy sizing factor (journal/discretion.ts via getDiscretionState). */
   discretion?: DiscretionPayload | null;
+  /**
+   * Bars and live sequence per SYMBOL, for each card's own markup chart.
+   * Omitted anywhere the desk payload is not in hand; the cards then render
+   * exactly as they did before the markup existed.
+   */
+  tape?: Record<string, CardTape>;
 }) {
   const fusedSetups = useDeskSynapse((s) => s.fusedSetups);
   const boosts = useDeskSynapse((s) => s.strategyBoosts);
@@ -778,6 +943,7 @@ export function SetupScanner({
             entryAllowed={entryAllowed}
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}
+            tape={tape?.[c.symbol]}
           />
         ))}
       </div>
