@@ -28,7 +28,9 @@
     "format": "prettier --write .",
     "verify:invest": "npx tsx scripts/verify-invest.mjs",
     "capture:invest": "node scripts/capture-invest-universe.mjs",
-    "verify:desk": "npx tsx scripts/verify-desk-enhancements.mjs"
+    "verify:desk": "npx tsx scripts/verify-desk-enhancements.mjs",
+    "verify:targets": "npx tsx scripts/verify-target-odds.mjs",
+    "measure:targets": "npx tsx scripts/measure-target-odds.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
