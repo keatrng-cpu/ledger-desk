@@ -204,7 +204,14 @@ const words = new Set(ALL_DOSSIERS.map((d) => verdictFor(d, 0.02).verdict));
 for (const w of words) ok(`${w} is not a PATH word`, !["TAKE", "STAND", "MANAGE"].includes(w));
 check("ballast reads CORE", verdictFor(dossierFor("VTI"), 0.5).verdict, "CORE");
 check("over cap reads TRIM", verdictFor(dossierFor("MSFT"), 0.2).verdict, "TRIM");
-check("incomplete reads HOLD not ADD", verdictFor(dossierFor("ETN"), 0.01).verdict, "HOLD");
+// ETN used to be the incomplete case; its operator is verified now, so it
+// correctly reads ADD. Pin the rule against a synthetic incomplete dossier.
+check("a verified ETN reads ADD", verdictFor(dossierFor("ETN"), 0.01).verdict, "ADD");
+check(
+  "incomplete reads HOLD not ADD",
+  verdictFor({ ...dossierFor("MSFT"), killRule: "" }, 0.01).verdict,
+  "HOLD",
+);
 check("room to build reads ADD", verdictFor(dossierFor("MSFT"), 0.01).verdict, "ADD");
 
 console.log("\nbenchmark honesty");
