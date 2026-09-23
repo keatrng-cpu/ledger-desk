@@ -33,7 +33,8 @@
     "measure:targets": "npx tsx scripts/measure-target-odds.mjs",
     "verify:setup": "npx tsx scripts/verify-setup-memory.mjs",
     "verify:gateway": "npx tsx scripts/verify-gateway-window.mjs",
-    "verify:sleeve": "npx tsx scripts/verify-sleeve-sizing.mjs"
+    "verify:sleeve": "npx tsx scripts/verify-sleeve-sizing.mjs",
+    "verify:cards": "npx tsx scripts/verify-card-freshness.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

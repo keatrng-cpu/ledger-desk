@@ -233,7 +233,18 @@ function biasAlignment(side: DrawSide, bias: Bias): number {
   return side === "below" ? 1 : 0.6;
 }
 
-export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
+/**
+ * `livePrice` overrides the bar close for DISTANCE and SIDE only.
+ *
+ * Structure is graded on closed bars on purpose — that is how the desk avoids
+ * lookahead, and none of that changes here. But "is this level above or below
+ * price, and how far" is a question about NOW, not about the last completed
+ * fifteen minutes. Answering it from `read.last` produced the 2026-09-23 board
+ * that showed a draw 22.5 points above the live price labelled "below, 100%":
+ * a base rate for a distance that had already been travelled. See
+ * card-freshness.ts. Callers that have a fresh quote must pass it.
+ */
+export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[], livePrice?: number): DrawRead {
   const atr = atrOf(bars, 14);
   const sessions = groupSessions(bars);
   const current = sessions[sessions.length - 1];
@@ -283,7 +294,8 @@ export function drawOnLiquidity(read: HtfBiasRead, bars: OhlcBar[]): DrawRead {
     }
   }
 
-  const last = read.last;
+  const last =
+    livePrice != null && Number.isFinite(livePrice) && livePrice > 0 ? livePrice : read.last;
   const targets: LiquidityTarget[] = [];
 
   for (const lvl of mergeCoincident(candidateLevels(read), atr)) {

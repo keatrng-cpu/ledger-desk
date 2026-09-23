@@ -358,8 +358,11 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left: buildSmcTape(closedL),
         right: buildSmcTape(closedR),
       };
-      const drawL = drawOnLiquidity(biasL, left.bars);
-      const drawR = drawOnLiquidity(biasR, right.bars);
+      // The freshest quote, not the last closed bar — otherwise the draw's
+      // side, distance and therefore its reach percentage describe a moment
+      // that has passed. card-freshness.ts explains what that looked like.
+      const drawL = drawOnLiquidity(biasL, left.bars, left.price);
+      const drawR = drawOnLiquidity(biasR, right.bars, right.price);
 
       const scan = scanSetups(
         biasL,
