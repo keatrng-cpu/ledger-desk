@@ -1312,10 +1312,6 @@ function MasterplacePage() {
               {cat === "trade" && (
                 <div className="space-y-4">
                   <PricePathBoard desk={desk} />
-                  {/* Every timeframe from the year to the 30s, read top-down,
-                      before the picture: direction from the top, phase from
-                      the middle, timing from the bottom. */}
-                  <TfLadderPanel desk={desk} />
                   {/* 15:00–15:55 ET: the overnight decision is due, and the
                       trader is looking at the Now tab, not the Options tab. */}
                   {desk.clock.isWeekday &&
@@ -1328,13 +1324,11 @@ function MasterplacePage() {
                       sits directly under the verdict because that is the order
                       the decision is made in: verdict, then look. */}
                   <SetupChartPanel desk={desk} />
-                  <ShadowBookPanel mode="compact" />
                   <SectionHead
                     n="1"
                     title="PATH"
                     sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · Trade Now or skip`}
                   />
-                  <TradeDebriefPanel lastPaper={lastPaperClosed?.debrief} />
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}
@@ -1384,6 +1378,26 @@ function MasterplacePage() {
                       window.setTimeout(() => setPaperToast(null), 8000);
                     }}
                   />
+                  {/* Everything below is context, evidence and hindsight.
+                      It is all still here and all one click away — it is just
+                      no longer between the trader and the click. The order
+                      above is the order the decision is actually made in:
+                      verdict, picture, scanner. */}
+                  <DeskFold
+                    title="Timeframe ladder"
+                    sub="year → 30s, top-down — direction from the top, timing from the bottom"
+                  >
+                    <TfLadderPanel desk={desk} />
+                  </DeskFold>
+                  <DeskFold
+                    title="Shadow book"
+                    sub="today's refusals, paper-traded both ways — evidence about the gates, never a fill"
+                  >
+                    <ShadowBookPanel mode="compact" />
+                  </DeskFold>
+                  <DeskFold title="Last trade debrief" sub="hindsight — it cannot change the next click">
+                    <TradeDebriefPanel lastPaper={lastPaperClosed?.debrief} />
+                  </DeskFold>
                   <DeskFold
                     title="Context"
                     sub="HTF · live · week/month · prop · narrative"
