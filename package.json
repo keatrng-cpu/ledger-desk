@@ -45,7 +45,9 @@
     "verify:entry": "npx tsx scripts/verify-entry-trigger.mjs",
     "verify:overnight": "npx tsx scripts/verify-overnight.mjs",
     "prepush": "npm run typecheck && npm run verify:all",
-    "hooks:install": "node scripts/install-hooks.mjs"
+    "hooks:install": "node scripts/install-hooks.mjs",
+    "capture:intrabar": "npx tsx scripts/capture-intrabar.mjs",
+    "verify:census": "npx tsx scripts/verify-take-census.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

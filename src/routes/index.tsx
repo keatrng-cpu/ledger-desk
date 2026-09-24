@@ -100,6 +100,8 @@ import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store
 import { applyWordHysteresis, createHysteresisState } from "@/lib/trading/word-hysteresis";
 import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
 import { TradeLogPanel } from "@/components/desk/trade-log-panel";
+import { recordPoll } from "@/lib/trading/take-census";
+import { TakeCensusPanel } from "@/components/desk/take-census-panel";
 import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
 import { OvernightBoard } from "@/components/desk/overnight-board";
 import { DECIDE_START_MIN, DECIDE_END_MIN } from "@/lib/trading/overnight-swing";
@@ -761,6 +763,55 @@ function MasterplacePage() {
       [desk.right.symbol]: book("right"),
     };
   }, [desk]);
+
+  /**
+   * THE CENSUS — one row per book per poll.
+   *
+   * The 63-day replay prints zero takes on closed 15m bars, and nobody knows
+   * whether that is a tight gate or the wrong clock. This records what the
+   * sequence actually said on the LIVE poll, with the quote's age beside it,
+   * so the question stops being a debate. `take-census.ts` fixed the
+   * thresholds and the conclusions before this line existed.
+   *
+   * Keyed on `desk.fetchedAt`, so it fires once per desk refresh and not once
+   * per render — a census that counted renders would measure the render rate.
+   * Writes are swallowed inside recordPoll: a full quota costs a measurement,
+   * never a session.
+   */
+  useEffect(() => {
+    if (!desk) return;
+    const t = Date.parse(desk.fetchedAt);
+    if (!Number.isFinite(t)) return;
+    const session = new Date(t).toLocaleDateString("en-CA", {
+      timeZone: "America/New_York",
+    });
+    for (const side of ["left", "right"] as const) {
+      const m = desk.smcMaster?.[side];
+      if (!m) continue;
+      const q = desk.quotes[side];
+      recordPoll({
+        t,
+        session,
+        symbol: desk[side].symbol,
+        side: m.side ?? null,
+        word: m.word,
+        mustPass: m.mustPass,
+        mustNeed: m.mustNeed,
+        // The FIRST layer not passing — the thing being waited on.
+        missingLayer: m.layers.find((l) => l.state !== "pass")?.id ?? null,
+        lagSec: q?.lagSec ?? 9_999,
+        source: q?.source ?? "unknown",
+        // The scanner's number for THIS book, when the scan has one. Recorded
+        // as a cross-reference only: the census is about the sequence WORD,
+        // and a high score beside a STAND is exactly the disagreement worth
+        // being able to look up later.
+        confluence:
+          desk.scan?.candidates?.find(
+            (c) => c.symbol === desk[side].symbol && c.side === m.side,
+          )?.confluence ?? null,
+      });
+    }
+  }, [desk?.fetchedAt]);
 
   // D1 — the record used to split: paper works signed-OUT (localStorage) while
   // the mirror needs auth, so trades logged before signing in never reached
@@ -1601,6 +1652,12 @@ function MasterplacePage() {
                     sub="Real fills · discipline apart from setup · non-compliant rows excluded"
                   />
                   <TradeLogPanel />
+                  <SectionHead
+                    n="B4"
+                    title="Live TAKE census"
+                    sub="Is the gate tight, or is the 15m close the wrong clock · thresholds fixed in advance"
+                  />
+                  <TakeCensusPanel />
                   <SectionHead
                     n="C"
                     title="Real-data backtest"
