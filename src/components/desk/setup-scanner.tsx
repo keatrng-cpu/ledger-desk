@@ -600,7 +600,18 @@ function SetupCard({
     );
   }, [seqForChart?.plan, tape?.price, c.side]);
 
-  const spent = freshness != null && freshness.state !== "live";
+  /**
+   * Is this card's move already behind price?
+   *
+   * NOT while the trade is FILLED. A card in play showed "ENTRY GONE" above
+   * "IN PLAY — filled, managing": two amber boxes, the first telling the
+   * trader not to enter something they are already in, and the management
+   * state pushed below it. The spent strip exists to stop a LATE ENTRY, and
+   * once you are filled there is no entry left to be late to — what matters
+   * then is the stop and the target, which is what the ghost banner carries.
+   */
+  const inPlay = ghost?.status === "filled";
+  const spent = !inPlay && freshness != null && freshness.state !== "live";
 
   /**
    * Does the ladder agree with this side?
@@ -767,13 +778,20 @@ function SetupCard({
           n=13 in the losing bucket supports "be careful" and nothing more, so
           this never refuses and never touches the grade. */}
       {conflict.warn && (
-        <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-down)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-2 py-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-down)]">
-            Ladder disagrees · suggested {conflict.sizeMult}× size
-          </p>
-          <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-fg)]">
-            {conflict.line}
-          </p>
+        // ONE line, with the full reasoning on hover. This printed five
+        // sentences on every card — the identical paragraph twice when both
+        // books were shorts against a bull ladder — which is how a warning
+        // carrying a measured -0.69R/card gets tuned out.
+        <div
+          title={conflict.line}
+          className="mt-2 flex items-baseline gap-1.5 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-down)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-2 py-1"
+        >
+          <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-down)]">
+            Ladder {conflict.sizeMult}×
+          </span>
+          <span className="text-[10px] leading-snug text-[var(--color-fg)]">
+            {conflict.headline}
+          </span>
         </div>
       )}
 

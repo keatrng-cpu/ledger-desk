@@ -64,6 +64,16 @@ export interface LadderConflict {
   sizeMult: number;
   /** True when the trade should simply be reconsidered by a human. */
   warn: boolean;
+  /**
+   * ONE line, for the card.
+   *
+   * `line` below is five sentences of reasoning, and the scanner printed it
+   * in full on every card — the same paragraph twice when both books were
+   * shorts against a bull ladder. A wall of identical red text is how a
+   * warning gets tuned out, and this one carries a measured -0.69R/card. The
+   * short form is what the eye reads; the long form stays one hover away.
+   */
+  headline: string;
   line: string;
 }
 
@@ -84,6 +94,7 @@ export function ladderConflict(
       decidedBy: null,
       sizeMult: 1,
       warn: false,
+      headline: "No ladder — no cross-check.",
       line: "No ladder available — no directional cross-check. Trade the engine's read.",
     };
   }
@@ -99,6 +110,7 @@ export function ladderConflict(
       decidedBy,
       sizeMult: 1,
       warn: false,
+      headline: `Ladder neutral from ${decidedBy ?? "the top"} — no cross-check.`,
       line: `Ladder is neutral from ${decidedBy ?? "the top"} down — it neither confirms nor contradicts this ${side}.`,
     };
   }
@@ -110,6 +122,7 @@ export function ladderConflict(
       decidedBy,
       sizeMult: 1,
       warn: false,
+      headline: `Ladder agrees (${dir} from ${decidedBy ?? "the top"}).`,
       line: `Ladder agrees with this ${side} (${dir} from ${decidedBy ?? "the top"}). Measured +${LADDER_EVIDENCE.withR}R/card on agreeing NY AM cards, n=${LADDER_EVIDENCE.withN} — a small positive, not a reason to size up.`,
     };
   }
@@ -122,6 +135,8 @@ export function ladderConflict(
     // evidence supports "be careful" and nothing stronger.
     sizeMult: 0.5,
     warn: true,
+    // The fact, the measurement, and the action. Everything else is in `line`.
+    headline: `Ladder is ${dir} from ${decidedBy ?? "the top"} and this is a ${side} — measured ${LADDER_EVIDENCE.againstR}R/card (n=${LADDER_EVIDENCE.againstN}). Half size, look again.`,
     line:
       `LADDER DISAGREES. Read from ${decidedBy ?? "the top"} down the ladder is ${dir}, and this is a ${side}. ` +
       `The engine's HTF gate permitted this trade; the ladder does not. On NY AM shadow cards that disagreement ran ` +

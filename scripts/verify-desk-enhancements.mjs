@@ -144,5 +144,36 @@ const grown = conflictLedger(Array.from({ length: 30 }, () => ({ agreed: false, 
 ok("enough live disagreements makes it gateable", grown.gateable);
 ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
 
+
+// ── The card headline: one line, not a paragraph ──────────────────────────
+//
+// The scanner printed `line` — five sentences — on EVERY card, so two shorts
+// against a bull ladder showed the identical red paragraph twice. A wall of
+// repeated red text is how a warning carrying a measured -0.69R/card gets
+// tuned out, so the card now shows `headline` and keeps `line` on hover.
+{
+  const ladder = (direction, decidedBy = "1y") => ({ direction, decidedBy, reads: [] });
+  const cases = [
+    ["conflict", ladderConflict(ladder("bull"), "short")],
+    ["agree", ladderConflict(ladder("bear"), "short")],
+    ["neutral", ladderConflict(ladder("neutral"), "short")],
+    ["absent", ladderConflict(null, "short")],
+  ];
+  for (const [name, c] of cases) {
+    check(`${name}: has a headline`, typeof c.headline === "string" && c.headline.length > 0, true);
+    check(`${name}: headline fits one line`, c.headline.length <= 130, true);
+    check(`${name}: headline is shorter than the reasoning`, c.headline.length < c.line.length, true);
+  }
+
+  const warn = cases[0][1];
+  // The three things the trader needs in the glance: the fact, the measured
+  // cost, and the action.
+  check("conflict headline names the ladder direction", /bull/.test(warn.headline), true);
+  check("conflict headline carries the measurement", /-0\.69R/.test(warn.headline), true);
+  check("conflict headline carries the sample size", /n=13/.test(warn.headline), true);
+  check("conflict headline says what to do", /[Hh]alf size/.test(warn.headline), true);
+  // And it must never read as a refusal — n=13 does not support one.
+  check("conflict headline is not a refusal", /do not trade|refuse|blocked/i.test(warn.headline), false);
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
