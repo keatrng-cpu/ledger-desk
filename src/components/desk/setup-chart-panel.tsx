@@ -81,12 +81,27 @@ function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.l
  * means what is actually visible on that rung. The same pool at 15m and at 1m
  * is a different distance away and deserves to be drawn differently.
  */
-const STACK: { tf: "4h" | "1h" | "15m" | "5m" | "1m"; role: string }[] = [
-  { tf: "4h", role: "bias — where the week is going" },
-  { tf: "1h", role: "structure — the dealing range and the draw" },
-  { tf: "15m", role: "the setup — what the engine graded" },
-  { tf: "5m", role: "confirmation — the shift after the raid" },
-  { tf: "1m", role: "timing — the turn inside the array" },
+const STACK: {
+  tf: "4h" | "1h" | "15m" | "5m" | "1m";
+  role: string;
+  /**
+   * Does the PLAN belong on this rung?
+   *
+   * The plan is priced on 15m. Drawing its entry, stop and targets on a 4h
+   * chart is the same false precision as an entry line on a 4h bar in the
+   * card charts: the bar is four hours wide and the limit is one price. It
+   * also produced a visibly silly artefact — "T2 28.3R" printed identically
+   * on all five rungs, because the R rail scales to whatever range the chart
+   * happens to span. 4h and 1h are for bias and structure; they carry the
+   * pools, the draw and the range, and nothing that implies a click.
+   */
+  plan: boolean;
+}[] = [
+  { tf: "4h", role: "bias — where the week is going", plan: false },
+  { tf: "1h", role: "structure — the dealing range and the draw", plan: false },
+  { tf: "15m", role: "the setup — what the engine graded", plan: true },
+  { tf: "5m", role: "confirmation — the shift after the raid", plan: true },
+  { tf: "1m", role: "timing — the turn inside the array", plan: true },
 ];
 
 /**
@@ -319,7 +334,7 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
           1h are context and are never the rung to act on, which is why the
           stance only ever points at 15m, 5m or 1m. */}
       <div className="flex flex-col gap-2">
-        {STACK.map(({ tf, role }) => {
+        {STACK.map(({ tf, role, plan: drawPlan }) => {
           const series = rungs[tf];
           const view = series.bars.slice(-VISIBLE_BARS);
           const ov = view.length ? buildChartOverlay(desk, book.symbol, view) : null;
@@ -350,7 +365,7 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
               {view.length ? (
                 <SetupChart
                   bars={view}
-                  plan={plan}
+                  plan={drawPlan ? plan : null}
                   overlay={ov}
                   word={book.word}
                   emptyDetail={book.missingDetail || book.missing}
