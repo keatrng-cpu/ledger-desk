@@ -338,3 +338,111 @@ export function missingDrivers(
   }
   return out;
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * WHY IS THE SCORE STUCK?
+ *
+ * The trader watched MNQ run with a clean sweep, a priced target, a sensible
+ * stop and the HTF agreeing, and the number sat at 0.71 the whole way. That is
+ * not a fault — it is three facts nobody had written down.
+ *
+ * 1. THE SCORE GRADES FORMATION, NOT PROGRESS. Every input is a structural
+ *    fact about how the setup was BUILT: did a sweep print, is there
+ *    displacement, does the bias agree. None of it moves because price is
+ *    moving. Once the components are set the number is set, and it will sit
+ *    there through a 200-point run and through a 200-point failure alike.
+ *    (The calibration panel measured the consequence: confluence carries no
+ *    information about whether T1 is reached, r=-0.031 over n=387.)
+ *
+ * 2. structureQ IS A RATIO OVER TEN KEYS AND FOUR OF THEM ARE NOT ABOUT THE
+ *    TRADE. `opening_bias`, `weekly_pd`, `pd` and `cisd` are location and
+ *    context facts. A clean directional setup that sweeps and displaces
+ *    typically carries six of the ten, which caps structureQ at ~0.674 —
+ *    so the 0.40 half of the score contributes ~0.27 no matter how good the
+ *    trade is.
+ *
+ * 3. THE CLAMP. A strategy that is neither complete nor near-complete is
+ *    floored at PROFIT_ACTION_FLOOR - 0.02 regardless of everything else, so
+ *    scores pile up just under the floor and look identical.
+ *
+ * `scoreGap` makes all three visible: where the number is, what it could
+ * reach on THIS tape, and exactly which components stand between the two.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export interface ScoreGap {
+  now: number;
+  /** The best this strategy could score if every component it reads appeared. */
+  ceiling: number;
+  /** Fit that is unreachable because the missing pieces are not on the tape. */
+  gap: number;
+  /** What would move it, most valuable first. */
+  wouldMove: { key: ComponentKey; label: string; worth: number; channel: string }[];
+  /** True when the not-complete clamp is what is holding the number down. */
+  clamped: boolean;
+  line: string;
+}
+
+/**
+ * What is between this score and a better one.
+ *
+ * Every figure is measured by DIFFERENCING the real engine — add the missing
+ * component, re-grade, take the delta — for the same reason `scoreDrivers`
+ * does: a mirrored formula drifts, and the clamp and the completeness bonus
+ * are exactly what a mirror gets wrong.
+ */
+export function scoreGap(
+  strategyId: string,
+  components: readonly string[],
+  opts?: { htfOk?: boolean; killzoneOk?: boolean; conditionsOk?: boolean },
+): ScoreGap {
+  const t = templateFor(strategyId);
+  const list = [...components];
+  const now = gradeStrategyAgainstMarket(strategyId, list, opts).fit;
+
+  // Everything this template can read, plus the structure keys.
+  const readable = new Set<string>([
+    ...SMC_STRUCTURE_KEYS,
+    ...(t ? [...t.must, ...(t.mustAnyOf ?? []).flat(), ...t.nice] : []),
+  ]);
+  const absent = [...readable].filter((k) => !list.includes(k)) as ComponentKey[];
+
+  const ceiling = gradeStrategyAgainstMarket(strategyId, [...readable], opts).fit;
+
+  const wouldMove = absent
+    .map((key) => {
+      const worth =
+        gradeStrategyAgainstMarket(strategyId, [...list, key], opts).fit - now;
+      return {
+        key,
+        label: LABELS[key] ?? key,
+        worth: +worth.toFixed(4),
+        channel: SMC_STRUCTURE_KEYS.includes(key)
+          ? "structure"
+          : t?.must.includes(key)
+            ? "must"
+            : (t?.mustAnyOf ?? []).some((g) => g.includes(key))
+              ? "any-of"
+              : "nice",
+      };
+    })
+    .filter((x) => x.worth > 0.0005)
+    .sort((a, b) => b.worth - a.worth);
+
+  const g = gradeStrategyAgainstMarket(strategyId, list, opts);
+  const clamped = !g.complete && !g.nearComplete;
+
+  const line = clamped
+    ? `Held at ${now.toFixed(2)} by the completeness clamp, not by the components: a strategy that is neither complete nor near-complete is floored regardless of how good the rest looks. ${(t?.must ?? []).filter((m) => !list.includes(m)).map((m) => LABELS[m] ?? m).join(" + ") || "A must-layer"} is what is missing.`
+    : wouldMove.length === 0
+      ? `At ${now.toFixed(2)}, which is this strategy's ceiling on this tape — nothing it reads is still absent. The number will not move again unless a component is LOST.`
+      : `At ${now.toFixed(2)} against a ceiling of ${ceiling.toFixed(2)} here. The ${wouldMove.length} missing component${wouldMove.length === 1 ? "" : "s"} are worth ${(ceiling - now).toFixed(2)} between them — biggest first: ${wouldMove.slice(0, 3).map((w) => `${w.label} +${w.worth.toFixed(3)}`).join(", ")}. None of them is about whether the trade is working; the score grades how the setup FORMED, and does not move because price does.`;
+
+  return {
+    now: +now.toFixed(4),
+    ceiling: +ceiling.toFixed(4),
+    gap: +(ceiling - now).toFixed(4),
+    wouldMove,
+    clamped,
+    line,
+  };
+}

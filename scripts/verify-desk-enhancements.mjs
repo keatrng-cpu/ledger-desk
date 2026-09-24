@@ -17,6 +17,7 @@
  */
 const { coherence, minDteForHold, dailyDecayFrac } = await import("../src/lib/trading/stop-coherence.ts");
 const { biasDisrespect } = await import("../src/lib/trading/htf-invalidation.ts");
+const { scoreGap } = await import("../src/lib/trading/score-drivers.ts");
 const { overrideScorecard, crossCheck, summarise, overridePrompt, MIN_N_FOR_READ } = await import(
   "../src/lib/trading/override-log.ts"
 );
@@ -240,5 +241,71 @@ ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
     0,
   );
 }
+
+// ── scoreGap: why the number is where it is ───────────────────────────────
+//
+// "MNQ ran with a clean sweep, a priced target, a sensible stop and the HTF
+// agreeing, and the score sat at 0.71 the whole way." Three facts explain it,
+// and none of them was written down anywhere:
+//   - the score grades FORMATION, not progress, so it cannot move because
+//     price moves;
+//   - structureQ is a ratio over ten keys and four of them (opening_bias,
+//     weekly_pd, pd, cisd) are location facts, not trade-quality facts;
+//   - a strategy that is neither complete nor near-complete is CLAMPED.
+{
+  const ALL = { htfOk: true, killzoneOk: true, conditionsOk: true };
+  const clean = [
+    "sweep_significant", "displacement", "structure", "mss",
+    "mid_bias", "htf2_bias", "daily_bias", "ifvg",
+  ];
+
+  const cont = scoreGap("continuation", clean, ALL);
+  check("a clean setup scores well on a fitting template", cont.now > 0.8, true);
+  check("and there is still headroom", cont.ceiling > cont.now, true);
+  check("not clamped when the template is complete", cont.clamped, false);
+  check("the missing components are named", cont.wouldMove.length > 0, true);
+  check("each would actually raise the score", cont.wouldMove.every((w) => w.worth > 0), true);
+
+  // The point the trader needs: what is missing is not about the trade.
+  const names = cont.wouldMove.map((w) => w.key);
+  const contextKeys = ["pd", "weekly_pd", "opening_bias", "cisd"];
+  check(
+    "the gap is location/context keys, not trade-quality ones",
+    names.some((k) => contextKeys.includes(k)),
+    true,
+  );
+  check("and the line says exactly that", /does not move because price does/.test(cont.line), true);
+
+  // THE CLAMP — the other way a score gets stuck.
+  const mech = scoreGap("mechanical", clean, ALL);
+  check("a template missing its must is clamped", mech.clamped, true);
+  check("and floored under the action floor", mech.now < 0.65, true);
+  check("the line names the clamp, not the components", /completeness clamp/.test(mech.line), true);
+  check("the single missing must is worth a lot", mech.wouldMove[0].worth > 0.2, true);
+
+  // Everything present => no headroom, said plainly rather than invented.
+  const full = scoreGap(
+    "continuation",
+    [
+      "sweep_significant", "displacement", "structure", "mss", "mid_bias",
+      "htf2_bias", "daily_bias", "ifvg", "cisd", "weekly_pd", "pd",
+      "opening_bias", "order_block", "smt", "mechanical_model", "ote",
+    ],
+    ALL,
+  );
+  check("at the ceiling the gap is ~0", full.gap < 0.01, true);
+  check("and it says it is at the ceiling", /ceiling/.test(full.line), true);
+
+  // Measured by DIFFERENCING the real engine, so it cannot drift from it.
+  for (const w of cont.wouldMove) {
+    const after = scoreGap("continuation", [...clean, w.key], ALL).now;
+    check(
+      `adding ${w.key} moves the score by its stated worth`,
+      Math.abs(after - cont.now - w.worth) < 0.0015,
+      true,
+    );
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

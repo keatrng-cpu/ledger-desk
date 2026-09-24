@@ -45,7 +45,7 @@ import {
   resolveTf,
   type ChartTf,
 } from "@/lib/trading/chart-timeframes";
-import { scoreDrivers, topDrivers } from "@/lib/trading/score-drivers";
+import { scoreDrivers, topDrivers, scoreGap } from "@/lib/trading/score-drivers";
 import { SetupMiniChart } from "./setup-mini-chart";
 import type { OhlcBar } from "@/lib/market/types";
 import type { LiquidityTarget } from "@/lib/trading/draw";
@@ -544,6 +544,24 @@ function SetupCard({
    * Keyed on the strategy actually graded, because the same components are
    * worth different amounts under different templates.
    */
+  /**
+   * Why the number is where it is, and what would move it.
+   *
+   * "Stuck at 0.71 the whole run" is the question this answers: the score
+   * grades how the setup FORMED, not how the trade is going, so it does not
+   * move because price does. Naming the ceiling and the missing pieces turns
+   * a static number into a diagnostic.
+   */
+  const gap = useMemo(
+    () =>
+      scoreGap(c.completeStrategy || c.strategyPrimary || "", c.components ?? [], {
+        htfOk: c.htfOk,
+        killzoneOk: c.killzoneOk,
+        conditionsOk: c.conditionsOk,
+      }),
+    [c.completeStrategy, c.strategyPrimary, c.components, c.htfOk, c.killzoneOk, c.conditionsOk],
+  );
+
   const drivers = useMemo(
     () =>
       scoreDrivers(c.completeStrategy || c.strategyPrimary || "", c.components ?? [], {
@@ -793,6 +811,29 @@ function SetupCard({
       </div>
 
       <ScoreMeter score={c.confluence} />
+
+      {/* ONE line: where the number can still go, and what is holding it.
+          The full reasoning is on hover — this answers "why is it stuck"
+          without re-filling the card with paragraphs. */}
+      <p
+        title={gap.line}
+        className="mt-0.5 font-mono text-[9px] leading-snug text-[var(--color-subtle)]"
+      >
+        {gap.clamped ? (
+          <span className="text-[var(--color-warn)]">
+            held by the completeness clamp — {gap.wouldMove[0]?.label ?? "a must-layer"} missing
+            (+{(gap.wouldMove[0]?.worth ?? 0).toFixed(2)})
+          </span>
+        ) : gap.gap <= 0.005 ? (
+          <>at this strategy's ceiling on this tape — it moves only if a component is lost</>
+        ) : (
+          <>
+            ceiling {gap.ceiling.toFixed(2)} here · {gap.wouldMove.length} missing worth{" "}
+            {gap.gap.toFixed(2)}
+            {gap.wouldMove[0] && ` · biggest ${gap.wouldMove[0].label} +${gap.wouldMove[0].worth.toFixed(2)}`}
+          </>
+        )}
+      </p>
 
       {/* LADDER DISAGREEMENT. Above the chart because it changes whether to
           look at the chart at all. A suggested half size and a second look —
