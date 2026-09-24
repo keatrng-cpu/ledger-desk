@@ -35,6 +35,8 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
+import { allSeries } from "@/lib/trading/chart-timeframes";
+import { readEntry } from "@/lib/trading/entry-trigger";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
 import { evidenceFor, fmtR, managementLine, pathStats } from "@/lib/trading/discretion-memory";
 import { refusingLayer } from "@/lib/trading/shadow-book";
@@ -65,6 +67,65 @@ function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.l
   return { book, bars };
 }
 
+/**
+ * The three rungs, stacked, each drawn from its own bars.
+ *
+ * 15m is the series the engine graded — the setup. 5m is the shift after the
+ * raid — confirmation. 1m is the turn inside the array — timing. They are
+ * stacked rather than tabbed because the decision reads top-down: a 1m turn
+ * means nothing if the 15m setup is not there, and the whole point of seeing
+ * them together is that the eye checks that in one pass.
+ *
+ * Each chart gets its OWN overlay, built against its OWN bars, so "in frame"
+ * means what is actually visible on that rung. The same pool at 15m and at 1m
+ * is a different distance away and deserves to be drawn differently.
+ */
+const STACK: { tf: "15m" | "5m" | "1m"; role: string }[] = [
+  { tf: "15m", role: "the setup — what the engine graded" },
+  { tf: "5m", role: "confirmation — the shift after the raid" },
+  { tf: "1m", role: "timing — the turn inside the array" },
+];
+
+/**
+ * One sentence across all three rungs: what to DO right now.
+ *
+ * The word comes from smc-master and nothing here recomputes it. What this
+ * adds is WHERE to look, which is the thing three charts make ambiguous:
+ * a complete sequence with price away from the array is a 5m problem, and the
+ * same sequence with price in the array is a 1m one.
+ */
+function stance(
+  word: string,
+  entry: "not-yet" | "armed" | "live" | "gone",
+  missing: string,
+): { line: string; watch: "15m" | "5m" | "1m" } {
+  if (entry === "live") {
+    return {
+      watch: "1m",
+      line:
+        word === "TAKE"
+          ? "TAKE and price is in the array — this is the click. Watch the 1m turn; the 15m has already said what it has to say."
+          : `Price is in the array but the sequence still says ${word} (${missing}). The 1m turn is not permission — the missing layer is.`,
+    };
+  }
+  if (entry === "armed") {
+    return {
+      watch: "5m",
+      line: `Sequence complete, price away from the array. Nothing to do on the 1m yet — the 5m retrace is what decides whether this fills at all.`,
+    };
+  }
+  if (entry === "gone") {
+    return {
+      watch: "15m",
+      line: "The array is behind price. Do not re-enter from these levels — re-run the sequence on the 15m for the next setup.",
+    };
+  }
+  return {
+    watch: "15m",
+    line: `${word} — waiting on ${missing}. The 5m and 1m below cannot fix that; they only time an entry the 15m has not yet earned.`,
+  };
+}
+
 export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   const [teaching, setTeaching] = useState(false);
   const shadows = useShadowBook();
@@ -79,6 +140,36 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
     () => (book ? buildChartOverlay(desk, book.symbol, bars.slice(-VISIBLE_BARS)) : null),
     [desk, book, bars],
   );
+  /**
+   * The three series, built from what the desk already holds: the 15m the
+   * engine grades and the ~8h of 1m the ladder fetches. Nothing extra is
+   * fetched to draw three charts instead of one.
+   */
+  const rungs = useMemo(() => {
+    const side = book?.symbol === desk.right.symbol ? "right" : "left";
+    const minute = desk.mtf?.[side]?.minute ?? [];
+    return allSeries(bars, minute);
+  }, [bars, book?.symbol, desk.mtf, desk.right.symbol]);
+
+  /** Where price is against the plan — decides which rung is the live one. */
+  const entryState = useMemo(() => {
+    const price =
+      book?.symbol === desk.left.symbol
+        ? desk.quotes.left.price
+        : desk.quotes.right.price;
+    if (!book?.plan || price == null || !Number.isFinite(price)) return "not-yet" as const;
+    const r = readEntry(book.plan, price, null);
+    if (!r) return "not-yet" as const;
+    if (r.inZone) return "live" as const;
+    if (r.tier === "gone") return "gone" as const;
+    return book.word === "TAKE" ? ("armed" as const) : ("not-yet" as const);
+  }, [book, desk.quotes, desk.left.symbol]);
+
+  const read = useMemo(
+    () => stance(book?.word ?? "STAND", entryState, book?.missing ?? "the sequence"),
+    [book?.word, book?.missing, entryState],
+  );
+
   const topDown = overlay?.topDown ?? "neutral";
   const flip = useBiasFlip(desk.fetchedAt, book?.symbol ?? "", topDown, book?.side ?? null);
 
@@ -127,6 +218,13 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
         </button>
       </header>
 
+      {/* WHAT TO DO, across all three. The word is smc-master's and is not
+          recomputed here; what this adds is WHERE to look, which is exactly
+          what three charts make ambiguous. */}
+      <p className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-[11px] leading-snug text-[var(--color-fg)]">
+        {read.line}
+      </p>
+
       {warnReason && (
         <p
           role="alert"
@@ -141,13 +239,55 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
         </p>
       )}
 
-      <SetupChart
-        bars={bars}
-        plan={plan}
-        overlay={overlay}
-        word={book.word}
-        emptyDetail={book.missingDetail || book.missing}
-      />
+      {/* THE THREE RUNGS. Each from its own bars, each with its own overlay,
+          and each captioned with what it is FOR — so a 1m wick is never read
+          as a setup and a 15m array is never read as a trigger. */}
+      <div className="flex flex-col gap-2">
+        {STACK.map(({ tf, role }) => {
+          const series = rungs[tf];
+          const view = series.bars.slice(-VISIBLE_BARS);
+          const ov = view.length ? buildChartOverlay(desk, book.symbol, view) : null;
+          const isWatch = tf === read.watch;
+          return (
+            <div
+              key={tf}
+              className={
+                isWatch
+                  ? "rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-accent)_45%,transparent)] p-1"
+                  : "rounded-[var(--radius-md)] border border-transparent p-1"
+              }
+            >
+              <div className="mb-0.5 flex items-baseline justify-between gap-2 px-1">
+                <p className="font-mono text-[10px] text-[var(--color-fg)]">
+                  {tf}
+                  <span className="text-[var(--color-muted)]"> · {role}</span>
+                  {isWatch && (
+                    <span className="text-[var(--color-accent)]"> ← watch this one</span>
+                  )}
+                </p>
+                <p className="font-mono text-[9px] text-[var(--color-muted)]">
+                  {series.bars.length
+                    ? `${view.length} bars${series.lastBarPartial ? " · last forming" : ""}`
+                    : "no series"}
+                </p>
+              </div>
+              {view.length ? (
+                <SetupChart
+                  bars={view}
+                  plan={plan}
+                  overlay={ov}
+                  word={book.word}
+                  emptyDetail={book.missingDetail || book.missing}
+                />
+              ) : (
+                <p className="px-1 py-3 text-[10px] leading-snug text-[var(--color-muted)]">
+                  {series.coverage}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* Is this plan worth watching right now, where the order goes, and
           what the click costs — the three answers between the picture and
