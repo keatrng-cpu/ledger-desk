@@ -90,7 +90,22 @@ function months() {
   return out;
 }
 
-async function fetchMonth(rawSymbol, start, end) {
+/**
+ * One month, with retries.
+ *
+ * WHY THIS IS NOT A BARE FETCH
+ * This is ~192 requests against a live API over tens of minutes, and a single
+ * dropped socket used to take the whole run down: `fetch` rejects with
+ * TypeError: terminated (ECONNRESET), nothing catches it, and node exits. The
+ * part file made the RESULT resumable but a human still had to notice and
+ * restart it, which on an overnight run means losing the night. Transient
+ * network failure is the expected case at this request count, not an
+ * exception, so it is handled rather than reported.
+ *
+ * Retries only on network errors and 5xx/429 — a 422 is the dataset saying
+ * that month does not exist, and retrying it four times is just slower.
+ */
+async function fetchMonthOnce(rawSymbol, start, end) {
   const params = new URLSearchParams({
     dataset: DATASET,
     symbols: rawSymbol,
@@ -110,6 +125,30 @@ async function fetchMonth(rawSymbol, start, end) {
     return { ok: false, status: res.status, body: body.slice(0, 200) };
   }
   return { ok: true, text: await res.text() };
+}
+
+const RETRIES = 4;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchMonth(rawSymbol, start, end) {
+  let last = { ok: false, status: 0, body: "no attempt" };
+  for (let attempt = 0; attempt <= RETRIES; attempt++) {
+    try {
+      const r = await fetchMonthOnce(rawSymbol, start, end);
+      if (r.ok) return r;
+      last = r;
+      // A 4xx that is not 429 is a real answer about this month. Stop.
+      if (r.status < 500 && r.status !== 429) return r;
+    } catch (e) {
+      last = { ok: false, status: 0, body: String(e?.cause?.code ?? e).slice(0, 120) };
+    }
+    if (attempt < RETRIES) {
+      const wait = 2000 * 2 ** attempt;
+      process.stdout.write(`retry ${attempt + 1}/${RETRIES} in ${wait / 1000}s (${last.status || last.body}) `);
+      await sleep(wait);
+    }
+  }
+  return last;
 }
 
 /** CSV → 1m bars → 15m buckets. The minutes are never kept. */
