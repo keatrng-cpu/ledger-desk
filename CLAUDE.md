@@ -30,7 +30,7 @@ If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live
 | HTF `topDown` | **absolute gate** (no long if HTF bear, unless documented disrespect+distribution) |
 | Primary models | **mechanical + SMT/TJR companion** |
 | blake_mech longs | **paper / B+ only** until WR recovers |
-| Judas | **09:30–09:45 ET — no entries** (A+ exception only if fully complete after the raid, still wait the window) |
+| Judas | **09:30–09:45 ET — no entries. No exception.** Code wins and the code is unanimous: `smc-master.ts:477` FAILS the time must-layer (so the word cannot be TAKE), `paper-manager.ts:503` refuses the fill "paper included", and `path-alarm.ts` returns null so nothing even beeps. This row used to carve out a grade-based escape for a fully complete setup after the raid; nothing ever implemented it, and it read as a live permission in the one window the desk most wants a hard rule in. Name the raid, wait for 09:45. |
 | News | high-impact **±15m blackout** |
 | Investments sweep | Monthly, **realized closed options P&L only**. Waterfall: **rent ($199) → sleeve restore to $1,000 → split**. Rate is earned: **20%** until 20 closed months, 30% after, 40% only after a clean year. Losing or open month sweeps **0**. One-way — swept dollars never return to the sleeve. |
 | Investments ban | **QQQ · QQQM · SPY · VOO · IVV · SPLG may never be held** while the sleeve trades QQQ/SPY options — IRC 1091 wash-sale entanglement. Ballast is **VTI/ITOT**. Not tax advice; conservative default, CPA files it. |
@@ -53,7 +53,7 @@ AI **never changes** numbers in `src/lib/aplus/config.ts`. If copy and code disa
 | 09:00 | 10:00 | Recap. After 10:00 ET, **A+ only** unless already in a trade |
 
 Computer **Arm alarm** (HUD) beeps only on A+/A/A− PATH. Needs the desk tab open.
-**Auto paper** (HUD, default on) fills the same PATH into the paper book in NY AM via `openPaperTradeInstant` so stats / debrief / brain see it. Judas 9:30–9:45 A+ only; news/event blackout; one book; blake_mech longs stay manual. Not live Apex.
+**Auto paper** (HUD, default on) fills the same PATH into the paper book in NY AM via `openPaperTradeInstant` so stats / debrief / brain see it. Judas 9:30–9:45 takes NOTHING (the time layer fails, so no PATH can fill — not "A+ only"); news/event blackout; one book; blake_mech longs stay manual. Not live Apex.
 
 ### Sunday restamp (every Sunday night)
 
@@ -98,7 +98,7 @@ Live TAKE is the **SMC sequence**, not a school. ICT narrates; we price DOL. TJR
 | Tab | What |
 |-----|------|
 | Now | **Where price is going** (draw/HTF/PATH board + SMC must-layers) → **timeframe ladder** (Y→30s, top-down, `tf-ladder.ts`) → **the trade, drawn** (SMC overlay, green TAKE / red flip flash) → **shadow strip** (today's refusals paper-traded) → PATH scanner → paper. HTF/live/week/prop folded under Context. Default tab. |
-| Options | **Overnight board first** (`overnight-swing.ts`, 15:00–15:55 ET): HOLD / TRIM / FLATTEN on 6 must-layers — expiry, event-while-blind, direction, DTE≥14 · Δ≥0.70, ticket cap, 1% gap. QQQ/SPY options are **unmanageable 16:15→09:30** (17h15m; 65h15m Fri) so the −25% stop does not exist overnight; SPX/XSP/VIX/RUT do trade Cboe GTH 20:15–09:25 limit-only. Never carry into expiry day (broker force-sells from 15:30 ET, auto-exercise at $0.01 ITM). Then the Robinhood QQQ/SPY sleeve **$1,000 · risk 15% = $150** max debit. Working stop **−25% of debit**. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
+| Options | **Overnight board first** (`overnight-swing.ts`, 15:00–15:55 ET): HOLD / TRIM / FLATTEN on 6 must-layers — expiry, event-while-blind, direction, DTE≥14 · Δ≥0.70, ticket cap, 1% gap. QQQ/SPY options are **unmanageable 16:15→09:30** (17h15m; 65h15m Fri) so the −25% stop does not exist overnight; SPX/XSP/VIX/RUT do trade Cboe GTH 20:15–09:25 limit-only. Never carry into expiry day (broker force-sells from 15:30 ET, auto-exercise at $0.01 ITM). Then the Robinhood QQQ/SPY sleeve: **$1,000 max DEBIT per trade**, loss capped **15% of the debit paid** — the same model as the hard-rules row, which this line used to contradict by restating the superseded "15% of $1,000 = $150 ceiling". **Unresolved:** this row and the output contract say the working stop is **25%** of debit (`rh-income.ts` RH_WORKING_STOP_PCT = 0.25) while the hard rule and `sleeve-sizing.ts` say **15%**. Until the trader picks one, `options-desk.ts` sizes against the WORSE of the two so either reading stays inside $150. Week floor **$50** (Databento), stretch **$1,000** (not a take-mandate). Day: PATH 1–2 DTE (0DTE A+ after 9:45 with SMC TAKE). Swing: SMT lead / event second / HTF vertical. Never both underliers. |
 | Charts | Dual MNQ/ES tape + liquidity |
 | Brain | Veteran + coach (Ask Grok + Claude, peers, parallel). Never overrides hard gates. |
 | Book | WR / grades / profit path, journal, **shadow book** (refusals paper-traded both ways · gate scorecard · the little things — `shadow-book.ts`, `discretion-memory.ts`; never the paper book), TradeZella backtest (no lookahead) |

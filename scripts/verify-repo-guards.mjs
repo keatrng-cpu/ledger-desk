@@ -281,6 +281,57 @@ for (const [path] of FLOORS) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. CLAUDE.md MAY NOT CLAIM A RULE THE CODE DOES NOT IMPLEMENT
+//
+// "If copy and code disagree, code wins" is the stated rule, and it only works
+// if somebody notices the disagreement. The Judas row claimed an "A+ exception
+// if fully complete after the raid" while THREE separate code paths refused
+// every entry in that window unconditionally — a carve-out that existed only
+// in the document, in the one window the desk most wants a hard rule in.
+//
+// These are coherence checks, not style checks: each pairs a sentence in the
+// doc against the code path that would have to implement it.
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  const doc = read("CLAUDE.md") ?? "";
+  const master = read("src/lib/trading/smc-master.ts") ?? "";
+  const paper = read("src/lib/trading/paper-manager.ts") ?? "";
+
+  // What the CODE does about the Judas window.
+  const judasFailsLayer = /judas \|\| newsBlk \? "fail"/.test(master);
+  const judasRefusesFill = /isJudasWindow\([^)]*\)\)\s*\{[\s\S]{0,240}?ok: false/.test(paper);
+  ok(judasFailsLayer, "smc-master still fails the time must-layer during Judas");
+  ok(judasRefusesFill, "paper-manager still refuses a fill during Judas");
+
+  // If the code refuses unconditionally, the doc may not advertise an
+  // exception. Checked as a CLAIM rather than an exact phrase, since it is the
+  // claim that misleads.
+  if (judasFailsLayer && judasRefusesFill) {
+    const judasLines = doc
+      .split("\n")
+      .filter((l) => /judas/i.test(l))
+      .join(" ");
+    ok(
+      !/A\+ exception/i.test(judasLines),
+      'CLAUDE.md does not claim an "A+ exception" the code never implements',
+    );
+    ok(
+      !/Judas[^.|]{0,40}A\+ only/i.test(judasLines),
+      'CLAUDE.md does not say Judas is "A+ only" while the code takes nothing',
+    );
+  }
+
+  // The sleeve model: the doc must not restate the superseded ceiling. The
+  // trader replaced "$1,000 account, 15% of it = $150 max debit" with a
+  // $1,000 DEBIT ceiling on 2026-09-23, and the Options tab row kept the old
+  // sentence for a day after the hard-rules row changed.
+  ok(
+    !/risk 15% = \$150\*\* max debit/.test(doc),
+    'CLAUDE.md does not restate the superseded "15% of $1,000 = $150 ceiling"',
+  );
+}
+
 console.log(`\nrepo-guards: ${pass} passed, ${fail} failed`);
 if (fails.length) {
   console.log("\nFAILURES:");

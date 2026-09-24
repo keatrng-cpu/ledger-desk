@@ -36,7 +36,16 @@
     "verify:sleeve": "npx tsx scripts/verify-sleeve-sizing.mjs",
     "verify:cards": "npx tsx scripts/verify-card-freshness.mjs",
     "log": "npx tsx scripts/log-trade.mjs",
-    "verify:markup": "npx tsx scripts/verify-setup-anticipation.mjs"
+    "verify:markup": "npx tsx scripts/verify-setup-anticipation.mjs",
+    "verify:all": "npx tsx scripts/verify-all.mjs",
+    "verify:guards": "npx tsx scripts/verify-repo-guards.mjs",
+    "verify:migration": "npx tsx scripts/verify-sleeve-migration.mjs",
+    "verify:charts": "npx tsx scripts/verify-chart-timeframes.mjs",
+    "verify:drivers": "npx tsx scripts/verify-score-drivers.mjs",
+    "verify:entry": "npx tsx scripts/verify-entry-trigger.mjs",
+    "verify:overnight": "npx tsx scripts/verify-overnight.mjs",
+    "prepush": "npm run typecheck && npm run verify:all",
+    "hooks:install": "node scripts/install-hooks.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
