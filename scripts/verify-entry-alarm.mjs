@@ -24,7 +24,25 @@
  * only failure mode of an alarm that costs money.
  */
 
-/* ── A window just real enough for the module under test ─────────────────── */
+// FROZEN CLOCK.
+//
+// `considerEntryAlarm` reads the real wall clock for its Judas and day-key
+// checks, so this suite read it too — and failed every day between 09:30 and
+// 09:45 ET, when the alarm correctly refuses. The pre-push hook then blocked
+// every push for those fifteen minutes, which is how it was found.
+//
+// A test of a time-gated function that depends on WHEN it runs is not testing
+// the function. Time is pinned to 10:15 ET — inside NY AM, clear of Judas —
+// and moved deliberately where the gate itself is under test.
+let NOW = Date.UTC(2026, 8, 24, 14, 15); // 10:15 ET, a Thursday
+const realNow = Date.now;
+Date.now = () => NOW;
+/** ET is UTC-4 in September. */
+const atEt = (h, m) => {
+  NOW = Date.UTC(2026, 8, 24, h + 4, m);
+};
+
+// A window just real enough for the module under test.
 const store = new Map();
 globalThis.window = {
   localStorage: {
@@ -218,6 +236,17 @@ const R = () => book("ES", "short", 7700);
   arm();
   ok(considerEntryAlarm(desk(l, R(), [29000, 7000])) == null, "silent when price is away");
 
+  // JUDAS. 09:30-09:45 ET takes nothing, no exception — the same rule
+  // smc-master, paper-manager and this alarm all enforce. Asserted by moving
+  // the clock, not by waiting for 09:30.
+  store.clear();
+  arm();
+  atEt(9, 35);
+  ok(considerEntryAlarm(desk(l, R(), at)) == null, "silent inside the Judas window");
+  atEt(9, 46);
+  ok(considerEntryAlarm(desk(l, R(), at)) != null, "and fires again once Judas is over");
+  atEt(10, 15);
+
   // No priced plan, and no T1 — nothing to be called to.
   store.clear();
   arm();
@@ -303,4 +332,5 @@ if (fails.length) {
   console.log("\nFAILURES:");
   for (const f of fails) console.log("  ✗", f);
 }
+Date.now = realNow;
 process.exit(fail ? 1 : 0);
