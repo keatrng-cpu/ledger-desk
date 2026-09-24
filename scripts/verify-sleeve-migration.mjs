@@ -33,6 +33,7 @@ import {
 import {
   MAX_DEBIT_USD,
   STOP_FRAC_OF_DEBIT,
+  sizeFromStop,
 } from "../src/lib/trading/sleeve-sizing.ts";
 import { RH_WORKING_STOP_PCT } from "../src/lib/trading/rh-income.ts";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -169,6 +170,104 @@ const ok = (c, l) => (c ? pass++ : (fail++, fails.push(l)));
   ok(
     !/\$150 cap/.test(desk),
     "no hardcoded \"$150 cap\" copy survives — the cap is a variable now",
+  );
+}
+
+// ── 7. SIZE FROM THE LEVEL — the trader's rule, 2026-09-24 ────────────────
+//
+// "Size from the stop, not from a fixed debit. Exit on the LEVEL — the futures
+// plan's invalidation; the percentage is a disaster backstop, not the plan."
+//
+// The property that makes this worth doing: a TIGHTER invalidation must buy
+// MORE contracts at the SAME risk. A fixed debit pays the same dollars to be
+// wrong on a 0.55R idea and a 3R one.
+{
+  const plan = (riskPts) => ({
+    symbol: "MNQ",
+    side: "long",
+    entry: 20000,
+    stop: 20000 - riskPts,
+    riskPts,
+  });
+  const base = { delta: 0.5, premiumUsd: 200, dte: 21, riskBudgetUsd: 150 };
+
+  const tight = sizeFromStop({ ...base, plan: plan(20) });
+  const wide = sizeFromStop({ ...base, plan: plan(80) });
+
+  ok(tight.contracts > wide.contracts, `tighter stop buys more (${tight.contracts} vs ${wide.contracts})`);
+  ok(wide.contracts >= 1, "a wide stop still sizes something");
+
+  // SAME risk, not more. That is the whole claim.
+  ok(
+    tight.lossAtInvalidationUsd <= 150 + 1e-6,
+    `tight loss at invalidation $${tight.lossAtInvalidationUsd} within the $150 budget`,
+  );
+  ok(
+    wide.lossAtInvalidationUsd <= 150 + 1e-6,
+    `wide loss at invalidation $${wide.lossAtInvalidationUsd} within the $150 budget`,
+  );
+
+  // Monotone across the whole plausible range — no stop distance may ever
+  // breach the budget, and more distance may never buy more contracts.
+  let prev = Infinity;
+  let worstLoss = 0;
+  for (let pts = 5; pts <= 400; pts += 5) {
+    const r = sizeFromStop({ ...base, plan: plan(pts) });
+    if (r.contracts > 0) {
+      ok(
+        r.contracts <= prev,
+        `contracts never increase as the stop widens (${pts}pts: ${r.contracts} after ${prev})`,
+      );
+      prev = r.contracts;
+      worstLoss = Math.max(worstLoss, r.lossAtInvalidationUsd);
+    }
+  }
+  ok(worstLoss <= 150 + 1e-6, `worst loss across the sweep $${worstLoss} <= $150 budget`);
+
+  // The debit ceiling still binds when the geometry would buy more than
+  // $1,000 of premium.
+  const cheapTight = sizeFromStop({
+    ...base,
+    premiumUsd: 50,
+    plan: plan(5),
+  });
+  ok(
+    cheapTight.debitUsd <= MAX_DEBIT_USD + 1e-6,
+    `ceiling still binds: $${cheapTight.debitUsd} <= $${MAX_DEBIT_USD}`,
+  );
+  if (cheapTight.cappedByDebit) {
+    ok(
+      cheapTight.lossAtInvalidationUsd < 150,
+      "when the ceiling binds, the ticket risks LESS than the budget",
+    );
+  }
+
+  // One contract too big is a REFUSAL, not a rounded-down one.
+  const huge = sizeFromStop({ ...base, delta: 0.9, premiumUsd: 900, plan: plan(600) });
+  ok(huge.contracts === 0 && huge.unaffordable, "an unaffordable geometry refuses rather than buying one");
+  ok(/TOO BIG/i.test(huge.lines.join(" ")), "and says why in words");
+}
+
+// ── 8. The ticket says WHICH method sized it ──────────────────────────────
+{
+  const src = readFileSync(
+    fileURLToPath(new URL("../src/lib/trading/options-desk.ts", import.meta.url)),
+    "utf8",
+  );
+  ok(/sizedFrom: "level"/.test(src), "options-desk can size from the level");
+  ok(/sizedFrom: "ceiling"/.test(src), "and still falls back to the ceiling when no plan exists");
+  ok(
+    /import \{[^}]*sizeFromStop[^}]*\} from "\.\/sleeve-sizing"/.test(src),
+    "options-desk imports the level solver rather than reimplementing it",
+  );
+  // Every toTicket call site must actually pass a plan, or level sizing is
+  // dead code behind a default parameter.
+  const sites = (src.match(/\? toTicket\(/g) ?? []).length;
+  const passes = (src.match(/planForUnderlier\(desk, underlier\)/g) ?? []).length;
+  ok(sites > 0, `${sites} toTicket call sites found`);
+  ok(
+    passes === sites,
+    `every call site passes a plan (${passes}/${sites}) — a default null would make level sizing dead code`,
   );
 }
 

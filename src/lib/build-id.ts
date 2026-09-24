@@ -4,7 +4,7 @@
  * lies about staleness. If the badge in the UI does not match the deployed
  * commit, the page is genuinely cached (see server/middleware/no-cache.ts).
  */
-export const BUILD_ID = "88d78f9";
-export const BUILD_LABEL = "desk-88d78f9-LAG-v1";
-export const BUILD_AT = "2026-09-24T12:25:17Z";
+export const BUILD_ID = "d18d74c";
+export const BUILD_LABEL = "desk-d18d74c-LAG-v1";
+export const BUILD_AT = "2026-09-24T12:42:21Z";
 export const BUILD_MARKER = "LAG-v1";

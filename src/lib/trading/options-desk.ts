@@ -26,7 +26,8 @@ import {
 import { loadRhSleeve, rhRiskBudgetUsd, rhTicketCapUsd, type RhSleeve } from "./options-sleeve";
 // sleeve-sizing.ts is the authority on the new model; this file now actually
 // imports it rather than naming it in a comment.
-import { CLOCK_WARN, STOP_FRAC_OF_DEBIT } from "./sleeve-sizing";
+import { CLOCK_WARN, STOP_FRAC_OF_DEBIT, sizeFromStop } from "./sleeve-sizing";
+import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
 
@@ -55,6 +56,18 @@ export interface RhTicket {
   estDebitEach: number;
   estDebitTotal: number;
   maxLoss: number;
+  /**
+   * How the contract count was decided.
+   *
+   * "level" — solved from the futures plan's invalidation distance x delta, so
+   *   a tighter stop bought more contracts at the same risk. This is the rule
+   *   (trader 2026-09-24); the percentage brake is a backstop behind it.
+   * "ceiling" — no priced invalidation yet, so the debit cap decided. Shown
+   *   rather than hidden, because a ticket sized this way has not had its real
+   *   risk solved for and should be re-sized once the sequence prices a stop.
+   */
+  sizedFrom: "level" | "ceiling";
+  sizeNote: string | null;
   workingStop: number;
   workingStopPct: number;
   cutRule: string;
@@ -118,6 +131,26 @@ const IV = { SPY: 0.17, QQQ: 0.2 } as const;
 
 function underlierOf(symbol: string): SwingUnderlier {
   return symbol.includes("ES") ? "SPY" : "QQQ";
+}
+
+/**
+ * The futures plan this option is expressing, for the underlier given.
+ *
+ * SPY expresses the ES book and QQQ the NQ book, so the plan comes from
+ * whichever smc-master book maps to that underlier. Null when the sequence
+ * has not priced one — which before a completed setup is the normal answer,
+ * and the caller then sizes from the ceiling instead and says so.
+ */
+function planForUnderlier(
+  desk: DeskPayload,
+  underlier: SwingUnderlier,
+): TradePlan | null {
+  const m = desk.smcMaster;
+  if (!m) return null;
+  for (const book of [m.left, m.right]) {
+    if (book && underlierOf(book.symbol) === underlier) return book.plan ?? null;
+  }
+  return null;
 }
 
 function proxyPair(desk: DeskPayload) {
@@ -352,6 +385,7 @@ function sizeProduct(
   iv: number,
   cap: number,
   riskBudget: number,
+  plan: TradePlan | null,
 ): {
   product: RhProduct;
   contracts: number;
@@ -359,12 +393,52 @@ function sizeProduct(
   total: number;
   strikeNote: string;
   clock: boolean;
+  /** How the size was decided — the trader should be able to see which. */
+  sizedFrom: "level" | "ceiling";
+  sizeNote: string | null;
 } | null {
   const single = estimateDebitContract(spot, dte, delta, iv);
   const nMax = maxContracts(dte);
-  // When the brake is a clock the ceiling is NOT safe to spend: fall back to
-  // the old behaviour of risking only what can be lost outright, because that
-  // is what a decay-driven stop actually means.
+  // SIZE FROM THE LEVEL when the sequence has priced one (trader's call,
+  // 2026-09-24, and what the hard-rules row already said): contracts =
+  // budget / (underlying move to invalidation x delta x 100). A tighter
+  // invalidation buys more contracts at the SAME risk, which is what the
+  // futures book has always done and the sleeve never has.
+  //
+  // The percentage brake is not the plan. It is a disaster backstop behind
+  // the level, so it no longer decides size when a level exists.
+  if (plan) {
+    const sized = sizeFromStop({
+      plan,
+      delta,
+      premiumUsd: single,
+      dte,
+      riskBudgetUsd: riskBudget,
+    });
+    if (sized.contracts > 0) {
+      const n = Math.min(nMax, sized.contracts);
+      const k = roundStrike(spot);
+      const otm = side === "put" ? k - 1 : k + 1;
+      return {
+        product: "single",
+        contracts: n,
+        each: single,
+        total: n * single,
+        strikeNote: `ATM/~${otm} ${side} · est $${(single / 100).toFixed(2)} (not a chain mid)`,
+        clock: sized.clock,
+        sizedFrom: "level",
+        sizeNote: sized.lines[0] ?? null,
+      };
+    }
+    // One contract already risks more than the budget at this invalidation.
+    // That is a real refusal, not a reason to fall through and buy one anyway.
+    if (sized.unaffordable) return null;
+  }
+
+  // NO PRICED LEVEL — fall back to the ceiling, and say so downstream.
+  //
+  // When the brake is a clock the ceiling is NOT safe to spend: risk only what
+  // can be lost outright, because that is what a decay-driven stop means.
   const clock = brakeIsClock(dte);
   const effCap = clock ? Math.min(cap, riskBudget) : cap;
   if (single <= effCap) {
@@ -378,6 +452,9 @@ function sizeProduct(
       total: n * single,
       strikeNote: `ATM/~${otm} ${side} · est $${(single / 100).toFixed(2)} (not a chain mid)`,
       clock,
+      sizedFrom: "ceiling",
+      sizeNote:
+        "No priced invalidation yet, so this is sized from the debit ceiling rather than from the level. Re-size once the sequence prices a stop.",
     };
   }
   const width = pickWidth(underlier, dte);
@@ -399,6 +476,9 @@ function sizeProduct(
       total: n * spread,
       strikeNote: `${longK}/${shortK} ${side} vertical · width $${width} · est $${(spread / 100).toFixed(2)}`,
       clock,
+      sizedFrom: "ceiling",
+      sizeNote:
+        "Vertical sized from the debit ceiling. A spread's loss at the underlying's invalidation is not a single delta times a move, so the level-based solve does not apply to it.",
     };
   }
   return null;
@@ -431,6 +511,8 @@ function toTicket(
   hold: string,
   invalidation: string,
   targets: string[],
+  /** The futures plan this option expresses. Null = size from the ceiling. */
+  plan: TradePlan | null = null,
 ): RhTicket | null {
   const sized = sizeProduct(
     underlier,
@@ -441,6 +523,7 @@ function toTicket(
     iv,
     cap,
     rhRiskBudgetUsd(sleeve),
+    plan,
   );
   if (!sized) return null;
   const workingStop = rhWorkingStop(sized.total);
@@ -457,6 +540,8 @@ function toTicket(
     contracts: sized.contracts,
     estDebitEach: sized.each,
     estDebitTotal: sized.total,
+    sizedFrom: sized.sizedFrom,
+    sizeNote: sized.sizeNote,
     maxLoss: sized.total,
     workingStop,
     workingStopPct: RH_WORKING_STOP_PCT,
@@ -593,6 +678,8 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
             "Trim 50% at +40–60% of debit, stop → BE",
             "Hard time stop 11:00 ET",
           ],
+          // Size from the LEVEL: the futures plan this option expresses.
+          planForUnderlier(desk, underlier),
         )
       : null;
   if (c && verdict !== "STAND" && !ticket) {
@@ -680,6 +767,8 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
           "Minutes. Flat 11:00 ET. No overnight 0DTE.",
           "Failed displacement or reclaim of the raid extreme",
           ["Working stop −25% of debit or failed displacement", "Flat rest at structure or 11:00"],
+          // Size from the LEVEL: the futures plan this option expresses.
+          planForUnderlier(desk, underlier),
         )
       : null;
 
@@ -792,6 +881,8 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
             ? "Both books reclaim the sweep high = out. ES taking a high NQ refuses is still valid."
             : "Both books fail the hold low = out",
           ["Trim 50% at +50% of debit", "Do not buy SPY and QQQ together"],
+          // Size from the LEVEL: the futures plan this option expresses.
+          planForUnderlier(desk, underlier),
         )
       : null;
 
@@ -858,6 +949,8 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
           "1–4 sessions. Flatten before the NEXT high-impact print.",
           c.invalidation || "HTF flip or failed second impulse",
           ["Trim 50% at +50–80%", `Spread first when 7 DTE ATM runs past $${cap}`],
+          // Size from the LEVEL: the futures plan this option expresses.
+          planForUnderlier(desk, underlier),
         )
       : null;
 
@@ -917,6 +1010,8 @@ function htfSwingCard(
             ...plan.targets,
             `ATM 21–45 DTE may not fit $${cap} — expect a vertical or STAND`,
           ],
+          // Size from the LEVEL: the futures plan this option expresses.
+          planForUnderlier(desk, underlier),
         )
       : null;
 
