@@ -103,5 +103,12 @@
     "actual": "0.0% MoM / +1.4% YoY",
     "vs": "exp +0.3% / prev +0.2%",
     "note": "Fed G.17. Flat. Mfg -0.3% (first drop of year), utilities +1.8% (heat). Cap util 76.3%."
+  },
+  {
+    "date": "2026-09-24",
+    "name": "Initial Jobless Claims",
+    "actual": "197k",
+    "vs": "exp 201k / prev 196k",
+    "note": "Week ending Sep 19. 4-wk avg 202.25k. Continuing 1.719M vs ~1.74M. Soft-to-in-line; not a labor-break. No ISM/JOLTS/ADP/NFP today."
   }
 ]
