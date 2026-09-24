@@ -753,6 +753,33 @@ export function SetupChart({
     // straight through "30468.50 LIVE".
     taken.push({ x: PAD_L, y: scale.y(lastClose), w: PLOT_W });
 
+    // So does the raid annotation. It renders AFTER the array labels and so
+    // draws over them — "15M REJ · 3 INSIDE" printed under
+    // "raid 7739.50 · 1.75pt through" on the live chart. The raid wins that
+    // row on merit: it is a must-layer and the reason the setup exists, where
+    // the array name is context. Reserved with a band wide enough to cover
+    // the label's own ±14px offset from the wick extreme, since the exact
+    // offset is computed later in the render.
+    if (sweep) {
+      // ONE tight row, at the raid line itself.
+      //
+      // Two ±12px bands across the plot suppressed every array label on the
+      // chart, and a narrower version still killed the one that mattered:
+      // the rejection block IS the raid, so they sit at the same price by
+      // construction. A band around the raid therefore eats the label of the
+      // structure the raid created — trading a collision for no label, which
+      // is the worse chart.
+      //
+      // So only the raid's own line row is reserved; its text is offset from
+      // that row and carries a plate, which is what actually makes an overlap
+      // readable. Belt, not straitjacket.
+      const raidY = scale.y(sweep.price);
+      const raidX = scale.x(sweepIdx);
+      const raidW = 150;
+      const flipped = raidX > PAD_L + PLOT_W * 0.72;
+      taken.push({ x: flipped ? raidX - raidW - 6 : raidX + 6, y: raidY, w: raidW });
+    }
+
     const byImportance = entryDrawn
       ? [...arrayGroups].sort((a, b) => Number(b.entry != null) - Number(a.entry != null))
       : arrayGroups;
@@ -1175,6 +1202,8 @@ export function SetupChart({
             PAD_T + PLOT_H - TIME_AXIS_H,
             Math.max(PAD_T + 9, yExt + (sweep.above ? 14 : -9)),
           );
+          const raidText = `raid ${sweep.price.toFixed(2)}${through != null ? ` · ${through.toFixed(2)}pt through` : ""}`;
+          const raidLabelW = raidText.length * 4.9;
           return (
             <g>
               {yLevel != null ? (
@@ -1227,6 +1256,18 @@ export function SetupChart({
                   strokeWidth={1.5}
                 />
               )}
+              {/* A plate under the raid text. It renders after the array
+                  labels and so draws over them; without a backing the two
+                  strings interleaved into one unreadable line. */}
+              <rect
+                x={flip ? cx - 6 - raidLabelW : cx + 4}
+                y={ty - 8}
+                width={raidLabelW + 4}
+                height={11}
+                rx={2}
+                fill="var(--color-bg)"
+                opacity={0.85}
+              />
               <text
                 x={flip ? cx - 6 : cx + 6}
                 textAnchor={flip ? "end" : "start"}
