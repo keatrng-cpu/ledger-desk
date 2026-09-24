@@ -1,4 +1,6 @@
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
+import { planIncome } from "@/lib/trading/income-target";
+import { MONTHLY_TARGET_USD } from "@/lib/trading/income-target";
 import { useEffect, useMemo, useState } from "react";
 import {
   Crosshair,
@@ -85,6 +87,52 @@ function Tile({
   );
 }
 
+
+/**
+ * The monthly income target, priced against measured terms.
+ *
+ * This sits ABOVE the profit path because it answers the question the profit
+ * path cannot: the path measures whether the desk's trades are good, and this
+ * measures whether there are enough of them to pay anybody. A 70% win rate on
+ * three trades a year is an excellent statistic and no income at all, and
+ * without this panel those two facts live on different screens.
+ *
+ * It plans on the HELD-OUT expectancy, never the pooled one.
+ */
+function IncomeGauge({ equity }: { equity: number }) {
+  const plan = useMemo(
+    () => planIncome({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_RULES.riskPctCeiling }),
+    [equity],
+  );
+  const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
+  return (
+    <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+          Income target · measured, not projected
+        </p>
+        <p
+          className={
+            plan.reachable
+              ? "font-mono text-sm font-semibold text-[var(--color-up)]"
+              : "font-mono text-sm font-semibold text-[var(--color-warn)]"
+          }
+        >
+          {usd(plan.projectedMonthlyDollars)}/mo vs {usd(plan.target)}
+          {plan.reachable ? "" : ` · ${plan.shortfallMultiple.toFixed(1)}x short`}
+        </p>
+      </div>
+      <ul className="mt-1.5 flex flex-col gap-0.5">
+        {plan.lines.map((l) => (
+          <li key={l} className="text-[10px] leading-snug text-[var(--color-fg)]">
+            {l}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function ProfitPathPanel({ equity }: { equity?: number }) {
   const pathFeed = useDeskSynapse((s) => s.feeds.path);
   const posture = useDeskSynapse((s) => s.posture);
@@ -156,6 +204,7 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
 
   return (
     <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5">
+      <IncomeGauge equity={equity ?? APLUS_RULES.accountEquity} />
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">

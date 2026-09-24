@@ -234,3 +234,13 @@ export function incomeLadder(target: number, equity = APLUS_RULES.paperEquity, r
     (a, b) => b.projectedMonthlyDollars - a.projectedMonthlyDollars,
   );
 }
+
+/**
+ * The trader's stated monthly target (2026-09-24).
+ *
+ * Kept here rather than in config.ts because it is a GOAL, not a rule: nothing
+ * gates on it, no size is derived from it, and being short of it authorises
+ * exactly nothing. config.ts holds the numbers the desk must obey; this is the
+ * number it is being measured against.
+ */
+export const MONTHLY_TARGET_USD = 10_000;
