@@ -77,6 +77,26 @@ export interface SetupCandidate {
   killzoneOk: boolean;
   htfOk: boolean;
   /**
+   * How far the counter-bias release has come, when this side is fighting the
+   * HTF read.
+   *
+   * `biasDisrespect` already computes every requirement with a pass/fail, and
+   * until now that work was DISCARDED unless all four passed — so a reversal
+   * two-thirds of the way to releasing the gate looked identical to one that
+   * had not started. That is the shape of the miss the trader described: the
+   * raid printed, the displacement printed, and the desk said nothing because
+   * structure and the LTF reads had not caught up yet.
+   *
+   * Recording it does NOT release the gate. It makes the gate legible.
+   */
+  htfRelease?: {
+    met: number;
+    of: number;
+    checks: { id: string; label: string; pass: boolean }[];
+    missing: string[];
+    reason: string;
+  } | null;
+  /**
    * True when this candidate trades AGAINST the HTF read and the gate
    * released because the bias was disrespected + distributed
    * (htf-invalidation.ts). A counter-bias trade must never be
@@ -687,6 +707,17 @@ export function scoreCandidates(
     }
     c.htfOk = false;
     c.actionable = false;
+    // The gate holds — and now says HOW FAR from releasing it is, instead of
+    // throwing the answer away. A counter-bias side with the raid and the
+    // displacement already printed is the reversal forming; one with neither
+    // is noise, and they used to look the same from outside.
+    c.htfRelease = {
+      met: disrespect.checks.filter((x) => x.pass).length,
+      of: disrespect.checks.length,
+      checks: disrespect.checks,
+      missing: disrespect.checks.filter((x) => !x.pass).map((x) => x.label),
+      reason: disrespect.reason,
+    };
     if (!c.missing.includes("HTF top-down gate")) {
       c.missing.unshift("HTF top-down gate");
     }

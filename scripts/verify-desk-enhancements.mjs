@@ -16,6 +16,7 @@
  * Run: npx tsx scripts/verify-desk-enhancements.mjs
  */
 const { coherence, minDteForHold, dailyDecayFrac } = await import("../src/lib/trading/stop-coherence.ts");
+const { biasDisrespect } = await import("../src/lib/trading/htf-invalidation.ts");
 const { overrideScorecard, crossCheck, summarise, overridePrompt, MIN_N_FOR_READ } = await import(
   "../src/lib/trading/override-log.ts"
 );
@@ -174,6 +175,70 @@ ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
   check("conflict headline says what to do", /[Hh]alf size/.test(warn.headline), true);
   // And it must never read as a refusal — n=13 does not support one.
   check("conflict headline is not a refusal", /do not trade|refuse|blocked/i.test(warn.headline), false);
+}
+
+// ── The 2026-09-24 bounce: why the desk showed no sign ────────────────────
+//
+// QQQ ran ~$3 in ten minutes off the low. The desk was drawing MNQ SHORT and
+// never suggested the other side. It was not a scoring failure — the scanner
+// grades BOTH sides every poll — it was a VISIBILITY failure: the long was
+// graded, refused on the absolute HTF gate, and then hidden entirely, because
+// "Path grades only" drops anything non-actionable.
+//
+// The release needs four things. On a fast bounce two of them CANNOT be true
+// yet: structure BOS and both LTF reads are computed from 15m swings and need
+// several bars, so a ten-minute move confirms them only after it is over. The
+// gate is built to catch a regime change, and by construction it is late to a
+// quick reversal. That is correct behaviour for a GATE and useless as a
+// SIGNAL — so the progress is now recorded and shown instead of discarded.
+{
+  const bear = { topDown: "bear", mid: "bear", ltf: "bear", lastBOS: { direction: "bear" } };
+  const raidAndDisplace = {
+    sweep: { latest: { index: 98, side: "sellside" } },
+    displacement: { latest: { index: 99, direction: "bull" } },
+  };
+
+  const r = biasDisrespect(bear, raidAndDisplace, "bull", 100);
+  check("the bounce does NOT release the gate", r.disrespected, false);
+  check("but it is 2 of 4", r.checks.filter((c) => c.pass).length, 2);
+  check("the raid counts", r.checks.find((c) => c.id === "manipulation").pass, true);
+  check("the displacement counts", r.checks.find((c) => c.id === "distribution").pass, true);
+  check("structure has not caught up", r.checks.find((c) => c.id === "structure").pass, false);
+  check("nor have the LTF reads", r.checks.find((c) => c.id === "ltf").pass, false);
+  check("and it names what is still missing", /Structure broken/.test(r.reason), true);
+
+  // Nothing yet is NOT the same as two of four. The scanner shows the second
+  // and not the first, so they have to be distinguishable.
+  const quiet = biasDisrespect(
+    bear,
+    { sweep: { latest: null }, displacement: { latest: null } },
+    "bull",
+    100,
+  );
+  check("a quiet tape is 0 of 4", quiet.checks.filter((c) => c.pass).length, 0);
+
+  // A lone sweep is one check. One is noise — sellside gets swept all
+  // session — which is why the watch bar is two, not one.
+  const sweepOnly = biasDisrespect(
+    bear,
+    { sweep: { latest: { index: 98, side: "sellside" } }, displacement: { latest: null } },
+    "bull",
+    100,
+  );
+  check("a lone raid is only 1 of 4", sweepOnly.checks.filter((c) => c.pass).length, 1);
+
+  // The full signature still releases — the gate is unchanged.
+  const flipped = { topDown: "bear", mid: "bull", ltf: "bull", lastBOS: { direction: "bull" } };
+  const full = biasDisrespect(flipped, raidAndDisplace, "bull", 100);
+  check("the full four still releases the gate", full.disrespected, true);
+  check("and names the released direction", full.direction, "bull");
+
+  // With-bias sides never claim release credit.
+  check(
+    "a with-bias side is not 'disrespected'",
+    biasDisrespect(bear, raidAndDisplace, "bear", 100).checks.length,
+    0,
+  );
 }
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

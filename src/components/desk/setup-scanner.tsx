@@ -610,6 +610,10 @@ function SetupCard({
    * once you are filled there is no entry left to be late to — what matters
    * then is the stop and the target, which is what the ghost banner carries.
    */
+  /** smc-master's word for THIS side, or null when it has no read on it. */
+  const seqWord =
+    tape?.sequence && tape.sequence.side === c.side ? tape.sequence.word : null;
+
   const inPlay = ghost?.status === "filled";
   const spent = !inPlay && freshness != null && freshness.state !== "live";
 
@@ -704,10 +708,27 @@ function SetupCard({
                 direction right · no fill
               </span>
             )}
+            {/* "ACTIONABLE" is the SCANNER's word, and it was printed as a
+                green tick beside "SMC skip · 2/5" — a go signal sitting next
+                to the gate that refuses it. Both are true of different
+                things, and on one card they read as the desk contradicting
+                itself. The tick is now reserved for the case where the
+                sequence AGREES; otherwise it says whose opinion it is and
+                wears the muted colour, because a green check is a
+                permission and the sequence has not given one. */}
             {!done && c.actionable && entryAllowed && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
-                <CheckCircle2 className="h-3 w-3" /> actionable
-              </span>
+              seqWord === "TAKE" ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
+                  <CheckCircle2 className="h-3 w-3" /> actionable
+                </span>
+              ) : (
+                <span
+                  title={`The scanner grades this ${c.grade}, but the SMC sequence says ${seqWord ?? "no read"}. TAKE needs both.`}
+                  className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]"
+                >
+                  engine only · SMC {seqWord?.toLowerCase() ?? "—"}
+                </span>
+              )
             )}
             {/* A counter-HTF trade must never look like a with-bias one. The
                 gate released because the bias was disrespected and price
@@ -777,6 +798,36 @@ function SetupCard({
           look at the chart at all. A suggested half size and a second look —
           n=13 in the losing bucket supports "be careful" and nothing more, so
           this never refuses and never touches the grade. */}
+      {/* COUNTER-BIAS WATCH. The HTF gate is holding, and this says how close
+          it is to releasing rather than only that it refused. Every figure
+          here was already computed by biasDisrespect and thrown away. It is
+          NOT a trade: the gate is absolute until all four print, and this card
+          stays non-actionable. It is the sign the desk had and was not
+          showing. */}
+      {!c.actionable && (c.htfRelease?.met ?? 0) >= 2 && c.htfRelease && (
+        <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-accent)_50%,transparent)] bg-[color-mix(in_oklab,var(--color-accent)_8%,transparent)] px-2 py-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
+            Counter-bias forming · {c.htfRelease.met}/{c.htfRelease.of} to release · not a trade
+          </p>
+          <ul className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+            {c.htfRelease.checks.map((x) => (
+              <li
+                key={x.id}
+                className={cn(
+                  "font-mono text-[9px]",
+                  x.pass ? "text-[var(--color-up)]" : "text-[var(--color-subtle)]",
+                )}
+              >
+                {x.pass ? "✓" : "○"} {x.label}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-[10px] leading-snug text-[var(--color-fg)]">
+            {c.htfRelease.reason}
+          </p>
+        </div>
+      )}
+
       {conflict.warn && (
         // ONE line, with the full reasoning on hover. This printed five
         // sentences on every card — the identical paragraph twice when both
@@ -1172,9 +1223,27 @@ export function SetupScanner({
   const tradeFeed = useDeskSynapse((s) => s.feeds.trade);
 
   const [pathOnly, setPathOnly] = useState(true);
+  /**
+   * A counter-bias side that is PART WAY to releasing the HTF gate.
+   *
+   * "Path grades only" hid these completely: the gated side is not actionable
+   * and does not carry a PATH band, so a reversal with the raid and the
+   * displacement already printed was filtered out and the trader saw no sign
+   * the desk had even considered it. That is the miss — the desk graded the
+   * long, refused it, and said nothing.
+   *
+   * Two of four is the bar. One check is noise (a lone sweep happens all
+   * session); two means manipulation AND distribution have printed and only
+   * the lagging confirmations — structure and the LTF reads — are outstanding.
+   * Showing it changes NO gate: it is still not actionable, and it is badged
+   * as a watch.
+   */
+  const formingReversal = (c: SetupCandidate) =>
+    !c.actionable && (c.htfRelease?.met ?? 0) >= 2;
+
   const shown = pathOnly
     ? rankCandidates(scan.candidates).filter(
-        (c) => c.actionable || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+" || c.grade === "A+" || c.grade === "A-",
+        (c) => c.actionable || formingReversal(c) || c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+" || c.grade === "A+" || c.grade === "A-",
       )
     : scan.candidates;
   const ranked = pathOnly && shown.length === 0 ? scan.candidates.slice(0, 4) : shown;
