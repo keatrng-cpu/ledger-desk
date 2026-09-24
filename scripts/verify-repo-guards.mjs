@@ -344,15 +344,35 @@ for (const [path] of FLOORS) {
   const paper = read("src/lib/trading/paper-manager.ts") ?? "";
 
   // What the CODE does about the Judas window.
-  const judasFailsLayer = /judas \|\| newsBlk \? "fail"/.test(master);
-  const judasRefusesFill = /isJudasWindow\([^)]*\)\)\s*\{[\s\S]{0,240}?ok: false/.test(paper);
-  ok(judasFailsLayer, "smc-master still fails the time must-layer during Judas");
-  ok(judasRefusesFill, "paper-manager still refuses a fill during Judas");
+  //
+  // UPDATED 2026-09-24. This used to assert that BOTH paths refuse the window
+  // unconditionally, which was correct until the trader made the call that the
+  // Judas swing is a model rather than a hazard. The guard is not deleted —
+  // it now pins the NEW invariant, which is the stricter and more easily
+  // broken one: both paths must still refuse BY DEFAULT and may only be
+  // released through `judas-window.ts`, which fails closed without sub-15m
+  // tape. An accidental edit that drops the release check entirely would open
+  // the window for the whole fifteen minutes, and that is what this catches.
+  const judasGuarded = /judasRead\.blocked/.test(master) && /judas \|\| judasUndergrade \|\| newsBlk \? "fail"/.test(master);
+  const judasFillGuarded =
+    /isJudasWindow\([^)]*\)\)\s*\{[\s\S]{0,400}?readJudas\([\s\S]{0,240}?ok: false/.test(paper);
+  ok(judasGuarded, "smc-master fails the clean layer during Judas unless judas-window released it");
+  ok(judasFillGuarded, "paper-manager refuses a Judas fill unless judas-window released it");
 
-  // If the code refuses unconditionally, the doc may not advertise an
-  // exception. Checked as a CLAIM rather than an exact phrase, since it is the
-  // claim that misleads.
-  if (judasFailsLayer && judasRefusesFill) {
+  // The release must FAIL CLOSED. Without this the whole design inverts: no
+  // minute tape would mean no block instead of no trade.
+  const judasModule = read("src/lib/trading/judas-window.ts") ?? "";
+  ok(
+    /stage: "no-tape"/.test(judasModule) && /blocked: true/.test(judasModule),
+    "judas-window fails closed when there is no sub-15m tape to resolve with",
+  );
+  ok(
+    /JUDAS_MIN_CONFLUENCE = 0\.75/.test(judasModule),
+    "a Judas entry still has to carry the A+ tag, not merely the 0.65 floor",
+  );
+
+  // The doc may not advertise a carve-out looser than the code implements.
+  if (judasGuarded && judasFillGuarded) {
     const judasLines = doc
       .split("\n")
       .filter((l) => /judas/i.test(l))
