@@ -95,5 +95,17 @@ console.log("\nthe cadence band");
   check("and flags the floor breach in words", /BELOW the 2\/week floor/.test(c.line), true);
 }
 
+console.log("\nthe caveat that outranks the projection");
+{
+  const { EDGE_IS_ONE_TRADE_WIDE, TOP5PCT_SHARE_OF_PROFIT } = await import("../src/lib/trading/income-target.ts");
+  check("the edge is flagged as one trade wide", EDGE_IS_ONE_TRADE_WIDE, true);
+  check("and the tail share is above 100%", TOP5PCT_SHARE_OF_PROFIT > 1, true);
+  // A positive projection must NEVER print without the caveat beside it.
+  const p = planIncome({ target: 10_000, equity: 500_000, policyId: "stack_pd_event", riskPct: 0.03 });
+  check("a positive projection carries the caveat", /one trade wide/.test(p.lines.join(" ")), true);
+  const neg = planIncome({ target: 10_000, policyId: "shipped" });
+  check("a negative one does not need it", /one trade wide/.test(neg.lines.join(" ")), false);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

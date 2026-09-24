@@ -15,7 +15,36 @@ import {
 } from "@/lib/aplus/config";
 import type { SetupCandidate } from "./scanner";
 
-/** Hard day-trade risk caps (points). Wider than this = structural invalidation too far → skip. */
+/**
+ * Hard day-trade risk caps (points). Wider than this = structural invalidation
+ * too far → skip.
+ *
+ * KEPT AS THE FALLBACK ONLY. These are fixed POINT numbers written when MNQ
+ * traded near 12,000, and the index has since roughly tripled while the
+ * numbers did not. Measured over the four-year tape, the same 48/18 expressed
+ * in ATR has silently drifted from a 4.6x-ATR cap in 2024 to 2.5x in 2026 —
+ * and in 2026 it refused 44% of everything the sequence had already admitted,
+ * for a reason that has nothing to do with the trade in front of it:
+ *
+ *   year  admitted  refused for a wide stop  cap in ATR terms
+ *   2022      72      16 (22%)               2.50x
+ *   2023     253      22  (9%)               4.33x
+ *   2024     192      26 (14%)               4.61x
+ *   2025     228      67 (29%)               2.45x
+ *   2026      82      36 (44%)               2.48x
+ *
+ * It is also not a risk gate, which is the part that makes it safe to fix: the
+ * account sizes to a percentage of equity FROM THE STOP, so a wider stop buys
+ * fewer contracts at identical dollar risk, and `unsized` already refuses the
+ * case where one contract exceeds the budget. What this cap actually encodes
+ * is a claim about SETUP quality — an invalidation this far away is not a
+ * level, it is a different idea — and that claim is inherently relative to how
+ * far the instrument moves.
+ *
+ * Measured: switching to 4x ATR takes 0.91 → 1.08 trades/week AND held-out
+ * expectancy +0.072R → +0.133R. Frequency and quality both improve, which is
+ * the signature of removing an accident rather than loosening a gate.
+ */
 export const MAX_RISK_PTS: Record<string, number> = {
   MNQ: 48,
   NQ: 48,
@@ -27,6 +56,33 @@ export const MAX_RISK_PTS: Record<string, number> = {
   RTY: 8,
 };
 export const DEFAULT_MAX_RISK_PTS = 48;
+
+/**
+ * The cap, in the only units that stay true as the index moves.
+ *
+ * 4x ATR(14) is where the four-year sweep put it. Below ~3x it starts
+ * refusing ordinary structure; above ~5x the "invalidation too far" claim
+ * stops meaning anything.
+ */
+export const MAX_RISK_ATR = 4;
+
+/**
+ * How wide a stop this instrument will accept right now.
+ *
+ * ATR-relative when the caller has bars, the legacy fixed number when it does
+ * not — so every existing call site that cannot supply ATR behaves exactly as
+ * it does today. The legacy number also acts as a FLOOR: this can only ever
+ * widen the cap relative to today, never tighten it, so no configuration of
+ * this function can start refusing a trade the desk currently takes.
+ *
+ * The absolute ceiling is there for a bad ATR (a roll gap, a data glitch): a
+ * cap is not allowed to become unbounded because one bar was wrong.
+ */
+export function maxRiskPtsFor(symbol: string, atr?: number | null): number {
+  const fixed = MAX_RISK_PTS[symbol] ?? DEFAULT_MAX_RISK_PTS;
+  if (!atr || !Number.isFinite(atr) || atr <= 0) return fixed;
+  return Math.min(Math.max(fixed, MAX_RISK_ATR * atr), fixed * 3);
+}
 /** Prefer ATR-ish min structure — stops tighter than this get padded to minRisk already */
 
 export type TradeExitReason =

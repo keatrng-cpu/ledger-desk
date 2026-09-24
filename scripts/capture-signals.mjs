@@ -62,7 +62,8 @@ const { drawOnLiquidity } = await import("../src/lib/trading/draw.ts");
 const { newsRead } = await import("../src/lib/trading/news.ts");
 const { gradeSmcMaster } = await import("../src/lib/trading/smc-master.ts");
 
-const H = JSON.parse(readFileSync("src/data/history-4y.json", "utf8"));
+const HIST = argOf("hist", "src/data/history-4y.json");
+const H = JSON.parse(readFileSync(HIST, "utf8"));
 const MNQ = H.bars.MNQ ?? [];
 const ES = H.bars.ES ?? [];
 if (MNQ.length < 5000 || ES.length < 5000) {

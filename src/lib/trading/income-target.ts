@@ -29,6 +29,28 @@
  * frequency this signal set can produce before it stops being signal, and the
  * ceiling sits below the frequency a large monthly target needs.
  *
+ * THE CORRECTION THAT MATTERS MOST, AND IT IS AGAINST THESE NUMBERS
+ * A 2,188-trade study over the same tape (2026-09-24) found the raw signal
+ * pool measures -0.137R, with a day-clustered interval that a bootstrap puts
+ * at [-0.255, +0.038] — indistinguishable from zero, not reliably positive.
+ * The positive figures in this table survive only because the ACCOUNT rules
+ * (one position at a time, one book per day, the monthly cap) select a small
+ * favourable subset of it, and at n=169 that selection is thin.
+ *
+ * Worse, and this is the number to hold on to: DROPPING THE SINGLE BEST TRADE
+ * takes held-out expectancy NEGATIVE in every configuration tested
+ * (+0.072 -> -0.135, +0.184 -> -0.042, +0.435 -> -0.009). The top 5% of
+ * trades are 122-188% of all profit; the other 95% lose in aggregate. The
+ * biggest single trade was a 2.25-point stop — exactly the 0.25xATR floor —
+ * running to a target 40R away, which is R manufactured by a small
+ * denominator rather than edge.
+ *
+ * So `oosExpR` below should be read as AN UPPER BOUND ON A NUMBER THAT IS ONE
+ * TRADE WIDE, not as an expectation. Everything this module computes from it
+ * inherits that. Power analysis on the same data: proving +0.192R takes ~2,046
+ * trades (6.6 years at 6/week); proving +0.091R takes ~9,107 (29 years). This
+ * is not a quantity that can be settled by trading more.
+ *
  * SO THE HONEST ANSWER IS USUALLY "CAPITAL", NOT "TECHNIQUE"
  * At the desk's measured terms the monthly return is roughly 1.5-2.3%. A
  * $10,000 month is then a statement about the size of the account, not about
@@ -132,6 +154,25 @@ export interface IncomePlan {
 export const FREQUENCY_CLIFF_PER_YEAR = 104;
 
 /**
+ * How much of the measured profit sits in the best few trades.
+ *
+ * 122-188% across configurations — i.e. the top 5% of trades carry MORE than
+ * all of it and the remaining 95% lose. A plan that depends on catching those
+ * is not a plan, and this constant exists so the number has to be looked at
+ * rather than remembered.
+ */
+export const TOP5PCT_SHARE_OF_PROFIT = 1.22;
+
+/**
+ * True when the whole edge would vanish if one trade were removed.
+ *
+ * Measured 2026-09-24 across every configuration tested. Kept as a flag rather
+ * than prose because a caller that prints an income projection should be able
+ * to print this beside it without knowing the history.
+ */
+export const EDGE_IS_ONE_TRADE_WIDE = true;
+
+/**
  * Price a monthly income target against measured terms.
  *
  * `oos` selects which expectancy to plan with. It defaults to the held-out
@@ -202,6 +243,12 @@ export function planIncome(input: {
     }
     lines.push(
       `  Raising risk beyond ${pct(APLUS_RULES.riskPctCeiling)} is not a third way — it is capped in config.ts and scales drawdown with return, not instead of it.`,
+    );
+  }
+
+  if (EDGE_IS_ONE_TRADE_WIDE && projectedMonthlyReturn > 0) {
+    lines.push(
+      `CAVEAT, and it outranks the rest: dropping the single best trade takes held-out expectancy NEGATIVE in every configuration measured. The top 5% of trades are ${Math.round(TOP5PCT_SHARE_OF_PROFIT * 100)}%+ of all profit and the other 95% lose in aggregate. Treat the figure above as an upper bound that is one trade wide.`,
     );
   }
 

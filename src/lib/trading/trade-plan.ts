@@ -36,7 +36,7 @@
 import type { OhlcBar } from "../market/types";
 import type { SmcArray } from "./smc-board";
 import { atrOf, groupSessions, type LiquidityTarget, type SessionSlice } from "./draw";
-import { MAX_RISK_PTS, DEFAULT_MAX_RISK_PTS } from "./simulate-path-trade";
+import { MAX_RISK_PTS, DEFAULT_MAX_RISK_PTS, maxRiskPtsFor } from "./simulate-path-trade";
 import {
   expectedR,
   runnerWorthIt,
@@ -229,10 +229,18 @@ export interface BuildPlanInput {
   bars?: OhlcBar[];
 }
 
-/** Risk cap for a symbol, matching the simulator's table. */
-function maxRiskFor(symbol: string): number {
+/**
+ * Risk cap for a symbol, matching the simulator.
+ *
+ * ATR-relative when the plan was built from bars (`maxRiskPtsFor`), the legacy
+ * fixed number otherwise. The fixed table is a FLOOR inside that helper, so
+ * this can only widen the cap relative to the old behaviour — a plan the desk
+ * accepts today can never start failing here.
+ */
+function maxRiskFor(symbol: string, atr?: number | null): number {
   const root = symbol.replace(/^M/, "");
-  return MAX_RISK_PTS[symbol] ?? MAX_RISK_PTS[root] ?? DEFAULT_MAX_RISK_PTS;
+  const known = MAX_RISK_PTS[symbol] != null ? symbol : root;
+  return maxRiskPtsFor(known, atr);
 }
 
 function round2(n: number): number {
@@ -451,7 +459,7 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
     riskPts,
     riskTooTight,
     riskAtr: atr,
-    riskOverCap: riskPts > maxRiskFor(symbol),
+    riskOverCap: riskPts > maxRiskFor(symbol, atr),
     t1,
     t2,
     rr1,
