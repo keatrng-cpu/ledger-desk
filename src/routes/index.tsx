@@ -1045,6 +1045,25 @@ function MasterplacePage() {
           } catch {
             /* a pending fill must never break the quote poll */
           }
+          try {
+            // THE TOUCH ALARM BELONGS ON THIS CLOCK, NOT THE 20s ONE.
+            //
+            // It was only evaluated in the desk poll, so with the gateway
+            // delivering a print every second the desk checked "is price at
+            // CE" twenty times less often than it knew. A wick into the array
+            // and back out inside one 20s window — ordinary at the open —
+            // filled a resting limit (that already ticked here) while never
+            // calling the trader to the screen. The alarm is the mechanism
+            // for the case where there is no resting order, which is most of
+            // them, so it was the slow half of exactly the wrong pair.
+            //
+            // Cheap to run: it exits on the first guard unless armed, and
+            // dedupes per plan per day, so 1,170 polls a session still make
+            // at most one beep per plan.
+            considerEntryAlarm(next);
+          } catch {
+            /* an alarm must never break the quote poll */
+          }
           patched = next;
           deskRef.current = next;
           return next;

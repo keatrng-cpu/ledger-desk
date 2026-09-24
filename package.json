@@ -48,7 +48,8 @@
     "hooks:install": "node scripts/install-hooks.mjs",
     "capture:intrabar": "npx tsx scripts/capture-intrabar.mjs",
     "verify:census": "npx tsx scripts/verify-take-census.mjs",
-    "verify:chartlabels": "npx tsx scripts/verify-chart-labels.mjs"
+    "verify:chartlabels": "npx tsx scripts/verify-chart-labels.mjs",
+    "verify:alarm": "npx tsx scripts/verify-entry-alarm.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

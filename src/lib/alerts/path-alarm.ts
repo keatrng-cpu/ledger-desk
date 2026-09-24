@@ -8,6 +8,7 @@
 
 import { isWatchable, readEntry, touchKey } from "@/lib/trading/entry-trigger";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import type { SmcMasterBook } from "@/lib/trading/smc-master";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
 
@@ -19,7 +20,17 @@ const HIGH_PROB = new Set(["A+", "A", "A-"]);
 export interface PathAlarmState {
   armed: boolean;
   muted: boolean;
+  /** Dedupe slot for the PATH (complete-sequence) alarm. */
   lastKey: string | null;
+  /**
+   * Dedupe slot for the CE-touch alarm, kept SEPARATE.
+   *
+   * Both alarms used to write `lastKey`. Firing one then cleared the other's
+   * memory, so a PATH beep could un-suppress a touch that had already fired
+   * and the same book alarmed twice — or, the other way, a touch could
+   * silence a later PATH. Two independent events need two slots.
+   */
+  lastTouchKey: string | null;
   lastAt: number | null;
   lastTitle: string | null;
 }
@@ -49,23 +60,24 @@ function etDay(ms: number): string {
 
 function load(): PathAlarmState {
   if (typeof window === "undefined") {
-    return { armed: false, muted: false, lastKey: null, lastAt: null, lastTitle: null };
+    return { armed: false, muted: false, lastKey: null, lastTouchKey: null, lastAt: null, lastTitle: null };
   }
   try {
     const raw = localStorage.getItem(PATH_ALARM_STORAGE);
     if (!raw) {
-      return { armed: false, muted: false, lastKey: null, lastAt: null, lastTitle: null };
+      return { armed: false, muted: false, lastKey: null, lastTouchKey: null, lastAt: null, lastTitle: null };
     }
     const p = JSON.parse(raw) as Partial<PathAlarmState>;
     return {
       armed: p.armed === true,
       muted: p.muted === true,
       lastKey: typeof p.lastKey === "string" ? p.lastKey : null,
+      lastTouchKey: typeof p.lastTouchKey === "string" ? p.lastTouchKey : null,
       lastAt: typeof p.lastAt === "number" ? p.lastAt : null,
       lastTitle: typeof p.lastTitle === "string" ? p.lastTitle : null,
     };
   } catch {
-    return { armed: false, muted: false, lastKey: null, lastAt: null, lastTitle: null };
+    return { armed: false, muted: false, lastKey: null, lastTouchKey: null, lastAt: null, lastTitle: null };
   }
 }
 
@@ -317,7 +329,15 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
   if (desk.news?.verdict === "blackout") return null;
   if (!desk.clock.inTradeWindow) return null;
 
-  const books = [desk.smcMaster?.oneBook, desk.smcMaster?.left, desk.smcMaster?.right];
+  // DEDUPED. `oneBook` is the same OBJECT as left or right (smc-master picks
+  // it from them), so the old [oneBook, left, right] tested one book twice —
+  // and combined with the early return below, a book that had already alarmed
+  // ended the whole scan before the other book was ever looked at.
+  const seen = new Set<SmcMasterBook>();
+  const books = [desk.smcMaster?.oneBook, desk.smcMaster?.left, desk.smcMaster?.right]
+    .filter((b): b is SmcMasterBook => !!b)
+    .filter((b) => (seen.has(b) ? false : (seen.add(b), true)));
+
   for (const book of books) {
     if (!book?.plan || !isWatchable(book)) continue;
     const price =
@@ -332,7 +352,11 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
     if (!read?.inZone) continue;
 
     const key = touchKey(book, etDay(Date.now()));
-    if (s.lastKey === key) return null;
+    // CONTINUE, not return. This was `return null`, so once either book had
+    // alarmed for the day the loop stopped on it and the OTHER book could
+    // never fire — the desk trades one book a day, but it grades two, and the
+    // one that touches second is exactly the one worth being called to.
+    if (s.lastTouchKey === key) continue;
 
     const plan = book.plan;
     const title = `TOUCH · ${book.symbol} ${String(book.side).toUpperCase()} at CE ${plan.entry.toFixed(2)}`;
@@ -355,7 +379,7 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
       confluence: 0,
       at: Date.now(),
     };
-    save({ ...s, lastKey: key, lastAt: fire.at, lastTitle: title });
+    save({ ...s, lastTouchKey: key, lastAt: fire.at, lastTitle: title });
     playAlarmTone(fire.side);
     showOsNote(fire);
     if (typeof window !== "undefined") {
