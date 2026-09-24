@@ -41,7 +41,7 @@ const argOf = (name, dflt) => {
 const YEARS = Number(argOf("years", "4"));
 const OUT = argOf("out", "src/data/history-4y.json");
 const PART = `${OUT}.part`;
-const INTERVAL_MIN = 15;
+const INTERVAL_MIN = Number(argOf("interval", "15"));
 
 /* ── The key, read at runtime and never printed ──────────────────────────── */
 function apiKey() {

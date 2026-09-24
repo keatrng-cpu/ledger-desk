@@ -244,3 +244,92 @@ export function incomeLadder(target: number, equity = APLUS_RULES.paperEquity, r
  * number it is being measured against.
  */
 export const MONTHLY_TARGET_USD = 10_000;
+
+/**
+ * The trader's cadence band (2026-09-24): at least 2 trades a week, at most 6.
+ *
+ * WHY A BAND AND NOT A NUMBER
+ * The floor and the ceiling are doing different jobs. The CEILING is a
+ * discipline rule — six a week is as much as one screen and a 2% daily stop
+ * can carry, and past it the marginal trade is boredom rather than signal.
+ * The FLOOR is an income requirement: below it the account cannot compound
+ * fast enough to pay anybody, no matter how good the trades are.
+ *
+ * The floor is the one that bites. 2/week is 104 a year, and 104 a year is
+ * exactly where `backtest-account.mjs` measured expectancy going NEGATIVE
+ * when the extra trades were bought by lowering the bar (two missing
+ * must-layers: -0.039R, 64% drawdown). So the band is not a target the desk
+ * can hit by relaxing gates — it can only be hit by finding MORE setups of
+ * the same quality, which means more instruments or a finer timeframe, not a
+ * looser sequence.
+ */
+export const WEEKLY_MIN = 2;
+export const WEEKLY_MAX = 6;
+export const TRADING_WEEKS_PER_YEAR = 52;
+
+export interface CadenceRead {
+  perWeek: number;
+  belowFloor: boolean;
+  aboveCeiling: boolean;
+  /** E[R] the target needs at the floor of the band. */
+  expRAtFloor: number;
+  /** E[R] the target needs at the ceiling of the band. */
+  expRAtCeiling: number;
+  /** True when the ceiling's requirement is at or under what is measured. */
+  ceilingWithinMeasured: boolean;
+  line: string;
+}
+
+/**
+ * What the cadence band demands of expectancy, and whether the desk clears it.
+ *
+ * This is the single most useful number on the page: it converts "I want
+ * $10k a month" into "your entry and management have to produce X R per
+ * trade", which is a claim that can be tested rather than hoped for.
+ */
+export function readCadence(input: {
+  target: number;
+  equity?: number;
+  riskPct?: number;
+  policyId?: string;
+}): CadenceRead {
+  const equity = input.equity ?? APLUS_RULES.paperEquity;
+  const riskPct = Math.min(
+    input.riskPct ?? APLUS_RULES.riskPctCeiling,
+    APLUS_RULES.riskPctCeiling,
+  );
+  const policy =
+    MEASURED.find((p) => p.id === (input.policyId ?? "stack_pd_event")) ?? MEASURED[2]!;
+  const perWeek = policy.tradesPerYear / TRADING_WEEKS_PER_YEAR;
+  const monthlyNeeded = equity > 0 ? input.target / equity : Infinity;
+
+  // monthly = (perWeek * 52 / 12) * E[R] * risk  ->  E[R] = monthly / (tradesPerMonth * risk)
+  const need = (pw: number) =>
+    riskPct > 0 && pw > 0
+      ? monthlyNeeded / ((pw * TRADING_WEEKS_PER_YEAR / 12) * riskPct)
+      : Infinity;
+  const expRAtFloor = need(WEEKLY_MIN);
+  const expRAtCeiling = need(WEEKLY_MAX);
+  const ceilingWithinMeasured = expRAtCeiling <= policy.expR;
+
+  const r = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(3)}R`;
+  const line =
+    `Cadence ${WEEKLY_MIN}-${WEEKLY_MAX}/week. ${policy.label} produces ${perWeek.toFixed(1)}/week` +
+    (perWeek < WEEKLY_MIN ? ` — BELOW the ${WEEKLY_MIN}/week floor, so the band is not currently reachable at all.` : ".") +
+    ` To pay $${Math.round(input.target).toLocaleString("en-US")}/month at ${(riskPct * 100).toFixed(0)}% risk needs ` +
+    `${r(expRAtFloor)} at ${WEEKLY_MIN}/week or ${r(expRAtCeiling)} at ${WEEKLY_MAX}/week` +
+    ` — measured is ${r(policy.oosExpR)} held-out, ${r(policy.expR)} pooled.` +
+    (ceilingWithinMeasured
+      ? ` The CEILING requirement is inside the pooled measurement, so cadence is the binding constraint, not edge quality.`
+      : ` Even at ${WEEKLY_MAX}/week the requirement exceeds what has been measured, so BOTH cadence and edge have to move.`);
+
+  return {
+    perWeek,
+    belowFloor: perWeek < WEEKLY_MIN,
+    aboveCeiling: perWeek > WEEKLY_MAX,
+    expRAtFloor,
+    expRAtCeiling,
+    ceilingWithinMeasured,
+    line,
+  };
+}

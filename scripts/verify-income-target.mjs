@@ -78,5 +78,22 @@ console.log("\nthe ladder");
   check("because it has no edge left", most.oosExpR < 0, true);
 }
 
+console.log("\nthe cadence band");
+{
+  const { readCadence, WEEKLY_MIN, WEEKLY_MAX } = await import("../src/lib/trading/income-target.ts");
+  const c = readCadence({ target: 10_000, equity: 100_000, riskPct: 0.03 });
+  check("the band is 2-6 a week", [WEEKLY_MIN, WEEKLY_MAX], [2, 6]);
+  check("the desk is currently below the floor", c.belowFloor, true);
+  check("a lower cadence demands a higher expectancy", c.expRAtFloor > c.expRAtCeiling, true);
+  // The identity must hold exactly: the ceiling is 3x the floor, so the floor
+  // must demand exactly 3x the expectancy. If this drifts, the page is wrong.
+  check("and demands exactly 3x it, because 6/wk is 3x 2/wk", Math.abs(c.expRAtFloor / c.expRAtCeiling - 3) < 1e-9, true);
+  const rich = readCadence({ target: 10_000, equity: 500_000, riskPct: 0.03 });
+  check("more capital lowers the expectancy required", rich.expRAtFloor < c.expRAtFloor, true);
+  check("at $500k the floor is inside what is already measured", rich.expRAtFloor < 0.091, true);
+  check("the line always names the measured figure", /measured is/.test(c.line), true);
+  check("and flags the floor breach in words", /BELOW the 2\/week floor/.test(c.line), true);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

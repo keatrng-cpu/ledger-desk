@@ -1,5 +1,5 @@
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
-import { planIncome } from "@/lib/trading/income-target";
+import { planIncome, readCadence } from "@/lib/trading/income-target";
 import { MONTHLY_TARGET_USD } from "@/lib/trading/income-target";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -104,6 +104,12 @@ function IncomeGauge({ equity }: { equity: number }) {
     () => planIncome({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_RULES.riskPctCeiling }),
     [equity],
   );
+  // The cadence read is the line that turns the target into a testable claim
+  // about entry and management, rather than a hope about the market.
+  const cadence = useMemo(
+    () => readCadence({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_RULES.riskPctCeiling }),
+    [equity],
+  );
   const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
   return (
     <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
@@ -129,6 +135,15 @@ function IncomeGauge({ equity }: { equity: number }) {
           </li>
         ))}
       </ul>
+      <p
+        className={
+          cadence.belowFloor
+            ? "mt-1.5 border-t border-[var(--color-border)] pt-1.5 text-[10px] leading-snug text-[var(--color-warn)]"
+            : "mt-1.5 border-t border-[var(--color-border)] pt-1.5 text-[10px] leading-snug text-[var(--color-fg)]"
+        }
+      >
+        {cadence.line}
+      </p>
     </div>
   );
 }
