@@ -35,7 +35,7 @@
 
 import type { OhlcBar } from "../market/types";
 import type { SmcArray } from "./smc-board";
-import { groupSessions, type LiquidityTarget, type SessionSlice } from "./draw";
+import { atrOf, groupSessions, type LiquidityTarget, type SessionSlice } from "./draw";
 import { MAX_RISK_PTS, DEFAULT_MAX_RISK_PTS } from "./simulate-path-trade";
 import {
   expectedR,
@@ -128,6 +128,24 @@ export interface TradePlan {
   stop: number;
   /** Points of risk per unit. */
   riskPts: number;
+  /**
+   * The stop is inside the noise it is meant to survive.
+   *
+   * Measured, not asserted: on 387 resolved shadow trades, plans whose risk
+   * was under 0.25 x ATR(14) won 0 of 31 (z = -4.49 against the rest), and
+   * excluding them lifts expectancy on what remains from +0.062R to +0.132R.
+   * 0.25 is the last multiple where the rejected set wins literally nothing —
+   * at 0.30 it starts taking winners with it.
+   *
+   * WHY IT IS A FLAG AND NOT A REFUSAL. The levels are real; what is wrong is
+   * the CONFIDENCE they imply. A 1.31pt stop on ES prices a 28R target and
+   * tells sleeve-sizing that $150 of risk sits five ticks away. So the plan is
+   * still drawn — the trader can see the array and the draw — and everything
+   * that SIZES or SCORES off the risk refuses instead.
+   */
+  riskTooTight: boolean;
+  /** ATR(14) the risk was judged against, for the message. Null without bars. */
+  riskAtr: number | null;
   /** True when risk exceeds this symbol's cap — the plan is real but too wide. */
   riskOverCap: boolean;
 
@@ -170,6 +188,21 @@ export interface TradePlan {
    */
   worth?: PlanWorth | null;
 }
+
+/**
+ * The floor, as a multiple of ATR(14) on the graded series.
+ *
+ * Swept against 387 resolved shadow trades: every multiple from 0.10 to 0.50
+ * rejects a set that wins far less than the rest, but 0.25 is where two things
+ * coincide — the rejected set still wins NOTHING (0 of 31) and what remains
+ * has its best expectancy (+0.132R against a +0.062R baseline). By 0.30 the
+ * rejected set starts winning (4.9%) and the kept expectancy falls.
+ *
+ * In-sample on refusals, so it is a floor and not a forecast; the win-rate
+ * separation is what carries it (z = -4.49), not the expectancy, whose
+ * standard error is far too wide to distinguish +0.132 from +0.062.
+ */
+export const MIN_RISK_ATR = 0.25;
 
 export interface BuildPlanInput {
   symbol: string;
@@ -335,6 +368,14 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
 
   const stop = round2(stopRaw);
   const riskPts = round2(Math.abs(entry - stop));
+
+  /**
+   * ATR on the SAME series the book was graded from, so the floor is in the
+   * instrument's own units and adapts to the session's volatility. Without
+   * bars there is no floor — a fabricated one would be worse than none.
+   */
+  const atr = input.bars && input.bars.length > 20 ? atrOf(input.bars, 14) : null;
+  const riskTooTight = atr != null && atr > 0 && riskPts < atr * MIN_RISK_ATR;
   // A zero-width stop cannot be sized or scored; treat it as no plan rather
   // than emitting an R of Infinity downstream.
   if (!(riskPts > 0)) return null;
@@ -408,6 +449,8 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
     entryZone: { top: round2(entryArray.top), bottom: round2(entryArray.bottom) },
     stop,
     riskPts,
+    riskTooTight,
+    riskAtr: atr,
     riskOverCap: riskPts > maxRiskFor(symbol),
     t1,
     t2,

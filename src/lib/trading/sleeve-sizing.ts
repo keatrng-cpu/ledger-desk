@@ -61,7 +61,11 @@ export const CLOCK_WARN = 0.5;
 
 export interface SizeInput {
   /** The futures plan this option is expressing. */
-  plan: Pick<TradePlan, "symbol" | "side" | "entry" | "stop" | "riskPts">;
+  plan: Pick<TradePlan, "symbol" | "side" | "entry" | "stop" | "riskPts"> & {
+    /** Set by buildTradePlan when the stop is inside the noise (< 0.25 ATR). */
+    riskTooTight?: boolean;
+    riskAtr?: number | null;
+  };
   /** Mid delta of the contract being considered, 0–1. */
   delta: number;
   /** Premium per contract in dollars (e.g. 150 for a $1.50 option). */
@@ -138,6 +142,33 @@ export function sizeFromStop(input: SizeInput): SleeveSize {
   };
 
   if (!div || !(input.delta > 0) || !(input.premiumUsd > 0) || !(input.plan.riskPts > 0)) return blank;
+
+  /**
+   * A stop inside the noise cannot be sized off.
+   *
+   * This is the money path for the defect found on 2026-09-24: a 1.31pt stop
+   * on ES (5 ticks) priced a 28R target and told this function that $150 of
+   * risk sat $6.56 a contract away — so it solved for 22 contracts and
+   * believed the loss at invalidation was the budget. It is not: a five-tick
+   * stop is taken out by the spread and one bar's noise, not by the idea
+   * being wrong.
+   *
+   * Sizing is REFUSED rather than shrunk, because there is no size at which
+   * a stop that will not survive the session is the right stop.
+   */
+  if (input.plan.riskTooTight) {
+    const atr = input.plan.riskAtr;
+    return {
+      ...blank,
+      contracts: 0,
+      unaffordable: true,
+      lines: [
+        `STOP TOO TIGHT TO SIZE. ${input.plan.riskPts.toFixed(2)}pt of risk` +
+          (atr ? ` against an ATR of ${atr.toFixed(2)} — under a quarter of one bar's range.` : ".") +
+          ` Measured on 387 shadow trades, plans this tight won 0 of 31. The levels may be right; the STOP is not, and a size solved from it would price risk that is not really there. Re-price the stop beyond the sweep, or stand.`,
+      ],
+    };
+  }
 
   // Underlying points between entry and invalidation.
   const underlierMove = input.plan.riskPts / div;

@@ -13,7 +13,8 @@
  * Run: npx tsx scripts/verify-trade-plan.mjs
  */
 
-const { buildTradePlan, planEntryText, planRiskText } = await import(
+const { sizeFromStop } = await import("../src/lib/trading/sleeve-sizing.ts");
+const { buildTradePlan, planEntryText, planRiskText, MIN_RISK_ATR } = await import(
   "../src/lib/trading/trade-plan.ts"
 );
 const { buildScale } = await import("../src/components/desk/setup-chart.tsx");
@@ -213,5 +214,77 @@ const far = { ...short, t2: 20000, levels: [...short.levels, { kind: "t2", price
 const farScale = buildScale(bars, far);
 truthy("a distant target expands the frame rather than being cropped", farScale.lo < 20000);
 
+
+// ── The stop floor: 0.25 x ATR(14) ────────────────────────────────────────
+//
+// Found 2026-09-24 on the live desk: a rendered plan showed "T2 28.3R", which
+// works back to riskPts 1.31 on ES — five ticks. trade-plan guarded riskPts>0
+// and had a MAXIMUM but no minimum, so a thin-but-nonzero entry array put the
+// stop inside the spread.
+//
+// The floor was chosen by sweeping ATR multiples against 387 resolved shadow
+// trades, not picked:
+//     0.10 ATR  rejects 13, they won 0    kept +0.088R
+//     0.20 ATR  rejects 27, they won 0    kept +0.128R
+//     0.25 ATR  rejects 31, they won 0    kept +0.132R   <- chosen
+//     0.30 ATR  rejects 41, they won 4.9% kept +0.110R
+// 0.25 is the last multiple where the rejected set wins NOTHING, and it is
+// where what remains scores best. Beyond it the floor starts eating winners.
+{
+  const bars = [];
+  // A flat-ish tape so ATR is a known quantity: every bar 10 wide.
+  for (let i = 0; i < 60; i++) bars.push({ t: i * 900000, o: 100, h: 105, l: 95, c: 100, v: 1 });
+
+  const base = {
+    symbol: "MNQ", side: "long", price: 100,
+    // `mid` is the entry (consequent encroachment); without it buildTradePlan
+    // returns null and the test measures nothing.
+    entryArray: { top: 100.5, bottom: 99.5, mid: 100, kind: "fvg", tf: "15m", state: "fresh", side: "bull", t: 40 },
+    sweepExtreme: null, sweepT: null, dol: null,
+    range: { high: 120, low: 80, eq: 100 }, bars,
+  };
+
+  const tight = buildTradePlan(base);
+  check("a plan off a 1pt array is built at all", tight != null, true);
+  if (tight) {
+    check("and flagged as too tight against ATR", tight.riskTooTight, true);
+    check("carrying the ATR it was judged against", tight.riskAtr != null && tight.riskAtr > 0, true);
+    check("the floor is 0.25 ATR", tight.riskPts < tight.riskAtr * MIN_RISK_ATR, true);
+  }
+
+  // A wide array clears it.
+  const wide = buildTradePlan({
+    ...base,
+    entryArray: { ...base.entryArray, top: 106, bottom: 94, mid: 100 },
+  });
+  check("a wide array is not flagged", wide != null && wide.riskTooTight, false);
+
+  // THE MONEY PATH: sizing refuses rather than solving a huge position from a
+  // stop that will not survive the session.
+  const sized = sizeFromStop({
+    plan: { symbol: "ES", side: "long", entry: 7742.13, stop: 7740.82, riskPts: 1.31, riskTooTight: true, riskAtr: 5.18 },
+    delta: 0.5, premiumUsd: 200, dte: 21, riskBudgetUsd: 150,
+  });
+  check("sizing refuses a too-tight stop", sized.contracts, 0);
+  check("and says so rather than returning a silent zero", /TOO TIGHT/.test(sized.lines.join(" ")), true);
+  check("naming what it measured", /0 of 31/.test(sized.lines.join(" ")), true);
+
+  // Without the flag the same geometry still sizes — the refusal is the FLAG,
+  // not a second opinion computed here.
+  // 20pt on ES at 0.5 delta prices at $100/contract against a $150 budget —
+  // affordable. (42pt would cost $210 and be legitimately unsizeable, which
+  // would have tested the wrong refusal.)
+  const ok2 = sizeFromStop({
+    plan: { symbol: "ES", side: "long", entry: 7742.13, stop: 7722.13, riskPts: 20, riskTooTight: false, riskAtr: 5.18 },
+    delta: 0.5, premiumUsd: 200, dte: 21, riskBudgetUsd: 150,
+  });
+  check("a normal stop still sizes", ok2.contracts > 0, true);
+
+  // No bars => no ATR => no claim either way. A fabricated floor is worse
+  // than none.
+  const noBars = buildTradePlan({ ...base, bars: undefined });
+  check("without bars it makes no tightness claim", noBars != null && noBars.riskTooTight, false);
+  check("and reports no ATR", noBars != null && noBars.riskAtr, null);
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
