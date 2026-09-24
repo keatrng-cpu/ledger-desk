@@ -36,6 +36,7 @@ import { planRiskText } from "@/lib/trading/trade-plan";
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 import { allSeries } from "@/lib/trading/chart-timeframes";
+import { ChartLegend } from "@/components/desk/chart-legend";
 import { readEntry } from "@/lib/trading/entry-trigger";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
 import { evidenceFor, fmtR, managementLine, pathStats } from "@/lib/trading/discretion-memory";
@@ -80,7 +81,9 @@ function pickBook(desk: DeskPayload): { book: SmcMasterBook; bars: typeof desk.l
  * means what is actually visible on that rung. The same pool at 15m and at 1m
  * is a different distance away and deserves to be drawn differently.
  */
-const STACK: { tf: "15m" | "5m" | "1m"; role: string }[] = [
+const STACK: { tf: "4h" | "1h" | "15m" | "5m" | "1m"; role: string }[] = [
+  { tf: "4h", role: "bias — where the week is going" },
+  { tf: "1h", role: "structure — the dealing range and the draw" },
   { tf: "15m", role: "the setup — what the engine graded" },
   { tf: "5m", role: "confirmation — the shift after the raid" },
   { tf: "1m", role: "timing — the turn inside the array" },
@@ -128,10 +131,34 @@ function stance(
 
 export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   const [teaching, setTeaching] = useState(false);
+  /**
+   * Which book to draw. Null follows the desk's own pick.
+   *
+   * The panel used to show ONE book — whichever `pickBook` ranked highest —
+   * so the other one was undrawable on days it had no plan, which is most
+   * days. Both books are graded every poll and both are worth looking at:
+   * the one without a setup is where the next setup comes from, and reading
+   * NQ against ES is how SMT is seen at all. The pin is the trader's; it
+   * survives the desk changing its mind.
+   */
+  const [pinned, setPinned] = useState<"left" | "right" | null>(null);
   const shadows = useShadowBook();
   const picked = pickBook(desk);
-  const book = picked?.book ?? null;
-  const bars = picked?.bars ?? [];
+  const pinnedBook =
+    pinned && desk.smcMaster
+      ? pinned === "left"
+        ? desk.smcMaster.left
+        : desk.smcMaster.right
+      : null;
+  const book = pinnedBook ?? picked?.book ?? null;
+  const bars =
+    book == null
+      ? []
+      : book.symbol === desk.left.symbol
+        ? desk.left.bars
+        : book.symbol === desk.right.symbol
+          ? desk.right.bars
+          : (picked?.bars ?? []);
   const plan = book?.plan ?? null;
 
   // The overlay is built against the bars the chart will show, so "in frame"
@@ -208,6 +235,48 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
             {candidate?.pathBand ? ` · ${candidate.pathBand}` : ""}
           </span>
         </div>
+        <div className="flex items-center gap-1.5">
+          {/* BOOK FILTER. Both books are graded every poll; this decides which
+              one is drawn. The desk's own pick is marked, and clicking the
+              book already pinned releases the pin rather than being a no-op. */}
+          {desk.smcMaster &&
+            (["left", "right"] as const).map((side) => {
+              const b = desk.smcMaster![side];
+              if (!b) return null;
+              const active = book?.symbol === b.symbol;
+              const isDeskPick = !pinned && picked?.book.symbol === b.symbol;
+              return (
+                <button
+                  key={side}
+                  type="button"
+                  onClick={() => setPinned((p) => (p === side ? null : side))}
+                  title={
+                    isDeskPick
+                      ? `${b.symbol} — the desk's own pick. Click to pin it; click again to follow the desk.`
+                      : `Draw ${b.symbol} (${b.word}${b.plan ? ", planned" : ", no plan yet"})`
+                  }
+                  className={`rounded-[var(--radius-sm)] border px-2 py-0.5 font-mono text-[10px] leading-none transition-colors ${
+                    active
+                      ? "border-[var(--color-accent)] bg-[color-mix(in_oklab,var(--color-accent)_12%,transparent)] text-[var(--color-accent)]"
+                      : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+                  }`}
+                >
+                  {b.symbol}
+                  {isDeskPick && <span aria-hidden> •</span>}
+                </button>
+              );
+            })}
+          {pinned && (
+            <button
+              type="button"
+              onClick={() => setPinned(null)}
+              title="Follow the desk's pick again"
+              className="rounded-[var(--radius-sm)] px-1 py-0.5 font-mono text-[10px] leading-none text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+            >
+              auto
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setTeaching((t) => !t)}
@@ -239,9 +308,16 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
         </p>
       )}
 
-      {/* THE THREE RUNGS. Each from its own bars, each with its own overlay,
+      {/* One colour key for all five rungs. Stated once because they share a
+          colour language, and above them because the first question a new
+          box raises is "what is that", not "where is that". */}
+      <ChartLegend />
+
+      {/* THE FIVE RUNGS. Each from its own bars, each with its own overlay,
           and each captioned with what it is FOR — so a 1m wick is never read
-          as a setup and a 15m array is never read as a trigger. */}
+          as a setup and a 4h box is never read as a trigger. Top-down: 4h and
+          1h are context and are never the rung to act on, which is why the
+          stance only ever points at 15m, 5m or 1m. */}
       <div className="flex flex-col gap-2">
         {STACK.map(({ tf, role }) => {
           const series = rungs[tf];

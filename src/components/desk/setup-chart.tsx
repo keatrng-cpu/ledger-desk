@@ -1088,88 +1088,6 @@ export function SetupChart({
             );
           })}
 
-        {/* ── Candles ──────────────────────────────────────────────────────── */}
-        {/* Bars outside a trade window are pushed back rather than annotated.
-            The tradeable stretch of the day is then the bright part of the
-            chart, which needs no copy and costs no ink — the window comes
-            from sessions.ts (London / NY AM / NY PM), the same clock the HUD
-            and the gates read. */}
-        {view.map((b, i) => {
-          const x = scale.x(i);
-          const up = b.c >= b.o;
-          const color = up ? "var(--color-up)" : "var(--color-down)";
-          const bodyTop = scale.y(Math.max(b.o, b.c));
-          const bodyH = Math.max(1, scale.y(Math.min(b.o, b.c)) - bodyTop);
-          const bw = Math.max(1.5, scale.step * 0.6);
-          const dim = timeStructure.dimOutside && timeStructure.inWindow[i] === false;
-          return (
-            <g key={b.t} opacity={dim ? KZ_OFF : KZ_ON}>
-              <line x1={x} x2={x} y1={scale.y(b.h)} y2={scale.y(b.l)} stroke={color} strokeWidth={1} />
-              <rect x={x - bw / 2} y={bodyTop} width={bw} height={bodyH} fill={color} />
-            </g>
-          );
-        })}
-
-        {/* ── Replay: the decision bar, and the future to its right ─────────── */}
-        {/* Drawn AFTER the candles, not before. The dimming rect used to be
-            painted first, so every candle it was meant to push back was then
-            drawn over it at full strength and the "future" read exactly as
-            bright as the history. */}
-        {decisionInView != null && decisionInView >= 0 && decisionInView < view.length && (() => {
-          const edge = replayEdge;
-          const cx = scale.x(decisionInView);
-          const floor = PAD_T + PLOT_H;
-          const yLow = scale.y(view[decisionInView]!.l);
-          return (
-            <g>
-              {edge != null && (
-                <>
-                  <rect
-                    x={edge}
-                    y={PAD_T}
-                    width={PAD_L + PLOT_W - edge}
-                    height={PLOT_H}
-                    fill="var(--color-bg)"
-                    opacity={0.35}
-                  />
-                  <line
-                    x1={edge}
-                    x2={edge}
-                    y1={PAD_T}
-                    y2={floor}
-                    stroke="var(--color-fg)"
-                    strokeWidth={1}
-                    strokeDasharray="3 3"
-                    opacity={0.6}
-                  />
-                  <text x={edge + 4} y={floor - 4} fill="var(--color-fg)" fontSize={9} opacity={0.7}>
-                    decision → what followed
-                  </text>
-                </>
-              )}
-              {/* The bar ITSELF, not just the boundary beside it. A divider
-                  says where the future starts; reviewing an entry needs the
-                  candle the call was made on, and on a replay whose decision
-                  bar is the newest bar there was no divider at all. */}
-              <line
-                x1={cx}
-                x2={cx}
-                y1={Math.min(yLow + 3, floor - 9)}
-                y2={floor - 8}
-                stroke="var(--color-fg)"
-                strokeWidth={0.75}
-                strokeDasharray="1 2"
-                opacity={0.7}
-              />
-              <path
-                d={`M${cx - 4},${floor - 1} L${cx + 4},${floor - 1} L${cx},${floor - 8} Z`}
-                fill="var(--color-fg)"
-                opacity={0.85}
-              />
-            </g>
-          );
-        })()}
-
         {/* ── The raid: the wick THROUGH the level, not a ring near it ─────── */}
         {sweep && sweepIdx >= 0 && sweep.price >= scale.lo && sweep.price <= scale.hi && (() => {
           const cx = scale.x(sweepIdx);
@@ -1324,6 +1242,117 @@ export function SetupChart({
             </text>
           </g>
         )}
+
+        {/* ── Candles ──────────────────────────────────────────────────────── */}
+        {/* Bars outside a trade window are pushed back rather than annotated.
+            The tradeable stretch of the day is then the bright part of the
+            chart, which needs no copy and costs no ink — the window comes
+            from sessions.ts (London / NY AM / NY PM), the same clock the HUD
+            and the gates read. */}
+        {view.map((b, i) => {
+          const x = scale.x(i);
+          const up = b.c >= b.o;
+          const color = up ? "var(--color-up)" : "var(--color-down)";
+          const bodyTop = scale.y(Math.max(b.o, b.c));
+          const bodyH = Math.max(1, scale.y(Math.min(b.o, b.c)) - bodyTop);
+          const bw = Math.max(1.5, scale.step * 0.6);
+          const dim = timeStructure.dimOutside && timeStructure.inWindow[i] === false;
+          return (
+            <g key={b.t} opacity={dim ? KZ_OFF : KZ_ON}>
+              {/* HARD BORDER. The wick and the body are each drawn twice: once
+                  in the background colour, slightly fatter, then in the candle
+                  colour on top. That halo is what stops a level line, an array
+                  edge or a label bleeding THROUGH the candle — the tape is the
+                  one thing on this chart that must read as solid, because it
+                  is the only thing that is not an interpretation. */}
+              <line
+                x1={x}
+                x2={x}
+                y1={scale.y(b.h)}
+                y2={scale.y(b.l)}
+                stroke="var(--color-bg)"
+                strokeWidth={3}
+              />
+              <rect
+                x={x - bw / 2 - 1}
+                y={bodyTop - 1}
+                width={bw + 2}
+                height={bodyH + 2}
+                fill="var(--color-bg)"
+              />
+              <line x1={x} x2={x} y1={scale.y(b.h)} y2={scale.y(b.l)} stroke={color} strokeWidth={1} />
+              <rect
+                x={x - bw / 2}
+                y={bodyTop}
+                width={bw}
+                height={bodyH}
+                fill={color}
+                stroke={color}
+                strokeWidth={0.5}
+              />
+            </g>
+          );
+        })}
+
+        {/* ── Replay: the decision bar, and the future to its right ─────────── */}
+        {/* Drawn AFTER the candles, not before. The dimming rect used to be
+            painted first, so every candle it was meant to push back was then
+            drawn over it at full strength and the "future" read exactly as
+            bright as the history. */}
+        {decisionInView != null && decisionInView >= 0 && decisionInView < view.length && (() => {
+          const edge = replayEdge;
+          const cx = scale.x(decisionInView);
+          const floor = PAD_T + PLOT_H;
+          const yLow = scale.y(view[decisionInView]!.l);
+          return (
+            <g>
+              {edge != null && (
+                <>
+                  <rect
+                    x={edge}
+                    y={PAD_T}
+                    width={PAD_L + PLOT_W - edge}
+                    height={PLOT_H}
+                    fill="var(--color-bg)"
+                    opacity={0.35}
+                  />
+                  <line
+                    x1={edge}
+                    x2={edge}
+                    y1={PAD_T}
+                    y2={floor}
+                    stroke="var(--color-fg)"
+                    strokeWidth={1}
+                    strokeDasharray="3 3"
+                    opacity={0.6}
+                  />
+                  <text x={edge + 4} y={floor - 4} fill="var(--color-fg)" fontSize={9} opacity={0.7}>
+                    decision → what followed
+                  </text>
+                </>
+              )}
+              {/* The bar ITSELF, not just the boundary beside it. A divider
+                  says where the future starts; reviewing an entry needs the
+                  candle the call was made on, and on a replay whose decision
+                  bar is the newest bar there was no divider at all. */}
+              <line
+                x1={cx}
+                x2={cx}
+                y1={Math.min(yLow + 3, floor - 9)}
+                y2={floor - 8}
+                stroke="var(--color-fg)"
+                strokeWidth={0.75}
+                strokeDasharray="1 2"
+                opacity={0.7}
+              />
+              <path
+                d={`M${cx - 4},${floor - 1} L${cx + 4},${floor - 1} L${cx},${floor - 8} Z`}
+                fill="var(--color-fg)"
+                opacity={0.85}
+              />
+            </g>
+          );
+        })()}
 
         {/* ── Entry zone and the plan lines ────────────────────────────────── */}
         {plan && (
