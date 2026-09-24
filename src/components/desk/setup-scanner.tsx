@@ -33,6 +33,8 @@ import {
 import { anticipate } from "@/lib/trading/setup-anticipation";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
+import { ladderConflict } from "@/lib/trading/ladder-conflict";
+import type { TfLadder } from "@/lib/trading/tf-ladder";
 import {
   CHART_TFS,
   TF_MARKS,
@@ -86,6 +88,13 @@ export interface CardTape {
    * is spent.
    */
   draws?: DrawRead | null;
+  /**
+   * This book's timeframe ladder, for the directional cross-check. The
+   * engine's HTF gate and the ladder can permit opposite things, and the
+   * disagreement measured -0.69R/card on NY AM shadows (n=13) against
+   * +0.08R when they agreed. A warning, never a refusal.
+   */
+  ladder?: TfLadder | null;
 }
 
 /**
@@ -593,6 +602,19 @@ function SetupCard({
 
   const spent = freshness != null && freshness.state !== "live";
 
+  /**
+   * Does the ladder agree with this side?
+   *
+   * `topDown` is the gate and stays the gate — this reads the ladder from the
+   * top rung down and says so when it points the other way. The binary
+   * disagreement is what carried information in the shadow measurement; the
+   * graded alignment percentage did not, so only the disagreement is shown.
+   */
+  const conflict = useMemo(
+    () => ladderConflict(tape?.ladder ?? null, c.side),
+    [tape?.ladder, c.side],
+  );
+
   const look = useMemo(() => {
     if (!spent || !tape?.draws || tape.price == null) return null;
     return nextLook(tape.draws, c.side, tape.price);
@@ -739,6 +761,21 @@ function SetupCard({
       </div>
 
       <ScoreMeter score={c.confluence} />
+
+      {/* LADDER DISAGREEMENT. Above the chart because it changes whether to
+          look at the chart at all. A suggested half size and a second look —
+          n=13 in the losing bucket supports "be careful" and nothing more, so
+          this never refuses and never touches the grade. */}
+      {conflict.warn && (
+        <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-down)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-2 py-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-down)]">
+            Ladder disagrees · suggested {conflict.sizeMult}× size
+          </p>
+          <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-fg)]">
+            {conflict.line}
+          </p>
+        </div>
+      )}
 
       {/* SPENT-CARD STRIP. A card whose move already happened is not a
           setup — it is history wearing a score. Say so above everything else

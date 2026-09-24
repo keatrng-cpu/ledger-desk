@@ -60,6 +60,15 @@ export function TakeCensusPanel({ shadowExpR }: { shadowExpR?: number | null }) 
         </div>
       )}
 
+      {/* STARVING — the failure that looks like patience. Loud, and above the
+          sample bar, because a tidy zero reads as "not yet" when it means
+          "never, until the gateway is up". */}
+      {c.starving && c.starvingLine && (
+        <p className="rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-warn)_60%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_12%,transparent)] px-2 py-1.5 text-[10px] font-medium leading-snug text-[var(--color-warn)]">
+          {c.starvingLine}
+        </p>
+      )}
+
       <p className="text-[11px] leading-snug text-[var(--color-fg)]">{c.line}</p>
 
       {/* The thresholds, always visible, so the result cannot be renegotiated. */}

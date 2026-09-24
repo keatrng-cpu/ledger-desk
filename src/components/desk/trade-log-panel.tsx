@@ -24,7 +24,8 @@ import { MIN_N_FOR_LESSON } from "@/lib/trading/setup-memory";
 
 export function TradeLogPanel() {
   const read = useMemo(() => readTradeLog(), []);
-  const { discipline, shapes, records, skipped } = read;
+  const { discipline, shapes, records, skipped, overrides, overrideLayers, overridesUnattributed } =
+    read;
 
   if (!records.length) {
     return (
@@ -112,6 +113,38 @@ export function TradeLogPanel() {
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      {/* ── The overrides: which GATE was skipped, and who was right ─────
+          The sequence fires almost never while the trader keeps taking
+          trades, so most fills are overrides. The useful question is never
+          "does overriding work" — it is WHICH gate was wrong, and that needs
+          the missing layer recorded at the time. */}
+      <div className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+        <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+          Overrides · which gate was skipped
+        </p>
+        <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
+          {overrides.line}
+        </p>
+        {overrideLayers.length > 0 && (
+          <ul className="mt-1.5 flex flex-col gap-0.5">
+            {overrideLayers.map((l) => (
+              <li key={l.layer} className="text-[10px] leading-snug">
+                <span className="font-mono text-[var(--color-fg)]">{l.layer}</span>
+                <span className="text-[var(--color-subtle)]"> {l.line}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {overridesUnattributed > 0 && (
+          <p className="mt-1 text-[10px] leading-snug text-[var(--color-warn)]">
+            {overridesUnattributed} override{overridesUnattributed === 1 ? "" : "s"} recorded no
+            missing layer, so {overridesUnattributed === 1 ? "it teaches" : "they teach"} nothing
+            about which gate was wrong. Add{" "}
+            <code className="font-mono">missing:</code> when you log.
+          </p>
         )}
       </div>
 

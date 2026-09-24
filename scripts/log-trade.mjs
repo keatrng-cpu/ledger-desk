@@ -63,6 +63,15 @@ draw_traded_later:             # yes | no — did the named draw print AFTER you
 followed_plan: no              # did you take the size, stop and target as planned?
 why:          draw was clean and SMT agreed
 why_written:  after            # before | after — before the outcome was known?
+
+# THE OVERRIDE FIELDS. Fill these whenever you took a trade the desk did not
+# say TAKE to — which, while the sequence fires as rarely as it does, is most
+# of them. They are the only input the desk has for telling a mis-tuned gate
+# apart from a lucky streak, and without a missing: list a trade teaches
+# nothing about WHICH gate was wrong.
+desk_word:    STAND            # TAKE | WAIT | STAND | MANAGE — what the desk said
+missing:      retrace, pd_half # the must-layers the sequence was short at entry
+ladder_agreed:                 # yes | no — did the timeframe ladder agree?
 `;
 
 if (process.argv.includes("--template")) {
@@ -135,6 +144,27 @@ const pnl = num("pnl");
 // planned futures stop, which is in different units.
 const riskUsd = debitUsd * STOP_FRAC_OF_DEBIT;
 const r = pnl != null && riskUsd > 0 ? Math.round((pnl / riskUsd) * 100) / 100 : null;
+
+// The override fields. `missing` is a comma list of smc-master layer ids.
+const KNOWN_LAYERS = [
+  "dol", "sweep", "pd_half", "ltf", "target", "retrace",
+  "htf", "judas", "news", "one_book",
+];
+const missingLayers = (f.missing ?? "")
+  .split(",")
+  .map((x) => x.trim().toLowerCase())
+  .filter(Boolean);
+const unknownLayers = missingLayers.filter((l) => !KNOWN_LAYERS.includes(l));
+if (unknownLayers.length) {
+  // Refused rather than silently dropped: a typo'd layer would quietly
+  // attribute the trade to no gate at all, which is the one outcome that
+  // looks like data and is not.
+  console.error(`Unknown layer(s) in \`missing:\`: ${unknownLayers.join(", ")}`);
+  console.error(`Known: ${KNOWN_LAYERS.join(", ")}`);
+  process.exit(1);
+}
+const deskWord = (f.desk_word ?? "").toUpperCase() || null;
+const ladderAgreed = bool("ladder_agreed");
 
 const exitReason = (f.exit_reason ?? "").toLowerCase();
 const followedPlan = bool("followed_plan");
@@ -228,6 +258,11 @@ const rec = {
   followedPlan,
   note: f.why ?? null,
   notePreRegistered: (f.why_written ?? "").toLowerCase() === "before",
+  // Override evidence — which gate was skipped, what the desk said, and
+  // whether the ladder agreed. Read by override-log.ts via trade-log.ts.
+  missing: missingLayers,
+  deskWord,
+  ladderAgreed,
   loggedAt: new Date().toISOString(),
 };
 doc.trades.push(rec);

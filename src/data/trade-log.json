@@ -45,7 +45,13 @@
       "followedPlan": false,
       "note": "desk showed .97 short, took it to the lows",
       "notePreRegistered": false,
-      "loggedAt": "2026-09-23T14:46:27.940Z"
+      "loggedAt": "2026-09-23T14:46:27.940Z",
+      "missing": [
+        "retrace"
+      ],
+      "deskWord": "STAND",
+      "ladderAgreed": null,
+      "overrideNote": "Backfilled 2026-09-24 from the logged note (\"desk showed .97 short, took it to the lows\") — the scanner scored it, the sequence did not TAKE. The specific layer is inferred, not recorded at the time, so it is the weakest possible evidence and is marked as such."
     }
   ],
   "note": "Real trades, logged by hand. R is measured against the 15%-of-debit brake. Records with violations are EXCLUDED from setup statistics by setup-memory.ts — they measure the trader, not the setup."

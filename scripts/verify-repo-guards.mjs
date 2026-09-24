@@ -166,9 +166,14 @@ for (const [path] of FLOORS) {
   const corpus = new Map();
   for (const f of sources) corpus.set(f, read(f) ?? "");
 
+  // ALL of src/lib, not a named allowlist. The previous version watched only
+  // lib/{trading,market,invest,alerts}, which is why src/lib/multiplayer/ —
+  // 21KB of peer-to-peer code in a futures desk, imported by nothing — was
+  // invisible to it. A guard that only looks where it expects trouble finds
+  // only the trouble it expected.
   const libs = sources.filter(
     (f) =>
-      /^src\/lib\/(trading|market|invest|alerts)\//.test(f) &&
+      /^src\/lib\//.test(f) &&
       !/\/types\.ts$/.test(f) &&
       !/\.test\.ts$/.test(f),
   );
@@ -178,8 +183,16 @@ for (const [path] of FLOORS) {
     const base = lib.replace(/^src\//, "").replace(/\.tsx?$/, "");
     const leaf = base.split("/").pop();
     let referenced = false;
+    // A module's own directory barrel does NOT count as a consumer.
+    //
+    // This was the hole that hid src/lib/multiplayer/: index.ts re-exports
+    // p2p.ts, so p2p looked wired, while index.ts itself was excluded as a
+    // barrel and was never checked. Two dead files vouching for each other.
+    // A re-export is only reachability if something outside imports the barrel.
+    const ownBarrel = `${lib.slice(0, lib.lastIndexOf("/"))}/index`;
     for (const [f, src] of corpus) {
       if (f === lib) continue;
+      if (f === `${ownBarrel}.ts` || f === `${ownBarrel}.tsx`) continue;
       // An IMPORT, not a mention.
       //
       // `options-sleeve.ts` carries the comment "sleeve-sizing.ts is the
@@ -223,11 +236,43 @@ for (const [path] of FLOORS) {
    *
    * Wiring is the fix. Deleting the guard is not.
    */
+  /**
+   * KNOWN DARK. This list may only ever SHRINK.
+   *
+   * 2026-09-24: the original seven are GONE.
+   *   sleeve-sizing    -> drives options-desk contract sizing
+   *   card-freshness   -> the spent-card strip
+   *   setup-memory     -> the Book tab, via trade-log.ts
+   *   ladder-conflict  -> the scanner card's disagreement warning
+   *   override-log     -> the Book tab's per-gate override scorecard
+   *   kill-watch       -> the Invest tab, on demand
+   *   liquidity-map    -> DELETED. It was a byte-identical duplicate of the
+   *                       LiquidityPool mapping already live in structure.ts;
+   *                       wiring it would have created two sources of truth
+   *                       for the pool map, which is the exact "two brains for
+   *                       one word" failure this desk has already paid for.
+   *   src/lib/multiplayer/ -> DELETED. 21KB of peer-to-peer code in a futures
+   *                       desk, no consumers.
+   *
+   * These four are what WIDENING the scan to all of src/lib then surfaced.
+   * They are infrastructure rather than non-desk junk, and deleting auth or
+   * attestation code nobody asked about is not a guard's decision to make:
+   *
+   *   auth/isolation.server.ts, auth/popup.server.ts, auth/verify.server.ts
+   *     — server-side session handling. Other .server.ts modules in this repo
+   *       ARE imported normally (coach/claude-server by trading-coach.tsx), so
+   *       being unimported is a real signal, not a framework artefact.
+   *   journal/attest-fn.ts
+   *     — read-only server fns over the attestation chain. The chain itself is
+   *       live; these readers are not mounted.
+   *
+   * Each needs a deliberate wire-or-delete by the trader.
+   */
   const KNOWN_DARK = new Set([
-    "src/lib/invest/kill-watch-server.ts",
-    "src/lib/trading/ladder-conflict.ts",
-    "src/lib/trading/liquidity-map.ts",
-    "src/lib/trading/override-log.ts",
+    "src/lib/auth/isolation.server.ts",
+    "src/lib/auth/popup.server.ts",
+    "src/lib/auth/verify.server.ts",
+    "src/lib/journal/attest-fn.ts",
   ]);
   // 2026-09-24: setup-memory.ts came off — `trade-log.ts` adapts the
   // hand-logged fills (a file written since the sleeve went live and read by

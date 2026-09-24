@@ -217,6 +217,46 @@ function build({ n, sessions, takeEpisodes = 0, lagSec = 5, missing = "retrace",
   ok(CENSUS_MAX > PRE_REGISTERED.minPolls, "storage holds more than the minimum sample");
 }
 
+// ── 9. STARVING is distinguished from EARLY ───────────────────────────────
+//
+// The failure that looks like patience: polls arrive, every one is excluded,
+// the panel shows a tidy zero, and a fortnight later there is still no
+// verdict — because the measurement was never running. "Early" means the
+// sample is filling; "starving" means it cannot fill until something changes.
+{
+  const allStale = census(build({ n: 400, sessions: 5, lagSec: 600 }));
+  ok(allStale.starving === true, "all-stale polls read as STARVING");
+  ok(/gateway/i.test(allStale.starvingLine ?? ""), "and the line names the gateway");
+  ok(allStale.verdict === "insufficient", "starving still reports no verdict");
+
+  const healthy = census(build({ n: 400, sessions: 5, lagSec: 4 }));
+  ok(healthy.starving === false, "fresh polls are not starving");
+  ok(healthy.starvingLine === null, "and carry no starvation line");
+
+  // A young but HEALTHY sample is early, not starving. This is the
+  // distinction the flag exists for.
+  ok(
+    census(build({ n: 25, sessions: 1, lagSec: 4 })).starving === false,
+    "a small fresh sample is early, not starving",
+  );
+
+  // Too few polls to declare anything either way.
+  ok(
+    census(build({ n: 5, sessions: 1, lagSec: 600 })).starving === false,
+    "a handful of polls is not enough to declare starvation",
+  );
+
+  // Partly covered: a gateway that ran for twenty minutes of a two-hour
+  // window still leaves the measurement effectively dead, and the 0.8 share
+  // is what stops that hiding behind a few clean rows.
+  const partial = census([
+    ...build({ n: 40, sessions: 5, lagSec: 4 }),
+    ...build({ n: 360, sessions: 5, lagSec: 600 }),
+  ]);
+  ok(partial.starving === true, "90% stale is still starving");
+  ok(partial.polls === 40, "and the clean rows are still counted honestly");
+}
+
 console.log(`\ntake-census: ${pass} passed, ${fail} failed`);
 if (fails.length) {
   console.log("\nFAILURES:");

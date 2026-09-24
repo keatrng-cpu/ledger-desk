@@ -60,6 +60,7 @@ import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
+import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import {
   getPaperAccount,
@@ -719,6 +720,8 @@ function MasterplacePage() {
         // The whole read, so a spent card can be offered a continuation or a
         // reversal candidate instead of a stale plan.
         draws: desk.draws[side],
+        // The ladder for this book, for the directional cross-check.
+        ladder: desk.ladder?.[side] ?? null,
         pools: {
           bsl: liq.nearestBsl,
           ssl: liq.nearestSsl,
@@ -1480,7 +1483,17 @@ function MasterplacePage() {
               {cat !== "trade" && cat !== "learn" && cat !== "invest" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
-              {cat === "invest" && <InvestPanel />}
+              {cat === "invest" && (
+                <>
+                  <InvestPanel />
+                  {/* The kill rules, checked on demand. Monthly cadence —
+                      a multi-year holding does not need a poll, and each
+                      run spends API budget. */}
+                  <div className="mt-3">
+                    <KillWatchPanel />
+                  </div>
+                </>
+              )}
 
               {cat === "brain" && (
                 <div className="space-y-5">

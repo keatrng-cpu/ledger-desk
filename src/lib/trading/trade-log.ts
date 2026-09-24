@@ -22,6 +22,14 @@
 
 import raw from "../../data/trade-log.json";
 import {
+  summarise,
+  overrideScorecard,
+  type LayerRow,
+  type OverrideRecord,
+  type OverrideSummary,
+  type RefusingLayer,
+} from "./override-log";
+import {
   disciplineRead,
   fingerprint,
   recallShapes,
@@ -45,6 +53,13 @@ interface LoggedTrade {
   notePreRegistered?: boolean | null;
   followedPlan?: boolean | null;
   violations?: string[] | null;
+  /** Override evidence, added to the logger 2026-09-24. */
+  missing?: string[] | null;
+  deskWord?: string | null;
+  ladderAgreed?: boolean | null;
+  book?: string | null;
+  pnl?: number | null;
+  r?: number | null;
 }
 
 function num(v: unknown): number | null {
@@ -142,12 +157,62 @@ export function loggedRecords(): SetupRecord[] {
   return trades.map(toRecord).filter((r): r is SetupRecord => r != null);
 }
 
+const LAYERS: RefusingLayer[] = [
+  "dol", "sweep", "pd_half", "ltf", "target", "retrace",
+  "htf", "judas", "news", "one_book",
+];
+
+/**
+ * The logged trades as OVERRIDES — trades taken while the desk was not
+ * saying TAKE.
+ *
+ * A row with no `missing` list is skipped rather than counted with an empty
+ * one: an override attributed to no layer is evidence about nothing, and
+ * including it would inflate `n` on the summary while teaching the scorecard
+ * nothing. That distinction is the whole value of this ledger.
+ */
+export function overrideRecords(): OverrideRecord[] {
+  const trades = (raw as { trades?: LoggedTrade[] }).trades ?? [];
+  const out: OverrideRecord[] = [];
+  for (const t of trades) {
+    const side = t.side === "short" ? "short" : t.side === "long" ? "long" : null;
+    if (!side) continue;
+    const word = (t.deskWord ?? "").toUpperCase();
+    // Only a trade the desk did NOT green-light is an override.
+    if (word !== "STAND" && word !== "WAIT" && word !== "MANAGE") continue;
+    const missing = (t.missing ?? []).filter((m): m is RefusingLayer =>
+      LAYERS.includes(m as RefusingLayer),
+    );
+    if (!missing.length) continue;
+    out.push({
+      id: t.id,
+      at: t.time_et ? `${t.date}T${t.time_et}` : t.date,
+      symbol: t.symbol,
+      side,
+      book: t.book === "futures" ? "futures" : "options",
+      missing,
+      deskWord: word as OverrideRecord["deskWord"],
+      grade: null,
+      resultR: num(t.r),
+      resultUsd: num(t.pnl),
+      reason: t.note ?? "",
+      ladderAgreed: typeof t.ladderAgreed === "boolean" ? t.ladderAgreed : null,
+    });
+  }
+  return out;
+}
+
 export interface TradeLogRead {
   records: SetupRecord[];
   /** How many rows were logged but could not be used, and why it matters. */
   skipped: number;
   discipline: DisciplineRead;
   shapes: ShapeRecord[];
+  /** Trades taken against a STAND/WAIT, and which gate each one skipped. */
+  overrides: OverrideSummary;
+  overrideLayers: LayerRow[];
+  /** Logged rows that ARE overrides but recorded no layer, so teach nothing. */
+  overridesUnattributed: number;
 }
 
 /**
@@ -161,10 +226,18 @@ export interface TradeLogRead {
 export function readTradeLog(): TradeLogRead {
   const trades = (raw as { trades?: LoggedTrade[] }).trades ?? [];
   const records = loggedRecords();
+  const overrides = overrideRecords();
+  const wasOverride = trades.filter((t) => {
+    const w = (t.deskWord ?? "").toUpperCase();
+    return w === "STAND" || w === "WAIT" || w === "MANAGE";
+  }).length;
   return {
     records,
     skipped: trades.length - records.length,
     discipline: disciplineRead(records),
     shapes: recallShapes(records),
+    overrides: summarise(overrides),
+    overrideLayers: overrideScorecard(overrides),
+    overridesUnattributed: Math.max(0, wasOverride - overrides.length),
   };
 }

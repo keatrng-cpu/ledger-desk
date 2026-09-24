@@ -177,6 +177,19 @@ export interface Census {
   bindingLayer: string | null;
   /** Median lag across the counted polls, so the census can be trusted. */
   medianLagSec: number | null;
+  /**
+   * The census is recording polls and counting none of them.
+   *
+   * This is the failure mode that looks like patience. Every poll gets stored,
+   * the panel shows a tidy zero, and a fortnight later there is still no
+   * verdict — because without the gateway up the quotes are ~600s-lagged
+   * Yahoo, every one is excluded, and the measurement was never running.
+   *
+   * Starving is NOT the same as early. Early means the sample is filling;
+   * starving means it cannot fill at all until something changes.
+   */
+  starving: boolean;
+  starvingLine: string | null;
   verdict: CensusVerdict;
   /** The pre-registered sentence for that verdict, verbatim. */
   conclusion: string;
@@ -272,9 +285,23 @@ export function census(records: PollRecord[], shadowExpR?: number | null): Censu
           ? ` ${excludedStale} poll(s) excluded as stale (>${PRE_REGISTERED.maxLagSec}s) — a lagged quote is the closed-bar clock late, not an intrabar read.`
           : "");
 
+  // Starving: polls ARE arriving and essentially none survive the lag gate.
+  // The 0.8 share (rather than 1.0) catches a partly-covered session, where a
+  // gateway that ran for twenty minutes hides the fact that the rest of the
+  // window collected nothing.
+  const staleShare = records.length > 0 ? excludedStale / records.length : 0;
+  const starving = records.length >= 20 && staleShare >= 0.8;
+  const starvingLine = starving
+    ? `${Math.round(staleShare * 100)}% of polls are being excluded as stale — the census is recording and counting almost nothing. ` +
+      `That is the gateway being down, not the sample being young: Yahoo lags ~600s and cannot answer an intrabar question. ` +
+      `Start the gateway for NY AM (08:15–11:30 ET) or this never reaches a verdict.`
+    : null;
+
   return {
     polls: fresh.length,
     excludedStale,
+    starving,
+    starvingLine,
     sessions,
     takes,
     takeEpisodes,
