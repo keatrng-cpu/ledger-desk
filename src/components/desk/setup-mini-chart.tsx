@@ -44,6 +44,14 @@ import type {
   SetupAnticipation,
   StepState,
 } from "@/lib/trading/setup-anticipation";
+import {
+  TF_MARKS,
+  TF_VISIBLE_BARS,
+  marksFor,
+  showsContext,
+  type ChartTf,
+} from "@/lib/trading/chart-timeframes";
+import type { ScoreDriver } from "@/lib/trading/score-drivers";
 import { cn } from "@/lib/utils";
 
 const W = 340;
@@ -95,6 +103,39 @@ export interface SetupMiniChartProps {
    * width. Null draws the array as a single line instead.
    */
   zone?: { top: number; bottom: number } | null;
+  /**
+   * Which rung to draw. Each one draws a DIFFERENT set of marks — see
+   * `TF_MARKS`. A 4h chart with an entry line on it is false precision (the
+   * bar is four hours wide, the limit is one price), and a 1m chart with the
+   * weekly high on it is clutter nine hours out of frame. Defaults to 15m,
+   * the series the engine graded.
+   */
+  tf?: ChartTf;
+  /**
+   * What actually built the score, so a mark can carry its own weight. These
+   * are MARGINAL contributions computed against the real engine, not raw
+   * `RAW_WEIGHTS` values — see `score-drivers.ts` for why the raw weight would
+   * be a lie. Only drawn on rungs whose spec lists `score_drivers`.
+   */
+  drivers?: ScoreDriver[];
+  /**
+   * Is the final candle still forming? On a resampled rung the trailing bucket
+   * holds only what has printed so far, so a 4h bar fifteen minutes old is
+   * drawn with the shape of a closed one. Passed in from `TfSeries` and drawn
+   * hollow, because a provisional high and low must not look settled — the
+   * same reason a partial minute is never flushed as a bar.
+   */
+  lastBarPartial?: boolean;
+  /**
+   * The dealing range, tinted premium/discount on the rungs whose spec asks
+   * for it. This is the range `pd_half` graded against, not a fresh one — the
+   * chart must never compute a second opinion about which half price is in.
+   */
+  range?: { high: number; low: number; eq: number } | null;
+  /** The draw on liquidity, as a single line. */
+  drawPrice?: number | null;
+  /** Consequent encroachment — where the limit rests. */
+  cePrice?: number | null;
   className?: string;
 }
 
@@ -316,17 +357,53 @@ function SetupMiniChartImpl({
   bars,
   a,
   zone = null,
+  tf = "15m",
+  drivers,
+  lastBarPartial = false,
+  range = null,
+  drawPrice = null,
+  cePrice = null,
   className,
 }: SetupMiniChartProps) {
-  const view = useMemo(() => bars.slice(-MINI_BARS), [bars]);
+  // The rung decides what is drawn, not just which bars. Filtering here rather
+  // than at each draw site means the scale, the collision rows and the legend
+  // all agree about what exists on this chart — a scale widened to fit a mark
+  // the rung does not draw would leave visible dead space.
+  const marks = useMemo(() => marksFor(tf, a.marks), [tf, a.marks]);
+  const view = useMemo(
+    () => bars.slice(-(TF_VISIBLE_BARS[tf] ?? MINI_BARS)),
+    [bars, tf],
+  );
+  // The array band belongs to the entry, so it is dropped on any rung that
+  // does not draw the entry array at all.
+  const bandZone = TF_MARKS[tf].kinds.includes("array") ? zone : null;
   const scale = useMemo(
-    () => buildMiniScale(view, a.marks, zone ?? null),
-    [view, a.marks, zone],
+    () => buildMiniScale(view, marks, bandZone ?? null),
+    [view, marks, bandZone],
   );
   const rows = useMemo(
-    () => (scale ? pickRows(a.marks, scale) : new Set<AnticipatedMark>()),
-    [a.marks, scale],
+    () => (scale ? pickRows(marks, scale) : new Set<AnticipatedMark>()),
+    [marks, scale],
   );
+
+  /**
+   * Points contributed, per mark kind, for the gutter.
+   *
+   * Several components can draw as the same mark (ifvg, order_block, breaker
+   * and four others are all "array"), so the figure shown against one mark is
+   * the SUM of the drivers that drew it. Summing is right rather than showing
+   * the max: the trader is asking what that box on the chart is worth, and it
+   * is worth everything that drew it.
+   */
+  const ptsByKind = useMemo(() => {
+    if (!drivers || !TF_MARKS[tf].context.includes("score_drivers")) return null;
+    const m = new Map<MarkKind, number>();
+    for (const d of drivers) {
+      if (!d.draws || d.points <= 0) continue;
+      m.set(d.draws, (m.get(d.draws) ?? 0) + d.pts100);
+    }
+    return m;
+  }, [drivers, tf]);
 
   // No bars, or bars carrying no finite prices, draw nothing. The card is then
   // exactly the card it was before this component existed, which is the correct
@@ -336,7 +413,7 @@ function SetupMiniChartImpl({
 
   const lastClose = view[view.length - 1]!.c;
   const inFrame = (p: number) => p >= scale.lo && p <= scale.hi;
-  const priced = a.marks.filter((m): m is AnticipatedMark & { price: number } =>
+  const priced = marks.filter((m): m is AnticipatedMark & { price: number } =>
     finite(m.price),
   );
   const onFrame = priced.filter((m) => inFrame(m.price));
@@ -360,10 +437,10 @@ function SetupMiniChartImpl({
           : `${a.mustPass}/${a.mustNeed} musts`;
 
   const zoneBand =
-    zone && inFrame(zone.top) && inFrame(zone.bottom)
+    bandZone && inFrame(bandZone.top) && inFrame(bandZone.bottom)
       ? {
-          y: scale.y(zone.top),
-          h: Math.max(2, scale.y(zone.bottom) - scale.y(zone.top)),
+          y: scale.y(bandZone.top),
+          h: Math.max(2, scale.y(bandZone.bottom) - scale.y(bandZone.top)),
         }
       : null;
 
@@ -470,6 +547,57 @@ function SetupMiniChartImpl({
         })}
 
         {/* ── Candles ─────────────────────────────────────────────────────── */}
+        {/* ── CONTEXT LAYERS ─────────────────────────────────────────────
+            Drawn UNDER the candles and under the marks: they are the room the
+            trade happens in, not the trade. Each is gated on this rung's own
+            spec, so a rung never carries ink it did not ask for. */}
+        {showsContext(tf, "dealing_range") && range && inFrame(range.eq) && (
+          <g opacity={0.5}>
+            {/* Premium above EQ, discount below. Tinted, not outlined — an
+                outlined box reads as an array, which is a different thing. */}
+            <rect
+              x={PAD_L}
+              y={scale.y(Math.min(range.high, scale.hi))}
+              width={PLOT_W}
+              height={Math.max(0, scale.y(range.eq) - scale.y(Math.min(range.high, scale.hi)))}
+              fill="var(--color-down)"
+              opacity={0.07}
+            />
+            <rect
+              x={PAD_L}
+              y={scale.y(range.eq)}
+              width={PLOT_W}
+              height={Math.max(0, scale.y(Math.max(range.low, scale.lo)) - scale.y(range.eq))}
+              fill="var(--color-up)"
+              opacity={0.07}
+            />
+          </g>
+        )}
+        {showsContext(tf, "draw_line") && finite(drawPrice) && inFrame(drawPrice) && (
+          <line
+            x1={PAD_L}
+            x2={PAD_L + PLOT_W}
+            y1={scale.y(drawPrice)}
+            y2={scale.y(drawPrice)}
+            stroke="var(--color-accent)"
+            strokeWidth={0.7}
+            strokeDasharray="6 4"
+            opacity={0.45}
+          />
+        )}
+        {showsContext(tf, "ce_line") && finite(cePrice) && inFrame(cePrice) && (
+          <line
+            x1={PAD_L}
+            x2={PAD_L + PLOT_W}
+            y1={scale.y(cePrice)}
+            y2={scale.y(cePrice)}
+            stroke="var(--color-accent)"
+            strokeWidth={0.9}
+            strokeDasharray="2 2"
+            opacity={0.8}
+          />
+        )}
+
         {view.map((b, i) => {
           const x = scale.x(i);
           const up = b.c >= b.o;
@@ -477,8 +605,11 @@ function SetupMiniChartImpl({
           const bodyTop = scale.y(Math.max(b.o, b.c));
           const bodyH = Math.max(1, scale.y(Math.min(b.o, b.c)) - bodyTop);
           const bw = Math.max(1.2, scale.step * 0.58);
+          // The trailing bucket on a resampled rung is provisional: hollow it
+          // so its high and low do not read as finished.
+          const forming = lastBarPartial && i === view.length - 1;
           return (
-            <g key={b.t} opacity={0.9}>
+            <g key={b.t} opacity={forming ? 0.55 : 0.9}>
               <line
                 x1={x}
                 x2={x}
@@ -492,7 +623,9 @@ function SetupMiniChartImpl({
                 y={bodyTop}
                 width={bw}
                 height={bodyH}
-                fill={color}
+                fill={forming ? "none" : color}
+                stroke={forming ? color : "none"}
+                strokeWidth={forming ? 0.7 : 0}
               />
             </g>
           );
@@ -531,6 +664,9 @@ function SetupMiniChartImpl({
                 style={{ textTransform: "uppercase" }}
               >
                 {STATE_GLYPH[m.state]} {shortLabel(m.label)}
+                {ptsByKind?.get(m.kind)
+                  ? ` ${ptsByKind.get(m.kind)!.toFixed(0)}p`
+                  : ""}
               </text>
             );
           })}
@@ -595,6 +731,11 @@ function SetupMiniChartImpl({
           — and it is still a must. Without this strip it would be the one step
           the markup silently omits. */}
       <ol className="flex flex-wrap items-center gap-1 px-2 pb-1 pt-0.5">
+        {/* EVERY step, at every rung. The pills are the sequence's own state —
+            which layers printed, which are awaited, which died — and that does
+            not change because the trader is looking at 4h. Filtering these the
+            way the CHART is filtered silently dropped must-layers, including
+            the displacement pill that has no price and therefore no rung. */}
         {a.marks.map((m, i) => (
           <li
             key={`pill-${m.kind}-${i}`}

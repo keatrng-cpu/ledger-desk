@@ -206,6 +206,21 @@ export interface AnticipationInput {
   sweepLevel?: number | null;
   /** Layers smc-master has declared dead for the session. */
   deadLayers?: string[];
+  /**
+   * The standing pools either side, so the chart can draw the MAGNETS and not
+   * only the one raid this setup waits on. These are levels, not events: they
+   * exist on the tape right now, which is why they print solid.
+   */
+  pools?: { bsl?: number | null; ssl?: number | null } | null;
+  /** smc-master's dealing range, for the EQ line and the premium/discount tint. */
+  dealing?: { high: number; low: number; eq: number } | null;
+  /**
+   * The priced plan, when smc-master has built one. Entry and stop are drawn
+   * ONLY from here — deriving a stop from "beyond the sweep" plus a buffer I
+   * chose would be inventing a price, which is the one thing a markup may
+   * never do.
+   */
+  plan?: { entry: number; stop: number } | null;
 }
 
 /**
@@ -243,6 +258,36 @@ export function anticipate(input: AnticipationInput): SetupAnticipation {
     });
   }
 
+  // The standing pools. The `sweep` mark above is the raid this setup is
+  // waiting ON; these are the other draws in the book — the magnets a trader
+  // reads on the slow rungs, where an entry line would be false precision.
+  // The one already drawn as the raid is skipped rather than drawn twice.
+  for (const [name, price] of [
+    ["BSL", input.pools?.bsl],
+    ["SSL", input.pools?.ssl],
+  ] as const) {
+    if (price == null || !Number.isFinite(price)) continue;
+    if (sweepLevel != null && Math.abs(price - sweepLevel) < 1e-9) continue;
+    marks.push({
+      kind: "pool",
+      label: name,
+      price,
+      // A pool is a level, not a step: it is on the tape now. Solid.
+      state: "printed",
+      watchFor: `${name} resting at ${price.toFixed(2)} — a magnet, not an entry. Price reaches for it; it is not a reason to be in.`,
+    });
+  }
+
+  if (input.dealing && Number.isFinite(input.dealing.eq)) {
+    marks.push({
+      kind: "eq",
+      label: "EQ",
+      price: input.dealing.eq,
+      state: "printed",
+      watchFor: `Equilibrium ${input.dealing.eq.toFixed(2)}. Shorts belong above it, longs below — this is the half the pd_half layer grades.`,
+    });
+  }
+
   const dsp = st("ltf");
   marks.push({
     kind: "displacement",
@@ -266,6 +311,27 @@ export function anticipate(input: AnticipationInput): SetupAnticipation {
         arr === "printed"
           ? `Price is in ${zone.bottom.toFixed(2)}–${zone.top.toFixed(2)} now. This is the fill.`
           : `Price must come BACK into ${zone.bottom.toFixed(2)}–${zone.top.toFixed(2)}. Do not chase the impulse — the retrace is the entry.`,
+    });
+  }
+
+  // The limit and the stop, but only at prices smc-master actually published.
+  if (input.plan && Number.isFinite(input.plan.entry)) {
+    marks.push({
+      kind: "entry",
+      label: "Limit @ CE",
+      price: input.plan.entry,
+      // Awaited until it fills: the level is real, the fill is not.
+      state: "awaited",
+      watchFor: `Rest the limit at ${input.plan.entry.toFixed(2)}. Never pay the print — the CE-touch alarm calls you.`,
+    });
+  }
+  if (input.plan && Number.isFinite(input.plan.stop)) {
+    marks.push({
+      kind: "stop",
+      label: "Stop",
+      price: input.plan.stop,
+      state: "awaited",
+      watchFor: `Invalidation ${input.plan.stop.toFixed(2)}, beyond the sweep. If price trades here the read was wrong — that is the whole risk.`,
     });
   }
 

@@ -707,6 +707,10 @@ function MasterplacePage() {
       const m = desk.smcMaster?.[side];
       return {
         bars: desk[side].bars,
+        // The ladder's minute series, so the card's chart can offer 1m and 5m
+        // without a second fetch. Roughly the last 8h; `seriesFor` states that
+        // on the chart rather than letting a short window read as a long one.
+        minute: desk.mtf?.[side]?.minute,
         price: desk.quotes[side].price ?? null,
         draw: desk.draws[side].primary,
         pools: {
@@ -727,6 +731,15 @@ function MasterplacePage() {
               mustPass: m.mustPass,
               mustNeed: m.mustNeed,
               states: Object.fromEntries(m.layers.map((l) => [l.id, l.state])),
+              // Numerics the markup draws from. `dealing` is the range the
+              // pd_half layer graded against; `plan` is the only source of a
+              // priced entry and stop — the chart never derives either.
+              dealing: m.dealing
+                ? { high: m.dealing.high, low: m.dealing.low, eq: m.dealing.eq }
+                : null,
+              plan: m.plan
+                ? { entry: m.plan.entry, stop: m.plan.stop }
+                : null,
             }
           : null,
       };

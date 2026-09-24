@@ -31,6 +31,17 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
+import {
+  CHART_TFS,
+  TF_MARKS,
+  TF_ROLE,
+  autoTf,
+  allSeries,
+  marksFor,
+  resolveTf,
+  type ChartTf,
+} from "@/lib/trading/chart-timeframes";
+import { scoreDrivers, topDrivers } from "@/lib/trading/score-drivers";
 import { SetupMiniChart } from "./setup-mini-chart";
 import type { OhlcBar } from "@/lib/market/types";
 import type { LiquidityTarget } from "@/lib/trading/draw";
@@ -53,6 +64,14 @@ import type { LiquidityTarget } from "@/lib/trading/draw";
  */
 export interface CardTape {
   bars?: OhlcBar[];
+  /**
+   * The ladder's 1m series for this book (`desk.mtf[side].minute`), so the
+   * card's chart can offer 1m and 5m. It is only ~8h deep, which is why
+   * `seriesFor` carries a coverage sentence rather than letting a short window
+   * pass for a long one. Absent, the fast rungs grey out instead of being
+   * faked from 15m.
+   */
+  minute?: OhlcBar[];
   /** Freshest quote for this book. Decides `live` versus `armed`. */
   price?: number | null;
   /** Named draw, used only when the candidate does not carry its own. */
@@ -92,6 +111,10 @@ export interface CardSequence {
   side: "long" | "short" | null;
   /** The entry array's edges, from the priced plan. */
   zone: { top: number; bottom: number } | null;
+  /** smc-master's dealing range, for the EQ mark and the premium/discount tint. */
+  dealing?: { high: number; low: number; eq: number } | null;
+  /** The priced plan. Entry and stop are drawn only when it exists. */
+  plan?: { entry: number; stop: number } | null;
   /** Layer ids failed for the session — drawn struck through, not dashed. */
   dead: string[];
   /**
@@ -389,6 +412,15 @@ function SetupCard({
   tape?: CardTape;
 }) {
   const [showDetail, setShowDetail] = useState(false);
+  /**
+   * A rung the trader chose. Null means follow the desk.
+   *
+   * The pin is deliberately NOT cleared when the setup's state changes: a
+   * trader who went to 4h to check bias should stay there until they say
+   * otherwise. Auto-switching under someone mid-read is worse than showing
+   * them a rung that is no longer the obvious one.
+   */
+  const [tfPin, setTfPin] = useState<ChartTf | null>(null);
   const ghost = useGhost(c);
 
   /**
@@ -433,11 +465,71 @@ function SetupCard({
       zone: seq?.zone ?? null,
       sweepLevel,
       deadLayers: seq?.dead,
+      // The standing pools, so the slow rungs have magnets to draw rather than
+      // only the one raid. Both sides: a short reads the SSL it is aiming at
+      // as much as the BSL it is waiting on.
+      pools: p ? { bsl: p.bsl, ssl: p.ssl } : null,
+      dealing: seq?.dealing ?? null,
+      plan: seq?.plan ?? null,
     });
   }, [c, canon, tape]);
   const bars = tape?.bars;
   const zone =
     tape?.sequence && tape.sequence.side === c.side ? tape.sequence.zone : null;
+
+  /**
+   * The rung the desk would pick, and the one actually shown.
+   *
+   * The missing layer is taken from the sequence's own states so a card
+   * waiting on a structure fact sends the trader to 1h rather than leaving
+   * them staring at 15m for an hour.
+   */
+  const autoRung = useMemo(() => {
+    const states = tape?.sequence?.states;
+    const missing = states
+      ? (Object.entries(states).find(([, v]) => v !== "pass")?.[0] ?? null)
+      : null;
+    return autoTf({
+      entry: anticipation.entry,
+      word: tape?.sequence?.word,
+      missingLayer: missing,
+    });
+  }, [anticipation.entry, tape?.sequence?.states, tape?.sequence?.word]);
+
+  // The wanted rung resolved against what actually has bars. Without this a
+  // live card on a desk with no minute series would swap its chart for a
+  // paragraph at the exact moment the chart matters most.
+  const wanted = tfPin ?? autoRung.tf;
+
+  /**
+   * Bars for the chosen rung, built from the two real series this book
+   * already carries. Nothing is fetched to switch timeframe.
+   */
+  const rungs = useMemo(
+    () => allSeries(tape?.bars ?? [], tape?.minute ?? []),
+    [tape?.bars, tape?.minute],
+  );
+  const resolved = resolveTf(wanted, rungs);
+  const tf = resolved.tf;
+  const tfSeries = rungs[tf];
+
+  /**
+   * What built this card's score, in marginal points against the real engine.
+   * Keyed on the strategy actually graded, because the same components are
+   * worth different amounts under different templates.
+   */
+  const drivers = useMemo(
+    () =>
+      scoreDrivers(c.completeStrategy || c.strategyPrimary || "", c.components ?? [], {
+        // The session flags the card was graded with. Without them the
+        // counterfactual grades a different card: they move fit by up to 0.08
+        // and decide which side of the not-complete floor a removal lands on.
+        htfOk: c.htfOk,
+        killzoneOk: c.killzoneOk,
+        conditionsOk: c.conditionsOk,
+      }),
+    [c.completeStrategy, c.strategyPrimary, c.components, c.htfOk, c.killzoneOk, c.conditionsOk],
+  );
   /**
    * Is this card carrying its own markup?
    *
@@ -449,6 +541,20 @@ function SetupCard({
    * (no bars) the old pulse is untouched.
    */
   const chartShown = anticipation.draw && bars != null && bars.length > 0;
+  /** Context the chart draws under the tape — same source the marks use. */
+  const seqForChart =
+    tape?.sequence && tape.sequence.side === c.side ? tape.sequence : null;
+  const drawForChart = c.draw !== undefined ? c.draw : (tape?.draw ?? null);
+
+  /** The chosen rung may have no series even when the card qualifies. */
+  const rungHasBars = tfSeries.bars.length > 0;
+  /**
+   * Marks this rung would actually draw. A rung can legitimately draw none —
+   * 1m carries only array/entry/stop, and a card still waiting on its raid has
+   * none of them. An unannotated chart then looks broken rather than early, so
+   * the empty case is named.
+   */
+  const rungMarkCount = marksFor(tf, anticipation.marks).length;
   const done =
     ghost &&
     (ghost.status === "won" ||
@@ -598,12 +704,124 @@ function SetupCard({
           `anticipation.draw` is the threshold (setup-anticipation.ts), and no
           bars means no chart — the card is then exactly what it was before. */}
       {chartShown && bars && (
-        <SetupMiniChart
-          bars={bars}
-          a={anticipation}
-          zone={zone}
-          className="mb-2"
-        />
+        <div className="mb-2">
+          {/* THE RUNG SWITCH. Five timeframes off two real series — nothing is
+              fetched to change it. A rung whose series is absent is disabled
+              rather than silently falling back, because a 1m button that
+              quietly shows 15m is the worst of both. */}
+          <div className="mb-1 flex items-center gap-1">
+            {CHART_TFS.map((t) => {
+              const has = rungs[t].bars.length > 0;
+              const active = t === tf;
+              const isAuto = !tfPin && t === autoRung.tf;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  disabled={!has}
+                  // Toggle against the PIN, not against the resolved rung.
+                  // When resolveTf substitutes (wanted 1m, no minute series →
+                  // 15m), the 15m button is highlighted; comparing to the
+                  // resolved rung made that click UNPIN instead of pinning.
+                  onClick={() => setTfPin(tfPin === t ? null : t)}
+                  title={
+                    has
+                      ? `${TF_ROLE[t]}${isAuto ? ` — the desk picked this: ${autoRung.why}` : ""}`
+                      : `No series for ${t} on this book.`
+                  }
+                  className={cn(
+                    "rounded-[var(--radius-sm)] border px-1.5 py-0.5 font-mono text-[9px] leading-none transition-colors",
+                    active
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)]/12 text-[var(--color-accent)]"
+                      : has
+                        ? "border-[var(--color-border)] text-[var(--color-subtle)] hover:text-[var(--color-fg)]"
+                        : "cursor-not-allowed border-[var(--color-border)]/50 text-[var(--color-subtle)]/35",
+                  )}
+                >
+                  {t}
+                  {isAuto && <span aria-hidden> •</span>}
+                </button>
+              );
+            })}
+            {tfPin && (
+              <button
+                type="button"
+                onClick={() => setTfPin(null)}
+                title="Follow the desk again"
+                className="ml-auto rounded-[var(--radius-sm)] px-1 py-0.5 font-mono text-[9px] leading-none text-[var(--color-subtle)] hover:text-[var(--color-fg)]"
+              >
+                auto
+              </button>
+            )}
+          </div>
+
+          {rungHasBars ? (
+            <SetupMiniChart
+              bars={tfSeries.bars}
+              a={anticipation}
+              zone={zone}
+              tf={tf}
+              drivers={drivers}
+              lastBarPartial={tfSeries.lastBarPartial}
+              range={seqForChart?.dealing ?? null}
+              drawPrice={drawForChart?.price ?? null}
+              cePrice={seqForChart?.plan?.entry ?? null}
+            />
+          ) : (
+            <p className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-3 text-[10px] leading-snug text-[var(--color-subtle)]">
+              {tfSeries.coverage}
+            </p>
+          )}
+
+          {/* What this rung is read for, and what it is actually covering.
+              The coverage line matters most on 5m, where the window is the 1m
+              window (~8h) and not the days a 5m chart usually implies. */}
+          <p className="mt-1 text-[9px] leading-snug text-[var(--color-subtle)]">
+            <span className="text-[var(--color-fg)]">{TF_MARKS[tf].reads}</span>
+            {resolved.substituted && (
+              <span className="text-[var(--color-warn)]"> {resolved.why}</span>
+            )}
+            {rungHasBars && <> {tfSeries.coverage}</>}
+            {rungHasBars && rungMarkCount === 0 && (
+              <>
+                {" "}
+                <span className="text-[var(--color-subtle)]">
+                  Nothing to mark here yet — this rung draws{" "}
+                  {TF_MARKS[tf].kinds.join(", ")}, and the sequence has not
+                  priced any of them.
+                </span>
+              </>
+            )}
+          </p>
+
+          {/* THE SCORE, ITEMISED. Marginal points against the real engine, so
+              the figures answer "how much of this score rests on that mark?"
+              A redundant any-of member shows 0 and says so rather than
+              double-counting a point with its sibling. */}
+          {TF_MARKS[tf].context.includes("score_drivers") && drivers.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+              {topDrivers(drivers, 6).map((d) => (
+                <span
+                  key={d.key}
+                  title={`${d.what || d.label} — worth ${d.pts100.toFixed(1)} pts of this score (${d.channel}).`}
+                  className="font-mono text-[9px] leading-none text-[var(--color-subtle)]"
+                >
+                  {d.label}
+                  <span className="text-[var(--color-fg)]"> {d.pts100.toFixed(0)}p</span>
+                </span>
+              ))}
+              {drivers.some((d) => d.channel === "anyof-redundant") && (
+                <span
+                  title="Present on the tape but marginally free — a sibling already satisfies the same any-of group, so removing it would not move the score."
+                  className="font-mono text-[9px] leading-none text-[var(--color-subtle)]/70"
+                >
+                  +
+                  {drivers.filter((d) => d.channel === "anyof-redundant").length} redundant
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       {/* ROW 2 — the plan. Three numbers a trader acts on, evenly weighted. */}
