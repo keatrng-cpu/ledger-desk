@@ -47,7 +47,8 @@
     "prepush": "npm run typecheck && npm run verify:all",
     "hooks:install": "node scripts/install-hooks.mjs",
     "capture:intrabar": "npx tsx scripts/capture-intrabar.mjs",
-    "verify:census": "npx tsx scripts/verify-take-census.mjs"
+    "verify:census": "npx tsx scripts/verify-take-census.mjs",
+    "verify:chartlabels": "npx tsx scripts/verify-chart-labels.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

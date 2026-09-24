@@ -357,16 +357,32 @@ export function groupNestedArrays(arrays: SmcArray[]): ArrayGroup[] {
  * counted, because "1H OB ⊃ 15M FVG" is the sentence a trader would write and
  * a list of three is a paragraph.
  */
-function groupName(g: ArrayGroup, entry: SmcArray | null): string {
+export function groupName(g: ArrayGroup, entry: SmcArray | null): string {
+  const outerName = arrayName(g.outer);
+
   if (entry && entry !== g.outer) {
     const rest = g.inner.length - 1;
-    return `ENTRY ${arrayName(entry)} ⊂ ${arrayName(g.outer)}${rest > 0 ? ` +${rest}` : ""}`;
+    // "in", not ⊂. The set-theory glyphs read as noise at 8px over candles,
+    // and this label has to be legible at a glance in the twenty seconds
+    // before a limit fills.
+    return `ENTRY ${arrayName(entry)} in ${outerName}${rest > 0 ? ` +${rest}` : ""}`;
   }
-  const head = `${entry ? "ENTRY " : ""}${arrayName(g.outer)}`;
+
+  const head = `${entry ? "ENTRY " : ""}${outerName}`;
   if (!g.inner.length) return head;
-  return g.inner.length === 1
-    ? `${head} ⊃ ${arrayName(g.inner[0]!)}`
-    : `${head} ⊃ ${g.inner.length} inside`;
+
+  // A group whose members all share the outer's name said "15M REJ ⊃ 15M REJ"
+  // on the live chart — a label that costs pixels and tells the trader
+  // nothing. Same name means one zone confirmed at one timeframe more than
+  // once, so it counts instead of repeating itself.
+  const names = g.inner.map(arrayName);
+  if (names.every((n) => n === outerName)) {
+    return `${head} ×${g.inner.length + 1}`;
+  }
+
+  const distinct = [...new Set(names.filter((n) => n !== outerName))];
+  if (distinct.length === 1 && g.inner.length === 1) return `${head} · ${distinct[0]} inside`;
+  return `${head} · ${g.inner.length} inside`;
 }
 
 /**
@@ -676,20 +692,83 @@ export function SetupChart({
   // everything else — it is the only name that changes what the trader does —
   // and nearest-to-price wins the rest, the order chart-overlay.ts emits in.
   const groupLabelAnchor = (g: { outer: SmcArray; entry: SmcArray | null }) => g.entry ?? g.outer;
+
+  /**
+   * Plate width for a name, in px.
+   *
+   * The old estimate multiplied character count by a constant and used the
+   * result both to draw the plate and to test collisions, so a long name
+   * overflowed the plot into the price rail — which is how
+   * "15M REJ ⊃ 15M REJ" ended up printed across the LIVE price. Measured the
+   * same way in both places, and the plate is clamped below.
+   */
+  const plateWidth = (name: string, isEntry: boolean) =>
+    name.length * (isEntry ? 4.9 : 4.7) + 6;
+
+  /**
+   * Where a group's label actually lands.
+   *
+   * Clamped so the plate's RIGHT edge never crosses into the price gutter.
+   * A label that runs under the rail is unreadable exactly where the numbers
+   * matter most.
+   */
+  const groupLabelX = (g: { outer: SmcArray; entry: SmcArray | null }, name: string) => {
+    const w = plateWidth(name, g.entry != null);
+    const raw = xStart(groupLabelAnchor(g).t) + 1;
+    return Math.max(PAD_L + 1, Math.min(raw, PAD_L + PLOT_W - w - 1));
+  };
+
+  /**
+   * Which groups get a FILL, as opposed to just their edges.
+   *
+   * Every group's box runs from its origin to the right edge, so three
+   * overlapping zones stack three translucent fills and the result is a
+   * muddy block where no single zone is readable — which is what the live
+   * chart was doing. Fills are a scarce resource: the entry group always has
+   * one because it is the trade, plus the single nearest-to-price zone
+   * because that is the one price is about to interact with. Everything else
+   * keeps its edges, which is enough to see where it is without repainting
+   * the same pixels a third time.
+   */
+  const filledGroups = new Set<(typeof arrayGroups)[number]>();
+  {
+    const entryGroup = arrayGroups.find((g) => g.entry != null);
+    if (entryGroup) filledGroups.add(entryGroup);
+    const nearest = [...arrayGroups]
+      .filter((g) => g !== entryGroup)
+      .sort(
+        (a, b) =>
+          Math.abs((a.outer.top + a.outer.bottom) / 2 - lastClose) -
+          Math.abs((b.outer.top + b.outer.bottom) / 2 - lastClose),
+      )[0];
+    if (nearest) filledGroups.add(nearest);
+  }
+
   const labelledGroups = new Set<(typeof arrayGroups)[number]>();
   {
-    const taken: { x: number; y: number }[] = [];
+    const taken: { x: number; y: number; w: number }[] = [];
+
+    // The live-price line and its rail label own their row. A group label
+    // sharing that row is the collision in the screenshot: the name printed
+    // straight through "30468.50 LIVE".
+    taken.push({ x: PAD_L, y: scale.y(lastClose), w: PLOT_W });
+
     const byImportance = entryDrawn
       ? [...arrayGroups].sort((a, b) => Number(b.entry != null) - Number(a.entry != null))
       : arrayGroups;
     for (const g of byImportance) {
-      const a = groupLabelAnchor(g);
-      const y = scale.y(a.top);
-      const x = xStart(a.t);
-      // 9px against 8px text meant two names one pixel apart counted as
-      // "resolved". 16 is the line box; 150 is roughly the widest name.
-      if (taken.every((t) => Math.abs(t.y - y) >= 16 || Math.abs(t.x - x) >= 150)) {
-        taken.push({ x, y });
+      const name = groupName(g, g.entry);
+      const y = scale.y(groupLabelAnchor(g).top);
+      const x = groupLabelX(g, name);
+      const w = plateWidth(name, g.entry != null);
+      // Real overlap: rows within one line box AND horizontal spans that
+      // actually intersect. The old test compared a fixed 150px against the
+      // anchor x, which let two long names on nearby rows both draw.
+      const clashes = taken.some(
+        (t) => Math.abs(t.y - y) < 12 && x < t.x + t.w && t.x < x + w,
+      );
+      if (!clashes) {
+        taken.push({ x, y, w });
         labelledGroups.add(g);
       }
     }
@@ -859,9 +938,17 @@ export function SetupChart({
           const y = scale.y(anchor.top);
           const x0 = xStart(anchor.t);
           const name = groupName(g, g.entry);
+          // Same measurement the collision pass used, so what was tested is
+          // what is drawn.
+          const labelX = groupLabelX(g, name);
+          const labelW = plateWidth(name, isEntry);
           return (
             <g key={key}>
-              {arrayInk(g.outer, g.entry === g.outer ? "entry" : "box", `${key}-o`)}
+              {arrayInk(
+                g.outer,
+                g.entry === g.outer ? "entry" : filledGroups.has(g) ? "box" : "edge",
+                `${key}-o`,
+              )}
               {g.inner.map((b, n) =>
                 arrayInk(b, b === g.entry ? "entry" : "edge", `${key}-i${n}`),
               )}
@@ -871,21 +958,30 @@ export function SetupChart({
                 // keeps it legible over the wicks it does cover.
                 <g>
                   <rect
-                    x={x0 + 1}
+                    x={labelX}
                     y={y + 1}
-                    width={name.length * (isEntry ? 4.9 : 4.4) + 4}
+                    width={labelW}
                     height={isEntry ? 10 : 9}
                     rx={2}
                     fill="var(--color-bg)"
-                    opacity={isEntry ? 0.85 : 0.6}
+                    // Opaque enough to read over a wick. The old 0.6 let
+                    // candle bodies show through the letters.
+                    opacity={isEntry ? 0.92 : 0.82}
                   />
                   <text
-                    x={x0 + 3}
+                    x={labelX + 2}
                     y={isEntry ? y + 8.5 : y + 8}
-                    fill={isEntry ? "var(--color-primary)" : "var(--color-muted)"}
-                    fontSize={isEntry ? 8.5 : 7.5}
-                    fontWeight={isEntry ? 700 : 400}
-                    opacity={isEntry ? 1 : entryDrawn ? 0.7 : 1}
+                    // 7.5px at 400 weight over candles was legible on a
+                    // monitor and not on the phone the trader actually reads
+                    // this on. A non-entry name still has to be READ — it is
+                    // what is in the way of the trade — so it gets a real
+                    // size and a medium weight, and stays distinguishable
+                    // from the entry by colour and weight rather than by
+                    // being too small to see.
+                    fill={isEntry ? "var(--color-primary)" : "var(--color-fg)"}
+                    fontSize={isEntry ? 8.5 : 8}
+                    fontWeight={isEntry ? 700 : 500}
+                    opacity={isEntry ? 1 : entryDrawn ? 0.82 : 1}
                     style={{ textTransform: "uppercase" }}
                   >
                     {name}
