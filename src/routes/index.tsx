@@ -101,6 +101,7 @@ import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store
 import { applyWordHysteresis, createHysteresisState } from "@/lib/trading/word-hysteresis";
 import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
 import { TradeLogPanel } from "@/components/desk/trade-log-panel";
+import { CalibrationPanel } from "@/components/desk/calibration-panel";
 import { recordPoll } from "@/lib/trading/take-census";
 import { TakeCensusPanel } from "@/components/desk/take-census-panel";
 import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
@@ -1690,6 +1691,12 @@ function MasterplacePage() {
                     sub="Is the gate tight, or is the 15m close the wrong clock · thresholds fixed in advance"
                   />
                   <TakeCensusPanel />
+                  <SectionHead
+                    n="B5"
+                    title="Are the numbers true?"
+                    sub="The desk's own figures graded against what happened · expectancy leads, hit rate follows"
+                  />
+                  <CalibrationPanel />
                   <SectionHead
                     n="C"
                     title="Real-data backtest"
