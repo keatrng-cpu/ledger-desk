@@ -225,13 +225,18 @@ for (const [path] of FLOORS) {
    */
   const KNOWN_DARK = new Set([
     "src/lib/invest/kill-watch-server.ts",
-    "src/lib/trading/card-freshness.ts",
     "src/lib/trading/ladder-conflict.ts",
     "src/lib/trading/liquidity-map.ts",
     "src/lib/trading/override-log.ts",
-    "src/lib/trading/setup-memory.ts",
-    "src/lib/trading/sleeve-sizing.ts",
   ]);
+  // 2026-09-24: setup-memory.ts came off — `trade-log.ts` adapts the
+  // hand-logged fills (a file written since the sleeve went live and read by
+  // nothing) into SetupRecords, and the Book tab prints the discipline read
+  // apart from the setup read.
+  // 2026-09-23: sleeve-sizing.ts and card-freshness.ts came off this list.
+  // sleeve-sizing now drives options-desk's contract count (the $1,000 ceiling
+  // with the loss bounded by the worked stop); card-freshness drives the
+  // spent-card strip on every scanner card.
 
   const fresh = dark.filter((d) => !KNOWN_DARK.has(d));
   ok(

@@ -99,6 +99,7 @@ import { observeAndTickGhosts, markGhostTaken } from "@/lib/trading/ghost-book";
 import { hydrateShadowBook, observeShadowBook } from "@/lib/trading/shadow-store";
 import { applyWordHysteresis, createHysteresisState } from "@/lib/trading/word-hysteresis";
 import { ShadowBookPanel } from "@/components/desk/shadow-book-panel";
+import { TradeLogPanel } from "@/components/desk/trade-log-panel";
 import { TfLadderPanel } from "@/components/desk/tf-ladder-panel";
 import { OvernightBoard } from "@/components/desk/overnight-board";
 import { DECIDE_START_MIN, DECIDE_END_MIN } from "@/lib/trading/overnight-swing";
@@ -713,6 +714,9 @@ function MasterplacePage() {
         minute: desk.mtf?.[side]?.minute,
         price: desk.quotes[side].price ?? null,
         draw: desk.draws[side].primary,
+        // The whole read, so a spent card can be offered a continuation or a
+        // reversal candidate instead of a stale plan.
+        draws: desk.draws[side],
         pools: {
           bsl: liq.nearestBsl,
           ssl: liq.nearestSsl,
@@ -738,7 +742,12 @@ function MasterplacePage() {
                 ? { high: m.dealing.high, low: m.dealing.low, eq: m.dealing.eq }
                 : null,
               plan: m.plan
-                ? { entry: m.plan.entry, stop: m.plan.stop }
+                ? {
+                    entry: m.plan.entry,
+                    stop: m.plan.stop,
+                    entryZone: m.plan.entryZone ?? null,
+                    t1: m.plan.t1 ?? null,
+                  }
                 : null,
             }
           : null,
@@ -1586,6 +1595,12 @@ function MasterplacePage() {
                     sub="The refusals, paper-traded · gate scorecard · the little things"
                   />
                   <ShadowBookPanel mode="full" />
+                  <SectionHead
+                    n="B3"
+                    title="Logged trades"
+                    sub="Real fills · discipline apart from setup · non-compliant rows excluded"
+                  />
+                  <TradeLogPanel />
                   <SectionHead
                     n="C"
                     title="Real-data backtest"

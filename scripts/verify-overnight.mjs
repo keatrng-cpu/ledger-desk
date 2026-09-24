@@ -11,6 +11,7 @@
 const { gradeOvernight, overnightMechanics, positionFromFills, MIN_OVERNIGHT_DTE, MIN_OVERNIGHT_DELTA } =
   await import("../src/lib/trading/overnight-swing.ts");
 const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
+const { rhTicketCapUsd } = await import("../src/lib/trading/options-sleeve.ts");
 
 let pass = 0;
 let fail = 0;
@@ -20,7 +21,10 @@ const check = (name, got, want) => {
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 
-const SLEEVE = { equity: 1000, riskPct: 0.15 }; // the real sleeve: $150 cap
+// The real sleeve. Under the 2026-09-23 model the equity IS the per-trade
+// DEBIT ceiling ($1,000) and riskPct is the loss cap applied to the debit
+// actually paid — not, as the old comment here said, a $150 ceiling.
+const SLEEVE = { equity: 1000, riskPct: 0.15 };
 // A sleeve large enough that a deep-ITM ticket is affordable at all. Used
 // only to prove the HOLD path exists — on the real $1,000 sleeve it does not,
 // which is itself a case below.
@@ -86,7 +90,18 @@ console.log("gates");
 {
   const r = gradeOvernight({ desk: desk(), now: WED, sleeve: SLEEVE, position: goodTicket, spot: 600 });
   check("the real $1,000 sleeve cannot afford the only structure that survives", [r.word, r.missing], ["FLATTEN", "Inside the ticket cap"]);
-  check("and it says so in dollars", /over the \$150 cap/.test(r.missingDetail), true);
+  // Derived, not hardcoded: this line asserted "$150" — the OLD sleeve model
+  // ("$1,000 account, 15% of it = the max debit"). The trader replaced that
+  // on 2026-09-23 with a $1,000 DEBIT ceiling, so the literal was asserting
+  // a rule that no longer exists. The behaviour under test is unchanged:
+  // the ticket is still over the cap and still FLATTEN (checked above).
+  check(
+    "and it says so in dollars, at whatever the cap currently is",
+    new RegExp(
+      `over the \\$${rhTicketCapUsd(SLEEVE).toLocaleString("en-US")} cap`,
+    ).test(r.missingDetail),
+    true,
+  );
 }
 {
   const d = desk({ news: { verdict: "clear", reason: "", nextEvent: { name: "CPI", timeEt: "08:30", minutesAway: 1040, impact: "high", date: "2026-09-24" } } });
@@ -115,7 +130,18 @@ console.log("gates");
 {
   const r = gradeOvernight({ desk: desk(), now: WED, sleeve: SLEEVE, position: null, fills: [] });
   check("no ticket reads FLATTEN, not TRIM", [r.word, r.missing], ["FLATTEN", "Flat — nothing to carry"]);
-  check("and it says what opening one would need", /15× the ticket cap/.test(r.missingDetail), true);
+  // Asserts the REQUIREMENT, not the multiple. This read "15× the ticket cap",
+  // a figure computed against the old $150 ceiling; against the $1,000 debit
+  // cap the same ~$2,300 structure is ~2.3×, so the literal was quietly
+  // asserting the superseded model. The durable claim is that the board names
+  // the DTE, the delta and the cap a hold would need.
+  check(
+    "and it says what opening one would need",
+    /DTE ≥/.test(r.missingDetail) &&
+      /Δ ≥/.test(r.missingDetail) &&
+      /ticket cap/.test(r.missingDetail),
+    true,
+  );
 }
 {
   const r = gradeOvernight({ desk: desk({ clock: { isWeekday: true, etHour: 10, etMinute: 0 } }), now: MORNING, sleeve: BIG, position: goodTicket, spot: 600 });

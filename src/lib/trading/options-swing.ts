@@ -11,7 +11,7 @@
 import type { DeskPayload } from "./build-desk";
 import type { SessionClock } from "./sessions";
 import type { NewsRead } from "./news";
-import { loadRhSleeve, rhMaxDebit } from "./options-sleeve";
+import { loadRhSleeve, rhRiskBudgetUsd } from "./options-sleeve";
 
 export type OptionSide = "call" | "put";
 export type SwingUnderlier = "SPY" | "QQQ";
@@ -260,7 +260,9 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
       deltaMin: 0.35,
       deltaMax: 0.5,
       riskPct,
-      riskDollars: rhMaxDebit(sleeve),
+      // Graded loss budget. `riskPct` was computed on the line above and then
+      // never used, so a 0.075 probe risked the same dollars as a 0.15 A.
+      riskDollars: rhRiskBudgetUsd(sleeve, riskPct),
       holdSessionsMin: 2,
       holdSessionsMax: 10,
       invalidation:

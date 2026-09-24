@@ -1,11 +1,14 @@
 /**
  * Robinhood QQQ/SPY options desk.
  *
- * Sleeve is $1,000, risk 15% = $150 max debit. Not the $100k futures book.
+ * Sleeve is a $1,000 max DEBIT per trade with the loss capped at 15% OF THE
+ * DEBIT PAID (trader 2026-09-23). Not the $100k futures book. The old model
+ * read the same $1,000 as an account and 15% of it as the ceiling, which
+ * sized every ticket at $150 — a sixth of the stated cap.
  * Long debit / debit spread only. Never places RH orders. Debit is an
  * estimate from proxy futures (SPY≈ES/10, QQQ≈NQ/40) — not a chain mid.
  *
- * Prefer QQQ when NQ leads (usual). SPY ATM weeklies often blow $150;
+ * Prefer QQQ when NQ leads (usual). SPY ATM weeklies are the pricier book;
  * fall back to a 1–3 wide vertical rather than a lottery OTM.
  */
 
@@ -20,7 +23,11 @@ import {
   type SwingUnderlier,
   type SwingSignal,
 } from "./options-swing";
-import { loadRhSleeve, rhMaxDebit, type RhSleeve } from "./options-sleeve";
+import { loadRhSleeve, rhRiskBudgetUsd, rhTicketCapUsd, type RhSleeve } from "./options-sleeve";
+// sleeve-sizing.ts is the authority on the new model; this file now actually
+// imports it rather than naming it in a comment.
+import { CLOCK_WARN, STOP_FRAC_OF_DEBIT } from "./sleeve-sizing";
+import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
 
 export type RhHorizon = "day" | "swing";
@@ -235,7 +242,7 @@ export function estimateDebitContract(
  * in and on the way out. At $0.02 a side that is $4 on a single and $8 on a
  * vertical — which sounds trivial until the debit is $60, at which point the
  * spread is 13% of the position before the market moves. Measured on the
- * 2026-09-21 overnight sim, that fee alone turned every $150-sized vertical
+ * 2026-09-21 overnight sim, that fee alone turned every $150-risk vertical
  * negative under every filter tested.
  */
 const SPREAD_PER_SIDE_USD = 2;
@@ -273,6 +280,69 @@ function pickWidth(underlier: SwingUnderlier, dte: number): number {
   return dte <= 2 ? 2 : 4;
 }
 
+/**
+ * The stop fraction to SIZE against — the worse of the two the desk states.
+ *
+ * These disagree, in the docs and in the code:
+ *   - CLAUDE.md hard rule: "loss capped 15% of the debit paid"
+ *     and `sleeve-sizing.ts` STOP_FRAC_OF_DEBIT = 0.15
+ *   - CLAUDE.md output contract #6 and the Options tab: "working stop = 25%
+ *     of debit", and `rh-income.ts` RH_WORKING_STOP_PCT = 0.25
+ *
+ * Sizing against 15% while a 25% stop is the one actually worked would put
+ * $250 at risk on a $1,000 ticket against a $150 budget — a 67% overshoot,
+ * arriving silently, at exactly the moment the ceiling was raised 6.7x.
+ *
+ * So the ticket is sized against whichever stop loses MORE. Being conservative
+ * costs contracts; being wrong here costs the budget. This is deliberately not
+ * a resolution of the contradiction — that is the trader's call, and until
+ * they make it the desk sizes so that EITHER reading stays inside $150.
+ */
+export const EFFECTIVE_STOP_FRAC = Math.max(STOP_FRAC_OF_DEBIT, RH_WORKING_STOP_PCT);
+
+/**
+ * How many contracts the LOSS BUDGET allows, given the premium brake.
+ *
+ * WHY THIS EXISTS EVEN THOUGH IT USUALLY EQUALS floor(cap / each)
+ * With the brake set at 15% OF THE DEBIT and the budget at 15% OF THE CAP,
+ * the two bounds are algebraically identical: risk = n x each x 0.15 <= 150
+ * is the same constraint as n x each <= 1000. That equivalence is the whole
+ * reason raising the ceiling from $150 to $1,000 does NOT raise risk — it
+ * buys 6.7x the delta for the same $150 of loss.
+ *
+ * But it is an equivalence, not an identity. It breaks the moment the brake
+ * fraction and the budget fraction differ — a graded probe, a 25% working
+ * stop, any future tuning. Writing the risk bound explicitly means the ticket
+ * stays sized by RISK when that happens, instead of silently reverting to
+ * "spend the whole ceiling".
+ */
+export function contractsWithinRisk(each: number, cap: number, riskBudget: number): number {
+  if (!(each > 0)) return 0;
+  const byDebit = Math.floor(cap / each);
+  const lossPerContract = each * EFFECTIVE_STOP_FRAC;
+  const byRisk = lossPerContract > 0 ? Math.floor(riskBudget / lossPerContract) : byDebit;
+  return Math.max(0, Math.min(byDebit, byRisk));
+}
+
+/**
+ * Is the premium brake a CLOCK at this DTE?
+ *
+ * The risk equivalence above rests entirely on the 15% brake being reachable
+ * by PRICE. On short expiries it is not: theta alone walks the ticket into
+ * the brake regardless of direction, so a "15% stop" on a $1,000 0DTE pile is
+ * not a $150 risk — it is $1,000 exposed with a stop that fires on the
+ * calendar. CLAUDE.md states the same thing: a 15% brake needs >= 2 DTE for a
+ * 4h hold.
+ *
+ * Sizing to the full ceiling without this check is the one way the new model
+ * is more dangerous than the old one, so it is checked here rather than
+ * trusted to copy.
+ */
+export function brakeIsClock(dte: number, holdHours = 4): boolean {
+  const decayOverHold = (dailyDecayFrac(dte) * holdHours) / 24;
+  return decayOverHold / STOP_FRAC_OF_DEBIT >= CLOCK_WARN;
+}
+
 function sizeProduct(
   underlier: SwingUnderlier,
   side: OptionSide,
@@ -281,17 +351,24 @@ function sizeProduct(
   delta: number,
   iv: number,
   cap: number,
+  riskBudget: number,
 ): {
   product: RhProduct;
   contracts: number;
   each: number;
   total: number;
   strikeNote: string;
+  clock: boolean;
 } | null {
   const single = estimateDebitContract(spot, dte, delta, iv);
   const nMax = maxContracts(dte);
-  if (single <= cap) {
-    const n = Math.min(nMax, Math.max(1, Math.floor(cap / single)));
+  // When the brake is a clock the ceiling is NOT safe to spend: fall back to
+  // the old behaviour of risking only what can be lost outright, because that
+  // is what a decay-driven stop actually means.
+  const clock = brakeIsClock(dte);
+  const effCap = clock ? Math.min(cap, riskBudget) : cap;
+  if (single <= effCap) {
+    const n = Math.min(nMax, Math.max(1, contractsWithinRisk(single, effCap, riskBudget)));
     const k = roundStrike(spot);
     const otm = side === "put" ? k - 1 : k + 1;
     return {
@@ -300,6 +377,7 @@ function sizeProduct(
       each: single,
       total: n * single,
       strikeNote: `ATM/~${otm} ${side} · est $${(single / 100).toFixed(2)} (not a chain mid)`,
+      clock,
     };
   }
   const width = pickWidth(underlier, dte);
@@ -309,8 +387,8 @@ function sizeProduct(
   // Returning null here means STAND — which is the honest answer when the
   // sleeve cannot buy a structure that survives its own fees.
   const spreadShare = spread > 0 ? roundTripCost("debit_spread") / spread : 1;
-  if (spread <= cap && spreadShare <= MAX_SPREAD_SHARE) {
-    const n = Math.min(nMax, Math.max(1, Math.floor(cap / spread)));
+  if (spread <= effCap && spreadShare <= MAX_SPREAD_SHARE) {
+    const n = Math.min(nMax, Math.max(1, contractsWithinRisk(spread, effCap, riskBudget)));
     const k = roundStrike(spot);
     const longK = side === "put" ? k : k;
     const shortK = side === "put" ? longK - width : longK + width;
@@ -320,6 +398,7 @@ function sizeProduct(
       each: spread,
       total: n * spread,
       strikeNote: `${longK}/${shortK} ${side} vertical · width $${width} · est $${(spread / 100).toFixed(2)}`,
+      clock,
     };
   }
   return null;
@@ -353,7 +432,16 @@ function toTicket(
   invalidation: string,
   targets: string[],
 ): RhTicket | null {
-  const sized = sizeProduct(underlier, side, spot, dte, (deltaLo + deltaHi) / 2, iv, cap);
+  const sized = sizeProduct(
+    underlier,
+    side,
+    spot,
+    dte,
+    (deltaLo + deltaHi) / 2,
+    iv,
+    cap,
+    rhRiskBudgetUsd(sleeve),
+  );
   if (!sized) return null;
   const workingStop = rhWorkingStop(sized.total);
   return {
@@ -516,7 +604,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
     name: "PATH continuation 1–2 DTE",
     horizon: "day",
     whyHighProb:
-      "Same A+/A/A− PATH as Trade Now. 1–2 DTE so 0DTE pin does not own you. Size to $150, not $1,000.",
+      `Same A+/A/A− PATH as Trade Now. 1–2 DTE so 0DTE pin does not own you. Size from the invalidation, then cap the ticket at $${cap} — the 15% brake is the backstop, not the plan.`,
     verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score: c?.confluence ?? 0,
     reasons,
@@ -600,7 +688,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
     name: "Judas → IFVG 0DTE",
     horizon: "day",
     whyHighProb:
-      "A+ after 9:45 with raid + MSS/IFVG only. One contract. $150 is the whole trade.",
+      `A+ after 9:45 with raid + MSS/IFVG only. Ticket ceiling $${cap}; the loss budget is 15% of what you actually pay.`,
     verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score: band === "A+" ? c?.confluence ?? 0 : 0,
     reasons,
@@ -649,7 +737,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     }
     reasons.push(
       underlier === "QQQ"
-        ? "QQQ is the cheaper book on a $150 cap when NQ leads weakness"
+        ? `QQQ is the cheaper book on a $${cap} cap when NQ leads weakness`
         : "ES held relative — SPY put only if QQQ already took the high",
     );
   } else if (bullish) {
@@ -716,7 +804,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     name: "SMT lead 3–7 DTE",
     horizon: "swing",
     whyHighProb:
-      "NQ vs ES is this desk's cleanest tell. QQQ usually wins the $150 cap vs SPY ATM.",
+      `NQ vs ES is this desk's cleanest tell. QQQ usually wins the $${cap} cap vs SPY ATM.`,
     verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score,
     reasons,
@@ -769,7 +857,7 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
           sleeve,
           "1–4 sessions. Flatten before the NEXT high-impact print.",
           c.invalidation || "HTF flip or failed second impulse",
-          ["Trim 50% at +50–80%", "Spread first — 7 DTE ATM usually > $150"],
+          ["Trim 50% at +50–80%", `Spread first when 7 DTE ATM runs past $${cap}`],
         )
       : null;
 
@@ -827,7 +915,7 @@ function htfSwingCard(
           plan.invalidation,
           [
             ...plan.targets,
-            "ATM 21–45 DTE will not fit $150 — expect a $2–3 vertical or STAND",
+            `ATM 21–45 DTE may not fit $${cap} — expect a vertical or STAND`,
           ],
         )
       : null;
@@ -837,7 +925,7 @@ function htfSwingCard(
     name: "HTF swing 21–45 DTE",
     horizon: "swing",
     whyHighProb:
-      "HTF absolute + correct half. On a $150 cap this is almost always a vertical, not a naked 40Δ.",
+      `HTF absolute + correct half. On a $${cap} cap a naked 40Δ is reachable where it was not before — size it from the invalidation, not from the cap.`,
     verdict: laborWatch ? "WATCH" : verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score: swing.confidence,
     reasons: [...swing.reasons],
@@ -852,7 +940,11 @@ export function evaluateOptionsDesk(
   desk: DeskPayload,
   sleeve: RhSleeve = loadRhSleeve(),
 ): OptionsDesk {
-  const cap = rhMaxDebit(sleeve);
+  // The DEBIT ceiling: `cap` decides `single <= cap` and how many contracts
+  // `floor(cap / single)` buys. It was $150, so every ticket was sized at a
+  // sixth of the trader's stated $1,000 cap and most ATM rows read "too
+  // rich". The loss cap is a separate number — see rhRiskBudgetUsd.
+  const cap = rhTicketCapUsd(sleeve);
   const swingSignal = evaluateOptionsSwing(desk);
   const { es, nq, esPx, nqPx } = proxyPair(desk);
   const nqWeaker = (nq.changePct ?? 0) < (es.changePct ?? 0) - 0.05;

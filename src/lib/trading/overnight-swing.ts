@@ -60,7 +60,7 @@
 
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { DeskPayload } from "./build-desk";
-import { rhMaxDebit, type RhSleeve } from "./options-sleeve";
+import { rhTicketCapUsd, type RhSleeve } from "./options-sleeve";
 import type { RhFill } from "./rh-income";
 import { etWallParts } from "./sessions";
 
@@ -300,7 +300,8 @@ export function gradeOvernight(input: OvernightInput): OvernightRead {
   const position = input.position ?? positionFromFills(input.fills);
   const underlier = position?.underlier ?? "QQQ";
   const mech = overnightMechanics(now, underlier, position);
-  const maxDebit = rhMaxDebit(sleeve);
+  // The ticket ceiling the carry decision grades against.
+  const maxDebit = rhTicketCapUsd(sleeve);
   const layers: OvernightLayer[] = [];
 
   /* 1. Expiry — the broker owns expiry day, not the trader. */
@@ -412,7 +413,7 @@ export function gradeOvernight(input: OvernightInput): OvernightRead {
     let state: OvernightLayerState = "wait";
     let detail: string;
     if (!position) {
-      detail = `Ticket cap ${usd(maxDebit)} (${pct(sleeve.riskPct)} of ${usd(sleeve.equity)}). A 14DTE Δ.75 QQQ call runs about $2,300 — 15× the cap and 2.3× the sleeve. At ${usd(maxDebit)} what you can buy is a ~0.08-delta one-wide vertical whose four-leg round trip (~$8) is 10–12% of the debit while the whole overnight edge is about $3.`;
+      detail = `Ticket cap ${usd(maxDebit)} — the per-trade DEBIT ceiling, with the loss capped at ${pct(sleeve.riskPct)} of what is actually paid. A 14DTE Δ.75 QQQ call runs about $2,300, still ${(2300 / Math.max(1, maxDebit)).toFixed(1)}× the cap. What fits is a low-delta vertical whose four-leg round trip (~$8) eats a large share of the debit while the whole overnight edge is about $3.`;
     } else if (position.debit > maxDebit) {
       state = "fail";
       detail = `${usd(position.debit)} debit is over the ${usd(maxDebit)} cap — the ticket is too big for the sleeve before the night even starts.`;
@@ -464,7 +465,7 @@ export function gradeOvernight(input: OvernightInput): OvernightRead {
   const missingDetail =
     blocker?.detail ??
     (!position
-      ? `Nothing open, so nothing to decide. To open a hold that survives the night you need DTE ≥ ${MIN_OVERNIGHT_DTE}, Δ ≥ ${MIN_OVERNIGHT_DELTA}, a debit inside ${usd(maxDebit)}, and no high-impact print inside the ${mech.unmanageableLabel} you cannot trade. On this sleeve that structure costs about 15× the ticket cap — which is why the vehicle below is the honest answer.`
+      ? `Nothing open, so nothing to decide. To open a hold that survives the night you need DTE ≥ ${MIN_OVERNIGHT_DTE}, Δ ≥ ${MIN_OVERNIGHT_DELTA}, a debit inside ${usd(maxDebit)}, and no high-impact print inside the ${mech.unmanageableLabel} you cannot trade. On this sleeve that structure still costs multiples of the ticket cap — which is why the vehicle below is the honest answer.`
       : undefined) ??
     `Every must-layer passes. You are carrying ${position ? usd(position.debit) : "the ticket"} through ${mech.unmanageableLabel} of no-exit, for a drift worth about +0.07%/night that mostly prints in the 02:00–03:00 ET European hour. Decide the exit now, not at 09:30.`;
 

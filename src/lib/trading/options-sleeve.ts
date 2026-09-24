@@ -20,27 +20,43 @@ export const RH_SLEEVE_DEFAULT: RhSleeve = {
 };
 
 /**
- * LEGACY MODEL. $1,000 is treated as the account and 15% of it ($150) as the
- * maximum debit per ticket.
+ * THE TICKET CEILING — the most this trade may COST.
  *
- * The trader replaced this on 2026-09-23: the sleeve now risks up to a
- * $1,000 DEBIT per trade with the loss capped at 15% OF THE DEBIT. Under the
- * old model those two were the same $150 number and could safely be
- * conflated; under the new one they are $1,000 and 15%-of-what-you-paid, and
- * conflating them would overstate size by up to 6.7x or understate risk by
- * the same factor.
+ * Under the model the trader set on 2026-09-23 the sleeve's $1,000 is the
+ * per-trade debit cap, not an account balance to take a percentage of.
  *
- * `src/lib/trading/sleeve-sizing.ts` is the authority now. This function is
- * kept because four modules still call it — options-desk.ts:855,
- * options-swing.ts:263, overnight-swing.ts:303 and entry-trigger-panel.tsx:72
- * — and repointing all four in one edit would change live risk numbers in
- * several places at once, which is the specific thing trading.md forbids.
- * Each call site needs deciding INDIVIDUALLY: some of them want the debit
- * ceiling (MAX_DEBIT_USD) and some want the loss cap, and today they cannot
- * tell because one number answered both.
+ * This replaces the old conflated accessor, which returned `equity × riskPct`
+ * = $150 and was used by four call sites that meant two different things by
+ * it. Under the OLD model ("$1,000 account, 15% = $150 max debit") the ceiling and the
+ * loss cap were the same $150 and could be conflated safely. Under the new
+ * one they are $1,000 and 15%-of-what-you-paid, so one number cannot answer
+ * both: reading the ceiling as the loss overstates risk 6.7x, and reading the
+ * loss as the ceiling sized every ticket at a sixth of the intended size —
+ * which is what the desk was actually doing.
+ *
+ * The old function is DELETED rather than deprecated, so the compiler names
+ * every site instead of leaving a silently-wrong default in place.
  */
-export function rhMaxDebit(s: RhSleeve = RH_SLEEVE_DEFAULT): number {
-  return Math.round(s.equity * s.riskPct);
+export function rhTicketCapUsd(s: RhSleeve = RH_SLEEVE_DEFAULT): number {
+  return Math.round(s.equity);
+}
+
+/**
+ * THE LOSS BUDGET — the most this trade may LOSE.
+ *
+ * 15% of the ceiling by default. `riskPct` overrides it for graded sizing
+ * (a probe risks less than an A), which is how the swing book already
+ * grades and has never applied.
+ *
+ * Note this is the budget a ticket is SIZED against, not a stop that fires:
+ * `sleeve-sizing.ts` puts this many dollars at the futures plan's
+ * invalidation, and the premium brake is a backstop behind it.
+ */
+export function rhRiskBudgetUsd(
+  s: RhSleeve = RH_SLEEVE_DEFAULT,
+  riskPct?: number,
+): number {
+  return Math.round(s.equity * (riskPct ?? s.riskPct));
 }
 
 function clampSleeve(p: Partial<RhSleeve>): RhSleeve {

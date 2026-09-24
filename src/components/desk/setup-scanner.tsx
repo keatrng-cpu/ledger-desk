@@ -31,6 +31,8 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
+import type { DrawRead } from "@/lib/trading/draw";
+import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
 import {
   CHART_TFS,
   TF_MARKS,
@@ -78,6 +80,12 @@ export interface CardTape {
   draw?: LiquidityTarget | null;
   pools?: CardPools | null;
   sequence?: CardSequence | null;
+  /**
+   * The whole draw read, not just the primary. `nextLook` needs the
+   * alternates to offer a continuation pool and a reversal pool once a card
+   * is spent.
+   */
+  draws?: DrawRead | null;
 }
 
 /**
@@ -113,8 +121,17 @@ export interface CardSequence {
   zone: { top: number; bottom: number } | null;
   /** smc-master's dealing range, for the EQ mark and the premium/discount tint. */
   dealing?: { high: number; low: number; eq: number } | null;
-  /** The priced plan. Entry and stop are drawn only when it exists. */
-  plan?: { entry: number; stop: number } | null;
+  /**
+   * The priced plan. Entry and stop are drawn only when it exists; the zone
+   * and T1 are what `card-freshness.ts` needs to tell a LIVE card from one
+   * whose move has already happened.
+   */
+  plan?: {
+    entry: number;
+    stop: number;
+    entryZone: { top: number; bottom: number } | null;
+    t1: number | null;
+  } | null;
   /** Layer ids failed for the session — drawn struck through, not dashed. */
   dead: string[];
   /**
@@ -546,6 +563,41 @@ function SetupCard({
     tape?.sequence && tape.sequence.side === c.side ? tape.sequence : null;
   const drawForChart = c.draw !== undefined ? c.draw : (tape?.draw ?? null);
 
+  /**
+   * Is this card still describing a trade that has not happened yet?
+   *
+   * The board refreshes every 20s but a PATH card's levels were computed from
+   * a bar close, so a card can keep showing "entry 30,640" long after price
+   * has gone through T1 — the move it described is over and the card still
+   * reads like an invitation. `cardFreshness` judges it against the SAME live
+   * price the HUD renders, and `nextLook` offers the pools either side once it
+   * is spent. Both return candidates, never a plan: a continuation still needs
+   * its own array and its own invalidation, and reusing the spent card's
+   * levels is exactly the late entry this guards against.
+   */
+  const freshness = useMemo(() => {
+    const p = seqForChart?.plan;
+    const live = tape?.price;
+    if (!p || live == null || !Number.isFinite(live)) return null;
+    return cardFreshness(
+      {
+        side: c.side,
+        entry: p.entry,
+        entryZone: p.entryZone,
+        stop: p.stop,
+        t1: p.t1,
+      },
+      live,
+    );
+  }, [seqForChart?.plan, tape?.price, c.side]);
+
+  const spent = freshness != null && freshness.state !== "live";
+
+  const look = useMemo(() => {
+    if (!spent || !tape?.draws || tape.price == null) return null;
+    return nextLook(tape.draws, c.side, tape.price);
+  }, [spent, tape?.draws, tape?.price, c.side]);
+
   /** The chosen rung may have no series even when the card qualifies. */
   const rungHasBars = tfSeries.bars.length > 0;
   /**
@@ -687,6 +739,34 @@ function SetupCard({
       </div>
 
       <ScoreMeter score={c.confluence} />
+
+      {/* SPENT-CARD STRIP. A card whose move already happened is not a
+          setup — it is history wearing a score. Say so above everything else
+          on the card, and name what is worth looking at instead. */}
+      {freshness && spent && (
+        <div className="mt-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-warn)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-2 py-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-warn)]">
+            {freshness.state === "target_hit"
+              ? "Target already printed"
+              : freshness.state === "entry_gone"
+                ? "Entry gone"
+                : "Side stale"}
+          </p>
+          <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-fg)]">
+            {freshness.line}
+          </p>
+          {look && (
+            <p className="mt-1 border-t border-[color-mix(in_oklab,var(--color-warn)_30%,transparent)] pt-1 text-[10px] leading-snug text-[var(--color-subtle)]">
+              {look.line}
+              {/* Candidates, not plans — each needs a fresh array and a fresh
+                  invalidation before it is a trade. */}
+              <span className="ml-1 text-[var(--color-subtle)]">
+                Re-run the sequence; do not reuse these levels.
+              </span>
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mt-2.5" />
       {ghost && ghost.status !== "watching" ? (

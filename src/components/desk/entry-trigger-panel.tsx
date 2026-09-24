@@ -27,7 +27,7 @@ import {
   type PendingOrder,
 } from "@/lib/trading/pending-order";
 import { readRhIncome } from "@/lib/trading/rh-income";
-import { loadRhSleeve, rhMaxDebit } from "@/lib/trading/options-sleeve";
+import { loadRhSleeve, rhRiskBudgetUsd } from "@/lib/trading/options-sleeve";
 
 const TIER_STYLE: Record<EntryTier, { label: string; cls: string }> = {
   live: {
@@ -69,7 +69,10 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
     // book's 2%. Quote the real money first and the paper risk beside it.
     const income = typeof window === "undefined" ? null : readRhIncome();
     return previewLoss({
-      sleeveRisk: rhMaxDebit(loadRhSleeve()),
+      // The LOSS budget, not the ticket ceiling. Still $150 — under the old
+      // model that number was mislabelled "max debit" and happened to be the
+      // right answer here by coincidence. Now it is the right answer by name.
+      sleeveRisk: rhRiskBudgetUsd(loadRhSleeve()),
       paperRisk: desk.risk.riskDollars,
       weekPnl: income?.weekPnl ?? null,
       rr1: plan?.rr1 ?? null,
