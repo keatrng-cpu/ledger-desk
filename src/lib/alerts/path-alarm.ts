@@ -11,6 +11,9 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { SmcMasterBook } from "@/lib/trading/smc-master";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
+import { readSession } from "@/lib/trading/session-event";
+import { readJudas } from "@/lib/trading/judas-window";
+import { allSeries } from "@/lib/trading/chart-timeframes";
 
 export const PATH_ALARM_STORAGE = "ledger-path-alarm";
 export const PATH_ALARM_EVENT = "ledger-path-alarm-fire";
@@ -247,7 +250,18 @@ export function considerPathAlarm(
   const band = String(candidate.pathBand || candidate.grade);
   // Wall clock, not the desk build's clock: the build can be up to a poll old.
   const wall = etWallParts(Date.now());
-  if (isJudasWindow(wall.hour, wall.minute)) return null;
+  // Judas is no longer a blanket mute. It mutes until the open's manipulation
+  // has resolved on a sub-15m rung (judas-window.ts) — and since the sequence
+  // applies the same read, a released window is one where the desk can
+  // genuinely print TAKE, and an alarm that stayed silent for it would be the
+  // worst of both. Without minute tape the read fails closed and this is
+  // exactly the old behaviour.
+  if (
+    isJudasWindow(wall.hour, wall.minute) &&
+    readJudas(allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? []), { etHour: wall.hour, etMinute: wall.minute }, null)
+      .blocked
+  )
+    return null;
   if (desk.news?.verdict === "blackout") return null;
 
   // Beep only on a COMPLETE sequence. A PATH grade alone is the scanner's
@@ -325,9 +339,19 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
   if (!s.armed || s.muted) return null;
 
   const wall = etWallParts(Date.now());
-  if (isJudasWindow(wall.hour, wall.minute)) return null;
+  // Judas is no longer a blanket mute. It mutes until the open's manipulation
+  // has resolved on a sub-15m rung (judas-window.ts) — and since the sequence
+  // applies the same read, a released window is one where the desk can
+  // genuinely print TAKE, and an alarm that stayed silent for it would be the
+  // worst of both. Without minute tape the read fails closed and this is
+  // exactly the old behaviour.
+  if (
+    isJudasWindow(wall.hour, wall.minute) &&
+    readJudas(allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? []), { etHour: wall.hour, etMinute: wall.minute }, null)
+      .blocked
+  )
+    return null;
   if (desk.news?.verdict === "blackout") return null;
-  if (!desk.clock.inTradeWindow) return null;
 
   // DEDUPED. `oneBook` is the same OBJECT as left or right (smc-master picks
   // it from them), so the old [oneBook, left, right] tested one book twice —
@@ -340,13 +364,23 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
 
   for (const book of books) {
     if (!book?.plan || !isWatchable(book)) continue;
-    const price =
-      book.symbol === desk.left.symbol
-        ? desk.quotes.left.price
-        : book.symbol === desk.right.symbol
-          ? desk.quotes.right.price
-          : null;
+    const isLeft = book.symbol === desk.left.symbol;
+    const price = isLeft
+      ? desk.quotes.left.price
+      : book.symbol === desk.right.symbol
+        ? desk.quotes.right.price
+        : null;
     if (price == null || !Number.isFinite(price) || price <= 0) continue;
+
+    // The session gate, same read the sequence used (session-event.ts), and
+    // read from THIS BOOK'S bars. Was a bare `desk.clock.inTradeWindow`
+    // outside the loop, so once smc-master could print TAKE on a measured
+    // session event the alarm stayed silent for it — a desk that says TAKE
+    // and does not call you is worse than either answer alone. Per-book
+    // because a shock on ES is not a shock on MNQ, and one shared reading
+    // would let either book's quiet tape mute the other's event.
+    const bars = isLeft ? desk.left?.bars : desk.right?.bars;
+    if (!readSession(bars ?? [], desk.clock).live) continue;
 
     const read = readEntry(book.plan, price, null);
     if (!read?.inZone) continue;

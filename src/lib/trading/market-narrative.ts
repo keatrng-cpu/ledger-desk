@@ -18,6 +18,7 @@ import type { HtfBiasRead } from "./structure";
 import { drawOnLiquidity as rankLiquidityDraw } from "./draw";
 import type { SessionClock } from "./sessions";
 import type { StrategyId } from "./strategies";
+import { sessionLive } from "@/lib/trading/sessions";
 
 export type NarrativeClass =
   | "continuation"
@@ -511,7 +512,7 @@ export function buildMarketNarrative(
     thesis,
     preferredStrategies: preferredFor(cls, entry),
     rules: RULES,
-    killzoneOk: clock.inTradeWindow,
+    killzoneOk: sessionLive(clock),
     htfBias: read.topDown,
     dealingZone: read.dealing?.zone ?? null,
   };

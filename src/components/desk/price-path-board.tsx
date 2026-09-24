@@ -9,7 +9,7 @@ import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 import type { HtfBiasRead } from "@/lib/trading/structure";
 import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "@/lib/trading/scanner";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
-import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
+import { etWallParts, isJudasWindow, sessionLive} from "@/lib/trading/sessions";
 import { bookTakenToday, listOpenPaperTrades } from "@/lib/trading/paper-manager";
 import { cn } from "@/lib/utils";
 
@@ -181,7 +181,7 @@ export function pricePathVerdict(
     const left = 45 - wall.minute;
     return { word: "STAND", line: `Judas 9:30–9:45 — name the raid · ${left}m to go`, book: null };
   }
-  if (!clock.inTradeWindow) {
+  if (!sessionLive(clock)) {
     const l = desk.draws.left.primary;
     const r = desk.draws.right.primary;
     return {

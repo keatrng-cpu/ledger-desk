@@ -34,7 +34,8 @@ import {
   type SymbolSeries,
   type OhlcBar,
 } from "@/lib/market/types";
-import { getSessionClock, type SessionClock } from "./sessions";
+import { getSessionClock, sessionLive, type SessionClock } from "./sessions";
+import { applySession } from "./session-event";
 import { buildLiveSays, type LiveSays } from "./live-says";
 import { buildTfLadder, type TfLadder } from "./tf-ladder";
 import { gradeSmcMaster, type SmcMasterRead } from "./smc-master";
@@ -294,7 +295,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }): Promise<DeskPayload | DeskError> => {
     try {
-      const clock = getSessionClock();
+      const clock0 = getSessionClock();
       // 1mo 15m: 5d left the prior trading week only partially covered, so
       // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
       // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
@@ -376,6 +377,20 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       // long on the board until 10:15 put price back above it. It now grades
       // the closed prefix and reports the forming bar's break as
       // `bias.*.reversalAlert` — seen a bar early, authorising nothing.
+      /**
+       * The session gate, stamped once from CLOSED bars.
+       *
+       * Closed, not `left.bars`, for the same reason structure grades the
+       * closed prefix: a forming candle's range grows through the fifteen
+       * minutes, so reading the shock off it would flip the gate open
+       * mid-bar and shut again on the close — the desk would announce a
+       * session that never printed. `applySession` takes both books because
+       * this flag answers "is the desk awake"; the two places where the
+       * answer decides money (smc-master, path-alarm) each re-read it
+       * against their own book.
+       */
+      const clock = applySession(clock0, closedL, closedR);
+
       const biasL = analyzeStructure(left.symbol, left.bars, left.changePct, { closed: closedL });
       const biasR = analyzeStructure(right.symbol, right.bars, right.changePct, { closed: closedR });
       const smtStack = smtDivergenceStack(closedL, closedR);
@@ -616,8 +631,8 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         {
           id: "session",
           label: "Session / killzone",
-          ok: clock.inTradeWindow,
-          detail: clock.killzoneLabel,
+          ok: sessionLive(clock),
+          detail: clock.sessionReason ?? clock.killzoneLabel,
         },
         {
           id: "htf",
@@ -726,7 +741,18 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
           { symbol: right.symbol, bars: right.bars },
         ]),
       };
-      const smcMaster = gradeSmcMaster({ ...payload, shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null });
+      // The minute series goes IN, not just out to the ladder. The Judas
+      // window is one 15m candle, so without the 1m/2m/3m rungs the sequence
+      // cannot separate the open's raid from the reaction to it and
+      // judas-window.ts correctly refuses to release. Passing it here is what
+      // makes the release possible at all — and only while the gateway is up,
+      // since a 10-minute-lagged feed cannot resolve a 15-minute window.
+      const smcMaster = gradeSmcMaster({
+        ...payload,
+        left: { ...payload.left, minute: minuteL },
+        right: { ...payload.right, minute: minuteR },
+        shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null,
+      });
       const mtf = {
         left: { daily: dailyL, minute: minuteL },
         right: { daily: dailyR, minute: minuteR },

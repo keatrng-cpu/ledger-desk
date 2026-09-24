@@ -22,6 +22,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 const history = JSON.parse(readFileSync("src/data/learn-history.json", "utf8"));
 const { GATE } = await import("../src/lib/trading/gate-tuning.ts");
 const { getSessionClock } = await import("../src/lib/trading/sessions.ts");
+const { readSession } = await import("../src/lib/trading/session-event.ts");
 const { analyzeStructure, smtDivergenceStack } = await import("../src/lib/trading/structure.ts");
 const { buildSmcTape } = await import("../src/lib/trading/smc-board.ts");
 const { scanSetups } = await import("../src/lib/trading/scanner.ts");
@@ -109,7 +110,13 @@ for (const [symbol, peer] of [["MNQ", "ES"], ["ES", "MNQ"]]) {
       if (!isTerminal(next)) open.set(id, next);
     }
     const clock = getSessionClock(new Date(now.t + BAR_MS - 1));
-    if (!clock.isWeekday || !(clock.inTradeWindow || clock.killzone === "ny_am")) continue;
+    // Was `!(clock.inTradeWindow || killzone === "ny_am")`, which meant the
+    // replay seed — and therefore every discretion verdict computed off it —
+    // structurally could not contain an out-of-window refusal. Now that
+    // session-event.ts can open those hours, the evidence has to reach them
+    // or the new window trades with nothing watching it.
+    if (!clock.isWeekday) continue;
+    if (!clock.inTradeWindow && !readSession(bars.slice(0, i + 1), clock).live) continue;
     const desk = deskAt(symbol, peer, bars.slice(0, i + 1), peerSlice);
     // Only this symbol's book opens here; the peer's is opened in its own pass.
     desk.smcMaster = { ...desk.smcMaster, right: { ...desk.smcMaster.right, plan: null } };

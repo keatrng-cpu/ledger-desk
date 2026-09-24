@@ -117,8 +117,17 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
 
   const clock = desk.clock;
   if (!clock.isWeekday) return { take: null, skip: "Weekend" };
-  if (clock.killzone !== "ny_am") {
-    return { take: null, skip: `Not NY AM (${clock.killzoneLabel})` };
+  // NY AM, or a measured session event anywhere else (session-event.ts).
+  //
+  // The bare `killzone !== "ny_am"` was the right scope for an auto-filler —
+  // it stops the paper book collecting a trade an hour all day — and the wrong
+  // veto for the case it was silently covering: an 08:32 release or a 14:10
+  // headline produced no paper row at all, so the desk's own statistics could
+  // never contain one and the shadow book could never learn from one. This is
+  // the PAPER book; being wrong here costs a row in a ledger, not money.
+  const live = clock.killzone === "ny_am" || clock.sessionSource === "event";
+  if (!live) {
+    return { take: null, skip: `Not NY AM and no session event (${clock.killzoneLabel})` };
   }
   if (desk.news?.verdict === "blackout") {
     return { take: null, skip: desk.news.reason || "News blackout" };

@@ -9,7 +9,7 @@ import { NEWS_CALENDAR, type NewsEvent, type NewsRead } from "./news";
 import type { MarketNarrative } from "./market-narrative";
 import type { ScanResult } from "./scanner";
 import type { SessionClock } from "./sessions";
-import { etWallParts } from "./sessions";
+import { etWallParts, sessionLive} from "./sessions";
 import type { Bias, HtfBiasRead, LiquidityPool, SmtStack } from "./structure";
 import { weekDayFor } from "./week-ahead";
 import { monthPhaseFor } from "./month-ahead";
@@ -642,7 +642,7 @@ export function buildSessionBrief(desk: SessionBriefInput, now = new Date()): Se
     {
       id: "session",
       label: "Killzone",
-      ok: clock.inTradeWindow,
+      ok: sessionLive(clock),
       detail: clock.killzoneLabel,
     },
     {

@@ -29,6 +29,7 @@
 import type { OhlcBar } from "@/lib/market/types";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { getSessionClock, isJudasWindow, type SessionClock } from "@/lib/trading/sessions";
+import { readSession } from "@/lib/trading/session-event";
 import { analyzeStructure, smtDivergenceStack } from "@/lib/trading/structure";
 import { buildSmcTape } from "@/lib/trading/smc-board";
 import { scanSetups } from "@/lib/trading/scanner";
@@ -747,9 +748,16 @@ export function buildCases(
     if (peerSlice.length < WARMUP) continue;
 
     const clock = getSessionClock(new Date(now.t));
-    if (tradeWindowOnly && !clock.inTradeWindow) continue;
+    // A measured session event counts as a window. Without this the teaching
+    // set could never contain the case the trader most needs to see — the
+    // desk taking an 08:32 release or a 14:10 headline — because both filters
+    // below drop it before the engine is ever run. Judas stays absolute.
+    const evented =
+      !clock.inTradeWindow &&
+      readSession(bars.slice(Math.max(0, i + 1 - HORIZON), i + 1), clock).live;
+    if (tradeWindowOnly && !clock.inTradeWindow && !evented) continue;
     if (isJudasWindow(clock.etHour, clock.etMinute)) continue;
-    if (nyAmOnly) {
+    if (nyAmOnly && !evented) {
       const m = clock.etHour * 60 + clock.etMinute;
       if (m < 9 * 60 + 45 || m > 11 * 60) continue;
     }

@@ -33,13 +33,27 @@ import type { OhlcBar } from "../market/types";
 import type { MarkKind } from "./setup-anticipation";
 import { resampleMs } from "./tf-ladder";
 
-export type ChartTf = "1m" | "5m" | "15m" | "1h" | "4h";
+export type ChartTf = "1m" | "2m" | "3m" | "5m" | "15m" | "1h" | "4h";
+
+/**
+ * The rungs that can ONLY come from the real 1m series.
+ *
+ * 2m and 3m are here for the same reason 1m and 5m are: 15m does not divide
+ * into them, so building them from 15m would invent bars that never printed.
+ * They exist at all because the Judas window (09:30-09:45 ET) is ONE 15m
+ * candle — a raid and its failure cannot both be seen on a series whose bar
+ * is the whole window — and 2m/3m are the coarsest honest views that still
+ * resolve a manipulation leg from the reaction to it.
+ */
+export const MINUTE_ONLY_TFS: ChartTf[] = ["1m", "2m", "3m", "5m"];
 
 /** In the order a trader steps through them: context down to timing. */
-export const CHART_TFS: ChartTf[] = ["4h", "1h", "15m", "5m", "1m"];
+export const CHART_TFS: ChartTf[] = ["4h", "1h", "15m", "5m", "3m", "2m", "1m"];
 
 const MS: Record<ChartTf, number> = {
   "1m": 60_000,
+  "2m": 2 * 60_000,
+  "3m": 3 * 60_000,
   "5m": 5 * 60_000,
   "15m": 15 * 60_000,
   "1h": 60 * 60_000,
@@ -52,6 +66,8 @@ export const TF_ROLE: Record<ChartTf, string> = {
   "1h": "structure — the dealing range and the draw",
   "15m": "the setup — what the engine grades",
   "5m": "confirmation — the shift after the raid",
+  "3m": "the open's manipulation leg, resolved",
+  "2m": "the open's manipulation leg, resolved",
   "1m": "timing — the turn inside the array",
 };
 
@@ -106,13 +122,13 @@ export function seriesFor(tf: ChartTf, m15: OhlcBar[], m1: OhlcBar[]): TfSeries 
 
   // 1m and 5m can only come from the minute series. Resampling 15m down would
   // invent bars that never printed.
-  if (tf === "1m" || tf === "5m") {
+  if (MINUTE_ONLY_TFS.includes(tf)) {
     if (!m1.length) {
       return empty(
         `No 1m series on this desk, so ${tf} cannot be drawn. It is fetched for the ladder's lower rungs; without it, 15m is the finest honest view.`,
       );
     }
-    const bars = tf === "1m" ? m1 : resampleMs(m1, MS["5m"]);
+    const bars = tf === "1m" ? m1 : resampleMs(m1, MS[tf]);
     const h = hoursOf(bars);
     return {
       tf,
@@ -123,7 +139,11 @@ export function seriesFor(tf: ChartTf, m15: OhlcBar[], m1: OhlcBar[]): TfSeries 
       // 1m is passed through untouched, so its last bar is exactly what the
       // feed delivered and this module makes no claim about it. 5m IS bucketed
       // and can trail a partial.
-      ...(tf === "5m" ? partial(bars, MS["5m"], m1, 60_000) : { lastBarPartial: false, lastBarFill: null }),
+      // 1m is passed through untouched, so its last bar is exactly what the
+      // feed delivered. Every bucketed rung can trail a partial.
+      ...(tf === "1m"
+        ? { lastBarPartial: false, lastBarFill: null }
+        : partial(bars, MS[tf], m1, 60_000)),
     };
   }
 
@@ -226,6 +246,8 @@ export const TF_VISIBLE_BARS: Record<ChartTf, number> = {
   "1h": 48,
   "15m": 60,
   "5m": 60,
+  "3m": 50,
+  "2m": 48,
   "1m": 45,
 };
 
@@ -288,6 +310,22 @@ export const TF_MARKS: Record<ChartTf, TfMarkSpec> = {
     kinds: ["sweep", "displacement", "array", "entry", "stop"],
     context: ["score_drivers", "ce_line"],
     reads: "The shift after the raid. Displacement and MSS confirm, or they do not.",
+  },
+  // 3m and 2m exist for one job the other rungs cannot do: resolving the
+  // open's manipulation leg from the reaction to it. 09:30-09:45 ET is a
+  // SINGLE 15m candle, so on the engine's own series a raid and its failure
+  // are the same bar and cannot be told apart. These two are the coarsest
+  // views that separate them, so they draw the raid and the shift, and no
+  // targets — a target is a 15m fact and does not belong at this scale.
+  "3m": {
+    kinds: ["sweep", "displacement", "array", "entry", "stop"],
+    context: ["score_drivers", "ce_line"],
+    reads: "The open's raid and whether it failed. This is where a Judas swing is confirmed, not guessed.",
+  },
+  "2m": {
+    kinds: ["sweep", "displacement", "array", "entry", "stop"],
+    context: ["ce_line"],
+    reads: "The manipulation leg, bar by bar. Enter against it only once it has closed back inside.",
   },
   "1m": {
     // Timing only. No pools, no targets — they are off-screen at this scale.

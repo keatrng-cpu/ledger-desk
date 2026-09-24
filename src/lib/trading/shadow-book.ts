@@ -50,6 +50,7 @@ import type { DeskPayload } from "./build-desk";
 import { APLUS_PROBE_RISK } from "./profit-rules";
 import type { SetupCandidate } from "./scanner";
 import { etWallParts, etWallToEpochMs, isJudasWindow } from "./sessions";
+import { readSession } from "./session-event";
 import type { SmcLayer, SmcMasterBook } from "./smc-master";
 import { ladderTags } from "./tf-ladder";
 
@@ -280,7 +281,18 @@ export function openShadows(
 ): ShadowTrade[] {
   const clock = desk.clock;
   if (!clock.isWeekday) return [];
-  if (!(clock.inTradeWindow || clock.killzone === "ny_am")) return [];
+  // WAS: `!(clock.inTradeWindow || clock.killzone === "ny_am")` — which meant
+  // the shadow book had, structurally, zero rows from 11:00-13:30 or after
+  // 16:00 ET. Every discretion verdict was therefore computed on a population
+  // that could not contain an out-of-window refusal, and the desk could never
+  // learn what it was giving up out there even in principle. Now that
+  // session-event.ts can open those hours, the evidence has to follow, or the
+  // new window trades with nothing watching it.
+  //
+  // `sessionLive` is the same read the sequence and the alarm use.
+  const sessionLive =
+    clock.inTradeWindow || readSession(desk.left?.bars ?? [], clock).live;
+  if (!sessionLive) return [];
   const dayKey = etDayKey(now);
   const has = (id: string) => (existing instanceof Set ? existing.has(id) : existing.has(id));
   const out: ShadowTrade[] = [];

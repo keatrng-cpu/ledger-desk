@@ -14,7 +14,7 @@
 
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import type { DeskPayload } from "./build-desk";
-import { isJudasWindow } from "./sessions";
+import { isJudasWindow, sessionLive} from "./sessions";
 import { etDateKey, weekDayFor, type WeekDayKind } from "./week-ahead";
 import type { SetupCandidate } from "./scanner";
 import {
@@ -859,7 +859,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     (path && sideFromFutures(path.side) === side ? 0.06 : 0);
 
   const sessionOk =
-    clock.killzone === "ny_am" || clock.killzone === "ny_pm" || clock.inTradeWindow;
+    clock.killzone === "ny_am" || clock.killzone === "ny_pm" || sessionLive(clock);
   const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
   const watch = (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";

@@ -50,6 +50,7 @@ import { resolveWeekAhead, weekAheadFocusLine } from "./week-ahead";
 import { resolveMonthAhead, monthAheadFocusLine } from "./month-ahead";
 import { buildScorecard, fmtR } from "./discretion-memory";
 import { getAllShadows } from "./shadow-store";
+import { sessionLive } from "@/lib/trading/sessions";
 
 export type DiscretionVerdict =
   | "TAKE"
@@ -258,7 +259,7 @@ export function runVeteranBrain(
     });
     score -= 2;
     vetoes.push("Weekend — no day-trade entries");
-  } else if (!clock.inTradeWindow) {
+  } else if (!sessionLive(clock)) {
     layers.push({
       id: "session",
       label: "Session",
@@ -907,7 +908,7 @@ export function runVeteranBrain(
   const canonStack = rawBest
     ? scoreCanonStack(
         canonInputForCandidate(rawBest, book, ownNarrative, {
-          inTradeWindow: clock.inTradeWindow,
+          inTradeWindow: sessionLive(clock),
           killzoneLabel: clock.killzoneLabel,
         }),
       )
@@ -918,7 +919,7 @@ export function runVeteranBrain(
         dealingZone: book.dealing?.zone ?? null,
         swept: "none",
         confirmation: "none",
-        inKillzone: clock.inTradeWindow,
+        inKillzone: sessionLive(clock),
         killzoneLabel: clock.killzoneLabel,
         smt: false,
         components: [],

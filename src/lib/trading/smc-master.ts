@@ -11,6 +11,9 @@ import { GATE } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
+import { readSession } from "./session-event";
+import { readJudas, JUDAS_MIN_CONFLUENCE } from "./judas-window";
+import { allSeries } from "./chart-timeframes";
 import {
   canonInputForCandidate,
   scoreCanonStack,
@@ -109,8 +112,8 @@ export interface SmcMasterInput {
    * dealing range (GATE.dealingRange === "impulse"); build-desk passes its
    * series, which carry `bars`, through the spread.
    */
-  left?: { bars: OhlcBar[] };
-  right?: { bars: OhlcBar[] };
+  left?: { bars: OhlcBar[]; minute?: OhlcBar[] };
+  right?: { bars: OhlcBar[]; minute?: OhlcBar[] };
   /** Post-shock: arrays/sweeps before this ms don't count (fresh sequence only). */
   shockFloorMs?: number | null;
 }
@@ -212,6 +215,7 @@ function gradeBook(
   price: number | null,
   shockFloorMs: number | null,
   bars: OhlcBar[] | undefined,
+  minute: OhlcBar[] | undefined,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias, narrative);
   const side =
@@ -235,9 +239,46 @@ function gradeBook(
     (GATE.dealingRange === "impulse" ? impulseDealing(bars, side, narrative, price) : null) ??
     windowDealing;
 
+  /**
+   * THE SESSION LAYER, ASKED OF THE TAPE.
+   *
+   * Was `clock.inTradeWindow` alone, which made the hour a hard veto: outside
+   * the window the `time` must-layer could never pass, so TAKE was impossible
+   * regardless of what price did. That refused the highest-participation bars
+   * of the week — the 08:32 release, the 14:10 headline, the overnight gap
+   * that runs the prior high — on the grounds that a clock said so.
+   *
+   * `readSession` keeps the killzone as the ordinary path and adds ONE other
+   * way in: a bar that clears a measured delivery AND participation bar. It
+   * is one layer of nine; the sweep, the dealing-range half, the LTF shift,
+   * the priced target and the retrace are all still in front of it, and Judas
+   * and the news blackout are checked below and cannot be satisfied here.
+   */
+  const session = readSession(bars ?? [], clock);
+
+  /**
+   * THE JUDAS WINDOW, AS A SETUP RATHER THAN A LOCKED DOOR.
+   *
+   * `rungs` is every timeframe the desk can honestly build from the two real
+   * series it holds — 1m/2m/3m/5m from the minute feed, 15m/1h/4h from the
+   * engine's own. It is built here, once, so the sequence and the chart are
+   * looking at the same objects rather than two aggregations that can drift.
+   *
+   * The Judas read needs the sub-15m rungs specifically: 09:30-09:45 ET is a
+   * single 15m candle, so on the graded series the raid and the reaction to
+   * the raid are the same bar. It fails closed without them.
+   */
+  const rungs = allSeries(bars ?? [], minute ?? []);
+  const judasRead = readJudas(rungs, clock, side);
+
   const canon = scoreCanonStack(
     cand
-      ? { ...canonInputForCandidate(cand, bias, narrative, clock), dealingZone: dealing?.zone ?? null }
+      ? {
+          ...canonInputForCandidate(cand, bias, narrative, clock),
+          dealingZone: dealing?.zone ?? null,
+          inKillzone: session.live,
+          killzoneLabel: session.reason,
+        }
       : {
           side,
           htf: bias.topDown,
@@ -245,15 +286,23 @@ function gradeBook(
           dealingZone: dealing?.zone ?? null,
           swept: narrative.liquidity.lastSweep,
           confirmation: narrative.confirmation,
-          inKillzone: clock.inTradeWindow,
-          killzoneLabel: clock.killzoneLabel,
+          inKillzone: session.live,
+          killzoneLabel: session.reason,
           smt: smtOn,
           components: [],
           strategy: null,
         },
   );
 
-  const judas = isJudasWindow(clock.etHour, clock.etMinute);
+  // WAS: `isJudasWindow(...)` alone — an unconditional refusal for the whole
+  // fifteen minutes. The trader's call (2026-09-24): the Judas swing is a
+  // MODEL, not a hazard, so the window blocks only until the manipulation has
+  // demonstrably finished. `judas-window.ts` grants that release solely when
+  // a raid printed on a sub-15m rung, closed back inside, and a LATER bar
+  // displaced against it — and only for the side that failed raid points at.
+  // No sub-15m tape, no release. See JUDAS_MIN_CONFLUENCE below for the grade
+  // it additionally has to carry.
+  const judas = judasRead.blocked;
   const newsBlk = news.verdict === "blackout";
   const dol = draw.primary;
   const dolAgrees =
@@ -275,7 +324,10 @@ function gradeBook(
       // for a condition a ten-minute retrace would have satisfied. Same
       // for dol when a magnet exists but currently sits behind the trade.
       (f.id === "pd_half" && dealing != null) ||
-      (f.id === "time" && !clock.inTradeWindow);
+      // A quiet out-of-window tape is WAITING, not failing: the next bar can
+      // deliver, and a hard FAIL would set the word to STAND and stop the
+      // chart being drawn for a condition that reverses in fifteen minutes.
+      (f.id === "time" && !session.live);
     return {
       id: f.id,
       label: f.label,
@@ -470,16 +522,28 @@ function gradeBook(
     price: fresh?.mid,
   });
 
+  // A Judas entry must ALSO clear the A+ tag, not merely the action floor.
+  // The open is the least-informed moment of the day — the session's own
+  // structure does not exist yet — so the one setup allowed through is the
+  // fully complete one CLAUDE.md always said this carve-out was for.
+  const judasUndergrade =
+    judasRead.stage === "released" &&
+    (cand?.confluence ?? 0) < JUDAS_MIN_CONFLUENCE;
+
   layers.push({
     id: "clean",
     label: "Judas / news",
     must: true,
-    state: judas || newsBlk ? "fail" : "pass",
-    detail: judas
-      ? "Judas 9:30–9:45 — name the raid"
-      : newsBlk
-        ? news.reason || "News blackout"
-        : "Tape is tradable",
+    state: judas || judasUndergrade || newsBlk ? "fail" : "pass",
+    detail: newsBlk
+      ? news.reason || "News blackout"
+      : judasUndergrade
+        ? `${judasRead.reason} — but Q ${(cand?.confluence ?? 0).toFixed(2)} is under the ${JUDAS_MIN_CONFLUENCE} this window demands.`
+        : judas
+          ? judasRead.reason
+          : judasRead.inWindow
+            ? judasRead.reason
+            : "Tape is tradable",
   });
 
   const musts = layers.filter((l) => l.must);
@@ -565,6 +629,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.quotes?.left.price ?? null,
     desk.shockFloorMs ?? null,
     desk.left?.bars,
+    desk.left?.minute,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -578,6 +643,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.quotes?.right.price ?? null,
     desk.shockFloorMs ?? null,
     desk.right?.bars,
+    desk.right?.minute,
   );
 
   const ranked = [left, right].sort((a, b) => {

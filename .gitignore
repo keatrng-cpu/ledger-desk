@@ -26,3 +26,4 @@ gateway/.venv/
 
 # Capture resume files — large, transient, rewritten on every chunk.
 src/data/*.json.part
+.cache/

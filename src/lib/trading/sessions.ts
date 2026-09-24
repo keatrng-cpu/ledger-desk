@@ -19,9 +19,44 @@ export interface SessionClock {
   isWeekday: boolean;
   killzone: KillzoneId;
   killzoneLabel: string;
+  /** Purely the clock: is this hour one of the named killzones? */
   inTradeWindow: boolean;
   nextWindow: string;
   sessionPhase: string;
+  /**
+   * THE GATE THE DESK ACTUALLY TRADES ON.
+   *
+   * `inTradeWindow` answers a question about the hour. This answers the
+   * question the hour was only ever a proxy for: is there a session here —
+   * enough delivery and enough participation that a level gets traded to and
+   * a limit fills where it was rested. Inside a killzone the two are the
+   * same. Outside one they differ exactly when the tape is doing something,
+   * which is the case the clock used to refuse on principle.
+   *
+   * Set by `session-event.ts applySession()`, which needs bars. A clock built
+   * without bars leaves these undefined, and every consumer falls back to
+   * `inTradeWindow` — so the old behaviour is the safe default and nothing
+   * silently opens a window on a clock that was never measured.
+   */
+  sessionLive?: boolean;
+  sessionSource?: "killzone" | "event" | "none";
+  sessionReason?: string;
+}
+
+/**
+ * Read the session gate off a clock, falling back to the raw window.
+ *
+ * Every consumer that used to test `clock.inTradeWindow` as a permission
+ * should call this instead. The ones that genuinely mean "what hour is it" —
+ * chart shading, the HUD's killzone label, the handoff's clock line — should
+ * keep using `inTradeWindow`, and the difference between the two is now
+ * visible at every call site rather than being one flag doing two jobs.
+ */
+export function sessionLive(clock: {
+  inTradeWindow: boolean;
+  sessionLive?: boolean;
+}): boolean {
+  return clock.sessionLive ?? clock.inTradeWindow;
 }
 
 /** ET wall-clock parts of an epoch-ms timestamp (DST-correct via Intl). */

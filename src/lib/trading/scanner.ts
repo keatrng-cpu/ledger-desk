@@ -42,6 +42,7 @@ import {
   structureLayerScore,
   type StrategyMarketGrade,
 } from "./strategy-grade";
+import { sessionLive } from "@/lib/trading/sessions";
 
 export type SetupSide = "long" | "short";
 
@@ -464,7 +465,11 @@ function scoreDirection(
   // Component bag is raw market truth. Score is NOT sum-of-all-strategies.
   // 1) SMC/ICT structure layer  2) each model graded alone  3) best model wins
   const htfOk = read.topDown === direction;
-  const killzoneOk = clock.inTradeWindow;
+  // The SESSION, not the hour. Outside a killzone this is true only when the
+  // tape cleared the delivery and participation bars (session-event.ts), so a
+  // dead 16:40 candle still scores as out-of-session while an 08:32 release
+  // does not. Feeds the model-fit bonus and the candidate's `actionable`.
+  const killzoneOk = sessionLive(clock);
   const conditionsOk = conditions.tradeable;
 
   const structureScore = structureLayerScore(present);
@@ -642,7 +647,10 @@ export function scoreCandidates(
   const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
   if (!clock.isWeekday) blocked.push("Weekend — plan only, no session entries");
-  if (!clock.inTradeWindow)
+  // A quiet out-of-window tape is still blocked and still says so; a measured
+  // session event is not, and the board should not print BLOCKED over a setup
+  // the sequence is willing to take.
+  if (!sessionLive(clock))
     blocked.push(`Outside trade window (${clock.killzoneLabel})`);
 
   const barsL = leftBars ?? [];

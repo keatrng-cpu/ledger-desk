@@ -12,6 +12,7 @@ import type { DeskPayload } from "./build-desk";
 import type { SessionClock } from "./sessions";
 import type { NewsRead } from "./news";
 import { loadRhSleeve, rhRiskBudgetUsd } from "./options-sleeve";
+import { sessionLive } from "@/lib/trading/sessions";
 
 export type OptionSide = "call" | "put";
 export type SwingUnderlier = "SPY" | "QQQ";
@@ -90,7 +91,7 @@ export function swingTiming(
     (clock.killzone === "ny_am" ||
       clock.killzone === "ny_pm" ||
       clock.killzone === "london" ||
-      clock.inTradeWindow);
+      sessionLive(clock));
 
   const newsOk = news.verdict === "clear";
   const fridayCaution = friday;

@@ -42,7 +42,7 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   const lines: string[] = [
     "=== LEDGER DESK HANDOFF ===",
     `fetched ${desk.fetchedAt} · feed ${desk.feed}`,
-    `clock ${desk.clock.nowEt} · kz ${desk.clock.killzoneLabel} · phase ${desk.clock.sessionPhase} · window ${desk.clock.inTradeWindow ? "OPEN" : "CLOSED"}`,
+    `clock ${desk.clock.nowEt} · kz ${desk.clock.killzoneLabel} · phase ${desk.clock.sessionPhase} · window ${desk.clock.inTradeWindow ? "OPEN" : "CLOSED"}${desk.clock.sessionSource === "event" ? ` · SESSION EVENT (${desk.clock.sessionReason})` : ""}`,
     `ritual ${ritual.id} ${ritual.label} · ${ritual.et} · judas=${judas ? "YES STAND" : "no"}`,
     `COACH XAI=${desk.coach?.xai ? "ACTIVE grok-4.5" : "MISSING"} · ANTHROPIC=${desk.coach?.anthropic ? "ACTIVE claude-sonnet-5" : "MISSING"} · peers parallel · narration only · never a gate`,
     qLine("LEFT", desk.quotes.left),

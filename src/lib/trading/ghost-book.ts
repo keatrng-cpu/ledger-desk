@@ -10,7 +10,7 @@ import type { DeskPayload } from "./build-desk";
 import { remember } from "./desk-memory";
 import { buildPaperLevels } from "./paper-manager";
 import type { SetupCandidate } from "./scanner";
-import { getSessionClock, etWallToEpochMs, etWallParts, isJudasWindow } from "./sessions";
+import { getSessionClock, etWallToEpochMs, etWallParts, isJudasWindow, sessionLive} from "./sessions";
 import { debriefGhost, pushDebrief } from "./trade-debrief";
 import { tapeHitsForSide } from "./smc-board";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
@@ -362,7 +362,7 @@ function analyzeMissed(g: GhostTrade, ctx: AnalyzeCtx): GhostAnalysis {
     headline = `${g.symbol} ${g.side} news impulse — no fill`;
     next = `${news.reason} Do not chase ${px(last)}. Next trade is after the blackout on a fresh array.`;
     lesson = "News expansions skip the OTE. Count the skip. Do not market-in.";
-  } else if (!clock.inTradeWindow) {
+  } else if (!sessionLive(clock)) {
     tag = "window closed";
     headline = `${g.symbol} ${g.side} missed the array — window done`;
     next = `Window closed (${clock.killzoneLabel}). Journal the skip. Do not drag this idea into ${clock.nextWindow}.`;
@@ -829,7 +829,7 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
       grade: String(c.pathBand || c.grade),
       confluence: c.confluence,
       seenAt: now,
-      killzoneOk: desk.clock.inTradeWindow,
+      killzoneOk: sessionLive(desk.clock),
       killzoneLabel: desk.clock.killzoneLabel,
       blocked,
       entryLo: zone.lo,

@@ -39,6 +39,7 @@ import { QUOTE_EXECUTION_MAX_LAG_SEC } from "@/lib/market/types";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock, isJudasWindow } from "./sessions";
+import { readJudas } from "./judas-window";
 import { PROGRESS_R, retarget, shouldFlatten } from "./management";
 import { debriefPaper, pushDebrief, type TradeDebrief } from "./trade-debrief";
 
@@ -474,6 +475,15 @@ export function openPaperTradeInstant(
     /** Wall-clock ET at the click; Judas is a no-entry window for paper too. */
     et?: { hour: number; minute: number };
     newsVerdict?: "blackout" | "caution" | "clear" | string;
+    /**
+     * The timeframe bundle for THIS book (allSeries(m15, m1)).
+     *
+     * Only the Judas release reads it, and only the sub-15m rungs. Omit it
+     * and the window refuses exactly as it always did — the fill path fails
+     * closed, which is the right default for the one place that writes a
+     * position into the book.
+     */
+    rungs?: Parameters<typeof readJudas>[0];
   },
 ): { ok: true; trade: PaperTrade } | { ok: false; error: string } {
   try {
@@ -501,7 +511,18 @@ export function openPaperTradeInstant(
       };
     }
     if (opts.et && isJudasWindow(opts.et.hour, opts.et.minute)) {
-      return { ok: false, error: "Judas 9:30–9:45 ET — name the raid, no entries (paper included)." };
+      // Blocked until the open's manipulation has demonstrably failed on a
+      // sub-15m rung, then released for the side the failed raid points at
+      // (judas-window.ts). Without `rungs` this cannot resolve and refuses,
+      // which is the same answer this line has always given.
+      const j = readJudas(
+        opts.rungs,
+        { etHour: opts.et.hour, etMinute: opts.et.minute },
+        c.side === "short" ? "short" : "long",
+      );
+      if (j.blocked) {
+        return { ok: false, error: `${j.reason} (paper included).` };
+      }
     }
     if (opts.newsVerdict === "blackout") {
       return { ok: false, error: "News blackout — the impulse is the release, not the model." };

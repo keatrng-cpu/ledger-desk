@@ -5,6 +5,7 @@ import { askDeskCoach, type CoachNarration } from "@/lib/coach/claude-server";
 import { buildClaudeHandoff } from "@/lib/trading/claude-handoff";
 import { CopyClaudeHandoff } from "@/components/desk/copy-claude-handoff";
 import { Button } from "@/components/ui/button";
+import { sessionLive } from "@/lib/trading/sessions";
 
 /** Local deterministic coach — explains computed structure only. */
 function buildCoachNotes(desk: DeskPayload): {
@@ -18,9 +19,9 @@ function buildCoachNotes(desk: DeskPayload): {
 
   let posture = "Stand down";
   if (actionable.length) posture = "Hunt (selective)";
-  else if (clock.inTradeWindow && best && best.grade === "B")
+  else if (sessionLive(clock) && best && best.grade === "B")
     posture = "Watchlist only";
-  else if (!clock.inTradeWindow) posture = "Plan / journal";
+  else if (!sessionLive(clock)) posture = "Plan / journal";
 
   const bullets = [
     `Session: ${clock.killzoneLabel} — ${clock.sessionPhase}.`,

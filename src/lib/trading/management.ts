@@ -26,7 +26,7 @@
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { drawTargetsForSide, type DrawRead } from "./draw";
 import { NEWS_CALENDAR, newsRead, type NewsEvent } from "./news";
-import { resolveKillzone, type KillzoneId, type SessionClock } from "./sessions";
+import { resolveKillzone, type KillzoneId, type SessionClock, sessionLive} from "./sessions";
 
 /* ------------------------------------------------------------------ */
 /* Thresholds — every one named, every one commented                   */
@@ -283,7 +283,12 @@ export function shouldFlatten(
   if (!ctx.clock.isWeekday) {
     return flat("session_end", "Weekend — no position carries the gap.", 0);
   }
-  if (ctx.clock.killzone === "dead") {
+  // The dead zone flattens UNLESS the tape is delivering. A position taken on
+  // a measured session event (session-event.ts) would otherwise be opened and
+  // closed by the same desk within one bar, which is worse than never opening
+  // it. `sessionLive` falls back to the raw window on an unstamped clock, so
+  // every existing caller keeps today's behaviour exactly.
+  if (ctx.clock.killzone === "dead" && !sessionLive(ctx.clock)) {
     return flat(
       "session_end",
       "Post-close dead zone (16:00–19:00 ET) — journal and plan only.",
@@ -303,14 +308,18 @@ export function shouldFlatten(
   }
 
   // 3 — Killzone ended.
-  if (pos.killzone && pos.killzone !== ctx.clock.killzone) {
+  // The window changing is a flatten only when nothing is left to trade in the
+  // new one. Opened in ny_am and it is now ny_lunch on a dead tape: flat, as
+  // before. Opened in ny_am and lunch is delivering on 3x volume: the idea did
+  // not expire because a label changed.
+  if (pos.killzone && pos.killzone !== ctx.clock.killzone && !sessionLive(ctx.clock)) {
     return flat(
       "killzone_ended",
       `Opened in ${pos.killzone}; it is now ${ctx.clock.killzone} (${ctx.clock.killzoneLabel}). The window the idea was taken in has closed.`,
       0,
     );
   }
-  if (toChange != null && toChange <= KILLZONE_FLATTEN_LEAD_MIN) {
+  if (toChange != null && toChange <= KILLZONE_FLATTEN_LEAD_MIN && !sessionLive(ctx.clock)) {
     return flat(
       "killzone_ended",
       `${ctx.clock.killzoneLabel} ends in ${toChange} min — flat by the boundary.`,

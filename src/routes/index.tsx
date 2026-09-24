@@ -62,6 +62,7 @@ import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
+import { allSeries } from "@/lib/trading/chart-timeframes";
 import {
   getPaperAccount,
   formatPaperChip,
@@ -392,6 +393,12 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     lagSec,
     et: { hour: wall.hour, minute: wall.minute },
     newsVerdict: desk.news?.verdict,
+    // The sub-15m rungs, so the Judas release can resolve. Without them the
+    // fill path refuses the whole 09:30-09:45 window, as it always did.
+    rungs: allSeries(
+      o.symbol === desk.left.symbol ? desk.left.bars : desk.right.bars,
+      (o.symbol === desk.left.symbol ? desk.mtf?.left?.minute : desk.mtf?.right?.minute) ?? [],
+    ),
   });
   if (res.ok) {
     // Only NOW is it a fill. Before this the order stayed in `touched`, so a
@@ -1155,6 +1162,14 @@ function MasterplacePage() {
           newsVerdict: desk?.news?.verdict,
           killzone: desk?.clock.killzone,
           discretionMult: disc.factor,
+          // Sub-15m rungs for the Judas release (judas-window.ts). Absent,
+          // the window refuses exactly as before.
+          rungs: desk
+            ? allSeries(
+                c.symbol === desk.left.symbol ? desk.left.bars : desk.right.bars,
+                (c.symbol === desk.left.symbol ? desk.mtf?.left?.minute : desk.mtf?.right?.minute) ?? [],
+              )
+            : undefined,
         });
         if (res.ok) {
           markGhostTaken(c.symbol, c.side);
