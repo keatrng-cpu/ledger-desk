@@ -56,6 +56,13 @@ const SIGDIR = argOf("signals", ".cache/signals");
 const OOS = String(argOf("oos", "2025,2026")).split(",").map(Number);
 const TOP = Number(argOf("top", "20"));
 const OUT = argOf("out", ".cache/backtest");
+// Pin the exit rule instead of letting stage 1 choose it. Stage 1's winner is
+// selected on in-sample P&L, and with r = -0.08 between in- and out-of-sample
+// that selection is noise — so when the QUESTION is about gates rather than
+// exits, letting a noisy exit vary underneath the comparison contaminates it.
+// A pinned, defensible exit makes the gate column the only thing moving.
+const PIN = argOf("exit", null);
+const RISK = Number(argOf("risk", "0.02"));
 
 const { APLUS_RULES, CONTRACTS, riskGradeFromScore, riskPctForGrade } = await import(
   "../src/lib/aplus/config.ts"
@@ -184,10 +191,48 @@ const SESSIONS = {
   pluslunch: (r) => isTake(r) || (clockOnly(r) && r.kz === "ny_lunch"),
   /** The retrace rested rather than refused — gate-tuning's armedIsTake. */
   armed: (r) => isTake(r) || armed(r),
+
   /** Both of today's questions at once. */
   armedEvent: (r) => isTake(r) || armed(r) || (clockOnly(r) && shockScore(r) >= 2.0),
   armedAnyhour: (r) => isTake(r) || armed(r) || clockOnly(r),
 };
+
+/**
+ * ONE GATE AT A TIME.
+ *
+ * The four-year scan named every layer that was the SOLE thing standing
+ * between the desk and a trade: retrace 278, sweep 220, pd_half 155,
+ * target 93, time 23, htf 9. `armed` already harvests the retrace. These
+ * policies harvest each of the others, one at a time and then cumulatively,
+ * so the cost of each relaxation is priced on its own rather than as part of
+ * a bundle where a good one can carry a bad one.
+ *
+ * Nothing here weakens a layer's DEFINITION. A "sole blocker" row is one
+ * where every other must-layer passed; admitting it means resting a limit and
+ * letting the tape decide, exactly as `armed` does. The 0.65 floor, Judas and
+ * the news blackout are still applied above, to every policy.
+ */
+const sole = (r, id) => r.fail.length + r.wait.length === 1 && [...r.fail, ...r.wait][0] === id;
+for (const id of ["retrace", "sweep", "pd_half", "target", "htf", "ltf", "dol"]) {
+  SESSIONS[`sole_${id}`] = (r) => isTake(r) || sole(r, id);
+}
+// Cumulative, cheapest-risk first: the retrace is a timing fact, the sweep and
+// the dealing-range half are location facts, and htf is the one CLAUDE.md
+// calls an absolute gate — so it is added last and reported separately.
+SESSIONS.stack_retrace = (r) => isTake(r) || sole(r, "retrace");
+SESSIONS.stack_sweep = (r) => isTake(r) || sole(r, "retrace") || sole(r, "sweep");
+SESSIONS.stack_pd = (r) =>
+  isTake(r) || sole(r, "retrace") || sole(r, "sweep") || sole(r, "pd_half");
+SESSIONS.stack_target = (r) =>
+  isTake(r) || sole(r, "retrace") || sole(r, "sweep") || sole(r, "pd_half") || sole(r, "target");
+SESSIONS.stack_all = (r) => r.fail.length + r.wait.length <= 1;
+// The same stack WITH the session-event clock release, which is the pairing
+// the trader actually gets after today's changes.
+SESSIONS.stack_pd_event = (r) =>
+  SESSIONS.stack_pd(r) || (clockOnly(r) && shockScore(r) >= 1.5);
+// Two must-layers missing — the permissive extreme, priced so the cliff is
+// visible rather than assumed.
+SESSIONS.stack_two = (r) => r.fail.length + r.wait.length <= 2;
 
 // The (delivery x participation) grid the live thresholds come from. Added
 // programmatically so the pair is swept rather than two numbers being picked
@@ -708,9 +753,22 @@ const bestExit =
 
 console.log(`\n${"=".repeat(118)}`);
 console.log(`STAGE 2 - THE CLOCK. Exit rule frozen at stage 1's winner (${bestExit.tag}); only the session policy varies.\n`);
+const pinned = PIN
+  ? (() => {
+      const hit = exitVariants("shipped").find((v) => v.tag === PIN);
+      if (!hit) {
+        console.error(`--exit ${PIN} matches no variant. Example: plan/plan|p0.75|BE@T1|planStop|noTrail`);
+        process.exit(1);
+      }
+      return hit;
+    })()
+  : bestExit;
+if (PIN) console.log(`
+  [exit PINNED to ${PIN} — stage 1's pick is ignored so the gate column is the only thing moving]`);
+
 const stage2 = [];
 for (const s of Object.keys(SESSIONS)) {
-  const v = { ...bestExit, session: s };
+  const v = { ...pinned, session: s, riskCap: RISK };
   const acc = runAccount(oppsFor(s), v, ALL_YEARS);
   const st = { v, acc, inS: score(acc.taken, IS), out: score(acc.taken, OOS), all: score(acc.taken, ALL_YEARS) };
   stage2.push(st);
