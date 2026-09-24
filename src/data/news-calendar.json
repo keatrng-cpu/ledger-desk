@@ -25,6 +25,8 @@
   { "date": "2026-09-17", "timeEt": "10:00", "name": "Pending Home Sales (Aug)", "impact": "medium" },
   { "date": "2026-09-18", "timeEt": "09:15", "name": "Industrial Production (Aug)", "impact": "medium" },
   { "date": "2026-09-24", "timeEt": "08:30", "name": "Initial Jobless Claims", "impact": "medium" },
+  { "date": "2026-09-25", "timeEt": "08:30", "name": "Durable Goods Orders (Aug P)", "impact": "medium" },
+  { "date": "2026-09-25", "timeEt": "10:00", "name": "UMich Sentiment (Sep F)", "impact": "medium" },
   { "date": "2026-09-29", "timeEt": "10:00", "name": "JOLTS Job Openings (Aug)", "impact": "high" },
   { "date": "2026-09-30", "timeEt": "08:15", "name": "ADP Employment (Sep)", "impact": "high" },
   { "date": "2026-09-30", "timeEt": "08:30", "name": "GDP Q2 (3rd est) / PCE (Aug)", "impact": "high" },
