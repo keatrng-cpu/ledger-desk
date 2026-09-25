@@ -1587,11 +1587,17 @@ function MasterplacePage() {
                     desk.clock.etHour * 60 + desk.clock.etMinute <= DECIDE_END_MIN && (
                       <OvernightBoard desk={desk} />
                     )}
-                  {/* The destination board says WHERE price is going in words;
-                      this says it in a picture, from the same plan object. It
-                      sits directly under the verdict because that is the order
-                      the decision is made in: verdict, then look. */}
-                  <SetupChartPanel desk={desk} />
+                  {/*
+                    PATH ABOVE THE CHART (trader's call 2026-09-25).
+
+                    The cards are where the decision is made and where every
+                    action lives — the entry price, the invalidation, the
+                    target, Log paper, Log live, the trade note. The chart is
+                    where the decision is CHECKED. Putting the check first
+                    meant scrolling past a picture to reach the only thing on
+                    the page with a button on it, on a desk whose measured
+                    weakness is completing entries.
+                  */}
                   <SectionHead
                     n="1"
                     title="PATH"
@@ -1611,6 +1617,10 @@ function MasterplacePage() {
                     discretion={discretion}
                     tape={scannerTape}
                   />
+                  {/* The destination board says WHERE price is going in words;
+                      this says it in a picture, from the same plan object. It
+                      now sits UNDER the cards: verdict, decide, then look. */}
+                  <SetupChartPanel desk={desk} />
                   <SectionHead
                     n="2"
                     title="Paper"

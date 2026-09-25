@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { HIGH_CONFLUENCE_THRESHOLD, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
+import { readCardGeometry } from "@/lib/trading/card-geometry";
+import { atrOf } from "@/lib/trading/draw";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
@@ -447,6 +449,22 @@ function SetupCard({
   tape?: CardTape;
 }) {
   const [noteCopied, setNoteCopied] = useState(false);
+  // Read from the card's OWN printed strings, not from the plan — the failure
+  // being guarded against is a trader acting on what is on screen.
+  const geo = useMemo(
+    () =>
+      readCardGeometry({
+        symbol: c.symbol,
+        side: c.side === "short" ? "short" : "long",
+        entryZone: c.entryZone,
+        invalidation: c.invalidation,
+        target: c.targets?.[0] ?? null,
+        // ATR from the card's own bars, so the cap is this instrument's at
+        // this volatility rather than the legacy fixed point number.
+        atr: tape?.bars?.length ? atrOf(tape.bars, 14) : null,
+      }),
+    [c.symbol, c.side, c.entryZone, c.invalidation, c.targets, tape],
+  );
   const [showDetail, setShowDetail] = useState(false);
   /**
    * A rung the trader chose. Null means follow the desk.
@@ -1080,6 +1098,43 @@ function SetupCard({
           </div>
         ))}
       </div>
+
+      {/*
+        THE GEOMETRY OF THE LEVELS THIS CARD IS PRINTING.
+
+        On 2026-09-25 the board showed an A+ 0.80 card whose own numbers were
+        0.11R, an A+ 0.78 at 0.31R with a stop 8.4x the instrument cap, and a
+        B 0.82 short whose invalidation sat BELOW its entry. The only takeable
+        geometry on the screen belonged to the lowest-graded card.
+
+        The confluence score says how much structure is present. It has never
+        said whether the levels form a trade, and `scanner.ts` builds
+        `invalidation` as PDL/PDH — a structural landmark that is not measured
+        from the entry and can sit on the wrong side of it entirely.
+
+        So the check is against exactly what the trader can see, and it sits
+        directly above the buttons, because that is where the money is lost.
+      */}
+      {geo.line && (
+        <div
+          className={
+            geo.refuse
+              ? "mb-2 rounded-[var(--radius-sm)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-2.5 py-2"
+              : "mb-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1.5"
+          }
+        >
+          <p
+            className={
+              geo.refuse
+                ? "text-[10px] font-semibold leading-snug text-[var(--color-down)]"
+                : "text-[10px] leading-snug text-[var(--color-subtle)]"
+            }
+          >
+            {geo.refuse ? "DO NOT SIZE FROM THIS CARD — " : "Geometry · "}
+            {geo.line}
+          </p>
+        </div>
+      )}
 
       {/* ROW 3 — actions, full width and unambiguous. The paper button used to
           render its label twice ("Log paper 📝 Paper"). */}
