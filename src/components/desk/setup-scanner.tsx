@@ -422,6 +422,7 @@ function useGhost(c: SetupCandidate): GhostTrade | null {
 function SetupCard({
   c,
   onLog,
+  noteFor,
   entryAllowed = true,
   canon,
   discretion,
@@ -429,6 +430,14 @@ function SetupCard({
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
+  /**
+   * Builds the pre-filled trade note for this card (Stage 0).
+   *
+   * A function rather than a string because the note is only wanted when the
+   * button is pressed, and building one per card per render would serialise
+   * every plan on the board for nothing.
+   */
+  noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
   /** Per-candidate SMC/ICT canon grade — see canonInputForCandidate. */
   canon?: CanonStack;
@@ -437,6 +446,7 @@ function SetupCard({
   /** This book's bars and live sequence, for the card's own markup chart. */
   tape?: CardTape;
 }) {
+  const [noteCopied, setNoteCopied] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   /**
    * A rung the trader chose. Null means follow the desk.
@@ -1103,6 +1113,48 @@ function SetupCard({
         </div>
       )}
 
+      {/*
+        STAGE 0 — the row that does not exist yet.
+
+        `src/data/trade-log.json` contains ONE trade against 2,188 backtested
+        ones. The reason is not discipline: logging means hand-typing twenty
+        fields into log-trade.mjs's template, after the session, about a trade
+        that is already over. The live book is on Robinhood, which has no API
+        this desk can reach, so the honest fix is to write the note FOR the
+        trader and leave only the fields the desk cannot know.
+
+        Copies a pre-filled note to the clipboard. The desk fills the date,
+        time, symbol, side, every plan level, the word it printed and which
+        must-layers were short. It leaves entry_fill, exit_fill, exit_reason
+        and pnl EMPTY, because an invented fill in a log is worse than no log.
+      */}
+      {noteFor && (
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(noteFor(c));
+            setNoteCopied(true);
+            window.setTimeout(() => setNoteCopied(false), 2200);
+          }}
+          className="mb-2 w-full rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border)] px-2.5 py-1.5 text-left text-[10px] leading-snug text-[var(--color-subtle)] hover:border-[var(--color-primary)] hover:text-[var(--color-fg)]"
+          title="Copies a note with every field the desk knows already filled in. Paste to a file and run: npx tsx scripts/log-trade.mjs <file>"
+        >
+          {noteCopied ? (
+            <span className="text-[var(--color-up)]">
+              Copied — paste to a file, fill the 4 blanks, then{" "}
+              <code>npx tsx scripts/log-trade.mjs &lt;file&gt;</code>
+            </span>
+          ) : (
+            <>
+              Copy trade note{" "}
+              <span className="text-[var(--color-muted)]">
+                — pre-filled; you add the fills only
+              </span>
+            </>
+          )}
+        </button>
+      )}
+
       {/* The specific level this setup is drawn toward, and the empirical
           evidence for it — not just "a level exists up there". */}
       {c.draw && (
@@ -1234,6 +1286,7 @@ const CANON_SORT_BONUS: Record<CanonStack["grade"], number> = {
 export function SetupScanner({
   scan,
   onLog,
+  noteFor,
   entryAllowed = true,
   bias,
   narrative,
@@ -1243,6 +1296,8 @@ export function SetupScanner({
 }: {
   scan: ScanResult;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
+  /** Stage 0 — see SetupCard. Threaded straight through. */
+  noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
   /** Per-book HTF read — matched to each candidate by symbol for its own canon grade. */
   bias?: { left: HtfBiasRead; right: HtfBiasRead };
@@ -1403,6 +1458,7 @@ export function SetupScanner({
             key={c.id}
             c={c}
             onLog={onLog}
+            noteFor={noteFor}
             entryAllowed={entryAllowed}
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}

@@ -13,6 +13,7 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
 import { readSession } from "@/lib/trading/session-event";
 import { readJudas } from "@/lib/trading/judas-window";
+import { buildEntryTicket, ticketHeadline } from "@/lib/trading/entry-ticket";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 
 export const PATH_ALARM_STORAGE = "ledger-path-alarm";
@@ -393,15 +394,42 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
     if (s.lastTouchKey === key) continue;
 
     const plan = book.plan;
-    const title = `TOUCH · ${book.symbol} ${String(book.side).toUpperCase()} at CE ${plan.entry.toFixed(2)}`;
+
+    /**
+     * THE WHOLE TRADE, not just the touch.
+     *
+     * This used to say entry, stop and T1 — all true, and still not something
+     * you can act on without opening the desk. It did not say how many
+     * contracts, what to do when T1 prints, where the stop goes afterwards,
+     * or when the idea is dead. Every one of those gaps is a decision made at
+     * the screen under time pressure, by the part of the process the trader
+     * has identified as the weak one.
+     *
+     * On a funded prop account this matters more, not less: Apex permits
+     * semi-automated management with the trader actively involved and
+     * prohibits hands-off automation, so the desk cannot be the hands — which
+     * makes it the desk's job to leave the hands nothing to invent.
+     *
+     * `buildEntryTicket` reads the plan the sequence already priced and the
+     * rules already in APLUS_RULES. It computes nothing about the market.
+     */
+    const cand = desk.scan?.candidates?.find(
+      (c) => c.symbol === book.symbol && c.side === book.side,
+    );
+    const ticket = buildEntryTicket({
+      plan,
+      confluence: cand?.confluence ?? 0,
+      reachPct: plan.draw?.reachProbability ?? null,
+    });
+
+    const title = `TOUCH · ${ticketHeadline(ticket)}`;
     const body = [
-      `stop ${plan.stop.toFixed(2)} · ${plan.riskPts.toFixed(2)}pt`,
-      plan.t1 != null ? `T1 ${plan.t1.toFixed(2)}${plan.rr1 != null ? ` (${plan.rr1.toFixed(1)}R)` : ""}` : null,
+      ticket.text,
       book.word === "TAKE" ? "sequence complete" : `waiting on: ${book.missing}`,
-      desk.clock.killzoneLabel,
+      desk.clock.sessionReason ?? desk.clock.killzoneLabel,
     ]
       .filter(Boolean)
-      .join(" · ");
+      .join("\n");
 
     const fire: PathAlarmFire = {
       key,

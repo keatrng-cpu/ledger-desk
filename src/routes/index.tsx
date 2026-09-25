@@ -63,6 +63,7 @@ import { InvestPanel } from "@/components/desk/invest-panel";
 import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
+import { buildTradeNote } from "@/lib/trading/trade-note";
 import {
   getPaperAccount,
   formatPaperChip,
@@ -1135,6 +1136,40 @@ function MasterplacePage() {
       window.removeEventListener("ledger-memory", sync);
     };
   }, []);
+  /**
+   * STAGE 0 — the pre-filled trade note.
+   *
+   * `src/data/trade-log.json` has ONE row against 2,188 backtested trades, and
+   * the reason is friction, not discipline: logging meant hand-typing twenty
+   * fields after the session about a trade already over. The live book is on
+   * Robinhood, which has no API this desk can reach, so the fix is to write
+   * the note FOR the trader and leave blank only what the desk cannot know.
+   *
+   * The numeric plan comes from smcMaster, matched by symbol AND side — the
+   * board grades two books and picking the wrong one would write levels from
+   * the other instrument into the log, which is worse than no note at all.
+   */
+  const noteFor = useCallback(
+    (c: SetupCandidate) => {
+      const books = [desk?.smcMaster?.left, desk?.smcMaster?.right];
+      const book = books.find((b) => b?.symbol === c.symbol && b?.side === c.side) ?? null;
+      return buildTradeNote({
+        symbol: c.symbol,
+        side: c.side === "short" ? "short" : "long",
+        // The live sleeve expresses these through QQQ/SPY options; the futures
+        // note is the same shape minus the option legs.
+        book: "options",
+        underlier: c.symbol === "ES" ? "SPY" : "QQQ",
+        plan: book?.plan ?? null,
+        deskWord: book?.word ?? null,
+        layers: book?.layers ?? null,
+        grade: String(c.pathBand ?? c.grade ?? ""),
+        killzone: desk?.clock?.killzone ?? null,
+      });
+    },
+    [desk],
+  );
+
 
   const onLog = useCallback(
     (c: SetupCandidate, mode: "paper" | "live") => {
@@ -1565,6 +1600,7 @@ function MasterplacePage() {
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}
+                    noteFor={noteFor}
                     entryAllowed={entryAllowed}
                     bias={desk.bias}
                     narrative={desk.narrative}
