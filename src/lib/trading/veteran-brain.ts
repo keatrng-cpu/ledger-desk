@@ -573,7 +573,7 @@ export function runVeteranBrain(
       label: "Risk",
       tone: "pass",
       score: 0.5,
-      detail: `Slot $${risk.riskDollars.toFixed(0)} · grade 0.5–3% · risk-off 50%@1R`,
+      detail: `Slot $${risk.riskDollars.toFixed(0)} · grade 0.5–3% · 50% at T1 → BE`,
     });
     score += 0.5;
   }
@@ -1060,7 +1060,7 @@ export function runVeteranBrain(
 
   const headline =
     verdict === "TAKE" && rawBest
-      ? `TAKE ${rawBest.symbol} ${rawBest.side.toUpperCase()} ${rawBest.grade} @ ${rawBest.confluence.toFixed(2)} · full grade size · risk-off 50%@1R`
+      ? `TAKE ${rawBest.symbol} ${rawBest.side.toUpperCase()} ${rawBest.grade} @ ${rawBest.confluence.toFixed(2)} · full grade size · 50% at T1 → BE`
       : verdict === "REDUCE" && rawBest
         ? `REDUCE ${rawBest.symbol} ${rawBest.side} — half size (${rawBest.confluence.toFixed(2)}) · same invalidation`
         : verdict === "WATCH"
@@ -1190,7 +1190,7 @@ export function runVeteranBrain(
           : "ok",
       line: liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit
         ? "HALT — no new risk"
-        : `Open · grade 0.5–3% · risk-off 50%@1R · max ${risk.maxSetups}/KZ`,
+        : `Open · grade 0.5–3% · 50% at T1 → BE · max ${risk.maxSetups}/KZ`,
     },
     {
       tab: "Veteran",
@@ -1278,7 +1278,7 @@ export function runVeteranBrain(
       ? `BT book live: ${memory.book.pathTaken} PATH · WR ${wr != null ? (wr * 100).toFixed(0) + "%" : "—"} · size bias ×${rateCard.sizeBias.toFixed(2)}`
       : "BT book empty — run backtest to train rates",
     verdict === "TAKE" && rawBest
-      ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} full grade · risk-off 50%@1R · log paper first`
+      ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} full grade · 50% at T1 → BE · log paper first`
       : verdict === "REDUCE" && rawBest
         ? `AUTO PLAN: ${rawBest.symbol} ${rawBest.side} half size · same invalidation`
         : "AUTO PLAN: flat — no PATH stack complete",
@@ -1413,7 +1413,7 @@ function answerVeteranQuestion(
     return memoryDigest(memory);
   }
   if (/risk|size|contract|percent/.test(l)) {
-    return `Grade risk A+ 3% / A 2% / B 1% / C 0.5% on $${APLUS_RULES.paperEquity.toLocaleString()}. Discretion size mult now ${verdict === "REDUCE" ? "50%" : verdict === "TAKE" ? "100%" : "0%"}. Always risk-off 50% at +1R.`;
+    return `Grade risk A+ 2% probe (3% once n≥20 A+ WR≥65%) / A 2% / A− 1% / B+ 0.5% / B paper on $${APLUS_RULES.paperEquity.toLocaleString()}. Discretion size mult now ${verdict === "REDUCE" ? "50%" : verdict === "TAKE" ? "100%" : "0%"}. Always 50% at T1 (the draw), stop to BE, runner to T2 — banking at +1R measured −0.42R/t.`;
   }
   if (/strategy|model|mechanical|judas|tjr|smt/.test(l)) {
     return rawBest

@@ -3,11 +3,12 @@
  * No auth required — localStorage book. Optional server journal when logged in.
  *
  * System rules:
- * - Entry at zone mid (key area)
- * - Stop from invalidation, clamped to day-trade max risk
+ * - Entry at the plan's CE when the sequence priced one, else the zone mid
+ * - Stop from the plan (card-plan.ts), else a structural invalidation on the
+ *   correct side; out-of-band geometry is refused, not clamped
  * - Target ≥ 1R (prefer structure target if valid)
  * - Size from grade × paper equity (micros)
- * - Scale-out: 50% @ +1R → BE, runner @ +2R / TP2
+ * - Scale-out: 50% at TP1 (the plan's draw) → BE, runner to TP2
  * - Exit when live print hits stop / targets
  * - Time / context stops + dynamic targets from the draw (trading/management.ts)
  * - One book per day — MNQ or ES, never both (profit-rules.ts rule 1)
@@ -40,6 +41,7 @@ import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock, isJudasWindow } from "./sessions";
 import { readJudas } from "./judas-window";
+import { cardSizeRefusal } from "./card-plan";
 import { PROGRESS_R, retarget, shouldFlatten } from "./management";
 import { debriefPaper, pushDebrief, type TradeDebrief } from "./trade-debrief";
 
@@ -186,6 +188,16 @@ export interface BuiltPaperLevels {
   cardGrade: RiskGrade | string;
   /** Discretion multiplier actually applied to size (journal/discretion.ts). 1.0 = neutral / none supplied. */
   discretionFactor: number;
+  /**
+   * Why nothing should be SIZED from these levels, or null (card-plan.ts
+   * cardSizeRefusal — the same words the entry ticket prints). The levels are
+   * still returned so a dialog can show them; `contracts` is still >= 1 for
+   * callers that predate the field. Anything that opens a position must check
+   * this first.
+   */
+  refusal: string | null;
+  /** Where the stop came from: the priced plan, a structural level, or a pad. */
+  stopSource: "plan" | "structure" | "fallback";
 }
 
 /**
@@ -250,14 +262,20 @@ export function buildPaperLevels(
   const side = c.side;
   const eq = equity ?? getPaperAccount().equity ?? PAPER_START_EQUITY;
 
+  const refusal = cardSizeRefusal(c);
+  const plan = c.plan ?? null;
+
   let entry =
+    plan?.entry ??
     zoneMid(c.entryZone) ??
     firstPrice(c.entryZone) ??
     lastPrice ??
     0;
 
-  // Prefer live mid if zone is far from last print (stale array)
-  if (lastPrice != null && entry > 0) {
+  // Prefer live mid if zone is far from last print (stale array). Never for
+  // a priced plan: its entry is a resting limit at CE, and moving it to the
+  // print is the chase the entry rule forbids.
+  if (!plan && lastPrice != null && entry > 0) {
     const dist = Math.abs(entry - lastPrice);
     const maxRisk = MAX_RISK_PTS[c.symbol] ?? MAX_RISK_PTS[symbol] ?? 48;
     if (dist > maxRisk * 1.5) {
@@ -265,12 +283,19 @@ export function buildPaperLevels(
     }
   }
 
-  const inv = firstPrice(c.invalidation);
+  const inv = plan ? plan.stop : c.stopSource === "none" ? null : firstPrice(c.invalidation);
   const maxRisk =
     MAX_RISK_PTS[c.symbol] ?? MAX_RISK_PTS[symbol] ?? DEFAULT_MAX(symbol);
 
   let stop: number;
-  if (inv != null) {
+  const stopSource: BuiltPaperLevels["stopSource"] = plan
+    ? "plan"
+    : inv != null && (side === "long" ? inv < entry : inv > entry)
+      ? "structure"
+      : "fallback";
+  if (plan) {
+    stop = plan.stop;
+  } else if (inv != null) {
     stop =
       side === "long"
         ? Math.min(inv, entry - entry * 0.0004)
@@ -281,11 +306,11 @@ export function buildPaperLevels(
   }
 
   let riskPts = Math.abs(entry - stop);
-  if (riskPts < entry * 0.0004) {
+  if (!plan && riskPts < entry * 0.0004) {
     riskPts = Math.max(maxRisk * 0.25, entry * 0.0006);
     stop = side === "long" ? entry - riskPts : entry + riskPts;
   }
-  if (riskPts > maxRisk) {
+  if (!plan && riskPts > maxRisk) {
     riskPts = maxRisk;
     stop = side === "long" ? entry - riskPts : entry + riskPts;
   }
@@ -310,8 +335,13 @@ export function buildPaperLevels(
       : (above[above.length - 1] ?? firstPrice(c.targets[1]));
   let tp1 = side === "long" ? entry + riskPts : entry - riskPts;
   let tp2 = side === "long" ? entry + riskPts * 2 : entry - riskPts * 2;
+  const planT1 = plan?.t1 ?? null;
+  const planT2 = plan?.t2 ?? null;
 
-  if (t1raw != null) {
+  if (planT1 != null && (side === "long" ? planT1 > entry : planT1 < entry)) {
+    // The plan's T1 is the draw the target layer graded — it wins outright.
+    tp1 = planT1;
+  } else if (t1raw != null) {
     const ok = side === "long" ? t1raw > entry : t1raw < entry;
     const r = Math.abs(t1raw - entry) / Math.max(riskPts, 1e-6);
     // Accept any correct-side target from 0.35R up to tpMaxR (user plan wins)
@@ -319,7 +349,9 @@ export function buildPaperLevels(
       tp1 = t1raw;
     }
   }
-  if (t2raw != null) {
+  if (planT2 != null && (side === "long" ? planT2 > tp1 : planT2 < tp1)) {
+    tp2 = planT2;
+  } else if (t2raw != null) {
     const ok = side === "long" ? t2raw > entry : t2raw < entry;
     const r = Math.abs(t2raw - entry) / Math.max(riskPts, 1e-6);
     if (
@@ -398,6 +430,8 @@ export function buildPaperLevels(
     grade,
     cardGrade,
     discretionFactor: discretionMult ?? 1.0,
+    refusal,
+    stopSource,
   };
 }
 
@@ -577,6 +611,16 @@ export function openPaperTradeInstant(
     if (levels.side === "short" && levels.tp1 >= levels.entry) {
       return { ok: false, error: "Target not below entry for short" };
     }
+    // Same refusal the entry ticket prints. The paper book is the record of
+    // what the desk would actually trade; a geometry the ticket will not size
+    // is not that, and the shadow book already paper-trades refusals as
+    // evidence, where they cannot be mistaken for the system.
+    if (levels.refusal) {
+      return {
+        ok: false,
+        error: `DO NOT SIZE — ${levels.refusal}. Not booked to paper either: the shadow book records refusals.`,
+      };
+    }
 
     const trade: PaperTrade = {
       id: `paper-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
@@ -613,6 +657,7 @@ export function openPaperTradeInstant(
         levels.discretionFactor !== 1.0
           ? `discretion:${levels.discretionFactor.toFixed(2)}x`
           : null,
+        `stop:${levels.stopSource}`,
         "mode:paper auto",
       ]
         .filter(Boolean)

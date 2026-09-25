@@ -123,6 +123,23 @@ export interface SetupCandidate {
    * Null when nothing in the trade's direction is a viable magnet.
    */
   draw?: LiquidityTarget | null;
+  /**
+   * The priced plan for THIS card, when the sequence has built one for the
+   * same book and side (card-plan.ts attachPlansToCards). When present it is
+   * the single source of the stop: the card, the ticket, the paper book and
+   * the log dialog all read it, so none of them can size off a different
+   * number than the one the evidence pack measured.
+   */
+  plan?: import("./card-plan").CardPlan | null;
+  /**
+   * Where `invalidation` came from: the priced plan, a protective structural
+   * level on the correct side of the entry, or nothing usable.
+   */
+  stopSource?: "plan" | "structure" | "none";
+  /** Numeric entry the card's zone resolves to (CE / OTE optimal / range half). */
+  entryPx?: number | null;
+  /** ATR(14) of the graded series — for the stop band on cards without a plan. */
+  atr?: number | null;
 }
 
 export interface ScanResult {
@@ -134,6 +151,67 @@ export interface ScanResult {
   smt: ReturnType<typeof smtRead>;
   conditions: { left: MarketConditions; right: MarketConditions };
   catalog: string[];
+}
+
+/**
+ * The invalidation, on the side of the entry it protects.
+ *
+ * It used to be PDL/PDH unconditionally. That is a sound landmark while price
+ * sits on the right side of it and a lie once price has traded through it:
+ * the 2026-09-25 ES short card priced its entry at 7805.55 against "Above PDH
+ * 7783.50" — a stop 22 points BELOW a short entry. card-geometry.ts caught it
+ * on the card, but the paper book and the Log dialog read the same string,
+ * clamped it to a 0.04% pad and prefilled a 3.25pt stop at 123 MES.
+ *
+ * Order: the prior day's extreme while it is still beyond the entry (the old
+ * behaviour, unchanged in the common case); else the nearest swing beyond the
+ * entry; else the dealing-range extreme beyond it; else nothing. "Nothing" is
+ * said in words with no number in it, so nothing downstream can parse a price
+ * out of it and size from it.
+ *
+ * A priced plan overrides all of this (card-plan.ts attachPlansToCards) —
+ * the plan's stop sits beyond the raid itself, which is what was measured.
+ */
+export function protectiveInvalidation(
+  read: HtfBiasRead,
+  direction: "bull" | "bear",
+  entryPx: number | null,
+): { text: string; source: "structure" | "none" } {
+  const long = direction === "bull";
+  const beyond = (px: number | null | undefined): px is number =>
+    px != null &&
+    Number.isFinite(px) &&
+    (entryPx == null || (long ? px < entryPx : px > entryPx));
+  const day = long ? read.pdl : read.pdh;
+  if (beyond(day)) {
+    return {
+      text: `${long ? "Below PDL" : "Above PDH"} ${day.toFixed(2)} / sweep`,
+      source: "structure",
+    };
+  }
+  if (entryPx != null) {
+    const kind = long ? "low" : "high";
+    const nearest = read.swings
+      .filter((s) => s.kind === kind && beyond(s.price))
+      .sort((a, b) => (long ? b.price - a.price : a.price - b.price))[0];
+    if (nearest) {
+      return {
+        text: `${long ? "Below swing low" : "Above swing high"} ${nearest.price.toFixed(2)} / sweep`,
+        source: "structure",
+      };
+    }
+    const edge = long ? read.dealing?.low : read.dealing?.high;
+    if (beyond(edge)) {
+      return {
+        text: `${long ? "Below range low" : "Above range high"} ${edge.toFixed(2)}`,
+        source: "structure",
+      };
+    }
+  }
+  return {
+    text: `No protective ${long ? "low below" : "high above"} the entry — no stop to size from`,
+    source: "none",
+  };
 }
 
 function grade(score: number, floor: number): SetupCandidate["grade"] {
@@ -548,6 +626,21 @@ function scoreDirection(
             : `${read.dealing.eq.toFixed(2)} – ${read.dealing.high.toFixed(2)}`
           : "await array";
 
+  // The same construction as a NUMBER, so the invalidation below can be
+  // checked against the side of the entry it is supposed to protect.
+  const entryPx = overlap
+    ? overlap.mid
+    : zone
+      ? consequentEncroachment(zone.top, zone.bottom)
+      : oteRead
+        ? oteRead.optimal
+        : read.dealing
+          ? direction === "bull"
+            ? (read.dealing.low + read.dealing.eq) / 2
+            : (read.dealing.eq + read.dealing.high) / 2
+          : null;
+  const inv = protectiveInvalidation(read, direction, entryPx);
+
   return {
     id: `${read.symbol}-${side}`,
     symbol: read.symbol,
@@ -583,14 +676,9 @@ function scoreDirection(
     strategyBoard,
     structureScore,
     entryZone,
-    invalidation:
-      direction === "bull"
-        ? read.pdl
-          ? `Below PDL ${read.pdl.toFixed(2)} / sweep`
-          : "Below protected low / sweep"
-        : read.pdh
-          ? `Above PDH ${read.pdh.toFixed(2)} / sweep`
-          : "Above protected high / sweep",
+    entryPx: entryPx != null && Number.isFinite(entryPx) ? entryPx : null,
+    invalidation: inv.text,
+    stopSource: inv.source,
     targets: [
       read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "1R",
       direction === "bull"

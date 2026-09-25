@@ -20,6 +20,7 @@ import {
   type CanonStack,
 } from "./smc-canon";
 import { buildTradePlan, type TradePlan } from "./trade-plan";
+import { planStopText } from "./card-plan";
 import { buildImpulseLeg, isUsableLeg, retracementRatio } from "./fib";
 import type { OhlcBar } from "@/lib/market/types";
 import type { SmcTape } from "./smc-board";
@@ -632,7 +633,9 @@ function gradeBook(
       (fresh
         ? `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)}`
         : "await array"),
-    invalidation: cand?.invalidation ?? "Beyond the sweep extreme",
+    // The plan's stop when there is a plan — the prose and the numbers are
+    // two views of one derivation, and the handoff reads the prose.
+    invalidation: plan ? planStopText(plan) : (cand?.invalidation ?? "Beyond the sweep extreme"),
     t1: cand?.targets[0] ?? (dol ? `${dol.name} ${dol.price.toFixed(2)}` : "IRL"),
     t2: cand?.targets[1] ?? "ERL runner",
     pathBand: cand ? String(cand.pathBand || cand.grade) : null,

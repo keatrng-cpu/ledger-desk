@@ -122,14 +122,14 @@ export function RiskPanel({
     ["Account equity", `$${equity.toLocaleString()}`],
     ["Paper equity", `$${Math.round(paper.equity).toLocaleString()} (start $${paper.startEquity.toLocaleString()} · peak $${Math.round(paper.peakEquity).toLocaleString()} · DD ${paper.drawdownPct}%)`],
     ["Paper book", `PATH ${paper.pathTaken} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(2)} · PnL $${paper.sumUsd.toFixed(0)}`],
-    ["Risk / trade", `A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal (default ${(r.riskPct * 100).toFixed(0)}%)`],
+    ["Risk / trade", `A+ ${(APLUS_PROBE_RISK * 100).toFixed(0)}% probe (3% once earned) · A 2% · A- 1% · B+ 0.5% · B paper · C journal`],
     ["$ risk band", `$${(equity * 0.01).toFixed(0)}–$${(equity * APLUS_RULES.riskPctCeiling).toFixed(0)} on $${equity.toLocaleString()}`],
     ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap (A+)`],
     ["R:R band", `${APLUS_RULES.minRr}:1 – 1:${APLUS_RULES.tpMaxR}`],
     [
       "Take risk off",
       APLUS_RULES.scaleOut.enabled
-        ? `${(APLUS_RULES.scaleOut.tp1Fraction * 100).toFixed(0)}% @ +1R → BE stop → runner +2R`
+        ? `${(APLUS_RULES.scaleOut.tp1Fraction * 100).toFixed(0)}% at T1 (the draw) → stop to BE → runner to T2 · banking at +1R instead measured −0.42R/t`
         : "Off",
     ],
     ["One book/day", "MNQ or ES — never both same bias"],

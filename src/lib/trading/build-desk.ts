@@ -48,7 +48,8 @@ import {
 } from "./structure";
 import { buildSmcTape, type SmcTape } from "./smc-board";
 import { scanSetups, type ScanResult } from "./scanner";
-import { drawOnLiquidity, type DrawRead } from "./draw";
+import { atrOf, drawOnLiquidity, type DrawRead } from "./draw";
+import { attachPlansToCards } from "./card-plan";
 import { newsRead, type NewsRead } from "./news";
 import { summarizeDetectors } from "./detectors";
 import { readShock, type ShockRead } from "./shock";
@@ -752,6 +753,14 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left: { ...payload.left, minute: minuteL },
         right: { ...payload.right, minute: minuteR },
         shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null,
+      });
+      // One stop, everywhere (card-plan.ts): the card a book priced a plan
+      // for now carries that plan, and its invalidation becomes the plan's
+      // stop — so the ticket, the paper book and the Log dialog size off the
+      // number the evidence was measured on, not a PDL/PDH string.
+      attachPlansToCards(payload.scan.candidates, smcMaster, {
+        [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
+        [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
       });
       const mtf = {
         left: { daily: dailyL, minute: minuteL },

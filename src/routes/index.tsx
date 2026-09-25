@@ -1711,7 +1711,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="S"
                     title="Robinhood QQQ / SPY"
-                    sub="$1,000 sleeve · 15% = $150 max debit · PATH / SMT / event · estimates from ES/NQ"
+                    sub="≤ $1,000 debit per ticket · loss capped 15% of the debit · size from the level · estimates from ES/NQ"
                   />
                   {/* The overnight question is asked before the intraday
                       cards, because at 15:00 it is the only one left. */}

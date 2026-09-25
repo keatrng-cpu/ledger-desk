@@ -351,10 +351,10 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
 
 export function optionsSwingPlaybook(): string[] {
   return [
-    "RH sleeve $1,000 · risk 15% = $150 max debit. Not the $100k futures book.",
+    "RH sleeve: ≤ $1,000 debit per ticket, loss capped 15% of the debit, sized from the futures invalidation. Not the $100k futures book.",
     "SPY follows ES HTF · QQQ follows NQ HTF — absolute gate. One underlier.",
     "Arm only Mon–Thu when news clear; NY AM preferred.",
-    "ATM weeklies often > $150 — use a vertical rather than OTM lottery.",
+    "21–45 DTE ATM often costs more than the $1,000 ceiling — use a vertical rather than an OTM lottery ticket.",
     "Trim ~50% at +50–80% of debit; invalidate if HTF flips.",
     "Friday / Labor week: manage only — no new 21–45 DTE.",
     "Separate from futures PATH — one thesis preferred.",

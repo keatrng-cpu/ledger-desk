@@ -35,6 +35,7 @@
 
 import { APLUS_RULES, sizeContracts, riskGradeFromScore } from "../aplus/config";
 import type { TradePlan } from "./trade-plan";
+import { riskAtrBucket } from "./evidence";
 
 export interface EntryTicket {
   symbol: string;
@@ -79,21 +80,31 @@ export function buildEntryTicket(input: {
   equity?: number;
   /** Measured reach of T1, when the plan carries it. Printed, never acted on. */
   reachPct?: number | null;
+  /**
+   * Rule 5: has the book earned full A+ size (n>=20 closed A+ at WR>=65%)?
+   * Defaults to FALSE — an unknown history is not an unlock, the same
+   * default paper-manager.ts `paperAPlusCounters` takes off the browser.
+   */
+  aPlusUnlocked?: boolean;
 }): EntryTicket {
   const { plan } = input;
   const equity = input.equity ?? APLUS_RULES.paperEquity;
-  const grade = riskGradeFromScore(input.confluence);
+  const cardGrade = riskGradeFromScore(input.confluence);
+  // RULE 5 — an A+ card sizes at the A probe until the book earns full size.
+  // This ticket used to size straight off the score, i.e. A+ at 3%, which is
+  // the unlocked size; the paper book and the backtest both route the probe.
+  const grade = cardGrade === "A+" && !input.aPlusUnlocked ? "A" : cardGrade;
   const sized = sizeContracts({
     symbol: plan.symbol,
     riskPts: plan.riskPts,
     equity,
-    gradeOrScore: input.confluence,
+    gradeOrScore: grade,
   });
 
   // TWO separate refusals, and the second one is not obvious.
   //
-  // 1. A stop the plan itself flagged as too tight. The 0.25xATR floor was
-  //    measured: the 31 plans below it won 0 of 31.
+  // 1. A stop the plan itself flagged as too tight — inside 0.5xATR, which
+  //    loses in both halves of the four-year tape (evidence-pack.json).
   //
   // 2. A stop too WIDE to afford. `sizeContracts` ends with
   //    `if (pct > 0 && contracts < 1) contracts = 1` — a deliberate floor in
@@ -107,9 +118,13 @@ export function buildEntryTicket(input: {
   //    returned count, because the floor has already hidden the count.
   const onePerContractUsd = plan.riskPts * sized.pv;
   const unaffordable = onePerContractUsd > sized.riskDollars;
-  // 3. Outside the measured band. 0.5-1.5x ATR is where expectancy was
-  //    positive in BOTH halves of the four-year tape (+0.059 IS / +0.058 OOS);
-  //    under 0.5 loses -0.35R and over 1.5 loses -0.086R, both replicated.
+  // 3. Outside the measured band. Under 0.5xATR and over 1.5xATR both lose
+  //    in both halves of the four-year tape; inside the band is roughly
+  //    breakeven (+0.03R, not distinguishable from zero) — the band's value
+  //    is the losses it refuses, not a proven edge inside it. Re-measured
+  //    2026-09-25 under the rule as coded (50% at T1); the +0.059/+0.058
+  //    first quoted for it came from a 75%-at-T1 sim that also credited T1
+  //    on the fill bar.
   const unsizeable =
     plan.riskTooTight === true ||
     plan.riskTooWide === true ||
@@ -122,15 +137,23 @@ export function buildEntryTicket(input: {
 
   const entryLine = `${plan.symbol} ${dir} — rest a LIMIT at ${px(plan.entry)} (CE). Do not pay the print.`;
 
+  // The measured cost is read from the evidence pack (evidence.ts), so a
+  // re-measure moves this message instead of leaving a frozen number here.
+  const ratio = plan.riskAtr && plan.riskAtr > 0 ? plan.riskPts / plan.riskAtr : null;
+  const bucket = ratio != null ? riskAtrBucket(ratio) : null;
+  const cost =
+    bucket?.exp != null
+      ? ` - measured ${bucket.exp >= 0 ? "+" : "-"}${Math.abs(bucket.exp).toFixed(2)}R/card over ${bucket.n}${bucket.verdict === "negative" ? ", both halves" : ""}`
+      : "";
   const riskLine = unsizeable
     ? `DO NOT SIZE — ${
         plan.riskTooTight
-          ? "stop is inside the 0.5xATR floor - measured -0.35R, both halves"
+          ? `stop is ${ratio != null ? ratio.toFixed(2) : "<0.5"}xATR, inside the 0.5xATR floor${cost}`
           : plan.riskTooWide
-            ? "stop is beyond 1.5xATR - measured -0.086R, both halves"
+            ? `stop is ${ratio != null ? ratio.toFixed(2) : ">1.5"}xATR, beyond the 1.5xATR band${cost}`
           : `one contract risks $${Math.round(onePerContractUsd)} against a $${Math.round(sized.riskDollars)} budget`
       }. No ticket.`
-    : `${contracts} contract${contracts === 1 ? "" : "s"} · stop ${px(plan.stop)} (${plan.riskPts.toFixed(2)}pt) · risk $${Math.round(sized.riskDollars)} · grade ${grade}`;
+    : `${contracts} contract${contracts === 1 ? "" : "s"} · stop ${px(plan.stop)} (${plan.riskPts.toFixed(2)}pt) · risk $${Math.round(sized.riskDollars)} · grade ${grade}${grade !== cardGrade ? ` (${cardGrade} card, probe size)` : ""}`;
 
   const targetLine = [
     plan.t1 != null ? `T1 ${px(plan.t1)}${plan.rr1 != null ? ` (${plan.rr1.toFixed(1)}R)` : ""}` : "T1 —",

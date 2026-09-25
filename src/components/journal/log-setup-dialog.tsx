@@ -77,7 +77,10 @@ function defaultsFrom(
     entry: levels.entry,
     stop: levels.stop,
     target: levels.tp1,
-    contracts: levels.contracts,
+    // A refused geometry never prefills a computed size. The 2026-09-25 ES
+    // short prefilled 123 MES off a 3.25pt pad stop; one contract is a
+    // placeholder the trader overwrites with what they actually traded.
+    contracts: levels.refusal ? 1 : levels.contracts,
   };
 }
 
@@ -156,9 +159,19 @@ export function LogSetupDialog({
     if (!entry || !stop || !contracts || !contract) return null;
     return Math.abs(entry - stop) * contract.pointValue * contracts;
   }, [entry, stop, contracts, contract]);
-  const gradePct = riskPctForScore(candidate.confluence);
-  const gradeLabel = riskGradeFromScore(candidate.confluence);
-  const allowedRisk = equity * gradePct;
+  // The allowance is the SAME sizing the paper book and the ticket use —
+  // including rule 5's A+ probe (A+ sized at A until n>=20 A+ WR>=65%) and
+  // the discretion factor. `riskPctForScore` alone priced A+ at 3%, which is
+  // the unlocked size nobody has earned yet.
+  const levels = useMemo(
+    () => buildPaperLevels(candidate, equity, undefined, discretionMult),
+    [candidate, equity, discretionMult],
+  );
+  const gradePct = levels.riskPct || riskPctForScore(candidate.confluence);
+  const gradeLabel = String(levels.grade || riskGradeFromScore(candidate.confluence));
+  const allowedRisk = levels.riskDollars || equity * gradePct;
+  const probeNote =
+    levels.cardGrade === "A+" && levels.grade !== "A+" ? " · A+ probe" : "";
 
   const oversized = plannedRisk != null && plannedRisk > allowedRisk;
 
@@ -357,6 +370,27 @@ export function LogSetupDialog({
               ))}
             </div>
 
+            {/* The card's own refusal, in the ticket's words. Logging stays
+                open — a trade that happened must be recordable — but the
+                size is no longer the desk's suggestion. */}
+            {levels.refusal && (
+              <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-3 py-2 text-[11px] leading-relaxed text-[var(--color-down)]">
+                <p className="flex items-center gap-1.5 font-medium">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  DO NOT SIZE FROM THIS CARD
+                </p>
+                <p className="mt-0.5 opacity-90">
+                  {levels.refusal}. Contracts prefilled to 1 — if you traded it anyway, enter what you
+                  actually traded; the row will read as an override.
+                </p>
+              </div>
+            )}
+            {!levels.refusal && levels.stopSource === "plan" && (
+              <p className="text-[10px] text-[var(--color-subtle)]">
+                Stop, T1 and size are the sequence's priced plan — the same numbers as the ticket.
+              </p>
+            )}
+
             {/* Risk sizing readout */}
             <div
               className={cn(
@@ -374,16 +408,16 @@ export function LogSetupDialog({
               </div>
               <div className="flex justify-between">
                 <span>
-                  Allowed ({(gradePct * 100).toFixed(0)}% {gradeLabel} of $
-                  {equity.toLocaleString()})
+                  Allowed ({(gradePct * 100).toFixed(1).replace(/\.0$/, "")}% {gradeLabel}
+                  {probeNote} of ${equity.toLocaleString()})
                 </span>
                 <span>${allowedRisk.toFixed(2)}</span>
               </div>
               {oversized && (
                 <p className="mt-1.5 flex items-center gap-1.5 font-sans font-medium">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Oversized — exceeds the {(gradePct * 100).toFixed(0)}% {gradeLabel} risk
-                  rule. Reduce contracts or tighten the stop.
+                  Oversized — exceeds the {(gradePct * 100).toFixed(1).replace(/\.0$/, "")}% {gradeLabel} risk
+                  rule. Reduce contracts — never tighten the stop to fit the size.
                 </p>
               )}
             </div>

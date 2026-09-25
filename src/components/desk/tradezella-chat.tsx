@@ -521,7 +521,7 @@ function AnalysisCard({
               </div>
             </div>
             <p className="mt-2 text-[10px] text-[var(--color-subtle)]">
-              Paper $100k · A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal · risk-off 50% @1R → BE · RTH walk
+              Paper $100k · A+ 2% probe · A 2% · A- 1% · B+ 0.5% · B paper · C journal · 50% at T1 → BE → runner T2 · RTH walk
             </p>
           </div>
 

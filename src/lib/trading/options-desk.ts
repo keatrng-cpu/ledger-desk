@@ -1099,7 +1099,7 @@ export function evaluateOptionsDesk(
     {
       id: "sleeve",
       ok: cap >= 50,
-      label: `Sleeve $${sleeve.equity.toLocaleString()} · risk ${(sleeve.riskPct * 100).toFixed(0)}% = $${cap} · cut −${Math.round(RH_WORKING_STOP_PCT * 100)}%`,
+      label: `Ticket ≤ $${cap.toLocaleString()} debit · loss budget ${(sleeve.riskPct * 100).toFixed(0)}% of the debit (≤ $${Math.round(cap * sleeve.riskPct)}) · exit on the level, −${Math.round(RH_WORKING_STOP_PCT * 100)}% is the backstop`,
     },
   ];
 
@@ -1127,7 +1127,7 @@ export function evaluateOptionsDesk(
 
 export function optionsDeskPlaybook(): string[] {
   return [
-    "Sleeve $1,000. Debit cap 15% = $150. Working stop is −25% of THAT debit — not 1/3, not the full premium. Sell when futures invalidates or −25%, whichever first.",
+    "Ticket ceiling $1,000 of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.",
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",

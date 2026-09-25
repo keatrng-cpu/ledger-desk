@@ -143,10 +143,10 @@ export interface TradePlan {
    * still drawn — the trader can see the array and the draw — and everything
    * that SIZES or SCORES off the risk refuses instead.
    */
-  /** Stop inside MIN_RISK_ATR x ATR — measured -0.35R to -0.39R, both halves. */
+  /** Stop inside MIN_RISK_ATR x ATR — measured -0.48R/card, both halves. */
   riskTooTight: boolean;
   /**
-   * Stop beyond MAX_RISK_ATR_TRADABLE x ATR — measured -0.086R, both halves.
+   * Stop beyond MAX_RISK_ATR_TRADABLE x ATR — measured -0.12R/card, both halves.
    * Separate from `riskOverCap`, which is the far wider "this invalidation is
    * a structural landmark" refusal. A plan can be inside the cap and still
    * outside the band where expectancy was positive.
@@ -200,52 +200,42 @@ export interface TradePlan {
 /**
  * The floor, as a multiple of ATR(14) on the graded series.
  *
- * Swept against 387 resolved shadow trades: every multiple from 0.10 to 0.50
- * rejects a set that wins far less than the rest, but 0.25 is where two things
- * coincide — the rejected set still wins NOTHING (0 of 31) and what remains
- * has its best expectancy (+0.132R against a +0.062R baseline). By 0.30 the
- * rejected set starts winning (4.9%) and the kept expectancy falls.
- *
- * In-sample on refusals, so it is a floor and not a forecast; the win-rate
- * separation is what carries it (z = -4.49), not the expectancy, whose
- * standard error is far too wide to distinguish +0.132 from +0.062.
+ * History, kept because the number moved twice: 0.25 was first set on 387
+ * shadow refusals (0 of 31 won below it). The four-year capture then showed
+ * every band under 0.5 losing in BOTH halves, so the floor moved to 0.5 and
+ * gained a ceiling (below).
  */
 export const MIN_RISK_ATR = 0.5;
 
 /**
  * And the CEILING, which the original sweep never looked for.
  *
- * Re-measured 2026-09-25 on 3,501 simulated plans from the four-year capture,
- * under the desk's own exits, split in half:
+ * Re-measured 2026-09-25 by scripts/build-evidence-pack.mjs on 3,501 filled
+ * plans from the four-year capture, under the rule AS CODED (limit at CE, 50%
+ * at T1, stop to BE, runner to T2, ties against, the fill bar cannot also
+ * score T1). Mean R per card, day-clustered 95% interval:
  *
- *   risk/ATR      ALL       2022-24    2025-26
- *   <0.25       -0.364R     -0.357     -0.376
- *   0.25-0.4    -0.351R     -0.403     -0.260
- *   0.4-0.5     -0.385R     -0.325     -0.497
- *   0.5-0.75    +0.046R     -0.062     +0.198
- *   0.75-1      +0.142R     +0.207     +0.029
- *   1-1.5       +0.016R     +0.035     -0.018
- *   1.5+        -0.086R     -0.081     -0.096
+ *   risk/ATR     ALL                    2022-24   2025-26   verdict
+ *   <0.5       -0.484 [-0.71, -0.26]    -0.476    -0.498    NEGATIVE
+ *   0.5-0.75   +0.088 [-0.39, +0.57]    -0.145    +0.418    mixed
+ *   0.75-1     +0.077 [-0.24, +0.40]    +0.118    +0.006    mixed
+ *   1-1.5      -0.029 [-0.29, +0.23]    +0.030    -0.137    mixed
+ *   1.5+       -0.120 [-0.23, -0.01]    -0.119    -0.123    NEGATIVE
  *
- * Two things the old 0.25 floor got wrong. It was set too low — every band
- * under 0.5 loses, in BOTH halves — and it had no upper edge at all, while
- * 1.5+ ATR is also negative in both halves. This is a BAND, not a floor.
+ *   inside 0.5-1.5   n=1327  +0.033R  (IS +0.014, OOS +0.066)  mixed
+ *   outside          n=2174  -0.244R  (IS -0.242, OOS -0.248)  NEGATIVE
  *
- * As rules:
- *   floor 0.25 (what shipped)  n=3224  15.5/wk  ALL -0.066R  OOS -0.066
- *   floor 0.50                 n=2769  13.3/wk  ALL -0.017R  OOS -0.022
- *   band  0.50-1.5             n=1325   6.4/wk  ALL +0.059R  OOS +0.058
- *
- * The band is chosen over the tighter variants precisely because it is NOT
- * the best in-sample. 0.60-1.5 reads +0.095 in-sample and +0.001 out;
- * 0.75-1.5 reads +0.099 and -0.000. Those decay, which is what a fitted
- * number does. 0.50-1.5 reads +0.059 and +0.058 — essentially identical
- * across halves it was not chosen on, which is what a real effect does.
+ * CORRECTION to what shipped with this constant (commit 68799e1): the band
+ * was first quoted at +0.059 IS / +0.058 OOS. That came from a simulator that
+ * banked 75% at T1 (the coded rule is 50%) and let the fill bar also score
+ * T1. Under the rule as coded the inside of the band is roughly breakeven and
+ * NOT distinguishable from zero. What survives, in both halves and with an
+ * interval clear of zero, is the OUTSIDE: under 0.5 and over 1.5 lose. The
+ * band's value is the losses it refuses, not an edge inside it.
  *
  * WHAT THIS IS NOT. It is not a direction filter and cannot become one: it
  * reads only |entry - stop| against ATR and never looks at side, bias or
- * score. Nothing here can move the desk's hit rate on direction; it decides
- * which geometries are worth sizing, not which way to face.
+ * score. It decides which geometries are worth sizing, not which way to face.
  */
 export const MAX_RISK_ATR_TRADABLE = 1.5;
 

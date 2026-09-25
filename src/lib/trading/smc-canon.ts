@@ -662,7 +662,7 @@ export function canonCoachLines(stack: CanonStack): string[] {
   if (stack.grade === "A+" || stack.grade === "A") {
     return [
       stack.thesis,
-      "Enter only on the retrace. Stop beyond the raid. 50% off at +1R.",
+      "Enter only on the retrace. Stop beyond the raid. 50% off at T1 (the draw), stop to BE, runner to T2.",
     ];
   }
   if (miss.length) {

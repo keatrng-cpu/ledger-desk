@@ -50,11 +50,18 @@ console.log("the ticket agrees with the plan that made it");
   check("entry is CE, unchanged", t.entry, plan.entry);
   check("stop is the plan's stop, unchanged", t.stop, plan.stop);
   check("T1 and T2 pass through", [t.t1, t.t2], [20140, 20180]);
-  check("grade comes from the shared mapper", t.grade, "A+");
+  // Rule 5: an A+ card sizes at the A probe until the book earns full size,
+  // and an unknown history is not an unlock.
+  check("an A+ card sizes at the probe grade by default", t.grade, "A");
+  check("and says so on the risk line", /A\+ card, probe size/.test(t.lines.risk), true);
   check("it sizes a real position", t.contracts > 0, true);
-  // MNQ point value 2, 20pt stop = $40/contract. A+ is 3% of $100k = $3,000.
-  check("contracts = floor(riskDollars / (riskPts x pointValue))", t.contracts, 75);
-  check("and the risk dollars are the grade's, not a default", t.riskUsd, 3000);
+  // MNQ point value 2, 20pt stop = $40/contract. The probe is 2% of $100k = $2,000.
+  check("contracts = floor(riskDollars / (riskPts x pointValue))", t.contracts, 50);
+  check("and the risk dollars are the probe's, not the unlocked 3%", t.riskUsd, 2000);
+  const unlocked = buildEntryTicket({ plan, confluence: 0.78, equity: 100_000, aPlusUnlocked: true });
+  check("once the book earns it, A+ sizes at A+", unlocked.grade, "A+");
+  check("which is 3% of $100k", unlocked.riskUsd, 3000);
+  check("and 75 contracts", unlocked.contracts, 75);
 }
 
 console.log("\nit says how to MANAGE, which is the whole point");
@@ -79,20 +86,24 @@ console.log("\nit says when the idea is DEAD");
 
 console.log("\nit REFUSES rather than sizing something it should not");
 {
-  const tight = buildEntryTicket({ plan: { ...plan, riskTooTight: true }, confluence: 0.78 });
+  // riskAtr is the ATR the risk was judged against; 20pt / 50 = 0.4 ATR.
+  const tight = buildEntryTicket({ plan: { ...plan, riskTooTight: true, riskAtr: 50 }, confluence: 0.78 });
   check("a stop inside the ATR floor gets no size", tight.contracts, 0);
   check("and no risk dollars", tight.riskUsd, 0);
   check("the line says DO NOT SIZE", /DO NOT SIZE/.test(tight.lines.risk), true);
   check("and names the floor", /0\.5xATR/.test(tight.lines.risk), true);
-  check("with the measured cost beside it", /-0\.35R, both halves/.test(tight.lines.risk), true);
+  // The cost is read from the evidence pack, so the test pins its SHAPE and
+  // its source rather than a number frozen in a literal.
+  check("with the measured cost beside it", /measured -\d\.\d\dR\/card over \d+, both halves/.test(tight.lines.risk), true);
+  check("and the ratio itself", /0\.40xATR/.test(tight.lines.risk), true);
 
-  // The CEILING, added 2026-09-25. 1.5+ ATR measured -0.086R in both halves,
+  // The CEILING, added 2026-09-25. 1.5+ ATR loses in both halves (evidence pack),
   // so the tradable geometry is a BAND and a plan can be inside the far wider
   // structural cap while still sitting outside it.
-  const wide = buildEntryTicket({ plan: { ...plan, riskTooWide: true }, confluence: 0.78 });
+  const wide = buildEntryTicket({ plan: { ...plan, riskTooWide: true, riskAtr: 10 }, confluence: 0.78 });
   check("a stop beyond 1.5xATR gets no size", wide.contracts, 0);
   check("and names the ceiling", /1\.5xATR/.test(wide.lines.risk), true);
-  check("with its measured cost too", /-0\.086R, both halves/.test(wide.lines.risk), true);
+  check("with its measured cost too", /measured -\d\.\d\dR\/card over \d+, both halves/.test(wide.lines.risk), true);
   check("the headline says NO SIZE for it as well", /NO SIZE/.test(ticketHeadline(wide)), true);
   check("the headline says NO SIZE so a glance cannot misread it", /NO SIZE/.test(ticketHeadline(tight)), true);
 
@@ -108,10 +119,12 @@ console.log("\nit REFUSES rather than sizing something it should not");
   // budget cannot pay for up to one does not make it affordable. This pins the
   // ticket's own refusal so it can never re-inherit the floor.
   check("and it prices the refusal in dollars", /one contract risks \$/.test(huge.lines.risk), true);
+  // $40 of risk per contract against the 2% probe: $2,000 of equity is the
+  // smallest account that can pay for one.
   check("a barely-affordable stop still sizes", buildEntryTicket({
     plan: { ...plan, stop: 20080, riskPts: 20 },
     confluence: 0.78,
-    equity: 1400,
+    equity: 2000,
   }).contracts, 1);
 }
 
@@ -120,7 +133,7 @@ console.log("\nthe headline is glanceable");
   const t = buildEntryTicket({ plan, confluence: 0.78 });
   const h = ticketHeadline(t);
   check("it carries entry and stop", /20100\.00.*20080\.00/.test(h), true);
-  check("and the size", /75x/.test(h), true);
+  check("and the size", /50x/.test(h), true);
   check("and stays short", h.length < 70, true);
 }
 

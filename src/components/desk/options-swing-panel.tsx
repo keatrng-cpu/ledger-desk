@@ -141,7 +141,7 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
             <th className="font-medium">Tenor</th>
             <th className="font-medium">Single</th>
             <th className="font-medium">Spread</th>
-            <th className="font-medium">$150</th>
+            <th className="font-medium" title="Fits inside the $1,000 ticket ceiling">≤ $1,000</th>
           </tr>
         </thead>
         <tbody>
@@ -204,7 +204,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              $1,000 sleeve · cut −25% of debit · Databento $199/mo first · not the $100k book
+              ≤ $1,000 debit · loss capped 15% of the debit · exit on the futures level · Databento $199/mo first · not the $100k book
             </p>
           </div>
         </div>

@@ -1403,10 +1403,10 @@ export async function runWeekBacktest(
     {
       item: "Risk model $100k · 0.5–3% by grade",
       status: "pass",
-      detail: "A+ 3% · A 2% · A- 1% · B+ 0.5% · B paper · C journal",
+      detail: "A+ 2% probe (3% once earned) · A 2% · A- 1% · B+ 0.5% · B paper · C journal",
     },
     {
-      item: "Take risk off @ +1R",
+      item: "Take risk off at T1",
       status: "pass",
       detail: "50% banked at TP1 · stop to BE · runner to TP2 (open risk ≈ 0)",
     },
