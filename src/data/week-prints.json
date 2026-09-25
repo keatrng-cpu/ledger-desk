@@ -110,5 +110,12 @@
     "actual": "197k",
     "vs": "exp 201k / prev 196k",
     "note": "Week ending Sep 19. 4-wk avg 202.25k. Continuing 1.719M vs ~1.74M. Soft-to-in-line; not a labor-break. No ISM/JOLTS/ADP/NFP today."
+  },
+  {
+    "date": "2026-09-25",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "—",
+    "vs": "none scheduled today",
+    "note": "Labor/ISM slate is next week (JOLTS Tue 29, ADP/PCE Wed 30, ISM/claims Thu Oct 1, NFP Fri Oct 2). Today: durables 0.0% vs -0.3%; core ex-trans 0.3% vs 0.6%; UMich final 48.1 vs ~47.8. Not stamped as those series."
   }
 ]
