@@ -480,6 +480,7 @@ function chasePlan(s: Snapshot): TradePlan | null {
     // The replay builds its own plan shape and has no ATR to judge against,
     // so it makes no claim either way rather than asserting the stop is fine.
     riskTooTight: false,
+    riskTooWide: false,
     riskAtr: null,
     riskOverCap: false,
     t1,

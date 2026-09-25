@@ -107,7 +107,14 @@ export function buildEntryTicket(input: {
   //    returned count, because the floor has already hidden the count.
   const onePerContractUsd = plan.riskPts * sized.pv;
   const unaffordable = onePerContractUsd > sized.riskDollars;
-  const unsizeable = plan.riskTooTight === true || unaffordable || sized.contracts < 1;
+  // 3. Outside the measured band. 0.5-1.5x ATR is where expectancy was
+  //    positive in BOTH halves of the four-year tape (+0.059 IS / +0.058 OOS);
+  //    under 0.5 loses -0.35R and over 1.5 loses -0.086R, both replicated.
+  const unsizeable =
+    plan.riskTooTight === true ||
+    plan.riskTooWide === true ||
+    unaffordable ||
+    sized.contracts < 1;
   const contracts = unsizeable ? 0 : sized.contracts;
 
   const dir = plan.side === "long" ? "LONG" : "SHORT";
@@ -118,7 +125,9 @@ export function buildEntryTicket(input: {
   const riskLine = unsizeable
     ? `DO NOT SIZE — ${
         plan.riskTooTight
-          ? "stop is inside the 0.25xATR floor"
+          ? "stop is inside the 0.5xATR floor - measured -0.35R, both halves"
+          : plan.riskTooWide
+            ? "stop is beyond 1.5xATR - measured -0.086R, both halves"
           : `one contract risks $${Math.round(onePerContractUsd)} against a $${Math.round(sized.riskDollars)} budget`
       }. No ticket.`
     : `${contracts} contract${contracts === 1 ? "" : "s"} · stop ${px(plan.stop)} (${plan.riskPts.toFixed(2)}pt) · risk $${Math.round(sized.riskDollars)} · grade ${grade}`;

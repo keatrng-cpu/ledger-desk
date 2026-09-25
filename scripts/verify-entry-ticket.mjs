@@ -83,7 +83,17 @@ console.log("\nit REFUSES rather than sizing something it should not");
   check("a stop inside the ATR floor gets no size", tight.contracts, 0);
   check("and no risk dollars", tight.riskUsd, 0);
   check("the line says DO NOT SIZE", /DO NOT SIZE/.test(tight.lines.risk), true);
-  check("and names the floor", /0\.25xATR/.test(tight.lines.risk), true);
+  check("and names the floor", /0\.5xATR/.test(tight.lines.risk), true);
+  check("with the measured cost beside it", /-0\.35R, both halves/.test(tight.lines.risk), true);
+
+  // The CEILING, added 2026-09-25. 1.5+ ATR measured -0.086R in both halves,
+  // so the tradable geometry is a BAND and a plan can be inside the far wider
+  // structural cap while still sitting outside it.
+  const wide = buildEntryTicket({ plan: { ...plan, riskTooWide: true }, confluence: 0.78 });
+  check("a stop beyond 1.5xATR gets no size", wide.contracts, 0);
+  check("and names the ceiling", /1\.5xATR/.test(wide.lines.risk), true);
+  check("with its measured cost too", /-0\.086R, both halves/.test(wide.lines.risk), true);
+  check("the headline says NO SIZE for it as well", /NO SIZE/.test(ticketHeadline(wide)), true);
   check("the headline says NO SIZE so a glance cannot misread it", /NO SIZE/.test(ticketHeadline(tight)), true);
 
   // A stop so wide that one contract exceeds the budget.

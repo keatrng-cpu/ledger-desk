@@ -143,7 +143,15 @@ export interface TradePlan {
    * still drawn — the trader can see the array and the draw — and everything
    * that SIZES or SCORES off the risk refuses instead.
    */
+  /** Stop inside MIN_RISK_ATR x ATR — measured -0.35R to -0.39R, both halves. */
   riskTooTight: boolean;
+  /**
+   * Stop beyond MAX_RISK_ATR_TRADABLE x ATR — measured -0.086R, both halves.
+   * Separate from `riskOverCap`, which is the far wider "this invalidation is
+   * a structural landmark" refusal. A plan can be inside the cap and still
+   * outside the band where expectancy was positive.
+   */
+  riskTooWide: boolean;
   /** ATR(14) the risk was judged against, for the message. Null without bars. */
   riskAtr: number | null;
   /** True when risk exceeds this symbol's cap — the plan is real but too wide. */
@@ -202,7 +210,44 @@ export interface TradePlan {
  * separation is what carries it (z = -4.49), not the expectancy, whose
  * standard error is far too wide to distinguish +0.132 from +0.062.
  */
-export const MIN_RISK_ATR = 0.25;
+export const MIN_RISK_ATR = 0.5;
+
+/**
+ * And the CEILING, which the original sweep never looked for.
+ *
+ * Re-measured 2026-09-25 on 3,501 simulated plans from the four-year capture,
+ * under the desk's own exits, split in half:
+ *
+ *   risk/ATR      ALL       2022-24    2025-26
+ *   <0.25       -0.364R     -0.357     -0.376
+ *   0.25-0.4    -0.351R     -0.403     -0.260
+ *   0.4-0.5     -0.385R     -0.325     -0.497
+ *   0.5-0.75    +0.046R     -0.062     +0.198
+ *   0.75-1      +0.142R     +0.207     +0.029
+ *   1-1.5       +0.016R     +0.035     -0.018
+ *   1.5+        -0.086R     -0.081     -0.096
+ *
+ * Two things the old 0.25 floor got wrong. It was set too low — every band
+ * under 0.5 loses, in BOTH halves — and it had no upper edge at all, while
+ * 1.5+ ATR is also negative in both halves. This is a BAND, not a floor.
+ *
+ * As rules:
+ *   floor 0.25 (what shipped)  n=3224  15.5/wk  ALL -0.066R  OOS -0.066
+ *   floor 0.50                 n=2769  13.3/wk  ALL -0.017R  OOS -0.022
+ *   band  0.50-1.5             n=1325   6.4/wk  ALL +0.059R  OOS +0.058
+ *
+ * The band is chosen over the tighter variants precisely because it is NOT
+ * the best in-sample. 0.60-1.5 reads +0.095 in-sample and +0.001 out;
+ * 0.75-1.5 reads +0.099 and -0.000. Those decay, which is what a fitted
+ * number does. 0.50-1.5 reads +0.059 and +0.058 — essentially identical
+ * across halves it was not chosen on, which is what a real effect does.
+ *
+ * WHAT THIS IS NOT. It is not a direction filter and cannot become one: it
+ * reads only |entry - stop| against ATR and never looks at side, bias or
+ * score. Nothing here can move the desk's hit rate on direction; it decides
+ * which geometries are worth sizing, not which way to face.
+ */
+export const MAX_RISK_ATR_TRADABLE = 1.5;
 
 export interface BuildPlanInput {
   symbol: string;
@@ -384,6 +429,8 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
    */
   const atr = input.bars && input.bars.length > 20 ? atrOf(input.bars, 14) : null;
   const riskTooTight = atr != null && atr > 0 && riskPts < atr * MIN_RISK_ATR;
+  const riskTooWide =
+    atr != null && atr > 0 && riskPts > atr * MAX_RISK_ATR_TRADABLE;
   // A zero-width stop cannot be sized or scored; treat it as no plan rather
   // than emitting an R of Infinity downstream.
   if (!(riskPts > 0)) return null;
@@ -458,6 +505,7 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
     stop,
     riskPts,
     riskTooTight,
+    riskTooWide,
     riskAtr: atr,
     riskOverCap: riskPts > maxRiskFor(symbol, atr),
     t1,
