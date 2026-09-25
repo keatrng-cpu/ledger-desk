@@ -15,6 +15,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
+import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
 
@@ -48,6 +49,11 @@ const ApiCronWeeklyRoute = ApiCronWeeklyRouteImport.update({
   path: '/api/cron/weekly',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeskHandoffRoute = ApiDeskHandoffRouteImport.update({
+  id: '/api/desk/handoff',
+  path: '/api/desk/handoff',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEngineHeartbeatRoute = ApiEngineHeartbeatRouteImport.update({
   id: '/api/engine/heartbeat',
   path: '/api/engine/heartbeat',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
+    | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
+    | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/review'
     | '/api/cron/weekly'
+    | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
+  ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronWeeklyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/desk/handoff': {
+      id: '/api/desk/handoff'
+      path: '/api/desk/handoff'
+      fullPath: '/api/desk/handoff'
+      preLoaderRoute: typeof ApiDeskHandoffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/engine/heartbeat': {
       id: '/api/engine/heartbeat'
       path: '/api/engine/heartbeat'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
+  ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
 }
