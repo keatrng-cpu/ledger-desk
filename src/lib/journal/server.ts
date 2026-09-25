@@ -16,6 +16,7 @@ import { authMiddleware } from "@/lib/auth/middleware";
 import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 import { computeTradePnl, isKnownSymbol } from "./pnl";
 import { appendAttestation } from "./attest-server";
+import { EXIT_REASON_IDS, MISTAKE_IDS } from "./discipline";
 import { getSessionClock } from "@/lib/trading/sessions";
 import { sendAlert, haltHitAlert } from "@/lib/alerts/send-server";
 import {
@@ -23,6 +24,7 @@ import {
   monthKeyFromMs,
   pathTakeGate,
   PATH_MONTH_CAP,
+  aPlusFullSizeUnlocked,
   type BookCounters,
   type PathGateResult,
 } from "@/lib/trading/profit-rules";
@@ -75,6 +77,28 @@ export interface JournalTrade {
   killzone: string | null;
   componentsPresent: string[] | null;
   componentsMissing: string[] | null;
+  /* --- Real-fill context (migrations/0015). Null on rows written before it. --- */
+  /** The sequence's word for this book and side at the moment of the decision. */
+  deskWord: string | null;
+  /** Must-layers that were not passing — the gates this trade went through. */
+  missingLayers: string[] | null;
+  /** Taken against the desk: word not TAKE, or a gate that would have refused. */
+  override: boolean;
+  /** The refusal the gate WOULD have given, verbatim. */
+  overrideGate: string | null;
+  pathBand: string | null;
+  /** The trader's one-line reason. */
+  why: string | null;
+  /** Written before the outcome was known? */
+  whyPre: boolean | null;
+  planEntry: number | null;
+  planStop: number | null;
+  /** When the fill actually happened, which is not when it was logged. */
+  filledAt: string | null;
+  /** Pre-click state, 1 calm … 5 tilted (journal/discipline.ts STATE_SCALE). */
+  stateRating: number | null;
+  mistakes: string[] | null;
+  exitReason: string | null;
 }
 
 /** JSON-safe value — matches what jsonb can hold and what server fns may return. */
@@ -128,6 +152,19 @@ type TradeRow = {
   killzone: string | null;
   components_present: unknown;
   components_missing: unknown;
+  desk_word?: string | null;
+  missing_layers?: unknown;
+  override?: boolean | null;
+  override_gate?: string | null;
+  path_band?: string | null;
+  why?: string | null;
+  why_pre?: boolean | null;
+  plan_entry?: number | null;
+  plan_stop?: number | null;
+  filled_at?: string | Date | null;
+  state_rating?: number | null;
+  mistakes?: unknown;
+  exit_reason?: string | null;
 };
 
 function iso(v: string | Date): string {
@@ -164,13 +201,28 @@ function mapTrade(row: TradeRow): JournalTrade {
     killzone: row.killzone,
     componentsPresent: stringArray(row.components_present),
     componentsMissing: stringArray(row.components_missing),
+    deskWord: row.desk_word ?? null,
+    missingLayers: stringArray(row.missing_layers),
+    override: row.override === true,
+    overrideGate: row.override_gate ?? null,
+    pathBand: row.path_band ?? null,
+    why: row.why ?? null,
+    whyPre: row.why_pre ?? null,
+    planEntry: row.plan_entry ?? null,
+    planStop: row.plan_stop ?? null,
+    filledAt: row.filled_at == null ? null : iso(row.filled_at),
+    stateRating: row.state_rating ?? null,
+    mistakes: stringArray(row.mistakes),
+    exitReason: row.exit_reason ?? null,
   };
 }
 
 const TRADE_COLUMNS = `id, mode, source, symbol, side, status, opened_at,
   closed_at, entry, stop, target, exit, contracts, pnl, r, commission,
   slippage, reason, prescore, grade, killzone, components_present,
-  components_missing`;
+  components_missing, desk_word, missing_layers, override, override_gate,
+  path_band, why, why_pre, plan_entry, plan_stop, filled_at, state_rating,
+  mistakes, exit_reason`;
 
 /* ------------------------------------------------------------------ */
 /* Settings                                                           */
@@ -751,6 +803,10 @@ const closeTradeSchema = z.object({
   exit: price,
   slippage: z.number().finite().min(0).max(100_000).default(0),
   reason: z.string().max(500).optional(),
+  /** journal/discipline.ts EXIT_REASONS — why it ended, in the fixed vocabulary. */
+  exitReason: z.enum(EXIT_REASON_IDS).optional(),
+  /** journal/discipline.ts MISTAKE_TAGS — added to any already on the row. */
+  mistakes: z.array(z.enum(MISTAKE_IDS)).max(10).optional(),
 });
 
 export type CloseTradeInput = z.input<typeof closeTradeSchema>;
@@ -788,7 +844,10 @@ export const closeTrade = createServerFn({ method: "POST" })
       `update desk_trades
        set status = 'closed', closed_at = $1, exit = $2, pnl = $3, r = $4,
            commission = $5, slippage = $6,
-           reason = coalesce($7, reason)
+           reason = coalesce($7, reason),
+           exit_reason = coalesce($10, exit_reason),
+           mistakes = case when $11::jsonb is null then mistakes
+                           else coalesce(mistakes, '[]'::jsonb) || $11::jsonb end
        where id = $8 and user_id = $9 and status = 'open'
        returning ${TRADE_COLUMNS}`,
       [
@@ -801,6 +860,8 @@ export const closeTrade = createServerFn({ method: "POST" })
         data.reason ?? null,
         data.id,
         context.userId,
+        data.exitReason ?? null,
+        data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
       ],
     );
     if (!rows[0]) throw new Error("Open trade not found");
@@ -818,6 +879,243 @@ export const closeTrade = createServerFn({ method: "POST" })
     await appendAttestation(sql, { ...rows[0], user_id: context.userId }, "close");
 
     return mapTrade(rows[0]);
+  });
+
+/* ------------------------------------------------------------------ */
+/* Book counters — the profit-rule state, visible                      */
+/* ------------------------------------------------------------------ */
+
+export interface BookCountersView {
+  mode: "live" | "paper";
+  pathThisMonth: number;
+  pathCap: number;
+  aPlusTaken: number;
+  aPlusWins: number;
+  /** n >= 20 closed A+ at WR >= 65% — rule 5's unlock. */
+  aPlusUnlocked: boolean;
+  consecLosses: number;
+  bookTakenToday: string | null;
+}
+
+/**
+ * The counters the open gate reads — PATH this month against the cap, the
+ * A+ unlock sample, the loss streak, today's book — which were computed on
+ * every open and shown nowhere. A cap you cannot see is a cap you hit by
+ * surprise.
+ */
+export const getBookCounters = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z.object({ mode: z.enum(["live", "paper"]).default("live") }).parse(input ?? {}),
+  )
+  .middleware([authMiddleware])
+  .handler(async ({ data, context }): Promise<BookCountersView> => {
+    const sql = await getSql();
+    const { counters, bookTakenToday } = await readBookCounters(sql, context.userId, data.mode, new Date());
+    return {
+      mode: data.mode,
+      pathThisMonth: counters.pathThisMonth,
+      pathCap: PATH_MONTH_CAP,
+      aPlusTaken: counters.aPlusTaken,
+      aPlusWins: counters.aPlusWins,
+      aPlusUnlocked: aPlusFullSizeUnlocked(counters),
+      consecLosses: counters.consecLosses,
+      bookTakenToday: bookTakenToday ?? null,
+    };
+  });
+
+/* ------------------------------------------------------------------ */
+/* Real fills — recorded, never refused                                */
+/* ------------------------------------------------------------------ */
+
+const isoTime = z.string().datetime({ offset: true });
+
+const realFillSchema = z
+  .object({
+    symbol: symbolSchema,
+    side: sideSchema,
+    /** The ACTUAL fill — not the plan's CE. The two are kept apart below. */
+    entry: price,
+    stop: price.optional(),
+    target: price.optional(),
+    contracts: z.number().int().min(1).max(1000),
+    filledAt: isoTime.optional(),
+    /** Optional: record a finished trade in one go. */
+    exit: price.optional(),
+    exitedAt: isoTime.optional(),
+    exitReason: z.enum(EXIT_REASON_IDS).optional(),
+    slippage: z.number().finite().min(0).max(100_000).default(0),
+    /* --- the decision, as the desk saw it --- */
+    deskWord: z.enum(["TAKE", "WAIT", "STAND"]).optional(),
+    missingLayers: z.array(z.string().max(64)).max(16).optional(),
+    pathBand: z.enum(["A+", "A", "A-", "B+", "B", "C", "skip"]).optional(),
+    planEntry: price.optional(),
+    planStop: price.optional(),
+    why: z.string().max(500).optional(),
+    whyPre: z.boolean().optional(),
+    stateRating: z.number().int().min(1).max(5).optional(),
+    mistakes: z.array(z.enum(MISTAKE_IDS)).max(10).optional(),
+    prescore: z.number().min(0).max(1).optional(),
+    killzone: z.string().max(32).optional(),
+    strategyPrimary: z.string().max(64).optional(),
+    regime: z.string().max(32).optional(),
+    reason: z.string().max(500).optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.stop != null && !(v.side === "long" ? v.stop < v.entry : v.stop > v.entry)) {
+      ctx.addIssue({ code: "custom", path: ["stop"], message: `Stop must be ${v.side === "long" ? "below" : "above"} the fill for a ${v.side}` });
+    }
+  });
+
+export type RealFillInput = z.input<typeof realFillSchema>;
+
+/**
+ * Record a fill that already happened. NEVER refuses on a desk rule.
+ *
+ * `openTrade` is the gate for an order the desk is about to place, and it
+ * refuses halts, killzone caps, pathTakeGate and a second open position.
+ * Applied to a FILL, that refusal is a lie by omission: the trade happened,
+ * and the rows it drops are the overrides — the only rows that can tell a
+ * mis-tuned gate from a discipline leak. So this runs the same gates purely
+ * to RECORD what they would have said (`override_gate`) and inserts anyway.
+ *
+ * Live only. Paper keeps `openTrade`, where refusing is the point.
+ */
+export const recordRealFill = createServerFn({ method: "POST" })
+  .validator((input: unknown) => realFillSchema.parse(input))
+  .middleware([authMiddleware])
+  .handler(async ({ data, context }): Promise<JournalTrade> => {
+    const sql = await getSql();
+    if (!isKnownSymbol(data.symbol)) throw new Error(`Unknown contract symbol: ${data.symbol}`);
+
+    // What the gates WOULD have said — recorded, never enforced here.
+    let gate: string | null = null;
+    try {
+      const risk = await computeLiveRiskState(sql, context.userId);
+      if (risk.dailyHaltHit) gate = `Daily halt: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}`;
+      else if (risk.weeklyHaltHit) gate = `Weekly halt: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}`;
+      else if (risk.killzoneCapHit) gate = `Killzone cap: ${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}`;
+      if (!gate) {
+        await assertOpenAllowed(sql, context.userId, {
+          symbol: data.symbol,
+          side: data.side,
+          entry: data.entry,
+          stop: data.stop,
+          contracts: data.contracts,
+          mode: "live",
+          source: "desk",
+          pathBand: data.pathBand,
+          strategyPrimary: data.strategyPrimary,
+          prescore: data.prescore,
+          reason: data.reason,
+        } as Parameters<typeof assertOpenAllowed>[2]);
+      }
+    } catch (e) {
+      gate = e instanceof Error ? e.message : String(e);
+    }
+    const override = gate != null || (data.deskWord != null && data.deskWord !== "TAKE");
+
+    const openedAt = data.filledAt ? new Date(data.filledAt) : new Date();
+    const closing = data.exit != null;
+    const closedAt = closing ? (data.exitedAt ? new Date(data.exitedAt) : new Date()) : null;
+    const money = closing
+      ? computeTradePnl({
+          symbol: data.symbol,
+          side: data.side,
+          entry: data.entry,
+          exit: data.exit!,
+          stop: data.stop ?? null,
+          contracts: data.contracts,
+          slippage: data.slippage,
+        })
+      : null;
+
+    if (!closing) {
+      const existing = await sql.query<{ id: string }>(
+        `select id from desk_trades
+          where user_id = $1 and mode = 'live' and symbol = $2 and side = $3 and status = 'open'`,
+        [context.userId, data.symbol, data.side],
+      );
+      if (existing.length) {
+        throw new Error(
+          `An open live ${data.side} in ${data.symbol} is already recorded. Close it (Book › Journal) first, or record this one with its exit.`,
+        );
+      }
+    }
+
+    const id = crypto.randomUUID();
+    const rows = await sql.query<TradeRow>(
+      `insert into desk_trades (
+         id, user_id, mode, source, symbol, side, status, opened_at, closed_at,
+         entry, stop, target, exit, contracts, pnl, r, commission, slippage,
+         reason, prescore, grade, killzone, strategy, regime,
+         desk_word, missing_layers, override, override_gate, path_band, why,
+         why_pre, plan_entry, plan_stop, filled_at, state_rating, mistakes, exit_reason
+       ) values (
+         $1, $2, 'live', 'desk', $3, $4, $5, $6, $7,
+         $8, $9, $10, $11, $12, $13, $14, $15, $16,
+         $17, $18, $19, $20, $21, $22,
+         $23, $24::jsonb, $25, $26, $27, $28,
+         $29, $30, $31, $32, $33, $34::jsonb, $35
+       )
+       returning ${TRADE_COLUMNS}`,
+      [
+        id,
+        context.userId,
+        data.symbol,
+        data.side,
+        closing ? "closed" : "open",
+        openedAt,
+        closedAt,
+        data.entry,
+        data.stop ?? null,
+        data.target ?? null,
+        data.exit ?? null,
+        data.contracts,
+        money?.pnl ?? null,
+        money?.r ?? null,
+        money?.commission ?? 0,
+        data.slippage,
+        data.reason ?? null,
+        data.prescore ?? null,
+        // `grade` keeps the path band's coarse form for the legacy counters.
+        data.pathBand === "A" ? "A-" : data.pathBand === "C" ? "skip" : (data.pathBand ?? null),
+        data.killzone ?? null,
+        data.strategyPrimary?.toLowerCase() ?? strategyFromReason(data.reason) ?? null,
+        data.regime ?? null,
+        data.deskWord ?? null,
+        data.missingLayers ? JSON.stringify(data.missingLayers) : null,
+        override,
+        gate,
+        data.pathBand ?? null,
+        data.why ?? null,
+        data.whyPre ?? null,
+        data.planEntry ?? null,
+        data.planStop ?? null,
+        openedAt,
+        data.stateRating ?? null,
+        data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
+        data.exitReason ?? null,
+      ],
+    );
+
+    await sql`
+      insert into desk_events (user_id, ts, event, symbol, prescore, reason, source, payload)
+      values (${context.userId}, ${openedAt}, 'ENTRY', ${data.symbol},
+              ${data.prescore ?? null},
+              ${`REAL FILL ${data.side} ${data.contracts}x @ ${data.entry}${override ? " · OVERRIDE" : ""}`},
+              'desk',
+              ${JSON.stringify({ tradeId: id, side: data.side, entry: data.entry, stop: data.stop ?? null, deskWord: data.deskWord ?? null, override, gate })}::jsonb)`;
+    await appendAttestation(sql, { ...rows[0]!, user_id: context.userId }, "open");
+    if (closing) {
+      await sql`
+        insert into desk_events (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
+        values (${context.userId}, ${closedAt}, 'EXIT', ${data.symbol},
+                ${data.prescore ?? null}, ${data.exitReason ?? `exit @ ${data.exit}`},
+                ${money!.pnl}, ${money!.r}, 'desk',
+                ${JSON.stringify({ tradeId: id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
+      await appendAttestation(sql, { ...rows[0]!, user_id: context.userId }, "close");
+    }
+    return mapTrade(rows[0]!);
   });
 
 /* ------------------------------------------------------------------ */

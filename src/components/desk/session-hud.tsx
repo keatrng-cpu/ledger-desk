@@ -8,6 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import type { RiskState } from "@/lib/journal/risk";
 import { NewsChip } from "@/components/desk/news-chip";
 import {
   subscribeGhosts,
@@ -75,10 +76,16 @@ export function SessionHud({
   desk,
   wallNow,
   children,
+  liveRisk,
 }: {
   desk: DeskPayload;
   wallNow: string;
   children?: ReactNode;
+  /**
+   * The live governor's state (journal/risk.ts), when signed in. Drives the
+   * halt-room chip: dollars left before today's halt, in losses at A.
+   */
+  liveRisk?: RiskState | null;
 }) {
   const { clock, risk, scan, quotes, left, right, brief, smtStack } = desk;
   const [ghosts, setGhosts] = useState<GhostTrade[]>(() => todayGhosts());
@@ -295,6 +302,31 @@ export function SessionHud({
           <ShieldAlert className="h-3.5 w-3.5 text-[var(--color-warn)]" />
           Risk ${risk.riskDollars.toFixed(0)} · floor {risk.floor}
         </div>
+
+        {/* HALT ROOM, in losses. An A loss is 2% and the daily halt is 2%,
+            so ONE full A loss halts the day — "2 per killzone" is really one
+            loss at A. The governor knew; nothing on screen said it. */}
+        {liveRisk && (() => {
+          const room = Math.max(0, liveRisk.dailyLimit + Math.min(0, liveRisk.dayPnl));
+          const perA = liveRisk.equity * 0.02;
+          const lossesAtA = perA > 0 ? Math.floor(room / perA) : 0;
+          const tone =
+            liveRisk.dailyHaltHit || room <= 0
+              ? "text-[var(--color-down)] border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))]"
+              : lossesAtA < 1
+                ? "text-[var(--color-warn)] border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]"
+                : "text-[var(--color-muted)] border-[var(--color-border)]";
+          return (
+            <div
+              title={`Today ${liveRisk.dayPnl >= 0 ? "+" : "−"}$${Math.abs(Math.round(liveRisk.dayPnl)).toLocaleString()} against a $${Math.round(liveRisk.dailyLimit).toLocaleString()} daily halt. One A loss is $${Math.round(perA).toLocaleString()} (2%).`}
+              className={`flex items-center gap-1.5 rounded-full border bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] ${tone}`}
+            >
+              {liveRisk.dailyHaltHit
+                ? "HALTED today"
+                : `Halt room $${Math.round(room).toLocaleString()} · ${lossesAtA} loss${lossesAtA === 1 ? "" : "es"} at A`}
+            </div>
+          );
+        })()}
 
         <div className="ml-auto flex flex-wrap items-center gap-2 font-mono text-[11px]">
           <QuoteChip

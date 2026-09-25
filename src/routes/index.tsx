@@ -26,6 +26,9 @@ import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
 import { BridgeStatus } from "@/components/bridge/bridge-status";
 import { HaltBanner } from "@/components/journal/halt-banner";
 import { JournalPanel } from "@/components/journal/journal-panel";
+import { DisciplinePanel } from "@/components/journal/discipline-panel";
+import { TakeMomentsPanel } from "@/components/desk/take-moments-panel";
+import { markTakeAction, observeTakeMoments, tickMomentOutcomes } from "@/lib/trading/take-moments";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
 import { PaperBookPanel } from "@/components/desk/paper-book-panel";
 import { TradeDebriefPanel } from "@/components/desk/trade-debrief-panel";
@@ -63,7 +66,7 @@ import { InvestPanel } from "@/components/desk/invest-panel";
 import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
-import { buildTradeNote } from "@/lib/trading/trade-note";
+import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
 import {
   getPaperAccount,
   formatPaperChip,
@@ -205,6 +208,10 @@ function mirrorClosedPaperTrades(closed: PaperTrade[]): void {
         closedAt: new Date(t.closedAt ?? Date.now()).toISOString(),
         contracts: t.contracts,
         reason: t.exitReason ?? "paper exit",
+        // Every leg, so Postgres prices the scale-out the way the book did.
+        legs: (t.scaleLegs ?? [])
+          .filter((l) => l.price > 0 && l.contracts > 0)
+          .map((l) => ({ price: l.price, contracts: l.contracts })),
       },
     }).catch(() => undefined);
 
@@ -1147,6 +1154,21 @@ function MasterplacePage() {
             /* */
           }
           try {
+            // The hesitation ledger: record the instant the desk says now
+            // (take-moments.ts), and resolve older moments on the desk's own
+            // bars — minute tape when the gateway is up, else the 15m.
+            observeTakeMoments([next.smcMaster.left, next.smcMaster.right], {
+              [next.left.symbol]: next.quotes.left.price,
+              [next.right.symbol]: next.quotes.right.price,
+            });
+            tickMomentOutcomes({
+              [next.left.symbol]: next.mtf?.left?.minute?.length ? next.mtf.left.minute : next.left.bars,
+              [next.right.symbol]: next.mtf?.right?.minute?.length ? next.mtf.right.minute : next.right.bars,
+            });
+          } catch {
+            /* the ledger must never break the quote poll */
+          }
+          try {
             observeShadowBook(next);
           } catch {
             /* */
@@ -1285,6 +1307,7 @@ function MasterplacePage() {
         );
         const res = restPaperLimit(c, disc.factor);
         if (res.ok) {
+          if (!res.already) markTakeAction(c.symbol, c.side === "short" ? "short" : "long", "rested");
           const o = res.order;
           setPaperToast(
             `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side.toUpperCase()} @ ${o.limit.toFixed(2)} (CE) · SL ${o.stop.toFixed(2)}` +
@@ -1516,7 +1539,7 @@ function MasterplacePage() {
           </div>
         )}
         {desk && (
-          <SessionHud desk={desk} wallNow={wallNow}>
+          <SessionHud desk={desk} wallNow={wallNow} liveRisk={risk}>
             <PathAlarmBar desk={desk} />
             <nav
               className="mx-auto mt-2 max-w-7xl overflow-x-auto"
@@ -1779,6 +1802,13 @@ function MasterplacePage() {
                   />
                   <JournalPanel onChanged={() => void loadRisk()} />
                   <SectionHead
+                    n="B1"
+                    title="Discipline"
+                    sub="Real fills, priced by the rule each one kept or broke · no score, no streak"
+                  />
+                  <DisciplinePanel />
+                  <TakeMomentsPanel />
+                  <SectionHead
                     n="B2"
                     title="Shadow book"
                     sub="The refusals, paper-traded · gate scorecard · the little things"
@@ -1863,6 +1893,7 @@ function MasterplacePage() {
             onOpenChange={(o) => !o && setLogCandidate(null)}
             onLogged={(trade) => {
               void loadRisk();
+              if (trade.mode === "live") markTakeAction(trade.symbol, trade.side, "logged_live");
               // Freeze decision-time context against this trade. Reviewing a
               // loss later from a chart that already shows the outcome is
               // hindsight, not review.
@@ -1889,6 +1920,9 @@ function MasterplacePage() {
                       draws: desk.draws,
                       levels: desk.levels,
                       news: desk.news,
+                      // The sequence's word, layers and plan — what TAKE/STAND
+                      // actually rests on. The snapshot left it out.
+                      smc: { left: desk.smcMaster.left, right: desk.smcMaster.right },
                     } as never,
                   },
                 }).catch(() => undefined);
@@ -1910,6 +1944,20 @@ function MasterplacePage() {
                 ? brainSnap.vetoes
                 : undefined
             }
+            // The sequence's read on THIS card's book and side, frozen at the
+            // moment the dialog opens — recorded with a real fill as the
+            // override record (desk word + the gates it went through).
+            deskContext={(() => {
+              const book = [desk?.smcMaster?.left, desk?.smcMaster?.right].find(
+                (b) => b?.symbol === logCandidate.symbol && b?.side === logCandidate.side,
+              );
+              return {
+                deskWord: book?.word ?? null,
+                missingLayers: missingLayers(book?.layers),
+                planEntry: book?.plan?.entry ?? null,
+                planStop: book?.plan?.stop ?? null,
+              };
+            })()}
           />
         )}
 

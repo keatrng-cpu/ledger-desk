@@ -121,7 +121,10 @@ export function RiskPanel({
   const rows = [
     ["Account equity", `$${equity.toLocaleString()}`],
     ["Paper equity", `$${Math.round(paper.equity).toLocaleString()} (start $${paper.startEquity.toLocaleString()} · peak $${Math.round(paper.peakEquity).toLocaleString()} · DD ${paper.drawdownPct}%)`],
-    ["Paper book", `PATH ${paper.pathTaken} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(2)} · PnL $${paper.sumUsd.toFixed(0)}`],
+    // Two different samples, labelled apart. `pathTaken`/`sumR` carry the
+    // 2024 year-study seed; only `paperTaken` is fills this book actually made.
+    ["Paper fills", `${paper.paperTaken} live paper fill${paper.paperTaken === 1 ? "" : "s"}${paper.paperTaken ? ` · WR ${Math.round(((paper.paperWins ?? 0) / paper.paperTaken) * 100)}%` : ""}`],
+    ["Backtest memory", `${paper.pathTaken} seeded/backtest PATH · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(2)} — history, not this book`],
     ["Risk / trade", `A+ ${(APLUS_PROBE_RISK * 100).toFixed(0)}% probe (3% once earned) · A 2% · A- 1% · B+ 0.5% · B paper · C journal`],
     ["$ risk band", `$${(equity * 0.01).toFixed(0)}–$${(equity * APLUS_RULES.riskPctCeiling).toFixed(0)} on $${equity.toLocaleString()}`],
     ["Ceiling", `${(APLUS_RULES.riskPctCeiling * 100).toFixed(0)}% hard cap (A+)`],

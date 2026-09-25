@@ -287,19 +287,14 @@ export function ingestBacktestResult(opts: {
   const sumUsd = fills.reduce((s, f) => s + (f.usd || 0), 0);
   const wr = taken ? wins / taken : null;
 
-  state.book.pathTaken += taken;
-  state.book.pathWins += wins;
-  state.book.pathLosses += losses;
-  state.book.sumR = Math.round((state.book.sumR + sumR) * 100) / 100;
-  state.book.sumUsd = Math.round((state.book.sumUsd + sumUsd) * 100) / 100;
-  // Equity actually moves with paper PnL and holds in localStorage
-  if (!state.book.startEquity) state.book.startEquity = 100_000;
-  if (!state.book.equity || state.book.equity < 100) state.book.equity = 100_000;
-  if (!state.book.peakEquity) state.book.peakEquity = state.book.equity;
-  state.book.equity =
-    Math.round((state.book.equity + sumUsd) * 100) / 100;
-  state.book.equity = Math.max(100, state.book.equity);
-  state.book.peakEquity = Math.max(state.book.peakEquity, state.book.equity);
+  // A BACKTEST IS NOT THE BOOK. This used to add every run's fills and
+  // dollars to `book` — including `book.equity`, which is the PAPER ACCOUNT
+  // (paper-account.ts getPaperAccount) that sizes every new paper fill. So a
+  // historical run showing +$8,157 grew the live paper size, re-running the
+  // same week counted it twice, and the Lab header printed backtest win rates
+  // as "Paper". The run now lands only in the last-backtest fields and the
+  // per-strategy rates below, which is what the brain actually reads.
+  void losses;
   state.book.lastBacktestLabel = opts.label;
   state.book.lastBacktestPath = taken;
   state.book.lastBacktestWr = wr;
@@ -377,15 +372,9 @@ export function updateBookFromBacktest(opts: {
       processWins: opts.processWins,
     });
   }
-  // Fallback: aggregate only
+  // Fallback: aggregate only — into the last-backtest fields, never the
+  // book (see ingestBacktestResult).
   const state = loadDeskMemory();
-  state.book.pathTaken += opts.taken;
-  state.book.pathWins += opts.wins;
-  state.book.pathLosses += opts.losses;
-  state.book.sumR = Math.round((state.book.sumR + opts.sumR) * 100) / 100;
-  if (opts.sumUsd != null) {
-    state.book.sumUsd = Math.round((state.book.sumUsd + opts.sumUsd) * 100) / 100;
-  }
   state.book.lastBacktestLabel = opts.label;
   state.book.lastBacktestPath = opts.taken;
   state.book.lastBacktestWr = opts.wr;

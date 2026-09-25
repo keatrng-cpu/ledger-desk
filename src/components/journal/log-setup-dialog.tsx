@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,9 +14,18 @@ import {
 } from "@/lib/aplus/config";
 import {
   openTrade,
+  recordRealFill,
   type JournalTrade,
   type OpenTradeInput,
+  type RealFillInput,
 } from "@/lib/journal/server";
+import {
+  EXIT_REASONS,
+  MISTAKE_TAGS,
+  STATE_SCALE,
+  type ExitReason,
+  type MistakeTag,
+} from "@/lib/journal/discipline";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { rememberLiveSetup } from "@/lib/trading/desk-memory";
@@ -34,6 +43,12 @@ const formSchema = z
     stop: z.number({ message: "Stop required" }).finite().positive(),
     target: z.number().finite().positive().optional(),
     contracts: z.number({ message: "Contracts required" }).int().min(1).max(1000),
+    /* --- live (real fill) only --- */
+    filledAt: z.string().optional(),
+    exit: z.number().finite().positive().optional(),
+    exitReason: z.string().optional(),
+    why: z.string().max(500).optional(),
+    whyPre: z.boolean().optional(),
   })
   .superRefine((v, ctx) => {
     if (v.side === "long" ? v.stop >= v.entry : v.stop <= v.entry) {
@@ -102,6 +117,7 @@ export function LogSetupDialog({
   defaultMode = "paper",
   discretion,
   brainVetoes,
+  deskContext,
 }: {
   candidate: SetupCandidate;
   /** Account equity from desk_settings (getSettings). */
@@ -127,8 +143,31 @@ export function LogSetupDialog({
    * was computed for a different candidate than the one being logged.
    */
   brainVetoes?: string[];
+  /**
+   * What the SEQUENCE said about this card's book and side at the moment the
+   * dialog opened (smc-master). Recorded with a real fill so the row can
+   * later answer "was this taken with the desk or against it, and through
+   * which gate" — the override record the discipline scorecard reads.
+   */
+  deskContext?: {
+    deskWord: "TAKE" | "WAIT" | "STAND" | null;
+    missingLayers: string[];
+    planEntry: number | null;
+    planStop: number | null;
+  };
 }) {
   const discretionMult = discretion?.factor ?? 1.0;
+  // One tap each, kept out of the form library on purpose: they are toggles,
+  // not fields, and a trader in a position should not have to type them.
+  const [stateRating, setStateRating] = useState<number | null>(null);
+  const [mistakes, setMistakes] = useState<MistakeTag[]>([]);
+  useEffect(() => {
+    if (open) {
+      setStateRating(null);
+      setMistakes([]);
+    }
+  }, [open]);
+  const isOverride = deskContext?.deskWord != null && deskContext.deskWord !== "TAKE";
   const {
     register,
     handleSubmit,
@@ -177,6 +216,58 @@ export function LogSetupDialog({
 
   const submit = handleSubmit(async (values) => {
     try {
+      if (values.mode === "live") {
+        // A REAL fill: recorded, never refused on a desk rule. The server
+        // records what the gates would have said instead (override_gate).
+        if (isOverride && !values.why?.trim()) {
+          setError("why", { message: "One line: why take it against the desk?" });
+          return;
+        }
+        const toIso = (v?: string) => {
+          if (!v) return undefined;
+          const d = new Date(v);
+          return Number.isFinite(d.getTime()) ? d.toISOString() : undefined;
+        };
+        const fill: RealFillInput = {
+          symbol: values.symbol,
+          side: values.side,
+          entry: values.entry,
+          stop: values.stop,
+          target: values.target,
+          contracts: values.contracts,
+          filledAt: toIso(values.filledAt),
+          exit: values.exit,
+          exitReason: values.exit != null ? ((values.exitReason as ExitReason) || undefined) : undefined,
+          deskWord: deskContext?.deskWord ?? undefined,
+          missingLayers: deskContext?.missingLayers,
+          pathBand: (candidate.pathBand as RealFillInput["pathBand"]) ?? undefined,
+          planEntry: deskContext?.planEntry ?? undefined,
+          planStop: deskContext?.planStop ?? undefined,
+          why: values.why?.trim() || undefined,
+          whyPre: values.whyPre ?? undefined,
+          stateRating: stateRating ?? undefined,
+          mistakes: mistakes.length ? mistakes : undefined,
+          prescore: candidate.confluence,
+          killzone,
+          strategyPrimary: candidate.strategyPrimary,
+          regime: candidate.regime,
+          reason: [candidate.title, candidate.strategyPrimary ? `strategy:${candidate.strategyPrimary}` : null, "mode:live fill"]
+            .filter(Boolean)
+            .join(" · "),
+        };
+        const trade = await recordRealFill({ data: fill });
+        rememberLiveSetup({
+          symbol: fill.symbol,
+          side: fill.side,
+          grade: candidate.grade,
+          score: candidate.confluence,
+          mode: "live",
+        });
+        if (typeof window !== "undefined") window.dispatchEvent(new Event("ledger-memory"));
+        onOpenChange(false);
+        onLogged?.(trade);
+        return;
+      }
       const input: OpenTradeInput = {
         symbol: values.symbol,
         side: values.side,
@@ -370,6 +461,124 @@ export function LogSetupDialog({
               ))}
             </div>
 
+            {mode === "live" && (
+              <div className="space-y-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-2">
+                <p className="text-[10px] leading-snug text-[var(--color-muted)]">
+                  <span className="font-semibold text-[var(--color-fg)]">Real fill.</span> Entry above is what you
+                  actually got{deskContext?.planEntry != null ? ` (the plan's CE was ${deskContext.planEntry.toFixed(2)})` : ""}.
+                  Recorded even when it breaks a rule — the break is what gets measured.
+                  {deskContext?.deskWord && (
+                    <>
+                      {" "}Desk said <b>{deskContext.deskWord}</b>
+                      {deskContext.missingLayers.length ? ` · missing ${deskContext.missingLayers.join(", ")}` : ""}.
+                    </>
+                  )}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block text-xs">
+                    <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                      Filled at (your clock)
+                    </span>
+                    <input type="datetime-local" {...register("filledAt")} className={fieldClass} />
+                  </label>
+                  <label className="block text-xs">
+                    <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                      Exit (if already out)
+                    </span>
+                    <input
+                      type="number"
+                      step={contract?.tick ?? 0.25}
+                      inputMode="decimal"
+                      {...register("exit", { setValueAs: (v: unknown) => (v === "" || v == null ? undefined : Number(v)) })}
+                      className={fieldClass}
+                    />
+                  </label>
+                </div>
+                <label className="block text-xs">
+                  <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                    Exit reason
+                  </span>
+                  <select {...register("exitReason")} className={fieldClass}>
+                    <option value="">— still open —</option>
+                    {EXIT_REASONS.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div>
+                  <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                    State before the click
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {STATE_SCALE.map((st) => (
+                      <button
+                        key={st.v}
+                        type="button"
+                        onClick={() => setStateRating((cur) => (cur === st.v ? null : st.v))}
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-[10px]",
+                          stateRating === st.v
+                            ? "border-[var(--color-primary)] text-[var(--color-fg)]"
+                            : "border-[var(--color-border)] text-[var(--color-muted)]",
+                        )}
+                      >
+                        {st.v} · {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-1 text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                    Mistakes (priced in Book › Discipline)
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {MISTAKE_TAGS.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        title={m.rule}
+                        onClick={() =>
+                          setMistakes((cur) => (cur.includes(m.id) ? cur.filter((x) => x !== m.id) : [...cur, m.id]))
+                        }
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-[10px]",
+                          mistakes.includes(m.id)
+                            ? "border-[var(--color-down)] text-[var(--color-down)]"
+                            : "border-[var(--color-border)] text-[var(--color-muted)]",
+                        )}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="block text-xs">
+                  <span className="mb-1 block text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
+                    {isOverride ? "Why take it against the desk? (required)" : "Why (one line)"}
+                  </span>
+                  <textarea
+                    rows={2}
+                    {...register("why")}
+                    placeholder={
+                      isOverride
+                        ? `The desk says ${deskContext?.deskWord}. Write why NOW, before you know how it ends.`
+                        : "What did you see?"
+                    }
+                    className={fieldClass}
+                  />
+                  {errors.why && (
+                    <span className="mt-0.5 block text-[10px] text-[var(--color-down)]">{errors.why.message}</span>
+                  )}
+                </label>
+                <label className="flex items-center gap-2 text-[10px] text-[var(--color-muted)]">
+                  <input type="checkbox" {...register("whyPre")} />
+                  I wrote the why before I knew the outcome
+                </label>
+              </div>
+            )}
+
             {/* The card's own refusal, in the ticket's words. Logging stays
                 open — a trade that happened must be recordable — but the
                 size is no longer the desk's suggestion. */}
@@ -489,7 +698,7 @@ export function LogSetupDialog({
                 {isSubmitting
                   ? "Logging…"
                   : mode === "live"
-                    ? "Save LIVE trade"
+                    ? "Record real fill"
                     : "Save PAPER trade"}
               </Button>
             </div>

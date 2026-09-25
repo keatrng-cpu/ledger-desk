@@ -180,6 +180,10 @@ function closePayload(t: PaperTrade): MirrorCloseInput | null {
     closedAt: new Date(closedAt).toISOString(),
     contracts: t.contracts,
     reason: clip(t.exitReason, 500) ?? "paper exit",
+    // Per-leg pricing — see paperCloseSchema.legs.
+    legs: (t.scaleLegs ?? [])
+      .filter((l) => positive(l.price) && Number.isInteger(l.contracts) && l.contracts > 0)
+      .map((l) => ({ price: l.price, contracts: l.contracts })),
   };
 }
 

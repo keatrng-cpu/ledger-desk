@@ -18,6 +18,12 @@ import {
 } from "@/lib/journal/server";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  EXIT_REASONS,
+  MISTAKE_TAGS,
+  type ExitReason,
+  type MistakeTag,
+} from "@/lib/journal/discipline";
 
 function toClosedTrade(t: JournalTrade): GradedTrade {
   return {
@@ -96,6 +102,11 @@ function CloseTradeRow({
   const [slippage, setSlippage] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Why it ended and what went wrong, in the fixed vocabulary — the close
+  // form accepted a reason server-side and never sent one, so no exit was
+  // ever attributable to a rule.
+  const [exitReason, setExitReason] = useState<ExitReason | "">("");
+  const [mistakes, setMistakes] = useState<MistakeTag[]>([]);
 
   const submit = async () => {
     const exitNum = Number(exit);
@@ -111,6 +122,8 @@ function CloseTradeRow({
           id: trade.id,
           exit: exitNum,
           slippage: slippage ? Math.max(0, Number(slippage) || 0) : 0,
+          exitReason: exitReason || undefined,
+          mistakes: mistakes.length ? mistakes : undefined,
         },
       });
       onClosed();
@@ -185,6 +198,42 @@ function CloseTradeRow({
           <span className="text-[10px] text-[var(--color-down)]">{err}</span>
         )}
       </div>
+      {trade.mode === "live" && (
+        <div className="mt-2 space-y-1.5">
+          <select
+            value={exitReason}
+            onChange={(e) => setExitReason(e.target.value as ExitReason | "")}
+            className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          >
+            <option value="">Exit reason…</option>
+            {EXIT_REASONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+          <div className="flex flex-wrap gap-1">
+            {MISTAKE_TAGS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                title={m.rule}
+                onClick={() =>
+                  setMistakes((cur) => (cur.includes(m.id) ? cur.filter((x) => x !== m.id) : [...cur, m.id]))
+                }
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px]",
+                  mistakes.includes(m.id)
+                    ? "border-[var(--color-down)] text-[var(--color-down)]"
+                    : "border-[var(--color-border)] text-[var(--color-muted)]",
+                )}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </li>
   );
 }

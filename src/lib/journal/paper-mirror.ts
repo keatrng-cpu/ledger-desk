@@ -125,6 +125,18 @@ export const paperCloseSchema = z.object({
   /** Contracts actually closed; defaults to whatever the open row recorded. */
   contracts: z.number().int().min(1).max(1000).nullable().optional(),
   reason: z.string().max(500).nullable().optional(),
+  /**
+   * Every exit leg the book booked (scale-out at T1, then the runner). When
+   * present and they sum to the position, PnL is priced per leg. Without
+   * them the whole position was priced at the LAST exit: 10 MNQ, T1 at +30
+   * on half, runner stopped at BE, booked +$290 in the paper book and −$10
+   * in Postgres — the desk's own scale rule recorded as a loser.
+   */
+  legs: z
+    .array(z.object({ price: z.number().finite().positive(), contracts: z.number().int().min(1).max(1000) }))
+    .max(12)
+    .nullable()
+    .optional(),
 });
 
 export type MirrorCloseInput = z.input<typeof paperCloseSchema>;
@@ -160,15 +172,55 @@ export async function mirrorCloseRow(
   if (!row) return false; // never mirrored, or already closed
 
   const contracts = data.contracts ?? row.contracts;
-  const { pnl, commission, r } = computeTradePnl({
-    symbol: row.symbol,
-    side: row.side,
-    entry: row.entry,
-    exit: data.exit,
-    stop: row.stop,
-    contracts,
-    slippage: 0, // paper fills are modeled at the level
-  });
+  const legs = (data.legs ?? []).filter((l) => l.contracts > 0 && l.price > 0);
+  const legContracts = legs.reduce((s, l) => s + l.contracts, 0);
+  let pnl: number;
+  let commission: number;
+  let r: number | null;
+  let exitPx = data.exit;
+  if (legs.length > 1 && legContracts === contracts) {
+    // Priced per leg, costed exactly like one exit (commission is per
+    // contract either way), R against the WHOLE position's risk.
+    let p = 0;
+    let c = 0;
+    for (const l of legs) {
+      const x = computeTradePnl({
+        symbol: row.symbol,
+        side: row.side,
+        entry: row.entry,
+        exit: l.price,
+        stop: row.stop,
+        contracts: l.contracts,
+        slippage: 0,
+      });
+      p += x.pnl;
+      c += x.commission;
+    }
+    const whole = computeTradePnl({
+      symbol: row.symbol,
+      side: row.side,
+      entry: row.entry,
+      exit: row.entry,
+      stop: row.stop,
+      contracts,
+      slippage: 0,
+    });
+    pnl = Math.round(p * 100) / 100;
+    commission = c;
+    r = whole.riskDollars > 0 ? Math.round((pnl / whole.riskDollars) * 10_000) / 10_000 : null;
+    // The stored `exit` is the contract-weighted average, for display.
+    exitPx = Math.round((legs.reduce((s, l) => s + l.price * l.contracts, 0) / legContracts) * 100) / 100;
+  } else {
+    ({ pnl, commission, r } = computeTradePnl({
+      symbol: row.symbol,
+      side: row.side,
+      entry: row.entry,
+      exit: data.exit,
+      stop: row.stop,
+      contracts,
+      slippage: 0, // paper fills are modeled at the level
+    }));
+  }
 
   const updated = await sql.query<{ id: string }>(
     `update desk_trades
@@ -179,7 +231,7 @@ export async function mirrorCloseRow(
       returning id`,
     [
       data.closedAt,
-      data.exit,
+      exitPx,
       pnl,
       r,
       commission,

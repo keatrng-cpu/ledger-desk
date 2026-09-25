@@ -5,7 +5,6 @@ import {
   ImagePlus,
   Loader2,
   MessagesSquare,
-  NotebookPen,
   Send,
   Trash2,
   X,
@@ -784,29 +783,16 @@ function AnalysisCard({
 
           <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] p-2.5">
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
-              Journal PATH fills?
+              Backtest rows are evidence, not fills
+            </p>
+            {/* The Log paper / Log live buttons sent a HISTORICAL setup through
+                the live onLog path: paper opened it at today's price, live
+                prefilled the real-fill dialog with it. Neither is a trade. */}
+            <p className="mb-2 text-[10px] leading-snug text-[var(--color-subtle)]">
+              Nothing here books to the paper or live journal — a historical setup opened at today&apos;s
+              price is not a trade.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                disabled={!candidate || !onLog}
-                onClick={() => candidate && onLog?.(candidate, "paper")}
-              >
-                <NotebookPen className="h-3.5 w-3.5" />
-                Log paper
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                disabled={!candidate || !onLog}
-                onClick={() => candidate && onLog?.(candidate, "live")}
-                className="text-[var(--color-warn)]"
-              >
-                Log live
-              </Button>
               <Button
                 type="button"
                 size="sm"
