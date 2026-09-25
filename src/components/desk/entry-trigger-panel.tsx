@@ -48,9 +48,14 @@ const TIER_STYLE: Record<EntryTier, { label: string; cls: string }> = {
   },
 };
 
+const PATH_BANDS = new Set(["A+", "A", "A-", "A−"]);
+
 export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: SmcMasterBook }) {
-  const [, force] = useState(0);
-  useEffect(() => subscribePending(() => force((n) => n + 1)), []);
+  // Bumped on every pending-order event and read by the memo below. It used
+  // to be a throwaway counter while the memo keyed on the symbol alone, so a
+  // rested, filled, expired or cancelled order never reached the screen.
+  const [pendingVersion, bump] = useState(0);
+  useEffect(() => subscribePending(() => bump((n) => n + 1)), []);
 
   const plan = book.plan;
   const isLeft = desk.left.symbol === book.symbol;
@@ -61,7 +66,8 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
   const pending = useMemo(() => {
     void loadPending();
     return restingFor(book.symbol);
-  }, [book.symbol]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book.symbol, pendingVersion]);
 
   const runner = useMemo(() => readRunner(plan, false), [plan]);
   const loss = useMemo(() => {
@@ -83,6 +89,26 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
   if (!plan || !read) return null;
   const style = TIER_STYLE[read.tier];
   const now = Date.parse(desk.fetchedAt) || 0;
+
+  // The same refusals the ticket prints (entry-ticket.ts / card-plan.ts). A
+  // resting order is a commitment to size at a fill, so it may only rest
+  // where a ticket would size: a PATH band, a book not standing down, and a
+  // stop inside the measured band.
+  const riskAtr = plan.riskAtr && plan.riskAtr > 0 ? plan.riskPts / plan.riskAtr : null;
+  const restRefusal =
+    read.tier === "gone"
+      ? "price has walked off the array"
+      : book.word === "STAND"
+        ? `the sequence says STAND — ${book.missing}`
+        : !PATH_BANDS.has(String(book.pathBand ?? ""))
+          ? `grade ${book.pathBand ?? "—"} is not a PATH band (A+/A/A−)`
+          : plan.riskOverCap
+            ? "stop is wider than this symbol's cap"
+            : plan.riskTooTight
+              ? `stop is ${riskAtr != null ? riskAtr.toFixed(2) : "<0.5"}×ATR, inside the 0.5×ATR floor`
+              : plan.riskTooWide
+                ? `stop is ${riskAtr != null ? riskAtr.toFixed(2) : ">1.5"}×ATR, beyond the 1.5×ATR band`
+                : null;
 
   return (
     <section className="flex flex-col gap-2">
@@ -124,7 +150,8 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            disabled={read.tier === "gone"}
+            disabled={restRefusal != null}
+            title={restRefusal ? `Not rested: ${restRefusal}` : undefined}
             onClick={() =>
               restLimit(plan, {
                 grade: book.pathBand ?? "—",
@@ -137,7 +164,9 @@ export function EntryTriggerPanel({ desk, book }: { desk: DeskPayload; book: Smc
             Rest the limit at {plan.entry.toFixed(2)}
           </button>
           <span className="text-[10px] text-[var(--color-subtle)]">
-            Decide now, fill on the touch — the plan already named this price, and a resting order cannot be talked into a worse one.
+            {restRefusal
+              ? `Not restable — ${restRefusal}.`
+              : "Decide now, fill on the touch — the plan already named this price, and a resting order cannot be talked into a worse one."}
           </span>
         </div>
       )}

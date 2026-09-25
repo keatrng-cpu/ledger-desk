@@ -114,8 +114,12 @@ import {
   tickPending,
   confirmPendingFill,
   releasePending,
+  restLimit,
+  restingFor,
   type PendingPrint,
+  type PendingOrder,
 } from "@/lib/trading/pending-order";
+import { cardSizeRefusal, restableFromCard, withOrderLevels } from "@/lib/trading/card-plan";
 import { pendingFillToast } from "@/components/desk/entry-trigger-panel";
 import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
@@ -345,6 +349,79 @@ function maybeAutofire(desk: DeskPayload, equity: number): void {
 }
 
 /**
+ * Everything a paper FILL owes the rest of the desk, in one place: the ghost
+ * book learns the card was taken, and the localStorage book is mirrored into
+ * desk_trades so analytics, CSV and the A+ unlock see it. Fire-and-forget —
+ * a signed-out or DB-less desk must never block the working paper book.
+ *
+ * It used to live only in the one-click path, so a resting-limit fill (the
+ * path the entry rule actually prescribes) was never mirrored at all.
+ */
+function bookPaperFill(desk: DeskPayload, c: SetupCandidate, trade: PaperTrade): void {
+  markGhostTaken(c.symbol, c.side);
+  void mirrorPaperOpen({
+    data: {
+      id: trade.id,
+      // `symbol` is the resolved contract (ES -> MES when micros are on);
+      // sending the label made the server price a micro at full size.
+      symbol: trade.symbol,
+      side: trade.side,
+      entry: trade.entry,
+      stop: trade.stop,
+      target: trade.tp1 ?? null,
+      contracts: trade.contracts,
+      openedAt: new Date(trade.openedAt).toISOString(),
+      prescore: trade.score ?? null,
+      // The CARD's band, never the sizing grade — rule 5 rewrites the sizing
+      // grade on an A+ card, and the unlock counts card bands.
+      grade: trade.cardBand || trade.pathBand || trade.grade || null,
+      killzone: desk.clock.killzone ?? null,
+      strategy: trade.strategy ?? null,
+      regime: c.regime ?? null,
+      reason: trade.reason ?? null,
+    },
+  }).catch(() => undefined);
+}
+
+/**
+ * Rest a paper limit at the card's priced CE — what "Log paper" does now.
+ *
+ * It used to book an instant fill at the entry zone's midpoint, a price that
+ * had often not traded: a click before the retrace wrote a fill the tape
+ * never offered. CLAUDE.md's entry rule is "rest the limit at CE — never pay
+ * the print", so the paper button now does exactly that and the poll loop
+ * (fillRestingLimits) books the fill when the tape reaches it.
+ */
+function restPaperLimit(
+  c: SetupCandidate,
+  discretionMult: number,
+): { ok: true; order: PendingOrder; already: boolean } | { ok: false; error: string } {
+  const rest = restableFromCard(c);
+  if (!rest) {
+    return {
+      ok: false,
+      error: `${c.symbol} ${c.side}: no priced plan on this side yet — nothing to rest. The sequence prices one once there is an entry array and a raid.`,
+    };
+  }
+  const refusal = cardSizeRefusal(c);
+  if (refusal) return { ok: false, error: `DO NOT SIZE — ${refusal}` };
+  if (listOpenPaperTrades().some((t) => t.displaySymbol === c.symbol || t.symbol === c.symbol)) {
+    return { ok: false, error: `${c.symbol} already has an open paper trade — one position per book.` };
+  }
+  const live = restingFor(c.symbol);
+  if (live && live.side === rest.side && Math.abs(live.limit - rest.entry) < 1e-6) {
+    return { ok: true, order: live, already: true };
+  }
+  const order = restLimit(rest, {
+    grade: String(c.pathBand || c.grade),
+    strategy: c.completeStrategy || c.strategyPrimary || "sequence",
+    now: Date.now(),
+    discretionMult,
+  });
+  return { ok: true, order, already: false };
+}
+
+/**
  * Fill any resting limit the live print has reached.
  *
  * The fill price is the LIMIT, never the print — an order resting at
@@ -379,12 +456,25 @@ function fillRestingLimits(desk: DeskPayload): string | null {
   }
   if (!touched.length) return null;
   const o = touched[0]!;
-  const candidate = desk.scan.candidates.find(
+  const card = desk.scan.candidates.find(
     (c) => c.symbol === o.symbol && c.side === o.side,
   );
-  if (!candidate) {
+  if (!card) {
     return `Limit at ${o.limit.toFixed(2)} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
   }
+  // One position per book. A resting order on a book that already holds a
+  // paper trade would be a second entry on the same idea.
+  const open = listOpenPaperTrades().find(
+    (t) => t.displaySymbol === o.symbol || t.symbol === o.symbol,
+  );
+  if (open) {
+    releasePending(o.id, `already holding ${open.displaySymbol} ${open.side} — one position per book`, Date.now());
+    return `Limit at ${o.limit.toFixed(2)} touched, but ${open.displaySymbol} ${open.side} is already open — not booked.`;
+  }
+  // The ORDER's levels, not whatever the card says now. The toast promises
+  // the order's stop and T1, and a card re-graded since the order rested can
+  // carry a different plan.
+  const candidate = withOrderLevels(card, o);
   const lagSec =
     o.symbol === desk.left.symbol ? desk.quotes.left.lagSec : desk.quotes.right.lagSec;
   const wall = etWallParts(Date.now());
@@ -394,6 +484,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     lagSec,
     et: { hour: wall.hour, minute: wall.minute },
     newsVerdict: desk.news?.verdict,
+    discretionMult: o.discretionMult,
     // The sub-15m rungs, so the Judas release can resolve. Without them the
     // fill path refuses the whole 09:30-09:45 window, as it always did.
     rungs: allSeries(
@@ -406,6 +497,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     // refusal by the paper book leaves it resting instead of consuming it —
     // the rollback that did not exist when this wrote `filled` up front.
     confirmPendingFill(o.id, Date.now());
+    bookPaperFill(desk, card, res.trade);
     return pendingFillToast(o);
   }
   releasePending(o.id, `paper book refused: ${res.error}`, Date.now());
@@ -420,8 +512,19 @@ function fillRestingLimits(desk: DeskPayload): string | null {
  * 30s poll is correct and produces at most one notification each.
  */
 function raiseDeskAlerts(desk: DeskPayload): void {
-  const armed = desk.scan.candidates.find((c) => isHighProbPath(c));
-  if (armed) {
+  // EVERY high-prob card whose own book and side the sequence calls TAKE.
+  // This took only the first high-prob card, so a TAKE on the other book
+  // never beeped; and it pushed "setup armed" to the phone with no TAKE
+  // check at all — a buzz for a card the desk was standing down.
+  const root = (s: string) => s.replace(/^M/, "");
+  const takes = desk.scan.candidates.filter((c) => {
+    if (!isHighProbPath(c)) return false;
+    const book = [desk.smcMaster.left, desk.smcMaster.right].find(
+      (b) => root(b.symbol) === root(c.symbol),
+    );
+    return book?.word === "TAKE" && book.side === c.side;
+  });
+  for (const armed of takes) {
     considerPathAlarm(desk, armed);
     void raiseSetupArmedAlert({
       data: {
@@ -1174,96 +1277,27 @@ function MasterplacePage() {
   const onLog = useCallback(
     (c: SetupCandidate, mode: "paper" | "live") => {
       if (mode === "paper") {
-        const q =
-          desk?.left.symbol === c.symbol
-            ? desk.quotes.left
-            : desk?.right.symbol === c.symbol
-              ? desk.quotes.right
-              : desk?.quotes.left;
-        const lastPrice = q?.price;
-        const wall = etWallParts(Date.now());
-        // Real measured-edge multiplier (journal/discretion.ts), keyed off the
-        // same strategy field paper-manager.ts already attributes trades to.
-        // Applied silently to size — paper stays one-click/frictionless by
-        // design, so the enforcement here IS the size, not a confirm dialog.
+        // Real measured-edge multiplier (journal/discretion.ts), carried on
+        // the resting order so the eventual fill is sized with it.
         const disc = discretionFor(
           discretion,
           c.completeStrategy || c.strategyPrimary,
         );
-        const res = openPaperTradeInstant(c, {
-          lastPrice,
-          lagSec: q?.lagSec,
-          et: { hour: wall.hour, minute: wall.minute },
-          newsVerdict: desk?.news?.verdict,
-          killzone: desk?.clock.killzone,
-          discretionMult: disc.factor,
-          // Sub-15m rungs for the Judas release (judas-window.ts). Absent,
-          // the window refuses exactly as before.
-          rungs: desk
-            ? allSeries(
-                c.symbol === desk.left.symbol ? desk.left.bars : desk.right.bars,
-                (c.symbol === desk.left.symbol ? desk.mtf?.left?.minute : desk.mtf?.right?.minute) ?? [],
-              )
-            : undefined,
-        });
+        const res = restPaperLimit(c, disc.factor);
         if (res.ok) {
-          markGhostTaken(c.symbol, c.side);
-          // Mirror the localStorage book into desk_trades so analytics, CSV
-          // export and the unlock evidence see it. Fire-and-forget: a failure
-          // (signed out, no DB) must never block the working paper book.
-          void mirrorPaperOpen({
-            data: {
-              id: res.trade.id,
-              // `symbol` is the resolved contract (ES -> MES when micros are
-              // on); `displaySymbol` is the label. Sending the label made the
-              // server price a micro at full-size — a 10x PnL error.
-              symbol: res.trade.symbol,
-              side: res.trade.side,
-              entry: res.trade.entry,
-              stop: res.trade.stop,
-              target: res.trade.tp1 ?? null,
-              contracts: res.trade.contracts,
-              openedAt: new Date(res.trade.openedAt).toISOString(),
-              prescore: res.trade.score ?? null,
-              // The CARD's band, never the sizing grade. Rule 5's A+ probe
-              // rewrites `grade` to "A" on an A+ card until n>=20 A+ at
-              // WR>=65% is earned, and the server counts that sample as
-              // `status='closed' and grade='A+'` (readBookCounters,
-              // journal/server.ts) — so mirroring the sizing grade deletes
-              // every A+ row the unlock exists to accumulate and freezes the
-              // count at whatever it held on 2026-09-23. Same precedence the
-              // armed-alert path already uses, with `cardBand` ahead of it
-              // because that field IS the pre-demotion band; `pathBand` then
-              // `grade` cover the rows written before it existed. Refuses to
-              // invent a band: with none of the three this mirrors null.
-              grade:
-                res.trade.cardBand ||
-                res.trade.pathBand ||
-                res.trade.grade ||
-                null,
-              killzone: desk?.clock.killzone ?? null,
-              strategy: res.trade.strategy ?? null,
-              regime: c.regime ?? null,
-              reason: res.trade.reason ?? null,
-            },
-          }).catch(() => undefined);
+          const o = res.order;
           setPaperToast(
-            `PAPER IN · ${res.trade.displaySymbol} ${res.trade.side.toUpperCase()} ${res.trade.contracts}ct @ ${res.trade.entry} · SL ${res.trade.stop} · TP1 ${res.trade.tp1}` +
+            `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side.toUpperCase()} @ ${o.limit.toFixed(2)} (CE) · SL ${o.stop.toFixed(2)}` +
+              (o.t1 != null ? ` · T1 ${o.t1.toFixed(2)}` : "") +
+              ` · fills on the touch, expires in ${Math.round((o.expiresAt - Date.now()) / 60_000)}m` +
               (disc.factor !== 1.0
                 ? ` · discretion ×${disc.factor.toFixed(2)} (${disc.verdict}, n=${disc.effectiveN.toFixed(0)})`
                 : ""),
           );
-          setEquity(getPaperAccount().equity);
-          try {
-            getDeskSynapse().publishMemory();
-          } catch {
-            /* */
-          }
-          window.setTimeout(() => setPaperToast(null), 6000);
         } else {
-          setPaperToast(`Paper log failed: ${res.error}`);
-          window.setTimeout(() => setPaperToast(null), 6000);
+          setPaperToast(`Paper not rested: ${res.error}`);
         }
+        window.setTimeout(() => setPaperToast(null), 7000);
         return;
       }
       setLogMode(mode);
@@ -1293,9 +1327,11 @@ function MasterplacePage() {
         `${pick.take.symbol} ${pick.take.side} ${band}`,
       );
       onLog(pick.take, "paper");
-      if (listOpenPaperTrades().length === 0) {
+      // Success is an order resting at CE (or already filled), not an
+      // instant open — the fill arrives through fillRestingLimits.
+      if (!restingFor(pick.take.symbol) && listOpenPaperTrades().length === 0) {
         releaseAutoPaperKey();
-        noteAutoPaperSkip("Paper log failed");
+        noteAutoPaperSkip("Paper limit not rested");
       }
     };
 
@@ -1601,7 +1637,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="1"
                     title="PATH"
-                    sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · Trade Now or skip`}
+                    sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · rest the limit at CE or skip`}
                   />
                   <SetupScanner
                     scan={desk.scan}
@@ -1613,6 +1649,14 @@ function MasterplacePage() {
                     clock={{
                       inTradeWindow: desk.clock.inTradeWindow,
                       killzoneLabel: desk.clock.killzoneLabel,
+                      // The tape-measured session and the ET clock, for the
+                      // card's session readout and its evidence lookups.
+                      killzone: desk.clock.killzone,
+                      sessionSource: desk.clock.sessionSource,
+                      sessionReason: desk.clock.sessionReason,
+                      etHour: desk.clock.etHour,
+                      etMinute: desk.clock.etMinute,
+                      weekday: desk.clock.weekday,
                     }}
                     discretion={discretion}
                     tape={scannerTape}
@@ -1784,7 +1828,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="R"
                     title="Risk governor"
-                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · WR ${paper.winRate != null ? (paper.winRate * 100).toFixed(0) + "%" : "—"} · ΣR ${paper.sumR.toFixed(1)} · A+3/A2/A-1/B+0.5`}
+                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · A+ 2% probe (3% once earned) / A 2% / A− 1% / B+ 0.5% paper`}
                   />
                   <RiskPanel desk={desk} liveRisk={risk} />
                   <AlertsPanel />

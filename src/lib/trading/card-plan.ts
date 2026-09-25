@@ -29,7 +29,11 @@ import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR, type TradePlan } from "./trade-pla
 import { riskAtrBucket } from "./evidence";
 
 export interface CardPlan {
+  symbol: string;
+  side: "long" | "short";
   entry: number;
+  /** The array the limit rests in. */
+  entryZone: { top: number; bottom: number } | null;
   stop: number;
   riskPts: number;
   t1: number | null;
@@ -61,7 +65,10 @@ export function planStopText(plan: Pick<TradePlan, "stop" | "sweep">): string {
 export function cardPlanFrom(plan: TradePlan): CardPlan {
   const atr = plan.riskAtr != null && plan.riskAtr > 0 ? plan.riskAtr : null;
   return {
+    symbol: plan.symbol,
+    side: plan.side,
     entry: plan.entry,
+    entryZone: plan.entryZone,
     stop: plan.stop,
     riskPts: plan.riskPts,
     t1: plan.t1,
@@ -111,6 +118,63 @@ export function attachPlansToCards(
     attached++;
   }
   return attached;
+}
+
+/**
+ * What `restLimit` needs from a card: the plan's own numbers, or null when
+ * the card has no priced plan (nothing to rest — a structural invalidation
+ * is not a stop the evidence measured).
+ */
+export function restableFromCard(
+  c: Pick<SetupCandidate, "plan">,
+): Pick<TradePlan, "symbol" | "side" | "entry" | "stop" | "t1" | "t2" | "riskPts" | "entryZone"> | null {
+  const p = c.plan;
+  if (!p) return null;
+  return {
+    symbol: p.symbol,
+    side: p.side,
+    entry: p.entry,
+    stop: p.stop,
+    t1: p.t1,
+    t2: p.t2,
+    riskPts: p.riskPts,
+    entryZone: p.entryZone,
+  };
+}
+
+/**
+ * A card carrying a RESTING ORDER's levels instead of its current plan.
+ *
+ * The fill books what the order promised — its limit, stop and targets — even
+ * if the card has been re-graded since the order rested. Band flags are
+ * recomputed against the card's ATR so a fill can never dodge the refusal.
+ */
+export function withOrderLevels<C extends SetupCandidate>(
+  c: C,
+  o: { symbol: string; side: "long" | "short"; limit: number; stop: number; t1: number | null; t2: number | null; riskPts: number; zone: { top: number; bottom: number } | null },
+): C {
+  const atr = c.plan?.atr ?? c.atr ?? null;
+  const riskAtr = atr && atr > 0 ? r2(o.riskPts / atr) : null;
+  const plan: CardPlan = {
+    symbol: o.symbol,
+    side: o.side,
+    entry: o.limit,
+    entryZone: o.zone,
+    stop: o.stop,
+    riskPts: o.riskPts,
+    t1: o.t1,
+    t2: o.t2,
+    rr1: o.t1 != null ? r2(Math.abs(o.t1 - o.limit) / o.riskPts) : null,
+    rr2: o.t2 != null ? r2(Math.abs(o.t2 - o.limit) / o.riskPts) : null,
+    atr,
+    riskAtr,
+    riskTooTight: riskAtr != null && riskAtr < MIN_RISK_ATR,
+    riskTooWide: riskAtr != null && riskAtr > MAX_RISK_ATR_TRADABLE,
+    riskOverCap: c.plan?.riskOverCap ?? false,
+    sweep: c.plan?.sweep ?? null,
+    drawName: c.plan?.drawName ?? null,
+  };
+  return { ...c, plan, stopSource: "plan", invalidation: `Stop ${o.stop.toFixed(2)} — the resting order's stop` };
 }
 
 /** Parse the first price out of a level string ("Above PDH 7783.50 / sweep"). */

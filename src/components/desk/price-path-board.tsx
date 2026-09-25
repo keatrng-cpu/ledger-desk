@@ -10,6 +10,8 @@ import type { HtfBiasRead } from "@/lib/trading/structure";
 import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "@/lib/trading/scanner";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { etWallParts, isJudasWindow, sessionLive} from "@/lib/trading/sessions";
+import { readJudas } from "@/lib/trading/judas-window";
+import { allSeries } from "@/lib/trading/chart-timeframes";
 import { bookTakenToday, listOpenPaperTrades } from "@/lib/trading/paper-manager";
 import { cn } from "@/lib/utils";
 
@@ -178,8 +180,25 @@ export function pricePathVerdict(
   // ticked live underneath it.
   const wall = etWallParts(Date.now());
   if (isJudasWindow(wall.hour, wall.minute)) {
-    const left = 45 - wall.minute;
-    return { word: "STAND", line: `Judas 9:30–9:45 — name the raid · ${left}m to go`, book: null };
+    // The same read the sequence, the alarm and the paper book use
+    // (judas-window.ts): the window stays shut until the open's raid has
+    // RESOLVED on a sub-15m rung, and then only for the side it points to.
+    // A blanket STAND here let the alarm beep a TAKE while the board said
+    // "STAND · Judas" — the desk contradicting itself at 09:3x.
+    const clockJ = { etHour: wall.hour, etMinute: wall.minute };
+    const reads = [
+      readJudas(allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? []), clockJ, null),
+      readJudas(allSeries(desk.right?.bars ?? [], desk.mtf?.right?.minute ?? []), clockJ, null),
+    ];
+    const released = reads.find((r) => !r.blocked);
+    if (!released) {
+      const left = 45 - wall.minute;
+      return {
+        word: "STAND",
+        line: `Judas 9:30–9:45 — ${reads[0]!.reason} · ${left}m to go`,
+        book: null,
+      };
+    }
   }
   if (!sessionLive(clock)) {
     const l = desk.draws.left.primary;

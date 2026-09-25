@@ -7,6 +7,8 @@ import {
   mutePathAlarm,
   subscribePathAlarm,
   testPathAlarm,
+  PATH_ALARM_EVENT,
+  type PathAlarmFire,
   type PathAlarmState,
 } from "@/lib/alerts/path-alarm";
 import {
@@ -26,6 +28,23 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
   const [auto, setAuto] = useState<AutoPaperState>(() => getAutoPaperState());
   const [ritual, setRitual] = useState(() => ritualWindow());
   const [msg, setMsg] = useState<string | null>(null);
+  /**
+   * The last alarm, pinned on the page until the trader dismisses it.
+   *
+   * The fire carried the whole ticket — size, stop, what to do at T1, when
+   * the idea is dead — and the only thing listening was the OS notification,
+   * which silently does nothing without permission. The event was dispatched
+   * and nobody heard it.
+   */
+  const [pinned, setPinned] = useState<PathAlarmFire | null>(null);
+  useEffect(() => {
+    const onFire = (e: Event) => {
+      const detail = (e as CustomEvent<PathAlarmFire>).detail;
+      if (detail) setPinned(detail);
+    };
+    window.addEventListener(PATH_ALARM_EVENT, onFire);
+    return () => window.removeEventListener(PATH_ALARM_EVENT, onFire);
+  }, []);
 
   useEffect(() => subscribePathAlarm(setState), []);
   useEffect(() => subscribeAutoPaper(setAuto), []);
@@ -50,6 +69,32 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
   };
 
   return (
+    <>
+    {pinned && (
+      <div
+        role="alert"
+        className="mx-auto mt-1.5 max-w-7xl rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_55%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,var(--color-surface))] px-3 py-2"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[12px] font-semibold text-[var(--color-fg)]">
+            {pinned.title}
+            <span className="ml-2 font-normal text-[10px] text-[var(--color-subtle)]">
+              {new Date(pinned.at).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit" })} ET
+            </span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setPinned(null)}
+            className="shrink-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 py-0.5 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+          >
+            Dismiss
+          </button>
+        </div>
+        <pre className="mt-1 whitespace-pre-wrap font-mono text-[10.5px] leading-snug text-[var(--color-fg)]">
+          {pinned.body}
+        </pre>
+      </div>
+    )}
     <div className="mx-auto mt-1.5 flex max-w-7xl flex-wrap items-center gap-1.5">
       {auto.on ? (
         <button
@@ -59,7 +104,7 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
             "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
             "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
           )}
-          title="Trade Now auto-fills PATH A+/A/A− paper in NY AM and books stats"
+          title="Auto paper rests a limit at CE for a sequence TAKE on a PATH A+/A/A− card in NY AM; it fills on the touch and books stats"
         >
           Auto paper on
         </button>
@@ -68,7 +113,7 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
           type="button"
           onClick={() => setAuto(setAutoPaper(true))}
           className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]"
-          title="Click to let Trade Now fill paper PATH and write stats"
+          title="Click to let the desk rest paper limits for sequence TAKEs and write stats"
         >
           Auto paper off
         </button>
@@ -163,5 +208,6 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
         </span>
       )}
     </div>
+    </>
   );
 }

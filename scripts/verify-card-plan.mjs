@@ -13,9 +13,8 @@
  * Run: npx tsx scripts/verify-card-plan.mjs
  */
 
-const { attachPlansToCards, cardRisk, cardSizeRefusal, planStopText } = await import(
-  "../src/lib/trading/card-plan.ts"
-);
+const { attachPlansToCards, cardRisk, cardSizeRefusal, planStopText, restableFromCard, withOrderLevels } =
+  await import("../src/lib/trading/card-plan.ts");
 const { protectiveInvalidation } = await import("../src/lib/trading/scanner.ts");
 const { buildPaperLevels } = await import("../src/lib/trading/paper-manager.ts");
 const { qBucket, riskAtrBucket, sessionBucket, cardEvidence, describeBucket, EVIDENCE } = await import(
@@ -159,6 +158,21 @@ console.log("\na priced plan becomes the card's stop");
   const other = { ...esShort, side: "long", id: "ES-long" };
   attachPlansToCards([other], { left: book, right: book });
   check("a plan never attaches to the other side's card", other.plan ?? null, null);
+}
+
+console.log("\nresting orders book THEIR levels");
+{
+  check("a card with no plan has nothing to rest", restableFromCard(esShort), null);
+  const order = { symbol: "ES", side: "short", limit: 7805.5, stop: 7811.25, t1: 7795, t2: 7782, riskPts: 5.75, zone: { top: 7806, bottom: 7805 } };
+  const booked = withOrderLevels({ ...esShort, atr: 8 }, order);
+  check("the fill books the order's limit", booked.plan.entry, 7805.5);
+  check("and the order's stop", booked.plan.stop, 7811.25);
+  check("band recomputed against the card's ATR", booked.plan.riskAtr, 0.72);
+  check("inside the band, so nothing refuses", cardSizeRefusal(booked), null);
+  const tight = withOrderLevels({ ...esShort, atr: 20 }, order);
+  check("the same order on a 20pt ATR is flagged too tight", tight.plan.riskTooTight, true);
+  check("and cannot dodge the refusal at the fill", cardSizeRefusal(tight) != null, true);
+  check("restable round-trips a plan", restableFromCard(booked)?.entry, 7805.5);
 }
 
 console.log("\nthe evidence pack lookups");

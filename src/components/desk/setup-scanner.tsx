@@ -9,7 +9,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { APLUS_RULES } from "@/lib/aplus/config";
-import { HIGH_CONFLUENCE_THRESHOLD, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
+import { compareForBoard, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
+import { cardRisk, cardSizeRefusal } from "@/lib/trading/card-plan";
+import { cardEvidence, qBucket } from "@/lib/trading/evidence";
+import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR } from "@/lib/trading/trade-plan";
 import { readCardGeometry } from "@/lib/trading/card-geometry";
 import { atrOf } from "@/lib/trading/draw";
 import { strategyLabel } from "@/lib/trading/strategies";
@@ -159,18 +162,29 @@ export interface CardSequence {
   states: Record<string, "pass" | "wait" | "fail">;
 }
 
-function GradeBadge({ g }: { g: SetupCandidate["grade"] }) {
+/**
+ * The PATH band — the tier that decides size — not the scanner's coarse
+ * grade. `profit-path.ts` maps A to "A-" and B+ to "skip" in `grade`, so an A
+ * card (2% risk) used to display as A− and a B+ paper card as "skip".
+ */
+function GradeBadge({ g }: { g: string }) {
+  const execute = g === "A+" || g === "A" || g === "A-" || g === "A−";
   return (
     <span
+      title={
+        execute
+          ? "PATH band — an execute grade (A+ sizes at the A probe until n≥20 A+ at WR≥65%)"
+          : g === "B+"
+            ? "B+ — paper only, 0.5%"
+            : "Not an execute grade"
+      }
       className={cn(
         "rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase",
-        g === "A+" &&
-          "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
-        g === "A-" &&
+        execute &&
           "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
-        g === "B" &&
+        g === "B+" &&
           "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] text-[var(--color-warn)]",
-        g === "skip" && "border-[var(--color-border)] text-[var(--color-subtle)]",
+        !execute && g !== "B+" && "border-[var(--color-border)] text-[var(--color-subtle)]",
       )}
     >
       {g}
@@ -322,14 +336,20 @@ function ScoreMeter({ score }: { score: number }) {
 function BlockerStrip({
   c,
   entryAllowed,
+  sessionReason,
 }: {
   c: SetupCandidate;
   entryAllowed: boolean;
+  /** readSession's reason — delivery and participation, not the clock. */
+  sessionReason?: string;
 }) {
   const blocks: string[] = [];
   if (!c.htfOk) blocks.push("HTF bias conflict");
   if (!c.conditionsOk) blocks.push(`conditions (${c.regime || "regime"})`);
-  if (!c.killzoneOk) blocks.push("outside killzone");
+  // The session gate is measured on the tape (session-event.ts): a killzone,
+  // or an event with delivery >= 2.0 ATR AND participation >= 1.5x. "Outside
+  // killzone" described the old clock rule and hid how close an event was.
+  if (!c.killzoneOk) blocks.push(`session closed — ${sessionReason || "no killzone and no tape event"}`);
   if (!entryAllowed) blocks.push("risk governor");
   if (!blocks.length) return null;
 
@@ -421,6 +441,16 @@ function useGhost(c: SetupCandidate): GhostTrade | null {
   return g;
 }
 
+/** The slice of the clock a card needs — the tape-measured session and ET time. */
+export interface CardSession {
+  killzone?: string;
+  sessionSource?: "killzone" | "event" | "none";
+  sessionReason?: string;
+  etHour?: number;
+  etMinute?: number;
+  weekday?: number;
+}
+
 function SetupCard({
   c,
   onLog,
@@ -429,6 +459,7 @@ function SetupCard({
   canon,
   discretion,
   tape,
+  session,
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
@@ -447,6 +478,8 @@ function SetupCard({
   discretion?: DiscretionResult;
   /** This book's bars and live sequence, for the card's own markup chart. */
   tape?: CardTape;
+  /** The session read and the ET clock, for the evidence lookups. */
+  session?: CardSession;
 }) {
   const [noteCopied, setNoteCopied] = useState(false);
   // Read from the card's OWN printed strings, not from the plan — the failure
@@ -466,6 +499,39 @@ function SetupCard({
     [c.symbol, c.side, c.entryZone, c.invalidation, c.targets, tape],
   );
   const [showDetail, setShowDetail] = useState(false);
+  // One stop for this card (card-plan.ts): the plan's when the sequence
+  // priced one, else the structural level on the correct side, else none.
+  const risk = useMemo(() => cardRisk(c), [c]);
+  const sizeRefusal = useMemo(() => cardSizeRefusal(c), [c]);
+  /**
+   * What four years of the desk's own cards paid in THIS card's buckets.
+   * Read-only — nothing here gates or sizes. Q and the stop band always
+   * print; session, half-hour and weekday print only when they measured
+   * negative in both halves.
+   */
+  const evidence = useMemo(
+    () =>
+      cardEvidence({
+        confluence: c.confluence,
+        riskAtr: risk.riskAtr,
+        side: c.side === "short" ? "short" : "long",
+        killzone: session?.killzone,
+        sessionSource: session?.sessionSource,
+        etHour: session?.etHour,
+        etMinute: session?.etMinute,
+        weekday: session?.weekday,
+      }),
+    [c.confluence, c.side, risk.riskAtr, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
+  );
+  const qTitle = useMemo(() => {
+    const b = qBucket(c.confluence);
+    return (
+      "Structure FIT — how much of this model is on the tape, not the odds it works. " +
+      (b?.dirHit != null
+        ? `Over four years cards at ${b.label} went the card's way ${(b.dirHit * 100).toFixed(1)}% of the time and averaged ${b.exp != null ? (b.exp >= 0 ? "+" : "") + b.exp.toFixed(2) : "?"}R.`
+        : "")
+    );
+  }, [c.confluence]);
   /**
    * A rung the trader chose. Null means follow the desk.
    *
@@ -690,8 +756,15 @@ function SetupCard({
    * the empty case is named.
    */
   const rungMarkCount = marksFor(tf, anticipation.marks).length;
+  // Resolved only while the card still carries the plan that ghost traded.
+  // A London ghost that expired used to strip the buttons off the NY AM card
+  // for the same symbol and side for the rest of the day, though the NY AM
+  // plan was a different trade at a different price.
+  const ghostIsThisPlan =
+    !ghost || !c.plan || Math.abs(ghost.entry - c.plan.entry) < 0.01;
   const done =
     ghost &&
+    ghostIsThisPlan &&
     (ghost.status === "won" ||
       ghost.status === "lost" ||
       ghost.status === "missed" ||
@@ -711,14 +784,9 @@ function SetupCard({
         ghost?.status === "watching" && "border-[var(--color-border)]",
         ghost?.status === "filled" &&
           "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]",
-        // High-confluence flash: only while the card is still a live decision
-        // (no ghost yet, or still watching) — a resolved won/lost/missed card
-        // flashing "hot" would be reporting urgency that already passed. And
-        // never alongside the markup, which flashes on the sequence instead.
-        c.confluence >= HIGH_CONFLUENCE_THRESHOLD &&
-          !chartShown &&
-          (!ghost || ghost.status === "watching") &&
-          "flash-high-confluence",
+        // No high-confluence flash. Over four years Q 0.85+ went the card's
+        // way LESS often than 0.65-0.70 (evidence-pack.json); a pulse on a
+        // high fit score was urgency pointed at the measured-worst bucket.
       )}
     >
       {/* ROW 1 — the decision line. Symbol, side, grade and score together,
@@ -738,7 +806,7 @@ function SetupCard({
                 {c.side.toUpperCase()}
               </span>
             </h3>
-            <GradeBadge g={c.grade} />
+            <GradeBadge g={String(c.pathBand ?? c.grade)} />
             {ghost?.status === "won" && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
                 <CheckCircle2 className="h-3 w-3" /> hit target
@@ -812,28 +880,15 @@ function SetupCard({
             </div>
           )}
         </div>
-        <div className="shrink-0 text-right font-mono">
-          <p
-            className={cn(
-              "text-2xl font-semibold leading-none tabular",
-              c.confluence >= HIGH_CONFLUENCE_THRESHOLD
-                ? "text-[var(--color-up)]"
-                : "text-[var(--color-fg)]",
-            )}
-          >
+        <div
+          className="shrink-0 text-right font-mono"
+          title={qTitle}
+        >
+          <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
             {c.confluence.toFixed(2)}
           </p>
-          <p
-            className={cn(
-              "mt-0.5 text-[9px] uppercase tracking-wider",
-              c.confluence >= HIGH_CONFLUENCE_THRESHOLD
-                ? "font-semibold text-[var(--color-up)]"
-                : "text-[var(--color-subtle)]",
-            )}
-          >
-            {c.confluence >= HIGH_CONFLUENCE_THRESHOLD
-              ? `≥${(HIGH_CONFLUENCE_THRESHOLD * 100).toFixed(0)}% engine`
-              : "engine"}
+          <p className="mt-0.5 text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            fit · not odds
           </p>
         </div>
       </div>
@@ -947,7 +1002,7 @@ function SetupCard({
       {ghost && ghost.status !== "watching" ? (
         <GhostBanner g={ghost} />
       ) : (
-        <BlockerStrip c={c} entryAllowed={entryAllowed} />
+        <BlockerStrip c={c} entryAllowed={entryAllowed} sessionReason={session?.sessionReason} />
       )}
 
       {/* THE MARKUP — this card's own setup, drawn the way an SMC trader marks
@@ -1079,14 +1134,34 @@ function SetupCard({
         </div>
       )}
 
-      {/* ROW 2 — the plan. Three numbers a trader acts on, evenly weighted. */}
+      {/* ROW 2 — the plan. When the sequence priced one, these are ITS
+          numbers (the same object the ticket, the chart and the paper book
+          read); otherwise the scanner's prose, labelled as unpriced. */}
       <div className="mb-2 grid grid-cols-3 gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-2 text-xs">
         {(
-          [
-            ["Entry", c.entryZone],
-            ["Invalidation", c.invalidation],
-            ["Target", c.targets[0] ?? "—"],
-          ] as const
+          (c.plan
+            ? [
+                [
+                  "Entry · limit at CE",
+                  `${c.plan.entry.toFixed(2)}${c.plan.entryZone ? ` (${c.plan.entryZone.bottom.toFixed(2)}–${c.plan.entryZone.top.toFixed(2)})` : ""}`,
+                ],
+                [
+                  "Stop · priced plan",
+                  `${c.plan.stop.toFixed(2)} · ${c.plan.riskPts.toFixed(2)}pt${c.plan.riskAtr != null ? ` · ${c.plan.riskAtr.toFixed(2)}×ATR` : ""}`,
+                ],
+                [
+                  "T1 · T2",
+                  `${c.plan.t1 != null ? `${c.plan.t1.toFixed(2)}${c.plan.rr1 != null ? ` (${c.plan.rr1.toFixed(1)}R)` : ""}` : "no draw ahead"}${c.plan.t2 != null ? ` · ${c.plan.t2.toFixed(2)}${c.plan.rr2 != null ? ` (${c.plan.rr2.toFixed(1)}R)` : ""}` : ""}`,
+                ],
+              ]
+            : [
+                ["Entry · unpriced", c.entryZone],
+                [
+                  c.stopSource === "none" ? "Stop · none" : "Invalidation · structural",
+                  c.invalidation,
+                ],
+                ["Target", c.targets[0] ?? "—"],
+              ]) as [string, string][]
         ).map(([label, value]) => (
           <div key={label} className="min-w-0">
             <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
@@ -1136,6 +1211,64 @@ function SetupCard({
         </div>
       )}
 
+      {/*
+        THE REST OF THE TRADE, decided before the click.
+
+        The ticket already carries these lines (entry-ticket.ts); they only
+        ever reached a system notification. A trader in a position is the
+        least able to re-derive "what do I do at T1" and "when is this dead",
+        so they sit on the card, under the plan they belong to.
+      */}
+      {c.plan && (
+        <div className="mb-2 space-y-0.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1.5 text-[10px] leading-snug">
+          <p className="text-[var(--color-fg)]">
+            <span className="font-semibold">AT T1:</span> take {Math.round(APLUS_RULES.scaleOut.tp1Fraction * 100)}% off, stop to
+            breakeven, runner to T2. Do not protect earlier — banking at +1R measured −0.42R/t.
+          </p>
+          <p className="text-[var(--color-muted)]">
+            <span className="font-semibold">DEAD IF:</span> a close beyond {c.plan.stop.toFixed(2)}, or the limit is
+            untouched 3h after it rests (flat by 16:00 ET). An unfilled plan does not carry to tomorrow.
+          </p>
+          {risk.riskAtr != null && (
+            <p
+              className={
+                risk.riskAtr < MIN_RISK_ATR || risk.riskAtr > MAX_RISK_ATR_TRADABLE
+                  ? "font-semibold text-[var(--color-down)]"
+                  : "text-[var(--color-subtle)]"
+              }
+            >
+              Stop {risk.riskAtr.toFixed(2)}×ATR —{" "}
+              {risk.riskAtr < MIN_RISK_ATR || risk.riskAtr > MAX_RISK_ATR_TRADABLE
+                ? `outside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band, where cards lose in both halves of four years`
+                : `inside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band (outside it loses; inside is roughly breakeven)`}
+            </p>
+          )}
+        </div>
+      )}
+
+      {evidence.length > 0 && (
+        <div className="mb-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2.5 py-1.5">
+          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+            Evidence · this card's buckets over four years
+          </p>
+          {evidence.map((e) => (
+            <p
+              key={e.key}
+              className={cn(
+                "mt-0.5 text-[10px] leading-snug",
+                e.tone === "warn"
+                  ? "text-[var(--color-down)]"
+                  : e.tone === "ok"
+                    ? "text-[var(--color-up)]"
+                    : "text-[var(--color-muted)]",
+              )}
+            >
+              {e.text}
+            </p>
+          ))}
+        </div>
+      )}
+
       {/* ROW 3 — actions, full width and unambiguous. The paper button used to
           render its label twice ("Log paper 📝 Paper"). */}
       {onLog && !done && (
@@ -1144,26 +1277,31 @@ function SetupCard({
             type="button"
             size="sm"
             variant="secondary"
+            disabled={!c.plan || sizeRefusal != null || geo.refuse}
             onClick={() => onLog(c, "paper")}
-            title="One-click PAPER entry — auto size, auto manage exits on live data"
+            title={
+              !c.plan
+                ? "No priced plan on this side yet — nothing to rest"
+                : sizeRefusal
+                  ? `Not restable: ${sizeRefusal}`
+                  : geo.refuse
+                    ? "The card's own geometry refuses"
+                    : "Rest a PAPER limit at the plan's CE — it fills when price trades there, sized and managed by the rule"
+            }
             className="border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))]"
           >
             <NotebookPen className="mr-1 h-3.5 w-3.5" />
-            Log paper
+            {c.plan ? `Paper · rest @ ${c.plan.entry.toFixed(2)}` : "Paper · no plan"}
           </Button>
           <Button
             type="button"
             size="sm"
             variant="secondary"
             onClick={() => onLog(c, "live")}
-            title={
-              entryAllowed
-                ? "Log as LIVE trade"
-                : "Risk gate active — still journalable as live intent"
-            }
+            title="Record a REAL fill — always open, even against the desk: an override that is not logged cannot be measured"
             className="text-[var(--color-warn)]"
           >
-            Log live
+            Log live fill
           </Button>
         </div>
       )}
@@ -1358,7 +1496,7 @@ export function SetupScanner({
   bias?: { left: HtfBiasRead; right: HtfBiasRead };
   /** Per-book liquidity/confirmation narrative — same matching. */
   narrative?: { left: MarketNarrative; right: MarketNarrative };
-  clock?: { inTradeWindow: boolean; killzoneLabel: string };
+  clock?: { inTradeWindow: boolean; killzoneLabel: string } & CardSession;
   /** Real per-strategy sizing factor (journal/discretion.ts via getDiscretionState). */
   discretion?: DiscretionPayload | null;
   /**
@@ -1424,18 +1562,28 @@ export function SetupScanner({
    * nudges layered on top of the existing cross-tab synapse rank, same
    * pattern as sizeContracts' discretionMult clamp.
    */
+  /**
+   * The board order: what can be TRADED first, never the fit score.
+   *
+   * This used to re-sort by Q plus a canon bonus, silently undoing
+   * scanner.ts `compareForBoard` (HTF, then actionable) — so the top card
+   * was the highest-Q card, which is the measured-worst direction bucket.
+   * Now: takeable first, then the sequence's word for that side, then
+   * whether anything that sizes would refuse. Q only breaks exact ties
+   * inside compareForBoard.
+   */
+  const wordRank = (c: SetupCandidate) => {
+    const seq = tape?.[c.symbol]?.sequence;
+    const w = seq && seq.side === c.side ? seq.word : null;
+    return w === "TAKE" ? 2 : w === "WAIT" ? 1 : 0;
+  };
   const display = [...guided]
-    .sort((a, b) => {
-      const scoreA =
-        a.c.confluence +
-        (a.canon ? CANON_SORT_BONUS[a.canon.grade] : 0) +
-        (a.disc.factor - 1) * 0.15;
-      const scoreB =
-        b.c.confluence +
-        (b.canon ? CANON_SORT_BONUS[b.canon.grade] : 0) +
-        (b.disc.factor - 1) * 0.15;
-      return scoreB - scoreA;
-    })
+    .sort(
+      (a, b) =>
+        compareForBoard(a.c, b.c) ||
+        wordRank(b.c) - wordRank(a.c) ||
+        Number(cardSizeRefusal(a.c) != null) - Number(cardSizeRefusal(b.c) != null),
+    )
     .map((g) => g.c);
   const guidedById = new Map(guided.map((g) => [g.c.id, g]));
 
@@ -1447,7 +1595,7 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Profit path: action only A/A+ (calib floor 0.65) · incomplete veto · full catalog · test floor {scan.floor} · A+ ≥ {scan.aPlus}
+            Execute A+/A/A− · B+ paper only · floor {scan.floor} · ordered by what can be traded, never by fit score
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1518,6 +1666,7 @@ export function SetupScanner({
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}
             tape={tape?.[c.symbol]}
+            session={clock}
           />
         ))}
       </div>

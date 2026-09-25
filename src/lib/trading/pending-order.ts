@@ -101,6 +101,8 @@ export interface PendingOrder {
   /** The print that reached it, and that print's age — the fill's audit trail. */
   touchPrice?: number;
   touchLagSec?: number;
+  /** Discretion size factor at the moment of the decision, applied at the fill. */
+  discretionMult?: number;
   /** Set by `confirmPendingFill` once the paper open exists, never before. */
   filledAt?: number;
   fillPrice?: number;
@@ -186,8 +188,8 @@ export function restingFor(symbol: string): PendingOrder | null {
  * book — a new plan at a new price is a new decision, not a second ticket.
  */
 export function restLimit(
-  plan: TradePlan,
-  opts: { grade: string; strategy: string; now: number },
+  plan: Pick<TradePlan, "symbol" | "side" | "entry" | "stop" | "t1" | "t2" | "riskPts" | "entryZone">,
+  opts: { grade: string; strategy: string; now: number; discretionMult?: number },
 ): PendingOrder {
   const rows = loadPending().filter((o) => !(o.symbol === plan.symbol && isLive(o)));
   const order: PendingOrder = {
@@ -205,6 +207,7 @@ export function restLimit(
     restedAt: opts.now,
     expiresAt: opts.now + PENDING_TTL_MS,
     status: "resting",
+    discretionMult: opts.discretionMult,
   };
   save([order, ...rows]);
   return order;

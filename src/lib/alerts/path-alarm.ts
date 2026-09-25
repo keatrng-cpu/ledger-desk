@@ -239,6 +239,14 @@ function showOsNote(fire: PathAlarmFire): void {
  * PATH band is A+/A/A-. Judas 9:30-9:45 ET suppresses everything: the raid
  * is the setup, not the entry, and smc-master STANDs it anyway.
  */
+/** One book's sub-15m ladder (1m/2m/3m) — the rungs the Judas read resolves on. */
+function bookRungs(desk: DeskPayload, symbol: string) {
+  const isLeft = symbol.replace(/^M/, "") === String(desk.left?.symbol ?? "").replace(/^M/, "");
+  return isLeft
+    ? allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? [])
+    : allSeries(desk.right?.bars ?? [], desk.mtf?.right?.minute ?? []);
+}
+
 export function considerPathAlarm(
   desk: DeskPayload,
   candidate: SetupCandidate | undefined,
@@ -257,9 +265,11 @@ export function considerPathAlarm(
   // genuinely print TAKE, and an alarm that stayed silent for it would be the
   // worst of both. Without minute tape the read fails closed and this is
   // exactly the old behaviour.
+  // Judas read on THIS card's own book. It always read the left (MNQ) tape,
+  // so an ES card was released or muted by what MNQ's open did.
   if (
     isJudasWindow(wall.hour, wall.minute) &&
-    readJudas(allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? []), { etHour: wall.hour, etMinute: wall.minute }, null)
+    readJudas(bookRungs(desk, candidate.symbol), { etHour: wall.hour, etMinute: wall.minute }, candidate.side)
       .blocked
   )
     return null;
@@ -276,7 +286,9 @@ export function considerPathAlarm(
       : root(candidate.symbol) === root(desk.smcMaster.right.symbol)
         ? desk.smcMaster.right
         : null;
-  if (!seq || seq.word !== "TAKE") return null;
+  // Same SIDE as well as the same book. Matching on the symbol alone let a
+  // TAKE on the opposite side of the book beep for this card.
+  if (!seq || seq.word !== "TAKE" || seq.side !== candidate.side) return null;
 
   const day = etDay(Date.now());
   const key = alarmKey(candidate, day);
@@ -340,18 +352,6 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
   if (!s.armed || s.muted) return null;
 
   const wall = etWallParts(Date.now());
-  // Judas is no longer a blanket mute. It mutes until the open's manipulation
-  // has resolved on a sub-15m rung (judas-window.ts) — and since the sequence
-  // applies the same read, a released window is one where the desk can
-  // genuinely print TAKE, and an alarm that stayed silent for it would be the
-  // worst of both. Without minute tape the read fails closed and this is
-  // exactly the old behaviour.
-  if (
-    isJudasWindow(wall.hour, wall.minute) &&
-    readJudas(allSeries(desk.left?.bars ?? [], desk.mtf?.left?.minute ?? []), { etHour: wall.hour, etMinute: wall.minute }, null)
-      .blocked
-  )
-    return null;
   if (desk.news?.verdict === "blackout") return null;
 
   // DEDUPED. `oneBook` is the same OBJECT as left or right (smc-master picks
@@ -365,6 +365,18 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
 
   for (const book of books) {
     if (!book?.plan || !isWatchable(book)) continue;
+    // A PATH band, like every other alarm. The touch alarm checked the
+    // sequence but never the grade, so B and B+ books beeped the trader to a
+    // card the ticket will only paper.
+    if (!HIGH_PROB.has(String(book.pathBand ?? "").replace("−", "-"))) continue;
+    // Judas per book, on this book's own minute tape (judas-window.ts). Fails
+    // closed without minute tape, which is the old behaviour.
+    if (
+      isJudasWindow(wall.hour, wall.minute) &&
+      readJudas(bookRungs(desk, book.symbol), { etHour: wall.hour, etMinute: wall.minute }, book.side === "short" ? "short" : "long")
+        .blocked
+    )
+      continue;
     const isLeft = book.symbol === desk.left.symbol;
     const price = isLeft
       ? desk.quotes.left.price

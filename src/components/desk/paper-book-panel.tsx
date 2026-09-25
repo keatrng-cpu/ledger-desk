@@ -9,10 +9,8 @@ import {
   type PaperTrade,
 } from "@/lib/trading/paper-manager";
 import { Button } from "@/components/ui/button";
+import { APLUS_RULES } from "@/lib/aplus/config";
 import { cn } from "@/lib/utils";
-
-/** Default structure TP for ES short session — user: 7763 low */
-const DEFAULT_STRUCTURE_TP = 7763;
 
 export function PaperBookPanel({
   lastClosed,
@@ -63,8 +61,8 @@ export function PaperBookPanel({
             Paper book · auto-managed
           </h3>
           <p className="text-[10px] text-[var(--color-subtle)]">
-            Structure TP default ES low {DEFAULT_STRUCTURE_TP} · scale @ nearer
-            target · Auto paper on HUD fills PATH in NY AM into this book + stats
+            {APLUS_RULES.scaleOut.tp1Fraction * 100}% at T1 (the plan&apos;s draw) → stop to BE →
+            runner to T2 · managed on live prints · Auto paper fills TAKE cards in NY AM
           </p>
         </div>
       </header>
@@ -77,20 +75,10 @@ export function PaperBookPanel({
       {open.length > 0 ? (
         <ul className="space-y-1.5">
           {open.map((t) => {
-            const mark =
-              liveMarks?.[t.displaySymbol] ??
-              liveMarks?.[t.symbol] ??
-              liveMarks?.ES ??
-              liveMarks?.MES;
-            const structurePx =
-              t.side === "short"
-                ? Math.min(t.tp2, t.tp1, DEFAULT_STRUCTURE_TP)
-                : Math.max(t.tp2, t.tp1);
-            // Prefer 7763 for ES shorts as structure close
-            const esStructure =
-              t.displaySymbol === "ES" || t.symbol === "MES"
-                ? DEFAULT_STRUCTURE_TP
-                : structurePx;
+            // THIS instrument's mark only. The old fallback chain ended in
+            // `liveMarks.ES`, so an MNQ trade with no MNQ mark offered to
+            // close at an ES price — a fill ~23,000 points from market.
+            const mark = liveMarks?.[t.displaySymbol] ?? liveMarks?.[t.symbol];
 
             return (
               <li
@@ -108,24 +96,14 @@ export function PaperBookPanel({
                       {t.tp1} · TP2/structure {t.tp2}
                       {mark != null ? ` · mark ${mark}` : ""}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="h-7 px-2 text-[10px]"
-                        onClick={() =>
-                          doClose(
-                            t,
-                            t.side === "short"
-                              ? Math.min(esStructure, mark ?? esStructure)
-                              : Math.max(esStructure, mark ?? esStructure),
-                            "structure_tp",
-                          )
-                        }
-                      >
-                        Close @ {esStructure} structure
-                      </Button>
-                      {mark != null && (
+                    {/* One manual exit, at the price that is actually
+                        printing. "Close @ structure" (a hardcoded ES 7763)
+                        and "Close @ TP1" (100% at T1 whether or not it
+                        printed) are gone: the first invented fills, the
+                        second is the protect-early exit measured at
+                        -0.42R/t. The management rule runs on its own. */}
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {mark != null ? (
                         <Button
                           type="button"
                           size="sm"
@@ -133,18 +111,16 @@ export function PaperBookPanel({
                           className="h-7 px-2 text-[10px]"
                           onClick={() => doClose(t, mark, "manual_mark")}
                         >
-                          Close @ mark {mark}
+                          Flatten @ mark {mark}
                         </Button>
+                      ) : (
+                        <span className="text-[10px] text-[var(--color-subtle)]">
+                          No live {t.displaySymbol} mark — nothing to flatten against
+                        </span>
                       )}
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="h-7 px-2 text-[10px]"
-                        onClick={() => doClose(t, t.tp1, "tp1")}
-                      >
-                        Close @ TP1 {t.tp1}
-                      </Button>
+                      <span className="text-[10px] text-[var(--color-subtle)]">
+                        overriding the rule is logged as a discretionary exit
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -154,8 +130,8 @@ export function PaperBookPanel({
         </ul>
       ) : (
         <p className="text-[11px] text-[var(--color-muted)]">
-          No open paper trades — click <strong>Log paper</strong> on a setup for
-          instant entry.
+          No open paper trades. <strong>Log paper</strong> on a card rests a limit at the
+          plan&apos;s CE — it fills when price trades there, not when you click.
         </p>
       )}
 

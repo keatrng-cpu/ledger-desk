@@ -149,44 +149,41 @@ export function SessionHud({
       ? `${Math.floor(shockLeftMs / 60_000)}:${String(Math.floor((shockLeftMs % 60_000) / 1000)).padStart(2, "0")}`
       : "0:00";
 
-  const focus = useMemo(() => {
+  /**
+   * ONE verdict, in the order a trader needs it: a position you HOLD first,
+   * then a TAKE, then a stand-down, then the wait.
+   *
+   * Hindsight used to outrank all of it. A debrief under two hours old, or the
+   * focus card's ghost resolving won/lost, took the headline — so the HUD
+   * could be reporting a shadow trade nobody took while a TAKE printed. And a
+   * ghost that "filled" said IN PLAY · "Do not add" without checking whether
+   * the trader ever took it. Hindsight now rides in the detail line, labelled
+   * as hindsight; IN PLAY is only ever a position that exists.
+   */
+  const focus = useMemo((): {
+    mode: "go" | "live" | "wait" | "stand" | "done" | "failed";
+    line: string;
+    detail: string;
+  } => {
     const freshDebrief =
       lastDebrief && Date.now() - lastDebrief.at < 2 * 3600_000
         ? lastDebrief
         : null;
-    if (freshDebrief && (freshDebrief.result === "win" || freshDebrief.result === "loss")) {
-      return {
-        mode: (freshDebrief.result === "win" ? "done" : "failed") as "done" | "failed",
-        line: freshDebrief.headline,
-        detail: freshDebrief.lesson,
-      };
+    const hindsight =
+      freshDebrief && (freshDebrief.result === "win" || freshDebrief.result === "loss")
+        ? `Last trade · ${freshDebrief.headline}`
+        : (ghost?.status === "won" || ghost?.status === "lost") && ghost.analysis
+          ? `Shadow (${ghost.taken ? "taken" : "not taken"}) · ${ghost.analysis.headline}`
+          : null;
+
+    if (pathV.word === "MANAGE") {
+      return { mode: "live" as const, line: pathV.line, detail: "Do not add. Let the plan work." };
     }
-    if (ghost?.status === "won" && ghost.analysis) {
-      return {
-        mode: "done" as const,
-        line: ghost.analysis.headline,
-        detail: ghost.analysis.lesson,
-      };
-    }
-    if (ghost?.status === "lost" && ghost.analysis) {
-      return {
-        mode: "failed" as const,
-        line: ghost.analysis.headline,
-        detail: ghost.analysis.lesson,
-      };
-    }
-    if (ghost?.status === "filled") {
+    if (ghost?.status === "filled" && ghost.taken) {
       return {
         mode: "live" as const,
         line: `${ghost.symbol} ${ghost.side.toUpperCase()} in play · stop ${ghost.stop.toFixed(2)} · tp ${ghost.tp1.toFixed(2)}`,
         detail: "Do not add. Let the plan work.",
-      };
-    }
-    if (brief?.verdict === "stand_down") {
-      return {
-        mode: "stand" as const,
-        line: brief.headline,
-        detail: brief.standDownReasons[0] ?? brief.reasons[0] ?? "",
       };
     }
     // ONE verdict. The GO pill used to read `best.actionable` on its own,
@@ -200,13 +197,17 @@ export function SessionHud({
         detail: best?.strategyWhy[0] ?? best?.reasons[0] ?? scan.focus,
       };
     }
-    if (pathV.word === "MANAGE") {
-      return { mode: "live" as const, line: pathV.line, detail: "Do not add. Let the plan work." };
+    if (brief?.verdict === "stand_down") {
+      return {
+        mode: "stand" as const,
+        line: brief.headline,
+        detail: hindsight ?? brief.standDownReasons[0] ?? brief.reasons[0] ?? "",
+      };
     }
     return {
       mode: "wait" as const,
       line: pathV.line,
-      detail: best?.missing.slice(0, 2).join(" · ") ?? "",
+      detail: hindsight ?? best?.missing.slice(0, 2).join(" · ") ?? "",
     };
   }, [ghost, brief, best, scan.focus, lastDebrief, pathV.word, pathV.line]);
 

@@ -1175,6 +1175,9 @@ export function managePaperTradesAgainstPrice(
  * Manually / structure-close an open paper trade at a fill price.
  * Used for "close at the 7763 low" style structure TPs.
  */
+/** Largest |exit - entry| / entry a manual close may book. See closePaperTrade. */
+export const MAX_CLOSE_MOVE = 0.08;
+
 export function closePaperTrade(
   id: string,
   exitPrice: number,
@@ -1184,6 +1187,13 @@ export function closePaperTrade(
   const t = all.find((x) => x.id === id && x.status === "open");
   if (!t) return null;
   if (!Number.isFinite(exitPrice) || exitPrice <= 0) return null;
+  // A close is a FILL, so it has to be a price the instrument could have
+  // printed. The paper panel used to offer "Close @ 7763 structure" on every
+  // short — an ES level — and for an MNQ short that booked an exit ~22,000
+  // points below the market, hundreds of R into the A+ sample. No index
+  // future moves 8% inside one paper trade; anything past that is a wrong
+  // symbol or a stale constant, never a fill.
+  if (Math.abs(exitPrice - t.entry) / t.entry > MAX_CLOSE_MOVE) return null;
 
   const sign = t.side === "long" ? 1 : -1;
   const r = (sign * (exitPrice - t.entry)) / Math.max(t.riskPts, 1e-6);
