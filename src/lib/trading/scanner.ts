@@ -628,6 +628,29 @@ export interface ScoreCandidatesOptions {
 }
 
 /**
+ * Board rank: can this be traded, before how much structure it has.
+ *
+ * `htfOk` leads because CLAUDE.md makes `topDown` an ABSOLUTE gate — a card it
+ * refuses cannot be acted on at any score. `actionable` second. Confluence
+ * only breaks ties inside a group, so nothing is reordered among cards that
+ * are equally takeable.
+ *
+ * Exported so the ordering is a pinned contract rather than an inline lambda:
+ * this is the line that decides which card a trader's eye lands on first, and
+ * it got that wrong on a live board.
+ */
+export function boardRank(c: Pick<SetupCandidate, "htfOk" | "actionable">): number {
+  return (c.htfOk ? 2 : 0) + (c.actionable ? 1 : 0);
+}
+
+export function compareForBoard(
+  a: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence">,
+  b: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence">,
+): number {
+  return boardRank(b) - boardRank(a) || b.confluence - a.confluence;
+}
+
+/**
  * THE scorer. Phase A3: live, replay, backtest and the paper loop all reach
  * the market through this one function, so a component added here cannot be
  * present in one context and missing in another. Callers differ only in what
@@ -795,7 +818,25 @@ export function scoreCandidates(
 
   // Profit path: incomplete-pattern veto + calibration floor (0.65) for action
   const pathCandidates = candidates.map(applyProfitPathToCandidate);
-  pathCandidates.sort((a, b) => b.confluence - a.confluence);
+  /**
+   * TAKEABLE FIRST, THEN SCORE. Fixed 2026-09-25 from a live board.
+   *
+   * This sorted on `confluence` alone, so the card at the top of the screen
+   * was whichever had the most STRUCTURE present — not whichever could be
+   * traded. At 09:35 ET that put a counter-trend short (Q 0.83, blocked on
+   * HTF conflict, inverted invalidation) above an HTF-aligned long (Q 0.78)
+   * on a board whose own header said "prefer long ideas in leader".
+   *
+   * Confluence answers "how much is here". It was never a ranking of what to
+   * do, and reading it as one is the specific way this board misleads: the
+   * eye goes to the first card, and the first card was the unusable one.
+   *
+   * `htfOk` leads because CLAUDE.md makes `topDown` an absolute gate — a card
+   * it refuses cannot be acted on at any score. `actionable` second. Score
+   * only breaks ties inside a group, so nothing is reordered within the set
+   * of cards that are equally takeable.
+   */
+  pathCandidates.sort(compareForBoard);
 
   const best = pathCandidates[0];
   let focus = "Stand down — no setup clears engine-aligned gates.";

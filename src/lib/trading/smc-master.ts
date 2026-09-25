@@ -148,9 +148,37 @@ function pickCandidate(
       if (pick) return pick;
     }
   }
-  const aligned = need ? book.find((c) => c.side === need) : undefined;
+  /**
+   * HTF ALIGNMENT OUTRANKS BAND. Fixed 2026-09-25 from a live board.
+   *
+   * This was `path ?? aligned ?? top-confluence`, and `path` was not filtered
+   * by side — so a card the HTF gate REFUSES could win the one-book pick
+   * purely by carrying a better band. Observed at 09:35 ET inside Judas: HTF
+   * bull, draw 8pt above price at 90% reach, the desk's own header reading
+   * "prefer long ideas in leader if HTF agree" — and the headline card was a
+   * counter-trend SHORT at Q 0.83 over the aligned long at 0.78. The short was
+   * simultaneously blocked on HTF conflict, 2/4 on counter-bias, carrying a
+   * 0.5x ladder penalty and printing an inverted invalidation. It still
+   * outranked the long, because band beat side.
+   *
+   * That is the desk contradicting itself on one screen, and the trader's eye
+   * goes to the headline. CLAUDE.md calls `topDown` an ABSOLUTE gate; a card
+   * it refuses must never be the pick while one it allows exists.
+   *
+   * Order now: aligned AND PATH-grade, then aligned at all, then PATH, then
+   * best score. The last two still exist because a neutral HTF has no aligned
+   * side, and refusing to name any card is worse than naming a weak one.
+   */
+  const alignedBook = need ? book.filter((c) => c.side === need) : book;
+  const alignedPath = alignedBook.find((c) => isHighProbPath(c));
+  const aligned = alignedBook[0];
   const path = book.find((c) => isHighProbPath(c));
-  return path ?? aligned ?? [...book].sort((a, b) => b.confluence - a.confluence)[0];
+  return (
+    alignedPath ??
+    aligned ??
+    path ??
+    [...book].sort((a, b) => b.confluence - a.confluence)[0]
+  );
 }
 
 /**
