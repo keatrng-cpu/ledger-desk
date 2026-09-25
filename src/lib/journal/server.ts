@@ -329,7 +329,12 @@ async function readBookCounters(
   userId: string,
   mode: "live" | "paper",
   now: Date,
-): Promise<{ counters: BookCounters; bookTakenToday: string | null }> {
+): Promise<{
+  counters: BookCounters;
+  bookTakenToday: string | null;
+  /** The SIDE already taken today — the one-book rule is about bias. */
+  sideTakenToday: "long" | "short" | null;
+}> {
   const monthStart = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
   );
@@ -401,6 +406,8 @@ async function readBookCounters(
   return {
     counters,
     bookTakenToday: first ? bookOf(first.symbol) : null,
+    sideTakenToday:
+      first && (first.side === "long" || first.side === "short") ? first.side : null,
   };
 }
 
@@ -508,7 +515,7 @@ export async function assertOpenAllowed(
   data: OpenGateInput,
   now = new Date(),
 ): Promise<void> {
-  const { counters, bookTakenToday } = await readBookCounters(
+  const { counters, bookTakenToday, sideTakenToday } = await readBookCounters(
     sql,
     userId,
     data.mode,
@@ -521,9 +528,20 @@ export async function assertOpenAllowed(
     if (!gate.take) throw new Error(pathGateError(gate, "live", counters));
     return;
   }
-  if (bookTakenToday && bookTakenToday !== bookOf(data.symbol)) {
+  // The rule is about BIAS, not book. CLAUDE.md: "MNQ or ES, never both SAME
+  // BIAS." MNQ long + ES long is one idea at double risk; MNQ long + ES short
+  // is the SMT divergence trade, which carries LESS directional risk than
+  // either leg alone. Kept in step with paper-manager.ts, which had the same
+  // contradiction — two copies of a rule that disagree with the doc are worse
+  // than one.
+  if (
+    bookTakenToday &&
+    bookTakenToday !== bookOf(data.symbol) &&
+    sideTakenToday != null &&
+    sideTakenToday === data.side
+  ) {
     throw new Error(
-      `One book per day: already took ${bookTakenToday} on the paper book this session (since 18:00 ET). ${bookOf(data.symbol)} is a second correlated book — that is one idea at double risk, not two trades.`,
+      `One book per day: already took ${bookTakenToday} ${sideTakenToday} on the paper book this session (since 18:00 ET). ${bookOf(data.symbol)} ${data.side} is a second correlated book on the SAME bias — that is one idea at double risk, not two trades.`,
     );
   }
 }

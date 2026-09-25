@@ -451,12 +451,15 @@ export function listOpenPaperTrades(): PaperTrade[] {
 export function bookTakenToday(now = Date.now()): {
   book: string;
   symbol: string;
+  /** The side already taken. Needed because the rule is about BIAS, not book. */
+  side: "long" | "short" | null;
   at: number;
 } | null {
   const dayStart = tradingDayStart(new Date(now)).getTime();
   for (const t of loadPaperTrades()) {
     if (t.openedAt < dayStart || t.openedAt > now) continue;
-    return { book: bookRoot(t.displaySymbol), symbol: t.displaySymbol, at: t.openedAt };
+    const side = t.side === "short" || t.side === "long" ? t.side : null;
+    return { book: bookRoot(t.displaySymbol), symbol: t.displaySymbol, side, at: t.openedAt };
   }
   return null;
 }
@@ -529,11 +532,27 @@ export function openPaperTradeInstant(
     }
     // Rule 1 — one book per day. Checked BEFORE any level math so the message
     // names the conflict rather than a downstream geometry failure.
+    // Rule 1 — one book per day, and the rule is about BIAS.
+    //
+    // CLAUDE.md: "MNQ or ES, never both SAME BIAS." This used to refuse any
+    // second book regardless of side, which contradicted the written rule and
+    // — more to the point — contradicted the reason given in its own error
+    // message. MNQ long + ES long is genuinely one idea at double risk. MNQ
+    // long + ES SHORT is the opposite: it is the SMT divergence trade the
+    // desk grades for, and it carries less directional risk than either leg
+    // alone, not more.
+    //
+    // Measured over four years: 10 refusals, 8 same-bias (correctly refused)
+    // and 2 opposite-bias (refused by accident). Worth +0.02R pooled and
+    // nothing out-of-sample — this is a correctness fix, not a money one, and
+    // it is made because code and doc disagreeing is how a desk stops being
+    // able to trust either.
     const taken = bookTakenToday();
-    if (taken && taken.book !== bookRoot(c.symbol)) {
+    const sameBias = taken?.side != null && taken.side === c.side;
+    if (taken && taken.book !== bookRoot(c.symbol) && sameBias) {
       return {
         ok: false,
-        error: `One book per day: already took ${taken.symbol} this session (since 18:00 ET). ${c.symbol} is a second correlated book — that is one idea at double risk, not two trades.`,
+        error: `One book per day: already took ${taken.symbol} ${taken.side} this session (since 18:00 ET). ${c.symbol} ${c.side} is a second correlated book on the SAME bias — that is one idea at double risk, not two trades.`,
       };
     }
     const levels = buildPaperLevels(

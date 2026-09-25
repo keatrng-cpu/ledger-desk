@@ -149,12 +149,18 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
     return { take: null, skip: "Paper already open" };
   }
   const taken = bookTakenToday();
-  if (taken) {
-    return { take: null, skip: `One book today: ${taken.symbol}` };
-  }
 
   const candidate = desk.scan.candidates.find((c) => isHighProbPath(c));
   if (!candidate) return { take: null, skip: "No A+/A/A− PATH" };
+
+  // One book per day, and the rule is about BIAS — same as paper-manager.ts
+  // and journal/server.ts. This used to refuse ANY second book, which
+  // contradicted CLAUDE.md and refused the SMT divergence pair the desk
+  // grades for. Checked AFTER the candidate is picked, because the side is
+  // what the rule turns on.
+  if (taken && taken.side != null && taken.side === candidate.side) {
+    return { take: null, skip: `One book today: ${taken.symbol} ${taken.side} (same bias)` };
+  }
 
   const seq =
     candidate.symbol === desk.smcMaster.left.symbol
