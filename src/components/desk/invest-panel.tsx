@@ -19,7 +19,7 @@
  * a trader fast is a mechanism that makes an investor poor.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Landmark, TriangleAlert, Ban, Info } from "lucide-react";
 import {
   planSweep,
@@ -30,8 +30,16 @@ import {
 } from "@/lib/invest/policy";
 import { buildBook, rebalanceCheck, verdictFor, SLEEVE_TARGET } from "@/lib/invest/book";
 import { ALL_DOSSIERS, RISK_FREE } from "@/lib/invest/dossiers";
-import { canAdd, fundamentalsFor, snapshotCapturedAt, type InvestVerdict } from "@/lib/invest/universe";
-import { loadPositions, loadSweeps, closedMonths, totalSwept } from "@/lib/invest/store";
+import { canAdd, fundamentalsFor, snapshotCapturedAt, WASH_SALE_BANNED, type InvestVerdict, type Sleeve } from "@/lib/invest/universe";
+import {
+  addShares,
+  loadPositions,
+  loadSweeps,
+  logSweep,
+  closedMonths,
+  subscribeInvest,
+  totalSwept,
+} from "@/lib/invest/store";
 import { impliedGrowth, sensitivity, qualityRead, trendRead, BASE_RATES, HORIZON_EVIDENCE } from "@/lib/invest/factors";
 import { evidenceSummary, evidenceFor } from "@/lib/invest/evidence";
 
@@ -63,11 +71,35 @@ function Card({ title, children, tone }: { title: string; children: React.ReactN
   );
 }
 
+/** The month that just closed, "YYYY-MM" in ET — the default for logging. */
+function priorMonthKey(now = new Date()): string {
+  const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  et.setDate(1);
+  et.setMonth(et.getMonth() - 1);
+  return `${et.getFullYear()}-${String(et.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export function InvestPanel() {
-  const positions = useMemo(() => loadPositions(), []);
-  const sweeps = useMemo(() => loadSweeps(), []);
+  // The store had writers (logSweep, addShares) that nothing called, so the
+  // book was always empty and the sweep rate could never leave 20%. The
+  // reads now follow the store's own event, and the two forms below write it.
+  const [version, setVersion] = useState(0);
+  useEffect(() => subscribeInvest(() => setVersion((n) => n + 1)), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const positions = useMemo(() => loadPositions(), [version]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const sweeps = useMemo(() => loadSweeps(), [version]);
   const months = closedMonths();
   const swept = totalSwept();
+  const [logMonth, setLogMonth] = useState(() => priorMonthKey());
+  const [logMsg, setLogMsg] = useState<string | null>(null);
+  const [buy, setBuy] = useState<{ ticker: string; sleeve: Sleeve; shares: string; cost: string }>({
+    ticker: "",
+    sleeve: "ballast",
+    shares: "",
+    cost: "",
+  });
+  const [buyMsg, setBuyMsg] = useState<string | null>(null);
 
   // The month is entered by hand, because it is a REALIZED, CLOSED number
   // that the desk cannot read from a broker it is not connected to.
@@ -170,6 +202,40 @@ export function InvestPanel() {
           </ol>
         )}
         <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">{plan.note}</p>
+        {/* Record the month — once, and only a CLOSED one. The rate ladder
+            (20% → 30% after 20 months) reads this log and nothing else. */}
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={logMonth}
+            onChange={(e) => setLogMonth(e.target.value)}
+            placeholder="YYYY-MM"
+            className="w-24 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          />
+          <button
+            type="button"
+            disabled={!monthClosed || !/^\d{4}-\d{2}$/.test(logMonth) || realized.trim() === ""}
+            onClick={() => {
+              const res = logSweep({
+                month: logMonth,
+                verdict: plan.verdict,
+                realizedUsd: Number(realized) || 0,
+                rentUsd: plan.rentCoveredUsd,
+                restoreUsd: plan.restoreUsd,
+                sweptUsd: plan.sweepUsd,
+                rate: plan.rate,
+                loggedAt: new Date().toISOString(),
+                note: plan.note,
+              });
+              setLogMsg(res.logged ? `${logMonth} logged — ${usd(plan.sweepUsd)} to shares.` : res.why);
+            }}
+            className="rounded border border-[var(--color-border)] px-2 py-1 text-[11px] text-[var(--color-fg)] disabled:opacity-40"
+          >
+            Log this month
+          </button>
+          <span className="text-[10px] text-[var(--color-muted)]">
+            {logMsg ?? "Tick “Month is closed” first. A month is priced once and never edited."}
+          </span>
+        </div>
       </Card>
 
       {/* 2 — THE RENT LINE */}
@@ -218,6 +284,62 @@ export function InvestPanel() {
 
       {/* 3 — THE BOOK */}
       <Card title="The book">
+        {/* Record a buy. Refuses the wash-sale list outright — the book may
+            never hold what the options sleeve trades around. */}
+        <div className="mb-2 flex flex-wrap items-end gap-2">
+          <input
+            value={buy.ticker}
+            onChange={(e) => setBuy({ ...buy, ticker: e.target.value.toUpperCase().trim() })}
+            placeholder="Ticker"
+            className="w-20 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          />
+          <select
+            value={buy.sleeve}
+            onChange={(e) => setBuy({ ...buy, sleeve: e.target.value as Sleeve })}
+            className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          >
+            <option value="ballast">ballast</option>
+            <option value="compounder">compounder</option>
+            <option value="drypowder">dry powder</option>
+          </select>
+          <input
+            value={buy.shares}
+            onChange={(e) => setBuy({ ...buy, shares: e.target.value })}
+            inputMode="decimal"
+            placeholder="Shares"
+            className="w-20 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          />
+          <input
+            value={buy.cost}
+            onChange={(e) => setBuy({ ...buy, cost: e.target.value })}
+            inputMode="decimal"
+            placeholder="Total $ paid"
+            className="w-24 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-fg)]"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const shares = Number(buy.shares);
+              const cost = Number(buy.cost);
+              if (!/^[A-Z.]{1,6}$/.test(buy.ticker)) return setBuyMsg("Ticker?");
+              if (WASH_SALE_BANNED[buy.ticker]) {
+                return setBuyMsg(`${buy.ticker} is BANNED here — ${WASH_SALE_BANNED[buy.ticker]} (IRC 1091 wash-sale entanglement with the options sleeve).`);
+              }
+              if (!(shares > 0) || !(cost > 0)) return setBuyMsg("Shares and the dollars actually paid, both > 0.");
+              addShares({ ticker: buy.ticker, sleeve: buy.sleeve, shares, costUsd: cost, openedAt: new Date().toISOString() });
+              setBuyMsg(`Recorded ${shares} ${buy.ticker} for ${usd(cost)}.`);
+              setBuy({ ...buy, ticker: "", shares: "", cost: "" });
+            }}
+            className="rounded border border-[var(--color-border)] px-2 py-1 text-[11px] text-[var(--color-fg)]"
+          >
+            Record buy
+          </button>
+          {buyMsg && <span className="text-[10px] text-[var(--color-muted)]">{buyMsg}</span>}
+        </div>
+        <p className="mb-2 text-[10px] text-[var(--color-subtle)]">
+          Positions are valued at COST — this tab has no live quotes for the book, and a guessed mark would be an
+          invented number.
+        </p>
         {book.positions.length === 0 ? (
           <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">
             Nothing held yet. Total swept to date: {usd(swept)} across {sweeps.length} logged month

@@ -167,6 +167,17 @@ function makeArrayPrimitive(getArrays: () => SmcArray[]) {
  * Client-only candlestick pane (lightweight-charts is browser/canvas).
  * Dynamic-imports the lib so SSR never resolves it.
  */
+/** Epoch SECONDS → ET wall clock ("09:30", or "Sep 25 09:30" with the date). */
+function etLabel(t: number, withDate: boolean): string {
+  return new Date(t * 1000).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    ...(withDate ? { month: "short", day: "2-digit" } : {}),
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 export function CandlestickPane({
   bars,
   height = 280,
@@ -179,6 +190,7 @@ export function CandlestickPane({
 }: CandlestickPaneProps) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<any>(null);
+  const fitKeyRef = useRef<string>("");
   const candleRef = useRef<any>(null);
   const volRef = useRef<any>(null);
   const lwcRef = useRef<any>(null);
@@ -222,7 +234,16 @@ export function CandlestickPane({
         },
         crosshair: { mode: CrosshairMode.Normal },
         rightPriceScale: { borderVisible: false },
-        timeScale: { borderVisible: false, timeVisible: true, secondsVisible: false },
+        // ET, labelled. The library gets raw epoch seconds and printed UTC by
+        // default, so 09:30 ET read as 13:30 on a desk whose every rule is
+        // written in ET.
+        localization: { timeFormatter: (t: number) => `${etLabel(t, true)} ET` },
+        timeScale: {
+          borderVisible: false,
+          timeVisible: true,
+          secondsVisible: false,
+          tickMarkFormatter: (t: number) => etLabel(t, false),
+        },
       });
       chartRef.current = chart;
 
@@ -410,7 +431,13 @@ export function CandlestickPane({
     if (!candle || !vol || !chart || !bars.length) return;
     candle.setData(toCandleData(bars) as any);
     vol.setData(toVolumeData(bars, accentUp + "99", accentDown + "99") as any);
-    chart.timeScale().fitContent();
+    // Refit only when the SERIES changed (a new symbol/range), not on every
+    // 60s reload — refitting each reload threw away the trader's zoom.
+    const key = `${bars.length ? bars[0]!.t : 0}`;
+    if (fitKeyRef.current !== key) {
+      fitKeyRef.current = key;
+      chart.timeScale().fitContent();
+    }
   }, [bars, accentUp, accentDown]);
 
   useEffect(() => {

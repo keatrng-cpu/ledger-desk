@@ -31,6 +31,8 @@ export interface WeekBookLevels {
   cwh?: number | null;
   cwl?: number | null;
   live?: boolean;
+  /** True when pwh/pwl were read from LAST week's tape rather than the seed. */
+  pwLive?: boolean;
 }
 
 export interface WeekDayPlan {
@@ -964,6 +966,14 @@ export function weekRangeFromBars(
   return { high, low, n };
 }
 
+function withPriorWeek(
+  seed: WeekBookLevels,
+  prior: { high: number; low: number; n: number } | null,
+): WeekBookLevels {
+  if (!prior) return seed;
+  return { ...seed, pwh: +prior.high.toFixed(2), pwl: +prior.low.toFixed(2), pwLive: true };
+}
+
 function overlayBook(
   seed: WeekBookLevels,
   range: { high: number; low: number; n: number } | null,
@@ -1010,10 +1020,18 @@ export function overlayWeekAhead(
   const { plan } = read;
   let nq = plan.nq;
   let es = plan.es;
+  // PRIOR-week high/low from the tape too, not only the current week's. The
+  // seeded PWH/PWL were typed once (Aug 24-28) and copied into every weekly
+  // plan since, so from Sep 7 the "prior week" draw lines were a month old.
+  // Last week's Mon-Fri session (with its Sunday-evening open) is fully in
+  // the past, so reading it is no lookahead; with too few bars the seed stays.
+  const pwStart = addDays(plan.weekStart, -7);
+  const pwEnd = addDays(plan.weekStart, -3);
   for (const b of books) {
+    const prior = weekRangeFromBars(b.bars, pwStart, pwEnd, now);
     const range = weekRangeFromBars(b.bars, plan.weekStart, plan.weekEnd, now);
-    if (isNq(b.symbol)) nq = overlayBook(nq, range);
-    if (isEs(b.symbol)) es = overlayBook(es, range);
+    if (isNq(b.symbol)) nq = overlayBook(withPriorWeek(nq, prior), range);
+    if (isEs(b.symbol)) es = overlayBook(withPriorWeek(es, prior), range);
   }
   const nextPlan = { ...plan, nq, es };
   const today = nextPlan.days.find((d) => d.date === read.dateKey) ?? null;

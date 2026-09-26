@@ -79,6 +79,18 @@ function StrategyCard({ card }: { card: RhStrategyCard }) {
             </span>
           </p>
           <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">{card.ticket.strikeNote}</p>
+          {/* How the size was decided. "ceiling" means no priced stop yet —
+              the real risk has not been solved for. The ticket carried this
+              and the card never showed it. */}
+          <p
+            className={cn(
+              "mt-0.5 text-[10px] leading-snug",
+              card.ticket.sizedFrom === "ceiling" ? "text-[var(--color-warn)]" : "text-[var(--color-subtle)]",
+            )}
+          >
+            Sized from the {card.ticket.sizedFrom === "level" ? "futures invalidation (the rule)" : "debit ceiling — no priced stop yet"}
+            {card.ticket.sizeNote ? ` · ${card.ticket.sizeNote}` : ""}
+          </p>
           <p className="mt-0.5 text-[11px] text-[var(--color-fg)]">Hold {card.ticket.hold}</p>
           <p className="text-[11px] text-[var(--color-muted)]">Invalid: {card.ticket.invalidation}</p>
           <p className="text-[11px] text-[var(--color-warn)]">{card.ticket.cutRule}</p>
@@ -181,15 +193,23 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
   const pathFeed = useDeskSynapse((s) => s.feeds.path);
   const playbook = useMemo(() => optionsDeskPlaybook(), []);
 
+  // COMMIT ON BLUR / ENTER, never per keystroke. Saving (and clamping) on
+  // every key turned typing "15" into 1% then 5%, "55" into a 25% loss
+  // budget, and a cleared box into $200. The field is a draft until the
+  // trader is done with it.
+  const [eqDraft, setEqDraft] = useState<string | null>(null);
+  const [riskDraft, setRiskDraft] = useState<string | null>(null);
   const onEquity = (v: string) => {
     const n = Number(v.replace(/[^0-9.]/g, ""));
-    if (!Number.isFinite(n)) return;
+    if (!v.trim() || !Number.isFinite(n) || n <= 0) return;
     setSleeve(saveRhSleeve({ equity: n }));
   };
   const onRisk = (v: string) => {
-    const n = Number(v.replace(/[^0-9.]/g, "")) / 100;
-    if (!Number.isFinite(n)) return;
-    setSleeve(saveRhSleeve({ riskPct: n }));
+    const pct = Number(v.replace(/[^0-9.]/g, ""));
+    if (!v.trim() || !Number.isFinite(pct) || pct <= 0) return;
+    // The loss is capped at 15% of the debit (CLAUDE.md) — the field cannot
+    // raise it past that.
+    setSleeve(saveRhSleeve({ riskPct: Math.min(pct, 15) / 100 }));
   };
 
   return (
@@ -220,26 +240,40 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
 
       <div className="mb-3 flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
         <label className="text-[10px] uppercase text-[var(--color-subtle)]">
-          Capital
+          Debit ceiling $
           <input
             type="number"
             min={200}
             max={25000}
             step={100}
-            value={sleeve.equity}
-            onChange={(e) => onEquity(e.target.value)}
+            value={eqDraft ?? sleeve.equity}
+            onChange={(e) => setEqDraft(e.target.value)}
+            onBlur={() => {
+              if (eqDraft != null) onEquity(eqDraft);
+              setEqDraft(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            }}
             className="mt-0.5 block w-24 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 font-mono text-[12px] text-[var(--color-fg)]"
           />
         </label>
         <label className="text-[10px] uppercase text-[var(--color-subtle)]">
-          Risk %
+          Loss cap % of debit
           <input
             type="number"
             min={5}
-            max={25}
+            max={15}
             step={1}
-            value={Math.round(sleeve.riskPct * 100)}
-            onChange={(e) => onRisk(e.target.value)}
+            value={riskDraft ?? Math.round(sleeve.riskPct * 100)}
+            onChange={(e) => setRiskDraft(e.target.value)}
+            onBlur={() => {
+              if (riskDraft != null) onRisk(riskDraft);
+              setRiskDraft(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            }}
             className="mt-0.5 block w-16 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 font-mono text-[12px] text-[var(--color-fg)]"
           />
         </label>
@@ -400,9 +434,14 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
                     type="button"
                     className="rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[10px]"
                     onClick={() => {
-                      const raw = window.prompt("Exit credit $ (what RH paid you back)", String(Math.round(f.debit * 0.75)));
-                      const n = Number(raw);
-                      if (Number.isFinite(n)) closeRhFill(f.id, n);
+                      // No default answer and no silent zero. Cancel returned
+                      // null and an empty box "", both of which Number() turns
+                      // into 0 — booking a −100% loss — and the prefilled
+                      // debit × 0.75 booked a −25% result nobody typed.
+                      const raw = window.prompt("Exit credit $ (what RH actually paid you back)", "");
+                      if (raw == null || raw.trim() === "") return;
+                      const n = Number(raw.replace(/[^0-9.]/g, ""));
+                      if (Number.isFinite(n) && n >= 0) closeRhFill(f.id, n);
                     }}
                   >
                     Close

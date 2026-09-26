@@ -30,7 +30,21 @@ export interface NewsRead {
     date: string;
     impact: "high" | "medium";
   } | null;
+  /**
+   * The last date the calendar covers, and how many days ahead of now that
+   * is. With no event in range this read says "clear" — which past the end
+   * of the calendar means "the blackout is switched off", not "nothing is
+   * scheduled". The ±15m gate goes blind the day after the last stamped
+   * release, silently.
+   */
+  calendarEnds: string | null;
+  coverageDays: number | null;
+  /** Coverage under COVERAGE_MIN_DAYS — the reason says so. */
+  calendarThin: boolean;
 }
+
+/** Below this many days of calendar ahead, "clear" is not trustworthy. */
+export const COVERAGE_MIN_DAYS = 3;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}$/;
@@ -117,9 +131,23 @@ export function newsRead(
         : `${event.name} ${event.timeEt} ET ${when} — reduce size / widen expectations.`;
   }
 
+  // Calendar coverage. Deliberately does NOT change the verdict (every gate
+  // keys on it); it says, in the reason and on the chip, that a "clear" past
+  // the calendar's end is an absence of data rather than an absence of news.
+  const lastDate = calendar.reduce<string | null>((m, e) => (m == null || e.date > m ? e.date : m), null);
+  const coverageDays =
+    lastDate != null ? Math.floor((etWallToEpochMs(lastDate, "23:59") - nowMs) / 86_400_000) : null;
+  const calendarThin = coverageDays == null || coverageDays < COVERAGE_MIN_DAYS;
+  if (calendarThin && verdict === "clear") {
+    reason = `${reason} CALENDAR ENDS ${lastDate ?? "—"}: releases after that date are invisible to the ±15m blackout — restamp src/data/news-calendar.json from BLS/BEA/ISM/Census/Fed.`;
+  }
+
   return {
     verdict,
     reason,
+    calendarEnds: lastDate,
+    coverageDays,
+    calendarThin,
     nextEvent: next
       ? {
           name: next.event.name,

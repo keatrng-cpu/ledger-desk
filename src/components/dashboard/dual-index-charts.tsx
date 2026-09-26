@@ -424,7 +424,8 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
       const label =
         payload.interval === "1d"
           ? d.toISOString().slice(5, 10)
-          : `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")} ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+          : // ET, not UTC — every rule on this desk is written in ET.
+            `${d.toLocaleString("en-US", { timeZone: "America/New_York", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).replace(",", "")} ET`;
       rows.push({
         t: p.t,
         label,

@@ -276,7 +276,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
         "Time stop: thesis not working by session 5–7 → reduce",
       ],
       robinhoodNote:
-        "Robinhood: BUY TO OPEN long call/put or a debit spread. Defined risk = debit paid, capped at 15% of the $1,000 sleeve. No naked short. Do not average losers.",
+        "Robinhood: BUY TO OPEN long call/put or a debit spread. At most $1,000 of debit; the loss is capped at 15% of the debit paid, sized from the futures invalidation. No naked short. Do not average losers.",
     };
   }
 
@@ -320,7 +320,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     {
       id: "risk",
       ok: true,
-      label: `RH sleeve risk ${(SWING_RISK_PCT.A * 100).toFixed(0)}% of $1,000 = max debit`,
+      label: `RH sleeve: ≤ $1,000 debit · loss capped ${(SWING_RISK_PCT.A * 100).toFixed(0)}% of the debit paid`,
     },
   ];
 

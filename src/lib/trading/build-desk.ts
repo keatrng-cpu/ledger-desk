@@ -476,9 +476,9 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
       const news: NewsRead =
         shock.active
           ? {
+              ...newsBase,
               verdict: "blackout",
               reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m lock — impulse is the news, not the model`,
-              nextEvent: newsBase.nextEvent,
             }
           : newsBase;
       if (news.verdict === "blackout") {

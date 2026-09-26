@@ -85,7 +85,7 @@ async function checkOne(
   };
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 45_000);
+  const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
   try {
     const res = await fetch(GROK_API_URL, {
       method: "POST",
@@ -142,9 +142,22 @@ export interface KillWatchRun {
 }
 
 /**
- * Run the weekly check. Authenticated because it spends money, and sequential
- * rather than parallel because a dozen simultaneous searches is how a rate
- * limit turns a monitoring run into a row of false all-clears.
+ * Per-check budget, and how many run at once.
+ *
+ * Nine checks run one after another at up to 45s each is minutes of silence,
+ * and the streaming edge cuts a silent function at ~30s — the whole run died
+ * as a 504 before the first result could be shown. Two waves of five at 12s
+ * finish inside ~24s worst case. Five at once is still far from "a dozen
+ * simultaneous searches", and a check that times out says NO INFORMATION,
+ * never all-clear, so a slow provider cannot fake a clean result.
+ */
+const CHECK_TIMEOUT_MS = 12_000;
+const CONCURRENCY = 5;
+
+/**
+ * Run the weekly check. Authenticated because it spends money; bounded
+ * concurrency (above) so it finishes inside the edge budget without
+ * turning into a burst of simultaneous searches.
  */
 export const runKillWatch = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
@@ -161,8 +174,12 @@ export const runKillWatch = createServerFn({ method: "POST" })
       };
     }
     const queries = killQueries(Date.now(), data.sinceDays ?? 7);
-    const results: KillResult[] = [];
-    for (const q of queries) results.push(await checkOne(key, q, nowIso));
+    const results: KillResult[] = new Array(queries.length);
+    for (let i = 0; i < queries.length; i += CONCURRENCY) {
+      const wave = queries.slice(i, i + CONCURRENCY);
+      const done = await Promise.all(wave.map((q) => checkOne(key, q, nowIso)));
+      done.forEach((r, k) => (results[i + k] = r));
+    }
 
     const withSources = results.filter((r) => r.citations.length).length;
     return {

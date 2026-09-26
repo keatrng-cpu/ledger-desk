@@ -292,7 +292,7 @@ export const CANON: CanonBlock[] = [
     consensus:
       "Everyone trades the New York morning. The Silver Bullet windows (03:00–04:00, 10:00–11:00, 14:00–15:00 ET) are ICT's and widely repeated. Lunch (12:00–14:00 ET) is called low quality by ICT-derived sources and avoided by JadeCap (exit by ~12:15).",
     conflict:
-      "Three camps on the first fifteen minutes. Stand through the open: ICT's Venom description (opening range built 09:30–10:00, act 10:00–10:30 — no entry in the first thirty minutes by construction), TradingFinder (09:30–09:45 is the Judas window), PB Patty (09:30 is the manipulation), and this desk (no entries 09:30–09:45). Allowed: JadeCap (09:30–11:30, no restriction), CutlerTrades (09:30 onward). Daye's Quarterly Theory places 09:30 inside a 09:00–10:30 quarter. The desk sits in the first camp.",
+      "Three camps on the first fifteen minutes. Stand through the open: ICT's Venom description (opening range built 09:30–10:00, act 10:00–10:30 — no entry in the first thirty minutes by construction), TradingFinder (09:30–09:45 is the Judas window), PB Patty (09:30 is the manipulation), and this desk (no entries 09:30–09:45 until the raid resolves — then only the fade, A+, paper-first). Allowed: JadeCap (09:30–11:30, no restriction), CutlerTrades (09:30 onward). Daye's Quarterly Theory places 09:30 inside a 09:00–10:30 quarter. The desk sits in the first camp.",
     evidence:
       "Volume and volatility concentrating at the open is established theory and data (Admati & Pfleiderer, RFS 1988; Heston, Korajczyk & Sadka, JF 2010). But the peer-reviewed intraday result on index ETFs cuts AGAINST a default reversal read: the first half-hour's return PREDICTS the last half-hour's on SPY, 1993–2013 (Gao, Han, Li & Zhou, JFE 2018) — continuation, not a Judas swing. The only peer-reviewed open-reversal finding is for retail-attention single stocks (Berkman, Koch, Tuttle & Zhang, JFQA 2012). The opening-range work nearest to index futures (Zarattini & Aziz 2023, 5-minute ORB on QQQ) breaks even at about 2.2 cents/share slippage in an independent replication, with 76% of its profit from one year.",
   },
@@ -310,7 +310,7 @@ export const CANON: CanonBlock[] = [
     consensus:
       "Stop beyond the sweep wick plus a buffer is near-universal (ICT-derived pages quantify the buffer: 10–20 pips FX, 3–5 NQ points; JadeCap's script uses behind candle 1 of the FVG; CutlerTrades just beyond the IFVG). First target at opposing liquidity is universal.",
     conflict:
-      "Fixed R:R claims range from 2R (JadeCap script) to 3R (Casper, ICT) to '1:5–1:10 are very excellent' (TradingHub). No educator publishes scale-out fractions — banking half at +1R and moving the stop to break-even is this desk's own convention, imported from aplus/config.ts.",
+      "Fixed R:R claims range from 2R (JadeCap script) to 3R (Casper, ICT) to '1:5–1:10 are very excellent' (TradingHub). No educator publishes scale-out fractions — banking half at T1 (the draw), moving the stop to break-even and running the rest to T2 is this desk's own rule, measured at +0.50R/t on 122 filled plans; banking at +1R instead measured −0.42R/t.",
     evidence:
       "Position sizing by fixed fractional risk has decades of support in the risk-of-ruin literature; the specific R:R and scale-out numbers do not. Every 60%+ win-rate claim retrieved in the lineage was marketing, in-sample filtered, or resolved on bars too coarse to price the stop.",
   },

@@ -441,8 +441,13 @@ function sizeProduct(
   // can be lost outright, because that is what a decay-driven stop means.
   const clock = brakeIsClock(dte);
   const effCap = clock ? Math.min(cap, riskBudget) : cap;
-  if (single <= effCap) {
-    const n = Math.min(nMax, Math.max(1, contractsWithinRisk(single, effCap, riskBudget)));
+  // No Math.max(1, …) floor: when the risk check says ZERO contracts, one
+  // contract's loss at the brake already exceeds the loss budget, and
+  // rounding that up to one printed a $150-250 cut on a "15%" ticket. Fall
+  // through to the vertical (and past it to STAND) instead of buying anyway.
+  const nSingle = Math.min(nMax, contractsWithinRisk(single, effCap, riskBudget));
+  if (single <= effCap && nSingle >= 1) {
+    const n = nSingle;
     const k = roundStrike(spot);
     const otm = side === "put" ? k - 1 : k + 1;
     return {
@@ -464,8 +469,9 @@ function sizeProduct(
   // Returning null here means STAND — which is the honest answer when the
   // sleeve cannot buy a structure that survives its own fees.
   const spreadShare = spread > 0 ? roundTripCost("debit_spread") / spread : 1;
-  if (spread <= effCap && spreadShare <= MAX_SPREAD_SHARE) {
-    const n = Math.min(nMax, Math.max(1, contractsWithinRisk(spread, effCap, riskBudget)));
+  const nSpread = Math.min(nMax, contractsWithinRisk(spread, effCap, riskBudget));
+  if (spread <= effCap && spreadShare <= MAX_SPREAD_SHARE && nSpread >= 1) {
+    const n = nSpread;
     const k = roundStrike(spot);
     const longK = side === "put" ? k : k;
     const shortK = side === "put" ? longK - width : longK + width;

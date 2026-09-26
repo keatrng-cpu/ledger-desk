@@ -64,7 +64,9 @@ export function NewsChip({ className }: { className?: string }) {
 
   const detail = nextEvent
     ? `${nextEvent.name} · ${nextEvent.timeEt} ET ${countdown(nextEvent.minutesAway)}`
-    : "no scheduled releases";
+    : read.calendarThin
+      ? `calendar ends ${read.calendarEnds ?? "—"} — blackout blind after it`
+      : "no scheduled releases";
 
   return (
     <div
@@ -82,6 +84,11 @@ export function NewsChip({ className }: { className?: string }) {
     >
       <Icon className="h-3.5 w-3.5" />
       <span>{label}</span>
+      {read.calendarThin && verdict === "clear" && (
+        <span className="rounded-full border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] px-1.5 text-[9px] font-semibold uppercase text-[var(--color-warn)]">
+          calendar ends {read.calendarEnds?.slice(5) ?? "—"}
+        </span>
+      )}
       <span className="hidden font-mono font-normal sm:inline">{detail}</span>
     </div>
   );
