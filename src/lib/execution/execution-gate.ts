@@ -130,24 +130,40 @@ async function dayLoss(userId: string): Promise<{ pct: number; tripped: boolean 
 /* ------------------------------------------------------------------ */
 
 /**
- * Apex's own rule, confirmed against their published docs (2026-08-14):
- * the funded/eval account phase gates whether automation is even LEGAL to
- * run, independent of anything technical. Full automation is explicitly
- * PROHIBITED on a funded Apex Performance Account — bots, algorithms and AI
- * trading are banned there; only human-supervised semi-automated trading is
- * allowed. It IS explicitly permitted during the evaluation phase.
+ * The Apex account phase — which of Apex's rule sets governs the account.
  *
- * This is not a risk preference — it is set once, deliberately, outside the
- * app, by whoever knows which phase the account is actually in. Getting it
- * wrong risks the account being terminated for a rules violation, not just
- * losing money.
+ * *** CORRECTED 2026-09-25: NO PHASE MAKES AUTOMATION COMPLIANT. ***
+ *
+ * This comment used to say (2026-08-14) that full automation was banned only
+ * on a funded Performance Account and allowed while the account was still in
+ * evaluation. That reading is superseded. Apex's current Prohibited
+ * Activities page says the use of automation is strictly prohibited on ALL
+ * account types, and names hands-off / set-and-forget trading specifically —
+ * evaluations are not carved out (propfirm/rules.ts had already recorded the
+ * missing carve-out on 2026-08-15). The one permission in Apex's own text is
+ * narrower: a PA compliance article allows semi-automated tools, actively
+ * monitored by the trader, that ASSIST order placement — ATM brackets are its
+ * example.
+ *
+ * So the only mode this desk treats as compliant is semi-automatic: the
+ * trader clicks every entry; tools may pre-stage or manage the bracket.
+ * Autofire refuses in every phase until Apex support confirms otherwise IN
+ * WRITING — see execution/autofire-gates.ts, pinned by
+ * scripts/verify-autofire-gates.mjs.
+ *
+ * The phase is still read, because it still decides which rules govern the
+ * account (trail, caps, consistency, payouts) and it keeps funded and unset
+ * refusing first. It is set once, deliberately, outside the app, by whoever
+ * knows which phase the account is actually in; "none" (unset) is never read
+ * as permission for anything. Getting the automation question wrong risks the
+ * account being terminated for a rules violation, not just losing money.
  */
 export type ApexAccountPhase = "evaluation" | "funded" | "none";
 
 export function apexAccountPhase(): ApexAccountPhase {
   const raw = env("APEX_ACCOUNT_PHASE")?.toLowerCase();
   if (raw === "evaluation" || raw === "funded") return raw;
-  return "none"; // unset -> autofire refuses to run at all, see apex-autofire.ts
+  return "none"; // unset -> autofire refuses at the phase gate, see autofire-gates.ts
 }
 
 /**

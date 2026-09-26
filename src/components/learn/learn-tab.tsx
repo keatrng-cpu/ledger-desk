@@ -6,6 +6,7 @@
  *   Ring 1  SCHEMA    worked figure + the near-miss of the same object
  *   Ring 2  RETRIEVE  call the word before the engine's answer is on screen
  *   Ring 3  TRANSFER  real-tape walkthrough, clock running, one word
+ *   Ring 4  PLACE IT  the whole order on hidden-future tape (replay-drill.tsx)
  *
  * Every threshold is imported (see curriculum.ts). None of this touches the
  * scanner, the alarm or the book.
@@ -18,6 +19,7 @@ import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios
 import { scenarioCall, type Call } from "@/lib/learn/drill";
 import { LearnFigure } from "./learn-figure";
 import { Walkthroughs } from "./walkthroughs";
+import { ReplayDrill } from "./replay-drill";
 import { CanonBox } from "./canon-box";
 import { canonFor } from "@/lib/learn/canon";
 import { DrillCall, WhyBox } from "./drill-call";
@@ -207,6 +209,8 @@ function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayloa
 
       {m.id === "walkthroughs" ? (
         <Walkthroughs />
+      ) : m.id === "replay-drill" ? (
+        <ReplayDrill />
       ) : (
         <>
           {figures.length > 0 && (

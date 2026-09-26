@@ -32,6 +32,9 @@ import {
 import { HIGH_CONFLUENCE_THRESHOLD } from "@/lib/trading/scanner";
 import { RECENT_SWEEP_BARS, RECENT_DISPLACEMENT_BARS } from "@/lib/trading/detectors";
 import { SHOCK_RANGE_MULT, SHOCK_LOCK_MS } from "@/lib/trading/shock";
+import { MIN_RISK_ATR, MAX_RISK_ATR_TRADABLE } from "@/lib/trading/trade-plan";
+import { TIER_ARMED_ATR } from "@/lib/trading/entry-trigger";
+import { FILL_BARS, HOLD_BARS, TP1_FRACTION } from "./replay-drill";
 
 export interface LearnModule {
   id: string;
@@ -306,6 +309,25 @@ MODULE_ORDER.push({
   desk: "scripts/build-learn-cases.mjs → learn-cases.json. Rebuild when the capture should move forward.",
   figures: [],
   check: "Would you have taken it before reveal? Count how often STAND was the right word.",
+});
+
+/**
+ * Place it — the order, not the word. Rendered by <ReplayDrill/>; these fields
+ * give it a place in the sequence and state the rules it scores, imported like
+ * every other threshold here.
+ */
+MODULE_ORDER.push({
+  id: "replay-drill",
+  title: "Place it — replay drill",
+  oneLine: "Place the whole order on real tape, future hidden. The first answer locks.",
+  mechanism:
+    "Real 15m cases from the four-year capture, stratified by Q, stop band, word, session and half. The future stays hidden until the order is committed, then plays bar by bar.",
+  rule: "Limit at CE, stop beyond the raid inside the band, T1 at least 1R — or name the one layer that stops it. Process is scored apart from outcome.",
+  trigger: `Limit within one tick of CE · no market order past ${TIER_ARMED_ATR} ATR from the array · stop beyond the raid, ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR · T1 ≥ ${APLUS_RULES.minRr.toFixed(1)}R · fill within ${FILL_BARS} bars, ${pct(TP1_FRACTION)} at T1, stop → BE, ${HOLD_BARS}-bar hold.`,
+  error: "Judging the order by its R. One outcome is noise: a rule-perfect order loses often, a broken one sometimes wins.",
+  desk: "scripts/build-replay-drills.mjs → replay-drills.json. replay-drill.ts scores it; verify-replay-drills.mjs pins it to the tape.",
+  figures: [],
+  check: "Commit before the clock tempts a market click. Which rule fails most in your last 20?",
 });
 
 /** Steps numbered from position, so the order in the array is the truth. */

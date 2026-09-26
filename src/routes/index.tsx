@@ -43,6 +43,8 @@ import {
   type ManagePrice,
 } from "@/lib/trading/paper-manager";
 import { ReplayReport } from "@/components/lab/replay-report";
+import { ApexSimPanel } from "@/components/lab/apex-sim-panel";
+import { EvidenceTable } from "@/components/lab/evidence-table";
 import { HtfBiasBoard } from "@/components/desk/htf-bias-board";
 import { LiquidityPanel } from "@/components/desk/liquidity-panel";
 import { PremarketPanel } from "@/components/desk/premarket-panel";
@@ -1861,6 +1863,8 @@ function MasterplacePage() {
                     sub={`Paper $${Math.round(paper.equity).toLocaleString()} · A+ 2% probe (3% once earned) / A 2% / A− 1% / B+ 0.5% paper`}
                   />
                   <RiskPanel desk={desk} liveRisk={risk} />
+                  <ApexSimPanel />
+                  <EvidenceTable />
                   <AlertsPanel />
                   <AnalyticsPanel />
                   <DeskFold

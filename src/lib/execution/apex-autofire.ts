@@ -1,8 +1,28 @@
 /**
  * ROADMAP addendum, 2026-08-14 — Apex evaluation-phase AUTOMATIC execution.
  *
+ * *** 2026-09-25: REFUSES IN EVERY PHASE, BY APEX'S OWN RULE. ***
+ *
+ * This path was built on the reading that Apex bans automation on a funded
+ * account but explicitly permits it during the evaluation. That reading is
+ * superseded: Apex's current Prohibited Activities text says automation is
+ * strictly prohibited on ALL account types, evaluations included, and names
+ * hands-off / set-and-forget trading specifically. The only permission in
+ * Apex's own text is a PA compliance article allowing semi-automated tools
+ * the trader actively monitors that assist order placement (ATM brackets).
+ * So the only mode this desk treats as compliant is semi-automatic — the
+ * trader clicks every entry; tools may pre-stage or manage the bracket.
+ *
+ * The gates now live in `autofire-gates.ts` (pure, importable without
+ * booting the database) and end in a policy gate that refuses every call
+ * that would otherwise have fired, until Apex support confirms otherwise IN
+ * WRITING and `APEX_AUTOMATION_CONFIRMED_IN_WRITING` is changed in a commit
+ * that quotes it. scripts/verify-autofire-gates.mjs pins that refusal. The
+ * rest of this file is left intact so the send path is not rebuilt from
+ * memory if that confirmation ever arrives — but today no call reaches it.
+ *
  * "Automatic trades if they are in the 85+ range" — this is the one file that
- * turns a scanner candidate into a live order with NO human click in between.
+ * would turn a scanner candidate into a live order with NO human click in between.
  * Everything else in this repo (paper-manager, LogSetupDialog, even the
  * manual `placeTradovateOrder`) waits for a person. This does not. That is
  * exactly why it carries more gates than anything else in the execution/
@@ -23,10 +43,11 @@
  *
  * GATE ORDER (cheapest / least reversible first — no reason to touch
  * Postgres or Tradovate for a candidate that was never going to fire):
- *   1. apexAccountPhase() === "evaluation" — Apex's OWN rule: full automation
- *      is banned on a FUNDED account, explicitly permitted during eval. This
- *      is a legal/contractual gate, not a risk preference, and "funded" or
- *      "none" (unset) both refuse categorically. See execution-gate.ts.
+ *   1. apexAccountPhase() === "evaluation" — a legal/contractual gate, not a
+ *      risk preference: "funded" or "none" (unset) refuse categorically. It
+ *      was written as the phase where automation was allowed; under Apex's
+ *      current text no phase is, so it now only keeps those two refusing
+ *      first with their own reason. See execution-gate.ts.
  *   2. TRADOVATE_AUTOFIRE_ENABLED=true — separate from TRADOVATE_ENABLED
  *      (which only permits manual sends) and separate from
  *      TRADOVATE_LIVE_ARMED (which only permits the live host over demo).
@@ -37,14 +58,18 @@
  *      candidate gets sent without a click.
  *   4. candidate.confluence >= AUTOFIRE_CONFLUENCE_FLOOR (0.85) — the number
  *      the owner asked for, stricter than the generic A+ threshold (0.75).
- *   5. openTrade() — the SAME function LogSetupDialog calls for a manual
+ *   5. APEX POLICY — Apex prohibits automation on all account types, so this
+ *      refuses every call that clears 1–4, until Apex support confirms
+ *      otherwise in writing (`APEX_AUTOMATION_CONFIRMED_IN_WRITING`). Gates
+ *      1–5 are `evaluateAutofireGates` in autofire-gates.ts.
+ *   6. openTrade() — the SAME function LogSetupDialog calls for a manual
  *      live log. This is deliberate, not a shortcut: it re-runs the halt
  *      checks (daily/weekly/killzone-cap) AND pathTakeGate (month cap,
  *      loss-streak cooldown, blake_mech demotion, one-book-per-day) exactly
  *      as a human click would. Autofire does not get an easier gate than a
  *      person — it goes through the identical one. Only a successful
  *      journal entry proceeds to the broker.
- *   6. placeTradovateOrderAllAccounts() — the multi-account fan-out built in
+ *   7. placeTradovateOrderAllAccounts() — the multi-account fan-out built in
  *      tradovate-orders.ts, with its own independent per-account Apex
  *      trailing-drawdown check (execution-gate.ts's apexAccountRisk).
  *
@@ -62,9 +87,12 @@ import { placeTradovateOrderAllAccounts, type FanOutAccountResult } from "./trad
 import { buildPaperLevels } from "@/lib/trading/paper-manager";
 import { openTrade, type JournalTrade } from "@/lib/journal/server";
 import type { SetupCandidate } from "@/lib/trading/scanner";
+import { AUTOFIRE_CONFLUENCE_FLOOR, evaluateAutofireGates } from "./autofire-gates";
 
-/** The number the owner asked for. Stricter than the generic A+ line (0.75). */
-export const AUTOFIRE_CONFLUENCE_FLOOR = 0.85;
+// Re-exported so existing importers (index.tsx reads the floor for its cheap
+// client-side pre-filter) keep one import site. The definitions live in
+// autofire-gates.ts — one copy, the one the verifier pins.
+export { AUTOFIRE_CONFLUENCE_FLOOR, evaluateAutofireGates };
 
 function boolEnv(name: string): boolean {
   const v = typeof process !== "undefined" ? process.env[name] : undefined;
@@ -100,54 +128,13 @@ function refuse(
   };
 }
 
-/**
- * Gates 1–4, extracted as a PURE function deliberately: no I/O, no Postgres,
- * no Tradovate, no `createServerFn`/auth middleware — so this can be (and
- * is, in `apex-autofire.gates.verify.mjs`) exercised directly against every
- * phase/switch/actionable/confluence combination without needing a live
- * request context. This is the single most safety-critical property of the
- * whole feature — an account gets terminated if it fires on a funded
- * account — so it has to be provable in complete isolation from the rest of
- * the send path, not just exercised incidentally through an integration
- * test that happens to also cover it.
- *
- * `phase`/`enabled` are passed in rather than read internally so the same
- * function can be driven by a test harness without mutating `process.env`
- * mid-process (env reads are cached by nothing here, but keeping this pure
- * removes even the possibility of a test/prod env-timing bug).
+/*
+ * Gates 1–5 — `evaluateAutofireGates` — live in autofire-gates.ts, a module
+ * with no runtime imports, so scripts/verify-autofire-gates.mjs can exercise
+ * every phase/switch/actionable/confluence combination without booting the
+ * database this file's imports pull in. See that file for why the last gate
+ * refuses every call that clears the first four.
  */
-export function evaluateAutofireGates(
-  candidate: Pick<SetupCandidate, "actionable" | "confluence">,
-  phase: ApexAccountPhase,
-  enabled: boolean,
-): { ok: true } | { ok: false; reason: string } {
-  if (phase !== "evaluation") {
-    return {
-      ok: false,
-      reason:
-        `Apex account phase is "${phase}", not "evaluation" — automation refuses categorically ` +
-        `(full automation is banned on a funded Apex account; "none" means APEX_ACCOUNT_PHASE ` +
-        `was never set, which must never be read as permission).`,
-    };
-  }
-  if (!enabled) {
-    return { ok: false, reason: "TRADOVATE_AUTOFIRE_ENABLED is not true." };
-  }
-  if (candidate.actionable !== true) {
-    return {
-      ok: false,
-      reason: "Candidate is not actionable — a deterministic gate (HTF/killzone/structure/conditions) is unmet.",
-    };
-  }
-  const confluence = typeof candidate.confluence === "number" ? candidate.confluence : 0;
-  if (confluence < AUTOFIRE_CONFLUENCE_FLOOR) {
-    return {
-      ok: false,
-      reason: `Confluence ${confluence.toFixed(2)} < autofire floor ${AUTOFIRE_CONFLUENCE_FLOOR.toFixed(2)}.`,
-    };
-  }
-  return { ok: true };
-}
 
 const autofireInput = z.object({
   /**
@@ -182,8 +169,10 @@ export const tryApexAutofire = createServerFn({ method: "POST" })
     const candidate = data.candidate as unknown as SetupCandidate;
     const candidateId = typeof candidate.id === "string" ? candidate.id : null;
 
-    // Gates 1–4 — see evaluateAutofireGates' own docs for why this is a
-    // separately-defined pure function rather than inlined here.
+    // Gates 1–5 — see autofire-gates.ts for why this is a separately-defined
+    // pure function rather than inlined here, and why gate 5 (Apex's own
+    // prohibition on automation, every account type) refuses every call that
+    // clears the first four. Nothing below this block runs today.
     const phase = apexAccountPhase();
     const gates = evaluateAutofireGates(candidate, phase, autofireEnabled());
     if (!gates.ok) {
@@ -202,7 +191,7 @@ export const tryApexAutofire = createServerFn({ method: "POST" })
 
     const strategy = candidate.completeStrategy || candidate.strategyPrimary || "unknown";
 
-    // Gate 5 — the SAME journal gate a human click hits: halts (daily/
+    // Gate 6 — the SAME journal gate a human click hits: halts (daily/
     // weekly/killzone-cap) AND pathTakeGate (month cap, loss-streak
     // cooldown, blake_mech demotion, one-book-per-day). Autofire earns
     // nothing a manual click wouldn't have to earn too.
@@ -282,7 +271,7 @@ export const tryApexAutofire = createServerFn({ method: "POST" })
       };
     }
 
-    // Gate 6 — multi-account fan-out, each account independently checked
+    // Gate 7 — multi-account fan-out, each account independently checked
     // against its own Apex trailing-drawdown breaker.
     const broker = await placeTradovateOrderAllAccounts({
       data: { intent, expectEnv: executionEnv() },
