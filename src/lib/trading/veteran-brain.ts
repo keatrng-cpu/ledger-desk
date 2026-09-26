@@ -998,7 +998,10 @@ export function runVeteranBrain(
     rawBest &&
     rawBest.actionable &&
     rawBest.htfOk &&
-    clock.inTradeWindow &&
+    // The session gate by tape (session-event.ts), same as the sequence —
+    // on a measured event session the Now tab could print TAKE while this
+    // said WATCH because it read the raw clock.
+    sessionLive(clock) &&
     score >= 3
   ) {
     verdict = "TAKE";
@@ -1007,7 +1010,7 @@ export function runVeteranBrain(
     rawBest &&
     (rawBest.actionable || rawBest.strategyComplete) &&
     rawBest.htfOk &&
-    clock.inTradeWindow &&
+    sessionLive(clock) &&
     score >= 1.5
   ) {
     verdict = "REDUCE";
@@ -1302,7 +1305,7 @@ export function runVeteranBrain(
   }
   if (memory.book.pathTaken > 0) {
     monologue.push(
-      `From your backtests: book ${memory.book.pathTaken} PATH · WR ${wr != null ? (wr * 100).toFixed(0) + "%" : "—"} · ΣR ${memory.book.sumR}. I size live off those rates.`,
+      `Backtest memory (2024 seed + runs): ${memory.book.pathTaken} PATH · WR ${wr != null ? (wr * 100).toFixed(0) + "%" : "—"} · ΣR ${memory.book.sumR}. History for the rate card — it sizes nothing. The four-year evidence says the card alone runs about −0.14R; the stop band and the rule are what I lean on.`,
     );
   }
   if (rateCard.advice[0]) monologue.push(rateCard.advice[0]!);

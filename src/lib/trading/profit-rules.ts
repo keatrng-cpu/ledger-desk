@@ -571,11 +571,11 @@ export function describeProfitRules(): string[] {
   return [
     `1. One book/day — MNQ or ES, never both same bias`,
     `2. blake_mech longs demoted to B+/paper until WR recovers`,
-    `3. TJR primary (2024 100% WR) · mechanical needs companion or Q≥0.68`,
+    `3. No model is preferred until n≥12 with positive expectancy — TJR's 2024 "100%" is 3 trades · mechanical needs companion or Q≥0.68`,
     `4. Hard cap ${PATH_MONTH_CAP} PATH/mo — after that A+ only`,
     `5. A+ size ${APLUS_PROBE_RISK * 100}% until n≥${APLUS_FULL_SIZE_MIN_N} WR≥${APLUS_FULL_SIZE_MIN_WR * 100}%`,
     `6. Skips journaled as process wins · wide stops rejected`,
-    `7. Gold: short + mechanical/TJR + risk-off · A- favored over soft A`,
-    `8. Year-2024 seed: 22 PATH · 55% WR · +5.6R — brain rates loaded`,
+    `7. Gold template (Jul 20): short + mechanical + clean risk-off — a remembered example, not a measured edge (4y: shorts 45% direction vs longs 54%)`,
+    `8. Year-2024 seed: 22 PATH · 55% WR · +5.6R — history for the rate card, not this book`,
   ];
 }

@@ -17,6 +17,12 @@
  * `backtest-account.mjs`, with the exit rule pinned to the desk's own scale
  * rule (plan stop, 75% off at T1, stop to breakeven):
  *
+ * CAVEAT (2026-09-25): the coded rule banks 50% at T1, not 75%, and this
+ * table was not re-run under it. The evidence pack (scripts/
+ * build-evidence-pack.mjs, rule as coded, fill bar cannot score T1) puts the
+ * in-band card pool at +0.033R, not distinguishable from zero — treat every
+ * projection below as an upper bound. The gauge prints this beside it.
+ *
  *   policy            trades/yr   E[R]     out-of-sample   maxDD
  *   shipped                 3    +0.022        -1.011       9.2%
  *   armed (retrace)        15    +0.659        -0.227      20.5%

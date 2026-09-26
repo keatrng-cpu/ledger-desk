@@ -33,6 +33,7 @@
  * exactly as before. One click fires both peers when both keys exist.
  */
 
+import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
@@ -55,7 +56,13 @@ const ANTHROPIC_MODEL = "claude-sonnet-5";
 const MAX_TOKENS = 1100;
 
 /** Wall-clock ceiling so a hung request cannot hold a serverless invocation. */
-const TIMEOUT_MS = 30_000;
+/**
+ * Per provider. Was 30s, which sits exactly on the streaming edge's ~30s
+ * cut-off for a silent function (and it runs after a DB read) — so a slow
+ * voice killed the whole call and took the fast one down with it. Every
+ * poll/on-demand function here must finish inside ~20s.
+ */
+const TIMEOUT_MS = 18_000;
 
 /** Per-user rate limit: a thinking aid, not a polling loop. */
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -188,10 +195,16 @@ const SYSTEM_PROMPT = [
   "- If a LEDGER DESK HANDOFF snapshot is present, that is the full desk.",
   "",
   "WHAT YOU ARE FOR: making the already-computed state legible — which",
-  "confluences are present versus missing and what that implies about setup",
-  "quality, how the HTF bias and the killzone interact, what would have to",
-  "change for a B-grade setup to become A-grade, and what the trader should",
-  "be watching next (the reaction that raises probability without lowering the floor).",
+  "must-layers are present versus missing, how the HTF bias and the session",
+  "interact, what would have to print for the sequence to say TAKE, and what",
+  "the trader should be watching next.",
+  "",
+  "WHAT THE DESK'S OWN FOUR YEARS SAY (evidence-pack.json) — never contradict it:",
+  ...evidenceHeadlines().map((l) => `- ${l}`),
+  "- So never call a high confluence score a high-probability or high-quality",
+  "  setup. Q is how much of a model is on the tape; the stop band, the",
+  "  sequence word and the management rule (50% at T1, BE, runner) are what",
+  "  the evidence supports.",
   "",
   "STYLE: an experienced desk colleague. Concrete and specific to the numbers",
   "given. 150 words or less unless asked a direct question that needs more.",

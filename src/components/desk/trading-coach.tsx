@@ -16,9 +16,14 @@ function buildCoachNotes(desk: DeskPayload): {
   const { clock, bias, scan, risk } = desk;
   const actionable = scan.candidates.filter((c) => c.actionable);
   const best = scan.candidates[0];
+  // Posture comes from the SEQUENCE's word, not the scanner's `actionable`
+  // flag: "Hunt" used to show on any actionable card while smc-master said
+  // WAIT or STAND on the same book.
+  const one = desk.smcMaster?.oneBook ?? null;
 
   let posture = "Stand down";
-  if (actionable.length) posture = "Hunt (selective)";
+  if (one?.word === "TAKE") posture = "TAKE — rest the limit at CE";
+  else if (one?.word === "WAIT") posture = `Wait — ${one.missing}`;
   else if (sessionLive(clock) && best && best.grade === "B")
     posture = "Watchlist only";
   else if (!sessionLive(clock)) posture = "Plan / journal";
@@ -30,14 +35,14 @@ function buildCoachNotes(desk: DeskPayload): {
     best
       ? `Best raw idea: ${best.symbol} ${best.side} conf ${best.confluence} (${best.grade}). Missing: ${best.missing.slice(0, 3).join(", ") || "none"}.`
       : "No candidates scored.",
-    `Risk slot: $${risk.riskDollars.toFixed(0)} (${(risk.riskPct * 100).toFixed(1)}%). At +1R bank 50% and BE stop — never average losers; never widen stop.`,
+    `Risk slot: $${risk.riskDollars.toFixed(0)} (${(risk.riskPct * 100).toFixed(1)}%). At T1 (the draw) bank 50%, stop to BE, runner to T2 — never average losers; never widen stop.`,
     bias.left.dealing
       ? `${bias.left.symbol} dealing ${bias.left.dealing.zone} — longs prefer discount, shorts premium.`
       : "Mark dealing range on both charts.",
   ];
 
   const action = actionable[0]
-    ? `If price tags ${actionable[0].entryZone} with confirmation, plan ${actionable[0].symbol} ${actionable[0].side} risk $${risk.riskDollars.toFixed(0)}. Invalidate: ${actionable[0].invalidation}.`
+    ? `Rest the limit at CE ${actionable[0].plan ? actionable[0].plan.entry.toFixed(2) : actionable[0].entryZone} — do not wait for "confirmation" and pay the print (1m confirmation entries measured and rejected). ${actionable[0].symbol} ${actionable[0].side}, stop ${actionable[0].invalidation}.`
     : "Do not force. Update levels, wait for HTF + killzone + sweep stack. Profitability is selectivity.";
 
   return { posture, bullets, action };

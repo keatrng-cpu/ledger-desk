@@ -1793,8 +1793,8 @@ function MasterplacePage() {
                 <div className="space-y-5">
                   <SectionHead
                     n="A"
-                    title="Path to 0.70 WR"
-                    sub="Grade filter · expectancy · only A-path counts"
+                    title="Profit path"
+                    sub="Expectancy first · income measured, not projected · only A-path counts"
                   />
                   <ProfitPathPanel equity={equity} />
                   <SectionHead

@@ -437,16 +437,25 @@ function buildPosture(ctx: {
     (memory.book.paperTaken ?? 0) > 0
       ? (memory.book.paperWins ?? 0) / (memory.book.paperTaken ?? 0)
       : null;
+  // PREFER / AVOID on EXPECTANCY at a readable sample, never on win rate at
+  // n=5. The rail printed "PREFER mechanical, tjr" off tjr n=3 at 100% and
+  // mechanical n=19 at E[R] -0.02 — plus a hard-coded unshift of
+  // "mechanical" that preferred it whatever it measured. The read floor is
+  // the override log's (12), the same number every other thin sample here
+  // is held to.
+  const MIN_N = 12;
+  const rateOf = (id: string) => memory.rates?.byStrategy?.[id];
+  const expOf = (id: string) => {
+    const r = rateOf(id);
+    return r && r.n >= MIN_N ? r.sumR / r.n : null;
+  };
   const prefer = Object.values(boosts)
-    .filter((b) => b.boost > 0.02 || (b.wr != null && b.wr >= 0.65 && b.n >= 5))
-    .map((b) => b.id);
+    .map((b) => b.id)
+    .filter((id) => (expOf(id) ?? 0) > 0);
   const avoid = Object.values(boosts)
-    .filter((b) => b.boost < -0.02 || (b.wr != null && b.wr < 0.45 && b.n >= 5))
-    .map((b) => b.id);
-  if (!prefer.includes("mechanical")) prefer.unshift("mechanical");
-  if (!avoid.includes("blake_mech_long")) {
-    /* named avoid */
-  }
+    .map((b) => b.id)
+    .filter((id) => (expOf(id) ?? 0) < 0);
+  void fused;
 
   const top = fused[0];
   return {

@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { useShadowBook } from "@/lib/trading/shadow-store";
 import {
   census,
   loadCensus,
@@ -19,7 +20,21 @@ import {
   type Census,
 } from "@/lib/trading/take-census";
 
-export function TakeCensusPanel({ shadowExpR }: { shadowExpR?: number | null }) {
+export function TakeCensusPanel({ shadowExpR: given }: { shadowExpR?: number | null }) {
+  // The pre-registered safeguard (`requireShadowPositive`) needs the shadow
+  // book's expectancy on the refused NY AM cards, chase leg. Nothing ever
+  // passed it, so a "the clock, not the gate" verdict could print while the
+  // refused cards lost money. Computed here from the same shadow store the
+  // gate scorecard reads, unless a caller supplies its own.
+  const { live, replay } = useShadowBook();
+  const derived = useMemo(() => {
+    const rs = [...replay, ...live]
+      .filter((t) => t.killzone === "ny_am" && t.leg === "chase" && (t.status === "won" || t.status === "lost" || t.status === "scratch"))
+      .map((t) => t.r)
+      .filter((r): r is number => typeof r === "number" && Number.isFinite(r));
+    return rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : null;
+  }, [live, replay]);
+  const shadowExpR = given ?? derived;
   const [tick, setTick] = useState(0);
 
   // Re-read on a slow timer rather than on every desk poll: this is a

@@ -110,7 +110,13 @@ export function computeMetrics(
   const grossProfit = wins.reduce((a, t) => a + t.pnl, 0);
   const grossLoss = Math.abs(losses.reduce((a, t) => a + t.pnl, 0));
   const net = trades.reduce((a, t) => a + t.pnl, 0);
-  const rValues = trades.map((t) => t.r);
+  // Finite R only. A trade logged without a stop has no defined 1R and is
+  // read back as NaN (analytics-server.ts) — the comment there promised the
+  // aggregates guard it, and this one did not: one stopless row turned the
+  // Lab expectancy tile into "NaNR".
+  const rValues = trades.map((t) => t.r).filter((r) => Number.isFinite(r));
+  const finiteR = (xs: typeof trades) => xs.map((t) => t.r).filter((r) => Number.isFinite(r));
+  const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
   const curve = equityCurve(trades, startingEquity);
   const dd = maxDrawdown(curve);
 
@@ -123,13 +129,9 @@ export function computeMetrics(
     grossLoss,
     netPnl: net,
     profitFactor: grossLoss > 0 ? grossProfit / grossLoss : null,
-    expectancyR: rValues.reduce((a, b) => a + b, 0) / rValues.length,
-    avgWinR: wins.length
-      ? wins.reduce((a, t) => a + t.r, 0) / wins.length
-      : 0,
-    avgLossR: losses.length
-      ? losses.reduce((a, t) => a + t.r, 0) / losses.length
-      : 0,
+    expectancyR: mean(rValues),
+    avgWinR: mean(finiteR(wins)),
+    avgLossR: mean(finiteR(losses)),
     maxDrawdown: dd.abs,
     maxDrawdownPct: dd.pct,
     sharpe: sharpe(rValues),

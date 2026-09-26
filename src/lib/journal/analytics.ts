@@ -323,12 +323,20 @@ function groupBy(
     .sort((a, b) => b.n - a.n);
 }
 
-/** Pre-score buckets. Edges match the replay harness so the two are readable side by side. */
+/**
+ * Pre-score buckets, on the evidence pack's cut points (evidence.ts qBucket)
+ * so a journal bucket reads directly against its four-year counterpart. The
+ * old 0.60–0.70 bucket merged the sub-floor band with the tradable one, and
+ * 0.70+ lumped the band that measured best on direction with the one that
+ * measured worst.
+ */
 const PRESCORE_EDGES: { label: string; min: number; max: number }[] = [
-  { label: "<0.50", min: 0, max: 0.5 },
-  { label: "0.50–0.60", min: 0.5, max: 0.6 },
-  { label: "0.60–0.70", min: 0.6, max: 0.7 },
-  { label: "0.70+", min: 0.7, max: Infinity },
+  { label: "<0.65", min: 0, max: 0.65 },
+  { label: "0.65–0.70", min: 0.65, max: 0.7 },
+  { label: "0.70–0.75", min: 0.7, max: 0.75 },
+  { label: "0.75–0.80", min: 0.75, max: 0.8 },
+  { label: "0.80–0.85", min: 0.8, max: 0.85 },
+  { label: "0.85+", min: 0.85, max: Infinity },
 ];
 
 export function byPrescore(trades: AnalyticsTrade[]): Bucket[] {
@@ -823,7 +831,7 @@ export function buildReadout(r: Omit<AnalyticsReport, "readout">): string[] {
     const hi = usableScore[usableScore.length - 1]!;
     lines.push(
       hi.expectancyR > lo.expectancyR
-        ? `Pre-score is ordering correctly so far: ${hi.label} ${fmtR(hi.expectancyR)} beats ${lo.label} ${fmtR(lo.expectancyR)}.`
+        ? `Pre-score ordering in this journal: ${hi.label} ${fmtR(hi.expectancyR)} beats ${lo.label} ${fmtR(lo.expectancyR)}. Over four years of the desk's own cards it did NOT (Q 0.85+ was the worst direction bucket) — treat this as a sample to watch, not a confirmation.`
         : `Pre-score is NOT ordering outcomes: ${hi.label} ${fmtR(hi.expectancyR)} does not beat ${lo.label} ${fmtR(lo.expectancyR)}. The score is not yet earning its gate.`,
     );
   } else if (usableScore.length === 1) {

@@ -21,6 +21,8 @@ import {
 } from "@/lib/trading/profit-path";
 import { listTrades, type JournalTrade } from "@/lib/journal/server";
 import { APLUS_RULES } from "@/lib/aplus/config";
+import { APLUS_PROBE_RISK } from "@/lib/trading/profit-rules";
+import { EVIDENCE } from "@/lib/trading/evidence";
 import { cn } from "@/lib/utils";
 
 function toGraded(t: JournalTrade): GradedTrade {
@@ -101,13 +103,16 @@ function Tile({
  */
 function IncomeGauge({ equity }: { equity: number }) {
   const plan = useMemo(
-    () => planIncome({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_RULES.riskPctCeiling }),
+    // At the risk actually ALLOWED — rule 5's A+ probe (2%) until n>=20 A+
+    // at WR>=65% is earned. Planning at the 3% ceiling priced income off a
+    // size nobody is entitled to trade yet.
+    () => planIncome({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_PROBE_RISK }),
     [equity],
   );
   // The cadence read is the line that turns the target into a testable claim
   // about entry and management, rather than a hope about the market.
   const cadence = useMemo(
-    () => readCadence({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_RULES.riskPctCeiling }),
+    () => readCadence({ target: MONTHLY_TARGET_USD, equity, riskPct: APLUS_PROBE_RISK }),
     [equity],
   );
   const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
@@ -128,6 +133,17 @@ function IncomeGauge({ equity }: { equity: number }) {
           {plan.reachable ? "" : ` · ${plan.shortfallMultiple.toFixed(1)}x short`}
         </p>
       </div>
+      {(() => {
+        const band = EVIDENCE.inBand.find((b) => b.key === "in");
+        return band?.exp != null ? (
+          <p className="mt-1 text-[10px] leading-snug text-[var(--color-warn)]">
+            Read the projection as an upper bound: its policy table was simulated banking 75% at T1, while the coded
+            rule banks 50%. Under the coded rule the in-band card pool measures {band.exp >= 0 ? "+" : "−"}
+            {Math.abs(band.exp).toFixed(3)}R/card (2022-24 {band.isExp?.toFixed(3)}, 2025-26 {band.oosExp?.toFixed(3)}) —
+            not distinguishable from zero. Planned at the 2% A+ probe.
+          </p>
+        ) : null;
+      })()}
       <ul className="mt-1.5 flex flex-col gap-0.5">
         {plan.lines.map((l) => (
           <li key={l} className="text-[10px] leading-snug text-[var(--color-fg)]">
@@ -176,20 +192,17 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
         } else {
           setLive(false);
           setPath(
-            buildProfitPath(
-              demoGradedTrades(),
-              equity ?? APLUS_RULES.accountEquity,
-            ),
+            // No invented trades. The demo sample rendered as if it were a
+            // record (and showed "A-path stays closer to 70%") whenever the
+            // journal was empty OR the fetch failed.
+            buildProfitPath([], equity ?? APLUS_RULES.accountEquity),
           );
         }
       } catch {
         if (cancelled) return;
         setLive(false);
         setPath(
-          buildProfitPath(
-            demoGradedTrades(),
-            equity ?? APLUS_RULES.accountEquity,
-          ),
+          buildProfitPath([], equity ?? APLUS_RULES.accountEquity),
         );
       } finally {
         if (!cancelled) setLoading(false);
@@ -225,17 +238,17 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
           <div className="flex items-center gap-2">
             <Route className="h-4 w-4 text-[var(--color-primary)]" />
             <h2 className="text-sm font-semibold tracking-tight text-[var(--color-fg)]">
-              Profit path · ≥70% WR on graded A-path only
+              Profit path · expectancy first, graded A-path only
             </h2>
           </div>
           <p className="mt-1 max-w-2xl text-xs text-[var(--color-subtle)]">
-            Execute only path grade <strong className="text-[var(--color-muted)]">A / A+</strong>{" "}
+            Execute only path grade <strong className="text-[var(--color-muted)]">A+ / A / A−</strong>{" "}
             (Q ≥ {PROFIT_ACTION_FLOOR} + C complete per strategy). B paper · C journal.{" "}
             {live ? (
               <span className="text-[var(--color-up)]">Live journal</span>
             ) : (
               <span className="text-[var(--color-warn)]">
-                Demo graded sample — log real A-path trades to replace
+                No closed live trades yet (or signed out) — nothing to grade, and no demo numbers are shown
               </span>
             )}
           </p>
@@ -407,8 +420,8 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
             </table>
           </div>
           <p className="mt-1.5 text-[10px] text-[var(--color-subtle)]">
-            Demo shows B/C dragging overall WR down while A-path stays closer to
-            70% — that is the edge of selectivity.
+            Hit rate follows expectancy, not the other way round: over four years the desk&apos;s own cards reached
+            T1 roughly 40–50% of the time. 70% is the config&apos;s target, not a measured rate — judge the path on R per trade.
           </p>
         </div>
 
@@ -461,7 +474,7 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
       <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_25%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] px-3 py-3">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">
           <TrendingUp className="h-3.5 w-3.5" />
-          Next actions toward 70%+
+          Next actions
         </div>
         <ol className="list-decimal space-y-1.5 pl-4 text-xs text-[var(--color-muted)]">
           {path.nextActions.map((a) => (
@@ -470,7 +483,7 @@ export function ProfitPathPanel({ equity }: { equity?: number }) {
         </ol>
         {path.winsNeededForTarget != null && (
           <p className="mt-2 font-mono text-[10px] text-[var(--color-subtle)]">
-            To hit ~70% WR at n={PROFIT_MIN_SAMPLE}: need ~
+            Config target (~70% WR) at n={PROFIT_MIN_SAMPLE}: ~
             {path.winsNeededForTarget} more wins in the remaining sample
             (ceiling math — still trade process, not forced wins).
           </p>

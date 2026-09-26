@@ -23,14 +23,22 @@ import {
   type Sample,
 } from "@/lib/trading/calibration";
 
-/** R from this leg's OWN entry to its OWN target over its OWN risk. */
+/**
+ * R for one shadow leg. The row's OWN `r` first — the shadow book computes it
+ * under the desk's scale rule (50% at T1, stop to BE, runner). This panel
+ * used to reprice every won leg as the full move to T1 on ALL contracts and
+ * every lost leg as −1R, which is a different management rule from the one
+ * being measured. The reconstruction below is only for rows that predate `r`.
+ */
 function rOf(s: {
   status?: string;
   entry?: number | null;
   t1?: number | null;
   riskPts?: number | null;
   side?: string;
+  r?: number | null;
 }): number {
+  if (typeof s.r === "number" && Number.isFinite(s.r)) return s.r;
   if (s.status === "unfilled") return 0;
   if (s.status === "lost") return -1;
   if (s.status !== "won") return 0;
