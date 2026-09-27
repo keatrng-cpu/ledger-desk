@@ -119,7 +119,7 @@ export function ThesisCard() {
         <ThesisView run={p} />
       ) : res ? (
         <p className="text-[11px] text-[var(--color-warn)]">
-          No thesis this time — {[res.primary?.error, res.second?.error].filter(Boolean).join(" · ") || "no model key on this deploy"}. The headlines below still carry each story's summary and what it moves.
+          No thesis this time. The headlines below still carry each story's summary and what it moves.
         </p>
       ) : null}
       {res?.second && (res.second.thesis || res.second.raw) && (
@@ -138,6 +138,11 @@ export function ThesisCard() {
           Built from {res.inputs.headlines} headlines, {res.inputs.events} calendar events and {res.inputs.games} games
           {res.inputs.feedsFailed.length ? `; feeds down (searched around): ${res.inputs.feedsFailed.join(", ")}` : ""}. A model's
           narration, not a signal — it never sizes or calls a trade, and the desk's gates decide.
+        </p>
+      )}
+      {res && res.tried.some((t) => t.error) && (
+        <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">
+          Tried: {res.tried.map((t) => `${t.model} ${t.ok ? "✓" : `— ${t.error ?? "no JSON"}`}`).join(" · ")}
         </p>
       )}
     </section>

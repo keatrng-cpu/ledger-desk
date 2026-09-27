@@ -36,6 +36,8 @@ export interface ThesisResult {
   cached: boolean;
   primary: ThesisRun | null;
   second: ThesisRun | null;
+  /** Every model tried and what went wrong with it, so an empty card says why. */
+  tried: { model: string; ok: boolean; error: string | null }[];
   inputs: { headlines: number; feedsFailed: string[]; games: number; events: number };
 }
 

@@ -6,9 +6,11 @@
  *   - Grok via xAI /v1/responses with web_search (the call the Invest kill
  *     watch proved in production): it can reach sources beyond the feeds,
  *     including any feed that failed, and returns citations;
- *   - Claude via the Messages API, working from the material alone.
- * The Grok thesis leads when it parses; otherwise Claude's does, and the
- * other is kept as a second opinion. One result is cached for 10 minutes for
+ *   - Claude via the Messages API, working from the material alone — Sonnet 5
+ *     and, as the guarantee, Haiku 4.5 (fast; the first live run got an empty
+ *     reply from Sonnet 5 and no Grok key, and the card said nothing useful).
+ * The first that parses leads (Grok, then Sonnet, then Haiku); the next is a
+ * second opinion; every model tried is listed with what went wrong. One result is cached for 10 minutes for
  * everyone, and a call already in flight is shared, so the cost is bounded
  * however many phones open the tab. Everything finishes inside ~25s (the
  * edge cuts a silent function near 30s). Narration only — nothing here is
@@ -29,7 +31,8 @@ import { americanToProb, noVig } from "@/lib/predict/math";
 const XAI_URL = "https://api.x.ai/v1/responses";
 const XAI_MODEL = "grok-4.7";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_MODEL = "claude-sonnet-5";
+const SONNET = "claude-sonnet-5";
+const HAIKU = "claude-haiku-4-5-20251001";
 const BUDGET_MS = 25_000;
 const CACHE_MS = 10 * 60_000;
 const MAX_HEADLINES = 36;
@@ -78,8 +81,8 @@ async function nflGames(): Promise<string[]> {
 
 async function runGrok(input: string, ms: number): Promise<ThesisRun | null> {
   const key = process.env.XAI_API_KEY?.trim();
-  if (!key) return null;
   const run: ThesisRun = { model: XAI_MODEL, webSearch: true, thesis: null, raw: null, sources: [], error: null };
+  if (!key) return { ...run, error: "XAI_API_KEY is not visible to this function" };
   try {
     const res = await fetch(XAI_URL, {
       method: "POST",
@@ -102,30 +105,32 @@ async function runGrok(input: string, ms: number): Promise<ThesisRun | null> {
   }
 }
 
-async function runClaude(input: string, ms: number): Promise<ThesisRun | null> {
+async function runClaude(model: string, input: string, ms: number): Promise<ThesisRun | null> {
   const key = process.env.ANTHROPIC_API_KEY?.trim();
-  if (!key) return null;
-  const run: ThesisRun = { model: ANTHROPIC_MODEL, webSearch: false, thesis: null, raw: null, sources: [], error: null };
+  const run: ThesisRun = { model, webSearch: false, thesis: null, raw: null, sources: [], error: null };
+  if (!key) return { ...run, error: "ANTHROPIC_API_KEY is not visible to this function" };
   try {
     const res = await fetch(ANTHROPIC_URL, {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 1300,
+        model,
+        max_tokens: 1400,
         system: `${THESIS_INSTRUCTIONS} This call has no web search: work only from the material given and mark what still needs confirming.`,
         messages: [{ role: "user", content: input }],
       }),
       signal: AbortSignal.timeout(ms),
     });
     if (!res.ok) return { ...run, error: `Anthropic returned ${res.status}` };
-    const json = (await res.json()) as { content?: { type: string; text?: string }[] };
-    const text = (json.content ?? [])
+    const json = (await res.json()) as { content?: { type: string; text?: string }[]; stop_reason?: string };
+    const blocks = json.content ?? [];
+    const text = blocks
       .filter((c) => c.type === "text")
       .map((c) => c.text ?? "")
       .join("\n")
       .trim();
-    return { ...run, thesis: parseThesis(text), raw: text || null };
+    if (!text) return { ...run, error: `no text (stop: ${json.stop_reason ?? "?"}; blocks: ${blocks.map((b) => b.type).join(",") || "none"})` };
+    return { ...run, thesis: parseThesis(text), raw: text };
   } catch (e) {
     return { ...run, error: e instanceof Error && e.name === "TimeoutError" ? `timed out after ${Math.round(ms / 1000)}s` : String(e).slice(0, 120) };
   }
@@ -159,14 +164,18 @@ async function build(): Promise<ThesisResult> {
   };
   const input = buildThesisInput(ctx);
   const left = Math.max(5_000, BUDGET_MS - (Date.now() - t0));
-  const [grok, claude] = await Promise.all([runGrok(input, left), runClaude(input, Math.max(5_000, left - 2_000))]);
-  const primary = grok?.thesis ? grok : claude?.thesis ? claude : (grok ?? claude);
-  const second = primary === grok ? claude : grok;
+  const runs = (
+    await Promise.all([runGrok(input, left), runClaude(SONNET, input, Math.max(5_000, left - 1_000)), runClaude(HAIKU, input, Math.max(5_000, left - 1_000))])
+  ).filter((r): r is ThesisRun => r != null);
+  const withThesis = runs.filter((r) => r.thesis);
+  const withText = runs.filter((r) => !r.thesis && r.raw);
+  const ranked = [...withThesis, ...withText];
   return {
     generatedAt: new Date().toISOString(),
     cached: false,
-    primary,
-    second: second ?? null,
+    primary: ranked[0] ?? null,
+    second: ranked[1] ?? null,
+    tried: runs.map((r) => ({ model: r.model, ok: Boolean(r.thesis), error: r.error })),
     inputs: { headlines: ctx.headlines.length, feedsFailed: ctx.failed, games: games.length, events: events.length },
   };
 }
