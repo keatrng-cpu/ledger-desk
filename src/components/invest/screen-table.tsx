@@ -13,15 +13,38 @@ import { allFundamentals } from "@/lib/invest/universe";
 import { dossierFor, RISK_FREE } from "@/lib/invest/dossiers";
 import { impliedGrowth, earningsYield } from "@/lib/invest/factors";
 import { weightInFund } from "@/lib/invest/exposure";
+import { durabilityFor, requiredVsDelivered } from "@/lib/invest/durability";
 import { pct } from "./format";
 import { Card, Note } from "./ui";
 
-type Col = "ticker" | "implied" | "ey" | "pe" | "fpe" | "opm" | "roe" | "rev" | "eps" | "beta" | "vti" | "qqq";
+type Col =
+  | "ticker"
+  | "implied"
+  | "record"
+  | "gap"
+  | "ey"
+  | "fcfConv"
+  | "capex"
+  | "shares"
+  | "pe"
+  | "fpe"
+  | "opm"
+  | "roe"
+  | "rev"
+  | "eps"
+  | "beta"
+  | "vti"
+  | "qqq";
 
 const COLS: { key: Col; label: string; title: string }[] = [
   { key: "ticker", label: "Name", title: "Ticker" },
   { key: "implied", label: "Implied g", title: "Annual earnings growth today's price requires for 10 years (trailing earnings, 4.5% ERP)" },
+  { key: "record", label: "Record", title: "What the company delivered: net income growth over 10 (else 5) fiscal years; revenue over 3 when no long record is captured (marked r)" },
+  { key: "gap", label: "Gap", title: "Implied minus record, in points. Positive = the price needs the business to beat its own record" },
   { key: "ey", label: "EY−10y", title: "Forward earnings yield minus the ten-year, in points" },
+  { key: "fcfConv", label: "FCF/NI", title: "Free cash flow ÷ net income over the last 3 fiscal years — are earnings cash?" },
+  { key: "capex", label: "Capex/OCF", title: "Capital spending as a share of operating cash flow, latest fiscal year" },
+  { key: "shares", label: "Shares/yr", title: "Diluted share count change per year — negative is buybacks" },
   { key: "pe", label: "P/E", title: "Trailing P/E" },
   { key: "fpe", label: "Fwd", title: "Forward P/E" },
   { key: "opm", label: "Op m", title: "Operating margin" },
@@ -41,12 +64,20 @@ export function ScreenTable() {
       .map((f) => {
         const d = dossierFor(f.ticker);
         const ey = earningsYield(f);
+        const rd = requiredVsDelivered(f.ticker);
+        const du = durabilityFor(f.ticker)?.yahoo;
         return {
           ticker: f.ticker,
           name: d?.name ?? f.name ?? f.ticker,
           status: !d ? "screen only" : d.watch ? "watch" : "dossier",
           note: f.note ?? null,
           implied: impliedGrowth(f).growth,
+          record: rd.delivered,
+          recordIsRevenue: rd.deliveredBasis?.startsWith("revenue") ?? false,
+          gap: rd.gapPts,
+          fcfConv: du?.fcfConversion3y ?? null,
+          capex: du?.capexToOcf ?? null,
+          shares: du?.sharesCagr ?? null,
           ey: ey.spreadPts,
           pe: f.peTrailing,
           fpe: f.peForward,
@@ -76,14 +107,14 @@ export function ScreenTable() {
   const fmt = (k: Col, v: number | null) => {
     if (v == null) return "—";
     if (k === "pe" || k === "fpe" || k === "beta") return v.toFixed(k === "beta" ? 2 : 1);
-    if (k === "ey") return `${v >= 0 ? "+" : ""}${v.toFixed(1)}`;
+    if (k === "ey" || k === "gap") return `${v >= 0 ? "+" : ""}${v.toFixed(1)}`;
     return pct(v);
   };
 
   return (
     <Card title={`Screen · ${rows.length} captured companies`}>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-[11px] tabular-nums">
+        <table className="w-full min-w-[1040px] text-[11px] tabular-nums">
           <thead className="text-[10px] uppercase text-[var(--color-muted)]">
             <tr>
               {COLS.map((c) => (
@@ -115,12 +146,17 @@ export function ScreenTable() {
                   <td
                     key={c.key}
                     className={`pr-2 text-right ${
-                      (c.key === "eps" || c.key === "ey") && (r[c.key] as number | null) != null && (r[c.key] as number) < 0
+                      (c.key === "eps" || c.key === "ey" || c.key === "fcfConv") &&
+                      (r[c.key] as number | null) != null &&
+                      (r[c.key] as number) < 0
                         ? "text-[var(--color-down)]"
-                        : ""
+                        : c.key === "gap" && (r.gap ?? 0) >= 3
+                          ? "text-[var(--color-warn)]"
+                          : ""
                     }`}
                   >
                     {fmt(c.key, r[c.key] as number | null)}
+                    {c.key === "record" && r.recordIsRevenue && r.record != null ? " r" : ""}
                   </td>
                 ))}
               </tr>
@@ -131,7 +167,10 @@ export function ScreenTable() {
       <div className="mt-2 space-y-1">
         <Note>
           Click a column to sort by it — one lens at a time, never a blend. Implied growth uses trailing earnings and a 4.5% equity
-          risk premium over the {RISK_FREE.yieldPct}% ten-year; EY−10y is forward earnings yield minus that ten-year. "Screen
+          risk premium over the {RISK_FREE.yieldPct}% ten-year; Record is what the business delivered (net income over 10 or 5
+          fiscal years; "r" = revenue over 3, no long record captured) and Gap is implied minus record — a positive gap means the
+          price needs the company to beat its own history, which long-run growth research says rarely happens on schedule.
+          EY−10y is forward earnings yield minus the ten-year. "Screen
           only" rows have fundamentals and no dossier — the gate refuses them until one is written. * = read the row's note
           (hover): {rows.filter((r) => r.note).map((r) => r.ticker).join(", ") || "none"}.
         </Note>

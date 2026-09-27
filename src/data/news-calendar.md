@@ -6,7 +6,19 @@ news chip. All times are **ET wall clock** (`timeEt`, 24h "HH:MM"); dates are
 
 ## Current coverage
 
-2026-08-10 → 2026-10-02. Every date below was verified against the issuing
+2026-08-10 → 2026-11-25. The 2026-10-03 → 2026-11-25 block was added 2026-09-27
+from the agencies' own schedule pages (BLS per-release + Oct/Nov monthly
+calendars, BEA news/schedule, Census release schedules, ISM ROB calendar, the
+Fed's Oct/Nov newsevents pages, DOL claims archive, UMich 2026 release PDF, ADP
+calendar panel). Added beyond the usual set: Employment Cost Index Q3 (Oct 30,
+08:30, high — BLS 2026/10_sched). Known gaps: UMich times other than Oct 9 and
+ADP's Nov 4 time are the agencies' long-standing 10:00 / 08:15, not yet printed
+for those dates; Election Day is Tue Nov 3 (JOLTS prints that morning) and Wed
+Nov 4 is the first session after the midterm results — overnight event risk no
+release blackout covers. Federal funding runs to 2026-12-11 (H.R. 6500): a
+lapse from Dec 12 would move December's BLS/BEA/Census dates — re-check then.
+
+Earlier block: 2026-08-10 → 2026-10-02. Every date below was verified against the issuing
 agency's own schedule (BLS / NY Fed / Fed calendar / BEA) on 2026-08-30:
 
 | Event | Source (fetched 2026-08-10) |

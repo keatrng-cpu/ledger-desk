@@ -20,6 +20,7 @@ import { impliedGrowth, sensitivity, qualityRead, trendRead, earningsYield } fro
 import { evidenceFor, SOURCES } from "@/lib/invest/evidence";
 import { verdictFor, type VerdictContext } from "@/lib/invest/book";
 import { effectiveWeight, weightInFund, type ExposureRead } from "@/lib/invest/exposure";
+import { durabilityLegs, requiredVsDelivered } from "@/lib/invest/durability";
 import { LINK, VERDICT_CLS, pct } from "./format";
 import { Card, Line, Note } from "./ui";
 
@@ -149,6 +150,28 @@ export function ResearchCard({
                             disagree with it.
                           </span>
                         </p>
+                        {(() => {
+                          const rd = requiredVsDelivered(d.ticker);
+                          const legs = durabilityLegs(d.ticker);
+                          return (
+                            <div className="rounded border border-[var(--color-border)] p-1.5">
+                              <p>
+                                <span className="text-[var(--color-muted)]">Price vs record · </span>
+                                <span className={rd.read === "asks-more" ? "text-[var(--color-warn)]" : ""}>{rd.line}</span>
+                              </p>
+                              {legs.length > 0 && (
+                                <p className="mt-0.5 text-[var(--color-muted)]">
+                                  {legs.map((l, k) => (
+                                    <span key={l.key} className={l.flag ? "text-[var(--color-warn)]" : ""}>
+                                      {k ? " · " : ""}
+                                      {l.label} {l.value == null ? "—" : `${(l.value * 100).toFixed(1)}%`} ({l.reads})
+                                    </span>
+                                  ))}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <p className="text-[var(--color-muted)]">{ey.line}</p>
                         <p className="text-[var(--color-muted)]">Quality · {q.legs.map((l) => `${l.label} ${l.reads}`).join(" · ")}</p>
                         <p className="text-[var(--color-muted)]">Trend · {t.line}</p>

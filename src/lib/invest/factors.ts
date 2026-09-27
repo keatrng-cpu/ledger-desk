@@ -77,6 +77,15 @@ export const BASE_RATES = [
       "Returns are not normally distributed across names — they are a lottery with a very thin winning tail. Missing the tail is the default outcome of concentration, which is why per-name caps here are 4–8% and not 20%.",
   },
   {
+    id: "growth-persistence",
+    claim:
+      "Across US stocks, long-term earnings growth shows no persistence beyond what chance predicts; very high growth is rare, and analysts' long-term growth forecasts are too optimistic.",
+    source: "Chan, Karceski & Lakonishok, 'The Level and Persistence of Growth Rates', Journal of Finance 58(2), 2003",
+    url: "https://onlinelibrary.wiley.com/doi/abs/10.1111/1540-6261.00540",
+    soWhat:
+      "A company's past growth is the honest reference for what its price requires, not a forecast of it. A price that needs a decade of growth above the company's own record is betting on something the record rarely repeats.",
+  },
+  {
     id: "mclean-pontiff-decay",
     claim:
       "Across 97 published return predictors, portfolio returns were 26% lower out-of-sample and 58% lower after publication.",

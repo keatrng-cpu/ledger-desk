@@ -1,0 +1,658 @@
+{
+ "capturedAt": "2026-09-27",
+ "note": "What each business has DELIVERED — the record the price's implied growth is compared against. Four-year metrics from Yahoo Finance's fundamentals timeseries (unofficial, keyless); 5- and 10-year net income and free cash flow growth from Alpha Vantage CASH_FLOW annual reports (10-K data) where captured. A growth rate across a loss or a negative-FCF year is undefined and stored as null with the reason. Not a forecast. Refresh: node scripts/capture-durability.mjs",
+ "companies": {
+  "MSFT": {
+   "ticker": "MSFT",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2023-06-30",
+     "2024-06-30",
+     "2025-06-30",
+     "2026-06-30"
+    ],
+    "revenueCagr": 0.1612,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.657,
+    "fcfLast": 66987000000,
+    "niLast": 133749000000,
+    "sbcToOcf": 0.0678,
+    "capexToOcf": 0.6338,
+    "capexToOcfFirst": 0.3209,
+    "sharesCagr": -0.0008,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2026-06-30",
+    "niCagr10y": 0.2061,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.1037,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.169,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.036,
+    "fcfCagr5yWhy": null,
+    "window10": "2016-06-30 → 2026-06-30",
+    "window5": "2021-06-30 → 2026-06-30",
+    "fcfLast3": [
+     [
+      "2024-06-30",
+      74071000000
+     ],
+     [
+      "2025-06-30",
+      71611000000
+     ],
+     [
+      "2026-06-30",
+      66987000000
+     ]
+    ]
+   }
+  },
+  "GOOGL": {
+   "ticker": "GOOGL",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.1251,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.7041,
+    "fcfLast": 73266000000,
+    "niLast": 132170000000,
+    "sbcToOcf": 0.1515,
+    "capexToOcf": 0.5552,
+    "capexToOcfFirst": 0.3441,
+    "sharesCagr": -0.0241,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2025-12-31",
+    "niCagr10y": 0.2324,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.1635,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.2683,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.1133,
+    "fcfCagr5yWhy": null,
+    "window10": "2015-12-31 → 2025-12-31",
+    "window5": "2020-12-31 → 2025-12-31",
+    "fcfLast3": [
+     [
+      "2023-12-31",
+      69495000000
+     ],
+     [
+      "2024-12-31",
+      72764000000
+     ],
+     [
+      "2025-12-31",
+      73266000000
+     ]
+    ]
+   }
+  },
+  "AAPL": {
+   "ticker": "AAPL",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-09-30",
+     "2023-09-30",
+     "2024-09-30",
+     "2025-09-30"
+    ],
+    "revenueCagr": 0.0181,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 1.0146,
+    "fcfLast": 98767000000,
+    "niLast": 112010000000,
+    "sbcToOcf": 0.1154,
+    "capexToOcf": 0.1141,
+    "capexToOcfFirst": 0.0877,
+    "sharesCagr": -0.0277,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2025-09-30",
+    "niCagr10y": 0.0769,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.035,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.143,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.0613,
+    "fcfCagr5yWhy": null,
+    "window10": "2015-09-30 → 2025-09-30",
+    "window5": "2020-09-30 → 2025-09-30",
+    "fcfLast3": [
+     [
+      "2023-09-30",
+      99584000000
+     ],
+     [
+      "2024-09-30",
+      108807000000
+     ],
+     [
+      "2025-09-30",
+      98767000000
+     ]
+    ]
+   }
+  },
+  "NVDA": {
+   "ticker": "NVDA",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2023-01-31",
+     "2024-01-31",
+     "2025-01-31",
+     "2026-01-31"
+    ],
+    "revenueCagr": 1.0005,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.8287,
+    "fcfLast": 96676000000,
+    "niLast": 120067000000,
+    "sbcToOcf": 0.0622,
+    "capexToOcf": 0.0588,
+    "capexToOcfFirst": 0.3249,
+    "sharesCagr": -0.0074,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2026-01-31",
+    "niCagr10y": 0.6948,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.5661,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.9433,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.8313,
+    "fcfCagr5yWhy": null,
+    "window10": "2016-01-31 → 2026-01-31",
+    "window5": "2021-01-31 → 2026-01-31",
+    "fcfLast3": [
+     [
+      "2024-01-31",
+      27021000000
+     ],
+     [
+      "2025-01-31",
+      60853000000
+     ],
+     [
+      "2026-01-31",
+      96676000000
+     ]
+    ]
+   }
+  },
+  "V": {
+   "ticker": "V",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-09-30",
+     "2023-09-30",
+     "2024-09-30",
+     "2025-09-30"
+    ],
+    "revenueCagr": 0.1092,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 1.0507,
+    "fcfLast": 21577000000,
+    "niLast": 20058000000,
+    "sbcToOcf": 0.0389,
+    "capexToOcf": 0.0643,
+    "capexToOcfFirst": 0.0515,
+    "sharesCagr": -0.0499,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2025-09-30",
+    "niCagr10y": 0.1223,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.1334,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.1304,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.1733,
+    "fcfCagr5yWhy": null,
+    "window10": "2015-09-30 → 2025-09-30",
+    "window5": "2020-09-30 → 2025-09-30",
+    "fcfLast3": [
+     [
+      "2023-09-30",
+      19696000000
+     ],
+     [
+      "2024-09-30",
+      18693000000
+     ],
+     [
+      "2025-09-30",
+      21577000000
+     ]
+    ]
+   }
+  },
+  "COST": {
+   "ticker": "COST",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-08-31",
+     "2023-08-31",
+     "2024-08-31",
+     "2025-08-31"
+    ],
+    "revenueCagr": 0.0664,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.9749,
+    "fcfLast": 7837000000,
+    "niLast": 8099000000,
+    "sbcToOcf": 0.0645,
+    "capexToOcf": 0.4123,
+    "capexToOcfFirst": 0.5264,
+    "sharesCagr": 0,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2026-08-31",
+    "niCagr10y": 0.1453,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.3075,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.1268,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.1182,
+    "fcfCagr5yWhy": null,
+    "window10": "2016-08-31 → 2026-08-31",
+    "window5": "2021-08-31 → 2026-08-31",
+    "fcfLast3": [
+     [
+      "2024-08-31",
+      6629000000
+     ],
+     [
+      "2025-08-31",
+      7837000000
+     ],
+     [
+      "2026-08-31",
+      9390000000
+     ]
+    ]
+   }
+  },
+  "LLY": {
+   "ticker": "LLY",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.3169,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.0885,
+    "fcfLast": 5964000000,
+    "niLast": 20640000000,
+    "sbcToOcf": 0.0372,
+    "capexToOcf": 0.6453,
+    "capexToOcfFirst": 0.3935,
+    "sharesCagr": -0.0182,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2025-12-31",
+    "niCagr10y": 0.2396,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.2096,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.2722,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.1495,
+    "fcfCagr5yWhy": null,
+    "window10": "2015-12-31 → 2025-12-31",
+    "window5": "2020-12-31 → 2025-12-31",
+    "fcfLast3": [
+     [
+      "2023-12-31",
+      -3152000000
+     ],
+     [
+      "2024-12-31",
+      414300000
+     ],
+     [
+      "2025-12-31",
+      8972000000
+     ]
+    ]
+   }
+  },
+  "ETN": {
+   "ticker": "ETN",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.0977,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.8955,
+    "fcfLast": 3553000000,
+    "niLast": 4087000000,
+    "sbcToOcf": null,
+    "capexToOcf": 0.2055,
+    "capexToOcfFirst": 0.2361,
+    "sharesCagr": -0.008,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 20,
+    "lastFy": "2025-12-31",
+    "niCagr10y": 0.0752,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.0644,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.2365,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": 0.0682,
+    "fcfCagr5yWhy": null,
+    "window10": "2015-12-31 → 2025-12-31",
+    "window5": "2020-12-31 → 2025-12-31",
+    "fcfLast3": [
+     [
+      "2023-12-31",
+      2867000000
+     ],
+     [
+      "2024-12-31",
+      3519000000
+     ],
+     [
+      "2025-12-31",
+      3553000000
+     ]
+    ]
+   }
+  },
+  "CEG": {
+   "ticker": "CEG",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.0147,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": -1.4906,
+    "fcfLast": 1288000000,
+    "niLast": 2319000000,
+    "sbcToOcf": null,
+    "capexToOcf": 0.696,
+    "capexToOcfFirst": null,
+    "sharesCagr": -0.0134,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": {
+    "source": "alphavantage CASH_FLOW (10-K annual)",
+    "years": 14,
+    "lastFy": "2025-12-31",
+    "niCagr10y": 0.0539,
+    "niCagr10yWhy": null,
+    "fcfCagr10y": 0.1366,
+    "fcfCagr10yWhy": null,
+    "niCagr5y": 0.3198,
+    "niCagr5yWhy": null,
+    "fcfCagr5y": null,
+    "fcfCagr5yWhy": "starts at a loss or negative FCF",
+    "window10": "2015-12-31 → 2025-12-31",
+    "window5": "2020-12-31 → 2025-12-31",
+    "fcfLast3": [
+     [
+      "2023-12-31",
+      -7723000000
+     ],
+     [
+      "2024-12-31",
+      -5029000000
+     ],
+     [
+      "2025-12-31",
+      1288000000
+     ]
+    ]
+   }
+  },
+  "AVGO": {
+   "ticker": "AVGO",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-10-31",
+     "2023-10-31",
+     "2024-10-31",
+     "2025-10-31"
+    ],
+    "revenueCagr": 0.2438,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 1.4839,
+    "fcfLast": 26914000000,
+    "niLast": 23126000000,
+    "sbcToOcf": 0.2748,
+    "capexToOcf": 0.0226,
+    "capexToOcfFirst": 0.0253,
+    "sharesCagr": 0.0469,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "TSM": {
+   "ticker": "TSM",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.1894,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.5772,
+    "fcfLast": 992378400000,
+    "niLast": 1697604000000,
+    "sbcToOcf": 0.0005,
+    "capexToOcf": 0.5638,
+    "capexToOcfFirst": 0.6765,
+    "sharesCagr": 0,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "ASML": {
+   "ticker": "ASML",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.1555,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.9336,
+    "fcfLast": 11027300000,
+    "niLast": 9609400000,
+    "sbcToOcf": null,
+    "capexToOcf": null,
+    "capexToOcfFirst": null,
+    "sharesCagr": -0.0077,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "MA": {
+   "ticker": "MA",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.1382,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 1.048,
+    "fcfLast": 16433000000,
+    "niLast": 14968000000,
+    "sbcToOcf": 0.0338,
+    "capexToOcf": 0.0688,
+    "capexToOcfFirst": 0.098,
+    "sharesCagr": -0.0228,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "EQIX": {
+   "ticker": "EQIX",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.0827,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.0699,
+    "fcfLast": -400000000,
+    "niLast": 1350000000,
+    "sbcToOcf": 0.1273,
+    "capexToOcf": 1.1023,
+    "capexToOcfFirst": 0.7688,
+    "sharesCagr": 0.0223,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "NEE": {
+   "ticker": "NEE",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.0936,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.4604,
+    "fcfLast": 3211000000,
+    "niLast": 6835000000,
+    "sbcToOcf": null,
+    "capexToOcf": 0.7428,
+    "capexToOcfFirst": 1.1791,
+    "sharesCagr": 0.0159,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  },
+  "JNJ": {
+   "ticker": "JNJ",
+   "yahoo": {
+    "source": "Yahoo Finance fundamentals timeseries (unofficial)",
+    "fiscalYears": [
+     "2022-12-31",
+     "2023-12-31",
+     "2024-12-31",
+     "2025-12-31"
+    ],
+    "revenueCagr": 0.056,
+    "revenueCagrWhy": null,
+    "revenueYears": 3,
+    "fcfConversion3y": 0.7254,
+    "fcfLast": 19313000000,
+    "niLast": 26804000000,
+    "sbcToOcf": 0.0552,
+    "capexToOcf": 0.2127,
+    "capexToOcfFirst": 0.1892,
+    "sharesCagr": -0.0302,
+    "sharesCagrWhy": null,
+    "sharesYears": 3
+   },
+   "long": null
+  }
+ }
+}

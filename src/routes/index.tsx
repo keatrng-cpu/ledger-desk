@@ -20,6 +20,8 @@ import {
   Brain,
   Layers,
   GraduationCap,
+  Newspaper,
+  Percent,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -65,6 +67,8 @@ import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
+import { NewsTab } from "@/components/news/news-tab";
+import { PredictTab } from "@/components/predict/predict-tab";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
@@ -646,6 +650,8 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 }
 
 type DeskCategory =
+  | "news"
+  | "predict"
   | "brain"
   | "learn"
   | "invest"
@@ -671,12 +677,29 @@ const CATEGORIES: {
     hint: "Draw · PATH · paper",
     icon: Crosshair,
   },
+  // Beside Now because the day's schedule is the first thing a session needs:
+  // what releases, which heavyweights report, and what the tape just heard.
+  {
+    id: "news",
+    label: "News",
+    short: "News",
+    hint: "Schedule · headlines · filings",
+    icon: Newspaper,
+  },
   {
     id: "swing",
     label: "Options",
     short: "Opt",
     hint: "QQQ/SPY · $1k · 15%",
     icon: Layers,
+  },
+  // Event contracts (Robinhood / Kalshi): its own clock — minutes to a game.
+  {
+    id: "predict",
+    label: "Predict",
+    short: "Pred",
+    hint: "Event contracts · live board",
+    icon: Percent,
   },
   {
     id: "tape",
@@ -1610,12 +1633,14 @@ function MasterplacePage() {
               {/* Learn carries no synapse feed: it is the one tab that is not a
                   live surface, and a live rail above a lesson is the clutter
                   this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" && cat !== "learn" && cat !== "invest" && <SynapseRail tab={cat} />}
+              {cat !== "trade" && cat !== "learn" && cat !== "invest" && cat !== "news" && cat !== "predict" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the
                   research it checks. */}
               {cat === "invest" && <InvestPanel />}
+              {cat === "news" && <NewsTab />}
+              {cat === "predict" && <PredictTab />}
 
               {cat === "brain" && (
                 <div className="space-y-5">
