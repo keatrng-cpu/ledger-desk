@@ -1,23 +1,14 @@
 /**
- * The Predict tab — Robinhood/Kalshi sports contracts, priced against
- * independent references, with the costs and the trader's own record.
+ * The Predict tab — a live scanner over event contracts (Robinhood/Kalshi).
  *
- * WHAT IT DOES
- *   - Every game in the league with its Kalshi bid/ask for both teams.
- *   - The reference: DraftKings' moneyline with the bookmaker margin removed
- *     before the game; ESPN's live win probability during it.
- *   - Per side, what buying at the ask is worth IF the reference is right,
- *     after Kalshi's fee and Robinhood's commission. Positive = the contract
- *     costs less than the reference says it is worth.
- *   - A round-trip calculator for "buy, then sell before the final", with the
- *     break-even exit and the martingale shape of any sell-into-a-rise rule.
- *   - The trader's own fills, cut by entry price.
- *
- * WHAT IT WILL NOT DO
- * Call a winner, flash a buy, or score an exit rule as if timing were an
- * edge. The references are estimates; the evidence card says what the
- * research found about prices like these. Refreshes every 20s only while the
- * tab is open and the switch is on.
+ * GO flashes green only when every must-layer in scanner.ts passes: the
+ * contract costs less than the conservative reference after fees, with none
+ * of the evidence's warning signs. It is a price comparison against an
+ * estimate (the book without its margin before the game, ESPN's live model
+ * during it) — never a call on who wins — and the GO ledger settles every GO
+ * from the final score so the record can say whether the comparison pays.
+ * Every number per game, the round-trip math and the evidence fold underneath.
+ * Refreshes only while this tab is open and visible (10s default).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -25,13 +16,17 @@ import { Percent, RefreshCw } from "lucide-react";
 import { getPredictBoard, type PredictBoard } from "@/lib/predict/predict-server";
 import { LEAGUES, type League } from "@/lib/predict/board";
 import { VENUES, type VenueId } from "@/lib/predict/math";
-import { sideEdge } from "@/lib/predict/board";
-import { subscribePredict } from "@/lib/predict/journal";
-import { BTN, CARD, GameCard, H3, JournalCard, RoundTripCalc, VenuePicker, type LogSeed } from "./predict-parts";
+import { readJournal, subscribePredict } from "@/lib/predict/journal";
+import { scanBoard, scanStats, type ScanRow } from "@/lib/predict/scanner";
+import { goStats, recordGo, resolveGo } from "@/lib/predict/go-ledger";
 import { PREDICT_EVIDENCE } from "@/lib/predict/evidence";
+import { BTN, CARD, GameCard, JournalCard, RoundTripCalc, VenuePicker, type LogSeed } from "./predict-parts";
+import { ScannerList, StatsStrip } from "./predict-scanner";
 
-/** Choices, not a default poll: the board only refreshes while this tab is open. */
 const INTERVALS = [10_000, 20_000, 60_000] as const;
+/** A contract that already alerted stays quiet this long, so a flickering quote cannot chatter. */
+const REALERT_MS = 5 * 60_000;
+const SUMMARY = "cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]";
 
 /** A short tone — created only after a click arms it (browser audio rule). */
 function tone(ctx: AudioContext | null): void {
@@ -43,7 +38,32 @@ function tone(ctx: AudioContext | null): void {
   o.connect(g);
   g.connect(ctx.destination);
   o.start();
-  o.stop(ctx.currentTime + 0.2);
+  o.stop(ctx.currentTime + 0.25);
+}
+
+/** Phone-friendly GO notice: a buzz, and a system notification where the browser allows one. */
+function notify(body: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    navigator.vibrate?.([200, 100, 200]);
+  } catch {
+    /* no vibration on this device */
+  }
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const direct = () => {
+    try {
+      const n = new Notification("Predict GO", { body });
+      void n;
+    } catch {
+      /* Android Chrome only shows notifications through a service worker */
+    }
+  };
+  const sw = navigator.serviceWorker;
+  if (!sw?.getRegistration) return direct();
+  void sw
+    .getRegistration()
+    .then((reg) => (reg ? reg.showNotification("Predict GO", { body }) : direct()))
+    .catch(direct);
 }
 
 export function PredictTab() {
@@ -52,34 +72,36 @@ export function PredictTab() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [auto, setAuto] = useState(true);
+  const [every, setEvery] = useState<number>(10_000);
   const [seed, setSeed] = useState<LogSeed | null>(null);
   const [version, setVersion] = useState(0);
-  const [view, setView] = useState<"live" | "all">("all");
-  const [every, setEvery] = useState<number>(20_000);
   const [venue, setVenue] = useState<VenueId>("rh-rothera");
   const fees = VENUES[venue];
-  // Gap alert: opt-in, live games only, fires once per side per crossing.
-  const [alertOn, setAlertOn] = useState(false);
-  const [alertCents, setAlertCents] = useState("3");
+  const [rows, setRows] = useState<ScanRow[]>([]);
+  const [armed, setArmed] = useState(false);
+  const [goMsg, setGoMsg] = useState<string | null>(null);
   const audio = useRef<AudioContext | null>(null);
-  const fired = useRef<Set<string>>(new Set());
-  const trails = useRef<Map<string, number[]>>(new Map());
+  const alerted = useRef<Map<string, number>>(new Map());
   const lastStamp = useRef<string | null>(null);
-  const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const prevGaps = useRef<Map<string, number>>(new Map());
+  const lastGaps = useRef<Map<string, number>>(new Map());
+  const trails = useRef<Map<string, number[]>>(new Map());
   useEffect(() => subscribePredict(() => setVersion((n) => n + 1)), []);
 
-  const load = useCallback(
-    (lg: League) => {
-      setLoading(true);
-      setErr(null);
-      void getPredictBoard({ data: { league: lg } })
-        .then(setBoard)
-        .catch((e: unknown) => setErr(e instanceof Error ? e.message : String(e)))
-        .finally(() => setLoading(false));
-    },
-    [],
-  );
-  useEffect(() => load(league), [league, load]);
+  const load = useCallback((lg: League) => {
+    setLoading(true);
+    setErr(null);
+    void getPredictBoard({ data: { league: lg } })
+      .then(setBoard)
+      .catch((e: unknown) => setErr(e instanceof Error ? e.message : String(e)))
+      .finally(() => setLoading(false));
+  }, []);
+  useEffect(() => {
+    lastStamp.current = null;
+    prevGaps.current = new Map();
+    lastGaps.current = new Map();
+    load(league);
+  }, [league, load]);
   useEffect(() => {
     if (!auto) return;
     const id = setInterval(() => {
@@ -88,60 +110,70 @@ export function PredictTab() {
     return () => clearInterval(id);
   }, [auto, every, league, load]);
 
-  // Each new board: extend every side's gap trail, and sound the armed alert
-  // when a LIVE side's gap after fees crosses the threshold. A side re-arms
-  // only after its gap falls a cent below the line — no chattering.
+  // Scan each board once. The live "held" layer compares against the PREVIOUS
+  // refresh's gaps, so they are rotated only when a new board arrives.
   useEffect(() => {
-    if (!board || board.fetchedAt === lastStamp.current) return;
-    lastStamp.current = board.fetchedAt;
-    const line = (Number(alertCents) || 0) / 100;
-    const hits: string[] = [];
-    for (const b of board.games) {
-      for (const s of [b.away, b.home]) {
-        const side = s.side;
-        const e = sideEdge(s, fees);
-        if (!side || e == null) continue;
-        const arr = trails.current.get(side.ticker) ?? [];
-        arr.push(e);
-        trails.current.set(side.ticker, arr.slice(-12));
-        if (b.game.state !== "in") continue;
-        const key = side.ticker;
-        const held = arr.length >= 2 && arr[arr.length - 2] >= line;
-        if (e >= line && held && !fired.current.has(key)) {
-          fired.current.add(key);
-          hits.push(`${s.team.code} ${Math.round((side.ask ?? 0) * 100)}¢ vs ESPN ${((s.reference ?? 0) * 100).toFixed(0)}% (+${(e * 100).toFixed(1)}¢)`);
-        } else if (e < line - 0.01) {
-          fired.current.delete(key);
-        }
-      }
+    if (!board) return;
+    const isNew = board.fetchedAt !== lastStamp.current;
+    if (isNew) {
+      prevGaps.current = lastGaps.current;
+      lastStamp.current = board.fetchedAt;
     }
-    if (hits.length) {
-      setAlertMsg(`Gap ≥ ${alertCents}¢ after fees, held two refreshes: ${hits.join(" · ")} — a comparison with ESPN's model, not a call.`);
-      if (alertOn) tone(audio.current);
+    const r = scanBoard(board.games, fees, prevGaps.current);
+    setRows(r);
+    if (!isNew) return;
+    const gaps = new Map<string, number>();
+    for (const x of r) {
+      if (x.gap == null) continue;
+      gaps.set(x.key, x.gap);
+      trails.current.set(x.key, [...(trails.current.get(x.key) ?? []), x.gap].slice(-12));
     }
-  }, [board, alertCents, alertOn, fees]);
+    lastGaps.current = gaps;
+    resolveGo(board.games);
+    recordGo(r, fees);
+    const now = Date.now();
+    const fresh = r.filter((x) => x.word === "GO" && now - (alerted.current.get(x.key) ?? 0) > REALERT_MS);
+    if (!fresh.length) return;
+    for (const x of fresh) alerted.current.set(x.key, now);
+    const body = fresh.map((x) => `${x.team} ≤ ${Math.round((x.limit ?? 0) * 100)}¢ (${x.game})`).join(" · ");
+    setGoMsg(`GO ${new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" })} ET: ${body}`);
+    if (armed) {
+      tone(audio.current);
+      notify(body);
+    }
+  }, [board, fees, armed]);
 
-  const games = (board?.games ?? []).filter((b) => (view === "live" ? b.game.state === "in" : true));
+  const arm = (on: boolean) => {
+    setArmed(on);
+    if (!on || typeof window === "undefined") return;
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Ctx && !audio.current) audio.current = new Ctx();
+    void audio.current?.resume();
+    tone(audio.current);
+    try {
+      if ("Notification" in window && Notification.permission === "default") void Notification.requestPermission();
+    } catch {
+      /* permission prompt unavailable */
+    }
+  };
+
+  const games = useMemo(() => board?.games ?? [], [board]);
+  const stats = useMemo(() => scanStats(rows, games), [rows, games]);
+  void version;
+  const gs = goStats();
+  const journal = readJournal();
   const marks = useMemo(() => {
     const m = new Map<string, number | null>();
-    for (const b of board?.games ?? []) for (const s of [b.away, b.home]) if (s.side) m.set(s.side.ticker, s.side.bid);
+    for (const b of games) for (const s of [b.away, b.home]) if (s.side) m.set(s.side.ticker, s.side.bid);
     return m;
-  }, [board]);
-  const counts = useMemo(() => {
-    const gs = board?.games ?? [];
-    return {
-      live: gs.filter((b) => b.game.state === "in").length,
-      pre: gs.filter((b) => b.game.state === "pre").length,
-      gaps: gs.flatMap((b) => [b.away, b.home]).filter((s) => (sideEdge(s, fees) ?? -1) > 0.005).length,
-    };
-  }, [board, fees]);
+  }, [games]);
 
   return (
     <div className="space-y-3">
       <header className="flex flex-wrap items-center gap-2">
         <Percent size={15} className="text-[var(--color-muted)]" />
         <h2 className="text-sm font-semibold">Predict</h2>
-        <span className="text-[11px] text-[var(--color-muted)]">event contracts · priced against the book and the live model</span>
+        <span className="text-[11px] text-[var(--color-muted)]">live scanner · event contracts vs the book and the live model</span>
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
           {(Object.keys(LEAGUES) as League[]).map((l) => (
             <button key={l} type="button" aria-pressed={league === l} onClick={() => setLeague(l)} className={`${BTN} ${league === l ? "border-[var(--color-accent)]" : ""}`}>
@@ -149,7 +181,7 @@ export function PredictTab() {
             </button>
           ))}
           <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
-            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> auto
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> live
             <select value={every} onChange={(e) => setEvery(Number(e.target.value))} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1 text-[11px] text-[var(--color-fg)]">
               {INTERVALS.map((ms) => (
                 <option key={ms} value={ms}>
@@ -164,9 +196,38 @@ export function PredictTab() {
         </div>
       </header>
 
-      <section className={`${CARD} border-[color-mix(in_oklab,var(--color-warn)_40%,transparent)]`}>
-        <h3 className={H3}>Read this before the first trade</h3>
-        <ul className="space-y-1 text-[11px] leading-relaxed">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
+        <label className="flex items-center gap-1">
+          <input type="checkbox" checked={armed} onChange={(e) => arm(e.target.checked)} /> beep + buzz on GO
+        </label>
+        <VenuePicker venue={venue} setVenue={setVenue} />
+        <span className="text-[10px]">Phone: keep this tab open with the screen on — browsers pause background tabs.</span>
+      </div>
+      {goMsg && <p className="text-[11px] font-semibold text-[var(--color-up)]">{goMsg}</p>}
+      {err && <p className="text-[11px] text-[var(--color-warn)]">Board unavailable — {err}</p>}
+      {board?.failed.length ? <p className="text-[11px] text-[var(--color-warn)]">Did not load: {board.failed.join(" · ")}</p> : null}
+
+      <StatsStrip stats={stats} goStats={gs} journal={journal} fetchedAt={board?.fetchedAt ?? null} />
+      <ScannerList rows={rows} stats={stats} onLog={setSeed} />
+      <JournalCard seed={seed} clearSeed={() => setSeed(null)} marks={marks} version={version} fees={fees} />
+
+      <details className={CARD}>
+        <summary className={SUMMARY}>Every game — all the numbers ({games.length})</summary>
+        <div className="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {games.map((b) => (
+            <GameCard key={b.game.id} b={b} onLog={setSeed} trails={trails.current} fees={fees} />
+          ))}
+        </div>
+      </details>
+      <details className={CARD}>
+        <summary className={SUMMARY}>Round trip — what selling before the final costs</summary>
+        <div className="mt-2">
+          <RoundTripCalc fees={fees} />
+        </div>
+      </details>
+      <details className={CARD}>
+        <summary className={SUMMARY}>Evidence — read before the first trade</summary>
+        <ul className="mt-2 space-y-1 text-[11px] leading-relaxed">
           {PREDICT_EVIDENCE.map((e) => (
             <li key={e.id}>
               <span className="font-medium text-[var(--color-fg)]">{e.headline} </span>
@@ -179,66 +240,10 @@ export function PredictTab() {
             </li>
           ))}
         </ul>
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-[var(--color-muted)]">
-          <VenuePicker venue={venue} setVenue={setVenue} />
-          <span>
-            {fees.source} (checked {fees.checkedAt}). Not financial advice; the tab compares prices, it does not pick winners.
-          </span>
-        </div>
-      </section>
-
-      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
-        {board && (
-          <span>
-            {counts.live} live · {counts.pre} upcoming · {counts.gaps} side{counts.gaps === 1 ? "" : "s"} priced below the reference after fees · updated{" "}
-            {new Date(board.fetchedAt).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit", second: "2-digit" })} ET
-          </span>
-        )}
-        <span className="ml-auto flex gap-1">
-          <button type="button" aria-pressed={view === "all"} className={`${BTN} ${view === "all" ? "border-[var(--color-accent)]" : ""}`} onClick={() => setView("all")}>
-            All games
-          </button>
-          <button type="button" aria-pressed={view === "live"} className={`${BTN} ${view === "live" ? "border-[var(--color-accent)]" : ""}`} onClick={() => setView("live")}>
-            Live only
-          </button>
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
-        <label className="flex items-center gap-1">
-          <input
-            type="checkbox"
-            checked={alertOn}
-            onChange={(e) => {
-              setAlertOn(e.target.checked);
-              if (e.target.checked && typeof window !== "undefined") {
-                const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-                if (Ctx && !audio.current) audio.current = new Ctx();
-                void audio.current?.resume();
-                tone(audio.current);
-              }
-            }}
-          />
-          beep when a live side's gap after fees reaches
-        </label>
-        <input value={alertCents} onChange={(e) => setAlertCents(e.target.value)} inputMode="decimal" className="w-10 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1 text-[11px] text-[var(--color-fg)]" />
-        <span>¢</span>
-        {alertMsg && <span className="w-full text-[var(--color-fg)]">{alertMsg}</span>}
-      </div>
-      {err && <p className="text-[11px] text-[var(--color-warn)]">Board unavailable — {err}</p>}
-      {board?.failed.length ? <p className="text-[11px] text-[var(--color-warn)]">Did not load: {board.failed.join(" · ")}</p> : null}
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {games.map((b) => (
-          <GameCard key={b.game.id} b={b} onLog={setSeed} trails={trails.current} fees={fees} />
-        ))}
-        {board && games.length === 0 && <p className="text-[11px] text-[var(--color-muted)]">{view === "live" ? "No game in progress." : "No games on the board."}</p>}
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <RoundTripCalc fees={fees} />
-        <JournalCard seed={seed} clearSeed={() => setSeed(null)} marks={marks} version={version} fees={fees} />
-      </div>
-
+        <p className="mt-1 text-[10px] text-[var(--color-muted)]">
+          {fees.source} (checked {fees.checkedAt}). GO compares a price with an estimate after fees; it does not pick winners. Not financial advice.
+        </p>
+      </details>
       {board && <p className="text-[10px] leading-relaxed text-[var(--color-muted)]">{board.note}</p>}
     </div>
   );
