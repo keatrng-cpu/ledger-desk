@@ -24,7 +24,7 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 const FEED_TIMEOUT_MS = 6_000;
 const CACHE_MS = 5 * 60_000;
-const MAX_ITEMS = 160;
+const MAX_ITEMS = 220;
 
 export interface PulseQuote {
   symbol: string;
@@ -85,7 +85,7 @@ async function pulseQuote(symbol: string, label: string): Promise<PulseQuote> {
 }
 
 /** Public, like the desk's quote calls: public feeds, no user data, 5-min cache. */
-export const getNewsFeed = createServerFn({ method: "GET" }).handler(async (): Promise<NewsPayload> => {
+export async function loadNews(): Promise<NewsPayload> {
     if (cache && Date.now() - cache.at < CACHE_MS) return { ...cache.data, cached: true };
     const failed: NewsPayload["failed"] = [];
     const [feeds, pulse] = await Promise.all([
@@ -110,7 +110,10 @@ export const getNewsFeed = createServerFn({ method: "GET" }).handler(async (): P
     const data: NewsPayload = { fetchedAt: new Date().toISOString(), items, failed, pulse, cached: false };
     cache = { at: Date.now(), data };
     return data;
-  });
+}
+
+/** The feed loader as a public server function (the thesis reuses the loader and its cache). */
+export const getNewsFeed = createServerFn({ method: "GET" }).handler(loadNews);
 
 /* ------------------------------------------------------------------ */
 /* SEC filings                                                         */

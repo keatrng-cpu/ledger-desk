@@ -20,7 +20,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Newspaper, RefreshCw } from "lucide-react";
 import { getFilings, getNewsFeed, type FilingsPayload, type NewsPayload } from "@/lib/news/news-server";
-import { dedupe, orderItems, tagItem, type Horizon, type Tagged } from "@/lib/news/feed";
+import { dedupe, impactOf, orderItems, tagItem, type Horizon, type Tagged } from "@/lib/news/feed";
+import { ThesisCard } from "./thesis-card";
 import { coverageLine, eventDensity, timeline, type TimelineEvent } from "@/lib/news/schedule";
 import { fundProfile } from "@/lib/invest/exposure";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
@@ -109,6 +110,7 @@ export function NewsTab() {
     const w = (t: string) => (t === "GOOGL" ? (qqq.get("GOOGL") ?? 0) + (qqq.get("GOOG") ?? 0) : qqq.get(t) ?? 0);
     return orderItems(dedupe(data.items.map((i) => tagItem(i, w, dossiers))));
   }, [data, qqq, dossiers]);
+  const weight = useCallback((t: string) => (t === "GOOGL" ? (qqq.get("GOOGL") ?? 0) + (qqq.get("GOOG") ?? 0) : (qqq.get(t) ?? 0)), [qqq]);
   const shown = tagged.filter((t) =>
     filter === "all" ? true : filter === "relevant" ? t.tier <= 2 : t.horizons.includes(filter) && t.tier <= 2,
   );
@@ -133,6 +135,8 @@ export function NewsTab() {
           <RefreshCw size={11} /> {loading ? "Loading…" : "Refresh"}
         </button>
       </header>
+
+      <ThesisCard />
 
       <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">{coverageLine(today)}</p>
 
@@ -233,7 +237,7 @@ export function NewsTab() {
       <section className={CARD}>
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <h3 className={`${H3} mb-0 mr-2`}>Headlines</h3>
-          {(["relevant", "day", "swing", "invest", "all"] as Filter[]).map((f) => (
+          {(["relevant", "day", "swing", "invest", "predict", "all"] as Filter[]).map((f) => (
             <button
               key={f}
               type="button"
@@ -241,7 +245,7 @@ export function NewsTab() {
               onClick={() => setFilter(f)}
               className={`${BTN} ${filter === f ? "border-[var(--color-accent)]" : ""}`}
             >
-              {f === "relevant" ? "Relevant" : f === "day" ? "Futures" : f === "swing" ? "Options" : f === "invest" ? "Book" : "All"}
+              {f === "relevant" ? "Relevant" : f === "day" ? "Futures" : f === "swing" ? "Options" : f === "invest" ? "Book" : f === "predict" ? "Predict" : "All"}
             </button>
           ))}
           {data && (
@@ -263,6 +267,8 @@ export function NewsTab() {
                   {t.title}
                 </a>
               </p>
+              {t.summary && <p className="line-clamp-2 text-[10px] leading-snug text-[var(--color-muted)]">{t.summary}</p>}
+              {impactOf(t, weight) && <p className="text-[10px] leading-snug text-[var(--color-fg)]">→ {impactOf(t, weight)}</p>}
               {(t.tickers.length > 0 || t.topics.length > 0 || t.killRule.length > 0) && (
                 <p className="text-[10px] leading-snug text-[var(--color-muted)]">
                   {t.killRule.length > 0 && (
@@ -275,7 +281,8 @@ export function NewsTab() {
           ))}
         </ul>
         <p className="mt-2 text-[10px] leading-relaxed text-[var(--color-muted)]">
-          Tags come from fixed word lists (company names, macro topics, each dossier's kill-rule words), not a model. Relevant = it
+          Tags, summaries and the → line come from the feeds and fixed word lists (company names, macro topics, NFL teams, each
+          dossier's kill-rule words), not a model — the model writes only the Thesis card above, on request. Relevant = it
           names a QQQ heavyweight or a researched company, a scheduled-macro topic, or it is a primary source (the Fed, BEA).
           Headlines are strangers' text: open the source before acting on anything.
         </p>

@@ -22,6 +22,8 @@ export interface FeedSource {
   url: string;
   /** Primary sources publish the fact itself (the Fed, BEA). */
   primary: boolean;
+  /** A sports feed — its items are read for the Predict tab. */
+  sport?: "nfl";
 }
 
 /** Checked 2026-09-27: each returns current items. MarketWatch's MarketPulse feed is stale since 2025 and is left out. */
@@ -34,6 +36,8 @@ export const FEEDS: FeedSource[] = [
   { id: "cnbc-earn", name: "CNBC Earnings", url: "https://www.cnbc.com/id/15839135/device/rss/rss.html", primary: false },
   { id: "mw-top", name: "MarketWatch", url: "https://feeds.content.dowjones.io/public/rss/mw_topstories", primary: false },
   { id: "yahoo", name: "Yahoo Finance", url: "https://finance.yahoo.com/news/rssindex", primary: false },
+  // ESPN's RSS refused connections on 2026-09-27; CBS Sports' NFL feed carries a summary per item.
+  { id: "cbs-nfl", name: "CBS Sports NFL", url: "https://www.cbssports.com/rss/headlines/nfl/", primary: false, sport: "nfl" },
 ];
 
 export interface FeedItem {
@@ -44,6 +48,9 @@ export interface FeedItem {
   published: string | null;
   source: string;
   primary: boolean;
+  /** The feed's own summary of the story (its description), trimmed — the publisher's words, not a model's. */
+  summary?: string | null;
+  sport?: "nfl";
 }
 
 const ENTITIES: Record<string, string> = {
@@ -103,6 +110,8 @@ export function parseFeed(xml: string, source: FeedSource): FeedItem[] {
     if (!title || !/^https?:\/\//i.test(link)) continue;
     const rawDate = decodeEntities(tag(b, "pubDate") ?? tag(b, "published") ?? tag(b, "updated") ?? tag(b, "dc:date") ?? "");
     const t = Date.parse(rawDate);
+    const rawSum = tag(b, "description") ?? tag(b, "summary") ?? tag(b, "content:encoded") ?? tag(b, "content");
+    const sum = rawSum ? clip(decodeEntities(rawSum), 280) : "";
     out.push({
       id: hash(link),
       title,
@@ -110,9 +119,18 @@ export function parseFeed(xml: string, source: FeedSource): FeedItem[] {
       published: Number.isFinite(t) ? new Date(t).toISOString() : null,
       source: source.name,
       primary: source.primary,
+      summary: sum && sum.toLowerCase() !== title.toLowerCase() ? sum : null,
+      ...(source.sport ? { sport: source.sport } : {}),
     });
   }
   return out;
+}
+
+/** Trim to n characters at a word boundary. */
+export function clip(s: string, n: number): string {
+  if (s.length <= n) return s;
+  const cut = s.lastIndexOf(" ", n);
+  return `${s.slice(0, cut > n * 0.6 ? cut : n).replace(/[\s,;:.]+$/, "")}…`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -169,7 +187,8 @@ export type Topic =
   | "ai-capex"
   | "regulation"
   | "geopolitics"
-  | "crypto";
+  | "crypto"
+  | "nfl";
 
 export const TOPICS: Record<Topic, RegExp> = {
   fed: /\b(fed|federal reserve|fomc|powell|rate cut|rate hike|interest rates?|monetary policy)\b/i,
@@ -185,7 +204,50 @@ export const TOPICS: Record<Topic, RegExp> = {
   regulation: /\b(antitrust|doj|ftc|sec\b|lawsuit|ruling|regulators?|probe|fine[ds]?)\b/i,
   geopolitics: /\b(war|sanctions?|missile|strikes?|china|taiwan|russia|ukraine|iran|israel|middle east)\b/i,
   crypto: /\b(bitcoin|crypto|ethereum|stablecoin)\b/i,
+  nfl: /\b(nfl|quarterbacks?|qb|touchdowns?|inactives?|ruled out|questionable|doubtful|injured reserve|sidelined)\b/i,
 };
+
+/**
+ * NFL nicknames → the codes the Predict board uses. Nicknames only: cities
+ * are shared (two teams in New York, LA). A finance headline must ALSO carry
+ * NFL words before a nickname counts — "Bears" is a market word too.
+ */
+export const NFL_TEAMS: Record<string, string[]> = {
+  ARI: ["Cardinals"],
+  ATL: ["Falcons"],
+  BAL: ["Ravens"],
+  BUF: ["Bills"],
+  CAR: ["Panthers"],
+  CHI: ["Bears"],
+  CIN: ["Bengals"],
+  CLE: ["Browns"],
+  DAL: ["Cowboys"],
+  DEN: ["Broncos"],
+  DET: ["Lions"],
+  GB: ["Packers"],
+  HOU: ["Texans"],
+  IND: ["Colts"],
+  JAX: ["Jaguars", "Jags"],
+  KC: ["Chiefs"],
+  LV: ["Raiders"],
+  LAC: ["Chargers"],
+  LAR: ["Rams"],
+  MIA: ["Dolphins"],
+  MIN: ["Vikings"],
+  NE: ["Patriots", "Pats"],
+  NO: ["Saints"],
+  NYG: ["Giants"],
+  NYJ: ["Jets"],
+  PHI: ["Eagles"],
+  PIT: ["Steelers"],
+  SF: ["49ers", "Niners"],
+  SEA: ["Seahawks"],
+  TB: ["Buccaneers", "Bucs"],
+  TEN: ["Titans"],
+  WSH: ["Commanders"],
+};
+
+const INJURY = /\b(injur(y|ies|ed)|questionable|doubtful|ruled out|inactives?|out for|concussion|sidelined|injured reserve|won't play|will not play|to start|starting)\b/i;
 
 /**
  * Words from each dossier's pre-written kill rule. A headline that names the
@@ -204,7 +266,7 @@ export const KILL_WORDS: Record<string, RegExp> = {
   CEG: /\b(power purchase|ppa|nuclear|merchant power)\b/i,
 };
 
-export type Horizon = "day" | "swing" | "invest";
+export type Horizon = "day" | "swing" | "invest" | "predict";
 
 export interface Tagged extends FeedItem {
   tickers: string[];
@@ -214,6 +276,8 @@ export interface Tagged extends FeedItem {
   tier: 1 | 2 | 3;
   /** Dossier tickers whose kill-rule words this headline touches. */
   killRule: string[];
+  /** NFL teams named (Predict board codes). */
+  teams: string[];
   why: string;
 }
 
@@ -225,6 +289,7 @@ function nameRegex(n: string): RegExp {
 }
 
 const NAME_RX: [string, RegExp[]][] = Object.entries(NAMES).map(([t, ns]) => [t, ns.map(nameRegex)]);
+const TEAM_RX: [string, RegExp[]][] = Object.entries(NFL_TEAMS).map(([t, ns]) => [t, ns.map(nameRegex)]);
 
 /**
  * Tag one headline. `qqqWeight` gives the ticker's weight inside QQQ so a
@@ -232,15 +297,18 @@ const NAME_RX: [string, RegExp[]][] = Object.entries(NAMES).map(([t, ns]) => [t,
  * the share book researches.
  */
 export function tagItem(item: FeedItem, qqqWeight: (t: string) => number, dossiers: Set<string>): Tagged {
-  const text = item.title;
+  // The feed's summary widens what a headline is about; kill-rule words stay on the headline itself.
+  const text = `${item.title} ${item.summary ?? ""}`;
   const tickers = NAME_RX.filter(([, rxs]) => rxs.some((r) => r.test(text))).map(([t]) => t);
   const topics = (Object.keys(TOPICS) as Topic[]).filter((k) => TOPICS[k].test(text));
-  const killRule = tickers.filter((t) => KILL_WORDS[t]?.test(text));
+  const killRule = tickers.filter((t) => KILL_WORDS[t]?.test(item.title));
+  const teams = item.sport === "nfl" || topics.includes("nfl") ? TEAM_RX.filter(([, rxs]) => rxs.some((r) => r.test(text))).map(([t]) => t) : [];
   const heavy = tickers.filter((t) => qqqWeight(t) >= 0.02);
   const horizons = new Set<Horizon>();
   if (topics.some((t) => MACRO.includes(t)) || heavy.length) horizons.add("day");
   if (topics.includes("earnings") || topics.some((t) => ["fed", "inflation", "jobs"].includes(t)) || tickers.some((t) => qqqWeight(t) > 0)) horizons.add("swing");
   if (tickers.some((t) => dossiers.has(t)) || topics.some((t) => ["ipo", "regulation", "ai-capex"].includes(t)) || item.primary) horizons.add("invest");
+  if (teams.length || item.sport) horizons.add("predict");
 
   let tier: Tagged["tier"] = 3;
   const reasons: string[] = [];
@@ -260,6 +328,13 @@ export function tagItem(item: FeedItem, qqqWeight: (t: string) => number, dossie
     tier = 1;
     reasons.push("primary source");
   }
+  if (teams.length && INJURY.test(text)) {
+    tier = 1;
+    reasons.push(`injury/QB news for ${teams.join("/")}`);
+  } else if (teams.length && tier === 3) {
+    tier = 2;
+    reasons.push(teams.join("/"));
+  }
   if (tier === 3 && (tickers.length || topics.length)) {
     tier = 2;
     reasons.push([...tickers, ...topics].slice(0, 3).join(", "));
@@ -271,6 +346,7 @@ export function tagItem(item: FeedItem, qqqWeight: (t: string) => number, dossie
     horizons: [...horizons],
     tier,
     killRule,
+    teams,
     why: reasons.join(" · ") || "not about this desk",
   };
 }
@@ -289,4 +365,35 @@ export function dedupe(items: Tagged[]): Tagged[] {
 /** Tier first, then newest. A sort, not a score. */
 export function orderItems(items: Tagged[]): Tagged[] {
   return [...items].sort((a, b) => (a.tier !== b.tier ? a.tier - b.tier : (b.published ?? "").localeCompare(a.published ?? "")));
+}
+
+/**
+ * What a headline moves, from its tags — fixed rules and arithmetic, never a
+ * model. At most two lines; null when the tags say nothing about this desk.
+ */
+export function impactOf(t: Tagged, qqqWeight: (ticker: string) => number): string | null {
+  const out: string[] = [];
+  const has = (x: Topic) => t.topics.includes(x);
+  if (t.teams.length) {
+    out.push(
+      INJURY.test(`${t.title} ${t.summary ?? ""}`)
+        ? `Predict: ${t.teams.join("/")} injury or lineup news — it moves the moneyline before kickoff; recheck the scanner`
+        : `Predict: ${t.teams.join("/")} — context for the moneyline`,
+    );
+  }
+  if (t.killRule.length) out.push(`Invest: touches ${t.killRule.join("/")}'s kill rule — read the source against the dossier`);
+  const heavy = t.tickers.filter((x) => qqqWeight(x) >= 0.02);
+  if (heavy.length) {
+    const x = heavy[0];
+    const w = qqqWeight(x);
+    out.push(`${x} is ${(w * 100).toFixed(1)}% of QQQ — a 5% move in ${x} is ~${(w * 5).toFixed(2)}% on QQQ and NQ`);
+  }
+  if (has("fed") || has("rates")) out.push("Rates: NQ is the more rate-sensitive index; the 10y and QQQ/SPY option IV move first");
+  else if (has("inflation") || has("jobs")) out.push("Macro print: a surprise reprices the rate path — NQ/ES move in minutes, option IV rises into the release");
+  else if (has("growth")) out.push("Growth data: read through yields — watch the 10y with ES and NQ");
+  if (has("trade") || has("geopolitics")) out.push("Risk-off channel: tariffs and conflict hit semis and NQ first; VIX is the tell");
+  if (has("energy")) out.push("Oil: feeds inflation expectations and yields");
+  if (has("ipo")) out.push("IPO watch: not at the offer, not before the lock-up, not before four public quarters");
+  if (has("crypto") && !out.length) out.push("Crypto: a risk-appetite read; little direct weight in QQQ");
+  return out.length ? out.slice(0, 2).join(" · ") : null;
 }

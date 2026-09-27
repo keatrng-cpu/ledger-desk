@@ -96,5 +96,38 @@ check("after a year: researchable, never a buy by itself", I.ipoRead(ipo, "2027-
 check("a prospectus lock-up date wins over the default", I.ipoRead({ ...ipo, lockupExpires: "2026-09-01" }, "2026-09-27").stage, "track-record");
 ok("the captured calendar lists operating companies only", I.upcomingIpos("2026-09-27").every((u) => I.isOperatingCompany(u.company)));
 
+console.log("\nsummaries, NFL tags, impact lines, the thesis parser");
+const T = await import("../src/lib/news/thesis.ts");
+const rssNfl = `<rss><channel><title>x</title><description>channel</description>
+<item><title>Chiefs QB Patrick Mahomes questionable vs Dolphins</title><link>https://example.com/a</link><pubDate>Sun, 27 Sep 2026 15:00:00 GMT</pubDate><description><![CDATA[<p>Kansas City's quarterback is <b>questionable</b> with an ankle injury ahead of Sunday's game.</p>]]></description></item>
+<item><title>Same words</title><link>https://example.com/b</link><description>Same words</description></item>
+</channel></rss>`;
+const nflSrc = F.FEEDS.find((f) => f.sport === "nfl");
+ok("an NFL feed is wired", nflSrc);
+const parsed = F.parseFeed(rssNfl, nflSrc);
+check("the feed's description becomes the summary, tags stripped", parsed[0].summary, "Kansas City's quarterback is questionable with an ankle injury ahead of Sunday's game.");
+check("a description that repeats the title is dropped", parsed[1].summary, null);
+ok("summaries are clipped at a word", F.clip("one two three four five six", 12).endsWith("…") && F.clip("one two three four five six", 12).length <= 13);
+const noW = () => 0;
+const nfl = F.tagItem(parsed[0], noW, new Set());
+check("NFL nickname → the Predict code", nfl.teams, ["KC", "MIA"]);
+check("injury news for a team is tier 1", nfl.tier, 1);
+ok("and it lands under Predict", nfl.horizons.includes("predict"));
+ok("its impact line points at the moneyline", /^Predict: KC\/MIA injury/.test(F.impactOf(nfl, noW)));
+const bears = F.tagItem({ id: "b", title: "Bears take control as stocks slide", link: "https://example.com/c", published: null, source: "CNBC", primary: false, summary: null }, noW, new Set());
+check("'Bears' in a market headline is not an NFL team", bears.teams, []);
+const nv = F.tagItem({ id: "n", title: "Nvidia earnings beat as data center revenue jumps", link: "https://example.com/d", published: null, source: "CNBC", primary: false, summary: null }, (t) => (t === "NVDA" ? 0.09 : 0), new Set());
+ok("a QQQ heavyweight gets the index arithmetic", /NVDA is 9\.0% of QQQ — a 5% move in NVDA is ~0\.45% on QQQ/.test(F.impactOf(nv, (t) => (t === "NVDA" ? 0.09 : 0))));
+const fed = F.tagItem({ id: "f", title: "Powell signals a rate cut is on the table", link: "https://example.com/e", published: null, source: "Fed", primary: true, summary: null }, noW, new Set());
+ok("a Fed headline reads through rates", /^Rates:/.test(F.impactOf(fed, noW)));
+check("a headline about nothing here has no impact line", F.impactOf(F.tagItem({ id: "z", title: "Celebrity chef opens a restaurant", link: "https://example.com/z", published: null, source: "Yahoo", primary: false, summary: null }, noW, new Set()), noW), null);
+const good = T.parseThesis('```json\n{"headline":"Quiet tape into CPI","summary":["a","b"],"analysis":["c"],"impacts":{"futures":"f","options":"o","investing":"i","predictions":"p"},"watch":["w"],"confidence":"Medium"}\n```');
+check("the thesis JSON parses out of a fenced reply", [good.headline, good.summary.length, good.impacts.predictions, good.confidence], ["Quiet tape into CPI", 2, "p", "medium"]);
+check("prose instead of JSON is not a thesis", T.parseThesis("The market is quiet today."), null);
+check("a thesis with no summary is not a thesis", T.parseThesis('{"headline":"x","summary":[]}'), null);
+const input = T.buildThesisInput({ nowEt: "Sun 2:40 PM ET", headlines: [{ source: "CNBC", title: "T", summary: "S", tags: "fed", ago: "5m ago" }], failed: ["ESPN"], pulse: ["VIX 15.00"], calendar: ["2026-09-30 08:30 — X"], games: ["BAL @ DAL"] });
+ok("the material names failed feeds so the model searches around them", /did not load.*ESPN/.test(input) && /Headlines \(1/.test(input));
+ok("the instructions forbid calls and sizes", /Never tell the reader to buy or sell, never size a position/.test(T.THESIS_INSTRUCTIONS));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
