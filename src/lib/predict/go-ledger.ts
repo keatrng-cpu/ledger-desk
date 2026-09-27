@@ -12,7 +12,8 @@ import type { BoardGame } from "./board";
 import type { ScanRow } from "./scanner";
 import { feePerContract, type FeeModel, DEFAULT_FEES } from "./math";
 
-const KEY = "ledger.predict.go.v1";
+// v2: the record restarts with the fixed rule (51685f6); v1 held six live GOs from the first rule that ESPN alone drove.
+const KEY = "ledger.predict.go.v2";
 
 export interface GoPrint {
   key: string;
