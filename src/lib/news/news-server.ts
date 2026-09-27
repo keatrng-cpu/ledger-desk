@@ -17,7 +17,6 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { authMiddleware } from "@/lib/auth/middleware";
 import { FEEDS, parseFeed, type FeedItem } from "./feed";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
 
@@ -85,9 +84,8 @@ async function pulseQuote(symbol: string, label: string): Promise<PulseQuote> {
   }
 }
 
-export const getNewsFeed = createServerFn({ method: "GET" })
-  .middleware([authMiddleware])
-  .handler(async (): Promise<NewsPayload> => {
+/** Public, like the desk's quote calls: public feeds, no user data, 5-min cache. */
+export const getNewsFeed = createServerFn({ method: "GET" }).handler(async (): Promise<NewsPayload> => {
     if (cache && Date.now() - cache.at < CACHE_MS) return { ...cache.data, cached: true };
     const failed: NewsPayload["failed"] = [];
     const [feeds, pulse] = await Promise.all([
@@ -153,9 +151,7 @@ export interface FilingsPayload {
 let filingsCache: { at: number; data: FilingsPayload } | null = null;
 const FORMS = new Set(["8-K", "10-Q", "10-K", "DEF 14A", "6-K", "20-F", "S-1", "424B4"]);
 
-export const getFilings = createServerFn({ method: "GET" })
-  .middleware([authMiddleware])
-  .handler(async (): Promise<FilingsPayload> => {
+export const getFilings = createServerFn({ method: "GET" }).handler(async (): Promise<FilingsPayload> => {
     const ua = process.env.SEC_USER_AGENT?.trim();
     const fetchedAt = new Date().toISOString();
     if (!ua || !/@/.test(ua)) {

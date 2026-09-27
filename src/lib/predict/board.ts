@@ -185,11 +185,53 @@ export function parseEspnScoreboard(json: unknown): EspnGame[] {
   return out;
 }
 
+/** Per-game extras from ESPN's game summary (cached server-side). */
+export interface GameExtras {
+  /** ESPN's matchup predictor (FPI), pregame, 0–1. */
+  modelHome: number | null;
+  modelAway: number | null;
+  /** Key injuries by team code: "QB Name (Out)". Injured reserve left out. */
+  injuries: Record<string, string[]>;
+}
+
+/** ESPN summary JSON → the extras. Pure. */
+export function parseSummaryExtras(json: unknown): GameExtras {
+  const d = (json ?? {}) as Record<string, any>;
+  const pct = (v: unknown) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 && n < 100 ? Math.round(n * 100) / 10_000 : null;
+  };
+  const injuries: Record<string, string[]> = {};
+  const RANK: Record<string, number> = { QB: 0, RB: 1, WR: 1, TE: 1, P: 5, K: 4 };
+  for (const t of Array.isArray(d.injuries) ? d.injuries : []) {
+    const code = String(t?.team?.abbreviation ?? "");
+    if (!code) continue;
+    const rows = (Array.isArray(t.injuries) ? t.injuries : [])
+      .filter((i: any) => /^(out|doubtful|questionable)$/i.test(String(i?.status ?? "")))
+      .map((i: any) => ({
+        pos: String(i?.athlete?.position?.abbreviation ?? ""),
+        name: String(i?.athlete?.displayName ?? ""),
+        status: String(i?.status ?? ""),
+      }))
+      .sort((a: { pos: string }, b: { pos: string }) => (RANK[a.pos] ?? 3) - (RANK[b.pos] ?? 3));
+    injuries[CODE_FIX[code] ?? code] = rows.slice(0, 4).map((r: { pos: string; name: string; status: string }) => `${r.pos} ${r.name} (${r.status})`);
+  }
+  return {
+    modelHome: pct(d.predictor?.homeTeam?.gameProjection),
+    modelAway: pct(d.predictor?.awayTeam?.gameProjection),
+    injuries,
+  };
+}
+
 export interface SideRead {
   side: KalshiSide | null;
   team: EspnTeam;
   /** DraftKings, margin removed. */
   book: number | null;
+  /** ESPN's pregame matchup model for this team. */
+  model: number | null;
+  /** Kalshi's own implied probability: the bid/ask midpoint. */
+  market: number | null;
   /** ESPN live win probability for this team (in-game only). */
   live: number | null;
   /** The reference in use: live during the game, the book before it. */
@@ -208,17 +250,28 @@ export interface BoardGame {
   away: SideRead;
   home: SideRead;
   overround: number | null;
+  injuries: Record<string, string[]>;
 }
 
-function read(side: KalshiSide | null, team: EspnTeam, book: number | null, live: number | null, fees: FeeModel): SideRead {
+function read(
+  side: KalshiSide | null,
+  team: EspnTeam,
+  book: number | null,
+  live: number | null,
+  model: number | null,
+  fees: FeeModel,
+): SideRead {
   const reference = live ?? book;
   const refName = live != null ? "ESPN live" : book != null ? "DraftKings no-vig" : null;
   const ask = side?.ask ?? null;
   const e = ask != null && reference != null && ask > 0 && ask < 1 ? entryEdge(ask, reference, fees) : null;
+  const market = side?.bid != null && side?.ask != null ? (side.bid + side.ask) / 2 : side?.last ?? null;
   return {
     side,
     team,
     book,
+    model,
+    market,
     live,
     reference,
     referenceName: refName,
@@ -239,6 +292,7 @@ export function buildBoard(
   events: KalshiEvent[],
   liveWp: Record<string, number | null> = {},
   fees: FeeModel = DEFAULT_FEES,
+  extras: Record<string, GameExtras> = {},
 ): BoardGame[] {
   return games.map((g) => {
     const ev =
@@ -251,15 +305,30 @@ export function buildBoard(
     const homeLive = g.state === "in" ? (liveWp[g.id] ?? g.liveHomeWp) : null;
     const awayLive = homeLive != null ? Math.max(0, 1 - homeLive) : null;
     const sideFor = (code: string) => ev?.sides.find((s) => s.code === code) ?? null;
+    const x = extras[g.id];
     return {
       league,
       game: g,
       eventTicker: ev?.eventTicker ?? null,
-      away: read(sideFor(g.away.code), g.away, nv?.a ?? null, awayLive, fees),
-      home: read(sideFor(g.home.code), g.home, nv?.b ?? null, homeLive, fees),
+      away: read(sideFor(g.away.code), g.away, nv?.a ?? null, awayLive, x?.modelAway ?? null, fees),
+      home: read(sideFor(g.home.code), g.home, nv?.b ?? null, homeLive, x?.modelHome ?? null, fees),
       overround: nv?.overround ?? null,
+      injuries: x?.injuries ?? {},
     };
   });
+}
+
+const p0 = (x: number | null | undefined) => (x == null ? "—" : `${(x * 100).toFixed(1)}%`);
+
+/**
+ * The three estimates side by side for one team — the market (Kalshi's
+ * midpoint), the book (DraftKings without its margin) and the model (ESPN,
+ * pregame matchup or live win probability). Where they disagree is the
+ * useful part; the tab never averages them into one "true" number.
+ */
+export function threeWay(s: SideRead): string {
+  const model = s.live ?? s.model;
+  return `${s.team.code}: market ${p0(s.market)} · book ${p0(s.book)} · ESPN ${s.live != null ? "live" : "model"} ${p0(model)}`;
 }
 
 /** One sentence per game, for the top of the card. Mechanics, not a pick. */

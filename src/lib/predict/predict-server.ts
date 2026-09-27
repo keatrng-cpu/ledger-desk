@@ -11,8 +11,16 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { authMiddleware } from "@/lib/auth/middleware";
-import { buildBoard, LEAGUES, parseEspnScoreboard, parseKalshiEvents, type BoardGame, type League } from "./board";
+import {
+  buildBoard,
+  LEAGUES,
+  parseEspnScoreboard,
+  parseKalshiEvents,
+  parseSummaryExtras,
+  type BoardGame,
+  type GameExtras,
+  type League,
+} from "./board";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
@@ -46,6 +54,23 @@ async function liveHomeWp(league: League, id: string): Promise<number | null> {
   }
 }
 
+/** ESPN game summaries are large; the extras change slowly — 10-minute cache. */
+const EXTRAS_MS = 10 * 60_000;
+const extrasCache = new Map<string, { at: number; data: GameExtras }>();
+
+async function extrasFor(league: League, id: string): Promise<GameExtras | null> {
+  const hit = extrasCache.get(id);
+  if (hit && Date.now() - hit.at < EXTRAS_MS) return hit.data;
+  try {
+    const json = await getJson(`${ESPN}/${LEAGUES[league].espn}/summary?event=${encodeURIComponent(id)}`);
+    const data = parseSummaryExtras(json);
+    extrasCache.set(id, { at: Date.now(), data });
+    return data;
+  } catch {
+    return hit?.data ?? null;
+  }
+}
+
 export interface PredictBoard {
   league: League;
   fetchedAt: string;
@@ -54,10 +79,21 @@ export interface PredictBoard {
   note: string;
 }
 
+/**
+ * PUBLIC, like the desk's own quote calls (fetchLiveQuotes, fetchTradingDesk):
+ * it reads public order books and scoreboards and touches no user data. It
+ * was behind the sign-in middleware on first ship and returned
+ * "Unauthorized" to a trader using the desk signed out. A short per-league
+ * cache means any number of open tabs cost the upstreams one fetch per 8s.
+ */
+const BOARD_CACHE_MS = 8_000;
+const boardCache = new Map<League, { at: number; data: PredictBoard }>();
+
 export const getPredictBoard = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
   .validator(z.object({ league: z.enum(["nfl", "ncaaf", "mlb", "nhl", "nba", "wnba"]) }))
   .handler(async ({ data }): Promise<PredictBoard> => {
+    const hit = boardCache.get(data.league);
+    if (hit && Date.now() - hit.at < BOARD_CACHE_MS) return hit.data;
     const L = LEAGUES[data.league];
     const failed: string[] = [];
     const [k, e] = await Promise.all([
@@ -75,9 +111,17 @@ export const getPredictBoard = createServerFn({ method: "POST" })
     // Live probability for games in progress that the scoreboard did not carry.
     const live: Record<string, number | null> = {};
     const need = games.filter((g) => g.state === "in" && g.liveHomeWp == null).slice(0, 10);
-    await Promise.all(need.map(async (g) => (live[g.id] = await liveHomeWp(data.league, g.id))));
-    const board = buildBoard(data.league, games, events, live);
-    return {
+    const extras: Record<string, GameExtras> = {};
+    const upcoming = games.filter((g) => g.state !== "post").slice(0, 20);
+    await Promise.all([
+      ...need.map(async (g) => (live[g.id] = await liveHomeWp(data.league, g.id))),
+      ...upcoming.map(async (g) => {
+        const x = await extrasFor(data.league, g.id);
+        if (x) extras[g.id] = x;
+      }),
+    ]);
+    const board = buildBoard(data.league, games, events, live, undefined, extras);
+    const out: PredictBoard = {
       league: data.league,
       fetchedAt: new Date().toISOString(),
       games: board.sort((a, b) => {
@@ -87,4 +131,6 @@ export const getPredictBoard = createServerFn({ method: "POST" })
       failed,
       note: "Prices: Kalshi public order book (the exchange behind Robinhood's sports contracts). References: DraftKings moneyline with the margin removed (pregame, via ESPN) and ESPN's live win probability (in-game). Both references are estimates, not the truth.",
     };
+    if (!failed.length) boardCache.set(data.league, { at: Date.now(), data: out });
+    return out;
   });

@@ -114,6 +114,28 @@ check("the live away probability is the complement", r4(inGame[0].away.live), 0.
 ok("a 60¢ ask against an 80% live probability shows a positive gap", inGame[0].home.edge > 0.15);
 check("a game with no contract still shows", B.buildBoard("nfl", [{ ...games[0], home: { ...games[0].home, code: "ZZZ" } }], ev)[0].eventTicker, null);
 
+console.log("\nESPN extras — model and injuries");
+const extras = B.parseSummaryExtras({
+  predictor: { homeTeam: { gameProjection: "78.1" }, awayTeam: { gameProjection: "21.7" } },
+  injuries: [
+    {
+      team: { abbreviation: "WAS" },
+      injuries: [
+        { status: "Injured Reserve", athlete: { displayName: "Long Term", position: { abbreviation: "CB" } } },
+        { status: "Questionable", athlete: { displayName: "Wide Out", position: { abbreviation: "WR" } } },
+        { status: "Out", athlete: { displayName: "Signal Caller", position: { abbreviation: "QB" } } },
+      ],
+    },
+  ],
+});
+check("ESPN's model projection parses as a probability", [extras.modelHome, extras.modelAway], [0.781, 0.217]);
+check("injured reserve is left out; the QB sorts first; Kalshi codes are normalised", extras.injuries.WSH, ["QB Signal Caller (Out)", "WR Wide Out (Questionable)"]);
+check("no predictor, no number", B.parseSummaryExtras({}).modelHome, null);
+const withModel = B.buildBoard("nfl", games, ev, {}, undefined, { "1": { modelHome: 0.6, modelAway: 0.39, injuries: {} } });
+check("the model rides on each side", withModel[0].home.model, 0.6);
+check("the market is Kalshi's midpoint", withModel[0].home.market, 0.595);
+ok("the three-way line names all three", /market 59\.5% · book .* · ESPN model 60\.0%/.test(B.threeWay(withModel[0].home)));
+
 console.log("\nthe journal");
 check("a fill logs", J.logEntry({ league: "nfl", game: "NE @ JAX", ticker: "X-NE", team: "NE", contracts: 10, entry: 0.41, referenceAtEntry: 0.417, referenceName: "DraftKings no-vig" }).ok, true);
 const t = J.loadTrades()[0];

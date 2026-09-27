@@ -23,7 +23,6 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { authMiddleware } from "@/lib/auth/middleware";
 import {
   MARKS_MAX_TICKERS,
   parseDailyChart,
@@ -63,8 +62,14 @@ async function fetchChart(ticker: string, range: Range): Promise<ChartJson> {
   return Promise.any(HOSTS.map(one));
 }
 
+/**
+ * Public, like the desk's quote calls: Yahoo closes, no user data. Cached per
+ * request shape for a minute so repeated opens do not re-fetch.
+ */
+const MARKS_CACHE_MS = 60_000;
+const marksCache = new Map<string, { at: number; data: InvestMarks }>();
+
 export const getInvestMarks = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
   .validator(
     z.object({
       tickers: z.array(z.string().regex(/^[A-Z][A-Z.-]{0,9}$/)).min(1).max(MARKS_MAX_TICKERS),
@@ -73,6 +78,9 @@ export const getInvestMarks = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }): Promise<InvestMarks> => {
+    const key = JSON.stringify(data);
+    const hit = marksCache.get(key);
+    if (hit && Date.now() - hit.at < MARKS_CACHE_MS) return hit.data;
     const today = new Date().toISOString().slice(0, 10);
     const history = new Set(data.historyFor ?? []);
     const tickers = [...new Set([...data.tickers, ...history])].slice(0, MARKS_MAX_TICKERS);
@@ -93,10 +101,12 @@ export const getInvestMarks = createServerFn({ method: "POST" })
       );
       out.push(...done);
     }
-    return {
+    const result: InvestMarks = {
       fetchedAt: new Date().toISOString(),
       source: "Yahoo Finance daily chart",
       note: "Daily closes; the latest price is intraday while the session is open and may lag. Fetched on request, never polled.",
       marks: out,
     };
+    marksCache.set(key, { at: Date.now(), data: result });
+    return result;
   });

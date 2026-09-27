@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import type { BoardGame, SideRead } from "@/lib/predict/board";
-import { gameLine } from "@/lib/predict/board";
+import { gameLine, threeWay } from "@/lib/predict/board";
 import { exitRuleShape, roundTrip, sideFee, LONGSHOT_BELOW } from "@/lib/predict/math";
 import { closeTrade, deleteTrade, loadTrades, logEntry, readJournal, tradePnl, type PredictTrade } from "@/lib/predict/journal";
 
@@ -59,8 +59,9 @@ function SideRow({
           <span className="font-medium">{c(k?.ask)}</span>
           <span className="text-[var(--color-muted)]"> · last {c(k?.last)} · vol {vol(k?.volume ?? null)}</span>
         </div>
+        <div className="text-[10px] text-[var(--color-muted)]">{threeWay(s)}</div>
         <div className="text-[10px] text-[var(--color-muted)]">
-          {s.referenceName ? `${s.referenceName} ${pc(s.reference)}` : "no reference"}
+          {s.referenceName ? `vs ${s.referenceName} ${pc(s.reference)}` : "no reference"}
           {s.edge != null && (
             <span className={s.edge > 0.005 ? "text-[var(--color-fg)]" : ""}>
               {" "}
@@ -121,6 +122,15 @@ export function GameCard({ b, onLog, trails }: { b: BoardGame; onLog: (seed: Log
       </p>
       <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined} />
       <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined} />
+      {Object.values(b.injuries).some((x) => x.length) && (
+        <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">
+          <span className="text-[var(--color-fg)]">Injuries · </span>
+          {[g.away.code, g.home.code]
+            .filter((code) => b.injuries[code]?.length)
+            .map((code) => `${code}: ${b.injuries[code].join(", ")}`)
+            .join(" · ")}
+        </p>
+      )}
       <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">{gameLine(b)}</p>
     </section>
   );
