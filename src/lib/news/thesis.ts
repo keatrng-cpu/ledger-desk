@@ -67,7 +67,7 @@ export const THESIS_INSTRUCTIONS = [
   '"impacts":{"futures":string,"options":string,"investing":string,"predictions":string},',
   '"watch":[string],"confidence":"low"|"medium"|"high"}.',
   "Exactly 3 items per list, each under 140 characters; each impact under 200 characters; the whole reply under 380 words.",
-  "Times in ET.",
+  "Times in ET. Use the weekday printed with each date; never work one out yourself.",
 ].join(" ");
 
 /** The material, as one compact block the model reads. */

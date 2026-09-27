@@ -47,6 +47,8 @@ const etDate = (d: Date) =>
 const etTime = (iso: string) => new Date(iso).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
 const addDays = (date: string, n: number) => new Date(Date.parse(`${date}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
+/** The model guessed weekdays from dates on the first live run (MU 'Tue' for Wed 9/30) — so every date carries its weekday. */
+const weekday = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
 
 function ago(iso: string | null): string {
   if (!iso) return "time n/a";
@@ -167,7 +169,7 @@ async function build(): Promise<ThesisResult> {
     pulse: news.pulse
       .filter((p) => p.last != null)
       .map((p) => `${p.label} ${p.symbol === "^TNX" ? `${p.last!.toFixed(2)}%` : p.last!.toFixed(2)}${p.prevClose ? ` (${(((p.last! - p.prevClose) / p.prevClose) * 100).toFixed(2)}%)` : ""}`),
-    calendar: events.map((e) => `${e.date} ${e.when} — ${e.name}${e.ticker ? ` (${e.ticker}${e.qqqWeight ? `, ${(e.qqqWeight * 100).toFixed(1)}% of QQQ` : ""})` : ""}`),
+    calendar: events.map((e) => `${weekday(e.date)} ${e.date} ${e.when} — ${e.name}${e.ticker ? ` (${e.ticker}${e.qqqWeight ? `, ${(e.qqqWeight * 100).toFixed(1)}% of QQQ` : ""})` : ""}`),
     games,
   };
   const input = buildThesisInput(ctx);
