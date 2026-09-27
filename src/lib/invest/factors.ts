@@ -166,7 +166,7 @@ function pv(earnings: number, g: number, r: number, years: number, terminal: num
  */
 export function impliedGrowth(
   f: Fundamentals | null,
-  opts: { erp?: number; years?: number; terminal?: number } = {},
+  opts: { erp?: number; years?: number; terminal?: number; basis?: "trailing" | "forward" } = {},
 ): ImpliedGrowth {
   const erp = opts.erp ?? DEFAULT_ERP;
   const years = opts.years ?? EXPLICIT_YEARS;
@@ -184,12 +184,16 @@ export function impliedGrowth(
     line: "No captured fundamentals — cannot invert a price into an assumption.",
   };
 
-  if (!f || f.pendingCapture || !f.marketCap || !f.peTrailing || f.peTrailing <= 0) return base;
+  // Forward basis: the same inversion started from the earnings the market
+  // EXPECTS next year. Where trailing earnings carry a one-off (GOOGL's +294%
+  // quarter) the two answers diverge, and the gap is itself the finding.
+  const pe = opts.basis === "forward" ? f?.peForward : f?.peTrailing;
+  if (!f || f.pendingCapture || !f.marketCap || !pe || pe <= 0) return base;
   if (r <= terminal) {
     return { ...base, line: "Discount rate must exceed terminal growth; check the ERP assumption." };
   }
 
-  const earnings = f.marketCap / f.peTrailing;
+  const earnings = f.marketCap / pe;
   if (!Number.isFinite(earnings) || earnings <= 0) return base;
 
   let lo = -0.5;
@@ -314,11 +318,56 @@ export function qualityRead(f: Fundamentals | null): QualityRead {
   return { legs, strong, present };
 }
 
+export interface EarningsYield {
+  /** 1 / trailing P/E. */
+  trailing: number | null;
+  /** 1 / forward P/E. */
+  forward: number | null;
+  /** The ten-year the book is judged against. */
+  riskFree: number;
+  /** Forward (else trailing) earnings yield minus the ten-year, in points. */
+  spreadPts: number | null;
+  line: string;
+}
+
+/**
+ * The comparison dossiers.ts promised and the tab never printed: what a
+ * dollar of this company EARNS today against what a dollar in Treasuries
+ * pays with certainty. A negative spread is not "overvalued" — it is the
+ * size of the growth bet you are making instead of owning the bond.
+ */
+export function earningsYield(f: Fundamentals | null): EarningsYield {
+  const rf = RISK_FREE.yieldPct / 100;
+  const t = f && !f.pendingCapture && f.peTrailing && f.peTrailing > 0 ? 1 / f.peTrailing : null;
+  const fw = f && !f.pendingCapture && f.peForward && f.peForward > 0 ? 1 / f.peForward : null;
+  const basis = fw ?? t;
+  const spread = basis == null ? null : (basis - rf) * 100;
+  const p = (x: number) => `${(x * 100).toFixed(1)}%`;
+  return {
+    trailing: t,
+    forward: fw,
+    riskFree: rf,
+    spreadPts: spread,
+    line:
+      basis == null
+        ? "No earnings multiple captured."
+        : `Earnings yield ${t != null ? `${p(t)} trailing` : "—"}${fw != null ? ` / ${p(fw)} forward` : ""} vs the ${RISK_FREE.yieldPct}% ten-year: ${
+            spread! >= 0
+              ? `paid ${spread!.toFixed(1)} pts MORE than Treasuries before any growth.`
+              : `paid ${Math.abs(spread!).toFixed(1)} pts LESS than Treasuries today — growth has to close that gap before this beats the bond.`
+          }`,
+  };
+}
+
 export interface TrendRead {
+  /** Last close above the 200-day — only known when a real close is supplied. */
   above200: boolean | null;
+  /** 50-day average above the 200-day average. */
   goldenCross: boolean | null;
   /** Position in the 52-week range, 0 = at the low, 1 = at the high. */
   rangePos: number | null;
+  /** What `rangePos` was measured from: a real close, or the 50-day average. */
+  rangeFrom: "close" | "ma50" | null;
   line: string;
 }
 
@@ -327,24 +376,39 @@ export interface TrendRead {
  * context a holder should have, and explicitly NOT used as a signal: see
  * HORIZON_EVIDENCE for why the mid-horizon case is weak, and the decay base
  * rate for why the published version of it is weaker than it was.
+ *
+ * Fixed 2026-09-26: this used to report the 50-DAY AVERAGE's place in the
+ * 52-week range as where the stock "sits", and set `above200` to the
+ * golden-cross flag — neither was a price. With no real close it now says
+ * it is reading the average; with one (a Yahoo close), it reads the price.
  */
-export function trendRead(f: Fundamentals | null): TrendRead {
+export function trendRead(f: Fundamentals | null, lastClose?: number | null): TrendRead {
   const ma50 = f?.ma50 ?? null;
   const ma200 = f?.ma200 ?? null;
   const hi = f?.high52 ?? null;
   const lo = f?.low52 ?? null;
   if (ma50 == null || ma200 == null) {
-    return { above200: null, goldenCross: null, rangePos: null, line: "No moving averages captured." };
+    return { above200: null, goldenCross: null, rangePos: null, rangeFrom: null, line: "No moving averages captured." };
   }
+  const close = lastClose != null && Number.isFinite(lastClose) && lastClose > 0 ? lastClose : null;
   const goldenCross = ma50 > ma200;
-  const rangePos = hi != null && lo != null && hi > lo ? (ma50 - lo) / (hi - lo) : null;
+  const ref = close ?? ma50;
+  const rangePos = hi != null && lo != null && hi > lo ? Math.min(1, Math.max(0, (ref - lo) / (hi - lo))) : null;
+  const above200 = close != null ? close > ma200 : null;
+  const where =
+    rangePos == null
+      ? ""
+      : close != null
+        ? `; the last close sits ${Math.round(rangePos * 100)}% up the 52-week range`
+        : `; the 50-day average sits ${Math.round(rangePos * 100)}% up the 52-week range (no close loaded)`;
   return {
-    above200: goldenCross,
+    above200,
     goldenCross,
     rangePos,
+    rangeFrom: rangePos == null ? null : close != null ? "close" : "ma50",
     line: `50-day ${goldenCross ? "above" : "BELOW"} the 200-day${
-      rangePos != null ? `, sitting ${Math.round(rangePos * 100)}% up its 52-week range` : ""
-    }. Context only — this gates nothing and is not a reason to buy or sell a five-year holding.`,
+      above200 != null ? `, price ${above200 ? "above" : "BELOW"} the 200-day` : ""
+    }${where}. Context only — this gates nothing and is not a reason to buy or sell a five-year holding.`,
   };
 }
 
@@ -355,8 +419,10 @@ export function trendRead(f: Fundamentals | null): TrendRead {
 export function analyse(f: Fundamentals | null) {
   return {
     implied: impliedGrowth(f),
+    impliedForward: impliedGrowth(f, { basis: "forward" }),
     sensitivity: sensitivity(f),
     quality: qualityRead(f),
     trend: trendRead(f),
+    earningsYield: earningsYield(f),
   };
 }

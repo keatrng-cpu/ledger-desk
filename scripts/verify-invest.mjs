@@ -112,7 +112,14 @@ ok("MSFT is buyable", canAdd(dossierFor("MSFT")).canAdd);
 // The gate is therefore pinned against a SYNTHETIC blank instead, so this
 // test keeps testing the mechanism rather than whichever real name happens
 // to be incomplete on a given day.
-ok("ETN is now buyable — its operator was verified", canAdd(dossierFor("ETN")).canAdd);
+// Its operator is verified, but since 2026-09-26 WATCH is a gate rather than
+// a heading: ETN is refused with its reason AND the pre-written condition
+// that clears it. The completeness mechanism is still pinned synthetically.
+ok("ETN's dossier is complete — the operator was verified", completeness(dossierFor("ETN")).complete);
+check("but ETN is refused while on WATCH", canAdd(dossierFor("ETN")).canAdd, false);
+ok("and the refusal carries the clearing condition", /WATCH .*Clears when:/.test(canAdd(dossierFor("ETN")).reason));
+for (const t of ["NVDA", "AAPL", "ETN", "CEG"]) ok(`${t} (the WATCH list) is not buyable`, !canAdd(dossierFor(t)).canAdd);
+for (const t of ["GOOGL", "MSFT", "V", "COST", "LLY"]) ok(`${t} (compounders) stays buyable`, canAdd(dossierFor(t)).canAdd);
 const blankCeo = { ...dossierFor("MSFT"), ticker: "MSFT", governance: { ...dossierFor("MSFT").governance, ceo: "  " } };
 check("a blank operator is still refused", canAdd(blankCeo).canAdd, false);
 ok("and the refusal names the blank field", completeness(blankCeo).missing.includes("governance.ceo"));
@@ -121,7 +128,10 @@ ok("a blank kill rule is refused", !canAdd(blankKill).canAdd);
 const blankMoat = { ...dossierFor("MSFT"), moat: "" };
 ok("a blank moat is refused", !canAdd(blankMoat).canAdd);
 // A name whose fundamentals were never captured must also be refused.
-const notCaptured = { ...dossierFor("MSFT"), ticker: "AVGO" };
+// ZZZZ has no fundamentals row at all. (AVGO used to be the fixture until it
+// was captured on 2026-09-26 — a fixture that depends on the data file being
+// incomplete breaks the day the data gets better.)
+const notCaptured = { ...dossierFor("MSFT"), ticker: "ZZZZ" };
 check("uncaptured fundamentals block the buy", canAdd(notCaptured).canAdd, false);
 
 console.log("\nevery dossier is internally consistent");
@@ -204,9 +214,10 @@ const words = new Set(ALL_DOSSIERS.map((d) => verdictFor(d, 0.02).verdict));
 for (const w of words) ok(`${w} is not a PATH word`, !["TAKE", "STAND", "MANAGE"].includes(w));
 check("ballast reads CORE", verdictFor(dossierFor("VTI"), 0.5).verdict, "CORE");
 check("over cap reads TRIM", verdictFor(dossierFor("MSFT"), 0.2).verdict, "TRIM");
-// ETN used to be the incomplete case; its operator is verified now, so it
-// correctly reads ADD. Pin the rule against a synthetic incomplete dossier.
-check("a verified ETN reads ADD", verdictFor(dossierFor("ETN"), 0.01).verdict, "ADD");
+// ETN printed ADD for four days while the file called it "not buyable".
+// A WATCH name now reads HOLD, and says why.
+check("a WATCH name reads HOLD, not ADD", verdictFor(dossierFor("ETN"), 0.01).verdict, "HOLD");
+ok("and the HOLD names the watch reason", /WATCH/.test(verdictFor(dossierFor("ETN"), 0.01).why));
 check(
   "incomplete reads HOLD not ADD",
   verdictFor({ ...dossierFor("MSFT"), killRule: "" }, 0.01).verdict,
@@ -242,7 +253,7 @@ const msft = impliedGrowth(fund("MSFT"));
 ok("MSFT resolves to a growth rate", msft.growth != null && msft.growth > 0 && msft.growth < 0.5);
 ok("and it is demanding or heroic, not modest", ["demanding", "heroic", "reasonable"].includes(msft.demand));
 ok("the line names the discount rate and the ERP", msft.line.includes("ERP") && msft.line.includes("10y"));
-check("uncaptured name returns null rather than a guess", impliedGrowth(fund("AVGO")).growth, null);
+check("uncaptured name returns null rather than a guess", impliedGrowth(fund("ZZZZ")).growth, null);
 check("unknown ticker returns null", impliedGrowth(null).growth, null);
 
 // A higher required return must demand MORE growth to justify the same price.
@@ -260,14 +271,14 @@ console.log("\nquality — parts, never a blend");
 const etnQ = qualityRead(fund("ETN"));
 ok("ETN's falling earnings are called out", etnQ.legs.some((l) => /FALLING/.test(l.reads)));
 ok("CEG's falling earnings are called out", qualityRead(fund("CEG")).legs.some((l) => /FALLING/.test(l.reads)));
-check("uncaptured name yields no legs", qualityRead(fund("JNJ")).legs.length, 0);
+check("uncaptured name yields no legs", qualityRead(fund("ZZZZ")).legs.length, 0);
 ok("there is no composite score anywhere in the read", !("score" in analyse(fund("MSFT"))));
 
 console.log("\ntrend — context, explicitly not a signal");
 check("CEG 50d is below its 200d", trendRead(fund("CEG")).goldenCross, false);
 check("MSFT 50d is above its 200d", trendRead(fund("MSFT")).goldenCross, true);
 ok("and the line says it gates nothing", trendRead(fund("MSFT")).line.includes("gates nothing"));
-check("no moving averages yields nulls", trendRead(fund("JNJ")).goldenCross, null);
+check("no moving averages yields nulls", trendRead(fund("ZZZZ")).goldenCross, null);
 
 console.log("\nhorizon honesty");
 check("short horizon is not usable", HORIZON_EVIDENCE.find((h) => h.horizon === "short").usable, false);
@@ -288,7 +299,7 @@ check("an unknown ticker reads blank", evidenceFor("ZZZZ", "governance.ceo"), "b
 ok("strict gate now passes a verified operator", strictGate(dossierFor("MSFT")).canAdd);
 ok("strict gate passes a fund", strictGate(dossierFor("VTI")).canAdd);
 // The mechanism must still refuse an unsourced one.
-ok("strict gate refuses a name with no source attached", !strictGate({ ...dossierFor("MSFT"), ticker: "AVGO" }).canAdd);
+ok("strict gate refuses a name with no source attached", !strictGate({ ...dossierFor("MSFT"), ticker: "ZZZZ" }).canAdd);
 
 console.log("\nthe corrections the check produced");
 const traps = STALENESS_TRAPS.map((t) => t.ticker);

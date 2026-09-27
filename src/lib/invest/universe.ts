@@ -57,6 +57,26 @@ export const WASH_SALE_BANNED: Record<string, string> = {
   SPLG: "same index as SPY (S&P 500)",
 };
 
+/**
+ * Pairs that are not banned but are too close to trade against each other.
+ *
+ * VTI and ITOT track different index providers (CRSP vs S&P Total Market),
+ * which is why practitioners treat them as the clean swap for each other —
+ * and why this book's own VTI dossier still calls holding both "arguably a
+ * wash-sale pair". The ban list is about the OPTIONS sleeve; this map is
+ * about the book trading against itself: selling one at a loss within 30
+ * days of buying the other is flagged, in both directions.
+ */
+export const WASH_SALE_TWINS: Record<string, string[]> = {
+  VTI: ["ITOT"],
+  ITOT: ["VTI"],
+};
+
+/** The ticker itself plus anything this book treats as its twin. */
+export function washFamily(ticker: string): string[] {
+  return [ticker, ...(WASH_SALE_TWINS[ticker] ?? [])];
+}
+
 export type Sleeve = "ballast" | "compounder" | "drypowder";
 
 /** The verdict vocabulary. Deliberately NOT the PATH words. */
@@ -118,10 +138,22 @@ export interface Dossier {
   regulatory: string | null;
   /** Honest note on what the numbers do NOT say. */
   caveat: string | null;
+  /**
+   * Researched but not buyable. The reason is printed and REFUSES the buy;
+   * `clearsWhen` is the pre-written condition that would move the name to
+   * the buy list — written now, while there is no position to defend, for
+   * the same reason the kill rule is.
+   */
+  watch?: { reason: string; clearsWhen: string };
 }
 
 export interface Fundamentals {
   ticker: string;
+  /** Present on rows captured after 2026-09-26; older rows take the dossier's name. */
+  name?: string;
+  industry?: string;
+  /** What this row's numbers do NOT mean (ADR currency mix, REIT earnings…). */
+  note?: string;
   asOf: string;
   source: string;
   marketCap: number | null;
@@ -170,6 +202,44 @@ export function fundamentalsFor(ticker: string): Fundamentals | null {
 
 export function allFundamentals(): Fundamentals[] {
   return Object.values(SNAP.fundamentals);
+}
+
+/**
+ * The OLDEST captured row. `capturedAt` is the date of the last capture run,
+ * and a run that refreshed two rows would otherwise make seven stale ones
+ * look new — so the tab prints this beside it.
+ */
+export function oldestAsOf(): string | null {
+  const dates = allFundamentals()
+    .filter((f) => !f.pendingCapture && f.asOf)
+    .map((f) => f.asOf)
+    .sort();
+  return dates[0] ?? null;
+}
+
+/**
+ * Company sector names (OVERVIEW) mapped onto the fund sector names
+ * (ETF_PROFILE), so a directly held company and the same company held
+ * inside a fund land in the same bucket.
+ */
+const SECTOR_MAP: Record<string, string> = {
+  TECHNOLOGY: "INFORMATION TECHNOLOGY",
+  "FINANCIAL SERVICES": "FINANCIALS",
+  "CONSUMER CYCLICAL": "CONSUMER DISCRETIONARY",
+  "CONSUMER DEFENSIVE": "CONSUMER STAPLES",
+  "BASIC MATERIALS": "MATERIALS",
+  HEALTHCARE: "HEALTHCARE",
+  UTILITIES: "UTILITIES",
+  ENERGY: "ENERGY",
+  INDUSTRIALS: "INDUSTRIALS",
+  "REAL ESTATE": "REAL ESTATE",
+  "COMMUNICATION SERVICES": "COMMUNICATION SERVICES",
+};
+
+export function fundSector(companySector: string | null | undefined): string | null {
+  if (!companySector) return null;
+  const k = companySector.trim().toUpperCase();
+  return SECTOR_MAP[k] ?? k;
 }
 
 /** Is this ticker forbidden while the sleeve trades what it trades? */
@@ -222,6 +292,12 @@ export function canAdd(d: Dossier): AddGate {
   const c = completeness(d);
   if (!c.complete) {
     return { canAdd: false, reason: `Dossier incomplete — missing ${c.missing.join(", ")}.` };
+  }
+  if (d.watch) {
+    return {
+      canAdd: false,
+      reason: `WATCH — ${d.watch.reason} Clears when: ${d.watch.clearsWhen}`,
+    };
   }
   return { canAdd: true, reason: "Dossier complete and not wash-sale entangled." };
 }

@@ -60,7 +60,10 @@ export function killQuery(d: Dossier, now: number, sinceDays = CHECK_INTERVAL_DA
     name: d.name,
     killRule: d.killRule,
     fromDate: isoDaysAgo(now, sinceDays),
+    // The date window lives in the question itself: the Agent Tools web
+    // search has no from_date parameter (the removed Live Search did).
     query:
+      `Search for material published on or after ${isoDaysAgo(now, sinceDays)}. ` +
       `Has anything happened to ${d.name} (${d.ticker}) that would satisfy this specific condition: "${d.killRule}"? ` +
       `Answer only about that condition. If nothing satisfies it, say so plainly. ` +
       `Cite primary sources — SEC filings, the company's own releases, or regulator publications — in preference to commentary.`,
@@ -82,6 +85,18 @@ export interface DueRead {
   due: boolean;
   daysSince: number | null;
   line: string;
+}
+
+/**
+ * How far back the next check should look: from the last run (so nothing
+ * falls in a gap between checks), never less than the weekly floor, never
+ * more than the 90 days the server accepts. First run looks back 30 days.
+ */
+export function sinceDaysFor(lastCheckedAt: string | null, now: number): number {
+  if (!lastCheckedAt) return 30;
+  const days = Math.ceil((now - Date.parse(lastCheckedAt)) / 86_400_000);
+  if (!Number.isFinite(days)) return 30;
+  return Math.min(90, Math.max(CHECK_INTERVAL_DAYS, days));
 }
 
 /** Enforce the weekly floor, and say why when refusing. */
@@ -134,4 +149,71 @@ export function formatResult(r: KillResult): string {
     ? r.citations.map((c) => `    - ${c.title ? `${c.title} — ` : ""}${c.url}`).join("\n")
     : "    (no sources returned — treat as no information, not as good news)";
   return `${head}\n  ${verdict}\n  ${r.summary}\n${cites}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* xAI Responses API — the parser, pure so it can be verified          */
+/* ------------------------------------------------------------------ */
+
+/** The most links one result carries. Enough to read, few enough to read all. */
+export const MAX_CITATIONS = 6;
+
+/**
+ * Pull the prose and the sources out of a /v1/responses payload.
+ *
+ * Two places carry sources and both are read: `url_citation` annotations on
+ * the output text (OpenAI Responses shape), and the top-level `citations`
+ * xAI documents — which may be plain URL strings or objects with a url.
+ * http(s) only, de-duplicated by URL keeping the first title seen, capped.
+ * Anything malformed yields nothing rather than throwing.
+ */
+export function parseXaiResponse(json: unknown): { text: string; citations: Citation[] } {
+  const out: Citation[] = [];
+  const seen = new Set<string>();
+  const add = (url: unknown, title: unknown) => {
+    if (typeof url !== "string" || !/^https?:\/\//i.test(url) || seen.has(url)) return;
+    seen.add(url);
+    // The model labels inline citations "1", "[2]"… or repeats the URL as
+    // the title — neither is a title, and the link reads better as its host.
+    const t = typeof title === "string" ? title.trim() : "";
+    out.push({ url, title: t && !/^\[?\d+\]?$/.test(t) && !/^https?:\/\//i.test(t) ? t : null });
+  };
+  const texts: string[] = [];
+  const root = (json && typeof json === "object" ? json : {}) as Record<string, unknown>;
+  const output = Array.isArray(root.output) ? root.output : [];
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const it = item as Record<string, unknown>;
+    if (it.type !== "message" || !Array.isArray(it.content)) continue;
+    for (const c of it.content) {
+      if (!c || typeof c !== "object") continue;
+      const cc = c as Record<string, unknown>;
+      if (cc.type === "output_text" && typeof cc.text === "string") texts.push(cc.text);
+      if (Array.isArray(cc.annotations)) {
+        for (const a of cc.annotations) {
+          if (a && typeof a === "object") add((a as Record<string, unknown>).url, (a as Record<string, unknown>).title);
+        }
+      }
+    }
+  }
+  if (Array.isArray(root.citations)) {
+    for (const c of root.citations) {
+      if (typeof c === "string") add(c, null);
+      else if (c && typeof c === "object") add((c as Record<string, unknown>).url, (c as Record<string, unknown>).title);
+    }
+  }
+  return { text: texts.join("\n").trim(), citations: out.slice(0, MAX_CITATIONS) };
+}
+
+/**
+ * The finding aid shown beside the links. With no sources, the model's prose
+ * is NOT a finding — an unsourced all-clear is the most dangerous thing a
+ * monitor can print — so it is framed as no information, and any text is
+ * labelled as unsourced.
+ */
+export function summaryFor(parsed: { text: string; citations: Citation[] }): string {
+  if (parsed.citations.length) return parsed.text || "(no prose returned — read the sources directly)";
+  return `No sources returned. Treat as NO INFORMATION rather than as evidence the condition did not occur.${
+    parsed.text ? ` Model text, unsourced and therefore not evidence: ${parsed.text.slice(0, 600)}` : ""
+  }`;
 }

@@ -27,7 +27,7 @@
  */
 
 import type { Dossier, InvestVerdict, Sleeve } from "./universe";
-import { canAdd, concentrationWarning, washSaleBan } from "./universe";
+import { canAdd, concentrationWarning, washSaleBan, WASH_SALE_TWINS } from "./universe";
 
 /** Target weights. Ranges follow the desk's agreed sleeve split. */
 export const SLEEVE_TARGET: Record<Sleeve, number> = {
@@ -224,11 +224,36 @@ export interface NameVerdict {
   why: string;
 }
 
+/** Everything about the rest of the book a single name's verdict depends on. */
+export interface VerdictContext {
+  /** Tickers held now. */
+  held?: Set<string>;
+  /**
+   * Look-through weight (exposure.ts): what the book holds of this company
+   * directly PLUS inside its funds. The cap is a ceiling on the whole book's
+   * exposure, and a direct MSFT buy on top of VTI holds MSFT twice.
+   */
+  effective?: { total: number; direct: number; viaFunds: number };
+  /** A human judged the kill rule TRIPPED (kill-store.ts). Never a model. */
+  tripped?: { judgedAt: string; note: string } | null;
+  /**
+   * The book is under BOOK_MEANINGFUL_USD. Weights there are arithmetic, not
+   * allocation — a $60 book that is all VTI is 100% VTI by construction — so
+   * a cap cannot produce TRIM (which would tell the trader to sell the one
+   * thing the policy says to keep buying).
+   */
+  belowMeaningful?: boolean;
+}
+
+const pctR = (x: number) => `${(x * 100).toFixed(1)}%`;
+
 /**
- * The per-name call. Order matters: a ban beats everything, then the
- * dossier gate, then weight against the name's own cap.
+ * The per-name call. Order matters: a ban beats everything, then a kill rule
+ * a person judged tripped, then the dossier gate (blank field or WATCH), then
+ * weight against the name's own cap — measured look-through when the book's
+ * exposure is known, because the cap is about the book, not the ticket.
  */
-export function verdictFor(d: Dossier, weight: number): NameVerdict {
+export function verdictFor(d: Dossier, weight: number, ctx: VerdictContext = {}): NameVerdict {
   const ban = washSaleBan(d.ticker);
   if (ban) {
     return {
@@ -238,16 +263,65 @@ export function verdictFor(d: Dossier, weight: number): NameVerdict {
     };
   }
 
+  if (ctx.tripped) {
+    return {
+      ticker: d.ticker,
+      verdict: "OUT",
+      why: `Kill rule judged TRIPPED by you on ${ctx.tripped.judgedAt.slice(0, 10)} — "${ctx.tripped.note}". The pre-written condition is met; this is an exit, not a debate.`,
+    };
+  }
+
   const gate = canAdd(d);
   if (!gate.canAdd) {
     return { ticker: d.ticker, verdict: "HOLD", why: gate.reason };
   }
 
-  if (weight > d.maxWeight) {
+  // Two total-market funds are one position held twice (the VTI dossier says
+  // so). Whichever the book already holds is the one it keeps buying.
+  if (d.sleeve === "ballast" && ctx.held) {
+    const twins = (WASH_SALE_TWINS[d.ticker] ?? []).filter((t) => ctx.held?.has(t));
+    if (twins.length && !ctx.held.has(d.ticker)) {
+      return {
+        ticker: d.ticker,
+        verdict: "HOLD",
+        why: `You hold ${twins.join("/")}, which does this job. Pick one total-market fund and stay with it — two is duplication, and selling one at a loss near a buy of the other is the book's own wash-sale trap.`,
+      };
+    }
+  }
+
+  const eff = ctx.effective;
+  const w = eff ? Math.max(eff.total, weight) : weight;
+  const viaNote =
+    eff && eff.viaFunds > 0.0005
+      ? ` (${pctR(eff.direct)} direct + ${pctR(eff.viaFunds)} already inside your funds)`
+      : "";
+
+  if (w > d.maxWeight && ctx.belowMeaningful) {
+    return d.sleeve === "ballast"
+      ? {
+          ticker: d.ticker,
+          verdict: "CORE",
+          why: `Default landing pad. Below $${BOOK_MEANINGFUL_USD} every dollar lands here and ${pctR(w)} is arithmetic, not a position size.`,
+        }
+      : {
+          ticker: d.ticker,
+          verdict: "HOLD",
+          why: `${pctR(w)}${viaNote} of a book under $${BOOK_MEANINGFUL_USD}. The cap binds once the book is real; until then the next dollar goes to the ballast, not here.`,
+        };
+  }
+
+  if (w > d.maxWeight) {
+    if (weight <= 0 && eff) {
+      return {
+        ticker: d.ticker,
+        verdict: "HOLD",
+        why: `Your funds alone already hold ${pctR(eff.viaFunds)} of ${d.ticker}, above its ${pctR(d.maxWeight)} cap. Do not add a direct position on top.`,
+      };
+    }
     return {
       ticker: d.ticker,
       verdict: "TRIM",
-      why: `${Math.round(weight * 100)}% against a ${Math.round(d.maxWeight * 100)}% cap. Starve it with new sweeps before selling a long-term lot.`,
+      why: `${pctR(w)}${viaNote} against a ${pctR(d.maxWeight)} cap. Starve it with new sweeps before selling a long-term lot.`,
     };
   }
 
@@ -255,15 +329,185 @@ export function verdictFor(d: Dossier, weight: number): NameVerdict {
     return { ticker: d.ticker, verdict: "CORE", why: "Default landing pad for every swept dollar." };
   }
 
-  if (weight < d.maxWeight * 0.5) {
+  if (w < d.maxWeight * 0.5) {
     return {
       ticker: d.ticker,
       verdict: "ADD",
-      why: `Dossier complete, ${Math.round(weight * 100)}% against a ${Math.round(d.maxWeight * 100)}% cap — room to build on the next sweep.`,
+      why: `Dossier complete, ${pctR(w)}${viaNote} against a ${pctR(d.maxWeight)} cap — room to build on the next sweep.`,
     };
   }
 
-  return { ticker: d.ticker, verdict: "HOLD", why: "At working weight. Nothing to do." };
+  return {
+    ticker: d.ticker,
+    verdict: "HOLD",
+    why: `At working weight: ${pctR(w)}${viaNote} against a ${pctR(d.maxWeight)} cap. Nothing to do.`,
+  };
+}
+
+export interface NextBuy {
+  ticker: string | null;
+  sleeve: Sleeve;
+  usd: number;
+  line: string;
+}
+
+/**
+ * Where the waiting dollars go. Deterministic for the two sleeves that have
+ * a default fund (ballast → the total-market fund already held, else VTI;
+ * dry powder → SGOV) and deliberately silent for compounders: the tab lists
+ * the ADD names and the trader chooses, because a picker that names a
+ * company is a recommendation wearing a rebalancing rule's clothes.
+ */
+export function nextBuy(book: BookRead, waitingUsd: number, held: Set<string>): NextBuy {
+  const ballastFund = held.has("ITOT") && !held.has("VTI") ? "ITOT" : "VTI";
+  const usd = Math.round(Math.max(0, waitingUsd) * 100) / 100;
+  if (usd <= 0) {
+    return { ticker: null, sleeve: "ballast", usd: 0, line: "Nothing waiting to deploy." };
+  }
+  if (book.belowMeaningful) {
+    return {
+      ticker: ballastFund,
+      sleeve: "ballast",
+      usd,
+      line: `$${usd.toFixed(2)} → ${ballastFund}. Below $${BOOK_MEANINGFUL_USD} every swept dollar lands in the ballast; the percentages are arithmetic, not allocation.`,
+    };
+  }
+  const lightest = [...book.sleeves].sort((a, b) => a.driftPct - b.driftPct)[0];
+  if (lightest.sleeve === "compounder") {
+    return {
+      ticker: null,
+      sleeve: "compounder",
+      usd,
+      line: `$${usd.toFixed(2)} → the compounder sleeve (${Math.round(lightest.driftPct * 100)}% vs target). Choose among the ADD names below — the tab does not pick a company for you.`,
+    };
+  }
+  const ticker = lightest.sleeve === "drypowder" ? "SGOV" : ballastFund;
+  return {
+    ticker,
+    sleeve: lightest.sleeve,
+    usd,
+    line: `$${usd.toFixed(2)} → ${ticker} (${lightest.sleeve} is the lightest sleeve, ${Math.round(lightest.driftPct * 100)}% vs target).`,
+  };
+}
+
+export interface ShadowRead {
+  /** What the same dollars, on the same days, would be worth in the benchmark. */
+  benchmarkValueUsd: number;
+  bookValueUsd: number;
+  contributedUsd: number;
+  excessUsd: number;
+  months: number;
+  /** Lots whose benchmark close could not be found (priced at cost on both sides). */
+  unpriced: number;
+  line: string;
+}
+
+/**
+ * The honest benchmark: every lot's dollars put into VTI at VTI's close on
+ * the lot's own date. Same cash, same days — so the comparison measures the
+ * CHOICES (what was bought, when it was sold), not the size of the sweeps.
+ * Price return on both sides; a reinvested dividend recorded as a lot is a
+ * contribution on both sides too. Under 36 months it says it means nothing.
+ */
+export function shadowBenchmark(
+  lots: { date: string; costOrigUsd: number; sharesOpen: number; sharesOrig: number; ticker: string }[],
+  bookValueUsd: number,
+  realizedProceedsUsd: number,
+  benchmarkCloses: Map<string, number>,
+  benchmarkLast: number | null,
+  today: string,
+): ShadowRead | null {
+  if (!lots.length || benchmarkLast == null || !(benchmarkLast > 0)) return null;
+  const dates = [...benchmarkCloses.keys()].sort();
+  const closeOn = (d: string): number | null => {
+    // The close ON the lot's date, else the latest close before it.
+    let lo = 0;
+    let hi = dates.length - 1;
+    let best: string | null = null;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (dates[mid] <= d) {
+        best = dates[mid];
+        lo = mid + 1;
+      } else hi = mid - 1;
+    }
+    return best ? (benchmarkCloses.get(best) ?? null) : null;
+  };
+  let shadowShares = 0;
+  let unpricedCost = 0;
+  let unpriced = 0;
+  let contributed = 0;
+  for (const l of lots) {
+    contributed += l.costOrigUsd;
+    const c = closeOn(l.date);
+    if (c && c > 0) shadowShares += l.costOrigUsd / c;
+    else {
+      unpriced++;
+      unpricedCost += l.costOrigUsd;
+    }
+  }
+  const benchmarkValueUsd = Math.round((shadowShares * benchmarkLast + unpricedCost) * 100) / 100;
+  // The book's side includes what sales already returned in cash.
+  const bookSide = Math.round((bookValueUsd + realizedProceedsUsd) * 100) / 100;
+  const first = [...lots].map((l) => l.date).sort()[0];
+  const months = Math.max(
+    0,
+    (Number(today.slice(0, 4)) - Number(first.slice(0, 4))) * 12 + (Number(today.slice(5, 7)) - Number(first.slice(5, 7))),
+  );
+  const excess = Math.round((bookSide - benchmarkValueUsd) * 100) / 100;
+  const cmp = excessVsBenchmark(
+    contributed > 0 ? ((bookSide / contributed - 1) * 100) : 0,
+    contributed > 0 ? ((benchmarkValueUsd / contributed - 1) * 100) : 0,
+    months,
+  );
+  return {
+    benchmarkValueUsd,
+    bookValueUsd: bookSide,
+    contributedUsd: Math.round(contributed * 100) / 100,
+    excessUsd: excess,
+    months,
+    unpriced,
+    line: `Same dollars, same days, all in ${BENCHMARK}: $${benchmarkValueUsd.toFixed(2)} vs this book's $${bookSide.toFixed(2)} (${excess >= 0 ? "+" : "-"}$${Math.abs(excess).toFixed(2)}). ${cmp.line}${
+      unpriced ? ` ${unpriced} lot(s) had no ${BENCHMARK} close on record and count at cost on both sides.` : ""
+    }`,
+  };
+}
+
+/** The pre-registered rule for spending dry powder: a 20% fall, not a good idea. */
+export const DRY_POWDER_TRIGGER = -0.2;
+
+export interface DryPowderRead {
+  drawdown: number | null;
+  armed: boolean;
+  peak: number | null;
+  last: number | null;
+  line: string;
+}
+
+/**
+ * Where the market sits against the dry-powder rule, measured on VTI's own
+ * closes over the last year. A number and a rule — no forecast of whether
+ * the fall continues.
+ */
+export function dryPowderTrigger(closes: { date: string; close: number }[]): DryPowderRead {
+  const pts = closes.filter((c) => Number.isFinite(c.close) && c.close > 0);
+  if (pts.length < 20) {
+    return { drawdown: null, armed: false, peak: null, last: null, line: "No year of VTI closes loaded — the dry-powder rule cannot be read." };
+  }
+  const recent = pts.slice(-252);
+  const peak = Math.max(...recent.map((c) => c.close));
+  const last = recent[recent.length - 1].close;
+  const dd = last / peak - 1;
+  const armed = dd <= DRY_POWDER_TRIGGER;
+  return {
+    drawdown: dd,
+    armed,
+    peak,
+    last,
+    line: armed
+      ? `VTI is ${(dd * 100).toFixed(1)}% below its 1-year closing high — past the ${Math.round(DRY_POWDER_TRIGGER * 100)}% rule. Dry powder is spent on the ADD list now, in the order the dossiers already set.`
+      : `VTI is ${(dd * 100).toFixed(1)}% from its 1-year closing high (${peak.toFixed(2)} → ${last.toFixed(2)}). Dry powder waits for ${Math.round(DRY_POWDER_TRIGGER * 100)}%, not for a good idea.`,
+  };
 }
 
 /**

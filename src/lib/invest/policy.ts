@@ -47,8 +47,14 @@
  * turns out to be illusory cannot lose.
  */
 
-/** Databento, the first hurdle. Mirrors the desk's stated monthly rent. */
-export const DATA_RENT_MONTHLY_USD = 199;
+import { DATABENTO_MONTHLY_USD } from "../trading/rh-income";
+
+/**
+ * Databento, the first hurdle. ONE number: this used to be a second literal
+ * 199 beside rh-income.ts's, so a price change would have been paid in one
+ * place and swept in the other.
+ */
+export const DATA_RENT_MONTHLY_USD = DATABENTO_MONTHLY_USD;
 
 /** The options sleeve's working size — restore to this before sweeping. */
 export const SLEEVE_TARGET_USD = 1_000;
@@ -301,4 +307,201 @@ export function rentVsSweep(plan: SweepPlan, rent = DATA_RENT_MONTHLY_USD) {
         ? `One year of data rent ($${annualRent}) is ${multiple}x one year of sweeping at the current rate ($${annualSweep}). Removing the bill is worth more than every allocation choice on this page combined, at probability 1.0.`
         : `One year of data rent is $${annualRent}. The current sweep rate is $0/yr. The bill is the entire problem.`,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* The log, read back — cadence, the rate ladder, and what it takes    */
+/* ------------------------------------------------------------------ */
+
+/** The minimum a logged month carries for these reads. */
+export interface LoggedMonth {
+  month: string;
+  realizedUsd: number;
+  verdict: SweepVerdict;
+  sweptUsd: number;
+  loggedAt: string;
+}
+
+const MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+function monthIndex(m: string): number | null {
+  const hit = MONTH_RE.exec(m);
+  if (!hit) return null;
+  return Number(hit[1]) * 12 + (Number(hit[2]) - 1);
+}
+
+function monthFromIndex(i: number): string {
+  const y = Math.floor(i / 12);
+  const m = (i % 12) + 1;
+  return `${y}-${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * May this month be logged? Only a real month that has already ENDED.
+ * The "Month is closed" checkbox is the trader's word; this is the check
+ * behind it, because logging September on the 26th of September sweeps a
+ * mark — the one thing the waterfall exists to refuse.
+ */
+export function validateSweepMonth(month: string, currentMonth: string): { ok: boolean; why: string } {
+  const i = monthIndex(month);
+  const now = monthIndex(currentMonth);
+  if (i == null) return { ok: false, why: "Month must be YYYY-MM (01–12)." };
+  if (now == null) return { ok: false, why: "Could not read the current month." };
+  if (i >= now) {
+    return {
+      ok: false,
+      why: `${month} has not closed yet — it is ${currentMonth} in New York. A month is swept once, after it ends.`,
+    };
+  }
+  if (i < (monthIndex("2020-01") ?? 0)) return { ok: false, why: "That month predates this desk." };
+  return { ok: true, why: "closed month" };
+}
+
+/**
+ * The 40% rate is "earned by a clean year". It was an input nothing ever
+ * computed, so it could not be reached. Derived here: at least the 20 closed
+ * months that earn 30%, AND the most recent twelve logged months are twelve
+ * consecutive calendar months, every one of them positive. A losing or
+ * missing month resets the streak — the rate is re-earned, not kept.
+ */
+export function fullRateFromLog(log: LoggedMonth[]): { earned: boolean; cleanStreak: number; line: string } {
+  const sorted = [...log]
+    .filter((r) => monthIndex(r.month) != null)
+    .sort((a, b) => (a.month < b.month ? 1 : -1));
+  let streak = 0;
+  let expect: number | null = null;
+  for (const r of sorted) {
+    const i = monthIndex(r.month) as number;
+    if (expect != null && i !== expect) break;
+    if (!(r.realizedUsd > 0)) break;
+    streak++;
+    expect = i - 1;
+  }
+  const earned = log.length >= SWEEP_ESTABLISHED_MIN_MONTHS && streak >= 12;
+  return {
+    earned,
+    cleanStreak: streak,
+    line: earned
+      ? `Clean year: the last ${streak} logged months are consecutive and positive. 40% is earned — a losing or skipped month takes it back.`
+      : `Clean streak ${Math.min(streak, 12)}/12 consecutive positive months${
+          log.length < SWEEP_ESTABLISHED_MIN_MONTHS
+            ? `, and ${log.length}/${SWEEP_ESTABLISHED_MIN_MONTHS} closed months`
+            : ""
+        } toward 40%.`,
+  };
+}
+
+export interface RateLadder {
+  rate: number;
+  closedMonths: number;
+  cleanStreak: number;
+  fullRateEarned: boolean;
+  line: string;
+}
+
+/** Where the rate stands and what the next step needs. Always derived. */
+export function rateLadder(log: LoggedMonth[]): RateLadder {
+  const full = fullRateFromLog(log);
+  const rate = sweepRate(log.length, full.earned);
+  const line =
+    rate === SWEEP_RATE_NEW
+      ? `${Math.round(rate * 100)}% probe rate. ${log.length}/${SWEEP_ESTABLISHED_MIN_MONTHS} closed months logged toward 30%.`
+      : rate === SWEEP_RATE_ESTABLISHED
+        ? `30% established rate. ${full.line}`
+        : `40% full rate. ${full.line}`;
+  return { rate, closedMonths: log.length, cleanStreak: full.cleanStreak, fullRateEarned: full.earned, line };
+}
+
+/**
+ * The waterfall run backwards: what a month must REALIZE for the sweep to be
+ * a given size. sweep = (realized − rent − restore) × rate, so
+ * realized = rent + restore + sweep / rate. Arithmetic, not a target.
+ */
+export function realizedNeededFor(
+  targetSweepUsd: number,
+  rate: number,
+  restoreUsd = 0,
+  rent = DATA_RENT_MONTHLY_USD,
+): number {
+  if (!(rate > 0) || !(targetSweepUsd >= 0)) return Number.POSITIVE_INFINITY;
+  return round2(rent + Math.max(0, restoreUsd) + targetSweepUsd / rate);
+}
+
+/**
+ * Contributions only. ZERO return assumed, on purpose: a projection with a
+ * return in it is a historical average wearing a forecast's clothes, which
+ * trading.md forbids. This answers only "how many dollars does the habit
+ * move", which is the thing the trader controls.
+ */
+export function contributionPath(
+  monthlyUsd: number,
+  years: number,
+): { months: number; totalUsd: number; line: string } {
+  const months = Math.max(0, Math.round(years * 12));
+  const totalUsd = round2(Math.max(0, monthlyUsd) * months);
+  return {
+    months,
+    totalUsd,
+    line: `$${round2(monthlyUsd).toFixed(2)}/month for ${years} year${years === 1 ? "" : "s"} is $${totalUsd.toLocaleString("en-US", { maximumFractionDigits: 0 })} contributed — before any return, which this tab does not project.`,
+  };
+}
+
+/**
+ * The months the habit skipped: every closed month between the first one
+ * logged and the one that just ended that has no record. The store's whole
+ * purpose is to answer "did I do this every month" truthfully a year from
+ * now, and a gap is the answer it exists to give.
+ */
+export function missedMonths(log: LoggedMonth[], currentMonth: string): string[] {
+  const idx = log.map((r) => monthIndex(r.month)).filter((i): i is number => i != null);
+  const now = monthIndex(currentMonth);
+  if (!idx.length || now == null) return [];
+  const have = new Set(idx);
+  const out: string[] = [];
+  for (let i = Math.min(...idx); i < now; i++) if (!have.has(i)) out.push(monthFromIndex(i));
+  return out;
+}
+
+export interface DeployQueue {
+  sweptUsd: number;
+  /** Dollars recorded as bought with swept cash. */
+  deployedUsd: number;
+  /** Swept but not yet bought. */
+  waitingUsd: number;
+  /** The newest sweep's park date — no buy before it. */
+  parkedUntil: string | null;
+  line: string;
+}
+
+/**
+ * Swept dollars versus swept dollars actually spent. The sweep log and the
+ * share book were two unconnected ledgers, so a month could be logged and
+ * never bought and nothing would notice.
+ */
+export function deployQueue(
+  sweeps: { sweptUsd: number; loggedAt: string }[],
+  sweepFundedBuysUsd: number,
+  now: number,
+): DeployQueue {
+  const sweptUsd = round2(sweeps.reduce((s, r) => s + (Number.isFinite(r.sweptUsd) ? r.sweptUsd : 0), 0));
+  const deployedUsd = round2(Math.max(0, sweepFundedBuysUsd));
+  const waitingUsd = round2(Math.max(0, sweptUsd - deployedUsd));
+  const latest = [...sweeps]
+    .filter((r) => r.sweptUsd > 0)
+    .sort((a, b) => (a.loggedAt < b.loggedAt ? 1 : -1))[0];
+  let parkedUntil: string | null = null;
+  if (latest) {
+    const t = Date.parse(latest.loggedAt) + SETTLE_DAYS * 86_400_000;
+    if (Number.isFinite(t) && t > now) parkedUntil = new Date(t).toISOString().slice(0, 10);
+  }
+  const over = round2(deployedUsd - sweptUsd);
+  const line =
+    sweptUsd === 0
+      ? "Nothing swept yet — there is nothing to deploy."
+      : waitingUsd > 0
+        ? `$${waitingUsd.toFixed(2)} swept and not yet bought${parkedUntil ? `; parked until ${parkedUntil}` : ""}.`
+        : over > 0
+          ? `Sweep-funded buys exceed the sweep by $${over.toFixed(2)} — either a buy was tagged "sweep" that was new money, or a month is missing from the log.`
+          : "Every swept dollar is deployed.";
+  return { sweptUsd, deployedUsd, waitingUsd, parkedUntil, line };
 }

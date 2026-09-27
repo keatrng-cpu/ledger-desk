@@ -65,7 +65,6 @@ import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
-import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
@@ -1614,17 +1613,9 @@ function MasterplacePage() {
               {cat !== "trade" && cat !== "learn" && cat !== "invest" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
-              {cat === "invest" && (
-                <>
-                  <InvestPanel />
-                  {/* The kill rules, checked on demand. Monthly cadence —
-                      a multi-year holding does not need a poll, and each
-                      run spends API budget. */}
-                  <div className="mt-3">
-                    <KillWatchPanel />
-                  </div>
-                </>
-              )}
+              {/* The kill-rule check now lives inside the panel, beside the
+                  research it checks. */}
+              {cat === "invest" && <InvestPanel />}
 
               {cat === "brain" && (
                 <div className="space-y-5">

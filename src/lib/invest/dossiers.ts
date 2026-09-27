@@ -20,10 +20,18 @@
  *
  * THE PRICE COLUMN IS MISSING ON PURPOSE TOO
  * Nothing here says "buy below $X". A target price is a forecast wearing a
- * decimal point. What the tab does instead is show the forward multiple
- * against the 5.01% ten-year (captured 2026-09-18) so the comparison is
- * against the actual risk-free alternative rather than against a number
- * someone made up.
+ * decimal point. What the tab does instead is show each name's earnings
+ * yield (trailing and forward) against RISK_FREE, the captured ten-year, so
+ * the comparison is against the actual risk-free alternative rather than
+ * against a number someone made up.
+ *
+ * WATCH IS A GATE, NOT A HEADING
+ * Until 2026-09-26 the WATCH list below was only a comment: every name on it
+ * had a complete dossier, so `canAdd` passed it and the tab printed ADD on
+ * the four names this file calls "not buyable". A watch entry now carries
+ * its reason AND the pre-written condition that would clear it — the mirror
+ * image of a kill rule, written while there is no position to talk yourself
+ * into — and `canAdd` refuses it with that reason.
  */
 
 import type { Dossier } from "./universe";
@@ -34,7 +42,7 @@ import type { Dossier } from "./universe";
  * question on the tab is really "cheap against what", and this is the what.
  * Refresh it with the capture script; do not update it from memory.
  */
-export const RISK_FREE = { yieldPct: 5.01, asOf: "2026-09-18", source: "alphavantage TREASURY_YIELD 10y" };
+export const RISK_FREE = { yieldPct: 5.18, asOf: "2026-09-24", source: "alphavantage TREASURY_YIELD 10y daily" };
 
 /**
  * BALLAST — the return you cannot out-think.
@@ -133,7 +141,7 @@ export const BALLAST: Dossier[] = [
     sells: "Very short Treasury bills. The place dry powder waits.",
     whoPays: "n/a — a fund.",
     moat: "None needed. This is the risk-free rate in a wrapper.",
-    useIn2035: "Yes — cash is always useful, and at a 5.01% ten-year the competing yield is not nothing.",
+    useIn2035: "Yes — cash is always useful, and with the ten-year above 5% the competing yield is not nothing.",
     cycle: "structural",
     governance: {
       ceo: "n/a — index fund, no operating management",
@@ -269,7 +277,7 @@ export const COMPOUNDERS: Dossier[] = [
     maxWeight: 0.06,
     regulatory: null,
     caveat:
-      "45.2 trailing P/E for a 3.0% margin retailer growing revenue 11.6% is the most expensive thing in this book relative to what it does. Everyone knows the story. You are paying a large premium for durability, and at a 5.01% risk-free rate that premium has a real opportunity cost.",
+      "45.2 trailing P/E for a 3.0% margin retailer growing revenue 11.6% is the most expensive thing in this book relative to what it does. Everyone knows the story. You are paying a large premium for durability, and with the risk-free rate above 5% that premium has a real opportunity cost.",
   },
   {
     ticker: "LLY",
@@ -334,6 +342,12 @@ export const WATCH: Dossier[] = [
     },
     killRule:
       "An export-control regime that cuts data-center revenue run-rate by 30%, or a hyperscaler's in-house silicon displacing a full training generation.",
+    watch: {
+      reason:
+        "Beta 2.2 on a thesis that is one capex cycle ('exposed'), and it is already the largest line inside VTI — a direct position is a second copy of the biggest bet the ballast already holds.",
+      clearsWhen:
+        "A full fiscal year in which data-center revenue grows while no single customer exceeds 15% of revenue — evidence the demand is not one buyer's budget.",
+    },
     maxWeight: 0.05,
     regulatory:
       "Export controls are an active, bipartisan, and unpredictable policy instrument pointed directly at this revenue line.",
@@ -362,6 +376,12 @@ export const WATCH: Dossier[] = [
     },
     killRule:
       "Loss of the Google search default payment without replacement, or two consecutive years of services revenue decline.",
+    watch: {
+      reason:
+        "The price requires heroic earnings growth for a decade while the operator changed on 2026-09-01 and has no capital-allocation record — and it is already the second-largest line inside VTI.",
+      clearsWhen:
+        "Four reported quarters under the new CEO, with the implied growth rate (this tab's own inversion) back under 12%.",
+    },
     maxWeight: 0.06,
     regulatory: "App Store economics under attack in the EU and US simultaneously.",
     caveat:
@@ -388,6 +408,11 @@ export const WATCH: Dossier[] = [
         "Ruiz became CEO 2025-06-01, succeeding Craig Arnold who retired 2025-05-31 — so the operator has under two years in the seat and no capital-allocation record of his own yet. Chair is independent and non-executive, which is the governance structure you want. A CFO transition also completed in 2026 (Leonetti out, David B. Foster appointed 2026-02-26): a new CEO and a new CFO inside a year is worth watching.",
     },
     killRule: "Data center electrical orders declining two consecutive quarters while backlog shrinks.",
+    watch: {
+      reason:
+        "Earnings are falling year on year while revenue grows, at a multiple that prices a growth compounder. The story and the earnings disagree.",
+      clearsWhen: "Two consecutive quarters of positive year-on-year earnings growth in a captured snapshot.",
+    },
     maxWeight: 0.05,
     regulatory: null,
     caveat:
@@ -415,6 +440,11 @@ export const WATCH: Dossier[] = [
     },
     killRule:
       "A data center power purchase agreement cancelled or renegotiated downward, or merchant power prices falling below the contracted floor for two quarters.",
+    watch: {
+      reason:
+        "Earnings fell sharply year on year while revenue grew, and the 50-day sits below the 200-day. The AI-power narrative and the reported earnings point in opposite directions.",
+      clearsWhen: "Two consecutive quarters of positive year-on-year earnings growth in a captured snapshot.",
+    },
     maxWeight: 0.04,
     regulatory:
       "NRC licensing and FERC interconnection rules are the business. A regulatory change here is not a headwind, it is the P&L.",

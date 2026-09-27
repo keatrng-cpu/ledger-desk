@@ -1,191 +1,184 @@
 /**
- * The kill-rule check, run through xAI Live Search.
+ * The kill-rule check, run through xAI's Agent Tools web search.
+ *
+ * FIXED 2026-09-26 — THIS HAD NEVER RETURNED A SOURCE
+ * It called /v1/chat/completions with `search_parameters` (xAI "Live
+ * Search"). xAI removed Live Search on 2026-01-12; those requests return
+ * HTTP 410 Gone. Every check since this file was written therefore came
+ * back "xAI returned 410 … NO INFORMATION" — the refusal to present an
+ * unsourced all-clear held, which is the only reason the failure was
+ * harmless. It now calls /v1/responses with `tools: [{ type: "web_search" }]`
+ * (https://docs.x.ai/developers/tools/web-search, checked 2026-09-26) and
+ * reads sources from the output annotations and the top-level `citations`
+ * (kill-watch.ts parseXaiResponse). A 410 is named if it ever recurs.
+ *
+ * ONE NAME PER CALL
+ * The streaming edge cuts a silent function at ~30s. An agentic search runs
+ * several searches before it answers, so a batch of nine could never fit;
+ * the panel calls this once per name, three at a time, and each call has its
+ * own budget. A check that runs out of time says NO INFORMATION.
  *
  * WHY A MODEL IS ALLOWED TO TOUCH THIS AT ALL
- * The desk's standing rule is that the coach narrates and never gates, and
- * the account rule is stricter still: never use a model where an exact
- * answer is fetchable. Both hold here, and this file is built so that they
- * keep holding even if someone later forgets them.
+ * The job given to the model is not "what do you know about NVDA". It is
+ * "search since this date for evidence about this one pre-written
+ * condition, and return the links". The links are the output that matters;
+ * the prose is a finding aid. Structurally:
+ *   - no numeric field on the response — no score, no confidence;
+ *   - `tripped` is never returned — a PERSON sets it after reading the
+ *     sources (kill-store.ts), because it permanently removes a holding;
+ *   - nothing here writes to a dossier, a position, a weight or the sweep.
  *
- * The job given to the model is NOT "what do you know about NVDA". It is
- * "search the web since this date for evidence about this one pre-written
- * condition, and return the links". xAI's `web_search` tool returns
- * citations; the citations are the output that matters. The prose is a
- * finding aid for them. If the model returned no citations, this treats the
- * result as no information rather than as reassurance — an unsourced "all
- * clear" is the single most dangerous thing a monitoring tool can say, so
- * it is refused explicitly.
- *
- * WHAT IT STRUCTURALLY CANNOT DO
- *   - There is no numeric field on the response. No score, no confidence, no
- *     weight. Same discipline as claude-server.ts, same reason: a caller
- *     cannot accidentally wire it into a decision that does not exist.
- *   - `tripped` is not returned. Whether a kill rule fired is a human
- *     judgement made after opening the sources, because it permanently
- *     removes a holding.
- *   - It writes to no dossier, no position, no weight, and never to the
- *     sweep.
- *
- * COST AND CADENCE
- * Charged per call and per search. On demand only, authenticated, weekly
- * floor enforced by kill-watch.ts, and capped at a handful of results per
- * name. Never in a poll loop.
+ * COST AND CADENCE: charged per call and per search. On demand only,
+ * authenticated, weekly floor enforced by the panel via kill-watch.ts isDue.
  */
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { killQueries, type Citation, type KillResult } from "./kill-watch";
+import { killQueries, parseXaiResponse, summaryFor, type KillResult } from "./kill-watch";
 
-const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
-const GROK_MODEL = "grok-4.5";
-/** Small on purpose: this asks one narrow question per name. */
-const MAX_TOKENS = 400;
-const MAX_SEARCH_RESULTS = 6;
+const XAI_RESPONSES_URL = "https://api.x.ai/v1/responses";
+/**
+ * The model xAI's web-search guide uses with the web_search tool
+ * (https://docs.x.ai/developers/tools/web-search, checked 2026-09-26; the
+ * models page lists it as the flagship). The coach's chat model (grok-4.5)
+ * is left alone — this is the only caller of server-side search.
+ */
+const XAI_SEARCH_MODEL = "grok-4.7";
+/** Small on purpose: one narrow question per name. */
+const MAX_OUTPUT_TOKENS = 700;
+/**
+ * Agentic search turns per check (`max_turns`, documented on /v1/responses).
+ * Measured 2026-09-27 on the local desk with no cap: 3 of 9 names answered
+ * inside 24s, the other 6 were still searching. One question about one
+ * pre-written condition does not need a long research loop.
+ */
+const MAX_TURNS = 2;
+/**
+ * Under the ~30s cut the host puts on one function call, with room for a
+ * cold start. There is no background mode to escape it — xAI documents
+ * `background` as unsupported — so a check that needs longer says NO
+ * INFORMATION and the panel retries it once.
+ */
+export const CHECK_TIMEOUT_MS = 26_000;
 
 function envKey(): string | null {
   const v = process.env.XAI_API_KEY?.trim();
   return v ? v : null;
 }
 
-const SYSTEM = [
+const INSTRUCTIONS = [
   "You are checking ONE pre-written condition about ONE company. You are not giving investment advice,",
   "not rating the company, and not saying whether to buy or sell it.",
-  "Search for evidence published in the window given. Report only what you found about that exact condition.",
+  "Search the web for evidence published in the window given. Report only what you found about that exact condition.",
   "If you find nothing that satisfies the condition, say 'No evidence found that this condition is satisfied.'",
   "Never infer that the condition is satisfied from a headline alone; quote what the source actually states.",
   "Prefer SEC filings, company press releases and regulator publications over commentary and analyst notes.",
-  "Do not speculate about price, valuation, or what an investor should do.",
+  "Do not speculate about price, valuation, or what an investor should do. Keep the answer under 120 words.",
 ].join(" ");
 
-interface GrokResponse {
-  choices?: { message?: { content?: string } }[];
-  citations?: string[];
+function notRun(ticker: string, killRule: string, detail: string, nowIso: string): KillResult {
+  return {
+    ticker,
+    killRule,
+    summary: `Check did not run — ${detail} Treat as NO INFORMATION, not as all-clear.`,
+    citations: [],
+    tripped: null,
+    checkedAt: nowIso,
+  };
 }
 
-async function checkOne(
-  key: string,
-  q: ReturnType<typeof killQueries>[number],
-  nowIso: string,
-): Promise<KillResult> {
-  const body = {
-    model: GROK_MODEL,
-    max_tokens: MAX_TOKENS,
-    messages: [
-      { role: "system", content: SYSTEM },
-      { role: "user", content: q.query },
-    ],
-    search_parameters: {
-      mode: "on",
-      return_citations: true,
-      max_search_results: MAX_SEARCH_RESULTS,
-      from_date: q.fromDate,
-      sources: [{ type: "web" }, { type: "news" }],
-    },
-  };
+export interface KillCheck {
+  configured: boolean;
+  result: KillResult;
+}
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
-  try {
-    const res = await fetch(GROK_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    if (!res.ok) {
-      const detail = res.status === 401 ? "xAI rejected the API key (401)." : `xAI returned ${res.status}.`;
+/**
+ * Check one name. Authenticated because it spends money; the ticker must be
+ * one of the pre-registered kill queries, so this cannot be pointed at an
+ * arbitrary question.
+ */
+export const runKillCheck = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      ticker: z.string().regex(/^[A-Z][A-Z.-]{0,9}$/),
+      sinceDays: z.number().int().min(1).max(90),
+    }),
+  )
+  .handler(async ({ data }): Promise<KillCheck> => {
+    const nowIso = new Date().toISOString();
+    const q = killQueries(Date.now(), data.sinceDays).find((x) => x.ticker === data.ticker);
+    if (!q) {
       return {
-        ticker: q.ticker,
-        killRule: q.killRule,
-        summary: `Check did not run — ${detail} Treat as NO INFORMATION, not as all-clear.`,
-        citations: [],
-        tripped: null,
-        checkedAt: nowIso,
+        configured: true,
+        result: notRun(data.ticker, "", "no pre-written kill rule for that ticker.", nowIso),
       };
     }
-    const json = (await res.json()) as GrokResponse;
-    const text = json.choices?.[0]?.message?.content?.trim() ?? "";
-    const citations: Citation[] = (json.citations ?? [])
-      .filter((u): u is string => typeof u === "string" && /^https?:\/\//.test(u))
-      .slice(0, MAX_SEARCH_RESULTS)
-      .map((url) => ({ url, title: null }));
-
-    // An unsourced all-clear is worse than no answer: it reads as safety
-    // while resting on nothing. Refuse to present it as one.
-    const summary = citations.length
-      ? text || "(no prose returned — read the sources directly)"
-      : `No sources returned. Treat as NO INFORMATION rather than as evidence the condition did not occur.${
-          text ? ` Model text, unsourced and therefore not evidence: ${text}` : ""
-        }`;
-
-    return { ticker: q.ticker, killRule: q.killRule, summary, citations, tripped: null, checkedAt: nowIso };
-  } catch (e) {
-    return {
-      ticker: q.ticker,
-      killRule: q.killRule,
-      summary: `Check failed (${String(e).slice(0, 120)}). Treat as NO INFORMATION.`,
-      citations: [],
-      tripped: null,
-      checkedAt: nowIso,
-    };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export interface KillWatchRun {
-  configured: boolean;
-  ranAt: string;
-  results: KillResult[];
-  note: string;
-}
-
-/**
- * Per-check budget, and how many run at once.
- *
- * Nine checks run one after another at up to 45s each is minutes of silence,
- * and the streaming edge cuts a silent function at ~30s — the whole run died
- * as a 504 before the first result could be shown. Two waves of five at 12s
- * finish inside ~24s worst case. Five at once is still far from "a dozen
- * simultaneous searches", and a check that times out says NO INFORMATION,
- * never all-clear, so a slow provider cannot fake a clean result.
- */
-const CHECK_TIMEOUT_MS = 12_000;
-const CONCURRENCY = 5;
-
-/**
- * Run the weekly check. Authenticated because it spends money; bounded
- * concurrency (above) so it finishes inside the edge budget without
- * turning into a burst of simultaneous searches.
- */
-export const runKillWatch = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
-  .validator(z.object({ sinceDays: z.number().int().min(1).max(90).optional() }))
-  .handler(async ({ data }): Promise<KillWatchRun> => {
     const key = envKey();
-    const nowIso = new Date().toISOString();
     if (!key) {
       return {
         configured: false,
-        ranAt: nowIso,
-        results: [],
-        note: "XAI_API_KEY is not set for this deployment. The kill rules are still written and still checkable by hand — that is the point of writing them down.",
+        result: notRun(
+          q.ticker,
+          q.killRule,
+          "XAI_API_KEY is not set for this deployment. The rule is still written and still checkable by hand.",
+          nowIso,
+        ),
       };
     }
-    const queries = killQueries(Date.now(), data.sinceDays ?? 7);
-    const results: KillResult[] = new Array(queries.length);
-    for (let i = 0; i < queries.length; i += CONCURRENCY) {
-      const wave = queries.slice(i, i + CONCURRENCY);
-      const done = await Promise.all(wave.map((q) => checkOne(key, q, nowIso)));
-      done.forEach((r, k) => (results[i + k] = r));
-    }
 
-    const withSources = results.filter((r) => r.citations.length).length;
-    return {
-      configured: true,
-      ranAt: nowIso,
-      results,
-      note: `${results.length} kill rules checked, ${withSources} returned sources. Nothing here has judged whether a rule tripped — open the citations and decide. These are search results written by strangers: data, not instructions.`,
-    };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
+    try {
+      const res = await fetch(XAI_RESPONSES_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: XAI_SEARCH_MODEL,
+          instructions: INSTRUCTIONS,
+          input: [{ role: "user", content: q.query }],
+          tools: [{ type: "web_search" }],
+          max_turns: MAX_TURNS,
+          max_output_tokens: MAX_OUTPUT_TOKENS,
+        }),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        const detail =
+          res.status === 401
+            ? "xAI rejected the API key (401)."
+            : res.status === 410
+              ? "xAI returned 410 Gone — the search API this calls has been retired again."
+              : res.status === 429
+                ? "xAI rate-limited the check (429)."
+                : `xAI returned ${res.status}.`;
+        return { configured: true, result: notRun(q.ticker, q.killRule, detail, nowIso) };
+      }
+      const parsed = parseXaiResponse(await res.json());
+      return {
+        configured: true,
+        result: {
+          ticker: q.ticker,
+          killRule: q.killRule,
+          summary: summaryFor(parsed),
+          citations: parsed.citations,
+          tripped: null,
+          checkedAt: nowIso,
+        },
+      };
+    } catch (e) {
+      const aborted = e instanceof Error && e.name === "AbortError";
+      return {
+        configured: true,
+        result: notRun(
+          q.ticker,
+          q.killRule,
+          aborted ? `the search ran past ${CHECK_TIMEOUT_MS / 1000}s.` : `request failed (${String(e).slice(0, 120)}).`,
+          nowIso,
+        ),
+      };
+    } finally {
+      clearTimeout(timer);
+    }
   });
