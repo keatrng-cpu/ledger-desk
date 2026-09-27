@@ -66,7 +66,8 @@ export const THESIS_INSTRUCTIONS = [
   '{"headline":string,"summary":[string],"analysis":[string],',
   '"impacts":{"futures":string,"options":string,"investing":string,"predictions":string},',
   '"watch":[string],"confidence":"low"|"medium"|"high"}.',
-  "3-5 items per list, each under 180 characters; the whole reply under 700 words. Times in ET.",
+  "Exactly 3 items per list, each under 140 characters; each impact under 200 characters; the whole reply under 380 words.",
+  "Times in ET.",
 ].join(" ");
 
 /** The material, as one compact block the model reads. */
@@ -92,19 +93,66 @@ const list = (v: unknown): string[] =>
         .slice(0, 6)
     : [];
 
+/**
+ * Close a JSON object that was cut off mid-reply: keep everything up to the
+ * last complete value and close the open brackets. A reply that hit the
+ * output limit still gives its headline and first lists instead of nothing.
+ */
+export function repairJson(s: string): string | null {
+  const safe: { at: number; stack: string[] }[] = [];
+  const stack: string[] = [];
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') {
+        inStr = false;
+        safe.push({ at: i, stack: [...stack] });
+      }
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{" || ch === "[") stack.push(ch);
+    else if (ch === "}" || ch === "]") {
+      stack.pop();
+      safe.push({ at: i, stack: [...stack] });
+    }
+  }
+  for (let k = safe.length - 1; k >= 0; k--) {
+    const { at, stack: open } = safe[k];
+    const next = s.slice(at + 1).match(/^\s*(\S)/)?.[1];
+    if (next === ":") continue; // that string was a key, not a value
+    const head = s.slice(0, at + 1).replace(/[\s,]+$/, "");
+    return head + open.reverse().map((o) => (o === "{" ? "}" : "]")).join("");
+  }
+  return null;
+}
+
 /** The model's text → a Thesis, or null when it is not the JSON asked for. Never throws. */
 export function parseThesis(text: string | null | undefined): Thesis | null {
   if (!text) return null;
   const body = text.replace(/```(?:json)?/gi, "");
   const a = body.indexOf("{");
   const b = body.lastIndexOf("}");
-  if (a < 0 || b <= a) return null;
-  let j: Record<string, unknown>;
+  if (a < 0) return null;
+  let j: Record<string, unknown> | null = null;
   try {
-    j = JSON.parse(body.slice(a, b + 1)) as Record<string, unknown>;
+    if (b > a) j = JSON.parse(body.slice(a, b + 1)) as Record<string, unknown>;
   } catch {
-    return null;
+    j = null;
   }
+  if (!j) {
+    const fixed = repairJson(body.slice(a));
+    try {
+      j = fixed ? (JSON.parse(fixed) as Record<string, unknown>) : null;
+    } catch {
+      j = null;
+    }
+  }
+  if (!j) return null;
   const headline = str(j.headline, 240);
   const summary = list(j.summary);
   if (!headline || !summary.length) return null;

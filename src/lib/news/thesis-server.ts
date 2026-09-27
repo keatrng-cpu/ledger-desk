@@ -93,7 +93,7 @@ async function runGrok(input: string, ms: number): Promise<ThesisRun | null> {
         input: [{ role: "user", content: input }],
         tools: [{ type: "web_search" }],
         max_turns: 2,
-        max_output_tokens: 1400,
+        max_output_tokens: 1100,
       }),
       signal: AbortSignal.timeout(ms),
     });
@@ -115,7 +115,7 @@ async function runClaude(model: string, input: string, ms: number): Promise<Thes
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
         model,
-        max_tokens: 3000,
+        max_tokens: 1100,
         // The first live run came back cut off mid-JSON: the output budget went to thinking.
         ...(model === SONNET ? { thinking: { type: "disabled" } } : {}),
         system: `${THESIS_INSTRUCTIONS} This call has no web search: work only from the material given and mark what still needs confirming.`,

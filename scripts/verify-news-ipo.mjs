@@ -124,6 +124,9 @@ check("a headline about nothing here has no impact line", F.impactOf(F.tagItem({
 const good = T.parseThesis('```json\n{"headline":"Quiet tape into CPI","summary":["a","b"],"analysis":["c"],"impacts":{"futures":"f","options":"o","investing":"i","predictions":"p"},"watch":["w"],"confidence":"Medium"}\n```');
 check("the thesis JSON parses out of a fenced reply", [good.headline, good.summary.length, good.impacts.predictions, good.confidence], ["Quiet tape into CPI", 2, "p", "medium"]);
 check("prose instead of JSON is not a thesis", T.parseThesis("The market is quiet today."), null);
+const cut = T.parseThesis('{"headline":"Rates lead the week","summary":["JOLTS Tuesday","Micron Wednesday"],"analysis":["Yields at hi');
+check("a reply cut off mid-analysis keeps its headline and summary", [cut?.headline, cut?.summary.length, cut?.analysis.length], ["Rates lead the week", 2, 0]);
+check("a reply cut off inside a key is repaired back to the last value", T.repairJson('{"headline":"x","summary":["a"],"anal'), '{"headline":"x","summary":["a"]}');
 check("a thesis with no summary is not a thesis", T.parseThesis('{"headline":"x","summary":[]}'), null);
 const input = T.buildThesisInput({ nowEt: "Sun 2:40 PM ET", headlines: [{ source: "CNBC", title: "T", summary: "S", tags: "fed", ago: "5m ago" }], failed: ["ESPN"], pulse: ["VIX 15.00"], calendar: ["2026-09-30 08:30 — X"], games: ["BAL @ DAL"] });
 ok("the material names failed feeds so the model searches around them", /did not load.*ESPN/.test(input) && /Headlines \(1/.test(input));
