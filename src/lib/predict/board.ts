@@ -270,10 +270,16 @@ export function polySlug(league: League, g: EspnGame): string | null {
 export function parsePolyMarket(json: unknown): PolyMarket | null {
   const m = (json as { markets?: Record<string, any>[] })?.markets?.[0];
   if (!m) return null;
+  // A closed, inactive or halted market's last quote is not a price.
+  if (m.closed === true || m.active === false || (typeof m.status === "string" && m.status !== "MARKET_STATUS_OPEN")) return null;
   const long = (Array.isArray(m.marketSides) ? m.marketSides : []).find((x: any) => x?.long === true);
   const abbr = String(long?.team?.abbreviation ?? "").toUpperCase();
   if (!abbr) return null;
-  return { longCode: POLY_BACK[abbr] ?? abbr, bid: num(m.bestBidQuote?.value), ask: num(m.bestAskQuote?.value) };
+  const bid = num(m.bestBidQuote?.value);
+  const ask = num(m.bestAskQuote?.value);
+  // One-sided or crossed books have no midpoint worth using.
+  const sane = bid != null && ask != null && bid > 0 && ask < 1 && bid <= ask;
+  return { longCode: POLY_BACK[abbr] ?? abbr, bid: sane ? bid : null, ask: sane ? ask : null };
 }
 
 /** The quote for either team: the listed side as quoted, the other as its complement. */
@@ -430,7 +436,9 @@ export function sideEdge(s: SideRead, fees: FeeModel = DEFAULT_FEES): number | n
  */
 export function lateUnderdog(b: BoardGame, s: SideRead): boolean {
   if (b.game.state !== "in" || s.side?.ask == null || s.side.ask >= 0.3) return false;
-  return /\b(4th|OT|9th|3rd Period|4th Quarter)\b/i.test(b.game.detail);
+  // ESPN writes "5:12 - 3rd" for hockey and "Bot 9th" for baseball; the old pattern missed hockey's 3rd.
+  const late = b.league === "nhl" ? /\b(3rd|OT|SO)\b/i : b.league === "mlb" ? /\b(8th|9th|1\dth)\b/i : /\b(4th|OT)\b/i;
+  return late.test(b.game.detail);
 }
 
 /** One sentence per game, for the top of the card. Mechanics, not a pick. */

@@ -222,7 +222,8 @@ strong.events[0].competitions[0].odds[0].moneyline = { home: { close: { odds: "-
 const sg = B.parseEspnScoreboard(strong);
 const sb = B.buildBoard("nfl", sg, ev);
 const early = Date.parse("2026-09-27T12:00Z");
-const go = SC.scanSide(sb[0], sb[0].home, M.DEFAULT_FEES, null, early);
+check("pregame: a one-refresh flicker is not GO", SC.scanSide(sb[0], sb[0].home, M.DEFAULT_FEES, null, early).layers.find((l) => !l.ok).id, "held");
+const go = SC.scanSide(sb[0], sb[0].home, M.DEFAULT_FEES, 0.1, early);
 check("JAX 60¢ vs a ~73% book with every layer passing is GO", go.word, "GO");
 ok("the entry limit is at or above the ask", go.limit >= go.ask);
 ok("the target is fair plus the exit fee", go.target[0] > go.fairLo);
@@ -233,7 +234,7 @@ const pb = B.buildBoard("nfl", sg, ev, {}, undefined, {}, { "1": { longCode: "NE
 check("Polymarket under the ask pulls fair value down: no gap, STAND on price", SC.scanSide(pb[0], pb[0].home, M.DEFAULT_FEES, null, early).layers.find((l) => !l.ok).id, "price");
 const qbb = B.buildBoard("nfl", sg, ev, {}, undefined, { "1": { modelHome: null, modelAway: null, injuries: { NE: ["QB Starter (Questionable)"] } } });
 ok("an open QB question in the game stops GO before inactives", SC.scanSide(qbb[0], qbb[0].home, M.DEFAULT_FEES, null, early).missing.startsWith("QB Starter"));
-check("after inactives it clears", SC.scanSide(qbb[0], qbb[0].home, M.DEFAULT_FEES, null, Date.parse("2026-09-27T16:00Z")).word, "GO");
+check("after inactives it clears", SC.scanSide(qbb[0], qbb[0].home, M.DEFAULT_FEES, 0.1, Date.parse("2026-09-27T16:00Z")).word, "GO");
 const lg = B.buildBoard("nfl", [{ ...sg[0], state: "in", liveHomeWp: 0.8, detail: "Q2 5:00" }], ev);
 check("live without a second market is STAND", SC.scanSide(lg[0], lg[0].home, M.DEFAULT_FEES, 0.15).layers.find((l) => !l.ok).id, "second");
 const lgp = B.buildBoard("nfl", [{ ...sg[0], state: "in", liveHomeWp: 0.8, detail: "Q2 5:00" }], ev, {}, undefined, {}, { "1": { longCode: "JAX", bid: 0.78, ask: 0.79 } });
@@ -254,9 +255,21 @@ const lr = SC.scanSide(lb[0], limSide, M.DEFAULT_FEES, null, early);
 check("a cent short, bid under the limit → LIMIT with the number to rest", [lr.word, lr.limit], ["LIMIT", 0.59]);
 const liveLim = SC.scanSide({ ...lb[0], game: { ...lb[0].game, state: "in" } }, { ...limSide, live: 0.62 }, M.DEFAULT_FEES, 0.2, early);
 check("live games get no LIMIT", liveLim.word, "STAND");
-const rows = SC.scanBoard(sb, M.DEFAULT_FEES, new Map(), early);
+const rows = SC.scanBoard(sb, M.DEFAULT_FEES, new Map([[sb[0].home.side.ticker, 0.1]]), early);
 check("GO sorts first", rows[0].word, "GO");
 check("stats count it", SC.scanStats(rows, sb).go, 1);
+
+console.log("\naccuracy fixes");
+check("a closed Polymarket market is ignored", B.parsePolyMarket({ markets: [{ closed: true, bestBidQuote: { value: "0.5" }, bestAskQuote: { value: "0.51" }, marketSides: [{ long: true, team: { abbreviation: "kc" } }] }] }), null);
+check("a crossed Polymarket book has no quote", B.parsePolyMarket({ markets: [{ bestBidQuote: { value: "0.6" }, bestAskQuote: { value: "0.5" }, marketSides: [{ long: true, team: { abbreviation: "kc" } }] }] }).bid, null);
+const halted = { ...sb[0].home, side: { ...sb[0].home.side, status: "closed" } };
+check("a Kalshi market that is not trading cannot be GO", SC.scanSide(sb[0], halted, M.DEFAULT_FEES, 0.1, early).layers.find((l) => !l.ok).id, "liquidity");
+const dog = { ...lg[0].home, side: { ...lg[0].home.side, ask: 0.2 } };
+check("hockey's 3rd period is late", B.lateUnderdog({ ...lg[0], league: "nhl", game: { ...lg[0].game, detail: "5:12 - 3rd" } }, dog), true);
+check("football's 3rd quarter is not", B.lateUnderdog({ ...lg[0], game: { ...lg[0].game, detail: "5:12 - 3rd" } }, dog), false);
+check("baseball's 8th is late", B.lateUnderdog({ ...lg[0], league: "mlb", game: { ...lg[0].game, detail: "Bot 8th" } }, dog), true);
+ok("win chance is the median of the estimates (book, Kalshi mid)", go.consensus > 0.595 && go.consensus < 0.74);
+ok("a 13-pt spread between book and Kalshi reads as disagreement", go.agreement > 0.1);
 
 console.log("\ntop setups — the four closest to GO");
 const IDS = ["reference", "price", "longshot", "late", "liquidity", "second", "qb", "held"];

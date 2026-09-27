@@ -23,7 +23,8 @@
  *                     is therefore the LOWEST of every estimate (book ×3 methods or ESPN live,
  *                     and Polymarket's midpoint), pregame and live.
  *   7. QB news        pregame: no Questionable/Doubtful QB in the game before inactives
- *   8. held           live: the gap was there on the previous refresh too
+ *   8. held           the gap was there on the previous refresh too (pregame as well since
+ *                     2026-09-27 — a one-refresh quote flicker is not a price)
  * LIMIT (pregame only): every layer but price passes and resting an order
  * between the bid and the limit price would clear — the number to rest.
  * Live games get no LIMIT: a resting order in a moving game fills mostly
@@ -66,6 +67,10 @@ export interface ScanRow {
   fairLo: number | null;
   fairHi: number | null;
   refName: string | null;
+  /** Win chance: the median of every estimate (book or ESPN live, Kalshi mid, Polymarket mid). */
+  consensus: number | null;
+  /** Highest minus lowest estimate — how much the estimates agree. */
+  agreement: number | null;
   /** Dollars per contract bought at the ask vs the conservative fair value, after fees. */
   gap: number | null;
   /** The most to pay: clears fees + the margin against fairLo. */
@@ -110,6 +115,10 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
   const opp = s.team.code === b.game.home.code ? b.game.away.code : b.game.home.code;
 
   const spread = ask != null && bid != null ? ask - bid : null;
+  const trading = !k.status || /^(active|open)$/i.test(k.status);
+  const ests = [live ? s.live : s.book, s.market, pm].filter((x): x is number => x != null && x > 0 && x < 1).sort((x, y) => x - y);
+  const consensus = ests.length ? (ests.length % 2 ? ests[(ests.length - 1) / 2] : (ests[ests.length / 2 - 1] + ests[ests.length / 2]) / 2) : null;
+  const agreement = ests.length >= 2 ? ests[ests.length - 1] - ests[0] : null;
   const due = inactivesDue(b);
   const qb = [qbFlag(b, s.team.code), qbFlag(b, opp)].find((x) => x && /Questionable|Doubtful/i.test(x)) ?? null;
   const dueAt = due != null ? new Date(due).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) : "";
@@ -125,8 +134,12 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
     { id: "late", ok: !lateUnderdog(b, s), detail: "sub-30¢ side in the final period — historically overpriced" },
     {
       id: "liquidity",
-      ok: (spread == null || spread <= SCAN.maxSpread + 1e-9) && (k.askSize == null || k.askSize >= SCAN.minDepth),
-      detail: spread != null && spread > SCAN.maxSpread + 1e-9 ? `spread ${c(spread)} is too wide` : `only ${Math.round(k.askSize ?? 0)} contracts at the ask`,
+      ok: trading && (spread == null || spread <= SCAN.maxSpread + 1e-9) && (k.askSize == null || k.askSize >= SCAN.minDepth),
+      detail: !trading
+        ? `market is ${k.status}, not trading`
+        : spread != null && spread > SCAN.maxSpread + 1e-9
+          ? `spread ${c(spread)} is too wide`
+          : `only ${Math.round(k.askSize ?? 0)} contracts at the ask`,
     },
     {
       id: "second",
@@ -138,13 +151,13 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
       ok: live || !qb || due == null || now >= due,
       detail: `${qb ?? "QB"} — open until inactives ~${dueAt} ET`,
     },
-    { id: "held", ok: !live || (prevGap != null && prevGap >= margin - 1e-9), detail: "live gap has to hold for a second refresh" },
+    { id: "held", ok: prevGap != null && prevGap >= margin - 1e-9, detail: "the gap has to hold for a second refresh" },
   ];
 
   const failing = layers.filter((l) => !l.ok);
   let word: ScanWord = "STAND";
   if (!failing.length) word = "GO";
-  else if (!live && failing.every((l) => l.id === "price") && limit != null && ask != null && limit < ask && (bid == null || limit >= bid)) word = "LIMIT";
+  else if (!live && failing.every((l) => l.id === "price" || l.id === "held") && limit != null && ask != null && limit < ask && (bid == null || limit >= bid)) word = "LIMIT";
 
   const target: [number, number] | null =
     fairLo != null && fairHi != null && fairLo > 0 && fairHi < 1
@@ -176,6 +189,8 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
     fairLo,
     fairHi,
     refName: s.referenceName,
+    consensus: consensus == null ? null : Math.round(consensus * 10_000) / 10_000,
+    agreement: agreement == null ? null : Math.round(agreement * 10_000) / 10_000,
     gap: gap == null ? null : Math.round(gap * 10_000) / 10_000,
     limit,
     target,

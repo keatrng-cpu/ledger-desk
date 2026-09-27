@@ -13,6 +13,7 @@ import type { JournalRead } from "@/lib/predict/journal";
 import { BTN, CARD, H3, type LogSeed } from "./predict-parts";
 
 const c = (x: number | null | undefined) => (x == null ? "—" : `${Math.round(x * 100)}¢`);
+const pc = (x: number | null | undefined) => (x == null ? "—" : `${(x * 100).toFixed(1)}%`);
 const sc = (x: number | null | undefined) => (x == null ? "—" : `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)}¢`);
 
 const LAYER_NAME: Record<string, string> = {
@@ -72,6 +73,18 @@ function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) 
       <div className="text-[10px] text-[var(--color-muted)]">
         {r.game} · {r.phase === "in" ? `LIVE ${r.clock}` : r.clock}
       </div>
+      {r.consensus != null && (
+        <div>
+          <span className="text-[var(--color-muted)]">Win chance </span>
+          <span className="font-semibold">{pc(r.consensus)}</span>
+          {r.agreement != null && (
+            <span className={r.agreement >= 0.05 ? "text-[var(--color-warn)]" : "text-[var(--color-muted)]"}>
+              {" "}
+              · estimates {r.agreement >= 0.05 ? "disagree by" : "within"} {(r.agreement * 100).toFixed(1)} pts
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex gap-0.5" aria-label={`${x.passed} of ${x.total} layers pass`}>
         {r.layers.map((l) => (
           <span
