@@ -20,7 +20,7 @@
  * tab is open and the switch is on.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Percent, RefreshCw } from "lucide-react";
 import { getPredictBoard, type PredictBoard } from "@/lib/predict/predict-server";
 import { LEAGUES, type League } from "@/lib/predict/board";
@@ -29,7 +29,21 @@ import { subscribePredict } from "@/lib/predict/journal";
 import { BTN, CARD, GameCard, H3, JournalCard, RoundTripCalc, type LogSeed } from "./predict-parts";
 import { PREDICT_EVIDENCE } from "@/lib/predict/evidence";
 
-const REFRESH_MS = 20_000;
+/** Choices, not a default poll: the board only refreshes while this tab is open. */
+const INTERVALS = [10_000, 20_000, 60_000] as const;
+
+/** A short tone — created only after a click arms it (browser audio rule). */
+function tone(ctx: AudioContext | null): void {
+  if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.frequency.value = 880;
+  g.gain.value = 0.07;
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start();
+  o.stop(ctx.currentTime + 0.2);
+}
 
 export function PredictTab() {
   const [league, setLeague] = useState<League>("nfl");
@@ -40,6 +54,15 @@ export function PredictTab() {
   const [seed, setSeed] = useState<LogSeed | null>(null);
   const [version, setVersion] = useState(0);
   const [view, setView] = useState<"live" | "all">("all");
+  const [every, setEvery] = useState<number>(20_000);
+  // Gap alert: opt-in, live games only, fires once per side per crossing.
+  const [alertOn, setAlertOn] = useState(false);
+  const [alertCents, setAlertCents] = useState("3");
+  const audio = useRef<AudioContext | null>(null);
+  const fired = useRef<Set<string>>(new Set());
+  const trails = useRef<Map<string, number[]>>(new Map());
+  const lastStamp = useRef<string | null>(null);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
   useEffect(() => subscribePredict(() => setVersion((n) => n + 1)), []);
 
   const load = useCallback(
@@ -58,9 +81,39 @@ export function PredictTab() {
     if (!auto) return;
     const id = setInterval(() => {
       if (typeof document === "undefined" || document.visibilityState === "visible") load(league);
-    }, REFRESH_MS);
+    }, every);
     return () => clearInterval(id);
-  }, [auto, league, load]);
+  }, [auto, every, league, load]);
+
+  // Each new board: extend every side's gap trail, and sound the armed alert
+  // when a LIVE side's gap after fees crosses the threshold. A side re-arms
+  // only after its gap falls a cent below the line — no chattering.
+  useEffect(() => {
+    if (!board || board.fetchedAt === lastStamp.current) return;
+    lastStamp.current = board.fetchedAt;
+    const line = (Number(alertCents) || 0) / 100;
+    const hits: string[] = [];
+    for (const b of board.games) {
+      for (const s of [b.away, b.home]) {
+        if (!s.side || s.edge == null) continue;
+        const arr = trails.current.get(s.side.ticker) ?? [];
+        arr.push(s.edge);
+        trails.current.set(s.side.ticker, arr.slice(-12));
+        if (b.game.state !== "in") continue;
+        const key = s.side.ticker;
+        if (s.edge >= line && !fired.current.has(key)) {
+          fired.current.add(key);
+          hits.push(`${s.team.code} ${Math.round((s.side.ask ?? 0) * 100)}¢ vs ESPN ${((s.reference ?? 0) * 100).toFixed(0)}% (+${(s.edge * 100).toFixed(1)}¢)`);
+        } else if (s.edge < line - 0.01) {
+          fired.current.delete(key);
+        }
+      }
+    }
+    if (hits.length) {
+      setAlertMsg(`Gap ≥ ${alertCents}¢ after fees: ${hits.join(" · ")} — a comparison with ESPN's model, not a call.`);
+      if (alertOn) tone(audio.current);
+    }
+  }, [board, alertCents, alertOn]);
 
   const games = (board?.games ?? []).filter((b) => (view === "live" ? b.game.state === "in" : true));
   const marks = useMemo(() => {
@@ -90,7 +143,14 @@ export function PredictTab() {
             </button>
           ))}
           <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
-            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> auto 20s
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> auto
+            <select value={every} onChange={(e) => setEvery(Number(e.target.value))} className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1 text-[11px] text-[var(--color-fg)]">
+              {INTERVALS.map((ms) => (
+                <option key={ms} value={ms}>
+                  {ms / 1000}s
+                </option>
+              ))}
+            </select>
           </label>
           <button type="button" className={`flex items-center gap-1 ${BTN}`} onClick={() => load(league)} disabled={loading}>
             <RefreshCw size={11} /> {loading ? "…" : "Refresh"}
@@ -134,12 +194,33 @@ export function PredictTab() {
           </button>
         </span>
       </div>
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
+        <label className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            checked={alertOn}
+            onChange={(e) => {
+              setAlertOn(e.target.checked);
+              if (e.target.checked && typeof window !== "undefined") {
+                const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+                if (Ctx && !audio.current) audio.current = new Ctx();
+                void audio.current?.resume();
+                tone(audio.current);
+              }
+            }}
+          />
+          beep when a live side's gap after fees reaches
+        </label>
+        <input value={alertCents} onChange={(e) => setAlertCents(e.target.value)} inputMode="decimal" className="w-10 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1 text-[11px] text-[var(--color-fg)]" />
+        <span>¢</span>
+        {alertMsg && <span className="w-full text-[var(--color-fg)]">{alertMsg}</span>}
+      </div>
       {err && <p className="text-[11px] text-[var(--color-warn)]">Board unavailable — {err}</p>}
       {board?.failed.length ? <p className="text-[11px] text-[var(--color-warn)]">Did not load: {board.failed.join(" · ")}</p> : null}
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {games.map((b) => (
-          <GameCard key={b.game.id} b={b} onLog={setSeed} />
+          <GameCard key={b.game.id} b={b} onLog={setSeed} trails={trails.current} />
         ))}
         {board && games.length === 0 && <p className="text-[11px] text-[var(--color-muted)]">{view === "live" ? "No game in progress." : "No games on the board."}</p>}
       </div>

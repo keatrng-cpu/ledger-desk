@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-09-27",
+  "sources": [
+    "alphavantage IPO_CALENDAR (captured 2026-09-27)"
+  ],
+  "note": "New listings for the Invest tab's IPO watch. Upcoming rows come from Alpha Vantage's IPO calendar (fund share classes filtered out in code); priced rows and the evidence carry their own URLs. A captured snapshot, refreshed deliberately — never polled.",
+  "evidence": [],
+  "upcoming": [
+    { "company": "Oura Inc.", "ticker": "OURA", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "price range set", "priceRange": "$40–44", "url": null },
+    { "company": "Accelevation Holdings Corp.", "ticker": "ACCV", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "price range set", "priceRange": "$20–24", "url": null },
+    { "company": "PTT PCL", "ticker": "PTT", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "listed on calendar, no range", "priceRange": null, "url": null }
+  ],
+  "priced": []
+}

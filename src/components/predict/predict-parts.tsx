@@ -32,7 +32,19 @@ export interface LogSeed {
   referenceName: string | null;
 }
 
-function SideRow({ s, onLog, gameName, league }: { s: SideRead; onLog: (seed: LogSeed) => void; gameName: string; league: string }) {
+function SideRow({
+  s,
+  onLog,
+  gameName,
+  league,
+  trail,
+}: {
+  s: SideRead;
+  onLog: (seed: LogSeed) => void;
+  gameName: string;
+  league: string;
+  trail?: number[];
+}) {
   const k = s.side;
   return (
     <div className="grid grid-cols-[3.2rem_1fr_auto] items-center gap-x-2 border-t border-[var(--color-border)] py-1 text-[11px] tabular-nums first:border-t-0">
@@ -58,6 +70,11 @@ function SideRow({ s, onLog, gameName, league }: { s: SideRead; onLog: (seed: Lo
           {s.spread != null && s.spread >= 0.03 && <span className="text-[var(--color-warn)]"> · wide spread {c(s.spread)}</span>}
           {s.longshot && <span className="text-[var(--color-warn)]"> · longshot zone (&lt;{Math.round(LONGSHOT_BELOW * 100)}¢)</span>}
         </div>
+        {trail && trail.length >= 2 && (
+          <div className="text-[10px] text-[var(--color-muted)]">
+            gap trail: {trail.slice(-6).map((x) => `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)}`).join(" → ")}¢
+          </div>
+        )}
       </div>
       <button
         type="button"
@@ -74,7 +91,7 @@ function SideRow({ s, onLog, gameName, league }: { s: SideRead; onLog: (seed: Lo
   );
 }
 
-export function GameCard({ b, onLog }: { b: BoardGame; onLog: (seed: LogSeed) => void }) {
+export function GameCard({ b, onLog, trails }: { b: BoardGame; onLog: (seed: LogSeed) => void; trails?: Map<string, number[]> }) {
   const g = b.game;
   const name = `${g.away.code} @ ${g.home.code}`;
   const live = g.state === "in";
@@ -102,8 +119,8 @@ export function GameCard({ b, onLog }: { b: BoardGame; onLog: (seed: LogSeed) =>
         {b.overround != null ? ` · book margin ${(b.overround * 100).toFixed(1)}%` : ""}
         {g.weather ? ` · ${g.weather}` : ""}
       </p>
-      <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} />
-      <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} />
+      <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined} />
+      <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined} />
       <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">{gameLine(b)}</p>
     </section>
   );

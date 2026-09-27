@@ -51,6 +51,7 @@ import { ResearchCard, type Judged } from "@/components/invest/research-card";
 import { ScreenTable } from "@/components/invest/screen-table";
 import { LimitsCard } from "@/components/invest/limits-card";
 import { DataCard } from "@/components/invest/data-card";
+import { IpoCard } from "@/components/invest/ipo-card";
 import { Note } from "@/components/invest/ui";
 
 const MARKS_CACHE = "ledger.invest.marks.v1";
@@ -232,6 +233,7 @@ export function InvestPanel() {
           budget. A person, never the model, marks a rule tripped. */}
       <KillWatchPanel />
       <ScreenTable />
+      <IpoCard />
       <LimitsCard />
       <DataCard sync={sync} syncing={syncing} onSync={runSync} entries={ledger.entries.length} onWrite={onWrite} />
 
