@@ -115,7 +115,9 @@ async function runClaude(model: string, input: string, ms: number): Promise<Thes
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
         model,
-        max_tokens: 1400,
+        max_tokens: 3000,
+        // The first live run came back cut off mid-JSON: the output budget went to thinking.
+        ...(model === SONNET ? { thinking: { type: "disabled" } } : {}),
         system: `${THESIS_INSTRUCTIONS} This call has no web search: work only from the material given and mark what still needs confirming.`,
         messages: [{ role: "user", content: input }],
       }),
@@ -130,7 +132,13 @@ async function runClaude(model: string, input: string, ms: number): Promise<Thes
       .join("\n")
       .trim();
     if (!text) return { ...run, error: `no text (stop: ${json.stop_reason ?? "?"}; blocks: ${blocks.map((b) => b.type).join(",") || "none"})` };
-    return { ...run, thesis: parseThesis(text), raw: text };
+    const thesis = parseThesis(text);
+    return {
+      ...run,
+      thesis,
+      raw: text,
+      error: thesis ? null : json.stop_reason === "max_tokens" ? `cut off at the output limit (blocks: ${blocks.map((b) => b.type).join(",")})` : "reply was not the JSON asked for",
+    };
   } catch (e) {
     return { ...run, error: e instanceof Error && e.name === "TimeoutError" ? `timed out after ${Math.round(ms / 1000)}s` : String(e).slice(0, 120) };
   }

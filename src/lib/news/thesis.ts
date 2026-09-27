@@ -66,7 +66,7 @@ export const THESIS_INSTRUCTIONS = [
   '{"headline":string,"summary":[string],"analysis":[string],',
   '"impacts":{"futures":string,"options":string,"investing":string,"predictions":string},',
   '"watch":[string],"confidence":"low"|"medium"|"high"}.',
-  "3-6 items per list, each under 240 characters. Times in ET.",
+  "3-5 items per list, each under 180 characters; the whole reply under 700 words. Times in ET.",
 ].join(" ");
 
 /** The material, as one compact block the model reads. */
