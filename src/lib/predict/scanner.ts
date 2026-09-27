@@ -17,7 +17,11 @@
  *   3. longshot       ask ≥ 20¢ — Kalshi contracts ≤10¢ lost >60% after fees
  *   4. late game      not a sub-30¢ side in the final period (historically overpriced)
  *   5. liquidity      spread ≤ 3¢ and ≥ 100 contracts at the ask
- *   6. second market  Polymarket US (NFL) does not price it more than 1¢ under the ask
+ *   6. second market  live: Polymarket US must be quoted too. FIXED 2026-09-27 after the first
+ *                     live run flashed four 2nd-quarter underdogs where ESPN's model sat 4–9¢
+ *                     above BOTH exchanges — the model was the outlier, not the price. Fair value
+ *                     is therefore the LOWEST of every estimate (book ×3 methods or ESPN live,
+ *                     and Polymarket's midpoint), pregame and live.
  *   7. QB news        pregame: no Questionable/Doubtful QB in the game before inactives
  *   8. held           live: the gap was there on the previous refresh too
  * LIMIT (pregame only): every layer but price passes and resting an order
@@ -95,15 +99,17 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
   const live = phase === "in";
   const ask = k.ask != null && k.ask > 0 && k.ask < 1 ? k.ask : null;
   const bid = k.bid != null && k.bid > 0 && k.bid < 1 ? k.bid : null;
-  const fairLo = s.reference;
-  const fairHi = live ? s.reference : (s.bookRange?.[1] ?? s.reference);
+  const pm = s.poly?.bid != null && s.poly?.ask != null ? (s.poly.bid + s.poly.ask) / 2 : null;
+  const base = s.reference;
+  const fairLo = base == null ? null : pm != null ? Math.min(base, pm) : base;
+  const hiBase = live ? base : (s.bookRange?.[1] ?? base);
+  const fairHi = hiBase == null ? null : pm != null ? Math.max(hiBase, pm) : hiBase;
   const margin = live ? SCAN.marginLive : SCAN.marginPre;
   const gap = ask != null && fairLo != null ? fairLo - ask - feePerContract(ask, 100, fees) : null;
   const limit = fairLo != null ? limitPriceFor(fairLo, 100, Math.round(margin * 100), fees) : null;
   const opp = s.team.code === b.game.home.code ? b.game.away.code : b.game.home.code;
 
   const spread = ask != null && bid != null ? ask - bid : null;
-  const pm = s.poly?.bid != null && s.poly?.ask != null ? (s.poly.bid + s.poly.ask) / 2 : null;
   const due = inactivesDue(b);
   const qb = [qbFlag(b, s.team.code), qbFlag(b, opp)].find((x) => x && /Questionable|Doubtful/i.test(x)) ?? null;
   const dueAt = due != null ? new Date(due).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) : "";
@@ -124,8 +130,8 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
     },
     {
       id: "second",
-      ok: pm == null || ask == null || pm >= ask - SCAN.polyTolerance - 1e-9,
-      detail: `Polymarket prices it at ${pc(pm)} — more than 1¢ under the ${c(ask)} ask`,
+      ok: !live || pm != null,
+      detail: "a live gap needs a second market to confirm it (Polymarket US quotes the NFL only)",
     },
     {
       id: "qb",
@@ -148,14 +154,14 @@ export function scanSide(b: BoardGame, s: SideRead, fees: FeeModel = DEFAULT_FEE
   const parts: string[] = [];
   if (fairLo != null && ask != null && gap != null) {
     const range = fairHi != null && fairHi - fairLo >= 0.0005 ? `${pc(fairLo)}–${pc(fairHi)}` : pc(fairLo);
-    parts.push(`${s.referenceName ?? "reference"} ${range} vs ask ${c(ask)}: ${sc(gap)}/contract after ${fees.label} fees`);
+    const src = `${s.referenceName ?? "reference"}${live ? ` ${pc(base)}` : ""}${pm != null ? ` · Polymarket mid ${pc(pm)}` : ""}`;
+    parts.push(`fair ${range} (lowest of: ${src}) vs ask ${c(ask)}: ${sc(gap)}/contract after ${fees.label} fees`);
   }
-  if (s.poly?.ask != null) parts.push(`Polymarket ${c(s.poly.bid)}/${c(s.poly.ask)}`);
   if (!live && s.book != null && s.bookOpen != null && Math.abs(s.book - s.bookOpen) >= 0.005) {
     parts.push(`line ${s.book > s.bookOpen ? "+" : "−"}${Math.abs((s.book - s.bookOpen) * 100).toFixed(1)} pts since open`);
   }
   if (k.askSize != null) parts.push(`${k.askSize >= 1000 ? `${Math.round(k.askSize / 1000)}K` : Math.round(k.askSize)} at the ask`);
-  if (live) parts.push("ESPN's live model is the reference — live gaps often close by the model catching up, not the price");
+  if (live && base != null && pm != null && base - pm >= 0.03) parts.push(`ESPN's model is ${((base - pm) * 100).toFixed(1)} pts above Polymarket — the lower one is used`);
 
   return {
     key: k.ticker,
