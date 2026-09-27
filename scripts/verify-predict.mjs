@@ -258,6 +258,22 @@ const rows = SC.scanBoard(sb, M.DEFAULT_FEES, new Map(), early);
 check("GO sorts first", rows[0].word, "GO");
 check("stats count it", SC.scanStats(rows, sb).go, 1);
 
+console.log("\ntop setups — the four closest to GO");
+const IDS = ["reference", "price", "longshot", "late", "liquidity", "second", "qb", "held"];
+const mk = (key, word, fails, ask, limit, gap) => ({ key, word, ask, limit, gap, layers: IDS.map((id) => ({ id, ok: !fails.includes(id), detail: id })) });
+const pool = [
+  mk("longshot", "STAND", ["longshot"], 0.15, 0.3, 0.1),
+  mk("near", "STAND", ["price"], 0.55, 0.51, -0.003),
+  mk("go", "GO", [], 0.4, 0.42, 0.02),
+  mk("far", "STAND", ["price"], 0.6, 0.5, -0.05),
+  mk("two", "STAND", ["price", "qb"], 0.5, 0.49, 0),
+  mk("limit", "LIMIT", ["price"], 0.5, 0.49, 0.001),
+];
+check("GO, LIMIT, then the nearest price-only setups; a longshot is never 'almost'", SC.topSetups(pool, 4).map((r) => r.key), ["go", "limit", "near", "far"]);
+check("readiness: 7 of 8, 4¢ away", [SC.readiness(pool[1]).passed, SC.readiness(pool[1]).priceAway], [7, 0.04]);
+check("a longshot block is hard", SC.readiness(pool[0]).hard, true);
+check("always four when the board has four", SC.topSetups(pool).length, 4);
+
 console.log("\nthe GO ledger");
 check("the first GO print is recorded", GL.recordGo([go], M.DEFAULT_FEES, "2026-09-27T12:00:00Z").length, 1);
 check("the same contract is not recorded twice", GL.recordGo([go]).length, 0);

@@ -1,17 +1,30 @@
 /**
- * The Predict scanner card list — GO rows flash green, LIMIT rows hold amber,
- * STAND rows fold away with the one missing layer. Built for a phone: one
- * column, the word first, then the entry, the target, the reason.
+ * The Predict scanner as setup squares — the four setups closest to GO,
+ * always shown, the way the desk shows a trade that is almost ready: the
+ * word (GO flashes green, LIMIT holds amber, SETUP x/8 otherwise), a bar per
+ * must-layer, what it still needs and how far away it is, the entry range,
+ * the target range and the reason. The rest fold underneath.
  */
 
 import { useState } from "react";
-import type { ScanRow, ScanStats } from "@/lib/predict/scanner";
+import { readiness, topSetups, type ScanRow, type ScanStats } from "@/lib/predict/scanner";
 import type { GoStats } from "@/lib/predict/go-ledger";
 import type { JournalRead } from "@/lib/predict/journal";
 import { BTN, CARD, H3, type LogSeed } from "./predict-parts";
 
 const c = (x: number | null | undefined) => (x == null ? "—" : `${Math.round(x * 100)}¢`);
 const sc = (x: number | null | undefined) => (x == null ? "—" : `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)}¢`);
+
+const LAYER_NAME: Record<string, string> = {
+  reference: "fair value",
+  price: "price",
+  longshot: "not a longshot",
+  late: "not late-game dog",
+  liquidity: "spread + depth",
+  second: "second market",
+  qb: "QB settled",
+  held: "gap held",
+};
 
 function Light({ word }: { word: ScanRow["word"] }) {
   if (word === "GO") {
@@ -22,41 +35,71 @@ function Light({ word }: { word: ScanRow["word"] }) {
       </span>
     );
   }
-  return <span className={`inline-flex h-3 w-3 shrink-0 rounded-full ${word === "LIMIT" ? "bg-[var(--color-warn)]" : "bg-[var(--color-border)]"}`} aria-hidden />;
+  return <span className={`inline-flex h-3 w-3 shrink-0 rounded-full ${word === "LIMIT" ? "bg-[var(--color-warn)]" : "bg-[var(--color-muted)]"}`} aria-hidden />;
 }
 
 function seedOf(r: ScanRow): LogSeed {
   return { league: r.league, game: r.game, ticker: r.key, team: r.team, entry: r.ask ?? 0, reference: r.fairLo, referenceName: r.refName };
 }
 
-function ScanCard({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) {
+function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) {
+  const x = readiness(r);
   const go = r.word === "GO";
+  const lim = r.word === "LIMIT";
+  const failing = r.layers.filter((l) => !l.ok);
+  const priceFails = failing.some((l) => l.id === "price");
+  const label = go ? (r.phase === "in" ? "LIVE GO" : "GO") : lim ? "LIMIT" : `SETUP ${x.passed}/${x.total}`;
+  const tone = go
+    ? "border-[var(--color-up)] bg-[color-mix(in_oklab,var(--color-up)_12%,transparent)]"
+    : lim
+      ? "border-[color-mix(in_oklab,var(--color-warn)_60%,transparent)]"
+      : x.hard
+        ? "border-[var(--color-border)] opacity-80"
+        : "border-[color-mix(in_oklab,var(--color-warn)_35%,transparent)]";
+  const needs = go
+    ? "Every layer passes."
+    : priceFails && x.priceAway != null && r.limit != null
+      ? `ask ≤ ${c(r.limit)} — now ${c(r.ask)}, ${(x.priceAway * 100).toFixed(0)}¢ away${failing.length > 1 ? ` · also: ${failing.filter((l) => l.id !== "price").map((l) => LAYER_NAME[l.id]).join(", ")}` : ""}`
+      : (r.missing ?? "");
   return (
-    <div
-      className={`rounded-md border p-2 text-[11px] leading-snug tabular-nums ${
-        go
-          ? "border-[var(--color-up)] bg-[color-mix(in_oklab,var(--color-up)_12%,transparent)]"
-          : "border-[color-mix(in_oklab,var(--color-warn)_55%,transparent)]"
-      }`}
-    >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+    <div className={`flex min-w-0 flex-col gap-1 rounded-md border p-2 text-[11px] leading-snug tabular-nums ${tone}`}>
+      <div className="flex items-center gap-1.5">
         <Light word={r.word} />
-        <span className={`font-bold ${go ? "text-[var(--color-up)]" : "text-[var(--color-warn)]"}`}>{go ? (r.phase === "in" ? "LIVE GO" : "GO") : "LIMIT"}</span>
+        <span className={`font-bold ${go ? "text-[var(--color-up)]" : lim ? "text-[var(--color-warn)]" : "text-[var(--color-fg)]"}`}>{label}</span>
         <span className="text-xs font-semibold">{r.team}</span>
-        <span className="text-[var(--color-muted)]">
-          {r.game} · {r.clock}
-        </span>
-        <span className="ml-auto font-semibold">{sc(r.gap)}/contract</span>
+        <span className={`ml-auto font-semibold ${(r.gap ?? -1) > 0 ? "text-[var(--color-up)]" : "text-[var(--color-muted)]"}`}>{sc(r.gap)}</span>
       </div>
-      <div className="mt-1">
+      <div className="text-[10px] text-[var(--color-muted)]">
+        {r.game} · {r.phase === "in" ? `LIVE ${r.clock}` : r.clock}
+      </div>
+      <div className="flex gap-0.5" aria-label={`${x.passed} of ${x.total} layers pass`}>
+        {r.layers.map((l) => (
+          <span
+            key={l.id}
+            title={`${LAYER_NAME[l.id]}: ${l.ok ? "pass" : l.detail}`}
+            className={`h-1.5 flex-1 rounded-sm ${l.ok ? "bg-[var(--color-up)]" : "bg-[var(--color-down)]"}`}
+          />
+        ))}
+      </div>
+      <div>
+        <span className="text-[var(--color-muted)]">Needs </span>
+        <span className={go ? "text-[var(--color-up)]" : ""}>{needs}</span>
+      </div>
+      <div>
         <span className="text-[var(--color-muted)]">Entry </span>
-        {go ? (
+        {r.limit == null ? (
+          "no price near the market clears fees"
+        ) : go ? (
           <>
-            buy at <span className="font-semibold">≤ {c(r.limit)}</span> (ask {c(r.ask)} · bid {c(r.bid)})
+            buy <span className="font-semibold">≤ {c(r.limit)}</span> (ask {c(r.ask)} · bid {c(r.bid)})
+          </>
+        ) : lim ? (
+          <>
+            rest a limit <span className="font-semibold">{c(r.bid)}–{c(r.limit)}</span>
           </>
         ) : (
           <>
-            rest a limit at <span className="font-semibold">{c(r.bid)}–{c(r.limit)}</span> (ask {c(r.ask)} is too high)
+            <span className="font-semibold">≤ {c(r.limit)}</span> if it comes (ask {c(r.ask)} · bid {c(r.bid)})
           </>
         )}
       </div>
@@ -64,19 +107,21 @@ function ScanCard({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) {
         <span className="text-[var(--color-muted)]">Target </span>
         {r.target ? (
           <>
-            sell at <span className="font-semibold">≥ {c(r.target[0])}{r.target[1] > r.target[0] ? `–${c(r.target[1])}` : ""}</span> (fair after the exit fee), or hold
+            sell <span className="font-semibold">≥ {c(r.target[0])}{r.target[1] > r.target[0] ? `–${c(r.target[1])}` : ""}</span> or hold
           </>
         ) : (
           "hold to settlement"
         )}
-        {r.winPays != null && <span className="text-[var(--color-muted)]"> · a win pays {c(r.winPays)}/contract</span>}
+        {r.winPays != null && <span className="text-[var(--color-muted)]"> · win pays {c(r.winPays)}</span>}
       </div>
-      <div className="mt-0.5 text-[10px] text-[var(--color-muted)]">{r.analysis}</div>
-      <div className="mt-1 flex items-center gap-2">
+      <div className="line-clamp-3 text-[10px] text-[var(--color-muted)]" title={r.analysis}>
+        {r.analysis}
+      </div>
+      <div className="mt-auto flex items-center gap-2 pt-1">
         <button type="button" className={BTN} onClick={() => onLog(seedOf(r))} disabled={r.ask == null}>
           Log fill
         </button>
-        <span className="text-[10px] text-[var(--color-muted)]">Check Robinhood's price is ≤ {c(r.limit)} before buying — its quote can sit a cent or two off Kalshi's.</span>
+        {!go && <span className="text-[10px] text-[var(--color-muted)]">not ready — {x.hard ? "blocked" : "watch it"}</span>}
       </div>
     </div>
   );
@@ -104,36 +149,34 @@ export function StatsStrip({ stats, goStats, journal, fetchedAt }: { stats: Scan
 }
 
 export function ScannerList({ rows, stats, onLog }: { rows: ScanRow[]; stats: ScanStats; onLog: (s: LogSeed) => void }) {
-  const [showStand, setShowStand] = useState(false);
-  const act = rows.filter((r) => r.word !== "STAND");
-  const stand = rows.filter((r) => r.word === "STAND");
+  const [showRest, setShowRest] = useState(false);
+  const top = topSetups(rows, 4);
+  const shown = new Set(top.map((r) => r.key));
+  const moreReady = rows.filter((r) => r.word !== "STAND" && !shown.has(r.key));
+  const rest = rows.filter((r) => r.word === "STAND" && !shown.has(r.key));
   return (
     <section className={CARD}>
-      <h3 className={H3}>Scanner · green = every layer passes</h3>
-      <div className="space-y-2">
-        {act.map((r) => (
-          <ScanCard key={r.key} r={r} onLog={onLog} />
+      <h3 className={H3}>
+        Top setups · {stats.go ? `${stats.go} GO` : "no GO yet — the 4 closest, and what each still needs"}
+      </h3>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {[...top, ...moreReady].map((r) => (
+          <SetupSquare key={r.key} r={r} onLog={onLog} />
         ))}
-        {!act.length && (
-          <p className="text-[11px] text-[var(--color-muted)]">
-            Nothing clears every layer right now — no light is the scanner working, not failing.
-            {stats.closest && (
-              <>
-                {" "}
-                Closest: <span className="text-[var(--color-fg)]">{stats.closest.team}</span> ({stats.closest.game}) {sc(stats.closest.gap)}/contract — {stats.closest.missing}.
-              </>
-            )}
-          </p>
-        )}
       </div>
-      {stand.length > 0 && (
+      {!top.length && <p className="text-[11px] text-[var(--color-muted)]">No priced sides on the board.</p>}
+      <p className="mt-1 text-[10px] text-[var(--color-muted)]">
+        Bars, left to right: fair value · price · not a longshot · not a late-game dog · spread + depth · second market · QB settled · gap held. Green = pass.
+        GO needs all eight; only GO is a trade.
+      </p>
+      {rest.length > 0 && (
         <>
-          <button type="button" className={`mt-2 ${BTN}`} onClick={() => setShowStand(!showStand)}>
-            {showStand ? "Hide" : "Show"} {stand.length} STAND
+          <button type="button" className={`mt-2 ${BTN}`} onClick={() => setShowRest(!showRest)}>
+            {showRest ? "Hide" : "Show"} {rest.length} more
           </button>
-          {showStand && (
+          {showRest && (
             <ul className="mt-1 space-y-0.5 text-[10px] tabular-nums">
-              {stand.map((r) => (
+              {rest.map((r) => (
                 <li key={r.key} className="flex flex-wrap gap-x-1.5 border-t border-[var(--color-border)] pt-0.5">
                   <span className="font-semibold">{r.team}</span>
                   <span className="text-[var(--color-muted)]">

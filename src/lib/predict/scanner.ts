@@ -226,3 +226,47 @@ export function scanStats(rows: ScanRow[], games: BoardGame[]): ScanStats {
     closest: rows.find((r) => r.word !== "GO" && r.gap != null) ?? null,
   };
 }
+
+/** Layers that can clear on their own soon (the price moves, the next refresh, inactives, depth arriving). */
+const SOFT = new Set<ScanLayer["id"]>(["price", "held", "qb", "liquidity"]);
+
+export interface Readiness {
+  passed: number;
+  total: number;
+  /** Dollars the ask must fall to reach the limit (0 when the price layer passes; null when there is no limit). */
+  priceAway: number | null;
+  /** A failing layer that no price move fixes: no reference, longshot, late underdog, no second market. */
+  hard: boolean;
+}
+
+export function readiness(r: ScanRow): Readiness {
+  const priceOk = r.layers.find((l) => l.id === "price")?.ok ?? false;
+  const away = priceOk ? 0 : r.ask != null && r.limit != null ? Math.max(0, r.ask - r.limit) : null;
+  return {
+    passed: r.layers.filter((l) => l.ok).length,
+    total: r.layers.length,
+    priceAway: away == null ? null : Math.round(away * 10_000) / 10_000,
+    hard: r.layers.some((l) => !l.ok && !SOFT.has(l.id)),
+  };
+}
+
+/**
+ * The n setups closest to GO — shown even when nothing passes, the way the
+ * desk shows a setup that is almost ready: GO, then LIMIT, then setups whose
+ * only failures can clear by themselves, fewest failures first, smallest
+ * price distance first. A longshot or a late underdog is never "almost".
+ */
+export function topSetups(rows: ScanRow[], n = 4): ScanRow[] {
+  const key = (r: ScanRow): number[] => {
+    const x = readiness(r);
+    return [RANK[r.word], x.hard ? 1 : 0, x.total - x.passed, x.priceAway ?? 9, -(r.gap ?? -9)];
+  };
+  return [...rows]
+    .sort((a, b) => {
+      const ka = key(a);
+      const kb = key(b);
+      for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] - kb[i];
+      return 0;
+    })
+    .slice(0, n);
+}
