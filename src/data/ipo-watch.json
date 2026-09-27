@@ -1,14 +1,314 @@
 {
-  "capturedAt": "2026-09-27",
-  "sources": [
-    "alphavantage IPO_CALENDAR (captured 2026-09-27)"
-  ],
-  "note": "New listings for the Invest tab's IPO watch. Upcoming rows come from Alpha Vantage's IPO calendar (fund share classes filtered out in code); priced rows and the evidence carry their own URLs. A captured snapshot, refreshed deliberately — never polled.",
-  "evidence": [],
-  "upcoming": [
-    { "company": "Oura Inc.", "ticker": "OURA", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "price range set", "priceRange": "$40–44", "url": null },
-    { "company": "Accelevation Holdings Corp.", "ticker": "ACCV", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "price range set", "priceRange": "$20–24", "url": null },
-    { "company": "PTT PCL", "ticker": "PTT", "exchange": "NASDAQ", "expected": "2026-09-30", "status": "listed on calendar, no range", "priceRange": null, "url": null }
-  ],
-  "priced": []
+ "capturedAt": "2026-09-27",
+ "sources": [
+  "Form 424B4 / S-1 / F-1 filings on SEC EDGAR (per row)",
+  "Nasdaq historical quotes (first-day closes)",
+  "Ritter, IPO Statistics (Sept 2026)",
+  "Alpha Vantage IPO_CALENDAR",
+  "Renaissance Capital"
+ ],
+ "note": "New listings for the Invest tab's IPO watch, researched 2026-09-27. Priced rows: the 15 largest operating-company IPOs priced 2025-10-01 → 2026-09-27 by base deal size; lockupExpires = 424B4 prospectus date + its stated day count (several deals also release shares early on price or earnings triggers — the prospectus governs, and underwriters can waive any lock-up). Pipeline rows other than Oura and Accelevation have no dated schedule. A captured snapshot, refreshed deliberately — never polled. Not investment advice.",
+ "evidence": [
+  {
+   "id": "lr1995",
+   "claim": "4,753 US IPOs from 1970–1990 returned about 5% a year over the five years after issue, versus 12% for non-issuers of the same size.",
+   "source": "Loughran & Ritter, 'The New Issues Puzzle', Journal of Finance 50(1), 1995",
+   "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.1995.tb05166.x"
+  },
+  {
+   "id": "ritter-3yr",
+   "claim": "Bought at the first-day close, 9,253 IPOs from 1980–2024 returned 19.1% over three years — 20.5 points behind the total market (about −5.5% a year) and 8.9 behind size- and value-matched firms.",
+   "source": "Ritter, 'Initial Public Offerings: Updated Statistics', Table 19 (Sept 2026)",
+   "url": "https://site.warrington.ufl.edu/ritter/files/IPO-Statistics.pdf"
+  },
+  {
+   "id": "ritter-median",
+   "claim": "The MEDIAN IPO bought at the first close returned −25.7% over three years; 60% returned zero or less and 38.5% lost more than half.",
+   "source": "Ritter, Table 16e (1975–2021)",
+   "url": "https://site.warrington.ufl.edu/ritter/files/IPO-Statistics.pdf"
+  },
+  {
+   "id": "ritter-pop",
+   "claim": "The average first-day return was 19.0% (1980–2025). Measured from the OFFER price the 3-year return is 36.3%; from the first CLOSE it is 19.1% — the difference is the pop, which only investors allocated shares at the offer receive.",
+   "source": "Ritter, Tables 1 and 16f",
+   "url": "https://site.warrington.ufl.edu/ritter/files/IPO-Statistics.pdf"
+  },
+  {
+   "id": "ritter-profit",
+   "claim": "IPOs with negative trailing earnings returned −0.5% over three years (−30.7 vs the market); profitable ones +33.6% (−13.0). Since 2001, IPOs with over $100M of sales roughly matched the market (+1.2 points); those with less lost 34.9 points.",
+   "source": "Ritter, Tables 16b and 19a",
+   "url": "https://site.warrington.ufl.edu/ritter/files/IPO-Statistics.pdf"
+  },
+  {
+   "id": "ritter-recent",
+   "claim": "Recent cohorts bought at the first close: 2020 −48.1% and 2021 −49.1% over three years (−78.6 and −68.6 vs the market).",
+   "source": "Ritter, Table 19 (2020–2021 rows)",
+   "url": "https://site.warrington.ufl.edu/ritter/files/IPO-Statistics.pdf"
+  },
+  {
+   "id": "lockup",
+   "claim": "Across 1,948 IPO lock-ups (usually 180 days), expiry brought a 40% jump in trading volume and a −1.5% three-day abnormal return, larger for venture-backed firms.",
+   "source": "Field & Hanka, 'The Expiration of IPO Share Lockups', Journal of Finance 56(2), 2001",
+   "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/0022-1082.00334"
+  },
+  {
+   "id": "hot-market",
+   "claim": "2026 is a record year for IPO dollars ($146.9B raised through Sept 27, led by SpaceX's $75B). Loughran & Ritter found underperformance concentrated in high-volume issuance years — an inference for this cohort, not yet a finding.",
+   "source": "Renaissance Capital 2026 stats; Loughran & Ritter 1995",
+   "url": "https://www.renaissancecapital.com/IPO-Center/Stats"
+  }
+ ],
+ "upcoming": [
+  {
+   "company": "Oura Inc.",
+   "ticker": "OURA",
+   "exchange": "Nasdaq",
+   "expected": "2026-09-30",
+   "status": "price range set",
+   "priceRange": "$40–44 (50M shares: 13.5M new + 36.5M sold by holders)",
+   "url": "https://www.sec.gov/Archives/edgar/data/2133022/000119312526396051/d119865ds1a.htm"
+  },
+  {
+   "company": "Accelevation Holdings Corp.",
+   "ticker": "ACCV",
+   "exchange": "Nasdaq",
+   "expected": "2026-09-30",
+   "status": "price range set",
+   "priceRange": "$20–24 (30M Class A shares)",
+   "url": "https://www.sec.gov/Archives/edgar/data/2141406/000162828026062945/accelevationllc-sx1a2.htm"
+  },
+  {
+   "company": "SB Energy, Inc.",
+   "ticker": "SBE",
+   "exchange": "Nasdaq",
+   "expected": null,
+   "status": "filed — reported delayed to mid/late October",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2133037/000162828026062846/sbenergy-sx1a2.htm"
+  },
+  {
+   "company": "Anthropic PBC",
+   "ticker": null,
+   "exchange": null,
+   "expected": null,
+   "status": "filed confidentially 2026-06-01 — press reports a November target",
+   "priceRange": null,
+   "url": "https://www.anthropic.com/news/confidential-draft-s1-sec"
+  },
+  {
+   "company": "Nscale Limited",
+   "ticker": "NSCL",
+   "exchange": "NYSE",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2110365/000119312526395475/ck0002110365-20260918.htm"
+  },
+  {
+   "company": "Aggreko Inc.",
+   "ticker": "AGKO",
+   "exchange": "NYSE",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2134090/000110465926108544/tmq-20260917xf1a.htm"
+  },
+  {
+   "company": "Cumberland Farms Ltd (formerly EG Group)",
+   "ticker": "CMBY",
+   "exchange": "Nasdaq",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2123232/000119312526382176/d113224df1a.htm"
+  },
+  {
+   "company": "The Wella Company",
+   "ticker": "WELA",
+   "exchange": "NYSE",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2125056/000162828026063205/wellaoperations-sx1a1.htm"
+  },
+  {
+   "company": "Entrata, Inc.",
+   "ticker": "ENT",
+   "exchange": "NYSE",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2028464/000162828026059692/entrata-sx1a2.htm"
+  },
+  {
+   "company": "Tailored Brands, Inc. (Men's Wearhouse)",
+   "ticker": "MW",
+   "exchange": "Nasdaq",
+   "expected": null,
+   "status": "filed",
+   "priceRange": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2045151/000121390026095715/ea0285017-07.htm"
+  },
+  {
+   "company": "Switch, Inc.",
+   "ticker": null,
+   "exchange": null,
+   "expected": null,
+   "status": "reported confidential filing (unconfirmed by the company)",
+   "priceRange": null,
+   "url": "https://www.investing.com/news/stock-market-news/data-center-firm-switch-confidentially-files-for-us-ipo-bloomberg-news-reports-4847526"
+  }
+ ],
+ "priced": [
+  {
+   "company": "Space Exploration Technologies Corp. (SpaceX)",
+   "ticker": "SPCX",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-06-11",
+   "offerPrice": 135.0,
+   "firstDayClose": 160.95,
+   "lockupExpires": "2026-12-08",
+   "url": "https://www.sec.gov/Archives/edgar/data/1181412/000162828026042639/spaceexplorationtechnologi.htm"
+  },
+  {
+   "company": "SK hynix Inc. (ADS)",
+   "ticker": "SKHY",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-07-09",
+   "offerPrice": 149.0,
+   "firstDayClose": 168.01,
+   "lockupExpires": "2026-10-07",
+   "url": "https://www.sec.gov/Archives/edgar/data/2120882/000119312526299963/d32785d424b4.htm"
+  },
+  {
+   "company": "Medline Inc.",
+   "ticker": "MDLN",
+   "exchange": "Nasdaq",
+   "pricedOn": "2025-12-16",
+   "offerPrice": 29.0,
+   "firstDayClose": 41.0,
+   "lockupExpires": "2026-06-14",
+   "url": "https://www.sec.gov/Archives/edgar/data/2046386/000119312525323742/d77351d424b4.htm"
+  },
+  {
+   "company": "Cerebras Systems Inc.",
+   "ticker": "CBRS",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-05-13",
+   "offerPrice": 185.0,
+   "firstDayClose": 311.07,
+   "lockupExpires": "2026-11-09",
+   "url": "https://www.sec.gov/Archives/edgar/data/2021728/000162828026035214/cerebras-424b4.htm"
+  },
+  {
+   "company": "INNIO N.V.",
+   "ticker": "INIO",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-06-03",
+   "offerPrice": 27.0,
+   "firstDayClose": 33.3,
+   "lockupExpires": "2026-11-30",
+   "url": "https://www.sec.gov/Archives/edgar/data/2109150/000119312526256992/liberty_-_424b4.htm"
+  },
+  {
+   "company": "Madison Air Solutions Corporation",
+   "ticker": "MAIR",
+   "exchange": "NYSE",
+   "pricedOn": "2026-04-15",
+   "offerPrice": 27.0,
+   "firstDayClose": 31.75,
+   "lockupExpires": "2026-10-12",
+   "url": "https://www.sec.gov/Archives/edgar/data/2098430/000119312526160250/project_breathe_form_424.htm"
+  },
+  {
+   "company": "Fervo Energy Company",
+   "ticker": "FRVO",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-05-12",
+   "offerPrice": 27.0,
+   "firstDayClose": 36.54,
+   "lockupExpires": "2026-11-08",
+   "url": "https://www.sec.gov/Archives/edgar/data/1853868/000162828026034849/fervoenergy-424b4.htm"
+  },
+  {
+   "company": "Bending Spoons S.p.A.",
+   "ticker": "BSP",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-06-30",
+   "offerPrice": 29.0,
+   "firstDayClose": 40.5,
+   "lockupExpires": null,
+   "url": "https://www.sec.gov/Archives/edgar/data/2004711/000110465926079884/tm2613674-14_424b4.htm"
+  },
+  {
+   "company": "Quantinuum Inc.",
+   "ticker": "QNT",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-06-03",
+   "offerPrice": 60.0,
+   "firstDayClose": 60.38,
+   "lockupExpires": "2026-11-30",
+   "url": "https://www.sec.gov/Archives/edgar/data/2110105/000162828026041003/quantinuum-424b4.htm"
+  },
+  {
+   "company": "Forgent Power Solutions, Inc.",
+   "ticker": "FPS",
+   "exchange": "NYSE",
+   "pricedOn": "2026-02-04",
+   "offerPrice": 27.0,
+   "firstDayClose": 29.0,
+   "lockupExpires": "2026-08-03",
+   "url": "https://www.sec.gov/Archives/edgar/data/2080126/000119312526040029/d890989d424b4.htm"
+  },
+  {
+   "company": "Arxis, Inc.",
+   "ticker": "ARXS",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-04-15",
+   "offerPrice": 28.0,
+   "firstDayClose": 38.75,
+   "lockupExpires": "2026-10-12",
+   "url": "https://www.sec.gov/Archives/edgar/data/2093536/000119312526159369/d81728d424b4.htm"
+  },
+  {
+   "company": "Csquare, Inc.",
+   "ticker": "CSQR",
+   "exchange": "NYSE",
+   "pricedOn": "2026-07-15",
+   "offerPrice": 21.0,
+   "firstDayClose": 20.67,
+   "lockupExpires": "2027-01-11",
+   "url": "https://www.sec.gov/Archives/edgar/data/2105398/000110465926084293/tm264837-15_424b4.htm"
+  },
+  {
+   "company": "X-Energy, Inc.",
+   "ticker": "XE",
+   "exchange": "Nasdaq",
+   "pricedOn": "2026-04-23",
+   "offerPrice": 23.0,
+   "firstDayClose": 29.2,
+   "lockupExpires": "2026-10-20",
+   "url": "https://www.sec.gov/Archives/edgar/data/2088896/000110465926049515/tm2527015-22_424b4.htm"
+  },
+  {
+   "company": "BETA Technologies, Inc.",
+   "ticker": "BETA",
+   "exchange": "NYSE",
+   "pricedOn": "2025-11-03",
+   "offerPrice": 34.0,
+   "firstDayClose": 36.0,
+   "lockupExpires": "2026-05-02",
+   "url": "https://www.sec.gov/Archives/edgar/data/1784570/000119312525265029/d89594d424b4.htm"
+  },
+  {
+   "company": "Jersey Mike's Subs Inc.",
+   "ticker": "JMKE",
+   "exchange": "NYSE",
+   "pricedOn": "2026-07-29",
+   "offerPrice": 23.0,
+   "firstDayClose": 21.63,
+   "lockupExpires": "2027-01-25",
+   "url": "https://www.sec.gov/Archives/edgar/data/2127043/000119312526326453/project_70_424b4.htm"
+  }
+ ]
 }

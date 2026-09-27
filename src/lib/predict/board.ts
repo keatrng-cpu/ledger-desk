@@ -1,9 +1,11 @@
 /**
  * The Predict board — Kalshi game contracts next to independent references.
  *
- * Robinhood's sports event contracts are listed on Kalshi, so Kalshi's public
- * order book is the price the trader sees (Robinhood adds its own commission;
- * math.ts carries both). Each game gets:
+ * Robinhood routes sports contracts to several exchanges — on 2026-09-27 its
+ * NFL moneylines were listed on Rothera, with OG.com and Kalshi also in the
+ * routing. Kalshi's public order book is the closest public proxy (within a
+ * cent or two of Robinhood's quotes that morning); the fee model is chosen
+ * per venue in math.ts. Each game gets:
  *   - the contract's bid / ask / last / volume for both teams (Kalshi API);
  *   - DraftKings' moneyline with the bookmaker margin removed (via ESPN's
  *     scoreboard) — the sportsbook consensus, pregame;
@@ -331,9 +333,28 @@ export function threeWay(s: SideRead): string {
   return `${s.team.code}: market ${p0(s.market)} · book ${p0(s.book)} · ESPN ${s.live != null ? "live" : "model"} ${p0(model)}`;
 }
 
+/** A side's value at the ask for a chosen venue's fees (the server computes the default venue). */
+export function sideEdge(s: SideRead, fees: FeeModel = DEFAULT_FEES): number | null {
+  const ask = s.side?.ask ?? null;
+  if (ask == null || s.reference == null || !(ask > 0 && ask < 1)) return null;
+  return Math.round(entryEdge(ask, s.reference, fees).edge * 1000) / 1000;
+}
+
+/**
+ * Late-game underdog: a live side under 30¢ in the final period. The
+ * evidence (Page 2012; Moshrefi 2026) is that these win less often than
+ * their price — the opposite of what "buy the comeback" hopes.
+ */
+export function lateUnderdog(b: BoardGame, s: SideRead): boolean {
+  if (b.game.state !== "in" || s.side?.ask == null || s.side.ask >= 0.3) return false;
+  return /\b(4th|OT|9th|3rd Period|4th Quarter)\b/i.test(b.game.detail);
+}
+
 /** One sentence per game, for the top of the card. Mechanics, not a pick. */
-export function gameLine(b: BoardGame): string {
-  const sides = [b.away, b.home].filter((s) => s.edge != null && s.side);
+export function gameLine(b: BoardGame, fees: FeeModel = DEFAULT_FEES): string {
+  const sides = [b.away, b.home]
+    .map((s) => ({ ...s, edge: sideEdge(s, fees) }))
+    .filter((s) => s.edge != null && s.side);
   if (!sides.length) return b.eventTicker ? "No reference to compare against yet." : "No Kalshi contract found for this game.";
   const best = [...sides].sort((x, y) => (y.edge ?? -1) - (x.edge ?? -1))[0];
   const e = best.edge ?? 0;

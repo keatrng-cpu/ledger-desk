@@ -24,9 +24,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Percent, RefreshCw } from "lucide-react";
 import { getPredictBoard, type PredictBoard } from "@/lib/predict/predict-server";
 import { LEAGUES, type League } from "@/lib/predict/board";
-import { DEFAULT_FEES } from "@/lib/predict/math";
+import { VENUES, type VenueId } from "@/lib/predict/math";
+import { sideEdge } from "@/lib/predict/board";
 import { subscribePredict } from "@/lib/predict/journal";
-import { BTN, CARD, GameCard, H3, JournalCard, RoundTripCalc, type LogSeed } from "./predict-parts";
+import { BTN, CARD, GameCard, H3, JournalCard, RoundTripCalc, VenuePicker, type LogSeed } from "./predict-parts";
 import { PREDICT_EVIDENCE } from "@/lib/predict/evidence";
 
 /** Choices, not a default poll: the board only refreshes while this tab is open. */
@@ -55,6 +56,8 @@ export function PredictTab() {
   const [version, setVersion] = useState(0);
   const [view, setView] = useState<"live" | "all">("all");
   const [every, setEvery] = useState<number>(20_000);
+  const [venue, setVenue] = useState<VenueId>("rh-rothera");
+  const fees = VENUES[venue];
   // Gap alert: opt-in, live games only, fires once per side per crossing.
   const [alertOn, setAlertOn] = useState(false);
   const [alertCents, setAlertCents] = useState("3");
@@ -95,16 +98,18 @@ export function PredictTab() {
     const hits: string[] = [];
     for (const b of board.games) {
       for (const s of [b.away, b.home]) {
-        if (!s.side || s.edge == null) continue;
-        const arr = trails.current.get(s.side.ticker) ?? [];
-        arr.push(s.edge);
-        trails.current.set(s.side.ticker, arr.slice(-12));
+        const side = s.side;
+        const e = sideEdge(s, fees);
+        if (!side || e == null) continue;
+        const arr = trails.current.get(side.ticker) ?? [];
+        arr.push(e);
+        trails.current.set(side.ticker, arr.slice(-12));
         if (b.game.state !== "in") continue;
-        const key = s.side.ticker;
-        if (s.edge >= line && !fired.current.has(key)) {
+        const key = side.ticker;
+        if (e >= line && !fired.current.has(key)) {
           fired.current.add(key);
-          hits.push(`${s.team.code} ${Math.round((s.side.ask ?? 0) * 100)}¢ vs ESPN ${((s.reference ?? 0) * 100).toFixed(0)}% (+${(s.edge * 100).toFixed(1)}¢)`);
-        } else if (s.edge < line - 0.01) {
+          hits.push(`${s.team.code} ${Math.round((side.ask ?? 0) * 100)}¢ vs ESPN ${((s.reference ?? 0) * 100).toFixed(0)}% (+${(e * 100).toFixed(1)}¢)`);
+        } else if (e < line - 0.01) {
           fired.current.delete(key);
         }
       }
@@ -113,7 +118,7 @@ export function PredictTab() {
       setAlertMsg(`Gap ≥ ${alertCents}¢ after fees: ${hits.join(" · ")} — a comparison with ESPN's model, not a call.`);
       if (alertOn) tone(audio.current);
     }
-  }, [board, alertCents, alertOn]);
+  }, [board, alertCents, alertOn, fees]);
 
   const games = (board?.games ?? []).filter((b) => (view === "live" ? b.game.state === "in" : true));
   const marks = useMemo(() => {
@@ -126,9 +131,9 @@ export function PredictTab() {
     return {
       live: gs.filter((b) => b.game.state === "in").length,
       pre: gs.filter((b) => b.game.state === "pre").length,
-      gaps: gs.flatMap((b) => [b.away, b.home]).filter((s) => (s.edge ?? -1) > 0.005).length,
+      gaps: gs.flatMap((b) => [b.away, b.home]).filter((s) => (sideEdge(s, fees) ?? -1) > 0.005).length,
     };
-  }, [board]);
+  }, [board, fees]);
 
   return (
     <div className="space-y-3">
@@ -173,9 +178,12 @@ export function PredictTab() {
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-[10px] text-[var(--color-muted)]">
-          Fees modelled: {DEFAULT_FEES.source} (checked {DEFAULT_FEES.checkedAt}). Not financial advice; the tab compares prices, it does not pick winners.
-        </p>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-[var(--color-muted)]">
+          <VenuePicker venue={venue} setVenue={setVenue} />
+          <span>
+            {fees.source} (checked {fees.checkedAt}). Not financial advice; the tab compares prices, it does not pick winners.
+          </span>
+        </div>
       </section>
 
       <div className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--color-muted)]">
@@ -220,14 +228,14 @@ export function PredictTab() {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {games.map((b) => (
-          <GameCard key={b.game.id} b={b} onLog={setSeed} trails={trails.current} />
+          <GameCard key={b.game.id} b={b} onLog={setSeed} trails={trails.current} fees={fees} />
         ))}
         {board && games.length === 0 && <p className="text-[11px] text-[var(--color-muted)]">{view === "live" ? "No game in progress." : "No games on the board."}</p>}
       </div>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <RoundTripCalc />
-        <JournalCard seed={seed} clearSeed={() => setSeed(null)} marks={marks} version={version} />
+        <RoundTripCalc fees={fees} />
+        <JournalCard seed={seed} clearSeed={() => setSeed(null)} marks={marks} version={version} fees={fees} />
       </div>
 
       {board && <p className="text-[10px] leading-relaxed text-[var(--color-muted)]">{board.note}</p>}

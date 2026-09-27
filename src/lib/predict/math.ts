@@ -47,36 +47,96 @@ export function noVig(pA: number | null, pB: number | null): { a: number; b: num
 }
 
 /**
- * The fee model. Kalshi's published taker fee is ceil(rate × C × P × (1−P))
- * rounded UP to the next cent per order; Robinhood adds a per-contract
- * commission. Rates live here as parameters with their source, so a changed
- * schedule is a one-line edit.
+ * The fee model — one per VENUE, because the same NFL contract costs
+ * different amounts depending on where it is traded.
+ *
+ * FIXED 2026-09-27. The first version charged every trade Kalshi's 7% taker
+ * formula plus a flat 1¢ Robinhood commission. That is not what a Robinhood
+ * customer pays: Robinhood charges its OWN commission (k·p·(1−p) per
+ * contract, capped at 1¢, k = 10% or 5% with Gold, rounded up per trade)
+ * plus the LISTING exchange's fee — and on 2026-09-27 Robinhood's NFL
+ * moneylines were listed on Rothera (the Robinhood–Susquehanna exchange),
+ * not Kalshi. Checked against the published schedules:
+ *   Robinhood RHD fee schedule: cdn.robinhood.com/assets/robinhood/legal/RHD_Fee_Schedule.pdf
+ *   Rothera fee schedule 2026-05-20: k = 0.02 retail, max(round(k·p(1−p)·C, 2), $0.01) per order
+ *   Kalshi fee schedule (eff. 2026-07-07): taker ceil(0.07·C·P(1−P)); via Robinhood $0.01/contract/side
+ *   Polymarket US (eff. 2026-09-25): taker 0.0695·C·p(1−p)
+ * Reproduces the published-formula worked example: 100 contracts bought at
+ * 25¢ and sold at 40¢ cost $2.86 via Robinhood→Rothera, $4.00 via
+ * Robinhood→Kalshi, $3.00 as a Kalshi taker, $2.97 as a Polymarket US taker.
  */
+export type VenueId = "rh-rothera" | "rh-rothera-gold" | "rh-kalshi" | "rh-kalshi-gold" | "kalshi" | "polymarket-us";
+
 export interface FeeModel {
-  /** Kalshi taker rate in the P×(1−P) formula. */
-  takerRate: number;
-  /** Broker commission per contract per side (Robinhood). */
-  brokerPerContract: number;
+  id: VenueId;
+  label: string;
+  /** Dollars charged on ONE side (a buy or a sell) of `contracts` at `price`. */
+  perSide: (price: number, contracts: number) => number;
   source: string;
   checkedAt: string;
 }
 
-export const DEFAULT_FEES: FeeModel = {
-  takerRate: 0.07,
-  brokerPerContract: 0.01,
-  source: "Kalshi fee schedule (taker 0.07 × C × P × (1−P), rounded up to the cent) + Robinhood $0.01/contract commission",
-  checkedAt: "2026-09-27",
+const cents = (x: number) => Math.round(x * 100) / 100;
+const ceilCents = (x: number) => Math.ceil(x * 100 - 1e-9) / 100;
+/** Robinhood's commission: k·p(1−p) per contract, capped at 1¢, rounded up per trade. */
+const rhCommission = (k: number, p: number, c: number) => ceilCents(Math.min(k * p * (1 - p), 0.01) * c);
+
+export const VENUES: Record<VenueId, FeeModel> = {
+  "rh-rothera": {
+    id: "rh-rothera",
+    label: "Robinhood → Rothera",
+    perSide: (p, c) => cents(rhCommission(0.1, p, c) + Math.max(cents(0.02 * p * (1 - p) * c), 0.01)),
+    source: "Robinhood commission (10%·p(1−p), max 1¢/contract) + Rothera retail fee (2%·p(1−p), min 1¢/order)",
+    checkedAt: "2026-09-27",
+  },
+  "rh-rothera-gold": {
+    id: "rh-rothera-gold",
+    label: "Robinhood Gold → Rothera",
+    perSide: (p, c) => cents(rhCommission(0.05, p, c) + Math.max(cents(0.02 * p * (1 - p) * c), 0.01)),
+    source: "Robinhood Gold commission (5%·p(1−p), max 1¢/contract) + Rothera retail fee",
+    checkedAt: "2026-09-27",
+  },
+  "rh-kalshi": {
+    id: "rh-kalshi",
+    label: "Robinhood → Kalshi",
+    perSide: (p, c) => cents(rhCommission(0.1, p, c) + 0.01 * c),
+    source: "Robinhood commission (10%·p(1−p), max 1¢/contract) + Kalshi exchange fee 1¢/contract",
+    checkedAt: "2026-09-27",
+  },
+  "rh-kalshi-gold": {
+    id: "rh-kalshi-gold",
+    label: "Robinhood Gold → Kalshi",
+    perSide: (p, c) => cents(rhCommission(0.05, p, c) + 0.01 * c),
+    source: "Robinhood Gold commission (5%·p(1−p), max 1¢/contract) + Kalshi exchange fee 1¢/contract",
+    checkedAt: "2026-09-27",
+  },
+  kalshi: {
+    id: "kalshi",
+    label: "Kalshi direct (taker)",
+    perSide: (p, c) => ceilCents(0.07 * c * p * (1 - p)),
+    source: "Kalshi taker fee 7%·C·p(1−p), rounded up (NFL makers 1.75%)",
+    checkedAt: "2026-09-27",
+  },
+  "polymarket-us": {
+    id: "polymarket-us",
+    label: "Polymarket US (taker)",
+    perSide: (p, c) => cents(0.0695 * c * p * (1 - p)),
+    source: "Polymarket US taker fee 6.95%·C·p(1−p) (makers get a 1.25% rebate)",
+    checkedAt: "2026-09-27",
+  },
 };
+
+/** The trader's venue for NFL moneylines on 2026-09-27: Robinhood, listed on Rothera. */
+export const DEFAULT_FEES: FeeModel = VENUES["rh-rothera"];
 
 /** Fees in dollars for one side (a buy or a sell) of `contracts` at `price`. */
 export function sideFee(price: number, contracts: number, fees: FeeModel = DEFAULT_FEES): number {
   if (!(price > 0 && price < 1) || !(contracts > 0)) return 0;
-  const exchange = Math.ceil(fees.takerRate * contracts * price * (1 - price) * 100 - 1e-9) / 100;
-  return Math.round((exchange + fees.brokerPerContract * contracts) * 100) / 100;
+  return fees.perSide(price, contracts);
 }
 
-/** Per-contract fee, for comparing against a per-contract edge. */
-export function feePerContract(price: number, contracts = 10, fees: FeeModel = DEFAULT_FEES): number {
+/** Per-contract fee, for comparing against a per-contract edge (100-contract order). */
+export function feePerContract(price: number, contracts = 100, fees: FeeModel = DEFAULT_FEES): number {
   return sideFee(price, contracts, fees) / contracts;
 }
 
@@ -93,7 +153,7 @@ export interface EntryRead {
 
 /** Expected value of buying at `ask` if `reference` is the true probability, held to settlement. */
 export function entryEdge(ask: number, reference: number, fees: FeeModel = DEFAULT_FEES): EntryRead {
-  const fee = feePerContract(ask, 10, fees);
+  const fee = feePerContract(ask, 100, fees);
   const edge = reference - ask - fee;
   return { price: ask, reference, fee, edge, edgePct: ask > 0 ? edge / ask : 0 };
 }
@@ -139,18 +199,24 @@ export function roundTrip(entry: number, exit: number, contracts: number, fees: 
  * value is the entry price, minus both sides' fees. Returned so the tab can
  * show the shape, not a promise.
  */
-export function exitRuleShape(entry: number, target: number, fees: FeeModel = DEFAULT_FEES) {
+export function exitRuleShape(entry: number, target: number, fees: FeeModel = DEFAULT_FEES, contracts = 100) {
   if (!(entry > 0 && target > entry && target < 1)) return null;
+  // Aldous (2013): for a martingale price that ends at 0 or 1, the chance of
+  // ever touching q from p is p/q with continuous paths — and at most p/q
+  // with jumps (a touchdown can leap past q). The expected value of "sell at
+  // q, else hold" is p either way; costs make it negative.
   const pHit = entry / target;
-  const rt = roundTrip(entry, target, 10, fees);
-  const lossIfMiss = -(entry * 10 + sideFee(entry, 10, fees));
+  const rt = roundTrip(entry, target, contracts, fees);
+  const lossIfMiss = -(entry * contracts + sideFee(entry, contracts, fees));
   const ev = pHit * rt.pnl + (1 - pHit) * lossIfMiss;
   return {
     pHit,
+    contracts,
     winIfHit: rt.pnl,
     lossIfMiss: Math.round(lossIfMiss * 100) / 100,
-    /** Expected P/L on 10 contracts if the entry was fairly priced. Always negative: fees. */
+    /** Expected P/L if the entry was fairly priced. Always negative: the fees (and the spread). */
     ev: Math.round(ev * 100) / 100,
+    evPct: ev / (entry * contracts),
   };
 }
 

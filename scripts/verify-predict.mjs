@@ -47,25 +47,33 @@ check("no-vig sums to 1", r4(nv.a + nv.b), 1);
 check("the margin is the overround", r4(nv.overround), 0.0425);
 check("LAC no-vig ≈ 26.6%", Math.round(nv.a * 1000) / 1000, 0.266);
 
-console.log("\nfees — both sides, rounded up");
-check("10 @ 38¢: ceil(0.07×10×.38×.62 = 16.5¢) = 17¢ + 10¢ commission", M.sideFee(0.38, 10), 0.27);
-check("1 @ 50¢: ceil(1.75¢) = 2¢ + 1¢", M.sideFee(0.5, 1), 0.03);
-check("fees vanish at the edges of the price range", M.sideFee(0.99, 1), 0.02);
+console.log("\nfees — per venue, from the published schedules");
+// The worked example the schedules produce: 100 contracts, bought at 25¢, sold at 40¢.
+const rt40 = (v) => Math.round((M.sideFee(0.25, 100, M.VENUES[v]) + M.sideFee(0.4, 100, M.VENUES[v])) * 100) / 100;
+check("Robinhood → Rothera: $2.86", rt40("rh-rothera"), 2.86);
+check("Robinhood → Kalshi: $4.00", rt40("rh-kalshi"), 4);
+check("Kalshi direct taker: $3.00", rt40("kalshi"), 3);
+check("Polymarket US taker: $2.97", rt40("polymarket-us"), 2.97);
+check("Gold halves Robinhood's k: $2.80 via Rothera", rt40("rh-rothera-gold"), 2.8);
+check("Robinhood's commission caps at 1¢/contract: 100 @ 50¢ via Kalshi = $1 + $1", M.sideFee(0.5, 100, M.VENUES["rh-kalshi"]), 2);
+check("Rothera's exchange fee has a 1¢ floor per order", M.sideFee(0.99, 1, M.VENUES["rh-rothera"]), 0.02);
+check("the default venue is Robinhood → Rothera", M.DEFAULT_FEES.id, "rh-rothera");
 check("no contracts, no fee", M.sideFee(0.5, 0), 0);
-const rt = M.roundTrip(0.25, 0.35, 10);
-check("round trip: cost", rt.cost, 2.5);
-check("round trip: proceeds", rt.proceeds, 3.5);
-ok("round trip pays fees on both sides", rt.fees > M.sideFee(0.25, 10));
-check("round trip net = proceeds − cost − fees", rt.pnl, Math.round((3.5 - 2.5 - rt.fees) * 100) / 100);
+const rt = M.roundTrip(0.25, 0.35, 100);
+check("round trip: cost", rt.cost, 25);
+check("round trip: proceeds", rt.proceeds, 35);
+ok("round trip pays fees on both sides", rt.fees > M.sideFee(0.25, 100));
+check("round trip net = proceeds − cost − fees", rt.pnl, Math.round((35 - 25 - rt.fees) * 100) / 100);
 ok("break-even exit is above the entry", rt.breakevenExit > 0.25);
 
 console.log("\nthe martingale — an exit rule is not an edge");
-const shape = M.exitRuleShape(0.25, 0.35);
-check("a fair 25¢ reaches 35¢ about 71% of the time", Math.round(shape.pHit * 100), 71);
-ok("and the expected value is negative — the fees", shape.ev < 0);
+const shape = M.exitRuleShape(0.25, 0.4);
+check("a fair 25¢ reaches 40¢ at most 62.5% of the time (p/q)", shape.pHit, 0.625);
+check("'sell at 40¢, else hold' via Robinhood→Rothera expects −$2.30 — the entry fee plus 62.5% of the exit fee", shape.ev, -2.3);
+check("about −9.2% of the stake before the spread", Math.round(shape.evPct * 1000) / 10, -9.2);
 check("an exit below the entry is not a rule", M.exitRuleShape(0.4, 0.3), null);
 const e = M.entryEdge(0.38, 0.407);
-ok("buying 38¢ vs a 40.7% reference: the fee eats most of the gap", e.edge < 0.01 && e.edge > -0.01);
+ok("buying 38¢ vs a 40.7% reference: the fee takes over half the gap", e.edge > 0 && e.edge < 0.02);
 
 console.log("\nKalshi + ESPN parsing");
 check("date from the event ticker", B.dateFromTicker("KXNFLGAME-26SEP27CARCLE"), "2026-09-27");

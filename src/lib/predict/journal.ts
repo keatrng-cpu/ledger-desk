@@ -12,7 +12,7 @@
  * Browser storage (per device), like the RH options journal.
  */
 
-import { sideFee, type FeeModel, DEFAULT_FEES } from "./math";
+import { sideFee, VENUES, DEFAULT_FEES, type FeeModel, type VenueId } from "./math";
 
 const KEY = "ledger.predict.journal.v1";
 const EVENT = "ledger-predict";
@@ -30,6 +30,8 @@ export interface PredictTrade {
   /** The reference probability at entry (book no-vig or ESPN live), if shown. */
   referenceAtEntry: number | null;
   referenceName: string | null;
+  /** Where it was traded — decides the fees. Older rows default to Robinhood → Rothera. */
+  venue?: VenueId;
   /** Sold before settlement at this price… */
   exit?: number;
   exitAt?: string;
@@ -90,8 +92,12 @@ export function deleteTrade(id: string): void {
   save(loadTrades().filter((r) => r.id !== id));
 }
 
+export function feesFor(t: PredictTrade): FeeModel {
+  return (t.venue && VENUES[t.venue]) || DEFAULT_FEES;
+}
+
 /** Net P/L of a closed trade after both sides' fees (settlement itself carries no trading fee). */
-export function tradePnl(t: PredictTrade, fees: FeeModel = DEFAULT_FEES): number | null {
+export function tradePnl(t: PredictTrade, fees: FeeModel = feesFor(t)): number | null {
   const cost = t.entry * t.contracts + sideFee(t.entry, t.contracts, fees);
   if (t.exit != null) return Math.round((t.exit * t.contracts - sideFee(t.exit, t.contracts, fees) - cost) * 100) / 100;
   if (t.settled != null) return Math.round((t.settled * t.contracts - cost) * 100) / 100;
@@ -124,7 +130,7 @@ export interface JournalRead {
   line: string;
 }
 
-export function readJournal(rows: PredictTrade[] = loadTrades(), fees: FeeModel = DEFAULT_FEES): JournalRead {
+export function readJournal(rows: PredictTrade[] = loadTrades()): JournalRead {
   const open = rows.filter((r) => r.exit == null && r.settled == null);
   const closed = rows.filter((r) => r.exit != null || r.settled != null);
   const buckets: Bucket[] = BUCKETS.map((b) => ({ label: b.label, n: 0, wins: 0, net: 0, staked: 0 }));
@@ -132,7 +138,7 @@ export function readJournal(rows: PredictTrade[] = loadTrades(), fees: FeeModel 
   let staked = 0;
   let wins = 0;
   for (const t of closed) {
-    const p = tradePnl(t, fees) ?? 0;
+    const p = tradePnl(t) ?? 0;
     const cost = t.entry * t.contracts;
     net += p;
     staked += cost;

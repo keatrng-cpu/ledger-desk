@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import type { BoardGame, SideRead } from "@/lib/predict/board";
-import { gameLine, threeWay } from "@/lib/predict/board";
-import { exitRuleShape, roundTrip, sideFee, LONGSHOT_BELOW } from "@/lib/predict/math";
-import { closeTrade, deleteTrade, loadTrades, logEntry, readJournal, tradePnl, type PredictTrade } from "@/lib/predict/journal";
+import { gameLine, lateUnderdog, sideEdge, threeWay } from "@/lib/predict/board";
+import { exitRuleShape, roundTrip, sideFee, LONGSHOT_BELOW, VENUES, type FeeModel, type VenueId } from "@/lib/predict/math";
+import { closeTrade, deleteTrade, feesFor, loadTrades, logEntry, readJournal, tradePnl, type PredictTrade } from "@/lib/predict/journal";
 
 export const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 export const H3 = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]";
@@ -38,14 +38,19 @@ function SideRow({
   gameName,
   league,
   trail,
+  fees,
+  late,
 }: {
   s: SideRead;
   onLog: (seed: LogSeed) => void;
   gameName: string;
   league: string;
   trail?: number[];
+  fees: FeeModel;
+  late: boolean;
 }) {
   const k = s.side;
+  const edge = sideEdge(s, fees);
   return (
     <div className="grid grid-cols-[3.2rem_1fr_auto] items-center gap-x-2 border-t border-[var(--color-border)] py-1 text-[11px] tabular-nums first:border-t-0">
       <div>
@@ -62,12 +67,13 @@ function SideRow({
         <div className="text-[10px] text-[var(--color-muted)]">{threeWay(s)}</div>
         <div className="text-[10px] text-[var(--color-muted)]">
           {s.referenceName ? `vs ${s.referenceName} ${pc(s.reference)}` : "no reference"}
-          {s.edge != null && (
-            <span className={s.edge > 0.005 ? "text-[var(--color-fg)]" : ""}>
+          {edge != null && (
+            <span className={edge > 0.005 ? "text-[var(--color-fg)]" : ""}>
               {" "}
-              · buy at ask vs it: <span className="font-medium">{cents(s.edge)}</span>/contract after fees
+              · buy at ask vs it: <span className="font-medium">{cents(edge)}</span>/contract after {fees.label} fees
             </span>
           )}
+          {late && <span className="text-[var(--color-warn)]"> · late-game underdog — historically overpriced in the final minutes</span>}
           {s.spread != null && s.spread >= 0.03 && <span className="text-[var(--color-warn)]"> · wide spread {c(s.spread)}</span>}
           {s.longshot && <span className="text-[var(--color-warn)]"> · longshot zone (&lt;{Math.round(LONGSHOT_BELOW * 100)}¢)</span>}
         </div>
@@ -92,7 +98,17 @@ function SideRow({
   );
 }
 
-export function GameCard({ b, onLog, trails }: { b: BoardGame; onLog: (seed: LogSeed) => void; trails?: Map<string, number[]> }) {
+export function GameCard({
+  b,
+  onLog,
+  trails,
+  fees,
+}: {
+  b: BoardGame;
+  onLog: (seed: LogSeed) => void;
+  trails?: Map<string, number[]>;
+  fees: FeeModel;
+}) {
   const g = b.game;
   const name = `${g.away.code} @ ${g.home.code}`;
   const live = g.state === "in";
@@ -120,8 +136,8 @@ export function GameCard({ b, onLog, trails }: { b: BoardGame; onLog: (seed: Log
         {b.overround != null ? ` · book margin ${(b.overround * 100).toFixed(1)}%` : ""}
         {g.weather ? ` · ${g.weather}` : ""}
       </p>
-      <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined} />
-      <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined} />
+      <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined} fees={fees} late={lateUnderdog(b, b.away)} />
+      <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined} fees={fees} late={lateUnderdog(b, b.home)} />
       {Object.values(b.injuries).some((x) => x.length) && (
         <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">
           <span className="text-[var(--color-fg)]">Injuries · </span>
@@ -131,24 +147,43 @@ export function GameCard({ b, onLog, trails }: { b: BoardGame; onLog: (seed: Log
             .join(" · ")}
         </p>
       )}
-      <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">{gameLine(b)}</p>
+      <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">{gameLine(b, fees)}</p>
     </section>
   );
 }
 
-export function RoundTripCalc() {
+export function VenuePicker({ venue, setVenue }: { venue: VenueId; setVenue: (v: VenueId) => void }) {
+  return (
+    <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
+      fees as
+      <select
+        value={venue}
+        onChange={(e) => setVenue(e.target.value as VenueId)}
+        className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1 text-[11px] text-[var(--color-fg)]"
+      >
+        {(Object.keys(VENUES) as VenueId[]).map((v) => (
+          <option key={v} value={v}>
+            {VENUES[v].label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function RoundTripCalc({ fees }: { fees: FeeModel }) {
   const [entry, setEntry] = useState("25");
-  const [target, setTarget] = useState("35");
-  const [n, setN] = useState("10");
+  const [target, setTarget] = useState("40");
+  const [n, setN] = useState("100");
   const e = Number(entry) / 100;
   const t = Number(target) / 100;
   const k = Math.max(1, Math.round(Number(n) || 0));
   const valid = e > 0 && e < 1 && t > 0 && t < 1;
-  const rt = valid ? roundTrip(e, t, k) : null;
-  const shape = valid && t > e ? exitRuleShape(e, t) : null;
+  const rt = valid ? roundTrip(e, t, k, fees) : null;
+  const shape = valid && t > e ? exitRuleShape(e, t, fees, k) : null;
   return (
     <section className={CARD}>
-      <h3 className={H3}>Round trip · buy, then sell before the final</h3>
+      <h3 className={H3}>Round trip · buy, then sell before the final · {fees.label}</h3>
       <div className="mb-2 flex flex-wrap items-end gap-2 text-[11px] text-[var(--color-muted)]">
         <label>
           Buy at ¢
@@ -178,10 +213,11 @@ export function RoundTripCalc() {
           {shape && (
             <p className="text-[var(--color-muted)]">
               If {Math.round(e * 100)}¢ was a fair price, it reaches {Math.round(t * 100)}¢ before the game ends about{" "}
-              <span className="text-[var(--color-fg)]">{(shape.pHit * 100).toFixed(0)}%</span> of the time. You win ${shape.winIfHit.toFixed(2)}{" "}
-              when it does and lose ${Math.abs(shape.lossIfMiss).toFixed(2)} when it doesn't: expected{" "}
-              <span className="text-[var(--color-fg)]">{shape.ev >= 0 ? "+" : "−"}${Math.abs(shape.ev).toFixed(2)}</span> per 10 contracts —
-              the fees. Selling into a rise does not create an edge; only a mispriced ENTRY does.
+              <span className="text-[var(--color-fg)]">{(shape.pHit * 100).toFixed(0)}%</span> of the time (at most — a touchdown can leap past
+              it). You win ${shape.winIfHit.toFixed(2)} when it does and lose ${Math.abs(shape.lossIfMiss).toFixed(2)} when it doesn't:
+              expected <span className="text-[var(--color-fg)]">{shape.ev >= 0 ? "+" : "−"}${Math.abs(shape.ev).toFixed(2)}</span> (
+              {(shape.evPct * 100).toFixed(1)}% of the stake) before the spread — the fees. Selling into a rise does not create an edge;
+              only a mispriced ENTRY does.
             </p>
           )}
         </div>
@@ -192,7 +228,19 @@ export function RoundTripCalc() {
   );
 }
 
-export function JournalCard({ seed, clearSeed, marks, version }: { seed: LogSeed | null; clearSeed: () => void; marks: Map<string, number | null>; version: number }) {
+export function JournalCard({
+  seed,
+  clearSeed,
+  marks,
+  version,
+  fees,
+}: {
+  seed: LogSeed | null;
+  clearSeed: () => void;
+  marks: Map<string, number | null>;
+  version: number;
+  fees: FeeModel;
+}) {
   const [contracts, setContracts] = useState("10");
   const [price, setPrice] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -229,8 +277,13 @@ export function JournalCard({ seed, clearSeed, marks, version }: { seed: LogSeed
                 entry: px,
                 referenceAtEntry: seed.reference,
                 referenceName: seed.referenceName,
+                venue: fees.id,
               });
-              setMsg(r.ok ? `Logged ${contracts} ${seed.team} at ${Math.round(px * 100)}¢. Fees on the way in: $${sideFee(px, Number(contracts)).toFixed(2)}.` : r.why);
+              setMsg(
+                r.ok
+                  ? `Logged ${contracts} ${seed.team} at ${Math.round(px * 100)}¢ (${fees.label}). Fees on the way in: $${sideFee(px, Number(contracts), fees).toFixed(2)}.`
+                  : r.why,
+              );
               if (r.ok) {
                 clearSeed();
                 setPrice("");
@@ -252,7 +305,11 @@ export function JournalCard({ seed, clearSeed, marks, version }: { seed: LogSeed
         <ul className="mb-2 space-y-1">
           {j.open.map((t: PredictTrade) => {
             const mark = marks.get(t.ticker) ?? null;
-            const unreal = mark != null ? Math.round((mark * t.contracts - sideFee(mark, t.contracts) - t.entry * t.contracts - sideFee(t.entry, t.contracts)) * 100) / 100 : null;
+            const tf = feesFor(t);
+            const unreal =
+              mark != null
+                ? Math.round((mark * t.contracts - sideFee(mark, t.contracts, tf) - t.entry * t.contracts - sideFee(t.entry, t.contracts, tf)) * 100) / 100
+                : null;
             return (
               <li key={t.id} className="flex flex-wrap items-center gap-2 border-t border-[var(--color-border)] pt-1 text-[11px] tabular-nums first:border-t-0">
                 <span className="font-semibold">{t.team}</span>
