@@ -6,8 +6,9 @@
 
 import { useState } from "react";
 import type { BoardGame, SideRead } from "@/lib/predict/board";
-import { gameLine, lateUnderdog, sideEdge, threeWay } from "@/lib/predict/board";
-import { exitRuleShape, roundTrip, sideFee, LONGSHOT_BELOW, VENUES, type FeeModel, type VenueId } from "@/lib/predict/math";
+import { disagreement, gameLine, inactivesLine, lateUnderdog, qbFlag, sideEdge, threeWay, weatherFlag } from "@/lib/predict/board";
+import { exitRuleShape, feePerContract, makerFee, roundTrip, sideFee, LONGSHOT_BELOW, VENUES, type FeeModel, type VenueId } from "@/lib/predict/math";
+import { limitPriceFor } from "@/lib/predict/sizing";
 import { closeTrade, deleteTrade, feesFor, loadTrades, logEntry, readJournal, tradePnl, type PredictTrade } from "@/lib/predict/journal";
 
 export const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
@@ -40,6 +41,7 @@ function SideRow({
   trail,
   fees,
   late,
+  flags,
 }: {
   s: SideRead;
   onLog: (seed: LogSeed) => void;
@@ -48,9 +50,16 @@ function SideRow({
   trail?: number[];
   fees: FeeModel;
   late: boolean;
+  flags: (string | null)[];
 }) {
   const k = s.side;
   const edge = sideEdge(s, fees);
+  const ref = s.reference;
+  // Resting a limit at the bid instead of paying the ask (maker fees where the venue has them).
+  const atBid = k?.bid != null && ref != null && k.bid > 0 && k.bid < 1 ? ref - k.bid - makerFee(k.bid, 100, fees) / 100 : null;
+  const limit = ref != null ? limitPriceFor(ref, 100, 1, fees) : null;
+  const breakeven = k?.ask != null && k.ask > 0 && k.ask < 1 ? k.ask + feePerContract(k.ask, 100, fees) : null;
+  const move = s.book != null && s.bookOpen != null ? s.book - s.bookOpen : null;
   return (
     <div className="grid grid-cols-[3.2rem_1fr_auto] items-center gap-x-2 border-t border-[var(--color-border)] py-1 text-[11px] tabular-nums first:border-t-0">
       <div>
@@ -62,9 +71,32 @@ function SideRow({
           <span className="text-[var(--color-muted)]">bid </span>
           {c(k?.bid)} <span className="text-[var(--color-muted)]">ask </span>
           <span className="font-medium">{c(k?.ask)}</span>
-          <span className="text-[var(--color-muted)]"> · last {c(k?.last)} · vol {vol(k?.volume ?? null)}</span>
+          <span className="text-[var(--color-muted)]">
+            {" "}
+            · last {c(k?.last)} · vol {vol(k?.volume ?? null)}
+            {k?.askSize != null ? ` · ${vol(k.askSize)} at the ask` : ""}
+          </span>
         </div>
-        <div className="text-[10px] text-[var(--color-muted)]">{threeWay(s)}</div>
+        <div className="text-[10px] text-[var(--color-muted)]">
+          {threeWay(s)}
+          {s.poly?.ask != null ? ` · Polymarket ${c(s.poly.bid)}/${c(s.poly.ask)}` : ""}
+          {s.bookRange ? ` · book ${pc(s.bookRange[0])}–${pc(s.bookRange[1])} across 3 de-vig methods` : ""}
+          {move != null && Math.abs(move) >= 0.005 ? ` · line ${move > 0 ? "+" : "−"}${Math.abs(move * 100).toFixed(1)} pts since open` : ""}
+        </div>
+        {ref != null && k?.ask != null && (
+          <div className="text-[10px] text-[var(--color-muted)]">
+            break-even at the ask <span className="text-[var(--color-fg)]">{pc(breakeven)}</span>
+            {atBid != null && <> · resting at the bid {cents(atBid)}</>}
+            {" · "}
+            {limit != null ? (
+              <>
+                limit to clear fees + 1¢: <span className="font-medium text-[var(--color-fg)]">≤ {c(limit)}</span>
+              </>
+            ) : (
+              "no price clears fees + 1¢"
+            )}
+          </div>
+        )}
         <div className="text-[10px] text-[var(--color-muted)]">
           {s.referenceName ? `vs ${s.referenceName} ${pc(s.reference)}` : "no reference"}
           {edge != null && (
@@ -76,6 +108,14 @@ function SideRow({
           {late && <span className="text-[var(--color-warn)]"> · late-game underdog — historically overpriced in the final minutes</span>}
           {s.spread != null && s.spread >= 0.03 && <span className="text-[var(--color-warn)]"> · wide spread {c(s.spread)}</span>}
           {s.longshot && <span className="text-[var(--color-warn)]"> · longshot zone (&lt;{Math.round(LONGSHOT_BELOW * 100)}¢)</span>}
+          {flags
+            .filter(Boolean)
+            .map((f) => (
+              <span key={f} className="text-[var(--color-warn)]">
+                {" "}
+                · {f}
+              </span>
+            ))}
         </div>
         {trail && trail.length >= 2 && (
           <div className="text-[10px] text-[var(--color-muted)]">
@@ -135,9 +175,29 @@ export function GameCard({
         {g.overUnder != null ? ` · O/U ${g.overUnder}` : ""}
         {b.overround != null ? ` · book margin ${(b.overround * 100).toFixed(1)}%` : ""}
         {g.weather ? ` · ${g.weather}` : ""}
+        {inactivesLine(b) ? ` · ${inactivesLine(b)}` : ""}
       </p>
-      <SideRow s={b.away} onLog={onLog} gameName={name} league={b.league} trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined} fees={fees} late={lateUnderdog(b, b.away)} />
-      <SideRow s={b.home} onLog={onLog} gameName={name} league={b.league} trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined} fees={fees} late={lateUnderdog(b, b.home)} />
+      {weatherFlag(b) && <p className="mb-1 text-[10px] text-[var(--color-warn)]">{weatherFlag(b)}</p>}
+      <SideRow
+        s={b.away}
+        onLog={onLog}
+        gameName={name}
+        league={b.league}
+        trail={b.away.side ? trails?.get(b.away.side.ticker) : undefined}
+        fees={fees}
+        late={lateUnderdog(b, b.away)}
+        flags={[qbFlag(b, g.away.code), disagreement(b, b.away)]}
+      />
+      <SideRow
+        s={b.home}
+        onLog={onLog}
+        gameName={name}
+        league={b.league}
+        trail={b.home.side ? trails?.get(b.home.side.ticker) : undefined}
+        fees={fees}
+        late={lateUnderdog(b, b.home)}
+        flags={[qbFlag(b, g.home.code), disagreement(b, b.home)]}
+      />
       {Object.values(b.injuries).some((x) => x.length) && (
         <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">
           <span className="text-[var(--color-fg)]">Injuries · </span>

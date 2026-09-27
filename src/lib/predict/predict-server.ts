@@ -17,7 +17,10 @@ import {
   parseEspnScoreboard,
   parseKalshiEvents,
   parseSummaryExtras,
+  parsePolyMarket,
+  polySlug,
   type BoardGame,
+  type PolyMarket,
   type GameExtras,
   type League,
 } from "./board";
@@ -27,6 +30,7 @@ const UA =
 const KALSHI = "https://api.elections.kalshi.com/trade-api/v2";
 const ESPN = "https://site.web.api.espn.com/apis/site/v2/sports";
 const ESPN_CORE = "https://sports.core.api.espn.com/v2/sports";
+const POLY_US = "https://gateway.polymarket.us/v1/markets";
 const T_MS = 8_000;
 
 async function getJson(url: string): Promise<unknown> {
@@ -113,14 +117,21 @@ export const getPredictBoard = createServerFn({ method: "POST" })
     const need = games.filter((g) => g.state === "in" && g.liveHomeWp == null).slice(0, 10);
     const extras: Record<string, GameExtras> = {};
     const upcoming = games.filter((g) => g.state !== "post").slice(0, 20);
+    const poly: Record<string, PolyMarket> = {};
     await Promise.all([
+      ...upcoming.map(async (g) => {
+        const slug = polySlug(data.league, g);
+        if (!slug) return;
+        const pm = parsePolyMarket(await getJson(`${POLY_US}?slug=${encodeURIComponent(slug)}`).catch(() => null));
+        if (pm) poly[g.id] = pm;
+      }),
       ...need.map(async (g) => (live[g.id] = await liveHomeWp(data.league, g.id))),
       ...upcoming.map(async (g) => {
         const x = await extrasFor(data.league, g.id);
         if (x) extras[g.id] = x;
       }),
     ]);
-    const board = buildBoard(data.league, games, events, live, undefined, extras);
+    const board = buildBoard(data.league, games, events, live, undefined, extras, poly);
     const out: PredictBoard = {
       league: data.league,
       fetchedAt: new Date().toISOString(),
@@ -129,7 +140,7 @@ export const getPredictBoard = createServerFn({ method: "POST" })
         return rank(a) !== rank(b) ? rank(a) - rank(b) : a.game.start.localeCompare(b.game.start);
       }),
       failed,
-      note: "Prices: Kalshi public order book (the exchange behind Robinhood's sports contracts). References: DraftKings moneyline with the margin removed (pregame, via ESPN) and ESPN's live win probability (in-game). Both references are estimates, not the truth.",
+      note: "Prices: Kalshi public order book (the closest public proxy for Robinhood's quote) and, for the NFL, Polymarket US. References: DraftKings moneyline with the margin removed — the LOWEST of three de-vig methods, the buyer's conservative read (pregame, via ESPN) — and ESPN's live win probability (in-game). Both references are estimates, not the truth.",
     };
     if (!failed.length) boardCache.set(data.league, { at: Date.now(), data: out });
     return out;

@@ -36,6 +36,8 @@ globalThis.window = {
 const M = await import("../src/lib/predict/math.ts");
 const B = await import("../src/lib/predict/board.ts");
 const J = await import("../src/lib/predict/journal.ts");
+const D = await import("../src/lib/predict/devig.ts");
+const S = await import("../src/lib/predict/sizing.ts");
 
 console.log("\nodds and the book's margin");
 check("+260 → 27.78%", r4(M.americanToProb(260)), 0.2778);
@@ -158,6 +160,59 @@ check("two closed trades", jr.closed, 2);
 check("the longshot lands in its bucket", jr.buckets[0].n, 1);
 check("and it lost the stake plus the entry fee", jr.buckets[0].net, Math.round((-1.6 - M.sideFee(0.16, 10)) * 100) / 100);
 ok("under 30 trades the record says it is noise", /noise/.test(jr.line));
+
+console.log("\nde-vig methods");
+const dv = D.devig(M.americanToProb(260), M.americanToProb(-325));
+for (const m of ["proportional", "power", "shin"]) check(`${m} sums to 1`, r4(dv[m][0] + dv[m][1]), 1);
+check("proportional matches noVig", r4(dv.proportional[0]), r4(nv.a));
+ok("power and Shin put more of the margin on the longshot", dv.power[0] < dv.proportional[0] && dv.shin[0] < dv.proportional[0]);
+check("the conservative (low) longshot value is the lowest method", r4(dv.lo[0]), r4(Math.min(dv.proportional[0], dv.power[0], dv.shin[0])));
+ok("the favorite's range runs the other way", dv.hi[1] > dv.proportional[1]);
+check("bad input → null", D.devig(0, 0.5), null);
+const pregame = B.buildBoard("nfl", games, ev);
+ok("pregame reference is the lowest de-vig value, not the proportional one", pregame[0].away.reference <= pregame[0].away.book);
+
+console.log("\nsizing, limits, exits, parlays");
+const lim = S.limitPriceFor(0.45, 100, 1);
+ok("the limit price clears fees + 1¢ against the reference", lim != null && 0.45 - lim - M.feePerContract(lim) >= 0.01 - 1e-9);
+ok("one cent higher does not", 0.45 - (lim + 0.01) - M.feePerContract(lim + 0.01) < 0.01);
+check("no edge → Kelly says zero", S.kellySize(0.4, 0.41, 1000).contracts, 0);
+const kel = S.kellySize(0.5, 0.4, 1000);
+ok("a 50% contract at 40¢: full Kelly ≈ (0.5 − cost)/(1 − cost)", Math.abs(kel.full - (0.5 - (0.4 + M.feePerContract(0.4))) / (1 - (0.4 + M.feePerContract(0.4)))) < 1e-9);
+ok("quarter Kelly stakes about a quarter of that", Math.abs(kel.used - kel.full / 4) < 0.01);
+check("the per-game cap binds", S.kellySize(0.5, 0.4, 1000, { maxStake: 20 }).stake <= 20, true);
+const eg = S.exitGuide(0.7, 0.6, 10, "ESPN live");
+ok("a bid above fair after fees says sell", eg.diff < 0 && /Selling captures/.test(eg.line));
+ok("a bid below fair says hold", S.exitGuide(0.5, 0.6, 10, "ESPN live").diff > 0);
+const pl = S.parlayCheck([0.6, 0.5], 0.33);
+check("a parlay's fair price is the product of its legs", r4(pl.fair), 0.3);
+check("offered 33¢ on a 30¢ parlay is 10% over", Math.round(pl.overpricing * 1000) / 1000, 0.1);
+check("Kalshi maker fee is a quarter of taker for NFL", M.makerFee(0.5, 100, M.VENUES.kalshi), 0.44);
+ok("Polymarket US pays makers", M.makerFee(0.5, 100, M.VENUES["polymarket-us"]) < 0);
+check("Robinhood venues charge a resting order the same", M.makerFee(0.4, 100), M.sideFee(0.4, 100));
+
+console.log("\nPolymarket US, depth, line movement, flags");
+const pm = B.parsePolyMarket({ markets: [{ bestBidQuote: { value: "0.8350" }, bestAskQuote: { value: "0.8400" }, marketSides: [{ long: true, team: { abbreviation: "kc" } }, { long: false, team: { abbreviation: "mia" } }] }] });
+check("the listed side is the long team", pm.longCode, "KC");
+check("the other team is the complement", B.polyQuoteFor(pm, "MIA"), { bid: 0.16, ask: 0.165 });
+check("Polymarket's 'was' is ESPN's WSH", B.parsePolyMarket({ markets: [{ marketSides: [{ long: true, team: { abbreviation: "was" } }] }] }).longCode, "WSH");
+check("slug is away-home-ET date", B.polySlug("nfl", { ...games[0], away: { ...games[0].away, code: "SEA" }, home: { ...games[0].home, code: "WSH" } }), "aec-nfl-sea-was-2026-09-27");
+check("no slug outside the NFL", B.polySlug("nba", games[0]), null);
+const kd = B.parseKalshiEvents({ events: [{ event_ticker: "E", markets: [{ ticker: "E-A", yes_bid_size_fp: "42574.82", yes_ask_size_fp: "47815.24" }] }] });
+check("depth at the bid and ask parses", [kd[0].sides[0].bidSize, kd[0].sides[0].askSize], [42574.82, 47815.24]);
+const moved = JSON.parse(JSON.stringify(espn));
+moved.events[0].competitions[0].odds[0].moneyline.home.open = { odds: "-120" };
+moved.events[0].competitions[0].odds[0].moneyline.away.open = { odds: "+100" };
+const mb = B.buildBoard("nfl", B.parseEspnScoreboard(moved), ev);
+ok("the book moved toward JAX since the open", mb[0].home.book - mb[0].home.bookOpen > 0.05);
+const wx = B.parseSummaryExtras({ gameInfo: { weather: { gust: 25, precipitation: 70 }, venue: { indoor: false } } });
+const wb = B.buildBoard("nfl", games, ev, {}, undefined, { "1": wx });
+ok("wind and rain are flagged outdoors", /gusts 25 mph, precipitation 70%/.test(B.weatherFlag(wb[0])));
+check("a roof silences it", B.weatherFlag(B.buildBoard("nfl", games, ev, {}, undefined, { "1": { ...wx, indoor: true } })[0]), null);
+const qb = B.buildBoard("nfl", games, ev, {}, undefined, { "1": { modelHome: 0.7, modelAway: 0.3, injuries: { JAX: ["QB Starter (Questionable)"] } } });
+check("the QB on the report is flagged", B.qbFlag(qb[0], "JAX"), "QB Starter (Questionable)");
+ok("model 70% vs book ~59% is a disagreement", /ESPN model 70\.0% vs book/.test(B.disagreement(qb[0], qb[0].home)));
+ok("inactives are due 90 minutes before kickoff", /11:30/.test(B.inactivesLine(qb[0], Date.parse("2026-09-27T12:00Z"))));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

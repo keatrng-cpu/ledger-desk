@@ -106,7 +106,8 @@ export function PredictTab() {
         trails.current.set(side.ticker, arr.slice(-12));
         if (b.game.state !== "in") continue;
         const key = side.ticker;
-        if (e >= line && !fired.current.has(key)) {
+        const held = arr.length >= 2 && arr[arr.length - 2] >= line;
+        if (e >= line && held && !fired.current.has(key)) {
           fired.current.add(key);
           hits.push(`${s.team.code} ${Math.round((side.ask ?? 0) * 100)}¢ vs ESPN ${((s.reference ?? 0) * 100).toFixed(0)}% (+${(e * 100).toFixed(1)}¢)`);
         } else if (e < line - 0.01) {
@@ -115,7 +116,7 @@ export function PredictTab() {
       }
     }
     if (hits.length) {
-      setAlertMsg(`Gap ≥ ${alertCents}¢ after fees: ${hits.join(" · ")} — a comparison with ESPN's model, not a call.`);
+      setAlertMsg(`Gap ≥ ${alertCents}¢ after fees, held two refreshes: ${hits.join(" · ")} — a comparison with ESPN's model, not a call.`);
       if (alertOn) tone(audio.current);
     }
   }, [board, alertCents, alertOn, fees]);

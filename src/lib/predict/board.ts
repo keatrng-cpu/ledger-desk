@@ -18,6 +18,7 @@
  */
 
 import { americanToProb, entryEdge, noVig, parseAmerican, LONGSHOT_BELOW, type FeeModel, DEFAULT_FEES } from "./math";
+import { devig } from "./devig";
 
 export type League = "nfl" | "ncaaf" | "mlb" | "nhl" | "nba" | "wnba";
 
@@ -44,6 +45,9 @@ export interface KalshiSide {
   volume: number | null;
   volume24h: number | null;
   openInterest: number | null;
+  /** Contracts resting at the best bid / best ask — how much the quote is good for. */
+  bidSize: number | null;
+  askSize: number | null;
   status: string;
 }
 
@@ -91,6 +95,8 @@ export function parseKalshiEvents(json: unknown): KalshiEvent[] {
           volume: num(m.volume_fp),
           volume24h: num(m.volume_24h_fp),
           openInterest: num(m.open_interest_fp),
+          bidSize: num(m.yes_bid_size_fp),
+          askSize: num(m.yes_ask_size_fp),
           status: String(m.status ?? ""),
         };
       });
@@ -107,6 +113,8 @@ export interface EspnTeam {
   score: number | null;
   record: string | null;
   moneyline: number | null;
+  /** DraftKings' opening moneyline — the start of the line's movement. */
+  moneylineOpen: number | null;
 }
 
 export interface EspnGame {
@@ -154,6 +162,7 @@ export function parseEspnScoreboard(json: unknown): EspnGame[] {
         score: num(t.score),
         record: t.records?.[0]?.summary ?? null,
         moneyline: line,
+        moneylineOpen: parseAmerican(ml?.[ha]?.open?.odds),
       };
     };
     const home = team("home");
@@ -194,6 +203,10 @@ export interface GameExtras {
   modelAway: number | null;
   /** Key injuries by team code: "QB Name (Out)". Injured reserve left out. */
   injuries: Record<string, string[]>;
+  /** Stadium forecast (ESPN via AccuWeather): wind gusts in mph, precipitation figure, roof. */
+  gust?: number | null;
+  precip?: number | null;
+  indoor?: boolean | null;
 }
 
 /** ESPN summary JSON → the extras. Pure. */
@@ -218,25 +231,81 @@ export function parseSummaryExtras(json: unknown): GameExtras {
       .sort((a: { pos: string }, b: { pos: string }) => (RANK[a.pos] ?? 3) - (RANK[b.pos] ?? 3));
     injuries[CODE_FIX[code] ?? code] = rows.slice(0, 4).map((r: { pos: string; name: string; status: string }) => `${r.pos} ${r.name} (${r.status})`);
   }
+  const w = d.gameInfo?.weather;
   return {
     modelHome: pct(d.predictor?.homeTeam?.gameProjection),
     modelAway: pct(d.predictor?.awayTeam?.gameProjection),
     injuries,
+    gust: num(w?.gust),
+    precip: num(w?.precipitation),
+    indoor: typeof d.gameInfo?.venue?.indoor === "boolean" ? d.gameInfo.venue.indoor : null,
   };
+}
+
+/** One Polymarket US moneyline: the listed ("long") team's best bid/ask. */
+export interface PolyMarket {
+  /** ESPN team code of the listed side. */
+  longCode: string;
+  bid: number | null;
+  ask: number | null;
+}
+
+export interface PolyQuote {
+  bid: number | null;
+  ask: number | null;
+}
+
+/** Polymarket US writes Washington as "was"; every other NFL code matched ESPN's on 2026-09-27. */
+const POLY_CODE: Record<string, string> = { WSH: "was" };
+const POLY_BACK: Record<string, string> = { WAS: "WSH" };
+
+/** The Polymarket US slug for an NFL game: away first, ET date. */
+export function polySlug(league: League, g: EspnGame): string | null {
+  if (league !== "nfl") return null;
+  const code = (c: string) => POLY_CODE[c] ?? c.toLowerCase();
+  return "aec-nfl-" + code(g.away.code) + "-" + code(g.home.code) + "-" + g.date;
+}
+
+/** Polymarket US GET /v1/markets?slug= -> the listed side and its quote. Pure. */
+export function parsePolyMarket(json: unknown): PolyMarket | null {
+  const m = (json as { markets?: Record<string, any>[] })?.markets?.[0];
+  if (!m) return null;
+  const long = (Array.isArray(m.marketSides) ? m.marketSides : []).find((x: any) => x?.long === true);
+  const abbr = String(long?.team?.abbreviation ?? "").toUpperCase();
+  if (!abbr) return null;
+  return { longCode: POLY_BACK[abbr] ?? abbr, bid: num(m.bestBidQuote?.value), ask: num(m.bestAskQuote?.value) };
+}
+
+/** The quote for either team: the listed side as quoted, the other as its complement. */
+export function polyQuoteFor(pm: PolyMarket | undefined, code: string): PolyQuote | null {
+  if (!pm) return null;
+  if (pm.longCode === code) return { bid: pm.bid, ask: pm.ask };
+  const r = (x: number | null) => (x == null ? null : Math.round((1 - x) * 10_000) / 10_000);
+  return { bid: r(pm.ask), ask: r(pm.bid) };
 }
 
 export interface SideRead {
   side: KalshiSide | null;
   team: EspnTeam;
-  /** DraftKings, margin removed. */
+  /** DraftKings, margin removed (proportional). */
   book: number | null;
+  /** The same book under three de-vig methods (proportional, power, Shin): [lowest, highest]. */
+  bookRange: [number, number] | null;
+  /** DraftKings at the OPEN, margin removed — book minus bookOpen is the line's move. */
+  bookOpen: number | null;
+  /** Polymarket US quote for this team, where listed. */
+  poly: PolyQuote | null;
   /** ESPN's pregame matchup model for this team. */
   model: number | null;
   /** Kalshi's own implied probability: the bid/ask midpoint. */
   market: number | null;
   /** ESPN live win probability for this team (in-game only). */
   live: number | null;
-  /** The reference in use: live during the game, the book before it. */
+  /**
+   * The reference in use: ESPN live during the game; before it, the book's
+   * LOWEST fair value across the three de-vig methods — the buyer's
+   * conservative read, because the method alone moves it by about a cent.
+   */
   reference: number | null;
   referenceName: "ESPN live" | "DraftKings no-vig" | null;
   /** Dollars per contract if bought at the ask and the reference is true, after fees. */
@@ -253,6 +322,8 @@ export interface BoardGame {
   home: SideRead;
   overround: number | null;
   injuries: Record<string, string[]>;
+  /** Stadium forecast from the game summary (null until loaded). */
+  wx: { gust: number | null; precip: number | null; indoor: boolean | null } | null;
 }
 
 function read(
@@ -262,8 +333,11 @@ function read(
   live: number | null,
   model: number | null,
   fees: FeeModel,
+  bookRange: [number, number] | null = null,
+  bookOpen: number | null = null,
+  poly: PolyQuote | null = null,
 ): SideRead {
-  const reference = live ?? book;
+  const reference = live ?? (bookRange ? bookRange[0] : book);
   const refName = live != null ? "ESPN live" : book != null ? "DraftKings no-vig" : null;
   const ask = side?.ask ?? null;
   const e = ask != null && reference != null && ask > 0 && ask < 1 ? entryEdge(ask, reference, fees) : null;
@@ -272,6 +346,9 @@ function read(
     side,
     team,
     book,
+    bookRange,
+    bookOpen,
+    poly,
     model,
     market,
     live,
@@ -295,6 +372,7 @@ export function buildBoard(
   liveWp: Record<string, number | null> = {},
   fees: FeeModel = DEFAULT_FEES,
   extras: Record<string, GameExtras> = {},
+  poly: Record<string, PolyMarket> = {},
 ): BoardGame[] {
   return games.map((g) => {
     const ev =
@@ -304,18 +382,23 @@ export function buildBoard(
     const pa = americanToProb(g.away.moneyline ?? NaN);
     const ph = americanToProb(g.home.moneyline ?? NaN);
     const nv = noVig(pa, ph);
+    const dv = pa != null && ph != null ? devig(pa, ph) : null;
+    const nvOpen = noVig(americanToProb(g.away.moneylineOpen ?? NaN), americanToProb(g.home.moneylineOpen ?? NaN));
     const homeLive = g.state === "in" ? (liveWp[g.id] ?? g.liveHomeWp) : null;
     const awayLive = homeLive != null ? Math.max(0, 1 - homeLive) : null;
     const sideFor = (code: string) => ev?.sides.find((s) => s.code === code) ?? null;
     const x = extras[g.id];
+    const pm = poly[g.id];
+    const rng = (i: 0 | 1): [number, number] | null => (dv ? [dv.lo[i], dv.hi[i]] : null);
     return {
       league,
       game: g,
       eventTicker: ev?.eventTicker ?? null,
-      away: read(sideFor(g.away.code), g.away, nv?.a ?? null, awayLive, x?.modelAway ?? null, fees),
-      home: read(sideFor(g.home.code), g.home, nv?.b ?? null, homeLive, x?.modelHome ?? null, fees),
+      away: read(sideFor(g.away.code), g.away, nv?.a ?? null, awayLive, x?.modelAway ?? null, fees, rng(0), nvOpen?.a ?? null, polyQuoteFor(pm, g.away.code)),
+      home: read(sideFor(g.home.code), g.home, nv?.b ?? null, homeLive, x?.modelHome ?? null, fees, rng(1), nvOpen?.b ?? null, polyQuoteFor(pm, g.home.code)),
       overround: nv?.overround ?? null,
       injuries: x?.injuries ?? {},
+      wx: x ? { gust: x.gust ?? null, precip: x.precip ?? null, indoor: x.indoor ?? null } : null,
     };
   });
 }
@@ -363,4 +446,40 @@ export function gameLine(b: BoardGame, fees: FeeModel = DEFAULT_FEES): string {
     return `${best.team.code} at ${Math.round((best.side?.ask ?? 0) * 100)}¢ is ${(e * 100).toFixed(1)}¢ below ${ref} after fees — a gap, if ${ref} is right.`;
   }
   return `Both sides cost at least what ${ref} says they are worth once fees are paid — no gap to buy.`;
+}
+
+
+/** A quarterback on this team's injury report (Out / Doubtful / Questionable). */
+export function qbFlag(b: BoardGame, code: string): string | null {
+  return (b.injuries[code] ?? []).find((x) => x.startsWith("QB ")) ?? null;
+}
+
+/** Where the market, the book and ESPN's model disagree enough to look twice (pregame only). */
+export function disagreement(b: BoardGame, s: SideRead): string | null {
+  if (b.game.state !== "pre" || s.book == null) return null;
+  const out: string[] = [];
+  if (s.model != null && Math.abs(s.model - s.book) >= 0.06) out.push("ESPN model " + p0(s.model) + " vs book " + p0(s.book));
+  if (s.market != null && Math.abs(s.market - s.book) >= 0.03) out.push("Kalshi " + p0(s.market) + " vs book " + p0(s.book));
+  return out.length ? out.join(" · ") : null;
+}
+
+/** Wind or rain worth knowing about. The book has the same forecast — context, not an edge. */
+export function weatherFlag(b: BoardGame): string | null {
+  const w = b.wx;
+  if (!w || w.indoor) return null;
+  const parts: string[] = [];
+  if (w.gust != null && w.gust >= 20) parts.push("gusts " + w.gust + " mph");
+  // ESPN's precipitation figure is read as a percent chance; the 50 floor keeps any other unit from tripping it.
+  if (w.precip != null && w.precip >= 50) parts.push("precipitation " + w.precip + "%");
+  return parts.length ? parts.join(", ") + " — lower scoring, more variance; the book has the same forecast" : null;
+}
+
+/** NFL inactive lists are due 90 minutes before kickoff — the last big news before the price settles. */
+export function inactivesLine(b: BoardGame, now = Date.now()): string | null {
+  if (b.league !== "nfl" || b.game.state !== "pre") return null;
+  const k = Date.parse(b.game.start);
+  if (!Number.isFinite(k)) return null;
+  const due = k - 90 * 60_000;
+  const t = new Date(due).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
+  return now < due ? "inactives due ~" + t + " ET" : "inactives were due " + t + " ET — check them before buying";
 }

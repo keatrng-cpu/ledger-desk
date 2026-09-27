@@ -72,6 +72,8 @@ export interface FeeModel {
   label: string;
   /** Dollars charged on ONE side (a buy or a sell) of `contracts` at `price`. */
   perSide: (price: number, contracts: number) => number;
+  /** A RESTING order that another trader fills, where the venue prices it differently. Absent = same as perSide. */
+  maker?: (price: number, contracts: number) => number;
   source: string;
   checkedAt: string;
 }
@@ -114,6 +116,7 @@ export const VENUES: Record<VenueId, FeeModel> = {
     id: "kalshi",
     label: "Kalshi direct (taker)",
     perSide: (p, c) => ceilCents(0.07 * c * p * (1 - p)),
+    maker: (p, c) => ceilCents(0.0175 * c * p * (1 - p)),
     source: "Kalshi taker fee 7%·C·p(1−p), rounded up (NFL makers 1.75%)",
     checkedAt: "2026-09-27",
   },
@@ -121,10 +124,21 @@ export const VENUES: Record<VenueId, FeeModel> = {
     id: "polymarket-us",
     label: "Polymarket US (taker)",
     perSide: (p, c) => cents(0.0695 * c * p * (1 - p)),
+    maker: (p, c) => -cents(0.0125 * c * p * (1 - p)),
     source: "Polymarket US taker fee 6.95%·C·p(1−p) (makers get a 1.25% rebate)",
     checkedAt: "2026-09-27",
   },
 };
+
+/**
+ * Fees for a resting limit order that someone else fills. Kalshi charges NFL
+ * makers a quarter of the taker rate and Polymarket US pays makers a rebate;
+ * Robinhood's commission applies either way, so its venues price both alike.
+ */
+export function makerFee(price: number, contracts: number, fees: FeeModel = DEFAULT_FEES): number {
+  if (!(price > 0 && price < 1) || !(contracts > 0)) return 0;
+  return (fees.maker ?? fees.perSide)(price, contracts);
+}
 
 /** The trader's venue for NFL moneylines on 2026-09-27: Robinhood, listed on Rothera. */
 export const DEFAULT_FEES: FeeModel = VENUES["rh-rothera"];
