@@ -117,5 +117,12 @@
     "actual": "—",
     "vs": "none scheduled today",
     "note": "Labor/ISM slate is next week (JOLTS Tue 29, ADP/PCE Wed 30, ISM/claims Thu Oct 1, NFP Fri Oct 2). Today: durables 0.0% vs -0.3%; core ex-trans 0.3% vs 0.6%; UMich final 48.1 vs ~47.8. Not stamped as those series."
+  },
+  {
+    "date": "2026-09-28",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "—",
+    "vs": "none scheduled today",
+    "note": "Mon. Dallas Fed GBA 9.8 vs 11.6 prior / ~7.8 exp — not a stamp series. Next: JOLTS Tue 10:00, ADP+PCE Wed, ISM+claims Thu, NFP Fri."
   }
 ]
