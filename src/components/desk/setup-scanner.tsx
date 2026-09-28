@@ -207,6 +207,15 @@ function StratChip({ id, primary }: { id: string; primary?: boolean }) {
   );
 }
 
+/** Short enough to sit in a checklist chip; the full label is the tooltip's first line. */
+const MUST_SHORT: Record<string, string> = {
+  htf: "HTF",
+  sweep: "Sweep",
+  pd_half: "POI",
+  ltf: "LTF",
+  time: "KZ",
+};
+
 /**
  * SMC/ICT canon grade — the independent "is the STORY complete" read,
  * distinct from the raw engine confluence number. A candidate can carry a
@@ -214,6 +223,11 @@ function StratChip({ id, primary }: { id: string; primary?: boolean }) {
  * sequence (sweep -> confirmation -> POI -> killzone) is still missing a
  * must-have — this badge is what makes that visible on the card instead of
  * only inside the veteran-brain panel for one desk-wide pick.
+ *
+ * The "3/5" used to be the only number printed — right, but it makes the
+ * reader open the card (or ask) to find out WHICH of the five is missing.
+ * Each must-have now prints beside it: green and named when it passed, red
+ * and named when it did not, so the gap is legible without a hover.
  */
 function CanonBadge({ stack }: { stack: CanonStack }) {
   const tone =
@@ -222,20 +236,37 @@ function CanonBadge({ stack }: { stack: CanonStack }) {
       : stack.grade === "A-" || stack.grade === "B"
         ? "primary"
         : "down";
+  const musts = stack.factors.filter((f) => f.must);
   return (
-    <span
-      title={`${stack.thesis} — ${stack.mustHits}/${stack.mustNeed} must-have`}
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold",
-        tone === "up" &&
-          "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
-        tone === "primary" &&
-          "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
-        tone === "down" &&
-          "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
-      )}
-    >
-      SMC {stack.grade} · {stack.mustHits}/{stack.mustNeed}
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <span
+        title={`${stack.thesis} — ${stack.mustHits}/${stack.mustNeed} must-have`}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 font-mono text-[9px] font-semibold",
+          tone === "up" &&
+            "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
+          tone === "primary" &&
+            "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
+          tone === "down" &&
+            "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
+        )}
+      >
+        SMC {stack.grade} · {stack.mustHits}/{stack.mustNeed}
+      </span>
+      {musts.map((f) => (
+        <span
+          key={f.id}
+          title={`${f.label} — ${f.pass ? "in place" : "still needed"}: ${f.detail}`}
+          className={cn(
+            "inline-flex items-center gap-0.5 rounded border px-1 py-0.5 font-mono text-[8px] font-semibold leading-none",
+            f.pass
+              ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
+              : "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
+          )}
+        >
+          {f.pass ? "✓" : "✕"} {MUST_SHORT[f.id] ?? f.id}
+        </span>
+      ))}
     </span>
   );
 }
