@@ -169,13 +169,13 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     {
       date: "2026-09-29",
       weekday: "Tue",
-      dailyBias: "Two-way, JOLTS as raid",
+      dailyBias: "Two-way, still inside last week",
       kind: "two_way",
       news: [{ timeEt: "10:00", name: "JOLTS Job Openings (Aug)", impact: "high", note: "Official BLS 10:00 ET. First look at August openings after +162k NFP. Consensus ~7.2M vs Jul 7.271M." }],
-      likelyTape: "10:00 raid of Mon high/low. Stand 9:45–10:15.",
-      trade: "Post-10:15 mechanical aligned with the reaction. SMT if NQ sweeps and ES does not.",
-      skipIf: "No displacement + IFVG after 10:15.",
-      pathNote: "A− possible.",
+      likelyTape: "JOLTS 7.079M vs ~7.23M / Jul rev 7.335M. Cash stayed inside the box: NQ ~30,372–30,726 vs PWH 31,095 / PWL 29,904; ES ~7,712–7,771 vs 7,848.50 / 7,707.25. No PWH/PWL take. Still inside-week, not a new HTF trend.",
+      trade: "Post-10:15 mechanical only if MSS + IFVG after the print. Tue did not take prior-week H/L.",
+      skipIf: "No raid of prior-week H/L — already the case into cash close.",
+      pathNote: "Sunday inside-week story holds. Next is Wed ADP+PCE.",
     },
     {
       date: "2026-09-30",

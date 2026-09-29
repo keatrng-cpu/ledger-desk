@@ -124,5 +124,12 @@
     "actual": "—",
     "vs": "none scheduled today",
     "note": "Mon. Dallas Fed GBA 9.8 vs 11.6 prior / ~7.8 exp — not a stamp series. Next: JOLTS Tue 10:00, ADP+PCE Wed, ISM+claims Thu, NFP Fri."
+  },
+  {
+    "date": "2026-09-29",
+    "name": "JOLTS Job Openings (Aug)",
+    "actual": "7.079M",
+    "vs": "exp ~7.23M / Jul first-print 7.271M, Jul rev 7.335M",
+    "note": "BLS official USDL-26-1547. Little changed at 7.1M / 4.3%. Hires 5.2M, seps 5.1M, quits 3.1M. -256k vs revised July. Soft vs cluster; not a labor-break. No ADP/claims/NFP today."
   }
 ]
