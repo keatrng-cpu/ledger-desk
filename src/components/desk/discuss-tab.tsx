@@ -28,6 +28,9 @@ interface Entry {
   slot: string;
   at: string;
   exchange: DiscussExchange;
+  /** Key presence AT FIRE TIME — so a historical card reads correctly even if the desk's own coach status changes later in the session. */
+  xaiPresent: boolean;
+  anthropicPresent: boolean;
 }
 
 const BIAS_STYLE: Record<DiscussBias, string> = {
@@ -51,7 +54,22 @@ function agree(a: DiscussBias | null, b: DiscussBias | null): boolean {
   return a != null && a === b;
 }
 
-function VoiceBlock({ label, text, error }: { label: string; text: string | null | undefined; error?: string | null }) {
+function VoiceBlock({
+  label,
+  voice,
+  keyPresent,
+}: {
+  label: string;
+  voice: { text: string | null; error: string | null } | null | undefined;
+  /** Whether this provider's key was present at fire time — distinguishes "no key" from a real API failure when `voice` itself is null. */
+  keyPresent: boolean;
+}) {
+  const text = voice?.text;
+  // `voice` is null only when askDeskDiscuss never called that provider (its
+  // key was absent server-side) OR the whole checkpoint failed before either
+  // provider ran (see the exchange-level banner in ExchangeCard) — say which,
+  // instead of the misleading generic "No text." both used to show here.
+  const fallback = voice ? (voice.error ?? "No text.") : keyPresent ? "Not called this checkpoint — see the error above." : "No key configured for this provider.";
   return (
     <div className="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-primary)_28%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_5%,transparent)] px-2.5 py-2">
       <div className="mb-1 flex items-center gap-1.5">
@@ -61,7 +79,7 @@ function VoiceBlock({ label, text, error }: { label: string; text: string | null
       {text ? (
         <p className="whitespace-pre-wrap text-[11px] leading-relaxed text-[var(--color-fg)]">{text}</p>
       ) : (
-        <p className="text-[11px] text-[var(--color-warn)]">{error ?? "No text."}</p>
+        <p className="text-[11px] text-[var(--color-warn)]">{fallback}</p>
       )}
     </div>
   );
@@ -70,6 +88,7 @@ function VoiceBlock({ label, text, error }: { label: string; text: string | null
 function ExchangeCard({ entry }: { entry: Entry }) {
   const { round1, round2 } = entry.exchange;
   const bothAgree = agree(parseDiscussRead(round1.grok?.text).bias, parseDiscussRead(round1.claude?.text).bias);
+  const nothingCameBack = !round1.grok?.text && !round1.claude?.text;
   return (
     <div className={CARD}>
       <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -80,18 +99,27 @@ function ExchangeCard({ entry }: { entry: Entry }) {
         {bothAgree && <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-up)]">both agree</span>}
       </div>
 
+      {/* The exchange's own error was silently dropped before — this is the
+          one place it renders. Shown whenever round 1 came back completely
+          empty, which is exactly when a trader most needs to know WHY. */}
+      {entry.exchange.error && (nothingCameBack || !entry.exchange.configured) && (
+        <p className="mb-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-warn)_45%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)] px-2 py-1.5 text-[11px] text-[var(--color-warn)]">
+          {entry.exchange.error}
+        </p>
+      )}
+
       <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Round 1 · independent reads</p>
       <div className="mb-2 flex flex-col gap-2 sm:flex-row">
-        <VoiceBlock label="Grok" text={round1.grok?.text} error={round1.grok?.error} />
-        <VoiceBlock label="Claude" text={round1.claude?.text} error={round1.claude?.error} />
+        <VoiceBlock label="Grok" voice={round1.grok} keyPresent={entry.xaiPresent} />
+        <VoiceBlock label="Claude" voice={round1.claude} keyPresent={entry.anthropicPresent} />
       </div>
 
       {(round2.grokReply?.text || round2.claudeReply?.text) && (
         <>
           <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Round 2 · one reply each, to the other's read</p>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <VoiceBlock label="Grok replies to Claude" text={round2.grokReply?.text} error={round2.grokReply?.error} />
-            <VoiceBlock label="Claude replies to Grok" text={round2.claudeReply?.text} error={round2.claudeReply?.error} />
+            <VoiceBlock label="Grok replies to Claude" voice={round2.grokReply} keyPresent={entry.xaiPresent} />
+            <VoiceBlock label="Claude replies to Grok" voice={round2.claudeReply} keyPresent={entry.anthropicPresent} />
           </div>
         </>
       )}
@@ -123,17 +151,21 @@ export function DiscussTab({ desk }: { desk: DeskPayload }) {
 
   const fire = async (slot: string) => {
     inFlightRef.current = true;
+    const xaiPresent = Boolean(desk.coach?.xai);
+    const anthropicPresent = Boolean(desk.coach?.anthropic);
     try {
       const exchange = await askDeskDiscuss({ data: { ...buildCoachContext(desk, undefined), slot } });
-      setHistory((h) => [{ slot, at: new Date().toISOString(), exchange }, ...h]);
+      setHistory((h) => [{ slot, at: new Date().toISOString(), exchange, xaiPresent, anthropicPresent }, ...h]);
     } catch (e) {
       setHistory((h) => [
         {
           slot,
           at: new Date().toISOString(),
+          xaiPresent,
+          anthropicPresent,
           exchange: {
-            configured: true,
-            error: e instanceof Error ? e.message : "Discussion failed",
+            configured: xaiPresent || anthropicPresent,
+            error: e instanceof Error ? e.message : "Discussion failed — the request itself did not complete (network or auth).",
             round1: { grok: null, claude: null },
             round2: { grokReply: null, claudeReply: null },
           },
