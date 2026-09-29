@@ -1,14 +1,49 @@
 import { useEffect, useState } from "react";
-import { AlertOctagon, Database } from "lucide-react";
+import { AlertOctagon, Database, LogIn } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   getStorageHealth,
   type StorageHealth,
 } from "@/lib/journal/storage-health";
 import { BUILD_ID } from "@/lib/build-id";
 import { cn } from "@/lib/utils";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { SIGN_IN_PATH } from "@/lib/auth/gates";
 
 /**
- * Two things that must never fail quietly, in one strip:
+ * Signed-in/out chip for the SAME status strip storage and build identity
+ * already sit on. `login.tsx`'s own comment says why this exists: "the route
+ * gates.tsx has always pointed at and that never existed" — the /login route
+ * DOES exist (email/password, enabled since 2026-09-19) but NOTHING in the
+ * desk's own UI ever linked to it, so a trader browsing the desk (most of
+ * which works signed out on purpose) had no way to discover that a handful
+ * of features — the journal, the Invest ledger, kill-watch, the coach, and
+ * Discuss — need a real session, and silently got "Unauthorized" from all of
+ * them. Half of the 2026-09-19 fix; this is the other half.
+ */
+function AccountChip() {
+  const { user, isPending } = useCurrentUserState();
+  if (isPending) return null;
+  if (user) {
+    return (
+      <span title={user.primaryEmail ?? user.displayName ?? user.id} className="text-[var(--color-up)]">
+        {user.isDevFallback ? "dev user" : (user.primaryEmail ?? user.displayName ?? "signed in").split("@")[0]}
+      </span>
+    );
+  }
+  return (
+    <Link
+      to={SIGN_IN_PATH}
+      className="flex items-center gap-1 text-[var(--color-warn)] hover:underline"
+      title="Signed out — the journal, Invest ledger, kill-watch, the coach and Discuss all need this to persist or to call a paid API"
+    >
+      <LogIn className="h-3 w-3" /> sign in
+    </Link>
+  );
+}
+
+/**
+ * Three things that must never fail quietly, in one strip:
  *
  * 1. STORAGE. Without DATABASE_URL the app runs an in-memory database, so a
  *    deployed desk throws away every trade on each cold start while looking
@@ -17,6 +52,8 @@ import { cn } from "@/lib/utils";
  *    (scripts/gen-build-id.mjs). If what you see here does not match the
  *    commit you deployed, the page really is cached — and that is now a
  *    one-glance check instead of an investigation.
+ * 3. ACCOUNT. See AccountChip above — the gap that made the journal sit at
+ *    zero rows for months, the second time (this UI half was still missing).
  */
 export function StorageBanner() {
   const [health, setHealth] = useState<StorageHealth | null>(null);
@@ -27,7 +64,7 @@ export function StorageBanner() {
       .catch(() => undefined);
   }, []);
 
-  // Nothing wrong, or not known yet: show only the build stamp.
+  // Nothing wrong, or not known yet: show only the build stamp + account.
   if (!health || health.durable) {
     return (
       <div className="flex items-center justify-end gap-1.5 px-1 py-1 font-mono text-[10px] text-[var(--color-subtle)]">
@@ -37,6 +74,8 @@ export function StorageBanner() {
         <span title="Generated at build time — mismatch with your deploy means the page is cached">
           build {BUILD_ID}
         </span>
+        <span className="text-[var(--color-border-strong)]">·</span>
+        <AccountChip />
       </div>
     );
   }
