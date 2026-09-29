@@ -50,7 +50,10 @@ const GROK_MODEL = "grok-4.5";
 /** xAI Responses API + web_search — Discuss round 1 only (see askDeskDiscuss). */
 const GROK_RESPONSES_URL = "https://api.x.ai/v1/responses";
 const GROK_SEARCH_MODEL = "grok-4.7";
-const GROK_MAX_TURNS = 2;
+// 1, not 2 (trader's call 2026-09-29, budget fix): each turn is a real
+// network round trip: a second search turn was the difference between
+// finishing inside the shared budget and timing out on the first live run.
+const GROK_MAX_TURNS = 1;
 
 /** Anthropic Messages API. Peer narrator — not a fallback. */
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
@@ -58,7 +61,9 @@ const ANTHROPIC_API_VERSION = "2023-06-01";
 const ANTHROPIC_MODEL = "claude-sonnet-5";
 /** Server-side tool, no client-side search loop to write — see platform.claude.com/docs/agents-and-tools/tool-use/web-search-tool. */
 const ANTHROPIC_WEB_SEARCH_TOOL = "web_search_20250305";
-const ANTHROPIC_MAX_SEARCHES = 3;
+// 1, not 3 (trader's call 2026-09-29, budget fix): each search is a real
+// round trip against the shared 25s budget — see GROK_MAX_TURNS above.
+const ANTHROPIC_MAX_SEARCHES = 1;
 
 /** Bounded output — this is a paragraph of narration, not an essay. */
 const MAX_TOKENS = 1100;
@@ -280,16 +285,17 @@ const DISCUSS_ROUND1_PROMPT = [
   "",
   HARD_RULES_BLOCK,
   "",
-  "STYLE: exactly two short paragraphs.",
-  "Paragraph 1 — read the structure: HTF bias, the PATH candidate's grade and",
-  "which must-layers are present/missing, the overnight options board, and the",
-  "chart-timeframe ladder. Say what stands out.",
-  "Paragraph 2 — your own probability-weighted read of the EXISTING",
-  "entry/target/bias the desk already computed (never a new one): how likely",
-  "you think it plays out and why, in plain arithmetic terms (e.g. 'roughly",
-  "60/40' or 'closer to a coin flip'), stated explicitly as your own opinion.",
-  "End with one line, exactly this shape: 'Read: bullish|bearish|neutral ·",
-  "confidence low|medium|high'.",
+  // Kept deliberately terse (trader's call 2026-09-29): the first live run of
+  // "two short paragraphs" timed out doing a real search — generation time
+  // scales with how much text is asked for, not just the search itself.
+  "STYLE: at most 3 short lines, each ONE sentence, under 20 words. No preamble.",
+  "Line 1 — the one thing that stands out: HTF bias, the PATH candidate's",
+  "grade/must-layers, the overnight board, or the timeframe ladder.",
+  "Line 2 — your own probability-weighted read of the EXISTING entry/target/bias",
+  "the desk already computed (never a new one), in plain arithmetic (e.g.",
+  "'roughly 60/40') — your own opinion, stated as such.",
+  "Line 3 — exactly this shape: 'Read: bullish|bearish|neutral · confidence",
+  "low|medium|high'.",
 ].join("\n");
 
 const DISCUSS_ROUND2_PROMPT = [
@@ -299,10 +305,11 @@ const DISCUSS_ROUND2_PROMPT = [
   "",
   HARD_RULES_BLOCK,
   "",
-  "STYLE: ONE short paragraph, replying directly to the other colleague's read.",
-  "Correct a fact or a probability if they got something wrong against the",
-  "numbers given, or add one thing they missed. If you have nothing to correct",
-  "or add, say so in one sentence rather than repeating your first answer.",
+  "STYLE: ONE sentence, under 25 words, replying directly to the other",
+  "colleague's read. Correct a fact or a probability if they got something",
+  "wrong against the numbers given, or add one thing they missed. If you have",
+  "nothing to correct or add, say so in a few words rather than repeating your",
+  "first answer.",
 ].join("\n");
 
 /**
@@ -867,7 +874,9 @@ export const askDeskDiscuss = createServerFn({ method: "POST" })
     // answer text) — same fix already proven in thesis-server.ts: a shared
     // wall-clock budget for the WHOLE two-round exchange, not a flat timeout
     // per call, since round 2 runs AFTER round 1 in the same invocation.
-    const round1Ms = Math.max(8_000, DISCUSS_BUDGET_MS - (Date.now() - t0) - 5_000);
+    // Round 2 is now a single short sentence with no search — 3.5s reserved
+    // for it (down from 5s) gives round 1 a bit more of the shared budget.
+    const round1Ms = Math.max(8_000, DISCUSS_BUDGET_MS - (Date.now() - t0) - 3_500);
     const [grok1, claude1] = await Promise.all([
       xai ? callGrokWithSearch(xai, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
       anthropic ? callClaudeWithSearch(anthropic, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
