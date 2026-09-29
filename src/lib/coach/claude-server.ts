@@ -139,8 +139,13 @@ const contextSchema = z.object({
   bestSide: z.string().max(10).nullable().optional(),
   bestGrade: z.string().max(10).nullable().optional(),
   bestConfluence: z.number().nullable().optional(),
-  bestPresent: z.array(z.string().max(60)).max(20).optional(),
-  bestMissing: z.array(z.string().max(60)).max(20).optional(),
+  // 60 was too tight for real data and had apparently never been exercised
+  // until Discuss's first live run: profit-path.ts's own reason lines
+  // ("models alone: Mechanical 0.45✓ · TJR 0.32~ · ...") run well past it.
+  // Raised to match `blocked`'s cap below; buildCoachContext also truncates
+  // defensively so a future longer reason can't repeat this.
+  bestPresent: z.array(z.string().max(160)).max(20).optional(),
+  bestMissing: z.array(z.string().max(160)).max(20).optional(),
   /**
    * A LABEL only — which strategy to look up real discretion/history for.
    * The client cannot use this to fabricate a number: the server

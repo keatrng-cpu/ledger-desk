@@ -11,6 +11,10 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { buildClaudeHandoff } from "@/lib/trading/claude-handoff";
 
+/** Matches contextSchema's per-string cap in claude-server.ts — truncate here too so a longer reason line fails soft (cut) instead of hard (the whole call rejected). */
+const REASON_MAX = 160;
+const clip = (s: string) => (s.length > REASON_MAX ? `${s.slice(0, REASON_MAX - 1)}…` : s);
+
 export function buildCoachContext(desk: DeskPayload, question: string | undefined) {
   const best = desk.scan.candidates[0];
   return {
@@ -27,8 +31,8 @@ export function buildCoachContext(desk: DeskPayload, question: string | undefine
     bestGrade: best?.grade ?? null,
     bestConfluence: best?.confluence ?? null,
     bestStrategy: best?.completeStrategy || best?.strategyPrimary || null,
-    bestPresent: best?.reasons?.slice(0, 12),
-    bestMissing: best?.missing?.slice(0, 12),
+    bestPresent: best?.reasons?.slice(0, 12).map(clip),
+    bestMissing: best?.missing?.slice(0, 12).map(clip),
     actionableCount: desk.scan.candidates.filter((c) => c.actionable).length,
     blocked: desk.scan.blocked?.slice(0, 6),
     focus: desk.scan.focus ?? null,
