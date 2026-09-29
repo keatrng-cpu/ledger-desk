@@ -22,6 +22,7 @@ import {
   GraduationCap,
   Newspaper,
   Percent,
+  MessagesSquare,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -69,6 +70,7 @@ import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
 import { PredictTab } from "@/components/predict/predict-tab";
+import { DiscussTab } from "@/components/desk/discuss-tab";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
@@ -652,6 +654,7 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 type DeskCategory =
   | "news"
   | "predict"
+  | "discuss"
   | "brain"
   | "learn"
   | "invest"
@@ -714,6 +717,16 @@ const CATEGORIES: {
     short: "Brain",
     hint: "TAKE / STAND",
     icon: Brain,
+  },
+  // Its own tab (trader's call 2026-09-28): 6 fixed ET checkpoints where Grok
+  // and Claude read the same snapshot independently, then each reply once —
+  // a confidence check beside Brain's on-demand coach, never a gate.
+  {
+    id: "discuss",
+    label: "Discuss",
+    short: "Talk",
+    hint: "Grok + Claude · 6 checkpoints",
+    icon: MessagesSquare,
   },
   {
     id: "path",
@@ -1633,7 +1646,12 @@ function MasterplacePage() {
               {/* Learn carries no synapse feed: it is the one tab that is not a
                   live surface, and a live rail above a lesson is the clutter
                   this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" && cat !== "learn" && cat !== "invest" && cat !== "news" && cat !== "predict" && <SynapseRail tab={cat} />}
+              {cat !== "trade" &&
+                cat !== "learn" &&
+                cat !== "invest" &&
+                cat !== "news" &&
+                cat !== "predict" &&
+                cat !== "discuss" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the
@@ -1641,6 +1659,7 @@ function MasterplacePage() {
               {cat === "invest" && <InvestPanel />}
               {cat === "news" && <NewsTab />}
               {cat === "predict" && <PredictTab />}
+              {cat === "discuss" && <DiscussTab desk={desk} />}
 
               {cat === "brain" && (
                 <div className="space-y-5">

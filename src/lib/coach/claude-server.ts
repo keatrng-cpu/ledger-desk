@@ -47,10 +47,18 @@ import { backtestPriorFor } from "@/lib/journal/discretion-server";
 const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
 const GROK_MODEL = "grok-4.5";
 
+/** xAI Responses API + web_search — Discuss round 1 only (see askDeskDiscuss). */
+const GROK_RESPONSES_URL = "https://api.x.ai/v1/responses";
+const GROK_SEARCH_MODEL = "grok-4.7";
+const GROK_MAX_TURNS = 2;
+
 /** Anthropic Messages API. Peer narrator — not a fallback. */
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_API_VERSION = "2023-06-01";
 const ANTHROPIC_MODEL = "claude-sonnet-5";
+/** Server-side tool, no client-side search loop to write — see platform.claude.com/docs/agents-and-tools/tool-use/web-search-tool. */
+const ANTHROPIC_WEB_SEARCH_TOOL = "web_search_20250305";
+const ANTHROPIC_MAX_SEARCHES = 3;
 
 /** Bounded output — this is a paragraph of narration, not an essay. */
 const MAX_TOKENS = 1100;
@@ -210,6 +218,74 @@ const SYSTEM_PROMPT = [
   "given. 150 words or less unless asked a direct question that needs more.",
   "No preamble, no disclaimers, no bullet-point padding. If the honest answer",
   "is 'nothing is set up, stand down', say exactly that in one line.",
+].join("\n");
+
+/**
+ * The hard rules shared by every prompt in this file. Extracted so the
+ * Discuss prompt below cannot drift from askDeskCoach's — the two style
+ * sections differ, the boundary they can never cross does not.
+ */
+const HARD_RULES_BLOCK = [
+  "HARD RULES — THE SAME FOR EVERY ENDPOINT IN THIS FILE:",
+  "- You NEVER give a trade signal, entry, target, stop, or size. The desk's",
+  "  deterministic TypeScript scoring already decided all of that before you",
+  "  were called. You explain and probability-weight what it computed; you",
+  "  never invent a NEW entry, target, stop, or size of your own.",
+  "- You never invent a number. If a number was not given to you, say it is",
+  "  not in the data rather than estimating one. A rough probability you",
+  "  state yourself (e.g. 'maybe 60% given X') must say plainly it is your",
+  "  own read, not a computed figure — never phrase it as the desk's number.",
+  "- You never claim to see a live chart beyond the snapshot fields.",
+  "- If a LEDGER DESK HANDOFF snapshot is present, that is the full desk —",
+  "  read its OVERNIGHT line (the options sleeve) and its LADDER lines (the",
+  "  chart timeframes) as well as the PATH candidate, not the candidate alone.",
+  "",
+  "WHAT THE DESK'S OWN FOUR YEARS SAY (evidence-pack.json) — never contradict it:",
+  ...evidenceHeadlines().map((l) => `- ${l}`),
+  "- So never call a high confluence score a high-probability or high-quality",
+  "  setup on its own. Q is how much of a model is on the tape; the stop",
+  "  band, the sequence word and the management rule (50% at T1, BE, runner)",
+  "  are what the evidence supports.",
+].join("\n");
+
+/**
+ * The Discuss tab's prompt (its own top-level tab, trader's call 2026-09-28):
+ * both peers read the SAME snapshot independently, each give a two-paragraph
+ * read, then each replies once to the OTHER's read. Purely the trader's own
+ * confidence check — "if the desk has a good score and they agree, I look at
+ * the charts with less nerves" — never a second gate: a DISAGREE changes
+ * nothing the desk does.
+ */
+const DISCUSS_ROUND1_PROMPT = [
+  "You are one of two desk colleagues (Grok and Claude) reading the SAME desk",
+  "snapshot independently for a scheduled discussion checkpoint. You do NOT see",
+  "the other's answer yet — give your own read, uninfluenced.",
+  "",
+  HARD_RULES_BLOCK,
+  "",
+  "STYLE: exactly two short paragraphs.",
+  "Paragraph 1 — read the structure: HTF bias, the PATH candidate's grade and",
+  "which must-layers are present/missing, the overnight options board, and the",
+  "chart-timeframe ladder. Say what stands out.",
+  "Paragraph 2 — your own probability-weighted read of the EXISTING",
+  "entry/target/bias the desk already computed (never a new one): how likely",
+  "you think it plays out and why, in plain arithmetic terms (e.g. 'roughly",
+  "60/40' or 'closer to a coin flip'), stated explicitly as your own opinion.",
+  "End with one line, exactly this shape: 'Read: bullish|bearish|neutral ·",
+  "confidence low|medium|high'.",
+].join("\n");
+
+const DISCUSS_ROUND2_PROMPT = [
+  "You are one of two desk colleagues (Grok and Claude). You already gave your",
+  "own independent read of this desk snapshot. You are now shown the OTHER",
+  "colleague's independent read of the SAME snapshot, given at the same time.",
+  "",
+  HARD_RULES_BLOCK,
+  "",
+  "STYLE: ONE short paragraph, replying directly to the other colleague's read.",
+  "Correct a fact or a probability if they got something wrong against the",
+  "numbers given, or add one thing they missed. If you have nothing to correct",
+  "or add, say so in one sentence rather than repeating your first answer.",
 ].join("\n");
 
 /**
@@ -393,7 +469,7 @@ async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise
   }
 }
 
-async function callGrok(key: string, userMessage: string): Promise<ProviderResult> {
+async function callGrok(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT): Promise<ProviderResult> {
   try {
     const res = await withTimeout((signal) =>
       fetch(GROK_API_URL, {
@@ -406,7 +482,7 @@ async function callGrok(key: string, userMessage: string): Promise<ProviderResul
           model: GROK_MODEL,
           max_tokens: MAX_TOKENS,
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             { role: "user", content: userMessage },
           ],
         }),
@@ -452,7 +528,7 @@ async function callGrok(key: string, userMessage: string): Promise<ProviderResul
   }
 }
 
-async function callClaude(key: string, userMessage: string): Promise<ProviderResult> {
+async function callClaude(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT): Promise<ProviderResult> {
   try {
     const res = await withTimeout((signal) =>
       fetch(ANTHROPIC_API_URL, {
@@ -465,7 +541,7 @@ async function callClaude(key: string, userMessage: string): Promise<ProviderRes
         body: JSON.stringify({
           model: ANTHROPIC_MODEL,
           max_tokens: MAX_TOKENS,
-          system: SYSTEM_PROMPT,
+          system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],
         }),
         signal,
@@ -505,6 +581,96 @@ async function callClaude(key: string, userMessage: string): Promise<ProviderRes
       error: aborted
         ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
         : "Narration failed — network or service error.",
+    };
+  }
+}
+
+/**
+ * Grok WITH live web search — Discuss round 1 only ("retrieving their own
+ * data if needed", trader's call 2026-09-28). Same Responses API + web_search
+ * shape already proven in kill-watch-server.ts and thesis-server.ts, not the
+ * plain chat/completions endpoint callGrok uses (that endpoint has no search
+ * tool). Round 2 replies do not re-search — they react to round 1, not to a
+ * fresh query.
+ */
+async function callGrokWithSearch(key: string, userMessage: string, systemPrompt: string): Promise<ProviderResult> {
+  try {
+    const res = await withTimeout((signal) =>
+      fetch(GROK_RESPONSES_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: GROK_SEARCH_MODEL,
+          instructions: systemPrompt,
+          input: [{ role: "user", content: userMessage }],
+          tools: [{ type: "web_search" }],
+          max_turns: GROK_MAX_TURNS,
+          max_output_tokens: MAX_TOKENS,
+        }),
+        signal,
+      }),
+    );
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`[coach] xAI (search) ${res.status}:`, detail.slice(0, 500));
+      return { model: GROK_SEARCH_MODEL, text: null, error: httpError("xAI", res.status) };
+    }
+    const json = (await res.json()) as { output?: { type: string; content?: { type: string; text?: string }[] }[] };
+    const text = (json.output ?? [])
+      .filter((item) => item.type === "message")
+      .flatMap((item) => item.content ?? [])
+      .filter((c) => c.type === "output_text" && typeof c.text === "string")
+      .map((c) => c.text as string)
+      .join("\n")
+      .trim();
+    return { model: GROK_SEARCH_MODEL, text: text || null, error: text ? null : "Model returned no text." };
+  } catch (err) {
+    const aborted = err instanceof Error && err.name === "AbortError";
+    console.error("[coach] xAI (search) narration failed:", err);
+    return {
+      model: GROK_SEARCH_MODEL,
+      text: null,
+      error: aborted ? `Narration timed out after ${TIMEOUT_MS / 1000}s.` : "Narration failed — network or service error.",
+    };
+  }
+}
+
+/** Claude WITH Anthropic's server-side web_search tool — Discuss round 1 only, same reasoning as callGrokWithSearch above. */
+async function callClaudeWithSearch(key: string, userMessage: string, systemPrompt: string): Promise<ProviderResult> {
+  try {
+    const res = await withTimeout((signal) =>
+      fetch(ANTHROPIC_API_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": ANTHROPIC_API_VERSION },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: MAX_TOKENS,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userMessage }],
+          tools: [{ type: ANTHROPIC_WEB_SEARCH_TOOL, name: "web_search", max_uses: ANTHROPIC_MAX_SEARCHES }],
+        }),
+        signal,
+      }),
+    );
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error(`[coach] Anthropic (search) ${res.status}:`, detail.slice(0, 500));
+      return { model: ANTHROPIC_MODEL, text: null, error: httpError("Anthropic", res.status) };
+    }
+    const json = (await res.json()) as { content?: { type: string; text?: string }[] };
+    const text = (json.content ?? [])
+      .filter((b) => b.type === "text" && b.text)
+      .map((b) => b.text)
+      .join("\n")
+      .trim();
+    return { model: ANTHROPIC_MODEL, text: text || null, error: text ? null : "Model returned no text." };
+  } catch (err) {
+    const aborted = err instanceof Error && err.name === "AbortError";
+    console.error("[coach] Anthropic (search) narration failed:", err);
+    return {
+      model: ANTHROPIC_MODEL,
+      text: null,
+      error: aborted ? `Narration timed out after ${TIMEOUT_MS / 1000}s.` : "Narration failed — network or service error.",
     };
   }
 }
@@ -576,5 +742,102 @@ export const askDeskCoach = createServerFn({ method: "POST" })
       error: texts.length ? null : errors.join(" · ") || "Narration failed.",
       model: models || grok?.model || claude?.model || null,
       voices: { grok, claude },
+    };
+  });
+
+/* ------------------------------------------------------------------ */
+/* Discuss tab — automatic, scheduled, two-round peer exchange         */
+/* ------------------------------------------------------------------ */
+
+const discussContextSchema = contextSchema.omit({ question: true }).extend({
+  /** Which of the 6 fixed ET checkpoints this is (ai-sync.ts), or "manual". */
+  slot: z.string().min(1).max(20),
+});
+
+export interface DiscussExchange {
+  configured: boolean;
+  error: string | null;
+  round1: { grok: CoachVoice | null; claude: CoachVoice | null };
+  /** Each voice's ONE reply to the OTHER's round-1 read. Null when there was nothing to reply to (the other voice unconfigured or it failed). */
+  round2: { grokReply: CoachVoice | null; claudeReply: CoachVoice | null };
+}
+
+/**
+ * The Discuss tab's own endpoint (trader's call 2026-09-28) — see ai-sync.ts
+ * for WHEN this fires (6 fixed ET checkpoints, at most once each per day) and
+ * the module header above for WHY it is safe: never a score, gate, or size,
+ * both hard rules unchanged from askDeskCoach's. Costs roughly 4x a single
+ * askDeskCoach call (2 search-enabled round-1 calls + up to 2 round-2
+ * replies), so it shares the SAME per-user rate limit rather than a separate
+ * budget — a runaway client cannot multiply the cost by calling this instead.
+ */
+export const askDeskDiscuss = createServerFn({ method: "POST" })
+  .validator((input: unknown) => discussContextSchema.parse(input ?? {}))
+  .middleware([authMiddleware])
+  .handler(async ({ data, context }): Promise<DiscussExchange> => {
+    const xai = grokKey();
+    const anthropic = anthropicKey();
+    const emptyRound1 = { grok: null, claude: null };
+    const emptyRound2 = { grokReply: null, claudeReply: null };
+    if (!xai && !anthropic) {
+      return {
+        configured: false,
+        error:
+          "Neither XAI_API_KEY nor ANTHROPIC_API_KEY is set — Discuss has nothing to fire with.",
+        round1: emptyRound1,
+        round2: emptyRound2,
+      };
+    }
+    if (rateLimited(context.userId, Date.now())) {
+      return {
+        configured: true,
+        error: `Rate limit: ${RATE_LIMIT_MAX} dual narrations per minute. This endpoint costs money per call.`,
+        round1: emptyRound1,
+        round2: emptyRound2,
+      };
+    }
+
+    const loop = await buildLoopContext(context.userId, data.bestStrategy).catch(
+      (): LoopContext => ({
+        liveN: 0,
+        liveWinRate: null,
+        liveSumR: null,
+        liveStreak: null,
+        paperN: 0,
+        paperWinRate: null,
+        paperSumR: null,
+        discretionLine: null,
+      }),
+    );
+    const baseMessage = buildUserMessage(data, loop);
+    const round1Message = `${baseMessage}\n\nThis is the automatic ${data.slot} ET discussion checkpoint.`;
+
+    // Round 1: both read the SAME snapshot independently, neither sees the
+    // other. Search-enabled — "retrieving their own data if needed."
+    const [grok1, claude1] = await Promise.all([
+      xai ? callGrokWithSearch(xai, round1Message, DISCUSS_ROUND1_PROMPT) : Promise.resolve(null),
+      anthropic ? callClaudeWithSearch(anthropic, round1Message, DISCUSS_ROUND1_PROMPT) : Promise.resolve(null),
+    ]);
+
+    // Round 2: each replies ONCE to the OTHER's round-1 text. No search here
+    // — a reply reacts to what was just said, it does not re-research.
+    const grokReplyMessage = claude1?.text
+      ? `${baseMessage}\n\nClaude's independent read of the same snapshot, just now:\n"""\n${claude1.text}\n"""\n\nReply once.`
+      : null;
+    const claudeReplyMessage = grok1?.text
+      ? `${baseMessage}\n\nGrok's independent read of the same snapshot, just now:\n"""\n${grok1.text}\n"""\n\nReply once.`
+      : null;
+    const [grokReply, claudeReply] = await Promise.all([
+      xai && grokReplyMessage ? callGrok(xai, grokReplyMessage, DISCUSS_ROUND2_PROMPT) : Promise.resolve(null),
+      anthropic && claudeReplyMessage ? callClaude(anthropic, claudeReplyMessage, DISCUSS_ROUND2_PROMPT) : Promise.resolve(null),
+    ]);
+
+    const anyText = Boolean(grok1?.text || claude1?.text);
+    const errors = [grok1?.error, claude1?.error].filter((e): e is string => Boolean(e));
+    return {
+      configured: true,
+      error: anyText ? null : errors.join(" · ") || "Discussion failed.",
+      round1: { grok: grok1, claude: claude1 },
+      round2: { grokReply, claudeReply },
     };
   });

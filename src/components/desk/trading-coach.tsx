@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Bot, Loader2, Sparkles } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { askDeskCoach, type CoachNarration } from "@/lib/coach/claude-server";
-import { buildClaudeHandoff } from "@/lib/trading/claude-handoff";
+import { buildCoachContext } from "@/lib/coach/context";
 import { CopyClaudeHandoff } from "@/components/desk/copy-claude-handoff";
 import { Button } from "@/components/ui/button";
 import { sessionLive } from "@/lib/trading/sessions";
@@ -83,35 +83,15 @@ export function TradingCoach({ desk }: { desk: DeskPayload }) {
   /**
    * On demand only — this endpoint costs money per call, so it is never wired
    * to the 30s desk poll. Sends an explicit, bounded subset of desk state
-   * (see claude-server.ts's contextSchema), never the whole payload.
+   * (see claude-server.ts's contextSchema), never the whole payload. The
+   * automatic 6-checkpoint cross-check lives on its own "Discuss" tab
+   * (discuss-tab.tsx) so it never competes with this manual button for
+   * attention or for the per-minute rate limit.
    */
   const ask = useCallback(async () => {
     setAsking(true);
     try {
-      const best = desk.scan.candidates[0];
-      const res = await askDeskCoach({
-        data: {
-          question: question.trim() || undefined,
-          killzone: desk.clock.killzoneLabel,
-          sessionPhase: desk.clock.sessionPhase,
-          htfLeft: `${desk.bias.left.symbol} ${desk.bias.left.topDown}`,
-          htfRight: `${desk.bias.right.symbol} ${desk.bias.right.topDown}`,
-          newsVerdict: desk.news.verdict,
-          smtNote: desk.scan.smt.note,
-          dealingZone: desk.bias.left.dealing?.zone ?? null,
-          bestSymbol: best?.symbol ?? null,
-          bestSide: best?.side ?? null,
-          bestGrade: best?.grade ?? null,
-          bestConfluence: best?.confluence ?? null,
-          bestStrategy: best?.completeStrategy || best?.strategyPrimary || null,
-          bestPresent: best?.reasons?.slice(0, 12),
-          bestMissing: best?.missing?.slice(0, 12),
-          actionableCount: desk.scan.candidates.filter((c) => c.actionable).length,
-          blocked: desk.scan.blocked?.slice(0, 6),
-          focus: desk.scan.focus ?? null,
-          snapshot: buildClaudeHandoff(desk).slice(0, 8000),
-        },
-      });
+      const res = await askDeskCoach({ data: buildCoachContext(desk, question.trim() || undefined) });
       setNarration(res);
     } catch (e) {
       setNarration({
