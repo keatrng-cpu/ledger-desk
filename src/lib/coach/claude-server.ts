@@ -72,6 +72,18 @@ const MAX_TOKENS = 1100;
  */
 const TIMEOUT_MS = 18_000;
 
+/**
+ * The Discuss tab's own budget for the WHOLE two-round exchange (up to 4
+ * calls: round 1 parallel search, round 2 parallel replies), not per call.
+ * Same value and same reasoning as thesis-server.ts's BUDGET_MS: the edge
+ * cuts a silent function near ~30s, so this leaves a margin. Round 1's own
+ * timeout is computed FROM this budget so round 2 always gets something left
+ * — see askDeskDiscuss.
+ */
+const DISCUSS_BUDGET_MS = 25_000;
+/** Search results (tool_use/tool_result blocks) can eat the token budget before any answer text — first live run returned "no text" from Claude for exactly this reason. */
+const DISCUSS_SEARCH_MAX_TOKENS = 2_200;
+
 /** Per-user rate limit: a thinking aid, not a polling loop. */
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 6;
@@ -464,9 +476,9 @@ function httpError(provider: "xAI" | "Anthropic", status: number): string {
   return `Narration failed (${provider} HTTP ${status}).`;
 }
 
-async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>, ms: number = TIMEOUT_MS): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), ms);
   try {
     return await run(controller.signal);
   } finally {
@@ -474,25 +486,27 @@ async function withTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise
   }
 }
 
-async function callGrok(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT): Promise<ProviderResult> {
+async function callGrok(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT, timeoutMs: number = TIMEOUT_MS): Promise<ProviderResult> {
   try {
-    const res = await withTimeout((signal) =>
-      fetch(GROK_API_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${key}`,
-        },
-        body: JSON.stringify({
-          model: GROK_MODEL,
-          max_tokens: MAX_TOKENS,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage },
-          ],
+    const res = await withTimeout(
+      (signal) =>
+        fetch(GROK_API_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model: GROK_MODEL,
+            max_tokens: MAX_TOKENS,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userMessage },
+            ],
+          }),
+          signal,
         }),
-        signal,
-      }),
+      timeoutMs,
     );
 
     if (!res.ok) {
@@ -527,30 +541,32 @@ async function callGrok(key: string, userMessage: string, systemPrompt: string =
       model: GROK_MODEL,
       text: null,
       error: aborted
-        ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
+        ? `Narration timed out after ${timeoutMs / 1000}s.`
         : "Narration failed — network or service error.",
     };
   }
 }
 
-async function callClaude(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT): Promise<ProviderResult> {
+async function callClaude(key: string, userMessage: string, systemPrompt: string = SYSTEM_PROMPT, timeoutMs: number = TIMEOUT_MS): Promise<ProviderResult> {
   try {
-    const res = await withTimeout((signal) =>
-      fetch(ANTHROPIC_API_URL, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": key,
-          "anthropic-version": ANTHROPIC_API_VERSION,
-        },
-        body: JSON.stringify({
-          model: ANTHROPIC_MODEL,
-          max_tokens: MAX_TOKENS,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
+    const res = await withTimeout(
+      (signal) =>
+        fetch(ANTHROPIC_API_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-api-key": key,
+            "anthropic-version": ANTHROPIC_API_VERSION,
+          },
+          body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: MAX_TOKENS,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userMessage }],
+          }),
+          signal,
         }),
-        signal,
-      }),
+      timeoutMs,
     );
 
     if (!res.ok) {
@@ -584,7 +600,7 @@ async function callClaude(key: string, userMessage: string, systemPrompt: string
       model: ANTHROPIC_MODEL,
       text: null,
       error: aborted
-        ? `Narration timed out after ${TIMEOUT_MS / 1000}s.`
+        ? `Narration timed out after ${timeoutMs / 1000}s.`
         : "Narration failed — network or service error.",
     };
   }
@@ -598,29 +614,37 @@ async function callClaude(key: string, userMessage: string, systemPrompt: string
  * tool). Round 2 replies do not re-search — they react to round 1, not to a
  * fresh query.
  */
-async function callGrokWithSearch(key: string, userMessage: string, systemPrompt: string): Promise<ProviderResult> {
+async function callGrokWithSearch(
+  key: string,
+  userMessage: string,
+  systemPrompt: string,
+  timeoutMs: number,
+  maxTokens: number,
+): Promise<ProviderResult> {
   try {
-    const res = await withTimeout((signal) =>
-      fetch(GROK_RESPONSES_URL, {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-        body: JSON.stringify({
-          model: GROK_SEARCH_MODEL,
-          instructions: systemPrompt,
-          input: [{ role: "user", content: userMessage }],
-          tools: [{ type: "web_search" }],
-          max_turns: GROK_MAX_TURNS,
-          max_output_tokens: MAX_TOKENS,
+    const res = await withTimeout(
+      (signal) =>
+        fetch(GROK_RESPONSES_URL, {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+          body: JSON.stringify({
+            model: GROK_SEARCH_MODEL,
+            instructions: systemPrompt,
+            input: [{ role: "user", content: userMessage }],
+            tools: [{ type: "web_search" }],
+            max_turns: GROK_MAX_TURNS,
+            max_output_tokens: maxTokens,
+          }),
+          signal,
         }),
-        signal,
-      }),
+      timeoutMs,
     );
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       console.error(`[coach] xAI (search) ${res.status}:`, detail.slice(0, 500));
       return { model: GROK_SEARCH_MODEL, text: null, error: httpError("xAI", res.status) };
     }
-    const json = (await res.json()) as { output?: { type: string; content?: { type: string; text?: string }[] }[] };
+    const json = (await res.json()) as { output?: { type: string; content?: { type: string; text?: string }[] }[]; status?: string };
     const text = (json.output ?? [])
       .filter((item) => item.type === "message")
       .flatMap((item) => item.content ?? [])
@@ -628,54 +652,72 @@ async function callGrokWithSearch(key: string, userMessage: string, systemPrompt
       .map((c) => c.text as string)
       .join("\n")
       .trim();
-    return { model: GROK_SEARCH_MODEL, text: text || null, error: text ? null : "Model returned no text." };
+    // A web search can burn the whole output budget on tool calls/results
+    // before any answer text — say that plainly instead of a bare "no text".
+    const error = text ? null : `Model returned no text (status: ${json.status ?? "?"}, output types: ${(json.output ?? []).map((o) => o.type).join(",") || "none"}).`;
+    return { model: GROK_SEARCH_MODEL, text: text || null, error };
   } catch (err) {
     const aborted = err instanceof Error && err.name === "AbortError";
     console.error("[coach] xAI (search) narration failed:", err);
     return {
       model: GROK_SEARCH_MODEL,
       text: null,
-      error: aborted ? `Narration timed out after ${TIMEOUT_MS / 1000}s.` : "Narration failed — network or service error.",
+      error: aborted ? `Narration timed out after ${timeoutMs / 1000}s.` : "Narration failed — network or service error.",
     };
   }
 }
 
 /** Claude WITH Anthropic's server-side web_search tool — Discuss round 1 only, same reasoning as callGrokWithSearch above. */
-async function callClaudeWithSearch(key: string, userMessage: string, systemPrompt: string): Promise<ProviderResult> {
+async function callClaudeWithSearch(
+  key: string,
+  userMessage: string,
+  systemPrompt: string,
+  timeoutMs: number,
+  maxTokens: number,
+): Promise<ProviderResult> {
   try {
-    const res = await withTimeout((signal) =>
-      fetch(ANTHROPIC_API_URL, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": ANTHROPIC_API_VERSION },
-        body: JSON.stringify({
-          model: ANTHROPIC_MODEL,
-          max_tokens: MAX_TOKENS,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
-          tools: [{ type: ANTHROPIC_WEB_SEARCH_TOOL, name: "web_search", max_uses: ANTHROPIC_MAX_SEARCHES }],
+    const res = await withTimeout(
+      (signal) =>
+        fetch(ANTHROPIC_API_URL, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": ANTHROPIC_API_VERSION },
+          body: JSON.stringify({
+            model: ANTHROPIC_MODEL,
+            max_tokens: maxTokens,
+            system: systemPrompt,
+            messages: [{ role: "user", content: userMessage }],
+            tools: [{ type: ANTHROPIC_WEB_SEARCH_TOOL, name: "web_search", max_uses: ANTHROPIC_MAX_SEARCHES }],
+          }),
+          signal,
         }),
-        signal,
-      }),
+      timeoutMs,
     );
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       console.error(`[coach] Anthropic (search) ${res.status}:`, detail.slice(0, 500));
       return { model: ANTHROPIC_MODEL, text: null, error: httpError("Anthropic", res.status) };
     }
-    const json = (await res.json()) as { content?: { type: string; text?: string }[] };
-    const text = (json.content ?? [])
+    const json = (await res.json()) as { content?: { type: string; text?: string }[]; stop_reason?: string };
+    const blocks = json.content ?? [];
+    const text = blocks
       .filter((b) => b.type === "text" && b.text)
       .map((b) => b.text)
       .join("\n")
       .trim();
-    return { model: ANTHROPIC_MODEL, text: text || null, error: text ? null : "Model returned no text." };
+    // Tool-use/tool-result blocks (the search itself) can consume the whole
+    // token budget before any text block appears — a bare "no text" hid this
+    // the first time Discuss ran live. Say what actually happened.
+    const error = text
+      ? null
+      : `Model returned no text (stop: ${json.stop_reason ?? "?"}; blocks: ${blocks.map((b) => b.type).join(",") || "none"}).`;
+    return { model: ANTHROPIC_MODEL, text: text || null, error };
   } catch (err) {
     const aborted = err instanceof Error && err.name === "AbortError";
     console.error("[coach] Anthropic (search) narration failed:", err);
     return {
       model: ANTHROPIC_MODEL,
       text: null,
-      error: aborted ? `Narration timed out after ${TIMEOUT_MS / 1000}s.` : "Narration failed — network or service error.",
+      error: aborted ? `Narration timed out after ${timeoutMs / 1000}s.` : "Narration failed — network or service error.",
     };
   }
 }
@@ -780,6 +822,7 @@ export const askDeskDiscuss = createServerFn({ method: "POST" })
   .validator((input: unknown) => discussContextSchema.parse(input ?? {}))
   .middleware([authMiddleware])
   .handler(async ({ data, context }): Promise<DiscussExchange> => {
+    const t0 = Date.now();
     const xai = grokKey();
     const anthropic = anthropicKey();
     const emptyRound1 = { grok: null, claude: null };
@@ -818,14 +861,23 @@ export const askDeskDiscuss = createServerFn({ method: "POST" })
     const round1Message = `${baseMessage}\n\nThis is the automatic ${data.slot} ET discussion checkpoint.`;
 
     // Round 1: both read the SAME snapshot independently, neither sees the
-    // other. Search-enabled — "retrieving their own data if needed."
+    // other. Search-enabled — "retrieving their own data if needed." A real
+    // web search needs more than the plain-narration timeout (first live run:
+    // Grok timed out at 18s, Claude's search ate the token budget before any
+    // answer text) — same fix already proven in thesis-server.ts: a shared
+    // wall-clock budget for the WHOLE two-round exchange, not a flat timeout
+    // per call, since round 2 runs AFTER round 1 in the same invocation.
+    const round1Ms = Math.max(8_000, DISCUSS_BUDGET_MS - (Date.now() - t0) - 5_000);
     const [grok1, claude1] = await Promise.all([
-      xai ? callGrokWithSearch(xai, round1Message, DISCUSS_ROUND1_PROMPT) : Promise.resolve(null),
-      anthropic ? callClaudeWithSearch(anthropic, round1Message, DISCUSS_ROUND1_PROMPT) : Promise.resolve(null),
+      xai ? callGrokWithSearch(xai, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
+      anthropic ? callClaudeWithSearch(anthropic, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
     ]);
 
     // Round 2: each replies ONCE to the OTHER's round-1 text. No search here
-    // — a reply reacts to what was just said, it does not re-research.
+    // — a reply reacts to what was just said, it does not re-research. Gets
+    // whatever is LEFT of the shared budget, not a fresh flat timeout, so the
+    // two rounds together can't blow past the edge's own cutoff.
+    const round2Ms = Math.max(4_000, DISCUSS_BUDGET_MS - (Date.now() - t0));
     const grokReplyMessage = claude1?.text
       ? `${baseMessage}\n\nClaude's independent read of the same snapshot, just now:\n"""\n${claude1.text}\n"""\n\nReply once.`
       : null;
@@ -833,8 +885,8 @@ export const askDeskDiscuss = createServerFn({ method: "POST" })
       ? `${baseMessage}\n\nGrok's independent read of the same snapshot, just now:\n"""\n${grok1.text}\n"""\n\nReply once.`
       : null;
     const [grokReply, claudeReply] = await Promise.all([
-      xai && grokReplyMessage ? callGrok(xai, grokReplyMessage, DISCUSS_ROUND2_PROMPT) : Promise.resolve(null),
-      anthropic && claudeReplyMessage ? callClaude(anthropic, claudeReplyMessage, DISCUSS_ROUND2_PROMPT) : Promise.resolve(null),
+      xai && grokReplyMessage ? callGrok(xai, grokReplyMessage, DISCUSS_ROUND2_PROMPT, round2Ms) : Promise.resolve(null),
+      anthropic && claudeReplyMessage ? callClaude(anthropic, claudeReplyMessage, DISCUSS_ROUND2_PROMPT, round2Ms) : Promise.resolve(null),
     ]);
 
     const anyText = Boolean(grok1?.text || claude1?.text);
