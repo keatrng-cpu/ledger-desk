@@ -133,7 +133,33 @@ const trustedOrigins: string[] = explicitBaseURL
       ...LOCAL_DEV_ORIGINS,
     ];
 
-const databaseUrl = env("DATABASE_URL");
+/**
+ * Better Auth's OWN connection — deliberately NOT the same priority as
+ * `src/lib/db.ts`'s app-data pool. `DATABASE_URL` is meant to be the
+ * transaction-mode pooler (high concurrency, safe for the busy 20s desk
+ * poll) — but Better Auth's underlying query layer does not reliably survive
+ * transaction-mode pooling (prepared statements / session state), the exact
+ * same reason `scripts/migrate.mjs` refuses to run DDL through it. Found live
+ * 2026-09-29: after DATABASE_URL was switched to the transaction pooler to
+ * fix a connection-limit build failure, sign-in/sign-up started failing with
+ * a bare "Sign-in failed" (Better Auth's client returned an error with no
+ * `.message` — a raw connection failure, not a real auth rejection).
+ *
+ * Same variable-name priority as MIGRATION_URL_VARS in migrate.mjs, so
+ * setting POSTGRES_URL_NON_POOLING once (already needed for migrations)
+ * fixes this too, with zero extra configuration.
+ */
+const AUTH_DB_URL_VARS = [
+  "POSTGRES_URL_NON_POOLING",
+  "DATABASE_URL_UNPOOLED",
+  "DATABASE_URL",
+  "SUPABASE_DATABASE_URL",
+  "SUPABASE_DB_URL",
+  "NETLIFY_DATABASE_URL_UNPOOLED",
+  "NETLIFY_DATABASE_URL",
+  "POSTGRES_URL",
+] as const;
+const databaseUrl = AUTH_DB_URL_VARS.map(env).find((v) => v);
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
