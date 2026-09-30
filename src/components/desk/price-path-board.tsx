@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 import type { HtfBiasRead } from "@/lib/trading/structure";
-import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "@/lib/trading/scanner";
+import type { SetupCandidate } from "@/lib/trading/scanner";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { etWallParts, isJudasWindow, sessionLive} from "@/lib/trading/sessions";
 import { readJudas } from "@/lib/trading/judas-window";
@@ -104,8 +104,17 @@ function BookCol({
       <p
         className={cn(
           "mt-1.5 text-[11px]",
-          path && path.confluence >= HIGH_CONFLUENCE_THRESHOLD
-            ? "flash-high-confluence rounded-[var(--radius-sm)] font-semibold text-[var(--color-up)]"
+          // Was `confluence >= HIGH_CONFLUENCE_THRESHOLD` (0.9) — a raw score
+          // gate a real A+/A/A- TAKE routinely sits under, since 0.75 (the
+          // A+ tag) is well below it: an actionable A+ at Q 0.76 never
+          // flashed. `actionable` is the same gate-cleared check the chart's
+          // own flash already uses (chart-overlay.ts: word === "TAKE"), so
+          // this board and the chart agree on what "hot" means, and
+          // flash-take (not the weaker flash-high-confluence glow — see
+          // styles.css) is the class the codebase already reserves for a
+          // real, gate-cleared signal.
+          path?.actionable
+            ? "flash-take rounded-[var(--radius-sm)] font-semibold text-[var(--color-up)]"
             : "text-[var(--color-muted)]",
         )}
       >
@@ -118,6 +127,23 @@ function BookCol({
           "No PATH card"
         )}
       </p>
+      {/* FORMING REVERSAL, ON THE TOP BOARD TOO. Before this, the only place
+          "the counter-bias gate is most of the way to releasing" showed at
+          all was a per-candidate panel buried in the scanner list below —
+          the board a trader glances at first said only "not armed" for a
+          setup that had already printed the raid and the displacement and
+          was two lagging swing-confirmations away from a real release. Same
+          data (scanner.ts's biasDisrespect, carried on the candidate as
+          htfRelease), surfaced where the eye actually goes. Never green,
+          never a trade — see setup-scanner.tsx's identical panel. */}
+      {path && !path.actionable && (path.htfRelease?.met ?? 0) >= 2 && path.htfRelease && (
+        <p
+          className="mt-1 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-accent)_50%,transparent)] bg-[color-mix(in_oklab,var(--color-accent)_8%,transparent)] px-1.5 py-1 text-[10px] font-semibold text-[var(--color-accent)]"
+          title={path.htfRelease.reason}
+        >
+          Bias forming to flip · {path.htfRelease.met}/{path.htfRelease.of} · not a trade
+        </p>
+      )}
       {/* Entry + Target here too, not only on the scanner card below — this
           section is the one place meant to hold everything needed to read
           the trade: bias (above), circumstances (the must-layer dots in the
