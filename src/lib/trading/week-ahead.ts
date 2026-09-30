@@ -91,7 +91,7 @@ export interface WeekPrint {
 
 const PRINTS: WeekPrint[] = (Array.isArray(rawPrints) ? rawPrints : []) as WeekPrint[];
 
-function pad2(n: number): void {
+function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
