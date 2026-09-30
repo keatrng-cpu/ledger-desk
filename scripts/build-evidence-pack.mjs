@@ -59,6 +59,7 @@ if (!existsSync(SIGDIR) || !existsSync(HIST)) {
 }
 
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
+const { detectInducement } = await import("../src/lib/trading/detectors.ts");
 const H = JSON.parse(readFileSync(HIST, "utf8"));
 const BARS = { MNQ: H.bars.MNQ ?? [], ES: H.bars.ES ?? [] };
 
@@ -206,6 +207,18 @@ const sims = [];
 for (const r of rows) {
   const s = sim(r);
   if (!s) continue;
+  // Causal by construction: only bars up to and including the decision bar
+  // (r.i) are visible to detectSweeps() here, same as the live card sees.
+  // Bounded lookback, not the full history from bar 0 — detectInducement
+  // only ever looks within recentSweepBars+inducementWindowBars (~40 bars)
+  // of the end, but detectSweeps/fractalSwings are O(n^2) in slice length
+  // (first attempt sliced from index 0: on a ~90,000-bar history that is
+  // roughly 4,900 rows x up to ~8 BILLION operations each — minutes turned
+  // into a run that would not have finished this week). 300 bars is >7x the
+  // real window with room for fractal confirmation, at a cost this loop
+  // actually finishes.
+  const INDUCEMENT_LOOKBACK = 300;
+  const ind = detectInducement(BARS[r.sym].slice(Math.max(0, r.i + 1 - INDUCEMENT_LOOKBACK), r.i + 1), r.side);
   sims.push({
     r,
     ...s,
@@ -214,6 +227,8 @@ for (const r of rows) {
     drift: driftAt(r),
     riskAtr: r.atr > 0 ? Math.abs(r.e - r.s) / r.atr : null,
     dir: dirHit(r),
+    inducement: ind.inducement,
+    hasMainSweep: ind.mainSweep != null,
   });
 }
 
@@ -320,6 +335,16 @@ const pack = {
   inBand: [
     bucket("in", "stop inside 0.5-1.5 ATR", sims.filter((o) => o.riskAtr != null && o.riskAtr >= 0.5 && o.riskAtr <= 1.5)),
     bucket("out", "stop outside 0.5-1.5 ATR", sims.filter((o) => o.riskAtr != null && (o.riskAtr < 0.5 || o.riskAtr > 1.5))),
+  ],
+  // Measured 2026-09-30 (scripts/measure-inducement-news.mjs): a card whose
+  // sweep was preceded by a shallower decoy of the same polarity — the
+  // "inducement" framing canon.ts already flagged as coded-but-untested —
+  // paid -0.259R, both halves negative, CI excludes zero (n=525). Only cards
+  // with a main sweep inside the live recency window are eligible for either
+  // side of this cut; a card with no sweep to speak of is neither.
+  inducement: [
+    bucket("yes", "shallow decoy sweep before the main one", sims.filter((o) => o.hasMainSweep && o.inducement)),
+    bucket("no", "main sweep alone, no earlier decoy", sims.filter((o) => o.hasMainSweep && !o.inducement)),
   ],
   side: cut(
     [
@@ -445,7 +470,7 @@ const show = (b) =>
   `${b.label.padEnd(44)} n=${String(b.n).padStart(4)}  exp ${b.exp == null ? "  —   " : (b.exp >= 0 ? "+" : "") + b.exp.toFixed(3)}  [${b.lo ?? "—"}, ${b.hi ?? "—"}]  IS ${b.isExp ?? "—"} OOS ${b.oosExp ?? "—"}  dir ${b.dirHit == null ? "—" : (b.dirHit * 100).toFixed(1) + "%"}  ${b.verdict.toUpperCase()}`;
 console.log(`${pack.source.capture}\nsimulated ${pack.source.simulated}, filled ${pack.source.filled}\n`);
 console.log(show(pack.baseline));
-for (const k of ["q", "riskAtr", "inBand", "side", "sideDrift", "word", "musts", "session", "event", "composite", "weekday"]) {
+for (const k of ["q", "riskAtr", "inBand", "inducement", "side", "sideDrift", "word", "musts", "session", "event", "composite", "weekday"]) {
   console.log(`\n${k}`);
   for (const b of pack[k]) console.log("  " + show(b));
 }

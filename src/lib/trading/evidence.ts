@@ -57,6 +57,7 @@ export interface EvidencePack {
   q: EvidenceBucket[];
   riskAtr: EvidenceBucket[];
   inBand: EvidenceBucket[];
+  inducement: EvidenceBucket[];
   side: EvidenceBucket[];
   sideDrift: EvidenceBucket[];
   word: EvidenceBucket[];
@@ -84,6 +85,16 @@ export function riskAtrBucket(riskAtr: number | null | undefined): EvidenceBucke
   const key =
     riskAtr < 0.5 ? "<0.5" : riskAtr < 0.75 ? "0.5-0.75" : riskAtr < 1 ? "0.75-1" : riskAtr <= 1.5 ? "1-1.5" : "1.5+";
   return byKey(EVIDENCE.riskAtr, key);
+}
+
+/**
+ * `hasInducement` is null when there is no main sweep in the live recency
+ * window at all (detectInducement's `mainSweep`) — neither side of this cut
+ * applies, so this must return null rather than default to "no".
+ */
+export function inducementBucket(hasInducement: boolean | null | undefined): EvidenceBucket | null {
+  if (hasInducement == null) return null;
+  return byKey(EVIDENCE.inducement, hasInducement ? "yes" : "no");
 }
 
 /**
@@ -157,17 +168,20 @@ const toneOf = (b: EvidenceBucket): EvidenceTone =>
 /**
  * The evidence for ONE card, most decision-relevant first.
  *
- * Q and stop band always print (they are the two cuts with a mechanism and a
- * sample in the thousands). Session prints when it is not the ordinary
- * killzone read. Time-of-day and weekday print ONLY when they measured
- * negative in both halves, and say they are exploratory — a neutral
- * half-hour line on every card would be noise a trader learns to skip, and
- * then skips the line that matters.
+ * Q, stop band and inducement always print — all three are cuts with a
+ * mechanism and a sample in the thousands (inducement added 2026-09-30:
+ * scripts/measure-inducement-news.mjs, n=525/1774, the "yes" side confirmed
+ * NEGATIVE both halves). Session prints when it is not the ordinary killzone
+ * read. Time-of-day and weekday print ONLY when they measured negative in
+ * both halves, and say they are exploratory — a neutral half-hour line on
+ * every card would be noise a trader learns to skip, and then skips the line
+ * that matters.
  */
 export function cardEvidence(input: {
   confluence: number;
   riskAtr?: number | null;
   side: "long" | "short";
+  hasInducement?: boolean | null;
   killzone?: string | null;
   sessionSource?: "killzone" | "event" | "none" | null;
   etHour?: number;
@@ -182,6 +196,7 @@ export function cardEvidence(input: {
 
   push("q", qBucket(input.confluence));
   push("stop", riskAtrBucket(input.riskAtr));
+  push("inducement", inducementBucket(input.hasInducement));
 
   const session = sessionBucket(input.killzone, input.sessionSource);
   if (session && !(session.key === "london" || session.key === "ny_am")) push("session", session);
@@ -207,6 +222,8 @@ export function evidenceHeadlines(): string[] {
   const q85 = byKey(EVIDENCE.q, "0.85+");
   const q65 = byKey(EVIDENCE.q, "0.65-0.70");
   const outEvent = byKey(EVIDENCE.event, "out-event");
+  const inducementYes = byKey(EVIDENCE.inducement, "yes");
+  const inducementNo = byKey(EVIDENCE.inducement, "no");
   const lines: string[] = [];
   const base = EVIDENCE.baseline;
   if (base.exp != null) {
@@ -227,6 +244,11 @@ export function evidenceHeadlines(): string[] {
   if (outEvent?.exp != null) {
     lines.push(
       `Tape-event cards OUTSIDE the killzones: ${signed(outEvent.exp)}/card over ${outEvent.n} (${outEvent.verdict === "thin" ? "thin, but" : ""} both halves negative) — the event opens the window, it does not make the trade good.`,
+    );
+  }
+  if (inducementYes?.exp != null && inducementNo?.exp != null) {
+    lines.push(
+      `Inducement (a shallow decoy sweep before the real one) is a warning, not an edge: ${signed(inducementYes.exp)}/card over ${inducementYes.n}, losing in both halves, vs ${signed(inducementNo.exp)}/card with no decoy. Two fake-outs read as chop, not confirmation.`,
     );
   }
   return lines;

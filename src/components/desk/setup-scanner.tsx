@@ -15,6 +15,7 @@ import { cardEvidence, qBucket } from "@/lib/trading/evidence";
 import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR } from "@/lib/trading/trade-plan";
 import { readCardGeometry } from "@/lib/trading/card-geometry";
 import { atrOf } from "@/lib/trading/draw";
+import { detectInducement } from "@/lib/trading/detectors";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
@@ -540,19 +541,31 @@ function SetupCard({
    * print; session, half-hour and weekday print only when they measured
    * negative in both halves.
    */
+  // Same detectInducement() used offline (build-evidence-pack.mjs) to
+  // measure it — one function, so the live flag and the four-year finding
+  // it is judged against can never silently disagree on what "the sweep"
+  // was. `null` (no main sweep in the live recency window at all) leaves the
+  // line off the card rather than defaulting to "no decoy".
+  const hasInducement = useMemo(() => {
+    if (!tape?.bars?.length) return null;
+    const side = c.side === "short" ? "short" : "long";
+    const read = detectInducement(tape.bars, side);
+    return read.mainSweep ? read.inducement : null;
+  }, [tape?.bars, c.side]);
   const evidence = useMemo(
     () =>
       cardEvidence({
         confluence: c.confluence,
         riskAtr: risk.riskAtr,
         side: c.side === "short" ? "short" : "long",
+        hasInducement,
         killzone: session?.killzone,
         sessionSource: session?.sessionSource,
         etHour: session?.etHour,
         etMinute: session?.etMinute,
         weekday: session?.weekday,
       }),
-    [c.confluence, c.side, risk.riskAtr, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
+    [c.confluence, c.side, risk.riskAtr, hasInducement, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
   );
   const qTitle = useMemo(() => {
     const b = qBucket(c.confluence);

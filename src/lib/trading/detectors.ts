@@ -568,6 +568,76 @@ export function detectSweeps(bars: OhlcBar[]): SweepEvent[] {
 }
 
 /**
+ * Inducement: was the sweep a card is keyed on preceded by a SHALLOWER sweep
+ * of the same polarity — the decoy grab TradingHub/Photon's framing names,
+ * "the first pullback, not the external extreme" (src/lib/learn/canon.ts's
+ * research note on it, which flagged this as coded but unresolved until now).
+ *
+ * MEASURED, NOT ASSUMED: scripts/measure-inducement-news.mjs ran this exact
+ * definition against 4 years / 3,501 filled cards. A card WITH a decoy sweep
+ * beforehand paid -0.259R, both halves negative, CI excludes zero (n=525) —
+ * confirmed negative, not the edge the classic framing implies. A card
+ * without one was flat/mixed at -0.084R. So this is wired in as a CAUTION —
+ * evidence.ts's per-card line — never a bonus, never a gate. See that
+ * module's own docstring on why a measured fact becomes a labelled line, not
+ * a score.
+ *
+ * Deliberately reuses detectSweeps() rather than a second sweep scanner: two
+ * detectors that could disagree on what "the sweep" was would make this
+ * finding unfalsifiable the moment they drifted.
+ */
+export const INDUCEMENT_WINDOW_BARS = 16;
+
+export interface InducementRead {
+  /** True only when a live, in-window main sweep AND an earlier, shallower
+   *  decoy of the same polarity are both present. */
+  inducement: boolean;
+  /** The sweep the card is actually keyed on, for the caller to show it. */
+  mainSweep: SweepEvent | null;
+  /** The earlier, shallower sweep, when `inducement` is true. */
+  decoy: SweepEvent | null;
+}
+
+const NO_INDUCEMENT: InducementRead = { inducement: false, mainSweep: null, decoy: null };
+
+/**
+ * `side` is the trade direction the card wants: "long" needs a sellside
+ * main sweep (lows taken), "short" needs buyside — the same polarity rule
+ * every other sweep-reading layer in this file already uses.
+ */
+export function detectInducement(
+  bars: OhlcBar[],
+  side: "long" | "short",
+  opts: { recentSweepBars?: number; inducementWindowBars?: number } = {},
+): InducementRead {
+  if (bars.length < MIN_BARS) return NO_INDUCEMENT;
+  const recentWindow = opts.recentSweepBars ?? GATE.recentSweepBars;
+  const inducementWindow = opts.inducementWindowBars ?? INDUCEMENT_WINDOW_BARS;
+  const wantSide = side === "long" ? "sellside" : "buyside";
+  const sweeps = detectSweeps(bars).filter((s) => s.side === wantSide);
+  if (!sweeps.length) return NO_INDUCEMENT;
+
+  const main = sweeps[sweeps.length - 1]!;
+  const lastIndex = bars.length - 1;
+  if (lastIndex - main.index > recentWindow) return NO_INDUCEMENT;
+
+  // Shallower = a less extreme level taken first: for a sellside pair the
+  // earlier low must sit ABOVE the main (deeper) low; for buyside, the
+  // earlier high must sit BELOW the main (higher) high.
+  const decoy =
+    [...sweeps]
+      .reverse()
+      .find(
+        (s) =>
+          s.index < main.index &&
+          main.index - s.index <= inducementWindow &&
+          (wantSide === "sellside" ? s.sweptLevel > main.sweptLevel : s.sweptLevel < main.sweptLevel),
+      ) ?? null;
+
+  return { inducement: decoy != null, mainSweep: main, decoy };
+}
+
+/**
  * Mechanical model (engine weight 0.14 — its highest): sweep → displacement
  * in the opposite direction within MM_DISPLACE_WITHIN (6) bars → FVG or iFVG
  * created by that displacement → retest of the zone. `complete` is true ONLY

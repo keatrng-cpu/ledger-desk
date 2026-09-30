@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-09-25T21:12:21.586Z",
+ "builtAt": "2026-09-30T15:15:44.252Z",
  "source": {
   "capture": ".cache/signals (5049 plan moments, 5026 at or above the floor after Judas/news refusal)",
   "tape": "src/data/history-4y.json 2022-09-01 -> 2026-09-01, 15m",
@@ -255,6 +255,44 @@
    "dirHit": 0.491,
    "dirN": 3016,
    "verdict": "negative"
+  }
+ ],
+ "inducement": [
+  {
+   "key": "yes",
+   "label": "shallow decoy sweep before the main one",
+   "signals": 806,
+   "n": 525,
+   "fillRate": 0.651,
+   "exp": -0.259,
+   "lo": -0.462,
+   "hi": -0.055,
+   "isExp": -0.262,
+   "oosExp": -0.255,
+   "isN": 296,
+   "oosN": 229,
+   "t1Rate": 0.326,
+   "dirHit": 0.512,
+   "dirN": 803,
+   "verdict": "negative"
+  },
+  {
+   "key": "no",
+   "label": "main sweep alone, no earlier decoy",
+   "signals": 2587,
+   "n": 1774,
+   "fillRate": 0.686,
+   "exp": -0.084,
+   "lo": -0.227,
+   "hi": 0.06,
+   "isExp": -0.025,
+   "oosExp": -0.178,
+   "isN": 1097,
+   "oosN": 677,
+   "t1Rate": 0.355,
+   "dirHit": 0.504,
+   "dirN": 2579,
+   "verdict": "mixed"
   }
  ],
  "side": [
