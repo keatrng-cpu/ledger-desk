@@ -58,6 +58,7 @@ export interface EvidencePack {
   riskAtr: EvidenceBucket[];
   inBand: EvidenceBucket[];
   inducement: EvidenceBucket[];
+  mitigation: EvidenceBucket[];
   side: EvidenceBucket[];
   sideDrift: EvidenceBucket[];
   word: EvidenceBucket[];
@@ -95,6 +96,16 @@ export function riskAtrBucket(riskAtr: number | null | undefined): EvidenceBucke
 export function inducementBucket(hasInducement: boolean | null | undefined): EvidenceBucket | null {
   if (hasInducement == null) return null;
   return byKey(EVIDENCE.inducement, hasInducement ? "yes" : "no");
+}
+
+/**
+ * `hasMitigation` is a plain boolean (detectMitigationBlock.present), never
+ * null the way inducement's "no main sweep at all" case can be — a
+ * mitigation-block read is always either present or absent.
+ */
+export function mitigationBucket(hasMitigation: boolean | null | undefined): EvidenceBucket | null {
+  if (hasMitigation == null) return null;
+  return byKey(EVIDENCE.mitigation, hasMitigation ? "yes" : "no");
 }
 
 /**
@@ -168,20 +179,23 @@ const toneOf = (b: EvidenceBucket): EvidenceTone =>
 /**
  * The evidence for ONE card, most decision-relevant first.
  *
- * Q, stop band and inducement always print — all three are cuts with a
- * mechanism and a sample in the thousands (inducement added 2026-09-30:
- * scripts/measure-inducement-news.mjs, n=525/1774, the "yes" side confirmed
- * NEGATIVE both halves). Session prints when it is not the ordinary killzone
- * read. Time-of-day and weekday print ONLY when they measured negative in
- * both halves, and say they are exploratory — a neutral half-hour line on
- * every card would be noise a trader learns to skip, and then skips the line
- * that matters.
+ * Q, stop band, inducement and mitigation always print — all four are cuts
+ * with a mechanism and a sample in the thousands (inducement added
+ * 2026-09-30: scripts/measure-inducement-news.mjs, n=525/1774, the "yes"
+ * side confirmed NEGATIVE both halves; mitigation added the same day:
+ * scripts/measure-amd-signals.mjs, n=1760/1741, "yes" NEGATIVE both halves —
+ * the largest sample of any finding in that pass). Session prints when it is
+ * not the ordinary killzone read. Time-of-day and weekday print ONLY when
+ * they measured negative in both halves, and say they are exploratory — a
+ * neutral half-hour line on every card would be noise a trader learns to
+ * skip, and then skips the line that matters.
  */
 export function cardEvidence(input: {
   confluence: number;
   riskAtr?: number | null;
   side: "long" | "short";
   hasInducement?: boolean | null;
+  hasMitigation?: boolean | null;
   killzone?: string | null;
   sessionSource?: "killzone" | "event" | "none" | null;
   etHour?: number;
@@ -197,6 +211,7 @@ export function cardEvidence(input: {
   push("q", qBucket(input.confluence));
   push("stop", riskAtrBucket(input.riskAtr));
   push("inducement", inducementBucket(input.hasInducement));
+  push("mitigation", mitigationBucket(input.hasMitigation));
 
   const session = sessionBucket(input.killzone, input.sessionSource);
   if (session && !(session.key === "london" || session.key === "ny_am")) push("session", session);
@@ -224,6 +239,8 @@ export function evidenceHeadlines(): string[] {
   const outEvent = byKey(EVIDENCE.event, "out-event");
   const inducementYes = byKey(EVIDENCE.inducement, "yes");
   const inducementNo = byKey(EVIDENCE.inducement, "no");
+  const mitigationYes = byKey(EVIDENCE.mitigation, "yes");
+  const mitigationNo = byKey(EVIDENCE.mitigation, "no");
   const lines: string[] = [];
   const base = EVIDENCE.baseline;
   if (base.exp != null) {
@@ -249,6 +266,11 @@ export function evidenceHeadlines(): string[] {
   if (inducementYes?.exp != null && inducementNo?.exp != null) {
     lines.push(
       `Inducement (a shallow decoy sweep before the real one) is a warning, not an edge: ${signed(inducementYes.exp)}/card over ${inducementYes.n}, losing in both halves, vs ${signed(inducementNo.exp)}/card with no decoy. Two fake-outs read as chop, not confirmation.`,
+    );
+  }
+  if (mitigationYes?.exp != null && mitigationNo?.exp != null) {
+    lines.push(
+      `A mitigation block (a failed second push back to its own origin candle) is also a warning, not the support/resistance the concept's own lore claims: ${signed(mitigationYes.exp)}/card over ${mitigationYes.n}, losing in both halves, vs ${signed(mitigationNo.exp)}/card with none — the largest sample of any AMD-concept finding measured so far.`,
     );
   }
   return lines;

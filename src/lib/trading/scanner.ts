@@ -8,6 +8,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
 import {
   detectInducement,
+  detectMitigationBlock,
   summarizeDetectors,
   type DetectorSummary,
   type FvgResult,
@@ -511,7 +512,23 @@ function scoreDirection(
   // always false before; propulsion lights when a sponsored gap + displacement
   // agree on this side.
   add("breaker", tapeHits.breaker, tapeHits.breaker ? "breaker (tape)" : undefined);
-  add("mitigation", Boolean(ob && ob.mitigated && obAligned));
+  /**
+   * "mitigation" deliberately does NOT `add()` a positive confluence hit
+   * here. FIXED 2026-09-30: this used to be `Boolean(ob && ob.mitigated &&
+   * obAligned)`, where `obAligned` (above) already requires `!ob.mitigated`
+   * — a permanent `X && !X`, always false, confirmed by direct read, silently
+   * dead since OrderBlock.mitigated was redefined 2026-09-23 (see detectors.ts
+   * OrderBlock docstring). The replacement is a real, distinct, RESEARCHED
+   * ICT concept (detectMitigationBlock: a failed second-push origin candle,
+   * non-redundant with order_block or breaker) — but MEASURED it does not
+   * belong here: scripts/measure-amd-signals.mjs found a card resolving
+   * through a present mitigation block pays -0.245R, both halves negative,
+   * CI excludes zero (n=1760, the largest sample of any finding this pass) —
+   * worse than a card without one (-0.032R, mixed). Crediting it as positive
+   * confluence would repeat the exact class of bug this fix exists to catch,
+   * just aimed the other way. See the veto below (same location and shape
+   * as the inducement veto) for where this actually applies.
+   */
   add(
     "propulsion",
     tapeHits.sponsored && disp,
@@ -957,6 +974,42 @@ export function scoreCandidates(
     }
     if (!c.missing.includes("inducement — shallow decoy sweep before this one")) {
       c.missing.unshift("inducement — shallow decoy sweep before this one");
+    }
+  }
+
+  /**
+   * Mitigation veto — measured 2026-09-30 alongside inducement
+   * (scripts/measure-amd-signals.mjs, same 4-year population, n=1760, the
+   * largest sample of any finding in that pass): a card resolving through a
+   * PRESENT mitigation block (detectMitigationBlock — a failed second-push
+   * origin candle, see detectors.ts) pays -0.245R, both halves negative, CI
+   * excludes zero — versus -0.032R (mixed, close to flat) with none. This is
+   * the OPPOSITE of the ICT lore's own causal story ("trapped traders exit
+   * at breakeven, price returns to fill them") — one of the sources this
+   * desk researched flags that story as "a plausible story rather than an
+   * observable fact" even within the ICT community, and this desk's own tape
+   * now has a measured, not narrative, answer. Same penalty shape as the
+   * with-bias fade veto and the inducement veto above it — one discount
+   * mechanism, not three designs that could drift.
+   */
+  for (const c of pathCandidates) {
+    const bars = c.symbol === left.symbol ? barsL : barsR;
+    if (!bars.length) continue;
+    const mit = detectMitigationBlock(bars, c.side);
+    if (!mit.present) continue;
+    c.actionable = false;
+    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    if (
+      c.pathBand === "A+" ||
+      c.pathBand === "A" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+"
+    ) {
+      c.pathBand = "C";
+    }
+    if (!c.missing.includes("mitigation block — failed push origin, measured negative")) {
+      c.missing.unshift("mitigation block — failed push origin, measured negative");
     }
   }
 

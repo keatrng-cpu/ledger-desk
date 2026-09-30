@@ -1,5 +1,5 @@
 {
- "builtAt": "2026-09-30T15:15:44.252Z",
+ "builtAt": "2026-09-30T19:16:09.748Z",
  "source": {
   "capture": ".cache/signals (5049 plan moments, 5026 at or above the floor after Judas/news refusal)",
   "tape": "src/data/history-4y.json 2022-09-01 -> 2026-09-01, 15m",
@@ -292,6 +292,44 @@
    "t1Rate": 0.355,
    "dirHit": 0.504,
    "dirN": 2579,
+   "verdict": "mixed"
+  }
+ ],
+ "mitigation": [
+  {
+   "key": "yes",
+   "label": "mitigation block present (failed second push)",
+   "signals": 2344,
+   "n": 1760,
+   "fillRate": 0.751,
+   "exp": -0.245,
+   "lo": -0.404,
+   "hi": -0.087,
+   "isExp": -0.296,
+   "oosExp": -0.17,
+   "isN": 1055,
+   "oosN": 705,
+   "t1Rate": 0.275,
+   "dirHit": 0.461,
+   "dirN": 2337,
+   "verdict": "negative"
+  },
+  {
+   "key": "no",
+   "label": "no mitigation block",
+   "signals": 2553,
+   "n": 1741,
+   "fillRate": 0.682,
+   "exp": -0.032,
+   "lo": -0.192,
+   "hi": 0.129,
+   "isExp": -0.007,
+   "oosExp": -0.08,
+   "isN": 1145,
+   "oosN": 596,
+   "t1Rate": 0.339,
+   "dirHit": 0.521,
+   "dirN": 2545,
    "verdict": "mixed"
   }
  ],

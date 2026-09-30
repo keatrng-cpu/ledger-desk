@@ -15,7 +15,7 @@ import { cardEvidence, qBucket } from "@/lib/trading/evidence";
 import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR } from "@/lib/trading/trade-plan";
 import { readCardGeometry } from "@/lib/trading/card-geometry";
 import { atrOf } from "@/lib/trading/draw";
-import { detectInducement } from "@/lib/trading/detectors";
+import { detectInducement, detectMitigationBlock } from "@/lib/trading/detectors";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
@@ -552,6 +552,14 @@ function SetupCard({
     const read = detectInducement(tape.bars, side);
     return read.mainSweep ? read.inducement : null;
   }, [tape?.bars, c.side]);
+  // Same detectMitigationBlock() the scanner veto and the offline measurement
+  // (build-evidence-pack.mjs) use — one function, so this line and the veto
+  // that already discounted the card can never disagree with each other.
+  const hasMitigation = useMemo(() => {
+    if (!tape?.bars?.length) return null;
+    const side = c.side === "short" ? "short" : "long";
+    return detectMitigationBlock(tape.bars, side).present;
+  }, [tape?.bars, c.side]);
   const evidence = useMemo(
     () =>
       cardEvidence({
@@ -559,13 +567,14 @@ function SetupCard({
         riskAtr: risk.riskAtr,
         side: c.side === "short" ? "short" : "long",
         hasInducement,
+        hasMitigation,
         killzone: session?.killzone,
         sessionSource: session?.sessionSource,
         etHour: session?.etHour,
         etMinute: session?.etMinute,
         weekday: session?.weekday,
       }),
-    [c.confluence, c.side, risk.riskAtr, hasInducement, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
+    [c.confluence, c.side, risk.riskAtr, hasInducement, hasMitigation, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
   );
   const qTitle = useMemo(() => {
     const b = qBucket(c.confluence);

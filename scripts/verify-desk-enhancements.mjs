@@ -326,7 +326,7 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
   const { analyzeStructure, smtDivergenceStack } = await import("../src/lib/trading/structure.ts");
   const { scanSetups } = await import("../src/lib/trading/scanner.ts");
   const { buildSmcTape } = await import("../src/lib/trading/smc-board.ts");
-  const { detectInducement } = await import("../src/lib/trading/detectors.ts");
+  const { detectInducement, detectMitigationBlock } = await import("../src/lib/trading/detectors.ts");
   const { getSessionClock } = await import("../src/lib/trading/sessions.ts");
   const { readFileSync, existsSync } = await import("node:fs");
 
@@ -354,6 +354,7 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
 
     let withBiasChecked = 0;
     let inducementChecked = 0;
+    let mitigationChecked = 0;
     // Every 11th bar, not every bar: this is the same cost trade-off
     // verify-session-event.mjs makes on the same 93,830-bar tape — a sample
     // large enough to hit real instances of both conditions, cheap enough to
@@ -399,8 +400,24 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
             c.missing.includes("inducement — shallow decoy sweep before this one"),
           );
         }
+
+        // Mitigation condition (added 2026-09-30 alongside the fixed dead
+        // "mitigation" component), likewise computed independently.
+        const mit = detectMitigationBlock(bars, c.side === "short" ? "short" : "long");
+        if (mit.present) {
+          mitigationChecked++;
+          check(
+            `mitigation veto: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
+            c.actionable,
+            false,
+          );
+          ok(
+            `mitigation veto: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
+            c.missing.includes("mitigation block — failed push origin, measured negative"),
+          );
+        }
       }
-      if (withBiasChecked >= 12 && inducementChecked >= 12) break;
+      if (withBiasChecked >= 12 && inducementChecked >= 12 && mitigationChecked >= 12) break;
     }
 
     // Prove these were real hits, not a loop that never found its condition
@@ -408,6 +425,7 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
     // vacuously and mean nothing.
     ok(`found real with-bias-fade instances to test (${withBiasChecked})`, withBiasChecked > 0);
     ok(`found real inducement instances to test (${inducementChecked})`, inducementChecked > 0);
+    ok(`found real mitigation instances to test (${mitigationChecked})`, mitigationChecked > 0);
   }
 }
 

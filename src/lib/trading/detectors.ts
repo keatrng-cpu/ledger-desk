@@ -637,6 +637,395 @@ export function detectInducement(
   return { inducement: decoy != null, mainSweep: main, decoy };
 }
 
+/* ------------------------------------------------------------------ */
+/* Accumulation, manipulation-quality, distribution-quality             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * RESEARCHED 2026-09-30 alongside inducement (canon.ts moduleId "sweep").
+ * Independent research on all three below converged on the same verdict:
+ * Wyckoff/ICT/TJR agree a pre-move range ("accumulation"), the raid itself
+ * ("manipulation"), and the reaction leg ("distribution") are real concepts,
+ * but NONE of the lineage — verified across primary and secondary sources —
+ * publishes a depth/duration/shape threshold that turns "present" into
+ * "good." The one directly-relevant peer-reviewed test (Sullivan,
+ * Timmermann & White 1999, channel/range-breakout rules on 100+ years of
+ * DJIA) found the apparent edge was a data-snooping artifact once corrected
+ * for how many rules were tried. Two 2026 preprints on futures/MNQ
+ * specifically (Fetna; Mesfin) found no OHLCV-only signal family survives
+ * walk-forward + cost + stability testing. This repo's own score-drivers.ts
+ * already measured aggregate confluence (which includes the plain
+ * displacement boolean) at r=-0.031 vs T1 reach, n=387.
+ *
+ * So these three are shipped as RAW FACT EXTRACTORS ONLY — no pre-baked
+ * score, no confluence weight, no gate. A tiered scoring function invented
+ * before measurement would just be asserting the answer. Whoever measures
+ * these against evidence-pack.json decides bucket edges from the data, the
+ * same discipline every other threshold in this file was held to
+ * (DISPLACEMENT_K, the stop-distance band in evidence.ts, etc.).
+ *
+ * PERFORMANCE: these all reuse detectSweeps()/detectDisplacements(), which
+ * are cheap on a bounded slice but were the exact cause of an O(n^2)-over-
+ * full-history bug caught this session in build-evidence-pack.mjs (an
+ * 8-billion-operation run before it was bounded to a 300-bar lookback).
+ * ALWAYS call these on a bounded recent slice, never on full multi-year
+ * history.
+ */
+
+/** Bars to search back from a sweep for a qualifying pre-move range. 40 on
+ *  15m bars = 10h — must belong to the current/prior session's build, not a
+ *  range from days ago that happens to sit nearby in price. */
+export const ACCUM_LOOKBACK_BARS = 40;
+/** Minimum bars a range must hold. 8 * 15m = 2h — below this it is a pause,
+ *  not ICT's "longest phase by time" or a Wyckoff range with room to test. */
+export const ACCUM_MIN_BARS = 8;
+/** Window height (max high - min low) / ATR(14) at the window's last bar.
+ *  A first-cut "meaningfully tighter than noise" bar — a starting point for
+ *  scripts/measure-amd-signals.mjs to sweep, not a validated cutoff. */
+export const ACCUM_MAX_RANGE_ATR = 2.5;
+/** Mean per-bar range inside the window / ATR(14) — the actual Bollinger-
+ *  squeeze/VCP/NR7 analogue (did realized volatility contract), distinct
+ *  from ACCUM_MAX_RANGE_ATR above, which only checks net drift. */
+export const ACCUM_MAX_BAR_RANGE_ATR = 0.85;
+
+export interface AccumulationRead {
+  present: boolean;
+  startIndex: number | null;
+  endIndex: number | null;
+  barsInRange: number;
+  /** (rangeHigh - rangeLow) / ATR at the window's last bar. */
+  rangeAtrRatio: number | null;
+  /** Mean per-bar range / ATR — the compression test proper. */
+  compressionRatio: number | null;
+  /** Is the sweep's own swept level at/near this range's own extreme? A
+   *  range detected nearby that has nothing to do with what got raided
+   *  would be a false positive wearing the right shape. */
+  sweepAtRangeExtreme: boolean;
+}
+
+const NO_ACCUMULATION: AccumulationRead = {
+  present: false,
+  startIndex: null,
+  endIndex: null,
+  barsInRange: 0,
+  rangeAtrRatio: null,
+  compressionRatio: null,
+  sweepAtRangeExtreme: false,
+};
+
+/**
+ * Pre-sweep range detector. The window's START is fixed deterministically —
+ * the bar right after the most recent prior sweep or displacement within
+ * the lookback ceiling, NEVER a best-fit search over candidate starts. A
+ * floating search would manufacture "accumulation" out of nothing: some
+ * qualifying sub-window exists before nearly every sweep once the search is
+ * free to pick its own start. Measure the deterministic-anchor hit rate
+ * against a floating-search hit rate on the same tape before trusting this;
+ * if they are close, the anchor is not doing its job either.
+ */
+export function detectAccumulation(
+  bars: OhlcBar[],
+  sweep: SweepEvent,
+  opts: { lookbackBars?: number; minBars?: number } = {},
+): AccumulationRead {
+  if (bars.length < MIN_BARS) return NO_ACCUMULATION;
+  const lookback = opts.lookbackBars ?? ACCUM_LOOKBACK_BARS;
+  const minBars = opts.minBars ?? ACCUM_MIN_BARS;
+  const endIndex = sweep.index - 1;
+  if (endIndex < minBars) return NO_ACCUMULATION;
+
+  const floor = Math.max(0, endIndex - lookback);
+  const priorSlice = bars.slice(floor, endIndex + 1);
+  let startRel = 0;
+  for (const s of detectSweeps(priorSlice)) startRel = Math.max(startRel, s.index + 1);
+  for (const d of detectDisplacements(priorSlice)) startRel = Math.max(startRel, d.index + 1);
+  const startIndex = floor + startRel;
+  const barsInRange = endIndex - startIndex + 1;
+  if (barsInRange < minBars) return NO_ACCUMULATION;
+
+  const atr = rollingAtr(bars);
+  const a = atr[endIndex];
+  if (!Number.isFinite(a) || a! <= 0) return NO_ACCUMULATION;
+
+  const window = bars.slice(startIndex, endIndex + 1);
+  const rangeHigh = Math.max(...window.map((b) => b.h));
+  const rangeLow = Math.min(...window.map((b) => b.l));
+  const rangeAtrRatio = (rangeHigh - rangeLow) / a!;
+  const meanBarRange = window.reduce((s, b) => s + (b.h - b.l), 0) / window.length;
+  const compressionRatio = meanBarRange / a!;
+
+  const extreme = sweep.side === "buyside" ? rangeHigh : rangeLow;
+  const sweepAtRangeExtreme = Math.abs(sweep.sweptLevel - extreme) <= 0.1 * a!;
+
+  const present =
+    rangeAtrRatio <= ACCUM_MAX_RANGE_ATR && compressionRatio <= ACCUM_MAX_BAR_RANGE_ATR;
+
+  return {
+    present,
+    startIndex,
+    endIndex,
+    barsInRange,
+    rangeAtrRatio: +rangeAtrRatio.toFixed(3),
+    compressionRatio: +compressionRatio.toFixed(3),
+    sweepAtRangeExtreme,
+  };
+}
+
+export interface SweepQuality {
+  /** How far beyond the level, in ATR units — may reach back past the
+   *  single sweep bar if the raid took several bars to complete. */
+  depthAtr: number;
+  /** Consecutive bars (walking back from the sweep bar) still outside the
+   *  swept level — 1 means the raid was a single-bar wick. */
+  speedBars: number;
+  /** Wick length / body length of the sweep bar itself. */
+  shapeRatio: number;
+  /** The sweep's own closeBackInside, normalized by ATR. */
+  closeBackAtr: number;
+}
+
+/**
+ * Manipulation-leg quality, as raw facts only (see file-section docstring —
+ * no lineage source publishes a threshold here, and GATE.sameBarDisplacement
+ * being live means the sweep bar and the "displacement" bar are frequently
+ * IDENTICAL. Before trusting this as new information, correlate it against
+ * the card's own DisplacementEvent.ratio — if they move together, this is
+ * displacement magnitude measured twice, not independent signal.
+ */
+export function gradeSweepQuality(bars: OhlcBar[], sweep: SweepEvent): SweepQuality | null {
+  const atr = rollingAtr(bars);
+  const a = atr[sweep.index];
+  if (!Number.isFinite(a) || a! <= 0) return null;
+  const isBuy = sweep.side === "buyside";
+  const bar = bars[sweep.index]!;
+
+  let clusterExtreme = sweep.wickExtreme;
+  let speedBars = 1;
+  for (let j = sweep.index - 1; j >= Math.max(0, sweep.index - MM_DISPLACE_WITHIN); j--) {
+    const b = bars[j]!;
+    const stillOutside = isBuy ? b.c > sweep.sweptLevel : b.c < sweep.sweptLevel;
+    if (!stillOutside) break;
+    clusterExtreme = isBuy ? Math.max(clusterExtreme, b.h) : Math.min(clusterExtreme, b.l);
+    speedBars++;
+  }
+  const depthAtr =
+    (isBuy ? clusterExtreme - sweep.sweptLevel : sweep.sweptLevel - clusterExtreme) / a!;
+
+  const bodySize = Math.abs(bar.c - bar.o);
+  const wick = isBuy ? bar.h - Math.max(bar.o, bar.c) : Math.min(bar.o, bar.c) - bar.l;
+  const shapeRatio = wick / Math.max(bodySize, 0.01);
+  const closeBackAtr = sweep.closeBackInside / a!;
+
+  return {
+    depthAtr: +depthAtr.toFixed(3),
+    speedBars,
+    shapeRatio: +shapeRatio.toFixed(2),
+    closeBackAtr: +closeBackAtr.toFixed(3),
+  };
+}
+
+export interface DisplacementQuality {
+  /** displacement.ratio, exposed here for convenience alongside the rest. */
+  ratio: number;
+  /** Close-location-value, signed toward the move's own direction: +1 =
+   *  closed at the extreme in-direction, -1 = closed against it (a body
+   *  that clears the ATR bar but is really a rejection tail). */
+  directionalClv: number;
+  /** Consecutive supporting bars immediately before the displacement bar:
+   *  same direction, body >= half the displacement threshold. 1 = the
+   *  displacement bar stood alone. */
+  runLength: number;
+}
+
+/**
+ * Distribution-leg (displacement) quality, as raw facts only — see
+ * file-section docstring. Primary falsification risk: time-of-day /
+ * session-volatility confound, not the bar's own shape — stratify by
+ * session before trusting any correlation this surfaces.
+ */
+export function gradeDisplacementQuality(
+  bars: OhlcBar[],
+  displacement: DisplacementEvent,
+): DisplacementQuality {
+  const bar = bars[displacement.index]!;
+  const range = bar.h - bar.l || 0.01;
+  const clv = (bar.c - bar.l - (bar.h - bar.c)) / range;
+  const directionalClv = displacement.direction === "bull" ? clv : -clv;
+
+  const atr = rollingAtr(bars);
+  let runLength = 1;
+  for (let k = 1; k <= OB_SCAN_BACK; k++) {
+    const idx = displacement.index - k;
+    if (idx < 0) break;
+    const b = bars[idx]!;
+    const a = atr[idx];
+    if (!Number.isFinite(a) || a! <= 0) break;
+    const sameDir = displacement.direction === "bull" ? b.c > b.o : b.c < b.o;
+    const halfBody = Math.abs(b.c - b.o) >= 0.5 * GATE.displacementK * a!;
+    if (!sameDir || !halfBody) break;
+    runLength++;
+  }
+
+  return {
+    ratio: displacement.ratio,
+    directionalClv: +directionalClv.toFixed(3),
+    runLength,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Mitigation blocks                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Mitigation block (ICT), RESEARCHED and VERIFIED 2026-09-30 against
+ * multiple independent sources (canon.ts moduleId "sweep") — distinct from
+ * both an order block (fresh, unspent origin of a displacement) and a
+ * breaker (an order block that got closed through and now acts as the
+ * opposite polarity). A mitigation block forms from a FAILED second push:
+ * price sets a swing extreme, pulls back, pushes again but FAILS to exceed
+ * the first extreme (a lower high after a high, or a higher low after a
+ * low), then breaks structure back through the pullback swing — confirming
+ * the failed push was a trapped, underfilled attempt. The pullback swing
+ * candle IS the zone: it is the last bar before the failed push began, by
+ * construction of fractalSwings().
+ *
+ * THIS FIXES A REAL BUG, independent of whether the concept has edge:
+ * scanner.ts's old "mitigation" confluence component computed
+ * `ob.mitigated && obAligned`, where `obAligned` already requires
+ * `!ob.mitigated` — a permanent `X && !X`, always false, for every bar,
+ * confirmed by direct read. That component fed a weight-3 confluence slot
+ * (engine-weights.ts) and one of five OR'd paths in smc-canon.ts's POI
+ * must-layer, both silently and permanently dead since OrderBlock.mitigated
+ * was redefined 2026-09-23 (from "touched" to "SPENT/closed-through") and
+ * this component was never updated to match.
+ *
+ * Deliberately does NOT reuse the word "mitigated" for its own state field
+ * below (see `invalidated`) — that exact word's redefinition is what let
+ * the scanner.ts bug ship unnoticed; a second concept reusing the same word
+ * for a different thing would repeat the mistake.
+ *
+ * No independent (non-ICT-community) validation exists for this concept —
+ * treat any measured result as a coin flip until proven otherwise. TJR's
+ * own glossary does not use the term (same pattern already found for
+ * Photon/"inducement").
+ */
+export const MITIGATION_WINDOW_BARS = 16;
+
+export interface MitigationBlock {
+  /** Polarity the zone acts as when retested: bull = support, bear = resistance. */
+  kind: "bull" | "bear";
+  index: number;
+  t: number;
+  bodyTop: number;
+  bodyBottom: number;
+  rangeTop: number;
+  rangeBottom: number;
+  /** The first swing extreme (H1 / L1) the second push failed to exceed. */
+  priorExtreme: SwingPoint;
+  /** The second, failed swing (H2 < H1, or L2 > L1). */
+  failedExtreme: SwingPoint;
+  /** The pullback swing between them — also the zone's own candle. */
+  breakLevel: SwingPoint;
+  confirmedIndex: number;
+  confirmedT: number;
+  /** A later CLOSE retook failedExtreme's own price — the "failure" was not real. */
+  invalidated: boolean;
+  invalidatedIndex: number | null;
+  invalidatedT: number | null;
+}
+
+export interface MitigationRead {
+  /** True only when a confirmed block exists and has not been invalidated. */
+  present: boolean;
+  block: MitigationBlock | null;
+}
+
+const NO_MITIGATION: MitigationRead = { present: false, block: null };
+
+/**
+ * `side` follows the same long/short convention as detectInducement: "long"
+ * looks for a failed-lower-low (bullish reversal, zone acts as support);
+ * "short" looks for a failed-higher-high (bearish reversal, zone acts as
+ * resistance). Scans swing pairs newest-first and returns the first fully
+ * confirmed pair found — mirrors detectOrderBlocks/detectInducement's own
+ * "most recent qualifying event" convention rather than requiring the
+ * caller to separately filter for recency.
+ */
+export function detectMitigationBlock(
+  bars: OhlcBar[],
+  side: "long" | "short",
+  opts: { windowBars?: number; confirmWithinBars?: number } = {},
+): MitigationRead {
+  if (bars.length < MIN_BARS) return NO_MITIGATION;
+  const windowBars = opts.windowBars ?? MITIGATION_WINDOW_BARS;
+  const confirmWithin = opts.confirmWithinBars ?? MM_DISPLACE_WITHIN;
+  const swingKind = side === "long" ? "low" : "high";
+  const oppositeKind = side === "long" ? "high" : "low";
+  const allSwings = fractalSwings(bars);
+  const swings = allSwings.filter((s) => s.kind === swingKind);
+  if (swings.length < 2) return NO_MITIGATION;
+
+  for (let i = swings.length - 1; i >= 1; i--) {
+    const failed = swings[i]!;
+    const prior = swings[i - 1]!;
+    if (failed.index - prior.index > windowBars) continue;
+    const didFail = side === "long" ? failed.price > prior.price : failed.price < prior.price;
+    if (!didFail) continue;
+
+    const breakLevel = allSwings
+      .filter((s) => s.kind === oppositeKind && s.index > prior.index && s.index < failed.index)
+      .sort((a, b) => b.index - a.index)[0];
+    if (!breakLevel) continue;
+
+    let confirmedIndex = -1;
+    const confirmCeil = Math.min(bars.length - 1, failed.index + confirmWithin);
+    for (let j = failed.index + 1; j <= confirmCeil; j++) {
+      const b = bars[j]!;
+      const broke = side === "long" ? b.c > breakLevel.price : b.c < breakLevel.price;
+      if (broke) {
+        confirmedIndex = j;
+        break;
+      }
+    }
+    if (confirmedIndex < 0) continue;
+
+    const zoneBar = bars[breakLevel.index]!;
+    const block: MitigationBlock = {
+      kind: side === "long" ? "bull" : "bear",
+      index: breakLevel.index,
+      t: zoneBar.t,
+      bodyTop: Math.max(zoneBar.o, zoneBar.c),
+      bodyBottom: Math.min(zoneBar.o, zoneBar.c),
+      rangeTop: zoneBar.h,
+      rangeBottom: zoneBar.l,
+      priorExtreme: prior,
+      failedExtreme: failed,
+      breakLevel,
+      confirmedIndex,
+      confirmedT: bars[confirmedIndex]!.t,
+      invalidated: false,
+      invalidatedIndex: null,
+      invalidatedT: null,
+    };
+
+    for (let j = confirmedIndex + 1; j < bars.length; j++) {
+      const b = bars[j]!;
+      const retook = side === "long" ? b.c < failed.price : b.c > failed.price;
+      if (retook) {
+        block.invalidated = true;
+        block.invalidatedIndex = j;
+        block.invalidatedT = b.t;
+        break;
+      }
+    }
+
+    return { present: !block.invalidated, block };
+  }
+
+  return NO_MITIGATION;
+}
+
 /**
  * Mechanical model (engine weight 0.14 — its highest): sweep → displacement
  * in the opposite direction within MM_DISPLACE_WITHIN (6) bars → FVG or iFVG

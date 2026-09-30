@@ -59,7 +59,7 @@ if (!existsSync(SIGDIR) || !existsSync(HIST)) {
 }
 
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
-const { detectInducement } = await import("../src/lib/trading/detectors.ts");
+const { detectInducement, detectMitigationBlock } = await import("../src/lib/trading/detectors.ts");
 const H = JSON.parse(readFileSync(HIST, "utf8"));
 const BARS = { MNQ: H.bars.MNQ ?? [], ES: H.bars.ES ?? [] };
 
@@ -219,6 +219,10 @@ for (const r of rows) {
   // actually finishes.
   const INDUCEMENT_LOOKBACK = 300;
   const ind = detectInducement(BARS[r.sym].slice(Math.max(0, r.i + 1 - INDUCEMENT_LOOKBACK), r.i + 1), r.side);
+  // Same bounded-slice discipline as inducement above, same reason —
+  // detectMitigationBlock walks fractalSwings() over whatever slice it gets.
+  const MITIGATION_LOOKBACK = 300;
+  const mit = detectMitigationBlock(BARS[r.sym].slice(Math.max(0, r.i + 1 - MITIGATION_LOOKBACK), r.i + 1), r.side);
   sims.push({
     r,
     ...s,
@@ -229,6 +233,7 @@ for (const r of rows) {
     dir: dirHit(r),
     inducement: ind.inducement,
     hasMainSweep: ind.mainSweep != null,
+    mitigation: mit.present,
   });
 }
 
@@ -345,6 +350,18 @@ const pack = {
   inducement: [
     bucket("yes", "shallow decoy sweep before the main one", sims.filter((o) => o.hasMainSweep && o.inducement)),
     bucket("no", "main sweep alone, no earlier decoy", sims.filter((o) => o.hasMainSweep && !o.inducement)),
+  ],
+  // Added 2026-09-30 (scripts/measure-amd-signals.mjs): fixes a confirmed
+  // dead-code bug (scanner.ts's old "mitigation" component was `X && !X`,
+  // permanently false) with a researched, distinct ICT concept (a failed
+  // second-push origin candle). MEASURED, not assumed: present pays -0.245R,
+  // both halves negative, CI excludes zero, n=1760 — the largest sample of
+  // any finding in that pass, and the OPPOSITE direction from the concept's
+  // own lore ("trapped traders" support/resistance). Wired as a scanner veto
+  // (scanner.ts), same discount shape as inducement.
+  mitigation: [
+    bucket("yes", "mitigation block present (failed second push)", sims.filter((o) => o.mitigation)),
+    bucket("no", "no mitigation block", sims.filter((o) => !o.mitigation)),
   ],
   side: cut(
     [
@@ -470,7 +487,7 @@ const show = (b) =>
   `${b.label.padEnd(44)} n=${String(b.n).padStart(4)}  exp ${b.exp == null ? "  —   " : (b.exp >= 0 ? "+" : "") + b.exp.toFixed(3)}  [${b.lo ?? "—"}, ${b.hi ?? "—"}]  IS ${b.isExp ?? "—"} OOS ${b.oosExp ?? "—"}  dir ${b.dirHit == null ? "—" : (b.dirHit * 100).toFixed(1) + "%"}  ${b.verdict.toUpperCase()}`;
 console.log(`${pack.source.capture}\nsimulated ${pack.source.simulated}, filled ${pack.source.filled}\n`);
 console.log(show(pack.baseline));
-for (const k of ["q", "riskAtr", "inBand", "inducement", "side", "sideDrift", "word", "musts", "session", "event", "composite", "weekday"]) {
+for (const k of ["q", "riskAtr", "inBand", "inducement", "mitigation", "side", "sideDrift", "word", "musts", "session", "event", "composite", "weekday"]) {
   console.log(`\n${k}`);
   for (const b of pack[k]) console.log("  " + show(b));
 }
