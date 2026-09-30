@@ -91,7 +91,7 @@ export interface WeekPrint {
 
 const PRINTS: WeekPrint[] = (Array.isArray(rawPrints) ? rawPrints : []) as WeekPrint[];
 
-function pad2(n: number): string {
+function pad2(n: number): void {
   return String(n).padStart(2, "0");
 }
 
@@ -180,16 +180,16 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     {
       date: "2026-09-30",
       weekday: "Wed",
-      dailyBias: "Stand first. PCE is the Fed’s gauge.",
+      dailyBias: "Two-way, still inside last week",
       kind: "event",
       news: [
         { timeEt: "08:15", name: "ADP Employment (Sep)", impact: "high", note: "ADP Research 8:15 ET. Consensus cluster ~+70k vs Aug +38k. Inside premarket with PCE." },
         { timeEt: "08:30", name: "GDP Q2 (3rd est) / PCE (Aug)", impact: "high", note: "BEA 8:30 ET. Headline PCE seen ~0.4% m/m / 3.7% y/y; core ~0.3% / 3.3%. Hot core PCE = October hike. Soft = squeeze." },
       ],
-      likelyTape: "8:15–8:50 seek-and-destroy. Real move after 9:45.",
-      trade: "No entry 8:00–8:45. Hot PCE: short after BSL raid + MSS. Soft: long only SSL in discount. Flatten — Thu ISM and Fri NFP still live.",
-      skipIf: "No MSS + IFVG by 10:15. Any overnight into NFP.",
-      pathNote: "A+ into the prints. No runner into Friday.",
+      likelyTape: "ADP +90k vs ~+70k / Aug rev +36k. PCE +0.3%/3.4% y/y, core +0.2%/3.0%; GDP Q2 3rd +2.2% vs +1.5% 2nd. Cash stayed inside the box: NQ ~30,512–30,906 vs PWH 31,095 / PWL 29,904; ES ~7,720–7,782 vs 7,848.50 / 7,707.25. No PWH/PWL take. Still inside-week, not a new HTF trend.",
+      trade: "Post-print mechanical only if MSS + IFVG. Wed did not take prior-week H/L. Flatten — Thu ISM and Fri NFP still live.",
+      skipIf: "No raid of prior-week H/L — already the case into cash close.",
+      pathNote: "Sunday inside-week story holds. Soft PCE is the squeeze path; tape did not invent HTF trend. Next is Thu claims+ISM.",
     },
     {
       date: "2026-10-01",

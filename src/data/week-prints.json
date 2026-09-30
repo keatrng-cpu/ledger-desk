@@ -131,5 +131,19 @@
     "actual": "7.079M",
     "vs": "exp ~7.23M / Jul first-print 7.271M, Jul rev 7.335M",
     "note": "BLS official USDL-26-1547. Little changed at 7.1M / 4.3%. Hires 5.2M, seps 5.1M, quits 3.1M. -256k vs revised July. Soft vs cluster; not a labor-break. No ADP/claims/NFP today."
+  },
+  {
+    "date": "2026-09-30",
+    "name": "ADP Employment (Sep)",
+    "actual": "+90k",
+    "vs": "exp ~+70k / Aug first-print +38k, Aug rev +36k",
+    "note": "ADP official. First re-acceleration since May. Edu/health +55k, leisure +22k; financial -16k. Base pay +3.2% y/y. Firm vs cluster. No ISM/claims/NFP today."
+  },
+  {
+    "date": "2026-09-30",
+    "name": "GDP Q2 (3rd est) / PCE (Aug)",
+    "actual": "GDP +2.2%; PCE +0.3% / +3.4% y/y; core +0.2% / +3.0%",
+    "vs": "GDP 2nd +1.5%; PCE exp ~0.4%/3.7%; core ~0.3%/3.3%",
+    "note": "BEA official 26-42 / 26-43. Real PCE +0.6%; spending +0.9% current-dollar. Soft core PCE vs Sunday cluster. No ISM/claims/NFP today."
   }
 ]
