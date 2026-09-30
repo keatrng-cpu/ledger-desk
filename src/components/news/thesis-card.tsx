@@ -82,15 +82,33 @@ function ThesisView({ run }: { run: ThesisRun }) {
   );
 }
 
+/**
+ * Survives unmount/remount (switching tabs and back) within the same page
+ * load — the server already shares one build per 10 minutes; the card used
+ * to throw that away on every close, so reopening it always meant a blank
+ * "Reading the feeds…" flash while it re-fetched a result that was often
+ * already sitting in the server cache. Module-level, not component state,
+ * on purpose: it must outlive this component instance.
+ */
+let lastResult: ThesisResult | null = null;
+
 export function ThesisCard() {
-  const [res, setRes] = useState<ThesisResult | null>(null);
+  const [res, setRes] = useState<ThesisResult | null>(() => lastResult);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const run = useCallback(() => {
     setLoading(true);
     setErr(null);
     void getNewsThesis()
-      .then(setRes)
+      .then((data) => {
+        // Only touch state/UI when something actually changed — a re-fetch
+        // that lands on the same server-cached build must not repaint or
+        // reset any per-render UI (e.g. an open <details>) for no reason.
+        if (data.generatedAt !== lastResult?.generatedAt) {
+          lastResult = data;
+          setRes(data);
+        }
+      })
       .catch((e: unknown) => setErr(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
   }, []);
