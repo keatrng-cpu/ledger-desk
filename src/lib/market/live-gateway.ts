@@ -32,6 +32,34 @@ function tickSymbol(symbol: IndexSymbol): "ES" | "NQ" {
   return symbol === "ES" ? "ES" : "NQ";
 }
 
+/**
+ * Every failure below used to be a silent `return null` — "whatever, this
+ * source is simply unavailable." That reasoning is right for the DESK (a
+ * dead gateway must never become a wrong number presented as a right one),
+ * but it means a real break (wrong DATABASE_URL, missing migration, RLS,
+ * pool exhaustion) is INDISTINGUISHABLE from the ordinary "gateway isn't
+ * running right now" case — both look identical from the outside, forever.
+ * Found 2026-09-30: the desk showed Yahoo/~600s lag for the whole NY AM
+ * session while the gateway was independently confirmed writing fresh
+ * sub-second rows into the correct database the entire time — with nothing
+ * anywhere to tell us why the read side never saw them.
+ *
+ * databento.ts already logs its own failures (`[databento] ... HTTP 422`);
+ * this matches that convention instead of the total silence that made this
+ * one need a live SQL session and a browser to diagnose. Throttled per
+ * distinct reason so an ordinary "gateway not running" period (polled every
+ * 1-2s) doesn't flood function logs.
+ */
+const LOG_THROTTLE_MS = 30_000;
+const lastLoggedAt = new Map<string, number>();
+function logOnce(tag: string, reason: string): void {
+  const now = Date.now();
+  const last = lastLoggedAt.get(tag) ?? 0;
+  if (now - last < LOG_THROTTLE_MS) return;
+  lastLoggedAt.set(tag, now);
+  console.warn(`[live-gateway] ${tag}: ${reason}`);
+}
+
 export interface LiveGatewayTick {
   symbol: IndexSymbol;
   price: number;
@@ -73,11 +101,17 @@ export async function readLiveTick(
       [tickSymbol(symbol)],
     );
     const row = rows[0];
-    if (!row) return null;
+    if (!row) {
+      logOnce(`tick:${symbol}`, "no row for symbol — gateway has never written, or this is the wrong database");
+      return null;
+    }
 
     const receivedAtMs = new Date(row.received_at).getTime();
     const ageMs = Date.now() - receivedAtMs;
-    if (!(ageMs >= 0) || ageMs > TICK_FRESH_MS) return null; // stale or clock skew
+    if (!(ageMs >= 0) || ageMs > TICK_FRESH_MS) {
+      logOnce(`tick:${symbol}`, `stale — ageMs=${ageMs} (fresh cutoff ${TICK_FRESH_MS}ms)`);
+      return null; // stale or clock skew
+    }
 
     return {
       symbol,
@@ -88,9 +122,11 @@ export async function readLiveTick(
       receivedAtMs,
       ageMs,
     };
-  } catch {
+  } catch (err) {
     // DB unreachable, table missing (migration not yet applied), whatever —
-    // this source is simply unavailable. Never the desk's failure mode.
+    // this source is simply unavailable to the DESK (never its failure mode),
+    // but not to the logs: see logOnce's comment above.
+    logOnce(`tick:${symbol}`, err instanceof Error ? err.message : String(err));
     return null;
   }
 }
@@ -159,11 +195,17 @@ export async function readLiveBars(
         limit $2`,
       [tickSymbol(symbol), limit],
     );
-    if (!rows.length) return [];
+    if (!rows.length) {
+      logOnce(`bars:${symbol}`, "no rows for symbol — gateway has never written, or this is the wrong database");
+      return [];
+    }
 
     const newest = rows[0]!;
     const ageMs = Date.now() - new Date(newest.received_at).getTime();
-    if (!(ageMs >= 0) || ageMs > BAR_FRESH_MS) return [];
+    if (!(ageMs >= 0) || ageMs > BAR_FRESH_MS) {
+      logOnce(`bars:${symbol}`, `stale — newest ageMs=${ageMs} (fresh cutoff ${BAR_FRESH_MS}ms)`);
+      return [];
+    }
 
     return rows
       .map((r) => ({
@@ -175,7 +217,8 @@ export async function readLiveBars(
         v: Number(r.v),
       }))
       .sort((a, b) => a.t - b.t);
-  } catch {
+  } catch (err) {
+    logOnce(`bars:${symbol}`, err instanceof Error ? err.message : String(err));
     return [];
   }
 }
