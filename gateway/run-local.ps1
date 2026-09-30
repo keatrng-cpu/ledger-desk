@@ -1,13 +1,20 @@
-# Run the live tick gateway on this PC for one NY AM window, then exit.
+# Run the live tick gateway on this PC. Task Scheduler (install-task.ps1)
+# launches this from two triggers - Sunday 15:45 CT (primary, ahead of the
+# week's 17:00 ET Globex reopen) and weekdays 07:10 CT (same-morning self-heal
+# if the Sunday instance died) - sharing one ~6.5-day ExecutionTimeLimit, so
+# in the ordinary case ONE process instance covers the whole trading week.
 #
 # Reads gateway/.env.local (gitignored) for:
 #   DATABASE_URL       - the SAME Session Pooler string Netlify uses
 #   DATABENTO_API_KEY  - key on a Standard plan (live CME entitlement)
 #   DATABENTO_DATASET  - optional, defaults to GLBX.MDP3
 #
-# Sets GATEWAY_EXIT_AFTER_WINDOW=1 so the process ends at 11:00 ET instead of
-# idling until tomorrow. Task Scheduler (see install-task.ps1) launches this
-# at 08:15 CT / 09:15 ET on weekdays; the script itself waits for 09:20.
+# GATEWAY_EXIT_AFTER_WINDOW=1 is set below but is a NO-OP in the gateway's
+# default mode: databento_live_gateway.py only exits early when
+# GATEWAY_NY_AM_ONLY=1 (not set here), otherwise it streams for as long as
+# Globex is open and idles quietly through closures/halts rather than exiting
+# - Task Scheduler's ExecutionTimeLimit is what actually ends a run. Left set
+# so the old narrow-window fallback (GATEWAY_NY_AM_ONLY=1) still behaves.
 #
 # Logs: gateway/logs/YYYY-MM-DD.log (gitignored via *.log)
 

@@ -254,6 +254,14 @@ export function isJudasWindow(hour: number, minute: number): boolean {
  * from 09:20–11:00 on 2026-09-21 so the pre-open tape and the A+ tail are
  * live, not ten minutes late. The 08:30 news candle is NOT live; the desk
  * reads it from Databento historical / Yahoo.
+ *
+ * THIS IS THE GUARANTEED FLOOR, NOT THE ACTUAL RUNTIME WINDOW. Since
+ * 2026-09-23 the gateway's own default (in_ny_am_window when
+ * GATEWAY_NY_AM_ONLY is unset) streams whenever Globex is open — the
+ * scheduled task now covers most of the week (see gateway/install-task.ps1),
+ * well beyond this pair. isNyAmLiveWindow only tells you "the socket is
+ * DEFINITELY up"; it says nothing about when it is NOT. live-says.ts decides
+ * `live` from actual tick freshness, never from this clock check alone.
  */
 // 08:15 so the gateway is already connected when the 08:30 ET release
 // prints — see the window comment in gateway/databento_live_gateway.py.

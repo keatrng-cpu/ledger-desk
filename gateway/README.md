@@ -34,7 +34,7 @@ without it, just with the entry-timing limitation stated above.
 
 ## What it does
 
-1. Connects to Databento Live **only 08:15–11:30 ET weekdays** (through the 08:30 release → end of the NY AM A+ tail; Judas 09:30–09:45 is inside it but no-entry). Outside that it idles — no live socket. **The 08:30 news candle IS covered live as of 2026-09-23** — that was the point of moving the start from 09:00 to 08:15. Note the asymmetry it creates and do not confuse them: the socket is up at 08:15, but the ±15m high-impact blackout means no entry is legal until 08:45. You watch the print; you do not trade it. With `GATEWAY_EXIT_AFTER_WINDOW=1` it exits at 11:30 instead of idling (scheduled-run mode, below).
+1. Connects to Databento Live **whenever Globex is open** — Sunday 17:00 ET through Friday 16:00 ET, minus the daily 16:00–17:00 ET maintenance halt (`globex_open()` in the script). This is the default as of 2026-09-23; a narrower `GATEWAY_NY_AM_ONLY=1` fallback restores the old 08:15–11:30 ET-only window (through the 08:30 release → end of the NY AM A+ tail; Judas 09:30–09:45 is inside it but no-entry) for testing or if the always-on mode ever needs to be backed out. Either way, the socket is up well before the 08:30 ET release, so the release candle is covered live — note the asymmetry and do not confuse them: the socket connects at 08:15 ET at the latest, but the ±15m high-impact blackout still means no entry is legal until 08:45. You watch the print; you do not trade it. `GATEWAY_EXIT_AFTER_WINDOW=1` only does anything in the `GATEWAY_NY_AM_ONLY=1` fallback (exits at window-close instead of idling) — in the default always-on mode there is no daily "window close" to exit at, so the flag is a no-op and Task Scheduler's own execution-time-limit is what ends a run (see Option A).
 2. On every record: upserts the latest price into `live_market_ticks`
    (one row per symbol — this is what gives you sub-5-second freshness) and
    aggregates 1s bars into `live_market_bars_1m`.
@@ -54,19 +54,32 @@ side, write-only to Postgres.
 
 ## Option A — run it on the desk PC, free (Windows Task Scheduler)
 
-The window is 3h15m a day and you are at the desk for most of it, so the
-cheapest host is the PC you are already sitting at. The task fires at 07:10 CT
-with `-StartWhenAvailable -WakeToRun`, so it wakes the machine and still runs
-if the trigger is missed — but the PC must not be powered off at the wall.
+Since the default is now "stream whenever Globex is open" and that costs
+nothing extra (flat $199/mo, see above), the cheapest host is the PC you are
+already sitting at, running effectively all week instead of a few hours a
+day. Two triggers, not one:
+
+- **Sunday 15:45 CT (16:45 ET)** — the primary trigger, 15 minutes ahead of
+  the week's 17:00 ET Globex reopen, same reasoning as connecting before the
+  08:30 ET release. In the ordinary week this ONE instance runs through to
+  Friday's close.
+- **Weekdays 07:10 CT (08:10 ET)** — a same-morning self-heal, in case the
+  Sunday instance died earlier in the week. `-MultipleInstances IgnoreNew`
+  means this is a harmless no-op whenever the Sunday instance is still alive.
+
+Both share one `-ExecutionTimeLimit` of 6 days 12 hours — long enough that
+either trigger's instance bridges cleanly to the next one, short enough that
+a missed Sunday trigger (PC off) still self-clears within the week. `-WakeToRun`
+wakes the machine for either trigger and `-StartWhenAvailable` catches a
+missed one — but the PC must not be powered off at the wall.
 
 1. `pip install -r gateway/requirements.txt`
 2. Create `gateway/.env.local` (gitignored) with two lines:
    `DATABASE_URL=<the Session Pooler string Netlify uses>` and
    `DATABENTO_API_KEY=<key on a Standard plan>`.
 3. `powershell -ExecutionPolicy Bypass -File gateway\install-task.ps1`
-   — registers **"LedgerDesk Live Gateway"**, weekdays 07:55 CT (= 08:55 ET),
-   `-WakeToRun`, 3 h hard limit. It launches `run-local.ps1`, which loads
-   `.env.local`, sets `GATEWAY_EXIT_AFTER_WINDOW=1`, and tees stdout to
+   — registers/updates **"LedgerDesk Live Gateway"** with both triggers above.
+   It launches `run-local.ps1`, which loads `.env.local` and tees stdout to
    `gateway/logs/YYYY-MM-DD.log`.
 4. First run supervised: `Start-ScheduledTask -TaskName "LedgerDesk Live Gateway"`
    during RTH and watch the log for `subscribed:` then `1m bar` lines
@@ -74,8 +87,8 @@ if the trigger is missed — but the PC must not be powered off at the wall.
    verified against a real socket).
 
 Caveats: runs only while you are logged in (no stored credential); the PC
-must be awake at 07:55 CT (`-WakeToRun` handles sleep, not shutdown). If
-either bites, use Option B.
+must be awake at either trigger time (`-WakeToRun` handles sleep, not
+shutdown). If either bites, use Option B.
 
 ## Option B — any host that runs a long-lived process
 

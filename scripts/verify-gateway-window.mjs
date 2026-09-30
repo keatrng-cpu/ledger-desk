@@ -22,7 +22,7 @@ let pass = 0;
 let fail = 0;
 const check = (name, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
-  ok ? pass++ : fail++;
+  if (ok) pass++; else fail++;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 const ok = (name, cond) => check(name, !!cond, true);
@@ -85,6 +85,39 @@ ok("and not absurdly early", pyStart - taskEtMin <= 90);
 // A missed trigger must still run — the PC is not always awake at that hour.
 ok("task starts when available", /-StartWhenAvailable/.test(ps1));
 ok("task can wake the machine", /-WakeToRun/.test(ps1));
+
+console.log("\nthe scheduled task must actually cover the week, not just one window");
+// The gap this section exists to close: the code streams whenever Globex is
+// open by default (globex_open, GATEWAY_NY_AM_ONLY unset), which is free —
+// but a stale scheduled task can still silently leave most of the week dark
+// even while every py/ts/README check above stays green, because none of
+// them look at Sunday coverage or how long a run is allowed to live. Found
+// 2026-09-30: the live task was still a single weekday trigger with a 9h
+// kill-limit — dead ~15h of every 24, no Sunday trigger at all — while every
+// check above it passed.
+const sundayAt = /DaysOfWeek Sunday -At (\d{2}):(\d{2})/.exec(ps1);
+ok("a Sunday trigger exists (the week's Globex reopen has no weekday trigger)", sundayAt != null);
+if (sundayAt) {
+  const sundayEtMin = Number(sundayAt[1]) * 60 + Number(sundayAt[2]) + 60;
+  const GLOBEX_OPEN_MIN = 17 * 60; // 17:00 ET
+  ok(`Sunday trigger (${sundayAt[1]}:${sundayAt[2]} CT = ${hhmm(sundayEtMin)} ET) fires before the 17:00 ET reopen`, sundayEtMin <= GLOBEX_OPEN_MIN);
+  ok("and not absurdly early", GLOBEX_OPEN_MIN - sundayEtMin <= 90);
+}
+
+const limitMatch = /-ExecutionTimeLimit \(New-TimeSpan((?: -Days \d+)?(?: -Hours \d+)?(?: -Minutes \d+)?)\)/.exec(ps1);
+ok("an ExecutionTimeLimit is declared", limitMatch != null);
+if (limitMatch) {
+  const days = Number(/-Days (\d+)/.exec(limitMatch[1])?.[1] ?? 0);
+  const hours = Number(/-Hours (\d+)/.exec(limitMatch[1])?.[1] ?? 0);
+  const totalHours = days * 24 + hours;
+  // Must clear the longest real gap between triggers (weekday-to-weekday is
+  // 24h; Friday's instance idling through the weekend to Sunday's trigger is
+  // fine to miss, Globex is shut anyway) with real margin — and stay well
+  // under "no limit" so a missed Sunday trigger self-clears within the week
+  // instead of a connection quietly living for months.
+  ok(`ExecutionTimeLimit (${totalHours}h) spans at least a weekday-to-weekday gap (24h) with margin`, totalHours >= 30);
+  ok(`ExecutionTimeLimit (${totalHours}h) is bounded well short of running forever (< 200h)`, totalHours < 200);
+}
 
 console.log("\nthe README must not describe a window that no longer exists");
 ok("README names the real window", readme.includes(`${hhmm(pyStart)}–${hhmm(pyEnd)} ET`));

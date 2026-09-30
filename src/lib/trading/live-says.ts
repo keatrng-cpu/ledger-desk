@@ -71,7 +71,16 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
   const right = desk.quotes.right;
   const leftLive = isLivePrint(left);
   const rightLive = isLivePrint(right);
-  const live = inWindow && (leftLive || rightLive);
+  // Freshness alone decides `live` — NOT the clock. The gateway's own default
+  // (databento_live_gateway.py, in_ny_am_window) streams whenever Globex is
+  // open, well beyond NY_AM_LIVE_START_MIN/END_MIN; that pair is only the
+  // GUARANTEED minimum (what GATEWAY_NY_AM_ONLY=1 would restore), not the
+  // actual runtime window. Gating `live` on `inWindow` used to make this card
+  // claim "Gateway idle" for hours while a real sub-5-second tick was already
+  // feeding the engine underneath — the exact wrong-direction lie the rest of
+  // this codebase is paranoid about (see live-gateway.ts's own freshness
+  // doctrine). `inWindow` is kept only to explain the reason text.
+  const live = leftLive || rightLive;
   const lagSec = Math.round(Math.max(left.lagSec, right.lagSec));
   const source: MarketSource | "none" = leftLive
     ? left.source
@@ -85,12 +94,14 @@ export function buildLiveSays(desk: Omit<DeskPayload, "liveSays">): LiveSays {
     desk.scan.candidates.find((c) => c.actionable) ?? desk.scan.candidates[0];
 
   let reason: string;
-  if (!inWindow) {
-    reason = `Outside ${NY_AM_LIVE_LABEL} live window. Gateway idle. Yahoo/Databento structure only.`;
-  } else if (!live) {
-    reason = `In NY AM window but no live tick (lag ${lagSec}s, source ${source}). Start gateway/databento_live_gateway.py with a live CME key.`;
-  } else {
+  if (live && inWindow) {
     reason = "Live gateway tick is feeding Trade Now / PATH / paper manager.";
+  } else if (live) {
+    reason = `Live gateway tick is feeding Trade Now / PATH / paper manager (outside the guaranteed ${NY_AM_LIVE_LABEL} window — the scheduled gateway happens to still be running).`;
+  } else if (inWindow) {
+    reason = `In the guaranteed ${NY_AM_LIVE_LABEL} window but no live tick (lag ${lagSec}s, source ${source}). Check gateway/databento_live_gateway.py.`;
+  } else {
+    reason = `Outside the guaranteed ${NY_AM_LIVE_LABEL} window and no live tick (lag ${lagSec}s, source ${source}). Yahoo/Databento structure only.`;
   }
 
   const mnq =
