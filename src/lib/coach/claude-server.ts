@@ -43,17 +43,17 @@ import { normalizeKey } from "@/lib/journal/analytics";
 import { computeDiscretion, neutralDiscretion } from "@/lib/journal/discretion";
 import { backtestPriorFor } from "@/lib/journal/discretion-server";
 
-/** xAI Chat Completions (OpenAI-compatible). Peer narrator — not primary. */
+/**
+ * xAI Chat Completions (OpenAI-compatible). Peer narrator — not primary.
+ * Discuss round 1 also uses this (not the Responses API + web_search) — three
+ * live runs in a row (2026-09-29) timed out doing a real xAI search even
+ * after cutting the ask to 3 short lines and 1 search turn, while Claude's
+ * search reliably finished on the SAME shared budget. xAI's search path is
+ * evidently slower than Anthropic's for this workload, so Grok gives its own
+ * fast read of the same rich snapshot without searching; Claude keeps search.
+ */
 const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
 const GROK_MODEL = "grok-4.5";
-
-/** xAI Responses API + web_search — Discuss round 1 only (see askDeskDiscuss). */
-const GROK_RESPONSES_URL = "https://api.x.ai/v1/responses";
-const GROK_SEARCH_MODEL = "grok-4.7";
-// 1, not 2 (trader's call 2026-09-29, budget fix): each turn is a real
-// network round trip: a second search turn was the difference between
-// finishing inside the shared budget and timing out on the first live run.
-const GROK_MAX_TURNS = 1;
 
 /** Anthropic Messages API. Peer narrator — not a fallback. */
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
@@ -62,7 +62,7 @@ const ANTHROPIC_MODEL = "claude-sonnet-5";
 /** Server-side tool, no client-side search loop to write — see platform.claude.com/docs/agents-and-tools/tool-use/web-search-tool. */
 const ANTHROPIC_WEB_SEARCH_TOOL = "web_search_20250305";
 // 1, not 3 (trader's call 2026-09-29, budget fix): each search is a real
-// round trip against the shared 25s budget — see GROK_MAX_TURNS above.
+// round trip against the shared 25s budget.
 const ANTHROPIC_MAX_SEARCHES = 1;
 
 /** Bounded output — this is a paragraph of narration, not an essay. */
@@ -614,67 +614,12 @@ async function callClaude(key: string, userMessage: string, systemPrompt: string
 }
 
 /**
- * Grok WITH live web search — Discuss round 1 only ("retrieving their own
- * data if needed", trader's call 2026-09-28). Same Responses API + web_search
- * shape already proven in kill-watch-server.ts and thesis-server.ts, not the
- * plain chat/completions endpoint callGrok uses (that endpoint has no search
- * tool). Round 2 replies do not re-search — they react to round 1, not to a
- * fresh query.
+ * Claude WITH Anthropic's server-side web_search tool — Discuss round 1 only
+ * ("retrieving their own data if needed", trader's call 2026-09-28). Grok's
+ * round 1 does NOT search (see the GROK_API_URL comment above for why) — this
+ * asymmetry is deliberate, not a shortcut: only the provider that has proven
+ * it fits the shared budget gets the tool.
  */
-async function callGrokWithSearch(
-  key: string,
-  userMessage: string,
-  systemPrompt: string,
-  timeoutMs: number,
-  maxTokens: number,
-): Promise<ProviderResult> {
-  try {
-    const res = await withTimeout(
-      (signal) =>
-        fetch(GROK_RESPONSES_URL, {
-          method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-          body: JSON.stringify({
-            model: GROK_SEARCH_MODEL,
-            instructions: systemPrompt,
-            input: [{ role: "user", content: userMessage }],
-            tools: [{ type: "web_search" }],
-            max_turns: GROK_MAX_TURNS,
-            max_output_tokens: maxTokens,
-          }),
-          signal,
-        }),
-      timeoutMs,
-    );
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      console.error(`[coach] xAI (search) ${res.status}:`, detail.slice(0, 500));
-      return { model: GROK_SEARCH_MODEL, text: null, error: httpError("xAI", res.status) };
-    }
-    const json = (await res.json()) as { output?: { type: string; content?: { type: string; text?: string }[] }[]; status?: string };
-    const text = (json.output ?? [])
-      .filter((item) => item.type === "message")
-      .flatMap((item) => item.content ?? [])
-      .filter((c) => c.type === "output_text" && typeof c.text === "string")
-      .map((c) => c.text as string)
-      .join("\n")
-      .trim();
-    // A web search can burn the whole output budget on tool calls/results
-    // before any answer text — say that plainly instead of a bare "no text".
-    const error = text ? null : `Model returned no text (status: ${json.status ?? "?"}, output types: ${(json.output ?? []).map((o) => o.type).join(",") || "none"}).`;
-    return { model: GROK_SEARCH_MODEL, text: text || null, error };
-  } catch (err) {
-    const aborted = err instanceof Error && err.name === "AbortError";
-    console.error("[coach] xAI (search) narration failed:", err);
-    return {
-      model: GROK_SEARCH_MODEL,
-      text: null,
-      error: aborted ? `Narration timed out after ${timeoutMs / 1000}s.` : "Narration failed — network or service error.",
-    };
-  }
-}
-
-/** Claude WITH Anthropic's server-side web_search tool — Discuss round 1 only, same reasoning as callGrokWithSearch above. */
 async function callClaudeWithSearch(
   key: string,
   userMessage: string,
@@ -868,17 +813,21 @@ export const askDeskDiscuss = createServerFn({ method: "POST" })
     const round1Message = `${baseMessage}\n\nThis is the automatic ${data.slot} ET discussion checkpoint.`;
 
     // Round 1: both read the SAME snapshot independently, neither sees the
-    // other. Search-enabled — "retrieving their own data if needed." A real
-    // web search needs more than the plain-narration timeout (first live run:
-    // Grok timed out at 18s, Claude's search ate the token budget before any
-    // answer text) — same fix already proven in thesis-server.ts: a shared
-    // wall-clock budget for the WHOLE two-round exchange, not a flat timeout
-    // per call, since round 2 runs AFTER round 1 in the same invocation.
-    // Round 2 is now a single short sentence with no search — 3.5s reserved
-    // for it (down from 5s) gives round 1 a bit more of the shared budget.
+    // other. Search-enabled — "retrieving their own data if needed" — but
+    // Grok specifically, not Claude: three live runs in a row (18s, then
+    // 19.998s, then 21.497s, each time raising its budget) all timed out
+    // doing a real xAI search, while Claude's search reliably finished with
+    // room to spare on the SAME budget. That is not a tuning problem, it is
+    // xAI's search path being slower than Anthropic's for this workload —
+    // so Grok reads the identical rich snapshot and gives its own fast read
+    // WITHOUT searching, the same plain call askDeskCoach already uses
+    // reliably. Claude keeps live search since it has proven it fits.
+    // Shared budget for the whole exchange, not a flat timeout per call
+    // (thesis-server.ts's pattern) — round 2 runs AFTER round 1 in the same
+    // invocation, so round 1 gets whatever is left minus a small reserve.
     const round1Ms = Math.max(8_000, DISCUSS_BUDGET_MS - (Date.now() - t0) - 3_500);
     const [grok1, claude1] = await Promise.all([
-      xai ? callGrokWithSearch(xai, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
+      xai ? callGrok(xai, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms) : Promise.resolve(null),
       anthropic ? callClaudeWithSearch(anthropic, round1Message, DISCUSS_ROUND1_PROMPT, round1Ms, DISCUSS_SEARCH_MAX_TOKENS) : Promise.resolve(null),
     ]);
 
