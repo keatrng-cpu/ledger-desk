@@ -7,11 +7,12 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
 import {
+  detectInducement,
   summarizeDetectors,
   type DetectorSummary,
   type FvgResult,
 } from "./detectors";
-import { WEIGHTS, type ComponentKey } from "./engine-weights";
+import type { ComponentKey } from "./engine-weights";
 import {
   buildImpulseLeg,
   readOte,
@@ -842,31 +843,6 @@ export function scoreCandidates(
     }
   }
 
-  // With-bias fade veto — Claude's disrespect release is for COUNTER-bias
-  // trades. This blocks the opposite bug: HTF still bull, leftover bull FVG,
-  // but LTF is delivering lower (the 0.76 long into the 8/14 dump).
-  for (const c of candidates) {
-    const read = c.symbol === left.symbol ? left : right;
-    const need = c.side === "long" ? "bull" : "bear";
-    const session = read.sessionStance ?? "neutral";
-    const strong = (read.sessionStrength ?? 0) >= 0.28;
-    if (!strong || session === "neutral" || session === need) continue;
-    c.actionable = false;
-    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-    if (
-      c.pathBand === "A+" ||
-      c.pathBand === "A" ||
-      c.pathBand === "A-" ||
-      c.pathBand === "B+"
-    ) {
-      c.pathBand = "C";
-    }
-    if (!c.missing.includes("LTF delivery against")) {
-      c.missing.unshift("LTF delivery against");
-    }
-  }
-
   // Draw on liquidity — WHICH level price is empirically likely to reach,
   // from the distribution of remaining excursion across past sessions plus
   // current distance / liquidity magnitude / HTF alignment (trading/draw.ts).
@@ -906,6 +882,84 @@ export function scoreCandidates(
 
   // Profit path: incomplete-pattern veto + calibration floor (0.65) for action
   const pathCandidates = candidates.map(applyProfitPathToCandidate);
+
+  /**
+   * With-bias fade veto — Claude's disrespect release is for COUNTER-bias
+   * trades. This blocks the opposite bug: HTF still bull, leftover bull FVG,
+   * but LTF is delivering lower (the 0.76 long into the 8/14 dump).
+   *
+   * MOVED HERE 2026-09-30. It used to run on `candidates`, BEFORE
+   * `applyProfitPathToCandidate` (the block two lines above). That function
+   * computes `next.confluence`/`next.grade`/`next.pathBand`/`next.actionable`
+   * entirely fresh from `components`/`htfOk`/`killzoneOk`/`conditionsOk` — it
+   * never reads the candidate's PRIOR value of any of those four fields. So
+   * every mutation this veto made was silently overwritten two lines later,
+   * every single time, since the day it was written. The only thing that
+   * ever survived was the "LTF delivery against" string in `missing` — a
+   * label with no gating power behind it. A card this veto was written to
+   * catch graded, sorted and displayed exactly as if the veto did not exist.
+   * No verifier caught it: verify-desk-enhancements.mjs tests biasDisrespect()
+   * itself, a different function, not whether this block's effect reaches
+   * the final candidate. Running it on `pathCandidates` (after
+   * applyProfitPathToCandidate, before the sort below) is what makes the
+   * mutation the last word rather than the first.
+   */
+  for (const c of pathCandidates) {
+    const read = c.symbol === left.symbol ? left : right;
+    const need = c.side === "long" ? "bull" : "bear";
+    const session = read.sessionStance ?? "neutral";
+    const strong = (read.sessionStrength ?? 0) >= 0.28;
+    if (!strong || session === "neutral" || session === need) continue;
+    c.actionable = false;
+    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    if (
+      c.pathBand === "A+" ||
+      c.pathBand === "A" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+"
+    ) {
+      c.pathBand = "C";
+    }
+    if (!c.missing.includes("LTF delivery against")) {
+      c.missing.unshift("LTF delivery against");
+    }
+  }
+
+  /**
+   * Inducement veto — measured 2026-09-30 (scripts/measure-inducement-news.mjs,
+   * 4 years / 3,501 filled cards): a card whose sweep was preceded by a
+   * shallower decoy sweep of the same polarity paid -0.259R, both halves
+   * negative, CI excludes zero (n=525) — WORSE than the already-hard-refused
+   * stop-band's out-of-band number (-0.244R, trade-plan.ts). Same statistical
+   * bar as every other confirmed finding in evidence-pack.json. Applied here,
+   * not just shown as an evidence caption (evidence.ts), for parity with how
+   * the stop-band finding is treated: a confirmed-negative pattern this
+   * strong gets to change the grade, not just annotate it. Same penalty
+   * shape as the with-bias fade veto directly above — one discount
+   * mechanism, not two designs that could drift.
+   */
+  for (const c of pathCandidates) {
+    const bars = c.symbol === left.symbol ? barsL : barsR;
+    if (!bars.length) continue;
+    const ind = detectInducement(bars, c.side);
+    if (!ind.inducement) continue;
+    c.actionable = false;
+    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    if (
+      c.pathBand === "A+" ||
+      c.pathBand === "A" ||
+      c.pathBand === "A-" ||
+      c.pathBand === "B+"
+    ) {
+      c.pathBand = "C";
+    }
+    if (!c.missing.includes("inducement — shallow decoy sweep before this one")) {
+      c.missing.unshift("inducement — shallow decoy sweep before this one");
+    }
+  }
+
   /**
    * TAKEABLE FIRST, THEN SCORE. Fixed 2026-09-25 from a live board.
    *

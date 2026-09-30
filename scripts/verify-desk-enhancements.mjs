@@ -29,7 +29,7 @@ let pass = 0;
 let fail = 0;
 const check = (name, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
-  ok ? pass++ : fail++;
+  if (ok) pass++; else fail++;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 const ok = (name, cond) => check(name, !!cond, true);
@@ -304,6 +304,110 @@ ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
       Math.abs(after - cont.now - w.worth) < 0.0015,
       true,
     );
+  }
+}
+
+console.log("\nscanner vetoes survive into the final candidate — the engine, not the helper");
+{
+  /**
+   * Found 2026-09-30: the with-bias fade veto and (new, same day) the
+   * inducement veto both mutate a candidate's actionable/confluence/grade/
+   * pathBand INSIDE scanner.ts. `applyProfitPathToCandidate` runs
+   * immediately after and recomputes all four of those fields from
+   * components/htfOk/killzoneOk/conditionsOk alone — it never reads the
+   * candidate's incoming value of any of them. So a veto applied BEFORE
+   * that call is silently discarded, every time, and nothing above (which
+   * unit-tests biasDisrespect() and scoreGap() directly, not this survival
+   * property) would ever have caught it. This differential check runs the
+   * real scanSetups() — the same function the desk calls — against real
+   * bars, and confirms both vetoes' effects are still present on the
+   * candidate that comes out the other end.
+   */
+  const { analyzeStructure, smtDivergenceStack } = await import("../src/lib/trading/structure.ts");
+  const { scanSetups } = await import("../src/lib/trading/scanner.ts");
+  const { buildSmcTape } = await import("../src/lib/trading/smc-board.ts");
+  const { detectInducement } = await import("../src/lib/trading/detectors.ts");
+  const { getSessionClock } = await import("../src/lib/trading/sessions.ts");
+  const { readFileSync, existsSync } = await import("node:fs");
+
+  if (!existsSync("src/data/history-4y.json")) {
+    console.log("  skip — src/data/history-4y.json missing; run capture-history.mjs");
+  } else {
+    const H = JSON.parse(readFileSync("src/data/history-4y.json", "utf8"));
+    const MNQ = H.bars.MNQ ?? [];
+    const ES = H.bars.ES ?? [];
+
+    function scanAt(i) {
+      const slice = MNQ.slice(Math.max(0, i - 799), i + 1);
+      let pi = 0;
+      while (pi < ES.length && ES[pi].t <= MNQ[i].t) pi++;
+      const peer = ES.slice(Math.max(0, pi - 800), pi);
+      if (slice.length < 200 || peer.length < 200) return null;
+      const clock = getSessionClock(new Date(MNQ[i].t));
+      const biasL = analyzeStructure("MNQ", slice, 0);
+      const biasR = analyzeStructure("ES", peer, 0);
+      const smtStack = smtDivergenceStack(slice, peer);
+      const smc = { left: buildSmcTape(slice), right: buildSmcTape(peer) };
+      const scan = scanSetups(biasL, biasR, clock, smtStack.primary, slice, peer, smc);
+      return { scan, biasL, biasR, slice, peer };
+    }
+
+    let withBiasChecked = 0;
+    let inducementChecked = 0;
+    // Every 11th bar, not every bar: this is the same cost trade-off
+    // verify-session-event.mjs makes on the same 93,830-bar tape — a sample
+    // large enough to hit real instances of both conditions, cheap enough to
+    // run inside the normal pre-push budget.
+    for (let i = 900; i < MNQ.length; i += 11) {
+      const r = scanAt(i);
+      if (!r) continue;
+      for (const c of r.scan.candidates) {
+        const isLeft = c.symbol === r.biasL.symbol;
+        const bias = isLeft ? r.biasL : r.biasR;
+        const bars = isLeft ? r.slice : r.peer;
+        const need = c.side === "long" ? "bull" : "bear";
+
+        // With-bias fade condition, computed independently here the same
+        // way scanner.ts computes it — never by reading scanner.ts's own
+        // intermediate state, or this could pass by construction.
+        const session = bias.sessionStance ?? "neutral";
+        const strong = (bias.sessionStrength ?? 0) >= 0.28;
+        if (strong && session !== "neutral" && session !== need) {
+          withBiasChecked++;
+          check(
+            `with-bias fade: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
+            c.actionable,
+            false,
+          );
+          ok(
+            `with-bias fade: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
+            c.missing.includes("LTF delivery against"),
+          );
+        }
+
+        // Inducement condition, likewise computed independently.
+        const ind = detectInducement(bars, c.side === "short" ? "short" : "long");
+        if (ind.inducement) {
+          inducementChecked++;
+          check(
+            `inducement veto: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
+            c.actionable,
+            false,
+          );
+          ok(
+            `inducement veto: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
+            c.missing.includes("inducement — shallow decoy sweep before this one"),
+          );
+        }
+      }
+      if (withBiasChecked >= 12 && inducementChecked >= 12) break;
+    }
+
+    // Prove these were real hits, not a loop that never found its condition
+    // — the exact failure mode that would make every check above pass
+    // vacuously and mean nothing.
+    ok(`found real with-bias-fade instances to test (${withBiasChecked})`, withBiasChecked > 0);
+    ok(`found real inducement instances to test (${inducementChecked})`, inducementChecked > 0);
   }
 }
 
