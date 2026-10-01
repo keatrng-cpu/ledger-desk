@@ -163,12 +163,11 @@ import {
   releaseAutoPaperKey,
   noteAutoPaperSkip,
 } from "@/lib/trading/auto-paper";
+import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
 });
-
-const DESK_POLL_MS = 20_000;
 
 /**
  * Turn a failed desk poll into one line a trader can act on.
@@ -1123,22 +1122,26 @@ function MasterplacePage() {
   }, [load]);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      if (document.visibilityState === "visible") void load();
-    }, DESK_POLL_MS);
+    // Rebuild just after candles close (desk-cadence.ts), not on a
+    // free-running timer that could sit on a closed candle for ~20s.
+    let id = 0;
+    const schedule = () => {
+      id = window.setTimeout(() => {
+        if (document.visibilityState === "visible") void load();
+        schedule();
+      }, msUntilNextDeskPoll());
+    };
+    schedule();
     // The quote-poll effect below already does this (calls tick() the
-    // instant the tab becomes visible again); this effect only did it on the
-    // NEXT scheduled tick, so returning to a backgrounded tab could show a
-    // desk build up to DESK_POLL_MS stale (longer if the browser throttled
-    // the background timer further) while the quotes above it were already
-    // live. Same catch-up, so "actively refreshing" means the same thing in
-    // both places.
+    // instant the tab becomes visible again); without it, returning to a
+    // backgrounded tab would show a stale desk build until the next
+    // scheduled rebuild while the quotes above it were already live.
     const onVis = () => {
       if (document.visibilityState === "visible") void load();
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
-      window.clearInterval(id);
+      window.clearTimeout(id);
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [load]);
@@ -1769,7 +1772,7 @@ function MasterplacePage() {
                       verdict, picture, scanner. */}
                   <DeskFold
                     title="Timeframe ladder"
-                    sub="year → 30s, top-down — direction from the top, timing from the bottom"
+                    sub="Q → 1m in four tiers, closed candles only — the higher tier wins"
                   >
                     <TfLadderPanel desk={desk} />
                   </DeskFold>
