@@ -1,68 +1,70 @@
 /**
- * The timeframe ladder — one bias per timeframe from the yearly down to the
- * 30-second, read top-down and conjoined into a direction, a phase and an
- * alignment.
+ * The timeframe ladder — the trader's twelve frames, read from CLOSED candles
+ * only, in four tiers, top-down.
  *
- * WHY
- * The desk's HTF gate (structure.ts `topDown`) is one number distilled from
- * a few resampled series. A trader reads more than that: the year decides
- * what a pullback is, the month and week decide whether this is the
- * pullback or the turn, the day and the 4h/1h decide the phase, and the
- * 15m down to the 1m time the entry. The trader's call (2026-09-21): show
- * every rung, in sync, and read them from the top down for trades and for
- * summaries. This module is that read, deterministic, from bars only.
+ * THE TIERS (trader's call 2026-10-01 — "read top down, execute bottom up";
+ * "if the frames conflict, the higher one wins")
+ *   Tier 1 · bias       Q · M · W · D   which side is the draw, what must not
+ *                                       break, today's bias. Also the 20/40/60-
+ *                                       day IPDA range (ICT 2016 M5, verified in
+ *                                       learn/canon.ts): where price sits in the
+ *                                       last ~three trading months.
+ *   Tier 2 · range      4H · 1H · 30m   the dealing range the session respects.
+ *   Tier 3 · confirm    15m · 5m        structure agrees; where the impulse is.
+ *   Tier 4 · trigger    3m · 2m · 1m    the exact sweep and candle. NEVER sets
+ *                                       direction: it is excluded from DIRECTION
+ *                                       and from ALIGNMENT, and only appears as
+ *                                       the timing band.
  *
- * HOW A RUNG IS READ
- * Each timeframe is a resample of the finest series that covers it (daily
- * bars for 1d/1w/1M/1y, 15m bars for 15m–4h, 1m bars for 1m–10m, prints for
- * the 30s). Two facts per rung: STRUCTURE — the last two swing highs and
- * lows of that series (pivot 2): HH+HL is bull, LH+LL is bear, anything else
- * is mixed; and LOCATION — the last close against the current period's open
- * (the yearly open for the 1y rung, the month's open for 1M, …), beyond a
- * per-timeframe threshold. Structure wins when it is clean; location breaks
- * a mixed structure; a rung with too few bars reads from location alone and
- * says so.
+ * CLOSED CANDLES ONLY — no repaint
+ * Until 2026-10-01 every rung read its FORMING bucket as "last" and the
+ * `nowMs` this function was given was discarded (`void nowMs`), so all
+ * fourteen rungs moved tick by tick. Now:
+ *   - STRUCTURE (HH/HL vs LH/LL, pivot 2) is read only from that rung's own
+ *     closed candles, so a rung's structure changes exactly when that rung
+ *     closes — the 1m every minute, the 4H every four hours, the Q quarterly.
+ *   - LOCATION is the last CLOSED 1-minute price (else the last closed 15m,
+ *     else the last closed day) against the current period's open. The open
+ *     is fixed once the period starts, and the price is a closed print, so
+ *     location moves once a minute at most and never mid-candle.
+ * The daily rung's open is ICT's true-day open — midnight ET ("Every day at
+ * 12am midnight New York time begins the true day", 2016 M8, verified) — once
+ * midnight has passed in the current Globex session; before that, the 18:00
+ * ET session open.
  *
- * HOW THE RUNGS ARE CONJOINED — from the top
- * DIRECTION is the highest rung with a read: the year (location vs the
- * yearly open — a year 20% above its open is a bull year whatever the week
- * did), then the month, then the week, then the day. The rungs below the
- * one that decided are read RELATIVE to it, in three bands:
- *   swing    = 1w · 1d · 4h      the pullback-or-continuation of the trend
- *   intraday = 1h · 30m · 15m    today's leg
- *   micro    = 10m … 30s         the timing
- * and the PHASE is what those three say against the direction:
- *   all with                              → expansion (continuations only)
- *   swing with · intraday with · micro against  → pullback starting (do not chase)
- *   swing with · intraday against · micro against → pullback (wait for the turn)
- *   swing with · intraday against · micro with  → reversal forming — the
- *       intraday retrace is ending: the with-trend entry window, in the
- *       swing discount/premium, timed on the 5m/1m
- *   swing against · intraday with · micro with  → HTF retrace ending — the
- *       week/day pulled back inside the year/month trend and the lower rungs
- *       have turned: the bigger with-trend window
- *   swing against · rest against          → deep retrace (wait; the engine's
- *       HTF gate may be about to flip)
- *   direction unreadable                   → range / conflict
- * ALIGNMENT is the weighted share of rungs agreeing with the direction.
+ * HOW A RUNG BECOMES A BIAS
+ * Structure wins when it is clean; location breaks a mixed structure; a rung
+ * with too few closed candles reads from location alone and says so.
  *
- * The engine's HTF gate (structure.ts `topDown`) is a separate read from
- * the 15m/1h/4h/daily resamples. When it disagrees with the ladder's
- * direction the ladder SAYS so and the gate still rules — a ladder is a
- * narrative, the gate is a rule.
+ * HOW THE TIERS ARE CONJOINED
+ * DIRECTION is the highest Tier-1 rung with a read (Q, then M, then W, then
+ * D). The tiers below are read RELATIVE to it — range (Tier 2), confirm
+ * (Tier 3), trigger (Tier 4) — and the PHASE is what they say against it:
+ *   all with                                 → expansion (continuations only)
+ *   range with · confirm with · trigger against → pullback starting (do not chase)
+ *   range with · confirm against · trigger against → pullback (wait for the turn)
+ *   range with · confirm against · trigger with → reversal forming — the
+ *       with-trend entry window, in the discount/premium of the range
+ *   range against · confirm with · trigger with → HTF retrace ending
+ *   range against · rest against             → deep retrace
+ *   direction unreadable                     → range / conflict
+ * ALIGNMENT is the tier-weighted share of Tier 1–3 rungs agreeing with the
+ * direction (Tier 1 counts most). Degree of alignment has NOT separated
+ * outcomes when measured (ladder-conflict.ts) — the binary disagreement did.
  *
- * This is analysis, not a gate. structure.ts `topDown` stays the absolute
- * HTF gate; the ladder feeds the Trade Now board, the shadow book's tags
- * (so the scorecard can say whether alignment mattered), the brain and the
- * handoff. If the evidence says alignment predicts refusals that pay, that
- * is when it earns a place in the sequence — measured first.
+ * GATE STATUS
+ * structure.ts `topDown` is still the absolute HTF gate. The ladder is the
+ * trader's own top-down read; when it disagrees with the engine the card
+ * says so (ladder-conflict.ts). Whether it earns more than that is decided by
+ * scripts/measure-tf-tiers.mjs on the four-year tape, not by this file.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
-import { etWallParts } from "./sessions";
+import { etWallParts, etWallToEpochMs } from "./sessions";
 
-export type Tf = "1y" | "1M" | "1w" | "1d" | "4h" | "1h" | "30m" | "15m" | "10m" | "5m" | "3m" | "2m" | "1m" | "30s";
+export type Tf = "3M" | "1M" | "1w" | "1d" | "4h" | "1h" | "30m" | "15m" | "5m" | "3m" | "2m" | "1m";
 export type LadderBias = "bull" | "bear" | "neutral";
+export type LadderTier = 1 | 2 | 3 | 4;
 export type LadderPhase =
   | "expansion"
   | "pullback-starting"
@@ -74,9 +76,9 @@ export type LadderPhase =
   | "range"
   | "conflict";
 
-export const TF_ORDER: Tf[] = ["1y", "1M", "1w", "1d", "4h", "1h", "30m", "15m", "10m", "5m", "3m", "2m", "1m", "30s"];
+export const TF_ORDER: Tf[] = ["3M", "1M", "1w", "1d", "4h", "1h", "30m", "15m", "5m", "3m", "2m", "1m"];
 export const TF_LABEL: Record<Tf, string> = {
-  "1y": "Y",
+  "3M": "Q",
   "1M": "M",
   "1w": "W",
   "1d": "D",
@@ -84,50 +86,89 @@ export const TF_LABEL: Record<Tf, string> = {
   "1h": "1H",
   "30m": "30",
   "15m": "15",
-  "10m": "10",
   "5m": "5",
   "3m": "3",
   "2m": "2",
   "1m": "1",
-  "30s": "30s",
+};
+export const TF_TIER: Record<Tf, LadderTier> = {
+  "3M": 1,
+  "1M": 1,
+  "1w": 1,
+  "1d": 1,
+  "4h": 2,
+  "1h": 2,
+  "30m": 2,
+  "15m": 3,
+  "5m": 3,
+  "3m": 4,
+  "2m": 4,
+  "1m": 4,
+};
+export const TIER_LABEL: Record<LadderTier, string> = {
+  1: "Bias",
+  2: "Range",
+  3: "Confirm",
+  4: "Trigger",
 };
 
 export interface TfRead {
   tf: Tf;
+  tier: LadderTier;
   bias: LadderBias;
   structure: "HH/HL" | "LH/LL" | "mixed" | "n/a";
-  /** The current period's open, and the last close against it. */
+  /** The current period's open, and the last CLOSED price against it. */
   open: number | null;
   last: number | null;
   vsOpenPct: number | null;
+  /** Closed candles the structure was read from. */
   bars: number;
   why: string;
-  source: "daily" | "15m" | "1m" | "prints" | "none";
+  source: "daily" | "15m" | "1m" | "none";
+}
+
+/** ICT's IPDA data ranges: the last 20/40/60 closed trading days. */
+export interface IpdaRange {
+  high20: number;
+  low20: number;
+  high40: number;
+  low40: number;
+  high60: number;
+  low60: number;
+  /** Where the last closed price sits in the 60-day range, 0 = low, 1 = high. */
+  pct60: number;
+  zone: "premium" | "discount" | "equilibrium";
+  days: number;
 }
 
 export interface TfLadder {
   symbol: string;
   reads: TfRead[];
-  /** From the top: the highest rung with a read. */
+  /** From the top of Tier 1: the highest rung with a read. */
   direction: LadderBias;
   /** Which rung decided the direction. */
   decidedBy: Tf | null;
-  /** The three bands below it, each a weighted majority. */
+  tier1: LadderBias;
+  tier2: LadderBias;
+  tier3: LadderBias;
+  tier4: LadderBias;
+  /** Kept for existing callers: swing = Tier 2, intraday = Tier 3, micro = Tier 4. */
   swing: LadderBias;
   intraday: LadderBias;
   micro: LadderBias;
-  /** Group majorities kept for display: 1y·1M·1w·1d / 4h·1h·30m / 15m…30s. */
+  /** Group majorities kept for display: Tier 1 / Tier 2 / Tiers 3+4. */
   htf: LadderBias;
   mtf: LadderBias;
   ltf: LadderBias;
+  ipda: IpdaRange | null;
   phase: LadderPhase;
-  /** 0–1, weighted share of rungs agreeing with the direction. */
+  /** 0–1, tier-weighted share of Tier 1–3 rungs agreeing with the direction. */
   alignment: number;
-  /** "Y M W D | 4H 1H 30 | 15 10 5 3 2 1 30s" with ▲▼· glyphs. */
+  /** "Q M W D | 4H 1H 30 | 15 5 | 3 2 1" with ▲▼· glyphs. */
   strip: string;
-  /** The top-down read, one paragraph. */
+  /** The closed print every rung was read against. */
+  asOfMs: number | null;
   summary: string;
-  /** Where longs and shorts stand given the read. */
   forLongs: string;
   forShorts: string;
 }
@@ -137,30 +178,27 @@ export interface LadderInput {
   daily: OhlcBar[];
   m15: OhlcBar[];
   m1: OhlcBar[];
-  /** 30-second bars built from live prints (client only). */
-  s30?: OhlcBar[];
   nowMs: number;
   /** The engine's HTF gate, so the summary can name a disagreement. */
   engineTopDown?: LadderBias;
 }
 
 const MIN = 60_000;
+const DAY = 24 * 60 * MIN;
 const INTRADAY_MS: Partial<Record<Tf, number>> = {
   "4h": 240 * MIN,
   "1h": 60 * MIN,
   "30m": 30 * MIN,
   "15m": 15 * MIN,
-  "10m": 10 * MIN,
   "5m": 5 * MIN,
   "3m": 3 * MIN,
   "2m": 2 * MIN,
   "1m": MIN,
-  "30s": 30_000,
 };
 
 /** Beyond this % from the period open, location alone leans a rung. */
 const OPEN_THRESHOLD_PCT: Record<Tf, number> = {
-  "1y": 2,
+  "3M": 1.5,
   "1M": 1,
   "1w": 0.5,
   "1d": 0.3,
@@ -168,18 +206,49 @@ const OPEN_THRESHOLD_PCT: Record<Tf, number> = {
   "1h": 0.2,
   "30m": 0.15,
   "15m": 0.1,
-  "10m": 0.08,
   "5m": 0.05,
   "3m": 0.04,
   "2m": 0.03,
   "1m": 0.02,
-  "30s": 0.02,
 };
 
-/** Bars kept per rung after resampling — enough for swings, few enough to be recent. */
+/** Closed candles kept per rung — enough for swings, few enough to be recent. */
 const KEEP = 60;
-/** Swings need this many bars before structure is read. */
+/** Swings need this many closed candles before structure is read. */
 const MIN_STRUCTURE_BARS = 8;
+/** Tier weight in ALIGNMENT. Tier 4 is timing only and carries no weight. */
+const TIER_WEIGHT: Record<LadderTier, number> = { 1: 2, 2: 1.5, 3: 1, 4: 0 };
+
+/* ── Time ────────────────────────────────────────────────────────────────── */
+
+const isoOf = (tMs: number) => {
+  const p = etWallParts(tMs);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+};
+
+/**
+ * The CME trade date a moment belongs to: a Globex session opens at 18:00 ET
+ * and trades the NEXT calendar date, so 19:00 ET Wednesday is Thursday.
+ */
+export function tradeDateOf(tMs: number): string {
+  const p = etWallParts(tMs);
+  if (p.hour >= 18) return isoOf(etWallToEpochMs(isoOf(tMs), "12:00") + DAY);
+  return isoOf(tMs);
+}
+
+type CalTf = "3M" | "1M" | "1w" | "1d";
+
+/** Calendar bucket key for an ET trade date: the week starts Monday. */
+function periodKey(dateIso: string, tf: CalTf): string {
+  const [y, m, d] = dateIso.split("-").map(Number) as [number, number, number];
+  if (tf === "1d") return dateIso;
+  if (tf === "1M") return `${y}-${String(m).padStart(2, "0")}`;
+  if (tf === "3M") return `${y}-Q${Math.floor((m - 1) / 3) + 1}`;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  const dow = (dt.getUTCDay() + 6) % 7; // Mon = 0
+  dt.setUTCDate(dt.getUTCDate() - dow);
+  return dt.toISOString().slice(0, 10);
+}
 
 /* ── Resampling ──────────────────────────────────────────────────────────── */
 
@@ -198,23 +267,15 @@ export function resampleMs(bars: OhlcBar[], ms: number): OhlcBar[] {
   return out;
 }
 
-/** Calendar buckets in ET: the week starts Monday, the month and year on the 1st. */
-function periodKey(ms: number, tf: "1w" | "1M" | "1y"): string {
-  const p = etWallParts(ms);
-  if (tf === "1y") return String(p.year);
-  if (tf === "1M") return `${p.year}-${String(p.month).padStart(2, "0")}`;
-  // ISO-ish week key: the Monday's date.
-  const d = new Date(Date.UTC(p.year, p.month - 1, p.day));
-  const dow = (d.getUTCDay() + 6) % 7; // Mon=0
-  d.setUTCDate(d.getUTCDate() - dow);
-  return d.toISOString().slice(0, 10);
-}
-
-export function resampleCalendar(daily: OhlcBar[], tf: "1w" | "1M" | "1y"): OhlcBar[] {
+/**
+ * Daily bars (one per trade date, stamped at that date's 00:00 ET, as Yahoo
+ * stamps futures) into weekly / monthly / quarterly candles.
+ */
+export function resampleCalendar(daily: OhlcBar[], tf: "1w" | "1M" | "3M"): OhlcBar[] {
   const out: OhlcBar[] = [];
   let key = "";
   for (const b of daily) {
-    const k = periodKey(b.t, tf);
+    const k = periodKey(isoOf(b.t), tf);
     const last = out[out.length - 1];
     if (last && k === key) {
       last.h = Math.max(last.h, b.h);
@@ -223,6 +284,29 @@ export function resampleCalendar(daily: OhlcBar[], tf: "1w" | "1M" | "1y"): Ohlc
       last.v = (last.v ?? 0) + (b.v ?? 0);
     } else {
       out.push({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v ?? 0 });
+      key = k;
+    }
+  }
+  return out;
+}
+
+/**
+ * Trade-date daily candles from intraday bars — for callers (the four-year
+ * measurement) that have no daily series. Same 00:00 ET stamp as Yahoo's.
+ */
+export function dailyFromIntraday(bars: OhlcBar[]): OhlcBar[] {
+  const out: OhlcBar[] = [];
+  let key = "";
+  for (const b of bars) {
+    const k = tradeDateOf(b.t);
+    const last = out[out.length - 1];
+    if (last && k === key) {
+      last.h = Math.max(last.h, b.h);
+      last.l = Math.min(last.l, b.l);
+      last.c = b.c;
+      last.v = (last.v ?? 0) + (b.v ?? 0);
+    } else {
+      out.push({ t: etWallToEpochMs(k, "00:00"), o: b.o, h: b.h, l: b.l, c: b.c, v: b.v ?? 0 });
       key = k;
     }
   }
@@ -261,62 +345,57 @@ function structureOf(bars: OhlcBar[]): TfRead["structure"] {
   return "mixed";
 }
 
-function readRung(tf: Tf, series: OhlcBar[], source: TfRead["source"]): TfRead {
-  const bars = series.slice(-KEEP);
-  if (!bars.length) {
-    return { tf, bias: "neutral", structure: "n/a", open: null, last: null, vsOpenPct: null, bars: 0, why: "no data", source: "none" };
-  }
-  const cur = bars[bars.length - 1]!;
-  const open = cur.o;
-  const last = cur.c;
-  const vsOpenPct = open > 0 ? ((last - open) / open) * 100 : null;
-  const structure = structureOf(bars);
+const NONE = (tf: Tf): TfRead => ({
+  tf,
+  tier: TF_TIER[tf],
+  bias: "neutral",
+  structure: "n/a",
+  open: null,
+  last: null,
+  vsOpenPct: null,
+  bars: 0,
+  why: "no data",
+  source: "none",
+});
+
+function readRung(
+  tf: Tf,
+  closed: OhlcBar[],
+  periodOpen: number | null,
+  last: number | null,
+  source: TfRead["source"],
+  openNote = "",
+): TfRead {
+  if (!closed.length && periodOpen == null) return NONE(tf);
+  const kept = closed.slice(-KEEP);
+  const vsOpenPct = periodOpen != null && last != null && periodOpen > 0 ? ((last - periodOpen) / periodOpen) * 100 : null;
+  const structure = structureOf(kept);
   const thr = OPEN_THRESHOLD_PCT[tf];
   const location: LadderBias = vsOpenPct == null ? "neutral" : vsOpenPct > thr ? "bull" : vsOpenPct < -thr ? "bear" : "neutral";
   let bias: LadderBias;
   if (structure === "HH/HL") bias = "bull";
   else if (structure === "LH/LL") bias = "bear";
   else bias = location;
-  const locTxt = vsOpenPct == null ? "" : `${vsOpenPct >= 0 ? "+" : ""}${vsOpenPct.toFixed(Math.abs(vsOpenPct) < 0.1 ? 3 : 2)}% vs open`;
+  const locTxt =
+    vsOpenPct == null ? "" : `${vsOpenPct >= 0 ? "+" : ""}${vsOpenPct.toFixed(Math.abs(vsOpenPct) < 0.1 ? 3 : 2)}% vs ${openNote || "open"}`;
   const why =
     structure === "n/a"
-      ? `${locTxt || "no open"} (${bars.length} bar${bars.length === 1 ? "" : "s"} — location only)`
-      : `${structure} · ${locTxt}`;
-  return { tf, bias, structure, open, last, vsOpenPct, bars: bars.length, why, source };
+      ? `${locTxt || "no open"} (${kept.length} closed — location only)`
+      : `${structure} on ${kept.length} closed · ${locTxt}`;
+  return { tf, tier: TF_TIER[tf], bias, structure, open: periodOpen, last, vsOpenPct, bars: kept.length, why, source };
 }
 
 /* ── The ladder ──────────────────────────────────────────────────────────── */
 
-const HTF: Tf[] = ["1y", "1M", "1w", "1d"];
-const MTF: Tf[] = ["4h", "1h", "30m"];
-const LTF: Tf[] = ["15m", "10m", "5m", "3m", "2m", "1m", "30s"];
-const SWING: Tf[] = ["1w", "1d", "4h"];
-const INTRADAY: Tf[] = ["1h", "30m", "15m"];
-const MICRO: Tf[] = ["10m", "5m", "3m", "2m", "1m", "30s"];
-const WEIGHT: Record<Tf, number> = {
-  "1y": 1,
-  "1M": 1,
-  "1w": 1,
-  "1d": 1.25,
-  "4h": 1,
-  "1h": 1,
-  "30m": 0.75,
-  "15m": 1.5,
-  "10m": 0.75,
-  "5m": 1.25,
-  "3m": 0.5,
-  "2m": 0.5,
-  "1m": 1,
-  "30s": 0.5,
-};
+const byTier = (reads: TfRead[], tier: LadderTier) => reads.filter((r) => r.tier === tier);
 
 function majority(reads: TfRead[], tie: Tf | null): LadderBias {
   let bull = 0;
   let bear = 0;
   for (const r of reads) {
     if (r.source === "none") continue;
-    if (r.bias === "bull") bull += WEIGHT[r.tf];
-    else if (r.bias === "bear") bear += WEIGHT[r.tf];
+    if (r.bias === "bull") bull += 1;
+    else if (r.bias === "bear") bear += 1;
   }
   if (bull > bear) return "bull";
   if (bear > bull) return "bear";
@@ -327,127 +406,244 @@ function majority(reads: TfRead[], tie: Tf | null): LadderBias {
 const glyph = (b: LadderBias) => (b === "bull" ? "▲" : b === "bear" ? "▼" : "·");
 const word = (b: LadderBias) => (b === "bull" ? "bull" : b === "bear" ? "bear" : "flat");
 
+function ipdaOf(closedDaily: OhlcBar[], price: number | null): IpdaRange | null {
+  if (closedDaily.length < 20 || price == null) return null;
+  const span = (n: number) => {
+    const w = closedDaily.slice(-n);
+    return { hi: Math.max(...w.map((b) => b.h)), lo: Math.min(...w.map((b) => b.l)) };
+  };
+  const d20 = span(20);
+  const d40 = span(40);
+  const d60 = span(60);
+  const width = d60.hi - d60.lo;
+  const pct60 = width > 0 ? (price - d60.lo) / width : 0.5;
+  const zone = pct60 > 0.55 ? "premium" : pct60 < 0.45 ? "discount" : "equilibrium";
+  return {
+    high20: d20.hi,
+    low20: d20.lo,
+    high40: d40.hi,
+    low40: d40.lo,
+    high60: d60.hi,
+    low60: d60.lo,
+    pct60: +pct60.toFixed(3),
+    zone,
+    days: Math.min(60, closedDaily.length),
+  };
+}
+
 export function buildTfLadder(input: LadderInput): TfLadder {
-  const { symbol, daily, m15, m1, s30 = [], nowMs } = input;
+  const { symbol, daily, m15, m1, nowMs } = input;
+
+  // Closed only. A bucket is closed when its end is at or before now.
+  const closedMs = (bars: OhlcBar[], ms: number) => bars.filter((b) => b.t + ms <= nowMs);
+  const m1Closed = closedMs(m1, MIN);
+  const m15Closed = closedMs(m15, 15 * MIN);
+
+  // The closed print every rung is read against: newest closed 1m, else 15m.
+  const lastM1 = m1Closed[m1Closed.length - 1];
+  const lastM15 = m15Closed[m15Closed.length - 1];
+  const refBar = lastM1 && (!lastM15 || lastM1.t >= lastM15.t) ? lastM1 : lastM15;
+  const refMs = refBar ? refBar.t + (refBar === lastM1 ? MIN : 15 * MIN) : null;
+  const intradayRef = refBar ? refBar.c : null;
+
+  // Daily: one bar per trade date. A daily candle is closed once its trade
+  // date is behind the current Globex session's. With no daily series, they
+  // are built from the 15m bars.
+  const dailyAll = daily.length ? daily : dailyFromIntraday(m15);
+  const dailySrc: TfRead["source"] = daily.length ? "daily" : m15.length ? "15m" : "none";
+  const nowTd = tradeDateOf(nowMs);
+  const dailyClosed = dailyAll.filter((b) => isoOf(b.t) < nowTd);
+  const lastDailyClose = dailyClosed[dailyClosed.length - 1]?.c ?? null;
+  const ref = intradayRef ?? lastDailyClose;
+
   const reads: TfRead[] = [];
-  const dailyOk = daily.length > 0;
-  reads.push(readRung("1y", dailyOk ? resampleCalendar(daily, "1y") : [], dailyOk ? "daily" : "none"));
-  reads.push(readRung("1M", dailyOk ? resampleCalendar(daily, "1M") : [], dailyOk ? "daily" : "none"));
-  reads.push(readRung("1w", dailyOk ? resampleCalendar(daily, "1w") : [], dailyOk ? "daily" : "none"));
-  reads.push(readRung("1d", dailyOk ? daily : resampleMs(m15, 24 * 60 * MIN), dailyOk ? "daily" : m15.length ? "15m" : "none"));
+
+  // Tier 1 — Q, M, W, D.
+  for (const tf of ["3M", "1M", "1w", "1d"] as CalTf[]) {
+    if (!dailyAll.length) {
+      reads.push(NONE(tf));
+      continue;
+    }
+    const nowKey = periodKey(nowTd, tf);
+    const all = tf === "1d" ? dailyAll : resampleCalendar(dailyAll, tf);
+    const closed = all.filter((b) => periodKey(isoOf(b.t), tf) < nowKey);
+    const current = all.find((b) => periodKey(isoOf(b.t), tf) === nowKey) ?? null;
+    let periodOpen = current?.o ?? null;
+    let note = tf === "3M" ? "quarter open" : tf === "1M" ? "month open" : tf === "1w" ? "week open" : "session open";
+    if (tf === "1d") {
+      // ICT's true day: the midnight ET open, once midnight has passed in
+      // this session; until then the 18:00 ET session open.
+      const midnight = etWallToEpochMs(nowTd, "00:00");
+      if (nowMs >= midnight) {
+        const first = m15.find((b) => b.t >= midnight) ?? m1.find((b) => b.t >= midnight);
+        if (first) {
+          periodOpen = first.o;
+          note = "midnight open";
+        }
+      }
+    }
+    reads.push(readRung(tf, closed, periodOpen, ref, dailySrc, note));
+  }
+
+  // Tier 2 and Tier 3's 15m — from the 15m series.
   for (const tf of ["4h", "1h", "30m", "15m"] as Tf[]) {
+    if (!m15.length) {
+      reads.push(NONE(tf));
+      continue;
+    }
     const ms = INTRADAY_MS[tf]!;
-    reads.push(readRung(tf, m15.length ? resampleMs(m15, ms) : [], m15.length ? "15m" : "none"));
+    const buckets = resampleMs(m15, ms);
+    const closed = buckets.filter((b) => b.t + ms <= nowMs);
+    const cur = refMs != null ? buckets.find((b) => b.t <= refMs - 1 && refMs - 1 < b.t + ms) ?? null : null;
+    reads.push(readRung(tf, closed, cur ? cur.o : null, ref, "15m"));
   }
-  for (const tf of ["10m", "5m", "3m", "2m", "1m"] as Tf[]) {
+
+  // Tier 3's 5m and Tier 4 — from the 1m series.
+  for (const tf of ["5m", "3m", "2m", "1m"] as Tf[]) {
+    if (!m1.length) {
+      reads.push(NONE(tf));
+      continue;
+    }
     const ms = INTRADAY_MS[tf]!;
-    reads.push(readRung(tf, m1.length ? resampleMs(m1, ms) : [], m1.length ? "1m" : "none"));
+    const buckets = resampleMs(m1, ms);
+    const closed = buckets.filter((b) => b.t + ms <= nowMs);
+    const cur = refMs != null ? buckets.find((b) => b.t <= refMs - 1 && refMs - 1 < b.t + ms) ?? null : null;
+    reads.push(readRung(tf, closed, cur ? cur.o : null, ref, "1m"));
   }
-  reads.push(readRung("30s", s30.length ? resampleMs(s30, 30_000) : [], s30.length ? "prints" : "none"));
-  void nowMs;
 
-  const by = (tfs: Tf[]) => reads.filter((r) => tfs.includes(r.tf));
-  const htf = majority(by(HTF), "1d");
-  const mtf = majority(by(MTF), "1h");
-  const ltf = majority(by(LTF), "15m");
+  const t1 = byTier(reads, 1);
+  const t2 = byTier(reads, 2);
+  const t3 = byTier(reads, 3);
+  const t4 = byTier(reads, 4);
+  const tier1 = majority(t1, "1d");
+  const tier2 = majority(t2, "1h");
+  const tier3 = majority(t3, "15m");
+  const tier4 = majority(t4, "1m");
 
-  // Direction from the top: the first HTF rung that has data and a lean.
+  // Direction from the top of Tier 1.
   let direction: LadderBias = "neutral";
   let decidedBy: Tf | null = null;
-  for (const r of by(HTF)) {
+  for (const r of t1) {
     if (r.source === "none" || r.bias === "neutral") continue;
     direction = r.bias;
     decidedBy = r.tf;
     break;
   }
-  const swing = majority(by(SWING), "1d");
-  const intraday = majority(by(INTRADAY), "15m");
-  const micro = majority(by(MICRO), "5m");
 
   const w = (b: LadderBias) => direction !== "neutral" && b === direction;
   const a = (b: LadderBias) => direction !== "neutral" && b !== "neutral" && b !== direction;
   let phase: LadderPhase;
-  if (direction === "neutral") phase = intraday === micro && intraday !== "neutral" ? "range" : "conflict";
-  else if (w(swing) && w(intraday) && w(micro)) phase = "expansion";
-  else if (w(swing) && w(intraday) && a(micro)) phase = "pullback-starting";
-  else if (w(swing) && a(intraday) && w(micro)) phase = "reversal-forming";
-  else if (w(swing) && a(intraday)) phase = "pullback";
-  else if (a(swing) && w(intraday) && w(micro)) phase = "htf-retrace-ending";
-  else if (a(swing) && (w(intraday) || w(micro))) phase = "retrace-turning";
-  else if (a(swing)) phase = "deep-retrace";
-  else if (w(swing)) phase = intraday === "neutral" ? "pullback" : "expansion";
+  if (direction === "neutral") phase = tier3 === tier4 && tier3 !== "neutral" ? "range" : "conflict";
+  else if (w(tier2) && w(tier3) && w(tier4)) phase = "expansion";
+  else if (w(tier2) && w(tier3) && a(tier4)) phase = "pullback-starting";
+  else if (w(tier2) && a(tier3) && w(tier4)) phase = "reversal-forming";
+  else if (w(tier2) && a(tier3)) phase = "pullback";
+  else if (a(tier2) && w(tier3) && w(tier4)) phase = "htf-retrace-ending";
+  else if (a(tier2) && (w(tier3) || w(tier4))) phase = "retrace-turning";
+  else if (a(tier2)) phase = "deep-retrace";
+  else if (w(tier2)) phase = tier3 === "neutral" ? "pullback" : "expansion";
   else phase = "conflict";
 
   let agree = 0;
   let total = 0;
   for (const r of reads) {
-    if (r.source === "none") continue;
-    total += WEIGHT[r.tf];
-    if (direction !== "neutral" && r.bias === direction) agree += WEIGHT[r.tf];
+    const wt = TIER_WEIGHT[r.tier];
+    if (r.source === "none" || wt === 0) continue;
+    total += wt;
+    if (direction !== "neutral" && r.bias === direction) agree += wt;
   }
   const alignment = total > 0 ? agree / total : 0;
 
-  const strip = `${by(HTF).map((r) => `${TF_LABEL[r.tf]}${glyph(r.bias)}`).join(" ")} | ${by(MTF).map((r) => `${TF_LABEL[r.tf]}${glyph(r.bias)}`).join(" ")} | ${by(LTF)
-    .map((r) => `${TF_LABEL[r.tf]}${glyph(r.bias)}`)
-    .join(" ")}`;
+  const ipda = ipdaOf(dailyClosed, ref);
 
-  const rungTxt = (r: TfRead) => `${r.tf} ${word(r.bias)}${r.structure !== "n/a" && r.structure !== "mixed" ? ` (${r.structure})` : ""}`;
-  const line = (tfs: Tf[], sep: string) =>
-    by(tfs)
-      .filter((r) => r.source !== "none")
-      .map(rungTxt)
-      .join(sep);
-  const htfLine = line(HTF, " → ");
-  const swingLine = line(SWING, " · ");
-  const intradayLine = line(INTRADAY, " · ");
-  const microLine = line(MICRO, " · ");
+  const strip = ([1, 2, 3, 4] as LadderTier[])
+    .map((tier) => byTier(reads, tier).map((r) => `${TF_LABEL[r.tf]}${glyph(r.bias)}`).join(" "))
+    .join(" | ");
+
+  const rungTxt = (r: TfRead) => `${TF_LABEL[r.tf]} ${word(r.bias)}${r.structure !== "n/a" && r.structure !== "mixed" ? ` (${r.structure})` : ""}`;
+  const line = (rs: TfRead[], sep: string) => rs.filter((r) => r.source !== "none").map(rungTxt).join(sep);
   const zoneWord = direction === "bull" ? "discount" : "premium";
 
   const phaseTxt: Record<LadderPhase, string> = {
-    expansion: `Swing, intraday and micro all run with the ${word(direction)} — expansion. Continuations only; a counter-${word(direction)} card is fading every rung.`,
-    "pullback-starting": `Swing and intraday still with the ${word(direction)}, the micro has turned — a pullback is starting. Do not chase; let it reach the ${zoneWord}.`,
-    pullback: `Swing with the ${word(direction)}, intraday against — today's leg is the pullback. Wait for the micro to turn back ${word(direction)} inside the ${zoneWord}.`,
-    "reversal-forming": `Swing with the ${word(direction)}, intraday against, micro turning back — the pullback is ending. This is the with-trend entry window, in the ${zoneWord}, timed on the 5m/1m.`,
-    "htf-retrace-ending": `The week/day pulled back against the ${word(direction)} year/month and the intraday and micro have turned back — the bigger with-trend window, if the swing ${zoneWord} holds.`,
-    "retrace-turning": `The week/day are against the ${word(direction)} year/month and only ${w(micro) && !w(intraday) ? "the micro has" : "the intraday has"} turned back — early. Wait for ${w(micro) && !w(intraday) ? "the 15m/1h to confirm" : "the micro to agree"} before calling the retrace over.`,
-    "deep-retrace": `Swing, intraday and micro all against the ${word(direction)} — a deep retrace against the year/month. Wait for the lower rungs to turn; the engine's HTF gate may be about to flip.`,
-    range: "No direction from the top; the lower rungs agree with each other — a range: trade the edges, not the middle.",
-    conflict: "The rungs disagree from the top down — no read. Stand until the day or the week resolves.",
+    expansion: `Range, confirm and trigger all run with the ${word(direction)} — expansion. Continuations only; a counter-${word(direction)} card is fading every tier.`,
+    "pullback-starting": `4H/1H and 15m/5m still with the ${word(direction)}, the 1m–3m have turned — a pullback is starting. Do not chase; let it reach the ${zoneWord}.`,
+    pullback: `4H/1H with the ${word(direction)}, 15m/5m against — today's leg is the pullback. Wait for the trigger tier to turn back ${word(direction)} inside the ${zoneWord}.`,
+    "reversal-forming": `4H/1H with the ${word(direction)}, 15m/5m against, 1m–3m turning back — the pullback is ending. The with-trend window, in the ${zoneWord}; rest the limit at the array, do not chase the 1m.`,
+    "htf-retrace-ending": `The 4H/1H pulled back against the ${word(direction)} bias and the 15m/5m and trigger tier have turned back — the bigger with-trend window, if the ${zoneWord} holds.`,
+    "retrace-turning": `The 4H/1H are against the ${word(direction)} bias and only ${w(tier4) && !w(tier3) ? "the trigger tier has" : "the 15m/5m have"} turned back — early. Wait for ${w(tier4) && !w(tier3) ? "the 15m/5m to confirm" : "the 1H to agree"}.`,
+    "deep-retrace": `4H/1H, 15m/5m and trigger all against the ${word(direction)} bias — a deep retrace. Wait; the higher tier may be about to flip.`,
+    range: "No direction from Tier 1; the lower tiers agree with each other — a range: trade the edges, not the middle.",
+    conflict: "The tiers disagree from the top down — no read. Stand until the day or the week resolves.",
   };
   const engineNote =
     input.engineTopDown && input.engineTopDown !== "neutral" && direction !== "neutral" && input.engineTopDown !== direction
-      ? ` Engine HTF gate reads ${input.engineTopDown} (its own 15m/1h/4h/daily structure) while the ladder's ${decidedBy} reads ${word(direction)} — the gate rules; treat the disagreement as a ${word(direction)} year/month in a ${input.engineTopDown} swing.`
+      ? ` Engine HTF gate reads ${input.engineTopDown} while the ladder's ${decidedBy ? TF_LABEL[decidedBy] : "Tier 1"} reads ${word(direction)} — the gate rules; the card shows the disagreement.`
       : "";
-  const summary = `${symbol} top-down: direction ${word(direction)}${decidedBy ? ` from the ${decidedBy}` : ""} (${htfLine || "HTF n/a"}). Swing ${word(swing)}: ${swingLine || "n/a"}. Intraday ${word(intraday)}: ${intradayLine || "n/a"}. Micro ${word(micro)}: ${microLine || "n/a"}. ${phaseTxt[phase]} Alignment ${(alignment * 100).toFixed(0)}%.${engineNote}`;
+  const ipdaTxt = ipda
+    ? ` IPDA 60-day: ${(ipda.pct60 * 100).toFixed(0)}% of ${ipda.low60.toFixed(2)}–${ipda.high60.toFixed(2)} (${ipda.zone}).`
+    : "";
+  const summary = `${symbol} top-down (closed candles): Tier 1 ${word(direction)}${decidedBy ? ` from ${TF_LABEL[decidedBy]}` : ""} (${line(t1, " → ") || "n/a"}).${ipdaTxt} Range ${word(tier2)}: ${line(t2, " · ") || "n/a"}. Confirm ${word(tier3)}: ${line(t3, " · ") || "n/a"}. Trigger ${word(tier4)}: ${line(t4, " · ") || "n/a"}. ${phaseTxt[phase]} Alignment ${(alignment * 100).toFixed(0)}% (Tiers 1–3).${engineNote}`;
 
   const windowOpen = phase === "reversal-forming" || phase === "htf-retrace-ending" || phase === "expansion";
   const withText = windowOpen
-    ? `With the trend — the window is open (${phase.replace(/-/g, " ")}); time it on the 5m/1m.`
+    ? `With Tier 1 — the window is open (${phase.replace(/-/g, " ")}); rest the limit at the 15m/5m array.`
     : phase === "pullback-starting"
-      ? "With the trend but early — the micro has turned; wait for the pullback to reach the zone."
+      ? "With Tier 1 but early — the trigger tier has turned; wait for the pullback to reach the zone."
       : phase === "pullback" || phase === "deep-retrace" || phase === "retrace-turning"
-        ? `With the trend, in a ${phase.replace(/-/g, " ")} — wait for the lower rungs to confirm.`
-        : "With the trend — but the rungs are unresolved.";
-  const againstText = "Counter-trend — the HTF gate says no.";
-  const noneText = "No direction from the top — range rules only.";
+        ? `With Tier 1, in a ${phase.replace(/-/g, " ")} — wait for the lower tiers to confirm.`
+        : "With Tier 1 — but the tiers are unresolved.";
+  const againstText = "Against Tier 1 — the higher frame wins.";
+  const noneText = "No direction from Tier 1 — range rules only.";
   const forLongs = direction === "bull" ? withText : direction === "bear" ? againstText : noneText;
   const forShorts = direction === "bear" ? withText : direction === "bull" ? againstText : noneText;
 
-  return { symbol, reads, direction, decidedBy, swing, intraday, micro, htf, mtf, ltf, phase, alignment, strip, summary, forLongs, forShorts };
+  return {
+    symbol,
+    reads,
+    direction,
+    decidedBy,
+    tier1,
+    tier2,
+    tier3,
+    tier4,
+    swing: tier2,
+    intraday: tier3,
+    micro: tier4,
+    htf: tier1,
+    mtf: tier2,
+    ltf: majority([...t3, ...t4], "15m"),
+    ipda,
+    phase,
+    alignment,
+    strip,
+    asOfMs: refMs,
+    summary,
+    forLongs,
+    forShorts,
+  };
 }
 
-/** Tags for the shadow book: each rung vs the trade's side, plus the phase. */
+/** Tags for the shadow book and the measurement: each rung and tier vs the trade's side. */
 export function ladderTags(ladder: TfLadder | null | undefined, side: "long" | "short"): Record<string, string> {
   if (!ladder) return {};
   const want: LadderBias = side === "long" ? "bull" : "bear";
-  const rel = (b: LadderBias, src: TfRead["source"]) => (src === "none" ? "n/a" : b === want ? "with" : b === "neutral" ? "flat" : "against");
+  const rel = (b: LadderBias, src: TfRead["source"] | "tier") => (src === "none" ? "n/a" : b === want ? "with" : b === "neutral" ? "flat" : "against");
   const out: Record<string, string> = {};
   for (const r of ladder.reads) out[`tf_${r.tf}`] = rel(r.bias, r.source);
-  out.tf_swing = rel(ladder.swing, "daily");
-  out.tf_intraday = rel(ladder.intraday, "15m");
-  out.tf_micro = rel(ladder.micro, "1m");
+  out.tf_tier1 = rel(ladder.tier1, "tier");
+  out.tf_tier2 = rel(ladder.tier2, "tier");
+  out.tf_tier3 = rel(ladder.tier3, "tier");
+  out.tf_tier4 = rel(ladder.tier4, "tier");
+  // Kept so older shadow rows stay comparable.
+  out.tf_swing = out.tf_tier2;
+  out.tf_intraday = out.tf_tier3;
+  out.tf_micro = out.tf_tier4;
   out.tf_phase = ladder.phase;
   out.tf_align = ladder.alignment >= 0.75 ? ">=75%" : ladder.alignment >= 0.5 ? "50–75%" : "<50%";
   out.tf_dir = ladder.direction === want ? "with" : ladder.direction === "neutral" ? "flat" : "against";
+  if (ladder.ipda) {
+    const good = side === "long" ? "discount" : "premium";
+    out.tf_ipda = ladder.ipda.zone === "equilibrium" ? "eq" : ladder.ipda.zone === good ? "with" : "against";
+  }
   return out;
 }

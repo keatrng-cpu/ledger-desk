@@ -1,56 +1,49 @@
 /**
- * When the ladder disagrees with the engine — the loudest thing the desk
- * knows that it is not yet allowed to act on.
+ * When the ladder disagrees with the card — shown, never acted on.
  *
- * WHAT WAS MEASURED (2026-09-22, seed rebuilt with the ladder stamped)
- * Splitting NY AM shadow cards on whether the timeframe ladder AGREED with
- * the trade's direction:
+ * WHAT WAS MEASURED
+ * 2026-09-22, shadow replay, NY AM only: agreeing cards +0.08R (n=30),
+ * disagreeing −0.69R (n=13). That number drove a half-size suggestion.
  *
- *     tf_dir = with      +0.08R per card   n=30
- *     tf_dir = against   −0.69R per card   n=13
+ * 2026-10-01, the four-year capture (scripts/measure-tf-tiers.mjs), with the
+ * ladder rebuilt to the trader's tiers on CLOSED candles and read causally at
+ * every card's decision bar, every card at or above 0.65, rule as coded:
  *
- * And the thing that makes it interesting: the GRADED alignment percentage
- * did not separate the same way (>=75% aligned ran −0.12R, 50–75% ran
- * +0.16R). So what carries information is the BINARY disagreement, not how
- * many rungs happen to agree. Degree is noise; direction is signal.
+ *     Tier 1 with      −0.137R/card   n=1857   went the card's way 52.4%
+ *     Tier 1 against   −0.139R/card   n=1617   went the card's way 45.5%
  *
- * WHY THIS IS NOT A GATE, AND MUST NOT BECOME ONE BY DRIFT
- * n=13 in the losing bucket. One in-sample pass, on a seed the same session
- * built. That is nowhere near enough to refuse a trade on, and the desk has
- * been burned by exactly this shape of number before — the "+0.35R resting
- * at CE" figure was real, pooled, and 58% London, and it took a killzone
- * split to catch it. So this file WARNS and SIZES DOWN. It never refuses.
+ * The −0.69R did not replicate at 124 times the sample. Disagreeing cards
+ * paid the same as agreeing ones, so the half size had no basis and is gone.
+ * What DID hold is direction: four hours later, a card against Tier 1 had
+ * moved its way 45.5% of the time vs 52.4% aligned — real, and the reason
+ * this still warns. The desk's trade geometry (limit at CE, stop, T1/T2) just
+ * does not turn that lean into R. Look again; the size is not changed.
  *
- * Note carefully what tf_dir=against even means: the engine's own HTF gate
- * PERMITTED the trade while the ladder, read from the year downward,
- * disagreed with it. Those are two different reads of direction disagreeing,
- * and the desk currently resolves that silently in the engine's favour. The
- * least this file can do is make the disagreement visible at the moment it
- * matters.
- *
- * THE COUNTER IS THE POINT
- * `conflictLedger` exists so the losing bucket grows from 13 toward a number
- * that could justify a gate. Until then the honest output is a warning, a
- * suggested smaller size, and an accurate statement of how thin the evidence
- * is. If someone later wants to gate on this, the route is
- * scripts/sweep-gates.mjs, never an edit here.
+ * WHY THIS IS NOT A GATE
+ * Under the decision rules fixed before that run, a veto needed "against" to
+ * be NEGATIVE in both halves and worse than "with". It was neither. If that
+ * ever changes, the route is scripts/sweep-gates.mjs, never an edit here.
  */
 
 import type { TfLadder, LadderBias } from "./tf-ladder";
 
 /** The measured split, kept next to the code that cites it. */
 export const LADDER_EVIDENCE = {
-  withR: 0.08,
-  withN: 30,
-  againstR: -0.69,
-  againstN: 13,
-  window: "NY AM limit cards, shadow replay Jul–Aug 2026",
+  withR: -0.137,
+  withN: 1857,
+  againstR: -0.139,
+  againstN: 1617,
+  withDirHit: 52.4,
+  againstDirHit: 45.5,
+  window: "Four-year capture 2022-09 → 2026-08, every card ≥0.65 (scripts/measure-tf-tiers.mjs, 2026-10-01)",
   caveat:
-    "One in-sample pass on a seed built the same day. The losing bucket is n=13. Degree of alignment did NOT separate — only the binary disagreement did.",
+    "Same R either way; only direction separated. Replaced the 2026-09-22 shadow read (−0.69R, n=13), which did not replicate.",
 } as const;
 
 /** Below this many losing-bucket observations, nothing here can gate. */
 export const GATE_N_REQUIRED = 40;
+/** How much worse (R/card) disagreeing cards must pay before a gate is arguable. */
+export const SEPARATION_R = 0.1;
 
 export type ConflictLevel = "agree" | "neutral" | "conflict";
 
@@ -70,8 +63,8 @@ export interface LadderConflict {
    * `line` below is five sentences of reasoning, and the scanner printed it
    * in full on every card — the same paragraph twice when both books were
    * shorts against a bull ladder. A wall of identical red text is how a
-   * warning gets tuned out, and this one carries a measured -0.69R/card. The
-   * short form is what the eye reads; the long form stays one hover away.
+   * warning gets tuned out. The short form is what the eye reads; the long
+   * form stays one hover away.
    */
   headline: string;
   line: string;
@@ -80,8 +73,8 @@ export interface LadderConflict {
 /**
  * Does the ladder agree with the side being considered?
  *
- * Returns a size SUGGESTION and a warning, never a verdict. A caller that
- * turns `conflict` into a refusal has overstepped what n=13 supports.
+ * Returns a warning, never a verdict, and no size change. A caller that
+ * turns `conflict` into a refusal has overstepped what four years support.
  */
 export function ladderConflict(
   ladder: TfLadder | null | undefined,
@@ -123,7 +116,7 @@ export function ladderConflict(
       sizeMult: 1,
       warn: false,
       headline: `Ladder agrees (${dir} from ${decidedBy ?? "the top"}).`,
-      line: `Ladder agrees with this ${side} (${dir} from ${decidedBy ?? "the top"}). Measured +${LADDER_EVIDENCE.withR}R/card on agreeing NY AM cards, n=${LADDER_EVIDENCE.withN} — a small positive, not a reason to size up.`,
+      line: `Ladder agrees with this ${side} (${dir} from ${decidedBy ?? "the top"}). Over four years aligned cards moved their way ${LADDER_EVIDENCE.withDirHit}% of the time (n=${LADDER_EVIDENCE.withN}) but paid ${LADDER_EVIDENCE.withR}R/card, the same as disagreeing ones — not a reason to size up.`,
     };
   }
 
@@ -131,17 +124,17 @@ export function ladderConflict(
     level: "conflict",
     ladderDirection: dir,
     decidedBy,
-    // Half size. Chosen as the smallest meaningful reduction, because the
-    // evidence supports "be careful" and nothing stronger.
-    sizeMult: 0.5,
+    // No size change: over four years disagreeing cards paid the same R as
+    // agreeing ones (see the file header). The warning is about direction.
+    sizeMult: 1,
     warn: true,
     // The fact, the measurement, and the action. Everything else is in `line`.
-    headline: `Ladder is ${dir} from ${decidedBy ?? "the top"} and this is a ${side} — measured ${LADDER_EVIDENCE.againstR}R/card (n=${LADDER_EVIDENCE.againstN}). Half size, look again.`,
+    headline: `Ladder ${dir} from ${decidedBy ?? "the top"} vs this ${side}: went your way ${LADDER_EVIDENCE.againstDirHit}% vs ${LADDER_EVIDENCE.withDirHit}% aligned (n=${LADDER_EVIDENCE.againstN}). Look again.`,
     line:
-      `LADDER DISAGREES. Read from ${decidedBy ?? "the top"} down the ladder is ${dir}, and this is a ${side}. ` +
-      `The engine's HTF gate permitted this trade; the ladder does not. On NY AM shadow cards that disagreement ran ` +
-      `${LADDER_EVIDENCE.againstR}R per card against +${LADDER_EVIDENCE.withR}R when they agreed — but n=${LADDER_EVIDENCE.againstN} in the losing bucket, ` +
-      `one in-sample pass, so this is a WARNING and a suggested half size, NOT a refusal. Look again before you click.`,
+      `LADDER DISAGREES. Read from ${decidedBy ?? "the top"} down Tier 1 is ${dir}, and this is a ${side}. ` +
+      `The engine's HTF gate permitted this trade; the trader's top-down read does not. Over four years, cards against Tier 1 ` +
+      `moved their way ${LADDER_EVIDENCE.againstDirHit}% of the time four hours later vs ${LADDER_EVIDENCE.withDirHit}% aligned (n=${LADDER_EVIDENCE.againstN}) — ` +
+      `but paid ${LADDER_EVIDENCE.againstR}R/card vs ${LADDER_EVIDENCE.withR}R, the same. This is a WARNING to look again, NOT a refusal and not a size cut.`,
   };
 }
 
@@ -182,7 +175,10 @@ export function conflictLedger(rows: ConflictLedgerRow[], seedWithShadow = true)
   const withExpR = withN ? Math.round((withTotal / withN) * 100) / 100 : 0;
   const againstExpR = againstN ? Math.round((againstTotal / againstN) * 100) / 100 : 0;
   const needed = Math.max(0, GATE_N_REQUIRED - againstN);
-  const gateable = againstN >= GATE_N_REQUIRED;
+  // Enough observations is not enough: the disagreeing side has to actually
+  // pay worse. The four-year seed is past the floor and does not separate.
+  const separates = againstExpR <= withExpR - SEPARATION_R;
+  const gateable = againstN >= GATE_N_REQUIRED && separates;
 
   return {
     withN,
@@ -192,7 +188,9 @@ export function conflictLedger(rows: ConflictLedgerRow[], seedWithShadow = true)
     needed,
     gateable,
     line: gateable
-      ? `${againstN} disagreeing observations at ${againstExpR}R against ${withN} agreeing at ${withExpR >= 0 ? "+" : ""}${withExpR}R. This now clears the ${GATE_N_REQUIRED} floor — run scripts/sweep-gates.mjs to test it properly as a gate variant. Do not hand-edit a rule.`
-      : `${againstN} disagreeing observations (${againstExpR}R) vs ${withN} agreeing (${withExpR >= 0 ? "+" : ""}${withExpR}R). ${needed} more disagreements needed before this could be argued as a gate. Until then it warns and halves size, nothing more.`,
+      ? `${againstN} disagreeing observations at ${againstExpR}R against ${withN} agreeing at ${withExpR >= 0 ? "+" : ""}${withExpR}R — that now separates. Run scripts/sweep-gates.mjs to test it properly as a gate variant. Do not hand-edit a rule.`
+      : needed > 0
+        ? `${againstN} disagreeing observations (${againstExpR}R) vs ${withN} agreeing (${withExpR >= 0 ? "+" : ""}${withExpR}R). ${needed} more disagreements needed before this could be argued as a gate. Until then it warns, nothing more.`
+        : `${againstN} disagreeing observations (${againstExpR}R) vs ${withN} agreeing (${withExpR >= 0 ? "+" : ""}${withExpR}R) — no separation in R. It warns on direction, nothing more.`,
   };
 }

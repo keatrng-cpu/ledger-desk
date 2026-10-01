@@ -96,9 +96,9 @@ export interface CardTape {
   draws?: DrawRead | null;
   /**
    * This book's timeframe ladder, for the directional cross-check. The
-   * engine's HTF gate and the ladder can permit opposite things, and the
-   * disagreement measured -0.69R/card on NY AM shadows (n=13) against
-   * +0.08R when they agreed. A warning, never a refusal.
+   * engine's HTF gate and the ladder can permit opposite things. Over four
+   * years a card against Tier 1 moved its way 45.5% of the time vs 52.4%
+   * aligned, at the same R (ladder-conflict.ts). A warning, never a refusal.
    */
   ladder?: TfLadder | null;
 }
@@ -972,9 +972,9 @@ function SetupCard({
       </p>
 
       {/* LADDER DISAGREEMENT. Above the chart because it changes whether to
-          look at the chart at all. A suggested half size and a second look —
-          n=13 in the losing bucket supports "be careful" and nothing more, so
-          this never refuses and never touches the grade. */}
+          look at the chart at all. A second look, no size change — four years
+          show a direction gap but no R cost, so this never refuses and never
+          touches the grade. */}
       {/* COUNTER-BIAS WATCH. The HTF gate is holding, and this says how close
           it is to releasing rather than only that it refused. Every figure
           here was already computed by biasDisrespect and thrown away. It is
@@ -1009,13 +1009,13 @@ function SetupCard({
         // ONE line, with the full reasoning on hover. This printed five
         // sentences on every card — the identical paragraph twice when both
         // books were shorts against a bull ladder — which is how a warning
-        // carrying a measured -0.69R/card gets tuned out.
+        // gets tuned out.
         <div
           title={conflict.line}
           className="mt-2 flex items-baseline gap-1.5 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-down)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_10%,transparent)] px-2 py-1"
         >
           <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wider text-[var(--color-down)]">
-            Ladder {conflict.sizeMult}×
+            Ladder vs
           </span>
           <span className="text-[10px] leading-snug text-[var(--color-fg)]">
             {conflict.headline}

@@ -116,21 +116,26 @@ ok("and explains why the reason must be written first", /before the outcome is k
 ok("the prompt demands the reason up front", /before you know how it ends/.test(overridePrompt(["pd_half"], "STAND")));
 check("no missing layers means no prompt", overridePrompt([], "TAKE"), "");
 
-console.log("\nladder conflict — warn and halve, never refuse");
+console.log("\nladder conflict — warn on direction, never refuse, never resize");
+// 2026-10-01: the four-year measurement (scripts/measure-tf-tiers.mjs) found
+// cards against Tier 1 paid the same R as aligned ones (−0.139 vs −0.137,
+// n=1617/1857) while moving their way less often (45.5% vs 52.4%). So the
+// half size the n=13 shadow read justified is gone; the warning stays.
 const L = (direction, decidedBy = "1d") => ({ direction, decidedBy, reads: [], symbol: "MNQ" });
 const agree = ladderConflict(L("bull"), "long");
 check("agreement is agreement", agree.level, "agree");
 check("and does not size up", agree.sizeMult, 1);
-ok("and calls the +0.08R a small positive, not a reason to add", /not a reason to size up/.test(agree.line));
+ok("and says it is not a reason to size up", /not a reason to size up/.test(agree.line));
 
 const clash = ladderConflict(L("bear", "1w"), "long");
 check("disagreement is conflict", clash.level, "conflict");
-check("suggested size is halved", clash.sizeMult, 0.5);
+check("no size cut — four years found no R cost", clash.sizeMult, 1);
 ok("it warns", clash.warn);
 ok("it explicitly is NOT a refusal", /NOT a refusal/.test(clash.line));
-ok("it names the n in the losing bucket", clash.line.includes(String(LADDER_EVIDENCE.againstN)));
+ok("it names the n in the disagreeing bucket", clash.line.includes(String(LADDER_EVIDENCE.againstN)));
 ok("it names the rung that decided", clash.line.includes("1w"));
-ok("size multiplier is never zero — this cannot refuse", ladderConflict(L("bear"), "long").sizeMult > 0);
+ok("it states the direction gap it warns about", clash.line.includes(String(LADDER_EVIDENCE.againstDirHit)) && clash.line.includes(String(LADDER_EVIDENCE.withDirHit)));
+ok("the evidence is the four-year sample, not the n=13 shadow read", LADDER_EVIDENCE.againstN >= 1000);
 
 check("a neutral ladder neither helps nor hurts", ladderConflict(L("neutral"), "long").level, "neutral");
 check("no ladder is neutral", ladderConflict(null, "long").level, "neutral");
@@ -138,13 +143,17 @@ check("no ladder does not resize", ladderConflict(null, "long").sizeMult, 1);
 check("a short against a bull ladder conflicts", ladderConflict(L("bull"), "short").level, "conflict");
 
 const led = conflictLedger([]);
-check("the ledger starts seeded from the shadow measurement", led.againstN, LADDER_EVIDENCE.againstN);
-check("and is not yet gateable", led.gateable, false);
-check("needing 27 more disagreements", led.needed, GATE_N_REQUIRED - LADDER_EVIDENCE.againstN);
-ok("and it says so plainly", /more disagreements needed/.test(led.line));
+check("the ledger starts seeded from the four-year measurement", led.againstN, LADDER_EVIDENCE.againstN);
+check("past the observation floor", led.needed, 0);
+check("but not gateable — the sides do not separate in R", led.gateable, false);
+ok("and it says so plainly", /no separation/.test(led.line));
 const grown = conflictLedger(Array.from({ length: 30 }, () => ({ agreed: false, resultR: -0.5 })));
-ok("enough live disagreements makes it gateable", grown.gateable);
-ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
+check("thirty live losses do not outweigh four years", grown.gateable, false);
+const decisive = conflictLedger(Array.from({ length: 3000 }, () => ({ agreed: false, resultR: -1 })));
+ok("a decisive live record that separates becomes arguable", decisive.gateable);
+ok("and still routes through the sweep script", /sweep-gates/.test(decisive.line));
+const fresh = conflictLedger([], false);
+ok("an unseeded ledger still needs the floor first", fresh.needed === GATE_N_REQUIRED && !fresh.gateable);
 
 
 // ── The card headline: one line, not a paragraph ──────────────────────────
@@ -171,11 +180,12 @@ ok("and still routes through the sweep script", /sweep-gates/.test(grown.line));
   // The three things the trader needs in the glance: the fact, the measured
   // cost, and the action.
   check("conflict headline names the ladder direction", /bull/.test(warn.headline), true);
-  check("conflict headline carries the measurement", /-0\.69R/.test(warn.headline), true);
-  check("conflict headline carries the sample size", /n=13/.test(warn.headline), true);
-  check("conflict headline says what to do", /[Hh]alf size/.test(warn.headline), true);
-  // And it must never read as a refusal — n=13 does not support one.
+  check("conflict headline carries the measurement", warn.headline.includes(`${LADDER_EVIDENCE.againstDirHit}%`), true);
+  check("conflict headline carries the sample size", warn.headline.includes(`n=${LADDER_EVIDENCE.againstN}`), true);
+  check("conflict headline says what to do", /look again/i.test(warn.headline), true);
+  // And it must never read as a refusal or a size cut — four years support neither.
   check("conflict headline is not a refusal", /do not trade|refuse|blocked/i.test(warn.headline), false);
+  check("conflict headline does not cut size", /half size/i.test(warn.headline), false);
 }
 
 // ── The 2026-09-24 bounce: why the desk showed no sign ────────────────────
