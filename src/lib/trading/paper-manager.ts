@@ -36,7 +36,8 @@ import {
   resolveRiskGradeForTake,
   type BookCounters,
 } from "./profit-rules";
-import { QUOTE_EXECUTION_MAX_LAG_SEC } from "@/lib/market/types";
+import { QUOTE_EXECUTION_MAX_LAG_SEC, type OhlcBar } from "@/lib/market/types";
+import { FAILED_HOLD_ENABLED, failedHold } from "./exit-rules";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock, isJudasWindow } from "./sessions";
@@ -852,6 +853,12 @@ export interface ManageContext {
   draws?: Partial<Record<string, DrawRead | null>>;
   /** News calendar override — tests and replay only. */
   calendar?: NewsEvent[];
+  /**
+   * Each book's 15m series (the desk payload's `left.bars` / `right.bars`,
+   * keyed like `draws`). Omit and the failed-hold exit (exit-rules.ts) never
+   * fires — it needs closed 15m candles, and a tick cannot stand in for one.
+   */
+  bars15?: Partial<Record<string, OhlcBar[]>>;
   /** Set false to suppress time/context stops (replay harnesses). Default true. */
   enableTimeStops?: boolean;
   /**
@@ -1123,6 +1130,35 @@ export function managePaperTradesAgainstPrice(
       finalizeClose(t, sign);
       closed.push(t);
       continue;
+    }
+
+    // 3b) FAILED HOLD (exit-rules.ts) — before TP1 only, on a CLOSED 15m
+    // candle through entry ∓ ½·risk. A market-out at the print like a time
+    // stop, so it is held (not fired) on a stale quote and re-checked on the
+    // next fresh tick. Measured: in-band cards +0.033R → +0.066R, z = 2.6.
+    const tp1Taken = t.scaleLegs.some((l) => l.note.toLowerCase().includes("tp1"));
+    const bars15 = ctx?.bars15 ? symbolKeys(t).map((k) => ctx.bars15?.[k]).find((b) => b && b.length) : undefined;
+    if (FAILED_HOLD_ENABLED && !tp1Taken && bars15 && !staleForFill) {
+      const fh = failedHold({ side: t.side, entry: t.entry, stop: t.stop, openedAt: t.openedAt, nowMs: now, bars15 });
+      if (fh.triggered) {
+        const fill = feed.last;
+        t.scaleLegs.push({
+          at: new Date(now).toISOString(),
+          price: fill,
+          contracts: t.contractsOpen,
+          r: rPts(fill),
+          note: `failed hold: 15m closed ${t.side === "long" ? "below" : "above"} ${fh.level.toFixed(2)}`,
+        });
+        t.contractsOpen = 0;
+        t.status = "closed";
+        t.closedAt = now;
+        t.exit = fill;
+        t.exitReason = "failed_hold";
+        t.manageNote = `15m closed through the entry array (${fh.level.toFixed(2)}) before T1`;
+        finalizeClose(t, sign);
+        closed.push(t);
+        continue;
+      }
     }
 
     // 4) TIME / CONTEXT STOPS (B2) — killzone ended, session end, news

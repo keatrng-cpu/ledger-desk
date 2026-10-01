@@ -16,6 +16,7 @@ import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR } from "@/lib/trading/trade-plan";
 import { readCardGeometry } from "@/lib/trading/card-geometry";
 import { atrOf } from "@/lib/trading/draw";
 import { detectInducement, detectMitigationBlock } from "@/lib/trading/detectors";
+import { FAILED_HOLD_ENABLED, failedHoldLevel } from "@/lib/trading/exit-rules";
 import { strategyLabel } from "@/lib/trading/strategies";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
@@ -1206,6 +1207,16 @@ function SetupCard({
                   "T1 · T2",
                   `${c.plan.t1 != null ? `${c.plan.t1.toFixed(2)}${c.plan.rr1 != null ? ` (${c.plan.rr1.toFixed(1)}R)` : ""}` : "no draw ahead"}${c.plan.t2 != null ? ` · ${c.plan.t2.toFixed(2)}${c.plan.rr2 != null ? ` (${c.plan.rr2.toFixed(1)}R)` : ""}` : ""}`,
                 ],
+                // The same level the paper book exits on (exit-rules.ts):
+                // before T1, a 15m CLOSE through it is out — a wick is not.
+                ...(FAILED_HOLD_ENABLED
+                  ? [
+                      [
+                        "Failed hold · 15m close",
+                        `${failedHoldLevel(c.side === "short" ? "short" : "long", c.plan.entry, c.plan.stop).toFixed(2)} before T1 → out`,
+                      ] as [string, string],
+                    ]
+                  : []),
               ]
             : [
                 ["Entry · unpriced", c.entryZone],

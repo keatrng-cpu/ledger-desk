@@ -1160,6 +1160,10 @@ function MasterplacePage() {
           [next.left.symbol]: next.draws.left,
           [next.right.symbol]: next.draws.right,
         },
+        bars15: {
+          [next.left.symbol]: next.left.bars,
+          [next.right.symbol]: next.right.bars,
+        },
       });
       if (!closed.length) return;
       mirrorClosedPaperTrades(closed);
@@ -1438,6 +1442,10 @@ function MasterplacePage() {
           [desk.left.symbol]: desk.draws.left,
           [desk.right.symbol]: desk.draws.right,
         },
+        bars15: {
+          [desk.left.symbol]: desk.left.bars,
+          [desk.right.symbol]: desk.right.bars,
+        },
       };
     const { closed } = managePaperTradesAgainstPrice(prices, drawCtx);
     if (closed.length) {
@@ -1475,6 +1483,10 @@ function MasterplacePage() {
         draws: {
           [d.left.symbol]: d.draws.left,
           [d.right.symbol]: d.draws.right,
+        },
+        bars15: {
+          [d.left.symbol]: d.left.bars,
+          [d.right.symbol]: d.right.bars,
         },
       });
       if (!closed.length) return;
