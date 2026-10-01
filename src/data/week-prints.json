@@ -145,5 +145,19 @@
     "actual": "GDP +2.2%; PCE +0.3% / +3.4% y/y; core +0.2% / +3.0%",
     "vs": "GDP 2nd +1.5%; PCE exp ~0.4%/3.7%; core ~0.3%/3.3%",
     "note": "BEA official 26-42 / 26-43. Real PCE +0.6%; spending +0.9% current-dollar. Soft core PCE vs Sunday cluster. No ISM/claims/NFP today."
+  },
+  {
+    "date": "2026-10-01",
+    "name": "Initial Jobless Claims",
+    "actual": "197k",
+    "vs": "exp 200k / prev 197k rev 198k",
+    "note": "DOL week ending Sep 26. -1k vs revised prior. 4-wk avg 200k. Continuing 1.701M vs 1.712M rev. Soft-to-in-line; not a labor-break. No JOLTS/ADP/NFP today."
+  },
+  {
+    "date": "2026-10-01",
+    "name": "ISM Manufacturing PMI (Sep)",
+    "actual": "54.5",
+    "vs": "exp 55 / prev 54.6",
+    "note": "ISM official. Ninth expansion month. New orders 55.3, production 56.7, employment 52.7, prices 77.9 (from 71.1). Slight headline miss, still expansion. Prices hot. NFP not stamped — Fri 8:30."
   }
 ]
