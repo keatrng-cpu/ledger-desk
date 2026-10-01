@@ -109,10 +109,10 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
   headline:
     "Labor/inflation week. JOLTS Tue, ADP+PCE Wed, ISM+claims Thu, September NFP Fri 8:30. No multi-day swing into Friday.",
   htfBias:
-    "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Hot core PCE or hot NFP = October hike repricing, NQ-lead weakness. Soft prints = squeeze. Do not invent CWH/CWL.",
+    "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Core PCE already printed soft. Hot NFP = October hike repricing, NQ-lead weakness. Soft NFP = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue JOLTS manipulates. Wed PCE distributes. Thu ISM/claims. Fri NFP is the week’s event.",
   macro:
-    "Tue JOLTS Aug 10:00. Wed ADP Sep 8:15 + GDP Q2 3rd + PCE Aug 8:30. Thu claims 8:30 + ISM Mfg Sep 10:00. Fri NFP Sep 8:30. Consensus cluster: JOLTS ~7.2M, ADP ~+70k, ISM ~55, NFP ~+90–100k / U 4.1%. Oct 28 hike odds still the live bet (~2/3 to ~3/4 on last FedWatch prints; do not invent a tick).",
+    "Tue JOLTS Aug 10:00. Wed ADP Sep 8:15 + GDP Q2 3rd + PCE Aug 8:30. Thu claims 8:30 + ISM Mfg Sep 10:00. Fri NFP Sep 8:30. Consensus cluster: JOLTS ~7.2M, ADP ~+70k, ISM ~55, NFP ~+90–100k / U 4.1%. Oct 28 hike odds cooled after soft core PCE: FedWatch wires 47.1% right after the print, 37.1% by Sep 30 evening (from 50.9% the prior day). Do not invent a fresh tick. Thu claims/ISM not stamped — still pre-release as of the desk check.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -124,7 +124,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 30500,
     drawUp: "Prior-week 31,095 then next BSL — only if tape is already there",
     drawDown: "Prior-week 29,904 then next SSL",
-    note: "PWH/PWL = Sep 21–25 week (NQ high 31,094.75 / low 29,904). Live CWH/CWL from bars. Sunday/Mon globex was inside the box, not a new weekly extreme to hardcode.",
+    note: "PWH/PWL = Sep 21–25 week (NQ high 31,094.75 / low 29,904). Live CWH/CWL from bars. Cash through Wed stayed inside: week high 30,920.75 / low 30,356.75. Thu globex quotes conflict on a PWH tag — do not hardcode a take.",
   },
   es: {
     settle: 7804,
@@ -135,7 +135,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 7778,
     drawUp: "Prior-week 7,848.50",
     drawDown: "Prior-week 7,707.25",
-    note: "PWH/PWL = Sep 21–25 ES week. SMT companion. No fake live prints.",
+    note: "PWH/PWL = Sep 21–25 ES week (7,848.50 / 7,707.25). Cash through Wed ~7,712–7,803, no PWL take. Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
     "±15 min: JOLTS Tue 10:00 · ADP/GDP/PCE Wed 8:15–8:45 · claims Thu 8:30 · ISM Thu 10:00 · NFP Fri 8:30",
@@ -151,7 +151,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
   ],
   outcomes: [
     { p: 40, name: "Hot PCE and/or hot NFP", detail: "October hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
-    { p: 35, name: "In-line slate", detail: "Two-way inside last week’s box. Stand unless A+. Odds stay bid for Oct +25." },
+    { p: 35, name: "In-line slate", detail: "Two-way inside last week’s box. Stand unless A+. Oct hike odds already cooled after PCE; NFP is the swing, not a fresh tick." },
     { p: 25, name: "Soft PCE / soft NFP", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
   ],
   days: [
