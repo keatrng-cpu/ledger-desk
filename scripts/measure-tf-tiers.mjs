@@ -277,6 +277,36 @@ const result = {
     bucket("t1against_t2against", "Tier 1 against AND Tier 2 against", sims.filter((o) => o.tags.tf_dir === "against" && o.tags.tf_tier2 === "against")),
   ],
   phase: [...new Set(sims.map((o) => o.tags.tf_phase))].map((p) => bucket(`phase|${p}`, `phase ${p}`, sims.filter((o) => o.tags.tf_phase === p))),
+  // The trader's rule (2026-10-01): "Weekly and daily disagree: no trade. The
+  // lower frame cannot referee them." Judged like every other claim: the
+  // bucket's verdict AND a day-clustered difference vs the rest, |z| >= 2.
+  weeklyDaily: (() => {
+    const disagree = (o) =>
+      (o.tags.tf_1w === "with" && o.tags.tf_1d === "against") || (o.tags.tf_1w === "against" && o.tags.tf_1d === "with");
+    const yes = sims.filter(disagree);
+    const no = sims.filter((o) => !disagree(o));
+    const a = yes.filter((o) => o.filled);
+    const b = no.filter((o) => o.filled);
+    const ma = a.reduce((s, o) => s + o.R, 0) / a.length;
+    const mb = b.reduce((s, o) => s + o.R, 0) / b.length;
+    const byDay = new Map();
+    for (const o of a) byDay.set(o.day, (byDay.get(o.day) ?? 0) + (o.R - ma) / a.length);
+    for (const o of b) byDay.set(o.day, (byDay.get(o.day) ?? 0) - (o.R - mb) / b.length);
+    let v = 0;
+    for (const s of byDay.values()) v += s * s;
+    const G = byDay.size;
+    const se = Math.sqrt(v * (G / (G - 1)));
+    return {
+      buckets: [
+        bucket("wd|disagree", "W and D disagree (one with, one against)", yes),
+        bucket("wd|rest", "W and D agree, or one is flat", no),
+        bucket("wd|both-with", "W and D both with the card", sims.filter((o) => o.tags.tf_1w === "with" && o.tags.tf_1d === "with")),
+        bucket("wd|both-against", "W and D both against the card", sims.filter((o) => o.tags.tf_1w === "against" && o.tags.tf_1d === "against")),
+      ],
+      diff: r3(ma - mb),
+      z: r3((ma - mb) / se),
+    };
+  })(),
 };
 
 writeFileSync(OUT, JSON.stringify(result, null, 1) + "\n");
@@ -290,6 +320,9 @@ for (const k of ["tierOneDirection", "tier2", "tier3_15m", "ipda", "decidedBy", 
   console.log(`\n${k}`);
   for (const b of result[k]) console.log("  " + show(b));
 }
+console.log("\nweekly vs daily (the trader's 'disagree = no trade' rule)");
+for (const b of result.weeklyDaily.buckets) console.log("  " + show(b));
+console.log(`  disagree − rest: ${result.weeklyDaily.diff >= 0 ? "+" : ""}${result.weeklyDaily.diff}R  z ${result.weeklyDaily.z}`);
 console.log("\nrungs");
 for (const [tf, bs] of Object.entries(result.rungs)) for (const b of bs) console.log("  " + show(b));
 console.log(`\nwrote ${OUT}`);
