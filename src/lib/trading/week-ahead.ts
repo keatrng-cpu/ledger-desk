@@ -112,7 +112,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Core PCE already printed soft. Hot NFP = October hike repricing, NQ-lead weakness. Soft NFP = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue JOLTS manipulates. Wed PCE distributes. Thu ISM/claims. Fri NFP is the week’s event.",
   macro:
-    "Tue JOLTS Aug 10:00. Wed ADP Sep 8:15 + GDP Q2 3rd + PCE Aug 8:30. Thu claims 8:30 + ISM Mfg Sep 10:00. Fri NFP Sep 8:30. Consensus cluster: JOLTS ~7.2M, ADP ~+70k, ISM ~55, NFP ~+90–100k / U 4.1%. Oct 28 hike odds cooled after soft core PCE: FedWatch wires 47.1% right after the print, 37.1% by Sep 30 evening (from 50.9% the prior day). Do not invent a fresh tick. Thu claims/ISM not stamped — still pre-release as of the desk check.",
+    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep 8:30 still unreleased. Oct 28 hike odds cooled further after Jefferson: FedWatch wires 24.9% Thu afternoon from 37.6% a day ago (was 37.1% Sep 30 evening). Do not invent a fresher tick. NFP not stamped.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -124,7 +124,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 30500,
     drawUp: "Prior-week 31,095 then next BSL — only if tape is already there",
     drawDown: "Prior-week 29,904 then next SSL",
-    note: "PWH/PWL = Sep 21–25 week (NQ high 31,094.75 / low 29,904). Live CWH/CWL from bars. Cash through Wed stayed inside: week high 30,920.75 / low 30,356.75. Thu globex quotes conflict on a PWH tag — do not hardcode a take.",
+    note: "PWH/PWL = Sep 21–25 week (NQ high 31,094.75 / low 29,904). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
   },
   es: {
     settle: 7804,
@@ -135,7 +135,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 7778,
     drawUp: "Prior-week 7,848.50",
     drawDown: "Prior-week 7,707.25",
-    note: "PWH/PWL = Sep 21–25 ES week (7,848.50 / 7,707.25). Cash through Wed ~7,712–7,803, no PWL take. Live CWH/CWL from bars. No fake live prints.",
+    note: "PWH/PWL = Sep 21–25 ES week (7,848.50 / 7,707.25). Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
     "±15 min: JOLTS Tue 10:00 · ADP/GDP/PCE Wed 8:15–8:45 · claims Thu 8:30 · ISM Thu 10:00 · NFP Fri 8:30",
@@ -194,16 +194,16 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     {
       date: "2026-10-01",
       weekday: "Thu",
-      dailyBias: "Selective — claims then ISM",
+      dailyBias: "Selective — prints done, still inside-week",
       kind: "selective",
       news: [
         { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET, week ending Sep 26. Prev 197k. Rarely trends the day." },
         { timeEt: "10:00", name: "ISM Manufacturing PMI (Sep)", impact: "high", note: "ISM first business day. Consensus ~55.0 vs Aug 54.6. Stand 9:45–10:15." },
       ],
-      likelyTape: "Claims caution ±15m. ISM 10:00 can raid Wed H/L.",
-      trade: "Post-10:15 mechanical. One book. Do not carry a loser into NFP.",
-      skipIf: "Chop, or already booked the week.",
-      pathNote: "Process skip is fine.",
+      likelyTape: "Claims 197k vs 200k (prev rev 198k). ISM 54.5 vs 55 / prev 54.6; prices 77.9. NQ session 30,529.50–31,151.50 tagged PWH 31,095 and rejected (last ~30,783). ES 7,672.75–7,767.75 vs PWH 7,848.50 / PWL 7,707.25, no take. Failed PWH raid, not a new HTF trend.",
+      trade: "Post-print mechanical only if MSS + IFVG. NQ PWH tag failed back inside. Do not carry a loser into NFP.",
+      skipIf: "No hold above PWH — NQ back inside. Chop, or already booked the week.",
+      pathNote: "Sunday inside-week story holds. PWH/PWL seed unchanged. Next is Fri NFP blackout 8:15–9:00.",
     },
     {
       date: "2026-10-02",
