@@ -523,10 +523,10 @@ function scoreDirection(
    * non-redundant with order_block or breaker) — but MEASURED it does not
    * belong here: scripts/measure-amd-signals.mjs found a card resolving
    * through a present mitigation block pays -0.245R, both halves negative,
-   * CI excludes zero (n=1760, the largest sample of any finding this pass) —
-   * worse than a card without one (-0.032R, mixed). Crediting it as positive
-   * confluence would repeat the exact class of bug this fix exists to catch,
-   * just aimed the other way. See the veto below (same location and shape
+   * CI excludes zero (n=1760) — vs -0.032R without one; the difference is
+   * z = −1.90 (scripts/measure-model-claims.mjs), probably worse, not proven.
+   * Nothing points POSITIVE, so crediting it as confluence would repeat the
+   * exact class of bug this fix exists to catch, just aimed the other way. See the veto below (same location and shape
    * as the inducement veto) for where this actually applies.
    */
   add(
@@ -948,13 +948,18 @@ export function scoreCandidates(
    * 4 years / 3,501 filled cards): a card whose sweep was preceded by a
    * shallower decoy sweep of the same polarity paid -0.259R, both halves
    * negative, CI excludes zero (n=525) — WORSE than the already-hard-refused
-   * stop-band's out-of-band number (-0.244R, trade-plan.ts). Same statistical
-   * bar as every other confirmed finding in evidence-pack.json. Applied here,
-   * not just shown as an evidence caption (evidence.ts), for parity with how
-   * the stop-band finding is treated: a confirmed-negative pattern this
-   * strong gets to change the grade, not just annotate it. Same penalty
-   * shape as the with-bias fade veto directly above — one discount
-   * mechanism, not two designs that could drift.
+   * stop-band's out-of-band number (-0.244R, trade-plan.ts).
+   *
+   * EVIDENCE STRENGTH, CORRECTED 2026-10-01: "negative in both halves" is a
+   * bar the whole population clears (every card ≥0.65 runs −0.139R), so it
+   * does not show this bucket is WORSE. The day-clustered difference test
+   * (scripts/measure-model-claims.mjs) puts inducement vs no inducement at
+   * −0.175R, z = −1.39 — suggestive, not significant at the |z| ≥ 2 bar new
+   * findings are held to. Kept live because the sign is consistent in both
+   * halves and removing a gate mid-session loosens risk; it is the trader's
+   * call to demote it to a warning. Same penalty shape as the with-bias fade
+   * veto directly above — one discount mechanism, not two designs that could
+   * drift.
    */
   for (const c of pathCandidates) {
     const bars = c.symbol === left.symbol ? barsL : barsR;
@@ -987,10 +992,15 @@ export function scoreCandidates(
    * the OPPOSITE of the ICT lore's own causal story ("trapped traders exit
    * at breakeven, price returns to fill them") — one of the sources this
    * desk researched flags that story as "a plausible story rather than an
-   * observable fact" even within the ICT community, and this desk's own tape
-   * now has a measured, not narrative, answer. Same penalty shape as the
-   * with-bias fade veto and the inducement veto above it — one discount
-   * mechanism, not three designs that could drift.
+   * observable fact" even within the ICT community.
+   *
+   * EVIDENCE STRENGTH, CORRECTED 2026-10-01: the day-clustered difference
+   * test (scripts/measure-model-claims.mjs) puts present vs absent at
+   * −0.214R, z = −1.90 — close to, but under, the |z| ≥ 2 bar. Probably
+   * worse, not proven. Kept live for the same reason as inducement above;
+   * the trader's call to demote. Same penalty shape as the with-bias fade
+   * veto and the inducement veto above it — one discount mechanism, not
+   * three designs that could drift.
    */
   for (const c of pathCandidates) {
     const bars = c.symbol === left.symbol ? barsL : barsR;
