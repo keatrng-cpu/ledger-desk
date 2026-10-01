@@ -24,6 +24,8 @@ import {
   closedBars,
   mergeNewerBars,
   pickFreshestQuote,
+  priorSessionClose,
+  rebaseQuote,
   stampSeriesFromBars,
   stitchLiveSession,
 } from "@/lib/market/freshest";
@@ -263,7 +265,10 @@ async function quote(
   symbol: IndexSymbol,
   series?: SymbolSeries | null,
 ): Promise<LiveQuote> {
-  const previousClose = series?.previousClose ?? series?.bars.at(-1)?.c ?? 0;
+  // One baseline for every source — see priorSessionClose (freshest.ts) for
+  // why series.previousClose (the chart window's) is not a day's close.
+  const sessionPrev = series?.bars.length ? priorSessionClose(series.bars) : null;
+  const previousClose = sessionPrev ?? series?.previousClose ?? series?.bars.at(-1)?.c ?? 0;
   const yahooSym = series?.yahoo ?? YAHOO_MAP[symbol].yahoo;
 
   const gatewayTick = await readLiveTickFresh(symbol);
@@ -281,7 +286,8 @@ async function quote(
       ? quoteFromDatabentoSeries(series)
       : null;
 
-  return pickFreshestQuote(yahooQ, db) ?? syntheticQuote(symbol);
+  const picked = pickFreshestQuote(yahooQ, db);
+  return picked && picked.source !== "synthetic" ? rebaseQuote(picked, sessionPrev) : picked ?? syntheticQuote(symbol);
 }
 
 

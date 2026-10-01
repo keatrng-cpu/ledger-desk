@@ -4,6 +4,48 @@
  * ~10 min delayed last trade, so NY AM looked frozen.
  */
 import type { LiveQuote, OhlcBar, SymbolSeries } from "./types";
+import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
+
+const isoDate = (tMs: number) => {
+  const p = etWallParts(tMs);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+};
+
+/** Start of the CME Globex session containing `tMs` (sessions run 18:00 ET -> 17:00 ET). */
+export function globexSessionStartMs(tMs: number): number {
+  const today18 = etWallToEpochMs(isoDate(tMs), "18:00");
+  if (tMs >= today18) return today18;
+  // 24h back lands on the previous calendar day even across a DST change.
+  return etWallToEpochMs(isoDate(today18 - 24 * 3_600_000), "18:00");
+}
+
+/**
+ * The close a day's change is measured from: the last bar before the Globex
+ * session that holds the newest bar — the prior session's final print.
+ *
+ * The day change used to inherit `series.previousClose`, which is Yahoo's
+ * `chartPreviousClose`: the close before the CHART WINDOW, not before today.
+ * On the desk's 1mo/15m series that is a month ago, so on 2026-10-01 MNQ
+ * printed +5.58% / ES +1.19% while both were down on the day — and
+ * structure.smtRead's no-divergence fallback compared those two numbers,
+ * so a one-month return gap could score as intraday SMT. Anchored on the
+ * session instead, one definition holds for every quote source.
+ */
+export function priorSessionClose(bars: OhlcBar[]): number | null {
+  if (!bars.length) return null;
+  const start = globexSessionStartMs(bars[bars.length - 1]!.t);
+  for (let i = bars.length - 1; i >= 0; i--) {
+    if (bars[i]!.t < start) return bars[i]!.c;
+  }
+  return null;
+}
+
+/** Re-express a quote's change against `previousClose` (no-op when unknown). */
+export function rebaseQuote(q: LiveQuote, previousClose: number | null): LiveQuote {
+  if (!(previousClose != null && previousClose > 0)) return q;
+  const change = q.price - previousClose;
+  return { ...q, previousClose, change, changePct: (change / previousClose) * 100 };
+}
 
 export function pickFreshestQuote(
   ...quotes: Array<LiveQuote | null | undefined>

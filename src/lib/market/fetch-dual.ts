@@ -10,7 +10,7 @@ import {
   hasDatabentoKey,
 } from "./databento";
 import { readLiveTickFresh, quoteFromLiveTick } from "./live-gateway";
-import { pickFreshestQuote, stitchLiveSession } from "./freshest";
+import { pickFreshestQuote, priorSessionClose, rebaseQuote, stitchLiveSession } from "./freshest";
 import {
   alignedReturnPairs,
   buildComparisonNote,
@@ -102,7 +102,8 @@ async function loadQuote(symbol: IndexSymbol, previousClose?: number) {
     );
   }
   const yahoo = await fetchYahooLiveQuote(symbol).catch(() => null);
-  return pickFreshestQuote(yahoo) ?? syntheticQuote(symbol);
+  const picked = pickFreshestQuote(yahoo);
+  return picked && picked.source !== "synthetic" ? rebaseQuote(picked, previousClose ?? null) : picked ?? syntheticQuote(symbol);
 }
 
 
@@ -122,8 +123,11 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
       ]);
 
       const [leftQ, rightQ] = await Promise.all([
-        loadQuote(data.left, left.previousClose ?? undefined),
-        loadQuote(data.right, right.previousClose ?? undefined),
+        // The prior SESSION close, not the chart window's (priorSessionClose).
+        // A 1d range holds only today's session, and only there is Yahoo's
+        // chartPreviousClose the prior close — hence the fallback.
+        loadQuote(data.left, priorSessionClose(left.bars) ?? left.previousClose ?? undefined),
+        loadQuote(data.right, priorSessionClose(right.bars) ?? right.previousClose ?? undefined),
       ]);
 
       if (leftQ.source !== "synthetic") {
