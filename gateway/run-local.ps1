@@ -1,8 +1,7 @@
 # Run the live tick gateway on this PC. Task Scheduler (install-task.ps1)
-# launches this from two triggers - Sunday 15:45 CT (primary, ahead of the
-# week's 17:00 ET Globex reopen) and weekdays 07:10 CT (same-morning self-heal
-# if the Sunday instance died) - sharing one ~6.5-day ExecutionTimeLimit, so
-# in the ordinary case ONE process instance covers the whole trading week.
+# launches this at sign-in and re-checks every minute (a no-op while it is
+# already running - MultipleInstances IgnoreNew), with no execution limit,
+# so it streams whenever the trader is signed in to this PC.
 #
 # Reads gateway/.env.local (gitignored) for:
 #   DATABASE_URL       - the SAME Session Pooler string Netlify uses
@@ -13,7 +12,7 @@
 # default mode: databento_live_gateway.py only exits early when
 # GATEWAY_NY_AM_ONLY=1 (not set here), otherwise it streams for as long as
 # Globex is open and idles quietly through closures/halts rather than exiting
-# - Task Scheduler's ExecutionTimeLimit is what actually ends a run. Left set
+# - nothing ends a run on purpose; the keep-alive restarts it if it dies. Left set
 # so the old narrow-window fallback (GATEWAY_NY_AM_ONLY=1) still behaves.
 #
 # Logs: gateway/logs/YYYY-MM-DD.log (gitignored via *.log)
