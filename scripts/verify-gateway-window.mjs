@@ -30,6 +30,12 @@ const ok = (name, cond) => check(name, !!cond, true);
 const py = readFileSync("gateway/databento_live_gateway.py", "utf8");
 const ts = readFileSync("src/lib/trading/sessions.ts", "utf8");
 const ps1 = readFileSync("gateway/install-task.ps1", "utf8");
+// Code only, for "must NOT contain X" checks — the script's own comments
+// name the settings it deliberately leaves out, and prose must not fail them.
+const ps1Code = ps1
+  .split("\n")
+  .filter((l) => !l.trim().startsWith("#"))
+  .join("\n");
 const readme = readFileSync("gateway/README.md", "utf8");
 
 const pair = (re, src) => {
@@ -90,7 +96,7 @@ ok("starts at sign-in (a reboot must not leave it dark until tomorrow)", /New-Sc
 const keepAlive = /-RepetitionInterval \(New-TimeSpan -Minutes (\d+)\)/.exec(ps1);
 ok("has a repeating keep-alive trigger", keepAlive != null);
 if (keepAlive) ok(`keep-alive re-checks at least every 5 minutes (every ${keepAlive[1]})`, Number(keepAlive[1]) <= 5);
-ok("keep-alive repeats indefinitely (no -RepetitionDuration cut-off)", !/-RepetitionDuration/.test(ps1));
+ok("keep-alive repeats indefinitely (no -RepetitionDuration cut-off)", !/-RepetitionDuration/.test(ps1Code));
 const registered = /Register-ScheduledTask[^\n]*-Trigger ([^\n]*?) -Settings/.exec(ps1)?.[1] ?? "";
 ok("both triggers are actually registered", /\$logonTrigger/.test(registered) && /\$keepAliveTrigger/.test(registered));
 // IgnoreNew is what makes a one-minute repeat safe: a live instance swallows
@@ -99,7 +105,7 @@ ok("a running instance swallows the keep-alive (MultipleInstances IgnoreNew)", /
 ok("no execution limit kills a healthy stream (ExecutionTimeLimit 0)", /-ExecutionTimeLimit \(New-TimeSpan -Seconds 0\)/.test(ps1));
 // A trigger repeating every minute with WakeToRun would wake a sleeping
 // laptop every minute.
-ok("never wakes the laptop (no -WakeToRun with a one-minute repeat)", !/-WakeToRun/.test(ps1));
+ok("never wakes the laptop (no -WakeToRun with a one-minute repeat)", !/-WakeToRun/.test(ps1Code));
 ok("still runs on battery (a laptop: AC-only left it Queued on 2026-09-14)", /-AllowStartIfOnBatteries/.test(ps1) && /-DontStopIfGoingOnBatteries/.test(ps1));
 
 console.log("\nthe gateway must heal itself between keep-alive ticks");
