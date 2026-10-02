@@ -112,7 +112,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Core PCE already printed soft. Hot NFP = October hike repricing, NQ-lead weakness. Soft NFP = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue JOLTS manipulates. Wed PCE distributes. Thu ISM/claims. Fri NFP is the week’s event.",
   macro:
-    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep 8:30 still unreleased. Oct 28 hike odds cooled further after Jefferson: FedWatch wires 24.9% Thu afternoon from 37.6% a day ago (was 37.1% Sep 30 evening). Do not invent a fresher tick. NFP not stamped.",
+    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep 8:30 still unreleased (BLS 8:30 ET). Week tape into the print: NQ ~30,357–31,151.50 tagged PWH 31,095 Thu and rejected; ES ~7,672.75–7,803 took PWL 7,707.25 Thu, PWH untouched. Fri globex has not extended either extreme. Oct 28 hike odds still cooled: FedWatch 24.9% Thu afternoon (was 37.6%); pre-NFP wires still ~25%, no fresher CME tick stamped. NFP not stamped.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -200,10 +200,10 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
         { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET, week ending Sep 26. Prev 197k. Rarely trends the day." },
         { timeEt: "10:00", name: "ISM Manufacturing PMI (Sep)", impact: "high", note: "ISM first business day. Consensus ~55.0 vs Aug 54.6. Stand 9:45–10:15." },
       ],
-      likelyTape: "Claims 197k vs 200k (prev rev 198k). ISM 54.5 vs 55 / prev 54.6; prices 77.9. NQ session 30,529.50–31,151.50 tagged PWH 31,095 and rejected (last ~30,783). ES 7,672.75–7,767.75 vs PWH 7,848.50 / PWL 7,707.25, no take. Failed PWH raid, not a new HTF trend.",
-      trade: "Post-print mechanical only if MSS + IFVG. NQ PWH tag failed back inside. Do not carry a loser into NFP.",
+      likelyTape: "Claims 197k vs 200k (prev rev 198k). ISM 54.5 vs 55 / prev 54.6; prices 77.9. NQ session 30,529.50–31,151.50 tagged PWH 31,095 and rejected (last ~30,783). ES 7,672.75–7,767.75 took PWL 7,707.25, no PWH take. Failed NQ PWH raid; ES PWL sweep is not a new HTF trend.",
+      trade: "Post-print mechanical only if MSS + IFVG. NQ PWH tag failed back inside. ES PWL sweep did not hold. Do not carry a loser into NFP.",
       skipIf: "No hold above PWH — NQ back inside. Chop, or already booked the week.",
-      pathNote: "Sunday inside-week story holds. PWH/PWL seed unchanged. Next is Fri NFP blackout 8:15–9:00.",
+      pathNote: "PWH/PWL seed unchanged. NQ failed PWH; ES took PWL. Next is Fri NFP blackout 8:15–9:00.",
     },
     {
       date: "2026-10-02",
@@ -211,10 +211,10 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
       dailyBias: "NFP. Stand first.",
       kind: "nfp",
       news: [{ timeEt: "08:30", name: "NFP / Employment Situation (Sep)", impact: "high", note: "BLS official 8:30 ET. Consensus cluster ~+90–100k, U-rate 4.1%, AHE ~+0.3%. Aug was +162k / U 4.1%. Do not stamp an actual until BLS prints." }],
-      likelyTape: "8:30 seek-and-destroy. Second impulse after 9:45–10:00.",
+      likelyTape: "Pre-NFP week range: NQ ~30,357–31,151.50 (PWH tagged Thu, rejected); ES ~7,672.75–7,803 (PWL taken Thu, PWH untouched). Fri globex has not extended either extreme. 8:30 seek-and-destroy. Second impulse after 9:45–10:00. NFP not stamped.",
       trade: "Blackout 8:15–9:00. Hot (>consensus and/or AHE ≥0.3% with U-rate ≤4.1%): hike odds up, NQ-lead lower after BSL raid + MSS. In-line: skip unless A+ after 10:00. Soft (<50k or U-rate 4.3%+): long only SSL in discount. No lookahead on next week.",
       skipIf: "No MSS + IFVG by 10:15. Already took the week.",
-      pathNote: "A+ only after 10:00. Flatten into the weekend unless BE.",
+      pathNote: "A+ only after 10:00. Flatten into the weekend unless BE. Do not stamp hot/in-line/soft until BLS prints.",
     },
   ],
 };
