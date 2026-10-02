@@ -112,7 +112,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Core PCE already printed soft. Hot NFP = October hike repricing, NQ-lead weakness. Soft NFP = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue JOLTS manipulates. Wed PCE distributes. Thu ISM/claims. Fri NFP is the week’s event.",
   macro:
-    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep 8:30 still unreleased (BLS 8:30 ET). Week tape into the print: NQ ~30,357–31,151.50 tagged PWH 31,095 Thu and rejected; ES ~7,672.75–7,803 took PWL 7,707.25 Thu, PWH untouched. Fri globex has not extended either extreme. Oct 28 hike odds still cooled: FedWatch 24.9% Thu afternoon (was 37.6%); pre-NFP wires still ~25%, no fresher CME tick stamped. NFP not stamped.",
+    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep +29k vs ~+90k, U 4.2%, AHE +0.1% (BLS 8:30 ET). Week tape: NQ ~30,357–31,282.50 took PWH 31,095 Fri and faded back near it; ES ~7,672.75–7,810, PWL taken Thu, PWH untouched. Oct 28 hike odds cooled further: FedWatch ~17–22% after the print (CNBC 17%, FXStreet 21.6%) vs 24.9% Thu afternoon / 37.6% earlier.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -208,13 +208,13 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     {
       date: "2026-10-02",
       weekday: "Fri",
-      dailyBias: "NFP. Stand first.",
+      dailyBias: "Soft NFP. NQ tagged PWH, no hold. Not a new HTF trend.",
       kind: "nfp",
-      news: [{ timeEt: "08:30", name: "NFP / Employment Situation (Sep)", impact: "high", note: "BLS official 8:30 ET. Consensus cluster ~+90–100k, U-rate 4.1%, AHE ~+0.3%. Aug was +162k / U 4.1%. Do not stamp an actual until BLS prints." }],
-      likelyTape: "Pre-NFP week range: NQ ~30,357–31,151.50 (PWH tagged Thu, rejected); ES ~7,672.75–7,803 (PWL taken Thu, PWH untouched). Fri globex has not extended either extreme. 8:30 seek-and-destroy. Second impulse after 9:45–10:00. NFP not stamped.",
-      trade: "Blackout 8:15–9:00. Hot (>consensus and/or AHE ≥0.3% with U-rate ≤4.1%): hike odds up, NQ-lead lower after BSL raid + MSS. In-line: skip unless A+ after 10:00. Soft (<50k or U-rate 4.3%+): long only SSL in discount. No lookahead on next week.",
-      skipIf: "No MSS + IFVG by 10:15. Already took the week.",
-      pathNote: "A+ only after 10:00. Flatten into the weekend unless BE. Do not stamp hot/in-line/soft until BLS prints.",
+      news: [{ timeEt: "08:30", name: "NFP / Employment Situation (Sep)", impact: "high", note: "BLS USDL-26-1549. +29k vs ~+90k. U-rate 4.2% (was 4.1%). AHE +0.1% to $37.81 / +3.0% y/y. Participation 61.8%. July/Aug revised -60k combined." }],
+      likelyTape: "NFP +29k, U 4.2%, AHE +0.1%. NQ session ~30,760–31,282.50 took PWH 31,095 and faded back near/under it (last ~31,050–31,074). ES ~7,723–7,810 vs PWH 7,848.50 / PWL 7,707.25 — no PWH/PWL take. Soft-print squeeze, not a new HTF trend.",
+      trade: "Blackout done. Soft path only: long if SSL in discount + MSS already there. Do not chase the NQ PWH tag that faded. Flatten into the weekend unless BE.",
+      skipIf: "No MSS + IFVG. NQ failed to hold PWH. Already took the week.",
+      pathNote: "PWH/PWL seed unchanged. Sunday inside-week holds on ES; NQ PWH raid failed to hold. Next session Mon ISM Services 10:00, stand 9:45–10:15.",
     },
   ],
 };

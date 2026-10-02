@@ -159,5 +159,12 @@
     "actual": "54.5",
     "vs": "exp 55 / prev 54.6",
     "note": "ISM official. Ninth expansion month. New orders 55.3, production 56.7, employment 52.7, prices 77.9 (from 71.1). Slight headline miss, still expansion. Prices hot. NFP not stamped — Fri 8:30."
+  },
+  {
+    "date": "2026-10-02",
+    "name": "Nonfarm Payrolls (Sep)",
+    "actual": "+29k",
+    "vs": "exp ~+90k / Aug first-print +162k, Aug rev +133k",
+    "note": "BLS USDL-26-1549. U-rate 4.2% (was 4.1%). AHE +0.1% to $37.81 / +3.0% y/y. Participation 61.8%. Revisions: July +21k→-10k, August +162k→+133k (-60k combined). Soft. No ISM/JOLTS/ADP/claims today."
   }
 ]
