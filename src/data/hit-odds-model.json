@@ -1,0 +1,381 @@
+{
+ "version": 1,
+ "builtAt": "2026-10-02T14:29:04.134Z",
+ "script": "scripts/build-hit-odds.mjs",
+ "target": "P(T1 reached | filled) under the live rule: limit at CE, failed-hold exit before T1, hard stop, 50% at T1 / BE / runner, 8h hold",
+ "chosen": "M0",
+ "lambda": 3,
+ "features": [
+  "lnRR",
+  "lnT1Atr",
+  "stopTight",
+  "stopWide"
+ ],
+ "intercept": -0.8477,
+ "coef": {
+  "lnRR": -0.6823,
+  "lnT1Atr": -0.0748,
+  "stopTight": -0.7166,
+  "stopWide": -0.1849
+ },
+ "scale": {
+  "lnRR": {
+   "mean": 0.654,
+   "sd": 0.9896
+  },
+  "lnT1Atr": {
+   "mean": 0.7553,
+   "sd": 0.7796
+  }
+ },
+ "payoff": {
+  "winA": 0.1606,
+  "winB": 0.9296,
+  "lossMean": -0.8888
+ },
+ "fillByTier": {
+  "LIVE": 0.9716,
+  "ARMED": 0.8046,
+  "FORMING": 0.5177
+ },
+ "effects": {
+  "lnRR": {
+   "coef": -0.6823,
+   "lo": -0.9339,
+   "hi": -0.4484,
+   "n": 3499
+  },
+  "lnT1Atr": {
+   "coef": -0.0748,
+   "lo": -0.3156,
+   "hi": 0.1446,
+   "n": 3508
+  },
+  "stopTight": {
+   "coef": -0.7166,
+   "lo": -1.1779,
+   "hi": -0.3177,
+   "n": 733
+  },
+  "stopWide": {
+   "coef": -0.1849,
+   "lo": -0.4903,
+   "hi": 0.0927,
+   "n": 1444
+  }
+ },
+ "n": {
+  "cards": 4908,
+  "fills": 3508,
+  "t1": 997
+ },
+ "validation": {
+  "rule": "fit 2022–24, test 2025–26; a richer model replaces a simpler one only with OOS log-loss z <= −2 (day-clustered, paired)",
+  "isN": 2204,
+  "oosN": 1304,
+  "oosHitRate": 0.2929,
+  "oos": {
+   "BASE": {
+    "logLoss": 0.6052,
+    "brier": 0.2073,
+    "auc": 0.5,
+    "meanP": 0.279
+   },
+   "RW": {
+    "logLoss": 0.5609,
+    "brier": 0.1899,
+    "auc": 0.7234,
+    "meanP": 0.3786
+   },
+   "RACE": {
+    "logLoss": 0.5782,
+    "brier": 0.1961,
+    "auc": 0.6923,
+    "meanP": 0.3487
+   },
+   "M0": {
+    "logLoss": 0.5373,
+    "brier": 0.1806,
+    "auc": 0.7282,
+    "meanP": 0.2921
+   },
+   "M1": {
+    "logLoss": 0.5339,
+    "brier": 0.1794,
+    "auc": 0.7286,
+    "meanP": 0.2761
+   },
+   "M2": {
+    "logLoss": 0.5342,
+    "brier": 0.1796,
+    "auc": 0.7269,
+    "meanP": 0.2759
+   }
+  },
+  "steps": [
+   {
+    "candidate": "M1",
+    "vs": "M0",
+    "dLogLoss": -0.0033,
+    "z": -0.5422,
+    "replaces": false
+   },
+   {
+    "candidate": "M2",
+    "vs": "M0",
+    "dLogLoss": -0.003,
+    "z": -0.4943,
+    "replaces": false
+   }
+  ],
+  "chosenVsRace": {
+   "dLogLoss": -0.0409,
+   "z": -2.5666
+  },
+  "chosenVsRandomWalk": {
+   "dLogLoss": -0.0237,
+   "z": -1.8957
+  },
+  "calibration": {
+   "deciles": [
+    {
+     "n": 130,
+     "meanP": 0.0725,
+     "hitRate": 0.0769,
+     "meanR": -0.4105
+    },
+    {
+     "n": 130,
+     "meanP": 0.1213,
+     "hitRate": 0.0846,
+     "meanR": -0.5586
+    },
+    {
+     "n": 131,
+     "meanP": 0.1863,
+     "hitRate": 0.1374,
+     "meanR": 0.2845
+    },
+    {
+     "n": 130,
+     "meanP": 0.2351,
+     "hitRate": 0.2077,
+     "meanR": -0.0845
+    },
+    {
+     "n": 131,
+     "meanP": 0.2762,
+     "hitRate": 0.2519,
+     "meanR": -0.0686
+    },
+    {
+     "n": 130,
+     "meanP": 0.3067,
+     "hitRate": 0.3,
+     "meanR": -0.0991
+    },
+    {
+     "n": 130,
+     "meanP": 0.3323,
+     "hitRate": 0.4308,
+     "meanR": 0.1548
+    },
+    {
+     "n": 131,
+     "meanP": 0.3641,
+     "hitRate": 0.3206,
+     "meanR": -0.2051
+    },
+    {
+     "n": 130,
+     "meanP": 0.4424,
+     "hitRate": 0.5077,
+     "meanR": 0.0115
+    },
+    {
+     "n": 131,
+     "meanP": 0.5824,
+     "hitRate": 0.6107,
+     "meanR": -0.0956
+    }
+   ],
+   "slope": 1.1733,
+   "meanP": 0.2921,
+   "hitRate": 0.2929
+  },
+  "expectedRByQuintile": [
+   {
+    "n": 260,
+    "expR": -0.3126,
+    "realizedR": -0.3443
+   },
+   {
+    "n": 261,
+    "expR": -0.1894,
+    "realizedR": -0.1022
+   },
+   {
+    "n": 261,
+    "expR": -0.1437,
+    "realizedR": -0.1096
+   },
+   {
+    "n": 261,
+    "expR": -0.0839,
+    "realizedR": -0.0195
+   },
+   {
+    "n": 261,
+    "expR": 0.2272,
+    "realizedR": 0.0404
+   }
+  ],
+  "lambdas": {
+   "M0": 3,
+   "M1": 10,
+   "M2": 10
+  },
+  "secondaryM1Effects": {
+   "lnRR": {
+    "coef": -0.723,
+    "lo": -0.9427,
+    "hi": -0.5373,
+    "pts": -12.7761,
+    "n": 3499
+   },
+   "lnT1Atr": {
+    "coef": -0.0989,
+    "lo": -0.3002,
+    "hi": 0.0926,
+    "pts": -1.7559,
+    "n": 3508
+   },
+   "stopTight": {
+    "coef": -0.6292,
+    "lo": -0.9913,
+    "hi": -0.3437,
+    "pts": -10.4208,
+    "n": 733
+   },
+   "stopWide": {
+    "coef": -0.1625,
+    "lo": -0.4077,
+    "hi": 0.0708,
+    "pts": -2.855,
+    "n": 1444
+   },
+   "tierLive": {
+    "coef": -0.2116,
+    "lo": -0.3727,
+    "hi": -0.0081,
+    "pts": -3.6801,
+    "n": 1027
+   },
+   "tierForming": {
+    "coef": -0.0773,
+    "lo": -0.3036,
+    "hi": 0.1968,
+    "pts": -1.3675,
+    "n": 1114
+   },
+   "tier1With": {
+    "coef": 0.145,
+    "lo": -0.1133,
+    "hi": 0.4909,
+    "pts": 2.568,
+    "n": 1863
+   },
+   "tier1Against": {
+    "coef": -0.1076,
+    "lo": -0.3847,
+    "hi": 0.1518,
+    "pts": -1.9067,
+    "n": 1618
+   },
+   "wdWith": {
+    "coef": 0.1995,
+    "lo": -0.1374,
+    "hi": 0.4363,
+    "pts": 3.6072,
+    "n": 720
+   },
+   "wdAgainst": {
+    "coef": 0.4959,
+    "lo": 0.1916,
+    "hi": 0.7838,
+    "pts": 9.281,
+    "n": 487
+   },
+   "inducement": {
+    "coef": -0.2364,
+    "lo": -0.5026,
+    "hi": 0.0355,
+    "pts": -4.0709,
+    "n": 525
+   },
+   "mitigation": {
+    "coef": -0.2326,
+    "lo": -0.5174,
+    "hi": 0.0058,
+    "pts": -4.1378,
+    "n": 1762
+   },
+   "smtLevel": {
+    "coef": 0.1993,
+    "lo": -0.006,
+    "hi": 0.3781,
+    "pts": 3.6094,
+    "n": 677
+   },
+   "smtOff": {
+    "coef": 0.1087,
+    "lo": -0.3836,
+    "hi": 0.4742,
+    "pts": 1.9596,
+    "n": 176
+   },
+   "kzLondon": {
+    "coef": 0.4676,
+    "lo": -0.1252,
+    "hi": 0.631,
+    "pts": 8.0106,
+    "n": 2280
+   },
+   "kzNyAm": {
+    "coef": 0.4353,
+    "lo": -0.036,
+    "hi": 0.6226,
+    "pts": 8.0341,
+    "n": 766
+   },
+   "friday": {
+    "coef": 0.0296,
+    "lo": -0.2147,
+    "hi": 0.3093,
+    "pts": 0.5264,
+    "n": 675
+   },
+   "fit": {
+    "coef": -0.0263,
+    "lo": -0.1146,
+    "hi": 0.0781,
+    "pts": -0.4669,
+    "n": 3508
+   },
+   "long": {
+    "coef": -0.1475,
+    "lo": -0.4915,
+    "hi": 0.1193,
+    "pts": -2.6098,
+    "n": 1510
+   },
+   "mnq": {
+    "coef": -0.1139,
+    "lo": -0.4689,
+    "hi": 0.0858,
+    "pts": -2.0217,
+    "n": 1744
+   }
+  }
+ }
+}

@@ -32,8 +32,10 @@ import {
 } from "./strategies";
 import type { HtfBiasRead } from "./structure";
 import { smtRead } from "./structure";
+import { smtAtLevel, type SmtLevelRead } from "./smt-level";
+import type { HitOdds } from "./hit-odds";
 import { tapeHitsForSide, type SmcTape } from "./smc-board";
-import { applyProfitPathToCandidate } from "./profit-path";
+import { applyProfitPathToCandidate, stampPathTitle } from "./profit-path";
 import {
   drawOnLiquidity,
   drawTargetsForSide,
@@ -142,6 +144,23 @@ export interface SetupCandidate {
   entryPx?: number | null;
   /** ATR(14) of the graded series — for the stop band on cards without a plan. */
   atr?: number | null;
+  /**
+   * Measured-negative patterns that REFUSE this card (2026-10-02: a flag, not
+   * a multiplier). Until then each veto multiplied the fit by 0.42 — an
+   * unmeasured constant — so the big number on a vetoed card stopped meaning
+   * "fit" while every part of the card that re-derived the fit from its
+   * components printed the old one beside it. The fit is now left alone; the
+   * refusal is carried here, on actionable=false, and on the band.
+   */
+  vetoes?: string[];
+  /** The PATH band the fit earned before a veto demoted it, for the card to say so. */
+  bandBeforeVeto?: SetupCandidate["pathBand"];
+  /** Pattern reads every card carries, vetoed or not — inputs to the P(T1) model. */
+  patterns?: { inducement: boolean; mitigation: boolean };
+  /** SMT on THIS book and side, and whether it printed at a major level / HTF array (smt-level.ts). */
+  smtLevel?: SmtLevelRead;
+  /** P(T1 | filled) and its drivers, four-year model (hit-odds.ts). Attached by build-desk. */
+  hitOdds?: HitOdds | null;
 }
 
 export interface ScanResult {
@@ -317,6 +336,7 @@ function scoreDirection(
    */
   book: "left" | "right",
   tape?: SmcTape,
+  smtLevel?: SmtLevelRead,
 ): SetupCandidate {
   const side: SetupSide = direction === "bull" ? "long" : "short";
   const present: ComponentKey[] = [];
@@ -396,17 +416,29 @@ function scoreDirection(
    * and crediting them as SMT was inflating confluence with something the
    * framework does not count. They no longer fire this component.
    *
-   * And the credit goes to ONE book: `smt.edge` names the side that HELD
-   * (the tradeable one). The book that swept does not get the confluence.
+   * AT A LEVEL ONLY (the trader's rule, 2026-10-02). SMT forms the timeframe
+   * bias; it earns a place in the SCORE only when the divergence printed AT a
+   * major level (PDH/PDL, PWH/PWL, Asia/London H/L) or a 1h/4h array on this
+   * book (smt-level.ts). A mid-range divergence is bias context — it stays in
+   * the bias note (`smt.note`) — and adds no component. That also retires the
+   * relative-strength fallback in smtRead(), which labelled a bias spread
+   * "bullish_smt" with no divergence at all: with no active divergence there
+   * is no extreme to place at a level, so it cannot score.
+   *
+   * Either book can earn it — the one that swept the level or the one that
+   * held it — because the read is about THIS book's own extreme at a level.
+   * (Until 2026-10-02 only the holder was credited, wherever it printed.)
    */
-  const smtDirectional =
-    smt.state === "bullish_smt"
-      ? "bull"
-      : smt.state === "bearish_smt"
-        ? "bear"
-        : null;
-  const smtHits = smtDirectional === direction && smt.edge === book;
-  add("smt", smtHits, smtHits ? `smt: ${smt.state} (holds ${read.symbol})` : undefined);
+  void smt;
+  void book;
+  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel);
+  add(
+    "smt",
+    smtHits,
+    smtHits
+      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"})`
+      : undefined,
+  );
 
   const sweeps = read.liquidity.filter((l) => l.swept);
   const sideSweep =
@@ -749,11 +781,44 @@ export function boardRank(c: Pick<SetupCandidate, "htfOk" | "actionable">): numb
   return (c.htfOk ? 2 : 0) + (c.actionable ? 1 : 0);
 }
 
+/**
+ * Refuse a card for a measured-negative pattern — as a FLAG, not a discount.
+ *
+ * Until 2026-10-02 every veto multiplied the fit by 0.42. Nothing measured
+ * that constant, and it made the veto a hard block in disguise (0.99 × 0.42
+ * = 0.42, under the 0.65 floor for any card) while the card's other readers —
+ * the ceiling line, the score drivers — re-derived the UNdiscounted fit from
+ * the components and printed it beside the discounted one. The refusal is the
+ * same as before: not actionable, PATH band down to C (so every downstream
+ * gate that keys off the band still refuses), the reason first in `missing`.
+ * The fit is left as the fit, and the card names the veto.
+ */
+export function applyVeto(c: SetupCandidate, label: string): void {
+  c.actionable = false;
+  if (c.bandBeforeVeto === undefined) c.bandBeforeVeto = c.pathBand;
+  c.vetoes = [...(c.vetoes ?? []).filter((v) => v !== label), label];
+  if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+  if (c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+") {
+    c.pathBand = "C";
+  }
+  if (!c.missing.includes(label)) c.missing.unshift(label);
+}
+
+/**
+ * Inside a group, the card worth more per card comes first: expected R per
+ * card from the P(T1) model (hit-odds.ts — P(fill) × E[R | fill]). The fit is
+ * only the last tiebreak, for cards with no priced plan: four years show it
+ * is not monotone in outcome (Q 0.85+ went the card's way 46.3% vs 53.6% at
+ * 0.65–0.70), so it should not decide which card the eye lands on.
+ */
 export function compareForBoard(
-  a: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence">,
-  b: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence">,
+  a: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence" | "hitOdds">,
+  b: Pick<SetupCandidate, "htfOk" | "actionable" | "confluence" | "hitOdds">,
 ): number {
-  return boardRank(b) - boardRank(a) || b.confluence - a.confluence;
+  const ea = a.hitOdds?.expRPerCard;
+  const eb = b.hitOdds?.expRPerCard;
+  const byOdds = ea != null && eb != null ? eb - ea : ea != null ? -1 : eb != null ? 1 : 0;
+  return boardRank(b) - boardRank(a) || byOdds || b.confluence - a.confluence;
 }
 
 /**
@@ -799,8 +864,14 @@ export function scoreCandidates(
     [left, detL, barsL, condL, "left"] as const,
     [right, detR, barsR, condR, "right"] as const,
   ]) {
-    candidates.push(scoreDirection("bull", read, det, bars, cond, clock, smt, book, book === "left" ? leftTape : rightTape));
-    candidates.push(scoreDirection("bear", read, det, bars, cond, clock, smt, book, book === "left" ? leftTape : rightTape));
+    const tape = book === "left" ? leftTape : rightTape;
+    const lvlLong = smtAtLevel({ divergence, isLeft: book === "left", side: "long", bars, arrays: tape?.arrays ?? [] });
+    const lvlShort = smtAtLevel({ divergence, isLeft: book === "left", side: "short", bars, arrays: tape?.arrays ?? [] });
+    const bull = scoreDirection("bull", read, det, bars, cond, clock, smt, book, tape, lvlLong);
+    const bear = scoreDirection("bear", read, det, bars, cond, clock, smt, book, tape, lvlShort);
+    bull.smtLevel = lvlLong;
+    bear.smtLevel = lvlShort;
+    candidates.push(bull, bear);
   }
 
   /**
@@ -927,20 +998,7 @@ export function scoreCandidates(
     const session = read.sessionStance ?? "neutral";
     const strong = (read.sessionStrength ?? 0) >= 0.28;
     if (!strong || session === "neutral" || session === need) continue;
-    c.actionable = false;
-    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-    if (
-      c.pathBand === "A+" ||
-      c.pathBand === "A" ||
-      c.pathBand === "A-" ||
-      c.pathBand === "B+"
-    ) {
-      c.pathBand = "C";
-    }
-    if (!c.missing.includes("LTF delivery against")) {
-      c.missing.unshift("LTF delivery against");
-    }
+    applyVeto(c, "LTF delivery against");
   }
 
   /**
@@ -964,22 +1022,14 @@ export function scoreCandidates(
   for (const c of pathCandidates) {
     const bars = c.symbol === left.symbol ? barsL : barsR;
     if (!bars.length) continue;
-    const ind = detectInducement(bars, c.side);
-    if (!ind.inducement) continue;
-    c.actionable = false;
-    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-    if (
-      c.pathBand === "A+" ||
-      c.pathBand === "A" ||
-      c.pathBand === "A-" ||
-      c.pathBand === "B+"
-    ) {
-      c.pathBand = "C";
-    }
-    if (!c.missing.includes("inducement — shallow decoy sweep before this one")) {
-      c.missing.unshift("inducement — shallow decoy sweep before this one");
-    }
+    // Every card carries both reads — the P(T1) model prices them whether or
+    // not they veto.
+    c.patterns = {
+      inducement: detectInducement(bars, c.side).inducement,
+      mitigation: detectMitigationBlock(bars, c.side).present,
+    };
+    if (!c.patterns.inducement) continue;
+    applyVeto(c, "inducement — shallow decoy sweep before this one");
   }
 
   /**
@@ -1003,25 +1053,14 @@ export function scoreCandidates(
    * three designs that could drift.
    */
   for (const c of pathCandidates) {
-    const bars = c.symbol === left.symbol ? barsL : barsR;
-    if (!bars.length) continue;
-    const mit = detectMitigationBlock(bars, c.side);
-    if (!mit.present) continue;
-    c.actionable = false;
-    c.confluence = +Math.max(0, c.confluence * 0.42).toFixed(4);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-    if (
-      c.pathBand === "A+" ||
-      c.pathBand === "A" ||
-      c.pathBand === "A-" ||
-      c.pathBand === "B+"
-    ) {
-      c.pathBand = "C";
-    }
-    if (!c.missing.includes("mitigation block — failed push origin, measured negative")) {
-      c.missing.unshift("mitigation block — failed push origin, measured negative");
-    }
+    if (!c.patterns?.mitigation) continue;
+    applyVeto(c, "mitigation block — failed push origin, measured negative");
   }
+
+  // The title carries "[path <band> · fit <x>]". It was stamped inside
+  // applyProfitPathToCandidate, BEFORE the vetoes above, and never restamped —
+  // so a vetoed card read "[path A+ · Q 0.84]" over a C badge. Stamped last.
+  for (const c of pathCandidates) stampPathTitle(c);
 
   /**
    * TAKEABLE FIRST, THEN SCORE. Fixed 2026-09-25 from a live board.
@@ -1046,9 +1085,9 @@ export function scoreCandidates(
   const best = pathCandidates[0];
   let focus = "Stand down — no setup clears engine-aligned gates.";
   if (best && best.actionable) {
-    focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} [${best.strategyPrimary || "model"}] (${best.grade}, ${best.confluence.toFixed(2)}). ${best.strategyWhy[0] ?? best.reasons[0] ?? ""}`;
+    focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} [${best.strategyPrimary || "model"}] (${best.pathBand ?? best.grade}, fit ${best.confluence.toFixed(2)}). ${best.strategyWhy[0] ?? best.reasons[0] ?? ""}`;
   } else if (best && best.grade !== "skip") {
-    focus = `Nearest: ${best.symbol} ${best.side} [${best.strategyPrimary || "—"}] @ ${best.confluence.toFixed(2)} (${best.grade}) — missing: ${best.missing.slice(0, 3).join(", ")}`;
+    focus = `Nearest: ${best.symbol} ${best.side} [${best.strategyPrimary || "—"}] @ fit ${best.confluence.toFixed(2)} (${best.pathBand ?? best.grade}) — missing: ${best.missing.slice(0, 3).join(", ")}`;
   } else if (blocked.length) {
     focus = blocked[0]!;
   }

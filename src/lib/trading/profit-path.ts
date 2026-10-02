@@ -175,14 +175,7 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     (c.killzoneOk || bandPath) &&
     q >= PROFIT_ACTION_FLOOR - 0.05;
 
-  if (!next.title.includes("[path")) {
-    next.title = `${next.title} · [path ${band} · Q ${q.toFixed(2)}]`;
-  } else {
-    next.title = next.title.replace(
-      /\[path[^\]]*\]/,
-      `[path ${band} · Q ${q.toFixed(2)}]`,
-    );
-  }
+  stampPathTitle(next);
 
   const promoted = promotePrimaryStrategy(next);
   const gold = goldStandardNote(promoted);
@@ -190,6 +183,22 @@ export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
     promoted.reasons = [...promoted.reasons, gold];
   }
   return promoted;
+}
+
+/**
+ * "[path <band> · fit <x>]" on the card title, stamped from the card's
+ * CURRENT band and fit — so whoever mutates a card last (the scanner's
+ * vetoes) restamps it. Until 2026-10-02 it was stamped here only, before the
+ * vetoes ran, and a vetoed card read "[path A+ · Q 0.84]" over a C badge.
+ */
+export function stampPathTitle(
+  c: Pick<SetupCandidate, "title" | "pathBand" | "grade" | "confluence" | "vetoes" | "bandBeforeVeto">,
+): void {
+  const band = c.pathBand ?? c.grade;
+  const from = c.bandBeforeVeto && c.bandBeforeVeto !== band ? ` from ${c.bandBeforeVeto}` : "";
+  const veto = c.vetoes?.length ? ` · vetoed${from}` : "";
+  const tag = `[path ${band} · fit ${c.confluence.toFixed(2)}${veto}]`;
+  c.title = c.title.includes("[path") ? c.title.replace(/\[path[^\]]*\]/, tag) : `${c.title} · ${tag}`;
 }
 
 export function filterPathTrades<

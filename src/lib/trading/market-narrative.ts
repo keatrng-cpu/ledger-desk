@@ -382,7 +382,7 @@ function preferredFor(
       ? ["tjr", "judas", "blake_mech", "pdi"]
       : ["judas", "tjr", "blake_mech", "patty"];
   }
-  return ["smt", "ronan"];
+  return ["ronan", "continuation"];
 }
 
 /**

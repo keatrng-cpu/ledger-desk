@@ -130,8 +130,8 @@ export function walkthrough(
     engine?.score == null
       ? `${book.mustPass} of ${book.mustNeed} must-layers printed.`
       : book.word === "TAKE"
-        ? `Engine ${engine.grade ?? ""} ${engine.score.toFixed(2)} on ${engine.model ?? "the model"} AND the sequence is complete. Both agree.`
-        : `Engine says ${engine.grade ?? ""} ${engine.score.toFixed(2)} — that is how well ${engine.model ?? "the model"} FITS the tape, graded alone. The sequence says ${book.word} at ${book.mustPass}/${book.mustNeed} — that is how much of the TRADE has printed. They are not in conflict: the model is a good description of what is happening and the trade has not set up yet. The sequence authorises the entry, never the grade.` +
+        ? `Engine ${engine.grade ?? ""} · fit ${engine.score.toFixed(2)} on ${engine.model ?? "the model"} AND the sequence is complete. Both agree.`
+        : `Engine says ${engine.grade ?? ""} · fit ${engine.score.toFixed(2)} — that is how well ${engine.model ?? "the model"} FITS the tape, graded alone. The sequence says ${book.word} at ${book.mustPass}/${book.mustNeed} — that is how much of the TRADE has printed. They are not in conflict: the model is a good description of what is happening and the trade has not set up yet. The sequence authorises the entry, never the grade.` +
           (failedMusts > 0
             ? ` ${failedMusts} must-layer${failedMusts === 1 ? " has" : "s have"} already failed for this session, so this one is unlikely to complete today.`
             : "");

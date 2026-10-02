@@ -38,10 +38,10 @@ export const APLUS_FULL_SIZE_MIN_WR = 0.65;
 export const APLUS_PROBE_RISK = 0.02;
 export const APLUS_FULL_RISK = 0.03;
 
+/** SMT left this list 2026-10-02: a bias input, not a model (smt-level.ts). */
 export const PRIMARY_STRATEGIES = [
   "mechanical",
   "tjr",
-  "smt",
 ] as const;
 
 export const DEMOTED_LONG_STRATEGIES = ["blake_mech"] as const;
@@ -332,7 +332,6 @@ export function pickOneBookPerDay(
     let s = (c.qualityScore ?? c.confluence) * 100;
     s += strategyPriority(c.completeStrategy || c.strategyPrimary || "") * 0.1;
     if ((c.strategies || []).includes("mechanical" as never)) s += 5;
-    if ((c.strategies || []).includes("smt" as never)) s += 2;
     if ((c.strategies || []).includes("tjr" as never)) s += 2;
     // Prefer shorts slightly when both equal (Jul 20 gold style)
     if (c.side === "short") s += 1.5;

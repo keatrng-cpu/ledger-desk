@@ -20,6 +20,29 @@ import {
   type CanonStack,
 } from "./smc-canon";
 import { buildTradePlan, type TradePlan } from "./trade-plan";
+import { planHitOdds } from "./hit-odds-model";
+
+/**
+ * What the target is worth, in ONE probability (2026-10-02). This printed the
+ * 18-session first-passage race (target-odds.ts) — "T1 22% before the stop" —
+ * while the card printed a different number. On 2025–26 cards the four-year
+ * geometry model beat the race decisively (log loss 0.537 vs 0.578, paired
+ * z = −2.57; scripts/build-hit-odds.mjs), so the race is retired from the
+ * headline and the card and this layer now quote the same figure.
+ */
+function worthLine(plan: TradePlan): string {
+  const odds = planHitOdds({
+    side: plan.side,
+    symbol: plan.symbol,
+    entry: plan.entry,
+    stop: plan.stop,
+    t1: plan.t1,
+    atr: plan.riskAtr,
+    price: plan.price,
+  });
+  if (!odds) return plan.worth?.headline ?? "worth unpriced — no session history on this book";
+  return `T1 ${Math.round(odds.pT1 * 100)}% if filled (four-year model) · ${odds.expR >= 0 ? "+" : ""}${odds.expR.toFixed(2)}R per fill`;
+}
 import { planStopText } from "./card-plan";
 import { buildImpulseLeg, isUsableLeg, retracementRatio } from "./fib";
 import type { OhlcBar } from "@/lib/market/types";
@@ -519,7 +542,7 @@ function gradeBook(
       `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
       `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
       ` · risk ${plan.riskPts.toFixed(2)}pt` +
-      ` · ${plan.worth?.headline ?? "worth unpriced — no session history on this book"}` +
+      ` · ${worthLine(plan)}` +
       ` · ${reachTxt}`;
   }
   layers.push({

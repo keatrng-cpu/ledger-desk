@@ -152,7 +152,10 @@ export function buildClaudeHandoff(desk: DeskPayload): string {
   if (!best.length) lines.push("(none)");
   for (const c of best) {
     lines.push(
-      `- ${c.symbol} ${c.side} band=${c.pathBand ?? c.grade} Q=${c.confluence.toFixed(2)} actionable=${c.actionable} model=${c.completeStrategy || c.strategyPrimary}`,
+      `- ${c.symbol} ${c.side} band=${c.pathBand ?? c.grade} fit=${c.confluence.toFixed(2)}` +
+        (c.hitOdds ? ` pT1=${Math.round(c.hitOdds.pT1 * 100)}% expR=${c.hitOdds.expR.toFixed(2)}/fill` : " pT1=unpriced") +
+        (c.vetoes?.length ? ` VETO=${c.vetoes.join("; ")}` : "") +
+        ` actionable=${c.actionable} model=${c.completeStrategy || c.strategyPrimary}`,
     );
     lines.push(`  entry ${c.entryZone} | inv ${c.invalidation}`);
     if (c.targets[0]) lines.push(`  T ${c.targets.slice(0, 2).join(" · ")}`);

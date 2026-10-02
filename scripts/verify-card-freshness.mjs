@@ -45,11 +45,26 @@ const live = cardFreshness(mnq, 30895.0);
 check("live", live.state, "live");
 ok("reach still means something", live.reachStillMeaningful);
 
+console.log("\na resting limit that has not been reached yet is LIVE, not gone (fixed 2026-10-02)");
+// The live ES card from 2026-10-02 10:03 ET: long, array 7765.75–7782.75,
+// price 7795 above it, waiting for the retrace. The strip said ENTRY GONE over
+// the sequence's "wait for it, do not chase".
+const es = { side: "long", entry: 7774.25, entryZone: { top: 7782.75, bottom: 7765.75 }, stop: 7761.5, t1: 7804.75 };
+check("the real ES card is live (1.1 ATR above its array)", cardFreshness(es, 7795, null, 11).state, "live");
+// The mirror: a short whose price sits below its array, waiting for it to come up.
+const waiting = cardFreshness({ ...mnq, t1: 30700 }, 30840.0, null, 40);
+check("a short below its array is waiting, not gone", waiting.state, "live");
+
 console.log("\nthe other ways a card dies");
-// Price fell past the entry without the retrace ever coming.
-const gone = cardFreshness({ ...mnq, t1: 30700 }, 30840.0);
-check("entry gone", gone.state, "entry_gone");
+// Walked off: more than TIER_GONE_ATR beyond the array on the target side.
+const gone = cardFreshness({ ...es, t1: 7900 }, 7782.75 + 3.5 * 11, null, 11);
+check("walked off past 3 ATR → entry gone", gone.state, "entry_gone");
+ok("it says walked off", /WALKED OFF/.test(gone.line));
 ok("and a return is a DIFFERENT trade", /different trade/.test(gone.line));
+// Behind: through the array (and its retrace pad) on the stop side, stop not traded.
+const behind = cardFreshness({ side: "long", entry: 100, entryZone: { top: 102, bottom: 98 }, stop: 95, t1: 110 }, 96, null, 4);
+check("through the array on the stop side → past the entry", behind.state, "entry_gone");
+ok("a resting limit there is filled — manage it", /FILLED/.test(behind.line));
 // Invalidation already traded.
 const dead = cardFreshness({ ...mnq, t1: 30700 }, 30935.0);
 check("stop already tagged", dead.state, "entry_gone");

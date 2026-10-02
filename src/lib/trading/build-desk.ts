@@ -39,7 +39,9 @@ import {
 import { getSessionClock, sessionLive, type SessionClock } from "./sessions";
 import { applySession } from "./session-event";
 import { buildLiveSays, type LiveSays } from "./live-says";
-import { buildTfLadder, type TfLadder } from "./tf-ladder";
+import { buildTfLadder, ladderTags, type TfLadder } from "./tf-ladder";
+import { hitOdds } from "./hit-odds";
+import { HIT_ODDS_MODEL } from "./hit-odds-model";
 import { gradeSmcMaster, type SmcMasterRead } from "./smc-master";
 import {
   analyzeStructure,
@@ -777,6 +779,38 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left: buildTfLadder({ symbol: left.symbol, daily: dailyL, m15: left.bars, m1: minuteL, nowMs: ladderNow, engineTopDown: biasL.topDown }),
         right: buildTfLadder({ symbol: right.symbol, daily: dailyR, m15: right.bars, m1: minuteR, nowMs: ladderNow, engineTopDown: biasR.topDown }),
       };
+      // THE CARD'S SCORE (2026-10-02): P(T1 | filled) from the four-year model
+      // (hit-odds.ts, scripts/build-hit-odds.mjs). Computed here because it is
+      // the first point where the plan, the ladder, the live price and the
+      // scanner's pattern/SMT reads all exist together. Read-only — no gate,
+      // no size; the 0.65 floor and the bands still run on the fit.
+      for (const c of payload.scan.candidates) {
+        const isLeft = c.symbol === left.symbol;
+        const p = c.plan;
+        const book = [smcMaster.left, smcMaster.right].find((b) => b && b.symbol === c.symbol && b.side === c.side);
+        c.hitOdds = p
+          ? hitOdds(
+              {
+                side: c.side === "short" ? "short" : "long",
+                symbol: c.symbol,
+                entry: p.entry,
+                stop: p.stop,
+                t1: p.t1,
+                atr: p.atr ?? c.atr ?? null,
+                price: (isLeft ? payload.quotes.left : payload.quotes.right)?.price ?? null,
+                tags: ladderTags(isLeft ? ladder.left : ladder.right, c.side === "short" ? "short" : "long"),
+                inducement: c.patterns?.inducement ?? null,
+                mitigation: c.patterns?.mitigation ?? null,
+                smt: c.smtLevel ?? null,
+                killzone: clock.killzone,
+                weekday: clock.weekday,
+                fit: c.confluence,
+                raceP: book?.plan?.worth?.pT1First ?? null,
+              },
+              HIT_ODDS_MODEL,
+            )
+          : null;
+      }
       const coach = {
         xai: Boolean(process.env.XAI_API_KEY?.trim()),
         anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),

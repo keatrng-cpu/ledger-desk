@@ -296,7 +296,9 @@ export function considerPathAlarm(
 
   const title = `PATH ${band} · ${candidate.symbol} ${candidate.side.toUpperCase()}`;
   const body = [
-    `Q ${candidate.confluence.toFixed(2)}`,
+    candidate.hitOdds
+      ? `T1 ${Math.round(candidate.hitOdds.pT1 * 100)}% if filled · fit ${candidate.confluence.toFixed(2)}`
+      : `fit ${candidate.confluence.toFixed(2)}`,
     candidate.completeStrategy || candidate.strategyPrimary,
     candidate.entryZone.split("(")[0]?.trim(),
     clock.killzoneLabel,

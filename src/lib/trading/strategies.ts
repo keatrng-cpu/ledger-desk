@@ -25,7 +25,10 @@ export const ALWAYS_SCAN: StrategyId[] = [
   "continuation",
   "blake_mech",
   "ronan",
-  "smt",
+  // "smt" is NOT scanned as a model (trader's call 2026-10-02): SMT forms the
+  // timeframe bias and scores only as a component, only at a major level or
+  // HTF array (smt-level.ts). As a standalone model, "SMT + any array" made a
+  // mid-range divergence a complete strategy that could title a card.
 ];
 
 /**
@@ -233,17 +236,8 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     });
   }
 
-  if (smt && (structure || mss || cisd || ifvg)) {
-    matches.push({
-      strategy: "smt",
-      reasons: ["smt: correlated-pair divergence favors direction + entry model"],
-    });
-  } else if (smt) {
-    matches.push({
-      strategy: "smt",
-      reasons: ["smt: correlated-pair divergence favors direction"],
-    });
-  }
+  // SMT is not a model (2026-10-02) — a component, at a level only.
+  void smt;
 
   const seen = new Set<StrategyId>();
   const out: StrategyMatch[] = [];

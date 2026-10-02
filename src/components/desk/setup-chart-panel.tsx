@@ -246,7 +246,7 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
           </span>
           <span className="tabular text-[10px] text-[var(--color-muted)]">
             HTF {topDown}
-            {candidate ? ` · Q ${candidate.confluence.toFixed(2)}` : ""}
+            {candidate ? ` · fit ${candidate.confluence.toFixed(2)}` : ""}
             {candidate?.pathBand ? ` · ${candidate.pathBand}` : ""}
           </span>
         </div>
@@ -526,7 +526,10 @@ function SequenceWalkthrough({
     () =>
       walkthrough(book, {
         score: candidate?.confluence ?? null,
-        grade: candidate?.grade ?? null,
+        // ONE letter on the card: the PATH band (the badge, the one that
+        // sizes). `grade` is a coarser vocabulary that maps band C to "B",
+        // which printed "Engine says B" under a C badge.
+        grade: candidate?.pathBand ?? candidate?.grade ?? null,
         model: candidate?.strategyPrimary ?? null,
       }),
     [book, candidate],

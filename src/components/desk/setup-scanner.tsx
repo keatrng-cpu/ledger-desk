@@ -38,6 +38,7 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
+import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
 import { ladderConflict } from "@/lib/trading/ladder-conflict";
@@ -253,7 +254,10 @@ function CanonBadge({ stack }: { stack: CanonStack }) {
             "border-[color-mix(in_oklab,var(--color-down)_40%,var(--color-border))] text-[var(--color-down)]",
         )}
       >
-        SMC {stack.grade} · {stack.mustHits}/{stack.mustNeed}
+        {/* No letter here: the canon's A+/A/A-/B is a different scale from the
+            PATH band beside it, and "SMC B" next to a C badge read as two
+            grades for one card. The count is the information. */}
+        SMC {stack.mustHits}/{stack.mustNeed}
       </span>
       {musts.map((f) => (
         <span
@@ -577,6 +581,28 @@ function SetupCard({
       }),
     [c.confluence, c.side, risk.riskAtr, hasInducement, hasMitigation, session?.killzone, session?.sessionSource, session?.etHour, session?.etMinute, session?.weekday],
   );
+  const odds = c.hitOdds ?? null;
+  const oddsTitle = useMemo(() => {
+    if (!odds) return undefined;
+    const v = HIT_ODDS_MODEL.validation as {
+      oosN?: number;
+      oosHitRate?: number;
+      calibration?: { slope?: number };
+      expectedRByQuintile?: { expR: number; realizedR: number }[];
+    };
+    const top = v.expectedRByQuintile?.at(-1);
+    return (
+      `P(T1 reached | filled) ${Math.round(odds.pT1 * 100)}% — the live rule (limit at CE, failed-hold exit, hard stop), fitted on ${odds.n} filled cards over four years` +
+      (v.oosN ? `; checked on ${v.oosN} cards from 2025–26 it did not see (calibration slope ${v.calibration?.slope ?? "?"})` : "") +
+      `. Geometry alone (random walk) says ${Math.round(odds.pRandomWalk * 100)}%. ` +
+      `Expected ${odds.expR >= 0 ? "+" : ""}${odds.expR.toFixed(2)}R per fill` +
+      (odds.expRPerCard != null ? `, ${odds.expRPerCard >= 0 ? "+" : ""}${odds.expRPerCard.toFixed(2)}R per card at a ${Math.round((odds.pFill ?? 0) * 100)}% fill rate` : "") +
+      (top ? ` — read it as a RANKING: out of sample the top fifth was priced ${top.expR >= 0 ? "+" : ""}${top.expR.toFixed(2)}R and realized ${top.realizedR >= 0 ? "+" : ""}${top.realizedR.toFixed(2)}R` : "") +
+      `. Drivers on this card (probability points): ${odds.drivers.map((d) => `${d.label} ${d.pts > 0 ? "+" : ""}${d.pts}${d.reliable ? "" : " (interval spans zero)"}`).join(", ") || "none"}.` +
+      (odds.caveats.length ? ` Caveats: ${odds.caveats.join("; ")}.` : "") +
+      ` Not a gate — the 0.65 floor and the bands still run on the fit.`
+    );
+  }, [odds]);
   const qTitle = useMemo(() => {
     const b = qBucket(c.confluence);
     return (
@@ -763,8 +789,12 @@ function SetupCard({
         t1: p.t1,
       },
       live,
+      null,
+      // The series ATR — the scale the entry tier reads, so the strip and the
+      // tier agree on "gone".
+      c.plan?.atr ?? c.atr ?? null,
     );
-  }, [seqForChart?.plan, tape?.price, c.side]);
+  }, [seqForChart?.plan, tape?.price, c.side, c.atr, c.plan?.atr]);
 
   /**
    * Is this card's move already behind price?
@@ -861,6 +891,16 @@ function SetupCard({
               </span>
             </h3>
             <GradeBadge g={String(c.pathBand ?? c.grade)} />
+            {/* A veto is a FLAG (scanner.ts applyVeto, 2026-10-02): the fit is
+                untouched, the card is refused, and it says by what. */}
+            {c.vetoes?.length ? (
+              <span
+                title={`Refused: ${c.vetoes.join(" · ")}.${c.vetoes.includes("LTF delivery against") ? " Session is delivering the other way — do not fade a live impulse with leftover HTF components." : ""} The band was ${c.bandBeforeVeto ?? "—"} on the fit; a veto sets it to C and the card is not actionable. The fit and the T1 odds are unchanged — the veto is a rule, not a discount.`}
+                className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-down)]"
+              >
+                veto · {c.vetoes[0]!.split(" — ")[0]}
+              </span>
+            ) : null}
             {ghost?.status === "won" && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-up)]">
                 <CheckCircle2 className="h-3 w-3" /> hit target
@@ -909,14 +949,8 @@ function SetupCard({
                 HTF flipped
               </span>
             )}
-            {c.missing.includes("LTF delivery against") && (
-              <span
-                title="Session is delivering the other way. Do not fade a live impulse with leftover HTF components."
-                className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-down)]"
-              >
-                Fade LTF — off
-              </span>
-            )}
+            {/* "Fade LTF — off" lived here; it is the with-bias fade veto, now
+                shown once as the veto chip beside the badge. */}
           </div>
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}
@@ -934,18 +968,52 @@ function SetupCard({
             </div>
           )}
         </div>
-        <div
-          className="shrink-0 text-right font-mono"
-          title={qTitle}
-        >
-          <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
-            {c.confluence.toFixed(2)}
-          </p>
-          <p className="mt-0.5 text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            fit · not odds
-          </p>
-        </div>
+        {/* THE SCORE (2026-10-02): the probability this trade reaches T1 once
+            filled, from four years of the desk's own cards (hit-odds.ts). The
+            fit is the second number — still what the 0.65 floor and the bands
+            gate on, so it stays on the card, labelled as the gate it is. */}
+        {odds ? (
+          <div className="shrink-0 text-right font-mono" title={oddsTitle}>
+            <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
+              {Math.round(odds.pT1 * 100)}%
+            </p>
+            <p className="mt-0.5 text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+              T1 · if filled
+            </p>
+            <p className="mt-0.5 text-[9px] tabular text-[var(--color-subtle)]" title={qTitle}>
+              fit {c.confluence.toFixed(2)}
+            </p>
+          </div>
+        ) : (
+          <div className="shrink-0 text-right font-mono" title={qTitle}>
+            <p className="text-2xl font-semibold leading-none tabular text-[var(--color-fg)]">
+              {c.confluence.toFixed(2)}
+            </p>
+            <p className="mt-0.5 text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
+              fit · no priced T1
+            </p>
+          </div>
+        )}
       </div>
+
+      {odds && (
+        <p
+          title={oddsTitle}
+          className="mt-1 font-mono text-[10px] leading-snug text-[var(--color-muted)]"
+        >
+          <span className={odds.expR >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
+            {odds.expR >= 0 ? "+" : ""}
+            {odds.expR.toFixed(2)}R per fill
+          </span>
+          {odds.pFill != null && ` · fills ~${Math.round(odds.pFill * 100)}%`}
+          {` · geometry alone ${Math.round(odds.pRandomWalk * 100)}%`}
+          {odds.drivers.slice(0, 3).map((d) => (
+            <span key={d.key} className={d.reliable ? "text-[var(--color-fg)]" : undefined}>
+              {` · ${d.label} ${d.pts > 0 ? "+" : ""}${d.pts.toFixed(0)}`}
+            </span>
+          ))}
+        </p>
+      )}
 
       <ScoreMeter score={c.confluence} />
 
@@ -956,6 +1024,12 @@ function SetupCard({
         title={gap.line}
         className="mt-0.5 font-mono text-[9px] leading-snug text-[var(--color-subtle)]"
       >
+        {c.vetoes?.length ? (
+          <span className="text-[var(--color-down)]">
+            fit {c.confluence.toFixed(2)} · vetoed{c.bandBeforeVeto && c.bandBeforeVeto !== c.pathBand ? ` from ${c.bandBeforeVeto}` : ""} — {c.vetoes[0]}
+            {" · "}
+          </span>
+        ) : null}
         {gap.clamped ? (
           <span className="text-[var(--color-warn)]">
             held by the completeness clamp — {gap.wouldMove[0]?.label ?? "a must-layer"} missing
@@ -965,7 +1039,7 @@ function SetupCard({
           <>at this strategy's ceiling on this tape — it moves only if a component is lost</>
         ) : (
           <>
-            ceiling {gap.ceiling.toFixed(2)} here · {gap.wouldMove.length} missing worth{" "}
+            fit ceiling {gap.ceiling.toFixed(2)} here · {gap.wouldMove.length} missing worth{" "}
             {gap.gap.toFixed(2)}
             {gap.wouldMove[0] && ` · biggest ${gap.wouldMove[0].label} +${gap.wouldMove[0].worth.toFixed(2)}`}
           </>
@@ -1694,7 +1768,12 @@ export function SetupScanner({
 
       <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
-          <span className="font-medium text-[var(--color-primary)]">SMT · </span>
+          <span
+            className="font-medium text-[var(--color-primary)]"
+            title="SMT forms the timeframe bias. It adds to a card's score only when the divergence printed at a major level (PDH/PDL, PWH/PWL, Asia/London H/L) or a 1h/4h array (smt-level.ts)."
+          >
+            SMT · bias input ·{" "}
+          </span>
           {scan.smt.note}
         </div>
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">

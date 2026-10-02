@@ -32,6 +32,7 @@
 
 import type { DrawRead, LiquidityTarget } from "./draw";
 import type { TradePlan } from "./trade-plan";
+import { readEntry, TIER_GONE_ATR } from "./entry-trigger";
 
 export type CardState =
   /** Entry and target both still ahead. Tradable. */
@@ -66,6 +67,8 @@ export function cardFreshness(
   plan: Pick<TradePlan, "side" | "entry" | "entryZone" | "stop" | "t1">,
   livePrice: number,
   staleAt?: number | null,
+  /** ATR of the graded series; without it the array's height is the scale, as in readEntry. */
+  atr?: number | null,
 ): Freshness {
   const short = plan.side === "short";
   const driftPts = staleAt != null && Number.isFinite(staleAt) ? Math.abs(livePrice - staleAt) : null;
@@ -95,22 +98,7 @@ export function cardFreshness(
     }
   }
 
-  // 2. Entry ran away. For a short the entry sits above price and price comes
-  //    UP into it; if price has fallen well past it, the retrace never came.
-  const zone = plan.entryZone;
-  if (zone) {
-    const past = short ? livePrice < zone.bottom : livePrice > zone.top;
-    if (past) {
-      return {
-        ...base,
-        state: "entry_gone",
-        reachStillMeaningful: false,
-        line: `ENTRY GONE — the array was ${zone.bottom.toFixed(2)}–${zone.top.toFixed(2)} and price is ${livePrice.toFixed(2)}, already past it. The retrace this card was waiting for did not happen. A return to the zone is NOT a fill of this ticket; it is a different trade that has to be graded from scratch.`,
-      };
-    }
-  }
-
-  // 3. Stop already tagged — the idea is dead rather than spent.
+  // 2. Stop already tagged — the idea is dead rather than spent.
   const stopped = short ? livePrice >= plan.stop : livePrice <= plan.stop;
   if (stopped) {
     return {
@@ -119,6 +107,43 @@ export function cardFreshness(
       reachStillMeaningful: false,
       line: `INVALIDATION AT ${plan.stop.toFixed(2)} IS ALREADY TRADED — price ${livePrice.toFixed(2)}. This card is dead, not waiting.`,
     };
+  }
+
+  // 3. Where price sits against the entry array — the SAME read the entry
+  //    tier uses (entry-trigger.ts readEntry), so the strip and the tier can
+  //    never disagree about which side of the array is "gone".
+  //
+  //    FIXED 2026-10-02. This used to call a LONG gone whenever price was
+  //    ABOVE its array (a short whenever price was below it). That is the
+  //    normal state of a resting limit — the retrace has not come yet — and
+  //    it is the state that measured best: CE 0.25–1 ATR away paid +0.119R
+  //    per card on the in-band cards against −0.004R for the rest
+  //    (scripts/measure-entry-location.mjs). The strip printed "ENTRY GONE"
+  //    directly above the sequence's "wait for it, do not chase" and a live
+  //    "Paper · rest @ CE" button. readEntry had it right all along: gone is
+  //    the STOP side of the array (behind) or more than TIER_GONE_ATR away on
+  //    the target side (walked off).
+  const zone = plan.entryZone;
+  if (zone) {
+    const read = readEntry(plan as TradePlan, livePrice, atr ?? null);
+    const zoneTxt = `${zone.bottom.toFixed(2)}–${zone.top.toFixed(2)}`;
+    if (read?.behind) {
+      return {
+        ...base,
+        state: "entry_gone",
+        reachStillMeaningful: false,
+        line: `PAST THE ENTRY — price ${livePrice.toFixed(2)} is through the array ${zoneTxt} on the stop side; the stop ${plan.stop.toFixed(2)} has not traded. A limit resting at CE ${plan.entry.toFixed(2)} is FILLED — manage it as a trade. Not resting: this plan is behind price, and a return to the zone is a different trade that has to be graded from scratch.`,
+      };
+    }
+    if (read?.tier === "gone") {
+      const dist = read.awayAtr != null ? `${read.awayAtr.toFixed(1)} ATR` : `${(read.awayPts ?? 0).toFixed(2)}pt`;
+      return {
+        ...base,
+        state: "entry_gone",
+        reachStillMeaningful: false,
+        line: `WALKED OFF — price ${livePrice.toFixed(2)} is ${dist} beyond the array ${zoneTxt} on the target side, past the ${TIER_GONE_ATR} ATR this plan stays valid for. A return to the zone after a move this size is a different trade that has to be graded from scratch.`,
+      };
+    }
   }
 
   return {
