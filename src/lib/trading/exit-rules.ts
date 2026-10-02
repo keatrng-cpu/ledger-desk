@@ -19,7 +19,8 @@
  * EVIDENCE (scripts/measure-exit-plan.mjs, paired on the same fills)
  *   Cards the desk lets through (stop inside 0.5–1.5 ATR, n=1327):
  *     +0.033R → +0.066R per card, Δ +0.033R, z = 2.60, 2022–24 +0.027,
- *     2025–26 +0.043; cards reaching the full stop 82% → 65%.
+ *     2025–26 +0.043; full-stop exits 67% → 50% (stop-or-breakeven 82% →
+ *     65% — the script counted a breakeven exit as a stop).
  *   All cards (n=3501): Δ +0.017R, z = 1.13 — the pre-registered test, which
  *     it does NOT clear on its own. The in-band cut is the desk's existing
  *     hard rule, not chosen after the fact, but eight variants were run on it
