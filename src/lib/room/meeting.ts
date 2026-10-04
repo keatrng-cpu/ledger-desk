@@ -417,8 +417,13 @@ function debate(f: Facts, minds: MindState | null, mode: "wait" | "fill" | "veto
     const src = f.desk ? f.desk.spotSource[c.underlier] : `${c.underlier} ${px(f.input.market_data[c.underlier].price)}`;
     lines.push(say("Vince", `BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} · ${src}. Sent.`, "SMASHING_ENTER_KEY"));
   } else if (mode === "wait") {
-    lines.push(say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}, fires on the CE touch only. ${preMortem(c, ev)}`, "CHECKING_TABLET"));
-    lines.push(say("Vince", `Resting at CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing crosses the spread early.`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"));
+    if (ch.decisive) {
+      lines.push(say("Sterling", "Not cleared. It's priced at its CE already — if it touches, the ledger refuses it and the ghost room takes it.", "CROSSING_ARMS"));
+      lines.push(say("Vince", `Watching CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing will route on this one.`, "STEADY_MONITORING"));
+    } else {
+      lines.push(say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}, fires on the CE touch only. ${preMortem(c, ev)}`, "CHECKING_TABLET"));
+      lines.push(say("Vince", `Resting at CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing crosses the spread early.`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"));
+    }
   } else {
     const gate = f.refusalGate ?? "";
     const vm = vetoMemory(minds);

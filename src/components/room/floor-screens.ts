@@ -24,6 +24,9 @@ export interface LedgerScreen {
   share: number | null;
   paths: { kind: "t1" | "loss" | "none"; p: number; pnlUsd: number; clock: string }[];
   evUsd: number;
+  /** The same paths on the model's out-of-sample hit rate — the second number the EV gate requires. */
+  evCalUsd: number | null;
+  pCal: number | null;
   t1Pays: boolean;
   /** Held: holding minus selling now, per contract. */
   edgeUsd: number | null;
@@ -747,10 +750,16 @@ function drawLedger(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillStyle = C.text;
     ctx.fillText(`${signed(r.pnlUsd)} · ~${r.clock}`, bx + 10, y + 18);
   });
-  ctx.fillStyle = L.evUsd > 0 ? C.up : C.down;
+  const both = L.evUsd > 0 && (L.evCalUsd == null || L.evCalUsd > 0);
+  ctx.fillStyle = L.held ? (L.evUsd > 0 ? C.up : C.down) : both ? C.up : C.down;
   ctx.font = `900 40px ${MONO}`;
   ctx.textAlign = "right";
-  ctx.fillText(`EV ${signed(L.evUsd)}`, w - 16, h - 52);
+  ctx.fillText(`EV ${signed(L.evUsd)}`, w - 16, h - 78);
+  ctx.font = `700 17px ${MONO}`;
+  if (L.evCalUsd != null && L.pCal != null) {
+    ctx.fillStyle = L.evCalUsd > 0 ? C.up : C.down;
+    ctx.fillText(`realized-decile ${pct(L.pCal)} → ${signed(L.evCalUsd)}`, w - 16, h - 48);
+  }
   ctx.font = `600 16px ${FONT}`;
   ctx.fillStyle = C.muted;
   ctx.fillText(L.held ? (L.edgeUsd != null ? `hold vs sell now ${signed(L.edgeUsd)} a contract` : "") : L.t1Pays ? "T1 pays ✓  · per contract, after both crossings" : "T1 does NOT pay ✗", w - 16, h - 22);

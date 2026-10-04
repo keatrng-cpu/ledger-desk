@@ -48,6 +48,12 @@ const argOf = (name, dflt) => {
 const SIGDIR = argOf("sigdir", ".cache/signals");
 const HIST = "src/data/history-4y.json";
 const OUT = argOf("out", "src/data/room-time-odds.json");
+// --years 2022,2023,2024 builds curves from those fill years only (measure-room-ev.mjs
+// prices its out-of-sample half on curves that never saw it).
+const YEARS = argOf("years", "")
+  .split(",")
+  .map(Number)
+  .filter((y) => y > 2000);
 const FILL_BARS = 12;
 const HOLD_BARS = 32;
 const TICK = 0.25;
@@ -214,6 +220,7 @@ for (const r of rows) {
   }
   const fillT = BARS[r.sym][o.fi].t;
   const m = etMinOf(fillT);
+  if (YEARS.length && !YEARS.includes(yearOf(fillT))) continue;
   fills.push({
     ...o,
     year: yearOf(fillT),
@@ -267,6 +274,7 @@ const out = {
   },
   barMinutes: 15,
   holdBars: HOLD_BARS,
+  years: YEARS.length ? YEARS : "all",
   population: { cards, eligible: rows.length, unfilled, fills: fills.length, nyAmFills: fills.filter((o) => o.nyAm).length },
   subsets,
 };

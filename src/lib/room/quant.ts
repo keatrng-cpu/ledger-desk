@@ -124,18 +124,22 @@ function futAtR(p: PlanRead, r: number): number {
 }
 
 /**
- * Where an unresolved plan stands at the flat: the measured mean progress
+ * Where an unresolved plan stands at the flat: where it is NOW plus the
+ * measured drift of still-open plans from this bar to the flat — as progress
  * toward T1 (a fraction of entry→T1, so a 1R and a 4R target are not pooled
- * in R), kept strictly between the failed-hold close and T1 — an open plan
- * has touched neither. Without a T1 or a fraction, the R mark, same bounds.
+ * in R), else in R. At entry "now" is the CE and the drift is the whole
+ * measured mark. Kept below T1 (an open plan has not touched it) and above
+ * the failed-hold close or the current price, whichever is lower.
  */
-function noneFut(p: PlanRead, w: WindowOdds): number {
+function noneFut(p: PlanRead, w: WindowOdds, futNow: number): number {
   const risk = Math.abs(p.entry - p.stop);
+  if (!(risk > 0)) return futNow;
   const dir = p.side === "long" ? 1 : -1;
-  const loR = -0.5;
-  const hiR = p.t1 != null && risk > 0 ? Math.abs(p.t1 - p.entry) / risk : Infinity;
-  const r = p.t1 != null && w.noneFrac != null && risk > 0 ? (w.noneFrac * Math.abs(p.t1 - p.entry)) / risk : w.noneR;
-  const clamped = Math.min(hiR * 0.98, Math.max(loR, r));
+  const nowR = (dir * (futNow - p.entry)) / risk;
+  const toT1 = p.t1 != null ? Math.abs(p.t1 - p.entry) : null;
+  const drift = toT1 != null && w.noneFrac != null && w.nowFrac != null ? ((w.noneFrac - w.nowFrac) * toT1) / risk : w.noneR - w.nowR;
+  const hiR = toT1 != null ? toT1 / risk : Infinity;
+  const clamped = Math.min(hiR * 0.98, Math.max(Math.min(-0.5, nowR), nowR + drift));
   return p.entry + dir * clamped * risk;
 }
 
@@ -211,7 +215,7 @@ export function priceOptionPlan(a: PriceArgs): OptionEv {
   }
   {
     const atMs = a.flatMs;
-    const fut = noneFut(a.plan, win);
+    const fut = noneFut(a.plan, win, a.futNow);
     const s = etf(fut);
     const exitPx = backstopped(bidAt(s, a.strike, a.exp, a.type, a.iv, atMs), a.entryPx);
     scenarios.push({ kind: "none", p: win.pNone, bar: fromBar + windowBars, atMs, fut, etf: s, exitPx, pnlUsd: pnl(exitPx) });

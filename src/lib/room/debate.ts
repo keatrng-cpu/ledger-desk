@@ -20,8 +20,9 @@
  * question — P(T1 before the 11:00 flat) — so they genuinely disagree:
  *
  *   Nova      the desk model × the measured time curve
- *   Sterling  the OUT-OF-SAMPLE realized hit rate of the model decile the
- *             card falls in × the time curve (the model's own report card)
+ *   Sterling  the model's odds read through its own OUT-OF-SAMPLE table
+ *             (quant.ts calibratedP: 2025–26 deciles, pooled to be monotone)
+ *             × the time curve — the same number the EV gate requires
  *   Gemma     the model × NY AM's measured T1 rate over the baseline's — a
  *             session lens the fitted model does NOT use (it tested out at
  *             z −0.54), so the lab will show whether she is right to
@@ -39,7 +40,7 @@ import { EVIDENCE } from "@/lib/trading/evidence";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import { MIN_TRACK, type LabRead } from "./lab";
 import type { Animation, Character, RoomEntryRead } from "./orchestrator";
-import { realizedForDecile, type OptionEv } from "./quant";
+import { calibratedP, realizedForDecile, type OptionEv } from "./quant";
 
 export interface Lens {
   p: number;
@@ -72,15 +73,15 @@ export function lensesFor(card: RoomEntryRead, ev: OptionEv, _lab: LabRead | nul
   const p8 = clamp(card.pT1 ?? ev.pT1Model);
   // At entry the window's T1 probability is p8 × the share of T1s that land inside it.
   const share = ev.window.measured ? ev.window.shareOfHitsInWindow : 1;
-  const dec = realizedForDecile(p8);
+  const cal = calibratedP(p8);
   const sess = sessionRatio();
   const rr = card.plan?.rr1 ?? (card.plan?.t1 != null ? Math.abs(card.plan.t1 - card.plan.entry) / Math.max(1e-9, Math.abs(card.plan.entry - card.plan.stop)) : null);
   const nova = clamp(ev.window.pT1);
   return {
     Nova: { p: nova, basis: `model ${pc(p8)} in 8h × ${pc(share)} of T1s before the flat` },
     Sterling: {
-      p: clamp((dec?.hitRate ?? p8) * share),
-      basis: dec ? `the model's ${pc(dec.meanP)} decile realized ${pc(dec.hitRate)} out of sample (n ${dec.n})` : "no calibration table — the model's number",
+      p: clamp((cal?.p ?? p8) * share),
+      basis: cal ? `cards the model priced at ${pc(p8)} hit ${pc(cal.p)} out of sample (its 2025–26 table, n ${cal.n} around it)` : "no calibration table — the model's number",
     },
     Gemma: {
       p: clamp(p8 * (sess?.ratio ?? 1) * share),
@@ -156,6 +157,14 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
       decisive: true,
     };
   }
+  if (ev.calibrated && ev.calibrated.evUsd <= 0) {
+    return {
+      who: "Sterling",
+      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — and on that it's ${usdSigned(ev.calibrated.evUsd)} a contract. The model is optimistic exactly where options look best. I'm taking the realized number.`,
+      want: "CROSSING_ARMS",
+      decisive: true,
+    };
+  }
   if (card.patterns?.inducement || card.patterns?.mitigation) {
     const key = card.patterns.inducement ? "inducement" : "mitigation";
     const yes = (EVIDENCE[key] ?? []).find((b) => b.key === "yes");
@@ -169,10 +178,11 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   }
   const p8 = card.pT1 ?? ev.pT1Model;
   const dec = realizedForDecile(p8);
-  if (dec && dec.hitRate < p8 - 0.03) {
+  const calP = calibratedP(p8);
+  if (dec && calP && calP.p < p8 - 0.03) {
     return {
       who: "Sterling",
-      text: `The model says ${pc(p8)}. Its own decile at ${pc(dec.meanP)} realized ${pc(dec.hitRate)} out of sample over ${dec.n} fills — I'm taking the realized number.`,
+      text: `The model says ${pc(p8)}. Its own decile at ${pc(dec.meanP)} realized ${pc(dec.hitRate)} out of sample over ${dec.n} fills — read monotonically that's ${pc(calP.p)}, and EV still clears at ${usdSigned(ev.calibrated?.evUsd ?? ev.evUsd)}. Noted, not blocking.`,
       want: "CHECKING_TABLET",
       decisive: false,
     };
@@ -218,7 +228,7 @@ export function rebuttalFor(owner: Character, card: RoomEntryRead, ev: OptionEv,
       Jax: "Fine. Then it's a pass — but I want the ghost on the board.",
       Nova: "Agreed. A right plan in the wrong contract is still a loss.",
       Sterling: "Then the list says no, and I'm the list.",
-      Gemma: "Then the clock wins. The ghost room can keep the receipt.",
+      Gemma: "Then the numbers win. The ghost room can keep the receipt.",
       Vince: "Then nothing routes. The ghost takes it.",
     };
     return { who: owner, text: lines[owner], want: owner === "Jax" ? "POINTING" : owner === "Sterling" ? "CROSSING_ARMS" : owner === "Nova" ? "NODDING" : owner === "Gemma" ? "EXPLAINING" : "STEADY_MONITORING", decisive: false };

@@ -310,8 +310,13 @@ function LedgerPanel({ frame }: { frame: FloorFrame | null }) {
           <p className={`font-mono text-sm font-semibold ${L.evUsd > 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
             EV {sgn(L.evUsd)} a contract after both crossings{L.held && L.edgeUsd != null ? ` · hold vs sell ${sgn(L.edgeUsd)}` : ""}
           </p>
+          {L.evCalUsd != null && L.pCal != null ? (
+            <p className={`font-mono text-[11px] ${L.evCalUsd > 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
+              On the model's out-of-sample hit rate ({pc(L.pCal)} for {pc(L.pT1Model)}): {sgn(L.evCalUsd)} — the gate wants both positive
+            </p>
+          ) : null}
           <p className="text-[10px] leading-snug text-[var(--color-subtle)]">
-            A refusal rule, not an edge claim: a ticket whose priced paths lose after costs is refused, and the ghost room measures whether that helped.
+            A refusal rule, not an edge claim: a ticket whose priced paths lose after costs — on the model's odds or on its realized out-of-sample rate — is refused, and the ghost room measures whether that helped.
           </p>
         </div>
       )}

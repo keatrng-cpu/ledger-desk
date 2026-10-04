@@ -137,6 +137,13 @@ export interface WindowOdds {
   noneR: number;
   /** The same mark as a fraction of the way to T1, when measured — how quant.ts prices the flat. */
   noneFrac: number | null;
+  /**
+   * The measured mean mark of still-open plans at the last CLOSED bar (0 at
+   * entry) — so a held plan is priced from where IT is, plus the measured
+   * drift of open plans from here to the flat, not from the average plan.
+   */
+  nowR: number;
+  nowFrac: number | null;
   /** Share of all eventual T1s that land inside this window. */
   shareOfHitsInWindow: number;
 }
@@ -168,6 +175,8 @@ export function windowOdds(pT1At8h: number, t1Atr: number | null, fromBar: numbe
       lossR: -0.89,
       noneR: 0,
       noneFrac: null,
+      nowR: 0,
+      nowFrac: null,
       shareOfHitsInWindow: 1,
     };
   }
@@ -180,6 +189,10 @@ export function windowOdds(pT1At8h: number, t1Atr: number | null, fromBar: numbe
   // The mark of plans still open at the flat: open after bar `end` (the last bar before it).
   const markIdx = Math.max(0, Math.min(end, c.markR.length - 1));
   const frac = c.markFrac?.length ? (c.markFrac[Math.max(0, Math.min(end, c.markFrac.length - 1))] ?? null) : null;
+  // The last closed bar is k0 − 1; at entry nothing has closed and the mark is the entry.
+  const nowIdx = k0 - 1;
+  const nowR = nowIdx < 0 ? 0 : (c.markR[Math.min(nowIdx, c.markR.length - 1)] ?? 0);
+  const nowFrac = nowIdx < 0 ? 0 : c.markFrac?.length ? (c.markFrac[Math.min(nowIdx, c.markFrac.length - 1)] ?? null) : null;
   return {
     measured: true,
     curveKey: found.key,
@@ -193,6 +206,8 @@ export function windowOdds(pT1At8h: number, t1Atr: number | null, fromBar: numbe
     lossR: c.lossR ?? -0.89,
     noneR: c.markR[markIdx] ?? 0,
     noneFrac: frac,
+    nowR,
+    nowFrac,
     shareOfHitsInWindow: w > 0 ? at(c.cdfT1, end) : before(c.cdfT1, k0),
   };
 }

@@ -22,7 +22,7 @@ import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-re
 import type { DrillStep } from "@/lib/room/drill";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
-import { asLab, labRead } from "@/lib/room/lab";
+import { asLab, labRead, type LabRead } from "@/lib/room/lab";
 import {
   ROOM_DEFAULT_CASH,
   applyCycle,
@@ -41,8 +41,6 @@ import {
 import { researchShelf } from "@/lib/room/research";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
-import type { LabRead } from "@/lib/room/lab";
-import type { RoomCycle as Cycle } from "@/lib/room/orchestrator";
 import type { FloorFrame, FloorScreens, LedgerScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
@@ -118,7 +116,7 @@ export function calendarFor(nowMs: number): FloorScreens["calendar"] {
 }
 
 /** The ledger the jumbotron draws: the card under review, else the first held position the room can price. */
-function ledgerScreenOf(cycle: Cycle): LedgerScreen | null {
+function ledgerScreenOf(cycle: RoomCycle): LedgerScreen | null {
   const clock = (ms: number) => {
     const w = etWallParts(ms);
     return clockEt(w.hour * 60 + w.minute);
@@ -135,6 +133,8 @@ function ledgerScreenOf(cycle: Cycle): LedgerScreen | null {
       share: e.ev.measured ? e.ev.window.shareOfHitsInWindow : null,
       paths: e.ev.scenarios.map((x) => ({ kind: x.kind, p: x.p, pnlUsd: x.pnlUsd, clock: clock(x.atMs) })),
       evUsd: e.ev.evUsd,
+      evCalUsd: e.ev.calibrated?.evUsd ?? null,
+      pCal: e.ev.calibrated?.p ?? null,
       t1Pays: e.ev.t1Pays,
       edgeUsd: null,
     };
@@ -151,6 +151,8 @@ function ledgerScreenOf(cycle: Cycle): LedgerScreen | null {
       share: h.ev.measured ? h.ev.window.shareOfHitsInWindow : null,
       paths: h.ev.scenarios.map((x) => ({ kind: x.kind, p: x.p, pnlUsd: x.pnlUsd, clock: clock(x.atMs) })),
       evUsd: h.ev.evUsd,
+      evCalUsd: null,
+      pCal: null,
       t1Pays: h.ev.t1Pays,
       edgeUsd: h.edgeUsd,
     };

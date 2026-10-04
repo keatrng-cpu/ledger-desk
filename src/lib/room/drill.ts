@@ -15,10 +15,13 @@
  * The day: arrivals and coffee; a meeting before the 08:30 release, the
  * blackout, the release, a meeting after it; the 09:20 brief; a Judas raid
  * Jax calls the wrong way; a B+ card the room reviews and refuses to trade;
- * the A setup — FORMING → ARMED → the CE touch → a 1 DTE call fill; the
- * +40% trim at T1; Sterling refusing a second book on SPY (and the veto being
- * priced 30 minutes later); the 11:00 time stop; lunch; the close debrief;
- * after hours.
+ * the A setup — FORMING → ARMED → the CE touch → REFUSED as an option (a
+ * near T1 that the clock and the spread eat; its ghost is followed and wins,
+ * because refusals are not free); an A+ far-target card on a CPI morning
+ * (realized moving, implied crushed) → a 1 DTE call fill; no averaging; the
+ * +40% trim; Sterling refusing a second book on SPY (and the veto being
+ * priced 30 minutes later); the 11:00 time stop on the runner; lunch; the
+ * close debrief with the ghost room's receipt; after hours.
  */
 
 import { etWallToEpochMs } from "@/lib/trading/sessions";
@@ -63,12 +66,18 @@ export interface DrillFrame {
   news?: string[];
 }
 
-/** The QQQ book's plan: MNQ long off the Judas low. rr1 = 114 / 72 = 1.58. */
+/** The QQQ book's first plan: MNQ long off the Judas low. rr1 = 114 / 72 = 1.58 — a near T1 the option can't afford. */
 const NQ_PLAN = { entry: 30996, stop: 30924, t1: 31110, t2: 31180, rr1: 1.58 };
+/**
+ * The second plan, after the next displacement: a far T1 (3 ATR) on a tight
+ * stop (0.75 ATR). rr1 = 270 / 68 = 3.97. The kind of card the ledger passes —
+ * one whose T1 pays enough to cover the clock; most real cards are not this.
+ */
+const PLAN_B = { entry: 31030, stop: 30962, t1: 31300, t2: 31380, rr1: 3.97 };
 /** The SPY book's plan Sterling refuses: ES long, a second book on the same morning. */
 const ES_PLAN = { entry: 7846, stop: 7838, t1: 7859, t2: 7868, rr1: 1.63 };
-/** The drill's 15m ATRs — scripted, like everything else here. */
-const NQ_ATR = 60;
+/** The drill's 15m ATRs — scripted, like everything else here. A CPI morning: MNQ is moving 90 points a bar. */
+const NQ_ATR = 90;
 const ES_ATR = 10;
 
 /** The model's measured fill rate for a location tier (hit-odds-model.json fillByTier). */
@@ -130,6 +139,18 @@ function nqCard(over: Partial<RoomEntryRead>): RoomEntryRead {
   };
 }
 
+/** The A+ card on PLAN_B — an ICT school card, so Gemma owns the thesis. */
+function planBCard(over: Partial<RoomEntryRead>, price: number): RoomEntryRead {
+  return nqCard({
+    band: "A+",
+    confluence: 0.78,
+    plan: PLAN_B,
+    ...oddsOn(PLAN_B, "MNQ", NQ_ATR, price),
+    strategy: "ICT FVG after the MSS (drill)",
+    ...over,
+  });
+}
+
 function standCard(blocks: string[], over: Partial<RoomEntryRead> = {}): RoomEntryRead {
   return nqCard({
     verdict: "STAND",
@@ -168,6 +189,8 @@ const B_PLUS: AgendaSetup = {
 
 export function drillFrames(): DrillFrame[] {
   const calm: Pick<DrillFrame, "vix" | "trend" | "spike"> = { vix: 17.6, trend: ["BULLISH", "BULLISH"], spike: [false, false] };
+  // The soft print crushes implied vol while the tape keeps moving — options cheap against the move.
+  const crushed: Pick<DrillFrame, "vix" | "trend" | "spike"> = { vix: 16.2, trend: ["BULLISH", "BULLISH"], spike: [false, false] };
   const pre = (at: string): Partial<Agenda> => ({ next: { ...RELEASE, minutes: minutesBetween(at, RELEASE.timeEt) }, last: null });
   const post = (at: string, move?: AgendaEvent["move"]): Partial<Agenda> => ({
     next: { ...NEXT_AFTER, minutes: minutesBetween(at, NEXT_AFTER.timeEt) },
@@ -338,7 +361,7 @@ export function drillFrames(): DrillFrame[] {
     },
     {
       at: "09:56",
-      caption: "MNQ trades 31,000 — inside the array. The CE is touched.",
+      caption: "MNQ trades 31,000 — inside the array. The CE is touched, and Nova prices the OPTION before Vince routes anything.",
       qqq: 775.0,
       spy: 785.1,
       nq: 31000,
@@ -350,40 +373,50 @@ export function drillFrames(): DrillFrame[] {
     },
     {
       at: "10:05",
-      caption: "Delivery. MNQ walks off the array toward T1.",
+      caption: "Delivery without the room. MNQ displaces again and leaves a new array — an A+ card with a far target. The refused card's ghost is green.",
       qqq: 776.7,
       spy: 785.7,
       nq: 31068,
       es: 7857,
       rsi: [62, 58],
-      ...calm,
-      entry: nqCard({ tier: "forming", awayPts: 66, pFill: tierFill("forming") }),
+      ...crushed,
+      entry: planBCard({ tier: "armed", awayPts: 38, pFill: tierFill("armed") }, 31068),
       agenda: post("10:05", cpiMove),
+      news: ["VIX slides as the soft print lands (drill)"],
+    },
+    {
+      at: "10:11",
+      caption: "The pullback tags 31,030. The A+ CE is touched.",
+      qqq: 775.75,
+      spy: 785.4,
+      nq: 31030,
+      es: 7854,
+      rsi: [54, 55],
+      ...crushed,
+      entry: planBCard({ tier: "live", awayPts: 0, pFill: tierFill("live") }, 31030),
+      agenda: post("10:11", cpiMove),
     },
     {
       at: "10:14",
-      caption: "T1 31,110 prints. The calls are through +40%.",
-      qqq: 778.1,
-      spy: 786.3,
-      nq: 31124,
-      es: 7863,
-      rsi: [70, 63],
-      vix: 17.2,
-      trend: ["BULLISH", "BULLISH"],
-      spike: [true, false],
-      entry: nqCard({ tier: "gone", awayPts: 122, pFill: null }),
+      caption: "Still at the array. The plan is already filled — the room never adds to it.",
+      qqq: 775.8,
+      spy: 785.4,
+      nq: 31032,
+      es: 7854,
+      rsi: [55, 55],
+      ...crushed,
+      entry: planBCard({ tier: "live", awayPts: 2, pFill: tierFill("live") }, 31032),
       agenda: post("10:14", cpiMove),
-      news: ["Tech leads as yields ease after CPI (drill)"],
     },
     {
       at: "10:22",
       caption: "ES pulls into its own array — the desk arms an SPY call while QQQ is still open.",
-      qqq: 777.6,
+      qqq: 776.5,
       spy: 784.7,
-      nq: 31104,
+      nq: 31060,
       es: 7847,
-      rsi: [61, 49],
-      ...calm,
+      rsi: [58, 49],
+      ...crushed,
       entry: nqCard({
         underlier: "SPY",
         futSymbol: "ES",
@@ -400,35 +433,50 @@ export function drillFrames(): DrillFrame[] {
       agenda: post("10:22", cpiMove),
     },
     {
+      at: "10:30",
+      caption: "MNQ runs through 31,110 — the refused card's T1 prints for its ghost, and the room's calls are through +40%.",
+      qqq: 778.75,
+      spy: 785.6,
+      nq: 31150,
+      es: 7856,
+      rsi: [71, 57],
+      vix: 15.9,
+      trend: ["BULLISH", "BULLISH"],
+      spike: [true, false],
+      entry: planBCard({ tier: "gone", awayPts: 120, pFill: null }, 31150),
+      agenda: post("10:30", cpiMove),
+      news: ["Tech leads as yields ease after CPI (drill)"],
+    },
+    {
       at: "10:37",
-      caption: "Both books drift. The QQQ runner holds above breakeven.",
-      qqq: 777.9,
-      spy: 784.4,
-      nq: 31116,
-      es: 7844,
-      rsi: [60, 47],
-      ...calm,
+      caption: "The runner holds above breakeven, stop at the entry premium.",
+      qqq: 779.0,
+      spy: 785.4,
+      nq: 31160,
+      es: 7853,
+      rsi: [68, 52],
+      ...crushed,
       entry: standCard(["No A+/A/A− PATH"]),
       agenda: post("10:37", cpiMove),
     },
     {
       at: "10:52",
       caption: "Thirty minutes after Sterling's SPY veto — ES slipped. The room checks the refused ticket.",
-      qqq: 777.7,
+      qqq: 778.25,
       spy: 783.6,
-      nq: 31108,
+      nq: 31130,
       es: 7836,
-      rsi: [58, 41],
-      ...calm,
+      rsi: [64, 41],
+      ...crushed,
       entry: standCard(["No A+/A/A− PATH"]),
       agenda: post("10:52", cpiMove),
     },
     {
       at: "11:00",
-      caption: "11:00 ET — the day-ticket clock.",
-      qqq: 777.8,
+      caption: "11:00 ET — the day-ticket clock. The far T1 never came and the runner is under +50%; the clock sells it.",
+      qqq: 777.75,
       spy: 783.9,
-      nq: 31112,
+      nq: 31110,
       es: 7839,
       rsi: [58, 44],
       ...calm,

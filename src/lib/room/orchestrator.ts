@@ -67,7 +67,7 @@ import {
   type StrikeOffset,
   type Underlier,
 } from "./option-math";
-import { chooseContract, holdReadFor, priceOptionPlan, type ContractChoice, type HoldRead, type OptionEv } from "./quant";
+import { chooseContract, etfAt, holdReadFor, priceOptionPlan, type ContractChoice, type HoldRead, type OptionEv } from "./quant";
 
 export { ROOM_CLOCK, ROOM_MANDATE, VIX_ELEVATED, VIX_STRESSED } from "./mandate";
 
@@ -628,6 +628,12 @@ function evaluateEntry(
     const afford = (q: OptionQuote) => Math.floor(capUsd / (q.ask * 100));
     const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
     const futNow = desk.futures[e.underlier]?.price ?? 0;
+    // The room only ever buys the touch, so a card that has not touched is
+    // priced AT its CE (the ETF where the limit would fill, the ask it would
+    // pay there) — not at a spot it will never buy at.
+    const atTouch = e.tier === "live" || !e.plan || !(futNow > 0);
+    const priceFut = atTouch ? futNow : e.plan!.entry;
+    const priceTape: UnderlierTape = atTouch ? tape : { ...tape, price: etfAt(e.plan!.entry, futNow, tape.price) };
     // Nova prices both strikes on the plan's three measured paths; the one
     // with more EV per dollar wins, as long as its delta is inside the desk
     // ticket's band (a cheaper strike outside it is a lottery, options-desk.ts).
@@ -646,15 +652,15 @@ function evaluateEntry(
               exp,
               iv: o.quote.iv,
               entryPx: o.quote.ask,
-              futNow,
-              etfNow: tape.price,
+              futNow: priceFut,
+              etfNow: priceTape.price,
               nowMs,
               fillMs: nowMs,
               flatMs,
             })
           : null,
     });
-    const pick = pickStrike(e, tape, exp, nowMs);
+    const pick = pickStrike(e, priceTape, exp, nowMs);
     const inBand = (q: OptionQuote) => Math.abs(q.delta) >= e.deltaMin;
     const cands = [pick, pick.alt].filter((o) => o.offset === pick.offset || inBand(o.quote)).map(priced);
     const affordable = cands.filter((c) => afford(quoteFor(c)) >= 1);
@@ -674,7 +680,7 @@ function evaluateEntry(
         : `One ${contractName(e.underlier, chosen.quote.strike, e.type, exp)} is ${usd(chosen.quote.ask * 100)}; the cap is ${usd(capUsd)} (${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% of ${usd(cash)})`,
     );
     const decay = decayToStop(
-      tape.price,
+      priceTape.price,
       chosen.quote.strike,
       exp,
       e.type,
@@ -692,24 +698,25 @@ function evaluateEntry(
     );
     // Nova's two questions. Room-only, stricter than the desk: the desk prices
     // the futures plan; these price the OPTION on it, after both crossings.
+    // They decide AT the touch; before it they are a stated preview (priced at
+    // the CE), so the room argues the card while it forms instead of vetoing
+    // something that has not triggered.
     if (chosenEv) {
       const t1 = chosenEv.scenarios.find((x) => x.kind === "t1");
-      gate(
-        "t1_pays",
-        chosenEv.t1Pays,
-        chosenEv.t1Pays
-          ? `T1 pays ${usd(chosenEv.t1PnlUsd)} a contract by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET`
-          : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`,
-      );
       const w = chosenEv.window;
       const cal = chosenEv.calibrated;
       const sgnUsd = (x: number) => `${x >= 0 ? "+" : "−"}${usd(Math.abs(x))}`;
       const evOk = chosenEv.evUsd > 0 && (cal == null || cal.evUsd > 0);
-      gate(
-        "ev",
-        evOk,
-        `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? `, ${sgnUsd(cal.evUsd)} on the model's realized decile (P(T1) ${pctTxt(cal.p)} for ${pctTxt(chosenEv.pT1Model)})` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`,
-      );
+      const t1Label = chosenEv.t1Pays
+        ? `T1 pays ${usd(chosenEv.t1PnlUsd)} a contract by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET`
+        : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`;
+      const evLabel = `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? `, ${sgnUsd(cal.evUsd)} on the model's realized decile (P(T1) ${pctTxt(cal.p)} for ${pctTxt(chosenEv.pT1Model)})` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`;
+      if (atTouch) {
+        gate("t1_pays", chosenEv.t1Pays, t1Label);
+        gate("ev", evOk, evLabel);
+      } else {
+        gates.push({ id: "ev_preview", ok: true, label: `At the CE: ${chosenEv.t1Pays && evOk ? "" : "(would refuse) "}${evLabel}` });
+      }
     } else if (e.pT1 == null || !e.plan) {
       gate("ev", false, "No P(T1) on the card — the room does not price an option on a plan without odds");
     }
