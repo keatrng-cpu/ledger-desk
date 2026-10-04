@@ -7,14 +7,15 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Copy, Expand, Pause, Play, RotateCcw, SkipForward, Users } from "lucide-react";
+import { Camera, Copy, Expand, History, Pause, Play, RotateCcw, SkipForward, Users, Volume2, VolumeX } from "lucide-react";
 import { getNewsFeed } from "@/lib/news/news-server";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
 import { DRILL_LABEL, playDrill, type DrillStep } from "@/lib/room/drill";
 import { ROOM_CLOCK, ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { etWallParts } from "@/lib/trading/sessions";
-import { FloorScene, LAYOUT, type CameraPreset } from "./floor-scene";
+import { FloorScene, LAYOUT, type CameraPreset, type FloorEvent } from "./floor-scene";
+import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { ageOf, drillFrame, useRoomStore } from "./room-engine";
 
@@ -31,8 +32,10 @@ COLOR.Sterling = LAYOUT.crew.Sterling.colors.accent ?? "#b91c1c";
 COLOR.Vince = LAYOUT.crew.Vince.colors.accent ?? "#22d3ee";
 
 const CAMERAS: { id: CameraPreset; label: string }[] = [
+  { id: "auto", label: "Director" },
   { id: "overview", label: "Floor" },
   { id: "board", label: "Board" },
+  { id: "quant", label: "Quant wall" },
   { id: "offices", label: "Offices" },
   { id: "front", label: "Risk & exec" },
   { id: "lounge", label: "Lounge" },
@@ -69,7 +72,9 @@ function FloorCanvas({
   onMeetingDone,
   onSelect,
   onEnvironment,
+  onEvent,
   focusLine,
+  replaying,
 }: {
   frame: FloorFrame | null;
   speed: number;
@@ -78,12 +83,14 @@ function FloorCanvas({
   onMeetingDone: () => void;
   onSelect: (who: Character) => void;
   onEnvironment: (src: "glb" | "fallback") => void;
+  onEvent: (e: FloorEvent) => void;
   focusLine: { i: number; n: number } | null;
+  replaying: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a meeting is running, and the newest
   // cycle waiting for that meeting to end. All per scene instance.
@@ -93,6 +100,8 @@ function FloorCanvas({
   const playing = useRef(false);
   const pending = useRef<FloorFrame | null>(null);
   const lastTalk = useRef(0);
+  const replayRef = useRef(false);
+  replayRef.current = replaying;
 
   const show = useCallback((f: FloorFrame, talk: boolean) => {
     const sc = scene.current;
@@ -123,6 +132,7 @@ function FloorCanvas({
         },
         onSelect: (w) => cbs.current.onSelect(w),
         onEnvironment: (s) => cbs.current.onEnvironment(s),
+        onEvent: (e) => cbs.current.onEvent(e),
       });
       // A new scene has shown nothing (React's dev double-mount builds two).
       shown.current = null;
@@ -142,8 +152,8 @@ function FloorCanvas({
   useEffect(() => {
     if (!frame || !scene.current || frame === shown.current) return;
     const prev = shown.current;
-    // The drill only moves on a click or at a meeting's end: show it now.
-    if (storyChanged(frame, prev) || frame.screens.synthetic) show(frame, true);
+    // The drill and the replay only move on a click or at a meeting's end: show it now.
+    if (storyChanged(frame, prev) || frame.screens.synthetic || replayRef.current) show(frame, true);
     else if (playing.current) pending.current = frame;
     else show(frame, Date.now() - lastTalk.current >= SAME_STORY_TALK_MS);
   }, [frame, show]);
@@ -238,6 +248,17 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
               </div>
             )}
             {rec && <p className="mt-2 text-[11px] text-[var(--color-fg)]">{rec}</p>}
+            {frame?.screens.lab?.track[who] && frame.screens.lab.track[who].n > 0 && (
+              <p className="mt-1 text-[11px] text-[var(--color-muted)]">
+                Forecasts scored: {frame.screens.lab.track[who].n}
+                {frame.screens.lab.track[who].brier != null ? ` · Brier ${frame.screens.lab.track[who].brier!.toFixed(3)}` : " · Brier after 5"}
+              </p>
+            )}
+            {frame?.screens.lenses && (
+              <p className="mt-1 text-[11px] text-[var(--color-muted)]">
+                Says {Math.round(frame.screens.lenses[who].p * 100)}% on the card — {frame.screens.lenses[who].basis}
+              </p>
+            )}
             {rels.length > 0 && (
               <p className="mt-1 text-[11px] text-[var(--color-muted)]">{rels.map((r) => `${r.w} → ${r.o}`).join(" · ")}</p>
             )}
@@ -254,6 +275,125 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
   );
 }
 
+
+/* ── The quant panels: Nova's ledger, the vote, the ghost room ─────────── */
+
+const pc = (p: number | null | undefined) => (p == null ? "—" : `${Math.round(p * 100)}%`);
+const sgn = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n)).toLocaleString()}`;
+
+function LedgerPanel({ frame }: { frame: FloorFrame | null }) {
+  const L = frame?.screens.ledger ?? null;
+  return (
+    <div className={CARD}>
+      <div className={HEAD}>Nova's ledger — the option, not just the plan</div>
+      {!L ? (
+        <p className="text-[12px] text-[var(--color-muted)]">No priced plan. Every ticket is priced on three measured paths: T1 before the 11:00 flat, a loss, or nothing.</p>
+      ) : (
+        <div className="space-y-2 text-[12px]">
+          <p className="font-mono text-[var(--color-fg)]">{L.contract}</p>
+          <p className="text-[11px] text-[var(--color-muted)]">
+            Model {pc(L.pT1Model)} to T1 in 8h · {L.measured ? `${pc(L.share)} of T1s land inside ${L.windowBars} bars` : "time curve not measured — 8h odds stand in"}
+          </p>
+          <ul className="space-y-1">
+            {L.paths.map((x) => (
+              <li key={x.kind} className="flex items-center gap-2">
+                <span className="w-12 font-semibold" style={{ color: x.kind === "t1" ? "#22c55e" : x.kind === "loss" ? "#ef4444" : "#f59e0b" }}>
+                  {x.kind === "t1" ? "T1" : x.kind === "loss" ? "Loss" : "Flat"}
+                </span>
+                <span className="w-10 font-mono">{pc(x.p)}</span>
+                <Bar v={x.p} color={x.kind === "t1" ? "#22c55e" : x.kind === "loss" ? "#ef4444" : "#f59e0b"} />
+                <span className="w-16 text-right font-mono">{sgn(x.pnlUsd)}</span>
+                <span className="w-12 text-right font-mono text-[10px] text-[var(--color-subtle)]">~{x.clock}</span>
+              </li>
+            ))}
+          </ul>
+          <p className={`font-mono text-sm font-semibold ${L.evUsd > 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
+            EV {sgn(L.evUsd)} a contract after both crossings{L.held && L.edgeUsd != null ? ` · hold vs sell ${sgn(L.edgeUsd)}` : ""}
+          </p>
+          <p className="text-[10px] leading-snug text-[var(--color-subtle)]">
+            A refusal rule, not an edge claim: a ticket whose priced paths lose after costs is refused, and the ghost room measures whether that helped.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VotePanel({ frame }: { frame: FloorFrame | null }) {
+  const L = frame?.screens.lenses ?? null;
+  const lab = frame?.screens.lab ?? null;
+  return (
+    <div className={CARD}>
+      <div className={HEAD}>The vote — P(T1 before 11:00), five lenses</div>
+      {!L ? (
+        <p className="text-[12px] text-[var(--color-muted)]">No card under review.</p>
+      ) : (
+        <div className="space-y-1.5">
+          {CREW.map((who) => (
+            <div key={who} className="text-[11px]">
+              <div className="flex items-center gap-2">
+                <span className="w-16 font-semibold" style={{ color: COLOR[who] }}>
+                  {who}
+                </span>
+                <Bar v={L[who].p} color={COLOR[who]} />
+                <span className="w-10 text-right font-mono">{pc(L[who].p)}</span>
+              </div>
+              <p className="ml-[72px] text-[10px] text-[var(--color-subtle)]">
+                {L[who].basis}
+                {lab?.track[who]?.brier != null ? ` · Brier ${lab.track[who].brier!.toFixed(3)} (n${lab.track[who].n})` : ""}
+              </p>
+            </div>
+          ))}
+          <p className="pt-1 font-mono text-[12px] font-semibold text-[var(--color-fg)]">Room {pc(frame?.screens.roomP)}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GhostPanel({ frame }: { frame: FloorFrame | null }) {
+  const lab = frame?.screens.lab ?? null;
+  const cal = lab?.calibration;
+  return (
+    <div className={CARD}>
+      <div className={HEAD}>Ghost room & calibration</div>
+      {!lab ? (
+        <p className="text-[12px] text-[var(--color-muted)]">Nothing recorded yet.</p>
+      ) : (
+        <div className="space-y-2 text-[12px]">
+          <p>
+            <span className="text-[var(--color-muted)]">Room exits vs mandate alone: </span>
+            <span className="font-mono">{lab.twins.n ? `${sgn(lab.twins.deltaUsd)} over ${lab.twins.n}` : "no paired fills yet"}</span>
+          </p>
+          <div>
+            <p className="text-[var(--color-muted)]">Refused at the CE — what they'd have made:</p>
+            {lab.refusals.length ? (
+              <ul className="font-mono text-[11px]">
+                {lab.refusals.map((r) => (
+                  <li key={r.gate}>
+                    {r.gate}: {r.n}× {sgn(r.pnlUsd)} ({r.wins} won)
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[11px] text-[var(--color-subtle)]">No refused ticket has closed yet.</p>
+            )}
+          </div>
+          <p>
+            <span className="text-[var(--color-muted)]">Calibration: </span>
+            <span className="font-mono">
+              {cal && cal.n ? `said ${pc(cal.meanP)}, hit ${pc(cal.hitRate)} over ${cal.n}${cal.brier != null ? ` · Brier ${cal.brier.toFixed(3)}` : ""}` : "no scored plans yet"}
+            </span>
+          </p>
+          <p className="text-[10px] leading-snug text-[var(--color-subtle)]">
+            Ghosts never fill: same model marks, same exits, separate from the room's cash and halts. Paired twins run the trader's mandate alone beside every room fill.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── The tab ────────────────────────────────────────────────────────────── */
 
 export default function TradingFloorTab() {
@@ -263,8 +403,9 @@ export default function TradingFloorTab() {
   const book = useRoomStore((s) => s.book);
   const reset = useRoomStore((s) => s.reset);
   const setNews = useRoomStore((s) => s.setNews);
-  const [mode, setMode] = useState<"live" | "drill">(() => (optionsOpenNow() ? "live" : "drill"));
-  const [camera, setCamera] = useState<CameraPreset>("overview");
+  const history = useRoomStore((s) => s.history);
+  const [mode, setMode] = useState<"live" | "drill" | "replay">(() => (optionsOpenNow() ? "live" : "drill"));
+  const [camera, setCamera] = useState<CameraPreset>("auto");
   const [speed, setSpeed] = useState(1);
   const [speaker, setSpeaker] = useState<{ i: number; line: DialogueLine | null }>({ i: -1, line: null });
   const [selected, setSelected] = useState<Character | null>(null);
@@ -281,7 +422,26 @@ export default function TradingFloorTab() {
     () => (mode === "drill" && steps.length ? drillFrame(steps[drillIdx]!, steps.slice(0, drillIdx + 1), 100_000 + drillIdx) : null),
     [mode, steps, drillIdx],
   );
-  const frame = mode === "drill" ? drillFrameNow : live;
+  // The day's replay: today's story beats from the live engine, scrubbed or auto-played.
+  const [replayIdx, setReplayIdx] = useState(0);
+  const replayFrame = mode === "replay" ? (history[Math.min(replayIdx, history.length - 1)] ?? null) : null;
+  const frame = mode === "drill" ? drillFrameNow : mode === "replay" ? replayFrame : live;
+
+  // Sound: off until the trader turns it on (and a click unlocks audio).
+  const sound = useRef<FloorSound | null>(null);
+  const [soundOn, setSoundOn] = useState(false);
+  useEffect(() => {
+    sound.current = new FloorSound();
+    const pref = loadSoundPref();
+    sound.current.volume = pref.volume;
+    setSoundOn(pref.on);
+    return () => sound.current?.dispose();
+  }, []);
+  const soundOnRef = useRef(false);
+  soundOnRef.current = soundOn;
+  const onEvent = useCallback((e: FloorEvent) => {
+    if (soundOnRef.current) sound.current?.play(e);
+  }, []);
 
   // Headlines for the news TVs — only while this tab is open.
   useEffect(() => {
@@ -305,9 +465,10 @@ export default function TradingFloorTab() {
   }, [setNews]);
 
   const onMeetingDone = useCallback(() => {
-    if (mode !== "drill" || !drillPlaying) return;
-    window.setTimeout(() => setDrillIdx((i) => (i + 1 < steps.length ? i + 1 : i)), 900 / speed);
-  }, [mode, drillPlaying, steps.length, speed]);
+    if (!drillPlaying) return;
+    if (mode === "drill") window.setTimeout(() => setDrillIdx((i) => (i + 1 < steps.length ? i + 1 : i)), 900 / speed);
+    else if (mode === "replay") window.setTimeout(() => setReplayIdx((i) => (i + 1 < history.length ? i + 1 : i)), 700 / speed);
+  }, [mode, drillPlaying, steps.length, history.length, speed]);
 
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => setSpeaker({ i, line }), []);
 
@@ -329,17 +490,21 @@ export default function TradingFloorTab() {
         <Users className="h-4 w-4 text-[var(--color-primary)]" />
         <h2 className="text-sm font-semibold text-[var(--color-fg)]">Trading floor</h2>
         <div className="flex overflow-hidden rounded border border-[var(--color-border)] text-[11px]">
-          {(["live", "drill"] as const).map((m) => (
+          {(["live", "replay", "drill"] as const).map((m) => (
             <button
               key={m}
               type="button"
+              disabled={m === "replay" && history.length < 2}
+              title={m === "replay" ? `Today's ${history.length} story beats, as a time-lapse` : undefined}
               onClick={() => {
                 setMode(m);
                 setDrillIdx(0);
+                setReplayIdx(0);
+                setDrillPlaying(true);
               }}
-              className={`px-2 py-1 ${mode === m ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-muted)]"}`}
+              className={`px-2 py-1 disabled:opacity-40 ${mode === m ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-muted)]"}`}
             >
-              {m === "live" ? "Live desk" : "Drill (synthetic)"}
+              {m === "live" ? "Live desk" : m === "replay" ? "Today's replay" : "Drill (synthetic)"}
             </button>
           ))}
         </div>
@@ -348,7 +513,20 @@ export default function TradingFloorTab() {
         </span>
         {frame && <span className="font-mono text-[11px] text-[var(--color-muted)]">{frame.clockLabel}</span>}
         <span className="font-mono text-[11px] text-[var(--color-subtle)]">{frame?.screens.source ?? ""}</span>
-        <label className="ml-auto flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
+        <button
+          type="button"
+          className={`${BTN} ml-auto`}
+          aria-pressed={soundOn}
+          onClick={() => {
+            const on = !soundOn;
+            setSoundOn(on);
+            if (on) sound.current?.unlock();
+            saveSoundPref({ on, volume: sound.current?.volume ?? 0.5 });
+          }}
+        >
+          {soundOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} {soundOn ? "Sound on" : "Sound off"}
+        </button>
+        <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
           <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
           room runs in the background (paper)
         </label>
@@ -376,7 +554,9 @@ export default function TradingFloorTab() {
             setSelected(w);
           }}
           onEnvironment={setEnv}
+          onEvent={onEvent}
           focusLine={focus}
+          replaying={mode === "replay"}
         />
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
           {frame?.trace.meeting && (
@@ -418,6 +598,29 @@ export default function TradingFloorTab() {
           ) : (
             <p className="text-[12px] text-slate-400">{frame ? "…" : "Building the floor…"}</p>
           )}
+          {mode === "replay" && history.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" className={BTN} onClick={() => setDrillPlaying((p) => !p)}>
+                {drillPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />} {drillPlaying ? "Pause" : "Play"}
+              </button>
+              <History className="h-3 w-3 text-slate-300" />
+              <input
+                type="range"
+                min={0}
+                max={Math.max(0, history.length - 1)}
+                value={Math.min(replayIdx, history.length - 1)}
+                onChange={(e) => {
+                  setDrillPlaying(false);
+                  setReplayIdx(Number(e.target.value));
+                }}
+                className="w-48 accent-amber-400"
+                aria-label="Scrub today's replay"
+              />
+              <span className="font-mono text-[11px] text-slate-300">
+                {replayFrame?.clockLabel ?? ""} · {Math.min(replayIdx, history.length - 1) + 1}/{history.length}
+              </span>
+            </div>
+          )}
           {mode === "drill" && (
             <div className="mt-2 flex flex-wrap items-center gap-1">
               <button type="button" className={BTN} onClick={() => setDrillPlaying((p) => !p)}>
@@ -429,6 +632,18 @@ export default function TradingFloorTab() {
               <button type="button" className={BTN} onClick={() => setDrillIdx(0)}>
                 <RotateCcw className="h-3 w-3" /> Restart
               </button>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(0, steps.length - 1)}
+                value={drillIdx}
+                onChange={(e) => {
+                  setDrillPlaying(false);
+                  setDrillIdx(Number(e.target.value));
+                }}
+                className="w-40 accent-amber-400"
+                aria-label="Scrub the drill"
+              />
               <span className="text-[11px] text-slate-300">
                 {drillIdx + 1}/{steps.length}
               </span>
@@ -554,6 +769,12 @@ export default function TradingFloorTab() {
             Fills at the model ask/bid. Nothing routes to a broker.
           </p>
         </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        <LedgerPanel frame={frame} />
+        <VotePanel frame={frame} />
+        <GhostPanel frame={frame} />
       </div>
 
       <div>

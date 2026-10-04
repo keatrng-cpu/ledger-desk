@@ -48,7 +48,10 @@ import { CLOCK_WARN, MAX_DEBIT_USD } from "@/lib/trading/sleeve-sizing";
 import { MAX_CONSEC_LOSSES, PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import { planAgents, type Agenda, type AgentAct, type Meeting, type MindState } from "./agents";
-import { STOP_TXT, clockEt, contractName, prem, px, ptsTxt, sideWord, signedPct, usd } from "./format";
+import { lensesFor, type Lenses } from "./debate";
+import { pickExit, ROOM_POLICY } from "./exits";
+import { STOP_TXT, clockEt, contractName, prem, px, ptsTxt, sideWord, usd } from "./format";
+import type { LabRead } from "./lab";
 import { ROOM_CLOCK, ROOM_MANDATE, VIX_ELEVATED, VIX_STRESSED } from "./mandate";
 import { buildMeeting, jaxPush, type Facts } from "./meeting";
 import {
@@ -64,6 +67,7 @@ import {
   type StrikeOffset,
   type Underlier,
 } from "./option-math";
+import { chooseContract, holdReadFor, priceOptionPlan, type ContractChoice, type HoldRead, type OptionEv } from "./quant";
 
 export { ROOM_CLOCK, ROOM_MANDATE, VIX_ELEVATED, VIX_STRESSED } from "./mandate";
 
@@ -125,6 +129,12 @@ export interface RoomPositionIn {
   /** Half already banked at +40%: the runner's stop sits at breakeven. */
   trimmed?: boolean;
   strike_offset?: StrikeOffset;
+  /** Per share, the ask paid — lets the theta stop price the position exactly. */
+  entry_px?: number;
+  /** When it filled, and the ETF print and IV it filled on — for the exit's P&L attribution. */
+  opened_at?: number;
+  spot0?: number;
+  iv0?: number;
 }
 
 export interface UnderlierTape {
@@ -205,10 +215,16 @@ export interface RoomEntryRead {
   pFill: number | null;
   /** Measured-negative patterns on the card (scanner.ts) — Sterling quotes them. */
   patterns: { inducement: boolean; mitigation: boolean } | null;
+  /** The futures series ATR — T1 distance in ATR picks the measured time curve. Optional for API callers. */
+  atr?: number | null;
+  /** The card's model name, e.g. "TJR sweep → 5m CHoCH" — the debate's thesis owner. */
+  strategy?: string | null;
+  /** What moves P(T1) on this card, in probability points (hit-odds.ts drivers). */
+  drivers?: { label: string; pts: number; reliable: boolean }[];
 }
 
 export interface RoomExitRead {
-  kind: "level" | "failed_hold" | "t2";
+  kind: "level" | "failed_hold" | "t2" | "t1";
   why: string;
 }
 
@@ -249,6 +265,11 @@ export interface HeldLevels {
   t1: number | null;
   t2: number | null;
   price: number;
+  /** The plan's CE and what the desk priced it at when the room filled — the theta stop's inputs. */
+  entry?: number;
+  atr?: number | null;
+  pT1?: number | null;
+  openedAt?: number;
 }
 
 /** The room book's own counters — halts, slots, the one-book lock. */
@@ -270,6 +291,8 @@ export interface RoomContext {
   ledger: RoomLedger | null;
   /** The people's state from the last cycle (agents.ts). Absent = a fresh room. */
   minds?: MindState | null;
+  /** The ghost room's and the calibration ledger's summary (lab.ts) — what the room has learned. */
+  lab?: LabRead | null;
 }
 
 /* ── What the cycle decided, with the reasons ───────────────────────────── */
@@ -294,12 +317,14 @@ export interface Gate {
 
 export interface ExitPlan {
   position: RoomPositionIn;
-  reason: "stop" | "level" | "failed_hold" | "expiry" | "time" | "t2" | "take_profit";
+  reason: "stop" | "level" | "failed_hold" | "expiry" | "event" | "time" | "theta" | "t2" | "t1" | "take_profit";
   why: string;
   /** Contracts to close; null = all of an unknown size. */
   qty: number | null;
   closesAll: boolean;
   quote: OptionQuote | null;
+  /** The ETF print the exit was priced on (for the P&L attribution). */
+  spot?: number;
 }
 
 export interface EntryPlan {
@@ -313,6 +338,13 @@ export interface EntryPlan {
   stopUsd: number;
   decay: number;
   clock: boolean;
+  /** Nova's ledger for the chosen contract, and for the strike she passed on. */
+  ev: OptionEv | null;
+  alt: { offset: StrikeOffset; strike: number; ev: OptionEv | null } | null;
+  /** The futures plan's T1 distance in ATR at the fill (picks the time curve later). */
+  t1Atr: number | null;
+  /** The ETF print the ticket was priced on. */
+  spot: number;
 }
 
 export interface RoomTrace {
@@ -335,6 +367,10 @@ export interface RoomTrace {
   meeting: Meeting | null;
   /** What each person is doing between lines. */
   acts: Record<Character, AgentAct> | null;
+  /** quant.ts holdValue for each open position (the theta stop's read). */
+  holds: Record<string, HoldRead | null>;
+  /** Each person's own P(T1 before the flat) for the card under review — scored later (lab.ts). */
+  lenses: Lenses | null;
 }
 
 export interface RoomCycle {
@@ -404,85 +440,13 @@ export function validateInput(input: unknown): string[] {
   return errs;
 }
 
-/* ── Exits ──────────────────────────────────────────────────────────────── */
+/* ── Exits live in exits.ts (shared with the ghost room) ──────────────── */
 
-const EXIT_RANK: Record<ExitPlan["reason"], number> = {
-  stop: 1,
-  level: 2,
-  failed_hold: 2,
-  expiry: 3,
-  time: 4,
-  t2: 5,
-  take_profit: 6,
-};
-
-function htfAligned(htf: string | undefined, type: OptionType): boolean {
-  return type === "CALL" ? htf === "bull" : htf === "bear";
-}
-
-function pickExit(input: RoomInput, desk: RoomDeskRead | null, etDate: string, etMin: number, nowMs: number): ExitPlan | null {
-  const plans: ExitPlan[] = [];
-  for (const p of input.portfolio.open_positions) {
-    const tape = input.market_data[p.ticker];
-    const quote = quoteOption(tape.price, p.strike, p.exp, p.type, ivFor(p.ticker, tape.vix), nowMs);
-    const all = (reason: ExitPlan["reason"], why: string): ExitPlan => ({
-      position: p,
-      reason,
-      why,
-      qty: p.contracts ?? null,
-      closesAll: true,
-      quote,
-    });
-    const stopPct = p.trimmed ? 0 : ROOM_MANDATE.hardStopPct;
-    if (p.pnl_percent <= stopPct) {
-      plans.push(
-        all(
-          "stop",
-          p.trimmed
-            ? `runner back to breakeven (${signedPct(p.pnl_percent)}) after the +${ROOM_MANDATE.takeProfitPct}% trim`
-            : `${signedPct(p.pnl_percent)} is through the ${STOP_TXT} hard stop`,
-        ),
-      );
-    }
-    const deskExit = desk?.exits[p.id];
-    if (deskExit && deskExit.kind !== "t2") plans.push(all(deskExit.kind, deskExit.why));
-    if (p.exp < etDate) plans.push(all("expiry", `expired ${p.exp} — the contract is past its bell`));
-    else if (p.exp === etDate && etMin >= ROOM_CLOCK.flattenAllMin)
-      plans.push(all("expiry", `expiry day ${clockEt(etMin)} ET — the broker force-sells from 15:30`));
-    else if (etMin >= ROOM_CLOCK.flattenAllMin)
-      plans.push(all("time", `${clockEt(etMin)} ET — QQQ/SPY options are unmanageable 16:15→09:30, nothing 0–1 DTE goes home`));
-    else if (etMin >= ROOM_CLOCK.dayFlatMin) {
-      const dte0 = p.exp === etDate;
-      const keep = !dte0 && p.pnl_percent >= ROOM_CLOCK.pastElevenMinPct && htfAligned(desk?.htf[p.ticker], p.type);
-      if (!keep)
-        plans.push(
-          all(
-            "time",
-            dte0
-              ? `${clockEt(etMin)} ET — day tickets are flat by 11:00, and 0 DTE gets no exception`
-              : `${clockEt(etMin)} ET — flat by 11:00 unless ≥ +${ROOM_CLOCK.pastElevenMinPct}% with HTF aligned (${signedPct(p.pnl_percent)})`,
-          ),
-        );
-    }
-    if (deskExit?.kind === "t2") plans.push(all("t2", deskExit.why));
-    if (!p.trimmed && p.pnl_percent >= ROOM_MANDATE.takeProfitPct) {
-      const n = p.contracts ?? null;
-      const half = n != null && n >= 2 ? Math.max(1, Math.floor(n * ROOM_MANDATE.takeProfitCloseFrac)) : null;
-      const closesAll = half == null || half >= (n ?? 0);
-      plans.push({
-        position: p,
-        reason: "take_profit",
-        why: closesAll
-          ? `${signedPct(p.pnl_percent)} is past the +${ROOM_MANDATE.takeProfitPct}% target with ${n == null ? "an unknown size" : "one contract"}, so it all goes`
-          : `${signedPct(p.pnl_percent)} is past the +${ROOM_MANDATE.takeProfitPct}% target — trim ${half} of ${n}`,
-        qty: closesAll ? n : half,
-        closesAll,
-        quote,
-      });
-    }
-  }
-  plans.sort((a, b) => EXIT_RANK[a.reason] - EXIT_RANK[b.reason] || a.position.pnl_percent - b.position.pnl_percent);
-  return plans[0] ?? null;
+/** quant.ts holdValue for every open position (the theta stop's read). */
+function holdsFor(input: RoomInput, desk: RoomDeskRead | null, etDate: string, nowMs: number): Record<string, HoldRead | null> {
+  const out: Record<string, HoldRead | null> = {};
+  for (const p of input.portfolio.open_positions) out[p.id] = holdReadFor(p, desk?.held?.[p.id], input.market_data[p.ticker], etDate, nowMs);
+  return out;
 }
 
 /* ── Entry: the desk's card, then Sterling's list ──────────────────────── */
@@ -491,7 +455,19 @@ function expiryFor(dte: 0 | 1, etDate: string): string {
   return dte === 0 ? etDate : nextWeekday(etDate);
 }
 
-/** Nova's strike: whichever of ATM / one-out is nearer the desk ticket's target delta. */
+const pctTxt = (p: number) => `${Math.round(p * 100)}%`;
+
+function etMinOf(ms: number): number {
+  const w = etWallParts(ms);
+  return w.hour * 60 + w.minute;
+}
+
+/** A priced candidate back to the quote it came from (the ask is what affordability reads). */
+function quoteFor(c: ContractChoice): OptionQuote {
+  return { strike: c.strike, mid: c.ask, bid: c.ask, ask: c.ask, delta: c.delta, thetaDay: 0, iv: 0 };
+}
+
+/** Nova's default strike: whichever of ATM / one-out is nearer the desk ticket's target delta. */
 function pickStrike(
   e: RoomEntryRead,
   tape: UnderlierTape,
@@ -643,19 +619,51 @@ function evaluateEntry(
       );
   }
 
-  // Sizing and the clock only mean something once the desk has a ticket.
+  // Sizing, the clock and Nova's ledger only mean something once the desk has a ticket.
   let plan: EntryPlan | null = null;
   if (e && desk && (e.deskContracts ?? 0) >= 1) {
     const tape = input.market_data[e.underlier];
     const exp = expiryFor(e.dte, etDate);
-    const pick = pickStrike(e, tape, exp, nowMs);
     const capUsd = Math.min(ROOM_MANDATE.maxCashFracPerTrade * cash, MAX_DEBIT_USD);
     const afford = (q: OptionQuote) => Math.floor(capUsd / (q.ask * 100));
-    let chosen = pick;
-    // A cheaper one-out strike is not a lottery while its delta stays inside
-    // the desk ticket's band; anything further out is (options-desk.ts).
-    if (afford(pick.quote) < 1 && pick.offset === "ATM" && afford(pick.alt.quote) >= 1 && Math.abs(pick.alt.quote.delta) >= e.deltaMin)
-      chosen = { ...pick.alt, alt: pick };
+    const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
+    const futNow = desk.futures[e.underlier]?.price ?? 0;
+    // Nova prices both strikes on the plan's three measured paths; the one
+    // with more EV per dollar wins, as long as its delta is inside the desk
+    // ticket's band (a cheaper strike outside it is a lottery, options-desk.ts).
+    const priced = (o: { offset: StrikeOffset; quote: OptionQuote }): ContractChoice => ({
+      offset: o.offset,
+      strike: o.quote.strike,
+      ask: o.quote.ask,
+      delta: o.quote.delta,
+      ev:
+        e.plan && e.pT1 != null && futNow > 0 && etMin < ROOM_CLOCK.dayFlatMin
+          ? priceOptionPlan({
+              plan: { side: e.futSide, entry: e.plan.entry, stop: e.plan.stop, t1: e.plan.t1, atr: e.atr ?? null, symbol: e.futSymbol },
+              pT1: e.pT1,
+              type: e.type,
+              strike: o.quote.strike,
+              exp,
+              iv: o.quote.iv,
+              entryPx: o.quote.ask,
+              futNow,
+              etfNow: tape.price,
+              nowMs,
+              fillMs: nowMs,
+              flatMs,
+            })
+          : null,
+    });
+    const pick = pickStrike(e, tape, exp, nowMs);
+    const inBand = (q: OptionQuote) => Math.abs(q.delta) >= e.deltaMin;
+    const cands = [pick, pick.alt].filter((o) => o.offset === pick.offset || inBand(o.quote)).map(priced);
+    const affordable = cands.filter((c) => afford(quoteFor(c)) >= 1);
+    const evReady = cands.every((c) => c.ev != null);
+    const best = evReady ? chooseContract(affordable.length ? affordable : cands) : null;
+    const chosenOffset = best?.offset ?? (afford(pick.quote) < 1 && pick.offset === "ATM" && afford(pick.alt.quote) >= 1 && inBand(pick.alt.quote) ? pick.alt.offset : pick.offset);
+    const chosen = chosenOffset === pick.offset ? pick : { ...pick.alt, alt: pick };
+    const chosenEv = cands.find((c) => c.offset === chosen.offset)?.ev ?? null;
+    const other = cands.find((c) => c.offset !== chosen.offset) ?? null;
     const qty = Math.min(e.deskContracts ?? 0, afford(chosen.quote));
     const debitUsd = Math.round(qty * chosen.quote.ask * 100);
     gate(
@@ -665,7 +673,6 @@ function evaluateEntry(
         ? `${qty}× at ${prem(chosen.quote.ask)} = ${usd(debitUsd)} ≤ cap ${usd(capUsd)} (${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% of ${usd(cash)}, ceiling ${usd(MAX_DEBIT_USD)})`
         : `One ${contractName(e.underlier, chosen.quote.strike, e.type, exp)} is ${usd(chosen.quote.ask * 100)}; the cap is ${usd(capUsd)} (${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% of ${usd(cash)})`,
     );
-    const untilMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
     const decay = decayToStop(
       tape.price,
       chosen.quote.strike,
@@ -673,7 +680,7 @@ function evaluateEntry(
       e.type,
       chosen.quote.iv,
       nowMs,
-      untilMs,
+      flatMs,
       Math.abs(ROOM_MANDATE.hardStopPct) / 100,
     );
     gate(
@@ -683,6 +690,29 @@ function evaluateEntry(
         ? `Theta to 11:00 eats ${Math.round(decay * 100)}% of the ${STOP_TXT} stop`
         : `The ${STOP_TXT} stop is a clock — decay alone reaches it before 11:00`,
     );
+    // Nova's two questions. Room-only, stricter than the desk: the desk prices
+    // the futures plan; these price the OPTION on it, after both crossings.
+    if (chosenEv) {
+      const t1 = chosenEv.scenarios.find((x) => x.kind === "t1");
+      gate(
+        "t1_pays",
+        chosenEv.t1Pays,
+        chosenEv.t1Pays
+          ? `T1 pays ${usd(chosenEv.t1PnlUsd)} a contract by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET`
+          : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`,
+      );
+      const w = chosenEv.window;
+      const cal = chosenEv.calibrated;
+      const sgnUsd = (x: number) => `${x >= 0 ? "+" : "−"}${usd(Math.abs(x))}`;
+      const evOk = chosenEv.evUsd > 0 && (cal == null || cal.evUsd > 0);
+      gate(
+        "ev",
+        evOk,
+        `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? `, ${sgnUsd(cal.evUsd)} on the model's realized decile (P(T1) ${pctTxt(cal.p)} for ${pctTxt(chosenEv.pT1Model)})` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`,
+      );
+    } else if (e.pT1 == null || !e.plan) {
+      gate("ev", false, "No P(T1) on the card — the room does not price an option on a plan without odds");
+    }
     plan = {
       entry: e,
       exp,
@@ -694,6 +724,10 @@ function evaluateEntry(
       stopUsd: Math.round(debitUsd * (Math.abs(ROOM_MANDATE.hardStopPct) / 100)),
       decay,
       clock: decay >= CLOCK_WARN,
+      ev: chosenEv,
+      alt: other ? { offset: other.offset, strike: other.strike, ev: other.ev } : null,
+      t1Atr: e.plan?.t1 != null && e.atr ? Math.abs(e.plan.t1 - e.plan.entry) / e.atr : null,
+      spot: tape.price,
     };
   }
 
@@ -815,6 +849,9 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
       nowMs,
       errors,
       agenda,
+      holds: {},
+      lenses: null,
+      lab: ctx?.lab ?? null,
     };
     return {
       output: {
@@ -836,13 +873,16 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
         errors,
         meeting: null,
         acts: null,
+        holds: {},
+        lenses: null,
       },
       minds: ctx?.minds ?? null,
     };
   }
 
   // 1) Exits first — an open position's stop outranks any new idea.
-  const exitCandidate = pickExit(input, desk, etDate, etMin, nowMs);
+  const holds = holdsFor(input, desk, etDate, nowMs);
+  const exitCandidate = pickExit(input.portfolio.open_positions, input.market_data, { desk, etDate, etMin, nowMs, policy: ROOM_POLICY }, holds);
   const exit = optionsOpen ? exitCandidate : null;
 
   // 2) Entries only on a cycle with no exit to send.
@@ -864,6 +904,8 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
   else beat = "chop";
 
   const entryPlan = beat === "fill" || beat === "trigger_wait" || beat === "vetoed" ? ev.plan : null;
+  // Each person's own number for the card under review — said in the meeting, scored by the lab.
+  const lenses = card && ev.plan?.ev ? lensesFor(card, ev.plan.ev, ctx?.lab ?? null) : null;
   const focus = focusFor(input, desk, entryPlan, etDate, nowMs);
   const urgency = urgencyFor(beat, input, card, desk);
 
@@ -952,6 +994,9 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
     nowMs,
     errors,
     agenda,
+    holds,
+    lenses,
+    lab: ctx?.lab ?? null,
   };
 
   return {
@@ -974,6 +1019,8 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
       errors,
       meeting: plan.meeting,
       acts: plan.acts,
+      holds,
+      lenses,
     },
     minds: plan.minds,
   };

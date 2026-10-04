@@ -22,9 +22,11 @@ import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-re
 import type { DrillStep } from "@/lib/room/drill";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
+import { asLab, labRead } from "@/lib/room/lab";
 import {
   ROOM_DEFAULT_CASH,
   applyCycle,
+  applyLab,
   emptyBook,
   equityOf,
   exitWatchOf,
@@ -37,7 +39,11 @@ import {
   type RoomBook,
 } from "@/lib/room/paper-book";
 import { researchShelf } from "@/lib/room/research";
-import type { FloorFrame, FloorScreens } from "./floor-screens";
+import { consensus } from "@/lib/room/debate";
+import { clockEt, contractName } from "@/lib/room/format";
+import type { LabRead } from "@/lib/room/lab";
+import type { RoomCycle as Cycle } from "@/lib/room/orchestrator";
+import type { FloorFrame, FloorScreens, LedgerScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
 const ENABLED_STORAGE = "ledger-room-enabled-v1";
@@ -111,15 +117,58 @@ export function calendarFor(nowMs: number): FloorScreens["calendar"] {
   });
 }
 
+/** The ledger the jumbotron draws: the card under review, else the first held position the room can price. */
+function ledgerScreenOf(cycle: Cycle): LedgerScreen | null {
+  const clock = (ms: number) => {
+    const w = etWallParts(ms);
+    return clockEt(w.hour * 60 + w.minute);
+  };
+  const e = cycle.trace.entry;
+  if (e?.ev) {
+    return {
+      title: `${e.entry.futSymbol} ${e.entry.futSide} · PATH ${e.entry.band ?? "—"}`,
+      contract: `${contractName(e.entry.underlier, e.quote.strike, e.entry.type, e.exp)} @ ${e.quote.ask.toFixed(2)}`,
+      held: false,
+      measured: e.ev.measured,
+      pT1Model: e.ev.pT1Model,
+      windowBars: e.ev.window.windowBars,
+      share: e.ev.measured ? e.ev.window.shareOfHitsInWindow : null,
+      paths: e.ev.scenarios.map((x) => ({ kind: x.kind, p: x.p, pnlUsd: x.pnlUsd, clock: clock(x.atMs) })),
+      evUsd: e.ev.evUsd,
+      t1Pays: e.ev.t1Pays,
+      edgeUsd: null,
+    };
+  }
+  for (const [id, h] of Object.entries(cycle.trace.holds ?? {})) {
+    if (!h) continue;
+    return {
+      title: `${id} — held`,
+      contract: id,
+      held: true,
+      measured: h.ev.measured,
+      pT1Model: h.pT1Now,
+      windowBars: h.ev.window.windowBars,
+      share: h.ev.measured ? h.ev.window.shareOfHitsInWindow : null,
+      paths: h.ev.scenarios.map((x) => ({ kind: x.kind, p: x.p, pnlUsd: x.pnlUsd, clock: clock(x.atMs) })),
+      evUsd: h.ev.evUsd,
+      t1Pays: h.ev.t1Pays,
+      edgeUsd: h.edgeUsd,
+    };
+  }
+  return null;
+}
+
 export function frameFromCycle(args: {
   id: number;
   nowMs: number;
   cycle: RoomCycle;
   book: RoomBook;
-  screens: Omit<FloorScreens, "book" | "research">;
+  screens: Omit<FloorScreens, "book" | "research" | "ledger" | "lab" | "lenses" | "roomP">;
   caption: string | null;
+  lab: LabRead | null;
 }): FloorFrame {
   const p = etWallParts(args.nowMs);
+  const lenses = args.cycle.trace.lenses;
   return {
     id: args.id,
     nowMs: args.nowMs,
@@ -129,7 +178,15 @@ export function frameFromCycle(args: {
     trace: args.cycle.trace,
     acts: args.cycle.trace.acts,
     minds: args.cycle.minds,
-    screens: { ...args.screens, book: bookScreen(args.book), research: RESEARCH_LINES },
+    screens: {
+      ...args.screens,
+      book: bookScreen(args.book),
+      research: RESEARCH_LINES,
+      ledger: ledgerScreenOf(args.cycle),
+      lab: args.lab,
+      lenses,
+      roomP: lenses ? consensus(lenses, args.lab).p : null,
+    },
     caption: args.caption,
   };
 }
@@ -165,6 +222,7 @@ export function drillFrame(step: DrillStep, history: DrillStep[], id: number): F
     cycle: step.cycle,
     book: step.book,
     caption: step.frame.caption,
+    lab: labRead(asLab(step.book.lab), step.book.closed),
     screens: {
       market: step.input.market_data,
       charts: {
@@ -191,6 +249,8 @@ interface RoomState {
   minds: MindState | null;
   frame: FloorFrame | null;
   frameSeq: number;
+  /** Today's story beats, for the time-lapse replay (memory only, never stored). */
+  history: FloorFrame[];
   lastFetchedAt: string | null;
   pulse: { vix: number | null; tenYear: number | null; at: number | null };
   news: FloorScreens["news"];
@@ -207,6 +267,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   minds: null,
   frame: null,
   frameSeq: 0,
+  history: [],
   lastFetchedAt: null,
   pulse: { vix: null, tenYear: null, at: null },
   news: [],
@@ -240,8 +301,10 @@ function runLiveCycle(desk: DeskPayload) {
   book = markBook(book, market, nowMs);
   const input = toRoomInput(book, market);
   const read = readDeskForRoom(desk, od, exitWatchOf(book), nowMs, st.pulse.tenYear);
-  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds }, nowMs);
+  const lab = labRead(asLab(book.lab), book.closed);
+  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab }, nowMs);
   book = applyCycle(book, cycle, nowMs);
+  book = applyLab(book, cycle, market, read, nowMs);
   saveRoomBook(book);
   saveMinds(cycle.minds);
 
@@ -266,6 +329,7 @@ function runLiveCycle(desk: DeskPayload) {
     cycle,
     book,
     caption: null,
+    lab: labRead(asLab(book.lab), book.closed),
     screens: {
       market,
       charts: { QQQ: chart("QQQ"), SPY: chart("SPY") },
@@ -282,7 +346,23 @@ function runLiveCycle(desk: DeskPayload) {
       synthetic: false,
     },
   });
-  useRoomStore.setState({ book, minds: cycle.minds, frame, frameSeq: seq, lastFetchedAt: desk.fetchedAt });
+  useRoomStore.setState({ book, minds: cycle.minds, frame, frameSeq: seq, lastFetchedAt: desk.fetchedAt, history: keepForReplay(st.history, frame) });
+}
+
+const HISTORY_MAX = 160;
+
+/** Keep a frame for the replay when the story moved (a ticket, a new beat or meeting) or every 15 minutes; a new ET day starts fresh. */
+function keepForReplay(history: FloorFrame[], f: FloorFrame): FloorFrame[] {
+  const last = history[history.length - 1];
+  const day = (x: FloorFrame) => etDateOf(x.nowMs);
+  if (last && day(last) !== day(f)) return [f];
+  const moved =
+    !last ||
+    f.output.broker_action.execute_trade ||
+    f.trace.beat !== last.trace.beat ||
+    (f.trace.meeting?.key ?? "") !== (last.trace.meeting?.key ?? "") ||
+    f.nowMs - last.nowMs >= 15 * 60_000;
+  return moved ? [...history, f].slice(-HISTORY_MAX) : history;
 }
 
 /** Mount once at the page level: the room runs while the desk does. */

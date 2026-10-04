@@ -60,6 +60,7 @@
     { "id": "headset_Vince", "kind": "headset_stand", "pos": [-5.55, 4.15], "rot": 0, "size": [0.12, 0.3, 0.12], "obstacle": false },
 
     { "id": "table_war", "kind": "meeting_table", "pos": [-8.0, -1.0], "rot": 0, "size": [3.6, 0.75, 1.4], "obstacle": true },
+    { "id": "jumbo_frame", "kind": "jumbotron", "pos": [-8.0, -1.0], "rot": 0, "size": [1.64, 0.96, 1.64], "obstacle": false, "onTop": 2.37 },
     { "id": "mchair_0", "kind": "meeting_chair", "pos": [-9.1, -2.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
     { "id": "mchair_1", "kind": "meeting_chair", "pos": [-6.9, -2.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
     { "id": "mchair_2", "kind": "meeting_chair", "pos": [-9.1, 0.05], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
@@ -91,6 +92,11 @@
     { "id": "tv_news", "kind": "tv", "center": [-13.9, 1.7, 2.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },
     { "id": "tv_calendar", "kind": "tv", "center": [-13.9, 1.7, -4.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },
     { "id": "tv_lounge", "kind": "tv", "center": [11.5, 1.9, -9.93], "size": [2.4, 1.35], "facing": 0, "px": [896, 504] },
+    { "id": "jumbo_E", "kind": "tv", "center": [-7.18, 2.85, -1.0], "size": [1.6, 0.9], "facing": 90, "px": [640, 360] },
+    { "id": "jumbo_W", "kind": "tv", "center": [-8.82, 2.85, -1.0], "size": [1.6, 0.9], "facing": 270, "px": [640, 360] },
+    { "id": "jumbo_S", "kind": "tv", "center": [-8.0, 2.85, -0.18], "size": [1.6, 0.9], "facing": 0, "px": [640, 360] },
+    { "id": "jumbo_N", "kind": "tv", "center": [-8.0, 2.85, -1.82], "size": [1.6, 0.9], "facing": 180, "px": [640, 360] },
+    { "id": "tv_leader", "kind": "tv", "center": [7.4, 2.0, -9.93], "size": [2.0, 1.12], "facing": 0, "px": [768, 430] },
     { "id": "marquee", "kind": "led_band", "center": [-6.5, 3.05, -5.36], "size": [14.6, 0.36], "facing": 0, "px": [2048, 52] },
     { "id": "mon_Jax_0", "kind": "monitor", "center": [-12.25, 1.12, -9.45], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
     { "id": "mon_Jax_1", "kind": "monitor", "center": [-11.5, 1.12, -9.5], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
@@ -122,7 +128,7 @@
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },
     { "id": "led_urgency_front", "kind": "led_strip", "a": [-14.0, 2.78, -5.33], "b": [1.0, 2.78, -5.33], "thickness": 0.05 },
-    { "id": "beacon_urgency", "kind": "beacon", "a": [-7.0, 3.5, -1.0], "b": [-7.0, 3.5, -1.0], "thickness": 0.22 },
+    { "id": "beacon_urgency", "kind": "beacon", "a": [-8.0, 3.42, -1.0], "b": [-8.0, 3.42, -1.0], "thickness": 0.16 },
     { "id": "rack_leds", "kind": "led_panel", "a": [-4.75, 1.0, 7.3], "b": [-4.75, 1.8, 7.3], "thickness": 0.02 }
   ],
   "anchors": {
@@ -164,7 +170,8 @@
   "nav": { "cell": 0.25, "inflate": 0.28 },
   "camera": {
     "overview": { "pos": [15.5, 15.0, 15.5], "target": [-4.0, 0.4, -1.0] },
-    "board": { "pos": [-5.6, 2.8, 1.6], "target": [-13.6, 1.5, -0.9] },
+    "board": { "pos": [-5.4, 2.0, 1.9], "target": [-13.6, 1.45, -0.9] },
+    "quant": { "pos": [-3.3, 2.1, 2.4], "target": [-7.4, 2.7, -1.0] },
     "offices": { "pos": [-6.0, 9.5, 2.8], "target": [-6.5, 0.6, -7.5] },
     "front": { "pos": [-8.5, 7.5, 12.5], "target": [-8.5, 0.8, 5.0] },
     "lounge": { "pos": [6.5, 6.0, 3.5], "target": [9.0, 0.9, -6.5] }

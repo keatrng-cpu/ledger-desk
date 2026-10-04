@@ -1,0 +1,9 @@
+{
+ "version": 0,
+ "builtAt": null,
+ "script": "scripts/measure-option-time.mjs",
+ "note": "placeholder until the measurement runs",
+ "barMinutes": 15,
+ "holdBars": 32,
+ "subsets": {}
+}

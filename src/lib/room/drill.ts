@@ -22,6 +22,7 @@
  */
 
 import { etWallToEpochMs } from "@/lib/trading/sessions";
+import { HIT_ODDS_MODEL, planHitOdds } from "@/lib/trading/hit-odds-model";
 import type { Agenda, AgendaEvent, AgendaSetup, MindState } from "./agents";
 import { computeExits, computeHeld } from "./desk-read";
 import {
@@ -33,7 +34,8 @@ import {
   type Trend,
   type UnderlierTape,
 } from "./orchestrator";
-import { applyCycle, emptyBook, exitWatchOf, ledgerOf, markBook, rollCounters, toRoomInput, type RoomBook } from "./paper-book";
+import { asLab, labRead } from "./lab";
+import { applyCycle, applyLab, emptyBook, exitWatchOf, ledgerOf, markBook, rollCounters, toRoomInput, type RoomBook } from "./paper-book";
 import type { Underlier } from "./option-math";
 
 /** A Monday. The drill's clock is its own; nothing here reads today's date. */
@@ -65,6 +67,29 @@ export interface DrillFrame {
 const NQ_PLAN = { entry: 30996, stop: 30924, t1: 31110, t2: 31180, rr1: 1.58 };
 /** The SPY book's plan Sterling refuses: ES long, a second book on the same morning. */
 const ES_PLAN = { entry: 7846, stop: 7838, t1: 7859, t2: 7868, rr1: 1.63 };
+/** The drill's 15m ATRs — scripted, like everything else here. */
+const NQ_ATR = 60;
+const ES_ATR = 10;
+
+/** The model's measured fill rate for a location tier (hit-odds-model.json fillByTier). */
+function tierFill(tier: "live" | "armed" | "forming"): number {
+  const f = HIT_ODDS_MODEL.fillByTier;
+  return tier === "live" ? f.LIVE : tier === "armed" ? f.ARMED : f.FORMING;
+}
+
+/**
+ * The card's odds, from the desk's REAL hit-odds model on the drill's
+ * geometry — so a scripted card prices exactly the way a live one would.
+ */
+function oddsOn(plan: { entry: number; stop: number; t1: number }, symbol: string, atr: number, price: number) {
+  const o = planHitOdds({ side: "long", symbol, entry: plan.entry, stop: plan.stop, t1: plan.t1, atr, price });
+  return {
+    pT1: o?.pT1 ?? null,
+    expR: o?.expR ?? null,
+    pFill: o?.pFill ?? null,
+    drivers: (o?.drivers ?? []).slice(0, 3).map((d) => ({ label: d.label, pts: d.pts, reliable: d.reliable })),
+  };
+}
 
 const RELEASE: Omit<AgendaEvent, "minutes"> = { name: "CPI (drill)", date: DRILL_DATE, timeEt: "08:30", impact: "high" };
 const NEXT_AFTER: Omit<AgendaEvent, "minutes"> = { name: "Fed speaker (drill)", date: DRILL_DATE, timeEt: "14:00", impact: "medium" };
@@ -97,10 +122,10 @@ function nqCard(over: Partial<RoomEntryRead>): RoomEntryRead {
     plan: NQ_PLAN,
     tier: "forming",
     awayPts: null,
-    pT1: 0.31,
-    expR: 0.12,
-    pFill: 0.52,
+    ...oddsOn(NQ_PLAN, "MNQ", NQ_ATR, NQ_PLAN.entry + 50),
     patterns: { inducement: false, mitigation: false },
+    atr: NQ_ATR,
+    strategy: "TJR sweep → 5m CHoCH (drill)",
     ...over,
   };
 }
@@ -296,7 +321,7 @@ export function drillFrames(): DrillFrame[] {
       vix: 17.9,
       trend: ["BULLISH", "BULLISH"],
       spike: [true, false],
-      entry: nqCard({ tier: "forming", awayPts: 50, pFill: 0.52 }),
+      entry: nqCard({ tier: "forming", awayPts: 50, pFill: tierFill("forming") }),
       agenda: post("09:47", cpiMove),
     },
     {
@@ -308,7 +333,7 @@ export function drillFrames(): DrillFrame[] {
       es: 7853,
       rsi: [57, 55],
       ...calm,
-      entry: nqCard({ tier: "armed", awayPts: 26, pFill: 0.8 }),
+      entry: nqCard({ tier: "armed", awayPts: 26, pFill: tierFill("armed") }),
       agenda: post("09:52", cpiMove),
     },
     {
@@ -320,7 +345,7 @@ export function drillFrames(): DrillFrame[] {
       es: 7851,
       rsi: [51, 52],
       ...calm,
-      entry: nqCard({ tier: "live", awayPts: 0, pFill: 0.97 }),
+      entry: nqCard({ tier: "live", awayPts: 0, pFill: tierFill("live") }),
       agenda: post("09:56", cpiMove),
     },
     {
@@ -332,7 +357,7 @@ export function drillFrames(): DrillFrame[] {
       es: 7857,
       rsi: [62, 58],
       ...calm,
-      entry: nqCard({ tier: "forming", awayPts: 66, pFill: 0.52 }),
+      entry: nqCard({ tier: "forming", awayPts: 66, pFill: tierFill("forming") }),
       agenda: post("10:05", cpiMove),
     },
     {
@@ -367,9 +392,10 @@ export function drillFrames(): DrillFrame[] {
         plan: ES_PLAN,
         tier: "live",
         awayPts: 0,
-        pT1: 0.33,
-        expR: 0.1,
-        pFill: 0.97,
+        ...oddsOn(ES_PLAN, "ES", ES_ATR, ES_PLAN.entry),
+        pFill: tierFill("live"),
+        atr: ES_ATR,
+        strategy: "SMC order-block retest (drill)",
       }),
       agenda: post("10:22", cpiMove),
     },
@@ -539,8 +565,10 @@ export function runDrillStep(book: RoomBook, minds: MindState | null, f: DrillFr
   const marked = markBook(rolled, market, nowMs);
   const input = toRoomInput(marked, market);
   const desk = drillDeskRead(f, marked);
-  const cycle = runRoomCycle(input, { desk, ledger: ledgerOf(marked), minds }, nowMs);
-  return { frame: f, nowMs, input, cycle, book: applyCycle(marked, cycle, nowMs), minds: cycle.minds, desk };
+  const lab = labRead(asLab(marked.lab), marked.closed);
+  const cycle = runRoomCycle(input, { desk, ledger: ledgerOf(marked), minds, lab }, nowMs);
+  const booked = applyLab(applyCycle(marked, cycle, nowMs), cycle, market, desk, nowMs);
+  return { frame: f, nowMs, input, cycle, book: booked, minds: cycle.minds, desk };
 }
 
 /** The whole day, from an empty $10,000 book and a fresh room. */

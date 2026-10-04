@@ -1151,6 +1151,26 @@ def f_bar_stool(g, it, w, h, d):
         box(g, (0, 0, 0.3), (0.32, 0.014, 0.014), "chrome", M=Rz(90 * k))
 
 
+def f_jumbotron(g, it, w, h, d):
+    """The war room's hanging four-sided scoreboard: corner posts, top and bottom
+    rails and a cap. The four faces are screens (jumbo_E/W/S/N), built with the
+    other screens; the beacon sits on the cap; four cables run to the ceiling."""
+    t = 0.04
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            box(g, (sx * (w / 2 - t / 2), sy * (d / 2 - t / 2), h / 2), (t, t, h), "tv_black", 0.004)
+    for z in (t / 2, h - t / 2):
+        for sx in (-1, 1):
+            box(g, (sx * (w / 2 - t / 2), 0, z), (t, d, t), "tv_black", 0.004)
+            box(g, (0, sx * (d / 2 - t / 2), z), (w, t, t), "tv_black", 0.004)
+    box(g, (0, 0, h - 0.01), (w - 0.06, d - 0.06, 0.02), "metal_dark", 0.004)
+    ceiling = float(LAYOUT.get("ceiling", 3.6))
+    drop = max(0.05, ceiling - float(it.get("onTop", 0)) - h)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            cyl(g, (sx * (w / 2 - 0.12), sy * (d / 2 - 0.12), h), 0.006, drop, "chrome", seg=6)
+
+
 def f_door_frame(g, it, w, h, d):
     for sx in (-1, 1):
         box(g, (sx * (w / 2 - 0.05), 0, h / 2), (0.1, d, h), "frame_dark", 0.01)
@@ -1166,7 +1186,7 @@ BUILDERS = {
     "meeting_chair": f_meeting_chair, "printer": f_printer, "bench": f_bench, "counter": f_counter,
     "coffee_machine": f_coffee_machine, "fridge": f_fridge, "watercooler": f_watercooler, "couch": f_couch,
     "coffee_table": f_coffee_table, "rug": f_rug, "bar_table": f_bar_table, "bar_stool": f_bar_stool,
-    "door_frame": f_door_frame,
+    "door_frame": f_door_frame, "jumbotron": f_jumbotron,
 }
 
 

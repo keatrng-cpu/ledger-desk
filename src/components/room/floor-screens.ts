@@ -8,8 +8,26 @@
 
 import type { OhlcBar } from "@/lib/market/types";
 import type { AgentAct, MindState } from "@/lib/room/agents";
+import type { Lenses } from "@/lib/room/debate";
+import type { LabRead } from "@/lib/room/lab";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
+
+/** Nova's ledger for the card under review or the position held — what the jumbotron's east face draws. */
+export interface LedgerScreen {
+  title: string;
+  contract: string;
+  held: boolean;
+  measured: boolean;
+  pT1Model: number;
+  windowBars: number;
+  share: number | null;
+  paths: { kind: "t1" | "loss" | "none"; p: number; pnlUsd: number; clock: string }[];
+  evUsd: number;
+  t1Pays: boolean;
+  /** Held: holding minus selling now, per contract. */
+  edgeUsd: number | null;
+}
 
 export interface ChartSeries {
   symbol: string;
@@ -37,6 +55,11 @@ export interface FloorScreens {
   research: Partial<Record<Character, string[]>>;
   source: string;
   synthetic: boolean;
+  ledger: LedgerScreen | null;
+  lab: LabRead | null;
+  lenses: Lenses | null;
+  /** The room's number for the card (debate.ts consensus). */
+  roomP: number | null;
 }
 
 export interface FloorFrame {
@@ -579,37 +602,324 @@ function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
   ctx.textAlign = "left";
 }
 
-function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number) {
+/**
+ * Market weather: the sky follows the ET clock (night, dawn, day, dusk) and
+ * the VIX — clear under 15, scattered cloud to 20, overcast to 30, a storm
+ * with rain and lightning above it. Rain and lightning move with `tSec`.
+ */
+function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number, vix: number | null, tSec: number) {
   const hour = etMin / 60;
   const night = hour < 6.5 || hour > 19.5;
   const dusk = !night && (hour < 8 || hour > 17.5);
+  const v = vix != null && vix > 0 ? vix : 16;
+  const storm = v >= 30;
+  const overcast = v >= 20;
   const g = ctx.createLinearGradient(0, 0, 0, h);
-  if (night) {
+  if (storm) {
+    g.addColorStop(0, night ? "#05060b" : "#1f2430");
+    g.addColorStop(1, night ? "#14161f" : "#4b5263");
+  } else if (night) {
     g.addColorStop(0, "#020617");
     g.addColorStop(1, "#1e1b4b");
   } else if (dusk) {
-    g.addColorStop(0, "#1e3a8a");
-    g.addColorStop(1, "#f59e0b");
+    g.addColorStop(0, overcast ? "#334155" : "#1e3a8a");
+    g.addColorStop(1, overcast ? "#9a6b3c" : "#f59e0b");
   } else {
-    g.addColorStop(0, "#60a5fa");
-    g.addColorStop(1, "#dbeafe");
+    g.addColorStop(0, overcast ? "#64748b" : "#60a5fa");
+    g.addColorStop(1, overcast ? "#cbd5e1" : "#dbeafe");
   }
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
-  let x = 0;
   let s = seed;
   const rnd = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+  if (night && !overcast) {
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    for (let i = 0; i < 40; i++) ctx.fillRect(rnd() * w, rnd() * h * 0.5, 2, 2);
+  }
+  // Clouds drift slowly with the clock.
+  const clouds = v < 15 ? 1 : v < 20 ? 3 : v < 30 ? 6 : 9;
+  for (let i = 0; i < clouds; i++) {
+    const cx = ((rnd() * w + tSec * (6 + i)) % (w + 220)) - 110;
+    const cy = 30 + rnd() * h * 0.3;
+    ctx.fillStyle = storm ? "rgba(40,44,56,0.9)" : overcast ? "rgba(203,213,225,0.75)" : "rgba(255,255,255,0.85)";
+    for (let k = 0; k < 4; k++) {
+      ctx.beginPath();
+      ctx.ellipse(cx + k * 34, cy + (k % 2) * 8, 46, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  let x = 0;
   while (x < w) {
     const bw = 30 + rnd() * 70;
     const bh = h * (0.25 + rnd() * 0.6);
-    ctx.fillStyle = night ? "#0b1020" : dusk ? "#312e81" : "#475569";
+    ctx.fillStyle = night || storm ? "#0b1020" : dusk ? "#312e81" : "#475569";
     ctx.fillRect(x, h - bh, bw, bh);
-    ctx.fillStyle = night ? "#fde68a" : "rgba(226,232,240,0.55)";
+    ctx.fillStyle = night || storm ? "#fde68a" : "rgba(226,232,240,0.55)";
     for (let wy = h - bh + 8; wy < h - 6; wy += 14)
       for (let wx = x + 5; wx < x + bw - 6; wx += 12) if (rnd() > (night ? 0.55 : 0.3)) ctx.fillRect(wx, wy, 6, 8);
     x += bw + 4;
   }
+  if (overcast) {
+    // Rain: streaks that fall with the clock.
+    ctx.strokeStyle = storm ? "rgba(191,219,254,0.55)" : "rgba(191,219,254,0.3)";
+    ctx.lineWidth = 1.5;
+    const drops = storm ? 140 : v >= 25 ? 60 : 0;
+    for (let i = 0; i < drops; i++) {
+      const dx = rnd() * w;
+      const dy = (rnd() * h + tSec * 420) % h;
+      ctx.beginPath();
+      ctx.moveTo(dx, dy);
+      ctx.lineTo(dx - 6, dy + 18);
+      ctx.stroke();
+    }
+  }
+  if (storm) {
+    // Lightning: a deterministic flash a few times a minute.
+    const beat = Math.floor(tSec * 2);
+    const flash = ((beat * 2654435761) >>> 0) % 37 === 0;
+    if (flash) {
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#f8fafc";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      let lx = w * (0.2 + ((beat * 7) % 60) / 100);
+      let ly = 0;
+      ctx.moveTo(lx, ly);
+      while (ly < h * 0.7) {
+        lx += (rnd() - 0.5) * 50;
+        ly += 30 + rnd() * 30;
+        ctx.lineTo(lx, ly);
+      }
+      ctx.stroke();
+    }
+  }
 }
+
+/* ── The jumbotron (quant wall) and the league table ─────────────────────── */
+
+const CREW_ORDER: Character[] = ["Jax", "Nova", "Sterling", "Gemma", "Vince"];
+const CREW_COLOR: Record<Character, string> = { Jax: "#e4572e", Nova: "#a78bfa", Sterling: "#ef4444", Gemma: "#22c55e", Vince: "#22d3ee" };
+const pct = (p: number | null | undefined) => (p == null ? "—" : `${Math.round(p * 100)}%`);
+const signed = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
+
+function drawLedger(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const L = f.screens.ledger;
+  header(ctx, w, "THE LEDGER", L ? (L.held ? "held" : "card") : "idle", "#a78bfa");
+  if (!L) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 22px ${FONT}`;
+    ctx.fillText("No priced plan — nothing to price.", 18, 110);
+    ctx.font = `500 17px ${FONT}`;
+    wrap(ctx, "Every option is priced on three measured paths: T1 before the flat, a loss, or nothing by 11:00.", 18, 150, w - 36, 22, 3);
+    return;
+  }
+  ctx.fillStyle = C.text;
+  ctx.font = `700 20px ${MONO}`;
+  ctx.fillText(L.contract, 16, 66);
+  ctx.font = `500 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(`model ${pct(L.pT1Model)} to T1 in 8h · ${L.measured ? `${pct(L.share)} of T1s land inside ${L.windowBars} bars` : "time curve not measured"}`, 16, 90);
+  // The tree: root → three branches.
+  const rootX = 46;
+  const rootY = 190;
+  const bx = 210;
+  const rows = L.paths;
+  const colOf = (k: string) => (k === "t1" ? C.up : k === "loss" ? C.down : C.amber);
+  const labelOf = (k: string) => (k === "t1" ? "T1" : k === "loss" ? "LOSS" : "FLAT");
+  ctx.fillStyle = C.text;
+  ctx.beginPath();
+  ctx.arc(rootX, rootY, 9, 0, Math.PI * 2);
+  ctx.fill();
+  rows.forEach((r, i) => {
+    const y = 128 + i * 62;
+    ctx.strokeStyle = colOf(r.kind);
+    ctx.lineWidth = 2 + 10 * r.p;
+    ctx.beginPath();
+    ctx.moveTo(rootX, rootY);
+    ctx.bezierCurveTo(rootX + 70, rootY, bx - 70, y, bx, y);
+    ctx.stroke();
+    ctx.fillStyle = colOf(r.kind);
+    ctx.font = `800 22px ${MONO}`;
+    ctx.fillText(`${labelOf(r.kind)} ${pct(r.p)}`, bx + 10, y - 4);
+    ctx.font = `600 17px ${MONO}`;
+    ctx.fillStyle = C.text;
+    ctx.fillText(`${signed(r.pnlUsd)} · ~${r.clock}`, bx + 10, y + 18);
+  });
+  ctx.fillStyle = L.evUsd > 0 ? C.up : C.down;
+  ctx.font = `900 40px ${MONO}`;
+  ctx.textAlign = "right";
+  ctx.fillText(`EV ${signed(L.evUsd)}`, w - 16, h - 52);
+  ctx.font = `600 16px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(L.held ? (L.edgeUsd != null ? `hold vs sell now ${signed(L.edgeUsd)} a contract` : "") : L.t1Pays ? "T1 pays ✓  · per contract, after both crossings" : "T1 does NOT pay ✗", w - 16, h - 22);
+  ctx.textAlign = "left";
+}
+
+function drawGhosts(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const lab = f.screens.lab;
+  header(ctx, w, "GHOST ROOM", lab ? `${lab.ghostsOpen} open` : "—", "#94a3b8");
+  ctx.font = `500 16px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("Never fills. The same rules on the same marks — what each 'no' was worth.", 16, 66);
+  if (!lab) return;
+  let yy = 104;
+  const t = lab.twins;
+  ctx.font = `700 19px ${FONT}`;
+  ctx.fillStyle = C.text;
+  ctx.fillText("Room exits vs the mandate alone", 16, yy);
+  ctx.font = `700 22px ${MONO}`;
+  ctx.fillStyle = t.n ? (t.deltaUsd >= 0 ? C.up : C.down) : C.muted;
+  ctx.fillText(t.n ? `${signed(t.deltaUsd)} over ${t.n} fill${t.n === 1 ? "" : "s"}` : "no paired fills yet", 16, yy + 30);
+  yy += 74;
+  ctx.font = `700 19px ${FONT}`;
+  ctx.fillStyle = C.text;
+  ctx.fillText("Refused at the CE — what they'd have made", 16, yy);
+  yy += 30;
+  ctx.font = `600 18px ${MONO}`;
+  if (!lab.refusals.length) {
+    ctx.fillStyle = C.muted;
+    ctx.fillText("no refused ticket has closed yet", 16, yy);
+  }
+  for (const r of lab.refusals.slice(0, 4)) {
+    ctx.fillStyle = r.pnlUsd >= 0 ? C.up : C.down;
+    ctx.fillText(`${r.gate.padEnd(10)} ${String(r.n).padStart(3)}×  ${signed(r.pnlUsd).padStart(7)}  ${r.wins}W`, 16, yy);
+    yy += 28;
+  }
+}
+
+function drawCalibration(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const lab = f.screens.lab;
+  const cal = lab?.calibration;
+  header(ctx, w, "CALIBRATION", cal ? `n ${cal.n}${cal.brier != null ? ` · Brier ${cal.brier.toFixed(3)}` : ""}` : "—", "#38bdf8");
+  ctx.font = `500 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("Said vs happened: P(T1 before 11:00) on every plan whose CE filled.", 16, 64);
+  if (!cal || !cal.n) {
+    ctx.font = `500 20px ${FONT}`;
+    ctx.fillText("No scored plans yet.", 16, 120);
+    return;
+  }
+  const left = 40;
+  const bottom = h - 40;
+  const top = 92;
+  const bw = (w * 0.55 - left) / cal.bins.length;
+  cal.bins.forEach((b, i) => {
+    const x = left + i * bw + 8;
+    const ph = (b.meanP ?? 0) * (bottom - top);
+    const hh = (b.hit ?? 0) * (bottom - top);
+    ctx.fillStyle = "rgba(167,139,250,0.55)";
+    ctx.fillRect(x, bottom - ph, bw * 0.38, ph);
+    ctx.fillStyle = b.n ? C.up : C.grid;
+    ctx.fillRect(x + bw * 0.42, bottom - hh, bw * 0.38, hh);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 13px ${MONO}`;
+    ctx.fillText(`${Math.round(b.lo * 100)}–${Math.round(b.hi * 100)}`, x, bottom + 16);
+    ctx.fillText(`n${b.n}`, x, bottom + 30);
+  });
+  // Per person.
+  let yy = 104;
+  const x0 = w * 0.6;
+  ctx.font = `700 17px ${FONT}`;
+  ctx.fillStyle = C.text;
+  ctx.fillText("Brier by person (lower is better)", x0, yy);
+  yy += 28;
+  for (const c of CREW_ORDER) {
+    const t = lab!.track[c];
+    ctx.fillStyle = CREW_COLOR[c];
+    ctx.font = `700 17px ${MONO}`;
+    ctx.fillText(`${c.padEnd(8)} ${t?.brier != null ? t.brier.toFixed(3) : "  —  "}  n${t?.n ?? 0}`, x0, yy);
+    yy += 26;
+  }
+}
+
+function drawVote(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const L = f.screens.lenses;
+  header(ctx, w, "THE VOTE", L ? `room ${pct(f.screens.roomP)}` : "no card", "#f59e0b");
+  ctx.font = `500 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("Each person's own P(T1 before 11:00) — scored later by the lab.", 16, 64);
+  if (!L) return;
+  let yy = 96;
+  for (const c of CREW_ORDER) {
+    const p = L[c].p;
+    ctx.fillStyle = C.grid;
+    ctx.fillRect(130, yy - 16, w - 200, 22);
+    ctx.fillStyle = CREW_COLOR[c];
+    ctx.fillRect(130, yy - 16, (w - 200) * p, 22);
+    ctx.font = `700 18px ${FONT}`;
+    ctx.fillText(c, 16, yy);
+    ctx.fillStyle = C.text;
+    ctx.font = `700 18px ${MONO}`;
+    ctx.fillText(pct(p), w - 62, yy);
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillStyle = C.muted;
+    ctx.fillText(L[c].basis.slice(0, 70), 130, yy + 22);
+    yy += 50;
+  }
+  if (f.screens.roomP != null) {
+    const x = 130 + (w - 200) * f.screens.roomP;
+    ctx.strokeStyle = "#fde68a";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x, 80);
+    ctx.lineTo(x, yy - 26);
+    ctx.stroke();
+  }
+}
+
+function drawLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const minds = f.minds;
+  const lab = f.screens.lab;
+  header(ctx, w, "LEAGUE TABLE", f.screens.synthetic ? "drill" : "the room", "#fde68a");
+  const rows = CREW_ORDER.map((c) => ({
+    c,
+    rank: minds?.rank[c] ?? 50,
+    rec: minds?.record[c],
+    brier: lab?.track[c]?.brier ?? null,
+    n: lab?.track[c]?.n ?? 0,
+  })).sort((a, b) => b.rank - a.rank);
+  ctx.font = `600 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("#   name       credibility   calls R/W/F        Brier", 16, 68);
+  let yy = 104;
+  rows.forEach((r, i) => {
+    ctx.fillStyle = i === 0 ? "#fde68a" : C.text;
+    ctx.font = `800 24px ${MONO}`;
+    ctx.fillText(`${i + 1}`, 16, yy);
+    ctx.fillStyle = CREW_COLOR[r.c];
+    ctx.font = `800 24px ${FONT}`;
+    ctx.fillText(r.c, 48, yy);
+    ctx.fillStyle = C.text;
+    ctx.font = `700 22px ${MONO}`;
+    ctx.fillText(String(r.rank).padStart(3), 230, yy);
+    ctx.fillStyle = C.muted;
+    ctx.fillRect(282, yy - 12, 100, 8);
+    ctx.fillStyle = CREW_COLOR[r.c];
+    ctx.fillRect(282, yy - 12, r.rank, 8);
+    ctx.fillStyle = C.text;
+    ctx.font = `600 19px ${MONO}`;
+    ctx.fillText(r.rec ? `${r.rec.right}/${r.rec.wrong}/${r.rec.flat}` : "—", 410, yy);
+    ctx.fillText(r.brier != null ? `${r.brier.toFixed(3)} (n${r.n})` : `— (n${r.n})`, 560, yy);
+    yy += 58;
+  });
+}
+
+/** The ET minute the screen clock reads (the drill's own clock in a drill). */
+function etMinOfClock(ms: number, f: FloorFrame): number {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date(ms));
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? NaN) % 24;
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? NaN);
+  return Number.isFinite(hh) && Number.isFinite(mm) ? hh * 60 + mm : f.etMin;
+}
+
+/** Screens that move between cycles (weather) — the scene redraws these on a timer. */
+export const ANIMATED_SCREENS = new Set(["window_0", "window_1", "window_2"]);
 
 /** Draw the screen `id` for this frame. Returns false when the id is unknown. */
 export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs: number): boolean {
@@ -628,7 +938,12 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "clocks_Gemma") drawClocks(ctx, w, h, clockMs);
     else if (id === "poster_Sterling" || id === "note_Vince") drawPoster(id, ctx, w, h);
     else if (id.startsWith("plate_")) drawPlate(id, ctx, w, h);
-    else if (id.startsWith("window_")) drawWindow(ctx, w, h, f.etMin, Number(id.split("_")[1] ?? 0) * 977 + 13);
+    else if (id.startsWith("window_")) drawWindow(ctx, w, h, etMinOfClock(clockMs, f), Number(id.split("_")[1] ?? 0) * 977 + 13, f.screens.vix, clockMs / 1000);
+    else if (id === "jumbo_E") drawLedger(ctx, w, h, f);
+    else if (id === "jumbo_S") drawGhosts(ctx, w, h, f);
+    else if (id === "jumbo_W") drawCalibration(ctx, w, h, f);
+    else if (id === "jumbo_N") drawVote(ctx, w, h, f);
+    else if (id === "tv_leader") drawLeague(ctx, w, h, f);
     else return false;
     return true;
   } finally {

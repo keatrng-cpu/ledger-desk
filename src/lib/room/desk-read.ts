@@ -139,6 +139,8 @@ export interface ExitWatch {
   trimmed: boolean;
   openedAt: number;
   fut: { symbol: string; side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null } | null;
+  /** What the desk priced the plan at when the room filled: P(T1 | filled) and the ATR it was measured in. */
+  quant?: { pT1: number; atr: number | null } | null;
 }
 
 function underlierOfSymbol(sym: string): Underlier {
@@ -184,6 +186,11 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
     expR: c?.hitOdds?.expR ?? null,
     pFill: c?.hitOdds?.pFill ?? null,
     patterns: c?.patterns ?? null,
+    // The ATR the model measured T1 in, recovered from its own geometry so the
+    // room's time curve buckets the plan exactly as hit-odds did.
+    atr: plan?.t1 != null && c?.hitOdds?.geometry.t1Atr ? Math.abs(plan.t1 - plan.entry) / c.hitOdds.geometry.t1Atr : null,
+    strategy: c ? c.completeStrategy || c.strategyPrimary || null : null,
+    drivers: (c?.hitOdds?.drivers ?? []).slice(0, 3).map((d) => ({ label: d.label, pts: d.pts, reliable: d.reliable })),
   };
 }
 
@@ -196,7 +203,18 @@ export function computeHeld(
   for (const w of watch) {
     if (!w.fut) continue;
     const u = underlierOfSymbol(w.fut.symbol);
-    out[w.id] = { symbol: w.fut.symbol, side: w.fut.side, stop: w.fut.stop, t1: w.fut.t1, t2: w.fut.t2, price: futures[u].price };
+    out[w.id] = {
+      symbol: w.fut.symbol,
+      side: w.fut.side,
+      stop: w.fut.stop,
+      t1: w.fut.t1,
+      t2: w.fut.t2,
+      price: futures[u].price,
+      entry: w.fut.entry,
+      atr: w.quant?.atr ?? null,
+      pT1: w.quant?.pT1 ?? null,
+      openedAt: w.openedAt,
+    };
   }
   return out;
 }
@@ -290,7 +308,7 @@ function pickDayCard(od: OptionsDesk): RhStrategyCard | null {
 /**
  * The desk's exits for the room's open positions: the futures plan's
  * invalidation (level), the 15m failed-hold close (exit-rules.ts, before the
- * trim only) and T2 for the runner. Shared by the live desk and the drill so
+ * trim only), T2 for the runner, and T1 for an untrimmed position. Shared by the live desk and the drill so
  * the two can never exit on different rules.
  */
 export function computeExits(
@@ -321,6 +339,11 @@ export function computeExits(
     }
     if (w.fut.t2 != null && (long ? price >= w.fut.t2 : price <= w.fut.t2)) {
       exits[w.id] = { kind: "t2", why: `${w.fut.symbol} reached T2 ${w.fut.t2.toFixed(2)}` };
+      continue;
+    }
+    // T1 trims an untrimmed position (exits.ts levelTrim): the desk's measured rule.
+    if (!w.trimmed && w.fut.t1 != null && (long ? price >= w.fut.t1 : price <= w.fut.t1)) {
+      exits[w.id] = { kind: "t1", why: `${w.fut.symbol} ${price.toFixed(2)} reached T1 ${w.fut.t1.toFixed(2)}` };
     }
   }
   return exits;

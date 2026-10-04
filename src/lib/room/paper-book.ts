@@ -21,8 +21,10 @@
  */
 
 import { etMonthKey, etWeekKey } from "@/lib/trading/rh-income";
+import { asLab, labWatchList, stepLab, type RoomLab } from "./lab";
 import { expiryMs, etDateOf, ivFor, quoteOption, type OptionType, type StrikeOffset, type Underlier } from "./option-math";
-import { planKey, type RoomCycle, type RoomInput, type RoomLedger, type UnderlierTape } from "./orchestrator";
+import { planKey, type RoomCycle, type RoomDeskRead, type RoomInput, type RoomLedger, type UnderlierTape } from "./orchestrator";
+import { attribute, type Attribution } from "./quant";
 import type { ExitWatch } from "./desk-read";
 
 export const ROOM_BOOK_STORAGE = "ledger-room-book-v1";
@@ -60,6 +62,11 @@ export interface RoomBookPosition {
   mark: { bid: number; mid: number; delta: number; at: number } | null;
   /** On the bid, vs the ask paid. */
   pnlPct: number;
+  /** What the desk priced the plan at on the fill — the theta stop and the ghost room read it. */
+  quant?: { pT1: number; atr: number | null; t1Atr: number | null; evUsd: number | null; pWindow: number | null } | null;
+  /** The ETF print and IV at the fill — the P&L attribution's starting point. */
+  spot0?: number;
+  iv0?: number;
 }
 
 export interface RoomClosedTrade {
@@ -75,6 +82,8 @@ export interface RoomClosedTrade {
   reason: string;
   openedAt: number;
   closedAt: number;
+  /** Where the money came from: spot move, IV, the clock, the crossings (quant.ts attribute). */
+  attrib?: Attribution | null;
 }
 
 export interface RoomEvent {
@@ -107,6 +116,8 @@ export interface RoomBook {
     /** planKey of every plan bought today — one plan, one fill. */
     filledPlans: string[];
   };
+  /** The ghost room and the plan ledger (lab.ts). Absent on books saved before it existed. */
+  lab?: RoomLab;
 }
 
 export function emptyBook(cash = ROOM_DEFAULT_CASH, nowMs = Date.now()): RoomBook {
@@ -255,6 +266,10 @@ export function toRoomInput(book: RoomBook, market: Record<Underlier, UnderlierT
         contracts: p.contracts,
         trimmed: p.trimmed,
         strike_offset: p.offset,
+        entry_px: p.entryPx,
+        opened_at: p.openedAt,
+        spot0: p.spot0,
+        iv0: p.iv0,
       })),
     },
     market_data: market,
@@ -276,8 +291,16 @@ export function ledgerOf(book: RoomBook): RoomLedger {
   };
 }
 
+/** Everything the desk should price level exits for: the room's positions and its open ghosts. */
 export function exitWatchOf(book: RoomBook): ExitWatch[] {
-  return book.positions.map((p) => ({ id: p.id, trimmed: p.trimmed, openedAt: p.openedAt, fut: p.fut }));
+  const own: ExitWatch[] = book.positions.map((p) => ({
+    id: p.id,
+    trimmed: p.trimmed,
+    openedAt: p.openedAt,
+    fut: p.fut,
+    quant: p.quant ? { pT1: p.quant.pT1, atr: p.quant.atr } : null,
+  }));
+  return [...own, ...labWatchList(asLab(book.lab))];
 }
 
 /**
@@ -314,6 +337,12 @@ export function applyCycle(book: RoomBook, cycle: RoomCycle, nowMs: number): Roo
       realizedUsd: 0,
       mark: { bid: e.quote.bid, mid: e.quote.mid, delta: e.quote.delta, at: nowMs },
       pnlPct: Math.round(((e.quote.bid - e.quote.ask) / e.quote.ask) * 1000) / 10,
+      quant:
+        e.entry.pT1 != null
+          ? { pT1: e.entry.pT1, atr: e.entry.atr ?? null, t1Atr: e.t1Atr, evUsd: e.ev?.evUsd ?? null, pWindow: e.ev?.window.pT1 ?? null }
+          : null,
+      spot0: e.spot,
+      iv0: e.quote.iv,
     };
     const c = { ...book.counters };
     c.kzEntries += 1;
@@ -356,6 +385,23 @@ export function applyCycle(book: RoomBook, cycle: RoomCycle, nowMs: number): Roo
       reason: `${x.reason.replace("_", " ")} — ${x.why}`,
       openedAt: p.openedAt,
       closedAt: nowMs,
+      attrib:
+        p.spot0 != null && p.iv0 != null && x.spot != null && x.quote
+          ? attribute({
+              type: p.type,
+              strike: p.strike,
+              exp: p.exp,
+              contracts: qty,
+              spot0: p.spot0,
+              iv0: p.iv0,
+              t0Ms: p.openedAt,
+              spot1: x.spot,
+              iv1: x.quote.iv,
+              t1Ms: nowMs,
+              entryPx: p.entryPx,
+              exitPx: px,
+            })
+          : null,
     };
     const positions = full
       ? book.positions.filter((q) => q.id !== p.id)
@@ -376,4 +422,21 @@ export function applyCycle(book: RoomBook, cycle: RoomCycle, nowMs: number): Roo
     };
   }
   return book;
+}
+
+/**
+ * The ghost room's step, after the room's own ticket is booked: ghosts mark
+ * and exit on the same prints, new ones open, the plan ledger follows its
+ * plans. Never moves the room's cash or counters.
+ */
+export function applyLab(
+  book: RoomBook,
+  cycle: RoomCycle,
+  market: Record<Underlier, UnderlierTape>,
+  desk: RoomDeskRead | null,
+  nowMs: number,
+): RoomBook {
+  const opened =
+    cycle.output.broker_action.action_type === "BUY_OPEN" ? (book.positions.filter((p) => p.openedAt === nowMs).at(-1)?.id ?? null) : null;
+  return { ...book, lab: stepLab(asLab(book.lab), { cycle, market, desk, nowMs, roomFillId: opened }) };
 }

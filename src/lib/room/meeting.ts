@@ -14,6 +14,7 @@
  */
 
 import { APLUS_RULES } from "@/lib/aplus/config";
+import { etWallParts } from "@/lib/trading/sessions";
 import { SCHOOLS } from "@/lib/trading/smc-canon";
 import {
   CREW,
@@ -42,7 +43,10 @@ import {
   signedPct,
   usd,
 } from "./format";
+import { challengeFor, preMortem, rebuttalFor, strikeWhy, tallyLine, thesisOwner, type Lenses } from "./debate";
+import type { LabRead } from "./lab";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
+import { attribute, type HoldRead } from "./quant";
 import { HALF_SPREAD, ivFor, ivSource, quoteOption, type Underlier } from "./option-math";
 import {
   bandNote,
@@ -90,6 +94,12 @@ export interface Facts {
   nowMs: number;
   errors: string[];
   agenda: Agenda | null;
+  /** quant.ts holdValue per open position. */
+  holds: Record<string, HoldRead | null>;
+  /** Each person's own P(T1 before the flat) for the card under review. */
+  lenses: Lenses | null;
+  /** What the ghost room and the calibration ledger have learned so far. */
+  lab: LabRead | null;
 }
 
 type Line = { who: Character; text: string; want: Animation };
@@ -321,6 +331,112 @@ function aligned(f: Facts, c: RoomEntryRead): boolean {
   return f.desk?.htf[c.underlier] === want;
 }
 
+/* ── The debate (debate.ts) — every card the room can price ───────────────── */
+
+const OWNER_ANIM: Record<Character, Animation> = {
+  Jax: "POINTING",
+  Nova: "WRITING_ON_WHITEBOARD",
+  Sterling: "CHECKING_TABLET",
+  Gemma: "GESTICURING_AT_WALL",
+  Vince: "STEADY_MONITORING",
+};
+
+function etMinOfMs(ms: number): number {
+  const w = etWallParts(ms);
+  return w.hour * 60 + w.minute;
+}
+
+function thesisText(c: RoomEntryRead): string {
+  const pl = c.plan!;
+  const rr = pl.rr1 ?? (pl.t1 != null ? Math.abs(pl.t1 - pl.entry) / Math.max(1e-9, Math.abs(pl.entry - pl.stop)) : null);
+  const where_ = c.tier === "live" ? "It's ON the CE now." : c.awayPts != null ? `${ptsTxt(c.awayPts)} off the CE, ${(c.tier ?? "—").toUpperCase()}.` : "";
+  return `${c.strategy ?? c.name}: ${c.futSymbol} ${c.futSide} from CE ${px(pl.entry)}, stop ${px(pl.stop)}, T1 ${pl.t1 != null ? px(pl.t1) : "—"}${rr != null ? ` (${rr.toFixed(2)}R)` : ""}, PATH ${c.band ?? "—"}. ${where_}`;
+}
+
+function priceText(e: EntryPlan): string {
+  const ev = e.ev!;
+  const w = ev.window;
+  const by = (k: "t1" | "loss" | "none") => ev.scenarios.find((x) => x.kind === k);
+  const sgn = (n: number | undefined) => `${(n ?? 0) >= 0 ? "+" : "−"}$${Math.abs(Math.round(n ?? 0))}`;
+  return (
+    `${contractName(e.entry.underlier, e.quote.strike, e.entry.type, e.exp)} at ${prem(e.quote.ask)}: model ${pctOf(ev.pT1Model)} to T1 in 8h, ` +
+    `${pctOf(w.pT1)} before 11:00${w.measured ? ` (${Math.round(w.shareOfHitsInWindow * 100)}% of T1s land inside ${w.windowBars} bars)` : " (time curve not measured)"}. ` +
+    `T1 ${sgn(by("t1")?.pnlUsd)} · loss ${sgn(by("loss")?.pnlUsd)} · flat ${sgn(by("none")?.pnlUsd)} → EV ${sgn(ev.evUsd)} a contract after ${prem(ev.spreadUsd / 100)} of spread.`
+  );
+}
+
+/**
+ * The structured argument over a priced card: thesis → price → challenge →
+ * rebuttal → (why this strike) → everyone's number → verdict → execution.
+ * Null when the card has no priced plan — the older beat script runs instead.
+ */
+function debate(f: Facts, minds: MindState | null, mode: "wait" | "fill" | "veto"): Line[] | null {
+  const e = f.entry;
+  const c = f.card;
+  if (!e?.ev || !c?.plan || !f.lenses) return null;
+  const ev = e.ev;
+  const owner = thesisOwner(c.strategy);
+  const t1 = ev.scenarios.find((x) => x.kind === "t1");
+  const ch = challengeFor(c, ev, f.lab, t1 ? `${clockEt(etMinOfMs(t1.atMs))} ET` : null);
+  const rb = rebuttalFor(owner, c, ev, ch);
+  const lines: Line[] = [
+    say(owner, thesisText(c), OWNER_ANIM[owner]),
+    say("Nova", priceText(e), "WRITING_ON_WHITEBOARD"),
+    say(ch.who, ch.text, ch.want),
+    say(rb.who, rb.text, rb.want),
+  ];
+  const why = strikeWhy({ offset: e.offset, ev }, e.alt ? { offset: e.alt.offset, ev: e.alt.ev } : null);
+  if (why) {
+    lines.push(say("Jax", why.ask, "POINTING"));
+    lines.push(say("Nova", why.answer, "NODDING"));
+  } else if (!lines.some((l) => l.who === "Jax")) {
+    const jaxP = Math.round(f.lenses.Jax.p * 100);
+    const novaP = Math.round(f.lenses.Nova.p * 100);
+    lines.push(
+      say(
+        "Jax",
+        mode === "veto"
+          ? `${jaxP}% on the picture alone, and you two want ${novaP}%. Fine — the ghost room settles it.`
+          : jaxP > novaP
+            ? `I'm at ${jaxP}% — the picture's better than your model says, Nova.`
+            : `${jaxP}% on the geometry. Even I'm not hyped.`,
+        mode === "veto" ? "SHOUTING" : "POINTING",
+      ),
+    );
+  }
+  lines.push(say("Gemma", tallyLine(f.lenses, f.lab, `${c.futSymbol}:${c.futSide}:${c.plan.entry.toFixed(2)}:${f.etDate}`), "EXPLAINING"));
+  const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
+  if (mode === "fill") {
+    lines.push(
+      say(
+        "Sterling",
+        `Cleared: ${e.qty}× for ${usd(e.debitUsd)} under a ${usd(e.capUsd)} cap, level first, ${STOP_TXT} behind it${room != null ? `, halt room ${usd(room)}` : ""}. ${preMortem(c, ev)}`,
+        "APPROVING",
+      ),
+    );
+    const src = f.desk ? f.desk.spotSource[c.underlier] : `${c.underlier} ${px(f.input.market_data[c.underlier].price)}`;
+    lines.push(say("Vince", `BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} · ${src}. Sent.`, "SMASHING_ENTER_KEY"));
+  } else if (mode === "wait") {
+    lines.push(say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}, fires on the CE touch only. ${preMortem(c, ev)}`, "CHECKING_TABLET"));
+    lines.push(say("Vince", `Resting at CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing crosses the spread early.`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"));
+  } else {
+    const gate = f.refusalGate ?? "";
+    const vm = vetoMemory(minds);
+    const quantGate = gate === "ev" || gate === "t1_pays";
+    lines.push(
+      say(
+        "Sterling",
+        quantGate
+          ? `No. The plan can be right and this option still lose — that's the list now.${vm?.verdict === "saved" ? ` ${vm.line}` : ""}`
+          : `No. ${VETO_WHY[gate] ?? (f.refusal ?? "A gate failed").replace(/\.?$/, ".")}${vm?.verdict === "saved" ? ` ${vm.line}` : ""}`,
+        "CROSSING_ARMS",
+      ),
+    );
+    lines.push(say("Vince", c.tier === "live" ? "Standing down. The ghost room takes the ticket at the ask — we'll know what the no was worth." : "Standing down. Nothing routes.", "STEADY_MONITORING"));
+  }
+  return lines;
+}
+
 function fill(f: Facts): Line[] {
   const e = f.entry!;
   const c = e.entry;
@@ -353,9 +469,13 @@ function holding(f: Facts): Line[] {
       : "";
   const flatIn = ROOM_CLOCK.dayFlatMin - f.etMin;
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
+  const hold = f.holds[best.id];
+  const holdTxt = hold
+    ? ` Holding is worth ${hold.edgeUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(hold.edgeUsd))} a contract over the bid — ${pctOf(hold.ev.window.pT1)} to T1 before the flat from here.`
+    : "";
   const lines: Line[] = [
     say("Jax", `${best.id} ${signedPct(best.pnl_percent)} — come on, RUN.`, "FURIOUS_TYPING"),
-    say("Nova", `Easy, Jax. ${best.id}: ${Math.abs(q.delta).toFixed(2)}Δ, theta ${prem(q.thetaDay)} a share a day.${toT1}`, "ANALYZING"),
+    say("Nova", `Easy, Jax. ${best.id}: ${Math.abs(q.delta).toFixed(2)}Δ, theta ${prem(q.thetaDay)} a share a day.${toT1}${holdTxt}`, "ANALYZING"),
     say(
       "Gemma",
       `${flatIn > 0 ? `${flatIn} minutes to the 11:00 flat.` : "Past the 11:00 flat for day tickets."} ${htfLine(f)} ${printLine(f)}`,
@@ -378,6 +498,29 @@ function holding(f: Facts): Line[] {
   return lines;
 }
 
+/** Nova's post-mortem: where the money came from, on the room's own model. */
+function attributionLine(f: Facts): string | null {
+  const x = f.exit;
+  const p = x?.position;
+  if (!x || !p || p.spot0 == null || p.iv0 == null || p.opened_at == null || p.entry_px == null || x.spot == null || !x.quote) return null;
+  const a = attribute({
+    type: p.type,
+    strike: p.strike,
+    exp: p.exp,
+    contracts: x.qty ?? p.contracts ?? 1,
+    spot0: p.spot0,
+    iv0: p.iv0,
+    t0Ms: p.opened_at,
+    spot1: x.spot,
+    iv1: x.quote.iv,
+    t1Ms: f.nowMs,
+    entryPx: p.entry_px,
+    exitPx: x.quote.bid,
+  });
+  const s = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n))}`;
+  return `Where it came from: price ${s(a.price)}, clock ${s(a.time)}, IV ${s(a.vol)}, crossings ${s(a.spread)} — ${s(a.total)} on this close.`;
+}
+
 function exitLines(f: Facts): Line[] {
   const x = f.exit!;
   const p = x.position;
@@ -397,15 +540,42 @@ function exitLines(f: Facts): Line[] {
     x.quote ? `${p.id}: bid ${prem(x.quote.bid)}, ${Math.abs(x.quote.delta).toFixed(2)}Δ, theta ${prem(x.quote.thetaDay)} a share a day. ${signedPct(p.pnl_percent)} on the mark.` : `${p.id}: ${signedPct(p.pnl_percent)} on the mark.`,
     "WRITING_ON_WHITEBOARD",
   );
-  if (x.reason === "take_profit" || x.reason === "t2") {
+  const post = attributionLine(f);
+  if (x.reason === "take_profit" || x.reason === "t2" || x.reason === "t1") {
     const odds = oddsNote();
     return [
       say("Jax", `${p.id} ${signedPct(p.pnl_percent)} — pay me!`, "POINTING"),
       sterling,
       vince,
       nova,
-      say("Gemma", `${htfLine(f)} The draw printed — bank it and let the higher frame carry what's left.`, "GESTICURING_AT_WALL"),
-      say("Nova", odds ? `Take it gladly. ${odds.line}` : "Take it gladly.", "NODDING"),
+      say(
+        "Gemma",
+        x.reason === "t1"
+          ? `${htfLine(f)} T1 is the draw — the desk measured half off here, stop to breakeven, as the rule that pays.`
+          : `${htfLine(f)} The draw printed — bank it and let the higher frame carry what's left.`,
+        "GESTICURING_AT_WALL",
+      ),
+      say("Nova", post ?? (odds ? `Take it gladly. ${odds.line}` : "Take it gladly."), "NODDING"),
+    ];
+  }
+  if (x.reason === "theta" || x.reason === "event") {
+    return [
+      say(
+        "Nova",
+        x.reason === "theta" ? `Theta stop: ${x.why}.` : `Release guard: ${x.why}.`,
+        "WRITING_ON_WHITEBOARD",
+      ),
+      say("Jax", x.reason === "theta" ? `It hasn't even failed yet!` : "We're green and you want OUT before the number?", "SHOUTING"),
+      say(
+        "Sterling",
+        x.reason === "theta"
+          ? "It hasn't failed. It's run out of time to be worth what it costs to hold. Those are different things, and the ghost room tracks both."
+          : "A print can gap straight through a level stop, and long premium eats the IV drop after it. Untrimmed premium doesn't sit through one.",
+        "CROSSING_ARMS",
+      ),
+      sterling,
+      vince,
+      say("Gemma", post ?? `${htfLine(f)} ${printLine(f)}`, "EXPLAINING"),
     ];
   }
   if (x.reason === "time" || x.reason === "expiry") {
@@ -487,10 +657,26 @@ const JAX_ERRAND: Partial<Record<Activity, string>> = {
   phone: "Taking a call.",
 };
 
+/** What the ghost room and the calibration ledger can say out loud yet. */
+function labNote(f: Facts): { line: string } | null {
+  const l = f.lab;
+  if (!l) return null;
+  const notes: string[] = [];
+  if (l.twins.n >= 1)
+    notes.push(
+      `Ghost room: over ${l.twins.n} fill${l.twins.n === 1 ? "" : "s"}, the room's exits made ${l.twins.roomUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(l.twins.roomUsd))} against ${l.twins.mandateUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(l.twins.mandateUsd))} for the mandate alone.`,
+    );
+  const r = l.refusals[0];
+  if (r) notes.push(`Ghost room: the ${r.n} ticket${r.n === 1 ? "" : "s"} refused on "${r.gate}" would have made ${r.pnlUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(r.pnlUsd))} — ${r.wins} winner${r.wins === 1 ? "" : "s"}.`);
+  if (l.calibration.n >= 3 && l.calibration.meanP != null && l.calibration.hitRate != null)
+    notes.push(`Calibration: I've said ${pctOf(l.calibration.meanP)} on ${l.calibration.n} plans; ${pctOf(l.calibration.hitRate)} reached T1 before 11:00.`);
+  return notes.length ? { line: notes[f.seed % notes.length]! } : null;
+}
+
 function chop(f: Facts, minds: MindState | null, acts: Partial<Record<Character, AgentAct>> | null): Line[] {
   const q = f.input.market_data.QQQ;
   const s = f.input.market_data.SPY;
-  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote()], f.seed);
+  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote(), labNote(f)], f.seed);
   const jaxRank = minds ? minds.rank.Jax : 50;
   const jaxRec = recordLine(minds, "Jax");
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
@@ -607,8 +793,30 @@ function debrief(f: Facts, minds: MindState | null): Line[] {
     say("Nova", win ? `Best of the day: ${win.text} at ${win.clock}.` : stop ? `The one that hurt: ${stop.text} at ${stop.clock}.` : "No trades to grade. The gates held.", "WRITING_ON_WHITEBOARD"),
     say("Jax", jaxRec ? `${jaxRec}. Rank says I'm ${rankTitle(minds?.rank.Jax ?? 50)}.` : `No calls scored today. Rank says I'm ${rankTitle(minds?.rank.Jax ?? 50)}.`, "POINTING"),
     say("Vince", `${fills} order${fills === 1 ? "" : "s"} routed, every one at the model ask or bid.`, "THUMBS_UP"),
-    say("Gemma", `Tomorrow: ${printLine(f)}`, "GESTICURING_AT_WALL"),
+    ...(ghostDebrief(f) ? [say("Sterling", ghostDebrief(f)!, "CHECKING_TABLET")] : []),
+    say("Gemma", `Tomorrow: ${printLine(f)}${scoreboard(f) ? ` ${scoreboard(f)}` : ""}`, "GESTICURING_AT_WALL"),
   ];
+}
+
+/** The ghost room's day, in one sentence: what every "no" was worth, and the room's exits against the mandate. */
+function ghostDebrief(f: Facts): string | null {
+  const l = f.lab;
+  if (!l || (!l.refusals.length && !l.twins.n)) return null;
+  const s = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n))}`;
+  const parts: string[] = [];
+  for (const r of l.refusals.slice(0, 2)) parts.push(`"${r.gate}" refused ${r.n}, which would have made ${s(r.pnlUsd)}`);
+  if (l.twins.n) parts.push(`our exits ${s(l.twins.deltaUsd)} against the mandate alone over ${l.twins.n} fill${l.twins.n === 1 ? "" : "s"}`);
+  return `Ghost room: ${parts.join("; ")}.`;
+}
+
+/** Who has been right: the best-calibrated person over the plans the lab has scored. */
+function scoreboard(f: Facts): string | null {
+  const t = f.lab?.track;
+  if (!t) return null;
+  const ranked = (Object.keys(t) as Character[]).filter((c) => t[c].brier != null).sort((a, b) => t[a].brier! - t[b].brier!);
+  if (!ranked.length) return null;
+  const best = ranked[0]!;
+  return `Best calibrated so far: ${best}, Brier ${t[best].brier!.toFixed(3)} over ${t[best].n} plans${ranked.length > 1 ? `; ${ranked[ranked.length - 1]} trails at ${t[ranked[ranked.length - 1]!].brier!.toFixed(3)}` : ""}.`;
 }
 
 function restamp(f: Facts): Line[] {
@@ -682,9 +890,9 @@ export function buildMeeting(
   } else if (f.beat === "closed") lines = closed(f);
   else if (f.beat === "blind") lines = blind(f);
   else if (f.beat === "exit" && f.exit) lines = exitLines(f);
-  else if (f.beat === "fill" && f.entry) lines = fill(f);
-  else if (f.beat === "trigger_wait" && f.card && f.entry) lines = triggerWait(f, minds);
-  else if (f.beat === "vetoed" && f.card) lines = vetoed(f, minds);
+  else if (f.beat === "fill" && f.entry) lines = debate(f, minds, "fill") ?? fill(f);
+  else if (f.beat === "trigger_wait" && f.card && f.entry) lines = debate(f, minds, "wait") ?? triggerWait(f, minds);
+  else if (f.beat === "vetoed" && f.card) lines = debate(f, minds, "veto") ?? vetoed(f, minds);
   else if (f.beat === "holding" && f.input.portfolio.open_positions.length) lines = holding(f);
   else if (f.beat === "blocked" && f.card) lines = blocked(f, minds);
   else lines = chop(f, minds, acts);

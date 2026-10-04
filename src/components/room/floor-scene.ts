@@ -21,7 +21,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import layoutJson from "@/data/floor-layout.json";
 import type { AgentAct } from "@/lib/room/agents";
 import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator";
-import { drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
+import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor-fx";
+import { ANIMATED_SCREENS, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -278,7 +279,9 @@ type AnimKey =
   | "PHONE_CALL"
   | "TALK"
   | "STRETCH"
-  | "LEAN_BACK";
+  | "LEAN_BACK"
+  | "CHEER"
+  | "FACEPALM";
 
 interface Pose {
   spine: V3;
@@ -500,6 +503,22 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       p.shR = [-2.6, 0, -0.6];
       p.elL = p.elR = -2.4;
       break;
+    case "CHEER": {
+      const pump = Math.abs(Math.sin(t * 7));
+      p.shL = [-2.75 - 0.15 * pump, 0, 0.45];
+      p.shR = [-2.75 - 0.15 * pump, 0, -0.45];
+      p.elL = p.elR = -0.25;
+      p.head[0] = -0.2;
+      if (!seated) p.bodyY += 0.07 * pump;
+      break;
+    }
+    case "FACEPALM":
+      p.shR = [-1.75, 0.35, -0.45];
+      p.elR = -2.25;
+      p.shL = [-0.2, 0, 0.1];
+      p.head[0] = 0.38;
+      p.spine[0] += 0.12;
+      break;
     default:
       p.shL = [0, 0, 0.08 + 0.02 * Math.sin(t * 1.3)];
       p.shR = [0, 0, -0.08 - 0.02 * Math.sin(t * 1.3)];
@@ -541,7 +560,7 @@ class Avatar {
   yaw = 0;
   private path: V2[] = [];
   private target: Target | null = null;
-  private mode: "stand" | "sit" | "couch" = "stand";
+  mode: "stand" | "sit" | "couch" = "stand";
   private walkPhase = 0;
   moving = false;
   anim: AnimKey = "IDLE";
@@ -552,6 +571,12 @@ class Avatar {
   private bodyY = 0;
   private slamCooldown = 0;
   onSlam: (() => void) | null = null;
+  /** A short reaction (a cheer, a facepalm) that overrides the pose until `until`. */
+  reaction: { key: AnimKey; until: number } | null = null;
+  private readonly emote: THREE.Sprite;
+  private readonly emoteCanvas: HTMLCanvasElement;
+  private readonly emoteTex: THREE.CanvasTexture;
+  private emoteKind: EmoteKind | null = null;
 
   constructor(who: Character, nav: NavGrid) {
     this.who = who;
@@ -688,6 +713,15 @@ class Avatar {
     this.bubble.scale.set(2.7, 1.01, 1);
     this.bubble.renderOrder = 20;
     this.root.add(this.bubble);
+    this.emoteCanvas = document.createElement("canvas");
+    this.emoteCanvas.width = 128;
+    this.emoteCanvas.height = 128;
+    this.emoteTex = new THREE.CanvasTexture(this.emoteCanvas);
+    this.emoteTex.colorSpace = THREE.SRGBColorSpace;
+    this.emote = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.emoteTex, transparent: true, depthTest: false, opacity: 0 }));
+    this.emote.scale.set(0.34, 0.34, 1);
+    this.emote.renderOrder = 15;
+    this.root.add(this.emote);
     this.root.traverse((o) => (o.userData.character = who));
 
     const desk = Object.entries(LAYOUT.anchors).find(([, v]) => v[who]?.pose === "sit")?.[1][who];
@@ -803,6 +837,13 @@ class Avatar {
     return sp;
   }
 
+  setEmote(kind: EmoteKind | null) {
+    if (kind === this.emoteKind) return;
+    this.emoteKind = kind;
+    drawEmote(this.emoteCanvas.getContext("2d")!, 128, 128, kind);
+    this.emoteTex.needsUpdate = true;
+  }
+
   say(text: string | null) {
     if (text === this.bubbleText) return;
     this.bubbleText = text ?? "";
@@ -905,8 +946,9 @@ class Avatar {
     this.root.position.set(this.pos[0], 0, this.pos[1]);
     this.root.rotation.y = this.yaw;
 
-    // Pose.
-    const key: AnimKey = this.moving ? "WALK" : this.pace && this.mode === "stand" ? "PACING" : this.anim;
+    // Pose. A live reaction (cheer, facepalm) beats the ambient one, never the walk.
+    const reacting = this.reaction && t < this.reaction.until ? this.reaction.key : null;
+    const key: AnimKey = this.moving ? "WALK" : reacting ?? (this.pace && this.mode === "stand" ? "PACING" : this.anim);
     const pose = poseFor(key, t, this.moving ? "stand" : this.mode, this.hipH, this.walkPhase);
     const k = 1 - Math.exp(-12 * dt);
     const setR = (g: THREE.Object3D, r: V3) => {
@@ -947,6 +989,145 @@ class Avatar {
     this.bubble.position.y = headY + 0.85;
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.speaking && this.bubbleText ? 1 : 0, 8, dt);
+    this.emote.position.y = headY + 0.5 + 0.03 * Math.sin(t * 2.4);
+    const em = this.emote.material as THREE.SpriteMaterial;
+    em.opacity = damp(em.opacity, this.emoteKind && !this.speaking ? 1 : 0, 5, dt);
+  }
+}
+
+
+/* ── Margin, the office cat ─────────────────────────────────────────────── */
+
+type CatMode = "walk" | "sit" | "sleep";
+
+/**
+ * The floor's cat. Wanders the same nav grid the people walk, goes and sits
+ * with whoever is most stressed, naps on the couch at lunch, sleeps by the
+ * warm server rack. Visual only — it never changes a mind or a ticket.
+ */
+class Cat {
+  readonly root = new THREE.Group();
+  private readonly legs: THREE.Group[] = [];
+  private readonly tail = new THREE.Group();
+  private readonly head = new THREE.Group();
+  private readonly bodyGroup = new THREE.Group();
+  pos: V2;
+  yaw = 0;
+  private path: V2[] = [];
+  private mode: CatMode = "sit";
+  private arriveMode: CatMode = "sit";
+  private nextPickAt = 3;
+  private walkPhase = 0;
+  onArrive: ((near: Character | null) => void) | null = null;
+  private targetNear: Character | null = null;
+
+  constructor(start: V2) {
+    const fur = new THREE.MeshStandardMaterial({ color: "#d97706", roughness: 0.85 });
+    const light = new THREE.MeshStandardMaterial({ color: "#fde68a", roughness: 0.85 });
+    const dark = new THREE.MeshStandardMaterial({ color: "#1f2937", roughness: 0.4 });
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.24, 6, 12), fur);
+    body.rotation.x = Math.PI / 2;
+    body.position.y = 0.2;
+    this.bodyGroup.add(body);
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), light);
+    belly.position.set(0, 0.17, 0.02);
+    belly.scale.set(1, 0.7, 1.6);
+    this.bodyGroup.add(belly);
+    this.head.position.set(0, 0.29, 0.2);
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), fur);
+    this.head.add(skull);
+    for (const x of [-0.04, 0.04]) {
+      const ear = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.06, 6), fur);
+      ear.position.set(x, 0.07, -0.005);
+      this.head.add(ear);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.011, 8, 6), dark);
+      eye.position.set(x * 0.8, 0.012, 0.066);
+      this.head.add(eye);
+    }
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 4), new THREE.MeshStandardMaterial({ color: "#f472b6" }));
+    nose.position.set(0, -0.01, 0.075);
+    this.head.add(nose);
+    this.bodyGroup.add(this.head);
+    for (const [x, z] of [
+      [-0.05, 0.12],
+      [0.05, 0.12],
+      [-0.05, -0.12],
+      [0.05, -0.12],
+    ] as V2[]) {
+      const g = new THREE.Group();
+      g.position.set(x, 0.16, z);
+      const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.1, 4, 6), fur);
+      leg.position.y = -0.08;
+      g.add(leg);
+      this.legs.push(g);
+      this.bodyGroup.add(g);
+    }
+    this.tail.position.set(0, 0.24, -0.18);
+    let parent: THREE.Object3D = this.tail;
+    for (let i = 0; i < 5; i++) {
+      const seg = new THREE.Group();
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.016, 0.05, 4, 6), fur);
+      m.rotation.x = Math.PI / 2;
+      m.position.z = -0.035;
+      seg.add(m);
+      seg.position.z = i === 0 ? 0 : -0.07;
+      seg.rotation.x = -0.35;
+      parent.add(seg);
+      parent = seg;
+    }
+    this.bodyGroup.add(this.tail);
+    this.root.add(this.bodyGroup);
+    this.root.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) m.castShadow = true;
+    });
+    this.pos = [...start];
+    this.root.position.set(start[0], 0, start[1]);
+  }
+
+  goTo(target: V2, mode: CatMode, near: Character | null, nav: NavGrid) {
+    this.path = nav.path(this.pos, target);
+    this.mode = "walk";
+    this.arriveMode = mode;
+    this.targetNear = near;
+  }
+
+  wantsTarget(t: number): boolean {
+    return this.mode !== "walk" && t >= this.nextPickAt;
+  }
+
+  update(dt: number, t: number) {
+    if (this.mode === "walk" && this.path.length) {
+      const next = this.path[0]!;
+      const dx = next[0] - this.pos[0];
+      const dz = next[1] - this.pos[1];
+      const d = Math.hypot(dx, dz);
+      const step = 0.95 * dt;
+      if (d <= step) {
+        this.pos = [next[0], next[1]];
+        this.path.shift();
+      } else this.pos = [this.pos[0] + (dx / d) * step, this.pos[1] + (dz / d) * step];
+      this.yaw = angleLerp(this.yaw, Math.atan2(dx, dz), 1 - Math.exp(-8 * dt));
+      this.walkPhase += dt * 11;
+      if (!this.path.length) {
+        this.mode = this.arriveMode;
+        this.nextPickAt = t + (this.mode === "sleep" ? 45 + (t % 25) : 18 + (t % 17));
+        this.onArrive?.(this.targetNear);
+      }
+    }
+    this.root.position.set(this.pos[0], 0, this.pos[1]);
+    this.root.rotation.y = this.yaw;
+    const walking = this.mode === "walk";
+    this.legs.forEach((g, i) => {
+      g.rotation.x = walking ? Math.sin(this.walkPhase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * 0.6 : 0;
+    });
+    // Sit: hind end down. Sleep: curled low, head down.
+    const sitK = this.mode === "sit" ? 1 : 0;
+    const sleepK = this.mode === "sleep" ? 1 : 0;
+    this.bodyGroup.rotation.x = damp(this.bodyGroup.rotation.x, -0.5 * sitK, 6, dt);
+    this.bodyGroup.position.y = damp(this.bodyGroup.position.y, -0.1 * sleepK + 0.03 * sitK, 6, dt);
+    this.head.rotation.x = damp(this.head.rotation.x, sleepK ? 0.6 : sitK ? 0.45 : 0.1 * Math.sin(t * 1.3), 4, dt);
+    this.tail.rotation.y = Math.sin(t * (walking ? 6 : 1.6)) * (sleepK ? 0.1 : 0.5);
   }
 }
 
@@ -961,13 +1142,17 @@ interface ScreenRec {
   h: number;
 }
 
-export type CameraPreset = "overview" | "board" | "offices" | "front" | "lounge" | "follow";
+export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "follow" | "auto";
+
+/** Things the floor does that a speaker (or the tab) may want to hear. */
+export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
 
 export interface FloorSceneOptions {
   onSpeaker?: (index: number, line: DialogueLine | null) => void;
   onMeetingDone?: () => void;
   onSelect?: (who: Character) => void;
   onEnvironment?: (source: "glb" | "fallback") => void;
+  onEvent?: (e: FloorEvent) => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1006,6 +1191,22 @@ const FURNITURE_COLORS: Record<string, string> = {
   armchair: "#7c2d12",
 };
 
+/** The cash open and close, ET minutes — the bell rings when the clock crosses them. */
+const ROOM_OPEN_MIN = 9 * 60 + 30;
+const ROOM_CLOSE_MIN = 16 * 60;
+
+const smoothstep = (a: number, b: number, x: number) => {
+  const k = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return k * k * (3 - 2 * k);
+};
+
+function etHourOf(ms: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date(ms));
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? 12) % 24;
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+  return hh + mm / 60;
+}
+
 /**
  * One piece of furniture from the plan, built from boxes. Anything a person
  * sits IN (chairs, the couch, the armchair) is a seat and a back, not a solid
@@ -1040,6 +1241,11 @@ function fallbackPiece(f: Layout["furniture"][number], mat: THREE.Material): THR
       box(w, seatY, d, 0, seatY / 2, 0);
       box(w, h - seatY, d * 0.24, 0, seatY + (h - seatY) / 2, -d / 2 + d * 0.12);
       for (const side of [-1, 1]) box(arm, 0.2, d, side * (w / 2 - arm / 2), seatY + 0.1, 0);
+      break;
+    }
+    case "jumbotron": {
+      // Inside the four screen faces, so the screens never z-fight a solid box.
+      box(w - 0.08, h - 0.04, d - 0.08, 0, h / 2, 0);
       break;
     }
     case "desk":
@@ -1088,6 +1294,17 @@ export class FloorScene {
   private time = 0;
   private readonly opts: FloorSceneOptions;
   private downAt: { x: number; y: number } | null = null;
+  private readonly sun: THREE.DirectionalLight;
+  private readonly tickets: TicketFlight[] = [];
+  private readonly confetti: Confetti[] = [];
+  private readonly bell = new Bell([-13.35, -4.85]);
+  private readonly cat: Cat;
+  private catTargets = 0;
+  private flickerUntil = 0;
+  private lastWinDraw = 0;
+  private lastLightAt = -1;
+  private shotN = 0;
+  private lastUrgency: string | null = null;
 
   constructor(container: HTMLElement, opts: FloorSceneOptions = {}) {
     this.container = container;
@@ -1122,6 +1339,7 @@ export class FloorScene {
     this.hemi = new THREE.HemisphereLight(0xe0ecff, 0x2a2a33, 0.95);
     this.scene.add(this.hemi);
     const sun = new THREE.DirectionalLight(0xffffff, 1.7);
+    this.sun = sun;
     sun.position.set(10, 22, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
@@ -1145,6 +1363,12 @@ export class FloorScene {
     this.scene.add(this.alarm);
 
     this.buildScreens();
+    this.scene.add(this.bell.root);
+    this.cat = new Cat(LAYOUT.spots.couch_1?.pos ?? [10, -4]);
+    this.cat.onArrive = (near) => {
+      if (near) this.opts.onEvent?.("meow");
+    };
+    this.scene.add(this.cat.root);
     for (const who of CREW_ORDER) {
       const a = new Avatar(who, this.nav);
       if (who === "Vince") a.onSlam = () => this.flashKey("key_Vince");
@@ -1351,6 +1575,8 @@ export class FloorScene {
    * repeats themselves.
    */
   apply(frame: FloorFrame, speed = 1, talk = true) {
+    const prev = this.frame;
+    this.react(prev, frame, talk);
     this.frame = frame;
     this.speed = speed;
     this.appliedAt = this.time;
@@ -1364,6 +1590,7 @@ export class FloorScene {
       a.goTo(t, this.nav);
     }
     this.drawAll(frame);
+    this.updateEmotes(frame);
     if (talk) {
       this.lines = out.floor_dialogue_and_meetings;
       this.lineIdx = -1;
@@ -1374,6 +1601,124 @@ export class FloorScene {
 
   setSpeed(speed: number) {
     this.speed = speed;
+  }
+
+  /** The spectacle a new cycle earns: tickets in flight, confetti, the bell, the alarm. */
+  private react(prev: FloorFrame | null, f: FloorFrame, talk: boolean) {
+    const b = f.output.broker_action;
+    const t = this.time;
+    // The bell: the cash open and close, when the clock crosses them.
+    if (prev && prev.nowMs < f.nowMs && f.nowMs - prev.nowMs < 12 * 3_600_000) {
+      for (const bellMin of [ROOM_OPEN_MIN, ROOM_CLOSE_MIN])
+        if (prev.etMin < bellMin && f.etMin >= bellMin) {
+          this.bell.strike();
+          this.opts.onEvent?.("bell");
+        }
+    }
+    const urg = f.output.room_state.market_urgency;
+    if (urg === "HIGH_ALERT" && this.lastUrgency !== "HIGH_ALERT") this.opts.onEvent?.("alert");
+    this.lastUrgency = urg;
+    // The ghost room has theater too: a refused ticket flies to the jumbotron as a ghost,
+    // and a ghost that closes pops its result off the GHOST ROOM face.
+    const jumboS = LAYOUT.screens.find((x) => x.id === "jumbo_S");
+    const ghostAt: V3 = jumboS ? [jumboS.center[0], jumboS.center[1], jumboS.center[2] + 0.25] : [-8, 2.85, 0];
+    if (talk && f.trace.beat === "vetoed" && f.trace.entry && f.trace.entry.entry.tier === "live") {
+      const st = this.avatars.get("Sterling")!;
+      const e = f.trace.entry;
+      const g = new TicketFlight(`GHOST ${e.qty || 1}× ${e.entry.underlier} ${e.quote.strike}${e.entry.type === "CALL" ? "C" : "P"}`, "ghost", [st.pos[0], 2.0, st.pos[1]], ghostAt);
+      this.tickets.push(g);
+      this.scene.add(g.sprite);
+    }
+    const closedN = (x: FloorFrame | null) => (x?.screens.lab?.refusals ?? []).reduce((a, r) => a + r.n, 0);
+    const closedUsd = (x: FloorFrame | null) => (x?.screens.lab?.refusals ?? []).reduce((a, r) => a + r.pnlUsd, 0);
+    if (prev && closedN(f) > closedN(prev)) {
+      const d = Math.round(closedUsd(f) - closedUsd(prev));
+      const pop = new TicketFlight(`GHOST ${d >= 0 ? "+" : "−"}$${Math.abs(d)}`, d >= 0 ? "ghost_win" : "ghost_loss", ghostAt, [ghostAt[0], ghostAt[1] + 1.1, ghostAt[2] + 0.8], 2.4);
+      this.tickets.push(pop);
+      this.scene.add(pop.sprite);
+    }
+    if (!talk || !b.execute_trade) return;
+    const vince = this.avatars.get("Vince")!;
+    const from: V3 = [vince.pos[0], 2.0, vince.pos[1]];
+    const marquee = LAYOUT.screens.find((x) => x.id === "marquee");
+    const to: V3 = marquee ? [marquee.center[0], marquee.center[1], marquee.center[2] + 0.2] : [-6.5, 3.0, -5.2];
+    const strike = f.trace.entry?.quote.strike ?? f.trace.exit?.position.strike ?? null;
+    const label = `${b.action_type === "BUY_OPEN" ? "BUY" : "SELL"} ${b.contracts_quantity || "ALL"}× ${b.underlying}${strike != null ? ` ${strike}` : ""}${b.option_type === "CALL" ? "C" : "P"}`;
+    const won = b.action_type === "SELL_CLOSE" && (f.trace.exit?.position.pnl_percent ?? 0) > 0;
+    const ticket = new TicketFlight(label, b.action_type === "BUY_OPEN" || won ? "buy" : "sell", from, to);
+    this.tickets.push(ticket);
+    this.scene.add(ticket.sprite);
+    if (b.action_type === "BUY_OPEN") {
+      this.opts.onEvent?.("fill");
+      return;
+    }
+    const pnl = f.trace.exit?.position.pnl_percent ?? 0;
+    if (pnl > 0) {
+      // Over the table's open side, under the jumbotron, where every camera sees it.
+      const c = new Confetti([-8, 1.5, 0.7], 420, (f.id % 97) + 3);
+      this.confetti.push(c);
+      this.scene.add(c.points);
+      for (const a of this.avatars.values()) a.reaction = { key: "CHEER", until: t + 2.6 };
+      this.opts.onEvent?.("exit_win");
+    } else {
+      this.flickerUntil = t + 1.4;
+      const jax = this.avatars.get("Jax");
+      if (jax) jax.reaction = { key: "FACEPALM", until: t + 3 };
+      this.opts.onEvent?.("exit_loss");
+    }
+  }
+
+  /** Who the cat goes to: the most stressed person, else a nap or a warm spot. */
+  private pickCatTarget(): { pos: V2; mode: CatMode; near: Character | null } {
+    this.catTargets += 1;
+    const minds = this.frame?.minds;
+    if (minds) {
+      const worst = CREW_ORDER.map((c) => ({ c, s: minds.needs[c]?.stress ?? 0 })).sort((a, b) => b.s - a.s)[0];
+      if (worst && worst.s >= 0.55 && this.catTargets % 2 === 1) {
+        const a = this.avatars.get(worst.c)!;
+        return { pos: [a.pos[0] + Math.sin(a.yaw + 1.2) * 0.55, a.pos[1] + Math.cos(a.yaw + 1.2) * 0.55], mode: "sit", near: worst.c };
+      }
+    }
+    const lunch = this.frame ? this.frame.etMin >= 11 * 60 + 30 && this.frame.etMin < 13 * 60 + 30 : false;
+    const spots: { pos: V2; mode: CatMode }[] = [
+      { pos: LAYOUT.spots.couch_0?.pos ?? [10.8, -5], mode: "sleep" },
+      { pos: [-5.0, 6.9], mode: "sleep" },
+      { pos: LAYOUT.spots.window_0?.pos ?? [13, -3.4], mode: "sit" },
+      { pos: [-10.4, -2.9], mode: "sit" },
+      { pos: LAYOUT.spots.bar_2?.pos ?? [5, -0.8], mode: "sit" },
+    ];
+    const pick = lunch ? spots[0]! : spots[this.catTargets % spots.length]!;
+    return { ...pick, near: null };
+  }
+
+  /** The auto-director: a shot for every line — close on the speaker, wide every few lines, the keyboard on a send. */
+  private directorShot(line: DialogueLine | null) {
+    if (this.preset !== "auto") return;
+    this.shotN += 1;
+    const f = this.frame;
+    const cut = (pos: V3, target: V3) => {
+      this.camGoal = null;
+      this.camera.position.set(...pos);
+      this.controls.target.set(...target);
+    };
+    if (!line || this.shotN % 5 === 0) {
+      const c = LAYOUT.camera[this.shotN % 10 === 0 ? "overview" : "quant"] ?? LAYOUT.camera.overview!;
+      return cut(c.pos, c.target);
+    }
+    const a = this.avatars.get(line.character)!;
+    if (f?.output.broker_action.execute_trade && line.character === "Vince" && line.animation === "SMASHING_ENTER_KEY")
+      return cut([a.pos[0] + 1.25, 1.55, a.pos[1] - 0.9], [a.pos[0], 0.95, a.pos[1] - 0.4]);
+    const side = this.shotN % 2 ? 1 : -1;
+    const fx = Math.sin(a.yaw);
+    const fz = Math.cos(a.yaw);
+    const sx = Math.cos(a.yaw) * side;
+    const sz = -Math.sin(a.yaw) * side;
+    const head = a.mode === "stand" ? 1.62 : 1.25;
+    const dist = 2.1;
+    const bx = LAYOUT.bounds;
+    const px = Math.min(bx.x[1] - 0.3, Math.max(bx.x[0] + 0.3, a.pos[0] + fx * dist + sx * 0.9));
+    const pz = Math.min(bx.z[1] - 0.3, Math.max(bx.z[0] + 0.3, a.pos[1] + fz * dist + sz * 0.9));
+    cut([px, head + 0.35, pz], [a.pos[0], head - 0.05, a.pos[1]]);
   }
 
   private targetFor(who: Character, zone: string, act: AgentAct | null, used: Map<string, number>): Target {
@@ -1395,9 +1740,29 @@ export class FloorScene {
     return { pos, yaw, pose, key: `${key}:${n}` };
   }
 
+  /** One icon per head: the loudest need, or how the last trade went. */
+  private updateEmotes(f: FloorFrame) {
+    const n = f.minds?.needs;
+    const exit = f.trace.exit;
+    const won = f.output.broker_action.action_type === "SELL_CLOSE" ? (exit?.position.pnl_percent ?? 0) > 0 : null;
+    for (const who of CREW_ORDER) {
+      const a = this.avatars.get(who)!;
+      const need = n?.[who];
+      let k: EmoteKind | null = null;
+      if (won === true) k = "money";
+      else if (won === false && (who === "Jax" || who === "Sterling")) k = who === "Jax" ? "ugh" : "idea";
+      else if (need && need.stress >= 0.7) k = "stress";
+      else if (need && need.fatigue >= 0.75) k = "sleepy";
+      else if (need && need.caffeine <= 0.25) k = "coffee";
+      else if (f.minds && who === "Jax" && f.trace.beat === "vetoed" && (f.minds.rel?.Jax?.Sterling?.affinity ?? 0) < -0.25) k = "grudge";
+      a.setEmote(k);
+    }
+  }
+
   setCamera(p: CameraPreset) {
     this.preset = p;
     if (p === "follow") return;
+    if (p === "auto") return this.directorShot(this.lines[this.lineIdx] ?? null);
     const c = LAYOUT.camera[p] ?? LAYOUT.camera.overview!;
     this.camGoal = { pos: new THREE.Vector3(...c.pos), target: new THREE.Vector3(...c.target) };
   }
@@ -1474,6 +1839,7 @@ export class FloorScene {
         const words = line.text.split(/\s+/).length;
         this.lineEndsAt = t + Math.min(8, Math.max(2.8, 1.6 + words * 0.3)) / this.speed;
         this.opts.onSpeaker?.(this.lineIdx, line);
+        this.directorShot(line);
       } else {
         this.opts.onSpeaker?.(-1, null);
         this.opts.onMeetingDone?.();
@@ -1489,6 +1855,45 @@ export class FloorScene {
       a.pace = (mine?.animation ?? last?.animation) === "PACING";
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
       a.update(dt, t);
+    }
+    // Spectacle.
+    for (const tk of this.tickets) tk.update(dt);
+    for (const c of this.confetti) c.update(dt);
+    for (let i = this.tickets.length - 1; i >= 0; i--)
+      if (this.tickets[i]!.done) {
+        this.scene.remove(this.tickets[i]!.sprite);
+        this.tickets[i]!.dispose();
+        this.tickets.splice(i, 1);
+      }
+    for (let i = this.confetti.length - 1; i >= 0; i--)
+      if (this.confetti[i]!.done) {
+        this.scene.remove(this.confetti[i]!.points);
+        this.confetti[i]!.dispose();
+        this.confetti.splice(i, 1);
+      }
+    this.bell.update(dt, t);
+    if (this.cat.wantsTarget(t)) {
+      const ct = this.pickCatTarget();
+      this.cat.goTo(ct.pos, ct.mode, ct.near, this.nav);
+    }
+    this.cat.update(dt, t);
+    // Day and night follow the ET clock (the drill's own clock in a drill); a storm dims the sun.
+    if (t - this.lastLightAt > 1) {
+      this.lastLightAt = t;
+      const hour = etHourOf(this.clockMs());
+      const day = smoothstep(6.5, 8.5, hour) * (1 - smoothstep(17.5, 19.5, hour));
+      const vix = f?.screens.vix ?? 0;
+      const storm = vix >= 30 ? 0.55 : vix >= 20 ? 0.8 : 1;
+      this.hemi.intensity = 0.32 + 0.63 * day * storm;
+      this.sun.intensity = 0.2 + 1.5 * day * storm;
+    }
+    if (f && t - this.lastWinDraw > ((f.screens.vix ?? 0) >= 25 ? 0.12 : 0.6)) {
+      this.lastWinDraw = t;
+      const ms = this.clockMs();
+      for (const id of ANIMATED_SCREENS) {
+        const r = this.screens.get(id);
+        if (r && drawScreen(id, r.ctx, r.w, r.h, f, ms)) r.tex.needsUpdate = true;
+      }
     }
     // Screens that move on their own.
     const marquee = this.screens.get("marquee");
@@ -1508,7 +1913,8 @@ export class FloorScene {
         m.emissiveIntensity = 1 + Math.abs(Math.sin(t * 9));
       } else m.emissiveIntensity = 0.6 + 2.4 * pulse;
     }
-    this.alarm.intensity = urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
+    const flicker = t < this.flickerUntil;
+    this.alarm.intensity = flicker ? (Math.sin(t * 40) > 0 ? 14 : 0) : urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
     if (this.preset === "follow") {
@@ -1571,6 +1977,8 @@ export class FloorScene {
       }
     });
     for (const r of this.screens.values()) r.tex.dispose();
+    for (const tk of this.tickets) tk.dispose();
+    for (const c of this.confetti) c.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
