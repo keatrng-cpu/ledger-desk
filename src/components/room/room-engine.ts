@@ -23,6 +23,8 @@ import type { DrillStep } from "@/lib/room/drill";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
 import { asLab, labRead, type LabRead } from "@/lib/room/lab";
+import { rankOf, richer } from "@/lib/room/snapshot";
+import { backupRoom, restoreRoomIfRicher, type BackupState } from "@/lib/room/snapshot-sync";
 import {
   ROOM_DEFAULT_CASH,
   applyCycle,
@@ -256,6 +258,8 @@ interface RoomState {
   lastFetchedAt: string | null;
   pulse: { vix: number | null; tenYear: number | null; at: number | null };
   news: FloorScreens["news"];
+  /** The server copy of the room (book + memory): restored at startup if richer, pushed after book changes. */
+  backup: BackupState;
   hydrate: () => void;
   setEnabled: (on: boolean) => void;
   reset: (cash?: number) => void;
@@ -273,9 +277,21 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   lastFetchedAt: null,
   pulse: { vix: null, tenYear: null, at: null },
   news: [],
+  backup: { status: "idle", at: null, why: "Not checked yet." },
   hydrate: () => {
     if (get().hydrated) return;
     set({ hydrated: true, enabled: loadEnabled(), book: loadRoomBook(), minds: loadMinds() });
+    // Once per page load: adopt the server copy only if it has MORE history
+    // than this browser's book at the moment it arrives — never merged.
+    void restoreRoomIfRicher(get().book).then(({ snapshot, state }) => {
+      if (snapshot && richer(rankOf(snapshot.book), rankOf(get().book))) {
+        saveRoomBook(snapshot.book);
+        saveMinds(snapshot.minds);
+        set({ book: snapshot.book, minds: snapshot.minds, backup: state, frame: null, lastFetchedAt: null });
+      } else {
+        set({ backup: snapshot ? { ...state, why: "This browser's room is current." } : state });
+      }
+    });
   },
   setEnabled: (on) => {
     try {
@@ -289,6 +305,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     const book = emptyBook(cash);
     saveRoomBook(book);
     set({ book, frame: null, lastFetchedAt: null });
+    // A reset is the one push that may replace a richer server copy.
+    void backupRoom(book, get().minds, { force: true })?.then((backup) => set({ backup }));
   },
   setNews: (news) => set({ news }),
 }));
@@ -309,6 +327,7 @@ function runLiveCycle(desk: DeskPayload) {
   book = applyLab(book, cycle, market, read, nowMs);
   saveRoomBook(book);
   saveMinds(cycle.minds);
+  void backupRoom(book, cycle.minds, { nowMs })?.then((backup) => useRoomStore.setState({ backup }));
 
   const books = booksOf(desk);
   const chart = (u: Underlier) => {

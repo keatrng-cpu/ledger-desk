@@ -409,6 +409,7 @@ export default function TradingFloorTab() {
   const reset = useRoomStore((s) => s.reset);
   const setNews = useRoomStore((s) => s.setNews);
   const history = useRoomStore((s) => s.history);
+  const backup = useRoomStore((s) => s.backup);
   const [mode, setMode] = useState<"live" | "drill" | "replay">(() => (optionsOpenNow() ? "live" : "drill"));
   const [camera, setCamera] = useState<CameraPreset>("auto");
   const [speed, setSpeed] = useState(1);
@@ -767,6 +768,12 @@ export default function TradingFloorTab() {
             >
               <RotateCcw className="h-3 w-3" /> Reset book (${book.startCash.toLocaleString()} start)
             </button>
+          )}
+          {mode === "live" && (
+            <p className={`mt-2 text-[10px] leading-snug ${backup.status === "local" ? "text-[var(--color-down)]" : "text-[var(--color-muted)]"}`}>
+              Server copy: {backup.why}
+              {backup.at ? ` (${new Date(backup.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })})` : ""}
+            </p>
           )}
           <p className="mt-3 text-[10px] leading-snug text-[var(--color-subtle)]">
             Mandate: ≤{ROOM_MANDATE.maxOpenPositions} open · ≤{Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% cash a ticket (and ≤$1,000) ·
