@@ -115,6 +115,25 @@ export async function loadNews(): Promise<NewsPayload> {
 /** The feed loader as a public server function (the thesis reuses the loader and its cache). */
 export const getNewsFeed = createServerFn({ method: "GET" }).handler(loadNews);
 
+/**
+ * The pulse alone (VIX, 10y, QQQ, SPY) — four quotes, no RSS. The trading
+ * floor reads VIX and the 10y every few minutes, and pulling eight feeds to
+ * get two numbers would make the room the News tab's heaviest caller.
+ */
+const PULSE_CACHE_MS = 60_000;
+let pulseCache: { at: number; pulse: PulseQuote[] } | null = null;
+
+export async function loadPulse(): Promise<{ fetchedAt: string; pulse: PulseQuote[]; cached: boolean }> {
+  if (pulseCache && Date.now() - pulseCache.at < PULSE_CACHE_MS) {
+    return { fetchedAt: new Date(pulseCache.at).toISOString(), pulse: pulseCache.pulse, cached: true };
+  }
+  const pulse = await Promise.all(PULSE.map((p) => pulseQuote(p.symbol, p.label)));
+  pulseCache = { at: Date.now(), pulse };
+  return { fetchedAt: new Date().toISOString(), pulse, cached: false };
+}
+
+export const getPulse = createServerFn({ method: "GET" }).handler(loadPulse);
+
 /* ------------------------------------------------------------------ */
 /* SEC filings                                                         */
 /* ------------------------------------------------------------------ */

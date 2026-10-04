@@ -18,6 +18,7 @@ import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
+import { Route as ApiRoomCycleRouteImport } from './routes/api/room/cycle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,11 @@ const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
   path: '/api/engine/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoomCycleRoute = ApiRoomCycleRouteImport.update({
+  id: '/api/room/cycle',
+  path: '/api/room/cycle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/room/cycle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/room/cycle'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/room/cycle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
+  ApiRoomCycleRoute: typeof ApiRoomCycleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEngineJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/room/cycle': {
+      id: '/api/room/cycle'
+      path: '/api/room/cycle'
+      fullPath: '/api/room/cycle'
+      preLoaderRoute: typeof ApiRoomCycleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
+  ApiRoomCycleRoute: ApiRoomCycleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
