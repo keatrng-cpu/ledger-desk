@@ -152,7 +152,7 @@ export function drillFrames(): DrillFrame[] {
   return [
     {
       at: "07:45",
-      caption: "Before the bell. People drift in; the coffee machine is busy.",
+      caption: "Before the bell. Nothing has printed and nothing can be traded yet.",
       qqq: 775.9,
       spy: 785.6,
       nq: 31036,
@@ -412,7 +412,7 @@ export function drillFrames(): DrillFrame[] {
     },
     {
       at: "11:40",
-      caption: "Lunch chop. The lounge fills up.",
+      caption: "Lunch chop. Past the 11:00 ticket clock — nothing new until tomorrow.",
       qqq: 777.5,
       spy: 784.2,
       nq: 31100,
@@ -428,7 +428,7 @@ export function drillFrames(): DrillFrame[] {
     },
     {
       at: "12:30",
-      caption: "Still lunch. Coffee, the couch, the news TV.",
+      caption: "Still lunch. Volume has dried up.",
       qqq: 777.3,
       spy: 784.0,
       nq: 31092,

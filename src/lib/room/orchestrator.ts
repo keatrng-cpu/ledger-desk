@@ -957,7 +957,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
   return {
     output: {
       room_state: { market_urgency: roomUrgency, character_locations: plan.places },
-      floor_dialogue_and_meetings: buildMeeting(facts, plan.places, plan.minds, plan.meeting),
+      floor_dialogue_and_meetings: buildMeeting(facts, plan.places, plan.minds, plan.meeting, plan.acts),
       broker_action: broker,
     },
     trace: {

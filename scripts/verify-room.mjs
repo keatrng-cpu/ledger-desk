@@ -6,18 +6,22 @@
  * Plays the SYNTHETIC drill day through the real pipeline and checks: the
  * trader's output schema on every cycle, the beats and meetings the day must
  * produce, the room's memory scoring, fail-closed behaviour without a desk
- * read, a malformed input, determinism, Sterling's gates, and the pricer.
+ * read, a malformed input, determinism, Sterling's gates, the pricer, and
+ * the 3D floor's plan against the Blender office (public/floor/office.glb).
  */
 const { playDrill, drillFrames, runDrillStep } = await import("../src/lib/room/drill.ts");
 const { runRoomCycle, outputViolations } = await import("../src/lib/room/orchestrator.ts");
 const { emptyBook } = await import("../src/lib/room/paper-book.ts");
 const { blackScholes } = await import("../src/lib/room/option-math.ts");
 const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
+const { readFileSync, existsSync } = await import("node:fs");
+const LAYOUT = JSON.parse(readFileSync(new URL("../src/data/floor-layout.json", import.meta.url), "utf8"));
 
 let pass = 0;
 let fail = 0;
 const check = (name, ok, detail = "") => {
-  ok ? pass++ : fail++;
+  if (ok) pass++;
+  else fail++;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — ${detail}`}`);
 };
 
@@ -47,6 +51,15 @@ check("Sterling's veto priced as saved", minds.record.Sterling.savedUsd > 0, JSO
 check("lunch puts roamers in the lounge", Object.entries(at("12:30").cycle.output.room_state.character_locations).filter(([, z]) => z === "WATERCOOLER").length >= 2);
 check("the day ends flat and in profit on the drill", steps[steps.length - 1].book.positions.length === 0 && steps[steps.length - 1].book.cash > 10_000);
 check("every meeting is an exchange (5–9 lines, all five speak)", steps.every((s) => { const l = s.cycle.output.floor_dialogue_and_meetings; return l.length >= 5 && l.length <= 9 && new Set(l.map((x) => x.character)).size === 5; }));
+// The people layer decides where Jax goes on a dead tape; his line has to agree.
+const ERRAND = { coffee: /coffee/, cooler: /Water run/, couch: /couch/, tv: /news TV/, window: /window/, chat: /bar/, phone: /call/ };
+const chops = steps.filter((s) => s.cycle.trace.beat === "chop" && !s.cycle.trace.meeting);
+const errandOk = (s) => {
+  const act = s.cycle.trace.acts?.Jax?.act ?? "desk";
+  const line = s.cycle.output.floor_dialogue_and_meetings.find((l) => l.character === "Jax")?.text ?? "";
+  return ERRAND[act] ? ERRAND[act].test(line) : /staying on the screens/.test(line);
+};
+check("dead-tape talk follows where Jax actually goes", chops.length >= 2 && chops.every(errandOk), chops.filter((s) => !errandOk(s)).map((s) => s.frame.at).join(", "));
 
 console.log("fail closed");
 const now = etWallToEpochMs("2026-10-05", "10:00");
@@ -79,6 +92,28 @@ const c = blackScholes(775, 776, 1.25 / 365, 0.2, "CALL").price;
 const p = blackScholes(775, 776, 1.25 / 365, 0.2, "PUT").price;
 check("put-call parity (r = 0)", Math.abs(c - p - (775 - 776)) < 1e-6, `${c} ${p}`);
 check("ATM call delta ≈ 0.5", Math.abs(blackScholes(775, 775, 1 / 365, 0.2, "CALL").delta - 0.5) < 0.02);
+
+console.log("floor plan and the Blender office");
+// Chairs face what they serve: yaw 0 faces +z, so the front is (sin yaw, cos yaw).
+const table = LAYOUT.furniture.find((x) => x.id === "table_war");
+const chairsFace = LAYOUT.furniture
+  .filter((x) => x.kind === "meeting_chair")
+  .every((x) => Math.sin((x.rot * Math.PI) / 180) * (table.pos[0] - x.pos[0]) + Math.cos((x.rot * Math.PI) / 180) * (table.pos[1] - x.pos[1]) > 0);
+check("war-room chairs face the table", chairsFace);
+const glb = new URL("../public/floor/office.glb", import.meta.url);
+if (existsSync(glb)) {
+  const buf = readFileSync(glb);
+  const jsonLen = buf.readUInt32LE(12);
+  const okHeader = buf.toString("ascii", 0, 4) === "glTF" && buf.readUInt32LE(8) === buf.length && buf.toString("ascii", 16, 20) === "JSON";
+  const gltf = okHeader ? JSON.parse(buf.toString("utf8", 20, 20 + jsonLen)) : { nodes: [] };
+  const names = (gltf.nodes ?? []).map((n) => n.name ?? "");
+  // The runtime finds screens, LEDs and keyboards by exact name.
+  const wanted = [...LAYOUT.screens.map((x) => x.id), ...LAYOUT.emissives.map((x) => x.id), ...["Jax", "Nova", "Gemma", "Sterling", "Vince"].map((n) => `key_${n}`)];
+  const off = wanted.filter((id) => names.filter((n) => n === id).length !== 1);
+  check("office.glb is a binary glTF the size it says", okHeader);
+  check(`office.glb names all ${wanted.length} screens, LEDs and keyboards exactly once`, off.length === 0, off.join(", "));
+  check("office.glb carries no lights, cameras or images (the runtime lights it)", !gltf.lights && !gltf.cameras && !(gltf.images ?? []).length);
+} else check("public/floor/office.glb exists", false, "run scripts/blender/build_floor.py");
 
 console.log(`\nroom: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

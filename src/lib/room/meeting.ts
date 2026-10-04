@@ -22,6 +22,8 @@ import {
   rankTitle,
   recordLine,
   relationWord,
+  type Activity,
+  type AgentAct,
   type Agenda,
   type MindState,
   type Meeting,
@@ -474,20 +476,39 @@ function vetoed(f: Facts, minds: MindState | null): Line[] {
   ];
 }
 
-function chop(f: Facts, minds: MindState | null): Line[] {
+/** Where Jax says he is going on a dead tape — the people layer decides, the line follows. */
+const JAX_ERRAND: Partial<Record<Activity, string>> = {
+  coffee: "I'm getting coffee.",
+  cooler: "Water run.",
+  couch: "I'm taking the couch.",
+  tv: "I'll be at the news TV.",
+  window: "I need a window.",
+  chat: "Who's at the bar?",
+  phone: "Taking a call.",
+};
+
+function chop(f: Facts, minds: MindState | null, acts: Partial<Record<Character, AgentAct>> | null): Line[] {
   const q = f.input.market_data.QQQ;
   const s = f.input.market_data.SPY;
   const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote()], f.seed);
   const jaxRank = minds ? minds.rank.Jax : 50;
   const jaxRec = recordLine(minds, "Jax");
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
+  const errandAct = acts?.Jax?.act ?? "desk";
+  const errand = JAX_ERRAND[errandAct] ?? null;
   return [
-    say("Jax", `QQQ ${px(q.price)}, RSI ${Math.round(q.rsi)} · SPY ${px(s.price)}, RSI ${Math.round(s.rsi)}. Dead tape. I'm getting coffee.`, "FURIOUS_TYPING"),
-    say("Gemma", `Bring me one. ${printLine(f)}`, "EXPLAINING"),
-    say("Nova", note ? `While you're up: ${note.line}` : `${vixTxt(f)}. Nothing priced to trade.`, "NODDING"),
     say(
       "Jax",
-      jaxRec ? `I'm ${jaxRec}. ${jaxRank >= 58 ? "Just saying." : "Don't say it."}` : ["You're no fun.", "Then what IS the edge?", "Noted. Still getting coffee."][f.seed % 3]!,
+      `QQQ ${px(q.price)}, RSI ${Math.round(q.rsi)} · SPY ${px(s.price)}, RSI ${Math.round(s.rsi)}. Dead tape. ${errand ?? "I'm staying on the screens anyway."}`,
+      "FURIOUS_TYPING",
+    ),
+    say("Gemma", `${errandAct === "coffee" ? "Bring me one. " : ""}${printLine(f)}`, "EXPLAINING"),
+    say("Nova", note ? `${errand ? "While you're up" : "For the record"}: ${note.line}` : `${vixTxt(f)}. Nothing priced to trade.`, "NODDING"),
+    say(
+      "Jax",
+      jaxRec
+        ? `I'm ${jaxRec}. ${jaxRank >= 58 ? "Just saying." : "Don't say it."}`
+        : ["You're no fun.", "Then what IS the edge?", errandAct === "coffee" ? "Noted. Still getting coffee." : "Noted."][f.seed % 3]!,
       "POINTING",
     ),
     say(
@@ -595,7 +616,7 @@ function restamp(f: Facts): Line[] {
   return [
     say("Gemma", `Restamping the week plan. ${printLine(f)} Actuals go in only after they print.`, "GESTICURING_AT_WALL"),
     say("Nova", note ? `Research for the week: ${note.line}` : "Research shelf is unchanged.", "WRITING_ON_WHITEBOARD"),
-    say("Jax", "Wake me when Globex opens.", "FURIOUS_TYPING"),
+    say("Jax", "Globex reopened at 18:00. Futures only until Monday's 09:30 bell.", "FURIOUS_TYPING"),
     say("Sterling", "Day and week halts reset with the new week. Nothing carries.", "CHECKING_TABLET"),
     say("Vince", "Nothing routes until Monday 09:30 ET.", "STEADY_MONITORING"),
   ];
@@ -635,7 +656,13 @@ function fit(l: Line, places: Places, execute: boolean, pacing: boolean): Dialog
  * The meeting for this cycle. A trade (fill / exit / veto / the trigger)
  * outranks a scheduled meeting — the room talks about the ticket first.
  */
-export function buildMeeting(f: Facts, places: Places, minds: MindState | null, meeting: Meeting | null): DialogueLine[] {
+export function buildMeeting(
+  f: Facts,
+  places: Places,
+  minds: MindState | null,
+  meeting: Meeting | null,
+  acts: Partial<Record<Character, AgentAct>> | null = null,
+): DialogueLine[] {
   let lines: Line[];
   const tradeBeat = f.beat === "fill" || f.beat === "exit" || f.beat === "vetoed" || f.beat === "trigger_wait";
   if (f.beat === "rejected") lines = rejected(f);
@@ -660,7 +687,7 @@ export function buildMeeting(f: Facts, places: Places, minds: MindState | null, 
   else if (f.beat === "vetoed" && f.card) lines = vetoed(f, minds);
   else if (f.beat === "holding" && f.input.portfolio.open_positions.length) lines = holding(f);
   else if (f.beat === "blocked" && f.card) lines = blocked(f, minds);
-  else lines = chop(f, minds);
+  else lines = chop(f, minds, acts);
 
   // Everyone speaks at least once — the contract names five people.
   for (const who of CREW) {

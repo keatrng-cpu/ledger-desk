@@ -60,10 +60,10 @@
     { "id": "headset_Vince", "kind": "headset_stand", "pos": [-5.55, 4.15], "rot": 0, "size": [0.12, 0.3, 0.12], "obstacle": false },
 
     { "id": "table_war", "kind": "meeting_table", "pos": [-8.0, -1.0], "rot": 0, "size": [3.6, 0.75, 1.4], "obstacle": true },
-    { "id": "mchair_0", "kind": "meeting_chair", "pos": [-9.1, -2.05], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
-    { "id": "mchair_1", "kind": "meeting_chair", "pos": [-6.9, -2.05], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
-    { "id": "mchair_2", "kind": "meeting_chair", "pos": [-9.1, 0.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
-    { "id": "mchair_3", "kind": "meeting_chair", "pos": [-6.9, 0.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_0", "kind": "meeting_chair", "pos": [-9.1, -2.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_1", "kind": "meeting_chair", "pos": [-6.9, -2.05], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_2", "kind": "meeting_chair", "pos": [-9.1, 0.05], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_3", "kind": "meeting_chair", "pos": [-6.9, 0.05], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
     { "id": "printer_alcove", "kind": "printer", "pos": [-0.4, 7.4], "rot": 180, "size": [0.7, 1.0, 0.6], "obstacle": true },
     { "id": "plant_bullpen_0", "kind": "plant", "pos": [-13.45, 2.9], "rot": 0, "size": [0.55, 1.5, 0.55], "obstacle": true },
     { "id": "plant_bullpen_1", "kind": "plant", "pos": [0.5, 2.9], "rot": 0, "size": [0.55, 1.5, 0.55], "obstacle": true },
@@ -164,7 +164,7 @@
   "nav": { "cell": 0.25, "inflate": 0.28 },
   "camera": {
     "overview": { "pos": [15.5, 15.0, 15.5], "target": [-4.0, 0.4, -1.0] },
-    "board": { "pos": [-6.2, 3.9, -0.6], "target": [-13.9, 1.9, -1.0] },
+    "board": { "pos": [-5.6, 2.8, 1.6], "target": [-13.6, 1.5, -0.9] },
     "offices": { "pos": [-6.0, 9.5, 2.8], "target": [-6.5, 0.6, -7.5] },
     "front": { "pos": [-8.5, 7.5, 12.5], "target": [-8.5, 0.8, 5.0] },
     "lounge": { "pos": [6.5, 6.0, 3.5], "target": [9.0, 0.9, -6.5] }

@@ -1,4 +1,6 @@
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -23,6 +25,7 @@ import {
   Newspaper,
   Percent,
   MessagesSquare,
+  Building2,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -71,6 +74,7 @@ import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
 import { PredictTab } from "@/components/predict/predict-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
+import { useRoomEngine } from "@/components/room/room-engine";
 import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
@@ -164,6 +168,10 @@ import {
   noteAutoPaperSkip,
 } from "@/lib/trading/auto-paper";
 import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
+
+// three.js (~600 KB) loads only when the Floor tab is opened; the room's
+// engine (room-engine.ts) is plain TS and runs at page level below.
+const TradingFloorTab = lazy(() => import("@/components/room/trading-floor-tab"));
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -654,6 +662,7 @@ type DeskCategory =
   | "news"
   | "predict"
   | "discuss"
+  | "floor"
   | "brain"
   | "learn"
   | "invest"
@@ -727,6 +736,16 @@ const CATEGORIES: {
     hint: "Grok + Claude · 6 checkpoints",
     icon: MessagesSquare,
   },
+  // The 3D room (2026-10-04): five SMC personalities trade a PAPER QQQ/SPY
+  // 0–1 DTE book off this desk's own cards and gates — a way to watch the
+  // desk think, never a gate and never a broker.
+  {
+    id: "floor",
+    label: "Floor",
+    short: "Floor",
+    hint: "3D room · 5 desks · paper QQQ/SPY",
+    icon: Building2,
+  },
   {
     id: "path",
     label: "Book",
@@ -790,6 +809,9 @@ function MasterplacePage() {
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
+  // The trading floor runs one paper cycle per desk refresh on every tab, so
+  // its level stops and 11:00 time exit fire with the Floor tab closed.
+  useRoomEngine(desk);
   const [risk, setRisk] = useState<RiskState | null>(null);
   const [equity, setEquity] = useState<number>(() => getPaperAccount().equity);
   const [logCandidate, setLogCandidate] = useState<SetupCandidate | null>(null);
@@ -1666,7 +1688,8 @@ function MasterplacePage() {
                 cat !== "invest" &&
                 cat !== "news" &&
                 cat !== "predict" &&
-                cat !== "discuss" && <SynapseRail tab={cat} />}
+                cat !== "discuss" &&
+                cat !== "floor" && <SynapseRail tab={cat} />}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the
@@ -1675,6 +1698,18 @@ function MasterplacePage() {
               {cat === "news" && <NewsTab />}
               {cat === "predict" && <PredictTab />}
               {cat === "discuss" && <DiscussTab desk={desk} />}
+              {cat === "floor" && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                      Loading the floor…
+                    </div>
+                  }
+                >
+                  <TradingFloorTab />
+                </Suspense>
+              )}
 
               {cat === "brain" && (
                 <div className="space-y-5">
