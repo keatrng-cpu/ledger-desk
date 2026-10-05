@@ -582,7 +582,9 @@ export function drillDeskRead(f: DrillFrame, book: RoomBook): RoomDeskRead {
     htf: { QQQ: f.trend[0] === "BEARISH" ? "bear" : "bull", SPY: f.trend[1] === "BEARISH" ? "bear" : f.trend[1] === "CHOPPY" ? "neutral" : "bull" },
     futures,
     feed: "drill",
-    lagSec: null,
+    // The scripted print is the tape. 0s keeps the fresh-tape gate open here
+    // and closed on a desk that never dated its quote.
+    lagSec: 0,
     spotSource: { SPY: `SPY ${f.spy.toFixed(2)} (drill)`, QQQ: `QQQ ${f.qqq.toFixed(2)} (drill)` },
     tenYear: 4.12,
     weekKind: null,

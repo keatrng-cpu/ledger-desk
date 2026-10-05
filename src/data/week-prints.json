@@ -166,5 +166,19 @@
     "actual": "+29k",
     "vs": "exp ~+90k / Aug first-print +162k, Aug rev +133k",
     "note": "BLS USDL-26-1549. U-rate 4.2% (was 4.1%). AHE +0.1% to $37.81 / +3.0% y/y. Participation 61.8%. Revisions: July +21k→-10k, August +162k→+133k (-60k combined). Soft. No ISM/JOLTS/ADP/claims today."
+  },
+  {
+    "date": "2026-10-05",
+    "name": "ISM Services PMI (Sep)",
+    "actual": "54.9",
+    "vs": "exp ~55.0 / prev 55.4",
+    "note": "ISM official Oct 5 10:00 ET. 27th expansion month. Business activity 56.5 (from 61.7), new orders 59.8, employment 50.1 (from 47.8), prices 74.0 (from 72.6, highest since Jul 2022). Slight headline miss, still expansion. Prices hot. No JOLTS/ADP/claims/NFP today."
+  },
+  {
+    "date": "2026-10-05",
+    "name": "ISM Services PMI (Sep)",
+    "actual": "54.9",
+    "vs": "exp ~55.0 / prev 55.4",
+    "note": "ISM official Oct 5 10:00 ET. 27th expansion month. Business activity 56.5 (from 61.7), new orders 59.8, employment 50.1 (from 47.8), prices 74.0 (from 72.6, highest since Jul 2022). Slight headline miss, still expansion. Prices hot. No JOLTS/ADP/claims/NFP today."
   }
 ]

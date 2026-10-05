@@ -227,6 +227,11 @@ export interface Evidence {
   medianQuoteErrPct: number | null;
   entrySlipN: number;
   medianEntrySlipPct: number | null;
+  /**
+   * Entry fills whose distance from the quoted ask exceeds the live slip cap.
+   * The median can hide one of these. Any one of them blocks live.
+   */
+  desyncFills: number;
   /** Rows whose fate the broker never confirmed. */
   unreconciled: number;
   errorRatePct: number | null;
@@ -275,6 +280,7 @@ export function evidenceOf(rows: readonly AuditRow[], nowMs: number): Evidence {
     medianQuoteErrPct: median(qerr),
     entrySlipN: slip.length,
     medianEntrySlipPct: median(slip),
+    desyncFills: slip.filter((pct) => pct > LIVE_EVIDENCE.maxMedianEntrySlipPct || pct < -LIVE_EVIDENCE.maxMedianEntrySlipPct).length,
     unreconciled: stuck.length,
     errorRatePct: touched.length ? (bad.length / touched.length) * 100 : null,
     shadowN: rows.filter((r) => r.phase === "shadow").length,
@@ -309,6 +315,7 @@ export function liveReadiness(
     { id: "trips", ok: e.paperRoundTrips >= E.minPaperRoundTrips, label: `${E.minPaperRoundTrips}+ paper round trips`, detail: `${e.paperRoundTrips} so far` },
     { id: "quote_err", ok: e.medianQuoteErrPct != null && e.quoteErrN >= E.minPaperFills && e.medianQuoteErrPct <= E.maxMedianQuoteErrPct, label: `Model within ${E.maxMedianQuoteErrPct}% of the real quote (median)`, detail: `${num(e.medianQuoteErrPct)}% over ${e.quoteErrN} comparisons` },
     { id: "slip", ok: e.medianEntrySlipPct != null && e.medianEntrySlipPct <= E.maxMedianEntrySlipPct, label: `Entry fills within ${E.maxMedianEntrySlipPct}% of the quoted ask (median)`, detail: `${num(e.medianEntrySlipPct)}% over ${e.entrySlipN} fills` },
+    { id: "slip_outliers", ok: !(e.desyncFills > 0), label: "No single entry fill past the slip cap", detail: `${e.desyncFills ?? 0} fills beyond ${E.maxMedianEntrySlipPct}% of the ask — a median can hide one, and that fill does not count toward live` },
     { id: "reconciled", ok: e.unreconciled <= E.maxUnreconciled, label: "Every order reconciled", detail: `${e.unreconciled} unconfirmed` },
     { id: "errors", ok: e.errorRatePct == null || e.errorRatePct <= E.maxErrorRatePct, label: `Broker errors and rejects ≤ ${E.maxErrorRatePct}%`, detail: `${num(e.errorRatePct)}%` },
     { id: "kill", ok: !i.killed, label: "Kill switch off", detail: i.killed ? "engaged" : "off" },

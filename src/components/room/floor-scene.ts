@@ -22,7 +22,7 @@ import layoutJson from "@/data/floor-layout.json";
 import type { AgentAct } from "@/lib/room/agents";
 import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator";
 import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor-fx";
-import { ANIMATED_SCREENS, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
+import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -555,6 +555,8 @@ class Avatar {
   private readonly knR = new THREE.Group();
   private readonly props: Record<"mug" | "tablet" | "marker" | "phone" | "thumb", THREE.Object3D>;
   private readonly mouth: THREE.Mesh;
+  private readonly mark: THREE.Mesh;
+  private readonly markMat: THREE.MeshStandardMaterial;
   readonly hipH: number;
   readonly height: number;
   readonly tag: THREE.Sprite;
@@ -639,6 +641,10 @@ class Avatar {
     this.mouth.rotation.z = Math.PI / 2;
     this.mouth.position.set(0, 0.075, 0.122);
     this.head.add(this.mouth);
+    this.markMat = new THREE.MeshStandardMaterial({ color: "#64748b", emissive: "#334155", emissiveIntensity: 0.6, roughness: 0.4 });
+    this.mark = shadowed(new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.015, 0.045), this.markMat));
+    this.mark.position.set(-0.16 * b, 0.4 * s, 0.12);
+    this.spine.add(this.mark);
     this.head.add(this.hairMesh(spec.hair, hair));
     for (const acc of spec.accessories) {
       const a = this.accessory(acc, accent, dark);
@@ -841,6 +847,14 @@ class Avatar {
     sp.scale.set(1.05, 0.23, 1);
     sp.renderOrder = 10;
     return sp;
+  }
+
+  /** Credibility, worn. 50 is slate. Higher goes green. Lower goes red. It does not change a ticket. */
+  setRank(rank: number) {
+    const t = Math.max(0, Math.min(1, (rank - 30) / 40));
+    const c = new THREE.Color().setHSL(0.02 + t * 0.28, 0.75, 0.42);
+    this.markMat.color.copy(c);
+    this.markMat.emissive.copy(c);
   }
 
   setEmote(kind: EmoteKind | null) {
@@ -1366,6 +1380,8 @@ export class FloorScene {
   private readonly hemi: THREE.HemisphereLight;
   private readonly alarm: THREE.PointLight;
   private frame: FloorFrame | null = null;
+  /** Jax stands back at the board when his last chase call scored wrong. */
+  private sterlingFirst = false;
   private appliedAt = 0;
   private lines: DialogueLine[] = [];
   private lineIdx = -1;
@@ -1393,6 +1409,7 @@ export class FloorScene {
   private hoverLabel: string | null = null;
   private preset: CameraPreset = "overview";
   private lastClockDraw = 0;
+  private lastScanDraw = 0;
   private wbReveal = 1;
   private wbFull: HTMLCanvasElement | null = null;
   private time = 0;
@@ -1724,6 +1741,9 @@ export class FloorScene {
    */
   apply(frame: FloorFrame, speed = 1, talk = true) {
     const prev = this.frame;
+    const cues = cuesOfFrame(frame);
+    this.sterlingFirst = cues.sterlingFirst;
+    for (const who of CREW_ORDER) this.avatars.get(who)!.setRank(frame.minds?.rank[who] ?? 50);
     this.react(prev, frame, talk);
     this.frame = frame;
     this.speed = speed;
@@ -1849,16 +1869,16 @@ export class FloorScene {
     const urg = f.output.room_state.market_urgency;
     if (urg === "HIGH_ALERT" && this.lastUrgency !== "HIGH_ALERT") this.opts.onEvent?.("alert");
     this.lastUrgency = urg;
-    // The ghost room has theater too: a refused ticket flies to the jumbotron as a ghost,
-    // and a ghost that closes pops its result off the GHOST ROOM face.
+    // A veto that is not a late tape drops the paper back on Sterling's desk.
+    // A late print gets no flight: the broker could not have filled it.
     const jumboS = LAYOUT.screens.find((x) => x.id === "jumbo_S");
     const ghostAt: V3 = jumboS ? [jumboS.center[0], jumboS.center[1], jumboS.center[2] + 0.25] : [-8, 2.85, 0];
-    if (talk && f.trace.beat === "vetoed" && f.trace.entry && f.trace.entry.entry.tier === "live") {
+    const cues = cuesOfFrame(f);
+    if (talk && cues.flight === "return" && f.trace.entry && f.trace.entry.entry.tier === "live") {
       const st = this.avatars.get("Sterling")!;
-      const e = f.trace.entry;
-      const g = new TicketFlight(`GHOST ${e.qty || 1}× ${e.entry.underlier} ${e.quote.strike}${e.entry.type === "CALL" ? "C" : "P"}`, "ghost", [st.pos[0], 2.0, st.pos[1]], ghostAt);
-      this.tickets.push(g);
-      this.scene.add(g.sprite);
+      const back = new TicketFlight(cues.stamp ?? "NO", "ghost", [st.pos[0], 1.7, st.pos[1]], [st.pos[0], 1.05, st.pos[1]], 1.4);
+      this.tickets.push(back);
+      this.scene.add(back.sprite);
     }
     const closedN = (x: FloorFrame | null) => (x?.screens.lab?.refusals ?? []).reduce((a, r) => a + r.n, 0);
     const closedUsd = (x: FloorFrame | null) => (x?.screens.lab?.refusals ?? []).reduce((a, r) => a + r.pnlUsd, 0);
@@ -1869,6 +1889,7 @@ export class FloorScene {
       this.scene.add(pop.sprite);
     }
     if (!talk || !b.execute_trade) return;
+    if (b.action_type === "BUY_OPEN" && cues.flight !== "fill") return;
     const vince = this.avatars.get("Vince")!;
     const from: V3 = [vince.pos[0], 2.0, vince.pos[1]];
     const marquee = LAYOUT.screens.find((x) => x.id === "marquee");
@@ -2025,6 +2046,10 @@ export class FloorScene {
     const yaw = yawTo(a.pos, a.look);
     const side = n === 0 ? 0 : (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 0.75;
     const pos: V2 = [a.pos[0] + Math.cos(yaw) * side, a.pos[1] - Math.sin(yaw) * side];
+    if (who === "Jax" && this.sterlingFirst && zone === "THE_WHITEBOARD") {
+      pos[0] -= Math.sin(yaw) * 0.55;
+      pos[1] -= Math.cos(yaw) * 0.55;
+    }
     const pose = n > 0 && a.pose === "couch" ? "stand" : a.pose;
     return { pos, yaw, pose, key: `${key}:${n}` };
   }
@@ -2235,7 +2260,9 @@ export class FloorScene {
       if (drawScreen(rec.id, rec.ctx, rec.w, rec.h, f, clockMs)) rec.tex.needsUpdate = true;
     }
     // LEDs follow the room's urgency.
-    const col = new THREE.Color(URGENCY_COLOR[f.output.room_state.market_urgency] ?? "#38bdf8");
+    const cues = cuesOfFrame(f);
+    const tint = cues.tint === "amber" ? "#f59e0b" : cues.tint === "hatch" ? "#64748b" : (URGENCY_COLOR[f.output.room_state.market_urgency] ?? "#38bdf8");
+    const col = new THREE.Color(tint);
     for (const [id, m] of this.emissive) if (id !== "rack_leds") m.emissive.copy(col);
   }
 
@@ -2357,6 +2384,11 @@ export class FloorScene {
     // Screens that move on their own.
     const marquee = this.screens.get("marquee");
     if (marquee) marquee.tex.offset.x = (marquee.tex.offset.x + dt * 0.035) % 1;
+    if (f && cuesOfFrame(f).armed && t - this.lastScanDraw > 0.25) {
+      this.lastScanDraw = t;
+      const sc = this.screens.get("tv_scanner");
+      if (sc && drawScreen("tv_scanner", sc.ctx, sc.w, sc.h, f, this.clockMs())) sc.tex.needsUpdate = true;
+    }
     if (f && t - this.lastClockDraw > 1) {
       this.lastClockDraw = t;
       const clocks = this.screens.get("clocks_Gemma");
@@ -2532,9 +2564,9 @@ function ambientFor(who: Character, act: string, lastAnim: Animation | null): An
     case "desk_phone":
       return "PHONE_CALL";
     case "desk_lean":
-      return "LEAN_BACK";
+      return "CHECKING_TABLET";
     case "desk_stretch":
-      return "STRETCH";
+      return who === "Vince" ? "ANALYZING" : "STRETCH";
     case "meeting":
       // At the board they keep their last gesture going, quieter.
       if (lastAnim === "CROSSING_ARMS" || lastAnim === "WRITING_ON_WHITEBOARD" || lastAnim === "CHECKING_TABLET") return lastAnim;

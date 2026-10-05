@@ -1367,3 +1367,65 @@ export function exWelcome(c: Ctx, d: WelcomeData): Ex | null {
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
+
+/** The five compare notes. Discretion is each school's own no. Nothing here is a ticket. */
+export interface HuddleData {
+  missing: string | null;
+  experiment: { owner: Character; title: string; n: number; nNeeded: number } | null;
+  leader: string | null;
+  seated: string | null;
+  jaxWrong: boolean;
+  stamp: string | null;
+  /** A refusal the model says cost money. Named, not edited. */
+  costGate: string | null;
+}
+export function exHuddle(c: Ctx, d: HuddleData): Ex | null {
+  const f = c.f;
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.huddle.gemma", [
+      () => d.missing
+        ? `The improvement on the sequence is ${f.raw(d.missing)}, and only if it prints. I will not invent the layer to make a trade.`
+        : d.stamp
+          ? `The stamp is ${f.raw(d.stamp)}. That is the whole room's no, Jax included.`
+          : `The sequence is intact. Adding a layer to force a trade is how a good desk gets worse.`,
+      () => d.missing
+        ? `${f.raw(d.missing)} is still missing. Discount, premium, the draw — none of them substitute for it.`
+        : `I am not teaching a new model today. The one on the board is the one we trade.`,
+    ])),
+    line("Jax", ANIM.Jax.point!, pick(c, d.jaxWrong ? "hb.huddle.jax.wrong" : "hb.huddle.jax", d.jaxWrong
+      ? [
+          () => d.leader && d.leader !== "Jax"
+            ? `Last chase was wrong, so I stand back. ${f.raw(d.leader)} can lead the paper book. I still want the sweep, then the shift, and I still don't get to skip the retest.`
+            : `Last chase was wrong. Being ahead on paper does not buy me the next one. Sweep, then the shift. No skip.`,
+          () => `I wanted it and the tape said I was early. The improvement I can actually make is not paying the spread to look busy.`,
+        ]
+      : [
+          () => d.leader && d.leader !== "Jax"
+            ? `${f.raw(d.leader)} is ahead on paper. Paper is not a fill. I want the sweep into the shift, and I still don't get to skip the retest.`
+            : `If I'm leading the paper book, that is not a license to chase. Sweep, then the shift. That's the whole discretion.`,
+          () => `Friendly is fine. I still lose the argument when it is not a sweep into a shift.`,
+        ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "hb.huddle.nova", d.experiment
+      ? [
+          () => `Jax, the only question close enough to argue with is ${f.raw(d.experiment!.title)}: ${f.int(d.experiment!.n)} of ${f.int(d.experiment!.nNeeded)}. Finish the sample. Do not crown it, and do not move a gate from this room.`,
+          () => `${f.raw(d.experiment!.owner)}'s test is the one on the bench, ${f.int(d.experiment!.n)} into ${f.int(d.experiment!.nNeeded)}. A half sample is not a new edge.`,
+        ]
+      : [
+          () => `Nothing on the bench is close to its bar. Your sweep is not a sample, Jax, and the model stays the model.`,
+          () => `No experiment is ready to argue with the four-year test. Collecting is the improvement. Crowning is not.`,
+        ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "hb.huddle.vince", [
+      () => `Nova can count it. I rest the order at consequent encroachment until price is in the array. A late print does not get a ticket, and it does not get a story.`,
+      () => `The execution improvement is the one we already have: face down until the array, slide it back if it leaves. I do not chase Jax's sweep.`,
+    ])),
+    line("Sterling", ANIM.Sterling.approve!, pick(c, "hb.huddle.sterling", [
+      () => d.seated
+        ? `${f.raw(d.seated)} sits. Beating a seated book on paper is not a reason to loosen the checklist.${d.costGate ? ` The ${f.raw(d.costGate)} no has cost on the model. We still do not edit it from the floor.` : ""}`
+        : d.leader
+          ? `${f.raw(d.leader)} is leading. Leading is not a size.${d.costGate ? ` ${f.raw(d.costGate)} has cost on the model, and it stays.` : " The checklist is the same one for the leader."}`
+          : `Objectives not met is not a reason to go looking for one.${d.costGate ? ` ${f.raw(d.costGate)} stays, even when the model says it cost.` : ""}`,
+      () => `You can argue the sweep, the sample and the array. None of you gets a different checklist.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: d.missing ? { Gemma: WB } : {} } : null;
+}

@@ -52,10 +52,15 @@
   [headers.values]
     Cache-Control = "no-store, must-revalidate"
 
-# Scheduled jobs (replaces vercel.json crons). Requires Pro for production schedules.
-# Paths must match your /api/cron/* routes. Auth: Authorization: Bearer $CRON_SECRET
-# Uncomment after setting CRON_SECRET in Netlify env and confirming routes work.
+# exec-flatten is a scheduled function (netlify/functions/exec-flatten.mjs).
+# The build copies it into .netlify/functions-internal beside Nitro's SSR
+# function. It rings GET /api/cron/exec-flatten. It opens nothing. It does
+# nothing until CRON_SECRET is set, and the route still no-ops unless the
+# execution phase is paper or live.
 #
+# Scheduled jobs (the other crons still need a caller). Netlify does not read
+# vercel.json. Do not point functions.directory at netlify/functions — that
+# drops the SSR function Nitro writes.
 # [[plugins]]
 #   package = "@netlify/plugin-scheduled-functions"
 #
