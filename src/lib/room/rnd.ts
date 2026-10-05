@@ -215,7 +215,7 @@ export function rndRead(a: { lab: RoomLab; seats: SeatBook | null; goal: GoalSpe
       n: Math.min(taken.length, declined.length),
       nNeeded: RND_BARS.armN,
       status: !ready ? "collecting" : sig(t, 1) ? "supported" : sig(t, -1) ? "not_supported" : "undecided",
-      read: `backed ${taken.length}× avg ${taken.length ? usd(meanOf(taken)) : "—"} · declined for structure ${declined.length}× avg ${declined.length ? usd(meanOf(declined)) : "—"} · ${tTxt(t)}`,
+      read: taken.length + declined.length === 0 ? "no ticket on either side yet — waiting for a card Gemma backs or declines" : `backed ${taken.length}× avg ${taken.length ? usd(meanOf(taken)) : "—"} · declined for structure ${declined.length}× avg ${declined.length ? usd(meanOf(declined)) : "—"} · ${tTxt(t)}`,
       proposal:
         ready && sig(t, -1)
           ? `The tickets Gemma declined for structure made ${usd(meanOf(declined))} each against ${usd(meanOf(taken))} for the ones she took (${tTxt(t)}, ${taken.length} and ${declined.length}). tf-ladder.ts already says the higher timeframe carries direction, not R; this is a forward hint to re-test it offline, not a reason to change the card.`
@@ -276,7 +276,7 @@ export function rndRead(a: { lab: RoomLab; seats: SeatBook | null; goal: GoalSpe
       n: Math.min(co.length, solo.length),
       nNeeded: RND_BARS.armN,
       status: !ready ? "collecting" : sig(t, 1) ? "supported" : sig(t, -1) ? "not_supported" : "undecided",
-      read: `co-signed ${co.length}× avg ${co.length ? usd(meanOf(co)) : "—"} · solo ${solo.length}× avg ${solo.length ? usd(meanOf(solo)) : "—"} · ${tTxt(t)}${dis.length ? ` · dissenters' declined tickets on ${dis.length} card${dis.length === 1 ? "" : "s"} made ${usd(dis.reduce((s, y) => s + (y.dissentUsd ?? 0), 0))}` : ""}`,
+      read: `${co.length + solo.length === 0 ? "no ticket has closed yet — nothing to compare" : `co-signed ${co.length}× avg ${co.length ? usd(meanOf(co)) : "—"} · solo ${solo.length}× avg ${solo.length ? usd(meanOf(solo)) : "—"} · ${tTxt(t)}`}${dis.length ? ` · dissenters' declined tickets on ${dis.length} card${dis.length === 1 ? "" : "s"} made ${usd(dis.reduce((s, y) => s + (y.dissentUsd ?? 0), 0))}` : ""}`,
       proposal:
         ready && sig(t, 1)
           ? `Co-signed tickets made ${usd(meanOf(co))} each against ${usd(meanOf(solo))} alone (${tTxt(t)}, ${co.length} and ${solo.length}). Worth a line in the desk's playbook for the trader to weigh: a card two or more seats back has done better than one a single seat held.`

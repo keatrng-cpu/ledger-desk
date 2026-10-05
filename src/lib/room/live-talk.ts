@@ -30,6 +30,7 @@
 
 import { ROOM_CLOCK } from "./mandate";
 import * as V from "./live-voices";
+import * as R from "./live-voices-race";
 import {
   ATM_DELTA,
   Facts,
@@ -40,6 +41,7 @@ import {
   playMs,
   type CardRead,
   type NewsLite,
+  type SeatEventLite,
   type PositionRead,
   type TalkItem,
   type TalkKind,
@@ -765,6 +767,270 @@ function pulseCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   }
 }
 
+/* ── The race: the seats' tickets, the goal's council, the R&D's verdicts ── */
+
+/** A seat event older than this is history, not news: a tab opened after it marks it seen without remark. */
+const SEAT_FRESH_MS = 4 * 60_000;
+
+function seatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const s = w.seats;
+  if (!s) return;
+  if (!st.seatPrimed) {
+    st.seatPrimed = true;
+    st.seatSeen = s.events.map((e) => e.id);
+    return;
+  }
+  const seen = new Set(st.seatSeen);
+  const unseen = s.events.filter((e) => !seen.has(e.id));
+  if (!unseen.length) return;
+  const old = unseen.filter((e) => w.nowMs - e.at > SEAT_FRESH_MS);
+  if (old.length) st.seatSeen = [...st.seatSeen, ...old.map((e) => e.id)].slice(-300);
+  const fresh = unseen.filter((e) => w.nowMs - e.at <= SEAT_FRESH_MS).sort((a, b) => a.at - b.at);
+  const mark = (ids: string[]) => (t: TalkState) => {
+    t.seatSeen = [...t.seatSeen, ...ids].slice(-300);
+  };
+  const tickets = s.rows.reduce((a, r) => a + r.taken.n, 0);
+  const rowOf = (id: string | null) => s.rows.find((r) => r.id === id) ?? null;
+  const byCycle = new Map<number, SeatEventLite[]>();
+  for (const e of fresh) byCycle.set(e.at, [...(byCycle.get(e.at) ?? []), e]);
+  for (const [at, evs] of byCycle) {
+    const of = (k: SeatEventLite["kind"]) => evs.filter((e) => e.kind === k);
+    const opens = of("open");
+    const skips = of("skip");
+    const blockedEvs = of("blocked");
+    const syn = of("syndicate")[0] ?? null;
+    if (opens.length || skips.length || blockedEvs.length || syn) {
+      const groups = new Map<string, { gate: string | null; why: string | null; seats: string[] }>();
+      for (const b of blockedEvs) {
+        const key = `${b.gate}|${b.why}`;
+        const gset = groups.get(key) ?? { gate: b.gate, why: b.why, seats: [] };
+        gset.seats.push(b.seat ?? "");
+        groups.set(key, gset);
+      }
+      const quiet = !opens.length && !syn;
+      const names = [...opens, ...skips].map((e) => e.seat).filter(Boolean).length;
+      out.push({
+        id: `seat|touch|${at}`,
+        kind: "seat",
+        topic: `seat:touch:${at}`,
+        urgency: quiet ? 0 : 1,
+        prio: quiet ? 3 : 7,
+        at,
+        label: opens.length ? `${opens.length} ticket${opens.length === 1 ? "" : "s"} opened at the touch${syn ? ` · ${syn.n ?? ""} on one card` : ""}` : `${names + blockedEvs.length} seats looked at the card`,
+        build: (c) => R.exTouchRound(c, { opens, skips, blocked: [...groups.values()], syndicate: syn, goal: w.goal }),
+        commit: mark([...opens, ...skips, ...blockedEvs, ...(syn ? [syn] : [])].map((e) => e.id)),
+      });
+    }
+    for (const e of of("close")) {
+      const rank = Math.max(1, s.rows.findIndex((r) => r.id === e.seat) + 1);
+      out.push({
+        id: `seat|${e.id}`,
+        kind: "seat",
+        topic: `seat:close:${e.id}`,
+        urgency: 1,
+        prio: 6,
+        at,
+        label: `${e.seat ?? "a seat"} closed ${(e.usd ?? 0) >= 0 ? "+" : "−"}$${Math.abs(Math.round(e.usd ?? 0))}`,
+        build: (c) => R.exSeatClose(c, { ev: e, row: rowOf(e.seat), rank, of: s.rows.length, goal: w.goal }),
+        commit: mark([e.id]),
+      });
+    }
+    for (const e of of("lead")) {
+      out.push({
+        id: `seat|${e.id}`,
+        kind: "seat",
+        topic: `seat:lead:${e.id}`,
+        urgency: 1,
+        prio: 5,
+        at,
+        label: `${e.seat ?? "a seat"} takes the lead`,
+        build: (c) => R.exLead(c, { seat: e.seat ?? "", equity: e.equity ?? 0, margin: e.usd ?? 0, tickets, goal: w.goal }),
+        commit: mark([e.id]),
+      });
+    }
+    for (const e of of("finish")) {
+      out.push({
+        id: `seat|${e.id}`,
+        kind: "seat",
+        topic: `seat:finish:${e.id}`,
+        urgency: 2,
+        prio: 9,
+        at,
+        label: `${e.seat ?? "a seat"} ${e.why === "hit" ? "reached the goal" : "reached the floor"}`,
+        build: (c) => R.exFinish(c, { seat: e.seat ?? "", hit: e.why === "hit", equity: e.equity ?? 0, goal: w.goal }),
+        commit: mark([e.id]),
+      });
+    }
+    for (const e of of("syndicate_closed")) {
+      out.push({
+        id: `seat|${e.id}`,
+        kind: "seat",
+        topic: `seat:syn:${e.id}`,
+        urgency: 1,
+        prio: 4,
+        at,
+        label: `syndicate closed ${(e.usd ?? 0) >= 0 ? "+" : "−"}$${Math.abs(Math.round(e.usd ?? 0))}`,
+        build: (c) => R.exSyndicateClosed(c, { members: e.members ?? [], usd: e.usd ?? 0, dissentUsd: null }),
+        commit: mark([e.id]),
+      });
+    }
+    // Events nobody speaks about (the start marker) are marked seen with the rest.
+    const spoken = new Set(["open", "skip", "blocked", "syndicate", "close", "lead", "finish", "syndicate_closed"]);
+    const silent = evs.filter((e) => !spoken.has(e.kind));
+    if (silent.length) st.seatSeen = [...st.seatSeen, ...silent.map((e) => e.id)].slice(-300);
+  }
+}
+
+function goalCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const g = w.goal;
+  if (!g) return;
+  const k = w.clock;
+  const day = k.etDate;
+  const trading = k.isWeekday && !k.holiday;
+  const sig = (key: string) => st.goalSig[key];
+  if (g.status === "hit" || g.status === "floor" || g.status === "expired") {
+    const key = `final|${g.status}`;
+    if (!sig(key) && w.seats) {
+      out.push({
+        id: `goal|${key}`,
+        kind: "goal",
+        topic: `goal:${key}`,
+        urgency: 2,
+        prio: 9,
+        at: w.nowMs,
+        label: `the window is over · ${g.status}`,
+        build: (c) => R.exGoalFinal(c, { g, rows: w.seats!.rows }),
+        commit: (s) => {
+          s.goalSig[key] = "1";
+        },
+      });
+    }
+    return;
+  }
+  // The council: once each trading morning, before the 11:00 flat.
+  if (trading && k.etMin >= 8 * 60 + 30 && k.etMin < ROOM_CLOCK.dayFlatMin && !sig(`council|${day}`)) {
+    const pending = g.collisions.find((x) => x.ask && x.severity !== "info") ?? null;
+    out.push({
+      id: `goal|council|${day}`,
+      kind: "goal",
+      topic: `goal:council:${day}`,
+      urgency: 1,
+      prio: 7,
+      at: w.nowMs,
+      label: g.status === "before" ? "the council · planning ahead of the window" : `the council · day ${g.day} of ${g.of}`,
+      build: (c) => R.exCouncil(c, { g, weekTrade: w.week?.today?.trade ?? null, b: w.books.QQQ ?? w.books.SPY }),
+      commit: (s) => {
+        s.goalSig[`council|${day}`] = "1";
+        if (pending) s.goalSig[`decision|${day}|${pending.id}`] = "1";
+      },
+    });
+  }
+  // The pace against the path: said when it changes side, and not more than every twenty minutes.
+  if (g.status === "running" && g.paceLabel) {
+    const prev = sig("pace");
+    if (prev === undefined) st.goalSig["pace"] = g.paceLabel;
+    else if (prev !== g.paceLabel && w.nowMs - Number(sig("paceAt") ?? 0) >= 20 * 60_000 && trading) {
+      out.push({
+        id: `goal|pace|${g.paceLabel}|${Math.round(w.nowMs / 60_000)}`,
+        kind: "goal",
+        topic: `goal:pace:${g.paceLabel}`,
+        urgency: 1,
+        prio: 5,
+        at: w.nowMs,
+        label: `pace · ${prev} → ${g.paceLabel}`,
+        build: (c) => R.exPace(c, { g, from: prev }),
+        commit: (s) => {
+          s.goalSig["pace"] = g.paceLabel!;
+          s.goalSig["paceAt"] = String(w.nowMs);
+        },
+      });
+    } else if (prev !== g.paceLabel && w.nowMs - Number(sig("paceAt") ?? 0) >= 20 * 60_000) st.goalSig["pace"] = g.paceLabel;
+  }
+  // Entries are over for the day: re-plan out loud, once.
+  if (g.status === "running" && g.entriesOver && trading && k.etMin >= ROOM_CLOCK.dayFlatMin && k.etMin < ROOM_CLOCK.optionsCloseMin && g.day >= 1 && !sig(`replan|${day}`)) {
+    out.push({
+      id: `goal|replan|${day}`,
+      kind: "goal",
+      topic: `goal:replan:${day}`,
+      urgency: 1,
+      prio: 6,
+      at: w.nowMs,
+      label: `re-plan · ${g.daysLeft} session${g.daysLeft === 1 ? "" : "s"} left`,
+      build: (c) => R.exReplan(c, { g }),
+      commit: (s) => {
+        s.goalSig[`replan|${day}`] = "1";
+      },
+    });
+  }
+  // A card has the ladder priced on it.
+  const card = w.card;
+  if (card && (card.tier === "armed" || card.tier === "live") && g.ladder.priced && g.ladder.best && !sig(`ladder|${card.key}`)) {
+    out.push({
+      id: `goal|ladder|${card.key}`,
+      kind: "goal",
+      topic: `goal:ladder:${card.key}`,
+      urgency: 1,
+      prio: 6,
+      at: w.nowMs,
+      label: `the ladder priced on ${card.name}`,
+      build: (c) => R.exLadderCard(c, { g, card }),
+      commit: (s) => {
+        s.goalSig[`ladder|${card.key}`] = "1";
+      },
+    });
+  }
+  // A call that is the trader's: said once a day each, after the council has had its turn.
+  if (sig(`council|${day}`) || !trading) {
+    const col = g.collisions.find((x) => x.ask && x.severity !== "info" && !sig(`decision|${day}|${x.id}`));
+    if (col) {
+      out.push({
+        id: `goal|decision|${day}|${col.id}`,
+        kind: "goal",
+        topic: `goal:decision:${col.id}`,
+        urgency: 0,
+        prio: 4,
+        at: w.nowMs,
+        label: `a call that's the trader's · ${col.id.replace("_", " ")}`,
+        build: (c) => R.exDecision(c, { col }),
+        commit: (s) => {
+          s.goalSig[`decision|${day}|${col.id}`] = "1";
+        },
+      });
+    }
+  }
+}
+
+function rndCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const r = w.rnd;
+  if (!r) return;
+  if (!st.rndPrimed) {
+    st.rndPrimed = true;
+    for (const e of r.experiments) st.rndSeen[e.id] = e.status;
+    return;
+  }
+  for (const e of r.experiments) {
+    const prev = st.rndSeen[e.id];
+    if (prev === undefined || e.status === "collecting") {
+      st.rndSeen[e.id] = e.status;
+      continue;
+    }
+    if (prev === e.status) continue;
+    out.push({
+      id: `rnd|${e.id}|${e.status}`,
+      kind: "rnd",
+      topic: `rnd:${e.id}:${e.status}`,
+      urgency: 1,
+      prio: 5,
+      at: w.nowMs,
+      label: `${e.owner}'s experiment · ${e.status.replace("_", " ")}`,
+      build: (c) => R.exRndVerdict(c, { exp: e }),
+      commit: (s) => {
+        s.rndSeen[e.id] = e.status;
+      },
+    });
+  }
+}
+
 /* ── Heartbeats ────────────────────────────────────────────────────────── */
 
 interface Hb {
@@ -856,6 +1122,29 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
       sig: `${lab.calibration?.n ?? 0}|${lab.twins.n}|${lab.refusals.reduce((a, r) => a + r.n, 0)}`,
       build: (c) => V.exLab(c, { cal: lab.calibration, twins: lab.twins, refusals: { n: lab.refusals.reduce((a, r) => a + r.n, 0), pnlUsd: lab.refusals.reduce((a, r) => a + r.pnlUsd, 0) } }),
     });
+  }
+  // The race: the standings, the price list when no card can price it, each person's experiment.
+  if (w.seats && w.goal && (w.goal.status === "running" || w.goal.status === "before")) {
+    const rows = w.seats.rows;
+    const tickets = rows.reduce((a, r) => a + r.taken.n, 0);
+    out.push({
+      id: "league",
+      weight: f(1.0, 0.7),
+      sig: rows.map((r) => `${r.id}:${Math.round(r.equity)}`).join("|"),
+      build: (c) => R.exLeagueTable(c, { rows, goal: w.goal, tickets }),
+    });
+    if (w.goal.ladder.n > 0 && !w.goal.ladder.priced) {
+      const l = w.goal.ladder;
+      out.push({ id: "ladder", weight: f(0.8, 0.6), sig: `${l.n}|${Math.round(l.cheapestUsd ?? 0)}|${Math.round(l.richestUsd ?? 0)}`, build: (c) => R.exLadderPlain(c, { g: w.goal! }) });
+    }
+    if (!day && w.week?.next) {
+      out.push({ id: "goalnight", weight: 1.2, sig: `${w.clock.etDate}|${w.goal.daysLeft}`, build: (c) => R.exGoalNight(c, { g: w.goal!, next: w.week!.next }) });
+    }
+  }
+  if (w.rnd) {
+    for (const e of w.rnd.experiments) {
+      out.push({ id: `rnd:${e.id}`, weight: 0.7, sig: `${e.status}|${e.n}`, build: (c) => R.exRndStandup(c, { exp: e }) });
+    }
   }
   // A call somebody made earlier, now scored — each one is brought up once.
   const mem = w.minds?.memories.find((m) => m.outcome != null && !st.memSaid.includes(`${m.clock}|${m.text}|${m.outcome}`));
@@ -1004,6 +1293,8 @@ function rollDay(st: TalkState, w: TalkWorld) {
   st.nearFired = {};
   st.bookApproachAt = {};
   st.raid = {};
+  // Day-scoped goal talk (the council, the re-plan, a call asked of the trader) starts over; the pace and the finals persist.
+  st.goalSig = Object.fromEntries(Object.entries(st.goalSig).filter(([k]) => k === "pace" || k === "paceAt" || k.startsWith("final|") || k.startsWith("ladder|") || k.includes(w.clock.etDate)));
   st.dayKey = w.clock.etDate;
 }
 
@@ -1067,6 +1358,9 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   tapeCands(w, st, cands);
   bookCands(w, st, cands);
   pulseCands(w, st, cands);
+  seatCands(w, st, cands);
+  goalCands(w, st, cands);
+  rndCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
 

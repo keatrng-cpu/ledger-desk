@@ -321,6 +321,8 @@ export interface SimInput {
   /** Realized P&L so far today and so far this week (the room book's own counters), for a window already under way. */
   dayNet0?: number;
   weekNet0?: number;
+  /** Paths below this probability are not followed and their mass is reported as `pLost` (default 1e-15: nothing is lost). */
+  eps?: number;
 }
 
 export interface SimOutput {
@@ -338,9 +340,10 @@ export interface SimOutput {
   contractsNow: number;
   debitNow: number;
   states: number;
+  /** Probability mass of paths dropped below `eps` — the answer is exact to within this much. */
+  pLost: number;
 }
 
-const EPS = 1e-15;
 
 /** P(k tickets in a session), k = 0..kMax, Poisson(lambda) with the tail folded into kMax. */
 export function arrivalPmf(lambda: number, kMax: number): number[] {
@@ -385,6 +388,8 @@ interface Cell {
  */
 export function goalDp(i: SimInput): SimOutput {
   const { target, floor, model, policy } = i;
+  const EPS = i.eps ?? 1e-15;
+  let pLost = 0;
   const outs = outcomesOf(model);
   const key = (eq: number, used: number, wk: number) => `${Math.round(eq * 100)}:${used}:${Math.round(wk * 100)}`;
   const weekNet0 = i.weekNet0 ?? 0;
@@ -424,7 +429,10 @@ export function goalDp(i: SimInput): SimOutput {
       const pmf = arrivalPmf(i.lambda, left);
       for (let k = 0; k <= left; k++) {
         const mass0 = s.p * (pmf[k] ?? 0);
-        if (mass0 < EPS) continue;
+        if (mass0 < EPS) {
+          pLost += mass0;
+          continue;
+        }
         if (k === 0) {
           park(s.eq, s.used, wk, mass0);
           continue;
@@ -446,7 +454,10 @@ export function goalDp(i: SimInput): SimOutput {
           expectedTrades += x.p;
           for (const o of outs) {
             const pr = x.p * o.p;
-            if (pr < EPS) continue;
+            if (pr < EPS) {
+              pLost += pr;
+              continue;
+            }
             const delta = debit * o.r;
             const eq = x.eq + delta;
             const used = x.used + 1;
@@ -500,11 +511,12 @@ export function goalDp(i: SimInput): SimOutput {
     contractsNow: c0,
     debitNow: c0 * i.contractUsd,
     states,
+    pLost,
   };
 }
 
 function doneOut(i: SimInput, pTarget: number, pFloor: number, p: number): SimOutput {
-  return { pTarget, pFloor, pBetween: 0, pNoTrade: 0, expectedEnd: i.equity * p, p10: i.equity, p50: i.equity, p90: i.equity, expectedTrades: 0, contractsNow: 0, debitNow: 0, states: 1 };
+  return { pTarget, pFloor, pBetween: 0, pNoTrade: 0, expectedEnd: i.equity * p, p10: i.equity, p50: i.equity, p90: i.equity, expectedTrades: 0, contractsNow: 0, debitNow: 0, states: 1, pLost: 0 };
 }
 
 /* ── The five policies ─────────────────────────────────────────────────── */
@@ -649,6 +661,9 @@ export function modelFromRung(r: Rung): TradeModel | null {
   };
 }
 
+/** The ladder's odds drop paths below this probability and say how much mass that was (SimOutput.pLost): an answer exact to within it. */
+export const LADDER_EPS = 1e-9;
+
 export function ladderTable(read: GoalRead, ctx: PlanContext, rungs: Rung[]): LadderRow[] {
   const policy: SimPolicy = { frac: ctx.capFrac, perDay: 2, dayHaltFrac: ctx.dayHaltFrac, weekHaltFrac: ctx.weekHaltFrac };
   return rungs.map((rung) => {
@@ -661,7 +676,7 @@ export function ladderTable(read: GoalRead, ctx: PlanContext, rungs: Rung[]): La
       contracts,
       debitUsd,
       stopShare: loss != null && read.equity > 0 ? (debitUsd * Math.abs(loss)) / read.equity : null,
-      out: model ? simFor(read, ctx, policy, { model, contractUsd: rung.askUsd }) : null,
+      out: model ? simFor(read, ctx, policy, { model, contractUsd: rung.askUsd, eps: LADDER_EPS }) : null,
     };
   });
 }
@@ -724,6 +739,8 @@ export interface Collision {
   detail: string;
   /** The number or the call that is the TRADER's — the agents never change it. */
   decision: string | null;
+  /** True when the trader has something to SET or DECIDE for the goal to proceed (the room says so out loud); false when it is a fact about a rule that is not moved. */
+  ask: boolean;
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
@@ -757,6 +774,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       decision: reachable
         ? `The ticket share is yours: at least ${Math.ceil(minFrac * 100)}% buys one of the room's two strikes (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%). The strike floors — delta ${read.spec.minDelta}, ${money(read.spec.minAskUsd)} — are yours too.`
         : `Set the experiment account's ticket share to at least ${Math.ceil(minFrac * 100)}% (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%), or lower the strike floors so a cheaper contract is allowed.`,
+      ask: true,
     });
   }
   const execCapUsd = Math.min(EXEC_LIMITS.maxCashFracPerTrade * eq, EXEC_LIMITS.maxTicketUsd);
@@ -767,6 +785,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "The Execution card would refuse the room's tickets on a $1,000 account",
       detail: `The broker side caps a ticket at ${Math.round(EXEC_LIMITS.maxCashFracPerTrade * 100)}% of broker cash (limits.ts) — ${money(execCapUsd)} on ${money(eq)} — and the room's cheaper strike is about ${money(ctx.contractUsd)}. The paper seats run at ${pct1(ctx.capFrac)}; a live account under today's limits could only buy a contract cheaper than ${money(execCapUsd)}, and the room itself never picks one — it trades two strikes.`,
       decision: `maxCashFracPerTrade in exec/limits.ts is yours; at least ${Math.ceil((ctx.contractUsd / eq) * 100)}% buys one contract today. It is not moved for the goal.`,
+      ask: true,
     });
   }
   const sizeable = Math.min(ctx.capFrac, 1) * eq >= ctx.contractUsd;
@@ -779,6 +798,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "The desk does not offer enough tickets",
       detail: `At the cap, ${winsNeed} winning ticket${winsNeed === 1 ? "" : "s"} in a row would reach ${money(read.spec.target)}. The desk's measured rate is ${ctx.lambda.toFixed(2)} qualifying tickets a session — about ${expectedTickets.toFixed(1)} in the ${left} session${left === 1 ? "" : "s"} left — and the rules cap the window at ${ctx.tradeBudget}.`,
       decision: null,
+      ask: false,
     });
   }
   const winsFree = sizeable ? winsNeeded(eq, read.spec.target, ctx.model, ctx.capFrac, ctx.contractUsd, Infinity) : null;
@@ -789,6 +809,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "The per-ticket ceiling caps the compounding",
       detail: `One ticket may cost at most ${money(ctx.maxDebitUsd)} (the sleeve's debit ceiling and the Execution card's). At a ${(ctx.model.winPct * 100).toFixed(0)}% win the ceiling binds once equity passes about ${money(ctx.maxDebitUsd / ctx.capFrac)}, after which every win adds the same dollars: ${winsNeed} straight wins to reach ${money(read.spec.target)} with it, ${winsFree} without.`,
       decision: "The ceiling is yours (MAX_DEBIT_USD in sleeve-sizing.ts, maxTicketUsd in exec/limits.ts); it is not moved for the goal.",
+      ask: false,
     });
   }
   if (ctx.model.meanPct <= 0) {
@@ -798,6 +819,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "The measured edge per ticket is not positive",
       detail: `On ${ctx.model.n ?? "n/a"} real NY AM cards priced as options the mean return was ${(ctx.model.meanPct * 100).toFixed(1)}% of the premium at a ${pct1(ctx.model.pWin)} win rate (${ctx.model.source}). Sizing up widens both tails; it does not move the middle. Kelly's stake is ${(kellyFrac(ctx.model) * 100).toFixed(0)}%.`,
       decision: null,
+      ask: false,
     });
   }
   if (capUsd >= ctx.contractUsd) {
@@ -814,7 +836,8 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
         title: weekToo ? "One stopped ticket ends the day, and the week" : "One stopped ticket ends the day",
         detail: `A ${c}-contract ticket (${money(debit)}) stopped at ${(L * 100).toFixed(0)}% loses about ${money(oneLoss)}. The daily halt is ${(ctx.dayHaltFrac * 100).toFixed(0)}% of ${money(eq - ctx.dayNet0)} = ${money(dayLimit)}${weekToo ? `, and the weekly halt is ${(ctx.weekHaltFrac * 100).toFixed(0)}% of ${money(eq - ctx.weekNet0)} = ${money(weekLimit)} — so after one loss the room takes nothing more until the next ISO week (Monday)` : ", so after one loss the room is done for the session"}.`,
         decision: weekToo ? `The halts are the desk's (config.ts) and are not moved for the goal; a smaller ticket is the only way to stay inside them: at ${money(weekLimit)} a week, a ticket may cost at most ${money(weekLimit / L)}.` : null,
-      });
+      ask: false,
+    });
     }
     const perLoss = oneLoss / eq;
     if (perLoss > 0 && read.spec.floorFrac > 0) {
@@ -825,7 +848,8 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
         title: "How fast the floor arrives",
         detail: `A ticket at today's size costs about ${(perLoss * 100).toFixed(0)}% of equity when stopped. ${steps} losses in a row reach the floor of ${money(read.floor)}.`,
         decision: `The floor (${Math.round(read.spec.floorFrac * 100)}% of the start) is yours to set.`,
-      });
+      ask: true,
+    });
     }
   }
   const fillsNeeded = LIVE_EVIDENCE.minPaperFills;
@@ -838,6 +862,7 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "Live is shut, and the evidence gate is slower than the goal",
       detail: `Live needs ${fillsNeeded} paper fills and ${LIVE_EVIDENCE.minPaperRoundTrips} round trips on the broker's paper account${o.paperFills != null ? ` (${o.paperFills} so far)` : ""}, and three flags only you can flip. At ${ctx.lambda.toFixed(2)} qualifying tickets a session, ${fillsNeeded} fills is about ${Number.isFinite(sessionsToEvidence) ? Math.round(sessionsToEvidence) : "∞"} sessions — the goal's window is ${read.spec.tradingDays}.`,
       decision: "Whether to go live before the paper record exists is yours: the numbers are in limits.ts (LIVE_EVIDENCE, EXEC_FLAGS).",
+      ask: true,
     });
   }
   const order = { blocker: 0, warn: 1, info: 2 } as const;

@@ -27,16 +27,22 @@ import type {
   CalEvent,
   CalRead,
   CardRead,
+  GoalLite,
   LabLite,
   LevelRef,
   MindsRead,
   NewsLite,
   PositionRead,
+  RndLite,
+  SeatsLite,
   TalkWorld,
   TapeBook,
   TapeSample,
   WeekLite,
 } from "./live-types";
+import { contractsFor } from "./goal";
+import { ROOM_MANDATE } from "./mandate";
+import type { Race } from "./race";
 import type { LabRead } from "./lab";
 import { contractName } from "./format";
 import { etDateOf, type Underlier } from "./option-math";
@@ -146,6 +152,20 @@ function tapeBook(desk: DeskPayload, u: Underlier, ring: TapeSample[], nowMs: nu
     rangeUsedPct: Number.isFinite(b.draw.sessionRangeUsedPct) ? b.draw.sessionRangeUsedPct : null,
     volRatio: vol > 0 ? vol : null,
   };
+}
+
+/** 15m ATR in futures points and futures points per ETF point, per underlier (the same crossover the tape books use). */
+export function atrOf(desk: DeskPayload): Record<Underlier, { atr: number | null; perEtfPt: number }> {
+  const one = (u: Underlier) => {
+    const b = booksOf(desk)[u];
+    const ratio = desk.proxies[u]?.ratio;
+    const nominal = NOMINAL_PER_ETF_PT[u];
+    return {
+      atr: b.draw.atr > 0 ? b.draw.atr : null,
+      perEtfPt: ratio != null && Number.isFinite(ratio) && Math.abs(ratio / nominal - 1) <= 0.08 ? ratio : nominal,
+    };
+  };
+  return { QQQ: one("QQQ"), SPY: one("SPY") };
 }
 
 function feedOf(desk: DeskPayload): TalkWorld["feed"] {
@@ -269,6 +289,91 @@ function weekRead(desk: DeskPayload): WeekLite | null {
   };
 }
 
+/* ── The race ──────────────────────────────────────────────────────────── */
+
+/** The goal's plan, in the shape the talk reads. Every number here was computed by goal.ts / seats.ts. */
+export function goalLite(r: Race | null, vix: number | null): GoalLite | null {
+  if (!r?.view || !r.league || !r.seats) return null;
+  const v = r.view;
+  const read = v.read;
+  const g = read.spec;
+  // The best of the five that can trade at all: an approach whose size buys no contract has odds of nothing and is not "the best".
+  const pool = v.table.filter((row) => row.out.contractsNow >= 1);
+  const best = (pool.length ? pool : v.table).reduce((m, row) => (row.out.pTarget > m.out.pTarget || (row.out.pTarget === m.out.pTarget && row.out.expectedEnd > m.out.expectedEnd) ? row : m), (pool.length ? pool : v.table)[0]!);
+  const who = r.ladderFor?.underlier ?? "QQQ";
+  const type = r.ladderFor?.type ?? "CALL";
+  const nameOf = (x: { strike: number }) => `${who} ${x.strike}${type === "CALL" ? "C" : "P"}`;
+  const rungs = v.ladder;
+  const withOdds = (rungs ?? []).filter((x) => x.out != null && x.contracts >= 1);
+  const bestRung = withOdds.length ? withOdds.reduce((m, x) => (x.out!.pTarget > m.out!.pTarget ? x : m), withOdds[0]!) : null;
+  const room = (rungs ?? []).filter((x) => x.rung.steps <= 1).sort((a, b) => a.rung.askUsd - b.rung.askUsd)[0] ?? null;
+  const roomContracts = contractsFor(read.equity, v.ctx.contractUsd, g.capFrac, v.ctx.maxDebitUsd);
+  const stopShare = roomContracts >= 1 && read.equity > 0 ? (roomContracts * v.ctx.contractUsd * v.ctx.model.lossPct) / read.equity : null;
+  return {
+    start: g.start,
+    startDate: g.startDate,
+    target: g.target,
+    floor: read.floor,
+    floorFrac: g.floorFrac,
+    status: read.status,
+    day: read.clock.day,
+    of: read.clock.of,
+    daysLeft: read.clock.daysLeft,
+    entriesOver: read.clock.entriesOver,
+    equity: read.equity,
+    leader: r.league.leader,
+    multipleNeeded: read.multipleNeeded,
+    perSessionNeeded: read.perSessionNeeded,
+    pathToday: read.pathToday,
+    paceLabel: read.pace?.label ?? null,
+    paceUsd: read.pace?.vsPathUsd ?? null,
+    lambda: v.ctx.lambda,
+    expectedTickets: v.expectedTickets,
+    pTarget: best.out.pTarget,
+    pTargetBy: best.def.owner,
+    pFloor: best.out.pFloor,
+    pNoTrade: best.out.pNoTrade,
+    pNoCard: Math.exp(-v.ctx.lambda * Math.max(0, read.clock.daysLeft)),
+    expectedEnd: best.out.expectedEnd,
+    needed: { pStar: v.needed.pStar, pWin: v.needed.pWin, lambdaMultiple: v.needed.lambdaMultiple, winPct: v.needed.winPct },
+    winsNeed: v.winsNeed,
+    measured: { pWin: v.ctx.model.pWin, winPct: v.ctx.model.winPct, lossPct: v.ctx.model.lossPct, meanPct: v.ctx.model.meanPct, n: v.ctx.model.n },
+    collisions: v.collisions.map((c) => ({ id: c.id, severity: c.severity, title: c.title, detail: c.detail, decision: c.decision, ask: c.ask })),
+    ladder: {
+      n: rungs?.length ?? 0,
+      cheapestUsd: rungs?.length ? Math.min(...rungs.map((x) => x.rung.askUsd)) : null,
+      richestUsd: rungs?.length ? Math.max(...rungs.map((x) => x.rung.askUsd)) : null,
+      priced: r.priced,
+      best: bestRung ? { name: nameOf(bestRung.rung), askUsd: bestRung.rung.askUsd, delta: bestRung.rung.delta, contracts: bestRung.contracts, pTarget: bestRung.out!.pTarget, evPerDollar: bestRung.rung.priced?.evPerDollar ?? null } : null,
+      room: room ? { name: nameOf(room.rung), askUsd: room.rung.askUsd, contracts: room.contracts } : null,
+    },
+    plan: { needTodayUsd: v.plan.needTodayUsd, maxLossUsd: v.plan.maxLossUsd, contracts: v.plan.contracts, debitUsd: v.plan.debitUsd, perAtrUsd: v.plan.perAtrUsd, atrsNeeded: v.plan.atrsNeeded },
+    capFrac: g.capFrac,
+    roomCapFrac: ROOM_MANDATE.maxCashFracPerTrade,
+    minDelta: g.minDelta,
+    minAskUsd: g.minAskUsd,
+    stopShare,
+    vix,
+  };
+}
+
+export function seatsLite(r: Race | null): SeatsLite | null {
+  if (!r?.seats || !r.league) return null;
+  return {
+    rows: r.league.rows.map((x) => ({ id: x.id, name: x.name, owner: x.owner, equity: x.equity, pnl: x.pnl, open: x.open, taken: x.taken, declined: x.declined, status: x.status })),
+    leader: r.league.leader,
+    events: r.seats.events.slice(0, 16).map((e) => ({ id: e.id, at: e.at, kind: e.kind, seat: e.seat, usd: e.usd, qty: e.qty, debit: e.debit, contract: e.contract, gate: e.gate, why: e.why, equity: e.equity, members: e.members, planKey: e.planKey, n: e.n })),
+    sessions: r.league.sessions,
+    touches: r.league.touches,
+    syndicates: { n: r.league.syndicates.n, closed: r.league.syndicates.closed, usd: r.league.syndicates.usd },
+  };
+}
+
+export function rndLite(r: Race | null): RndLite | null {
+  if (!r?.rnd) return null;
+  return { experiments: r.rnd.experiments.map((e) => ({ id: e.id, owner: e.owner, title: e.title, status: e.status, n: e.n, nNeeded: e.nNeeded, read: e.read, proposal: e.proposal })) };
+}
+
 /* ── The world ─────────────────────────────────────────────────────────── */
 
 export interface WorldInput {
@@ -281,6 +386,8 @@ export interface WorldInput {
   beat: Beat | null;
   minds: MindState | null;
   lab: LabRead | null;
+  /** The goal, the seats and the R&D board, computed once per desk build (race.ts). */
+  race?: Race | null;
   busyUntil: number;
 }
 
@@ -318,6 +425,9 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     minds: mindsRead(i.minds),
     lab: labLite(i.lab),
     week: weekRead(desk),
+    goal: goalLite(i.race ?? null, i.pulse.vix),
+    seats: seatsLite(i.race ?? null),
+    rnd: rndLite(i.race ?? null),
     evidence: evidenceHeadlines(),
     busyUntil: i.busyUntil,
   };

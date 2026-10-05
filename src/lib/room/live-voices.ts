@@ -72,29 +72,29 @@ export function pick(c: Ctx, bank: string, variants: (() => string)[]): string |
   return null;
 }
 
-const line = (who: Character, anim: Animation, text: string | null): Line | null => (text ? { character: who, animation: anim, text } : null);
-const compact = (xs: (Line | null)[]): Line[] => xs.filter((x): x is Line => x !== null);
+export const line = (who: Character, anim: Animation, text: string | null): Line | null => (text ? { character: who, animation: anim, text } : null);
+export const compact = (xs: (Line | null)[]): Line[] => xs.filter((x): x is Line => x !== null);
 
 function recentSpeaks(st: TalkState, who: Character, now: number, windowMs = 6 * 60_000): number {
   return (st.spoke[who] ?? []).filter((t) => now - t <= windowMs).length;
 }
 
 /** Of two people who could speak, the one who has spoken less lately. */
-function lead(c: Ctx, a: Character, b: Character): Character {
+export function lead(c: Ctx, a: Character, b: Character): Character {
   return recentSpeaks(c.st, a, c.now) <= recentSpeaks(c.st, b, c.now) ? a : b;
 }
 
-const clip = (s: string, n: number): string => {
+export const clip = (s: string, n: number): string => {
   if (s.length <= n) return s;
   const cut = s.slice(0, n);
   const sp = cut.lastIndexOf(" ");
   return `${(sp > n * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
 };
 
-const WB: TalkMove = { zone: "THE_WHITEBOARD" };
+export const WB: TalkMove = { zone: "THE_WHITEBOARD" };
 
 /** What a person does with their hands when they speak without anything in particular to act out. */
-const NEUTRAL: Record<Character, Animation> = {
+export const NEUTRAL: Record<Character, Animation> = {
   Gemma: ANIM.Gemma.explain!,
   Jax: ANIM.Jax.point!,
   Nova: ANIM.Nova.analyze!,
@@ -102,7 +102,7 @@ const NEUTRAL: Record<Character, Animation> = {
   Vince: ANIM.Vince.watch!,
 };
 
-const signed = (n: number) => (n >= 0 ? "+" : "−");
+export const signed = (n: number) => (n >= 0 ? "+" : "−");
 
 /* ── The tape ──────────────────────────────────────────────────────────── */
 

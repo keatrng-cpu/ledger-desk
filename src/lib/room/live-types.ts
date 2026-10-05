@@ -22,7 +22,7 @@
 import type { Animation, Beat, Character, DialogueLine, EntryTier, Zone } from "./orchestrator";
 import type { OptionType, Underlier } from "./option-math";
 
-export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat";
+export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat" | "goal" | "seat" | "rnd";
 
 /** 0 = chatter (waits for a quiet room), 1 = worth interrupting the chatter, 2 = drop everything. */
 export type Urgency = 0 | 1 | 2;
@@ -241,6 +241,104 @@ export interface WeekLite {
   headline: string | null;
 }
 
+/** The goal's planner read, as the talk needs it — every number already computed by goal.ts. */
+export interface GoalLite {
+  start: number;
+  startDate: string;
+  target: number;
+  floor: number;
+  floorFrac: number;
+  status: "before" | "running" | "hit" | "floor" | "expired";
+  day: number;
+  of: number;
+  daysLeft: number;
+  entriesOver: boolean;
+  /** The leading seat's equity (the start before anyone has traded). */
+  equity: number;
+  leader: string | null;
+  multipleNeeded: number;
+  perSessionNeeded: number | null;
+  pathToday: number | null;
+  paceLabel: "ahead" | "on path" | "behind" | null;
+  paceUsd: number | null;
+  lambda: number;
+  expectedTickets: number;
+  /** Exact odds on the measured numbers for the best of the five approaches, and whose it is. */
+  pTarget: number;
+  pTargetBy: string;
+  pFloor: number;
+  pNoTrade: number;
+  /** The chance that no qualifying card prints at all in the sessions left (Poisson at the measured rate). */
+  pNoCard: number;
+  expectedEnd: number;
+  needed: { pStar: number; pWin: number | null; lambdaMultiple: number | null; winPct: number | null };
+  winsNeed: number | null;
+  measured: { pWin: number; winPct: number; lossPct: number; meanPct: number; n: number | null };
+  collisions: { id: string; severity: "blocker" | "warn" | "info"; title: string; detail: string; decision: string | null; ask: boolean }[];
+  ladder: {
+    n: number;
+    cheapestUsd: number | null;
+    richestUsd: number | null;
+    priced: boolean;
+    /** The rung with the best odds of the goal on today's card, when there is a card. */
+    best: { name: string; askUsd: number; delta: number; contracts: number; pTarget: number | null; evPerDollar: number | null } | null;
+    /** The room's own cheaper strike, for comparison. */
+    room: { name: string; askUsd: number; contracts: number } | null;
+  };
+  plan: { needTodayUsd: number | null; maxLossUsd: number; contracts: number; debitUsd: number; perAtrUsd: number | null; atrsNeeded: number | null };
+  capFrac: number;
+  roomCapFrac: number;
+  minDelta: number;
+  minAskUsd: number;
+  /** One stopped ticket at the cap, as a share of the account. */
+  stopShare: number | null;
+  vix: number | null;
+}
+
+export interface SeatRowLite {
+  id: string;
+  name: string;
+  owner: Character | null;
+  equity: number;
+  pnl: number;
+  open: number;
+  taken: { n: number; wins: number; usd: number };
+  declined: { n: number; usd: number };
+  status: "running" | "hit" | "floor";
+}
+
+export interface SeatEventLite {
+  id: string;
+  at: number;
+  kind: "start" | "open" | "close" | "skip" | "blocked" | "finish" | "lead" | "syndicate" | "syndicate_closed";
+  seat: string | null;
+  usd: number | null;
+  qty: number | null;
+  debit: number | null;
+  contract: string | null;
+  gate: string | null;
+  why: string | null;
+  equity: number | null;
+  members: string[] | null;
+  planKey: string | null;
+  /** A syndicate's size. */
+  n: number | null;
+}
+
+export interface SeatsLite {
+  rows: SeatRowLite[];
+  leader: string | null;
+  /** Newest first. */
+  events: SeatEventLite[];
+  sessions: number;
+  touches: number;
+  syndicates: { n: number; closed: number; usd: number };
+}
+
+export interface RndLite {
+  experiments: { id: string; owner: Character; title: string; status: "collecting" | "supported" | "not_supported" | "undecided"; n: number; nNeeded: number; read: string; proposal: string | null }[];
+}
+
 export interface TalkWorld {
   nowMs: number;
   clock: ClockRead;
@@ -255,6 +353,10 @@ export interface TalkWorld {
   minds: MindsRead | null;
   lab: LabLite | null;
   week: WeekLite | null;
+  /** The goal, the race and the R&D board (goal.ts, seats.ts, rnd.ts) — null before the engine has computed them. */
+  goal: GoalLite | null;
+  seats: SeatsLite | null;
+  rnd: RndLite | null;
   /** The measured headline lines (evidence.ts) — real findings the night shift can quote. */
   evidence: string[];
   /** The scene will be busy with what it already has until this ms. */
@@ -332,6 +434,14 @@ export interface TalkState {
   tapeAt: Record<string, number>;
   /** The size (futures points) of the last remark per book and direction — a move that doubles is worth a second one. */
   tapeSize: Record<string, number>;
+  /** The seats' events already announced, and whether the first look has marked the backlog as seen. */
+  seatSeen: string[];
+  seatPrimed: boolean;
+  /** What the goal talk last spoke on, so it speaks again when the data moves and not before: key → signature. */
+  goalSig: Record<string, string>;
+  /** Each experiment's status the last time its verdict was announced. */
+  rndSeen: Record<string, string>;
+  rndPrimed: boolean;
   suppressed: number;
 }
 
@@ -373,6 +483,11 @@ export function freshTalkState(): TalkState {
     bookApproachAt: {},
     tapeAt: {},
     tapeSize: {},
+    seatSeen: [],
+    seatPrimed: false,
+    goalSig: {},
+    rndSeen: {},
+    rndPrimed: false,
     suppressed: 0,
   };
 }

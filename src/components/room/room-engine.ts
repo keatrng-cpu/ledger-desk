@@ -32,9 +32,12 @@ import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-re
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
 import { asLab, labRead, type LabRead } from "@/lib/room/lab";
+import { asGoal, defaultGoal, GOAL_STORAGE, type GoalSpec } from "@/lib/room/goal";
+import { computeRace, type Race } from "@/lib/room/race";
+import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
-import { emptyRings, newsLiteFrom, ringsAfter, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import { atrOf, emptyRings, newsLiteFrom, ringsAfter, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import type { DialogueLine } from "@/lib/room/orchestrator";
 import { rankOf, richer } from "@/lib/room/snapshot";
 import { backupRoom, restoreRoomIfRicher, type BackupState } from "@/lib/room/snapshot-sync";
@@ -87,6 +90,25 @@ function loadEnabled(): boolean {
     return typeof window === "undefined" || window.localStorage.getItem(ENABLED_STORAGE) !== "0";
   } catch {
     return true;
+  }
+}
+
+function loadGoal(): GoalSpec {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(GOAL_STORAGE) : null;
+    const g = raw ? asGoal(JSON.parse(raw)) : null;
+    if (g) return g;
+  } catch {
+    // Storage blocked or corrupt: the default goal below.
+  }
+  return defaultGoal(Date.now());
+}
+
+function saveGoal(g: GoalSpec) {
+  try {
+    if (typeof window !== "undefined") window.localStorage.setItem(GOAL_STORAGE, JSON.stringify(g));
+  } catch {
+    // The goal runs for this tab.
   }
 }
 
@@ -255,6 +277,10 @@ interface RoomState {
   sceneOpen: boolean;
   /** The server copy of the room (book + memory): restored at startup if richer, pushed after book changes. */
   backup: BackupState;
+  /** The trader's goal (goal.ts) and the race it sets running (seats.ts): the plan, the league and the R&D board, once per desk build. */
+  goal: GoalSpec;
+  race: Race | null;
+  setGoal: (g: GoalSpec) => string | null;
   hydrate: () => void;
   setEnabled: (on: boolean) => void;
   reset: (cash?: number) => void;
@@ -282,16 +308,29 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   tickAt: null,
   sceneOpen: false,
   backup: { status: "idle", at: null, why: "Not checked yet." },
+  goal: defaultGoal(0),
+  race: null,
+  setGoal: (g) => {
+    const ok = asGoal(g);
+    if (!ok) return "That goal is not valid — check the numbers (the target must be above the start; the ticket share between 1% and 100%).";
+    saveGoal(ok);
+    set({ goal: ok, race: null });
+    if (latestDesk) refreshRace(latestDesk);
+    return null;
+  },
   hydrate: () => {
     if (get().hydrated) return;
-    set({ hydrated: true, enabled: loadEnabled(), book: loadRoomBook(), minds: loadMinds(), talkState: loadTalk() });
+    set({ hydrated: true, enabled: loadEnabled(), book: loadRoomBook(), minds: loadMinds(), talkState: loadTalk(), goal: loadGoal() });
     // Once per page load: adopt the server copy only if it has MORE history
     // than this browser's book at the moment it arrives — never merged.
     void restoreRoomIfRicher(get().book).then(({ snapshot, state }) => {
       if (snapshot && richer(rankOf(snapshot.book), rankOf(get().book))) {
         saveRoomBook(snapshot.book);
         saveMinds(snapshot.minds);
-        set({ book: snapshot.book, minds: snapshot.minds, backup: state, frame: null, lastFetchedAt: null });
+        // The race rides in the book: adopt the goal it was started under, or the next cycle would restart it.
+        const sg = asSeatBook(asLab(snapshot.book.lab).seats)?.goal;
+        if (sg) saveGoal(sg);
+        set({ book: snapshot.book, minds: snapshot.minds, backup: state, frame: null, lastFetchedAt: null, ...(sg ? { goal: sg, race: null } : {}) });
       } else {
         set({ backup: snapshot ? { ...state, why: "This browser's room is current." } : state });
       }
@@ -355,7 +394,7 @@ function runLiveCycle(desk: DeskPayload) {
   const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab }, nowMs);
   const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
-  book = applyLab(book, cycle, market, read, nowMs);
+  book = applyLab(book, cycle, market, read, nowMs, st.goal);
   saveRoomBook(book);
   saveMinds(cycle.minds);
   void backupRoom(book, cycle.minds, { nowMs })?.then((backup) => useRoomStore.setState({ backup }));
@@ -398,10 +437,12 @@ function runLiveCycle(desk: DeskPayload) {
       synthetic: false,
     },
   });
+  const race = computeRace({ goal: st.goal, lab: asLab(book.lab), desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
   useRoomStore.setState((s) => ({
     book,
     minds: cycle.minds,
     frame,
+    race,
     frameSeq: seq,
     lastFetchedAt: desk.fetchedAt,
     wire: frameIsEvent(frame) && storyMoved(frame, s.frame) ? [cycleWire(frame, s.sceneOpen), ...s.wire].slice(0, TALK.wireKeep) : s.wire,
@@ -414,6 +455,26 @@ function runLiveCycle(desk: DeskPayload) {
       { getBook: () => useRoomStore.getState().book, onVoids: applyVoids },
     );
   }
+}
+
+/** The desk the engine last saw, so a change of goal can show its plan at once instead of at the next desk build. */
+let latestDesk: DeskPayload | null = null;
+
+/**
+ * Restart the race for the current goal and recompute the plan from the desk as it is, without running another room cycle (a
+ * cycle is the house room's decision; this only re-reads). Called when the trader changes the goal.
+ */
+export function refreshRace(desk: DeskPayload) {
+  const st = useRoomStore.getState();
+  const nowMs = Date.parse(desk.fetchedAt) || Date.now();
+  const od = evaluateOptionsDesk(desk);
+  const { market } = marketDataFromDesk(desk, st.pulse.vix, nowMs);
+  const read = readDeskForRoom(desk, od, exitWatchOf(st.book), nowMs, st.pulse.tenYear);
+  const lab = ensureSeats(asLab(st.book.lab), st.goal, nowMs);
+  const book = { ...st.book, lab };
+  saveRoomBook(book);
+  const race = computeRace({ goal: st.goal, lab, desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
+  useRoomStore.setState({ book, race });
 }
 
 /** The trader's Flatten button (Execution card): close everything the executor owns at the broker, and stop new entries. */
@@ -503,6 +564,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     beat: st.frame?.trace.beat ?? null,
     minds: st.minds,
     lab: st.frame?.screens.lab ?? null,
+    race: st.race,
     busyUntil: 0,
   });
   if (import.meta.env.DEV) {
@@ -598,6 +660,9 @@ export function useRoomEngine(desk: DeskPayload | null) {
   // held its new state, a quiet room — and a market that is shut, or a synthetic feed, patches nothing.
   const deskRef = useRef<DeskPayload | null>(desk);
   deskRef.current = desk;
+  useEffect(() => {
+    latestDesk = desk;
+  }, [desk]);
   useEffect(() => {
     if (!enabled || !hydrated || !desk) return;
     try {
