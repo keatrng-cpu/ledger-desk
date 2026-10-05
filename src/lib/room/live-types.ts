@@ -21,8 +21,9 @@
 
 import type { Animation, Beat, Character, DialogueLine, EntryTier, Zone } from "./orchestrator";
 import type { OptionType, Underlier } from "./option-math";
+import type { Sleeve } from "@/lib/invest/universe";
 
-export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat" | "goal" | "seat" | "rnd";
+export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat" | "goal" | "seat" | "rnd" | "invest";
 
 /** 0 = chatter (waits for a quiet room), 1 = worth interrupting the chatter, 2 = drop everything. */
 export type Urgency = 0 | 1 | 2;
@@ -362,6 +363,69 @@ export interface ScanCardLite {
   block: string | null;
 }
 
+/* ── The investment office ─────────────────────────────────────────────────
+ * The Invest tab's book and the dated research file, as the long-game crew reads them (invest-office.ts builds it — pure,
+ * from the Invest tab's own functions). Narration and drawing only: nothing here is a verdict, a size or a sleeve target.
+ */
+
+export type InvestTier = "safe" | "mid" | "high";
+
+export interface InvestSleeveRead {
+  sleeve: Sleeve;
+  weight: number;
+  target: number;
+  driftPct: number;
+  correctionUsd: number;
+}
+
+export interface InvestThemeLite {
+  id: string;
+  name: string;
+  tier: InvestTier;
+  horizon: "mid" | "long";
+  summary: string;
+  demand: { claim: string; figure: string; asOf: string; sourceName: string }[];
+  innovations: string[];
+  competitors: { name: string; ticker: string | null; angle: string }[];
+  risks: string[];
+  vehicles: { ticker: string; kind: "fund" | "stock"; note: string }[];
+  evidence: "strong" | "moderate" | "thin";
+  /** The vehicles of this theme the book holds. */
+  held: string[];
+}
+
+export interface InvestLite {
+  book: {
+    totalUsd: number;
+    positions: number;
+    belowMeaningful: boolean;
+    /** The Floor never fetches prices, so the book is valued at cost and says so. */
+    valuedAtCost: true;
+    sleeves: InvestSleeveRead[];
+    beyondBand: number;
+    rebalanceDue: boolean;
+    driftBand: number;
+  };
+  funnel: {
+    ratePct: number;
+    closedMonths: number;
+    sweptUsd: number;
+    waitingUsd: number;
+    avgMonthlyUsd: number | null;
+    fiveYearUsd: number | null;
+    tenYearUsd: number | null;
+    ladderLine: string;
+  };
+  next: { ticker: string | null; sleeve: Sleeve; usd: number; line: string } | null;
+  /** Income that is not day-trading P&L, and the share the trader chose to send to the long book. Arithmetic only. */
+  other: { monthlyUsd: number; ratePct: number } | null;
+  themes: InvestThemeLite[];
+  themesAsOf: string;
+  /** What a headline has to mention to matter to the office: the book's tickers, a theme's vehicles, a competitor. */
+  watch: Record<string, { label: string; kind: "held" | "theme" | "competitor" }>;
+  dayKey: string;
+}
+
 export interface TalkWorld {
   nowMs: number;
   clock: ClockRead;
@@ -380,6 +444,8 @@ export interface TalkWorld {
   goal: GoalLite | null;
   seats: SeatsLite | null;
   rnd: RndLite | null;
+  /** The investment office's read of the Invest tab and the research file — null until the engine has computed it. */
+  invest: InvestLite | null;
   /** The measured headline lines (evidence.ts) — real findings the night shift can quote. */
   evidence: string[];
   /** The scene will be busy with what it already has until this ms. */

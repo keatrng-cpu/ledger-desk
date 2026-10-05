@@ -1,7 +1,7 @@
 {
   "version": 1,
   "about": "The trading floor's plan, shared by scripts/blender/build_floor.py (geometry) and src/lib/room (navigation, anchors, screens). three.js axes, meters: x east, y up, z south (toward the default camera). Yaw degrees: 0 faces +z (south), 90 faces +x (east), 180 faces -z (north), 270 faces -x (west). Names use only [A-Za-z0-9_-] because three.js sanitizes ':' '.' '/' in node names. Optional furniture keys: navSize = the footprint walking avoids, when narrower than the visible piece (the front-row desks sit right behind their own door, so a full-width footprint shut the door); procedural = built at runtime by the scene, not by Blender.",
-  "bounds": { "x": [-14, 14], "z": [-10, 8] },
+  "bounds": { "x": [-14, 14], "z": [-10, 17.4] },
   "ceiling": 3.6,
   "rooms": [
     { "id": "office_Jax", "label": "Jax — TJR", "x": [-14, -9], "z": [-10, -5.4], "floor": "carpet_red" },
@@ -13,7 +13,10 @@
     { "id": "lounge", "label": "Lounge", "x": [1, 14], "z": [-10, 8], "floor": "tile" },
     { "id": "office_RnD", "label": "R&D Lab — the five improve the desk", "x": [-4, 1], "z": [3.4, 8], "floor": "carpet_teal" },
     { "id": "office_Ops", "label": "Ops & Data — is the feed real", "x": [3.2, 6.6], "z": [4.8, 8], "floor": "carpet_slate" },
-    { "id": "office_Goal", "label": "Goal Room — $1,000 to $5,000", "x": [9.6, 14], "z": [4.8, 8], "floor": "carpet_plum" }
+    { "id": "office_Goal", "label": "Goal Room — $1,000 to $5,000", "x": [9.6, 14], "z": [4.8, 8], "floor": "carpet_plum" },
+    { "id": "invest_floor", "label": "Investment Office — the long game", "x": [1, 14], "z": [8, 12.6], "floor": "carpet_charcoal" },
+    { "id": "boardroom", "label": "Boardroom — the chair and the five", "x": [1, 8.4], "z": [12.6, 17], "floor": "walnut" },
+    { "id": "chair_office", "label": "Chair's office — the CEO", "x": [8.4, 14], "z": [12.6, 17], "floor": "carpet_red" }
   ],
   "walls": [
     { "id": "ext_north", "a": [-14, -10], "b": [14, -10], "height": 3.6, "kind": "solid", "doors": [] },
@@ -33,7 +36,13 @@
     { "id": "ops_west", "a": [3.2, 4.8], "b": [3.2, 8], "height": 2.7, "kind": "glass", "doors": [] },
     { "id": "ops_east", "a": [6.6, 4.8], "b": [6.6, 8], "height": 2.7, "kind": "glass", "doors": [[6.5, 7.6]] },
     { "id": "goal_north", "a": [9.6, 4.8], "b": [14, 4.8], "height": 2.7, "kind": "glass", "doors": [] },
-    { "id": "goal_west", "a": [9.6, 4.8], "b": [9.6, 8], "height": 2.7, "kind": "glass", "doors": [[6.5, 7.6]] }
+    { "id": "goal_west", "a": [9.6, 4.8], "b": [9.6, 8], "height": 2.7, "kind": "glass", "doors": [[6.5, 7.6]] },
+    { "id": "inv_west", "a": [1, 8], "b": [1, 17], "height": 3.6, "kind": "solid", "doors": [] },
+    { "id": "inv_east", "a": [14, 8], "b": [14, 17], "height": 1.1, "kind": "low", "doors": [] },
+    { "id": "inv_south", "a": [1, 17], "b": [14, 17], "height": 1.1, "kind": "low", "doors": [] },
+    { "id": "inv_board_north", "a": [1, 12.6], "b": [8.4, 12.6], "height": 2.7, "kind": "glass", "doors": [[3.4, 4.6]] },
+    { "id": "inv_chair_north", "a": [8.4, 12.6], "b": [14, 12.6], "height": 2.7, "kind": "glass", "doors": [[10.6, 11.8]] },
+    { "id": "inv_board_chair", "a": [8.4, 12.6], "b": [8.4, 17], "height": 2.7, "kind": "glass", "doors": [] }
   ],
   "furniture": [
     { "id": "desk_Jax", "kind": "desk", "pos": [-11.5, -9.2], "rot": 0, "size": [2.4, 0.75, 0.9], "obstacle": true },
@@ -103,7 +112,39 @@
     { "id": "desk_Goal", "kind": "desk", "pos": [11.8, 5.7], "rot": 180, "size": [2.4, 0.75, 0.9], "obstacle": true },
     { "id": "chair_Goal", "kind": "office_chair", "pos": [11.8, 6.55], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
     { "id": "key_Goal", "kind": "keyboard", "pos": [11.8, 5.92], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
-    { "id": "plant_Goal", "kind": "plant", "pos": [10.0, 7.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true }
+    { "id": "plant_Goal", "kind": "plant", "pos": [10.0, 7.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "desk_Inv0", "kind": "desk", "pos": [3.2, 10.8], "rot": 180, "size": [2, 0.75, 0.9], "obstacle": true },
+    { "id": "chair_Inv0", "kind": "office_chair", "pos": [3.2, 11.65], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "key_Inv0", "kind": "keyboard", "pos": [3.2, 11.02], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
+    { "id": "desk_Inv1", "kind": "desk", "pos": [5.5, 10.8], "rot": 180, "size": [2, 0.75, 0.9], "obstacle": true },
+    { "id": "chair_Inv1", "kind": "office_chair", "pos": [5.5, 11.65], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "key_Inv1", "kind": "keyboard", "pos": [5.5, 11.02], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
+    { "id": "desk_Inv2", "kind": "desk", "pos": [10.4, 10.8], "rot": 180, "size": [2, 0.75, 0.9], "obstacle": true },
+    { "id": "chair_Inv2", "kind": "office_chair", "pos": [10.4, 11.65], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "key_Inv2", "kind": "keyboard", "pos": [10.4, 11.02], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
+    { "id": "desk_Inv3", "kind": "desk", "pos": [12.7, 10.8], "rot": 180, "size": [2, 0.75, 0.9], "obstacle": true },
+    { "id": "chair_Inv3", "kind": "office_chair", "pos": [12.7, 11.65], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "key_Inv3", "kind": "keyboard", "pos": [12.7, 11.02], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
+    { "id": "plant_Inv0", "kind": "plant", "pos": [7.9, 8.7], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "plant_Inv1", "kind": "plant", "pos": [13.5, 8.7], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "table_Board", "kind": "meeting_table", "pos": [4.6, 15.3], "rot": 0, "size": [3.6, 0.75, 1.4], "obstacle": true },
+    { "id": "mchair_B0", "kind": "meeting_chair", "pos": [3.5, 14.25], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_B3", "kind": "meeting_chair", "pos": [3.5, 16.35], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_B1", "kind": "meeting_chair", "pos": [4.6, 14.25], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_B4", "kind": "meeting_chair", "pos": [4.6, 16.35], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_B2", "kind": "meeting_chair", "pos": [5.7, 14.25], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "mchair_B5", "kind": "meeting_chair", "pos": [5.7, 16.35], "rot": 180, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "chair_Head", "kind": "office_chair", "pos": [6.9, 15.3], "rot": 270, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "plant_Board0", "kind": "plant", "pos": [7.8, 13.3], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "plant_Board1", "kind": "plant", "pos": [7.8, 16.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "desk_Chair", "kind": "desk", "pos": [11.2, 15.2], "rot": 180, "size": [2.4, 0.78, 0.9], "obstacle": true },
+    { "id": "chair_Chair", "kind": "office_chair", "pos": [11.2, 16.05], "rot": 180, "size": [0.6, 1.1, 0.6], "obstacle": false },
+    { "id": "key_Chair", "kind": "keyboard", "pos": [11.2, 15.42], "rot": 0, "size": [0.46, 0.03, 0.16], "obstacle": false },
+    { "id": "vchair_C0", "kind": "meeting_chair", "pos": [10.4, 14.2], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "vchair_C1", "kind": "meeting_chair", "pos": [12, 14.2], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
+    { "id": "globe_Chair", "kind": "globe", "pos": [9.1, 14.3], "rot": 0, "size": [0.45, 1.1, 0.45], "obstacle": true },
+    { "id": "safe_Chair", "kind": "safe", "pos": [9.1, 16.4], "rot": 90, "size": [0.6, 0.8, 0.6], "obstacle": true },
+    { "id": "plant_Chair", "kind": "plant", "pos": [9.1, 15.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true }
   ],
   "screens": [
     { "id": "whiteboard", "kind": "whiteboard", "center": [-13.93, 1.62, -1.0], "size": [4.2, 1.5], "facing": 90, "px": [1024, 366] },
@@ -157,7 +198,19 @@
     { "id": "mon_Goal_2", "kind": "monitor", "center": [12.5, 1.12, 5.38], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
     { "id": "plate_Rnd", "kind": "plate", "center": [-1.5, 2.2, 3.37], "size": [1.1, 0.28], "facing": 180, "px": [440, 112] },
     { "id": "plate_Ops", "kind": "plate", "center": [4.9, 2.2, 4.77], "size": [1.1, 0.28], "facing": 180, "px": [440, 112] },
-    { "id": "plate_Goal", "kind": "plate", "center": [11.8, 2.2, 4.77], "size": [1.1, 0.28], "facing": 180, "px": [440, 112] }
+    { "id": "plate_Goal", "kind": "plate", "center": [11.8, 2.2, 4.77], "size": [1.1, 0.28], "facing": 180, "px": [440, 112] },
+    { "id": "tv_portfolio", "kind": "tv", "center": [1.07, 2, 9.2], "size": [1.6, 0.9], "facing": 90, "px": [768, 432] },
+    { "id": "tv_funnel", "kind": "tv", "center": [1.07, 2, 10.9], "size": [1.6, 0.9], "facing": 90, "px": [768, 432] },
+    { "id": "tv_theme", "kind": "tv", "center": [1.07, 2, 14], "size": [1.7, 0.96], "facing": 90, "px": [768, 432] },
+    { "id": "tv_board", "kind": "tv", "center": [1.07, 2, 16], "size": [1.7, 0.96], "facing": 90, "px": [768, 432] },
+    { "id": "mon_Inv_0", "kind": "monitor", "center": [3.2, 1.12, 10.48], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
+    { "id": "mon_Inv_1", "kind": "monitor", "center": [5.5, 1.12, 10.48], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
+    { "id": "mon_Inv_2", "kind": "monitor", "center": [10.4, 1.12, 10.48], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
+    { "id": "mon_Inv_3", "kind": "monitor", "center": [12.7, 1.12, 10.48], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
+    { "id": "mon_Chair_0", "kind": "monitor", "center": [11.2, 1.15, 14.88], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
+    { "id": "plate_Board", "kind": "plate", "center": [4.7, 2.2, 12.57], "size": [1.4, 0.28], "facing": 180, "px": [440, 112] },
+    { "id": "plate_Chair", "kind": "plate", "center": [11.2, 2.2, 12.57], "size": [1.4, 0.28], "facing": 180, "px": [440, 112] },
+    { "id": "plate_Inv", "kind": "plate", "center": [1.07, 2.75, 10.05], "size": [1.8, 0.28], "facing": 90, "px": [440, 112] }
   ],
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },
@@ -202,7 +255,17 @@
     "entrance": { "pos": [8.0, 7.3], "look": [8.0, 5.0], "pose": "stand", "act": "door" },
     "office_rnd": { "pos": [-0.6, 5.15], "look": [-0.6, 3.9], "pose": "sit", "act": "desk" },
     "office_ops": { "pos": [4.9, 6.55], "look": [4.9, 5.4], "pose": "sit", "act": "desk" },
-    "office_goal": { "pos": [11.8, 6.55], "look": [11.8, 5.4], "pose": "sit", "act": "desk" }
+    "office_goal": { "pos": [11.8, 6.55], "look": [11.8, 5.4], "pose": "sit", "act": "desk" },
+    "inv_cio": { "pos": [3.2, 11.65], "look": [3.2, 10.4], "pose": "sit", "act": "desk" },
+    "inv_scout": { "pos": [5.5, 11.65], "look": [5.5, 10.4], "pose": "sit", "act": "desk" },
+    "inv_news": { "pos": [10.4, 11.65], "look": [10.4, 10.4], "pose": "sit", "act": "desk" },
+    "inv_struct": { "pos": [12.7, 11.65], "look": [12.7, 10.4], "pose": "sit", "act": "desk" },
+    "inv_wall": { "pos": [1.75, 10.05], "look": [1, 10.05], "pose": "stand", "act": "tv" },
+    "board_chair": { "pos": [6.9, 15.3], "look": [5.6, 15.3], "pose": "sit", "act": "desk" },
+    "board_tv": { "pos": [2, 14], "look": [1, 14], "pose": "stand", "act": "tv" },
+    "board_tv2": { "pos": [2, 16], "look": [1, 16], "pose": "stand", "act": "tv" },
+    "board_north": { "pos": [4.6, 13.35], "look": [4.6, 15.3], "pose": "stand", "act": "chat" },
+    "chair_desk": { "pos": [11.2, 16.05], "look": [11.2, 14.8], "pose": "sit", "act": "desk" }
   },
   "nav": { "cell": 0.25, "inflate": 0.28 },
   "camera": {
@@ -214,7 +277,9 @@
     "lounge": { "pos": [6.5, 6.0, 3.5], "target": [9.0, 0.9, -6.5] },
     "rnd": { "pos": [-1.5, 4.9, 11.2], "target": [-1.5, 0.9, 5.4] },
     "ops": { "pos": [4.9, 4.9, 11.6], "target": [4.9, 0.9, 6.0] },
-    "goal": { "pos": [11.8, 4.9, 11.6], "target": [11.8, 0.9, 6.0] }
+    "goal": { "pos": [11.8, 4.9, 11.6], "target": [11.8, 0.9, 6.0] },
+    "invest": { "pos": [15.2, 7.4, 21.2], "target": [7.4, 0.6, 11.4] },
+    "boardroom": { "pos": [4.4, 6.6, 22.4], "target": [4.4, 0.7, 15] }
   },
   "crew": {
     "Jax": {

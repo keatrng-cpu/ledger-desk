@@ -11,7 +11,9 @@ import type { AgentAct, MindState } from "@/lib/room/agents";
 import type { Lenses } from "@/lib/room/debate";
 import type { LabRead } from "@/lib/room/lab";
 import type { AuditItem } from "@/lib/room/audit";
-import type { FeedRead, GoalLite, RndLite, ScanCardLite, SeatsLite } from "@/lib/room/live-types";
+import type { FeedRead, GoalLite, InvestLite, InvestThemeLite, RndLite, ScanCardLite, SeatsLite } from "@/lib/room/live-types";
+import { boardAgenda, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
+import { etWallParts } from "@/lib/trading/sessions";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
 
@@ -81,6 +83,8 @@ export interface FloorScreens {
   roomP: number | null;
   /** The race, the audit, the scanner and the feed, for the annex offices and the scanner TV. */
   race: RaceScreen | null;
+  /** The investment wing's read of the Invest tab and the dated research file (invest-office.ts) — null when the ledger is unreadable. */
+  invest: InvestLite | null;
 }
 
 export interface FloorFrame {
@@ -613,6 +617,9 @@ const PLATE: Record<string, string> = {
   plate_Rnd: "R&D LAB — fixing the desk",
   plate_Ops: "OPS & DATA — the feed",
   plate_Goal: "GOAL ROOM — $1K → $5K",
+  plate_Inv: "INVESTMENT OFFICE — the long game",
+  plate_Board: "BOARDROOM — the chair and the five",
+  plate_Chair: "CHAIR'S OFFICE — the CEO",
 };
 
 function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
@@ -1324,6 +1331,458 @@ function drawSeatLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillText(`syndicates ${s.syndicates.n} · closed ${s.syndicates.closed} · ${s.syndicates.usd >= 0 ? "+" : "−"}$${Math.abs(Math.round(s.syndicates.usd))} · every seat trades the room's checklist on paper`, 14, h - 10);
 }
 
+/* ── The investment wing ───────────────────────────────────────────────────
+ * The long game's TVs and monitors. Every number is read from `frame.screens.invest` (invest-office.ts: the Invest tab's own
+ * functions and the dated research file) and drawn as it came — nothing is computed here. The book is valued at COST (the
+ * Floor does not fetch prices) and the screens say so. No verdict, no size, no order: research and arithmetic only.
+ */
+
+const INV_ACCENT = "#2dd4bf";
+const INV_TIER_COLOR: Record<string, string> = { safe: "#34d399", mid: "#fbbf24", high: "#fb7185" };
+const INV_SLEEVE_COLOR: Record<string, string> = { ballast: C.cyan, compounder: C.violet, drypowder: C.amber };
+const INV_SLEEVE_NAME: Record<string, string> = { ballast: "Ballast", compounder: "Compounders", drypowder: "Dry powder" };
+
+/** Recorded dollars as they are: cents when they have cents ($240.50 is never drawn as $241), whole dollars otherwise. */
+const invUsd = (n: number): string => (Number.isInteger(n) ? money(n) : `${n < 0 ? "−" : ""}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+
+const isWeekdayAt = (nowMs: number): boolean => {
+  const d = etWallParts(nowMs).weekday;
+  return d >= 1 && d <= 5;
+};
+
+/** Text that fits `maxW` on one line, ellipsised. */
+function ell(ctx: Ctx, text: string, maxW: number): string {
+  if (ctx.measureText(text).width <= maxW) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1);
+  return `${t.trimEnd()}…`;
+}
+
+/** A small filled tag; returns the x where the next one starts. */
+function invChip(ctx: Ctx, x: number, y: number, text: string, color: string, size = 13): number {
+  ctx.font = `700 ${size}px ${FONT}`;
+  const tw = ctx.measureText(text).width + 14;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.18;
+  ctx.fillRect(x, y - size, tw, size + 9);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y - size, 3, size + 9);
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(text, x + 9, y);
+  return x + tw + 8;
+}
+
+function invDark(ctx: Ctx, w: number, title: string) {
+  header(ctx, w, title, "no read", C.muted);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 15px ${FONT}`;
+  wrap(ctx, "The investment office reads the Invest tab's ledger from this browser. It has nothing to show yet.", 14, 84, w - 28, 22, 4);
+}
+
+/** The theme the room is on right now (the same one the talk engine picks for this ET minute). */
+function invThemeNow(f: FloorFrame): InvestThemeLite | null {
+  const inv = f.screens.invest ?? null;
+  return inv ? themeOfTheDay(inv, lookAt(f.etMin, isWeekdayAt(f.nowMs))) : null;
+}
+
+/** TV · the long book: total at cost, the three sleeves against their targets, the research tiers the book covers, the next dollar. */
+function drawInvPortfolio(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const inv = f.screens.invest ?? null;
+  clear(ctx, w, h);
+  if (!inv) return invDark(ctx, w, "THE LONG BOOK");
+  const b = inv.book;
+  header(ctx, w, "THE LONG BOOK", "valued at cost", INV_ACCENT);
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = C.text;
+  ctx.font = `800 52px ${MONO}`;
+  ctx.fillText(invUsd(b.totalUsd), 14, 92);
+  ctx.font = `500 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(`${b.positions} ${b.positions === 1 ? "position" : "positions"} · marks are fetched in the Invest tab, not here`, 14, 130);
+  let y = 168;
+  for (const s of b.sleeves) {
+    const col = INV_SLEEVE_COLOR[s.sleeve] ?? C.cyan;
+    const out = !b.belowMeaningful && Math.abs(s.driftPct) > b.driftBand;
+    ctx.font = `600 17px ${FONT}`;
+    ctx.fillStyle = C.text;
+    ctx.fillText(INV_SLEEVE_NAME[s.sleeve] ?? s.sleeve, 14, y);
+    const x0 = 160;
+    const x1 = w - 150;
+    ctx.fillStyle = "#1c2638";
+    ctx.fillRect(x0, y - 9, x1 - x0, 18);
+    ctx.fillStyle = out ? C.amber : col;
+    ctx.fillRect(x0, y - 9, (x1 - x0) * Math.max(0, Math.min(1, s.weight)), 18);
+    ctx.fillStyle = C.text;
+    ctx.fillRect(x0 + (x1 - x0) * Math.max(0, Math.min(1, s.target)) - 1, y - 14, 3, 28);
+    ctx.font = `700 16px ${MONO}`;
+    ctx.textAlign = "right";
+    ctx.fillStyle = out ? C.amber : C.text;
+    ctx.fillText(`${Math.round(s.weight * 100)}% / ${Math.round(s.target * 100)}%`, w - 14, y);
+    ctx.textAlign = "left";
+    y += 38;
+  }
+  ctx.font = `500 13px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(b.belowMeaningful ? `Under ${money(500)} the weights are arithmetic, not allocation — no target binds yet.` : `Tick = target · band ±${Math.round(b.driftBand * 100)}% · ${b.beyondBand} outside`, 14, y - 8);
+  y += 22;
+  ctx.textBaseline = "alphabetic";
+  let x = 14;
+  for (const tier of ["safe", "mid", "high"] as const) {
+    const ts = inv.themes.filter((t) => t.tier === tier);
+    ctx.fillStyle = INV_TIER_COLOR[tier]!;
+    x = invChip(ctx, x, y + 6, `${tier.toUpperCase()} ${ts.filter((t) => t.held.length > 0).length}/${ts.length}`, INV_TIER_COLOR[tier]!, 14);
+  }
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText("research themes the book holds a vehicle of", x + 4, y + 6);
+  ctx.fillStyle = C.text;
+  ctx.font = `600 15px ${FONT}`;
+  wrap(ctx, inv.next ? `Next dollar · ${inv.next.line}` : "Next dollar · nothing swept is waiting.", 14, h - 54, w - 28, 20, 2);
+}
+
+/** TV · the funnel: what the day-trading income has swept so far, what waits to be bought, and the arithmetic of the habit. */
+function drawInvFunnel(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const inv = f.screens.invest ?? null;
+  clear(ctx, w, h);
+  if (!inv) return invDark(ctx, w, "THE FUNNEL");
+  const fn = inv.funnel;
+  header(ctx, w, "THE FUNNEL", `${fn.ratePct}% · ${fn.closedMonths} ${fn.closedMonths === 1 ? "month" : "months"}`, INV_ACCENT);
+  ctx.textBaseline = "middle";
+  kvLine(ctx, w, 78, "Swept into the long book", invUsd(fn.sweptUsd), C.up, 19);
+  kvLine(ctx, w, 106, "Waiting to be bought", invUsd(fn.waitingUsd), fn.waitingUsd > 0 ? C.amber : C.muted, 19);
+  ctx.font = `500 13px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  wrap(ctx, fn.ladderLine, 14, 138, w - 28, 17, 2);
+  if (fn.avgMonthlyUsd != null && fn.fiveYearUsd != null && fn.tenYearUsd != null) {
+    const rows: [string, number][] = [
+      ["1 year", fn.avgMonthlyUsd * 12],
+      ["5 years", fn.fiveYearUsd],
+      ["10 years", fn.tenYearUsd],
+    ];
+    ctx.font = `600 14px ${FONT}`;
+    ctx.fillStyle = C.text;
+    ctx.fillText(`At the logged average, ${invUsd(fn.avgMonthlyUsd)} a month:`, 14, 188);
+    const max = Math.max(1, fn.tenYearUsd);
+    rows.forEach(([lab, v], i) => {
+      const y = 216 + i * 34;
+      ctx.font = `500 15px ${FONT}`;
+      ctx.fillStyle = C.muted;
+      ctx.fillText(lab, 14, y);
+      ctx.fillStyle = "#1c2638";
+      ctx.fillRect(100, y - 10, w - 250, 20);
+      ctx.fillStyle = INV_ACCENT;
+      ctx.fillRect(100, y - 10, (w - 250) * Math.max(0.02, v / max), 20);
+      ctx.font = `700 16px ${MONO}`;
+      ctx.textAlign = "right";
+      ctx.fillStyle = C.text;
+      ctx.fillText(money(v), w - 14, y);
+      ctx.textAlign = "left";
+    });
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillStyle = C.muted;
+    ctx.fillText("Contributions only — no return assumed.", 14, 322);
+  } else {
+    ctx.font = `500 15px ${FONT}`;
+    ctx.fillStyle = C.muted;
+    wrap(ctx, "No month has been logged yet. The path appears with the first sweep — a month has to end, and close above the data rent, before it flows.", 14, 200, w - 28, 22, 4);
+  }
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = C.text;
+  ctx.font = `600 15px ${FONT}`;
+  if (inv.other) {
+    const add = (inv.other.monthlyUsd * inv.other.ratePct) / 100;
+    wrap(ctx, `Other income · ${invUsd(inv.other.monthlyUsd)} a month at ${inv.other.ratePct}% → ${invUsd(add)} a month into the same funnel.`, 14, h - 50, w - 28, 20, 2);
+  } else {
+    ctx.fillStyle = C.amber;
+    wrap(ctx, "Other income · not entered. Income that is not day-trading P&L has no line here until the trader sets one in the office panel.", 14, h - 50, w - 28, 20, 2);
+  }
+}
+
+/** TV · the theme of the day: a dated, sourced demand fact, what is new, who competes, the risk, the vehicles. */
+function drawInvTheme(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const inv = f.screens.invest ?? null;
+  clear(ctx, w, h);
+  if (!inv) return invDark(ctx, w, "THEME OF THE DAY");
+  const t = invThemeNow(f);
+  if (!t) {
+    header(ctx, w, "THEME OF THE DAY", "no research file", C.muted);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 15px ${FONT}`;
+    wrap(ctx, "The dated research file has no usable theme. A theme without a sourced demand figure is not shown.", 14, 84, w - 28, 22, 3);
+    return;
+  }
+  const col = INV_TIER_COLOR[t.tier] ?? INV_ACCENT;
+  header(ctx, w, "THEME OF THE DAY", `${t.tier.toUpperCase()} · ${t.evidence} evidence`, col);
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = C.text;
+  ctx.font = `800 ${t.name.length <= 30 ? 28 : t.name.length <= 40 ? 23 : 19}px ${FONT}`;
+  ctx.fillText(ell(ctx, t.name, w - 28), 14, 84);
+  ctx.font = `500 14px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  let y = wrap(ctx, t.summary, 14, 108, w - 28, 18, 2);
+  const d = t.demand[0];
+  if (d) {
+    // A third party's figure is drawn whole: short ones big, long ones smaller and wrapped — never cut.
+    const size = d.figure.length <= 16 ? 34 : d.figure.length <= 40 ? 24 : 18;
+    ctx.fillStyle = col;
+    ctx.font = size === 34 ? `800 34px ${MONO}` : `700 ${size}px ${FONT}`;
+    y = wrap(ctx, d.figure, 14, y + size, w - 28, size + 4, 3) + 2;
+    ctx.fillStyle = C.text;
+    ctx.font = `500 14px ${FONT}`;
+    y = wrap(ctx, d.claim, 14, y + 14, w - 28, 18, 2);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillText(ell(ctx, `${d.sourceName} · ${d.asOf} — a third party's figure, not ours`, w - 28), 14, y + 2);
+    y += 24;
+  }
+  ctx.fillStyle = C.text;
+  ctx.font = `600 13px ${FONT}`;
+  for (const inn of t.innovations.slice(0, 2)) {
+    ctx.fillText(`▸ ${ell(ctx, inn, w - 44)}`, 14, y);
+    y += 20;
+  }
+  y += 6;
+  let x = 14;
+  for (const c of t.competitors.slice(0, 4)) {
+    // The name without its parenthetical; a long one is cut to its first word so four chips fit the line.
+    const nm = c.name.replace(/\s*\(.*?\)\s*/g, " ").trim();
+    const short = nm.length > 22 ? nm.split(/\s+/)[0]! : nm;
+    x = invChip(ctx, x, y, c.ticker ? `${short} ${c.ticker}` : short, C.cyan, 12);
+    if (x > w - 120) break;
+  }
+  y += 28;
+  ctx.fillStyle = C.amber;
+  ctx.font = `500 13px ${FONT}`;
+  ctx.fillText(ell(ctx, `Risk · ${t.risks[0] ?? "the demand case is not proven"}`, w - 28), 14, y);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 11px ${FONT}`;
+  ctx.fillText(`Research as of ${inv.themesAsOf} · a theme is context, not a position — a name enters the book only through a dossier.`, 14, h - 10);
+}
+
+/** TV · the board: who sits where, and what is on tonight's agenda. */
+function drawInvBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const inv = f.screens.invest ?? null;
+  clear(ctx, w, h);
+  if (!inv) return invDark(ctx, w, "THE BOARD");
+  header(ctx, w, "THE BOARD", "the chair and the five", INV_ACCENT);
+  const box = (x: number, y: number, bw: number, bh: number, name: string, role: string, color: string) => {
+    ctx.fillStyle = C.panel;
+    ctx.fillRect(x, y, bw, bh);
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, bw, 3);
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "center";
+    ctx.fillStyle = C.text;
+    ctx.font = `700 15px ${FONT}`;
+    ctx.fillText(name, x + bw / 2, y + 26);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 11px ${FONT}`;
+    const words = role.split(" ");
+    let line = "";
+    let ly = y + 44;
+    for (const wd of words) {
+      const test = line ? `${line} ${wd}` : wd;
+      if (ctx.measureText(test).width > bw - 10 && line) {
+        ctx.fillText(line, x + bw / 2, ly);
+        ly += 14;
+        line = wd;
+      } else line = test;
+    }
+    if (line) ctx.fillText(line, x + bw / 2, ly);
+    ctx.textAlign = "left";
+  };
+  box(144, 58, 170, 56, "Sterling", "Chair / CEO · the order of operations", INV_ACCENT);
+  ctx.fillStyle = C.grid;
+  ctx.fillRect(228, 114, 2, 22);
+  ctx.fillRect(66, 136, 324, 2);
+  const crew: [string, string, number][] = [
+    ["Nova", "CIO · allocation and the funnel", 14],
+    ["Jax", "Scout · industry and innovation", 126],
+    ["Gemma", "News and macro · the evidence", 238],
+    ["Vince", "Structure · competitors, next buy", 350],
+  ];
+  for (const [name, role, x] of crew) {
+    ctx.fillStyle = C.grid;
+    ctx.fillRect(x + 52, 136, 2, 14);
+    box(x, 150, 104, 84, name, role, C.cyan);
+  }
+  ctx.fillStyle = C.text;
+  ctx.font = `700 13px ${FONT}`;
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("THE RULE ON THE WALL", 14, 262);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 13px ${FONT}`;
+  wrap(ctx, inv.funnel.ladderLine, 14, 284, 444, 17, 3);
+  ctx.fillStyle = C.grid;
+  ctx.fillRect(474, 58, 2, h - 76);
+  ctx.fillStyle = C.text;
+  ctx.font = `700 15px ${FONT}`;
+  ctx.fillText("AGENDA", 492, 78);
+  const items = boardAgenda(inv);
+  let y = 106;
+  ctx.font = `500 15px ${FONT}`;
+  if (!items.length) {
+    ctx.fillStyle = C.muted;
+    wrap(ctx, "Nothing on the agenda — the plan stands.", 492, y, w - 506, 20, 3);
+  } else {
+    for (const a of items) {
+      ctx.fillStyle = C.amber;
+      ctx.fillText("▸", 492, y);
+      ctx.fillStyle = C.text;
+      const text = a.kind === "waiting" ? `${invUsd(a.usd ?? 0)} swept, not yet bought` : a.kind === "rebalance" ? "A sleeve is past its band" : a.kind === "drift" ? "Drift is outside the band but too small to trade" : `Book under ${money(500)} — arithmetic, not allocation`;
+      y = wrap(ctx, text, 510, y, w - 524, 20, 3) + 10;
+    }
+  }
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  wrap(ctx, "No order is placed from this room. Orders live in the Invest tab, one dossier at a time.", 492, h - 58, w - 506, 16, 3);
+}
+
+/** The monitors of the investment wing: Nova's allocation, Jax's scout, Gemma's news, Vince's structure, the chair's one page. */
+function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number, f: FloorFrame): boolean {
+  const inv = f.screens.invest ?? null;
+  clear(ctx, w, h);
+  ctx.textBaseline = "alphabetic";
+  const title = who === "Chair" ? "CHAIR · THE ONE PAGE" : ["CIO · ALLOCATION", "SCOUT · THE THEMES", "NEWS DESK · THE WATCH LIST", "STRUCTURE · WHO COMPETES"][idx] ?? "INVESTMENT";
+  if (!inv) {
+    invDark(ctx, w, title);
+    return true;
+  }
+  if (who === "Chair") {
+    const cov = (["safe", "mid", "high"] as const).map((tier) => {
+      const ts = inv.themes.filter((t) => t.tier === tier);
+      return `${ts.filter((t) => t.held.length > 0).length}/${ts.length}`;
+    });
+    header(ctx, w, title, inv.book.valuedAtCost ? "at cost" : "", INV_ACCENT);
+    kvLine(ctx, w, 78, "Sweep rate · months", `${inv.funnel.ratePct}% · ${inv.funnel.closedMonths}`, C.text, 16);
+    kvLine(ctx, w, 104, "Swept so far", invUsd(inv.funnel.sweptUsd), C.up, 16);
+    kvLine(ctx, w, 130, "Waiting to be bought", invUsd(inv.funnel.waitingUsd), inv.funnel.waitingUsd > 0 ? C.amber : C.muted, 16);
+    kvLine(ctx, w, 156, "Long book at cost", invUsd(inv.book.totalUsd), C.text, 16);
+    kvLine(ctx, w, 182, "Sleeves outside the band", String(inv.book.beyondBand), inv.book.beyondBand > 0 ? C.amber : C.up, 16);
+    kvLine(ctx, w, 208, "Research held · safe/mid/high", cov.join(" · "), C.text, 16);
+    kvLine(ctx, w, 234, "Other income", inv.other ? `${invUsd(inv.other.monthlyUsd)} × ${inv.other.ratePct}%` : "not entered", inv.other ? C.text : C.muted, 16);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    wrap(ctx, inv.next ? inv.next.line : "Nothing swept is waiting to be bought.", 14, 268, w - 28, 16, 2);
+    return true;
+  }
+  if (idx === 0) {
+    header(ctx, w, title, inv.book.belowMeaningful ? "arithmetic only" : "weights at cost", INV_ACCENT);
+    ctx.font = `600 12px ${FONT}`;
+    ctx.fillStyle = C.muted;
+    ["Sleeve", "Now", "Target", "Drift", "To restore"].forEach((c, i) => {
+      ctx.textAlign = i === 0 ? "left" : "right";
+      ctx.fillText(c, [14, 250, 320, 390, w - 14][i]!, 70);
+    });
+    ctx.textAlign = "left";
+    inv.book.sleeves.forEach((s, i) => {
+      const y = 100 + i * 34;
+      const out = !inv.book.belowMeaningful && Math.abs(s.driftPct) > inv.book.driftBand;
+      ctx.font = `600 15px ${FONT}`;
+      ctx.fillStyle = C.text;
+      ctx.fillText(INV_SLEEVE_NAME[s.sleeve] ?? s.sleeve, 14, y);
+      ctx.font = `700 15px ${MONO}`;
+      ctx.textAlign = "right";
+      ctx.fillStyle = C.text;
+      ctx.fillText(`${Math.round(s.weight * 100)}%`, 250, y);
+      ctx.fillText(`${Math.round(s.target * 100)}%`, 320, y);
+      ctx.fillStyle = out ? C.amber : C.muted;
+      ctx.fillText(`${s.driftPct >= 0 ? "+" : "−"}${Math.abs(Math.round(s.driftPct * 100))}%`, 390, y);
+      ctx.fillStyle = C.text;
+      ctx.fillText(inv.book.belowMeaningful ? "—" : `${s.correctionUsd >= 0 ? "+" : "−"}${invUsd(Math.abs(s.correctionUsd))}`, w - 14, y);
+      ctx.textAlign = "left";
+    });
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillText(`Band ±${Math.round(inv.book.driftBand * 100)}% · no trade below the desk's minimum`, 14, 214);
+    ctx.fillStyle = C.text;
+    ctx.font = `600 14px ${FONT}`;
+    wrap(ctx, inv.next ? `Next dollar · ${inv.next.line}` : "Next dollar · nothing waiting.", 14, 244, w - 28, 18, 3);
+    return true;
+  }
+  if (idx === 1) {
+    header(ctx, w, title, `${inv.themes.length} themes`, INV_ACCENT);
+    const colW = (w - 28) / 3;
+    (["safe", "mid", "high"] as const).forEach((tier, i) => {
+      const x = 14 + i * colW;
+      const ts = inv.themes.filter((t) => t.tier === tier);
+      ctx.fillStyle = INV_TIER_COLOR[tier]!;
+      ctx.font = `800 13px ${FONT}`;
+      ctx.fillText(`${tier.toUpperCase()} · ${ts.length}`, x, 72);
+      ctx.font = `500 12px ${FONT}`;
+      ts.slice(0, 7).forEach((t, k) => {
+        ctx.fillStyle = t.held.length ? C.up : C.text;
+        ctx.fillText(ell(ctx, t.name, colW - 10), x, 98 + k * 25);
+        ctx.fillStyle = C.muted;
+        ctx.font = `500 10px ${FONT}`;
+        ctx.fillText(t.evidence, x, 98 + k * 25 + 11);
+        ctx.font = `500 12px ${FONT}`;
+      });
+    });
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 11px ${FONT}`;
+    ctx.fillText("green = the book holds a vehicle · evidence is the file's own grade", 14, h - 10);
+    return true;
+  }
+  if (idx === 2) {
+    header(ctx, w, title, "headlines on the list", INV_ACCENT);
+    const rows = f.screens.news.map((n) => ({ n, hit: watchHit(inv, n.title, []) }));
+    const hits = rows.filter((r) => r.hit).slice(0, 5);
+    const show = hits.length ? hits : rows.slice(0, 5);
+    if (!show.length) {
+      ctx.fillStyle = C.muted;
+      ctx.font = `500 15px ${FONT}`;
+      wrap(ctx, "No headlines are loaded yet.", 14, 84, w - 28, 22, 2);
+      return true;
+    }
+    show.forEach((r, i) => {
+      const y = 76 + i * 44;
+      ctx.fillStyle = r.hit ? C.amber : C.muted;
+      ctx.font = `700 11px ${FONT}`;
+      ctx.fillText(r.hit ? `${r.hit.kind.toUpperCase()} · ${ell(ctx, r.hit.label, w - 160)}` : "no match", 14, y);
+      ctx.textAlign = "right";
+      ctx.fillStyle = C.muted;
+      ctx.fillText(`${r.n.source} · ${r.n.age}`, w - 14, y);
+      ctx.textAlign = "left";
+      ctx.fillStyle = C.text;
+      ctx.font = `600 13px ${FONT}`;
+      ctx.fillText(ell(ctx, r.n.title, w - 28), 14, y + 18);
+    });
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 11px ${FONT}`;
+    ctx.fillText(hits.length ? "a headline is context — never a verdict" : "nothing touches the book or the list right now", 14, h - 10);
+    return true;
+  }
+  header(ctx, w, title, "theme of the day", INV_ACCENT);
+  const t = invThemeNow(f);
+  if (!t) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 15px ${FONT}`;
+    wrap(ctx, "No usable theme in the research file.", 14, 84, w - 28, 22, 2);
+    return true;
+  }
+  ctx.fillStyle = C.text;
+  ctx.font = `700 17px ${FONT}`;
+  ctx.fillText(ell(ctx, t.name, w - 28), 14, 72);
+  t.competitors.slice(0, 4).forEach((c, i) => {
+    const y = 96 + i * 38;
+    ctx.fillStyle = C.cyan;
+    ctx.font = `700 13px ${FONT}`;
+    ctx.fillText(ell(ctx, c.ticker ? `${c.name} · ${c.ticker}` : c.name, w - 28), 14, y);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillText(ell(ctx, c.angle, w - 28), 14, y + 16);
+  });
+  ctx.fillStyle = C.text;
+  ctx.font = `600 12px ${FONT}`;
+  ctx.fillText(ell(ctx, `Vehicles · ${t.vehicles.slice(0, 4).map((v) => v.ticker).join(" ")}`, w - 28), 14, h - 26);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 11px ${FONT}`;
+  ctx.fillText("research, not a recommendation — the dossier gate decides", 14, h - 10);
+  return true;
+}
+
 /** The monitors of the annex offices, by room and position. */
 function drawAnnexMonitor(id: string, ctx: Ctx, w: number, h: number, f: FloorFrame): boolean {
   const [, who, idxStr] = id.split("_");
@@ -1346,6 +1805,7 @@ function drawAnnexMonitor(id: string, ctx: Ctx, w: number, h: number, f: FloorFr
     else drawGoalLadder(ctx, w, h, f);
     return true;
   }
+  if (who === "Inv" || who === "Chair") return drawInvMonitor(who, idx, ctx, w, h, f);
   return false;
 }
 
@@ -1366,6 +1826,10 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "tv_scanner") drawScanner(ctx, w, h, f);
     else if (id === "tv_rnd") drawRndBoard(ctx, w, h, f);
     else if (id === "tv_goal") drawSeatLeague(ctx, w, h, f);
+    else if (id === "tv_portfolio") drawInvPortfolio(ctx, w, h, f);
+    else if (id === "tv_funnel") drawInvFunnel(ctx, w, h, f);
+    else if (id === "tv_theme") drawInvTheme(ctx, w, h, f);
+    else if (id === "tv_board") drawInvBoard(ctx, w, h, f);
     else if (id.startsWith("mon_")) {
       if (!drawAnnexMonitor(id, ctx, w, h, f)) drawMonitor(id, ctx, w, h, f);
     }

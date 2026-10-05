@@ -1154,13 +1154,13 @@ interface ScreenRec {
   h: number;
 }
 
-export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "rnd" | "ops" | "goal" | "follow" | "auto" | "free";
+export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "rnd" | "ops" | "goal" | "invest" | "boardroom" | "follow" | "auto" | "free";
 
 /** Where a viewer can go: a screen (double-click does the same), a bank of monitors, or an annex office. */
 export interface Place {
   id: string;
   label: string;
-  group: "war room" | "annex" | "lounge";
+  group: "war room" | "annex" | "lounge" | "invest";
 }
 export const PLACES: Place[] = [
   { id: "whiteboard", label: "War board", group: "war room" },
@@ -1178,6 +1178,11 @@ export const PLACES: Place[] = [
   { id: "mon_Ops_0", label: "The feed", group: "annex" },
   { id: "tv_goal", label: "The race", group: "annex" },
   { id: "mon_Goal_0", label: "Goal progress", group: "annex" },
+  { id: "tv_portfolio", label: "Long book", group: "invest" },
+  { id: "tv_funnel", label: "The funnel", group: "invest" },
+  { id: "tv_theme", label: "Theme of the day", group: "invest" },
+  { id: "tv_board", label: "The board", group: "invest" },
+  { id: "mon_Chair_0", label: "Chair's page", group: "invest" },
   { id: "tv_leader", label: "League table", group: "lounge" },
   { id: "tv_lounge", label: "Lounge TV", group: "lounge" },
 ];
@@ -1187,7 +1192,7 @@ export function screenLabel(id: string): string {
   const hit = PLACES.find((p) => p.id === id);
   if (hit) return hit.label;
   const m = /^mon_([A-Za-z]+)_\d+$/.exec(id);
-  if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : `${m[1]}'s monitors`;
+  if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : m[1] === "Inv" ? "Investment monitors" : m[1] === "Chair" ? "Chair's monitor" : `${m[1]}'s monitors`;
   const p = /^plate_([A-Za-z]+)$/.exec(id);
   if (p) return `${p[1]}'s door`;
   if (id.startsWith("window_")) return "Window";
@@ -1236,6 +1241,8 @@ const FLOOR_COLORS: Record<string, string> = {
   carpet_slate: "#272c35",
   carpet_teal: "#16343a",
   carpet_plum: "#3a2236",
+  carpet_charcoal: "#24272c",
+  walnut: "#3b2316",
   wood: "#6b4f37",
   tile: "#9ba1a9",
 };

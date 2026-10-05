@@ -1,4 +1,4 @@
-# The Floor — 48 fixes, by category (2026-10-05)
+# The Floor — 66 fixes, by category (2026-10-05)
 
 The trader asked for 20–50 categorized fixes: trading accuracy, how the five communicate and plan, the war room's details and
 interactivity, more offices for roles that were missing, and agents that are always working to make money, raise the odds, work
@@ -85,3 +85,28 @@ trading accuracy it is a measurement, a diagnostic or a fix to something that mi
 | 46 | Measure the hit rate of OTM strikes | Backlog — nothing is measured for them; the ladder is model-priced on one card |
 | 47 | Schedule `/api/cron/exec-flatten` on Netlify (it is wired for Vercel) | Backlog — Make/Zapier or a Netlify scheduled function must send the GET |
 | 48 | Move the PATH bands or the 0.65 floor onto P(T1) | Backlog — needs the trader's numbers in config.ts; not an AI change |
+
+## G. The investment wing (the trader's request, 2026-10-05)
+
+The long game: the five managing a mid-to-long-term portfolio funded by a share of day-trading income and other income. Same rules as the rest of the desk — narration and arithmetic, a source on every figure, no verdict word, no order, no recommendation, the sleeve targets and the sweep ladder untouched.
+
+| # | Fix | Status |
+|---|-----|--------|
+| 49 | An Investment Office, a Boardroom and a Chair's Office south of the building (3 rooms, 6 walls, 32 pieces of furniture, 12 screens, 10 spots, 2 cameras), baked into `office.glb` | Shipped (2026-10-05) — `verify-room`, Blender `--verify` |
+| 50 | The five work it in investing hats: Sterling chair/CEO, Nova CIO, Jax scout, Gemma news and evidence, Vince structure | Shipped — `live-voices-invest.ts` |
+| 51 | THE LONG BOOK TV: the three sleeves against the trader's own targets, the research tiers the book covers, the next dollar — valued at cost, and it says so | Shipped — `verify-invest-office` |
+| 52 | THE FUNNEL TV: swept, waiting to be bought, the rate ladder, a 1/5/10-year contribution path (contributions only — no return assumed) | Shipped |
+| 53 | Other income as a second source into the funnel: two numbers (monthly dollars, the share the trader chooses), arithmetic only, never the Invest ledger | Shipped — panel + `invest-sources.ts` |
+| 54 | A dated, sourced research file: 13 themes across safe / mid / high, each demand figure a third party's with a year and a URL; a theme with a wash-sale name or an unsourced figure is dropped at the door | Shipped — `invest-themes.json` (snapshot 2026-10-05) |
+| 55 | A theme of the day with a second look; the TVs and the talk read the same pick | Shipped |
+| 56 | The boardroom: THEME OF THE DAY and THE BOARD (the org chart and tonight's agenda, the same list the board speaks) | Shipped |
+| 57 | Headlines that touch a held ticker, a theme's vehicle or a competitor, said as context | Shipped — 45 min apart, never older than 20 h, backlog marked seen |
+| 58 | Four research monitors (allocation, themes, the news desk, competitors) and the chair's one page | Shipped |
+| 59 | An Investment office panel in the tab: Funnel / Book / Research with every source | Shipped |
+| 60 | New people for the wing (a real CEO, analysts) | Backlog — the trader's JSON contract fixes five characters; the wing, like the annex, is worked by the five |
+| 61 | The book valued at market on the Floor | Backlog — the Floor fetches no prices; marks load on request in the Invest tab |
+| 62 | The weekly kill-rule results and the dossier gate (ADD / WATCH) in the boardroom | Backlog — kill-watch needs the server and a signed-in user; the board says where the decisions live |
+| 63 | Other income persisted to the server like the sweep ledger | Backlog — two numbers in this browser for now |
+| 64 | Model-made return forecasts | Not built, deliberately — the office quotes third parties' projections with source and date and prints contributions only; a model's return forecast would be an invented number |
+| 65 | A refresh cadence for the research file | Backlog — a dated snapshot; re-run the research pass (monthly is the suggestion); the file's `asOf` is on the TV |
+| 66 | VTI's benchmark was rebranded from CRSP to Morningstar (Vanguard renamed the fund on 2026-07-29); `universe.ts` and the dossiers still say CRSP | Found in passing, confirmed against Vanguard's own press release — not changed here (the dossiers are the trader's research) |

@@ -15,6 +15,7 @@ import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orch
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
 import { RacePanel } from "./race-panel";
+import { InvestOfficePanel } from "./invest-office-panel";
 import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
@@ -47,6 +48,8 @@ const CAMERAS: { id: CameraPreset; label: string }[] = [
   { id: "rnd", label: "R&D lab" },
   { id: "ops", label: "Ops & data" },
   { id: "goal", label: "Goal room" },
+  { id: "invest", label: "Investment" },
+  { id: "boardroom", label: "Boardroom" },
   { id: "follow", label: "Speaker" },
 ];
 
@@ -252,6 +255,7 @@ const KIND_COLOR: Record<string, string> = {
   goal: "#facc15",
   seat: "#4ade80",
   rnd: "#c084fc",
+  invest: "#2dd4bf",
 };
 
 const STATUS_TEXT: Record<WireStatus, string> = { queued: "queued", said: "said", dropped: "stale", unseen: "unseen" };
@@ -735,9 +739,9 @@ export default function TradingFloorTab() {
             </button>
           ))}
         </div>
-        {(["war room", "annex", "lounge"] as const).map((group) => (
+        {(["war room", "annex", "invest", "lounge"] as const).map((group) => (
           <div key={group} className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{group === "war room" ? "Go to" : group === "annex" ? "Annex" : "Lounge"}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{group === "war room" ? "Go to" : group === "annex" ? "Annex" : group === "invest" ? "Invest wing" : "Lounge"}</span>
             {PLACES.filter((p) => p.group === group).map((p) => (
               <button key={p.id} type="button" className={BTN} onClick={() => goTo(p.id)}>
                 {p.label}
@@ -749,6 +753,8 @@ export default function TradingFloorTab() {
       </div>
 
       <RacePanel frame={frame} onGo={goTo} />
+
+      <InvestOfficePanel frame={frame} onGo={goTo} />
 
       <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
         <WireLog onFocus={setSelected} />

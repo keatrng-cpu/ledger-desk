@@ -38,6 +38,7 @@ import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import { readInvestOffice } from "@/lib/room/invest-sources";
 import { deskAudit } from "@/lib/room/audit";
 import { EXEC_FLAGS } from "@/lib/room/exec/limits";
 import type { DialogueLine } from "@/lib/room/orchestrator";
@@ -207,10 +208,11 @@ export function frameFromCycle(args: {
   nowMs: number;
   cycle: RoomCycle;
   book: RoomBook;
-  screens: Omit<FloorScreens, "book" | "research" | "ledger" | "lab" | "lenses" | "roomP" | "race">;
+  screens: Omit<FloorScreens, "book" | "research" | "ledger" | "lab" | "lenses" | "roomP" | "race" | "invest">;
   caption: string | null;
   lab: LabRead | null;
   race: RaceScreen | null;
+  invest: FloorScreens["invest"];
 }): FloorFrame {
   const p = etWallParts(args.nowMs);
   const lenses = args.cycle.trace.lenses;
@@ -232,6 +234,7 @@ export function frameFromCycle(args: {
       lenses,
       roomP: lenses ? consensus(lenses, args.lab).p : null,
       race: args.race,
+      invest: args.invest,
     },
     caption: args.caption,
   };
@@ -448,6 +451,7 @@ function runLiveCycle(desk: DeskPayload) {
     caption: null,
     lab: labNow,
     race: raceScreenOf(race, desk, labNow, market.QQQ.vix),
+    invest: readInvestOffice(nowMs),
     screens: {
       market,
       charts: { QQQ: chart("QQQ"), SPY: chart("SPY") },
@@ -503,6 +507,13 @@ export function refreshRace(desk: DeskPayload) {
   // The TVs follow a new goal at once, not at the next cycle.
   const frame = st.frame ? { ...st.frame, screens: { ...st.frame.screens, race: raceScreenOf(race, desk, st.frame.screens.lab, market.QQQ.vix) } } : st.frame;
   useRoomStore.setState({ book, race, frame });
+}
+
+/** The office panel saved something (the other-income line): redraw the investment TVs now instead of at the next desk build. */
+export function refreshInvestScreens(): void {
+  const f = useRoomStore.getState().frame;
+  if (!f) return;
+  useRoomStore.setState({ frame: { ...f, screens: { ...f.screens, invest: readInvestOffice(Date.now()) } } });
 }
 
 /** The trader's Flatten button (Execution card): close everything the executor owns at the broker, and stop new entries. */
@@ -593,6 +604,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     minds: st.minds,
     lab: st.frame?.screens.lab ?? null,
     race: st.race,
+    invest: readInvestOffice(nowMs),
     busyUntil: 0,
   });
   if (import.meta.env.DEV) {

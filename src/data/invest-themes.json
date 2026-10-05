@@ -1,0 +1,975 @@
+{
+  "version": 1,
+  "asOf": "2026-10-05",
+  "about": "A dated research snapshot of demand drivers, innovations and competitors by industry. Context for the investment office, not a forecast and not advice. Every figure carries its source and year.",
+  "tiers": {
+    "safe": "Capital preservation and broad-market ballast: historically the lowest volatility and shallowest drawdowns of the three tiers (cash-like and Treasury holdings steadiest, a total-market stock fund still falling sharply in past bear markets), with the most mature evidence.",
+    "mid": "Established, growing industries with durable cash flows: historically moderate volatility and drawdowns that can still be large, with demand evidence that is usually well documented.",
+    "high": "Early or cyclical industries where outcomes are wide: historically the highest volatility and deepest drawdowns, with demand evidence that ranges from strong (current sales) to thin (pilot-stage)."
+  },
+  "themes": [
+    {
+      "id": "cash-like-short-treasuries",
+      "name": "Cash-like holdings and short Treasuries",
+      "tier": "safe",
+      "horizon": "mid",
+      "summary": "Treasury bills and money market funds sell stable principal and a yield that follows the Federal Reserve's policy rate, so demand can grow whenever investors want liquidity or short-term rates are attractive.",
+      "demand": [
+        {
+          "claim": "Total assets held in US money market funds, a large pool of cash-like savings",
+          "figure": "$7.89 trillion (week ended Wednesday, Sep 30, 2026)",
+          "asOf": "2026-09-30",
+          "sourceName": "Investment Company Institute (ICI), Money Market Fund Assets",
+          "source": "https://www.ici.org/research/stats/mmf"
+        },
+        {
+          "claim": "Treasury bills outstanding, the supply of short-dated government paper that bill funds hold",
+          "figure": "$7.25 trillion (7,248,070 million) at Aug 31, 2026",
+          "asOf": "2026-08-31",
+          "sourceName": "U.S. Treasury, Monthly Statement of the Public Debt (Table I)",
+          "source": "https://fiscaldata.treasury.gov/static-data/published-reports/mspd-entire/MonthlyStatementPublicDebt_Entire_202608.pdf"
+        },
+        {
+          "claim": "The FOMC raised its target range for the federal funds rate by 1/4 point on Sep 16, 2026; that rate anchors the yield on cash-like holdings",
+          "figure": "3-3/4 to 4 percent target range",
+          "asOf": "2026-09-16",
+          "sourceName": "Federal Reserve Board, FOMC statement",
+          "source": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm"
+        }
+      ],
+      "innovations": [
+        "Treasury-bill ETFs (0-3 month and 1-3 month) that give daily-traded bill exposure inside an ordinary brokerage account",
+        "Brokerage cash-management products that move idle cash into money market funds",
+        "Tokenized money market and Treasury funds, still at an early stage"
+      ],
+      "competitors": [
+        {
+          "name": "BlackRock (iShares)",
+          "ticker": "BLK",
+          "angle": "Sponsor of SGOV, a 0-3 month Treasury bill ETF"
+        },
+        {
+          "name": "State Street (SPDR)",
+          "ticker": "STT",
+          "angle": "Sponsor of BIL, a 1-3 month T-bill ETF"
+        },
+        {
+          "name": "Vanguard",
+          "ticker": null,
+          "angle": "Privately held (owned by its funds); runs Treasury money market and short-term Treasury index funds"
+        }
+      ],
+      "risks": [
+        "Reinvestment risk: when the Federal Reserve cuts rates, income from bills and money funds resets lower, so yield is not locked in.",
+        "Inflation can exceed bill yields, leaving a small or negative return after inflation.",
+        "Long-run opportunity cost: cash-like assets protect principal but have historically grown more slowly than stocks or longer bonds over multi-year spans."
+      ],
+      "vehicles": [
+        {
+          "ticker": "SGOV",
+          "kind": "fund",
+          "note": "iShares 0-3 Month Treasury Bond ETF; holds the shortest Treasury bills"
+        },
+        {
+          "ticker": "BIL",
+          "kind": "fund",
+          "note": "State Street SPDR Bloomberg 1-3 Month T-Bill ETF; one-to-three-month Treasury bills"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "broad-us-total-market",
+      "name": "Broad US total stock market",
+      "tier": "safe",
+      "horizon": "long",
+      "summary": "A total-market fund holds essentially all listed US companies, so it shares in the profits and growth of the whole US economy and serves as the diversified ballast for a stock allocation.",
+      "demand": [
+        {
+          "claim": "US capital markets' share of world equity market capitalization",
+          "figure": "43.7% of the $157.8 trillion global total in 2025",
+          "asOf": "2025",
+          "sourceName": "SIFMA, 2026 Capital Markets Fact Book (key findings)",
+          "source": "https://www.sifma.org/news/blog/2026-capital-markets-fact-book-key-findings"
+        },
+        {
+          "claim": "Total US retirement assets, a large pool of long-horizon savings",
+          "figure": "$51.2 trillion at Jun 30, 2026, equal to 33% of household financial assets",
+          "asOf": "2026-06-30",
+          "sourceName": "Investment Company Institute (ICI), retirement market data (release of Sep 17, 2026)",
+          "source": "https://www.prnewswire.com/news-releases/ici-us-retirement-assets-soar-to-51-2-trillion-302882483.html"
+        },
+        {
+          "claim": "US real GDP growth in the second quarter of 2026, annual rate (third estimate)",
+          "figure": "2.2 percent",
+          "asOf": "2026-Q2",
+          "sourceName": "U.S. Bureau of Economic Analysis (BEA)",
+          "source": "https://www.bea.gov/sites/default/files/2026-09/gdp2q26-3rd.pdf"
+        }
+      ],
+      "innovations": [
+        "Direct indexing with automated tax-loss harvesting, which splits an index into individual stocks",
+        "Fractional shares and recurring automatic investing, which make small regular purchases of a whole-market fund practical",
+        "Single-ticker total-market ETFs that hold thousands of stocks"
+      ],
+      "competitors": [
+        {
+          "name": "Vanguard",
+          "ticker": null,
+          "angle": "Privately held (owned by its funds); sponsor of VTI, a total US stock market ETF"
+        },
+        {
+          "name": "BlackRock (iShares)",
+          "ticker": "BLK",
+          "angle": "Sponsor of ITOT, a total-market ETF that tracks a different index than VTI"
+        },
+        {
+          "name": "Charles Schwab",
+          "ticker": "SCHW",
+          "angle": "Sponsor of SCHB, the Schwab U.S. Broad Market ETF"
+        }
+      ],
+      "risks": [
+        "Stocks can fall sharply in bear markets, and a total-market fund holds no cash buffer.",
+        "Market-cap weighting concentrates the fund in its largest companies, so a few mega-cap stocks can dominate results.",
+        "Starting valuations and interest rates shape long-run returns, and multi-year stretches of flat or negative returns have occurred."
+      ],
+      "vehicles": [
+        {
+          "ticker": "VTI",
+          "kind": "fund",
+          "note": "Vanguard total US stock market ETF; broad-market ballast"
+        },
+        {
+          "ticker": "ITOT",
+          "kind": "fund",
+          "note": "iShares Core S&P Total U.S. Stock Market ETF; tracks a different index than VTI, so the pair are alternatives rather than additions"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "inflation-protected-and-investment-grade-bonds",
+      "name": "Inflation-protected and investment-grade bonds",
+      "tier": "safe",
+      "horizon": "mid",
+      "summary": "TIPS adjust principal with consumer prices and investment-grade bonds pay contractual interest, so they sell income and a partial hedge against inflation or slower growth that can steady a portfolio's stock risk.",
+      "demand": [
+        {
+          "claim": "Treasury Inflation-Protected Securities (TIPS) outstanding, the Treasury's inflation-indexed debt",
+          "figure": "$2.15 trillion (2,152,660 million) at Aug 31, 2026",
+          "asOf": "2026-08-31",
+          "sourceName": "U.S. Treasury, Monthly Statement of the Public Debt (Table I)",
+          "source": "https://fiscaldata.treasury.gov/static-data/published-reports/mspd-entire/MonthlyStatementPublicDebt_Entire_202608.pdf"
+        },
+        {
+          "claim": "US consumer price inflation, the index that TIPS principal tracks (CPI-U, all items)",
+          "figure": "3.4 percent over the 12 months to Aug 2026",
+          "asOf": "2026-08",
+          "sourceName": "U.S. Bureau of Labor Statistics, Consumer Price Index - August 2026",
+          "source": "https://www.bls.gov/news.release/cpi.nr0.htm"
+        },
+        {
+          "claim": "US fixed income securities outstanding, the world's largest bond market",
+          "figure": "$61.2 trillion, 38.1% of the $160.7 trillion global total, in 2025",
+          "asOf": "2025",
+          "sourceName": "SIFMA, 2026 Capital Markets Fact Book (key findings)",
+          "source": "https://www.sifma.org/news/blog/2026-capital-markets-fact-book-key-findings"
+        }
+      ],
+      "innovations": [
+        "Defined-maturity bond ETFs that return principal in a set year, giving a ladder in one ticker",
+        "Short-duration TIPS funds that reduce interest-rate sensitivity while keeping inflation indexing",
+        "Intraday-traded bond ETFs that make investment-grade credit exposure easy to size and rebalance"
+      ],
+      "competitors": [
+        {
+          "name": "BlackRock (iShares)",
+          "ticker": "BLK",
+          "angle": "Sponsor of TIP (TIPS), AGG (US aggregate bonds) and LQD (investment-grade corporates)"
+        },
+        {
+          "name": "Charles Schwab",
+          "ticker": "SCHW",
+          "angle": "Sponsor of SCHP, a TIPS ETF"
+        },
+        {
+          "name": "Vanguard",
+          "ticker": null,
+          "angle": "Privately held (owned by its funds); sponsor of VTIP (short-term TIPS), BND (total bond market) and VCIT (intermediate corporates)"
+        }
+      ],
+      "risks": [
+        "Interest-rate (duration) risk: bond prices fall when yields rise, and the FOMC raised its target range in September 2026.",
+        "TIPS protect only against the CPI-U measure, their real yields can move sharply, and in taxable accounts the inflation adjustments are taxed as income as they accrue (confirm with a tax professional).",
+        "Credit risk: investment-grade spreads widen in recessions, and downgrades can push bonds into high yield."
+      ],
+      "vehicles": [
+        {
+          "ticker": "SCHP",
+          "kind": "fund",
+          "note": "Schwab U.S. TIPS ETF; broad exposure to inflation-protected Treasuries"
+        },
+        {
+          "ticker": "VTIP",
+          "kind": "fund",
+          "note": "Vanguard Short-Term Inflation-Protected Securities ETF; shorter-maturity TIPS, less rate-sensitive"
+        },
+        {
+          "ticker": "BND",
+          "kind": "fund",
+          "note": "Vanguard Total Bond Market ETF; US investment-grade bonds across Treasuries, mortgages and corporates"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "healthcare-aging-obesity-drugs",
+      "name": "Healthcare, aging populations and obesity drugs",
+      "tier": "mid",
+      "horizon": "long",
+      "summary": "Drugmakers, device makers and care providers sell treatment to populations that are aging and increasingly managed for chronic conditions, and obesity drugs (GLP-1 and related) have added a large new product class to that demand.",
+      "demand": [
+        {
+          "claim": "The US Census Bureau projects the world's population aged 65 and older to nearly double as a share of the total",
+          "figure": "10.5% in 2025 to 19.6% in 2060 (projection)",
+          "asOf": "2025",
+          "sourceName": "U.S. Census Bureau, An Aging World: 2025 (release of Aug 31, 2026)",
+          "source": "https://www.census.gov/newsroom/press-releases/2026/older-adult-population-projections.html"
+        },
+        {
+          "claim": "US national health expenditures, which grew faster than the economy",
+          "figure": "$5.3 trillion in 2024 (up 7.2%); 18.0% of GDP, up from 17.7% in 2023",
+          "asOf": "2024",
+          "sourceName": "CMS Office of the Actuary, National Health Expenditures 2024 Highlights",
+          "source": "https://www.cms.gov/files/document/highlights.pdf"
+        },
+        {
+          "claim": "Sales of Eli Lilly's tirzepatide drugs (Mounjaro for diabetes, Zepbound for obesity)",
+          "figure": "Mounjaro $22,965 million and Zepbound $13,542 million in 2025",
+          "asOf": "2025",
+          "sourceName": "Eli Lilly, Q4 2025 earnings release",
+          "source": "https://www.prnewswire.com/news-releases/lilly-reports-fourth-quarter-2025-financial-results-and-provides-2026-guidance-302678376.html"
+        }
+      ],
+      "innovations": [
+        "Oral GLP-1 pills: the FDA approved Lilly's Foundayo (orforglipron) on April 1, 2026",
+        "Less frequent dosing, such as Amgen's monthly MariTide, which is in Phase 3 trials",
+        "Widening uses for obesity drugs beyond weight loss (sleep apnea, cardiovascular and heart-failure outcomes)"
+      ],
+      "competitors": [
+        {
+          "name": "Eli Lilly",
+          "ticker": "LLY",
+          "angle": "Maker of tirzepatide (Mounjaro, Zepbound) and the oral GLP-1 Foundayo"
+        },
+        {
+          "name": "Novo Nordisk",
+          "ticker": "NVO",
+          "angle": "Maker of semaglutide (Ozempic, Wegovy)"
+        },
+        {
+          "name": "Amgen",
+          "ticker": "AMGN",
+          "angle": "Developing MariTide, a monthly obesity candidate in Phase 3"
+        },
+        {
+          "name": "Pfizer",
+          "ticker": "PFE",
+          "angle": "Completed its Metsera acquisition in November 2025 to enter obesity drugs"
+        }
+      ],
+      "risks": [
+        "Drug-pricing policy and payer coverage limits (Medicare price negotiation, insurer restrictions) can cut revenue per patient.",
+        "Patent expiries and generic or compounded competition can erode obesity-drug pricing over time, and leading makers' revenue is concentrated in one drug class.",
+        "Late-stage trial or safety setbacks, plus hospital and insurer cost pressure as health spending outpaces the economy."
+      ],
+      "vehicles": [
+        {
+          "ticker": "XLV",
+          "kind": "fund",
+          "note": "State Street Health Care Select Sector SPDR ETF; US large-cap healthcare"
+        },
+        {
+          "ticker": "VHT",
+          "kind": "fund",
+          "note": "Vanguard Health Care ETF; US healthcare across market caps"
+        },
+        {
+          "ticker": "IHI",
+          "kind": "fund",
+          "note": "iShares U.S. Medical Devices ETF; device makers serving older patients"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "electrification-power-grid",
+      "name": "Electrification and the power grid",
+      "tier": "mid",
+      "horizon": "long",
+      "summary": "Utilities and electrical-equipment makers sell the power, transformers, cables and controls needed as electricity use rises from data centres, factories, vehicles and cooling.",
+      "demand": [
+        {
+          "claim": "IEA forecasts global electricity demand growth to accelerate",
+          "figure": "+3.6% in 2026 and +3.8% in 2027, versus +3% in 2025; 28,600 TWh in 2025 rising to 30,700 TWh in 2027",
+          "asOf": "2026",
+          "sourceName": "IEA, Electricity Mid-Year Update 2026",
+          "source": "https://www.iea.org/reports/electricity-mid-year-update-2026/executive-summary"
+        },
+        {
+          "claim": "IEA expects global spending on energy networks (grids) to rise sharply in 2026",
+          "figure": "around USD 550 billion in 2026, up nearly 20% year on year",
+          "asOf": "2026",
+          "sourceName": "IEA, World Energy Investment 2026",
+          "source": "https://iea.blob.core.windows.net/assets/64594543-cf6e-4fd9-8238-d3cae35daf48/WorldEnergyInvestment2026.pdf"
+        },
+        {
+          "claim": "EIA forecasts record US electricity sales, driven by data centres and manufacturing",
+          "figure": "4,135 billion kWh in 2026 and 4,211 billion kWh in 2027",
+          "asOf": "2026-09-09",
+          "sourceName": "U.S. Energy Information Administration, Short-Term Energy Outlook (Sep 2026)",
+          "source": "https://www.eia.gov/outlooks/steo/report/elec_coal_renew.php"
+        }
+      ],
+      "innovations": [
+        "Advanced conductors and grid-enhancing technologies that add capacity on existing lines",
+        "High-voltage direct-current transmission and large power transformers",
+        "Grid-scale batteries and other storage to balance variable supply and data-centre load"
+      ],
+      "competitors": [
+        {
+          "name": "GE Vernova",
+          "ticker": "GEV",
+          "angle": "Gas turbines and grid equipment for utilities"
+        },
+        {
+          "name": "Eaton",
+          "ticker": "ETN",
+          "angle": "Electrical distribution and power-management equipment, including for data centres"
+        },
+        {
+          "name": "Quanta Services",
+          "ticker": "PWR",
+          "angle": "Builds and maintains electric transmission and distribution lines"
+        }
+      ],
+      "risks": [
+        "Supply-chain limits on transformers, cables and gas turbines raise costs and delay projects (the IEA notes tight supply chains).",
+        "Permitting, grid-interconnection queues and policy changes such as tax-credit phase-outs can shift project timing and returns.",
+        "Data-centre load growth is uncertain and forecasts can be revised; regulated utilities are also sensitive to interest rates."
+      ],
+      "vehicles": [
+        {
+          "ticker": "GRID",
+          "kind": "fund",
+          "note": "First Trust NASDAQ Clean Edge Smart Grid Infrastructure ETF; grid equipment and services"
+        },
+        {
+          "ticker": "XLU",
+          "kind": "fund",
+          "note": "State Street Utilities Select Sector SPDR ETF; US power and gas utilities"
+        },
+        {
+          "ticker": "PAVE",
+          "kind": "fund",
+          "note": "Global X U.S. Infrastructure Development ETF; US infrastructure builders and suppliers"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "cybersecurity",
+      "name": "Cybersecurity",
+      "tier": "mid",
+      "horizon": "long",
+      "summary": "Security software and services protect networks, cloud workloads, identities and data, and demand follows the rising cost of attacks and growing regulatory duties to protect systems.",
+      "demand": [
+        {
+          "claim": "Cybercrime losses reported to the FBI's Internet Crime Complaint Center rose",
+          "figure": "$20.877 billion in 2025 from 1,008,597 complaints, a 26% increase in losses from 2024",
+          "asOf": "2025",
+          "sourceName": "FBI Internet Crime Complaint Center (IC3), 2025 Internet Crime Report",
+          "source": "https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf"
+        },
+        {
+          "claim": "CrowdStrike, one platform vendor, reported growing annual recurring revenue (ARR)",
+          "figure": "$5.84 billion ARR at Jul 31, 2026, up 25% year over year; quarterly revenue $1.47 billion, up 26%",
+          "asOf": "2026-07-31",
+          "sourceName": "CrowdStrike, Q2 fiscal 2027 results (Aug 26, 2026), via Nasdaq",
+          "source": "https://www.nasdaq.com/press-release/crowdstrike-reports-second-quarter-fiscal-year-2027-financial-results-2026-08-26"
+        }
+      ],
+      "innovations": [
+        "AI-assisted detection, investigation and response that automates security-operations work",
+        "Platform consolidation of endpoint, identity, cloud and network security under fewer vendors",
+        "Post-quantum cryptography migration using NIST's FIPS 203, 204 and 205 standards"
+      ],
+      "competitors": [
+        {
+          "name": "Palo Alto Networks",
+          "ticker": "PANW",
+          "angle": "Network, cloud and security-operations platform"
+        },
+        {
+          "name": "CrowdStrike",
+          "ticker": "CRWD",
+          "angle": "Cloud-delivered endpoint and identity protection (Falcon platform)"
+        },
+        {
+          "name": "Zscaler",
+          "ticker": "ZS",
+          "angle": "Zero-trust cloud security for users and applications"
+        },
+        {
+          "name": "Microsoft",
+          "ticker": "MSFT",
+          "angle": "Bundles security with its cloud and productivity suites"
+        }
+      ],
+      "risks": [
+        "A faulty security-software update can cause global outages, as the July 2024 CrowdStrike incident showed.",
+        "Large platforms that bundle security (for example Microsoft) and tighter customer budgets can pressure vendor pricing and growth.",
+        "Attackers also use AI, so the technology race can shift quickly, and security stocks have often carried high valuation multiples that magnify drawdowns when growth slows."
+      ],
+      "vehicles": [
+        {
+          "ticker": "CIBR",
+          "kind": "fund",
+          "note": "First Trust NASDAQ Cybersecurity ETF; cybersecurity companies"
+        },
+        {
+          "ticker": "BUG",
+          "kind": "fund",
+          "note": "Global X Cybersecurity ETF; cybersecurity companies"
+        },
+        {
+          "ticker": "HACK",
+          "kind": "fund",
+          "note": "Amplify Cybersecurity ETF; cybersecurity companies"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "industrial-automation-reshoring",
+      "name": "Industrial automation and reshoring",
+      "tier": "mid",
+      "horizon": "mid",
+      "summary": "Robot, sensor, software and controls makers sell factories the equipment to raise output per worker, and labor scarcity and the move of production closer to home add to demand for automated capacity.",
+      "demand": [
+        {
+          "claim": "Industrial robots installed worldwide reached a new high, and the operating stock passed 5 million",
+          "figure": "more than 600,000 new units in 2025 (up 11%); operational stock a record 5 million units (up 9%)",
+          "asOf": "2025",
+          "sourceName": "International Federation of Robotics (IFR), World Robotics 2026 (Sep 24, 2026)",
+          "source": "https://ifr.org/ifr-press-releases/news/five-million-robots-now-operate-in-factories-globally"
+        },
+        {
+          "claim": "The US is now the second-largest industrial robot market, after China",
+          "figure": "38,400 robots installed in 2025 (up 12%), above Japan's 36,200",
+          "asOf": "2025",
+          "sourceName": "IFR, World Robotics 2026 press release (United States, Sep 24, 2026)",
+          "source": "https://ifr.org/downloads/press_docs/EN-2026-SEP-24-IFR_Press_Release_WR-USA.pdf"
+        },
+        {
+          "claim": "Counterpoint: US manufacturing construction spending is below its year-earlier level, so the factory-building side of reshoring has cooled",
+          "figure": "$170.7 billion annual rate in Aug 2026 (preliminary) versus $211.1 billion in Aug 2025",
+          "asOf": "2026-08",
+          "sourceName": "U.S. Census Bureau, Monthly Construction Spending, August 2026",
+          "source": "https://www.census.gov/construction/c30/pdf/release.pdf"
+        }
+      ],
+      "innovations": [
+        "Collaborative robots and AI-guided picking and inspection",
+        "Machine vision and edge AI inside production lines",
+        "Digital twins and software-defined automation that let plants be reconfigured faster"
+      ],
+      "competitors": [
+        {
+          "name": "Rockwell Automation",
+          "ticker": "ROK",
+          "angle": "US maker of industrial controls and factory software"
+        },
+        {
+          "name": "Siemens",
+          "ticker": "SIEGY",
+          "angle": "Digital-industries automation and software (OTC ADR in the US)"
+        },
+        {
+          "name": "Fanuc",
+          "ticker": "FANUY",
+          "angle": "Industrial robots and CNC controls (OTC ADR in the US)"
+        }
+      ],
+      "risks": [
+        "Factory capex is cyclical: orders slow when interest rates are high or demand softens, and the Census data already show construction cooling.",
+        "Tariff and trade-policy changes can encourage reshoring but also raise equipment and component costs.",
+        "China is the largest robot market, so Chinese demand and lower-cost Chinese suppliers matter, and long sales cycles make revenue lumpy."
+      ],
+      "vehicles": [
+        {
+          "ticker": "ROBO",
+          "kind": "fund",
+          "note": "Robo Global Robotics and Automation Index ETF; automation and robotics companies"
+        },
+        {
+          "ticker": "XLI",
+          "kind": "fund",
+          "note": "State Street Industrial Select Sector SPDR ETF; US large-cap industrials"
+        },
+        {
+          "ticker": "VIS",
+          "kind": "fund",
+          "note": "Vanguard Industrials ETF; US industrials across market caps"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "international-diversification",
+      "name": "International diversification (developed and emerging markets)",
+      "tier": "mid",
+      "horizon": "long",
+      "summary": "Non-US stock funds hold companies outside the United States, which spreads country, currency and sector exposure and adds economies that the IMF projects to grow faster than the developed world.",
+      "demand": [
+        {
+          "claim": "IMF projects faster real GDP growth in emerging market and developing economies than in advanced economies",
+          "figure": "Emerging and developing: 3.8% in 2026 and 4.5% in 2027; advanced: 1.7% in 2026 and 1.8% in 2027",
+          "asOf": "2026",
+          "sourceName": "IMF, World Economic Outlook Update, July 2026",
+          "source": "https://www.imf.org/-/media/files/publications/weo/2026/update/july/english/text.pdf"
+        },
+        {
+          "claim": "The United States is the dominant country weight in the MSCI ACWI, the benchmark of large and mid-cap stocks across 47 countries",
+          "figure": "United States 64.21%, Japan 5.2%, Taiwan 3.46%, United Kingdom 3% (Sep 30, 2026)",
+          "asOf": "2026-09-30",
+          "sourceName": "MSCI, ACWI Index factsheet",
+          "source": "https://www.msci.com/documents/10199/8d97d244-4685-4200-a24c-3e2942e3adeb"
+        }
+      ],
+      "innovations": [
+        "Total-international and ex-US index funds that combine developed and emerging markets in one ticker",
+        "Currency-hedged share classes that remove dollar-versus-local-currency swings",
+        "Technology supply chains in Taiwan and Japan that are now large benchmark weights (Taiwan's weight exceeds the UK's)"
+      ],
+      "competitors": [
+        {
+          "name": "Vanguard",
+          "ticker": null,
+          "angle": "Privately held (owned by its funds); sponsor of VXUS, VEA and VWO"
+        },
+        {
+          "name": "BlackRock (iShares)",
+          "ticker": "BLK",
+          "angle": "Sponsor of IXUS, IEFA and IEMG"
+        },
+        {
+          "name": "Charles Schwab",
+          "ticker": "SCHW",
+          "angle": "Sponsor of SCHF (developed markets) and SCHE (emerging markets)"
+        }
+      ],
+      "risks": [
+        "US-dollar moves can add to or subtract from returns for dollar-based holders of foreign stocks.",
+        "Emerging markets carry higher political, governance, regulatory and liquidity risk.",
+        "Non-US stocks have lagged the US for long stretches, so the diversification benefit is not guaranteed in any one period."
+      ],
+      "vehicles": [
+        {
+          "ticker": "VXUS",
+          "kind": "fund",
+          "note": "Vanguard Total International Stock ETF; developed and emerging markets in one fund"
+        },
+        {
+          "ticker": "VEA",
+          "kind": "fund",
+          "note": "Vanguard FTSE Developed Markets ETF; developed markets outside the US"
+        },
+        {
+          "ticker": "VWO",
+          "kind": "fund",
+          "note": "Vanguard FTSE Emerging Markets ETF; emerging markets"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "ai-compute-semiconductors",
+      "name": "AI compute and semiconductors",
+      "tier": "high",
+      "horizon": "mid",
+      "summary": "Chip designers, foundries, memory makers and equipment suppliers sell the processors, memory and networking that AI data centres need, and the electricity demand of those data centres is rising with them.",
+      "demand": [
+        {
+          "claim": "IEA estimates global data-centre electricity use and projects it to roughly double by 2030 in its Base Case",
+          "figure": "about 415 TWh in 2024 (about 1.5% of global electricity); about 945 TWh by 2030 (just under 3%) in the IEA Base Case",
+          "asOf": "2024 (projection to 2030)",
+          "sourceName": "IEA, Energy and AI (2025)",
+          "source": "https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai"
+        },
+        {
+          "claim": "WSTS forecasts the global semiconductor market to surge in 2026, led by memory",
+          "figure": "USD 1.51 trillion in 2026 (up 90%); memory above USD 800 billion (up around 250%)",
+          "asOf": "2026 (Spring 2026 forecast, Jun 2, 2026)",
+          "sourceName": "World Semiconductor Trade Statistics (WSTS), Spring 2026 forecast",
+          "source": "https://www.wsts.org/esraCMS/extension/media/f/WST/7618/WSTS_FC-Release-2026-May.pdf"
+        },
+        {
+          "claim": "NVIDIA's Data Center revenue more than doubled year over year",
+          "figure": "$89.0 billion in the quarter ended Jul 26, 2026 (up 117%); total revenue $96.2 billion",
+          "asOf": "2026-07-26",
+          "sourceName": "NVIDIA, Q2 fiscal 2027 results (Aug 26, 2026)",
+          "source": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027"
+        }
+      ],
+      "innovations": [
+        "High-bandwidth memory (HBM) stacked beside AI accelerators",
+        "Advanced chip packaging that joins logic and memory, such as TSMC's CoWoS",
+        "Custom AI accelerators (ASICs) designed with partners such as Broadcom, alongside GPUs",
+        "Rack-scale AI systems; NVIDIA says its Vera Rubin platform is ramping into full production"
+      ],
+      "competitors": [
+        {
+          "name": "NVIDIA",
+          "ticker": "NVDA",
+          "angle": "AI GPUs, networking and software; Data Center is its largest segment"
+        },
+        {
+          "name": "Advanced Micro Devices",
+          "ticker": "AMD",
+          "angle": "Instinct AI accelerators and EPYC server CPUs"
+        },
+        {
+          "name": "Broadcom",
+          "ticker": "AVGO",
+          "angle": "Custom AI accelerators and Ethernet networking for cloud providers"
+        },
+        {
+          "name": "Taiwan Semiconductor Manufacturing",
+          "ticker": "TSM",
+          "angle": "Leading-edge foundry used by major AI chip designers"
+        }
+      ],
+      "risks": [
+        "Demand depends on the capital spending of a few very large cloud buyers; a slowdown in their budgets would reach suppliers quickly.",
+        "Semiconductor pricing is cyclical, and the WSTS forecast leans heavily on memory; past memory booms have reversed.",
+        "Export controls, Taiwan concentration and grid-power bottlenecks can limit how fast AI capacity is deployed."
+      ],
+      "vehicles": [
+        {
+          "ticker": "SMH",
+          "kind": "fund",
+          "note": "VanEck Semiconductor ETF; large semiconductor companies, concentrated in a few names"
+        },
+        {
+          "ticker": "SOXX",
+          "kind": "fund",
+          "note": "iShares Semiconductor ETF; US-listed semiconductor companies"
+        }
+      ],
+      "evidence": "strong"
+    },
+    {
+      "id": "nuclear-power-uranium-smr",
+      "name": "Nuclear power, uranium and small modular reactors",
+      "tier": "high",
+      "horizon": "long",
+      "summary": "Utilities, fuel suppliers and reactor builders sell carbon-free firm power, and government goals and data-centre power needs have revived demand for existing plants, uranium fuel and new small modular reactors.",
+      "demand": [
+        {
+          "claim": "Global nuclear electricity generation set a new record in 2025",
+          "figure": "2,702 TWh (up 35 TWh on 2024); average capacity factor 83.7%",
+          "asOf": "2025",
+          "sourceName": "World Nuclear Association (release of Sep 7, 2026)",
+          "source": "https://world-nuclear.org/news-and-media/press-statements/global-nuclear-electricity-generation-reaches-record-high-for-second-year-running"
+        },
+        {
+          "claim": "World Nuclear Association estimates reactor uranium requirements and projects them to more than double by 2040 in its Reference Scenario",
+          "figure": "about 68,920 tU in 2025; just over 150,000 tU in 2040 (Reference Scenario)",
+          "asOf": "2025",
+          "sourceName": "World Nuclear Association, World Nuclear Fuel Report 2025",
+          "source": "https://world-nuclear.org/news-and-media/press-statements/world-nuclear-fuel-report-2025-investment-in-nuclear-fuel-cycle-needed-as-demand-for-nuclear-power-grows"
+        },
+        {
+          "claim": "US policy goal in Executive Order 14300: expand US nuclear capacity roughly fourfold by 2050",
+          "figure": "from approximately 100 GW in 2024 to 400 GW by 2050",
+          "asOf": "2025-05-23",
+          "sourceName": "The White House, Executive Order 14300 (May 23, 2025)",
+          "source": "https://www.whitehouse.gov/presidential-actions/2025/05/ordering-the-reform-of-the-nuclear-regulatory-commission/"
+        }
+      ],
+      "innovations": [
+        "Small modular reactors: the NRC issued a construction permit in September 2026 for TVA's GE Vernova Hitachi BWRX-300 at Clinch River, the first for a US commercial SMR",
+        "Non-light-water designs: TerraPower's sodium-cooled Natrium plant in Wyoming received an NRC construction permit in March 2026 and began construction in April 2026",
+        "DOE's Reactor Pilot Program, which lets private developers build test reactors under DOE authorization instead of NRC licensing"
+      ],
+      "competitors": [
+        {
+          "name": "Cameco",
+          "ticker": "CCJ",
+          "angle": "Uranium producer and fuel-services supplier with a stake in Westinghouse"
+        },
+        {
+          "name": "Centrus Energy",
+          "ticker": "LEU",
+          "angle": "Uranium enrichment and HALEU fuel supplier"
+        },
+        {
+          "name": "GE Vernova",
+          "ticker": "GEV",
+          "angle": "Partner in GE Vernova Hitachi, designer of the BWRX-300 SMR"
+        },
+        {
+          "name": "Oklo",
+          "ticker": "OKLO",
+          "angle": "Developer of advanced fission power plants for data-centre and industrial customers"
+        }
+      ],
+      "risks": [
+        "New nuclear builds have a history of cost overruns and delays, and US SMRs have no commercial operating record yet.",
+        "Uranium and enrichment markets are concentrated and geopolitical (Russia is a major enrichment supplier), so prices and supply can swing.",
+        "Many SMR and advanced-reactor developers depend on capital markets and long timelines, so dilution and financing risk are high."
+      ],
+      "vehicles": [
+        {
+          "ticker": "URA",
+          "kind": "fund",
+          "note": "Global X Uranium ETF; uranium miners plus nuclear-related companies"
+        },
+        {
+          "ticker": "URNM",
+          "kind": "fund",
+          "note": "Sprott Uranium Miners ETF; uranium mining companies"
+        },
+        {
+          "ticker": "NLR",
+          "kind": "fund",
+          "note": "VanEck Uranium and Nuclear ETF; uranium and nuclear-power companies"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "space-defense-technology",
+      "name": "Space and defense technology",
+      "tier": "high",
+      "horizon": "long",
+      "summary": "Defense primes, launch providers, satellite operators and defense-tech firms sell weapons, sensors, launch and connectivity to governments and businesses, with military budgets and the commercial space economy both growing.",
+      "demand": [
+        {
+          "claim": "World military spending rose for the 11th consecutive year",
+          "figure": "$2,887 billion in 2025, up 2.9% in real terms, equal to 2.5% of global GDP",
+          "asOf": "2025",
+          "sourceName": "SIPRI (release of Apr 27, 2026)",
+          "source": "https://www.sipri.org/media/press-release/2026/global-military-spending-rise-continues-european-and-asian-expenditures-surge"
+        },
+        {
+          "claim": "NATO allies committed to raise defence and security spending",
+          "figure": "5% of GDP annually by 2035, including at least 3.5% for core defence",
+          "asOf": "2025-06-25",
+          "sourceName": "NATO, The Hague Summit Declaration",
+          "source": "https://www.nato.int/en/about-us/official-texts-and-resources/official-texts/2025/06/25/the-hague-summit-declaration"
+        },
+        {
+          "claim": "Space Foundation estimates the global space economy grew by double digits",
+          "figure": "$686 billion in 2025, up 12%",
+          "asOf": "2025",
+          "sourceName": "Space Foundation, Global Space Economy report (Jul 2026)",
+          "source": "https://www.spacefoundation.org/wp-content/uploads/2026/07/SF-GSE-REPORT-2026July-FOR-RELEASE.pdf"
+        }
+      ],
+      "innovations": [
+        "Reusable launch vehicles and large satellite constellations such as Starlink",
+        "Autonomous systems, drones and counter-drone defenses",
+        "Missile-defense and space-based sensing programs such as the US Golden Dome initiative"
+      ],
+      "competitors": [
+        {
+          "name": "Lockheed Martin",
+          "ticker": "LMT",
+          "angle": "US defense prime (F-35 fighter, missiles, space systems)"
+        },
+        {
+          "name": "SpaceX",
+          "ticker": "SPCX",
+          "angle": "Launch and Starlink operator; listed on Nasdaq in June 2026"
+        },
+        {
+          "name": "Rocket Lab",
+          "ticker": "RKLB",
+          "angle": "Small-launch and spacecraft maker"
+        },
+        {
+          "name": "Anduril",
+          "ticker": null,
+          "angle": "Private defense-tech company building autonomous systems"
+        }
+      ],
+      "risks": [
+        "Revenue depends on government budgets and politics; SIPRI shows US military spending fell in 2025 while Europe and Asia rose, so the regional mix is shifting.",
+        "Fixed-price development programs can bring large cost overruns, and launch or satellite failures are costly.",
+        "Newly listed and venture-funded space and defense-tech firms can be volatile and have little public track record."
+      ],
+      "vehicles": [
+        {
+          "ticker": "ITA",
+          "kind": "fund",
+          "note": "iShares U.S. Aerospace & Defense ETF; US defense primes and aerospace suppliers"
+        },
+        {
+          "ticker": "UFO",
+          "kind": "fund",
+          "note": "Procure Space ETF; companies tied to the space economy"
+        },
+        {
+          "ticker": "SHLD",
+          "kind": "fund",
+          "note": "Global X Defense Tech ETF; defense technology companies"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "robotics-humanoid-automation",
+      "name": "Robotics and humanoid automation",
+      "tier": "high",
+      "horizon": "long",
+      "summary": "Robot makers sell machines that move goods, clean and assist surgeons, plus early humanoids for human spaces; service robots are an established market while humanoids are still at pilot scale, and AI could make robots more adaptable.",
+      "demand": [
+        {
+          "claim": "Professional service robot shipments grew strongly worldwide",
+          "figure": "almost 250,000 units in 2025 (up 24%)",
+          "asOf": "2025",
+          "sourceName": "IFR, World Robotics 2026 Service Robots (Sep 30, 2026)",
+          "source": "https://ifr.org/ifr-press-releases/news/global-sales-of-professional-service-robots-surge-24-percent"
+        },
+        {
+          "claim": "Humanoid robot sales are tiny, and IFR notes most current uses remain specialized and often need human teleoperation",
+          "figure": "about 7,000 full-size humanoids (above 140 cm) sold worldwide in 2025",
+          "asOf": "2025",
+          "sourceName": "IFR, World Robotics 2026 Service Robots (Sep 30, 2026)",
+          "source": "https://ifr.org/ifr-press-releases/news/global-sales-of-professional-service-robots-surge-24-percent"
+        }
+      ],
+      "innovations": [
+        "AI models that control robot arms and legs from camera and language input (vision-language-action models)",
+        "Humanoid platforms such as Tesla's Optimus and humanoids from Figure AI and Unitree",
+        "Autonomous mobile robots and automated storage systems for warehouses (transport and logistics is the top professional service robot application, per IFR)"
+      ],
+      "competitors": [
+        {
+          "name": "Tesla",
+          "ticker": "TSLA",
+          "angle": "Developing the Optimus humanoid robot alongside its vehicle business"
+        },
+        {
+          "name": "Figure AI",
+          "ticker": null,
+          "angle": "Private humanoid robot developer"
+        },
+        {
+          "name": "Unitree",
+          "ticker": null,
+          "angle": "Chinese humanoid and quadruped robot maker that pursued a Shanghai STAR Market listing in 2026"
+        },
+        {
+          "name": "Symbotic",
+          "ticker": "SYM",
+          "angle": "Warehouse automation systems"
+        }
+      ],
+      "risks": [
+        "Humanoid volumes are tiny, and IFR says many units were bought to generate data for AI models rather than to do productive work.",
+        "Reliability, safety standards and unit economics are unproven outside pilots, and many systems still rely on human teleoperation.",
+        "Private valuations and new listings can run far ahead of revenue, and Chinese makers are competing aggressively on cost."
+      ],
+      "vehicles": [
+        {
+          "ticker": "BOTZ",
+          "kind": "fund",
+          "note": "Global X Robotics & Artificial Intelligence ETF; robotics and AI companies"
+        },
+        {
+          "ticker": "ROBO",
+          "kind": "fund",
+          "note": "Robo Global Robotics and Automation Index ETF; robotics and automation companies"
+        },
+        {
+          "ticker": "KOID",
+          "kind": "fund",
+          "note": "KraneShares Global Humanoid Robotics and Physical AI Index ETF; a new, narrow humanoid-focused fund"
+        }
+      ],
+      "evidence": "moderate"
+    },
+    {
+      "id": "quantum-computing-post-quantum-security",
+      "name": "Quantum computing and post-quantum security",
+      "tier": "high",
+      "horizon": "long",
+      "summary": "Quantum hardware and software companies sell early machines and cloud access for research and pilots, while governments push the move to post-quantum encryption because future machines could break today's public-key cryptography.",
+      "demand": [
+        {
+          "claim": "IonQ, a listed quantum company, reported full-year revenue: a small base that is growing quickly",
+          "figure": "$130.0 million GAAP revenue in 2025, up 202% year over year",
+          "asOf": "2025",
+          "sourceName": "IonQ, fourth-quarter and full-year 2025 results (Feb 25, 2026)",
+          "source": "https://investors.ionq.com/news/news-details/2026/IonQ-Announces-Fourth-Quarter-and-Full-Year-2025-Financial-Results/default.aspx"
+        },
+        {
+          "claim": "US federal target for migrating to post-quantum cryptography (NSM-10) and NIST's draft transition dates for current public-key algorithms",
+          "figure": "2035 federal migration goal; NIST draft IR 8547: quantum-vulnerable algorithms deprecated after 2030 and disallowed after 2035",
+          "asOf": "2024",
+          "sourceName": "NIST, IR 8547 initial public draft (Nov 2024)",
+          "source": "https://nvlpubs.nist.gov/nistpubs/ir/2024/NIST.IR.8547.ipd.pdf"
+        }
+      ],
+      "innovations": [
+        "Error-corrected logical qubits, the key hardware milestone for useful machines",
+        "Competing qubit technologies: trapped ions, superconducting circuits, neutral atoms and photonics",
+        "NIST post-quantum cryptography standards (FIPS 203, 204 and 205, published August 2024)"
+      ],
+      "competitors": [
+        {
+          "name": "IBM",
+          "ticker": "IBM",
+          "angle": "Superconducting quantum systems and a public hardware roadmap"
+        },
+        {
+          "name": "Alphabet (Google Quantum AI)",
+          "ticker": "GOOGL",
+          "angle": "Superconducting quantum chips such as Willow"
+        },
+        {
+          "name": "IonQ",
+          "ticker": "IONQ",
+          "angle": "Trapped-ion quantum computers; a full-stack pure play"
+        },
+        {
+          "name": "D-Wave Quantum",
+          "ticker": "QBTS",
+          "angle": "Annealing quantum computers sold as cloud services"
+        }
+      ],
+      "risks": [
+        "Technical risk: building large error-corrected machines is unproven at commercial scale, and timelines are uncertain.",
+        "Pure-play revenue is small relative to the scale of investment, and companies depend on capital markets and equity raises that can dilute holders.",
+        "Claims of quantum advantage are contested, and the security migration may reward cybersecurity vendors more than quantum hardware makers."
+      ],
+      "vehicles": [
+        {
+          "ticker": "QTUM",
+          "kind": "fund",
+          "note": "Defiance Quantum ETF; quantum computing and related technology companies, not all pure plays"
+        },
+        {
+          "ticker": "IBM",
+          "kind": "stock",
+          "note": "Diversified large-cap with an in-house quantum program; quantum is not its main revenue source"
+        }
+      ],
+      "evidence": "thin"
+    }
+  ]
+}

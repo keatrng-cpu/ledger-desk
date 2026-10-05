@@ -31,6 +31,8 @@
 import { ROOM_CLOCK } from "./mandate";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
+import * as IV from "./live-voices-invest";
+import { investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
 import { deskAudit } from "./audit";
 import {
   ATM_DELTA,
@@ -1032,6 +1034,143 @@ function rndCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   }
 }
 
+/* ── The investment office ─────────────────────────────────────────────── */
+
+/*
+ * The long game's own talk, held to the same rules as the rest of the room: it speaks when the data gives it something
+ * to say and not otherwise. The funnel once a day, the book when its numbers moved, a theme of the day with a second look,
+ * a headline that touches a name the office watches, and the board's evening agenda. All of it is chatter (urgency 0)
+ * except a headline about a name the book HOLDS (urgency 1). None of it runs inside the NY AM live window — the desk's
+ * morning is the futures book's — and none of it ever sizes, buys or sells anything.
+ */
+const INV_LIVE_FROM_MIN = 9 * 60 + 25;
+const INV_LIVE_TO_MIN = 11 * 60 + 15;
+const INV_BOOK_GAP_MS = 3 * 3_600_000;
+const INV_NEWS_GAP_MS = 45 * 60_000;
+const INV_NEWS_MAX_AGE_MS = 20 * 3_600_000;
+/** On the first look a headline older than this is context already seen, not something to announce. */
+const INV_PRIME_AGE_MS = 90 * 60_000;
+
+function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const inv = w.invest;
+  if (!inv) return;
+  const now = w.nowMs;
+  const day = w.clock.etDate;
+  const m = w.clock.etMin;
+  const trading = w.clock.isWeekday && !w.clock.holiday;
+  if (trading && m >= INV_LIVE_FROM_MIN && m < INV_LIVE_TO_MIN) return;
+
+  // A headline that touches the book, a theme's vehicles or a competitor on the research list.
+  if (!st.topicAt["invest:primed"]) {
+    st.topicAt["invest:primed"] = now;
+    for (const n of w.news) {
+      const age = n.publishedMs != null ? now - n.publishedMs : Infinity;
+      if (age > INV_PRIME_AGE_MS && watchHit(inv, n.title, n.tickers)) st.topicAt[`invest:news:${newsHash(n)}`] = now;
+    }
+  }
+  if (now - (st.topicAt["invest:newsfam"] ?? 0) >= INV_NEWS_GAP_MS) {
+    let best: { n: NewsLite; hit: WatchHit; topic: string; score: number } | null = null;
+    for (const n of w.news) {
+      const topic = `invest:news:${newsHash(n)}`;
+      if (st.topicAt[topic] != null || n.publishedMs == null || now - n.publishedMs > INV_NEWS_MAX_AGE_MS) continue;
+      const hit = watchHit(inv, n.title, n.tickers);
+      if (!hit) continue;
+      const score = (hit.kind === "held" ? 2 : hit.kind === "theme" ? 1 : 0) * 1e13 + n.publishedMs;
+      if (!best || score > best.score) best = { n, hit, topic, score };
+    }
+    if (best) {
+      const { n, hit, topic } = best;
+      out.push({
+        id: `invest|news|${newsHash(n)}`,
+        kind: "invest",
+        topic,
+        urgency: hit.kind === "held" ? 1 : 0,
+        prio: 4,
+        at: n.publishedMs ?? now,
+        label: `the office's headline · ${hit.label}`,
+        build: (c) => IV.exInvNews(c, { inv, n, hit }),
+        commit: (s) => {
+          s.topicAt["invest:newsfam"] = now;
+        },
+      });
+    }
+  }
+
+  // The funnel: day-trading income and the other income, into the long book. Once a day, after the live window.
+  const fTopic = `invest:funnel:${day}`;
+  if (m >= (trading ? 11 * 60 + 30 : 9 * 60 + 30) && st.topicAt[fTopic] == null) {
+    out.push({
+      id: `invest|funnel|${day}`,
+      kind: "invest",
+      topic: fTopic,
+      urgency: 0,
+      prio: 3,
+      at: now,
+      label: "the funnel · income into the long book",
+      build: (c) => IV.exInvFunnel(c, { inv }),
+      commit: () => {},
+    });
+  }
+
+  // The book: when its numbers moved (or never said), not on a timer.
+  const bookSig = [inv.book.positions, Math.round(inv.book.totalUsd), inv.book.beyondBand, Math.round(inv.funnel.waitingUsd), inv.book.sleeves.map((x) => Math.round(x.weight * 100)).join("/")].join("|");
+  const bTopic = "invest:book";
+  const bNever = st.topicAt[bTopic] == null;
+  if (m >= (trading ? 12 * 60 : 10 * 60) && (bNever || (st.topicSig[bTopic] !== bookSig && now - (st.topicAt[bTopic] ?? 0) >= INV_BOOK_GAP_MS))) {
+    out.push({
+      id: `invest|book|${bookSig}`,
+      kind: "invest",
+      topic: bTopic,
+      urgency: 0,
+      prio: 3,
+      at: now,
+      label: "the long book · sleeves and research coverage",
+      build: (c) => IV.exInvBook(c, { inv }),
+      commit: (s) => {
+        s.topicSig[bTopic] = bookSig;
+      },
+    });
+  }
+
+  // The theme of the day, and a second look later. Only the latest look that is due is a candidate, so a late load says one.
+  const looks = investLooks(w.clock.isWeekday);
+  for (let k = looks.length - 1; k >= 0; k--) {
+    if (m < looks[k]!) continue;
+    const tTopic = `invest:theme:${day}:${k}`;
+    const theme = themeOfTheDay(inv, k);
+    if (theme && st.topicAt[tTopic] == null) {
+      out.push({
+        id: `invest|theme|${day}|${k}|${theme.id}`,
+        kind: "invest",
+        topic: tTopic,
+        urgency: 0,
+        prio: 2,
+        at: now,
+        label: `theme of the day · ${theme.name}`,
+        build: (c) => IV.exInvTheme(c, { inv, theme }),
+        commit: () => {},
+      });
+    }
+    break;
+  }
+
+  // The board: the evening agenda after the close (30 minutes after the options close), or mid-morning on a weekend.
+  const dTopic = `invest:board:${day}`;
+  if (m >= (trading ? ROOM_CLOCK.optionsCloseMin + 30 : 10 * 60) && st.topicAt[dTopic] == null) {
+    out.push({
+      id: `invest|board|${day}`,
+      kind: "invest",
+      topic: dTopic,
+      urgency: 0,
+      prio: 2,
+      at: now,
+      label: "the board · agenda and minutes",
+      build: (c) => IV.exInvBoard(c, { inv }),
+      commit: () => {},
+    });
+  }
+}
+
 /* ── Heartbeats ────────────────────────────────────────────────────────── */
 
 interface Hb {
@@ -1309,6 +1448,8 @@ function rollDay(st: TalkState, w: TalkWorld) {
   st.raid = {};
   // Day-scoped goal talk (the council, the re-plan, a call asked of the trader) starts over; the pace and the finals persist.
   st.goalSig = Object.fromEntries(Object.entries(st.goalSig).filter(([k]) => k === "pace" || k === "paceAt" || k.startsWith("final|") || k.startsWith("ladder|") || k.includes(w.clock.etDate)));
+  // Day-keyed investment topics start over; the book's signature and each headline's seen-mark persist.
+  for (const k of Object.keys(st.topicAt)) if (/^invest:(funnel|theme|board):/.test(k) && !k.includes(w.clock.etDate)) delete st.topicAt[k];
   st.dayKey = w.clock.etDate;
 }
 
@@ -1375,6 +1516,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   seatCands(w, st, cands);
   goalCands(w, st, cands);
   rndCands(w, st, cands);
+  investCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
 

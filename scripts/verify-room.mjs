@@ -248,10 +248,14 @@ check("Vince is scored per card: an unfilled plan counts as a miss", lr.track.Vi
 console.log("floor plan and the Blender office");
 // Chairs face what they serve: yaw 0 faces +z, so the front is (sin yaw, cos yaw).
 const table = LAYOUT.furniture.find((x) => x.id === "table_war");
-const chairsFace = LAYOUT.furniture
-  .filter((x) => x.kind === "meeting_chair")
-  .every((x) => Math.sin((x.rot * Math.PI) / 180) * (table.pos[0] - x.pos[0]) + Math.cos((x.rot * Math.PI) / 180) * (table.pos[1] - x.pos[1]) > 0);
+const facesIt = (x, t) => Math.sin((x.rot * Math.PI) / 180) * (t.pos[0] - x.pos[0]) + Math.cos((x.rot * Math.PI) / 180) * (t.pos[1] - x.pos[1]) > 0;
+const chairsFace = LAYOUT.furniture.filter((x) => /^mchair_\d+$/.test(x.id)).every((x) => facesIt(x, table));
 check("war-room chairs face the table", chairsFace);
+// The investment wing's meeting chairs face their own tables: the boardroom's, and the chair's visitors face the chair's desk.
+const boardTable = LAYOUT.furniture.find((x) => x.id === "table_Board");
+check("boardroom chairs face the boardroom table", Boolean(boardTable) && LAYOUT.furniture.filter((x) => /^mchair_B\d+$/.test(x.id)).every((x) => facesIt(x, boardTable)));
+const ceoDesk = LAYOUT.furniture.find((x) => x.id === "desk_Chair");
+check("the chair's visitors face the chair's desk", Boolean(ceoDesk) && LAYOUT.furniture.filter((x) => /^vchair_C\d+$/.test(x.id)).every((x) => facesIt(x, ceoDesk)));
 
 console.log("floor plan: the annex offices and walking");
 {

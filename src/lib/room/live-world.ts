@@ -28,6 +28,7 @@ import type {
   CalRead,
   CardRead,
   GoalLite,
+  InvestLite,
   LabLite,
   LevelRef,
   MindsRead,
@@ -422,6 +423,8 @@ export interface WorldInput {
   lab: LabRead | null;
   /** The goal, the seats and the R&D board, computed once per desk build (race.ts). */
   race?: Race | null;
+  /** The investment office's read of the Invest tab and the research file (invest-office.ts). */
+  invest?: InvestLite | null;
   busyUntil: number;
 }
 
@@ -462,6 +465,7 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     goal: goalLite(i.race ?? null, i.pulse.vix),
     seats: seatsLite(i.race ?? null),
     rnd: rndLite(i.race ?? null),
+    invest: i.invest ?? null,
     evidence: evidenceHeadlines(),
     busyUntil: i.busyUntil,
   };
