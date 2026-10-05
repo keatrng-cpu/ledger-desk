@@ -83,5 +83,5 @@ trading accuracy it is a measurement, a diagnostic or a fix to something that mi
 | 44 | A server-side runner, so a position is managed with the tab closed (`SERVER_RUNNER_BUILT`) | Backlog — needs infrastructure; the audit names it every session until it exists |
 | 45 | Real option quotes (Alpaca shadow mode) to judge the Black-Scholes prices against | Backlog — needs the trader's keys and OPRA for live-grade quotes |
 | 46 | Measure the hit rate of OTM strikes | Backlog — nothing is measured for them; the ladder is model-priced on one card |
-| 47 | Schedule `/api/cron/exec-flatten` on Netlify (it is wired for Vercel) | Backlog — Make/Zapier or a Netlify scheduled function must send the GET |
+| 47 | Schedule `/api/cron/exec-flatten` on Netlify (it is wired for Vercel) | Scheduled — `netlify/functions/exec-flatten.mjs` is copied into Nitro's function dir on build. It calls the route and does nothing until `CRON_SECRET` is set and the phase is paper or live |
 | 48 | Move the PATH bands or the 0.65 floor onto P(T1) | Backlog — needs the trader's numbers in config.ts; not an AI change |

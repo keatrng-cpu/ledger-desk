@@ -188,6 +188,7 @@ console.log("the live checklist and the evidence");
     "no quote comparisons": { flags: all, evidence: { ...base.evidence, medianQuoteErrPct: null, quoteErrN: 0 } },
     "too few comparisons": { flags: all, evidence: { ...base.evidence, quoteErrN: 5 } },
     "entries fill far from the ask": { flags: all, evidence: { ...base.evidence, medianEntrySlipPct: 4 } },
+    "one fill slipped past the cap": { flags: all, evidence: { ...base.evidence, desyncFills: 1 } },
     "an unreconciled order": { flags: all, evidence: { ...base.evidence, unreconciled: 1 } },
     "a high error rate": { flags: all, evidence: { ...base.evidence, errorRatePct: 9 } },
     "kill switch on": { flags: all, killed: true },
@@ -210,6 +211,8 @@ console.log("the live checklist and the evidence");
   check("quote comparisons use ask for buys, bid for sells, paper and shadow", ev.quoteErrN >= 5, String(ev.quoteErrN));
   check("the median model-vs-quote error is a percent", ev.medianQuoteErrPct != null && ev.medianQuoteErrPct >= 0 && ev.medianQuoteErrPct < 12, String(ev.medianQuoteErrPct));
   check("entry slip is the fill vs the quoted ask", close(G.evidenceOf([row({})], T).medianEntrySlipPct, ((3.77 - 3.75) / 3.75) * 100, 1e-9));
+  check("a fill inside the cap is not an outlier", G.evidenceOf([row({})], T).desyncFills === 0);
+  check("one fill past the cap is counted even when a median of many would hide it", G.evidenceOf([row({ filledAvgPx: 4.2 })], T).desyncFills === 1);
   check("an error and a working row older than ten minutes are unreconciled", ev.unreconciled === 2, String(ev.unreconciled));
   check("error rate = errors and rejects over orders that reached the broker", close(ev.errorRatePct, (2 / 6) * 100, 1e-9) || ev.errorRatePct > 0, String(ev.errorRatePct));
   check("shadow rows are counted apart", ev.shadowN === 1);

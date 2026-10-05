@@ -11,7 +11,7 @@
  */
 const { playDrill, drillFrames, runDrillStep } = await import("../src/lib/room/drill.ts");
 const { runRoomCycle, outputViolations } = await import("../src/lib/room/orchestrator.ts");
-const { emptyBook } = await import("../src/lib/room/paper-book.ts");
+const { emptyBook, ledgerOf } = await import("../src/lib/room/paper-book.ts");
 const { blackScholes } = await import("../src/lib/room/option-math.ts");
 const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
 const { readFileSync, existsSync } = await import("node:fs");
@@ -96,6 +96,19 @@ halted.counters.dayKey = "2026-10-05";
 halted.counters.dayStartEquity = 10000;
 const h = runDrillStep(halted, null, f).cycle;
 check("daily 2% halt refuses the fill", h.output.broker_action.action_type === "HOLD" && h.trace.refusalGate === "halt_day", h.trace.refusalGate);
+const step = runDrillStep(emptyBook(10000), null, f);
+const staleTape = (desk) => runRoomCycle(step.input, { desk, ledger: ledgerOf(emptyBook(10000)) }, step.nowMs);
+const refused = (desk) => {
+  const c = staleTape(desk);
+  return c.output.broker_action.action_type === "HOLD" && c.trace.refusalGate === "fresh_tape";
+};
+check("a 10-minute Yahoo print is not a fill the broker could have made", refused({ ...step.desk, lagSec: 600, feed: "yahoo" }));
+check("an undated print is not a fill", refused({ ...step.desk, lagSec: null, feed: "yahoo" }));
+check("synthetic tape is not a price", refused({ ...step.desk, lagSec: 0, feed: "synthetic" }));
+const cronSrc = readFileSync(new URL("../netlify/functions/exec-flatten.mjs", import.meta.url), "utf8");
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+check("the Netlify flatten cron rings the 15:30 route on both DST hours", /\/api\/cron\/exec-flatten/.test(cronSrc) && /35,40 19,20 \* \* 1-5/.test(cronSrc) && /CRON_SECRET/.test(cronSrc));
+check("the build copies that cron into Nitro's function directory", /install-netlify-cron/.test(pkg.scripts.build));
 
 console.log("pricer");
 const c = blackScholes(775, 776, 1.25 / 365, 0.2, "CALL").price;

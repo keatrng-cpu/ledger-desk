@@ -78,7 +78,7 @@ export const ROOM_BACKERS = 3;
 /** The soft gates: Nova's two questions about the OPTION on the plan. Everything else the checklist asks is hard. */
 export const SOFT_GATES: ReadonlySet<string> = new Set(["ev", "t1_pays"]);
 /** What every seat reads the same way (the desk's card and the clock, not the seat's own account). */
-const SHARED_GATES = ["market", "desk", "card", "desk_word", "desk_ticket", "dte", "before_flat"] as const;
+const SHARED_GATES = ["market", "desk", "fresh_tape", "card", "desk_word", "desk_ticket", "dte", "before_flat"] as const;
 
 const KEEP = { closed: 60, skipped: 60, decisions: 40, events: 80, touches: 120, curve: 150, syndicates: 60, seen: 60 } as const;
 const money = (n: number) => Math.round(n * 100) / 100;

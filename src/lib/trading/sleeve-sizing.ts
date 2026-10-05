@@ -49,7 +49,7 @@
  */
 
 import { dailyDecayFrac } from "./stop-coherence";
-import type { TradePlan } from "./trade-plan";
+import { MIN_RISK_ATR, type TradePlan } from "./trade-plan";
 import { UNDERLIER_DIVISOR } from "./stop-coherence";
 
 /** Per-trade debit ceiling. The trader's stated cap. */
@@ -164,8 +164,8 @@ export function sizeFromStop(input: SizeInput): SleeveSize {
       unaffordable: true,
       lines: [
         `STOP TOO TIGHT TO SIZE. ${input.plan.riskPts.toFixed(2)}pt of risk` +
-          (atr ? ` against an ATR of ${atr.toFixed(2)} — under a quarter of one bar's range.` : ".") +
-          ` Measured on 387 shadow trades, plans this tight won 0 of 31. The levels may be right; the STOP is not, and a size solved from it would price risk that is not really there. Re-price the stop beyond the sweep, or stand.`,
+          (atr ? ` against an ATR of ${atr.toFixed(2)} — under ${MIN_RISK_ATR}× one bar's range.` : ".") +
+          ` Measured on 387 shadow trades, plans under a quarter ATR won 0 of 31, and every band under ${MIN_RISK_ATR} ATR was negative in both halves. The levels may be right; the STOP is not, and a size solved from it would price risk that is not really there. Re-price the stop beyond the sweep, or stand.`,
       ],
     };
   }

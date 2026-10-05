@@ -50,6 +50,7 @@ import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import { planAgents, type Agenda, type AgentAct, type Meeting, type MindState } from "./agents";
 import { lensesFor, type Lenses } from "./debate";
 import { pickExit, ROOM_POLICY } from "./exits";
+import { EXEC_LIMITS } from "./exec/limits";
 import { STOP_TXT, clockEt, contractName, prem, px, ptsTxt, sideWord, usd } from "./format";
 import type { LabRead } from "./lab";
 import { ROOM_CLOCK, ROOM_MANDATE, VIX_ELEVATED, VIX_STRESSED } from "./mandate";
@@ -531,6 +532,26 @@ export function evaluateEntry(
 
   gate("market", optionsOpen, optionsOpen ? "Options market open" : "Options market closed — 09:30–16:00 ET weekdays");
   gate("desk", Boolean(desk), desk ? `Desk read · ${desk.feed}` : "No desk read on the wire — the room does not open on RSI or a trend tag");
+  // A 10-minute Yahoo print is the closed bar, late. The executor already
+  // refuses a new entry on it (maxFeedLagSec). The paper book has to refuse
+  // the same touch, or it books a win the broker could not have filled.
+  // Exits do not come through here, so a stale tape can still flatten.
+  if (desk) {
+    const lag = desk.lagSec;
+    const synthetic = /synthetic/i.test(desk.feed);
+    const fresh = !synthetic && lag != null && lag <= EXEC_LIMITS.maxFeedLagSec;
+    gate(
+      "fresh_tape",
+      fresh,
+      fresh
+        ? `Tape ${Math.round(lag)}s · ${desk.feed}`
+        : synthetic
+          ? "Synthetic tape — not a price, no entry"
+          : lag == null
+            ? `Tape lag unknown (${desk.feed}) — no entry on an undated print`
+            : `Tape ${Math.round(lag)}s behind (> ${EXEC_LIMITS.maxFeedLagSec}s) — that touch already happened`,
+    );
+  }
   gate("card", Boolean(e), e ? `${e.name} card` : "No 0–1 DTE card on the desk");
   if (e) {
     gate(
