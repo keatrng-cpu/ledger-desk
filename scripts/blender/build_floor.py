@@ -93,7 +93,8 @@ PAL = {
     # floors
     "carpet_red": ("#5a3a3b", 0.95, 0.0), "carpet_violet": ("#4a405e", 0.95, 0.0),
     "carpet_green": ("#3a5546", 0.95, 0.0), "carpet_navy": ("#2f3c57", 0.95, 0.0),
-    "carpet_slate": ("#4b535d", 0.95, 0.0), "wood": ("#a5733f", 0.5, 0.0),
+    "carpet_slate": ("#4b535d", 0.95, 0.0), "carpet_teal": ("#2b5a63", 0.95, 0.0),
+    "carpet_plum": ("#5a3a55", 0.95, 0.0), "wood": ("#a5733f", 0.5, 0.0),
     "tile": ("#9ba1a9", 0.5, 0.0),
     # architecture
     "wall": ("#dcd5cb", 0.85, 0.0), "baseboard": ("#4e4842", 0.6, 0.0),

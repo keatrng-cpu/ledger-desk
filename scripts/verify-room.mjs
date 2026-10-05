@@ -255,8 +255,13 @@ check("war-room chairs face the table", chairsFace);
 
 console.log("floor plan: the annex offices and walking");
 {
-  const procRooms = LAYOUT.rooms.filter((r) => r.procedural);
-  check("the three annex offices are procedural (the GLB predates them)", procRooms.map((r) => r.id).sort().join() === "office_Goal,office_Ops,office_RnD", procRooms.map((r) => r.id).join());
+  // The annex (three offices with their glass, furniture and screens) is baked into office.glb. Its pieces are
+  // picked by id: the "procedural" flag only ever meant "built at runtime because the GLB predates them".
+  const ANNEX_ROOMS = ["office_RnD", "office_Ops", "office_Goal"];
+  const isAnnexWall = (w) => /^(lab|ops|goal)_/.test(w.id);
+  const isAnnexFurniture = (f) => /_(RnD|Ops|Goal)$/.test(f.id);
+  const procRooms = ANNEX_ROOMS.map((id) => LAYOUT.rooms.find((r) => r.id === id)).filter(Boolean);
+  check("the three annex offices are present and not flagged procedural (the GLB carries them)", procRooms.map((r) => r.id).sort().join() === "office_Goal,office_Ops,office_RnD" && procRooms.every((r) => !r.procedural), procRooms.map((r) => `${r.id}${r.procedural ? " (procedural)" : ""}`).join());
   const ids = [...LAYOUT.rooms, ...LAYOUT.walls, ...LAYOUT.furniture, ...LAYOUT.screens, ...LAYOUT.emissives].map((x) => x.id);
   check("every id in the plan is unique (screens and keyboards are found by exact name)", new Set(ids).size === ids.length, ids.filter((x, i) => ids.indexOf(x) !== i).join());
   const inside = (r, [x, z]) => x > r.x[0] && x < r.x[1] && z > r.z[0] && z < r.z[1];
@@ -267,14 +272,14 @@ console.log("floor plan: the annex offices and walking");
     const key = r.id.replace("office_", "");
     const mons = LAYOUT.screens.filter((x) => x.id.startsWith(`mon_${key === "RnD" ? "Rnd" : key}_`));
     check(`${r.id}: monitors face the chair, sit on the desk and are inside the room`, mons.length >= 2 && mons.every((m) => m.facing === 0 && inside(r, [m.center[0], m.center[2]]) && m.center[2] < sp.pos[1]), mons.map((m) => m.id).join());
-    const walls = LAYOUT.walls.filter((w) => w.procedural && w.id.startsWith(key === "RnD" ? "lab_" : `${key.toLowerCase()}_`));
+    const walls = LAYOUT.walls.filter((w) => isAnnexWall(w) && w.id.startsWith(key === "RnD" ? "lab_" : `${key.toLowerCase()}_`));
     check(`${r.id}: walled in glass with a door at least 1.0 m wide`, walls.length >= 2 && walls.every((w) => w.kind === "glass") && walls.some((w) => w.doors.some(([a, b]) => b - a >= 1.0)), walls.map((w) => w.id).join());
     check(`${r.id}: the plate on its glass names it`, LAYOUT.screens.some((x) => x.id === `plate_${key === "RnD" ? "Rnd" : key}`));
   }
   const overlap = (a, b) => a.x[0] < b.x[1] && b.x[0] < a.x[1] && a.z[0] < b.z[1] && b.z[0] < a.z[1];
   check("the annex offices do not overlap each other", !overlap(procRooms[0], procRooms[1]) && !overlap(procRooms[1], procRooms[2]) && !overlap(procRooms[0], procRooms[2]));
   check("…and stay inside the building", procRooms.every((r) => r.x[0] >= LAYOUT.bounds.x[0] && r.x[1] <= LAYOUT.bounds.x[1] && r.z[0] >= LAYOUT.bounds.z[0] && r.z[1] <= LAYOUT.bounds.z[1]));
-  // A procedural piece must not sit inside a piece the GLB already has.
+  // An annex piece must not sit inside a piece of the original office.
   const box = (f) => {
     const swap = Math.abs(Math.round(f.rot / 90)) % 2 === 1;
     const [w, , d] = f.size;
@@ -284,7 +289,7 @@ console.log("floor plan: the annex offices and walking");
   };
   const solid = LAYOUT.furniture.filter((f) => f.obstacle);
   const clash = [];
-  for (const f of solid.filter((x) => x.procedural)) for (const g of solid.filter((x) => !x.procedural)) if (overlap(box(f), box(g))) clash.push(`${f.id}×${g.id}`);
+  for (const f of solid.filter(isAnnexFurniture)) for (const g of solid.filter((x) => !isAnnexFurniture(x))) if (overlap(box(f), box(g))) clash.push(`${f.id}×${g.id}`);
   check("no annex furniture sits inside furniture the GLB already has", clash.length === 0, clash.join());
 
   const FS = await import("../src/components/room/floor-scene.ts");

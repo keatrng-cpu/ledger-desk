@@ -35,7 +35,7 @@ trading accuracy it is a measurement, a diagnostic or a fix to something that mi
 | 16 | Name plates shrink to fit their width | Shipped |
 | 17 | The seat league on a TV in the Goal Room | Shipped — `tv_goal` |
 | 18 | The scanner's border pulses when a card is ARMED | Backlog — needs a timed redraw of a text-heavy texture; not worth the cost yet |
-| 19 | Bake the annex into `office.glb` | Backlog — no Blender (`bpy`) in this environment; the runtime builds it from the same plan in the meantime |
+| 19 | Bake the annex into `office.glb` | Shipped (2026-10-05) — baked with Blender 5.0.1: 52 nodes and 19 materials added, the `alcove` floor removed (`office_RnD` covers its footprint), the 157 shared nodes unchanged; the runtime still builds any entry flagged `procedural` |
 
 ## C. Offices and roles that were missing
 
