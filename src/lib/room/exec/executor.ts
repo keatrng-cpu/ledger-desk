@@ -33,6 +33,8 @@ export interface ExecState {
   wanted: ExecPhase;
   /** When the phase last changed (ms), or null. */
   wantedAtMs: number | null;
+  /** When the unattended safety net last ran (ms), or null. */
+  netMs: number | null;
   killed: boolean;
   killReason: string | null;
 }
@@ -79,6 +81,11 @@ export interface StepRequest {
   feedLagSec: number | null;
   /** Close everything this system owns, whatever the room says. */
   flatten?: boolean;
+  /**
+   * SERVER-SIDE ONLY (the browser's schema strips it): act without holding the executor lease, and without taking it.
+   * The safety net (a cron) must be able to flatten while a browser is mid-session; it only ever sells what this system owns.
+   */
+  force?: boolean;
 }
 
 export interface Void {
@@ -168,7 +175,7 @@ export async function execStep(d: ExecDeps, req: StepRequest): Promise<StepResul
   };
 
   if (st.wanted === "off") return finish();
-  if (!(await d.store.claimLease(req.deviceId, nowMs, L.leaseSec))) {
+  if (!req.force && !(await d.store.claimLease(req.deviceId, nowMs, L.leaseSec))) {
     res.role = "observer";
     res.notes.push("another device is running the executor");
     return finish();

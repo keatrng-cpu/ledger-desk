@@ -19,6 +19,8 @@ const { EXEC_LIMITS, EXEC_FLAGS, LIVE_EVIDENCE } = await import("../src/lib/room
 const { alpacaBroker, brokerFromEnv, parseTs, AlpacaError } = await import("../src/lib/room/exec/alpaca.ts");
 const { execStep, rowPatchFromBroker } = await import("../src/lib/room/exec/executor.ts");
 const { PgExecStore } = await import("../src/lib/room/exec/exec-sql.ts");
+const { safetyNetDue } = await import("../src/lib/room/exec/safety-net.ts");
+const { stepSchema } = await import("../src/lib/room/exec/exec-schema.ts");
 const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
 const { playDrill } = await import("../src/lib/room/drill.ts");
 const { emptyBook } = await import("../src/lib/room/paper-book.ts");
@@ -391,7 +393,7 @@ console.log("the Alpaca adapter, against a simulated Alpaca");
 /* ── The executor, on PGlite with the real migration ──────────────────── */
 
 const db = new PGlite();
-await db.exec(readFileSync(new URL("../migrations/0018_room_orders.sql", import.meta.url), "utf8"));
+for (const f of ["0018_room_orders.sql", "0019_room_exec_net.sql"]) await db.exec(readFileSync(new URL(`../migrations/${f}`, import.meta.url), "utf8"));
 const query = async (t, p) => (await db.query(t, p)).rows;
 let uid = 0;
 const world = async (phase = "paper", simOpts = {}) => {
@@ -649,6 +651,48 @@ console.log("the executor: when the broker misbehaves");
   await nb.setWanted("paper");
   const nr = await execStep({ store: nb, broker: null, nowMs: T, liveKeys: false }, { deviceId: "device-aaaaaaaa", entries: [intent()], exits: [], desired: [], feedLagSec: 2 });
   check("paper with no keys is blocked and says so", nr.role === "blocked" && nr.notes.some((x) => /no paper broker keys/.test(x)));
+}
+
+console.log("the unattended safety net");
+{
+  const at = (day, hm) => etWallToEpochMs(day, hm);
+  check("it is due from 15:30 ET to the close, on a weekday", safetyNetDue(at("2026-10-06", "15:30")).due && safetyNetDue(at("2026-10-06", "15:59")).due && !safetyNetDue(at("2026-10-06", "15:29")).due && !safetyNetDue(at("2026-10-06", "16:00")).due && !safetyNetDue(at("2026-10-06", "10:00")).due);
+  check("never on a weekend", !safetyNetDue(at("2026-10-10", "15:45")).due && !safetyNetDue(at("2026-10-11", "15:45")).due);
+  check("forced runs any time (an authenticated manual run)", safetyNetDue(at("2026-10-10", "03:00"), true).due);
+  check("the browser's schema strips `force` (only the server-side safety net may set it)", !("force" in stepSchema.parse({ deviceId: "device-aaaaaaaa", entries: [], exits: [], desired: [], feedLagSec: 1, flatten: true, force: true })));
+  check("…and still accepts a flatten", stepSchema.parse({ deviceId: "device-aaaaaaaa", entries: [], exits: [], desired: [], feedLagSec: 1, flatten: true }).flatten === true);
+  check("a malformed intent is refused at the door", !stepSchema.safeParse({ deviceId: "device-aaaaaaaa", entries: [{ ...intent(), qty: 0 }], exits: [], desired: [], feedLagSec: 1 }).success && !stepSchema.safeParse({ deviceId: "short", entries: [], exits: [], desired: [], feedLagSec: 1 }).success);
+
+  const w = await world("paper");
+  w.quoteAt(T);
+  await w.step(T, { entries: [intent()], desired: [want()] });
+  const late = etWallToEpochMs("2026-10-06", "15:35");
+  check("(setup) another device takes the expired lease", await w.store.claimLease("someone-elses-device", late - 1000, 90));
+  w.quoteAt(late, 4.0, 4.1);
+  const blocked = await w.step(late, { desired: [want()] });
+  check("a device without the lease is an observer and flattens nothing", blocked.role === "observer" && w.sim.positions.has(SYM));
+  const net = await execStep({ store: w.store, broker: w.broker, nowMs: late, liveKeys: false }, { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true });
+  check("the safety net flattens what the executor owns WITHOUT the lease, with the room's book saying it still holds it", net.role === "executor" && !w.sim.positions.has(SYM) && net.rows.some((x) => x.role === "exit" && x.intent.reason === "flatten all" && x.status === "filled"), JSON.stringify(net.notes));
+  const lease = await w.store.claimLease("someone-elses-device", late + 1000, 90);
+  check("…and it did not take the lease from the device that holds it", lease === true);
+  await w.store.markNet(late);
+  check("it leaves a heartbeat the card can show", (await w.store.state()).netMs === late);
+
+  const k = await world("paper");
+  k.quoteAt(T);
+  await k.step(T, { entries: [intent()], desired: [want()] });
+  k.sim.positions.set("AAPL261016C00200000", { qty: 5, avg: 2 });
+  const late2 = etWallToEpochMs("2026-10-06", "15:35");
+  k.quoteAt(late2, 4.0, 4.1);
+  await execStep({ store: k.store, broker: k.broker, nowMs: late2, liveKeys: false }, { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true });
+  check("it never touches a position this system did not buy", k.sim.positions.get("AAPL261016C00200000")?.qty === 5 && !k.sim.positions.has(SYM));
+
+  const off = await world("off");
+  const noop = await execStep({ store: off.store, broker: off.broker, nowMs: late, liveKeys: false }, { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true });
+  check("with execution off the net does nothing and calls nothing", noop.role === "idle" && off.sim.calls.length === 0);
+  const sh = await world("shadow");
+  await execStep({ store: sh.store, broker: sh.broker, nowMs: late, liveKeys: false }, { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true });
+  check("…and in shadow it sends nothing", sh.sim.posts().length === 0);
 }
 
 console.log("the executor: live stays shut");

@@ -67,11 +67,12 @@ export class PgExecStore implements ExecStore {
   ) {}
 
   async state(): Promise<ExecState> {
-    const r = (await this.q(`select wanted, wanted_at_ms, killed, kill_reason from room_exec_state where user_id = $1`, [this.userId]))[0];
-    if (!r) return { wanted: "off", wantedAtMs: null, killed: false, killReason: null };
+    const r = (await this.q(`select wanted, wanted_at_ms, net_ms, killed, kill_reason from room_exec_state where user_id = $1`, [this.userId]))[0];
+    if (!r) return { wanted: "off", wantedAtMs: null, netMs: null, killed: false, killReason: null };
     return {
       wanted: (PHASES.includes(r.wanted as ExecPhase) ? r.wanted : "off") as ExecPhase,
       wantedAtMs: num(r.wanted_at_ms),
+      netMs: num(r.net_ms),
       killed: r.killed === true,
       killReason: r.kill_reason == null ? null : String(r.kill_reason),
     };
@@ -85,6 +86,15 @@ export class PgExecStore implements ExecStore {
          wanted = excluded.wanted,
          updated_at = now()`,
       [this.userId, phase, Math.round(nowMs)],
+    );
+  }
+
+  /** The safety net ran (whether or not it had anything to sell). */
+  async markNet(nowMs: number): Promise<void> {
+    await this.q(
+      `insert into room_exec_state (user_id, net_ms) values ($1, $2)
+       on conflict (user_id) do update set net_ms = excluded.net_ms, updated_at = now()`,
+      [this.userId, Math.round(nowMs)],
     );
   }
 

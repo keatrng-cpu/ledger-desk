@@ -150,6 +150,14 @@ export function ExecCard() {
         {last ? ` · ${last.role}${last.env ? ` · ${last.env}` : ""} · step ${etTime(last.atMs)} ET` : ""}
         {last?.account ? ` · acct $${Math.round(last.account.equity).toLocaleString()} (cash $${Math.round(last.account.cash).toLocaleString()})` : ""}
       </p>
+      {status && (wanted === "paper" || wanted === "live") && (
+        <p className={`mt-1 text-[10px] leading-snug ${status.netMs ? "text-[var(--color-subtle)]" : "text-[var(--color-down)]"}`}>
+          Safety net (cron /api/cron/exec-flatten — flattens what the executor owns from 15:30 ET with every tab closed):{" "}
+          {status.netMs
+            ? `last ran ${new Date(status.netMs).toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })} ET.`
+            : `never ran. Schedule it and set CRON_USER_ID=${status.userId} (this trader's id) on the server — until then a position outlives a closed tab.`}
+        </p>
+      )}
       {last && last.notes.length > 0 && <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">{last.notes.slice(0, 3).join(" · ")}</p>}
       {status?.killed && <p className="mt-1 text-[11px] font-semibold text-[var(--color-down)]">Kill switch on{status.killReason ? ` — ${status.killReason}` : ""}: no new entries.</p>}
 

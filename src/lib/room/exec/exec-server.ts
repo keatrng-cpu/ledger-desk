@@ -12,6 +12,7 @@ import { etDateOf } from "../option-math";
 import { brokerFromEnv } from "./alpaca";
 import { PgExecStore } from "./exec-sql";
 import { execStep, type StepRequest, type StepResult } from "./executor";
+import { stepSchema } from "./exec-schema";
 import { evidenceOf, liveReadiness, type Evidence, type LiveReadiness } from "./gates";
 import { EXEC_FLAGS, EXEC_LIMITS, LIVE_EVIDENCE } from "./limits";
 import { PHASES, type AuditRow, type ExecPhase } from "./types";
@@ -26,9 +27,13 @@ const hasPaperKeys = () => Boolean(process.env.ALPACA_KEY_ID && process.env.ALPA
 const dataFeed = (): "opra" | "indicative" => (process.env.ALPACA_DATA_FEED === "opra" ? "opra" : "indicative");
 
 export interface ExecStatus {
+  /** The trader's id — what CRON_USER_ID must be set to for the safety-net cron to see this trader's orders. */
+  userId: string;
   wanted: ExecPhase;
   killed: boolean;
   killReason: string | null;
+  /** When the unattended safety net (cron) last ran for this trader, ms; null = never. */
+  netMs: number | null;
   readiness: LiveReadiness;
   evidence: Evidence;
   rows: AuditRow[];
@@ -46,9 +51,11 @@ export const getExecState = createServerFn({ method: "GET" })
     const st = await store.state();
     const evidence = evidenceOf(await store.evidenceRows(500), Date.now());
     return {
+      userId: context.userId,
       wanted: st.wanted,
       killed: st.killed,
       killReason: st.killReason,
+      netMs: st.netMs,
       readiness: liveReadiness({ evidence, feed: dataFeed(), liveKeys: hasLiveKeys(), killed: st.killed }),
       evidence,
       rows: await store.recent(40),
@@ -87,34 +94,6 @@ export const setExecKill = createServerFn({ method: "POST" })
     await store.setKilled(data.killed, data.reason ?? "kill switch");
     return { killed: data.killed };
   });
-
-const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-const intentSchema = z.object({
-  decisionKey: z.string().min(3).max(200),
-  role: z.enum(["entry", "exit"]),
-  side: z.enum(["buy", "sell"]),
-  underlier: z.enum(["QQQ", "SPY"]),
-  type: z.enum(["CALL", "PUT"]),
-  strike: z.number().positive().max(100_000),
-  exp: z.string().regex(dateRe),
-  qty: z.number().int().min(1).max(1000),
-  modelPx: z.number().min(0).max(100_000),
-  reason: z.string().max(400),
-  etDate: z.string().regex(dateRe),
-  atMs: z.number().finite(),
-  positionId: z.string().max(100).nullable().optional(),
-});
-
-const stepSchema = z.object({
-  deviceId: z.string().min(8).max(64),
-  entries: z.array(intentSchema).max(5),
-  exits: z.array(intentSchema).max(10),
-  desired: z
-    .array(z.object({ symbol: z.string().max(30), qty: z.number().int().min(1).max(1000), positionId: z.string().max(100), openedAt: z.number().finite() }))
-    .max(20),
-  feedLagSec: z.number().finite().nullable(),
-  flatten: z.boolean().optional(),
-});
 
 export const execStepFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
