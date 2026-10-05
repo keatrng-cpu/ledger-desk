@@ -10,6 +10,7 @@ export type Stamp = "EV" | "HALT" | "TAPE" | "TIGHT" | "ONE" | "CLOCK" | "CASH" 
 export type Tint = "ink" | "amber" | "hatch";
 export type Blotter = "down" | "live" | "back";
 export type Flight = "fill" | "return" | "none";
+export type FloorLight = "idle" | "approach" | "touch" | "hold" | "target" | "stop";
 export type RangeZone = "discount" | "equilibrium" | "premium";
 
 export interface FloorCues {
@@ -45,6 +46,11 @@ export interface FloorCues {
   /** Paper seats that are done, or blocked and not leading. */
   seated: string[];
   leader: string | null;
+  /**
+   * The hedge-fund wing. A colour for a decision already made.
+   * B+ may glow. It does not send.
+   */
+  light: FloorLight;
 }
 
 export interface CueParts {
@@ -81,6 +87,8 @@ export interface CueParts {
   openPositions: number;
   winsNeed: number | null;
   tradeBudget: number | null;
+  /** The exit the room just booked, if this cycle closed something. */
+  exitReason: string | null;
 }
 
 export function stampOf(gate: string | null, refusal: string | null): Stamp {
@@ -98,6 +106,38 @@ export function stampOf(gate: string | null, refusal: string | null): Stamp {
 function freshTape(kind: string | null, lagSec: number | null, synthetic: boolean): boolean {
   if (synthetic || (kind != null && /synthetic/i.test(kind))) return false;
   return lagSec != null && lagSec <= EXEC_LIMITS.maxFeedLagSec;
+}
+
+const LIGHT_BAND = new Set(["A+", "A", "A-", "A−", "B+"]);
+
+function clockVeto(gate: string | null): boolean {
+  return gate === "clock" || gate === "before_flat" || gate === "after_ten" || gate === "killzone";
+}
+
+/** The wing's colour. Presentation only — the checklist already decided. */
+export function floorLightOf(p: {
+  band: string | null;
+  tier: string | null;
+  beat: string | null;
+  refusalGate: string | null;
+  openPositions: number;
+  exitReason: string | null;
+  fresh: boolean;
+  missing: boolean;
+}): FloorLight {
+  if (p.exitReason === "take_profit") return "target";
+  if (p.exitReason === "stop") return "stop";
+  if (p.openPositions > 0) return "hold";
+  const agreed =
+    p.fresh &&
+    !p.missing &&
+    p.band != null &&
+    LIGHT_BAND.has(p.band) &&
+    (p.beat !== "vetoed" || clockVeto(p.refusalGate));
+  if (!agreed) return "idle";
+  if (p.tier === "live") return "touch";
+  if (p.tier === "armed") return "approach";
+  return "idle";
 }
 
 export function floorCues(p: CueParts): FloorCues {
@@ -151,5 +191,15 @@ export function floorCues(p: CueParts): FloorCues {
     ladderBreak: p.winsNeed != null && p.tradeBudget != null && p.winsNeed > p.tradeBudget,
     seated: [...new Set(seated)],
     leader: p.leader,
+    light: floorLightOf({
+      band: p.band,
+      tier: p.tier,
+      beat: p.beat,
+      refusalGate: p.refusalGate,
+      openPositions: p.openPositions,
+      exitReason: p.exitReason,
+      fresh,
+      missing: p.missing != null && p.missing.trim() !== "" && p.verdict !== "ARMED",
+    }),
   };
 }
