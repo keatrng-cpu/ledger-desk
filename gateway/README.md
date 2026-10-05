@@ -144,7 +144,7 @@ gateway has been running for a few seconds during RTH:
    tick"** source badge instead of "Yahoo print" or "Databento".
 2. The data-quality block in the Trade tab should stop showing "Execution
    blocked: quote Ns old" during active hours.
-3. Directly: `select * from live_market_ticks;` — `received_at` should be
+3. Directly: `select * from live_market_ticks;` — (since 2026-10-05 `received_at` is the last time the gateway confirmed the price is current: a trade or a 5 s socket heartbeat; `ts` is the last print) `received_at` should be
    within the last few seconds.
 
 If the gateway stops or crashes, the desk does **not** break — the

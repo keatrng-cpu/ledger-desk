@@ -22,8 +22,16 @@
 import { getSql } from "@/lib/db";
 import type { IndexSymbol, LiveQuote, OhlcBar } from "./types";
 
-/** Beyond this, a tick is not "live" — treat the gateway as down. */
-export const TICK_FRESH_MS = 5_000;
+/**
+ * Beyond this, a tick is not "live" — treat the gateway as down.
+ *
+ * `received_at` is the last time the gateway had evidence the stored price is still current: a trade, or any record on its
+ * live socket (the gateway asks Databento for a heartbeat every 5 s, the minimum, so a silent market still proves the socket
+ * is alive). It used to be trade-only with a 5 s window, which read a healthy gateway as dead whenever a thin session (ES
+ * overnight: a few contracts a minute) went quiet for a few seconds — "lag 620s" off Yahoo with the socket up. 12 s is two
+ * missed heartbeats and a second of margin; a dead or wedged socket still fails closed within it.
+ */
+export const TICK_FRESH_MS = 12_000;
 /** Beyond this, a 1m bar is not current — the gateway has stalled. */
 export const BAR_FRESH_MS = 90_000;
 
@@ -65,9 +73,36 @@ export interface LiveGatewayTick {
   price: number;
   bid: number | null;
   ask: number | null;
+  /** Exchange time of the last PRINT. Bars are placed by it; it is not the quote's age. */
   marketTimeMs: number;
+  /** The last time the gateway confirmed this print is still current (a trade or a heartbeat). */
   receivedAtMs: number;
   ageMs: number;
+}
+
+/**
+ * One `live_market_ticks` row as the desk reads it: the tick, or the reason there is none. Pure, so the freshness rule is
+ * testable without a database.
+ */
+export function tickFromRow(
+  symbol: IndexSymbol,
+  row: { price: string | number; bid: string | number | null; ask: string | number | null; ts: string | Date; received_at: string | Date },
+  nowMs: number,
+): { tick: LiveGatewayTick } | { stale: number } {
+  const receivedAtMs = new Date(row.received_at).getTime();
+  const ageMs = nowMs - receivedAtMs;
+  if (!(ageMs >= 0) || ageMs > TICK_FRESH_MS) return { stale: ageMs }; // stale or clock skew
+  return {
+    tick: {
+      symbol,
+      price: Number(row.price),
+      bid: row.bid == null ? null : Number(row.bid),
+      ask: row.ask == null ? null : Number(row.ask),
+      marketTimeMs: new Date(row.ts).getTime(),
+      receivedAtMs,
+      ageMs,
+    },
+  };
 }
 
 /** Latest tick, or null if absent/stale/slow. 150ms cap so a hung DB
@@ -106,22 +141,12 @@ export async function readLiveTick(
       return null;
     }
 
-    const receivedAtMs = new Date(row.received_at).getTime();
-    const ageMs = Date.now() - receivedAtMs;
-    if (!(ageMs >= 0) || ageMs > TICK_FRESH_MS) {
-      logOnce(`tick:${symbol}`, `stale — ageMs=${ageMs} (fresh cutoff ${TICK_FRESH_MS}ms)`);
-      return null; // stale or clock skew
+    const read = tickFromRow(symbol, row, Date.now());
+    if ("stale" in read) {
+      logOnce(`tick:${symbol}`, `stale — ageMs=${read.stale} (fresh cutoff ${TICK_FRESH_MS}ms)`);
+      return null;
     }
-
-    return {
-      symbol,
-      price: Number(row.price),
-      bid: row.bid == null ? null : Number(row.bid),
-      ask: row.ask == null ? null : Number(row.ask),
-      marketTimeMs: new Date(row.ts).getTime(),
-      receivedAtMs,
-      ageMs,
-    };
+    return read.tick;
   } catch (err) {
     // DB unreachable, table missing (migration not yet applied), whatever —
     // this source is simply unavailable to the DESK (never its failure mode),
@@ -157,7 +182,9 @@ export function quoteFromLiveTick(
     volume: null,
     fetchedAtMs: now,
     fetchedAtIso: new Date(now).toISOString(),
-    lagSec: Math.max(0, Math.round((now - tick.marketTimeMs) / 1000)),
+    // How long since the gateway last confirmed this price, not how long since the last print: on a quiet tape the last print can
+    // be half a minute old and still be exactly where the market is. `marketTimeMs` keeps the print's own time for bar placement.
+    lagSec: Math.max(0, Math.round((now - tick.receivedAtMs) / 1000)),
     timezone: "America/New_York",
     source: "live_gateway",
   };

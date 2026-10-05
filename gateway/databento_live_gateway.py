@@ -191,6 +191,26 @@ NY_AM_ONLY = os.environ.get("GATEWAY_NY_AM_ONLY", "").strip() == "1"
 RECONNECT_MIN_SEC = 2
 RECONNECT_MAX_SEC = 60
 
+# LIVENESS WHILE THE MARKET IS QUIET (2026-10-05).
+# ohlcv-1s emits a record only for a second in which something traded, and the
+# desk (src/lib/market/live-gateway.ts) trusts a tick only while `received_at`
+# is fresh. In the thin overnight session ES prints a handful of contracts a
+# minute, so its row aged out between trades and the desk fell back to Yahoo
+# (~10 min late) while this process was connected and healthy the whole time:
+# "lag 620s" with a live socket. A quiet market is not a dead gateway.
+#
+# So `received_at` now means "the last time this process had evidence the price
+# in the row is still current": a trade, OR a record of any kind arriving on
+# the live socket (Databento sends a heartbeat when nothing else flows; 5 s is
+# its minimum interval). A dead or wedged socket produces neither, so the rows
+# age out and the desk fails closed exactly as before.
+HEARTBEAT_INTERVAL_S = 5
+TOUCH_MIN_SEC = 1.0
+# Never vouch for a print older than this: a symbol that has not traded for ten
+# minutes (a bad roll, a wrong contract) must age out, not be kept alive by the
+# other symbol's traffic.
+TOUCH_MAX_SILENCE_SEC = 600
+
 
 def resolve_desk_symbol(dbn_symbol: str) -> str | None:
     """Raw CME symbols (ESZ6, NQZ6, ...) chosen by front_quarterly(). Desk
@@ -337,6 +357,7 @@ class LiveGateway:
         self._conn: psycopg.Connection | None = None
         self._minute: dict[str, MinuteAgg] = {}
         self._running = True
+        self._last_touch = 0.0
 
     def _db(self) -> psycopg.Connection:
         if self._conn is None or self._conn.closed:
@@ -359,6 +380,27 @@ class LiveGateway:
                       received_at = now()
                 """,
                 (symbol, price, ts_event),
+            )
+
+    def touch_ticks(self) -> None:
+        """Re-stamp `received_at` on every tick row whose last print is recent.
+
+        Called only when a record has just arrived on the live socket, so it is
+        evidence that the connection is alive and that nothing newer than the
+        stored print has traded since (a newer trade would have replaced the
+        row). `ts` — the exchange time of the last print — is left alone: the
+        desk still places bars by it. A row whose print is older than
+        TOUCH_MAX_SILENCE_SEC is left to age out.
+        """
+        with self._db().cursor() as cur:
+            cur.execute(
+                """
+                update live_market_ticks
+                   set received_at = now()
+                 where source = 'databento_live'
+                   and ts > now() - make_interval(secs => %s::double precision)
+                """,
+                (TOUCH_MAX_SILENCE_SEC,),
             )
 
     def flush_minute_bar(self, symbol: str, agg: MinuteAgg) -> None:
@@ -426,7 +468,7 @@ class LiveGateway:
     def run_once(self) -> None:
         """One connect-subscribe-stream cycle. Raises on disconnect/error —
         the caller's reconnect loop decides what happens next."""
-        client = db.Live(key=self._api_key)
+        client = db.Live(key=self._api_key, heartbeat_interval_s=HEARTBEAT_INTERVAL_S)
         client.subscribe(
             dataset=DATASET,
             schema=SCHEMA,
@@ -441,6 +483,17 @@ class LiveGateway:
             if not in_ny_am_window():
                 log.info("NY AM window closed — dropping live socket")
                 break
+            # Any record on the socket (a price, a mapping, a heartbeat) proves
+            # it is alive: keep the quiet symbol's row current. A failure here
+            # must never take the stream down — the tick path below is the one
+            # that matters, and a stale row fails closed on the desk side.
+            now_m = time.monotonic()
+            if now_m - self._last_touch >= TOUCH_MIN_SEC:
+                self._last_touch = now_m
+                try:
+                    self.touch_ticks()
+                except Exception:  # noqa: BLE001
+                    log.exception("liveness touch failed")
             # Only price records reach the aggregator. A SymbolMappingMsg
             # carries an instrument_id that DOES resolve (the client registers
             # the mapping before yielding the message), so the symbol check
