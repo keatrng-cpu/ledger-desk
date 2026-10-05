@@ -88,7 +88,7 @@ export interface RoomClosedTrade {
 
 export interface RoomEvent {
   at: number;
-  kind: "fill" | "exit" | "trim" | "settle" | "reset";
+  kind: "fill" | "exit" | "trim" | "settle" | "reset" | "void";
   text: string;
 }
 
@@ -439,4 +439,23 @@ export function applyLab(
   const opened =
     cycle.output.broker_action.action_type === "BUY_OPEN" ? (book.positions.filter((p) => p.openedAt === nowMs).at(-1)?.id ?? null) : null;
   return { ...book, lab: stepLab(asLab(book.lab), { cycle, market, desk, nowMs, roomFillId: opened }) };
+}
+
+/**
+ * An entry the broker never filled (or filled in part): the room's book stops claiming it. Cash comes back for the
+ * contracts that did not fill; the slot stays used (an attempt is an attempt, and a plan is one attempt a day). It is
+ * not a trade — nothing is closed, no P&L, no loss streak. Pure.
+ */
+export function voidPosition(book: RoomBook, id: string, keepQty: number, why: string, nowMs: number): RoomBook {
+  const p = book.positions.find((q) => q.id === id);
+  const keep = Math.max(0, Math.floor(keepQty));
+  if (!p || keep >= p.contracts) return book;
+  const lost = p.contracts - keep;
+  const refund = money(lost * p.entryPx * 100);
+  return {
+    ...book,
+    cash: money(book.cash + refund),
+    positions: keep > 0 ? book.positions.map((q) => (q.id === id ? { ...q, contracts: keep } : q)) : book.positions.filter((q) => q.id !== id),
+    events: pushEvent(book, { at: nowMs, kind: "void", text: `VOIDED ${lost}× ${id} — ${why}. $${refund.toFixed(0)} back.` }),
+  };
 }

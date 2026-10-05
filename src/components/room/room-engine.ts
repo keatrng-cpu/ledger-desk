@@ -38,8 +38,11 @@ import {
   rollCounters,
   saveRoomBook,
   toRoomInput,
+  voidPosition,
   type RoomBook,
 } from "@/lib/room/paper-book";
+import type { Void } from "@/lib/room/exec/executor";
+import { execAfterCycle, execFlatten } from "./exec-bridge";
 import { researchShelf } from "@/lib/room/research";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
@@ -323,6 +326,7 @@ function runLiveCycle(desk: DeskPayload) {
   const read = readDeskForRoom(desk, od, exitWatchOf(book), nowMs, st.pulse.tenYear);
   const lab = labRead(asLab(book.lab), book.closed);
   const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab }, nowMs);
+  const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
   book = applyLab(book, cycle, market, read, nowMs);
   saveRoomBook(book);
@@ -368,6 +372,30 @@ function runLiveCycle(desk: DeskPayload) {
     },
   });
   useRoomStore.setState({ book, minds: cycle.minds, frame, frameSeq: seq, lastFetchedAt: desk.fetchedAt, history: keepForReplay(st.history, frame) });
+  // The execution layer (exec/): what the room just did goes to the broker's side — shadow, paper, or nothing (off is the
+  // default and a browser cannot change it). A synthetic desk feed is never a decision worth sending anywhere.
+  if (desk.feed !== "synthetic") {
+    void execAfterCycle(
+      { before: bookBefore, after: book, cycle, feedLagSec: read.lagSec, nowMs },
+      { getBook: () => useRoomStore.getState().book, onVoids: applyVoids },
+    );
+  }
+}
+
+/** The trader's Flatten button (Execution card): close everything the executor owns at the broker, and stop new entries. */
+export function flattenBroker(): Promise<void> {
+  return execFlatten({ getBook: () => useRoomStore.getState().book, onVoids: applyVoids });
+}
+
+/** Entries the broker never filled: the room's book stops claiming them (paper-book.ts voidPosition). */
+function applyVoids(voids: Void[]) {
+  useRoomStore.setState((s) => {
+    let b = s.book;
+    for (const v of voids) b = voidPosition(b, v.positionId, v.keepQty, v.why, Date.now());
+    if (b === s.book) return s;
+    saveRoomBook(b);
+    return { book: b };
+  });
 }
 
 const HISTORY_MAX = 160;
