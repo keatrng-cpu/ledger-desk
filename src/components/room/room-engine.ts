@@ -40,6 +40,7 @@ import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type 
 import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
 import { deskAudit } from "@/lib/room/audit";
+import { freshnessOf } from "@/lib/room/data-fresh";
 import { EXEC_FLAGS } from "@/lib/room/exec/limits";
 import type { DialogueLine } from "@/lib/room/orchestrator";
 import { rankOf, richer } from "@/lib/room/snapshot";
@@ -244,7 +245,7 @@ export function frameFromCycle(args: {
  * What the annex screens draw — the race, the desk audit, the setup scanner and the feed's health — from the same reads the
  * live talk quotes, so a TV and a line of dialogue can never disagree about a number.
  */
-export function raceScreenOf(race: Race | null, desk: DeskPayload, lab: LabRead | null, vix: number | null): RaceScreen {
+export function raceScreenOf(race: Race | null, desk: DeskPayload, lab: LabRead | null, vix: number | null, nowMs: number): RaceScreen {
   const goal = goalLite(race, vix);
   const seats = seatsLite(race);
   const rnd = rndLite(race);
@@ -253,7 +254,7 @@ export function raceScreenOf(race: Race | null, desk: DeskPayload, lab: LabRead 
     goal,
     seats,
     rnd,
-    audit: deskAudit({ feed, goal, lab: labLite(lab), rnd, seats }),
+    audit: deskAudit({ feed, goal, lab: labLite(lab), rnd, seats, fresh: freshnessOf(etDateOf(nowMs)) }),
     scanner: scannerCards(desk, 6),
     feed,
     execFlags: Object.entries(EXEC_FLAGS).map(([name, on]) => ({ name, on })),
@@ -450,7 +451,7 @@ function runLiveCycle(desk: DeskPayload) {
     book,
     caption: null,
     lab: labNow,
-    race: raceScreenOf(race, desk, labNow, market.QQQ.vix),
+    race: raceScreenOf(race, desk, labNow, market.QQQ.vix, nowMs),
     invest: readInvestOffice(nowMs),
     screens: {
       market,
@@ -505,7 +506,7 @@ export function refreshRace(desk: DeskPayload) {
   saveRoomBook(book);
   const race = computeRace({ goal: st.goal, lab, desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
   // The TVs follow a new goal at once, not at the next cycle.
-  const frame = st.frame ? { ...st.frame, screens: { ...st.frame.screens, race: raceScreenOf(race, desk, st.frame.screens.lab, market.QQQ.vix) } } : st.frame;
+  const frame = st.frame ? { ...st.frame, screens: { ...st.frame.screens, race: raceScreenOf(race, desk, st.frame.screens.lab, market.QQQ.vix, nowMs) } } : st.frame;
   useRoomStore.setState({ book, race, frame });
 }
 

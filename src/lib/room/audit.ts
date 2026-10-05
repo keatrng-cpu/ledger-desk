@@ -10,7 +10,7 @@
 
 import { EXEC_FLAGS } from "./exec/limits";
 import type { Character } from "./orchestrator";
-import type { FeedRead, GoalLite, LabLite, RndLite, SeatsLite } from "./live-types";
+import { CATALYST_MAX_AGE_DAYS, type DataFreshness, type FeedRead, type GoalLite, type LabLite, type RndLite, type SeatsLite } from "./live-types";
 
 export interface AuditItem {
   id: string;
@@ -25,8 +25,56 @@ export interface AuditItem {
 const money = (n: number) => `${n < 0 ? "−" : "+"}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
 const ORDER = { high: 0, med: 1, low: 2 } as const;
 
-export function deskAudit(a: { feed: FeedRead | null; goal: GoalLite | null; lab: LabLite | null; rnd: RndLite | null; seats: SeatsLite | null }): AuditItem[] {
+/** Whole calendar days from `a` to `b` (YYYY-MM-DD both). */
+const ageDays = (a: string, b: string): number => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000);
+
+/** The earnings calendar reaches ~14 days ahead; past this age it cannot see the whole window. */
+export const EARNINGS_AGEING_DAYS = 14;
+/** The dated research file: a pass older than this is a reading of last quarter. */
+export const RESEARCH_OLD_DAYS = 60;
+export const RESEARCH_STALE_DAYS = 90;
+/** The source check is a monthly job. */
+export const SOURCE_CHECK_OLD_DAYS = 35;
+/** The macro calendar feeds the ±15 min blackout; warn a week before it runs out. */
+export const MACRO_RUNWAY_DAYS = 7;
+
+/** Findings about the committed data itself — a snapshot says when it was taken, and its age is a fact. */
+function freshnessItems(x: DataFreshness): AuditItem[] {
   const out: AuditItem[] = [];
+  const earn = ageDays(x.earningsAsOf, x.today);
+  if (earn > CATALYST_MAX_AGE_DAYS)
+    out.push({ id: "earnings_stale", owner: "Gemma", area: "data", severity: "med", title: "The earnings calendar is out of date", evidence: `captured ${x.earningsAsOf}, ${earn} days ago; the office stops quoting reports from it after ${CATALYST_MAX_AGE_DAYS}`, proposal: "Re-capture it from Alpha Vantage's EARNINGS_CALENDAR into src/data/earnings-calendar.json and stamp capturedAt. The free key allows 25 requests a day." });
+  else if (earn > EARNINGS_AGEING_DAYS)
+    out.push({ id: "earnings_ageing", owner: "Gemma", area: "data", severity: "low", title: "The earnings calendar is ageing", evidence: `captured ${x.earningsAsOf}, ${earn} days ago; report dates past two weeks out were provisional when it was taken`, proposal: "Re-capture it from Alpha Vantage's EARNINGS_CALENDAR before the next fortnight's reports are the ones that matter." });
+  const research = ageDays(x.researchAsOf, x.today);
+  if (research > RESEARCH_OLD_DAYS)
+    out.push({ id: "research_old", owner: "Jax", area: "data", severity: research > RESEARCH_STALE_DAYS ? "med" : "low", title: "The research file is old", evidence: `src/data/invest-themes.json is as of ${x.researchAsOf}, ${research} days ago; every figure on the research TVs is that old`, proposal: "Re-run the dated research pass from primary pages only, then run scripts/check-research-sources.mjs --write." });
+  const sc = x.sourceCheck;
+  if (!sc)
+    out.push({ id: "sources_unchecked", owner: "Gemma", area: "data", severity: "low", title: "The research figures have no source check on record", evidence: "there is no src/data/source-check-report.json", proposal: "Run scripts/check-research-sources.mjs --write; it tests every quoted figure against its cited page and needs the network." });
+  else {
+    if (sc.findings > 0)
+      out.push({ id: "sources_unmatched", owner: "Gemma", area: "data", severity: "med", title: "Figures that are not on their cited pages", evidence: `${sc.findings} of ${sc.facts} at the check on ${sc.checkedAt}`, proposal: "Open each one in src/data/source-check-report.json and decide whether the page moved or the figure was mistyped; the research TVs quote them." });
+    if (ageDays(sc.checkedAt, x.today) > SOURCE_CHECK_OLD_DAYS)
+      out.push({ id: "sources_old", owner: "Gemma", area: "data", severity: "low", title: "The source check is more than a month old", evidence: `last run ${sc.checkedAt}, ${ageDays(sc.checkedAt, x.today)} days ago`, proposal: "Run scripts/check-research-sources.mjs --write; live pages move." });
+    else if (sc.researchAsOf != null && sc.researchAsOf !== x.researchAsOf)
+      out.push({ id: "sources_behind", owner: "Gemma", area: "data", severity: "low", title: "The research file changed after its source check", evidence: `the check was of the ${sc.researchAsOf} file; the file is now ${x.researchAsOf}`, proposal: "Run scripts/check-research-sources.mjs --write on the current file." });
+  }
+  if (x.macroCalendarEnds == null)
+    out.push({ id: "macro_empty", owner: "Gemma", area: "data", severity: "high", title: "There is no macro calendar", evidence: "src/data/news-calendar.json has no events, so the ±15 min news blackout has nothing to read", proposal: "Stamp the official BLS, BEA, Census, ISM and Fed schedules into it (official schedules only)." });
+  else {
+    const runway = ageDays(x.today, x.macroCalendarEnds);
+    if (runway < 0)
+      out.push({ id: "macro_ended", owner: "Gemma", area: "data", severity: "high", title: "The macro calendar has run out", evidence: `its last event was ${x.macroCalendarEnds}, ${-runway} day${runway === -1 ? "" : "s"} ago; the news blackout cannot see a release since`, proposal: "Stamp the official BLS, BEA, Census, ISM and Fed schedules into src/data/news-calendar.json (official schedules only)." });
+    else if (runway < MACRO_RUNWAY_DAYS)
+      out.push({ id: "macro_ending", owner: "Gemma", area: "data", severity: "med", title: "The macro calendar is about to run out", evidence: `its last event is ${x.macroCalendarEnds}${runway === 0 ? ", today" : `, ${runway} day${runway === 1 ? "" : "s"} from now`}; the news blackout reads nothing after it`, proposal: "Stamp the next releases from the official BLS, BEA, Census, ISM and Fed schedules into src/data/news-calendar.json (official schedules only)." });
+  }
+  return out;
+}
+
+export function deskAudit(a: { feed: FeedRead | null; goal: GoalLite | null; lab: LabLite | null; rnd: RndLite | null; seats: SeatsLite | null; fresh?: DataFreshness | null }): AuditItem[] {
+  const out: AuditItem[] = [];
+  if (a.fresh) out.push(...freshnessItems(a.fresh));
   const f = a.feed;
   if (f) {
     if (f.kind === "synthetic" || f.kind === "none")

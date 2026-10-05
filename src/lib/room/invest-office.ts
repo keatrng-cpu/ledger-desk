@@ -12,8 +12,11 @@
  */
 
 import { DRIFT_BAND, type BookRead, type NextBuy, type RebalanceRead } from "@/lib/invest/book";
+import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
 import { contributionPath, type DeployQueue, type RateLadder } from "@/lib/invest/policy";
-import type { InvestLite, InvestThemeLite } from "./live-types";
+import { earningsCapturedAt, timeline } from "@/lib/news/schedule";
+import type { InvestCatalyst, InvestLite, InvestThemeLite } from "./live-types";
+import { plusDays } from "./invest-read";
 import { RESEARCH, usableThemes, type ResearchTheme } from "./invest-themes";
 
 export interface InvestInputs {
@@ -42,6 +45,45 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 const TAB_TAIL = "Choose among the ADD names below — the tab does not pick a company for you.";
 const FLOOR_TAIL = "Which company is the trader's call, from the Invest tab's ADD list — the office never picks one.";
 export const floorWords = (line: string): string => line.replace(TAB_TAIL, FLOOR_TAIL);
+
+/** Days ahead the office looks on the earnings calendar. */
+export const CATALYST_WINDOW_DAYS = 14;
+const WHEN_RANK = { "pre-market": 0, "time not stated": 1, "after close": 2 } as const;
+
+/**
+ * Reports on the committed earnings calendar, from `dayKey` for two weeks, that touch the office: a name the book holds first,
+ * then a vehicle of a research theme that is a stock, then a competitor on a theme's list. Where the name has a dossier, the
+ * trader's own pre-written kill rule travels with it: a report is read against that rule, not against the one-day price reaction.
+ */
+export function catalystsFor(dayKey: string, held: string[], themes: InvestThemeLite[]): InvestCatalyst[] {
+  const heldSet = new Set(held.map((t) => t.toUpperCase()));
+  const why = new Map<string, { why: InvestCatalyst["why"]; theme: string | null }>();
+  for (const t of heldSet) why.set(t, { why: "held", theme: themes.find((th) => th.vehicles.some((v) => v.ticker.toUpperCase() === t) || th.competitors.some((c) => c.ticker?.toUpperCase() === t))?.name ?? null });
+  // Two passes, so a name that is one theme's vehicle and another's competitor is a vehicle whichever theme is listed first.
+  for (const th of themes) for (const v of th.vehicles) if (v.kind === "stock" && !why.has(v.ticker.toUpperCase())) why.set(v.ticker.toUpperCase(), { why: "theme", theme: th.name });
+  for (const th of themes) for (const c of th.competitors) if (c.ticker && !why.has(c.ticker.toUpperCase())) why.set(c.ticker.toUpperCase(), { why: "competitor", theme: th.name });
+  const rule = (t: string): string | null => {
+    const d = ALL_DOSSIERS.find((x) => x.kind === "company" && x.ticker.toUpperCase() === t);
+    return d && d.killRule && !/^none/i.test(d.killRule.trim()) ? d.killRule : null;
+  };
+  const out: InvestCatalyst[] = [];
+  for (const e of timeline(dayKey, plusDays(dayKey, CATALYST_WINDOW_DAYS), { minQqqWeight: 0 })) {
+    if (e.kind !== "earnings" || !e.ticker) continue;
+    const w = why.get(e.ticker.toUpperCase());
+    if (!w) continue;
+    out.push({
+      date: e.date,
+      when: e.when === "pre-market" ? "pre-market" : e.when === "after close" ? "after close" : "time not stated",
+      ticker: e.ticker,
+      name: e.name.replace(/ earnings$/, ""),
+      why: w.why,
+      theme: w.theme,
+      killRule: rule(e.ticker.toUpperCase()),
+    });
+  }
+  const rank = { held: 0, theme: 1, competitor: 2 } as const;
+  return out.sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : WHEN_RANK[a.when] - WHEN_RANK[b.when] || rank[a.why] - rank[b.why] || (a.ticker < b.ticker ? -1 : 1)));
+}
 
 export function buildInvest(i: InvestInputs): InvestLite {
   const heldSet = new Set(i.held.map((t) => t.toUpperCase()));
@@ -107,6 +149,8 @@ export function buildInvest(i: InvestInputs): InvestLite {
     other: i.other && i.other.monthlyUsd > 0 && i.other.ratePct > 0 ? i.other : null,
     themes,
     themesAsOf: i.themesAsOf ?? RESEARCH.asOf,
+    catalysts: catalystsFor(i.dayKey, i.held, themes),
+    catalystsAsOf: earningsCapturedAt(),
     watch,
     dayKey: i.dayKey,
   };

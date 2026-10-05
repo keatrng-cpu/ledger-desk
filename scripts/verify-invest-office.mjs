@@ -32,6 +32,8 @@ const IV = await import("../src/lib/room/live-voices-invest.ts");
 const { buildBook, rebalanceCheck, nextBuy, DRIFT_BAND } = await import("../src/lib/invest/book.ts");
 const { rateLadder, deployQueue, contributionPath } = await import("../src/lib/invest/policy.ts");
 const { WASH_SALE_BANNED } = await import("../src/lib/invest/universe.ts");
+const { ALL_DOSSIERS } = await import("../src/lib/invest/dossiers.ts");
+const { catalystsFor, CATALYST_WINDOW_DAYS } = await import("../src/lib/room/invest-office.ts");
 const { drawScreen } = await import("../src/components/room/floor-screens.ts");
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
 const { etDateOf } = await import("../src/lib/room/option-math.ts");
@@ -345,6 +347,134 @@ const all = [];
   check("with no usable themes the office still does its arithmetic and says nothing about industries", noThemes.items.length >= 1 && noThemes.items.every((i) => !i.topic.startsWith("invest:theme")), noThemes.items.map(topicOf).join());
 }
 
+/* ── The calendar: what reports inside two weeks ───────────────────────── */
+console.log("the calendar");
+{
+  // Independent of schedule.ts: read the committed earnings file directly and recompute who is watched and what reports.
+  const EARN = JSON.parse(fs.readFileSync(new URL("../src/data/earnings-calendar.json", import.meta.url), "utf8"));
+  const WHEN = { "pre-market": "pre-market", "post-market": "after close" };
+  const watched = (held, themes) => {
+    const m = new Map();
+    for (const t of held) m.set(t.toUpperCase(), "held");
+    for (const th of themes) for (const v of th.vehicles) if (v.kind === "stock" && !m.has(v.ticker.toUpperCase())) m.set(v.ticker.toUpperCase(), "theme");
+    for (const th of themes) for (const c of th.competitors) if (c.ticker && !m.has(c.ticker.toUpperCase())) m.set(c.ticker.toUpperCase(), "competitor");
+    return m;
+  };
+  const expected = (day, held, themes) => {
+    const w = watched(held, themes);
+    return EARN.rows
+      .filter((r) => r[0] !== "GOOG" && r[2] >= day && r[2] <= IR.plusDays(day, CATALYST_WINDOW_DAYS) && w.has(r[0].toUpperCase()))
+      .map((r) => `${r[2]} ${r[0]} ${WHEN[r[5]] ?? "time not stated"} ${w.get(r[0].toUpperCase())}`)
+      .sort()
+      .join("|");
+  };
+  const got = (cs) => cs.map((c) => `${c.date} ${c.ticker} ${c.when} ${c.why}`).sort().join("|");
+  const HEAVY = ["MSFT", "NVDA", "AAPL", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "LLY", "ETN"];
+  const DAYS = ["2026-10-01", DAY, "2026-10-13", "2026-10-20", "2026-10-27", "2026-11-03", "2026-11-10"];
+  const diffs = [];
+  let seen = 0;
+  for (const day of DAYS)
+    for (const held of [[], [heldTicker], HEAVY]) {
+      const cs = catalystsFor(day, held, INV.themes);
+      seen += cs.length;
+      if (got(cs) !== expected(day, held, INV.themes)) diffs.push(`${day} held=${held.length}`);
+    }
+  check("the catalysts are exactly the committed calendar's rows for watched names inside the window (differential, 21 reads)", diffs.length === 0 && seen > 20, `${diffs.join(", ")} (saw ${seen})`);
+  check("the window is two weeks", CATALYST_WINDOW_DAYS === 14);
+
+  const first = EARN.rows.find((r) => r[0] !== "GOOG" && r[2] >= DAY);
+  const X = first[0];
+  check("an earnings row is a catalyst on the last day of the window, not the day after", catalystsFor(IR.plusDays(first[2], -CATALYST_WINDOW_DAYS), [X], []).some((c) => c.ticker === X) && !catalystsFor(IR.plusDays(first[2], -CATALYST_WINDOW_DAYS - 1), [X], []).some((c) => c.ticker === X));
+  check("…and a report that already happened is not one", !catalystsFor(IR.plusDays(first[2], 1), [X], []).some((c) => c.ticker === X && c.date === first[2]));
+  check("a name nobody watches is never a catalyst", catalystsFor(DAY, [], []).length === 0 && catalystsFor(DAY, ["ZZZZ"], []).length === 0);
+
+  const cs = catalystsFor("2026-10-27", HEAVY, INV.themes);
+  const WR = { "pre-market": 0, "time not stated": 1, "after close": 2 };
+  const RK = { held: 0, theme: 1, competitor: 2 };
+  const resorted = [...cs].sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : WR[a.when] - WR[b.when] || RK[a.why] - RK[b.why] || (a.ticker < b.ticker ? -1 : 1)));
+  check("they are in the order a person reads them: date, then before the open → after the close, then held → theme → competitor", cs.length >= 5 && JSON.stringify(cs) === JSON.stringify(resorted));
+  check("a name the book holds is 'held', and one it does not is not", cs.filter((c) => HEAVY.includes(c.ticker)).every((c) => c.why === "held") && cs.filter((c) => !HEAVY.includes(c.ticker)).every((c) => c.why !== "held"));
+  check("the same inputs give the same list", JSON.stringify(catalystsFor("2026-10-27", HEAVY, INV.themes)) === JSON.stringify(cs));
+
+  const rule = ALL_DOSSIERS.find((d) => d.kind === "company" && d.killRule && !/^none/i.test(d.killRule.trim()) && EARN.rows.some((r) => r[0] === d.ticker && r[2] >= "2026-10-20"));
+  const withRule = catalystsFor(IR.plusDays(EARN.rows.find((r) => r[0] === rule.ticker)[2], -3), [rule.ticker], INV.themes).find((c) => c.ticker === rule.ticker);
+  check("a researched name's report carries the trader's own kill rule, word for word", withRule && withRule.killRule === rule.killRule, rule.ticker);
+  const bare = cs.find((c) => !ALL_DOSSIERS.some((d) => d.kind === "company" && d.ticker === c.ticker && d.killRule && !/^none/i.test(d.killRule.trim())));
+  check("a name with no kill rule carries none (never an invented one)", bare && bare.killRule === null, bare?.ticker);
+
+  const T = (name, vehicles, competitors) => ({ name, vehicles, competitors });
+  const v = (ticker, kind = "stock") => ({ ticker, kind, name: ticker });
+  const c = (ticker) => ({ name: ticker, ticker });
+  const mix = [T("Theme A", [v("ZZA")], [c(X)]), T("Theme B", [v(X)], [])];
+  const pr = catalystsFor(first[2], [], mix).find((k) => k.ticker === X);
+  check("a name that is one theme's competitor and another's stock vehicle is a vehicle, whichever theme is listed first", pr?.why === "theme" && pr.theme === "Theme B", JSON.stringify(pr));
+  check("…and held beats both", catalystsFor(first[2], [X], mix).find((k) => k.ticker === X)?.why === "held");
+  check("a fund vehicle is not a catalyst source (a fund does not report earnings)", !catalystsFor(first[2], [], [T("Theme F", [v(X, "fund")], [])]).some((k) => k.ticker === X));
+  check("a competitor with no ticker is not a catalyst source", catalystsFor(first[2], [], [T("Theme N", [], [{ name: "Private Co" }])]).length === 0);
+
+  check("daysBetween and dayPhrase say today, tomorrow, a weekday, then a date", IR.daysBetween("2026-10-06", "2026-10-13") === 7 && IR.daysBetween("2026-10-13", "2026-10-06") === -7 && IR.dayPhrase("2026-10-06", "2026-10-06") === "today" && IR.dayPhrase("2026-10-07", "2026-10-06") === "tomorrow" && IR.dayPhrase("2026-10-09", "2026-10-06") === "Friday" && IR.dayPhrase("2026-10-13", "2026-10-06") === "Tuesday 13 October", [IR.dayPhrase("2026-10-09", "2026-10-06"), IR.dayPhrase("2026-10-13", "2026-10-06")].join());
+  check("daysBetween is whole calendar days across a clock change", IR.daysBetween("2026-11-01", "2026-11-02") === 1 && IR.daysBetween("2026-03-07", "2026-03-09") === 2);
+  check("whenPhrase says what the calendar says, and says so when it does not say", IR.whenPhrase("pre-market") === "before the open" && IR.whenPhrase("after close") === "after the close" && IR.whenPhrase("time not stated") === "(time not stated)");
+
+  // The voice, on a hand-built list (so the lead, the rule and the count are all known).
+  const ruleRow = EARN.rows.find((r) => r[0] === rule.ticker && r[2] >= "2026-10-20");
+  const cat = (o) => ({ date: "2026-10-13", when: "time not stated", ticker: "ZZA", name: "Zed Alpha", why: "competitor", theme: "Quantum computing", killRule: null, ...o });
+  const fx = (catalysts, extra = {}) => ({ ...INV, dayKey: "2026-10-06", catalystsAsOf: EARN.capturedAt, catalysts, ...extra });
+  const ctx2 = () => ({ st: freshTalkState(), f: new Facts(), key: "cat", now: NOW });
+  const list = [cat({ ticker: "ZZA", date: "2026-10-07" }), cat({ ticker: "ZZB", name: "Zed Beta", why: "theme", date: "2026-10-08", when: "pre-market" }), cat({ ticker: rule.ticker, name: "Held Co", why: "held", date: ruleRow[2], when: "after close", killRule: rule.killRule }), cat({ ticker: "ZZC", date: "2026-10-14" }), cat({ ticker: "ZZD", date: "2026-10-15" }), cat({ ticker: "ZZE", date: "2026-10-16" })];
+  const c1 = ctx2();
+  const ex1 = IV.exInvCatalysts(c1, { inv: fx(list) });
+  const item1 = ex1 && { lines: ex1.lines, facts: c1.f.list, moves: ex1.moves, urgency: 0 };
+  const text1 = item1 ? textOf(item1) : "";
+  const everyRule = ALL_DOSSIERS.filter((d) => d.kind === "company" && d.killRule && !/^none/i.test(d.killRule.trim()));
+  const longRule = [];
+  for (const d of everyRule) {
+    const cx = ctx2();
+    const exr = IV.exInvCatalysts(cx, { inv: fx([cat({ ticker: d.ticker, name: d.name ?? d.ticker, why: "held", killRule: d.killRule })]) });
+    const itr = exr && { lines: exr.lines, facts: cx.f.list, moves: exr.moves, urgency: 0 };
+    if (!itr || legal(itr).length || unsourced(itr).length) longRule.push(`${d.ticker}: ${itr ? [...legal(itr), ...unsourced(itr)].join(" | ") : "null"}`);
+  }
+  check(`every real kill rule in the dossiers (${everyRule.length}) makes a legal, fully registered exchange — no line over the word cap`, everyRule.length >= 5 && longRule.length === 0, longRule.slice(0, 2).join(" ; "));
+  check("the voice leads with the held name even when it is not first on the list", ex1 && ex1.lines[0].character === "Gemma" && ex1.lines[0].text.includes(rule.ticker) && /We hold/.test(ex1.lines[1].text), text1.slice(0, 160));
+  check("…the chair reads the report against the pre-written kill rule and says not to read the price reaction", /not the price reaction/.test(text1) && text1.includes(rule.killRule.slice(0, 30)));
+  check("…the CIO counts the rest and names the first three", /5 more on the list inside two weeks/.test(text1) && /ZZA tomorrow/.test(text1) && /and 2 others/.test(text1), text1);
+  check("…the last line dates the source and says the far dates are provisional", new RegExp(`Alpha Vantage's as of ${EARN.capturedAt}`).test(text1) && /provisional/.test(text1));
+  check("…every digit it speaks was registered by code, and every line is legal", ex1 && unsourced(item1).length === 0 && legal(item1).length === 0, ex1 ? `${unsourced(item1).join()} ${legal(item1).join(" | ")}` : "null");
+  const c2 = ctx2();
+  const ex2 = IV.exInvCatalysts(c2, { inv: fx([cat({ ticker: "ZZB", name: "Zed Beta", why: "theme", date: "2026-10-08", when: "pre-market" })]) });
+  const t2 = ex2 ? ex2.lines.map((l) => l.text).join(" ") : "";
+  check("a vehicle we do not hold is said not to be held; with no kill rule the chair says a date is not a signal", /we do not hold it/.test(t2) && /A date is not a signal/.test(t2) && !/Nova/.test(ex2.lines.map((l) => l.character).join()), t2);
+  const c3 = ctx2();
+  const ex3 = IV.exInvCatalysts(c3, { inv: fx([cat({})]) });
+  check("a competitor is context for the map, not a position", ex3 && /Context for the map, not a position/.test(ex3.lines.map((l) => l.text).join(" ")));
+  check("no catalysts, no exchange", IV.exInvCatalysts(ctx2(), { inv: fx([]) }) === null);
+  check("the same list says the same thing (no randomness)", JSON.stringify(IV.exInvCatalysts(ctx2(), { inv: fx(list) })?.lines) === JSON.stringify(ex1.lines));
+  const verdict = ex1.lines.some((l) => /\b(buy|sell|add|trim)\b/i.test(l.text));
+  check("it never tells anyone to buy, sell, add or trim", !verdict, text1);
+
+  // In the talk engine.
+  const catItems = (r) => r.items.filter((i) => i.topic.startsWith("invest:catalyst:"));
+  const wk = (date, o = {}) => runDay(date, { world: { invest: buildInvest(inputsFor({ dayKey: date })), ...o } });
+  const tuesday = wk("2026-10-06");
+  const ct = catItems(tuesday);
+  check("on a weekday the calendar is said once, after the live window (13:30 ET or later)", ct.length === 1 && ct[0].etMin >= 13 * 60 + 30 && /^the calendar/.test(ct[0].label), ct.map((i) => `${hhmm(i.etMin)} ${i.label}`).join());
+  check("…and it is legal, sourced and urgency 0", ct.every((i) => unsourced(i).length === 0 && legal(i).length === 0 && i.urgency === 0), ct.flatMap((i) => [...unsourced(i), ...legal(i)]).join(" | "));
+  check("the same day again says nothing new", catItems(wk("2026-10-06", {})).length === 1 && catItems(runDay("2026-10-06", { state: tuesday.state, world: { invest: buildInvest(inputsFor({ dayKey: "2026-10-06" })) } })).length === 0);
+  const wed2 = runDay("2026-10-07", { state: tuesday.state, world: { invest: buildInvest(inputsFor({ dayKey: "2026-10-07" })) } });
+  check("the next day it says it again (its topic is per day)", catItems(wed2).length === 1, wed2.items.map(topicOf).join());
+  const sat2 = wk("2026-10-10");
+  check("at the weekend it is from 11:00", catItems(sat2).length === 1 && catItems(sat2)[0].etMin >= 11 * 60, catItems(sat2).map((i) => hhmm(i.etMin)).join());
+  const lateLoad = runDay("2026-10-06", { from: 15 * 60 + 30, to: 17 * 60, world: { invest: buildInvest(inputsFor({ dayKey: "2026-10-06" })) } });
+  check("a late load (15:30) still says it once", catItems(lateLoad).length === 1);
+  const stale = runDay("2026-10-06", { world: { invest: { ...buildInvest(inputsFor({ dayKey: "2026-10-06" })), catalystsAsOf: "2026-08-01" } } });
+  check("a calendar more than three weeks old is not spoken from", catItems(stale).length === 0, catItems(stale).map((i) => i.topic).join());
+  const none = runDay("2026-10-06", { world: { invest: { ...buildInvest(inputsFor({ dayKey: "2026-10-06" })), catalysts: [] } } });
+  check("no catalysts in the window, nothing said about the calendar", catItems(none).length === 0);
+  const morning = runDay("2026-10-06", { from: 9 * 60 + 25, to: 11 * 60 + 15, world: { invest: buildInvest(inputsFor({ dayKey: "2026-10-06" })) } });
+  check("never inside the NY AM window", morning.items.length === 0);
+  all.push(...ct, ...catItems(sat2));
+}
+
 /* ── Headlines ─────────────────────────────────────────────────────────── */
 console.log("the headlines");
 {
@@ -460,6 +590,17 @@ const frameFor = (invest, nowMs = NOW) => ({
   check("after the second look it shows the second theme — the one the five are on", th1.includes(theme1.name.slice(0, 20)), th1.slice(0, 120));
   const bd = textFor("tv_board", INV);
   check("the board TV seats the chair and the four, and draws the agenda from the same list", ["Sterling", "Nova", "Jax", "Gemma", "Vince"].every((n) => bd.includes(n)) && /swept, not yet bought/.test(bd) && /No order is placed/.test(bd), bd.slice(0, 260));
+  const catsNow = IR.freshCatalysts(INV);
+  check("the board TV draws the calendar: the heading, and the first three reports as the talk says them (day, ticker, when, why)", catsNow.length >= 1 && /REPORTS IN THE NEXT TWO WEEKS/.test(bd) && catsNow.slice(0, 3).every((c) => bd.includes(c.ticker) && bd.includes(IR.dayPhrase(c.date, INV.dayKey)) && bd.includes(c.when) && bd.includes(c.why === "theme" ? "vehicle" : c.why)), bd.slice(-320));
+  const crowded = { ...buildInvest(inputsFor({ dayKey: "2026-10-27" })), catalystsAsOf: "2026-10-20" };
+  const crowdedText = textFor("tv_board", crowded);
+  check("with more than three it says how many more, and draws only three", IR.freshCatalysts(crowded).length > 3 && crowdedText.includes(`+${IR.freshCatalysts(crowded).length - 3} more`) && IR.freshCatalysts(crowded).slice(3).every((c) => !crowdedText.split(" | ").includes(c.ticker)), crowdedText.slice(-260));
+  check("with nothing in the window it says so, not a blank", /None touches the book or the list/.test(textFor("tv_board", { ...INV, catalysts: [] })));
+  const staleInv = { ...INV, catalystsAsOf: "2026-08-01" };
+  const staleText = textFor("tv_board", staleInv);
+  check("a calendar more than three weeks old is not drawn from; the TV says when it was captured", /captured 2026-08-01 — too old to read/.test(staleText) && catsNow.every((c) => !staleText.split(" | ").includes(c.ticker)), staleText.slice(-200));
+  check("the voice and the TV read one list: a stale calendar silences both", IR.freshCatalysts(staleInv).length === 0 && IV.exInvCatalysts({ st: freshTalkState(), f: new Facts(), key: "k", now: NOW }, { inv: staleInv }) === null);
+  check("freshCatalysts is the list itself while the calendar is current, and the edge is 21 days", IR.freshCatalysts(INV) === INV.catalysts && IR.freshCatalysts({ ...INV, catalystsAsOf: IR.plusDays(INV.dayKey, -21) }).length === INV.catalysts.length && IR.freshCatalysts({ ...INV, catalystsAsOf: IR.plusDays(INV.dayKey, -22) }).length === 0);
   const cio = textFor("mon_Inv_0", INV);
   check("Nova's monitor tabulates the sleeves", /Ballast/.test(cio) && /Compounders/.test(cio) && /Dry powder/.test(cio) && /To restore/.test(cio));
   const news = textFor("mon_Inv_2", INV);

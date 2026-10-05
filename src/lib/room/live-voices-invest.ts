@@ -19,9 +19,9 @@
 
 import { BOOK_MEANINGFUL_USD } from "@/lib/invest/book";
 import type { Sleeve } from "@/lib/invest/universe";
-import { ANIM, type InvestLite, type InvestThemeLite, type Line, type NewsLite, type TalkMove } from "./live-types";
+import { ANIM, type InvestCatalyst, type InvestLite, type InvestThemeLite, type Line, type NewsLite, type TalkMove } from "./live-types";
 import { clip, compact, line, NEUTRAL, pick, type Ctx, type Ex } from "./live-voices";
-import { boardAgenda, themeOfTheDay, tierCoverage } from "./invest-read";
+import { boardAgenda, dayPhrase, freshCatalysts, themeOfTheDay, tierCoverage, whenPhrase } from "./invest-read";
 
 const AT = (spot: string): TalkMove => ({ zone: "ANNEX", spot });
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
@@ -318,4 +318,76 @@ export function exInvBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
   );
   const out = compact(lines);
   return out.length ? { lines: out, moves: { Sterling: AT("board_chair"), Nova: AT("board_north"), Jax: AT("board_tv"), Vince: AT("board_tv2") } } : null;
+}
+
+/* ── The calendar: reports that touch a name we hold or compete with ───── */
+
+/**
+ * What the office does with a date: names the report, says why it matters to THIS book (held, a theme's vehicle, a competitor),
+ * hands over the trader's own pre-written kill rule when the name has a dossier, and says whose dates these are and how old.
+ * A date is context — the line never says what to do about it.
+ */
+export function exInvCatalysts(c: Ctx, d: { inv: InvestLite }): Ex | null {
+  const f = c.f;
+  const { inv } = d;
+  const today = inv.dayKey;
+  const cats = freshCatalysts(inv);
+  if (!cats.length) return null;
+  const lead: InvestCatalyst = cats.find((x) => x.why === "held") ?? cats[0]!;
+  const rest = cats.filter((x) => x !== lead);
+  const at = (x: InvestCatalyst) => `${f.raw(dayPhrase(x.date, today))} ${whenPhrase(x.when)}`;
+  const lines: (Line | null)[] = [];
+  lines.push(
+    line(
+      "Gemma",
+      ANIM.Gemma.explain!,
+      pick(c, "inv-cat-lead", [
+        () => `On the calendar: ${f.raw(lead.name)} (${lead.ticker}) reports ${at(lead)}.`,
+        () => `${lead.ticker} is next on our list — ${f.raw(lead.name)} reports ${at(lead)}.`,
+      ]),
+    ),
+  );
+  lines.push(
+    line(
+      "Vince",
+      ANIM.Vince.watch!,
+      lead.why === "held"
+        ? pick(c, "inv-cat-held", [() => (lead.theme ? `We hold ${lead.ticker}, and it sits in the ${f.raw(lead.theme)} theme.` : `We hold ${lead.ticker}.`)])
+        : lead.why === "theme"
+          ? pick(c, "inv-cat-theme", [() => `${lead.ticker} is a vehicle in the ${f.raw(lead.theme ?? "research")} theme — we do not hold it.`])
+          : pick(c, "inv-cat-comp", [() => `${lead.ticker} competes in the ${f.raw(lead.theme ?? "research")} theme. Context for the map, not a position.`]),
+    ),
+  );
+  lines.push(
+    line(
+      "Sterling",
+      ANIM.Sterling.tablet!,
+      lead.killRule
+        ? pick(c, "inv-cat-kill", [() => `Its kill rule, written before we owned it: ${f.raw(stop(clip(lead.killRule!, 95)))} Read the report against that, not the price reaction.`])
+        : pick(c, "inv-cat-nokill", [() => "A date is not a signal. Nothing changes until a dossier and its kill rule say so."]),
+    ),
+  );
+  if (rest.length) {
+    const names = rest.slice(0, 3).map((x) => `${x.ticker} ${dayPhrase(x.date, today)}`);
+    lines.push(
+      line(
+        "Nova",
+        ANIM.Nova.write!,
+        pick(c, "inv-cat-more", [
+          () => `${f.int(rest.length)} more on the list inside two weeks: ${f.raw(list(names))}${rest.length > 3 ? ` and ${f.int(rest.length - 3)} others` : ""}.`,
+        ]),
+      ),
+    );
+  }
+  lines.push(
+    line(
+      "Gemma",
+      ANIM.Gemma.explain!,
+      pick(c, "inv-cat-asof", [
+        () => `Those dates are Alpha Vantage's as of ${f.raw(inv.catalystsAsOf)}. Past two weeks out they are provisional until the company confirms.`,
+      ]),
+    ),
+  );
+  const out = compact(lines);
+  return out.length ? { lines: out, moves: { Gemma: AT("inv_news"), Vince: AT("inv_struct"), Sterling: AT("inv_wall"), Nova: AT("inv_cio") } } : null;
 }

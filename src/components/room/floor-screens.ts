@@ -12,8 +12,8 @@ import type { Lenses } from "@/lib/room/debate";
 import type { LabRead } from "@/lib/room/lab";
 import type { AuditItem } from "@/lib/room/audit";
 import { floorCues, type FloorCues } from "@/lib/room/floor-cues";
-import type { FeedRead, GoalLite, InvestLite, InvestThemeLite, RndLite, ScanCardLite, SeatsLite } from "@/lib/room/live-types";
-import { boardAgenda, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
+import { CATALYST_MAX_AGE_DAYS, type FeedRead, type GoalLite, type InvestLite, type InvestThemeLite, type RndLite, type ScanCardLite, type SeatsLite } from "@/lib/room/live-types";
+import { boardAgenda, daysBetween, dayPhrase, freshCatalysts, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
 import { etWallParts } from "@/lib/trading/sessions";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
@@ -1846,9 +1846,9 @@ function drawInvBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     if (line) ctx.fillText(line, x + bw / 2, ly);
     ctx.textAlign = "left";
   };
-  box(144, 58, 170, 56, "Sterling", "Chair / CEO · the order of operations", INV_ACCENT);
+  box(144, 58, 170, 62, "Sterling", "Chair / CEO · the order of operations", INV_ACCENT);
   ctx.fillStyle = C.grid;
-  ctx.fillRect(228, 114, 2, 22);
+  ctx.fillRect(228, 120, 2, 16);
   ctx.fillRect(66, 136, 324, 2);
   const crew: [string, string, number][] = [
     ["Nova", "CIO · allocation and the funnel", 14],
@@ -1868,6 +1868,38 @@ function drawInvBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillStyle = C.muted;
   ctx.font = `500 13px ${FONT}`;
   wrap(ctx, inv.funnel.ladderLine, 14, 284, 444, 17, 3);
+  // THE CALENDAR: reports inside two weeks that touch the book or the list, from the committed earnings calendar. The talk reads the same list.
+  const cats = freshCatalysts(inv);
+  ctx.fillStyle = C.text;
+  ctx.font = `700 13px ${FONT}`;
+  ctx.fillText("REPORTS IN THE NEXT TWO WEEKS", 14, 352);
+  if (cats.length > 3) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    ctx.textAlign = "right";
+    ctx.fillText(`+${cats.length - 3} more`, 464, 352);
+    ctx.textAlign = "left";
+  }
+  if (!cats.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 12px ${FONT}`;
+    ctx.fillText(daysBetween(inv.catalystsAsOf, inv.dayKey) > CATALYST_MAX_AGE_DAYS ? `The calendar was captured ${inv.catalystsAsOf} — too old to read.` : "None touches the book or the list.", 14, 374);
+  } else {
+    cats.slice(0, 3).forEach((c, i) => {
+      const y = 374 + i * 19;
+      ctx.font = `600 12px ${FONT}`;
+      ctx.fillStyle = C.muted;
+      ctx.fillText(dayPhrase(c.date, inv.dayKey), 14, y);
+      ctx.font = `800 13px ${MONO}`;
+      ctx.fillStyle = C.text;
+      ctx.fillText(c.ticker, 166, y);
+      ctx.font = `500 12px ${FONT}`;
+      ctx.fillStyle = C.muted;
+      ctx.fillText(c.when, 226, y);
+      ctx.fillStyle = c.why === "held" ? C.up : c.why === "theme" ? C.cyan : C.muted;
+      ctx.fillText(c.why === "theme" ? "vehicle" : c.why, 356, y);
+    });
+  }
   ctx.fillStyle = C.grid;
   ctx.fillRect(474, 58, 2, h - 76);
   ctx.fillStyle = C.text;

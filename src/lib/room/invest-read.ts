@@ -3,7 +3,7 @@
  * (invest-office.ts builds the InvestLite and is the one module that loads the dated research JSON.)
  */
 
-import { hash32, type InvestLite, type InvestThemeLite, type InvestTier } from "./live-types";
+import { CATALYST_MAX_AGE_DAYS, hash32, type InvestCatalyst, type InvestLite, type InvestThemeLite, type InvestTier } from "./live-types";
 
 export type WatchHit = { key: string; label: string; kind: "held" | "theme" | "competitor" };
 
@@ -60,3 +60,33 @@ export function boardAgenda(inv: InvestLite): AgendaItem[] {
   if (inv.book.positions > 0 && inv.book.belowMeaningful) out.push({ kind: "small" });
   return out;
 }
+
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const utcNoon = (d: string): number => Date.parse(`${d}T12:00:00Z`);
+
+/** Whole calendar days from `a` to `b` (YYYY-MM-DD, both), negative when `b` is earlier. */
+export const daysBetween = (a: string, b: string): number => Math.round((utcNoon(b) - utcNoon(a)) / 86_400_000);
+
+/** The calendar day as a person says it: today, tomorrow, a weekday inside the week, otherwise "Tuesday 13 October". */
+export function dayPhrase(date: string, today: string): string {
+  const n = daysBetween(today, date);
+  const wd = WEEKDAYS[new Date(utcNoon(date)).getUTCDay()]!;
+  if (n === 0) return "today";
+  if (n === 1) return "tomorrow";
+  if (n > 1 && n < 7) return wd;
+  const m = Number(date.slice(5, 7));
+  return `${wd} ${Number(date.slice(8, 10))} ${MONTHS[m - 1] ?? date.slice(5, 7)}`;
+}
+
+/** When in the day a report lands, as the calendar states it. */
+export const whenPhrase = (when: "pre-market" | "after close" | "time not stated"): string => (when === "pre-market" ? "before the open" : when === "after close" ? "after the close" : "(time not stated)");
+
+/**
+ * The reports the office may speak of or draw: the list, unless the calendar it was read from is more than `CATALYST_MAX_AGE_DAYS` old,
+ * when it is empty. The talk and the board TV both read this one function.
+ */
+export const freshCatalysts = (inv: InvestLite): InvestCatalyst[] => (daysBetween(inv.catalystsAsOf, inv.dayKey) <= CATALYST_MAX_AGE_DAYS ? inv.catalysts : []);
+
+/** The calendar's date plus `n` days. */
+export const plusDays = (date: string, n: number): string => new Date(utcNoon(date) + n * 86_400_000).toISOString().slice(0, 10);

@@ -47,6 +47,7 @@ import { ROOM_MANDATE } from "./mandate";
 import type { Race } from "./race";
 import type { LabRead } from "./lab";
 import { contractName } from "./format";
+import { freshnessOf } from "./data-fresh";
 import { etDateOf, type Underlier } from "./option-math";
 import type { Beat } from "./orchestrator";
 import { equityOf, type RoomBook } from "./paper-book";
@@ -466,6 +467,7 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     seats: seatsLite(i.race ?? null),
     rnd: rndLite(i.race ?? null),
     invest: i.invest ?? null,
+    fresh: freshnessOf(etDateOf(nowMs)),
     evidence: evidenceHeadlines(),
     busyUntil: i.busyUntil,
   };

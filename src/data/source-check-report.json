@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "script": "scripts/check-research-sources.mjs",
+  "checkedAt": "2026-10-05",
+  "researchAsOf": "2026-10-05",
+  "facts": 35,
+  "counts": {
+    "match": 33,
+    "moved": 1,
+    "partial": 0,
+    "missing": 0,
+    "no-numbers": 0,
+    "by-hand": 1,
+    "unreachable": 0,
+    "empty": 0
+  },
+  "findings": []
+}

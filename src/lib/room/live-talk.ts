@@ -33,7 +33,7 @@ import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
-import { investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
+import { freshCatalysts, investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
 import { deskAudit } from "./audit";
 import {
   ATM_DELTA,
@@ -1051,6 +1051,7 @@ const INV_NEWS_GAP_MS = 45 * 60_000;
 const INV_NEWS_MAX_AGE_MS = 20 * 3_600_000;
 /** On the first look a headline older than this is context already seen, not something to announce. */
 const INV_PRIME_AGE_MS = 90 * 60_000;
+/** The earnings calendar is a committed snapshot; older than this it would be a guess and the office says nothing from it. */
 
 function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   const inv = w.invest;
@@ -1109,6 +1110,23 @@ function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       at: now,
       label: "the funnel · income into the long book",
       build: (c) => IV.exInvFunnel(c, { inv }),
+      commit: () => {},
+    });
+  }
+
+  // The calendar: reports in the next two weeks that touch a name we hold or compete with. Once a day, mid-afternoon, and only
+  // while the committed calendar is fresh enough to say anything from.
+  const cTopic = `invest:catalyst:${day}`;
+  if (freshCatalysts(inv).length && m >= (trading ? 13 * 60 + 30 : 11 * 60) && st.topicAt[cTopic] == null) {
+    out.push({
+      id: `invest|catalyst|${day}`,
+      kind: "invest",
+      topic: cTopic,
+      urgency: 0,
+      prio: 3,
+      at: now,
+      label: "the calendar · reports that touch the book and the list",
+      build: (c) => IV.exInvCatalysts(c, { inv }),
       commit: () => {},
     });
   }
@@ -1288,7 +1306,7 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
     }
   }
   // What the five find wrong with the desk (audit.ts): one finding at a time, in turn, from the office it belongs to.
-  const audit = deskAudit({ feed: w.feed, goal: w.goal, lab: w.lab, rnd: w.rnd, seats: w.seats });
+  const audit = deskAudit({ feed: w.feed, goal: w.goal, lab: w.lab, rnd: w.rnd, seats: w.seats, fresh: w.fresh ?? null });
   if (audit.length) {
     const it = audit[(st.variant["audit.idx"] ?? 0) % audit.length]!;
     out.push({ id: `audit:${it.id}`, weight: 0.9, sig: `${it.id}|${it.evidence}`, build: (c) => R.exAudit(c, { item: it }) });
@@ -1474,7 +1492,7 @@ function rollDay(st: TalkState, w: TalkWorld) {
   // Day-scoped goal talk (the council, the re-plan, a call asked of the trader) starts over; the pace and the finals persist.
   st.goalSig = Object.fromEntries(Object.entries(st.goalSig).filter(([k]) => k === "pace" || k === "paceAt" || k.startsWith("final|") || k.startsWith("ladder|") || k.includes(w.clock.etDate)));
   // Day-keyed investment topics start over; the book's signature and each headline's seen-mark persist.
-  for (const k of Object.keys(st.topicAt)) if (/^invest:(funnel|theme|board):/.test(k) && !k.includes(w.clock.etDate)) delete st.topicAt[k];
+  for (const k of Object.keys(st.topicAt)) if (/^invest:(funnel|theme|board|catalyst):/.test(k) && !k.includes(w.clock.etDate)) delete st.topicAt[k];
   st.dayKey = w.clock.etDate;
 }
 

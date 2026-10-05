@@ -20,6 +20,10 @@ export interface ThemeDemand {
   asOf: string;
   sourceName: string;
   source: string;
+  /** The cited page is a rolling "latest" page: it will move on, and the figure is a dated reading of it. */
+  volatile?: boolean;
+  /** The page cannot be read by a script; what a person read there, and when. */
+  manual?: string;
 }
 export interface ThemeCompetitor {
   name: string;

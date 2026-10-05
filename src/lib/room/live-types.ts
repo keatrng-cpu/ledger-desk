@@ -394,6 +394,20 @@ export interface InvestThemeLite {
   held: string[];
 }
 
+/** A report on the committed earnings calendar that touches the office: a name the book holds, a theme's vehicle, or a competitor on the research list. */
+export interface InvestCatalyst {
+  /** The calendar's own date, YYYY-MM-DD. */
+  date: string;
+  when: "pre-market" | "after close" | "time not stated";
+  ticker: string;
+  name: string;
+  why: "held" | "theme" | "competitor";
+  /** The research theme it ties to, or null for a held name that is in no theme. */
+  theme: string | null;
+  /** The trader's pre-written rule that takes the name out (its dossier), or null when it has none. */
+  killRule: string | null;
+}
+
 export interface InvestLite {
   book: {
     totalUsd: number;
@@ -421,9 +435,32 @@ export interface InvestLite {
   other: { monthlyUsd: number; ratePct: number } | null;
   themes: InvestThemeLite[];
   themesAsOf: string;
+  /** Reports in the next fourteen days that touch the office, earliest first; the calendar is a committed snapshot, captured on `catalystsAsOf`. */
+  catalysts: InvestCatalyst[];
+  catalystsAsOf: string;
   /** What a headline has to mention to matter to the office: the book's tickers, a theme's vehicles, a competitor. */
   watch: Record<string, { label: string; kind: "held" | "theme" | "competitor" }>;
   dayKey: string;
+}
+
+/** A catalyst list built from an earnings calendar captured more than this many days ago is not spoken from, and the audit says so. */
+export const CATALYST_MAX_AGE_DAYS = 21;
+
+/**
+ * How old the committed data the office speaks from is (data-fresh.ts binds the files). A snapshot says when it was taken; this is
+ * the one place the desk compares that date with today, so the audit and the talk read the same ages.
+ */
+export interface DataFreshness {
+  /** ET date the ages are measured to. */
+  today: string;
+  /** When the committed earnings calendar was captured. */
+  earningsAsOf: string;
+  /** The dated research file's own as-of. */
+  researchAsOf: string;
+  /** The last date on the committed macro calendar (the blackout windows come from it), or null when it is empty. */
+  macroCalendarEnds: string | null;
+  /** The last full `check-research-sources.mjs --write` run, or null when none is on record. */
+  sourceCheck: { checkedAt: string; facts: number; findings: number; researchAsOf: string | null } | null;
 }
 
 export interface TalkWorld {
@@ -446,6 +483,8 @@ export interface TalkWorld {
   rnd: RndLite | null;
   /** The investment office's read of the Invest tab and the research file — null until the engine has computed it. */
   invest: InvestLite | null;
+  /** How old the committed data is (the audit reads it). Absent in worlds built without it, which raises nothing. */
+  fresh?: DataFreshness | null;
   /** The measured headline lines (evidence.ts) — real findings the night shift can quote. */
   evidence: string[];
   /** The scene will be busy with what it already has until this ms. */

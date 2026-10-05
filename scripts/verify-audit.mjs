@@ -99,6 +99,83 @@ check("the missing server runner is named while the flag is false", A.deskAudit(
   check("two touches is too early to call a seat idle", !A.deskAudit({ ...empty, seats: seats(2, [row("protect", 0, 0), row("press", 0, 0)]) }).some((x) => x.id === "idle_seats"));
 }
 
+console.log("The committed data's own age");
+{
+  const TODAY = "2026-10-05";
+  const ago = (n) => new Date(Date.parse(`${TODAY}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10);
+  const ahead = (n) => ago(-n);
+  const base = { today: TODAY, earningsAsOf: ago(8), researchAsOf: TODAY, macroCalendarEnds: ahead(51), sourceCheck: { checkedAt: TODAY, facts: 35, findings: 0, researchAsOf: TODAY } };
+  const FRESH = /^(earnings|research|sources|macro)_/;
+  const run = (over = {}) => A.deskAudit({ ...empty, fresh: { ...base, ...over } }).filter((x) => FRESH.test(x.id));
+  const one = (over, id) => run(over).find((x) => x.id === id);
+
+  check("data that is current raises nothing", run().length === 0, JSON.stringify(ids(run())));
+  check("a world built without a freshness read raises nothing about data either", A.deskAudit({ ...empty }).filter((x) => FRESH.test(x.id)).length === 0 && A.deskAudit({ ...empty, fresh: null }).filter((x) => FRESH.test(x.id)).length === 0);
+
+  check("earnings calendar: 14 days is fine, 15 is ageing (low)", run({ earningsAsOf: ago(14) }).length === 0 && one({ earningsAsOf: ago(15) }, "earnings_ageing")?.severity === "low");
+  check("…21 days is still ageing; 22 is out of date (medium), the day the office stops quoting from it", one({ earningsAsOf: ago(21) }, "earnings_ageing") && !one({ earningsAsOf: ago(21) }, "earnings_stale") && one({ earningsAsOf: ago(22) }, "earnings_stale")?.severity === "med" && !one({ earningsAsOf: ago(22) }, "earnings_ageing"));
+  const es = one({ earningsAsOf: ago(30) }, "earnings_stale");
+  check("it quotes the capture date and the count of days, and who owns it", es && es.evidence.includes(ago(30)) && /30 days ago/.test(es.evidence) && es.owner === "Gemma" && es.area === "data", JSON.stringify(es));
+
+  const aged = (n) => ({ researchAsOf: ago(n), sourceCheck: { ...base.sourceCheck, researchAsOf: ago(n) } }); // a file and the check of that same file
+  check("research file: 60 days is fine, 61 is old (low), 91 is stale (medium)", run(aged(60)).length === 0 && one(aged(61), "research_old")?.severity === "low" && one(aged(91), "research_old")?.severity === "med" && /91 days ago/.test(one(aged(91), "research_old").evidence));
+
+  check("no source check on record is a finding, and a report that exists is not", one({ sourceCheck: null }, "sources_unchecked")?.severity === "low" && !one({}, "sources_unchecked"));
+  const um = one({ sourceCheck: { ...base.sourceCheck, findings: 2 } }, "sources_unmatched");
+  check("figures not found on their pages are a medium finding that quotes the count and the check date", um && um.severity === "med" && /2 of 35/.test(um.evidence) && um.evidence.includes(TODAY), JSON.stringify(um));
+  check("a clean check is silent", !one({}, "sources_unmatched"));
+  check("a check 35 days old is fine, 36 is a month old", run({ sourceCheck: { ...base.sourceCheck, checkedAt: ago(35) } }).length === 0 && one({ sourceCheck: { ...base.sourceCheck, checkedAt: ago(36) } }, "sources_old")?.severity === "low");
+  check("a research file refreshed after its check says the check is of the older file", one({ researchAsOf: ago(1) }, "sources_behind") && /file is now/.test(one({ researchAsOf: ago(1) }, "sources_behind").evidence) && !one({}, "sources_behind"));
+  check("a report that predates the dates it was not told about is not a finding (researchAsOf null)", !one({ sourceCheck: { ...base.sourceCheck, researchAsOf: null } }, "sources_behind"));
+
+  check("macro calendar: no events at all is high", one({ macroCalendarEnds: null }, "macro_empty")?.severity === "high");
+  check("…it ended yesterday is high and says how long ago, in the singular", /1 day ago/.test(one({ macroCalendarEnds: ago(1) }, "macro_ended")?.evidence ?? "") && one({ macroCalendarEnds: ago(1) }, "macro_ended")?.severity === "high" && /3 days ago/.test(one({ macroCalendarEnds: ago(3) }, "macro_ended")?.evidence ?? ""));
+  check("…a week of runway is fine, six days is medium, the last day says today", run({ macroCalendarEnds: ahead(7) }).length === 0 && one({ macroCalendarEnds: ahead(6) }, "macro_ending")?.severity === "med" && /6 days from now/.test(one({ macroCalendarEnds: ahead(6) }, "macro_ending").evidence) && /1 day from now/.test(one({ macroCalendarEnds: ahead(1) }, "macro_ending").evidence) && /, today;/.test(one({ macroCalendarEnds: ahead(0) }, "macro_ending").evidence));
+
+  const bad = A.deskAudit({ ...empty, fresh: { today: "garbage", earningsAsOf: "x", researchAsOf: "", macroCalendarEnds: "nope", sourceCheck: { checkedAt: "??", facts: 1, findings: 0, researchAsOf: null } } }).filter((x) => FRESH.test(x.id));
+  check("a date it cannot read raises nothing and never throws", bad.length === 0, JSON.stringify(ids(bad)));
+
+  const worst = A.deskAudit({ ...empty, fresh: { ...base, macroCalendarEnds: ago(2), earningsAsOf: ago(40), sourceCheck: null } });
+  check("a macro calendar that ran out ranks above the medium and low data findings", worst[0].id === "macro_ended" && ids(worst).includes("earnings_stale") && ids(worst).includes("sources_unchecked"), JSON.stringify(ids(worst)));
+  check("every data finding is owned by one of the five, in the data area, with evidence and a proposal addressed to the trader", worst.filter((x) => FRESH.test(x.id)).every((x) => ["Jax", "Nova", "Gemma", "Sterling", "Vince"].includes(x.owner) && x.area === "data" && x.evidence.length > 10 && x.proposal.length > 10));
+  check("a pure function: the same input, the same findings", JSON.stringify(A.deskAudit({ ...empty, fresh: { ...base, earningsAsOf: ago(30) } })) === JSON.stringify(A.deskAudit({ ...empty, fresh: { ...base, earningsAsOf: ago(30) } })));
+  check("each finding says what to do and never that anything was changed", worst.filter((x) => FRESH.test(x.id)).every((x) => !/\b(changed|updated|fixed|rewrote|stamped it)\b/i.test(x.evidence + x.proposal)));
+
+  // Spoken: the audit voice reads them, every digit registered, no line over the cap.
+  const { exAudit } = await import("../src/lib/room/live-voices-race.ts");
+  const { Facts, freshTalkState } = await import("../src/lib/room/live-types.ts");
+  const spoken = [];
+  for (const it of A.deskAudit({ ...empty, fresh: { ...base, macroCalendarEnds: ahead(2), earningsAsOf: ago(30), researchAsOf: ago(100), sourceCheck: { checkedAt: ago(40), facts: 35, findings: 3, researchAsOf: ago(100) } } }).filter((x) => FRESH.test(x.id))) {
+    const f = new Facts();
+    const ex = exAudit({ st: freshTalkState(), f, key: `audit|${it.id}`, now: Date.parse(`${TODAY}T17:00:00Z`) }, { item: it });
+    if (!ex) { spoken.push(`${it.id}: no exchange`); continue; }
+    const text = ex.lines.map((l) => l.text).join(" ");
+    const nums = (text.match(/\d[\d,]*\.?\d*/g) ?? []).map((n) => n.replace(/[.,]+$/, ""));
+    const unreg = nums.filter((n) => !f.list.includes(n));
+    if (unreg.length) spoken.push(`${it.id}: unregistered ${unreg.join()}`);
+    const long = ex.lines.filter((l) => l.text.split(/\s+/).length > 42);
+    if (long.length) spoken.push(`${it.id}: a line of ${long[0].text.split(/\s+/).length} words`);
+    if (/\b(TAKE|STAND|MANAGE|PATH)\b/.test(text)) spoken.push(`${it.id}: a desk verdict word`);
+  }
+  check("the audit voice reads every data finding: digits registered, no line over the word cap, no verdict word", spoken.length === 0, spoken.join(" | "));
+}
+
+console.log("Binding the files (data-fresh.ts)");
+{
+  const DF = await import("../src/lib/room/data-fresh.ts");
+  const read = (p) => JSON.parse(fs.readFileSync(new URL(`../src/data/${p}`, import.meta.url), "utf8"));
+  const f = DF.freshnessOf("2026-10-05");
+  const ends = read("news-calendar.json").map((e) => e.date).sort().at(-1);
+  check("the earnings date is the committed file's capturedAt, the research date its asOf, the macro end its last event (read independently)", f.earningsAsOf === read("earnings-calendar.json").capturedAt && f.researchAsOf === read("invest-themes.json").asOf && f.macroCalendarEnds === ends, JSON.stringify(f));
+  check("it carries the day it was asked about", f.today === "2026-10-05");
+  const rep = read("source-check-report.json");
+  check("the committed source-check report is read as it is (date, fact count, number of findings)", f.sourceCheck && f.sourceCheck.checkedAt === rep.checkedAt && f.sourceCheck.facts === rep.facts && f.sourceCheck.findings === rep.findings.length && f.sourceCheck.researchAsOf === rep.researchAsOf, JSON.stringify(f.sourceCheck));
+  check("a report with the wrong shape reads as none, and never throws", DF.readSourceReport(null) === null && DF.readSourceReport(undefined) === null && DF.readSourceReport("x") === null && DF.readSourceReport({}) === null && DF.readSourceReport({ checkedAt: "yesterday", facts: 3, findings: [] }) === null && DF.readSourceReport({ checkedAt: "2026-10-05", facts: -1, findings: [] }) === null && DF.readSourceReport({ checkedAt: "2026-10-05", facts: 3, findings: "none" }) === null);
+  check("…a good one reads, and a bad researchAsOf is dropped, not trusted", DF.readSourceReport({ checkedAt: "2026-10-05", facts: 3, findings: [1, 2], researchAsOf: "soon" })?.researchAsOf === null && DF.readSourceReport({ checkedAt: "2026-10-05", facts: 3, findings: [1, 2], researchAsOf: "2026-10-01" })?.findings === 2);
+  const src = fs.readFileSync(new URL("../src/lib/room/data-fresh.ts", import.meta.url), "utf8");
+  check("the binder reads no clock and no network", !/Date\.now|new Date\s*\(|fetch\s*\(|Math\.random/.test(src));
+}
+
 console.log("Ranking and purity");
 {
   const full = {
