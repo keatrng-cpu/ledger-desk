@@ -243,7 +243,159 @@ export const MONTH_SEP_2026: MonthPlan = {
   ],
 };
 
-const PLANS: MonthPlan[] = [MONTH_SEP_2026];
+/** October 2026 — services, CPI, then Oct 28 FOMC. Visible from Sun Oct 4. */
+export const MONTH_OCT_2026: MonthPlan = {
+  id: "2026-10",
+  monthLabel: "October 2026",
+  monthStart: "2026-10-01",
+  monthEnd: "2026-10-30",
+  headline:
+    "Services, then CPI, then the Oct 28 decision. Not a clean trend. News is liquidity, not a directional call.",
+  thesis:
+    "Conditional two-way. Sep NFP already printed soft (+29k, U 4.2%). Sep FOMC already hiked. This month is minutes, CPI, then the Oct 27–28 meeting (no SEP).",
+  htfBias:
+    "Prior-week tape already in the seed: NQ ~30,357–31,282.50 faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 7,848.50 untouched. Do not invent CMH/CML.",
+  fed: "Funds 3.75–4.00% after Sep 16 +25, unanimous. SEP median end-2026 4.1%; 12 of 18 saw one more hike. Oct 27–28 is the decision (statement 14:00, presser 14:30). No SEP — December 8–9 is the next dots. FedWatch cited Oct 4: hold 77.9%, +25 22.1% (was 17–22% post-NFP). Base case hold, not a second hike, until CPI says otherwise.",
+  seasonality:
+    "October is not a free long. Tendency, not a setup. Size down into CPI and the decision. Demand A / A+.",
+  nq: {
+    settle: 31050,
+    pwh: 31282.5,
+    pwl: 30357,
+    ath: 31282.5,
+    eq: 30819.75,
+    drawUp: "Prior-week 31,282.50 — only if tape is already there. Do not pre-buy a new high.",
+    drawDown: "Prior-week 30,357 then next SSL if that goes.",
+    note: "PWH/PWL = Sep 28–Oct 2 tape already stamped (NQ ~30,357–31,282.50). Not a new print. September plan levels left untouched. Live CMH/CML from bars.",
+  },
+  es: {
+    settle: 7804,
+    pwh: 7810,
+    pwl: 7672.75,
+    ath: 7848.5,
+    eq: 7741.38,
+    drawUp: "Prior-week 7,810 then Sep 21–25 7,848.50",
+    drawDown: "Prior-week 7,672.75",
+    note: "PWH/PWL = Sep 28–Oct 2 ES tape already stamped (~7,672.75–7,810). ATH field is the Sep 21–25 PWH already in the week seed, not a new tick. Settle keeps 7,804 — Fri settle was not printed. Live CMH/CML from bars.",
+  },
+  liqNq: {
+    bsl: ["Prior-week 31,282.50"],
+    irl: ["EQ ~30,820", "Fri fade band 31,050–31,074"],
+    ssl: ["Prior-week 30,357"],
+  },
+  liqEs: {
+    bsl: ["Prior-week 7,810", "Sep 21–25 7,848.50"],
+    irl: ["Seed settle 7,804"],
+    ssl: ["Prior-week 7,672.75"],
+  },
+  rules: [
+    "One book per day. MNQ or ES, not both same bias.",
+    "Judas 9:30–9:45 ET every day. No entry 8:15–9:00 on CPI. Flatten before 13:45 on minutes and the decision.",
+    "After 10:00 ET, A+ only on event days.",
+    "blake_mech longs stay paper / B+ until WR recovers.",
+    "Primary: mechanical + SMT/TJR companion.",
+    "PATH floor 0.65. Month cap ~9 — after 9, A+ only or stand. 6–9 is the cap not the goal.",
+    "Soft-data longs you skipped that paid are still process wins.",
+    "A+ size 2% until A+ sample n≥20 and WR≥65%.",
+  ],
+  ops: [
+    "8:20 CDT brief. 8:30–8:44 Judas. 8:45–9:00 pulses. After 10:00 ET on event days, A+ only.",
+    "Blackouts ±15m: 10/5 10:00 · 10/6 8:30 · 10/7 13:45–14:15 · 10/8 8:30 · 10/9 10:00 · 10/14 8:30 and 14:00 · 10/15 8:30 · 10/16 8:30 · 10/28 13:45–15:00 · 10/29 8:30 · 10/30 8:30.",
+    "Journal skips on Columbus Day, CPI open with no MSS, and FOMC Wed as process wins.",
+    "Sunday night: restamp this file if levels, odds, or actuals drifted. Do not invent fills.",
+  ],
+  phases: [
+    {
+      id: "labor",
+      label: "Services + minutes",
+      start: "2026-10-01",
+      end: "2026-10-09",
+      character: "NFP already printed soft. This window is ISM Services and the Sep minutes.",
+      dailyBias: "Two-way. Hot services or hawkish minutes = October hike repricing. Soft = squeeze.",
+      pathQuota: "1–2 PATH is a win. Cap is not the job into minutes.",
+      book: "MNQ primary. ES only if NQ is dead.",
+      strategy:
+        "Thu Oct 1 ISM mfg and Fri Oct 2 NFP already printed. Mon ISM Services 10:00 stand 9:45–10:15. Tue trade 8:30 is not the raid. Wed minutes 14:00 — flatten 13:45, A+ only after 14:15. Thu claims. Fri UMich 10:00, flatten into the weekend.",
+      skipIf: "No raid of prior-week H/L. No MSS + IFVG after the print. Anything open at 13:45 Wed.",
+      blackouts: "Mon 10:00 · Tue 8:30 · Wed 13:45–14:15 · Thu 8:30 · Fri 10:00",
+    },
+    {
+      id: "holiday_cpi",
+      label: "Holiday + CPI",
+      start: "2026-10-12",
+      end: "2026-10-16",
+      character: "Cash closed Monday. CPI Wednesday is the raid, not a directional call.",
+      dailyBias: "A / A+ only into CPI. Do not fade the first 30 min.",
+      pathQuota: "A / A+ only. If services week already took a hawkish short and CPI is hot, you do not need a second short.",
+      book: "One book. MNQ primary.",
+      strategy:
+        "Mon Columbus Day — cash closed, Globex fake, do not treat Asia as HTF. Tue post-holiday Judas, A+ until the range is in. Wed CPI 8:30 then Beige Book 14:00. Thu PPI + retail sales 8:30. Fri import/export prices 8:30. Hot core → draw prior-week 30,357 after BSL raid + MSS. In-line → stand unless A+. Soft → squeeze 31,282.50 only after SSL in discount.",
+      skipIf: "No MSS + IFVG by 10:15 Wed. Do not short the first CPI spike.",
+      blackouts: "Wed 8:30 CPI · Wed 14:00 Beige Book · Thu 8:30 PPI/retail · Fri 8:30 import prices",
+    },
+    {
+      id: "digest",
+      label: "Digest",
+      start: "2026-10-19",
+      end: "2026-10-23",
+      character: "Quietest cash stretch before the decision. Mechanical only if the range is clean.",
+      dailyBias: "Normal PATH if CPI resolved the range. Two-way if it did not.",
+      pathQuota: "Normal PATH. Do not force the month quota.",
+      book: "MNQ primary. Use post-CPI CMH/CML — do not keep trading the Sep 28–Oct 2 box if taken.",
+      strategy:
+        "Housing starts Tue 10/20 are not the trigger. Claims Thu 8:30. UMich final Fri 10:00. If CPI resolved the range, HTF draw is that extreme. If not, still inside the prior-week box.",
+      skipIf: "No clean raid. Do not swing into Oct 28.",
+      blackouts: "Thu 8:30 claims (medium) · Fri 10:00 UMich (medium)",
+    },
+    {
+      id: "fomc",
+      label: "FOMC",
+      start: "2026-10-26",
+      end: "2026-10-28",
+      character: "Compression then the event. No SEP this meeting.",
+      dailyBias: "Stand into the decision. Delivery is Thu/Fri, not Wed 14:01.",
+      pathQuota: "0–1 PATH before 14:00 Wed. After the decision: stand or A+ displacement only.",
+      book: "Flatten before 13:45 ET Wednesday. Do not hold a runner into 14:00.",
+      strategy:
+        "Mon: do not buy strength into the decision. Tue durables 8:30 — A+ only. Wed statement 14:00 + presser 14:30. Hold is the cited base (77.9% as of Oct 4). Hold+hawkish → NQ-lead lower after BSL raid + MSS. +25 hike → both sides first, real move after presser fail. Hold+dovish → raid lows then squeeze, long only discount SSL + MSS.",
+      skipIf: "Already have a book this week. Anything still open at 13:45 Wed.",
+      blackouts: "Tue 8:30 durables · Wed 13:45–15:00 decision/presser",
+    },
+    {
+      id: "pce",
+      label: "GDP + PCE + ECI",
+      start: "2026-10-29",
+      end: "2026-10-30",
+      character: "Post-decision prints. GDP advance and PCE share Thu 8:30. ECI Fri 8:30.",
+      dailyBias: "Hot PCE after a hold = December hike repricing. Soft = squeeze. Do not swing into November NFP.",
+      pathQuota: "A+ into the prints. No multi-day swing into Nov 6 NFP.",
+      book: "MNQ primary.",
+      strategy:
+        "Thu GDP Q3 advance + PCE Sep 8:30 (BEA). Same 8:00–8:45 blackout. Fri ECI Q3 8:30 (BLS). Mechanical after the second impulse only.",
+      skipIf: "No MSS + IFVG by 10:15. Do not carry a runner into November.",
+      blackouts: "Thu 8:30 GDP/PCE · Fri 8:30 ECI",
+    },
+  ],
+  outcomes: [
+    {
+      p: 40,
+      name: "Two-way into CPI and FOMC",
+      detail: "Services and CPI split. NQ stays inside 30,357–31,282.50 into Oct 28. Best PATH days: post-ISM, post-CPI second impulse, post-Fed Thu.",
+    },
+    {
+      p: 35,
+      name: "Hawkish stack",
+      detail: "Hot services and/or hot CPI. Oct hike odds up from 22.1%. NQ draws 30,357. Highest-quality shorts: post-CPI and post-Fed Thu/Fri.",
+    },
+    {
+      p: 25,
+      name: "Squeeze",
+      detail: "Soft services + soft CPI, hold confirmed. Raid prior-week lows then squeeze 31,282.50. Long only SSL in discount + MSS. Do not buy strength into FOMC.",
+    },
+  ],
+};
+
+const PLANS: MonthPlan[] = [MONTH_OCT_2026, MONTH_SEP_2026];
 
 export function resolveMonthAhead(now = new Date()): MonthAheadRead | null {
   const dateKey = etDateKey(now);
@@ -281,7 +433,7 @@ export function monthAheadFocusLine(read: MonthAheadRead | null): string | null 
   if (!read) return null;
   const p = read.phase ?? read.nextPhase;
   if (!p) return null;
-  const tag = read.phase ? "SEP" : "SEP NEXT";
+  const tag = read.phase ? read.plan.monthLabel.slice(0, 3).toUpperCase() : `${read.plan.monthLabel.slice(0, 3).toUpperCase()} NEXT`;
   return `${tag} · ${p.label} · ${p.dailyBias}`;
 }
 

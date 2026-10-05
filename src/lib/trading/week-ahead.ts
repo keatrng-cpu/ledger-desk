@@ -219,7 +219,121 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
   ],
 };
 
-const PLANS: WeekPlan[] = [WEEK_SEP28_OCT2];
+/** Week of Oct 5 – Oct 9 2026. ISM Services → trade → Sep minutes → claims → UMich. No NFP. */
+export const WEEK_OCT5_OCT9: WeekPlan = {
+  id: "2026-10-05",
+  weekLabel: "Oct 5 – Oct 9, 2026",
+  weekStart: "2026-10-05",
+  weekEnd: "2026-10-09",
+  headline:
+    "Services and minutes week. ISM Services Mon 10:00, trade Tue 8:30, Sep FOMC minutes Wed 14:00, claims Thu 8:30, UMich Fri 10:00. No NFP. CPI is next week.",
+  htfBias:
+    "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
+  po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
+  macro:
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep is Mon 10:00 ET (not printed). BEA trade Aug Tue 8:30. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds: FedWatch cited 22.1% +25 / 77.9% hold (Oct 4) vs 17–22% post-NFP. CPI Sep is Wed Oct 14, not this week.",
+  asymmetry:
+    "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
+  nq: {
+    settle: 31050,
+    rangeLo: 30357,
+    rangeHi: 31282.5,
+    pwh: 31282.5,
+    pwl: 30357,
+    eq: 30819.75,
+    drawUp: "Prior-week 31,282.50 then next BSL — only if tape is already there",
+    drawDown: "Prior-week 30,357 then next SSL",
+    note: "PWH/PWL = Sep 28–Oct 2 week tape already stamped (NQ ~30,357–31,282.50). Settle is the Fri fade band floor 31,050, not a new tick. Live CWH/CWL from bars.",
+  },
+  es: {
+    settle: 7804,
+    rangeLo: 7672.75,
+    rangeHi: 7810,
+    pwh: 7810,
+    pwl: 7672.75,
+    eq: 7741.38,
+    drawUp: "Prior-week 7,810 then Sep 21–25 7,848.50",
+    drawDown: "Prior-week 7,672.75",
+    note: "PWH/PWL = Sep 28–Oct 2 ES tape already stamped (~7,672.75–7,810). Settle keeps the Sep 28 seed 7,804 — Fri ES settle was not printed. Live CWH/CWL from bars.",
+  },
+  filters: [
+    "±15 min: ISM Services Mon 10:00 · trade Tue 8:30 · minutes Wed 14:00 · claims Thu 8:30 · UMich Fri 10:00",
+    "No entry 9:45–10:15 Mon or Fri",
+    "Flatten before 13:45 Wed. No multi-day swing into minutes.",
+    "Judas on. One book. PATH floor 0.65.",
+  ],
+  ops: [
+    "Mon stand 9:45–10:15",
+    "Tue trade is not a must-take",
+    "Wed flatten 13:45; A+ only after 14:15",
+    "Thu claims 8:15–8:45 stand",
+    "Fri UMich 9:45–10:15 stand",
+  ],
+  outcomes: [
+    { p: 40, name: "Hot services and/or hawkish minutes", detail: "October hike repricing. NQ-lead lower only after BSL raid + MSS. Do not fade the first ISM spike." },
+    { p: 35, name: "In-line slate", detail: "Two-way inside last week's box. Stand unless A+. Minutes are the swing, not a fresh tick before 14:00." },
+    { p: 25, name: "Soft services / dovish minutes", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into Wed 13:45." },
+  ],
+  days: [
+    {
+      date: "2026-10-05",
+      weekday: "Mon",
+      dailyBias: "Two-way into ISM Services. Inside last week until a raid holds.",
+      kind: "event",
+      news: [{ timeEt: "10:00", name: "ISM Services PMI (Sep)", impact: "high", note: "ISM 10:00 ET. Aug printed 55.4. Not released yet. S&P services final 9:45 is not the blackout." }],
+      likelyTape: "Opens inside prior-week box (NQ 30,357–31,282.50 / ES 7,672.75–7,810). No print yet. Not a new HTF trend.",
+      trade: "Stand 9:45–10:15. Post-print mechanical only if MSS + IFVG. Do not fade the first spike.",
+      skipIf: "No raid of prior-week H/L, or no MSS + IFVG by 10:15.",
+      pathNote: "PWH/PWL seed is last week. Live CWH/CWL from bars. Next is Tue trade 8:30.",
+    },
+    {
+      date: "2026-10-06",
+      weekday: "Tue",
+      dailyBias: "Selective. Trade is not the week's raid.",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "International Trade (Aug)", impact: "medium", note: "BEA schedule Oct 6 8:30 ET. Goods and services, August. Not a PATH trigger by itself." }],
+      likelyTape: "Inside last week's box unless Mon already took a side. Trade print is not a directional call.",
+      trade: "Mechanical only if Mon left a clean dealing range and MSS + IFVG after 9:45. Do not treat 8:30 as NFP.",
+      skipIf: "Chop, or already booked Monday.",
+      pathNote: "Next is Wed minutes 14:00. Flatten before 13:45.",
+    },
+    {
+      date: "2026-10-07",
+      weekday: "Wed",
+      dailyBias: "Stand into minutes. Delivery is after 14:00, not 14:01.",
+      kind: "event",
+      news: [{ timeEt: "14:00", name: "FOMC Minutes (Sep meeting)", impact: "high", note: "Fed calendar Oct 7 2:00 p.m. Minutes of Sep 15–16. Consumer credit 15:00 is not the blackout." }],
+      likelyTape: "Compression into 14:00 inside the week box. Hawkish minutes reprice Oct 28. Dovish minutes squeeze. Do not invent the print.",
+      trade: "Flatten before 13:45. A+ only after 14:15 with MSS + IFVG. Do not hold a runner into the release.",
+      skipIf: "Anything still open at 13:45. No displacement after 14:15.",
+      pathNote: "Sep hike already printed (+25 to 3.75–4.00%). Minutes are the path, not a new decision.",
+    },
+    {
+      date: "2026-10-08",
+      weekday: "Thu",
+      dailyBias: "Selective after minutes. Claims are medium.",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET. Prior print 197k (week ending Sep 26). Rarely trends the day." }],
+      likelyTape: "Post-minutes digest inside the week box unless Wed took a side and held. Claims are not a new HTF trend.",
+      trade: "Post-8:45 mechanical only if MSS + IFVG. Do not carry a loser into Friday.",
+      skipIf: "Chop, or already booked the week.",
+      pathNote: "Next is Fri UMich 10:00. CPI is Wed Oct 14.",
+    },
+    {
+      date: "2026-10-09",
+      weekday: "Fri",
+      dailyBias: "Selective. UMich is medium. Cash closed Monday.",
+      kind: "selective",
+      news: [{ timeEt: "10:00", name: "UMich Sentiment (Oct P)", impact: "medium", note: "10:00 ET prelim. Not NFP. Columbus Day Mon Oct 12 — cash closed." }],
+      likelyTape: "Inside the week box unless minutes already resolved it. No NFP. Do not invent a Friday trend.",
+      trade: "Stand 9:45–10:15. A+ only after MSS + IFVG. Flatten into the weekend unless BE.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into a holiday Globex.",
+      pathNote: "PWH/PWL seed unchanged. Next hard print is CPI Wed Oct 14 8:30. Mon Oct 12 cash closed.",
+    },
+  ],
+};
+
+const PLANS: WeekPlan[] = [WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
