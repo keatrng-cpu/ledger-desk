@@ -517,6 +517,13 @@ function chooseFree(who: Character, prev: AgentAct, n: Needs, s: Situation, mind
     withWho = mates[0] ?? null;
   }
   const spot = spots ? spots[Math.floor(hash01(`${who}:${act}:${bucket}`) * spots.length)] ?? spots[0]! : null;
+  // Risk and execution do not roam, and an idle desk is still the book: Sterling
+  // works the halt page, Vince works the resting order. A drink or a phone stays.
+  if (!t.roams && act === "desk") {
+    const work: Activity = who === "Sterling" ? "desk_lean" : "desk_stretch";
+    if (prev.act === work) return prev;
+    return { act: work, since: s.nowMs, spot: null, with: null };
+  }
   return { act, since: s.nowMs, spot, with: withWho };
 }
 

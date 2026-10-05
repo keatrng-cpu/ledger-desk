@@ -11,6 +11,7 @@ import type { AgentAct, MindState } from "@/lib/room/agents";
 import type { Lenses } from "@/lib/room/debate";
 import type { LabRead } from "@/lib/room/lab";
 import type { AuditItem } from "@/lib/room/audit";
+import { floorCues, type FloorCues } from "@/lib/room/floor-cues";
 import type { FeedRead, GoalLite, RndLite, ScanCardLite, SeatsLite } from "@/lib/room/live-types";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
@@ -96,6 +97,69 @@ export interface FloorFrame {
   caption: string | null;
 }
 
+/** The office's props, from this frame. Presentation only. */
+export function cuesOfFrame(f: FloorFrame): FloorCues {
+  const card = f.trace.entry?.entry ?? null;
+  const feed = f.screens.race?.feed ?? null;
+  const barsOf = (): { pos: number | null } => {
+    const sym = (f.screens.plan?.symbol ?? card?.futSymbol ?? "").toUpperCase();
+    const series = /ES|SPY|MES/.test(sym) ? f.screens.charts.SPY : f.screens.charts.QQQ;
+    const bars = series?.bars ?? [];
+    if (bars.length < 2 || !series) return { pos: null };
+    const lo = Math.min(...bars.map((b) => b.l));
+    const hi = Math.max(...bars.map((b) => b.h));
+    if (!(hi > lo)) return { pos: null };
+    return { pos: Math.max(0, Math.min(1, (series.price - lo) / (hi - lo))) };
+  };
+  const nextHigh = f.screens.calendar.find((c) => c.status === "next" && c.impact === "high");
+  let highImpactMin: number | null = null;
+  if (nextHigh) {
+    const m = /^(\d{1,2}):(\d{2})/.exec(nextHigh.timeEt);
+    if (m) highImpactMin = Number(m[1]) * 60 + Number(m[2]) - f.etMin;
+  }
+  const chase = f.minds?.memories.find((mem) => mem.who === "Jax" && mem.kind === "chase_call");
+  const seen = new Set<string>();
+  const blocked: string[] = [];
+  for (const e of f.screens.race?.seats?.events ?? []) {
+    if (!e.seat || seen.has(e.seat)) continue;
+    seen.add(e.seat);
+    if (e.kind === "blocked") blocked.push(e.seat);
+  }
+  const L = f.screens.ledger;
+  const goal = f.screens.race?.goal ?? null;
+  return floorCues({
+    etMin: f.etMin,
+    beat: f.trace.beat,
+    refusalGate: f.trace.refusalGate,
+    refusal: f.trace.refusal,
+    execute: f.output.broker_action.execute_trade,
+    action: f.output.broker_action.action_type,
+    feedKind: feed?.kind ?? (f.screens.synthetic ? "synthetic" : null),
+    lagSec: feed?.lagSec ?? null,
+    synthetic: f.screens.synthetic || feed?.kind === "synthetic",
+    verdict: card?.verdict ?? f.screens.race?.scanner.find((c) => c.verdict === "ARMED")?.verdict ?? null,
+    band: card?.band ?? null,
+    side: card?.futSide ?? f.screens.plan?.side ?? null,
+    tier: card?.tier ?? null,
+    missing: card?.smcMissing || card?.blocks[0] || null,
+    rangePos: barsOf().pos,
+    jaxLastChaseWrong: chase?.outcome?.verdict === "wrong",
+    quoteAgeSec: null,
+    experiments: (f.screens.race?.rnd?.experiments ?? []).map((e) => ({ title: e.title, n: e.n, nNeeded: e.nNeeded, status: e.status })),
+    seats: (f.screens.race?.seats?.rows ?? []).map((r) => ({ name: r.name, status: r.status })),
+    blockedSeats: blocked,
+    leader: f.screens.race?.seats?.leader ?? null,
+    refusals: f.screens.lab?.refusals ?? [],
+    modelP: L?.pT1Model ?? null,
+    calP: L?.pCal ?? null,
+    highImpactMin,
+    killed: false,
+    openPositions: f.screens.book.positions.length,
+    winsNeed: goal?.winsNeed ?? null,
+    tradeBudget: goal?.tradeBudget ?? null,
+  });
+}
+
 type Ctx = CanvasRenderingContext2D;
 
 const FONT = "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
@@ -170,7 +234,8 @@ function wrap(ctx: Ctx, text: string, x: number, y: number, maxW: number, lineH:
 /* ── Charts ─────────────────────────────────────────────────────────────── */
 
 function drawChart(ctx: Ctx, w: number, h: number, s: ChartSeries | null, f: FloorFrame) {
-  const urg = URGENCY_COLOR[f.output.room_state.market_urgency] ?? C.cyan;
+  const cues = cuesOfFrame(f);
+  const urg = cues.tint === "amber" ? C.amber : cues.tint === "hatch" ? C.muted : (URGENCY_COLOR[f.output.room_state.market_urgency] ?? C.cyan);
   clear(ctx, w, h);
   if (!s || s.bars.length < 2) {
     header(ctx, w, s?.symbol ?? "—", "no bars", urg);
@@ -309,6 +374,44 @@ function drawCalendar(ctx: Ctx, w: number, h: number, f: FloorFrame) {
 
 /* ── Whiteboard ─────────────────────────────────────────────────────────── */
 
+/** 09:30, 09:45, 10:00, 11:00. Dim after 10:00 unless the card is A+. Stopped at the flat. */
+function drawKillzoneClock(ctx: Ctx, cx: number, cy: number, r: number, etMin: number, cues: FloorCues) {
+  ctx.save();
+  ctx.globalAlpha = cues.clock.stopped ? 0.35 : cues.clock.dim ? 0.55 : 1;
+  ctx.fillStyle = "#f8fafc";
+  ctx.strokeStyle = "#1e3a8a";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  const mark = (min: number, label: string) => {
+    const ang = ((min - 9 * 60) / 120) * Math.PI - Math.PI / 2;
+    ctx.fillStyle = "#1e3a8a";
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(ang) * (r - 8), cy + Math.sin(ang) * (r - 8), 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = `700 11px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(label, cx + Math.cos(ang) * (r + 14), cy + Math.sin(ang) * (r + 14));
+  };
+  mark(9 * 60 + 30, "9:30");
+  mark(9 * 60 + 45, "9:45");
+  mark(10 * 60, "10");
+  mark(11 * 60, "11");
+  if (!cues.clock.stopped) {
+    const ang = ((Math.min(11 * 60, Math.max(9 * 60 + 30, etMin)) - 9 * 60) / 120) * Math.PI - Math.PI / 2;
+    ctx.strokeStyle = "#b91c1c";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(ang) * (r - 12), cy + Math.sin(ang) * (r - 12));
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.textAlign = "left";
+}
+
 function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillStyle = "#f8fafc";
   ctx.fillRect(0, 0, w, h);
@@ -364,6 +467,50 @@ function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillStyle = "#475569";
     ctx.fillText(f.trace.refusal ? `✗ ${f.trace.refusal.slice(0, 46)}` : "nothing to clear", w * 0.46, gy);
   }
+  const cues = cuesOfFrame(f);
+  if (cues.stamp) {
+    ctx.save();
+    ctx.translate(w * 0.72, h * 0.62);
+    ctx.rotate(-0.18);
+    ctx.strokeStyle = "#b91c1c";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(-70, -28, 150, 56);
+    ctx.fillStyle = "#b91c1c";
+    ctx.font = `800 28px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(cues.stamp, 5, 8);
+    ctx.restore();
+  }
+  if (cues.missing) {
+    ctx.fillStyle = "#b45309";
+    ctx.font = `700 22px ${HAND}`;
+    ctx.textAlign = "left";
+    ctx.fillText(`PIN · ${cues.missing.slice(0, 28)}`, 28, h - 64);
+  }
+  if (cues.judas.on) {
+    ctx.fillStyle = "#1d4ed8";
+    ctx.font = `700 22px ${HAND}`;
+    const dir = cues.judas.side === "short" ? "↓" : cues.judas.side === "long" ? "↑" : "·";
+    ctx.fillText(`JUDAS ${dir}  raid, not a fill`, 28,  h - 96);
+  }
+  if (cues.range) {
+    const railX = 28;
+    const railW = w * 0.36;
+    const y = h - 118;
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(railX, y, railW, 8);
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(railX + railW * 0.45, y - 2, 2, 12);
+    const pos = cues.range.zone === "discount" ? 0.22 : cues.range.zone === "premium" ? 0.78 : 0.5;
+    ctx.fillStyle = cues.range.hostile ? "#dc2626" : "#15803d";
+    ctx.beginPath();
+    ctx.arc(railX + railW * pos, y + 4, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = `600 16px ${HAND}`;
+    ctx.fillStyle = "#334155";
+    ctx.fillText(cues.range.zone, railX, y - 8);
+  }
+  drawKillzoneClock(ctx, w - 120, 78, 46, f.etMin, cues);
 }
 
 /* ── Monitors per person ────────────────────────────────────────────────── */
@@ -581,27 +728,41 @@ function drawClocks(ctx: Ctx, w: number, h: number, ms: number) {
   });
 }
 
-function drawPoster(id: string, ctx: Ctx, w: number, h: number) {
+function drawPoster(id: string, ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const cues = cuesOfFrame(f);
   if (id === "note_Vince") {
-    ctx.fillStyle = "#fde68a";
+    ctx.fillStyle = cues.blotter === "back" ? "#fecaca" : cues.blotter === "live" ? "#bbf7d0" : "#fde68a";
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "#1f2937";
     ctx.font = `700 34px ${HAND}`;
-    ctx.fillText("REST AT CE.", 18, 70);
-    ctx.fillText("NEVER PAY", 18, 120);
-    ctx.fillText("THE PRINT.", 18, 168);
+    if (cues.blotter === "down") {
+      ctx.fillText("FACE DOWN", 18, 70);
+      ctx.fillText("until the array", 18, 120);
+    } else if (cues.blotter === "back") {
+      ctx.fillText("SLID BACK", 18, 70);
+      ctx.fillText("no chase", 18, 120);
+    } else {
+      ctx.fillText("TURNED", 18, 70);
+      ctx.fillText("rests at CE", 18, 120);
+    }
     return;
   }
-  ctx.fillStyle = "#f8fafc";
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#7f1d1d";
-  ctx.font = `800 34px ${FONT}`;
-  ctx.fillText("THE LIST", 24, 56);
   ctx.fillStyle = "#111827";
-  ctx.font = `600 24px ${FONT}`;
-  ["1  Desk word", "2  CE touch", "3  Halt room", "4  One book", "5  Slots + cash", "6  Objectives met?", "     → STOP"].forEach((l, i) =>
-    ctx.fillText(l, 24, 110 + i * 48),
-  );
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = cues.kill.lit ? "#ef4444" : "#64748b";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(18, 18, w - 36, h - 36);
+  ctx.fillStyle = cues.kill.lit ? "#ef4444" : "#334155";
+  ctx.beginPath();
+  ctx.arc(w / 2, h * 0.42, 28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#f8fafc";
+  ctx.font = `800 28px ${FONT}`;
+  ctx.textAlign = "center";
+  ctx.fillText(cues.kill.lit ? "KILL ON" : "KILL", w / 2, h * 0.72);
+  ctx.font = `600 16px ${FONT}`;
+  ctx.fillText(cues.kill.lit ? (cues.kill.flat ? "flat" : "exits still run") : "server only", w / 2, h * 0.84);
+  ctx.textAlign = "left";
 }
 
 const PLATE: Record<string, string> = {
@@ -637,7 +798,7 @@ function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
  * the VIX — clear under 15, scattered cloud to 20, overcast to 30, a storm
  * with rain and lightning above it. Rain and lightning move with `tSec`.
  */
-function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number, vix: number | null, tSec: number) {
+function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number, vix: number | null, tSec: number, frost = false) {
   const hour = etMin / 60;
   const night = hour < 6.5 || hour > 19.5;
   const dusk = !night && (hour < 8 || hour > 17.5);
@@ -723,6 +884,27 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
       }
       ctx.stroke();
     }
+  }
+  if (frost) {
+    ctx.fillStyle = "rgba(226,232,240,0.55)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "rgba(255,255,255,0.45)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 28; i++) {
+      const x = ((seed * (i + 3)) % 97) / 97 * w;
+      const y = ((seed * (i + 11)) % 89) / 89 * h;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 18, y + 4);
+      ctx.moveTo(x + 6, y - 8);
+      ctx.lineTo(x + 10, y + 14);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#0f172a";
+    ctx.font = `700 22px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText("T−15  ·  high impact", w / 2, h - 28);
+    ctx.textAlign = "left";
   }
 }
 
@@ -819,10 +1001,19 @@ function drawGhosts(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText("no refused ticket has closed yet", 16, yy);
   }
   for (const r of lab.refusals.slice(0, 4)) {
-    ctx.fillStyle = r.pnlUsd >= 0 ? C.up : C.down;
+    ctx.fillStyle = r.pnlUsd >= 0 ? C.down : C.up;
     ctx.fillText(`${r.gate.padEnd(10)} ${String(r.n).padStart(3)}×  ${signed(r.pnlUsd).padStart(7)}  ${r.wins}W`, 16, yy);
     yy += 28;
   }
+  const cues = cuesOfFrame(f);
+  ctx.font = `700 16px ${FONT}`;
+  ctx.fillStyle = C.up;
+  ctx.fillText(`saved ${signed(cues.savedUsd)}`, 16, h - 36);
+  ctx.fillStyle = C.down;
+  ctx.fillText(`cost ${signed(cues.costUsd)}`, 220, h - 36);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 13px ${FONT}`;
+  ctx.fillText("Green is a no that saved. Red is a no that cost. Neither changes a gate.", 16, h - 14);
 }
 
 function drawCalibration(ctx: Ctx, w: number, h: number, f: FloorFrame) {
@@ -869,6 +1060,10 @@ function drawCalibration(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText(`${c.padEnd(8)} ${t?.brier != null ? t.brier.toFixed(3) : "  —  "}  n${t?.n ?? 0}`, x0, yy);
     yy += 26;
   }
+  const gap = cuesOfFrame(f).calGap;
+  ctx.font = `600 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(gap == null ? "Dial idle — no card with both rates." : `This card: model ${gap >= 0 ? "above" : "below"} realized by ${Math.abs(Math.round(gap * 100))} pts. Not a gate.`, 16, h - 16);
 }
 
 function drawVote(ctx: Ctx, w: number, h: number, f: FloorFrame) {
@@ -991,12 +1186,24 @@ function kvLine(ctx: Ctx, w: number, y: number, k: string, v: string, color: str
 const px = (n: number | null) => (n == null ? "—" : n >= 1000 ? fmt(n, 1) : fmt(n, 2));
 
 /** The setup scanner, by the board: every graded setup the desk is looking at, in board order, with its plan and where price is. */
-function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0) {
+  const cues = cuesOfFrame(f);
   clear(ctx, w, h);
   const cards = f.screens.race?.scanner ?? [];
   const armed = cards.filter((c) => c.verdict === "ARMED").length;
   const watch = cards.filter((c) => c.verdict === "WATCH").length;
-  header(ctx, w, "SETUP SCANNER", `${armed} armed · ${watch} watch · ${cards.length - armed - watch} stand`, armed ? C.up : watch ? C.amber : C.cyan);
+  const accent = cues.tint === "amber" ? C.amber : cues.tint === "hatch" ? C.muted : armed ? C.up : watch ? C.amber : C.cyan;
+  header(ctx, w, "SETUP SCANNER", `${armed} armed · ${watch} watch · ${cards.length - armed - watch} stand`, accent);
+  if (cues.tint === "hatch") {
+    ctx.strokeStyle = "rgba(148,163,184,0.35)";
+    ctx.lineWidth = 2;
+    for (let x = -h; x < w; x += 18) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + h, h);
+      ctx.stroke();
+    }
+  }
   if (!cards.length) {
     ctx.fillStyle = C.muted;
     ctx.font = `500 22px ${FONT}`;
@@ -1014,8 +1221,15 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillText("BAND   SETUP", 24, 62);
   cards.slice(0, 6).forEach((c, i) => {
     const y = 70 + i * 70;
-    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    const rowArmed = c.verdict === "ARMED";
+    ctx.fillStyle = cues.tint === "amber" ? "#1a140c" : i % 2 ? "#0a1020" : "#0c1426";
     ctx.fillRect(8, y, w - 16, 64);
+    if (rowArmed) {
+      const pulse = 0.45 + 0.55 * Math.abs(Math.sin(clockMs / 280));
+      ctx.strokeStyle = `rgba(34,197,94,${pulse})`;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(10, y + 2, w - 20, 60);
+    }
     const vcol = c.verdict === "ARMED" ? C.up : c.verdict === "WATCH" ? C.amber : C.down;
     ctx.fillStyle = vcol;
     ctx.fillRect(8, y, 5, 64);
@@ -1095,10 +1309,17 @@ function drawRndBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText("The experiments register with the first session.", 18, 90);
     return;
   }
+  const focus = cuesOfFrame(f).experiment?.title ?? null;
   ex.slice(0, 6).forEach((e, i) => {
     const y = 54 + i * 62;
-    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    const onBench = focus != null && e.title === focus;
+    ctx.fillStyle = onBench ? "#10281c" : i % 2 ? "#0a1020" : "#0c1426";
     ctx.fillRect(8, y, w - 16, 58);
+    if (onBench) {
+      ctx.strokeStyle = "#fde68a";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(8, y, w - 16, 58);
+    }
     ctx.fillStyle = STATUS_COLOR[e.status];
     ctx.beginPath();
     ctx.arc(26, y + 29, 8, 0, Math.PI * 2);
@@ -1177,6 +1398,28 @@ function drawFeed(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   header(ctx, w, "OPS · THE FEED", kindWord, real ? C.up : feed?.kind === "yahoo" ? C.amber : C.down);
   const lag = feed?.lagSec;
   kvLine(ctx, w, 80, "Newest print", lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`, lag != null && lag < 15 ? C.up : lag != null && lag < 120 ? C.amber : C.down);
+  const cues = cuesOfFrame(f);
+  const cx = w - 78;
+  const cy = 168;
+  ctx.beginPath();
+  ctx.strokeStyle = cues.lagHot || cues.quoteHot ? C.down : C.muted;
+  ctx.lineWidth = 3;
+  ctx.arc(cx, cy, 36, 0, Math.PI * 2);
+  ctx.stroke();
+  const age = cues.quoteAgeSec ?? cues.lagSec;
+  const ang = age == null ? -Math.PI / 2 : -Math.PI / 2 + Math.min(1, age / 60) * Math.PI * 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(ang) * 26, cy + Math.sin(ang) * 26);
+  ctx.stroke();
+  ctx.font = `600 11px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.textAlign = "center";
+  ctx.fillText(cues.quoteAgeSec != null ? "QUOTE" : "TAPE", cx, cy + 52);
+  ctx.textAlign = "left";
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText(cues.quoteAgeSec == null ? "No broker quote age. The hand is the futures print. Red past 30s." : cues.quoteHot ? "Quote older than 15s — not a price." : "Quote inside 15s.", 14, h - 28);
   kvLine(ctx, w, 108, "Source", f.screens.source.slice(0, 30), C.text, 15);
   kvLine(ctx, w, 136, "VIX · 10Y", `${f.screens.vix != null && f.screens.vix > 0 ? f.screens.vix.toFixed(2) : "—"} · ${f.screens.tenYear != null ? `${f.screens.tenYear.toFixed(2)}%` : "—"}`);
   let y = 172;
@@ -1273,7 +1516,12 @@ function drawGoalLadder(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   kvLine(ctx, w, 214, "A stopped ticket costs", g.stopShare != null ? `${(g.stopShare * 100).toFixed(1)}% of the account` : "—", C.text, 14);
   ctx.fillStyle = C.muted;
   ctx.font = `500 12px ${FONT}`;
-  ctx.fillText(`floors: Δ ≥ ${g.minDelta.toFixed(2)} · ask ≥ ${money(g.minAskUsd)}`, 14, h - 12);
+  ctx.fillText(`floors: Δ ≥ ${g.minDelta.toFixed(2)} · ask ≥ ${money(g.minAskUsd)}`, 14, h - 28);
+  if (cuesOfFrame(f).ladderBreak && g.winsNeed != null && g.tradeBudget != null) {
+    ctx.fillStyle = C.down;
+    ctx.font = `700 13px ${FONT}`;
+    ctx.fillText(`Break: ${g.winsNeed} straight winners, ${g.tradeBudget} tickets. The rung does not exist.`, 14, h - 10);
+  }
 }
 
 /** The five seats and The Room, racing: equity, P&L, what they took and what they turned down. */
@@ -1291,9 +1539,11 @@ function drawSeatLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillText("took", 580, 62);
   ctx.fillText("declined", 690, 62);
   ctx.textAlign = "left";
+  const seated = new Set(cuesOfFrame(f).seated);
   s.rows.slice(0, 6).forEach((r, i) => {
     const y = 70 + i * 52;
-    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    const sitting = seated.has(r.name) || r.status !== "running";
+    ctx.fillStyle = sitting ? "#14110c" : i % 2 ? "#0a1020" : "#0c1426";
     ctx.fillRect(8, y, w - 16, 48);
     const col = r.owner ? CREW_COLOR[r.owner] : C.cyan;
     ctx.fillStyle = r.id === s.leader ? "#fde68a" : C.text;
@@ -1313,10 +1563,14 @@ function drawSeatLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText(`${r.taken.n} (${r.taken.wins}W)`, 580, y + 31);
     ctx.fillText(`${r.declined.n}`, 690, y + 31);
     ctx.textAlign = "left";
-    if (r.status !== "running") {
+    if (r.status !== "running" || sitting) {
       ctx.fillStyle = r.status === "hit" ? C.up : C.down;
       ctx.font = `800 13px ${FONT}`;
-      ctx.fillText(r.status === "hit" ? "GOAL" : "FLOOR", w - 68, y + 29);
+      ctx.fillText(r.status === "hit" ? "GOAL" : sitting ? "SIT" : "FLOOR", w - 68, y + 29);
+    } else if (r.id === s.leader || r.name === s.leader) {
+      ctx.fillStyle = "#fde68a";
+      ctx.font = `800 13px ${FONT}`;
+      ctx.fillText("BOARD", w - 78, y + 29);
     }
   });
   ctx.fillStyle = C.muted;
@@ -1363,7 +1617,7 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "tv_calendar") drawCalendar(ctx, w, h, f);
     else if (id === "whiteboard") drawWhiteboard(ctx, w, h, f);
     else if (id === "marquee") drawMarquee(ctx, w, h, f);
-    else if (id === "tv_scanner") drawScanner(ctx, w, h, f);
+    else if (id === "tv_scanner") drawScanner(ctx, w, h, f, clockMs);
     else if (id === "tv_rnd") drawRndBoard(ctx, w, h, f);
     else if (id === "tv_goal") drawSeatLeague(ctx, w, h, f);
     else if (id.startsWith("mon_")) {
@@ -1372,9 +1626,9 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "neon_Jax") drawNeon(ctx, w, h);
     else if (id === "board_Nova") drawChalk(ctx, w, h, f);
     else if (id === "clocks_Gemma") drawClocks(ctx, w, h, clockMs);
-    else if (id === "poster_Sterling" || id === "note_Vince") drawPoster(id, ctx, w, h);
+    else if (id === "poster_Sterling" || id === "note_Vince") drawPoster(id, ctx, w, h, f);
     else if (id.startsWith("plate_")) drawPlate(id, ctx, w, h);
-    else if (id.startsWith("window_")) drawWindow(ctx, w, h, etMinOfClock(clockMs, f), Number(id.split("_")[1] ?? 0) * 977 + 13, f.screens.vix, clockMs / 1000);
+    else if (id.startsWith("window_")) drawWindow(ctx, w, h, etMinOfClock(clockMs, f), Number(id.split("_")[1] ?? 0) * 977 + 13, f.screens.vix, clockMs / 1000, cuesOfFrame(f).frost);
     else if (id === "jumbo_E") drawLedger(ctx, w, h, f);
     else if (id === "jumbo_S") drawGhosts(ctx, w, h, f);
     else if (id === "jumbo_W") drawCalibration(ctx, w, h, f);

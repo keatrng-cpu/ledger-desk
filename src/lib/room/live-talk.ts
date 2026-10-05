@@ -29,6 +29,7 @@
  */
 
 import { ROOM_CLOCK } from "./mandate";
+import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
 import { deskAudit } from "./audit";
@@ -1187,6 +1188,30 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
   if (w.evidence.length) {
     const idx = (st.variant["evid.idx"] ?? 0) % w.evidence.length;
     out.push({ id: "evidence", weight: f(0.5, 1.1), sig: `${idx}`, build: (c) => V.exEvidence(c, { text: w.evidence[idx]! }) });
+  }
+  if (live) {
+    const missing = UNDERLIERS.map((u) => w.books[u]?.smcMissing).find((m) => m && m.trim()) ?? null;
+    const openExp = (w.rnd?.experiments ?? []).filter((e) => e.status === "collecting" && e.nNeeded > 0);
+    const experiment = openExp.slice().sort((a, b) => b.n / b.nNeeded - a.n / a.nNeeded)[0] ?? null;
+    const seated = w.seats?.rows.find((r) => r.status !== "running")?.name ?? null;
+    const jaxWrong = w.minds?.memories.some((m) => m.who === "Jax" && m.kind === "chase_call" && m.outcome === "wrong") ?? false;
+    const cost = (w.lab?.refusals ?? []).filter((r) => r.pnlUsd > 0).sort((a, b) => b.pnlUsd - a.pnlUsd)[0] ?? null;
+    const stamp = w.feed.lagSec != null && w.feed.lagSec > EXEC_LIMITS.maxFeedLagSec ? "TAPE" : null;
+    out.push({
+      id: "huddle",
+      weight: f(1.05, 0.7),
+      sig: `${missing ?? ""}|${experiment?.id ?? ""}|${experiment?.n ?? 0}|${w.seats?.leader ?? ""}|${jaxWrong ? 1 : 0}|${stamp ?? ""}|${cost?.gate ?? ""}`,
+      build: (c) =>
+        V.exHuddle(c, {
+          missing,
+          experiment: experiment ? { owner: experiment.owner, title: experiment.title, n: experiment.n, nNeeded: experiment.nNeeded } : null,
+          leader: w.seats?.leader ?? null,
+          seated,
+          jaxWrong,
+          stamp,
+          costGate: cost?.gate ?? null,
+        }),
+    });
   }
   // Off hours: tomorrow, the overnight range, the day's recap.
   if (!day) {
