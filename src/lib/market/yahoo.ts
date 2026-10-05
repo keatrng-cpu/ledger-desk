@@ -230,6 +230,13 @@ export interface ProxySpot {
   marketTimeMs: number;
   lagSec: number;
   source: "yahoo";
+  /**
+   * Set by spot-cross.ts when the desk is built: how old the print was at that moment, and
+   * futures ÷ ETF at the print's own instant (null = could not be aligned). `estimateSpot`
+   * divides the LIVE future by this ratio instead of trusting the stale print.
+   */
+  printAgeSec?: number;
+  ratio?: number | null;
 }
 
 export async function fetchYahooSpot(ticker: "SPY" | "QQQ"): Promise<ProxySpot | null> {

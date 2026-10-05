@@ -13,6 +13,7 @@
  */
 
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
 import { etDateKey, weekDayFor, type WeekDayKind } from "./week-ahead";
@@ -219,12 +220,32 @@ function componentsHint(c: SetupCandidate | undefined) {
 const PROXY_SPOT_MAX_LAG_SEC = 900;
 
 /**
- * Cash spot for the underlier. Prefers the real SPY/QQQ Yahoo print carried
- * on the desk; falls back to the ES/10, NQ/40 ratio ONLY when that is
- * missing or stale, and says so via `spotSource`. The ratio drifts with the
- * futures basis (fair value, dividends, the quarterly roll) — a 1% miss on
- * a 700-handle underlier is 7 points, which is more than a 0-2 DTE strike
- * step, so a ticket priced off it can sit on the wrong strike.
+ * The ETF NOW, from the LIVE future through the ratio the two had at the ETF's own last print
+ * (spot-cross.ts). The futures are the live clock (Databento gateway, sub-second); the ETF print
+ * only says what the ratio was. Null when the desk could not align one — the callers fall back.
+ */
+function crossedSpot(
+  underlier: SwingUnderlier,
+  esPx: number,
+  nqPx: number,
+  proxies?: DeskPayload["proxies"],
+): { px: number; ratio: number; printAgeSec: number } | null {
+  const p = proxies?.[underlier];
+  if (!p || p.ratio == null) return null;
+  const px = etfFromFuture(p.ratio, underlier === "SPY" ? esPx : nqPx, p.price);
+  return px == null ? null : { px, ratio: p.ratio, printAgeSec: p.printAgeSec ?? p.lagSec };
+}
+
+/**
+ * Cash spot for the underlier. A 1-DTE ATM option costs ~0.4% of the ETF, so a 1% error in the
+ * spot is about the whole premium — the spot must be the live one:
+ *   1. the live future ÷ the ratio it had at the Yahoo print's own timestamp (`crossedSpot`) —
+ *      moves at futures speed between desk builds, correct against the print's basis;
+ *   2. the Yahoo SPY/QQQ print itself when it is ≤15 min old and no ratio could be aligned;
+ *   3. the fixed ES/10, NQ/40 — only when both are missing. The ratio drifts with the futures
+ *      basis (fair value, dividends, the roll): a 1% miss on a 700-handle ETF is 7 points, more
+ *      than a 0–2 DTE strike step, so a ticket priced off it can sit on the wrong strike.
+ * `spotSource` says which one it was.
  */
 export function estimateSpot(
   underlier: SwingUnderlier,
@@ -232,24 +253,30 @@ export function estimateSpot(
   nqPx: number,
   proxies?: DeskPayload["proxies"],
 ): number {
+  const crossed = crossedSpot(underlier, esPx, nqPx, proxies);
+  if (crossed) return crossed.px;
   const p = proxies?.[underlier];
   if (p && p.price > 0 && p.lagSec <= PROXY_SPOT_MAX_LAG_SEC) return p.price;
   if (underlier === "SPY") return esPx / 10;
   return nqPx / 40;
 }
 
-/** "SPY 764.20 (Yahoo 4s)" or "SPY ≈ 763.40 (ES/10 est.)" — for the card copy. */
+/** "SPY 764.20 (ES live ÷ 10.012, print 312s)", "SPY 764.20 (Yahoo 4s)" or "SPY ≈ 763.40 (ES/10 est.)" — for the card copy. */
 export function spotSource(
   underlier: SwingUnderlier,
   esPx: number,
   nqPx: number,
   proxies?: DeskPayload["proxies"],
 ): string {
+  const crossed = crossedSpot(underlier, esPx, nqPx, proxies);
+  if (crossed) {
+    return `${underlier} ${crossed.px.toFixed(2)} (${underlier === "SPY" ? "ES" : "NQ"} live ÷ ${crossed.ratio.toFixed(3)}, print ${crossed.printAgeSec}s)`;
+  }
   const p = proxies?.[underlier];
   if (p && p.price > 0 && p.lagSec <= PROXY_SPOT_MAX_LAG_SEC) {
     return `${underlier} ${p.price.toFixed(2)} (Yahoo ${p.lagSec}s)`;
   }
-  return `${underlier} ≈ ${estimateSpot(underlier, esPx, nqPx).toFixed(2)} (${underlier === "SPY" ? "ES/10" : "NQ/40"} est.)`;
+  return `${underlier} ≈ ${(underlier === "SPY" ? esPx / 10 : nqPx / 40).toFixed(2)} (${underlier === "SPY" ? "ES/10" : "NQ/40"} est.)`;
 }
 
 /**
