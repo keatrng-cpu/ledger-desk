@@ -38,6 +38,7 @@ import {
   type UnderlierTape,
 } from "./orchestrator";
 import { asLab, labRead } from "./lab";
+import type { GoalSpec } from "./goal";
 import { applyCycle, applyLab, emptyBook, exitWatchOf, ledgerOf, markBook, rollCounters, toRoomInput, type RoomBook } from "./paper-book";
 import type { Underlier } from "./option-math";
 
@@ -606,7 +607,7 @@ export interface DrillStep {
 }
 
 /** One frame through the real pipeline: mark → read → decide → people → fill. */
-export function runDrillStep(book: RoomBook, minds: MindState | null, f: DrillFrame): DrillStep {
+export function runDrillStep(book: RoomBook, minds: MindState | null, f: DrillFrame, goal: GoalSpec | null = null): DrillStep {
   const nowMs = drillNowMs(f);
   const market = drillMarket(f);
   const rolled = rollCounters(book, nowMs, f.killzone ?? "ny_am");
@@ -615,18 +616,18 @@ export function runDrillStep(book: RoomBook, minds: MindState | null, f: DrillFr
   const desk = drillDeskRead(f, marked);
   const lab = labRead(asLab(marked.lab), marked.closed);
   const cycle = runRoomCycle(input, { desk, ledger: ledgerOf(marked), minds, lab }, nowMs);
-  const booked = applyLab(applyCycle(marked, cycle, nowMs), cycle, market, desk, nowMs);
+  const booked = applyLab(applyCycle(marked, cycle, nowMs), cycle, market, desk, nowMs, goal);
   return { frame: f, nowMs, input, cycle, book: booked, minds: cycle.minds, desk };
 }
 
 /** The whole day, from an empty $10,000 book and a fresh room. */
-export function playDrill(startCash?: number): DrillStep[] {
+export function playDrill(startCash?: number, goal: GoalSpec | null = null): DrillStep[] {
   const frames = drillFrames();
   let book = emptyBook(startCash, drillNowMs(frames[0]!));
   let minds: MindState | null = null;
   const out: DrillStep[] = [];
   for (const f of frames) {
-    const step = runDrillStep(book, minds, f);
+    const step = runDrillStep(book, minds, f, goal);
     out.push(step);
     book = step.book;
     minds = step.minds;

@@ -31,6 +31,8 @@ import { holdReadFor } from "./quant";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import { ROOM_CLOCK } from "./mandate";
 import { clockEt } from "./format";
+import type { ExitPolicy } from "./exits";
+import type { SeatBook } from "./seats";
 
 const KEEP = 200;
 const CREW: Character[] = ["Jax", "Nova", "Sterling", "Gemma", "Vince"];
@@ -46,8 +48,9 @@ export interface GhostFut {
 
 export interface GhostPos {
   id: string;
-  kind: "twin" | "refused";
-  /** twin: the room position it shadows. refused: the gate that refused it. */
+  /** twin / refused: the ghost room. seat / skipped: a seat's own ticket and the ticket it declined (seats.ts). */
+  kind: "twin" | "refused" | "seat" | "skipped";
+  /** twin: the room position it shadows. refused: the gate that refused it. seat / skipped: the seat's id. */
   of: string;
   planKey: string | null;
   ticker: Underlier;
@@ -63,6 +66,10 @@ export interface GhostPos {
   trimmed: boolean;
   realizedUsd: number;
   pnlPct: number;
+  /** The bid it was last marked at (the seats value an open ticket at the bid it would sell for). */
+  bid?: number;
+  /** A seat's ticket: contracts bought, the syndicate it belongs to, the soft gates its owner overrode, the gate behind a declined one. */
+  meta?: { seat: string; qty0: number; syn: string | null; override: string | null; gate: string | null };
   closed: { at: number; px: number; reason: string; pnlUsd: number } | null;
 }
 
@@ -92,6 +99,8 @@ export interface RoomLab {
   seq: number;
   ghosts: GhostPos[];
   watches: PlanWatch[];
+  /** The goal race (seats.ts). Absent until the goal is set; the ghost room never reads it. */
+  seats?: SeatBook;
 }
 
 export function emptyLab(): RoomLab {
@@ -105,18 +114,19 @@ export function asLab(x: unknown): RoomLab {
 
 const money = (n: number) => Math.round(n * 100) / 100;
 
-/** Open ghosts, in the shape the desk's level-exit reader takes. */
+/** Open ghosts and the seats' open tickets (taken and declined), in the shape the desk's level-exit reader takes. */
 export function labWatchList(lab: RoomLab): ExitWatch[] {
-  return lab.ghosts
+  const seatItems = (lab.seats?.seats ?? []).flatMap((s) => [...s.positions, ...s.skipped]);
+  return [...lab.ghosts, ...seatItems]
     .filter((g) => !g.closed)
     .map((g) => ({ id: g.id, trimmed: g.trimmed, openedAt: g.openedAt, fut: g.fut, quant: g.quant }));
 }
 
-function planKeyOf(e: Pick<RoomEntryRead, "futSymbol" | "futSide" | "plan">): string | null {
+export function planKeyOf(e: Pick<RoomEntryRead, "futSymbol" | "futSide" | "plan">): string | null {
   return e.plan ? `${e.futSymbol}:${e.futSide}:${e.plan.entry.toFixed(2)}` : null;
 }
 
-function optionsOpen(nowMs: number): boolean {
+export function optionsOpen(nowMs: number): boolean {
   const w = etWallParts(nowMs);
   const m = w.hour * 60 + w.minute;
   return w.weekday >= 1 && w.weekday <= 5 && m >= ROOM_CLOCK.optionsOpenMin && m < ROOM_CLOCK.optionsCloseMin;
@@ -141,44 +151,9 @@ export function stepLab(prev: RoomLab, a: LabStepArgs): RoomLab {
   let seq = prev.seq;
 
   // 1) Ghosts: mark, then let each run its own policy on the room's rules.
-  const ghosts: GhostPos[] = prev.ghosts.map((g0) => {
-    if (g0.closed) return g0;
-    const g = { ...g0 };
-    const tape = market[g.ticker];
-    if (!tape || !(tape.price > 0)) return g;
-    if (nowMs >= expiryMs(g.exp)) {
-      const intrinsic = g.type === "CALL" ? Math.max(0, tape.price - g.strike) : Math.max(0, g.strike - tape.price);
-      const pnl = money((intrinsic - g.entryPx) * 100 * g.contracts) + g.realizedUsd;
-      return { ...g, closed: { at: nowMs, px: intrinsic, reason: "expired — settled at intrinsic", pnlUsd: money(pnl) } };
-    }
-    const iv = ivFor(g.ticker, tape.vix);
-    const q = quoteOption(tape.price, g.strike, g.exp, g.type, iv, nowMs);
-    g.pnlPct = Math.round(((q.bid - g.entryPx) / g.entryPx) * 1000) / 10;
-    if (!open) return g;
-    const pos: RoomPositionIn = {
-      id: g.id,
-      ticker: g.ticker,
-      type: g.type,
-      strike: g.strike,
-      exp: g.exp,
-      pnl_percent: g.pnlPct,
-      contracts: g.contracts,
-      trimmed: g.trimmed,
-      strike_offset: g.offset,
-      entry_px: g.entryPx,
-    };
-    const policy = g.kind === "twin" ? MANDATE_POLICY : ROOM_POLICY;
-    const hold = policy.thetaStop ? holdReadFor(pos, desk?.held?.[g.id], tape, etDate, nowMs) : null;
-    const x = exitFor(pos, tape, { desk, etDate, etMin, nowMs, policy, hold });
-    if (!x) return g;
-    const px = x.quote?.bid ?? q.bid;
-    const qty = x.qty != null && x.qty > 0 ? Math.min(x.qty, g.contracts) : g.contracts;
-    const pnl = money((px - g.entryPx) * 100 * qty);
-    if (qty >= g.contracts) {
-      return { ...g, closed: { at: nowMs, px, reason: `${x.reason.replace("_", " ")} — ${x.why}`, pnlUsd: money(pnl + g.realizedUsd) } };
-    }
-    return { ...g, contracts: g.contracts - qty, trimmed: true, realizedUsd: money(g.realizedUsd + pnl) };
-  });
+  const ghosts: GhostPos[] = prev.ghosts.map((g) =>
+    stepGhost(g, { market, desk, etDate, etMin, nowMs, open, policy: g.kind === "twin" ? MANDATE_POLICY : ROOM_POLICY }),
+  );
 
   // 2) New ghosts.
   const tr = cycle.trace;
@@ -230,10 +205,65 @@ export function stepLab(prev: RoomLab, a: LabStepArgs): RoomLab {
   }
   watches = watches.slice(-KEEP);
   const keptGhosts = [...ghosts.filter((g) => !g.closed), ...ghosts.filter((g) => g.closed).slice(-KEEP)];
-  return { version: 1, seq, ghosts: keptGhosts, watches };
+  return { ...prev, version: 1, seq, ghosts: keptGhosts, watches };
 }
 
-function ghostFrom(
+export interface GhostStepCtx {
+  market: Record<Underlier, UnderlierTape>;
+  desk: RoomDeskRead | null;
+  etDate: string;
+  etMin: number;
+  nowMs: number;
+  /** Options are open (09:30–16:00 ET weekdays): a closed market marks but never exits. */
+  open: boolean;
+  policy: ExitPolicy;
+}
+
+/**
+ * Mark one ghost on the tape and let it exit on `policy` — the one place a simulated position ends, shared by the
+ * ghost room and by the seats (seats.ts), so a seat can never exit on a rule the room does not have.
+ */
+export function stepGhost(g0: GhostPos, c: GhostStepCtx): GhostPos {
+  if (g0.closed) return g0;
+  const { market, desk, etDate, etMin, nowMs, open, policy } = c;
+  const g = { ...g0 };
+  const tape = market[g.ticker];
+  if (!tape || !(tape.price > 0)) return g;
+  if (nowMs >= expiryMs(g.exp)) {
+    const intrinsic = g.type === "CALL" ? Math.max(0, tape.price - g.strike) : Math.max(0, g.strike - tape.price);
+    const pnl = money((intrinsic - g.entryPx) * 100 * g.contracts) + g.realizedUsd;
+    return { ...g, closed: { at: nowMs, px: intrinsic, reason: "expired — settled at intrinsic", pnlUsd: money(pnl) } };
+  }
+  const iv = ivFor(g.ticker, tape.vix);
+  const q = quoteOption(tape.price, g.strike, g.exp, g.type, iv, nowMs);
+  g.pnlPct = Math.round(((q.bid - g.entryPx) / g.entryPx) * 1000) / 10;
+  g.bid = q.bid;
+  if (!open) return g;
+  const pos: RoomPositionIn = {
+    id: g.id,
+    ticker: g.ticker,
+    type: g.type,
+    strike: g.strike,
+    exp: g.exp,
+    pnl_percent: g.pnlPct,
+    contracts: g.contracts,
+    trimmed: g.trimmed,
+    strike_offset: g.offset,
+    entry_px: g.entryPx,
+  };
+  const hold = policy.thetaStop ? holdReadFor(pos, desk?.held?.[g.id], tape, etDate, nowMs) : null;
+  const x = exitFor(pos, tape, { desk, etDate, etMin, nowMs, policy, hold });
+  if (!x) return g;
+  const px = x.quote?.bid ?? q.bid;
+  const qty = x.qty != null && x.qty > 0 ? Math.min(x.qty, g.contracts) : g.contracts;
+  const pnl = money((px - g.entryPx) * 100 * qty);
+  if (qty >= g.contracts) {
+    return { ...g, closed: { at: nowMs, px, reason: `${x.reason.replace("_", " ")} — ${x.why}`, pnlUsd: money(pnl + g.realizedUsd) } };
+  }
+  return { ...g, contracts: g.contracts - qty, trimmed: true, realizedUsd: money(g.realizedUsd + pnl) };
+}
+
+export function ghostFrom(
   id: string,
   kind: GhostPos["kind"],
   of: string,

@@ -42,7 +42,7 @@ import { etWallParts } from "@/lib/trading/sessions";
 import EVIDENCE_DIST from "@/data/evidence-dist.json";
 import ROOM_EV_TEST from "@/data/room-ev-test.json";
 import ROOM_TIME_ODDS from "@/data/room-time-odds.json";
-import { EXEC_FLAGS, LIVE_EVIDENCE } from "./exec/limits";
+import { EXEC_FLAGS, EXEC_LIMITS, LIVE_EVIDENCE } from "./exec/limits";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
 import { etDateOf } from "./option-math";
 import type { Character } from "./orchestrator";
@@ -60,18 +60,17 @@ export interface GoalSpec {
   /** The experiment stops when equity falls to this share of the start. The trader's number. */
   floorFrac: number;
   /**
-   * What share of equity one ticket may cost, on the EXPERIMENT account. The room's mandate is 10% of cash (mandate.ts),
-   * which on $1,000 is $100 — less than one ATM contract. This is the trader's number to set for the experiment;
-   * the room's own book and the Execution card's limits are not changed by it.
+   * What share of equity one ticket may cost, on the EXPERIMENT account (the paper seats). The room's mandate is 10% of
+   * cash (mandate.ts), which on $1,000 is $100 — less than one ATM contract, so at 10% nothing could ever trade. The
+   * default is a proposal that lets the rehearsal run, and it is the trader's number to set. The house room's book and the
+   * Execution card's limits are NOT changed by it — see the `exec_cap` collision.
    */
   capFrac: number;
-  /** Rehearsal = the paper seats; live = the broker account (human-armed, Execution card). */
-  mode: "rehearsal" | "live";
 }
 
 export const GOAL_STORAGE = "ledger-room-goal-v1";
 
-export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5 } as const;
+export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 } as const;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -108,8 +107,7 @@ export function defaultGoal(nowMs: number): GoalSpec {
     startDate: weekdayOnOrAfter(etDateOf(nowMs)),
     tradingDays: DEFAULT_GOAL_CONSTANTS.tradingDays,
     floorFrac: DEFAULT_GOAL_CONSTANTS.floorFrac,
-    capFrac: ROOM_MANDATE.maxCashFracPerTrade,
-    mode: "rehearsal",
+    capFrac: DEFAULT_GOAL_CONSTANTS.capFrac,
   };
 }
 
@@ -119,7 +117,6 @@ export function asGoal(x: unknown): GoalSpec | null {
   const ok = (n: unknown, lo: number, hi: number) => typeof n === "number" && Number.isFinite(n) && n >= lo && n <= hi;
   if (!ok(g.start, 1, 1e7) || !ok(g.target, 1, 1e8) || !ok(g.tradingDays, 1, 60) || !ok(g.floorFrac, 0, 0.95) || !ok(g.capFrac, 0.01, 1)) return null;
   if (typeof g.startDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(g.startDate)) return null;
-  if (g.mode !== "rehearsal" && g.mode !== "live") return null;
   if ((g.target as number) <= (g.start as number)) return null;
   return g as GoalSpec;
 }
@@ -156,6 +153,9 @@ export function goalClock(spec: GoalSpec, nowMs: number): GoalClock {
   const remaining = dates.filter((d) => (todayOpen ? d >= today : d > today));
   return { ...base, state: "running", day: idx >= 0 ? idx + 1 : dates.filter((d) => d < today).length, daysLeft: remaining.length, remaining };
 }
+
+/** New tickets may be bought now: inside the window, on a session day, before 11:00 ET. */
+export const entriesOpen = (c: GoalClock): boolean => c.state === "running" && c.dates.includes(c.today) && !c.entriesOver;
 
 /** Per session: true when it opens a new week (its weekday does not come after the previous session's). Index 0 is never a break — it is the week in progress. */
 export function weekBreaksOf(dates: string[]): boolean[] {
@@ -674,6 +674,16 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
       title: "One contract costs more than a ticket may",
       detail: `One ATM 1 DTE contract is about ${money(ctx.contractUsd)}; ${pct1(ctx.capFrac)} of ${money(eq)} is ${money(capUsd)}. The room cannot buy one, so on these rules the account never trades.${o.cheapestUsd != null ? ` The cheapest contract today is ${o.cheapestName ?? "a cheaper strike"} at about ${money(o.cheapestUsd)}${o.cheapestUsd > capUsd ? " — still over the cap" : ""}.` : ""}`,
       decision: `Set the experiment account's ticket share to at least ${Math.ceil(minFrac * 100)}% (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%), or accept cheaper, lower-delta contracts.`,
+    });
+  }
+  const execCapUsd = Math.min(EXEC_LIMITS.maxCashFracPerTrade * eq, EXEC_LIMITS.maxTicketUsd);
+  if (execCapUsd < ctx.contractUsd) {
+    out.push({
+      id: "exec_cap",
+      severity: "warn",
+      title: "The Execution card would refuse every ticket on a $1,000 account",
+      detail: `The broker side caps a ticket at ${Math.round(EXEC_LIMITS.maxCashFracPerTrade * 100)}% of broker cash (limits.ts) — ${money(execCapUsd)} on ${money(eq)} — and one ATM 1 DTE contract is about ${money(ctx.contractUsd)}. The paper seats run at ${pct1(ctx.capFrac)}; a live account under today's limits would buy nothing.`,
+      decision: `maxCashFracPerTrade in exec/limits.ts is yours; at least ${Math.ceil((ctx.contractUsd / eq) * 100)}% buys one contract today. It is not moved for the goal.`,
     });
   }
   const sizeable = Math.min(ctx.capFrac, 1) * eq >= ctx.contractUsd;

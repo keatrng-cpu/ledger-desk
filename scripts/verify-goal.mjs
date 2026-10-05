@@ -24,7 +24,7 @@
  */
 const G = await import("../src/lib/room/goal.ts");
 const { ROOM_MANDATE, ROOM_CLOCK } = await import("../src/lib/room/mandate.ts");
-const { LIVE_EVIDENCE, EXEC_FLAGS } = await import("../src/lib/room/exec/limits.ts");
+const { LIVE_EVIDENCE, EXEC_FLAGS, EXEC_LIMITS } = await import("../src/lib/room/exec/limits.ts");
 const { APLUS_RULES } = await import("../src/lib/aplus/config.ts");
 const { PATH_MONTH_CAP } = await import("../src/lib/trading/profit-rules.ts");
 const { MAX_DEBIT_USD } = await import("../src/lib/trading/sleeve-sizing.ts");
@@ -53,7 +53,7 @@ console.log("calendar");
   check("week breaks fall on the Monday", JSON.stringify(G.weekBreaksOf(ten)) === JSON.stringify([false, false, false, false, false, true, false, false, false, false]));
   check("week breaks from midweek", JSON.stringify(G.weekBreaksOf(["2026-10-08", "2026-10-09", "2026-10-12"])) === JSON.stringify([false, false, true]));
 
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, mode: "rehearsal" };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
   const c = (ms) => G.goalClock(spec, ms);
   const mon0940 = c(at(2026, 10, 5, 9, 40));
   check("Monday 09:40 is day 1 with ten sessions to buy in", mon0940.state === "running" && mon0940.day === 1 && mon0940.daysLeft === 10 && !mon0940.entriesOver, JSON.stringify(mon0940));
@@ -73,15 +73,16 @@ console.log("calendar");
   check("asGoal accepts a good spec", G.asGoal(spec) != null);
   check("asGoal refuses a target below the start", G.asGoal({ ...spec, target: 900 }) == null);
   check("asGoal refuses a ticket share of 0 or above 100%", G.asGoal({ ...spec, capFrac: 0 }) == null && G.asGoal({ ...spec, capFrac: 1.5 }) == null);
-  check("asGoal refuses a bad date and a bad mode", G.asGoal({ ...spec, startDate: "10/5/2026" }) == null && G.asGoal({ ...spec, mode: "yolo" }) == null);
+  check("asGoal refuses a bad date", G.asGoal({ ...spec, startDate: "10/5/2026" }) == null);
   const def = G.defaultGoal(at(2026, 10, 10, 12, 0));
-  check("the default goal is $1,000 → $5,000 over ten sessions starting the next weekday, ticket share = the room mandate", def.start === 1000 && def.target === 5000 && def.tradingDays === 10 && def.startDate === "2026-10-12" && def.capFrac === ROOM_MANDATE.maxCashFracPerTrade && def.mode === "rehearsal", JSON.stringify(def));
+  check("the default goal is $1,000 → $5,000 over ten sessions starting the next weekday", def.start === 1000 && def.target === 5000 && def.tradingDays === 10 && def.startDate === "2026-10-12" && def.floorFrac === 0.5, JSON.stringify(def));
+  check("the default experiment ticket share lets one contract be bought on $1,000 (40%), and is not the room's 10% mandate", def.capFrac === 0.4 && G.contractsFor(1000, 371, def.capFrac, 1000) === 1 && def.capFrac !== ROOM_MANDATE.maxCashFracPerTrade);
 }
 
 /* ── The path ──────────────────────────────────────────────────────────── */
 console.log("the path");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, mode: "rehearsal" };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
   const now = at(2026, 10, 5, 9, 40);
   const r = G.readGoal(spec, 1000, now);
   check("the ladder is geometric and ends at the target", r.ladder.length === 10 && near(r.ladder[9].equity, 5000, 1e-9) && near(r.ladder[0].equity, 1000 * Math.pow(5, 0.1), 1e-12));
@@ -379,7 +380,7 @@ console.log("monotonicity");
 /* ── The measured goal ─────────────────────────────────────────────────── */
 console.log("the measured goal");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, mode: "rehearsal" };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
   const now = at(2026, 10, 5, 9, 40);
   const view = (capFrac, contractUsd = 371, over = {}) =>
     G.viewGoal({ spec: { ...spec, capFrac }, equity: 1000, nowMs: now, contractUsd, cheapest: { usd: 290, name: "a one-strike-out contract" }, monthEntries: 0, atrUsdPerContract: 12, paperFills: 0, ...over });
@@ -389,7 +390,7 @@ console.log("the measured goal");
   const cvc = v10.collisions.find((c) => c.id === "cap_vs_contract");
   check("…and the first collision is that blocker, naming the arithmetic and the 38% the trader would have to set", cvc && cvc.severity === "blocker" && v10.collisions[0].id === "cap_vs_contract" && /\$371/.test(cvc.detail) && /\$100/.test(cvc.detail) && /38%/.test(cvc.decision), JSON.stringify(cvc));
   check("…and it names the cheapest contract and that it is still over the cap", /one-strike-out contract/.test(cvc.detail) && /still over the cap/.test(cvc.detail));
-  check("the room's mandate is still 10% (the goal does not change it)", ROOM_MANDATE.maxCashFracPerTrade === 0.1);
+  check("the room's mandate is still 10% (the goal does not change it)", ROOM_MANDATE.maxCashFracPerTrade === 0.1 && EXEC_LIMITS.maxCashFracPerTrade === 0.1);
 
   const v40 = view(0.4);
   check("at a 40% ticket share one contract is bought", v40.table.find((r) => r.def.id === "mechanical").out.contractsNow === 1);
@@ -403,7 +404,9 @@ console.log("the measured goal");
     return z > 0.13 && z < 0.15;
   })(), String(Math.exp(-G.opportunityRate().perSession * 10)));
   const ids = v40.collisions.map((c) => c.id);
-  check("collisions at 40%: halt (day AND week), ceiling, frequency, edge, live gate", ["halt", "ceiling", "frequency", "edge", "live_gate"].every((x) => ids.includes(x)), ids.join());
+  check("collisions at 40%: exec cap, halt (day AND week), ceiling, frequency, edge, live gate", ["exec_cap", "halt", "ceiling", "frequency", "edge", "live_gate"].every((x) => ids.includes(x)), ids.join());
+  const ex = v40.collisions.find((c) => c.id === "exec_cap");
+  check("the Execution card's 10% cap would refuse every ticket on $1,000 — a warning with the trader's number named, and not moved", ex.severity === "warn" && /\$100/.test(ex.detail) && /\$371/.test(ex.detail) && /exec\/limits\.ts is yours/.test(ex.decision) && /not moved for the goal/.test(ex.decision), JSON.stringify(ex));
   const halt = v40.collisions.find((c) => c.id === "halt");
   check("one stopped $371 ticket (−$74) breaches both the 2% day ($20) and the 5% week ($50)", halt.severity === "warn" && /and the week/.test(halt.title) && /\$74/.test(halt.detail) && /\$20/.test(halt.detail) && /\$50/.test(halt.detail), halt.detail);
   const frequency = v40.collisions.find((c) => c.id === "frequency");
@@ -440,7 +443,7 @@ console.log("the measured goal");
 /* ── What would have to be true ────────────────────────────────────────── */
 console.log("what would have to be true");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, mode: "rehearsal" };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 };
   const now = at(2026, 10, 5, 9, 40);
   const read = G.readGoal(spec, 1000, now);
   const ctx = G.planContext({ contractUsd: 120, capFrac: 0.4, daysLeft: read.clock.daysLeft, monthEntries: 0 });
@@ -474,7 +477,7 @@ console.log("what would have to be true");
 /* ── Today ─────────────────────────────────────────────────────────────── */
 console.log("today");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, mode: "rehearsal" };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 };
   const now = at(2026, 10, 5, 9, 40);
   const v = G.viewGoal({ spec, equity: 1000, nowMs: now, contractUsd: 371, cheapest: null, monthEntries: 0, atrUsdPerContract: 20, paperFills: 3 });
   check("today asks the ladder's first rung", near(v.plan.needTodayUsd, 1000 * Math.pow(5, 0.1) - 1000, 1e-9), String(v.plan.needTodayUsd));

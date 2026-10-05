@@ -27,9 +27,10 @@ export function rankOf(book: RoomBook): SnapshotRank {
   const lab = book.lab;
   const lastClosed = book.closed.reduce((m, c) => Math.max(m, Number(c.closedAt) || 0), 0);
   const lastGhost = (lab?.ghosts ?? []).reduce((m, g) => Math.max(m, g.closed?.at ?? 0), 0);
+  const lastSeat = (lab?.seats?.events ?? []).reduce((m, e) => Math.max(m, Number(e.at) || 0), 0);
   return {
-    history: (Number(book.seq) || 0) + (Number(lab?.seq) || 0),
-    lastAt: Math.max(lastClosed, lastGhost),
+    history: (Number(book.seq) || 0) + (Number(lab?.seq) || 0) + (Number(lab?.seats?.seq) || 0),
+    lastAt: Math.max(lastClosed, lastGhost, lastSeat),
   };
 }
 

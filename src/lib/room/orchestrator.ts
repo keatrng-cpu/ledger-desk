@@ -484,7 +484,7 @@ function pickStrike(
   return dist(otm.quote) < dist(atm.quote) - 1e-9 ? { ...otm, alt: atm } : { ...atm, alt: otm };
 }
 
-interface EntryEval {
+export interface EntryEval {
   gates: Gate[];
   refusal: string | null;
   plan: EntryPlan | null;
@@ -492,14 +492,25 @@ interface EntryEval {
   waiting: boolean;
 }
 
-function evaluateEntry(
+/** What a caller other than the house room may change: the share of cash one ticket may cost (the seats' experiment account, seats.ts). */
+export interface EntryOpts {
+  capFrac?: number;
+}
+
+/**
+ * Sterling's checklist for one card against one account. The house room calls it with its own book; the seats (seats.ts)
+ * call it with their own cash, positions and counters, so a seat can never pass a rule the room would not.
+ */
+export function evaluateEntry(
   input: RoomInput,
   ctx: RoomContext,
   etDate: string,
   etMin: number,
   nowMs: number,
   optionsOpen: boolean,
+  opts: EntryOpts = {},
 ): EntryEval {
+  const capFrac = opts.capFrac ?? ROOM_MANDATE.maxCashFracPerTrade;
   const gates: Gate[] = [];
   let refusal: string | null = null;
   const gate = (id: string, ok: boolean, label: string) => {
@@ -624,7 +635,7 @@ function evaluateEntry(
   if (e && desk && (e.deskContracts ?? 0) >= 1) {
     const tape = input.market_data[e.underlier];
     const exp = expiryFor(e.dte, etDate);
-    const capUsd = Math.min(ROOM_MANDATE.maxCashFracPerTrade * cash, MAX_DEBIT_USD);
+    const capUsd = Math.min(capFrac * cash, MAX_DEBIT_USD);
     const afford = (q: OptionQuote) => Math.floor(capUsd / (q.ask * 100));
     const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
     const futNow = desk.futures[e.underlier]?.price ?? 0;
@@ -676,8 +687,8 @@ function evaluateEntry(
       "cash_cap",
       qty >= 1 && debitUsd <= cash,
       qty >= 1
-        ? `${qty}× at ${prem(chosen.quote.ask)} = ${usd(debitUsd)} ≤ cap ${usd(capUsd)} (${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% of ${usd(cash)}, ceiling ${usd(MAX_DEBIT_USD)})`
-        : `One ${contractName(e.underlier, chosen.quote.strike, e.type, exp)} is ${usd(chosen.quote.ask * 100)}; the cap is ${usd(capUsd)} (${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% of ${usd(cash)})`,
+        ? `${qty}× at ${prem(chosen.quote.ask)} = ${usd(debitUsd)} ≤ cap ${usd(capUsd)} (${Math.round(capFrac * 100)}% of ${usd(cash)}, ceiling ${usd(MAX_DEBIT_USD)})`
+        : `One ${contractName(e.underlier, chosen.quote.strike, e.type, exp)} is ${usd(chosen.quote.ask * 100)}; the cap is ${usd(capUsd)} (${Math.round(capFrac * 100)}% of ${usd(cash)})`,
     );
     const decay = decayToStop(
       priceTape.price,

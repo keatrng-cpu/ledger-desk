@@ -20,8 +20,10 @@
  * overrides the other on day one. The trader can reset to any amount.
  */
 
-import { etMonthKey, etWeekKey } from "@/lib/trading/rh-income";
 import { asLab, labWatchList, stepLab, type RoomLab } from "./lab";
+import { emptyCounters, ledgerOfCounters, rollCountersOf, type RoomCounters } from "./counters";
+import type { GoalSpec } from "./goal";
+import { ensureSeats, stepSeats } from "./seats";
 import { expiryMs, etDateOf, ivFor, quoteOption, type OptionType, type StrikeOffset, type Underlier } from "./option-math";
 import { planKey, type RoomCycle, type RoomDeskRead, type RoomInput, type RoomLedger, type UnderlierTape } from "./orchestrator";
 import { attribute, type Attribution } from "./quant";
@@ -100,22 +102,7 @@ export interface RoomBook {
   positions: RoomBookPosition[];
   closed: RoomClosedTrade[];
   events: RoomEvent[];
-  counters: {
-    dayKey: string;
-    dayStartEquity: number;
-    realizedToday: number;
-    weekKey: string;
-    weekStartEquity: number;
-    realizedWeek: number;
-    monthKey: string;
-    monthEntries: number;
-    kzKey: string;
-    kzEntries: number;
-    underlierDay: { day: string; underlier: Underlier } | null;
-    consecLosses: number;
-    /** planKey of every plan bought today — one plan, one fill. */
-    filledPlans: string[];
-  };
+  counters: RoomCounters;
   /** The ghost room and the plan ledger (lab.ts). Absent on books saved before it existed. */
   lab?: RoomLab;
 }
@@ -129,21 +116,7 @@ export function emptyBook(cash = ROOM_DEFAULT_CASH, nowMs = Date.now()): RoomBoo
     positions: [],
     closed: [],
     events: [{ at: nowMs, kind: "reset", text: `Book opened with $${cash.toLocaleString()} paper cash.` }],
-    counters: {
-      dayKey: "",
-      dayStartEquity: cash,
-      realizedToday: 0,
-      weekKey: "",
-      weekStartEquity: cash,
-      realizedWeek: 0,
-      monthKey: "",
-      monthEntries: 0,
-      kzKey: "",
-      kzEntries: 0,
-      underlierDay: null,
-      consecLosses: 0,
-      filledPlans: [],
-    },
+    counters: emptyCounters(cash),
   };
 }
 
@@ -175,19 +148,7 @@ export function equityOf(book: RoomBook): number {
 
 /** Day, week, month and killzone counters roll on their own keys. */
 export function rollCounters(book: RoomBook, nowMs: number, killzone: string): RoomBook {
-  const c = { ...book.counters };
-  const day = etDateOf(nowMs);
-  const week = etWeekKey(new Date(nowMs));
-  const month = etMonthKey(new Date(nowMs));
-  const eq = equityOf(book);
-  if (c.dayKey !== day) Object.assign(c, { dayKey: day, dayStartEquity: eq, realizedToday: 0, filledPlans: [] });
-  if (!Array.isArray(c.filledPlans)) c.filledPlans = [];
-  if (c.weekKey !== week) Object.assign(c, { weekKey: week, weekStartEquity: eq, realizedWeek: 0 });
-  if (c.monthKey !== month) Object.assign(c, { monthKey: month, monthEntries: 0 });
-  const kz = `${day}:${killzone}`;
-  if (c.kzKey !== kz) Object.assign(c, { kzKey: kz, kzEntries: 0 });
-  if (c.underlierDay && c.underlierDay.day !== day) c.underlierDay = null;
-  return { ...book, counters: c };
+  return { ...book, counters: rollCountersOf(book.counters, equityOf(book), nowMs, killzone) };
 }
 
 function pushEvent(book: RoomBook, e: RoomEvent): RoomEvent[] {
@@ -277,18 +238,7 @@ export function toRoomInput(book: RoomBook, market: Record<Underlier, UnderlierT
 }
 
 export function ledgerOf(book: RoomBook): RoomLedger {
-  const c = book.counters;
-  return {
-    dayStartEquity: c.dayStartEquity,
-    realizedTodayUsd: c.realizedToday,
-    weekStartEquity: c.weekStartEquity,
-    realizedWeekUsd: c.realizedWeek,
-    entriesThisKillzone: c.kzEntries,
-    underlierToday: c.underlierDay?.underlier ?? null,
-    monthEntries: c.monthEntries,
-    consecLosses: c.consecLosses,
-    filledPlans: c.filledPlans ?? [],
-  };
+  return ledgerOfCounters(book.counters);
 }
 
 /** Everything the desk should price level exits for: the room's positions and its open ghosts. */
@@ -427,7 +377,8 @@ export function applyCycle(book: RoomBook, cycle: RoomCycle, nowMs: number): Roo
 /**
  * The ghost room's step, after the room's own ticket is booked: ghosts mark
  * and exit on the same prints, new ones open, the plan ledger follows its
- * plans. Never moves the room's cash or counters.
+ * plans. Never moves the room's cash or counters. With a `goal`, the seats'
+ * race (seats.ts) steps on the same prints, in their own accounts.
  */
 export function applyLab(
   book: RoomBook,
@@ -435,10 +386,16 @@ export function applyLab(
   market: Record<Underlier, UnderlierTape>,
   desk: RoomDeskRead | null,
   nowMs: number,
+  goal: GoalSpec | null = null,
 ): RoomBook {
   const opened =
     cycle.output.broker_action.action_type === "BUY_OPEN" ? (book.positions.filter((p) => p.openedAt === nowMs).at(-1)?.id ?? null) : null;
-  return { ...book, lab: stepLab(asLab(book.lab), { cycle, market, desk, nowMs, roomFillId: opened }) };
+  let lab = stepLab(asLab(book.lab), { cycle, market, desk, nowMs, roomFillId: opened });
+  if (goal) {
+    lab = ensureSeats(lab, goal, nowMs);
+    lab = { ...lab, seats: stepSeats(lab.seats!, { market, desk, nowMs, killzone: desk?.killzone ?? "" }) };
+  }
+  return { ...book, lab };
 }
 
 /**
