@@ -124,6 +124,17 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
+## Option C — the container in this directory
+
+`gateway/Dockerfile` runs the same process. Build it from the repo root:
+
+```bash
+docker build -t ledger-gateway -f gateway/Dockerfile gateway
+docker run --rm -e DATABASE_URL -e DATABENTO_API_KEY ledger-gateway
+```
+
+The image has no secrets. Set the two variables on the host (Fly, Railway, or a VPS). Do not set `GATEWAY_NY_AM_ONLY`. Globex closed — Friday 16:00 ET through Sunday 17:00 ET, and the daily 16:00–17:00 halt — is a sit, not a price. Inside Globex, lag past 30 seconds is this process being dead, not a setup. The desk does not deploy this image. The PC keep-alive stays the backup while you are signed in.
+
 ## Verifying it's actually working
 
 The desk itself is the check — no separate dashboard needed. Once the
