@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep is Mon 10:00 ET (not printed). BEA trade Aug Tue 8:30. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds: FedWatch cited 22.1% +25 / 77.9% hold (Oct 4) vs 17–22% post-NFP. CPI Sep is Wed Oct 14, not this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug Tue 8:30. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds: FedWatch cited 22.1% +25 / 77.9% hold (Oct 4) vs 17–22% post-NFP. CPI Sep is Wed Oct 14, not this week.",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -278,12 +278,12 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     {
       date: "2026-10-05",
       weekday: "Mon",
-      dailyBias: "Two-way into ISM Services. Inside last week until a raid holds.",
+      dailyBias: "PWH raid held. Not a new HTF trend.",
       kind: "event",
-      news: [{ timeEt: "10:00", name: "ISM Services PMI (Sep)", impact: "high", note: "ISM 10:00 ET. Aug printed 55.4. Not released yet. S&P services final 9:45 is not the blackout." }],
-      likelyTape: "Opens inside prior-week box (NQ 30,357–31,282.50 / ES 7,672.75–7,810). No print yet. Not a new HTF trend.",
-      trade: "Stand 9:45–10:15. Post-print mechanical only if MSS + IFVG. Do not fade the first spike.",
-      skipIf: "No raid of prior-week H/L, or no MSS + IFVG by 10:15.",
+      news: [{ timeEt: "10:00", name: "ISM Services PMI (Sep)", impact: "high", note: "ISM official 54.9 vs ~55.0 / prev 55.4. Prices 74.0, emp 50.1. S&P services final 9:45 is not the blackout." }],
+      likelyTape: "ISM 54.9 slight miss, still expansion. NQ ~30,961.50–31,345 took PWH 31,282.50 and closed above (~31,336). ES ~7,760.50–7,847.50 took PWH 7,810 and closed above (~7,824). PWL untouched. Held raid, not inside-week, not a fresh HTF trend.",
+      trade: "Post-print mechanical only if MSS + IFVG. Both PWH taken and held. Do not chase the hold. Do not invent a trend day into Tuesday.",
+      skipIf: "Already through PWH without a fail back inside — no chase. No MSS + IFVG.",
       pathNote: "PWH/PWL seed is last week. Live CWH/CWL from bars. Next is Tue trade 8:30.",
     },
     {
