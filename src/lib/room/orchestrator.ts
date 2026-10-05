@@ -451,7 +451,7 @@ function holdsFor(input: RoomInput, desk: RoomDeskRead | null, etDate: string, n
 
 /* ── Entry: the desk's card, then Sterling's list ──────────────────────── */
 
-function expiryFor(dte: 0 | 1, etDate: string): string {
+export function expiryFor(dte: 0 | 1, etDate: string): string {
   return dte === 0 ? etDate : nextWeekday(etDate);
 }
 
@@ -492,9 +492,14 @@ export interface EntryEval {
   waiting: boolean;
 }
 
-/** What a caller other than the house room may change: the share of cash one ticket may cost (the seats' experiment account, seats.ts). */
+/** What a caller other than the house room may change (the seats' experiment account, seats.ts). */
 export interface EntryOpts {
+  /** The share of cash one ticket may cost. */
   capFrac?: number;
+  /** Evaluate THIS contract — any strike step — instead of choosing between ATM and the strike one out. */
+  force?: StrikeOffset;
+  /** "cap": the count is what the ticket cap buys. Default "desk": never more than the desk's own ticket. */
+  qtyFrom?: "desk" | "cap";
 }
 
 /**
@@ -673,15 +678,26 @@ export function evaluateEntry(
     });
     const pick = pickStrike(e, priceTape, exp, nowMs);
     const inBand = (q: OptionQuote) => Math.abs(q.delta) >= e.deltaMin;
-    const cands = [pick, pick.alt].filter((o) => o.offset === pick.offset || inBand(o.quote)).map(priced);
-    const affordable = cands.filter((c) => afford(quoteFor(c)) >= 1);
-    const evReady = cands.every((c) => c.ev != null);
-    const best = evReady ? chooseContract(affordable.length ? affordable : cands) : null;
-    const chosenOffset = best?.offset ?? (afford(pick.quote) < 1 && pick.offset === "ATM" && afford(pick.alt.quote) >= 1 && inBand(pick.alt.quote) ? pick.alt.offset : pick.offset);
-    const chosen = chosenOffset === pick.offset ? pick : { ...pick.alt, alt: pick };
-    const chosenEv = cands.find((c) => c.offset === chosen.offset)?.ev ?? null;
-    const other = cands.find((c) => c.offset !== chosen.offset) ?? null;
-    const qty = Math.min(e.deskContracts ?? 0, afford(chosen.quote));
+    let chosen: { offset: StrikeOffset; quote: OptionQuote };
+    let chosenEv: OptionEv | null;
+    let other: ContractChoice | null;
+    if (opts.force) {
+      // A caller that names the contract (the seats' wider universe): same pricing, same gates, no choosing.
+      const fq = quoteOption(priceTape.price, strikeFor(priceTape.price, e.type, opts.force), exp, e.type, ivFor(e.underlier, priceTape.vix), nowMs);
+      chosen = { offset: opts.force, quote: fq };
+      chosenEv = priced(chosen).ev;
+      other = null;
+    } else {
+      const cands = [pick, pick.alt].filter((o) => o.offset === pick.offset || inBand(o.quote)).map(priced);
+      const affordable = cands.filter((c) => afford(quoteFor(c)) >= 1);
+      const evReady = cands.every((c) => c.ev != null);
+      const best = evReady ? chooseContract(affordable.length ? affordable : cands) : null;
+      const chosenOffset = best?.offset ?? (afford(pick.quote) < 1 && pick.offset === "ATM" && afford(pick.alt.quote) >= 1 && inBand(pick.alt.quote) ? pick.alt.offset : pick.offset);
+      chosen = chosenOffset === pick.offset ? pick : { ...pick.alt, alt: pick };
+      chosenEv = cands.find((c) => c.offset === chosen.offset)?.ev ?? null;
+      other = cands.find((c) => c.offset !== chosen.offset) ?? null;
+    }
+    const qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
     const debitUsd = Math.round(qty * chosen.quote.ask * 100);
     gate(
       "cash_cap",

@@ -23,7 +23,12 @@ import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 
 export type Underlier = "SPY" | "QQQ";
 export type OptionType = "CALL" | "PUT";
-export type StrikeOffset = "ATM" | "OTM_1";
+/**
+ * The room's contract and the trader's JSON schema allow ATM and the strike one dollar out. The seats' experiment account
+ * (seats.ts) may reach further, so the type carries any step; `offsetOf` — what a close ticket reads — still only
+ * ever answers ATM or OTM_1.
+ */
+export type StrikeOffset = "ATM" | `OTM_${number}`;
 
 /**
  * Half the bid/ask, per share. The desk prices a single-leg round trip at
@@ -131,12 +136,17 @@ export function ivSource(vix: number | null): string {
   return vix != null && Number.isFinite(vix) && vix > 0 ? `VIX ${vix.toFixed(1)}` : "desk fixed IV (no VIX print)";
 }
 
-/** SPY and QQQ list $1 strikes on 0–1 DTE. ATM is the nearest; OTM_1 is one step out. */
+/** SPY and QQQ list $1 strikes on 0–1 DTE. ATM is the nearest; OTM_k is k steps out. */
 export function strikeFor(spot: number, type: OptionType, offset: StrikeOffset): number {
   const atm = Math.round(spot);
   if (offset === "ATM") return atm;
-  return type === "CALL" ? atm + 1 : atm - 1;
+  const k = Math.max(1, Math.round(Number(offset.slice(4))) || 1);
+  return type === "CALL" ? atm + k : atm - k;
 }
+
+/** The step count an offset names: ATM is 0. */
+export const stepsOf = (offset: StrikeOffset): number => (offset === "ATM" ? 0 : Math.max(1, Math.round(Number(offset.slice(4))) || 1));
+export const offsetAt = (steps: number): StrikeOffset => (steps <= 0 ? "ATM" : (`OTM_${Math.round(steps)}` as StrikeOffset));
 
 /** Which label a held strike carries against today's spot (for a close ticket). */
 export function offsetOf(spot: number, strike: number, type: OptionType): StrikeOffset {

@@ -45,6 +45,7 @@ import ROOM_TIME_ODDS from "@/data/room-time-odds.json";
 import { EXEC_FLAGS, EXEC_LIMITS, LIVE_EVIDENCE } from "./exec/limits";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
 import { etDateOf } from "./option-math";
+import type { Rung } from "./contract-ladder";
 import type { Character } from "./orchestrator";
 
 /* ── The goal ──────────────────────────────────────────────────────────── */
@@ -66,11 +67,18 @@ export interface GoalSpec {
    * Execution card's limits are NOT changed by it — see the `exec_cap` collision.
    */
   capFrac: number;
+  /**
+   * Which contracts the experiment account may buy: delta at or above this, ask at least this many dollars. The room
+   * itself trades two strikes (at the money and one out); the paper seats may reach every strike that passes these
+   * floors. The trader's numbers — the house room and the Execution card are not changed by them.
+   */
+  minDelta: number;
+  minAskUsd: number;
 }
 
 export const GOAL_STORAGE = "ledger-room-goal-v1";
 
-export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 } as const;
+export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 } as const;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -108,6 +116,8 @@ export function defaultGoal(nowMs: number): GoalSpec {
     tradingDays: DEFAULT_GOAL_CONSTANTS.tradingDays,
     floorFrac: DEFAULT_GOAL_CONSTANTS.floorFrac,
     capFrac: DEFAULT_GOAL_CONSTANTS.capFrac,
+    minDelta: DEFAULT_GOAL_CONSTANTS.minDelta,
+    minAskUsd: DEFAULT_GOAL_CONSTANTS.minAskUsd,
   };
 }
 
@@ -118,7 +128,11 @@ export function asGoal(x: unknown): GoalSpec | null {
   if (!ok(g.start, 1, 1e7) || !ok(g.target, 1, 1e8) || !ok(g.tradingDays, 1, 60) || !ok(g.floorFrac, 0, 0.95) || !ok(g.capFrac, 0.01, 1)) return null;
   if (typeof g.startDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(g.startDate)) return null;
   if ((g.target as number) <= (g.start as number)) return null;
-  return g as GoalSpec;
+  // A goal saved before the strike floors existed loads with the defaults; a bad value is not silently repaired.
+  const minDelta = g.minDelta === undefined ? DEFAULT_GOAL_CONSTANTS.minDelta : g.minDelta;
+  const minAskUsd = g.minAskUsd === undefined ? DEFAULT_GOAL_CONSTANTS.minAskUsd : g.minAskUsd;
+  if (!ok(minDelta, 0.01, 1) || !ok(minAskUsd, 1, 100_000)) return null;
+  return { ...(g as GoalSpec), minDelta, minAskUsd };
 }
 
 export interface GoalClock {
@@ -175,6 +189,20 @@ export interface TradeModel {
   /** Sample behind the win rate and the mean, or null when the model is hypothetical. */
   n: number | null;
   source: string;
+  /**
+   * The ticket's outcomes as returns on the debit, when it has more than a win and a loss (a contract priced on a card's
+   * three paths: T1, stopped, flat). Absent = [win at winPct with pWin, loss at −lossPct with 1 − pWin].
+   */
+  outcomes?: { p: number; r: number }[];
+}
+
+/** Every way a ticket can end, as (probability, return on the debit). */
+export function outcomesOf(m: TradeModel): { p: number; r: number }[] {
+  if (m.outcomes && m.outcomes.length) return m.outcomes;
+  return [
+    { p: m.pWin, r: m.winPct },
+    { p: 1 - m.pWin, r: -m.lossPct },
+  ];
 }
 
 /** A model from a win rate, a loss size and the mean return the win size must reproduce. */
@@ -357,8 +385,7 @@ interface Cell {
  */
 export function goalDp(i: SimInput): SimOutput {
   const { target, floor, model, policy } = i;
-  const W = model.winPct;
-  const L = model.lossPct;
+  const outs = outcomesOf(model);
   const key = (eq: number, used: number, wk: number) => `${Math.round(eq * 100)}:${used}:${Math.round(wk * 100)}`;
   const weekNet0 = i.weekNet0 ?? 0;
   const dayNet0 = i.dayNet0 ?? 0;
@@ -417,10 +444,10 @@ export function goalDp(i: SimInput): SimOutput {
           }
           const debit = c * i.contractUsd;
           expectedTrades += x.p;
-          for (const win of [true, false]) {
-            const pr = x.p * (win ? model.pWin : 1 - model.pWin);
+          for (const o of outs) {
+            const pr = x.p * o.p;
             if (pr < EPS) continue;
-            const delta = win ? debit * W : -debit * L;
+            const delta = debit * o.r;
             const eq = x.eq + delta;
             const used = x.used + 1;
             if (eq >= target) {
@@ -592,6 +619,53 @@ export function policyTable(read: GoalRead, ctx: PlanContext): PolicyRow[] {
   });
 }
 
+/* ── The ladder: what the cheaper contracts do to the odds ─────────────── */
+
+export interface LadderRow {
+  rung: Rung;
+  /** What the experiment's ticket cap buys at today's equity, and what that costs. */
+  contracts: number;
+  debitUsd: number;
+  /** One stopped ticket as a share of equity. */
+  stopShare: number | null;
+  /** The exact odds if every ticket looked like today's card, priced on THIS rung — a model on one card, not a measurement. Null without a card. */
+  out: SimOutput | null;
+}
+
+/** A trade model from the room's three-path pricing of one contract. */
+export function modelFromRung(r: Rung): TradeModel | null {
+  const px = r.priced;
+  if (!px) return null;
+  const loss = px.outcomes.find((o) => o.kind === "loss")?.r ?? 0;
+  const t1 = px.outcomes.find((o) => o.kind === "t1")?.r ?? 0;
+  return {
+    pWin: px.pT1,
+    winPct: t1,
+    lossPct: Math.abs(loss),
+    meanPct: px.outcomes.reduce((a, o) => a + o.p * o.r, 0),
+    n: null,
+    source: `priced on today's card · ${r.offset} ${r.strike} · the room's three paths`,
+    outcomes: px.outcomes.map((o) => ({ p: o.p, r: o.r })),
+  };
+}
+
+export function ladderTable(read: GoalRead, ctx: PlanContext, rungs: Rung[]): LadderRow[] {
+  const policy: SimPolicy = { frac: ctx.capFrac, perDay: 2, dayHaltFrac: ctx.dayHaltFrac, weekHaltFrac: ctx.weekHaltFrac };
+  return rungs.map((rung) => {
+    const contracts = contractsFor(read.equity, rung.askUsd, ctx.capFrac, ctx.maxDebitUsd);
+    const model = modelFromRung(rung);
+    const debitUsd = contracts * rung.askUsd;
+    const loss = rung.priced?.outcomes.find((o) => o.kind === "loss")?.r ?? null;
+    return {
+      rung,
+      contracts,
+      debitUsd,
+      stopShare: loss != null && read.equity > 0 ? (debitUsd * Math.abs(loss)) / read.equity : null,
+      out: model ? simFor(read, ctx, policy, { model, contractUsd: rung.askUsd }) : null,
+    };
+  });
+}
+
 /* ── What would have to be true ────────────────────────────────────────── */
 
 export interface Needed {
@@ -668,12 +742,21 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
 
   if (capUsd < ctx.contractUsd) {
     const minFrac = ctx.contractUsd / eq;
+    const reachable = o.cheapestUsd != null && o.cheapestUsd <= capUsd;
     out.push({
       id: "cap_vs_contract",
-      severity: "blocker",
-      title: "One contract costs more than a ticket may",
-      detail: `One ATM 1 DTE contract is about ${money(ctx.contractUsd)}; ${pct1(ctx.capFrac)} of ${money(eq)} is ${money(capUsd)}. The room cannot buy one, so on these rules the account never trades.${o.cheapestUsd != null ? ` The cheapest contract today is ${o.cheapestName ?? "a cheaper strike"} at about ${money(o.cheapestUsd)}${o.cheapestUsd > capUsd ? " — still over the cap" : ""}.` : ""}`,
-      decision: `Set the experiment account's ticket share to at least ${Math.ceil(minFrac * 100)}% (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%), or accept cheaper, lower-delta contracts.`,
+      severity: reachable ? "warn" : "blocker",
+      title: reachable ? "The room's two strikes cost more than a ticket may" : "Not even the cheapest contract fits a ticket",
+      detail: `The room trades the money and the strike one out — about ${money(ctx.contractUsd)} the cheaper of the two today. ${pct1(ctx.capFrac)} of ${money(eq)} is ${money(capUsd)}.${
+        o.cheapestUsd != null
+          ? reachable
+            ? ` Contracts further out cost less: the cheapest on the ladder is ${o.cheapestName ?? "a further strike"} at about ${money(o.cheapestUsd)}. The account is not priced out — the room's two strikes are, and the seats may reach the ladder.`
+            : ` The cheapest contract on the ladder is ${o.cheapestName ?? "a further strike"} at about ${money(o.cheapestUsd)} — still over the cap.`
+          : ""
+      }`,
+      decision: reachable
+        ? `The ticket share is yours: at least ${Math.ceil(minFrac * 100)}% buys one of the room's two strikes (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%). The strike floors — delta ${read.spec.minDelta}, ${money(read.spec.minAskUsd)} — are yours too.`
+        : `Set the experiment account's ticket share to at least ${Math.ceil(minFrac * 100)}% (the room's mandate is ${Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}%), or lower the strike floors so a cheaper contract is allowed.`,
     });
   }
   const execCapUsd = Math.min(EXEC_LIMITS.maxCashFracPerTrade * eq, EXEC_LIMITS.maxTicketUsd);
@@ -681,8 +764,8 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
     out.push({
       id: "exec_cap",
       severity: "warn",
-      title: "The Execution card would refuse every ticket on a $1,000 account",
-      detail: `The broker side caps a ticket at ${Math.round(EXEC_LIMITS.maxCashFracPerTrade * 100)}% of broker cash (limits.ts) — ${money(execCapUsd)} on ${money(eq)} — and one ATM 1 DTE contract is about ${money(ctx.contractUsd)}. The paper seats run at ${pct1(ctx.capFrac)}; a live account under today's limits would buy nothing.`,
+      title: "The Execution card would refuse the room's tickets on a $1,000 account",
+      detail: `The broker side caps a ticket at ${Math.round(EXEC_LIMITS.maxCashFracPerTrade * 100)}% of broker cash (limits.ts) — ${money(execCapUsd)} on ${money(eq)} — and the room's cheaper strike is about ${money(ctx.contractUsd)}. The paper seats run at ${pct1(ctx.capFrac)}; a live account under today's limits could only buy a contract cheaper than ${money(execCapUsd)}, and the room itself never picks one — it trades two strikes.`,
       decision: `maxCashFracPerTrade in exec/limits.ts is yours; at least ${Math.ceil((ctx.contractUsd / eq) * 100)}% buys one contract today. It is not moved for the goal.`,
     });
   }
@@ -799,6 +882,8 @@ export interface GoalView {
   read: GoalRead;
   ctx: PlanContext;
   table: PolicyRow[];
+  /** The contract ladder with exact odds per rung, when the live card priced one; null otherwise. */
+  ladder: LadderRow[] | null;
   needed: Needed;
   collisions: Collision[];
   plan: DayPlan;
@@ -813,8 +898,11 @@ export function viewGoal(a: {
   spec: GoalSpec;
   equity: number;
   nowMs: number;
+  /** What the room's cheaper strike costs (the measured reference's cost basis). */
   contractUsd: number;
   cheapest: { usd: number; name: string } | null;
+  /** Today's ladder, priced on the live card when there is one. */
+  ladder?: Rung[] | null;
   monthEntries: number;
   atrUsdPerContract: number | null;
   paperFills: number | null;
@@ -834,14 +922,18 @@ export function viewGoal(a: {
   });
   const table = policyTable(read, ctx);
   const mech = table.find((r) => r.def.id === "mechanical")!;
+  const rungs = a.ladder && a.ladder.length ? a.ladder : null;
+  const cheapRung = rungs ? rungs.reduce((m, r) => (r.askUsd < m.askUsd ? r : m), rungs[0]!) : null;
+  const cheapest = a.cheapest ?? (cheapRung ? { usd: cheapRung.askUsd, name: `${cheapRung.offset.replace("_", " ")} ${cheapRung.strike}` } : null);
   return {
     read,
     ctx,
     table,
+    ladder: rungs ? ladderTable(read, ctx, rungs) : null,
     needed: needed(read, ctx, 0.1),
-    collisions: collisions(read, ctx, { cheapestUsd: a.cheapest?.usd ?? null, cheapestName: a.cheapest?.name ?? null, paperFills: a.paperFills }),
+    collisions: collisions(read, ctx, { cheapestUsd: cheapest?.usd ?? null, cheapestName: cheapest?.name ?? null, paperFills: a.paperFills }),
     plan: dayPlan(read, ctx, { frac: mech.frac, perDay: mech.def.perDay, atrUsdPerContract: a.atrUsdPerContract }),
-    cheapestUsd: a.cheapest?.usd ?? null,
+    cheapestUsd: cheapest?.usd ?? null,
     winsNeed: winsNeeded(a.equity, a.spec.target, ctx.model, a.spec.capFrac, ctx.contractUsd, ctx.maxDebitUsd),
     expectedTickets: ctx.lambda * Math.max(0, read.clock.daysLeft),
   };

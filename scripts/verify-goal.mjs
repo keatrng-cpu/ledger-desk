@@ -53,7 +53,7 @@ console.log("calendar");
   check("week breaks fall on the Monday", JSON.stringify(G.weekBreaksOf(ten)) === JSON.stringify([false, false, false, false, false, true, false, false, false, false]));
   check("week breaks from midweek", JSON.stringify(G.weekBreaksOf(["2026-10-08", "2026-10-09", "2026-10-12"])) === JSON.stringify([false, false, true]));
 
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, minDelta: 0.15, minAskUsd: 20 };
   const c = (ms) => G.goalClock(spec, ms);
   const mon0940 = c(at(2026, 10, 5, 9, 40));
   check("Monday 09:40 is day 1 with ten sessions to buy in", mon0940.state === "running" && mon0940.day === 1 && mon0940.daysLeft === 10 && !mon0940.entriesOver, JSON.stringify(mon0940));
@@ -74,15 +74,19 @@ console.log("calendar");
   check("asGoal refuses a target below the start", G.asGoal({ ...spec, target: 900 }) == null);
   check("asGoal refuses a ticket share of 0 or above 100%", G.asGoal({ ...spec, capFrac: 0 }) == null && G.asGoal({ ...spec, capFrac: 1.5 }) == null);
   check("asGoal refuses a bad date", G.asGoal({ ...spec, startDate: "10/5/2026" }) == null);
+  const { minDelta: _a, minAskUsd: _b, ...old } = spec;
+  const loaded = G.asGoal(old);
+  check("a goal saved before the strike floors existed loads with the defaults (delta 0.15, $20)", loaded && loaded.minDelta === 0.15 && loaded.minAskUsd === 20);
+  check("a bad floor is refused, not repaired", G.asGoal({ ...spec, minDelta: 0 }) == null && G.asGoal({ ...spec, minDelta: 1.5 }) == null && G.asGoal({ ...spec, minAskUsd: 0 }) == null);
   const def = G.defaultGoal(at(2026, 10, 10, 12, 0));
-  check("the default goal is $1,000 → $5,000 over ten sessions starting the next weekday", def.start === 1000 && def.target === 5000 && def.tradingDays === 10 && def.startDate === "2026-10-12" && def.floorFrac === 0.5, JSON.stringify(def));
+  check("the default goal is $1,000 → $5,000 over ten sessions starting the next weekday", def.start === 1000 && def.target === 5000 && def.tradingDays === 10 && def.startDate === "2026-10-12" && def.floorFrac === 0.5 && def.minDelta === 0.15 && def.minAskUsd === 20, JSON.stringify(def));
   check("the default experiment ticket share lets one contract be bought on $1,000 (40%), and is not the room's 10% mandate", def.capFrac === 0.4 && G.contractsFor(1000, 371, def.capFrac, 1000) === 1 && def.capFrac !== ROOM_MANDATE.maxCashFracPerTrade);
 }
 
 /* ── The path ──────────────────────────────────────────────────────────── */
 console.log("the path");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, minDelta: 0.15, minAskUsd: 20 };
   const now = at(2026, 10, 5, 9, 40);
   const r = G.readGoal(spec, 1000, now);
   check("the ladder is geometric and ends at the target", r.ladder.length === 10 && near(r.ladder[9].equity, 5000, 1e-9) && near(r.ladder[0].equity, 1000 * Math.pow(5, 0.1), 1e-12));
@@ -180,10 +184,11 @@ function brute(i) {
     if (c < 1) return startDay(d + 1, eq, used, wk, p);
     const debit = c * i.contractUsd;
     expectedTrades += p;
-    for (const win of [true, false]) {
-      const pr = p * (win ? i.model.pWin : 1 - i.model.pWin);
+    const outs = i.model.outcomes ?? [{ p: i.model.pWin, r: W }, { p: 1 - i.model.pWin, r: -L }];
+    for (const o of outs) {
+      const pr = p * o.p;
       if (pr < 1e-15) continue;
-      const delta = win ? debit * W : -debit * L;
+      const delta = debit * o.r;
       const e2 = eq + delta;
       const u2 = used + 1;
       if (e2 >= i.target) {
@@ -255,7 +260,15 @@ const pickOf = (arr) => arr[Math.floor(rnd() * arr.length)];
     const pWin = pickOf([0.2, 0.315, 0.45, 0.6]);
     const lossPct = pickOf([0.2, 0.3, 0.5]);
     const winPct = pickOf([0.37, 0.8, 1.5]);
-    const model = { pWin, winPct, lossPct, meanPct: pWin * winPct - (1 - pWin) * lossPct, n: null, source: "t" };
+    const three = rnd() < 0.4;
+    const outcomes = three
+      ? [
+          { p: 0.2, r: pickOf([1.5, 3.4]) },
+          { p: 0.5, r: -lossPct },
+          { p: 0.3, r: pickOf([-0.05, 0.1]) },
+        ]
+      : undefined;
+    const model = { pWin, winPct, lossPct, meanPct: pWin * winPct - (1 - pWin) * lossPct, n: null, source: "t", ...(outcomes ? { outcomes } : {}) };
     const tight = rnd() < 0.5;
     const policy = {
       frac: pickOf([0.1, 0.25, 0.4, 0.7, 1]),
@@ -380,7 +393,7 @@ console.log("monotonicity");
 /* ── The measured goal ─────────────────────────────────────────────────── */
 console.log("the measured goal");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1 };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.1, minDelta: 0.15, minAskUsd: 20 };
   const now = at(2026, 10, 5, 9, 40);
   const view = (capFrac, contractUsd = 371, over = {}) =>
     G.viewGoal({ spec: { ...spec, capFrac }, equity: 1000, nowMs: now, contractUsd, cheapest: { usd: 290, name: "a one-strike-out contract" }, monthEntries: 0, atrUsdPerContract: 12, paperFills: 0, ...over });
@@ -390,6 +403,9 @@ console.log("the measured goal");
   const cvc = v10.collisions.find((c) => c.id === "cap_vs_contract");
   check("…and the first collision is that blocker, naming the arithmetic and the 38% the trader would have to set", cvc && cvc.severity === "blocker" && v10.collisions[0].id === "cap_vs_contract" && /\$371/.test(cvc.detail) && /\$100/.test(cvc.detail) && /38%/.test(cvc.decision), JSON.stringify(cvc));
   check("…and it names the cheapest contract and that it is still over the cap", /one-strike-out contract/.test(cvc.detail) && /still over the cap/.test(cvc.detail));
+  const reach = view(0.1, 371, { cheapest: { usd: 53, name: "OTM 10 786" } });
+  const cvr = reach.collisions.find((c) => c.id === "cap_vs_contract");
+  check("when a cheaper contract fits the cap the collision is a warning: the account is not priced out, the room's two strikes are", cvr && cvr.severity === "warn" && /not priced out/.test(cvr.detail) && /OTM 10 786/.test(cvr.detail) && !/still over the cap/.test(cvr.detail) && /38%/.test(cvr.decision), JSON.stringify(cvr));
   check("the room's mandate is still 10% (the goal does not change it)", ROOM_MANDATE.maxCashFracPerTrade === 0.1 && EXEC_LIMITS.maxCashFracPerTrade === 0.1);
 
   const v40 = view(0.4);
@@ -440,10 +456,98 @@ console.log("the measured goal");
   check("Jax presses to the cap; Vince sits at the cap; Sterling is under it", G.resolveFrac(G.policyOf("press"), 0.4, m) === 0.4 && G.resolveFrac(G.policyOf("mechanical"), 0.4, m) === 0.4 && G.resolveFrac(G.policyOf("protect"), 0.4, m) === 0.25);
 }
 
+/* ── The contract ladder ───────────────────────────────────────────────── */
+console.log("the contract ladder");
+{
+  const L = await import("../src/lib/room/contract-ladder.ts");
+  const D = await import("../src/lib/room/drill.ts");
+  const OM = await import("../src/lib/room/option-math.ts");
+  const { evaluateEntry, expiryFor } = await import("../src/lib/room/orchestrator.ts");
+  const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
+  const { clockEt } = await import("../src/lib/room/format.ts");
+  const { ledgerOfCounters, emptyCounters } = await import("../src/lib/room/counters.ts");
+  const { etWallParts } = await import("../src/lib/trading/sessions.ts");
+
+  const frames = D.drillFrames();
+  const f = frames[13]; // the A+ card, QQQ call, at the touch
+  const e = f.entry;
+  const nowMs = D.drillNowMs(f);
+  const market = D.drillMarket(f);
+  const tape = market.QQQ;
+  const etDate = OM.etDateOf(nowMs);
+  const exp = expiryFor(1, etDate);
+  const flatMs = etWallToEpochMs(etDate, clockEt(660));
+  const base = { underlier: "QQQ", type: "CALL", spot: tape.price, vix: tape.vix, exp, nowMs, minDelta: 0.15, minAskUsd: 20 };
+  const card = { futSymbol: e.futSymbol, futSide: e.futSide, plan: e.plan, pT1: e.pT1, atr: e.atr ?? null, priceFut: f.nq, futNow: f.nq, flatMs };
+
+  const bare = L.buildLadder(base);
+  check("the ladder starts at the money and goes out one dollar at a time", bare[0].offset === "ATM" && bare[0].strike === Math.round(tape.price) && bare.every((r, i) => r.steps === i && (i === 0 || r.strike === bare[0].strike + i)), JSON.stringify(bare.map((r) => r.strike)));
+  check("price and delta fall as the strike goes out", bare.every((r, i) => i === 0 || (r.askUsd < bare[i - 1].askUsd && r.delta < bare[i - 1].delta)), JSON.stringify(bare.map((r) => [r.askUsd, r.delta])));
+  check("every rung passes the floors (delta ≥ 0.15, ≥ $20) and the next one out would not", bare.every((r) => r.delta >= 0.15 && r.askUsd >= 20) && (() => {
+    const k = bare.length;
+    const q = OM.quoteOption(tape.price, tape.price > 0 ? Math.round(tape.price) + k : 0, exp, "CALL", OM.ivFor("QQQ", tape.vix), nowMs);
+    return Math.abs(q.delta) < 0.15 || q.ask * 100 < 20;
+  })());
+  check("without a card nothing is priced: no made-up odds", bare.every((r) => r.priced === null && r.stopEtfMove === null));
+  check("it spans the range the trader named: a few hundred dollars at the money down to well under $100", bare[0].askUsd > 250 && bare.at(-1).askUsd < 100, JSON.stringify([bare[0].askUsd, bare.at(-1).askUsd]));
+  const floorLo = L.buildLadder({ ...base, minDelta: 0.05, minAskUsd: 20 });
+  check("lower floors reach further, and the $20 price floor still holds", floorLo.length > bare.length && floorLo.every((r) => r.askUsd >= 20));
+  const puts = L.buildLadder({ ...base, type: "PUT" });
+  check("puts go DOWN the strikes", puts[0].strike === Math.round(tape.price) && puts.every((r, i) => i === 0 || r.strike === puts[0].strike - i));
+
+  const priced = L.buildLadder({ ...base, card });
+  check("with a card every rung is priced on the room's three paths", priced.length === bare.length && priced.every((r) => r.priced && r.priced.outcomes.length === 3));
+  check("the three paths' probabilities sum to 1 and EV = Σ p × pnl (to the cent)", priced.every((r) => {
+    const px = r.priced;
+    const sum = px.outcomes.reduce((a, o) => a + o.p, 0);
+    const ev = px.pT1 * px.t1Usd + px.pLoss * px.lossUsd + px.pNone * px.noneUsd;
+    return Math.abs(sum - 1) < 1e-9 && Math.abs(ev - px.evUsd) < 0.011;
+  }), JSON.stringify(priced.map((r) => [r.priced.pT1 + r.priced.pLoss + r.priced.pNone, r.priced.evUsd])));
+  check("the outcomes are returns on the debit: pnl ÷ (ask × 100)", priced.every((r) => near(r.priced.outcomes[0].r, r.priced.t1Usd / r.askUsd, 1e-9) && near(r.priced.outcomes[1].r, r.priced.lossUsd / r.askUsd, 1e-9)));
+  check("the −20% premium stop sits closer to the entry on the cheaper contracts (the mechanism)", priced.every((r, i) => i === 0 || r.stopEtfMove <= priced[i - 1].stopEtfMove + 1e-9) && priced[0].stopEtfMove > priced.at(-1).stopEtfMove, JSON.stringify(priced.map((r) => r.stopEtfMove)));
+  check("what T1 pays, as a share of the debit, rises as the contract gets cheaper", priced.every((r, i) => i === 0 || r.priced.outcomes[0].r > priced[i - 1].priced.outcomes[0].r), JSON.stringify(priced.map((r) => r.priced.outcomes[0].r.toFixed(2))));
+  check("and the chance of T1 before the stop does not rise", priced.every((r, i) => i === 0 || r.priced.pT1 <= priced[i - 1].priced.pT1 + 1e-9));
+
+  // The ladder prices a rung exactly as the room's checklist does when a seat names the contract.
+  let agree = true;
+  let why = "";
+  const input = (cash) => ({ portfolio: { cash, open_positions: [] }, market_data: market });
+  const deskRead = D.drillDeskRead(f, { positions: [], lab: null, closed: [], cash: 10000, counters: {}, events: [], seq: 0 });
+  const w = etWallParts(nowMs);
+  for (const r of priced) {
+    const ev = evaluateEntry(input(100000), { desk: deskRead, ledger: ledgerOfCounters(emptyCounters(100000)), minds: null, lab: null }, etDate, w.hour * 60 + w.minute, nowMs, true, { capFrac: 1, force: r.offset, qtyFrom: "cap" });
+    const x = ev.plan?.ev;
+    if (!x || Math.abs(x.evUsd - r.priced.evUsd) > 1e-9 || Math.abs(ev.plan.quote.ask * 100 - r.askUsd) > 1e-9) {
+      agree = false;
+      why = `${r.offset}: checklist ${x?.evUsd} @ ${ev.plan?.quote.ask} vs ladder ${r.priced.evUsd} @ ${r.askUsd}`;
+    }
+  }
+  check("naming a contract to the room's checklist (evaluateEntry, force) prices it exactly as the ladder does — same EV, same ask, every rung", agree, why);
+
+  // Ladder odds: the table's exact odds use each rung's own three outcomes.
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 };
+  const v = G.viewGoal({ spec, equity: 1000, nowMs, contractUsd: bare[1].askUsd, cheapest: null, ladder: priced, monthEntries: 0, atrUsdPerContract: null, paperFills: 0 });
+  check("the goal view carries one odds row per rung", v.ladder && v.ladder.length === priced.length && v.ladder.every((row) => row.out != null));
+  const row = v.ladder[2];
+  const ctx = v.ctx;
+  const direct = G.simFor(v.read, ctx, { frac: 0.4, perDay: 2, dayHaltFrac: ctx.dayHaltFrac, weekHaltFrac: ctx.weekHaltFrac }, { model: G.modelFromRung(row.rung), contractUsd: row.rung.askUsd });
+  check("a rung's odds are the exact DP on that rung's own outcomes and price (recomputed independently)", near(direct.pTarget, row.out.pTarget, 1e-15) && near(direct.expectedEnd, row.out.expectedEnd, 1e-12));
+  check("contracts at the cap: floor(40% × $1,000 ÷ ask), never above the $1,000 ceiling", v.ladder.every((r) => r.contracts === Math.min(Math.floor((400 + 1e-9) / r.rung.askUsd), Math.floor((1000 + 1e-9) / r.rung.askUsd))));
+  check("cheaper rungs buy more contracts at the same cap", v.ladder.every((r, i) => i === 0 || r.contracts >= v.ladder[i - 1].contracts));
+  check("the stopped-ticket share of equity is debit × |loss| ÷ equity", v.ladder.every((r) => r.stopShare != null && near(r.stopShare, (r.debitUsd * Math.abs(r.rung.priced.outcomes[1].r)) / 1000, 1e-9)));
+  check("the cheapest rung is the collision message's cheapest contract (derived from the ladder)", v.cheapestUsd === Math.min(...priced.map((r) => r.askUsd)));
+  const noCard = G.viewGoal({ spec, equity: 1000, nowMs, contractUsd: bare[1].askUsd, cheapest: null, ladder: bare, monthEntries: 0, atrUsdPerContract: null, paperFills: 0 });
+  check("with no card the ladder rows carry no odds (nothing to price)", noCard.ladder.every((r) => r.out === null && r.stopShare === null) && G.viewGoal({ spec, equity: 1000, nowMs, contractUsd: 300, cheapest: null, monthEntries: 0, atrUsdPerContract: null, paperFills: 0 }).ladder === null);
+  const lo = G.viewGoal({ spec: { ...spec, capFrac: 0.1 }, equity: 1000, nowMs, contractUsd: bare[1].askUsd, cheapest: null, ladder: priced, monthEntries: 0, atrUsdPerContract: null, paperFills: 0 });
+  const cvc = lo.collisions.find((c) => c.id === "cap_vs_contract");
+  check("at a 10% cap the ladder's cheaper contracts fit and the collision says the room's two strikes are the limit, not the account", cvc && cvc.severity === "warn" && /not priced out/.test(cvc.detail), JSON.stringify(cvc));
+  check("…and the cheapest rungs are bought at that cap (one $81, not nothing)", lo.ladder.some((r) => r.contracts >= 1) && lo.ladder[0].contracts === 0);
+}
+
 /* ── What would have to be true ────────────────────────────────────────── */
 console.log("what would have to be true");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 };
   const now = at(2026, 10, 5, 9, 40);
   const read = G.readGoal(spec, 1000, now);
   const ctx = G.planContext({ contractUsd: 120, capFrac: 0.4, daysLeft: read.clock.daysLeft, monthEntries: 0 });
@@ -477,7 +581,7 @@ console.log("what would have to be true");
 /* ── Today ─────────────────────────────────────────────────────────────── */
 console.log("today");
 {
-  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4 };
+  const spec = { version: 1, start: 1000, target: 5000, startDate: "2026-10-05", tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 };
   const now = at(2026, 10, 5, 9, 40);
   const v = G.viewGoal({ spec, equity: 1000, nowMs: now, contractUsd: 371, cheapest: null, monthEntries: 0, atrUsdPerContract: 20, paperFills: 3 });
   check("today asks the ladder's first rung", near(v.plan.needTodayUsd, 1000 * Math.pow(5, 0.1) - 1000, 1e-9), String(v.plan.needTodayUsd));

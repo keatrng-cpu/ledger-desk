@@ -36,7 +36,8 @@ import { entriesOpen, goalClock, policyOf, type GoalSpec } from "./goal";
 import { htfAligned, ROOM_POLICY } from "./exits";
 import { ghostFrom, optionsOpen, stepGhost, type GhostPos, type RoomLab } from "./lab";
 import { etDateOf, type Underlier } from "./option-math";
-import { evaluateEntry, planKey, type Character, type EntryEval, type RoomDeskRead, type RoomEntryRead, type RoomInput, type RoomPositionIn, type UnderlierTape } from "./orchestrator";
+import { ladderSteps } from "./contract-ladder";
+import { evaluateEntry, expiryFor, planKey, type Character, type EntryEval, type EntryOpts, type RoomDeskRead, type RoomEntryRead, type RoomInput, type RoomPositionIn, type UnderlierTape } from "./orchestrator";
 import type { OptionEv } from "./quant";
 import { etWallParts } from "@/lib/trading/sessions";
 
@@ -63,13 +64,16 @@ export const SEAT_NAME: Record<SeatId, string> = {
   room: "The Room",
 };
 export const SEAT_STYLE: Record<SeatId, string> = {
-  protect: "A and A+ only, priced twice (the realized decile must not be negative), 25% tickets, one a day",
-  mechanical: "the room's rules at the experiment's ticket cap, nothing added",
+  protect: "A and A+ only, priced twice (the realized decile must not be negative), 25% tickets, one a day — the contract nearest the money that fits",
+  mechanical: "the room's rules and the room's two strikes at the experiment's ticket cap, nothing added",
   structure: "only what the higher timeframe backs and that carries no inducement or mitigation block, 40% tickets, one a day",
-  edge: "stakes each ticket by its own priced edge (Kelly on the three paths) — nothing when the edge is not positive",
-  press: "overrides Nova's two pricing questions, takes the ARMED card at the touch as big as the cap lets him",
-  room: "takes a card only when at least three of the five back it",
+  edge: "stakes each ticket by its own priced edge (Kelly on the three paths) on the contract with the most EV per dollar — nothing when the edge is not positive",
+  press: "overrides Nova's two pricing questions and buys the contract that puts the most delta to work for the cap",
+  room: "takes a card only when at least three of the five back it, on the room's two strikes",
 };
+/** How a seat picks its contract: the room's own chooser (the money or one out), or from the whole ladder. */
+export type Chooser = "room" | "nearest" | "ev" | "delta";
+export const SEAT_CHOOSER: Record<SeatId, Chooser> = { protect: "nearest", mechanical: "room", structure: "room", edge: "ev", press: "delta", room: "room" };
 export const ROOM_BACKERS = 3;
 /** The soft gates: Nova's two questions about the OPTION on the plan. Everything else the checklist asks is hard. */
 export const SOFT_GATES: ReadonlySet<string> = new Set(["ev", "t1_pays"]);
@@ -195,7 +199,7 @@ export interface SeatBook {
 }
 
 export function goalKeyOf(g: GoalSpec): string {
-  return [g.start, g.target, g.startDate, g.tradingDays, g.floorFrac, g.capFrac].join("|");
+  return [g.start, g.target, g.startDate, g.tradingDays, g.floorFrac, g.capFrac, g.minDelta, g.minAskUsd].join("|");
 }
 
 function emptySeat(id: SeatId, start: number): Seat {
@@ -348,6 +352,47 @@ export function verdictFor(a: {
   return { action: "take", gate: null, why: id === "press" && override ? `overrides ${override}` : "the rules pass", qty, override };
 }
 
+/** What depends on which contract is bought; every other gate is the same for every strike. */
+const CONTRACT_GATES: ReadonlySet<string> = new Set(["cash_cap", "clock", "t1_pays", "ev", "ev_preview"]);
+
+const hardFails = (ev: EntryEval) => ev.gates.filter((g) => !g.ok && !SOFT_GATES.has(g.id) && g.id !== "ev_preview");
+
+/**
+ * One seat's checklist for the card, with the seat's own contract: the room's two strikes for the room's own style,
+ * otherwise every strike on the ladder (delta and price floors are the trader's, goal.ts), each run through the same
+ * checklist with the contract named. A card/halt/slot gate that fails does not depend on the strike, so it ends the
+ * search; otherwise the style chooses among the contracts whose hard gates pass.
+ */
+export function seatEval(a: {
+  id: SeatId;
+  card: RoomEntryRead;
+  goal: GoalSpec;
+  tape: UnderlierTape;
+  etDate: string;
+  nowMs: number;
+  run: (opts: EntryOpts) => EntryEval;
+}): EntryEval {
+  const base = a.run({});
+  const chooser = SEAT_CHOOSER[a.id];
+  if (chooser === "room") return base;
+  if (base.gates.some((g) => !g.ok && !CONTRACT_GATES.has(g.id))) return base;
+  const steps = ladderSteps({ underlier: a.card.underlier, type: a.card.type, spot: a.tape.price, vix: a.tape.vix, exp: expiryFor(a.card.dte, a.etDate), nowMs: a.nowMs, minDelta: a.goal.minDelta, minAskUsd: a.goal.minAskUsd });
+  if (!steps.length) return base;
+  const evs = steps.map((st) => a.run({ force: st.offset, qtyFrom: a.id === "protect" ? "desk" : "cap" }));
+  const fits = evs.filter((ev) => ev.plan && ev.plan.qty >= 1 && hardFails(ev).length === 0);
+  // Nothing fits: report the cheapest contract's refusal, so the reason is "$X against a cap of $Y" and not a guess.
+  if (!fits.length) return evs[evs.length - 1]!;
+  const clean = fits.filter((ev) => ev.gates.every((g) => g.ok || g.id === "ev_preview"));
+  const delta = (ev: EntryEval) => Math.abs(ev.plan!.quote.delta);
+  if (chooser === "nearest") return clean[0] ?? fits[0]!;
+  if (chooser === "ev") {
+    const pool = clean.length ? clean : fits;
+    return pool.reduce((m, ev) => ((ev.plan!.ev?.evPerDollar ?? -Infinity) > (m.plan!.ev?.evPerDollar ?? -Infinity) ? ev : m), pool[0]!);
+  }
+  // "delta": the most delta put to work for the cap, soft gates ignored (Jax's style).
+  return fits.reduce((m, ev) => (ev.plan!.qty * delta(ev) > m.plan!.qty * delta(m) ? ev : m), fits[0]!);
+}
+
 /* ── The step ──────────────────────────────────────────────────────────── */
 
 export interface SeatStepArgs {
@@ -469,7 +514,9 @@ export function stepSeats(prev: SeatBook, a: SeatStepArgs): SeatBook {
     const evalFor = (id: SeatId): EntryEval => {
       const s = seats.find((x) => x.id === id)!;
       const input: RoomInput = { portfolio: { cash: seatCash(s, start), open_positions: s.positions.map(positionIn) }, market_data: market };
-      return evaluateEntry(input, { desk, ledger: ledgerOfCounters(s.counters), minds: null, lab: null }, etDate, etMin, nowMs, open, { capFrac: seatCapFrac(id, goal) });
+      const run = (opts: EntryOpts) =>
+        evaluateEntry(input, { desk, ledger: ledgerOfCounters(s.counters), minds: null, lab: null }, etDate, etMin, nowMs, open, { capFrac: seatCapFrac(id, goal), ...opts });
+      return seatEval({ id, card, goal, tape: market[card.underlier], etDate, nowMs, run });
     };
     const first = evalFor("mechanical");
     evals.set("mechanical", first);
@@ -553,7 +600,7 @@ export function stepSeats(prev: SeatBook, a: SeatStepArgs): SeatBook {
 
   /* 4 — a syndicate resolves when every member's ticket has closed; the dissenters' declined tickets say what saying no was worth. */
   syndicates = syndicates.map((y) => {
-    if (y.closedUsd != null && y.dissentUsd != null) return y;
+    if (y.closedUsd != null && (y.dissentUsd != null || y.dissent.length === 0)) return y;
     const mine = seats.flatMap((s) => s.closed.filter((c) => c.syn === y.id));
     const openMine = seats.some((s) => s.positions.some((p) => p.meta?.syn === y.id));
     let { closedUsd, dissentUsd } = y;
@@ -561,7 +608,7 @@ export function stepSeats(prev: SeatBook, a: SeatStepArgs): SeatBook {
       closedUsd = money(mine.reduce((t, c) => t + c.pnlUsd, 0));
       emit("syndicate_closed", { planKey: y.planKey, usd: closedUsd, members: y.members, n: y.members.length });
     }
-    if (closedUsd != null && dissentUsd == null) {
+    if (closedUsd != null && dissentUsd == null && y.dissent.length > 0) {
       const ghosts = seats.flatMap((s) => s.skipped.filter((g) => g.planKey === y.planKey && g.openedAt >= y.at - 60_000 && y.dissent.includes(s.id as SeatId)));
       if (ghosts.length >= y.dissent.length && ghosts.every((g) => g.closed)) dissentUsd = money(ghosts.reduce((t, g) => t + (g.closed?.pnlUsd ?? 0), 0));
     }
@@ -577,9 +624,10 @@ export function stepSeats(prev: SeatBook, a: SeatStepArgs): SeatBook {
   });
   const ranked = [...seats].map((s) => ({ id: s.id, eq: seatEquity(s, start) })).sort((x, y) => y.eq - x.eq);
   const top = ranked[0]!;
-  const margin = top.eq - (ranked[1]?.eq ?? top.eq);
-  const leader: SeatId | null = top.eq > start && margin >= 1 ? top.id : top.eq > start ? prev.leader : null;
-  if (leader && leader !== prev.leader) emit("lead", { seat: leader, equity: top.eq, usd: margin });
+  // Ahead of the start and on top; a tie for first keeps the leader who was already there.
+  const prevLeaderEq = ranked.find((r) => r.id === prev.leader)?.eq ?? -Infinity;
+  const leader: SeatId | null = top.eq <= start ? null : prev.leader && top.eq - prevLeaderEq < 0.5 ? prev.leader : top.id;
+  if (leader && leader !== prev.leader) emit("lead", { seat: leader, equity: top.eq, usd: top.eq - (ranked[1]?.eq ?? top.eq) });
 
   return {
     ...prev,
