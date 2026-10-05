@@ -1280,7 +1280,7 @@ function drawGoalLadder(ctx: Ctx, w: number, h: number, f: FloorFrame) {
 function drawSeatLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   const s = f.screens.race?.seats ?? null;
   clear(ctx, w, h);
-  header(ctx, w, "THE RACE (paper seats)", s ? `${s.sessions} sessions · ${s.touches} touches` : "no seats", "#f472b6");
+  header(ctx, w, "THE RACE (paper seats)", s ? `${s.sessions} session${s.sessions === 1 ? "" : "s"} · ${s.touches} touch${s.touches === 1 ? "" : "es"}` : "no seats", "#f472b6");
   if (!s) return;
   ctx.font = `600 13px ${FONT}`;
   ctx.fillStyle = C.muted;
