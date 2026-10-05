@@ -3,26 +3,39 @@
  * refresh, whichever tab is open, so a stop or an 11:00 time exit fires even
  * when nobody is watching the 3D room. The Floor tab only draws it.
  *
- * State: the room's paper book (paper-book.ts) and the people's minds
- * (agents.ts), both in this browser's localStorage. The VIX/10y pulse is
- * pulled every five minutes; headlines are pulled only while the Floor tab
- * is open (the news TV is the only reader).
+ * Two clocks, both real:
+ *  - the CYCLE (once per desk build, ~once a minute): the paper book, the
+ *    gates, the exits, the director's meetings — everything that can move
+ *    money;
+ *  - the TAPE TICK (once per quote patch, 1–2 s): the live-talk engine
+ *    (lib/room/live-talk.ts) looks at what the desk can see right now — the
+ *    prints, the levels, the headlines, the calendar, the book, the feed's
+ *    honesty — and decides whether anyone has something real to say. What it
+ *    produces is queued for the scene and written to the wire log.
+ *
+ * There is no replay, no drill and no time control: nothing here runs on
+ * anything but the real clock and the real feeds. State: the room's paper
+ * book and the people's minds (localStorage), the talk memory (sessionStorage,
+ * 30 min). The VIX/10y pulse is pulled every five minutes and the headlines
+ * every 2½ minutes, whichever tab is open — the talk reads them too.
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { create } from "zustand";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evaluateOptionsDesk } from "@/lib/trading/options-desk";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
-import { getPulse } from "@/lib/news/news-server";
+import { getNewsFeed, getPulse } from "@/lib/news/news-server";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
-import type { OhlcBar } from "@/lib/market/types";
 import type { MindState } from "@/lib/room/agents";
 import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-read";
-import type { DrillStep } from "@/lib/room/drill";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
 import { asLab, labRead, type LabRead } from "@/lib/room/lab";
+import { freshTalkState, talkTick } from "@/lib/room/live-talk";
+import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
+import { emptyRings, newsLiteFrom, ringsAfter, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import type { DialogueLine } from "@/lib/room/orchestrator";
 import { rankOf, richer } from "@/lib/room/snapshot";
 import { backupRoom, restoreRoomIfRicher, type BackupState } from "@/lib/room/snapshot-sync";
 import {
@@ -77,17 +90,17 @@ function loadEnabled(): boolean {
   }
 }
 
-/* ── Frame building (shared by live and the drill) ──────────────────────── */
+/* ── Frame building ─────────────────────────────────────────────────────── */
 
 const RESEARCH_LINES = (() => {
   const shelf = researchShelf();
   return Object.fromEntries(Object.entries(shelf).map(([k, notes]) => [k, notes.map((n) => n.line)])) as FloorScreens["research"];
 })();
 
-function etClockLabel(nowMs: number, synthetic: boolean): string {
+function etClockLabel(nowMs: number): string {
   const p = etWallParts(nowMs);
   const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][p.weekday] ?? "";
-  return `${day} ${String(p.hour).padStart(2, "0")}:${String(p.minute).padStart(2, "0")} ET${synthetic ? " · DRILL" : ""}`;
+  return `${day} ${String(p.hour).padStart(2, "0")}:${String(p.minute).padStart(2, "0")} ET`;
 }
 
 function bookScreen(book: RoomBook): FloorScreens["book"] {
@@ -180,7 +193,7 @@ export function frameFromCycle(args: {
     id: args.id,
     nowMs: args.nowMs,
     etMin: p.hour * 60 + p.minute,
-    clockLabel: etClockLabel(args.nowMs, args.screens.synthetic),
+    clockLabel: etClockLabel(args.nowMs),
     output: args.cycle.output,
     trace: args.cycle.trace,
     acts: args.cycle.trace.acts,
@@ -198,56 +211,23 @@ export function frameFromCycle(args: {
   };
 }
 
-/** The drill's screens: its own synthetic tape, its scripted release and headlines. */
-export function drillFrame(step: DrillStep, history: DrillStep[], id: number): FloorFrame {
-  const bars = (pick: (s: DrillStep) => number): OhlcBar[] =>
-    history.map((s, i) => {
-      const prev = i ? pick(history[i - 1]!) : pick(s);
-      const cur = pick(s);
-      const pad = Math.abs(cur) * 0.0002;
-      return { t: s.nowMs, o: prev, c: cur, h: Math.max(prev, cur) + pad, l: Math.min(prev, cur) - pad, v: 0 };
-    });
-  const e = step.frame.entry;
-  const held = step.book.positions[0]?.fut ?? null;
-  const plan = e?.plan
-    ? { symbol: e.futSymbol, side: e.futSide, entry: e.plan.entry, stop: e.plan.stop, t1: e.plan.t1, t2: e.plan.t2 }
-    : held
-      ? { symbol: held.symbol, side: held.side, entry: held.entry, stop: held.stop, t1: held.t1, t2: held.t2 }
-      : null;
-  const ag = step.desk.agenda;
-  const calendar: FloorScreens["calendar"] = [
-    ...(ag?.last ? [{ timeEt: ag.last.timeEt, name: ag.last.name, impact: ag.last.impact, status: "printed" as const }] : []),
-    ...(ag?.next ? [{ timeEt: ag.next.timeEt, name: ag.next.name, impact: ag.next.impact, status: "next" as const }] : []),
-  ];
-  const news = history
-    .flatMap((s) => (s.frame.news ?? []).map((title) => ({ title, source: "drill wire", age: s.frame.at })))
-    .reverse()
-    .slice(0, 6);
-  return frameFromCycle({
-    id,
-    nowMs: step.nowMs,
-    cycle: step.cycle,
-    book: step.book,
-    caption: step.frame.caption,
-    lab: labRead(asLab(step.book.lab), step.book.closed),
-    screens: {
-      market: step.input.market_data,
-      charts: {
-        QQQ: { symbol: "MNQ", price: step.frame.nq, bars: bars((s) => s.frame.nq), tf: "drill" },
-        SPY: { symbol: "ES", price: step.frame.es, bars: bars((s) => s.frame.es), tf: "drill" },
-      },
-      plan,
-      news,
-      calendar,
-      vix: step.frame.vix,
-      tenYear: 4.12,
-      source: "DRILL — synthetic",
-      synthetic: true,
-    },
-  });
-}
-
 /* ── The store ──────────────────────────────────────────────────────────── */
+
+/** Where an exchange stands: queued for the scene, said, dropped as stale before it could start, or made while nobody was watching. */
+export type WireStatus = "queued" | "said" | "dropped" | "unseen";
+
+/** One line of the wire log: what was said, why, and the numbers it rested on. */
+export interface WireEntry {
+  id: string;
+  at: number;
+  /** The talk's kinds, plus the cycle's own events (a ticket, an exit, a director's meeting). */
+  kind: TalkKind | "cycle";
+  label: string;
+  urgency: Urgency;
+  lines: DialogueLine[];
+  facts: string[];
+  status: WireStatus;
+}
 
 interface RoomState {
   hydrated: boolean;
@@ -256,17 +236,31 @@ interface RoomState {
   minds: MindState | null;
   frame: FloorFrame | null;
   frameSeq: number;
-  /** Today's story beats, for the time-lapse replay (memory only, never stored). */
-  history: FloorFrame[];
   lastFetchedAt: string | null;
   pulse: { vix: number | null; tenYear: number | null; at: number | null };
   news: FloorScreens["news"];
+  /** The headlines as the talk reads them (tagged, tiered), newest first. */
+  newsLite: NewsLite[];
+  /** The talk's memory: what was said, when, and what has already been announced. */
+  talkState: TalkState;
+  /** Ticks with an exchange in them since this page loaded — the Floor tab plays whatever is `pending`. */
+  talkSeq: number;
+  pending: TalkItem[];
+  wire: WireEntry[];
+  /** What the desk's feed is, right now (the badge), updated when it changes. */
+  feedRead: FeedRead | null;
+  /** The last time the tape tick ran — the badge says NO TICKS when this goes quiet. */
+  tickAt: number | null;
+  /** The 3D scene is mounted and will play what it is handed. */
+  sceneOpen: boolean;
   /** The server copy of the room (book + memory): restored at startup if richer, pushed after book changes. */
   backup: BackupState;
   hydrate: () => void;
   setEnabled: (on: boolean) => void;
   reset: (cash?: number) => void;
   setNews: (news: FloorScreens["news"]) => void;
+  ackTalk: (status: Record<string, WireStatus>) => void;
+  setSceneOpen: (open: boolean) => void;
 }
 
 export const useRoomStore = create<RoomState>((set, get) => ({
@@ -276,14 +270,21 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   minds: null,
   frame: null,
   frameSeq: 0,
-  history: [],
   lastFetchedAt: null,
   pulse: { vix: null, tenYear: null, at: null },
   news: [],
+  newsLite: [],
+  talkState: freshTalkState(),
+  talkSeq: 0,
+  pending: [],
+  wire: [],
+  feedRead: null,
+  tickAt: null,
+  sceneOpen: false,
   backup: { status: "idle", at: null, why: "Not checked yet." },
   hydrate: () => {
     if (get().hydrated) return;
-    set({ hydrated: true, enabled: loadEnabled(), book: loadRoomBook(), minds: loadMinds() });
+    set({ hydrated: true, enabled: loadEnabled(), book: loadRoomBook(), minds: loadMinds(), talkState: loadTalk() });
     // Once per page load: adopt the server copy only if it has MORE history
     // than this browser's book at the moment it arrives — never merged.
     void restoreRoomIfRicher(get().book).then(({ snapshot, state }) => {
@@ -312,7 +313,33 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     void backupRoom(book, get().minds, { force: true })?.then((backup) => set({ backup }));
   },
   setNews: (news) => set({ news }),
+  ackTalk: (status) =>
+    set((s) => ({
+      pending: s.pending.filter((p) => !(p.id in status)),
+      wire: s.wire.map((w) => (w.id in status ? { ...w, status: status[w.id]! } : w)),
+    })),
+  setSceneOpen: (open) => set({ sceneOpen: open }),
 }));
+
+/** A trade, an exit, or a change of beat or meeting — the cycle has a new story. */
+export function storyMoved(next: FloorFrame, prev: FloorFrame | null): boolean {
+  return !prev || next.output.broker_action.execute_trade || next.trace.beat !== prev.trace.beat || (next.trace.meeting?.key ?? "") !== (prev.trace.meeting?.key ?? "");
+}
+
+/** The cycle's own story as a wire entry: what the room decided or the director convened, in the words the contract carries. */
+function cycleWire(f: FloorFrame, sceneOpen: boolean): WireEntry {
+  const ba = f.output.broker_action;
+  return {
+    id: `c${f.id}`,
+    at: f.nowMs,
+    kind: "cycle",
+    label: f.trace.meeting?.title ?? `${f.trace.beat}${ba.execute_trade ? ` · ${ba.action_type} ${ba.contracts_quantity}× ${ba.underlying} ${ba.option_type}` : ""}`,
+    urgency: ba.execute_trade ? 2 : 1,
+    lines: f.output.floor_dialogue_and_meetings,
+    facts: [],
+    status: sceneOpen ? "said" : "unseen",
+  };
+}
 
 /** One live cycle on the desk the browser just built. */
 function runLiveCycle(desk: DeskPayload) {
@@ -371,7 +398,14 @@ function runLiveCycle(desk: DeskPayload) {
       synthetic: false,
     },
   });
-  useRoomStore.setState({ book, minds: cycle.minds, frame, frameSeq: seq, lastFetchedAt: desk.fetchedAt, history: keepForReplay(st.history, frame) });
+  useRoomStore.setState((s) => ({
+    book,
+    minds: cycle.minds,
+    frame,
+    frameSeq: seq,
+    lastFetchedAt: desk.fetchedAt,
+    wire: frameIsEvent(frame) && storyMoved(frame, s.frame) ? [cycleWire(frame, s.sceneOpen), ...s.wire].slice(0, TALK.wireKeep) : s.wire,
+  }));
   // The execution layer (exec/): what the room just did goes to the broker's side — shadow, paper, or nothing (off is the
   // default and a browser cannot change it). A synthetic desk feed is never a decision worth sending anywhere.
   if (desk.feed !== "synthetic") {
@@ -398,20 +432,102 @@ function applyVoids(voids: Void[]) {
   });
 }
 
-const HISTORY_MAX = 160;
+/* ── What the cycle may say, and the tape tick ──────────────────────────── */
 
-/** Keep a frame for the replay when the story moved (a ticket, a new beat or meeting) or every 15 minutes; a new ET day starts fresh. */
-function keepForReplay(history: FloorFrame[], f: FloorFrame): FloorFrame[] {
-  const last = history[history.length - 1];
-  const day = (x: FloorFrame) => etDateOf(x.nowMs);
-  if (last && day(last) !== day(f)) return [f];
-  const moved =
-    !last ||
-    f.output.broker_action.execute_trade ||
-    f.trace.beat !== last.trace.beat ||
-    (f.trace.meeting?.key ?? "") !== (last.trace.meeting?.key ?? "") ||
-    f.nowMs - last.nowMs >= 15 * 60_000;
-  return moved ? [...history, f].slice(-HISTORY_MAX) : history;
+/**
+ * A cycle frame carries a story worth PLAYING when something happened that the live talk cannot see for itself: a
+ * ticket sent, an exit, a refusal at the CE touch, or a director's meeting. The quiet beats (closed, chop, blocked,
+ * holding, waiting for the touch) used to replay canned banter every few minutes; the live talk covers them now,
+ * from the tape, so the cycle stays silent on them.
+ */
+export function frameIsEvent(f: FloorFrame): boolean {
+  const b = f.trace.beat;
+  return Boolean(f.output.broker_action.execute_trade || f.trace.meeting || b === "fill" || b === "exit" || b === "vetoed");
+}
+
+const TALK_STORAGE = "ledger-room-talk-v1";
+const TALK_KEEP_MS = 30 * 60_000;
+
+function loadTalk(): TalkState {
+  try {
+    const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(TALK_STORAGE) : null;
+    const o = raw ? (JSON.parse(raw) as { at?: number; state?: TalkState }) : null;
+    if (o?.state?.v === 1 && typeof o.at === "number" && Date.now() - o.at < TALK_KEEP_MS) return o.state;
+  } catch {
+    // Storage blocked: the talk starts fresh.
+  }
+  return freshTalkState();
+}
+
+let lastSaveMs = 0;
+function saveTalk(state: TalkState, nowMs: number) {
+  if (nowMs - lastSaveMs < 10_000) return;
+  lastSaveMs = nowMs;
+  try {
+    window.sessionStorage.setItem(TALK_STORAGE, JSON.stringify({ at: nowMs, state }));
+  } catch {
+    // Storage full or blocked: the talk keeps its memory for this page.
+  }
+}
+
+/** Dev-only seam for the browser tests: look at the world the talk is about to read, and replace it. */
+interface RoomDev {
+  store: typeof useRoomStore;
+  patchWorld: ((w: TalkWorld) => TalkWorld) | null;
+  rings: () => Rings;
+}
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  (window as unknown as { __roomDev?: RoomDev }).__roomDev = { store: useRoomStore, patchWorld: null, rings: () => rings };
+}
+
+/** The prints as they arrived, per book. Module state: it is a memory of the tape, not something a component renders. */
+let rings: Rings = emptyRings();
+let lastTickMs = 0;
+
+/**
+ * One look at the live desk, at most once a second. Pure talk (live-talk.ts) decides; this only feeds it the desk and
+ * files what it says: the scene's queue while the floor is open, the wire log always.
+ */
+export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
+  if (nowMs - lastTickMs < 900) return;
+  lastTickMs = nowMs;
+  const st = useRoomStore.getState();
+  rings = ringsAfter(rings, desk, nowMs);
+  let world = worldFromDesk({
+    desk,
+    nowMs,
+    rings,
+    pulse: st.pulse,
+    news: st.newsLite,
+    book: st.book,
+    beat: st.frame?.trace.beat ?? null,
+    minds: st.minds,
+    lab: st.frame?.screens.lab ?? null,
+    busyUntil: 0,
+  });
+  if (import.meta.env.DEV) {
+    const patch = (window as unknown as { __roomDev?: RoomDev }).__roomDev?.patchWorld;
+    if (patch) world = patch(world);
+  }
+  const { item, state } = talkTick(world, st.talkState);
+  saveTalk(state, nowMs);
+  const feed = world.feed;
+  const was = st.feedRead;
+  const feedMoved = !was || was.kind !== feed.kind || (was.lagSec == null) !== (feed.lagSec == null) || Math.abs((was.lagSec ?? 0) - (feed.lagSec ?? 0)) >= 5;
+  useRoomStore.setState((s) => {
+    const next: Partial<RoomState> = { talkState: state, tickAt: nowMs };
+    if (feedMoved) next.feedRead = feed;
+    if (item) {
+      const keep = s.pending.filter((p) => nowMs - p.at <= p.ttlMs);
+      next.talkSeq = s.talkSeq + 1;
+      next.pending = s.sceneOpen ? [...keep, item] : keep;
+      next.wire = [
+        { id: item.id, at: item.at, kind: item.kind, label: item.label, urgency: item.urgency, lines: item.lines, facts: item.facts, status: s.sceneOpen ? "queued" : "unseen" } satisfies WireEntry,
+        ...s.wire,
+      ].slice(0, TALK.wireKeep);
+    }
+    return next;
+  });
 }
 
 /** Mount once at the page level: the room runs while the desk does. */
@@ -442,6 +558,30 @@ export function useRoomEngine(desk: DeskPayload | null) {
       window.clearInterval(id);
     };
   }, [enabled, hydrated]);
+  // Headlines: the news TVs and the talk both read them, so they are pulled here, not by the tab.
+  useEffect(() => {
+    if (!enabled || !hydrated) return;
+    let alive = true;
+    const pull = async () => {
+      try {
+        const r = await getNewsFeed();
+        if (!alive) return;
+        const now = Date.now();
+        useRoomStore.setState({
+          news: r.items.slice(0, 12).map((i) => ({ title: i.title, source: i.source, age: ageOf(i.published, now) })),
+          newsLite: newsLiteFrom(r.items),
+        });
+      } catch {
+        // The TV says "no headlines" and the talk has nothing new to read.
+      }
+    };
+    void pull();
+    const id = window.setInterval(pull, 150_000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [enabled, hydrated]);
   const fetchedAt = desk?.fetchedAt ?? null;
   useEffect(() => {
     if (!enabled || !hydrated || !desk || !fetchedAt) return;
@@ -453,6 +593,32 @@ export function useRoomEngine(desk: DeskPayload | null) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchedAt, enabled, hydrated]);
+  // The tape tick. A quote patch gives the desk a new identity and is looked at at once; a steady one-second beat also
+  // runs, because most of what the room watches is time — a release five minutes out, a session mark, a feed that has
+  // held its new state, a quiet room — and a market that is shut, or a synthetic feed, patches nothing.
+  const deskRef = useRef<DeskPayload | null>(desk);
+  deskRef.current = desk;
+  useEffect(() => {
+    if (!enabled || !hydrated || !desk) return;
+    try {
+      liveTick(desk);
+    } catch (err) {
+      console.error("[room] live tick failed:", err);
+    }
+  }, [desk, enabled, hydrated]);
+  useEffect(() => {
+    if (!enabled || !hydrated) return;
+    const id = window.setInterval(() => {
+      const d = deskRef.current;
+      if (!d || document.visibilityState === "hidden") return;
+      try {
+        liveTick(d);
+      } catch (err) {
+        console.error("[room] live tick failed:", err);
+      }
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [enabled, hydrated]);
 }
 
 export { ageOf };

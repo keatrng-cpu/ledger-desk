@@ -1,24 +1,23 @@
 /**
  * Floor — the 3D trading room as its own tab.
  *
- * Live: the room engine (room-engine.ts) runs a cycle on every desk refresh
- * and this tab draws it. Drill: a scripted, clearly SYNTHETIC day played
- * through the same engine, for when the market is shut. Paper only.
+ * Live and only live. The room engine (room-engine.ts) runs a cycle on every desk refresh and looks at the tape
+ * every second; this tab draws what it decides and what the five say. There is no drill, no replay and no time
+ * control: what is on screen is what the desk can see right now, at the speed the market moves. When the feed is not
+ * real (synthetic, delayed, silent) the badge says so and the room says so. Paper only.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Copy, Expand, History, Pause, Play, RotateCcw, SkipForward, Users, Volume2, VolumeX } from "lucide-react";
-import { getNewsFeed } from "@/lib/news/news-server";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Camera, Copy, Expand, RotateCcw, Users, Volume2, VolumeX } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
-import { DRILL_LABEL, playDrill, type DrillStep } from "@/lib/room/drill";
-import { ROOM_CLOCK, ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
+import { TALK } from "@/lib/room/live-types";
+import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
-import { etWallParts } from "@/lib/trading/sessions";
 import { FloorScene, LAYOUT, type CameraPreset, type FloorEvent } from "./floor-scene";
 import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
-import { ageOf, drillFrame, useRoomStore } from "./room-engine";
+import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
 import EV_TEST from "@/data/room-ev-test.json";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
@@ -47,16 +46,7 @@ const CAMERAS: { id: CameraPreset; label: string }[] = [
   { id: "follow", label: "Speaker" },
 ];
 
-function optionsOpenNow(): boolean {
-  const p = etWallParts(Date.now());
-  const m = p.hour * 60 + p.minute;
-  return p.weekday >= 1 && p.weekday <= 5 && m >= ROOM_CLOCK.optionsOpenMin && m < ROOM_CLOCK.optionsCloseMin;
-}
-
 /* ── The 3D canvas ──────────────────────────────────────────────────────── */
-
-/** Live only: an unchanged story is talked through again at most this often. */
-const SAME_STORY_TALK_MS = 150_000;
 
 /** A trade, an exit or a change of story — the room drops what it is saying. */
 function storyChanged(next: FloorFrame, prev: FloorFrame | null): boolean {
@@ -64,73 +54,72 @@ function storyChanged(next: FloorFrame, prev: FloorFrame | null): boolean {
     !prev ||
     next.output.broker_action.execute_trade ||
     next.trace.beat !== prev.trace.beat ||
-    (next.trace.meeting?.key ?? "") !== (prev.trace.meeting?.key ?? "") ||
-    next.screens.synthetic !== prev.screens.synthetic
+    (next.trace.meeting?.key ?? "") !== (prev.trace.meeting?.key ?? "")
   );
 }
 
 function FloorCanvas({
   frame,
-  speed,
   camera,
   onSpeaker,
   onMeetingDone,
   onSelect,
   onEnvironment,
   onEvent,
-  focusLine,
-  replaying,
 }: {
   frame: FloorFrame | null;
-  speed: number;
   camera: CameraPreset;
   onSpeaker: (i: number, line: DialogueLine | null) => void;
   onMeetingDone: () => void;
   onSelect: (who: Character) => void;
   onEnvironment: (src: "glb" | "fallback") => void;
   onEvent: (e: FloorEvent) => void;
-  focusLine: { i: number; n: number } | null;
-  replaying: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
   const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent });
   cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent };
   const [error, setError] = useState<string | null>(null);
-  // What the scene is showing, whether a meeting is running, and the newest
-  // cycle waiting for that meeting to end. All per scene instance.
-  const latest = useRef({ frame, speed });
-  latest.current = { frame, speed };
+  // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
+  // the newest event waiting for it to end. All per scene instance.
+  const latest = useRef({ frame });
+  latest.current = { frame };
   const shown = useRef<FloorFrame | null>(null);
   const playing = useRef(false);
   const pending = useRef<FloorFrame | null>(null);
-  const lastTalk = useRef(0);
-  const replayRef = useRef(false);
-  replayRef.current = replaying;
+  const talkSeq = useRoomStore((s) => s.talkSeq);
 
   const show = useCallback((f: FloorFrame, talk: boolean) => {
     const sc = scene.current;
     if (!sc) return;
     shown.current = f;
-    if (talk) {
-      playing.current = true;
-      lastTalk.current = Date.now();
+    if (talk) playing.current = true;
+    sc.apply(f, 1, talk);
+  }, []);
+
+  /** Hand the scene whatever the live talk has made since it last looked. A stale exchange is dropped, not played. */
+  const flushTalk = useCallback(() => {
+    const sc = scene.current;
+    if (!sc) return;
+    const { pending: items, ackTalk } = useRoomStore.getState();
+    if (!items.length) return;
+    const status: Record<string, WireStatus> = {};
+    for (const it of items) {
+      const r = sc.say({ id: it.id, at: it.at, ttlMs: it.ttlMs, urgency: it.urgency, lines: it.lines, moves: it.moves });
+      status[it.id] = r === "started" ? "said" : r === "queued" ? "queued" : "dropped";
     }
-    sc.apply(f, latest.current.speed, talk);
+    ackTalk(status);
   }, []);
 
   useEffect(() => {
     if (!host.current) return;
     try {
       scene.current = new FloorScene(host.current, {
-        onSpeaker: (i, l) => {
-          if (i >= 0) playing.current = true;
-          cbs.current.onSpeaker(i, l);
-        },
+        onSpeaker: (i, l) => cbs.current.onSpeaker(i, l),
         onMeetingDone: () => {
           playing.current = false;
           cbs.current.onMeetingDone();
-          // A newer cycle arrived mid-meeting: it is the story now.
+          // A newer event arrived mid-meeting: it is the story now.
           const next = pending.current;
           pending.current = null;
           if (next && next !== shown.current) show(next, true);
@@ -138,44 +127,165 @@ function FloorCanvas({
         onSelect: (w) => cbs.current.onSelect(w),
         onEnvironment: (s) => cbs.current.onEnvironment(s),
         onEvent: (e) => cbs.current.onEvent(e),
+        onTalk: (id, st) => {
+          if (st === "started") useRoomStore.getState().ackTalk({ [id]: "said" });
+          else if (st === "dropped") useRoomStore.getState().ackTalk({ [id]: "dropped" });
+        },
       });
       // A new scene has shown nothing (React's dev double-mount builds two).
       shown.current = null;
       playing.current = false;
       pending.current = null;
+      useRoomStore.getState().setSceneOpen(true);
       const f = latest.current.frame;
-      if (f) show(f, true);
+      if (f) show(f, frameIsEvent(f));
+      flushTalk();
     } catch (e) {
       setError(e instanceof Error ? e.message : "WebGL is unavailable in this browser.");
     }
     return () => {
+      useRoomStore.getState().setSceneOpen(false);
       scene.current?.dispose();
       scene.current = null;
     };
-  }, [show]);
+  }, [show, flushTalk]);
 
   useEffect(() => {
     if (!frame || !scene.current || frame === shown.current) return;
     const prev = shown.current;
-    // The drill and the replay only move on a click or at a meeting's end: show it now.
-    if (storyChanged(frame, prev) || frame.screens.synthetic || replayRef.current) show(frame, true);
-    else if (playing.current) pending.current = frame;
-    else show(frame, Date.now() - lastTalk.current >= SAME_STORY_TALK_MS);
+    // Quiet beats follow the cycle (people, screens) without a script; the live talk says what is worth saying.
+    if (!(frameIsEvent(frame) && storyChanged(frame, prev))) return show(frame, false);
+    if (playing.current) pending.current = frame;
+    else show(frame, true);
   }, [frame, show]);
 
-  useEffect(() => scene.current?.setSpeed(speed), [speed]);
+  useEffect(() => flushTalk(), [talkSeq, flushTalk]);
   useEffect(() => scene.current?.setCamera(camera), [camera]);
-  useEffect(() => {
-    if (focusLine) scene.current?.focusLine(focusLine.i);
-  }, [focusLine]);
 
   if (error)
     return (
       <div className="flex h-full items-center justify-center p-6 text-center text-sm text-[var(--color-muted)]">
-        The 3D floor needs WebGL ({error}). The meeting, the contract JSON and the book below still run.
+        The 3D floor needs WebGL ({error}). The wire log, the contract JSON and the book below still run.
       </div>
     );
   return <div ref={host} className="absolute inset-0" />;
+}
+
+/* ── The feed's honesty, and the wire ───────────────────────────────────── */
+
+function lagText(sec: number | null): string {
+  if (sec == null) return "";
+  if (sec < 90) return `${Math.round(sec)} s`;
+  return `${Math.round(sec / 60)} min`;
+}
+
+/** What the data under the room really is, right now. Never flatters: delayed is delayed, synthetic is not live. */
+function LiveBadge({ frame }: { frame: FloorFrame | null }) {
+  const feed = useRoomStore((s) => s.feedRead);
+  const tickAt = useRoomStore((s) => s.tickAt);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const silent = tickAt != null ? Math.round((now - tickAt) / 1000) : null;
+  let tone = "#16a34a";
+  let text = "WAITING FOR THE DESK";
+  if (feed) {
+    if (silent != null && silent > 30) {
+      tone = "#dc2626";
+      text = `NO TICKS · ${lagText(silent)}`;
+    } else if (feed.kind === "synthetic") {
+      tone = "#dc2626";
+      text = "NOT LIVE · synthetic desk feed";
+    } else if (feed.kind === "none") {
+      tone = "#dc2626";
+      text = "NO FEED";
+    } else if (feed.kind === "live_gateway") {
+      text = `LIVE · gateway${feed.lagSec != null ? ` · ${lagText(feed.lagSec)}` : ""}`;
+    } else {
+      const late = (feed.lagSec ?? 0) >= 90;
+      tone = late ? "#d97706" : "#16a34a";
+      text = `LIVE · ${feed.kind === "yahoo" ? "Yahoo" : "Databento"}${late ? ` · futures ${lagText(feed.lagSec)} behind` : ""}`;
+    }
+  }
+  const clock = frame?.clockLabel;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded border border-[var(--color-border)] px-2 py-0.5 text-[11px] font-semibold" style={{ color: tone }}>
+      <span className="h-2 w-2 animate-pulse rounded-full" style={{ background: tone }} />
+      {text}
+      {clock ? <span className="font-mono font-normal text-[var(--color-muted)]">· {clock}</span> : null}
+    </span>
+  );
+}
+
+const KIND_COLOR: Record<string, string> = {
+  tape: "#38bdf8",
+  level: "#a78bfa",
+  news: "#f59e0b",
+  calendar: "#fb7185",
+  session: "#94a3b8",
+  book: "#22c55e",
+  card: "#22d3ee",
+  pulse: "#f472b6",
+  feed: "#ef4444",
+  heartbeat: "#64748b",
+  cycle: "#e2e8f0",
+  goal: "#facc15",
+  seat: "#4ade80",
+  rnd: "#c084fc",
+};
+
+const STATUS_TEXT: Record<WireStatus, string> = { queued: "queued", said: "said", dropped: "stale", unseen: "unseen" };
+
+const etTime = (ms: number) => new Date(ms).toLocaleTimeString("en-GB", { timeZone: "America/New_York", hour12: false });
+
+/** Everything the room said, newest first, with what set it off and the numbers it rested on. */
+function WireLog({ onFocus }: { onFocus: (who: Character) => void }) {
+  const wire = useRoomStore((s) => s.wire);
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <div className={CARD}>
+      <div className={HEAD}>On the wire · what they said, and why</div>
+      {wire.length === 0 ? (
+        <p className="text-[12px] text-[var(--color-muted)]">Nothing yet. The room speaks when the desk gives it something real: a move, a level, a headline, a release, the book, the feed.</p>
+      ) : (
+        <ol className="max-h-[22rem] space-y-1 overflow-y-auto pr-1">
+          {wire.map((w: WireEntry) => (
+            <li key={w.id} className="rounded border border-[var(--color-border)] px-2 py-1">
+              <button type="button" className="flex w-full items-center gap-2 text-left text-[11px]" onClick={() => setOpen(open === w.id ? null : w.id)}>
+                <span className="font-mono text-[var(--color-subtle)]">{etTime(w.at)}</span>
+                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase text-black" style={{ background: KIND_COLOR[w.kind] ?? "#64748b" }}>
+                  {w.kind}
+                </span>
+                {w.urgency === 2 ? <span className="text-[10px] font-bold text-[var(--color-down)]">URGENT</span> : null}
+                <span className="min-w-0 flex-1 truncate text-[var(--color-fg)]">{w.label}</span>
+                <span className="text-[10px] text-[var(--color-subtle)]">{STATUS_TEXT[w.status]}</span>
+              </button>
+              <ul className="mt-1 space-y-0.5">
+                {(open === w.id ? w.lines : w.lines.slice(0, 2)).map((l, i) => (
+                  <li key={i} className="text-[12px] leading-snug">
+                    <button type="button" onClick={() => onFocus(l.character)} className="font-semibold" style={{ color: COLOR[l.character] }}>
+                      {l.character}
+                    </button>{" "}
+                    <span className="text-[var(--color-fg)]">{l.text}</span>
+                  </li>
+                ))}
+                {open !== w.id && w.lines.length > 2 ? <li className="text-[10px] text-[var(--color-subtle)]">+{w.lines.length - 2} more — click to open</li> : null}
+              </ul>
+              {open === w.id && w.facts.length ? (
+                <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">numbers used: {w.facts.join(" · ")}</p>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
+      <p className="mt-2 text-[10px] leading-snug text-[var(--color-subtle)]">
+        Every number in a line was produced by code from the live desk and is listed under it. The words are fixed phrases in each person's voice, chosen from the event and from what they have already said (never the same line twice
+        within {TALK.recentKeep} lines). Narration only: nothing said here gates, sizes or sends anything.
+      </p>
+    </div>
+  );
 }
 
 /* ── Panels ─────────────────────────────────────────────────────────────── */
@@ -407,36 +517,18 @@ function GhostPanel({ frame }: { frame: FloorFrame | null }) {
 /* ── The tab ────────────────────────────────────────────────────────────── */
 
 export default function TradingFloorTab() {
-  const live = useRoomStore((s) => s.frame);
+  const frame = useRoomStore((s) => s.frame);
   const enabled = useRoomStore((s) => s.enabled);
   const setEnabled = useRoomStore((s) => s.setEnabled);
   const book = useRoomStore((s) => s.book);
   const reset = useRoomStore((s) => s.reset);
-  const setNews = useRoomStore((s) => s.setNews);
-  const history = useRoomStore((s) => s.history);
   const backup = useRoomStore((s) => s.backup);
-  const [mode, setMode] = useState<"live" | "drill" | "replay">(() => (optionsOpenNow() ? "live" : "drill"));
   const [camera, setCamera] = useState<CameraPreset>("auto");
-  const [speed, setSpeed] = useState(1);
   const [speaker, setSpeaker] = useState<{ i: number; line: DialogueLine | null }>({ i: -1, line: null });
   const [selected, setSelected] = useState<Character | null>(null);
   const [env, setEnv] = useState<"glb" | "fallback" | null>(null);
-  const [focus, setFocus] = useState<{ i: number; n: number } | null>(null);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-
-  // The drill: precomputed through the real pipeline, played one frame per meeting.
-  const steps = useMemo<DrillStep[]>(() => (mode === "drill" ? playDrill(ROOM_DEFAULT_CASH) : []), [mode]);
-  const [drillIdx, setDrillIdx] = useState(0);
-  const [drillPlaying, setDrillPlaying] = useState(true);
-  const drillFrameNow = useMemo(
-    () => (mode === "drill" && steps.length ? drillFrame(steps[drillIdx]!, steps.slice(0, drillIdx + 1), 100_000 + drillIdx) : null),
-    [mode, steps, drillIdx],
-  );
-  // The day's replay: today's story beats from the live engine, scrubbed or auto-played.
-  const [replayIdx, setReplayIdx] = useState(0);
-  const replayFrame = mode === "replay" ? (history[Math.min(replayIdx, history.length - 1)] ?? null) : null;
-  const frame = mode === "drill" ? drillFrameNow : mode === "replay" ? replayFrame : live;
 
   // Sound: off until the trader turns it on (and a click unlocks audio).
   const sound = useRef<FloorSound | null>(null);
@@ -454,34 +546,8 @@ export default function TradingFloorTab() {
     if (soundOnRef.current) sound.current?.play(e);
   }, []);
 
-  // Headlines for the news TVs — only while this tab is open.
-  useEffect(() => {
-    let alive = true;
-    const pull = async () => {
-      try {
-        const r = await getNewsFeed();
-        if (!alive) return;
-        const now = Date.now();
-        setNews(r.items.slice(0, 12).map((i) => ({ title: i.title, source: i.source, age: ageOf(i.published, now) })));
-      } catch {
-        // The TV says "no headlines" instead.
-      }
-    };
-    void pull();
-    const id = window.setInterval(pull, 5 * 60_000);
-    return () => {
-      alive = false;
-      window.clearInterval(id);
-    };
-  }, [setNews]);
-
-  const onMeetingDone = useCallback(() => {
-    if (!drillPlaying) return;
-    if (mode === "drill") window.setTimeout(() => setDrillIdx((i) => (i + 1 < steps.length ? i + 1 : i)), 900 / speed);
-    else if (mode === "replay") window.setTimeout(() => setReplayIdx((i) => (i + 1 < history.length ? i + 1 : i)), 700 / speed);
-  }, [mode, drillPlaying, steps.length, history.length, speed]);
-
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => setSpeaker({ i, line }), []);
+  const onMeetingDone = useCallback(() => undefined, []);
 
   const fullscreen = () => {
     const el = wrap.current;
@@ -492,7 +558,6 @@ export default function TradingFloorTab() {
 
   const json = frame ? JSON.stringify(frame.output, null, 2) : "";
   const urgency = frame?.output.room_state.market_urgency ?? "LOW";
-  const lines = frame?.output.floor_dialogue_and_meetings ?? [];
   const ba = frame?.output.broker_action;
 
   return (
@@ -500,29 +565,10 @@ export default function TradingFloorTab() {
       <div className="flex flex-wrap items-center gap-2">
         <Users className="h-4 w-4 text-[var(--color-primary)]" />
         <h2 className="text-sm font-semibold text-[var(--color-fg)]">Trading floor</h2>
-        <div className="flex overflow-hidden rounded border border-[var(--color-border)] text-[11px]">
-          {(["live", "replay", "drill"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              disabled={m === "replay" && history.length < 2}
-              title={m === "replay" ? `Today's ${history.length} story beats, as a time-lapse` : undefined}
-              onClick={() => {
-                setMode(m);
-                setDrillIdx(0);
-                setReplayIdx(0);
-                setDrillPlaying(true);
-              }}
-              className={`px-2 py-1 disabled:opacity-40 ${mode === m ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-muted)]"}`}
-            >
-              {m === "live" ? "Live desk" : m === "replay" ? "Today's replay" : "Drill (synthetic)"}
-            </button>
-          ))}
-        </div>
+        <LiveBadge frame={frame} />
         <span className="rounded px-2 py-0.5 text-[11px] font-semibold text-black" style={{ background: URGENCY_COLOR[urgency] }}>
           {urgency.replace("_", " ")}
         </span>
-        {frame && <span className="font-mono text-[11px] text-[var(--color-muted)]">{frame.clockLabel}</span>}
         <span className="font-mono text-[11px] text-[var(--color-subtle)]">{frame?.screens.source ?? ""}</span>
         <button
           type="button"
@@ -543,21 +589,15 @@ export default function TradingFloorTab() {
         </label>
       </div>
 
-      {mode === "drill" && (
-        <p className="rounded border border-[var(--color-border)] bg-[color-mix(in_oklab,#f59e0b_12%,var(--color-surface))] px-3 py-1.5 text-[11px] text-[var(--color-fg)]">
-          {DRILL_LABEL}. Same engine, same people, same paper book rules as live — the tape, the cards and the release are scripted.
-        </p>
-      )}
-      {mode === "live" && !live && (
+      {!frame && (
         <p className="rounded border border-[var(--color-border)] px-3 py-1.5 text-[11px] text-[var(--color-muted)]">
-          {enabled ? "Waiting for the next desk refresh to run the first room cycle…" : "The room engine is off — switch it on above, or play the drill."}
+          {enabled ? "Waiting for the next desk refresh to run the first room cycle…" : "The room engine is off — switch it on above."}
         </p>
       )}
 
       <div ref={wrap} className="relative h-[58vh] min-h-[340px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[#0b1220]">
         <FloorCanvas
           frame={frame}
-          speed={speed}
           camera={camera}
           onSpeaker={onSpeaker}
           onMeetingDone={onMeetingDone}
@@ -566,8 +606,6 @@ export default function TradingFloorTab() {
           }}
           onEnvironment={setEnv}
           onEvent={onEvent}
-          focusLine={focus}
-          replaying={mode === "replay"}
         />
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
           {frame?.trace.meeting && (
@@ -592,11 +630,6 @@ export default function TradingFloorTab() {
             <Expand className="inline h-3 w-3" />
           </button>
         </div>
-        {mode === "drill" && frame?.caption && (
-          <div className="pointer-events-none absolute left-2 top-9 max-w-[60%] rounded bg-amber-500/90 px-2 py-1 text-[11px] font-medium text-black">
-            {steps[drillIdx]?.frame.at} — {frame.caption}
-          </div>
-        )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (
             <p className="text-[13px] leading-snug text-white">
@@ -607,90 +640,13 @@ export default function TradingFloorTab() {
               {speaker.line.text}
             </p>
           ) : (
-            <p className="text-[12px] text-slate-400">{frame ? "…" : "Building the floor…"}</p>
+            <p className="text-[12px] text-slate-400">{frame ? "Watching the tape…" : "Building the floor…"}</p>
           )}
-          {mode === "replay" && history.length > 0 && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button type="button" className={BTN} onClick={() => setDrillPlaying((p) => !p)}>
-                {drillPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />} {drillPlaying ? "Pause" : "Play"}
-              </button>
-              <History className="h-3 w-3 text-slate-300" />
-              <input
-                type="range"
-                min={0}
-                max={Math.max(0, history.length - 1)}
-                value={Math.min(replayIdx, history.length - 1)}
-                onChange={(e) => {
-                  setDrillPlaying(false);
-                  setReplayIdx(Number(e.target.value));
-                }}
-                className="w-48 accent-amber-400"
-                aria-label="Scrub today's replay"
-              />
-              <span className="font-mono text-[11px] text-slate-300">
-                {replayFrame?.clockLabel ?? ""} · {Math.min(replayIdx, history.length - 1) + 1}/{history.length}
-              </span>
-            </div>
-          )}
-          {mode === "drill" && (
-            <div className="mt-2 flex flex-wrap items-center gap-1">
-              <button type="button" className={BTN} onClick={() => setDrillPlaying((p) => !p)}>
-                {drillPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />} {drillPlaying ? "Pause" : "Play"}
-              </button>
-              <button type="button" className={BTN} onClick={() => setDrillIdx((i) => Math.min(steps.length - 1, i + 1))}>
-                <SkipForward className="h-3 w-3" /> Next
-              </button>
-              <button type="button" className={BTN} onClick={() => setDrillIdx(0)}>
-                <RotateCcw className="h-3 w-3" /> Restart
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={Math.max(0, steps.length - 1)}
-                value={drillIdx}
-                onChange={(e) => {
-                  setDrillPlaying(false);
-                  setDrillIdx(Number(e.target.value));
-                }}
-                className="w-40 accent-amber-400"
-                aria-label="Scrub the drill"
-              />
-              <span className="text-[11px] text-slate-300">
-                {drillIdx + 1}/{steps.length}
-              </span>
-            </div>
-          )}
-          <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
-            speed
-            {[1, 1.5, 2].map((s) => (
-              <button key={s} type="button" onClick={() => setSpeed(s)} className={`rounded px-1.5 ${speed === s ? "bg-white text-black" : "bg-black/50 text-slate-200"}`}>
-                {s}×
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
-        <div className={CARD}>
-          <div className={HEAD}>The meeting · {lines.length} lines</div>
-          <ol className="space-y-1.5">
-            {lines.map((l, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={() => setFocus({ i, n: Date.now() })}
-                  className={`w-full rounded px-1.5 py-1 text-left text-[12px] leading-snug ${speaker.i === i ? "bg-[var(--color-surface-2)]" : ""}`}
-                >
-                  <span className="font-semibold" style={{ color: COLOR[l.character] }}>
-                    {l.character}
-                  </span>{" "}
-                  <span className="text-[var(--color-fg)]">{l.text}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </div>
+      <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <WireLog onFocus={setSelected} />
 
         <div className={CARD}>
           <div className={HEAD}>Sterling's list → the ticket</div>
@@ -728,7 +684,7 @@ export default function TradingFloorTab() {
         </div>
 
         <div className={CARD}>
-          <div className={HEAD}>Room book (paper{mode === "drill" ? " · drill book" : ""})</div>
+          <div className={HEAD}>Room book (paper)</div>
           {frame && (
             <div className="space-y-1 text-[12px]">
               <div className="flex justify-between">
@@ -763,23 +719,19 @@ export default function TradingFloorTab() {
               </ul>
             </div>
           )}
-          {mode === "live" && (
-            <button
-              type="button"
-              className={`${BTN} mt-3`}
-              onClick={() => {
-                if (window.confirm(`Reset the room's paper book to $${ROOM_DEFAULT_CASH.toLocaleString()}? Positions and history are cleared. Close the desk on your other devices first, or one still running the old book will bring it back.`)) reset();
-              }}
-            >
-              <RotateCcw className="h-3 w-3" /> Reset book (${book.startCash.toLocaleString()} start)
-            </button>
-          )}
-          {mode === "live" && (
-            <p className={`mt-2 text-[10px] leading-snug ${backup.status === "local" ? "text-[var(--color-down)]" : "text-[var(--color-muted)]"}`}>
-              Server copy: {backup.why}
-              {backup.at ? ` (${new Date(backup.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })})` : ""}
-            </p>
-          )}
+          <button
+            type="button"
+            className={`${BTN} mt-3`}
+            onClick={() => {
+              if (window.confirm(`Reset the room's paper book to $${ROOM_DEFAULT_CASH.toLocaleString()}? Positions and history are cleared. Close the desk on your other devices first, or one still running the old book will bring it back.`)) reset();
+            }}
+          >
+            <RotateCcw className="h-3 w-3" /> Reset book (${book.startCash.toLocaleString()} start)
+          </button>
+          <p className={`mt-2 text-[10px] leading-snug ${backup.status === "local" ? "text-[var(--color-down)]" : "text-[var(--color-muted)]"}`}>
+            Server copy: {backup.why}
+            {backup.at ? ` (${new Date(backup.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })})` : ""}
+          </p>
           <p className="mt-3 text-[10px] leading-snug text-[var(--color-subtle)]">
             Mandate: ≤{ROOM_MANDATE.maxOpenPositions} open · ≤{Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% cash a ticket (and ≤$1,000) ·
             {" "}−{Math.abs(ROOM_MANDATE.hardStopPct)}% backstop behind the level exit · +{ROOM_MANDATE.takeProfitPct}% trims half · 0–1 DTE · flat by 11:00.
@@ -788,7 +740,7 @@ export default function TradingFloorTab() {
         </div>
       </div>
 
-      {mode === "live" && <ExecCard />}
+      <ExecCard />
 
       <div className="grid gap-3 lg:grid-cols-3">
         <LedgerPanel frame={frame} />

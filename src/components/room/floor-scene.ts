@@ -1153,12 +1153,29 @@ export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" 
 /** Things the floor does that a speaker (or the tab) may want to hear. */
 export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
 
+/**
+ * One exchange from the live talk (lib/room/live-talk.ts): a few lines, who walks where for them, and how long it
+ * stays worth saying. The scene plays it between cycle meetings; it never changes the ticket or the frame.
+ */
+export interface TalkBatch {
+  id: string;
+  /** When the exchange was made (ms epoch) and how long after that it is still worth starting. */
+  at: number;
+  ttlMs: number;
+  /** 2 interrupts chatter; 0 and 1 wait their turn. */
+  urgency: 0 | 1 | 2;
+  lines: DialogueLine[];
+  moves: Partial<Record<Character, { zone?: string; spot?: string }>>;
+}
+
 export interface FloorSceneOptions {
   onSpeaker?: (index: number, line: DialogueLine | null) => void;
   onMeetingDone?: () => void;
   onSelect?: (who: Character) => void;
   onEnvironment?: (source: "glb" | "fallback") => void;
   onEvent?: (e: FloorEvent) => void;
+  /** A talk exchange started playing, finished, or went stale in the queue before it could start. */
+  onTalk?: (id: string, state: "started" | "done" | "dropped") => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1285,6 +1302,7 @@ export class FloorScene {
   private appliedAt = 0;
   private lines: DialogueLine[] = [];
   private lineIdx = -1;
+  /** When the line being said ends, in WALL seconds: a slow device draws fewer frames, it does not talk slower. */
   private lineEndsAt = 0;
   private speed = 1;
   private raf = 0;
@@ -1314,6 +1332,12 @@ export class FloorScene {
   private lastLightAt = -1;
   private shotN = 0;
   private lastUrgency: string | null = null;
+  /** Whose lines are playing: a cycle's meeting, or an exchange from the live talk. */
+  private source: "cycle" | "talk" | null = null;
+  private batch: TalkBatch | null = null;
+  private queue: TalkBatch[] = [];
+  /** People an exchange sent somewhere (to the board, to the coffee): a cycle refresh leaves them be until it ends. */
+  private readonly away = new Set<Character>();
 
   constructor(container: HTMLElement, opts: FloorSceneOptions = {}) {
     this.container = container;
@@ -1594,8 +1618,15 @@ export class FloorScene {
     this.speed = speed;
     this.appliedAt = this.time;
     const out = frame.output;
+    // A cycle's own meeting (a ticket, an exit, a director's call) outranks whatever chatter is playing.
+    if (talk) {
+      this.away.clear();
+      this.batch = null;
+      this.source = "cycle";
+    }
     const used = new Map<string, number>();
     for (const who of CREW_ORDER) {
+      if (this.away.has(who)) continue;
       const a = this.avatars.get(who)!;
       const zone = out.room_state.character_locations[who];
       const act = frame.acts?.[who] ?? null;
@@ -1607,9 +1638,85 @@ export class FloorScene {
     if (talk) {
       this.lines = out.floor_dialogue_and_meetings;
       this.lineIdx = -1;
-      this.lineEndsAt = this.time;
+      this.lineEndsAt = this.wallSec();
       this.wbReveal = 0;
     } else this.revealWhiteboard(1);
+  }
+
+  private wallSec(): number {
+    return performance.now() / 1000;
+  }
+
+  /** Is anything being said right now (a meeting or an exchange)? */
+  private speaking(): boolean {
+    return this.lines.length > 0 && this.lineIdx < this.lines.length;
+  }
+
+  /**
+   * Hand the scene an exchange from the live talk. It plays at once if the room is quiet, jumps chatter if it is
+   * urgent, and otherwise waits its turn (three deep, urgent first). One that has gone stale is dropped, not played.
+   */
+  say(b: TalkBatch): "started" | "queued" | "dropped" {
+    if (Date.now() - b.at > b.ttlMs) return "dropped";
+    if (!this.speaking()) {
+      this.startBatch(b);
+      return "started";
+    }
+    if (b.urgency >= 2 && this.source === "talk" && (this.batch?.urgency ?? 0) < 2) {
+      this.startBatch(b);
+      return "started";
+    }
+    this.queue.push(b);
+    this.queue.sort((a, c) => c.urgency - a.urgency || a.at - c.at);
+    for (const lost of this.queue.splice(3)) this.opts.onTalk?.(lost.id, "dropped");
+    return "queued";
+  }
+
+  private startBatch(b: TalkBatch) {
+    if (this.batch && this.source === "talk") this.sendHome();
+    this.source = "talk";
+    this.batch = b;
+    this.lines = b.lines;
+    this.lineIdx = -1;
+    this.lineEndsAt = this.wallSec();
+    this.wbReveal = 1;
+    const used = new Map<string, number>();
+    for (const who of CREW_ORDER) {
+      const m = b.moves[who];
+      if (!m) continue;
+      const zone = m.zone ?? this.frame?.output.room_state.character_locations[who] ?? "THE_WHITEBOARD";
+      const act: AgentAct | null = m.spot ? { act: "chat", since: this.time, spot: m.spot, with: null } : null;
+      this.avatars.get(who)!.goTo(this.targetFor(who, zone, act, used), this.nav);
+      this.away.add(who);
+    }
+    this.opts.onTalk?.(b.id, "started");
+  }
+
+  /** Whoever an exchange sent away goes back to where the cycle has them. */
+  private sendHome() {
+    const f = this.frame;
+    if (f && this.away.size) {
+      const used = new Map<string, number>();
+      for (const who of CREW_ORDER) {
+        if (!this.away.has(who)) continue;
+        const t = this.targetFor(who, f.output.room_state.character_locations[who], f.acts?.[who] ?? null, used);
+        this.avatars.get(who)!.goTo(t, this.nav);
+      }
+    }
+    this.away.clear();
+  }
+
+  /** The next exchange in the queue that is still worth saying. */
+  private startNext() {
+    while (this.queue.length) {
+      const nb = this.queue.shift()!;
+      if (Date.now() - nb.at > nb.ttlMs) {
+        this.opts.onTalk?.(nb.id, "dropped");
+        continue;
+      }
+      this.startBatch(nb);
+      return;
+    }
   }
 
   setSpeed(speed: number) {
@@ -1839,7 +1946,7 @@ export class FloorScene {
     const k = Math.floor(i);
     if (k < 0 || k >= this.lines.length) return;
     this.lineIdx = k - 1;
-    this.lineEndsAt = this.time;
+    this.lineEndsAt = this.wallSec();
   }
 
   private drawAll(f: FloorFrame) {
@@ -1895,7 +2002,8 @@ export class FloorScene {
   private tick(dt: number) {
     const t = this.time;
     // The meeting, one line at a time.
-    if (this.lines.length && t >= this.lineEndsAt && this.lineIdx < this.lines.length) {
+    const wall = this.wallSec();
+    if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
       this.lineIdx++;
       const line = this.lines[this.lineIdx] ?? null;
       for (const a of this.avatars.values()) {
@@ -1904,12 +2012,23 @@ export class FloorScene {
       }
       if (line) {
         const words = line.text.split(/\s+/).length;
-        this.lineEndsAt = t + Math.min(8, Math.max(2.8, 1.6 + words * 0.3)) / this.speed;
+        this.lineEndsAt = wall + Math.min(8, Math.max(2.8, 1.6 + words * 0.3)) / this.speed;
         this.opts.onSpeaker?.(this.lineIdx, line);
         this.directorShot(line);
       } else {
         this.opts.onSpeaker?.(-1, null);
-        this.opts.onMeetingDone?.();
+        if (this.source === "talk") {
+          const done = this.batch;
+          this.batch = null;
+          this.source = null;
+          this.sendHome();
+          if (done) this.opts.onTalk?.(done.id, "done");
+        } else {
+          this.source = null;
+          this.opts.onMeetingDone?.();
+        }
+        // Unless the tab just started a new meeting from `onMeetingDone`, the next exchange in line goes now.
+        if (!this.speaking()) this.startNext();
       }
     }
     const f = this.frame;
