@@ -125,6 +125,23 @@ check("an unmeasured curve says so", TO.windowOdds(0.3, 1.5, 0, 4, { version: 0,
 const nowQ = wall("2026-10-05", "09:56");
 const flatQ = wall("2026-10-05", "11:00");
 const planQ = { side: "long", entry: 30996, stop: 30924, t1: 31110, atr: 60 };
+// ── weekend time: a Friday option expiring Monday has one trading day of life, not three calendar days ──
+{
+  const om = await import("../src/lib/room/option-math.ts");
+  const { etWallToEpochMs } = await import("../src/lib/trading/sessions.ts");
+  const hrs = (now, exp) => om.yearsToExpiry(etWallToEpochMs(...now), exp) * 365 * 24;
+  const at = (d, hm) => [d, hm];
+  check("Mon 10:00 → Tue 16:00 is 30.0 calendar hours (weekday pricing unchanged)", Math.abs(hrs(at("2026-10-05", "10:00"), "2026-10-06") - 30) < 1e-6, String(hrs(at("2026-10-05", "10:00"), "2026-10-06")));
+  check("Thu 10:00 → Fri 16:00 is 30.0 hours", Math.abs(hrs(at("2026-10-08", "10:00"), "2026-10-09") - 30) < 1e-6);
+  check("Fri 10:00 → Mon 16:00 is ALSO 30.0 hours (the weekend carries no variance)", Math.abs(hrs(at("2026-10-09", "10:00"), "2026-10-12") - 30) < 1e-6, String(hrs(at("2026-10-09", "10:00"), "2026-10-12")));
+  check("Sun 20:00 → Mon 16:00 is 16.0 hours (only the rest of Sunday is removed)", Math.abs(hrs(at("2026-10-11", "20:00"), "2026-10-12") - 16) < 1e-6, String(hrs(at("2026-10-11", "20:00"), "2026-10-12")));
+  check("Fri 16:00 → Mon 16:00 is 24.0 hours", Math.abs(hrs(at("2026-10-09", "16:00"), "2026-10-12") - 24) < 1e-6);
+  const px = (day, exp) => om.quoteOption(777.5, 778, exp, "CALL", om.ivFor("QQQ", 16.2), etWallToEpochMs(day, "10:00")).mid;
+  check("same trading hours, same price: Fri→Mon ATM call equals Thu→Fri", Math.abs(px("2026-10-09", "2026-10-12") - px("2026-10-08", "2026-10-09")) < 1e-9, `${px("2026-10-09", "2026-10-12")} vs ${px("2026-10-08", "2026-10-09")}`);
+  check("expired is zero life, never negative", om.yearsToExpiry(etWallToEpochMs("2026-10-06", "16:30"), "2026-10-06") === 0);
+  check("across the DST fall-back weekend (Sun Nov 1 2026 has 25 hours) Fri→Mon is still 30.0 hours: 79 elapsed − 49 weekend", Math.abs(hrs(at("2026-10-30", "10:00"), "2026-11-02") - 30) < 1e-6, String(hrs(at("2026-10-30", "10:00"), "2026-11-02")));
+}
+
 const quoteQ = (await import("../src/lib/room/option-math.ts")).quoteOption(775, 776, "2026-10-06", "CALL", 0.207, nowQ);
 const ev = Q.priceOptionPlan({ plan: planQ, pT1: 0.31, type: "CALL", strike: 776, exp: "2026-10-06", iv: 0.207, entryPx: quoteQ.ask, futNow: 31000, etfNow: 775, nowMs: nowQ, fillMs: nowQ, flatMs: flatQ });
 const evSum = ev.scenarios.reduce((a, x) => a + x.p * x.pnlUsd, 0) / ev.scenarios.reduce((a, x) => a + x.p, 0);
@@ -180,7 +197,7 @@ console.log("exits: the room's three added rules");
 const deskX = (exits, agendaNext = null) => ({ exits, htf: { QQQ: "bull", SPY: "bull" }, agenda: { next: agendaNext, last: null, setup: null } });
 const tapeX = { price: 776, rsi: 55, vix: 17, trend: "BULLISH", volume_spike: false };
 const posX = { id: "P1", ticker: "QQQ", type: "CALL", strike: 776, exp: "2026-10-06", pnl_percent: 12, contracts: 2, trimmed: false };
-// The T1 trim measured −$1.31 a fill against the mandate on four years — off in ROOM_POLICY, kept as a switch.
+// The T1 trim measured −$0.70 a fill against the mandate on four years — off in ROOM_POLICY, kept as a switch.
 check("ROOM_POLICY leaves the T1 trim off (measured, not shown to help)", EX.ROOM_POLICY.levelTrim === false && EX.ROOM_POLICY.premiumTrim === true);
 const t1x = EX.exitFor(posX, tapeX, { desk: deskX({ P1: { kind: "t1", why: "MNQ reached T1" } }), etDate: "2026-10-05", etMin: 600, nowMs: wall("2026-10-05", "10:00"), policy: { ...EX.ROOM_POLICY, levelTrim: true }, hold: null });
 check("with the switch on, T1 on the futures plan trims half", t1x?.reason === "t1" && t1x.qty === 1 && !t1x.closesAll, JSON.stringify(t1x && { r: t1x.reason, q: t1x.qty }));
@@ -214,7 +231,7 @@ const badEv = { ...ev, evUsd: -12, t1Pays: true };
 check("negative EV is a decisive challenge", DB.challengeFor(cardD, badEv, null, "10:20 ET").decisive === true);
 const calNeg = { ...ev, evUsd: 6, t1Pays: true, calibrated: { p: 0.22, pT1: 0.1, pLoss: 0.6, pNone: 0.3, evUsd: -3 } };
 const chCal = DB.challengeFor(cardD, calNeg, null, "10:20 ET");
-check("model EV up, realized-decile EV down → Sterling notes it, not decisive (four years: gating on it picked worse)", chCal.decisive === false && chCal.who === "Sterling" && /not blocking/.test(chCal.text), chCal.text);
+check("model EV up, realized-decile EV down → Sterling notes it, not decisive (four years: gating on it did not pick better)", chCal.decisive === false && chCal.who === "Sterling" && /not blocking/.test(chCal.text), chCal.text);
 
 console.log("lab: the ghost room's arithmetic");
 const closedGhost = (id, kind, of, pnlUsd) => ({ id, kind, of, planKey: null, ticker: "QQQ", type: "CALL", strike: 776, exp: "2026-10-06", offset: "ATM", contracts: 1, entryPx: 3, openedAt: 0, fut: null, quant: null, trimmed: false, realizedUsd: 0, pnlPct: 0, closed: { at: 1, px: 3, reason: "t", pnlUsd } });

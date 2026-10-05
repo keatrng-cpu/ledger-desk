@@ -18,6 +18,10 @@ import { FloorScene, LAYOUT, type CameraPreset, type FloorEvent } from "./floor-
 import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { ageOf, drillFrame, useRoomStore } from "./room-engine";
+import EV_TEST from "@/data/room-ev-test.json";
+
+/** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
+const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
 
 const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 const BTN =
@@ -316,7 +320,7 @@ function LedgerPanel({ frame }: { frame: FloorFrame | null }) {
             </p>
           ) : null}
           <p className="text-[10px] leading-snug text-[var(--color-subtle)]">
-            A refusal rule, not an edge claim. On four years of real cards (2025–26 out of sample) the tickets it passed beat the ones it refused, but not by enough to call it shown (z 0.31) — its proven effect is trading about a quarter as often. The ghost room keeps measuring.
+            A refusal rule, not an edge claim. On four years of real cards (2025–26 out of sample) the tickets it passed beat the ones it refused, but not by enough to call it shown (z {EV_Z}) — its proven effect is trading about a quarter as often. The ghost room keeps measuring.
           </p>
         </div>
       )}

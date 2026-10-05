@@ -12,10 +12,10 @@
  * beside every room fill so what stays in ROOM_POLICY keeps being measured:
  *
  *   t1     trim half when the futures plan touches T1 (the desk's futures
- *          rule, +0.50R a trade). On the OPTION it measured −$1.31 a fill
- *          against the mandate's +40% trim alone (n 146 NY AM, z −1.08),
- *          negative in both halves and in the all-session check — so it is
- *          OFF in ROOM_POLICY. Kept as a switch, never the default.
+ *          rule, +0.50R a trade). On the OPTION it measured −$0.70 a fill
+ *          against the mandate's +40% trim alone (n 146 NY AM, z −0.64),
+ *          negative in both NY AM halves (−$0.91 / −$0.35) and −$0.51 in the
+ *          all-session check — not shown to help, so it is OFF in ROOM_POLICY. Kept as a switch, never the default.
  *   theta  close an untrimmed option that is at or below its entry price
  *          when holding it is worth less than its bid: the measured odds of
  *          T1 before the flat (time-odds.ts) times what T1 pays no longer

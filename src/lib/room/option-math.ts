@@ -81,8 +81,39 @@ export function expiryMs(expEtDate: string): number {
   return etWallToEpochMs(expEtDate, "16:00");
 }
 
+const DAY_MS = 24 * 60 * 60_000;
+const isoPlusDays = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10);
+const isWeekendDate = (d: string) => {
+  const w = new Date(`${d}T12:00:00Z`).getUTCDay();
+  return w === 0 || w === 6;
+};
+
+/** Milliseconds of Saturday and Sunday (ET calendar days) inside [fromMs, toMs]. */
+function weekendMsBetween(fromMs: number, toMs: number): number {
+  let total = 0;
+  const last = etDateOf(toMs);
+  for (let d = etDateOf(fromMs), n = 0; n < 14; d = isoPlusDays(d, 1), n++) {
+    if (isWeekendDate(d)) {
+      const start = etWallToEpochMs(d, "00:00");
+      const end = etWallToEpochMs(isoPlusDays(d, 1), "00:00");
+      total += Math.max(0, Math.min(end, toMs) - Math.max(start, fromMs));
+    }
+    if (d === last) break;
+  }
+  return total;
+}
+
+/**
+ * Years of option life left: calendar time with the weekend taken out. Variance accrues on trading days, so a
+ * Friday option that expires Monday has about one trading day of life, not three calendar days. At full
+ * calendar weight a Friday "1 DTE" ATM call cost 66% more than the same 12.5 trading hours on a Thursday
+ * (QQQ 777.5, IV 19.1%: $5.33 vs $3.22). Weekday overnights keep full weight, so Mon–Thu pricing, and every
+ * measurement made on it, is unchanged. Market holidays are not removed (no calendar in the repo).
+ */
 export function yearsToExpiry(nowMs: number, expEtDate: string): number {
-  return Math.max((expiryMs(expEtDate) - nowMs) / YEAR_MS, 0);
+  const end = expiryMs(expEtDate);
+  if (!(end > nowMs)) return 0;
+  return Math.max((end - nowMs - weekendMsBetween(nowMs, end)) / YEAR_MS, 0);
 }
 
 /**

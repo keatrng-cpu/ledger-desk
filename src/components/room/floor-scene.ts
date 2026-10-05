@@ -886,6 +886,12 @@ class Avatar {
     this.bubbleTex.needsUpdate = true;
   }
 
+  /** Where a camera should look: where they will be, not where they are mid-walk (the shot would lose them). */
+  framing(): { pos: V2; yaw: number; mode: "stand" | "sit" | "couch" } {
+    const t = this.moving ? this.target : null;
+    return t ? { pos: t.pos, yaw: t.yaw, mode: t.pose } : { pos: this.pos, yaw: this.yaw, mode: this.mode };
+  }
+
   /** Walk to (or stay at) a target; paths are only recomputed when the target moves. */
   goTo(t: Target, nav: NavGrid) {
     if (this.target && this.target.key === t.key) {
@@ -1287,6 +1293,9 @@ export class FloorScene {
   private resizeObs: ResizeObserver | null = null;
   private interObs: IntersectionObserver | null = null;
   private camGoal: { pos: THREE.Vector3; target: THREE.Vector3 } | null = null;
+  /** The static office (GLB or box fallback), for the director's line-of-sight checks. People are not in it. */
+  private officeRoot: THREE.Object3D | null = null;
+  private readonly sightRay = new THREE.Raycaster();
   private preset: CameraPreset = "overview";
   private lastClockDraw = 0;
   private wbReveal = 1;
@@ -1329,7 +1338,9 @@ export class FloorScene {
     this.controls.target.set(...cam.target);
     this.controls.enableDamping = true;
     this.controls.maxPolarAngle = 1.42;
-    this.controls.minDistance = 3;
+    // The director frames speaker close-ups ~2.3 m out. A floor of 3 m used to push those cuts back through
+    // the north wall (the view was the outside of the wall and a floating speech bubble).
+    this.controls.minDistance = 1.4;
     this.controls.maxDistance = 48;
     this.controls.addEventListener("start", () => {
       this.camGoal = null;
@@ -1414,6 +1425,7 @@ export class FloorScene {
         }
       });
       this.scene.add(root);
+      this.officeRoot = root;
       this.attachScreens(root, true);
       this.attachEmissives(root);
       this.opts.onEnvironment?.("glb");
@@ -1421,6 +1433,7 @@ export class FloorScene {
       if (this.disposed) return;
       const root = this.buildFallback();
       this.scene.add(root);
+      this.officeRoot = root;
       this.attachScreens(root, false);
       this.attachEmissives(root);
       this.opts.onEnvironment?.("fallback");
@@ -1706,19 +1719,73 @@ export class FloorScene {
       return cut(c.pos, c.target);
     }
     const a = this.avatars.get(line.character)!;
-    if (f?.output.broker_action.execute_trade && line.character === "Vince" && line.animation === "SMASHING_ENTER_KEY")
-      return cut([a.pos[0] + 1.25, 1.55, a.pos[1] - 0.9], [a.pos[0], 0.95, a.pos[1] - 0.4]);
-    const side = this.shotN % 2 ? 1 : -1;
-    const fx = Math.sin(a.yaw);
-    const fz = Math.cos(a.yaw);
-    const sx = Math.cos(a.yaw) * side;
-    const sz = -Math.sin(a.yaw) * side;
-    const head = a.mode === "stand" ? 1.62 : 1.25;
-    const dist = 2.1;
+    if (f?.output.broker_action.execute_trade && line.character === "Vince" && line.animation === "SMASHING_ENTER_KEY") {
+      const at = a.framing();
+      return cut([at.pos[0] + 1.25, 1.55, at.pos[1] - 0.9], [at.pos[0], 0.95, at.pos[1] - 0.4]);
+    }
+    const shot = this.closeShot(a, this.shotN % 2 ? 1 : -1);
+    if (!shot) {
+      // Nowhere with a clear view of them: a wide shot beats a close-up of the back of a monitor.
+      const c = LAYOUT.camera.quant ?? LAYOUT.camera.overview!;
+      return cut(c.pos, c.target);
+    }
+    cut(shot.pos, shot.target);
+  }
+
+  /** Distance to the first SOLID thing along a ray, or Infinity. Glass (see-through) does not count. */
+  private solidAlong(from: THREE.Vector3, dir: THREE.Vector3, far: number): number {
+    if (!this.officeRoot) return Infinity;
+    this.sightRay.set(from, dir);
+    this.sightRay.near = 0;
+    this.sightRay.far = far;
+    for (const h of this.sightRay.intersectObject(this.officeRoot, true)) {
+      const m = (h.object as THREE.Mesh).material;
+      const mats = Array.isArray(m) ? m : [m];
+      if (mats.every((x) => x.transparent && x.opacity < 0.6)) continue;
+      return h.distance;
+    }
+    return Infinity;
+  }
+
+  /**
+   * A close-up camera for a speaker: the first spot — front three-quarter, then the other side, side-on, over the
+   * shoulder — that is inside the building, has clear air around the lens and an unbroken line to their head.
+   * A person at a desk faces their monitors, so "in front of them" is usually the back of a monitor wall; the
+   * first spots fail the line test and the shot slides round to where the face can be seen. Null when no spot
+   * works (the director then cuts wide).
+   */
+  private closeShot(a: Avatar, side: number): { pos: V3; target: V3 } | null {
+    const at = a.framing();
+    const head = at.mode === "stand" ? 1.62 : 1.25;
+    const target = new THREE.Vector3(at.pos[0], head - 0.05, at.pos[1]);
     const bx = LAYOUT.bounds;
-    const px = Math.min(bx.x[1] - 0.3, Math.max(bx.x[0] + 0.3, a.pos[0] + fx * dist + sx * 0.9));
-    const pz = Math.min(bx.z[1] - 0.3, Math.max(bx.z[0] + 0.3, a.pos[1] + fz * dist + sz * 0.9));
-    cut([px, head + 0.35, pz], [a.pos[0], head - 0.05, a.pos[1]]);
+    // [distance, angle off the way they face]
+    const spots: [number, number][] = [
+      [2.3, 0.4 * side],
+      [2.3, -0.4 * side],
+      [2.5, 1.3 * side],
+      [2.5, -1.3 * side],
+      [2.2, 2.4 * side],
+      [2.2, -2.4 * side],
+      [3.2, 0.2 * side],
+      [3.2, 2.9],
+    ];
+    for (const [d, ang] of spots) {
+      const x = at.pos[0] + Math.sin(at.yaw + ang) * d;
+      const z = at.pos[1] + Math.cos(at.yaw + ang) * d;
+      if (x < bx.x[0] + 0.5 || x > bx.x[1] - 0.5 || z < bx.z[0] + 0.5 || z > bx.z[1] - 0.5) continue;
+      // Over the shoulder from a little higher; and high enough that OrbitControls' polar limit leaves the cut alone.
+      const y = target.y + Math.max(Math.abs(ang) > 2 ? 0.65 : 0.4, d * 0.16);
+      const from = new THREE.Vector3(x, y, z);
+      // Clear air: no wall or desk within half a metre sideways of the lens.
+      if (([[1, 0], [-1, 0], [0, 1], [0, -1]] as const).some(([dx, dz]) => this.solidAlong(from, new THREE.Vector3(dx, 0, dz), 0.5) < Infinity)) continue;
+      // An unbroken line to their head.
+      const toHead = target.clone().sub(from);
+      const len = toHead.length();
+      if (this.solidAlong(from, toHead.normalize(), len - 0.3) < Infinity) continue;
+      return { pos: [x, y, z], target: [target.x, target.y, target.z] };
+    }
+    return null;
   }
 
   private targetFor(who: Character, zone: string, act: AgentAct | null, used: Map<string, number>): Target {

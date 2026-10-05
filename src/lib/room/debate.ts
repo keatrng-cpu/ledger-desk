@@ -22,8 +22,8 @@
  *   Nova      the desk model × the measured time curve
  *   Sterling  the model's odds read through its own OUT-OF-SAMPLE table
  *             (quant.ts calibratedP: 2025–26 deciles, pooled to be monotone)
- *             × the time curve — quoted, never gating (as a gate it picked
- *             worse tickets on four years, scripts/measure-room-ev.mjs)
+ *             × the time curve — quoted, never gating (as a gate it did not
+ *             pick better tickets on four years, scripts/measure-room-ev.mjs)
  *   Gemma     the model × NY AM's measured T1 rate over the baseline's — a
  *             session lens the fitted model does NOT use (it tested out at
  *             z −0.54), so the lab will show whether she is right to
@@ -175,7 +175,7 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   if (ev.calibrated && ev.calibrated.evUsd <= 0) {
     return {
       who: "Sterling",
-      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — on that it's ${usdSigned(ev.calibrated.evUsd)}. I'd refuse on it, but four years say refusing on it picked worse tickets, so it's noted, not blocking.`,
+      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — on that it's ${usdSigned(ev.calibrated.evUsd)}. I'd refuse on it, but four years say it did not pick better tickets, so it's noted, not blocking.`,
       want: "CHECKING_TABLET",
       decisive: false,
     };

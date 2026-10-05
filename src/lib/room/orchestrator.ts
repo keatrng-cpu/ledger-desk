@@ -707,9 +707,9 @@ function evaluateEntry(
       const cal = chosenEv.calibrated;
       const sgnUsd = (x: number) => `${x >= 0 ? "+" : "−"}${usd(Math.abs(x))}`;
       // The model's EV gates. The realized-decile EV is quoted, never gating: on
-      // four years the cards that passed BOTH did worse (−$16.67 a contract,
-      // n 21, z −1.76, scripts/measure-room-ev.mjs) — the option EV is most
-      // wrong exactly where it is most confident (far targets).
+      // four years the cards that passed BOTH averaged −$10.02 a contract (n 22,
+      // z −0.64, scripts/measure-room-ev.mjs): not shown to help, and the option
+      // EV looks least reliable where it is most confident (far targets).
       const evOk = chosenEv.evUsd > 0;
       const t1Label = chosenEv.t1Pays
         ? `T1 pays ${usd(chosenEv.t1PnlUsd)} a contract by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET`
