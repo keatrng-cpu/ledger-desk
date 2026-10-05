@@ -22,7 +22,8 @@
  *   Nova      the desk model × the measured time curve
  *   Sterling  the model's odds read through its own OUT-OF-SAMPLE table
  *             (quant.ts calibratedP: 2025–26 deciles, pooled to be monotone)
- *             × the time curve — the same number the EV gate requires
+ *             × the time curve — quoted, never gating (as a gate it picked
+ *             worse tickets on four years, scripts/measure-room-ev.mjs)
  *   Gemma     the model × NY AM's measured T1 rate over the baseline's — a
  *             session lens the fitted model does NOT use (it tested out at
  *             z −0.54), so the lab will show whether she is right to
@@ -36,6 +37,7 @@
  * number is a gate. Deterministic: same facts, same lines.
  */
 
+import EV_TEST from "@/data/room-ev-test.json";
 import { EVIDENCE } from "@/lib/trading/evidence";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import { MIN_TRACK, type LabRead } from "./lab";
@@ -107,6 +109,19 @@ export function consensus(l: Lenses, lab: LabRead | null): { p: number; weighted
   return { p: sw > 0 ? sp / sw : l.Nova.p, weighted };
 }
 
+/**
+ * The EV gate's own four-year record (scripts/measure-room-ev.mjs →
+ * src/data/room-ev-test.json): NY AM cards, VIX 18, 1 DTE, under the room's
+ * current exits (the mandate's). Sterling quotes it when he clears a ticket,
+ * so the room never sells its own filter as proven. Null without the file.
+ */
+export function gateRecord(): { n: number; passUsd: number; refuseUsd: number; z: number | null } | null {
+  const rows = (EV_TEST as unknown as { underMandate?: { pop: string; half: string; pass: { n: number; meanUsd: number | null }; refuse: { n: number; meanUsd: number | null }; passVsRefuse: { z: number | null } }[] }).underMandate ?? [];
+  const r = rows.find((x) => x.pop === "nyam" && x.half === "all");
+  if (!r || r.pass.meanUsd == null || r.refuse.meanUsd == null) return null;
+  return { n: r.pass.n + r.refuse.n, passUsd: r.pass.meanUsd, refuseUsd: r.refuse.meanUsd, z: r.passVsRefuse.z };
+}
+
 /* ── Who owns the thesis ───────────────────────────────────────────────── */
 
 /** The school a card's model name belongs to (smc-canon.ts schools, by their own vocabulary). */
@@ -160,9 +175,9 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   if (ev.calibrated && ev.calibrated.evUsd <= 0) {
     return {
       who: "Sterling",
-      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — and on that it's ${usdSigned(ev.calibrated.evUsd)} a contract. The model is optimistic exactly where options look best. I'm taking the realized number.`,
-      want: "CROSSING_ARMS",
-      decisive: true,
+      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — on that it's ${usdSigned(ev.calibrated.evUsd)}. I'd refuse on it, but four years say refusing on it picked worse tickets, so it's noted, not blocking.`,
+      want: "CHECKING_TABLET",
+      decisive: false,
     };
   }
   if (card.patterns?.inducement || card.patterns?.mitigation) {

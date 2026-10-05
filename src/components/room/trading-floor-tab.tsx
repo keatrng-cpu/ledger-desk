@@ -312,11 +312,11 @@ function LedgerPanel({ frame }: { frame: FloorFrame | null }) {
           </p>
           {L.evCalUsd != null && L.pCal != null ? (
             <p className={`font-mono text-[11px] ${L.evCalUsd > 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
-              On the model's out-of-sample hit rate ({pc(L.pCal)} for {pc(L.pT1Model)}): {sgn(L.evCalUsd)} — the gate wants both positive
+              On the model's out-of-sample hit rate ({pc(L.pCal)} for {pc(L.pT1Model)}): {sgn(L.evCalUsd)} — quoted, not a gate
             </p>
           ) : null}
           <p className="text-[10px] leading-snug text-[var(--color-subtle)]">
-            A refusal rule, not an edge claim: a ticket whose priced paths lose after costs — on the model's odds or on its realized out-of-sample rate — is refused, and the ghost room measures whether that helped.
+            A refusal rule, not an edge claim. On four years of real cards (2025–26 out of sample) the tickets it passed beat the ones it refused, but not by enough to call it shown (z 0.31) — its proven effect is trading about a quarter as often. The ghost room keeps measuring.
           </p>
         </div>
       )}

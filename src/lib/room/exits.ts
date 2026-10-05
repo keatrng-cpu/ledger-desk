@@ -5,22 +5,31 @@
  *
  * The trader's mandate (2026-10-04) is the base: −20% premium backstop, +40%
  * trims half with the stop to breakeven, flat at 11:00 for day tickets,
- * nothing held into 15:30, the futures LEVEL first. The room adds three rules
- * on top (ROOM_POLICY); the ghost room runs the mandate alone (MANDATE_POLICY)
- * beside every room fill so the difference is measured, not argued:
+ * nothing held into 15:30, the futures LEVEL first. Three room rules were
+ * built on top and tested on four years, paired on the same fills
+ * (scripts/measure-room-ev.mjs, rule fixed before the run, "helps" only at
+ * z >= 2 on 2025–26). The ghost room runs the mandate alone (MANDATE_POLICY)
+ * beside every room fill so what stays in ROOM_POLICY keeps being measured:
  *
- *   t1     trim half when the futures plan touches T1 — the desk's measured
- *          rule (50% at T1, stop to BE, runner to T2: +0.50R a trade on 122
- *          filled plans, CLAUDE.md). +40% still trims if it comes first.
+ *   t1     trim half when the futures plan touches T1 (the desk's futures
+ *          rule, +0.50R a trade). On the OPTION it measured −$1.31 a fill
+ *          against the mandate's +40% trim alone (n 146 NY AM, z −1.08),
+ *          negative in both halves and in the all-session check — so it is
+ *          OFF in ROOM_POLICY. Kept as a switch, never the default.
  *   theta  close an untrimmed option that is at or below its entry price
  *          when holding it is worth less than its bid: the measured odds of
  *          T1 before the flat (time-odds.ts) times what T1 pays no longer
  *          cover the other paths (quant.ts holdValue). A stalled-trade stop,
  *          never a profit-taker — it does not fire on a green position, and
- *          not at all without the measured time curve.
+ *          not at all without the measured time curve. Measured: no effect
+ *          (−$0.09 a fill, z −0.97) — on 1 DTE the −20% backstop already
+ *          bounds a stalled ticket, so it almost never binds. ON, as a
+ *          candidate the twins keep measuring.
  *   event  close an untrimmed option a few minutes before a high-impact
  *          release inside its holding window — a print can gap through a
  *          level stop, and long premium pays the post-release IV drop.
+ *          UNTESTED (no four-year release calendar in the repo yet). ON, as
+ *          a candidate the twins keep measuring.
  */
 
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
@@ -40,7 +49,7 @@ export interface ExitPolicy {
   eventGuard: boolean;
 }
 
-export const ROOM_POLICY: ExitPolicy = { premiumTrim: true, levelTrim: true, thetaStop: true, eventGuard: true };
+export const ROOM_POLICY: ExitPolicy = { premiumTrim: true, levelTrim: false, thetaStop: true, eventGuard: true };
 export const MANDATE_POLICY: ExitPolicy = { premiumTrim: true, levelTrim: false, thetaStop: false, eventGuard: false };
 
 /** How close to a high-impact release an untrimmed option is closed. */

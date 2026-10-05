@@ -24,7 +24,7 @@ export interface LedgerScreen {
   share: number | null;
   paths: { kind: "t1" | "loss" | "none"; p: number; pnlUsd: number; clock: string }[];
   evUsd: number;
-  /** The same paths on the model's out-of-sample hit rate — the second number the EV gate requires. */
+  /** The same paths on the model's out-of-sample hit rate — Sterling's number, quoted, not gating. */
   evCalUsd: number | null;
   pCal: number | null;
   t1Pays: boolean;
@@ -750,8 +750,7 @@ function drawLedger(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillStyle = C.text;
     ctx.fillText(`${signed(r.pnlUsd)} · ~${r.clock}`, bx + 10, y + 18);
   });
-  const both = L.evUsd > 0 && (L.evCalUsd == null || L.evCalUsd > 0);
-  ctx.fillStyle = L.held ? (L.evUsd > 0 ? C.up : C.down) : both ? C.up : C.down;
+  ctx.fillStyle = L.evUsd > 0 ? C.up : C.down;
   ctx.font = `900 40px ${MONO}`;
   ctx.textAlign = "right";
   ctx.fillText(`EV ${signed(L.evUsd)}`, w - 16, h - 78);

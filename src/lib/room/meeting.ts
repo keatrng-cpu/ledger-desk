@@ -43,7 +43,7 @@ import {
   signedPct,
   usd,
 } from "./format";
-import { challengeFor, preMortem, rebuttalFor, strikeWhy, tallyLine, thesisOwner, type Lenses } from "./debate";
+import { challengeFor, gateRecord, preMortem, rebuttalFor, strikeWhy, tallyLine, thesisOwner, type Lenses } from "./debate";
 import type { LabRead } from "./lab";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
 import { attribute, type HoldRead } from "./quant";
@@ -370,6 +370,9 @@ function priceText(e: EntryPlan): string {
  * rebuttal → (why this strike) → everyone's number → verdict → execution.
  * Null when the card has no priced plan — the older beat script runs instead.
  */
+/** "+$0.05" / "−$4.65" — the gate record is a few dollars, so it keeps its cents. */
+const signedCents = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(n).toFixed(2)}`;
+
 function debate(f: Facts, minds: MindState | null, mode: "wait" | "fill" | "veto"): Line[] | null {
   const e = f.entry;
   const c = f.card;
@@ -407,10 +410,14 @@ function debate(f: Facts, minds: MindState | null, mode: "wait" | "fill" | "veto
   lines.push(say("Gemma", tallyLine(f.lenses, f.lab, `${c.futSymbol}:${c.futSide}:${c.plan.entry.toFixed(2)}:${f.etDate}`), "EXPLAINING"));
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
   if (mode === "fill") {
+    const rec = gateRecord();
+    const recLine = rec
+      ? ` For the record, on ${rec.n} real NY AM cards this gate's passes made ${signedCents(rec.passUsd)} a contract and its refusals ${signedCents(rec.refuseUsd)} — right way, not proven${rec.z != null ? ` (z ${rec.z.toFixed(2)})` : ""}.`
+      : "";
     lines.push(
       say(
         "Sterling",
-        `Cleared: ${e.qty}× for ${usd(e.debitUsd)} under a ${usd(e.capUsd)} cap, level first, ${STOP_TXT} behind it${room != null ? `, halt room ${usd(room)}` : ""}. ${preMortem(c, ev)}`,
+        `Cleared: ${e.qty}× for ${usd(e.debitUsd)} under a ${usd(e.capUsd)} cap, level first, ${STOP_TXT} behind it${room != null ? `, halt room ${usd(room)}` : ""}. ${preMortem(c, ev)}${recLine}`,
         "APPROVING",
       ),
     );

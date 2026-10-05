@@ -90,9 +90,10 @@ export interface OptionEv {
   premiumStop: { fut: number; etf: number; atr: number | null; tighter: boolean; pT1Plan: number } | null;
   /**
    * The same paths weighted by the model's odds AFTER its own out-of-sample
-   * calibration (calibratedP) — Sterling's number. The model is optimistic
-   * exactly where options look best (far targets, p 12–28%: realized 3–5
-   * points under), so the room's EV gate wants both positive.
+   * calibration (calibratedP) — Sterling's number. Quoted, NOT a gate: it was
+   * built because the model is optimistic at p 12–28% (realized 3–5 points
+   * under), but requiring it as well picked WORSE tickets on four years
+   * (−$16.67 a contract, n 21, z −1.76, scripts/measure-room-ev.mjs).
    */
   calibrated: { p: number; pT1: number; pLoss: number; pNone: number; evUsd: number } | null;
   caveats: string[];

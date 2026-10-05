@@ -1,0 +1,2083 @@
+{
+ "version": 1,
+ "builtAt": "2026-10-05T00:49:57.447Z",
+ "script": "scripts/measure-room-ev.mjs",
+ "rule": {
+  "population": "measure-option-time population, filled (CE within 12 bars), fill bar opening 09:45–10:45 ET",
+  "contract": "ATM call/put on QQQ (NQ/40) or SPY (ES/10), 1 DTE primary / 0 DTE secondary, model ask at the fill bar's midpoint",
+  "iv": "fixed per run at VIX 14/18/24 via ivFor — no VIX in the 4-year file; gate and outcome priced under the same IV",
+  "gate": "quant.ts priceOptionPlan, flat 11:00, hit-odds model (fit 2022-24), time curves from 2022-24 only: PASS = EV > 0 and T1 pays",
+  "secondary": "calibrated gate (also EV > 0 on the model's 2025-26 decile table) — its 2025-26 half is in-sample for that table",
+  "exits": "ties against: plan stop or −20% backstop (runner: breakeven) → all out; T1 (not the fill bar) → half; else +40% → half; failed-hold close → all; 11:00 → rest",
+  "exitTest": "paired on the same fills (VIX 18, 1 DTE): mandate (+40% only) vs room (T1 trim first) vs room + theta stop (bar close, untrimmed, ≤ premium paid, holdValue edge < 0); helps only at z >= 2 on 2025-26",
+  "verdictRule": "HELPS only if on 2025-26 at VIX 18, 1 DTE: PASS − REFUSE z >= 2 (day-block bootstrap) AND PASS mean > 0"
+ },
+ "curves": ".cache/room-time-odds-is.json",
+ "population": {
+  "cards": 5113,
+  "eligible": 1895,
+  "unfilled": 563,
+  "outsideWindow": {
+   "nyam": 1186,
+   "rth": 1075
+  },
+  "priced": {
+   "nyam": 146,
+   "rth": 257
+  }
+ },
+ "verdict": "not shown on 2025–26 (VIX 18, 1 DTE): PASS 3.04 $/contract (n 14) vs REFUSE -4.44 (n 41), z 0.31",
+ "exits": [
+  {
+   "pop": "nyam",
+   "half": "is",
+   "n": 91,
+   "mandateUsd": -4.86,
+   "roomUsd": -6.32,
+   "thetaUsd": -6.46,
+   "t1TrimVsMandate": {
+    "n": 91,
+    "meanUsd": -1.47,
+    "se": 1.5,
+    "z": -0.97
+   },
+   "thetaVsRoom": {
+    "n": 91,
+    "meanUsd": -0.14,
+    "se": 0.14,
+    "z": -1
+   }
+  },
+  {
+   "pop": "nyam",
+   "half": "oos",
+   "n": 55,
+   "mandateUsd": -1.48,
+   "roomUsd": -2.54,
+   "thetaUsd": -2.54,
+   "t1TrimVsMandate": {
+    "n": 55,
+    "meanUsd": -1.05,
+    "se": 2.06,
+    "z": -0.51
+   },
+   "thetaVsRoom": {
+    "n": 55,
+    "meanUsd": 0,
+    "se": 0,
+    "z": null
+   }
+  },
+  {
+   "pop": "nyam",
+   "half": "all",
+   "n": 146,
+   "mandateUsd": -3.59,
+   "roomUsd": -4.9,
+   "thetaUsd": -4.98,
+   "t1TrimVsMandate": {
+    "n": 146,
+    "meanUsd": -1.31,
+    "se": 1.22,
+    "z": -1.08
+   },
+   "thetaVsRoom": {
+    "n": 146,
+    "meanUsd": -0.09,
+    "se": 0.09,
+    "z": -0.97
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "is",
+   "n": 150,
+   "mandateUsd": -2.81,
+   "roomUsd": -4.33,
+   "thetaUsd": -4.07,
+   "t1TrimVsMandate": {
+    "n": 150,
+    "meanUsd": -1.52,
+    "se": 1.46,
+    "z": -1.04
+   },
+   "thetaVsRoom": {
+    "n": 150,
+    "meanUsd": 0.26,
+    "se": 0.31,
+    "z": 0.84
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "oos",
+   "n": 107,
+   "mandateUsd": -3.41,
+   "roomUsd": -4.03,
+   "thetaUsd": -4.22,
+   "t1TrimVsMandate": {
+    "n": 107,
+    "meanUsd": -0.62,
+    "se": 2.09,
+    "z": -0.3
+   },
+   "thetaVsRoom": {
+    "n": 107,
+    "meanUsd": -0.19,
+    "se": 0.67,
+    "z": -0.29
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "all",
+   "n": 257,
+   "mandateUsd": -3.06,
+   "roomUsd": -4.21,
+   "thetaUsd": -4.13,
+   "t1TrimVsMandate": {
+    "n": 257,
+    "meanUsd": -1.15,
+    "se": 1.18,
+    "z": -0.97
+   },
+   "thetaVsRoom": {
+    "n": 257,
+    "meanUsd": 0.07,
+    "se": 0.32,
+    "z": 0.23
+   }
+  }
+ ],
+ "underMandate": [
+  {
+   "pop": "nyam",
+   "half": "is",
+   "pass": {
+    "n": 19,
+    "meanUsd": -2.16,
+    "winRate": 0.316,
+    "meanPctPremium": -0.009
+   },
+   "refuse": {
+    "n": 72,
+    "meanUsd": -5.57,
+    "winRate": 0.278,
+    "meanPctPremium": -0.026
+   },
+   "passVsRefuse": {
+    "diffUsd": 3.41,
+    "se": 12.45,
+    "z": 0.27
+   }
+  },
+  {
+   "pop": "nyam",
+   "half": "oos",
+   "pass": {
+    "n": 14,
+    "meanUsd": 3.04,
+    "winRate": 0.286,
+    "meanPctPremium": -0.008
+   },
+   "refuse": {
+    "n": 41,
+    "meanUsd": -3.02,
+    "winRate": 0.293,
+    "meanPctPremium": -0.011
+   },
+   "passVsRefuse": {
+    "diffUsd": 6.06,
+    "se": 24.52,
+    "z": 0.25
+   }
+  },
+  {
+   "pop": "nyam",
+   "half": "all",
+   "pass": {
+    "n": 33,
+    "meanUsd": 0.05,
+    "winRate": 0.303,
+    "meanPctPremium": -0.008
+   },
+   "refuse": {
+    "n": 113,
+    "meanUsd": -4.65,
+    "winRate": 0.283,
+    "meanPctPremium": -0.021
+   },
+   "passVsRefuse": {
+    "diffUsd": 4.69,
+    "se": 12.13,
+    "z": 0.39
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "is",
+   "pass": {
+    "n": 5,
+    "meanUsd": -22.6,
+    "winRate": 0.2,
+    "meanPctPremium": -0.067
+   },
+   "refuse": {
+    "n": 145,
+    "meanUsd": -2.13,
+    "winRate": 0.276,
+    "meanPctPremium": -0.013
+   },
+   "passVsRefuse": {
+    "diffUsd": -20.47,
+    "se": 19.08,
+    "z": -1.07
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "oos",
+   "pass": {
+    "n": 3,
+    "meanUsd": 17.33,
+    "winRate": 0.333,
+    "meanPctPremium": 0.092
+   },
+   "refuse": {
+    "n": 104,
+    "meanUsd": -4,
+    "winRate": 0.308,
+    "meanPctPremium": -0.023
+   },
+   "passVsRefuse": {
+    "diffUsd": 21.34,
+    "se": 73.39,
+    "z": 0.29
+   }
+  },
+  {
+   "pop": "rth",
+   "half": "all",
+   "pass": {
+    "n": 8,
+    "meanUsd": -7.62,
+    "winRate": 0.25,
+    "meanPctPremium": -0.007
+   },
+   "refuse": {
+    "n": 249,
+    "meanUsd": -2.91,
+    "winRate": 0.289,
+    "meanPctPremium": -0.017
+   },
+   "passVsRefuse": {
+    "diffUsd": -4.71,
+    "se": 29.89,
+    "z": -0.16
+   }
+  }
+ ],
+ "secondary": "RTH 09:45–14:30, 75-minute hold, 2025–26, VIX 18, 1 DTE: PASS 17.33 $/contract (n 3) vs REFUSE -4.64 (n 104), z 0.3",
+ "results": [
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -4.75,
+    "winRate": 0.33,
+    "meanPctPremium": -0.024
+   },
+   "pass": {
+    "n": 27,
+    "meanUsd": -8.33,
+    "winRate": 0.222,
+    "meanPctPremium": -0.054
+   },
+   "refuse": {
+    "n": 64,
+    "meanUsd": -3.24,
+    "winRate": 0.375,
+    "meanPctPremium": -0.011
+   },
+   "passVsRefuse": {
+    "diffUsd": -5.09,
+    "se": 8.6,
+    "z": -0.59
+   },
+   "passCal": {
+    "n": 16,
+    "meanUsd": -11.44,
+    "winRate": 0.25,
+    "meanPctPremium": -0.054
+   },
+   "passCalVsRest": {
+    "diffUsd": -8.11,
+    "se": 6.72,
+    "z": -1.21
+   },
+   "exits": {
+    "t1": 13,
+    "plus40": 3,
+    "stop": 39,
+    "backstop": 7,
+    "failed_hold": 7,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 15
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -0.61,
+    "winRate": 0.309,
+    "meanPctPremium": -0.005
+   },
+   "pass": {
+    "n": 16,
+    "meanUsd": 20.03,
+    "winRate": 0.438,
+    "meanPctPremium": 0.076
+   },
+   "refuse": {
+    "n": 39,
+    "meanUsd": -9.08,
+    "winRate": 0.256,
+    "meanPctPremium": -0.038
+   },
+   "passVsRefuse": {
+    "diffUsd": 29.11,
+    "se": 23.01,
+    "z": 1.27
+   },
+   "passCal": {
+    "n": 8,
+    "meanUsd": -18.81,
+    "winRate": 0.125,
+    "meanPctPremium": -0.072
+   },
+   "passCalVsRest": {
+    "diffUsd": -21.3,
+    "se": 25.92,
+    "z": -0.82
+   },
+   "exits": {
+    "t1": 8,
+    "plus40": 2,
+    "stop": 20,
+    "backstop": 9,
+    "failed_hold": 6,
+    "runner_stop": 1,
+    "runner_be": 3,
+    "flat": 6
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -3.19,
+    "winRate": 0.322,
+    "meanPctPremium": -0.017
+   },
+   "pass": {
+    "n": 43,
+    "meanUsd": 2.22,
+    "winRate": 0.302,
+    "meanPctPremium": -0.006
+   },
+   "refuse": {
+    "n": 103,
+    "meanUsd": -5.45,
+    "winRate": 0.33,
+    "meanPctPremium": -0.021
+   },
+   "passVsRefuse": {
+    "diffUsd": 7.67,
+    "se": 10.44,
+    "z": 0.74
+   },
+   "passCal": {
+    "n": 24,
+    "meanUsd": -13.9,
+    "winRate": 0.208,
+    "meanPctPremium": -0.06
+   },
+   "passCalVsRest": {
+    "diffUsd": -12.81,
+    "se": 9.57,
+    "z": -1.34
+   },
+   "exits": {
+    "t1": 21,
+    "plus40": 5,
+    "stop": 59,
+    "backstop": 16,
+    "failed_hold": 13,
+    "runner_stop": 2,
+    "runner_be": 9,
+    "flat": 21
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -2.92,
+    "winRate": 0.187,
+    "meanPctPremium": -0.037
+   },
+   "pass": {
+    "n": 20,
+    "meanUsd": 0.23,
+    "winRate": 0.25,
+    "meanPctPremium": 0.019
+   },
+   "refuse": {
+    "n": 71,
+    "meanUsd": -3.8,
+    "winRate": 0.169,
+    "meanPctPremium": -0.053
+   },
+   "passVsRefuse": {
+    "diffUsd": 4.03,
+    "se": 8.32,
+    "z": 0.48
+   },
+   "passCal": {
+    "n": 20,
+    "meanUsd": 0.23,
+    "winRate": 0.25,
+    "meanPctPremium": 0.019
+   },
+   "passCalVsRest": {
+    "diffUsd": 4.03,
+    "se": 8.32,
+    "z": 0.48
+   },
+   "exits": {
+    "t1": 7,
+    "plus40": 2,
+    "stop": 30,
+    "backstop": 41,
+    "failed_hold": 1,
+    "runner_stop": 2,
+    "runner_be": 1,
+    "flat": 7
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -3.81,
+    "winRate": 0.127,
+    "meanPctPremium": -0.054
+   },
+   "pass": {
+    "n": 11,
+    "meanUsd": 3.23,
+    "winRate": 0.182,
+    "meanPctPremium": 0.025
+   },
+   "refuse": {
+    "n": 44,
+    "meanUsd": -5.57,
+    "winRate": 0.114,
+    "meanPctPremium": -0.074
+   },
+   "passVsRefuse": {
+    "diffUsd": 8.8,
+    "se": 15.58,
+    "z": 0.56
+   },
+   "passCal": {
+    "n": 11,
+    "meanUsd": 3.23,
+    "winRate": 0.182,
+    "meanPctPremium": 0.025
+   },
+   "passCalVsRest": {
+    "diffUsd": 8.8,
+    "se": 15.58,
+    "z": 0.56
+   },
+   "exits": {
+    "t1": 3,
+    "plus40": 3,
+    "stop": 17,
+    "backstop": 29,
+    "failed_hold": 2,
+    "runner_stop": 1,
+    "runner_be": 0,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 14,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -3.25,
+    "winRate": 0.164,
+    "meanPctPremium": -0.044
+   },
+   "pass": {
+    "n": 31,
+    "meanUsd": 1.29,
+    "winRate": 0.226,
+    "meanPctPremium": 0.021
+   },
+   "refuse": {
+    "n": 115,
+    "meanUsd": -4.48,
+    "winRate": 0.148,
+    "meanPctPremium": -0.061
+   },
+   "passVsRefuse": {
+    "diffUsd": 5.77,
+    "se": 7.63,
+    "z": 0.76
+   },
+   "passCal": {
+    "n": 31,
+    "meanUsd": 1.29,
+    "winRate": 0.226,
+    "meanPctPremium": 0.021
+   },
+   "passCalVsRest": {
+    "diffUsd": 5.77,
+    "se": 7.63,
+    "z": 0.76
+   },
+   "exits": {
+    "t1": 10,
+    "plus40": 5,
+    "stop": 47,
+    "backstop": 70,
+    "failed_hold": 3,
+    "runner_stop": 3,
+    "runner_be": 1,
+    "flat": 7
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -6.32,
+    "winRate": 0.33,
+    "meanPctPremium": -0.027
+   },
+   "pass": {
+    "n": 19,
+    "meanUsd": -2.16,
+    "winRate": 0.316,
+    "meanPctPremium": -0.009
+   },
+   "refuse": {
+    "n": 72,
+    "meanUsd": -7.42,
+    "winRate": 0.333,
+    "meanPctPremium": -0.031
+   },
+   "passVsRefuse": {
+    "diffUsd": 5.27,
+    "se": 11.99,
+    "z": 0.44
+   },
+   "passCal": {
+    "n": 16,
+    "meanUsd": -12.12,
+    "winRate": 0.25,
+    "meanPctPremium": -0.044
+   },
+   "passCalVsRest": {
+    "diffUsd": -7.04,
+    "se": 7.18,
+    "z": -0.98
+   },
+   "exits": {
+    "t1": 13,
+    "plus40": 3,
+    "stop": 39,
+    "backstop": 6,
+    "failed_hold": 7,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 16
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -2.54,
+    "winRate": 0.309,
+    "meanPctPremium": -0.011
+   },
+   "pass": {
+    "n": 14,
+    "meanUsd": 3.04,
+    "winRate": 0.286,
+    "meanPctPremium": -0.008
+   },
+   "refuse": {
+    "n": 41,
+    "meanUsd": -4.44,
+    "winRate": 0.317,
+    "meanPctPremium": -0.012
+   },
+   "passVsRefuse": {
+    "diffUsd": 7.47,
+    "se": 24.11,
+    "z": 0.31
+   },
+   "passCal": {
+    "n": 5,
+    "meanUsd": -31.2,
+    "winRate": 0,
+    "meanPctPremium": -0.097
+   },
+   "passCalVsRest": {
+    "diffUsd": -31.53,
+    "se": 16.94,
+    "z": -1.86
+   },
+   "exits": {
+    "t1": 8,
+    "plus40": 2,
+    "stop": 21,
+    "backstop": 6,
+    "failed_hold": 7,
+    "runner_stop": 1,
+    "runner_be": 3,
+    "flat": 7
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -4.9,
+    "winRate": 0.322,
+    "meanPctPremium": -0.021
+   },
+   "pass": {
+    "n": 33,
+    "meanUsd": 0.05,
+    "winRate": 0.303,
+    "meanPctPremium": -0.008
+   },
+   "refuse": {
+    "n": 113,
+    "meanUsd": -6.34,
+    "winRate": 0.327,
+    "meanPctPremium": -0.024
+   },
+   "passVsRefuse": {
+    "diffUsd": 6.39,
+    "se": 11.8,
+    "z": 0.54
+   },
+   "passCal": {
+    "n": 21,
+    "meanUsd": -16.67,
+    "winRate": 0.19,
+    "meanPctPremium": -0.056
+   },
+   "passCalVsRest": {
+    "diffUsd": -13.75,
+    "se": 7.8,
+    "z": -1.76
+   },
+   "exits": {
+    "t1": 21,
+    "plus40": 5,
+    "stop": 60,
+    "backstop": 12,
+    "failed_hold": 14,
+    "runner_stop": 2,
+    "runner_be": 9,
+    "flat": 23
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -2.48,
+    "winRate": 0.253,
+    "meanPctPremium": -0.02
+   },
+   "pass": {
+    "n": 20,
+    "meanUsd": -3.42,
+    "winRate": 0.2,
+    "meanPctPremium": -0.022
+   },
+   "refuse": {
+    "n": 71,
+    "meanUsd": -2.21,
+    "winRate": 0.268,
+    "meanPctPremium": -0.019
+   },
+   "passVsRefuse": {
+    "diffUsd": -1.21,
+    "se": 8.42,
+    "z": -0.14
+   },
+   "passCal": {
+    "n": 18,
+    "meanUsd": -1.69,
+    "winRate": 0.222,
+    "meanPctPremium": -0.003
+   },
+   "passCalVsRest": {
+    "diffUsd": 0.98,
+    "se": 9.12,
+    "z": 0.11
+   },
+   "exits": {
+    "t1": 10,
+    "plus40": 2,
+    "stop": 34,
+    "backstop": 29,
+    "failed_hold": 1,
+    "runner_stop": 2,
+    "runner_be": 4,
+    "flat": 9
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -7.92,
+    "winRate": 0.127,
+    "meanPctPremium": -0.072
+   },
+   "pass": {
+    "n": 10,
+    "meanUsd": 1.7,
+    "winRate": 0.2,
+    "meanPctPremium": 0.015
+   },
+   "refuse": {
+    "n": 45,
+    "meanUsd": -10.06,
+    "winRate": 0.111,
+    "meanPctPremium": -0.091
+   },
+   "passVsRefuse": {
+    "diffUsd": 11.76,
+    "se": 17.45,
+    "z": 0.67
+   },
+   "passCal": {
+    "n": 9,
+    "meanUsd": 5.33,
+    "winRate": 0.222,
+    "meanPctPremium": 0.038
+   },
+   "passCalVsRest": {
+    "diffUsd": 15.84,
+    "se": 18.92,
+    "z": 0.84
+   },
+   "exits": {
+    "t1": 4,
+    "plus40": 3,
+    "stop": 18,
+    "backstop": 26,
+    "failed_hold": 3,
+    "runner_stop": 0,
+    "runner_be": 0,
+    "flat": 1
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 18,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -4.53,
+    "winRate": 0.205,
+    "meanPctPremium": -0.04
+   },
+   "pass": {
+    "n": 30,
+    "meanUsd": -1.72,
+    "winRate": 0.2,
+    "meanPctPremium": -0.01
+   },
+   "refuse": {
+    "n": 116,
+    "meanUsd": -5.25,
+    "winRate": 0.207,
+    "meanPctPremium": -0.047
+   },
+   "passVsRefuse": {
+    "diffUsd": 3.54,
+    "se": 7.89,
+    "z": 0.45
+   },
+   "passCal": {
+    "n": 27,
+    "meanUsd": 0.65,
+    "winRate": 0.222,
+    "meanPctPremium": 0.011
+   },
+   "passCalVsRest": {
+    "diffUsd": 6.35,
+    "se": 8.54,
+    "z": 0.74
+   },
+   "exits": {
+    "t1": 14,
+    "plus40": 5,
+    "stop": 52,
+    "backstop": 55,
+    "failed_hold": 4,
+    "runner_stop": 2,
+    "runner_be": 4,
+    "flat": 10
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -7.19,
+    "winRate": 0.341,
+    "meanPctPremium": -0.022
+   },
+   "pass": {
+    "n": 19,
+    "meanUsd": -4.05,
+    "winRate": 0.316,
+    "meanPctPremium": -0.019
+   },
+   "refuse": {
+    "n": 72,
+    "meanUsd": -8.02,
+    "winRate": 0.347,
+    "meanPctPremium": -0.023
+   },
+   "passVsRefuse": {
+    "diffUsd": 3.97,
+    "se": 12.16,
+    "z": 0.33
+   },
+   "passCal": {
+    "n": 16,
+    "meanUsd": -14.56,
+    "winRate": 0.25,
+    "meanPctPremium": -0.04
+   },
+   "passCalVsRest": {
+    "diffUsd": -8.94,
+    "se": 8.06,
+    "z": -1.11
+   },
+   "exits": {
+    "t1": 14,
+    "plus40": 0,
+    "stop": 40,
+    "backstop": 4,
+    "failed_hold": 7,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 19
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -8.32,
+    "winRate": 0.291,
+    "meanPctPremium": -0.021
+   },
+   "pass": {
+    "n": 9,
+    "meanUsd": 1.11,
+    "winRate": 0.222,
+    "meanPctPremium": 0
+   },
+   "refuse": {
+    "n": 46,
+    "meanUsd": -10.16,
+    "winRate": 0.304,
+    "meanPctPremium": -0.025
+   },
+   "passVsRefuse": {
+    "diffUsd": 11.27,
+    "se": 31.2,
+    "z": 0.36
+   },
+   "passCal": {
+    "n": 6,
+    "meanUsd": -36.83,
+    "winRate": 0,
+    "meanPctPremium": -0.093
+   },
+   "passCalVsRest": {
+    "diffUsd": -32.01,
+    "se": 16.87,
+    "z": -1.9
+   },
+   "exits": {
+    "t1": 8,
+    "plus40": 1,
+    "stop": 22,
+    "backstop": 4,
+    "failed_hold": 9,
+    "runner_stop": 0,
+    "runner_be": 3,
+    "flat": 8
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -7.62,
+    "winRate": 0.322,
+    "meanPctPremium": -0.022
+   },
+   "pass": {
+    "n": 28,
+    "meanUsd": -2.39,
+    "winRate": 0.286,
+    "meanPctPremium": -0.013
+   },
+   "refuse": {
+    "n": 118,
+    "meanUsd": -8.86,
+    "winRate": 0.331,
+    "meanPctPremium": -0.024
+   },
+   "passVsRefuse": {
+    "diffUsd": 6.46,
+    "se": 12.8,
+    "z": 0.5
+   },
+   "passCal": {
+    "n": 22,
+    "meanUsd": -20.64,
+    "winRate": 0.182,
+    "meanPctPremium": -0.055
+   },
+   "passCalVsRest": {
+    "diffUsd": -15.33,
+    "se": 8.45,
+    "z": -1.81
+   },
+   "exits": {
+    "t1": 22,
+    "plus40": 1,
+    "stop": 62,
+    "backstop": 8,
+    "failed_hold": 16,
+    "runner_stop": 1,
+    "runner_be": 9,
+    "flat": 27
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 91,
+    "meanUsd": -4.87,
+    "winRate": 0.275,
+    "meanPctPremium": -0.031
+   },
+   "pass": {
+    "n": 20,
+    "meanUsd": -4.75,
+    "winRate": 0.25,
+    "meanPctPremium": -0.029
+   },
+   "refuse": {
+    "n": 71,
+    "meanUsd": -4.9,
+    "winRate": 0.282,
+    "meanPctPremium": -0.031
+   },
+   "passVsRefuse": {
+    "diffUsd": 0.15,
+    "se": 8.93,
+    "z": 0.02
+   },
+   "passCal": {
+    "n": 18,
+    "meanUsd": -5.56,
+    "winRate": 0.222,
+    "meanPctPremium": -0.037
+   },
+   "passCalVsRest": {
+    "diffUsd": -0.86,
+    "se": 9.51,
+    "z": -0.09
+   },
+   "exits": {
+    "t1": 11,
+    "plus40": 3,
+    "stop": 39,
+    "backstop": 21,
+    "failed_hold": 1,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 9
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 55,
+    "meanUsd": -2.76,
+    "winRate": 0.218,
+    "meanPctPremium": -0.024
+   },
+   "pass": {
+    "n": 8,
+    "meanUsd": -12.19,
+    "winRate": 0.125,
+    "meanPctPremium": -0.091
+   },
+   "refuse": {
+    "n": 47,
+    "meanUsd": -1.16,
+    "winRate": 0.234,
+    "meanPctPremium": -0.012
+   },
+   "passVsRefuse": {
+    "diffUsd": -11.03,
+    "se": 19.82,
+    "z": -0.56
+   },
+   "passCal": {
+    "n": 6,
+    "meanUsd": -29.17,
+    "winRate": 0,
+    "meanPctPremium": -0.179
+   },
+   "passCalVsRest": {
+    "diffUsd": -29.64,
+    "se": 10.63,
+    "z": -2.79
+   },
+   "exits": {
+    "t1": 6,
+    "plus40": 3,
+    "stop": 18,
+    "backstop": 21,
+    "failed_hold": 3,
+    "runner_stop": 1,
+    "runner_be": 1,
+    "flat": 2
+   }
+  },
+  {
+   "pop": "nyam",
+   "vix": 24,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 146,
+    "meanUsd": -4.08,
+    "winRate": 0.253,
+    "meanPctPremium": -0.028
+   },
+   "pass": {
+    "n": 28,
+    "meanUsd": -6.87,
+    "winRate": 0.214,
+    "meanPctPremium": -0.047
+   },
+   "refuse": {
+    "n": 118,
+    "meanUsd": -3.41,
+    "winRate": 0.263,
+    "meanPctPremium": -0.024
+   },
+   "passVsRefuse": {
+    "diffUsd": -3.46,
+    "se": 8.75,
+    "z": -0.4
+   },
+   "passCal": {
+    "n": 24,
+    "meanUsd": -11.46,
+    "winRate": 0.167,
+    "meanPctPremium": -0.073
+   },
+   "passCalVsRest": {
+    "diffUsd": -8.84,
+    "se": 8.09,
+    "z": -1.09
+   },
+   "exits": {
+    "t1": 17,
+    "plus40": 6,
+    "stop": 57,
+    "backstop": 42,
+    "failed_hold": 4,
+    "runner_stop": 2,
+    "runner_be": 7,
+    "flat": 11
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -2.54,
+    "winRate": 0.307,
+    "meanPctPremium": -0.013
+   },
+   "pass": {
+    "n": 5,
+    "meanUsd": 23.6,
+    "winRate": 0.6,
+    "meanPctPremium": 0.148
+   },
+   "refuse": {
+    "n": 145,
+    "meanUsd": -3.44,
+    "winRate": 0.297,
+    "meanPctPremium": -0.018
+   },
+   "passVsRefuse": {
+    "diffUsd": 27.04,
+    "se": 32.14,
+    "z": 0.84
+   },
+   "passCal": {
+    "n": 2,
+    "meanUsd": -39,
+    "winRate": 0,
+    "meanPctPremium": -0.146
+   },
+   "passCalVsRest": {
+    "diffUsd": -36.95,
+    "se": 12.28,
+    "z": -3.01
+   },
+   "exits": {
+    "t1": 19,
+    "plus40": 4,
+    "stop": 61,
+    "backstop": 24,
+    "failed_hold": 10,
+    "runner_stop": 4,
+    "runner_be": 13,
+    "flat": 15
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -3.89,
+    "winRate": 0.308,
+    "meanPctPremium": -0.022
+   },
+   "pass": {
+    "n": 6,
+    "meanUsd": 2.08,
+    "winRate": 0.333,
+    "meanPctPremium": 0.021
+   },
+   "refuse": {
+    "n": 101,
+    "meanUsd": -4.25,
+    "winRate": 0.307,
+    "meanPctPremium": -0.025
+   },
+   "passVsRefuse": {
+    "diffUsd": 6.33,
+    "se": 38,
+    "z": 0.17
+   },
+   "passCal": {
+    "n": 0,
+    "meanUsd": null,
+    "winRate": null,
+    "meanPctPremium": null
+   },
+   "passCalVsRest": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "exits": {
+    "t1": 10,
+    "plus40": 9,
+    "stop": 33,
+    "backstop": 30,
+    "failed_hold": 9,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 9
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -3.11,
+    "winRate": 0.307,
+    "meanPctPremium": -0.017
+   },
+   "pass": {
+    "n": 11,
+    "meanUsd": 11.86,
+    "winRate": 0.455,
+    "meanPctPremium": 0.079
+   },
+   "refuse": {
+    "n": 246,
+    "meanUsd": -3.77,
+    "winRate": 0.301,
+    "meanPctPremium": -0.021
+   },
+   "passVsRefuse": {
+    "diffUsd": 15.64,
+    "se": 23.96,
+    "z": 0.65
+   },
+   "passCal": {
+    "n": 2,
+    "meanUsd": -39,
+    "winRate": 0,
+    "meanPctPremium": -0.146
+   },
+   "passCalVsRest": {
+    "diffUsd": -36.18,
+    "se": 11.95,
+    "z": -3.03
+   },
+   "exits": {
+    "t1": 29,
+    "plus40": 13,
+    "stop": 94,
+    "backstop": 54,
+    "failed_hold": 19,
+    "runner_stop": 5,
+    "runner_be": 19,
+    "flat": 24
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -1.77,
+    "winRate": 0.147,
+    "meanPctPremium": -0.044
+   },
+   "pass": {
+    "n": 10,
+    "meanUsd": 2.95,
+    "winRate": 0.1,
+    "meanPctPremium": 0.018
+   },
+   "refuse": {
+    "n": 140,
+    "meanUsd": -2.1,
+    "winRate": 0.15,
+    "meanPctPremium": -0.048
+   },
+   "passVsRefuse": {
+    "diffUsd": 5.05,
+    "se": 12.68,
+    "z": 0.4
+   },
+   "passCal": {
+    "n": 10,
+    "meanUsd": 2.95,
+    "winRate": 0.1,
+    "meanPctPremium": 0.018
+   },
+   "passCalVsRest": {
+    "diffUsd": 5.05,
+    "se": 12.68,
+    "z": 0.4
+   },
+   "exits": {
+    "t1": 8,
+    "plus40": 3,
+    "stop": 44,
+    "backstop": 83,
+    "failed_hold": 1,
+    "runner_stop": 3,
+    "runner_be": 8,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -7.05,
+    "winRate": 0.084,
+    "meanPctPremium": -0.101
+   },
+   "pass": {
+    "n": 19,
+    "meanUsd": -2.68,
+    "winRate": 0.105,
+    "meanPctPremium": -0.079
+   },
+   "refuse": {
+    "n": 88,
+    "meanUsd": -7.99,
+    "winRate": 0.08,
+    "meanPctPremium": -0.106
+   },
+   "passVsRefuse": {
+    "diffUsd": 5.3,
+    "se": 12.82,
+    "z": 0.41
+   },
+   "passCal": {
+    "n": 19,
+    "meanUsd": -2.68,
+    "winRate": 0.105,
+    "meanPctPremium": -0.079
+   },
+   "passCalVsRest": {
+    "diffUsd": 5.3,
+    "se": 12.82,
+    "z": 0.41
+   },
+   "exits": {
+    "t1": 3,
+    "plus40": 5,
+    "stop": 26,
+    "backstop": 70,
+    "failed_hold": 2,
+    "runner_stop": 1,
+    "runner_be": 0,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 14,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -3.96,
+    "winRate": 0.121,
+    "meanPctPremium": -0.068
+   },
+   "pass": {
+    "n": 29,
+    "meanUsd": -0.74,
+    "winRate": 0.103,
+    "meanPctPremium": -0.046
+   },
+   "refuse": {
+    "n": 228,
+    "meanUsd": -4.37,
+    "winRate": 0.123,
+    "meanPctPremium": -0.071
+   },
+   "passVsRefuse": {
+    "diffUsd": 3.63,
+    "se": 8.32,
+    "z": 0.44
+   },
+   "passCal": {
+    "n": 29,
+    "meanUsd": -0.74,
+    "winRate": 0.103,
+    "meanPctPremium": -0.046
+   },
+   "passCalVsRest": {
+    "diffUsd": 3.63,
+    "se": 8.32,
+    "z": 0.44
+   },
+   "exits": {
+    "t1": 11,
+    "plus40": 8,
+    "stop": 70,
+    "backstop": 153,
+    "failed_hold": 3,
+    "runner_stop": 4,
+    "runner_be": 8,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -4.33,
+    "winRate": 0.313,
+    "meanPctPremium": -0.019
+   },
+   "pass": {
+    "n": 5,
+    "meanUsd": -22.6,
+    "winRate": 0.2,
+    "meanPctPremium": -0.067
+   },
+   "refuse": {
+    "n": 145,
+    "meanUsd": -3.7,
+    "winRate": 0.317,
+    "meanPctPremium": -0.017
+   },
+   "passVsRefuse": {
+    "diffUsd": -18.9,
+    "se": 18.93,
+    "z": -1
+   },
+   "passCal": {
+    "n": 2,
+    "meanUsd": -40,
+    "winRate": 0,
+    "meanPctPremium": -0.118
+   },
+   "passCalVsRest": {
+    "diffUsd": -36.15,
+    "se": 11.67,
+    "z": -3.1
+   },
+   "exits": {
+    "t1": 21,
+    "plus40": 4,
+    "stop": 65,
+    "backstop": 15,
+    "failed_hold": 13,
+    "runner_stop": 3,
+    "runner_be": 13,
+    "flat": 16
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -4.03,
+    "winRate": 0.336,
+    "meanPctPremium": -0.02
+   },
+   "pass": {
+    "n": 3,
+    "meanUsd": 17.33,
+    "winRate": 0.333,
+    "meanPctPremium": 0.092
+   },
+   "refuse": {
+    "n": 104,
+    "meanUsd": -4.64,
+    "winRate": 0.337,
+    "meanPctPremium": -0.023
+   },
+   "passVsRefuse": {
+    "diffUsd": 21.98,
+    "se": 73.36,
+    "z": 0.3
+   },
+   "passCal": {
+    "n": 0,
+    "meanUsd": null,
+    "winRate": null,
+    "meanPctPremium": null
+   },
+   "passCalVsRest": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "exits": {
+    "t1": 13,
+    "plus40": 4,
+    "stop": 39,
+    "backstop": 16,
+    "failed_hold": 11,
+    "runner_stop": 1,
+    "runner_be": 5,
+    "flat": 18
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -4.21,
+    "winRate": 0.323,
+    "meanPctPremium": -0.019
+   },
+   "pass": {
+    "n": 8,
+    "meanUsd": -7.62,
+    "winRate": 0.25,
+    "meanPctPremium": -0.007
+   },
+   "refuse": {
+    "n": 249,
+    "meanUsd": -4.1,
+    "winRate": 0.325,
+    "meanPctPremium": -0.02
+   },
+   "passVsRefuse": {
+    "diffUsd": -3.53,
+    "se": 29.8,
+    "z": -0.12
+   },
+   "passCal": {
+    "n": 2,
+    "meanUsd": -40,
+    "winRate": 0,
+    "meanPctPremium": -0.118
+   },
+   "passCalVsRest": {
+    "diffUsd": -36.07,
+    "se": 11.37,
+    "z": -3.17
+   },
+   "exits": {
+    "t1": 34,
+    "plus40": 8,
+    "stop": 104,
+    "backstop": 31,
+    "failed_hold": 24,
+    "runner_stop": 4,
+    "runner_be": 18,
+    "flat": 34
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -1.75,
+    "winRate": 0.193,
+    "meanPctPremium": -0.031
+   },
+   "pass": {
+    "n": 9,
+    "meanUsd": 0.89,
+    "winRate": 0.111,
+    "meanPctPremium": -0.021
+   },
+   "refuse": {
+    "n": 141,
+    "meanUsd": -1.92,
+    "winRate": 0.199,
+    "meanPctPremium": -0.031
+   },
+   "passVsRefuse": {
+    "diffUsd": 2.81,
+    "se": 14.44,
+    "z": 0.19
+   },
+   "passCal": {
+    "n": 8,
+    "meanUsd": 2.88,
+    "winRate": 0.125,
+    "meanPctPremium": 0.002
+   },
+   "passCalVsRest": {
+    "diffUsd": 4.89,
+    "se": 16.01,
+    "z": 0.31
+   },
+   "exits": {
+    "t1": 11,
+    "plus40": 4,
+    "stop": 49,
+    "backstop": 70,
+    "failed_hold": 2,
+    "runner_stop": 3,
+    "runner_be": 11,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -7.08,
+    "winRate": 0.14,
+    "meanPctPremium": -0.075
+   },
+   "pass": {
+    "n": 12,
+    "meanUsd": -1.75,
+    "winRate": 0.083,
+    "meanPctPremium": -0.082
+   },
+   "refuse": {
+    "n": 95,
+    "meanUsd": -7.76,
+    "winRate": 0.147,
+    "meanPctPremium": -0.075
+   },
+   "passVsRefuse": {
+    "diffUsd": 6.01,
+    "se": 22.62,
+    "z": 0.27
+   },
+   "passCal": {
+    "n": 12,
+    "meanUsd": -1.75,
+    "winRate": 0.083,
+    "meanPctPremium": -0.082
+   },
+   "passCalVsRest": {
+    "diffUsd": 6.01,
+    "se": 22.62,
+    "z": 0.27
+   },
+   "exits": {
+    "t1": 5,
+    "plus40": 6,
+    "stop": 27,
+    "backstop": 62,
+    "failed_hold": 3,
+    "runner_stop": 0,
+    "runner_be": 4,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 18,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -3.97,
+    "winRate": 0.171,
+    "meanPctPremium": -0.049
+   },
+   "pass": {
+    "n": 21,
+    "meanUsd": -0.62,
+    "winRate": 0.095,
+    "meanPctPremium": -0.055
+   },
+   "refuse": {
+    "n": 236,
+    "meanUsd": -4.27,
+    "winRate": 0.178,
+    "meanPctPremium": -0.049
+   },
+   "passVsRefuse": {
+    "diffUsd": 3.65,
+    "se": 12.12,
+    "z": 0.3
+   },
+   "passCal": {
+    "n": 20,
+    "meanUsd": 0.1,
+    "winRate": 0.1,
+    "meanPctPremium": -0.048
+   },
+   "passCalVsRest": {
+    "diffUsd": 4.41,
+    "se": 12.86,
+    "z": 0.34
+   },
+   "exits": {
+    "t1": 16,
+    "plus40": 10,
+    "stop": 76,
+    "backstop": 132,
+    "failed_hold": 5,
+    "runner_stop": 3,
+    "runner_be": 15,
+    "flat": 0
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 1,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -5.74,
+    "winRate": 0.32,
+    "meanPctPremium": -0.021
+   },
+   "pass": {
+    "n": 4,
+    "meanUsd": -39.25,
+    "winRate": 0,
+    "meanPctPremium": -0.13
+   },
+   "refuse": {
+    "n": 146,
+    "meanUsd": -4.83,
+    "winRate": 0.329,
+    "meanPctPremium": -0.018
+   },
+   "passVsRefuse": {
+    "diffUsd": -34.42,
+    "se": 7.66,
+    "z": -4.49
+   },
+   "passCal": {
+    "n": 1,
+    "meanUsd": -26,
+    "winRate": 0,
+    "meanPctPremium": -0.083
+   },
+   "passCalVsRest": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "exits": {
+    "t1": 23,
+    "plus40": 0,
+    "stop": 66,
+    "backstop": 8,
+    "failed_hold": 15,
+    "runner_stop": 3,
+    "runner_be": 13,
+    "flat": 22
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 1,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -8.73,
+    "winRate": 0.336,
+    "meanPctPremium": -0.026
+   },
+   "pass": {
+    "n": 1,
+    "meanUsd": -70,
+    "winRate": 0,
+    "meanPctPremium": -0.108
+   },
+   "refuse": {
+    "n": 106,
+    "meanUsd": -8.16,
+    "winRate": 0.34,
+    "meanPctPremium": -0.025
+   },
+   "passVsRefuse": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "passCal": {
+    "n": 0,
+    "meanUsd": null,
+    "winRate": null,
+    "meanPctPremium": null
+   },
+   "passCalVsRest": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "exits": {
+    "t1": 13,
+    "plus40": 3,
+    "stop": 42,
+    "backstop": 9,
+    "failed_hold": 15,
+    "runner_stop": 0,
+    "runner_be": 5,
+    "flat": 20
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 1,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -6.99,
+    "winRate": 0.327,
+    "meanPctPremium": -0.023
+   },
+   "pass": {
+    "n": 5,
+    "meanUsd": -45.4,
+    "winRate": 0,
+    "meanPctPremium": -0.125
+   },
+   "refuse": {
+    "n": 252,
+    "meanUsd": -6.23,
+    "winRate": 0.333,
+    "meanPctPremium": -0.021
+   },
+   "passVsRefuse": {
+    "diffUsd": -39.17,
+    "se": 9.07,
+    "z": -4.32
+   },
+   "passCal": {
+    "n": 1,
+    "meanUsd": -26,
+    "winRate": 0,
+    "meanPctPremium": -0.083
+   },
+   "passCalVsRest": {
+    "diffUsd": null,
+    "se": null,
+    "z": null
+   },
+   "exits": {
+    "t1": 36,
+    "plus40": 3,
+    "stop": 108,
+    "backstop": 17,
+    "failed_hold": 30,
+    "runner_stop": 3,
+    "runner_be": 18,
+    "flat": 42
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 0,
+   "half": "is",
+   "all": {
+    "n": 150,
+    "meanUsd": -4.42,
+    "winRate": 0.22,
+    "meanPctPremium": -0.047
+   },
+   "pass": {
+    "n": 5,
+    "meanUsd": 8.8,
+    "winRate": 0.2,
+    "meanPctPremium": 0.036
+   },
+   "refuse": {
+    "n": 145,
+    "meanUsd": -4.87,
+    "winRate": 0.221,
+    "meanPctPremium": -0.05
+   },
+   "passVsRefuse": {
+    "diffUsd": 13.67,
+    "se": 27.05,
+    "z": 0.51
+   },
+   "passCal": {
+    "n": 5,
+    "meanUsd": 8.8,
+    "winRate": 0.2,
+    "meanPctPremium": 0.036
+   },
+   "passCalVsRest": {
+    "diffUsd": 13.67,
+    "se": 27.05,
+    "z": 0.51
+   },
+   "exits": {
+    "t1": 11,
+    "plus40": 5,
+    "stop": 56,
+    "backstop": 58,
+    "failed_hold": 2,
+    "runner_stop": 3,
+    "runner_be": 14,
+    "flat": 1
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 0,
+   "half": "oos",
+   "all": {
+    "n": 107,
+    "meanUsd": -7.62,
+    "winRate": 0.196,
+    "meanPctPremium": -0.066
+   },
+   "pass": {
+    "n": 3,
+    "meanUsd": -23,
+    "winRate": 0,
+    "meanPctPremium": -0.203
+   },
+   "refuse": {
+    "n": 104,
+    "meanUsd": -7.17,
+    "winRate": 0.202,
+    "meanPctPremium": -0.062
+   },
+   "passVsRefuse": {
+    "diffUsd": -15.83,
+    "se": 7.48,
+    "z": -2.12
+   },
+   "passCal": {
+    "n": 3,
+    "meanUsd": -23,
+    "winRate": 0,
+    "meanPctPremium": -0.203
+   },
+   "passCalVsRest": {
+    "diffUsd": -15.83,
+    "se": 7.48,
+    "z": -2.12
+   },
+   "exits": {
+    "t1": 7,
+    "plus40": 5,
+    "stop": 28,
+    "backstop": 55,
+    "failed_hold": 3,
+    "runner_stop": 1,
+    "runner_be": 6,
+    "flat": 2
+   }
+  },
+  {
+   "pop": "rth",
+   "vix": 24,
+   "dte": 0,
+   "half": "all",
+   "all": {
+    "n": 257,
+    "meanUsd": -5.75,
+    "winRate": 0.21,
+    "meanPctPremium": -0.055
+   },
+   "pass": {
+    "n": 8,
+    "meanUsd": -3.12,
+    "winRate": 0.125,
+    "meanPctPremium": -0.053
+   },
+   "refuse": {
+    "n": 249,
+    "meanUsd": -5.83,
+    "winRate": 0.213,
+    "meanPctPremium": -0.055
+   },
+   "passVsRefuse": {
+    "diffUsd": 2.71,
+    "se": 18.43,
+    "z": 0.15
+   },
+   "passCal": {
+    "n": 8,
+    "meanUsd": -3.12,
+    "winRate": 0.125,
+    "meanPctPremium": -0.053
+   },
+   "passCalVsRest": {
+    "diffUsd": 2.71,
+    "se": 18.43,
+    "z": 0.15
+   },
+   "exits": {
+    "t1": 18,
+    "plus40": 10,
+    "stop": 84,
+    "backstop": 113,
+    "failed_hold": 5,
+    "runner_stop": 4,
+    "runner_be": 20,
+    "flat": 3
+   }
+  }
+ ]
+}

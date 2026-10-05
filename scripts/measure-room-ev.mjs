@@ -524,6 +524,32 @@ for (const pop of POPS.map((p) => p.key)) {
   }
 }
 
+// SENSITIVITY, added after the first run (2026-10-05) when the T1 trim left the
+// room's exits (exits.ts): the same PASS / REFUSE split under the mandate's
+// exits alone. Descriptive — the verdict above stays the pre-registered one.
+const underMandate = [];
+for (const pop of POPS.map((p) => p.key)) {
+  for (const half of ["is", "oos", "all"]) {
+    const xs = trades
+      .filter(
+        (t) =>
+          t.pop === pop &&
+          t.vix === 18 &&
+          t.dte === 1 &&
+          t.usdMandate != null &&
+          (half === "all" || t.half === half),
+      )
+      .map((t) => ({ ...t, usd: t.usdMandate }));
+    underMandate.push({
+      pop,
+      half,
+      pass: summary(xs.filter((t) => t.pass)),
+      refuse: summary(xs.filter((t) => !t.pass)),
+      passVsRefuse: diff(xs, "pass"),
+    });
+  }
+}
+
 const primary = results.find(
   (x) => x.pop === "nyam" && x.vix === 18 && x.dte === 1 && x.half === "oos",
 );
@@ -574,6 +600,7 @@ const out = {
   },
   verdict,
   exits,
+  underMandate,
   secondary: secondary
     ? `RTH 09:45–14:30, 75-minute hold, 2025–26, VIX 18, 1 DTE: PASS ${secondary.pass.meanUsd} $/contract (n ${secondary.pass.n}) vs REFUSE ${secondary.refuse.meanUsd} (n ${secondary.refuse.n}), z ${secondary.passVsRefuse.z}`
     : null,
@@ -596,6 +623,10 @@ for (const x of results) {
 for (const x of exits)
   console.log(
     `exits ${x.pop.padEnd(4)} ${x.half.padEnd(3)} n ${x.n} | mandate ${x.mandateUsd} · room (T1 trim) ${x.roomUsd} · room + theta ${x.thetaUsd} | T1 trim vs mandate ${x.t1TrimVsMandate.meanUsd} z ${x.t1TrimVsMandate.z} | theta vs room ${x.thetaVsRoom.meanUsd} z ${x.thetaVsRoom.z}`,
+  );
+for (const x of underMandate)
+  console.log(
+    `mandate exits ${x.pop.padEnd(4)} ${x.half.padEnd(3)} | PASS ${fmt(x.pass)} | REFUSE ${fmt(x.refuse)} | Δ ${x.passVsRefuse.diffUsd} z ${x.passVsRefuse.z}`,
   );
 console.log(`verdict: ${verdict}`);
 console.log(`secondary: ${out.secondary}`);

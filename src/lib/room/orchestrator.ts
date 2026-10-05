@@ -706,11 +706,15 @@ function evaluateEntry(
       const w = chosenEv.window;
       const cal = chosenEv.calibrated;
       const sgnUsd = (x: number) => `${x >= 0 ? "+" : "−"}${usd(Math.abs(x))}`;
-      const evOk = chosenEv.evUsd > 0 && (cal == null || cal.evUsd > 0);
+      // The model's EV gates. The realized-decile EV is quoted, never gating: on
+      // four years the cards that passed BOTH did worse (−$16.67 a contract,
+      // n 21, z −1.76, scripts/measure-room-ev.mjs) — the option EV is most
+      // wrong exactly where it is most confident (far targets).
+      const evOk = chosenEv.evUsd > 0;
       const t1Label = chosenEv.t1Pays
         ? `T1 pays ${usd(chosenEv.t1PnlUsd)} a contract by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET`
         : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`;
-      const evLabel = `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? `, ${sgnUsd(cal.evUsd)} on the model's realized decile (P(T1) ${pctTxt(cal.p)} for ${pctTxt(chosenEv.pT1Model)})` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`;
+      const evLabel = `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? ` (${sgnUsd(cal.evUsd)} on the realized decile, quoted not gating)` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`;
       if (atTouch) {
         gate("t1_pays", chosenEv.t1Pays, t1Label);
         gate("ev", evOk, evLabel);

@@ -40,7 +40,7 @@ check("09:56 CE touch refused as an OPTION (the ledger), not as a plan", at("09:
 check("the refused touch opens a ghost on the room's rules", (at("09:56").book.lab?.ghosts ?? []).some((g) => g.kind === "refused" && g.of === "ev"));
 const fill = at("10:11").cycle.output.broker_action;
 check("10:11 the A+ CE touch buys 2× QQQ calls, the strike the ledger chose", fill.action_type === "BUY_OPEN" && fill.contracts_quantity === 2 && fill.underlying === "QQQ" && fill.option_type === "CALL" && fill.strike_offset === at("10:11").cycle.trace.entry?.offset, JSON.stringify(fill));
-check("a fill passes both EV numbers", (at("10:11").cycle.trace.entry?.ev?.evUsd ?? 0) > 0 && (at("10:11").cycle.trace.entry?.ev?.calibrated?.evUsd ?? 0) > 0);
+check("a fill passes the EV gate (the model's EV, after costs)", (at("10:11").cycle.trace.entry?.ev?.evUsd ?? 0) > 0);
 check("execution phase: Vince and Sterling at their desks", at("10:11").cycle.output.room_state.character_locations.Vince === "VINCE_DESK" && at("10:11").cycle.output.room_state.character_locations.Sterling === "STERLING_DESK");
 check("the fill opens its mandate twin in the ghost room", (at("10:11").book.lab?.ghosts ?? []).some((g) => g.kind === "twin"));
 check("never averages the filled plan at 10:14", at("10:14").cycle.output.broker_action.action_type === "HOLD" && at("10:14").cycle.trace.refusalGate === "no_average");
@@ -180,8 +180,11 @@ console.log("exits: the room's three added rules");
 const deskX = (exits, agendaNext = null) => ({ exits, htf: { QQQ: "bull", SPY: "bull" }, agenda: { next: agendaNext, last: null, setup: null } });
 const tapeX = { price: 776, rsi: 55, vix: 17, trend: "BULLISH", volume_spike: false };
 const posX = { id: "P1", ticker: "QQQ", type: "CALL", strike: 776, exp: "2026-10-06", pnl_percent: 12, contracts: 2, trimmed: false };
-const t1x = EX.exitFor(posX, tapeX, { desk: deskX({ P1: { kind: "t1", why: "MNQ reached T1" } }), etDate: "2026-10-05", etMin: 600, nowMs: wall("2026-10-05", "10:00"), policy: EX.ROOM_POLICY, hold: null });
-check("T1 on the futures plan trims half", t1x?.reason === "t1" && t1x.qty === 1 && !t1x.closesAll, JSON.stringify(t1x && { r: t1x.reason, q: t1x.qty }));
+// The T1 trim measured −$1.31 a fill against the mandate on four years — off in ROOM_POLICY, kept as a switch.
+check("ROOM_POLICY leaves the T1 trim off (measured, not shown to help)", EX.ROOM_POLICY.levelTrim === false && EX.ROOM_POLICY.premiumTrim === true);
+const t1x = EX.exitFor(posX, tapeX, { desk: deskX({ P1: { kind: "t1", why: "MNQ reached T1" } }), etDate: "2026-10-05", etMin: 600, nowMs: wall("2026-10-05", "10:00"), policy: { ...EX.ROOM_POLICY, levelTrim: true }, hold: null });
+check("with the switch on, T1 on the futures plan trims half", t1x?.reason === "t1" && t1x.qty === 1 && !t1x.closesAll, JSON.stringify(t1x && { r: t1x.reason, q: t1x.qty }));
+check("with ROOM_POLICY, T1 alone does not trim", EX.exitFor(posX, tapeX, { desk: deskX({ P1: { kind: "t1", why: "MNQ reached T1" } }), etDate: "2026-10-05", etMin: 600, nowMs: wall("2026-10-05", "10:00"), policy: EX.ROOM_POLICY, hold: null }) == null);
 const t1m = EX.exitFor(posX, tapeX, { desk: deskX({ P1: { kind: "t1", why: "MNQ reached T1" } }), etDate: "2026-10-05", etMin: 600, nowMs: wall("2026-10-05", "10:00"), policy: EX.MANDATE_POLICY, hold: null });
 check("the mandate alone ignores T1", t1m == null);
 const neg = { holdPx: 3.0, bidNow: 3.2, edgeUsd: -20, pT1Now: 0.2, ev: { measured: true, scenarios: [{ kind: "t1", p: 0.1 }] } };
@@ -211,7 +214,7 @@ const badEv = { ...ev, evUsd: -12, t1Pays: true };
 check("negative EV is a decisive challenge", DB.challengeFor(cardD, badEv, null, "10:20 ET").decisive === true);
 const calNeg = { ...ev, evUsd: 6, t1Pays: true, calibrated: { p: 0.22, pT1: 0.1, pLoss: 0.6, pNone: 0.3, evUsd: -3 } };
 const chCal = DB.challengeFor(cardD, calNeg, null, "10:20 ET");
-check("model EV up, realized-decile EV down → Sterling refuses", chCal.decisive === true && chCal.who === "Sterling" && /realized number/.test(chCal.text), chCal.text);
+check("model EV up, realized-decile EV down → Sterling notes it, not decisive (four years: gating on it picked worse)", chCal.decisive === false && chCal.who === "Sterling" && /not blocking/.test(chCal.text), chCal.text);
 
 console.log("lab: the ghost room's arithmetic");
 const closedGhost = (id, kind, of, pnlUsd) => ({ id, kind, of, planKey: null, ticker: "QQQ", type: "CALL", strike: 776, exp: "2026-10-06", offset: "ATM", contracts: 1, entryPx: 3, openedAt: 0, fut: null, quant: null, trimmed: false, realizedUsd: 0, pnlPct: 0, closed: { at: 1, px: 3, reason: "t", pnlUsd } });
