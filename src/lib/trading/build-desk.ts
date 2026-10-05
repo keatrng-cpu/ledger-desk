@@ -18,6 +18,7 @@ import {
   type ProxySpot,
 } from "@/lib/market/yahoo";
 import { readLiveTickFresh, quoteFromLiveTick, readLiveBars } from "@/lib/market/live-gateway";
+import { crossBoth } from "@/lib/market/spot-cross";
 import {
   aggregateBars,
   applyQuoteToLastBar,
@@ -699,6 +700,21 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         },
       ];
 
+      // The ETF spots the options desk prices a ticket on, crossed with the LIVE futures
+      // (spot-cross.ts, 2026-10-05): the Yahoo print only says what futures ÷ ETF was at its own
+      // instant; the gateway's future is the clock, so `estimateSpot` divides the NOW future by
+      // that ratio and the spot moves at futures speed between builds. A synthetic quote is not a
+      // price and crosses nothing; a delayed Yahoo future never calibrates a live print.
+      const proxies = crossBoth(
+        {
+          left: { symbol: left.symbol, quote: lq, minute: minuteL },
+          right: { symbol: right.symbol, quote: rq, minute: minuteR },
+        },
+        { SPY: spySpot, QQQ: qqqSpot },
+        Date.now(),
+        liveSource,
+      );
+
       const payload = {
         ok: true as const,
         fetchedAt: new Date().toISOString(),
@@ -706,7 +722,7 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
         left,
         right,
         quotes: { left: lq, right: rq },
-        proxies: { SPY: spySpot, QQQ: qqqSpot },
+        proxies,
         shock,
         bias: { left: biasL, right: biasR },
         scan,
