@@ -9,8 +9,13 @@
  *              → { snapshots: { [OCC]: { latestQuote: { t, bp, bs, ap, as, bx, ax, c }, greeks, impliedVolatility } } }
  *              `indicative` is free and its quotes are MODIFIED: it never prices a live order (gates.ts).
  *
- * NOT verified against a live response: the account's options fields (`options_trading_level`,
- * `options_buying_power`) — they parse defensively and a missing one reads "unknown", which live refuses.
+ *   account    `options_buying_power` (string), `options_approved_level` and `options_trading_level` (ints;
+ *              0 disabled · 1 covered call / cash-secured put · 2 long call/put · 3 spreads — the effective
+ *              level is the lesser of the approved level and the account's configured max), `status`,
+ *              `trading_blocked`, `account_blocked` — Alpaca's v1.1 changelog and the alpaca-py model reference.
+ *
+ * Every shape above is from Alpaca's published docs and is tested against a simulator; NONE has been
+ * exercised against a live response. A missing field parses as "unknown" and live refuses unknown.
  * Pure over an injectable `fetch`; the keys are never logged or echoed into an error.
  */
 
