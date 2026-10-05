@@ -42,6 +42,7 @@ const base = {
   openPositions: 0,
   winsNeed: 16,
   tradeBudget: 9,
+  exitReason: null,
 };
 
 const a = floorCues(base);
@@ -78,6 +79,23 @@ check("a quote older than 15s is hot", floorCues({ ...base, quoteAgeSec: 20 }).q
 check("the kill plate lights only when the server says so", floorCues({ ...base, killed: true, openPositions: 1 }).kill.lit && !floorCues({ ...base, killed: true, openPositions: 1 }).kill.flat);
 check("TOO TIGHT stamps even without a gate id", stampOf(null, "STOP TOO TIGHT TO SIZE") === "TIGHT");
 check("a halt stamp is HALT", stampOf("halt_day", null) === "HALT");
+
+const agreed = { ...base, beat: "trigger_wait", refusalGate: null, refusal: null, verdict: "ARMED", missing: null, exitReason: null };
+check("B+ armed flashes the approach and still does not fly", (() => {
+  const c = floorCues({ ...agreed, band: "B+", tier: "armed", execute: false, action: "HOLD" });
+  return c.light === "approach" && c.flight === "none";
+})());
+check("an A+ in the array is the green touch", floorCues({ ...agreed, band: "A+", tier: "live" }).light === "touch");
+check("a forming card stays dark", floorCues({ ...agreed, band: "A+", tier: "forming" }).light === "idle");
+check("a B does not light", floorCues({ ...agreed, band: "B", tier: "armed" }).light === "idle");
+check("a missing layer keeps the wing dark", floorCues({ ...agreed, verdict: "WATCH", missing: "LTF shift", band: "A+", tier: "armed" }).light === "idle");
+check("a late tape cannot approach", floorCues({ ...agreed, band: "A+", tier: "armed", lagSec: 600, feedKind: "yahoo" }).light === "idle");
+check("a clock veto still glows", floorCues({ ...agreed, band: "A", tier: "armed", beat: "vetoed", refusalGate: "after_ten" }).light === "approach");
+check("an open position holds yellow", floorCues({ ...agreed, openPositions: 1, tier: "gone", band: null }).light === "hold");
+check("take-profit flashes green", floorCues({ ...agreed, openPositions: 0, exitReason: "take_profit", tier: "gone" }).light === "target");
+check("a stop flashes red", floorCues({ ...agreed, exitReason: "stop", tier: "gone" }).light === "stop");
+check("an 11:00 flat is neither colour", floorCues({ ...agreed, exitReason: "time", openPositions: 0, tier: "gone" }).light === "idle");
+check("an EV veto is not agreement", floorCues({ ...agreed, beat: "vetoed", refusalGate: "ev", band: "A+", tier: "live" }).light === "idle");
 
 console.log(`\nfloor-cues: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

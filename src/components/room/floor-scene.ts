@@ -23,6 +23,7 @@ import type { AgentAct } from "@/lib/room/agents";
 import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator";
 import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor-fx";
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
+import type { FloorLight } from "@/lib/room/floor-cues";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -1382,6 +1383,11 @@ export class FloorScene {
   private frame: FloorFrame | null = null;
   /** Jax stands back at the board when his last chase call scored wrong. */
   private sterlingFirst = false;
+  /** Hedge-fund wing carpets. A view of the cue, not a gate. */
+  private readonly wingMats: THREE.MeshStandardMaterial[] = [];
+  private wingShown: FloorLight = "idle";
+  private wingSawLive = false;
+  private wingFlash: { kind: "touch" | "target" | "stop"; until: number } | null = null;
   private appliedAt = 0;
   private lines: DialogueLine[] = [];
   private lineIdx = -1;
@@ -1494,6 +1500,7 @@ export class FloorScene {
     this.alarm = new THREE.PointLight(0xff2222, 0, 16, 1.4);
     this.alarm.position.set(-7, 3.3, -1);
     this.scene.add(this.alarm);
+    this.buildWingFloors();
 
     this.buildScreens();
     this.scene.add(this.bell.root);
@@ -1529,6 +1536,79 @@ export class FloorScene {
   }
 
   /* environment */
+
+  /** Investment office, boardroom, chair. The five's own carpets stay put. */
+  private buildWingFloors() {
+    const ids = new Set(["invest_floor", "boardroom", "chair_office"]);
+    for (const r of LAYOUT.rooms) {
+      if (!ids.has(r.id)) continue;
+      const mat = new THREE.MeshStandardMaterial({
+        color: "#111111",
+        emissive: new THREE.Color("#000000"),
+        emissiveIntensity: 0,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(r.x[1] - r.x[0], r.z[1] - r.z[0]), mat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set((r.x[0] + r.x[1]) / 2, 0.02, (r.z[0] + r.z[1]) / 2);
+      mesh.name = `wing_${r.id}`;
+      this.scene.add(mesh);
+      this.wingMats.push(mat);
+    }
+  }
+
+  /**
+   * Touch, target and stop are flashes. A live tier that nobody filled
+   * goes back to the carpet once the green is done. A fill holds yellow.
+   */
+  private resolveWing(want: FloorLight, open: number, t: number): FloorLight {
+    if ((want === "target" || want === "stop") && this.wingFlash?.kind !== want) this.wingFlash = { kind: want, until: t + 3 };
+    if (this.wingFlash && (this.wingFlash.kind === "target" || this.wingFlash.kind === "stop")) {
+      if (t <= this.wingFlash.until) return this.wingFlash.kind;
+      this.wingFlash = null;
+      if (open > 0) return "hold";
+    }
+    if (want === "hold") {
+      this.wingSawLive = true;
+      if (this.wingFlash?.kind === "touch") this.wingFlash = null;
+      return "hold";
+    }
+    if (want === "touch") {
+      if (!this.wingSawLive) {
+        this.wingSawLive = true;
+        this.wingFlash = { kind: "touch", until: t + 3 };
+      }
+      if (this.wingFlash?.kind === "touch" && t <= this.wingFlash.until) return "touch";
+      return "idle";
+    }
+    this.wingSawLive = false;
+    if (this.wingFlash?.kind === "touch" && t <= this.wingFlash.until) return "touch";
+    this.wingFlash = null;
+    return want === "approach" ? "approach" : "idle";
+  }
+
+  private paintWing(mode: FloorLight, t: number) {
+    const col =
+      mode === "touch" || mode === "target" ? "#22c55e" : mode === "stop" ? "#ef4444" : mode === "approach" || mode === "hold" ? "#eab308" : "#000000";
+    const flash = mode === "approach" || mode === "touch" || mode === "target" || mode === "stop";
+    const pulse = flash ? 0.45 + 0.55 * Math.abs(Math.sin(t * 6)) : 0.72;
+    for (const m of this.wingMats) {
+      if (mode === "idle") {
+        m.opacity = 0;
+        m.emissiveIntensity = 0;
+        continue;
+      }
+      m.color.set(col);
+      m.emissive.set(col);
+      m.opacity = mode === "hold" ? 0.5 : 0.28 + 0.45 * pulse;
+      m.emissiveIntensity = mode === "hold" ? 0.85 : 1.1 + 1.7 * pulse;
+    }
+  }
 
   private async loadEnvironment() {
     try {
@@ -2332,6 +2412,11 @@ export class FloorScene {
       }
     }
     const f = this.frame;
+    if (f) {
+      const shown = this.resolveWing(cuesOfFrame(f).light, f.screens.book.positions.length, t);
+      this.wingShown = shown;
+      this.paintWing(shown, t);
+    }
     // Each person's motion: their line's animation while speaking, their activity otherwise.
     for (const a of this.avatars.values()) {
       const current = this.lines[this.lineIdx];
@@ -2340,6 +2425,8 @@ export class FloorScene {
       const act = f?.acts?.[a.who]?.act ?? "desk";
       a.pace = (mine?.animation ?? last?.animation) === "PACING";
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
+      const pose = wingPose(a.who, this.wingShown);
+      if (pose && !mine) a.anim = pose;
       a.update(dt, t);
     }
     // Spectacle.
@@ -2544,6 +2631,34 @@ export class FloorScene {
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
+}
+
+/** What the five do with their hands while the wing is lit. A line they are saying still wins. */
+function wingPose(who: Character, mode: FloorLight): AnimKey | null {
+  if (mode === "approach") {
+    if (who === "Gemma") return "GESTICURING_AT_WALL";
+    if (who === "Jax") return "POINTING";
+    if (who === "Nova") return "ANALYZING";
+    if (who === "Sterling") return "CHECKING_TABLET";
+    return "STEADY_MONITORING";
+  }
+  if (mode === "hold") {
+    if (who === "Vince") return "STEADY_MONITORING";
+    if (who === "Sterling") return "CHECKING_TABLET";
+    if (who === "Nova") return "ANALYZING";
+    if (who === "Gemma") return "GESTICURING_AT_WALL";
+    return "WATCH";
+  }
+  if (mode === "touch") {
+    if (who === "Vince") return "THUMBS_UP";
+    if (who === "Sterling") return "APPROVING";
+    if (who === "Nova") return "NODDING";
+    if (who === "Gemma") return "EXPLAINING";
+    return "POINTING";
+  }
+  if (mode === "target") return "CHEER";
+  if (mode === "stop") return who === "Vince" ? "STEADY_MONITORING" : "FACEPALM";
+  return null;
 }
 
 /** What a person does with their hands when they are not the one talking. */

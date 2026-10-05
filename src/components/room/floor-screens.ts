@@ -161,6 +161,7 @@ export function cuesOfFrame(f: FloorFrame): FloorCues {
     openPositions: f.screens.book.positions.length,
     winsNeed: goal?.winsNeed ?? null,
     tradeBudget: goal?.tradeBudget ?? null,
+    exitReason: f.trace.exit?.reason ?? null,
   });
 }
 
