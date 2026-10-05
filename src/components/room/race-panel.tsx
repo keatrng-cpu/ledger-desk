@@ -203,6 +203,13 @@ export function RacePanel({ frame, onGo }: { frame: FloorFrame | null; onGo: (sc
                   <dd className="font-mono font-semibold">{g.lambda.toFixed(2)}</dd>
                 </div>
               </dl>
+              {g.winsNeed != null && (
+                <p className="mt-2 text-[11px] leading-snug text-amber-300">
+                  Straight line: {g.winsNeed} winning ticket{g.winsNeed === 1 ? "" : "s"} in a row at the {Math.round(g.capFrac * 100)}% ticket share would reach {money(g.target)}. The desk allows {g.tradeBudget} tickets
+                  {" "}a month and expects {g.expectedTickets.toFixed(1)} in this window
+                  {g.winsNeed > g.tradeBudget ? " — on the room's measured trade shape the goal cannot be reached even if every ticket wins; the cheaper strikes in the ladder have bigger payoffs and their own exact odds." : "."}
+                </p>
+              )}
               <p className="mt-2 text-[11px] leading-snug text-[var(--color-muted)]">
                 {g.needed.pWin != null ? `It would take ${(g.needed.pWin * 100).toFixed(0)}% winners${g.needed.lambdaMultiple != null ? ` or ${g.needed.lambdaMultiple.toFixed(1)}× the cards` : ""}.` : "No win rate within reach gets there on this many cards."} Measured: {(g.measured.pWin * 100).toFixed(0)}% win ·
                 {" "}mean {g.measured.meanPct >= 0 ? "+" : ""}

@@ -263,6 +263,8 @@ export interface GoalLite {
   paceUsd: number | null;
   lambda: number;
   expectedTickets: number;
+  /** How many tickets the desk's own rules allow in the window (the PATH monthly cap). */
+  tradeBudget: number;
   /** Exact odds on the measured numbers for the best of the five approaches, and whose it is. */
   pTarget: number;
   pTargetBy: string;

@@ -362,6 +362,7 @@ export function goalLite(r: Race | null, vix: number | null): GoalLite | null {
     paceUsd: read.pace?.vsPathUsd ?? null,
     lambda: v.ctx.lambda,
     expectedTickets: v.expectedTickets,
+    tradeBudget: v.ctx.tradeBudget,
     pTarget: best.out.pTarget,
     pTargetBy: best.def.owner,
     pFloor: best.out.pFloor,

@@ -68,6 +68,9 @@ console.log("The goal");
   const hopeless = A.deskAudit({ ...empty, goal: goal({ pTarget: 0.0000003, pNoCard: 0.14, needed: { pStar: 0.6, pWin: 0.62, lambdaMultiple: 7.5, winPct: 40 } }) }).find((x) => x.id === "goal_odds");
   check("odds under 0.1% are called out, with what it would take", hopeless && /under 0.001%/.test(hopeless.evidence) && /62%/.test(hopeless.proposal) && /7\.5×/.test(hopeless.proposal) && /not the gates/.test(hopeless.proposal), JSON.stringify(hopeless));
   check("…and say the chance that nothing prints at all", /14%/.test(hopeless?.evidence ?? ""));
+  const impossible = A.deskAudit({ ...empty, goal: goal({ pTarget: 0, winsNeed: 16, tradeBudget: 9 }) }).find((x) => x.id === "goal_odds");
+  check("odds of exactly zero say so, with the straight-line arithmetic (16 winners needed, 9 tickets allowed)", /exact odds zero/.test(impossible?.evidence ?? "") && /16 winners in a row/.test(impossible?.evidence ?? "") && /9 tickets/.test(impossible?.evidence ?? ""), JSON.stringify(impossible));
+  check("…and when the budget is enough the straight-line clause is left out", !/winners in a row/.test(A.deskAudit({ ...empty, goal: goal({ pTarget: 0.0001, winsNeed: 5, tradeBudget: 9 }) }).find((x) => x.id === "goal_odds")?.evidence ?? ""));
   check("odds of 5% are not a finding", !A.deskAudit({ ...empty, goal: goal({ pTarget: 0.05 }) }).some((x) => x.id === "goal_odds"));
   check("a goal that is over (hit, floor, expired) is not audited for odds", !A.deskAudit({ ...empty, goal: goal({ status: "hit", pTarget: 0 }) }).some((x) => x.id === "goal_odds"));
 }

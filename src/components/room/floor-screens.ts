@@ -1221,7 +1221,7 @@ function drawGoalProgress(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   kvLine(ctx, w, 200, "Multiple still needed", `${g.multipleNeeded.toFixed(2)}×`, C.text, 15);
   kvLine(ctx, w, 224, "Per session from here", g.perSessionNeeded != null ? money(g.perSessionNeeded) : "—", C.text, 15);
   kvLine(ctx, w, 248, "Pace vs today's mark", g.paceLabel ? `${g.paceLabel}${g.paceUsd != null ? ` (${g.paceUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(g.paceUsd))})` : ""}` : "—", g.paceLabel === "ahead" ? C.up : g.paceLabel === "behind" ? C.down : C.text, 15);
-  kvLine(ctx, w, 272, "Entries", g.entriesOver ? "closed" : "open", g.entriesOver ? C.down : C.up, 15);
+  kvLine(ctx, w, 272, "Entries today", g.entriesOver ? "closed" : "open", g.entriesOver ? C.down : C.up, 15);
 }
 
 /** The exact odds and what it would take. */
@@ -1238,13 +1238,14 @@ function drawGoalOdds(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   kvLine(ctx, w, 150, "No card prints at all", pctSmall(g.pNoCard), C.text, 16);
   kvLine(ctx, w, 174, "Cards per session", g.lambda.toFixed(2), C.text, 16);
   kvLine(ctx, w, 198, "Expected end", money(g.expectedEnd), g.expectedEnd >= g.start ? C.up : C.down, 16);
+  if (g.winsNeed != null) kvLine(ctx, w, 222, "Straight wins needed · allowed", `${g.winsNeed} · ${g.tradeBudget}`, g.winsNeed > g.tradeBudget ? C.down : C.text, 15);
   ctx.fillStyle = C.amber;
   ctx.font = `600 13px ${FONT}`;
   wrap(
     ctx,
     g.needed.pWin != null ? `Needs ${(g.needed.pWin * 100).toFixed(0)}% winners${g.needed.lambdaMultiple != null ? ` or ${g.needed.lambdaMultiple.toFixed(1)}× the cards` : ""}. The gates do not move.` : "No win rate within reach gets there on this many cards. The gates do not move.",
     14,
-    232,
+    g.winsNeed != null ? 248 : 232,
     w - 28,
     18,
     3,
