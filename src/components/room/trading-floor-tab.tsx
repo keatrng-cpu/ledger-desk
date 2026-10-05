@@ -763,7 +763,7 @@ export default function TradingFloorTab() {
               type="button"
               className={`${BTN} mt-3`}
               onClick={() => {
-                if (window.confirm(`Reset the room's paper book to $${ROOM_DEFAULT_CASH.toLocaleString()}? Positions and history are cleared.`)) reset();
+                if (window.confirm(`Reset the room's paper book to $${ROOM_DEFAULT_CASH.toLocaleString()}? Positions and history are cleared. Close the desk on your other devices first, or one still running the old book will bring it back.`)) reset();
               }}
             >
               <RotateCcw className="h-3 w-3" /> Reset book (${book.startCash.toLocaleString()} start)

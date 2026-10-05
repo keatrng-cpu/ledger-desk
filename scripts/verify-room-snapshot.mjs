@@ -7,7 +7,10 @@
  * The rank only grows with fills and ghosts; the richer copy wins; malformed
  * bodies are refused; and the EXACT upsert statement the server runs, on
  * PGLite with the real migration: a poorer copy never overwrites a richer
- * one, equal rank writes (marks), a reset (force) replaces anything.
+ * one, equal rank writes (marks), a reset (force) replaces anything. And
+ * when the browser pushes (mayPush / afterPush): a book the server already
+ * answered is not re-sent until it changes, and signed out it retries every
+ * 10 minutes, not every minute.
  */
 import { readFileSync } from "node:fs";
 const S = await import("../src/lib/room/snapshot.ts");
@@ -55,6 +58,25 @@ check("same history, older activity is refused", !(await put(7, 110, false, "f")
 check("a reset (force) replaces a richer copy", (await put(0, 0, true, "reset")) && (await tagNow()) === "reset");
 check("another trader's row is untouched", (await db.query(S.SNAPSHOT_UPSERT_SQL, ["u2", "{}", 1, 1, false])).rows.length === 1 && (await tagNow()) === "reset");
 await db.close();
+
+console.log("when the browser pushes");
+const MIN = 60_000;
+const sent = (m, ms) => ({ ...m, lastMs: ms });
+let m = S.freshPushMemory();
+check("a fresh page pushes on its first cycle", S.mayPush(m, "k1", Date.now()));
+m = S.afterPush(sent(m, 0), "k1", "saved");
+check("a saved book is not re-sent", !S.mayPush(m, "k1", 60 * MIN));
+check("a changed book waits out the minute, then goes", !S.mayPush(m, "k2", MIN - 1) && S.mayPush(m, "k2", MIN));
+m = S.afterPush(sent(m, MIN), "k2", "refused");
+check("a book the server refused as poorer is not re-sent every minute", !S.mayPush(m, "k2", 60 * MIN));
+check("…its next change is", S.mayPush(m, "k3", 2 * MIN));
+m = S.afterPush(sent(m, 2 * MIN), "k3", "signed_out");
+check("signed out: nothing for 10 minutes, even when the book changes", !S.mayPush(m, "k4", 2 * MIN + 10 * MIN - 1));
+check("signed out: the same book is tried again after 10 minutes (a sign-in without a reload)", S.mayPush(m, "k3", 12 * MIN));
+m = S.afterPush(sent(m, 12 * MIN), "k3", "failed");
+check("a network or database failure retries the same book after a minute", !S.mayPush(m, "k3", 13 * MIN - 1) && S.mayPush(m, "k3", 13 * MIN));
+m = S.afterPush(sent(m, 13 * MIN), "k3", "saved");
+check("a save after a failure settles the book and restores the minute gap", !S.mayPush(m, "k3", 99 * MIN) && S.mayPush(m, "k4", 14 * MIN));
 
 console.log(`\nroom-snapshot: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

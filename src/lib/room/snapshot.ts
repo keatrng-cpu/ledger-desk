@@ -78,3 +78,35 @@ on conflict (user_id) do update
      or room_snapshot.history < excluded.history
      or (room_snapshot.history = excluded.history and room_snapshot.last_at <= excluded.last_at)
 returning user_id`;
+
+/**
+ * When the browser pushes, given what the last push learned. Pure, so
+ * scripts/verify-room-snapshot.mjs drives it without a server.
+ *
+ * Saved, or refused because the server holds a richer copy: this exact book
+ * has its answer (the server copy only gets richer), so it is not re-sent
+ * until the book changes. Signed out: no push can save until a sign-in, so it
+ * is tried every 10 minutes, not every minute; a sign-in without a reload
+ * still starts the backups inside 10 minutes. Any other failure (network,
+ * database) retries after the usual minute.
+ */
+export interface PushMemory {
+  /** When the last push was sent (ms). */
+  lastMs: number;
+  /** The rank key of the last book the server answered; it is not re-sent. */
+  settledKey: string;
+  gapMs: number;
+}
+export type PushOutcome = "saved" | "refused" | "signed_out" | "failed";
+export const PUSH_GAP_MS = 60_000;
+export const SIGNED_OUT_GAP_MS = 10 * 60_000;
+export const freshPushMemory = (): PushMemory => ({ lastMs: 0, settledKey: "", gapMs: PUSH_GAP_MS });
+
+export function mayPush(m: PushMemory, key: string, nowMs: number): boolean {
+  return key !== m.settledKey && nowMs - m.lastMs >= m.gapMs;
+}
+
+export function afterPush(m: PushMemory, key: string, outcome: PushOutcome): PushMemory {
+  if (outcome === "saved" || outcome === "refused") return { ...m, settledKey: key, gapMs: PUSH_GAP_MS };
+  return { ...m, gapMs: outcome === "signed_out" ? SIGNED_OUT_GAP_MS : PUSH_GAP_MS };
+}
