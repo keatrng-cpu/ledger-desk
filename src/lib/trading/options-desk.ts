@@ -127,7 +127,8 @@ export interface OptionsDesk {
   gates: { id: string; ok: boolean; label: string }[];
 }
 
-const IV = { SPY: 0.17, QQQ: 0.2 } as const;
+/** Fixed IV per underlier. Exported so the trading floor's pricer scales VIX by the same QQQ:SPY ratio. */
+export const IV = { SPY: 0.17, QQQ: 0.2 } as const;
 
 function underlierOf(symbol: string): SwingUnderlier {
   return symbol.includes("ES") ? "SPY" : "QQQ";
