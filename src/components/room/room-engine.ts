@@ -37,7 +37,9 @@ import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
-import { atrOf, emptyRings, newsLiteFrom, ringsAfter, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import { deskAudit } from "@/lib/room/audit";
+import { EXEC_FLAGS } from "@/lib/room/exec/limits";
 import type { DialogueLine } from "@/lib/room/orchestrator";
 import { rankOf, richer } from "@/lib/room/snapshot";
 import { backupRoom, restoreRoomIfRicher, type BackupState } from "@/lib/room/snapshot-sync";
@@ -62,7 +64,7 @@ import { execAfterCycle, execFlatten } from "./exec-bridge";
 import { researchShelf } from "@/lib/room/research";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
-import type { FloorFrame, FloorScreens, LedgerScreen } from "./floor-screens";
+import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
 const ENABLED_STORAGE = "ledger-room-enabled-v1";
@@ -205,9 +207,10 @@ export function frameFromCycle(args: {
   nowMs: number;
   cycle: RoomCycle;
   book: RoomBook;
-  screens: Omit<FloorScreens, "book" | "research" | "ledger" | "lab" | "lenses" | "roomP">;
+  screens: Omit<FloorScreens, "book" | "research" | "ledger" | "lab" | "lenses" | "roomP" | "race">;
   caption: string | null;
   lab: LabRead | null;
+  race: RaceScreen | null;
 }): FloorFrame {
   const p = etWallParts(args.nowMs);
   const lenses = args.cycle.trace.lenses;
@@ -228,8 +231,29 @@ export function frameFromCycle(args: {
       lab: args.lab,
       lenses,
       roomP: lenses ? consensus(lenses, args.lab).p : null,
+      race: args.race,
     },
     caption: args.caption,
+  };
+}
+
+/**
+ * What the annex screens draw — the race, the desk audit, the setup scanner and the feed's health — from the same reads the
+ * live talk quotes, so a TV and a line of dialogue can never disagree about a number.
+ */
+export function raceScreenOf(race: Race | null, desk: DeskPayload, lab: LabRead | null, vix: number | null): RaceScreen {
+  const goal = goalLite(race, vix);
+  const seats = seatsLite(race);
+  const rnd = rndLite(race);
+  const feed = feedOf(desk);
+  return {
+    goal,
+    seats,
+    rnd,
+    audit: deskAudit({ feed, goal, lab: labLite(lab), rnd, seats }),
+    scanner: scannerCards(desk, 6),
+    feed,
+    execFlags: Object.entries(EXEC_FLAGS).map(([name, on]) => ({ name, on })),
   };
 }
 
@@ -414,13 +438,16 @@ function runLiveCycle(desk: DeskPayload) {
       ? { symbol: held.symbol, side: held.side, entry: held.entry, stop: held.stop, t1: held.t1, t2: held.t2 }
       : null;
   const seq = st.frameSeq + 1;
+  const labNow = labRead(asLab(book.lab), book.closed);
+  const race = computeRace({ goal: st.goal, lab: asLab(book.lab), desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
   const frame = frameFromCycle({
     id: seq,
     nowMs,
     cycle,
     book,
     caption: null,
-    lab: labRead(asLab(book.lab), book.closed),
+    lab: labNow,
+    race: raceScreenOf(race, desk, labNow, market.QQQ.vix),
     screens: {
       market,
       charts: { QQQ: chart("QQQ"), SPY: chart("SPY") },
@@ -437,7 +464,6 @@ function runLiveCycle(desk: DeskPayload) {
       synthetic: false,
     },
   });
-  const race = computeRace({ goal: st.goal, lab: asLab(book.lab), desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
   useRoomStore.setState((s) => ({
     book,
     minds: cycle.minds,
@@ -474,7 +500,9 @@ export function refreshRace(desk: DeskPayload) {
   const book = { ...st.book, lab };
   saveRoomBook(book);
   const race = computeRace({ goal: st.goal, lab, desk: read, market, nowMs, vix: market.QQQ.vix, closedRoom: book.closed, atr: atrOf(desk) });
-  useRoomStore.setState({ book, race });
+  // The TVs follow a new goal at once, not at the next cycle.
+  const frame = st.frame ? { ...st.frame, screens: { ...st.frame.screens, race: raceScreenOf(race, desk, st.frame.screens.lab, market.QQQ.vix) } } : st.frame;
+  useRoomStore.setState({ book, race, frame });
 }
 
 /** The trader's Flatten button (Execution card): close everything the executor owns at the broker, and stop new entries. */

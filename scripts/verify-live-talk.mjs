@@ -222,8 +222,9 @@ const legal = (item) => {
     if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD") bad.push("Gemma gestures at a wall she is not at");
   }
   for (const [who, m] of Object.entries(item.moves)) {
-    if (m.zone && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
-    if (m.spot && m.zone !== "WATERCOOLER") bad.push(`${who}: a spot without the watercooler zone`);
+    if (m.zone && m.zone !== "ANNEX" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
+    if (m.zone === "ANNEX" && !/^office_(rnd|ops|goal)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
+    if (m.spot && m.zone !== "WATERCOOLER" && m.zone !== "ANNEX") bad.push(`${who}: a spot without the watercooler or annex zone`);
   }
   return bad;
 };
@@ -565,7 +566,7 @@ console.log("The feed's honesty");
   const priced = sim.items.filter((i) => ["tape", "level"].includes(i.kind));
   check("on a synthetic feed no tape or level talk, ever", priced.length === 0);
   const tops = new Set(sim.items.filter((i) => i.kind === "heartbeat").map((i) => i.topic));
-  const bad = [...tops].filter((t) => !/^hb:(rules|week|evidence|lab|memory|mood|tomorrow|recap)/.test(t));
+  const bad = [...tops].filter((t) => !/^hb:(rules|week|evidence|lab|memory|mood|tomorrow|recap|audit:)/.test(t));
   check("and its chatter is only the unpriced topics", bad.length === 0, JSON.stringify(bad));
   check("it says plainly that the feed is not real", sim.items.some((i) => /synthetic/i.test(textOf(i))));
   check("every line sourced and legal", sim.items.every((i) => legal(i).length === 0 && unsourced(i).length === 0), JSON.stringify(sim.items.flatMap((i) => [...legal(i), ...unsourced(i)]).slice(0, 4)));

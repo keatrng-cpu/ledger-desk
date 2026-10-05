@@ -10,8 +10,24 @@ import type { OhlcBar } from "@/lib/market/types";
 import type { AgentAct, MindState } from "@/lib/room/agents";
 import type { Lenses } from "@/lib/room/debate";
 import type { LabRead } from "@/lib/room/lab";
+import type { AuditItem } from "@/lib/room/audit";
+import type { FeedRead, GoalLite, RndLite, ScanCardLite, SeatsLite } from "@/lib/room/live-types";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
+
+/**
+ * What the annex offices and the scanner TV draw: the race (goal, five seats), the R&D board, the desk audit, the setup
+ * scanner and the feed's health. Built once per desk refresh from the same reads the live talk quotes.
+ */
+export interface RaceScreen {
+  goal: GoalLite | null;
+  seats: SeatsLite | null;
+  rnd: RndLite | null;
+  audit: AuditItem[];
+  scanner: ScanCardLite[];
+  feed: FeedRead | null;
+  execFlags: { name: string; on: boolean }[];
+}
 
 /** Nova's ledger for the card under review or the position held — what the jumbotron's east face draws. */
 export interface LedgerScreen {
@@ -63,6 +79,8 @@ export interface FloorScreens {
   lenses: Lenses | null;
   /** The room's number for the card (debate.ts consensus). */
   roomP: number | null;
+  /** The race, the audit, the scanner and the feed, for the annex offices and the scanner TV. */
+  race: RaceScreen | null;
 }
 
 export interface FloorFrame {
@@ -592,16 +610,25 @@ const PLATE: Record<string, string> = {
   plate_Gemma: "GEMMA — ICT · Macro",
   plate_Sterling: "STERLING — Patty/PB · Risk",
   plate_Vince: "VINCE — SMC · Execution",
+  plate_Rnd: "R&D LAB — fixing the desk",
+  plate_Ops: "OPS & DATA — the feed",
+  plate_Goal: "GOAL ROOM — $1K → $5K",
 };
 
 function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
   ctx.fillStyle = "#cbd5e1";
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "#0f172a";
-  ctx.font = `700 34px ${FONT}`;
   ctx.textBaseline = "middle";
   ctx.textAlign = "center";
-  ctx.fillText(PLATE[id] ?? id, w / 2, h / 2 + 2);
+  const label = PLATE[id] ?? id;
+  let size = 34;
+  ctx.font = `700 ${size}px ${FONT}`;
+  while (size > 18 && ctx.measureText(label).width > w - 24) {
+    size -= 2;
+    ctx.font = `700 ${size}px ${FONT}`;
+  }
+  ctx.fillText(label, w / 2, h / 2 + 2);
   ctx.textAlign = "left";
 }
 
@@ -926,6 +953,401 @@ function etMinOfClock(ms: number, f: FloorFrame): number {
   return Number.isFinite(hh) && Number.isFinite(mm) ? hh * 60 + mm : f.etMin;
 }
 
+/* ── The annex: the scanner by the board, the R&D lab, ops & data, the goal room ──────────────── */
+
+const BAND_COLOR: Record<string, string> = { "A+": "#22c55e", A: "#4ade80", "A−": "#86efac", "B+": "#facc15", B: "#f59e0b", C: "#94a3b8" };
+const SEV_COLOR = { high: C.down, med: C.amber, low: C.muted } as const;
+const STATUS_COLOR = { collecting: C.muted, supported: C.up, not_supported: C.down, undecided: C.amber } as const;
+
+/** Clip a string to a pixel width with an ellipsis (the font must already be set). */
+function fit(ctx: Ctx, text: string, maxW: number): string {
+  if (ctx.measureText(text).width <= maxW) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(`${t}…`).width > maxW) t = t.slice(0, -1);
+  return `${t.trimEnd()}…`;
+}
+
+/** A probability that may be tiny: never prints "0%" for something that is merely very small. */
+function pctSmall(p: number): string {
+  if (p <= 0) return "0%";
+  if (p < 1e-5) return "<0.001%";
+  if (p < 0.001) return `${(p * 100).toFixed(4)}%`;
+  if (p < 0.1) return `${(p * 100).toFixed(2)}%`;
+  return `${Math.round(p * 100)}%`;
+}
+
+function kvLine(ctx: Ctx, w: number, y: number, k: string, v: string, color: string = C.text, size = 17) {
+  ctx.font = `500 ${size}px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.textAlign = "left";
+  ctx.fillText(k, 14, y);
+  ctx.font = `700 ${size}px ${MONO}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = "right";
+  ctx.fillText(v, w - 14, y);
+  ctx.textAlign = "left";
+}
+
+const px = (n: number | null) => (n == null ? "—" : n >= 1000 ? fmt(n, 1) : fmt(n, 2));
+
+/** The setup scanner, by the board: every graded setup the desk is looking at, in board order, with its plan and where price is. */
+function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const cards = f.screens.race?.scanner ?? [];
+  const armed = cards.filter((c) => c.verdict === "ARMED").length;
+  const watch = cards.filter((c) => c.verdict === "WATCH").length;
+  header(ctx, w, "SETUP SCANNER", `${armed} armed · ${watch} watch · ${cards.length - armed - watch} stand`, armed ? C.up : watch ? C.amber : C.cyan);
+  if (!cards.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 22px ${FONT}`;
+    wrap(ctx, "No graded setup is printing. The scanner waits for a sweep, a displacement and a retrace — the desk does not invent one.", 24, 110, w - 48, 30, 4);
+    ctx.font = `500 16px ${MONO}`;
+    ctx.fillText(f.screens.source, 24, h - 22);
+    return;
+  }
+  ctx.font = `600 13px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.textAlign = "right";
+  ctx.fillText("P(T1)", 706, 62);
+  ctx.fillText("E[R]", 790, 62);
+  ctx.textAlign = "left";
+  ctx.fillText("BAND   SETUP", 24, 62);
+  cards.slice(0, 6).forEach((c, i) => {
+    const y = 70 + i * 70;
+    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    ctx.fillRect(8, y, w - 16, 64);
+    const vcol = c.verdict === "ARMED" ? C.up : c.verdict === "WATCH" ? C.amber : C.down;
+    ctx.fillStyle = vcol;
+    ctx.fillRect(8, y, 5, 64);
+    // A graded band wears its colour; a refused card (band "skip") wears the verdict, small and grey.
+    const graded = c.band != null && c.band in BAND_COLOR;
+    ctx.fillStyle = graded ? BAND_COLOR[c.band!]! : "#1e293b";
+    ctx.fillRect(22, y + 10, 56, 44);
+    ctx.fillStyle = graded ? "#04130a" : C.muted;
+    ctx.font = graded ? `800 24px ${FONT}` : `700 14px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(graded ? c.band! : c.verdict, 50, y + 33);
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.text;
+    ctx.font = `700 20px ${FONT}`;
+    ctx.fillText(fit(ctx, `${c.symbol} ${c.side.toUpperCase()}${c.strategy ? ` · ${c.strategy}` : ""}`, 520), 92, y + 24);
+    ctx.font = `500 15px ${MONO}`;
+    ctx.fillStyle = c.block ? C.down : C.muted;
+    const sub = c.block ?? `${(c.tier ?? "no plan").toUpperCase()}${c.awayPts != null ? ` · ${c.awayPts.toFixed(1)} pts away` : ""}`;
+    ctx.fillText(fit(ctx, sub, 410), 92, y + 48);
+    if (c.entry != null && c.stop != null) {
+      ctx.fillStyle = C.muted;
+      ctx.textAlign = "right";
+      ctx.fillText(fit(ctx, `E ${px(c.entry)} · S ${px(c.stop)} · T1 ${px(c.t1)}`, 300), 706 - 8, y + 48);
+      ctx.textAlign = "left";
+    }
+    ctx.textAlign = "right";
+    ctx.font = `800 26px ${MONO}`;
+    ctx.fillStyle = c.pT1 != null ? (c.pT1 >= 0.4 ? C.up : c.pT1 >= 0.25 ? C.amber : C.muted) : C.muted;
+    ctx.fillText(c.pT1 != null ? `${Math.round(c.pT1 * 100)}%` : "—", 706, y + 30);
+    ctx.fillStyle = c.expR != null ? (c.expR > 0 ? C.up : C.down) : C.muted;
+    ctx.fillText(c.expR != null ? `${c.expR > 0 ? "+" : ""}${c.expR.toFixed(2)}` : "—", 790, y + 30);
+    ctx.textAlign = "left";
+  });
+}
+
+/** The desk audit: what the five find wrong with the desk, ranked, each with its evidence line. */
+function drawAudit(ctx: Ctx, w: number, h: number, items: AuditItem[], title: string, max: number) {
+  clear(ctx, w, h);
+  header(ctx, w, title, `${items.length} open`, items.some((i) => i.severity === "high") ? C.down : items.length ? C.amber : C.up);
+  if (!items.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 ${w > 600 ? 21 : 16}px ${FONT}`;
+    wrap(ctx, "Nothing the five can prove is wrong with the desk right now.", 18, 80, w - 36, w > 600 ? 28 : 22, 3);
+    return;
+  }
+  const big = w > 600;
+  const t1 = big ? 21 : 16;
+  const t2 = big ? 16 : 13;
+  const per = big ? 88 : 64;
+  items.slice(0, max).forEach((it, i) => {
+    const y = 56 + i * per;
+    ctx.fillStyle = SEV_COLOR[it.severity];
+    ctx.fillRect(10, y + 2, 5, per - 12);
+    ctx.font = `800 ${t1}px ${FONT}`;
+    ctx.fillStyle = CREW_COLOR[it.owner];
+    const who = it.owner.toUpperCase();
+    ctx.fillText(who, 24, y + t1);
+    const ow = ctx.measureText(who).width;
+    ctx.fillStyle = C.text;
+    ctx.font = `700 ${t1}px ${FONT}`;
+    ctx.fillText(fit(ctx, it.title, w - 56 - ow), 24 + ow + 10, y + t1);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 ${t2}px ${FONT}`;
+    wrap(ctx, it.evidence, 24, y + t1 + t2 + 6, w - 40, t2 + 3, 2);
+  });
+}
+
+/** The R&D board: the six pre-registered experiments and how far each is from its bar. */
+function drawRndBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const ex = f.screens.race?.rnd?.experiments ?? [];
+  const decided = ex.filter((e) => e.status !== "collecting").length;
+  header(ctx, w, "R&D BOARD", ex.length ? `${decided}/${ex.length} decided` : "no board", "#34d399");
+  if (!ex.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 21px ${FONT}`;
+    ctx.fillText("The experiments register with the first session.", 18, 90);
+    return;
+  }
+  ex.slice(0, 6).forEach((e, i) => {
+    const y = 54 + i * 62;
+    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    ctx.fillRect(8, y, w - 16, 58);
+    ctx.fillStyle = STATUS_COLOR[e.status];
+    ctx.beginPath();
+    ctx.arc(26, y + 29, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = `800 15px ${FONT}`;
+    ctx.fillStyle = CREW_COLOR[e.owner];
+    ctx.fillText(e.owner.toUpperCase(), 44, y + 22);
+    ctx.fillStyle = C.text;
+    ctx.font = `700 19px ${FONT}`;
+    ctx.fillText(fit(ctx, e.title, w - 270), 120, y + 22);
+    ctx.font = `500 14px ${FONT}`;
+    ctx.fillStyle = C.muted;
+    ctx.fillText(fit(ctx, e.read, w - 270), 44, y + 46);
+    const bw = 150;
+    ctx.fillStyle = "#1c2638";
+    ctx.fillRect(w - bw - 22, y + 14, bw, 8);
+    ctx.fillStyle = STATUS_COLOR[e.status];
+    ctx.fillRect(w - bw - 22, y + 14, bw * Math.min(1, e.n / Math.max(1, e.nNeeded)), 8);
+    ctx.font = `600 13px ${MONO}`;
+    ctx.fillStyle = C.muted;
+    ctx.textAlign = "right";
+    ctx.fillText(`${e.n}/${e.nNeeded} · ${e.status.replace("_", " ")}`, w - 22, y + 46);
+    ctx.textAlign = "left";
+  });
+}
+
+/** What the five want the trader to look at: every proposal an experiment has earned, in their words. */
+function drawProposals(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const ex = (f.screens.race?.rnd?.experiments ?? []).filter((e) => e.proposal);
+  clear(ctx, w, h);
+  header(ctx, w, "FOR THE TRADER", ex.length ? `${ex.length} proposal${ex.length === 1 ? "" : "s"}` : "none yet", ex.length ? C.amber : C.muted);
+  if (!ex.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 17px ${FONT}`;
+    wrap(ctx, "No experiment has cleared its bar. Until one does, nothing here is worth your time — and nothing changes a rule.", 14, 74, w - 28, 24, 6);
+    return;
+  }
+  let y = 66;
+  for (const e of ex.slice(0, 3)) {
+    ctx.fillStyle = CREW_COLOR[e.owner];
+    ctx.font = `800 15px ${FONT}`;
+    ctx.fillText(e.owner.toUpperCase(), 14, y);
+    ctx.fillStyle = C.text;
+    ctx.font = `500 15px ${FONT}`;
+    y = wrap(ctx, e.proposal ?? "", 14, y + 20, w - 28, 19, 3) + 6;
+    if (y > h - 24) break;
+  }
+}
+
+function drawRefusals(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const rows = f.screens.lab?.refusals ?? [];
+  clear(ctx, w, h);
+  header(ctx, w, "GHOST ROOM · REFUSALS", rows.length ? `${rows.reduce((a, r) => a + r.n, 0)} priced` : "none", "#a78bfa");
+  if (!rows.length) {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 17px ${FONT}`;
+    wrap(ctx, "No refused ticket has closed yet. Each gate's \"no\" is priced when one does.", 14, 74, w - 28, 24, 4);
+    return;
+  }
+  rows.slice(0, 5).forEach((r, i) => {
+    const y = 78 + i * 38;
+    kvLine(ctx, w, y, `${r.gate} · ${r.n} · ${r.wins} would have won`, `${r.pnlUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(r.pnlUsd))}`, r.pnlUsd > 0 ? C.amber : C.up, 16);
+  });
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText("A gate that cost money is a question for the four-year test, not a rule change.", 14, h - 12);
+}
+
+/** Ops & data: is the feed real, how late is it, what is switched on. */
+function drawFeed(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const r = f.screens.race;
+  const feed = r?.feed ?? null;
+  clear(ctx, w, h);
+  const real = feed?.kind === "live_gateway" || feed?.kind === "databento";
+  const kindWord = !feed ? "no read" : feed.kind === "live_gateway" ? "LIVE GATEWAY" : feed.kind === "databento" ? "DATABENTO" : feed.kind === "yahoo" ? "YAHOO (delayed)" : feed.kind === "synthetic" ? "SYNTHETIC" : "NO FEED";
+  header(ctx, w, "OPS · THE FEED", kindWord, real ? C.up : feed?.kind === "yahoo" ? C.amber : C.down);
+  const lag = feed?.lagSec;
+  kvLine(ctx, w, 80, "Newest print", lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`, lag != null && lag < 15 ? C.up : lag != null && lag < 120 ? C.amber : C.down);
+  kvLine(ctx, w, 108, "Source", f.screens.source.slice(0, 30), C.text, 15);
+  kvLine(ctx, w, 136, "VIX · 10Y", `${f.screens.vix != null && f.screens.vix > 0 ? f.screens.vix.toFixed(2) : "—"} · ${f.screens.tenYear != null ? `${f.screens.tenYear.toFixed(2)}%` : "—"}`);
+  let y = 172;
+  for (const x of (r?.execFlags ?? []).slice(0, 3)) {
+    kvLine(ctx, w, y, x.name.replace(/_/g, " ").toLowerCase().slice(0, 34), x.on ? "ON" : "OFF", x.on ? C.up : C.muted, 14);
+    y += 26;
+  }
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText("Live trading stays shut until a human flips these.", 14, h - 12);
+}
+
+/** The goal's progress bar and pace. */
+function drawGoalProgress(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const g = f.screens.race?.goal ?? null;
+  clear(ctx, w, h);
+  if (!g) {
+    header(ctx, w, "GOAL", "not set", C.muted);
+    return;
+  }
+  const state = g.status === "before" ? `starts ${g.startDate}` : g.status === "running" ? `day ${g.day}/${g.of}` : g.status;
+  header(ctx, w, `GOAL ${money(g.start)} → ${money(g.target)}`, state, g.status === "hit" ? C.up : g.status === "floor" || g.status === "expired" ? C.down : "#f472b6");
+  ctx.fillStyle = C.text;
+  ctx.font = `800 44px ${MONO}`;
+  ctx.fillText(money(g.equity), 14, 98);
+  ctx.font = `500 14px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(`${g.leader ?? "no one yet"} leads`, 14, 120);
+  const x0 = 14;
+  const x1 = w - 14;
+  const frac = Math.max(0, Math.min(1, (g.equity - g.start) / Math.max(1, g.target - g.start)));
+  ctx.fillStyle = "#1c2638";
+  ctx.fillRect(x0, 138, x1 - x0, 16);
+  ctx.fillStyle = g.equity >= g.start ? C.up : C.down;
+  ctx.fillRect(x0, 138, (x1 - x0) * frac, 16);
+  const floorX = x0 + (x1 - x0) * Math.max(0, Math.min(1, (g.floor - g.start) / Math.max(1, g.target - g.start)));
+  ctx.fillStyle = C.amber;
+  ctx.fillRect(floorX, 132, 2, 28);
+  ctx.font = `500 12px ${MONO}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText(`floor ${money(g.floor)}`, Math.min(floorX, x1 - 90), 172);
+  kvLine(ctx, w, 200, "Multiple still needed", `${g.multipleNeeded.toFixed(2)}×`, C.text, 15);
+  kvLine(ctx, w, 224, "Per session from here", g.perSessionNeeded != null ? money(g.perSessionNeeded) : "—", C.text, 15);
+  kvLine(ctx, w, 248, "Pace vs today's mark", g.paceLabel ? `${g.paceLabel}${g.paceUsd != null ? ` (${g.paceUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(g.paceUsd))})` : ""}` : "—", g.paceLabel === "ahead" ? C.up : g.paceLabel === "behind" ? C.down : C.text, 15);
+  kvLine(ctx, w, 272, "Entries", g.entriesOver ? "closed" : "open", g.entriesOver ? C.down : C.up, 15);
+}
+
+/** The exact odds and what it would take. */
+function drawGoalOdds(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const g = f.screens.race?.goal ?? null;
+  clear(ctx, w, h);
+  header(ctx, w, "THE ODDS (exact)", g ? `n ${g.measured.n ?? "—"}` : "", "#f472b6");
+  if (!g) return;
+  kvLine(ctx, w, 80, `Reach ${money(g.target)}`, pctSmall(g.pTarget), g.pTarget >= 0.05 ? C.up : C.down, 20);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText(`best approach: ${g.pTargetBy}`, 14, 98);
+  kvLine(ctx, w, 126, "Touch the floor", pctSmall(g.pFloor), C.text, 16);
+  kvLine(ctx, w, 150, "No card prints at all", pctSmall(g.pNoCard), C.text, 16);
+  kvLine(ctx, w, 174, "Cards per session", g.lambda.toFixed(2), C.text, 16);
+  kvLine(ctx, w, 198, "Expected end", money(g.expectedEnd), g.expectedEnd >= g.start ? C.up : C.down, 16);
+  ctx.fillStyle = C.amber;
+  ctx.font = `600 13px ${FONT}`;
+  wrap(
+    ctx,
+    g.needed.pWin != null ? `Needs ${(g.needed.pWin * 100).toFixed(0)}% winners${g.needed.lambdaMultiple != null ? ` or ${g.needed.lambdaMultiple.toFixed(1)}× the cards` : ""}. The gates do not move.` : "No win rate within reach gets there on this many cards. The gates do not move.",
+    14,
+    232,
+    w - 28,
+    18,
+    3,
+  );
+}
+
+/** The contract ladder on today's card — what $20 to $300 buys. */
+function drawGoalLadder(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const g = f.screens.race?.goal ?? null;
+  clear(ctx, w, h);
+  header(ctx, w, "CONTRACT LADDER", g ? `${g.ladder.n} strikes${g.ladder.priced ? " · priced" : ""}` : "", "#f472b6");
+  if (!g) return;
+  kvLine(ctx, w, 78, "Cheapest · richest", `${g.ladder.cheapestUsd != null ? money(g.ladder.cheapestUsd) : "—"} · ${g.ladder.richestUsd != null ? money(g.ladder.richestUsd) : "—"}`, C.text, 16);
+  const b = g.ladder.best;
+  if (b) {
+    kvLine(ctx, w, 106, "Best odds on this card", `${b.name} ${money(b.askUsd)}`, C.up, 15);
+    kvLine(ctx, w, 130, "…× contracts · Δ", `${b.contracts} · ${b.delta.toFixed(2)}`, C.text, 15);
+    kvLine(ctx, w, 154, "…odds of the goal", b.pTarget != null ? pctSmall(b.pTarget) : "—", C.text, 15);
+  } else {
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 14px ${FONT}`;
+    wrap(ctx, "No live card: the ladder is a price list until one prints.", 14, 108, w - 28, 20, 2);
+  }
+  if (g.ladder.room) kvLine(ctx, w, 186, "The room's own strike", `${g.ladder.room.name} ${money(g.ladder.room.askUsd)} ×${g.ladder.room.contracts}`, C.muted, 14);
+  kvLine(ctx, w, 214, "A stopped ticket costs", g.stopShare != null ? `${(g.stopShare * 100).toFixed(1)}% of the account` : "—", C.text, 14);
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 12px ${FONT}`;
+  ctx.fillText(`floors: Δ ≥ ${g.minDelta.toFixed(2)} · ask ≥ ${money(g.minAskUsd)}`, 14, h - 12);
+}
+
+/** The five seats and The Room, racing: equity, P&L, what they took and what they turned down. */
+function drawSeatLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  const s = f.screens.race?.seats ?? null;
+  clear(ctx, w, h);
+  header(ctx, w, "THE RACE (paper seats)", s ? `${s.sessions} sessions · ${s.touches} touches` : "no seats", "#f472b6");
+  if (!s) return;
+  ctx.font = `600 13px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("#  seat", 14, 62);
+  ctx.textAlign = "right";
+  ctx.fillText("equity", 380, 62);
+  ctx.fillText("P&L", 480, 62);
+  ctx.fillText("took", 580, 62);
+  ctx.fillText("declined", 690, 62);
+  ctx.textAlign = "left";
+  s.rows.slice(0, 6).forEach((r, i) => {
+    const y = 70 + i * 52;
+    ctx.fillStyle = i % 2 ? "#0a1020" : "#0c1426";
+    ctx.fillRect(8, y, w - 16, 48);
+    const col = r.owner ? CREW_COLOR[r.owner] : C.cyan;
+    ctx.fillStyle = r.id === s.leader ? "#fde68a" : C.text;
+    ctx.font = `800 22px ${MONO}`;
+    ctx.fillText(String(i + 1), 16, y + 31);
+    ctx.fillStyle = col;
+    ctx.font = `800 22px ${FONT}`;
+    ctx.fillText(fit(ctx, r.name, 190), 46, y + 31);
+    ctx.textAlign = "right";
+    ctx.fillStyle = C.text;
+    ctx.font = `700 21px ${MONO}`;
+    ctx.fillText(money(r.equity), 380, y + 31);
+    ctx.fillStyle = r.pnl >= 0 ? C.up : C.down;
+    ctx.fillText(`${r.pnl >= 0 ? "+" : "−"}$${Math.abs(Math.round(r.pnl))}`, 480, y + 31);
+    ctx.fillStyle = C.muted;
+    ctx.font = `600 18px ${MONO}`;
+    ctx.fillText(`${r.taken.n} (${r.taken.wins}W)`, 580, y + 31);
+    ctx.fillText(`${r.declined.n}`, 690, y + 31);
+    ctx.textAlign = "left";
+    if (r.status !== "running") {
+      ctx.fillStyle = r.status === "hit" ? C.up : C.down;
+      ctx.font = `800 13px ${FONT}`;
+      ctx.fillText(r.status === "hit" ? "GOAL" : "FLOOR", w - 68, y + 29);
+    }
+  });
+  ctx.fillStyle = C.muted;
+  ctx.font = `500 13px ${FONT}`;
+  ctx.fillText(`syndicates ${s.syndicates.n} · closed ${s.syndicates.closed} · ${s.syndicates.usd >= 0 ? "+" : "−"}$${Math.abs(Math.round(s.syndicates.usd))} · every seat trades the room's checklist on paper`, 14, h - 10);
+}
+
+/** The monitors of the annex offices, by room and position. */
+function drawAnnexMonitor(id: string, ctx: Ctx, w: number, h: number, f: FloorFrame): boolean {
+  const [, who, idxStr] = id.split("_");
+  const idx = Number(idxStr);
+  const audit = f.screens.race?.audit ?? [];
+  if (who === "Rnd") {
+    if (idx === 0) drawAudit(ctx, w, h, audit, "DESK AUDIT", 2);
+    else if (idx === 1) drawProposals(ctx, w, h, f);
+    else drawRefusals(ctx, w, h, f);
+    return true;
+  }
+  if (who === "Ops") {
+    if (idx === 0) drawFeed(ctx, w, h, f);
+    else drawAudit(ctx, w, h, audit.filter((a) => a.area === "data" || a.area === "execution"), "OPS · AUDIT", 2);
+    return true;
+  }
+  if (who === "Goal") {
+    if (idx === 0) drawGoalProgress(ctx, w, h, f);
+    else if (idx === 1) drawGoalOdds(ctx, w, h, f);
+    else drawGoalLadder(ctx, w, h, f);
+    return true;
+  }
+  return false;
+}
+
 /** Screens that move between cycles (weather) — the scene redraws these on a timer. */
 export const ANIMATED_SCREENS = new Set(["window_0", "window_1", "window_2"]);
 
@@ -940,7 +1362,12 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "tv_calendar") drawCalendar(ctx, w, h, f);
     else if (id === "whiteboard") drawWhiteboard(ctx, w, h, f);
     else if (id === "marquee") drawMarquee(ctx, w, h, f);
-    else if (id.startsWith("mon_")) drawMonitor(id, ctx, w, h, f);
+    else if (id === "tv_scanner") drawScanner(ctx, w, h, f);
+    else if (id === "tv_rnd") drawRndBoard(ctx, w, h, f);
+    else if (id === "tv_goal") drawSeatLeague(ctx, w, h, f);
+    else if (id.startsWith("mon_")) {
+      if (!drawAnnexMonitor(id, ctx, w, h, f)) drawMonitor(id, ctx, w, h, f);
+    }
     else if (id === "neon_Jax") drawNeon(ctx, w, h);
     else if (id === "board_Nova") drawChalk(ctx, w, h, f);
     else if (id === "clocks_Gemma") drawClocks(ctx, w, h, clockMs);

@@ -25,7 +25,6 @@ const { ANIMS_BY_CHARACTER, ZONES_BY_CHARACTER } = await import("../src/lib/room
 const D = await import("../src/lib/room/drill.ts");
 const R = await import("../src/lib/room/race.ts");
 const W = await import("../src/lib/room/live-world.ts");
-const { asLab } = await import("../src/lib/room/lab.ts");
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
 const { etDateOf } = await import("../src/lib/room/option-math.ts");
 
@@ -50,7 +49,10 @@ const legal = (item) => {
     if (l.character === "Nova" && l.animation === "WRITING_ON_WHITEBOARD" && item.moves.Nova?.zone !== "THE_WHITEBOARD") bad.push("Nova writes on a board she is not at");
     if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD") bad.push("Gemma gestures at a wall she is not at");
   }
-  for (const [who, m] of Object.entries(item.moves)) if (m.zone && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
+  for (const [who, m] of Object.entries(item.moves)) {
+    if (m.zone && m.zone !== "ANNEX" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
+    if (m.zone === "ANNEX" && !/^office_(rnd|ops|goal)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
+  }
   return bad;
 };
 

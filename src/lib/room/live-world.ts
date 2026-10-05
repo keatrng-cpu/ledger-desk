@@ -34,6 +34,7 @@ import type {
   NewsLite,
   PositionRead,
   RndLite,
+  ScanCardLite,
   SeatsLite,
   TalkWorld,
   TapeBook,
@@ -168,7 +169,7 @@ export function atrOf(desk: DeskPayload): Record<Underlier, { atr: number | null
   return { QQQ: one("QQQ"), SPY: one("SPY") };
 }
 
-function feedOf(desk: DeskPayload): TalkWorld["feed"] {
+export function feedOf(desk: DeskPayload): TalkWorld["feed"] {
   const qs = [desk.quotes.left, desk.quotes.right].filter((q) => q && Number.isFinite(q.price));
   if (!qs.length) return { kind: "none", lagSec: null };
   if (desk.feed === "synthetic" || qs.every((q) => q.source === "synthetic")) return { kind: "synthetic", lagSec: null };
@@ -225,6 +226,38 @@ function cardRead(desk: DeskPayload): CardRead | null {
   };
 }
 
+/** The scanner board, as the war room's TV shows it: the desk's graded candidates in board order, each with its plan and entry tier. */
+export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
+  return [...desk.scan.candidates]
+    .filter((c) => c.pathBand)
+    .sort(compareForBoard)
+    .slice(0, limit)
+    .map((c) => {
+      const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
+      const b = booksOf(desk)[u];
+      const plan = b.smc.plan && b.smc.plan.side === c.side ? b.smc.plan : null;
+      const read = plan ? readEntry(plan, b.quote.price, b.draw.atr || null) : null;
+      return {
+        key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
+        name: `${c.pathBand} ${c.symbol} ${c.side}`,
+        symbol: c.symbol,
+        strategy: c.completeStrategy || c.strategyPrimary || null,
+        verdict: c.actionable && isHighProbPath(c) ? "ARMED" : SETUP_BANDS.has(String(c.pathBand ?? "")) ? "WATCH" : "STAND",
+        band: c.pathBand ? String(c.pathBand) : null,
+        u,
+        side: c.side === "short" ? "short" : "long",
+        tier: read?.tier ?? null,
+        awayPts: read?.awayPts ?? null,
+        pT1: c.hitOdds?.pT1 ?? null,
+        expR: c.hitOdds?.expR ?? null,
+        entry: plan?.entry ?? null,
+        stop: plan?.stop ?? null,
+        t1: plan?.t1 ?? null,
+        block: c.missing?.[0] ?? null,
+      } satisfies ScanCardLite;
+    });
+}
+
 export function bookRead(book: RoomBook, nowMs: number): BookRead {
   const today = etDateOf(nowMs);
   const closedToday = book.closed.filter((c) => etDateOf(c.closedAt) === today);
@@ -260,7 +293,7 @@ function mindsRead(m: MindState | null): MindsRead | null {
   };
 }
 
-function labLite(lab: LabRead | null): LabLite | null {
+export function labLite(lab: LabRead | null): LabLite | null {
   if (!lab) return null;
   return {
     refusals: lab.refusals,

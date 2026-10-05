@@ -58,6 +58,11 @@ PORTRAIT_DIR = os.path.join(OUT_DIR, "portraits")
 with open(LAYOUT_PATH) as fh:
     LAYOUT = json.load(fh)
 
+# Entries flagged "procedural" (the annex offices and their screens) are built at runtime by the three.js scene
+# (floor-scene.ts buildFallback) from the same plan, so a GLB rebuild never doubles them.
+for _key in ("rooms", "walls", "furniture", "screens", "emissives"):
+    LAYOUT[_key] = [i for i in LAYOUT.get(_key, []) if not i.get("procedural")]
+
 FURN = LAYOUT["furniture"]
 SCREENS = LAYOUT["screens"]
 EMISSIVES = LAYOUT["emissives"]

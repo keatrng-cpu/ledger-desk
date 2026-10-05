@@ -252,6 +252,91 @@ const chairsFace = LAYOUT.furniture
   .filter((x) => x.kind === "meeting_chair")
   .every((x) => Math.sin((x.rot * Math.PI) / 180) * (table.pos[0] - x.pos[0]) + Math.cos((x.rot * Math.PI) / 180) * (table.pos[1] - x.pos[1]) > 0);
 check("war-room chairs face the table", chairsFace);
+
+console.log("floor plan: the annex offices and walking");
+{
+  const procRooms = LAYOUT.rooms.filter((r) => r.procedural);
+  check("the three annex offices are procedural (the GLB predates them)", procRooms.map((r) => r.id).sort().join() === "office_Goal,office_Ops,office_RnD", procRooms.map((r) => r.id).join());
+  const ids = [...LAYOUT.rooms, ...LAYOUT.walls, ...LAYOUT.furniture, ...LAYOUT.screens, ...LAYOUT.emissives].map((x) => x.id);
+  check("every id in the plan is unique (screens and keyboards are found by exact name)", new Set(ids).size === ids.length, ids.filter((x, i) => ids.indexOf(x) !== i).join());
+  const inside = (r, [x, z]) => x > r.x[0] && x < r.x[1] && z > r.z[0] && z < r.z[1];
+  const spotOf = { office_RnD: "office_rnd", office_Ops: "office_ops", office_Goal: "office_goal" };
+  for (const r of procRooms) {
+    const sp = LAYOUT.spots[spotOf[r.id]];
+    check(`${r.id}: its desk spot is inside it, sits, and looks at its monitors`, sp && inside(r, sp.pos) && sp.pose === "sit" && Math.abs(sp.look[0] - sp.pos[0]) < 0.01 && sp.look[1] < sp.pos[1]);
+    const key = r.id.replace("office_", "");
+    const mons = LAYOUT.screens.filter((x) => x.id.startsWith(`mon_${key === "RnD" ? "Rnd" : key}_`));
+    check(`${r.id}: monitors face the chair, sit on the desk and are inside the room`, mons.length >= 2 && mons.every((m) => m.facing === 0 && inside(r, [m.center[0], m.center[2]]) && m.center[2] < sp.pos[1]), mons.map((m) => m.id).join());
+    const walls = LAYOUT.walls.filter((w) => w.procedural && w.id.startsWith(key === "RnD" ? "lab_" : `${key.toLowerCase()}_`));
+    check(`${r.id}: walled in glass with a door at least 1.0 m wide`, walls.length >= 2 && walls.every((w) => w.kind === "glass") && walls.some((w) => w.doors.some(([a, b]) => b - a >= 1.0)), walls.map((w) => w.id).join());
+    check(`${r.id}: the plate on its glass names it`, LAYOUT.screens.some((x) => x.id === `plate_${key === "RnD" ? "Rnd" : key}`));
+  }
+  const overlap = (a, b) => a.x[0] < b.x[1] && b.x[0] < a.x[1] && a.z[0] < b.z[1] && b.z[0] < a.z[1];
+  check("the annex offices do not overlap each other", !overlap(procRooms[0], procRooms[1]) && !overlap(procRooms[1], procRooms[2]) && !overlap(procRooms[0], procRooms[2]));
+  check("…and stay inside the building", procRooms.every((r) => r.x[0] >= LAYOUT.bounds.x[0] && r.x[1] <= LAYOUT.bounds.x[1] && r.z[0] >= LAYOUT.bounds.z[0] && r.z[1] <= LAYOUT.bounds.z[1]));
+  // A procedural piece must not sit inside a piece the GLB already has.
+  const box = (f) => {
+    const swap = Math.abs(Math.round(f.rot / 90)) % 2 === 1;
+    const [w, , d] = f.size;
+    const hw = (swap ? d : w) / 2;
+    const hd = (swap ? w : d) / 2;
+    return { x: [f.pos[0] - hw, f.pos[0] + hw], z: [f.pos[1] - hd, f.pos[1] + hd] };
+  };
+  const solid = LAYOUT.furniture.filter((f) => f.obstacle);
+  const clash = [];
+  for (const f of solid.filter((x) => x.procedural)) for (const g of solid.filter((x) => !x.procedural)) if (overlap(box(f), box(g))) clash.push(`${f.id}×${g.id}`);
+  check("no annex furniture sits inside furniture the GLB already has", clash.length === 0, clash.join());
+
+  const FS = await import("../src/components/room/floor-scene.ts");
+  const nav = new FS.NavGrid(LAYOUT);
+  const free = (p) => nav.free(...nav.cellOf(p[0], p[1]));
+  const reach = (a, b) => {
+    const pts = nav.path(a, b);
+    if (!nav.lastFound) return null;
+    let len = 0;
+    let cur = a;
+    for (const q of pts) {
+      len += Math.hypot(q[0] - cur[0], q[1] - cur[1]);
+      cur = q;
+    }
+    return len;
+  };
+  const hubs = { "the war room": [-6, 1.8], "the lounge": [8, 2.5] };
+  for (const [k, h] of Object.entries(hubs)) check(`${k} hub is open floor`, free(h));
+  const stops = [
+    ...Object.entries(LAYOUT.spots).map(([k, v]) => [`spot ${k}`, v.pos]),
+    ...Object.entries(LAYOUT.anchors).flatMap(([z, ps]) => Object.entries(ps).map(([who, a]) => [`${z}/${who}`, a.pos])),
+  ];
+  const lost = [];
+  const blocked = [];
+  for (const [k, pos] of stops) {
+    // A couch is sat IN: its anchors are inside the obstacle on purpose.
+    const pose = LAYOUT.spots[k.replace("spot ", "")]?.pose;
+    if (pose !== "couch" && !free(pos)) blocked.push(k);
+    for (const h of Object.values(hubs)) if (reach(h, pos) == null) lost.push(`${k} from ${h}`);
+  }
+  check(`every spot and anchor is on open floor (${stops.length} checked)`, blocked.length === 0, blocked.join(", "));
+  check("…and can be walked to from the war room and from the lounge", lost.length === 0, lost.join(", "));
+  // Doors really open: a straight crossing is a short walk. A door a desk shuts forces a long way round, or none.
+  const shut = [];
+  for (const w of LAYOUT.walls.filter((x) => !x.id.startsWith("ext_"))) {
+    const horizontal = w.a[1] === w.b[1];
+    for (const [lo, hi] of w.doors) {
+      const mid = (lo + hi) / 2;
+      const a = horizontal ? [mid, w.a[1] - 0.8] : [w.a[0] - 0.8, mid];
+      const b = horizontal ? [mid, w.a[1] + 0.8] : [w.a[0] + 0.8, mid];
+      const len = reach(a, b);
+      if (len == null || len > 3.2) shut.push(`${w.id}@${mid} (${len == null ? "no way" : len.toFixed(1) + " m"})`);
+    }
+  }
+  check("every door in the plan can be walked through (no desk shuts it)", shut.length === 0, shut.join(", "));
+  const seats = { Jax: "JAX'S_DESK", Nova: "NOVA'S_DESK", Gemma: "GEMMA_DESK", Sterling: "STERLING_DESK", Vince: "VINCE_DESK" };
+  const trapped = Object.entries(seats).filter(([who, z]) => reach(LAYOUT.anchors[z][who].pos, hubs["the war room"]) == null || reach(LAYOUT.anchors[z][who].pos, hubs["the lounge"]) == null).map(([w]) => w);
+  check("all five can walk from their own chair to the war room and the lounge (they used to clip through glass if a desk shut the door)", trapped.length === 0, trapped.join(", "));
+  const annex = ["office_rnd", "office_ops", "office_goal"].filter((k) => reach(LAYOUT.spots[k].pos, hubs["the war room"]) == null || reach(LAYOUT.spots[k].pos, hubs["the lounge"]) == null);
+  check("and from each annex desk", annex.length === 0, annex.join());
+}
+
 const glb = new URL("../public/floor/office.glb", import.meta.url);
 if (existsSync(glb)) {
   const buf = readFileSync(glb);
@@ -260,7 +345,7 @@ if (existsSync(glb)) {
   const gltf = okHeader ? JSON.parse(buf.toString("utf8", 20, 20 + jsonLen)) : { nodes: [] };
   const names = (gltf.nodes ?? []).map((n) => n.name ?? "");
   // The runtime finds screens, LEDs and keyboards by exact name.
-  const wanted = [...LAYOUT.screens.map((x) => x.id), ...LAYOUT.emissives.map((x) => x.id), ...["Jax", "Nova", "Gemma", "Sterling", "Vince"].map((n) => `key_${n}`)];
+  const wanted = [...LAYOUT.screens.filter((x) => !x.procedural).map((x) => x.id), ...LAYOUT.emissives.filter((x) => !x.procedural).map((x) => x.id), ...["Jax", "Nova", "Gemma", "Sterling", "Vince"].map((n) => `key_${n}`)];
   const off = wanted.filter((id) => names.filter((n) => n === id).length !== 1);
   check("office.glb is a binary glTF the size it says", okHeader);
   check(`office.glb names all ${wanted.length} screens, LEDs and keyboards exactly once`, off.length === 0, off.join(", "));

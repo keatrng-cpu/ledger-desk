@@ -31,6 +31,7 @@
 import { ROOM_CLOCK } from "./mandate";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
+import { deskAudit } from "./audit";
 import {
   ATM_DELTA,
   Facts,
@@ -1146,6 +1147,12 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
       out.push({ id: `rnd:${e.id}`, weight: 0.7, sig: `${e.status}|${e.n}`, build: (c) => R.exRndStandup(c, { exp: e }) });
     }
   }
+  // What the five find wrong with the desk (audit.ts): one finding at a time, in turn, from the office it belongs to.
+  const audit = deskAudit({ feed: w.feed, goal: w.goal, lab: w.lab, rnd: w.rnd, seats: w.seats });
+  if (audit.length) {
+    const it = audit[(st.variant["audit.idx"] ?? 0) % audit.length]!;
+    out.push({ id: `audit:${it.id}`, weight: 0.9, sig: `${it.id}|${it.evidence}`, build: (c) => R.exAudit(c, { item: it }) });
+  }
   // A call somebody made earlier, now scored — each one is brought up once.
   const mem = w.minds?.memories.find((m) => m.outcome != null && !st.memSaid.includes(`${m.clock}|${m.text}|${m.outcome}`));
   if (mem) {
@@ -1226,8 +1233,14 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
 function heartbeatCand(w: TalkWorld, st: TalkState): Cand | null {
   const now = w.nowMs;
   let best: { hb: Hb; score: number } | null = null;
-  for (const hb of heartbeats(w, st)) {
+  const all = heartbeats(w, st);
+  // The last heartbeat said never comes straight back while there is anything else to say.
+  let lastKey: string | null = null;
+  let lastAt = 0;
+  for (const [k, t] of Object.entries(st.topicAt)) if (k.startsWith("hb:") && t > lastAt) [lastKey, lastAt] = [k, t];
+  for (const hb of all) {
     const key = `hb:${hb.id}`;
+    if (key === lastKey && all.length > 1) continue;
     const family = `hbf:${hb.id.split(":")[0]}`;
     const age = now - (st.topicAt[key] ?? 0);
     const changed = st.topicSig[key] !== hb.sig;
@@ -1256,6 +1269,7 @@ function heartbeatCand(w: TalkWorld, st: TalkState): Cand | null {
       s.topicAt[family] = now;
       s.topicSig[`hb:${hb.id}`] = hb.sig;
       if (hb.id === "evidence") s.variant["evid.idx"] = (s.variant["evid.idx"] ?? 0) + 1;
+      if (hb.id.startsWith("audit:")) s.variant["audit.idx"] = (s.variant["audit.idx"] ?? 0) + 1;
       if (hb.id === "memory") s.memSaid = [...s.memSaid, hb.sig].slice(-40);
     },
   };

@@ -339,6 +339,27 @@ export interface RndLite {
   experiments: { id: string; owner: Character; title: string; status: "collecting" | "supported" | "not_supported" | "undecided"; n: number; nNeeded: number; read: string; proposal: string | null }[];
 }
 
+/** One setup-scanner card as the war room's TV shows it. */
+export interface ScanCardLite {
+  key: string;
+  name: string;
+  /** The futures symbol the card is on, as the desk graded it (MNQ, MES, NQ, ES). */
+  symbol: string;
+  strategy: string | null;
+  verdict: "ARMED" | "WATCH" | "STAND";
+  band: string | null;
+  u: Underlier;
+  side: "long" | "short";
+  tier: EntryTier | null;
+  awayPts: number | null;
+  pT1: number | null;
+  expR: number | null;
+  entry: number | null;
+  stop: number | null;
+  t1: number | null;
+  block: string | null;
+}
+
 export interface TalkWorld {
   nowMs: number;
   clock: ClockRead;
@@ -366,8 +387,9 @@ export interface TalkWorld {
 /* ── What a tick produces ──────────────────────────────────────────────── */
 
 export interface TalkMove {
-  zone?: Zone;
-  /** A lounge spot id from floor-layout.json (tv_watch_0, window_0, bar_1, coffee, …). */
+  /** The cycle contract's zones, or "ANNEX": presentation-only, an office of the annex (the spot says which). */
+  zone?: Zone | "ANNEX";
+  /** A spot id from floor-layout.json: a lounge spot (tv_watch_0, window_0, bar_1, coffee, …) or an annex office (office_rnd, office_ops, office_goal). */
   spot?: string;
 }
 

@@ -38,10 +38,11 @@ interface Anchor {
 interface Layout {
   bounds: { x: V2; z: V2 };
   ceiling: number;
-  rooms: { id: string; label: string; x: V2; z: V2; floor: string }[];
-  walls: { id: string; a: V2; b: V2; height: number; kind: string; doors: V2[] }[];
-  furniture: { id: string; kind: string; pos: V2; rot: number; size: V3; obstacle: boolean; style?: string; onTop?: number }[];
-  screens: { id: string; kind: string; center: V3; size: V2; facing: number; px: V2 }[];
+  /** `procedural` entries (the annex offices) are built at runtime from this plan; the Blender GLB predates them. */
+  rooms: { id: string; label: string; x: V2; z: V2; floor: string; procedural?: boolean }[];
+  walls: { id: string; a: V2; b: V2; height: number; kind: string; doors: V2[]; procedural?: boolean }[];
+  furniture: { id: string; kind: string; pos: V2; rot: number; size: V3; obstacle: boolean; style?: string; onTop?: number; procedural?: boolean; navSize?: V3 }[];
+  screens: { id: string; kind: string; center: V3; size: V2; facing: number; px: V2; procedural?: boolean }[];
   emissives: { id: string; kind: string; a: V3; b: V3; thickness: number }[];
   anchors: Record<string, Partial<Record<Character, Anchor>>>;
   spots: Record<string, Anchor>;
@@ -68,13 +69,15 @@ function angleLerp(a: number, b: number, k: number): number {
 
 /* ── Navigation: A* on the floor plan ───────────────────────────────────── */
 
-class NavGrid {
+export class NavGrid {
   readonly x0: number;
   readonly z0: number;
   readonly cell: number;
   readonly nx: number;
   readonly nz: number;
   readonly blocked: Uint8Array;
+  /** Did the last `path` find a way (false: it fell back to the straight target)? */
+  lastFound = false;
 
   constructor(L: Layout) {
     this.cell = L.nav.cell;
@@ -100,8 +103,10 @@ class NavGrid {
     }
     for (const f of L.furniture) {
       if (!f.obstacle) continue;
-      const hw = f.size[0] / 2 + L.nav.inflate;
-      const hd = f.size[2] / 2 + L.nav.inflate;
+      // Walking avoids `navSize` when the plan gives one (a desk whose full width would shut the door beside it).
+      const nav = f.navSize ?? f.size;
+      const hw = nav[0] / 2 + L.nav.inflate;
+      const hd = nav[2] / 2 + L.nav.inflate;
       const c = Math.cos(f.rot * DEG);
       const s = Math.sin(f.rot * DEG);
       const r = Math.hypot(hw, hd);
@@ -243,6 +248,7 @@ class NavGrid {
           }
         }
     }
+    this.lastFound = found;
     if (!found) return [b];
     const cells: V2[] = [];
     for (let k = goal; k !== -1 && k !== start; k = came[k]!) cells.push(this.center(k % this.nx, (k / this.nx) | 0));
@@ -1148,7 +1154,45 @@ interface ScreenRec {
   h: number;
 }
 
-export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "follow" | "auto";
+export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "rnd" | "ops" | "goal" | "follow" | "auto" | "free";
+
+/** Where a viewer can go: a screen (double-click does the same), a bank of monitors, or an annex office. */
+export interface Place {
+  id: string;
+  label: string;
+  group: "war room" | "annex" | "lounge";
+}
+export const PLACES: Place[] = [
+  { id: "whiteboard", label: "War board", group: "war room" },
+  { id: "tv_scanner", label: "Setup scanner", group: "war room" },
+  { id: "tv_chart_QQQ", label: "QQQ chart", group: "war room" },
+  { id: "tv_chart_SPY", label: "SPY chart", group: "war room" },
+  { id: "tv_news", label: "News", group: "war room" },
+  { id: "tv_calendar", label: "Calendar", group: "war room" },
+  { id: "jumbo_E", label: "Nova's ledger", group: "war room" },
+  { id: "jumbo_S", label: "Ghost room", group: "war room" },
+  { id: "jumbo_W", label: "Calibration", group: "war room" },
+  { id: "jumbo_N", label: "The vote", group: "war room" },
+  { id: "tv_rnd", label: "R&D board", group: "annex" },
+  { id: "mon_Rnd_0", label: "Desk audit", group: "annex" },
+  { id: "mon_Ops_0", label: "The feed", group: "annex" },
+  { id: "tv_goal", label: "The race", group: "annex" },
+  { id: "mon_Goal_0", label: "Goal progress", group: "annex" },
+  { id: "tv_leader", label: "League table", group: "lounge" },
+  { id: "tv_lounge", label: "Lounge TV", group: "lounge" },
+];
+
+/** A readable name for any screen id, for the tab's "looking at" label. */
+export function screenLabel(id: string): string {
+  const hit = PLACES.find((p) => p.id === id);
+  if (hit) return hit.label;
+  const m = /^mon_([A-Za-z]+)_\d+$/.exec(id);
+  if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : `${m[1]}'s monitors`;
+  const p = /^plate_([A-Za-z]+)$/.exec(id);
+  if (p) return `${p[1]}'s door`;
+  if (id.startsWith("window_")) return "Window";
+  return id.replace(/_/g, " ");
+}
 
 /** Things the floor does that a speaker (or the tab) may want to hear. */
 export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
@@ -1176,6 +1220,12 @@ export interface FloorSceneOptions {
   onEvent?: (e: FloorEvent) => void;
   /** A talk exchange started playing, finished, or went stale in the queue before it could start. */
   onTalk?: (id: string, state: "started" | "done" | "dropped") => void;
+  /** The camera started (or stopped) following a person in third person. */
+  onFollow?: (who: Character | null) => void;
+  /** The camera went to a screen or an office (a label), or was released (null). */
+  onFocus?: (label: string | null) => void;
+  /** What the pointer is over that can be clicked (a person, a screen), in words — or null. */
+  onHover?: (label: string | null) => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1184,6 +1234,8 @@ const FLOOR_COLORS: Record<string, string> = {
   carpet_green: "#1f3328",
   carpet_navy: "#1c2638",
   carpet_slate: "#272c35",
+  carpet_teal: "#16343a",
+  carpet_plum: "#3a2236",
   wood: "#6b4f37",
   tile: "#9ba1a9",
 };
@@ -1284,6 +1336,14 @@ function fallbackPiece(f: Layout["furniture"][number], mat: THREE.Material): THR
   return g;
 }
 
+/** Glass and other see-through surfaces: a sight line and a click go through them. */
+function seeThrough(o: THREE.Object3D): boolean {
+  const m = (o as THREE.Mesh).material;
+  if (!m) return false;
+  const mats = Array.isArray(m) ? m : [m];
+  return mats.every((x) => x.transparent && x.opacity < 0.6);
+}
+
 export class FloorScene {
   private readonly container: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
@@ -1313,7 +1373,17 @@ export class FloorScene {
   private camGoal: { pos: THREE.Vector3; target: THREE.Vector3 } | null = null;
   /** The static office (GLB or box fallback), for the director's line-of-sight checks. People are not in it. */
   private officeRoot: THREE.Object3D | null = null;
+  /** The annex offices, built at runtime from the plan when the Blender GLB (which predates them) loads. */
+  private annexRoot: THREE.Object3D | null = null;
   private readonly sightRay = new THREE.Raycaster();
+  /** Third-person: the person the camera rides with, the last head point the rig followed, and how far back the viewer wants to be. */
+  private chase: Character | null = null;
+  private chaseHead: THREE.Vector3 | null = null;
+  private chaseY = 1.3;
+  private chaseWant = 3.4;
+  private chaseCheckAt = 0;
+  private hoverAt = 0;
+  private hoverLabel: string | null = null;
   private preset: CameraPreset = "overview";
   private lastClockDraw = 0;
   private wbReveal = 1;
@@ -1370,6 +1440,10 @@ export class FloorScene {
       this.camGoal = null;
       if (this.preset === "follow") this.preset = "overview";
     });
+    // Orbiting and zooming while following keeps the person in the middle; the distance the viewer settles on is the one we hold.
+    this.controls.addEventListener("end", () => {
+      if (this.chase) this.chaseWant = Math.max(1.4, this.camera.position.distanceTo(this.controls.target));
+    });
 
     this.hemi = new THREE.HemisphereLight(0xe0ecff, 0x2a2a33, 0.95);
     this.scene.add(this.hemi);
@@ -1420,6 +1494,10 @@ export class FloorScene {
     this.interObs.observe(container);
     this.renderer.domElement.addEventListener("pointerdown", this.onDown);
     this.renderer.domElement.addEventListener("pointerup", this.onUp);
+    this.renderer.domElement.addEventListener("dblclick", this.onDouble);
+    this.renderer.domElement.addEventListener("pointermove", this.onMove);
+    this.renderer.domElement.addEventListener("pointerleave", this.onLeave);
+    window.addEventListener("keydown", this.onKey);
     this.resize();
     this.loop();
     // Dev-only handle for poking the scene from a browser console or a headless check.
@@ -1452,10 +1530,15 @@ export class FloorScene {
       this.officeRoot = root;
       this.attachScreens(root, true);
       this.attachEmissives(root);
+      // The annex offices exist only in the plan (the GLB predates them): built here from the same plan, beside it.
+      const annex = this.buildFallback(true);
+      this.scene.add(annex);
+      this.annexRoot = annex;
+      this.attachScreens(annex, false);
       this.opts.onEnvironment?.("glb");
     } catch {
       if (this.disposed) return;
-      const root = this.buildFallback();
+      const root = this.buildFallback(false);
       this.scene.add(root);
       this.officeRoot = root;
       this.attachScreens(root, false);
@@ -1465,17 +1548,23 @@ export class FloorScene {
     if (this.frame) this.drawAll(this.frame);
   }
 
-  /** The same floor plan from boxes, when the Blender GLB is not there. */
-  private buildFallback(): THREE.Group {
+  /**
+   * The same floor plan from boxes, when the Blender GLB is not there — or, with `onlyProcedural`, just the entries flagged
+   * `procedural` (the annex offices and their screens), which sit beside a GLB that does not have them.
+   */
+  private buildFallback(onlyProcedural: boolean): THREE.Group {
     const g = new THREE.Group();
+    const wanted = <T extends { procedural?: boolean }>(x: T) => !onlyProcedural || Boolean(x.procedural);
     const std = (hex: string, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
       new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), roughness: 0.75, ...extra });
     for (const r of LAYOUT.rooms) {
+      if (!wanted(r)) continue;
       const w = r.x[1] - r.x[0];
       const d = r.z[1] - r.z[0];
-      const floor = new THREE.Mesh(new THREE.PlaneGeometry(w, d), std(FLOOR_COLORS[r.floor] ?? "#334155"));
+      // An annex floor lies just above the GLB's own floor (the alcove's wood, the lounge's tile) so it covers it without z-fighting.
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(w, d), std(FLOOR_COLORS[r.floor] ?? "#334155", r.procedural ? { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 } : {}));
       floor.rotation.x = -Math.PI / 2;
-      floor.position.set((r.x[0] + r.x[1]) / 2, 0, (r.z[0] + r.z[1]) / 2);
+      floor.position.set((r.x[0] + r.x[1]) / 2, r.procedural ? 0.012 : 0, (r.z[0] + r.z[1]) / 2);
       floor.receiveShadow = true;
       g.add(floor);
     }
@@ -1483,6 +1572,7 @@ export class FloorScene {
     const glassMat = std("#9cc3ff", { transparent: true, opacity: 0.18, roughness: 0.05, depthWrite: false });
     glassMat.name = "glass";
     for (const w of LAYOUT.walls) {
+      if (!wanted(w)) continue;
       const horizontal = w.a[1] === w.b[1];
       const [lo, hi] = horizontal ? [Math.min(w.a[0], w.b[0]), Math.max(w.a[0], w.b[0])] : [Math.min(w.a[1], w.b[1]), Math.max(w.a[1], w.b[1])];
       const gaps = [...w.doors].sort((p, q) => p[0] - q[0]);
@@ -1505,6 +1595,7 @@ export class FloorScene {
       }
     }
     for (const f of LAYOUT.furniture) {
+      if (!wanted(f)) continue;
       const m = fallbackPiece(f, std(FURNITURE_COLORS[f.kind] ?? "#64748b"));
       m.position.set(f.pos[0], f.onTop ?? 0, f.pos[1]);
       m.rotation.y = f.rot * DEG;
@@ -1519,12 +1610,25 @@ export class FloorScene {
       g.add(m);
     }
     for (const s of LAYOUT.screens) {
+      if (!wanted(s)) continue;
       const plane = new THREE.Mesh(new THREE.PlaneGeometry(s.size[0], s.size[1]), new THREE.MeshBasicMaterial({ color: 0x05070c }));
       plane.position.set(...s.center);
       plane.rotation.y = s.facing * DEG;
       plane.name = s.id;
       g.add(plane);
+      // A procedural TV or monitor gets a frame behind it (a sibling, so the screen texture is not pasted onto it).
+      if (s.procedural && (s.kind === "tv" || s.kind === "monitor")) {
+        const depth = s.kind === "tv" ? 0.06 : 0.04;
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(s.size[0] + 0.07, s.size[1] + 0.07, depth), std("#0b0f17", { roughness: 0.4 }));
+        const nx = Math.sin(s.facing * DEG);
+        const nz = Math.cos(s.facing * DEG);
+        frame.position.set(s.center[0] - nx * (depth / 2 + 0.002), s.center[1], s.center[2] - nz * (depth / 2 + 0.002));
+        frame.rotation.y = s.facing * DEG;
+        frame.castShadow = true;
+        g.add(frame);
+      }
     }
+    if (onlyProcedural) return g;
     for (const e of LAYOUT.emissives) {
       const len = Math.max(Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2]), e.thickness);
       const mat = std("#ffffff", { emissive: new THREE.Color("#ffffff"), emissiveIntensity: 1 });
@@ -1813,7 +1917,7 @@ export class FloorScene {
 
   /** The auto-director: a shot for every line — close on the speaker, wide every few lines, the keyboard on a send. */
   private directorShot(line: DialogueLine | null) {
-    if (this.preset !== "auto") return;
+    if (this.preset !== "auto" || this.chase) return;
     this.shotN += 1;
     const f = this.frame;
     const cut = (pos: V3, target: V3) => {
@@ -1840,18 +1944,22 @@ export class FloorScene {
   }
 
   /** Distance to the first SOLID thing along a ray, or Infinity. Glass (see-through) does not count. */
-  private solidAlong(from: THREE.Vector3, dir: THREE.Vector3, far: number): number {
-    if (!this.officeRoot) return Infinity;
+  private solidAlong(from: THREE.Vector3, dir: THREE.Vector3, far: number, near = 0): number {
+    const roots = this.staticRoots();
+    if (!roots.length) return Infinity;
     this.sightRay.set(from, dir);
-    this.sightRay.near = 0;
+    this.sightRay.near = near;
     this.sightRay.far = far;
-    for (const h of this.sightRay.intersectObject(this.officeRoot, true)) {
-      const m = (h.object as THREE.Mesh).material;
-      const mats = Array.isArray(m) ? m : [m];
-      if (mats.every((x) => x.transparent && x.opacity < 0.6)) continue;
+    for (const h of this.sightRay.intersectObjects(roots, true)) {
+      if (seeThrough(h.object)) continue;
       return h.distance;
     }
     return Infinity;
+  }
+
+  /** The static office: the GLB (or the box plan) and the annex built beside it. People are not in it. */
+  private staticRoots(): THREE.Object3D[] {
+    return [this.officeRoot, this.annexRoot].filter((r): r is THREE.Object3D => r != null);
   }
 
   /**
@@ -1896,7 +2004,7 @@ export class FloorScene {
   }
 
   private targetFor(who: Character, zone: string, act: AgentAct | null, used: Map<string, number>): Target {
-    const spotId = zone === "WATERCOOLER" && act?.spot ? act.spot : null;
+    const spotId = (zone === "WATERCOOLER" || zone === "ANNEX") && act?.spot ? act.spot : null;
     let anchor: Anchor | undefined = spotId ? LAYOUT.spots[spotId] : LAYOUT.anchors[zone]?.[who];
     let key = spotId ? `spot:${spotId}` : `${zone}`;
     if (!anchor) {
@@ -1934,11 +2042,169 @@ export class FloorScene {
   }
 
   setCamera(p: CameraPreset) {
+    // "free" is the tab's word for "the viewer navigated here" (a follow, a double-click): nothing to move.
+    if (p === "free") {
+      this.preset = "free";
+      return;
+    }
+    this.follow(null);
     this.preset = p;
     if (p === "follow") return;
     if (p === "auto") return this.directorShot(this.lines[this.lineIdx] ?? null);
     const c = LAYOUT.camera[p] ?? LAYOUT.camera.overview!;
     this.camGoal = { pos: new THREE.Vector3(...c.pos), target: new THREE.Vector3(...c.target) };
+    this.opts.onFocus?.(null);
+  }
+
+  /**
+   * Third person: the camera rides with one person (behind and above, their back to the lens when the room allows) until
+   * released — Esc, the tab's stop button, or any preset. Orbit and zoom still work; the rig keeps the viewer's angle and
+   * distance, and a wall that comes between the lens and the person pulls the lens in rather than showing the wall.
+   */
+  follow(who: Character | null) {
+    if (who === this.chase) return;
+    this.chase = who;
+    this.chaseHead = null;
+    this.camGoal = null;
+    if (who) {
+      this.preset = "free";
+      const a = this.avatars.get(who);
+      if (a) {
+        const shot = this.chaseShot(a);
+        this.chaseWant = shot.dist;
+        this.chaseY = shot.target[1];
+        this.camGoal = { pos: new THREE.Vector3(...shot.pos), target: new THREE.Vector3(...shot.target) };
+      }
+      this.opts.onFocus?.(null);
+    }
+    this.opts.onFollow?.(who);
+  }
+
+  /** Who the camera is riding with, or null. */
+  following(): Character | null {
+    return this.chase;
+  }
+
+  /** Chest height standing, shoulder height seated — what the chase looks at. */
+  private chestY(a: Avatar): number {
+    return a.mode === "stand" ? a.height * 0.78 : a.height * 0.58;
+  }
+
+  /** The first spot behind or beside them with clear air and an unbroken line to them. */
+  private chaseShot(a: Avatar): { pos: V3; target: V3; dist: number } {
+    const target = new THREE.Vector3(a.pos[0], this.chestY(a), a.pos[1]);
+    const spots: [number, number][] = [
+      [3.4, Math.PI],
+      [3.4, Math.PI - 0.8],
+      [3.4, Math.PI + 0.8],
+      [3.0, Math.PI - 1.6],
+      [3.0, Math.PI + 1.6],
+      [2.4, Math.PI - 2.4],
+      [2.4, Math.PI + 2.4],
+      [2.2, 0.3],
+    ];
+    for (const [d, ang] of spots) {
+      const x = a.pos[0] + Math.sin(a.yaw + ang) * d;
+      const z = a.pos[1] + Math.cos(a.yaw + ang) * d;
+      const y = target.y + 0.95 + d * 0.12;
+      const from = new THREE.Vector3(x, y, z);
+      if (([[1, 0], [-1, 0], [0, 1], [0, -1]] as const).some(([dx, dz]) => this.solidAlong(from, new THREE.Vector3(dx, 0, dz), 0.4) < Infinity)) continue;
+      const toHead = target.clone().sub(from);
+      const len = toHead.length();
+      if (this.solidAlong(from, toHead.normalize(), len - 0.3) < Infinity) continue;
+      return { pos: [x, y, z], target: [target.x, target.y, target.z], dist: len };
+    }
+    // Nowhere clear at ground level: high and behind, looking down over the glass.
+    const x = a.pos[0] + Math.sin(a.yaw + Math.PI) * 2.2;
+    const z = a.pos[1] + Math.cos(a.yaw + Math.PI) * 2.2;
+    return { pos: [x, target.y + 2.6, z], target: [target.x, target.y, target.z], dist: 3.4 };
+  }
+
+  /** Every frame of a chase: the rig moves by the person's own movement, then a wall behind the lens is dealt with. */
+  private chaseRide(dt: number, t: number) {
+    const a = this.chase ? this.avatars.get(this.chase) : null;
+    if (!a) return;
+    this.chaseY = damp(this.chaseY, this.chestY(a), 4, dt);
+    const head = new THREE.Vector3(a.pos[0], this.chaseY, a.pos[1]);
+    this.chaseHead ??= head.clone();
+    const delta = head.clone().sub(this.chaseHead);
+    this.chaseHead.copy(head);
+    this.camera.position.add(delta);
+    this.controls.target.add(delta);
+    if (this.camGoal) {
+      this.camGoal.pos.add(delta);
+      this.camGoal.target.add(delta);
+      return;
+    }
+    // Throttled: a ray through the whole office is not free. A wall between the lens and them: come in; clear: drift back out.
+    if (t - this.chaseCheckAt < 0.12) return;
+    this.chaseCheckAt = t;
+    const off = this.camera.position.clone().sub(this.controls.target);
+    const dist = off.length();
+    if (dist < 0.3) return;
+    const dir = off.divideScalar(dist);
+    const want = Math.max(this.chaseWant, 1.4);
+    const hit = this.solidAlong(this.controls.target, dir, Math.max(dist, want) + 0.3, 0.55);
+    let next = dist;
+    if (hit < dist + 0.3) next = Math.max(1.0, hit - 0.3);
+    else if (dist < want - 0.05) next = Math.min(want, dist + 0.25);
+    if (Math.abs(next - dist) > 0.01) this.camera.position.copy(this.controls.target).addScaledVector(dir, next);
+  }
+
+  /**
+   * Fly to a screen and look at it square on, at the distance where it fills the view. A monitor goes to its whole bank (a
+   * person's workstation) from over a shoulder; a TV, the board and a jumbotron face go straight on. A desk or chair in
+   * the way pulls the lens in. False for an id that is not a screen.
+   */
+  focusScreen(id: string): boolean {
+    const own = LAYOUT.screens.find((x) => x.id === id);
+    if (!own) return false;
+    const bankKey = id.replace(/_\d+$/, "");
+    const bank = own.kind === "monitor" ? LAYOUT.screens.filter((x) => x.kind === "monitor" && x.id.replace(/_\d+$/, "") === bankKey) : [own];
+    const n = new THREE.Vector3(Math.sin(own.facing * DEG), 0, Math.cos(own.facing * DEG));
+    const u = new THREE.Vector3(Math.cos(own.facing * DEG), 0, -Math.sin(own.facing * DEG));
+    let u0 = Infinity;
+    let u1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    for (const sc of bank) {
+      const cu = sc.center[0] * u.x + sc.center[2] * u.z;
+      u0 = Math.min(u0, cu - sc.size[0] / 2);
+      u1 = Math.max(u1, cu + sc.size[0] / 2);
+      y0 = Math.min(y0, sc.center[1] - sc.size[1] / 2);
+      y1 = Math.max(y1, sc.center[1] + sc.size[1] / 2);
+    }
+    const along = own.center[0] * n.x + own.center[2] * n.z;
+    const center = u.clone().multiplyScalar((u0 + u1) / 2).addScaledVector(n, along);
+    center.y = (y0 + y1) / 2;
+    const tv = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+    const th = tv * this.camera.aspect;
+    let dist = THREE.MathUtils.clamp(Math.max((u1 - u0) / (2 * th), (y1 - y0) / (2 * tv)) * 1.1 + 0.2, 1.3, 8);
+    const small = own.kind === "monitor";
+    const side = small ? 0.5 : 0;
+    const up = small ? 0.45 : 0.1;
+    const spot = (d: number) => center.clone().addScaledVector(n, d).addScaledVector(u, side).add(new THREE.Vector3(0, up, 0));
+    let from = spot(dist);
+    for (let k = 0; k < 4; k++) {
+      from = spot(dist);
+      const ray = from.clone().sub(center);
+      const len = ray.length();
+      const start = center.clone().addScaledVector(n, 0.04);
+      if (this.solidAlong(start, ray.normalize(), len - 0.05) === Infinity) break;
+      dist *= 0.82;
+      if (dist < 1.1) break;
+    }
+    this.follow(null);
+    this.preset = "free";
+    this.camGoal = { pos: from, target: center };
+    this.opts.onFocus?.(screenLabel(id));
+    return true;
+  }
+
+  /** Dev/test: is there a walking route between two floor points? */
+  debugReach(from: V2, to: V2): boolean {
+    this.nav.path(from, to);
+    return this.nav.lastFound;
   }
 
   /** Jump to a line of the meeting (the transcript's click). */
@@ -2103,6 +2369,7 @@ export class FloorScene {
     this.alarm.intensity = flicker ? (Math.sin(t * 40) > 0 ? 14 : 0) : urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
+    if (this.chase) this.chaseRide(dt, t);
     if (this.preset === "follow") {
       const line = this.lines[this.lineIdx];
       const who = line ? this.avatars.get(line.character) : null;
@@ -2134,15 +2401,81 @@ export class FloorScene {
     this.downAt = { x: e.clientX, y: e.clientY };
   };
 
-  private onUp = (e: PointerEvent) => {
-    if (!this.downAt || Math.hypot(e.clientX - this.downAt.x, e.clientY - this.downAt.y) > 6) return;
+  private rayAt(e: { clientX: number; clientY: number }): THREE.Raycaster {
     const rect = this.renderer.domElement.getBoundingClientRect();
     const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     const ray = new THREE.Raycaster();
     ray.setFromCamera(ndc, this.camera);
-    const hits = ray.intersectObjects([...this.avatars.values()].map((a) => a.root), true);
-    const who = hits.find((h) => h.object.userData.character)?.object.userData.character as Character | undefined;
-    if (who) this.opts.onSelect?.(who);
+    return ray;
+  }
+
+  /** The person under a ray and how far, if the ray reaches one. */
+  private personAt(ray: THREE.Raycaster): { who: Character; at: number } | null {
+    const hit = ray.intersectObjects([...this.avatars.values()].map((a) => a.root), true).find((h) => h.object.userData.character);
+    return hit ? { who: hit.object.userData.character as Character, at: hit.distance } : null;
+  }
+
+  /** Click a person: follow them in third person (and select their card). */
+  private onUp = (e: PointerEvent) => {
+    if (!this.downAt || Math.hypot(e.clientX - this.downAt.x, e.clientY - this.downAt.y) > 6) return;
+    const p = this.personAt(this.rayAt(e));
+    if (!p) return;
+    this.follow(p.who);
+    this.opts.onSelect?.(p.who);
+  };
+
+  /** The screen a ray reaches first (glass is looked through); a desk, a chair or a keyboard stands for its owner's monitors. */
+  private screenAlong(ray: THREE.Raycaster): { id: string; at: number } | null {
+    for (const h of ray.intersectObjects(this.staticRoots(), true)) {
+      for (let o: THREE.Object3D | null = h.object; o; o = o.parent) {
+        if (this.screens.has(o.name)) return { id: o.name, at: h.distance };
+        const m = /^(?:desk|chair|key)_(Jax|Nova|Gemma|Sterling|Vince|RnD|Ops|Goal)$/.exec(o.name);
+        if (m) {
+          const id = `mon_${m[1] === "RnD" ? "Rnd" : m[1]}_0`;
+          if (this.screens.has(id)) return { id, at: h.distance };
+        }
+      }
+      if (seeThrough(h.object)) continue;
+      return null;
+    }
+    return null;
+  }
+
+  /** Double-click a monitor, the board or a TV: go to it. (A double-click on a person follows them, as one click does.) */
+  private onDouble = (e: MouseEvent) => {
+    const ray = this.rayAt(e);
+    const hit = this.screenAlong(ray);
+    const p = this.personAt(ray);
+    if (!hit || (p && p.at < hit.at)) return;
+    this.focusScreen(hit.id);
+  };
+
+  /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
+  private onMove = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse" || e.buttons) return;
+    const now = performance.now();
+    if (now - this.hoverAt < 120) return;
+    this.hoverAt = now;
+    const ray = this.rayAt(e);
+    const p = this.personAt(ray);
+    const hit = this.screenAlong(ray);
+    let label: string | null = null;
+    if (p && (!hit || p.at < hit.at)) label = `${p.who} — click to follow`;
+    else if (hit) label = `${screenLabel(hit.id)} — double-click to go there`;
+    this.setHover(label);
+  };
+
+  private onLeave = () => this.setHover(null);
+
+  private setHover(label: string | null) {
+    this.renderer.domElement.style.cursor = label ? "pointer" : "";
+    if (label === this.hoverLabel) return;
+    this.hoverLabel = label;
+    this.opts.onHover?.(label);
+  }
+
+  private onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && this.chase) this.follow(null);
   };
 
   dispose() {
@@ -2152,6 +2485,10 @@ export class FloorScene {
     this.interObs?.disconnect();
     this.renderer.domElement.removeEventListener("pointerdown", this.onDown);
     this.renderer.domElement.removeEventListener("pointerup", this.onUp);
+    this.renderer.domElement.removeEventListener("dblclick", this.onDouble);
+    this.renderer.domElement.removeEventListener("pointermove", this.onMove);
+    this.renderer.domElement.removeEventListener("pointerleave", this.onLeave);
+    window.removeEventListener("keydown", this.onKey);
     this.controls.dispose();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;

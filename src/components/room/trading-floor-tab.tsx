@@ -8,12 +8,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Copy, Expand, RotateCcw, Users, Volume2, VolumeX } from "lucide-react";
+import { Camera, Copy, Expand, Footprints, RotateCcw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
 import { TALK } from "@/lib/room/live-types";
 import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
-import { FloorScene, LAYOUT, type CameraPreset, type FloorEvent } from "./floor-scene";
+import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
+import { RacePanel } from "./race-panel";
 import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
@@ -43,6 +44,9 @@ const CAMERAS: { id: CameraPreset; label: string }[] = [
   { id: "offices", label: "Offices" },
   { id: "front", label: "Risk & exec" },
   { id: "lounge", label: "Lounge" },
+  { id: "rnd", label: "R&D lab" },
+  { id: "ops", label: "Ops & data" },
+  { id: "goal", label: "Goal room" },
   { id: "follow", label: "Speaker" },
 ];
 
@@ -61,24 +65,33 @@ function storyChanged(next: FloorFrame, prev: FloorFrame | null): boolean {
 function FloorCanvas({
   frame,
   camera,
+  sceneRef,
   onSpeaker,
   onMeetingDone,
   onSelect,
   onEnvironment,
   onEvent,
+  onFollow,
+  onFocus,
+  onHover,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
+  /** The tab drives navigation (Go to, Follow) through the scene it is drawing. */
+  sceneRef: { current: FloorScene | null };
   onSpeaker: (i: number, line: DialogueLine | null) => void;
   onMeetingDone: () => void;
   onSelect: (who: Character) => void;
   onEnvironment: (src: "glb" | "fallback") => void;
   onEvent: (e: FloorEvent) => void;
+  onFollow: (who: Character | null) => void;
+  onFocus: (label: string | null) => void;
+  onHover: (label: string | null) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -127,11 +140,15 @@ function FloorCanvas({
         onSelect: (w) => cbs.current.onSelect(w),
         onEnvironment: (s) => cbs.current.onEnvironment(s),
         onEvent: (e) => cbs.current.onEvent(e),
+        onFollow: (w) => cbs.current.onFollow(w),
+        onFocus: (l) => cbs.current.onFocus(l),
+        onHover: (l) => cbs.current.onHover(l),
         onTalk: (id, st) => {
           if (st === "started") useRoomStore.getState().ackTalk({ [id]: "said" });
           else if (st === "dropped") useRoomStore.getState().ackTalk({ [id]: "dropped" });
         },
       });
+      sceneRef.current = scene.current;
       // A new scene has shown nothing (React's dev double-mount builds two).
       shown.current = null;
       playing.current = false;
@@ -147,8 +164,9 @@ function FloorCanvas({
       useRoomStore.getState().setSceneOpen(false);
       scene.current?.dispose();
       scene.current = null;
+      sceneRef.current = null;
     };
-  }, [show, flushTalk]);
+  }, [show, flushTalk, sceneRef]);
 
   useEffect(() => {
     if (!frame || !scene.current || frame === shown.current) return;
@@ -526,6 +544,11 @@ export default function TradingFloorTab() {
   const [camera, setCamera] = useState<CameraPreset>("auto");
   const [speaker, setSpeaker] = useState<{ i: number; line: DialogueLine | null }>({ i: -1, line: null });
   const [selected, setSelected] = useState<Character | null>(null);
+  // Navigation: who the camera is riding with, and what it flew to (a screen, a bank of monitors).
+  const [following, setFollowing] = useState<Character | null>(null);
+  const [looking, setLooking] = useState<string | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+  const sceneRef = useRef<FloorScene | null>(null);
   const [env, setEnv] = useState<"glb" | "fallback" | null>(null);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -547,6 +570,24 @@ export default function TradingFloorTab() {
   }, []);
 
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => setSpeaker({ i, line }), []);
+  // A follow or a fly-to is the viewer's own camera: no preset is "on" while it lasts.
+  const onFollow = useCallback((who: Character | null) => {
+    setFollowing(who);
+    if (who) {
+      setLooking(null);
+      setCamera("free");
+    }
+  }, []);
+  const onFocus = useCallback((label: string | null) => {
+    setLooking(label);
+    if (label) {
+      setFollowing(null);
+      setCamera("free");
+    }
+  }, []);
+  const goTo = useCallback((screenId: string) => {
+    sceneRef.current?.focusScreen(screenId);
+  }, []);
   const onMeetingDone = useCallback(() => undefined, []);
 
   const fullscreen = () => {
@@ -599,6 +640,10 @@ export default function TradingFloorTab() {
         <FloorCanvas
           frame={frame}
           camera={camera}
+          sceneRef={sceneRef}
+          onFollow={onFollow}
+          onFocus={onFocus}
+          onHover={setHover}
           onSpeaker={onSpeaker}
           onMeetingDone={onMeetingDone}
           onSelect={(w) => {
@@ -614,6 +659,32 @@ export default function TradingFloorTab() {
           {frame && <span className="rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-slate-200">{frame.trace.beat}</span>}
           {env && <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] text-slate-400">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
         </div>
+        {(following || looking) && (
+          <div className="absolute left-2 top-9 flex items-center gap-1 rounded bg-black/75 px-2 py-0.5 text-[11px] text-slate-100">
+            <Footprints className="h-3 w-3" />
+            {following ? (
+              <span>
+                Following <b style={{ color: COLOR[following] }}>{following}</b> · drag to orbit · scroll to zoom
+              </span>
+            ) : (
+              <span>
+                Looking at <b>{looking}</b>
+              </span>
+            )}
+            <button
+              type="button"
+              className="ml-1 inline-flex items-center gap-0.5 rounded border border-slate-500 px-1 text-[10px] hover:border-white"
+              onClick={() => {
+                sceneRef.current?.follow(null);
+                setLooking(null);
+                setCamera("overview");
+              }}
+              aria-label={following ? "Stop following and return to the floor view" : "Go back to the floor view"}
+            >
+              <X className="h-3 w-3" /> {following ? "Stop (Esc)" : "Back"}
+            </button>
+          </div>
+        )}
         <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-1">
           {CAMERAS.map((c) => (
             <button
@@ -630,6 +701,7 @@ export default function TradingFloorTab() {
             <Expand className="inline h-3 w-3" />
           </button>
         </div>
+        {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (
             <p className="text-[13px] leading-snug text-white">
@@ -644,6 +716,39 @@ export default function TradingFloorTab() {
           )}
         </div>
       </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2">
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Follow</span>
+          {CREW.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={`${BTN} ${following === c ? "border-[var(--color-primary)]" : ""}`}
+              aria-pressed={following === c}
+              onClick={() => {
+                sceneRef.current?.follow(following === c ? null : c);
+                setSelected(c);
+              }}
+            >
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: COLOR[c] }} /> {c}
+            </button>
+          ))}
+        </div>
+        {(["war room", "annex", "lounge"] as const).map((group) => (
+          <div key={group} className="flex flex-wrap items-center gap-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{group === "war room" ? "Go to" : group === "annex" ? "Annex" : "Lounge"}</span>
+            {PLACES.filter((p) => p.group === group).map((p) => (
+              <button key={p.id} type="button" className={BTN} onClick={() => goTo(p.id)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        ))}
+        <span className="text-[10px] text-[var(--color-subtle)]">Click a person to follow them · double-click a screen, the board or a TV to go to it · Esc lets go.</span>
+      </div>
+
+      <RacePanel frame={frame} onGo={goTo} />
 
       <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
         <WireLog onFocus={setSelected} />

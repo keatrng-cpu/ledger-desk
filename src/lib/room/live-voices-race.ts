@@ -15,7 +15,8 @@
 
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { ROOM_MANDATE } from "./mandate";
-import { ANIM, type CardRead, type Facts, type GoalLite, type Line, type RndLite, type SeatEventLite, type SeatRowLite, type TapeBook, type WeekLite } from "./live-types";
+import { ANIM, type CardRead, type Facts, type GoalLite, type Line, type RndLite, type SeatEventLite, type SeatRowLite, type TalkMove, type TapeBook, type WeekLite } from "./live-types";
+import type { AuditItem } from "./audit";
 import { clip, compact, line, NEUTRAL, pick, signed, type Ctx, type Ex } from "./live-voices";
 import { ROOM_BACKERS, SEAT_NAME, SEAT_OWNER, type SeatId } from "./seats";
 import type { Character } from "./orchestrator";
@@ -46,6 +47,9 @@ function boardMoves(lines: Line[]): Partial<Record<Character, { zone: "THE_WHITE
   }
   return out;
 }
+
+/** Walk to one of the annex offices. "ANNEX" is a presentation-only zone (not in the cycle contract), so any of the five may go. */
+const OFFICE = (spot: "office_rnd" | "office_ops" | "office_goal"): TalkMove => ({ zone: "ANNEX", spot });
 
 /* ── The race: tickets, closes, the lead ───────────────────────────────── */
 
@@ -549,7 +553,7 @@ export function exRndVerdict(c: Ctx, d: { exp: Exp }): Ex | null {
       ? line("Sterling", ANIM.Sterling.tablet!, pick(c, "rnd.verdict.proposal", [() => `${f.raw(clip(e.proposal!, 190))} It's the trader's to apply.`, () => `Proposal, for the trader: ${f.raw(clip(e.proposal!, 170))}`]))
       : line("Nova", ANIM.Nova.analyze!, pick(c, "rnd.verdict.nova", [() => `A verdict on ${f.int(e.n)} ${plural(e.n, "sample", "samples")} is a hint. It changes nothing in the desk.`, () => `Noted, logged. ${f.int(e.n)} isn't a rule.`])),
   ]);
-  return lines.length >= 2 ? { lines, moves: {} } : null;
+  return lines.length >= 2 ? { lines, moves: { [e.owner]: OFFICE("office_rnd") } } : null;
 }
 
 export function exRndStandup(c: Ctx, d: { exp: Exp }): Ex | null {
@@ -565,7 +569,31 @@ export function exRndStandup(c: Ctx, d: { exp: Exp }): Ex | null {
       ? [() => `Tell me when it says I'm right.`, () => `I'll believe it when there's a number with a plus in front.`]
       : [() => `A question with a fixed answer rule. Good. Leave the rule alone while the data comes in.`, () => `Don't move the bar once it's registered.`])),
   ]);
-  return lines.length >= 2 ? { lines, moves: {} } : null;
+  return lines.length >= 2 ? { lines, moves: { [e.owner]: OFFICE("office_rnd") } } : null;
+}
+
+/** Which annex office an audit item is worked from. */
+const AUDIT_OFFICE = { data: "office_ops", execution: "office_ops", goal: "office_goal", rules: "office_rnd", model: "office_rnd", process: "office_rnd" } as const;
+
+/**
+ * One finding from the desk audit (audit.ts): its owner reports it from the office it belongs to, and somebody else says
+ * whose call it is. The title, the evidence and the proposal are the audit's own words — nothing is composed here.
+ */
+export function exAudit(c: Ctx, d: { item: AuditItem }): Ex | null {
+  const f = c.f;
+  const it = d.item;
+  const other: Character = it.owner === "Sterling" ? "Nova" : "Sterling";
+  const lines = compact([
+    line(it.owner, anim(it.owner), pick(c, `audit.open.${it.owner}`, [
+      () => `Desk audit: ${f.raw(it.title)}. ${f.raw(stop(clip(it.evidence, 150)))}`,
+      () => `Something's wrong with the desk — ${f.raw(it.title)}. ${f.raw(stop(clip(it.evidence, 150)))}`,
+    ])),
+    line(other, anim(other), pick(c, `audit.reply.${other}`, [
+      () => `${f.raw(stop(clip(it.proposal, 170)))} That's the trader's to decide.`,
+      () => `For the trader: ${f.raw(stop(clip(it.proposal, 160)))}`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: { [it.owner]: OFFICE(AUDIT_OFFICE[it.area]) } } : null;
 }
 
 export interface LadderPlainData {
