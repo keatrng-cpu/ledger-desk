@@ -105,16 +105,48 @@ export function tickFromRow(
   };
 }
 
-/** Latest tick, or null if absent/stale/slow. 150ms cap so a hung DB
- *  never blocks the free Yahoo fallback. */
+/** How long a desk request waits on the database for a tick before it uses what it has. */
+export const TICK_READ_WAIT_MS = 750;
+
+/** The last tick each symbol's read returned, kept per server instance. */
+const lastGood = new Map<IndexSymbol, LiveGatewayTick>();
+
+/**
+ * What to serve when a read came back empty or too slow. A previous tick is served only while it is itself inside the freshness
+ * window, measured from when the gateway confirmed it: the answer to "is this still current" does not depend on how it was read,
+ * so a slow or failed read can never make a stale price look live — it can only avoid throwing a current one away. (A read that
+ * found the newest row stale implies any older tick is stale too, so null-after-stale and null-after-slow are the same case.)
+ */
+export function tickOrCached(
+  read: LiveGatewayTick | null,
+  cached: LiveGatewayTick | undefined,
+  nowMs: number,
+): LiveGatewayTick | null {
+  if (read) return read;
+  if (!cached) return null;
+  const ageMs = nowMs - cached.receivedAtMs;
+  return ageMs >= 0 && ageMs <= TICK_FRESH_MS ? { ...cached, ageMs } : null;
+}
+
+/**
+ * Latest tick, or null if absent/stale/unreachable. The wait is bounded so a hung DB never blocks the free Yahoo fallback, but not
+ * so tight that a cold connection from a fresh serverless instance (a few hundred ms) reads as "no gateway": at 150 ms a healthy
+ * gateway lost about one desk poll in twenty to Yahoo, and the HUD flashed "lag 609s".
+ */
 export async function readLiveTickFresh(
   symbol: IndexSymbol,
-  waitMs = 150,
+  waitMs = TICK_READ_WAIT_MS,
 ): Promise<LiveGatewayTick | null> {
-  return Promise.race([
-    readLiveTick(symbol).catch(() => null),
+  const read = await Promise.race([
+    readLiveTick(symbol)
+      .then((t) => {
+        if (t) lastGood.set(symbol, t);
+        return t;
+      })
+      .catch(() => null),
     new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs)),
   ]);
+  return tickOrCached(read, lastGood.get(symbol), Date.now());
 }
 
 /** Latest tick for one symbol, or null when absent/stale/unreachable. */

@@ -19,7 +19,7 @@ import { readFileSync } from "node:fs";
 
 // live-gateway.ts imports the db module, which starts a Vite-only PGLite bootstrap when no DATABASE_URL is set. Nothing here queries
 // through it (the SQL runs on a PGLite of our own below), so point it at a URL that is never opened.
-process.env.DATABASE_URL ??= "postgres://verify:verify@127.0.0.1:1/verify";
+process.env.DATABASE_URL ??= "postgres://127.0.0.1:1/unused";
 
 const GW = await import("../src/lib/market/live-gateway.ts");
 const { pickFreshestQuote } = await import("../src/lib/market/freshest.ts");
@@ -61,6 +61,24 @@ console.log("a quiet tape");
   const yahoo = { ...q2, source: "yahoo", lagSec: 620, marketTimeMs: Date.now() - 620_000 };
   check("against a Yahoo quote 620 s late the gateway wins", pickFreshestQuote(yahoo, q2)?.source === "live_gateway");
   check("a gateway quote 8 s after confirmation still beats it (the old 5 s rule would have left it to the sort)", pickFreshestQuote(yahoo, { ...q2, lagSec: 8 })?.source === "live_gateway");
+}
+
+console.log("a slow or empty read (tickOrCached)");
+{
+  const mk = (confirmedAgoMs) => GW.tickFromRow("ES", row(30_000, confirmedAgoMs), NOW).tick ?? { symbol: "ES", price: 1, bid: null, ask: null, marketTimeMs: NOW - 30_000, receivedAtMs: NOW - confirmedAgoMs, ageMs: confirmedAgoMs };
+  const fresh = mk(2_000);
+  check("a tick that was read passes straight through", GW.tickOrCached(fresh, undefined, NOW) === fresh);
+  check("a read that found nothing and has nothing cached is null", GW.tickOrCached(null, undefined, NOW) === null);
+  const cached = { symbol: "ES", price: 7833.75, bid: null, ask: null, marketTimeMs: NOW - 30_000, receivedAtMs: NOW - 4_000, ageMs: 4_000 };
+  const served = GW.tickOrCached(null, cached, NOW);
+  check("a slow read falls back to the last tick while it is inside the window, with its age brought up to date", served && served.price === 7833.75 && served.ageMs === 4_000 && GW.tickOrCached(null, cached, NOW + 3_000)?.ageMs === 7_000);
+  check("…the print's own time and confirmation time are untouched", served.marketTimeMs === cached.marketTimeMs && served.receivedAtMs === cached.receivedAtMs);
+  check("…it stops at the edge of the window (12 s ok, 12.001 s not), counted from the gateway's confirmation", GW.tickOrCached(null, cached, NOW + 8_000) != null && GW.tickOrCached(null, cached, NOW + 8_001) === null);
+  check("a cached tick from the future (clock skew) is refused", GW.tickOrCached(null, { ...cached, receivedAtMs: NOW + 1_000 }, NOW) === null);
+  check("a cached tick can never make a dead gateway look live: a minute on it is gone", GW.tickOrCached(null, cached, NOW + 60_000) === null);
+  check("the desk waits 750 ms for the database, not 150", GW.TICK_READ_WAIT_MS === 750);
+  const q = GW.quoteFromLiveTick({ ...served, receivedAtMs: Date.now() - 6_000 }, "ES=F", 7800);
+  check("a quote built from a cached tick reports its true confirmation age as lagSec", q.lagSec === 6, `lagSec ${q.lagSec}`);
 }
 
 console.log("the gateway's touch statement (the SQL in the Python file, on PGLite with migration 0011)");
