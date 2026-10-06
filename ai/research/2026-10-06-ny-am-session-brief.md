@@ -52,10 +52,16 @@
 | Prior day high (PDH) | **776.605** | Robinhood daily + 5-min RTH |
 | Prior day low (PDL) | **769.63** | Robinhood daily (5-min open print ~769.65) |
 | Last RTH trade | **774.94** | Quote `last_trade_price` @ ~19:59:59 UTC Oct 5 |
-| Overnight / post (as of ~01:41 UTC Oct 6) | Last non-reg **775.11**; post range observed ~**774.60–775.35** | Extended 5-min bars + quote; **premarket not yet active** (UTC morning) |
+| Overnight / post (as of ~01:41 UTC Oct 6) | Last non-reg **775.11**; post range observed ~**774.60–775.35** | Extended 5-min bars + quote; **premarket not yet active** at brief time |
 | Recent swing high | **776.605** (Oct 5); prior cluster **~775.14** (Sep 22 high) | Daily bars Sep 1–Oct 5 |
 | Recent swing / liquidity lows | **749.60** (Sep 16); **756.64** (Sep 10); **758.79** (Oct 1) | Daily lows |
 | Index context | S&P 500 **7,773.95** (+0.66% 1D); VIX **15.52** | Bigdata market tearsheet (FMP), ~01:41 UTC Oct 6 |
+
+**What matters for SPY at the open (check / update 04:00–09:29 ET):**
+- **PDH 776.61 / PDL 769.63 / prior close 774.83** — primary prior-day liquidity.
+- **Post-close range so far ~774.60–775.35** (tight above close); refresh for full overnight + premarket H/L into 09:30.
+- Gap vs prior close and whether premarket is holding above/below **774.83** and probing **PDH**.
+- Nearby swing references if range expands: **758.79** (Oct 1), **756.64** (Sep 10), **749.60** (Sep 16).
 
 **PATH/SMC framing (descriptive only):** PDH **776.61** and PDL **769.63** bookend Mon’s range; overnight so far holding just above prior close inside a tight post-range. Sep 16 **749.60** remains the clearest downside swing liquidity pool on the retrieved window; Oct 5 high is the fresh upside liquidity print.
 
@@ -73,6 +79,12 @@
 | Recent swing / liquidity lows | **700.00** (Sep 16); **731.63** (Sep 28); **736.25** (Oct 1) | Daily lows |
 | Index context | Nasdaq Composite **27,477.31** (+1.05% 1D, record close cited in news); NDX **31,076.44** (+0.87% 1D) | Bigdata tearsheet / news |
 
+**What matters for QQQ at the open (check / update 04:00–09:29 ET):**
+- **PDH 756.92 / PDL 749.08 / prior close 756.20** — primary prior-day liquidity (wide Mon range).
+- **Post already traded above PDH** to **757.20**, then faded; full overnight + premarket H/L into 09:30 is the session’s first liquidity map.
+- Gap vs **756.20** and whether premarket reclaims / rejects the **756.92–757.20** overnight high cluster.
+- Downside references if risk-off: **754.54** (Oct 2 high flip), **736.25** (Oct 1), **731.63** (Sep 28).
+
 **PATH/SMC framing (descriptive only):** Mon was a wide RTH advance from **~749.1** into **~756.9**; overnight has probed **above PDH** to **757.20** then faded toward close. Watch PDH **756.92** and PDL **749.08** as primary prior-day liquidity; Sep 28 **731.63** is the nearest meaningful swing low on recent structure below Oct 1.
 
 ---
@@ -87,6 +99,40 @@
 
 ---
 
+
+---
+
+## 5. Options buying power (likely causes to check — not a diagnosis)
+
+**Desk report (user-provided; not verified in-app):** Individual account shows ~**$984 cash** but only ~**$11.56 options buying power**. This section summarizes what Robinhood’s help center and related Reg T guidance say can produce that gap. **No Robinhood positions, orders, accounts, or BP were read for this brief; no orders placed/reviewed/canceled.**
+
+### What typically makes options BP << cash
+
+1. **Unsettled sale proceeds (cash account)** — Stocks and options settle **T+1**. In a **cash account**, you **cannot trade with unsettled funds** from equity or options sales; you wait **1 trading day**. In a **margin account**, unsettled stock/option sale proceeds are generally usable immediately for trading. Cash balance can still *display* sale proceeds before they count toward settled buying power ([Settlement and buying power](https://robinhood.com/us/en/support/articles/settlement-and-buying-power/); [Robinhood investing accounts](https://robinhood.com/us/en/support/articles/robinhood-accounts/); [T+1 settlements](https://robinhood.com/us/en/support/articles/T1-settlements/)).  
+   **Restore timing (general):** If the constraining sale was on trade date **T**, settled funds typically become usable on the **next trading day (T+1)** after that sale (weekends/market holidays extend the wait). Example: sell Monday → often available Tuesday; sell Friday → often available Monday.
+
+2. **Instant Deposit funds not eligible for options** — Instant Deposit buying power is extended in good faith and **options trading may be limited** while a deposit is pending, because Instant Deposits are unsettled bank funds. Robinhood states you can trade options **after the pending deposit becomes available (within 5 business days)**. Instant Deposit may still support other asset types while options remain restricted ([Instant Deposits and Options](https://robinhood.com/us/en/support/articles/instant-deposits-and-options/); [Why can’t I use my Instant Deposit?](https://robinhood.com/us/en/support/articles/why-cant-i-use-my-instant-deposit/)).  
+   **Restore timing (general):** When the ACH clears / deposit shows fully available (Robinhood: **up to 5 business days** for standard bank transfers; Instant Deposit limit is only a max eligibility, not a guarantee) ([When will my money be available?](https://robinhood.com/us/en/support/articles/when-will-my-money-be-available/); [Bigger Instant Deposits](https://robinhood.com/us/en/support/articles/bigger-instant-deposits/)).
+
+3. **Pending / open orders reserving buying power** — Open or queued orders can reserve funds (and Robinhood notes extra buffers for some queued market orders outside RTH). Canceling/expiring the order releases reserved BP ([Cancel or replace an order](https://robinhood.com/us/en/support/articles/cancel-a-pending-order/); [Market order](https://robinhood.com/us/en/support/articles/market-order-update/)).  
+   **Restore timing:** Immediate once the reserving order is canceled or fills/expires (desk must cancel themselves; this brief does not touch orders).
+
+4. **Account-type / Instant vs settled mix** — Check Account → Buying power breakdown and whether the Individual is **cash vs margin**, and how much of the ~$984 is **settled cash vs unsettled vs Instant**. Margin can use unsettled sale proceeds; cash cannot. Gold can raise Instant Deposit *limits* but does not by itself make unsettled Instant funds freely usable for options ([Robinhood investing accounts](https://robinhood.com/us/en/support/articles/robinhood-accounts/); [Instant Deposits and Options](https://robinhood.com/us/en/support/articles/instant-deposits-and-options/)).
+
+5. **Good-faith / free-riding risk (cash accounts, Reg T)** — Industry cash-account rules (Fed Regulation T / broker education): a **good faith violation** generally arises when you buy with unsettled proceeds and sell that new position before the funding sale settles; **freeriding** is buying without sufficient funds and paying via selling the same securities before payment. Repeated GFVs or a freeride can lead to a **90-day settled-cash-only** restriction ([Investor.gov cash-account bulletin](https://investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/updated-9); [Fidelity cash-account help](https://www.fidelity.com/webxpress/help/topics/learn_cash_account_trading_freeride_restrictions.shtml); [E*TRADE cash violations](https://us.etrade.com/knowledge/library/stocks/understanding-cash-account-violations)). Robinhood’s cash-account product **blocks trading with unsettled funds** up front, which is how many brokers reduce GFV risk ([Settlement and buying power](https://robinhood.com/us/en/support/articles/settlement-and-buying-power/)).
+
+### Checklist for the desk (self-serve in app)
+
+| Check | Where / what | If yes, expected BP restore |
+|-------|----------------|-----------------------------|
+| Recent stock/option **sale** still unsettled? | History / unsettled funds | **Next trading day (T+1)** after that sale |
+| Recent **ACH / Instant Deposit** pending? | Transfers | Up to **5 business days** until deposit “available”; then options usable per Instant Deposits & Options article |
+| **Open orders** (incl. GTC / overnight) reserving cash? | Orders | When order canceled/fills/expires |
+| Account type **Cash** vs **Margin**? | Investing → Account type | Margin may already allow unsettled *sale* proceeds; Instant Deposit may still restrict options |
+| Only ~$11–12 **settled** cash free after reserves? | Account → Buying power | BP rises when settlement/deposit clears or holds release |
+
+**Bottom line for the reported pattern:** The most common official explanations for “cash shows hundreds but options BP is tiny” are (a) **cash-account unsettled sale proceeds**, (b) **pending Instant Deposit not cleared for options**, and/or (c) **pending orders holding BP**—not a missing cash balance. Confirm in **Account → Buying power** which bucket the ~$984 sits in; do not assume Instant or unsettled cash equals options BP.
+
 ## Open questions
 
 1. **Exact Fed Williams speech venue/title for Oct 6** — listed on Bigdata/FXStreet at 09:05 ET; not clearly matched on the Fed October events page scrape.
@@ -96,6 +142,7 @@
 5. **Full overnight range into the 09:30 ET open** — only post-close through ~01:45 UTC retrieved; update with premarket 04:00–09:29 ET prints before the open.
 6. **ADP weekly release time** — Bigdata UTC 12:15 (= 08:15 ET); confirm on ADP’s own release notice if timing is material to the desk.
 7. **Fed Logan speech** — some third-party calendars listed a late Oct 6 Logan speech; not on Bigdata US upcoming table used here — verify if needed.
+8. **Options BP (~$984 cash vs ~$11.56 options BP per desk report)** — which Buying power buckets (settled / unsettled / Instant / reserved) explain the gap; confirm cash vs margin and any pending ACH or open orders without pulling account data in-agent.
 
 ---
 
@@ -111,6 +158,8 @@
 - CNBC: https://www.cnbc.com/2026/10/04/stock-market-today-live-updates.html
 - White House CR apportionment: https://www.whitehouse.gov/wp-content/uploads/2026/09/2026.09.28-Apportionment-of-the-Continuing-Resolutions-for-Fiscal-Year-2027-1.pdf
 - Secondary: economyglobal.com (auction sizes); afterns.com / SEC Tesla exhibit (mega-cap earnings timing); PreMarketPrice (Oct 6 earnings list); FXStreet via Bigdata calendar
+- Robinhood Help: Settlement and buying power; Instant Deposits and Options; When will my money be available?; T+1 settlements; Robinhood investing accounts; Less than expected buying power; Bigger Instant Deposits; Why can’t I use my Instant Deposit?; Cancel pending order; Market order
+- Reg T / cash-account education: Investor.gov cash-account bulletin; Fidelity / E*TRADE cash-account violation explainers (GFV / freeride)
 
 ---
 
