@@ -1,5 +1,5 @@
 /**
- * The Mead Hall — a plum-and-amber sports bar for prediction markets.
+ * The Mead Hall — a pine/iron/brass sports bar for prediction markets.
  *
  * Procedural three.js (no GLB): longship-carved bar with dragon prows, a
  * field runner to the jumbotron, booths with table screens, a pool
@@ -170,8 +170,8 @@ class Person {
     torso.position.y = 0.32;
     torso.scale.set(1, 1, 0.75);
     this.body.add(torso);
-    // gold collar trim
-    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 6, 16), mat(MEAD.gold, 0.4, 0.4));
+    // brass collar trim
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 6, 16), mat(MEAD.brass, 0.4, 0.4));
     collar.rotation.x = Math.PI / 2;
     collar.position.y = 0.62;
     this.body.add(collar);
@@ -197,9 +197,9 @@ class Person {
       this.head.add(beard);
     }
     if (look.helmet) {
-      // Nasal/spectacle iron helm — no cartoon white horns on purple.
+      // Nasal/spectacle iron helm — no cartoon white/gold curved horns.
       const steel = mat("#8a9099", 0.35, 0.75);
-      const iron = mat("#6b7280", 0.4, 0.7);
+      const iron = mat(MEAD.iron, 0.4, 0.7);
       const dome = new THREE.Mesh(new THREE.SphereGeometry(0.155, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), steel);
       dome.position.y = 0.02;
       this.head.add(dome);
@@ -385,8 +385,8 @@ export class MeadScene {
     this.controls.maxDistance = 26;
     this.controls.addEventListener("start", () => (this.camGoal = null));
 
-    // Light: warm lanterns in a purple room.
-    this.scene.add(new THREE.HemisphereLight(0xd8c8ff, 0x2a1a10, 0.55));
+    // Light: warm lanterns in a pine room.
+    this.scene.add(new THREE.HemisphereLight(0xc8ddd4, 0x2a1a10, 0.55));
     const key = new THREE.DirectionalLight(0xffe6c0, 0.9);
     key.position.set(4, 12, 9);
     key.castShadow = true;
@@ -398,7 +398,7 @@ export class MeadScene {
     this.moodLight = new THREE.PointLight(MOOD.WAIT.glow, MOOD.WAIT.glowI, 14, 1.4);
     this.moodLight.position.set(-1.8, 3.2, -5.2);
     this.scene.add(this.moodLight);
-    this.flashLight = new THREE.PointLight(0xe6b422, 0, 22, 1.2);
+    this.flashLight = new THREE.PointLight(0xc4a35a, 0, 22, 1.2);
     this.flashLight.position.set(0, 4.2, 0);
     this.scene.add(this.flashLight);
 
@@ -465,42 +465,42 @@ export class MeadScene {
     fl.rotation.x = -Math.PI / 2;
     fl.receiveShadow = true;
     this.scene.add(fl);
-    // Walls: purple with gold trim, wainscot wood below.
-    const purple = mat(MEAD.purple, 0.9);
-    const gold = mat(MEAD.gold, 0.35, 0.6, 0x5a3b00, 0.25);
+    // Walls: pine with brass trim, wainscot wood below.
+    const pine = mat(MEAD.pine, 0.9);
+    const brass = mat(MEAD.brass, 0.35, 0.6, 0x5a3b00, 0.25);
     const wood = mat("#3b2411", 0.8);
-    const back = this.box(W, ROOM.h, 0.2, purple, 0, ROOM.h / 2, ROOM.z0 - 0.1);
+    const back = this.box(W, ROOM.h, 0.2, pine, 0, ROOM.h / 2, ROOM.z0 - 0.1);
     back.castShadow = false;
     for (const sx of [-1, 1]) {
-      const side = this.box(0.2, ROOM.h, D, purple, sx * (ROOM.x1 + 0.1), ROOM.h / 2, 0);
+      const side = this.box(0.2, ROOM.h, D, pine, sx * (ROOM.x1 + 0.1), ROOM.h / 2, 0);
       side.castShadow = false;
     }
     // Wainscot + trim lines.
     this.box(W, 1.0, 0.06, wood, 0, 0.5, ROOM.z0 + 0.03);
-    this.box(W, 0.07, 0.1, gold, 0, 1.04, ROOM.z0 + 0.05);
-    this.box(W, 0.12, 0.1, gold, 0, ROOM.h - 0.25, ROOM.z0 + 0.05);
+    this.box(W, 0.07, 0.1, brass, 0, 1.04, ROOM.z0 + 0.05);
+    this.box(W, 0.12, 0.1, brass, 0, ROOM.h - 0.25, ROOM.z0 + 0.05);
     for (const sx of [-1, 1]) {
       this.box(0.06, 1.0, D, wood, sx * (ROOM.x1 - 0.03), 0.5, 0);
-      this.box(0.1, 0.07, D, gold, sx * (ROOM.x1 - 0.05), 1.04, 0);
-      this.box(0.1, 0.12, D, gold, sx * (ROOM.x1 - 0.05), ROOM.h - 0.25, 0);
+      this.box(0.1, 0.07, D, brass, sx * (ROOM.x1 - 0.05), 1.04, 0);
+      this.box(0.1, 0.12, D, brass, sx * (ROOM.x1 - 0.05), ROOM.h - 0.25, 0);
     }
     // Knotwork frieze above the screens.
-    const frieze = canvasTex(2048, 128, (c) => drawKnotPanel(c, MEAD.purpleDeep));
+    const frieze = canvasTex(2048, 128, (c) => drawKnotPanel(c, MEAD.pineDeep));
     this.disposables.push(frieze.tex);
     const fz = new THREE.Mesh(new THREE.PlaneGeometry(W, 0.9), new THREE.MeshStandardMaterial({ map: frieze.tex, roughness: 0.8 }));
     fz.position.set(0, 5.35, ROOM.z0 + 0.04);
     this.scene.add(fz);
-    this.box(W, 0.07, 0.1, gold, 0, 4.85, ROOM.z0 + 0.05);
-    this.box(W, 0.07, 0.1, gold, 0, 5.85, ROOM.z0 + 0.05);
-    // Ceiling beams (dark timber, gold knot caps) — no ceiling plane so the camera sees in.
+    this.box(W, 0.07, 0.1, brass, 0, 4.85, ROOM.z0 + 0.05);
+    this.box(W, 0.07, 0.1, brass, 0, 5.85, ROOM.z0 + 0.05);
+    // Ceiling beams (dark timber, brass knot caps) — no ceiling plane so the camera sees in.
     for (let z = -6; z <= 6; z += 3) {
       this.box(W, 0.32, 0.3, wood, 0, ROOM.h - 0.1, z);
     }
-    // Timber posts with white-gold knot panels on the side walls.
+    // Timber posts with brass knot panels on the side walls.
     for (const sx of [-1, 1]) {
       for (const z of [-6.6, -1.5, 3.6]) this.box(0.34, ROOM.h, 0.34, wood, sx * (ROOM.x1 - 0.2), ROOM.h / 2, z);
     }
-    const panel = canvasTex(256, 512, (c) => drawKnotPanel(c, MEAD.purpleDeep));
+    const panel = canvasTex(256, 512, (c) => drawKnotPanel(c, MEAD.pineDeep));
     this.disposables.push(panel.tex);
     const banner = new THREE.MeshStandardMaterial({ map: panel.tex, roughness: 0.8 });
     for (const z of [-4.1, 1.0]) {
@@ -512,14 +512,14 @@ export class MeadScene {
     // Shields on the back wall between screens.
     const shieldTex = canvasTex(256, 256, (c) => {
       const ctx = c.getContext("2d")!;
-      ctx.fillStyle = MEAD.purple;
+      ctx.fillStyle = MEAD.pine;
       ctx.beginPath();
       ctx.arc(128, 128, 124, 0, Math.PI * 2);
       ctx.fill();
       ctx.lineWidth = 14;
-      ctx.strokeStyle = MEAD.gold;
+      ctx.strokeStyle = MEAD.brass;
       ctx.stroke();
-      ctx.fillStyle = MEAD.gold;
+      ctx.fillStyle = MEAD.brass;
       for (let k = 0; k < 8; k++) {
         ctx.save();
         ctx.translate(128, 128);
@@ -583,14 +583,14 @@ export class MeadScene {
     lantern(0.8, 3.9, 2.6);
   }
 
-  /** The longship bar: plank hull, shields, gold knot band, dragon prows. */
+  /** The longship bar: plank hull, shields, brass knot band, dragon prows (no horns). */
   private buildBar() {
     const g = new THREE.Group();
     const hullTex = canvasTex(1024, 256, (c) => woodCanvas(c, "#6b4423", "#3a2210"));
     this.disposables.push(hullTex.tex);
     const hull = new THREE.MeshStandardMaterial({ map: hullTex.tex, roughness: 0.75 });
     const dark = mat("#3a2210", 0.7);
-    const gold = mat(MEAD.gold, 0.35, 0.6, 0x4a3000, 0.2);
+    const brass = mat(MEAD.brass, 0.35, 0.6, 0x4a3000, 0.2);
     const x0 = 2.1;
     const x1 = 8.4;
     const L = x1 - x0;
@@ -612,8 +612,8 @@ export class MeadScene {
     const top = new THREE.Mesh(new THREE.BoxGeometry(L + 0.9, 0.08, 1.05), dark);
     top.position.set(cx, 1.16, z);
     g.add(top);
-    // Gold knot band on the hull front.
-    const band = canvasTex(1024, 96, (c) => drawKnotPanel(c, MEAD.purple));
+    // Brass knot band on the hull front.
+    const band = canvasTex(1024, 96, (c) => drawKnotPanel(c, MEAD.pine));
     this.disposables.push(band.tex);
     const bandMesh = new THREE.Mesh(new THREE.PlaneGeometry(L + 0.4, 0.26), new THREE.MeshStandardMaterial({ map: band.tex, roughness: 0.6 }));
     bandMesh.position.set(cx, 0.82, z + 0.47);
@@ -621,14 +621,14 @@ export class MeadScene {
     // Round shields along the hull.
     for (let i = 0; i < 6; i++) {
       const sx = x0 + 0.5 + (i * (L - 1)) / 5;
-      const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.05, 24), i % 2 ? mat(MEAD.purple, 0.6) : mat(MEAD.white, 0.6));
+      const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.05, 24), i % 2 ? mat(MEAD.pine, 0.6) : mat(MEAD.white, 0.6));
       sh.rotation.x = Math.PI / 2;
       sh.position.set(sx, 0.42, z + 0.48);
       g.add(sh);
-      const boss = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), gold);
+      const boss = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), brass);
       boss.position.set(sx, 0.42, z + 0.52);
       g.add(boss);
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.022, 6, 24), gold);
+      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.022, 6, 24), brass);
       rim.position.set(sx, 0.42, z + 0.51);
       g.add(rim);
     }
@@ -645,10 +645,10 @@ export class MeadScene {
       const curve = new THREE.CatmullRomCurve3(pts);
       const neck = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.13, 10, false), hull);
       g.add(neck);
-      // Gold spine fins.
+      // Brass spine fins.
       for (let k = 1; k < 8; k++) {
         const p = curve.getPoint(k / 8);
-        const fin = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.2, 4), gold);
+        const fin = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.2, 4), brass);
         fin.position.copy(p).add(new THREE.Vector3(side * 0.12, 0.05, 0));
         fin.rotation.z = -side * 0.8;
         g.add(fin);
@@ -665,13 +665,9 @@ export class MeadScene {
       jaw.rotation.z = side * 0.25;
       headG.add(jaw);
       for (const ez of [-0.13, 0.13]) {
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(MEAD.gold, 0.2, 0.2, 0xffb000, 2));
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(MEAD.brass, 0.2, 0.2, 0xc4a35a, 2));
         eye.position.set(-side * 0.06, 0.06, ez);
         headG.add(eye);
-        const horn = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.26, 6), gold);
-        horn.position.set(side * 0.16, 0.18, ez * 0.8);
-        horn.rotation.z = side * 0.9;
-        headG.add(horn);
       }
       headG.position.copy(pts[4]).add(new THREE.Vector3(-side * 0.15, 0, 0));
       g.add(headG);
@@ -684,7 +680,7 @@ export class MeadScene {
       g.add(s);
       for (let i = 0; i < 18; i++) {
         const bx = x0 + 0.1 + i * 0.36;
-        const col = ["#14532d", "#7c2d12", "#a16207", "#1e3a8a", "#6b21a8"][(i * 7 + Math.round(y * 10)) % 5];
+        const col = ["#14532d", "#7c2d12", "#a16207", "#1e3a8a", "#1a3c2e"][(i * 7 + Math.round(y * 10)) % 5];
         const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.32, 8), mat(col, 0.15, 0.1, new THREE.Color(col).getHex(), 0.25));
         bottle.position.set(bx, y + 0.19, shelfZ + ((i % 2) * 0.1 - 0.05));
         g.add(bottle);
@@ -697,7 +693,7 @@ export class MeadScene {
     const counter = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.0, 0.7), hull);
     counter.position.set(cx, 0.5, ROOM.z0 + 0.4);
     g.add(counter);
-    // Mead horns + mugs on the bar.
+    // Mugs on the bar.
     for (const [mx, mz] of [
       [4.6, -3.0],
       [5.9, -2.95],
@@ -713,10 +709,10 @@ export class MeadScene {
     // Stools.
     for (let i = 0; i < 5; i++) {
       const sx = 3.0 + i * 1.2;
-      const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.12, 18), mat(MEAD.purple, 0.6));
+      const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.12, 18), mat(MEAD.pine, 0.6));
       seat.position.set(sx, 0.78, -2.2);
       g.add(seat);
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 20), gold);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.025, 6, 20), brass);
       ring.rotation.x = Math.PI / 2;
       ring.position.set(sx, 0.78, -2.2);
       g.add(ring);
@@ -746,9 +742,9 @@ export class MeadScene {
 
   private buildBooths() {
     const wood = mat("#3b2411", 0.75);
-    const uph = mat(MEAD.purple, 0.85);
-    const gold = mat(MEAD.gold, 0.35, 0.6);
-    const panel = canvasTex(256, 192, (c) => drawKnotPanel(c, MEAD.purple));
+    const uph = mat(MEAD.pine, 0.85);
+    const brass = mat(MEAD.brass, 0.35, 0.6);
+    const panel = canvasTex(256, 192, (c) => drawKnotPanel(c, MEAD.pine));
     this.disposables.push(panel.tex);
     const panelMat = new THREE.MeshStandardMaterial({ map: panel.tex, roughness: 0.8 });
     const booth = (cz: number, index: number) => {
@@ -769,7 +765,7 @@ export class MeadScene {
         const backrest = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.3, 0.16), uph);
         backrest.position.set(-7.4, 0.95, bz + s * 0.3);
         g.add(backrest);
-        const trim = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.06, 0.2), gold);
+        const trim = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.06, 0.2), brass);
         trim.position.set(-7.4, 1.62, bz + s * 0.3);
         g.add(trim);
         const p = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), panelMat);
@@ -803,7 +799,7 @@ export class MeadScene {
   private buildPoolTable() {
     const g = new THREE.Group();
     const wood = mat("#4a2a12", 0.6);
-    const felt = mat(MEAD.purple, 0.95);
+    const felt = mat(MEAD.pine, 0.95);
     const cx = -5.5;
     const cz = 4.3;
     const bed = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.12, 1.4), felt);
@@ -832,7 +828,7 @@ export class MeadScene {
       leg.position.set(cx + x, 0.27, cz + z);
       g.add(leg);
     }
-    const ballCols = [MEAD.gold, "#dc2626", MEAD.white, "#1d4ed8", "#111111", "#16a34a", MEAD.gold, "#ea580c"];
+    const ballCols = [MEAD.brass, "#dc2626", MEAD.white, "#1d4ed8", "#111111", "#16a34a", MEAD.brass, "#ea580c"];
     ballCols.forEach((c, i) => {
       const b = new THREE.Mesh(new THREE.SphereGeometry(0.045, 14, 10), mat(c, 0.2, 0.1));
       b.position.set(cx - 0.6 + (i % 4) * 0.35 + (i > 3 ? 0.2 : 0), 0.965, cz - 0.3 + Math.floor(i / 4) * 0.45);
@@ -843,7 +839,7 @@ export class MeadScene {
     cue.position.set(cx + 0.8, 1.05, cz + 0.2);
     g.add(cue);
     // A low lamp over the felt.
-    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.28, 16, 1, true), mat("#1f1305", 0.5, 0.3, 0x2e1848, 0.2));
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.28, 16, 1, true), mat("#1f1305", 0.5, 0.3, 0x1a3c2e, 0.2));
     shade.position.set(cx, 2.6, cz);
     g.add(shade);
     const l = new THREE.PointLight(0xfff0c8, 5, 5, 1.6);
@@ -862,8 +858,8 @@ export class MeadScene {
     jm.position.set(-1.8, 3.05, ROOM.z0 + 0.2);
     this.scene.add(jm);
     this.box(jw + 0.3, jh + 0.3, 0.16, mat("#1a0e2e", 0.5, 0.4), -1.8, 3.05, ROOM.z0 + 0.1);
-    this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.gold, 0.35, 0.6), -1.8, 3.05 + jh / 2 + 0.17, ROOM.z0 + 0.12);
-    this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.gold, 0.35, 0.6), -1.8, 3.05 - jh / 2 - 0.17, ROOM.z0 + 0.12);
+    this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.brass, 0.35, 0.6), -1.8, 3.05 + jh / 2 + 0.17, ROOM.z0 + 0.12);
+    this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.brass, 0.35, 0.6), -1.8, 3.05 - jh / 2 - 0.17, ROOM.z0 + 0.12);
     this.screens.push({ mesh: jm, canvas: j.canvas, tex: j.tex, kind: "jumbo", index: 0, label: "Jumbotron — tap YES / NO for a paper ticket" });
 
     // Rune Board chalkboard on the back-left wall, angled toward the room.
@@ -913,27 +909,27 @@ export class MeadScene {
       this.add(p.root);
       return p;
     };
-    // Bartender: nasal iron helm, gold beard, behind the bar.
+    // Bartender: nasal iron helm, behind the bar.
     const bartender = add(new Person({ shirt: "#3b2411", helmet: true, beard: "#c2772b", skin: "#e0a77f" }, [5.2, -4.25], [5.2, 0], false));
     // Booth A + B.
-    add(new Person({ shirt: MEAD.purple, helmet: true, beard: "#8b5a2b" }, [-7.4, -3.4], [-7.4, -2.5], true));
-    add(new Person({ shirt: MEAD.purple, hair: "#2b1a0b", skin: "#c68a5e" }, [-7.4, -1.6], [-7.4, -2.5], true));
+    add(new Person({ shirt: MEAD.pine, helmet: true, beard: "#8b5a2b" }, [-7.4, -3.4], [-7.4, -2.5], true));
+    add(new Person({ shirt: MEAD.pine, hair: "#2b1a0b", skin: "#c68a5e" }, [-7.4, -1.6], [-7.4, -2.5], true));
     add(new Person({ shirt: MEAD.white, hair: "#d4a017" }, [-7.4, 0.0], [-7.4, 0.9], true));
-    add(new Person({ shirt: MEAD.purple, hair: "#111" , skin: "#8d5a3b" }, [-7.4, 1.8], [-7.4, 0.9], true));
+    add(new Person({ shirt: MEAD.pine, hair: "#111" , skin: "#8d5a3b" }, [-7.4, 1.8], [-7.4, 0.9], true));
     // Bar stools (facing the bar).
     for (const [x, look] of [
-      [3.0, { shirt: MEAD.purple, hair: "#3b2411" }],
-      [5.4, { shirt: MEAD.gold, helmet: true, beard: "#5b3a1e" }],
-      [7.8, { shirt: MEAD.purple, hair: "#111", skin: "#a8714a" }],
+      [3.0, { shirt: MEAD.pine, hair: "#3b2411" }],
+      [5.4, { shirt: MEAD.brass, helmet: true, beard: "#5b3a1e" }],
+      [7.8, { shirt: MEAD.pine, hair: "#111", skin: "#a8714a" }],
     ] as [number, PersonLook][]) {
       const p = add(new Person(look, [x, -2.05], [x, -4], true));
       p.baseY = 0.32;
     }
     // Standing fans on the runner + at the pool table.
-    add(new Person({ shirt: MEAD.purple, hair: "#5b3a1e" }, [-0.4, 2.2], [-1.8, -6], false));
+    add(new Person({ shirt: MEAD.pine, hair: "#5b3a1e" }, [-0.4, 2.2], [-1.8, -6], false));
     add(new Person({ shirt: MEAD.white, helmet: true, beard: "#d4a017" }, [-3.2, 1.4], [-1.8, -6], false));
-    add(new Person({ shirt: MEAD.gold, hair: "#111", skin: "#8d5a3b" }, [-3.9, 4.4], [-5.5, 4.3], false));
-    add(new Person({ shirt: MEAD.purple, hair: "#c2772b" }, [1.4, 0.4], [-1.8, -6], false));
+    add(new Person({ shirt: MEAD.brass, hair: "#111", skin: "#8d5a3b" }, [-3.9, 4.4], [-5.5, 4.3], false));
+    add(new Person({ shirt: MEAD.pine, hair: "#c2772b" }, [1.4, 0.4], [-1.8, -6], false));
     return bartender;
   }
 
@@ -944,7 +940,7 @@ export class MeadScene {
       ctx.beginPath();
       ctx.roundRect(4, 4, 376, 76, 18);
       ctx.fill();
-      ctx.fillStyle = MEAD.gold;
+      ctx.fillStyle = MEAD.brass;
       ctx.fillRect(4, 4, 12, 76);
       ctx.fillStyle = "#f8fafc";
       ctx.font = "800 32px Inter, system-ui, sans-serif";
@@ -1019,7 +1015,7 @@ export class MeadScene {
     const crowd = this.people.filter((p) => p !== this.bartender);
     const talker = crowd[Math.floor(Math.random() * crowd.length)];
     for (const p of crowd) p.react(kind, t, p === talker || (kind === "hail" && Math.random() < 0.25) ? line : undefined);
-    this.flash = { color: kind === "groan" ? 0xef4444 : kind === "hail" ? 0xe6b422 : 0x22c55e, until: t + 1.6, kind: kind === "groan" ? "down" : "up" };
+    this.flash = { color: kind === "groan" ? 0xef4444 : kind === "hail" ? 0xc4a35a : 0x22c55e, until: t + 1.6, kind: kind === "groan" ? "down" : "up" };
     this.opts.onReaction?.(kind, kind === "hail" ? "HAIL!" : line);
   }
 
@@ -1254,7 +1250,7 @@ export class MeadScene {
     const breathe = this.mood === "ENTER" ? 0.65 + 0.35 * Math.sin(t * 5) : this.mood === "ARMED" ? 0.8 + 0.2 * Math.sin(t * 2.4) : 1;
     this.moodLight.intensity = damp(this.moodLight.intensity, m.glowI * breathe, 3, dt);
     const fl = this.flash.until - t;
-    this.flashLight.color.setHex(this.flash.color || 0xe6b422);
+    this.flashLight.color.setHex(this.flash.color || 0xc4a35a);
     this.flashLight.intensity = damp(this.flashLight.intensity, fl > 0 ? 14 * (0.6 + 0.4 * Math.sin(t * 18)) : 0, 10, dt);
     for (const [i, l] of this.lanterns.entries()) l.intensity = 5.4 + 0.6 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i);
     // Jumbotron flash pulse + neon flicker.
