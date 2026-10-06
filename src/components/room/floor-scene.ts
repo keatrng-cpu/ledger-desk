@@ -1570,8 +1570,6 @@ export class FloorScene {
   /** Through the owner's eyes, or a chase camera behind them. */
   private pov: "first" | "third" = "third";
   private lookPitch = -0.06;
-  /** Pointer offset from the canvas centre. Looking does not need a held button. */
-  private steer = { x: 0, y: 0 };
   /** Third-person chase of the Owner (separate from crew Character chase). */
   private ownerChase = false;
   private ownerChaseHead: THREE.Vector3 | null = null;
@@ -2576,7 +2574,10 @@ export class FloorScene {
     const dt = Math.min(this.clock.getDelta(), 0.1);
     this.time += dt;
     this.tick(dt);
-    this.controls.update();
+    // OrbitControls rewrites the camera from its own orbit. While walking that fights the follow
+    // cam and the view springs back. The walk camera places itself.
+    if (this.ownerChase) this.camera.lookAt(this.controls.target);
+    else this.controls.update();
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -2812,16 +2813,10 @@ export class FloorScene {
 
   /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
   private onMove = (e: PointerEvent) => {
-    if (this.ownerChase && this.focused && e.pointerType !== "touch") {
-      const rect = this.renderer.domElement.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-        const dead = 0.22;
-        const kick = (n: number) => (Math.abs(n) < dead ? 0 : Math.sign(n) * ((Math.abs(n) - dead) / (1 - dead)));
-        this.steer.x = kick(nx);
-        this.steer.y = kick(ny);
-      }
+    // Move the mouse to turn. No button, and it stops when the mouse stops — a held offset was the rubber band.
+    if (this.ownerChase && this.focused && e.pointerType !== "touch" && (e.movementX !== 0 || e.movementY !== 0)) {
+      this.owner.yaw += e.movementX * 0.0045;
+      this.lookPitch = Math.max(-0.55, Math.min(0.42, this.lookPitch - e.movementY * 0.0022));
     }
     if (e.pointerType !== "mouse" || e.buttons) return;
     const now = performance.now();
@@ -2839,8 +2834,6 @@ export class FloorScene {
   };
 
   private onLeave = () => {
-    this.steer.x = 0;
-    this.steer.y = 0;
     this.setHover(null);
   };
 
@@ -2955,8 +2948,6 @@ export class FloorScene {
     this.renderer.domElement.style.touchAction = on ? "none" : "pan-y";
     if (!on) {
       this.clearWalkKeys();
-      this.steer.x = 0;
-      this.steer.y = 0;
       this.stopOwnerChase();
     } else if (this.walkMode) {
       this.startOwnerChase();
@@ -3084,24 +3075,20 @@ export class FloorScene {
     this.controls.enabled = false;
   }
 
-  private ownerChaseRide(dt: number, _t: number) {
+  /** Behind the owner, placed exactly. A lerp here is what made the view rubber-band. */
+  private ownerChaseRide(_dt: number, _t: number) {
     const a = this.owner;
     const eye = a.height * 0.72 + a.elevation;
-    const dist = this.ownerChaseWant;
-    const back = a.yaw + Math.PI;
-    const lift = 0.62 - this.lookPitch * 0.4;
-    const look = new THREE.Vector3(a.pos[0] + Math.sin(a.yaw) * 1.4, eye + 0.12 + this.lookPitch * 0.5, a.pos[1] + Math.cos(a.yaw) * 1.4);
-    const want = new THREE.Vector3(a.pos[0] + Math.sin(back) * dist, eye + lift, a.pos[1] + Math.cos(back) * dist);
-    const k = 1 - Math.exp(-8 * dt);
-    this.camera.position.lerp(want, k);
-    this.controls.target.lerp(look, k);
-    const toCam = this.camera.position.clone().sub(look);
-    const len = toCam.length();
-    if (len > 0.5) {
-      const dir = toCam.multiplyScalar(1 / len);
-      const hit = this.solidAlong(look, dir, len, 0.35);
-      if (hit < len - 0.15) this.camera.position.copy(look).addScaledVector(dir, Math.max(1.5, hit - 0.3));
-    }
+    const look = new THREE.Vector3(a.pos[0] + Math.sin(a.yaw) * 2, eye + 0.15 + this.lookPitch * 0.55, a.pos[1] + Math.cos(a.yaw) * 2);
+    const backX = -Math.sin(a.yaw);
+    const backZ = -Math.cos(a.yaw);
+    const dir = new THREE.Vector3(backX, 0, backZ);
+    let dist = this.ownerChaseWant;
+    const from = new THREE.Vector3(a.pos[0], eye + 0.15, a.pos[1]);
+    const hit = this.solidAlong(from, dir, dist + 0.15, 0.28);
+    if (hit < dist) dist = Math.max(1.6, hit - 0.3);
+    this.camera.position.set(a.pos[0] + backX * dist, eye + 0.58 - this.lookPitch * 0.25, a.pos[1] + backZ * dist);
+    this.controls.target.copy(look);
   }
 
   private walkable = (x: number, z: number) => {
@@ -3138,13 +3125,9 @@ export class FloorScene {
   private tickOwnerManager(dt: number, t: number) {
     // WASD only while focused + walk mode (never hijacks page when unfocused).
     if (this.focused && this.walkMode) {
-      if (this.ownerChase) {
-        this.owner.yaw -= this.steer.x * 1.8 * dt;
-        this.lookPitch = Math.max(-0.5, Math.min(0.38, this.lookPitch - this.steer.y * 0.9 * dt));
-      }
       let mx = 0;
       let mz = 0;
-      // Facing is the look. W walks that way. The camera follows; it is not a separate drag orbit.
+      // Screen-right is +X when facing +Z. D and a mouse move to the right both go that way.
       const yaw = this.owner.yaw;
       const fx = Math.sin(yaw);
       const fz = Math.cos(yaw);
@@ -3171,7 +3154,7 @@ export class FloorScene {
       if (len > 1e-6) {
         if (this.owner.seated) this.toggleBalconySit(false);
         else {
-          const speed = 2.4 * dt;
+          const speed = 2.6 * dt;
           this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
           this.owner.yaw = face;
         }
