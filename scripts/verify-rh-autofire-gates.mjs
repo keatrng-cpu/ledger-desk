@@ -279,21 +279,38 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     decisionKey: "E|2026-10-06|MNQ:long:31000",
     reason: "path_continuation · PATH A+",
   };
+  const liveQuote = {
+    optionId: "opt-happy",
+    askPrice: 1.98,
+    bidPrice: 1.95,
+    asOfMs: NOW - 3_000,
+    source: "get_option_quotes",
+  };
   const prop = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
     ticket,
     flags: ARMED_FLAGS,
     refIdHint: "test-ref-1",
+    liveQuote,
   });
   check("proposal mode live_when_armed", prop.mode, "live_when_armed");
   check("placeShape quantity", prop.placeShape?.quantity, 2);
   check("placeShape is buy open limit", [prop.placeShape?.side, prop.placeShape?.positionEffect, prop.placeShape?.type], ["buy", "open", "limit"]);
-  check("optionId left null for agent resolve", prop.placeShape?.optionId, null);
+  check("placeShape uses live quote", prop.placeShape?.priceSource, "live_quote");
+  check("optionId from live quote", prop.placeShape?.optionId, "opt-happy");
+  const noQuote = rh.proposeRhLiveOption({
+    candidate: QUALIFIED,
+    ticket,
+    flags: ARMED_FLAGS,
+    refIdHint: "test-ref-1",
+  });
+  check("propose missing liveQuote refuses", [noQuote.mode, noQuote.gated.gate, noQuote.placeShape], ["refused", "live_quote", null]);
 
   const overCap = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
     ticket: { ...ticket, maxDebitTotal: 600 },
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("debit > $550 refuses", [overCap.gated.ok, overCap.gated.gate], [false, "debit_cap"]);
 
@@ -301,6 +318,7 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     candidate: QUALIFIED,
     ticket: { ...ticket, strikeOffset: "OTM_2" },
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("OTM_2 ticket refuses", [tooFar.gated.ok, tooFar.gated.gate], [false, "strike_offset"]);
 
@@ -308,12 +326,20 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     candidate: { ...QUALIFIED, account: { ...FUNDED, buyingPower: 300 } },
     ticket,
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("$400 ticket on $300 BP refuses bp_ticket", [thin.gated.ok, thin.gated.gate], [false, "bp_ticket"]);
 }
 
 console.log("\nmayPlaceAfterReview preflight");
 {
+  const reviewQuote = {
+    optionId: "opt-review",
+    askPrice: 1.98,
+    bidPrice: 1.95,
+    asOfMs: NOW - 3_000,
+    source: "get_option_quotes",
+  };
   const base = {
     gatesStillOk: true,
     liveArmedNow: true,
@@ -324,9 +350,14 @@ console.log("\nmayPlaceAfterReview preflight");
     accountAtReview: FUNDED,
     account: MANAGER_OK,
     debitTotal: 400,
+    liveQuote: reviewQuote,
+    quantity: 2,
     nowMs: NOW,
   };
-  check("clean review may place", rh.mayPlaceAfterReview(base).ok, true);
+  check("clean review with liveQuote may place", rh.mayPlaceAfterReview(base).ok, true);
+  check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: undefined }).ok, false);
+  const { liveQuote: _q, ...noQuote } = base;
+  check("review omitted liveQuote refuses", rh.mayPlaceAfterReview(noQuote).ok, false);
   const { account: _m, ...noManager } = base;
   check("no Manager account key refuses place (fail closed)", rh.mayPlaceAfterReview(noManager).ok, false);
   check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);

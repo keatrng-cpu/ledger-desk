@@ -1,6 +1,6 @@
 /**
  * RH live path — PATH scanner FIRE is the place trigger; grades A+/A/A-/B+;
- * Floor signals (CE touch / tape / DTE) wired; live quote preferred.
+ * Floor signals (CE touch / tape / DTE) wired; live quote REQUIRED (missing → refuse).
  *
  * Run: npx tsx scripts/verify-rh-path-fire.mjs
  * Never places. Never calls a broker.
@@ -121,7 +121,7 @@ console.log("\nFloor signals wired (CE touch / tape <= 30s / DTE 0/1)");
   check("no desk / no signals → still fail closed", g(legacy), "dte");
 }
 
-console.log("\nlive option quote preferred over model priceHint");
+console.log("\nlive option quote REQUIRED (missing refuses; present can pass)");
 {
   const ticket = rh.ticketFromRhCard({
     underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM",
@@ -137,6 +137,10 @@ console.log("\nlive option quote preferred over model priceHint");
   const c = { ...BASE, pathBand: "A-", confluence: 0.66 };
   const ok = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(1.5) });
   check("propose with live quote → live_when_armed", [ok.mode, ok.placeShape?.priceSource], ["live_when_armed", "live_quote"]);
+  const missingQ = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS });
+  check("propose missing liveQuote refuses live_quote", [missingQ.mode, missingQ.gated.gate, missingQ.placeShape], ["refused", "live_quote", null]);
+  const nullQ = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: null });
+  check("propose null liveQuote refuses live_quote", [nullQ.mode, nullQ.gated.gate], ["refused", "live_quote"]);
   const over = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(2.9) });
   check("live debit $584 > $550 refuses debit_cap", [over.mode, over.gated.gate], ["refused", "debit_cap"]);
   const thin = rh.proposeRhLiveOption({ candidate: { ...c, account: { ...FUNDED, buyingPower: 280 } }, ticket, flags: FLAGS, liveQuote: q(1.5) });
@@ -148,6 +152,7 @@ console.log("\nlive option quote preferred over model priceHint");
     debitTotal: 240, nowMs: NOW,
   };
   check("review with fresh live quote may place", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5), quantity: 2 }).ok, true);
+  check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, quantity: 2 }).ok, false);
   check("review with stale live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5, 60_000), quantity: 2 }).ok, false);
   check("review with null live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: null, quantity: 2 }).ok, false);
   check("review live debit $584 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(2.9), quantity: 2 }).ok, false);
@@ -191,6 +196,7 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
   check("BP unknown refuses", m(args(fire("A+", 0.78), { account: null })), "bp_unknown");
   check("Individual 7477 refuses", m(args(fire("A+", 0.78), { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
   check("env defaults (empty) refuse autofire_off", m(args(fire("A+", 0.78), { flags: undefined, env: {} })), "autofire_off");
+  check("PATH fire missing liveQuote refuses live_quote", m(args(fire("A+", 0.78), { liveQuote: undefined })), "live_quote");
   const r = rh.proposeRhFromPathFire(args(fire("B+", 0.61), bplus));
   check("B+ fire shape uses live quote, 1 contract", [r.placeShape?.priceSource, r.placeShape?.priceHint, r.placeShape?.quantity, r.placeShape?.refIdHint], ["live_quote", 1.62, 1, "rh-d:B+"]);
 }
@@ -223,17 +229,18 @@ console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
   check("B+ size: 2 contracts refuse", gates.evaluateRhBandSize("B+", 2).gate, "bplus_size");
   check("A size: 4 contracts per envelope", gates.evaluateRhBandSize("A", 4).ok, true);
   const t = (contracts, total) => rh.ticketFromRhCard({ underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM", contracts, estDebitEach: total / contracts / 100, estDebitTotal: total, decisionKey: "kb", reason: "b+" });
-  const p1 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 160), flags: FLAGS });
+  const bq = (ask) => ({ optionId: "opt-bplus", askPrice: ask, bidPrice: ask - 0.03, asOfMs: NOW - 2_000, source: "get_option_quotes" });
+  const p1 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 160), flags: FLAGS, liveQuote: bq(1.6) });
   check("B+ propose 1ct $160 → live_when_armed", [p1.mode, p1.placeShape?.quantity], ["live_when_armed", 1]);
-  const p2 = rh.proposeRhLiveOption({ candidate: B, ticket: t(2, 320), flags: FLAGS });
+  const p2 = rh.proposeRhLiveOption({ candidate: B, ticket: t(2, 320), flags: FLAGS, liveQuote: bq(1.6) });
   check("B+ propose 2ct refuses bplus_size", [p2.mode, p2.gated.gate], ["refused", "bplus_size"]);
-  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 120), flags: FLAGS });
+  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 120), flags: FLAGS, liveQuote: bq(1.2) });
   check("B+ 1ct under $150 envelope refuses debit_floor", [p0.mode, p0.gated.gate], ["refused", "debit_floor"]);
   const rev = {
     gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false,
     agenticAllowed: true, optionsLevelOk: true, accountAtReview: FUNDED,
     account: rh.toManagerRhAccount({ cashUsd: 1000, optionsBuyingPowerUsd: 1000, asOf: new Date(NOW - 20_000).toISOString(), accountNumber: "995386158", agenticAllowed: true, optionLevel: "option_level_2", label: "Agentic" }),
-    debitTotal: 162, nowMs: NOW,
+    debitTotal: 162, liveQuote: bq(1.6), nowMs: NOW,
   };
   check("B+ review 1ct may place (when armed)", rh.mayPlaceAfterReview({ ...rev, pathBand: "B+", quantity: 1 }).ok, true);
   check("B+ review 2ct refuses", rh.mayPlaceAfterReview({ ...rev, pathBand: "B+", quantity: 2 }).ok, false);

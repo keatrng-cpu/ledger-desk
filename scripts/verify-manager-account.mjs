@@ -42,7 +42,8 @@ export async function verifyManagerAccount(rh, check) {
   // Hard BP gate (rh-autofire-gates.ts) also needs a fresh get_portfolio read at review.
   const NOW = Date.UTC(2026, 9, 6, 13, 35, 0);
   const fresh = { label: "Agentic ••6158", accountNumber: "995386158", accountType: "limited_margin", cash: 1000, buyingPower: 1000, agenticAllowed: true, optionLevel: "option_level_2", asOfMs: NOW, source: "get_portfolio" };
-  const base = { gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false, agenticAllowed: true, optionsLevelOk: true, accountAtReview: fresh, debitTotal: 400, nowMs: NOW };
+  const liveQuote = { optionId: "opt-mgr", askPrice: 1.98, bidPrice: 1.95, asOfMs: NOW - 3_000, source: "get_option_quotes" };
+  const base = { gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false, agenticAllowed: true, optionsLevelOk: true, accountAtReview: fresh, debitTotal: 400, liveQuote, quantity: 2, nowMs: NOW };
   check("mayPlaceAfterReview refuses when Manager account key absent", rh.mayPlaceAfterReview(base).ok, false);
   check("mayPlaceAfterReview refuses default account", rh.mayPlaceAfterReview({ ...base, account: d }).ok, false);
   check("mayPlaceAfterReview refuses null account", rh.mayPlaceAfterReview({ ...base, account: null }).ok, false);

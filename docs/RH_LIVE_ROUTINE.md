@@ -145,7 +145,7 @@ There is **no** `preview_option_order` tool. Use **`review_option_order`** as th
 2. `proposeRhLiveOption(...)` — if `mode !== "live_when_armed"`, stop.
 3. `get_accounts` — require `agentic_allowed` and option level ≥ 2.
 4. `get_option_chains` → `get_option_instruments` — fill `option_id`.
-5. `get_option_quotes(option_id)` → pass as `liveQuote` (`source: "get_option_quotes"`, `asOfMs`). The limit is **live ask + $0.02** (`placeShape.priceSource === "live_quote"`); the model `estDebitEach + $0.02` is a fallback label only. Envelope + BP are re-run on the **live** debit. Quote > 30 s old, crossed, or ask ≤ 0 → ignored for the shape and **refused** at `mayPlaceAfterReview`.
+5. `get_option_quotes(option_id)` → pass as `liveQuote` (`source: "get_option_quotes"`, `asOfMs`) — **required**: missing/omitted `liveQuote` refuses both `proposeRhLiveOption` and `mayPlaceAfterReview` (no arm on model `priceHint`). The limit is **live ask + $0.02** (`placeShape.priceSource === "live_quote"`); the model `estDebitEach + $0.02` is a shape label only and cannot arm. Envelope + BP are re-run on the **live** debit. Quote > 30 s old, crossed, or ask ≤ 0 → **refused**.
    **`review_option_order`** with that limit. Surface alerts verbatim.
 6. Re-run gates + `mayPlaceAfterReview({ ..., liveQuote, quantity })`. If not ok, **do not place**.
 7. **`place_option_order`** only if still armed; same params; fresh `ref_id` UUID (reuse on transport retry only).

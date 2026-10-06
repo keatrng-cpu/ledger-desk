@@ -4,7 +4,7 @@
  * Envelope $150-$550, 1-4 ct, ATM/OTM_1. Keaton 2026-10-06.
  * Primary trigger: PATH scanner fire (A+/A/A-/B+) → proposeRhFromPathFire →
  * review_option_order → mayPlaceAfterReview → place_option_order on Agentic 995386158.
- * Limit prefers the live get_option_quotes ask + $0.02 over the model debit.
+ * Limit REQUIRES a live get_option_quotes ask + $0.02 (missing/stale/crossed → refuse); model priceHint cannot arm.
  * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
  * again before place (mayPlaceAfterReview.accountAtReview). BP < $150 → refused.
  */
@@ -131,9 +131,10 @@ export interface RhLiveTicket {
 
 /**
  * Live option quote (user-Robinhood-xai get_option_quotes on the chosen
- * option_id). Preferred over the model debit for the limit: priceHint = ask +
- * $0.02. Stale (> 30s), crossed, or non-positive quotes are ignored for the
- * shape and REFUSED at mayPlaceAfterReview.
+ * option_id). REQUIRED for propose + mayPlaceAfterReview: priceHint = ask +
+ * $0.02. Missing, stale (> 30s), crossed, or non-positive → REFUSED (fail
+ * closed). buildRhReviewPlaceShape may still label a model fallback; that
+ * shape cannot arm or place.
  */
 export interface RhLiveOptionQuote {
   optionId?: string | null;
@@ -263,18 +264,27 @@ export function proposeRhLiveOption(args: {
   }
   const ref = args.refIdHint ?? `rh-${args.ticket.decisionKey}`;
   const nowMs = flags.nowMs ?? Date.now();
-  const shape = buildRhReviewPlaceShape(args.ticket, ref, args.liveQuote ?? null, nowMs);
-  if (shape.priceSource === "live_quote") {
-    // The live debit is what will actually be charged — re-run envelope + BP on it.
-    const liveEnv = evaluateRhTicketEnvelope({
-      contracts: shape.quantity,
-      debitTotal: shape.debitTotal,
-      strikeOffset: args.ticket.strikeOffset,
-    });
-    if (!liveEnv.ok) return { gated: liveEnv, ticket: null, placeShape: null, mode: "refused", flags };
-    const liveBp = evaluateRhBuyingPower(args.candidate.account, nowMs, shape.debitTotal);
-    if (!liveBp.ok) return { gated: liveBp, ticket: null, placeShape: null, mode: "refused", flags };
+  // Fail closed: missing / stale / crossed / bad liveQuote cannot arm on model priceHint.
+  const live = evaluateRhLiveQuote(args.liveQuote, nowMs);
+  if (!live.ok) {
+    return {
+      gated: { ok: false, gate: "live_quote", reason: live.reason },
+      ticket: null,
+      placeShape: null,
+      mode: "refused",
+      flags,
+    };
   }
+  const shape = buildRhReviewPlaceShape(args.ticket, ref, args.liveQuote ?? null, nowMs);
+  // The live debit is what will actually be charged — re-run envelope + BP on it.
+  const liveEnv = evaluateRhTicketEnvelope({
+    contracts: shape.quantity,
+    debitTotal: shape.debitTotal,
+    strikeOffset: args.ticket.strikeOffset,
+  });
+  if (!liveEnv.ok) return { gated: liveEnv, ticket: null, placeShape: null, mode: "refused", flags };
+  const liveBp = evaluateRhBuyingPower(args.candidate.account, nowMs, shape.debitTotal);
+  if (!liveBp.ok) return { gated: liveBp, ticket: null, placeShape: null, mode: "refused", flags };
   return {
     gated,
     ticket: args.ticket,
@@ -298,8 +308,8 @@ export function mayPlaceAfterReview(args: {
   /** The reviewed ticket's total debit (limit × 100 × qty). */
   debitTotal?: number | null;
   /**
-   * Live get_option_quotes read taken at review. When supplied it must be
-   * fresh / sane, and the debit is recomputed from it (ask + $0.02) × 100 × qty
+   * REQUIRED live get_option_quotes read at review. Missing/undefined/null →
+   * refuse. Must be fresh / sane; debit recomputed from ask + $0.02 × 100 × qty
    * when `quantity` is given — the larger of that and `debitTotal` is gated.
    */
   liveQuote?: RhLiveOptionQuote | null;
@@ -313,20 +323,19 @@ export function mayPlaceAfterReview(args: {
     const size = evaluateRhBandSize(args.pathBand, args.quantity ?? null);
     if (!size.ok) return { ok: false, reason: size.reason };
   }
-  if (args.liveQuote !== undefined) {
-    const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
-    if (!q.ok) return { ok: false, reason: q.reason };
-    const qty = Math.floor(Number(args.quantity));
-    if (qty >= RH_MIN_CONTRACTS) {
-      const liveDebit = Math.round(q.limit * 100 * qty * 100) / 100;
-      if (!(liveDebit >= RH_MIN_DEBIT_TOTAL)) {
-        return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} under minimum $${RH_MIN_DEBIT_TOTAL}.` };
-      }
-      if (!(liveDebit <= RH_MAX_DEBIT_TOTAL + 1e-9)) {
-        return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} exceeds maximum $${RH_MAX_DEBIT_TOTAL}.` };
-      }
-      args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
+  // Fail closed: omitting liveQuote used to skip this check — refuse always.
+  const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
+  if (!q.ok) return { ok: false, reason: q.reason };
+  const qty = Math.floor(Number(args.quantity));
+  if (qty >= RH_MIN_CONTRACTS) {
+    const liveDebit = Math.round(q.limit * 100 * qty * 100) / 100;
+    if (!(liveDebit >= RH_MIN_DEBIT_TOTAL)) {
+      return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} under minimum $${RH_MIN_DEBIT_TOTAL}.` };
     }
+    if (!(liveDebit <= RH_MAX_DEBIT_TOTAL + 1e-9)) {
+      return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} exceeds maximum $${RH_MAX_DEBIT_TOTAL}.` };
+    }
+    args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
   }
   const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null);
   if (!bp.ok) return { ok: false, reason: bp.reason };
