@@ -43,6 +43,7 @@ import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import { MIN_TRACK, type LabRead } from "./lab";
 import type { Animation, Character, RoomEntryRead } from "./orchestrator";
 import { calibratedP, realizedForDecile, type OptionEv } from "./quant";
+import { offsetWord } from "./format";
 
 export interface Lens {
   p: number;
@@ -290,7 +291,8 @@ export function preMortem(card: RoomEntryRead, ev: OptionEv): string {
   const loss = ev.scenarios.find((s) => s.kind === "loss");
   if ((none?.p ?? 0) >= (loss?.p ?? 0))
     return `Pre-mortem: the likeliest loser is the clock — ${pc(none?.p ?? 0)} that nothing happens and 11:00 sells it for ${usdSigned(none?.pnlUsd ?? 0)}.`;
-  return `Pre-mortem: if it loses, it's the level — ${pc(loss?.p ?? 0)} for ${usdSigned(loss?.pnlUsd ?? 0)}${drag ? `, with ${drag.label.toLowerCase()} the biggest drag` : ""}.`;
+  // The driver's label is said as written ("T1 distance in R"): lower-casing it turned the units into "t1 … in r".
+  return `Pre-mortem: if it loses, it's the level — ${pc(loss?.p ?? 0)} for ${usdSigned(loss?.pnlUsd ?? 0)}${drag ? `, and the biggest drag on it is ${drag.label}` : ""}.`;
 }
 
 /** Nova's whiteboard sentence when she passed on a strike — the Socratic exchange. */
@@ -301,6 +303,6 @@ export function strikeWhy(chosen: { offset: string; ev: OptionEv | null }, alt: 
   if (Math.abs(a - b) < 0.005) return null;
   return {
     ask: `Why ${chosen.offset === "ATM" ? "at the money" : "one strike out"}?`,
-    answer: `EV per dollar of debit: ${chosen.offset} ${(a * 100).toFixed(1)}¢, ${alt.offset} ${(b * 100).toFixed(1)}¢. Same budget, more expected P&L.`,
+    answer: `EV per dollar of debit: ${offsetWord(chosen.offset)} ${(a * 100).toFixed(1)}¢, ${offsetWord(alt.offset)} ${(b * 100).toFixed(1)}¢. Same budget, ${a >= 0 ? "more expected P&L" : "less expected loss"}.`,
   };
 }
