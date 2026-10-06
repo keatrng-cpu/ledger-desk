@@ -37,6 +37,12 @@ export interface LiveQuote {
   lagSec: number;
   timezone: string;
   source: MarketSource;
+  /**
+   * Served from LAST-GOOD because this desk build's fetch missed the wall
+   * budget (desk-budget.ts). `lagSec` is re-aged on serve, so freshness gates
+   * stay honest; this flag only says "not re-fetched this build".
+   */
+  stale?: boolean;
 }
 
 export interface SymbolSeries {
@@ -54,6 +60,8 @@ export interface SymbolSeries {
   interval: string;
   count: number;
   bars: OhlcBar[];
+  /** Structure bars served from LAST-GOOD — the desk build's fetch missed its budget. */
+  stale?: boolean;
 }
 
 export interface DualIndexPayload {

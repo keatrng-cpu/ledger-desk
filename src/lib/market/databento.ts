@@ -659,11 +659,22 @@ export async function fetchBacktestLayers(
   };
 }
 
-export function quoteFromDatabentoSeries(series: SymbolSeries): LiveQuote {
+/**
+ * Derive a LiveQuote from the last bar of a Databento SymbolSeries.
+ *
+ * `fetchedAtMs` MUST be the time the series was originally fetched (the
+ * budgetedLeg / lastGood stamp), not Date.now() on a cache or last-good
+ * serve — otherwise asOf shows serve time and looks fresher than it is.
+ * lagSec is always re-aged against Date.now() (same as reageQuote).
+ */
+export function quoteFromDatabentoSeries(
+  series: SymbolSeries,
+  fetchedAtMs: number = Date.now(),
+): LiveQuote {
   const last = series.bars[series.bars.length - 1]!;
   const prev = series.previousClose ?? last.o;
-  const fetchedAtMs = Date.now();
   const marketTimeMs = last.t;
+  const nowMs = Date.now();
   return {
     symbol: series.symbol,
     yahoo: series.yahoo,
@@ -678,7 +689,7 @@ export function quoteFromDatabentoSeries(series: SymbolSeries): LiveQuote {
     volume: last.v,
     fetchedAtMs,
     fetchedAtIso: new Date(fetchedAtMs).toISOString(),
-    lagSec: Math.max(0, Math.round((fetchedAtMs - marketTimeMs) / 1000)),
+    lagSec: Math.max(0, Math.round((nowMs - marketTimeMs) / 1000)),
     timezone: "America/New_York",
     source: "databento",
   };
