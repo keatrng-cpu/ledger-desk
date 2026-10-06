@@ -43,7 +43,7 @@ export function drawRaceBoard(ctx: Ctx, w: number, h: number, race: RaceAnim | n
   ctx.fillText("SESSION RACE", 24, 44);
   ctx.fillStyle = "#94a3b8";
   ctx.font = `600 16px ${FONT}`;
-  ctx.fillText("paper seats · SCHOOL_SHORT labels · no invented WRs", 24, 70);
+  ctx.fillText("paper seats · school plaques · no invented WRs", 24, 70);
 
   if (!race || race.empty) {
     ctx.fillStyle = "#f59e0b";

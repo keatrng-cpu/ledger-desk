@@ -380,17 +380,22 @@ test("Chunk D scrubber: moments only from real seat/close/book; empty stays empt
 test("Accuracy should-fix: Jax creed is school idea, not 'TJR says'; plaques SCHOOL_SHORT", () => {
   assert.doesNotMatch(TRAITS.Jax.creed, /\bTJR says\b/i);
   assert.match(TRAITS.Jax.creed, /TJR-school|school read|never chase/i);
+  const allowedLabels = new Set([...Object.values(SCHOOL_SHORT), "Room"]);
   for (const id of FLOOR_SCHOOL_SEAT_IDS) {
     assert.ok(SCHOOL_SHORT[id], `${id} has SCHOOL_SHORT`);
     assert.doesNotMatch(SCHOOL_SHORT[id], /Huddleston|Tyler Riches/i);
+    assert.ok(allowedLabels.has(SCHOOL_SHORT[id]), `${id} plaque label must be SCHOOL_SHORT`);
   }
+  assert.ok(allowedLabels.has("Room"));
   // Stand meta.label may carry canon surnames — Floor drawers must not use it.
   const ict = floorSchoolSeat("ict");
-  assert.ok(ict.label.includes("ICT") || ict.label.length > 0);
+  assert.ok(!allowedLabels.has(ict.label), `Floor must not display Stand meta.label "${ict.label}"`);
   // SCHOOL_SHORT is what plaques use
   assert.equal(schoolShortFor("Jax"), "TJR");
   assert.equal(schoolShortFor("Gemma"), "ICT");
   assert.equal(schoolShortFor(null), null);
+  assert.ok(allowedLabels.has(schoolShortFor("Jax")));
+  assert.ok(allowedLabels.has(schoolShortFor("Gemma")));
 });
 
 test("layout: Chunk D race + scrub screens are procedural", () => {

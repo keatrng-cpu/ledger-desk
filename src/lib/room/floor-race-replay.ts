@@ -167,7 +167,8 @@ export function sessionMoments(args: {
     if (!id) return "someone";
     const row = args.seats?.rows.find((r) => r.id === id);
     if (row) return runnerLabel(row).label;
-    return id;
+    // Missing seat row — friendly stand-in, never a raw id on the scrubber.
+    return "a seat";
   };
   const whoOfSeat = (id: string | null): Character | null => {
     if (!id) return null;

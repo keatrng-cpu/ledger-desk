@@ -237,8 +237,8 @@
     { "id": "ovh_debate", "kind": "tv", "center": [-13.7, 2.2, 1.4], "size": [1.8, 1.6], "facing": 90, "px": [720, 640], "procedural": true },
     { "id": "ovh_briefing", "kind": "poster", "center": [-8.0, 2.85, -3.55], "size": [2.8, 0.9], "facing": 180, "px": [1120, 360], "procedural": true },
     { "id": "ovh_ranks", "kind": "poster", "center": [7.73, 2.55, -6.4], "size": [2.2, 1.4], "facing": 90, "px": [880, 560], "procedural": true },
-    { "id": "ovh_race", "kind": "tv", "center": [11.8, 2.15, 5.2], "size": [2.4, 1.7], "facing": 180, "px": [960, 680], "procedural": true },
-    { "id": "ovh_scrub", "kind": "poster", "center": [11.8, 2.15, 6.55], "size": [2.4, 1.5], "facing": 0, "px": [960, 600], "procedural": true }
+    { "id": "ovh_race", "kind": "tv", "center": [11.0, 2.15, 4.88], "size": [2.0, 1.5], "facing": 0, "px": [960, 680], "procedural": true },
+    { "id": "ovh_scrub", "kind": "poster", "center": [9.67, 2.15, 5.75], "size": [1.4, 1.4], "facing": 90, "px": [960, 600], "procedural": true }
   ],
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },
