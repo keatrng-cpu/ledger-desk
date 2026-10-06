@@ -204,6 +204,17 @@ export interface SetupChartProps {
   decisionIndex?: number | null;
   /** Suppress the empty-plan caption (a replay explains itself elsewhere). */
   hideEmptyCaption?: boolean;
+  /**
+   * Opt-in live print for the level glow: a live pool within a few ticks of
+   * it thickens and glows, and swept pools print "swept" in grey. Absent
+   * (replays, figures) the pools draw exactly as before.
+   */
+  livePrice?: number | null;
+}
+
+/** "A few ticks": 8 index-future ticks (2.0pt), or 1bp of price when that is wider. */
+function nearBand(price: number): number {
+  return Math.max(8 * 0.25, price * 0.0001);
 }
 
 interface Scale {
@@ -417,6 +428,7 @@ export function SetupChart({
   visibleBars,
   decisionIndex = null,
   hideEmptyCaption = false,
+  livePrice = null,
 }: SetupChartProps) {
   const window_ = visibleBars ?? VISIBLE_BARS;
   const offset = Math.max(0, bars.length - window_);
@@ -640,10 +652,16 @@ export function SetupChart({
   const visiblePools = (overlay?.pools ?? []).filter(
     (p) => p.price >= scale.lo && p.price <= scale.hi,
   );
+  const glowOn = livePrice != null && Number.isFinite(livePrice);
+  const isNear = (p: OverlayPool) =>
+    glowOn && !p.swept && Math.abs(p.price - livePrice!) <= nearBand(livePrice!);
+  const poolLineColor = (p: OverlayPool) => (glowOn && p.swept ? "var(--color-subtle)" : poolColor(p));
   const poolRow = (p: OverlayPool) => ({
     p: p.price,
-    c: poolColor(p),
-    t: `${p.swept ? "✕ " : ""}${p.side === "buyside" ? "BSL" : "SSL"} ${shortName(p.label)}`,
+    c: poolLineColor(p),
+    t: glowOn
+      ? `${p.side === "buyside" ? "BSL" : "SSL"} ${shortName(p.label)}${p.swept ? " · swept" : isNear(p) ? " · near" : ""}`
+      : `${p.swept ? "✕ " : ""}${p.side === "buyside" ? "BSL" : "SSL"} ${shortName(p.label)}`,
     dim: p.swept,
   });
   const gutter = dedupeByY(
@@ -1025,19 +1043,46 @@ export function SetupChart({
             it goes to a thin, widely-dashed ghost rather than a solid line
             0.35 bright, which at a glance was still competing with liquidity
             that is actually live. Live external > live internal > history. */}
-        {visiblePools.map((p) => (
-          <line
-            key={`pool-${p.side}-${p.price}`}
-            x1={PAD_L}
-            x2={PAD_L + PLOT_W}
-            y1={scale.y(p.price)}
-            y2={scale.y(p.price)}
-            stroke={poolColor(p)}
-            strokeWidth={p.swept ? 0.7 : p.scope === "external" ? 1.2 : 0.8}
-            strokeDasharray={p.swept ? "2 6" : p.scope === "external" ? undefined : "4 3"}
-            opacity={p.swept ? 0.22 : p.scope === "external" ? 0.85 : 0.6}
-          />
-        ))}
+        {/* With a live print (opt-in), a live pool within a few ticks of
+            price glows and thickens — that is where the stops are about to
+            be taken — and swept pools turn grey. */}
+        {glowOn && (
+          <defs>
+            <filter id="ld-pool-glow" x="-5%" y="-400%" width="110%" height="900%">
+              <feGaussianBlur stdDeviation="2.4" />
+            </filter>
+          </defs>
+        )}
+        {visiblePools.map((p) => {
+          const near = isNear(p);
+          const y0 = scale.y(p.price);
+          return (
+            <g key={`pool-${p.side}-${p.price}`}>
+              {near && (
+                <line
+                  x1={PAD_L}
+                  x2={PAD_L + PLOT_W}
+                  y1={y0}
+                  y2={y0}
+                  stroke={poolColor(p)}
+                  strokeWidth={5}
+                  filter="url(#ld-pool-glow)"
+                  className="glow-near"
+                />
+              )}
+              <line
+                x1={PAD_L}
+                x2={PAD_L + PLOT_W}
+                y1={y0}
+                y2={y0}
+                stroke={poolLineColor(p)}
+                strokeWidth={near ? 2.2 : p.swept ? 0.7 : p.scope === "external" ? 1.2 : 0.8}
+                strokeDasharray={near ? undefined : p.swept ? "2 6" : p.scope === "external" ? undefined : "4 3"}
+                opacity={near ? 1 : p.swept ? 0.22 : p.scope === "external" ? 0.85 : 0.6}
+              />
+            </g>
+          );
+        })}
 
         {/* ── Structure: MSS / BOS at the level, displacement on the bar ───── */}
         {(overlay?.structure ?? [])

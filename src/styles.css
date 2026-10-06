@@ -170,6 +170,19 @@
   .pulse-armed {
     animation: pulse-armed 1.8s ease-in-out infinite;
   }
+  /* SVG glow under a liquidity line price is about to reach. */
+  .glow-near {
+    animation: glow-near 1.6s ease-in-out infinite;
+  }
+  @keyframes glow-near {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    50% {
+      opacity: 0.75;
+    }
+  }
   @keyframes pulse-armed {
     0%,
     100% {
