@@ -25,7 +25,6 @@ import {
   Newspaper,
   Percent,
   MessagesSquare,
-  Beer,
   Building2,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
@@ -73,7 +72,6 @@ import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
-import { PredictTab } from "@/components/predict/predict-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
 import { useRoomEngine } from "@/components/room/room-engine";
 import { useDeskSynapse, getDeskSynapse, type SynapseTab } from "@/lib/trading/desk-synapse";
@@ -177,6 +175,9 @@ import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 const TradingFloorTab = lazy(() => import("@/components/room/trading-floor-tab"));
 // The Mead Hall (2026-10-06): the prediction-market sports bar — three.js too, so lazy like the Floor.
 const MeadHallTab = lazy(() => import("@/components/mead/mead-hall-tab"));
+// PM analyzer (2026-10-06, Keaton): Predict + Mead Hall merged — the hall on top
+// (signal board → hallLayout), a desk panel per market below. three.js → lazy.
+const PmAnalyzer = lazy(() => import("@/components/predict/pm-analyzer"));
 // DEV capture only — Accuracy attachment re-render. `?capture=mead` mounts the
 // Mead Hall without waiting on /api/desk. import.meta.env.DEV is statically
 // false in production builds, so this is dead code there.
@@ -722,17 +723,11 @@ const CATEGORIES: {
     id: "predict",
     label: "Predict",
     short: "Pred",
-    hint: "Event contracts · live board",
+    hint: "PM analyzer · Mead Hall + desk · paper",
     icon: Percent,
   },
-  // Beside Predict: the same event contracts as a 3D sports bar — PAPER tickets only.
-  {
-    id: "mead",
-    label: "Mead",
-    short: "Hall",
-    hint: "The Mead Hall · 3D prediction bar · paper",
-    icon: Beer,
-  },
+  // "mead" is no longer its own tab: the Mead Hall lives at the top of the
+  // Predict analyzer. The id stays as an alias (ledger:open-tab "mead" → Predict).
   {
     id: "tape",
     label: "Charts",
@@ -843,7 +838,8 @@ function MasterplacePage() {
   useEffect(() => {
     const on = (e: Event) => {
       const id = (e as CustomEvent<string>).detail;
-      if (CATEGORIES.some((c) => c.id === id)) setCat(id as DeskCategory);
+      if (id === "mead") setCat("predict");
+      else if (CATEGORIES.some((c) => c.id === id)) setCat(id as DeskCategory);
     };
     window.addEventListener("ledger:open-tab", on);
     return () => window.removeEventListener("ledger:open-tab", on);
@@ -1761,17 +1757,16 @@ function MasterplacePage() {
                   research it checks. */}
               {cat === "invest" && <InvestPanel />}
               {cat === "news" && <NewsTab />}
-              {cat === "predict" && <PredictTab />}
-              {cat === "mead" && (
+              {(cat === "predict" || cat === "mead") && (
                 <Suspense
                   fallback={
                     <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
                       <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
-                      Opening the Mead Hall…
+                      Opening the analyzer…
                     </div>
                   }
                 >
-                  <MeadHallTab />
+                  <PmAnalyzer />
                 </Suspense>
               )}
               {cat === "discuss" && <DiscussTab desk={desk} />}

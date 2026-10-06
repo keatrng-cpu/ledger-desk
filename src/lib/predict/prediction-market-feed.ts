@@ -95,6 +95,21 @@ export interface PredictionMarket {
   labelFallback?: LabelFallback;
   volume?: number | null;
   expiry?: string | null;
+  /**
+   * Set only when the row came from the PM signal engine (MarketSignal via
+   * hallStateFromBoard): the A–F letter and the pre-formatted lines the hall
+   * screens draw instead of the scanner grade/gates. Presentation only.
+   */
+  hall?: MarketHallView;
+}
+
+/** Signal-engine view of a row for the Mead Hall screens (strings come from real MarketSignal fields). */
+export interface MarketHallView {
+  grade: "A" | "B" | "C" | "D" | "F";
+  /** Jumbotron footer line (implied after fees · spread · move · settle). */
+  line: string;
+  /** Rune Board sub-line. */
+  sub: string;
 }
 
 export type StaleReason = "fetch_age" | "invalid_fetch_time" | "last_trade_only";
