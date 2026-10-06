@@ -1405,8 +1405,9 @@ function drawFeed(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   clear(ctx, w, h);
   // Same honesty as the header feed dot: source first, then lag. Databento
   // green only at ≤15s (not the old <90s Floor threshold). SYN/Y! never green.
+  // Unknown lag (null) stays null — feedTone paints red, never coerce to 0.
   const sources = feed && feed.kind !== "none" ? [feed.kind] : [];
-  const tone = feedTone(sources, feed?.lagSec ?? 0);
+  const tone = feedTone(sources, feed?.lagSec ?? null);
   const accent = tone.tone === "live" ? C.up : tone.tone === "delayed" ? C.amber : C.down;
   const kindWord = !feed || feed.kind === "none"
     ? "NO FEED"
