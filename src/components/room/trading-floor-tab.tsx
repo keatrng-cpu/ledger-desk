@@ -97,12 +97,16 @@ function FloorCanvas({
   onCanvasFocus,
   onScrollHint,
   onManagerInspect,
+  onOneOnOne,
+  onOwnerSit,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
   onCanvasFocus: (focused: boolean) => void;
   onScrollHint: () => void;
   onManagerInspect: (state: ManagerRoomState) => void;
+  onOneOnOne: (target: { kind: "crew"; who: Character } | { kind: "manager" }) => void;
+  onOwnerSit?: (seated: boolean) => void;
   /** The tab drives navigation (Go to, Follow) through the scene it is drawing. */
   sceneRef: { current: FloorScene | null };
   onSpeaker: (i: number, line: DialogueLine | null) => void;
@@ -116,8 +120,8 @@ function FloorCanvas({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -175,6 +179,8 @@ function FloorCanvas({
         onFocusChange: (on) => cbs.current.onCanvasFocus(on),
         onScrollHint: () => cbs.current.onScrollHint(),
         onManagerInspect: (s) => cbs.current.onManagerInspect(s),
+        onOneOnOne: (t) => cbs.current.onOneOnOne(t),
+        onOwnerSit: (on) => cbs.current.onOwnerSit?.(on),
         // The real room feed (room engine cycles + live account); the demo stub only on dev ?manager=stub.
         managerFeed: managerStubRequested() ? undefined : roomManagerFeed(),
         onTalk: (id, st) => {
@@ -470,6 +476,89 @@ function Portrait({ who }: { who: Character }) {
   ) : (
     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: COLOR[who] }}>
       {who[0]}
+    </div>
+  );
+}
+
+/* ── Chunk C item 26: Owner 1:1 (E) with a character or the Manager ───── */
+
+function OneOnOnePanel({
+  target,
+  frame,
+  managerState,
+  onClose,
+  onOpenManager,
+}: {
+  target: { kind: "crew"; who: Character } | { kind: "manager" };
+  frame: FloorFrame | null;
+  managerState: ManagerRoomState | null;
+  onClose: () => void;
+  onOpenManager: () => void;
+}) {
+  if (target.kind === "manager") {
+    const call = managerState?.call;
+    return (
+      <div className={`${CARD} border-[#38bdf8]/50`}>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className={HEAD} style={{ marginBottom: 0 }}>
+            1:1 · Trading Stand <span className="ml-1 rounded bg-[#38bdf8]/20 px-1.5 py-0.5 font-mono text-[10px] text-[#7dd3fc]">{managerState?.current ?? "—"}</span>
+          </div>
+          <button type="button" className={BTN} onClick={onClose} aria-label="Close 1:1">
+            <X className="h-3 w-3" /> Close
+          </button>
+        </div>
+        <p className="text-[11px] text-[var(--color-muted)]">Owner ↔ Manager context — presentation only. Open the full Stand panel to teach / steer.</p>
+        {call ? (
+          <p className="mt-2 text-[12px] text-[var(--color-fg)]">
+            <span className="font-semibold">{call.action}</span>
+            {call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""} — {call.reasoning.thesis}
+          </p>
+        ) : (
+          <p className="mt-2 text-[12px] text-[var(--color-muted)]">No call this cycle.</p>
+        )}
+        <button type="button" className={`${BTN} mt-3`} onClick={onOpenManager}>
+          Open full Manager panel
+        </button>
+      </div>
+    );
+  }
+  const who = target.who;
+  const t = TRAITS[who];
+  const minds = frame?.minds ?? null;
+  const n = minds?.needs[who];
+  const act = frame?.acts?.[who]?.act ?? "desk";
+  const mem = minds?.memories.find((m) => m.who === who);
+  return (
+    <div className={`${CARD}`} style={{ borderColor: `${COLOR[who]}88` }}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className={HEAD} style={{ marginBottom: 0 }}>
+          1:1 · <span style={{ color: COLOR[who] }}>{who}</span>
+          <span className="ml-1 text-[10px] font-normal text-[var(--color-muted)]">{t.schoolName}</span>
+        </div>
+        <button type="button" className={BTN} onClick={onClose} aria-label="Close 1:1">
+          <X className="h-3 w-3" /> Close
+        </button>
+      </div>
+      <p className="text-[11px] text-[var(--color-muted)]">Owner private context — what the room already knows. No orders.</p>
+      <ul className="mt-2 space-y-1 text-[12px] text-[var(--color-fg)]">
+        <li>
+          <span className="text-[var(--color-muted)]">Now:</span> {act}
+        </li>
+        <li>
+          <span className="text-[var(--color-muted)]">Lens:</span> {t.creed}
+        </li>
+        {n && (
+          <li className="font-mono text-[11px] text-[var(--color-subtle)]">
+            needs · stress {(n.stress * 100).toFixed(0)} · lonely {(n.loneliness * 100).toFixed(0)} · fatigue {(n.fatigue * 100).toFixed(0)}
+          </li>
+        )}
+        {mem && (
+          <li className="text-[11px] text-[var(--color-muted)]">
+            memory · {mem.kind} · {mem.text}
+          </li>
+        )}
+        {!mem && <li className="text-[11px] text-[var(--color-subtle)]">No scored memory yet.</li>}
+      </ul>
     </div>
   );
 }
@@ -1158,6 +1247,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [showJson, setShowJson] = useState(false);
   const [managerState, setManagerState] = useState<ManagerRoomState | null>(null);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [oneOnOne, setOneOnOne] = useState<{ kind: "crew"; who: Character } | { kind: "manager" } | null>(null);
+  const [ownerSeated, setOwnerSeated] = useState(false);
   const [lastSteer, setLastSteer] = useState<ManagerSteer | null>(null);
   const [feedbackLog, setFeedbackLog] = useState<OwnerFeedback[]>([]);
   const [hintFlash, setHintFlash] = useState(false);
@@ -1423,6 +1514,14 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             setManagerOpen(true);
             sceneRef.current?.focusManager();
           }}
+          onOneOnOne={(t) => {
+            setOneOnOne(t);
+            if (t.kind === "manager") {
+              const s = sceneRef.current?.getManagerState();
+              if (s) setManagerState(s);
+            }
+          }}
+          onOwnerSit={setOwnerSeated}
         />
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
         {/* Scroll capture hint, bottom-centre (clear of the camera buttons).
@@ -1437,7 +1536,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         >
           {canvasFocused ? (
             <>
-              {walkMode ? "WASD walk · " : ""}Scroll zooms · drag orbits ·{" "}
+              {walkMode ? (ownerSeated ? "Seated · F/E/WASD stand · " : "WASD walk · F sit · E 1:1 · ") : ""}Scroll zooms · drag orbits ·{" "}
               <button type="button" className="underline" onClick={() => sceneRef.current?.releaseFocus()}>
                 Esc releases
               </button>
@@ -1563,6 +1662,20 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
       </div>
 
       <DecisionStrip entry={entry} managerState={managerState} onManager={openManager} />
+
+      {oneOnOne && (
+        <OneOnOnePanel
+          target={oneOnOne}
+          frame={frame}
+          managerState={managerState}
+          onClose={() => setOneOnOne(null)}
+          onOpenManager={() => {
+            setOneOnOne(null);
+            setManagerOpen(true);
+            sceneRef.current?.focusManager();
+          }}
+        />
+      )}
 
       {managerOpen && managerState && (
         <ManagerPanel

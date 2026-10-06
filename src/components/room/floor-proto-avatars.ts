@@ -113,6 +113,8 @@ export class OwnerAvatar {
   elevation = 0;
   yaw = 0;
   moving = false;
+  /** Chunk C item 25 — seated on the balcony chair. */
+  seated = false;
   private walkPhase = 0;
   private bodyY = 0;
 
@@ -217,8 +219,18 @@ export class OwnerAvatar {
     this.root.rotation.y = this.yaw;
   }
 
-  /** Try a world step; caller supplies walkability. */
+  /** Sit / stand on the balcony chair (Chunk C item 25). */
+  setSeated(on: boolean) {
+    this.seated = on;
+    if (on) this.moving = false;
+  }
+
+  /** Try a world step; caller supplies walkability. Standing only — seated Owner must stand first. */
   tryMove(dx: number, dz: number, walkable: (x: number, z: number) => boolean): boolean {
+    if (this.seated) {
+      this.moving = false;
+      return false;
+    }
     if (Math.abs(dx) < 1e-6 && Math.abs(dz) < 1e-6) {
       this.moving = false;
       return false;
@@ -249,8 +261,8 @@ export class OwnerAvatar {
   }
 
   update(dt: number, t: number) {
-    if (this.moving) this.walkPhase += dt * 1.35 * 4.4;
-    else this.moving = false;
+    if (this.moving && !this.seated) this.walkPhase += dt * 1.35 * 4.4;
+    else if (!this.seated) this.moving = false;
     this.root.position.set(this.pos[0], this.elevation, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const k = 1 - Math.exp(-12 * dt);
@@ -259,6 +271,22 @@ export class OwnerAvatar {
       g.rotation.y += (ry - g.rotation.y) * k;
       g.rotation.z += (rz - g.rotation.z) * k;
     };
+    if (this.seated) {
+      const seat = 0.47 - this.hipH;
+      this.bodyY = damp(this.bodyY, seat, 10, dt);
+      setR(this.hipL, -1.5);
+      setR(this.hipR, -1.5);
+      this.knL.rotation.x += (1.5 - this.knL.rotation.x) * k;
+      this.knR.rotation.x += (1.5 - this.knR.rotation.x) * k;
+      setR(this.shL, -0.55 + 0.04 * Math.sin(t * 1.2), 0, 0.06);
+      setR(this.shR, -0.5 + 0.04 * Math.sin(t * 1.2 + 1), 0, -0.06);
+      this.elL.rotation.x += (-0.9 - this.elL.rotation.x) * k;
+      this.elR.rotation.x += (-0.85 - this.elR.rotation.x) * k;
+      setR(this.spine, 0.08 + 0.02 * Math.sin(t * 1.1));
+      this.body.position.y = this.bodyY;
+      this.tag.position.y = this.bodyY + this.height + 0.23;
+      return;
+    }
     if (this.moving) {
       const s = Math.sin(this.walkPhase);
       setR(this.hipL, 0.55 * s);

@@ -1221,6 +1221,7 @@ export const PLACES: Place[] = [
   { id: "ovh_kz_E", label: "Killzone clock", group: "war room" },
   { id: "ovh_tickerwall", label: "Ticker wall", group: "war room" },
   { id: "ovh_mgr_0", label: "Manager's office", group: "war room" },
+  { id: "ovh_mgr_board", label: "Discretion board", group: "war room" },
   { id: "tv_rnd", label: "R&D board", group: "annex" },
   { id: "mon_Rnd_0", label: "Desk audit", group: "annex" },
   { id: "mon_Ops_0", label: "The feed", group: "annex" },
@@ -1238,7 +1239,12 @@ export const PLACES: Place[] = [
 ];
 
 /** Overhaul screens that are not chips but still deserve a name when the viewer flies to them. */
-const OVH_LABEL: Record<string, string> = { ovh_kz_W: "Killzone clock", ovh_mgr_1: "Manager's office" };
+const OVH_LABEL: Record<string, string> = {
+  ovh_kz_W: "Killzone clock",
+  ovh_mgr_1: "Manager's office",
+  ovh_mgr_2: "Manager arms monitor",
+  ovh_mgr_board: "Discretion board",
+};
 
 /** A readable name for any screen id, for the tab's "looking at" label. */
 export function screenLabel(id: string): string {
@@ -1297,6 +1303,10 @@ export interface FloorSceneOptions {
   onWalkModeChange?: (on: boolean) => void;
   /** Proximity prompt near a crew member or the Manager. */
   onProximity?: (kind: "crew" | "manager" | null, who?: Character) => void;
+  /** Chunk C item 26 — Owner pressed E for a 1:1 with crew or Manager. */
+  onOneOnOne?: (target: { kind: "crew"; who: Character } | { kind: "manager" }) => void;
+  /** Chunk C item 25 — Owner sat / stood on the balcony chair. */
+  onOwnerSit?: (seated: boolean) => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1563,7 +1573,10 @@ export class FloorScene {
   private ownerChaseCheckAt = 0;
   private nearCrew: Character | null = null;
   private nearManager = false;
-  private proxPrompt: "crew" | "manager" | null = null;
+  private nearChair = false;
+  private proxPrompt: "crew" | "manager" | "chair" | null = null;
+  /** Balcony chair seat (xz); Owner sit/stand (Chunk C 25). */
+  private readonly balconyChair: V2 | null;
   private flickerUntil = 0;
   private lastWinDraw = 0;
   private lastLightAt = -1;
@@ -1668,6 +1681,8 @@ export class FloorScene {
     this.owner = new OwnerAvatar(ownerStart, ownerLook);
     this.owner.elevation = this.heightAt(ownerStart[0], ownerStart[1]);
     this.scene.add(this.owner.root);
+    const oChair = LAYOUT.furniture.find((x) => x.id === "chair_Owner");
+    this.balconyChair = oChair ? [oChair.pos[0], oChair.pos[1]] : null;
     // Trading Stand in the glass corner office (chair_Manager in the plan), facing its monitors and the pit beyond;
     // the old war-room meeting chair if the plan has no corner office.
     const mChair = LAYOUT.furniture.find((x) => x.id === "chair_Manager");
@@ -2825,8 +2840,15 @@ export class FloorScene {
       }
       return;
     }
+    if (k === "f") {
+      this.toggleBalconySit();
+      e.preventDefault();
+      return;
+    }
     if (k === "e") {
-      this.interactProximity();
+      // Seated: E stands (same as F); else 1:1 with nearby crew / Manager.
+      if (this.owner.seated) this.toggleBalconySit(false);
+      else this.interactProximity();
       e.preventDefault();
     }
   };
@@ -3037,8 +3059,11 @@ export class FloorScene {
       }
       const len = Math.hypot(mx, mz);
       if (len > 1e-6) {
-        const speed = 2.4 * dt;
-        this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
+        if (this.owner.seated) this.toggleBalconySit(false);
+        else {
+          const speed = 2.4 * dt;
+          this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
+        }
       } else {
         this.owner.moving = false;
       }
@@ -3063,29 +3088,64 @@ export class FloorScene {
       }
     }
     const nearMgr = Math.hypot(this.owner.pos[0] - this.manager.pos[0], this.owner.pos[1] - this.manager.pos[1]) < PROX;
+    const chair = this.balconyChair;
+    const nearChair =
+      !!chair && Math.hypot(this.owner.pos[0] - chair[0], this.owner.pos[1] - chair[1]) < 0.85 && this.heightAt(this.owner.pos[0], this.owner.pos[1]) > 0.8;
     this.nearCrew = near;
     this.nearManager = nearMgr && !near;
-    let prompt: "crew" | "manager" | null = null;
-    if (this.nearManager) prompt = "manager";
+    this.nearChair = nearChair;
+    let prompt: "crew" | "manager" | "chair" | null = null;
+    if (this.owner.seated) prompt = "chair";
+    else if (nearChair && !near && !nearMgr) prompt = "chair";
+    else if (this.nearManager) prompt = "manager";
     else if (this.nearCrew) prompt = "crew";
     if (prompt !== this.proxPrompt) {
       this.proxPrompt = prompt;
-      this.opts.onProximity?.(prompt, this.nearCrew ?? undefined);
-      if (prompt === "crew" && this.nearCrew) this.setHover(`${this.nearCrew} — E / click to open`);
-      else if (prompt === "manager") this.setHover("Trading Stand — E / click to inspect");
+      this.opts.onProximity?.(prompt === "chair" ? null : prompt, this.nearCrew ?? undefined);
+      if (prompt === "chair") this.setHover(this.owner.seated ? "Seated — F / E / WASD to stand" : "Balcony chair — F to sit");
+      else if (prompt === "crew" && this.nearCrew) this.setHover(`${this.nearCrew} — E for 1:1`);
+      else if (prompt === "manager") this.setHover("Trading Stand — E for 1:1");
     }
+  }
+
+  /** Chunk C item 25 — sit on / stand from the balcony chair. */
+  private toggleBalconySit(force?: boolean) {
+    const want = force ?? !this.owner.seated;
+    if (want) {
+      if (!this.nearChair && !this.owner.seated) return;
+      const chair = this.balconyChair;
+      if (chair) {
+        this.owner.pos = [chair[0], chair[1]];
+        this.owner.yaw = Math.atan2(-8 - chair[0], -1 - chair[1]); // face the pit
+        this.owner.elevation = this.heightAt(chair[0], chair[1]);
+      }
+      this.owner.setSeated(true);
+      this.clearWalkKeys();
+      this.opts.onOwnerSit?.(true);
+      this.setHover("Seated — F / E / WASD to stand");
+      return;
+    }
+    if (!this.owner.seated) return;
+    this.owner.setSeated(false);
+    this.opts.onOwnerSit?.(false);
+    this.setHover(this.nearChair ? "Balcony chair — F to sit" : null);
   }
 
   private interactProximity() {
+    // Chunk C item 26 — E opens a 1:1 with Manager or a crew member (presentation).
     if (this.nearManager) {
+      this.opts.onOneOnOne?.({ kind: "manager" });
       this.opts.onManagerInspect?.(this.managerFeed.getState());
       return;
     }
-    if (this.nearCrew) this.opts.onSelect?.(this.nearCrew);
+    if (this.nearCrew) {
+      this.opts.onOneOnOne?.({ kind: "crew", who: this.nearCrew });
+      this.opts.onSelect?.(this.nearCrew);
+    }
   }
 
   private applyManagerFeed(s: ManagerRoomState) {
-    this.overhaul?.setManager(s, this.managerFeed.getLastSteer());
+    this.overhaul?.setManager(s, this.managerFeed.getLastSteer(), this.managerFeed.getRules());
     this.manager.say(managerBubbleText(s));
     this.manager.setMoodAccent(phaseToMoodTint(s.current));
     // The account monitor: Trading Stand's managerAccountLine, red when blocked.

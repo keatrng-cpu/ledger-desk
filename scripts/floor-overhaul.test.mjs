@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul, Chunk A (items 7–15): the pure props the room draws.
+ * Floor 3D overhaul Chunks A–C: pure props + school + war-room arm lever display.
  *   - session dial segments never disagree with `resolveKillzone`
  *   - VIX weather uses the windows' bands, and a missing VIX draws nothing (no default)
  *   - liquidity lanes come only from the desk's levels; what is absent is listed as missing
@@ -143,7 +143,7 @@ test("trophies and scars: book wins/losses, graded vetoes and calls, ghost room;
 
 test("layout: the overhaul's pieces are procedural and the balcony / stairs are crew obstacles", () => {
   const all = [...LAYOUT.furniture, ...LAYOUT.screens, ...(LAYOUT.walls ?? []), ...(LAYOUT.rooms ?? [])];
-  const ids = ["balcony_Owner", "stairs_Owner", "desk_Manager", "chair_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_trophies", "ovh_scars", "plate_Manager", "ovh_schools", "ovh_checklist", "ovh_debate", "ovh_briefing", "ovh_ranks"];
+  const ids = ["balcony_Owner", "stairs_Owner", "chair_Owner", "desk_Manager", "chair_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_trophies", "ovh_scars", "plate_Manager", "ovh_mgr_0", "ovh_mgr_1", "ovh_mgr_2", "ovh_mgr_board", "ovh_schools", "ovh_checklist", "ovh_debate", "ovh_briefing", "ovh_ranks"];
   for (const id of ids) {
     const p = all.find((x) => x.id === id);
     assert.ok(p, `${id} in layout`);
@@ -216,4 +216,39 @@ test("Chunk B hit ranks: only real lab track rates; null stays awaiting", () => 
   assert.equal(gemma.rank, 1);
   assert.equal(jax.hitRate, null);
   assert.match(jax.label, /awaiting model data|no scored plans/);
+});
+
+const { armLeverDisplay } = await import("../src/lib/room/arm-lever.ts");
+
+test("Chunk C layout: balcony chair + Manager 3rd monitor + discretion board are procedural", () => {
+  const all = [...LAYOUT.furniture, ...LAYOUT.screens];
+  for (const id of ["chair_Owner", "ovh_mgr_2", "ovh_mgr_board"]) {
+    const p = all.find((x) => x.id === id);
+    assert.ok(p, `${id} in layout`);
+    assert.equal(p.procedural, true);
+  }
+  const chair = LAYOUT.furniture.find((f) => f.id === "chair_Owner");
+  assert.equal(chair.onTop, 1.2, "chair sits on the balcony deck");
+  assert.equal(LAYOUT.screens.filter((s) => /^ovh_mgr_[012]$/.test(s.id)).length, 3, "three Manager monitors");
+});
+
+test("Chunk C arm lever: display-only mapping from ArmSnap; never invents live", () => {
+  const safe = armLeverDisplay({
+    autofireEnabled: false, liveArmed: false, confirmedInWriting: false,
+    optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
+  });
+  assert.equal(safe.position, "safe");
+  assert.match(safe.note, /not wired to agentAgree/);
+  const armed = armLeverDisplay({
+    autofireEnabled: true, liveArmed: false, confirmedInWriting: false,
+    optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
+  });
+  assert.equal(armed.position, "armed");
+  const live = armLeverDisplay({
+    autofireEnabled: true, liveArmed: true, confirmedInWriting: true,
+    optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
+  });
+  assert.equal(live.position, "live");
+  assert.match(live.label, /display/i);
+  assert.equal(armLeverDisplay(null).position, "safe");
 });

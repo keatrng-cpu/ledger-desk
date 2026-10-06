@@ -154,6 +154,7 @@
     { "id": "key_Manager", "kind": "keyboard", "pos": [-0.98, 2.2], "rot": 90, "size": [0.46, 0.03, 0.16], "obstacle": false, "onTop": 0.75, "procedural": true },
     { "id": "balcony_Owner", "kind": "balcony", "pos": [2.5, -3.0], "rot": 0, "size": [2.4, 1.2, 3.2], "obstacle": true, "procedural": true },
     { "id": "stairs_Owner", "kind": "stairs", "pos": [4.7, -3.0], "rot": 0, "size": [2.0, 1.2, 1.1], "obstacle": true, "procedural": true },
+    { "id": "chair_Owner", "kind": "office_chair", "pos": [2.15, -1.85], "rot": 200, "size": [0.55, 1.0, 0.55], "obstacle": false, "onTop": 1.2, "procedural": true },
     { "id": "wall_record", "kind": "partition", "pos": [7.6, -4.2], "rot": 0, "size": [0.24, 2.3, 4.0], "obstacle": true, "procedural": true }
   ],
   "screens": [
@@ -223,6 +224,8 @@
     { "id": "plate_Inv", "kind": "plate", "center": [1.07, 2.75, 10.05], "size": [1.8, 0.28], "facing": 90, "px": [440, 112] },
     { "id": "ovh_mgr_0", "kind": "monitor", "center": [-1.42, 1.12, 1.85], "size": [0.62, 0.37], "facing": 90, "px": [512, 306], "procedural": true },
     { "id": "ovh_mgr_1", "kind": "monitor", "center": [-1.42, 1.12, 2.55], "size": [0.62, 0.37], "facing": 90, "px": [512, 306], "procedural": true },
+    { "id": "ovh_mgr_2", "kind": "monitor", "center": [-1.42, 1.12, 1.15], "size": [0.62, 0.37], "facing": 90, "px": [512, 306], "procedural": true },
+    { "id": "ovh_mgr_board", "kind": "whiteboard", "center": [0.93, 1.75, 1.8], "size": [1.55, 1.25], "facing": 270, "px": [720, 580], "procedural": true },
     { "id": "plate_Manager", "kind": "plate", "center": [-1.3, 2.2, 0.17], "size": [1.3, 0.28], "facing": 180, "px": [520, 112], "procedural": true },
     { "id": "ovh_tickerwall", "kind": "tv", "center": [-9.0, 2.95, 3.3], "size": [9.4, 0.6], "facing": 180, "px": [2400, 154], "procedural": true },
     { "id": "ovh_kz_E", "kind": "clock", "center": [-4.36, 2.45, -1.0], "size": [1.2, 1.2], "facing": 90, "px": [512, 512], "procedural": true },

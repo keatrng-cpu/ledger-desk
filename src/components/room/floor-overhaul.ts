@@ -1,9 +1,9 @@
 /**
- * Floor 3D overhaul — Chunk A (items 7–15) + Chunk B school SMC (16–24). The new set pieces, built at runtime beside the office:
+ * Floor 3D overhaul — Chunk A (7–15) + Chunk B school SMC (16–24) + Chunk C war-room/Owner (25–29). Set pieces at runtime:
  *
  *   7  the centre pit around the war table: a dark sunken floor with tiered rings, its rim a 24-hour session dial
  *   8  the Manager's glass corner office (walls, desk, monitors come from floor-layout.json `procedural` entries;
- *      this file draws its two monitors) and the Owner's balcony (deck + stairs from the plan; Owner walk in the scene)
+ *      this file draws its three monitors + phone/lever) and the Owner's balcony (deck + stairs; Owner walk/sit in the scene)
  *   9  session time-of-day on the pit rim + the hanging killzone clock (both faces)
  *   10 VIX weather inside the war room: a cloud deck, rain and lightning — only from a real VIX; none without one
  *   11 liquidity lanes on the floor east of the pit: PDH / PDL / BSL / SSL (+ the draw) per book, and the price puck
@@ -18,13 +18,19 @@
  *   22 hit-rate ranks from lab track only — never invented
  *   23 body language prefs from minds needs + entry mood (consumed by floor-scene)
  *   24 evolving relationship arcs between desks (minds.rel)
+ *   27 Manager war room: 3rd monitor + red phone (layout + draws here)
+ *   28 discretion whiteboard in Manager glass office
+ *   29 read-only arm lever behind glass (display of ArmSnap only)
  *
- * (13, the sound bed, lives in floor-sound.ts.) Presentation only: every value comes from `FloorProps`
+ * (13, the sound bed, lives in floor-sound.ts. 25–26 sit/stand + E 1:1 live in floor-scene / OwnerAvatar.)
+ * Presentation only: every value comes from `FloorProps`
  * (src/lib/room/floor-props.ts) or the Manager feed's state; this file computes nothing the room did not.
  */
 
 import * as THREE from "three";
-import type { ManagerRoomState, ManagerSteer } from "@/lib/room/manager-feed";
+import type { DiscretionRule, ManagerRoomState, ManagerSteer } from "@/lib/room/manager-feed";
+import { armLeverDisplay } from "@/lib/room/arm-lever";
+import { drawDiscretionBoard, drawManagerArms } from "./floor-overhaul-war";
 import type { Underlier } from "@/lib/room/option-math";
 import { SESSION_COLOR, sessionDial, sessionSegments, type FloorProps, type LiquidityTrack, type Plaque, type Tile, type Tone } from "@/lib/room/floor-props";
 import { readRhAccount } from "@/lib/ui/rh-account";
@@ -153,6 +159,9 @@ export class FloorOverhaul {
   private props: FloorProps | null = null;
   private managerState: ManagerRoomState | null = null;
   private lastSteer: ManagerSteer | null = null;
+  private discretionRules: DiscretionRule[] = [];
+  /** Chunk C item 29 — lever handle mesh; rotation.z mirrors ArmSnap (display only). */
+  private armLeverHandle: THREE.Object3D | null = null;
   private dirty = true;
   private lastSecond = -1;
   private lastPitMin = -1;
@@ -333,6 +342,50 @@ export class FloorOverhaul {
     this.root.add(this.relLines);
     (this as unknown as { _relCols: Float32Array })._relCols = relCols;
 
+    /* 27–29: Manager war-room props (red phone + read-only arm lever). Monitors/board are layout screens. */
+    {
+      const phone = new THREE.Group();
+      phone.name = "phone_Manager_mesh";
+      const base = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.26), new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.45 }));
+      base.position.y = 0.02;
+      const handset = new THREE.Mesh(new THREE.CapsuleGeometry(0.025, 0.12, 4, 8), new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.4 }));
+      handset.rotation.z = Math.PI / 2;
+      handset.position.set(0, 0.07, 0);
+      const dial = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.02, 16), new THREE.MeshStandardMaterial({ color: 0xfef2f2, roughness: 0.3 }));
+      dial.position.set(0, 0.05, 0.06);
+      phone.add(base, handset, dial);
+      phone.position.set(-0.75, 0.75, 1.55);
+      phone.rotation.y = Math.PI / 2;
+      this.root.add(phone);
+
+      const leverRoot = new THREE.Group();
+      leverRoot.name = "lever_Manager_mesh";
+      leverRoot.position.set(0.55, 0, 0.85);
+      leverRoot.rotation.y = -Math.PI / 2;
+      const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.55, 0.22), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.4, roughness: 0.45 }));
+      pedestal.position.y = 0.275;
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.04, 0.26), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.5, roughness: 0.35 }));
+      plate.position.y = 0.57;
+      const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(0.34, 0.55, 0.04),
+        new THREE.MeshStandardMaterial({ color: 0x9cc3ff, transparent: true, opacity: 0.22, depthWrite: false }),
+      );
+      glass.position.set(0, 0.85, 0.14);
+      const pivot = new THREE.Group();
+      pivot.position.set(0, 0.62, 0);
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.42, 10), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.7, roughness: 0.25 }));
+      shaft.position.y = 0.21;
+      const knob = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.35, roughness: 0.35 }));
+      knob.position.y = 0.44;
+      pivot.add(shaft, knob);
+      pivot.rotation.z = (-35 * Math.PI) / 180;
+      this.armLeverHandle = pivot;
+      const label = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.08, 0.01), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+      label.position.set(0, 0.18, 0.12);
+      leverRoot.add(pedestal, plate, glass, pivot, label);
+      this.root.add(leverRoot);
+    }
+
     this.root.traverse((o) => {
       o.userData.overhaul = true;
       const m = o as THREE.Mesh;
@@ -349,9 +402,10 @@ export class FloorOverhaul {
     void signature;
   }
 
-  setManager(s: ManagerRoomState | null, steer: ManagerSteer | null = null) {
+  setManager(s: ManagerRoomState | null, steer: ManagerSteer | null = null, rules: DiscretionRule[] | null = null) {
     this.managerState = s;
     this.lastSteer = steer;
+    this.discretionRules = rules ?? [];
     this.dirty = true;
   }
 
@@ -416,6 +470,11 @@ export class FloorOverhaul {
       }
     } else this.nextBoltAt = Math.max(this.nextBoltAt, t + 4);
     this.bolt.intensity = t < this.boltUntil ? (Math.sin(t * 90) > -0.2 ? 30 : 4) : 0;
+    // 29: read-only arm lever pose from ArmSnap (never fires trades).
+    if (this.armLeverHandle) {
+      const want = (armLeverDisplay(this.managerState?.arms).angleDeg * Math.PI) / 180;
+      this.armLeverHandle.rotation.z += (want - this.armLeverHandle.rotation.z) * (1 - Math.exp(-4 * dt));
+    }
     if (this.thunderAt && t >= this.thunderAt) {
       this.thunderAt = 0;
       this.onThunder?.();
@@ -457,6 +516,8 @@ export class FloorOverhaul {
     draw("ovh_scars", (c, w, h) => drawScars(c, w, h, p?.scars ?? null));
     draw("ovh_mgr_0", (c, w, h) => drawManagerCall(c, w, h, this.managerState));
     draw("ovh_mgr_1", (c, w, h) => drawManagerBook(c, w, h, this.managerState));
+    draw("ovh_mgr_2", (c, w, h) => drawManagerArms(c, w, h, this.managerState));
+    draw("ovh_mgr_board", (c, w, h) => drawDiscretionBoard(c, w, h, this.discretionRules));
     // Chunk B boards
     const school = p?.school ?? null;
     draw("ovh_schools", (c, w, h) => drawSchoolsBoard(c, w, h, school));
