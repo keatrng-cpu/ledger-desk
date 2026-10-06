@@ -25,6 +25,15 @@ import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import type { FloorLight } from "@/lib/room/floor-cues";
 import { handoffMs } from "@/lib/room/floor-voice";
+import {
+  createStubManagerFeed,
+  managerBubbleText,
+  phaseToMoodTint,
+  type ManagerFeed,
+  type ManagerRoomState,
+  type StubManagerFeed,
+} from "@/lib/room/manager-feed";
+import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -1264,6 +1273,14 @@ export interface FloorSceneOptions {
   onFocus?: (label: string | null) => void;
   /** What the pointer is over that can be clicked (a person, a screen), in words — or null. */
   onHover?: (label: string | null) => void;
+  /** Optional Trading Stand feed (stub by default). Presentation only. */
+  managerFeed?: ManagerFeed;
+  /** Owner approached the Manager — open the inspect panel. */
+  onManagerInspect?: (state: ManagerRoomState) => void;
+  /** Walk mode toggled (Owner WASD). */
+  onWalkModeChange?: (on: boolean) => void;
+  /** Proximity prompt near a crew member or the Manager. */
+  onProximity?: (kind: "crew" | "manager" | null, who?: Character) => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1474,6 +1491,25 @@ export class FloorScene {
   private readonly bell = new Bell([-13.35, -4.85]);
   private readonly cat: Cat;
   private catTargets = 0;
+  /** Prototype Lab: Owner (Keaton) — playable, not a Character. */
+  private readonly owner: OwnerAvatar;
+  /** Prototype Lab: Trading Stand Manager — seated at chair_desk. */
+  private readonly manager: ManagerAvatar;
+  private readonly managerFeed: ManagerFeed;
+  private unsubManager: (() => void) | null = null;
+  private readonly stubFeed: StubManagerFeed | null;
+  /** WASD walk the Owner when focused. Default on for the proto. */
+  private walkMode = true;
+  private readonly keys = { w: false, a: false, s: false, d: false };
+  /** Third-person chase of the Owner (separate from crew Character chase). */
+  private ownerChase = false;
+  private ownerChaseHead: THREE.Vector3 | null = null;
+  private ownerChaseY = 1.35;
+  private ownerChaseWant = 3.2;
+  private ownerChaseCheckAt = 0;
+  private nearCrew: Character | null = null;
+  private nearManager = false;
+  private proxPrompt: "crew" | "manager" | null = null;
   private flickerUntil = 0;
   private lastWinDraw = 0;
   private lastLightAt = -1;
@@ -1522,7 +1558,9 @@ export class FloorScene {
     });
     // Orbiting and zooming while following keeps the person in the middle; the distance the viewer settles on is the one we hold.
     this.controls.addEventListener("end", () => {
-      if (this.chase) this.chaseWant = Math.max(1.4, this.camera.position.distanceTo(this.controls.target));
+      const d = Math.max(1.4, this.camera.position.distanceTo(this.controls.target));
+      if (this.chase) this.chaseWant = d;
+      if (this.ownerChase) this.ownerChaseWant = d;
     });
 
     this.hemi = new THREE.HemisphereLight(0xe0ecff, 0x2a2a33, 0.95);
@@ -1569,6 +1607,25 @@ export class FloorScene {
       this.avatars.set(who, a);
       this.scene.add(a.root);
     }
+    // Owner home: Prototype Lab annex (office_RnD). Manager: war-room stand desk (not chair_office).
+    const lab = LAYOUT.spots.office_rnd ?? { pos: [-0.6, 5.15] as [number, number], look: [-0.6, 3.9] as [number, number] };
+    // Stand slightly south of the R&D desk so Owner can walk the floor freely.
+    const ownerStart: [number, number] = [lab.pos[0], lab.pos[1] - 1.2];
+    const ownerLook: [number, number] = [-8, -1];
+    this.owner = new OwnerAvatar(ownerStart, ownerLook);
+    this.scene.add(this.owner.root);
+    // Trading Stand at war-room meeting chair facing the table.
+    this.manager = new ManagerAvatar({ pos: [-6.9, 0.05], look: [-8.0, -1.0] });
+    this.scene.add(this.manager.root);
+    if (opts.managerFeed) {
+      this.managerFeed = opts.managerFeed;
+      this.stubFeed = null;
+    } else {
+      this.stubFeed = createStubManagerFeed();
+      this.managerFeed = this.stubFeed;
+    }
+    this.unsubManager = this.managerFeed.subscribe((s) => this.applyManagerFeed(s));
+    this.applyManagerFeed(this.managerFeed.getState());
     void this.loadEnvironment();
 
     this.resizeObs = new ResizeObserver(() => this.resize());
@@ -1583,6 +1640,7 @@ export class FloorScene {
     this.renderer.domElement.addEventListener("pointermove", this.onMove);
     this.renderer.domElement.addEventListener("pointerleave", this.onLeave);
     window.addEventListener("keydown", this.onKey);
+    window.addEventListener("keyup", this.onKeyUp);
     // Capture phase, so zoom is switched on/off before OrbitControls sees the wheel.
     this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: true });
     document.addEventListener("pointerdown", this.onDocDown, true);
@@ -2559,6 +2617,7 @@ export class FloorScene {
       this.cat.goTo(ct.pos, ct.mode, ct.near, this.nav);
     }
     this.cat.update(dt, t);
+    this.tickOwnerManager(dt, t);
     // Day and night follow the ET clock (the drill's own clock in a drill); a storm dims the sun.
     if (t - this.lastLightAt > 1) {
       this.lastLightAt = t;
@@ -2613,7 +2672,8 @@ export class FloorScene {
     this.alarm.intensity = flicker ? (Math.sin(t * 40) > 0 ? 14 : 0) : urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
-    if (this.chase) this.chaseRide(dt, t);
+    if (this.ownerChase) this.ownerChaseRide(dt, t);
+    else if (this.chase) this.chaseRide(dt, t);
     if (this.preset === "follow") {
       const line = this.lines[this.lineIdx];
       const who = line ? this.avatars.get(line.character) : null;
@@ -2659,13 +2719,25 @@ export class FloorScene {
     return hit ? { who: hit.object.userData.character as Character, at: hit.distance } : null;
   }
 
-  /** Click a person: follow them in third person (and select their card). */
+  /** Click a person: follow them in third person (and select their card). Manager opens inspect. */
   private onUp = (e: PointerEvent) => {
     if (!this.downAt || Math.hypot(e.clientX - this.downAt.x, e.clientY - this.downAt.y) > 6) return;
-    const p = this.personAt(this.rayAt(e));
+    const ray = this.rayAt(e);
+    const mgr = this.protoAt(ray, "manager");
+    if (mgr) {
+      this.opts.onManagerInspect?.(this.managerFeed.getState());
+      return;
+    }
+    const p = this.personAt(ray);
     if (!p) return;
     this.follow(p.who);
     this.opts.onSelect?.(p.who);
+  };
+
+  private protoAt(ray: THREE.Raycaster, kind: "owner" | "manager"): number | null {
+    const root = kind === "manager" ? this.manager.root : this.owner.root;
+    const hit = ray.intersectObject(root, true)[0];
+    return hit ? hit.distance : null;
   };
 
   /** The screen a ray reaches first (glass is looked through); a desk, a chair or a keyboard stands for its owner's monitors. */
@@ -2704,7 +2776,9 @@ export class FloorScene {
     const p = this.personAt(ray);
     const hit = this.screenAlong(ray);
     let label: string | null = null;
-    if (p && (!hit || p.at < hit.at)) label = `${p.who} — click to follow`;
+    const mgrDist = this.protoAt(ray, "manager");
+    if (p && (!hit || p.at < hit.at) && (mgrDist == null || p.at < mgrDist)) label = `${p.who} — click to follow`;
+    else if (mgrDist != null && (!hit || mgrDist < hit.at)) label = "Trading Stand — click to inspect";
     else if (hit) label = `${screenLabel(hit.id)} — double-click to go there`;
     this.setHover(label);
   };
@@ -2719,9 +2793,36 @@ export class FloorScene {
   }
 
   private onKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape" && this.focused) this.setFocused(false);
-    if (e.key === "Escape" && this.chase) this.follow(null);
+    if (e.key === "Escape") {
+      if (this.focused) this.setFocused(false);
+      if (this.chase) this.follow(null);
+      this.clearWalkKeys();
+      return;
+    }
+    if (!this.focused) return;
+    const k = e.key.toLowerCase();
+    if (k === "w" || k === "a" || k === "s" || k === "d") {
+      if (this.walkMode) {
+        this.keys[k] = true;
+        e.preventDefault();
+      }
+      return;
+    }
+    if (k === "e") {
+      this.interactProximity();
+      e.preventDefault();
+    }
   };
+
+  private onKeyUp = (e: KeyboardEvent) => {
+    const k = e.key.toLowerCase();
+    if (k === "w" || k === "a" || k === "s" || k === "d") this.keys[k] = false;
+  };
+
+  private clearWalkKeys() {
+    this.keys.w = this.keys.a = this.keys.s = this.keys.d = false;
+    this.owner.moving = false;
+  }
 
   /* scroll capture */
 
@@ -2742,12 +2843,177 @@ export class FloorScene {
     this.focused = on;
     this.controls.enableZoom = on;
     this.renderer.domElement.style.touchAction = on ? "none" : "pan-y";
+    if (!on) {
+      this.clearWalkKeys();
+      this.stopOwnerChase();
+    } else if (this.walkMode) {
+      this.startOwnerChase();
+    }
     this.opts.onFocusChange?.(on);
   }
 
   /** Let go of the wheel (the tab's hint overlay calls this, as Esc does). */
   releaseFocus() {
     if (this.focused) this.setFocused(false);
+  }
+
+  /** Prototype Lab: WASD walks Owner when focused. */
+  setWalkMode(on: boolean) {
+    if (on === this.walkMode) return;
+    this.walkMode = on;
+    if (!on) {
+      this.clearWalkKeys();
+      this.stopOwnerChase();
+    } else if (this.focused) {
+      this.startOwnerChase();
+    }
+    this.opts.onWalkModeChange?.(on);
+  }
+
+  isWalkMode() {
+    return this.walkMode;
+  }
+
+  getManagerFeed(): ManagerFeed {
+    return this.managerFeed;
+  }
+
+  getManagerState(): ManagerRoomState {
+    return this.managerFeed.getState();
+  }
+
+  private startOwnerChase() {
+    if (this.ownerChase) return;
+    // Prefer Owner chase over crew follow while walking.
+    if (this.chase) this.follow(null);
+    this.ownerChase = true;
+    this.ownerChaseHead = null;
+    this.preset = "free";
+    this.ownerChaseWant = 3.2;
+    this.ownerChaseY = this.owner.height * 0.78;
+    const behind = this.owner.yaw + Math.PI;
+    const d = 3.2;
+    const x = this.owner.pos[0] + Math.sin(behind) * d;
+    const z = this.owner.pos[1] + Math.cos(behind) * d;
+    this.camGoal = {
+      pos: new THREE.Vector3(x, this.ownerChaseY + 1.1, z),
+      target: new THREE.Vector3(this.owner.pos[0], this.ownerChaseY, this.owner.pos[1]),
+    };
+  }
+
+  private stopOwnerChase() {
+    this.ownerChase = false;
+    this.ownerChaseHead = null;
+  }
+
+  private ownerChaseRide(dt: number, t: number) {
+    const a = this.owner;
+    this.ownerChaseY = damp(this.ownerChaseY, a.height * 0.78, 4, dt);
+    const head = new THREE.Vector3(a.pos[0], this.ownerChaseY, a.pos[1]);
+    this.ownerChaseHead ??= head.clone();
+    const delta = head.clone().sub(this.ownerChaseHead);
+    this.ownerChaseHead.copy(head);
+    this.camera.position.add(delta);
+    this.controls.target.add(delta);
+    if (this.camGoal) {
+      this.camGoal.pos.add(delta);
+      this.camGoal.target.add(delta);
+    }
+    // Hold orbit distance the viewer set.
+    if (t - this.ownerChaseCheckAt < 0.12) return;
+    this.ownerChaseCheckAt = t;
+    const want = Math.max(this.ownerChaseWant, 1.4);
+    const dist = this.camera.position.distanceTo(this.controls.target);
+    if (Math.abs(dist - want) > 0.35) {
+      const dir = this.camera.position.clone().sub(this.controls.target).normalize();
+      this.camera.position.copy(this.controls.target).add(dir.multiplyScalar(want));
+    }
+  }
+
+  private walkable = (x: number, z: number) => {
+    const [i, j] = this.nav.cellOf(x, z);
+    return this.nav.free(i, j);
+  };
+
+  private tickOwnerManager(dt: number, t: number) {
+    // WASD only while focused + walk mode (never hijacks page when unfocused).
+    if (this.focused && this.walkMode) {
+      let mx = 0;
+      let mz = 0;
+      // Camera-relative: W toward look, A/D strafe.
+      const forward = new THREE.Vector3();
+      this.camera.getWorldDirection(forward);
+      forward.y = 0;
+      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
+      else forward.normalize();
+      const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+      if (this.keys.w) {
+        mx += forward.x;
+        mz += forward.z;
+      }
+      if (this.keys.s) {
+        mx -= forward.x;
+        mz -= forward.z;
+      }
+      if (this.keys.d) {
+        mx += right.x;
+        mz += right.z;
+      }
+      if (this.keys.a) {
+        mx -= right.x;
+        mz -= right.z;
+      }
+      const len = Math.hypot(mx, mz);
+      if (len > 1e-6) {
+        const speed = 2.4 * dt;
+        this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.walkable);
+      } else {
+        this.owner.moving = false;
+      }
+    } else {
+      this.owner.moving = false;
+    }
+    this.owner.update(dt, t);
+    this.manager.update(dt, t);
+    this.updateProximity();
+  }
+
+  private updateProximity() {
+    const PROX = 1.2;
+    let near: Character | null = null;
+    let best = PROX;
+    for (const [who, a] of this.avatars) {
+      const d = Math.hypot(this.owner.pos[0] - a.pos[0], this.owner.pos[1] - a.pos[1]);
+      if (d < best) {
+        best = d;
+        near = who;
+      }
+    }
+    const nearMgr = Math.hypot(this.owner.pos[0] - this.manager.pos[0], this.owner.pos[1] - this.manager.pos[1]) < PROX;
+    this.nearCrew = near;
+    this.nearManager = nearMgr && !near;
+    let prompt: "crew" | "manager" | null = null;
+    if (this.nearManager) prompt = "manager";
+    else if (this.nearCrew) prompt = "crew";
+    if (prompt !== this.proxPrompt) {
+      this.proxPrompt = prompt;
+      this.opts.onProximity?.(prompt, this.nearCrew ?? undefined);
+      if (prompt === "crew" && this.nearCrew) this.setHover(`${this.nearCrew} — E / click to open`);
+      else if (prompt === "manager") this.setHover("Trading Stand — E / click to inspect");
+    }
+  }
+
+  private interactProximity() {
+    if (this.nearManager) {
+      this.opts.onManagerInspect?.(this.managerFeed.getState());
+      return;
+    }
+    if (this.nearCrew) this.opts.onSelect?.(this.nearCrew);
+  }
+
+  private applyManagerFeed(s: ManagerRoomState) {
+    this.manager.say(managerBubbleText(s));
+    this.manager.setMoodAccent(phaseToMoodTint(s.current));
   }
 
   /* entry mood */
@@ -2768,6 +3034,7 @@ export class FloorScene {
     const wb = LAYOUT.screens.find((x) => x.id === "whiteboard");
     const gaze: V2 | null = state === "ARMED" || state === "ENTER" ? (wb ? [wb.center[0], wb.center[2]] : null) : null;
     for (const a of this.avatars.values()) a.gaze = gaze;
+    this.stubFeed?.setEntryMood(state);
   }
 
   dispose() {
@@ -2781,8 +3048,12 @@ export class FloorScene {
     this.renderer.domElement.removeEventListener("pointermove", this.onMove);
     this.renderer.domElement.removeEventListener("pointerleave", this.onLeave);
     window.removeEventListener("keydown", this.onKey);
+    window.removeEventListener("keyup", this.onKeyUp);
     this.renderer.domElement.removeEventListener("wheel", this.onWheelCapture, { capture: true });
     document.removeEventListener("pointerdown", this.onDocDown, true);
+    this.unsubManager?.();
+    this.unsubManager = null;
+    this.stubFeed?.dispose();
     this.controls.dispose();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;
