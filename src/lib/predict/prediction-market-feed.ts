@@ -5,10 +5,13 @@
  * PROTOTYPE LAB SHAPE (what screens consume):
  *   PredictionMarketFeedResult {
  *     markets: PredictionMarket[]  // ranked best-setup first
- *     asOf: string                 // ISO
+ *     asOf: string                 // ISO — FETCH time (when we read the book)
  *     source: MarketSource
  *     label: string                // UI badge
- *     reason?: string              // set on empty / unavailable adapters
+ *     reason?: string              // set on empty / partial / unavailable
+ *     stale?: boolean              // see STALENESS below
+ *     deadlineExceeded?: boolean   // server feed hit its wall-clock budget
+ *     skipped?: string[]           // series not read (deadline / error)
  *   }
  *   PredictionMarket {
  *     id, event, outcome,
@@ -16,9 +19,24 @@
  *     winChance, edge,             // 0–1 / $/contract after fees
  *     setupGrade,                  // A+ | A | B | C | D
  *     gates,                       // { word, passed, total, missing }
- *     source, asOf,
- *     volume?, expiry?             // optional Kalshi extras
+ *     source,
+ *     asOf,                        // ISO — FETCH time of the quote (never updated_time)
+ *     stale?, staleReason?,        // see STALENESS below
+ *     updatedTime?,                // Kalshi `updated_time` (validated ISO | null) —
+ *                                  //   market METADATA change time, not a trade/quote time
+ *     priceBasis?,                 // "book" (bid/ask) | "last_trade" (no live book)
+ *     labelFallback?,              // { event, outcome } — which raw field named the row
+ *     volume?, expiry?             // optional Kalshi extras (expiry validated ISO | null)
  *   }
+ *
+ * STALENESS (Kalshi rows). A row is `stale: true` when ANY of:
+ *   - "fetch_age":          now − asOf > PREDICTION_STALE_MS (60s) — the read is old
+ *   - "invalid_fetch_time": the caller's fetch asOf was missing / not ISO (we stamp
+ *                           now, but cannot vouch for when the book was read)
+ *   - "last_trade_only":    no yes bid/ask on the book; the price is the last trade,
+ *                           whose time Kalshi does not give us (missing quote time)
+ * `updated_time` NEVER feeds asOf or staleness — it is non-trading metadata.
+ * The result-level `stale` is true when the fetch itself is old/invalid.
  *
  * READ-ONLY. No place / review / cancel. Paper journal only (journal.ts).
  * Kalshi: public trade-api/v2 only — NO API key. RH MCP: no event-contract
@@ -64,10 +82,34 @@ export interface PredictionMarket {
   setupGrade: SetupGrade;
   gates: MarketGates;
   source: MarketSource;
+  /** ISO fetch time of the quote. Kalshi rows: when we read the book — never `updated_time`. */
   asOf: string;
+  /** See STALENESS in the header. */
+  stale?: boolean;
+  staleReason?: StaleReason | null;
+  /** Kalshi `updated_time` (validated, normalised ISO) — market metadata, NOT a quote time. */
+  updatedTime?: string | null;
+  /** Where yes/winChance came from: live book (bid/ask) or last trade only. */
+  priceBasis?: PriceBasis;
+  /** Which raw Kalshi field supplied the event / outcome label (fallback chain made visible). */
+  labelFallback?: LabelFallback;
   volume?: number | null;
   expiry?: string | null;
 }
+
+export type StaleReason = "fetch_age" | "invalid_fetch_time" | "last_trade_only";
+export type PriceBasis = "book" | "last_trade" | "none";
+export interface LabelFallback {
+  /** "event_ticker" is the preferred source; anything else is a fallback. */
+  event: "event_ticker" | "title" | "ticker";
+  /** "yes_sub_title" is the preferred source; anything else is a fallback. */
+  outcome: "yes_sub_title" | "title" | "ticker_suffix" | "ticker";
+  /** True when either label came from a fallback field. */
+  used: boolean;
+}
+
+/** A Kalshi row / result is stale when its fetch is older than this. */
+export const PREDICTION_STALE_MS = 60_000;
 
 /** Flat result Prototype Lab / Mead Hall expect from an adapter call. */
 export interface PredictionMarketFeedResult {
@@ -76,6 +118,12 @@ export interface PredictionMarketFeedResult {
   source: MarketSource;
   label: string;
   reason?: string;
+  /** True when the fetch asOf is older than PREDICTION_STALE_MS or was invalid. */
+  stale?: boolean;
+  /** Server feed stopped early because its total wall-clock budget ran out. */
+  deadlineExceeded?: boolean;
+  /** Series not read this pass (deadline or error), in request order. */
+  skipped?: string[];
 }
 
 export type FeedStatus = "idle" | "loading" | "live" | "empty" | "mock" | "error";
@@ -92,6 +140,8 @@ export interface PredictionMarketFeedState {
   source?: MarketSource;
   label?: string;
   reason?: string;
+  /** Mirrors PredictionMarketFeedResult.stale when built from a Kalshi result. */
+  stale?: boolean;
 }
 
 export interface PredictionMarketFeed {
@@ -171,7 +221,10 @@ export interface KalshiPublicMarket {
   close_time?: string;
   expiration_time?: string;
   expected_expiration_time?: string;
-  /** Kalshi market last-update timestamp (ISO). Prefer for per-row asOf. */
+  /**
+   * Kalshi market `updated_time` — metadata change time (rules, status, …),
+   * NOT a trade or quote time. Exposed as `updatedTime`; never used for asOf.
+   */
   updated_time?: string;
   status?: string;
   /** Optional tag from the fetcher (series ticker). */
@@ -199,12 +252,47 @@ export function unitPrice(v: number | null): number | null {
   return v != null && v > 0 && v <= 1 ? v : null;
 }
 
-function rowAsOf(raw: KalshiPublicMarket, fetchAsOf: string): string {
-  const u = typeof raw.updated_time === "string" ? raw.updated_time.trim() : "";
-  return u.length > 0 ? u : fetchAsOf;
+/** ISO-8601 date-time with an explicit zone (Z or ±hh:mm). Date-only / zone-less are rejected. */
+const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:?\d{2})$/;
+
+/** Validate + normalise an ISO timestamp → `toISOString()` form, or null when invalid. */
+export function isoOrNull(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  if (!ISO_DATETIME.test(s)) return null;
+  const ms = Date.parse(s);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
 }
 
-export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): PredictionMarket | null {
+/** Fetch-age staleness only (true when asOf is invalid or older than maxAgeMs). */
+export function isStaleAsOf(asOf: string | null | undefined, now = Date.now(), maxAgeMs = PREDICTION_STALE_MS): boolean {
+  const iso = isoOrNull(asOf);
+  if (!iso) return true;
+  return now - Date.parse(iso) > maxAgeMs;
+}
+
+function labelsFor(raw: KalshiPublicMarket, ticker: string): { event: string; outcome: string; fb: LabelFallback } {
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const evTicker = str(raw.event_ticker);
+  const title = str(raw.title);
+  const yesSub = str(raw.yes_sub_title);
+  const suffix = ticker.includes("-") ? str(ticker.split("-").at(-1)) : null;
+  const event = evTicker ?? title ?? ticker;
+  const eventFrom: LabelFallback["event"] = evTicker ? "event_ticker" : title ? "title" : "ticker";
+  const outcome = yesSub ?? title ?? suffix ?? ticker;
+  const outcomeFrom: LabelFallback["outcome"] = yesSub ? "yes_sub_title" : title ? "title" : suffix ? "ticker_suffix" : "ticker";
+  return {
+    event,
+    outcome,
+    fb: { event: eventFrom, outcome: outcomeFrom, used: eventFrom !== "event_ticker" || outcomeFrom !== "yes_sub_title" },
+  };
+}
+
+/**
+ * `asOf` is the FETCH time (validated; invalid → now + stale "invalid_fetch_time").
+ * `now` is only used for the fetch-age stale check.
+ */
+export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string, now = Date.now()): PredictionMarket | null {
   const ticker = typeof raw.ticker === "string" ? raw.ticker : "";
   if (!ticker) return null;
   const yesAsk = unitPrice(num(raw.yes_ask_dollars));
@@ -213,8 +301,18 @@ export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): 
   const spread = yesAsk != null && yesBid != null ? yesAsk - yesBid : null;
   const askSize = num(raw.yes_ask_size_fp);
   const trading = !raw.status || /^(active|open)$/i.test(String(raw.status));
-  const mid = yesAsk != null && yesBid != null ? (yesAsk + yesBid) / 2 : yesAsk ?? yesBid ?? num(raw.last_price_dollars);
-  const rowStamp = rowAsOf(raw, asOf);
+  const last = unitPrice(num(raw.last_price_dollars));
+  const mid = yesAsk != null && yesBid != null ? (yesAsk + yesBid) / 2 : yesAsk ?? yesBid ?? last;
+  const priceBasis: PriceBasis = yesAsk != null || yesBid != null ? "book" : last != null ? "last_trade" : "none";
+  const fetchIso = isoOrNull(asOf);
+  const rowStamp = fetchIso ?? new Date(now).toISOString();
+  const staleReason: StaleReason | null = !fetchIso
+    ? "invalid_fetch_time"
+    : now - Date.parse(fetchIso) > PREDICTION_STALE_MS
+      ? "fetch_age"
+      : priceBasis === "last_trade"
+        ? "last_trade_only"
+        : null;
 
   const layers: ScanLayer[] = [
     { id: "reference", ok: false, detail: "no independent reference (ESPN/book) on this raw Kalshi row" },
@@ -242,10 +340,9 @@ export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): 
     total: layers.length,
     missing: failing[0]?.detail ?? null,
   };
-  const event = String(raw.event_ticker ?? raw.title ?? ticker);
-  const outcome = String(raw.yes_sub_title ?? raw.title ?? ticker.split("-").at(-1) ?? ticker);
+  const { event, outcome, fb } = labelsFor(raw, ticker);
   const volume = num(raw.volume_fp) ?? num(raw.volume_24h_fp);
-  const expiry = raw.expected_expiration_time ?? raw.expiration_time ?? raw.close_time ?? null;
+  const expiry = isoOrNull(raw.expected_expiration_time) ?? isoOrNull(raw.expiration_time) ?? isoOrNull(raw.close_time);
 
   return {
     id: ticker,
@@ -259,6 +356,11 @@ export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): 
     gates,
     source: "kalshi",
     asOf: rowStamp,
+    stale: staleReason != null,
+    staleReason,
+    updatedTime: isoOrNull(raw.updated_time),
+    priceBasis,
+    labelFallback: fb,
     volume,
     expiry,
   };
@@ -285,22 +387,31 @@ export function rankMarkets(markets: PredictionMarket[]): PredictionMarket[] {
   });
 }
 
-export function mapKalshiMarkets(raw: KalshiPublicMarket[], asOf: string): PredictionMarket[] {
+export function mapKalshiMarkets(raw: KalshiPublicMarket[], asOf: string, now = Date.now()): PredictionMarket[] {
   const out: PredictionMarket[] = [];
   for (const m of raw) {
-    const row = gradeKalshiPublicMarket(m, asOf);
+    const row = gradeKalshiPublicMarket(m, asOf, now);
     if (row && (row.yesPrice != null || row.winChance != null)) out.push(row);
   }
   return rankMarkets(out);
 }
 
-/** Kalshi public adapter — paper/UI only. */
-export function kalshiAdapterResult(raw: KalshiPublicMarket[], asOf = new Date().toISOString()): PredictionMarketFeedResult {
+/**
+ * Kalshi public adapter — paper/UI only. `asOf` = fetch time (validated; an
+ * invalid value is replaced by now and the result + rows are flagged stale).
+ */
+export function kalshiAdapterResult(
+  raw: KalshiPublicMarket[],
+  asOf = new Date().toISOString(),
+  now = Date.now(),
+): PredictionMarketFeedResult {
+  const fetchIso = isoOrNull(asOf);
   return {
-    markets: mapKalshiMarkets(raw, asOf),
-    asOf,
+    markets: mapKalshiMarkets(raw, asOf, now),
+    asOf: fetchIso ?? new Date(now).toISOString(),
     source: "kalshi",
     label: KALSHI_SOURCE_LABEL,
+    stale: isStaleAsOf(asOf, now),
   };
 }
 
@@ -308,7 +419,7 @@ export function kalshiAdapterResult(raw: KalshiPublicMarket[], asOf = new Date()
 export function rhMcpUnavailableAdapter(asOf = new Date().toISOString()): PredictionMarketFeedResult {
   return {
     markets: [],
-    asOf,
+    asOf: isoOrNull(asOf) ?? new Date().toISOString(),
     source: "rh_mcp_unavailable",
     label: RH_MCP_EMPTY_LABEL,
     reason: RH_MCP_UNAVAILABLE_REASON,
@@ -452,6 +563,7 @@ export function stateFromKalshiResult(
     source: result.source,
     label: result.label,
     reason: result.reason,
+    stale: result.stale,
   };
 }
 
