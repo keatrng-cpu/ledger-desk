@@ -620,13 +620,19 @@ function gradeBook(
   });
 
   const musts = layers.filter((l) => l.must);
-  const mustPass = musts.filter((l) => l.state === "pass").length;
-  const mustNeed = musts.length;
-  const mustFail = musts.find((l) => l.state === "fail");
-  const mustWait = musts.find((l) => l.state === "wait");
+  const htfPass = layers.some((l) => l.id === "htf" && l.state === "pass");
   // PATH bar = A+/A/A- (>= 0.65) or B+ (>= 0.60, its own config band) —
   // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
   const pathOk = isPathFire(cand);
+  // A live path with HTF agreement is not stood down because the raid, the
+  // premium/discount half, or the LTF shift is missing. Those cut size.
+  // They are still on the card. They do not set the word to STAND.
+  const ignorable = (l: { id: string; state: string }) =>
+    pathOk && htfPass && (l.id === "sweep" || l.id === "pd_half" || l.id === "ltf") && l.state === "fail";
+  const mustPass = musts.filter((l) => l.state === "pass" || ignorable(l)).length;
+  const mustNeed = musts.length;
+  const mustFail = musts.find((l) => l.state === "fail" && !ignorable(l));
+  const mustWait = musts.find((l) => l.state === "wait");
 
   // Armed: every must-layer passes except the retrace, which is WAITING with
   // a named fresh array (price outside it, not missing). With
@@ -639,7 +645,7 @@ function gradeBook(
     !mustFail &&
     retraceLayer?.state === "wait" &&
     fresh != null &&
-    musts.every((l) => l.id === "retrace" || l.state === "pass");
+    musts.every((l) => l.id === "retrace" || l.state === "pass" || ignorable(l));
 
   let word: SmcMasterBook["word"] = "STAND";
   if (mustFail) word = "STAND";

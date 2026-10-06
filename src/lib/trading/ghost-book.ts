@@ -375,10 +375,10 @@ function analyzeMissed(g: GhostTrade, ctx: AnalyzeCtx): GhostAnalysis {
       : `Target ${px(g.tp1)} already printed. STAND. Do not chase leftover.`;
     lesson = "The move you wanted already happened. A miss here is not a late entry.";
   } else if (retracing) {
-    tag = "retracing — not a late fill";
-    headline = `${g.symbol} ${g.side} missed — price coming back, old card is still dead`;
-    next = `Retrace toward ${px(g.entryLo)}–${px(g.entryHi)} is NOT a fill of this ticket (TP already printed at ${px(printed)}). If PATH re-arms on a new IFVG/OTE, that is a different trade. One book. Invalidation ${px(g.stop)}.`;
-    lesson = "Do not get in late on a spent card. Re-grade the new array.";
+    tag = "retracing — this is the entry";
+    headline = `${g.symbol} ${g.side} coming back — the pullback is the entry`;
+    next = `Price is returning toward ${px(g.entryLo)}–${px(g.entryHi)}. That is the fill, not a late chase. The print at ${px(printed)} was the first target. Limit the pullback. One book. Invalidation ${px(g.stop)}.`;
+    lesson = "A limit that never traded is not a dead idea while price is coming back into the array.";
   } else if (!htfAgrees) {
     tag = "HTF conflict";
     headline = `${g.symbol} ${g.side} ran without fill — HTF ${bias.topDown} fights the card`;

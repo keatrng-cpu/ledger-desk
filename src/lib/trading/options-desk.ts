@@ -712,7 +712,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
     if (!c.htfOk) blocks.push("PATH is counter-HTF — no RH debit");
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
-      blocks.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}`);
+      reasons.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}. Size is cut. The chart still calls it.`);
     }
     if (day?.kind === "range_build" || day?.kind === "a_plus_only") {
       reasons.push(`${day.kind === "range_build" ? "Monday range" : "Week card"} cuts size. It does not ban ${band}.`);
@@ -721,10 +721,10 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left
         : desk.smcMaster.right;
-    if (seq.word === "STAND") {
+    if (seq.word === "STAND" && !/sweep|liquidity|poi|premium|discount|half|ltf|shift|displacement/i.test(`${seq.missing} ${seq.missingDetail}`)) {
       blocks.push(`SMC sequence: ${seq.missing}`);
-    } else if (seq.word === "WAIT") {
-      blocks.push(`SMC WAIT: ${seq.missing}`);
+    } else if (seq.word !== "TAKE") {
+      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size is cut. It does not take the path off.`);
     } else {
       reasons.push(`SMC TAKE ${seq.mustPass}/${seq.mustNeed}`);
     }

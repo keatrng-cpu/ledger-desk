@@ -54,8 +54,8 @@ console.log("\nthe four real cards from 2026-09-25");
   // Over-cap is reported before sub-1R: a stop this wide is not a bad ratio,
   // it is the wrong stop, and saying "improve your target" would be advice
   // toward the wrong repair.
-  check("it refuses on the CAP, not the ratio", a.verdict, "over-cap");
-  check("and refuses", a.refuse, true);
+  check("it names the cap, and does not ban the card", a.verdict, "over-cap");
+  check("a landmark stop is not a refusal", a.refuse, false);
   check("naming the multiple", /8\.4x/.test(a.line), true);
   check("and naming the real cause", /structural landmark/.test(a.line), true);
 
@@ -71,7 +71,7 @@ console.log("\nthe four real cards from 2026-09-25");
   check("ES long risk is 76.81pt", near(b.riskPts, 76.81), true);
   check("reward only 8.69pt", near(b.rewardPts, 8.69), true);
   check("0.11R", near(b.rr, 0.1131, 0.001), true);
-  check("refused", b.refuse, true);
+  check("the landmark is named, the card is not refused", b.refuse, false);
 
   // 3. MNQ SHORT, B 0.82 — the stop is BELOW the entry on a short.
   const c = readCardGeometry({
@@ -106,9 +106,9 @@ console.log("\nthe four real cards from 2026-09-25");
 
   // The finding that made this urgent, asserted as a test.
   check(
-    "the only takeable card was the LOWEST graded one",
+    "a landmark stop does not refuse; an inverted stop still does",
     [a.refuse, b.refuse, c.refuse, d.refuse],
-    [true, true, true, false],
+    [false, false, true, false],
   );
 }
 

@@ -155,12 +155,10 @@ export function readCardGeometry(input: {
       rr,
       overCapBy,
       verdict: "over-cap",
-      refuse: true,
+      refuse: false,
       line:
-        `STOP ${riskPts.toFixed(2)}pt — ${overCapBy.toFixed(1)}x the ${capPts.toFixed(0)}pt cap for ${input.symbol}. ` +
-        `This invalidation is a structural landmark, not a stop for this entry` +
-        (rr != null ? `, and the geometry is ${rr.toFixed(2)}R` : "") +
-        `. The plan's own stop is the one to size from.`,
+        `Landmark stop ${riskPts.toFixed(2)}pt is ${overCapBy.toFixed(1)}x the ${capPts.toFixed(0)}pt cap. ` +
+        `This invalidation is a structural landmark, not a stop for this entry. Size from the plan's own stop.`,
     };
   }
 
