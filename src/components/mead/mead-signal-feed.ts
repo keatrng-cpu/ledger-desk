@@ -39,7 +39,8 @@ export function hallViewFor(s: MarketSignal): MarketHallView {
   const move = s.move.sinceOpen == null ? "move —" : `move ${signedC(s.move.sinceOpen)} since open`;
   const edge = s.edge.status === "edge" ? `edge ${signedC(s.edge.netPerContract)} ${s.edge.side.toUpperCase()}` : "no edge read";
   return {
-    grade: s.grade,
+    // No letter when grade is null (no edge read) — screens show "—" / no grade.
+    ...(s.grade != null ? { grade: s.grade } : {}),
     line: `YES needs ${pctTxt(s.implied.feeAdjustedYes)} after fees   ·   spread ${s.spread.cents == null ? "—" : `${s.spread.cents}¢`}   ·   ${move}   ·   settles ${s.settlement.words}`,
     sub: `needs ${pctTxt(s.implied.feeAdjustedYes, 0)} · ${s.liquidity.word} · ${edge}`,
   };
@@ -61,7 +62,8 @@ export function signalToHallMarket(s: MarketSignal): PredictionMarket {
     noPrice: s.prices.noAsk,
     winChance: s.implied.mid,
     edge,
-    setupGrade: SETUP[s.grade],
+    // No edge read → no letter: pass null through (UI shows NO_GRADE_LABEL, never a placeholder D).
+    setupGrade: s.grade != null ? SETUP[s.grade] : null,
     gates: { word, passed: up, total: graded, missing: missing.length ? missing.join(" · ") : null },
     source: s.source,
     asOf: s.freshness.asOf,

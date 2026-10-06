@@ -16,13 +16,15 @@
  *   freshness   fetch age + price basis (book vs last trade)
  *   edge        net-of-fees+slippage edge ONLY with a real model input,
  *               else { status: "no edge read", reason }
- *   grade       one A–F letter with plain-English reasons
+ *   grade       one A–F letter with plain-English reasons — or null (NO
+ *               letter) when the edge is "no edge read"
  *
  * Grading (setup quality first; ai/research/2026-10-06-pm-signal.md):
  *   - every number is NET of fees + slippage
  *   - cheap YES grades DOWN by default (favorite–longshot bias by price bin)
  *   - long horizons grade slightly down (FLB worsens with time to expiry)
- *   - no model input → best possible grade is B ("no edge read")
+ *   - no model input ("no edge read") → NO letter grade at all (grade: null);
+ *     the setup score, caps and reasons are still shown, never a letter
  *   - NFL: +3 points, moderate, never lifts past a cap
  *   - price moves are SHOWN, never graded (no news-lag edge — no evidence)
  */
@@ -200,8 +202,14 @@ export interface MarketSignal {
   /** Side the grade is for (YES unless a real edge favours NO). */
   gradedSide: Side;
   priceBin: PriceBinId | null;
-  grade: SignalGrade;
-  /** 0–100 setup score behind the letter. */
+  /**
+   * One A–F letter, or null when the edge is "no edge read": without a real
+   * model input there is no letter to give — render "no grade", never ≤B.
+   */
+  grade: SignalGrade | null;
+  /** Why grade is null (always "no edge read"); null when graded. */
+  ungradedReason: string | null;
+  /** 0–100 setup score (shown with or without a letter). */
   score: number;
   /** Ordered: caps first, then biggest effects. */
   reasons: SignalReason[];
@@ -221,8 +229,11 @@ export interface SignalBoard {
   engineVersion: string;
   feeModel: VenueId;
   slippage: number;
+  /** Lettered signals only — ungraded ("no edge read") ones are in `ungraded`. */
   counts: Record<SignalGrade, number>;
-  /** Signals with status "no edge read". */
+  /** Signals with no letter (grade null — "no edge read"). */
+  ungraded: number;
+  /** Signals with status "no edge read" (= ungraded). */
   noEdgeCount: number;
   /** Server only: candle reads attempted / succeeded for move-since-open (top of board). */
   candles?: { tried: number; read: number };
@@ -283,6 +294,11 @@ const get = <T>(m: Record<string, T> | Map<string, T> | undefined, k: string): T
 const gradeIdx = (g: SignalGrade) => SIGNAL_GRADES.indexOf(g);
 const better = (a: SignalGrade, b: SignalGrade) => gradeIdx(a) < gradeIdx(b);
 const capTo = (g: SignalGrade, cap: SignalGrade) => (better(g, cap) ? cap : g);
+/** Rank slot: A–D, then ungraded (no letter), then F (closed / dead). */
+const rankIdx = (g: SignalGrade | null) => (g == null ? gradeIdx("F") - 0.5 : gradeIdx(g));
+/** Display text for a grade — ungraded renders as "no grade", never a letter. */
+export const NO_GRADE_LABEL = "no grade" as const;
+export const gradeLabel = (g: SignalGrade | null): string => g ?? NO_GRADE_LABEL;
 
 export function letterFor(score: number): SignalGrade {
   if (score >= GRADE_CUTS.A) return "A";
@@ -710,11 +726,6 @@ export function computeSignal(raw: KalshiPublicMarket, opts: SignalOptions): Mar
       `${edge.modelSource} puts ${edge.side.toUpperCase()} at ${(sideProb * 100).toFixed(1)}% — ${sc(e)} a contract after fees + slippage`,
     );
     if (e <= 0) caps.push({ cap: "C", text: "The model says neither side clears fees + slippage" });
-  } else {
-    caps.push({
-      cap: "B",
-      text: `No edge read: ${edge.reason} — best possible grade is B (setup only)`,
-    });
   }
   if (nfl) {
     score += NFL_BOOST_POINTS;
@@ -728,12 +739,21 @@ export function computeSignal(raw: KalshiPublicMarket, opts: SignalOptions): Mar
     );
   }
   score = clamp(Math.round(score), 0, 100);
-  let grade = letterFor(score);
+  let letter = letterFor(score);
   const capReasons: SignalReason[] = [];
   for (const k of caps) {
-    if (better(grade, k.cap)) grade = capTo(grade, k.cap);
+    if (better(letter, k.cap)) letter = capTo(letter, k.cap);
     capReasons.push({ text: k.text, effect: "cap", points: 0 });
   }
+  // No real model input → no letter at all (not "≤B"): setup score only.
+  const ungradedReason = edge.status === "edge" ? null : NO_EDGE_READ;
+  const grade: SignalGrade | null = ungradedReason ? null : letter;
+  if (edge.status !== "edge")
+    capReasons.push({
+      text: `No edge read: ${edge.reason} — no letter grade (setup score only)`,
+      effect: "cap",
+      points: 0,
+    });
   const ordered = [
     ...capReasons.sort((a, b) => a.text.localeCompare(b.text)),
     ...reasons
@@ -765,9 +785,10 @@ export function computeSignal(raw: KalshiPublicMarket, opts: SignalOptions): Mar
     gradedSide,
     priceBin: bin?.id ?? null,
     grade,
+    ungradedReason,
     score,
     reasons: ordered,
-    headline: `${grade} · ${outcome}${implied.feeAdjustedYes != null ? ` · YES needs ${(implied.feeAdjustedYes * 100).toFixed(1)}% after costs` : ""} · ${
+    headline: `${grade ?? `No grade (setup ${score})`} · ${outcome}${implied.feeAdjustedYes != null ? ` · YES needs ${(implied.feeAdjustedYes * 100).toFixed(1)}% after costs` : ""} · ${
       edge.status === "edge"
         ? `${edge.side.toUpperCase()} ${sc(edge.netPerContract)} net`
         : NO_EDGE_READ
@@ -777,11 +798,14 @@ export function computeSignal(raw: KalshiPublicMarket, opts: SignalOptions): Mar
 
 /* ── board / ranking / hall ─────────────────────────────────────────────── */
 
-/** Grade first, then score (NFL's +3 lives inside score), then liquidity, then id. */
+/**
+ * Grade first (A–D, then ungraded "no edge read", then F), then score (NFL's
+ * +3 lives inside score), then liquidity, then id.
+ */
 export function rankSignals(signals: MarketSignal[]): MarketSignal[] {
   return [...signals].sort(
     (a, b) =>
-      gradeIdx(a.grade) - gradeIdx(b.grade) ||
+      rankIdx(a.grade) - rankIdx(b.grade) ||
       b.score - a.score ||
       b.liquidity.score - a.liquidity.score ||
       a.id.localeCompare(b.id),
@@ -810,7 +834,11 @@ export function buildSignalBoard(
       .filter((s): s is MarketSignal => s != null),
   );
   const counts = { A: 0, B: 0, C: 0, D: 0, F: 0 } as Record<SignalGrade, number>;
-  for (const s of signals) counts[s.grade]++;
+  let ungraded = 0;
+  for (const s of signals) {
+    if (s.grade == null) ungraded++;
+    else counts[s.grade]++;
+  }
   const out: SignalBoard = {
     signals,
     asOf: isoOrNull(read.asOf) ?? new Date(now).toISOString(),
@@ -821,6 +849,7 @@ export function buildSignalBoard(
     feeModel: fees.id,
     slippage,
     counts,
+    ungraded,
     noEdgeCount: signals.filter((s) => s.edge.status === NO_EDGE_READ).length,
   };
   if (read.deadlineExceeded) out.deadlineExceeded = true;
