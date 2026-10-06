@@ -8,8 +8,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { rhAutofireEnabled, rhLiveArmed } from "@/lib/execution/rh-autofire";
 import { etDateOf } from "../option-math";
-import { brokerFromEnv } from "./alpaca";
 import { PgExecStore } from "./exec-sql";
 import { execStep, type StepRequest, type StepResult } from "./executor";
 import { stepSchema } from "./exec-schema";
@@ -22,9 +22,7 @@ async function storeFor(userId: string) {
   return new PgExecStore((t, p) => sql.query(t, p), userId);
 }
 
-const hasLiveKeys = () => Boolean(process.env.ALPACA_LIVE_KEY_ID && process.env.ALPACA_LIVE_SECRET_KEY);
-const hasPaperKeys = () => Boolean(process.env.ALPACA_KEY_ID && process.env.ALPACA_SECRET_KEY);
-const dataFeed = (): "opra" | "indicative" => (process.env.ALPACA_DATA_FEED === "opra" ? "opra" : "indicative");
+const rhArmed = () => rhAutofireEnabled() && rhLiveArmed();
 
 export interface ExecStatus {
   /** The trader's id — what CRON_USER_ID must be set to for the safety-net cron to see this trader's orders. */
@@ -38,7 +36,8 @@ export interface ExecStatus {
   evidence: Evidence;
   rows: AuditRow[];
   keys: { paper: boolean; live: boolean };
-  feed: "opra" | "indicative";
+  /** The broker this desk sends to. Always Robinhood. */
+  feed: string;
   flags: typeof EXEC_FLAGS;
   limits: typeof EXEC_LIMITS;
   evidenceLimits: typeof LIVE_EVIDENCE;
@@ -56,11 +55,11 @@ export const getExecState = createServerFn({ method: "GET" })
       killed: st.killed,
       killReason: st.killReason,
       netMs: st.netMs,
-      readiness: liveReadiness({ evidence, feed: dataFeed(), liveKeys: hasLiveKeys(), killed: st.killed }),
+      readiness: liveReadiness({ evidence, feed: "robinhood", liveKeys: rhArmed(), killed: st.killed }),
       evidence,
       rows: await store.recent(40),
-      keys: { paper: hasPaperKeys(), live: hasLiveKeys() },
-      feed: dataFeed(),
+      keys: { paper: false, live: rhArmed() },
+      feed: "robinhood",
       flags: EXEC_FLAGS,
       limits: EXEC_LIMITS,
       evidenceLimits: LIVE_EVIDENCE,
@@ -75,12 +74,11 @@ export const setExecPhase = createServerFn({ method: "POST" })
     const cur = (await store.state()).wanted;
     const phase = data.phase;
     if (!PHASES.includes(phase)) return { ok: false, phase: cur, why: "unknown phase" };
-    if (phase === "paper" && !hasPaperKeys()) return { ok: false, phase: cur, why: "set ALPACA_KEY_ID and ALPACA_SECRET_KEY (Alpaca paper keys) on the server first" };
     if (phase === "live") {
       const st = await store.state();
       const evidence = evidenceOf(await store.evidenceRows(500), Date.now());
-      const r = liveReadiness({ evidence, feed: dataFeed(), liveKeys: hasLiveKeys(), killed: st.killed });
-      if (!r.ok) return { ok: false, phase: cur, why: `live is not cleared: ${r.items.filter((i) => !i.ok).map((i) => i.label).join("; ")}` };
+      const r = liveReadiness({ evidence, feed: "robinhood", liveKeys: rhArmed(), killed: st.killed });
+      if (!r.ok) return { ok: false, phase: cur, why: `Robinhood live is not cleared: ${r.items.filter((i) => !i.ok).map((i) => i.label).join("; ")}` };
     }
     await store.setWanted(phase);
     return { ok: true, phase, why: phase === "off" ? "execution is off" : `phase is now ${phase}` };
@@ -101,8 +99,8 @@ export const execStepFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<StepResult> => {
     const store = await storeFor(context.userId);
     const nowMs = Date.now();
-    const wanted = (await store.state()).wanted;
-    const broker = wanted === "off" ? null : brokerFromEnv(wanted);
+    // Robinhood Agentic is the only account. This step must not open an Alpaca session.
+    const broker = null;
     // The server dates every intent itself; a browser's clock is never an input to an order.
     const etDate = etDateOf(nowMs);
     const req: StepRequest = {
@@ -110,5 +108,5 @@ export const execStepFn = createServerFn({ method: "POST" })
       entries: data.entries.filter((i) => i.role === "entry" && i.side === "buy").map((i) => ({ ...i, etDate, positionId: i.positionId ?? null })),
       exits: data.exits.filter((i) => i.role === "exit" && i.side === "sell").map((i) => ({ ...i, etDate, positionId: i.positionId ?? null })),
     };
-    return execStep({ store, broker, nowMs, liveKeys: hasLiveKeys() }, req);
+    return execStep({ store, broker, nowMs, liveKeys: rhArmed() }, req);
   });

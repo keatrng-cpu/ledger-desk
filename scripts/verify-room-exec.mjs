@@ -180,21 +180,22 @@ console.log("the live checklist and the evidence");
   const breaks = {
     "no written confirmation": { flags: { ...all, OPTIONS_LIVE_CONFIRMED_IN_WRITING: false } },
     "no server runner": { flags: { ...all, SERVER_RUNNER_BUILT: false } },
-    "escalation not seen on paper": { flags: { ...all, EXIT_ESCALATION_VERIFIED_ON_PAPER: false } },
-    "indicative feed": { flags: all, feed: "indicative" },
-    "no live keys": { flags: all, liveKeys: false },
-    "too few fills": { flags: all, evidence: { ...base.evidence, paperFills: LIVE_EVIDENCE.minPaperFills - 1 } },
-    "too few round trips": { flags: all, evidence: { ...base.evidence, paperRoundTrips: LIVE_EVIDENCE.minPaperRoundTrips - 1 } },
-    "model far from the real quote": { flags: all, evidence: { ...base.evidence, medianQuoteErrPct: 12 } },
-    "no quote comparisons": { flags: all, evidence: { ...base.evidence, medianQuoteErrPct: null, quoteErrN: 0 } },
-    "too few comparisons": { flags: all, evidence: { ...base.evidence, quoteErrN: 5 } },
-    "entries fill far from the ask": { flags: all, evidence: { ...base.evidence, medianEntrySlipPct: 4 } },
-    "one fill slipped past the cap": { flags: all, evidence: { ...base.evidence, desyncFills: 1 } },
+    "exits not confirmed": { flags: { ...all, EXIT_ESCALATION_VERIFIED_ON_PAPER: false } },
+    "robinhood not armed": { flags: all, liveKeys: false },
     "an unreconciled order": { flags: all, evidence: { ...base.evidence, unreconciled: 1 } },
     "a high error rate": { flags: all, evidence: { ...base.evidence, errorRatePct: 9 } },
     "kill switch on": { flags: all, killed: true },
   };
+  const notAlpaca = {
+    "indicative feed": { flags: all, feed: "indicative" },
+    "too few fills": { flags: all, evidence: { ...base.evidence, paperFills: 0 } },
+    "too few round trips": { flags: all, evidence: { ...base.evidence, paperRoundTrips: 0 } },
+    "model far from a quote": { flags: all, evidence: { ...base.evidence, medianQuoteErrPct: 12 } },
+    "no quote comparisons": { flags: all, evidence: { ...base.evidence, medianQuoteErrPct: null, quoteErrN: 0 } },
+    "one fill slipped past the cap": { flags: all, evidence: { ...base.evidence, desyncFills: 1 } },
+  };
   for (const [name, o] of Object.entries(breaks)) check(`live stays shut: ${name}`, !G.liveReadiness({ ...base, ...o }).ok);
+  for (const [name, o] of Object.entries(notAlpaca)) check(`alpaca evidence does not shut Robinhood: ${name}`, G.liveReadiness({ ...base, ...o }).ok);
 
   const row = (o) => ({ clientOrderId: "c", phase: "paper", role: "entry", symbol: SYM, side: "buy", qty: 2, limitPx: 3.77, status: "filled", brokerStatus: "filled", reasons: [], brokerOrderId: "b", filledQty: 2, filledAvgPx: 3.77, intent: intent(), quote: quote(), attempt: 0, atMs: T, updatedMs: T, ...o });
   const rows = [
@@ -654,7 +655,7 @@ console.log("the executor: when the broker misbehaves");
   const nb = new PgExecStore(query, `u${++uid}`);
   await nb.setWanted("paper");
   const nr = await execStep({ store: nb, broker: null, nowMs: T, liveKeys: false }, { deviceId: "device-aaaaaaaa", entries: [intent()], exits: [], desired: [], feedLagSec: 2 });
-  check("paper with no keys is blocked and says so", nr.role === "blocked" && nr.notes.some((x) => /no paper broker keys/.test(x)));
+  check("paper with no Alpaca session is blocked and names Robinhood", nr.role === "blocked" && nr.notes.some((x) => /Robinhood Agentic/.test(x)) && nr.notes.some((x) => /does not send to Alpaca/.test(x)));
 }
 
 console.log("the unattended safety net");
@@ -704,13 +705,13 @@ console.log("the executor: live stays shut");
   const w = await world("live");
   w.quoteAt(T);
   const r = await w.step(T, { entries: [intent()], desired: [want()] });
-  check("wanted = live with the flags shipped false: the entry is refused as live_blocked and nothing is sent", r.rows[0].status === "refused" && r.rows[0].reasons.some((x) => /^live_blocked/.test(x)) && w.sim.posts().length === 0, JSON.stringify(r.rows[0].reasons));
-  check("the checklist is in the result, with what is missing", !r.readiness.ok && r.readiness.items.some((i) => i.id === "confirmed" && !i.ok) && r.readiness.items.some((i) => i.id === "runner" && !i.ok));
+  check("wanted = live and Robinhood is not armed: the entry is refused and nothing is sent", r.rows[0].status === "refused" && r.rows[0].reasons.some((x) => /^live_blocked/.test(x)) && w.sim.posts().length === 0, JSON.stringify(r.rows[0].reasons));
+  check("the missing line is Robinhood armed, not an Alpaca feed", !r.readiness.ok && r.readiness.items.some((i) => i.id === "keys" && !i.ok) && r.readiness.items.some((i) => i.id === "account" && i.ok));
   const all = { OPTIONS_LIVE_CONFIRMED_IN_WRITING: true, SERVER_RUNNER_BUILT: true, EXIT_ESCALATION_VERIFIED_ON_PAPER: true };
   const w2 = await world("live");
   w2.quoteAt(T);
   const r2 = await w2.step(T, { entries: [intent()], desired: [want()] }, { flags: all, liveKeys: true });
-  check("even with every flag flipped, the paper evidence and the OPRA feed still block it", r2.rows[0].status === "refused" && r2.rows[0].reasons.some((x) => /^live_blocked/.test(x)) && w2.sim.posts().length === 0);
+  check("armed Robinhood is not blocked by an Alpaca paper record", r2.readiness.ok && !r2.rows[0].reasons.some((x) => /^live_blocked/.test(x)));
 }
 
 await db.close();

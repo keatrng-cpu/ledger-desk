@@ -231,7 +231,8 @@ export async function execStep(d: ExecDeps, req: StepRequest): Promise<StepResul
   /* ── Paper / live ──────────────────────────────────────────────────── */
   if (!b) {
     res.role = "blocked";
-    res.notes.push(`no ${phase} broker keys set`);
+    res.env = "live";
+    res.notes.push("Robinhood Agentic ••6158 is the only account. This desk does not send to Alpaca. A cleared setup is reviewed and placed on that Robinhood account.");
     return finish();
   }
   const [account, positions] = await Promise.all([b.account().catch(() => null), b.positions().catch(() => null)]);

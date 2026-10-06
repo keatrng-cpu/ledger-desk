@@ -36,6 +36,7 @@ import { DisciplinePanel } from "@/components/journal/discipline-panel";
 import { TakeMomentsPanel } from "@/components/desk/take-moments-panel";
 import { markTakeAction, observeTakeMoments, tickMomentOutcomes } from "@/lib/trading/take-moments";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
+import { RhAccountStrip } from "@/components/desk/rh-account-strip";
 import { PaperBookPanel } from "@/components/desk/paper-book-panel";
 import { TradeDebriefPanel } from "@/components/desk/trade-debrief-panel";
 import {
@@ -783,7 +784,7 @@ const CATEGORIES: {
     id: "floor",
     label: "Floor",
     short: "Floor",
-    hint: "3D room · 5 desks · paper QQQ/SPY",
+    hint: "3D room · Robinhood Agentic ••6158",
     icon: Building2,
   },
   {
@@ -1776,6 +1777,9 @@ function MasterplacePage() {
           </SessionHud>
         )}
         <ScreenFlash desk={desk} />
+        <div className="mt-2 px-1">
+          <RhAccountStrip />
+        </div>
         <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
 
