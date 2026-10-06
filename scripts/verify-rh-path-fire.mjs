@@ -39,6 +39,8 @@ const BASE = {
   agentAgree: true, optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
   account: FUNDED, ceTouch: true, tapeAgeSec: 5, dte: 0,
 };
+// B+ explicit gate inputs (Accuracy 2026-10-06): SEQ TAKE + no veto. Ignored for A+/A/A-.
+const BPLUS_OK = { seqTake: true, vetoed: false };
 const g = (c, f = FLAGS) => {
   const r = gates.evaluateRhAutofireGates(c, f);
   return r.ok ? "ok" : r.gate;
@@ -53,9 +55,9 @@ console.log("grades accepted: A+, A, A-, B+");
   check("floor by band", gates.RH_PATH_FLOOR_BY_BAND, { "A+": 0.65, A: 0.65, "A-": 0.65, "B+": 0.6 });
   for (const b of ["A+", "A", "A-", "A−"]) check(`${b} @0.66 passes`, g({ ...BASE, pathBand: b, confluence: 0.66 }), "ok");
   check("A- @0.64 refuses path_floor", g({ ...BASE, pathBand: "A-", confluence: 0.64 }), "path_floor");
-  check("B+ @0.60 passes (LIVE path, not paper-only)", g({ ...BASE, pathBand: "B+", confluence: 0.6 }), "ok");
-  check("B+ @0.62 passes", g({ ...BASE, pathBand: "B+", confluence: 0.62 }), "ok");
-  check("B+ @0.59 refuses path_floor", g({ ...BASE, pathBand: "B+", confluence: 0.59 }), "path_floor");
+  check("B+ @0.60 + SEQ TAKE + no veto passes (LIVE path, not paper-only)", g({ ...BASE, ...BPLUS_OK, pathBand: "B+", confluence: 0.6 }), "ok");
+  check("B+ @0.62 + SEQ TAKE + no veto passes", g({ ...BASE, ...BPLUS_OK, pathBand: "B+", confluence: 0.62 }), "ok");
+  check("B+ @0.59 refuses path_floor", g({ ...BASE, ...BPLUS_OK, pathBand: "B+", confluence: 0.59 }), "path_floor");
   check("B refuses", g({ ...BASE, pathBand: "B", confluence: 0.7 }), "path_band");
   check("C refuses", g({ ...BASE, pathBand: "C", confluence: 0.7 }), "path_band");
   check("null band refuses", g({ ...BASE, pathBand: null }), "path_band");
@@ -102,7 +104,7 @@ console.log("\nFloor signals wired (CE touch / tape <= 30s / DTE 0/1)");
   const cand = (d, dte = 0) => rh.candidateFromFloorPathStand({
     floor: { verdict: "ARMED", deskContracts: 2, band: "B+", confluence: 0.62, dte },
     pathActionable: true, agentAgree: true, optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
-    account: FUNDED, desk: d, pathSymbol: "MNQ", pathSide: "short", nowMs: NOW,
+    account: FUNDED, desk: d, pathSymbol: "MNQ", pathSide: "short", nowMs: NOW, ...BPLUS_OK,
   });
   const c = cand(desk(21001));
   check("candidate carries derived signals", [c.ceTouch, Math.round(c.tapeAgeSec), c.dte], [true, 4, 0]);
@@ -130,7 +132,7 @@ console.log("\nlive option quote preferred over model priceHint");
   check("no quote → model (labelled)", [model.priceSource, model.priceHint], ["model", 1.22]);
   check("stale quote → model", rh.buildRhReviewPlaceShape(ticket, "r", q(1.5, 60_000), NOW).priceSource, "model");
   check("crossed quote → model", rh.buildRhReviewPlaceShape(ticket, "r", q(1.5, 1000, { bidPrice: 1.9 }), NOW).priceSource, "model");
-  const c = { ...BASE, pathBand: "B+", confluence: 0.62 };
+  const c = { ...BASE, pathBand: "A-", confluence: 0.66 };
   const ok = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(1.5) });
   check("propose with live quote → live_when_armed", [ok.mode, ok.placeShape?.priceSource], ["live_when_armed", "live_quote"]);
   const over = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(2.9) });
@@ -164,9 +166,19 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
     liveQuote: { optionId: "opt-2", askPrice: 1.4, bidPrice: 1.37, asOfMs: NOW - 2_000, source: "get_option_quotes" }, ...extra,
   });
   const m = (a) => { const r = rh.proposeRhFromPathFire(a); return r.mode === "live_when_armed" ? "ok" : r.gated.gate; };
-  for (const [b, q] of [["A+", 0.78], ["A", 0.69], ["A-", 0.66], ["B+", 0.61]]) check(`PATH fire ${b} → live_when_armed`, m(args(fire(b, q))), "ok");
+  // B+ live: one contract, SEQ TAKE, no veto (1 × $1.62 = $162, inside $150-$550).
+  const ticket1 = rh.ticketFromRhCard({
+    underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM",
+    contracts: 1, estDebitEach: 1.6, estDebitTotal: 160, decisionKey: "k3", reason: "fire B+",
+  });
+  const bplus = { ...BPLUS_OK, ticket: ticket1, liveQuote: { optionId: "opt-3", askPrice: 1.6, bidPrice: 1.57, asOfMs: NOW - 2_000, source: "get_option_quotes" } };
+  for (const [b, q] of [["A+", 0.78], ["A", 0.69], ["A-", 0.66]]) check(`PATH fire ${b} → live_when_armed`, m(args(fire(b, q))), "ok");
+  check("PATH fire B+ (1ct, SEQ TAKE, no veto) → live_when_armed", m(args(fire("B+", 0.61), bplus)), "ok");
+  check("PATH fire B+ with a 2-contract ticket refuses bplus_size", m(args(fire("B+", 0.61), { ...BPLUS_OK })), "bplus_size");
+  check("PATH fire B+ without SEQ TAKE refuses bplus_seq", m(args(fire("B+", 0.61), { ...bplus, seqTake: false })), "bplus_seq");
+  check("PATH fire B+ vetoed refuses bplus_veto", m(args(fire("B+", 0.61), { ...bplus, vetoed: true })), "bplus_veto");
   check("fire B refuses path_band", m(args(fire("B", 0.7))), "path_band");
-  check("fire B+ 0.58 refuses path_floor", m(args(fire("B+", 0.58))), "path_floor");
+  check("fire B+ 0.58 refuses path_floor", m(args(fire("B+", 0.58), bplus)), "path_floor");
   check("no fire refuses path_fire", m(args(null)), "path_fire");
   check("stale fire (45s) refuses", m(args(fire("A+", 0.78, NOW - 45_000))), "path_fire_stale");
   check("fire side ≠ ticket side refuses", m(args(fire("A+", 0.78, NOW - 2_000, { side: "long" }))), "path_fire_ticket");
@@ -177,8 +189,53 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
   check("BP unknown refuses", m(args(fire("A+", 0.78), { account: null })), "bp_unknown");
   check("Individual 7477 refuses", m(args(fire("A+", 0.78), { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
   check("env defaults (empty) refuse autofire_off", m(args(fire("A+", 0.78), { flags: undefined, env: {} })), "autofire_off");
-  const r = rh.proposeRhFromPathFire(args(fire("B+", 0.61)));
-  check("B+ fire shape uses live quote", [r.placeShape?.priceSource, r.placeShape?.priceHint, r.placeShape?.refIdHint], ["live_quote", 1.42, "rh-d:B+"]);
+  const r = rh.proposeRhFromPathFire(args(fire("B+", 0.61), bplus));
+  check("B+ fire shape uses live quote, 1 contract", [r.placeShape?.priceSource, r.placeShape?.priceHint, r.placeShape?.quantity, r.placeShape?.refIdHint], ["live_quote", 1.62, 1, "rh-d:B+"]);
+}
+
+console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
+{
+  const { bPlusLive } = APLUS_RULES.profitPath;
+  check("config bPlusLive", bPlusLive, { fitFloor: 0.6, requireSeqTake: true, requireNoVeto: true, maxContracts: 1 });
+  check("B+ fit floor == RH_PATH_FLOOR_BPLUS", bPlusLive.fitFloor, gates.RH_PATH_FLOOR_BPLUS);
+  check("RH_PATH_FLOOR still 0.65 (not lowered globally)", gates.RH_PATH_FLOOR, 0.65);
+  check("A- @0.62 still refuses path_floor (B+ band does not lower A grades)", g({ ...BASE, ...BPLUS_OK, pathBand: "A-", confluence: 0.62 }), "path_floor");
+  const B = { ...BASE, ...BPLUS_OK, pathBand: "B+", confluence: 0.61 };
+  check("B+ pass (fit 0.61, SEQ TAKE, no veto, CE/tape/DTE/BP ok, 09:35 ET)", g(B), "ok");
+  check("B- fail", g({ ...B, pathBand: "B-" }), "path_band");
+  check("B fail", g({ ...B, pathBand: "B" }), "path_band");
+  check("vetoed B+ refuse", g({ ...B, vetoed: true }), "bplus_veto");
+  check("B+ veto unknown refuse (fail closed)", g({ ...B, vetoed: null }), "bplus_veto");
+  check("B+ without SEQ TAKE refuse", g({ ...B, seqTake: false }), "bplus_seq");
+  check("B+ SEQ unknown refuse (fail closed)", g({ ...B, seqTake: undefined }), "bplus_seq");
+  check("B+ fit 0.59 refuse", g({ ...B, confluence: 0.59 }), "path_floor");
+  check("B+ no CE touch refuse", g({ ...B, ceTouch: false }), "ce_touch");
+  check("B+ tape 31s refuse", g({ ...B, tapeAgeSec: 31 }), "tape_stale");
+  check("B+ DTE 2 refuse", g({ ...B, dte: 2 }), "dte");
+  check("B+ BP $120 refuse", g({ ...B, account: { ...FUNDED, buyingPower: 120 } }), "bp_floor");
+  check("B+ at 11:05 ET refuse", g(B, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "bp_stale");
+  check("B+ at 11:05 ET (fresh BP) refuse after_11",
+    g({ ...B, account: { ...FUNDED, asOfMs: Date.UTC(2026, 9, 6, 15, 4, 50) } }, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "after_11");
+  check("A+ ignores SEQ/veto inputs (unchanged gate)", g({ ...BASE, seqTake: null, vetoed: null }), "ok");
+  check("B+ size: 1 contract ok", gates.evaluateRhBandSize("B+", 1).ok, true);
+  check("B+ size: 2 contracts refuse", gates.evaluateRhBandSize("B+", 2).gate, "bplus_size");
+  check("A size: 4 contracts per envelope", gates.evaluateRhBandSize("A", 4).ok, true);
+  const t = (contracts, total) => rh.ticketFromRhCard({ underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM", contracts, estDebitEach: total / contracts / 100, estDebitTotal: total, decisionKey: "kb", reason: "b+" });
+  const p1 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 160), flags: FLAGS });
+  check("B+ propose 1ct $160 → live_when_armed", [p1.mode, p1.placeShape?.quantity], ["live_when_armed", 1]);
+  const p2 = rh.proposeRhLiveOption({ candidate: B, ticket: t(2, 320), flags: FLAGS });
+  check("B+ propose 2ct refuses bplus_size", [p2.mode, p2.gated.gate], ["refused", "bplus_size"]);
+  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 120), flags: FLAGS });
+  check("B+ 1ct under $150 envelope refuses debit_floor", [p0.mode, p0.gated.gate], ["refused", "debit_floor"]);
+  const rev = {
+    gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false,
+    agenticAllowed: true, optionsLevelOk: true, accountAtReview: FUNDED,
+    account: rh.toManagerRhAccount({ cashUsd: 1000, optionsBuyingPowerUsd: 1000, asOf: new Date(NOW - 20_000).toISOString(), accountNumber: "995386158", agenticAllowed: true, optionLevel: "option_level_2", label: "Agentic" }),
+    debitTotal: 162, nowMs: NOW,
+  };
+  check("B+ review 1ct may place (when armed)", rh.mayPlaceAfterReview({ ...rev, pathBand: "B+", quantity: 1 }).ok, true);
+  check("B+ review 2ct refuses", rh.mayPlaceAfterReview({ ...rev, pathBand: "B+", quantity: 2 }).ok, false);
+  check("B+ review quantity unknown refuses", rh.mayPlaceAfterReview({ ...rev, pathBand: "B+" }).ok, false);
 }
 
 console.log("\nposture");

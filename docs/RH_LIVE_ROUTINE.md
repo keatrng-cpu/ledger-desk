@@ -31,6 +31,20 @@ Until then `RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` stay **false** (rep
 
 Floor mandate still applies: after **10:00 ET A+ only** (so B+ / A / A− fire only 09:30–10:00), no new entries at/after 11:00.
 
+### B+ explicit gate (Accuracy + Keaton 2026-10-06) — `evaluateRhBplusGate`
+
+RH_PATH_FLOOR stays **0.65** for A+/A/A−; B+ never lowers it. A B+ ticket needs **all** of:
+
+| gate | rule |
+|------|------|
+| `path_floor` | fit (confluence) **≥ 0.60** (`APLUS_RULES.profitPath.bPlusLive.fitFloor`) |
+| `bplus_seq` | SMC sequence **TAKE** on the PATH book's side (`candidate.seqTake === true`; unknown → refuse) |
+| `bplus_veto` | **no veto** — room beat not `vetoed`, Stand call not `VETO`, no Owner `DECLARE_VETO` (`candidate.vetoed === false`; unknown → refuse) |
+| shared | CE touch · tape ≤ 30 s · DTE 0\|1 · BP ≥ $150 (Agentic 995386158, fresh) · not ≥ 11:00 · A+ only ≥ 10:00 |
+| `bplus_size` | **exactly 1 contract** (`RH_BPLUS_MAX_CONTRACTS`), checked in `proposeRhLiveOption` and again in `mayPlaceAfterReview({ pathBand, quantity })` |
+
+B+ debit stays inside the normal **$150–$550** envelope (1 contract must cost ≥ $150 or it refuses `debit_floor`).
+
 Plus: options session open, no news blackout, no risk halt, one-book clear.
 
 ## Risk envelope (Keaton 2026-10-06)

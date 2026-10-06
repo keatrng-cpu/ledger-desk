@@ -22,6 +22,8 @@ import {
   RH_PATH_FIRE_MAX_AGE_MS,
   RH_PATH_FLOOR,
   rhPathFloorForBand,
+  evaluateRhBandSize,
+  isBplusBand,
   type RhAccountSnapshot,
   type RhAutofireCandidate,
   type RhAutofireFlags,
@@ -78,6 +80,10 @@ export {
   RH_PATH_GRADES,
   RH_PATH_FIRE_MAX_AGE_MS,
   rhPathFloorForBand,
+  evaluateRhBplusGate,
+  evaluateRhBandSize,
+  isBplusBand,
+  RH_BPLUS_MAX_CONTRACTS,
   RH_MIN_DEBIT_TOTAL,
   RH_MAX_DEBIT_TOTAL,
   RH_MIN_CONTRACTS,
@@ -246,6 +252,11 @@ export function proposeRhLiveOption(args: {
   if (!envelope.ok) {
     return { gated: envelope, ticket: null, placeShape: null, mode: "refused", flags };
   }
+  // B+ is one contract only (APLUS_RULES.profitPath.bPlusLive.maxContracts).
+  const size = evaluateRhBandSize(args.candidate.pathBand, args.ticket.contracts);
+  if (!size.ok) {
+    return { gated: size, ticket: null, placeShape: null, mode: "refused", flags };
+  }
   const bp = evaluateRhBuyingPower(args.candidate.account, flags.nowMs ?? Date.now(), args.ticket.maxDebitTotal);
   if (!bp.ok) {
     return { gated: bp, ticket: null, placeShape: null, mode: "refused", flags };
@@ -293,9 +304,15 @@ export function mayPlaceAfterReview(args: {
    */
   liveQuote?: RhLiveOptionQuote | null;
   quantity?: number | null;
+  /** PATH band of the reviewed ticket. B+ → quantity must be exactly 1 (missing → refuse). */
+  pathBand?: string | null;
   nowMs?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
+  if (isBplusBand(args.pathBand)) {
+    const size = evaluateRhBandSize(args.pathBand, args.quantity ?? null);
+    if (!size.ok) return { ok: false, reason: size.reason };
+  }
   if (args.liveQuote !== undefined) {
     const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
     if (!q.ok) return { ok: false, reason: q.reason };
@@ -368,6 +385,10 @@ export function candidateFromFloorPathStand(args: {
   ceTouch?: boolean | null;
   tapeAgeSec?: number | null;
   dte?: number | null;
+  /** B+ explicit gate: SMC sequence TAKE on the PATH book's side. Missing → B+ refuses. */
+  seqTake?: boolean | null;
+  /** B+ explicit gate: room / Stand / Owner veto this cycle. Missing → B+ refuses. */
+  vetoed?: boolean | null;
   /** Live desk (DeskPayload) — source of CE touch + tape age. */
   desk?: RhDeskSlice | null;
   /** PATH candidate's futures symbol / side (for the CE touch read). */
@@ -411,6 +432,8 @@ export function candidateFromFloorPathStand(args: {
     ceTouch: pick(args.ceTouch, sig?.ceTouch),
     tapeAgeSec: pick(args.tapeAgeSec, sig?.tapeAgeSec),
     dte: pick(args.dte, sig?.dte),
+    seqTake: typeof args.seqTake === "boolean" ? args.seqTake : null,
+    vetoed: typeof args.vetoed === "boolean" ? args.vetoed : null,
   };
 }
 
@@ -451,6 +474,8 @@ export function proposeRhFromPathFire(args: {
   ceTouch?: boolean | null;
   tapeAgeSec?: number | null;
   dte?: number | null;
+  seqTake?: boolean | null;
+  vetoed?: boolean | null;
   liveQuote?: RhLiveOptionQuote | null;
   flags?: RhAutofireFlags;
   env?: Record<string, string | undefined>;
@@ -501,6 +526,8 @@ export function proposeRhFromPathFire(args: {
     ceTouch: args.ceTouch,
     tapeAgeSec: args.tapeAgeSec,
     dte: args.dte,
+    seqTake: args.seqTake,
+    vetoed: args.vetoed,
     desk: args.desk ?? null,
     pathSymbol: fire.symbol,
     pathSide: fire.side,

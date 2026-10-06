@@ -24,6 +24,8 @@
  *     no new entries >= 11:00 ET · A+ only >= 10:00 ET · DTE 0/1 ·
  *     tape (desk feed) <= 30s · CE touch confirmed. Missing signal → refuse.
  *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 or B+ >= 0.60
+ *     B+ explicit gate (evaluateRhBplusGate): fit >= 0.60 · SEQ TAKE · no veto;
+ *     B+ size exactly 1 contract (evaluateRhBandSize), still $150-$550.
  *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
 import { ROOM_CLOCK, ROOM_MANDATE } from "../room/mandate";
@@ -57,6 +59,54 @@ export const RH_PATH_FLOOR_BY_BAND: Readonly<Record<(typeof RH_PATH_GRADES)[numb
 export function rhPathFloorForBand(band: string | null | undefined): number | null {
   const b = normalizeBand(band) as (typeof RH_PATH_GRADES)[number];
   return (RH_PATH_GRADES as readonly string[]).includes(b) ? RH_PATH_FLOOR_BY_BAND[b] : null;
+}
+
+/** B+ live size: exactly this many contracts (APLUS_RULES.profitPath.bPlusLive.maxContracts). */
+export const RH_BPLUS_MAX_CONTRACTS: number = APLUS_RULES.profitPath.bPlusLive.maxContracts;
+
+export function isBplusBand(band: string | null | undefined): boolean {
+  return normalizeBand(band) === "B+";
+}
+
+/**
+ * B+ explicit gate (Accuracy + Keaton 2026-10-06). Runs ONLY for band B+, after
+ * the shared Floor rules (CE touch / tape <= 30s / DTE 0|1 / 11:00 / 10:00 A+
+ * only) and the BP gate. Requires fit >= 0.60, SEQ TAKE, no veto. Fail closed.
+ */
+export function evaluateRhBplusGate(
+  c: Pick<RhAutofireCandidate, "pathBand" | "confluence" | "seqTake" | "vetoed">,
+): RhAutofireGateResult {
+  if (!isBplusBand(c.pathBand)) return { ok: true, why: "not B+" };
+  const rules = APLUS_RULES.profitPath.bPlusLive;
+  const fit = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
+  if (fit < rules.fitFloor) {
+    return { ok: false, gate: "path_floor", reason: `B+ fit ${fit.toFixed(2)} < ${rules.fitFloor.toFixed(2)}.` };
+  }
+  if (rules.requireSeqTake && c.seqTake !== true) {
+    return {
+      ok: false,
+      gate: "bplus_seq",
+      reason: c.seqTake === false ? "B+ needs SMC sequence TAKE — sequence is not TAKE." : "B+ needs SMC sequence TAKE — sequence unknown (fail closed).",
+    };
+  }
+  if (rules.requireNoVeto && c.vetoed !== false) {
+    return {
+      ok: false,
+      gate: "bplus_veto",
+      reason: c.vetoed === true ? "B+ vetoed this cycle (room / Stand / Owner) — refuse." : "B+ veto state unknown — refuse (fail closed).",
+    };
+  }
+  return { ok: true, why: `B+ fit ${fit.toFixed(2)} · SEQ TAKE · no veto` };
+}
+
+/** B+ size rule: exactly RH_BPLUS_MAX_CONTRACTS (1). Other bands: envelope 1-4 only. */
+export function evaluateRhBandSize(band: string | null | undefined, contracts: number | null | undefined): RhAutofireGateResult {
+  if (!isBplusBand(band)) return { ok: true, why: "size per envelope" };
+  const n = Math.floor(Number(contracts));
+  if (n !== RH_BPLUS_MAX_CONTRACTS) {
+    return { ok: false, gate: "bplus_size", reason: `B+ is ${RH_BPLUS_MAX_CONTRACTS} contract only (have ${contracts ?? "?"}).` };
+  }
+  return { ok: true, why: `B+ ${RH_BPLUS_MAX_CONTRACTS}ct` };
 }
 
 /** A PATH scanner fire older than this cannot start a place (same bound as tape). */
@@ -218,6 +268,14 @@ export interface RhAutofireCandidate {
   ceTouch?: boolean | null;
   tapeAgeSec?: number | null;
   dte?: number | null;
+  /**
+   * B+ explicit gate inputs (evaluateRhBplusGate). Ignored for A+/A/A-.
+   * seqTake: the SMC sequence for the PATH book on its side reads TAKE.
+   * vetoed: room / Stand / Owner veto this cycle. B+ needs seqTake === true
+   * AND vetoed === false — missing either → refuse (fail closed).
+   */
+  seqTake?: boolean | null;
+  vetoed?: boolean | null;
 }
 
 export interface RhTicketEnvelope {
@@ -347,6 +405,8 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (conf < floor) {
     return { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH ${band} floor ${floor.toFixed(2)}.` };
   }
+  const bplus = evaluateRhBplusGate(c);
+  if (!bplus.ok) return bplus;
   if (c.agentAgree !== true) {
     return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };
   }

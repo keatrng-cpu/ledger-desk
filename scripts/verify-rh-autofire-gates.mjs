@@ -121,8 +121,18 @@ console.log("\ntriple agreement required");
   const pathOff = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathActionable: false }, ARMED_FLAGS);
   check("PATH not actionable refuses", [pathOff.ok, pathOff.gate], [false, "path_actionable"]);
 
-  const band = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B" }, ARMED_FLAGS);
-  check("B PATH refuses (B+ is accepted — see verify-rh-path-fire)", [band.ok, band.gate], [false, "path_band"]);
+  // Updated (not deleted) 2026-10-06: B+ is a LIVE grade behind its own explicit gate
+  // (fit >= 0.60 · SEQ TAKE · no veto · 1 contract). A bare B+ (no SEQ / veto read) still refuses.
+  const band = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+" }, ARMED_FLAGS);
+  check("B+ PATH refuses without SEQ TAKE / no-veto read (explicit B+ gate)", [band.ok, band.gate], [false, "bplus_seq"]);
+  const bVeto = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+", seqTake: true, vetoed: true }, ARMED_FLAGS);
+  check("B+ PATH vetoed refuses", [bVeto.ok, bVeto.gate], [false, "bplus_veto"]);
+  const bOk = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+", confluence: 0.6, seqTake: true, vetoed: false }, ARMED_FLAGS);
+  check("B+ PATH passes with fit 0.60 + SEQ TAKE + no veto", bOk.ok, true);
+  const bMinus = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B-", seqTake: true, vetoed: false }, ARMED_FLAGS);
+  check("B- PATH refuses", [bMinus.ok, bMinus.gate], [false, "path_band"]);
+  const bPlain = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B" }, ARMED_FLAGS);
+  check("B PATH refuses", [bPlain.ok, bPlain.gate], [false, "path_band"]);
 
   const low = gates.evaluateRhAutofireGates({ ...QUALIFIED, confluence: 0.64 }, ARMED_FLAGS);
   check("below 0.65 refuses", [low.ok, low.gate], [false, "path_floor"]);
