@@ -159,6 +159,10 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
   const dte: 0 | 1 = card.id === "judas_ifvg_0dte" ? 0 : 1;
   const plan = book.smc.plan;
   const read = plan ? readEntry(plan, book.quote.price, book.draw.atr || null) : null;
+  const inversion =
+    book.smc.layers.some((l) => l.id === "retrace" && l.state === "pass" && l.detail.startsWith("5m IFVG inverted")) &&
+    read != null &&
+    !read.behind;
   return {
     card: card.id === "judas_ifvg_0dte" ? "judas_ifvg_0dte" : "path_continuation",
     name: card.name,
@@ -180,8 +184,8 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
     deltaMin: card.ticket?.deltaMin ?? 0.35,
     deltaMax: card.ticket?.deltaMax ?? (dte === 0 ? 0.5 : 0.45),
     plan: plan ? { entry: plan.entry, stop: plan.stop, t1: plan.t1, t2: plan.t2, rr1: plan.rr1 } : null,
-    tier: read?.tier ?? null,
-    awayPts: read?.awayPts ?? null,
+    tier: inversion ? "live" : (read?.tier ?? null),
+    awayPts: inversion ? 0 : (read?.awayPts ?? null),
     pT1: c?.hitOdds?.pT1 ?? null,
     expR: c?.hitOdds?.expR ?? null,
     pFill: c?.hitOdds?.pFill ?? null,

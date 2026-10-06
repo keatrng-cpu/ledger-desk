@@ -184,20 +184,54 @@ export class FloorSound {
     }
   }
 
+  /** One short click, built once. A new buffer every second was hitching the floor. */
+  private clickBuf: AudioBuffer | null = null;
+
+  private clickBuffer(): AudioBuffer | null {
+    const ctx = this.ctx;
+    if (!ctx) return null;
+    if (this.clickBuf) return this.clickBuf;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * 0.02));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const env = 1 - i / len;
+      d[i] = Math.sin((i / ctx.sampleRate) * Math.PI * 2 * 1400) * env * env;
+    }
+    this.clickBuf = buf;
+    return buf;
+  }
+
+  /** Replay the shared click. No new sample buffer, no filter, no resume. */
+  private blip(rate: number, gain: number): void {
+    const ctx = this.ctx;
+    const buf = this.clickBuffer();
+    if (!ctx || !buf || !this.master) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = rate;
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g).connect(this.master);
+    src.onended = () => {
+      src.disconnect();
+      g.disconnect();
+    };
+    src.start();
+  }
+
   /** The tape layer: one soft tick, higher when the print is up, lower when down. */
   tapeTick(up: boolean): void {
     if (!this.bedOn || this.mutes.tape) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    this.tone(up ? 1760 : 1175, ctx.currentTime + 0.005, 0.03, "sine", 0.025);
+    if (!this.ensure()) return;
+    this.blip(up ? 1.35 : 0.8, 0.03);
   }
 
   /** The clock layer: a tick each second inside a killzone; a two-note chime when one opens. */
   clockTick(): void {
     if (!this.bedOn || this.mutes.clock || !this.bedState.inKillzone) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    this.noise(ctx.currentTime + 0.005, 0.012, 0.05, 4000);
+    if (!this.ensure()) return;
+    this.blip(0.62, 0.022);
   }
 
   chime(): void {
@@ -219,8 +253,8 @@ export class FloorSound {
       this.master = this.ctx.createGain();
       this.master.connect(this.ctx.destination);
     }
-    if (this.master) this.master.gain.value = this.volume * 0.6;
-    void this.ctx.resume();
+    if (this.master && this.master.gain.value !== this.volume * 0.6) this.master.gain.value = this.volume * 0.6;
+    if (this.ctx.state === "suspended") void this.ctx.resume();
     return this.ctx;
   }
 

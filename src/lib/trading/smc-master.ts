@@ -479,6 +479,20 @@ function gradeBook(
       retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} is ${away.toFixed(2)}pt ${dir} price — wait for it, do not chase ${price.toFixed(2)}`;
     }
   }
+  // An inverted 5m gap plus displacement IS the entry. CE is only the midpoint
+  // of that gap. A mitigation block is a failed second push — a different
+  // object — and this setup does not wait to tag one.
+  const inverted = cand?.reasons.some((r) => /ifvg \(inverted\)/i.test(r)) ?? false;
+  const displaced = Boolean(
+    mss || cand?.components.includes("displacement") || cand?.components.includes("mss"),
+  );
+  if (inverted && displaced && fresh && price != null && retraceState !== "pass") {
+    const delivered = side === "short" ? price <= fresh.top : price >= fresh.bottom;
+    if (delivered) {
+      retraceState = "pass";
+      retraceDetail = `5m IFVG inverted and displaced — that close is the entry. CE ${fresh.mid.toFixed(2)} is the midpoint of the gap, not a second level. This is not a mitigation block.`;
+    }
+  }
   // The numeric plan, priced from the SAME objects the layers were graded
   // from: `fresh` is the array the retrace layer selected, `dol` the draw it
   // priced, the sweep extreme the raid it demanded. Built here, before the

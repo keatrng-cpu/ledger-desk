@@ -225,7 +225,7 @@ function closed(f: Facts): Line[] {
     say("Jax", banter, "FURIOUS_TYPING"),
     say("Nova", note ? `Use the quiet, Jax. ${note.line}` : `${vixTxt(f)}. Nothing to price while it's shut.`, "NODDING"),
     say("Jax", quip, "POINTING"),
-    say("Sterling", `What makes a trade is the desk's word, the CE touch and my list — in that order. ${book}`, "CHECKING_TABLET"),
+    say("Sterling", `CE is the midpoint of a gap, and only when we are still inside it. An inverted 5m that has displaced is already the entry. A mitigation block is a failed second push — we don't wait to hit one. ${book}`, "CHECKING_TABLET"),
     say("Vince", `Options closed. Nothing routes until 09:30 ET.${d?.lagSec != null ? ` Futures feed ${d.feed}.` : ""}`, "STEADY_MONITORING"),
   ];
 }
@@ -795,14 +795,14 @@ function setupReview(f: Facts, m: Meeting): Line[] {
     say(
       "Sterling",
       bPlus
-        ? "B+ is paper only — half a percent on the futures book, no options ticket. That's the rule."
-        : s.actionable
-          ? "It's on Vince's list. It still needs the CE touch."
-          : `Not armed yet${s.missing ? ` — ${s.missing}` : ""}.`,
+        ? "B+ is live. Smaller size. Same chart."
+        : !s.actionable
+          ? `Not armed yet${s.missing ? ` — ${s.missing}` : ""}.`
+          : "If the 5m inverted and displaced, that close is the entry. CE is only the midpoint of a gap we are still inside. A mitigation block is a failed second push — we don't wait to hit one.",
       "CROSSING_ARMS",
     ),
     say("Gemma", `${htfLine(f)} The ${s.side} is ${f.desk?.htf[s.symbol.includes("ES") ? "SPY" : "QQQ"] === (s.side === "long" ? "bull" : "bear") ? "with" : "against"} the higher frame. ${printLine(f)}`, "GESTICURING_AT_WALL"),
-    say("Vince", f.card?.plan ? `CE would be ${px(f.card.plan.entry)} on ${f.card.futSymbol}.` : "No CE priced yet — nothing to rest.", "STEADY_MONITORING"),
+    say("Vince", f.card?.plan ? `The gap's midpoint — CE — is ${px(f.card.plan.entry)} on ${f.card.futSymbol}. We rest there only while price is still inside the gap.` : "No gap priced, so no midpoint.", "STEADY_MONITORING"),
     say("Nova", q ? `And remember: ${q.line}` : creed("Nova"), "NODDING"),
   ];
 }

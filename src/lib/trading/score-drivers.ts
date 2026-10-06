@@ -165,7 +165,7 @@ const WHAT: Partial<Record<ComponentKey, string>> = {
   opening_bias: "Position relative to the session open.",
   mechanical_model: "The full ordered sweep → displace → invert → retest.",
   breaker: "A failed order block price has traded back through.",
-  mitigation: "A block price returned to and respected.",
+  mitigation: "A failed second push: price did not take the prior extreme, then broke the other way. Not an entry we wait to hit, and not an order block.",
   rejection: "A long wick refusing a level.",
   propulsion: "Continuation from inside a prior block.",
 };
