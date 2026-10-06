@@ -17,7 +17,8 @@ let pass = 0;
 let fail = 0;
 const check = (name, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
-  ok ? pass++ : fail++;
+  if (ok) pass++;
+  else fail++;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 
@@ -355,6 +356,12 @@ console.log("\nManagerRoomState.account (read-only RH block)");
 {
   const { verifyManagerAccount } = await import("./verify-manager-account.mjs");
   await verifyManagerAccount(rh, check);
+}
+
+console.log("\nReal Manager feed (room state) → RH live loop");
+{
+  const { verifyManagerLiveLoop } = await import("./verify-manager-live-loop.mjs");
+  await verifyManagerLiveLoop(check);
 }
 
 console.log("\nsource posture");

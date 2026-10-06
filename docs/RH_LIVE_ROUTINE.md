@@ -27,7 +27,7 @@ Until then `RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` stay **false** (rep
 
 1. **Floor desk** — options card `verdict === "ARMED"` and `deskContracts >= 1` (Floor characters cite SMC research + live PATH scanner).
 2. **Live PATH scanner FIRE** — actionable; band **A+/A/A− with confluence ≥ 0.65**, or **B+ with confluence ≥ 0.60** (`RH_PATH_FLOOR_BY_BAND`). The PATH floor stays **0.65**; B+ has its own band in `src/lib/aplus/config.ts` / `strategy-grade.ts pathBand` (`confluenceFloor − 0.05` = 0.60) — the config band edge, no new score.
-3. **Trading Stand (agent)** — `agentAgree === true` for this cycle (explicit; absence refuses).
+3. **Trading Stand (agent)** — `agentAgree === true` for this cycle (explicit; absence refuses). Source: the **real** Manager feed (`src/lib/room/manager-room-feed.ts`), built from the room engine's actual cycle — never the demo stub (see below).
 
 Floor mandate still applies: after **10:00 ET A+ only** (so B+ / A / A− fire only 09:30–10:00), no new entries at/after 11:00.
 
@@ -46,6 +46,14 @@ RH_PATH_FLOOR stays **0.65** for A+/A/A−; B+ never lowers it. A B+ ticket need
 B+ debit stays inside the normal **$150–$550** envelope (1 contract must cost ≥ $150 or it refuses `debit_floor`).
 
 Plus: options session open, no news blackout, no risk halt, one-book clear.
+
+## Manager feed → live loop (Design Atelier, Keaton-approved 2026-10-06)
+
+- **Real feed:** `roomManagerFeed()` (`createRoomManagerFeed`). `room-engine.ts runLiveCycle` pushes every live room cycle (beat, Sterling's gates, `broker_action`, entry plan, lenses, room P) via `pushRoom`. The Floor scene uses it by default; the demo stub only on dev `?manager=stub`.
+- **agentAgree** (`managerAgreeFromRoom`) is true **only** on a room **BUY_OPEN fill** (every room gate passed, CE touched) where: Floor ARMED + desk ticket · PATH A+/A/A− ≥ 0.65 or B+ via the explicit B+ gate · DTE 0/1 · session open · no blackout · live (not synthetic) feed · envelope-shaped ticket ($150–$550, 1–4 ct, B+ 1 ct, ATM/OTM_1; the Stand may only shrink the room's qty) · no Owner veto / table / hand-off on that decision. Owner chips can only remove agreement; `DECLARE_AGREE` never forces it.
+- **Wiring point:** `managerStateForAgree(feed)` (`manager-feed.ts`) → real feed `feed.getState()`, **stub / no feed → `null` → agentAgree false**.
+- **Loop:** `proposeRhFromManagerFeed({ feed, fire, account, liveQuote, desk?, env })` (`src/lib/room/manager-live-loop.ts`) → `candidateFromFloorPathStand({ manager: managerStateForAgree(feed), ceTouch, tapeAgeSec, dte, seqTake, vetoed, ... })` → `proposeRhFromPathFire` → `proposeRhLiveOption`. Signals come from the same room cycle (`ManagerRoomState.signals`: CE = room `trigger` gate, tape = now − frame time, DTE = card, SEQ = card SMC word, veto = room/Stand/Owner). Returns a shape; never places.
+- **Account:** `feed.setAccountFromConnector({ account: get_accounts row, portfolio: get_portfolio data })` → `managerRhAccountFromConnector` → `ManagerRoomState.account`. Until injected, it is the Agentic $0 **snapshot** (can never authorize).
 
 ## Risk envelope (Keaton 2026-10-06)
 
@@ -126,7 +134,7 @@ Explicit values still win; anything unreadable → `null` → refuse.
 5. Set in the runtime env (Release Watch / host — **not** this commit, **not** Netlify from this agent):
    - `RH_OPTIONS_AUTOFIRE_ENABLED=true`
    - `RH_LIVE_ARMED=true`
-6. Agent loop: Floor / Trade Now watches continuously → on a **PATH fire (A+/A/A−/B+)**: `get_portfolio(995386158)` → Floor ARMED + Stand `agentAgree` + BP ≥ $150 → `get_option_quotes` → `proposeRhFromPathFire({ fire, floor, desk, account, liveQuote, ... })` → **`review_option_order`** → fresh `get_portfolio` + `get_option_quotes` → `mayPlaceAfterReview({ accountAtReview, liveQuote, quantity, ... })` → only then **`place_option_order`** on **Agentic 995386158**.
+6. Agent loop: Floor / Trade Now watches continuously → on a **PATH fire (A+/A/A−/B+)**: `get_accounts` + `get_portfolio(995386158)` → `feed.setAccountFromConnector(...)` + `rhAccountFromPortfolio` → Floor ARMED + real-Manager `agentAgree` + BP ≥ $150 → `get_option_quotes` → `proposeRhFromManagerFeed({ feed: roomManagerFeed(), fire, account, liveQuote, ... })` (or `proposeRhFromPathFire` with `manager: managerStateForAgree(feed)`) → **`review_option_order`** → fresh `get_portfolio` + `get_option_quotes` → `mayPlaceAfterReview({ accountAtReview, account, liveQuote, quantity, pathBand, ... })` → only then **`place_option_order`** on **Agentic 995386158**.
 7. Disarm after the session or on any doubt: unset / set both env flags false.
 
 ## Agent send path (user-Robinhood-xai)
@@ -152,7 +160,10 @@ Options only. No equities, no Tradovate, no Apex autofire. **Do not place tonigh
 | `src/lib/execution/rh-autofire.ts` | Env flags, proposal, `proposeRhFromPathFire` (primary trigger), live quote, `mayPlaceAfterReview`, `candidateFromFloorPathStand` |
 | `src/lib/execution/rh-floor-signals.ts` | CE touch / tape age / DTE from the live desk + Floor card |
 | `src/lib/alerts/path-alarm.ts` | `isPathFire` (A+/A/A−/B+) — PATH fire = place trigger |
-| `scripts/verify-rh-path-fire.mjs` | Pins grades, B+ band, signals, live quote, PATH fire → propose |
+| `scripts/verify-rh-path-fire.mjs` | Pins grades, B+ explicit gate, signals, live quote, PATH fire → propose |
+| `src/lib/room/manager-room-feed.ts` | REAL Manager feed from room cycles; `managerAgreeFromRoom`; `setAccountFromConnector` |
+| `src/lib/room/manager-live-loop.ts` | `proposeRhFromManagerFeed` / `rhCandidateFromManagerFeed` / `ticketFromManagerState` |
+| `scripts/verify-manager-live-loop.mjs` | Pins real feed → loop, stub never agrees, Owner veto, B+, live account (run from verify-rh-autofire-gates) |
 | `src/lib/execution/manager-agree.ts` | Manager → Stand `agentAgree` adapter (feed.getState when Design lands) |
 | `src/lib/execution/manager-account.ts` | `ManagerRoomState.account` (Agentic default snapshot, Individual display-only), `accountPlaceGate` |
 | `src/lib/execution/rh-account.ts` | get_portfolio → `RhAccountSnapshot`; desk snapshot (context only) |

@@ -68,6 +68,7 @@ import { researchShelf } from "@/lib/room/research";
 import { RH_DESK_ACCOUNT_SNAPSHOT } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
+import { roomManagerFeed } from "@/lib/room/manager-room-feed";
 import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
@@ -480,6 +481,17 @@ function runLiveCycle(desk: DeskPayload) {
     lastFetchedAt: desk.fetchedAt,
     wire: frameIsEvent(frame) && storyMoved(frame, s.frame) ? [cycleWire(frame, s.sceneOpen), ...s.wire].slice(0, TALK.wireKeep) : s.wire,
   }));
+  // The REAL Trading Stand Manager feed reads this cycle (chair beat, gates, call, plan,
+  // lenses) — not a demo cycle. Its agentAgree reaches the RH path only through
+  // managerStateForAgree → candidateFromFloorPathStand (every hard gate still applies).
+  try {
+    roomManagerFeed().pushRoom(
+      { id: frame.id, nowMs: frame.nowMs, output: frame.output, trace: frame.trace, roomP: frame.screens.roomP, lenses: frame.screens.lenses },
+      { card: read.entry, newsBlackout: read.news.blackout, synthetic: desk.feed === "synthetic" },
+    );
+  } catch (err) {
+    console.error("[room] manager feed push failed:", err);
+  }
   // The execution layer (exec/): what the room just did goes to the broker's side — shadow, paper, or nothing (off is the
   // default and a browser cannot change it). A synthetic desk feed is never a decision worth sending anywhere.
   if (desk.feed !== "synthetic") {

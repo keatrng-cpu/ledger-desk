@@ -32,6 +32,8 @@ import type {
   DiscretionRuleDraft,
 } from "@/lib/room/manager-feed";
 import { isStubManagerFeed, standAgentAgree } from "@/lib/room/manager-feed";
+import { managerStubRequested, roomManagerFeed } from "@/lib/room/manager-room-feed";
+import { managerLoopReadout } from "@/lib/room/manager-live-loop";
 import { reportRhAccount } from "@/lib/ui/rh-account";
 import { RhAccountStrip } from "@/components/desk/rh-account-strip";
 
@@ -168,6 +170,8 @@ function FloorCanvas({
         onFocusChange: (on) => cbs.current.onCanvasFocus(on),
         onScrollHint: () => cbs.current.onScrollHint(),
         onManagerInspect: (s) => cbs.current.onManagerInspect(s),
+        // The real room feed (room engine cycles + live account); the demo stub only on dev ?manager=stub.
+        managerFeed: managerStubRequested() ? undefined : roomManagerFeed(),
         onTalk: (id, st) => {
           if (st === "started") useRoomStore.getState().ackTalk({ [id]: "said" });
           else if (st === "dropped") useRoomStore.getState().ackTalk({ [id]: "dropped" });
@@ -379,8 +383,11 @@ function ManagerPanel({
   feedback,
   stub,
   standBit,
+  loopLine,
 }: {
   stub: boolean;
+  /** managerLoopReadout(feed).line — the live loop's Floor-rule / B+ read (display only). */
+  loopLine?: string | null;
   /** What the RH path would read as agentAgree (manager-agree.ts) — false for the stub. */
   standBit: boolean;
   state: ManagerRoomState;
@@ -406,7 +413,7 @@ function ManagerPanel({
         </button>
       </div>
       <p className="text-[11px] text-[var(--color-muted)]">
-        {stub ? "Stub · " : ""}ManagerRoomState v{state.version} · cycle {state.cycleId}
+        {stub ? "Stub · " : "Live room · "}ManagerRoomState v{state.version} · cycle {state.cycleId}
         {stub ? " · presentation only — a demo call never reaches the RH Stand bit" : ""}
       </p>
       <p className="mt-1 font-mono text-[11px]" title="managerStateForAgree(feed) → resolveStandAgentAgree (src/lib/execution/manager-agree.ts)">
@@ -414,6 +421,11 @@ function ManagerPanel({
         <span className={standBit ? "text-[#4ade80]" : "text-[var(--color-fg)]"}>{String(standBit)}</span>
         {stub && <span className="text-[var(--color-subtle)]"> · stub feed → false</span>}
       </p>
+      {loopLine && (
+        <p className="mt-0.5 font-mono text-[10px] text-[var(--color-subtle)]" title="managerLoopReadout (src/lib/room/manager-live-loop.ts) — display only, never places">
+          RH loop: {loopLine}
+        </p>
+      )}
       <RhAccountStrip className="mt-2" />
       {call ? (
         <div className="mt-2 space-y-1 text-[12px]">
@@ -871,7 +883,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
     if (mood) sceneRef.current?.setEntryMood(mood);
   }, [mood, env]);
 
-  // Keep Manager panel in sync with the stub feed on the scene.
+  // Keep the Manager panel in sync with the scene's feed (the real room feed unless ?manager=stub).
   useEffect(() => {
     const feed = sceneRef.current?.getManagerFeed();
     if (!feed) return;
@@ -1286,6 +1298,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         <ManagerPanel
           stub={isStubManagerFeed(sceneRef.current?.getManagerFeed())}
           standBit={standAgentAgree(sceneRef.current?.getManagerFeed())}
+          loopLine={managerLoopReadout(sceneRef.current?.getManagerFeed(), Date.now()).line}
           state={managerState}
           lastSteer={lastSteer}
           feedback={feedbackLog}

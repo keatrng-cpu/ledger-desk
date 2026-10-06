@@ -1,8 +1,15 @@
 /**
  * Trading Stand Manager — room state contract (Design Atelier).
  *
- * Presentation + stub only. Does NOT wire agentAgree into rh-autofire gates,
- * does not place orders, does not touch Robinhood / exec/**.
+ * Two feeds implement ManagerFeed:
+ *  - the REAL feed (manager-room-feed.ts createRoomManagerFeed): ManagerRoomState
+ *    derived from the room engine's actual cycle (orchestrator chair/call output)
+ *    plus the live Agentic account read. Its state reaches the RH Stand bit via
+ *    managerStateForAgree → resolveStandAgentAgree / candidateFromFloorPathStand.
+ *  - the demo stub below (createStubManagerFeed, dev ?manager=stub only): a phase
+ *    cycle for presentation. managerStateForAgree returns null for it, so a demo
+ *    AGREED can NEVER become a live agentAgree.
+ * Nothing here places orders or touches Robinhood / exec/**.
  *
  * Open/close lifecycle may report through reportAutomation (read-only seam).
  */
@@ -152,6 +159,35 @@ export interface ManagerRoomState {
    * Display + accountPlaceGate only; nothing here places.
    */
   account: ManagerRhAccount;
+  /**
+   * Floor → RH signals from the real room cycle (manager-room-feed.ts). Absent on
+   * the stub. Read by the live loop (manager-live-loop.ts) for evaluateRhFloorRules
+   * and the B+ gate; every missing value refuses.
+   */
+  signals?: ManagerRoomSignals;
+}
+
+export interface ManagerRoomSignals {
+  /** The room frame's instant (= desk.fetchedAt) — tape age = now − frameAt. */
+  frameAt: number;
+  /** Room beat this cycle (orchestrator Beat). */
+  beat: string;
+  /** Room "trigger" gate: CE touched at the array (null = no card / unknown). */
+  ceTouch: boolean | null;
+  /** Card DTE (0/1 by mandate; null = no card). */
+  dte: number | null;
+  /** SMC sequence word on the card's side is TAKE. */
+  seqTake: boolean | null;
+  /** Room vetoed / Stand VETO / Owner DECLARE_VETO for this decision. */
+  vetoed: boolean | null;
+  /** Futures book the card expresses (PATH fire match). */
+  futSymbol: string | null;
+  futSide: "long" | "short" | null;
+  expiry: string | null;
+  /** Room's own option price estimate per share (model — the live quote replaces it). */
+  estDebitEach: number | null;
+  /** Desk feed is synthetic — never live. */
+  synthetic: boolean;
 }
 
 /* ── Steer (chips → emit only; no gate wiring) ──────────────────────────── */
