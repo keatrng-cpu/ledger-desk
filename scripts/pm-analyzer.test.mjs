@@ -43,7 +43,7 @@ test("hall rows copy MarketSignal fields — nothing invented", () => {
     assert.equal(m.yesPrice, s.prices.yesAsk);
     assert.equal(m.noPrice, s.prices.noAsk);
     assert.equal(m.winChance, s.implied.mid);
-    assert.equal(m.hall?.grade, s.grade);
+    assert.equal(m.hall?.grade ?? null, s.grade); // omitted hall.grade when ungraded (null)
     assert.equal(m.edge, s.edge.status === "edge" ? s.edge.netPerContract : null);
     // No model input → never a GO/LIMIT mood word.
     if (s.edge.status !== "edge") assert.equal(m.gates.word, "STAND");
@@ -90,4 +90,16 @@ test("paper book: tickets from paperTicketFromSignal, de-duped, read too-few unt
   const score = E.scorePaper(r.book);
   assert.equal(score.open, 1);
   assert.equal(score.overall.read, E.TOO_FEW);
+});
+
+test("Accuracy should-fix copy in pm-analyzer (unsettled + Murphy REL + ok buckets)", () => {
+  const src = readFileSync(new URL("../src/components/predict/pm-analyzer.tsx", import.meta.url), "utf8");
+  assert.match(src, /settled === 0 \? "unsettled"/);
+  assert.match(src, /unsettled — no settlements yet/);
+  assert.match(src, /Calibration \(1−Murphy REL\)/);
+  assert.match(src, /b\.read !== "ok"/);
+  // Do not invent grades in the analyzer UI layer from this follow-up (Stand owns signals.ts).
+  assert.match(src, /gradeLabel/);
+  assert.match(src, /NO_GRADE_LABEL/);
+  assert.doesNotMatch(src, /signals\.ts/);
 });

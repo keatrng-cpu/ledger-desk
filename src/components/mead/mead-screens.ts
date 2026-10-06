@@ -218,9 +218,21 @@ function fit(ctx: CanvasRenderingContext2D, text: string, max: number): string {
   return `${t}…`;
 }
 
-/** The letter a screen shows: the signal engine's A–F when present, else the scanner grade. */
-export const gradeText = (m: PredictionMarket): string => m.hall?.grade ?? m.setupGrade;
-export const gradeColor = (g: string): string => (g.startsWith("A") ? "#86efac" : g === "B" ? MEAD.brass : g === "C" ? "#cbd5e1" : "#fca5a5");
+/** The letter a screen shows: signal A–F when present; "—" when hall has no grade (no edge read). */
+export const gradeText = (m: PredictionMarket): string => {
+  if (m.hall) return m.hall.grade ?? "—";
+  return m.setupGrade;
+};
+export const gradeColor = (g: string): string =>
+  g === "—" || g.toLowerCase().includes("no grade")
+    ? "#94a3b8"
+    : g.startsWith("A")
+      ? "#86efac"
+      : g === "B"
+        ? MEAD.brass
+        : g === "C"
+          ? "#cbd5e1"
+          : "#fca5a5";
 
 export const marketName = (m: PredictionMarket) => `${m.outcome} · ${eventLabel(m)}`;
 
@@ -295,7 +307,7 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
   ctx.fillStyle = "#cbd5e1";
   if (feat) {
     const line = feat.hall
-      ? `Grade ${feat.hall.grade}   ·   ${feat.hall.line}`
+      ? `${feat.hall.grade ? `Grade ${feat.hall.grade}   ·   ` : "No grade   ·   "}${feat.hall.line}`
       : `Win chance ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}   ·   Grade ${feat.setupGrade}   ·   ${feat.gates.word} ${feat.gates.passed}/${feat.gates.total}`;
     ctx.fillText(fit(ctx, line, W - 140), 70, 342);
   }

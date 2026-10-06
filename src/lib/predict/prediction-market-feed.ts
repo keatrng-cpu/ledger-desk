@@ -105,7 +105,8 @@ export interface PredictionMarket {
 
 /** Signal-engine view of a row for the Mead Hall screens (strings come from real MarketSignal fields). */
 export interface MarketHallView {
-  grade: "A" | "B" | "C" | "D" | "F";
+  /** Omitted when the signal has no letter grade (no edge read). */
+  grade?: "A" | "B" | "C" | "D" | "F";
   /** Jumbotron footer line (implied after fees · spread · move · settle). */
   line: string;
   /** Rune Board sub-line. */
