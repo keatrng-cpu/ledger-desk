@@ -12,7 +12,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Percent, RefreshCw } from "lucide-react";
+import { Beer, Percent, RefreshCw } from "lucide-react";
 import { getPredictBoard, type PredictBoard } from "@/lib/predict/predict-server";
 import { LEAGUES, type League } from "@/lib/predict/board";
 import { VENUES, type VenueId } from "@/lib/predict/math";
@@ -192,6 +192,9 @@ export function PredictTab() {
           </label>
           <button type="button" className={`flex items-center gap-1 ${BTN}`} onClick={() => load(league)} disabled={loading}>
             <RefreshCw size={11} /> {loading ? "…" : "Refresh"}
+          </button>
+          <button type="button" className={`flex items-center gap-1 ${BTN}`} onClick={() => window.dispatchEvent(new CustomEvent("ledger:open-tab", { detail: "mead" }))} title="The same markets as a 3D sports bar — paper tickets only">
+            <Beer size={11} /> Open Mead Hall
           </button>
         </div>
       </header>

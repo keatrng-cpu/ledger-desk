@@ -25,6 +25,7 @@ import {
   Newspaper,
   Percent,
   MessagesSquare,
+  Beer,
   Building2,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
@@ -174,6 +175,8 @@ import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 // three.js (~600 KB) loads only when the Floor tab is opened; the room's
 // engine (room-engine.ts) is plain TS and runs at page level below.
 const TradingFloorTab = lazy(() => import("@/components/room/trading-floor-tab"));
+// The Mead Hall (2026-10-06): the prediction-market sports bar — three.js too, so lazy like the Floor.
+const MeadHallTab = lazy(() => import("@/components/mead/mead-hall-tab"));
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -663,6 +666,7 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 type DeskCategory =
   | "news"
   | "predict"
+  | "mead"
   | "discuss"
   | "floor"
   | "brain"
@@ -713,6 +717,14 @@ const CATEGORIES: {
     short: "Pred",
     hint: "Event contracts · live board",
     icon: Percent,
+  },
+  // Beside Predict: the same event contracts as a 3D sports bar — PAPER tickets only.
+  {
+    id: "mead",
+    label: "Mead",
+    short: "Hall",
+    hint: "The Mead Hall · 3D prediction bar · paper",
+    icon: Beer,
   },
   {
     id: "tape",
@@ -811,6 +823,15 @@ function MasterplacePage() {
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
+  // "Open Mead Hall" on the Predict tab asks for a tab by id (a window event, so Predict needs no prop).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (CATEGORIES.some((c) => c.id === id)) setCat(id as DeskCategory);
+    };
+    window.addEventListener("ledger:open-tab", on);
+    return () => window.removeEventListener("ledger:open-tab", on);
+  }, []);
   // The trading floor runs one paper cycle per desk refresh on every tab, so
   // its level stops and 11:00 time exit fire with the Floor tab closed.
   useRoomEngine(desk);
@@ -1701,6 +1722,7 @@ function MasterplacePage() {
                 cat !== "invest" &&
                 cat !== "news" &&
                 cat !== "predict" &&
+                cat !== "mead" &&
                 cat !== "discuss" &&
                 cat !== "floor" && <SynapseRail tab={cat} />}
 
@@ -1710,6 +1732,18 @@ function MasterplacePage() {
               {cat === "invest" && <InvestPanel />}
               {cat === "news" && <NewsTab />}
               {cat === "predict" && <PredictTab />}
+              {cat === "mead" && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                      Opening the Mead Hall…
+                    </div>
+                  }
+                >
+                  <MeadHallTab />
+                </Suspense>
+              )}
               {cat === "discuss" && <DiscussTab desk={desk} />}
               {cat === "floor" && (
                 <Suspense
