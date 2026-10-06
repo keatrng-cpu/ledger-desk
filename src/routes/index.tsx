@@ -75,7 +75,7 @@ import { NewsTab } from "@/components/news/news-tab";
 import { PredictTab } from "@/components/predict/predict-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
 import { useRoomEngine } from "@/components/room/room-engine";
-import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
+import { useDeskSynapse, getDeskSynapse, type SynapseTab } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
 import {
@@ -87,7 +87,7 @@ import {
   fetchYearStudySeed,
   hydrateFromYearStudy,
 } from "@/lib/trading/bt-seed";
-import { SynapseRail } from "@/components/desk/synapse-rail";
+import { SYNAPSE_TABS } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory, emptyDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
@@ -1628,6 +1628,7 @@ function MasterplacePage() {
             wallNow={wallNow}
             liveRisk={risk}
             onEntryChip={() => setCat("trade")}
+            synapseTab={(SYNAPSE_TABS as string[]).includes(cat) ? (cat as SynapseTab) : "trade"}
             tabs={
               <nav aria-label="Profit categories">
                 <div className="flex flex-wrap gap-1">
@@ -1693,16 +1694,9 @@ function MasterplacePage() {
         {desk && (
           <>
             <div className="mt-3 min-h-[50vh] space-y-4">
-              {/* Learn carries no synapse feed: it is the one tab that is not a
-                  live surface, and a live rail above a lesson is the clutter
-                  this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" &&
-                cat !== "learn" &&
-                cat !== "invest" &&
-                cat !== "news" &&
-                cat !== "predict" &&
-                cat !== "discuss" &&
-                cat !== "floor" && <SynapseRail tab={cat} />}
+              {/* The Synapse box used to repeat here at the top of Options,
+                  Charts, Brain, Book and Lab. It is now ONE header chip
+                  (SessionHud → SynapseChip) that expands into the same box. */}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the

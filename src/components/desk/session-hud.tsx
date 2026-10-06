@@ -1,3 +1,5 @@
+import { SynapseChip } from "@/components/desk/synapse-rail";
+import type { SynapseTab } from "@/lib/trading/desk-synapse";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { AlertOctagon, ChevronDown, Clock, Crosshair, Radio, ShieldAlert, Sparkles, Zap } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
@@ -62,12 +64,19 @@ function matchingGhost(desk: DeskPayload, ghosts: GhostTrade[]): GhostTrade | nu
   return ghosts.find((g) => g.symbol === focus.symbol && g.side === focus.side) ?? null;
 }
 
+/** "606s (~10 min)" — the one place the feed delay is written out. */
+function lagWords(sec: number): string {
+  const s = Math.round(sec);
+  return s >= 90 ? `${s}s (~${Math.round(s / 60)} min)` : `${s}s`;
+}
+
 export function SessionHud({
   desk,
   wallNow,
   children,
   tabs,
   onEntryChip,
+  synapseTab = "trade",
   liveRisk,
 }: {
   desk: DeskPayload;
@@ -78,6 +87,8 @@ export function SessionHud({
   tabs?: ReactNode;
   /** Click on the entry-state chip (index routes it to the Now tab). */
   onEntryChip?: () => void;
+  /** The Synapse feed to show behind the header chip (the tab you are on). */
+  synapseTab?: SynapseTab;
   /**
    * The live governor's state (journal/risk.ts), when signed in. Drives the
    * halt-room chip: dollars left before today's halt, in losses at A.
@@ -307,10 +318,11 @@ export function SessionHud({
           />
 
           <span
-            aria-label={`Worst quote lag ${Math.round(worstLagSec)}s`}
-            title={`Worst quote lag vs exchange print time: ${Math.round(worstLagSec)}s`}
+            role="img"
+            aria-label={`Feed delay ${lagWords(worstLagSec)}`}
+            title={`Feed delay vs the exchange print — ${quotes.left.symbol} ${Math.round(quotes.left.lagSec)}s · ${quotes.right.symbol} ${Math.round(quotes.right.lagSec)}s (worst ${lagWords(worstLagSec)}). Green ≤ 15s · amber ≤ 2 min · red beyond.`}
             className={cn(
-              "inline-block h-2 w-2 rounded-full",
+              "inline-block h-2.5 w-2.5 cursor-help rounded-full ring-2 ring-[var(--color-bg)]",
               worstLagSec <= 15
                 ? "bg-[var(--color-up)]"
                 : worstLagSec <= 120
@@ -349,6 +361,7 @@ export function SessionHud({
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
           <span className="hidden lg:inline">Flash</span>
         </button>
+        <SynapseChip tab={synapseTab} />
         <div className="flex-1" />
         <button
           type="button"

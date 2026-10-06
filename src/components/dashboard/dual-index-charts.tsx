@@ -137,9 +137,11 @@ function LiveClock({
       <p>
         <span className="text-[var(--color-muted)]">Fetched </span>
         {formatUtcClock(quote.fetchedAtMs)}
-        <span className={cn("ml-1.5 font-medium", lagColor)}>
-          lag {liveLag}s
-        </span>
+        <span
+          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", lagColor.replace("text-", "bg-"))}
+          title={`Print delay ${liveLag}s (the header's feed dot carries the desk-wide read)`}
+          aria-label={`Print delay ${liveLag}s`}
+        />
       </p>
     </div>
   );
@@ -440,11 +442,6 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
     return rows;
   }, [payload]);
 
-  const maxLag = Math.max(
-    leftQuote ? Math.round((wallNowMs - leftQuote.marketTimeMs) / 1000) : 0,
-    rightQuote ? Math.round((wallNowMs - rightQuote.marketTimeMs) / 1000) : 0,
-  );
-
   return (
     <Card className="overflow-hidden border-[color-mix(in_oklab,var(--color-primary)_18%,var(--color-border))]">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -563,25 +560,7 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
                   {formatUtcClock(wallNowMs)}
                 </span>
               </span>
-              <span>
-                Max print lag{" "}
-                <span
-                  className={cn(
-                    "font-semibold",
-                    maxLag <= 5
-                      ? "text-[var(--color-up)]"
-                      : maxLag <= 60
-                        ? "text-[var(--color-warn)]"
-                        : "text-[var(--color-down)]",
-                  )}
-                >
-                  {maxLag}s
-                </span>
-                <span className="text-[var(--color-subtle)]">
-                  {" "}
-                  (Yahoo last trade vs now)
-                </span>
-              </span>
+              {/* The print delay is written once: the header's feed dot. */}
               <span>
                 Bars {payload.interval} · reload {BARS_RELOAD_MS / 1000}s
               </span>

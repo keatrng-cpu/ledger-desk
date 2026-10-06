@@ -253,7 +253,8 @@ function LiveBadge({ frame }: { frame: FloorFrame | null }) {
     } else {
       const late = (feed.lagSec ?? 0) >= 90;
       tone = late ? "#d97706" : "#16a34a";
-      text = `LIVE · ${feed.kind === "yahoo" ? "Yahoo" : "Databento"}${late ? ` · futures ${lagText(feed.lagSec)} behind` : ""}`;
+      // The delay itself is written once — the header's feed dot (hover it).
+      text = `LIVE · ${feed.kind === "yahoo" ? "Yahoo" : "Databento"}${late ? " · delayed" : ""}`;
     }
   }
   const clock = frame?.clockLabel;
@@ -965,7 +966,9 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         <span className="rounded px-2 py-0.5 text-[11px] font-semibold text-black" style={{ background: URGENCY_COLOR[urgency] }}>
           {urgency.replace("_", " ")}
         </span>
-        <span className="font-mono text-[11px] text-[var(--color-subtle)]">{frame?.screens.source ?? ""}</span>
+        <span className="font-mono text-[11px] text-[var(--color-subtle)]">
+          {(frame?.screens.source ?? "").replace(/\s*·\s*lag\s+\d+\s*s\b/i, "")}
+        </span>
         <button
           type="button"
           className={`${BTN} ml-auto`}
