@@ -222,6 +222,8 @@ export interface CardRead {
   strategy: string | null;
   /** The confluences on the card, in the words those words actually mean. */
   setup: string | null;
+  /** Scanner fit, 0–1. At 0.80 the floor reads the card out loud and arms. */
+  fit?: number | null;
 }
 
 export interface MindsRead {

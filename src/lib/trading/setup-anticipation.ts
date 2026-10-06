@@ -384,7 +384,9 @@ export function anticipate(input: AnticipationInput): SetupAnticipation {
       ? "Sequence complete and price is in the array. This is the entry, at the price already named."
       : "Sequence complete. Wait for price to come back into the array — the fill is the retrace, not the print."
     : deadCount > 0
-      ? `${deadCount} layer${deadCount === 1 ? "" : "s"} failed for this session (${deadNames}). Waiting will not fix this one — the tape has to change, not the clock.`
+      ? engine >= 0.8
+        ? `Fit ${engine.toFixed(2)}. ${deadNames || "a layer"} is open. That cuts size. Read the chart and take the array when price is there.`
+        : `${deadCount} layer${deadCount === 1 ? "" : "s"} failed for this session (${deadNames}). Waiting will not fix this one — the tape has to change, not the clock.`
       : (nextMark?.watchFor ?? `${mustPass}/${mustNeed} musts printed.`);
 
   const drawIt = engine >= MARKUP_MIN_ENGINE || progress >= MARKUP_MIN_PROGRESS;

@@ -628,7 +628,7 @@ function gradeBook(
   // premium/discount half, or the LTF shift is missing. Those cut size.
   // They are still on the card. They do not set the word to STAND.
   const ignorable = (l: { id: string; state: string }) =>
-    pathOk && htfPass && (l.id === "sweep" || l.id === "pd_half" || l.id === "ltf") && l.state === "fail";
+    pathOk && htfPass && (cand?.confluence ?? 0) >= 0.8 && (l.id === "sweep" || l.id === "pd_half" || l.id === "ltf" || l.id === "dol") && l.state === "fail";
   const mustPass = musts.filter((l) => l.state === "pass" || ignorable(l)).length;
   const mustNeed = musts.length;
   const mustFail = musts.find((l) => l.state === "fail" && !ignorable(l));

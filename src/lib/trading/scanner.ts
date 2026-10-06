@@ -633,8 +633,11 @@ function scoreDirection(
   const hasSweep =
     present.includes("sweep_significant") ||
     present.includes("mechanical_model");
+  const hot = score >= 0.8 && htfOk && clock.isWeekday && g !== "skip";
+  if (hot && !conditions.tradeable) reasons.push("Regime is quiet. Size is cut. A card at 0.80 is still read.");
   const actionable =
-    g !== "skip" &&
+    hot ||
+    (g !== "skip" &&
     htfOk &&
     killzoneOk &&
     clock.isWeekday &&
@@ -642,7 +645,7 @@ function scoreDirection(
     bestModel.complete &&
     (hasEntryModel || present.includes("mechanical_model")) &&
     (hasSweep || present.includes("structure") || present.includes("mss")) &&
-    score >= APLUS_RULES.confluenceFloor - 0.05;
+    score >= APLUS_RULES.confluenceFloor - 0.05);
 
   const titleParts = [
     bestModel.label ||
@@ -742,7 +745,7 @@ function scoreDirection(
     ],
     killzoneOk,
     htfOk,
-    conditionsOk,
+    conditionsOk: conditionsOk || hot,
     actionable,
     regime: conditions.regime,
     volatility: conditions.volatility,

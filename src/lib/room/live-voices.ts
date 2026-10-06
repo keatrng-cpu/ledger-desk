@@ -1199,6 +1199,27 @@ export function exHtf(c: Ctx, d: HtfData): Ex | null {
 export interface BoardData {
   card: CardRead;
 }
+export function exHot(c: Ctx, d: BoardData): Ex | null {
+  const f = c.f;
+  const k = d.card;
+  const fit = k.fit ?? 0;
+  if (fit < 0.8) return null;
+  const where =
+    k.entry != null && k.awayPts != null
+      ? `Price is ${f.pts(Math.abs(k.awayPts))} pts from the entry at ${f.lvl(k.entry)}.`
+      : k.entry != null
+        ? `The entry is ${f.lvl(k.entry)}.`
+        : "The entry is not priced yet.";
+  const lines = compact([
+    line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. Higher timeframe agrees. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the next pool"}.`),
+    line("Gemma", ANIM.Gemma.wall!, "Four hour is the bias. One hour is the range. Five minute is the shift. One minute is the touch. We are reading all four."),
+    line("Jax", ANIM.Jax.point!, "Above 0.80. I want this one."),
+    line("Sterling", ANIM.Sterling.tablet!, `What is missing cuts the size. It does not kill the card. We buy the pullback into ${k.entry != null ? f.lvl(k.entry) : "the array"}, not the extension.`),
+    line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. It goes when the chart is there and this floor has said it.`),
+  ]);
+  return { lines, moves: BOARD };
+}
+
 export function exBoard(c: Ctx, d: BoardData): Ex | null {
   const f = c.f;
   const k = d.card;

@@ -497,8 +497,8 @@ function SetupCard({
       readCardGeometry({
         symbol: c.symbol,
         side: c.side === "short" ? "short" : "long",
-        entryZone: c.entryZone,
-        invalidation: c.invalidation,
+        entryZone: c.plan ? String(c.plan.entry) : c.entryZone,
+        invalidation: c.plan ? String(c.plan.stop) : c.invalidation,
         target: c.targets?.[0] ?? null,
         // ATR from the card's own bars, so the cap is this instrument's at
         // this volatility rather than the legacy fixed point number.
@@ -1350,7 +1350,7 @@ function SetupCard({
             >
               Stop {risk.riskAtr.toFixed(2)}×ATR —{" "}
               {risk.riskAtr < MIN_RISK_ATR || risk.riskAtr > MAX_RISK_ATR_TRADABLE
-                ? `outside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band, where cards lose in both halves of four years`
+                ? `outside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band. Size is cut. The card stays live.`
                 : `inside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band (outside it loses; inside is roughly breakeven)`}
             </p>
           )}

@@ -242,7 +242,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
-    verdict: c.actionable && isPathFire(c) ? "ARMED" : "WATCH",
+    verdict: (c.confluence ?? 0) >= 0.8 && c.htfOk ? "ARMED" : c.actionable && isPathFire(c) ? "ARMED" : "WATCH",
     u,
     type: c.side === "short" ? "PUT" : "CALL",
     band: c.pathBand ? String(c.pathBand) : null,
@@ -258,6 +258,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     block: c.missing?.[0] ?? c.vetoes?.[0] ?? null,
     strategy: c.completeStrategy || c.strategyPrimary || null,
     setup: setupLine(c.components ?? [], c.completeStrategy || c.strategyPrimary || null),
+    fit: c.confluence,
   };
 }
 

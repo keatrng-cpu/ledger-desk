@@ -41,6 +41,7 @@ import type {
   VinceZone,
 } from "./orchestrator";
 import { ivFor, quoteOption, type OptionType, type Underlier } from "./option-math";
+import { absorbAtlas, offerToBrains, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
 
 export const CREW: readonly Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
 
@@ -232,6 +233,10 @@ export interface MindState {
   /** Director meetings already held (key → when), so one release is one meeting. */
   held: Record<string, number>;
   seq: number;
+  /** Shared desk brain: cards, charts, SMC. Replaced, not re-read. */
+  atlas?: DeskAtlas;
+  /** Five personal brains connected to the desk. */
+  people?: PeopleBrains;
 }
 
 /* ── The director's agenda — what the desk says is coming ─────────────── */
@@ -667,7 +672,7 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
   }
   if (s.card && (s.card.verdict === "ARMED" || s.card.smcWord === "TAKE" || s.card.tier === "live" || s.card.tier === "armed")) {
     const c = s.card;
-    const text = `SMC ${c.smcWord} ${c.futSymbol} ${c.futSide}${c.band ? ` ${c.band}` : ""}${c.strategy ? ` · ${c.strategy}` : ""}. ${c.smcMissing}. A sweep, then displacement, then the array. A mitigation block is a failed second push, not the entry. If the touch is missed, the next entry is the pullback to CE, not the extension.`;
+    const text = `${c.futSymbol} ${c.futSide} ${c.smcWord}${c.band ? ` ${c.band}` : ""}`;
     if (!seenLately(m, "smc", text, s.nowMs, 20 * 60_000))
       m = remember(m, { at: s.nowMs, clock, kind: "smc", who: "Nova", text, outcome: null });
   }
@@ -691,7 +696,45 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
     } else if (!prev) marks[u] = { px, at: s.nowMs };
   }
   m = { ...m, tapeMark: marks };
-  return m;
+  let atlas = absorbAtlas(m.atlas, {
+    nowMs: s.nowMs,
+    etMin: s.etMin,
+    cardKey: s.card ? `${s.card.futSymbol}:${s.card.futSide}:${s.card.band ?? ""}:${s.card.smcWord}` : null,
+    cardLine: s.card ? `${s.card.futSymbol} ${s.card.futSide} ${s.card.smcWord}${s.card.band ? ` ${s.card.band}` : ""}. Entry is the array.` : null,
+    exitId: s.exit?.id ?? null,
+    exitLine: s.exit ? `${s.exit.id} ${s.exit.pnl >= 0 ? "paid" : "cost"} ${Math.abs(s.exit.pnl).toFixed(1)}%` : null,
+    newsOn: s.blackout,
+  });
+  let people = syncPeople(m.people, atlas, s.nowMs);
+  if (s.exit) {
+    const wrote = offerToBrains(people, atlas, {
+      who: s.exit.pnl >= 0 ? "Nova" : "Sterling",
+      text: `${s.exit.ticker} ${s.exit.reason.replaceAll("_", " ")} ${s.exit.pnl >= 0 ? "paid" : "cost"} ${Math.abs(s.exit.pnl).toFixed(1)}%. ${s.exit.pnl >= 0 ? "It improved the book, so it goes on the desk." : "Mine only. A loss does not become a desk rule."}`,
+      about: `close ${s.exit.id}`.slice(0, 40),
+      shelf: "backtest",
+      nowMs: s.nowMs,
+      pnl: s.exit.pnl,
+      pT1: null,
+      expR: null,
+    });
+    people = wrote.people;
+    atlas = wrote.desk;
+  }
+  if (s.card && (s.card.pT1 != null || s.card.expR != null) && (s.card.confluence ?? 0) >= 0.8) {
+    const wrote = offerToBrains(people, atlas, {
+      who: "Nova",
+      text: `${s.card.futSymbol} ${s.card.futSide} ${s.card.band ?? ""} fit ${(s.card.confluence ?? 0).toFixed(2)}. P(T1) ${s.card.pT1 != null ? `${Math.round(s.card.pT1 * 100)}%` : "—"}. E[R] ${s.card.expR != null ? s.card.expR.toFixed(2) : "—"}. Higher than the last one we kept.`,
+      about: `${s.card.futSymbol} ${s.card.futSide}`,
+      shelf: "discretion",
+      nowMs: s.nowMs,
+      pnl: null,
+      pT1: s.card.pT1,
+      expR: s.card.expR,
+    });
+    people = wrote.people;
+    atlas = wrote.desk;
+  }
+  return { ...m, atlas, people };
 }
 
 /* ── Placement: the contract's zones, decided by rules then by people ──── */
@@ -762,7 +805,7 @@ export function planAgents(prev: MindState | null, s: Situation): AgentPlan {
         ),
       ]),
     ) as MindState["rel"];
-    minds = { ...fresh, rank, rel, memories: minds.memories.slice(0, SCORING.memoryCap), tapeMark: minds.tapeMark, seq: minds.seq };
+    minds = { ...fresh, rank, rel, memories: minds.memories.slice(0, SCORING.memoryCap), tapeMark: minds.tapeMark, seq: minds.seq, atlas: minds.atlas, people: minds.people };
   }
   const dtMin = Math.min(30, Math.max(0, (s.nowMs - minds.at) / 60_000));
 

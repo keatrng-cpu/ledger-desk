@@ -1328,6 +1328,9 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
     });
   }
   const card = w.card;
+  if (card && live && (card.fit ?? 0) >= 0.8) {
+    out.push({ id: "hot", weight: f(2.4, 0.15), sig: `${card.key}|${card.entry ?? ""}|${Math.round((card.fit ?? 0) * 100)}`, build: (c) => V.exHot(c, { card }) });
+  }
   if (card && live && card.verdict !== "STAND") {
     out.push({ id: "board", weight: f(1.4, 0.5), sig: `${card.key}|${card.tier ?? ""}|${card.block ?? ""}`, build: (c) => V.exBoard(c, { card }) });
   }

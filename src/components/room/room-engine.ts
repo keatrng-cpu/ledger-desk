@@ -573,11 +573,11 @@ export function frameIsEvent(f: FloorFrame): boolean {
 }
 
 const TALK_STORAGE = "ledger-room-talk-v1";
-const TALK_KEEP_MS = 30 * 60_000;
+const TALK_KEEP_MS = 16 * 60 * 60_000;
 
 function loadTalk(): TalkState {
   try {
-    const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(TALK_STORAGE) : null;
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(TALK_STORAGE) : null;
     const o = raw ? (JSON.parse(raw) as { at?: number; state?: TalkState }) : null;
     if (o?.state?.v === 1 && typeof o.at === "number" && Date.now() - o.at < TALK_KEEP_MS) return o.state;
   } catch {
@@ -591,7 +591,7 @@ function saveTalk(state: TalkState, nowMs: number) {
   if (nowMs - lastSaveMs < 10_000) return;
   lastSaveMs = nowMs;
   try {
-    window.sessionStorage.setItem(TALK_STORAGE, JSON.stringify({ at: nowMs, state }));
+    window.localStorage.setItem(TALK_STORAGE, JSON.stringify({ at: nowMs, state }));
   } catch {
     // Storage full or blocked: the talk keeps its memory for this page.
   }

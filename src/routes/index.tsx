@@ -65,6 +65,7 @@ import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
+import { FloorBrains } from "@/components/desk/floor-brains";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
@@ -1879,6 +1880,7 @@ function MasterplacePage() {
                     title="Veteran brain"
                     sub="SMC/ICT discretion · remembers backtests & journal · never overrides hard gates"
                   />
+                  <FloorBrains />
                   <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
                   <TradingCoach desk={desk} />
                 </div>

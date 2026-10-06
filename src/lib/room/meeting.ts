@@ -781,8 +781,9 @@ function postNews(f: Facts, m: Meeting): Line[] {
 }
 
 function remembered(minds: MindState | null): string | null {
-  const m = minds?.memories.find((x) => x.kind === "smc" || x.kind === "session" || x.kind === "tape");
-  return m ? `Last time: ${m.text}` : null;
+  const pending = minds?.people?.pending;
+  if (pending) return pending.text;
+  return null;
 }
 
 function setupReview(f: Facts, m: Meeting, minds: MindState | null): Line[] {

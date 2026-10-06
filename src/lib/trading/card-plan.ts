@@ -26,7 +26,6 @@
 import type { SetupCandidate } from "./scanner";
 import type { SmcMasterRead } from "./smc-master";
 import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR, type TradePlan } from "./trade-plan";
-import { riskAtrBucket } from "./evidence";
 
 export interface CardPlan {
   symbol: string;
@@ -222,9 +221,6 @@ export function cardRisk(
   };
 }
 
-const signedR = (x: number | null | undefined) =>
-  x == null ? "" : ` — measured ${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(2)}R/card`;
-
 /**
  * Why anything that SIZES from this card should refuse — or null.
  *
@@ -244,13 +240,6 @@ export function cardSizeRefusal(
   }
   if (!(risk.riskPts > 0)) return "Zero-width stop — nothing to size from";
   if (c.plan?.riskOverCap) return "Stop is wider than this symbol's cap — a landmark, not a stop";
-  if (risk.riskAtr != null) {
-    if (risk.riskAtr < MIN_RISK_ATR) {
-      return `Stop is ${risk.riskAtr.toFixed(2)}×ATR, inside the ${MIN_RISK_ATR}×ATR floor${signedR(riskAtrBucket(risk.riskAtr)?.exp)}`;
-    }
-    if (risk.riskAtr > MAX_RISK_ATR_TRADABLE) {
-      return `Stop is ${risk.riskAtr.toFixed(2)}×ATR, beyond the ${MAX_RISK_ATR_TRADABLE}×ATR band${signedR(riskAtrBucket(risk.riskAtr)?.exp)}`;
-    }
-  }
+  // The 0.5–1.5 ATR band is printed on the card. It changes size. It does not refuse the ticket.
   return null;
 }
