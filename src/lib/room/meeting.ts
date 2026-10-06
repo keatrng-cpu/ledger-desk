@@ -47,6 +47,7 @@ import {
 } from "./format";
 import { challengeFor, gateRecord, preMortem, rebuttalFor, strikeWhy, tallyLine, thesisOwner, type Lenses } from "./debate";
 import type { LabRead } from "./lab";
+import type { RhAccountSnapshot } from "@/lib/execution/rh-autofire-gates";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
 import { attribute, type HoldRead } from "./quant";
 import { HALF_SPREAD, ivFor, ivSource, quoteOption, type Underlier } from "./option-math";
@@ -59,6 +60,9 @@ import {
   oddsNote,
   pick,
   qNote,
+  rhAccountNote,
+  rhAccountShort,
+  rhArmedPathNote,
   rhLiveMandateNote,
   scannerMandateNote,
   sessionNote,
@@ -105,6 +109,11 @@ export interface Facts {
   lenses: Lenses | null;
   /** What the ghost room and the calibration ledger have learned so far. */
   lab: LabRead | null;
+  /**
+   * The Robinhood account read on the desk (cash / BP / access) — context for
+   * the seats. Absent = no read; the room says so. Never authorizes a ticket.
+   */
+  rhAccount?: RhAccountSnapshot | null;
 }
 
 type Line = { who: Character; text: string; want: Animation };
@@ -203,7 +212,7 @@ function closed(f: Facts): Line[] {
         : f.etMin < ROOM_CLOCK.optionsOpenMin
           ? `Pre-market — options list at 09:30 ET. ${htfLine(f)}${week}`
           : `Cash is done for the day. ${htfLine(f)}`;
-  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote()], f.seed);
+  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote(), rhNoteOf(f)], f.seed);
   const banter = [
     `Gemma, QQQ ${px(q.price)} and SPY ${px(s.price)}, and I can't click either one.`,
     "Replaying this morning's tape on my phone. Don't judge me.",
@@ -693,7 +702,7 @@ function labNote(f: Facts): { line: string } | null {
 function chop(f: Facts, minds: MindState | null, acts: Partial<Record<Character, AgentAct>> | null): Line[] {
   const q = f.input.market_data.QQQ;
   const s = f.input.market_data.SPY;
-  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote(), labNote(f)], f.seed);
+  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote(), rhNoteOf(f), labNote(f)], f.seed);
   const jaxRank = minds ? minds.rank.Jax : 50;
   const jaxRec = recordLine(minds, "Jax");
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
@@ -735,7 +744,7 @@ function brief(f: Facts): Line[] {
     say("Gemma", `Morning. ${htfLine(f)} ${printLine(f)}${f.desk?.weekTrade ? ` Week card: ${f.desk.weekTrade}` : ""}`, "GESTICURING_AT_WALL"),
     say("Nova", ground ? `On the board for today: ${ground.line}` : "Same rules as yesterday.", "WRITING_ON_WHITEBOARD"),
     say("Jax", `QQQ ${px(q.price)}, SPY ${px(s.price)}. I want the first sweep — sweep, 5m context, 1m trigger.`, "POINTING"),
-    say("Sterling", `${room != null ? `Halt room ${usd(room)} today. ` : ""}Judas 09:30–09:45 is ours to watch, not to trade.`, "CROSSING_ARMS"),
+    say("Sterling", `${room != null ? `Halt room ${usd(room)} today. ` : ""}Judas 09:30–09:45 is ours to watch, not to trade.${rhNoteOf(f) ? ` ${rhNoteOf(f)!.line}` : ""}`, "CROSSING_ARMS"),
     say("Vince", `Orders rest at CE or they don't go. ${fill ? fill.line : ""}`, "THUMBS_UP"),
   ];
 }
@@ -914,6 +923,13 @@ export function buildMeeting(
   else if (f.beat === "blocked" && f.card) lines = blocked(f, minds);
   else lines = chop(f, minds, acts);
 
+  // RH account on the desk: when the Floor would fire but the RH account can't
+  // carry the $150 floor, Sterling says so — the armed RH path stands down.
+  const wouldFire = f.beat === "fill" || f.beat === "trigger_wait" || (f.card?.verdict === "ARMED" && f.beat !== "closed" && f.beat !== "rejected");
+  if (wouldFire && "rhAccount" in f && rhAccountShort(f.rhAccount)) {
+    lines.splice(Math.min(lines.length, 7), 0, say("Sterling", rhArmedPathNote(f.rhAccount, f.nowMs).line, "CROSSING_ARMS"));
+  }
+
   // Everyone speaks at least once — the contract names five people.
   for (const who of CREW) {
     if (!lines.some((l) => l.who === who)) lines.push(say(who, idleLine(who, f), DEFAULT_ANIM[who]));
@@ -921,6 +937,11 @@ export function buildMeeting(
   const execute = f.beat === "fill" || f.beat === "exit";
   const pacing = Boolean(f.desk && (f.desk.judas || f.desk.news.blackout || (f.desk.news.next?.minutesAway ?? 999) <= 30));
   return lines.slice(0, 9).map((l) => fit(l, places, execute, pacing));
+}
+
+/** The RH account note for picks — only when the cycle carried an account key. */
+function rhNoteOf(f: Facts) {
+  return "rhAccount" in f ? rhAccountNote(f.rhAccount) : null;
 }
 
 function idleLine(who: Character, f: Facts): string {

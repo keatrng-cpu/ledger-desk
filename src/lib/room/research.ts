@@ -23,10 +23,23 @@
  *   Sterling — what the refusals are worth (inducement, mitigation, events) + PATH cap + Stand agree.
  *   Gemma    — when the tape delivers (session buckets) + liquidity / HTF + RH live-when-armed.
  *   Jax      — how rarely the desk actually says TAKE + chase discipline on live PATH + RH size.
+ *
+ * RH account on the desk (Keaton 2026-10-06): every seat also carries the RH
+ * Individual account read — cash vs buying power, whether BP clears the $150
+ * envelope floor, and whether the armed path can fire at all (rhAccountNote /
+ * rhArmedPathNote). The numbers come from the account snapshot passed in, never
+ * written here.
  */
 
 import { EVIDENCE, type EvidenceBucket } from "@/lib/trading/evidence";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
+import {
+  evaluateRhBuyingPower,
+  rhSpendable,
+  RH_MAX_DEBIT_TOTAL,
+  RH_MIN_DEBIT_TOTAL,
+  type RhAccountSnapshot,
+} from "@/lib/execution/rh-autofire-gates";
 
 const byKey = (arr: EvidenceBucket[] | undefined, key: string): EvidenceBucket | null =>
   (arr ?? []).find((b) => b.key === key) ?? null;
@@ -181,20 +194,72 @@ export function rhLiveMandateNote(): ResearchNote {
   };
 }
 
+const usd2 = (x: number) => `$${x.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/** True when the account read on the desk cannot put $150 into an options debit. */
+export function rhAccountShort(a: RhAccountSnapshot | null | undefined): boolean {
+  return rhSpendable(a) < RH_MIN_DEBIT_TOTAL;
+}
+
+/** The RH account on the desk: cash vs buying power vs the envelope. */
+export function rhAccountNote(a: RhAccountSnapshot | null | undefined): ResearchNote {
+  if (!a) {
+    return {
+      id: "rh_account",
+      line: "No Robinhood account read on the desk — the agent pulls get_portfolio before any RH proposal, and autofire refuses blind.",
+      source: "rh-autofire-gates.ts · evaluateRhBuyingPower",
+    };
+  }
+  const sp = rhSpendable(a);
+  const day =
+    a.dayChangeUsd != null
+      ? ` ${a.dayChangeUsd < 0 ? "Down" : "Up"} ${usd2(Math.abs(a.dayChangeUsd))} today${a.dayChangePct != null ? ` (${a.dayChangePct < 0 ? "−" : "+"}${Math.abs(a.dayChangePct).toFixed(2)}%)` : ""}.`
+      : "";
+  const settling = a.unsettledFunds && a.unsettledFunds > 0 ? ` — ${usd2(a.unsettledFunds)} still settling` : "";
+  const line =
+    sp < RH_MIN_DEBIT_TOTAL
+      ? `RH ${a.label} on the desk: ${usd2(a.cash)} cash but only ${usd2(sp)} buying power${settling}. Under the $${RH_MIN_DEBIT_TOTAL} floor nothing in the $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL} envelope can place.${day}`
+      : `RH ${a.label} on the desk: ${usd2(a.cash)} cash, ${usd2(sp)} buying power — room for up to ${usd2(Math.min(sp, RH_MAX_DEBIT_TOTAL))} of the $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL} envelope.${day}`;
+  return { id: "rh_account", line, source: `${a.source} · ${new Date(a.asOfMs).toISOString().slice(0, 16)}Z` };
+}
+
+/** Whether the armed RH path can fire on this account, and the first gate that says no. */
+export function rhArmedPathNote(a: RhAccountSnapshot | null | undefined, nowMs: number): ResearchNote {
+  const sp = rhSpendable(a);
+  let line: string;
+  if (a && sp < RH_MIN_DEBIT_TOTAL) {
+    line = `Armed RH path is shut on BP: ${usd2(sp)} can't carry a $${RH_MIN_DEBIT_TOTAL} debit, so even Floor ARMED + PATH A-band + Manager agree stands down${a.agenticAllowed === false ? " — and the agent can't trade that account yet anyway" : ""}.`;
+  } else if (a && a.agenticAllowed === false) {
+    line = `RH ${a.label} has the buying power, but the agent can't trade that account — the armed path stays read-only.`;
+  } else {
+    const g = evaluateRhBuyingPower(a, nowMs);
+    line = g.ok
+      ? "Armed RH path: BP clears the floor — still needs RH_LIVE_ARMED, Floor ARMED, PATH A-band, Manager agentAgree, then review before place."
+      : `Armed RH path waits on a fresh get_portfolio read before anything is proposed (${g.gate}).`;
+  }
+  return { id: "rh_armed_path", line, source: "rh-autofire-gates.ts · evaluateRhBuyingPower" };
+}
+
 export function pick<T>(xs: (T | null)[], seed: number): T | null {
   const ok = xs.filter((x): x is T => x != null);
   return ok.length ? ok[Math.abs(seed) % ok.length]! : null;
 }
 
 /** The notes each person carries, for their monitor and the Research panel. */
-export function researchShelf(): Record<"Nova" | "Vince" | "Sterling" | "Gemma" | "Jax", ResearchNote[]> {
+export function researchShelf(
+  rhAccount?: RhAccountSnapshot | null,
+  nowMs: number = Date.now(),
+): Record<"Nova" | "Vince" | "Sterling" | "Gemma" | "Jax", ResearchNote[]> {
   const keep = (xs: (ResearchNote | null)[]) => xs.filter((x): x is ResearchNote => x != null);
+  // Account context only when the caller put an account read on the desk.
+  const acct = rhAccount === undefined ? null : rhAccountNote(rhAccount);
+  const armed = rhAccount === undefined ? null : rhArmedPathNote(rhAccount, nowMs);
   return {
-    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote(), rhLiveMandateNote()]),
-    Vince: keep([fillTierNote(), smcMandateNote(), rhLiveMandateNote()]),
-    Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote(), rhLiveMandateNote()]),
-    Gemma: keep([sessionNote(), smcMandateNote(), rhLiveMandateNote()]),
-    Jax: keep([takeWordNote(), scannerMandateNote(), rhLiveMandateNote()]),
+    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote(), rhLiveMandateNote(), acct]),
+    Vince: keep([fillTierNote(), smcMandateNote(), rhLiveMandateNote(), acct]),
+    Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote(), rhLiveMandateNote(), acct, armed]),
+    Gemma: keep([sessionNote(), smcMandateNote(), rhLiveMandateNote(), acct]),
+    Jax: keep([takeWordNote(), scannerMandateNote(), rhLiveMandateNote(), acct, armed]),
   };
 }
 

@@ -53,6 +53,7 @@ import { pickExit, ROOM_POLICY } from "./exits";
 import { EXEC_LIMITS } from "./exec/limits";
 import { STOP_TXT, clockEt, contractName, prem, px, ptsTxt, sideWord, usd } from "./format";
 import type { LabRead } from "./lab";
+import type { RhAccountSnapshot } from "@/lib/execution/rh-autofire-gates";
 import { ROOM_CLOCK, ROOM_MANDATE, VIX_ELEVATED, VIX_STRESSED } from "./mandate";
 import { buildMeeting, jaxPush, type Facts } from "./meeting";
 import {
@@ -294,6 +295,11 @@ export interface RoomContext {
   minds?: MindState | null;
   /** The ghost room's and the calibration ledger's summary (lab.ts) — what the room has learned. */
   lab?: LabRead | null;
+  /**
+   * Robinhood account read on the desk (get_portfolio or the desk snapshot) —
+   * the seats quote cash / BP / envelope / armed path from it. Context only.
+   */
+  rhAccount?: RhAccountSnapshot | null;
 }
 
 /* ── What the cycle decided, with the reasons ───────────────────────────── */
@@ -911,6 +917,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
       holds: {},
       lenses: null,
       lab: ctx?.lab ?? null,
+      ...(ctx && "rhAccount" in ctx ? { rhAccount: ctx.rhAccount ?? null } : {}),
     };
     return {
       output: {
@@ -1056,6 +1063,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
     holds,
     lenses,
     lab: ctx?.lab ?? null,
+    ...(ctx && "rhAccount" in ctx ? { rhAccount: ctx.rhAccount ?? null } : {}),
   };
 
   return {
