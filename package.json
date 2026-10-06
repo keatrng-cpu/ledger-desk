@@ -37,6 +37,7 @@
     "verify:cards": "npx tsx scripts/verify-card-freshness.mjs",
     "log": "npx tsx scripts/log-trade.mjs",
     "verify:markup": "npx tsx scripts/verify-setup-anticipation.mjs",
+    "verify:pm-signal": "npx tsx scripts/verify-pm-signal-engine.mjs",
     "verify:all": "npx tsx scripts/verify-all.mjs",
     "verify:guards": "npx tsx scripts/verify-repo-guards.mjs",
     "verify:migration": "npx tsx scripts/verify-sleeve-migration.mjs",
