@@ -1544,7 +1544,7 @@ function MasterplacePage() {
 
 
   return (
-    <div className="min-h-dvh bg-[var(--color-bg)]">
+    <div className="ld-readable min-h-dvh bg-[var(--color-bg)]">
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.25]"
         style={{

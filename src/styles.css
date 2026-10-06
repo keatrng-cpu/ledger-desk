@@ -9,9 +9,16 @@
   --color-surface: #111114;
   --color-surface-2: #18181c;
   --color-surface-3: #1f1f25;
+  /* Referenced by the floor cards and the chart toggles but never defined —
+     they rendered transparent / inherited. */
+  --color-surface-1: #111114;
+  --color-accent: #a78bfa;
   --color-fg: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-subtle: #71717a;
+  /* Greys lifted for WCAG AA on every surface (redesign 2026-10-06):
+     subtle #8b8b94 is 4.85:1 on surface-3 and 5.9:1 on bg (was #71717a,
+     3.4–4.1:1, below AA); muted #b4b4bd keeps the step above it. */
+  --color-muted: #b4b4bd;
+  --color-subtle: #8b8b94;
   --color-border: #27272a;
   --color-border-strong: #3f3f46;
 
@@ -156,6 +163,58 @@
     }
   }
 
+  /* ── Redesign: entry-state hero ─────────────────────────────────────
+     ARMED pulses teal; ENTER pulses bright green (stronger, faster). The
+     WAIT and STALKING states are deliberately still: motion is reserved for
+     the two states that may ask for a click. */
+  .pulse-armed {
+    animation: pulse-armed 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-armed {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 55%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 8px color-mix(in oklab, var(--color-primary) 0%, transparent);
+    }
+  }
+  .pulse-enter {
+    animation: pulse-enter 0.9s ease-in-out infinite;
+  }
+  @keyframes pulse-enter {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, #4ade80 85%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 10px color-mix(in oklab, #4ade80 0%, transparent);
+    }
+  }
+  /* Veto band over the fit gauge: red diagonal hatch. */
+  .hatch-veto {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--color-down) 70%, transparent) 0 4px,
+      color-mix(in oklab, var(--color-down) 18%, transparent) 4px 8px
+    );
+  }
+  /* Floor ticker crawl. */
+  .ticker-crawl {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: ticker-crawl 40s linear infinite;
+  }
+  @keyframes ticker-crawl {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .shimmer {
       animation: none;
@@ -168,4 +227,31 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/*
+ * READABILITY FLOOR (redesign 2026-10-06).
+ *
+ * The desk was written in 9–11px arbitrary sizes on near-black — most of the
+ * screen sat under the size a trader can read at arm's length. Rather than
+ * touch several hundred class names, the shell root carries `ld-readable` and
+ * these unlayered rules (which beat Tailwind's layered utilities) lift every
+ * micro size two steps: body copy lands at ~13px, the smallest labels at 11px.
+ * Remove the class from the root to get the original sizes back.
+ */
+.ld-readable .text-\[9px\] {
+  font-size: 11px;
+}
+.ld-readable .text-\[10px\] {
+  font-size: 12px;
+}
+.ld-readable .text-\[11px\] {
+  font-size: 13px;
+}
+.ld-readable .text-\[12px\] {
+  font-size: 13px;
+}
+.ld-readable .text-xs {
+  font-size: 13px;
+  line-height: 1.4;
 }
