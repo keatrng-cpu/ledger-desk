@@ -134,6 +134,52 @@ function IncomeGauge({ equity }: { equity: number }) {
         </p>
       </div>
       {(() => {
+        // Same two numbers as the line above, drawn: how much of the monthly
+        // target the measured terms cover, and how many times over the
+        // projection would have to repeat to close the gap.
+        const frac = plan.target > 0 ? Math.max(0, plan.projectedMonthlyDollars) / plan.target : 0;
+        const short = !plan.reachable && Number.isFinite(plan.shortfallMultiple) ? plan.shortfallMultiple : null;
+        const segs = short != null ? Math.min(30, Math.ceil(short)) : 0;
+        return (
+          <div className="mt-2">
+            <div className="flex items-baseline gap-2">
+              <span
+                className={`font-mono text-2xl font-semibold tabular-nums ${plan.reachable ? "text-[var(--color-up)]" : "text-[var(--color-fg)]"}`}
+              >
+                {usd(Math.max(0, plan.projectedMonthlyDollars))}
+              </span>
+              <span className="text-[11px] text-[var(--color-muted)]">
+                of {usd(plan.target)}/mo · {(Math.min(1, frac) * 100).toFixed(1)}%
+              </span>
+            </div>
+            <div
+              className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-[var(--color-bg)]"
+              title={`${usd(plan.projectedMonthlyDollars)}/mo projected from measured terms vs a ${usd(plan.target)}/mo target`}
+            >
+              <span
+                className={`absolute inset-y-0 left-0 rounded-full ${plan.reachable ? "bg-[var(--color-up)]" : "bg-[var(--color-warn)]"}`}
+                style={{ width: `${Math.max(frac > 0 ? 1 : 0, Math.min(100, frac * 100))}%` }}
+              />
+            </div>
+            {short != null && segs > 1 && (
+              <div className="mt-1.5">
+                <div className="flex gap-[2px]" title={short > 999 ? "No measured income to scale yet" : `The projection would need to be ${short.toFixed(1)}x larger to reach the target`}>
+                  {Array.from({ length: segs }, (_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 flex-1 rounded-sm ${i === 0 ? "bg-[var(--color-warn)]" : "bg-[var(--color-border)]"}`}
+                    />
+                  ))}
+                </div>
+                <p className="mt-0.5 text-[10px] text-[var(--color-subtle)]">
+                  Gap · {short > 999 ? "no measured income yet" : `${short.toFixed(1)}x short`} — one block is today&apos;s measured month{short > 30 ? " (drawn to 30)" : ""}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+      {(() => {
         const band = EVIDENCE.inBand.find((b) => b.key === "in");
         return band?.exp != null ? (
           <p className="mt-1 text-[10px] leading-snug text-[var(--color-warn)]">
