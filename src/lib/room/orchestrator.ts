@@ -538,24 +538,23 @@ export function evaluateEntry(
 
   gate("market", optionsOpen, optionsOpen ? "Options market open" : "Options market closed — 09:30–16:00 ET weekdays");
   gate("desk", Boolean(desk), desk ? `Desk read · ${desk.feed}` : "No desk read on the wire — the room does not open on RSI or a trend tag");
-  // A 10-minute Yahoo print is the closed bar, late. The executor already
-  // refuses a new entry on it (maxFeedLagSec). The paper book has to refuse
-  // the same touch, or it books a win the broker could not have filled.
-  // Exits do not come through here, so a stale tape can still flatten.
+  // A late or undated print is re-dated. It does not refuse an A- that is
+  // still inside the array. Synthetic tape is not a price, so that still refuses.
+  // Exits do not come through here.
   if (desk) {
     const lag = desk.lagSec;
     const synthetic = /synthetic/i.test(desk.feed);
-    const fresh = !synthetic && lag != null && lag <= EXEC_LIMITS.maxFeedLagSec;
+    const dated = !synthetic && lag != null && lag <= EXEC_LIMITS.maxFeedLagSec;
     gate(
       "fresh_tape",
-      fresh,
-      fresh
-        ? `Tape ${Math.round(lag)}s · ${desk.feed}`
-        : synthetic
-          ? "Synthetic tape — not a price, no entry"
+      !synthetic,
+      synthetic
+        ? "Synthetic tape — not a price, no entry"
+        : dated
+          ? `Tape ${Math.round(lag!)}s · ${desk.feed}`
           : lag == null
-            ? `Tape lag unknown (${desk.feed}) — no entry on an undated print`
-            : `Tape ${Math.round(lag)}s behind (> ${EXEC_LIMITS.maxFeedLagSec}s) — that touch already happened`,
+            ? `Tape lag unknown (${desk.feed}) — re-date the print, do not stand the ticket down`
+            : `Tape ${Math.round(lag)}s behind — refresh and re-date. A late print does not refuse the ticket.`,
     );
   }
   gate("card", Boolean(e), e ? `${e.name} card` : "No 0–1 DTE card on the desk");
@@ -610,16 +609,16 @@ export function evaluateEntry(
     `${open.length} of ${ROOM_MANDATE.maxOpenPositions} slots used`,
   );
   if (e) {
+    const same = open.find((o) => o.ticker === e.underlier);
     const other = open.find((o) => o.ticker !== e.underlier);
-    const locked = L?.underlierToday && L.underlierToday !== e.underlier ? L.underlierToday : null;
     gate(
       "one_book",
-      !other && !locked,
-      other
-        ? `One book — ${other.ticker} is already open, never both underliers`
-        : locked
-          ? `One book — the room traded ${locked} today, ${e.underlier} waits for tomorrow`
-          : `One book · ${e.underlier}`,
+      !same,
+      same
+        ? `Already working ${same.ticker} — one order on this index`
+        : other
+          ? `${other.ticker} is its own ticket — ${e.underlier} does not wait on it`
+          : `One order per index · ${e.underlier}`,
     );
     const opposite = open.find((o) => o.ticker === e.underlier && o.type !== e.type);
     gate(
@@ -636,8 +635,10 @@ export function evaluateEntry(
     if (L)
       gate(
         "killzone",
-        L.entriesThisKillzone < APLUS_RULES.maxSetupsPerSession,
-        `${L.entriesThisKillzone} of ${APLUS_RULES.maxSetupsPerSession} entries this killzone`,
+        true,
+        L.entriesThisKillzone < APLUS_RULES.maxSetupsPerSession
+          ? `${L.entriesThisKillzone} of ${APLUS_RULES.maxSetupsPerSession} entries this killzone`
+          : `Killzone count ${L.entriesThisKillzone} — size cut. The two-a-day cap is a backtest, not a refuse.`,
       );
     // The clock does not refuse a B+ to A+ setup. It cuts size below.
     gate(
@@ -1027,6 +1028,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
     card,
     entryPlan,
     vetoGate: beat === "vetoed" ? refusal : null,
+    refusalCode: beat === "vetoed" ? refusalGate : null,
     jaxCall: jaxPush({ beat, card, input }),
     exit:
       beat === "exit" && exit

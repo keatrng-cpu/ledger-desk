@@ -41,7 +41,7 @@ import type {
   VinceZone,
 } from "./orchestrator";
 import { ivFor, quoteOption, type OptionType, type Underlier } from "./option-math";
-import { absorbAtlas, offerToBrains, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
+import { absorbAtlas, improveAtlas, offerToBrains, saveAtlas, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
 
 export const CREW: readonly Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
 
@@ -383,6 +383,8 @@ export interface Situation {
   card: RoomEntryRead | null;
   entryPlan: EntryPlan | null;
   vetoGate: string | null;
+  /** Gate id when an A- or better was not filled. Null on a fill. */
+  refusalCode: string | null;
   /** The direction Jax pushed this cycle (his chase call), if he made one. */
   jaxCall: { underlier: Underlier; dir: 1 | -1 } | null;
   exit: { reason: string; id: string; pnl: number; ticker: Underlier } | null;
@@ -720,19 +722,30 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
     people = wrote.people;
     atlas = wrote.desk;
   }
-  if (s.card && (s.card.pT1 != null || s.card.expR != null) && (s.card.confluence ?? 0) >= 0.8) {
+  const band = s.card?.band ?? "";
+  const graded = band === "A+" || band === "A" || band === "A-" || band === "A−" || band === "B+";
+  if (s.card && graded && s.refusalCode && s.beat === "vetoed") {
+    const text = `${s.card.futSymbol} ${band} was not filled. The gate was ${s.refusalCode}. Grade that gate, not the fit. The score does not go up because it was high.`;
+    atlas = improveAtlas(atlas, {
+      shelf: "discretion",
+      title: `Miss ${s.card.futSymbol}`,
+      text,
+      who: "Sterling",
+      nowMs: s.nowMs,
+    });
     const wrote = offerToBrains(people, atlas, {
-      who: "Nova",
-      text: `${s.card.futSymbol} ${s.card.futSide} ${s.card.band ?? ""} fit ${(s.card.confluence ?? 0).toFixed(2)}. P(T1) ${s.card.pT1 != null ? `${Math.round(s.card.pT1 * 100)}%` : "—"}. E[R] ${s.card.expR != null ? s.card.expR.toFixed(2) : "—"}. Higher than the last one we kept.`,
-      about: `${s.card.futSymbol} ${s.card.futSide}`,
+      who: "Sterling",
+      text,
+      about: `miss ${s.card.futSymbol} ${s.refusalCode}`.slice(0, 40),
       shelf: "discretion",
       nowMs: s.nowMs,
       pnl: null,
-      pT1: s.card.pT1,
-      expR: s.card.expR,
+      pT1: null,
+      expR: null,
     });
     people = wrote.people;
     atlas = wrote.desk;
+    saveAtlas(atlas);
   }
   return { ...m, atlas, people };
 }
@@ -823,8 +836,10 @@ export function planAgents(prev: MindState | null, s: Situation): AgentPlan {
     needs[who] = decayNeeds(minds.needs[who], who, prevAct.act, dtMin, s);
     let act: AgentAct;
     const forced = (a: Activity): AgentAct => (prevAct.act === a ? prevAct : { act: a, since: s.nowMs, spot: null, with: null });
-    if (readyBoard(s)) act = forced("meeting");
-    else if (s.execute && (who === "Vince" || who === "Sterling")) act = forced("desk");
+    if (readyBoard(s)) {
+      // The floor gathers at the board. The two who send the order stay at their desks.
+      act = s.execute && (who === "Vince" || who === "Sterling") ? forced("desk") : forced("meeting");
+    } else if (s.execute && (who === "Vince" || who === "Sterling")) act = forced("desk");
     else if (s.urgency === "HIGH_ALERT" && s.beat !== "closed") {
       // Sterling only walks to the board to stand in front of it (a veto).
       act = who === "Sterling" ? forced(s.beat === "vetoed" ? "meeting" : "desk") : forced("meeting");

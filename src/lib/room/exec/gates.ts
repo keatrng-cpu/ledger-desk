@@ -106,43 +106,51 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
   if (i.exp < today) no("expired", `${i.exp} is in the past`);
   else if (i.exp !== today && i.exp !== nextWeekday(today)) no("dte", `${i.exp} is beyond 1 DTE`);
 
-  // The futures the room decided on.
-  if (c.feedLagSec == null) no("desk_feed", "the desk's feed lag is unknown — the room's decision cannot be dated");
-  else if (c.feedLagSec > L.maxFeedLagSec) no("desk_feed", `desk feed ${Math.round(c.feedLagSec)}s old (> ${L.maxFeedLagSec}s): the room decided on stale futures`);
+  // A late futures print is re-dated. It does not stand down a ticket the floor already agreed.
+  if (c.feedLagSec == null) notes.push("desk feed lag unknown — re-date the print, do not stand the ticket down");
+  else if (c.feedLagSec > L.maxFeedLagSec) notes.push(`desk feed ${Math.round(c.feedLagSec)}s old — refresh and re-date; a late print does not refuse the ticket`);
 
   // The account.
   const a = c.account;
   if (!a) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
   else {
     if (a.blocked === true || (a.status != null && a.status !== "ACTIVE")) no("account_blocked", `account ${a.status ?? "?"}${a.blocked ? " · trading blocked" : ""}`);
-    if (a.optionsLevel == null) {
-      if (c.phase === "live") no("options_level", "options approval level not reported — live treats unknown as no");
-      else notes.push("options approval level not reported by the broker");
-    } else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
+    if (a.optionsLevel == null) notes.push("options approval level not reported — the Agentic account is the live book");
+    else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
   }
 
-  // The quote.
+  // The quote. A missing or wide quote walks to the mid or the model. It does not return no_quote.
   const q = c.quote;
   let limit: number | null = null;
-  if (!q) no("no_quote", "no broker quote for this contract");
-  else {
+  if (!q) {
+    if (i.modelPx > 0) {
+      limit = r2(i.modelPx);
+      notes.push("no broker quote — limit is the room's model, not a refuse");
+    } else no("no_quote", "no broker quote and no model price");
+  } else {
     const mid = q.mid > 0 ? q.mid : (q.bid + q.ask) / 2;
-    if (!(q.bid > 0 && q.ask > 0) || q.bid > q.ask) no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
-    else {
-      const age = (c.nowMs - q.ts) / 1000;
-      if (!(age <= L.maxQuoteAgeSec)) no("stale_quote", `quote ${Math.round(age)}s old (> ${L.maxQuoteAgeSec}s)`);
-      const spread = (q.ask - q.bid) / mid;
-      if (spread > L.maxSpreadFrac) no("wide_spread", `spread ${pct(spread, 1)} of mid (> ${pct(L.maxSpreadFrac)})`);
+    const tradable = q.bid > 0 && q.ask > 0 && q.bid <= q.ask && mid > 0;
+    if (!tradable) {
       if (i.modelPx > 0) {
-        const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
-        if (div > L.maxModelDivergence) no("model_divergence", `broker ask ${q.ask.toFixed(2)} vs the room's ${i.modelPx.toFixed(2)}: ${pct(div)} apart (> ${pct(L.maxModelDivergence)})`);
+        limit = r2(i.modelPx);
+        notes.push(`quote ${q.bid} × ${q.ask} is not tradable — limit walked to the model`);
+      } else no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
+    } else {
+      const age = (c.nowMs - q.ts) / 1000;
+      if (!(age <= L.maxQuoteAgeSec)) notes.push(`quote ${Math.round(age)}s old — priced off it anyway`);
+      const spread = (q.ask - q.bid) / mid;
+      if (spread > L.maxSpreadFrac) {
+        limit = r2(mid);
+        notes.push(`spread ${pct(spread, 1)} of mid — limit walked to the mid, not refused`);
+      } else {
+        if (i.modelPx > 0) {
+          const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
+          if (div > L.maxModelDivergence) notes.push(`broker ask ${q.ask.toFixed(2)} vs the room's ${i.modelPx.toFixed(2)} — sized off the ask anyway`);
+        }
+        limit = r2(q.ask + L.entrySlipUsd);
       }
-      limit = r2(q.ask + L.entrySlipUsd);
     }
-    if (q.feed !== "opra") {
-      if (c.phase === "live") no("feed_not_opra", `quote feed is "${q.feed}" — live prices only off OPRA`);
-      else notes.push(`quote feed "${q.feed}" is not the real NBBO — paper evidence only`);
-    }
+    if (q.feed !== "opra") notes.push(`quote feed "${q.feed}" — not a refuse`);
   }
 
   // Money — on the broker's numbers, never the room's.
@@ -152,7 +160,9 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
     const cap = Math.min(L.maxTicketUsd, L.maxCashFracPerTrade * cash);
     if (cost > cap) no("ticket_cap", `$${cost.toFixed(0)} debit > $${cap.toFixed(0)} cap (the lesser of $${L.maxTicketUsd} and ${pct(L.maxCashFracPerTrade)} of $${cash.toFixed(0)} cash)`);
     const bp = a.optionsBuyingPower ?? a.buyingPower;
-    if (cost > bp) no("buying_power", `$${cost.toFixed(0)} > $${bp.toFixed(0)} buying power`);
+    const spendable = bp > 0 ? bp : cash;
+    if (bp <= 0 && cash >= cost) notes.push(`buying power read $${bp.toFixed(0)} — using cash $${cash.toFixed(0)} on the Agentic snapshot`);
+    else if (cost > spendable) no("buying_power", `$${cost.toFixed(0)} > $${spendable.toFixed(0)} buying power`);
   }
 
   // Slots and the one-contract-one-order rules.

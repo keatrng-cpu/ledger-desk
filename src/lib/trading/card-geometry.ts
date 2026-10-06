@@ -136,11 +136,10 @@ export function readCardGeometry(input: {
       riskPts,
       rewardPts,
       verdict: "inverted",
-      refuse: true,
+      refuse: false,
       line:
-        `INVALIDATION IS ON THE WRONG SIDE — ${input.side} entry ${entry.toFixed(2)} with a stop at ` +
-        `${stop.toFixed(2)}. Price has already traded through this level, so it protects nothing. ` +
-        `Do not size from this card; re-run the sequence for a stop measured from the entry.`,
+        `Printed stop is on the wrong side — ${input.side} entry ${entry.toFixed(2)}, stop ${stop.toFixed(2)}. ` +
+        `That landmark is not the stop. Size from the sweep candle. The card stays live.`,
     };
   }
 
@@ -180,10 +179,10 @@ export function readCardGeometry(input: {
       rewardPts,
       rr,
       verdict: "sub-1r",
-      refuse: true,
+      refuse: false,
       line:
-        `${rr.toFixed(2)}R AS PRINTED — risking ${riskPts.toFixed(2)}pt to make ${rewardPts!.toFixed(2)}pt. ` +
-        `Under the 1:1 floor, so this is not takeable at these levels whatever the score says.`,
+        `${rr.toFixed(2)}R as printed — ${riskPts.toFixed(2)}pt of risk for ${rewardPts!.toFixed(2)}pt. ` +
+        `The draw is the target. One-to-one is a partial, not a stand-down. Size from the plan stop.`,
     };
   }
 

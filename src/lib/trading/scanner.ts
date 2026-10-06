@@ -22,6 +22,7 @@ import {
   consequentEncroachment,
 } from "./fib";
 import { biasDisrespect } from "./htf-invalidation";
+import { gapDirection } from "./gap-direction";
 import type { SessionClock } from "./sessions";
 import {
   ALWAYS_SCAN,
@@ -81,6 +82,10 @@ export interface SetupCandidate {
   targets: string[];
   killzoneOk: boolean;
   htfOk: boolean;
+  /** 1H and 4H gap side when both agree and the touch is fresh. Null is not a vote. */
+  gapSide?: "long" | "short" | null;
+  /** Printed on the card. The score is not in this sentence. */
+  directionLine?: string;
   /**
    * How far the counter-bias release has come, when this side is fighting the
    * HTF read.
@@ -627,18 +632,21 @@ function scoreDirection(
     .map((b) => b.id as import("./strategies").StrategyId);
 
   const g = grade(score, APLUS_RULES.confluenceFloor);
+  const gaps = gapDirection(bars);
+  const cardSide = direction === "bull" ? "long" : "short";
+  const directionOk = gaps.side != null ? gaps.side === cardSide : htfOk;
 
   const hasEntryModel =
     present.includes("ifvg") || present.includes("order_block");
   const hasSweep =
     present.includes("sweep_significant") ||
     present.includes("mechanical_model");
-  const hot = score >= 0.8 && htfOk && clock.isWeekday && g !== "skip";
+  const hot = score >= 0.8 && directionOk && clock.isWeekday && g !== "skip";
   if (hot && !conditions.tradeable) reasons.push("Regime is quiet. Size is cut. A card at 0.80 is still read.");
   const actionable =
     hot ||
     (g !== "skip" &&
-    htfOk &&
+    directionOk &&
     killzoneOk &&
     clock.isWeekday &&
     conditionsOk &&
@@ -702,6 +710,7 @@ function scoreDirection(
     grade: g,
     title: `${read.symbol} ${side} — ${titleParts.join(" · ")}`,
     reasons: [
+      gaps.line,
       `smc structure Q ${structureScore.toFixed(2)}`,
       `best model: ${bestModel.label} fit ${bestModel.fit.toFixed(2)} (alone)`,
       ...strategyBoard.slice(0, 4).map(
@@ -745,6 +754,8 @@ function scoreDirection(
     ],
     killzoneOk,
     htfOk,
+    gapSide: gaps.side,
+    directionLine: gaps.line,
     conditionsOk: conditionsOk || hot,
     actionable,
     regime: conditions.regime,

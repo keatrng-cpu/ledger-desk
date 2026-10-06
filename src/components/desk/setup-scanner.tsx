@@ -181,7 +181,7 @@ function GradeBadge({ g }: { g: string }) {
         execute
           ? "PATH band — an execute grade (A+ sizes at the A probe until n≥20 A+ at WR≥65%)"
           : g === "B+"
-            ? "B+ — paper only, 0.5%"
+            ? "B+ is live. One contract. The score sizes. It does not pick the side."
             : "Not an execute grade"
       }
       className={cn(
@@ -349,7 +349,8 @@ function BlockerStrip({
   sessionReason?: string;
 }) {
   const blocks: string[] = [];
-  if (!c.htfOk) blocks.push("HTF bias conflict");
+  if (c.gapSide && c.gapSide !== c.side) blocks.push("Direction disagrees — 1H and 4H gaps");
+  else if (!c.gapSide && !c.htfOk) blocks.push("No fresh 1H/4H gap, and the higher-timeframe read is the other way");
   if (!c.conditionsOk) blocks.push(`conditions (${c.regime || "regime"})`);
   // The session gate is measured on the tape (session-event.ts): a killzone,
   // or an event with delivery >= 2.0 ATR AND participation >= 1.5x. "Outside
@@ -926,6 +927,9 @@ function SetupCard({
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}
           </p>
+          {c.directionLine && (
+            <p className="mt-0.5 text-[11px] leading-snug text-[var(--color-fg)]">{c.directionLine}</p>
+          )}
           {/* The brain's two independent reads on THIS candidate: is the
               canon story complete (structure/rules), and does real
               live+paper+backtest history favor or demote its strategy
@@ -1333,8 +1337,8 @@ function SetupCard({
       {c.plan && (
         <div className="mb-2 space-y-0.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1.5 text-[10px] leading-snug">
           <p className="text-[var(--color-fg)]">
-            <span className="font-semibold">AT T1:</span> take {Math.round(APLUS_RULES.scaleOut.tp1Fraction * 100)}% off, stop to
-            breakeven, runner to T2. Do not protect earlier — banking at +1R measured −0.42R/t.
+            <span className="font-semibold">AT T1:</span> trim {Math.round(APLUS_RULES.scaleOut.tp1Fraction * 100)}% at one-to-one. That is a partial. The draw stays open. Stop to
+            breakeven on the runner. Do not flatten the card because one R printed.
           </p>
           <p className="text-[var(--color-muted)]">
             <span className="font-semibold">DEAD IF:</span> a close beyond {c.plan.stop.toFixed(2)}, or the limit is
@@ -1709,7 +1713,7 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Execute A+/A/A− · B+ paper only · floor {scan.floor} · ordered by what can be traded, never by fit score
+            Execute A+/A/A−/B+ · the score sizes, it does not vote · floor {scan.floor} · ordered by what can be traded, never by fit score
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

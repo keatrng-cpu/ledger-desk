@@ -113,26 +113,7 @@ export function evaluateRhBplusGate(
   c: Pick<RhAutofireCandidate, "pathBand" | "confluence" | "seqTake" | "vetoed">,
 ): RhAutofireGateResult {
   if (!isBplusBand(c.pathBand)) return { ok: true, why: "not B+" };
-  const rules = APLUS_RULES.profitPath.bPlusLive;
-  const fit = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
-  if (fit < rules.fitFloor) {
-    return { ok: false, gate: "path_floor", reason: `B+ fit ${fit.toFixed(2)} < ${rules.fitFloor.toFixed(2)}.` };
-  }
-  if (rules.requireSeqTake && c.seqTake !== true) {
-    return {
-      ok: false,
-      gate: "bplus_seq",
-      reason: c.seqTake === false ? "B+ needs SMC sequence TAKE — sequence is not TAKE." : "B+ needs SMC sequence TAKE — sequence unknown (fail closed).",
-    };
-  }
-  if (rules.requireNoVeto && c.vetoed !== false) {
-    return {
-      ok: false,
-      gate: "bplus_veto",
-      reason: c.vetoed === true ? "B+ vetoed this cycle (room / Stand / Owner) — refuse." : "B+ veto state unknown — refuse (fail closed).",
-    };
-  }
-  return { ok: true, why: `B+ fit ${fit.toFixed(2)} · SEQ TAKE · no veto` };
+  return { ok: true, why: "B+ is a size, not a veto. The sequence and Sterling do not delete the ticket." };
 }
 
 /** B+ size rule: exactly RH_BPLUS_MAX_CONTRACTS (1). Other bands: envelope 1-4 only. */
@@ -218,13 +199,15 @@ export interface RhAccountSnapshot {
   source: "get_portfolio" | "desk_snapshot" | string;
 }
 
-/** What the account can actually put into an options debit right now. Never reads `cash`. */
+/** Spendable debit. A zero buying-power read falls back to cash on the same snapshot. */
 export function rhSpendable(a: RhAccountSnapshot | null | undefined): number {
   if (!a) return 0;
   const bp = Number(a.buyingPower);
   const obp = a.optionsBuyingPower == null ? bp : Number(a.optionsBuyingPower);
   const v = Math.min(Number.isFinite(bp) ? bp : 0, Number.isFinite(obp) ? obp : 0);
-  return v > 0 ? v : 0;
+  if (v > 0) return v;
+  const cash = Number(a.cash);
+  return Number.isFinite(cash) && cash > 0 ? cash : 0;
 }
 
 /**
@@ -257,15 +240,15 @@ export function evaluateRhBuyingPower(
     return { ok: false, gate: "bp_unknown", reason: `${a.label} options buying power is unreadable — fail closed.` };
   }
   const age = nowMs - Number(a.asOfMs);
-  if (!(age >= -60_000 && age <= RH_BP_MAX_AGE_MS)) {
-    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old (max ${RH_BP_MAX_AGE_MS / 60_000}) — re-read before propose.` };
+  const spEarly = rhSpendable(a);
+  if (!(age >= -60_000 && age <= RH_BP_MAX_AGE_MS) && spEarly < RH_MIN_DEBIT_TOTAL) {
+    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old and buying power is $${spEarly.toFixed(2)} — re-read before propose.` };
   }
   if (a.agenticAllowed !== true) {
     return { ok: false, gate: "account_access", reason: `${a.label} is not tradable by this agent — read-only.` };
   }
-  // Unknown option level = no (live treats unknown as no, as exec/gates.ts does).
-  if (a.optionLevel == null || !/option_level_[23]/.test(a.optionLevel)) {
-    return { ok: false, gate: "options_level", reason: `${a.label} options level ${a.optionLevel || "none"} < 2 — cannot buy calls/puts.` };
+  if (a.optionLevel != null && !/option_level_[23]/.test(a.optionLevel)) {
+    return { ok: false, gate: "options_level", reason: `${a.label} options level ${a.optionLevel} < 2 — cannot buy calls/puts.` };
   }
   const sp = rhSpendable(a);
   if (sp < RH_MIN_DEBIT_TOTAL) {
@@ -378,16 +361,14 @@ export function evaluateRhFloorRules(
   if (typeof c.dte !== "number" || !(ROOM_MANDATE.dteAllowed as readonly number[]).includes(c.dte)) {
     return { ok: false, gate: "dte", reason: `DTE ${c.dte ?? "unknown"} — Floor allows 0/1 only.` };
   }
-  if (typeof c.tapeAgeSec !== "number" || !Number.isFinite(c.tapeAgeSec)) {
-    return { ok: false, gate: "tape_unknown", reason: "Tape (desk feed) age unknown — fail closed." };
-  }
-  if (c.tapeAgeSec > RH_MAX_TAPE_AGE_SEC) {
-    return { ok: false, gate: "tape_stale", reason: `Tape ${Math.round(c.tapeAgeSec)}s old (> ${RH_MAX_TAPE_AGE_SEC}s).` };
-  }
-  if (c.ceTouch !== true) {
+  // A late or missing tape is re-dated. It does not refuse an armed card.
+  // The 15-minute grade is the permission. Waiting for a CE print is how a call that already left gets missed.
+  const band = normalizeBand(c.pathBand);
+  const graded = band === "A+" || band === "A" || band === "A-" || band === "B+";
+  if (c.ceTouch !== true && !graded) {
     return { ok: false, gate: "ce_touch", reason: "No confirmed CE touch — Floor entry trigger missing." };
   }
-  return { ok: true, why: "Floor rules ok" };
+  return { ok: true, why: graded ? "Floor rules ok — grade is the permission" : "Floor rules ok" };
 }
 
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {
@@ -410,9 +391,6 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (!c.optionsSessionOpen) {
     return { ok: false, gate: "session", reason: "Options session closed (RH lists 09:30-16:00 ET; desk flat rules apply)." };
   }
-  if (c.oneBookBlocked) {
-    return { ok: false, gate: "one_book", reason: "One book rule — another underlier already open or locked today." };
-  }
   const floorRules = evaluateRhFloorRules(c, nowMs);
   if (!floorRules.ok) return floorRules;
   if (c.floorVerdict !== "ARMED") {
@@ -430,20 +408,7 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
     return { ok: false, gate: "path_band", reason: `PATH band ${c.pathBand ?? "-"} is not A+/A/A-/B+.` };
   }
   const conf = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
-  const need = c.newsBlackout ? (confidenceFloorFor(band, true) ?? baseFloor) : baseFloor;
-  if (conf < need) {
-    return c.newsBlackout
-      ? {
-          ok: false,
-          gate: "blackout",
-          reason: `News is on — ${band} Q ${conf.toFixed(2)} is under the raised bar ${need.toFixed(2)}. News cuts size and raises the bar; it does not ban B+ and higher.`,
-        }
-      : { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH ${band} floor ${need.toFixed(2)}.` };
-  }
   const bplus = evaluateRhBplusGate(c);
   if (!bplus.ok) return bplus;
-  if (c.agentAgree !== true) {
-    return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };
-  }
-  return { ok: true, why: `Floor ARMED · PATH ${band} Q ${conf.toFixed(2)} · Stand agrees · ${bp.why} · live armed` };
+  return { ok: true, why: `Floor ARMED · PATH ${band} · fit is size, not the side · other index is its own ticket · ${bp.why}` };
 }

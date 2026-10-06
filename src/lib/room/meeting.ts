@@ -263,9 +263,9 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
   const hot = hotTape(f);
   const push = jaxPush(f);
   const gemma = d?.judas
-    ? `Judas window until 09:45. Whatever runs off the open is the raid until it fails — name it, don't trade it. ${htfLine(f)}`
+    ? `Judas window. The open is the raid until it fails — name it. Size is cut. A card whose one-hour and four-hour gaps agree is still a ticket. ${htfLine(f)}`
     : d?.news.blackout
-      ? `${d.news.reason || "News blackout"} — ±15 minutes, hands off. The first impulse off a release is usually the raid. ${htfLine(f)}`
+      ? `${d.news.reason || "News on"} — size comes down. The first impulse off a release is usually the raid. The chart still decides. ${htfLine(f)}`
       : `${htfLine(f)} ${printLine(f)}`;
   const jax =
     hot && push
@@ -286,8 +286,8 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
     say(
       "Nova",
       d?.judas
-        ? "09:45, and a raid that closes back inside the pool it took. Then the sequence prices a CE and Vince rests a limit there."
-        : `${c.smcMissing} prints, the sequence prices a CE, and Vince rests the limit there. Until then it's a picture.`,
+        ? "09:45 is when size comes back up. A raid that closes back inside the pool is the sequence. A card that is already armed does not wait out the clock."
+        : `${c.smcMissing} is a missing layer. Size is cut. The one-minute or five-minute inverse is the entry. The fifteen-minute card is the permission.`,
       "WRITING_ON_WHITEBOARD",
     ),
     say("Sterling", `Desk ${c.verdict}: ${(c.blocks[0] ?? c.smcMissing).replace(/\.$/, "")}. Nothing to clear.${patternWarning(c)}`, "CHECKING_TABLET"),
@@ -629,13 +629,13 @@ function exitLines(f: Facts): Line[] {
 }
 
 const VETO_WHY: Record<string, string> = {
-  one_book: "One book a day — MNQ or ES, never both. Two underliers on one morning is the same bet twice.",
+  one_book: "One order per index. QQQ is MNQ and SPY is ES. The other index is a second ticket, not a veto.",
   one_bias: "We don't buy the other side of our own position.",
   slots: "Three is the ceiling. We manage what we have.",
   cash_cap: "We don't buy smaller to make a contract fit the cap.",
   halt_day: "The day halt is the day halt. We're done until tomorrow.",
   halt_week: "The weekly halt is hit. Nothing new this week.",
-  killzone: "Two entries a killzone. That's the cap.",
+  killzone: "The killzone count cuts size. It does not take the ticket off.",
   after_ten: "After 10:00 the size comes down. The chart still decides.",
   month: "Month is full — size comes down. The chart still decides.",
   cooldown: "Two losses in a row — size comes down. The chart still decides.",

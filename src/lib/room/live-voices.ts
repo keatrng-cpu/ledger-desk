@@ -732,7 +732,7 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       break;
     case "open":
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.open.vince", [() => `Bell. ${px ? `${px}${gap ? `, ${gap}` : ""}.` : "We're open."}`, () => `We're open${px ? ` — ${px}` : ""}.`])));
-      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: nothing until ${f.hhmm(9 * 60 + 45)} unless the raid resolves first.`, () => `The first fifteen minutes belong to the raid. Tickets wait until ${f.hhmm(9 * 60 + 45)}.`])));
+      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: the raid gets a name. Size stays small. A card whose direction agrees still places.`, () => `The first fifteen minutes are the raid. They cut size. They do not take a ticket off.`])));
       lines.push(line("Jax", ANIM.Jax.point!, pick(c, "sess.open.jax", [() => `Whatever it does, it'll fake first.`, () => `First fifteen minutes lie. I'll just watch.`, () => `Ring it. Let's see who it hurts.`])));
       break;
     case "judas_end":
@@ -892,8 +892,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
       () => `War board. Price is at CE${entry ? ` ${entry}` : ""}. This is the touch.`,
       () => `All five. ${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}.`,
     ])));
-    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Gates are read now — not before. Nobody moves until I've cleared it.`, () => `Reading the gates. One at a time, in order.`])));
-    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now or never.`, () => `Pull the trigger — no, wait for Sterling.`, () => `That's it, that's the one!`])));
+    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Direction agrees. The grade is the permission. I do not get a second vote.`, () => `The side is already called. Size is the only thing left.`])));
+    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now. The inverse is the entry.`, () => `It's in the array. Place it.`, () => `That's the one. Don't wait on a second yes.`])));
   } else if (d.to === "gone") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [
       () => `Missed ${f.raw(k.name)}. We do not chase it. The next entry is the pullback into the array, at CE.`,
@@ -1213,9 +1213,9 @@ export function exHot(c: Ctx, d: BoardData): Ex | null {
   const lines = compact([
     line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the draw"}.`),
     line("Gemma", ANIM.Gemma.wall!, "Bias is the one-hour and the four-hour gaps. Respected bullish, or a bearish gap that failed, is long. The reverse is short. The draw is the liquidity or the open gap in that direction, and we mark it before the entry."),
-    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the gap. Then the inverse, or the gap holds. Two of those from 9:30 to 11:30. Not a third."),
-    line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side, and it does not replace the sweep."),
-    line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. It goes when the chart is there and this floor has said it.`),
+    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the one-minute or five-minute gap. Then the inverse, or the gap holds. The fifteen-minute grade is the permission, not the trigger. Two a day is the backtest. Live, the count cuts size."),
+    line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side. A short printed target gets repriced, it does not stand the card down. QQQ and SPY are separate tickets."),
+    line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. Direction agrees, so it places. No second confirm.`),
   ]);
   return { lines, moves: BOARD };
 }

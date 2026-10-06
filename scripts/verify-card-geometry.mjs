@@ -14,6 +14,7 @@
 const { readCardGeometry, zoneMid, firstLevel, THIN_RR } = await import(
   "../src/lib/trading/card-geometry.ts"
 );
+const { gapDirection, gapBias, resample } = await import("../src/lib/trading/gap-direction.ts");
 
 let pass = 0;
 let fail = 0;
@@ -84,8 +85,8 @@ console.log("\nthe four real cards from 2026-09-25");
   });
   check("an inverted stop is detected", c.verdict, "inverted");
   check("risk is negative, not abs()'d away", c.riskPts < 0, true);
-  check("refused", c.refuse, true);
-  check("and it says price traded through it", /already traded through/.test(c.line), true);
+  check("an inverted stop is repriced, not refused", c.refuse, false);
+  check("and it says to size from the sweep", /Size from the sweep candle/.test(c.line) && /stays live/.test(c.line), true);
   check("it does NOT report an R:R for an inverted stop", c.rr, null);
 
   // 4. ES SHORT, B+ 0.73 — the only takeable card, and the lowest-graded.
@@ -106,9 +107,9 @@ console.log("\nthe four real cards from 2026-09-25");
 
   // The finding that made this urgent, asserted as a test.
   check(
-    "a landmark stop does not refuse; an inverted stop still does",
+    "a landmark stop does not refuse, and neither does an inverted or short target",
     [a.refuse, b.refuse, c.refuse, d.refuse],
-    [false, false, true, false],
+    [false, false, false, false],
   );
 }
 
@@ -125,7 +126,7 @@ console.log("\nthe boundaries");
     symbol: "ES", side: "long",
     entryZone: "7800", invalidation: "7790", target: "7809.9", atr: 4,
   });
-  check("a hair under 1R is refused", under.refuse, true);
+  check("a hair under 1R is repriced, not refused", under.refuse, false);
   check("and named as sub-1R", under.verdict, "sub-1r");
 
   const good = readCardGeometry({
@@ -166,6 +167,29 @@ console.log("\nthe cap is ATR-relative, per the same helper the desk uses");
   check("60pt is over cap when ATR is 8", calm.verdict, "over-cap");
   check("and fine when ATR is 40", wild.verdict, "ok");
   check("the cap widens with ATR, never below the legacy floor", wild.capPts >= 48, true);
+}
+
+console.log("\ndirection is the gaps, not the score");
+{
+  // 15m bars. A bullish gap on the later candles is respected by a close inside it.
+  const bars = [];
+  let t = Date.parse("2026-03-02T14:30:00Z");
+  const push = (o, h, l, c) => {
+    bars.push({ t, o, h, l, c });
+    t += 15 * 60 * 1000;
+  };
+  for (let i = 0; i < 20; i++) push(100, 101, 99, 100);
+  // Bull gap: bar[i-2].h < bar[i].l, then later bars respect it (close stays above the bottom).
+  push(100, 102, 99.5, 101.5);
+  push(101.5, 106, 101.2, 105.5);
+  push(105.5, 108, 104, 107);
+  for (let i = 0; i < 6; i++) push(107, 108, 104.5, 106);
+  const h1 = resample(bars, 60);
+  check("hourly candles exist", h1.length >= 3, true);
+  const d = gapDirection(bars);
+  check("a respected bullish gap is long on both frames or the line says the score does not vote", /score does not vote/.test(d.line), true);
+  const flat = gapBias([]);
+  check("no candles is no side", flat, null);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

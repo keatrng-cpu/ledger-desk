@@ -12,7 +12,7 @@
  * fall back to a 1–3 wide vertical rather than a lottery OTM.
  */
 
-import { isHighProbPath, isPathFire } from "@/lib/alerts/path-alarm";
+import { isPathFire } from "@/lib/alerts/path-alarm";
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
@@ -32,6 +32,7 @@ import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
 import { RH_MAX_DEBIT_TOTAL, confidenceFloorFor, contractsAfterEvent } from "@/lib/execution/rh-autofire-gates";
+import { gapDirection } from "./gap-direction";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -204,9 +205,22 @@ function afterSecondImpulse(clock: DeskPayload["clock"]): boolean {
   return clock.etHour > 10 || (clock.etHour === 10 && clock.etMinute >= 15);
 }
 
-/** A+/A/A- first; B+ (its own 0.60 config band) when no higher PATH is live — Keaton 2026-10-06. */
+/** One A- or better per index. QQQ follows MNQ, SPY follows ES. The first hit on each side is the card. */
+function pathCandidates(desk: DeskPayload): SetupCandidate[] {
+  const hits = desk.scan.candidates.filter((c) => isPathFire(c));
+  const picked: SetupCandidate[] = [];
+  const seen = new Set<string>();
+  for (const c of hits) {
+    const root = /ES/.test(c.symbol) ? "ES" : "NQ";
+    if (seen.has(root)) continue;
+    seen.add(root);
+    picked.push(c);
+  }
+  return picked;
+}
+
 function pathCandidate(desk: DeskPayload): SetupCandidate | undefined {
-  return desk.scan.candidates.find((c) => isHighProbPath(c)) ?? desk.scan.candidates.find((c) => isPathFire(c));
+  return pathCandidates(desk)[0];
 }
 
 function componentsHint(c: SetupCandidate | undefined) {
@@ -671,12 +685,12 @@ function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
   };
 }
 
-function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard {
+function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forced?: SetupCandidate): RhStrategyCard {
   const blocks: string[] = [];
   const reasons: string[] = [];
   const clock = desk.clock;
   const day = desk.weekAhead?.today ?? weekDayFor(etDateKey());
-  const c = pathCandidate(desk);
+  const c = forced ?? pathCandidate(desk);
   const { es, nq, esPx, nqPx } = proxyPair(desk);
 
   if (!clock.isWeekday) blocks.push("Weekend");
@@ -709,7 +723,16 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
           : `${why} is noted. Bar ${need.toFixed(2)} cleared. Size is cut. The chart calls it.`,
       );
     }
-    if (!c.htfOk) blocks.push("PATH is counter-HTF — no RH debit");
+    const series = /ES/.test(c.symbol) === /ES/.test(desk.left.symbol) ? desk.left.bars : desk.right.bars;
+    const gaps = gapDirection(series ?? []);
+    reasons.push(gaps.line);
+    const want = c.side === "long" ? "long" : "short";
+    if (gaps.side != null && gaps.side !== want) {
+      blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
+    } else if (gaps.side == null && !c.htfOk) {
+      blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
+    }
+    reasons.push("Internal or external is a note, not a filter. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold.");
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
       reasons.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}. Size is cut. The chart still calls it.`);
@@ -721,10 +744,8 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left
         : desk.smcMaster.right;
-    if (seq.word === "STAND" && !/sweep|liquidity|poi|premium|discount|half|ltf|shift|displacement/i.test(`${seq.missing} ${seq.missingDetail}`)) {
-      blocks.push(`SMC sequence: ${seq.missing}`);
-    } else if (seq.word !== "TAKE") {
-      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size is cut. It does not take the path off.`);
+    if (seq.word !== "TAKE") {
+      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size is cut. A missing layer does not take the path off.`);
     } else {
       reasons.push(`SMC TAKE ${seq.mustPass}/${seq.mustNeed}`);
     }
@@ -752,8 +773,8 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
             `Working stop $${rhWorkingStop(cap)} / −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
-            "Trim 50% at +40–60% of debit, stop → BE",
-            "Hard time stop 11:00 ET",
+            "Trim 50% at one-to-one. The draw stays open — one-to-one is a partial, not the flatten.",
+            "A close past the sweep stop ends it. The clock does not.",
           ],
           // Size from the LEVEL: the futures plan this option expresses.
           planForUnderlier(desk, underlier),
@@ -769,7 +790,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
 
   return {
     id: "path_continuation",
-    name: "PATH continuation 1–2 DTE",
+    name: c ? `PATH ${c.symbol} ${c.side}` : "PATH continuation 1–2 DTE",
     horizon: "day",
     whyHighProb:
       `Same A+/A/A− PATH as Trade Now. 1–2 DTE so 0DTE pin does not own you. Size from the invalidation, then cap the ticket at $${cap} — the 15% brake is the backstop, not the plan.`,
@@ -805,8 +826,8 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
   if (day?.kind === "nfp") reasons.push("NFP — 0DTE size stays 1.");
   if (!c) blocks.push("No A+/A/A− PATH"); // label kept stable for drills; B+ is accepted above
   if (band && !["A+", "A", "A-", "A−", "B+"].includes(band)) blocks.push(`0DTE needs B+ or higher (have ${band})`);
-  if (c && !hint.displace) blocks.push("No displacement / MSS on the card");
-  if (c && !hint.ifvg && !hint.sweep) blocks.push("Need IFVG or the Judas sweep tagged");
+  if (c && !hint.displace) reasons.push("15m displacement not tagged. The 1m or 5m inverse is the entry. The grade is the permission.");
+  if (c && !hint.ifvg && !hint.sweep) reasons.push("Sweep or IFVG not on the 15m tag. External and internal both stay eligible. Size stays 1.");
 
   const liveBand = band === "A+" || band === "A" || band === "A-" || band === "A−" || band === "B+";
   if (c && liveBand) {
@@ -820,7 +841,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
         ? desk.smcMaster.left
         : desk.smcMaster.right;
     if (seq.word !== "TAKE") {
-      blocks.push(`0DTE needs SMC TAKE (have ${seq.word} · ${seq.missing})`);
+      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size stays 1. It does not take the path off.`);
     }
   }
 
@@ -1130,7 +1151,9 @@ export function evaluateOptionsDesk(
     qqq: underlierSheet("QQQ", nq, estimateSpot("QQQ", esPx, nqPx, desk.proxies), qqqRole, cap),
   };
 
-  const path = pathCandidate(desk);
+  const both = pathCandidates(desk);
+  const pathCards = both.length > 0 ? both.map((c) => pathContinuation(desk, sleeve, cap, c)) : [pathContinuation(desk, sleeve, cap)];
+  const path = both[0];
   const primary: SwingUnderlier = path
     ? underlierOf(path.symbol)
     : nq.topDown === "bear" || nqWeaker
@@ -1138,7 +1161,7 @@ export function evaluateOptionsDesk(
       : "SPY";
 
   const cards = [
-    pathContinuation(desk, sleeve, cap),
+    ...pathCards,
     judasIfvg0dte(desk, sleeve, cap),
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
@@ -1174,8 +1197,11 @@ export function evaluateOptionsDesk(
     },
     {
       id: "smc",
-      ok: desk.smcMaster.oneBook?.word !== "STAND",
-      label: desk.smcMaster.thesis,
+      ok: true,
+      label:
+        desk.smcMaster.oneBook?.word === "STAND"
+          ? "SMC stand — size cut, the path stays"
+          : desk.smcMaster.thesis,
     },
     {
       id: "sleeve",

@@ -38,6 +38,16 @@ export function crewOf(who: string): CrewPerson | null {
 export function learnCrewYears(): void {
   try {
     if (typeof localStorage === "undefined") return;
+    if (localStorage.getItem("ledger-exec-rules-v2") !== "1") {
+      saveAtlas(improveAtlas(loadAtlas() ?? mergeAtlas(null, null), {
+        shelf: "discretion",
+        title: "What places",
+        who: "Vince",
+        nowMs: Date.now(),
+        text: "An A- or better whose one-hour and four-hour gaps agree places. No second confirm. Fit sizes, it does not pick the side. A printed stop on the wrong side or a target inside one R is repriced off the sweep, not refused. QQQ is MNQ and SPY is ES, one working order each. A stale print, a wide quote, or a zero buying-power read with cash on the Agentic account does not stand the ticket down. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold. One-to-one is a partial. The draw is the target. Internal versus external is a note, not a filter. The two-a-day cap stays in the backtest. A missed A- writes the gate that blocked it. The fit does not go up because the score was high.",
+      }));
+      localStorage.setItem("ledger-exec-rules-v2", "1");
+    }
     if (localStorage.getItem("ledger-perfect-entry-v2") !== "1") {
       saveAtlas(improveAtlas(loadAtlas() ?? mergeAtlas(null, null), {
         shelf: "discretion",
