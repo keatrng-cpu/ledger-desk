@@ -241,8 +241,8 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
   const W = JUMBO_W;
   const H = JUMBO_H;
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#120826");
-  g.addColorStop(1, "#05030b");
+  g.addColorStop(0, MEAD.pineDeep);
+  g.addColorStop(1, MEAD.pineInk);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   knotBorder(ctx, 6, 6, W - 12, H - 12, MEAD.brass, 22);
@@ -295,7 +295,7 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
   }
 
   // Other markets with probability bars.
-  plate(ctx, 50, 360, W - 100, 310, 14, "rgba(255,255,255,0.04)", "rgba(255,198,47,0.35)", 2);
+  plate(ctx, 50, 360, W - 100, 310, 14, "rgba(255,255,255,0.04)", "rgba(196,163,90,0.35)", 2);
   ctx.fillStyle = MEAD.brass;
   ctx.font = `800 24px ${FONT}`;
   ctx.fillText("OTHER MARKETS", 70, 392);
@@ -310,7 +310,7 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
     ctx.fillStyle = MEAD.white;
     ctx.font = `700 26px ${FONT}`;
     ctx.font = `800 16px ${FONT}`;
-    ctx.fillStyle = "#c4b5fd";
+    ctx.fillStyle = "#a7c4b5";
     const tag = categoryLabel(m);
     ctx.fillText(tag, 70, y + 20);
     const tw = Math.max(64, ctx.measureText(tag).width + 14);
@@ -430,8 +430,8 @@ export function drawTv(c: HTMLCanvasElement, m: PredictionMarket | null, mock: b
   const W = c.width;
   const H = c.height;
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#1a0c33");
-  g.addColorStop(1, "#07040e");
+  g.addColorStop(0, MEAD.pineDeep);
+  g.addColorStop(1, MEAD.pineInk);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = MEAD.brass;
@@ -446,7 +446,7 @@ export function drawTv(c: HTMLCanvasElement, m: PredictionMarket | null, mock: b
   ctx.font = `900 50px ${FONT}`;
   ctx.fillText(fit(ctx, `${m.outcome}`, W - 40), W / 2, 66);
   ctx.font = `600 24px ${FONT}`;
-  ctx.fillStyle = "#c4b5fd";
+  ctx.fillStyle = "#a7c4b5";
   ctx.fillText(fit(ctx, `${categoryLabel(m)} · ${eventLabel(m)}`, W - 40), W / 2, 98);
   helmet(ctx, W / 2, 170, 70);
   ctx.fillStyle = "#e2e8f0";
@@ -515,7 +515,7 @@ export function drawNeon(c: HTMLCanvasElement, on = 1) {
   const W = c.width;
   const H = c.height;
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "rgba(10,4,20,0.92)";
+  ctx.fillStyle = "rgba(10,16,12,0.92)";
   ctx.beginPath();
   ctx.roundRect(8, 8, W - 16, H - 16, 40);
   ctx.fill();
@@ -524,8 +524,8 @@ export function drawNeon(c: HTMLCanvasElement, on = 1) {
     ctx.shadowBlur = blur * on;
   };
   ctx.lineWidth = 10;
-  glow("#c084fc", 40);
-  ctx.strokeStyle = "#c084fc";
+  glow(MEAD.brass, 40);
+  ctx.strokeStyle = MEAD.brass;
   ctx.stroke();
   helmet(ctx, W / 2, 96, 80);
   ctx.textAlign = "center";

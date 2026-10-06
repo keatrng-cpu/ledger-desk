@@ -334,19 +334,19 @@ const SHOTS = {
     jumbotron(ctx, W * 0.34, 34, W * 0.32, W * 0.32 * 0.5, { live: true });
     runeBoard(ctx, W - 36 - W * 0.22, 60, W * 0.22, wallH * 0.7, { live: true, hi: 1 });
     helm(ctx, W * 0.14, wallH * 0.45, 52);
-    label(ctx, W, H, "07 · OVERVIEW LIVE", "Kalshi feed connected · ● LIVE");
+    label(ctx, W, H, "07 · OVERVIEW FEED", "Kalshi feed connected · prototype still");
   }],
   "08-jumbotron-live.png": [1280, 720, (ctx, W, H) => {
     ctx.fillStyle = C.pineDeep; ctx.fillRect(0, 0, W, H);
     jumbotron(ctx, W * 0.08, 50, W * 0.6, H * 0.6, { live: true });
     runeBoard(ctx, W * 0.72, 50, W * 0.24, H * 0.6, { live: true });
     helm(ctx, W * 0.38, H * 0.84, 40);
-    label(ctx, W, H, "08 · JUMBOTRON LIVE", "live headline + rune board side panel");
+    label(ctx, W, H, "08 · JUMBOTRON FEED", "headline + rune board side panel · prototype still");
   }],
   "09-bar-tvs-live.png": [1280, 720, (ctx, W, H) => {
     ctx.fillStyle = C.pine; ctx.fillRect(0, 0, W, H);
     bar(ctx, W, 40, H - 60, { live: true });
-    label(ctx, W, H, "09 · BAR TVS LIVE", "four TVs on live feed · ● LIVE");
+    label(ctx, W, H, "09 · BAR TVS FEED", "four TVs · prototype still");
   }],
 };
 

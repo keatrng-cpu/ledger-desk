@@ -56,7 +56,7 @@ type Box = [number, number, number, number]; // x0, z0, x1, z1
 
 /** Lighting per mood — the same palette the Floor uses for the entry state. */
 const MOOD: Record<MeadMood, { glow: number; glowI: number }> = {
-  WAIT: { glow: 0x6d4bb8, glowI: 3 },
+  WAIT: { glow: 0x6b7280, glowI: 3 },
   STALKING: { glow: 0xf59e0b, glowI: 6 },
   ARMED: { glow: 0x14b8a6, glowI: 7 },
   ENTER: { glow: 0x22c55e, glowI: 10 },
@@ -371,8 +371,8 @@ export class MeadScene {
     this.renderer.domElement.style.display = "block";
     this.renderer.domElement.style.touchAction = "pan-y";
 
-    this.scene.background = new THREE.Color("#0c0618");
-    this.scene.fog = new THREE.Fog("#0c0618", 22, 40);
+    this.scene.background = new THREE.Color(MEAD.pineInk);
+    this.scene.fog = new THREE.Fog(MEAD.pineInk, 22, 40);
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 120);
     this.camera.position.set(0.6, 5.4, 12.6);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -897,7 +897,7 @@ export class MeadScene {
     mesh.position.set(ROOM.x1 - 2.15, 3.45, -0.4);
     mesh.rotation.y = -Math.PI / 2 + 0.55;
     this.scene.add(mesh);
-    const glow = new THREE.PointLight(0xc084fc, 5, 8, 1.6);
+    const glow = new THREE.PointLight(0xc4a35a, 5, 8, 1.6);
     glow.position.set(ROOM.x1 - 2.6, 3.4, 0.2);
     this.scene.add(glow);
     return { canvas: n.canvas, tex: n.tex, mat: m };
@@ -945,7 +945,7 @@ export class MeadScene {
       ctx.fillStyle = "#f8fafc";
       ctx.font = "800 32px Inter, system-ui, sans-serif";
       ctx.fillText(title.toUpperCase(), 30, 40);
-      ctx.fillStyle = "#c4b5fd";
+      ctx.fillStyle = "#a7c4b5";
       ctx.font = "600 22px Inter, system-ui, sans-serif";
       ctx.fillText(sub, 30, 68);
     });

@@ -142,7 +142,7 @@ function PaperTicket({ draft, onClose }: { draft: TicketDraft; onClose: () => vo
             data-testid="mead-ticket-log"
             disabled={mock || cost == null || msg?.ok === true}
             onClick={submit}
-            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] font-black text-[#170a2e] disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-[13px] font-black text-[#0a1610] disabled:opacity-40"
             style={{ background: MEAD.brass }}
           >
             <Ticket className="h-4 w-4" /> Log PAPER ticket
@@ -256,7 +256,7 @@ export default function MeadHallTab() {
         className="relative overflow-hidden rounded-xl border-2"
         style={{ borderColor: focused ? MEAD.brass : "var(--color-border)", boxShadow: flash ? `inset 0 0 60px 10px ${REACT_COLOR[flash.r]}88, 0 0 24px ${REACT_COLOR[flash.r]}66` : undefined, transition: "box-shadow 300ms" }}
       >
-        <div ref={host} className="h-[64vh] min-h-[420px] w-full bg-[#0c0618]" data-testid="mead-canvas" />
+        <div ref={host} className="h-[64vh] min-h-[420px] w-full bg-[#0a1610]" data-testid="mead-canvas" />
         {webglErr && <div className="absolute inset-0 flex items-center justify-center p-4 text-sm text-red-300">3D unavailable: {webglErr}. The market list below still works.</div>}
         <div className="pointer-events-none absolute left-2 top-2 flex flex-col gap-1">
           <span className="rounded bg-black/60 px-2 py-0.5 text-[11px] text-white">
