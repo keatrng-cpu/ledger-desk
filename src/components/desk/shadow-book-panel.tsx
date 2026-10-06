@@ -12,6 +12,7 @@
  * the trader made; the header says so, on both surfaces, on purpose.
  */
 
+import { BarStrip, type StripRow } from "@/components/desk/viz/bar-strip";
 import { useMemo, useState } from "react";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import {
@@ -220,6 +221,20 @@ export function ShadowBookPanel({ mode }: { mode: "compact" | "full" }) {
 
   if (mode === "compact") {
     const openN = shown.filter((s) => s.status === "open" || s.status === "resting").length;
+    // Win rate by gate as bars; a gate whose refusals are costing is red.
+    // The scorecard's own sentence per gate is behind Detail.
+    const gateRows: StripRow[] = cardAll.byReason.map((r) => {
+      const dec = r.chase.wins + r.chase.losses + r.chase.scratch;
+      return {
+        key: r.reasonId,
+        label: r.reason,
+        value: r.chase.wr,
+        valueText: r.chase.wr == null ? "—" : `${(r.chase.wr * 100).toFixed(0)}%`,
+        n: dec,
+        tone: r.verdict === "costing" ? "bad" : r.verdict === "earning" ? "good" : "neutral",
+        detail: `${r.reason}: chase n=${dec} WR ${r.chase.wr == null ? "—" : `${(r.chase.wr * 100).toFixed(0)}%`} ${fmtR(r.chase.exp)}/t ${fmtUsd(r.chase.sumPnl)} · limit ${fmtR(r.limit.exp)}/t — ${r.verdict === "earning" ? "earning its keep" : r.verdict === "costing" ? "costing — sweep" : r.verdict === "neutral" ? "no edge either way" : `early ${dec}/${MIN_VERDICT_N}`}`,
+      };
+    });
     return (
       <section className="flex flex-col gap-2">
         <header className="flex flex-wrap items-center justify-between gap-2">
@@ -231,6 +246,11 @@ export function ShadowBookPanel({ mode }: { mode: "compact" | "full" }) {
           </div>
           <span className="text-[10px] text-[var(--color-subtle)]">full ledger + scorecard in Book</span>
         </header>
+        {gateRows.length > 0 && (
+          <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2">
+            <BarStrip mode="rate" title="Win rate by gate · chase leg · live + replay" rows={gateRows} />
+          </div>
+        )}
         {shown.length ? (
           <>
             <Totals card={cardToday} label="today" />

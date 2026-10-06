@@ -12,6 +12,9 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import { compareForBoard, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
 import { cardRisk, cardSizeRefusal } from "@/lib/trading/card-plan";
 import { cardEvidence, qBucket } from "@/lib/trading/evidence";
+import { FitGauge } from "@/components/desk/viz/fit-gauge";
+import { PriceLadder, ladderFrom } from "@/components/desk/viz/price-ladder";
+import { BarStrip } from "@/components/desk/viz/bar-strip";
 import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR } from "@/lib/trading/trade-plan";
 import { readCardGeometry } from "@/lib/trading/card-geometry";
 import { atrOf } from "@/lib/trading/draw";
@@ -323,44 +326,6 @@ export type LogMode = "paper" | "live";
  * it. Drawing the floor and the A+ line ON the bar answers "is this good?" at
  * a glance, which the number alone never did.
  */
-function ScoreMeter({ score }: { score: number }) {
-  const pct = Math.max(0, Math.min(1, score)) * 100;
-  const floor = APLUS_RULES.confluenceFloor * 100;
-  const aplus = APLUS_RULES.aPlusThreshold * 100;
-  const tone =
-    score >= APLUS_RULES.aPlusThreshold
-      ? "var(--color-up)"
-      : score >= APLUS_RULES.confluenceFloor
-        ? "var(--color-primary)"
-        : "var(--color-warn)";
-
-  return (
-    <div className="mt-1.5">
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full transition-[width]"
-          style={{ width: `${pct}%`, background: tone }}
-        />
-        {/* Threshold ticks sit ON the bar so the number is self-explaining. */}
-        <div
-          className="absolute inset-y-0 w-px bg-[var(--color-border-strong)]"
-          style={{ left: `${floor}%` }}
-          title={`PATH floor ${APLUS_RULES.confluenceFloor}`}
-        />
-        <div
-          className="absolute inset-y-0 w-px bg-[var(--color-border-strong)]"
-          style={{ left: `${aplus}%` }}
-          title={`A+ ${APLUS_RULES.aPlusThreshold}`}
-        />
-      </div>
-      <div className="mt-1 flex justify-between font-mono text-[9px] text-[var(--color-subtle)]">
-        <span>floor {APLUS_RULES.confluenceFloor}</span>
-        <span>A+ {APLUS_RULES.aPlusThreshold}</span>
-      </div>
-    </div>
-  );
-}
-
 /**
  * The gates that actually stop a trade, stated once and loudly.
  *
@@ -1015,7 +980,7 @@ function SetupCard({
         </p>
       )}
 
-      <ScoreMeter score={c.confluence} />
+      <FitGauge fit={c.confluence} vetoes={c.vetoes} compact />
 
       {/* ONE line: where the number can still go, and what is holding it.
           The full reasoning is on hover — this answers "why is it stuck"
@@ -1265,34 +1230,30 @@ function SetupCard({
       {/* ROW 2 — the plan. When the sequence priced one, these are ITS
           numbers (the same object the ticket, the chart and the paper book
           read); otherwise the scanner's prose, labelled as unpriced. */}
+      {c.plan ? (
+        <div className="mb-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-2">
+          <p className="mb-1 text-[11px] uppercase tracking-wider text-[var(--color-muted)]">
+            Plan · limit at CE · {c.plan.riskPts.toFixed(2)}pt risk
+            {c.plan.riskAtr != null ? ` · ${c.plan.riskAtr.toFixed(2)}×ATR` : ""}
+          </p>
+          <PriceLadder {...ladderFrom(c.plan)} price={tape?.bars?.at(-1)?.c ?? null} height={180} />
+          {/* The same level the paper book exits on (exit-rules.ts): before
+              T1, a 15m CLOSE through it is out — a wick is not. */}
+          {FAILED_HOLD_ENABLED && (
+            <p className="mt-1 font-mono text-[12px] text-[var(--color-muted)]">
+              Failed hold · 15m close{" "}
+              <span className="text-[var(--color-fg)]">
+                {failedHoldLevel(c.side === "short" ? "short" : "long", c.plan.entry, c.plan.stop).toFixed(2)}
+              </span>{" "}
+              before T1 → out
+            </p>
+          )}
+        </div>
+      ) : (
       <div className="mb-2 grid grid-cols-3 gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-2 text-xs">
         {(
-          (c.plan
-            ? [
-                [
-                  "Entry · limit at CE",
-                  `${c.plan.entry.toFixed(2)}${c.plan.entryZone ? ` (${c.plan.entryZone.bottom.toFixed(2)}–${c.plan.entryZone.top.toFixed(2)})` : ""}`,
-                ],
-                [
-                  "Stop · priced plan",
-                  `${c.plan.stop.toFixed(2)} · ${c.plan.riskPts.toFixed(2)}pt${c.plan.riskAtr != null ? ` · ${c.plan.riskAtr.toFixed(2)}×ATR` : ""}`,
-                ],
-                [
-                  "T1 · T2",
-                  `${c.plan.t1 != null ? `${c.plan.t1.toFixed(2)}${c.plan.rr1 != null ? ` (${c.plan.rr1.toFixed(1)}R)` : ""}` : "no draw ahead"}${c.plan.t2 != null ? ` · ${c.plan.t2.toFixed(2)}${c.plan.rr2 != null ? ` (${c.plan.rr2.toFixed(1)}R)` : ""}` : ""}`,
-                ],
-                // The same level the paper book exits on (exit-rules.ts):
-                // before T1, a 15m CLOSE through it is out — a wick is not.
-                ...(FAILED_HOLD_ENABLED
-                  ? [
-                      [
-                        "Failed hold · 15m close",
-                        `${failedHoldLevel(c.side === "short" ? "short" : "long", c.plan.entry, c.plan.stop).toFixed(2)} before T1 → out`,
-                      ] as [string, string],
-                    ]
-                  : []),
-              ]
-            : [
+          (
+              [
                 ["Entry · unpriced", c.entryZone],
                 [
                   c.stopSource === "none" ? "Stop · none" : "Invalidation · structural",
@@ -1311,6 +1272,7 @@ function SetupCard({
           </div>
         ))}
       </div>
+      )}
 
       {/*
         THE GEOMETRY OF THE LEVELS THIS CARD IS PRINTING.
@@ -1386,24 +1348,24 @@ function SetupCard({
 
       {evidence.length > 0 && (
         <div className="mb-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2.5 py-1.5">
-          <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-            Evidence · this card's buckets over four years
-          </p>
-          {evidence.map((e) => (
-            <p
-              key={e.key}
-              className={cn(
-                "mt-0.5 text-[10px] leading-snug",
-                e.tone === "warn"
-                  ? "text-[var(--color-down)]"
-                  : e.tone === "ok"
-                    ? "text-[var(--color-up)]"
-                    : "text-[var(--color-muted)]",
-              )}
-            >
-              {e.text}
-            </p>
-          ))}
+          {/* Each bucket's measured R per card as a bar (losing buckets red);
+              the sentence each bucket used to print sits behind Detail. */}
+          <BarStrip
+            title="Evidence · this card's buckets over four years (R per card)"
+            mode="signed"
+            rows={evidence.map((e) => ({
+              key: e.key,
+              label: e.bucket.label,
+              value: e.bucket.verdict === "thin" ? null : e.bucket.exp,
+              valueText:
+                e.bucket.verdict === "thin" || e.bucket.exp == null
+                  ? "too few"
+                  : `${e.bucket.exp >= 0 ? "+" : "−"}${Math.abs(e.bucket.exp).toFixed(2)}R`,
+              n: e.bucket.n,
+              tone: e.tone === "warn" ? "bad" : e.tone === "ok" ? "good" : "neutral",
+              detail: e.text,
+            }))}
+          />
         </div>
       )}
 
