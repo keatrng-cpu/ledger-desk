@@ -1947,11 +1947,8 @@ function MasterplacePage() {
 
               {(cat === "lab" || cat === "risk") && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="R"
-                    title="Risk governor"
-                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · A+ 2% probe (3% once earned) / A 2% / A− 1% / B+ 0.5% paper`}
-                  />
+                  {/* RiskPanel carries its own "Risk governor" header and the
+                      paper equity / risk-ladder rows — no second heading. */}
                   <RiskPanel desk={desk} liveRisk={risk} />
                   <ApexSimPanel />
                   <EvidenceTable />
