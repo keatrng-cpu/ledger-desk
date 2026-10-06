@@ -4,7 +4,7 @@
  *   STALKING → amber · ARMED → teal · ENTER → bright green, pulsed 3×
  *   veto / invalidation (a live state falls back to WAIT on rule 3 or 6) → soft red
  *   WAIT → nothing
- *   RH automation (src/lib/ui/automation-state.ts):
+ *   RH automation (src/lib/ui/automation-state.ts; live source = RH fill log, read-only):
  *     open   → strong green flash + persistent green edge glow
  *     closed → green (won) / red (lost) / grey-white (flat), then idle
  *
@@ -19,6 +19,7 @@ import { useEntryState } from "@/components/desk/use-entry-state";
 import type { EntryState } from "@/lib/ui/entry-state";
 import { getFlashOn, subscribeFlash } from "@/lib/ui/flash-prefs";
 import {
+  bridgeRhFills,
   getAutomation,
   getAutomationServer,
   reportAutomation,
@@ -82,6 +83,9 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
     fire(p, true);
   }, []);
 
+  // Live source (read-only): the RH fill log. Skipped while a dev preview holds the state.
+  useEffect(() => (devPreview() ? undefined : bridgeRhFills()), []);
+
   // Entry-state transitions.
   useEffect(() => {
     if (!read || preview.current) return;
@@ -101,7 +105,9 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
     const was = prevAuto.current;
     prevAuto.current = auto.phase;
     if (was === auto.phase) return;
-    if (auto.phase === "open") fire("intrade");
+    if (auto.phase === "open") {
+      if (!auto.quiet) fire("intrade");
+    }
     else if (auto.phase === "closed") {
       fire(auto.result === "win" ? "close-win" : auto.result === "loss" ? "close-loss" : "close-flat");
       // Then back to WAIT: the close is shown once, not held.

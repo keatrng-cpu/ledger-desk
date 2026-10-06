@@ -14,18 +14,24 @@
  * agreement) is not a separate state here: it is the same STALKING → ARMED
  * the desk entry state already shows (amber, then teal).
  *
- * DATA SOURCE — none exists yet. As of this branch the RH automation is a
- * pure gate + proposal builder (src/lib/execution/rh-autofire*.ts, untracked
- * in the main checkout) that an agent drives through the Robinhood MCP tools;
- * the app persists no RH decision, fill or position and exposes no endpoint
- * for one. Until a server function / poller publishes it, `reportAutomation`
- * is only called by the dev preview (?flash=intrade|close-win|close-loss|
- * close-flat). Wire a future read-only poller to `reportAutomation`.
+ * DATA SOURCE. The RH automation itself (src/lib/execution/rh-autofire*.ts,
+ * untracked work in the main checkout) is a pure gate + proposal builder an
+ * agent drives through the Robinhood MCP tools; it persists no decision, fill
+ * or position and no endpoint exposes one. The only RH position record the
+ * app holds is the RH fill log (src/lib/trading/rh-income.ts, localStorage
+ * `ledger-rh-income-v1`, written by "Log RH fill" / close on the Options tab).
+ * `bridgeRhFills` READS that log: an unclosed fill = open, a fill that just
+ * closed = closed with its pnl sign. A future read-only poller of the real
+ * automation should call `reportAutomation` the same way. The dev preview
+ * (?flash=intrade|close-win|close-loss|close-flat) also reports here.
  */
+
+import { loadRhIncome, subscribeRhIncome, type RhFill } from "@/lib/trading/rh-income";
 
 export type AutomationState =
   | { phase: "idle" }
-  | { phase: "open"; label: string; at: number }
+  /** `quiet`: already open when the page loaded — glow and badge, no flash. */
+  | { phase: "open"; label: string; at: number; quiet?: boolean }
   | { phase: "closed"; result: "win" | "loss" | "flat"; label: string; at: number };
 
 let state: AutomationState = { phase: "idle" };
@@ -48,3 +54,37 @@ export function reportAutomation(next: AutomationState) {
 
 const SERVER: AutomationState = { phase: "idle" };
 export const getAutomationServer = () => SERVER;
+
+
+const fillLabel = (f: RhFill) => `${f.underlier} ${f.side} · debit $${Math.round(f.debit)}`;
+
+/**
+ * Read-only bridge from the RH fill log. Never writes the log. Returns the
+ * unsubscribe. `|pnl| < $1` is a scratch (flat).
+ */
+export function bridgeRhFills(): () => void {
+  let openIds = new Set<string>();
+  const read = (first: boolean) => {
+    const fills = loadRhIncome().fills;
+    const open = fills.filter((f) => !f.closedAt);
+    const closedNow = fills.filter((f) => f.closedAt && openIds.has(f.id));
+    const nextIds = new Set(open.map((f) => f.id));
+    const newlyOpen = open.some((f) => !openIds.has(f.id));
+    openIds = nextIds;
+    if (open.length) {
+      if (first || newlyOpen) reportAutomation({ phase: "open", label: open.map(fillLabel).join(" + "), at: Date.now(), quiet: first });
+      return;
+    }
+    if (closedNow.length) {
+      const pnl = closedNow.reduce((a, f) => a + (f.pnl ?? 0), 0);
+      reportAutomation({
+        phase: "closed",
+        result: Math.abs(pnl) < 1 ? "flat" : pnl > 0 ? "win" : "loss",
+        label: `${closedNow.map(fillLabel).join(" + ")} · ${pnl >= 0 ? "+" : "−"}$${Math.abs(Math.round(pnl))}`,
+        at: Date.now(),
+      });
+    } else if (state.phase === "open") reportAutomation({ phase: "idle" });
+  };
+  read(true);
+  return subscribeRhIncome(() => read(false));
+}
