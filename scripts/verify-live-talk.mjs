@@ -18,6 +18,9 @@
  *
  * Pure: no network, no real clock, no model.
  */
+const { spokenProblems } = await import("./lib/spoken-check.mjs");
+/** Every line any simulation below makes the room say — checked at the end for what a speech engine would be handed. */
+const SPOKEN = [];
 const { talkTick, freshTalkState, pushPrint, moveOver } = await import("../src/lib/room/live-talk.ts");
 const { TALK, Facts, hash32 } = await import("../src/lib/room/live-types.ts");
 const { ANIMS_BY_CHARACTER, ZONES_BY_CHARACTER } = await import("../src/lib/room/orchestrator.ts");
@@ -172,6 +175,7 @@ class Sim {
     this.st = r.state;
     if (r.item) {
       this.items.push(r.item);
+      SPOKEN.push(...r.item.lines);
       this.busy = Math.max(this.busy, this.t) + r.item.estMs;
     }
     this.t += this.dt;
@@ -738,6 +742,13 @@ console.log("Facts");
   check("every printed number is registered", ["31", "7.5", "21,540.50", "21,540", "481.20"].every((x) => f.list.includes(x)), JSON.stringify(f.list));
   check("a trailing full stop is not part of a number", (() => { const g = new Facts(); g.raw("rose to 4."); return g.list.includes("4") && !g.list.includes("4."); })());
   check(`the monthly PATH cap is read from the rules (${PATH_MONTH_CAP}), never typed`, new Facts().int(PATH_MONTH_CAP) === String(PATH_MONTH_CAP));
+}
+
+console.log("What a speech engine would be handed");
+{
+  const unique = [...new Map(SPOKEN.map((l) => [l.text, l])).values()];
+  const bad = spokenProblems(unique);
+  check(`every distinct line the room said in these simulations (${unique.length}) is speakable: numbers and signs held, no symbol, unit, code name or unspelled abbreviation left`, unique.length > 20 && bad.length === 0, bad.slice(0, 3).join(" || "));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

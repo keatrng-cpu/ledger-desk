@@ -84,11 +84,31 @@ export function lead(c: Ctx, a: Character, b: Character): Character {
   return recentSpeaks(c.st, a, c.now) <= recentSpeaks(c.st, b, c.now) ? a : b;
 }
 
+/**
+ * Shorten a line to fit a bubble — and a breath. The cut is spoken aloud, so it must read as a finished thought: the last whole
+ * sentence that fits (when it keeps at least half), else the last clause that fits (closed with a full stop), else the last word.
+ * A parenthesis is never left open, and a number is never cut in two (the cut is always at a space).
+ */
 export const clip = (s: string, n: number): string => {
   if (s.length <= n) return s;
   const cut = s.slice(0, n);
+  const closeParen = (t: string): string => {
+    const open = t.lastIndexOf("(");
+    return open > t.lastIndexOf(")") ? t.slice(0, open) : t;
+  };
+  const tidy = (t: string): string => closeParen(t).replace(/[\s,;:.\-–—]+$/, "");
+  const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+  if (sentence >= n * 0.5) {
+    const t = closeParen(cut.slice(0, sentence + 1)).trimEnd();
+    if (t.length >= n * 0.4) return /[.!?]$/.test(t) ? t : `${tidy(t)}.`;
+  }
+  const clause = Math.max(cut.lastIndexOf(" — "), cut.lastIndexOf("; "), cut.lastIndexOf(", "), cut.lastIndexOf(": "));
+  if (clause >= n * 0.6) {
+    const t = tidy(cut.slice(0, clause));
+    if (t.length >= n * 0.4) return `${t}.`;
+  }
   const sp = cut.lastIndexOf(" ");
-  return `${(sp > n * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
+  return `${tidy(sp > n * 0.6 ? cut.slice(0, sp) : cut)}…`;
 };
 
 export const WB: TalkMove = { zone: "THE_WHITEBOARD" };

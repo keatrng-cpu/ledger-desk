@@ -8,6 +8,7 @@
  */
 
 import type { Character } from "./orchestrator";
+import { chunkSpoken, spokenDigest, spokenForm } from "./spoken-form";
 
 export type Pattern = "lecture" | "clip" | "flat" | "verdict" | "operator";
 export type Tone = "raid" | "fill" | "stop" | "verdict" | "structure" | "figure" | "open" | "calm";
@@ -52,32 +53,14 @@ export interface VoiceOption {
   lang: string;
 }
 
-const SPELL: readonly [RegExp, string][] = [
-  [/\bMNQ\b/g, "M N Q"],
-  [/\bNQ\b/g, "N Q"],
-  [/\bES\b/g, "E S"],
-  [/\bQQQ\b/g, "Q Q Q"],
-  [/\bSPY\b/g, "S P Y"],
-  [/\bDTE\b/g, "D T E"],
-  [/\bSMC\b/g, "S M C"],
-  [/\bICT\b/g, "I C T"],
-];
-
-/** The caption, shaped so a voice can say it. Same digits, same claim. */
+/**
+ * The caption, shaped so a voice says it the way a trader would. Same numbers, same claim.
+ * The work is in spoken-form.ts (money as dollars and cents, units as words, signs said, code names as words, jargon expanded); the
+ * invariant that no number moves is `numbersHeld` there. `digitsHeld` below is the stricter digit-for-digit check that still holds
+ * for any caption without money in it.
+ */
 export function speakable(raw: string): string {
-  let s = raw;
-  s = s.replace(/E\[R\]/g, "expected R");
-  s = s.replace(/(\d)\s*[-–]\s*(\d)/g, "$1 to $2");
-  s = s.replace(/\b([A-D])\+/g, "$1 plus");
-  s = s.replace(/\b([A-D])[−-]/g, "$1 minus");
-  s = s.replace(/%/g, " percent");
-  s = s.replace(/\$(\d)/g, "$1 dollars ");
-  s = s.replace(/&/g, " and ");
-  s = s.replace(/\//g, ", ");
-  s = s.replace(/[—–]/g, ", ");
-  for (const [re, to] of SPELL) s = s.replace(re, to);
-  s = s.replace(/\s+/g, " ").trim();
-  return s;
+  return spokenForm(raw);
 }
 
 /** Digits in the spoken form are a subset of the caption's digits, in order. */
@@ -128,17 +111,19 @@ export function phrasePlan(who: Character, raw: string, animation?: string): Spo
   const cast = VOICE_CAST[who];
   const tone = toneOf(raw, animation);
   const shift = TONE_SHIFT[tone];
-  const text = speakable(raw);
+  // A long caption is said as its digest (no long asides); the caption on screen keeps them. A short one is said whole.
+  const text = spokenDigest(raw);
   if (!text) return [];
-  return [
-    {
-      text,
-      pitch: clamp(1 + shift.pitch, 0.98, 1.03),
-      rate: clamp(cast.rate + shift.rate, 0.9, 1.05),
-      gap: 0,
-      tone,
-    },
-  ];
+  // One breath for a short caption. A long one is said as sentences: a network voice stops an utterance near fifteen seconds, and an
+  // unbroken run has no breath. A question lifts its own piece a hair; the pitch stays inside the band that does not rasp.
+  const pieces = chunkSpoken(text);
+  return pieces.map((piece, i) => ({
+    text: piece,
+    pitch: clamp(1 + shift.pitch + (piece.endsWith("?") ? 0.02 : 0), 0.98, 1.03),
+    rate: clamp(cast.rate + shift.rate, 0.9, 1.05),
+    gap: i < pieces.length - 1 ? 90 : 0,
+    tone,
+  }));
 }
 
 /** How long the caption should stay up so the next person does not start over it. */
@@ -147,7 +132,7 @@ export function speakHoldSec(who: Character, text: string, animation?: string): 
   let ms = 480;
   for (const p of parts) {
     const words = p.text.split(/\s+/).length;
-    ms += (words / (2.2 * p.rate)) * 1000;
+    ms += (words / (2.2 * p.rate)) * 1000 + p.gap;
   }
   return Math.min(16, Math.max(3.4, ms / 1000));
 }
