@@ -95,7 +95,10 @@ function focusCard(desk: DeskPayload, symbol: string | null): SetupCandidate | n
   if (armed) return armed;
   const onBook = symbol ? cands.filter((c) => c.symbol === symbol) : [];
   const pool = onBook.length ? onBook : cands;
-  return pool.reduce<SetupCandidate | null>((m, c) => (m == null || c.confluence > m.confluence ? c : m), null);
+  return pool.reduce<SetupCandidate | null>(
+    (m, c) => (m == null || c.confluence > m.confluence ? c : m),
+    null,
+  );
 }
 
 function vetoText(c: SetupCandidate): string | null {
@@ -107,12 +110,18 @@ function cardPhrase(c: SetupCandidate): string {
   const floor = APLUS_RULES.confluenceFloor;
   const veto = vetoText(c);
   if (veto) return `${c.symbol} ${c.side} fits ${fit(c.confluence)} but is vetoed (${veto})`;
-  if (c.confluence < floor) return `${c.symbol} ${c.side} fits ${fit(c.confluence)}, under the ${floor} floor`;
-  if (!c.htfOk) return `${c.symbol} ${c.side} fits ${fit(c.confluence)} but fights the higher-timeframe bias`;
+  if (c.confluence < floor)
+    return `${c.symbol} ${c.side} fits ${fit(c.confluence)}, under the ${floor} floor`;
+  if (!c.htfOk)
+    return `${c.symbol} ${c.side} fits ${fit(c.confluence)} but fights the higher-timeframe bias`;
   return `${c.symbol} ${c.side} fits ${fit(c.confluence)}`;
 }
 
-export function deriveEntryState(desk: DeskPayload, verdict: BoardVerdict, nowMs: number): EntryStateRead {
+export function deriveEntryState(
+  desk: DeskPayload,
+  verdict: BoardVerdict,
+  nowMs: number,
+): EntryStateRead {
   const book = bookOf(desk, verdict.book);
   const seqSide = book?.side ?? null;
 
@@ -153,16 +162,24 @@ export function deriveEntryState(desk: DeskPayload, verdict: BoardVerdict, nowMs
     why,
   });
   if (desk.news?.verdict === "blackout") {
-    return blocked(`News blackout — ${desk.news.reason || "a high-impact release is inside ±15 minutes"}. Nothing enters until it clears.`);
+    return blocked(
+      `News blackout — ${desk.news.reason || "a high-impact release is inside ±15 minutes"}. Nothing enters until it clears.`,
+    );
   }
   if (/^Judas/.test(verdict.line)) {
-    return blocked(`The 9:30–9:45 opening raid has not resolved yet. ${verdict.line.replace(/^Judas 9:30–9:45 — /, "")}.`);
+    return blocked(
+      `The 9:30–9:45 opening raid has not resolved yet. ${verdict.line.replace(/^Judas 9:30–9:45 — /, "")}.`,
+    );
   }
   if (!sessionLive(clock)) {
-    return blocked(`The trading window is closed (${clock.killzoneLabel}). Next window: ${clock.nextWindow}.`);
+    return blocked(
+      `The trading window is closed (${clock.killzoneLabel}). Next window: ${clock.nextWindow}.`,
+    );
   }
   if (/stale print|one book:/.test(verdict.line)) {
-    return blocked(verdict.line.replace(/^.*sequence complete — /, "Sequence complete, but ") + ".");
+    return blocked(
+      verdict.line.replace(/^.*sequence complete — /, "Sequence complete, but ") + ".",
+    );
   }
   if (desk.brief?.verdict === "stand_down") {
     return blocked(`The session brief says stand down: ${desk.brief.headline}.`);
@@ -171,7 +188,11 @@ export function deriveEntryState(desk: DeskPayload, verdict: BoardVerdict, nowMs
   // Row 4 — armed PATH, sequence not complete.
   const armed = (desk.scan?.candidates ?? []).find((c) => isHighProbPath(c));
   if (armed) {
-    const seq = desk.smcMaster ? (armed.symbol === desk.smcMaster.left.symbol ? desk.smcMaster.left : desk.smcMaster.right) : null;
+    const seq = desk.smcMaster
+      ? armed.symbol === desk.smcMaster.left.symbol
+        ? desk.smcMaster.left
+        : desk.smcMaster.right
+      : null;
     return {
       state: "ARMED",
       rule: 4,
@@ -187,11 +208,19 @@ export function deriveEntryState(desk: DeskPayload, verdict: BoardVerdict, nowMs
   const clean = (desk.scan?.candidates ?? [])
     .filter((c) => c.confluence >= floor && !c.vetoes?.length && c.htfOk)
     .sort((a, b) => b.confluence - a.confluence)[0];
-  const oneAway = book && book.side && book.mustNeed > 0 && book.mustPass >= book.mustNeed - 1 && book.word !== "TAKE";
+  const oneAway =
+    book &&
+    book.side &&
+    book.mustNeed > 0 &&
+    book.mustPass >= book.mustNeed - 1 &&
+    book.word !== "TAKE";
   if (clean || oneAway) {
     const sym = clean?.symbol ?? book!.symbol;
     const side = clean?.side ?? book!.side;
-    const need = book && (!clean || clean.symbol === book.symbol) ? book.missing.toLowerCase() : clean!.missing[0]?.toLowerCase() ?? "the sequence";
+    const need =
+      book && (!clean || clean.symbol === book.symbol)
+        ? book.missing.toLowerCase()
+        : (clean!.missing[0]?.toLowerCase() ?? "the sequence");
     return {
       state: "STALKING",
       rule: 5,
@@ -206,14 +235,19 @@ export function deriveEntryState(desk: DeskPayload, verdict: BoardVerdict, nowMs
 
   // Row 6 — nothing worth entering.
   const card = focusCard(desk, book?.symbol ?? null);
-  const seqTxt = book && book.word !== "TAKE" ? ` The sequence has ${book.mustPass}/${book.mustNeed} must-layers.` : "";
+  const seqTxt =
+    book && book.word !== "TAKE"
+      ? ` The sequence has ${book.mustPass}/${book.mustNeed} must-layers.`
+      : "";
   return {
     state: "WAIT",
     rule: 6,
     symbol: card?.symbol ?? book?.symbol ?? null,
     side: card?.side ?? seqSide,
     countdown: null,
-    why: card ? `Nothing to enter: best idea ${cardPhrase(card)}.${seqTxt}` : `Nothing to enter: no PATH card on either book.${seqTxt}`,
+    why: card
+      ? `Nothing to enter: best idea ${cardPhrase(card)}.${seqTxt}`
+      : `Nothing to enter: no PATH card on either book.${seqTxt}`,
   };
 }
 
