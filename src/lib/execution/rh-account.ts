@@ -50,6 +50,25 @@ export function rhAccountFromPortfolio(args: {
 }
 
 /**
+ * Desk read for the Floor — Agentic ••6158, get_portfolio 2026-10-06 13:46 UTC.
+ * This is the account the crew and Trading Stand quote. The Individual
+ * snapshot below stays display-only and must not be what the room speaks.
+ */
+export const RH_AGENTIC_DESK_READ: RhAccountSnapshot = {
+  label: "Agentic ••6158",
+  accountNumber: "995386158",
+  accountType: "limited_margin",
+  cash: 996.12,
+  buyingPower: 996.12,
+  optionsBuyingPower: 996.12,
+  unsettledFunds: 0,
+  agenticAllowed: true,
+  optionLevel: "option_level_2",
+  asOfMs: Date.UTC(2026, 9, 6, 13, 46, 0),
+  source: "get_portfolio",
+};
+
+/**
  * Desk snapshot for the Floor — Keaton's screenshot 2026-10-06, matched by a
  * read-only get_portfolio / get_accounts at 01:46 UTC. CONTEXT ONLY:
  * source "desk_snapshot" can never clear evaluateRhBuyingPower.

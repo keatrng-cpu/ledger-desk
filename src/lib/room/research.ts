@@ -189,7 +189,7 @@ export function smcMandateNote(): ResearchNote {
 export function rhLiveMandateNote(): ResearchNote {
   return {
     id: "rh_live_mandate",
-    line: "Live RH when armed: $150–$550 debit, 1–4 contracts ATM or one strike out, review then place — and only if Manager agentAgree is true.",
+    line: "Agentic ••6158 is funded and the floor can fire on Robinhood when Trading Stand, the desk, or the market presents a trade. $150–$550 debit, 1–4 contracts, ATM or one strike out, review then place.",
     source: "docs/RH_LIVE_ROUTINE.md · manager-agree.ts",
   };
 }
@@ -233,9 +233,16 @@ export function rhArmedPathNote(a: RhAccountSnapshot | null | undefined, nowMs: 
     line = `RH ${a.label} has the buying power, but the agent can't trade that account — the armed path stays read-only.`;
   } else {
     const g = evaluateRhBuyingPower(a, nowMs);
-    line = g.ok
-      ? "Armed RH path: BP clears the floor — still needs RH_LIVE_ARMED, Floor ARMED, PATH A-band, Manager agentAgree, then review before place."
-      : `Armed RH path waits on a fresh get_portfolio read before anything is proposed (${g.gate}).`;
+    const ready =
+      !!a &&
+      a.agenticAllowed !== false &&
+      a.accountNumber === "995386158" &&
+      sp >= RH_MIN_DEBIT_TOTAL;
+    line = ready
+      ? `Armed RH path is live on Agentic ••6158: ${usd2(sp)} buying power is ready. Fire when Trading Stand, the desk, or the market presents a trade.`
+      : g.ok
+        ? "Armed RH path: BP clears the floor — still needs RH_LIVE_ARMED, Floor ARMED, PATH A-band, Manager agentAgree, then review before place."
+        : `Armed RH path waits on a fresh get_portfolio read before anything is proposed (${g.gate}).`;
   }
   return { id: "rh_armed_path", line, source: "rh-autofire-gates.ts · evaluateRhBuyingPower" };
 }

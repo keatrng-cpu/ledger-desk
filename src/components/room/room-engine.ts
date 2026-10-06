@@ -66,7 +66,7 @@ import type { Void } from "@/lib/room/exec/executor";
 import { execAfterCycle, execFlatten } from "./exec-bridge";
 import { researchShelf } from "@/lib/room/research";
 // RH Individual account on the desk (Keaton 2026-10-06) — context for the seats, never a ticket.
-import { RH_DESK_ACCOUNT_SNAPSHOT } from "@/lib/execution/rh-account";
+import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
 import { roomManagerFeed } from "@/lib/room/manager-room-feed";
@@ -123,7 +123,7 @@ function saveGoal(g: GoalSpec) {
 /* ── Frame building ─────────────────────────────────────────────────────── */
 
 const RESEARCH_LINES = (() => {
-  const shelf = researchShelf(RH_DESK_ACCOUNT_SNAPSHOT, RH_DESK_ACCOUNT_SNAPSHOT.asOfMs);
+  const shelf = researchShelf(RH_AGENTIC_DESK_READ, RH_AGENTIC_DESK_READ.asOfMs);
   return Object.fromEntries(Object.entries(shelf).map(([k, notes]) => [k, notes.map((n) => n.line)])) as FloorScreens["research"];
 })();
 
@@ -431,7 +431,7 @@ function runLiveCycle(desk: DeskPayload) {
   const input = toRoomInput(book, market);
   const read = readDeskForRoom(desk, od, exitWatchOf(book), nowMs, st.pulse.tenYear);
   const lab = labRead(asLab(book.lab), book.closed);
-  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: RH_DESK_ACCOUNT_SNAPSHOT }, nowMs);
+  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: RH_AGENTIC_DESK_READ }, nowMs);
   const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
   book = applyLab(book, cycle, market, read, nowMs, st.goal);

@@ -7,12 +7,10 @@
  * order or feed a gate — the account place gate is accountPlaceGate in
  * manager-account.ts, the envelope is rh-autofire-gates.ts.
  *
- * Source: whatever the Manager feed carries in ManagerRoomState.account. Until
- * a host injects a live connector read, that is Trading Stand's
- * DEFAULT_MANAGER_ROOM_ACCOUNT — since b8e76f4 the Agentic ••••6158 trade
- * account's $0 SNAPSHOT (isSnapshot: true; Individual ••••7477 is display-only)
- * — and the screen says "snapshot". Which account is the trade path is Trading
- * Stand's call (RH_PREFERRED_ACCOUNT_*); this file only follows it.
+ * Source: whatever the Manager feed carries in ManagerRoomState.account. The
+ * default is the funded Agentic ••••6158 read (cash $996.12, buying power
+ * $996.12, get_portfolio 2026-10-06 09:46 ET). Individual ••••7477 stays
+ * display-only. A place still re-reads the broker at review.
  * The Floor reports each feed update here so the hero (on another tab) reads
  * the same block. Dev preview: ?flash=bp-low / ?flash=bp-ok.
  */

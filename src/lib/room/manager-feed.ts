@@ -18,6 +18,7 @@ import { reportAutomation } from "@/lib/ui/automation-state";
 import { agentAgreeFromManagerRoomState } from "@/lib/execution/manager-agree";
 import {
   DEFAULT_MANAGER_ROOM_ACCOUNT,
+  managerAccountLine,
   type ManagerRhAccount,
 } from "@/lib/execution/manager-account";
 
@@ -458,7 +459,7 @@ function buildState(
     open: mockOpen(phase, cycleId, now),
     close: mockClose(phase, now),
     ...baseSnaps(mood),
-    // The RH account block: the Individual ••••7477 snapshot until a host injects a live read.
+    // The RH account block: funded Agentic ••••6158 until a host injects a newer read.
     account: DEFAULT_MANAGER_ROOM_ACCOUNT,
   };
 }
@@ -649,10 +650,11 @@ export function createStubManagerFeed(
 
 /** Caption text for the Manager speech bubble from room state. */
 export function managerBubbleText(s: ManagerRoomState): string | null {
-  if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}`;
+  const acct = s.account ? ` ${managerAccountLine(s.account)}. Cash $${s.account.cashUsd.toFixed(2)} on Agentic ••••6158.` : "";
+  if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}${acct}`;
   // Nothing to say while idle: no bubble rather than a "[IDLE] Standing by." filler over the stand.
   if (s.current === "IDLE") return null;
-  return `[${s.current}] Standing by.`;
+  return `[${s.current}] Buying power is on the desk.${acct}`;
 }
 
 /** Map ManagerPhase → rough EntryMood tint for the avatar accent. */

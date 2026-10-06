@@ -5,11 +5,11 @@
 export async function verifyManagerAccount(rh, check) {
   const m = await import("../src/lib/execution/manager-account.ts");
   const d = m.DEFAULT_MANAGER_ROOM_ACCOUNT;
-  check("default account is Agentic snapshot", [d.source, d.label, d.accountNumber, d.accountMaskLast4, d.isSnapshot, d.agenticAllowed, d.optionLevel], ["rh_live", "Agentic", "995386158", "6158", true, true, "option_level_2"]);
-  check("default cash/BP 0 / 0 until funded", [d.cashUsd, d.optionsBuyingPowerUsd], [0, 0]);
+  check("default account is funded Agentic read", [d.source, d.label, d.accountNumber, d.accountMaskLast4, d.isSnapshot, d.agenticAllowed, d.optionLevel], ["rh_live", "Agentic", "995386158", "6158", false, true, "option_level_2"]);
+  check("default cash/BP is the funded read", [d.cashUsd, d.optionsBuyingPowerUsd], [996.12, 996.12]);
   check("envelope 150/550", [d.envelopeMinUsd, d.envelopeMaxUsd], [150, 550]);
-  check("BP 0 cannot fill envelope", d.canFillEnvelope, false);
-  check("monitor line arm blocked", m.managerAccountLine(d), "BP $0.00 · below $150 envelope, arm blocked");
+  check("funded BP fills the envelope", d.canFillEnvelope, true);
+  check("monitor line shows buying power ready", m.managerAccountLine(d), "BP $996.12 · envelope $150–$550 ok");
   check("preferred account 995386158 / 6158 / Agentic", [m.RH_PREFERRED_ACCOUNT_NUMBER, m.RH_PREFERRED_ACCOUNT_MASK_LAST4, m.RH_PREFERRED_ACCOUNT_LABEL], ["995386158", "6158", "Agentic"]);
   const ind = m.RH_INDIVIDUAL_SNAPSHOT_2026_10_06;
   check("Individual snapshot kept display-only", [ind.accountNumber, ind.accountMaskLast4, ind.cashUsd, ind.optionsBuyingPowerUsd, ind.agenticAllowed, ind.isSnapshot], ["415577477", "7477", 984.12, 11.56, false, true]);
@@ -28,7 +28,7 @@ export async function verifyManagerAccount(rh, check) {
   check("connector missing buying_power → gate bp_unknown", m.accountPlaceGate(connNoBp).gate, "bp_unknown");
 
   check("gate refuses null account", m.accountPlaceGate(null).ok, false);
-  check("gate refuses default Agentic $0 snapshot", m.accountPlaceGate(d).ok, false);
+  check("gate passes default funded Agentic read", m.accountPlaceGate(d).ok, true);
   check("gate refuses Individual snapshot (wrong account)", m.accountPlaceGate(ind).gate, "bp_wrong_account");
   const funded = m.toManagerRhAccount({ cashUsd: 1000, optionsBuyingPowerUsd: 1000, agenticAllowed: true, optionLevel: "option_level_2", accountNumber: "995386158", label: "Agentic" });
   check("gate passes fresh funded Agentic", m.accountPlaceGate(funded).ok, true);
@@ -45,7 +45,7 @@ export async function verifyManagerAccount(rh, check) {
   const liveQuote = { optionId: "opt-mgr", askPrice: 1.98, bidPrice: 1.95, asOfMs: NOW - 3_000, source: "get_option_quotes" };
   const base = { gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false, agenticAllowed: true, optionsLevelOk: true, accountAtReview: fresh, debitTotal: 400, liveQuote, quantity: 2, nowMs: NOW };
   check("mayPlaceAfterReview refuses when Manager account key absent", rh.mayPlaceAfterReview(base).ok, false);
-  check("mayPlaceAfterReview refuses default account", rh.mayPlaceAfterReview({ ...base, account: d }).ok, false);
+  check("mayPlaceAfterReview ok with default funded Agentic read", rh.mayPlaceAfterReview({ ...base, account: d }).ok, true);
   check("mayPlaceAfterReview refuses null account", rh.mayPlaceAfterReview({ ...base, account: null }).ok, false);
   check("mayPlaceAfterReview refuses Individual block", rh.mayPlaceAfterReview({ ...base, account: { ...funded, accountNumber: "415577477" } }).ok, false);
   check("mayPlaceAfterReview ok with fresh funded Agentic", rh.mayPlaceAfterReview({ ...base, account: funded }).ok, true);

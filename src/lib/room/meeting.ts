@@ -923,10 +923,15 @@ export function buildMeeting(
   else if (f.beat === "blocked" && f.card) lines = blocked(f, minds);
   else lines = chop(f, minds, acts);
 
-  // RH account on the desk: when the Floor would fire but the RH account can't
-  // carry the $150 floor, Sterling says so — the armed RH path stands down.
+  // RH account on the desk. Funded Agentic: the crew says the buying power
+  // is ready. Short or inaccessible: Sterling says the armed path stands down.
   const wouldFire = f.beat === "fill" || f.beat === "trigger_wait" || (f.card?.verdict === "ARMED" && f.beat !== "closed" && f.beat !== "rejected");
-  if (wouldFire && "rhAccount" in f && rhAccountShort(f.rhAccount)) {
+  if ("rhAccount" in f && f.rhAccount && !rhAccountShort(f.rhAccount) && f.rhAccount.agenticAllowed !== false) {
+    lines.splice(1, 0, say("Sterling", rhAccountNote(f.rhAccount).line, "APPROVING"));
+    if (!lines.some((l) => l.who === "Vince")) {
+      lines.splice(2, 0, say("Vince", rhArmedPathNote(f.rhAccount, f.nowMs).line, "THUMBS_UP"));
+    }
+  } else if (wouldFire && "rhAccount" in f && rhAccountShort(f.rhAccount)) {
     lines.splice(Math.min(lines.length, 7), 0, say("Sterling", rhArmedPathNote(f.rhAccount, f.nowMs).line, "CROSSING_ARMS"));
   }
 
