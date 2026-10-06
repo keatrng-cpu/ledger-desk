@@ -2815,7 +2815,7 @@ export class FloorScene {
   private onMove = (e: PointerEvent) => {
     // Move the mouse to turn. No button, and it stops when the mouse stops — a held offset was the rubber band.
     if (this.ownerChase && this.focused && e.pointerType !== "touch" && (e.movementX !== 0 || e.movementY !== 0)) {
-      this.owner.yaw += e.movementX * 0.0045;
+      this.owner.yaw -= e.movementX * 0.0045;
       this.lookPitch = Math.max(-0.55, Math.min(0.42, this.lookPitch - e.movementY * 0.0022));
     }
     if (e.pointerType !== "mouse" || e.buttons) return;
@@ -3127,12 +3127,12 @@ export class FloorScene {
     if (this.focused && this.walkMode) {
       let mx = 0;
       let mz = 0;
-      // Screen-right is +X when facing +Z. D and a mouse move to the right both go that way.
+      // Mouse-right and D both turn and step to the viewer's right.
       const yaw = this.owner.yaw;
       const fx = Math.sin(yaw);
       const fz = Math.cos(yaw);
-      const rx = Math.cos(yaw);
-      const rz = -Math.sin(yaw);
+      const rx = -Math.cos(yaw);
+      const rz = Math.sin(yaw);
       if (this.keys.w) {
         mx += fx;
         mz += fz;
