@@ -182,6 +182,12 @@ console.log("\nManager → agentAgree wiring (design step 5)");
   await verifyManagerAgree(gates, rh, check, ARMED_FLAGS);
 }
 
+console.log("\nManagerRoomState.account (read-only RH block)");
+{
+  const { verifyManagerAccount } = await import("./verify-manager-account.mjs");
+  await verifyManagerAccount(rh, check);
+}
+
 console.log("\nsource posture");
 {
   const src = read("src/lib/execution/rh-autofire.ts");
@@ -194,6 +200,8 @@ console.log("\nsource posture");
   const msrc = read("src/lib/execution/manager-agree.ts");
   check("manager-agree adapter exports resolveStandAgentAgree", /export function resolveStandAgentAgree/.test(msrc), true);
   check("manager-agree does not place", /place_option_order|CallDynamicTool/.test(msrc), false);
+  const asrc = read("src/lib/execution/manager-account.ts");
+  check("manager-account does not place", /place_option_order|CallDynamicTool/.test(asrc), false);
   check("candidateFromFloorPathStand accepts manager", /manager\?:\s*ManagerRoomStateAgree/.test(src), true);
 }
 

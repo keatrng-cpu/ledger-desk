@@ -31,6 +31,20 @@ export {
   resolveStandAgentAgree,
 } from "./manager-agree";
 export type { ManagerCallAgree, ManagerRoomStateAgree } from "./manager-agree";
+import { accountPlaceGate, type ManagerRhAccount } from "./manager-account";
+export {
+  accountPlaceGate,
+  canFillRhEnvelope,
+  DEFAULT_MANAGER_ROOM_ACCOUNT,
+  managerAccountLine,
+  managerRhAccountFromConnector,
+  RH_INDIVIDUAL_SNAPSHOT_2026_10_06,
+  RH_PREFERRED_ACCOUNT_LABEL,
+  RH_PREFERRED_ACCOUNT_MASK_LAST4,
+  RH_PREFERRED_ACCOUNT_NUMBER,
+  toManagerRhAccount,
+} from "./manager-account";
+export type { ManagerRhAccount, ManagerRoomStateAccount } from "./manager-account";
 
 export {
   evaluateRhAutofireGates,
@@ -173,6 +187,8 @@ export function mayPlaceAfterReview(args: {
   reviewHadBlockingAlert: boolean;
   agenticAllowed: boolean;
   optionsLevelOk: boolean;
+  /** ManagerRoomState.account — when the key is present, accountPlaceGate must pass. */
+  account?: ManagerRhAccount | null;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
   if (!args.liveArmedNow) return { ok: false, reason: RH_LIVE_DISARMED_REASON };
@@ -181,6 +197,10 @@ export function mayPlaceAfterReview(args: {
   }
   if (!args.agenticAllowed) return { ok: false, reason: "Robinhood account agentic_allowed=false — read-only." };
   if (!args.optionsLevelOk) return { ok: false, reason: "Options level < 2 — cannot buy calls/puts." };
+  if ("account" in args) {
+    const acct = accountPlaceGate(args.account);
+    if (!acct.ok) return acct;
+  }
   if (args.reviewHadBlockingAlert) {
     return { ok: false, reason: "review_option_order surfaced a blocking alert — human must acknowledge before place." };
   }
