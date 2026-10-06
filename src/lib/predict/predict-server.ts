@@ -7,6 +7,9 @@
  * parallel with short timeouts so the call answers well inside the edge's
  * ~30s cut, and it is refreshed by the tab on a timer ONLY while the tab is
  * open — this is a data read, never a model, never on the trading poll.
+ *
+ * Also hosts getPredictionMarketFeed — broad Kalshi public markets (sports /
+ * economics / politics) for The Mead Hall / Prototype Lab. READ-ONLY.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -24,6 +27,13 @@ import {
   type GameExtras,
   type League,
 } from "./board";
+import {
+  kalshiAdapterResult,
+  rhMcpUnavailableAdapter,
+  type KalshiPublicMarket,
+  type PredictionMarketFeedResult,
+  KALSHI_SOURCE_LABEL,
+} from "./prediction-market-feed";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
@@ -145,3 +155,82 @@ export const getPredictBoard = createServerFn({ method: "POST" })
     if (!failed.length) boardCache.set(data.league, { at: Date.now(), data: out });
     return out;
   });
+
+/* ── Broad PredictionMarketFeed (Mead Hall / Prototype Lab) ─────────────── */
+
+/**
+ * Series tickers pulled for the hall — sports + economics + politics.
+ * NFL is included but ranking (not this list) decides order; Vikings get no
+ * special series.
+ */
+export const KALSHI_FEED_SERIES = [
+  "KXNFLGAME",
+  "KXNBAGAME",
+  "KXMLBGAME",
+  "KXNHLGAME",
+  "KXHIGHNY",
+  "KXGDP",
+  "KXBTCD",
+  "KXCPIYOY",
+] as const;
+
+const FEED_CACHE_MS = 12_000;
+let feedCache: { at: number; data: PredictionMarketFeedResult } | null = null;
+
+const RH_MCP_NOTE =
+  "Robinhood MCP has no event-contract tools — see rhMcpUnavailableAdapter / source 'rh_mcp_unavailable'.";
+
+async function fetchKalshiSeries(series: string, limit = 40): Promise<KalshiPublicMarket[]> {
+  const url = `${KALSHI}/markets?limit=${limit}&status=open&series_ticker=${encodeURIComponent(series)}`;
+  const json = (await getJson(url)) as { markets?: KalshiPublicMarket[] };
+  const markets = Array.isArray(json.markets) ? json.markets : [];
+  return markets.map((m) => ({ ...m, _series: series }));
+}
+
+/**
+ * PUBLIC read-only PredictionMarketFeed from Kalshi trade-api/v2 (no API key).
+ * Server function avoids browser CORS. Paper/UI only — never places orders.
+ */
+export const getPredictionMarketFeed = createServerFn({ method: "POST" })
+  .validator(
+    z
+      .object({
+        series: z.array(z.string().min(2).max(64)).max(20).optional(),
+        limitPerSeries: z.number().int().min(1).max(100).optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data }): Promise<PredictionMarketFeedResult> => {
+    if (feedCache && Date.now() - feedCache.at < FEED_CACHE_MS) return feedCache.data;
+    const series = data?.series?.length ? data.series : [...KALSHI_FEED_SERIES];
+    const limit = data?.limitPerSeries ?? 30;
+    const failed: string[] = [];
+    const chunks = await Promise.all(
+      series.map((s) =>
+        fetchKalshiSeries(s, limit).catch((err) => {
+          failed.push(`${s}: ${String(err instanceof Error ? err.message : err)}`);
+          return [] as KalshiPublicMarket[];
+        }),
+      ),
+    );
+    const raw = chunks.flat();
+    const asOf = new Date().toISOString();
+    if (!raw.length) {
+      const empty = kalshiAdapterResult([], asOf);
+      empty.reason = failed.length
+        ? `Kalshi public read failed (${failed.join(" · ")}). ${RH_MCP_NOTE}`
+        : `Kalshi returned no open markets for ${series.join(", ")}. ${RH_MCP_NOTE}`;
+      return empty;
+    }
+    const out = kalshiAdapterResult(raw, asOf);
+    if (failed.length) out.reason = `Partial Kalshi read — skipped: ${failed.join(" · ")}`;
+    feedCache = { at: Date.now(), data: out };
+    return out;
+  });
+
+/** Explicit empty adapter for callers that asked RH MCP for event contracts. */
+export function getRhMcpUnavailableFeed(): PredictionMarketFeedResult {
+  return rhMcpUnavailableAdapter();
+}
+
+export { KALSHI_SOURCE_LABEL };
