@@ -36,6 +36,7 @@ import { asGoal, defaultGoal, GOAL_STORAGE, type GoalSpec } from "@/lib/room/goa
 import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
+import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
@@ -306,6 +307,12 @@ interface RoomState {
   tickAt: number | null;
   /** The 3D scene is mounted and will play what it is handed. */
   sceneOpen: boolean;
+  /**
+   * Floor 3D overhaul (Chunk A): what the ticker wall, liquidity lanes, VIX weather, stat banners, trophy shelf and wall
+   * of scars show — `floorProps` over the same world the live talk reads. Replaced only when its signature moves.
+   */
+  floorProps: FloorProps | null;
+  floorPropsSig: string;
   /** The server copy of the room (book + memory): restored at startup if richer, pushed after book changes. */
   backup: BackupState;
   /** The trader's goal (goal.ts) and the race it sets running (seats.ts): the plan, the league and the R&D board, once per desk build. */
@@ -338,6 +345,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   feedRead: null,
   tickAt: null,
   sceneOpen: false,
+  floorProps: null,
+  floorPropsSig: "",
   backup: { status: "idle", at: null, why: "Not checked yet." },
   goal: defaultGoal(0),
   race: null,
@@ -628,12 +637,24 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
   }
   const { item, state } = talkTick(world, st.talkState);
   saveTalk(state, nowMs);
+  // The overhaul's props: presentation only, never read back by the talk or the cycle.
+  let props: FloorProps | null = null;
+  try {
+    props = floorProps(world, { closed: st.book.closed, startCash: st.book.startCash, memories: st.minds?.memories ?? [] });
+  } catch (err) {
+    console.error("[room] floor props failed:", err);
+  }
+  const propsSig = propsSignature(props);
   const feed = world.feed;
   const was = st.feedRead;
   const feedMoved = !was || was.kind !== feed.kind || (was.lagSec == null) !== (feed.lagSec == null) || Math.abs((was.lagSec ?? 0) - (feed.lagSec ?? 0)) >= 5;
   useRoomStore.setState((s) => {
     const next: Partial<RoomState> = { talkState: state, tickAt: nowMs };
     if (feedMoved) next.feedRead = feed;
+    if (propsSig !== s.floorPropsSig) {
+      next.floorProps = props;
+      next.floorPropsSig = propsSig;
+    }
     if (item) {
       const keep = s.pending.filter((p) => nowMs - p.at <= p.ttlMs);
       next.talkSeq = s.talkSeq + 1;

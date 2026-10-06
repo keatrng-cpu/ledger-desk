@@ -34,6 +34,8 @@ import {
   type StubManagerFeed,
 } from "@/lib/room/manager-feed";
 import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
+import { FloorOverhaul } from "./floor-overhaul";
+import type { FloorProps } from "@/lib/room/floor-props";
 import { readRhAccount } from "@/lib/ui/rh-account";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
@@ -67,6 +69,16 @@ interface Layout {
 }
 export const LAYOUT = layoutJson as unknown as Layout;
 export const CREW_ORDER: Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
+
+/** The Owner's balcony deck and stairs from the plan (axis-aligned; rot 0), for the Owner's walk and height. */
+const BALCONY = (() => {
+  const box = (id: string) => {
+    const f = LAYOUT.furniture.find((x) => x.id === id);
+    if (!f) return null;
+    return { x0: f.pos[0] - f.size[0] / 2, x1: f.pos[0] + f.size[0] / 2, z0: f.pos[1] - f.size[2] / 2, z1: f.pos[1] + f.size[2] / 2, h: f.size[1] };
+  };
+  return { deck: box("balcony_Owner"), stairs: box("stairs_Owner") };
+})();
 const SCHOOL_LABEL: Record<string, string> = { ict: "ICT", tjr: "TJR", blake: "Blake Mech", patty: "Patty/PB", smc: "SMC" };
 
 const DEG = Math.PI / 180;
@@ -1206,6 +1218,9 @@ export const PLACES: Place[] = [
   { id: "jumbo_S", label: "Ghost room", group: "war room" },
   { id: "jumbo_W", label: "Calibration", group: "war room" },
   { id: "jumbo_N", label: "The vote", group: "war room" },
+  { id: "ovh_kz_E", label: "Killzone clock", group: "war room" },
+  { id: "ovh_tickerwall", label: "Ticker wall", group: "war room" },
+  { id: "ovh_mgr_0", label: "Manager's office", group: "war room" },
   { id: "tv_rnd", label: "R&D board", group: "annex" },
   { id: "mon_Rnd_0", label: "Desk audit", group: "annex" },
   { id: "mon_Ops_0", label: "The feed", group: "annex" },
@@ -1218,12 +1233,18 @@ export const PLACES: Place[] = [
   { id: "mon_Chair_0", label: "Chair's page", group: "invest" },
   { id: "tv_leader", label: "League table", group: "lounge" },
   { id: "tv_lounge", label: "Lounge TV", group: "lounge" },
+  { id: "ovh_trophies", label: "Trophy shelf", group: "lounge" },
+  { id: "ovh_scars", label: "Wall of scars", group: "lounge" },
 ];
+
+/** Overhaul screens that are not chips but still deserve a name when the viewer flies to them. */
+const OVH_LABEL: Record<string, string> = { ovh_kz_W: "Killzone clock", ovh_mgr_1: "Manager's office" };
 
 /** A readable name for any screen id, for the tab's "looking at" label. */
 export function screenLabel(id: string): string {
   const hit = PLACES.find((p) => p.id === id);
   if (hit) return hit.label;
+  if (OVH_LABEL[id]) return OVH_LABEL[id]!;
   const m = /^mon_([A-Za-z]+)_\d+$/.exec(id);
   if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : m[1] === "Inv" ? "Investment monitors" : m[1] === "Chair" ? "Chair's monitor" : `${m[1]}'s monitors`;
   const p = /^plate_([A-Za-z]+)$/.exec(id);
@@ -1233,7 +1254,7 @@ export function screenLabel(id: string): string {
 }
 
 /** Things the floor does that a speaker (or the tab) may want to hear. */
-export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
+export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow" | "thunder";
 
 /**
  * One exchange from the live talk (lib/room/live-talk.ts): a few lines, who walks where for them, and how long it
@@ -1316,6 +1337,9 @@ const FURNITURE_COLORS: Record<string, string> = {
   bench: "#475569",
   globe: "#1d4ed8",
   armchair: "#7c2d12",
+  balcony: "#3f4a5a",
+  stairs: "#3f4a5a",
+  partition: "#1f2937",
 };
 
 /** The cash open and close, ET minutes — the bell rings when the clock crosses them. */
@@ -1373,6 +1397,44 @@ function fallbackPiece(f: Layout["furniture"][number], mat: THREE.Material): THR
     case "jumbotron": {
       // Inside the four screen faces, so the screens never z-fight a solid box.
       box(w - 0.08, h - 0.04, d - 0.08, 0, h / 2, 0);
+      break;
+    }
+    case "balcony": {
+      // The Owner's balcony: a deck on posts with a glass rail, open on the +x side where the stairs land.
+      const deck = 0.14;
+      box(w, deck, d, 0, h - deck / 2, 0);
+      for (const sx of [-1, 1]) for (const sz of [-1, 0, 1]) box(0.12, h - deck, 0.12, sx * (w / 2 - 0.08), (h - deck) / 2, sz * (d / 2 - 0.08));
+      const glass = new THREE.MeshStandardMaterial({ color: "#9cc3ff", transparent: true, opacity: 0.22, roughness: 0.05, depthWrite: false });
+      glass.name = "glass";
+      const rail = new THREE.MeshStandardMaterial({ color: "#cbd5e1", metalness: 0.6, roughness: 0.3 });
+      const railH = 1.0;
+      const gap = 0.6; // half-width of the stair opening on the +x side
+      const panel = (pw: number, pd: number, x: number, z: number) => {
+        box(pw, railH, pd, x, h + railH / 2, z, glass).castShadow = false;
+        box(pw === 0.03 ? 0.05 : pw, 0.05, pd === 0.03 ? 0.05 : pd, x, h + railH, z, rail);
+      };
+      panel(0.03, d, -w / 2 + 0.02, 0);
+      panel(w, 0.03, 0, -d / 2 + 0.02);
+      panel(w, 0.03, 0, d / 2 - 0.02);
+      const side = (d / 2 - gap) / 1;
+      panel(0.03, side, w / 2 - 0.02, -(gap + side / 2));
+      panel(0.03, side, w / 2 - 0.02, gap + side / 2);
+      break;
+    }
+    case "stairs": {
+      // Stairs down toward +x: the top step meets the balcony deck at -x.
+      const n = 7;
+      const run = w / n;
+      for (let i = 0; i < n; i++) {
+        const sh = (h * (n - i)) / n;
+        box(run + 0.002, sh, d, -w / 2 + (i + 0.5) * run, sh / 2, 0);
+      }
+      const rail = new THREE.MeshStandardMaterial({ color: "#cbd5e1", metalness: 0.6, roughness: 0.3 });
+      for (const sz of [-1, 1]) {
+        const len = Math.hypot(w, h);
+        const r = box(len, 0.05, 0.05, 0, h / 2 + 0.95, sz * (d / 2 - 0.03), rail);
+        r.rotation.z = -Math.atan2(h, w);
+      }
       break;
     }
     case "desk":
@@ -1483,6 +1545,10 @@ export class FloorScene {
   private readonly owner: OwnerAvatar;
   /** Prototype Lab: Trading Stand Manager — seated at chair_desk. */
   private readonly manager: ManagerAvatar;
+  /** Where the Manager looks from the corner-office chair (the camera comes from that side). */
+  private readonly managerLook: V2;
+  /** Chunk A overhaul set pieces (pit, lanes, banners, weather, trophy cups) — presentation only. */
+  private readonly overhaul: FloorOverhaul;
   private readonly managerFeed: ManagerFeed;
   private unsubManager: (() => void) | null = null;
   private readonly stubFeed: StubManagerFeed | null;
@@ -1595,16 +1661,23 @@ export class FloorScene {
       this.avatars.set(who, a);
       this.scene.add(a.root);
     }
-    // Owner home: Prototype Lab annex (office_RnD). Manager: war-room stand desk (not chair_office).
-    const lab = LAYOUT.spots.office_rnd ?? { pos: [-0.6, 5.15] as [number, number], look: [-0.6, 3.9] as [number, number] };
-    // Stand slightly south of the R&D desk so Owner can walk the floor freely.
-    const ownerStart: [number, number] = [lab.pos[0], lab.pos[1] - 1.2];
+    // Owner home: the balcony over the war room (Chunk A item 8) — starts on its deck, looking at the pit.
+    const bal = BALCONY.deck;
+    const ownerStart: [number, number] = bal ? [bal.x0 + 0.7, (bal.z0 + bal.z1) / 2] : [-0.6, 3.95];
     const ownerLook: [number, number] = [-8, -1];
     this.owner = new OwnerAvatar(ownerStart, ownerLook);
+    this.owner.elevation = this.heightAt(ownerStart[0], ownerStart[1]);
     this.scene.add(this.owner.root);
-    // Trading Stand at war-room meeting chair facing the table.
-    this.manager = new ManagerAvatar({ pos: [-6.9, 0.05], look: [-8.0, -1.0] });
+    // Trading Stand in the glass corner office (chair_Manager in the plan), facing its monitors and the pit beyond;
+    // the old war-room meeting chair if the plan has no corner office.
+    const mChair = LAYOUT.furniture.find((x) => x.id === "chair_Manager");
+    const mDesk = LAYOUT.furniture.find((x) => x.id === "desk_Manager");
+    this.managerLook = mChair && mDesk ? [mDesk.pos[0], mDesk.pos[1]] : [-8.0, -1.0];
+    this.manager = new ManagerAvatar({ pos: mChair ? [mChair.pos[0], mChair.pos[1]] : [-6.9, 0.05], look: this.managerLook });
     this.scene.add(this.manager.root);
+    this.overhaul = new FloorOverhaul();
+    this.overhaul.onThunder = () => this.opts.onEvent?.("thunder");
+    this.scene.add(this.overhaul.root);
     if (opts.managerFeed) {
       this.managerFeed = opts.managerFeed;
       this.stubFeed = null;
@@ -2553,6 +2626,8 @@ export class FloorScene {
     }
     this.cat.update(dt, t);
     this.tickOwnerManager(dt, t);
+    this.overhaul.update(dt, t, this.clockMs());
+    this.overhaul.drawScreens(this.screens, this.clockMs());
     // Day and night follow the ET clock (the drill's own clock in a drill); a storm dims the sun.
     if (t - this.lastLightAt > 1) {
       this.lastLightAt = t;
@@ -2816,7 +2891,7 @@ export class FloorScene {
     if (this.ownerChase) this.stopOwnerChase();
     const [mx, mz] = this.manager.pos;
     const target = new THREE.Vector3(mx, 1.25, mz);
-    const away = Math.atan2(mx - -8.0, mz - -1.0); // the stand looks toward (-8, -1); come from its front side
+    const away = Math.atan2(mx - this.managerLook[0], mz - this.managerLook[1]); // come from the side the Manager faces
     for (const d of [3.2, 2.6, 2.0]) {
       for (const da of [0, 0.7, -0.7, 1.4, -1.4, Math.PI]) {
         const ang = away + Math.PI + da;
@@ -2850,7 +2925,7 @@ export class FloorScene {
     this.ownerChaseHead = null;
     this.preset = "free";
     this.ownerChaseWant = 3.2;
-    this.ownerChaseY = this.owner.height * 0.78;
+    this.ownerChaseY = this.owner.height * 0.78 + this.owner.elevation;
     const behind = this.owner.yaw + Math.PI;
     const d = 3.2;
     const x = this.owner.pos[0] + Math.sin(behind) * d;
@@ -2868,7 +2943,7 @@ export class FloorScene {
 
   private ownerChaseRide(dt: number, t: number) {
     const a = this.owner;
-    this.ownerChaseY = damp(this.ownerChaseY, a.height * 0.78, 4, dt);
+    this.ownerChaseY = damp(this.ownerChaseY, a.height * 0.78 + a.elevation, 4, dt);
     const head = new THREE.Vector3(a.pos[0], this.ownerChaseY, a.pos[1]);
     this.ownerChaseHead ??= head.clone();
     const delta = head.clone().sub(this.ownerChaseHead);
@@ -2899,6 +2974,32 @@ export class FloorScene {
   private walkable = (x: number, z: number) => {
     const [i, j] = this.nav.cellOf(x, z);
     return this.nav.free(i, j);
+  };
+
+  /**
+   * The Owner's floor height: the balcony deck, the stairs (a ramp along their run), or the floor. The crew's nav
+   * grid treats the balcony and stairs as solid (they never climb them); only the Owner walks up.
+   */
+  private heightAt(x: number, z: number): number {
+    const d = BALCONY.deck;
+    const s = BALCONY.stairs;
+    if (d && x >= d.x0 && x <= d.x1 && z >= d.z0 && z <= d.z1) return d.h;
+    if (s && x >= s.x0 && x <= s.x1 + 0.4 && z >= s.z0 && z <= s.z1) return Math.max(0, s.h * (1 - (x - s.x0) / (s.x1 - s.x0)));
+    return 0;
+  }
+
+  /** Can the Owner stand at (x, z) from where they are now: on the deck or stairs, or open floor — never a ledge jump. */
+  private ownerWalkable = (x: number, z: number) => {
+    const d = BALCONY.deck;
+    const s = BALCONY.stairs;
+    const m = 0.22;
+    const onDeck = !!d && x >= d.x0 + m && x <= d.x1 + 0.05 && z >= d.z0 + m && z <= d.z1 - m;
+    const onStairs = !!s && x >= s.x0 - 0.05 && x <= s.x1 + 0.4 && z >= s.z0 + 0.12 && z <= s.z1 - 0.12;
+    // The deck's open +x edge is only open where the stairs land.
+    if (onDeck && d && x > d.x1 - m && !(s && z >= s.z0 + 0.12 && z <= s.z1 - 0.12)) return false;
+    if (!onDeck && !onStairs && !this.walkable(x, z)) return false;
+    const from = this.heightAt(this.owner.pos[0], this.owner.pos[1]);
+    return Math.abs(this.heightAt(x, z) - from) < 0.35;
   };
 
   private tickOwnerManager(dt: number, t: number) {
@@ -2932,13 +3033,14 @@ export class FloorScene {
       const len = Math.hypot(mx, mz);
       if (len > 1e-6) {
         const speed = 2.4 * dt;
-        this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.walkable);
+        this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
       } else {
         this.owner.moving = false;
       }
     } else {
       this.owner.moving = false;
     }
+    this.owner.elevation = damp(this.owner.elevation, this.heightAt(this.owner.pos[0], this.owner.pos[1]), 14, dt);
     this.owner.update(dt, t);
     this.manager.update(dt, t);
     this.updateProximity();
@@ -2978,6 +3080,7 @@ export class FloorScene {
   }
 
   private applyManagerFeed(s: ManagerRoomState) {
+    this.overhaul?.setManager(s);
     this.manager.say(managerBubbleText(s));
     this.manager.setMoodAccent(phaseToMoodTint(s.current));
     // The account monitor: Trading Stand's managerAccountLine, red when blocked.
@@ -2985,6 +3088,14 @@ export class FloorScene {
       const r = readRhAccount(s.account);
       this.manager.setAccount({ who: r.who, line: r.line, blocked: r.blocked, snapshot: s.account.isSnapshot ? r.freshness : null });
     } else this.manager.setAccount(null);
+  }
+
+  /**
+   * Chunk A overhaul data (ticker wall, liquidity lanes, VIX weather, stat banners, trophy shelf, wall of scars):
+   * the room engine's `floorProps` read of the live world. Null clears every piece to its labelled empty state.
+   */
+  setFloorProps(p: FloorProps | null, signature = "") {
+    this.overhaul.setProps(p, signature);
   }
 
   /* entry mood */

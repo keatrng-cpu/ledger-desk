@@ -782,6 +782,7 @@ const PLATE: Record<string, string> = {
   plate_Inv: "INVESTMENT OFFICE — the long game",
   plate_Board: "BOARDROOM — the chair and the five",
   plate_Chair: "CHAIR'S OFFICE — the CEO",
+  plate_Manager: "TRADING STAND — the Manager",
 };
 
 function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
