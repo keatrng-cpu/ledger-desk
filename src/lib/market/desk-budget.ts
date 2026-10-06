@@ -84,6 +84,20 @@ interface Entry<T> {
 const lastGood = new Map<string, Entry<unknown>>();
 const inflight = new Map<string, { at: number; p: Promise<unknown> }>();
 
+/** Cap so a long-lived instance cannot accumulate unbounded last-good keys. */
+const LAST_GOOD_MAX = 64;
+
+function setLastGood<T>(key: string, entry: Entry<T>): void {
+  // Re-insert so a refreshed key counts as newest (Map insertion order).
+  if (lastGood.has(key)) lastGood.delete(key);
+  lastGood.set(key, entry);
+  while (lastGood.size > LAST_GOOD_MAX) {
+    const oldest = lastGood.keys().next().value;
+    if (oldest === undefined) break;
+    lastGood.delete(oldest);
+  }
+}
+
 export interface LegOptions<T> {
   /** How long THIS build may wait for a fresh value. */
   waitMs: number;
@@ -111,7 +125,7 @@ function startFetch<T>(key: string, fetcher: () => Promise<T | null>, isGood: (v
   const p = (async () => {
     try {
       const v = await fetcher();
-      if (v != null && isGood(v)) lastGood.set(key, { at: Date.now(), value: v });
+      if (v != null && isGood(v)) setLastGood(key, { at: Date.now(), value: v });
       return v;
     } catch {
       return null;
@@ -209,8 +223,35 @@ export function summarizeBudget(
   };
 }
 
+
+/**
+ * Map a structure-series LegStatus onto the derived Databento quote status.
+ * TTL `cached` must not silently become `fresh` (asOf / age semantics).
+ */
+export function quoteStatusFromSeries(seriesStatus: LegStatus): LegStatus {
+  return seriesStatus === "cached" || seriesStatus === "stale" ? seriesStatus : "fresh";
+}
+
+/**
+ * Fail-closed desk-stale gate: undefined/missing `stale` blocks execution,
+ * same as `stale === true`. Only an explicit `false` clears the gate.
+ */
+export function isDeskStaleBlocked(stale: boolean | undefined | null): boolean {
+  return stale !== false;
+}
+
 /** Test hook: forget every cached and in-flight value. */
 export function __resetDeskBudgetCache(): void {
   lastGood.clear();
   inflight.clear();
+}
+
+/** Test hook: last-good Map size (for bound coverage). */
+export function __lastGoodSize(): number {
+  return lastGood.size;
+}
+
+/** Test hook: last-good capacity. */
+export function __lastGoodMax(): number {
+  return LAST_GOOD_MAX;
 }

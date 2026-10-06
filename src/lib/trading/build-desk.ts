@@ -4,6 +4,8 @@ import {
   DESK_BUDGET_MS,
   DESK_COLD_CAP_MS,
   budgetedLeg,
+  isDeskStaleBlocked,
+  quoteStatusFromSeries,
   remaining,
   summarizeBudget,
   type BudgetLeg,
@@ -258,6 +260,8 @@ interface BarsRead {
   /** Composite status of the structure bars (core leg `bars:SYM`). */
   status: LegStatus;
   legs: BudgetLeg[];
+  /** Epoch ms the structure series was originally fetched (cache / last-good stamp). */
+  fetchedAtMs: number | null;
 }
 
 async function load(
@@ -272,10 +276,13 @@ async function load(
 
   // Databento and Yahoo are independent sources that get STITCHED, so they
   // are fetched concurrently — each inside the same wall budget.
+  // Include dataset in the key so flipping DATABENTO_DATASET cannot reuse
+  // another feed's last-good bars under the same symbol/window.
+  const databentoDataset = process.env.DATABENTO_DATASET || "GLBX.MDP3";
   const databento = hasDatabentoKey()
     ? budgetedLeg(
         `databento:${symbol}`,
-        `databento:${symbol}:${range}:${minutes}`,
+        `databento:${symbol}:${range}:${minutes}:${databentoDataset}`,
         () =>
           fetchDatabentoBars(
             symbol,
@@ -330,11 +337,13 @@ async function load(
     ...(status === "stale" || status === "missing" ? { note: live ? yR.leg.note : dbR?.leg.note ?? yR.leg.note } : {}),
   };
   legs.unshift(composite);
+  // Original fetch time of the series we are serving (yahoo live end, else databento).
+  const seriesFetchedAtMs: number | null = live ? yR.fetchedAtMs : (dbR?.fetchedAtMs ?? null);
 
   const stitched = stitchLiveSession(historical, live);
-  if (!stitched) return { series: syntheticBars(symbol), status: "missing", legs };
+  if (!stitched) return { series: syntheticBars(symbol), status: "missing", legs, fetchedAtMs: null };
   const flag = (s: SymbolSeries): SymbolSeries => (status === "stale" ? { ...s, stale: true } : s);
-  if (!gw.length) return { series: flag(stitched), status, legs };
+  if (!gw.length) return { series: flag(stitched), status, legs, fetchedAtMs: seriesFetchedAtMs };
 
   // Overlay the gateway's buckets at and after the stitched series' last bar
   // — the only bars that can be stale — and label the series live when the
@@ -351,9 +360,9 @@ async function load(
   if (newestGw >= newestBase && status === "stale") {
     composite.status = "fresh";
     composite.note = "gateway bars over last-good base";
-    return { series, status: "fresh", legs };
+    return { series, status: "fresh", legs, fetchedAtMs: Date.now() };
   }
-  return { series: flag(series), status, legs };
+  return { series: flag(series), status, legs, fetchedAtMs: seriesFetchedAtMs };
 }
 
 /** The network half of a quote — started at t0 beside the bars, composed after. */
@@ -385,6 +394,7 @@ function quote(
   series: SymbolSeries | null,
   seriesStatus: LegStatus,
   inputs: QuoteInputs,
+  seriesFetchedAtMs: number | null = null,
 ): { quote: LiveQuote; leg: BudgetLeg } {
   // One baseline for every source — see priorSessionClose (freshest.ts) for
   // why series.previousClose (the chart window's) is not a day's close.
@@ -403,7 +413,7 @@ function quote(
   const yahooQ = inputs.yahoo.value;
   const db =
     series?.source === "databento" && series.bars.length
-      ? quoteFromDatabentoSeries(series)
+      ? quoteFromDatabentoSeries(series, seriesFetchedAtMs ?? undefined)
       : null;
 
   const picked = pickFreshestQuote(yahooQ, db);
@@ -416,15 +426,20 @@ function quote(
     };
   }
   const fromYahoo = picked === yahooQ;
-  const status: LegStatus = fromYahoo ? inputs.yahoo.leg.status : seriesStatus === "stale" ? "stale" : "fresh";
+  // Match series status semantics: cached → cached (not silently fresh).
+  const status: LegStatus = fromYahoo
+    ? inputs.yahoo.leg.status
+    : quoteStatusFromSeries(seriesStatus);
   const q = rebaseQuote(picked, sessionPrev);
+  const seriesAgeSec =
+    seriesFetchedAtMs != null ? Math.round((Date.now() - seriesFetchedAtMs) / 1000) : null;
   return {
     quote: status === "stale" ? { ...q, stale: true } : q,
     leg: {
       id,
       status,
       ms: inputs.yahoo.leg.ms,
-      ageSec: fromYahoo ? inputs.yahoo.leg.ageSec : null,
+      ageSec: fromYahoo ? inputs.yahoo.leg.ageSec : seriesAgeSec,
       note: fromYahoo ? inputs.yahoo.leg.note : "from databento series",
     },
   };
@@ -482,8 +497,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const left = lb.series;
     const right = rb.series;
     const [dailyL, dailyR, minuteL, minuteR] = [dL.bars, dR.bars, mL.bars, mR.bars];
-    const lqR = quote(data.left, left, lb.status, lqIn);
-    const rqR = quote(data.right, right, rb.status, rqIn);
+    const lqR = quote(data.left, left, lb.status, lqIn, lb.fetchedAtMs);
+    const rqR = quote(data.right, right, rb.status, rqIn, rb.fetchedAtMs);
     const lq = lqR.quote;
     const rq = rqR.quote;
     const spySpot = spy.spot;
@@ -819,9 +834,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
      * "Data quality" prefix on purpose: snapshots key dataQualityOk off it.
      * A missing core leg is already handled above (synthetic → stand down).
      */
-    if (budget.stale && seriesLive && quotesLive) {
+    // Fail-closed: missing/undefined stale is treated as blocked (stale !== false).
+    if (isDeskStaleBlocked(budget.stale) && seriesLive && quotesLive) {
       for (const c of scan.candidates) c.actionable = false;
-      scan.blocked.push(`Data quality: ${budget.line} — execution blocked until a fresh build`);
+      scan.blocked.push(`Data quality: ${budget.line || "stale flag missing"} — execution blocked until a fresh build`);
     }
 
     const feed: DeskPayload["feed"] =
@@ -873,9 +889,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         label: "Market feed",
         // Bars AND quote. The row a human reads to answer "is any of this
         // real?" must fail when either half is made up.
-        ok: seriesLive && quotesLive && !budget.stale,
-        detail: budget.stale
-          ? budget.line
+        ok: seriesLive && quotesLive && !isDeskStaleBlocked(budget.stale),
+        detail: isDeskStaleBlocked(budget.stale)
+          ? budget.line || "stale flag missing"
           : !quotesLive
           ? "Synthetic quote — no live print from gateway / Yahoo / Databento"
           : hasDatabentoKey()
