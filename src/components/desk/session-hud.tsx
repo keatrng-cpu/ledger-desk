@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
+import { feedTone, sourceTag } from "@/lib/ui/feed-tone";
 import { effectiveLagSec } from "@/lib/trading/desk-fetch-guard";
 
 function QuoteChip({
@@ -63,76 +64,6 @@ function matchingGhost(desk: DeskPayload, ghosts: GhostTrade[]): GhostTrade | nu
   const focus = desk.scan.candidates.find((c) => c.actionable) ?? desk.scan.candidates[0];
   if (!focus) return ghosts[0] ?? null;
   return ghosts.find((g) => g.symbol === focus.symbol && g.side === focus.side) ?? null;
-}
-
-/** "606s (~10 min)" — the one place the feed delay is written out. */
-function lagWords(sec: number): string {
-  const s = Math.round(sec);
-  return s >= 90 ? `${s}s (~${Math.round(s / 60)} min)` : `${s}s`;
-}
-
-/** Short tag matching QuoteChip (LIVE / Y! / DB / SYN). */
-function sourceTag(source: string): string {
-  return source === "live_gateway"
-    ? "LIVE"
-    : source === "yahoo"
-      ? "Y!"
-      : source === "databento"
-        ? "DB"
-        : "SYN";
-}
-
-/**
- * Dot colour keys on SOURCE first, then lag.
- * SYN and Y! are never green — synthetic stamps lagSec:0 (yahoo.ts) and Yahoo
- * is delayed structure, not a live execution feed. Only live_gateway / fresh
- * databento can read green.
- */
-function feedDotTone(sources: string[], worstLagSec: number): {
-  className: string;
-  label: string;
-  title: string;
-} {
-  const tags = sources.map(sourceTag);
-  const hasSyn = sources.includes("synthetic");
-  const hasYahoo = sources.includes("yahoo");
-  const sourceBit = sources
-    .map((s, i) => `${tags[i]} (${s})`)
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .join(" · ");
-  if (hasSyn) {
-    return {
-      className: "bg-[var(--color-down)]",
-      label: `Not live · SYN · reported lag ${lagWords(worstLagSec)} (synthetic stamps 0s)`,
-      title: `NOT LIVE — synthetic feed (source decides, not the lag). ${sourceBit}. Reported lag ${lagWords(worstLagSec)} — synthetic quotes stamp lagSec:0 even when invented. Do not treat as a live print.`,
-    };
-  }
-  if (hasYahoo) {
-    return {
-      className: "bg-[var(--color-warn)]",
-      label: `Not live · Y! · delayed ${lagWords(worstLagSec)}`,
-      title: `NOT LIVE — Yahoo is a delayed structure feed, never green. ${sourceBit}. Delay vs the exchange print ${lagWords(worstLagSec)}.`,
-    };
-  }
-  if (worstLagSec <= 15) {
-    return {
-      className: "bg-[var(--color-up)]",
-      label: `Live · feed delay ${lagWords(worstLagSec)}`,
-      title: `Live feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Green ≤ 15s · amber ≤ 2 min · red beyond. SYN/Y! never green.`,
-    };
-  }
-  if (worstLagSec <= 120) {
-    return {
-      className: "bg-[var(--color-warn)]",
-      label: `Delayed · ${lagWords(worstLagSec)}`,
-      title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Amber ≤ 2 min · red beyond. SYN/Y! never green.`,
-    };
-  }
-  return {
-    className: "bg-[var(--color-down)]",
-    label: `Stale · ${lagWords(worstLagSec)}`,
-    title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Red beyond 2 min. SYN/Y! never green.`,
-  };
 }
 
 export function SessionHud({
@@ -184,7 +115,7 @@ export function SessionHud({
     right.source === "synthetic" ||
     quotes.left.source === "synthetic" ||
     quotes.right.source === "synthetic";
-  const feedDot = feedDotTone(
+  const feedDot = feedTone(
     [quotes.left.source, quotes.right.source, left.source, right.source],
     worstLagSec,
   );
@@ -475,17 +406,17 @@ export function SessionHud({
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
-                worstLagSec <= 15 &&
+                feedDot.tone === "live" &&
                   "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]",
-                worstLagSec > 15 &&
-                  worstLagSec <= 120 &&
+                feedDot.tone === "delayed" &&
                   "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
-                worstLagSec > 120 &&
+                feedDot.tone === "not-live" &&
                   "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] text-[var(--color-down)]",
               )}
-              title="Worst quote lag vs exchange print time"
+              title={feedDot.title}
+              aria-label={feedDot.label}
             >
-              lag {Math.round(worstLagSec)}s
+              {feedDot.chip}
             </span>
           </div>
           <div

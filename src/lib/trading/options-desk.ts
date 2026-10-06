@@ -31,6 +31,7 @@ import { CLOCK_WARN, STOP_FRAC_OF_DEBIT, sizeFromStop } from "./sleeve-sizing";
 import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
+import { RH_MAX_DEBIT_TOTAL } from "@/lib/execution/rh-autofire-gates";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -626,14 +627,17 @@ function underlierSheet(
     menu: rows.map((r) => {
       const single = estimateDebitContract(spot, r.dte, r.delta, iv);
       const spread = estimateSpreadContract(spot, r.dte, iv, pickWidth(underlier, r.dte));
+      // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Fit the green "1-lot"
+      // cell to the envelope, not the sleeve's $1,000 sizer cap.
+      const gateCap = Math.min(cap, RH_MAX_DEBIT_TOTAL);
       return {
         label: r.label,
         dte: r.dte,
         delta: r.delta,
         single,
         spread,
-        fitsSingle: single <= cap,
-        fitsSpread: spread <= cap,
+        fitsSingle: single <= gateCap,
+        fitsSpread: spread <= gateCap,
       };
     }),
   };
@@ -771,7 +775,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
     if (hint.sweep) reasons.push("Sweep tagged");
     if (hint.displace) reasons.push("Displacement / MSS tagged");
     if (hint.ifvg) reasons.push("IFVG tagged");
-    reasons.push("1 contract max — 0DTE gamma on a $1,000 sleeve");
+    reasons.push(`1 contract max — 0DTE gamma on a $${RH_MAX_DEBIT_TOTAL} ticket`);
     const seq =
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left
@@ -1073,8 +1077,10 @@ export function evaluateOptionsDesk(
   // The DEBIT ceiling: `cap` decides `single <= cap` and how many contracts
   // `floor(cap / single)` buys. It was $150, so every ticket was sized at a
   // sixth of the trader's stated $1,000 cap and most ATM rows read "too
-  // rich". The loss cap is a separate number — see rhRiskBudgetUsd.
-  const cap = rhTicketCapUsd(sleeve);
+  // rich". Clamp to RH_MAX_DEBIT_TOTAL so the sizer never builds a ticket the
+  // RH $550 gate refuses (e.g. a 5 DTE ~$575 single under a $1,000 sleeve).
+  // The loss cap is a separate number — see rhRiskBudgetUsd.
+  const cap = Math.min(rhTicketCapUsd(sleeve), RH_MAX_DEBIT_TOTAL);
   const swingSignal = evaluateOptionsSwing(desk);
   const { es, nq, esPx, nqPx } = proxyPair(desk);
   const nqWeaker = (nq.changePct ?? 0) < (es.changePct ?? 0) - 0.05;
@@ -1162,7 +1168,7 @@ export function evaluateOptionsDesk(
 
 export function optionsDeskPlaybook(): string[] {
   return [
-    "Ticket ceiling $1,000 of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.",
+    `Ticket ceiling $${RH_MAX_DEBIT_TOTAL} of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.`,
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",

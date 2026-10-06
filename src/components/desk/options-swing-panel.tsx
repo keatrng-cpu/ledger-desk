@@ -157,7 +157,12 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
             <th className="font-medium">Tenor</th>
             <th className="font-medium">Single</th>
             <th className="font-medium">Spread</th>
-            <th className="font-medium" title="Fits inside the $1,000 ticket ceiling">≤ $1,000</th>
+            <th
+              className="font-medium"
+              title={`Fits inside the $${RH_MAX_DEBIT_TOTAL} RH envelope (gate refuses above this)`}
+            >
+              {`≤ $${RH_MAX_DEBIT_TOTAL}`}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -189,8 +194,11 @@ function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: num
   const bp = acct && Number.isFinite(acct.optionsBuyingPowerUsd) ? acct.optionsBuyingPowerUsd : null;
   const envMin = acct?.envelopeMinUsd ?? RH_MIN_DEBIT_TOTAL;
   const envMax = acct?.envelopeMaxUsd ?? RH_MAX_DEBIT_TOTAL;
-  const loss = maxDebit * riskPct;
-  const scale = Math.max(maxDebit, envMax, bp ?? 0) * 1.08 || 1;
+  // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Legend + loss math use that
+  // envelope ceiling, not the sleeve's $1,000 sizer cap (rhTicketCapUsd = equity).
+  const debitCeiling = Math.min(maxDebit, envMax);
+  const loss = debitCeiling * riskPct;
+  const scale = Math.max(debitCeiling, envMax, bp ?? 0) * 1.08 || 1;
   const pct = (x: number) => `${Math.min(100, Math.max(0, (x / scale) * 100))}%`;
   // No account block at all → fail closed (same as the hard gate).
   const blocked = r?.blocked ?? true;
@@ -211,7 +219,7 @@ function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: num
       </div>
       <div className="relative h-5 overflow-hidden rounded bg-[var(--color-surface-3)]" aria-hidden>
         {/* debit ceiling */}
-        <div className="absolute inset-y-0 left-0 bg-[color-mix(in_oklab,var(--color-primary)_28%,transparent)]" style={{ width: pct(maxDebit) }} />
+        <div className="absolute inset-y-0 left-0 bg-[color-mix(in_oklab,var(--color-primary)_28%,transparent)]" style={{ width: pct(debitCeiling) }} />
         {/* loss cap inside it */}
         <div className="absolute inset-y-0 left-0 bg-[color-mix(in_oklab,var(--color-down)_45%,transparent)]" style={{ width: pct(loss) }} />
         {/* RH envelope band */}
@@ -230,7 +238,7 @@ function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: num
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-[var(--color-muted)]">
         <span>
           <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[color-mix(in_oklab,var(--color-primary)_45%,transparent)]" />
-          debit ceiling {usd(maxDebit)}
+          debit ceiling {usd(debitCeiling)}
         </span>
         <span>
           <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[color-mix(in_oklab,var(--color-down)_60%,transparent)]" />
@@ -302,7 +310,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              ≤ ${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope ${RH_MIN_DEBIT_TOTAL}–${RH_MAX_DEBIT_TOTAL}) · loss capped{" "}
+              {`≤ $${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL})`} · loss capped{" "}
               {Math.round(sleeve.riskPct * 100)}% of the debit · size from the level · exit on the futures level · estimates from ES/NQ · Databento $199/mo
               first · not the $100k book
             </p>

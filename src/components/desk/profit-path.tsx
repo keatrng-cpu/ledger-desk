@@ -120,7 +120,7 @@ function IncomeGauge({ equity }: { equity: number }) {
     <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
-          Income target · 4-yr backtest projection (held-out E[R]), not your journal
+          Income target · 4-yr backtest projection (held-out E[R], upper bound), not your journal
         </p>
         <p
           className={
@@ -130,7 +130,11 @@ function IncomeGauge({ equity }: { equity: number }) {
           }
         >
           {usd(plan.projectedMonthlyDollars)}/mo vs {usd(plan.target)}
-          {plan.reachable ? "" : ` · ${plan.shortfallMultiple.toFixed(1)}x short`}
+          {plan.reachable
+            ? ""
+            : plan.projectedMonthlyDollars <= 0 || !Number.isFinite(plan.shortfallMultiple)
+              ? " · no path to target"
+              : ` · ${plan.shortfallMultiple.toFixed(1)}x short`}
         </p>
       </div>
       {(() => {
@@ -176,7 +180,7 @@ function IncomeGauge({ equity }: { equity: number }) {
                   ))}
                 </div>
                 <p className="mt-0.5 text-[10px] text-[var(--color-subtle)]">
-                  Gap · {short > 999 ? "no positive projection yet" : `${short.toFixed(1)}x short`} — one block is one month of the backtest projection{short > 30 ? " (drawn to 30)" : ""}
+                  Gap · {short > 999 || !Number.isFinite(short) ? "no path to target" : `${short.toFixed(1)}x short`} — one block is one month of the backtest projection{Number.isFinite(short) && short > 30 ? " (drawn to 30)" : ""}
                 </p>
               </div>
             )}

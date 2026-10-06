@@ -45,6 +45,7 @@ import {
   normalizedPct,
 } from "@/lib/market/yahoo";
 import { cn, formatPct } from "@/lib/utils";
+import { feedTone } from "@/lib/ui/feed-tone";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
@@ -116,12 +117,9 @@ function LiveClock({
     0,
     Math.round((wallNowMs - quote.marketTimeMs) / 1000),
   );
-  const lagColor =
-    liveLag <= 5
-      ? "text-[var(--color-up)]"
-      : liveLag <= 60
-        ? "text-[var(--color-warn)]"
-        : "text-[var(--color-down)]";
+  // Source first (same helper as the header feed dot): SYN/Y! never green;
+  // unknown → red. SYN stamps marketTimeMs=now so lag-only colour lied.
+  const printTone = feedTone([quote.source], liveLag);
 
   return (
     <div className="space-y-0.5 font-mono text-[10px] tabular leading-tight text-[var(--color-subtle)]">
@@ -138,9 +136,9 @@ function LiveClock({
         <span className="text-[var(--color-muted)]">Fetched </span>
         {formatUtcClock(quote.fetchedAtMs)}
         <span
-          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", lagColor.replace("text-", "bg-"))}
-          title={`Print delay ${liveLag}s (the header's feed dot carries the desk-wide read)`}
-          aria-label={`Print delay ${liveLag}s`}
+          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", printTone.className)}
+          title={`${printTone.title} · print delay ${liveLag}s`}
+          aria-label={printTone.label}
         />
       </p>
     </div>
@@ -264,6 +262,29 @@ function Spark({ values, color, min, max, zero }: { values: Array<number | null 
  * Returns null for a window when either side has zero variance (flat) — callers
  * show "n/a", never ρ=0. Needs win+1 price points to form `win` returns.
  */
+/** Bar duration for dual-index Yahoo intervals — matches fetch-dual RANGE_CFG. */
+function barMsForInterval(interval: string): number {
+  switch (interval) {
+    case "1m":
+      return 60_000;
+    case "2m":
+      return 2 * 60_000;
+    case "5m":
+      return 5 * 60_000;
+    case "15m":
+      return 15 * 60_000;
+    case "30m":
+      return 30 * 60_000;
+    case "60m":
+    case "1h":
+      return 60 * 60_000;
+    case "1d":
+      return 24 * 60 * 60_000;
+    default:
+      return 0;
+  }
+}
+
 function rollingCorr(rows: { left: number; right: number }[], win: number): (number | null)[] {
   const dl: number[] = [];
   const dr: number[] = [];
@@ -494,23 +515,30 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
   }, [payload]);
 
   /**
-   * Rolling ρ window: UNTHINNED % levels, CLOSED bars only (drop the forming
-   * last bar), raw (not rounded) so 1m changes are not quantized away.
-   * Exactly 60 return pairs; flat windows and short histories → n/a.
+   * Rolling ρ window: UNTHINNED % levels, CLOSED bars only, raw (not rounded)
+   * so 1m changes are not quantized away. Drops the last bar only while it is
+   * still forming (same rule as session ρ / alignedReturnPairs in yahoo.ts);
+   * when the market is closed the last bar is kept. Exactly 60 return pairs;
+   * flat windows and short histories → n/a.
    */
   const rollingRho = useMemo(() => {
     if (!payload) return { series: [] as (number | null)[], latest: null as number | null, n: 0 };
     const L = normalizedPct(payload.left.bars);
     const R = normalizedPct(payload.right.bars);
     const mapR = new Map(R.map((p) => [p.t, p.v]));
-    const rows: { left: number; right: number }[] = [];
+    const rows: { t: number; left: number; right: number }[] = [];
     for (const p of L) {
       const rv = mapR.get(p.t);
       if (rv == null) continue;
-      rows.push({ left: p.v, right: rv });
+      rows.push({ t: p.t, left: p.v, right: rv });
     }
-    // Exclude the forming (last) bar — closed bars only.
-    const closed = rows.length > 1 ? rows.slice(0, -1) : [];
+    // Exclude the forming (last) bar only while it is still open.
+    const barMs = barMsForInterval(payload.interval);
+    const nowMs = payload.fetchedAtMs;
+    let closed = rows;
+    if (rows.length > 0 && barMs > 0 && nowMs < rows[rows.length - 1]!.t + barMs) {
+      closed = rows.slice(0, -1);
+    }
     const series = rollingCorr(closed, 60);
     const latest = series.length ? series[series.length - 1]! : null;
     return { series, latest, n: closed.length };
@@ -672,7 +700,7 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
               })()}
               <div
                 className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5"
-                title={`Session ρ = correlation over the selected range. Sparkline = rolling Pearson ρ of bar-to-bar % changes over exactly 60 CLOSED (unthinned) bars; forming bar excluded. n/a when either window is flat or fewer than 60 closed return pairs (need 61 closed bars). Latest rolling: ${rollingRho.latest == null ? "n/a" : rollingRho.latest.toFixed(2)} · closed bars ${rollingRho.n}.`}
+                title={`Session ρ = correlation over the selected range. Sparkline = rolling Pearson ρ of bar-to-bar % changes over exactly 60 CLOSED (unthinned) bars; forming last bar dropped only while still open. n/a when either window is flat or fewer than 60 closed return pairs (need 61 closed bars). Latest rolling: ${rollingRho.latest == null ? "n/a" : rollingRho.latest.toFixed(2)} · closed bars ${rollingRho.n}.`}
               >
                 <div>
                   <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">Correlation ρ</p>

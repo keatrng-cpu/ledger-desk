@@ -87,6 +87,8 @@ function ExitRing({ m }: { m: OvernightRead["mechanics"] }) {
   if (now == null) return null;
   const p = etWallParts(now);
   const nowMin = p.hour * 60 + p.minute + p.second / 60;
+  // Weekday maths only — does NOT skip US market holidays yet. Prefer
+  // mechanics.nextTradable when you need the board's holiday-aware open.
   const weekendDay = p.weekday === 0 || p.weekday === 6;
   const open = m.overnightTradable && !m.weekend ? GTH_OPEN_MIN : RTH_OPEN_MIN;
   const total = m.unmanageableMin;

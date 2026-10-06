@@ -21,7 +21,8 @@
  * table was not re-run under it. The evidence pack (scripts/
  * build-evidence-pack.mjs, rule as coded, fill bar cannot score T1) puts the
  * in-band card pool at +0.033R, not distinguishable from zero — treat every
- * projection below as an upper bound. The gauge prints this beside it.
+ * Book E[R] / projection below as an UPPER BOUND (measured under the old
+ * 75%-at-T1 rule). The Book gauge labels it that way beside the figure.
  *
  *   policy            trades/yr   E[R]     out-of-sample   maxDD
  *   shipped                 3    +0.022        -1.011       9.2%
@@ -266,7 +267,10 @@ export function planIncome(input: {
     riskPct,
     projectedMonthlyReturn,
     projectedMonthlyDollars,
-    shortfallMultiple: input.target / Math.max(projectedMonthlyDollars, 1e-9),
+    // Non-positive projection has no scale factor to the target — callers
+    // show "no path to target" instead of target/1e-9 as a huge "x short".
+    shortfallMultiple:
+      projectedMonthlyDollars > 0 ? input.target / projectedMonthlyDollars : Number.POSITIVE_INFINITY,
     reachable: projectedMonthlyDollars >= input.target,
     equityNeeded,
     tradesNeeded,

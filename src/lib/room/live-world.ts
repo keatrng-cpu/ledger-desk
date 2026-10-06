@@ -174,13 +174,20 @@ export function atrOf(desk: DeskPayload): Record<Underlier, { atr: number | null
 export function feedOf(desk: DeskPayload): TalkWorld["feed"] {
   const qs = [desk.quotes.left, desk.quotes.right].filter((q) => q && Number.isFinite(q.price));
   if (!qs.length) return { kind: "none", lagSec: null };
-  if (desk.feed === "synthetic" || qs.every((q) => q.source === "synthetic")) return { kind: "synthetic", lagSec: null };
   const lags = qs.map((q) => q.lagSec).filter((x) => Number.isFinite(x));
-  const lagSec = lags.length ? Math.min(...lags) : null;
-  const gw = qs.every((q) => q.source === "live_gateway");
-  if (gw) return { kind: "live_gateway", lagSec };
-  const src = qs.find((q) => q.source !== "live_gateway")?.source;
-  return { kind: src === "databento" ? "databento" : "yahoo", lagSec };
+  // Worst lag across legs — never the best (min) of a mixed feed.
+  const lagSec = lags.length ? Math.max(...lags) : null;
+  // Worst source wins: any SYN → synthetic; else any Y! → yahoo; else DB; else gateway.
+  if (desk.feed === "synthetic" || qs.some((q) => q.source === "synthetic")) {
+    const allSyn = desk.feed === "synthetic" || qs.every((q) => q.source === "synthetic");
+    // Pure synthetic stamps lagSec:0 — don't advertise an invented delay.
+    return { kind: "synthetic", lagSec: allSyn ? null : lagSec };
+  }
+  if (qs.some((q) => q.source === "yahoo")) return { kind: "yahoo", lagSec };
+  if (qs.every((q) => q.source === "live_gateway")) return { kind: "live_gateway", lagSec };
+  if (qs.some((q) => q.source === "databento")) return { kind: "databento", lagSec };
+  // Unrecognized mix — never flatter as live.
+  return { kind: "yahoo", lagSec };
 }
 
 function calendarRead(desk: DeskPayload, nowMs: number): CalRead {
