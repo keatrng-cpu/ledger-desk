@@ -1301,6 +1301,8 @@ export interface FloorSceneOptions {
   onManagerInspect?: (state: ManagerRoomState) => void;
   /** Walk mode toggled (Owner WASD). */
   onWalkModeChange?: (on: boolean) => void;
+  /** Owner view: behind them, or through their eyes. */
+  onPovChange?: (pov: "first" | "third") => void;
   /** Proximity prompt near a crew member or the Manager. */
   onProximity?: (kind: "crew" | "manager" | null, who?: Character) => void;
   /** Chunk C item 26 — Owner pressed E for a 1:1 with crew or Manager. */
@@ -1562,9 +1564,12 @@ export class FloorScene {
   private readonly managerFeed: ManagerFeed;
   private unsubManager: (() => void) | null = null;
   private readonly stubFeed: StubManagerFeed | null;
-  /** WASD walk the Owner when focused. Default on for the proto. */
+  /** WASD / arrows walk the Owner when the floor is focused. */
   private walkMode = true;
   private readonly keys = { w: false, a: false, s: false, d: false };
+  /** Through the owner's eyes, or a chase camera behind them. */
+  private pov: "first" | "third" = "third";
+  private lookPitch = -0.06;
   /** Third-person chase of the Owner (separate from crew Character chase). */
   private ownerChase = false;
   private ownerChaseHead: THREE.Vector3 | null = null;
@@ -2350,7 +2355,10 @@ export class FloorScene {
       this.preset = "free";
       return;
     }
+    // The director must not yank the lens off the owner while they are walking.
+    if (p === "auto" && this.ownerChase) return;
     this.follow(null);
+    if (p !== "follow") this.stopOwnerChase();
     this.preset = p;
     if (p === "follow") return;
     if (p === "auto") return this.directorShot(this.lines[this.lineIdx] ?? null);
@@ -2702,8 +2710,10 @@ export class FloorScene {
     this.alarm.intensity = flicker ? (Math.sin(t * 40) > 0 ? 14 : 0) : urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
-    if (this.ownerChase) this.ownerChaseRide(dt, t);
-    else if (this.chase) this.chaseRide(dt, t);
+    if (this.ownerChase) {
+      if (this.pov === "first") this.ownerEyes();
+      else this.ownerChaseRide(dt, t);
+    } else if (this.chase) this.chaseRide(dt, t);
     if (this.preset === "follow") {
       const line = this.lines[this.lineIdx];
       const who = line ? this.avatars.get(line.character) : null;
@@ -2713,7 +2723,7 @@ export class FloorScene {
         const want = p.clone().add(new THREE.Vector3(Math.sin(who.yaw) * 4.2 + 1.2, 2.6, Math.cos(who.yaw) * 4.2 + 1.2));
         this.camera.position.lerp(want, 1 - Math.exp(-1.6 * dt));
       }
-    } else if (this.camGoal) {
+    } else if (this.camGoal && !this.ownerChase) {
       const k = 1 - Math.exp(-2.6 * dt);
       this.camera.position.lerp(this.camGoal.pos, k);
       this.controls.target.lerp(this.camGoal.target, k);
@@ -2800,6 +2810,11 @@ export class FloorScene {
 
   /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
   private onMove = (e: PointerEvent) => {
+    if (this.pov === "first" && this.ownerChase && (e.buttons & 1) === 1) {
+      this.owner.yaw -= e.movementX * 0.004;
+      this.lookPitch = Math.max(-1.05, Math.min(1.05, this.lookPitch - e.movementY * 0.003));
+      return;
+    }
     if (e.pointerType !== "mouse" || e.buttons) return;
     const now = performance.now();
     if (now - this.hoverAt < 120) return;
@@ -2824,20 +2839,59 @@ export class FloorScene {
     this.opts.onHover?.(label);
   }
 
+  private typing(e: KeyboardEvent): boolean {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return false;
+    const tag = t.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+  }
+
+  /** WASD and the arrows are the same four directions. */
+  private moveKey(e: KeyboardEvent): "w" | "a" | "s" | "d" | null {
+    switch (e.key) {
+      case "w":
+      case "W":
+      case "ArrowUp":
+        return "w";
+      case "s":
+      case "S":
+      case "ArrowDown":
+        return "s";
+      case "a":
+      case "A":
+      case "ArrowLeft":
+        return "a";
+      case "d":
+      case "D":
+      case "ArrowRight":
+        return "d";
+      default:
+        return null;
+    }
+  }
+
   private onKey = (e: KeyboardEvent) => {
+    if (this.typing(e)) return;
     if (e.key === "Escape") {
       if (this.focused) this.setFocused(false);
       if (this.chase) this.follow(null);
       this.clearWalkKeys();
       return;
     }
+    const move = this.moveKey(e);
+    if (move) {
+      // Only while the floor is focused, so arrows can still scroll the rest of the page.
+      if (!this.focused) return;
+      if (!this.walkMode) this.setWalkMode(true);
+      this.keys[move] = true;
+      e.preventDefault();
+      return;
+    }
     if (!this.focused) return;
     const k = e.key.toLowerCase();
-    if (k === "w" || k === "a" || k === "s" || k === "d") {
-      if (this.walkMode) {
-        this.keys[k] = true;
-        e.preventDefault();
-      }
+    if (k === "v") {
+      this.setPov(this.pov === "first" ? "third" : "first");
+      e.preventDefault();
       return;
     }
     if (k === "f") {
@@ -2854,8 +2908,8 @@ export class FloorScene {
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
-    const k = e.key.toLowerCase();
-    if (k === "w" || k === "a" || k === "s" || k === "d") this.keys[k] = false;
+    const move = this.moveKey(e);
+    if (move) this.keys[move] = false;
   };
 
   private clearWalkKeys() {
@@ -2896,7 +2950,25 @@ export class FloorScene {
     if (this.focused) this.setFocused(false);
   }
 
-  /** Prototype Lab: WASD walks Owner when focused. */
+  /** Click Walk, or press a move key: stand in the owner's view. */
+  engageOwner() {
+    this.setWalkMode(true);
+    this.setFocused(true);
+  }
+
+  /** First person is the owner's eyes. Third person is just behind them. */
+  setPov(p: "first" | "third") {
+    if (p === this.pov) return;
+    this.pov = p;
+    if (!this.ownerChase) {
+      this.opts.onPovChange?.(p);
+      return;
+    }
+    this.ownerChase = false;
+    this.startOwnerChase();
+    this.opts.onPovChange?.(p);
+  }
+
   setWalkMode(on: boolean) {
     if (on === this.walkMode) return;
     this.walkMode = on;
@@ -2951,21 +3023,43 @@ export class FloorScene {
     this.ownerChase = true;
     this.ownerChaseHead = null;
     this.preset = "free";
+    this.camGoal = null;
+    if (this.pov === "first") {
+      this.controls.enabled = false;
+      this.owner.root.visible = false;
+      this.ownerEyes();
+      return;
+    }
+    this.controls.enabled = true;
+    this.owner.root.visible = true;
     this.ownerChaseWant = 3.2;
     this.ownerChaseY = this.owner.height * 0.78 + this.owner.elevation;
     const behind = this.owner.yaw + Math.PI;
     const d = 3.2;
     const x = this.owner.pos[0] + Math.sin(behind) * d;
     const z = this.owner.pos[1] + Math.cos(behind) * d;
-    this.camGoal = {
-      pos: new THREE.Vector3(x, this.ownerChaseY + 1.1, z),
-      target: new THREE.Vector3(this.owner.pos[0], this.ownerChaseY, this.owner.pos[1]),
-    };
+    this.camera.position.set(x, this.ownerChaseY + 1.1, z);
+    this.controls.target.set(this.owner.pos[0], this.ownerChaseY, this.owner.pos[1]);
   }
 
   private stopOwnerChase() {
     this.ownerChase = false;
     this.ownerChaseHead = null;
+    this.controls.enabled = true;
+    this.owner.root.visible = true;
+  }
+
+  /** The owner's eyes. The body is hidden so the lens is not inside the head. */
+  private ownerEyes() {
+    const a = this.owner;
+    const eyeY = a.height * 0.9 + a.elevation;
+    const cp = Math.cos(this.lookPitch);
+    const dir = new THREE.Vector3(Math.sin(a.yaw) * cp, Math.sin(this.lookPitch), Math.cos(a.yaw) * cp);
+    this.camera.position.set(a.pos[0], eyeY, a.pos[1]);
+    this.controls.target.copy(this.camera.position).add(dir);
+    this.camGoal = null;
+    this.owner.root.visible = false;
+    this.controls.enabled = false;
   }
 
   private ownerChaseRide(dt: number, t: number) {

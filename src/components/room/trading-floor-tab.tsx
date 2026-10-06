@@ -101,6 +101,7 @@ function FloorCanvas({
   onManagerInspect,
   onOneOnOne,
   onOwnerSit,
+  onPov,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
@@ -109,6 +110,7 @@ function FloorCanvas({
   onManagerInspect: (state: ManagerRoomState) => void;
   onOneOnOne: (target: { kind: "crew"; who: Character } | { kind: "manager" }) => void;
   onOwnerSit?: (seated: boolean) => void;
+  onPov?: (pov: "first" | "third") => void;
   /** The tab drives navigation (Go to, Follow) through the scene it is drawing. */
   sceneRef: { current: FloorScene | null };
   onSpeaker: (i: number, line: DialogueLine | null) => void;
@@ -122,8 +124,8 @@ function FloorCanvas({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -183,6 +185,7 @@ function FloorCanvas({
         onManagerInspect: (s) => cbs.current.onManagerInspect(s),
         onOneOnOne: (t) => cbs.current.onOneOnOne(t),
         onOwnerSit: (on) => cbs.current.onOwnerSit?.(on),
+        onPovChange: (p) => cbs.current.onPov?.(p),
         // The real room feed (room engine cycles + live account); the demo stub only on dev ?manager=stub.
         managerFeed: managerStubRequested() ? undefined : roomManagerFeed(),
         onTalk: (id, st) => {
@@ -1340,13 +1343,14 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const execError = useExecStore((s) => s.error);
   const [canvasFocused, setCanvasFocused] = useState(false);
   const [walkMode, setWalkMode] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") return true;
     try {
-      return window.localStorage.getItem("ledger.floor.walk") === "1";
+      return window.localStorage.getItem("ledger.floor.walk") !== "0";
     } catch {
-      return false;
+      return true;
     }
   });
+  const [pov, setPov] = useState<"first" | "third">("third");
   const [showJson, setShowJson] = useState(false);
   const [managerState, setManagerState] = useState<ManagerRoomState | null>(null);
   const [managerOpen, setManagerOpen] = useState(false);
@@ -1630,27 +1634,28 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             }
           }}
           onOwnerSit={setOwnerSeated}
+          onPov={setPov}
         />
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
         {/* Scroll capture hint, bottom-centre (clear of the camera buttons).
             Shown for a few seconds on arrival, when the wheel is refused, and
             when focus changes; otherwise hidden. */}
         <div
-          className={`absolute bottom-20 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[12px] shadow transition-opacity duration-500 ${
-            hintShown ? "opacity-100" : "pointer-events-none opacity-0"
+          className={`pointer-events-none absolute bottom-20 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[12px] shadow transition-opacity duration-500 ${
+            hintShown ? "opacity-100" : "opacity-0"
           } ${canvasFocused ? "bg-black/75 text-slate-100" : hintFlash ? "bg-white text-black" : "bg-black/70 text-slate-200"}`}
           role="status"
           aria-hidden={!hintShown}
         >
           {canvasFocused ? (
             <>
-              {walkMode ? (ownerSeated ? "Seated · F/E/WASD stand · " : "WASD walk · F sit · E 1:1 · ") : ""}Scroll zooms · drag orbits ·{" "}
-              <button type="button" className="underline" onClick={() => sceneRef.current?.releaseFocus()}>
+              {walkMode ? (pov === "first" ? "Eyes · " : "Behind · ") + (ownerSeated ? "F/E/WASD stand · " : "WASD or arrows · V view · ") : ""}Scroll zooms · drag looks ·{" "}
+              <button type="button" className="pointer-events-auto underline" onClick={() => sceneRef.current?.releaseFocus()}>
                 Esc releases
               </button>
             </>
           ) : (
-            "Click scene · WASD to walk · Esc to release · Ctrl/⌘ + scroll to zoom"
+            "Click the floor · WASD or arrows to walk · V for eyes or behind · Esc releases"
           )}
         </div>
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
@@ -1703,7 +1708,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </button>
         </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
-        <div className="absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (
             <p className="text-[13px] leading-snug text-white">
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
@@ -1727,10 +1732,28 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             type="button"
             className={`${BTN} ${walkMode ? "border-[var(--color-primary)]" : ""}`}
             aria-pressed={walkMode}
-            title={walkMode ? "Walk mode: WASD walks you; clicking people never switches the camera to follow" : "Turn on to walk the floor with WASD"}
-            onClick={() => setWalkMode(!walkMode)}
+            title={walkMode ? "Walk the floor as the owner. WASD or arrows. V switches eyes and behind." : "Turn on to walk the floor from the owner's view"}
+            onClick={() => {
+              const next = !walkMode;
+              setWalkMode(next);
+              if (next) sceneRef.current?.engageOwner();
+            }}
           >
             <Footprints className="h-3 w-3" /> Walk {walkMode ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            className={`${BTN} ${pov === "first" ? "border-[var(--color-primary)]" : ""}`}
+            aria-pressed={pov === "first"}
+            title="V switches between the owner's eyes and a camera behind them"
+            onClick={() => {
+              const next = pov === "first" ? "third" : "first";
+              setPov(next);
+              sceneRef.current?.setPov(next);
+              if (walkMode) sceneRef.current?.engageOwner();
+            }}
+          >
+            {pov === "first" ? "Eyes" : "Behind"}
           </button>
           <button type="button" className={BTN} onClick={openManager} title="Fly to the Manager's stand and open it">
             Manager
@@ -1765,7 +1788,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </div>
         ))}
         <span className="text-[10px] text-[var(--color-subtle)]">
-          {walkMode ? "Walk mode: WASD walks · clicks don't follow (use Follow) · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
+          {walkMode ? "WASD or arrows walk · V eyes/behind · drag looks · clicks don't follow · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
         </span>
       </div>
 
