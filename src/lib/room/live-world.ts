@@ -388,6 +388,8 @@ export function goalLite(r: Race | null, vix: number | null): GoalLite | null {
     roomCapFrac: ROOM_MANDATE.maxCashFracPerTrade,
     minDelta: g.minDelta,
     minAskUsd: g.minAskUsd,
+    approaches: v.table.map((row) => ({ owner: row.def.owner, pTarget: row.out.pTarget, contractsNow: row.out.contractsNow })),
+    path: read.ladder.map((x) => ({ date: x.date, equity: x.equity })),
     stopShare,
     vix,
   };

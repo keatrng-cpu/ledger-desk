@@ -296,6 +296,10 @@ export interface GoalLite {
   /** One stopped ticket at the cap, as a share of the account. */
   stopShare: number | null;
   vix: number | null;
+  /** Presentation (the race track): each of the five approaches' exact odds of the target, by owner. Optional for old frames. */
+  approaches?: { owner: string; pTarget: number; contractsNow: number }[];
+  /** Presentation (the race track): the geometric path, one mark per session (goal.ts `ladder`). */
+  path?: { date: string; equity: number }[];
 }
 
 export interface SeatRowLite {
