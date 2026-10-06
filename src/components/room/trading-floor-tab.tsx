@@ -24,6 +24,13 @@ import EV_TEST from "@/data/room-ev-test.json";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { useExecStore } from "./exec-bridge";
+import type {
+  ManagerRoomState,
+  ManagerSteer,
+  OwnerFeedback,
+  SteerMove,
+  DiscretionRuleDraft,
+} from "@/lib/room/manager-feed";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
 const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
@@ -82,11 +89,13 @@ function FloorCanvas({
   onHover,
   onCanvasFocus,
   onScrollHint,
+  onManagerInspect,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
   onCanvasFocus: (focused: boolean) => void;
   onScrollHint: () => void;
+  onManagerInspect: (state: ManagerRoomState) => void;
   /** The tab drives navigation (Go to, Follow) through the scene it is drawing. */
   sceneRef: { current: FloorScene | null };
   onSpeaker: (i: number, line: DialogueLine | null) => void;
@@ -100,8 +109,8 @@ function FloorCanvas({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -155,6 +164,7 @@ function FloorCanvas({
         onHover: (l) => cbs.current.onHover(l),
         onFocusChange: (on) => cbs.current.onCanvasFocus(on),
         onScrollHint: () => cbs.current.onScrollHint(),
+        onManagerInspect: (s) => cbs.current.onManagerInspect(s),
         onTalk: (id, st) => {
           if (st === "started") useRoomStore.getState().ackTalk({ [id]: "said" });
           else if (st === "dropped") useRoomStore.getState().ackTalk({ [id]: "dropped" });
@@ -343,6 +353,154 @@ function Portrait({ who }: { who: Character }) {
   ) : (
     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: COLOR[who] }}>
       {who[0]}
+    </div>
+  );
+}
+
+/* ── Trading Stand Manager (stub) — ManagerRoomState + steer + teach ───── */
+
+const STEER_CHIPS: { move: SteerMove; label: string }[] = [
+  { move: "ASK_LENS", label: "Ask Nova" },
+  { move: "DEMAND_PREMORTEM", label: "Premortem" },
+  { move: "TABLE", label: "Table" },
+  { move: "DECLARE_AGREE", label: "Agree" },
+  { move: "HAND_TO_OWNER", label: "Hand to Owner" },
+];
+
+function ManagerPanel({
+  state,
+  lastSteer,
+  onSteer,
+  onClose,
+  onTeach,
+  feedback,
+}: {
+  state: ManagerRoomState;
+  lastSteer: ManagerSteer | null;
+  onSteer: (m: SteerMove) => void;
+  onClose: () => void;
+  onTeach: (kind: "AFFIRM_CALL" | "REJECT_CALL" | "TEACH_RULE", text: string, draft?: DiscretionRuleDraft) => void;
+  feedback: OwnerFeedback[];
+}) {
+  const [teachOpen, setTeachOpen] = useState(false);
+  const [ruleText, setRuleText] = useState("Prefer aside when confluence < 0.7");
+  const call = state.call;
+  const open = state.open;
+  const close = state.close;
+  return (
+    <div className={`${CARD} border-[#38bdf8]/60`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className={HEAD} style={{ marginBottom: 0 }}>
+          Trading Stand · Manager <span className="ml-1 rounded bg-[#38bdf8]/20 px-1.5 py-0.5 font-mono text-[10px] text-[#7dd3fc]">{state.current}</span>
+        </div>
+        <button type="button" className={BTN} onClick={onClose} aria-label="Close Manager panel">
+          <X className="h-3 w-3" /> Close
+        </button>
+      </div>
+      <p className="text-[11px] text-[var(--color-muted)]">
+        Stub · ManagerRoomState v{state.version} · cycle {state.cycleId} · presentation only (no RH / no agentAgree gates)
+      </p>
+      {call ? (
+        <div className="mt-2 space-y-1 text-[12px]">
+          <p className="font-semibold text-[var(--color-fg)]">{call.reasoning.thesis}</p>
+          <p className="font-mono text-[11px] text-[var(--color-muted)]">
+            {call.action} · agentAgree={String(call.agentAgree)} · {call.underlier ?? "—"} {call.side ?? ""} {call.strikeOffset ?? ""} ×{call.contracts ?? "—"} · ${call.estDebitTotal ?? "—"}
+          </p>
+          <ul className="text-[11px] text-[var(--color-subtle)]">
+            <li>{call.reasoning.floorCite}</li>
+            <li>{call.reasoning.pathCite}</li>
+            <li>{call.reasoning.debateCite}</li>
+            {call.reasoning.blocks.length > 0 && <li className="text-[var(--color-down)]">blocks: {call.reasoning.blocks.join(", ")}</li>}
+          </ul>
+        </div>
+      ) : (
+        <p className="mt-2 text-[12px] text-[var(--color-muted)]">No call — {state.current}</p>
+      )}
+      {open && (
+        <div className="mt-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2 text-[11px]">
+          <div className="font-semibold text-[#4ade80]">OPEN · {open.underlier} {open.side} ×{open.contracts}</div>
+          <div className="font-mono text-[var(--color-muted)]">
+            {open.source} · debit ${open.entryDebit} · mark {open.mark ?? "—"} · pnl {open.pnlUsd == null ? "—" : `${open.pnlUsd >= 0 ? "+" : ""}${open.pnlUsd}`}
+          </div>
+        </div>
+      )}
+      {close && (
+        <div className="mt-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2 text-[11px]">
+          <div className="font-semibold">CLOSE · {close.result} · {close.label}</div>
+          <div className="text-[var(--color-muted)]">
+            {close.reason} · ${close.pnlUsd} · taught={String(close.taught)}
+          </div>
+        </div>
+      )}
+      <div className="mt-2 grid grid-cols-3 gap-1 text-[10px] text-[var(--color-muted)]">
+        <span>Floor {state.floor.verdict}</span>
+        <span>PATH {state.path.band ?? "—"} · {state.path.confluence.toFixed(2)}</span>
+        <span>Arms {state.arms.autofireEnabled ? "AF" : "off"}/{state.arms.liveArmed ? "live" : "paper"}</span>
+      </div>
+      <div className="mt-3">
+        <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Steer (emit ManagerSteer only)</div>
+        <div className="flex flex-wrap gap-1">
+          {STEER_CHIPS.map((c) => (
+            <button key={c.move} type="button" className={BTN} onClick={() => onSteer(c.move)}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+        {lastSteer && (
+          <p className="mt-1 text-[11px] text-[#7dd3fc]">
+            STAND → {lastSteer.address}: {lastSteer.line}
+          </p>
+        )}
+      </div>
+      <div className="mt-3">
+        <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Owner Teach (Prototype Lab)</div>
+        <div className="flex flex-wrap gap-1">
+          <button type="button" className={BTN} onClick={() => onTeach("AFFIRM_CALL", "Right call.")}>
+            Affirm
+          </button>
+          <button type="button" className={BTN} onClick={() => onTeach("REJECT_CALL", "Wrong call — do not repeat.")}>
+            Reject
+          </button>
+          <button type="button" className={BTN} onClick={() => setTeachOpen((v) => !v)}>
+            Teach rule
+          </button>
+        </div>
+        {teachOpen && (
+          <div className="mt-2 space-y-1 rounded border border-[var(--color-border)] p-2">
+            <input
+              className="w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[11px]"
+              value={ruleText}
+              onChange={(e) => setRuleText(e.target.value)}
+              aria-label="Discretion rule text"
+            />
+            <button
+              type="button"
+              className={BTN}
+              onClick={() => {
+                onTeach("TEACH_RULE", ruleText, {
+                  scope: "global",
+                  scopeKey: "*",
+                  effect: "prefer_aside",
+                  factor: null,
+                  text: ruleText,
+                });
+                setTeachOpen(false);
+              }}
+            >
+              Save mock DiscretionRule
+            </button>
+          </div>
+        )}
+        {feedback.length > 0 && (
+          <ul className="mt-1 max-h-20 overflow-auto text-[10px] text-[var(--color-subtle)]">
+            {feedback.slice(-4).map((f) => (
+              <li key={f.id}>
+                {f.kind}: {f.text}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -646,6 +804,11 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const execStatus = useExecStore((s) => s.status);
   const execError = useExecStore((s) => s.error);
   const [canvasFocused, setCanvasFocused] = useState(false);
+  const [walkMode, setWalkMode] = useState(true);
+  const [managerState, setManagerState] = useState<ManagerRoomState | null>(null);
+  const [managerOpen, setManagerOpen] = useState(false);
+  const [lastSteer, setLastSteer] = useState<ManagerSteer | null>(null);
+  const [feedbackLog, setFeedbackLog] = useState<OwnerFeedback[]>([]);
   const [hintFlash, setHintFlash] = useState(false);
   const hintTimer = useRef<number | null>(null);
   // The hint shows for a few seconds, then hides; a refused wheel or a focus change brings it back.
@@ -692,6 +855,17 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useEffect(() => {
     if (mood) sceneRef.current?.setEntryMood(mood);
   }, [mood, env]);
+
+  // Keep Manager panel in sync with the stub feed on the scene.
+  useEffect(() => {
+    const feed = sceneRef.current?.getManagerFeed();
+    if (!feed) return;
+    return feed.subscribe((s) => {
+      setManagerState(s);
+      setLastSteer(feed.getLastSteer());
+      setFeedbackLog(feed.getFeedbackLog());
+    });
+  }, [env]);
 
   // Sound: off until the trader turns it on (and a click unlocks audio).
   const sound = useRef<FloorSound | null>(null);
@@ -811,6 +985,10 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           onEvent={onEvent}
           onCanvasFocus={setCanvasFocused}
           onScrollHint={onScrollHint}
+          onManagerInspect={(s) => {
+            setManagerState(s);
+            setManagerOpen(true);
+          }}
         />
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
         {/* Scroll capture hint, bottom-centre (clear of the camera buttons).
@@ -825,13 +1003,13 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         >
           {canvasFocused ? (
             <>
-              Scroll zooms · drag orbits ·{" "}
+              {walkMode ? "WASD walk · " : ""}Scroll zooms · drag orbits ·{" "}
               <button type="button" className="underline" onClick={() => sceneRef.current?.releaseFocus()}>
-                Esc / click outside releases
+                Esc releases
               </button>
             </>
           ) : (
-            "Click to interact · Ctrl/⌘ + scroll to zoom"
+            "Click scene · WASD to walk · Esc to release · Ctrl/⌘ + scroll to zoom"
           )}
         </div>
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
@@ -904,6 +1082,21 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2">
         <div className="flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            className={`${BTN} ${walkMode ? "border-[var(--color-primary)]" : ""}`}
+            aria-pressed={walkMode}
+            onClick={() => {
+              const next = !walkMode;
+              setWalkMode(next);
+              sceneRef.current?.setWalkMode(next);
+            }}
+          >
+            Walk {walkMode ? "on" : "off"}
+          </button>
+          <button type="button" className={BTN} onClick={() => setManagerOpen(true)}>
+            Manager
+          </button>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Follow</span>
           {CREW.map((c) => (
             <button
@@ -1069,6 +1262,29 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           {frame?.screens.lenses && <VotePanel frame={frame} />}
           {frame?.screens.lab && <GhostPanel frame={frame} />}
         </div>
+      )}
+
+      {managerOpen && managerState && (
+        <ManagerPanel
+          state={managerState}
+          lastSteer={lastSteer}
+          feedback={feedbackLog}
+          onClose={() => setManagerOpen(false)}
+          onSteer={(m) => {
+            const feed = sceneRef.current?.getManagerFeed();
+            if (!feed) return;
+            const ev = feed.steer(m);
+            setLastSteer(ev);
+            setManagerState(feed.getState());
+          }}
+          onTeach={(kind, text, draft) => {
+            const feed = sceneRef.current?.getManagerFeed();
+            if (!feed) return;
+            feed.teach({ kind, cycleId: managerState.cycleId, decisionKey: managerState.call?.decisionKey ?? null, targetAction: null, text, ruleDraft: draft ?? null });
+            setFeedbackLog(feed.getFeedbackLog());
+            setManagerState(feed.getState());
+          }}
+        />
       )}
 
       <div>
