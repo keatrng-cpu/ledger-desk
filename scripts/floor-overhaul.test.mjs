@@ -13,7 +13,18 @@ import assert from "node:assert/strict";
 import { register } from "tsx/esm/api";
 
 register();
-const { sessionSegments, sessionDial, vixWeather, liquidityTrack, trophiesAndScars, propsSignature } = await import("../src/lib/room/floor-props.ts");
+const { sessionSegments, sessionDial, vixWeather, liquidityTrack, trophiesAndScars, propsSignature, feedSourceTag, feedTile } = await import("../src/lib/room/floor-props.ts");
+const {
+  buildSchoolFloor,
+  FLOOR_SCHOOLS,
+  DISCIPLE_WHO,
+} = await import("../src/lib/room/school-contract.ts");
+const {
+  FLOOR_SCHOOL_SEAT_IDS,
+  FLOOR_SCHOOL_AVATAR,
+  floorSchoolSeatBundle,
+  allFloorSchoolSeatBundles,
+} = await import("../src/lib/room/floor-school-contracts.ts");
 const { resolveKillzone } = await import("../src/lib/trading/sessions.ts");
 const LAYOUT = (await import("../src/data/floor-layout.json", { with: { type: "json" } })).default;
 
@@ -38,17 +49,31 @@ test("session dial: progress in [0,1], next killzone in the future, weekend note
   assert.ok(w.marketNote, "a weekend clock carries a note");
 });
 
-test("VIX weather: windows' bands; null / NaN / 0 is no pulse with zero intensity", () => {
+test("VIX weather: windows' bands; null / NaN / 0 is no pulse with zero intensity; always Y!", () => {
   assert.equal(vixWeather(12).band, "clear");
   assert.equal(vixWeather(17).band, "cloud");
   assert.equal(vixWeather(24).band, "overcast");
   assert.equal(vixWeather(35).band, "storm");
+  assert.equal(vixWeather(12).source, "Y!");
+  assert.match(vixWeather(12, Date.now() - 120_000).sourceLine, /Y!/);
+  assert.match(vixWeather(12, Date.now() - 120_000).sourceLine, /DELAYED/);
   for (const v of [null, undefined, NaN, 0]) {
     const w = vixWeather(v);
     assert.equal(w.band, "none");
     assert.equal(w.intensity, 0);
     assert.equal(w.vix, null);
+    assert.equal(w.source, "Y!");
   }
+});
+
+test("ticker feed tags are short LIVE / Y! / DB / SYN — never paint Y! as LIVE", () => {
+  assert.equal(feedSourceTag("live_gateway"), "LIVE");
+  assert.equal(feedSourceTag("yahoo"), "Y!");
+  assert.equal(feedSourceTag("databento"), "DB");
+  assert.equal(feedSourceTag("synthetic"), "SYN");
+  assert.equal(feedTile({ kind: "yahoo", lagSec: 600 }).value, "Y!");
+  assert.equal(feedTile({ kind: "synthetic", lagSec: null }).value, "SYN");
+  assert.notEqual(feedTile({ kind: "yahoo", lagSec: 1 }).value, "LIVE");
 });
 
 const book = (over = {}) => ({
@@ -118,11 +143,77 @@ test("trophies and scars: book wins/losses, graded vetoes and calls, ghost room;
 
 test("layout: the overhaul's pieces are procedural and the balcony / stairs are crew obstacles", () => {
   const all = [...LAYOUT.furniture, ...LAYOUT.screens, ...(LAYOUT.walls ?? []), ...(LAYOUT.rooms ?? [])];
-  const ids = ["balcony_Owner", "stairs_Owner", "desk_Manager", "chair_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_trophies", "ovh_scars", "plate_Manager"];
+  const ids = ["balcony_Owner", "stairs_Owner", "desk_Manager", "chair_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_trophies", "ovh_scars", "plate_Manager", "ovh_schools", "ovh_checklist", "ovh_debate", "ovh_briefing", "ovh_ranks"];
   for (const id of ids) {
     const p = all.find((x) => x.id === id);
     assert.ok(p, `${id} in layout`);
     assert.equal(p.procedural, true, `${id} is procedural (Blender skips it)`);
   }
   for (const id of ["balcony_Owner", "stairs_Owner"]) assert.equal(LAYOUT.furniture.find((f) => f.id === id).obstacle, true);
+});
+
+test("Trading Stand floor-school-contracts: five seats map avatar→school, no invented hit rates", () => {
+  assert.deepEqual([...FLOOR_SCHOOL_SEAT_IDS], ["ict", "tjr", "blake", "patty", "smc"]);
+  assert.equal(FLOOR_SCHOOL_AVATAR.ict, "Gemma");
+  assert.equal(FLOOR_SCHOOL_AVATAR.tjr, "Jax");
+  assert.equal(FLOOR_SCHOOL_AVATAR.blake, "Nova");
+  assert.equal(FLOOR_SCHOOL_AVATAR.patty, "Sterling");
+  assert.equal(FLOOR_SCHOOL_AVATAR.smc, "Vince");
+  const b = floorSchoolSeatBundle("ict");
+  assert.equal(b.hitRate.strategyHitBySchool, null, "never invent school WR");
+  assert.equal(b.signature.smcThesis, null, "smcThesis stub until gradeSmcMaster");
+  assert.ok(b.checklist.schoolSequence.every((s) => s.pass === null), "schoolSequence pass chips stay null");
+  assert.equal(allFloorSchoolSeatBundles().length, 5);
+});
+
+const worldStub = (over = {}) => ({
+  nowMs: Date.UTC(2026, 9, 6, 12, 35, 0), // 08:35 ET
+  clock: {
+    isWeekday: true, holiday: false, globexOpen: true, judas: false, blackout: false, blackoutReason: null,
+    killzone: "ny_am", killzoneLabel: "NY AM", optionsOpen: true,
+  },
+  books: { QQQ: null, SPY: null },
+  card: null,
+  week: null,
+  feed: { kind: "yahoo", lagSec: 600 },
+  lab: null,
+  minds: null,
+  pulse: { vix: null, tenYear: null, at: null },
+  book: { dayPnl: 0, equity: 1000, closedToday: 0, winsToday: 0, consecLosses: 0, monthEntries: 0 },
+  ...over,
+});
+
+test("Chunk B school floor: Stand bundles, awaiting labels, no invented ranks", () => {
+  const school = buildSchoolFloor(worldStub());
+  assert.equal(school.disciples.length, 5);
+  assert.equal(school.disciples.find((d) => d.school === "ict").who, "Gemma");
+  assert.ok(school.checklist.some((c) => c.state === "awaiting-model"));
+  assert.ok(school.checklist.filter((c) => c.source === "school_sequence").every((c) => c.state === "awaiting-model"));
+  assert.ok(school.ranks.every((r) => r.hitRate == null && r.source === "awaiting-model"));
+  assert.ok(school.briefing.phase === "council" || school.briefing.label.includes("08:30"));
+  assert.equal(school.hook.source, "trading-stand");
+  assert.equal(school.bundles.length, 5);
+  assert.ok(school.bundles.every((b) => b.hitRate.strategyHitBySchool === null));
+});
+
+test("Chunk B hit ranks: only real lab track rates; null stays awaiting", () => {
+  const lab = {
+    refusals: [],
+    twins: { n: 0, deltaUsd: 0 },
+    calibration: { n: 10, meanP: 0.4, hitRate: 0.35, brier: 0.2 },
+    track: {
+      Gemma: { n: 8, brier: 0.1, meanP: 0.45, hitRate: 0.5 },
+      Jax: { n: 0, brier: null, meanP: null, hitRate: null },
+      Nova: { n: 5, brier: 0.2, meanP: 0.4, hitRate: 0.2 },
+      Sterling: { n: 0, brier: null },
+      Vince: { n: 0, brier: null },
+    },
+  };
+  const school = buildSchoolFloor(worldStub({ lab }));
+  const gemma = school.ranks.find((r) => r.who === "Gemma");
+  const jax = school.ranks.find((r) => r.who === "Jax");
+  assert.equal(gemma.hitRate, 0.5);
+  assert.equal(gemma.rank, 1);
+  assert.equal(jax.hitRate, null);
+  assert.match(jax.label, /awaiting model data|no scored plans/);
 });

@@ -2602,6 +2602,11 @@ export class FloorScene {
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
       const pose = wingPose(a.who, this.wingShown);
       if (pose && !mine) a.anim = pose;
+      // 23: body language from minds needs / entry mood when ambient at desk (Chunk B).
+      if (!mine && !pose && (act === "desk" || act === "desk_lean" || act === "desk_stretch" || act === "desk_drink" || act === "desk_phone")) {
+        const bl = this.overhaul.bodyLang().find((b) => b.who === a.who);
+        if (bl) a.anim = bl.anim as AnimKey;
+      }
       a.update(dt, t);
     }
     // Spectacle.
@@ -3080,7 +3085,7 @@ export class FloorScene {
   }
 
   private applyManagerFeed(s: ManagerRoomState) {
-    this.overhaul?.setManager(s);
+    this.overhaul?.setManager(s, this.managerFeed.getLastSteer());
     this.manager.say(managerBubbleText(s));
     this.manager.setMoodAccent(phaseToMoodTint(s.current));
     // The account monitor: Trading Stand's managerAccountLine, red when blocked.
@@ -3091,8 +3096,8 @@ export class FloorScene {
   }
 
   /**
-   * Chunk A overhaul data (ticker wall, liquidity lanes, VIX weather, stat banners, trophy shelf, wall of scars):
-   * the room engine's `floorProps` read of the live world. Null clears every piece to its labelled empty state.
+   * Floor overhaul data (Chunk A set pieces + Chunk B school boards): the room engine's `floorProps` read of the live world.
+   * Null clears every piece to its labelled empty / awaiting-model state.
    */
   setFloorProps(p: FloorProps | null, signature = "") {
     this.overhaul.setProps(p, signature);

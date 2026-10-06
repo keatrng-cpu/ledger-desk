@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul — Chunk A (items 7–15). The new set pieces, built at runtime beside the office:
+ * Floor 3D overhaul — Chunk A (items 7–15) + Chunk B school SMC (16–24). The new set pieces, built at runtime beside the office:
  *
  *   7  the centre pit around the war table: a dark sunken floor with tiered rings, its rim a 24-hour session dial
  *   8  the Manager's glass corner office (walls, desk, monitors come from floor-layout.json `procedural` entries;
@@ -10,16 +10,35 @@
  *   12 the ticker wall over the south offices
  *   14 stat props: six banners hung round the pit
  *   15 the trophy shelf (cups on ledges) and the wall of scars, two faces of one partition in the lounge
+ *   16–17 school disciples (ICT/TJR/Blake/Patty/SMC) — distinct desk plates, not celebrity looks
+ *   18 school desk signature lines from live card/book only (or labelled empty / awaiting model)
+ *   19 floating must-checklist from CONFLUENCE_STACK + live gate fields
+ *   20 Manager-chaired debate board (Manager feed / steer; presentation)
+ *   21 08:30 ET briefing beat (session/time aware)
+ *   22 hit-rate ranks from lab track only — never invented
+ *   23 body language prefs from minds needs + entry mood (consumed by floor-scene)
+ *   24 evolving relationship arcs between desks (minds.rel)
  *
  * (13, the sound bed, lives in floor-sound.ts.) Presentation only: every value comes from `FloorProps`
  * (src/lib/room/floor-props.ts) or the Manager feed's state; this file computes nothing the room did not.
  */
 
 import * as THREE from "three";
-import type { ManagerRoomState } from "@/lib/room/manager-feed";
+import type { ManagerRoomState, ManagerSteer } from "@/lib/room/manager-feed";
 import type { Underlier } from "@/lib/room/option-math";
 import { SESSION_COLOR, sessionDial, sessionSegments, type FloorProps, type LiquidityTrack, type Plaque, type Tile, type Tone } from "@/lib/room/floor-props";
 import { readRhAccount } from "@/lib/ui/rh-account";
+import {
+  drawBriefing,
+  drawChecklist,
+  drawDebateBoard,
+  drawHitRanks,
+  drawSchoolDeskPlate,
+  drawSchoolsBoard,
+  relToneColor,
+} from "./floor-overhaul-school";
+import type { Character } from "@/lib/room/orchestrator";
+import type { BodyLang } from "@/lib/room/school-contract";
 
 export interface OverhaulScreen {
   ctx: CanvasRenderingContext2D;
@@ -133,6 +152,7 @@ export class FloorOverhaul {
 
   private props: FloorProps | null = null;
   private managerState: ManagerRoomState | null = null;
+  private lastSteer: ManagerSteer | null = null;
   private dirty = true;
   private lastSecond = -1;
   private lastPitMin = -1;
@@ -163,6 +183,12 @@ export class FloorOverhaul {
   // 15
   private readonly cups = new THREE.Group();
   private cupKey = "";
+
+  // 16–18 school desk plates (hanging signs above each school desk)
+  private readonly schoolPlates: { who: Character; sign: Sign }[] = [];
+  // 24 relationship arcs (line segments between desk centres)
+  private readonly relLines: THREE.LineSegments;
+  private readonly relPos: Float32Array;
 
   constructor() {
     this.root.name = "floor_overhaul";
@@ -271,6 +297,42 @@ export class FloorOverhaul {
     }
     this.root.add(this.cups);
 
+    /* 16–18: school desk plates — hanging signs above each disciple desk (identity + live signature). */
+    const DESKS: { who: Character; x: number; z: number; yaw: number }[] = [
+      { who: "Jax", x: -11.5, z: -9.55, yaw: 0 },
+      { who: "Nova", x: -6.5, z: -9.55, yaw: 0 },
+      { who: "Gemma", x: -1.5, z: -9.55, yaw: 0 },
+      { who: "Sterling", x: -11.5, z: 4.65, yaw: Math.PI },
+      { who: "Vince", x: -6.5, z: 4.65, yaw: Math.PI },
+    ];
+    for (const d of DESKS) {
+      const s = makeSign(0.95, 0.55, [480, 280]);
+      s.root.position.set(d.x, 2.15, d.z);
+      s.root.rotation.y = d.yaw;
+      for (const dx of [-0.4, 0.4]) {
+        const top = new THREE.Vector3(dx, 0.28, 0).applyEuler(s.root.rotation).add(s.root.position);
+        this.root.add(rod(top, new THREE.Vector3(top.x, CEIL, top.z), steel));
+      }
+      this.root.add(s.root);
+      this.schoolPlates.push({ who: d.who, sign: s });
+    }
+
+    /* 24: relationship arcs — up to 10 undirected links between desk centres. */
+    const REL_MAX = 10;
+    this.relPos = new Float32Array(REL_MAX * 6);
+    const relGeo = new THREE.BufferGeometry();
+    relGeo.setAttribute("position", new THREE.BufferAttribute(this.relPos, 3));
+    this.relLines = new THREE.LineSegments(
+      relGeo,
+      new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.55, depthWrite: false }),
+    );
+    const relCols = new Float32Array(REL_MAX * 6);
+    relGeo.setAttribute("color", new THREE.BufferAttribute(relCols, 3));
+    this.relLines.frustumCulled = false;
+    this.relLines.visible = false;
+    this.root.add(this.relLines);
+    (this as unknown as { _relCols: Float32Array })._relCols = relCols;
+
     this.root.traverse((o) => {
       o.userData.overhaul = true;
       const m = o as THREE.Mesh;
@@ -287,9 +349,15 @@ export class FloorOverhaul {
     void signature;
   }
 
-  setManager(s: ManagerRoomState | null) {
+  setManager(s: ManagerRoomState | null, steer: ManagerSteer | null = null) {
     this.managerState = s;
+    this.lastSteer = steer;
     this.dirty = true;
+  }
+
+  /** Chunk B body-language prefs for floor-scene ambient poses. */
+  bodyLang(): BodyLang[] {
+    return this.props?.school.body ?? [];
   }
 
   /* ── per frame ─────────────────────────────────────────────────────────── */
@@ -389,6 +457,23 @@ export class FloorOverhaul {
     draw("ovh_scars", (c, w, h) => drawScars(c, w, h, p?.scars ?? null));
     draw("ovh_mgr_0", (c, w, h) => drawManagerCall(c, w, h, this.managerState));
     draw("ovh_mgr_1", (c, w, h) => drawManagerBook(c, w, h, this.managerState));
+    // Chunk B boards
+    const school = p?.school ?? null;
+    draw("ovh_schools", (c, w, h) => drawSchoolsBoard(c, w, h, school));
+    draw("ovh_checklist", (c, w, h) => drawChecklist(c, w, h, school?.checklist ?? null));
+    draw("ovh_debate", (c, w, h) => drawDebateBoard(c, w, h, this.managerState, this.lastSteer));
+    draw("ovh_briefing", (c, w, h) => drawBriefing(c, w, h, school?.briefing ?? null));
+    draw("ovh_ranks", (c, w, h) => drawHitRanks(c, w, h, school?.ranks ?? null));
+    // School desk plates
+    const deskBy = new Map((school?.desks ?? []).map((d) => [d.who, d]));
+    const discBy = new Map((school?.disciples ?? []).map((d) => [d.who, d]));
+    for (const { who, sign } of this.schoolPlates) {
+      const disc = discBy.get(who);
+      if (!disc) continue;
+      drawSchoolDeskPlate(sign.ctx, sign.w, sign.h, disc, deskBy.get(who) ?? null);
+      sign.tex.needsUpdate = true;
+    }
+    this.placeRels(school?.rels ?? []);
     // Floor and hanging pieces that are not layout screens.
     for (const u of ["QQQ", "SPY"] as Underlier[]) {
       const r = this.tracks.get(u)!;
@@ -521,6 +606,49 @@ export class FloorOverhaul {
     tex.needsUpdate = true;
   }
 
+
+  private placeRels(rels: import("@/lib/room/school-contract").RelLink[]) {
+    const DESK: Record<string, [number, number]> = {
+      Jax: [-11.5, -9.2],
+      Nova: [-6.5, -9.2],
+      Gemma: [-1.5, -9.2],
+      Sterling: [-11.5, 4.3],
+      Vince: [-6.5, 4.3],
+    };
+    const cols = (this as unknown as { _relCols: Float32Array })._relCols;
+    const max = this.relPos.length / 6;
+    const n = Math.min(max, rels.length);
+    for (let i = 0; i < max; i++) {
+      const o = i * 6;
+      if (i < n) {
+        const r = rels[i]!;
+        const a = DESK[r.a]!;
+        const b = DESK[r.b]!;
+        const y = 0.12 + r.strength * 0.25;
+        this.relPos[o] = a[0]!;
+        this.relPos[o + 1] = y;
+        this.relPos[o + 2] = a[1]!;
+        this.relPos[o + 3] = b[0]!;
+        this.relPos[o + 4] = y;
+        this.relPos[o + 5] = b[1]!;
+        const c = new THREE.Color(relToneColor(r.tone));
+        cols[o] = c.r;
+        cols[o + 1] = c.g;
+        cols[o + 2] = c.b;
+        cols[o + 3] = c.r;
+        cols[o + 4] = c.g;
+        cols[o + 5] = c.b;
+      } else {
+        for (let k = 0; k < 6; k++) this.relPos[o + k] = 0;
+      }
+    }
+    const geo = this.relLines.geometry;
+    (geo.getAttribute("position") as THREE.BufferAttribute).needsUpdate = true;
+    (geo.getAttribute("color") as THREE.BufferAttribute).needsUpdate = true;
+    geo.setDrawRange(0, n * 2);
+    this.relLines.visible = n > 0;
+  }
+
   private placeCups(trophies: Plaque[]) {
     const key = trophies.map((x) => x.title).join("|");
     if (key === this.cupKey) return;
@@ -608,7 +736,7 @@ function drawKillzoneClock(ctx: Ctx, w: number, h: number, clockMs: number, p: F
   const wx = p?.weather;
   ctx.font = `700 16px ${FONT}`;
   ctx.fillStyle = wx && wx.vix != null ? (wx.band === "storm" ? "#ef4444" : wx.band === "overcast" ? "#f59e0b" : "#cbd5e1") : "#64748b";
-  ctx.fillText(wx && wx.vix != null ? `VIX ${wx.vix.toFixed(2)} · ${wx.label}` : "VIX — no pulse", cx, cy + 98);
+  ctx.fillText(wx && wx.vix != null ? `VIX ${wx.vix.toFixed(2)} · ${wx.label} · ${wx.sourceLine}` : wx ? `VIX · ${wx.sourceLine}` : "VIX · Y! · no pulse", cx, cy + 98);
   if (d.marketNote) {
     ctx.fillStyle = "#f59e0b";
     ctx.font = `700 15px ${FONT}`;

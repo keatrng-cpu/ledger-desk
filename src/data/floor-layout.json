@@ -228,7 +228,12 @@
     { "id": "ovh_kz_E", "kind": "clock", "center": [-4.36, 2.45, -1.0], "size": [1.2, 1.2], "facing": 90, "px": [512, 512], "procedural": true },
     { "id": "ovh_kz_W", "kind": "clock", "center": [-4.44, 2.45, -1.0], "size": [1.2, 1.2], "facing": 270, "px": [512, 512], "procedural": true },
     { "id": "ovh_trophies", "kind": "poster", "center": [7.73, 1.35, -4.2], "size": [3.7, 1.9], "facing": 90, "px": [1480, 760], "procedural": true },
-    { "id": "ovh_scars", "kind": "poster", "center": [7.47, 1.35, -4.2], "size": [3.7, 1.9], "facing": 270, "px": [1480, 760], "procedural": true }
+    { "id": "ovh_scars", "kind": "poster", "center": [7.47, 1.35, -4.2], "size": [3.7, 1.9], "facing": 270, "px": [1480, 760], "procedural": true },
+    { "id": "ovh_schools", "kind": "tv", "center": [-13.7, 2.2, -1.0], "size": [1.8, 2.2], "facing": 90, "px": [720, 880], "procedural": true },
+    { "id": "ovh_checklist", "kind": "poster", "center": [-8.0, 2.55, 1.55], "size": [2.4, 1.5], "facing": 0, "px": [960, 600], "procedural": true },
+    { "id": "ovh_debate", "kind": "tv", "center": [-13.7, 2.2, 1.4], "size": [1.8, 1.6], "facing": 90, "px": [720, 640], "procedural": true },
+    { "id": "ovh_briefing", "kind": "poster", "center": [-8.0, 2.85, -3.55], "size": [2.8, 0.9], "facing": 180, "px": [1120, 360], "procedural": true },
+    { "id": "ovh_ranks", "kind": "poster", "center": [7.73, 2.55, -6.4], "size": [2.2, 1.4], "facing": 90, "px": [880, 560], "procedural": true }
   ],
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },

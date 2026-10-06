@@ -301,7 +301,7 @@ export function labLite(lab: LabRead | null): LabLite | null {
     refusals: lab.refusals,
     twins: { n: lab.twins.n, deltaUsd: lab.twins.deltaUsd },
     calibration: lab.calibration ? { n: lab.calibration.n, meanP: lab.calibration.meanP, hitRate: lab.calibration.hitRate, brier: lab.calibration.brier } : null,
-    track: Object.fromEntries(Object.entries(lab.track).map(([k, v]) => [k, { n: v.n, brier: v.brier }])) as LabLite["track"],
+    track: Object.fromEntries(Object.entries(lab.track).map(([k, v]) => [k, { n: v.n, brier: v.brier, meanP: v.meanP, hitRate: v.hitRate }])) as LabLite["track"],
   };
 }
 

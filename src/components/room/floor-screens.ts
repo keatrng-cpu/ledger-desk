@@ -811,9 +811,10 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
   const hour = etMin / 60;
   const night = hour < 6.5 || hour > 19.5;
   const dusk = !night && (hour < 8 || hour > 17.5);
-  const v = vix != null && vix > 0 ? vix : 16;
-  const storm = v >= 30;
-  const overcast = v >= 20;
+  // No invented VIX: missing/invalid pulse → clear sky from the clock only (same fail-closed as floor-props vixWeather).
+  const v = vix != null && Number.isFinite(vix) && vix > 0 ? vix : null;
+  const storm = v != null && v >= 30;
+  const overcast = v != null && v >= 20;
   const g = ctx.createLinearGradient(0, 0, 0, h);
   if (storm) {
     g.addColorStop(0, night ? "#05060b" : "#1f2430");
@@ -837,7 +838,7 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
     for (let i = 0; i < 40; i++) ctx.fillRect(rnd() * w, rnd() * h * 0.5, 2, 2);
   }
   // Clouds drift slowly with the clock.
-  const clouds = v < 15 ? 1 : v < 20 ? 3 : v < 30 ? 6 : 9;
+  const clouds = v == null ? 0 : v < 15 ? 1 : v < 20 ? 3 : v < 30 ? 6 : 9;
   for (let i = 0; i < clouds; i++) {
     const cx = ((rnd() * w + tSec * (6 + i)) % (w + 220)) - 110;
     const cy = 30 + rnd() * h * 0.3;

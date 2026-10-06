@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul (Chunk A, items 9–15) — what the new set pieces show, read from data the room already has.
+ * Floor 3D overhaul — Chunk A (9–15) + Chunk B school SMC (16–24) — what the new set pieces show, read from data the room already has.
  *
  * Pure: no DOM, no three.js, no clock of its own (every function takes `nowMs`). The scene draws it; nothing here
  * is a gate, a size or an order, and nothing is invented. Every figure is copied from one of:
@@ -19,6 +19,12 @@ import type { RoomClosedTrade } from "./paper-book";
 import { contractName, gateWord, usd } from "./format";
 import { etWallParts, resolveKillzone, type KillzoneId } from "@/lib/trading/sessions";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
+import {
+  AWAITING_SCHOOL_MODEL,
+  buildSchoolFloor,
+  type SchoolFloor,
+  type SchoolModelHook,
+} from "./school-contract";
 
 /* ── 9. Session time-of-day + killzone clock ─────────────────────────────── */
 
@@ -134,18 +140,44 @@ export interface VixWeather {
   label: string;
   /** 0..1 how much weather to draw. 0 when there is no VIX (nothing is drawn on a default). */
   intensity: number;
+  /** Pulse source tag — VIX always comes from Yahoo (^VIX). */
+  source: "Y!";
+  /** Age of the room's last pulse pull, when known (Yahoo is delayed structure). */
+  delaySec: number | null;
+  /** "Y! DELAYED · …" / "No VIX pulse" for dials and tiles. */
+  sourceLine: string;
+}
+
+function pulseDelaySec(at: number | null | undefined, nowMs?: number): number | null {
+  if (at == null || !Number.isFinite(at) || at <= 0) return null;
+  const now = nowMs ?? Date.now();
+  return Math.max(0, Math.round((now - at) / 1000));
+}
+
+function fmtDelay(sec: number | null): string {
+  if (sec == null) return "DELAYED";
+  if (sec < 60) return `DELAYED · ${sec}s`;
+  const m = Math.round(sec / 60);
+  return m < 60 ? `DELAYED · ${m}m` : `DELAYED · ${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
 /**
- * The same bands the windows already draw (floor-screens.ts `drawWindow`: clear under 15, scattered cloud to 20,
- * overcast to 30, storm at 30+). Unlike the windows, a missing VIX is "no pulse" — no default 16.
+ * The same bands the windows already draw (clear under 15, scattered cloud to 20,
+ * overcast to 30, storm at 30+). A missing VIX is "no pulse" — no default 16.
+ * Source is always Y! (Yahoo ^VIX); the dial/tile must say so.
  */
-export function vixWeather(vix: number | null | undefined): VixWeather {
-  if (vix == null || !Number.isFinite(vix) || vix <= 0) return { vix: null, band: "none", label: "No VIX pulse", intensity: 0 };
-  if (vix >= 30) return { vix, band: "storm", label: "Storm", intensity: Math.min(1, 0.75 + (vix - 30) / 40) };
-  if (vix >= 20) return { vix, band: "overcast", label: "Overcast", intensity: 0.45 + ((vix - 20) / 10) * 0.25 };
-  if (vix >= 15) return { vix, band: "cloud", label: "Scattered cloud", intensity: 0.15 + ((vix - 15) / 5) * 0.25 };
-  return { vix, band: "clear", label: "Clear", intensity: 0 };
+export function vixWeather(vix: number | null | undefined, pulseAt: number | null | undefined = null, nowMs?: number): VixWeather {
+  const delaySec = pulseDelaySec(pulseAt, nowMs);
+  const source = "Y!" as const;
+  if (vix == null || !Number.isFinite(vix) || vix <= 0) {
+    return { vix: null, band: "none", label: "No VIX pulse", intensity: 0, source, delaySec, sourceLine: `Y! · no pulse` };
+  }
+  const band =
+    vix >= 30 ? ("storm" as const) : vix >= 20 ? ("overcast" as const) : vix >= 15 ? ("cloud" as const) : ("clear" as const);
+  const label = band === "storm" ? "Storm" : band === "overcast" ? "Overcast" : band === "cloud" ? "Scattered cloud" : "Clear";
+  const intensity =
+    band === "storm" ? Math.min(1, 0.75 + (vix - 30) / 40) : band === "overcast" ? 0.45 + ((vix - 20) / 10) * 0.25 : band === "cloud" ? 0.15 + ((vix - 15) / 5) * 0.25 : 0;
+  return { vix, band, label, intensity, source, delaySec, sourceLine: `Y! ${fmtDelay(delaySec)}` };
 }
 
 /* ── 11. Liquidity lanes: PDH / PDL / BSL / SSL + the price puck ─────────── */
@@ -242,10 +274,19 @@ const fmtPx = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 
 const fmtPct = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(2)}%`;
 const toneOf = (n: number | null | undefined): Tone => (n == null ? "muted" : n > 0 ? "up" : n < 0 ? "down" : "flat");
 
+/** Desk short source tags — never paint Y!/DB/SYN as LIVE. */
+export function feedSourceTag(kind: FeedRead["kind"] | string | null | undefined): "LIVE" | "Y!" | "DB" | "SYN" | "NONE" {
+  if (kind === "live_gateway") return "LIVE";
+  if (kind === "yahoo") return "Y!";
+  if (kind === "databento") return "DB";
+  if (kind === "synthetic") return "SYN";
+  return "NONE";
+}
+
 export function feedTile(feed: FeedRead): Tile {
-  const kind = feed.kind === "live_gateway" ? "LIVE" : feed.kind === "yahoo" ? "YAHOO" : feed.kind === "databento" ? "DATABENTO" : feed.kind === "synthetic" ? "SYNTHETIC" : "NONE";
+  const kind = feedSourceTag(feed.kind);
   const lag = feed.lagSec != null ? `lag ${Math.round(feed.lagSec)}s` : "lag n/a";
-  const tone: Tone = feed.kind === "live_gateway" && (feed.lagSec ?? 99) <= 30 ? "up" : feed.kind === "synthetic" || feed.kind === "none" ? "down" : "warn";
+  const tone: Tone = kind === "LIVE" && (feed.lagSec ?? 99) <= 30 ? "up" : kind === "SYN" || kind === "NONE" ? "down" : "warn";
   return { label: "FEED", value: kind, sub: lag, tone };
 }
 
@@ -257,8 +298,12 @@ export function tickerTiles(w: Pick<TalkWorld, "books" | "pulse" | "feed" | "clo
     if (!b) tiles.push({ label: say, value: "—", sub: "no quote", tone: "muted" });
     else tiles.push({ label: `${b.say} · ${b.sym}`, value: fmtPx(b.px), sub: b.changePct != null ? fmtPct(b.changePct) : "chg n/a", tone: toneOf(b.changePct) });
   }
-  const vix = w.pulse.vix;
-  tiles.push(vix != null && vix > 0 ? { label: "VIX", value: vix.toFixed(2), sub: vixWeather(vix).label, tone: vix >= 30 ? "down" : vix >= 20 ? "warn" : "flat" } : { label: "VIX", value: "—", sub: "no pulse", tone: "muted" });
+  const wx = vixWeather(w.pulse.vix, w.pulse.at);
+  tiles.push(
+    wx.vix != null
+      ? { label: "VIX · Y!", value: wx.vix.toFixed(2), sub: `${wx.label} · ${wx.sourceLine}`, tone: wx.vix >= 30 ? "down" : wx.vix >= 20 ? "warn" : "flat" }
+      : { label: "VIX · Y!", value: "—", sub: wx.sourceLine, tone: "muted" },
+  );
   const ty = w.pulse.tenYear;
   tiles.push(ty != null ? { label: "10Y", value: `${ty.toFixed(2)}%`, sub: "yield", tone: "flat" } : { label: "10Y", value: "—", sub: "no pulse", tone: "muted" });
   tiles.push(feedTile(w.feed));
@@ -352,26 +397,55 @@ export interface FloorProps {
   stats: Tile[];
   trophies: Plaque[];
   scars: Plaque[];
+  /** Chunk B (16–24): school disciples, desks, checklist, briefing, ranks, body, relationships.
+   *  Debate panel is drawn from ManagerRoomState in floor-overhaul (same path as Manager monitors).
+   *  Trading Stand model hook defaults to awaiting — never invents hit-rates. */
+  school: SchoolFloor;
 }
 
-export function floorProps(w: TalkWorld, room: { closed: RoomClosedTrade[]; startCash: number | null; memories: readonly Memory[] }): FloorProps {
+export function floorProps(
+  w: TalkWorld,
+  room: {
+    closed: RoomClosedTrade[];
+    startCash: number | null;
+    memories: readonly Memory[];
+    /** Optional Stand hook; omit = awaiting model data labels. */
+    schoolHook?: SchoolModelHook;
+    entryMood?: "WAIT" | "STALKING" | "ARMED" | "ENTER" | null;
+  },
+): FloorProps {
   const { trophies, scars } = trophiesAndScars(room.closed, room.memories, w.lab);
+  const school = buildSchoolFloor(w, {
+    hook: room.schoolHook ?? AWAITING_SCHOOL_MODEL,
+    entryMood: room.entryMood ?? null,
+  });
   return {
     at: w.nowMs,
     clock: w.clock,
     synthetic: w.feed.kind === "synthetic",
-    weather: vixWeather(w.pulse.vix),
+    weather: vixWeather(w.pulse.vix, w.pulse.at, w.nowMs),
     tracks: { QQQ: liquidityTrack(w.books.QQQ), SPY: liquidityTrack(w.books.SPY) },
     ticker: tickerTiles(w),
     stats: statProps(w.book, w.lab, room.startCash),
     trophies,
     scars,
+    school,
   };
 }
 
 /** What changed enough to redraw: everything except the clock's seconds. */
 export function propsSignature(p: FloorProps | null): string {
   if (!p) return "";
-  const { at: _at, clock, ...rest } = p;
-  return JSON.stringify([clock.killzone, clock.optionsOpen, clock.globexOpen, clock.holiday, clock.blackout, clock.judas, rest]);
+  const { at: _at, clock, school, ...rest } = p;
+  // Briefing clock ticks every second — signature uses phase/label/lines only.
+  const schoolSig = {
+    hook: [school.hook.source, school.hook.version],
+    desks: school.desks.map((d) => [d.school, d.source, d.line]),
+    checklist: school.checklist.map((c) => [c.id, c.state, c.detail]),
+    briefing: { phase: school.briefing.phase, label: school.briefing.label, lines: school.briefing.lines, inMin: school.briefing.inMin },
+    ranks: school.ranks.map((r) => [r.who, r.rank, r.n, r.hitRate, r.label]),
+    body: school.body.map((b) => [b.who, b.anim, b.reason]),
+    rels: school.rels.map((r) => [r.a, r.b, r.tone, Math.round(r.strength * 100)]),
+  };
+  return JSON.stringify([clock.killzone, clock.optionsOpen, clock.globexOpen, clock.holiday, clock.blackout, clock.judas, rest, schoolSig]);
 }

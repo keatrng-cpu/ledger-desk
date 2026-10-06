@@ -233,7 +233,7 @@ export interface LabLite {
   refusals: { gate: string; n: number; pnlUsd: number; wins: number }[];
   twins: { n: number; deltaUsd: number };
   calibration: { n: number; meanP: number | null; hitRate: number | null; brier: number | null } | null;
-  track: Record<Character, { n: number; brier: number | null }>;
+  track: Record<Character, { n: number; brier: number | null; meanP?: number | null; hitRate?: number | null }>;
 }
 
 export interface WeekLite {
