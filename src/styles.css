@@ -204,6 +204,19 @@
       box-shadow: 0 0 0 10px color-mix(in oklab, #4ade80 0%, transparent);
     }
   }
+  /* RH account below the envelope (rh-account-strip.tsx): slow red pulse. */
+  .pulse-veto {
+    animation: pulse-veto 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-veto {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, #ef4444 60%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 6px color-mix(in oklab, #ef4444 0%, transparent);
+    }
+  }
   /* Veto band over the fit gauge: red diagonal hatch. */
   .hatch-veto {
     background-image: repeating-linear-gradient(

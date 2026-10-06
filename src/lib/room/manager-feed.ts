@@ -8,6 +8,11 @@
  */
 
 import { reportAutomation } from "@/lib/ui/automation-state";
+import { agentAgreeFromManagerRoomState } from "@/lib/execution/manager-agree";
+import {
+  DEFAULT_MANAGER_ROOM_ACCOUNT,
+  type ManagerRhAccount,
+} from "@/lib/execution/manager-account";
 
 /* ── Floor cast extension (Stand is Manager; Owner is not a line-speaker) ─ */
 
@@ -139,6 +144,14 @@ export interface ManagerRoomState {
   floor: FloorSnap;
   path: PathSnap;
   arms: ArmSnap;
+  /**
+   * Read-only RH account block (Trading Stand, manager-account.ts): cash,
+   * options BP, envelope, canFillEnvelope. Defaults to
+   * DEFAULT_MANAGER_ROOM_ACCOUNT — the Individual ••••7477 snapshot
+   * (isSnapshot) — until a host injects managerRhAccountFromConnector.
+   * Display + accountPlaceGate only; nothing here places.
+   */
+  account: ManagerRhAccount;
 }
 
 /* ── Steer (chips → emit only; no gate wiring) ──────────────────────────── */
@@ -243,6 +256,8 @@ export interface ManagerFeed {
 }
 
 export interface StubManagerFeed extends ManagerFeed {
+  /** Marks the demo feed: its state must never reach the RH Stand bit. */
+  readonly stub: true;
   /** Optional: desk EntryState → bias demo phase cycle (presentation). */
   setEntryMood(mood: "WAIT" | "STALKING" | "ARMED" | "ENTER"): void;
   dispose(): void;
@@ -407,15 +422,30 @@ function buildState(
     open: mockOpen(phase, cycleId, now),
     close: mockClose(phase, now),
     ...baseSnaps(mood),
+    // The RH account block: the Individual ••••7477 snapshot until a host injects a live read.
+    account: DEFAULT_MANAGER_ROOM_ACCOUNT,
   };
 }
 
 /**
- * Local demo feed: cycles ManagerPhase, mock call/open/close.
- * Reports open/close through reportAutomation (presentation seam only).
- * Never places orders or touches RH gates.
+ * The stub reports its DEMO open/close into the automation seam (IN TRADE
+ * badge, green glow, close flashes) only when asked: dev build + ?manager=stub.
+ * Otherwise a demo cycle would paint a fake "IN TRADE (stub)" over a real desk.
  */
-export function createStubManagerFeed(): StubManagerFeed {
+function stubReportsAutomation(): boolean {
+  if (!import.meta.env?.DEV || typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("manager") === "stub";
+}
+
+/**
+ * Local demo feed: cycles ManagerPhase, mock call/open/close.
+ * Reports open/close through reportAutomation (presentation seam only) — see
+ * stubReportsAutomation. Never places orders or touches RH gates.
+ */
+export function createStubManagerFeed(
+  opts: { reportAutomation?: boolean } = {},
+): StubManagerFeed {
+  const reportsAutomation = opts.reportAutomation ?? stubReportsAutomation();
   let mood: "WAIT" | "STALKING" | "ARMED" | "ENTER" = "WAIT";
   let tick = 0;
   let cycleId = `stub-${Date.now().toString(36)}`;
@@ -429,6 +459,7 @@ export function createStubManagerFeed(): StubManagerFeed {
   let lastAutoPhase: "idle" | "open" | "closed" = "idle";
 
   const reportLife = (s: ManagerRoomState) => {
+    if (!reportsAutomation) return;
     // Presentation seam only — same reportAutomation ScreenFlash already uses.
     if (s.open && (s.current === "OPEN" || s.current === "MANAGING")) {
       if (lastAutoPhase !== "open") {
@@ -568,6 +599,7 @@ export function createStubManagerFeed(): StubManagerFeed {
     getLastSteer: () => lastSteer,
     getFeedbackLog: () => [...feedback],
     getRules: () => [...rules],
+    stub: true,
     dispose() {
       disarm();
       listeners.clear();
@@ -606,3 +638,26 @@ export function phaseToMoodTint(phase: ManagerPhase): "WAIT" | "STALKING" | "ARM
 }
 
 void PHASE_CYCLE;
+
+/* ── Stand bit wiring (manager-agree.ts) ───────────────────────────────── */
+
+export function isStubManagerFeed(feed: ManagerFeed | null | undefined): feed is StubManagerFeed {
+  return !!feed && (feed as Partial<StubManagerFeed>).stub === true;
+}
+
+/**
+ * THE ManagerRoomState the RH path may read for agentAgree — pass the result
+ * as `manager` to candidateFromFloorPathStand / resolveStandAgentAgree
+ * (src/lib/execution/manager-agree.ts). A real feed gives feed.getState(); the
+ * demo stub (or no feed) gives null, which manager-agree resolves to false —
+ * a demo cycle's AGREED must never become the live Stand bit.
+ */
+export function managerStateForAgree(feed: ManagerFeed | null | undefined): ManagerRoomState | null {
+  if (!feed || isStubManagerFeed(feed)) return null;
+  return feed.getState();
+}
+
+/** The Stand bit the RH automation would read from this feed right now. */
+export function standAgentAgree(feed: ManagerFeed | null | undefined): boolean {
+  return agentAgreeFromManagerRoomState(managerStateForAgree(feed));
+}

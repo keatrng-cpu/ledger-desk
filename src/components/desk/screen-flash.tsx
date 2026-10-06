@@ -10,18 +10,31 @@
  *
  * Fast (~600 ms) and pointer-events: none. prefers-reduced-motion gets a static
  * edge border instead of the fade. Header toggle: src/lib/ui/flash-prefs.ts.
- * Dev only: ?flash=stalking|armed|enter|veto|intrade|close-win|close-loss|close-flat
+ *   RH account (src/lib/ui/rh-account.ts): buying power drops below the $150
+ *     envelope minimum → the veto red ("arm blocked")
+ * Dev only: ?flash=stalking|armed|enter|veto|intrade|close-win|close-loss|close-flat|bp-low|bp-ok
  * previews a state (and holds it) for screenshots. Presentation only.
  */
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { useAutomation } from "@/components/desk/use-entry-state";
+import { useAutomation, useRhAccount } from "@/components/desk/use-entry-state";
+import { readRhAccount, reportRhAccount } from "@/lib/ui/rh-account";
+import { DEFAULT_MANAGER_ROOM_ACCOUNT } from "@/lib/execution/manager-account";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { useEntryState } from "@/components/desk/use-entry-state";
 import type { EntryState } from "@/lib/ui/entry-state";
 import { getFlashOn, subscribeFlash } from "@/lib/ui/flash-prefs";
 import { bridgeRhFills, reportAutomation, type AutomationState } from "@/lib/ui/automation-state";
 
-export type FlashKind = "stalking" | "armed" | "enter" | "veto" | "intrade" | "close-win" | "close-loss" | "close-flat";
+export type FlashKind =
+  | "stalking"
+  | "armed"
+  | "enter"
+  | "veto"
+  | "intrade"
+  | "close-win"
+  | "close-loss"
+  | "close-flat"
+  | "bp-low";
 
 const FLASH: Record<FlashKind, { color: string; repeat: number; ms: number }> = {
   stalking: { color: "#f59e0b", repeat: 1, ms: 600 },
@@ -32,6 +45,8 @@ const FLASH: Record<FlashKind, { color: string; repeat: number; ms: number }> = 
   "close-win": { color: "#4ade80", repeat: 1, ms: 800 },
   "close-loss": { color: "#ef4444", repeat: 1, ms: 800 },
   "close-flat": { color: "#e5e7eb", repeat: 1, ms: 700 },
+  // Same red as a veto: the envelope cannot fit, so the arm is blocked.
+  "bp-low": { color: "#ef4444", repeat: 1, ms: 700 },
 };
 
 const ENTRY_FLASH: Partial<Record<EntryState, FlashKind>> = { STALKING: "stalking", ARMED: "armed", ENTER: "enter" };
@@ -43,10 +58,10 @@ export function useFlashOn(): boolean {
 export { useAutomation };
 
 /** Dev preview param, read once on the client. */
-function devPreview(): FlashKind | null {
+function devPreview(): FlashKind | "bp-ok" | null {
   if (!import.meta.env.DEV || typeof window === "undefined") return null;
   const v = new URLSearchParams(window.location.search).get("flash");
-  return v && v in FLASH ? (v as FlashKind) : null;
+  return v === "bp-ok" ? "bp-ok" : v && v in FLASH ? (v as FlashKind) : null;
 }
 
 export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
@@ -57,7 +72,12 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
   const seq = useRef(0);
   const prev = useRef<{ state: EntryState; rule: number } | null>(null);
   const prevAuto = useRef<AutomationState["phase"]>("idle");
-  const preview = useRef<FlashKind | null>(null);
+  const preview = useRef<FlashKind | "bp-ok" | null>(null);
+  const account = useRhAccount();
+  const bpBlocked = account ? readRhAccount(account).blocked : false;
+  // Seeded with the first read: the red flash is for a TRANSITION into blocked
+  // (the persistent red strip shows a standing block), not every page load.
+  const prevBlocked = useRef(bpBlocked);
 
   const fire = (kind: FlashKind, hold = false) => {
     seq.current += 1;
@@ -69,6 +89,12 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
     const p = devPreview();
     preview.current = p;
     if (!p) return;
+    if (p === "bp-low")
+      reportRhAccount({ ...DEFAULT_MANAGER_ROOM_ACCOUNT, optionsBuyingPowerUsd: 11.56, canFillEnvelope: false, asOf: new Date().toISOString() });
+    if (p === "bp-ok") {
+      reportRhAccount({ ...DEFAULT_MANAGER_ROOM_ACCOUNT, optionsBuyingPowerUsd: 1240, canFillEnvelope: true, isSnapshot: false, asOf: new Date().toISOString() });
+      return;
+    }
     if (p === "intrade") reportAutomation({ phase: "open", label: "PREVIEW QQQ call ×1", at: Date.now() });
     else if (p.startsWith("close-"))
       reportAutomation({ phase: "closed", result: p.slice(6) as "win" | "loss" | "flat", label: "PREVIEW", at: Date.now() });
@@ -107,6 +133,14 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
       return () => window.clearTimeout(id);
     }
   }, [auto]);
+
+  // RH account: buying power falling below the envelope minimum blocks the arm.
+  useEffect(() => {
+    const was = prevBlocked.current;
+    prevBlocked.current = bpBlocked;
+    if (preview.current) return;
+    if (bpBlocked && !was) fire("bp-low");
+  }, [bpBlocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear a finished flash.
   useEffect(() => {

@@ -31,6 +31,9 @@ import type {
   SteerMove,
   DiscretionRuleDraft,
 } from "@/lib/room/manager-feed";
+import { isStubManagerFeed, standAgentAgree } from "@/lib/room/manager-feed";
+import { reportRhAccount } from "@/lib/ui/rh-account";
+import { RhAccountStrip } from "@/components/desk/rh-account-strip";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
 const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
@@ -374,7 +377,12 @@ function ManagerPanel({
   onClose,
   onTeach,
   feedback,
+  stub,
+  standBit,
 }: {
+  stub: boolean;
+  /** What the RH path would read as agentAgree (manager-agree.ts) — false for the stub. */
+  standBit: boolean;
   state: ManagerRoomState;
   lastSteer: ManagerSteer | null;
   onSteer: (m: SteerMove) => void;
@@ -398,8 +406,15 @@ function ManagerPanel({
         </button>
       </div>
       <p className="text-[11px] text-[var(--color-muted)]">
-        Stub · ManagerRoomState v{state.version} · cycle {state.cycleId} · presentation only (no RH / no agentAgree gates)
+        {stub ? "Stub · " : ""}ManagerRoomState v{state.version} · cycle {state.cycleId}
+        {stub ? " · presentation only — a demo call never reaches the RH Stand bit" : ""}
       </p>
+      <p className="mt-1 font-mono text-[11px]" title="managerStateForAgree(feed) → resolveStandAgentAgree (src/lib/execution/manager-agree.ts)">
+        <span className="text-[var(--color-muted)]">RH Stand bit (agentAgree): </span>
+        <span className={standBit ? "text-[#4ade80]" : "text-[var(--color-fg)]"}>{String(standBit)}</span>
+        {stub && <span className="text-[var(--color-subtle)]"> · stub feed → false</span>}
+      </p>
+      <RhAccountStrip className="mt-2" />
       {call ? (
         <div className="mt-2 space-y-1 text-[12px]">
           <p className="font-semibold text-[var(--color-fg)]">{call.reasoning.thesis}</p>
@@ -862,6 +877,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
     if (!feed) return;
     return feed.subscribe((s) => {
       setManagerState(s);
+      // The RH account rides on ManagerRoomState when the feed has one (display only).
+      reportRhAccount(s.account ?? null);
       setLastSteer(feed.getLastSteer());
       setFeedbackLog(feed.getFeedbackLog());
     });
@@ -1097,6 +1114,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           <button type="button" className={BTN} onClick={() => setManagerOpen(true)}>
             Manager
           </button>
+          <RhAccountStrip />
           <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Follow</span>
           {CREW.map((c) => (
             <button
@@ -1266,6 +1284,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
 
       {managerOpen && managerState && (
         <ManagerPanel
+          stub={isStubManagerFeed(sceneRef.current?.getManagerFeed())}
+          standBit={standAgentAgree(sceneRef.current?.getManagerFeed())}
           state={managerState}
           lastSteer={lastSteer}
           feedback={feedbackLog}

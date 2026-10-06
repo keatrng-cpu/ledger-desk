@@ -34,6 +34,7 @@ import {
   type StubManagerFeed,
 } from "@/lib/room/manager-feed";
 import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
+import { readRhAccount } from "@/lib/ui/rh-account";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -2948,6 +2949,11 @@ export class FloorScene {
   private applyManagerFeed(s: ManagerRoomState) {
     this.manager.say(managerBubbleText(s));
     this.manager.setMoodAccent(phaseToMoodTint(s.current));
+    // The account monitor: Trading Stand's managerAccountLine, red when blocked.
+    if (s.account) {
+      const r = readRhAccount(s.account);
+      this.manager.setAccount({ who: r.who, line: r.line, blocked: r.blocked, snapshot: s.account.isSnapshot ? r.freshness : null });
+    } else this.manager.setAccount(null);
   }
 
   /* entry mood */

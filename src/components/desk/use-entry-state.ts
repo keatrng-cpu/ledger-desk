@@ -12,6 +12,12 @@ import {
 } from "@/lib/ui/automation-state";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import {
+  getRhAccount,
+  getRhAccountServer,
+  subscribeRhAccount,
+  type ManagerRhAccount,
+} from "@/lib/ui/rh-account";
+import {
   deriveEntryState,
   detectConflicts,
   type EntryState,
@@ -60,6 +66,10 @@ export const ENTRY_STYLE: Record<
     hint: "The desk printed TAKE — rest the limit at CE.",
   },
 };
+
+export function useRhAccount(): ManagerRhAccount | null {
+  return useSyncExternalStore(subscribeRhAccount, getRhAccount, getRhAccountServer);
+}
 
 export function useAutomation(): AutomationState {
   return useSyncExternalStore(subscribeAutomation, getAutomation, getAutomationServer);

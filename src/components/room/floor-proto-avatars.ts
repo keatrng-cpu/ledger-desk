@@ -294,6 +294,58 @@ const MOOD_GLOW: Record<string, number> = {
 };
 
 /** Trading Stand Manager — seated at Chair's desk. Distinct from the five crew. */
+/**
+ * The Manager's account monitor: a small plate beside the stand with
+ * Trading Stand's managerAccountLine. Red (the veto red) when the envelope
+ * cannot fill; a SNAPSHOT tag when the block is not a live read.
+ */
+function makePlate(): { sprite: THREE.Sprite; canvas: HTMLCanvasElement; tex: THREE.CanvasTexture } {
+  const canvas = document.createElement("canvas");
+  canvas.width = 640;
+  canvas.height = 150;
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sprite.scale.set(1.9, 0.445, 1);
+  sprite.renderOrder = 11;
+  sprite.visible = false;
+  return { sprite, canvas, tex };
+}
+
+function drawPlate(
+  canvas: HTMLCanvasElement,
+  tex: THREE.CanvasTexture,
+  a: { who: string; line: string; blocked: boolean; snapshot: string | null },
+) {
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, 640, 150);
+  const c = a.blocked ? "#ef4444" : "#14b8a6";
+  ctx.fillStyle = a.blocked ? "rgba(60,8,8,0.92)" : "rgba(6,24,24,0.9)";
+  ctx.beginPath();
+  ctx.roundRect(4, 4, 632, 142, 16);
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = c;
+  ctx.stroke();
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "700 26px Inter, system-ui, sans-serif";
+  ctx.fillText(`RH ${a.who}`, 24, 44);
+  if (a.snapshot) {
+    ctx.font = "800 20px Inter, system-ui, sans-serif";
+    const w = ctx.measureText(a.snapshot.toUpperCase()).width + 20;
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(616 - w, 20, w, 32);
+    ctx.fillStyle = "#111";
+    ctx.fillText(a.snapshot.toUpperCase(), 626 - w, 44);
+  }
+  ctx.fillStyle = c;
+  ctx.font = "800 30px Inter, system-ui, sans-serif";
+  let line = a.line;
+  while (ctx.measureText(line).width > 596 && line.length > 4) line = `${line.slice(0, -2)}…`;
+  ctx.fillText(line, 24, 100);
+  tex.needsUpdate = true;
+}
+
 export class ManagerAvatar {
   readonly root = new THREE.Group();
   private readonly body = new THREE.Group();
@@ -315,6 +367,10 @@ export class ManagerAvatar {
   private readonly bubbleTex: THREE.CanvasTexture;
   private bubbleText = "";
   private showBubble = false;
+  readonly plate: THREE.Sprite;
+  private readonly plateCanvas: HTMLCanvasElement;
+  private readonly plateTex: THREE.CanvasTexture;
+  private plateKey = "";
   readonly height = 1.72;
   readonly hipH: number;
   pos: V2;
@@ -435,6 +491,12 @@ export class ManagerAvatar {
     this.bubbleCanvas = bub.canvas;
     this.bubbleTex = bub.tex;
     this.root.add(this.bubble);
+    const pl = makePlate();
+    this.plate = pl.sprite;
+    this.plateCanvas = pl.canvas;
+    this.plateTex = pl.tex;
+    this.plate.position.set(0.95, 1.25, 0.2);
+    this.root.add(this.plate);
     this.root.traverse((o) => {
       o.userData.proto = "manager";
     });
@@ -453,6 +515,15 @@ export class ManagerAvatar {
     this.bubbleText = next;
     this.showBubble = Boolean(text);
     drawBubble(this.bubbleCanvas, this.bubbleTex, next);
+  }
+
+  /** The account monitor (null hides it). */
+  setAccount(a: { who: string; line: string; blocked: boolean; snapshot: string | null } | null) {
+    const key = a ? `${a.who}|${a.line}|${a.blocked}|${a.snapshot}` : "";
+    if (key === this.plateKey) return;
+    this.plateKey = key;
+    this.plate.visible = !!a;
+    if (a) drawPlate(this.plateCanvas, this.plateTex, a);
   }
 
   setMoodAccent(state: string) {

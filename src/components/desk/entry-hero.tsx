@@ -13,6 +13,7 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { ConflictChip } from "@/components/desk/viz/conflict-chip";
 import { Plain, PlainToggle } from "@/components/desk/plain-text";
 import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
+import { RhAccountStrip } from "@/components/desk/rh-account-strip";
 import { cn } from "@/lib/utils";
 
 function Countdown({ endsAtMs, label }: { endsAtMs: number; label: string }) {
@@ -91,6 +92,8 @@ export function EntryHero({ desk }: { desk: DeskPayload }) {
         )}
         <PlainToggle className="ml-auto" />
       </div>
+      {/* RH account — renders only when an account snapshot exists. */}
+      <RhAccountStrip className="mt-3" />
       {conflicts.length > 0 && (
         <div className="mt-3 flex flex-col gap-1.5 border-t border-[var(--color-border)] pt-3">
           {conflicts.map((c) => (
