@@ -240,6 +240,52 @@ function paneMarkup(desk: DeskPayload | null | undefined, symbol: string, bars: 
   return { overlay, plan: book?.plan ?? null };
 }
 
+/** Tiny inline sparkline (no axes). */
+function Spark({ values, color, min, max, zero }: { values: number[]; color: string; min?: number; max?: number; zero?: boolean }) {
+  const v = values.filter((x) => Number.isFinite(x));
+  if (v.length < 2) return <span className="h-6 w-24" aria-hidden />;
+  const lo = min ?? Math.min(...v, zero ? 0 : Infinity);
+  const hi = max ?? Math.max(...v, zero ? 0 : -Infinity);
+  const W = 96;
+  const H = 24;
+  const y = (x: number) => (hi === lo ? H / 2 : H - ((x - lo) / (hi - lo)) * H);
+  const step = W / (v.length - 1);
+  const d = v.map((x, i) => `${i ? "L" : "M"}${(i * step).toFixed(1)},${y(x).toFixed(1)}`).join("");
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="ml-auto shrink-0" aria-hidden>
+      {zero && lo < 0 && hi > 0 && <line x1="0" x2={W} y1={y(0)} y2={y(0)} stroke="var(--color-border-strong)" strokeDasharray="2 2" />}
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/** Rolling correlation of bar-to-bar changes of two % series (the chart's own rows). */
+function rollingCorr(rows: { left: number; right: number }[], win: number): number[] {
+  const dl: number[] = [];
+  const dr: number[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    dl.push(rows[i]!.left - rows[i - 1]!.left);
+    dr.push(rows[i]!.right - rows[i - 1]!.right);
+  }
+  const out: number[] = [];
+  for (let i = win; i <= dl.length; i++) {
+    const a = dl.slice(i - win, i);
+    const b = dr.slice(i - win, i);
+    const ma = a.reduce((x, y) => x + y, 0) / win;
+    const mb = b.reduce((x, y) => x + y, 0) / win;
+    let num = 0;
+    let va = 0;
+    let vb = 0;
+    for (let k = 0; k < win; k++) {
+      num += (a[k]! - ma) * (b[k]! - mb);
+      va += (a[k]! - ma) ** 2;
+      vb += (b[k]! - mb) ** 2;
+    }
+    out.push(va > 0 && vb > 0 ? num / Math.sqrt(va * vb) : 0);
+  }
+  return out;
+}
+
 export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) {
   const [rangeKey, setRangeKey] = useState<DualRangeKey>("1d");
   const [pairIdx, setPairIdx] = useState(0);
@@ -566,70 +612,44 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  {payload.left.symbol} session
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) >= 0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    leftQuote?.changePct ?? payload.comparison.leftRet,
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  {payload.right.symbol} session
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (rightQuote?.changePct ?? payload.comparison.rightRet) >= 0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    rightQuote?.changePct ?? payload.comparison.rightRet,
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  Spread (L−R)
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) -
-                      (rightQuote?.changePct ?? payload.comparison.rightRet) >=
-                      0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) -
-                      (rightQuote?.changePct ?? payload.comparison.rightRet),
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  Correlation ρ
-                </p>
-                <p className="mt-0.5 font-mono text-base font-semibold tabular text-[var(--color-fg)]">
-                  {payload.comparison.corr == null
-                    ? "—"
-                    : payload.comparison.corr.toFixed(2)}
-                </p>
+            {/* Session moves, spread and correlation as ONE header strip with
+                sparklines (spread = L% − R% per bar; ρ sparkline = rolling
+                60-bar correlation of bar returns, from the same bars). */}
+            <div className="flex flex-wrap items-stretch divide-x divide-[var(--color-border)] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+              {[
+                { k: `${payload.left.symbol}`, v: leftQuote?.changePct ?? payload.comparison.leftRet, series: relData.map((r) => r.left) },
+                { k: `${payload.right.symbol}`, v: rightQuote?.changePct ?? payload.comparison.rightRet, series: relData.map((r) => r.right) },
+              ].map((x) => (
+                <div key={x.k} className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">{x.k} session</p>
+                    <p className={cn("font-mono text-sm font-semibold tabular", x.v >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]")}>
+                      {formatPct(x.v)}
+                    </p>
+                  </div>
+                  <Spark values={x.series} color={x.v >= 0 ? "var(--color-up)" : "var(--color-down)"} />
+                </div>
+              ))}
+              {(() => {
+                const sp = (leftQuote?.changePct ?? payload.comparison.leftRet) - (rightQuote?.changePct ?? payload.comparison.rightRet);
+                return (
+                  <div className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5" title="Spread = left % − right % from the first common bar">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">Spread L−R</p>
+                      <p className={cn("font-mono text-sm font-semibold tabular", sp >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]")}>{formatPct(sp)}</p>
+                    </div>
+                    <Spark values={relData.map((r) => r.left - r.right)} color="var(--color-primary)" zero />
+                  </div>
+                );
+              })()}
+              <div className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5" title="ρ = the session correlation; the sparkline is the rolling 60-bar correlation of bar returns">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">Correlation ρ</p>
+                  <p className="font-mono text-sm font-semibold tabular text-[var(--color-fg)]">
+                    {payload.comparison.corr == null ? "—" : payload.comparison.corr.toFixed(2)}
+                  </p>
+                </div>
+                <Spark values={rollingCorr(relData, 60)} color="var(--color-accent)" min={-1} max={1} />
               </div>
             </div>
 
