@@ -274,11 +274,11 @@ export class FloorOverhaul {
       this.banners.push(s);
     }
 
-    /* 9: the killzone clock's housing and rods (its two faces are layout screens ovh_kz_E / ovh_kz_W). */
+    /* 9: the killzone clock, off the whiteboard's sightline (south of the pit, not in front of the board). */
     const housing = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.26, 1.26), new THREE.MeshStandardMaterial({ color: 0x0b0f17, roughness: 0.4 }));
-    housing.position.set(-4.4, 2.45, -1.0);
+    housing.position.set(-5.6, 2.5, 2.05);
     this.root.add(housing);
-    for (const dz of [-0.5, 0.5]) this.root.add(rod(new THREE.Vector3(-4.4, 3.08, -1 + dz), new THREE.Vector3(-4.4, CEIL, -1 + dz), steel));
+    for (const dz of [-0.5, 0.5]) this.root.add(rod(new THREE.Vector3(-5.6, 3.13, 2.05 + dz), new THREE.Vector3(-5.6, CEIL, 2.05 + dz), steel));
 
     /* 12: the ticker wall's brackets (the wall itself is the layout screen ovh_tickerwall). */
     for (const x of [-13.4, -9.0, -4.6]) this.root.add(rod(new THREE.Vector3(x, 3.25, 3.3), new THREE.Vector3(x, CEIL, 3.3), steel));

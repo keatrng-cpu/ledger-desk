@@ -1570,6 +1570,8 @@ export class FloorScene {
   /** Through the owner's eyes, or a chase camera behind them. */
   private pov: "first" | "third" = "third";
   private lookPitch = -0.06;
+  /** Pointer offset from the canvas centre. Looking does not need a held button. */
+  private steer = { x: 0, y: 0 };
   /** Third-person chase of the Owner (separate from crew Character chase). */
   private ownerChase = false;
   private ownerChaseHead: THREE.Vector3 | null = null;
@@ -1723,7 +1725,7 @@ export class FloorScene {
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("keyup", this.onKeyUp);
     // Capture phase, so zoom is switched on/off before OrbitControls sees the wheel.
-    this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: true });
+    this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: false });
     document.addEventListener("pointerdown", this.onDocDown, true);
     this.resize();
     this.loop();
@@ -2810,10 +2812,16 @@ export class FloorScene {
 
   /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
   private onMove = (e: PointerEvent) => {
-    if (this.pov === "first" && this.ownerChase && (e.buttons & 1) === 1) {
-      this.owner.yaw -= e.movementX * 0.004;
-      this.lookPitch = Math.max(-1.05, Math.min(1.05, this.lookPitch - e.movementY * 0.003));
-      return;
+    if (this.ownerChase && this.focused && e.pointerType !== "touch") {
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+        const dead = 0.22;
+        const kick = (n: number) => (Math.abs(n) < dead ? 0 : Math.sign(n) * ((Math.abs(n) - dead) / (1 - dead)));
+        this.steer.x = kick(nx);
+        this.steer.y = kick(ny);
+      }
     }
     if (e.pointerType !== "mouse" || e.buttons) return;
     const now = performance.now();
@@ -2830,7 +2838,11 @@ export class FloorScene {
     this.setHover(label);
   };
 
-  private onLeave = () => this.setHover(null);
+  private onLeave = () => {
+    this.steer.x = 0;
+    this.steer.y = 0;
+    this.setHover(null);
+  };
 
   private setHover(label: string | null) {
     this.renderer.domElement.style.cursor = label ? "pointer" : "";
@@ -2920,6 +2932,11 @@ export class FloorScene {
   /* scroll capture */
 
   private onWheelCapture = (e: WheelEvent) => {
+    if (this.ownerChase && this.focused && this.pov === "third") {
+      this.ownerChaseWant = Math.min(6.5, Math.max(1.8, this.ownerChaseWant + Math.sign(e.deltaY) * 0.32));
+      e.preventDefault();
+      return;
+    }
     const zoom = this.focused || e.ctrlKey || e.metaKey;
     this.controls.enableZoom = zoom;
     // Not ours: OrbitControls returns before preventDefault when zoom is off, so the page scrolls.
@@ -2938,6 +2955,8 @@ export class FloorScene {
     this.renderer.domElement.style.touchAction = on ? "none" : "pan-y";
     if (!on) {
       this.clearWalkKeys();
+      this.steer.x = 0;
+      this.steer.y = 0;
       this.stopOwnerChase();
     } else if (this.walkMode) {
       this.startOwnerChase();
@@ -3031,8 +3050,9 @@ export class FloorScene {
       return;
     }
     this.controls.enabled = true;
+    this.controls.enableRotate = false;
+    this.controls.enablePan = false;
     this.owner.root.visible = true;
-    this.ownerChaseWant = 3.2;
     this.ownerChaseY = this.owner.height * 0.78 + this.owner.elevation;
     const behind = this.owner.yaw + Math.PI;
     const d = 3.2;
@@ -3046,6 +3066,8 @@ export class FloorScene {
     this.ownerChase = false;
     this.ownerChaseHead = null;
     this.controls.enabled = true;
+    this.controls.enableRotate = true;
+    this.controls.enablePan = true;
     this.owner.root.visible = true;
   }
 
@@ -3062,34 +3084,24 @@ export class FloorScene {
     this.controls.enabled = false;
   }
 
-  private ownerChaseRide(dt: number, t: number) {
+  private ownerChaseRide(dt: number, _t: number) {
     const a = this.owner;
-    this.ownerChaseY = damp(this.ownerChaseY, a.height * 0.78 + a.elevation, 4, dt);
-    const head = new THREE.Vector3(a.pos[0], this.ownerChaseY, a.pos[1]);
-    this.ownerChaseHead ??= head.clone();
-    const delta = head.clone().sub(this.ownerChaseHead);
-    this.ownerChaseHead.copy(head);
-    this.camera.position.add(delta);
-    this.controls.target.add(delta);
-    if (this.camGoal) {
-      this.camGoal.pos.add(delta);
-      this.camGoal.target.add(delta);
+    const eye = a.height * 0.72 + a.elevation;
+    const dist = this.ownerChaseWant;
+    const back = a.yaw + Math.PI;
+    const lift = 0.62 - this.lookPitch * 0.4;
+    const look = new THREE.Vector3(a.pos[0] + Math.sin(a.yaw) * 1.4, eye + 0.12 + this.lookPitch * 0.5, a.pos[1] + Math.cos(a.yaw) * 1.4);
+    const want = new THREE.Vector3(a.pos[0] + Math.sin(back) * dist, eye + lift, a.pos[1] + Math.cos(back) * dist);
+    const k = 1 - Math.exp(-8 * dt);
+    this.camera.position.lerp(want, k);
+    this.controls.target.lerp(look, k);
+    const toCam = this.camera.position.clone().sub(look);
+    const len = toCam.length();
+    if (len > 0.5) {
+      const dir = toCam.multiplyScalar(1 / len);
+      const hit = this.solidAlong(look, dir, len, 0.35);
+      if (hit < len - 0.15) this.camera.position.copy(look).addScaledVector(dir, Math.max(1.5, hit - 0.3));
     }
-    // Hold orbit distance the viewer set — but, as the crew chase does, a wall between the lens and Owner pulls the
-    // lens in to this side of it instead of letting the camera sit inside (or behind) the wall.
-    if (t - this.ownerChaseCheckAt < 0.12) return;
-    this.ownerChaseCheckAt = t;
-    const want = Math.max(this.ownerChaseWant, 1.4);
-    const off = this.camera.position.clone().sub(this.controls.target);
-    const dist = off.length();
-    if (dist < 0.3) return;
-    const dir = off.divideScalar(dist);
-    const hit = this.solidAlong(this.controls.target, dir, Math.max(dist, want) + 0.3, 0.55);
-    let next = dist;
-    if (hit < dist + 0.3) next = Math.max(1.0, hit - 0.3);
-    else if (Math.abs(dist - want) > 0.35) next = want;
-    else if (dist < want - 0.05) next = Math.min(want, dist + 0.25);
-    if (Math.abs(next - dist) > 0.01) this.camera.position.copy(this.controls.target).addScaledVector(dir, next);
   }
 
   private walkable = (x: number, z: number) => {
@@ -3126,37 +3138,42 @@ export class FloorScene {
   private tickOwnerManager(dt: number, t: number) {
     // WASD only while focused + walk mode (never hijacks page when unfocused).
     if (this.focused && this.walkMode) {
+      if (this.ownerChase) {
+        this.owner.yaw -= this.steer.x * 1.8 * dt;
+        this.lookPitch = Math.max(-0.5, Math.min(0.38, this.lookPitch - this.steer.y * 0.9 * dt));
+      }
       let mx = 0;
       let mz = 0;
-      // Camera-relative: W toward look, A/D strafe.
-      const forward = new THREE.Vector3();
-      this.camera.getWorldDirection(forward);
-      forward.y = 0;
-      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
-      else forward.normalize();
-      const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+      // Facing is the look. W walks that way. The camera follows; it is not a separate drag orbit.
+      const yaw = this.owner.yaw;
+      const fx = Math.sin(yaw);
+      const fz = Math.cos(yaw);
+      const rx = Math.cos(yaw);
+      const rz = -Math.sin(yaw);
       if (this.keys.w) {
-        mx += forward.x;
-        mz += forward.z;
+        mx += fx;
+        mz += fz;
       }
       if (this.keys.s) {
-        mx -= forward.x;
-        mz -= forward.z;
+        mx -= fx;
+        mz -= fz;
       }
       if (this.keys.d) {
-        mx += right.x;
-        mz += right.z;
+        mx += rx;
+        mz += rz;
       }
       if (this.keys.a) {
-        mx -= right.x;
-        mz -= right.z;
+        mx -= rx;
+        mz -= rz;
       }
       const len = Math.hypot(mx, mz);
+      const face = this.owner.yaw;
       if (len > 1e-6) {
         if (this.owner.seated) this.toggleBalconySit(false);
         else {
           const speed = 2.4 * dt;
           this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
+          this.owner.yaw = face;
         }
       } else {
         this.owner.moving = false;

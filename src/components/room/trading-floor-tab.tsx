@@ -1649,13 +1649,13 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         >
           {canvasFocused ? (
             <>
-              {walkMode ? (pov === "first" ? "Eyes · " : "Behind · ") + (ownerSeated ? "F/E/WASD stand · " : "WASD or arrows · V view · ") : ""}Scroll zooms · drag looks ·{" "}
+              {walkMode ? (pov === "first" ? "Eyes · " : "Behind · ") + (ownerSeated ? "F/E to stand · " : "WASD or arrows · point the mouse to look · ") : ""}Scroll zooms ·{" "}
               <button type="button" className="pointer-events-auto underline" onClick={() => sceneRef.current?.releaseFocus()}>
                 Esc releases
               </button>
             </>
           ) : (
-            "Click the floor · WASD or arrows to walk · V for eyes or behind · Esc releases"
+            "Click the floor · WASD or arrows walk · point the mouse to look · V switches eyes"
           )}
         </div>
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
@@ -1732,7 +1732,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             type="button"
             className={`${BTN} ${walkMode ? "border-[var(--color-primary)]" : ""}`}
             aria-pressed={walkMode}
-            title={walkMode ? "Walk the floor as the owner. WASD or arrows. V switches eyes and behind." : "Turn on to walk the floor from the owner's view"}
+            title={walkMode ? "Walk as the owner. WASD or arrows. Point the mouse to look — no drag." : "Turn on to walk the floor from the owner's view"}
             onClick={() => {
               const next = !walkMode;
               setWalkMode(next);
@@ -1745,7 +1745,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             type="button"
             className={`${BTN} ${pov === "first" ? "border-[var(--color-primary)]" : ""}`}
             aria-pressed={pov === "first"}
-            title="V switches between the owner's eyes and a camera behind them"
+            title="V switches between the owner's eyes and a camera that follows behind them"
             onClick={() => {
               const next = pov === "first" ? "third" : "first";
               setPov(next);
@@ -1788,7 +1788,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </div>
         ))}
         <span className="text-[10px] text-[var(--color-subtle)]">
-          {walkMode ? "WASD or arrows walk · V eyes/behind · drag looks · clicks don't follow · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
+          {walkMode ? "WASD or arrows walk · point the mouse to look · V eyes/behind · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
         </span>
       </div>
 
