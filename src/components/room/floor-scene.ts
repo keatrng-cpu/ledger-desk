@@ -751,8 +751,11 @@ class Avatar {
     this.bubbleCanvas.height = 240;
     this.bubbleTex = new THREE.CanvasTexture(this.bubbleCanvas);
     this.bubbleTex.colorSpace = THREE.SRGBColorSpace;
-    this.bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.bubbleTex, transparent: true, depthTest: false, opacity: 0 }));
-    this.bubble.scale.set(2.7, 1.01, 1);
+    this.bubbleTex.generateMipmaps = false;
+    this.bubbleTex.minFilter = THREE.LinearFilter;
+    this.bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.bubbleTex, transparent: true, depthWrite: false, opacity: 0 }));
+    this.bubble.center.set(0.5, 0);
+    this.bubble.scale.set(2.2, 0.82, 1);
     this.bubble.renderOrder = 20;
     this.root.add(this.bubble);
     this.emoteCanvas = document.createElement("canvas");
@@ -873,8 +876,12 @@ class Avatar {
     ctx.fillText(`${SCHOOL_LABEL[school] ?? school} · ${role}`, 30, 68);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-    sp.scale.set(1.05, 0.23, 1);
+    sp.center.set(0.5, 0);
+    sp.scale.set(0.92, 0.2, 1);
     sp.renderOrder = 10;
     return sp;
   }
@@ -1042,8 +1049,8 @@ class Avatar {
       }
     }
     const headY = this.bodyY + this.height + 0.05;
-    this.tag.position.y = headY + 0.18;
-    this.bubble.position.y = headY + 0.85;
+    this.tag.position.y = headY + 0.34;
+    this.bubble.position.y = headY + 0.62;
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.speaking && this.bubbleText ? 1 : 0, 8, dt);
     this.emote.position.y = headY + 0.5 + 0.03 * Math.sin(t * 2.4);
@@ -1604,7 +1611,7 @@ export class FloorScene {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = "block";
     // Touch: let the page scroll vertically until the canvas is focused.
@@ -1642,8 +1649,9 @@ export class FloorScene {
     sun.position.set(10, 22, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
-    Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 16, bottom: -16, near: 1, far: 70 });
-    sun.shadow.bias = -0.0004;
+    Object.assign(sun.shadow.camera, { left: -18, right: 18, top: 14, bottom: -14, near: 2, far: 48 });
+    sun.shadow.bias = -0.0006;
+    sun.shadow.normalBias = 0.06;
     sun.shadow.camera.updateProjectionMatrix();
     sun.target.position.set(-2, 0, -1);
     this.scene.add(sun, sun.target);
@@ -1814,17 +1822,29 @@ export class FloorScene {
       root.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;
-        m.castShadow = true;
         m.receiveShadow = true;
         const mats = Array.isArray(m.material) ? m.material : [m.material];
+        let glass = false;
         for (const mat of mats) {
           const std = mat as THREE.MeshStandardMaterial;
-          if (/glass|lens/i.test(std.name)) {
+          if (/glass|lens/i.test(std.name ?? "")) {
+            glass = true;
             std.transparent = true;
             std.depthWrite = false;
-            m.castShadow = false;
           }
         }
+        m.castShadow = !glass;
+        if (m.geometry) {
+          if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+          const box = m.geometry.boundingBox;
+          if (box) {
+            const sx = box.max.x - box.min.x;
+            const sy = box.max.y - box.min.y;
+            const sz = box.max.z - box.min.z;
+            if (Math.max(sx, sy, sz) < 0.06) m.castShadow = false;
+          }
+        }
+        if (glass) m.castShadow = false;
       });
       this.scene.add(root);
       this.officeRoot = root;
@@ -1951,6 +1971,9 @@ export class FloorScene {
       const ctx = canvas.getContext("2d")!;
       const tex = new THREE.CanvasTexture(canvas);
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.generateMipmaps = false;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
       tex.anisotropy = 4;
       if (s.id === "marquee") tex.wrapS = THREE.RepeatWrapping;
       this.screens.set(s.id, { id: s.id, canvas, ctx, tex, w: s.px[0], h: s.px[1] });
@@ -1964,12 +1987,20 @@ export class FloorScene {
       // glTF UVs put v=0 at the top of the image; a plane built here does not.
       rec.tex.flipY = !fromGltf;
       rec.tex.needsUpdate = true;
-      const mat = new THREE.MeshBasicMaterial({ map: rec.tex, toneMapped: false });
+      const mat = new THREE.MeshBasicMaterial({
+        map: rec.tex,
+        toneMapped: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
+      });
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh) {
           m.material = mat;
           m.castShadow = false;
+          m.receiveShadow = false;
+          m.translateZ(0.012);
         }
       });
     }

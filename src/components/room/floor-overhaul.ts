@@ -75,6 +75,9 @@ function canvasTex(w: number, h: number): { canvas: HTMLCanvasElement; ctx: Ctx;
   const ctx = canvas.getContext("2d")!;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   tex.anisotropy = 4;
   return { canvas, ctx, tex };
 }

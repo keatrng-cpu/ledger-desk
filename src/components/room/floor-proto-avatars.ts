@@ -29,8 +29,12 @@ function makeTag(title: string, subtitle: string, color: string): THREE.Sprite {
   ctx.fillText(subtitle, 30, 68);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  sp.scale.set(1.15, 0.25, 1);
+  sp.center.set(0.5, 0);
+  sp.scale.set(1.0, 0.22, 1);
   sp.renderOrder = 10;
   return sp;
 }
@@ -41,8 +45,11 @@ function makeBubble(): { sprite: THREE.Sprite; canvas: HTMLCanvasElement; tex: T
   canvas.height = 240;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, opacity: 0 }));
-  sprite.scale.set(2.7, 1.01, 1);
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0 }));
+  sprite.center.set(0.5, 0);
+  sprite.scale.set(2.2, 0.82, 1);
   sprite.renderOrder = 20;
   return { sprite, canvas, tex };
 }
@@ -284,7 +291,7 @@ export class OwnerAvatar {
       this.elR.rotation.x += (-0.85 - this.elR.rotation.x) * k;
       setR(this.spine, 0.08 + 0.02 * Math.sin(t * 1.1));
       this.body.position.y = this.bodyY;
-      this.tag.position.y = this.bodyY + this.height + 0.23;
+      this.tag.position.y = this.bodyY + this.height + 0.42;
       return;
     }
     if (this.moving) {
@@ -312,7 +319,7 @@ export class OwnerAvatar {
       this.bodyY = damp(this.bodyY, 0, 10, dt);
     }
     this.body.position.y = this.bodyY;
-    this.tag.position.y = this.bodyY + this.height + 0.23;
+    this.tag.position.y = this.bodyY + this.height + 0.42;
   }
 }
 
@@ -335,8 +342,12 @@ function makePlate(): { sprite: THREE.Sprite; canvas: HTMLCanvasElement; tex: TH
   canvas.height = 150;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  sprite.scale.set(1.9, 0.445, 1);
+  sprite.center.set(0.5, 0);
+  sprite.scale.set(1.7, 0.4, 1);
   sprite.renderOrder = 11;
   sprite.visible = false;
   return { sprite, canvas, tex };
@@ -525,7 +536,7 @@ export class ManagerAvatar {
     this.plate = pl.sprite;
     this.plateCanvas = pl.canvas;
     this.plateTex = pl.tex;
-    this.plate.position.set(0.95, 1.25, 0.2);
+    this.plate.position.set(1.15, 1.55, 0.55);
     this.root.add(this.plate);
     this.root.traverse((o) => {
       o.userData.proto = "manager";
@@ -583,8 +594,8 @@ export class ManagerAvatar {
     this.root.position.set(this.pos[0], 0, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const headY = this.bodyY + this.height + 0.05;
-    this.tag.position.y = headY + 0.22;
-    this.bubble.position.y = headY + 0.9;
+    this.tag.position.y = headY + 0.36;
+    this.bubble.position.y = headY + 0.64;
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.showBubble && this.bubbleText ? 1 : 0, 8, dt);
   }
