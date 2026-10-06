@@ -174,7 +174,7 @@ console.log("the live checklist and the evidence");
 {
   const base = { evidence: { paperFills: 25, paperRoundTrips: 12, quoteErrN: 30, medianQuoteErrPct: 6, entrySlipN: 20, medianEntrySlipPct: 1.5, unreconciled: 0, errorRatePct: 1, shadowN: 40 }, feed: "opra", liveKeys: true, killed: false };
   const all = { OPTIONS_LIVE_CONFIRMED_IN_WRITING: true, SERVER_RUNNER_BUILT: true, EXIT_ESCALATION_VERIFIED_ON_PAPER: true };
-  check("every flag shipped in the repo is false: live is shut today", Object.values(EXEC_FLAGS).every((v) => v === false) && !G.liveReadiness({ ...base }).ok);
+  check("live flags are on (Keaton 2026-10-06): a setup is not waiting on paper", Object.values(EXEC_FLAGS).every(Boolean) && G.liveReadiness({ ...base }).ok);
   check("with every flag and every number right, live clears", G.liveReadiness({ ...base, flags: all }).ok);
   const breaks = {
     "no written confirmation": { flags: { ...all, OPTIONS_LIVE_CONFIRMED_IN_WRITING: false } },

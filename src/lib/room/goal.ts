@@ -76,9 +76,9 @@ export interface GoalSpec {
   minAskUsd: number;
 }
 
-export const GOAL_STORAGE = "ledger-room-goal-v1";
+export const GOAL_STORAGE = "ledger-room-goal-v2";
 
-export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 } as const;
+export const DEFAULT_GOAL_CONSTANTS = { start: 996, target: 5_000, tradingDays: 30, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 } as const;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 

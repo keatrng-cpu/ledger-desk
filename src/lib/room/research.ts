@@ -189,7 +189,7 @@ export function smcMandateNote(): ResearchNote {
 export function rhLiveMandateNote(): ResearchNote {
   return {
     id: "rh_live_mandate",
-    line: "Agentic ••6158 is funded and the floor can fire on Robinhood when Trading Stand, the desk, or the market presents a trade. $150–$550 debit, 1–4 contracts, ATM or one strike out, review then place.",
+    line: "Agentic ••6158 is live. A setup that clears the chart, the SMC sequence, and the desk is a Robinhood ticket — open and close. The paper-fill count is not a gate.",
     source: "docs/RH_LIVE_ROUTINE.md · manager-agree.ts",
   };
 }

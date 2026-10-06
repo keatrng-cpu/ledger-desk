@@ -32,11 +32,11 @@ export const VOICE_SLOT: Record<Character, readonly string[]> = {
 };
 
 export const VOICE_CAST: Record<Character, VoiceCast> = {
-  Gemma: { rate: 0.96, pattern: "lecture", lean: "female" },
-  Jax: { rate: 1.02, pattern: "clip", lean: "male" },
-  Nova: { rate: 1, pattern: "flat", lean: "female" },
-  Sterling: { rate: 0.99, pattern: "verdict", lean: "male" },
-  Vince: { rate: 0.98, pattern: "operator", lean: "male" },
+  Gemma: { rate: 1.08, pattern: "lecture", lean: "female" },
+  Jax: { rate: 1.16, pattern: "clip", lean: "male" },
+  Nova: { rate: 1.12, pattern: "flat", lean: "female" },
+  Sterling: { rate: 1.1, pattern: "verdict", lean: "male" },
+  Vince: { rate: 1.1, pattern: "operator", lean: "male" },
 };
 
 /** Sterling and Nova pick before the others, so a smooth voice is not taken out from under them. */
@@ -106,6 +106,15 @@ const TONE_SHIFT: Record<Tone, { pitch: number; rate: number }> = {
   calm: { pitch: 0, rate: 0 },
 };
 
+/** Commas and periods make the browser sit. The words stay; the dwell does not. A question mark stays so the lift still hears it. */
+function forTheEar(s: string): string {
+  return s
+    .replace(/,/g, "")
+    .replace(/\.(?=\s|$)/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * One caption, one breath. Restarting the engine on every comma is the rasp.
  * The person sets the pace. The tone nudges it. Pitch stays near 1.
@@ -121,10 +130,10 @@ export function phrasePlan(who: Character, raw: string, animation?: string): Spo
   // unbroken run has no breath. A question lifts its own piece a hair; the pitch stays inside the band that does not rasp.
   const pieces = chunkSpoken(text);
   return pieces.map((piece, i) => ({
-    text: piece,
+    text: forTheEar(piece),
     pitch: clamp(1 + shift.pitch + (piece.endsWith("?") ? 0.02 : 0), 0.98, 1.03),
-    rate: clamp(cast.rate + shift.rate, 0.9, 1.05),
-    gap: i < pieces.length - 1 ? 90 : 0,
+    rate: clamp(cast.rate + shift.rate, 1.02, 1.22),
+    gap: i < pieces.length - 1 ? 40 : 0,
     tone,
   }));
 }
