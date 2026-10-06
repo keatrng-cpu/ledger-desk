@@ -1870,11 +1870,8 @@ function MasterplacePage() {
 
               {cat === "swing" && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="S"
-                    title="Robinhood QQQ / SPY"
-                    sub="≤ $1,000 debit per ticket · loss capped 15% of the debit · size from the level · estimates from ES/NQ"
-                  />
+                  {/* One header: the sleeve panel's own ("Robinhood · QQQ / SPY
+                      sleeve") — the duplicate SectionHead above it is gone. */}
                   {/* The overnight question is asked before the intraday
                       cards, because at 15:00 it is the only one left. */}
                   <OvernightBoard desk={desk} />
