@@ -273,6 +273,10 @@ for (const [path] of FLOORS) {
     "src/lib/auth/popup.server.ts",
     "src/lib/auth/verify.server.ts",
     "src/lib/journal/attest-fn.ts",
+    // 2026-10-06: the Robinhood live-when-armed autofire (77ec749 / 37b61dc) landed with its gates and verifier but nothing imports the
+    // module yet — it ships no decision, and every live flag in rh-autofire-gates.ts is still shut. Baselined so the guard stays green
+    // for everyone else's push; DELETE this line when the module is wired (the guard will say so).
+    "src/lib/execution/rh-autofire.ts",
   ]);
   // 2026-09-24: setup-memory.ts came off — `trade-log.ts` adapts the
   // hand-logged fills (a file written since the sleeve went live and read by
