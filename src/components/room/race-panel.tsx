@@ -4,10 +4,10 @@
  * are the trader's to set. Reading only, except `setGoal`, which restarts the paper race and touches nothing else.
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Target } from "lucide-react";
 import { defaultGoal, type GoalSpec } from "@/lib/room/goal";
-import type { SeatEventLite } from "@/lib/room/live-types";
+import type { GoalLite, SeatEventLite, SeatsLite } from "@/lib/room/live-types";
 import { useRoomStore } from "./room-engine";
 import type { FloorFrame } from "./floor-screens";
 
@@ -18,6 +18,7 @@ const HEAD = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(-
 const INPUT = "w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 font-mono text-[12px] text-[var(--color-fg)]";
 
 const SECTIONS = [
+  { id: "track", label: "Track", wall: "tv_goal" },
   { id: "goal", label: "Goal", wall: "mon_Goal_0" },
   { id: "league", label: "League", wall: "tv_goal" },
   { id: "rnd", label: "R&D", wall: "tv_rnd" },
@@ -129,9 +130,130 @@ function GoalForm({ goal }: { goal: GoalSpec }) {
   );
 }
 
+/**
+ * The race as a track. Each of the five is a runner placed by their seat's
+ * equity between the start and the target; the goal's own path (one mark per
+ * session) is drawn as laps, and a ghost runs at the path's mark for today —
+ * the pace the target needs. The badge is that approach's exact odds of the
+ * target (goal.ts). Every number is the race's own; nothing is projected here.
+ */
+function RaceTrack({ g, seats }: { g: GoalLite; seats: SeatsLite }) {
+  const lo = Math.min(g.start, g.floor);
+  const hi = g.target;
+  const span = Math.max(1, hi - lo);
+  const at = (eq: number) => Math.max(0, Math.min(100, ((eq - lo) / span) * 100));
+  const runners = seats.rows.filter((x) => x.owner);
+  const path = g.path ?? [];
+  const odds = new Map((g.approaches ?? []).map((a) => [a.owner, a]));
+  // Lap labels: every mark when there are few, else about eight of them.
+  const every = Math.max(1, Math.ceil(path.length / 8));
+  const ghost = g.pathToday;
+  const lane = (label: ReactNode, color: string, children: ReactNode) => (
+    <div className="grid grid-cols-[6.5rem_1fr] items-center gap-2">
+      <div className="truncate text-[13px] font-semibold" style={{ color }}>
+        {label}
+      </div>
+      <div className="relative h-7 rounded-full bg-[var(--color-surface-2)]">
+        {path.map((m, i) => (
+          <span
+            key={m.date}
+            className="absolute inset-y-1 w-px"
+            style={{ left: `${at(m.equity)}%`, background: i + 1 === g.day ? "var(--color-warn)" : "var(--color-border-strong)" }}
+            aria-hidden
+          />
+        ))}
+        {g.start > lo && <span className="absolute inset-y-0 w-0.5 bg-[var(--color-muted)]" style={{ left: `${at(g.start)}%` }} aria-hidden />}
+        {ghost != null && (
+          <span
+            className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-[var(--color-muted)]"
+            style={{ left: `${at(ghost)}%` }}
+            title={`Required pace: the path's mark for the end of today, ${money(ghost)}`}
+            aria-hidden
+          />
+        )}
+        {children}
+      </div>
+    </div>
+  );
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px]">
+        <span className="font-mono text-[var(--color-muted)]">
+          start {money(g.start)} → target <span className="text-[var(--color-fg)]">{money(g.target)}</span>
+        </span>
+        <span className="text-[var(--color-muted)]">
+          {g.status === "before" ? `starts ${g.startDate}` : g.status === "running" ? `day ${g.day} of ${g.of}` : g.status}
+          {g.leader ? ` · ${g.leader} leads` : ""}
+        </span>
+        {ghost != null && (
+          <span className="text-[var(--color-muted)]">
+            <span className="mr-1 inline-block h-3 w-3 rounded-full border-2 border-dashed border-[var(--color-muted)] align-middle" /> required pace {money(ghost)} today
+          </span>
+        )}
+      </div>
+      <div className="space-y-1.5" role="list" aria-label="The race track">
+        {runners.map((x) => {
+          const c = x.owner ? OWNER_COLOR[x.owner] ?? "var(--color-fg)" : "var(--color-fg)";
+          const o = x.owner ? odds.get(x.owner) : undefined;
+          return (
+            <div key={x.id} role="listitem" className="grid grid-cols-[1fr_auto] items-center gap-2">
+              {lane(
+                x.name,
+                c,
+                <span
+                  className="absolute top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-[10px] font-black text-black shadow transition-[left] duration-700"
+                  style={{ left: `${at(x.equity)}%`, background: c }}
+                  title={`${x.name}: ${money(x.equity)} (${signed(x.pnl)})${x.status !== "running" ? ` · ${x.status === "hit" ? "GOAL" : "FLOOR"}` : ""}`}
+                >
+                  {x.owner?.[0] ?? "?"}
+                </span>,
+              )}
+              <div className="flex w-[9.5rem] items-center justify-end gap-1.5">
+                <span className="font-mono text-[12px] text-[var(--color-fg)]">{money(x.equity)}</span>
+                <span
+                  className="rounded-full border px-1.5 py-0.5 font-mono text-[11px]"
+                  style={{ borderColor: c, color: c }}
+                  title={o ? `Exact odds this approach reaches ${money(g.target)}${o.contractsNow < 1 ? " — its size buys no contract today" : ""}` : "No odds for this approach"}
+                >
+                  {o ? pctSmall(o.pTarget) : "—"}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {path.length > 0 && (
+        <div className="mt-1 grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid grid-cols-[6.5rem_1fr] gap-2">
+            <span className="text-[11px] text-[var(--color-muted)]">laps (sessions)</span>
+            <div className="relative h-4">
+              {path.map((m, i) =>
+                i % every === every - 1 || i === path.length - 1 ? (
+                  <span
+                    key={m.date}
+                    className="absolute -translate-x-1/2 font-mono text-[10px]"
+                    style={{ left: `${at(m.equity)}%`, color: i + 1 === g.day ? "var(--color-warn)" : "var(--color-muted)" }}
+                    title={`${m.date}: path ${money(m.equity)}`}
+                  >
+                    D{i + 1}
+                  </span>
+                ) : null,
+              )}
+            </div>
+          </div>
+          <span className="w-[9.5rem]" />
+        </div>
+      )}
+      <p className="mt-2 text-[12px] leading-snug text-[var(--color-muted)]">
+        Runners sit at their seat's paper equity; ticks are the goal path's end-of-session marks (today's in amber); the dashed ghost is today's mark. Badges are each approach's exact odds of {money(g.target)}.
+      </p>
+    </div>
+  );
+}
+
 export function RacePanel({ frame, onGo }: { frame: FloorFrame | null; onGo: (screenId: string) => void }) {
   const goalSpec = useRoomStore((s) => s.goal);
-  const [tab, setTab] = useState<SectionId>("goal");
+  const [tab, setTab] = useState<SectionId>("track");
   const r = frame?.screens.race ?? null;
   const g = r?.goal ?? null;
   const seats = r?.seats ?? null;
@@ -163,6 +285,13 @@ export function RacePanel({ frame, onGo }: { frame: FloorFrame | null; onGo: (sc
           </button>
         </div>
       </div>
+
+      {tab === "track" &&
+        (g && seats ? (
+          <RaceTrack g={g} seats={seats} />
+        ) : (
+          <p className="text-[13px] text-[var(--color-muted)]">The track is drawn with the first room cycle — it needs the goal and the seats.</p>
+        ))}
 
       {tab === "goal" && (
         <div>
