@@ -5,22 +5,17 @@
  * Two layers, both presentation:
  *  - event tones (WebAudio, no files) for what the cycle already decided
  *    (a fill, a winner, the bell at the open);
- *  - the line on the caption, spoken by the browser voice in that person's
- *    pitch. The utterance is the caption text. It does not write a line,
- *    pick a trade, or read a number the room did not already print.
+ *  - the line on the caption, spoken in phrases in that person's pattern
+ *    (a lecture that settles, a clip, a flat number, a verdict, an operator).
+ *    The words are the caption. It does not write a line, pick a trade, or
+ *    read a number the room did not already print.
  */
 
 import type { Character } from "@/lib/room/orchestrator";
+import { phrasePlan, voiceScore, VOICE_CAST, type SpokenPhrase } from "@/lib/room/floor-voice";
 import type { FloorEvent } from "./floor-scene";
 
-/** Pitch and rate are the cast. Hints only pick a browser voice when one is installed. */
-export const VOICE_CAST: Record<Character, { pitch: number; rate: number; hints: readonly string[] }> = {
-  Gemma: { pitch: 1.16, rate: 0.96, hints: ["samantha", "victoria", "fiona", "moira", "karen"] },
-  Jax: { pitch: 0.84, rate: 1.1, hints: ["daniel", "alex", "fred", "rishi"] },
-  Nova: { pitch: 1.06, rate: 0.9, hints: ["karen", "moira", "serena", "samantha"] },
-  Sterling: { pitch: 0.74, rate: 0.88, hints: ["daniel", "rishi", "fred", "aaron"] },
-  Vince: { pitch: 0.96, rate: 1.02, hints: ["alex", "aaron", "tom", "daniel"] },
-};
+export { VOICE_CAST };
 
 function englishVoices(): SpeechSynthesisVoice[] {
   const all = window.speechSynthesis?.getVoices() ?? [];
@@ -28,16 +23,14 @@ function englishVoices(): SpeechSynthesisVoice[] {
   return en.length ? en : all;
 }
 
+/** Prefer a neural voice, and keep the five on different ones. */
 function pickVoice(who: Character, used: Set<string>): SpeechSynthesisVoice | null {
-  const pool = englishVoices();
-  const hints = VOICE_CAST[who].hints;
-  const fresh = (v: SpeechSynthesisVoice) => !used.has(v.voiceURI);
-  return (
-    pool.find((v) => fresh(v) && hints.some((h) => v.name.toLowerCase().includes(h))) ??
-    pool.find((v) => fresh(v)) ??
-    pool[0] ??
-    null
+  const cast = VOICE_CAST[who];
+  const pool = englishVoices().filter((v) => !used.has(v.voiceURI));
+  const ranked = (pool.length ? pool : englishVoices()).slice().sort(
+    (a, b) => voiceScore(b.name, b.lang, cast.lean, cast.hints) - voiceScore(a.name, a.lang, cast.lean, cast.hints),
   );
+  return ranked[0] ?? null;
 }
 
 const STORAGE = "ledger-room-sound-v1";
@@ -97,31 +90,43 @@ export class FloorSound {
     synth.speak(warm);
   }
 
-  /** Speak the caption, in that person's voice. No-op without a line. */
+  /** Speak the caption in phrases, in that person's pattern. No-op without a line. */
   say(line: { character: Character; text: string }): void {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const text = line.text.trim();
-    if (!text) return;
+    const parts = phrasePlan(line.character, line.text);
+    if (!parts.length || !parts[0].text) return;
     const synth = window.speechSynthesis;
     const token = ++this.sayToken;
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const cast = VOICE_CAST[line.character];
-    u.pitch = cast.pitch;
-    u.rate = cast.rate;
-    u.volume = Math.min(1, Math.max(0.35, this.volume));
-    u.lang = "en-US";
     const voice = pickVoice(line.character, new Set(this.cast.values()));
-    if (voice) {
-      u.voice = voice;
-      this.cast.set(line.character, voice.voiceURI);
-    }
-    // Chrome drops an utterance spoken in the same turn as cancel().
-    window.setTimeout(() => {
+    if (voice) this.cast.set(line.character, voice.voiceURI);
+    const volume = Math.min(1, Math.max(0.45, this.volume));
+    const speakAt = (i: number) => {
       if (token !== this.sayToken) return;
+      const p: SpokenPhrase | undefined = parts[i];
+      if (!p) return;
+      const u = new SpeechSynthesisUtterance(p.text);
+      u.pitch = p.pitch;
+      u.rate = p.rate;
+      u.volume = volume;
+      u.lang = "en-US";
+      if (voice) u.voice = voice;
+      const words = p.text.split(/\s+/).length;
+      let stepped = false;
+      const advance = () => {
+        if (stepped || token !== this.sayToken) return;
+        stepped = true;
+        window.clearTimeout(fallback);
+        window.setTimeout(() => speakAt(i + 1), p.gap);
+      };
+      const fallback = window.setTimeout(advance, words * 420 + 700);
+      u.onend = advance;
+      u.onerror = () => window.clearTimeout(fallback);
       synth.resume();
       synth.speak(u);
-    }, 40);
+    };
+    // Chrome drops an utterance spoken in the same turn as cancel().
+    window.setTimeout(() => speakAt(0), 50);
   }
 
   hush(): void {
