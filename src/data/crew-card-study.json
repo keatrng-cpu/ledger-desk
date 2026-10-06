@@ -1,1 +1,82 @@
-{"version": 1, "source": "desk cards", "file": "src/data/evidence-dist.json", "window": {"start": "2022-09-01", "end": "2026-09-01"}, "population": 1327, "management": "Limit at CE, stop with one tick of slip, half off at T1 then breakeven, runner to T2, ties lose, flatten after 32 bars.", "searched": "57 cuts with at least 110 trades. Best win rate 40.1% (Tuesday, stop between 0.7 and 1.2 ATR, 152 trades, +0.13R).", "note": "These are the desk's filled cards, split by person. None reached 65%. The search did not either.", "people": [{"who": "Gemma", "year": 2024, "rule": "Desk cards at the NY open, 09:30\u201311:00. Limit at the midpoint. The card's own stop.", "desk": false, "skill": "2024. Desk cards at the NY open, 09:30\u201311:00. Limit at the midpoint. The card's own stop. Full sample 10/37, 27.0%, E[R] -0.258. Second half 1/14. The open is not a higher win rate. 27% on 37 cards, and the year lost 0.26R a trade. Too few to teach, and not 65%.", "flaws": ["The open is not a higher win rate. 27% on 37 cards, and the year lost 0.26R a trade. Too few to teach, and not 65%.", "Across 1,327 filled desk cards, 68% hit the stop. No cut with 110 trades won 65%. The best cut won 40.1% on 152 trades.", "A 65% win rate is not in this tape. Inventing one would not help the next card."], "h1": {"n": 23, "wins": 9, "wr": 0.391304347826087, "sumR": 0.39, "expR": 0.017}, "h2": {"n": 14, "wins": 1, "wr": 0.07142857142857142, "sumR": -9.94, "expR": -0.71}, "full": {"n": 37, "wins": 10, "wr": 0.2702702702702703, "sumR": -9.55, "expR": -0.258}}, {"who": "Jax", "year": 2023, "rule": "Every filled desk card in the year. He does not add a private pattern on top.", "desk": false, "skill": "2023. Every filled desk card in the year. He does not add a private pattern on top. Full sample 119/361, 33.0%, E[R] 0.007. Second half 49/165. Taking all of them is 119 wins out of 361, 33%. The second half did not climb to 65% either. Frequency is not the edge.", "flaws": ["Taking all of them is 119 wins out of 361, 33%. The second half did not climb to 65% either. Frequency is not the edge.", "Across 1,327 filled desk cards, 68% hit the stop. No cut with 110 trades won 65%. The best cut won 40.1% on 152 trades.", "A 65% win rate is not in this tape. Inventing one would not help the next card."], "h1": {"n": 196, "wins": 70, "wr": 0.35714285714285715, "sumR": 36.72, "expR": 0.187}, "h2": {"n": 165, "wins": 49, "wr": 0.296969696969697, "sumR": -34.3, "expR": -0.208}, "full": {"n": 361, "wins": 119, "wr": 0.3296398891966759, "sumR": 2.42, "expR": 0.007}}, {"who": "Nova", "year": 2025, "rule": "Filled cards whose stop sat between 0.7 and 1.2 ATR. Her geometry cut, on the desk's own fills.", "desk": false, "skill": "2025. Filled cards whose stop sat between 0.7 and 1.2 ATR. Her geometry cut, on the desk's own fills. Full sample 63/183, 34.4%, E[R] -0.026. Second half 35/104. The neat stop was 63 of 183, 34%, and the expectancy was negative. A tidy invalidation did not buy a 65% win rate.", "flaws": ["The neat stop was 63 of 183, 34%, and the expectancy was negative. A tidy invalidation did not buy a 65% win rate.", "Across 1,327 filled desk cards, 68% hit the stop. No cut with 110 trades won 65%. The best cut won 40.1% on 152 trades.", "A 65% win rate is not in this tape. Inventing one would not help the next card."], "h1": {"n": 79, "wins": 28, "wr": 0.35443037974683544, "sumR": 6.48, "expR": 0.082}, "h2": {"n": 104, "wins": 35, "wr": 0.33653846153846156, "sumR": -11.27, "expR": -0.108}, "full": {"n": 183, "wins": 63, "wr": 0.3442622950819672, "sumR": -4.79, "expR": -0.026}}, {"who": "Sterling", "year": 2024, "rule": "The leak hunt: afternoon cards, and cards with a stop wider than 1.2 ATR.", "desk": false, "skill": "2024. The leak hunt: afternoon cards, and cards with a stop wider than 1.2 ATR. Full sample 39/127, 30.7%, E[R] 0.197. Second half 16/41. Afternoon and wide stops are not a hidden 65%. They are fewer wins, not a filter that creates them.", "flaws": ["Afternoon and wide stops are not a hidden 65%. They are fewer wins, not a filter that creates them.", "Across 1,327 filled desk cards, 68% hit the stop. No cut with 110 trades won 65%. The best cut won 40.1% on 152 trades.", "A 65% win rate is not in this tape. Inventing one would not help the next card."], "h1": {"n": 86, "wins": 23, "wr": 0.26744186046511625, "sumR": 10.47, "expR": 0.122}, "h2": {"n": 41, "wins": 16, "wr": 0.3902439024390244, "sumR": 14.55, "expR": 0.355}, "full": {"n": 127, "wins": 39, "wr": 0.30708661417322836, "sumR": 25.02, "expR": 0.197}}, {"who": "Vince", "year": 2025, "rule": "Every card that actually filled at the midpoint. No private entry.", "desk": false, "skill": "2025. Every card that actually filled at the midpoint. No private entry. Full sample 112/356, 31.5%, E[R] 0.077. Second half 64/181. The live entry, on a full year, won 31.5% and made +0.08R. The win rate is the cost of letting the winner pay. It is not a reason to stand down.", "flaws": ["The live entry, on a full year, won 31.5% and made +0.08R. The win rate is the cost of letting the winner pay. It is not a reason to stand down.", "Across 1,327 filled desk cards, 68% hit the stop. No cut with 110 trades won 65%. The best cut won 40.1% on 152 trades.", "A 65% win rate is not in this tape. Inventing one would not help the next card."], "h1": {"n": 175, "wins": 48, "wr": 0.2742857142857143, "sumR": -42.67, "expR": -0.244}, "h2": {"n": 181, "wins": 64, "wr": 0.35359116022099446, "sumR": 70.17, "expR": 0.388}, "full": {"n": 356, "wins": 112, "wr": 0.3146067415730337, "sumR": 27.5, "expR": 0.077}}]}
+{
+  "version": 2,
+  "source": "desk evidence pack, Q buckets",
+  "file": "src/data/evidence-pack.json",
+  "window": { "start": "2022-09-01", "end": "2026-09-01" },
+  "population": 1504,
+  "management": "Same card rule as the desk: limit at the midpoint, stop with one tick of slip, half off at the first target, runner to the second. A bar that touches both is a loss.",
+  "searched": "The pack does not split 0.90 by itself. The bucket that holds 0.90 is every card at 0.85 and above: 2,087 cards, 1,504 fills, Sep 2022 through Sep 2026. 2020 and 2021 are not on the tape. First target 31%. Direction 46.3%, which is worse than 53.6% at 0.65–0.70. Expectancy -0.15R, and -0.31R out of sample. The model's hottest decile hit the first target 61% of the time on 131 out-of-sample fills and still lost money.",
+  "note": "Joint read. All five took cards at 0.90 and up, which live inside the 0.85+ book. That book does not win 65%.",
+  "people": [
+    {
+      "who": "Gemma",
+      "year": 2026,
+      "rule": "The draw. Does a 0.90 card go the card's way more often?",
+      "desk": false,
+      "skill": "No. Cards at 0.85 and above, the book that holds 0.90, went the card's way 46.3% of the time. Cards at 0.65–0.70 went 53.6%. A higher fit is a weaker draw, not a stronger one.",
+      "flaws": [
+        "0.85+ went the card's way 46.3%. 0.65–0.70 went 53.6%. Raising the floor does not aim the draw.",
+        "The tape starts September 2022. 2020 and 2021 were not invented."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Jax",
+      "year": 2026,
+      "rule": "Take only 0.90 and better, and take all of them.",
+      "desk": false,
+      "skill": "1,504 fills is not a thin sample. The first target was reached 466 times, 31%. Waiting for 0.90 did not raise it.",
+      "flaws": [
+        "1,504 fills at 0.85 and above. First target 31%. More selective was not more right.",
+        "Out of sample the same book lost 0.31R a fill."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Nova",
+      "year": 2026,
+      "rule": "The number. Can the card's own probability model find a 65% pocket?",
+      "desk": false,
+      "skill": "The hottest decile, out of sample, hit the first target 61% of the time on 131 fills. That is the closest the model gets. It still is not 65%, and those fills lost 0.10R on average.",
+      "flaws": [
+        "Hottest decile: 61% to the first target, 131 fills, average result negative. Not 65%, and not a ticket.",
+        "The high-fit book itself is marked negative: -0.15R, and -0.31R after 2024."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Sterling",
+      "year": 2026,
+      "rule": "Do not turn 0.90 into a live gate.",
+      "desk": false,
+      "skill": "The high-fit book is the one the pack marks negative. Making 0.90 the only ticket would refuse the cards that are no worse, and keep the book that loses. I will not write that gate.",
+      "flaws": [
+        "0.85+ expectancy is -0.15R and the verdict is negative. A 0.90 gate would keep the losing book.",
+        "Live cards stay on the chart. The fit is a checklist, not a win rate."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Vince",
+      "year": 2026,
+      "rule": "The fill. Does a high score fill, and does the fill win?",
+      "desk": false,
+      "skill": "72% of 0.85+ cards filled at the midpoint. Filling was not the problem. Of the fills, 31% reached the first target. I still rest the limit at the midpoint. I do not expect 65%.",
+      "flaws": [
+        "Fill rate 72%. First-target rate 31%. The order is getting in. The target is what usually does not print.",
+        "2020 and 2021 are not in the file, so they were not run."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    }
+  ]
+}

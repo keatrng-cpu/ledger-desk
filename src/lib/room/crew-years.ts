@@ -59,7 +59,7 @@ export function learnCrewYears(): void {
       title: "Win rate",
       who: "Nova",
       nowMs: Date.now(),
-      text: "A filled desk card wins about 32% at its own target. Across 1,327 cards, no cut with 110 trades won 65%. The best was 40%. The edge is the size of the winner, not the win rate. Do not stand a card down because the win rate is under 65%.",
+      text: "Cards at 0.85 and above, the book that holds a 0.90, reached the first target 31% of the time on 1,504 fills from September 2022 through September 2026. 2020 and 2021 are not on the tape. Out of sample that book lost 0.31R. A 0.90 card is not a 65% trade. Do not make 0.90 a gate, and do not stand a card down for the win rate.",
     });
     saveAtlas(deskNow);
   } catch {

@@ -264,7 +264,7 @@ export function FloorBrains() {
               style={{ borderColor: who === p.who ? c.color : "rgba(255,255,255,0.1)" }}
             >
               <p className="text-[10px] uppercase tracking-wider" style={{ color: c.color }}>
-                {p.who} · {p.year}
+                {p.who} · 0.90
               </p>
               <p className="mt-1 font-mono text-[13px] text-white">
                 {p.full.wins}/{p.full.n} · {wr}
@@ -315,7 +315,7 @@ function PersonCard({
       <p className="mt-1 text-[12px] text-white/50">
         Knows {known} of {total} desk nodes.
         {year
-          ? ` ${year.year}, desk cards: ${year.full.wins}/${year.full.n} (${year.full.wr == null ? "—" : `${Math.round(year.full.wr * 100)}%`}), E[R] ${year.full.expR ?? "—"}. Second half ${year.h2.wins}/${year.h2.n}. The desk did not take a 65% claim. It is not in the tape.`
+          ? ` Cards at 0.85 and above, the book that holds a 0.90, Sep 2022–Sep 2026: ${year.full.wins}/${year.full.n} to the first target (${year.full.wr == null ? "—" : `${Math.round(year.full.wr * 100)}%`}), E[R] ${year.full.expR ?? "—"}. After 2024: E[R] ${year.h2.expR ?? "—"} on ${year.h2.n} fills. Not 65%. 2020 and 2021 are not on the tape.`
           : ""}
       </p>
       <p className="mt-4 border-l-2 pl-3 text-[13px] leading-relaxed text-white" style={{ borderColor: c.color }}>
