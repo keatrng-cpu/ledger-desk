@@ -109,6 +109,8 @@ export class OwnerAvatar {
   readonly height = 1.78;
   readonly hipH: number;
   pos: V2;
+  /** Floor height under the Owner (the balcony deck, the stairs); 0 on the office floor. */
+  elevation = 0;
   yaw = 0;
   moving = false;
   private walkPhase = 0;
@@ -249,7 +251,7 @@ export class OwnerAvatar {
   update(dt: number, t: number) {
     if (this.moving) this.walkPhase += dt * 1.35 * 4.4;
     else this.moving = false;
-    this.root.position.set(this.pos[0], 0, this.pos[1]);
+    this.root.position.set(this.pos[0], this.elevation, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const k = 1 - Math.exp(-12 * dt);
     const setR = (g: THREE.Object3D, rx: number, ry = 0, rz = 0) => {

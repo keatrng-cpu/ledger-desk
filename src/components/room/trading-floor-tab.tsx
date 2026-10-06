@@ -16,7 +16,8 @@ import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
 import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
-import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
+import { BED_LAYERS, FloorSound, loadBedMutes, loadSoundPref, saveSoundPref, type BedLayer } from "./floor-sound";
+import { sessionDial } from "@/lib/room/floor-props";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
@@ -126,6 +127,9 @@ function FloorCanvas({
   const playing = useRef(false);
   const pending = useRef<FloorFrame | null>(null);
   const talkSeq = useRoomStore((s) => s.talkSeq);
+  // Floor overhaul props (ticker wall, lanes, weather, banners, trophies, scars) — computed by the room engine.
+  const floorProps = useRoomStore((s) => s.floorProps);
+  const floorPropsSig = useRoomStore((s) => s.floorPropsSig);
 
   const show = useCallback((f: FloorFrame, talk: boolean) => {
     const sc = scene.current;
@@ -184,6 +188,10 @@ function FloorCanvas({
       playing.current = false;
       pending.current = null;
       useRoomStore.getState().setSceneOpen(true);
+      {
+        const st = useRoomStore.getState();
+        scene.current.setFloorProps(st.floorProps, st.floorPropsSig);
+      }
       const f = latest.current.frame;
       if (f) show(f, frameIsEvent(f));
       flushTalk();
@@ -208,6 +216,7 @@ function FloorCanvas({
   }, [frame, show]);
 
   useEffect(() => flushTalk(), [talkSeq, flushTalk]);
+  useEffect(() => scene.current?.setFloorProps(floorProps, floorPropsSig), [floorProps, floorPropsSig]);
   useEffect(() => scene.current?.setCamera(camera), [camera]);
 
   if (error)
@@ -1251,6 +1260,37 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const onEvent = useCallback((e: FloorEvent) => {
     if (soundOnRef.current) sound.current?.play(e);
   }, []);
+  // The sound bed (item 13): per-layer mutes, fed by the same props the room draws (VIX band, killzone, NQ prints).
+  const [bedMutes, setBedMutes] = useState<Record<BedLayer, boolean>>(() => loadBedMutes());
+  const [bedOpen, setBedOpen] = useState(false);
+  const floorProps = useRoomStore((s) => s.floorProps);
+  const kzRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const dial = sessionDial(Date.now(), floorProps?.clock ?? null);
+    sound.current?.bed(soundOn, {
+      weather: floorProps?.weather.band ?? "none",
+      intensity: floorProps?.weather.intensity ?? 0,
+      inKillzone: dial.inKillzone && !dial.marketNote,
+    });
+  }, [soundOn, floorProps, bedMutes]);
+  const lastPx = useRef<number | null>(null);
+  useEffect(() => {
+    const px = floorProps?.tracks.QQQ?.px ?? null;
+    const prev = lastPx.current;
+    lastPx.current = px;
+    if (px != null && prev != null && px !== prev && soundOnRef.current) sound.current?.tapeTick(px > prev);
+  }, [floorProps]);
+  useEffect(() => {
+    if (!soundOn) return;
+    const id = window.setInterval(() => {
+      const dial = sessionDial(Date.now(), useRoomStore.getState().floorProps?.clock ?? null);
+      const inKz = dial.inKillzone && !dial.marketNote;
+      if (inKz && kzRef.current === false) sound.current?.chime();
+      kzRef.current = inKz;
+      sound.current?.clockTick();
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [soundOn]);
 
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => {
     setSpeaker({ i, line });
@@ -1319,6 +1359,36 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         >
           {soundOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} {soundOn ? "Voices on" : "Voices off"}
         </button>
+        <div className="relative">
+          <button
+            type="button"
+            className={BTN}
+            aria-expanded={bedOpen}
+            title="Sound bed: mute each layer on its own (plays only while sound is on)"
+            onClick={() => setBedOpen((o) => !o)}
+          >
+            Layers {BED_LAYERS.filter((l) => !bedMutes[l.id]).length}/{BED_LAYERS.length}
+          </button>
+          {bedOpen && (
+            <div className="absolute right-0 top-full z-20 mt-1 w-56 rounded border border-[var(--color-border)] bg-[var(--color-surface-1)] p-2 shadow-lg">
+              <div className={HEAD}>Sound bed</div>
+              {BED_LAYERS.map((l) => (
+                <label key={l.id} className="flex items-center gap-2 py-0.5 text-[11px] text-[var(--color-fg)]" title={l.title}>
+                  <input
+                    type="checkbox"
+                    checked={!bedMutes[l.id]}
+                    onChange={(e) => {
+                      sound.current?.setMuted(l.id, !e.target.checked);
+                      setBedMutes((m) => ({ ...m, [l.id]: !e.target.checked }));
+                    }}
+                  />
+                  {l.label}
+                </label>
+              ))}
+              {!soundOn && <p className="mt-1 text-[10px] text-[var(--color-muted)]">Sound is off — turn Voices on to hear the bed.</p>}
+            </div>
+          )}
+        </div>
         <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
           <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
           room runs in the background (paper)
