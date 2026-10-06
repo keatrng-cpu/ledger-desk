@@ -184,55 +184,9 @@ export class FloorSound {
     }
   }
 
-  /** One short click, built once. A new buffer every second was hitching the floor. */
-  private clickBuf: AudioBuffer | null = null;
-
-  private clickBuffer(): AudioBuffer | null {
-    const ctx = this.ctx;
-    if (!ctx) return null;
-    if (this.clickBuf) return this.clickBuf;
-    const len = Math.max(1, Math.floor(ctx.sampleRate * 0.02));
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) {
-      const env = 1 - i / len;
-      d[i] = Math.sin((i / ctx.sampleRate) * Math.PI * 2 * 1400) * env * env;
-    }
-    this.clickBuf = buf;
-    return buf;
-  }
-
-  /** Replay the shared click. No new sample buffer, no filter, no resume. */
-  private blip(rate: number, gain: number): void {
-    const ctx = this.ctx;
-    const buf = this.clickBuffer();
-    if (!ctx || !buf || !this.master) return;
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.playbackRate.value = rate;
-    const g = ctx.createGain();
-    g.gain.value = gain;
-    src.connect(g).connect(this.master);
-    src.onended = () => {
-      src.disconnect();
-      g.disconnect();
-    };
-    src.start();
-  }
-
-  /** The tape layer: one soft tick, higher when the print is up, lower when down. */
-  tapeTick(up: boolean): void {
-    if (!this.bedOn || this.mutes.tape) return;
-    if (!this.ensure()) return;
-    this.blip(up ? 1.35 : 0.8, 0.03);
-  }
-
-  /** The clock layer: a tick each second inside a killzone; a two-note chime when one opens. */
-  clockTick(): void {
-    if (!this.bedOn || this.mutes.clock || !this.bedState.inKillzone) return;
-    if (!this.ensure()) return;
-    this.blip(0.62, 0.022);
-  }
+  /** Retired. A per-second tick was hitching the floor, so the tape and the clock stay silent. */
+  tapeTick(_up: boolean): void {}
+  clockTick(): void {}
 
   chime(): void {
     if (!this.bedOn || this.mutes.clock) return;

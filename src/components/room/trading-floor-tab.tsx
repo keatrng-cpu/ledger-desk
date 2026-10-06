@@ -1467,7 +1467,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useEffect(() => {
     sceneRef.current?.setScrubIndex(scrubIndex);
   }, [scrubIndex, env]);
-  const kzRef = useRef<boolean | null>(null);
   useEffect(() => {
     const dial = sessionDial(Date.now(), floorProps?.clock ?? null);
     sound.current?.bed(soundOn, {
@@ -1476,24 +1475,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
       inKillzone: dial.inKillzone && !dial.marketNote,
     });
   }, [soundOn, floorProps, bedMutes]);
-  const lastPx = useRef<number | null>(null);
-  useEffect(() => {
-    const px = floorProps?.tracks.QQQ?.px ?? null;
-    const prev = lastPx.current;
-    lastPx.current = px;
-    if (px != null && prev != null && px !== prev && soundOnRef.current) sound.current?.tapeTick(px > prev);
-  }, [floorProps]);
-  useEffect(() => {
-    if (!soundOn) return;
-    const id = window.setInterval(() => {
-      const dial = sessionDial(Date.now(), useRoomStore.getState().floorProps?.clock ?? null);
-      const inKz = dial.inKillzone && !dial.marketNote;
-      if (inKz && kzRef.current === false) sound.current?.chime();
-      kzRef.current = inKz;
-      sound.current?.clockTick();
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [soundOn]);
 
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => {
     setSpeaker({ i, line });

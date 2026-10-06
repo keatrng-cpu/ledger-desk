@@ -17,6 +17,7 @@ import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
 import { feedTone, sourceTag } from "@/lib/ui/feed-tone";
 import { effectiveLagSec } from "@/lib/trading/desk-fetch-guard";
+import { formatUtcClock } from "@/lib/market/yahoo";
 
 function QuoteChip({
   symbol,
@@ -137,6 +138,7 @@ export function SessionHud({
   // BUILT (every ~20s, slower when the tab is hidden), so on its own it sat
   // frozen between builds. Client-only (SSR prints the build stamp).
   const [etNow, setEtNow] = useState<string | null>(null);
+  const [utcNow, setUtcNow] = useState<string | null>(null);
   useEffect(() => {
     const fmt = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/New_York",
@@ -151,6 +153,7 @@ export function SessionHud({
     const tick = () => {
       const p = Object.fromEntries(fmt.formatToParts(new Date()).map((x) => [x.type, x.value]));
       setEtNow(`${p.weekday} ${p.month}/${p.day} ${p.hour}:${p.minute}:${p.second} ET`);
+      setUtcNow(formatUtcClock(Date.now()));
     };
     tick();
     const id = window.setInterval(tick, 1000);
@@ -483,7 +486,7 @@ export function SessionHud({
           <span className="ml-auto flex items-center gap-2 font-mono text-[12px]">
             <span className="inline-flex items-center gap-1 text-[var(--color-subtle)]">
               <Radio className="h-3 w-3 text-[var(--color-up)]" />
-              {wallNow}
+              {utcNow ?? wallNow}
             </span>
           </span>
         </div>

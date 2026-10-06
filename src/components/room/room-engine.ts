@@ -761,7 +761,7 @@ export function useRoomEngine(desk: DeskPayload | null) {
       } catch (err) {
         console.error("[room] live tick failed:", err);
       }
-    }, 1000);
+    }, 5000);
     return () => window.clearInterval(id);
   }, [enabled, hydrated]);
 }

@@ -848,7 +848,7 @@ function MasterplacePage() {
   // store seeds memory from localStorage at creation, so the client's first
   // render otherwise differs from the server's.
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
-  const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
+  const [wallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
   // DEV capture only — Accuracy attachment re-render (set after mount: SSR-safe).
   const [captureMead, setCaptureMead] = useState(false);
@@ -1426,15 +1426,6 @@ function MasterplacePage() {
     // Start once a desk exists; do not reset on every quote patch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [desk ? "ready" : "boot"]);
-
-
-  useEffect(() => {
-    const id = window.setInterval(
-      () => setWallNow(formatUtcClock(Date.now())),
-      1000,
-    );
-    return () => window.clearInterval(id);
-  }, []);
 
   // Paper open/close → brain + synapse memory refresh
   useEffect(() => {
