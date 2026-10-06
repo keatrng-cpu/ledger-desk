@@ -493,7 +493,6 @@ function holding(f: Facts): Line[] {
     lv && lv.t1 != null
       ? ` ${lv.symbol} ${px(lv.price)} against T1 ${px(lv.t1)} — ${ptsTxt(Math.abs(lv.t1 - lv.price))} to go.`
       : "";
-  const flatIn = ROOM_CLOCK.dayFlatMin - f.etMin;
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
   const hold = f.holds[best.id];
   const holdTxt = hold
@@ -504,7 +503,7 @@ function holding(f: Facts): Line[] {
     say("Nova", `Easy, Jax. ${best.id}: ${Math.abs(q.delta).toFixed(2)}Δ, theta ${prem(q.thetaDay)} a share a day.${toT1}${holdTxt}`, "ANALYZING"),
     say(
       "Gemma",
-      `${flatIn > 0 ? `${flatIn} minutes to the 11:00 flat.` : "Past the 11:00 flat for day tickets."} ${htfLine(f)} ${printLine(f)}`,
+      `${htfLine(f)} ${printLine(f)} Lunch is not a stop. We look until the close.`,
       "EXPLAINING",
     ),
   ];
@@ -515,7 +514,7 @@ function holding(f: Facts): Line[] {
     lines.push(
       say(
         "Sterling",
-        `Exits staged on ${best.id}: ${lv ? `${lv.symbol} ${px(lv.stop)} level, ` : ""}${best.trimmed ? "breakeven" : STOP_TXT}, 11:00.${room != null ? ` Halt room ${usd(room)}.` : ""}`,
+        `Exits staged on ${best.id}: ${lv ? `${lv.symbol} ${px(lv.stop)} level, ` : ""}${best.trimmed ? "breakeven" : STOP_TXT}, and the chart. Eleven o'clock does not flatten it.${room != null ? ` Halt room ${usd(room)}.` : ""}`,
         "CHECKING_TABLET",
       ),
     );

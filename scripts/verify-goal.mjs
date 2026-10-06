@@ -58,7 +58,7 @@ console.log("calendar");
   const mon0940 = c(at(2026, 10, 5, 9, 40));
   check("Monday 09:40 is day 1 with ten sessions to buy in", mon0940.state === "running" && mon0940.day === 1 && mon0940.daysLeft === 10 && !mon0940.entriesOver, JSON.stringify(mon0940));
   const mon1100 = c(at(2026, 10, 5, 11, 0));
-  check("at 11:00 ET today's entries are over", mon1100.entriesOver && mon1100.daysLeft === 9 && mon1100.remaining[0] === "2026-10-06", JSON.stringify(mon1100));
+  check("at 11:00 ET today's entries are still open — lunch is not a stop", !mon1100.entriesOver && mon1100.daysLeft === 10, JSON.stringify(mon1100));
   const mon1059 = c(at(2026, 10, 5, 10, 59));
   check("10:59 still counts today", !mon1059.entriesOver && mon1059.daysLeft === 10);
   const sat = c(at(2026, 10, 10, 10, 0));
@@ -66,7 +66,7 @@ console.log("calendar");
   const before = G.goalClock({ ...spec, startDate: "2026-10-12" }, at(2026, 10, 7, 9, 40));
   check("before the window: state before, all sessions ahead", before.state === "before" && before.daysLeft === 10 && before.day === 0);
   const lastDay = c(at(2026, 10, 16, 11, 30));
-  check("last day after 11:00: running, nothing left to buy", lastDay.state === "running" && lastDay.daysLeft === 0 && lastDay.day === 10, JSON.stringify(lastDay));
+  check("last day at 11:30: still open, today still counts", lastDay.state === "running" && lastDay.daysLeft === 1 && lastDay.day === 10 && !lastDay.entriesOver, JSON.stringify(lastDay));
   const past = c(at(2026, 10, 19, 9, 40));
   check("after the deadline: past", past.state === "past" && past.daysLeft === 0);
 

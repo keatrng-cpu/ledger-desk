@@ -140,12 +140,12 @@ export interface GoalClock {
   /** 1-based index of today inside the window; 0 before it starts. */
   day: number;
   of: number;
-  /** Sessions in which a NEW ticket can still be bought (today counts until 11:00 ET). */
+  /** Sessions in which a NEW ticket can still be bought (today counts until the 16:00 ET cash close). */
   daysLeft: number;
   /** Those sessions' dates, in order. */
   remaining: string[];
   deadline: string;
-  /** Today's date and whether today's entry window (to 11:00 ET) is already over. */
+  /** Today's date and whether today's entry window (to the 16:00 ET close) is already over. */
   today: string;
   entriesOver: boolean;
   dates: string[];
@@ -157,7 +157,7 @@ export function goalClock(spec: GoalSpec, nowMs: number): GoalClock {
   const w = etWallParts(nowMs);
   const etMin = w.hour * 60 + w.minute;
   const isWeekday = w.weekday >= 1 && w.weekday <= 5;
-  const entriesOver = !isWeekday || etMin >= ROOM_CLOCK.dayFlatMin;
+  const entriesOver = !isWeekday || etMin >= ROOM_CLOCK.optionsCloseMin;
   const deadline = dates[dates.length - 1] ?? spec.startDate;
   const base = { of: dates.length, deadline, today, entriesOver, dates };
   if (today < (dates[0] ?? today)) return { ...base, state: "before", day: 0, daysLeft: dates.length, remaining: dates };
@@ -168,7 +168,7 @@ export function goalClock(spec: GoalSpec, nowMs: number): GoalClock {
   return { ...base, state: "running", day: idx >= 0 ? idx + 1 : dates.filter((d) => d < today).length, daysLeft: remaining.length, remaining };
 }
 
-/** New tickets may be bought now: inside the window, on a session day, before 11:00 ET. */
+/** New tickets may be bought now: inside the window, on a session day, until the 16:00 ET close. Lunch is not a stop. */
 export const entriesOpen = (c: GoalClock): boolean => c.state === "running" && c.dates.includes(c.today) && !c.entriesOver;
 
 /** Per session: true when it opens a new week (its weekday does not come after the previous session's). Index 0 is never a break — it is the week in progress. */

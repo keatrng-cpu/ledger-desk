@@ -121,22 +121,9 @@ export function exitFor(p: RoomPositionIn, tape: UnderlierTape, c: ExitContext):
     plans.push(all("expiry", `expiry day ${clockEt(etMin)} ET — the broker force-sells from 15:30`));
   else if (etMin >= ROOM_CLOCK.flattenAllMin)
     plans.push(all("time", `${clockEt(etMin)} ET — QQQ/SPY options are unmanageable 16:15→09:30, nothing 0–1 DTE goes home`));
-  else if (etMin >= ROOM_CLOCK.dayFlatMin) {
-    const dte0 = p.exp === etDate;
-    const keep = !dte0 && p.pnl_percent >= ROOM_CLOCK.pastElevenMinPct && htfAligned(desk?.htf[p.ticker], p.type);
-    if (!keep)
-      plans.push(
-        all(
-          "time",
-          dte0
-            ? `${clockEt(etMin)} ET — day tickets are flat by 11:00, and 0 DTE gets no exception`
-            : `${clockEt(etMin)} ET — flat by 11:00 unless ≥ +${ROOM_CLOCK.pastElevenMinPct}% with HTF aligned (${signedPct(p.pnl_percent)})`,
-        ),
-      );
-  }
   if (policy.eventGuard && !p.trimmed) {
     const next = desk?.agenda?.next;
-    const flatMin = etMin < ROOM_CLOCK.dayFlatMin ? ROOM_CLOCK.dayFlatMin : ROOM_CLOCK.flattenAllMin;
+    const flatMin = ROOM_CLOCK.flattenAllMin;
     const [hh, mm] = (next?.timeEt ?? "").split(":").map(Number);
     const relMin = Number.isFinite(hh) && Number.isFinite(mm) ? (hh ?? 0) * 60 + (mm ?? 0) : null;
     if (next && next.impact === "high" && next.date === etDate && next.minutes >= 0 && next.minutes <= EVENT_EXIT_MIN && relMin != null && relMin <= flatMin)

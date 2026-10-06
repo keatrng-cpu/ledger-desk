@@ -30,7 +30,7 @@
  */
 
 import { HIT_ODDS_MODEL, planHitOdds } from "@/lib/trading/hit-odds-model";
-import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
+import { etWallToEpochMs } from "@/lib/trading/sessions";
 import { clockEt } from "./format";
 import { ROOM_CLOCK, ROOM_MANDATE } from "./mandate";
 import { HALF_SPREAD, blackScholes, ivFor, quoteOption, yearsToExpiry, type OptionType, type StrikeOffset } from "./option-math";
@@ -399,10 +399,7 @@ export function holdReadFor(
   nowMs: number,
 ): HoldRead | null {
   if (!h || h.entry == null || h.pT1 == null || h.openedAt == null || !(h.price > 0) || !(tape.price > 0)) return null;
-  const w = etWallParts(nowMs);
-  const etMin = w.hour * 60 + w.minute;
-  const flatMin = etMin < ROOM_CLOCK.dayFlatMin ? ROOM_CLOCK.dayFlatMin : ROOM_CLOCK.flattenAllMin;
-  const flatMs = Math.max(etWallToEpochMs(etDate, clockEt(flatMin)), nowMs);
+  const flatMs = Math.max(etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.flattenAllMin)), nowMs);
   const iv = ivFor(p.ticker, tape.vix);
   const entryPx = p.entry_px ?? quoteOption(tape.price, p.strike, p.exp, p.type, iv, nowMs).bid / Math.max(1e-6, 1 + p.pnl_percent / 100);
   return holdValue({

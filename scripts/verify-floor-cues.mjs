@@ -71,7 +71,8 @@ check("a chase slides the card back", gone.blotter === "back");
 
 check("Jax's last wrong chase lets Sterling speak first", floorCues({ ...base, jaxLastChaseWrong: true }).sterlingFirst);
 check("after 10:00 a card that is not A+ dims the killzone clock", floorCues({ ...base, etMin: 10 * 60 + 5, band: "A" }).clock.dim);
-check("11:00 stops the clock", floorCues({ ...base, etMin: 11 * 60 }).clock.stopped);
+check("11:00 does not stop the clock", !floorCues({ ...base, etMin: 11 * 60 }).clock.stopped);
+check("16:00 stops the clock", floorCues({ ...base, etMin: 16 * 60 }).clock.stopped);
 const raid = floorCues({ ...base, etMin: 9 * 60 + 36, side: "short" });
 check("Judas is a named raid only inside 09:30–09:45", raid.judas.on && raid.judas.side === "short");
 check("a medium release does not frost", !floorCues({ ...base, highImpactMin: null }).frost);

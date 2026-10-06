@@ -48,7 +48,7 @@ const trim = at("10:30").cycle.output.broker_action;
 check("+40% trims half (1 of 2)", trim.action_type === "SELL_CLOSE" && trim.contracts_quantity === 1, JSON.stringify(trim));
 check("second book on SPY vetoed at 10:22", at("10:22").cycle.trace.beat === "vetoed" && at("10:22").cycle.trace.refusalGate === "one_book");
 check("Sterling walks to the board to veto", at("10:22").cycle.output.room_state.character_locations.Sterling === "THE_WHITEBOARD");
-check("11:00 time stop closes the runner", at("11:00").cycle.output.broker_action.action_type === "SELL_CLOSE" && at("11:00").book.positions.length === 0);
+check("11:00 does not time-stop the runner", at("11:00").cycle.output.broker_action.action_type !== "SELL_CLOSE" || at("11:00").cycle.trace.exit?.reason !== "time");
 check("close debrief at 16:02", at("16:02")?.cycle.trace.meeting?.kind === "debrief");
 check("the debrief reads the ghost room's receipt", at("16:02").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /Ghost room/.test(l.text)));
 const minds = steps[steps.length - 1].minds;

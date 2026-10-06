@@ -100,7 +100,7 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
   const t = clockOf(c.nowMs);
   if (!t.weekday) no("session_closed", "weekend");
   else if (t.min < ROOM_CLOCK.optionsOpenMin) no("session_closed", `before ${hhmm(ROOM_CLOCK.optionsOpenMin)} ET`);
-  else if (t.min >= ROOM_CLOCK.dayFlatMin) no("session_closed", `no new entries at or after ${hhmm(ROOM_CLOCK.dayFlatMin)} ET (the room's mandate)`);
+  else if (t.min >= ROOM_CLOCK.optionsCloseMin) no("session_closed", `after ${hhmm(ROOM_CLOCK.optionsCloseMin)} ET`);
 
   const today = etDateOf(c.nowMs);
   if (i.exp < today) no("expired", `${i.exp} is in the past`);

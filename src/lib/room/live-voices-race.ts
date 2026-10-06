@@ -408,7 +408,7 @@ export function exReplan(c: Ctx, d: ReplanData): Ex | null {
     ])),
     g.paceLabel === "behind"
       ? line("Jax", ANIM.Jax.point!, pick(c, "goal.replan.jax.behind", [() => `Behind. So tomorrow I take the card, whatever the card is. …Whatever the gates allow.`, () => `I'm not saying relax the gates. I'm saying look at the clock.`]))
-      : line("Vince", ANIM.Vince.watch!, pick(c, "goal.replan.vince", [() => `Everything's flat by eleven. Nothing's carried. The book is clean.`, () => `The time stop did its job. The desk starts clean tomorrow.`])),
+      : line("Vince", ANIM.Vince.watch!, pick(c, "goal.replan.vince", [() => `Cash close. Whatever is still open follows the chart, not the lunch bell.`, () => `The session is over. We start clean tomorrow.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: boardMoves(lines) } : null;
 }

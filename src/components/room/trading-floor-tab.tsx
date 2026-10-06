@@ -1925,7 +1925,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </p>
           <p className="mt-3 text-[10px] leading-snug text-[var(--color-subtle)]">
             Mandate: ≤{ROOM_MANDATE.maxOpenPositions} open · ≤{Math.round(ROOM_MANDATE.maxCashFracPerTrade * 100)}% cash a ticket (and ≤$1,000) ·
-            {" "}−{Math.abs(ROOM_MANDATE.hardStopPct)}% backstop behind the level exit · +{ROOM_MANDATE.takeProfitPct}% trims half · 0–1 DTE · flat by 11:00.
+            {" "}−{Math.abs(ROOM_MANDATE.hardStopPct)}% backstop behind the level exit · +{ROOM_MANDATE.takeProfitPct}% trims half · 0–1 DTE · entries until 16:00. Size cut after 11:00.
             The room's own book fills at the model ask/bid. Orders reach a broker only through the Execution card below, which is off until you turn it on.
           </p>
         </div>

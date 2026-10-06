@@ -743,8 +743,8 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.aplus.vince", [() => `${f.int(d.positions)} open. ${f.int(d.monthEntries)}/${cap} PATH this month.`, () => `${d.positions ? `${f.int(d.positions)} on the book` : "Flat"}, ${f.int(d.monthEntries)} of ${cap} PATH used.`])));
       break;
     case "flat":
-      lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "sess.flat.sterling", [() => `${f.hhmm(11 * 60)}. Day tickets are flat by now. ${d.positions ? `${f.int(d.positions)} still open — that's a rule I'm reading.` : "Nothing open."}`, () => `${f.hhmm(11 * 60)}: no new day tickets. ${d.positions ? `${f.int(d.positions)} open and under review.` : "We're flat."}`])));
-      lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "sess.flat.jax", [() => `Rest of the day's for watching.`, () => `And now the market does what it does without us.`, () => `Eleven o'clock. The best part of the day just ended.`])));
+      lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "sess.flat.sterling", [() => `${f.hhmm(11 * 60)}. Lunch. Size comes down. We keep looking until the close.`, () => `${f.hhmm(11 * 60)} is not a stop. A card that clears still gets a ticket.`])));
+      lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "sess.flat.jax", [() => `Lunch doesn't mean we stop looking.`, () => `I'm still on the chart. A setup is a setup.`, () => `Eleven o'clock. Smaller size. Same job.`])));
       break;
     case "flatten":
       lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.flatten.sterling", [() => `${f.hhmm(15 * 60 + 30)}. The broker force-sells expiring contracts from here. ${d.positions ? `We hold ${f.int(d.positions)}. Out.` : "We're flat."}`, () => `Last-resort flatten time, ${f.hhmm(15 * 60 + 30)}. ${d.positions ? `${f.int(d.positions)} open — closing.` : "Nothing to close."}`])));
