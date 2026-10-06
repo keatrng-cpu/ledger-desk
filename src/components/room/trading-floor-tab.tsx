@@ -583,9 +583,8 @@ export default function TradingFloorTab() {
 
   const onSpeaker = useCallback((i: number, line: DialogueLine | null) => {
     setSpeaker({ i, line });
-    if (!soundOnRef.current) return;
-    if (line?.text) sound.current?.say(line);
-    else sound.current?.hush();
+    if (!soundOnRef.current || !line?.text) return;
+    sound.current?.say(line);
   }, []);
   // A follow or a fly-to is the viewer's own camera: no preset is "on" while it lasts.
   const onFollow = useCallback((who: Character | null) => {

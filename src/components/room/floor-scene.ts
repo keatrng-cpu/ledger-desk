@@ -24,6 +24,7 @@ import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator
 import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor-fx";
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import type { FloorLight } from "@/lib/room/floor-cues";
+import { speakHoldSec } from "@/lib/room/floor-voice";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -2391,8 +2392,7 @@ export class FloorScene {
         a.say(a.speaking && line ? line.text : null);
       }
       if (line) {
-        const words = line.text.split(/\s+/).length;
-        this.lineEndsAt = wall + Math.min(8, Math.max(2.8, 1.6 + words * 0.3)) / this.speed;
+        this.lineEndsAt = wall + speakHoldSec(line.character, line.text, line.animation) / this.speed;
         this.opts.onSpeaker?.(this.lineIdx, line);
         this.directorShot(line);
       } else {

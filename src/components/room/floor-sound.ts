@@ -6,7 +6,7 @@
  *  - event tones (WebAudio, no files) for what the cycle already decided
  *    (a fill, a winner, the bell at the open);
  *  - the line on the caption, spoken in phrases in that person's pattern
- *    (a lecture that settles, a clip, a flat number, a verdict, an operator).
+ *    A raid rises, a fill lifts, a stop falls. The person already talking finishes.
  *    The words are the caption. It does not write a line, pick a trade, or
  *    read a number the room did not already print.
  */
@@ -73,9 +73,11 @@ export class FloorSound {
     return this.ctx;
   }
 
-  private sayToken = 0;
   private primed = false;
   private cast = new Map<Character, string>();
+  private queue: { token: number; who: Character; parts: SpokenPhrase[] }[] = [];
+  private draining = false;
+  private gen = 0;
 
   /** Must run from the speaker-toggle click. Primes both WebAudio and speech. */
   unlock(): void {
@@ -90,21 +92,39 @@ export class FloorSound {
     synth.speak(warm);
   }
 
-  /** Speak the caption in phrases, in that person's pattern. No-op without a line. */
-  say(line: { character: Character; text: string }): void {
+  /**
+   * Queue the caption. The person already talking finishes. A new line waits.
+   * Only hush() (voices off) cuts the room.
+   */
+  say(line: { character: Character; text: string; animation?: string }): void {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const parts = phrasePlan(line.character, line.text);
+    const parts = phrasePlan(line.character, line.text, line.animation);
     if (!parts.length || !parts[0].text) return;
+    this.queue.push({ token: this.gen, who: line.character, parts });
+    if (this.queue.length > 6) this.queue.splice(0, this.queue.length - 6);
+    this.drain();
+  }
+
+  private drain(): void {
+    if (this.draining || !this.queue.length) return;
+    const job = this.queue.shift();
+    if (!job) return;
+    this.draining = true;
     const synth = window.speechSynthesis;
-    const token = ++this.sayToken;
-    synth.cancel();
-    const voice = pickVoice(line.character, new Set(this.cast.values()));
-    if (voice) this.cast.set(line.character, voice.voiceURI);
-    const volume = Math.min(1, Math.max(0.45, this.volume));
+    const voice = pickVoice(job.who, new Set(this.cast.values()));
+    if (voice) this.cast.set(job.who, voice.voiceURI);
+    const volume = Math.min(1, Math.max(0.5, this.volume));
     const speakAt = (i: number) => {
-      if (token !== this.sayToken) return;
-      const p: SpokenPhrase | undefined = parts[i];
-      if (!p) return;
+      if (job.token !== this.gen) {
+        this.draining = false;
+        return;
+      }
+      const p = job.parts[i];
+      if (!p) {
+        this.draining = false;
+        this.drain();
+        return;
+      }
       const u = new SpeechSynthesisUtterance(p.text);
       u.pitch = p.pitch;
       u.rate = p.rate;
@@ -114,23 +134,27 @@ export class FloorSound {
       const words = p.text.split(/\s+/).length;
       let stepped = false;
       const advance = () => {
-        if (stepped || token !== this.sayToken) return;
+        if (stepped || job.token !== this.gen) return;
         stepped = true;
         window.clearTimeout(fallback);
         window.setTimeout(() => speakAt(i + 1), p.gap);
       };
-      const fallback = window.setTimeout(advance, words * 420 + 700);
+      const fallback = window.setTimeout(advance, words * 460 + 800);
       u.onend = advance;
-      u.onerror = () => window.clearTimeout(fallback);
+      u.onerror = () => {
+        window.clearTimeout(fallback);
+        if (!stepped) advance();
+      };
       synth.resume();
       synth.speak(u);
     };
-    // Chrome drops an utterance spoken in the same turn as cancel().
-    window.setTimeout(() => speakAt(0), 50);
+    window.setTimeout(() => speakAt(0), 40);
   }
 
   hush(): void {
-    this.sayToken++;
+    this.gen++;
+    this.queue = [];
+    this.draining = false;
     if (typeof window !== "undefined") window.speechSynthesis?.cancel();
   }
 
