@@ -152,3 +152,61 @@ B1 and B1b are fixed. The should-fix items below are not blocking. S4 is the one
 | desk-enhancements | 223/0 |
 | live-talk | 111/0 |
 | autofire-gates | 22/0 |
+
+---
+
+## Follow-up 32300cd
+
+**SHA:** `32300cd897a6ab629a060e51b31c89898b06f84d` · **Branch:** `fix/desk-bootstrap-followup` · base `origin/main` `0b0142e`  
+**Date:** 2026-10-06 · Reviewer: Grok Bot · Read-only · own worktree `/workspace/ar-boot` (own `npm ci`).  
+`NODE_OPTIONS=--max-old-space-size=2048`; suites one at a time; no process kills.
+
+### Verdict: **APPROVE** `32300cd`
+
+S4–S8 from the `00c071e` re-review are all landed and pinned by tests. Suites green; merge-tree vs `origin/main` clean (0 behind / 1 ahead → fast-forward).
+
+### S4 — risk-unknown veto via `brainLiveRisk`
+
+- `desk-fetch-guard.ts:176-187` `brainLiveRisk(state, risk)` sets `riskUnknown: state === "unknown"` and keeps last-known halt flags.
+- `veteran-brain.ts:561-563` pushes `"Risk unknown — governor unreachable, no new entries until it answers"` when `liveRisk.riskUnknown` — veto list cannot read "None" while the governor is silent.
+- Wired through synapse `riskGate` / `publishRiskGate`, `VeteranBrainPanel` (`riskGate` prop), and `index.tsx` callers. ✔
+
+### S5 — exact `'Unauthorized'` match
+
+- `isSignedOutError` (`desk-fetch-guard.ts:84`): `return /^Unauthorized$/.test(msg.trim());` — no substring match. Structured 401 / `UnauthorizedError` name still count. ✔
+
+### S6 — auth pool timeouts + error handler
+
+- `auth/server.ts:185-194` `createAuthPool`: `connectionTimeoutMillis: 8_000`, `query_timeout: 10_000`, `pool.on("error", …)`. ✔
+
+### S7 — 401 after known halt stays fail-closed
+
+- `riskEntryAllowed` (`desk-fetch-guard.ts:141-146`): `no-session` → `!riskHalted(risk)` — a last-known halt **blocks** entry.
+- `riskEntryBlockedReason`: `"signed out · last known halt holds"` when `no-session && riskHalted`.
+- Risk errors still classify as `"unknown"` (never clear). ✔
+
+### S8 — tsx + npm test glob
+
+- `tsx` in `devDependencies` (`package.json`); present after clean `npm ci`.
+- `"test": "node --test scripts/*.test.mjs"` — shell-expanded (Node 20). ✔
+
+### Suites
+
+| Suite | Result |
+|-------|--------|
+| `tsc --noEmit` | **0** |
+| `desk-fetch-guard.test.mjs` | **29/29** |
+| `npm test` | **87/87** |
+| `verify-repo-guards` | **59/0** |
+| `verify-autofire-gates` | **22/0** |
+| `verify-room-exec` | **222/0** |
+| `verify-live-talk` | **111/0** |
+
+### Merge vs `origin/main`
+
+- `git merge-tree --write-tree origin/main 32300cd` → **exit 0**, no conflicts.
+- **0 behind / 1 ahead** — fast-forwardable.
+
+### Blocking / should-fix
+
+*None.* Safe to merge.
