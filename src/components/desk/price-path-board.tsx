@@ -8,6 +8,11 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 import type { HtfBiasRead } from "@/lib/trading/structure";
 import type { SetupCandidate } from "@/lib/trading/scanner";
+import type { SmcMasterBook } from "@/lib/trading/smc-master";
+import { MustRing } from "@/components/desk/viz/must-ring";
+import { FitGauge } from "@/components/desk/viz/fit-gauge";
+import { PriceLadder, ladderFrom } from "@/components/desk/viz/price-ladder";
+import { Plain } from "@/components/desk/plain-text";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { etWallParts, isJudasWindow, sessionLive} from "@/lib/trading/sessions";
 import { readJudas } from "@/lib/trading/judas-window";
@@ -27,16 +32,16 @@ function tone(b: string): string {
 
 function DrawLine({ t, last }: { t: LiquidityTarget | null; last: number }) {
   if (!t) {
-    return <p className="text-[11px] text-[var(--color-subtle)]">No magnet</p>;
+    return <p className="text-[13px] text-[var(--color-muted)]">No magnet</p>;
   }
   const pts = Math.abs(t.price - last);
   const Arrow = t.side === "below" ? ArrowDown : ArrowUp;
   return (
-    <p className={cn("flex items-baseline gap-1.5 font-mono text-sm", tone(t.side))}>
-      <Arrow className="h-3.5 w-3.5 shrink-0" />
+    <p className={cn("flex flex-wrap items-baseline gap-x-1.5 font-mono text-base", tone(t.side))}>
+      <Arrow className="h-4 w-4 shrink-0 self-center" />
       <span className="font-semibold">{px(t.price)}</span>
-      <span className="text-[11px] text-[var(--color-fg)]">{t.name}</span>
-      <span className="text-[10px] text-[var(--color-muted)]">
+      <Plain className="text-[13px] text-[var(--color-fg)]">{t.name}</Plain>
+      <span className="text-[12px] text-[var(--color-muted)]">
         {pts.toFixed(1)}pt · {(t.reachProbability * 100).toFixed(0)}%
       </span>
     </p>
@@ -49,13 +54,20 @@ function BookCol({
   last,
   path,
   preferred,
+  seq,
 }: {
   bias: HtfBiasRead;
   draw: DrawRead;
   last: number;
   path: SetupCandidate | undefined;
   preferred: boolean;
+  /** This book's SMC sequence — its must-layers draw the ring (replaces the ●○× row). */
+  seq: SmcMasterBook | undefined;
 }) {
+  // The numeric plan for the ladder: the card's own priced plan first (same
+  // object the ticket and paper book read), else the sequence's plan for this
+  // book when it is on the card's side. No plan → the original text grid.
+  const ladderPlan = path?.plan ?? (seq?.plan && (!path || seq.plan.side === path.side) ? seq.plan : null);
   const fight =
     (bias.topDown === "bear" && bias.dealing?.zone === "discount") ||
     (bias.topDown === "bull" && bias.dealing?.zone === "premium");
@@ -81,7 +93,28 @@ function BookCol({
           HTF {bias.topDown}
         </span>
       </div>
-      <p className="mb-1.5 text-[10px] text-[var(--color-muted)]">
+      {seq && (
+        <div className="mb-2 flex items-center gap-3">
+          <MustRing layers={seq.layers} size={68} />
+          <div className="min-w-0 flex-1">
+            <FitGauge fit={path?.confluence ?? null} vetoes={path?.vetoes} compact />
+            {seq.word !== "TAKE" && (
+              <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-muted)]">
+                <span className="font-semibold text-[var(--color-warn)]">
+                  <Plain>{seq.missing}</Plain>
+                </span>
+                {seq.missingDetail ? (
+                  <>
+                    {" — "}
+                    <Plain>{seq.missingDetail}</Plain>
+                  </>
+                ) : null}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      <p className="mb-1.5 text-[12px] text-[var(--color-muted)]">
         <span className={fight ? "text-[var(--color-warn)]" : ""}>
           {bias.dealing?.zone ?? "n/a"}
         </span>
@@ -90,12 +123,12 @@ function BookCol({
         {fight ? " · location fights HTF" : aligned ? " · draw agrees" : ""}
         {preferred ? " · ONE BOOK" : ""}
       </p>
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
         Draw
       </p>
       <DrawLine t={draw.primary} last={last} />
       {draw.primary && (draw.primary.side === "below" ? draw.above : draw.below) && (
-        <p className="mt-0.5 text-[10px] text-[var(--color-subtle)]">
+        <p className="mt-0.5 text-[12px] text-[var(--color-muted)]">
           Opp{" "}
           {px((draw.primary.side === "below" ? draw.above : draw.below)!.price)}{" "}
           {(draw.primary.side === "below" ? draw.above : draw.below)!.name}
@@ -103,7 +136,7 @@ function BookCol({
       )}
       <p
         className={cn(
-          "mt-1.5 text-[11px]",
+          "mt-1.5 text-[13px]",
           // Was `confluence >= HIGH_CONFLUENCE_THRESHOLD` (0.9) — a raw score
           // gate a real A+/A/A- TAKE routinely sits under, since 0.75 (the
           // A+ tag) is well below it: an actionable A+ at Q 0.76 never
@@ -149,18 +182,26 @@ function BookCol({
           the trade: bias (above), circumstances (the must-layer dots in the
           header), and now entry/target, so nothing requires cross-referencing
           a second component to answer "where do I get in, where do I get out". */}
-      {path && (
-        <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-1.5 font-mono text-[10px]">
+      {path && ladderPlan ? (
+        <div className="mt-2 border-t border-[var(--color-border)] pt-2">
+          <PriceLadder {...ladderFrom(ladderPlan)} price={last} height={170} />
+        </div>
+      ) : path ? (
+        <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-1.5 font-mono text-[12px]">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">Entry</p>
-            <p className="mt-0.5 break-words text-[var(--color-fg)]">{path.entryZone}</p>
+            <p className="text-[11px] uppercase tracking-wider text-[var(--color-muted)]">Entry · unpriced</p>
+            <p className="mt-0.5 break-words text-[var(--color-fg)]">
+              <Plain>{path.entryZone}</Plain>
+            </p>
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">Target</p>
-            <p className="mt-0.5 break-words text-[var(--color-fg)]">{path.targets[0] ?? "—"}</p>
+            <p className="text-[11px] uppercase tracking-wider text-[var(--color-muted)]">Target</p>
+            <p className="mt-0.5 break-words text-[var(--color-fg)]">
+              <Plain>{path.targets[0] ?? "—"}</Plain>
+            </p>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -343,7 +384,7 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
   return (
     <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[var(--color-surface)] p-3">
       <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
+        <p className="text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
           Where price is going
         </p>
         <span
@@ -360,42 +401,18 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
           {v.word}
         </span>
       </header>
-      <p className="mb-2 font-mono text-[11px] text-[var(--color-muted)]">{desk.smcMaster.thesis}</p>
-      <div className="mb-2 grid gap-0.5 sm:grid-cols-2">
-        {(["left", "right"] as const).map((side) => {
-          const b = desk.smcMaster[side];
-          return (
-            <p key={side} className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-mono text-[10px]">
-              <span className="text-[var(--color-subtle)]">{b.symbol}</span>
-              {b.layers
-                .filter((l) => l.must)
-                .map((l) => (
-                  <span
-                    key={l.id}
-                    className={
-                      l.state === "pass"
-                        ? "text-[var(--color-up)]"
-                        : l.state === "fail"
-                          ? "text-[var(--color-down)]"
-                          : "text-[var(--color-warn)]"
-                    }
-                    title={`${l.label}: ${l.detail}`}
-                  >
-                    {l.state === "pass" ? "●" : l.state === "fail" ? "×" : "○"} {l.label}
-                  </span>
-                ))}
-              {b.word !== "TAKE" && (
-                <span className="basis-full text-[10px] text-[var(--color-muted)]">
-                  ↳ {b.missingDetail}
-                </span>
-              )}
-            </p>
-          );
-        })}
-      </div>
-      <p className="mb-2 text-sm font-medium text-[var(--color-fg)]">{v.line}</p>
+      <p className="mb-2 font-mono text-[13px] text-[var(--color-muted)]">
+        <Plain>{desk.smcMaster.thesis}</Plain>
+      </p>
+      {/* The ●○× must-layer row per book is now the ring inside each book
+          column below (hover a segment for the layer and its detail). */}
+      <p className="mb-2 text-[15px] font-medium text-[var(--color-fg)]">
+        <Plain>{v.line}</Plain>
+      </p>
       {smt && (
-        <p className="mb-2 truncate text-[11px] text-[var(--color-muted)]">SMT {smt}</p>
+        <p className="mb-2 truncate text-[13px] text-[var(--color-muted)]" title={smt}>
+          <Plain>{`SMT ${smt}`}</Plain>
+        </p>
       )}
       <div className="grid gap-2 sm:grid-cols-2">
         <BookCol
@@ -404,6 +421,7 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
           last={desk.quotes.left.price}
           path={leftPath}
           preferred={v.book === "left"}
+          seq={desk.smcMaster?.left}
         />
         <BookCol
           bias={desk.bias.right}
@@ -411,10 +429,13 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
           last={desk.quotes.right.price}
           path={rightPath}
           preferred={v.book === "right"}
+          seq={desk.smcMaster?.right}
         />
       </div>
       {desk.draws.left.note && (
-        <p className="mt-2 text-[10px] text-[var(--color-subtle)]">{desk.draws.left.note}</p>
+        <p className="mt-2 text-[12px] text-[var(--color-muted)]">
+          <Plain>{desk.draws.left.note}</Plain>
+        </p>
       )}
     </section>
   );

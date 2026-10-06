@@ -129,3 +129,24 @@ export function PriceLadder({
     </div>
   );
 }
+
+/** Either plan shape the desk prints (CardPlan / TradePlan) → the ladder's view. No numbers are derived. */
+export function ladderFrom(p: {
+  side: "long" | "short";
+  entry: number;
+  entryZone: { top: number; bottom: number } | null;
+  stop: number;
+  t1: number | null;
+  t2: number | null;
+  rr1: number | null;
+  rr2: number | null;
+  riskPts: number;
+  drawName?: string | null;
+  draw?: { name: string } | null;
+}): { plan: LadderPlan; t1Label: string } {
+  const name = p.drawName ?? p.draw?.name ?? null;
+  return {
+    plan: { side: p.side, entry: p.entry, zone: p.entryZone, stop: p.stop, t1: p.t1, t2: p.t2, rr1: p.rr1, rr2: p.rr2, riskPts: p.riskPts },
+    t1Label: name ? `T1 ${name}` : "T1",
+  };
+}

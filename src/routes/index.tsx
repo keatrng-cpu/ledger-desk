@@ -160,6 +160,7 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 import { cn } from "@/lib/utils";
+import { EntryHero } from "@/components/desk/entry-hero";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
 import {
   autoPaperShouldTake,
@@ -1725,6 +1726,7 @@ function MasterplacePage() {
 
               {cat === "trade" && (
                 <div className="space-y-4">
+                  <EntryHero desk={desk} />
                   <PricePathBoard desk={desk} />
                   {/* 15:00–15:55 ET: the overnight decision is due, and the
                       trader is looking at the Now tab, not the Options tab. */}

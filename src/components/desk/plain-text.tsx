@@ -63,6 +63,7 @@ export function PlainToggle({ className }: { className?: string }) {
         on
           ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,transparent)] text-[var(--color-fg)]"
           : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]",
+        className,
       )}
     >
       <BookA className="h-3.5 w-3.5" aria-hidden />
