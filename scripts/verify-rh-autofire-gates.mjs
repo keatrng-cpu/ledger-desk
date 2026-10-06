@@ -175,6 +175,13 @@ console.log("\nenv helpers default off (arm at 09:30 ET tomorrow)");
   check("liveArmed true", rh.rhLiveArmed({ RH_LIVE_ARMED: "true" }), true);
 }
 
+
+console.log("\nManager → agentAgree wiring (design step 5)");
+{
+  const { verifyManagerAgree } = await import("./verify-manager-agree.mjs");
+  await verifyManagerAgree(gates, rh, check, ARMED_FLAGS);
+}
+
 console.log("\nsource posture");
 {
   const src = read("src/lib/execution/rh-autofire.ts");
@@ -184,6 +191,10 @@ console.log("\nsource posture");
   check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 150/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
+  const msrc = read("src/lib/execution/manager-agree.ts");
+  check("manager-agree adapter exports resolveStandAgentAgree", /export function resolveStandAgentAgree/.test(msrc), true);
+  check("manager-agree does not place", /place_option_order|CallDynamicTool/.test(msrc), false);
+  check("candidateFromFloorPathStand accepts manager", /manager\?:\s*ManagerRoomStateAgree/.test(src), true);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

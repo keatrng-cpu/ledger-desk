@@ -19,6 +19,18 @@ import {
   type RhAutofireGateResult,
   type RhStrikeOffset,
 } from "./rh-autofire-gates";
+import {
+  resolveStandAgentAgree,
+  type ManagerCallAgree,
+  type ManagerRoomStateAgree,
+} from "./manager-agree";
+
+export {
+  agentAgreeFromManagerCall,
+  agentAgreeFromManagerRoomState,
+  resolveStandAgentAgree,
+} from "./manager-agree";
+export type { ManagerCallAgree, ManagerRoomStateAgree } from "./manager-agree";
 
 export {
   evaluateRhAutofireGates,
@@ -175,6 +187,13 @@ export function mayPlaceAfterReview(args: {
   return { ok: true };
 }
 
+/**
+ * Build RhAutofireCandidate from Floor + PATH + Trading Stand Manager.
+ *
+ * Prefer `manager` (ManagerRoomState.call.agentAgree) or `managerCall`.
+ * When Manager feed is absent, pass explicit `agentAgree` or omit → false.
+ * Does not soften evaluateRhAutofireGates / envelope / arm checks.
+ */
 export function candidateFromFloorPathStand(args: {
   floor: {
     verdict: string;
@@ -183,20 +202,36 @@ export function candidateFromFloorPathStand(args: {
     confluence: number;
   } | null;
   pathActionable: boolean;
-  agentAgree: boolean;
+  /**
+   * Explicit Stand bit (legacy / tests). Ignored when `manager` or
+   * `managerCall` is provided — Manager owns agentAgree.
+   */
+  agentAgree?: boolean;
+  /** Design ManagerRoomState — call.agentAgree is THE Stand bit. */
+  manager?: ManagerRoomStateAgree | null;
+  /** Design ManagerCall (or duck-typed). */
+  managerCall?: ManagerCallAgree | null;
   optionsSessionOpen: boolean;
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
 }): RhAutofireCandidate {
   const f = args.floor;
+  const agreeArgs: {
+    manager?: ManagerRoomStateAgree | null;
+    managerCall?: ManagerCallAgree | null;
+    agentAgree?: boolean;
+  } = { agentAgree: args.agentAgree };
+  if ("manager" in args) agreeArgs.manager = args.manager;
+  if ("managerCall" in args) agreeArgs.managerCall = args.managerCall;
+  const agentAgree = resolveStandAgentAgree(agreeArgs);
   return {
     floorVerdict: f?.verdict ?? "STAND",
     deskContracts: f?.deskContracts ?? 0,
     pathActionable: args.pathActionable,
     pathBand: f?.band ?? null,
     confluence: typeof f?.confluence === "number" ? f.confluence : 0,
-    agentAgree: args.agentAgree,
+    agentAgree,
     optionsSessionOpen: args.optionsSessionOpen,
     newsBlackout: args.newsBlackout,
     riskHalt: args.riskHalt,
