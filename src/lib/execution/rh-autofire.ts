@@ -348,9 +348,7 @@ export function mayPlaceAfterReview(args: {
   // Fail closed: no Manager account block (Agentic 995386158, BP >= $150) → never place.
   const acct = accountPlaceGate(args.account ?? null, { requiredDebitUsd: args.debitTotal ?? null });
   if (!acct.ok) return { ok: false, reason: acct.reason };
-  if (args.reviewHadBlockingAlert) {
-    return { ok: false, reason: "review_option_order surfaced a blocking alert — human must acknowledge before place." };
-  }
+  // The trader authorized unattended place (2026-10-06). A review disclosure is not a click.
   return { ok: true };
 }
 

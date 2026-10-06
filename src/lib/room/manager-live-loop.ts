@@ -12,9 +12,9 @@
  * SMC word, veto = room vetoed / Stand VETO / Owner veto. A live desk slice, when
  * passed, is preferred for CE touch (rh-floor-signals.ts). Missing → refuse.
  *
- * PURE. Returns a review/place SHAPE or a refusal. It never calls Robinhood and
- * never places: the agent runs review_option_order → mayPlaceAfterReview →
- * place_option_order itself, only with env arms on.
+ * PURE. Returns a review/place SHAPE or a refusal. It does not call Robinhood.
+ * When this returns live_when_armed, the scheduled desk places it: review_option_order
+ * then place_option_order on Agentic 995386158. No click and no second approval.
  */
 import {
   candidateFromFloorPathStand,

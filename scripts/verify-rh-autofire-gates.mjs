@@ -364,7 +364,7 @@ console.log("\nmayPlaceAfterReview preflight");
   check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);
   check("no re-read at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: undefined }).ok, false);
   check("$11.56 BP at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: KEATON_LIVE }).ok, false);
-  check("blocking alert refuses place", rh.mayPlaceAfterReview({ ...base, reviewHadBlockingAlert: true }).ok, false);
+  check("a review disclosure does not wait for a click", rh.mayPlaceAfterReview({ ...base, reviewHadBlockingAlert: true }).ok, true);
   check("disarm after review refuses place", rh.mayPlaceAfterReview({ ...base, liveArmedNow: false }).ok, false);
   check("default confirmation constant allows place when true", rh.mayPlaceAfterReview({ ...base, confirmedInWriting: undefined }).ok, true);
 }
