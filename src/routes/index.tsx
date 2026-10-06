@@ -1877,8 +1877,8 @@ function MasterplacePage() {
                 <div className="space-y-5">
                   <SectionHead
                     n="V"
-                    title="Veteran brain"
-                    sub="SMC/ICT discretion · remembers backtests & journal · never overrides hard gates"
+                    title="Brains"
+                    sub="One desk brain. Five minds wired into it. A line is kept only when it improves the book."
                   />
                   <FloorBrains />
                   <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
