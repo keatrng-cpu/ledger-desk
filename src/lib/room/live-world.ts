@@ -324,7 +324,22 @@ function mindsRead(m: MindState | null): MindsRead | null {
     needs: m.needs,
     rank: m.rank,
     rel: m.rel,
-    memories: m.memories.slice(0, 12).map((x) => ({ who: x.who, against: x.against ?? null, clock: x.clock, kind: x.kind, text: x.text, outcome: x.outcome?.verdict ?? null })),
+    memories: m.memories.slice(0, 24).map((x) => ({
+      id: x.id,
+      who: x.who,
+      against: x.against ?? null,
+      clock: x.clock,
+      kind: x.kind,
+      text: x.text,
+      outcome: x.outcome?.verdict ?? null,
+      pnl:
+        x.outcome?.usd != null
+          ? `${x.outcome.usd >= 0 ? "+" : "−"}$${Math.abs(Math.round(x.outcome.usd))}`
+          : x.outcome?.movePct != null
+            ? `${x.outcome.movePct >= 0 ? "+" : "−"}${Math.abs(x.outcome.movePct).toFixed(2)}%`
+            : null,
+      at: x.outcome?.at ?? x.at,
+    })),
   };
 }
 

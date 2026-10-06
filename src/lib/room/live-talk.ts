@@ -629,6 +629,61 @@ function tapeCands(w: TalkWorld, st: TalkState, out: Cand[]) {
 
 /* ── The book and the card ─────────────────────────────────────────────── */
 
+function lessonCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew: boolean) {
+  const now = w.nowMs;
+  const seen = (st.lessonSeen ??= []);
+  const mems = w.minds?.memories ?? [];
+  const shelfKey = `shelf|${w.clock.etDate}`;
+  if (!seen.includes(shelfKey)) {
+    const lineOf = (m: (typeof mems)[number]) => `${m.who} ${m.pnl ?? m.outcome ?? ""} ${m.text}`.trim();
+    const good = (v: string | null, kind: string) => v === "right" || v === "saved" || kind === "win";
+    const bad = (v: string | null, kind: string) => v === "wrong" || v === "cost" || kind === "stop";
+    const wins = mems.filter((m) => m.outcome && good(m.outcome, m.kind)).slice(0, 3).map(lineOf);
+    const losses = mems.filter((m) => m.outcome && bad(m.outcome, m.kind)).slice(0, 3).map(lineOf);
+    if (wins.length || losses.length)
+      out.push({
+        id: shelfKey,
+        kind: "book",
+        topic: `book:${shelfKey}`,
+        urgency: 1,
+        prio: 8,
+        at: now,
+        label: "trophy shelf",
+        build: (c) => V.exShelf(c, { wins, losses }),
+        commit: (s) => {
+          (s.lessonSeen ??= []).push(shelfKey);
+        },
+      });
+    else seen.push(shelfKey);
+  }
+  if (!announceNew) {
+    for (const m of mems) if (m.outcome && !seen.includes(m.id)) seen.push(m.id);
+    return;
+  }
+  for (const m of mems) {
+    if (!m.outcome || !m.pnl || seen.includes(m.id)) continue;
+    if (now - m.at > 30 * 60_000) {
+      seen.push(m.id);
+      continue;
+    }
+    const hit = { id: m.id, who: m.who, text: m.text, kind: m.kind, verdict: m.outcome, pnl: m.pnl };
+    out.push({
+      id: `lesson|${m.id}`,
+      kind: "book",
+      topic: `book:lesson:${m.id}`,
+      urgency: 2,
+      prio: 9,
+      at: now,
+      label: `${m.who} ${m.pnl}`,
+      build: (c) => V.exLesson(c, { hit }),
+      commit: (s) => {
+        (s.lessonSeen ??= []).push(m.id);
+      },
+    });
+    break;
+  }
+}
+
 function bookCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew = false) {
   const now = w.nowMs;
   const live = tapeLive(w);
@@ -1568,6 +1623,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   levelCands(w, st, cands);
   tapeCands(w, st, cands);
   bookCands(w, st, cands, !first);
+  lessonCands(w, st, cands, !first);
   pulseCands(w, st, cands);
   seatCands(w, st, cands);
   goalCands(w, st, cands);

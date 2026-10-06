@@ -930,6 +930,75 @@ export function exFill(c: Ctx, d: { p: PositionRead; b: TapeBook | null }): Ex |
   return lines.length >= 2 ? { lines, moves: BOARD } : null;
 }
 
+export interface LessonHit {
+  id: string;
+  who: Character;
+  text: string;
+  kind: string;
+  verdict: string;
+  pnl: string;
+}
+
+/** A graded winner or loser becomes a drill. Everyone hears the number. */
+export function exLesson(c: Ctx, d: { hit: LessonHit }): Ex | null {
+  const f = c.f;
+  const good = d.hit.verdict === "right" || d.hit.verdict === "saved" || d.hit.kind === "win";
+  const num = d.hit.pnl;
+  const what = f.raw(d.hit.text);
+  const who = d.hit.who;
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "lesson.gemma", [
+      () => `${who} ${good ? "won" : "lost"} ${num}. Paper. The chart ${good ? "paid the side" : "did the other thing"}. We learn the tape.`,
+      () => `Shelf. ${what}. ${num}. Everyone look at it.`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "lesson.vince", [
+      () => good
+        ? `Entry was the spot. We repeat that. We do not move the order because it worked once.`
+        : `Entry was late or it was a chase. Next one rests at CE. We do not buy the extension.`,
+    ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "lesson.nova", [
+      () => good
+        ? `Target held. ${num}. The draw was real. We do not stretch T1 to feel clever.`
+        : `Target did not pay. ${num}. Analytics stays the number on the card, not a new story.`,
+    ])),
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "lesson.sterling", [
+      () => `Arithmetic. ${num} on paper. A winner does not buy a bigger next ticket. A loser does not get averaged.`,
+      () => `${num}. Size stays inside the debit. That is the whole improvement.`,
+    ])),
+    line("Jax", ANIM.Jax.point!, pick(c, "lesson.jax", [
+      () => good ? `I'll take the ${num}. I still don't get to skip the retest.` : `That's mine. ${num}. Next entry is the array. I'm not chasing it.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
+}
+
+/** Once a day the floor reads the shelf out loud so a winner and a loser are not private. */
+export function exShelf(c: Ctx, d: { wins: string[]; losses: string[] }): Ex | null {
+  if (!d.wins.length && !d.losses.length) return null;
+  const f = c.f;
+  const win = f.raw(d.wins[0] ?? "none");
+  const loss = f.raw(d.losses[0] ?? "none");
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "shelf.gemma", [
+      () => `Trophy wall. Winner: ${win}. Loser: ${loss}. Paper, both of them. Everyone knows.`,
+      () => `Look at the shelf. ${win}. And the scar: ${loss}.`,
+    ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "shelf.nova", [
+      () => `We keep the winner's target and we throw out the loser's story. The number is the teacher.`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "shelf.vince", [
+      () => `Entries. The winner filled at the spot. The loser is why we wait for the pullback.`,
+    ])),
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "shelf.sterling", [
+      () => `Arithmetic does not care who called it. ${win} does not raise size. ${loss} does not get a second ticket.`,
+    ])),
+    line("Jax", ANIM.Jax.point!, pick(c, "shelf.jax", [
+      () => `I see both. I'll chase the process, not the last print.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
+}
+
 export interface GhostData {
   gate: string;
   n: number;

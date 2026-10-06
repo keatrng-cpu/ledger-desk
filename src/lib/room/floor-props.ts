@@ -349,6 +349,8 @@ export function statProps(book: BookRead, lab: LabLite | null, startCash: number
 export interface Plaque {
   title: string;
   line: string;
+  /** The number painted on the cup itself. */
+  pnl: string;
   usd: number | null;
   at: number;
   source: "book" | "memory" | "ghost";
@@ -366,27 +368,42 @@ export function trophiesAndScars(closed: RoomClosedTrade[], memories: readonly M
   const scars: Plaque[] = [];
   for (const c of closed) {
     if (!Number.isFinite(c.pnlUsd) || c.pnlUsd === 0) continue;
-    const p: Plaque = { title: `${c.pnlUsd > 0 ? "+" : ""}${usd(c.pnlUsd)}`, line: `${contractOf(c)} · ${c.contracts}× · ${c.reason}`, usd: c.pnlUsd, at: c.closedAt, source: "book" };
+    const signed = `${c.pnlUsd > 0 ? "+" : "−"}${usd(Math.abs(c.pnlUsd))}`;
+    const p: Plaque = { title: signed, pnl: signed, line: `${contractOf(c)} · ${c.contracts}× · ${c.reason} · PAPER`, usd: c.pnlUsd, at: c.closedAt, source: "book" };
     (c.pnlUsd > 0 ? trophies : scars).push(p);
   }
   for (const m of memories) {
     const o = m.outcome;
     if (!o) continue;
     if (m.kind === "veto" && (o.verdict === "saved" || o.verdict === "cost")) {
-      const amt = o.usd != null ? usd(Math.abs(o.usd)) : null;
-      const p: Plaque = { title: o.verdict === "saved" ? `${m.who}'s veto saved${amt ? ` ${amt}` : ""}` : `${m.who}'s veto cost${amt ? ` ${amt}` : ""}`, line: `${m.clock} ET · ${m.text}`, usd: o.usd ?? null, at: o.at, source: "memory" };
+      const amt = o.usd != null ? `${o.usd >= 0 ? "+" : "−"}${usd(Math.abs(o.usd))}` : null;
+      const p: Plaque = {
+        title: o.verdict === "saved" ? `${m.who} saved ${amt ?? ""}`.trim() : `${m.who} cost ${amt ?? ""}`.trim(),
+        pnl: amt ?? (o.verdict === "saved" ? "saved" : "cost"),
+        line: `${m.clock} ET · ${m.text} · PAPER`,
+        usd: o.usd ?? null,
+        at: o.at,
+        source: "memory",
+      };
       (o.verdict === "saved" ? trophies : scars).push(p);
     } else if (m.kind === "chase_call" && (o.verdict === "right" || o.verdict === "wrong")) {
-      const mv = o.movePct != null ? ` (${o.movePct >= 0 ? "+" : "−"}${Math.abs(o.movePct).toFixed(2)}%)` : "";
-      const p: Plaque = { title: `${m.who} called it ${o.verdict}${mv}`, line: `${m.clock} ET · ${m.text}`, usd: null, at: o.at, source: "memory" };
+      const mv = o.movePct != null ? `${o.movePct >= 0 ? "+" : "−"}${Math.abs(o.movePct).toFixed(2)}%` : "paper";
+      const p: Plaque = {
+        title: `${mv} · ${m.who}`,
+        pnl: mv,
+        line: `${m.clock} ET · ${m.text} · PAPER CALL · ${o.verdict}`,
+        usd: null,
+        at: o.at,
+        source: "memory",
+      };
       (o.verdict === "right" ? trophies : scars).push(p);
     }
   }
   for (const r of lab?.refusals ?? []) {
     if (r.n <= 0 || !Number.isFinite(r.pnlUsd) || r.pnlUsd === 0) continue;
     const g = gateWord(r.gate);
-    if (r.pnlUsd < 0) trophies.push({ title: `${g} gate saved ${usd(-r.pnlUsd)}`, line: `ghost room · ${r.n} refused · ${r.wins} would have won`, usd: -r.pnlUsd, at: 0, source: "ghost" });
-    else scars.push({ title: `${g} gate missed ${usd(r.pnlUsd)}`, line: `ghost room · ${r.n} refused · ${r.wins} would have won`, usd: -r.pnlUsd, at: 0, source: "ghost" });
+    if (r.pnlUsd < 0) trophies.push({ title: `${g} saved ${usd(-r.pnlUsd)}`, pnl: `+${usd(-r.pnlUsd)}`, line: `ghost room · ${r.n} refused · ${r.wins} would have won · PAPER`, usd: -r.pnlUsd, at: 0, source: "ghost" });
+    else scars.push({ title: `${g} missed ${usd(r.pnlUsd)}`, pnl: `−${usd(r.pnlUsd)}`, line: `ghost room · ${r.n} refused · ${r.wins} would have won · PAPER`, usd: -r.pnlUsd, at: 0, source: "ghost" });
   }
   const rank = (a: Plaque, b: Plaque) => Math.abs(b.usd ?? 0) - Math.abs(a.usd ?? 0) || b.at - a.at;
   return { trophies: trophies.sort(rank).slice(0, max), scars: scars.sort(rank).slice(0, max) };

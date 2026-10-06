@@ -228,7 +228,7 @@ export interface MindsRead {
   needs: Record<Character, { caffeine: number; fatigue: number; stress: number; loneliness: number; boredom: number }>;
   rank: Record<Character, number>;
   rel: Record<Character, Record<Character, { affinity: number; respect: number }>>;
-  memories: { who: Character; against: Character | null; clock: string; kind: string; text: string; outcome: string | null }[];
+  memories: { id: string; who: Character; against: Character | null; clock: string; kind: string; text: string; outcome: string | null; pnl: string | null; at: number }[];
 }
 
 export interface LabLite {
@@ -577,6 +577,8 @@ export interface TalkState {
   /** Each experiment's status the last time its verdict was announced. */
   rndSeen: Record<string, string>;
   rndPrimed: boolean;
+  /** Graded calls already turned into a lesson, plus the day's shelf review. */
+  lessonSeen?: string[];
   suppressed: number;
 }
 
@@ -623,6 +625,7 @@ export function freshTalkState(): TalkState {
     goalSig: {},
     rndSeen: {},
     rndPrimed: false,
+    lessonSeen: [],
     suppressed: 0,
   };
 }

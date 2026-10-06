@@ -106,6 +106,29 @@ function wrap(ctx: Ctx, text: string, maxW: number, maxLines: number): string[] 
   return out;
 }
 
+function cupTag(text: string, up: boolean): THREE.Sprite {
+  const c = document.createElement("canvas");
+  c.width = 256;
+  c.height = 64;
+  const g = c.getContext("2d")!;
+  g.fillStyle = up ? "#14532d" : "#7f1d1d";
+  g.fillRect(0, 0, 256, 64);
+  g.fillStyle = "#f8fafc";
+  g.font = "700 28px sans-serif";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText(text.slice(0, 16), 128, 32);
+  const tex = new THREE.CanvasTexture(c);
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: true }));
+  sp.center.set(0.5, 0);
+  sp.scale.set(0.62, 0.16, 1);
+  sp.position.set(0.1, 0.36, 0);
+  return sp;
+}
+
 const hash = (s: string) => {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
@@ -799,7 +822,10 @@ export class FloorOverhaul {
       c.traverse((o) => {
         const m = o as THREE.Mesh;
         m.geometry?.dispose();
-        (m.material as THREE.Material | undefined)?.dispose();
+        const mat = m.material as THREE.Material | THREE.SpriteMaterial | undefined;
+        const map = mat && "map" in mat ? mat.map : null;
+        map?.dispose();
+        mat?.dispose();
       });
     }
     const metal = [0xf5c542, 0xc0c7d1, 0xcd7f32];
@@ -816,6 +842,7 @@ export class FloorOverhaul {
       const cup = new THREE.Mesh(new THREE.LatheGeometry(pts, 20), mat);
       cup.position.set(7.86, y, z);
       cup.userData.overhaul = true;
+      cup.add(cupTag(tr.pnl || tr.title, (tr.usd ?? 0) >= 0));
       this.cups.add(cup);
     });
   }
@@ -1066,11 +1093,11 @@ function drawTrophies(ctx: Ctx, w: number, h: number, list: Plaque[] | null) {
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.fillRect(x, y - 92, cw - 48, 108);
     ctx.fillStyle = "#f5c542";
-    ctx.font = `800 28px ${FONT}`;
-    ctx.fillText(fit(ctx, t.title, cw - 70), x + 12, y - 56);
+    ctx.font = `800 32px ${FONT}`;
+    ctx.fillText(fit(ctx, t.pnl || t.title, cw - 70), x + 12, y - 58);
     ctx.fillStyle = "#e7e5e4";
-    ctx.font = `600 20px ${FONT}`;
-    wrap(ctx, t.line, cw - 70, 2).forEach((l, k) => ctx.fillText(l, x + 12, y - 26 + k * 24));
+    ctx.font = `600 18px ${FONT}`;
+    wrap(ctx, t.line, cw - 70, 2).forEach((l, k) => ctx.fillText(l, x + 12, y - 28 + k * 22));
   });
 }
 
@@ -1127,11 +1154,11 @@ function drawScars(ctx: Ctx, w: number, h: number, list: Plaque[] | null) {
       ctx.stroke();
     }
     ctx.fillStyle = "#fca5a5";
-    ctx.font = `800 28px ${FONT}`;
-    ctx.fillText(fit(ctx, t.title, cw - 190), x + 110, y + 50);
+    ctx.font = `800 32px ${FONT}`;
+    ctx.fillText(fit(ctx, t.pnl || t.title, cw - 190), x + 110, y + 48);
     ctx.fillStyle = "#d1d5db";
-    ctx.font = `600 20px ${FONT}`;
-    wrap(ctx, t.line, cw - 190, 2).forEach((l, k) => ctx.fillText(l, x + 110, y + 82 + k * 24));
+    ctx.font = `600 18px ${FONT}`;
+    wrap(ctx, t.line, cw - 190, 2).forEach((l, k) => ctx.fillText(l, x + 110, y + 80 + k * 22));
   });
 }
 
