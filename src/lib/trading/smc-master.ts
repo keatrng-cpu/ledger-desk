@@ -9,7 +9,7 @@
 import { reachTier } from "./entry-trigger";
 import { GATE } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { isHighProbPath, isPathFire } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
 import { readSession } from "./session-event";
 import { readJudas, JUDAS_MIN_CONFLUENCE } from "./judas-window";
@@ -168,6 +168,7 @@ function pickCandidate(
       const onSide = book.filter((c) => c.side === raidSide);
       const pick =
         onSide.find((c) => isHighProbPath(c)) ??
+        onSide.find((c) => isPathFire(c)) ??
         [...onSide].sort((a, b) => b.confluence - a.confluence)[0];
       if (pick) return pick;
     }
@@ -194,7 +195,8 @@ function pickCandidate(
    * side, and refusing to name any card is worse than naming a weak one.
    */
   const alignedBook = need ? book.filter((c) => c.side === need) : book;
-  const alignedPath = alignedBook.find((c) => isHighProbPath(c));
+  // A+/A/A- first, then B+ (live PATH grade, Keaton 2026-10-06).
+  const alignedPath = alignedBook.find((c) => isHighProbPath(c)) ?? alignedBook.find((c) => isPathFire(c));
   const aligned = alignedBook[0];
   const path = book.find((c) => isHighProbPath(c));
   return (
@@ -603,7 +605,9 @@ function gradeBook(
   const mustNeed = musts.length;
   const mustFail = musts.find((l) => l.state === "fail");
   const mustWait = musts.find((l) => l.state === "wait");
-  const pathOk = isHighProbPath(cand);
+  // PATH bar = A+/A/A- (>= 0.65) or B+ (>= 0.60, its own config band) —
+  // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
+  const pathOk = isPathFire(cand);
 
   // Armed: every must-layer passes except the retrace, which is WAITING with
   // a named fresh array (price outside it, not missing). With

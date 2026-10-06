@@ -77,6 +77,8 @@ console.log("\nPATH alarm fires on B+ (isPathFire) — isHighProbPath unchanged"
   check("isHighProbPath B+ still false (paper/sequence readers unchanged)", alarm.isHighProbPath(cand("B+", 0.7)), false);
   check("PATH_FIRE_BANDS", [...alarm.PATH_FIRE_BANDS], ["A+", "A", "A-", "B+"]);
   const src = read("src/lib/alerts/path-alarm.ts");
+  const smc = read("src/lib/trading/smc-master.ts");
+  check("smc-master TAKE bar = isPathFire (B+ can complete the sequence)", /const pathOk = isPathFire\(cand\);/.test(smc), true);
   check("considerPathAlarm keys off isPathFire", /if \(!isPathFire\(candidate\) \|\| !candidate\) return null;/.test(src), true);
 }
 
