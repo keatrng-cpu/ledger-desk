@@ -1,5 +1,6 @@
 import study from "@/data/crew-card-study.json";
 import { improveAtlas, loadAtlas, mergeAtlas, offerToBrains, saveAtlas, type BrainWho, type PeopleBrains } from "./desk-atlas";
+import { PERFECT_STANDARD } from "./perfect-entry";
 
 export interface CrewHalf {
   n: number;
@@ -36,6 +37,16 @@ export function crewOf(who: string): CrewPerson | null {
 export function learnCrewYears(): void {
   try {
     if (typeof localStorage === "undefined") return;
+    if (localStorage.getItem("ledger-perfect-entry-v1") !== "1") {
+      saveAtlas(improveAtlas(loadAtlas() ?? mergeAtlas(null, null), {
+        shelf: "discretion",
+        title: "Perfect entry",
+        who: "Sterling",
+        nowMs: Date.now(),
+        text: PERFECT_STANDARD,
+      }));
+      localStorage.setItem("ledger-perfect-entry-v1", "1");
+    }
     if (localStorage.getItem(KEY) === study.note) return;
     let people: PeopleBrains | null = null;
     let desk = loadAtlas();
