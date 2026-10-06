@@ -94,3 +94,39 @@ export function parseDiscussRead(text: string | null | undefined): DiscussRead {
   if (!m) return { bias: null, confidence: null };
   return { bias: m[1].toLowerCase() as DiscussBias, confidence: m[2].toLowerCase() as DiscussConfidence };
 }
+
+/**
+ * Seconds to the next scheduled Discuss checkpoint (weekdays; exchange
+ * holidays are not modelled — the scheduler itself fires on any weekday
+ * minute match). Shared by the Discuss tab and the Floor command strip.
+ */
+export function nextAiSyncCheckpoint(nowMs: number): { slot: string; secs: number } {
+  const p = etWallParts(nowMs);
+  const sod = p.hour * 3600 + p.minute * 60 + p.second;
+  const weekday = p.weekday >= 1 && p.weekday <= 5;
+  if (weekday) {
+    for (const t of AI_SYNC_TIMES) {
+      const at = t.hour * 3600 + t.minute * 60;
+      if (at > sod) return { slot: t.slot, secs: at - sod };
+    }
+  }
+  let days = 1;
+  let wd = (p.weekday + 1) % 7;
+  while (wd === 0 || wd === 6) {
+    days += 1;
+    wd = (wd + 1) % 7;
+  }
+  const first = AI_SYNC_TIMES[0]!;
+  return { slot: first.slot, secs: days * 86400 - sod + first.hour * 3600 + first.minute * 60 };
+}
+
+export function fmtAiSyncCountdown(secs: number): string {
+  const d = Math.floor(secs / 86400);
+  const h = Math.floor((secs % 86400) / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (d > 0) return `${d}d ${pad(h)}:${pad(m)}:${pad(s)}`;
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+

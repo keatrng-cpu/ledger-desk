@@ -17,7 +17,7 @@ import { MessagesSquare, RefreshCw } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { askDeskDiscuss, type DiscussExchange } from "@/lib/coach/claude-server";
 import { buildCoachContext } from "@/lib/coach/context";
-import { AI_SYNC_TIMES, dueAiSyncSlot, parseDiscussRead, type DiscussBias } from "@/lib/coach/ai-sync";
+import { AI_SYNC_TIMES, dueAiSyncSlot, fmtAiSyncCountdown, nextAiSyncCheckpoint, parseDiscussRead, type DiscussBias } from "@/lib/coach/ai-sync";
 import { etWallParts } from "@/lib/trading/sessions";
 import { isConfigGap, scrubEnv, SETUP_URL } from "@/lib/ui/offline";
 
@@ -35,39 +35,6 @@ function readLast(): Entry | null {
   }
 }
 
-/**
- * Seconds to the next scheduled checkpoint (weekdays; exchange holidays are
- * not modelled — the scheduler itself fires on any weekday minute match).
- */
-function nextCheckpoint(nowMs: number): { slot: string; secs: number } {
-  const p = etWallParts(nowMs);
-  const sod = p.hour * 3600 + p.minute * 60 + p.second;
-  const weekday = p.weekday >= 1 && p.weekday <= 5;
-  if (weekday) {
-    for (const t of AI_SYNC_TIMES) {
-      const at = t.hour * 3600 + t.minute * 60;
-      if (at > sod) return { slot: t.slot, secs: at - sod };
-    }
-  }
-  let days = 1;
-  let wd = (p.weekday + 1) % 7;
-  while (wd === 0 || wd === 6) {
-    days += 1;
-    wd = (wd + 1) % 7;
-  }
-  const first = AI_SYNC_TIMES[0];
-  return { slot: first.slot, secs: days * 86400 - sod + first.hour * 3600 + first.minute * 60 };
-}
-
-function fmtCountdown(secs: number): string {
-  const d = Math.floor(secs / 86400);
-  const h = Math.floor((secs % 86400) / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  if (d > 0) return `${d}d ${pad(h)}:${pad(m)}:${pad(s)}`;
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
 
 /** Errors from a provider that simply isn't configured read as "offline", never as env names. */
 function calm(err: string | null | undefined): string | null {
@@ -288,7 +255,7 @@ export function DiscussTab({ desk }: { desk: DeskPayload }) {
 
   // Display only — dueAiSyncSlot (checked in the effect above) is the real clock.
   const nextUp = AI_SYNC_TIMES.map((t) => t.slot).find((s) => !history.some((h) => h.slot === s));
-  const next = nextCheckpoint(now);
+  const next = nextAiSyncCheckpoint(now);
   const grokLive = Boolean(desk.coach?.xai);
   const claudeLive = Boolean(desk.coach?.anthropic);
   const speakers = [grokLive && "Grok", claudeLive && "Claude"].filter(Boolean) as string[];
@@ -327,7 +294,7 @@ export function DiscussTab({ desk }: { desk: DeskPayload }) {
             className={`font-mono text-3xl font-semibold tabular-nums ${on ? "text-[var(--color-fg)]" : "text-[var(--color-subtle)]"}`}
             title={on ? "Fires automatically at this ET minute" : "Automatic is off — this checkpoint will not fire"}
           >
-            {fmtCountdown(next.secs)}
+            {fmtAiSyncCountdown(next.secs)}
           </p>
           <p className="mt-0.5 flex flex-wrap gap-1 font-mono text-[9px] text-[var(--color-subtle)]">
             {AI_SYNC_TIMES.map((t) => (

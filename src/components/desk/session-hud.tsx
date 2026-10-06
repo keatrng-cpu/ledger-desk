@@ -12,6 +12,7 @@ import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
 import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path-board";
 import { shockSiren } from "@/lib/alerts/path-alarm";
 import { cn } from "@/lib/utils";
+import { feedDotTone, sourceTag } from "@/lib/ui/feed-dot";
 import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
@@ -64,75 +65,6 @@ function matchingGhost(desk: DeskPayload, ghosts: GhostTrade[]): GhostTrade | nu
   return ghosts.find((g) => g.symbol === focus.symbol && g.side === focus.side) ?? null;
 }
 
-/** "606s (~10 min)" — the one place the feed delay is written out. */
-function lagWords(sec: number): string {
-  const s = Math.round(sec);
-  return s >= 90 ? `${s}s (~${Math.round(s / 60)} min)` : `${s}s`;
-}
-
-/** Short tag matching QuoteChip (LIVE / Y! / DB / SYN). */
-function sourceTag(source: string): string {
-  return source === "live_gateway"
-    ? "LIVE"
-    : source === "yahoo"
-      ? "Y!"
-      : source === "databento"
-        ? "DB"
-        : "SYN";
-}
-
-/**
- * Dot colour keys on SOURCE first, then lag.
- * SYN and Y! are never green — synthetic stamps lagSec:0 (yahoo.ts) and Yahoo
- * is delayed structure, not a live execution feed. Only live_gateway / fresh
- * databento can read green.
- */
-function feedDotTone(sources: string[], worstLagSec: number): {
-  className: string;
-  label: string;
-  title: string;
-} {
-  const tags = sources.map(sourceTag);
-  const hasSyn = sources.includes("synthetic");
-  const hasYahoo = sources.includes("yahoo");
-  const sourceBit = sources
-    .map((s, i) => `${tags[i]} (${s})`)
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .join(" · ");
-  if (hasSyn) {
-    return {
-      className: "bg-[var(--color-down)]",
-      label: `Not live · SYN · reported lag ${lagWords(worstLagSec)} (synthetic stamps 0s)`,
-      title: `NOT LIVE — synthetic feed (source decides, not the lag). ${sourceBit}. Reported lag ${lagWords(worstLagSec)} — synthetic quotes stamp lagSec:0 even when invented. Do not treat as a live print.`,
-    };
-  }
-  if (hasYahoo) {
-    return {
-      className: "bg-[var(--color-warn)]",
-      label: `Not live · Y! · delayed ${lagWords(worstLagSec)}`,
-      title: `NOT LIVE — Yahoo is a delayed structure feed, never green. ${sourceBit}. Delay vs the exchange print ${lagWords(worstLagSec)}.`,
-    };
-  }
-  if (worstLagSec <= 15) {
-    return {
-      className: "bg-[var(--color-up)]",
-      label: `Live · feed delay ${lagWords(worstLagSec)}`,
-      title: `Live feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Green ≤ 15s · amber ≤ 2 min · red beyond. SYN/Y! never green.`,
-    };
-  }
-  if (worstLagSec <= 120) {
-    return {
-      className: "bg-[var(--color-warn)]",
-      label: `Delayed · ${lagWords(worstLagSec)}`,
-      title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Amber ≤ 2 min · red beyond. SYN/Y! never green.`,
-    };
-  }
-  return {
-    className: "bg-[var(--color-down)]",
-    label: `Stale · ${lagWords(worstLagSec)}`,
-    title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Red beyond 2 min. SYN/Y! never green.`,
-  };
-}
 
 export function SessionHud({
   desk,
