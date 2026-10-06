@@ -25,21 +25,22 @@ export interface VoiceCast {
 /** Named voices, best first. The first one this browser actually has is theirs. */
 export const VOICE_SLOT: Record<Character, readonly string[]> = {
   Gemma: ["google uk english female", "samantha", "sonia", "libby", "aria", "karen", "moira", "fiona"],
-  Nova: ["jenny", "aria", "victoria", "tessa", "serena", "zira", "susan", "samantha"],
+  Nova: ["jenny", "aria", "libby", "sonia", "samantha", "google uk english female", "karen", "moira", "fiona"],
   Jax: ["google uk english male", "daniel", "ryan", "guy", "alex", "aaron"],
-  Sterling: ["davis", "rishi", "fred", "daniel", "guy", "google uk english male"],
+  Sterling: ["guy", "ryan", "daniel", "davis", "brandon", "alex", "google uk english male"],
   Vince: ["brandon", "tony", "tom", "alex", "aaron", "daniel"],
 };
 
 export const VOICE_CAST: Record<Character, VoiceCast> = {
   Gemma: { rate: 0.96, pattern: "lecture", lean: "female" },
   Jax: { rate: 1.02, pattern: "clip", lean: "male" },
-  Nova: { rate: 0.94, pattern: "flat", lean: "female" },
-  Sterling: { rate: 0.92, pattern: "verdict", lean: "male" },
+  Nova: { rate: 1, pattern: "flat", lean: "female" },
+  Sterling: { rate: 0.99, pattern: "verdict", lean: "male" },
   Vince: { rate: 0.98, pattern: "operator", lean: "male" },
 };
 
-const CREW: readonly Character[] = ["Gemma", "Nova", "Jax", "Sterling", "Vince"];
+/** Sterling and Nova pick before the others, so a smooth voice is not taken out from under them. */
+const CREW: readonly Character[] = ["Gemma", "Nova", "Sterling", "Vince", "Jax"];
 
 export interface SpokenPhrase {
   text: string;
@@ -141,6 +142,8 @@ export function speakHoldSec(who: Character, text: string, animation?: string): 
 
 const RASPY = /compact|espeak|android|whisper|novelty/;
 const SMOOTH = /natural|neural|premium|enhanced/;
+/** The old desktop voices. A newer voice of the same gender is used instead. */
+const ROBOTIC = /\b(zira|susan|fred|david|mark|hazel)\b|google us english/;
 
 const FEMALE_NAMES = [
   "samantha", "victoria", "karen", "moira", "fiona", "tessa", "serena", "zira", "susan",
@@ -170,6 +173,14 @@ export function voiceGender(name: string): "female" | "male" | null {
   return null;
 }
 
+function robotic(name: string): boolean {
+  return ROBOTIC.test(name.toLowerCase());
+}
+
+function betterThanRobotic(pool: readonly VoiceOption[], lean: "female" | "male"): boolean {
+  return pool.some((v) => voiceGender(v.name) === lean && !RASPY.test(v.name) && !robotic(v.name));
+}
+
 function slotRank(name: string, hints: readonly string[]): number {
   const n = name.toLowerCase();
   if (RASPY.test(n)) return -100;
@@ -177,7 +188,7 @@ function slotRank(name: string, hints: readonly string[]): number {
   const idx = hints.findIndex((h) => n.includes(h));
   if (idx >= 0) s += 120 - idx * 10;
   if (SMOOTH.test(n)) s += 40;
-  if (/^google us english$/.test(n.trim())) s -= 25;
+  if (robotic(n)) s -= 80;
   return s;
 }
 
@@ -199,7 +210,7 @@ export function assignVoices(
   for (const who of CREW) {
     const uri = saved?.[who];
     const voice = uri ? byUri.get(uri) : undefined;
-    if (voice && voiceGender(voice.name) === VOICE_CAST[who].lean && !used.has(uri!)) {
+    if (voice && voiceGender(voice.name) === VOICE_CAST[who].lean && !used.has(uri!) && !(robotic(voice.name) && betterThanRobotic(pool, VOICE_CAST[who].lean))) {
       out[who] = uri!;
       used.add(uri!);
     }
@@ -208,7 +219,7 @@ export function assignVoices(
     const lean = VOICE_CAST[who].lean;
     const hints = VOICE_SLOT[who];
     return pool
-      .filter((v) => voiceGender(v.name) === lean && !RASPY.test(v.name) && (!freeOnly || !used.has(v.voiceURI)))
+      .filter((v) => voiceGender(v.name) === lean && !RASPY.test(v.name) && !robotic(v.name) && (!freeOnly || !used.has(v.voiceURI)))
       .sort((a, b) => slotRank(b.name, hints) - slotRank(a.name, hints) || a.name.localeCompare(b.name));
   };
   for (const who of CREW) {
@@ -222,6 +233,15 @@ export function assignVoices(
   for (const who of CREW) {
     if (out[who]) continue;
     const pick = rankedFor(who, false)[0];
+    if (pick) out[who] = pick.voiceURI;
+  }
+  for (const who of CREW) {
+    if (out[who]) continue;
+    const lean = VOICE_CAST[who].lean;
+    const hints = VOICE_SLOT[who];
+    const pick = pool
+      .filter((v) => voiceGender(v.name) === lean && !RASPY.test(v.name))
+      .sort((a, b) => slotRank(b.name, hints) - slotRank(a.name, hints) || a.name.localeCompare(b.name))[0];
     if (pick) out[who] = pick.voiceURI;
   }
   return out;

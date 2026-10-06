@@ -27,7 +27,7 @@ function englishVoices(): SpeechSynthesisVoice[] {
   return en.length ? en : all;
 }
 
-const CAST_KEY = "ledger-room-cast-v2";
+const CAST_KEY = "ledger-room-cast-v3";
 
 function loadCast(): Partial<Record<Character, string>> {
   try {
@@ -323,7 +323,7 @@ export class FloorSound {
       u.pitch = p.pitch;
       u.rate = p.rate;
       u.volume = volume;
-      u.lang = "en-US";
+      u.lang = voice?.lang || "en-US";
       if (voice) u.voice = voice;
       const words = p.text.split(/\s+/).length;
       let stepped = false;
