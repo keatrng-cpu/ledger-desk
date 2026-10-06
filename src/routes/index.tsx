@@ -203,7 +203,10 @@ export const Route = createFileRoute("/")({
  */
 function describeDeskError(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e ?? "");
-  if (/inactivity timeout|<html|<head|<title/i.test(raw) || /504/.test(raw)) {
+  if (/timed out after/i.test(raw)) {
+    return "Desk build timed out waiting on the server — market data or risk/auth may be slow. Retrying on the next poll.";
+  }
+  if (/inactivity timeout|<html|<head|<title/i.test(raw) || /\b504\b/.test(raw)) {
     return "Desk build ran long and the edge gave up (504) — market data upstream was slow. Retrying on the next poll.";
   }
   if (/failed to fetch|networkerror|load failed/i.test(raw)) {
@@ -211,6 +214,35 @@ function describeDeskError(e: unknown): string {
   }
   return raw.length > 240 ? `${raw.slice(0, 240)}…` : raw || "Desk load failed";
 }
+
+/**
+ * Bound a browser-side promise so "Building desk…" cannot hang forever when a
+ * server fn never settles (hung Neon connect, edge stall, missing reject).
+ * Does not cancel the underlying request — only stops waiting for it.
+ */
+function withClientTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = window.setTimeout(
+      () => reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`)),
+      ms,
+    );
+    p.then(
+      (v) => {
+        window.clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        window.clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
+/** Slightly above Netlify/Pro edge (~26s) so a real 504 still surfaces; below "forever". */
+const DESK_CLIENT_TIMEOUT_MS = 35_000;
+/** Risk/auth/DB must not hold the desk hostage on cold start. */
+const RISK_CLIENT_TIMEOUT_MS = 12_000;
 /** Live gateway tick is already in Postgres — 1s is free. */
 const QUOTE_LIVE_MS = 1_000;
 /** Yahoo delayed print. Match the tape, don't hammer the free host. */
@@ -1061,12 +1093,22 @@ function MasterplacePage() {
     setLoading(true);
     setError(null);
     try {
-      const [res, rs] = await Promise.all([
+      // Desk and risk used to share one Promise.all with no client timeout:
+      // a hung getRiskState (Neon connect) or fetchTradingDesk left
+      // loading=true / desk=null forever ("Building desk…") and deskInFlight
+      // blocked every retry. Risk is soft-failed on its own budget so the
+      // desk can still mount.
+      const deskP = withClientTimeout(
         fetchTradingDesk({
           data: { left: "MNQ", right: "ES" },
         }),
-        loadRisk(),
-      ]);
+        DESK_CLIENT_TIMEOUT_MS,
+        "Desk build",
+      );
+      const riskP = withClientTimeout(loadRisk(), RISK_CLIENT_TIMEOUT_MS, "Risk").catch(
+        () => null,
+      );
+      const [res, rs] = await Promise.all([deskP, riskP]);
       if (!res.ok) {
         setError(res.error);
       } else {
