@@ -20,7 +20,7 @@ export function maskAccount(n: string | null | undefined): string {
   return s.length >= 4 ? `••${s.slice(-4)}` : "••??";
 }
 
-/** get_portfolio + matching get_accounts row → snapshot. BP missing → 0 (fail closed). */
+/** get_portfolio + matching get_accounts row → snapshot. BP missing → NaN (gate: bp_unknown). */
 export function rhAccountFromPortfolio(args: {
   portfolio: unknown;
   account?: unknown;
@@ -30,11 +30,13 @@ export function rhAccountFromPortfolio(args: {
   const p = ((args.portfolio as { data?: unknown })?.data ?? args.portfolio ?? {}) as Record<string, unknown>;
   const a = (args.account ?? {}) as Record<string, unknown>;
   const bpRaw = p.buying_power;
-  const bp = num(typeof bpRaw === "object" && bpRaw ? (bpRaw as Record<string, unknown>).buying_power : bpRaw) ?? 0;
+  // Missing BP stays NaN → evaluateRhBuyingPower refuses "bp_unknown" (fail closed, distinct from $0).
+  const bp = num(typeof bpRaw === "object" && bpRaw ? (bpRaw as Record<string, unknown>).buying_power : bpRaw) ?? Number.NaN;
   const kind = String(a.brokerage_account_type ?? "individual");
   const label = args.label ?? `${kind.charAt(0).toUpperCase()}${kind.slice(1)} ${maskAccount(a.account_number as string)}`;
   return {
     label,
+    accountNumber: typeof a.account_number === "string" ? a.account_number : null,
     accountType: String(a.type ?? "unknown"),
     cash: num(p.cash) ?? 0,
     buyingPower: bp,
@@ -56,6 +58,7 @@ export function rhAccountFromPortfolio(args: {
  */
 export const RH_DESK_ACCOUNT_SNAPSHOT: RhAccountSnapshot = {
   label: "Individual ••7477",
+  accountNumber: "415577477", // display-only — never the trade account
   accountType: "cash",
   cash: 984.12,
   buyingPower: 11.56,

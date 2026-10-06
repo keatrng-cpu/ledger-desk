@@ -42,6 +42,9 @@ export {
   DEFAULT_MANAGER_ROOM_ACCOUNT,
   managerAccountLine,
   managerRhAccountFromConnector,
+  RH_AGENTIC_SNAPSHOT_2026_10_06,
+  RH_INDIVIDUAL_ACCOUNT_MASK_LAST4,
+  RH_INDIVIDUAL_ACCOUNT_NUMBER,
   RH_INDIVIDUAL_SNAPSHOT_2026_10_06,
   RH_PREFERRED_ACCOUNT_LABEL,
   RH_PREFERRED_ACCOUNT_MASK_LAST4,
@@ -55,9 +58,11 @@ export { rhAccountFromPortfolio, RH_DESK_ACCOUNT_SNAPSHOT, maskAccount } from ".
 export {
   evaluateRhAutofireGates,
   evaluateRhBuyingPower,
+  evaluateRhFloorRules,
   evaluateRhTicketEnvelope,
   rhSpendable,
   RH_BP_MAX_AGE_MS,
+  RH_MAX_TAPE_AGE_SEC,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   RH_PATH_FLOOR,
   RH_MIN_DEBIT_TOTAL,
@@ -200,7 +205,7 @@ export function mayPlaceAfterReview(args: {
   reviewHadBlockingAlert: boolean;
   agenticAllowed: boolean;
   optionsLevelOk: boolean;
-  /** ManagerRoomState.account — when the key is present, accountPlaceGate must pass. */
+  /** ManagerRoomState.account — REQUIRED; absent/null → refuse (was fail-open). */
   account?: ManagerRhAccount | null;
   /** Fresh get_portfolio read taken after review_option_order. Missing → refuse. */
   accountAtReview?: RhAccountSnapshot | null;
@@ -217,10 +222,9 @@ export function mayPlaceAfterReview(args: {
   }
   if (!args.agenticAllowed) return { ok: false, reason: "Robinhood account agentic_allowed=false — read-only." };
   if (!args.optionsLevelOk) return { ok: false, reason: "Options level < 2 — cannot buy calls/puts." };
-  if ("account" in args) {
-    const acct = accountPlaceGate(args.account);
-    if (!acct.ok) return acct;
-  }
+  // Fail closed: no Manager account block (Agentic 995386158, BP >= $150) → never place.
+  const acct = accountPlaceGate(args.account ?? null, { requiredDebitUsd: args.debitTotal ?? null });
+  if (!acct.ok) return { ok: false, reason: acct.reason };
   if (args.reviewHadBlockingAlert) {
     return { ok: false, reason: "review_option_order surfaced a blocking alert — human must acknowledge before place." };
   }
@@ -257,6 +261,10 @@ export function candidateFromFloorPathStand(args: {
   oneBookBlocked: boolean;
   /** Fresh get_portfolio read (rhAccountFromPortfolio). Missing → gates refuse bp_unknown. */
   account?: RhAccountSnapshot | null;
+  /** Floor rule signals (missing → refuse). TODO(floor): feed from the live Floor card. */
+  ceTouch?: boolean | null;
+  tapeAgeSec?: number | null;
+  dte?: number | null;
 }): RhAutofireCandidate {
   const f = args.floor;
   const agreeArgs: {
@@ -279,6 +287,9 @@ export function candidateFromFloorPathStand(args: {
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
     account: args.account ?? null,
+    ceTouch: args.ceTouch ?? null,
+    tapeAgeSec: args.tapeAgeSec ?? null,
+    dte: args.dte ?? null,
   };
 }
 

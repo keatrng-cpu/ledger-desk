@@ -30,6 +30,10 @@ export async function verifyManagerAgree(gates, rh, check, ARMED_FLAGS, FUNDED =
     oneBookBlocked: false,
     // Fresh funded get_portfolio read so the BP gate is not what these checks hit.
     account: FUNDED,
+    // Floor rule signals (fail closed when missing).
+    ceTouch: true,
+    tapeAgeSec: 5,
+    dte: 1,
   };
 
   const fromManager = rh.candidateFromFloorPathStand({
