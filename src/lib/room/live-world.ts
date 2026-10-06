@@ -229,7 +229,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
     const b = books[u];
     const plan = planFor(c, b.smc.plan);
-    const read = plan ? readEntry(plan as Parameters<typeof readEntry>[0], b.quote.price, c.plan?.atr ?? b.draw.atr || null) : null;
+    const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
     return { u, b, plan, read };
   };
   const live = ranked.find((c) => {
@@ -269,7 +269,7 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
       const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
       const b = booksOf(desk)[u];
       const plan = planFor(c, b.smc.plan);
-      const read = plan ? readEntry(plan as Parameters<typeof readEntry>[0], b.quote.price, c.plan?.atr ?? b.draw.atr || null) : null;
+      const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
       return {
         key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
         name: `${c.pathBand} ${c.symbol} ${c.side}`,
