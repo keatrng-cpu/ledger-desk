@@ -2,7 +2,7 @@
  * Live reads for Floor command cards — SAME sources each tab uses.
  * No invented numbers. Honest empty / offline / stale.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { getNewsFeed } from "@/lib/news/news-server";
 import { dedupe, orderItems, tagItem, type Tagged } from "@/lib/news/feed";
@@ -26,6 +26,7 @@ import { MODULES } from "@/lib/learn/curriculum";
 import { nextAiSyncCheckpoint, fmtAiSyncCountdown } from "@/lib/coach/ai-sync";
 import { schoolRings } from "./school-rings";
 import type { CardRead, CommandTabId } from "./types";
+import { labGovernorFromState, labGovernorFromError } from "@/lib/ui/lab-governor-read";
 
 const DONE_KEY = "ledger.learn.done";
 
@@ -250,35 +251,21 @@ function useBookRead(): CardRead {
   }, [ready]);
 }
 
-/** Lab: risk governor state. */
+/** Lab: risk governor state. Null = signed out (sign in OK). Catch = unknown (never sign in). */
 function useLabRead(): CardRead {
   const [read, setRead] = useState<CardRead>({ status: "loading", primary: "Loading governor…" });
+  // Last successful non-null RiskState timestamp — used when a later read fails.
+  const lastGoodAtMs = useRef<number | null>(null);
   useEffect(() => {
     let cancelled = false;
     void getRiskState()
       .then((r: RiskState | null) => {
         if (cancelled) return;
-        if (!r) {
-          setRead({ status: "offline", primary: "Governor offline — sign in for live PnL." });
-          return;
-        }
-        const halt = r.dailyHaltHit || r.weeklyHaltHit || r.killzoneCapHit;
-        const bits = [
-          `Day ${usd(r.dayPnl)} / −${usd(r.dailyLimit)}`,
-          `Week ${usd(r.weekPnl)} / −${usd(r.weeklyLimit)}`,
-          `${r.killzoneLabel} ${r.entriesThisKillzone}/${r.killzoneCap}`,
-        ];
-        setRead({
-          status: halt ? "stale" : "live",
-          primary: halt
-            ? `HALTED · ${r.dailyHaltHit ? "daily" : r.weeklyHaltHit ? "weekly" : "killzone cap"}`
-            : `Open ${r.openTrades} · ${bits[2]}`,
-          lines: bits,
-          title: "Risk governor (same as Lab)",
-        });
+        if (r) lastGoodAtMs.current = Date.now();
+        setRead(labGovernorFromState(r));
       })
       .catch(() => {
-        if (!cancelled) setRead({ status: "offline", primary: "Governor offline — sign in for live PnL." });
+        if (!cancelled) setRead(labGovernorFromError(lastGoodAtMs.current));
       });
     return () => {
       cancelled = true;

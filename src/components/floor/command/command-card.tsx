@@ -7,6 +7,7 @@ const STATUS_CLS: Record<CardRead["status"], string> = {
   offline: "border-[color-mix(in_oklab,var(--color-down)_40%,transparent)]",
   stale: "border-[color-mix(in_oklab,var(--color-warn)_40%,transparent)]",
   loading: "border-[var(--color-border)] opacity-70",
+  unknown: "border-[color-mix(in_oklab,var(--color-down)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_8%,transparent)]",
 };
 
 const CHIP: Record<"up" | "down" | "warn" | "muted", string> = {

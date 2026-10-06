@@ -33,7 +33,7 @@ export const COMMAND_CARDS: readonly CommandCardDef[] = [
   { id: "learn", label: "Learn", openTab: "learn" },
 ] as const;
 
-export type CardStatus = "live" | "empty" | "offline" | "stale" | "loading";
+export type CardStatus = "live" | "empty" | "offline" | "stale" | "loading" | "unknown";
 
 export interface CardRead {
   status: CardStatus;
