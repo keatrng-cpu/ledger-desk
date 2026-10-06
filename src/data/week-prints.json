@@ -173,5 +173,12 @@
     "actual": "54.9",
     "vs": "exp ~55.0 / prev 55.4",
     "note": "ISM official Oct 5 10:00 ET. 27th expansion month. Business activity 56.5 (from 61.7), new orders 59.8, employment 50.1 (from 47.8), prices 74.0 (from 72.6, highest since Jul 2022). Slight headline miss, still expansion. Prices hot. No JOLTS/ADP/claims/NFP today."
+  },
+  {
+    "date": "2026-10-06",
+    "name": "ADP NER Pulse (4 wks ending Sep 19)",
+    "actual": "+23.75k/wk",
+    "vs": "prior +20k / no consensus",
+    "note": "ADP official Oct 6 8:15 ET. Weekly pulse, not monthly ADP. No ISM/JOLTS/claims/NFP today. Trade (not a stamp series) BEA Aug deficit -$105.6B vs Jul rev -$92.8B."
   }
 ]

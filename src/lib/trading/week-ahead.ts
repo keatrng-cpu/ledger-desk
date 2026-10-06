@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug Tue 8:30 — not printed as of ~8:00 ET. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds unchanged into Tue: FedWatch 22.1% +25 / 77.9% hold (Oct 4); CNBC Mon still ~22% (was 64% a week ago). CPI Sep is Wed Oct 14, not this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds little changed: FedWatch 22.7% +25 / 77.3% hold (Oct 6) vs 22.1/77.9 Oct 4. CPI Sep is Wed Oct 14, not this week.",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -291,8 +291,8 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
       weekday: "Tue",
       dailyBias: "Selective. Trade is not the week's raid.",
       kind: "selective",
-      news: [{ timeEt: "08:30", name: "International Trade (Aug)", impact: "medium", note: "BEA schedule Oct 6 8:30 ET. Goods and services, August. Not a PATH trigger by itself." }],
-      likelyTape: "Mon already took both PWH and held. Tue globex into ~8:00 ET extended the week: NQ ~30,957.50–31,458 (Tue ~31,310–31,458), ES ~7,760.25–7,862 (Tue 7,829–7,862, through Sep 21–25 7,848.50). Trade 8:30 not printed. Not a directional call.",
+      news: [{ timeEt: "08:30", name: "International Trade (Aug)", impact: "medium", note: "BEA official Oct 6 8:30 ET. Deficit −$105.6B vs Jul rev −$92.8B. Not a PATH trigger." }],
+      likelyTape: "Trade −$105.6B vs Jul rev −$92.8B. NQ session 31,309.25–31,616.50 last ~31,497, stayed above PWH 31,282.50. ES 7,829.25–7,897.50 last ~7,877, stayed above PWH 7,810 and Sep 21–25 7,848.50. No fail back inside. Held extension, not a new HTF trend.",
       trade: "Mechanical only if Mon left a clean dealing range and MSS + IFVG after 9:45. Do not chase the globex extension. Do not treat 8:30 as NFP.",
       skipIf: "Chop, or already booked Monday. No chase of the overnight high.",
       pathNote: "PWH/PWL seed unchanged. Live CWH/CWL from bars. Next is Wed minutes 14:00. Flatten before 13:45.",
