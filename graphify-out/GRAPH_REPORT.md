@@ -10,22 +10,68 @@
 
 ## 1. God nodes (highest connectivity)
 
-In-degree = number of `import … from` statements under `src/` that resolve to the module (relative and `@/` imports; counted by Graph Keeper with a one-off script, not Graphify). `EXTRACTED`.
+**Method (recounted 2026-10-06 after Accuracy Review, at `main` @ `008cbec`, shallow clone):** in-degree = number of `import … from` / `export … from` statements in the 400 `.ts`/`.tsx` files under `src/` whose module specifier resolves to a file in the repo. Specifiers resolved: relative paths and the `@/` alias (`tsconfig.json` `paths`: `@/*` → `./src/*`), trying `.ts`, `.tsx`, `/index.ts`, `/index.tsx`. Parsed with the TypeScript compiler API (`ts.createSourceFile`, top-level statements only), so import examples inside comments are **not** counted. Not counted: bare package imports, side-effect imports with no `from` (e.g. CSS), and dynamic `import()`. `import type` **is** counted. Totals: 1,710 resolved statements into 413 target files (394 `.ts`/`.tsx` modules + 19 JSON data files imported directly, 23 statements; no JSON file reaches the ≥ 10 cut). One specifier did not resolve (`src/routes/__root.tsx` → `../styles.css?url`, a Vite asset query) and is excluded. "Distinct importing files" is shown beside the statement count because some files import the same module twice (type + value). Ties are ordered by distinct importers, then path. Every module with ≥ 10 statements is listed. `EXTRACTED`.
 
-| Rank | Module | Imported by (count) | Role (from `CLAUDE.md` code map unless noted) |
-|---|---|---|---|
-| 1 | `src/lib/trading/sessions.ts` | 69 | Killzones + `isJudasWindow` |
-| 2 | `src/lib/aplus/config.ts` | 52 | Non-negotiable numbers (`confluenceFloor: 0.65`); **code wins** over docs |
-| 3 | `src/lib/utils.ts` | 48 | Shared utilities (INFERRED from name) |
-| 4 | `src/lib/market/types.ts` | 46 | Market data types (INFERRED from name) |
-| 5 | `src/lib/trading/build-desk.ts` | 46 | Assembles the desk payload (freshest quotes) |
-| 6 | `src/lib/trading/scanner.ts` | 36 | Per-strategy grade + candidate; vetoes as flags |
-| 7 | `src/lib/room/orchestrator.ts` | 32 | Trading floor cycle (paper only) |
-| 8 | `src/lib/db.ts` | 28 | Database access (INFERRED from name) |
-| 9 | `src/lib/room/option-math.ts` | 27 | Room option math |
-| 10 | `src/lib/auth/middleware.ts` | 22 | Auth middleware (INFERRED from name) |
+*Correction vs seed @ `8ced8f4`:* the seed used a regex that also matched import examples in doc comments (`db.ts` 28 → 27, `auth/middleware.ts` 22 → 21). It also put `invest/universe.ts` (20) in the 13–19 tier and left 8 modules out of that tier (`components/ui/button`, `trading/desk-memory`, `journal/risk`, `room/lab`, `invest/dossiers`, `trading/evidence`, `trading/paper-manager`, `alerts/path-alarm`).
 
-Next tier (13–19 imports): `invest/universe`, `trading/trade-plan`, `trading/structure`, `trading/smc-master`, `room/mandate`, `room/live-types`, `trading/profit-rules`, `trading/draw`. `EXTRACTED`.
+**Tier 1 — 40+ statements** (5 modules)
+
+| Rank | Module | Import statements | Distinct importing files | Role |
+|---|---|---|---|---|
+| 1 | `src/lib/trading/sessions.ts` | 69 | 65 | Killzones + `isJudasWindow` (CLAUDE.md code map) |
+| 2 | `src/lib/aplus/config.ts` | 52 | 52 | Non-negotiable numbers (`confluenceFloor: 0.65`); **code wins** over docs (CLAUDE.md) |
+| 3 | `src/lib/utils.ts` | 48 | 48 | Shared utilities (INFERRED from name) |
+| 4 | `src/lib/market/types.ts` | 46 | 46 | Market data types (INFERRED from name) |
+| 5 | `src/lib/trading/build-desk.ts` | 46 | 46 | Assembles the desk payload (CLAUDE.md code map) |
+
+**Tier 2 — 20–39** (6 modules)
+
+| Rank | Module | Import statements | Distinct importing files | Role |
+|---|---|---|---|---|
+| 6 | `src/lib/trading/scanner.ts` | 36 | 35 | Per-strategy grade + candidate; vetoes as flags (CLAUDE.md code map) |
+| 7 | `src/lib/room/orchestrator.ts` | 32 | 31 | Trading floor cycle, paper only (CLAUDE.md code map) |
+| 8 | `src/lib/db.ts` | 27 | 27 | Database access (INFERRED from name) |
+| 9 | `src/lib/room/option-math.ts` | 27 | 26 | Room option math (CLAUDE.md code map) |
+| 10 | `src/lib/auth/middleware.ts` | 21 | 21 | Auth middleware (INFERRED from name) |
+| 11 | `src/lib/invest/universe.ts` | 20 | 18 | Dossier schema, wash-sale ban list, completeness gate (CLAUDE.md code map) |
+
+**Tier 3 — 13–19** (15 modules)
+
+| Rank | Module | Import statements | Distinct importing files | Role |
+|---|---|---|---|---|
+| 12 | `src/lib/trading/trade-plan.ts` | 19 | 19 | — |
+| 13 | `src/lib/trading/smc-master.ts` | 18 | 18 | — |
+| 14 | `src/lib/trading/structure.ts` | 18 | 17 | — |
+| 15 | `src/components/ui/button.tsx` | 17 | 17 | — |
+| 16 | `src/lib/room/live-types.ts` | 17 | 17 | — |
+| 17 | `src/lib/room/mandate.ts` | 17 | 16 | — |
+| 18 | `src/lib/trading/profit-rules.ts` | 16 | 16 | — |
+| 19 | `src/lib/trading/draw.ts` | 16 | 14 | — |
+| 20 | `src/lib/trading/desk-memory.ts` | 15 | 13 | — |
+| 21 | `src/lib/journal/risk.ts` | 14 | 14 | — |
+| 22 | `src/lib/room/lab.ts` | 14 | 13 | — |
+| 23 | `src/lib/invest/dossiers.ts` | 13 | 13 | — |
+| 24 | `src/lib/trading/evidence.ts` | 13 | 13 | — |
+| 25 | `src/lib/trading/paper-manager.ts` | 13 | 13 | — |
+| 26 | `src/lib/alerts/path-alarm.ts` | 13 | 12 | — |
+
+**Tier 4 — 10–12** (13 modules)
+
+| Rank | Module | Import statements | Distinct importing files | Role |
+|---|---|---|---|---|
+| 27 | `src/lib/room/agents.ts` | 12 | 12 | — |
+| 28 | `src/lib/invest/store.ts` | 11 | 11 | — |
+| 29 | `src/lib/room/exec/limits.ts` | 11 | 11 | — |
+| 30 | `src/lib/room/format.ts` | 11 | 11 | — |
+| 31 | `src/lib/room/paper-book.ts` | 11 | 11 | — |
+| 32 | `src/lib/trading/detectors.ts` | 11 | 11 | — |
+| 33 | `src/lib/trading/entry-trigger.ts` | 11 | 11 | — |
+| 34 | `src/lib/trading/news.ts` | 11 | 11 | — |
+| 35 | `src/lib/trading/smc-board.ts` | 11 | 11 | — |
+| 36 | `src/lib/predict/math.ts` | 10 | 10 | — |
+| 37 | `src/lib/trading/rh-income.ts` | 10 | 10 | — |
+| 38 | `src/lib/invest/book.ts` | 10 | 9 | — |
+| 39 | `src/lib/invest/policy.ts` | 10 | 8 | — |
 
 **Canon god node (non-code):** `CLAUDE.md` — referenced by `AGENTS.md` as the full protocol + code map (`EXTRACTED`); after merge, `ai/NOW.md` becomes the session entry point (`INFERRED`/proposed).
 

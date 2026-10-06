@@ -27,7 +27,7 @@ Both research branches also carry copies of the two `main` briefs (same blob SHA
 
 | Doc | Branch @ commit | Path | Owner |
 |---|---|---|---|
-| HANDOFF — Desk implementation plan owner assignments | `coord/2026-10-06-desk-assignments` @ [`defa9e0`](https://github.com/keatrng-cpu/ledger-desk/commit/defa9e083ab61b1df47d812b89aeb781cafad419) | `ai/HANDOFF.md` (blob `71fcaa1`) | Dual Desk |
+| HANDOFF — Desk implementation plan owner assignments | `coord/2026-10-06-desk-assignments` @ [`ceb62b7`](https://github.com/keatrng-cpu/ledger-desk/commit/ceb62b72f0cdd5985bf1a950d4d0331289b2916d) (first committed at [`defa9e0`](https://github.com/keatrng-cpu/ledger-desk/commit/defa9e083ab61b1df47d812b89aeb781cafad419)) | `ai/HANDOFF.md` (blob `7023398` at `ceb62b7`) | Dual Desk |
 
 ## Other repo docs agents commonly need (on `main`, not research)
 
