@@ -1039,7 +1039,11 @@ export interface DealingData {
 export function exDealing(c: Ctx, d: DealingData): Ex | null {
   const f = c.f;
   const rule =
-    d.zone === "premium" ? "Shorts live up here; longs don't." : d.zone === "discount" ? "Longs live down here; shorts don't." : "Equilibrium. Nobody's trade.";
+    d.zone === "premium"
+      ? "Premium — above the dealing-range midpoint. Shorts belong here. A long from here is the wrong half."
+      : d.zone === "discount"
+        ? "Discount — below the midpoint. Longs belong here. A short from here is the wrong half."
+        : "Equilibrium — the midpoint of the dealing range. Not premium, not discount.";
   const lines = compact([
     line("Gemma", ANIM.Gemma.wall!, pick(c, "hb.deal.gemma", [
       () => `${d.b.say} sits ${f.pct(d.posPct)} up the range ${f.lvl(d.low)}–${f.lvl(d.high)} — ${d.zone}. ${rule}`,
@@ -1106,9 +1110,9 @@ export function exBoard(c: Ctx, d: BoardData): Ex | null {
   const k = d.card;
   const lines = compact([
     line("Vince", ANIM.Vince.watch!, pick(c, "hb.board.vince", [
-      () => `Best card on the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}${k.pT1 != null ? `, P(T1) ${f.frac(k.pT1)}` : ""}${k.expR != null ? `, E[R] ${signed(k.expR)}${f.r(k.expR)} a fill` : ""}.`,
-      () => `Top of the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}${k.pT1 != null ? `. ${f.frac(k.pT1)} to T1 if filled` : ""}.`,
-      () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide} is the one to watch${k.expR != null ? ` — ${signed(k.expR)}${f.r(k.expR)} a fill on the model` : ""}.`,
+      () => `${f.raw(k.name)}. ${k.setup ? f.raw(k.setup) : "No confluence tagged on it."}`,
+      () => `Top of the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}. ${k.setup ? f.raw(k.setup) : ""}`,
+      () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide}. Buy-side sits above the highs, sell-side under the lows. ${k.setup ? f.raw(k.setup) : "Nothing tagged."}`,
     ])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, "hb.board.sterling", [
       () => (k.block ? `${k.verdict === "ARMED" ? "Armed, but " : "Held back by: "}${f.raw(clip(k.block, 90))}.` : `Nothing blocking it. The touch is what's missing.`),

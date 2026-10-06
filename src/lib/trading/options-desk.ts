@@ -1145,7 +1145,10 @@ export function evaluateOptionsDesk(
     htfSwingCard(swingSignal, desk, sleeve, cap),
   ];
 
-  const best = cards.filter((c) => c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  const dayBest = cards.filter((c) => c.horizon === "day" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  const swingBest = cards.filter((c) => c.horizon === "swing" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  // The session sequence wins. A swing card does not take the fill away from a day setup that is already armed.
+  const best = dayBest ?? swingBest;
   const day = cards.filter((c) => c.horizon === "day");
   const swing = cards.filter((c) => c.horizon === "swing");
 
@@ -1163,7 +1166,7 @@ export function evaluateOptionsDesk(
       ok: desk.bias.left.topDown !== "neutral" || desk.bias.right.topDown !== "neutral",
       label: "HTF not neutral",
     },
-    { id: "path", ok: Boolean(path), label: "PATH A+/A/A− (day tickets)" },
+    { id: "path", ok: Boolean(path), label: path ? `PATH ${path.pathBand || path.grade} ${path.symbol} ${path.side}` : "No PATH card" },
     {
       id: "week",
       ok: dayPlan?.kind !== "holiday",

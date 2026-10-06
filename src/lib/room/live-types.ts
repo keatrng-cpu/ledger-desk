@@ -220,6 +220,8 @@ export interface CardRead {
   expR: number | null;
   block: string | null;
   strategy: string | null;
+  /** The confluences on the card, in the words those words actually mean. */
+  setup: string | null;
 }
 
 export interface MindsRead {

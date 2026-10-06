@@ -13,6 +13,7 @@ import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
+import { setupLine } from "@/lib/trading/score-drivers";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import { volumeRatio } from "@/lib/trading/session-event";
@@ -256,6 +257,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     expR: c.hitOdds?.expR ?? null,
     block: c.missing?.[0] ?? c.vetoes?.[0] ?? null,
     strategy: c.completeStrategy || c.strategyPrimary || null,
+    setup: setupLine(c.components ?? [], c.completeStrategy || c.strategyPrimary || null),
   };
 }
 
