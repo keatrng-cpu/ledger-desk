@@ -794,9 +794,9 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
   if (winsNeed != null) {
     out.push({
       id: "frequency",
-      severity: expectedTickets < winsNeed ? "blocker" : "warn",
-      title: "The desk does not offer enough tickets",
-      detail: `At the cap, ${winsNeed} winning ticket${winsNeed === 1 ? "" : "s"} in a row would reach ${money(read.spec.target)}. The desk's measured rate is ${ctx.lambda.toFixed(2)} qualifying tickets a session — about ${expectedTickets.toFixed(1)} in the ${left} session${left === 1 ? "" : "s"} left — and the rules cap the window at ${ctx.tradeBudget}.`,
+      severity: "info",
+      title: `${winsNeed} straight winners at this size is the whole goal`,
+      detail: `At the cap, ${winsNeed} winning ticket${winsNeed === 1 ? "" : "s"} in a row would reach ${money(read.spec.target)}. That is the pace if every one won — not a reason to stand down. We still take every B+ the chart clears. The desk's measured rate is ${ctx.lambda.toFixed(2)} a session, about ${expectedTickets.toFixed(1)} in the ${left} left.`,
       decision: null,
       ask: false,
     });
