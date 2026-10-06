@@ -1,5 +1,5 @@
 /**
- * The Mead Hall — a purple-and-gold sports bar for prediction markets.
+ * The Mead Hall — a plum-and-amber sports bar for prediction markets.
  *
  * Data: the real PredictionMarketFeed (`getPredictionMarketFeed`, Kalshi
  * public read-only — broad sports / econ / politics, ranked by setup quality,
@@ -26,7 +26,7 @@ const BTN =
   "inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-40";
 const INPUT = "rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-0.5 text-[12px] text-[var(--color-fg)]";
 
-const REACT_COLOR: Record<Reaction, string> = { cheer: "#22c55e", groan: "#ef4444", skol: MEAD.gold };
+const REACT_COLOR: Record<Reaction, string> = { cheer: "#22c55e", groan: "#ef4444", hail: MEAD.gold };
 
 function useMeadFeed(): [PredictionMarketFeedState, MeadFeed | null] {
   const feed = useRef<MeadFeed | null>(null);
@@ -81,7 +81,7 @@ function PaperTicket({ draft, onClose }: { draft: TicketDraft; onClose: () => vo
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3" role="dialog" aria-modal="true" aria-label="Paper ticket" data-testid="mead-ticket">
-      <div className="w-full max-w-md rounded-xl border-2 p-4 shadow-2xl" style={{ borderColor: MEAD.gold, background: "linear-gradient(180deg,#2a1250,#170a2e)" }}>
+      <div className="w-full max-w-md rounded-xl border-2 p-4 shadow-2xl" style={{ borderColor: MEAD.gold, background: "linear-gradient(180deg,#1a0d2e,#0d0618)" }}>
         <div className="mb-2 flex items-start justify-between gap-2">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: MEAD.gold }}>
@@ -265,7 +265,7 @@ export default function MeadHallTab() {
           {hover && <span className="rounded bg-black/70 px-2 py-0.5 text-[11px]" style={{ color: MEAD.gold }}>{hover}</span>}
         </div>
         {flash && (
-          <div className="pointer-events-none absolute left-1/2 top-6 -translate-x-1/2 rounded-full px-4 py-1 text-xl font-black" style={{ background: REACT_COLOR[flash.r], color: flash.r === "skol" ? "#170a2e" : "#fff" }}>
+          <div className="pointer-events-none absolute left-1/2 top-6 -translate-x-1/2 rounded-full px-4 py-1 text-xl font-black" style={{ background: REACT_COLOR[flash.r], color: flash.r === "hail" ? "#0d0618" : "#fff" }}>
             {flash.line}
           </div>
         )}
@@ -278,16 +278,16 @@ export default function MeadHallTab() {
           </button>
         )}
         <div className="absolute bottom-2 right-2 flex flex-wrap gap-1">
-          {(["overview", "jumbotron", "skol", "bar"] as const).map((w) => (
+          {(["overview", "jumbotron", "board", "bar"] as const).map((w) => (
             <button key={w} type="button" className={`${BTN} bg-black/60`} onClick={() => scene.current?.look(w)}>
-              <Camera className="h-3 w-3" /> {w === "skol" ? "Skol Board" : w[0].toUpperCase() + w.slice(1)}
+              <Camera className="h-3 w-3" /> {w === "board" ? "Rune Board" : w[0].toUpperCase() + w.slice(1)}
             </button>
           ))}
         </div>
         <div className="absolute bottom-2 left-2 flex gap-1">
-          {(["cheer", "groan", "skol"] as const).map((r) => (
+          {(["cheer", "groan", "hail"] as const).map((r) => (
             <button key={r} type="button" className={`${BTN} bg-black/60`} onClick={() => scene.current?.react(r)} title="Preview a crowd reaction — presentation only">
-              {r === "skol" ? "Skol!" : r[0].toUpperCase() + r.slice(1)}
+              {r === "hail" ? "Hail!" : r[0].toUpperCase() + r.slice(1)}
             </button>
           ))}
         </div>
@@ -341,7 +341,7 @@ export default function MeadHallTab() {
             <div className="text-[12px] text-[var(--color-muted)]">Nothing featured yet.</div>
           )}
           <p className="mt-3 text-[10px] leading-snug text-[var(--color-muted)]">
-            {state.note} Mood follows the scanner words (GO → ENTER, LIMIT → ARMED, a B setup → STALKING). The crowd cheers, groans or shouts Skol as prices move —
+            {state.note} Mood follows the scanner words (GO → ENTER, LIMIT → ARMED, a B setup → STALKING). The crowd cheers, groans or shouts Hail as prices move —
             presentation only, never a signal.
           </p>
         </section>

@@ -1,8 +1,9 @@
 /**
  * The Mead Hall's screens — plain 2D canvas, uploaded as three.js textures.
  *
- * Original Norse art only (knotwork borders, a horned helmet). No team or
- * league marks anywhere: the hall is purple and gold, not anyone's logo.
+ * Original Norse art only (knotwork borders, nasal/spectacle iron helm).
+ * Vikings-inspired plum + amber palette (original hexes, not team brand colors).
+ * No war-chant / team branding, no league marks. Generic Norse only.
  * Presentation only — every number drawn here comes from the
  * PredictionMarketFeed state handed in; nothing is computed into a signal.
  */
@@ -63,11 +64,13 @@ export function eventLabel(m: PredictionMarket): string {
 }
 
 export const MEAD = {
-  purple: "#4F2683",
-  purpleDeep: "#2a1250",
-  purpleInk: "#170a2e",
-  gold: "#FFC62F",
-  goldDim: "#b98a1c",
+  /** Deeper plum — Vikings-inspired, not the team brand purple. */
+  purple: "#2e1848",
+  purpleDeep: "#1a0d2e",
+  purpleInk: "#0d0618",
+  /** Amber/brass gold — Vikings-inspired, not the team brand gold. */
+  gold: "#e6b422",
+  goldDim: "#b8891a",
   white: "#f8f5ee",
   yes: "#22c55e",
   no: "#ef4444",
@@ -137,44 +140,58 @@ export function knotBorder(ctx: CanvasRenderingContext2D, x: number, y: number, 
   ctx.restore();
 }
 
-/** An original horned helmet (Norse, generic) — used on the runner, the neon and the TVs. */
-export function helmet(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, fill: string = MEAD.gold, stroke: string = MEAD.purpleInk) {
+/** Generic Norse nasal/spectacle iron helm (no cartoon white horns) — runner, neon, TVs. */
+export function helmet(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, fill: string = "#8a9099", stroke: string = MEAD.purpleInk) {
   ctx.save();
   ctx.translate(cx, cy);
   ctx.scale(s / 100, s / 100);
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 5;
   ctx.strokeStyle = stroke;
-  ctx.fillStyle = MEAD.white;
-  // horns
-  for (const side of [-1, 1]) {
-    ctx.beginPath();
-    ctx.moveTo(side * 38, 0);
-    ctx.quadraticCurveTo(side * 78, -6, side * 74, -62);
-    ctx.quadraticCurveTo(side * 60, -24, side * 30, -22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-  // dome
+  // Iron dome
   ctx.fillStyle = fill;
   ctx.beginPath();
-  ctx.arc(0, 8, 44, Math.PI, 0);
-  ctx.lineTo(44, 22);
-  ctx.lineTo(-44, 22);
+  ctx.arc(0, 6, 46, Math.PI, 0);
+  ctx.lineTo(46, 20);
+  ctx.lineTo(-46, 20);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  // band + rivets + nasal guard
-  ctx.fillStyle = MEAD.purple;
-  ctx.fillRect(-46, 12, 92, 14);
-  ctx.strokeRect(-46, 12, 92, 14);
-  ctx.fillStyle = fill;
-  ctx.fillRect(-7, 12, 14, 38);
-  ctx.strokeRect(-7, 12, 14, 38);
-  ctx.fillStyle = MEAD.white;
-  for (const rx of [-34, -20, 20, 34]) {
+  // Brow / spectacle mask (Gjermundbu-inspired eye guard)
+  ctx.fillStyle = "#6b7280";
+  ctx.beginPath();
+  ctx.moveTo(-40, 8);
+  ctx.quadraticCurveTo(-28, 28, -14, 22);
+  ctx.lineTo(-6, 14);
+  ctx.lineTo(6, 14);
+  ctx.lineTo(14, 22);
+  ctx.quadraticCurveTo(28, 28, 40, 8);
+  ctx.lineTo(40, 18);
+  ctx.quadraticCurveTo(22, 36, 8, 28);
+  ctx.lineTo(0, 20);
+  ctx.lineTo(-8, 28);
+  ctx.quadraticCurveTo(-22, 36, -40, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Nasal guard
+  ctx.fillStyle = "#9ca3af";
+  ctx.beginPath();
+  ctx.moveTo(-6, 12);
+  ctx.lineTo(6, 12);
+  ctx.lineTo(5, 48);
+  ctx.lineTo(0, 54);
+  ctx.lineTo(-5, 48);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Rim band + iron rivets (not ivory)
+  ctx.fillStyle = "#4b5563";
+  ctx.fillRect(-48, 16, 96, 10);
+  ctx.strokeRect(-48, 16, 96, 10);
+  ctx.fillStyle = "#d1d5db";
+  for (const rx of [-36, -18, 18, 36]) {
     ctx.beginPath();
-    ctx.arc(rx, 19, 3, 0, Math.PI * 2);
+    ctx.arc(rx, 21, 2.5, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -333,9 +350,9 @@ export function jumboHit(px: number, py: number, s: PredictionMarketFeedState): 
   return null;
 }
 
-/* ── Skol Board (chalkboard) ────────────────────────────────────────────── */
+/* ── Rune Board (chalkboard) ────────────────────────────────────────────── */
 
-export function drawSkolBoard(c: HTMLCanvasElement, s: PredictionMarketFeedState) {
+export function drawRuneBoard(c: HTMLCanvasElement, s: PredictionMarketFeedState) {
   const ctx = c.getContext("2d")!;
   const W = c.width;
   const H = c.height;
@@ -354,7 +371,7 @@ export function drawSkolBoard(c: HTMLCanvasElement, s: PredictionMarketFeedState
   ctx.fillStyle = MEAD.chalk;
   ctx.textAlign = "center";
   ctx.font = `900 64px ${SLAB}`;
-  ctx.fillText("SKOL BOARD", W / 2, 130);
+  ctx.fillText("RUNE BOARD", W / 2, 130);
   ctx.font = `700 30px ${FONT}`;
   ctx.fillStyle = MEAD.gold;
   ctx.fillText("TODAY'S TOP SETUPS", W / 2, 180);
@@ -508,23 +525,23 @@ export function drawNeon(c: HTMLCanvasElement, on = 1) {
   glow("#c084fc", 40);
   ctx.strokeStyle = "#c084fc";
   ctx.stroke();
-  helmet(ctx, W / 2, 112, 110, MEAD.gold, "#3b0764");
+  helmet(ctx, W / 2, 96, 80);
   ctx.textAlign = "center";
-  glow(MEAD.gold, 36);
-  ctx.fillStyle = on > 0.5 ? "#ffe08a" : "#a07a2a";
-  ctx.font = `900 120px ${SLAB}`;
-  ctx.fillText("THE MEAD HALL", W / 2, 300);
-  glow("#e9d5ff", 30);
+  glow(MEAD.gold, 32);
+  ctx.fillStyle = on > 0.5 ? "#f0d060" : "#a07a2a";
+  ctx.font = `900 92px ${SLAB}`;
+  ctx.fillText("THE MEAD HALL", W / 2, 270);
+  glow("#e9d5ff", 26);
   ctx.fillStyle = "#f5e9ff";
-  ctx.font = `800 64px ${FONT}`;
-  ctx.fillText("— PREDICTIONS —", W / 2, 390);
+  ctx.font = `800 48px ${FONT}`;
+  ctx.fillText("— PREDICTIONS —", W / 2, 350);
   ctx.shadowBlur = 0;
   ctx.textAlign = "left";
 }
 
 /* ── Wall / floor textures ──────────────────────────────────────────────── */
 
-/** The football-field runner: purple turf, white yard lines, gold edges, a helmet at midfield. */
+/** The field runner: plum turf, white yard lines, amber edges, a nasal helm at midfield. */
 export function drawRunner(c: HTMLCanvasElement) {
   const ctx = c.getContext("2d")!;
   const W = c.width;
@@ -556,11 +573,11 @@ export function drawRunner(c: HTMLCanvasElement) {
   ctx.fillStyle = MEAD.gold;
   ctx.font = `900 64px ${SLAB}`;
   ctx.textAlign = "center";
-  ctx.fillText("SKOL", W / 2, H * 0.2);
+  ctx.fillText("MEAD", W / 2, H * 0.2);
   ctx.save();
   ctx.translate(W / 2, H * 0.8);
   ctx.rotate(Math.PI);
-  ctx.fillText("SKOL", 0, 0);
+  ctx.fillText("MEAD", 0, 0);
   ctx.restore();
   ctx.textAlign = "left";
 }
@@ -585,11 +602,11 @@ export function drawKnotPanel(c: HTMLCanvasElement, base: string = MEAD.purple) 
 }
 
 /** Speech bubble for crew / bartender reactions. */
-export function drawBubble(c: HTMLCanvasElement, text: string, tone: "up" | "down" | "skol" | "idle") {
+export function drawBubble(c: HTMLCanvasElement, text: string, tone: "up" | "down" | "hail" | "idle") {
   const ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
   if (!text) return;
-  const bg = tone === "skol" ? MEAD.gold : tone === "up" ? "#dcfce7" : tone === "down" ? "#fee2e2" : "#f8fafc";
+  const bg = tone === "hail" ? MEAD.gold : tone === "up" ? "#dcfce7" : tone === "down" ? "#fee2e2" : "#f8fafc";
   ctx.fillStyle = bg;
   ctx.beginPath();
   ctx.roundRect(6, 6, c.width - 12, c.height - 40, 24);
@@ -599,8 +616,8 @@ export function drawBubble(c: HTMLCanvasElement, text: string, tone: "up" | "dow
   ctx.lineTo(c.width / 2 + 18, c.height - 36);
   ctx.lineTo(c.width / 2, c.height - 6);
   ctx.fill();
-  ctx.fillStyle = tone === "skol" ? MEAD.purpleInk : "#0f172a";
-  ctx.font = `900 ${tone === "skol" ? 58 : 40}px ${FONT}`;
+  ctx.fillStyle = tone === "hail" ? MEAD.purpleInk : "#0f172a";
+  ctx.font = `900 ${tone === "hail" ? 58 : 40}px ${FONT}`;
   ctx.textAlign = "center";
   ctx.fillText(fit(ctx, text, c.width - 40), c.width / 2, (c.height - 34) / 2 + 18);
   ctx.textAlign = "left";

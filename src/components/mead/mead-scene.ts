@@ -1,9 +1,9 @@
 /**
- * The Mead Hall — a purple-and-gold sports bar for prediction markets.
+ * The Mead Hall — a plum-and-amber sports bar for prediction markets.
  *
  * Procedural three.js (no GLB): longship-carved bar with dragon prows, a
- * football-field runner to the jumbotron, booths with table screens, a pool
- * table, a Skol Board chalkboard, over-bar TVs and a neon sign. Original
+ * field runner to the jumbotron, booths with table screens, a pool
+ * table, a Rune Board chalkboard, over-bar TVs and a neon sign. Original
  * Norse art only — no team or league marks.
  *
  * Interaction follows the Floor (floor-scene.ts): the canvas takes the wheel
@@ -12,7 +12,7 @@
  * OwnerAvatar, walked with WASD while focused.
  *
  * PAPER ONLY. A tap on YES / NO (jumbotron boxes, bar tap handles, a TV, a
- * booth screen, a Skol Board row) calls `onTicket` — the tab opens a paper
+ * booth screen, a Rune Board row) calls `onTicket` — the tab opens a paper
  * ticket that writes the predict journal. Nothing here can reach a broker.
  */
 
@@ -30,13 +30,13 @@ import {
   drawKnotPanel,
   drawNeon,
   drawRunner,
-  drawSkolBoard,
+  drawRuneBoard,
   drawTapShield,
   drawTv,
   jumboHit,
 } from "./mead-screens";
 
-export type Reaction = "cheer" | "groan" | "skol";
+export type Reaction = "cheer" | "groan" | "hail";
 /** The desk's entry-state words, reused as the hall's mood (lighting only). */
 export type MeadMood = "WAIT" | "STALKING" | "ARMED" | "ENTER";
 export type TicketSide = "YES" | "NO";
@@ -65,7 +65,7 @@ const MOOD: Record<MeadMood, { glow: number; glowI: number }> = {
 const LINES: Record<Reaction, string[]> = {
   cheer: ["LET'S GO!", "Price is moving!", "Value!", "Pour another!"],
   groan: ["Oof…", "Come on!", "Brutal.", "Not the line…"],
-  skol: ["SKOL!", "SKOL!!", "SKOL! SKOL!"],
+  hail: ["HAIL!", "HAIL!!", "TO VALHALLA!"],
 };
 
 const damp = (cur: number, target: number, rate: number, dt: number) => cur + (target - cur) * (1 - Math.exp(-rate * dt));
@@ -197,21 +197,26 @@ class Person {
       this.head.add(beard);
     }
     if (look.helmet) {
-      const steel = mat("#9ca3af", 0.35, 0.8);
+      // Nasal/spectacle iron helm — no cartoon white horns on purple.
+      const steel = mat("#8a9099", 0.35, 0.75);
+      const iron = mat("#6b7280", 0.4, 0.7);
       const dome = new THREE.Mesh(new THREE.SphereGeometry(0.155, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), steel);
       dome.position.y = 0.02;
       this.head.add(dome);
-      const band = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.02, 6, 20), mat(MEAD.gold, 0.4, 0.6));
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.018, 6, 20), iron);
       band.rotation.x = Math.PI / 2;
       band.position.y = 0.03;
       this.head.add(band);
-      const ivory = mat(MEAD.white, 0.5);
+      // Spectacle brow (two eye rings joined)
       for (const side of [-1, 1]) {
-        const horn = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.24, 10), ivory);
-        horn.position.set(side * 0.18, 0.12, 0);
-        horn.rotation.z = -side * 0.9;
-        this.head.add(horn);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 6, 16), iron);
+        ring.position.set(side * 0.055, 0.0, 0.12);
+        this.head.add(ring);
       }
+      // Nasal guard
+      const nasal = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.025), steel);
+      nasal.position.set(0, -0.04, 0.14);
+      this.head.add(nasal);
     }
     const arm = (g: THREE.Group, side: number) => {
       g.position.set(side * 0.25, 0.56, 0);
@@ -238,11 +243,11 @@ class Person {
   }
 
   react(kind: Reaction, t: number, line?: string) {
-    this.reaction = { kind, t0: t + Math.random() * 0.35, dur: kind === "skol" ? 3.2 : 2.4 };
-    if (line) this.say(line, kind === "skol" ? "skol" : kind === "cheer" ? "up" : "down", t, 3);
+    this.reaction = { kind, t0: t + Math.random() * 0.35, dur: kind === "hail" ? 3.2 : 2.4 };
+    if (line) this.say(line, kind === "hail" ? "hail" : kind === "cheer" ? "up" : "down", t, 3);
   }
 
-  say(text: string, tone: "up" | "down" | "skol" | "idle", t: number, sec: number) {
+  say(text: string, tone: "up" | "down" | "hail" | "idle", t: number, sec: number) {
     drawBubble(this.bubble.canvas, text, tone);
     this.bubble.tex.needsUpdate = true;
     this.bubbleUntil = t + sec;
@@ -297,7 +302,7 @@ interface Screen {
   mesh: THREE.Mesh;
   canvas: HTMLCanvasElement;
   tex: THREE.CanvasTexture;
-  kind: "jumbo" | "skol" | "tv" | "booth" | "tap";
+  kind: "jumbo" | "board" | "tv" | "booth" | "tap";
   index: number;
   label: string;
 }
@@ -311,7 +316,7 @@ const BLOCKS: Box[] = [
   [-9, -3.7, -5.6, -1.3], // booth A
   [-9, -0.3, -5.6, 2.1], // booth B
   [-7.2, 3.3, -3.8, 5.3], // pool table
-  [-9, -7, -5.2, -5.6], // skol corner
+  [-9, -7, -5.2, -5.6], // rune-board corner
 ];
 
 export class MeadScene {
@@ -393,7 +398,7 @@ export class MeadScene {
     this.moodLight = new THREE.PointLight(MOOD.WAIT.glow, MOOD.WAIT.glowI, 14, 1.4);
     this.moodLight.position.set(-1.8, 3.2, -5.2);
     this.scene.add(this.moodLight);
-    this.flashLight = new THREE.PointLight(0xffc62f, 0, 22, 1.2);
+    this.flashLight = new THREE.PointLight(0xe6b422, 0, 22, 1.2);
     this.flashLight.position.set(0, 4.2, 0);
     this.scene.add(this.flashLight);
 
@@ -838,7 +843,7 @@ export class MeadScene {
     cue.position.set(cx + 0.8, 1.05, cz + 0.2);
     g.add(cue);
     // A low lamp over the felt.
-    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.28, 16, 1, true), mat("#1f1305", 0.5, 0.3, 0x4f2683, 0.2));
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.28, 16, 1, true), mat("#1f1305", 0.5, 0.3, 0x2e1848, 0.2));
     shade.position.set(cx, 2.6, cz);
     g.add(shade);
     const l = new THREE.PointLight(0xfff0c8, 5, 5, 1.6);
@@ -861,8 +866,8 @@ export class MeadScene {
     this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.gold, 0.35, 0.6), -1.8, 3.05 - jh / 2 - 0.17, ROOM.z0 + 0.12);
     this.screens.push({ mesh: jm, canvas: j.canvas, tex: j.tex, kind: "jumbo", index: 0, label: "Jumbotron — tap YES / NO for a paper ticket" });
 
-    // Skol Board chalkboard on the back-left wall, angled toward the room.
-    const s = canvasTex(768, 1024, (c) => drawSkolBoard(c, this.emptyState()));
+    // Rune Board chalkboard on the back-left wall, angled toward the room.
+    const s = canvasTex(768, 1024, (c) => drawRuneBoard(c, this.emptyState()));
     this.disposables.push(s.tex);
     const sm = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 3.07), new THREE.MeshStandardMaterial({ map: s.tex, roughness: 0.9, emissive: new THREE.Color(0xffffff), emissiveMap: s.tex, emissiveIntensity: 0.32 }));
     sm.position.set(-7.0, 2.65, ROOM.z0 + 0.6);
@@ -870,7 +875,7 @@ export class MeadScene {
     this.scene.add(sm);
     const frame = this.box(2.5, 3.27, 0.1, mat("#3b2411", 0.7), -7.0, 2.65, ROOM.z0 + 0.55, 0.45);
     frame.position.x -= Math.sin(0.45) * 0.05;
-    this.screens.push({ mesh: sm, canvas: s.canvas, tex: s.tex, kind: "skol", index: 0, label: "Skol Board — tap a setup for a paper ticket" });
+    this.screens.push({ mesh: sm, canvas: s.canvas, tex: s.tex, kind: "board", index: 0, label: "Rune Board — tap a setup for a paper ticket" });
 
     // Three over-bar TVs.
     for (let i = 0; i < 3; i++) {
@@ -891,13 +896,13 @@ export class MeadScene {
     const n = canvasTex(1024, 440, (c) => drawNeon(c, 1));
     this.disposables.push(n.tex);
     const m = new THREE.MeshBasicMaterial({ map: n.tex, transparent: true, toneMapped: false });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.46), m);
-    // Hung off the right wall, turned toward the room.
-    mesh.position.set(ROOM.x1 - 1.0, 3.55, 0.6);
-    mesh.rotation.y = -Math.PI / 2 + 0.75;
+    // Slightly smaller plane, pulled off the right wall toward the room so overview sees the full sign.
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.85, 1.22), m);
+    mesh.position.set(ROOM.x1 - 2.15, 3.45, -0.4);
+    mesh.rotation.y = -Math.PI / 2 + 0.55;
     this.scene.add(mesh);
     const glow = new THREE.PointLight(0xc084fc, 5, 8, 1.6);
-    glow.position.set(ROOM.x1 - 1.6, 3.5, 1.2);
+    glow.position.set(ROOM.x1 - 2.6, 3.4, 0.2);
     this.scene.add(glow);
     return { canvas: n.canvas, tex: n.tex, mat: m };
   }
@@ -908,7 +913,7 @@ export class MeadScene {
       this.add(p.root);
       return p;
     };
-    // Bartender: horned helmet, gold beard, behind the bar.
+    // Bartender: nasal iron helm, gold beard, behind the bar.
     const bartender = add(new Person({ shirt: "#3b2411", helmet: true, beard: "#c2772b", skin: "#e0a77f" }, [5.2, -4.25], [5.2, 0], false));
     // Booth A + B.
     add(new Person({ shirt: MEAD.purple, helmet: true, beard: "#8b5a2b" }, [-7.4, -3.4], [-7.4, -2.5], true));
@@ -979,8 +984,8 @@ export class MeadScene {
     const newGo = [...go].some((id) => !this.prevGo.has(id));
     this.prevYes = new Map(s.markets.filter((m) => m.yesPrice != null).map((m) => [m.id, m.yesPrice as number]));
     this.prevGo = go;
-    if (first && s.markets.length) this.react("skol");
-    else if (newGo || move >= 0.04) this.react("skol");
+    if (first && s.markets.length) this.react("hail");
+    else if (newGo || move >= 0.04) this.react("hail");
     else if (move >= 0.006) this.react("cheer");
     else if (move <= -0.006) this.react("groan");
   }
@@ -991,7 +996,7 @@ export class MeadScene {
     const byRank = s.markets.filter((m) => m.id !== s.featuredId);
     for (const sc of this.screens) {
       if (sc.kind === "jumbo") drawJumbotron(sc.canvas, s, this.flashArg());
-      else if (sc.kind === "skol") drawSkolBoard(sc.canvas, s);
+      else if (sc.kind === "board") drawRuneBoard(sc.canvas, s);
       else if (sc.kind === "tv") drawTv(sc.canvas, byRank[sc.index] ?? s.markets[sc.index] ?? null, mock);
       else if (sc.kind === "booth") drawBooth(sc.canvas, s, s.markets.length ? sc.index % s.markets.length : 0);
       else continue;
@@ -1009,13 +1014,13 @@ export class MeadScene {
     const t = this.time;
     const lines = LINES[kind];
     const line = lines[Math.floor(Math.random() * lines.length)];
-    const barLine = kind === "skol" ? "SKOL!" : kind === "cheer" ? "Next round's on the edge!" : "Easy — it's one price.";
+    const barLine = kind === "hail" ? "HAIL!" : kind === "cheer" ? "Next round's on the edge!" : "Easy — it's one price.";
     this.bartender.react(kind, t, barLine);
     const crowd = this.people.filter((p) => p !== this.bartender);
     const talker = crowd[Math.floor(Math.random() * crowd.length)];
-    for (const p of crowd) p.react(kind, t, p === talker || (kind === "skol" && Math.random() < 0.25) ? line : undefined);
-    this.flash = { color: kind === "groan" ? 0xef4444 : kind === "skol" ? 0xffc62f : 0x22c55e, until: t + 1.6, kind: kind === "groan" ? "down" : "up" };
-    this.opts.onReaction?.(kind, kind === "skol" ? "SKOL!" : line);
+    for (const p of crowd) p.react(kind, t, p === talker || (kind === "hail" && Math.random() < 0.25) ? line : undefined);
+    this.flash = { color: kind === "groan" ? 0xef4444 : kind === "hail" ? 0xe6b422 : 0x22c55e, until: t + 1.6, kind: kind === "groan" ? "down" : "up" };
+    this.opts.onReaction?.(kind, kind === "hail" ? "HAIL!" : line);
   }
 
   getMood(): MeadMood {
@@ -1053,7 +1058,7 @@ export class MeadScene {
       const m = byRank[sc.index] ?? s.markets[sc.index];
       return m ? { id: m.id, side: "YES" } : null;
     }
-    if (sc.kind === "skol") {
+    if (sc.kind === "board") {
       const i = Math.floor((py - 200) / 104);
       const id = s.topIds[i];
       return id && i >= 0 ? { id, side: "YES" } : null;
@@ -1168,11 +1173,11 @@ export class MeadScene {
   }
 
   /** Camera presets for the tab's buttons. */
-  look(where: "overview" | "jumbotron" | "skol" | "bar") {
+  look(where: "overview" | "jumbotron" | "board" | "bar") {
     const goals: Record<typeof where, [THREE.Vector3, THREE.Vector3]> = {
       overview: [new THREE.Vector3(0.6, 5.4, 12.6), new THREE.Vector3(0.2, 2.1, -3)],
       jumbotron: [new THREE.Vector3(-1.8, 3.0, 0.2), new THREE.Vector3(-1.8, 3.0, -7)],
-      skol: [new THREE.Vector3(-4.6, 2.7, -1.6), new THREE.Vector3(-7.0, 2.6, -6.4)],
+      board: [new THREE.Vector3(-4.6, 2.7, -1.6), new THREE.Vector3(-7.0, 2.6, -6.4)],
       bar: [new THREE.Vector3(5.2, 2.6, 2.4), new THREE.Vector3(5.2, 2.4, -5)],
     };
     const [pos, target] = goals[where];
@@ -1249,7 +1254,7 @@ export class MeadScene {
     const breathe = this.mood === "ENTER" ? 0.65 + 0.35 * Math.sin(t * 5) : this.mood === "ARMED" ? 0.8 + 0.2 * Math.sin(t * 2.4) : 1;
     this.moodLight.intensity = damp(this.moodLight.intensity, m.glowI * breathe, 3, dt);
     const fl = this.flash.until - t;
-    this.flashLight.color.setHex(this.flash.color || 0xffc62f);
+    this.flashLight.color.setHex(this.flash.color || 0xe6b422);
     this.flashLight.intensity = damp(this.flashLight.intensity, fl > 0 ? 14 * (0.6 + 0.4 * Math.sin(t * 18)) : 0, 10, dt);
     for (const [i, l] of this.lanterns.entries()) l.intensity = 5.4 + 0.6 * Math.sin(t * 7 + i * 1.7) * Math.sin(t * 3.1 + i);
     // Jumbotron flash pulse + neon flicker.
