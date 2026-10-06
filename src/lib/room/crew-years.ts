@@ -38,15 +38,15 @@ export function crewOf(who: string): CrewPerson | null {
 export function learnCrewYears(): void {
   try {
     if (typeof localStorage === "undefined") return;
-    if (localStorage.getItem("ledger-perfect-entry-v1") !== "1") {
+    if (localStorage.getItem("ledger-perfect-entry-v2") !== "1") {
       saveAtlas(improveAtlas(loadAtlas() ?? mergeAtlas(null, null), {
         shelf: "discretion",
-        title: "Perfect entry",
-        who: "Sterling",
+        title: "Direction first",
+        who: "Gemma",
         nowMs: Date.now(),
         text: PERFECT_STANDARD,
       }));
-      localStorage.setItem("ledger-perfect-entry-v1", "1");
+      localStorage.setItem("ledger-perfect-entry-v2", "1");
     }
     if (localStorage.getItem("ledger-perfect-book-v1") !== book.note) {
       const lines = (book.ladder as { who: string; check: string; wins: number; n: number; wr: number | null }[])
@@ -57,7 +57,7 @@ export function learnCrewYears(): void {
         title: "Joint book",
         who: "Nova",
         nowMs: Date.now(),
-        text: `Sep 2022 through Sep 2026. One-to-one before the stop. ${lines} The full stack did not clear 68%.`,
+        text: `Sep 2022 through Sep 2026, entries 9:30 to 11:30, two a day. The target is the draw marked first. ${lines} The two-a-day book reached the draw 19 of 29 times and made about zero R. After 2024 it was 5 of 11. It did not clear 68%.`,
       }));
       localStorage.setItem("ledger-perfect-book-v1", book.note);
     }

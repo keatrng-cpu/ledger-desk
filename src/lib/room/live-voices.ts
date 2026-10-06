@@ -23,7 +23,6 @@
  */
 
 import { ROOM_MANDATE } from "./mandate";
-import { gradePerfect } from "./perfect-entry";
 import { BLACKOUT_MIN } from "@/lib/news/schedule";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
 import { EXEC_LIMITS } from "./exec/limits";
@@ -1212,17 +1211,10 @@ export function exHot(c: Ctx, d: BoardData): Ex | null {
         ? `The entry is ${f.lvl(k.entry)}.`
         : "The entry is not priced yet.";
   const lines = compact([
-    line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. Higher timeframe agrees. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the next pool"}.`),
-    line("Gemma", ANIM.Gemma.wall!, "Four hour is the bias. One hour is the range. Five minute is the shift. One minute is the touch. We are reading all four."),
-    line("Jax", ANIM.Jax.point!, gradePerfect({
-      side: k.futSide,
-      fit: fit,
-      entry: k.entry,
-      stop: k.stop,
-      t1: k.t1,
-      armed: k.verdict === "ARMED",
-    }).say),
-    line("Sterling", ANIM.Sterling.tablet!, `What is missing cuts the size. It does not kill the card. We buy the pullback into ${k.entry != null ? f.lvl(k.entry) : "the array"}, not the extension.`),
+    line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the draw"}.`),
+    line("Gemma", ANIM.Gemma.wall!, "Bias is the one-hour and the four-hour gaps. Respected bullish, or a bearish gap that failed, is long. The reverse is short. The draw is the liquidity or the open gap in that direction, and we mark it before the entry."),
+    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the gap. Then the inverse, or the gap holds. Two of those from 9:30 to 11:30. Not a third."),
+    line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side, and it does not replace the sweep."),
     line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. It goes when the chart is there and this floor has said it.`),
   ]);
   return { lines, moves: BOARD };

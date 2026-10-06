@@ -278,7 +278,7 @@ export function FloorBrains() {
           })}
       </div>
       <p className="border-t border-white/10 px-4 py-2 text-[11px] text-white/45">
-        Joint book, one-to-one before the stop, Sep 2022–Sep 2026. Stacking every check leaves 1 trade. It did not clear 68%.
+        Direction first, then the sweep, then the gap. Two trades a day, 9:30–11:30. The draw was hit 19 of 29 times and paid about zero. After 2024 it was 5 of 11. Not 68%.
       </p>
     </section>
   );
