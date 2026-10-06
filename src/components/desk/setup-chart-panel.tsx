@@ -146,6 +146,8 @@ function stance(
 
 export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
   const [teaching, setTeaching] = useState(false);
+  // Which rung fills the main chart; 15m is the rung the plan is priced on.
+  const [mainTf, setMainTf] = useState<(typeof STACK)[number]["tf"]>("15m");
   /**
    * Which book to draw. Null follows the desk's own pick.
    *
@@ -328,35 +330,34 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
           box raises is "what is that", not "where is that". */}
       <ChartLegend />
 
-      {/* THE FIVE RUNGS. Each from its own bars, each with its own overlay,
-          and each captioned with what it is FOR — so a 1m wick is never read
-          as a setup and a 4h box is never read as a trigger. Top-down: 4h and
-          1h are context and are never the rung to act on, which is why the
-          stance only ever points at 15m, 5m or 1m. */}
-      <div className="flex flex-col gap-2">
-        {STACK.map(({ tf, role, plan: drawPlan }) => {
-          const series = rungs[tf];
-          const view = series.bars.slice(-VISIBLE_BARS);
-          const ov = view.length ? buildChartOverlay(desk, book.symbol, view) : null;
-          const isWatch = tf === read.watch;
-          return (
+      {/* THE FIVE RUNGS, as ONE large chart plus four previews. Each rung is
+          still drawn from its own bars with its own overlay and captioned with
+          what it is FOR; the stack of five full charts is now a 15m main view
+          (the rung the plan is priced on) and small 4h/1h/5m/1m previews —
+          click one to swap it into the main view. The "no plan" footer is
+          printed once below rather than under every rung. */}
+      {(() => {
+        const main = STACK.find((r) => r.tf === mainTf) ?? STACK[2]!;
+        const series = rungs[main.tf];
+        const view = series.bars.slice(-VISIBLE_BARS);
+        const ov = view.length ? buildChartOverlay(desk, book.symbol, view) : null;
+        const isWatch = main.tf === read.watch;
+        return (
+          <div className="flex flex-col gap-2">
             <div
-              key={tf}
               className={
                 isWatch
                   ? "rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-accent)_45%,transparent)] p-1"
-                  : "rounded-[var(--radius-md)] border border-transparent p-1"
+                  : "rounded-[var(--radius-md)] border border-[var(--color-border)] p-1"
               }
             >
               <div className="mb-0.5 flex items-baseline justify-between gap-2 px-1">
-                <p className="font-mono text-[10px] text-[var(--color-fg)]">
-                  {tf}
-                  <span className="text-[var(--color-muted)]"> · {role}</span>
-                  {isWatch && (
-                    <span className="text-[var(--color-accent)]"> ← watch this one</span>
-                  )}
+                <p className="font-mono text-[13px] font-semibold text-[var(--color-fg)]">
+                  {main.tf}
+                  <span className="font-normal text-[var(--color-muted)]"> · {main.role}</span>
+                  {isWatch && <span className="text-[var(--color-accent)]"> ← watch this one</span>}
                 </p>
-                <p className="font-mono text-[9px] text-[var(--color-muted)]">
+                <p className="font-mono text-[11px] text-[var(--color-muted)]">
                   {series.bars.length
                     ? `${view.length} bars${series.lastBarPartial ? " · last forming" : ""}`
                     : "no series"}
@@ -365,20 +366,54 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
               {view.length ? (
                 <SetupChart
                   bars={view}
-                  plan={drawPlan ? plan : null}
+                  plan={main.plan ? plan : null}
                   overlay={ov}
                   word={book.word}
                   emptyDetail={book.missingDetail || book.missing}
+                  hideEmptyCaption
+                  livePrice={view.at(-1)?.c ?? null}
                 />
               ) : (
-                <p className="px-1 py-3 text-[10px] leading-snug text-[var(--color-muted)]">
-                  {series.coverage}
-                </p>
+                <p className="px-1 py-3 text-[12px] leading-snug text-[var(--color-muted)]">{series.coverage}</p>
               )}
             </div>
-          );
-        })}
-      </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="tablist" aria-label="Timeframe previews">
+              {STACK.filter((r) => r.tf !== main.tf).map(({ tf, role }) => {
+                const sv = rungs[tf].bars.slice(-VISIBLE_BARS);
+                return (
+                  <button
+                    key={tf}
+                    type="button"
+                    role="tab"
+                    aria-selected={false}
+                    onClick={() => setMainTf(tf)}
+                    title={`Show ${tf} — ${role}`}
+                    className={
+                      "group rounded-[var(--radius-md)] border p-1.5 text-left transition-colors hover:border-[var(--color-primary)] " +
+                      (tf === read.watch
+                        ? "border-[color-mix(in_oklab,var(--color-accent)_45%,transparent)]"
+                        : "border-[var(--color-border)]")
+                    }
+                  >
+                    <p className="flex items-baseline justify-between font-mono text-[12px] text-[var(--color-fg)]">
+                      <span className="font-semibold">{tf}</span>
+                      {tf === read.watch && <span className="text-[11px] text-[var(--color-accent)]">watch</span>}
+                    </p>
+                    <Sparkline bars={sv} />
+                    <p className="truncate text-[11px] text-[var(--color-muted)]">{sv.length ? role : rungs[tf].coverage}</p>
+                  </button>
+                );
+              })}
+            </div>
+            {!plan && (
+              <p className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2 text-[13px] text-[var(--color-muted)]">
+                <span className="text-[var(--color-warn)]">No plan priced yet.</span>{" "}
+                {book.missingDetail || book.missing || "Waiting on the sequence — nothing to draw."}
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Is this plan worth watching right now, where the order goes, and
           what the click costs — the three answers between the picture and
@@ -755,5 +790,29 @@ function Key() {
         a level the tape has not produced is left off rather than guessed.
       </p>
     </dl>
+  );
+}
+
+/** A rung's closes as a thumbnail — real bars, no levels; click swaps it into the main chart. */
+function Sparkline({ bars }: { bars: { c: number }[] }) {
+  if (bars.length < 2) {
+    return <div className="my-1 h-10 rounded-sm bg-[var(--color-surface-2)]" aria-hidden />;
+  }
+  const cs = bars.map((b) => b.c);
+  const lo = Math.min(...cs);
+  const hi = Math.max(...cs);
+  const span = hi - lo || 1;
+  const pts = cs.map((c, i) => `${((i / (cs.length - 1)) * 100).toFixed(2)},${(38 - ((c - lo) / span) * 36).toFixed(2)}`).join(" ");
+  const up = cs.at(-1)! >= cs[0]!;
+  return (
+    <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="my-1 h-10 w-full" aria-hidden>
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={up ? "var(--color-up)" : "var(--color-down)"}
+        strokeWidth={1.4}
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 }
