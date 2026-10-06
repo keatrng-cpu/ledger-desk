@@ -16,6 +16,7 @@ import { displayEntry, useAutomation, useEntryState } from "@/components/desk/us
 import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
 import { feedTone, sourceTag } from "@/lib/ui/feed-tone";
+import { effectiveLagSec } from "@/lib/trading/desk-fetch-guard";
 
 function QuoteChip({
   symbol,
@@ -101,7 +102,14 @@ export function SessionHud({
   useEffect(() => setPaperReady(true), []);
 
   const ghost = matchingGhost(desk, ghosts);
-  const worstLagSec = Math.max(quotes.left.lagSec, quotes.right.lagSec);
+  // The payload's lagSec is frozen at fetch time. When the quote poll fails it
+  // keeps the last quotes, so a cached 1s lag kept the dot green on a stale
+  // tape. Age it by the time since fetch (wallNow ticks every second, so this
+  // re-renders); a frozen quote walks amber → red on its own.
+  const nowMs = Date.now();
+  const leftLagSec = effectiveLagSec(quotes.left, nowMs);
+  const rightLagSec = effectiveLagSec(quotes.right, nowMs);
+  const worstLagSec = Math.max(leftLagSec, rightLagSec);
   const synthetic =
     left.source === "synthetic" ||
     right.source === "synthetic" ||
@@ -305,7 +313,7 @@ export function SessionHud({
             price={quotes.left.price}
             changePct={quotes.left.changePct}
             source={quotes.left.source}
-            lagSec={quotes.left.lagSec}
+            lagSec={leftLagSec}
           />
           <span className="text-[var(--color-subtle)]">|</span>
           <QuoteChip
@@ -313,13 +321,13 @@ export function SessionHud({
             price={quotes.right.price}
             changePct={quotes.right.changePct}
             source={quotes.right.source}
-            lagSec={quotes.right.lagSec}
+            lagSec={rightLagSec}
           />
 
           <span
             role="img"
             aria-label={feedDot.label}
-            title={`${feedDot.title} — ${quotes.left.symbol} ${sourceTag(quotes.left.source)} ${Math.round(quotes.left.lagSec)}s · ${quotes.right.symbol} ${sourceTag(quotes.right.source)} ${Math.round(quotes.right.lagSec)}s.`}
+            title={`${feedDot.title} — ${quotes.left.symbol} ${sourceTag(quotes.left.source)} ${Math.round(leftLagSec)}s · ${quotes.right.symbol} ${sourceTag(quotes.right.source)} ${Math.round(rightLagSec)}s.`}
             className={cn(
               "inline-block h-2.5 w-2.5 cursor-help rounded-full ring-2 ring-[var(--color-bg)]",
               feedDot.className,
@@ -384,7 +392,7 @@ export function SessionHud({
               price={quotes.left.price}
               changePct={quotes.left.changePct}
               source={quotes.left.source}
-              lagSec={quotes.left.lagSec}
+              lagSec={leftLagSec}
             />
             <span className="text-[var(--color-subtle)]">|</span>
             <QuoteChip
@@ -392,7 +400,7 @@ export function SessionHud({
               price={quotes.right.price}
               changePct={quotes.right.changePct}
               source={quotes.right.source}
-              lagSec={quotes.right.lagSec}
+              lagSec={rightLagSec}
             />
 
             <span
