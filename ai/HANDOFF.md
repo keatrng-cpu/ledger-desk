@@ -13,6 +13,25 @@ Fold the Research Desk implementation plan into ledger-desk with one clear owner
 
 ---
 
+## Status — 2026-10-06
+
+**WS-KG0 Knowledge spine** is **in Accuracy Review**.
+
+| | |
+|---|---|
+| **Branch** | `graph/2026-10-06-ws-kg0-knowledge-spine` |
+| **Commit** | `8ced8f4` (cut from main @ `008cbec`) |
+| **Adds** | `ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md`, `graphify-out/GRAPH_REPORT.md` (hand-built seed; no `graph.json` yet) |
+| **Next owner** | **Accuracy Review** → then **Release Watch** → then **Design Atelier** merges |
+| **After merge** | Queue resumes at **WS-P1** (Trading Stand) |
+
+Graph Keeper flagged for AR / Dual Desk (also in Open questions):
+1. Plan and issue #7 cite a **0.75 confluence floor**, but `src/lib/aplus/config.ts` has `confluenceFloor` **0.65** with A+ at **0.75+**.
+2. **Proposed:** keep NOW/DECISIONS under **`ai/`** (not `.grok`/PROGRAM) — recorded as proposed in DECISIONS.
+3. `CLAUDE.md` still says push to main (conflicts with branch→AR→RW→DA path); `NOW.md` won't auto-load until `AGENTS.md`/`CLAUDE.md` point to it (out of scope for WS-KG0).
+
+---
+
 ## Inventory (read 2026-10-06)
 
 ### Main top-level (non-recursive)
@@ -21,14 +40,14 @@ Fold the Research Desk implementation plan into ledger-desk with one clear owner
 ### Canon / spine on main
 | Path | Status |
 |---|---|
-| `ai/NOW.md` | **Missing** |
-| `ai/DECISIONS.md` | **Missing** |
-| `ai/HANDOFF.md` | **Missing** (created on this coord branch) |
-| `ai/research/INDEX.md` | **Missing** (only briefs under `ai/research/`) |
-| `graphify-out/GRAPH_REPORT.md` | **Missing** (`graphify-out/` not on main tree) |
+| `ai/NOW.md` | **Missing on main** — present on `graph/2026-10-06-ws-kg0-knowledge-spine` @ `8ced8f4` (in AR) |
+| `ai/DECISIONS.md` | **Missing on main** — present on KG0 branch @ `8ced8f4` (in AR) |
+| `ai/HANDOFF.md` | **Missing on main** (lives on this coord branch) |
+| `ai/research/INDEX.md` | **Missing on main** — present on KG0 branch @ `8ced8f4` (in AR) |
+| `graphify-out/GRAPH_REPORT.md` | **Missing on main** — seed on KG0 branch @ `8ced8f4` (no `graph.json` yet) |
 | `ai/research/` on main | Present: `2026-10-06-ny-am-session-brief.md`, `2026-10-06-pm-signal.md` |
 
-Plan note (WS-KG0): NOW/DECISIONS gap tracked; Graph Keeper owns canon rebuild.
+Plan note (WS-KG0): NOW/DECISIONS gap tracked; Graph Keeper delivery is in AR.
 
 ### Verified paths cited by plan (exist on main)
 `docs/RH_LIVE_ROUTINE.md` · `docs/FLOOR_BACKLOG.md` · `docs/ENGINE_BRIDGE.md` · `ROADMAP.md` · `src/lib/trading/smc-canon.ts` · `src/lib/trading/judas-window.ts` · `src/lib/trading/profit-path.ts` · `src/lib/trading/detectors.ts` · `src/lib/trading/engine-weights.ts` · `src/lib/trading/fib.ts` · `src/lib/aplus/confluence.ts` · `src/lib/room/research.ts` · `src/routes/api/engine/journal.ts` · `src/data/news-calendar.md` · `src/data/news-calendar.json` · `src/lib/news/`
@@ -88,8 +107,8 @@ Grok-side bots: research, graph queries, briefs, routines (support Graph Keeper 
 
 **One task in flight per repo.**
 
-1. **▶ IN FLIGHT — WS-KG0 Knowledge spine — Graph Keeper**
-2. WS-P1 PATH journal — Trading Stand
+1. **▶ IN FLIGHT (Accuracy Review) — WS-KG0** — branch `graph/2026-10-06-ws-kg0-knowledge-spine` @ `8ced8f4` · owner now **Accuracy Review** (then Release Watch → Design Atelier merges)
+2. WS-P1 PATH journal — Trading Stand *(after KG0 merges)*
 3. WS-BP Buying-power readiness — Trading Stand
 4. WS-PRE Pre-session checklist — Prototype Lab
 5. WS-CAL Calendar + brief feed — Research Desk
@@ -111,12 +130,12 @@ Critical path (plan §4): KG0 → P1 → (journal accruing) while D1 contracts +
 ## Decisions
 
 1. **Git is the bus** — assignments and research land on branches; this packet on `coord/2026-10-06-desk-assignments`.
-2. **Graphify stays the code map** — Graph Keeper rebuilds graph/canon; `graphify-out/` absent on main today.
+2. **Graphify stays the code map** — Graph Keeper rebuilds graph/canon; seed `GRAPH_REPORT.md` on KG0 branch (no `graph.json` yet).
 3. **One task in flight per repo** — queue above; do not start #2 until #1 is done or explicitly parked by Dual Desk.
 4. **Merge path:** feature/research branch → **Accuracy Review** → **Release Watch** → **Design Atelier** merges to main.
 5. **No size-ups** until PATH n≥100 and expected-R gates (`profit-path.ts` `PROFIT_MIN_SAMPLE` / `PROFIT_TARGET_EXPECTANCY_R`; ROADMAP).
 6. **No live orders** from BP/PRE workstreams; RH env arms remain human.
-7. **Do not lower** confluence floor 0.75 to manufacture clears.
+7. **Do not lower** confluence floor to manufacture clears — **verify which floor** (plan/#7 say 0.75; `config.ts` has `confluenceFloor` 0.65 / A+ 0.75+) before AR closes KG0 language.
 
 ---
 
@@ -131,18 +150,26 @@ Carried from plan §5 (briefs + plan):
 5. Judas release vs hard-block — keep pending J1?
 6. Kalshi FLB post-2025 persistence?
 7. QQQ/SPY options vs NQ/ES PD-array transfer / basis?
-8. Should NOW/DECISIONS live under `ai/` or `.grok`/PROGRAM — Dual Desk pick *(this packet places them under `ai/` per Graph Keeper canon + plan WS-KG0)*
+8. Should NOW/DECISIONS live under `ai/` or `.grok`/PROGRAM — Dual Desk pick. **Proposed answer (Graph Keeper / DECISIONS): `ai/`.**
 9. PM data vendor / API for Kalshi historical bins?
 10. Server-side runner (`FLOOR_BACKLOG` #44) vs PATH journal priority?
+
+Flagged by Graph Keeper at WS-KG0 handoff to AR (2026-10-06):
+
+11. **Confluence floor mismatch:** plan and issue #7 cite **0.75**; `src/lib/aplus/config.ts` has `confluenceFloor` **0.65** with A+ at **0.75+**. Which number is the locked “do not lower” floor?
+12. **NOW/DECISIONS location:** confirm proposed **`ai/`** (vs `.grok`/PROGRAM) as locked DECISION.
+13. **Agent load path:** `CLAUDE.md` still says push to main (conflicts with branch→AR→RW→DA); `NOW.md` won't auto-load until `AGENTS.md`/`CLAUDE.md` point to it — out of scope for WS-KG0; who owns the doc fix?
 
 ---
 
 ## Next owner
 
-**Graph Keeper** — start **WS-KG0**: create `ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md` linking the three 2026-10-06 briefs + plan commit `09aad4b`; index terms → files; leave DECISIONS open locks for CBDR/flout/sponsored.
+**Accuracy Review** — review WS-KG0 on `graph/2026-10-06-ws-kg0-knowledge-spine` @ `8ced8f4` (files: `ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md`, `graphify-out/GRAPH_REPORT.md`). Address flagged OQs 11–13 as needed for Accept.
 
-When KG0 Accept is met → hand to **Trading Stand** for **WS-P1**.
+Then **Release Watch** (build/Actions health) → **Design Atelier** merges to main.
+
+After KG0 lands on main → **Trading Stand** starts **WS-P1**.
 
 ---
 
-*Dual Desk assignments 2026-10-06. No product code in this commit. No PR opened from this branch.*
+*Dual Desk assignments 2026-10-06; status update 2026-10-06 (WS-KG0 → AR). No product code in this commit. No PR opened from this branch.*
