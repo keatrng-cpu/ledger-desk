@@ -22,7 +22,7 @@ import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
 import EV_TEST from "@/data/room-ev-test.json";
 import type { DeskPayload } from "@/lib/trading/build-desk";
-import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
+import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { useExecStore } from "./exec-bridge";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
@@ -554,7 +554,11 @@ function GhostPanel({ frame }: { frame: FloorFrame | null }) {
  */
 function TickerCrawl({ desk, frame, entry }: { desk: DeskPayload | null; frame: FloorFrame | null; entry: ReturnType<typeof useEntryState>["read"] }) {
   const items: { k: string; text: string; color?: string }[] = [];
-  if (entry) items.push({ k: "state", text: `${entry.state} — ${entry.why}`, color: ENTRY_STYLE[entry.state].color });
+  const auto = useAutomation();
+  if (entry) {
+    const d = displayEntry(entry, auto);
+    items.push({ k: "state", text: `${d.label} — ${d.why}`, color: d.color });
+  }
   if (desk) {
     for (const q of [desk.quotes.left, desk.quotes.right])
       items.push({
@@ -644,11 +648,27 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [canvasFocused, setCanvasFocused] = useState(false);
   const [hintFlash, setHintFlash] = useState(false);
   const hintTimer = useRef<number | null>(null);
+  // The hint shows for a few seconds, then hides; a refused wheel or a focus change brings it back.
+  const [hintShown, setHintShown] = useState(true);
+  const showHint = useCallback((ms = 4000) => {
+    setHintShown(true);
+    if (hintTimer.current) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => {
+      setHintShown(false);
+      setHintFlash(false);
+    }, ms);
+  }, []);
+  useEffect(() => {
+    showHint(5000);
+    return () => {
+      if (hintTimer.current) window.clearTimeout(hintTimer.current);
+    };
+  }, [showHint]);
+  useEffect(() => showHint(3500), [canvasFocused, showHint]);
   const onScrollHint = useCallback(() => {
     setHintFlash(true);
-    if (hintTimer.current) window.clearTimeout(hintTimer.current);
-    hintTimer.current = window.setTimeout(() => setHintFlash(false), 1600);
-  }, []);
+    showHint(2500);
+  }, [showHint]);
   const enabled = useRoomStore((s) => s.enabled);
   const setEnabled = useRoomStore((s) => s.setEnabled);
   const book = useRoomStore((s) => s.book);
@@ -666,7 +686,9 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   // The room's lighting follows the desk's entry state (the same word as the Now hero).
-  const mood = entry?.state ?? null;
+  const auto = useAutomation();
+  // An open position (RH automation or a paper MANAGE) lights the room green, like ENTER.
+  const mood = entry ? (auto.phase === "open" || entry.rule === 1 ? "ENTER" : entry.state) : null;
   useEffect(() => {
     if (mood) sceneRef.current?.setEntryMood(mood);
   }, [mood, env]);
@@ -791,12 +813,15 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           onScrollHint={onScrollHint}
         />
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
-        {/* Scroll capture hint: the wheel scrolls the page until the canvas is clicked. */}
+        {/* Scroll capture hint, bottom-centre (clear of the camera buttons).
+            Shown for a few seconds on arrival, when the wheel is refused, and
+            when focus changes; otherwise hidden. */}
         <div
-          className={`absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full px-3 py-1 text-[12px] transition-colors ${
-            canvasFocused ? "bg-black/70 text-slate-200" : hintFlash ? "bg-white text-black" : "pointer-events-none bg-black/60 text-slate-300"
-          }`}
+          className={`absolute bottom-20 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[12px] shadow transition-opacity duration-500 ${
+            hintShown ? "opacity-100" : "pointer-events-none opacity-0"
+          } ${canvasFocused ? "bg-black/75 text-slate-100" : hintFlash ? "bg-white text-black" : "bg-black/70 text-slate-200"}`}
           role="status"
+          aria-hidden={!hintShown}
         >
           {canvasFocused ? (
             <>
@@ -912,7 +937,9 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
 
       <InvestOfficePanel frame={frame} onGo={goTo} />
 
-      <div className="grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
+      {/* items-start: each card is its own height — the JSON card no longer
+          stretches the wire log and the book into tall empty panels. */}
+      <div className="grid items-start gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
         <WireLog onFocus={setSelected} />
 
         <div className={CARD}>

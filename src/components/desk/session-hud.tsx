@@ -10,8 +10,8 @@ import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
 import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path-board";
 import { shockSiren } from "@/lib/alerts/path-alarm";
 import { cn } from "@/lib/utils";
-import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
-import { InTradeBadge, useFlashOn } from "@/components/desk/screen-flash";
+import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
+import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
 
 function QuoteChip({
@@ -110,9 +110,34 @@ export function SessionHud({
       : "";
   const smtBear = /bear/i.test(smtNote);
   const pathV = pricePathVerdict(desk, paperReady);
-  const { read: entry } = useEntryState(desk);
+  const { read: entryRead } = useEntryState(desk);
+  const auto = useAutomation();
+  const entry = entryRead ? displayEntry(entryRead, auto) : null;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const flashOn = useFlashOn();
+  // The bar's clock ticks on its own. clock.nowEt is stamped when the desk is
+  // BUILT (every ~20s, slower when the tab is hidden), so on its own it sat
+  // frozen between builds. Client-only (SSR prints the build stamp).
+  const [etNow, setEtNow] = useState<string | null>(null);
+  useEffect(() => {
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      weekday: "short",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    const tick = () => {
+      const p = Object.fromEntries(fmt.formatToParts(new Date()).map((x) => [x.type, x.value]));
+      setEtNow(`${p.weekday} ${p.month}/${p.day} ${p.hour}:${p.minute}:${p.second} ET`);
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   // Tape circuit breaker: siren ONCE on the transition into a shock, and a
   // live countdown so the strip re-renders every second while locked.
@@ -261,7 +286,7 @@ export function SessionHud({
       <div className="mx-auto flex h-12 max-w-7xl items-center gap-2">
         <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[13px] shrink-0 whitespace-nowrap text-[var(--color-fg)]">
           <Clock className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-          {clock.nowEt}
+          <span suppressHydrationWarning>{etNow ?? clock.nowEt}</span>
         </div>
 
         <div className="hidden shrink-0 items-center gap-2 md:flex">
@@ -300,18 +325,14 @@ export function SessionHud({
             onClick={onEntryChip}
             title={entry.why}
             className={cn(
-              "shrink-0 rounded-full border-2 px-2.5 py-0.5 font-mono text-[12px] font-black tracking-[0.1em]",
-              ENTRY_STYLE[entry.state].pulse,
+              "shrink-0 whitespace-nowrap rounded-full border-2 px-2.5 py-0.5 font-mono text-[12px] font-black tracking-[0.1em]",
+              entry.pulse,
             )}
-            style={{
-              color: ENTRY_STYLE[entry.state].color,
-              borderColor: ENTRY_STYLE[entry.state].color,
-            }}
+            style={{ color: entry.color, borderColor: entry.color }}
           >
-            {ENTRY_STYLE[entry.state].label}
+            {entry.label}
           </button>
         )}
-        <InTradeBadge />
         <button
           type="button"
           role="switch"
@@ -328,7 +349,7 @@ export function SessionHud({
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
           <span className="hidden lg:inline">Flash</span>
         </button>
-        <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]">{tabs}</div>
+        <div className="flex-1" />
         <button
           type="button"
           onClick={() => setDrawerOpen((o) => !o)}
@@ -343,6 +364,9 @@ export function SessionHud({
           />
         </button>
       </div>
+
+      {/* Tabs get their own row and wrap, so every tab is always reachable. */}
+      {tabs && <div className="mx-auto max-w-7xl pb-1.5">{tabs}</div>}
 
       <div id="session-drawer" className={cn("mx-auto max-w-7xl pb-2", !drawerOpen && "hidden")}>
         <div className="flex flex-wrap items-center gap-2">

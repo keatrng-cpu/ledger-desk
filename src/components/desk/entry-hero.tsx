@@ -12,8 +12,7 @@ import { Timer } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { ConflictChip } from "@/components/desk/viz/conflict-chip";
 import { Plain, PlainToggle } from "@/components/desk/plain-text";
-import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
-import { InTradeBadge } from "@/components/desk/screen-flash";
+import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { cn } from "@/lib/utils";
 
 function Countdown({ endsAtMs, label }: { endsAtMs: number; label: string }) {
@@ -43,14 +42,15 @@ function Countdown({ endsAtMs, label }: { endsAtMs: number; label: string }) {
 
 export function EntryHero({ desk }: { desk: DeskPayload }) {
   const { read, conflicts } = useEntryState(desk);
+  const auto = useAutomation();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!read) return null;
-  const st = ENTRY_STYLE[read.state];
+  const st = displayEntry(read, auto);
   return (
     <section
       aria-live="polite"
-      aria-label={`Entry signal: ${read.state}`}
+      aria-label={`Entry signal: ${st.label}`}
       className="rounded-[var(--radius-xl)] border-2 p-4 sm:p-5"
       style={{
         borderColor: `color-mix(in oklab, ${st.color} 55%, var(--color-border))`,
@@ -83,11 +83,10 @@ export function EntryHero({ desk }: { desk: DeskPayload }) {
             ) : null}
           </p>
           <p className="mt-1 text-base leading-snug text-[var(--color-fg)] sm:text-lg">
-            <Plain>{read.why}</Plain>
+            <Plain>{st.why}</Plain>
           </p>
         </div>
-        <InTradeBadge big />
-        {mounted && read.countdown && (
+        {mounted && read.countdown && st.key === "ENTER" && (
           <Countdown endsAtMs={read.countdown.endsAtMs} label={read.countdown.label} />
         )}
         <PlainToggle className="ml-auto" />

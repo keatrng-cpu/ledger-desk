@@ -1031,6 +1031,7 @@ function MasterplacePage() {
         // A printed TAKE holds through the array edge (word-hysteresis.ts)
         // before anything downstream reads the word.
         const held = applyWordHysteresis(res, wordHold);
+        deskRef.current = held; // the quote poll patches from the newest build
         setDesk(held);
         publishDesk(held, rs);
         try {
@@ -1212,10 +1213,20 @@ function MasterplacePage() {
         // Every print feeds the ladder's 30s rung (print-bars.ts).
         recordPrint(res.left.symbol, res.left.price, res.left.marketTimeMs);
         recordPrint(res.right.symbol, res.right.price, res.right.marketTimeMs);
-        let patched: DeskPayload | null = null;
-        setDesk((prev) => {
-          if (!prev) return prev;
-          const next = applyWordHysteresis(patchDeskQuotes(prev, res.left, res.right), wordHold);
+        // The patch is computed from the LATEST desk (deskRef) and every
+        // side effect runs here, in the poll — NOT inside a setDesk updater.
+        // React runs updaters while rendering MasterplacePage, so the ghost
+        // book's notify (and the paper/alarm/shadow writes) inside one fired
+        // SessionHud's setState mid-render: "Cannot update a component
+        // (SessionHud) while rendering a different component
+        // (MasterplacePage)". Same calls, same order, same desk — just outside
+        // render (and no longer double-run by StrictMode's updater replay).
+        const prev = deskRef.current;
+        if (!prev) return;
+        const next = applyWordHysteresis(patchDeskQuotes(prev, res.left, res.right), wordHold);
+        deskRef.current = next;
+        setDesk(next);
+        {
           try {
             observeAndTickGhosts(next);
           } catch {
@@ -1266,11 +1277,8 @@ function MasterplacePage() {
           } catch {
             /* an alarm must never break the quote poll */
           }
-          patched = next;
-          deskRef.current = next;
-          return next;
-        });
-        if (patched) applyPaper(patched);
+        }
+        applyPaper(next);
       } catch {
         /* keep last quotes */
       } finally {
@@ -1622,7 +1630,7 @@ function MasterplacePage() {
             onEntryChip={() => setCat("trade")}
             tabs={
               <nav aria-label="Profit categories">
-                <div className="flex min-w-max gap-1">
+                <div className="flex flex-wrap gap-1">
                   {CATEGORIES.map((c) => {
                     const Icon = c.icon;
                     const on = cat === c.id;
@@ -1646,7 +1654,10 @@ function MasterplacePage() {
                             on ? "text-[var(--color-primary)]" : "text-[var(--color-subtle)]",
                           )}
                         />
-                        <span className="whitespace-nowrap text-[13px] font-semibold">{c.short}</span>
+                        <span className="whitespace-nowrap text-[13px] font-semibold">
+                          <span className="lg:hidden">{c.short}</span>
+                          <span className="hidden lg:inline">{c.label}</span>
+                        </span>
                       </button>
                     );
                   })}

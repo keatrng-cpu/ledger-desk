@@ -14,18 +14,12 @@
  * previews a state (and holds it) for screenshots. Presentation only.
  */
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useAutomation } from "@/components/desk/use-entry-state";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { useEntryState } from "@/components/desk/use-entry-state";
 import type { EntryState } from "@/lib/ui/entry-state";
 import { getFlashOn, subscribeFlash } from "@/lib/ui/flash-prefs";
-import {
-  bridgeRhFills,
-  getAutomation,
-  getAutomationServer,
-  reportAutomation,
-  subscribeAutomation,
-  type AutomationState,
-} from "@/lib/ui/automation-state";
+import { bridgeRhFills, reportAutomation, type AutomationState } from "@/lib/ui/automation-state";
 
 export type FlashKind = "stalking" | "armed" | "enter" | "veto" | "intrade" | "close-win" | "close-loss" | "close-flat";
 
@@ -46,9 +40,7 @@ export function useFlashOn(): boolean {
   return useSyncExternalStore(subscribeFlash, getFlashOn, () => true);
 }
 
-export function useAutomation(): AutomationState {
-  return useSyncExternalStore(subscribeAutomation, getAutomation, getAutomationServer);
-}
+export { useAutomation };
 
 /** Dev preview param, read once on the client. */
 function devPreview(): FlashKind | null {
@@ -150,19 +142,5 @@ export function ScreenFlash({ desk }: { desk: DeskPayload | null }) {
         />
       )}
     </>
-  );
-}
-
-/** "IN TRADE" badge for the header and the hero — only while the automation reports an open position. */
-export function InTradeBadge({ className = "", big = false }: { className?: string; big?: boolean }) {
-  const auto = useAutomation();
-  if (auto.phase !== "open") return null;
-  return (
-    <span
-      className={`pulse-enter inline-flex shrink-0 items-center gap-1 rounded-full border-2 border-[#22c55e] bg-[#22c55e]/15 font-mono font-black tracking-[0.1em] text-[#4ade80] ${big ? "px-3 py-1 text-lg" : "px-2 py-0.5 text-[12px]"} ${className}`}
-      title={`Robinhood automation reports an open position: ${auto.label}`}
-    >
-      IN TRADE
-    </span>
   );
 }

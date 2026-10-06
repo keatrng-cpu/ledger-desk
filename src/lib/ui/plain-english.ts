@@ -27,11 +27,11 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     tip: "Optimal Trade Entry — the 62–79% pullback of the move, where an entry is cheapest.",
   },
   BSL: {
-    plain: "buy-side liquidity (highs where buy stops sit)",
+    plain: "buy stops above highs",
     tip: "Buy-side liquidity — buy stops resting above a high (PDH, session high, equal highs).",
   },
   SSL: {
-    plain: "sell-side liquidity (lows where sell stops sit)",
+    plain: "sell stops below lows",
     tip: "Sell-side liquidity — sell stops resting below a low (PDL, session low, equal lows).",
   },
   PDH: { plain: "yesterday's high", tip: "Previous Day High." },
@@ -39,7 +39,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   PWH: { plain: "last week's high", tip: "Previous Week High." },
   PWL: { plain: "last week's low", tip: "Previous Week Low." },
   SMT: {
-    plain: "index divergence (NQ and ES disagree)",
+    plain: "NQ/ES divergence",
     tip: "Smart Money Technique — one index makes a new high/low and the other does not.",
   },
   CE: {
@@ -89,11 +89,11 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     tip: "Draw On Liquidity — the pool price is most likely to reach next.",
   },
   ERL: {
-    plain: "outer liquidity (range extremes)",
+    plain: "range-edge liquidity",
     tip: "External Range Liquidity — the highs/lows outside the dealing range.",
   },
   IRL: {
-    plain: "inner liquidity (inside the range)",
+    plain: "in-range liquidity",
     tip: "Internal Range Liquidity — gaps and swings inside the dealing range.",
   },
   EQ: {
@@ -122,7 +122,15 @@ export const TERM_RE = new RegExp(
   "g",
 );
 
-/** Swap every glossary term for its plain words. Numbers and everything else pass through untouched. */
+/**
+ * Swap every glossary term for its plain words. Numbers and everything else
+ * pass through untouched.
+ *
+ * ONE PASS, NEVER RECURSIVE: the input is scanned once and a replacement is
+ * never re-scanned, and no gloss contains a bracket — so "PDH (external BSL)"
+ * reads "yesterday's high (external buy stops above highs)", never a
+ * gloss nested inside a gloss. One short gloss per term.
+ */
 export function plainify(text: string): string {
   return text.replace(TERM_RE, (m) => GLOSSARY[m]?.plain ?? m);
 }

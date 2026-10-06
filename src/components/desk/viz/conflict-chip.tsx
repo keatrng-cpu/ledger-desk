@@ -12,16 +12,14 @@ const DIR = { up: "var(--color-up)", down: "var(--color-down)" } as const;
 export function ConflictChip({ c, showExplain = true }: { c: Conflict; showExplain?: boolean }) {
   return (
     <div className="flex min-w-0 items-start gap-2" title={c.explain}>
+      {/* ONE chip: the word is never split; the background is split in two
+          colours (left = one read's direction, right = the other's). */}
       <span
-        className="inline-flex shrink-0 overflow-hidden rounded-full border border-[var(--color-border-strong)] text-[11px] font-bold uppercase tracking-wide text-[var(--color-bg)]"
+        className="inline-block shrink-0 whitespace-nowrap rounded-full border border-[var(--color-border-strong)] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--color-bg)]"
+        style={{ background: `linear-gradient(90deg, ${DIR[c.a.dir]} 0 50%, ${DIR[c.b.dir]} 50% 100%)` }}
         aria-label={`Conflict on ${c.symbol}: ${c.a.label} versus ${c.b.label}`}
       >
-        <span className="px-2 py-0.5" style={{ background: DIR[c.a.dir] }}>
-          CON
-        </span>
-        <span className="px-2 py-0.5" style={{ background: DIR[c.b.dir] }}>
-          FLICT
-        </span>
+        Conflict
       </span>
       {showExplain && (
         <span className="min-w-0 text-[12px] leading-snug text-[var(--color-fg)]">

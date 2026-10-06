@@ -14,8 +14,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
-import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
+import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
@@ -47,14 +47,14 @@ const ApiCronExecFlattenRoute = ApiCronExecFlattenRouteImport.update({
   path: '/api/cron/exec-flatten',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCronRoomStepRoute = ApiCronRoomStepRouteImport.update({
-  id: '/api/cron/room-step',
-  path: '/api/cron/room-step',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
   id: '/api/cron/review',
   path: '/api/cron/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronRoomStepRoute = ApiCronRoomStepRouteImport.update({
+  id: '/api/cron/room-step',
+  path: '/api/cron/room-step',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronWeeklyRoute = ApiCronWeeklyRouteImport.update({
@@ -89,8 +89,8 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
-  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
@@ -103,8 +103,8 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
-  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
@@ -118,8 +118,8 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
-  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
@@ -134,8 +134,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
-    | '/api/cron/room-step'
     | '/api/cron/review'
+    | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
@@ -148,8 +148,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
-    | '/api/cron/room-step'
     | '/api/cron/review'
+    | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
@@ -162,8 +162,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
-    | '/api/cron/room-step'
     | '/api/cron/review'
+    | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
@@ -177,8 +177,8 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
-  ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
+  ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
@@ -223,18 +223,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCronExecFlattenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/cron/room-step': {
-      id: '/api/cron/room-step'
-      path: '/api/cron/room-step'
-      fullPath: '/api/cron/room-step'
-      preLoaderRoute: typeof ApiCronRoomStepRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/cron/review': {
       id: '/api/cron/review'
       path: '/api/cron/review'
       fullPath: '/api/cron/review'
       preLoaderRoute: typeof ApiCronReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/room-step': {
+      id: '/api/cron/room-step'
+      path: '/api/cron/room-step'
+      fullPath: '/api/cron/room-step'
+      preLoaderRoute: typeof ApiCronRoomStepRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/weekly': {
@@ -281,8 +281,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
-  ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
+  ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,

@@ -69,25 +69,26 @@ export function PlainToggle({ className }: { className?: string }) {
           : "Swap the desk's shorthand (OTE, BSL, CE, SMT…) for plain words"
       }
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors",
         on
-          ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,transparent)] text-[var(--color-fg)]"
+          ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-bg)] shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-primary)_25%,transparent)]"
           : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]",
         className,
       )}
     >
       <BookA className="h-3.5 w-3.5" aria-hidden />
-      Plain English
+      Plain English{on ? " · ON" : ""}
       <span
         aria-hidden
         className={cn(
           "relative ml-0.5 inline-block h-3.5 w-6 rounded-full transition-colors",
-          on ? "bg-[var(--color-primary)]" : "bg-[var(--color-surface-3)]",
+          on ? "bg-[var(--color-bg)]" : "bg-[var(--color-surface-3)]",
         )}
       >
         <span
           className={cn(
-            "absolute top-0.5 h-2.5 w-2.5 rounded-full bg-[var(--color-fg)] transition-[left]",
+            "absolute top-0.5 h-2.5 w-2.5 rounded-full transition-[left]",
+            on ? "bg-[var(--color-primary)]" : "bg-[var(--color-fg)]",
             on ? "left-3" : "left-0.5",
           )}
         />
