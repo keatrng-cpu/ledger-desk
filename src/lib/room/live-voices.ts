@@ -261,19 +261,19 @@ export function exTape(c: Ctx, d: TapeData): Ex | null {
             () => `${f.raw(d.held!.name)} is on the wrong side of this${p && d.heldStopDist != null ? `; ${f.pts(d.heldStopDist)} pts to the level` : ""}. We don't negotiate with the stop.`,
           ],
     );
-  } else if (d.card && (d.card.tier === "armed" || d.card.tier === "live" || d.card.tier === "forming")) {
+  } else if (d.card) {
+    const k = d.card;
     stand = pick(c, "tape.card", [
-      () => `The card is ${d.card!.tier}${d.card!.entry != null ? `: CE ${f.lvl(d.card!.entry)}${d.card!.awayPts != null ? `, ${f.pts(d.card!.awayPts)} pts away` : ""}` : ""}. Nothing happens until it touches.`,
-      () => `${f.raw(d.card!.name)} is ${d.card!.tier}. I don't chase the print — the entry rests at CE${d.card!.entry != null ? ` ${f.lvl(d.card!.entry)}` : ""}.`,
-      () => `${d.card!.tier === "live" ? "We're at the array." : "Not at the array yet."} The order waits for CE; it never pays the print.`,
+      () => `${f.raw(k.name)} is the card${k.tier ? `, ${k.tier}` : ""}${k.entry != null ? `, CE ${f.lvl(k.entry)}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts` : ""}. I have it.`,
+      () => `Card's ${f.raw(k.name)}. It doesn't have to move again for me to see it.`,
+      () => `${k.tier === "live" ? "We're at the array." : k.tier ? `The card is ${k.tier}.` : "The card is on the board."} That's the one.`,
     ]);
-    standBy = "Vince";
+    standBy = "Sterling";
   } else {
     stand = pick(c, "tape.none", [
-      () => `No ticket, no opinion. The card has to move before I do.`,
-      () => `Nothing on the board. A move isn't a card.`,
-      () => `Conditions, not predictions. None of mine are met.`,
-      () => `Pretty. Not a trade.`,
+      () => `Board's empty. No card up.`,
+      () => `Nothing graded. A move isn't a card until the board prints one.`,
+      () => `No card on the board. I'll call it the moment one lands.`,
     ]);
   }
   if (!d.held && d.lagSec != null && d.lagSec >= 90) {
@@ -865,7 +865,16 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
   const k = d.card;
   const entry = k.entry != null ? f.lvl(k.entry) : null;
   const lines: (Line | null)[] = [];
-  if (d.to === "armed") {
+  if (d.from == null || d.to === "forming" || d.to === "board") {
+    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.new.vince", [
+      () => `${f.raw(k.name)} just printed${entry ? `, CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts out` : ""}.`,
+      () => `New card. ${f.raw(k.name)}${k.tier ? `, ${k.tier}` : ""}.`,
+    ])));
+    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.new.sterling", [
+      () => `I see it. ${k.block ? f.raw(k.block) : "The card is on the board."}`,
+      () => `${f.raw(k.name)}. Called as it landed.`,
+    ])));
+  } else if (d.to === "armed") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.armed.vince", [
       () => `${f.raw(k.name)} is armed${entry ? `: CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts away` : ""}.`,
       () => `Price came into range of the card${entry ? ` — CE ${entry}` : ""}. Now it's a waiting game.`,

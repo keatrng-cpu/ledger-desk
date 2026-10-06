@@ -93,11 +93,10 @@ const c = { title: "ES long — Ronan", confluence: 0.84, pathBand: "A+", grade:
 applyVeto(c, "mitigation block — failed push origin, measured negative");
 stampPathTitle(c);
 check("the fit is untouched", c.confluence, 0.84);
-check("the card is refused", c.actionable, false);
-check("the band drops to C so every band gate still refuses", c.pathBand, "C");
+check("the band stays — a veto does not take the card off the board", c.pathBand, "A+");
 check("and remembers what it was", c.bandBeforeVeto, "A+");
 check("the veto is named", c.vetoes, ["mitigation block — failed push origin, measured negative"]);
-check("the title is restamped after the veto", c.title, "ES long — Ronan · [path C · fit 0.84 · vetoed from A+]");
+check("the title keeps the band and names the veto", c.title, "ES long — Ronan · [path A+ · fit 0.84 · vetoed]");
 applyVeto(c, "mitigation block — failed push origin, measured negative");
 check("the same veto twice is recorded once", c.vetoes.length, 1);
 ok("the scanner restamps titles after the vetoes", /for \(const c of pathCandidates\) stampPathTitle\(c\)/.test(code("src/lib/trading/scanner.ts")));

@@ -207,13 +207,37 @@ function calendarRead(desk: DeskPayload, nowMs: number): CalRead {
 
 const SETUP_BANDS = new Set(["A+", "A", "A-", "A−", "B+"]);
 
+function graded(c: { pathBand?: string | null; bandBeforeVeto?: string | null }): boolean {
+  return SETUP_BANDS.has(String(c.pathBand ?? "")) || SETUP_BANDS.has(String(c.bandBeforeVeto ?? ""));
+}
+
+/** The card's own plan, else the book plan on the same side. The tier is read off the price that just printed. */
+function planFor(
+  c: { side: string; plan?: { entry: number; stop: number; t1?: number | null; side: "long" | "short"; entryZone: { top: number; bottom: number } | null; atr: number | null } | null },
+  bookPlan: { side: string; entry?: number; stop?: number; t1?: number | null } | null,
+) {
+  if (c.plan?.entryZone) return c.plan;
+  if (bookPlan && bookPlan.side === c.side && bookPlan.entry != null) return bookPlan as NonNullable<typeof c.plan>;
+  return null;
+}
+
 function cardRead(desk: DeskPayload): CardRead | null {
-  const c = [...desk.scan.candidates].filter((x) => SETUP_BANDS.has(String(x.pathBand ?? ""))).sort(compareForBoard)[0];
-  if (!c) return null;
-  const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
-  const b = booksOf(desk)[u];
-  const plan = b.smc.plan && b.smc.plan.side === c.side ? b.smc.plan : null;
-  const read = plan ? readEntry(plan, b.quote.price, b.draw.atr || null) : null;
+  const ranked = [...desk.scan.candidates].filter(graded).sort(compareForBoard);
+  if (!ranked.length) return null;
+  const books = booksOf(desk);
+  const readOf = (c: (typeof ranked)[number]) => {
+    const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
+    const b = books[u];
+    const plan = planFor(c, b.smc.plan);
+    const read = plan ? readEntry(plan as Parameters<typeof readEntry>[0], b.quote.price, c.plan?.atr ?? b.draw.atr || null) : null;
+    return { u, b, plan, read };
+  };
+  const live = ranked.find((c) => {
+    const t = readOf(c).read?.tier;
+    return t === "live" || t === "armed" || t === "forming";
+  });
+  const c = live ?? ranked[0]!;
+  const { u, plan, read } = readOf(c);
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
@@ -227,10 +251,10 @@ function cardRead(desk: DeskPayload): CardRead | null {
     futSide: c.side === "short" ? "short" : "long",
     entry: plan?.entry ?? null,
     stop: plan?.stop ?? null,
-    t1: plan?.t1 ?? null,
+    t1: plan && "t1" in plan ? (plan.t1 ?? null) : null,
     pT1: c.hitOdds?.pT1 ?? null,
     expR: c.hitOdds?.expR ?? null,
-    block: c.missing?.[0] ?? null,
+    block: c.missing?.[0] ?? c.vetoes?.[0] ?? null,
     strategy: c.completeStrategy || c.strategyPrimary || null,
   };
 }
@@ -244,8 +268,8 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
     .map((c) => {
       const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
       const b = booksOf(desk)[u];
-      const plan = b.smc.plan && b.smc.plan.side === c.side ? b.smc.plan : null;
-      const read = plan ? readEntry(plan, b.quote.price, b.draw.atr || null) : null;
+      const plan = planFor(c, b.smc.plan);
+      const read = plan ? readEntry(plan as Parameters<typeof readEntry>[0], b.quote.price, c.plan?.atr ?? b.draw.atr || null) : null;
       return {
         key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
         name: `${c.pathBand} ${c.symbol} ${c.side}`,

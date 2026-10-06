@@ -787,20 +787,13 @@ export function boardRank(c: Pick<SetupCandidate, "htfOk" | "actionable">): numb
  * Until 2026-10-02 every veto multiplied the fit by 0.42. Nothing measured
  * that constant, and it made the veto a hard block in disguise (0.99 × 0.42
  * = 0.42, under the 0.65 floor for any card) while the card's other readers —
- * the ceiling line, the score drivers — re-derived the UNdiscounted fit from
- * the components and printed it beside the discounted one. The refusal is the
- * same as before: not actionable, PATH band down to C (so every downstream
- * gate that keys off the band still refuses), the reason first in `missing`.
- * The fit is left as the fit, and the card names the veto.
+ * The refusal used to drop the PATH band to C, which took the card off the board.
+ * The band stays. The veto is named in `missing` and `vetoes` so the room can say it.
  */
 export function applyVeto(c: SetupCandidate, label: string): void {
-  c.actionable = false;
   if (c.bandBeforeVeto === undefined) c.bandBeforeVeto = c.pathBand;
   c.vetoes = [...(c.vetoes ?? []).filter((v) => v !== label), label];
-  if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-  if (c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+") {
-    c.pathBand = "C";
-  }
+  // The band stays. A veto is a flag the room can say. It is not a new card and it does not take this one off the board.
   if (!c.missing.includes(label)) c.missing.unshift(label);
 }
 

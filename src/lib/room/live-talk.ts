@@ -684,28 +684,26 @@ function bookCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       }
     }
   }
-  // The card's tier.
+  // The card, the moment it appears or changes. First sight is news, not a silent note.
   const card = w.card;
-  if (card && card.tier) {
+  if (card) {
+    const to = `${card.tier ?? "board"}|${card.band ?? ""}|${card.verdict}`;
     const prev = st.tier[card.key];
-    if (prev === undefined) st.tier[card.key] = card.tier;
-    else if (prev !== card.tier) {
-      const to = card.tier;
-      if (to === "armed" || to === "live" || to === "gone") {
-        out.push({
-          id: `tier|${card.key}|${to}`,
-          kind: "card",
-          topic: `card:${card.key}:${to}`,
-          urgency: to === "live" ? 2 : 1,
-          prio: 9,
-          at: now,
-          label: `${card.name} ${prev} → ${to}`,
-          build: (c) => V.exTier(c, { card, from: prev, to, b: w.books[card.u] }),
-          commit: (s) => {
-            s.tier[card.key] = to;
-          },
-        });
-      } else st.tier[card.key] = to;
+    if (prev !== to) {
+      const from = prev == null ? null : prev.split("|")[0]!;
+      out.push({
+        id: `tier|${card.key}|${to}`,
+        kind: "card",
+        topic: `card:${card.key}`,
+        urgency: 2,
+        prio: 10,
+        at: now,
+        label: prev == null ? `${card.name} is on the board` : `${card.name} ${from} → ${card.tier ?? "board"}`,
+        build: (c) => V.exTier(c, { card, from, to: card.tier ?? "board", b: w.books[card.u] }),
+        commit: (s) => {
+          s.tier[card.key] = to;
+        },
+      });
     }
   }
   // A ghost closing: the refused tickets' running result.
