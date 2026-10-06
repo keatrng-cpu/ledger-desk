@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { RiskState } from "@/lib/journal/risk";
+import { brainLiveRisk, type RiskFetchState } from "@/lib/trading/desk-fetch-guard";
 import {
   loadDeskMemory,
   pinNote,
@@ -65,9 +66,12 @@ function stratStatusClass(s: string): string {
 export function VeteranBrainPanel({
   desk,
   risk,
+  riskGate = "ok",
 }: {
   desk: DeskPayload;
   risk?: RiskState | null;
+  /** Desk risk gate state; "unknown" adds the brain's "Risk unknown" veto. */
+  riskGate?: RiskFetchState;
 }) {
   const [mem, setMem] = useState<DeskMemoryState>(() => loadDeskMemory());
   const fused = useDeskSynapse((s) => s.fusedSetups);
@@ -108,15 +112,9 @@ export function VeteranBrainPanel({
         desk,
         mem,
         asked,
-        risk
-          ? {
-              dailyHaltHit: risk.dailyHaltHit,
-              weeklyHaltHit: risk.weeklyHaltHit,
-              killzoneCapHit: risk.killzoneCapHit,
-            }
-          : null,
+        brainLiveRisk(riskGate, risk ?? null),
       ),
-    [desk, mem, asked, risk, tick],
+    [desk, mem, asked, risk, riskGate, tick],
   );
 
   // Auto-log discretion changes into memory (no user action)

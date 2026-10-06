@@ -77,7 +77,11 @@ export function isSignedOutError(e: unknown): boolean {
     if (o.status === 401 || o.statusCode === 401) return true;
   }
   const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "";
-  return /\bunauthori[sz]ed\b/i.test(msg);
+  // Exact match only (Accuracy re-review 00c071e S5). The server emits the bare
+  // word "Unauthorized". An upstream error whose text merely MENTIONS it
+  // ("proxy: upstream unauthorized for pooler", "Unauthorized host ...") is a
+  // transport failure, which must stay "unknown" and keep entry blocked.
+  return /^Unauthorized$/.test(msg.trim());
 }
 
 /** Map a failed risk read to the gate state. Only a signed-out answer is "no-session". */
@@ -121,16 +125,66 @@ export function resolvePublishedRisk<R>(next: R | null | undefined, prev: R | nu
   return next !== undefined ? next : prev;
 }
 
+/** True when a risk read carries any entry-blocking flag. */
+export function riskHalted(risk: RiskHaltFlags | null | undefined): boolean {
+  return !!risk && (risk.dailyHaltHit || risk.weeklyHaltHit || risk.killzoneCapHit);
+}
+
 /**
  * The entry gate. Fails closed on "loading" and "unknown". "no-session" is the
  * signed-out preview, which has no governor, so it is allowed (the server still
- * rejects the write). "ok" reads the halts.
+ * rejects the write) UNLESS this session already saw a halt: a 401 after a
+ * known halt does not lift the halt (Design re-review 00c071e S7). `risk` is
+ * the last-known governor answer, which loadRisk keeps on every non-"ok" read.
+ * "ok" reads the halts.
  */
 export function riskEntryAllowed(state: RiskFetchState, risk: RiskHaltFlags | null): boolean {
   if (state === "loading" || state === "unknown") return false;
-  if (state === "no-session") return true;
+  if (state === "no-session") return !riskHalted(risk);
   if (!risk) return false;
-  return !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit;
+  return !riskHalted(risk);
+}
+
+/** Why entry is blocked, for the card strip. undefined when entry is allowed. */
+export function riskEntryBlockedReason(
+  state: RiskFetchState,
+  risk: RiskHaltFlags | null,
+  unknownSinceMs: number | null,
+): string | undefined {
+  if (state === "unknown") return riskUnknownLine(unknownSinceMs);
+  if (state === "loading") return "risk loading";
+  if (state === "no-session" && riskHalted(risk)) return "signed out · last known halt holds";
+  return undefined;
+}
+
+/** The live-risk shape runVeteranBrain reads. */
+export type BrainLiveRisk = {
+  dailyHaltHit: boolean;
+  weeklyHaltHit: boolean;
+  killzoneCapHit: boolean;
+  /** The governor is silent (gate "unknown"): the brain adds a "Risk unknown" veto. */
+  riskUnknown: boolean;
+};
+
+/**
+ * What the veteran brain is told about risk (Accuracy re-review 00c071e S4).
+ * While the gate is "unknown" the last-known flags are still passed (a known
+ * halt keeps its veto), AND riskUnknown is set, so the veto list can never read
+ * "None" while the governor is silent. null only when there is no risk read
+ * and nothing is unknown (loading / signed-out preview).
+ */
+export function brainLiveRisk(
+  state: RiskFetchState,
+  risk: RiskHaltFlags | null,
+): BrainLiveRisk | null {
+  const unknown = state === "unknown";
+  if (!risk && !unknown) return null;
+  return {
+    dailyHaltHit: !!risk?.dailyHaltHit,
+    weeklyHaltHit: !!risk?.weeklyHaltHit,
+    killzoneCapHit: !!risk?.killzoneCapHit,
+    riskUnknown: unknown,
+  };
 }
 
 /** "10:32:05 ET". The desk reads in New York time. */

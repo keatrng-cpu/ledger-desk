@@ -159,9 +159,11 @@ import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 import {
+  brainLiveRisk,
   deskStaleLine,
   readRiskGoverned,
   riskEntryAllowed,
+  riskEntryBlockedReason,
   riskUnknownLine,
   withClientTimeout,
   type RiskFetchState,
@@ -825,6 +827,7 @@ function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
   const publishDesk = useDeskSynapse((s) => s.publishDesk);
   const publishRisk = useDeskSynapse((s) => s.publishRisk);
+  const publishRiskGate = useDeskSynapse((s) => s.publishRiskGate);
   const publishMemory = useDeskSynapse((s) => s.publishMemory);
   const memoryBook = useDeskSynapse((s) => s.memory);
   const [error, setError] = useState<string | null>(null);
@@ -928,6 +931,9 @@ function MasterplacePage() {
     }
     if (outcome.state === "no-session") {
       // The server SAID nobody is signed in — the preview has no governor.
+      // `risk` is deliberately NOT cleared: if this session already saw a
+      // halt, riskEntryAllowed keeps entry blocked on it (re-review S7), and
+      // the synapse keeps its "Risk halt" veto.
       setRiskFetchState("no-session");
       setRiskUnknownSince(null);
       setDiscretion(null);
@@ -942,13 +948,18 @@ function MasterplacePage() {
     return null;
   }, [publishRisk]);
 
+  // Mirror the gate into the synapse so the brain/posture/feeds know when
+  // `risk` is only last-known (re-review S4: "Risk unknown" veto).
+  useEffect(() => {
+    publishRiskGate(riskFetchState);
+  }, [riskFetchState, publishRiskGate]);
+
   const entryAllowed = riskEntryAllowed(riskFetchState, risk);
-  const entryBlockedReason =
-    riskFetchState === "unknown"
-      ? riskUnknownLine(riskUnknownSince)
-      : riskFetchState === "loading"
-        ? "risk loading"
-        : undefined;
+  const entryBlockedReason = riskEntryBlockedReason(
+    riskFetchState,
+    risk,
+    riskUnknownSince,
+  );
 
   /**
    * Everything a scanner card needs to draw its OWN setup, keyed by symbol.
@@ -1646,13 +1657,7 @@ function MasterplacePage() {
         desk,
         mounted ? loadDeskMemory() : undefined,
         undefined,
-        risk
-          ? {
-              dailyHaltHit: risk.dailyHaltHit,
-              weeklyHaltHit: risk.weeklyHaltHit,
-              killzoneCapHit: risk.killzoneCapHit,
-            }
-            : null,
+        brainLiveRisk(riskFetchState, risk),
         discretion?.byStrategy,
       )
     : null;
@@ -1879,7 +1884,7 @@ function MasterplacePage() {
                     title="Veteran brain"
                     sub="SMC/ICT discretion · remembers backtests & journal · never overrides hard gates"
                   />
-                  <VeteranBrainPanel desk={desk} risk={risk} />
+                  <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
                   <TradingCoach desk={desk} />
                 </div>
               )}
