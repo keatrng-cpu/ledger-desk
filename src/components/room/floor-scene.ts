@@ -1650,8 +1650,8 @@ export class FloorScene {
     sun.castShadow = true;
     sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -18, right: 18, top: 14, bottom: -14, near: 2, far: 48 });
-    sun.shadow.bias = -0.0006;
-    sun.shadow.normalBias = 0.06;
+    sun.shadow.bias = -0.001;
+    sun.shadow.normalBias = 0.12;
     sun.shadow.camera.updateProjectionMatrix();
     sun.target.position.set(-2, 0, -1);
     this.scene.add(sun, sun.target);
@@ -1822,18 +1822,27 @@ export class FloorScene {
       root.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;
-        m.receiveShadow = true;
         const mats = Array.isArray(m.material) ? m.material : [m.material];
-        let glass = false;
+        const blob = `${m.name} ${mats.map((mat) => (mat as THREE.Material).name ?? "").join(" ")}`.toLowerCase();
+        const glass =
+          /glass|lens|window/.test(blob) ||
+          mats.some((mat) => {
+            const s = mat as THREE.MeshStandardMaterial;
+            return s.transparent === true || (typeof s.opacity === "number" && s.opacity < 0.92);
+          });
+        const deskTop = /desk_|table_/.test(m.name);
         for (const mat of mats) {
           const std = mat as THREE.MeshStandardMaterial;
-          if (/glass|lens/i.test(std.name ?? "")) {
-            glass = true;
+          if (std && "shadowSide" in std) std.shadowSide = THREE.FrontSide;
+          if (glass) {
             std.transparent = true;
             std.depthWrite = false;
           }
         }
+        // Glass and window panes flash black when they take a shadow. Desk tops
+        // do the same (two faces, one depth). Floors still receive.
         m.castShadow = !glass;
+        m.receiveShadow = !glass && !deskTop;
         if (m.geometry) {
           if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
           const box = m.geometry.boundingBox;
@@ -1844,7 +1853,6 @@ export class FloorScene {
             if (Math.max(sx, sy, sz) < 0.06) m.castShadow = false;
           }
         }
-        if (glass) m.castShadow = false;
       });
       this.scene.add(root);
       this.officeRoot = root;

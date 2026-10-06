@@ -336,8 +336,6 @@ export function verdictFor(a: {
   if (id === "structure") {
     if (!htfAligned(a.desk?.htf[card.underlier], card.type))
       return skip("style", `the higher timeframe is ${a.desk?.htf[card.underlier] ?? "unread"} — structure does not back a ${card.type === "CALL" ? "call" : "put"}`, qty);
-    if (card.patterns?.inducement) return skip("style", "an inducement sweep sits in front of the real one", qty);
-    if (card.patterns?.mitigation) return skip("style", "the card rides a mitigation block", qty);
   }
   if (id === "edge") {
     const f = ticketKelly(plan.ev, plan.quote.ask);

@@ -797,6 +797,11 @@ export function applyVeto(c: SetupCandidate, label: string): void {
   if (!c.missing.includes(label)) c.missing.unshift(label);
 }
 
+/** A measured pattern the room should say. It does not enter missing or vetoes, so an A+ / A / B+ card still trades. */
+function noteOnly(c: SetupCandidate, label: string): void {
+  if (!c.reasons.includes(label)) c.reasons.push(label);
+}
+
 /**
  * Inside a group, the card worth more per card comes first: expected R per
  * card from the P(T1) model (hit-odds.ts — P(fill) × E[R | fill]). The fit is
@@ -991,7 +996,7 @@ export function scoreCandidates(
     const session = read.sessionStance ?? "neutral";
     const strong = (read.sessionStrength ?? 0) >= 0.28;
     if (!strong || session === "neutral" || session === need) continue;
-    applyVeto(c, "LTF delivery against");
+    noteOnly(c, "LTF delivery against — size note, the chart still calls it");
   }
 
   /**
@@ -1022,7 +1027,7 @@ export function scoreCandidates(
       mitigation: detectMitigationBlock(bars, c.side).present,
     };
     if (!c.patterns.inducement) continue;
-    applyVeto(c, "inducement — shallow decoy sweep before this one");
+    noteOnly(c, "inducement — shallow decoy sweep, size note, not a block");
   }
 
   /**
@@ -1047,7 +1052,7 @@ export function scoreCandidates(
    */
   for (const c of pathCandidates) {
     if (!c.patterns?.mitigation) continue;
-    applyVeto(c, "mitigation block — failed push origin, measured negative");
+    noteOnly(c, "mitigation block — failed second push, not the entry and not a block");
   }
 
   // The title carries "[path <band> · fit <x>]". It was stamped inside

@@ -866,7 +866,7 @@ function SetupCard({
                 untouched, the card is refused, and it says by what. */}
             {c.vetoes?.length ? (
               <span
-                title={`Refused: ${c.vetoes.join(" · ")}.${c.vetoes.includes("LTF delivery against") ? " Session is delivering the other way — do not fade a live impulse with leftover HTF components." : ""} The band was ${c.bandBeforeVeto ?? "—"} on the fit; a veto sets it to C and the card is not actionable. The fit and the T1 odds are unchanged — the veto is a rule, not a discount.`}
+                title={`Noted: ${c.vetoes.join(" · ")}. The band stays ${c.pathBand ?? c.bandBeforeVeto ?? "—"}. A note cuts size. It does not cancel an A+ / A / B+ card.`}
                 className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-down)]"
               >
                 veto · {c.vetoes[0]!.split(" — ")[0]}
