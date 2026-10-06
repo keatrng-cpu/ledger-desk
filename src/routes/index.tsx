@@ -1707,7 +1707,7 @@ function MasterplacePage() {
                     </div>
                   }
                 >
-                  <TradingFloorTab />
+                  <TradingFloorTab desk={desk} />
                 </Suspense>
               )}
 
