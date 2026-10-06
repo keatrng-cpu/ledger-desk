@@ -1614,52 +1614,51 @@ function MasterplacePage() {
           </div>
         )}
         {desk && (
-          <SessionHud desk={desk} wallNow={wallNow} liveRisk={risk}>
-            <PathAlarmBar desk={desk} />
-            <nav
-              className="mx-auto mt-2 max-w-7xl overflow-x-auto"
-              aria-label="Profit categories"
-            >
-              <div className="flex min-w-max gap-1.5 sm:min-w-0 sm:flex-wrap">
-                {CATEGORIES.map((c) => {
-                  const Icon = c.icon;
-                  const on = cat === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCat(c.id)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-left transition-colors",
-                        on
-                          ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
-                          : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
-                      )}
-                    >
-                      <Icon
+          <SessionHud
+            desk={desk}
+            wallNow={wallNow}
+            liveRisk={risk}
+            onEntryChip={() => setCat("trade")}
+            tabs={
+              <nav aria-label="Profit categories">
+                <div className="flex min-w-max gap-1">
+                  {CATEGORIES.map((c) => {
+                    const Icon = c.icon;
+                    const on = cat === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCat(c.id)}
+                        title={`${c.label} — ${c.hint}`}
+                        aria-current={on ? "page" : undefined}
                         className={cn(
-                          "h-3.5 w-3.5 shrink-0",
+                          "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-left transition-colors",
                           on
-                            ? "text-[var(--color-primary)]"
-                            : "text-[var(--color-subtle)]",
+                            ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
+                            : "border-transparent text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
                         )}
-                      />
-                      <span className="text-xs font-semibold">
-                        <span className="sm:hidden">{c.short}</span>
-                        <span className="hidden sm:inline">{c.label}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-1.5 px-1 text-[10px] text-[var(--color-subtle)]">
-                <span className="font-medium text-[var(--color-muted)]">
-                  {active.label}
-                </span>
-                {" — "}
-                {active.hint}
-              </p>
-            </nav>
+                      >
+                        <Icon
+                          className={cn(
+                            "h-3.5 w-3.5 shrink-0",
+                            on ? "text-[var(--color-primary)]" : "text-[var(--color-subtle)]",
+                          )}
+                        />
+                        <span className="whitespace-nowrap text-[13px] font-semibold">{c.short}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </nav>
+            }
+          >
+            <PathAlarmBar desk={desk} />
+            <p className="mt-1.5 px-1 text-[12px] text-[var(--color-subtle)]">
+              <span className="font-medium text-[var(--color-muted)]">{active.label}</span>
+              {" — "}
+              {active.hint}
+            </p>
           </SessionHud>
         )}
         <StorageBanner />
