@@ -4,7 +4,9 @@
  * Each person has one designated voice, chosen once from the browser and kept.
  * Pitch stays next to a normal speaking voice. Dropping it is what makes the
  * engine rasp. Tone is a small change of pace, not a new voice and not a new line.
- * Digits are not added and not dropped.
+ * Digits are not added and not dropped. Units, signs, strikes and code names are
+ * said the way a person on the desk says them ("5m" is five minutes, "782C" is
+ * the 782 call, "+$128" is plus 128 dollars).
  */
 
 import type { Character } from "./orchestrator";

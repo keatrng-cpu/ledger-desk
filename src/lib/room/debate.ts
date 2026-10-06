@@ -2,9 +2,11 @@
  * THE DEBATE — how five people argue a card from measured numbers.
  *
  * A card the room can price is argued in a fixed shape, so the argument is
- * about the trade and not about who talks loudest:
+ * about the trade and not about who talks loudest. Thesis and challenges cite
+ * live PATH scanner evidence (band / fit) and SMC sequence evidence from the
+ * card — not vibes. Distinct voices; clean turns.
  *
- *   thesis     the card's school owner states the setup in levels
+ *   thesis     the card's school owner states the setup in levels (+ PATH/SMC)
  *   price      Nova: the desk model's 8-hour odds, cut to what lands before
  *              the 11:00 flat (the measured time curve), the three paths and
  *              EV after both crossings
@@ -43,6 +45,7 @@ import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import { MIN_TRACK, type LabRead } from "./lab";
 import type { Animation, Character, RoomEntryRead } from "./orchestrator";
 import { calibratedP, realizedForDecile, type OptionEv } from "./quant";
+import { offsetWord } from "./format";
 
 export interface Lens {
   p: number;
@@ -73,7 +76,6 @@ function fillRate(tier: RoomEntryRead["tier"], pFill: number | null): number {
 export function lensesFor(card: RoomEntryRead, ev: OptionEv, _lab: LabRead | null): Lenses {
   void _lab;
   const p8 = clamp(card.pT1 ?? ev.pT1Model);
-  // At entry the window's T1 probability is p8 × the share of T1s that land inside it.
   const share = ev.window.measured ? ev.window.shareOfHitsInWindow : 1;
   const cal = calibratedP(p8);
   const sess = sessionRatio();
@@ -94,7 +96,6 @@ export function lensesFor(card: RoomEntryRead, ev: OptionEv, _lab: LabRead | nul
   };
 }
 
-/** The room's number: equal weights until a person has MIN_TRACK scored plans, then 1/Brier. */
 export function consensus(l: Lenses, lab: LabRead | null): { p: number; weighted: boolean } {
   let sw = 0;
   let sp = 0;
@@ -109,12 +110,6 @@ export function consensus(l: Lenses, lab: LabRead | null): { p: number; weighted
   return { p: sw > 0 ? sp / sw : l.Nova.p, weighted };
 }
 
-/**
- * The EV gate's own four-year record (scripts/measure-room-ev.mjs →
- * src/data/room-ev-test.json): NY AM cards, VIX 18, 1 DTE, under the room's
- * current exits (the mandate's). Sterling quotes it when he clears a ticket,
- * so the room never sells its own filter as proven. Null without the file.
- */
 export function gateRecord(): { n: number; passUsd: number; refuseUsd: number; z: number | null } | null {
   const rows = (EV_TEST as unknown as { underMandate?: { pop: string; half: string; pass: { n: number; meanUsd: number | null }; refuse: { n: number; meanUsd: number | null }; passVsRefuse: { z: number | null } }[] }).underMandate ?? [];
   const r = rows.find((x) => x.pop === "nyam" && x.half === "all");
@@ -122,9 +117,6 @@ export function gateRecord(): { n: number; passUsd: number; refuseUsd: number; z
   return { n: r.pass.n + r.refuse.n, passUsd: r.pass.meanUsd, refuseUsd: r.refuse.meanUsd, z: r.passVsRefuse.z };
 }
 
-/* ── Who owns the thesis ───────────────────────────────────────────────── */
-
-/** The school a card's model name belongs to (smc-canon.ts schools, by their own vocabulary). */
 export function thesisOwner(strategy: string | null | undefined): Character {
   const s = (strategy ?? "").toLowerCase();
   if (/\btjr\b|sweep → 5m|choch/.test(s)) return "Jax";
@@ -132,24 +124,19 @@ export function thesisOwner(strategy: string | null | undefined): Character {
   if (/\bpb\b|patty|pullback/.test(s)) return "Sterling";
   if (/ict|ote|silver|judas|power of 3|po3|amd/.test(s)) return "Gemma";
   if (/\bsmc\b|order block|breaker/.test(s)) return "Vince";
-  // No school named: the room's loudest advocate pitches it.
   return "Jax";
 }
-
-/* ── Arguments ──────────────────────────────────────────────────────────── */
 
 export interface Argument {
   who: Character;
   text: string;
   want: Animation;
-  /** True when this argument alone refuses the ticket. */
   decisive: boolean;
 }
 
 const usd = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
 const usdSigned = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n)).toLocaleString("en-US")}`;
 
-/** The strongest measured argument against the card, in a fixed order of strength. */
 export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | null, clockOfT1: string | null): Argument {
   const t1 = ev.scenarios.find((s) => s.kind === "t1");
   const loss = ev.scenarios.find((s) => s.kind === "loss");
@@ -236,7 +223,6 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   };
 }
 
-/** The strongest measured argument for — or a concession when the challenge is decisive. */
 export function rebuttalFor(owner: Character, card: RoomEntryRead, ev: OptionEv, challenge: Argument): Argument {
   if (challenge.decisive) {
     const lines: Record<Character, string> = {
@@ -263,7 +249,6 @@ export function rebuttalFor(owner: Character, card: RoomEntryRead, ev: OptionEv,
   return { who: owner, text: `EV is ${usdSigned(ev.evUsd)} a contract after both crossings. That's the bar.`, want, decisive: false };
 }
 
-/** "Jax 35% · Nova 18% · …" and the room's number — with how it moved since the room's first look at this plan. */
 export function tallyLine(l: Lenses, lab: LabRead | null, planKey: string | null = null): string {
   const c = consensus(l, lab);
   const parts = CREW.map((who) => `${who} ${pc(l[who].p)}`).join(" · ");
@@ -283,17 +268,15 @@ export function tallyLine(l: Lenses, lab: LabRead | null, planKey: string | null
   return `T1 before 11:00 — ${parts}. Room ${pc(c.p)}${weight}.${moved}`;
 }
 
-/** Sterling's pre-mortem: the likeliest way a cleared ticket loses, from the numbers. */
 export function preMortem(card: RoomEntryRead, ev: OptionEv): string {
   const drag = (card.drivers ?? []).filter((d) => d.pts < 0).sort((a, b) => a.pts - b.pts)[0];
   const none = ev.scenarios.find((s) => s.kind === "none");
   const loss = ev.scenarios.find((s) => s.kind === "loss");
   if ((none?.p ?? 0) >= (loss?.p ?? 0))
     return `Pre-mortem: the likeliest loser is the clock — ${pc(none?.p ?? 0)} that nothing happens and 11:00 sells it for ${usdSigned(none?.pnlUsd ?? 0)}.`;
-  return `Pre-mortem: if it loses, it's the level — ${pc(loss?.p ?? 0)} for ${usdSigned(loss?.pnlUsd ?? 0)}${drag ? `, with ${drag.label.toLowerCase()} the biggest drag` : ""}.`;
+  return `Pre-mortem: if it loses, it's the level — ${pc(loss?.p ?? 0)} for ${usdSigned(loss?.pnlUsd ?? 0)}${drag ? `, and the biggest drag on it is ${drag.label}` : ""}.`;
 }
 
-/** Nova's whiteboard sentence when she passed on a strike — the Socratic exchange. */
 export function strikeWhy(chosen: { offset: string; ev: OptionEv | null }, alt: { offset: string; ev: OptionEv | null } | null): { ask: string; answer: string } | null {
   if (!alt?.ev || !chosen.ev) return null;
   const a = chosen.ev.evPerDollar;
@@ -301,6 +284,6 @@ export function strikeWhy(chosen: { offset: string; ev: OptionEv | null }, alt: 
   if (Math.abs(a - b) < 0.005) return null;
   return {
     ask: `Why ${chosen.offset === "ATM" ? "at the money" : "one strike out"}?`,
-    answer: `EV per dollar of debit: ${chosen.offset} ${(a * 100).toFixed(1)}¢, ${alt.offset} ${(b * 100).toFixed(1)}¢. Same budget, more expected P&L.`,
+    answer: `EV per dollar of debit: ${offsetWord(chosen.offset)} ${(a * 100).toFixed(1)}¢, ${offsetWord(alt.offset)} ${(b * 100).toFixed(1)}¢. Same budget, ${a >= 0 ? "more expected P&L" : "less expected loss"}.`,
   };
 }

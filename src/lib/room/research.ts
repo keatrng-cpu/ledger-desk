@@ -10,11 +10,17 @@
  * says the next time it speaks, and a character can never quote a figure
  * the desk does not hold.
  *
- *   Nova     — what the edge is and is not (baseline, the stop band, Q).
- *   Vince    — where the fill is (fill rate by entry tier).
- *   Sterling — what the refusals are worth (inducement, mitigation, events).
- *   Gemma    — when the tape delivers (session buckets).
- *   Jax      — how rarely the desk actually says TAKE.
+ * Live duty (Keaton 2026-10-06): every character stays aware of the live PATH
+ * setup scanner and SMC research. When a card is on the board they cite the
+ * PATH band + confluence and the SMC sequence (or what is missing). They also
+ * watch the tape and do their own shelf research — they do not ignore a live
+ * A+/A/A− setup because the room is mid-banter.
+ *
+ *   Nova     — what the edge is and is not (baseline, the stop band, Q) + scanner fit.
+ *   Vince    — where the fill is (fill rate by entry tier) + SMC sequence / CE.
+ *   Sterling — what the refusals are worth (inducement, mitigation, events) + PATH cap.
+ *   Gemma    — when the tape delivers (session buckets) + liquidity / HTF.
+ *   Jax      — how rarely the desk actually says TAKE + chase discipline on live PATH.
  */
 
 import { EVIDENCE, type EvidenceBucket } from "@/lib/trading/evidence";
@@ -146,7 +152,24 @@ export function takeWordNote(): ResearchNote | null {
   };
 }
 
-/** Rotate a non-empty list by a deterministic seed. */
+/** Live PATH scanner mandate — every seat can quote this. */
+export function scannerMandateNote(): ResearchNote {
+  return {
+    id: "scanner_mandate",
+    line: "Live PATH cards at A+/A/A− with confluence at or above 0.65 are the desk's actionable set — talk past one and you're trading opinion.",
+    source: "PATH scanner · APLUS_RULES.confluenceFloor",
+  };
+}
+
+/** SMC sequence mandate — Vince's school, but the whole room cites it. */
+export function smcMandateNote(): ResearchNote {
+  return {
+    id: "smc_mandate",
+    line: "SMC sequence first: POI, shift, retest, limit at CE. A raid without the rest is a picture, not a ticket.",
+    source: "smc-canon.ts",
+  };
+}
+
 export function pick<T>(xs: (T | null)[], seed: number): T | null {
   const ok = xs.filter((x): x is T => x != null);
   return ok.length ? ok[Math.abs(seed) % ok.length]! : null;
@@ -156,11 +179,11 @@ export function pick<T>(xs: (T | null)[], seed: number): T | null {
 export function researchShelf(): Record<"Nova" | "Vince" | "Sterling" | "Gemma" | "Jax", ResearchNote[]> {
   const keep = (xs: (ResearchNote | null)[]) => xs.filter((x): x is ResearchNote => x != null);
   return {
-    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote()]),
-    Vince: keep([fillTierNote()]),
-    Sterling: keep([inducementNote(), mitigationNote(), eventNote()]),
-    Gemma: keep([sessionNote()]),
-    Jax: keep([takeWordNote()]),
+    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote()]),
+    Vince: keep([fillTierNote(), smcMandateNote()]),
+    Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote()]),
+    Gemma: keep([sessionNote(), smcMandateNote()]),
+    Jax: keep([takeWordNote(), scannerMandateNote()]),
   };
 }
 
