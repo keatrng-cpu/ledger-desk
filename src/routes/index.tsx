@@ -177,6 +177,13 @@ import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 const TradingFloorTab = lazy(() => import("@/components/room/trading-floor-tab"));
 // The Mead Hall (2026-10-06): the prediction-market sports bar — three.js too, so lazy like the Floor.
 const MeadHallTab = lazy(() => import("@/components/mead/mead-hall-tab"));
+// DEV capture only — Accuracy attachment re-render. `?capture=mead` mounts the
+// Mead Hall without waiting on /api/desk. import.meta.env.DEV is statically
+// false in production builds, so this is dead code there.
+const isMeadCapture = () =>
+  import.meta.env.DEV &&
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("capture") === "mead";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -823,6 +830,15 @@ function MasterplacePage() {
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
+  // DEV capture only — Accuracy attachment re-render (set after mount: SSR-safe).
+  const [captureMead, setCaptureMead] = useState(false);
+  useEffect(() => {
+    if (isMeadCapture()) {
+      setCaptureMead(true);
+      setCat("mead");
+      setLoading(false);
+    }
+  }, []);
   // "Open Mead Hall" on the Predict tab asks for a tab by id (a window event, so Predict needs no prop).
   useEffect(() => {
     const on = (e: Event) => {
@@ -1035,6 +1051,11 @@ function MasterplacePage() {
   const deskInFlight = useRef(false);
 
   const load = useCallback(async () => {
+    // DEV capture only — Accuracy attachment re-render: no desk fetch.
+    if (isMeadCapture()) {
+      setLoading(false);
+      return;
+    }
     if (deskInFlight.current) return;
     deskInFlight.current = true;
     setLoading(true);
@@ -1697,6 +1718,22 @@ function MasterplacePage() {
         <ScreenFlash desk={desk} />
         <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
+
+        {/* DEV capture only — Accuracy attachment re-render */}
+        {captureMead && !desk && (
+          <div className="mt-3 min-h-[50vh]">
+            <Suspense
+              fallback={
+                <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                  Opening the Mead Hall…
+                </div>
+              }
+            >
+              <MeadHallTab />
+            </Suspense>
+          </div>
+        )}
 
         {loading && !desk && (
           <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
