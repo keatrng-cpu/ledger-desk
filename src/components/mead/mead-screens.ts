@@ -218,6 +218,10 @@ function fit(ctx: CanvasRenderingContext2D, text: string, max: number): string {
   return `${t}…`;
 }
 
+/** The letter a screen shows: the signal engine's A–F when present, else the scanner grade. */
+export const gradeText = (m: PredictionMarket): string => m.hall?.grade ?? m.setupGrade;
+export const gradeColor = (g: string): string => (g.startsWith("A") ? "#86efac" : g === "B" ? MEAD.brass : g === "C" ? "#cbd5e1" : "#fca5a5");
+
 export const marketName = (m: PredictionMarket) => `${m.outcome} · ${eventLabel(m)}`;
 
 function srcBadge(ctx: CanvasRenderingContext2D, x: number, y: number, s: PredictionMarketFeedState | { status: string }) {
@@ -290,7 +294,9 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
   ctx.font = `700 24px ${FONT}`;
   ctx.fillStyle = "#cbd5e1";
   if (feat) {
-    const line = `Win chance ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}   ·   Grade ${feat.setupGrade}   ·   ${feat.gates.word} ${feat.gates.passed}/${feat.gates.total}`;
+    const line = feat.hall
+      ? `Grade ${feat.hall.grade}   ·   ${feat.hall.line}`
+      : `Win chance ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}   ·   Grade ${feat.setupGrade}   ·   ${feat.gates.word} ${feat.gates.passed}/${feat.gates.total}`;
     ctx.fillText(fit(ctx, line, W - 140), 70, 342);
   }
 
@@ -399,11 +405,12 @@ export function drawRuneBoard(c: HTMLCanvasElement, s: PredictionMarketFeedState
     ctx.fillText(fit(ctx, `${m.outcome}  ${cents(m.yesPrice)}`, W - 330), 140, y);
     ctx.font = `600 24px ${FONT}`;
     ctx.fillStyle = "#b8c2b0";
-    ctx.fillText(fit(ctx, `${categoryLabel(m)} · ${eventLabel(m)} · win ${pct(m.winChance)} · ${edgeTag(m.edge)}`, W - 240), 140, y + 34);
+    ctx.fillText(fit(ctx, `${categoryLabel(m)} · ${eventLabel(m)} · ${m.hall ? m.hall.sub : `win ${pct(m.winChance)} · ${edgeTag(m.edge)}`}`, W - 240), 140, y + 34);
     ctx.textAlign = "right";
     ctx.font = `900 44px ${SLAB}`;
-    ctx.fillStyle = m.setupGrade.startsWith("A") ? "#86efac" : m.setupGrade === "B" ? MEAD.brass : "#fca5a5";
-    ctx.fillText(m.setupGrade, W - 80, y);
+    const g = gradeText(m);
+    ctx.fillStyle = gradeColor(g);
+    ctx.fillText(g, W - 80, y);
     ctx.textAlign = "left";
   });
   if (!top.length) {

@@ -95,6 +95,21 @@ export interface PredictionMarket {
   labelFallback?: LabelFallback;
   volume?: number | null;
   expiry?: string | null;
+  /**
+   * Set only when the row came from the PM signal engine (MarketSignal via
+   * hallStateFromBoard): the A–F letter and the pre-formatted lines the hall
+   * screens draw instead of the scanner grade/gates. Presentation only.
+   */
+  hall?: MarketHallView;
+}
+
+/** Signal-engine view of a row for the Mead Hall screens (strings come from real MarketSignal fields). */
+export interface MarketHallView {
+  grade: "A" | "B" | "C" | "D" | "F";
+  /** Jumbotron footer line (implied after fees · spread · move · settle). */
+  line: string;
+  /** Rune Board sub-line. */
+  sub: string;
 }
 
 export type StaleReason = "fetch_age" | "invalid_fetch_time" | "last_trade_only";
@@ -227,6 +242,14 @@ export interface KalshiPublicMarket {
    */
   updated_time?: string;
   status?: string;
+  /** Kalshi market open time (ISO) — when trading began. */
+  open_time?: string;
+  /** Last trade price on the previous day (0 = no trade). */
+  previous_price_dollars?: string | number;
+  previous_yes_bid_dollars?: string | number;
+  previous_yes_ask_dollars?: string | number;
+  open_interest_fp?: string | number;
+  liquidity_dollars?: string | number;
   /** Optional tag from the fetcher (series ticker). */
   _series?: string;
 }
