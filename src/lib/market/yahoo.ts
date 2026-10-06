@@ -464,7 +464,11 @@ export function pearsonCorr(a: number[], b: number[]): number | null {
   return Number.isFinite(r) ? r : null;
 }
 
-/** Align two series by exact bar timestamps, then compute returns. */
+/**
+ * Align two series by exact bar timestamps, then compute returns.
+ * Drops the last paired bar (the forming one) so session ρ matches Charts
+ * rolling ρ: closed bars only.
+ */
 export function alignedReturnPairs(
   left: OhlcBar[],
   right: OhlcBar[],
@@ -475,6 +479,8 @@ export function alignedReturnPairs(
     const rc = mapR.get(b.t);
     if (rc != null) paired.push({ lc: b.c, rc });
   }
+  // Exclude the forming (last) bar — same rule as dual-index-charts rolling ρ.
+  if (paired.length > 0) paired.pop();
   const lr: number[] = [];
   const rr: number[] = [];
   for (let i = 1; i < paired.length; i++) {
