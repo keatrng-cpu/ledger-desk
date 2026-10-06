@@ -629,14 +629,29 @@ function tapeCands(w: TalkWorld, st: TalkState, out: Cand[]) {
 
 /* ── The book and the card ─────────────────────────────────────────────── */
 
-function bookCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+function bookCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew = false) {
   const now = w.nowMs;
   const live = tapeLive(w);
   for (const p of w.book.positions) {
     const step = Math.trunc(p.pnlPct / 10);
     const prev = st.pnlStep[p.id];
-    if (prev === undefined) st.pnlStep[p.id] = step;
-    else if (step !== prev && Math.abs(step) >= 1 && now - (st.nearFired[`pnl|${p.id}`] ?? 0) >= 60_000) {
+    if (prev === undefined) {
+      if (announceNew)
+        out.push({
+          id: `open|${p.id}`,
+          kind: "book",
+          topic: `book:open:${p.id}`,
+          urgency: 2,
+          prio: 12,
+          at: now,
+          label: `in · ${p.name}`,
+          build: (c) => V.exFill(c, { p, b: w.books[p.u] }),
+          commit: (s) => {
+            s.pnlStep[p.id] = step;
+          },
+        });
+      else st.pnlStep[p.id] = step;
+    } else if (step !== prev && Math.abs(step) >= 1 && now - (st.nearFired[`pnl|${p.id}`] ?? 0) >= 60_000) {
       const b = w.books[p.u];
       out.push({
         id: `pnl|${p.id}|${step}`,
@@ -1552,7 +1567,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   newsCands(w, st, cands);
   levelCands(w, st, cands);
   tapeCands(w, st, cands);
-  bookCands(w, st, cands);
+  bookCands(w, st, cands, !first);
   pulseCands(w, st, cands);
   seatCands(w, st, cands);
   goalCands(w, st, cands);

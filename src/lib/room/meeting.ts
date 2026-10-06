@@ -334,7 +334,7 @@ function triggerWait(f: Facts, minds: MindState | null): Line[] {
     say("Jax", `${c.futSymbol} ${c.futSide}, PATH ${c.band ?? "—"} — ${where(c)}. ${sideWord(c.type).toUpperCase()}, now, before it leaves!`, "POINTING"),
     say("Vince", `We rest at CE ${px(c.plan?.entry ?? 0)}, Jax. ${fill ? fill.line : ""}`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Jax", "And if it never comes back?", "SHOUTING"),
-    say("Vince", `Then we didn't pay for a move we missed. Your own school says it: "${tjrNeverChase}." ${c.awayPts != null ? `${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}.` : ""}`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
+    say("Vince", `Then we didn't pay for a move we missed. The next entry is the pullback into the array, at CE — not the extension. "${tjrNeverChase}."`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Nova", `${greeksLine(f)}${memory ? ` ${memory}` : ""}`, "WRITING_ON_WHITEBOARD"),
     say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}. It fires on the CE touch and nothing else.`, "CHECKING_TABLET"),
   ];
@@ -477,7 +477,7 @@ function fill(f: Facts): Line[] {
       `Cleared. Slot ${f.input.portfolio.open_positions.length + 1}/${ROOM_MANDATE.maxOpenPositions} · debit ${usd(e.debitUsd)} under a ${usd(e.capUsd)} cap · ${STOP_TXT} = ${usd(-e.stopUsd)} · exit on the level first${room != null ? ` · day halt room ${usd(room)}` : ""}.`,
       "APPROVING",
     ),
-    say("Vince", `BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} (mid ${prem(e.quote.mid)} + ${prem(HALF_SPREAD)}) · ${src}. Sent.`, "SMASHING_ENTER_KEY"),
+    say("Vince", `We're in. BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} (mid ${prem(e.quote.mid)} + ${prem(HALF_SPREAD)}) · ${src}. Sent.`, "SMASHING_ENTER_KEY"),
     say("Gemma", `${htfLine(f)} If it's wrong, it's wrong at ${c.futSymbol} ${px(c.plan?.stop ?? 0)} — that's the exit, before any percentage.`, "GESTICURING_AT_WALL"),
     say("Nova", odds ? `For the record: ${odds.line}` : "For the record: most fills never see T1.", "NODDING"),
   ];
@@ -780,7 +780,12 @@ function postNews(f: Facts, m: Meeting): Line[] {
   ];
 }
 
-function setupReview(f: Facts, m: Meeting): Line[] {
+function remembered(minds: MindState | null): string | null {
+  const m = minds?.memories.find((x) => x.kind === "smc" || x.kind === "session" || x.kind === "tape");
+  return m ? `Last time: ${m.text}` : null;
+}
+
+function setupReview(f: Facts, m: Meeting, minds: MindState | null): Line[] {
   const s = m.setup!;
   const bPlus = s.band === "B+";
   const q = qNote();
@@ -802,7 +807,7 @@ function setupReview(f: Facts, m: Meeting): Line[] {
     ),
     say("Gemma", `${htfLine(f)} The ${s.side} is ${f.desk?.htf[s.symbol.includes("ES") ? "SPY" : "QQQ"] === (s.side === "long" ? "bull" : "bear") ? "with" : "against"} the higher frame. ${printLine(f)}`, "GESTICURING_AT_WALL"),
     say("Vince", f.card?.plan ? `The gap's midpoint — CE — is ${px(f.card.plan.entry)} on ${f.card.futSymbol}. We rest there only while price is still inside the gap.` : "No gap priced, so no midpoint.", "STEADY_MONITORING"),
-    say("Nova", q ? `And remember: ${q.line}` : creed("Nova"), "NODDING"),
+    say("Nova", q ? `And remember: ${q.line}` : remembered(minds) ?? creed("Nova"), "NODDING"),
   ];
 }
 
@@ -908,7 +913,7 @@ export function buildMeeting(
           : meeting.kind === "post_news"
             ? postNews(f, meeting)
             : meeting.kind === "setup"
-              ? setupReview(f, meeting)
+              ? setupReview(f, meeting, minds)
               : meeting.kind === "debrief"
                 ? debrief(f, minds)
                 : restamp(f);

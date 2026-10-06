@@ -116,6 +116,7 @@ export const clip = (s: string, n: number): string => {
 };
 
 export const WB: TalkMove = { zone: "THE_WHITEBOARD" };
+const BOARD: Ex["moves"] = { Gemma: WB, Jax: WB, Nova: WB, Sterling: WB, Vince: WB };
 
 /** What a person does with their hands when they speak without anything in particular to act out. */
 export const NEUTRAL: Record<Character, Animation> = {
@@ -876,9 +877,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     ])));
   } else if (d.to === "armed") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.armed.vince", [
-      () => `${f.raw(k.name)} is armed${entry ? `: CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts away` : ""}.`,
-      () => `Price came into range of the card${entry ? ` — CE ${entry}` : ""}. Now it's a waiting game.`,
-      () => `Armed. ${entry ? `The entry rests at ${entry}.` : "The entry waits for the array."}`,
+      () => `War board. ${f.raw(k.name)} is armed${entry ? `, CE ${entry}` : ""}. Everyone here.`,
+      () => `Armed. All five at the board${entry ? `. The entry rests at ${entry}` : ""}.`,
     ])));
     lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null
       ? pick(c, "tier.armed.nova", [
@@ -889,20 +889,45 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     lines.push(line("Jax", ANIM.Jax.point!, pick(c, "tier.armed.jax", [() => `Come on, come to papa.`, () => `Close. Come on.`, () => `Armed is the best word in this building.`])));
   } else if (d.to === "live") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.live.vince", [
-      () => `Price is at CE${entry ? ` ${entry}` : ""}. This is the touch.`,
-      () => `${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}. Gates get read now.`,
-      () => `Touch. ${entry ? `CE ${entry}.` : ""} Sterling, it's yours.`,
+      () => `War board. Price is at CE${entry ? ` ${entry}` : ""}. This is the touch.`,
+      () => `All five. ${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}.`,
     ])));
     lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Gates are read now — not before. Nobody moves until I've cleared it.`, () => `Reading the gates. One at a time, in order.`])));
     lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now or never.`, () => `Pull the trigger — no, wait for Sterling.`, () => `That's it, that's the one!`])));
   } else if (d.to === "gone") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [() => `The card walked off without us. It's spent.`, () => `${f.raw(k.name)} is gone — price left the array. We don't chase.`, () => `It left. A limit that doesn't fill is a limit that did its job.`])));
-    lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "tier.gone.sterling", [() => `Missing one is the cheapest mistake there is.`, () => `No fill, no loss. That's the system working.`])));
+    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [
+      () => `Missed ${f.raw(k.name)}. We do not chase it. The next entry is the pullback into the array, at CE.`,
+      () => `It left without us. Buying it up here is a chase. We wait for the array.`,
+    ])));
+    lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "tier.gone.sterling", [() => `Missing one is the cheapest mistake there is. The next ticket is the pullback, not this print.`, () => `No fill, no chase. We get back in at the array.`])));
   } else {
     return null;
   }
   const out = compact(lines);
-  return out.length >= 2 ? { lines: out, moves: {} } : null;
+  const gather = d.to === "armed" || d.to === "live" || d.card.verdict === "ARMED";
+  return out.length >= 2 ? { lines: out, moves: gather ? BOARD : {} } : null;
+}
+
+export function exFill(c: Ctx, d: { p: PositionRead; b: TapeBook | null }): Ex | null {
+  const f = c.f;
+  const side = d.p.type === "CALL" ? "calls" : "puts";
+  const entry = d.p.plan?.entry != null ? f.lvl(d.p.plan.entry) : null;
+  const lines = compact([
+    line("Vince", ANIM.Vince.watch!, pick(c, "fill.vince", [
+      () => `We're in. ${f.int(d.p.contracts)} ${d.p.u} ${side}${entry ? `, from ${entry}` : ""}. ${f.raw(d.p.name)}.`,
+      () => `Filled. ${f.int(d.p.contracts)} ${d.p.u} ${side}. It's on the book.`,
+    ])),
+    line("Sterling", ANIM.Sterling.approve!, pick(c, "fill.sterling", [
+      () => `Said and sent. The stop is the level. We do not add.`,
+      () => `We're in. One plan, one fill.`,
+    ])),
+    line("Jax", ANIM.Jax.shout!, pick(c, "fill.jax", [() => `We're in! Hands off it.`, () => `That's the fill. Don't touch it.`])),
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "fill.gemma", [
+      () => `Entry was the array. If this one had already left, we would have waited for the pullback.`,
+      () => `On the board: filled at the spot, not at a chase.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
 }
 
 export interface GhostData {

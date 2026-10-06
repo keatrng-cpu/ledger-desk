@@ -172,7 +172,7 @@ export interface Relationship {
   respect: number;
 }
 
-export type MemoryKind = "chase_call" | "veto" | "fill" | "stop" | "win" | "news" | "setup";
+export type MemoryKind = "chase_call" | "veto" | "fill" | "stop" | "win" | "news" | "setup" | "session" | "tape" | "smc";
 
 export interface Memory {
   id: string;
@@ -227,6 +227,8 @@ export interface MindState {
   record: Record<Character, Record_>;
   /** Credibility 0–100, the Nemesis "power level". Persists across days, drifts back to 50. */
   rank: Record<Character, number>;
+  /** Last futures print we wrote a tape memory from, so a move is remembered once. */
+  tapeMark?: Partial<Record<Underlier, { px: number; at: number }>>;
   /** Director meetings already held (key → when), so one release is one meeting. */
   held: Record<string, number>;
   seq: number;
@@ -663,6 +665,32 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
         text: `${meeting.setup.band} ${meeting.setup.symbol} ${meeting.setup.side} reviewed`,
       });
   }
+  if (s.card && (s.card.verdict === "ARMED" || s.card.smcWord === "TAKE" || s.card.tier === "live" || s.card.tier === "armed")) {
+    const c = s.card;
+    const text = `SMC ${c.smcWord} ${c.futSymbol} ${c.futSide}${c.band ? ` ${c.band}` : ""}${c.strategy ? ` · ${c.strategy}` : ""}. ${c.smcMissing}. A sweep, then displacement, then the array. A mitigation block is a failed second push, not the entry. If the touch is missed, the next entry is the pullback to CE, not the extension.`;
+    if (!seenLately(m, "smc", text, s.nowMs, 20 * 60_000))
+      m = remember(m, { at: s.nowMs, clock, kind: "smc", who: "Nova", text, outcome: null });
+  }
+  const sess = `Session ${s.etDate} ${hhmm(Math.floor(s.etMin / 60) * 60)}. ${s.card ? `${s.card.futSymbol} ${s.card.futSide} ${s.card.smcWord}` : "No card."} ${s.blackout ? "News on — size only." : "The chart leads."}`;
+  if (!seenLately(m, "session", sess, s.nowMs, 50 * 60_000))
+    m = remember(m, { at: s.nowMs, clock, kind: "session", who: "Gemma", text: sess, outcome: null });
+  const marks = { ...(m.tapeMark ?? {}) };
+  for (const u of ["SPY", "QQQ"] as const) {
+    const px = s.market[u]?.price;
+    if (!(px > 0)) continue;
+    const prev = marks[u];
+    if (prev && prev.px > 0 && s.nowMs - prev.at >= 5 * 60_000) {
+      const pct = ((px - prev.px) / prev.px) * 100;
+      if (Math.abs(pct) >= 0.12) {
+        const mins = Math.max(1, Math.round((s.nowMs - prev.at) / 60_000));
+        const text = `${u} ${pct >= 0 ? "bid" : "offered"} ${Math.abs(pct).toFixed(2)}% in ${mins}m, ${prev.px.toFixed(2)} to ${px.toFixed(2)}. The chart moved. That is information, not a chase.`;
+        if (!seenLately(m, "tape", text, s.nowMs, 10 * 60_000))
+          m = remember(m, { at: s.nowMs, clock, kind: "tape", who: "Jax", text, outcome: null });
+        marks[u] = { px, at: s.nowMs };
+      }
+    } else if (!prev) marks[u] = { px, at: s.nowMs };
+  }
+  m = { ...m, tapeMark: marks };
   return m;
 }
 
@@ -702,6 +730,18 @@ export interface AgentPlan {
  * Order of authority: execution phase → HIGH_ALERT gathering → the blackout →
  * a director meeting → each person's own choice.
  */
+/** A setup that is ready to enter: the whole floor stands at the war board. */
+function readyBoard(s: Situation): boolean {
+  if (!s.optionsOpen || s.beat === "closed") return false;
+  if (s.beat === "trigger_wait" || s.beat === "fill") return true;
+  const t = s.card?.tier;
+  return (t === "armed" || t === "live") && (s.card?.verdict === "ARMED" || s.beat === "vetoed");
+}
+
+function seenLately(m: MindState, kind: MemoryKind, text: string, now: number, withinMs: number): boolean {
+  return m.memories.some((x) => x.kind === kind && x.text === text && now - x.at < withinMs);
+}
+
 export function planAgents(prev: MindState | null, s: Situation): AgentPlan {
   const dayKey = s.etDate;
   let minds = prev && prev.version === 1 ? prev : freshMinds(s.nowMs, dayKey);
@@ -722,7 +762,7 @@ export function planAgents(prev: MindState | null, s: Situation): AgentPlan {
         ),
       ]),
     ) as MindState["rel"];
-    minds = { ...fresh, rank, rel, memories: minds.memories.slice(0, 40), seq: minds.seq };
+    minds = { ...fresh, rank, rel, memories: minds.memories.slice(0, SCORING.memoryCap), tapeMark: minds.tapeMark, seq: minds.seq };
   }
   const dtMin = Math.min(30, Math.max(0, (s.nowMs - minds.at) / 60_000));
 
@@ -740,7 +780,8 @@ export function planAgents(prev: MindState | null, s: Situation): AgentPlan {
     needs[who] = decayNeeds(minds.needs[who], who, prevAct.act, dtMin, s);
     let act: AgentAct;
     const forced = (a: Activity): AgentAct => (prevAct.act === a ? prevAct : { act: a, since: s.nowMs, spot: null, with: null });
-    if (s.execute && (who === "Vince" || who === "Sterling")) act = forced("desk");
+    if (readyBoard(s)) act = forced("meeting");
+    else if (s.execute && (who === "Vince" || who === "Sterling")) act = forced("desk");
     else if (s.urgency === "HIGH_ALERT" && s.beat !== "closed") {
       // Sterling only walks to the board to stand in front of it (a veto).
       act = who === "Sterling" ? forced(s.beat === "vetoed" ? "meeting" : "desk") : forced("meeting");

@@ -371,6 +371,9 @@ export const useRoomStore = create<RoomState>((set, get) => ({
         const sg = asSeatBook(asLab(snapshot.book.lab).seats)?.goal;
         if (sg) saveGoal(sg);
         set({ book: snapshot.book, minds: snapshot.minds, backup: state, frame: null, lastFetchedAt: null, ...(sg ? { goal: sg, race: null } : {}) });
+      } else if (snapshot?.minds && (snapshot.minds.memories?.length ?? 0) > (get().minds?.memories.length ?? 0)) {
+        saveMinds(snapshot.minds);
+        set({ minds: snapshot.minds, backup: state });
       } else {
         set({ backup: snapshot ? { ...state, why: "This browser's room is current." } : state });
       }

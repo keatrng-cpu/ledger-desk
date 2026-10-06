@@ -487,10 +487,15 @@ function gradeBook(
     mss || cand?.components.includes("displacement") || cand?.components.includes("mss"),
   );
   if (inverted && displaced && fresh && price != null && retraceState !== "pass") {
-    const delivered = side === "short" ? price <= fresh.top : price >= fresh.bottom;
-    if (delivered) {
+    const pad = Math.max((fresh.top - fresh.bottom) * 0.25, 0.25);
+    const atTheClose = price >= fresh.bottom - pad && price <= fresh.top + pad;
+    if (atTheClose) {
       retraceState = "pass";
       retraceDetail = `5m IFVG inverted and displaced — that close is the entry. CE ${fresh.mid.toFixed(2)} is the midpoint of the gap, not a second level. This is not a mitigation block.`;
+    } else {
+      const ran = side === "short" ? price < fresh.bottom : price > fresh.top;
+      if (ran)
+        retraceDetail = `Displacement already left the array. Do not chase ${price.toFixed(2)}. Next entry is the pullback into ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)}, limit at CE ${fresh.mid.toFixed(2)}.`;
     }
   }
   // The numeric plan, priced from the SAME objects the layers were graded
