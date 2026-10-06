@@ -136,7 +136,25 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_INTERVAL, identity);
     // Without a connect timeout a wedged Neon/pooler handshake hangs every
     // auth+SQL server fn (getRiskState in the desk Promise.all) forever.
-    const pool = new Pool({ connectionString: databaseUrl, connectionTimeoutMillis: 8_000 });
+    //
+    // query_timeout (client-side, pg) bounds a query that hangs AFTER connect;
+    // on expiry pool.query releases the client with the error, so it is
+    // destroyed, not reused. A server-side statement_timeout is deliberately
+    // NOT sent as a startup parameter: Neon's pooled endpoint (PgBouncer,
+    // transaction mode) rejects it ("unsupported startup parameter in
+    // options: statement_timeout") and every connect would fail.
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      connectionTimeoutMillis: 8_000,
+      query_timeout: 10_000,
+    });
+    // An idle client that errors (Neon drops idle sockets, compute suspends)
+    // emits 'error' on the pool; with no listener Node treats it as an
+    // unhandled 'error' event and the function process crashes. The pool
+    // already discards that client; log and carry on.
+    pool.on("error", (err) => {
+      console.error("[db] idle pg client error (discarded):", err?.message ?? err);
+    });
     return toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];

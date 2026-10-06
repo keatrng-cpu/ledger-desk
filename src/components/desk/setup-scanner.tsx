@@ -338,10 +338,13 @@ export type LogMode = "paper" | "live";
 function BlockerStrip({
   c,
   entryAllowed,
+  entryBlockedReason,
   sessionReason,
 }: {
   c: SetupCandidate;
   entryAllowed: boolean;
+  /** Why the risk gate is closed when it is not a halt (e.g. "risk unknown · since 10:32:05 ET"). */
+  entryBlockedReason?: string;
   /** readSession's reason — delivery and participation, not the clock. */
   sessionReason?: string;
 }) {
@@ -352,7 +355,7 @@ function BlockerStrip({
   // or an event with delivery >= 2.0 ATR AND participation >= 1.5x. "Outside
   // killzone" described the old clock rule and hid how close an event was.
   if (!c.killzoneOk) blocks.push(`session closed — ${sessionReason || "no killzone and no tape event"}`);
-  if (!entryAllowed) blocks.push("risk governor");
+  if (!entryAllowed) blocks.push(entryBlockedReason || "risk governor");
   if (!blocks.length) return null;
 
   return (
@@ -458,6 +461,7 @@ function SetupCard({
   onLog,
   noteFor,
   entryAllowed = true,
+  entryBlockedReason,
   canon,
   discretion,
   tape,
@@ -474,6 +478,8 @@ function SetupCard({
    */
   noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
+  /** Shown in the blocker strip when the risk gate is closed for a reason other than a halt. */
+  entryBlockedReason?: string;
   /** Per-candidate SMC/ICT canon grade — see canonInputForCandidate. */
   canon?: CanonStack;
   /** Per-candidate real discretion factor — see journal/discretion.ts. */
@@ -1095,7 +1101,12 @@ function SetupCard({
       {ghost && ghost.status !== "watching" ? (
         <GhostBanner g={ghost} />
       ) : (
-        <BlockerStrip c={c} entryAllowed={entryAllowed} sessionReason={session?.sessionReason} />
+        <BlockerStrip
+          c={c}
+          entryAllowed={entryAllowed}
+          entryBlockedReason={entryBlockedReason}
+          sessionReason={session?.sessionReason}
+        />
       )}
 
       {/* THE MARKUP — this card's own setup, drawn the way an SMC trader marks
@@ -1581,6 +1592,7 @@ export function SetupScanner({
   onLog,
   noteFor,
   entryAllowed = true,
+  entryBlockedReason,
   bias,
   narrative,
   clock,
@@ -1592,6 +1604,8 @@ export function SetupScanner({
   /** Stage 0 — see SetupCard. Threaded straight through. */
   noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
+  /** Threaded to each card's blocker strip (e.g. "risk unknown · since …"). */
+  entryBlockedReason?: string;
   /** Per-book HTF read — matched to each candidate by symbol for its own canon grade. */
   bias?: { left: HtfBiasRead; right: HtfBiasRead };
   /** Per-book liquidity/confirmation narrative — same matching. */
@@ -1768,6 +1782,7 @@ export function SetupScanner({
             onLog={onLog}
             noteFor={noteFor}
             entryAllowed={entryAllowed}
+            entryBlockedReason={entryBlockedReason}
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}
             tape={tape?.[c.symbol]}
