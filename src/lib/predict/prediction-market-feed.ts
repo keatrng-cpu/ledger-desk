@@ -22,7 +22,7 @@
  *
  * READ-ONLY. No place / review / cancel. Paper journal only (journal.ts).
  * Kalshi: public trade-api/v2 only — NO API key. RH MCP: no event-contract
- * tools → `rh_mcp_unavailable` empty feed with a reason string.
+ * tools → `rh_mcp_unavailable` empty stub (markets=[], reason set) — not a data fallback.
  *
  * Ranking: setup quality first (grade + gate readiness). Moderate NFL series
  * boost as a tie-break only — Vikings get no extra boost beyond being NFL.
@@ -38,6 +38,9 @@ export const KALSHI_SOURCE_LABEL = "Kalshi (Robinhood's prediction-market exchan
 
 export const RH_MCP_UNAVAILABLE_REASON =
   "Robinhood MCP exposes equity, option, and crypto tools but has no event-contract / prediction-market read or trade tools. Use the Kalshi public adapter (source: 'kalshi') for paper/UI quotes.";
+
+/** UI badge for the empty RH MCP stub — not a quote source, only markets=[] + reason. */
+export const RH_MCP_EMPTY_LABEL = "RH MCP empty (no event-contract tools)";
 
 export type MarketSource = "kalshi" | "rh_mcp_unavailable" | "mock";
 export type SetupGrade = "A+" | "A" | "B" | "C" | "D";
@@ -168,6 +171,8 @@ export interface KalshiPublicMarket {
   close_time?: string;
   expiration_time?: string;
   expected_expiration_time?: string;
+  /** Kalshi market last-update timestamp (ISO). Prefer for per-row asOf. */
+  updated_time?: string;
   status?: string;
   /** Optional tag from the fetcher (series ticker). */
   _series?: string;
@@ -189,18 +194,27 @@ export function isNflMarket(m: { id?: string; event?: string; _series?: string }
  * price + held + second + qb layers cannot pass — that is intentional: raw
  * book quotes never flash GO on their own.
  */
+/** Accept Kalshi dollar prices in (0, 1] — exactly 1.0 is a valid fully-priced ask. */
+export function unitPrice(v: number | null): number | null {
+  return v != null && v > 0 && v <= 1 ? v : null;
+}
+
+function rowAsOf(raw: KalshiPublicMarket, fetchAsOf: string): string {
+  const u = typeof raw.updated_time === "string" ? raw.updated_time.trim() : "";
+  return u.length > 0 ? u : fetchAsOf;
+}
+
 export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): PredictionMarket | null {
   const ticker = typeof raw.ticker === "string" ? raw.ticker : "";
   if (!ticker) return null;
-  const ask = num(raw.yes_ask_dollars);
-  const bid = num(raw.yes_bid_dollars);
-  const yesAsk = ask != null && ask > 0 && ask < 1 ? ask : null;
-  const yesBid = bid != null && bid > 0 && bid < 1 ? bid : null;
-  const noAsk = num(raw.no_ask_dollars);
+  const yesAsk = unitPrice(num(raw.yes_ask_dollars));
+  const yesBid = unitPrice(num(raw.yes_bid_dollars));
+  const noAsk = unitPrice(num(raw.no_ask_dollars));
   const spread = yesAsk != null && yesBid != null ? yesAsk - yesBid : null;
   const askSize = num(raw.yes_ask_size_fp);
   const trading = !raw.status || /^(active|open)$/i.test(String(raw.status));
   const mid = yesAsk != null && yesBid != null ? (yesAsk + yesBid) / 2 : yesAsk ?? yesBid ?? num(raw.last_price_dollars);
+  const rowStamp = rowAsOf(raw, asOf);
 
   const layers: ScanLayer[] = [
     { id: "reference", ok: false, detail: "no independent reference (ESPN/book) on this raw Kalshi row" },
@@ -238,13 +252,13 @@ export function gradeKalshiPublicMarket(raw: KalshiPublicMarket, asOf: string): 
     event,
     outcome,
     yesPrice: r4(yesAsk),
-    noPrice: noAsk != null && noAsk > 0 && noAsk < 1 ? r4(noAsk) : yesBid != null ? r4(1 - yesBid) : null,
-    winChance: r4(mid != null && mid > 0 && mid < 1 ? mid : null),
+    noPrice: noAsk != null ? r4(noAsk) : yesBid != null ? r4(1 - yesBid) : null,
+    winChance: r4(mid != null && mid > 0 && mid <= 1 ? mid : null),
     edge: null,
     setupGrade: gradeFromGates(gates, hard),
     gates,
     source: "kalshi",
-    asOf,
+    asOf: rowStamp,
     volume,
     expiry,
   };
@@ -290,13 +304,13 @@ export function kalshiAdapterResult(raw: KalshiPublicMarket[], asOf = new Date()
   };
 }
 
-/** Fallback when a caller expected Robinhood event contracts via MCP. */
+/** Empty stub when a caller expected Robinhood event contracts via MCP (no quotes). */
 export function rhMcpUnavailableAdapter(asOf = new Date().toISOString()): PredictionMarketFeedResult {
   return {
     markets: [],
     asOf,
     source: "rh_mcp_unavailable",
-    label: "Robinhood MCP (event contracts unavailable)",
+    label: RH_MCP_EMPTY_LABEL,
     reason: RH_MCP_UNAVAILABLE_REASON,
   };
 }

@@ -33,6 +33,7 @@ import {
   type KalshiPublicMarket,
   type PredictionMarketFeedResult,
   KALSHI_SOURCE_LABEL,
+  RH_MCP_EMPTY_LABEL,
 } from "./prediction-market-feed";
 
 const UA =
@@ -178,18 +179,69 @@ const FEED_CACHE_MS = 12_000;
 let feedCache: { at: number; data: PredictionMarketFeedResult } | null = null;
 
 const RH_MCP_NOTE =
-  "Robinhood MCP has no event-contract tools — see rhMcpUnavailableAdapter / source 'rh_mcp_unavailable'.";
+  `RH MCP empty stub (${RH_MCP_EMPTY_LABEL}) — no event-contract tools; Kalshi public is the quote source.`;
 
-async function fetchKalshiSeries(series: string, limit = 40): Promise<KalshiPublicMarket[]> {
+/** Gap between series fetches to avoid Kalshi public 429s when many series fire at once. */
+export const KALSHI_SERIES_GAP_MS = 175;
+/** Max in-flight series requests (1 = fully sequential; 2 = small pool). */
+export const KALSHI_SERIES_CONCURRENCY = 1;
+const KALSHI_429_RETRIES = 3;
+const KALSHI_429_BACKOFF_MS = 400;
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Map items with small concurrency + inter-batch delay. Exported for verify.
+ */
+export async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  gapMs: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  const n = Math.max(1, Math.floor(concurrency));
+  for (let i = 0; i < items.length; i += n) {
+    if (i > 0 && gapMs > 0) await sleep(gapMs);
+    const slice = items.slice(i, i + n);
+    await Promise.all(
+      slice.map(async (item, j) => {
+        out[i + j] = await fn(item, i + j);
+      }),
+    );
+  }
+  return out;
+}
+
+async function fetchKalshiSeriesOnce(series: string, limit: number): Promise<KalshiPublicMarket[]> {
   const url = `${KALSHI}/markets?limit=${limit}&status=open&series_ticker=${encodeURIComponent(series)}`;
   const json = (await getJson(url)) as { markets?: KalshiPublicMarket[] };
   const markets = Array.isArray(json.markets) ? json.markets : [];
   return markets.map((m) => ({ ...m, _series: series }));
 }
 
+/** One series with short backoff/retry on HTTP 429. */
+export async function fetchKalshiSeries(series: string, limit = 40): Promise<KalshiPublicMarket[]> {
+  let delay = KALSHI_429_BACKOFF_MS;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= KALSHI_429_RETRIES; attempt++) {
+    try {
+      return await fetchKalshiSeriesOnce(series, limit);
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err instanceof Error ? err.message : err);
+      if (!/HTTP 429/.test(msg) || attempt === KALSHI_429_RETRIES) throw err;
+      await sleep(delay);
+      delay = Math.min(delay * 2, 2_500);
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
 /**
  * PUBLIC read-only PredictionMarketFeed from Kalshi trade-api/v2 (no API key).
  * Server function avoids browser CORS. Paper/UI only — never places orders.
+ * Series fetches are staggered (low concurrency + gap) to avoid public 429s.
  */
 export const getPredictionMarketFeed = createServerFn({ method: "POST" })
   .validator(
@@ -205,13 +257,15 @@ export const getPredictionMarketFeed = createServerFn({ method: "POST" })
     const series = data?.series?.length ? data.series : [...KALSHI_FEED_SERIES];
     const limit = data?.limitPerSeries ?? 30;
     const failed: string[] = [];
-    const chunks = await Promise.all(
-      series.map((s) =>
+    const chunks = await mapWithConcurrency(
+      series,
+      KALSHI_SERIES_CONCURRENCY,
+      KALSHI_SERIES_GAP_MS,
+      async (s) =>
         fetchKalshiSeries(s, limit).catch((err) => {
           failed.push(`${s}: ${String(err instanceof Error ? err.message : err)}`);
           return [] as KalshiPublicMarket[];
         }),
-      ),
     );
     const raw = chunks.flat();
     const asOf = new Date().toISOString();
@@ -228,7 +282,7 @@ export const getPredictionMarketFeed = createServerFn({ method: "POST" })
     return out;
   });
 
-/** Explicit empty adapter for callers that asked RH MCP for event contracts. */
+/** Explicit empty stub for callers that asked RH MCP for event contracts. */
 export function getRhMcpUnavailableFeed(): PredictionMarketFeedResult {
   return rhMcpUnavailableAdapter();
 }
