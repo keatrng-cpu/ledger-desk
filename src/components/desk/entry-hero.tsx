@@ -13,6 +13,7 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { ConflictChip } from "@/components/desk/viz/conflict-chip";
 import { Plain, PlainToggle } from "@/components/desk/plain-text";
 import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
+import { InTradeBadge } from "@/components/desk/screen-flash";
 import { cn } from "@/lib/utils";
 
 function Countdown({ endsAtMs, label }: { endsAtMs: number; label: string }) {
@@ -85,6 +86,7 @@ export function EntryHero({ desk }: { desk: DeskPayload }) {
             <Plain>{read.why}</Plain>
           </p>
         </div>
+        <InTradeBadge big />
         {mounted && read.countdown && (
           <Countdown endsAtMs={read.countdown.endsAtMs} label={read.countdown.label} />
         )}
