@@ -70,6 +70,70 @@ function lagWords(sec: number): string {
   return s >= 90 ? `${s}s (~${Math.round(s / 60)} min)` : `${s}s`;
 }
 
+/** Short tag matching QuoteChip (LIVE / Y! / DB / SYN). */
+function sourceTag(source: string): string {
+  return source === "live_gateway"
+    ? "LIVE"
+    : source === "yahoo"
+      ? "Y!"
+      : source === "databento"
+        ? "DB"
+        : "SYN";
+}
+
+/**
+ * Dot colour keys on SOURCE first, then lag.
+ * SYN and Y! are never green — synthetic stamps lagSec:0 (yahoo.ts) and Yahoo
+ * is delayed structure, not a live execution feed. Only live_gateway / fresh
+ * databento can read green.
+ */
+function feedDotTone(sources: string[], worstLagSec: number): {
+  className: string;
+  label: string;
+  title: string;
+} {
+  const tags = sources.map(sourceTag);
+  const hasSyn = sources.includes("synthetic");
+  const hasYahoo = sources.includes("yahoo");
+  const sourceBit = sources
+    .map((s, i) => `${tags[i]} (${s})`)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .join(" · ");
+  if (hasSyn) {
+    return {
+      className: "bg-[var(--color-down)]",
+      label: `Not live · SYN · reported lag ${lagWords(worstLagSec)} (synthetic stamps 0s)`,
+      title: `NOT LIVE — synthetic feed (source decides, not the lag). ${sourceBit}. Reported lag ${lagWords(worstLagSec)} — synthetic quotes stamp lagSec:0 even when invented. Do not treat as a live print.`,
+    };
+  }
+  if (hasYahoo) {
+    return {
+      className: "bg-[var(--color-warn)]",
+      label: `Not live · Y! · delayed ${lagWords(worstLagSec)}`,
+      title: `NOT LIVE — Yahoo is a delayed structure feed, never green. ${sourceBit}. Delay vs the exchange print ${lagWords(worstLagSec)}.`,
+    };
+  }
+  if (worstLagSec <= 15) {
+    return {
+      className: "bg-[var(--color-up)]",
+      label: `Live · feed delay ${lagWords(worstLagSec)}`,
+      title: `Live feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Green ≤ 15s · amber ≤ 2 min · red beyond. SYN/Y! never green.`,
+    };
+  }
+  if (worstLagSec <= 120) {
+    return {
+      className: "bg-[var(--color-warn)]",
+      label: `Delayed · ${lagWords(worstLagSec)}`,
+      title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Amber ≤ 2 min · red beyond. SYN/Y! never green.`,
+    };
+  }
+  return {
+    className: "bg-[var(--color-down)]",
+    label: `Stale · ${lagWords(worstLagSec)}`,
+    title: `Feed delay vs the exchange print — ${sourceBit} · worst ${lagWords(worstLagSec)}. Red beyond 2 min. SYN/Y! never green.`,
+  };
+}
+
 export function SessionHud({
   desk,
   wallNow,
@@ -112,6 +176,10 @@ export function SessionHud({
     right.source === "synthetic" ||
     quotes.left.source === "synthetic" ||
     quotes.right.source === "synthetic";
+  const feedDot = feedDotTone(
+    [quotes.left.source, quotes.right.source, left.source, right.source],
+    worstLagSec,
+  );
 
   const best = scan.candidates.find((c) => c.actionable) ?? scan.candidates[0] ?? null;
   const smtNote = smtStack?.primary.active
@@ -319,15 +387,11 @@ export function SessionHud({
 
           <span
             role="img"
-            aria-label={`Feed delay ${lagWords(worstLagSec)}`}
-            title={`Feed delay vs the exchange print — ${quotes.left.symbol} ${Math.round(quotes.left.lagSec)}s · ${quotes.right.symbol} ${Math.round(quotes.right.lagSec)}s (worst ${lagWords(worstLagSec)}). Green ≤ 15s · amber ≤ 2 min · red beyond.`}
+            aria-label={feedDot.label}
+            title={`${feedDot.title} — ${quotes.left.symbol} ${sourceTag(quotes.left.source)} ${Math.round(quotes.left.lagSec)}s · ${quotes.right.symbol} ${sourceTag(quotes.right.source)} ${Math.round(quotes.right.lagSec)}s.`}
             className={cn(
               "inline-block h-2.5 w-2.5 cursor-help rounded-full ring-2 ring-[var(--color-bg)]",
-              worstLagSec <= 15
-                ? "bg-[var(--color-up)]"
-                : worstLagSec <= 120
-                  ? "bg-[var(--color-warn)]"
-                  : "bg-[var(--color-down)]",
+              feedDot.className,
             )}
           />
         </div>

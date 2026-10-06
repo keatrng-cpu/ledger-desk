@@ -18,6 +18,7 @@ import {
   ETF_CLOSE_MIN,
   GTH_OPEN_MIN,
   RTH_OPEN_MIN,
+  WORKING_STOP_PCT,
   gradeOvernight,
   type OvernightLayer,
   type OvernightRead,
@@ -147,7 +148,7 @@ function ExitRing({ m }: { m: OvernightRead["mechanics"] }) {
           <>
             <p className="font-semibold text-[var(--color-down)]">No exit until {m.nextTradable}</p>
             <p className="text-[var(--color-muted)]">
-              {hm(left)} left of the {m.unmanageableLabel} blind window. The −25% working stop does not exist until the ring closes.
+              {hm(left)} left of the {m.unmanageableLabel} blind window. The −{Math.round(WORKING_STOP_PCT * 100)}% working stop does not exist until the ring closes.
               {m.weekend ? " Weekend hold: two news cycles." : ""}
             </p>
           </>
@@ -169,7 +170,7 @@ function MesVsOptions({ read }: { read: OvernightRead }) {
     ["Overnight exit", "Trades 23/5 — the stop is real", `None for ${m.unmanageableLabel}`],
     ["Theta", "None", `${m.thetaDays}d charged`],
     ["Spread", "No spread bleed", "Pays the option spread"],
-    ["Working stop", `${v.stopPts} ES pt ≈ $${v.riskDollars} on 1 MES`, "−25% stop unenforceable while closed"],
+    ["Working stop", `${v.stopPts} ES pt ≈ $${v.riskDollars} on 1 MES`, `−${Math.round(WORKING_STOP_PCT * 100)}% stop unenforceable while closed`],
   ];
   return (
     <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] px-3 py-2">

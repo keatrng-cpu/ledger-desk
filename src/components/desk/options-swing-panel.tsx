@@ -1,6 +1,7 @@
 import { StateWord } from "@/components/desk/state-word";
 import { useRhAccount } from "@/components/desk/use-entry-state";
 import { readRhAccount } from "@/lib/ui/rh-account";
+import { RH_MAX_DEBIT_TOTAL, RH_MIN_DEBIT_TOTAL } from "@/lib/execution/rh-autofire-gates";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
@@ -186,20 +187,25 @@ function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: num
   const acct = useRhAccount();
   const r = acct ? readRhAccount(acct) : null;
   const bp = acct && Number.isFinite(acct.optionsBuyingPowerUsd) ? acct.optionsBuyingPowerUsd : null;
-  const envMin = acct?.envelopeMinUsd ?? 150;
-  const envMax = acct?.envelopeMaxUsd ?? 550;
+  const envMin = acct?.envelopeMinUsd ?? RH_MIN_DEBIT_TOTAL;
+  const envMax = acct?.envelopeMaxUsd ?? RH_MAX_DEBIT_TOTAL;
   const loss = maxDebit * riskPct;
   const scale = Math.max(maxDebit, envMax, bp ?? 0) * 1.08 || 1;
   const pct = (x: number) => `${Math.min(100, Math.max(0, (x / scale) * 100))}%`;
-  const blocked = r?.blocked ?? false;
+  // No account block at all → fail closed (same as the hard gate).
+  const blocked = r?.blocked ?? true;
   return (
     <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase text-[var(--color-subtle)]">
         <span>Sleeve budget</span>
-        {r && (
+        {r ? (
           <span className={`normal-case font-mono text-[11px] font-semibold ${blocked ? "text-[#ef4444]" : "text-[var(--color-primary)]"}`}>
             {r.who} · {r.line}
             {acct?.isSnapshot ? ` · ${r.freshness}` : ""}
+          </span>
+        ) : (
+          <span className="normal-case font-mono text-[11px] font-semibold text-[#ef4444]">
+            no account · arm blocked
           </span>
         )}
       </div>
@@ -236,7 +242,9 @@ function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: num
         </span>
         <span className={blocked ? "font-semibold text-[#ef4444]" : ""}>
           <span className={`mr-1 inline-block h-2 w-1 ${blocked ? "bg-[#ef4444]" : "bg-[var(--color-up)]"}`} />
-          {bp == null ? "BP — no account read" : `BP ${usd(bp)}${blocked ? " — below the envelope, arm blocked" : ""}`}
+          {bp == null
+            ? "BP — no account read · arm blocked"
+            : `BP ${usd(bp)}${blocked ? " — below the envelope, arm blocked" : ""}`}
         </span>
       </div>
     </div>
@@ -294,7 +302,9 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              ≤ $1,000 debit per ticket · loss capped 15% of the debit · size from the level · exit on the futures level · estimates from ES/NQ · Databento $199/mo first · not the $100k book
+              ≤ ${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope ${RH_MIN_DEBIT_TOTAL}–${RH_MAX_DEBIT_TOTAL}) · loss capped{" "}
+              {Math.round(sleeve.riskPct * 100)}% of the debit · size from the level · exit on the futures level · estimates from ES/NQ · Databento $199/mo
+              first · not the $100k book
             </p>
           </div>
         </div>

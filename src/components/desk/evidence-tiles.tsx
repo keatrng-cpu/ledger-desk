@@ -19,10 +19,27 @@ interface Row {
   n?: number;
   /** "r" = expectancy per card (centred bar), "pct" = 0..1 hit rate. */
   kind: "r" | "pct";
+  /** evidence.ts flags verdict "thin" → show "too few to read", never a bare R. */
+  thin?: boolean;
 }
 
 function MiniBar({ row, scale }: { row: Row; scale: number }) {
   const v = row.value;
+  if (row.thin) {
+    return (
+      <div className="flex items-center gap-1.5 text-[10px]">
+        <span className="w-14 shrink-0 truncate text-[var(--color-subtle)]" title={row.label}>
+          {row.label}
+        </span>
+        <span className="flex-1 text-[var(--color-warn)]">too few to read</span>
+        {row.n != null && (
+          <span className="w-10 shrink-0 text-right font-mono text-[9px] text-[var(--color-subtle)]">
+            n {row.n}
+          </span>
+        )}
+      </div>
+    );
+  }
   const text = v == null ? "—" : row.kind === "r" ? signedR(v) : `${(v * 100).toFixed(1)}%`;
   let bar: ReactNode = null;
   if (v != null) {
@@ -70,22 +87,25 @@ function MiniBar({ row, scale }: { row: Row; scale: number }) {
 export function EvidenceTiles() {
   const base = EVIDENCE.baseline;
   const tiles: { title: string; rows: Row[] }[] = [];
-  if (base?.exp != null)
+  if (base && (base.exp != null || base.verdict === "thin"))
     tiles.push({
       title: "Every card ≥ 0.65",
-      rows: [{ label: "as coded", value: base.exp, n: base.n, kind: "r" }],
+      rows: [{ label: "as coded", value: base.verdict === "thin" ? null : base.exp, n: base.n, kind: "r", thin: base.verdict === "thin" }],
     });
   const pair = (
     title: string,
     a: [string, EvidenceBucket | null],
     b: [string, EvidenceBucket | null],
   ) => {
-    if (a[1]?.exp == null || b[1]?.exp == null) return;
+    if (!a[1] || !b[1]) return;
+    const aOk = a[1].exp != null || a[1].verdict === "thin";
+    const bOk = b[1].exp != null || b[1].verdict === "thin";
+    if (!aOk || !bOk) return;
     tiles.push({
       title,
       rows: [
-        { label: a[0], value: a[1].exp, n: a[1].n, kind: "r" },
-        { label: b[0], value: b[1].exp, n: b[1].n, kind: "r" },
+        { label: a[0], value: a[1].verdict === "thin" ? null : a[1].exp, n: a[1].n, kind: "r", thin: a[1].verdict === "thin" },
+        { label: b[0], value: b[1].verdict === "thin" ? null : b[1].exp, n: b[1].n, kind: "r", thin: b[1].verdict === "thin" },
       ],
     });
   };
@@ -105,10 +125,16 @@ export function EvidenceTiles() {
       ],
     });
   const outEvent = byKey(EVIDENCE.event, "out-event");
-  if (outEvent?.exp != null)
+  if (outEvent && (outEvent.exp != null || outEvent.verdict === "thin"))
     tiles.push({
       title: "Tape event outside killzones",
-      rows: [{ label: "out-KZ", value: outEvent.exp, n: outEvent.n, kind: "r" }],
+      rows: [{
+        label: "out-KZ",
+        value: outEvent.verdict === "thin" ? null : outEvent.exp,
+        n: outEvent.n,
+        kind: "r",
+        thin: outEvent.verdict === "thin",
+      }],
     });
   pair(
     "Inducement (decoy sweep)",

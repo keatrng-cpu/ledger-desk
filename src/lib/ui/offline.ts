@@ -11,7 +11,7 @@ const ENV_NAME = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g;
 /** True when an error/note is about a missing key or server setting, not a real failure. */
 export function isConfigGap(text: string | null | undefined): boolean {
   if (!text) return false;
-  return /not visible to this function|api[_ ]?key|not configured|missing (?:key|env)|\bset [A-Z][A-Z0-9_]+\b|_KEY\b|USER_AGENT/i.test(text);
+  return /not visible to this function|not configured|missing (?:key|env)|\bset [A-Z][A-Z0-9]*_[A-Z0-9_]+\b|[A-Z][A-Z0-9]*_(?:API_)?KEY\b|USER_AGENT/i.test(text);
 }
 
 /** Replace any ENV_VAR_NAME in a sentence with "a server setting". */

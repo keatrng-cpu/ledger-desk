@@ -251,11 +251,17 @@ function LiveBadge({ frame }: { frame: FloorFrame | null }) {
       text = "NO FEED";
     } else if (feed.kind === "live_gateway") {
       text = `LIVE · gateway${feed.lagSec != null ? ` · ${lagText(feed.lagSec)}` : ""}`;
+    } else if (feed.kind === "yahoo") {
+      // Yahoo is delayed structure — never "LIVE".
+      tone = "#d97706";
+      text = `DELAYED · Yahoo${feed.lagSec != null ? ` · ${lagText(feed.lagSec)}` : ""}`;
     } else {
       const late = (feed.lagSec ?? 0) >= 90;
       tone = late ? "#d97706" : "#16a34a";
-      // The delay itself is written once — the header's feed dot (hover it).
-      text = `LIVE · ${feed.kind === "yahoo" ? "Yahoo" : "Databento"}${late ? " · delayed" : ""}`;
+      // Databento historical is not the live gateway — don't say LIVE when delayed.
+      text = late
+        ? `DELAYED · Databento · ${lagText(feed.lagSec!)}`
+        : `Databento${feed.lagSec != null ? ` · ${lagText(feed.lagSec)}` : ""}`;
     }
   }
   const clock = frame?.clockLabel;

@@ -54,7 +54,7 @@ function WinRing({ p }: { p: number }) {
       <circle cx="19" cy="19" r={R} fill="none" stroke="var(--color-surface-3)" strokeWidth="4" />
       <circle cx="19" cy="19" r={R} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${C * v} ${C}`} transform="rotate(-90 19 19)" />
       <text x="19" y="22.5" textAnchor="middle" className="fill-[var(--color-fg)] font-mono text-[9px] font-bold">
-        {Math.round(v * 100)}%
+        {(v * 100).toFixed(1)}%
       </text>
     </svg>
   );

@@ -120,7 +120,7 @@ function IncomeGauge({ equity }: { equity: number }) {
     <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">
-          Income target · measured, not projected
+          Income target · 4-yr backtest projection (held-out E[R]), not your journal
         </p>
         <p
           className={
@@ -137,33 +137,37 @@ function IncomeGauge({ equity }: { equity: number }) {
         // Same two numbers as the line above, drawn: how much of the monthly
         // target the measured terms cover, and how many times over the
         // projection would have to repeat to close the gap.
-        const frac = plan.target > 0 ? Math.max(0, plan.projectedMonthlyDollars) / plan.target : 0;
+        // Same signed dollars as the line above — never clamp a negative
+        // backtest projection to $0 (that lied about the policy table).
+        const projected = plan.projectedMonthlyDollars;
+        const frac = plan.target > 0 ? projected / plan.target : 0;
         const short = !plan.reachable && Number.isFinite(plan.shortfallMultiple) ? plan.shortfallMultiple : null;
         const segs = short != null ? Math.min(30, Math.ceil(short)) : 0;
+        const barPct = frac > 0 ? Math.min(100, Math.max(1, frac * 100)) : 0;
         return (
           <div className="mt-2">
             <div className="flex items-baseline gap-2">
               <span
-                className={`font-mono text-2xl font-semibold tabular-nums ${plan.reachable ? "text-[var(--color-up)]" : "text-[var(--color-fg)]"}`}
+                className={`font-mono text-2xl font-semibold tabular-nums ${projected < 0 ? "text-[var(--color-down)]" : plan.reachable ? "text-[var(--color-up)]" : "text-[var(--color-fg)]"}`}
               >
-                {usd(Math.max(0, plan.projectedMonthlyDollars))}
+                {usd(projected)}
               </span>
               <span className="text-[11px] text-[var(--color-muted)]">
-                of {usd(plan.target)}/mo · {(Math.min(1, frac) * 100).toFixed(1)}%
+                of {usd(plan.target)}/mo · {(frac * 100).toFixed(1)}%
               </span>
             </div>
             <div
               className="relative mt-1 h-2.5 overflow-hidden rounded-full bg-[var(--color-bg)]"
-              title={`${usd(plan.projectedMonthlyDollars)}/mo projected from measured terms vs a ${usd(plan.target)}/mo target`}
+              title={`${usd(projected)}/mo backtest projection (held-out E[R] from the policy table) vs a ${usd(plan.target)}/mo target — not journal or paper fills`}
             >
               <span
-                className={`absolute inset-y-0 left-0 rounded-full ${plan.reachable ? "bg-[var(--color-up)]" : "bg-[var(--color-warn)]"}`}
-                style={{ width: `${Math.max(frac > 0 ? 1 : 0, Math.min(100, frac * 100))}%` }}
+                className={`absolute inset-y-0 left-0 rounded-full ${projected < 0 ? "bg-[var(--color-down)]" : plan.reachable ? "bg-[var(--color-up)]" : "bg-[var(--color-warn)]"}`}
+                style={{ width: `${barPct}%` }}
               />
             </div>
             {short != null && segs > 1 && (
               <div className="mt-1.5">
-                <div className="flex gap-[2px]" title={short > 999 ? "No measured income to scale yet" : `The projection would need to be ${short.toFixed(1)}x larger to reach the target`}>
+                <div className="flex gap-[2px]" title={short > 999 ? "No positive backtest projection to scale yet" : `The projection would need to be ${short.toFixed(1)}x larger to reach the target`}>
                   {Array.from({ length: segs }, (_, i) => (
                     <span
                       key={i}
@@ -172,7 +176,7 @@ function IncomeGauge({ equity }: { equity: number }) {
                   ))}
                 </div>
                 <p className="mt-0.5 text-[10px] text-[var(--color-subtle)]">
-                  Gap · {short > 999 ? "no measured income yet" : `${short.toFixed(1)}x short`} — one block is today&apos;s measured month{short > 30 ? " (drawn to 30)" : ""}
+                  Gap · {short > 999 ? "no positive projection yet" : `${short.toFixed(1)}x short`} — one block is one month of the backtest projection{short > 30 ? " (drawn to 30)" : ""}
                 </p>
               </div>
             )}

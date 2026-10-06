@@ -12,7 +12,7 @@ test("STAND family reads WAIT", () => {
 });
 test("the rest map onto the hero's words", () => {
   assert.equal(displayWord("WATCH"), "STALKING");
-  assert.equal(displayWord("REDUCE"), "STALKING");
+  assert.equal(displayWord("REDUCE"), "HALF SIZE");
   assert.equal(displayWord("ARMED_CALL"), "ARMED");
   assert.equal(displayWord("ARMED_PUT"), "ARMED");
   assert.equal(displayWord("TAKE"), "ENTER");

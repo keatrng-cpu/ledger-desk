@@ -31,7 +31,18 @@ export function LiveExampleChart({ desk }: { desk: DeskPayload }) {
   return (
     <figure className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2">
       <figcaption className="mb-1 flex items-baseline justify-between gap-1 text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">
-        <span>Live · {series.symbol} · {series.interval}</span>
+        <span>
+          {series.source === "live_gateway"
+            ? "Live"
+            : series.source === "yahoo"
+              ? "Yahoo (delayed)"
+              : series.source === "databento"
+                ? "Databento"
+                : series.source === "synthetic"
+                  ? "Synthetic"
+                  : series.source}{" "}
+          · {series.symbol} · {series.interval}
+        </span>
         <span className="font-mono normal-case">{series.price.toFixed(2)}</span>
       </figcaption>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Last ${bars.length} ${series.interval} bars of ${series.symbol}`}>
