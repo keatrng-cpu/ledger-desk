@@ -45,6 +45,7 @@ import {
   normalizedPct,
 } from "@/lib/market/yahoo";
 import { cn, formatPct } from "@/lib/utils";
+import { feedTone } from "@/lib/ui/feed-tone";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { buildChartOverlay } from "@/lib/trading/chart-overlay";
 import { chartFrameClass, useBiasFlip } from "@/lib/trading/use-bias-flip";
@@ -116,12 +117,9 @@ function LiveClock({
     0,
     Math.round((wallNowMs - quote.marketTimeMs) / 1000),
   );
-  const lagColor =
-    liveLag <= 5
-      ? "text-[var(--color-up)]"
-      : liveLag <= 60
-        ? "text-[var(--color-warn)]"
-        : "text-[var(--color-down)]";
+  // Source first (same helper as the header feed dot): SYN/Y! never green;
+  // unknown → red. SYN stamps marketTimeMs=now so lag-only colour lied.
+  const printTone = feedTone([quote.source], liveLag);
 
   return (
     <div className="space-y-0.5 font-mono text-[10px] tabular leading-tight text-[var(--color-subtle)]">
@@ -138,9 +136,9 @@ function LiveClock({
         <span className="text-[var(--color-muted)]">Fetched </span>
         {formatUtcClock(quote.fetchedAtMs)}
         <span
-          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", lagColor.replace("text-", "bg-"))}
-          title={`Print delay ${liveLag}s (the header's feed dot carries the desk-wide read)`}
-          aria-label={`Print delay ${liveLag}s`}
+          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", printTone.className)}
+          title={`${printTone.title} · print delay ${liveLag}s`}
+          aria-label={printTone.label}
         />
       </p>
     </div>
