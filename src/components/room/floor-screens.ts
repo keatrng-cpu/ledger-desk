@@ -15,6 +15,7 @@ import { floorCues, type FloorCues } from "@/lib/room/floor-cues";
 import { CATALYST_MAX_AGE_DAYS, type FeedRead, type GoalLite, type InvestLite, type InvestThemeLite, type RndLite, type ScanCardLite, type SeatsLite } from "@/lib/room/live-types";
 import { boardAgenda, daysBetween, dayPhrase, freshCatalysts, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
 import { etWallParts } from "@/lib/trading/sessions";
+import { feedTone } from "@/lib/ui/feed-tone";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
 
@@ -1402,11 +1403,27 @@ function drawFeed(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   const r = f.screens.race;
   const feed = r?.feed ?? null;
   clear(ctx, w, h);
-  const real = feed?.kind === "live_gateway" || feed?.kind === "databento";
-  const kindWord = !feed ? "no read" : feed.kind === "live_gateway" ? "LIVE GATEWAY" : feed.kind === "databento" ? "DATABENTO" : feed.kind === "yahoo" ? "YAHOO (delayed)" : feed.kind === "synthetic" ? "SYNTHETIC" : "NO FEED";
-  header(ctx, w, "OPS · THE FEED", kindWord, real ? C.up : feed?.kind === "yahoo" ? C.amber : C.down);
+  // Same honesty as the header feed dot: source first, then lag. Databento
+  // green only at ≤15s (not the old <90s Floor threshold). SYN/Y! never green.
+  const sources = feed && feed.kind !== "none" ? [feed.kind] : [];
+  const tone = feedTone(sources, feed?.lagSec ?? 0);
+  const accent = tone.tone === "live" ? C.up : tone.tone === "delayed" ? C.amber : C.down;
+  const kindWord = !feed || feed.kind === "none"
+    ? "NO FEED"
+    : feed.kind === "live_gateway"
+      ? "LIVE GATEWAY"
+      : feed.kind === "databento"
+        ? "DATABENTO"
+        : feed.kind === "yahoo"
+          ? "YAHOO (delayed)"
+          : feed.kind === "synthetic"
+            ? "SYNTHETIC"
+            : "NO FEED";
+  header(ctx, w, "OPS · THE FEED", kindWord, accent);
   const lag = feed?.lagSec;
-  kvLine(ctx, w, 80, "Newest print", lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`, lag != null && lag < 15 ? C.up : lag != null && lag < 120 ? C.amber : C.down);
+  const printWords =
+    lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`;
+  kvLine(ctx, w, 80, "Newest print", printWords, accent);
   const cues = cuesOfFrame(f);
   const cx = w - 78;
   const cy = 168;

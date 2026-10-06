@@ -466,21 +466,26 @@ export function pearsonCorr(a: number[], b: number[]): number | null {
 
 /**
  * Align two series by exact bar timestamps, then compute returns.
- * Drops the last paired bar (the forming one) so session ρ matches Charts
- * rolling ρ: closed bars only.
+ * Drops the last paired bar only when it is still forming (`nowMs < t + barMs`).
+ * When the market is closed / the last bar is complete, it is kept — so a
+ * closed session does not throw away a real closed bar.
  */
 export function alignedReturnPairs(
   left: OhlcBar[],
   right: OhlcBar[],
+  opts?: { nowMs?: number; barMs?: number },
 ): { left: number[]; right: number[] } {
   const mapR = new Map(right.map((b) => [b.t, b.c]));
-  const paired: { lc: number; rc: number }[] = [];
+  const paired: { t: number; lc: number; rc: number }[] = [];
   for (const b of left) {
     const rc = mapR.get(b.t);
-    if (rc != null) paired.push({ lc: b.c, rc });
+    if (rc != null) paired.push({ t: b.t, lc: b.c, rc });
   }
-  // Exclude the forming (last) bar — same rule as dual-index-charts rolling ρ.
-  if (paired.length > 0) paired.pop();
+  // Exclude the forming (last) bar only while it is still open.
+  if (paired.length > 0 && opts?.nowMs != null && opts?.barMs != null && opts.barMs > 0) {
+    const last = paired[paired.length - 1]!;
+    if (opts.nowMs < last.t + opts.barMs) paired.pop();
+  }
   const lr: number[] = [];
   const rr: number[] = [];
   for (let i = 1; i < paired.length; i++) {

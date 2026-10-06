@@ -31,6 +31,7 @@ import { CLOCK_WARN, STOP_FRAC_OF_DEBIT, sizeFromStop } from "./sleeve-sizing";
 import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
+import { RH_MAX_DEBIT_TOTAL } from "@/lib/execution/rh-autofire-gates";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -626,14 +627,17 @@ function underlierSheet(
     menu: rows.map((r) => {
       const single = estimateDebitContract(spot, r.dte, r.delta, iv);
       const spread = estimateSpreadContract(spot, r.dte, iv, pickWidth(underlier, r.dte));
+      // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Fit the green "1-lot"
+      // cell to the envelope, not the sleeve's $1,000 sizer cap.
+      const gateCap = Math.min(cap, RH_MAX_DEBIT_TOTAL);
       return {
         label: r.label,
         dte: r.dte,
         delta: r.delta,
         single,
         spread,
-        fitsSingle: single <= cap,
-        fitsSpread: spread <= cap,
+        fitsSingle: single <= gateCap,
+        fitsSpread: spread <= gateCap,
       };
     }),
   };
@@ -771,7 +775,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
     if (hint.sweep) reasons.push("Sweep tagged");
     if (hint.displace) reasons.push("Displacement / MSS tagged");
     if (hint.ifvg) reasons.push("IFVG tagged");
-    reasons.push("1 contract max — 0DTE gamma on a $1,000 sleeve");
+    reasons.push(`1 contract max — 0DTE gamma on a $${RH_MAX_DEBIT_TOTAL} sleeve`);
     const seq =
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left

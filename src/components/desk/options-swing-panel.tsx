@@ -157,7 +157,12 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
             <th className="font-medium">Tenor</th>
             <th className="font-medium">Single</th>
             <th className="font-medium">Spread</th>
-            <th className="font-medium" title="Fits inside the $1,000 ticket ceiling">≤ $1,000</th>
+            <th
+              className="font-medium"
+              title={`Fits inside the $${RH_MAX_DEBIT_TOTAL} RH envelope (gate refuses above this)`}
+            >
+              {`≤ $${RH_MAX_DEBIT_TOTAL}`}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -305,7 +310,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              ≤ ${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope ${RH_MIN_DEBIT_TOTAL}–${RH_MAX_DEBIT_TOTAL}) · loss capped{" "}
+              {`≤ $${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL})`} · loss capped{" "}
               {Math.round(sleeve.riskPct * 100)}% of the debit · size from the level · exit on the futures level · estimates from ES/NQ · Databento $199/mo
               first · not the $100k book
             </p>

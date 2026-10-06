@@ -146,7 +146,10 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
       }
 
 
-      const pairs = alignedReturnPairs(left.bars, right.bars);
+      const pairs = alignedReturnPairs(left.bars, right.bars, {
+        nowMs: fetchedAtMs,
+        barMs: cfg.minutes * 60_000,
+      });
       const corr = pearsonCorr(pairs.left, pairs.right);
 
       return {

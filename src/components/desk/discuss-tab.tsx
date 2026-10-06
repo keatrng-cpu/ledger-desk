@@ -42,6 +42,8 @@ function readLast(): Entry | null {
 function nextCheckpoint(nowMs: number): { slot: string; secs: number } {
   const p = etWallParts(nowMs);
   const sod = p.hour * 3600 + p.minute * 60 + p.second;
+  // Weekday maths only — does NOT skip US market holidays yet (same caveat
+  // as overnight-board ExitRing). Scheduler fires on any weekday minute match.
   const weekday = p.weekday >= 1 && p.weekday <= 5;
   if (weekday) {
     for (const t of AI_SYNC_TIMES) {

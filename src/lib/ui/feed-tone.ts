@@ -6,7 +6,8 @@
  * green. An unknown / unrecognized source defaults to red/not-live; it must
  * never fall through to a lag check that could paint green.
  *
- * Used by the header feed dot, the mobile lag chip, and the Charts print dot.
+ * Used by the header feed dot, the mobile lag chip, the Charts print dot,
+ * and the Floor OPS·THE FEED canvas (floor-screens drawFeed).
  */
 
 export type FeedToneKind = "live" | "delayed" | "not-live";
