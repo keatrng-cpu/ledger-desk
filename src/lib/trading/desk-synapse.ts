@@ -19,6 +19,7 @@ import {
   type BacktestFillRecord,
 } from "./desk-memory";
 import { runVeteranBrain, type VeteranBrief } from "./veteran-brain";
+import { resolvePublishedRisk } from "./desk-fetch-guard";
 import {
   countersFromMemory,
   isGoldStandardSetup,
@@ -511,7 +512,9 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
   publishDesk: (desk, risk) => {
     set({
       desk,
-      risk: risk !== undefined ? risk : get().risk,
+      // No risk arg = keep the last-known risk (and the brain's "Risk halt"
+      // veto). Soft/failed risk paths must omit it, never pass null.
+      risk: resolvePublishedRisk(risk, get().risk),
     });
     get().recompute();
   },

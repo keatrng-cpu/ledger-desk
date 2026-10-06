@@ -675,8 +675,12 @@ export function useRoomEngine(desk: DeskPayload | null) {
   useEffect(() => {
     useRoomStore.getState().hydrate();
   }, []);
+  // Wait for the first desk before pulling pulse/news so cold-start does not
+  // stack getPulse + getNewsFeed beside fetchTradingDesk / loadRisk (same
+  // serverless budget; Yahoo + RSS contention can starve the desk build).
+  const hasDesk = desk != null;
   useEffect(() => {
-    if (!enabled || !hydrated) return;
+    if (!enabled || !hydrated || !hasDesk) return;
     let alive = true;
     const pull = async () => {
       try {
@@ -695,10 +699,10 @@ export function useRoomEngine(desk: DeskPayload | null) {
       alive = false;
       window.clearInterval(id);
     };
-  }, [enabled, hydrated]);
+  }, [enabled, hydrated, hasDesk]);
   // Headlines: the news TVs and the talk both read them, so they are pulled here, not by the tab.
   useEffect(() => {
-    if (!enabled || !hydrated) return;
+    if (!enabled || !hydrated || !hasDesk) return;
     let alive = true;
     const pull = async () => {
       try {
@@ -719,7 +723,7 @@ export function useRoomEngine(desk: DeskPayload | null) {
       alive = false;
       window.clearInterval(id);
     };
-  }, [enabled, hydrated]);
+  }, [enabled, hydrated, hasDesk]);
   const fetchedAt = desk?.fetchedAt ?? null;
   useEffect(() => {
     if (!enabled || !hydrated || !desk || !fetchedAt) return;
