@@ -13,6 +13,7 @@ import {
   PEOPLE_KEY,
 } from "@/lib/room/desk-atlas";
 import { CREW_STUDY, crewOf, learnCrewYears } from "@/lib/room/crew-years";
+import book from "@/data/perfect-entry-book.json";
 
 const CREW: Record<
   BrainWho,
@@ -252,30 +253,32 @@ export function FloorBrains() {
         </aside>
       </div>
       <div className="grid gap-2 border-t border-white/10 p-3 sm:grid-cols-5">
-        {CREW_STUDY.people.map((p) => {
-          const c = CREW[p.who];
-          const wr = p.full.wr == null ? "—" : `${Math.round(p.full.wr * 100)}%`;
-          return (
-            <button
-              key={p.who}
-              type="button"
-              onClick={() => setWho(p.who)}
-              className="rounded-md border px-2 py-2 text-left"
-              style={{ borderColor: who === p.who ? c.color : "rgba(255,255,255,0.1)" }}
-            >
-              <p className="text-[10px] uppercase tracking-wider" style={{ color: c.color }}>
-                {p.who} · 0.90
-              </p>
-              <p className="mt-1 font-mono text-[13px] text-white">
-                {p.full.wins}/{p.full.n} · {wr}
-              </p>
-              <p className="mt-1 text-[10px] leading-snug text-white/45">{p.flaws[0]}</p>
-            </button>
-          );
-        })}
+        {(book.ladder as { who: string; check: string; wins: number; n: number; wr: number | null }[])
+          .filter((row) => row.who !== "All")
+          .map((row) => {
+            const c = CREW[row.who as BrainWho];
+            const wr = row.wr == null ? "—" : `${Math.round(row.wr * 100)}%`;
+            return (
+              <button
+                key={row.who}
+                type="button"
+                onClick={() => setWho(row.who as BrainWho)}
+                className="rounded-md border px-2 py-2 text-left"
+                style={{ borderColor: "rgba(255,255,255,0.1)" }}
+              >
+                <p className="text-[10px] uppercase tracking-wider" style={{ color: c.color }}>
+                  {row.who} · 2022–26
+                </p>
+                <p className="mt-1 font-mono text-[13px] text-white">
+                  {row.wins}/{row.n} · {wr}
+                </p>
+                <p className="mt-1 text-[10px] leading-snug text-white/45">{row.check}</p>
+              </button>
+            );
+          })}
       </div>
       <p className="border-t border-white/10 px-4 py-2 text-[11px] text-white/45">
-        The ring on each person is how much of the desk they have already read. A lit nerve means they wrote something of their own. The desk only keeps a line that raised probability, expectancy, or P&L.
+        Joint book, one-to-one before the stop, Sep 2022–Sep 2026. Stacking every check leaves 1 trade. It did not clear 68%.
       </p>
     </section>
   );

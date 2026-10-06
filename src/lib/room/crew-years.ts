@@ -1,6 +1,7 @@
 import study from "@/data/crew-card-study.json";
 import { improveAtlas, loadAtlas, mergeAtlas, offerToBrains, saveAtlas, type BrainWho, type PeopleBrains } from "./desk-atlas";
 import { PERFECT_STANDARD } from "./perfect-entry";
+import book from "@/data/perfect-entry-book.json";
 
 export interface CrewHalf {
   n: number;
@@ -46,6 +47,19 @@ export function learnCrewYears(): void {
         text: PERFECT_STANDARD,
       }));
       localStorage.setItem("ledger-perfect-entry-v1", "1");
+    }
+    if (localStorage.getItem("ledger-perfect-book-v1") !== book.note) {
+      const lines = (book.ladder as { who: string; check: string; wins: number; n: number; wr: number | null }[])
+        .map((row) => `${row.who}: ${row.check} ${row.wins}/${row.n}, ${row.wr == null ? "—" : `${Math.round(row.wr * 100)}%`}.`)
+        .join(" ");
+      saveAtlas(improveAtlas(loadAtlas() ?? mergeAtlas(null, null), {
+        shelf: "backtest",
+        title: "Joint book",
+        who: "Nova",
+        nowMs: Date.now(),
+        text: `Sep 2022 through Sep 2026. One-to-one before the stop. ${lines} The full stack did not clear 68%.`,
+      }));
+      localStorage.setItem("ledger-perfect-book-v1", book.note);
     }
     if (localStorage.getItem(KEY) === study.note) return;
     let people: PeopleBrains | null = null;
