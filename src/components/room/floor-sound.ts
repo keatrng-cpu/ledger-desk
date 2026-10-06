@@ -7,6 +7,9 @@
  *    (a fill, a winner, the bell at the open);
  *  - the line on the caption, spoken in phrases in that person's pattern
  *    (a lecture that settles, a clip, a flat number, a verdict, an operator).
+ *    Turn-taking: `say` reports when the line has been fully said, the scene
+ *    holds the caption until then, and a line that arrives early waits for the
+ *    phrase in the air to finish — nobody talks over anybody.
  *    The words are the caption. It does not write a line, pick a trade, or
  *    read a number the room did not already print.
  */
@@ -34,6 +37,11 @@ function pickVoice(who: Character, used: Set<string>): SpeechSynthesisVoice | nu
 }
 
 const STORAGE = "ledger-room-sound-v1";
+
+/** Longest a new line waits for the phrase in the air to finish before it is cut. */
+const PREEMPT_CAP_MS = 2600;
+/** The breath between a finished phrase and the speaker who was waiting for it. */
+const PREEMPT_GAP_MS = 260;
 
 export function loadSoundPref(): { on: boolean; volume: number } {
   try {
@@ -76,6 +84,11 @@ export class FloorSound {
   private sayToken = 0;
   private primed = false;
   private cast = new Map<Character, string>();
+  /** An utterance is in the air right now (one phrase of a line). */
+  private uttering = false;
+  /** A new line waiting for the phrase in the air to finish — nobody is cut off mid-word. */
+  private afterPhrase: (() => void) | null = null;
+  private afterPhraseCap = 0;
 
   /** Must run from the speaker-toggle click. Primes both WebAudio and speech. */
   unlock(): void {
@@ -90,21 +103,36 @@ export class FloorSound {
     synth.speak(warm);
   }
 
-  /** Speak the caption in phrases, in that person's pattern. No-op without a line. */
-  say(line: { character: Character; text: string }): void {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
+  /**
+   * Speak the caption in phrases, in that person's pattern. `onDone` fires once, when the LAST phrase has been said
+   * (or the voice failed) — the scene holds the line until then, so the next person waits their turn.
+   *
+   * A new line that arrives while someone is mid-phrase does not cut them off: the phrase in the air finishes
+   * (never longer than PREEMPT_CAP_MS), the rest of the old line is dropped, and the new speaker starts after a beat.
+   * Returns false when nothing will be said (no speech engine, no words) — the caller must not wait for it.
+   */
+  say(line: { character: Character; text: string }, onDone?: () => void): boolean {
+    if (typeof window === "undefined" || !window.speechSynthesis) return false;
     const parts = phrasePlan(line.character, line.text);
-    if (!parts.length || !parts[0].text) return;
+    if (!parts.length || !parts[0].text) return false;
     const synth = window.speechSynthesis;
     const token = ++this.sayToken;
-    synth.cancel();
     const voice = pickVoice(line.character, new Set(this.cast.values()));
     if (voice) this.cast.set(line.character, voice.voiceURI);
     const volume = Math.min(1, Math.max(0.45, this.volume));
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (token === this.sayToken) onDone?.();
+    };
     const speakAt = (i: number) => {
       if (token !== this.sayToken) return;
       const p: SpokenPhrase | undefined = parts[i];
-      if (!p) return;
+      if (!p) {
+        finish();
+        return;
+      }
       const u = new SpeechSynthesisUtterance(p.text);
       u.pitch = p.pitch;
       u.rate = p.rate;
@@ -114,24 +142,57 @@ export class FloorSound {
       const words = p.text.split(/\s+/).length;
       let stepped = false;
       const advance = () => {
-        if (stepped || token !== this.sayToken) return;
+        if (stepped) return;
         stepped = true;
         window.clearTimeout(fallback);
-        window.setTimeout(() => speakAt(i + 1), p.gap);
+        this.uttering = false;
+        if (token !== this.sayToken) {
+          // Superseded mid-line: this phrase was allowed to finish; hand the floor to the next speaker.
+          const next = this.afterPhrase;
+          this.afterPhrase = null;
+          window.clearTimeout(this.afterPhraseCap);
+          if (next) window.setTimeout(next, PREEMPT_GAP_MS);
+          return;
+        }
+        if (i === parts.length - 1) finish();
+        else window.setTimeout(() => speakAt(i + 1), p.gap);
       };
-      const fallback = window.setTimeout(advance, words * 420 + 700);
+      // Some engines never fire onend: a generous estimate of the phrase stands in for it.
+      const fallback = window.setTimeout(advance, (words * 420) / Math.max(0.5, p.rate) + 900);
       u.onend = advance;
-      u.onerror = () => window.clearTimeout(fallback);
+      u.onerror = advance;
+      this.uttering = true;
       synth.resume();
       synth.speak(u);
     };
-    // Chrome drops an utterance spoken in the same turn as cancel().
-    window.setTimeout(() => speakAt(0), 50);
+    const start = () => speakAt(0);
+    if (this.uttering) {
+      // Somebody is mid-phrase: let them land it, then go.
+      this.afterPhrase = start;
+      window.clearTimeout(this.afterPhraseCap);
+      this.afterPhraseCap = window.setTimeout(() => {
+        const next = this.afterPhrase;
+        this.afterPhrase = null;
+        this.uttering = false;
+        synth.cancel();
+        if (next) window.setTimeout(next, 50);
+      }, PREEMPT_CAP_MS);
+    } else {
+      synth.cancel();
+      // Chrome drops an utterance spoken in the same turn as cancel().
+      window.setTimeout(start, 50);
+    }
+    return true;
   }
 
   hush(): void {
     this.sayToken++;
-    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+    this.afterPhrase = null;
+    this.uttering = false;
+    if (typeof window !== "undefined") {
+      window.clearTimeout(this.afterPhraseCap);
+      window.speechSynthesis?.cancel();
+    }
   }
 
   private tone(freq: number, start: number, dur: number, type: OscillatorType, gain: number, glideTo?: number) {

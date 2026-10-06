@@ -34,6 +34,7 @@ import {
   STOP_TXT,
   clockEt,
   contractName,
+  gateWord,
   pctOf,
   prem,
   px,
@@ -679,7 +680,7 @@ function labNote(f: Facts): { line: string } | null {
       `Ghost room: over ${l.twins.n} fill${l.twins.n === 1 ? "" : "s"}, the room's exits made ${l.twins.roomUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(l.twins.roomUsd))} against ${l.twins.mandateUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(l.twins.mandateUsd))} for the mandate alone.`,
     );
   const r = l.refusals[0];
-  if (r) notes.push(`Ghost room: the ${r.n} ticket${r.n === 1 ? "" : "s"} refused on "${r.gate}" would have made ${r.pnlUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(r.pnlUsd))} — ${r.wins} winner${r.wins === 1 ? "" : "s"}.`);
+  if (r) notes.push(`Ghost room: the ${r.n} ticket${r.n === 1 ? "" : "s"} refused by the ${gateWord(r.gate)} gate would have made ${r.pnlUsd >= 0 ? "+" : "−"}$${Math.abs(Math.round(r.pnlUsd))} — ${r.wins} winner${r.wins === 1 ? "" : "s"}.`);
   if (l.calibration.n >= 3 && l.calibration.meanP != null && l.calibration.hitRate != null)
     notes.push(`Calibration: I've said ${pctOf(l.calibration.meanP)} on ${l.calibration.n} plans; ${pctOf(l.calibration.hitRate)} reached T1 before 11:00.`);
   return notes.length ? { line: notes[f.seed % notes.length]! } : null;
@@ -816,7 +817,7 @@ function ghostDebrief(f: Facts): string | null {
   if (!l || (!l.refusals.length && !l.twins.n)) return null;
   const s = (n: number) => `${n >= 0 ? "+" : "−"}$${Math.abs(Math.round(n))}`;
   const parts: string[] = [];
-  for (const r of l.refusals.slice(0, 2)) parts.push(`"${r.gate}" refused ${r.n}, which would have made ${s(r.pnlUsd)}`);
+  for (const r of l.refusals.slice(0, 2)) parts.push(`the ${gateWord(r.gate)} gate refused ${r.n}, which would have made ${s(r.pnlUsd)}`);
   if (l.twins.n) parts.push(`our exits ${s(l.twins.deltaUsd)} against the mandate alone over ${l.twins.n} fill${l.twins.n === 1 ? "" : "s"}`);
   return `Ghost room: ${parts.join("; ")}.`;
 }

@@ -19,6 +19,7 @@
  */
 
 import { ROOM_MANDATE } from "./mandate";
+import { gateWord } from "./format";
 import { BLACKOUT_MIN } from "@/lib/news/schedule";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
 import { EXEC_LIMITS } from "./exec/limits";
@@ -84,9 +85,18 @@ export function lead(c: Ctx, a: Character, b: Character): Character {
   return recentSpeaks(c.st, a, c.now) <= recentSpeaks(c.st, b, c.now) ? a : b;
 }
 
+/**
+ * Shorten a code-written sentence for a caption. A whole sentence is kept when one ends past the halfway mark, so
+ * the line (and the voice) lands on a full stop instead of trailing off mid-thought; otherwise it is cut at a word.
+ */
 export const clip = (s: string, n: number): string => {
   if (s.length <= n) return s;
   const cut = s.slice(0, n);
+  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("; "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+  if (end >= n * 0.55) return cut.slice(0, end + 1).replace(/;$/, ".");
+  // No sentence ends in time: stop at the last clause (a dash or a comma) rather than mid-clause.
+  const clause = Math.max(cut.lastIndexOf(" — "), cut.lastIndexOf(", "));
+  if (clause >= n * 0.55) return `${cut.slice(0, clause).replace(/[\s,;:.\-–—]+$/, "")}…`;
   const sp = cut.lastIndexOf(" ");
   return `${(sp > n * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,;:.\-–—]+$/, "")}…`;
 };
@@ -103,6 +113,23 @@ export const NEUTRAL: Record<Character, Animation> = {
 };
 
 export const signed = (n: number) => (n >= 0 ? "+" : "−");
+
+/** A clause that starts a sentence starts with a capital, whatever the code handed us. Digits are untouched. */
+export const capFirst = (t: string): string => {
+  const w = t.split(/\s/)[0] ?? "";
+  // A code name keeps its case ("maxCashFracPerTrade", "exec/limits.ts", "t1_pays"): capitalising it misquotes it.
+  if (!t || /[A-Z_./]/.test(w.slice(1))) return t;
+  return `${t[0]!.toUpperCase()}${t.slice(1)}`;
+};
+
+/** Code-written prose read aloud: every sentence starts with a capital and the last one ends on a stop. */
+export const tidy = (t: string): string => {
+  const s = capFirst(t.trim()).replace(/([.!?]\s+)([a-z])(?=[a-z']*(?:[\s,;:!?]|\.(?:\s|$)|$))/g, (_m, a: string, b: string) => `${a}${b.toUpperCase()}`);
+  return /[.!?…]$/.test(s) ? s : `${s}.`;
+};
+
+/** How a gate id is said: format.ts owns it so the meetings and the live talk say it the same way. */
+export { gateWord };
 
 /* ── The tape ──────────────────────────────────────────────────────────── */
 
@@ -882,17 +909,23 @@ export interface GhostData {
 export function exGhost(c: Ctx, d: GhostData): Ex | null {
   const f = c.f;
   const gain = d.usd > 0;
+  const gate = gateWord(d.gate);
+  const report = pick(c, "ghost.sterling", [
+    () => `The ${gate} veto so far: ${f.int(d.n)} refused ticket${d.n === 1 ? "" : "s"}, ${f.int(d.wins)} would have won, ${signed(d.usd)}${f.usd(d.usd)} on the model.`,
+    () => `Ghost room on the ${gate} gate: ${f.int(d.n)} closed, ${f.int(d.wins)} winners, ${signed(d.usd)}${f.usd(d.usd)} in total.`,
+  ]);
+  // A saved loss is Sterling's to enjoy — in the same breath, not as a second turn talking to himself.
+  const quip = d.usd < 0 && report
+    ? pick(c, "ghost.sterling.save", [() => `That's what a no is for.`, () => `The ghosts agree with me.`, () => `A refused loss is a saved loss.`, () => `Every time a ghost loses, a real account didn't.`, () => `The veto earned its keep.`])
+    : null;
   const lines = compact([
-    line("Sterling", ANIM.Sterling.tablet!, pick(c, "ghost.sterling", [
-      () => `The ${f.raw(d.gate)} veto so far: ${f.int(d.n)} refused ticket${d.n === 1 ? "" : "s"}, ${f.int(d.wins)} would have won, ${signed(d.usd)}${f.usd(d.usd)} on the model.`,
-      () => `Ghost room, ${f.raw(d.gate)}: ${f.int(d.n)} closed. ${f.int(d.wins)} winners, ${signed(d.usd)}${f.usd(d.usd)} in total.`,
-    ])),
+    line("Sterling", quip ? ANIM.Sterling.approve! : ANIM.Sterling.tablet!, report ? (quip ? `${report} ${quip}` : report) : null),
     gain
-      ? line("Jax", ANIM.Jax.shout!, pick(c, "ghost.jax.gain", [() => `So I was right. Say it. I was right.`, () => `Money on the table and we left it. Noted.`, () => `Every time you say no, a ghost gets rich.`, () => `Look at the ghosts eating. We could've been eating.`]))
-      : line("Sterling", ANIM.Sterling.approve!, pick(c, "ghost.sterling.save", [() => `That's what a no is for.`, () => `The ghost room agrees with me.`, () => `A refused loss is a saved loss.`, () => `Every time a ghost loses, a real account didn't.`, () => `The veto earned its keep.`])),
-    gain
-      ? line("Nova", ANIM.Nova.analyze!, pick(c, "ghost.nova.gain", [() => `It's ${f.int(d.n)} tickets. That's a sample, not a verdict. The ghosts keep running.`, () => `${f.int(d.n)} isn't enough to move a gate. I'm logging it.`]))
+      ? line("Jax", ANIM.Jax.shout!, pick(c, "ghost.jax.gain", [() => `So I was right. Say it, Sterling. I was right.`, () => `Money on the table and we left it. Noted.`, () => `Every time you say no, a ghost gets rich.`, () => `Look at the ghosts eating. We could've been eating.`]))
       : line("Jax", ANIM.Jax.point!, pick(c, "ghost.jax.loss", [() => `Fine. Fine. Lucky guess.`, () => `One refusal doesn't make you a prophet.`, () => `Don't smile, Sterling. I can hear you smiling.`, () => `Okay. Okay. Point to the gate.`])),
+    gain
+      ? line("Nova", ANIM.Nova.analyze!, pick(c, "ghost.nova.gain", [() => `Easy, Jax. It's ${f.int(d.n)} tickets — a sample, not a verdict. The ghosts keep running.`, () => `${f.int(d.n)} isn't enough to move a gate, Jax. I'm logging it.`]))
+      : null,
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
@@ -990,8 +1023,8 @@ export function exRange(c: Ctx, d: RangeData): Ex | null {
           ? [() => `So it hasn't even started.`, () => `Barely out of bed.`, () => `Then there's a whole day of moves I haven't been wrong about yet.`]
           : u > 85
             ? [() => `Then the move's done and I missed it.`, () => `Great. I show up after the party.`, () => `Out of range. Out of excuses.`]
-            : [() => `Boring. Wake me when it leaves.`, () => `Make up your mind.`, () => `Neither here nor there. Typical.`]))
-      : line("Vince", ANIM.Vince.watch!, pick(c, "hb.range.vince", [() => `Range spent or not, the card decides.`, () => `I don't trade the range. I trade the sweep.`, () => `Noted. The sequence doesn't care how much range is left.`])),
+            : [() => `Boring. Wake me when it leaves, Gemma.`, () => `Halfway and undecided. Pick a side already.`, () => `Neither here nor there. Typical.`]))
+      : line("Vince", ANIM.Vince.watch!, pick(c, "hb.range.vince", [() => `Range spent or not, Gemma, the card decides.`, () => `I don't trade the range. I trade the sweep.`, () => `Good to know. The sequence still doesn't care how much is left.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
@@ -1032,14 +1065,17 @@ export interface DrawData {
 export function exDraw(c: Ctx, d: DrawData): Ex | null {
   const f = c.f;
   const nm = f.raw(d.name);
+  const jax = pick(c, "hb.draw.jax", [() => `And how long till it gets there?`, () => `I'd rather it took it now.`, () => `Pools don't care about my patience.`, () => `So we just stare at it until it goes?`]);
   const lines = compact([
     line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.draw.gemma", [
       () => `Draw on liquidity for ${d.b.say}: ${nm} ${f.lvl(d.price)}, ${f.pts(d.dist)} pts ${d.side}.`,
       () => `Where's it going? ${nm} at ${f.lvl(d.price)} — ${f.pts(d.dist)} pts ${d.side}. That's the pool with the most resting orders.`,
       () => `The draw is ${nm}, ${f.lvl(d.price)} — ${f.pts(d.dist)} pts ${d.side} ${d.b.say}.`,
     ])),
-    line("Jax", ANIM.Jax.point!, pick(c, "hb.draw.jax", [() => `And how long till it gets there?`, () => `I'd rather it took it now.`, () => `Pools don't care about my patience.`])),
-    line("Sterling", ANIM.Sterling.arms!, pick(c, "hb.draw.sterling", [() => `A draw is where price is pointed, not a reason to be in.`, () => `Pointed isn't arrived.`, () => `Where it's going isn't a trade. How it gets there might be.`])),
+    line("Jax", ANIM.Jax.point!, jax),
+    line("Sterling", ANIM.Sterling.arms!, jax?.endsWith("?")
+      ? pick(c, "hb.draw.sterling.q", [() => `As long as it takes, Jax. A draw is where price is pointed, not a reason to be in.`, () => `Doesn't matter how long. Pointed isn't arrived.`])
+      : pick(c, "hb.draw.sterling", [() => `A draw is where price is pointed, not a reason to be in.`, () => `Patience is the position, Jax. Pointed isn't arrived.`, () => `Where it's going isn't a trade, Jax. How it gets there might be.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
@@ -1053,7 +1089,7 @@ export function exHtf(c: Ctx, d: HtfData): Ex | null {
   const lines = compact([
     line("Vince", ANIM.Vince.watch!, pick(c, "hb.htf.vince", [
       () => `${b.say} top-down: ${b.htf === "none" ? "no bias" : b.htf}. The sequence says ${b.smcWord ?? "wait"}${b.smcMissing ? ` — missing: ${f.raw(clip(b.smcMissing, 80))}` : ""}.`,
-      () => `Sequence on ${b.say}: ${b.smcWord ?? "wait"}${b.smcMissing ? `. First layer not passing: ${f.raw(clip(b.smcMissing, 80))}` : ""}.`,
+      () => `Sequence on ${b.say} says ${b.smcWord ?? "wait"}${b.smcMissing ? `. The layer that isn't there yet: ${f.raw(clip(b.smcMissing, 80))}` : ""}.`,
       () => `${b.say} reads ${b.htf === "none" ? "neutral" : b.htf} on the higher timeframes${b.smcMissing ? `; the sequence is stuck at ${f.raw(clip(b.smcMissing, 70))}` : ""}.`,
     ])),
     line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.htf.gemma", [
@@ -1078,7 +1114,7 @@ export function exBoard(c: Ctx, d: BoardData): Ex | null {
       () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide} is the one to watch${k.expR != null ? ` — ${signed(k.expR)}${f.r(k.expR)} a fill on the model` : ""}.`,
     ])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, "hb.board.sterling", [
-      () => (k.block ? `${k.verdict === "ARMED" ? "Armed, but " : "Held back by: "}${f.raw(clip(k.block, 90))}.` : `Nothing blocking it. The touch is what's missing.`),
+      () => (k.block ? `${k.verdict === "ARMED" ? "It's armed, but " : "What's holding it back: "}${f.raw(clip(k.block, 90))}.` : `Nothing blocking it, Vince. The touch is what's missing.`),
       () => (k.block ? `What it still needs: ${f.raw(clip(k.block, 90))}.` : `Gates are clear. It's waiting on price.`),
     ])),
     k.expR != null
@@ -1255,19 +1291,41 @@ export function exMood(c: Ctx, d: MoodData): Ex | null {
     loneliness: [() => `Anyone want to look at a chart with me? Anyone?`, () => `It's quiet. Say something.`, () => `I've been talking to the monitor. It agrees with everything.`],
     boredom: [() => `Flat tape. Somebody move.`, () => `I could count the ticks. I have been counting the ticks.`, () => `The market is doing its best impression of a screensaver.`],
   };
-  const reply: Record<Character, (() => string)[]> = {
-    Jax: [() => `Same.`, () => `Oh, shut up. …Same.`, () => `I'd say something smart but I'm the one who's tired.`],
-    Nova: [() => `Noted. It doesn't change the model.`, () => `Eat something. The numbers will wait.`, () => `That's a variable I can't hedge.`],
-    Sterling: [() => `Discipline looks like this. Quietly.`, () => `Nothing to trade is a result.`, () => `Take five. The rules will be here.`],
-    Gemma: [() => `Look away from the screen. The levels aren't going anywhere.`, () => `Take a walk. The draw will still be there.`, () => `Pools don't move when you're not watching. They do move when you are.`],
-    Vince: [() => `Same. Keep the keyboard warm.`, () => `I'm here. I'm watching. Go.`, () => `Go. I've got the desk.`],
-  };
   const who = d.who;
   const others = (["Gemma", "Nova", "Vince", "Jax", "Sterling"] as Character[]).filter((x) => x !== who);
   const other = others[hash32(c.key) % others.length]!;
+  // The reply is to THAT complaint, by name: coffee gets a coffee answer, a long stare gets "look away".
+  const group: "coffee" | "care" | "company" = d.need === "caffeine" ? "coffee" : d.need === "fatigue" || d.need === "stress" ? "care" : "company";
+  const reply: Record<Character, Record<"coffee" | "care" | "company", (() => string)[]>> = {
+    Jax: {
+      coffee: [() => `Wasn't me, ${who}. …Okay, it was me.`, () => `Get me one while you're up.`],
+      care: [() => `Same, ${who}. I'd say something smart but I'm the tired one.`, () => `Oh, relax. …Same, honestly.`],
+      company: [() => `I'm here, ${who}. I'm bored too. Let's be bored together.`, () => `Same. Somebody ring the bell just to feel something.`],
+    },
+    Nova: {
+      coffee: [() => `Caffeine's the one input I don't model, ${who}.`, () => `Get two. The numbers will wait.`],
+      care: [() => `That's a variable I can't hedge, ${who}. Eat something.`, () => `Noted. It doesn't change the model, but it might change you.`],
+      company: [() => `I'll look, ${who}. Bring the chart and I'll bring the base rate.`, () => `Quiet is data too. It says nothing qualifies.`],
+    },
+    Sterling: {
+      coffee: [() => `Take five, ${who}. The rules will be here.`, () => `Coffee's allowed. Chasing isn't.`],
+      care: [() => `Discipline looks like this, ${who}. Quietly.`, () => `Step away for five. Nothing on the board needs you.`],
+      company: [() => `Nothing to trade is a result, ${who}.`, () => `A quiet desk is a desk following its rules.`],
+    },
+    Gemma: {
+      coffee: [() => `Go, ${who}. The levels aren't going anywhere.`, () => `Bring me one. The draw will still be there.`],
+      care: [() => `Look away from the screen, ${who}. Tired eyes see sweeps that aren't there.`, () => `Take a walk. The pools don't move when you're not watching.`],
+      company: [() => `Pull up a chair, ${who}. I'll show you where the stops are resting.`, () => `Quiet tape is when you mark the pools for later.`],
+    },
+    Vince: {
+      coffee: [() => `Go. I've got the desk, ${who}.`, () => `Same. Keep the keyboard warm.`],
+      care: [() => `I'm watching it, ${who}. Go breathe.`, () => `Go. Nothing fills without me.`],
+      company: [() => `I'm here, ${who}. Watching. Waiting on the array.`, () => `Flat's fine. Flat doesn't lose.`],
+    },
+  };
   const lines = compact([
     line(who, NEUTRAL[who], pick(c, `hb.mood.${d.need}.${who}`, banks[d.need])),
-    line(other, NEUTRAL[other], pick(c, `hb.mood.reply.${other}`, reply[other])),
+    line(other, NEUTRAL[other], pick(c, `hb.mood.reply.${group}.${other}`, reply[other][group])),
   ]);
   const move: TalkMove | null = d.need === "caffeine" && (who === "Jax" || who === "Nova" || who === "Gemma") ? { zone: "WATERCOOLER", spot: "coffee" } : null;
   return lines.length >= 2 ? { lines, moves: move ? { [who]: move } : {} } : null;
@@ -1384,13 +1442,13 @@ export function exHuddle(c: Ctx, d: HuddleData): Ex | null {
   const lines = compact([
     line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.huddle.gemma", [
       () => d.missing
-        ? `The improvement on the sequence is ${f.raw(d.missing)}, and only if it prints. I will not invent the layer to make a trade.`
+        ? `The improvement on the sequence is ${f.raw(d.missing)}, and only if it prints. I won't invent the layer to make a trade.`
         : d.stamp
           ? `The stamp is ${f.raw(d.stamp)}. That is the whole room's no, Jax included.`
           : `The sequence is intact. Adding a layer to force a trade is how a good desk gets worse.`,
       () => d.missing
         ? `${f.raw(d.missing)} is still missing. Discount, premium, the draw — none of them substitute for it.`
-        : `I am not teaching a new model today. The one on the board is the one we trade.`,
+        : `I'm not teaching a new model today. The one on the board is the one we trade.`,
     ])),
     line("Jax", ANIM.Jax.point!, pick(c, d.jaxWrong ? "hb.huddle.jax.wrong" : "hb.huddle.jax", d.jaxWrong
       ? [
@@ -1403,26 +1461,26 @@ export function exHuddle(c: Ctx, d: HuddleData): Ex | null {
           () => d.leader && d.leader !== "Jax"
             ? `${f.raw(d.leader)} is ahead on paper. Paper is not a fill. I want the sweep into the shift, and I still don't get to skip the retest.`
             : `If I'm leading the paper book, that is not a license to chase. Sweep, then the shift. That's the whole discretion.`,
-          () => `Friendly is fine. I still lose the argument when it is not a sweep into a shift.`,
+          () => `Fine, Gemma, friendly. I still lose the argument when it's not a sweep into a shift.`,
         ])),
     line("Nova", ANIM.Nova.analyze!, pick(c, "hb.huddle.nova", d.experiment
       ? [
-          () => `Jax, the only question close enough to argue with is ${f.raw(d.experiment!.title)}: ${f.int(d.experiment!.n)} of ${f.int(d.experiment!.nNeeded)}. Finish the sample. Do not crown it, and do not move a gate from this room.`,
-          () => `${f.raw(d.experiment!.owner)}'s test is the one on the bench, ${f.int(d.experiment!.n)} into ${f.int(d.experiment!.nNeeded)}. A half sample is not a new edge.`,
+          () => `Jax, the only open question near its bar is this one. ${f.raw(d.experiment!.title)} ${f.int(d.experiment!.n)} of ${f.int(d.experiment!.nNeeded)} in. Finish the sample. Don't crown it, and don't move a gate from this room.`,
+          () => `${d.experiment!.owner === "Nova" ? "My test is" : `${f.raw(d.experiment!.owner)}'s test is`} the one on the bench, ${f.int(d.experiment!.n)} into ${f.int(d.experiment!.nNeeded)}. A half sample is not a new edge.`,
         ]
       : [
-          () => `Nothing on the bench is close to its bar. Your sweep is not a sample, Jax, and the model stays the model.`,
+          () => `Nothing on the bench is close to its bar. Your sweep isn't a sample, Jax, and the model stays the model.`,
           () => `No experiment is ready to argue with the four-year test. Collecting is the improvement. Crowning is not.`,
         ])),
     line("Vince", ANIM.Vince.watch!, pick(c, "hb.huddle.vince", [
       () => `Nova can count it. I rest the order at consequent encroachment until price is in the array. A late print does not get a ticket, and it does not get a story.`,
-      () => `The execution improvement is the one we already have: face down until the array, slide it back if it leaves. I do not chase Jax's sweep.`,
+      () => `The execution improvement is the one we already have: order face down until the array, slide it back if it leaves. Sorry, Jax. I don't chase the sweep.`,
     ])),
     line("Sterling", ANIM.Sterling.approve!, pick(c, "hb.huddle.sterling", [
       () => d.seated
         ? `${f.raw(d.seated)} sits. Beating a seated book on paper is not a reason to loosen the checklist.${d.costGate ? ` The ${f.raw(d.costGate)} no has cost on the model. We still do not edit it from the floor.` : ""}`
         : d.leader
-          ? `${f.raw(d.leader)} is leading. Leading is not a size.${d.costGate ? ` ${f.raw(d.costGate)} has cost on the model, and it stays.` : " The checklist is the same one for the leader."}`
+          ? `${d.leader === "Sterling" ? "I'm leading, and" : `${f.raw(d.leader)} is leading.`} Leading is not a size.${d.costGate ? ` ${f.raw(d.costGate)} has cost on the model, and it stays.` : " The checklist is the same one for the leader."}`
           : `Objectives not met is not a reason to go looking for one.${d.costGate ? ` ${f.raw(d.costGate)} stays, even when the model says it cost.` : ""}`,
       () => `You can argue the sweep, the sample and the array. None of you gets a different checklist.`,
     ])),

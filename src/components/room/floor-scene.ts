@@ -24,6 +24,7 @@ import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator
 import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor-fx";
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import type { FloorLight } from "@/lib/room/floor-cues";
+import { handoffMs } from "@/lib/room/floor-voice";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -1214,6 +1215,12 @@ export function screenLabel(id: string): string {
   return id.replace(/_/g, " ");
 }
 
+/** How long a caption stays up when nobody is voicing it: reading time, 2.8–8 s. */
+function readSec(text: string): number {
+  const words = text.split(/\s+/).length;
+  return Math.min(8, Math.max(2.8, 1.6 + words * 0.3));
+}
+
 /** Things the floor does that a speaker (or the tab) may want to hear. */
 export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
 
@@ -1393,6 +1400,13 @@ export class FloorScene {
   private lineIdx = -1;
   /** When the line being said ends, in WALL seconds: a slow device draws fewer frames, it does not talk slower. */
   private lineEndsAt = 0;
+  /**
+   * Voices on: the line being said is held until its voice finishes (`releaseLine`), never past `until` (a voice
+   * engine that never reports back cannot stall the room). Then the next person waits a beat (`handoffMs`).
+   */
+  private voiceWait: { idx: number; until: number; startedAt: number } | null = null;
+  /** A cycle meeting that arrived while someone was mid-line: it starts when they finish, not over them. */
+  private pendingMeeting: DialogueLine[] | null = null;
   private speed = 1;
   private raf = 0;
   private visible = true;
@@ -1847,11 +1861,48 @@ export class FloorScene {
     this.drawAll(frame);
     this.updateEmotes(frame);
     if (talk) {
-      this.lines = out.floor_dialogue_and_meetings;
-      this.lineIdx = -1;
-      this.lineEndsAt = this.wallSec();
+      if (this.voiceWait && this.speaking()) {
+        // Someone is mid-sentence: the meeting takes the floor when they finish, not over them.
+        this.pendingMeeting = out.floor_dialogue_and_meetings;
+      } else {
+        this.pendingMeeting = null;
+        this.lines = out.floor_dialogue_and_meetings;
+        this.lineIdx = -1;
+        this.lineEndsAt = this.wallSec();
+        this.voiceWait = null;
+      }
       this.wbReveal = 0;
     } else this.revealWhiteboard(1);
+  }
+
+  /**
+   * The tab's voice has started saying line `idx`: hold it until `releaseLine(idx)`, but never longer than
+   * `maxMs` (the line's own spoken length with headroom). Without a call the scene keeps its reading timer.
+   */
+  holdLine(idx: number, maxMs: number) {
+    if (idx !== this.lineIdx) return;
+    const wall = this.wallSec();
+    this.voiceWait = { idx, until: wall + Math.min(30, Math.max(2, maxMs / 1000)), startedAt: wall };
+  }
+
+  /** The voice finished line `idx`: the next person speaks after a natural beat, not before. */
+  releaseLine(idx: number) {
+    const w = this.voiceWait;
+    if (!w || w.idx !== idx || idx !== this.lineIdx) return;
+    this.voiceWait = null;
+    const cur = this.lines[idx] ?? null;
+    const next = this.pendingMeeting ? (this.pendingMeeting[0] ?? null) : (this.lines[idx + 1] ?? null);
+    const wall = this.wallSec();
+    this.lineEndsAt = Math.max(w.startedAt + 1.2, wall + handoffMs(cur, next) / 1000);
+  }
+
+  /** Voices off: nothing to wait for. */
+  dropVoiceHold() {
+    if (!this.voiceWait) return;
+    const w = this.voiceWait;
+    this.voiceWait = null;
+    const line = this.lines[w.idx];
+    if (line) this.lineEndsAt = w.startedAt + readSec(line.text) / this.speed;
   }
 
   private wallSec(): number {
@@ -1874,6 +1925,13 @@ export class FloorScene {
       return "started";
     }
     if (b.urgency >= 2 && this.source === "talk" && (this.batch?.urgency ?? 0) < 2) {
+      if (this.voiceWait) {
+        // Urgent, but someone is mid-line: they finish their sentence, the chatter after it is dropped, and the
+        // urgent exchange is next — a clean handoff instead of two people talking at once.
+        this.lines = this.lines.slice(0, this.lineIdx + 1);
+        this.queue.unshift(b);
+        return "queued";
+      }
       this.startBatch(b);
       return "started";
     }
@@ -1884,6 +1942,7 @@ export class FloorScene {
   }
 
   private startBatch(b: TalkBatch) {
+    this.voiceWait = null;
     if (this.batch && this.source === "talk") this.sendHome();
     this.source = "talk";
     this.batch = b;
@@ -2325,6 +2384,7 @@ export class FloorScene {
     if (k < 0 || k >= this.lines.length) return;
     this.lineIdx = k - 1;
     this.lineEndsAt = this.wallSec();
+    this.voiceWait = null;
   }
 
   private drawAll(f: FloorFrame) {
@@ -2383,7 +2443,14 @@ export class FloorScene {
     const t = this.time;
     // The meeting, one line at a time.
     const wall = this.wallSec();
-    if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
+    // A voice still saying its line holds the floor (never past its ceiling).
+    if (this.voiceWait && wall >= this.voiceWait.until) this.voiceWait = null;
+    if (this.pendingMeeting && !this.voiceWait && wall >= this.lineEndsAt) {
+      this.lines = this.pendingMeeting;
+      this.pendingMeeting = null;
+      this.lineIdx = -1;
+    }
+    if (this.lines.length && wall >= this.lineEndsAt && !this.voiceWait && this.lineIdx < this.lines.length) {
       this.lineIdx++;
       const line = this.lines[this.lineIdx] ?? null;
       for (const a of this.avatars.values()) {
@@ -2391,8 +2458,7 @@ export class FloorScene {
         a.say(a.speaking && line ? line.text : null);
       }
       if (line) {
-        const words = line.text.split(/\s+/).length;
-        this.lineEndsAt = wall + Math.min(8, Math.max(2.8, 1.6 + words * 0.3)) / this.speed;
+        this.lineEndsAt = wall + readSec(line.text) / this.speed;
         this.opts.onSpeaker?.(this.lineIdx, line);
         this.directorShot(line);
       } else {

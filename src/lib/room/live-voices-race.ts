@@ -17,7 +17,7 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import { ROOM_MANDATE } from "./mandate";
 import { ANIM, type CardRead, type Facts, type GoalLite, type Line, type RndLite, type SeatEventLite, type SeatRowLite, type TalkMove, type TapeBook, type WeekLite } from "./live-types";
 import type { AuditItem } from "./audit";
-import { clip, compact, line, NEUTRAL, pick, signed, type Ctx, type Ex } from "./live-voices";
+import { capFirst, clip, compact, gateWord, tidy, line, NEUTRAL, pick, signed, type Ctx, type Ex } from "./live-voices";
 import { ROOM_BACKERS, SEAT_NAME, SEAT_OWNER, type SeatId } from "./seats";
 import type { Character } from "./orchestrator";
 
@@ -91,7 +91,7 @@ export function exTouchRound(c: Ctx, d: TouchRoundData): Ex | null {
       ],
       press: e.gate
         ? [
-            () => `${qty} × ${nm}, ${dollar}! I overrode ${f.raw(e.gate!)}. Somebody in this room has to take the ticket.`,
+            () => `${qty} × ${nm}, ${dollar}! I overrode the ${gateWord(e.gate!)} gate. Somebody in this room has to take the ticket.`,
             () => `${nm}, ${qty} of them, ${dollar}. The pricing gate said no. I said size.`,
           ]
         : [() => `${qty} × ${nm} — ${dollar}. As big as the cap lets me.`, () => `${nm}, ${qty}, ${dollar}. The cap is the only thing between me and a bigger ticket.`],
@@ -102,10 +102,18 @@ export function exTouchRound(c: Ctx, d: TouchRoundData): Ex | null {
     };
     lines.push(line(who, anim(who), pick(c, `seat.open.${s}`, banks[s])));
   }
+  const saidWhy = new Map<string, Character>();
   for (const e of d.skips.slice(0, 2)) {
     const who = voice(e.seat);
     const s = e.seat as SeatId;
-    const why = f.raw(clip(e.why ?? "it did not clear my rule", 100));
+    const rawWhy = e.why ?? "it did not clear my rule";
+    const first = saidWhy.get(rawWhy);
+    if (first && first !== who) {
+      lines.push(line(who, anim(who), pick(c, `seat.skip.same.${who}`, [() => `Same read as ${first}. I'm out too.`, () => `What ${first} said. Pass.`])));
+      continue;
+    }
+    saidWhy.set(rawWhy, who);
+    const why = f.raw(clip(rawWhy, 100));
     const banks: Record<SeatId, (() => string)[]> = {
       protect: [() => `Passing. ${why}`, () => `Not mine: ${why}`],
       mechanical: [() => `The rules say no here. ${why}`, () => `Declined. ${why}`],
@@ -140,9 +148,9 @@ export function exTouchRound(c: Ctx, d: TouchRoundData): Ex | null {
   }
   const opened = new Set(d.opens.map((e) => voice(e.seat)));
   if (d.opens.length && !opened.has("Jax")) {
-    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "seat.rival.jax", [() => `Whose ticket is the best one? I'd like it on the board.`, () => `Race is on. Don't look at me, I'm watching the tape.`])));
+    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "seat.rival.jax", [() => `Okay, whose ticket is the best one? I want it on the board.`, () => `Race is on. Don't look at me, I'm watching the tape.`, () => `Fine. Everybody's in but me. I'll remember this.`])));
   } else if (d.opens.some((e) => e.seat === "press") && d.opens.length === 1) {
-    lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "seat.rival.sterling", [() => `Size isn't edge. Write that down before it prints.`, () => `A big ticket on a priced no. We'll see what the ghost room says.`])));
+    lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "seat.rival.sterling", [() => `Jax, size isn't edge. Write that down before it prints.`, () => `A big ticket on a priced no, Jax. We'll see what the ghost room says.`])));
   }
   const out = compact(lines).slice(0, 8);
   return out.length >= 2 ? { lines: out, moves: {} } : null;
@@ -163,7 +171,7 @@ export function exSeatClose(c: Ctx, d: SeatCloseData): Ex | null {
   const up = (e.usd ?? 0) >= 0;
   const nm = f.raw(e.contract ?? "the ticket");
   const money = `${signed(e.usd ?? 0)}${f.usd(e.usd ?? 0)}`;
-  const reason = e.why ? f.raw(clip(e.why, 80)) : "";
+  const reason = e.why ? stop(capFirst(f.raw(clip(e.why, 80)))) : "";
   const name = nameOf(e.seat);
   const eq = d.row ? f.usd(d.row.equity) : null;
   const lines = compact([
@@ -182,8 +190,10 @@ export function exSeatClose(c: Ctx, d: SeatCloseData): Ex | null {
         })()))
       : null,
     who !== "Jax"
-      ? line("Jax", up ? ANIM.Jax.shout! : ANIM.Jax.point!, pick(c, up ? "seat.close.jax.up" : "seat.close.jax.dn", up ? [() => `Take the money and run. That's the sport.`, () => `See? Somebody gets it.`] : [() => `It happens. Next card.`, () => `That's why I size the next one bigger.`]))
-      : line("Sterling", ANIM.Sterling.arms!, pick(c, up ? "seat.close.sterling.up" : "seat.close.sterling.dn", up ? [() => `One ticket is a sample of one.`, () => `Noted. Don't let it change the size.`] : [() => `A stop is the system working.`, () => `A lottery ticket lost like a lottery ticket. The floor held.`])),
+      ? line("Jax", up ? ANIM.Jax.shout! : ANIM.Jax.point!, pick(c, up ? "seat.close.jax.up" : "seat.close.jax.dn", up
+          ? [() => `Take the money and run. That's the sport.`, () => `See? ${name === "The Room" ? "Somebody" : name} gets it.`, () => `Nice. ${name === "The Room" ? "Ring the bell." : `Drinks are on ${name}.`}`]
+          : [() => `It happens. Next card.`, () => `That's why I size the next one bigger.`, () => `Shake it off${name === "The Room" ? "" : `, ${name}`}. Next card.`]))
+      : line("Sterling", ANIM.Sterling.arms!, pick(c, up ? "seat.close.sterling.up" : "seat.close.sterling.dn", up ? [() => `Nice, Jax. One ticket is a sample of one.`, () => `Noted. Don't let it change the size, Jax.`] : [() => `A stop is the system working, Jax.`, () => `A lottery ticket lost like a lottery ticket. The floor held.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
@@ -209,10 +219,10 @@ export function exLead(c: Ctx, d: LeadData): Ex | null {
           () => `New leader. ${name} at ${f.usd(d.equity)}, ${f.usd(d.margin)} clear.`,
         ])),
     who === "Jax"
-      ? line("Jax", ANIM.Jax.shout!, pick(c, "seat.lead.jax", [() => `Say it. Who's leading?`, () => `I want that written on the whiteboard in red.`]))
-      : line("Jax", ANIM.Jax.point!, pick(c, "seat.lead.rival", [() => `That won't last.`, () => `Lead's a loan. I'll collect.`])),
+      ? line("Jax", ANIM.Jax.shout!, pick(c, "seat.lead.jax", [() => `Say it again, Nova. Slower.`, () => `I want that written on the whiteboard. In red.`]))
+      : line("Jax", ANIM.Jax.point!, pick(c, "seat.lead.rival", [() => (name === "The Room" ? `That won't last.` : `Enjoy it, ${name}. That won't last.`), () => `Lead's a loan. I'll collect.`])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, d.tickets === 0 ? "seat.lead.sterling.open" : "seat.lead.sterling", d.tickets === 0
-      ? [() => `No ticket has closed yet. A lead on marks is not a result.`, () => `That's an open ticket's mark. Wait for it to close.`]
+      ? [() => `No ticket has closed yet. A lead on marks is not a result.`, () => `Easy, Jax. That's an open ticket's mark. Wait for it to close.`]
       : [
           () => `${f.int(d.tickets)} ${plural(d.tickets, "ticket", "tickets")} closed between them. A lead on that is noise.`,
           () => `Lead after ${f.int(d.tickets)} closed ${plural(d.tickets, "ticket", "tickets")}. Don't read it as skill yet.`,
@@ -336,10 +346,10 @@ export function exCouncil(c: Ctx, d: CouncilData): Ex | null {
   lines.push(
     line("Jax", ANIM.Jax.shout!, g.needed.pWin != null || g.needed.lambdaMultiple != null
       ? pick(c, "goal.council.jax", [
-          () => `To make it likely we'd need ${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "a better win rate"}${g.needed.lambdaMultiple != null ? `, or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. Nobody's offering that. So we press when the card's good.`,
+          () => `Okay, Nova. To make it likely we'd need ${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "a better win rate"}${g.needed.lambdaMultiple != null ? `, or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. Nobody's offering that. So we press when the card's good.`,
           () => `${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "More winners"}${g.needed.lambdaMultiple != null ? ` or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. That's the ask. I'll take the biggest ticket the cap allows.`,
         ])
-      : pick(c, "goal.council.jax.none", [() => `No win rate gets us there on these cards. So we take the best card and we size it.`, () => `The cards are the problem, not the wins. I want every one that clears.`])),
+      : pick(c, "goal.council.jax.none", [() => `I hear you, Sterling. No win rate gets us there on these cards — so we take the best card and we size it.`, () => `The cards are the problem, not the wins. I want every one that clears.`])),
   );
   const nq = d.b;
   const gem =
@@ -451,12 +461,12 @@ export function exDecision(c: Ctx, d: DecisionData): Ex | null {
   if (!col.decision) return null;
   const lines = compact([
     line("Sterling", ANIM.Sterling.arms!, pick(c, "goal.decision.sterling", [
-      () => `A call that's the trader's: ${f.raw(col.title)}. ${f.raw(clip(col.detail, 150))}`,
-      () => `This one isn't ours to move — ${f.raw(col.title)}. ${f.raw(clip(col.detail, 150))}`,
+      () => `Here's a call that's the trader's, not ours. ${f.raw(col.title)}. ${f.raw(clip(col.detail, 150))}`,
+      () => `This one isn't ours to move. ${f.raw(col.title)}. ${f.raw(clip(col.detail, 150))}`,
     ])),
     line("Vince", ANIM.Vince.watch!, pick(c, "goal.decision.vince", [
-      () => `${f.raw(clip(col.decision!, 150))}`,
-      () => `What's needed: ${f.raw(clip(col.decision!, 140))}`,
+      () => `Right. ${f.raw(clip(col.decision!, 150))}`,
+      () => `So what's needed is this. ${f.raw(clip(col.decision!, 140))}`,
     ])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
@@ -546,12 +556,12 @@ export function exRndVerdict(c: Ctx, d: { exp: Exp }): Ex | null {
   const e = d.exp;
   const lines = compact([
     line(e.owner, anim(e.owner), pick(c, `rnd.verdict.${e.owner}`, [
-      () => `${f.raw(e.title)} — ${STATUS_WORD[e.status]}. ${f.raw(clip(e.read, 150))}`,
-      () => `My experiment reads ${STATUS_WORD[e.status]}: ${f.raw(clip(e.read, 150))}`,
+      () => `News from the lab. ${f.raw(e.title)} Verdict: ${STATUS_WORD[e.status]}. ${f.raw(tidy(clip(e.read, 150)))}`,
+      () => `My experiment reads ${STATUS_WORD[e.status]}. ${f.raw(tidy(clip(e.read, 150)))}`,
     ])),
     e.proposal
-      ? line("Sterling", ANIM.Sterling.tablet!, pick(c, "rnd.verdict.proposal", [() => `${f.raw(clip(e.proposal!, 190))} It's the trader's to apply.`, () => `Proposal, for the trader: ${f.raw(clip(e.proposal!, 170))}`]))
-      : line("Nova", ANIM.Nova.analyze!, pick(c, "rnd.verdict.nova", [() => `A verdict on ${f.int(e.n)} ${plural(e.n, "sample", "samples")} is a hint. It changes nothing in the desk.`, () => `Noted, logged. ${f.int(e.n)} isn't a rule.`])),
+      ? line("Sterling", ANIM.Sterling.tablet!, pick(c, "rnd.verdict.proposal", [() => `${stop(f.raw(clip(e.proposal!, 190)))} It's the trader's to apply.`, () => `Good work. That one's for the trader, as a proposal, not a rule. ${f.raw(clip(e.proposal!, 170))}`]))
+      : line("Nova", ANIM.Nova.analyze!, pick(c, "rnd.verdict.nova", [() => `${e.owner === "Nova" ? "And before anyone asks:" : `Nice, ${e.owner}.`} A verdict on ${f.int(e.n)} ${plural(e.n, "sample", "samples")} is a hint. It changes nothing in the desk.`, () => `Noted, logged. ${f.int(e.n)} isn't a rule.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: { [e.owner]: OFFICE("office_rnd") } } : null;
 }
@@ -562,12 +572,12 @@ export function exRndStandup(c: Ctx, d: { exp: Exp }): Ex | null {
   const other: Character = e.owner === "Jax" ? "Sterling" : "Jax";
   const lines = compact([
     line(e.owner, anim(e.owner), pick(c, `hb.rnd.${e.id}`, [
-      () => `Working on: ${f.raw(e.title)} ${f.int(e.n)} of ${f.int(e.nNeeded)} so far. ${f.raw(clip(e.read, 110))}`,
-      () => `${f.raw(e.title)} — ${f.int(e.n)} of ${f.int(e.nNeeded)} ${plural(e.nNeeded, "sample", "samples")} in. ${f.raw(clip(e.read, 110))}`,
+      () => `Quick one from the lab. ${f.raw(e.title)} ${f.int(e.n)} of ${f.int(e.nNeeded)} so far. ${f.raw(tidy(clip(e.read, 110)))}`,
+      () => `Still on my question. ${f.raw(e.title)} ${f.int(e.n)} of ${f.int(e.nNeeded)} ${plural(e.nNeeded, "sample", "samples")} in. ${f.raw(tidy(clip(e.read, 110)))}`,
     ])),
     line(other, anim(other), pick(c, `hb.rnd.reply.${other}`, other === "Jax"
-      ? [() => `Tell me when it says I'm right.`, () => `I'll believe it when there's a number with a plus in front.`]
-      : [() => `A question with a fixed answer rule. Good. Leave the rule alone while the data comes in.`, () => `Don't move the bar once it's registered.`])),
+      ? [() => `Ping me when it says I'm right, ${e.owner}.`, () => `I'll believe it when there's a plus sign in front of it.`]
+      : [() => `A question with a fixed answer rule. Good. Leave the rule alone while the data comes in.`, () => `Don't move the bar once it's registered, ${e.owner}.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: { [e.owner]: OFFICE("office_rnd") } } : null;
 }
@@ -585,12 +595,12 @@ export function exAudit(c: Ctx, d: { item: AuditItem }): Ex | null {
   const other: Character = it.owner === "Sterling" ? "Nova" : "Sterling";
   const lines = compact([
     line(it.owner, anim(it.owner), pick(c, `audit.open.${it.owner}`, [
-      () => `Desk audit: ${f.raw(it.title)}. ${f.raw(stop(clip(it.evidence, 150)))}`,
-      () => `Something's wrong with the desk — ${f.raw(it.title)}. ${f.raw(stop(clip(it.evidence, 150)))}`,
+      () => `Got one for the audit board. ${f.raw(it.title)}. ${f.raw(tidy(clip(it.evidence, 150)))}`,
+      () => `Audit flag, and it's a real one. ${f.raw(it.title)}. ${f.raw(tidy(clip(it.evidence, 150)))}`,
     ])),
     line(other, anim(other), pick(c, `audit.reply.${other}`, [
-      () => `${f.raw(stop(clip(it.proposal, 170)))} That's the trader's to decide.`,
-      () => `For the trader: ${f.raw(stop(clip(it.proposal, 160)))}`,
+      () => `Good catch, ${it.owner}. ${f.raw(tidy(clip(it.proposal, 170)))} That's the trader's to decide.`,
+      () => `Which puts it on the trader's desk, not ours. ${f.raw(tidy(clip(it.proposal, 160)))}`,
     ])),
   ]);
   return lines.length >= 2 ? { lines, moves: { [it.owner]: OFFICE(AUDIT_OFFICE[it.area]) } } : null;

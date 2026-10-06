@@ -17,6 +17,7 @@ import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "
 import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
 import { FloorSound, loadSoundPref, saveSoundPref } from "./floor-sound";
+import { sayMs } from "@/lib/room/floor-voice";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
@@ -581,12 +582,23 @@ export default function TradingFloorTab() {
     if (soundOnRef.current) sound.current?.play(e);
   }, []);
 
-  const onSpeaker = useCallback((i: number, line: DialogueLine | null) => {
-    setSpeaker({ i, line });
-    if (!soundOnRef.current) return;
-    if (line?.text) sound.current?.say(line);
-    else sound.current?.hush();
+  /**
+   * Voice the line and hold the scene on it until the voice is done, so the next person waits their turn instead of
+   * talking over the end of this one. The hold has a ceiling (the line's own spoken length with headroom).
+   */
+  const voice = useCallback((i: number, line: DialogueLine) => {
+    const said = sound.current?.say(line, () => sceneRef.current?.releaseLine(i));
+    if (said) sceneRef.current?.holdLine(i, sayMs(line.character, line.text) * 1.6 + 2500);
   }, []);
+  const onSpeaker = useCallback(
+    (i: number, line: DialogueLine | null) => {
+      setSpeaker({ i, line });
+      if (!soundOnRef.current) return;
+      if (line?.text) voice(i, line);
+      // The end of an exchange is not a reason to cut a sentence short: the voice finishes what it is saying.
+    },
+    [voice],
+  );
   // A follow or a fly-to is the viewer's own camera: no preset is "on" while it lasts.
   const onFollow = useCallback((who: Character | null) => {
     setFollowing(who);
@@ -638,9 +650,10 @@ export default function TradingFloorTab() {
             setSoundOn(on);
             if (on) {
               sound.current?.unlock();
-              if (speaker.line?.text) sound.current?.say(speaker.line);
+              if (speaker.line?.text) voice(speaker.i, speaker.line);
             } else {
               sound.current?.hush();
+              sceneRef.current?.dropVoiceHold();
             }
             saveSoundPref({ on, volume: sound.current?.volume ?? 0.5 });
           }}

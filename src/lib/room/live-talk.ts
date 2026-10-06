@@ -35,6 +35,7 @@ import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
 import { freshCatalysts, investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
 import { deskAudit } from "./audit";
+import { SEAT_NAME, type SeatId } from "./seats";
 import {
   ATM_DELTA,
   Facts,
@@ -1362,7 +1363,8 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
         V.exHuddle(c, {
           missing,
           experiment: experiment ? { owner: experiment.owner, title: experiment.title, n: experiment.n, nNeeded: experiment.nNeeded } : null,
-          leader: w.seats?.leader ?? null,
+          // The leader is said as the person (the seat's name), never the seat's code id ("press", "mechanical").
+          leader: w.seats?.leader ? (SEAT_NAME[w.seats.leader as SeatId] ?? w.seats.leader) : null,
           seated,
           jaxWrong,
           stamp,
