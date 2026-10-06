@@ -30,14 +30,24 @@ Enforced in `evaluateRhTicketEnvelope` before any review/place shape is built.
 | `RH_LIVE_ARMED=true` | env | off until morning arm — **required before any place** |
 | `RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING` | `rh-autofire-gates.ts` | **`true`** (Keaton chat 2026-10-06) |
 
-### Tomorrow ~09:30 ET checklist
+### 09:08 ET prep → ~09:30 ET arm checklist
 
-1. Confirm `agentic_allowed` and options level ≥ 2 on the RH account (`get_accounts`).
-2. Set in the runtime env (Release Watch / host — not this commit):
+**Host flip required tomorrow** — both env arms stay `false` in repo / `.env.example`. Release Watch / host must set them at open; this commit does not arm live.
+
+**09:08 ET (prep — do not place yet)**
+
+1. Confirm desk + Floor are up; PATH scanner live; Trading Stand Manager `agentAgree` path wired.
+2. Confirm `agentic_allowed` and options level ≥ 2 on the RH account (`get_accounts`).
+3. Confirm envelope still: **$150–$550**, **1–4** contracts, **ATM / OTM_1** only; review then place.
+4. Confirm both env flags still **false** until you are ready to arm.
+
+**~09:30 ET (arm — host only)**
+
+5. Set in the runtime env (Release Watch / host — **not** this commit, **not** Netlify from this agent):
    - `RH_OPTIONS_AUTOFIRE_ENABLED=true`
    - `RH_LIVE_ARMED=true`
-3. Agent loop: Floor ARMED + PATH A+/A/A− + Stand agree → `proposeRhLiveOption` → **`review_option_order`** → `mayPlaceAfterReview` → only then **`place_option_order`**.
-4. Disarm after the session or on any doubt: unset / set both env flags false.
+6. Agent loop: Floor ARMED + PATH A+/A/A− + Stand `agentAgree` → `proposeRhLiveOption` → **`review_option_order`** → `mayPlaceAfterReview` → only then **`place_option_order`**.
+7. Disarm after the session or on any doubt: unset / set both env flags false.
 
 ## Agent send path (user-Robinhood-xai)
 
@@ -58,8 +68,10 @@ Options only. No equities, no Tradovate, no Apex autofire. **Do not place tonigh
 | File | Role |
 |------|------|
 | `src/lib/execution/rh-autofire-gates.ts` | Pure triple + risk + envelope gates |
-| `src/lib/execution/rh-autofire.ts` | Env flags, proposal, `mayPlaceAfterReview` |
-| `scripts/verify-rh-autofire-gates.mjs` | Pins refusals |
+| `src/lib/execution/rh-autofire.ts` | Env flags, proposal, `mayPlaceAfterReview`, `candidateFromFloorPathStand` |
+| `src/lib/execution/manager-agree.ts` | Manager → Stand `agentAgree` adapter (feed.getState when Design lands) |
+| `scripts/verify-rh-autofire-gates.mjs` | Pins refusals + envelope |
+| `scripts/verify-manager-agree.mjs` | Pins Manager agentAgree companion |
 
 ## Do not
 

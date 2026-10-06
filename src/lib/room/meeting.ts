@@ -9,6 +9,8 @@
  *
  * Every number in every line is read from the cycle's facts, the desk's
  * research files (research.ts) or the room's own memory — never written here.
+ * Research shelf includes live PATH/SMC and the RH live-when-armed envelope
+ * ($150–$550, 1–4 ATM/OTM_1, review then place, Manager agentAgree).
  * Animations are chosen per line and then fitted to where the person is
  * standing, so nobody writes on a whiteboard from the watercooler.
  */
@@ -57,7 +59,10 @@ import {
   oddsNote,
   pick,
   qNote,
+  rhLiveMandateNote,
+  scannerMandateNote,
   sessionNote,
+  smcMandateNote,
   takeWordNote,
 } from "./research";
 import type {
@@ -198,7 +203,7 @@ function closed(f: Facts): Line[] {
         : f.etMin < ROOM_CLOCK.optionsOpenMin
           ? `Pre-market — options list at 09:30 ET. ${htfLine(f)}${week}`
           : `Cash is done for the day. ${htfLine(f)}`;
-  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote()], f.seed);
+  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote()], f.seed);
   const banter = [
     `Gemma, QQQ ${px(q.price)} and SPY ${px(s.price)}, and I can't click either one.`,
     "Replaying this morning's tape on my phone. Don't judge me.",
@@ -688,7 +693,7 @@ function labNote(f: Facts): { line: string } | null {
 function chop(f: Facts, minds: MindState | null, acts: Partial<Record<Character, AgentAct>> | null): Line[] {
   const q = f.input.market_data.QQQ;
   const s = f.input.market_data.SPY;
-  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote(), labNote(f)], f.seed);
+  const note = pick([baselineNote(), bandNote(), qNote(), oddsNote(), sessionNote(), takeWordNote(), scannerMandateNote(), smcMandateNote(), rhLiveMandateNote(), labNote(f)], f.seed);
   const jaxRank = minds ? minds.rank.Jax : 50;
   const jaxRec = recordLine(minds, "Jax");
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
@@ -723,7 +728,7 @@ function chop(f: Facts, minds: MindState | null, acts: Partial<Record<Character,
 function brief(f: Facts): Line[] {
   const q = f.input.market_data.QQQ;
   const s = f.input.market_data.SPY;
-  const ground = pick([baselineNote(), bandNote(), qNote()], f.seed);
+  const ground = pick([baselineNote(), bandNote(), qNote(), scannerMandateNote(), rhLiveMandateNote()], f.seed);
   const fill = fillTierNote();
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
   return [

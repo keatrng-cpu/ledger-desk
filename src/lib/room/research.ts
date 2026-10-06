@@ -11,16 +11,18 @@
  * the desk does not hold.
  *
  * Live duty (Keaton 2026-10-06): every character stays aware of the live PATH
- * setup scanner and SMC research. When a card is on the board they cite the
- * PATH band + confluence and the SMC sequence (or what is missing). They also
- * watch the tape and do their own shelf research — they do not ignore a live
- * A+/A/A− setup because the room is mid-banter.
+ * setup scanner, SMC research, and the Robinhood live-when-armed envelope. When a
+ * card is on the board they cite the PATH band + confluence and the SMC sequence
+ * (or what is missing). They also know live RH (when armed) is $150–$550 debit,
+ * 1–4 contracts ATM/OTM_1, review_option_order then place, and Manager agentAgree
+ * is the Stand bit. They watch the tape and do their own shelf research — they do
+ * not ignore a live A+/A/A− setup because the room is mid-banter.
  *
- *   Nova     — what the edge is and is not (baseline, the stop band, Q) + scanner fit.
- *   Vince    — where the fill is (fill rate by entry tier) + SMC sequence / CE.
- *   Sterling — what the refusals are worth (inducement, mitigation, events) + PATH cap.
- *   Gemma    — when the tape delivers (session buckets) + liquidity / HTF.
- *   Jax      — how rarely the desk actually says TAKE + chase discipline on live PATH.
+ *   Nova     — what the edge is and is not (baseline, the stop band, Q) + scanner fit + RH envelope.
+ *   Vince    — where the fill is (fill rate by entry tier) + SMC sequence / CE + RH review→place.
+ *   Sterling — what the refusals are worth (inducement, mitigation, events) + PATH cap + Stand agree.
+ *   Gemma    — when the tape delivers (session buckets) + liquidity / HTF + RH live-when-armed.
+ *   Jax      — how rarely the desk actually says TAKE + chase discipline on live PATH + RH size.
  */
 
 import { EVIDENCE, type EvidenceBucket } from "@/lib/trading/evidence";
@@ -170,6 +172,15 @@ export function smcMandateNote(): ResearchNote {
   };
 }
 
+/** Robinhood live-when-armed mandate — every seat can quote this (Keaton 2026-10-06). */
+export function rhLiveMandateNote(): ResearchNote {
+  return {
+    id: "rh_live_mandate",
+    line: "Live RH when armed: $150–$550 debit, 1–4 contracts ATM or one strike out, review then place — and only if Manager agentAgree is true.",
+    source: "docs/RH_LIVE_ROUTINE.md · manager-agree.ts",
+  };
+}
+
 export function pick<T>(xs: (T | null)[], seed: number): T | null {
   const ok = xs.filter((x): x is T => x != null);
   return ok.length ? ok[Math.abs(seed) % ok.length]! : null;
@@ -179,11 +190,11 @@ export function pick<T>(xs: (T | null)[], seed: number): T | null {
 export function researchShelf(): Record<"Nova" | "Vince" | "Sterling" | "Gemma" | "Jax", ResearchNote[]> {
   const keep = (xs: (ResearchNote | null)[]) => xs.filter((x): x is ResearchNote => x != null);
   return {
-    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote()]),
-    Vince: keep([fillTierNote(), smcMandateNote()]),
-    Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote()]),
-    Gemma: keep([sessionNote(), smcMandateNote()]),
-    Jax: keep([takeWordNote(), scannerMandateNote()]),
+    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote(), rhLiveMandateNote()]),
+    Vince: keep([fillTierNote(), smcMandateNote(), rhLiveMandateNote()]),
+    Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote(), rhLiveMandateNote()]),
+    Gemma: keep([sessionNote(), smcMandateNote(), rhLiveMandateNote()]),
+    Jax: keep([takeWordNote(), scannerMandateNote(), rhLiveMandateNote()]),
   };
 }
 
