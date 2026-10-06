@@ -3163,6 +3163,11 @@ export class FloorScene {
     this.overhaul.setProps(p, signature);
   }
 
+  /** Chunk D 35 — presentation scrubber index into floorProps.moments (does not rewind the room). */
+  setScrubIndex(index: number | null) {
+    this.overhaul.setScrubIndex(index);
+  }
+
   /* entry mood */
 
   /**

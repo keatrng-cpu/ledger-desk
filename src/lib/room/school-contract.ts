@@ -10,6 +10,13 @@
  * without gradeSmcMaster / SessionBrief / CanonStack bound.
  */
 
+/**
+ * TODO(Accuracy / Chunk D): when Trading Stand merges `feat/floor-school-contracts`
+ * @ 15e6d23 into main, replace the vendored `floor-school-contracts.ts` copy with the
+ * shared module (today it is kept byte-aligned; do not invent a second divergent copy).
+ * Floor plaques MUST keep using SCHOOL_SHORT below — never Stand `meta.label` surnames.
+ */
+
 import { DIRECTOR } from "./agents";
 import type { Character } from "./orchestrator";
 import type { LabLite, MindsRead, TalkWorld, TapeBook } from "./live-types";

@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul Chunks A–C: pure props + school + war-room arm lever display.
+ * Floor 3D overhaul Chunks A–D: pure props + school + war-room + race/replay (34–35).
  *   - session dial segments never disagree with `resolveKillzone`
  *   - VIX weather uses the windows' bands, and a missing VIX draws nothing (no default)
  *   - liquidity lanes come only from the desk's levels; what is absent is listed as missing
@@ -18,15 +18,24 @@ const {
   buildSchoolFloor,
   FLOOR_SCHOOLS,
   DISCIPLE_WHO,
+  SCHOOL_SHORT,
 } = await import("../src/lib/room/school-contract.ts");
 const {
   FLOOR_SCHOOL_SEAT_IDS,
   FLOOR_SCHOOL_AVATAR,
   floorSchoolSeatBundle,
   allFloorSchoolSeatBundles,
+  floorSchoolSeat,
 } = await import("../src/lib/room/floor-school-contracts.ts");
 const { resolveKillzone } = await import("../src/lib/trading/sessions.ts");
 const LAYOUT = (await import("../src/data/floor-layout.json", { with: { type: "json" } })).default;
+const {
+  raceAnimFrom,
+  sessionMoments,
+  scrubMoment,
+  schoolShortFor,
+} = await import("../src/lib/room/floor-race-replay.ts");
+const { TRAITS } = await import("../src/lib/room/agents.ts");
 
 const inSeg = (s, m) => (s.start < s.end ? m >= s.start && m < s.end : m >= s.start || m < s.end);
 
@@ -251,4 +260,143 @@ test("Chunk C arm lever: display-only mapping from ArmSnap; never invents live",
   assert.equal(live.position, "live");
   assert.match(live.label, /display/i);
   assert.equal(armLeverDisplay(null).position, "safe");
+});
+
+test("Chunk D race anim: empty without seats/goal; progress from real equity only", () => {
+  const empty = raceAnimFrom(null, null);
+  assert.equal(empty.empty, true);
+  assert.match(empty.reason, /awaiting/);
+  assert.equal(empty.runners.length, 0);
+
+  const goal = {
+    start: 1000,
+    target: 5000,
+    floor: 500,
+    floorFrac: 0.5,
+    status: "running",
+    day: 1,
+    of: 20,
+    daysLeft: 19,
+    entriesOver: false,
+    equity: 1200,
+    leader: "press",
+    multipleNeeded: 5,
+    perSessionNeeded: null,
+    pathToday: 1100,
+    paceLabel: "ahead",
+    paceUsd: 100,
+    lambda: 0.2,
+    expectedTickets: 4,
+    tradeBudget: 10,
+    pTarget: 0.1,
+    pTargetBy: "Nova",
+    pFloor: 0.2,
+    pNoTrade: 0.3,
+    pNoCard: 0.1,
+    expectedEnd: 1500,
+    needed: { pStar: 0.5, pWin: null, lambdaMultiple: null, winPct: null },
+    winsNeed: null,
+    measured: { pWin: 0.4, winPct: 40, lossPct: -20, meanPct: 5, n: 10 },
+    collisions: [],
+    ladder: { n: 0, cheapestUsd: null, richestUsd: null, priced: false, best: null, room: null },
+    plan: { needTodayUsd: null, maxLossUsd: 100, contracts: 1, debitUsd: 50, perAtrUsd: null, atrsNeeded: null },
+    capFrac: 0.1,
+    roomCapFrac: 0.1,
+    minDelta: 0.25,
+    minAskUsd: 20,
+    stopShare: null,
+    vix: null,
+    startDate: "2026-10-06",
+  };
+  const seats = {
+    rows: [
+      { id: "press", name: "Jax", owner: "Jax", equity: 3000, pnl: 2000, open: 0, taken: { n: 2, wins: 1, usd: 2000 }, declined: { n: 1, usd: 0 }, status: "running" },
+      { id: "protect", name: "Sterling", owner: "Sterling", equity: 1000, pnl: 0, open: 0, taken: { n: 0, wins: 0, usd: 0 }, declined: { n: 2, usd: 0 }, status: "running" },
+      { id: "room", name: "The Room", owner: null, equity: 5000, pnl: 4000, open: 0, taken: { n: 3, wins: 3, usd: 4000 }, declined: { n: 0, usd: 0 }, status: "hit" },
+    ],
+    leader: "press",
+    events: [],
+    sessions: 2,
+    touches: 3,
+    syndicates: { n: 0, closed: 0, usd: 0 },
+  };
+  const race = raceAnimFrom(seats, goal);
+  assert.equal(race.empty, false);
+  assert.equal(race.runners.length, 3);
+  const jax = race.runners.find((r) => r.id === "press");
+  assert.equal(jax.label, "TJR", "school plaque uses SCHOOL_SHORT, not a surname");
+  assert.ok(jax.progress > 0.4 && jax.progress < 0.6, `progress ${(jax.equity - 1000) / 4000}`);
+  assert.equal(jax.isLeader, true);
+  const room = race.runners.find((r) => r.id === "room");
+  assert.equal(room.progress, 1);
+  assert.equal(room.label, "Room");
+  // No invented WR fields
+  assert.equal("hitRate" in jax, false);
+});
+
+test("Chunk D scrubber: moments only from real seat/close/book; empty stays empty", () => {
+  assert.equal(sessionMoments({ seats: null, closed: [] }).length, 0);
+  assert.equal(scrubMoment([], 0), null);
+
+  const seats = {
+    rows: [{ id: "press", name: "Jax", owner: "Jax", equity: 1200, pnl: 200, open: 0, taken: { n: 1, wins: 1, usd: 200 }, declined: { n: 0, usd: 0 }, status: "running" }],
+    leader: "press",
+    events: [
+      { id: "E1", at: 1000, kind: "open", seat: "press", usd: null, qty: 2, debit: 80, contract: "QQQ 500C", gate: null, why: null, equity: 1200, members: null, planKey: "k", n: null },
+      { id: "E2", at: 2000, kind: "lead", seat: "press", usd: 50, qty: null, debit: null, contract: null, gate: null, why: null, equity: 1200, members: null, planKey: null, n: null },
+    ],
+    sessions: 1,
+    touches: 1,
+    syndicates: { n: 0, closed: 0, usd: 0 },
+  };
+  const closed = [
+    {
+      id: "c1",
+      ticker: "QQQ",
+      type: "CALL",
+      strike: 500,
+      exp: "2026-10-06",
+      contracts: 1,
+      entryPx: 1.2,
+      exitPx: 1.8,
+      pnlUsd: 60,
+      reason: "T1",
+      openedAt: 500,
+      closedAt: 2500,
+    },
+  ];
+  const bookEvents = [{ at: 100, kind: "reset", text: "Book opened with $10,000 paper cash." }];
+  const moments = sessionMoments({ seats, closed, bookEvents });
+  assert.ok(moments.length >= 3);
+  assert.equal(moments[0].at, 2500, "newest first");
+  assert.ok(moments.every((m) => m.id && m.title && m.at > 0));
+  assert.ok(!moments.some((m) => /invent|fake|placeholder/i.test(m.title + m.detail)));
+  const lead = moments.find((m) => m.id === "seat:E2");
+  assert.equal(lead.schoolShort, "TJR");
+  assert.equal(scrubMoment(moments, 0)?.id, moments[0].id);
+  assert.equal(scrubMoment(moments, 99)?.id, moments[moments.length - 1].id);
+});
+
+test("Accuracy should-fix: Jax creed is school idea, not 'TJR says'; plaques SCHOOL_SHORT", () => {
+  assert.doesNotMatch(TRAITS.Jax.creed, /\bTJR says\b/i);
+  assert.match(TRAITS.Jax.creed, /TJR-school|school read|never chase/i);
+  for (const id of FLOOR_SCHOOL_SEAT_IDS) {
+    assert.ok(SCHOOL_SHORT[id], `${id} has SCHOOL_SHORT`);
+    assert.doesNotMatch(SCHOOL_SHORT[id], /Huddleston|Tyler Riches/i);
+  }
+  // Stand meta.label may carry canon surnames — Floor drawers must not use it.
+  const ict = floorSchoolSeat("ict");
+  assert.ok(ict.label.includes("ICT") || ict.label.length > 0);
+  // SCHOOL_SHORT is what plaques use
+  assert.equal(schoolShortFor("Jax"), "TJR");
+  assert.equal(schoolShortFor("Gemma"), "ICT");
+  assert.equal(schoolShortFor(null), null);
+});
+
+test("layout: Chunk D race + scrub screens are procedural", () => {
+  for (const id of ["ovh_race", "ovh_scrub"]) {
+    const s = LAYOUT.screens.find((x) => x.id === id);
+    assert.ok(s, `${id} present`);
+    assert.equal(s.procedural, true);
+  }
 });

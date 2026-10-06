@@ -640,7 +640,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
   // The overhaul's props: presentation only, never read back by the talk or the cycle.
   let props: FloorProps | null = null;
   try {
-    props = floorProps(world, { closed: st.book.closed, startCash: st.book.startCash, memories: st.minds?.memories ?? [] });
+    props = floorProps(world, { closed: st.book.closed, startCash: st.book.startCash, memories: st.minds?.memories ?? [], bookEvents: st.book.events });
   } catch (err) {
     console.error("[room] floor props failed:", err);
   }

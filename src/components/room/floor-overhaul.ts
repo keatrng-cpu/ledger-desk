@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul — Chunk A (7–15) + Chunk B school SMC (16–24) + Chunk C war-room/Owner (25–29). Set pieces at runtime:
+ * Floor 3D overhaul — Chunk A (7–15) + Chunk B school SMC (16–24) + Chunk C war-room/Owner (25–29) + Chunk D race/replay (34–35). Set pieces at runtime:
  *
  *   7  the centre pit around the war table: a dark sunken floor with tiered rings, its rim a 24-hour session dial
  *   8  the Manager's glass corner office (walls, desk, monitors come from floor-layout.json `procedural` entries;
@@ -21,6 +21,8 @@
  *   27 Manager war room: 3rd monitor + red phone (layout + draws here)
  *   28 discretion whiteboard in Manager glass office
  *   29 read-only arm lever behind glass (display of ArmSnap only)
+ *   34 session race animation — school/seat runners from real paper equity (floor-race-replay)
+ *   35 session replay scrubber — real seat/close/book moments only
  *
  * (13, the sound bed, lives in floor-sound.ts. 25–26 sit/stand + E 1:1 live in floor-scene / OwnerAvatar.)
  * Presentation only: every value comes from `FloorProps`
@@ -43,6 +45,7 @@ import {
   drawSchoolsBoard,
   relToneColor,
 } from "./floor-overhaul-school";
+import { drawRaceBoard, drawScrubberBoard } from "./floor-overhaul-race";
 import type { Character } from "@/lib/room/orchestrator";
 import type { BodyLang } from "@/lib/room/school-contract";
 
@@ -198,6 +201,11 @@ export class FloorOverhaul {
   // 24 relationship arcs (line segments between desk centres)
   private readonly relLines: THREE.LineSegments;
   private readonly relPos: Float32Array;
+  // 34 race runners (pucks on the pit rim — progress from real seat equity)
+  private readonly raceRunners = new Map<string, { mesh: THREE.Mesh; want: number; cur: number; mat: THREE.MeshBasicMaterial }>();
+  private readonly raceRoot = new THREE.Group();
+  // 35 scrubber selection (presentation highlight only — does not rewind the room)
+  private scrubIndex: number | null = null;
 
   constructor() {
     this.root.name = "floor_overhaul";
@@ -386,6 +394,10 @@ export class FloorOverhaul {
       this.root.add(leverRoot);
     }
 
+    /* 34: race runner pucks ride the pit rim (progress from real seat equity). */
+    this.raceRoot.name = "race_runners";
+    this.root.add(this.raceRoot);
+
     this.root.traverse((o) => {
       o.userData.overhaul = true;
       const m = o as THREE.Mesh;
@@ -400,6 +412,18 @@ export class FloorOverhaul {
     this.props = p;
     this.dirty = true;
     void signature;
+    this.syncRaceRunners();
+  }
+
+  /** 35 — scrubber index into FloorProps.moments (presentation only; does not rewind room state). */
+  setScrubIndex(index: number | null) {
+    if (this.scrubIndex === index) return;
+    this.scrubIndex = index;
+    this.dirty = true;
+  }
+
+  scrubIndexOf(): number | null {
+    return this.scrubIndex;
   }
 
   setManager(s: ManagerRoomState | null, steer: ManagerSteer | null = null, rules: DiscretionRule[] | null = null) {
@@ -475,6 +499,14 @@ export class FloorOverhaul {
       const want = (armLeverDisplay(this.managerState?.arms).angleDeg * Math.PI) / 180;
       this.armLeverHandle.rotation.z += (want - this.armLeverHandle.rotation.z) * (1 - Math.exp(-4 * dt));
     }
+    // 34: ease race runners along the pit rim.
+    const kRace = 1 - Math.exp(-2.5 * dt);
+    for (const r of this.raceRunners.values()) {
+      r.cur += (r.want - r.cur) * kRace;
+      const a = -Math.PI / 2 + r.cur * Math.PI * 1.6; // start west-ish, run clockwise ~290° toward goal
+      r.mesh.position.set(PIT.x + Math.cos(a) * (PIT.rx * 0.82), 0.09, PIT.z + Math.sin(a) * (PIT.rz * 0.82));
+      r.mesh.position.y = 0.09 + 0.015 * Math.sin(t * 5 + r.cur * 8);
+    }
     if (this.thunderAt && t >= this.thunderAt) {
       this.thunderAt = 0;
       this.onThunder?.();
@@ -525,6 +557,16 @@ export class FloorOverhaul {
     draw("ovh_debate", (c, w, h) => drawDebateBoard(c, w, h, this.managerState, this.lastSteer));
     draw("ovh_briefing", (c, w, h) => drawBriefing(c, w, h, school?.briefing ?? null));
     draw("ovh_ranks", (c, w, h) => drawHitRanks(c, w, h, school?.ranks ?? null));
+    // Chunk D
+    const race = p?.race ?? null;
+    const moments = p?.moments ?? [];
+    const scrubWho = (() => {
+      if (this.scrubIndex == null || !moments.length) return null;
+      const m = moments[Math.min(moments.length - 1, Math.max(0, this.scrubIndex))];
+      return m?.who ?? m?.id ?? null;
+    })();
+    draw("ovh_race", (c, w, h) => drawRaceBoard(c, w, h, race, scrubWho));
+    draw("ovh_scrub", (c, w, h) => drawScrubberBoard(c, w, h, moments, this.scrubIndex));
     // School desk plates
     const deskBy = new Map((school?.desks ?? []).map((d) => [d.who, d]));
     const discBy = new Map((school?.disciples ?? []).map((d) => [d.who, d]));
@@ -667,6 +709,41 @@ export class FloorOverhaul {
     tex.needsUpdate = true;
   }
 
+
+
+  /** Keep rim pucks in sync with FloorProps.race runners (real equity progress only). */
+  private syncRaceRunners() {
+    const race = this.props?.race;
+    const keep = new Set<string>();
+    if (race && !race.empty) {
+      for (const r of race.runners) {
+        keep.add(r.id);
+        let slot = this.raceRunners.get(r.id);
+        if (!slot) {
+          const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(r.color), toneMapped: false });
+          const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), mat);
+          mesh.name = `race_runner_${r.id}`;
+          this.raceRoot.add(mesh);
+          slot = { mesh, want: r.progress, cur: r.progress, mat };
+          this.raceRunners.set(r.id, slot);
+        }
+        slot.want = r.progress;
+        slot.mat.color.set(r.color);
+        slot.mesh.visible = true;
+        // Leader slightly larger
+        const s = r.isLeader ? 1.25 : 1;
+        slot.mesh.scale.setScalar(s);
+      }
+    }
+    for (const [id, slot] of this.raceRunners) {
+      if (!keep.has(id)) {
+        this.raceRoot.remove(slot.mesh);
+        slot.mesh.geometry.dispose();
+        slot.mat.dispose();
+        this.raceRunners.delete(id);
+      }
+    }
+  }
 
   private placeRels(rels: import("@/lib/room/school-contract").RelLink[]) {
     const DESK: Record<string, [number, number]> = {

@@ -80,7 +80,7 @@ export const TRAITS: Record<Character, Traits> = {
   Jax: {
     school: "tjr",
     schoolName: "TJR",
-    creed: "Sweep first, 5m context, 1m trigger. Even TJR says never chase — Jax hears it every day.",
+    creed: "Sweep first, 5m context, 1m trigger. The TJR-school read is never chase — Jax hears it every day.",
     aggression: 0.95,
     caution: 0.15,
     sociability: 0.8,

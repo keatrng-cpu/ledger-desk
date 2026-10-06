@@ -2,9 +2,10 @@
  * Floor — the 3D trading room as its own tab.
  *
  * Live and only live. The room engine (room-engine.ts) runs a cycle on every desk refresh and looks at the tape
- * every second; this tab draws what it decides and what the five say. There is no drill, no replay and no time
- * control: what is on screen is what the desk can see right now, at the speed the market moves. When the feed is not
- * real (synthetic, delayed, silent) the badge says so and the room says so. Paper only.
+ * every second; this tab draws what it decides and what the five say. There is no drill and no room time-travel:
+ * what is on screen is what the desk can see right now (Chunk D's scrubber only pages recorded seat/close/book
+ * moments — it does not rewind the cycle). When the feed is not real (synthetic, delayed, silent) the badge says
+ * so and the room says so. Paper only.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -18,6 +19,7 @@ import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
 import { BED_LAYERS, FloorSound, loadBedMutes, loadSoundPref, saveSoundPref, type BedLayer } from "./floor-sound";
 import { sessionDial } from "@/lib/room/floor-props";
+import { scrubMoment, type SessionMoment } from "@/lib/room/floor-race-replay";
 import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
@@ -480,6 +482,107 @@ function Portrait({ who }: { who: Character }) {
   );
 }
 
+/* ── Chunk D item 35: session moment scrubber (presentation; real history only) ─ */
+
+function ReplayScrubber({
+  moments,
+  index,
+  onIndex,
+  onGo,
+}: {
+  moments: SessionMoment[];
+  index: number | null;
+  onIndex: (i: number | null) => void;
+  onGo: (screenId: string) => void;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const n = moments.length;
+  const cur = scrubMoment(moments, index ?? 0);
+
+  useEffect(() => {
+    if (!playing || n === 0) return;
+    const id = window.setInterval(() => {
+      onIndex(((index ?? 0) + 1) % n);
+    }, 1600);
+    return () => window.clearInterval(id);
+  }, [playing, n, index, onIndex]);
+
+  useEffect(() => {
+    if (n === 0) {
+      onIndex(null);
+      setPlaying(false);
+    } else if (index == null) onIndex(0);
+  }, [n, index, onIndex]);
+
+  return (
+    <div className={CARD}>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className={HEAD} style={{ marginBottom: 0 }}>
+          Session replay — recorded moments
+        </div>
+        <div className="ml-auto flex flex-wrap gap-1">
+          <button type="button" className={BTN} disabled={n === 0} onClick={() => onIndex(Math.max(0, (index ?? 0) - 1))} aria-label="Previous moment">
+            Prev
+          </button>
+          <button
+            type="button"
+            className={BTN}
+            disabled={n === 0}
+            onClick={() => setPlaying((p) => !p)}
+            aria-pressed={playing}
+          >
+            {playing ? "Pause" : "Play"}
+          </button>
+          <button type="button" className={BTN} disabled={n === 0} onClick={() => onIndex(Math.min(n - 1, (index ?? 0) + 1))} aria-label="Next moment">
+            Next
+          </button>
+          <button type="button" className={BTN} onClick={() => onGo("ovh_scrub")} title="Fly to the scrubber board">
+            On the wall
+          </button>
+          <button type="button" className={BTN} onClick={() => onGo("ovh_race")} title="Fly to the race board">
+            Race board
+          </button>
+        </div>
+      </div>
+      {n === 0 ? (
+        <p className="text-[12px] text-[var(--color-muted)]">No moments yet — seat events, closed paper, and book log entries appear here as they happen. Nothing is invented.</p>
+      ) : (
+        <>
+          <input
+            type="range"
+            className="w-full accent-[var(--color-primary)]"
+            min={0}
+            max={n - 1}
+            value={index ?? 0}
+            onChange={(e) => {
+              setPlaying(false);
+              onIndex(Number(e.target.value));
+            }}
+            aria-label="Scrub session moments"
+          />
+          <div className="mt-1 flex justify-between font-mono text-[10px] text-[var(--color-muted)]">
+            <span>
+              {(index ?? 0) + 1} / {n}
+            </span>
+            <span>{cur ? new Date(cur.at).toLocaleString("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " ET" : ""}</span>
+          </div>
+          {cur && (
+            <div className="mt-2 rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-2">
+              <div className="text-[12px] font-semibold text-[var(--color-fg)]">
+                {cur.title}
+                {cur.schoolShort ? <span className="ml-2 font-mono text-[10px] text-[var(--color-muted)]">{cur.schoolShort}</span> : null}
+              </div>
+              <p className="mt-1 text-[11px] leading-snug text-[var(--color-muted)]">{cur.detail}</p>
+              <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">{cur.kind}</p>
+            </div>
+          )}
+          <p className="mt-2 text-[10px] text-[var(--color-subtle)]">Presentation only — scrubbing does not rewind the room cycle or invent history.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Chunk C item 26: Owner 1:1 (E) with a character or the Manager ───── */
 
 function OneOnOnePanel({
@@ -545,7 +648,7 @@ function OneOnOnePanel({
           <span className="text-[var(--color-muted)]">Now:</span> {act}
         </li>
         <li>
-          <span className="text-[var(--color-muted)]">Lens:</span> {t.creed}
+          <span className="text-[var(--color-muted)]">Lens (school idea):</span> {t.creed}
         </li>
         {n && (
           <li className="font-mono text-[11px] text-[var(--color-subtle)]">
@@ -1249,6 +1352,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [managerOpen, setManagerOpen] = useState(false);
   const [oneOnOne, setOneOnOne] = useState<{ kind: "crew"; who: Character } | { kind: "manager" } | null>(null);
   const [ownerSeated, setOwnerSeated] = useState(false);
+  const [scrubIndex, setScrubIndex] = useState<number | null>(null);
   const [lastSteer, setLastSteer] = useState<ManagerSteer | null>(null);
   const [feedbackLog, setFeedbackLog] = useState<OwnerFeedback[]>([]);
   const [hintFlash, setHintFlash] = useState(false);
@@ -1355,6 +1459,10 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [bedMutes, setBedMutes] = useState<Record<BedLayer, boolean>>(() => loadBedMutes());
   const [bedOpen, setBedOpen] = useState(false);
   const floorProps = useRoomStore((s) => s.floorProps);
+  const moments = floorProps?.moments ?? [];
+  useEffect(() => {
+    sceneRef.current?.setScrubIndex(scrubIndex);
+  }, [scrubIndex, env]);
   const kzRef = useRef<boolean | null>(null);
   useEffect(() => {
     const dial = sessionDial(Date.now(), floorProps?.clock ?? null);
@@ -1704,6 +1812,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
       )}
 
       <RacePanel frame={frame} onGo={goTo} />
+      <ReplayScrubber moments={moments} index={scrubIndex} onIndex={setScrubIndex} onGo={goTo} />
 
       {/* items-start: each card is its own height — the JSON card no longer
           stretches the wire log and the book into tall empty panels. */}

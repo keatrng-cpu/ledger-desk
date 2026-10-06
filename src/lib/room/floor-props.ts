@@ -1,5 +1,5 @@
 /**
- * Floor 3D overhaul — Chunk A (9–15) + Chunk B school SMC (16–24) — what the new set pieces show, read from data the room already has.
+ * Floor 3D overhaul — Chunk A (9–15) + Chunk B school SMC (16–24) + Chunk D race/replay (34–35) — what the new set pieces show, read from data the room already has.
  *
  * Pure: no DOM, no three.js, no clock of its own (every function takes `nowMs`). The scene draws it; nothing here
  * is a gate, a size or an order, and nothing is invented. Every figure is copied from one of:
@@ -15,7 +15,7 @@
 import type { LabLite, BookRead, CardRead, FeedRead, TalkWorld, TapeBook } from "./live-types";
 import type { Memory } from "./agents";
 import type { Underlier } from "./option-math";
-import type { RoomClosedTrade } from "./paper-book";
+import type { RoomClosedTrade, RoomEvent } from "./paper-book";
 import { contractName, gateWord, usd } from "./format";
 import { etWallParts, resolveKillzone, type KillzoneId } from "@/lib/trading/sessions";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
@@ -25,6 +25,13 @@ import {
   type SchoolFloor,
   type SchoolModelHook,
 } from "./school-contract";
+import {
+  raceAnimFrom,
+  raceReplaySignature,
+  sessionMoments,
+  type RaceAnim,
+  type SessionMoment,
+} from "./floor-race-replay";
 
 /* ── 9. Session time-of-day + killzone clock ─────────────────────────────── */
 
@@ -401,6 +408,10 @@ export interface FloorProps {
    *  Debate panel is drawn from ManagerRoomState in floor-overhaul (same path as Manager monitors).
    *  Trading Stand model hook defaults to awaiting — never invents hit-rates. */
   school: SchoolFloor;
+  /** Chunk D 34 — visual race among school/seat runners from real paper equity. */
+  race: RaceAnim;
+  /** Chunk D 35 — real session moments for the scrubber (seat / close / book). */
+  moments: SessionMoment[];
 }
 
 export function floorProps(
@@ -409,6 +420,8 @@ export function floorProps(
     closed: RoomClosedTrade[];
     startCash: number | null;
     memories: readonly Memory[];
+    /** Optional book event log for scrubber moments (real only). */
+    bookEvents?: readonly RoomEvent[];
     /** Optional Stand hook; omit = awaiting model data labels. */
     schoolHook?: SchoolModelHook;
     entryMood?: "WAIT" | "STALKING" | "ARMED" | "ENTER" | null;
@@ -419,6 +432,8 @@ export function floorProps(
     hook: room.schoolHook ?? AWAITING_SCHOOL_MODEL,
     entryMood: room.entryMood ?? null,
   });
+  const race = raceAnimFrom(w.seats, w.goal);
+  const moments = sessionMoments({ seats: w.seats, closed: room.closed, bookEvents: room.bookEvents });
   return {
     at: w.nowMs,
     clock: w.clock,
@@ -430,13 +445,15 @@ export function floorProps(
     trophies,
     scars,
     school,
+    race,
+    moments,
   };
 }
 
 /** What changed enough to redraw: everything except the clock's seconds. */
 export function propsSignature(p: FloorProps | null): string {
   if (!p) return "";
-  const { at: _at, clock, school, ...rest } = p;
+  const { at: _at, clock, school, race, moments, ...rest } = p;
   // Briefing clock ticks every second — signature uses phase/label/lines only.
   const schoolSig = {
     hook: [school.hook.source, school.hook.version],
@@ -447,5 +464,15 @@ export function propsSignature(p: FloorProps | null): string {
     body: school.body.map((b) => [b.who, b.anim, b.reason]),
     rels: school.rels.map((r) => [r.a, r.b, r.tone, Math.round(r.strength * 100)]),
   };
-  return JSON.stringify([clock.killzone, clock.optionsOpen, clock.globexOpen, clock.holiday, clock.blackout, clock.judas, rest, schoolSig]);
+  return JSON.stringify([
+    clock.killzone,
+    clock.optionsOpen,
+    clock.globexOpen,
+    clock.holiday,
+    clock.blackout,
+    clock.judas,
+    rest,
+    schoolSig,
+    raceReplaySignature(race, moments),
+  ]);
 }
