@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
-import { evidenceHeadlines } from "@/lib/trading/evidence";
+import { EvidenceTiles } from "@/components/desk/evidence-tiles";
 
 function verdictStyle(v: DiscretionVerdict): string {
   switch (v) {
@@ -164,16 +164,7 @@ export function VeteranBrainPanel({
       {/* What the brain's discretion has to stay inside: the desk's own four
           years, measured under the rule as coded. The 2024 22-trade seed
           below is history for the rate card; this is the evidence. */}
-      <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2">
-        <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-          Measured · four years of the desk&apos;s own cards (Lab › Evidence)
-        </p>
-        {evidenceHeadlines().map((l) => (
-          <p key={l} className="mt-0.5 text-[11px] leading-snug text-[var(--color-fg)]">
-            {l}
-          </p>
-        ))}
-      </div>
+      <EvidenceTiles />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-start gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[color-mix(in_oklab,var(--color-primary)_16%,transparent)] text-[var(--color-primary)]">
