@@ -212,6 +212,33 @@
       color-mix(in oklab, var(--color-down) 18%, transparent) 4px 8px
     );
   }
+  /* Screen flash (screen-flash.tsx): an edge glow that fades fast. */
+  .ld-flash,
+  .ld-flash-hold {
+    box-shadow:
+      inset 0 0 0 4px var(--flash-c),
+      inset 0 0 120px 10px color-mix(in oklab, var(--flash-c) 55%, transparent);
+    background: color-mix(in oklab, var(--flash-c) 10%, transparent);
+    opacity: 0;
+    animation-name: ld-flash;
+    animation-timing-function: ease-out;
+  }
+  @keyframes ld-flash {
+    0% {
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .ld-edge-glow {
+    box-shadow:
+      inset 0 0 0 3px var(--flash-c),
+      inset 0 0 60px 4px color-mix(in oklab, var(--flash-c) 35%, transparent);
+  }
   /* Floor ticker crawl. */
   .ticker-crawl {
     display: inline-block;
@@ -235,6 +262,14 @@
     .ticker-crawl {
       animation: none !important;
       padding-left: 0;
+    }
+    /* No fade: a static edge border for as long as the flash would last. */
+    .ld-flash,
+    .ld-flash-hold {
+      animation: none !important;
+      opacity: 1;
+      background: none;
+      box-shadow: inset 0 0 0 4px var(--flash-c);
     }
     *,
     *::before,

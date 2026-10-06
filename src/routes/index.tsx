@@ -161,6 +161,7 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
 import { cn } from "@/lib/utils";
 import { EntryHero } from "@/components/desk/entry-hero";
+import { ScreenFlash } from "@/components/desk/screen-flash";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
 import {
   autoPaperShouldTake,
@@ -1661,6 +1662,7 @@ function MasterplacePage() {
             </p>
           </SessionHud>
         )}
+        <ScreenFlash desk={desk} />
         <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
 

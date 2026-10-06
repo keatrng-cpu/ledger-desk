@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { AlertOctagon, ChevronDown, Clock, Crosshair, Radio, ShieldAlert, Zap } from "lucide-react";
+import { AlertOctagon, ChevronDown, Clock, Crosshair, Radio, ShieldAlert, Sparkles, Zap } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { RiskState } from "@/lib/journal/risk";
 import { NewsChip } from "@/components/desk/news-chip";
@@ -11,6 +11,8 @@ import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path
 import { shockSiren } from "@/lib/alerts/path-alarm";
 import { cn } from "@/lib/utils";
 import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
+import { InTradeBadge, useFlashOn } from "@/components/desk/screen-flash";
+import { setFlashOn } from "@/lib/ui/flash-prefs";
 
 function QuoteChip({
   symbol,
@@ -110,6 +112,7 @@ export function SessionHud({
   const pathV = pricePathVerdict(desk, paperReady);
   const { read: entry } = useEntryState(desk);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const flashOn = useFlashOn();
 
   // Tape circuit breaker: siren ONCE on the transition into a shock, and a
   // live countdown so the strip re-renders every second while locked.
@@ -308,6 +311,23 @@ export function SessionHud({
             {ENTRY_STYLE[entry.state].label}
           </button>
         )}
+        <InTradeBadge />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={flashOn}
+          onClick={() => setFlashOn(!flashOn)}
+          title={flashOn ? "Screen flash on — the edges flash when the entry state changes. Click to turn off." : "Screen flash off. Click to flash the screen edges on entry-state changes."}
+          className={cn(
+            "flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[12px]",
+            flashOn
+              ? "border-[var(--color-primary)] text-[var(--color-fg)]"
+              : "border-[var(--color-border)] text-[var(--color-subtle)]",
+          )}
+        >
+          <Sparkles className="h-3.5 w-3.5" aria-hidden />
+          <span className="hidden lg:inline">Flash</span>
+        </button>
         <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]">{tabs}</div>
         <button
           type="button"
