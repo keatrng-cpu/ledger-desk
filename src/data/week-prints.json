@@ -39,7 +39,7 @@
     "name": "Nonfarm Payrolls (Aug)",
     "actual": "+162k",
     "vs": "exp ~+55k / July first-print -23k",
-    "note": "BLS official. U-rate 4.1% unchanged. AHE +0.3% to $37.75 / +3.1% y/y. Participation 61.6%. Revisions: June +20k→+31k, July -23k→+21k (+55k combined). Hot."
+    "note": "BLS official. U-rate 4.1% unchanged. AHE +0.3% to $37.75 / +3.1% y/y. Participation 61.6%. Revisions: June +20k\u2192+31k, July -23k\u2192+21k (+55k combined). Hot."
   },
   {
     "date": "2026-09-10",
@@ -65,8 +65,8 @@
   {
     "date": "2026-09-16",
     "name": "FOMC Rate Decision",
-    "actual": "+25bps to 3.75–4.00%",
-    "vs": "exp +25bps / prev 3.50–3.75%",
+    "actual": "+25bps to 3.75\u20134.00%",
+    "vs": "exp +25bps / prev 3.50\u20133.75%",
     "note": "Unanimous 12-0. SEP median end-2026 4.1% (was 3.8%); 12 of 18 see one more hike this year. Hawkish."
   },
   {
@@ -114,16 +114,16 @@
   {
     "date": "2026-09-25",
     "name": "No ISM / JOLTS / ADP / claims / NFP",
-    "actual": "—",
+    "actual": "\u2014",
     "vs": "none scheduled today",
     "note": "Labor/ISM slate is next week (JOLTS Tue 29, ADP/PCE Wed 30, ISM/claims Thu Oct 1, NFP Fri Oct 2). Today: durables 0.0% vs -0.3%; core ex-trans 0.3% vs 0.6%; UMich final 48.1 vs ~47.8. Not stamped as those series."
   },
   {
     "date": "2026-09-28",
     "name": "No ISM / JOLTS / ADP / claims / NFP",
-    "actual": "—",
+    "actual": "\u2014",
     "vs": "none scheduled today",
-    "note": "Mon. Dallas Fed GBA 9.8 vs 11.6 prior / ~7.8 exp — not a stamp series. Next: JOLTS Tue 10:00, ADP+PCE Wed, ISM+claims Thu, NFP Fri."
+    "note": "Mon. Dallas Fed GBA 9.8 vs 11.6 prior / ~7.8 exp \u2014 not a stamp series. Next: JOLTS Tue 10:00, ADP+PCE Wed, ISM+claims Thu, NFP Fri."
   },
   {
     "date": "2026-09-29",
@@ -158,21 +158,14 @@
     "name": "ISM Manufacturing PMI (Sep)",
     "actual": "54.5",
     "vs": "exp 55 / prev 54.6",
-    "note": "ISM official. Ninth expansion month. New orders 55.3, production 56.7, employment 52.7, prices 77.9 (from 71.1). Slight headline miss, still expansion. Prices hot. NFP not stamped — Fri 8:30."
+    "note": "ISM official. Ninth expansion month. New orders 55.3, production 56.7, employment 52.7, prices 77.9 (from 71.1). Slight headline miss, still expansion. Prices hot. NFP not stamped \u2014 Fri 8:30."
   },
   {
     "date": "2026-10-02",
     "name": "Nonfarm Payrolls (Sep)",
     "actual": "+29k",
     "vs": "exp ~+90k / Aug first-print +162k, Aug rev +133k",
-    "note": "BLS USDL-26-1549. U-rate 4.2% (was 4.1%). AHE +0.1% to $37.81 / +3.0% y/y. Participation 61.8%. Revisions: July +21k→-10k, August +162k→+133k (-60k combined). Soft. No ISM/JOLTS/ADP/claims today."
-  },
-  {
-    "date": "2026-10-05",
-    "name": "ISM Services PMI (Sep)",
-    "actual": "54.9",
-    "vs": "exp ~55.0 / prev 55.4",
-    "note": "ISM official Oct 5 10:00 ET. 27th expansion month. Business activity 56.5 (from 61.7), new orders 59.8, employment 50.1 (from 47.8), prices 74.0 (from 72.6, highest since Jul 2022). Slight headline miss, still expansion. Prices hot. No JOLTS/ADP/claims/NFP today."
+    "note": "BLS USDL-26-1549. U-rate 4.2% (was 4.1%). AHE +0.1% to $37.81 / +3.0% y/y. Participation 61.8%. Revisions: July +21k\u2192-10k, August +162k\u2192+133k (-60k combined). Soft. No ISM/JOLTS/ADP/claims today."
   },
   {
     "date": "2026-10-05",

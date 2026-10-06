@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug Tue 8:30. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds: FedWatch cited 22.1% +25 / 77.9% hold (Oct 4) vs 17–22% post-NFP. CPI Sep is Wed Oct 14, not this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug Tue 8:30 — not printed as of ~8:00 ET. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds unchanged into Tue: FedWatch 22.1% +25 / 77.9% hold (Oct 4); CNBC Mon still ~22% (was 64% a week ago). CPI Sep is Wed Oct 14, not this week.",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -281,7 +281,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
       dailyBias: "PWH raid held. Not a new HTF trend.",
       kind: "event",
       news: [{ timeEt: "10:00", name: "ISM Services PMI (Sep)", impact: "high", note: "ISM official 54.9 vs ~55.0 / prev 55.4. Prices 74.0, emp 50.1. S&P services final 9:45 is not the blackout." }],
-      likelyTape: "ISM 54.9 slight miss, still expansion. NQ ~30,961.50–31,345 took PWH 31,282.50 and closed above (~31,336). ES ~7,760.50–7,847.50 took PWH 7,810 and closed above (~7,824). PWL untouched. Held raid, not inside-week, not a fresh HTF trend.",
+      likelyTape: "ISM 54.9 slight miss, still expansion. NQ session 30,957.50–31,371 settled 31,317.75, took PWH 31,282.50 and held. ES session 7,760.25–7,847.50 settled 7,826.25, took PWH 7,810 and held. PWL untouched. Held raid, not a fresh HTF trend.",
       trade: "Post-print mechanical only if MSS + IFVG. Both PWH taken and held. Do not chase the hold. Do not invent a trend day into Tuesday.",
       skipIf: "Already through PWH without a fail back inside — no chase. No MSS + IFVG.",
       pathNote: "PWH/PWL seed is last week. Live CWH/CWL from bars. Next is Tue trade 8:30.",
@@ -292,10 +292,10 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
       dailyBias: "Selective. Trade is not the week's raid.",
       kind: "selective",
       news: [{ timeEt: "08:30", name: "International Trade (Aug)", impact: "medium", note: "BEA schedule Oct 6 8:30 ET. Goods and services, August. Not a PATH trigger by itself." }],
-      likelyTape: "Inside last week's box unless Mon already took a side. Trade print is not a directional call.",
-      trade: "Mechanical only if Mon left a clean dealing range and MSS + IFVG after 9:45. Do not treat 8:30 as NFP.",
-      skipIf: "Chop, or already booked Monday.",
-      pathNote: "Next is Wed minutes 14:00. Flatten before 13:45.",
+      likelyTape: "Mon already took both PWH and held. Tue globex into ~8:00 ET extended the week: NQ ~30,957.50–31,458 (Tue ~31,310–31,458), ES ~7,760.25–7,862 (Tue 7,829–7,862, through Sep 21–25 7,848.50). Trade 8:30 not printed. Not a directional call.",
+      trade: "Mechanical only if Mon left a clean dealing range and MSS + IFVG after 9:45. Do not chase the globex extension. Do not treat 8:30 as NFP.",
+      skipIf: "Chop, or already booked Monday. No chase of the overnight high.",
+      pathNote: "PWH/PWL seed unchanged. Live CWH/CWL from bars. Next is Wed minutes 14:00. Flatten before 13:45.",
     },
     {
       date: "2026-10-07",
