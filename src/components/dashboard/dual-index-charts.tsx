@@ -137,9 +137,11 @@ function LiveClock({
       <p>
         <span className="text-[var(--color-muted)]">Fetched </span>
         {formatUtcClock(quote.fetchedAtMs)}
-        <span className={cn("ml-1.5 font-medium", lagColor)}>
-          lag {liveLag}s
-        </span>
+        <span
+          className={cn("ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle", lagColor.replace("text-", "bg-"))}
+          title={`Print delay ${liveLag}s (the header's feed dot carries the desk-wide read)`}
+          aria-label={`Print delay ${liveLag}s`}
+        />
       </p>
     </div>
   );
@@ -236,6 +238,57 @@ function paneMarkup(desk: DeskPayload | null | undefined, symbol: string, bars: 
         ? desk.smcMaster.right
         : null;
   return { overlay, plan: book?.plan ?? null };
+}
+
+/** Tiny inline sparkline (no axes). */
+function Spark({ values, color, min, max, zero }: { values: Array<number | null | undefined>; color: string; min?: number; max?: number; zero?: boolean }) {
+  const v = values.filter((x): x is number => x != null && Number.isFinite(x));
+  if (v.length < 2) return <span className="h-6 w-24" aria-hidden />;
+  const lo = min ?? Math.min(...v, zero ? 0 : Infinity);
+  const hi = max ?? Math.max(...v, zero ? 0 : -Infinity);
+  const W = 96;
+  const H = 24;
+  const y = (x: number) => (hi === lo ? H / 2 : H - ((x - lo) / (hi - lo)) * H);
+  const step = W / (v.length - 1);
+  const d = v.map((x, i) => `${i ? "L" : "M"}${(i * step).toFixed(1)},${y(x).toFixed(1)}`).join("");
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="ml-auto shrink-0" aria-hidden>
+      {zero && lo < 0 && hi > 0 && <line x1="0" x2={W} y1={y(0)} y2={y(0)} stroke="var(--color-border-strong)" strokeDasharray="2 2" />}
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+/**
+ * Rolling Pearson ρ of bar-to-bar changes over exactly `win` closed bars.
+ * Returns null for a window when either side has zero variance (flat) — callers
+ * show "n/a", never ρ=0. Needs win+1 price points to form `win` returns.
+ */
+function rollingCorr(rows: { left: number; right: number }[], win: number): (number | null)[] {
+  const dl: number[] = [];
+  const dr: number[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    dl.push(rows[i]!.left - rows[i - 1]!.left);
+    dr.push(rows[i]!.right - rows[i - 1]!.right);
+  }
+  const out: (number | null)[] = [];
+  for (let i = win; i <= dl.length; i++) {
+    const a = dl.slice(i - win, i);
+    const b = dr.slice(i - win, i);
+    const ma = a.reduce((x, y) => x + y, 0) / win;
+    const mb = b.reduce((x, y) => x + y, 0) / win;
+    let num = 0;
+    let va = 0;
+    let vb = 0;
+    for (let k = 0; k < win; k++) {
+      num += (a[k]! - ma) * (b[k]! - mb);
+      va += (a[k]! - ma) ** 2;
+      vb += (b[k]! - mb) ** 2;
+    }
+    // Flat window → n/a (not ρ=0).
+    out.push(va > 0 && vb > 0 ? num / Math.sqrt(va * vb) : null);
+  }
+  return out;
 }
 
 export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) {
@@ -440,10 +493,28 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
     return rows;
   }, [payload]);
 
-  const maxLag = Math.max(
-    leftQuote ? Math.round((wallNowMs - leftQuote.marketTimeMs) / 1000) : 0,
-    rightQuote ? Math.round((wallNowMs - rightQuote.marketTimeMs) / 1000) : 0,
-  );
+  /**
+   * Rolling ρ window: UNTHINNED % levels, CLOSED bars only (drop the forming
+   * last bar), raw (not rounded) so 1m changes are not quantized away.
+   * Exactly 60 return pairs; flat windows and short histories → n/a.
+   */
+  const rollingRho = useMemo(() => {
+    if (!payload) return { series: [] as (number | null)[], latest: null as number | null, n: 0 };
+    const L = normalizedPct(payload.left.bars);
+    const R = normalizedPct(payload.right.bars);
+    const mapR = new Map(R.map((p) => [p.t, p.v]));
+    const rows: { left: number; right: number }[] = [];
+    for (const p of L) {
+      const rv = mapR.get(p.t);
+      if (rv == null) continue;
+      rows.push({ left: p.v, right: rv });
+    }
+    // Exclude the forming (last) bar — closed bars only.
+    const closed = rows.length > 1 ? rows.slice(0, -1) : [];
+    const series = rollingCorr(closed, 60);
+    const latest = series.length ? series[series.length - 1]! : null;
+    return { series, latest, n: closed.length };
+  }, [payload]);
 
   return (
     <Card className="overflow-hidden border-[color-mix(in_oklab,var(--color-primary)_18%,var(--color-border))]">
@@ -563,94 +634,56 @@ export function DualIndexCharts({ desk = null }: { desk?: DeskPayload | null }) 
                   {formatUtcClock(wallNowMs)}
                 </span>
               </span>
-              <span>
-                Max print lag{" "}
-                <span
-                  className={cn(
-                    "font-semibold",
-                    maxLag <= 5
-                      ? "text-[var(--color-up)]"
-                      : maxLag <= 60
-                        ? "text-[var(--color-warn)]"
-                        : "text-[var(--color-down)]",
-                  )}
-                >
-                  {maxLag}s
-                </span>
-                <span className="text-[var(--color-subtle)]">
-                  {" "}
-                  (Yahoo last trade vs now)
-                </span>
-              </span>
+              {/* The print delay is written once: the header's feed dot. */}
               <span>
                 Bars {payload.interval} · reload {BARS_RELOAD_MS / 1000}s
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  {payload.left.symbol} session
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) >= 0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    leftQuote?.changePct ?? payload.comparison.leftRet,
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  {payload.right.symbol} session
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (rightQuote?.changePct ?? payload.comparison.rightRet) >= 0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    rightQuote?.changePct ?? payload.comparison.rightRet,
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  Spread (L−R)
-                </p>
-                <p
-                  className={cn(
-                    "mt-0.5 font-mono text-base font-semibold tabular",
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) -
-                      (rightQuote?.changePct ?? payload.comparison.rightRet) >=
-                      0
-                      ? "text-[var(--color-up)]"
-                      : "text-[var(--color-down)]",
-                  )}
-                >
-                  {formatPct(
-                    (leftQuote?.changePct ?? payload.comparison.leftRet) -
-                      (rightQuote?.changePct ?? payload.comparison.rightRet),
-                  )}
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--color-subtle)]">
-                  Correlation ρ
-                </p>
-                <p className="mt-0.5 font-mono text-base font-semibold tabular text-[var(--color-fg)]">
-                  {payload.comparison.corr == null
-                    ? "—"
-                    : payload.comparison.corr.toFixed(2)}
-                </p>
+            {/* Session moves, spread and correlation as ONE header strip with
+                sparklines (spread = L% − R% per bar; ρ sparkline = rolling
+                60-bar correlation of bar returns, from the same bars). */}
+            <div className="flex flex-wrap items-stretch divide-x divide-[var(--color-border)] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+              {[
+                { k: `${payload.left.symbol}`, v: leftQuote?.changePct ?? payload.comparison.leftRet, series: relData.map((r) => r.left) },
+                { k: `${payload.right.symbol}`, v: rightQuote?.changePct ?? payload.comparison.rightRet, series: relData.map((r) => r.right) },
+              ].map((x) => (
+                <div key={x.k} className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">{x.k} session</p>
+                    <p className={cn("font-mono text-sm font-semibold tabular", x.v >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]")}>
+                      {formatPct(x.v)}
+                    </p>
+                  </div>
+                  <Spark values={x.series} color={x.v >= 0 ? "var(--color-up)" : "var(--color-down)"} />
+                </div>
+              ))}
+              {(() => {
+                const sp = (leftQuote?.changePct ?? payload.comparison.leftRet) - (rightQuote?.changePct ?? payload.comparison.rightRet);
+                return (
+                  <div className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5" title="Spread = left % − right % from the first common bar">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">Spread L−R</p>
+                      <p className={cn("font-mono text-sm font-semibold tabular", sp >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]")}>{formatPct(sp)}</p>
+                    </div>
+                    <Spark values={relData.map((r) => r.left - r.right)} color="var(--color-primary)" zero />
+                  </div>
+                );
+              })()}
+              <div
+                className="flex min-w-[9rem] flex-1 items-center gap-2 px-3 py-1.5"
+                title={`Session ρ = correlation over the selected range. Sparkline = rolling Pearson ρ of bar-to-bar % changes over exactly 60 CLOSED (unthinned) bars; forming bar excluded. n/a when either window is flat or fewer than 60 closed return pairs (need 61 closed bars). Latest rolling: ${rollingRho.latest == null ? "n/a" : rollingRho.latest.toFixed(2)} · closed bars ${rollingRho.n}.`}
+              >
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-subtle)]">Correlation ρ</p>
+                  <p className="font-mono text-sm font-semibold tabular text-[var(--color-fg)]">
+                    {payload.comparison.corr == null ? "—" : payload.comparison.corr.toFixed(2)}
+                  </p>
+                  <p className="font-mono text-[9px] text-[var(--color-subtle)]" title="Rolling 60 closed-bar ρ (unthinned); n/a if flat or &lt;60">
+                    roll 60 {rollingRho.latest == null ? "n/a" : rollingRho.latest.toFixed(2)}
+                  </p>
+                </div>
+                <Spark values={rollingRho.series} color="var(--color-accent)" min={-1} max={1} />
               </div>
             </div>
 

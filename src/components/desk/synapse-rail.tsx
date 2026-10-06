@@ -1,6 +1,9 @@
 import { useDeskSynapse, type SynapseTab } from "@/lib/trading/desk-synapse";
 import { cn } from "@/lib/utils";
-import { Activity, Link2 } from "lucide-react";
+import { Activity, ChevronDown, Link2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { StateWord } from "@/components/desk/state-word";
+import { displayLead } from "@/lib/ui/state-words";
 
 const TAB_LABEL: Record<SynapseTab, string> = {
   brain: "Brain",
@@ -14,7 +17,7 @@ const TAB_LABEL: Record<SynapseTab, string> = {
 };
 
 /** Compact cross-tab feed — show on every category */
-export function SynapseRail({ tab }: { tab: SynapseTab }) {
+export function SynapseRail({ tab, className }: { tab: SynapseTab; className?: string }) {
   const feeds = useDeskSynapse((s) => s.feeds);
   const posture = useDeskSynapse((s) => s.posture);
   const fused = useDeskSynapse((s) => s.fusedSetups);
@@ -25,7 +28,8 @@ export function SynapseRail({ tab }: { tab: SynapseTab }) {
   );
 
   return (
-    <div className="mb-4 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_25%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_5%,var(--color-surface))] px-3 py-2.5">
+    <div className={cn("rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_25%,var(--color-border))]", className)}>
+    <div className="rounded-[var(--radius-md)] border-0 border-[color-mix(in_oklab,var(--color-primary)_25%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_5%,var(--color-surface))] px-3 py-2.5">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
           <Link2 className="h-3.5 w-3.5" />
@@ -35,21 +39,10 @@ export function SynapseRail({ tab }: { tab: SynapseTab }) {
             live
           </span>
         </p>
-        <span
-          className={cn(
-            "rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold",
-            posture.verdict === "TAKE"
-              ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
-              : posture.verdict === "REDUCE"
-                ? "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]"
-                : "border-[var(--color-border)] text-[var(--color-muted)]",
-          )}
-        >
-          {posture.verdict}
-        </span>
+        <StateWord raw={posture.verdict} className="text-[10px]" />
       </div>
       <p className="text-[12px] font-medium text-[var(--color-fg)]">
-        {posture.line}
+        {displayLead(posture.line)}
       </p>
       <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">
         {posture.pathPace}
@@ -65,7 +58,7 @@ export function SynapseRail({ tab }: { tab: SynapseTab }) {
           {lines.slice(0, 4).map((l) => (
             <li key={l} className="flex gap-1.5">
               <span className="text-[var(--color-primary)]">↗</span>
-              <span>{l}</span>
+              <span>{displayLead(l)}</span>
             </li>
           ))}
         </ul>
@@ -100,6 +93,54 @@ export function SynapseRail({ tab }: { tab: SynapseTab }) {
           ? ` · synced ${new Date(updatedAt).toLocaleTimeString()}`
           : ""}
       </p>
+    </div>
+    </div>
+  );
+}
+
+export const SYNAPSE_TABS = Object.keys(TAB_LABEL) as SynapseTab[];
+
+/**
+ * The Synapse as ONE header chip ("Synapse · WAIT") that expands into the
+ * full box — instead of the same box repeated at the top of Options, Charts,
+ * Brain, Book and Lab. Same store, same feed for the tab you are on.
+ */
+export function SynapseChip({ tab }: { tab: SynapseTab }) {
+  const posture = useDeskSynapse((s) => s.posture);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        title={`Synapse — cross-tab feed for ${TAB_LABEL[tab]}. ${displayLead(posture.line)}`}
+        className="flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] px-2 py-1 text-[12px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+      >
+        <Link2 className="h-3.5 w-3.5 text-[var(--color-primary)]" aria-hidden />
+        <span className="hidden xl:inline">Synapse</span>
+        <StateWord raw={posture.verdict} className="px-1.5 py-0 text-[10px]" />
+        <ChevronDown className={cn("h-3 w-3 transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-40 mt-2 w-[min(32rem,90vw)] shadow-2xl">
+          <SynapseRail tab={tab} className="bg-[var(--color-surface)]" />
+        </div>
+      )}
     </div>
   );
 }

@@ -650,6 +650,8 @@ export function createStubManagerFeed(
 /** Caption text for the Manager speech bubble from room state. */
 export function managerBubbleText(s: ManagerRoomState): string | null {
   if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}`;
+  // Nothing to say while idle: no bubble rather than a "[IDLE] Standing by." filler over the stand.
+  if (s.current === "IDLE") return null;
   return `[${s.current}] Standing by.`;
 }
 

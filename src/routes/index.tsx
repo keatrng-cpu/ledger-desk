@@ -76,7 +76,7 @@ import { NewsTab } from "@/components/news/news-tab";
 import { PredictTab } from "@/components/predict/predict-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
 import { useRoomEngine } from "@/components/room/room-engine";
-import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
+import { useDeskSynapse, getDeskSynapse, type SynapseTab } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
 import {
@@ -88,7 +88,7 @@ import {
   fetchYearStudySeed,
   hydrateFromYearStudy,
 } from "@/lib/trading/bt-seed";
-import { SynapseRail } from "@/components/desk/synapse-rail";
+import { SYNAPSE_TABS } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory, emptyDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
@@ -1670,6 +1670,7 @@ function MasterplacePage() {
             wallNow={wallNow}
             liveRisk={risk}
             onEntryChip={() => setCat("trade")}
+            synapseTab={(SYNAPSE_TABS as string[]).includes(cat) ? (cat as SynapseTab) : "trade"}
             tabs={
               <nav aria-label="Profit categories">
                 <div className="flex flex-wrap gap-1">
@@ -1751,17 +1752,9 @@ function MasterplacePage() {
         {desk && (
           <>
             <div className="mt-3 min-h-[50vh] space-y-4">
-              {/* Learn carries no synapse feed: it is the one tab that is not a
-                  live surface, and a live rail above a lesson is the clutter
-                  this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" &&
-                cat !== "learn" &&
-                cat !== "invest" &&
-                cat !== "news" &&
-                cat !== "predict" &&
-                cat !== "mead" &&
-                cat !== "discuss" &&
-                cat !== "floor" && <SynapseRail tab={cat} />}
+              {/* The Synapse box used to repeat here at the top of Options,
+                  Charts, Brain, Book and Lab. It is now ONE header chip
+                  (SessionHud → SynapseChip) that expands into the same box. */}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the
@@ -1947,11 +1940,8 @@ function MasterplacePage() {
 
               {cat === "swing" && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="S"
-                    title="Robinhood QQQ / SPY"
-                    sub="≤ $1,000 debit per ticket · loss capped 15% of the debit · size from the level · estimates from ES/NQ"
-                  />
+                  {/* One header: the sleeve panel's own ("Robinhood · QQQ / SPY
+                      sleeve") — the duplicate SectionHead above it is gone. */}
                   {/* The overnight question is asked before the intraday
                       cards, because at 15:00 it is the only one left. */}
                   <OvernightBoard desk={desk} />
@@ -2027,11 +2017,8 @@ function MasterplacePage() {
 
               {(cat === "lab" || cat === "risk") && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="R"
-                    title="Risk governor"
-                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · A+ 2% probe (3% once earned) / A 2% / A− 1% / B+ 0.5% paper`}
-                  />
+                  {/* RiskPanel carries its own "Risk governor" header and the
+                      paper equity / risk-ladder rows — no second heading. */}
                   <RiskPanel desk={desk} liveRisk={risk} />
                   <ApexSimPanel />
                   <EvidenceTable />

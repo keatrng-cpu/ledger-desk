@@ -12,7 +12,7 @@
  * scanner, the alarm or the book.
  */
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { MODULES, type LearnModule } from "@/lib/learn/curriculum";
 import { getFigure } from "@/lib/learn/figures";
 import { scenariosFor, type Scenario, type Verdict } from "@/lib/learn/scenarios";
@@ -24,24 +24,62 @@ import { CanonBox } from "./canon-box";
 import { canonFor } from "@/lib/learn/canon";
 import { DrillCall, WhyBox } from "./drill-call";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import { LiveExampleChart } from "./live-example";
+
+/** Lessons the trader has marked done — this browser only, display state. */
+const DONE_KEY = "ledger.learn.done";
+
+function readDone(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(DONE_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function useDone() {
+  const [done, setDone] = useState<Set<string>>(() => readDone());
+  const toggle = useCallback((id: string) => {
+    setDone((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        window.localStorage.setItem(DONE_KEY, JSON.stringify([...next]));
+      } catch {
+        /* storage unavailable — the check still shows for this visit */
+      }
+      return next;
+    });
+  }, []);
+  return { done, toggle };
+}
 
 export function LearnTab({ desk }: { desk: DeskPayload }) {
   const [openId, setOpenId] = useState<string>(MODULES[0]!.id);
   const active = MODULES.find((m) => m.id === openId) ?? MODULES[0]!;
+  const { done, toggle } = useDone();
 
   return (
     <div className="grid gap-4 lg:grid-cols-[210px_minmax(0,1fr)]">
       <nav aria-label="Curriculum" className="lg:sticky lg:top-2 lg:self-start">
+        <p className="mb-1 hidden text-[9px] uppercase tracking-wide text-[var(--color-subtle)] lg:block">
+          {MODULES.filter((m) => done.has(m.id)).length}/{MODULES.length} complete
+        </p>
         <ol className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
           {MODULES.map((m) => {
             const on = m.id === active.id;
+            const isDone = done.has(m.id);
             return (
               <li key={m.id} className="shrink-0 lg:shrink">
                 <button
                   type="button"
                   onClick={() => setOpenId(m.id)}
                   aria-current={on ? "step" : undefined}
-                  className={`flex w-full items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-xs transition-colors ${
+                  title={m.title}
+                  className={`flex w-full items-start gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-left text-xs transition-colors ${
                     on
                       ? "bg-[var(--color-primary-dim)] text-[var(--color-fg)]"
                       : "text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-fg)]"
@@ -51,21 +89,35 @@ export function LearnTab({ desk }: { desk: DeskPayload }) {
                     className={`tabular grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-semibold ${
                       on
                         ? "bg-[var(--color-primary)] text-[var(--color-primary-fg)]"
-                        : "bg-[var(--color-surface-3)] text-[var(--color-subtle)]"
+                        : isDone
+                          ? "bg-[color-mix(in_oklab,var(--color-up)_22%,transparent)] text-[var(--color-up)]"
+                          : "bg-[var(--color-surface-3)] text-[var(--color-subtle)]"
                     }`}
+                    aria-label={isDone ? `Step ${m.step}, complete` : `Step ${m.step}`}
                   >
-                    {m.step}
+                    {isDone && !on ? "✓" : m.step}
                   </span>
-                  <span className="truncate font-medium">{m.title}</span>
+                  <span className="truncate pt-0.5 font-medium leading-snug lg:overflow-visible lg:whitespace-normal">
+                    {m.title}
+                  </span>
                 </button>
               </li>
             );
           })}
         </ol>
+        <div className="mt-3 hidden lg:block">
+          <LiveExampleChart desk={desk} />
+        </div>
       </nav>
 
       <article className="flex min-w-0 flex-col gap-3">
-        <ModuleView key={active.id} module={active} desk={desk} />
+        <ModuleView
+          key={active.id}
+          module={active}
+          desk={desk}
+          done={done.has(active.id)}
+          onToggleDone={() => toggle(active.id)}
+        />
         <div className="flex justify-between gap-2 border-t border-[var(--color-border)] pt-3">
           <StepButton
             module={MODULES[MODULES.indexOf(active) - 1]}
@@ -183,7 +235,17 @@ function Scenarios({ items }: { items: Scenario[] }) {
   );
 }
 
-function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayload }) {
+function ModuleView({
+  module: m,
+  desk,
+  done,
+  onToggleDone,
+}: {
+  module: LearnModule;
+  desk: DeskPayload;
+  done: boolean;
+  onToggleDone: () => void;
+}) {
   const figures = m.figures.map(getFigure).filter((f): f is NonNullable<typeof f> => f != null);
   const scenarios = scenariosFor(m.id);
   const canon = canonFor(m.id);
@@ -198,9 +260,23 @@ function ModuleView({ module: m, desk }: { module: LearnModule; desk: DeskPayloa
   return (
     <>
       <header>
-        <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
-          Step {m.step} of {MODULES.length}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-subtle)]">
+            Step {m.step} of {MODULES.length}
+          </p>
+          <button
+            type="button"
+            onClick={onToggleDone}
+            aria-pressed={done}
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+              done
+                ? "border-[color-mix(in_oklab,var(--color-up)_50%,transparent)] text-[var(--color-up)]"
+                : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+            }`}
+          >
+            {done ? "✓ Complete" : "Mark complete"}
+          </button>
+        </div>
         <h2 className="text-lg font-semibold tracking-tight">{m.title}</h2>
         <p className="mt-0.5 text-sm text-[var(--color-primary)]">{m.oneLine}</p>
       </header>

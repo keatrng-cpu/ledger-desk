@@ -43,6 +43,23 @@ function seedOf(r: ScanRow): LogSeed {
   return { league: r.league, game: r.game, ticker: r.key, team: r.team, entry: r.ask ?? 0, reference: r.fairLo, referenceName: r.refName };
 }
 
+/** The consensus win chance as a ring (the same number printed beside it). */
+function WinRing({ p }: { p: number }) {
+  const R = 15;
+  const C = 2 * Math.PI * R;
+  const v = Math.min(1, Math.max(0, p));
+  const color = v >= 0.6 ? "var(--color-up)" : v >= 0.4 ? "var(--color-warn)" : "var(--color-down)";
+  return (
+    <svg width="38" height="38" viewBox="0 0 38 38" className="shrink-0" aria-hidden>
+      <circle cx="19" cy="19" r={R} fill="none" stroke="var(--color-surface-3)" strokeWidth="4" />
+      <circle cx="19" cy="19" r={R} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeDasharray={`${C * v} ${C}`} transform="rotate(-90 19 19)" />
+      <text x="19" y="22.5" textAnchor="middle" className="fill-[var(--color-fg)] font-mono text-[9px] font-bold">
+        {(v * 100).toFixed(1)}%
+      </text>
+    </svg>
+  );
+}
+
 function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) {
   const x = readiness(r);
   const go = r.word === "GO";
@@ -74,7 +91,9 @@ function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) 
         {r.game} · {r.phase === "in" ? `LIVE ${r.clock}` : r.clock}
       </div>
       {r.consensus != null && (
-        <div>
+        <div className="flex items-center gap-2">
+          <WinRing p={r.consensus} />
+          <div className="min-w-0">
           <span className="text-[var(--color-muted)]">Win chance </span>
           <span className="font-semibold">{pc(r.consensus)}</span>
           {r.agreement != null && (
@@ -83,6 +102,7 @@ function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) 
               · estimates {r.agreement >= 0.05 ? "disagree by" : "within"} {(r.agreement * 100).toFixed(1)} pts
             </span>
           )}
+          </div>
         </div>
       )}
       <div className="flex gap-0.5" aria-label={`${x.passed} of ${x.total} layers pass`}>
@@ -127,9 +147,14 @@ function SetupSquare({ r, onLog }: { r: ScanRow; onLog: (s: LogSeed) => void }) 
         )}
         {r.winPays != null && <span className="text-[var(--color-muted)]"> · win pays {c(r.winPays)}</span>}
       </div>
-      <div className="line-clamp-3 text-[10px] text-[var(--color-muted)]" title={r.analysis}>
-        {r.analysis}
-      </div>
+      {/* The fees line used to clip at three lines ("Rothera fees …"). Full text, folded. */}
+      <details className="text-[10px] text-[var(--color-muted)]">
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <span className="line-clamp-2">{r.analysis}</span>
+          <span className="text-[var(--color-accent)]">full fees &amp; references ▾</span>
+        </summary>
+        <p className="mt-0.5 whitespace-normal break-words">{r.analysis}</p>
+      </details>
       <div className="mt-auto flex items-center gap-2 pt-1">
         <button type="button" className={BTN} onClick={() => onLog(seedOf(r))} disabled={r.ask == null}>
           Log fill
@@ -172,7 +197,7 @@ export function ScannerList({ rows, stats, onLog }: { rows: ScanRow[]; stats: Sc
       <h3 className={H3}>
         Top setups · {stats.go ? `${stats.go} GO` : "no GO yet — the 4 closest, and what each still needs"}
       </h3>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(15.5rem,1fr))] gap-2">
         {[...top, ...moreReady].map((r) => (
           <SetupSquare key={r.key} r={r} onLog={onLog} />
         ))}

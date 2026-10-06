@@ -407,6 +407,32 @@ export function JournalCard({
         </ul>
       )}
       <p className="text-[11px] leading-relaxed text-[var(--color-muted)]">{j.line}</p>
+      {j.closed === 0 && (
+        <table className="mt-1 w-full text-[11px] tabular-nums" aria-label="Example row — what your record will look like">
+          <thead className="text-[10px] uppercase text-[var(--color-muted)]">
+            <tr className="text-left">
+              <th className="py-1 font-medium">Entry price</th>
+              <th className="text-right font-medium">Trades</th>
+              <th className="text-right font-medium">Won</th>
+              <th className="text-right font-medium">Net after fees</th>
+              <th className="text-right font-medium">Return</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* ILLUSTRATIVE, NOT A TRADE: shows the shape of a row until the first close. */}
+            <tr className="border-t border-dashed border-[var(--color-border)] italic text-[var(--color-subtle)] opacity-60">
+              <td className="py-1">
+                <span className="mr-1.5 rounded border border-[var(--color-border)] px-1 text-[9px] font-bold not-italic uppercase">Example</span>
+                60–80¢
+              </td>
+              <td className="text-right">1</td>
+              <td className="text-right">1</td>
+              <td className="text-right">$2.60</td>
+              <td className="text-right">37.1%</td>
+            </tr>
+          </tbody>
+        </table>
+      )}
       {j.closed > 0 && (
         <table className="mt-1 w-full text-[11px] tabular-nums">
           <thead className="text-[10px] uppercase text-[var(--color-muted)]">

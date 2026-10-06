@@ -2663,6 +2663,8 @@ export class FloorScene {
       this.opts.onManagerInspect?.(this.managerFeed.getState());
       return;
     }
+    // Walk mode is its own camera (the Owner chase): a click on a person must not yank it into a crew follow.
+    if (this.walkMode) return;
     const p = this.personAt(ray);
     if (!p) return;
     this.follow(p.who);
@@ -2712,7 +2714,7 @@ export class FloorScene {
     const hit = this.screenAlong(ray);
     let label: string | null = null;
     const mgrDist = this.protoAt(ray, "manager");
-    if (p && (!hit || p.at < hit.at) && (mgrDist == null || p.at < mgrDist)) label = `${p.who} — click to follow`;
+    if (p && (!hit || p.at < hit.at) && (mgrDist == null || p.at < mgrDist)) label = this.walkMode ? `${p.who} — walk mode (turn Walk off to follow)` : `${p.who} — click to follow`;
     else if (mgrDist != null && (!hit || mgrDist < hit.at)) label = "Trading Stand — click to inspect";
     else if (hit) label = `${screenLabel(hit.id)} — double-click to go there`;
     this.setHover(label);
@@ -2809,6 +2811,29 @@ export class FloorScene {
     return this.walkMode;
   }
 
+  /** Fly to the Manager's trading stand: the first clear spot around it with an unbroken line to the stand. */
+  focusManager(): boolean {
+    if (this.ownerChase) this.stopOwnerChase();
+    const [mx, mz] = this.manager.pos;
+    const target = new THREE.Vector3(mx, 1.25, mz);
+    const away = Math.atan2(mx - -8.0, mz - -1.0); // the stand looks toward (-8, -1); come from its front side
+    for (const d of [3.2, 2.6, 2.0]) {
+      for (const da of [0, 0.7, -0.7, 1.4, -1.4, Math.PI]) {
+        const ang = away + Math.PI + da;
+        const from = new THREE.Vector3(mx + Math.sin(ang) * d, 2.1, mz + Math.cos(ang) * d);
+        const ray = from.clone().sub(target);
+        const len = ray.length();
+        if (this.solidAlong(target, ray.normalize(), len, 0.55) < Infinity) continue;
+        this.follow(null);
+        this.preset = "free";
+        this.camGoal = { pos: from, target };
+        this.opts.onFocus?.("Trading Stand");
+        return true;
+      }
+    }
+    return false;
+  }
+
   getManagerFeed(): ManagerFeed {
     return this.managerFeed;
   }
@@ -2854,15 +2879,21 @@ export class FloorScene {
       this.camGoal.pos.add(delta);
       this.camGoal.target.add(delta);
     }
-    // Hold orbit distance the viewer set.
+    // Hold orbit distance the viewer set — but, as the crew chase does, a wall between the lens and Owner pulls the
+    // lens in to this side of it instead of letting the camera sit inside (or behind) the wall.
     if (t - this.ownerChaseCheckAt < 0.12) return;
     this.ownerChaseCheckAt = t;
     const want = Math.max(this.ownerChaseWant, 1.4);
-    const dist = this.camera.position.distanceTo(this.controls.target);
-    if (Math.abs(dist - want) > 0.35) {
-      const dir = this.camera.position.clone().sub(this.controls.target).normalize();
-      this.camera.position.copy(this.controls.target).add(dir.multiplyScalar(want));
-    }
+    const off = this.camera.position.clone().sub(this.controls.target);
+    const dist = off.length();
+    if (dist < 0.3) return;
+    const dir = off.divideScalar(dist);
+    const hit = this.solidAlong(this.controls.target, dir, Math.max(dist, want) + 0.3, 0.55);
+    let next = dist;
+    if (hit < dist + 0.3) next = Math.max(1.0, hit - 0.3);
+    else if (Math.abs(dist - want) > 0.35) next = want;
+    else if (dist < want - 0.05) next = Math.min(want, dist + 0.25);
+    if (Math.abs(next - dist) > 0.01) this.camera.position.copy(this.controls.target).addScaledVector(dir, next);
   }
 
   private walkable = (x: number, z: number) => {
