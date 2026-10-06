@@ -1,10 +1,10 @@
 /**
  * How a caption is spoken. Presentation only.
  *
- * The words stay the caption. Digits are not added and not dropped. What changes
- * is delivery: who is speaking, and what the line is already about. A raid is
- * brighter and quicker, a fill lifts, a stop falls, a structure word is leaned
- * on. The room does not write a new line to get the tone.
+ * Each person has one designated voice, chosen once from the browser and kept.
+ * Pitch stays next to a normal speaking voice. Dropping it is what makes the
+ * engine rasp. Tone is a small change of pace, not a new voice and not a new line.
+ * Digits are not added and not dropped.
  */
 
 import type { Character } from "./orchestrator";
@@ -13,23 +13,30 @@ export type Pattern = "lecture" | "clip" | "flat" | "verdict" | "operator";
 export type Tone = "raid" | "fill" | "stop" | "verdict" | "structure" | "figure" | "open" | "calm";
 
 export interface VoiceCast {
-  pitch: number;
+  /** Pace only. Pitch is 1. A shifted pitch is the rasp. */
   rate: number;
-  /** Quiet between phrases, in ms. The pattern, not a timer that decides a line. */
-  pause: number;
   pattern: Pattern;
-  /** Female lean so Gemma and Nova are not handed a male neural voice. */
   lean: "female" | "male";
-  hints: readonly string[];
 }
 
-export const VOICE_CAST: Record<Character, VoiceCast> = {
-  Gemma: { pitch: 1.04, rate: 0.92, pause: 280, pattern: "lecture", lean: "female", hints: ["aria", "jenny", "samantha", "sonia", "libby", "natasha"] },
-  Jax: { pitch: 0.96, rate: 1.02, pause: 140, pattern: "clip", lean: "male", hints: ["guy", "davis", "daniel", "ryan", "brandon"] },
-  Nova: { pitch: 1.01, rate: 0.9, pause: 240, pattern: "flat", lean: "female", hints: ["jenny", "sonia", "libby", "karen", "moira"] },
-  Sterling: { pitch: 0.91, rate: 0.84, pause: 380, pattern: "verdict", lean: "male", hints: ["davis", "ryan", "rishi", "daniel", "guy"] },
-  Vince: { pitch: 0.98, rate: 0.94, pause: 180, pattern: "operator", lean: "male", hints: ["brandon", "tony", "alex", "aaron", "daniel"] },
+/** Named voices, best first. The first one this browser actually has is theirs. */
+export const VOICE_SLOT: Record<Character, readonly string[]> = {
+  Gemma: ["google uk english female", "samantha", "sonia", "libby", "aria", "karen", "moira", "fiona"],
+  Nova: ["jenny", "aria", "victoria", "tessa", "serena", "zira", "susan", "samantha"],
+  Jax: ["google uk english male", "daniel", "ryan", "guy", "alex", "aaron"],
+  Sterling: ["davis", "rishi", "fred", "daniel", "guy", "google uk english male"],
+  Vince: ["brandon", "tony", "tom", "alex", "aaron", "daniel"],
 };
+
+export const VOICE_CAST: Record<Character, VoiceCast> = {
+  Gemma: { rate: 0.96, pattern: "lecture", lean: "female" },
+  Jax: { rate: 1.02, pattern: "clip", lean: "male" },
+  Nova: { rate: 0.94, pattern: "flat", lean: "female" },
+  Sterling: { rate: 0.92, pattern: "verdict", lean: "male" },
+  Vince: { rate: 0.98, pattern: "operator", lean: "male" },
+};
+
+const CREW: readonly Character[] = ["Gemma", "Nova", "Jax", "Sterling", "Vince"];
 
 export interface SpokenPhrase {
   text: string;
@@ -37,6 +44,12 @@ export interface SpokenPhrase {
   rate: number;
   gap: number;
   tone: Tone;
+}
+
+export interface VoiceOption {
+  name: string;
+  voiceURI: string;
+  lang: string;
 }
 
 const SPELL: readonly [RegExp, string][] = [
@@ -91,99 +104,138 @@ export function toneOf(text: string, animation?: string): Tone {
   return "calm";
 }
 
-function splitPhrases(text: string): string[] {
-  const parts = text
-    .split(/(?<=[.!?;:])\s+|(?<=,)\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return parts.length ? parts : [text];
-}
-
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));
 }
 
-const TONE_SHIFT: Record<Tone, { pitch: number; rate: number; pause: number; last: number }> = {
-  raid: { pitch: 0.06, rate: 0.06, pause: -60, last: 0.04 },
-  fill: { pitch: 0.04, rate: -0.02, pause: 40, last: 0.05 },
-  stop: { pitch: -0.08, rate: -0.08, pause: 160, last: -0.06 },
-  verdict: { pitch: -0.03, rate: -0.05, pause: 160, last: -0.07 },
-  structure: { pitch: 0.02, rate: -0.04, pause: 80, last: -0.02 },
-  figure: { pitch: -0.01, rate: -0.05, pause: 40, last: 0 },
-  open: { pitch: 0.05, rate: 0.02, pause: -20, last: 0.03 },
-  calm: { pitch: 0, rate: 0, pause: 0, last: 0 },
+/** Pace only, and a hair of pitch. Anything lower buzzes the browser voice. */
+const TONE_SHIFT: Record<Tone, { pitch: number; rate: number }> = {
+  raid: { pitch: 0.02, rate: 0.03 },
+  fill: { pitch: 0.01, rate: 0 },
+  stop: { pitch: -0.02, rate: -0.04 },
+  verdict: { pitch: 0, rate: -0.03 },
+  structure: { pitch: 0, rate: -0.02 },
+  figure: { pitch: 0, rate: -0.02 },
+  open: { pitch: 0.01, rate: 0.01 },
+  calm: { pitch: 0, rate: 0 },
 };
 
 /**
- * One caption, broken into breaths. The person sets the pace. The tone sets
- * the color: a raid rises, a fill lifts, a stop falls and waits, a structure
- * word is the slow beat.
+ * One caption, one breath. Restarting the engine on every comma is the rasp.
+ * The person sets the pace. The tone nudges it. Pitch stays near 1.
  */
 export function phrasePlan(who: Character, raw: string, animation?: string): SpokenPhrase[] {
   const cast = VOICE_CAST[who];
   const tone = toneOf(raw, animation);
   const shift = TONE_SHIFT[tone];
-  const bits = splitPhrases(speakable(raw));
-  return bits.map((bit, i) => {
-    const last = i === bits.length - 1;
-    const hasDigit = /\d/.test(bit);
-    const question = /\?\s*$/.test(bit);
-    const structureBeat = tone === "structure" && /\b(premium|discount|draw|fvg|order block|equilibrium|poi|imbalance|breaker)\b/i.test(bit);
-    let pitch = cast.pitch + shift.pitch;
-    let rate = cast.rate + shift.rate;
-    let gap = last ? 0 : Math.max(60, cast.pause + shift.pause);
-    if (cast.pattern === "lecture") {
-      pitch += i === 0 ? 0.03 : last ? -0.04 : 0;
-      if (last) rate -= 0.04;
-    } else if (cast.pattern === "clip") {
-      rate += Math.min(0.05, i * 0.02);
-      if (last) pitch -= 0.03;
-    } else if (cast.pattern === "verdict" && last) {
-      pitch -= 0.04;
-      rate -= 0.05;
-    }
-    if (last) pitch += shift.last;
-    if (hasDigit) rate -= 0.04;
-    if (structureBeat) {
-      rate -= 0.06;
-      pitch += 0.03;
-    }
-    if (question) pitch += 0.05;
-    return {
-      text: bit,
-      pitch: clamp(pitch, 0.82, 1.16),
-      rate: clamp(rate, 0.78, 1.12),
-      gap,
+  const text = speakable(raw);
+  if (!text) return [];
+  return [
+    {
+      text,
+      pitch: clamp(1 + shift.pitch, 0.98, 1.03),
+      rate: clamp(cast.rate + shift.rate, 0.9, 1.05),
+      gap: 0,
       tone,
-    };
-  });
+    },
+  ];
 }
 
 /** How long the caption should stay up so the next person does not start over it. */
 export function speakHoldSec(who: Character, text: string, animation?: string): number {
   const parts = phrasePlan(who, text, animation);
-  let ms = 360;
+  let ms = 480;
   for (const p of parts) {
     const words = p.text.split(/\s+/).length;
-    ms += (words / (2.15 * p.rate)) * 1000 + p.gap + 220;
+    ms += (words / (2.2 * p.rate)) * 1000;
   }
   return Math.min(16, Math.max(3.4, ms / 1000));
 }
 
-const FEMALE = /female|woman|aria|jenny|sonia|libby|samantha|natasha|michelle|karen|moira|zira|susan/;
-const MALE = /male|man|guy|davis|ryan|brandon|daniel|tony|rishi|aaron|alex|fred/;
-const NATURAL = /natural|neural|premium|enhanced/;
+const RASPY = /compact|espeak|android|whisper|novelty/;
+const SMOOTH = /natural|neural|premium|enhanced/;
 
-/** Higher is a voice a person would rather hear than the compact default. */
-export function voiceScore(name: string, lang: string, lean: "female" | "male", hints: readonly string[]): number {
+const FEMALE_NAMES = [
+  "samantha", "victoria", "karen", "moira", "fiona", "tessa", "serena", "zira", "susan",
+  "allison", "ava", "kate", "joanna", "salli", "ivy", "kimberly", "kendra", "emma", "amy",
+  "nicole", "olivia", "libby", "sonia", "aria", "jenny", "michelle", "natasha", "hazel",
+  "heather", "linda", "veena", "nora", "sara", "kathy", "catherine",
+];
+const MALE_NAMES = [
+  "daniel", "alex", "fred", "rishi", "aaron", "guy", "davis", "ryan", "brandon", "tony",
+  "tom", "david", "james", "george", "reed", "matthew", "justin", "joey", "brian",
+  "russell", "oliver", "arthur", "gordon", "lee",
+];
+
+function tokens(name: string): string[] {
+  return name.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+}
+
+/** Female, male, or unknown. "Female" does not count as male. */
+export function voiceGender(name: string): "female" | "male" | null {
+  const parts = tokens(name);
+  if (parts.includes("female") || parts.includes("woman")) return "female";
+  if (parts.includes("male") || parts.includes("man")) return "male";
+  const f = FEMALE_NAMES.some((n) => parts.includes(n));
+  const m = MALE_NAMES.some((n) => parts.includes(n));
+  if (f && !m) return "female";
+  if (m && !f) return "male";
+  return null;
+}
+
+function slotRank(name: string, hints: readonly string[]): number {
   const n = name.toLowerCase();
+  if (RASPY.test(n)) return -100;
   let s = 0;
-  if (NATURAL.test(n)) s += 60;
-  if (/compact|espeak/.test(n)) s -= 50;
-  if (hints.some((h) => n.includes(h))) s += 30;
-  if (lean === "female" ? FEMALE.test(n) : MALE.test(n)) s += 16;
-  if (lean === "female" && MALE.test(n) && !FEMALE.test(n)) s -= 24;
-  if (lean === "male" && FEMALE.test(n) && !MALE.test(n)) s -= 12;
-  if (/^en([-_]|$)/i.test(lang)) s += 10;
+  const idx = hints.findIndex((h) => n.includes(h));
+  if (idx >= 0) s += 120 - idx * 10;
+  if (SMOOTH.test(n)) s += 40;
+  if (/^google us english$/.test(n.trim())) s -= 25;
   return s;
+}
+
+/**
+ * One voice per person, same result every call. Gender is the gate: Gemma and
+ * Nova only get a female voice, Jax, Sterling and Vince only a male one. A
+ * saved URI is kept only when it is still installed and the gender matches.
+ * Two people may share a voice of the right gender. They never take the wrong one.
+ */
+export function assignVoices(
+  options: readonly VoiceOption[],
+  saved?: Partial<Record<Character, string>>,
+): Record<Character, string | null> {
+  const en = options.filter((v) => /^en([-_]|$)/i.test(v.lang));
+  const pool = (en.length ? en : options).slice().sort((a, b) => a.voiceURI.localeCompare(b.voiceURI));
+  const byUri = new Map(pool.map((v) => [v.voiceURI, v]));
+  const used = new Set<string>();
+  const out: Record<Character, string | null> = { Gemma: null, Nova: null, Jax: null, Sterling: null, Vince: null };
+  for (const who of CREW) {
+    const uri = saved?.[who];
+    const voice = uri ? byUri.get(uri) : undefined;
+    if (voice && voiceGender(voice.name) === VOICE_CAST[who].lean && !used.has(uri!)) {
+      out[who] = uri!;
+      used.add(uri!);
+    }
+  }
+  const rankedFor = (who: Character, freeOnly: boolean) => {
+    const lean = VOICE_CAST[who].lean;
+    const hints = VOICE_SLOT[who];
+    return pool
+      .filter((v) => voiceGender(v.name) === lean && !RASPY.test(v.name) && (!freeOnly || !used.has(v.voiceURI)))
+      .sort((a, b) => slotRank(b.name, hints) - slotRank(a.name, hints) || a.name.localeCompare(b.name));
+  };
+  for (const who of CREW) {
+    if (out[who]) continue;
+    const pick = rankedFor(who, true)[0];
+    if (pick) {
+      out[who] = pick.voiceURI;
+      used.add(pick.voiceURI);
+    }
+  }
+  for (const who of CREW) {
+    if (out[who]) continue;
+    const pick = rankedFor(who, false)[0];
+    if (pick) out[who] = pick.voiceURI;
+  }
+  return out;
 }

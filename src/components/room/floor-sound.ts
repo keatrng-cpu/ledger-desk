@@ -5,14 +5,15 @@
  * Two layers, both presentation:
  *  - event tones (WebAudio, no files) for what the cycle already decided
  *    (a fill, a winner, the bell at the open);
- *  - the line on the caption, spoken in phrases in that person's pattern
- *    A raid rises, a fill lifts, a stop falls. The person already talking finishes.
- *    The words are the caption. It does not write a line, pick a trade, or
- *    read a number the room did not already print.
+ *  - the line on the caption, in that person's designated voice. The voice is
+ *    chosen once and kept. Pitch stays near a normal speaking voice; dropping
+ *    it is what rasps. A raid is a little quicker, a stop a little slower.
+ *    The person already talking finishes. The words are the caption. It does
+ *    not write a line, pick a trade, or read a number the room did not print.
  */
 
 import type { Character } from "@/lib/room/orchestrator";
-import { phrasePlan, voiceScore, VOICE_CAST, type SpokenPhrase } from "@/lib/room/floor-voice";
+import { assignVoices, phrasePlan, VOICE_CAST, type SpokenPhrase } from "@/lib/room/floor-voice";
 import type { FloorEvent } from "./floor-scene";
 
 export { VOICE_CAST };
@@ -23,14 +24,25 @@ function englishVoices(): SpeechSynthesisVoice[] {
   return en.length ? en : all;
 }
 
-/** Prefer a neural voice, and keep the five on different ones. */
-function pickVoice(who: Character, used: Set<string>): SpeechSynthesisVoice | null {
-  const cast = VOICE_CAST[who];
-  const pool = englishVoices().filter((v) => !used.has(v.voiceURI));
-  const ranked = (pool.length ? pool : englishVoices()).slice().sort(
-    (a, b) => voiceScore(b.name, b.lang, cast.lean, cast.hints) - voiceScore(a.name, a.lang, cast.lean, cast.hints),
-  );
-  return ranked[0] ?? null;
+const CAST_KEY = "ledger-room-cast-v2";
+
+function loadCast(): Partial<Record<Character, string>> {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(CAST_KEY) : null;
+    if (!raw) return {};
+    const v = JSON.parse(raw) as Partial<Record<Character, string>>;
+    return v && typeof v === "object" ? v : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCast(cast: Partial<Record<Character, string>>): void {
+  try {
+    window.localStorage.setItem(CAST_KEY, JSON.stringify(cast));
+  } catch {
+    // Per-browser only.
+  }
 }
 
 const STORAGE = "ledger-room-sound-v1";
@@ -74,7 +86,8 @@ export class FloorSound {
   }
 
   private primed = false;
-  private cast = new Map<Character, string>();
+  private voicesBound = false;
+  private saved: Partial<Record<Character, string>> = {};
   private queue: { token: number; who: Character; parts: SpokenPhrase[] }[] = [];
   private draining = false;
   private gen = 0;
@@ -83,13 +96,55 @@ export class FloorSound {
   unlock(): void {
     this.ensure();
     const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
-    if (!synth || this.primed) return;
+    if (!synth) return;
+    this.bindVoices();
+    if (this.primed) return;
     this.primed = true;
     synth.resume();
     const warm = new SpeechSynthesisUtterance(" ");
     warm.volume = 0.01;
-    warm.rate = 2;
+    warm.rate = 1;
     synth.speak(warm);
+  }
+
+  private bindVoices(): void {
+    const synth = window.speechSynthesis;
+    if (!synth || this.voicesBound) return;
+    this.voicesBound = true;
+    this.saved = loadCast();
+    synth.addEventListener?.("voiceschanged", () => this.lockCast());
+    this.lockCast();
+  }
+
+  /** Assign each person once, and only a voice of their gender. A saved mismatch is dropped. */
+  private lockCast(): void {
+    const voices = englishVoices();
+    if (!voices.length) return;
+    const assigned = assignVoices(
+      voices.map((v) => ({ name: v.name, voiceURI: v.voiceURI, lang: v.lang })),
+      this.saved,
+    );
+    let changed = false;
+    for (const who of ["Gemma", "Nova", "Jax", "Sterling", "Vince"] as const) {
+      const uri = assigned[who];
+      if (uri) {
+        if (uri !== this.saved[who]) {
+          this.saved[who] = uri;
+          changed = true;
+        }
+      } else if (this.saved[who]) {
+        delete this.saved[who];
+        changed = true;
+      }
+    }
+    if (changed) saveCast(this.saved);
+  }
+
+  private voiceFor(who: Character): SpeechSynthesisVoice | null {
+    this.bindVoices();
+    const uri = this.saved[who];
+    if (!uri) return null;
+    return englishVoices().find((v) => v.voiceURI === uri) ?? null;
   }
 
   /**
@@ -111,8 +166,7 @@ export class FloorSound {
     if (!job) return;
     this.draining = true;
     const synth = window.speechSynthesis;
-    const voice = pickVoice(job.who, new Set(this.cast.values()));
-    if (voice) this.cast.set(job.who, voice.voiceURI);
+    const voice = this.voiceFor(job.who);
     const volume = Math.min(1, Math.max(0.5, this.volume));
     const speakAt = (i: number) => {
       if (job.token !== this.gen) {
