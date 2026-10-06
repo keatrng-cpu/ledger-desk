@@ -23,8 +23,12 @@ export async function verifyManagerAccount(rh, check) {
   const marginOk = m.toManagerRhAccount({ cashUsd: 984.12, optionsBuyingPowerUsd: 984.12, agenticAllowed: true, optionLevel: "option_level_2", accountMaskLast4: "7477" });
   check("gate passes when accessible + BP ≥ 150", m.accountPlaceGate(marginOk).ok, true);
   check("gate refuses low BP even if accessible", m.accountPlaceGate({ ...marginOk, optionsBuyingPowerUsd: 11.56, canFillEnvelope: false }).ok, false);
-  const base = { gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false, agenticAllowed: true, optionsLevelOk: true };
+  // Hard BP gate (rh-autofire-gates.ts) also needs a fresh get_portfolio read at review.
+  const NOW = Date.UTC(2026, 9, 6, 13, 35, 0);
+  const fresh = { label: "Individual ••7477", accountType: "margin", cash: 984.12, buyingPower: 984.12, agenticAllowed: true, optionLevel: "option_level_2", asOfMs: NOW, source: "get_portfolio" };
+  const base = { gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false, agenticAllowed: true, optionsLevelOk: true, accountAtReview: fresh, debitTotal: 400, nowMs: NOW };
   check("mayPlaceAfterReview refuses default account", rh.mayPlaceAfterReview({ ...base, account: d }).ok, false);
   check("mayPlaceAfterReview refuses null account", rh.mayPlaceAfterReview({ ...base, account: null }).ok, false);
   check("mayPlaceAfterReview ok with fillable accessible account", rh.mayPlaceAfterReview({ ...base, account: marginOk }).ok, true);
+  check("Manager block ok but no fresh get_portfolio → refuse (hard BP gate)", rh.mayPlaceAfterReview({ ...base, account: marginOk, accountAtReview: undefined }).ok, false);
 }
