@@ -140,7 +140,7 @@ class Person {
     this.seated = seated;
     const skin = mat(look.skin ?? "#e2b48c", 0.6);
     const shirt = mat(look.shirt, 0.75);
-    const pants = mat(look.pants ?? "#1f1a2e", 0.8);
+    const pants = mat(look.pants ?? "#1a3329", 0.8);
     const capsule = (r: number, l: number, m: THREE.Material) => {
       const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(r, l, 4, 10), m);
       mesh.castShadow = true;
@@ -857,7 +857,7 @@ export class MeadScene {
     const jm = new THREE.Mesh(new THREE.PlaneGeometry(jw, jh), new THREE.MeshBasicMaterial({ map: j.tex, toneMapped: false }));
     jm.position.set(-1.8, 3.05, ROOM.z0 + 0.2);
     this.scene.add(jm);
-    this.box(jw + 0.3, jh + 0.3, 0.16, mat("#1a0e2e", 0.5, 0.4), -1.8, 3.05, ROOM.z0 + 0.1);
+    this.box(jw + 0.3, jh + 0.3, 0.16, mat("#0a1610", 0.5, 0.4), -1.8, 3.05, ROOM.z0 + 0.1);
     this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.brass, 0.35, 0.6), -1.8, 3.05 + jh / 2 + 0.17, ROOM.z0 + 0.12);
     this.box(jw + 0.42, 0.08, 0.2, mat(MEAD.brass, 0.35, 0.6), -1.8, 3.05 - jh / 2 - 0.17, ROOM.z0 + 0.12);
     this.screens.push({ mesh: jm, canvas: j.canvas, tex: j.tex, kind: "jumbo", index: 0, label: "Jumbotron — tap YES / NO for a paper ticket" });
@@ -936,7 +936,7 @@ export class MeadScene {
   private retag(tag: THREE.Sprite, title: string, sub: string) {
     const t = canvasTex(384, 84, (c) => {
       const ctx = c.getContext("2d")!;
-      ctx.fillStyle = "rgba(23,10,46,0.9)";
+      ctx.fillStyle = "rgba(10,22,16,0.9)";
       ctx.beginPath();
       ctx.roundRect(4, 4, 376, 76, 18);
       ctx.fill();
