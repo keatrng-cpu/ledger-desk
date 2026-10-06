@@ -271,9 +271,9 @@ export function VeteranBrainPanel({
           Auto-read tabs
         </p>
         <div className="grid gap-1 sm:grid-cols-2">
-          {brief.tabReads.map((t) => (
+          {brief.tabReads.map((t, i) => (
             <div
-              key={t.tab}
+              key={`${t.tab}-${i}`}
               className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5 text-[11px]"
             >
               <div className="flex items-center justify-between gap-2">
