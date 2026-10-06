@@ -1,3 +1,4 @@
+import { StateWord } from "@/components/desk/state-word";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Brain,
@@ -193,14 +194,7 @@ export function VeteranBrainPanel({
             <Radar className="h-3 w-3 animate-pulse" />
             Live
           </span>
-          <span
-            className={cn(
-              "rounded-full border px-2.5 py-1 font-mono text-[11px] font-bold tracking-wide",
-              verdictStyle(brief.verdict),
-            )}
-          >
-            {brief.verdict}
-          </span>
+          <StateWord raw={brief.verdict} className="py-1" />
           <button
             type="button"
             className="rounded-full border border-[var(--color-border)] p-1.5 text-[var(--color-muted)] hover:text-[var(--color-fg)]"

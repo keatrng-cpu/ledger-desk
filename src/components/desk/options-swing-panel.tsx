@@ -1,3 +1,4 @@
+import { StateWord } from "@/components/desk/state-word";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
@@ -228,14 +229,11 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
             </p>
           </div>
         </div>
-        <span
-          className={cn(
-            "rounded-full border px-2.5 py-1 font-mono text-[11px] font-bold tracking-wide",
-            verdictClass(book.best?.verdict ?? "STAND"),
-          )}
-        >
-          {book.best ? `${book.best.verdict} · ${book.best.ticket?.underlier}` : "STAND"}
-        </span>
+        <StateWord
+          raw={book.best?.verdict ?? "STAND"}
+          suffix={book.best?.ticket?.underlier}
+          className="py-1"
+        />
       </header>
 
       <div className="mb-3 flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
