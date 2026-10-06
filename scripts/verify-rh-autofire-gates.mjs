@@ -145,7 +145,8 @@ console.log("\ntriple agreement required");
 console.log("\nrisk / session / one-book");
 {
   check("risk halt", gates.evaluateRhAutofireGates({ ...QUALIFIED, riskHalt: true }, ARMED_FLAGS).gate, "risk_halt");
-  check("blackout", gates.evaluateRhAutofireGates({ ...QUALIFIED, newsBlackout: true }, ARMED_FLAGS).gate, "blackout");
+  check("blackout with a weak score refuses", gates.evaluateRhAutofireGates({ ...QUALIFIED, confluence: 0.66, newsBlackout: true }, ARMED_FLAGS).gate, "blackout");
+  check("blackout with A+ 0.72 clears the raised bar", gates.evaluateRhAutofireGates({ ...QUALIFIED, newsBlackout: true }, ARMED_FLAGS).gate ?? "ok", "ok");
   check("session", gates.evaluateRhAutofireGates({ ...QUALIFIED, optionsSessionOpen: false }, ARMED_FLAGS).gate, "session");
   check("one book", gates.evaluateRhAutofireGates({ ...QUALIFIED, oneBookBlocked: true }, ARMED_FLAGS).gate, "one_book");
 }
@@ -248,9 +249,9 @@ console.log("\nFloor rules (fail closed when signals missing)");
   const g = (o, f = ARMED_FLAGS) => gates.evaluateRhAutofireGates({ ...QUALIFIED, ...o }, f).gate ?? "ok";
   check("09:35 ET A+ qualified ok", g({}), "ok");
   check("09:35 ET band A ok", g({ pathBand: "A" }), "ok");
-  check("10:15 ET band A → aplus_after_10", g({ pathBand: "A", account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "aplus_after_10");
+  check("10:15 ET band A still ok — clock cuts size, it does not ban", g({ pathBand: "A", account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "ok");
   check("10:15 ET band A+ ok", g({ account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "ok");
-  check("11:00 ET → after_11", g({ account: acctAt("2026-10-06T15:00:00Z") }, at("2026-10-06T15:00:00Z")), "after_11");
+  check("11:00 ET still ok — clock cuts size", g({ account: acctAt("2026-10-06T15:00:00Z") }, at("2026-10-06T15:00:00Z")), "ok");
   check("DTE 2 → dte", g({ dte: 2 }), "dte");
   check("DTE missing → dte", g({ dte: undefined }), "dte");
   check("tape missing → tape_unknown", g({ tapeAgeSec: undefined }), "tape_unknown");

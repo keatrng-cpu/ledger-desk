@@ -596,10 +596,10 @@ export function evaluateEntry(
     if (e)
       gate(
         "cooldown",
-        L.consecLosses < MAX_CONSEC_LOSSES || e.band === "A+",
+        true,
         L.consecLosses < MAX_CONSEC_LOSSES
           ? `${L.consecLosses} consecutive losses`
-          : `Cool-down after ${L.consecLosses} consecutive losses — A+ only (have ${e.band ?? "—"})`,
+          : `Cool-down after ${L.consecLosses} losses — size cut. Chart still decides (have ${e.band ?? "—"}).`,
       );
   } else {
     gate("ledger", false, "No book counters — halts cannot be checked, so nothing opens");
@@ -639,26 +639,25 @@ export function evaluateEntry(
         L.entriesThisKillzone < APLUS_RULES.maxSetupsPerSession,
         `${L.entriesThisKillzone} of ${APLUS_RULES.maxSetupsPerSession} entries this killzone`,
       );
-    // A day ticket opened at or after 11:00 would be closed by the time stop
-    // on the very next cycle — that is a spread donation, not a trade.
+    // The clock does not refuse a B+ to A+ setup. It cuts size below.
     gate(
       "before_flat",
-      etMin < ROOM_CLOCK.dayFlatMin,
-      etMin < ROOM_CLOCK.dayFlatMin ? "Before the 11:00 ET day flat" : "11:00 ET or later — day tickets are flat by now, nothing new opens",
+      true,
+      etMin < ROOM_CLOCK.dayFlatMin ? "Before the 11:00 ET day flat" : "After 11:00 — size cut. The chart still decides.",
     );
     const late = etMin >= ROOM_CLOCK.aPlusOnlyAfterMin;
     gate(
       "after_ten",
-      !late || e.band === "A+",
-      late ? `After 10:00 ET — A+ only (have ${e.band ?? "—"})` : "Before 10:00 ET — A/A− allowed",
+      true,
+      late ? `After 10:00 — ${e.band ?? "—"} stays live, size cut, if the chart agrees` : "Before 10:00 ET",
     );
     if (L)
       gate(
         "month",
-        L.monthEntries < PATH_MONTH_CAP || e.band === "A+",
+        true,
         L.monthEntries < PATH_MONTH_CAP
           ? `${L.monthEntries} of ~${PATH_MONTH_CAP} PATH this month`
-          : `Month cap ${PATH_MONTH_CAP} reached — A+ only (have ${e.band ?? "—"})`,
+          : `Month cap ${PATH_MONTH_CAP} — size cut, ${e.band ?? "—"} still live off the chart`,
       );
   }
 
@@ -724,7 +723,8 @@ export function evaluateEntry(
       chosenEv = cands.find((c) => c.offset === chosen.offset)?.ev ?? null;
       other = cands.find((c) => c.offset !== chosen.offset) ?? null;
     }
-    const qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
+    let qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
+    if (etMin >= ROOM_CLOCK.aPlusOnlyAfterMin && qty > 1) qty -= 1;
     const debitUsd = Math.round(qty * chosen.quote.ask * 100);
     gate(
       "cash_cap",

@@ -62,8 +62,8 @@ console.log("grades accepted: A+, A, A-, B+");
   check("C refuses", g({ ...BASE, pathBand: "C", confluence: 0.7 }), "path_band");
   check("null band refuses", g({ ...BASE, pathBand: null }), "path_band");
   check("after 10:00 ET a 30-min-old BP read refuses bp_stale", g({ ...BASE, pathBand: "B+", confluence: 0.62 }, { ...FLAGS, nowMs: AFTER_10 }), "bp_stale");
-  check("B+ after 10:00 ET (fresh BP) refuses aplus_after_10",
-    g({ ...BASE, pathBand: "B+", confluence: 0.62, account: { ...FUNDED, asOfMs: AFTER_10 - 10_000 } }, { ...FLAGS, nowMs: AFTER_10 }), "aplus_after_10");
+  check("B+ after 10:00 ET (fresh BP) still ok — clock cuts size",
+    g({ ...BASE, pathBand: "B+", confluence: 0.62, account: { ...FUNDED, asOfMs: AFTER_10 - 10_000 } }, { ...FLAGS, nowMs: AFTER_10 }), "ok");
 }
 
 console.log("\nPATH alarm fires on B+ (isPathFire) — isHighProbPath unchanged");
@@ -222,8 +222,8 @@ console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
   check("B+ DTE 2 refuse", g({ ...B, dte: 2 }), "dte");
   check("B+ BP $120 refuse", g({ ...B, account: { ...FUNDED, buyingPower: 120 } }), "bp_floor");
   check("B+ at 11:05 ET refuse", g(B, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "bp_stale");
-  check("B+ at 11:05 ET (fresh BP) refuse after_11",
-    g({ ...B, account: { ...FUNDED, asOfMs: Date.UTC(2026, 9, 6, 15, 4, 50) } }, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "after_11");
+  check("B+ at 11:05 ET (fresh BP) still ok — clock cuts size",
+    g({ ...B, account: { ...FUNDED, asOfMs: Date.UTC(2026, 9, 6, 15, 4, 50) } }, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "ok");
   check("A+ ignores SEQ/veto inputs (unchanged gate)", g({ ...BASE, seqTake: null, vetoed: null }), "ok");
   check("B+ size: 1 contract ok", gates.evaluateRhBandSize("B+", 1).ok, true);
   check("B+ size: 2 contracts refuse", gates.evaluateRhBandSize("B+", 2).gate, "bplus_size");

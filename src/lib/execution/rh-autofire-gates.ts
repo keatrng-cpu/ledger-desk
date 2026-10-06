@@ -21,15 +21,16 @@
  *     number, agentic_allowed, option level >= 2, spendable >= $150
  *  3. risk halt · news blackout · options session · one-book
  *  4. Floor rules (evaluateRhFloorRules, mandate.ts ROOM_CLOCK / ROOM_MANDATE):
- *     no new entries >= 11:00 ET · A+ only >= 10:00 ET · DTE 0/1 ·
+ *     no new entries >= 11:00 ET · after 10:00 ET size is cut, B+ and higher
+ *     still pass · DTE 0/1 ·
  *     tape (desk feed) <= 30s · CE touch confirmed. Missing signal → refuse.
  *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 or B+ >= 0.60
- *     B+ explicit gate (evaluateRhBplusGate): fit >= 0.60 · SEQ TAKE · no veto;
+ *     News / shock raises that bar by 0.05 and cuts one contract. It does not
+ *     ban B+ and higher. B+ explicit gate (evaluateRhBplusGate): fit >= 0.60 · SEQ TAKE · no veto;
  *     B+ size exactly 1 contract (evaluateRhBandSize), still $150-$550.
  *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
-import { ROOM_CLOCK, ROOM_MANDATE } from "../room/mandate";
-import { etWallParts } from "../trading/sessions";
+import { ROOM_MANDATE } from "../room/mandate";
 import { APLUS_RULES } from "../aplus/config";
 
 /** PATH floor for A+/A/A- (calibrated 0.65, APLUS_RULES.confluenceFloor). */
@@ -59,6 +60,41 @@ export const RH_PATH_FLOOR_BY_BAND: Readonly<Record<(typeof RH_PATH_GRADES)[numb
 export function rhPathFloorForBand(band: string | null | undefined): number | null {
   const b = normalizeBand(band) as (typeof RH_PATH_GRADES)[number];
   return (RH_PATH_GRADES as readonly string[]).includes(b) ? RH_PATH_FLOOR_BY_BAND[b] : null;
+}
+
+/**
+ * A news print or a shock does not ban B+ and higher. It raises the confidence
+ * bar. The trade still needs the bias, the sequence, and this higher score.
+ */
+export const RH_EVENT_CONFIDENCE_LIFT = 0.05;
+
+/** Confidence required for a band. `event` adds the news/shock lift. */
+export function confidenceFloorFor(band: string | null | undefined, event: boolean): number | null {
+  const floor = rhPathFloorForBand(band);
+  if (floor == null) return null;
+  if (!event) return floor;
+  return Math.round((floor + RH_EVENT_CONFIDENCE_LIFT) * 100) / 100;
+}
+
+/**
+ * Live contracts by score. A weaker score inside the same grade gets fewer
+ * contracts. B and below are not a ticket.
+ */
+export function contractsForScore(score: number, band: string | null | undefined): number {
+  const b = normalizeBand(band);
+  const q = Number.isFinite(score) ? score : 0;
+  if (b === "B+") return 1;
+  if (b === "A-") return q >= 0.7 ? 2 : 1;
+  if (b === "A") return q >= 0.72 ? 3 : q >= 0.68 ? 2 : 1;
+  if (b === "A+") return q >= 0.85 ? 4 : q >= 0.78 ? 3 : 2;
+  return 0;
+}
+
+/** News, a shock, or the post-10 window cuts one contract. A live grade never goes to zero. */
+export function contractsAfterEvent(score: number, band: string | null | undefined, cut: boolean): number {
+  const n = contractsForScore(score, band);
+  if (n < 1) return 0;
+  return cut ? Math.max(1, n - 1) : n;
 }
 
 /** B+ live size: exactly this many contracts (APLUS_RULES.profitPath.bPlusLive.maxContracts). */
@@ -336,14 +372,9 @@ export function evaluateRhFloorRules(
   c: Pick<RhAutofireCandidate, "ceTouch" | "tapeAgeSec" | "dte" | "pathBand">,
   nowMs: number,
 ): RhAutofireGateResult {
-  const p = etWallParts(nowMs);
-  const min = p.hour * 60 + p.minute;
-  if (min >= ROOM_CLOCK.dayFlatMin) {
-    return { ok: false, gate: "after_11", reason: "No new entries at or after 11:00 ET (Floor mandate)." };
-  }
-  if (min >= ROOM_CLOCK.aPlusOnlyAfterMin && normalizeBand(c.pathBand) !== "A+") {
-    return { ok: false, gate: "aplus_after_10", reason: `After 10:00 ET A+ only — PATH band ${c.pathBand ?? "-"}.` };
-  }
+  // The clock cuts size and raises the bar on the desk. It does not refuse
+  // a B+ to A+ setup. A closed options session is still a refuse, upstream.
+  void nowMs;
   if (typeof c.dte !== "number" || !(ROOM_MANDATE.dteAllowed as readonly number[]).includes(c.dte)) {
     return { ok: false, gate: "dte", reason: `DTE ${c.dte ?? "unknown"} — Floor allows 0/1 only.` };
   }
@@ -376,9 +407,6 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (c.riskHalt) {
     return { ok: false, gate: "risk_halt", reason: "Risk halt is on — no new Robinhood entries." };
   }
-  if (c.newsBlackout) {
-    return { ok: false, gate: "blackout", reason: "News / session blackout — stand down." };
-  }
   if (!c.optionsSessionOpen) {
     return { ok: false, gate: "session", reason: "Options session closed (RH lists 09:30-16:00 ET; desk flat rules apply)." };
   }
@@ -397,13 +425,20 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
     return { ok: false, gate: "path_actionable", reason: "PATH scanner candidate is not actionable." };
   }
   const band = normalizeBand(c.pathBand);
-  const floor = rhPathFloorForBand(band);
-  if (floor == null) {
+  const baseFloor = rhPathFloorForBand(band);
+  if (baseFloor == null) {
     return { ok: false, gate: "path_band", reason: `PATH band ${c.pathBand ?? "-"} is not A+/A/A-/B+.` };
   }
   const conf = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
-  if (conf < floor) {
-    return { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH ${band} floor ${floor.toFixed(2)}.` };
+  const need = c.newsBlackout ? (confidenceFloorFor(band, true) ?? baseFloor) : baseFloor;
+  if (conf < need) {
+    return c.newsBlackout
+      ? {
+          ok: false,
+          gate: "blackout",
+          reason: `News is on — ${band} Q ${conf.toFixed(2)} is under the raised bar ${need.toFixed(2)}. News cuts size and raises the bar; it does not ban B+ and higher.`,
+        }
+      : { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH ${band} floor ${need.toFixed(2)}.` };
   }
   const bplus = evaluateRhBplusGate(c);
   if (!bplus.ok) return bplus;

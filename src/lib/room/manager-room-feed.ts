@@ -47,6 +47,7 @@ import {
   RH_BPLUS_MAX_CONTRACTS,
   RH_MAX_CONTRACTS,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
+  confidenceFloorFor,
   isBplusBand,
   rhPathFloorForBand,
 } from "../execution/rh-autofire-gates";
@@ -122,7 +123,10 @@ export function managerAgreeFromRoom(args: {
     if (!blocks.includes("trigger")) blocks.push("trigger");
   }
   if (!t.optionsOpen) blocks.push("session");
-  if (args.newsBlackout) blocks.push("blackout");
+  if (args.newsBlackout) {
+    const need = card ? confidenceFloorFor(card.band, true) : null;
+    if (!card || need == null || !(card.confluence >= need)) blocks.push("blackout");
+  }
   if (hold) blocks.push(`owner_${hold}`);
   let contracts: number | null = null;
   let estDebitEach: number | null = null;

@@ -739,7 +739,7 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "sess.judas.sterling", [() => `Gates are live. Everything else is the same.`, () => `The gates are open to a card. They're not open to a hunch.`])));
       break;
     case "aplus":
-      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.aplus.sterling", [() => `${f.hhmm(10 * 60)}. A+ only from here, unless we're already in a trade.`, () => `After ${f.hhmm(10 * 60)} the bar is A+. Nothing less gets a ticket.`])));
+      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.aplus.sterling", [() => `${f.hhmm(10 * 60)}. Size comes down from here. B+ to A+ still trade if the chart agrees.`, () => `After ${f.hhmm(10 * 60)} the ticket is smaller. The clock does not cancel a setup.`])));
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.aplus.vince", [() => `${f.int(d.positions)} open. ${f.int(d.monthEntries)}/${cap} PATH this month.`, () => `${d.positions ? `${f.int(d.positions)} on the book` : "Flat"}, ${f.int(d.monthEntries)} of ${cap} PATH used.`])));
       break;
     case "flat":

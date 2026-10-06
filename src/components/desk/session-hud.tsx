@@ -286,14 +286,13 @@ export function SessionHud({
       {paperReady && shock?.active && (
         <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse
-          only.
+          {shock.line} · size cut, higher bar {shockMmss}. B+ to A+ still trade off the chart.
         </div>
       )}
       {paperReady && !shock?.active && shock?.tail && (
         <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          Post-shock tail {shockMmss} — A+ only, fresh sequence after the shock. {shock.line}
+          Post-shock tail {shockMmss} — B+ to A+ still live off the chart, size cut, higher bar. {shock.line}
         </div>
       )}
 

@@ -13,6 +13,7 @@ import {
   type LegStatus,
 } from "@/lib/market/desk-budget";
 import { APLUS_RULES } from "@/lib/aplus/config";
+import { RH_EVENT_CONFIDENCE_LIFT, rhPathFloorForBand } from "@/lib/execution/rh-autofire-gates";
 import {
   fetchDatabentoBars,
   hasDatabentoKey,
@@ -686,29 +687,33 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         ? {
             ...newsBase,
             verdict: "blackout",
-            reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m lock — impulse is the news, not the model`,
+            reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m — impulse is the news. B+ and higher still trade if the new sequence clears a higher bar, at a smaller size.`,
           }
         : newsBase;
-    if (news.verdict === "blackout") {
-      for (const c of scan.candidates) c.actionable = false;
-      scan.blocked.push(`News blackout: ${news.reason}`);
-      scan.focus = `News blackout — ${news.reason} Stand down.`;
-    } else if (news.verdict === "caution") {
-      scan.blocked.push(`News caution: ${news.reason}`);
-    }
-
-    // Post-shock tail: lock lifted but the tape is still repricing. A+ only,
-    // and every card must build a NEW sequence after the shock (the SMC
-    // array/sweep floor is applied in smc-master via desk.shock.freshFloorMs).
-    if (shock.tail) {
+    // News and a shock raise the confidence bar and cut size. They do not
+    // take B+ and higher off the book when the bias and the score are there.
+    const event = news.verdict === "blackout" || news.verdict === "caution" || shock.tail;
+    if (event) {
+      let live = 0;
       for (const c of scan.candidates) {
         const band = String(c.pathBand || c.grade);
-        if (band !== "A+" && c.actionable) {
+        const floor = rhPathFloorForBand(band);
+        const need = floor == null ? Number.POSITIVE_INFINITY : Math.round((floor + RH_EVENT_CONFIDENCE_LIFT) * 100) / 100;
+        if (floor != null && c.confluence >= need) {
+          live += 1;
+          c.reasons = [...c.reasons, `news/shock bar ${need.toFixed(2)} cleared — size cut, still a ticket`];
+        } else if (c.actionable) {
           c.actionable = false;
-          c.reasons = [...c.reasons, `post-shock tail (${Math.ceil((shock.tailUntilMs! - nowMs) / 60_000)}m) — A+ only`];
+          c.reasons = [...c.reasons, `news/shock bar ${Number.isFinite(need) ? need.toFixed(2) : "—"} not cleared`];
         }
       }
-      scan.blocked.push(`Post-shock tail — A+ only · ${shock.line}`);
+      const why = shock.active || shock.tail ? shock.line : news.reason;
+      if (live === 0) {
+        scan.blocked.push(`News/shock — no B+ or higher cleared the raised bar · ${why}`);
+        scan.focus = `News/shock raised the bar. Nothing at B+ or higher cleared it. ${why}`;
+      } else {
+        scan.blocked.push(`News/shock — ${live} card${live === 1 ? "" : "s"} still live, size cut · ${why}`);
+      }
     }
 
     // Research rule: sweep alone is never an entry
