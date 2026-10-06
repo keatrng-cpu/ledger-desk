@@ -159,7 +159,7 @@ console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
   const otm = gates.evaluateRhTicketEnvelope({ contracts: 3, debitTotal: 550, strikeOffset: "OTM_1" });
   check("OTM_1 $550 / 3ct ok", otm.ok, true);
 
-  check("under $150 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 149, strikeOffset: "ATM" }).gate, "debit_floor");
+  check("under $90 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 89, strikeOffset: "ATM" }).gate, "debit_floor");
   check("over $550 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 551, strikeOffset: "ATM" }).gate, "debit_cap");
   check("0 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 0, debitTotal: 200, strikeOffset: "ATM" }).gate, "contracts");
   check("5 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 5, debitTotal: 400, strikeOffset: "ATM" }).gate, "contracts");
@@ -402,7 +402,7 @@ console.log("\nsource posture");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 150/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 90/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);

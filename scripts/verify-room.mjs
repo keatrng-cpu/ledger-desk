@@ -91,11 +91,11 @@ check("same input, same JSON", JSON.stringify(a1) === JSON.stringify(a2));
 const poor = runDrillStep(emptyBook(1000), null, f).cycle;
 check("10% of $1,000 cannot buy one contract → refused", poor.output.broker_action.action_type === "HOLD" && poor.trace.refusalGate === "cash_cap", poor.trace.refusalGate);
 const halted = emptyBook(10000);
-halted.counters.realizedToday = -250;
+halted.counters.realizedToday = -1600;
 halted.counters.dayKey = "2026-10-05";
 halted.counters.dayStartEquity = 10000;
 const h = runDrillStep(halted, null, f).cycle;
-check("daily 2% halt refuses the fill", h.output.broker_action.action_type === "HOLD" && h.trace.refusalGate === "halt_day", h.trace.refusalGate);
+check("daily 15% halt refuses the fill", h.output.broker_action.action_type === "HOLD" && h.trace.refusalGate === "halt_day", h.trace.refusalGate);
 const step = runDrillStep(emptyBook(10000), null, f);
 const staleTape = (desk) => runRoomCycle(step.input, { desk, ledger: ledgerOf(emptyBook(10000)) }, step.nowMs);
 const refused = (desk) => {

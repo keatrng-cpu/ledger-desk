@@ -234,8 +234,8 @@ console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
   check("B+ propose 1ct $160 → live_when_armed", [p1.mode, p1.placeShape?.quantity], ["live_when_armed", 1]);
   const p2 = rh.proposeRhLiveOption({ candidate: B, ticket: t(2, 320), flags: FLAGS, liveQuote: bq(1.6) });
   check("B+ propose 2ct refuses bplus_size", [p2.mode, p2.gated.gate], ["refused", "bplus_size"]);
-  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 120), flags: FLAGS, liveQuote: bq(1.2) });
-  check("B+ 1ct under $150 envelope refuses debit_floor", [p0.mode, p0.gated.gate], ["refused", "debit_floor"]);
+  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 80), flags: FLAGS, liveQuote: bq(0.8) });
+  check("B+ 1ct under $90 envelope refuses debit_floor", [p0.mode, p0.gated.gate], ["refused", "debit_floor"]);
   const rev = {
     gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false,
     agenticAllowed: true, optionsLevelOk: true, accountAtReview: FUNDED,

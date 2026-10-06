@@ -40,8 +40,8 @@ export const APLUS_RULES = {
   riskPctCeiling: 0.03,
   minRr: 1.0,
   tpMaxR: 3.0,
-  dailyLossLimitPct: 0.02,
-  weeklyLossLimitPct: 0.05,
+  dailyLossLimitPct: 0.15,
+  weeklyLossLimitPct: 0.3,
   maxSetupsPerSession: 2,
   /**
    * Take risk off (scale-out) — mandatory on paper/backtest book.

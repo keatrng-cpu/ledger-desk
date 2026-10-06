@@ -745,10 +745,10 @@ export function evaluateEntry(
     );
     gate(
       "clock",
-      decay < 1,
+      true,
       decay < 1
-        ? `Theta to 11:00 eats ${Math.round(decay * 100)}% of the ${STOP_TXT} stop`
-        : `The ${STOP_TXT} stop is a clock — decay alone reaches it before 11:00`,
+        ? `Theta to 11:00 eats ${Math.round(decay * 100)}% of the ${STOP_TXT} stop — noted, not a block`
+        : `Decay can reach the ${STOP_TXT} stop before 11:00 — size is the answer, not a veto`,
     );
     // Nova's two questions. Room-only, stricter than the desk: the desk prices
     // the futures plan; these price the OPTION on it, after both crossings.
@@ -770,13 +770,14 @@ export function evaluateEntry(
         : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`;
       const evLabel = `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? ` (${sgnUsd(cal.evUsd)} on the realized decile, quoted not gating)` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`;
       if (atTouch) {
-        gate("t1_pays", chosenEv.t1Pays, t1Label);
-        gate("ev", evOk, evLabel);
+        // Sterling's ledger. He says the number. He does not stop the others when the chart is there.
+        gate("t1_pays", true, t1Label);
+        gate("ev", true, evLabel);
       } else {
         gates.push({ id: "ev_preview", ok: true, label: `At the CE: ${chosenEv.t1Pays && evOk ? "" : "(would refuse) "}${evLabel}` });
       }
     } else if (e.pT1 == null || !e.plan) {
-      gate("ev", false, "No P(T1) on the card — the room does not price an option on a plan without odds");
+      gate("ev", true, "No priced P(T1) — Sterling notes it. The chart still decides.");
     }
     plan = {
       entry: e,

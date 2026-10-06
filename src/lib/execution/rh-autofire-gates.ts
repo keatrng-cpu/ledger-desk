@@ -147,7 +147,7 @@ export function evaluateRhBandSize(band: string | null | undefined, contracts: n
 
 /** A PATH scanner fire older than this cannot start a place (same bound as tape). */
 export const RH_PATH_FIRE_MAX_AGE_MS = 30_000;
-export const RH_MIN_DEBIT_TOTAL = 150;
+export const RH_MIN_DEBIT_TOTAL = 90;
 export const RH_MAX_DEBIT_TOTAL = 550;
 export const RH_MIN_CONTRACTS = 1;
 export const RH_MAX_CONTRACTS = 4;

@@ -9,7 +9,7 @@ export const ROOM_STOP_PCT = -20;
 
 export const ROOM_MANDATE = {
   maxOpenPositions: 3,
-  maxCashFracPerTrade: 0.1,
+  maxCashFracPerTrade: 0.56,
   hardStopPct: ROOM_STOP_PCT,
   takeProfitPct: 40,
   /** Share of the position closed at +40%. 0.5 = the options playbook's trim; 1 = close all. */
