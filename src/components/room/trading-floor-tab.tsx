@@ -36,6 +36,7 @@ import { managerStubRequested, roomManagerFeed } from "@/lib/room/manager-room-f
 import { managerLoopReadout } from "@/lib/room/manager-live-loop";
 import { reportRhAccount } from "@/lib/ui/rh-account";
 import { RhAccountStrip } from "@/components/desk/rh-account-strip";
+import { REACTIONS, useWirePins, useWireReactions } from "./wire-chat";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
 const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
@@ -289,49 +290,142 @@ const STATUS_TEXT: Record<WireStatus, string> = { queued: "queued", said: "said"
 
 const etTime = (ms: number) => new Date(ms).toLocaleTimeString("en-GB", { timeZone: "America/New_York", hour12: false });
 
-/** Everything the room said, newest first, with what set it off and the numbers it rested on. */
+function MiniAvatar({ who, size = 22 }: { who: Character; size?: number }) {
+  const [ok, setOk] = useState(true);
+  return ok ? (
+    <img
+      src={`/floor/portraits/${who.toLowerCase()}.png`}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size, borderColor: COLOR[who] }}
+      className="shrink-0 rounded-full border object-cover"
+      onError={() => setOk(false)}
+    />
+  ) : (
+    <span
+      aria-hidden
+      style={{ width: size, height: size, background: COLOR[who] }}
+      className="flex shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+    >
+      {who[0]}
+    </span>
+  );
+}
+
+/**
+ * Everything the room said, newest first, as a chat: each exchange is a thread (the first line opens it, the rest of
+ * the same exchange reply under it), with what set it off and the numbers it rested on. Reactions and pins are the
+ * viewer's own marks, saved in this browser — the room never reads them.
+ */
 function WireLog({ onFocus }: { onFocus: (who: Character) => void }) {
   const wire = useRoomStore((s) => s.wire);
   const [open, setOpen] = useState<string | null>(null);
+  const { reactions, toggle: react } = useWireReactions();
+  const { isPinned, toggle: pin } = useWirePins();
   return (
     <div className={CARD}>
-      <div className={HEAD}>On the wire · what they said, and why</div>
+      <div className={HEAD}>On the wire · the room&apos;s chat</div>
       {wire.length === 0 ? (
-        <p className="text-[12px] text-[var(--color-muted)]">Nothing yet. The room speaks when the desk gives it something real: a move, a level, a headline, a release, the book, the feed.</p>
+        <p className="text-[12px] text-[var(--color-muted)]">Quiet on the wire. The room speaks when the desk gives it something real: a move, a level, a headline, a release, the book, the feed.</p>
       ) : (
-        <ol className="max-h-[22rem] space-y-1 overflow-y-auto pr-1">
-          {wire.map((w: WireEntry) => (
-            <li key={w.id} className="rounded border border-[var(--color-border)] px-2 py-1">
-              <button type="button" className="flex w-full items-center gap-2 text-left text-[11px]" onClick={() => setOpen(open === w.id ? null : w.id)}>
-                <span className="font-mono text-[var(--color-subtle)]">{etTime(w.at)}</span>
-                <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase text-black" style={{ background: KIND_COLOR[w.kind] ?? "#64748b" }}>
-                  {w.kind}
-                </span>
-                {w.urgency === 2 ? <span className="text-[10px] font-bold text-[var(--color-down)]">URGENT</span> : null}
-                <span className="min-w-0 flex-1 truncate text-[var(--color-fg)]">{w.label}</span>
-                <span className="text-[10px] text-[var(--color-subtle)]">{STATUS_TEXT[w.status]}</span>
-              </button>
-              <ul className="mt-1 space-y-0.5">
-                {(open === w.id ? w.lines : w.lines.slice(0, 2)).map((l, i) => (
-                  <li key={i} className="text-[12px] leading-snug">
-                    <button type="button" onClick={() => onFocus(l.character)} className="font-semibold" style={{ color: COLOR[l.character] }}>
-                      {l.character}
-                    </button>{" "}
-                    <span className="text-[var(--color-fg)]">{l.text}</span>
-                  </li>
-                ))}
-                {open !== w.id && w.lines.length > 2 ? <li className="text-[10px] text-[var(--color-subtle)]">+{w.lines.length - 2} more — click to open</li> : null}
-              </ul>
-              {open === w.id && w.facts.length ? (
-                <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">numbers used: {w.facts.join(" · ")}</p>
-              ) : null}
-            </li>
-          ))}
+        <ol className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+          {wire.map((w: WireEntry) => {
+            const [head, ...replies] = w.lines;
+            const shown = open === w.id ? replies : replies.slice(0, 1);
+            const mine = reactions[w.id] ?? [];
+            const pinned = isPinned(w.id);
+            return (
+              <li key={w.id} className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="rounded px-1.5 py-0.5 font-semibold uppercase text-black" style={{ background: KIND_COLOR[w.kind] ?? "#64748b" }}>
+                    {w.kind}
+                  </span>
+                  {w.urgency === 2 ? <span className="font-bold text-[var(--color-down)]">URGENT</span> : null}
+                  <span className="min-w-0 flex-1 truncate text-[var(--color-muted)]" title={w.label}>
+                    {w.label}
+                  </span>
+                  <span className="font-mono text-[var(--color-subtle)]">{etTime(w.at)}</span>
+                  <span className="text-[var(--color-subtle)]">· {STATUS_TEXT[w.status]}</span>
+                </div>
+                {head && (
+                  <div className="mt-1 flex items-start gap-2">
+                    <button type="button" onClick={() => onFocus(head.character)} aria-label={`Select ${head.character}`}>
+                      <MiniAvatar who={head.character} size={26} />
+                    </button>
+                    <p className="min-w-0 text-[12px] leading-snug">
+                      <span className="font-semibold" style={{ color: COLOR[head.character] }}>
+                        {head.character}
+                      </span>{" "}
+                      <span className="text-[var(--color-fg)]">{head.text}</span>
+                    </p>
+                  </div>
+                )}
+                {shown.length > 0 && (
+                  <ul className="ml-[13px] mt-1 space-y-1 border-l border-[var(--color-border)] pl-3">
+                    {shown.map((l, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <button type="button" onClick={() => onFocus(l.character)} aria-label={`Select ${l.character}`}>
+                          <MiniAvatar who={l.character} size={18} />
+                        </button>
+                        <p className="min-w-0 text-[12px] leading-snug">
+                          <span className="font-semibold" style={{ color: COLOR[l.character] }}>
+                            {l.character}
+                          </span>{" "}
+                          <span className="text-[var(--color-fg)]">{l.text}</span>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="mt-1 flex flex-wrap items-center gap-1">
+                  {(replies.length > 1 || w.facts.length > 0) && (
+                    <button type="button" className="text-[10px] text-[var(--color-primary)]" onClick={() => setOpen(open === w.id ? null : w.id)}>
+                      {open === w.id ? "Collapse" : replies.length > 1 ? `${replies.length - 1} more in thread · numbers` : "Numbers used"}
+                    </button>
+                  )}
+                  <span className="ml-auto flex items-center gap-0.5">
+                    {REACTIONS.map((r) => {
+                      const on = mine.includes(r);
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          aria-pressed={on}
+                          aria-label={`React ${r}`}
+                          onClick={() => react(w.id, r)}
+                          className={`rounded-full border px-1 text-[11px] leading-5 transition-opacity ${
+                            on ? "border-[var(--color-primary)] opacity-100" : "border-transparent opacity-40 hover:opacity-100 group-hover:opacity-70"
+                          }`}
+                        >
+                          {r}
+                        </button>
+                      );
+                    })}
+                    {head && (
+                      <button
+                        type="button"
+                        aria-pressed={pinned}
+                        onClick={() => pin({ id: w.id, at: w.at, who: head.character, text: head.text })}
+                        className={`ml-1 rounded border px-1.5 text-[10px] ${pinned ? "border-[var(--color-primary)] text-[var(--color-primary)]" : "border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-fg)]"}`}
+                        title={pinned ? "Unpin from THE PLAN board" : "Pin this line to THE PLAN board"}
+                      >
+                        {pinned ? "Pinned" : "Pin to board"}
+                      </button>
+                    )}
+                  </span>
+                </div>
+                {open === w.id && w.facts.length ? (
+                  <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">numbers used: {w.facts.join(" · ")}</p>
+                ) : null}
+              </li>
+            );
+          })}
         </ol>
       )}
       <p className="mt-2 text-[10px] leading-snug text-[var(--color-subtle)]">
-        Every number in a line was produced by code from the live desk and is listed under it. The words are fixed phrases in each person's voice, chosen from the event and from what they have already said (never the same line twice
-        within {TALK.recentKeep} lines). Narration only: nothing said here gates, sizes or sends anything.
+        Every number in a line was produced by code from the live desk and is listed under it (open the thread). The words are fixed phrases in each person's voice, chosen from the event and from what they have already said (never the same line twice
+        within {TALK.recentKeep} lines). Narration only: nothing said here gates, sizes or sends anything — reactions and pins stay in this browser.
       </p>
     </div>
   );
@@ -535,6 +629,7 @@ function ManagerPanel({
 
 function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; selected: Character | null; onSelect: (w: Character) => void }) {
   const minds = frame?.minds ?? null;
+  const [flipped, setFlipped] = useState<Character | null>(null);
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
       {CREW.map((who) => {
@@ -548,12 +643,37 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
           .map((o) => ({ o, w: relationWord(minds, who, o) }))
           .filter((r) => r.w !== "neutral")
           .slice(0, 2);
-        return (
+        const isFlipped = flipped === who;
+        const flipBtn = (
           <button
-            key={who}
             type="button"
+            className="ml-auto shrink-0 rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+            aria-pressed={isFlipped}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFlipped(isFlipped ? null : who);
+            }}
+          >
+            {isFlipped ? "Back ↺" : "Bio ↻"}
+          </button>
+        );
+        return (
+          <div key={who} className="[perspective:1000px]">
+          <div
+            className={`grid transition-transform duration-500 [transform-style:preserve-3d] ${isFlipped ? "[transform:rotateY(180deg)]" : ""}`}
+          >
+          <div
+            role="button"
+            tabIndex={isFlipped ? -1 : 0}
+            aria-hidden={isFlipped}
             onClick={() => onSelect(who)}
-            className={`${CARD} text-left transition-colors ${selected === who ? "border-[var(--color-primary)]" : ""}`}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(who);
+              }
+            }}
+            className={`${CARD} col-start-1 row-start-1 cursor-pointer text-left transition-colors [backface-visibility:hidden] ${selected === who ? "border-[var(--color-primary)]" : ""}`}
           >
             <div className="flex items-center gap-2">
               <Portrait who={who} />
@@ -565,6 +685,7 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
                   rank {rank} · {rankTitle(rank)} · {act.replace("_", " ")}
                 </div>
               </div>
+              {flipBtn}
             </div>
             <p className="mt-2 line-clamp-2 text-[11px] text-[var(--color-subtle)]">{t.creed}</p>
             {n && (
@@ -600,7 +721,44 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
                 {mem.outcome ? ` → ${mem.outcome.verdict}` : ""}
               </p>
             )}
-          </button>
+          </div>
+          <div
+            aria-hidden={!isFlipped}
+            className={`${CARD} col-start-1 row-start-1 overflow-y-auto text-left [backface-visibility:hidden] [transform:rotateY(180deg)] ${selected === who ? "border-[var(--color-primary)]" : ""}`}
+          >
+            <div className="flex items-center gap-2">
+              <MiniAvatar who={who} size={28} />
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold" style={{ color: COLOR[who] }}>
+                  {who}
+                </div>
+                <div className="text-[10px] text-[var(--color-muted)]">{t.schoolName} · {t.roams ? "roams the floor" : "never leaves the desk"}</div>
+              </div>
+              {isFlipped ? flipBtn : null}
+            </div>
+            <p className="mt-2 text-[11px] leading-snug text-[var(--color-fg)]">&ldquo;{t.creed}&rdquo;</p>
+            <div className="mt-2 grid grid-cols-[72px_1fr] items-center gap-x-2 gap-y-1 text-[10px] text-[var(--color-muted)]">
+              <span>aggression</span>
+              <Bar v={t.aggression} color="#f97316" />
+              <span>caution</span>
+              <Bar v={t.caution} color="#38bdf8" />
+              <span>sociability</span>
+              <Bar v={t.sociability} color="#a78bfa" />
+              <span>diligence</span>
+              <Bar v={t.diligence} color="#22c55e" />
+            </div>
+            {t.likes.length > 0 && (
+              <p className="mt-2 text-[10px] text-[var(--color-muted)]">Likes: {t.likes.map((l) => String(l).replace(/_/g, " ")).join(" · ")}</p>
+            )}
+            {mem && (
+              <p className="mt-1 text-[10px] leading-snug text-[var(--color-subtle)]">
+                Remembers: {mem.clock} {mem.text}
+                {mem.outcome ? ` → ${mem.outcome.verdict}` : ""}
+              </p>
+            )}
+          </div>
+          </div>
+          </div>
         );
       })}
     </div>
@@ -783,6 +941,20 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
   const pT1 = frame?.screens.roomP ?? frame?.screens.ledger?.pT1Model ?? null;
   const conf = pT1 == null ? null : pT1 >= 0.6 ? "high" : pT1 >= 0.45 ? "medium" : "low";
   const confColor = conf === "high" ? "var(--color-up)" : conf === "medium" ? "var(--color-warn)" : "var(--color-muted)";
+  const { pins } = useWirePins();
+  // No priced plan and nothing pinned: a small tab, not a card full of "No priced plan."
+  if (!p && !pins.length) {
+    return (
+      <div className={`${className} text-right`}>
+        <span
+          className="inline-block rounded-full border border-white/15 bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300 shadow"
+          title="The plan card opens when the desk has a priced plan (or a pinned wire line)"
+        >
+          The plan · none yet
+        </span>
+      </div>
+    );
+  }
   return (
     <div className={`rounded-lg border border-white/15 bg-black/80 p-2.5 text-slate-100 shadow-lg backdrop-blur ${className}`}>
       <div className="mb-1 flex items-center justify-between gap-2">
@@ -820,8 +992,136 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
           </dl>
         </>
       ) : (
-        <p className="text-[12px] text-slate-300">No priced plan.</p>
+        <p className="text-[11px] text-slate-400">No priced plan yet.</p>
       )}
+      {pins.length > 0 && (
+        <ul className="mt-2 space-y-1 border-t border-white/10 pt-1.5">
+          {pins.map((pn) => (
+            <li key={pn.id} className="text-[11px] leading-snug">
+              <span className="mr-1 text-[9px] uppercase tracking-wide text-slate-400">📌 {etTime(pn.at).slice(0, 5)}</span>
+              <span className="font-semibold" style={{ color: COLOR[pn.who as Character] ?? "#e2e8f0" }}>
+                {pn.who}
+              </span>{" "}
+              <span className="text-slate-200">{pn.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** The room's own beat, in words — for empty states that say why it is empty instead of showing a zero. */
+const BEAT_WORD: Record<string, string> = {
+  chop: "chop, no clean setup",
+  trigger_wait: "waiting on the trigger",
+  blind: "the feed is blind",
+  blocked: "the gates are shut",
+  vetoed: "the last card was vetoed",
+  rejected: "the last ticket was refused",
+  holding: "holding",
+  closed: "the last ticket closed",
+  exit: "an exit just went through",
+  fill: "a fill just went through",
+};
+const beatWord = (b: string | null | undefined) => (b ? (BEAT_WORD[b] ?? b.replace(/_/g, " ")) : "");
+
+/* ── Sterling's list, grouped ──────────────────────────────────────────── */
+
+type GateRow = { id: string; ok: boolean; label: string };
+const GATE_GROUPS: { key: string; title: string; ids: string[] }[] = [
+  { key: "market", title: "Market", ids: ["market", "desk", "fresh_tape", "before_flat", "after_ten"] },
+  { key: "setup", title: "Setup", ids: ["card", "dte", "desk_word", "desk_ticket", "trigger", "t1_pays", "ev", "ev_preview", "clock"] },
+  { key: "risk", title: "Risk", ids: ["halt_day", "halt_week", "cooldown", "slots", "one_book", "one_bias", "no_average", "month"] },
+  { key: "account", title: "Account", ids: ["ledger", "cash_cap"] },
+];
+
+/** The same gates, in the same order inside each block, one pass/fail chip per block. Unknown ids land in Setup. */
+function groupGates(gates: GateRow[]) {
+  const known = new Set(GATE_GROUPS.flatMap((g) => g.ids));
+  return GATE_GROUPS.map((g) => ({
+    ...g,
+    rows: gates.filter((x) => (g.key === "setup" ? g.ids.includes(x.id) || !known.has(x.id) : g.ids.includes(x.id))),
+  })).filter((g) => g.rows.length > 0);
+}
+
+function GateBlocks({ gates }: { gates: GateRow[] }) {
+  const groups = groupGates(gates);
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <div className="space-y-1">
+      {groups.map((g) => {
+        const failed = g.rows.filter((r) => !r.ok);
+        const pass = failed.length === 0;
+        const isOpen = open === g.key || (open == null && !pass && g.key === groups.find((x) => x.rows.some((r) => !r.ok))?.key);
+        return (
+          <div key={g.key} className="rounded border border-[var(--color-border)]">
+            <button
+              type="button"
+              aria-expanded={isOpen}
+              onClick={() => setOpen(isOpen ? "" : g.key)}
+              className="flex w-full items-center gap-2 px-2 py-1 text-left text-[11px]"
+            >
+              <span className="font-semibold text-[var(--color-fg)]">{g.title}</span>
+              <span className="text-[10px] text-[var(--color-subtle)]">
+                {g.rows.length - failed.length}/{g.rows.length}
+              </span>
+              <span
+                className={`ml-auto rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                  pass
+                    ? "bg-[color-mix(in_oklab,var(--color-up)_18%,transparent)] text-[var(--color-up)]"
+                    : "bg-[color-mix(in_oklab,var(--color-down)_18%,transparent)] text-[var(--color-down)]"
+                }`}
+              >
+                {pass ? "pass" : "fail"}
+              </span>
+            </button>
+            {isOpen && (
+              <ul className="space-y-0.5 border-t border-[var(--color-border)] px-2 py-1 text-[11px]">
+                {g.rows.map((r) => (
+                  <li key={r.id} className={r.ok ? "text-[var(--color-muted)]" : "text-[var(--color-down)]"}>
+                    {r.ok ? "✓" : "✗"} {r.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── The decision strip: what the desk says, what the Manager says, what the account allows ── */
+
+function DecisionStrip({
+  entry,
+  managerState,
+  onManager,
+}: {
+  entry: ReturnType<typeof useEntryState>["read"];
+  managerState: ManagerRoomState | null;
+  onManager: () => void;
+}) {
+  const auto = useAutomation();
+  const d = entry ? displayEntry(entry, auto) : null;
+  const call = managerState?.call ?? null;
+  return (
+    <div className="grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
+      <div className="flex items-center gap-2" title={d?.hint ?? "Waiting for the desk"}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Desk</span>
+        <span className="rounded px-2 py-0.5 font-mono text-[13px] font-bold" style={{ color: d?.color ?? "var(--color-muted)", border: `1px solid ${d?.color ?? "var(--color-border)"}` }}>
+          {d?.label ?? "—"}
+        </span>
+      </div>
+      <button type="button" onClick={onManager} className="flex min-w-0 items-center gap-2 text-left" title="Open the Manager's stand">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
+        <span className="font-mono text-[11px] font-semibold text-[var(--color-fg)]">{managerState?.current ?? "—"}</span>
+        <span className="min-w-0 truncate text-[11px] text-[var(--color-muted)]">
+          {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
+        </span>
+      </button>
+      <RhAccountStrip />
     </div>
   );
 }
@@ -832,7 +1132,15 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const execStatus = useExecStore((s) => s.status);
   const execError = useExecStore((s) => s.error);
   const [canvasFocused, setCanvasFocused] = useState(false);
-  const [walkMode, setWalkMode] = useState(true);
+  const [walkMode, setWalkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return window.localStorage.getItem("ledger.floor.walk") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [showJson, setShowJson] = useState(false);
   const [managerState, setManagerState] = useState<ManagerRoomState | null>(null);
   const [managerOpen, setManagerOpen] = useState(false);
   const [lastSteer, setLastSteer] = useState<ManagerSteer | null>(null);
@@ -883,6 +1191,23 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useEffect(() => {
     if (mood) sceneRef.current?.setEntryMood(mood);
   }, [mood, env]);
+  // Walk is a dedicated mode: the scene follows the tab's choice (saved), and in it a click never becomes a follow.
+  useEffect(() => {
+    sceneRef.current?.setWalkMode(walkMode);
+    try {
+      window.localStorage.setItem("ledger.floor.walk", walkMode ? "1" : "0");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [walkMode, env]);
+  const openManager = useCallback(() => {
+    const sc = sceneRef.current;
+    if (sc) {
+      sc.focusManager();
+      setManagerState(sc.getManagerFeed().getState());
+    }
+    setManagerOpen(true);
+  }, []);
 
   // Keep the Manager panel in sync with the scene's feed (the real room feed unless ?manager=stub).
   useEffect(() => {
@@ -1020,6 +1345,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           onManagerInspect={(s) => {
             setManagerState(s);
             setManagerOpen(true);
+            sceneRef.current?.focusManager();
           }}
         />
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
@@ -1118,18 +1444,14 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             type="button"
             className={`${BTN} ${walkMode ? "border-[var(--color-primary)]" : ""}`}
             aria-pressed={walkMode}
-            onClick={() => {
-              const next = !walkMode;
-              setWalkMode(next);
-              sceneRef.current?.setWalkMode(next);
-            }}
+            title={walkMode ? "Walk mode: WASD walks you; clicking people never switches the camera to follow" : "Turn on to walk the floor with WASD"}
+            onClick={() => setWalkMode(!walkMode)}
           >
-            Walk {walkMode ? "on" : "off"}
+            <Footprints className="h-3 w-3" /> Walk {walkMode ? "on" : "off"}
           </button>
-          <button type="button" className={BTN} onClick={() => setManagerOpen(true)}>
+          <button type="button" className={BTN} onClick={openManager} title="Fly to the Manager's stand and open it">
             Manager
           </button>
-          <RhAccountStrip />
           <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Follow</span>
           {CREW.map((c) => (
             <button
@@ -1138,6 +1460,9 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               className={`${BTN} ${following === c ? "border-[var(--color-primary)]" : ""}`}
               aria-pressed={following === c}
               onClick={() => {
+                // Following someone is leaving walk mode — say so by turning it off, not by fighting the Owner camera.
+                if (walkMode) setWalkMode(false);
+                sceneRef.current?.setWalkMode(false);
                 sceneRef.current?.follow(following === c ? null : c);
                 setSelected(c);
               }}
@@ -1156,12 +1481,40 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             ))}
           </div>
         ))}
-        <span className="text-[10px] text-[var(--color-subtle)]">Click a person to follow them · double-click a screen, the board or a TV to go to it · Esc lets go.</span>
+        <span className="text-[10px] text-[var(--color-subtle)]">
+          {walkMode ? "Walk mode: WASD walks · clicks don't follow (use Follow) · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
+        </span>
       </div>
 
-      <RacePanel frame={frame} onGo={goTo} />
+      <DecisionStrip entry={entry} managerState={managerState} onManager={openManager} />
 
-      <InvestOfficePanel frame={frame} onGo={goTo} />
+      {managerOpen && managerState && (
+        <ManagerPanel
+          stub={isStubManagerFeed(sceneRef.current?.getManagerFeed())}
+          standBit={standAgentAgree(sceneRef.current?.getManagerFeed())}
+          loopLine={managerLoopReadout(sceneRef.current?.getManagerFeed(), Date.now()).line}
+          state={managerState}
+          lastSteer={lastSteer}
+          feedback={feedbackLog}
+          onClose={() => setManagerOpen(false)}
+          onSteer={(m) => {
+            const feed = sceneRef.current?.getManagerFeed();
+            if (!feed) return;
+            const ev = feed.steer(m);
+            setLastSteer(ev);
+            setManagerState(feed.getState());
+          }}
+          onTeach={(kind, text, draft) => {
+            const feed = sceneRef.current?.getManagerFeed();
+            if (!feed) return;
+            feed.teach({ kind, cycleId: managerState.cycleId, decisionKey: managerState.call?.decisionKey ?? null, targetAction: null, text, ruleDraft: draft ?? null });
+            setFeedbackLog(feed.getFeedbackLog());
+            setManagerState(feed.getState());
+          }}
+        />
+      )}
+
+      <RacePanel frame={frame} onGo={goTo} />
 
       {/* items-start: each card is its own height — the JSON card no longer
           stretches the wire log and the book into tall empty panels. */}
@@ -1176,16 +1529,19 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               {ba.target_position_id ? ` → ${ba.target_position_id}` : ""}
             </p>
           )}
-          <ul className="space-y-0.5 text-[11px]">
-            {(frame?.trace.gates ?? []).map((g) => (
-              <li key={g.id} className={g.ok ? "text-[var(--color-muted)]" : "text-[var(--color-down)]"}>
-                {g.ok ? "✓" : "✗"} {g.label}
-              </li>
-            ))}
-            {frame && !frame.trace.gates.length && <li className="text-[var(--color-muted)]">{frame.trace.refusal ?? "nothing to clear"}</li>}
-          </ul>
-          <div className="mt-3 flex items-center justify-between">
-            <span className={HEAD}>Your contract JSON</span>
+          {frame && frame.trace.gates.length > 0 ? (
+            <GateBlocks gates={frame.trace.gates} />
+          ) : (
+            <p className="text-[11px] text-[var(--color-muted)]">
+              {frame ? (frame.trace.refusal ?? `Nothing on Sterling's list — ${beatWord(frame.trace.beat)}.`) : "Sterling's list fills on the first room cycle."}
+            </p>
+          )}
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <label className="flex items-center gap-1 text-[10px] text-[var(--color-subtle)]">
+              <input type="checkbox" checked={showJson} onChange={(e) => setShowJson(e.target.checked)} />
+              dev · contract JSON
+            </label>
+            {showJson && (
             <button
               type="button"
               className={BTN}
@@ -1199,12 +1555,16 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             >
               <Copy className="h-3 w-3" /> {copied ? "Copied" : "Copy"}
             </button>
+            )}
           </div>
-          <pre className="max-h-64 overflow-auto rounded bg-[var(--color-surface-2)] p-2 text-[10px] leading-tight text-[var(--color-fg)]">{json}</pre>
+          {showJson && (
+            <pre className="mt-1 max-h-64 overflow-auto rounded bg-[var(--color-surface-2)] p-2 text-[10px] leading-tight text-[var(--color-fg)]">{json || "No cycle yet."}</pre>
+          )}
         </div>
 
         <div className={CARD}>
           <div className={HEAD}>Room book (paper)</div>
+          {!frame && <p className="text-[11px] text-[var(--color-muted)]">The book opens on the first room cycle.</p>}
           {frame && (
             <div className="space-y-1 text-[12px]">
               <div className="flex justify-between">
@@ -1217,10 +1577,19 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--color-muted)]">Day</span>
-                <span className={`font-mono ${frame.screens.book.dayPnl >= 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
-                  {frame.screens.book.dayPnl >= 0 ? "+" : "−"}${Math.abs(frame.screens.book.dayPnl).toLocaleString()}
-                </span>
+                {frame.screens.book.dayPnl === 0 ? (
+                  <span className="font-mono text-[var(--color-muted)]">flat</span>
+                ) : (
+                  <span className={`font-mono ${frame.screens.book.dayPnl > 0 ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}`}>
+                    {frame.screens.book.dayPnl > 0 ? "+" : "−"}${Math.abs(frame.screens.book.dayPnl).toLocaleString()}
+                  </span>
+                )}
               </div>
+              {frame.screens.book.positions.length === 0 && (
+                <p className="rounded border border-dashed border-[var(--color-border)] px-2 py-1 text-[11px] text-[var(--color-muted)]">
+                  No tickets open — desk is quiet{frame.clockLabel ? ` at ${frame.clockLabel}` : ""}{frame.trace.beat ? ` · ${beatWord(frame.trace.beat)}` : ""}.
+                </p>
+              )}
               {frame.screens.book.positions.map((p) => (
                 <div key={p.id} className="flex justify-between font-mono text-[11px]">
                   <span>
@@ -1297,31 +1666,15 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </div>
       )}
 
-      {managerOpen && managerState && (
-        <ManagerPanel
-          stub={isStubManagerFeed(sceneRef.current?.getManagerFeed())}
-          standBit={standAgentAgree(sceneRef.current?.getManagerFeed())}
-          loopLine={managerLoopReadout(sceneRef.current?.getManagerFeed(), Date.now()).line}
-          state={managerState}
-          lastSteer={lastSteer}
-          feedback={feedbackLog}
-          onClose={() => setManagerOpen(false)}
-          onSteer={(m) => {
-            const feed = sceneRef.current?.getManagerFeed();
-            if (!feed) return;
-            const ev = feed.steer(m);
-            setLastSteer(ev);
-            setManagerState(feed.getState());
-          }}
-          onTeach={(kind, text, draft) => {
-            const feed = sceneRef.current?.getManagerFeed();
-            if (!feed) return;
-            feed.teach({ kind, cycleId: managerState.cycleId, decisionKey: managerState.call?.decisionKey ?? null, targetAction: null, text, ruleDraft: draft ?? null });
-            setFeedbackLog(feed.getFeedbackLog());
-            setManagerState(feed.getState());
-          }}
-        />
-      )}
+
+      <details className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)]">
+        <summary className="cursor-pointer list-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+          <span className="mr-1 inline-block transition-transform group-open:rotate-90">▸</span> Investment Office
+        </summary>
+        <div className="px-1 pb-1">
+          <InvestOfficePanel frame={frame} onGo={goTo} />
+        </div>
+      </details>
 
       <div>
         <div className={HEAD}>The people — needs, rank, grudges and what they remember</div>
