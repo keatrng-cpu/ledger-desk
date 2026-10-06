@@ -20,7 +20,13 @@ export function usePlainEnglish(): boolean {
 }
 
 /** A desk sentence: plain words when the toggle is on, jargon with tooltips when it is off. */
-export function Plain({ children, className }: { children: string | null | undefined; className?: string }): ReactNode {
+export function Plain({
+  children,
+  className,
+}: {
+  children: string | null | undefined;
+  className?: string;
+}): ReactNode {
   const on = usePlainEnglish();
   if (!children) return null;
   if (on) return <span className={className}>{plainify(children)}</span>;
@@ -57,7 +63,11 @@ export function PlainToggle({ className }: { className?: string }) {
       role="switch"
       aria-checked={on}
       onClick={() => setPlainEnglish(!on)}
-      title={on ? "Plain English is on — click for the desk's shorthand (OTE, BSL, CE…)" : "Swap the desk's shorthand (OTE, BSL, CE, SMT…) for plain words"}
+      title={
+        on
+          ? "Plain English is on — click for the desk's shorthand (OTE, BSL, CE…)"
+          : "Swap the desk's shorthand (OTE, BSL, CE, SMT…) for plain words"
+      }
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium transition-colors",
         on

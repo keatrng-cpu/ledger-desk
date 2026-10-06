@@ -42,20 +42,36 @@ export function BarStrip({
 }) {
   const [open, setOpen] = useState(false);
   const max = scale ?? Math.max(1e-6, ...rows.map((r) => Math.abs(r.value ?? 0)));
-  const color = (t: StripRow["tone"]) => (t === "bad" ? "var(--color-down)" : t === "good" ? "var(--color-up)" : "var(--color-subtle)");
+  const color = (t: StripRow["tone"]) =>
+    t === "bad" ? "var(--color-down)" : t === "good" ? "var(--color-up)" : "var(--color-subtle)";
   const anyDetail = rows.some((r) => r.detail);
   return (
     <div className={cn("min-w-0", className)}>
-      {title && <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{title}</p>}
+      {title && (
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+          {title}
+        </p>
+      )}
       <ul className="space-y-1">
         {rows.map((r) => {
           const v = r.value;
-          const w = v == null ? 0 : mode === "rate" ? Math.max(0, Math.min(1, v)) * 100 : (Math.min(Math.abs(v), max) / max) * 50;
+          const w =
+            v == null
+              ? 0
+              : mode === "rate"
+                ? Math.max(0, Math.min(1, v)) * 100
+                : (Math.min(Math.abs(v), max) / max) * 50;
           return (
-            <li key={r.key} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-2" title={r.detail}>
+            <li
+              key={r.key}
+              className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-2"
+              title={r.detail}
+            >
               <span className="truncate text-[12px] text-[var(--color-fg)]">{r.label}</span>
               <span className="relative h-2.5 rounded-sm bg-[var(--color-surface-3)]">
-                {mode === "signed" && <span className="absolute inset-y-0 left-1/2 w-px bg-[var(--color-border-strong)]" />}
+                {mode === "signed" && (
+                  <span className="absolute inset-y-0 left-1/2 w-px bg-[var(--color-border-strong)]" />
+                )}
                 {v != null && (
                   <span
                     className="absolute inset-y-0 rounded-sm"
@@ -68,9 +84,14 @@ export function BarStrip({
                   />
                 )}
               </span>
-              <span className="whitespace-nowrap font-mono text-[12px]" style={{ color: color(r.tone) }}>
+              <span
+                className="whitespace-nowrap font-mono text-[12px]"
+                style={{ color: color(r.tone) }}
+              >
                 {r.valueText}
-                {r.n != null && <span className="ml-1 text-[10px] text-[var(--color-muted)]">n{r.n}</span>}
+                {r.n != null && (
+                  <span className="ml-1 text-[10px] text-[var(--color-muted)]">n{r.n}</span>
+                )}
               </span>
             </li>
           );
@@ -92,7 +113,18 @@ export function BarStrip({
               {rows
                 .filter((r) => r.detail)
                 .map((r) => (
-                  <li key={r.key} className="text-[12px] leading-snug" style={{ color: r.tone === "bad" ? "var(--color-down)" : r.tone === "good" ? "var(--color-up)" : "var(--color-muted)" }}>
+                  <li
+                    key={r.key}
+                    className="text-[12px] leading-snug"
+                    style={{
+                      color:
+                        r.tone === "bad"
+                          ? "var(--color-down)"
+                          : r.tone === "good"
+                            ? "var(--color-up)"
+                            : "var(--color-muted)",
+                    }}
+                  >
                     {r.detail}
                   </li>
                 ))}

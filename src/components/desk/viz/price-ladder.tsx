@@ -60,13 +60,33 @@ export function PriceLadder({
   type Rung = { key: string; p: number; label: string; color: string; strong?: boolean };
   const rungs: Rung[] = [
     { key: "stop", p: plan.stop, label: "STOP", color: "var(--color-down)", strong: true },
-    { key: "entry", p: plan.entry, label: "ENTRY · CE", color: "var(--color-primary)", strong: true },
+    {
+      key: "entry",
+      p: plan.entry,
+      label: "ENTRY · CE",
+      color: "var(--color-primary)",
+      strong: true,
+    },
   ];
-  if (plan.t1 != null) rungs.push({ key: "t1", p: plan.t1, label: `${t1Label}${plan.rr1 != null ? ` · ${plan.rr1.toFixed(1)}R` : ""}`, color: "var(--color-up)", strong: true });
-  if (plan.t2 != null) rungs.push({ key: "t2", p: plan.t2, label: `T2${plan.rr2 != null ? ` · ${plan.rr2.toFixed(1)}R` : ""}`, color: "var(--color-up)" });
+  if (plan.t1 != null)
+    rungs.push({
+      key: "t1",
+      p: plan.t1,
+      label: `${t1Label}${plan.rr1 != null ? ` · ${plan.rr1.toFixed(1)}R` : ""}`,
+      color: "var(--color-up)",
+      strong: true,
+    });
+  if (plan.t2 != null)
+    rungs.push({
+      key: "t2",
+      p: plan.t2,
+      label: `T2${plan.rr2 != null ? ` · ${plan.rr2.toFixed(1)}R` : ""}`,
+      color: "var(--color-up)",
+    });
   // Labels never overlap: walk top→bottom, push each at least 16px below the last.
   const placed = [...rungs].sort((a, b) => y(a.p) - y(b.p)).map((r) => ({ ...r, ly: y(r.p) }));
-  for (let i = 1; i < placed.length; i++) placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 16);
+  for (let i = 1; i < placed.length; i++)
+    placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 16);
   const overflow = Math.max(0, (placed.at(-1)?.ly ?? 0) - (height - 6));
   if (overflow) for (const r of placed) r.ly -= overflow;
 
@@ -79,41 +99,80 @@ export function PriceLadder({
 
   return (
     <div className={cn("min-w-0", className)}>
-      <div className="relative w-full" style={{ height }} role="img" aria-label={`Plan ladder: ${plan.side} entry ${fx(plan.entry)}, stop ${fx(plan.stop)}${plan.t1 != null ? `, T1 ${fx(plan.t1)}` : ""}${plan.t2 != null ? `, T2 ${fx(plan.t2)}` : ""}`}>
+      <div
+        className="relative w-full"
+        style={{ height }}
+        role="img"
+        aria-label={`Plan ladder: ${plan.side} entry ${fx(plan.entry)}, stop ${fx(plan.stop)}${plan.t1 != null ? `, T1 ${fx(plan.t1)}` : ""}${plan.t2 != null ? `, T2 ${fx(plan.t2)}` : ""}`}
+      >
         {/* The rail. */}
         <div className="absolute inset-y-0 left-[34%] w-[18%] rounded bg-[var(--color-surface-2)]" />
         {/* Risk and reward zones, to scale. */}
-        <div className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-down)_40%,transparent)]" style={{ top: risk.top, height: Math.max(2, risk.h) }} title={`Risk ${plan.riskPts != null ? `${plan.riskPts.toFixed(2)}pt` : fx(Math.abs(plan.entry - plan.stop))}`} />
+        <div
+          className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-down)_40%,transparent)]"
+          style={{ top: risk.top, height: Math.max(2, risk.h) }}
+          title={`Risk ${plan.riskPts != null ? `${plan.riskPts.toFixed(2)}pt` : fx(Math.abs(plan.entry - plan.stop))}`}
+        />
         {reward && (
-          <div className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_38%,transparent)]" style={{ top: reward.top, height: Math.max(2, reward.h) }} title={`Reward to T1${plan.rr1 != null ? ` ${plan.rr1.toFixed(2)}R` : ""}`} />
+          <div
+            className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_38%,transparent)]"
+            style={{ top: reward.top, height: Math.max(2, reward.h) }}
+            title={`Reward to T1${plan.rr1 != null ? ` ${plan.rr1.toFixed(2)}R` : ""}`}
+          />
         )}
         {toT2 && (
-          <div className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)]" style={{ top: toT2.top, height: Math.max(2, toT2.h) }} />
+          <div
+            className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)]"
+            style={{ top: toT2.top, height: Math.max(2, toT2.h) }}
+          />
         )}
         {plan.zone && (
           <div
             className="absolute left-[32%] w-[22%] border-y border-dashed border-[var(--color-primary)]/60"
-            style={{ top: Math.min(y(plan.zone.top), y(plan.zone.bottom)), height: Math.max(2, Math.abs(y(plan.zone.top) - y(plan.zone.bottom))) }}
+            style={{
+              top: Math.min(y(plan.zone.top), y(plan.zone.bottom)),
+              height: Math.max(2, Math.abs(y(plan.zone.top) - y(plan.zone.bottom))),
+            }}
             title={`Entry array ${fx(plan.zone.bottom)}–${fx(plan.zone.top)}`}
           />
         )}
         {/* Rungs + labels: name left, exact price right. */}
         {placed.map((r) => (
           <div key={r.key}>
-            <div className="absolute left-[30%] w-[26%]" style={{ top: y(r.p), height: r.strong ? 2 : 1, background: r.color, opacity: r.strong ? 1 : 0.7 }} />
-            <div className="absolute left-0 w-[29%] -translate-y-1/2 truncate pr-1 text-right text-[11px] font-semibold" style={{ top: r.ly, color: r.color }}>
+            <div
+              className="absolute left-[30%] w-[26%]"
+              style={{
+                top: y(r.p),
+                height: r.strong ? 2 : 1,
+                background: r.color,
+                opacity: r.strong ? 1 : 0.7,
+              }}
+            />
+            <div
+              className="absolute left-0 w-[29%] -translate-y-1/2 truncate pr-1 text-right text-[11px] font-semibold"
+              style={{ top: r.ly, color: r.color }}
+            >
               {r.label}
             </div>
-            <div className="absolute left-[58%] -translate-y-1/2 font-mono text-[13px] font-semibold tabular-nums" style={{ top: r.ly, color: r.color }}>
+            <div
+              className="absolute left-[58%] -translate-y-1/2 font-mono text-[13px] font-semibold tabular-nums"
+              style={{ top: r.ly, color: r.color }}
+            >
               {fx(r.p)}
             </div>
           </div>
         ))}
         {/* Live price marker. */}
         {priceY != null && price != null && (
-          <div className="absolute left-[24%] -translate-y-1/2" style={{ top: priceY, transition: "top 500ms ease-out" }} title={`Live ${fx(price)}`}>
+          <div
+            className="absolute left-[24%] -translate-y-1/2"
+            style={{ top: priceY, transition: "top 500ms ease-out" }}
+            title={`Live ${fx(price)}`}
+          >
             <div className="flex items-center gap-1">
-              <span className="font-mono text-[10px] font-semibold text-[var(--color-fg)]">{priceIn ? "now" : price > hi ? "▲ now" : "▼ now"}</span>
+              <span className="font-mono text-[10px] font-semibold text-[var(--color-fg)]">
+                {priceIn ? "now" : price > hi ? "▲ now" : "▼ now"}
+              </span>
               <span className="h-0 w-0 border-y-[5px] border-l-[7px] border-y-transparent border-l-[var(--color-fg)]" />
             </div>
           </div>
@@ -122,8 +181,14 @@ export function PriceLadder({
       <p className="mt-1 font-mono text-[11px] text-[var(--color-muted)]">
         {plan.side.toUpperCase()}
         {plan.riskPts != null ? ` · risk ${plan.riskPts.toFixed(2)}pt` : ""}
-        {plan.rr1 != null ? ` · 1 : ${plan.rr1.toFixed(2)} to ${t1Label}` : plan.t1 == null ? " · no T1 ahead" : ""}
-        {price != null && away != null ? ` · now ${fx(price)} (${away >= 0 ? "+" : "−"}${Math.abs(away).toFixed(2)} from CE)` : ""}
+        {plan.rr1 != null
+          ? ` · 1 : ${plan.rr1.toFixed(2)} to ${t1Label}`
+          : plan.t1 == null
+            ? " · no T1 ahead"
+            : ""}
+        {price != null && away != null
+          ? ` · now ${fx(price)} (${away >= 0 ? "+" : "−"}${Math.abs(away).toFixed(2)} from CE)`
+          : ""}
         {plan.zone ? ` · array ${fx(plan.zone.bottom)}–${fx(plan.zone.top)}` : ""}
       </p>
     </div>
@@ -146,7 +211,17 @@ export function ladderFrom(p: {
 }): { plan: LadderPlan; t1Label: string } {
   const name = p.drawName ?? p.draw?.name ?? null;
   return {
-    plan: { side: p.side, entry: p.entry, zone: p.entryZone, stop: p.stop, t1: p.t1, t2: p.t2, rr1: p.rr1, rr2: p.rr2, riskPts: p.riskPts },
+    plan: {
+      side: p.side,
+      entry: p.entry,
+      zone: p.entryZone,
+      stop: p.stop,
+      t1: p.t1,
+      t2: p.t2,
+      rr1: p.rr1,
+      rr2: p.rr2,
+      riskPts: p.riskPts,
+    },
     t1Label: name ? `T1 ${name}` : "T1",
   };
 }

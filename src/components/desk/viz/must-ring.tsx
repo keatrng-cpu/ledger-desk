@@ -48,7 +48,14 @@ export function MustRing({
     <figure className="m-0 inline-flex shrink-0 flex-col items-center" aria-label={summary}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img">
         <title>{summary}</title>
-        <circle cx={c} cy={c} r={r} fill="none" stroke="var(--color-surface-3)" strokeWidth={stroke} />
+        <circle
+          cx={c}
+          cy={c}
+          r={r}
+          fill="none"
+          stroke="var(--color-surface-3)"
+          strokeWidth={stroke}
+        />
         {musts.map((l, i) => (
           <path
             key={l.id}
@@ -75,7 +82,11 @@ export function MustRing({
           {passed}/{musts.length}
         </text>
       </svg>
-      {label && <figcaption className="mt-0.5 font-mono text-[11px] text-[var(--color-muted)]">{label}</figcaption>}
+      {label && (
+        <figcaption className="mt-0.5 font-mono text-[11px] text-[var(--color-muted)]">
+          {label}
+        </figcaption>
+      )}
     </figure>
   );
 }
