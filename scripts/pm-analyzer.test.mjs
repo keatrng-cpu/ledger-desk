@@ -103,3 +103,36 @@ test("Accuracy should-fix copy in pm-analyzer (unsettled + Murphy REL + ok bucke
   assert.match(src, /NO_GRADE_LABEL/);
   assert.doesNotMatch(src, /signals\.ts/);
 });
+
+test("null grade (no edge read) stays null — never a placeholder D", async () => {
+  const S = await import("../src/components/mead/mead-screens.ts");
+  const M = await import("../src/lib/predict/prediction-market-feed.ts");
+  const { hall, ordered } = F.hallStateFromBoard(board);
+  const ungraded = ordered.filter((s) => s.grade == null);
+  assert.ok(ungraded.length > 0, "fixture board (no model inputs) has ungraded signals");
+  for (const s of ungraded) {
+    const m = hall.markets.find((x) => x.id === s.id);
+    assert.ok(m);
+    assert.equal(m.setupGrade, null);
+    assert.notEqual(m.setupGrade, "D");
+    assert.equal(m.hall?.grade, undefined);
+    assert.equal(S.gradeText(m), "—");
+    assert.equal(S.setupGradeLabel(m.setupGrade), E.NO_GRADE_LABEL);
+    // No-hall fallback path too: still no letter.
+    assert.equal(S.gradeText({ ...m, hall: undefined }), "—");
+  }
+  // Graded signals keep their letter (F folds to scanner D only when the engine actually graded F).
+  for (const s of ordered.filter((x) => x.grade != null)) {
+    const m = hall.markets.find((x) => x.id === s.id);
+    assert.equal(m.setupGrade, s.grade === "F" ? "D" : s.grade);
+  }
+  // Ranking tolerates null (ungraded ranks after every letter).
+  const ranked = M.rankMarkets([{ ...hall.markets[0], setupGrade: null }, { ...hall.markets[0], id: "zz-graded", setupGrade: "D" }]);
+  assert.equal(ranked[0].id, "zz-graded");
+  // UI sources: no placeholder letter, no raw setupGrade render in MeadHallTab.
+  const feedSrc = readFileSync(new URL("../src/components/mead/mead-signal-feed.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(feedSrc, /setupGrade:[^\n]*:\s*"D"/);
+  const tabSrc = readFileSync(new URL("../src/components/mead/mead-hall-tab.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(tabSrc, /\{m\.setupGrade\}|grade \{featured\.setupGrade\}/);
+  assert.match(tabSrc, /setupGradeLabel/);
+});

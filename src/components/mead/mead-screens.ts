@@ -8,7 +8,8 @@
  * PredictionMarketFeed state handed in; nothing is computed into a signal.
  */
 
-import { isNflMarket, type PredictionMarket, type PredictionMarketFeedState } from "@/lib/predict/prediction-market-feed";
+import { isNflMarket, type PredictionMarket, type PredictionMarketFeedState, type SetupGrade } from "@/lib/predict/prediction-market-feed";
+import { NO_GRADE_LABEL } from "@/lib/predict/signals";
 
 /** Kalshi series prefix → a short family tag + a readable name. Broad on purpose: sports, econ, politics, weather, crypto. */
 const SERIES: [RegExp, string, string][] = [
@@ -221,8 +222,10 @@ function fit(ctx: CanvasRenderingContext2D, text: string, max: number): string {
 /** The letter a screen shows: signal A–F when present; "—" when hall has no grade (no edge read). */
 export const gradeText = (m: PredictionMarket): string => {
   if (m.hall) return m.hall.grade ?? "—";
-  return m.setupGrade;
+  return m.setupGrade ?? "—";
 };
+/** Scanner-letter label (same pattern as Stand's `gradeLabel`): null → NO_GRADE_LABEL, never a letter. */
+export const setupGradeLabel = (g: SetupGrade | null | undefined): string => g ?? NO_GRADE_LABEL;
 export const gradeColor = (g: string): string =>
   g === "—" || g.toLowerCase().includes("no grade")
     ? "#94a3b8"
@@ -308,7 +311,7 @@ export function drawJumbotron(c: HTMLCanvasElement, s: PredictionMarketFeedState
   if (feat) {
     const line = feat.hall
       ? `${feat.hall.grade ? `Grade ${feat.hall.grade}   ·   ` : "No grade   ·   "}${feat.hall.line}`
-      : `Win chance ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}   ·   Grade ${feat.setupGrade}   ·   ${feat.gates.word} ${feat.gates.passed}/${feat.gates.total}`;
+      : `Win chance ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}   ·   ${feat.setupGrade != null ? `Grade ${feat.setupGrade}` : "No grade"}   ·   ${feat.gates.word} ${feat.gates.passed}/${feat.gates.total}`;
     ctx.fillText(fit(ctx, line, W - 140), 70, 342);
   }
 

@@ -62,8 +62,8 @@ export function signalToHallMarket(s: MarketSignal): PredictionMarket {
     noPrice: s.prices.noAsk,
     winChance: s.implied.mid,
     edge,
-    // Scanner slot needs a letter; ungraded signals use D as a neutral placeholder (hall.grade omitted).
-    setupGrade: s.grade != null ? SETUP[s.grade] : "D",
+    // No edge read → no letter: pass null through (UI shows NO_GRADE_LABEL, never a placeholder D).
+    setupGrade: s.grade != null ? SETUP[s.grade] : null,
     gates: { word, passed: up, total: graded, missing: missing.length ? missing.join(" · ") : null },
     source: s.source,
     asOf: s.freshness.asOf,
