@@ -1,5 +1,5 @@
-import study from "@/data/crew-years.json";
-import { loadAtlas, offerToBrains, type BrainWho, type PeopleBrains } from "./desk-atlas";
+import study from "@/data/crew-card-study.json";
+import { improveAtlas, loadAtlas, mergeAtlas, offerToBrains, saveAtlas, type BrainWho, type PeopleBrains } from "./desk-atlas";
 
 export interface CrewHalf {
   n: number;
@@ -13,7 +13,6 @@ export interface CrewPerson {
   who: BrainWho;
   year: number;
   rule: string;
-  targetR: number;
   desk: boolean;
   skill: string;
   flaws: string[];
@@ -21,12 +20,11 @@ export interface CrewPerson {
   full: CrewHalf;
 }
 
-const KEY = "ledger-crew-years-v1";
+const KEY = "ledger-crew-cards-v1";
 
-export const CREW_STUDY = study as {
+export const CREW_STUDY = study as unknown as {
   note: string;
-  window: { start: string; end: string };
-  yearsAvailable: number[];
+  searched: string;
   people: CrewPerson[];
 };
 
@@ -56,6 +54,14 @@ export function learnCrewYears(): void {
       desk = wrote.desk;
     }
     localStorage.setItem(KEY, study.note);
+    const deskNow = improveAtlas(desk ?? mergeAtlas(null, null), {
+      shelf: "discretion",
+      title: "Win rate",
+      who: "Nova",
+      nowMs: Date.now(),
+      text: "A filled desk card wins about 32% at its own target. Across 1,327 cards, no cut with 110 trades won 65%. The best was 40%. The edge is the size of the winner, not the win rate. Do not stand a card down because the win rate is under 65%.",
+    });
+    saveAtlas(deskNow);
   } catch {
     /* a blocked disk does not invent a result */
   }

@@ -315,7 +315,7 @@ function PersonCard({
       <p className="mt-1 text-[12px] text-white/50">
         Knows {known} of {total} desk nodes.
         {year
-          ? ` ${year.year} on real ES and MNQ: ${year.full.wins}/${year.full.n} (${year.full.wr == null ? "—" : `${Math.round(year.full.wr * 100)}%`}) at ${year.targetR}R. Second half ${year.h2.wins}/${year.h2.n}. ${year.desk ? "It cleared, so the desk kept it." : "It did not clear 65% out of sample, so the desk did not take it."}`
+          ? ` ${year.year}, desk cards: ${year.full.wins}/${year.full.n} (${year.full.wr == null ? "—" : `${Math.round(year.full.wr * 100)}%`}), E[R] ${year.full.expR ?? "—"}. Second half ${year.h2.wins}/${year.h2.n}. The desk did not take a 65% claim. It is not in the tape.`
           : ""}
       </p>
       <p className="mt-4 border-l-2 pl-3 text-[13px] leading-relaxed text-white" style={{ borderColor: c.color }}>
