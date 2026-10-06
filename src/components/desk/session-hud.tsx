@@ -1,26 +1,16 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import {
-  AlertOctagon,
-  Clock,
-  Crosshair,
-  Radio,
-  ShieldAlert,
-  Zap,
-} from "lucide-react";
+import { AlertOctagon, ChevronDown, Clock, Crosshair, Radio, ShieldAlert, Zap } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { RiskState } from "@/lib/journal/risk";
 import { NewsChip } from "@/components/desk/news-chip";
-import {
-  subscribeGhosts,
-  todayGhosts,
-  type GhostTrade,
-} from "@/lib/trading/ghost-book";
+import { subscribeGhosts, todayGhosts, type GhostTrade } from "@/lib/trading/ghost-book";
 import { loadLastDebrief, subscribeDebriefs } from "@/lib/trading/trade-debrief";
 import { weekAheadFocusLine } from "@/lib/trading/week-ahead";
 import { monthAheadFocusLine } from "@/lib/trading/month-ahead";
 import { pricePathHudLine, pricePathVerdict } from "@/components/desk/price-path-board";
 import { shockSiren } from "@/lib/alerts/path-alarm";
 import { cn } from "@/lib/utils";
+import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
 
 function QuoteChip({
   symbol,
@@ -45,42 +35,47 @@ function QuoteChip({
           ? "DB"
           : "SYN";
   return (
-    <span className="font-mono text-[11px] text-[var(--color-fg)]" title={`${source} · lag ${Math.round(lagSec)}s`}>
+    <span
+      className="whitespace-nowrap font-mono text-[13px] text-[var(--color-fg)]"
+      title={`${source} · lag ${Math.round(lagSec)}s`}
+    >
       {symbol}{" "}
       <span className={up ? "text-[var(--color-up)]" : "text-[var(--color-down)]"}>
         {price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-        <span className="ml-1 text-[10px]">
+        <span className="ml-1 text-[11px]">
           {up ? "+" : ""}
           {changePct.toFixed(2)}%
         </span>
       </span>
-      <span className="ml-1 text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">
+      <span className="ml-1 text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
         {tag}
       </span>
     </span>
   );
 }
 
-
 function matchingGhost(desk: DeskPayload, ghosts: GhostTrade[]): GhostTrade | null {
   const focus = desk.scan.candidates.find((c) => c.actionable) ?? desk.scan.candidates[0];
   if (!focus) return ghosts[0] ?? null;
-  return (
-    ghosts.find(
-      (g) => g.symbol === focus.symbol && g.side === focus.side,
-    ) ?? null
-  );
+  return ghosts.find((g) => g.symbol === focus.symbol && g.side === focus.side) ?? null;
 }
 
 export function SessionHud({
   desk,
   wallNow,
   children,
+  tabs,
+  onEntryChip,
   liveRisk,
 }: {
   desk: DeskPayload;
   wallNow: string;
+  /** Drawer content (alarm controls, tab hint). Always mounted; the drawer only hides it. */
   children?: ReactNode;
+  /** The tab strip, drawn inline in the slim bar. */
+  tabs?: ReactNode;
+  /** Click on the entry-state chip (index routes it to the Now tab). */
+  onEntryChip?: () => void;
   /**
    * The live governor's state (journal/risk.ts), when signed in. Drives the
    * halt-room chip: dollars left before today's halt, in losses at A.
@@ -94,11 +89,7 @@ export function SessionHud({
   );
   const [paperReady, setPaperReady] = useState(false);
   useEffect(() => subscribeGhosts(() => setGhosts(todayGhosts())), []);
-  useEffect(
-    () =>
-      subscribeDebriefs(() => setLastDebrief(loadLastDebrief())),
-    [],
-  );
+  useEffect(() => subscribeDebriefs(() => setLastDebrief(loadLastDebrief())), []);
   useEffect(() => setPaperReady(true), []);
 
   const ghost = matchingGhost(desk, ghosts);
@@ -109,8 +100,7 @@ export function SessionHud({
     quotes.left.source === "synthetic" ||
     quotes.right.source === "synthetic";
 
-  const best =
-    scan.candidates.find((c) => c.actionable) ?? scan.candidates[0] ?? null;
+  const best = scan.candidates.find((c) => c.actionable) ?? scan.candidates[0] ?? null;
   const smtNote = smtStack?.primary.active
     ? smtStack.primary.note
     : scan.smt.edge !== "none"
@@ -118,6 +108,8 @@ export function SessionHud({
       : "";
   const smtBear = /bear/i.test(smtNote);
   const pathV = pricePathVerdict(desk, paperReady);
+  const { read: entry } = useEntryState(desk);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Tape circuit breaker: siren ONCE on the transition into a shock, and a
   // live countdown so the strip re-renders every second while locked.
@@ -143,14 +135,13 @@ export function SessionHud({
   // Date.now() only after mount — during SSR/first hydration paperReady is
   // false, so the countdown text is absent on both server and client (no
   // hydration mismatch); it appears once the client takes over.
-  const shockLeftMs =
-    !paperReady
-      ? 0
-      : shock?.active && shock.lockUntilMs
-        ? shock.lockUntilMs - Date.now()
-        : shock?.tail && shock.tailUntilMs
-          ? shock.tailUntilMs - Date.now()
-          : 0;
+  const shockLeftMs = !paperReady
+    ? 0
+    : shock?.active && shock.lockUntilMs
+      ? shock.lockUntilMs - Date.now()
+      : shock?.tail && shock.tailUntilMs
+        ? shock.tailUntilMs - Date.now()
+        : 0;
   const shockMmss =
     shockLeftMs > 0
       ? `${Math.floor(shockLeftMs / 60_000)}:${String(Math.floor((shockLeftMs % 60_000) / 1000)).padStart(2, "0")}`
@@ -173,9 +164,7 @@ export function SessionHud({
     detail: string;
   } => {
     const freshDebrief =
-      lastDebrief && Date.now() - lastDebrief.at < 2 * 3600_000
-        ? lastDebrief
-        : null;
+      lastDebrief && Date.now() - lastDebrief.at < 2 * 3600_000 ? lastDebrief : null;
     const hindsight =
       freshDebrief && (freshDebrief.result === "win" || freshDebrief.result === "loss")
         ? `Last trade · ${freshDebrief.headline}`
@@ -241,94 +230,38 @@ export function SessionHud({
               : "WAIT";
 
   return (
-    <div className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-4 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_94%,transparent)] px-4 py-2 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-4 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_94%,transparent)] px-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       {synthetic && (
-        <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_18%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
+        <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_18%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           SYNTHETIC DATA — no live feed; structure/scanner untrustworthy
         </div>
       )}
       {paperReady && shock?.active && (
-        <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
+        <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse only.
+          {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse
+          only.
         </div>
       )}
       {paperReady && !shock?.active && shock?.tail && (
-        <div className="mx-auto mb-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
+        <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
           Post-shock tail {shockMmss} — A+ only, fresh sequence after the shock. {shock.line}
         </div>
       )}
 
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] text-[var(--color-fg)]">
+      {/* SLIM BAR (~48px): clock · quotes · entry state · tabs · drawer.
+          Everything else that used to stack here (killzone, news, month/week
+          focus, session, risk, halt room, focus line, PATH line, SMT, alarm
+          controls) lives in the drawer below — one click away, still live. */}
+      <div className="mx-auto flex h-12 max-w-7xl items-center gap-2">
+        <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[13px] shrink-0 whitespace-nowrap text-[var(--color-fg)]">
           <Clock className="h-3.5 w-3.5 text-[var(--color-primary)]" />
           {clock.nowEt}
         </div>
 
-        <div
-          className={cn(
-            "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium",
-            clock.inTradeWindow
-              ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
-              : "border-[var(--color-border)] text-[var(--color-subtle)]",
-          )}
-        >
-          <Zap className="h-3.5 w-3.5" />
-          {clock.killzoneLabel}
-        </div>
-
-        <NewsChip />
-
-        {monthAheadFocusLine(desk.monthAhead) && (
-          <div className="hidden max-w-[180px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] xl:block">
-            {monthAheadFocusLine(desk.monthAhead)}
-          </div>
-        )}
-
-        {weekAheadFocusLine(desk.weekAhead) && (
-          <div className="hidden max-w-[220px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] lg:block">
-            {weekAheadFocusLine(desk.weekAhead)}
-          </div>
-        )}
-
-        <div className="hidden items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-muted)] sm:flex">
-          <Crosshair className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-          {clock.sessionPhase}
-        </div>
-
-        <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] text-[var(--color-muted)]">
-          <ShieldAlert className="h-3.5 w-3.5 text-[var(--color-warn)]" />
-          Risk ${risk.riskDollars.toFixed(0)} · floor {risk.floor}
-        </div>
-
-        {/* HALT ROOM, in losses. An A loss is 2% and the daily halt is 2%,
-            so ONE full A loss halts the day — "2 per killzone" is really one
-            loss at A. The governor knew; nothing on screen said it. */}
-        {liveRisk && (() => {
-          const room = Math.max(0, liveRisk.dailyLimit + Math.min(0, liveRisk.dayPnl));
-          const perA = liveRisk.equity * 0.02;
-          const lossesAtA = perA > 0 ? Math.floor(room / perA) : 0;
-          const tone =
-            liveRisk.dailyHaltHit || room <= 0
-              ? "text-[var(--color-down)] border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))]"
-              : lossesAtA < 1
-                ? "text-[var(--color-warn)] border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]"
-                : "text-[var(--color-muted)] border-[var(--color-border)]";
-          return (
-            <div
-              title={`Today ${liveRisk.dayPnl >= 0 ? "+" : "−"}$${Math.abs(Math.round(liveRisk.dayPnl)).toLocaleString()} against a $${Math.round(liveRisk.dailyLimit).toLocaleString()} daily halt. One A loss is $${Math.round(perA).toLocaleString()} (2%).`}
-              className={`flex items-center gap-1.5 rounded-full border bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] ${tone}`}
-            >
-              {liveRisk.dailyHaltHit
-                ? "HALTED today"
-                : `Halt room $${Math.round(room).toLocaleString()} · ${lossesAtA} loss${lossesAtA === 1 ? "" : "es"} at A`}
-            </div>
-          );
-        })()}
-
-        <div className="ml-auto flex flex-wrap items-center gap-2 font-mono text-[11px]">
+        <div className="hidden shrink-0 items-center gap-2 md:flex">
           <QuoteChip
             symbol={quotes.left.symbol}
             price={quotes.left.price}
@@ -346,74 +279,202 @@ export function SessionHud({
           />
 
           <span
+            aria-label={`Worst quote lag ${Math.round(worstLagSec)}s`}
+            title={`Worst quote lag vs exchange print time: ${Math.round(worstLagSec)}s`}
             className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
-              worstLagSec <= 15 &&
-                "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]",
-              worstLagSec > 15 &&
-                worstLagSec <= 120 &&
-                "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
-              worstLagSec > 120 &&
-                "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] text-[var(--color-down)]",
+              "inline-block h-2 w-2 rounded-full",
+              worstLagSec <= 15
+                ? "bg-[var(--color-up)]"
+                : worstLagSec <= 120
+                  ? "bg-[var(--color-warn)]"
+                  : "bg-[var(--color-down)]",
             )}
-            title="Worst quote lag vs exchange print time"
+          />
+        </div>
+        {entry && (
+          <button
+            type="button"
+            onClick={onEntryChip}
+            title={entry.why}
+            className={cn(
+              "shrink-0 rounded-full border-2 px-2.5 py-0.5 font-mono text-[12px] font-black tracking-[0.1em]",
+              ENTRY_STYLE[entry.state].pulse,
+            )}
+            style={{
+              color: ENTRY_STYLE[entry.state].color,
+              borderColor: ENTRY_STYLE[entry.state].color,
+            }}
           >
-            lag {Math.round(worstLagSec)}s
-          </span>
-          <span className="inline-flex items-center gap-1 text-[var(--color-subtle)]">
-            <Radio className="h-3 w-3 text-[var(--color-up)]" />
-            {wallNow}
+            {ENTRY_STYLE[entry.state].label}
+          </button>
+        )}
+        <div className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]">{tabs}</div>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen((o) => !o)}
+          aria-expanded={drawerOpen}
+          aria-controls="session-drawer"
+          className="flex shrink-0 items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[12px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+          title="Session details: killzone, news, risk, halt room, focus, alarms"
+        >
+          <span className="hidden sm:inline">Session</span>
+          <ChevronDown
+            className={cn("h-3.5 w-3.5 transition-transform", drawerOpen && "rotate-180")}
+          />
+        </button>
+      </div>
+
+      <div id="session-drawer" className={cn("mx-auto max-w-7xl pb-2", !drawerOpen && "hidden")}>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 md:hidden">
+            <QuoteChip
+              symbol={quotes.left.symbol}
+              price={quotes.left.price}
+              changePct={quotes.left.changePct}
+              source={quotes.left.source}
+              lagSec={quotes.left.lagSec}
+            />
+            <span className="text-[var(--color-subtle)]">|</span>
+            <QuoteChip
+              symbol={quotes.right.symbol}
+              price={quotes.right.price}
+              changePct={quotes.right.changePct}
+              source={quotes.right.source}
+              lagSec={quotes.right.lagSec}
+            />
+
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
+                worstLagSec <= 15 &&
+                  "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]",
+                worstLagSec > 15 &&
+                  worstLagSec <= 120 &&
+                  "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
+                worstLagSec > 120 &&
+                  "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] text-[var(--color-down)]",
+              )}
+              title="Worst quote lag vs exchange print time"
+            >
+              lag {Math.round(worstLagSec)}s
+            </span>
+          </div>
+          <div
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium",
+              clock.inTradeWindow
+                ? "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]"
+                : "border-[var(--color-border)] text-[var(--color-subtle)]",
+            )}
+          >
+            <Zap className="h-3.5 w-3.5" />
+            {clock.killzoneLabel}
+          </div>
+
+          <NewsChip />
+
+          {monthAheadFocusLine(desk.monthAhead) && (
+            <div className="max-w-[260px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)] ">
+              {monthAheadFocusLine(desk.monthAhead)}
+            </div>
+          )}
+
+          {weekAheadFocusLine(desk.weekAhead) && (
+            <div className="max-w-[300px] truncate rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] px-3 py-1.5 text-[11px] text-[var(--color-warn)]">
+              {weekAheadFocusLine(desk.weekAhead)}
+            </div>
+          )}
+
+          <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-muted)]">
+            <Crosshair className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+            {clock.sessionPhase}
+          </div>
+
+          <div className="flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] text-[var(--color-muted)]">
+            <ShieldAlert className="h-3.5 w-3.5 text-[var(--color-warn)]" />
+            Risk ${risk.riskDollars.toFixed(0)} · floor {risk.floor}
+          </div>
+
+          {/* HALT ROOM, in losses. An A loss is 2% and the daily halt is 2%,
+            so ONE full A loss halts the day — "2 per killzone" is really one
+            loss at A. The governor knew; nothing on screen said it. */}
+          {liveRisk &&
+            (() => {
+              const room = Math.max(0, liveRisk.dailyLimit + Math.min(0, liveRisk.dayPnl));
+              const perA = liveRisk.equity * 0.02;
+              const lossesAtA = perA > 0 ? Math.floor(room / perA) : 0;
+              const tone =
+                liveRisk.dailyHaltHit || room <= 0
+                  ? "text-[var(--color-down)] border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))]"
+                  : lossesAtA < 1
+                    ? "text-[var(--color-warn)] border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))]"
+                    : "text-[var(--color-muted)] border-[var(--color-border)]";
+              return (
+                <div
+                  title={`Today ${liveRisk.dayPnl >= 0 ? "+" : "−"}$${Math.abs(Math.round(liveRisk.dayPnl)).toLocaleString()} against a $${Math.round(liveRisk.dailyLimit).toLocaleString()} daily halt. One A loss is $${Math.round(perA).toLocaleString()} (2%).`}
+                  className={`flex items-center gap-1.5 rounded-full border bg-[var(--color-surface)] px-3 py-1.5 font-mono text-[11px] ${tone}`}
+                >
+                  {liveRisk.dailyHaltHit
+                    ? "HALTED today"
+                    : `Halt room $${Math.round(room).toLocaleString()} · ${lossesAtA} loss${lossesAtA === 1 ? "" : "es"} at A`}
+                </div>
+              );
+            })()}
+
+          <span className="ml-auto flex items-center gap-2 font-mono text-[12px]">
+            <span className="inline-flex items-center gap-1 text-[var(--color-subtle)]">
+              <Radio className="h-3 w-3 text-[var(--color-up)]" />
+              {wallNow}
+            </span>
           </span>
         </div>
-      </div>
+        <div className="mx-auto mt-1.5 flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
+          <span
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              modeTone === "up" &&
+                "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
+              modeTone === "down" &&
+                "border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))] text-[var(--color-down)]",
+              modeTone === "warn" &&
+                "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] text-[var(--color-warn)]",
+              modeTone === "muted" && "border-[var(--color-border)] text-[var(--color-subtle)]",
+            )}
+          >
+            {modeLabel}
+          </span>
+          <p className="min-w-0 flex-1 truncate text-[var(--color-fg)]">
+            <span className="font-medium text-[var(--color-primary)]">Focus · </span>
+            {focus.line}
+            {focus.detail ? (
+              <span className="text-[var(--color-muted)]"> — {focus.detail}</span>
+            ) : null}
+          </p>
+        </div>
 
-      <div className="mx-auto mt-1.5 flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
-        <span
-          className={cn(
-            "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-            modeTone === "up" &&
-              "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
-            modeTone === "down" &&
-              "border-[color-mix(in_oklab,var(--color-down)_45%,var(--color-border))] text-[var(--color-down)]",
-            modeTone === "warn" &&
-              "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] text-[var(--color-warn)]",
-            modeTone === "muted" &&
-              "border-[var(--color-border)] text-[var(--color-subtle)]",
+        <div className="mx-auto mt-1 flex max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
+          <span
+            className={cn(
+              "font-mono text-[11px] font-semibold",
+              pathV.word === "TAKE" && "text-[var(--color-up)]",
+              pathV.word === "MANAGE" && "text-[var(--color-warn)]",
+              pathV.word === "STAND" && "text-[var(--color-muted)]",
+            )}
+          >
+            {pricePathHudLine(desk, paperReady)}
+          </span>
+          {smtNote && (
+            <>
+              <span className="text-[var(--color-border-strong)]">·</span>
+              <span className={smtBear ? "text-[var(--color-down)]" : "text-[var(--color-up)]"}>
+                {smtNote.length > 64 ? `${smtNote.slice(0, 64)}…` : smtNote}
+              </span>
+            </>
           )}
-        >
-          {modeLabel}
-        </span>
-        <p className="min-w-0 flex-1 truncate text-[var(--color-fg)]">
-          <span className="font-medium text-[var(--color-primary)]">Focus · </span>
-          {focus.line}
-          {focus.detail ? (
-            <span className="text-[var(--color-muted)]"> — {focus.detail}</span>
-          ) : null}
-        </p>
-      </div>
+        </div>
 
-      <div className="mx-auto mt-1 flex max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
-        <span
-          className={cn(
-            "font-mono text-[11px] font-semibold",
-            pathV.word === "TAKE" && "text-[var(--color-up)]",
-            pathV.word === "MANAGE" && "text-[var(--color-warn)]",
-            pathV.word === "STAND" && "text-[var(--color-muted)]",
-          )}
-        >
-          {pricePathHudLine(desk, paperReady)}
-        </span>
-        {smtNote && (
-          <>
-            <span className="text-[var(--color-border-strong)]">·</span>
-            <span className={smtBear ? "text-[var(--color-down)]" : "text-[var(--color-up)]"}>
-              {smtNote.length > 64 ? `${smtNote.slice(0, 64)}…` : smtNote}
-            </span>
-          </>
-        )}
+        {children}
       </div>
-
-      {children}
     </div>
   );
 }
