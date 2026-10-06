@@ -70,7 +70,12 @@ function OrderRow({ r }: { r: AuditRow }) {
   );
 }
 
-export function ExecCard() {
+/**
+ * `collapsed`: the Floor folds an unauthorised card into its one "sign in"
+ * card. The card still mounts and polls (so it reappears the moment status
+ * loads) — it just draws nothing.
+ */
+export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
   const status = useExecStore((s) => s.status);
   const last = useExecStore((s) => s.last);
   const error = useExecStore((s) => s.error);
@@ -91,6 +96,7 @@ export function ExecCard() {
   const blurb = PHASES.find((p) => p.id === wanted)?.blurb ?? "";
   const fmt = (x: number | null | undefined, d = 1, unit = "%") => (x == null ? "—" : `${x.toFixed(d)}${unit}`);
 
+  if (collapsed) return null;
   return (
     <div className={CARD}>
       <div className="flex flex-wrap items-center justify-between gap-2">

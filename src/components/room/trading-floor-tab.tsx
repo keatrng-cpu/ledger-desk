@@ -21,6 +21,9 @@ import { ExecCard } from "./exec-card";
 import { URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import { frameIsEvent, useRoomStore, type WireEntry, type WireStatus } from "./room-engine";
 import EV_TEST from "@/data/room-ev-test.json";
+import type { DeskPayload } from "@/lib/trading/build-desk";
+import { ENTRY_STYLE, useEntryState } from "@/components/desk/use-entry-state";
+import { useExecStore } from "./exec-bridge";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
 const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
@@ -77,9 +80,13 @@ function FloorCanvas({
   onFollow,
   onFocus,
   onHover,
+  onCanvasFocus,
+  onScrollHint,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
+  onCanvasFocus: (focused: boolean) => void;
+  onScrollHint: () => void;
   /** The tab drives navigation (Go to, Follow) through the scene it is drawing. */
   sceneRef: { current: FloorScene | null };
   onSpeaker: (i: number, line: DialogueLine | null) => void;
@@ -93,8 +100,8 @@ function FloorCanvas({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -146,6 +153,8 @@ function FloorCanvas({
         onFollow: (w) => cbs.current.onFollow(w),
         onFocus: (l) => cbs.current.onFocus(l),
         onHover: (l) => cbs.current.onHover(l),
+        onFocusChange: (on) => cbs.current.onCanvasFocus(on),
+        onScrollHint: () => cbs.current.onScrollHint(),
         onTalk: (id, st) => {
           if (st === "started") useRoomStore.getState().ackTalk({ [id]: "said" });
           else if (st === "dropped") useRoomStore.getState().ackTalk({ [id]: "dropped" });
@@ -538,8 +547,108 @@ function GhostPanel({ frame }: { frame: FloorFrame | null }) {
 
 /* ── The tab ────────────────────────────────────────────────────────────── */
 
-export default function TradingFloorTab() {
+/**
+ * A ticker crawl along the foot of the room: the entry state, the two quotes,
+ * the plan's levels and the room's headlines — all real, from the desk and the
+ * frame. Nothing here is new data.
+ */
+function TickerCrawl({ desk, frame, entry }: { desk: DeskPayload | null; frame: FloorFrame | null; entry: ReturnType<typeof useEntryState>["read"] }) {
+  const items: { k: string; text: string; color?: string }[] = [];
+  if (entry) items.push({ k: "state", text: `${entry.state} — ${entry.why}`, color: ENTRY_STYLE[entry.state].color });
+  if (desk) {
+    for (const q of [desk.quotes.left, desk.quotes.right])
+      items.push({
+        k: q.symbol,
+        text: `${q.symbol} ${q.price.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${q.changePct >= 0 ? "▲" : "▼"} ${q.changePct >= 0 ? "+" : ""}${q.changePct.toFixed(2)}%`,
+        color: q.changePct >= 0 ? "var(--color-up)" : "var(--color-down)",
+      });
+  }
+  const p = frame?.screens.plan;
+  if (p) items.push({ k: "plan", text: `PLAN ${p.symbol} ${p.side.toUpperCase()} · CE ${fmtPx(p.entry)} · STOP ${fmtPx(p.stop)} · T1 ${fmtPx(p.t1)} · T2 ${fmtPx(p.t2)}` });
+  for (const n of (frame?.screens.news ?? []).slice(0, 6)) items.push({ k: `n-${n.title}`, text: `${n.title} — ${n.source}${n.age ? ` · ${n.age}` : ""}` });
+  if (!items.length) return null;
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 overflow-hidden border-t border-white/10 bg-black/85 font-mono text-[12px] leading-6 text-slate-200" aria-hidden>
+      <div className="ticker-crawl" style={{ animationDuration: `${Math.max(30, items.length * 9)}s` }}>
+        {items.map((it) => (
+          <span key={it.k} className="mr-10" style={it.color ? { color: it.color } : undefined}>
+            {it.text}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const fmtPx = (v: number | null | undefined) => (v == null ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+/**
+ * THE PLAN as a fixed 2D card over the scene: always readable, never clipped
+ * by the camera. Same numbers the whiteboard draws (frame.screens.plan); the
+ * confidence badge is the card's PATH band and the room's P(T1).
+ */
+function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; className?: string }) {
+  const p = frame?.screens.plan ?? null;
+  const card = frame?.trace.entry?.entry ?? null;
+  const pT1 = frame?.screens.roomP ?? frame?.screens.ledger?.pT1Model ?? null;
+  const conf = pT1 == null ? null : pT1 >= 0.6 ? "high" : pT1 >= 0.45 ? "medium" : "low";
+  const confColor = conf === "high" ? "var(--color-up)" : conf === "medium" ? "var(--color-warn)" : "var(--color-muted)";
+  return (
+    <div className={`rounded-lg border border-white/15 bg-black/80 p-2.5 text-slate-100 shadow-lg backdrop-blur ${className}`}>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-[12px] font-bold uppercase tracking-[0.14em]">The plan</span>
+        {(card?.band || pT1 != null) && (
+          <span
+            className="rounded-full border px-1.5 py-0.5 font-mono text-[11px]"
+            style={{ borderColor: confColor, color: confColor }}
+            title={`Confidence: ${card?.band ? `PATH ${card.band}` : "no band"}${pT1 != null ? ` · room P(T1) ${Math.round(pT1 * 100)}%` : ""}`}
+          >
+            {card?.band ? `PATH ${card.band}` : ""}
+            {card?.band && pT1 != null ? " · " : ""}
+            {pT1 != null ? `${Math.round(pT1 * 100)}%` : ""}
+          </span>
+        )}
+      </div>
+      {p ? (
+        <>
+          <p className="mb-1 font-mono text-[11px] text-slate-300">
+            {p.symbol} {p.side.toUpperCase()}
+          </p>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[13px]">
+            <dt className="text-slate-300">CE</dt>
+            <dd className="text-right font-semibold">{fmtPx(p.entry)}</dd>
+            <dt className="text-[#f87171]">STOP</dt>
+            <dd className="text-right font-semibold text-[#f87171]">{fmtPx(p.stop)}</dd>
+            {p.t1 != null && (
+              <>
+                <dt className="text-[#4ade80]">T1</dt>
+                <dd className="text-right text-[#4ade80]">{fmtPx(p.t1)}</dd>
+              </>
+            )}
+            <dt className="text-[#86efac]">T2</dt>
+            <dd className="text-right font-semibold text-[#86efac]">{fmtPx(p.t2)}</dd>
+          </dl>
+        </>
+      ) : (
+        <p className="text-[12px] text-slate-300">No priced plan.</p>
+      )}
+    </div>
+  );
+}
+
+export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | null } = {}) {
   const frame = useRoomStore((s) => s.frame);
+  const { read: entry } = useEntryState(desk);
+  const execStatus = useExecStore((s) => s.status);
+  const execError = useExecStore((s) => s.error);
+  const [canvasFocused, setCanvasFocused] = useState(false);
+  const [hintFlash, setHintFlash] = useState(false);
+  const hintTimer = useRef<number | null>(null);
+  const onScrollHint = useCallback(() => {
+    setHintFlash(true);
+    if (hintTimer.current) window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHintFlash(false), 1600);
+  }, []);
   const enabled = useRoomStore((s) => s.enabled);
   const setEnabled = useRoomStore((s) => s.setEnabled);
   const book = useRoomStore((s) => s.book);
@@ -556,6 +665,11 @@ export default function TradingFloorTab() {
   const [env, setEnv] = useState<"glb" | "fallback" | null>(null);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  // The room's lighting follows the desk's entry state (the same word as the Now hero).
+  const mood = entry?.state ?? null;
+  useEffect(() => {
+    if (mood) sceneRef.current?.setEntryMood(mood);
+  }, [mood, env]);
 
   // Sound: off until the trader turns it on (and a click unlocks audio).
   const sound = useRef<FloorSound | null>(null);
@@ -673,7 +787,28 @@ export default function TradingFloorTab() {
           }}
           onEnvironment={setEnv}
           onEvent={onEvent}
+          onCanvasFocus={setCanvasFocused}
+          onScrollHint={onScrollHint}
         />
+        <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
+        {/* Scroll capture hint: the wheel scrolls the page until the canvas is clicked. */}
+        <div
+          className={`absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-full px-3 py-1 text-[12px] transition-colors ${
+            canvasFocused ? "bg-black/70 text-slate-200" : hintFlash ? "bg-white text-black" : "pointer-events-none bg-black/60 text-slate-300"
+          }`}
+          role="status"
+        >
+          {canvasFocused ? (
+            <>
+              Scroll zooms · drag orbits ·{" "}
+              <button type="button" className="underline" onClick={() => sceneRef.current?.releaseFocus()}>
+                Esc / click outside releases
+              </button>
+            </>
+          ) : (
+            "Click to interact · Ctrl/⌘ + scroll to zoom"
+          )}
+        </div>
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
           {frame?.trace.meeting && (
             <span className="rounded bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-amber-300">MEETING · {frame.trace.meeting.title}</span>
@@ -724,7 +859,7 @@ export default function TradingFloorTab() {
           </button>
         </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
+        <div className="absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (
             <p className="text-[13px] leading-snug text-white">
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
@@ -737,7 +872,10 @@ export default function TradingFloorTab() {
             <p className="text-[12px] text-slate-400">{frame ? "Watching the tape…" : "Building the floor…"}</p>
           )}
         </div>
+        <TickerCrawl desk={desk} frame={frame} entry={entry} />
       </div>
+
+      <PlanOverlay frame={frame} className="sm:hidden" />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2">
         <div className="flex flex-wrap items-center gap-1">
@@ -869,13 +1007,42 @@ export default function TradingFloorTab() {
         </div>
       </div>
 
-      <ExecCard />
+      {/* Empty / unauthorised states fold into one slim card instead of
+          three empty panels and an "Unauthorized" error. */}
+      {(() => {
+        const execLocked = Boolean(execError && !execStatus);
+        const serverLocal = backup.status === "local";
+        const empty = [
+          !frame?.screens.ledger && "Nova's ledger (no priced plan)",
+          !frame?.screens.lenses && "the vote (no card under review)",
+          !frame?.screens.lab && "ghost room (nothing recorded)",
+        ].filter(Boolean) as string[];
+        if (!execLocked && !serverLocal && !empty.length) return null;
+        return (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2 text-[13px]">
+            {(execLocked || serverLocal) && (
+              <span className="font-semibold text-[var(--color-fg)]">Sign in to enable execution and the server book</span>
+            )}
+            {(execLocked || serverLocal) && (
+              <span className="text-[var(--color-muted)]">
+                (account chip, top right{execLocked ? ` · execution: ${execError}` : ""}
+                {serverLocal ? " · the room book is saved in this browser only" : ""})
+              </span>
+            )}
+            {empty.length > 0 && <span className="text-[var(--color-muted)]">Waiting on: {empty.join(" · ")}</span>}
+          </div>
+        );
+      })()}
 
-      <div className="grid gap-3 lg:grid-cols-3">
-        <LedgerPanel frame={frame} />
-        <VotePanel frame={frame} />
-        <GhostPanel frame={frame} />
-      </div>
+      <ExecCard collapsed={Boolean(execError && !execStatus)} />
+
+      {(frame?.screens.ledger || frame?.screens.lenses || frame?.screens.lab) && (
+        <div className="grid gap-3 lg:grid-cols-3">
+          {frame?.screens.ledger && <LedgerPanel frame={frame} />}
+          {frame?.screens.lenses && <VotePanel frame={frame} />}
+          {frame?.screens.lab && <GhostPanel frame={frame} />}
+        </div>
+      )}
 
       <div>
         <div className={HEAD}>The people — needs, rank, grudges and what they remember</div>
