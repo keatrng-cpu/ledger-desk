@@ -2,6 +2,9 @@
  * RH live proposal builder. Does NOT place.
  * Agent: review_option_order (preview — no preview_option_order) then place_option_order when armed.
  * Envelope $150-$550, 1-4 ct, ATM/OTM_1. Keaton 2026-10-06.
+ * Primary trigger: PATH scanner fire (A+/A/A-/B+) → proposeRhFromPathFire →
+ * review_option_order → mayPlaceAfterReview → place_option_order on Agentic 995386158.
+ * Limit prefers the live get_option_quotes ask + $0.02 over the model debit.
  * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
  * again before place (mayPlaceAfterReview.accountAtReview). BP < $150 → refused.
  */
@@ -16,7 +19,9 @@ import {
   RH_MIN_DEBIT_TOTAL,
   RH_NOT_CONFIRMED_REASON,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
+  RH_PATH_FIRE_MAX_AGE_MS,
   RH_PATH_FLOOR,
+  rhPathFloorForBand,
   type RhAccountSnapshot,
   type RhAutofireCandidate,
   type RhAutofireFlags,
@@ -54,6 +59,9 @@ export {
 export type { ManagerRhAccount, ManagerRoomStateAccount } from "./manager-account";
 
 export { rhAccountFromPortfolio, RH_DESK_ACCOUNT_SNAPSHOT, maskAccount } from "./rh-account";
+import { rhFloorSignals, type RhDeskSlice } from "./rh-floor-signals";
+export { rhFloorSignals, rhCeTouchFromDesk, rhTapeAgeSec } from "./rh-floor-signals";
+export type { RhDeskSlice, RhFloorSignals } from "./rh-floor-signals";
 
 export {
   evaluateRhAutofireGates,
@@ -65,6 +73,11 @@ export {
   RH_MAX_TAPE_AGE_SEC,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   RH_PATH_FLOOR,
+  RH_PATH_FLOOR_BPLUS,
+  RH_PATH_FLOOR_BY_BAND,
+  RH_PATH_GRADES,
+  RH_PATH_FIRE_MAX_AGE_MS,
+  rhPathFloorForBand,
   RH_MIN_DEBIT_TOTAL,
   RH_MAX_DEBIT_TOTAL,
   RH_MIN_CONTRACTS,
@@ -110,6 +123,40 @@ export interface RhLiveTicket {
   reason: string;
 }
 
+/**
+ * Live option quote (user-Robinhood-xai get_option_quotes on the chosen
+ * option_id). Preferred over the model debit for the limit: priceHint = ask +
+ * $0.02. Stale (> 30s), crossed, or non-positive quotes are ignored for the
+ * shape and REFUSED at mayPlaceAfterReview.
+ */
+export interface RhLiveOptionQuote {
+  optionId?: string | null;
+  askPrice: number | null;
+  bidPrice?: number | null;
+  asOfMs: number | null;
+  source: "get_option_quotes" | string;
+}
+
+export const RH_LIVE_QUOTE_MAX_AGE_MS = 30_000;
+export const RH_LIMIT_SLIP = 0.02;
+
+export function evaluateRhLiveQuote(
+  q: RhLiveOptionQuote | null | undefined,
+  nowMs: number,
+): { ok: true; ask: number; limit: number } | { ok: false; reason: string } {
+  if (!q) return { ok: false, reason: "No live option quote (get_option_quotes) — model price cannot place." };
+  if (q.source !== "get_option_quotes") return { ok: false, reason: `Quote source ${q.source || "-"} is not get_option_quotes.` };
+  const ask = Number(q.askPrice);
+  if (!(Number.isFinite(ask) && ask > 0)) return { ok: false, reason: "Live ask unknown / non-positive — fail closed." };
+  const bid = q.bidPrice == null ? null : Number(q.bidPrice);
+  if (bid != null && Number.isFinite(bid) && bid > ask) return { ok: false, reason: "Crossed quote (bid > ask) — fail closed." };
+  if (typeof q.asOfMs !== "number" || !Number.isFinite(q.asOfMs)) return { ok: false, reason: "Live quote time unknown — fail closed." };
+  if (nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
+    return { ok: false, reason: `Live quote ${Math.round((nowMs - q.asOfMs) / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
+  }
+  return { ok: true, ask, limit: Math.round((ask + RH_LIMIT_SLIP) * 100) / 100 };
+}
+
 export interface RhReviewPlaceShape {
   optionId: string | null;
   quantity: number;
@@ -117,6 +164,10 @@ export interface RhReviewPlaceShape {
   positionEffect: "open";
   type: "limit";
   priceHint: number;
+  /** "live_quote" = ask + $0.02 from get_option_quotes; "model" = estDebitEach + $0.02 (cannot place). */
+  priceSource: "live_quote" | "model";
+  /** priceHint × 100 × quantity — what review/place will debit. */
+  debitTotal: number;
   timeInForce: "gfd";
   refIdHint: string;
   underlier: "QQQ" | "SPY";
@@ -135,15 +186,24 @@ export interface RhAutofireProposal {
   flags: RhAutofireFlags;
 }
 
-export function buildRhReviewPlaceShape(ticket: RhLiveTicket, refIdHint: string): RhReviewPlaceShape {
-  const slip = 0.02;
+export function buildRhReviewPlaceShape(
+  ticket: RhLiveTicket,
+  refIdHint: string,
+  liveQuote?: RhLiveOptionQuote | null,
+  nowMs: number = Date.now(),
+): RhReviewPlaceShape {
+  const quantity = Math.min(RH_MAX_CONTRACTS, Math.max(RH_MIN_CONTRACTS, Math.floor(ticket.contracts)));
+  const live = evaluateRhLiveQuote(liveQuote, nowMs);
+  const priceHint = live.ok ? live.limit : Math.round((ticket.estDebitEach + RH_LIMIT_SLIP) * 100) / 100;
   return {
-    optionId: null,
-    quantity: Math.min(RH_MAX_CONTRACTS, Math.max(RH_MIN_CONTRACTS, Math.floor(ticket.contracts))),
+    optionId: live.ok && liveQuote?.optionId ? liveQuote.optionId : null,
+    quantity,
     side: "buy",
     positionEffect: "open",
     type: "limit",
-    priceHint: Math.round((ticket.estDebitEach + slip) * 100) / 100,
+    priceHint,
+    priceSource: live.ok ? "live_quote" : "model",
+    debitTotal: Math.round(priceHint * 100 * quantity * 100) / 100,
     timeInForce: "gfd",
     refIdHint,
     underlier: ticket.underlier,
@@ -161,6 +221,8 @@ export function proposeRhLiveOption(args: {
   flags?: RhAutofireFlags;
   refIdHint?: string;
   env?: Record<string, string | undefined>;
+  /** Live get_option_quotes read — preferred over the model debit (envelope + BP re-run on it). */
+  liveQuote?: RhLiveOptionQuote | null;
 }): RhAutofireProposal {
   const flags = args.flags ?? rhAutofireFlagsFromEnv(args.env);
   const gated = evaluateRhAutofireGates(args.candidate, flags);
@@ -189,10 +251,23 @@ export function proposeRhLiveOption(args: {
     return { gated: bp, ticket: null, placeShape: null, mode: "refused", flags };
   }
   const ref = args.refIdHint ?? `rh-${args.ticket.decisionKey}`;
+  const nowMs = flags.nowMs ?? Date.now();
+  const shape = buildRhReviewPlaceShape(args.ticket, ref, args.liveQuote ?? null, nowMs);
+  if (shape.priceSource === "live_quote") {
+    // The live debit is what will actually be charged — re-run envelope + BP on it.
+    const liveEnv = evaluateRhTicketEnvelope({
+      contracts: shape.quantity,
+      debitTotal: shape.debitTotal,
+      strikeOffset: args.ticket.strikeOffset,
+    });
+    if (!liveEnv.ok) return { gated: liveEnv, ticket: null, placeShape: null, mode: "refused", flags };
+    const liveBp = evaluateRhBuyingPower(args.candidate.account, nowMs, shape.debitTotal);
+    if (!liveBp.ok) return { gated: liveBp, ticket: null, placeShape: null, mode: "refused", flags };
+  }
   return {
     gated,
     ticket: args.ticket,
-    placeShape: buildRhReviewPlaceShape(args.ticket, ref),
+    placeShape: shape,
     mode: "live_when_armed",
     flags,
   };
@@ -211,9 +286,31 @@ export function mayPlaceAfterReview(args: {
   accountAtReview?: RhAccountSnapshot | null;
   /** The reviewed ticket's total debit (limit × 100 × qty). */
   debitTotal?: number | null;
+  /**
+   * Live get_option_quotes read taken at review. When supplied it must be
+   * fresh / sane, and the debit is recomputed from it (ask + $0.02) × 100 × qty
+   * when `quantity` is given — the larger of that and `debitTotal` is gated.
+   */
+  liveQuote?: RhLiveOptionQuote | null;
+  quantity?: number | null;
   nowMs?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
+  if (args.liveQuote !== undefined) {
+    const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
+    if (!q.ok) return { ok: false, reason: q.reason };
+    const qty = Math.floor(Number(args.quantity));
+    if (qty >= RH_MIN_CONTRACTS) {
+      const liveDebit = Math.round(q.limit * 100 * qty * 100) / 100;
+      if (!(liveDebit >= RH_MIN_DEBIT_TOTAL)) {
+        return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} under minimum $${RH_MIN_DEBIT_TOTAL}.` };
+      }
+      if (!(liveDebit <= RH_MAX_DEBIT_TOTAL + 1e-9)) {
+        return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} exceeds maximum $${RH_MAX_DEBIT_TOTAL}.` };
+      }
+      args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
+    }
+  }
   const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null);
   if (!bp.ok) return { ok: false, reason: bp.reason };
   if (!args.liveArmedNow) return { ok: false, reason: RH_LIVE_DISARMED_REASON };
@@ -244,6 +341,8 @@ export function candidateFromFloorPathStand(args: {
     deskContracts: number | null;
     band: string | null;
     confluence: number;
+    /** Floor options card ticket.dteTarget. */
+    dte?: number | null;
   } | null;
   pathActionable: boolean;
   /**
@@ -261,12 +360,34 @@ export function candidateFromFloorPathStand(args: {
   oneBookBlocked: boolean;
   /** Fresh get_portfolio read (rhAccountFromPortfolio). Missing → gates refuse bp_unknown. */
   account?: RhAccountSnapshot | null;
-  /** Floor rule signals (missing → refuse). TODO(floor): feed from the live Floor card. */
+  /**
+   * Floor rule signals. Explicit values win; otherwise read from the live desk
+   * (rhFloorSignals: CE touch on the PATH book, tape = now − desk.fetchedAt,
+   * DTE = Floor card ticket.dteTarget via floor.dte). Unreadable → null → refuse.
+   */
   ceTouch?: boolean | null;
   tapeAgeSec?: number | null;
   dte?: number | null;
+  /** Live desk (DeskPayload) — source of CE touch + tape age. */
+  desk?: RhDeskSlice | null;
+  /** PATH candidate's futures symbol / side (for the CE touch read). */
+  pathSymbol?: string | null;
+  pathSide?: "long" | "short" | null;
+  nowMs?: number;
 }): RhAutofireCandidate {
   const f = args.floor;
+  const sig =
+    args.desk !== undefined || f?.dte !== undefined
+      ? rhFloorSignals({
+          desk: args.desk ?? null,
+          symbol: args.pathSymbol ?? null,
+          side: args.pathSide ?? null,
+          dte: f?.dte ?? null,
+          nowMs: args.nowMs ?? Date.now(),
+        })
+      : null;
+  const pick = <T,>(explicit: T | null | undefined, derived: T | null | undefined): T | null =>
+    explicit !== undefined && explicit !== null ? explicit : (derived ?? null);
   const agreeArgs: {
     manager?: ManagerRoomStateAgree | null;
     managerCall?: ManagerCallAgree | null;
@@ -287,10 +408,111 @@ export function candidateFromFloorPathStand(args: {
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
     account: args.account ?? null,
-    ceTouch: args.ceTouch ?? null,
-    tapeAgeSec: args.tapeAgeSec ?? null,
-    dte: args.dte ?? null,
+    ceTouch: pick(args.ceTouch, sig?.ceTouch),
+    tapeAgeSec: pick(args.tapeAgeSec, sig?.tapeAgeSec),
+    dte: pick(args.dte, sig?.dte),
   };
+}
+
+/**
+ * PATH scanner FIRE (path-alarm.ts PathAlarmFire) — duck-typed so the server
+ * loop and the browser alarm event share one shape.
+ */
+export interface RhPathFireTrigger {
+  key: string;
+  symbol: string;
+  side: "long" | "short";
+  grade: string;
+  confluence: number;
+  at: number;
+}
+
+/**
+ * PRIMARY PLACE TRIGGER (Keaton 2026-10-06): a PATH scanner fire starts the
+ * review → place path. The continuous Floor / Trade Now read is the eye; the
+ * fire is the trigger. Grades A+, A, A- (>= 0.65) and B+ (>= 0.60, its own
+ * config band). Everything else is evaluateRhAutofireGates unchanged:
+ * Floor ARMED + Stand agentAgree + hard BP (Agentic 995386158, >= $150) +
+ * Floor rules + envelope + env arms. Returns the review shape; never places.
+ */
+export function proposeRhFromPathFire(args: {
+  fire: RhPathFireTrigger | null | undefined;
+  floor: { verdict: string; deskContracts: number | null; band: string | null; confluence: number; dte?: number | null } | null;
+  ticket: RhLiveTicket | null;
+  manager?: ManagerRoomStateAgree | null;
+  managerCall?: ManagerCallAgree | null;
+  agentAgree?: boolean;
+  optionsSessionOpen: boolean;
+  newsBlackout: boolean;
+  riskHalt: boolean;
+  oneBookBlocked: boolean;
+  account?: RhAccountSnapshot | null;
+  desk?: RhDeskSlice | null;
+  ceTouch?: boolean | null;
+  tapeAgeSec?: number | null;
+  dte?: number | null;
+  liveQuote?: RhLiveOptionQuote | null;
+  flags?: RhAutofireFlags;
+  env?: Record<string, string | undefined>;
+  refIdHint?: string;
+  nowMs?: number;
+}): RhAutofireProposal {
+  const baseFlags = args.flags ?? rhAutofireFlagsFromEnv(args.env);
+  const nowMs = args.nowMs ?? baseFlags.nowMs ?? Date.now();
+  const flags: RhAutofireFlags = { ...baseFlags, nowMs };
+  const refuse = (gate: string, reason: string): RhAutofireProposal => ({
+    gated: { ok: false, gate, reason },
+    ticket: null,
+    placeShape: null,
+    mode: "refused",
+    flags,
+  });
+  const fire = args.fire;
+  if (!fire) return refuse("path_fire", "No PATH scanner fire — the fire is the place trigger.");
+  if (!(typeof fire.at === "number" && Number.isFinite(fire.at)) || nowMs - fire.at > RH_PATH_FIRE_MAX_AGE_MS || fire.at - nowMs > 5_000) {
+    return refuse("path_fire_stale", `PATH fire ${fire.key} is not fresh (> ${RH_PATH_FIRE_MAX_AGE_MS / 1000}s).`);
+  }
+  const floorMin = rhPathFloorForBand(fire.grade);
+  if (floorMin == null) return refuse("path_band", `PATH fire band ${fire.grade || "-"} is not A+/A/A-/B+.`);
+  if (args.ticket) {
+    const wantSide = fire.side === "short" ? "put" : "call";
+    const wantU = fire.symbol.includes("ES") ? "SPY" : "QQQ";
+    if (args.ticket.side !== wantSide || args.ticket.underlier !== wantU) {
+      return refuse(
+        "path_fire_ticket",
+        `Ticket ${args.ticket.underlier} ${args.ticket.side} does not express PATH fire ${fire.symbol} ${fire.side} (${wantU} ${wantSide}).`,
+      );
+    }
+  }
+  const agree: { manager?: ManagerRoomStateAgree | null; managerCall?: ManagerCallAgree | null } = {};
+  if ("manager" in args) agree.manager = args.manager;
+  if ("managerCall" in args) agree.managerCall = args.managerCall;
+  const candidate = candidateFromFloorPathStand({
+    // PATH band + confluence come from the FIRE (the scanner), not the card.
+    floor: args.floor ? { ...args.floor, band: fire.grade, confluence: fire.confluence } : null,
+    pathActionable: true, // a PATH fire only exists for an actionable candidate (isPathFire)
+    agentAgree: args.agentAgree,
+    ...agree,
+    optionsSessionOpen: args.optionsSessionOpen,
+    newsBlackout: args.newsBlackout,
+    riskHalt: args.riskHalt,
+    oneBookBlocked: args.oneBookBlocked,
+    account: args.account ?? null,
+    ceTouch: args.ceTouch,
+    tapeAgeSec: args.tapeAgeSec,
+    dte: args.dte,
+    desk: args.desk ?? null,
+    pathSymbol: fire.symbol,
+    pathSide: fire.side,
+    nowMs,
+  });
+  return proposeRhLiveOption({
+    candidate,
+    ticket: args.ticket,
+    flags,
+    refIdHint: args.refIdHint ?? `rh-${fire.key}`,
+    liveQuote: args.liveQuote ?? null,
+  });
 }
 
 export function ticketFromRhCard(args: {

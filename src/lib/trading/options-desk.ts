@@ -12,7 +12,7 @@
  * fall back to a 1–3 wide vertical rather than a lottery OTM.
  */
 
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { isHighProbPath, isPathFire } from "@/lib/alerts/path-alarm";
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
@@ -203,8 +203,9 @@ function afterSecondImpulse(clock: DeskPayload["clock"]): boolean {
   return clock.etHour > 10 || (clock.etHour === 10 && clock.etMinute >= 15);
 }
 
+/** A+/A/A- first; B+ (its own 0.60 config band) when no higher PATH is live — Keaton 2026-10-06. */
 function pathCandidate(desk: DeskPayload): SetupCandidate | undefined {
-  return desk.scan.candidates.find((c) => isHighProbPath(c));
+  return desk.scan.candidates.find((c) => isHighProbPath(c)) ?? desk.scan.candidates.find((c) => isPathFire(c));
 }
 
 function componentsHint(c: SetupCandidate | undefined) {
@@ -657,7 +658,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
   if (isJudasWindow(clock.etHour, clock.etMinute)) {
     blocks.push("Judas 9:30–9:45 — no new day premium");
   }
-  if (!c) blocks.push("No A+/A/A− PATH");
+  if (!c) blocks.push("No A+/A/A− PATH"); // label kept stable for drills; B+ is accepted above
 
   if (c) {
     const band = String(c.pathBand || c.grade);
@@ -760,7 +761,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
   if (day?.kind === "nfp") {
     blocks.push("NFP Friday — 0DTE is seek-and-destroy unless A+ after 10:15");
   }
-  if (!c) blocks.push("No A+/A/A− PATH");
+  if (!c) blocks.push("No A+/A/A− PATH"); // label kept stable for drills; B+ is accepted above
   if (band && band !== "A+") blocks.push(`0DTE needs A+ (have ${band})`);
   if (c && !hint.displace) blocks.push("No displacement / MSS on the card");
   if (c && !hint.ifvg && !hint.sweep) blocks.push("Need IFVG or the Judas sweep tagged");

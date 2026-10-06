@@ -15,11 +15,21 @@ Until then `RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` stay **false** (rep
 
 **Trade account (revised 2026-10-06):** **Agentic ••6158** — `account_number` **`995386158`** (`RH_PREFERRED_ACCOUNT_NUMBER`), option_level_2, limited_margin, `agentic_allowed=true`. **$0 until Keaton funds ~$1000 at ~08:30 ET.** `DEFAULT_MANAGER_ROOM_ACCOUNT` is the Agentic $0 snapshot (`isSnapshot=true` → can never authorize). **Individual ••7477** (`415577477`) is **display-only** — every BP / place gate refuses it (`bp_wrong_account`).
 
+## Trigger model (Keaton 2026-10-06)
+
+- **The eye:** the continuous Floor / **Trade Now** read (options card verdict, desk feed, Stand). It watches every poll; it does **not** place by itself.
+- **The place trigger:** a **PATH scanner FIRE** (`considerPathAlarm` → `PathAlarmFire`, `isPathFire`). Only a fresh fire (≤ 30 s, `RH_PATH_FIRE_MAX_AGE_MS`) starts `proposeRhFromPathFire` → **`review_option_order`** → `mayPlaceAfterReview` → **`place_option_order`**.
+- **Grades accepted on the LIVE path:** **A+, A, A−, and B+** (`RH_PATH_GRADES` = `APLUS_RULES.profitPath.onlyExecuteGrades`). B+ is live, not paper-only. B / C / skip never fire.
+- **Account:** **Agentic ••6158 (`995386158`) only.** Individual ••7477 is display-only.
+- **Funding:** Keaton funds the Agentic account **~09:30 ET**; until `get_portfolio(995386158)` shows BP ≥ $150 every place refuses (`bp_floor`).
+
 ## Triple agreement (all required)
 
 1. **Floor desk** — options card `verdict === "ARMED"` and `deskContracts >= 1` (Floor characters cite SMC research + live PATH scanner).
-2. **Live PATH scanner** — actionable, PATH band A+/A/A−, confluence ≥ **0.65**.
+2. **Live PATH scanner FIRE** — actionable; band **A+/A/A− with confluence ≥ 0.65**, or **B+ with confluence ≥ 0.60** (`RH_PATH_FLOOR_BY_BAND`). The PATH floor stays **0.65**; B+ has its own band in `src/lib/aplus/config.ts` / `strategy-grade.ts pathBand` (`confluenceFloor − 0.05` = 0.60) — the config band edge, no new score.
 3. **Trading Stand (agent)** — `agentAgree === true` for this cycle (explicit; absence refuses).
+
+Floor mandate still applies: after **10:00 ET A+ only** (so B+ / A / A− fire only 09:30–10:00), no new entries at/after 11:00.
 
 Plus: options session open, no news blackout, no risk halt, one-book clear.
 
@@ -74,7 +84,15 @@ Run after risk/session/one-book, before Floor/PATH/Stand, on `flags.nowMs`:
 | `tape_unknown` / `tape_stale` | desk tape age **≤ 30 s**; missing → refuse |
 | `ce_touch` | CE touch must be confirmed (`ceTouch === true`) |
 
-**TODO(floor):** wire `ceTouch` / `tapeAgeSec` / `dte` from the live Floor card into `candidateFromFloorPathStand`. Until wired, autofire refuses by design.
+**Wired (2026-10-06, `rh-floor-signals.ts`):** `candidateFromFloorPathStand` / `proposeRhFromPathFire` take `desk` (DeskPayload) + `floor.dte` and derive, fail-closed:
+
+| signal | source |
+|------|------|
+| `ceTouch` | the PATH book's smc-master plan (same symbol **and** side); live desk quote `readEntry(plan, price).inZone` and not `behind` — same read the CE-touch alarm fires on |
+| `tapeAgeSec` | `now − desk.fetchedAt` |
+| `dte` | Floor options card `ticket.dteTarget` (passed as `floor.dte`) |
+
+Explicit values still win; anything unreadable → `null` → refuse.
 
 **Desk today (screenshot + read-only get_portfolio 01:46 UTC):** Individual ••7477, cash account, $984.12 cash, $972.56 unsettled, **$11.56 buying power**, options level 2, −$179.84 (−15.45%) today. → `bp_floor` blocks every ticket. The Individual account is also not tradable by this agent (`account_access`), and the Agentic ••6158 trade account (option_level_2, limited_margin) has $0 until funded → `bp_floor`. The Floor seats quote this (`rhAccountNote` / `rhArmedPathNote`).
 
@@ -94,7 +112,7 @@ Run after risk/session/one-book, before Floor/PATH/Stand, on `flags.nowMs`:
 5. Set in the runtime env (Release Watch / host — **not** this commit, **not** Netlify from this agent):
    - `RH_OPTIONS_AUTOFIRE_ENABLED=true`
    - `RH_LIVE_ARMED=true`
-6. Agent loop: `get_portfolio` → Floor ARMED + PATH A+/A/A− + Stand `agentAgree` + BP ≥ $150 → `proposeRhLiveOption` → **`review_option_order`** → `mayPlaceAfterReview` → only then **`place_option_order`**.
+6. Agent loop: Floor / Trade Now watches continuously → on a **PATH fire (A+/A/A−/B+)**: `get_portfolio(995386158)` → Floor ARMED + Stand `agentAgree` + BP ≥ $150 → `get_option_quotes` → `proposeRhFromPathFire({ fire, floor, desk, account, liveQuote, ... })` → **`review_option_order`** → fresh `get_portfolio` + `get_option_quotes` → `mayPlaceAfterReview({ accountAtReview, liveQuote, quantity, ... })` → only then **`place_option_order`** on **Agentic 995386158**.
 7. Disarm after the session or on any doubt: unset / set both env flags false.
 
 ## Agent send path (user-Robinhood-xai)
@@ -105,8 +123,9 @@ There is **no** `preview_option_order` tool. Use **`review_option_order`** as th
 2. `proposeRhLiveOption(...)` — if `mode !== "live_when_armed"`, stop.
 3. `get_accounts` — require `agentic_allowed` and option level ≥ 2.
 4. `get_option_chains` → `get_option_instruments` — fill `option_id`.
-5. **`review_option_order`** with limit from quote (prefer ask + $0.02). Surface alerts verbatim.
-6. Re-run gates + `mayPlaceAfterReview(...)`. If not ok, **do not place**.
+5. `get_option_quotes(option_id)` → pass as `liveQuote` (`source: "get_option_quotes"`, `asOfMs`). The limit is **live ask + $0.02** (`placeShape.priceSource === "live_quote"`); the model `estDebitEach + $0.02` is a fallback label only. Envelope + BP are re-run on the **live** debit. Quote > 30 s old, crossed, or ask ≤ 0 → ignored for the shape and **refused** at `mayPlaceAfterReview`.
+   **`review_option_order`** with that limit. Surface alerts verbatim.
+6. Re-run gates + `mayPlaceAfterReview({ ..., liveQuote, quantity })`. If not ok, **do not place**.
 7. **`place_option_order`** only if still armed; same params; fresh `ref_id` UUID (reuse on transport retry only).
 
 Options only. No equities, no Tradovate, no Apex autofire. **Do not place tonight.**
@@ -116,13 +135,21 @@ Options only. No equities, no Tradovate, no Apex autofire. **Do not place tonigh
 | File | Role |
 |------|------|
 | `src/lib/execution/rh-autofire-gates.ts` | Pure triple + risk + envelope gates |
-| `src/lib/execution/rh-autofire.ts` | Env flags, proposal, `mayPlaceAfterReview`, `candidateFromFloorPathStand` |
+| `src/lib/execution/rh-autofire.ts` | Env flags, proposal, `proposeRhFromPathFire` (primary trigger), live quote, `mayPlaceAfterReview`, `candidateFromFloorPathStand` |
+| `src/lib/execution/rh-floor-signals.ts` | CE touch / tape age / DTE from the live desk + Floor card |
+| `src/lib/alerts/path-alarm.ts` | `isPathFire` (A+/A/A−/B+) — PATH fire = place trigger |
+| `scripts/verify-rh-path-fire.mjs` | Pins grades, B+ band, signals, live quote, PATH fire → propose |
 | `src/lib/execution/manager-agree.ts` | Manager → Stand `agentAgree` adapter (feed.getState when Design lands) |
 | `src/lib/execution/manager-account.ts` | `ManagerRoomState.account` (Agentic default snapshot, Individual display-only), `accountPlaceGate` |
 | `src/lib/execution/rh-account.ts` | get_portfolio → `RhAccountSnapshot`; desk snapshot (context only) |
 | `scripts/verify-rh-autofire-gates.mjs` | Pins refusals + envelope + BP gate |
 | `scripts/verify-floor-rh-account.mjs` | Pins Floor RH account awareness |
 | `scripts/verify-manager-agree.mjs` | Pins Manager agentAgree companion |
+
+## Follow-ups (not in this commit)
+
+- Per-day cooldown after a loss / max fires per session on the RH path (Floor mandate `maxSetupsPerSession` is not yet re-read RH-side).
+- Monthly loss cap, `room_orders` ledger write of each review/place, sleeve sizing re-read against live BP.
 
 ## Do not
 

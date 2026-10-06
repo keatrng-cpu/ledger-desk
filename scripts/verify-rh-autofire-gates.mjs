@@ -121,8 +121,8 @@ console.log("\ntriple agreement required");
   const pathOff = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathActionable: false }, ARMED_FLAGS);
   check("PATH not actionable refuses", [pathOff.ok, pathOff.gate], [false, "path_actionable"]);
 
-  const band = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+" }, ARMED_FLAGS);
-  check("B+ PATH refuses", [band.ok, band.gate], [false, "path_band"]);
+  const band = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B" }, ARMED_FLAGS);
+  check("B PATH refuses (B+ is accepted — see verify-rh-path-fire)", [band.ok, band.gate], [false, "path_band"]);
 
   const low = gates.evaluateRhAutofireGates({ ...QUALIFIED, confluence: 0.64 }, ARMED_FLAGS);
   check("below 0.65 refuses", [low.ok, low.gate], [false, "path_floor"]);

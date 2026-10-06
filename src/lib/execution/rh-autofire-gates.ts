@@ -1,6 +1,8 @@
 /**
  * Robinhood live options autofire — PURE gates.
- * Production (Keaton 2026-10-06): live-when-armed. Triple: Floor ARMED + PATH A+/A/A- + Stand.
+ * Production (Keaton 2026-10-06): live-when-armed. Triple: Floor ARMED + PATH A+/A/A-/B+ + Stand.
+ * Primary place trigger = a PATH scanner FIRE (path-alarm.ts considerPathAlarm) — the
+ * continuous Floor / Trade Now read is the eye; the fire is what starts review → place.
  * Envelope: debit $150-$550, 1-4 contracts, ATM or OTM_1 only.
  * Agent: review_option_order then place_option_order (no preview_option_order tool).
  * Buying-power hard gate (Keaton 2026-10-06): the agent MUST call get_portfolio
@@ -21,12 +23,44 @@
  *  4. Floor rules (evaluateRhFloorRules, mandate.ts ROOM_CLOCK / ROOM_MANDATE):
  *     no new entries >= 11:00 ET · A+ only >= 10:00 ET · DTE 0/1 ·
  *     tape (desk feed) <= 30s · CE touch confirmed. Missing signal → refuse.
- *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 · Stand agentAgree
+ *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 or B+ >= 0.60
+ *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
 import { ROOM_CLOCK, ROOM_MANDATE } from "../room/mandate";
 import { etWallParts } from "../trading/sessions";
+import { APLUS_RULES } from "../aplus/config";
 
+/** PATH floor for A+/A/A- (calibrated 0.65, APLUS_RULES.confluenceFloor). */
 export const RH_PATH_FLOOR = 0.65;
+
+/**
+ * PATH grades the RH place path accepts (Keaton 2026-10-06: A+, A, A-, AND B+).
+ * Mirrors APLUS_RULES.profitPath.onlyExecuteGrades.
+ */
+export const RH_PATH_GRADES = ["A+", "A", "A-", "B+"] as const;
+
+/**
+ * B+ has its own band in config (riskGradeFromScore / strategy-grade pathBand):
+ * confluenceFloor - 0.05 = 0.60. No new score — the config band's lower edge.
+ */
+export const RH_PATH_FLOOR_BPLUS = Math.round((APLUS_RULES.confluenceFloor - 0.05) * 100) / 100;
+
+/** Per-band confluence floor. A+/A/A- = 0.65; B+ = 0.60 (its own config band). */
+export const RH_PATH_FLOOR_BY_BAND: Readonly<Record<(typeof RH_PATH_GRADES)[number], number>> = {
+  "A+": RH_PATH_FLOOR,
+  A: RH_PATH_FLOOR,
+  "A-": RH_PATH_FLOOR,
+  "B+": RH_PATH_FLOOR_BPLUS,
+};
+
+/** Floor for a PATH band; null when the band is not an accepted RH grade. */
+export function rhPathFloorForBand(band: string | null | undefined): number | null {
+  const b = normalizeBand(band) as (typeof RH_PATH_GRADES)[number];
+  return (RH_PATH_GRADES as readonly string[]).includes(b) ? RH_PATH_FLOOR_BY_BAND[b] : null;
+}
+
+/** A PATH scanner fire older than this cannot start a place (same bound as tape). */
+export const RH_PATH_FIRE_MAX_AGE_MS = 30_000;
 export const RH_MIN_DEBIT_TOTAL = 150;
 export const RH_MAX_DEBIT_TOTAL = 550;
 export const RH_MIN_CONTRACTS = 1;
@@ -161,7 +195,7 @@ export function evaluateRhBuyingPower(
   return { ok: true, why: `BP $${sp.toFixed(2)} covers ${debitTotal != null ? `$${Number(debitTotal).toFixed(2)}` : `$${RH_MIN_DEBIT_TOTAL} floor`}` };
 }
 
-export type RhPathBand = "A+" | "A" | "A-" | string;
+export type RhPathBand = "A+" | "A" | "A-" | "B+" | string;
 
 export interface RhAutofireCandidate {
   floorVerdict: "ARMED" | "WATCH" | "STAND" | string;
@@ -204,10 +238,8 @@ export type RhAutofireGateResult =
   | { ok: true; why: string }
   | { ok: false; reason: string; gate: string };
 
-const HIGH_PROB = new Set(["A+", "A", "A-", "A＋"]);
-
 function normalizeBand(band: string | null | undefined): string {
-  return String(band ?? "").replace("−", "-").replace("＋", "+");
+  return String(band ?? "").trim().replace("−", "-").replace("＋", "+");
 }
 
 function normalizeOffset(offset: string | null | undefined): string {
@@ -238,8 +270,9 @@ export function evaluateRhTicketEnvelope(t: RhTicketEnvelope): RhAutofireGateRes
 
 /**
  * Floor rules re-read on the RH side (mandate.ts). Missing signals refuse.
- * TODO(floor): wire ceTouch / tapeAgeSec / dte from the live Floor card into
- * candidateFromFloorPathStand — until they are wired, autofire stays refused.
+ * Signals are wired (rh-floor-signals.ts): candidateFromFloorPathStand /
+ * proposeRhFromPathFire read CE touch from the PATH book's live quote vs its
+ * entry array, tape = now − desk.fetchedAt, DTE = Floor card ticket.dteTarget.
  */
 export function evaluateRhFloorRules(
   c: Pick<RhAutofireCandidate, "ceTouch" | "tapeAgeSec" | "dte" | "pathBand">,
@@ -306,12 +339,13 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
     return { ok: false, gate: "path_actionable", reason: "PATH scanner candidate is not actionable." };
   }
   const band = normalizeBand(c.pathBand);
-  if (!HIGH_PROB.has(band)) {
-    return { ok: false, gate: "path_band", reason: `PATH band ${c.pathBand ?? "-"} is not A+/A/A-.` };
+  const floor = rhPathFloorForBand(band);
+  if (floor == null) {
+    return { ok: false, gate: "path_band", reason: `PATH band ${c.pathBand ?? "-"} is not A+/A/A-/B+.` };
   }
-  const conf = typeof c.confluence === "number" ? c.confluence : 0;
-  if (conf < RH_PATH_FLOOR) {
-    return { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH floor ${RH_PATH_FLOOR.toFixed(2)}.` };
+  const conf = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
+  if (conf < floor) {
+    return { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < PATH ${band} floor ${floor.toFixed(2)}.` };
   }
   if (c.agentAgree !== true) {
     return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };

@@ -11,7 +11,7 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
@@ -210,7 +210,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
-    verdict: c.actionable && isHighProbPath(c) ? "ARMED" : "WATCH",
+    verdict: c.actionable && isPathFire(c) ? "ARMED" : "WATCH",
     u,
     type: c.side === "short" ? "PUT" : "CALL",
     band: c.pathBand ? String(c.pathBand) : null,
@@ -244,7 +244,7 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         name: `${c.pathBand} ${c.symbol} ${c.side}`,
         symbol: c.symbol,
         strategy: c.completeStrategy || c.strategyPrimary || null,
-        verdict: c.actionable && isHighProbPath(c) ? "ARMED" : SETUP_BANDS.has(String(c.pathBand ?? "")) ? "WATCH" : "STAND",
+        verdict: c.actionable && isPathFire(c) ? "ARMED" : SETUP_BANDS.has(String(c.pathBand ?? "")) ? "WATCH" : "STAND",
         band: c.pathBand ? String(c.pathBand) : null,
         u,
         side: c.side === "short" ? "short" : "long",
