@@ -864,7 +864,7 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
     // Rain: streaks that fall with the clock.
     ctx.strokeStyle = storm ? "rgba(191,219,254,0.55)" : "rgba(191,219,254,0.3)";
     ctx.lineWidth = 1.5;
-    const drops = storm ? 140 : v >= 25 ? 60 : 0;
+    const drops = storm ? 140 : v != null && v >= 25 ? 60 : 0;
     for (let i = 0; i < drops; i++) {
       const dx = rnd() * w;
       const dy = (rnd() * h + tSec * 420) % h;

@@ -19,6 +19,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { PredictionMarket, PredictionMarketFeedState } from "@/lib/predict/prediction-market-feed";
+import type { CrowdRead } from "@/lib/predict/signal-engine";
+import { reactionForCrowd } from "./mead-signal-feed";
 import { OwnerAvatar } from "@/components/room/floor-proto-avatars";
 import {
   MEAD,
@@ -49,6 +51,12 @@ export interface MeadSceneOptions {
   onTicket?: (marketId: string, side: TicketSide) => void;
   /** The crowd reacted (the tab flashes the edge the same colour). */
   onReaction?: (r: Reaction, line: string) => void;
+  /**
+   * PM analyzer mode: the crowd reacts ONLY to the signal engine's CrowdRead
+   * (real price velocity from Kalshi trades) via `setCrowd` — setFeed never
+   * triggers a reaction (no first-load hail, no poll-to-poll diff).
+   */
+  crowdDriven?: boolean;
 }
 
 type V2 = [number, number];
@@ -242,8 +250,8 @@ class Person {
     this.root.traverse((o) => (o.userData.person = true));
   }
 
-  react(kind: Reaction, t: number, line?: string) {
-    this.reaction = { kind, t0: t + Math.random() * 0.35, dur: kind === "hail" ? 3.2 : 2.4 };
+  react(kind: Reaction, t: number, line?: string, stagger = 0) {
+    this.reaction = { kind, t0: t + stagger, dur: kind === "hail" ? 3.2 : 2.4 };
     if (line) this.say(line, kind === "hail" ? "hail" : kind === "cheer" ? "up" : "down", t, 3);
   }
 
@@ -339,6 +347,10 @@ export class MeadScene {
   private state: PredictionMarketFeedState | null = null;
   private prevYes = new Map<string, number>();
   private prevGo = new Set<string>();
+  /** Board asOf of the last CrowdRead acted on (one reaction per real read). */
+  private crowdKey: string | null = null;
+  /** Rotates speech lines / talkers deterministically (no Math.random in reactions). */
+  private reactSeq = 0;
   private flash: { color: number; until: number; kind: "up" | "down" | null } = { color: 0, until: 0, kind: null };
   private focused = false;
   private readonly keys = { w: false, a: false, s: false, d: false };
@@ -980,6 +992,7 @@ export class MeadScene {
     const newGo = [...go].some((id) => !this.prevGo.has(id));
     this.prevYes = new Map(s.markets.filter((m) => m.yesPrice != null).map((m) => [m.id, m.yesPrice as number]));
     this.prevGo = go;
+    if (this.opts.crowdDriven) return;
     if (first && s.markets.length) this.react("hail");
     else if (newGo || move >= 0.04) this.react("hail");
     else if (move >= 0.006) this.react("cheer");
@@ -1005,16 +1018,29 @@ export class MeadScene {
     return left > 0 ? { kind: this.flash.kind, k: Math.min(1, left / 1.2) } : { kind: null, k: 0 };
   }
 
+  /**
+   * Analyzer mode: react to the signal engine's CrowdRead for one board read
+   * (`key` = board asOf). Real velocity only — a quiet/mixed read stays silent,
+   * and the same read never reacts twice.
+   */
+  setCrowd(crowd: CrowdRead, key: string) {
+    if (key === this.crowdKey) return;
+    this.crowdKey = key;
+    const r = reactionForCrowd(crowd);
+    if (r) this.react(r);
+  }
+
   /** Make the crowd react (also used by the tab's preview buttons). */
   react(kind: Reaction) {
     const t = this.time;
+    const seq = this.reactSeq++;
     const lines = LINES[kind];
-    const line = lines[Math.floor(Math.random() * lines.length)];
+    const line = lines[seq % lines.length];
     const barLine = kind === "hail" ? "HAIL!" : kind === "cheer" ? "Next round's on the edge!" : "Easy — it's one price.";
     this.bartender.react(kind, t, barLine);
     const crowd = this.people.filter((p) => p !== this.bartender);
-    const talker = crowd[Math.floor(Math.random() * crowd.length)];
-    for (const p of crowd) p.react(kind, t, p === talker || (kind === "hail" && Math.random() < 0.25) ? line : undefined);
+    const talker = crowd.length ? crowd[seq % crowd.length] : null;
+    crowd.forEach((p, i) => p.react(kind, t, p === talker || (kind === "hail" && (i + seq) % 4 === 0) ? line : undefined, ((i * 7) % 5) * 0.07));
     this.flash = { color: kind === "groan" ? 0xef4444 : kind === "hail" ? 0xc4a35a : 0x22c55e, until: t + 1.6, kind: kind === "groan" ? "down" : "up" };
     this.opts.onReaction?.(kind, kind === "hail" ? "HAIL!" : line);
   }

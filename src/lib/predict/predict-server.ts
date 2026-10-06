@@ -35,6 +35,7 @@ import {
   KALSHI_SOURCE_LABEL,
   RH_MCP_EMPTY_LABEL,
 } from "./prediction-market-feed";
+import { buildSignalBoard, historyFromCandles, rankSignals, type ModelInput, type MoveHistory, type SignalBoard } from "./signal-engine";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
@@ -208,7 +209,19 @@ export const KALSHI_FEED_SERIES = [
 ] as const;
 
 const FEED_CACHE_MS = 12_000;
-let feedCache: { at: number; data: PredictionMarketFeedResult } | null = null;
+/**
+ * A PARTIAL read (deadline hit or series skipped) is cached only this long —
+ * not the full FEED_CACHE_MS window — so the next caller retries the missing
+ * series instead of being served the short read for 12s.
+ */
+export const FEED_PARTIAL_CACHE_MS = 2_000;
+const feedCache = new Map<string, { at: number; ttl: number; data: PredictionMarketFeedResult }>();
+
+/** Cache TTL for a feed result: 0 = do not cache (empty), short for partials, full otherwise. */
+export function feedCacheTtl(out: { markets: readonly unknown[]; deadlineExceeded?: boolean; skipped?: string[] }): number {
+  if (!out.markets.length) return 0;
+  return out.deadlineExceeded || (out.skipped?.length ?? 0) > 0 ? FEED_PARTIAL_CACHE_MS : FEED_CACHE_MS;
+}
 
 const RH_MCP_NOTE =
   `RH MCP empty stub (${RH_MCP_EMPTY_LABEL}) — no event-contract tools; Kalshi public is the quote source.`;
@@ -232,7 +245,17 @@ export const KALSHI_RETRY_AFTER_CAP_MS = 3_000;
  * request is aborted, remaining series are skipped, and the feed returns what
  * it has (or empty) with `deadlineExceeded: true` and a reason.
  */
-export const KALSHI_FEED_DEADLINE_MS = 12_000;
+export const KALSHI_FEED_DEADLINE_MS = 8_500;
+/**
+ * Netlify synchronous functions default to a 10s limit (Pro can raise to 26s).
+ * The feed pass budget above (8.5s) and the signal endpoint's whole wall
+ * budget below stay under it with ~1.5s for cold start + serialisation.
+ */
+export const NETLIFY_SYNC_TIMEOUT_MS = 10_000;
+/** Whole getPredictionSignals call: feed pass + candle reads, under Netlify's 10s. */
+export const SIGNAL_WALL_DEADLINE_MS = 8_500;
+/** Wall time reserved after the feed pass for candlestick reads (move since open). */
+export const SIGNAL_CANDLE_RESERVE_MS = 1_800;
 
 /** Thrown / used as the abort reason when the feed's total budget runs out. */
 export class FeedDeadlineError extends Error {
@@ -404,6 +427,15 @@ export async function fetchKalshiFeed(
   limit: number,
   opts: KalshiFeedOptions = {},
 ): Promise<PredictionMarketFeedResult> {
+  return (await fetchKalshiFeedRaw(series, limit, opts)).result;
+}
+
+/** Same pass as fetchKalshiFeed, also returning the raw rows (signal engine input). */
+export async function fetchKalshiFeedRaw(
+  series: readonly string[],
+  limit: number,
+  opts: KalshiFeedOptions = {},
+): Promise<{ result: PredictionMarketFeedResult; raw: KalshiPublicMarket[] }> {
   const budget = Math.max(1, opts.deadlineMs ?? KALSHI_FEED_DEADLINE_MS);
   const deadlineAt = Date.now() + budget;
   const ctl = new AbortController();
@@ -459,7 +491,7 @@ export async function fetchKalshiFeed(
   } else if (deadlineExceeded || failed.length) {
     out.reason = `Partial Kalshi read — ${[deadlineNote, failNote].filter(Boolean).join("; ")}`;
   }
-  return out;
+  return { result: out, raw };
 }
 
 /**
@@ -478,13 +510,104 @@ export const getPredictionMarketFeed = createServerFn({ method: "POST" })
       .optional(),
   )
   .handler(async ({ data }): Promise<PredictionMarketFeedResult> => {
-    if (feedCache && Date.now() - feedCache.at < FEED_CACHE_MS) return feedCache.data;
     const series = data?.series?.length ? data.series : [...KALSHI_FEED_SERIES];
     const limit = data?.limitPerSeries ?? 30;
+    const key = `${series.join(",")}|${limit}`;
+    const hit = feedCache.get(key);
+    if (hit && Date.now() - hit.at < hit.ttl) return hit.data;
     const out = await fetchKalshiFeed(series, limit);
-    // Cache only results that carry rows (full or partial) — empties re-try next call.
-    if (out.markets.length) feedCache = { at: Date.now(), data: out };
+    // Empties are not cached; deadline/skip partials only FEED_PARTIAL_CACHE_MS.
+    const ttl = feedCacheTtl(out);
+    if (ttl > 0) feedCache.set(key, { at: Date.now(), ttl, data: out });
     return out;
+  });
+
+/* ── PM signal engine endpoint (Mead Hall + Predict / Prototype Lab) ────── */
+
+/** Signals with candle reads (move since open) per call — jumbotron + rune board. */
+export const SIGNAL_CANDLE_TOP = 6;
+const signalCache = new Map<string, { at: number; ttl: number; data: SignalBoard }>();
+
+/** Kalshi candlesticks for one market from open → now (hourly ≤7d span, else daily). */
+export async function fetchKalshiCandles(m: KalshiPublicMarket, nowMs: number, signal?: AbortSignal): Promise<MoveHistory | null> {
+  const series = typeof m._series === "string" ? m._series : null;
+  const openMs = typeof m.open_time === "string" ? Date.parse(m.open_time) : NaN;
+  if (!series || !m.ticker || !Number.isFinite(openMs)) return null;
+  const span = nowMs - openMs;
+  const period = span <= 7 * 86_400_000 ? 60 : 1440;
+  const url = `${KALSHI}/series/${encodeURIComponent(series)}/markets/${encodeURIComponent(m.ticker)}/candlesticks?start_ts=${Math.floor(openMs / 1000)}&end_ts=${Math.floor(nowMs / 1000)}&period_interval=${period}`;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      return historyFromCandles(await getJson(url, signal));
+    } catch (err) {
+      // One capped retry on 429 (same Retry-After rule as the feed), else give up — never fill in.
+      if (attempt === 2 || signal?.aborted || !is429(err)) return null;
+      const ra = parseRetryAfterMs(err instanceof HttpError ? err.retryAfter : null) ?? KALSHI_429_BACKOFF_MS;
+      if (ra > KALSHI_RETRY_AFTER_CAP_MS) return null;
+      try {
+        await sleep(ra, signal);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+const modelSchema = z.object({ prob: z.number().gt(0).lt(1), source: z.string().min(1).max(120), asOf: z.string().max(40).nullable().optional() });
+
+/**
+ * PUBLIC read-only signal board: Kalshi feed pass → per-market signals →
+ * candle reads for the top SIGNAL_CANDLE_TOP within SIGNAL_WALL_DEADLINE_MS.
+ * `models` = REAL model inputs by ticker (e.g. modelInputsFromScanRows from
+ * the Predict board); without one a market reads "no edge read".
+ * No order path. Paper/UI only.
+ */
+export const getPredictionSignals = createServerFn({ method: "POST" })
+  .validator(
+    z
+      .object({
+        series: z.array(z.string().min(2).max(64)).max(20).optional(),
+        limitPerSeries: z.number().int().min(1).max(100).optional(),
+        candles: z.boolean().optional(),
+        models: z.record(z.string().min(2).max(96), modelSchema).optional(),
+      })
+      .optional(),
+  )
+  .handler(async ({ data }): Promise<SignalBoard> => {
+    const started = Date.now();
+    const series = data?.series?.length ? data.series : [...KALSHI_FEED_SERIES];
+    const limit = data?.limitPerSeries ?? 30;
+    const models = (data?.models ?? {}) as Record<string, ModelInput>;
+    const key = `${series.join(",")}|${limit}|${data?.candles !== false}|${JSON.stringify(models)}`;
+    const hit = signalCache.get(key);
+    if (hit && Date.now() - hit.at < hit.ttl) return hit.data;
+    const feedBudget = Math.max(1_000, Math.min(KALSHI_FEED_DEADLINE_MS, SIGNAL_WALL_DEADLINE_MS - SIGNAL_CANDLE_RESERVE_MS));
+    const { result, raw } = await fetchKalshiFeedRaw(series, limit, { deadlineMs: feedBudget });
+    const read = { raw, asOf: result.asOf, label: result.label, reason: result.reason, deadlineExceeded: result.deadlineExceeded, skipped: result.skipped };
+    let board = buildSignalBoard(read, { models });
+    const left = SIGNAL_WALL_DEADLINE_MS - (Date.now() - started);
+    if (data?.candles !== false && board.signals.length && left > 400) {
+      const top = rankSignals(board.signals).slice(0, SIGNAL_CANDLE_TOP).map((s) => s.id);
+      const byId = new Map(raw.map((m) => [m.ticker as string, m]));
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(new FeedDeadlineError(SIGNAL_WALL_DEADLINE_MS)), left - 200);
+      const history: Record<string, MoveHistory> = {};
+      try {
+        await mapWithConcurrency(top, KALSHI_SERIES_CONCURRENCY, KALSHI_SERIES_GAP_MS, async (id) => {
+          const m = byId.get(id);
+          const h = m ? await raceAbort(fetchKalshiCandles(m, Date.now(), ctl.signal), ctl.signal).catch(() => null) : null;
+          if (h) history[id] = h;
+        }, { signal: ctl.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+      if (Object.keys(history).length) board = buildSignalBoard(read, { models, history });
+      board.candles = { tried: top.length, read: Object.keys(history).length };
+    }
+    const ttl = feedCacheTtl({ markets: board.signals, deadlineExceeded: board.deadlineExceeded, skipped: board.skipped });
+    if (ttl > 0) signalCache.set(key, { at: Date.now(), ttl, data: board });
+    return board;
   });
 
 /** Explicit empty stub for callers that asked RH MCP for event contracts. */
