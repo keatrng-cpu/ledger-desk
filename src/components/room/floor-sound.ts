@@ -2,7 +2,7 @@
  * The floor's sound. OFF by default and remembered per browser; the tab's
  * speaker toggle turns it on, and that click is what unlocks audio.
  *
- * Two layers, both presentation:
+ * Layers, all presentation, each mutable on its own (the sound bed, Chunk A item 13):
  *  - event tones (WebAudio, no files) for what the cycle already decided
  *    (a fill, a winner, the bell at the open);
  *  - the line on the caption, in that person's designated voice. The voice is
@@ -10,6 +10,9 @@
  *    it is what rasps. A raid is a little quicker, a stop a little slower.
  *    The person already talking finishes. The words are the caption. It does
  *    not write a line, pick a trade, or read a number the room did not print.
+ *  - the bed: a room murmur, the weather (wind under overcast, rain + thunder in a storm — from the real VIX band,
+ *    silent without one), a soft tape tick when the price prints up or down, and the killzone clock (a tick each
+ *    second inside a killzone, a chime when one opens).
  */
 
 import type { Character } from "@/lib/room/orchestrator";
@@ -47,6 +50,44 @@ function saveCast(cast: Partial<Record<Character, string>>): void {
 
 const STORAGE = "ledger-room-sound-v1";
 
+/** The sound bed's layers. "events" and "voices" are the two layers the floor always had. */
+export type BedLayer = "room" | "weather" | "tape" | "clock" | "events" | "voices";
+export const BED_LAYERS: { id: BedLayer; label: string; title: string }[] = [
+  { id: "voices", label: "Voices", title: "The five (and the Stand) speaking the caption" },
+  { id: "events", label: "Events", title: "Fills, exits, the bell, alerts, the cat" },
+  { id: "room", label: "Room", title: "A low room murmur" },
+  { id: "weather", label: "Weather", title: "Wind when the VIX is 20+, rain and thunder at 30+ (silent without a VIX)" },
+  { id: "tape", label: "Tape", title: "A soft tick when NQ (the QQQ track) prints up (higher) or down (lower)" },
+  { id: "clock", label: "Clock", title: "Killzone clock: a tick each second inside a killzone, a chime when one opens" },
+];
+const BED_KEY = "ledger-room-soundbed-v1";
+
+export function loadBedMutes(): Record<BedLayer, boolean> {
+  const base: Record<BedLayer, boolean> = { room: false, weather: false, tape: false, clock: false, events: false, voices: false };
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(BED_KEY) : null;
+    const v = raw ? (JSON.parse(raw) as Partial<Record<BedLayer, boolean>>) : null;
+    if (v && typeof v === "object") for (const k of Object.keys(base) as BedLayer[]) if (typeof v[k] === "boolean") base[k] = v[k]!;
+  } catch {
+    // defaults
+  }
+  return base;
+}
+
+export function saveBedMutes(m: Record<BedLayer, boolean>): void {
+  try {
+    window.localStorage.setItem(BED_KEY, JSON.stringify(m));
+  } catch {
+    // Per-tab only.
+  }
+}
+
+export interface BedState {
+  weather: "clear" | "cloud" | "overcast" | "storm" | "none";
+  intensity: number;
+  inKillzone: boolean;
+}
+
 export function loadSoundPref(): { on: boolean; volume: number } {
   try {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE) : null;
@@ -69,6 +110,104 @@ export class FloorSound {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   volume = 0.5;
+  private mutes: Record<BedLayer, boolean> = loadBedMutes();
+  private loops: Partial<Record<"room" | "weather", { src: AudioBufferSourceNode; gain: GainNode; filter: BiquadFilterNode }>> = {};
+  private bedOn = false;
+  private bedState: BedState = { weather: "none", intensity: 0, inKillzone: false };
+
+  isMuted(layer: BedLayer): boolean {
+    return this.mutes[layer];
+  }
+
+  setMuted(layer: BedLayer, muted: boolean): void {
+    this.mutes = { ...this.mutes, [layer]: muted };
+    saveBedMutes(this.mutes);
+    if (layer === "voices" && muted) this.hush();
+    this.applyBed();
+  }
+
+  /** Start / update / stop the loops. `on` is the floor's speaker toggle; each loop also has its own mute. */
+  bed(on: boolean, state: BedState): void {
+    this.bedOn = on;
+    this.bedState = state;
+    if (on) this.ensure();
+    this.applyBed();
+  }
+
+  private loop(kind: "room" | "weather") {
+    const ctx = this.ctx;
+    if (!ctx || !this.master) return null;
+    const have = this.loops[kind];
+    if (have) return have;
+    const len = ctx.sampleRate * 3;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) {
+      const white = Math.random() * 2 - 1;
+      if (kind === "room") {
+        // Brown noise: a low murmur.
+        last = (last + 0.02 * white) / 1.02;
+        d[i] = last * 3.5;
+      } else d[i] = white;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = kind === "room" ? "lowpass" : "bandpass";
+    filter.frequency.value = kind === "room" ? 380 : 2200;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(filter).connect(gain).connect(this.master);
+    src.start();
+    const rec = { src, gain, filter };
+    this.loops[kind] = rec;
+    return rec;
+  }
+
+  private applyBed(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const room = this.bedOn && !this.mutes.room ? 0.05 : 0;
+    const w = this.bedState.weather;
+    const weather = this.bedOn && !this.mutes.weather ? (w === "storm" ? 0.1 + 0.05 * this.bedState.intensity : w === "overcast" ? 0.035 : w === "cloud" ? 0.012 : 0) : 0;
+    if (room > 0 || this.loops.room) this.loop("room")?.gain.gain.setTargetAtTime(room, now, 0.6);
+    if (weather > 0 || this.loops.weather) {
+      const l = this.loop("weather");
+      if (l) {
+        l.filter.type = w === "storm" ? "bandpass" : "lowpass";
+        l.filter.frequency.setTargetAtTime(w === "storm" ? 2200 : 650, now, 0.5);
+        l.gain.gain.setTargetAtTime(weather, now, 0.8);
+      }
+    }
+  }
+
+  /** The tape layer: one soft tick, higher when the print is up, lower when down. */
+  tapeTick(up: boolean): void {
+    if (!this.bedOn || this.mutes.tape) return;
+    const ctx = this.ensure();
+    if (!ctx) return;
+    this.tone(up ? 1760 : 1175, ctx.currentTime + 0.005, 0.03, "sine", 0.025);
+  }
+
+  /** The clock layer: a tick each second inside a killzone; a two-note chime when one opens. */
+  clockTick(): void {
+    if (!this.bedOn || this.mutes.clock || !this.bedState.inKillzone) return;
+    const ctx = this.ensure();
+    if (!ctx) return;
+    this.noise(ctx.currentTime + 0.005, 0.012, 0.05, 4000);
+  }
+
+  chime(): void {
+    if (!this.bedOn || this.mutes.clock) return;
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime + 0.01;
+    this.tone(784, t, 0.9, "sine", 0.12);
+    this.tone(1175, t + 0.28, 1.2, "sine", 0.1);
+  }
 
   /** Must run from a user gesture the first time (browser autoplay rules). */
   private ensure(): AudioContext | null {
@@ -153,6 +292,7 @@ export class FloorSound {
    */
   say(line: { character: Character; text: string; animation?: string }): void {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (this.mutes.voices) return;
     const parts = phrasePlan(line.character, line.text, line.animation);
     if (!parts.length || !parts[0].text) return;
     this.queue.push({ token: this.gen, who: line.character, parts });
@@ -245,6 +385,7 @@ export class FloorSound {
   }
 
   play(e: FloorEvent): void {
+    if (e === "thunder" ? this.mutes.weather : this.mutes.events) return;
     const ctx = this.ensure();
     if (!ctx) return;
     const t = ctx.currentTime + 0.01;
@@ -278,6 +419,11 @@ export class FloorSound {
           this.tone(587, t + i * 0.36 + 0.18, 0.16, "square", 0.07);
         }
         break;
+      case "thunder":
+        // A low rumble that rolls off.
+        this.tone(55, t, 2.4, "sawtooth", 0.08, 38);
+        this.noise(t, 1.8, 0.12, 120);
+        break;
       case "meow":
         this.tone(620, t, 0.18, "sawtooth", 0.06, 900);
         this.tone(900, t + 0.18, 0.28, "sawtooth", 0.05, 480);
@@ -287,6 +433,14 @@ export class FloorSound {
 
   dispose(): void {
     this.hush();
+    for (const l of Object.values(this.loops)) {
+      try {
+        l?.src.stop();
+      } catch {
+        // already stopped
+      }
+    }
+    this.loops = {};
     void this.ctx?.close();
     this.ctx = null;
     this.master = null;

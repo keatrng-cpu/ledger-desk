@@ -16,7 +16,8 @@
     { "id": "office_Goal", "label": "Goal Room — $1,000 to $5,000", "x": [9.6, 14], "z": [4.8, 8], "floor": "carpet_plum" },
     { "id": "invest_floor", "label": "Investment Office — the long game", "x": [1, 14], "z": [8, 12.6], "floor": "carpet_charcoal" },
     { "id": "boardroom", "label": "Boardroom — the chair and the five", "x": [1, 8.4], "z": [12.6, 17], "floor": "walnut" },
-    { "id": "chair_office", "label": "Chair's office — the CEO", "x": [8.4, 14], "z": [12.6, 17], "floor": "carpet_red" }
+    { "id": "chair_office", "label": "Chair's office — the CEO", "x": [8.4, 14], "z": [12.6, 17], "floor": "carpet_red" },
+    { "id": "office_Manager", "label": "Trading Stand — the Manager's glass corner office", "x": [-2.0, 1], "z": [0.2, 3.4], "floor": "carpet_charcoal", "procedural": true }
   ],
   "walls": [
     { "id": "ext_north", "a": [-14, -10], "b": [14, -10], "height": 3.6, "kind": "solid", "doors": [] },
@@ -42,7 +43,10 @@
     { "id": "inv_south", "a": [1, 17], "b": [14, 17], "height": 1.1, "kind": "low", "doors": [] },
     { "id": "inv_board_north", "a": [1, 12.6], "b": [8.4, 12.6], "height": 2.7, "kind": "glass", "doors": [[3.4, 4.6]] },
     { "id": "inv_chair_north", "a": [8.4, 12.6], "b": [14, 12.6], "height": 2.7, "kind": "glass", "doors": [[10.6, 11.8]] },
-    { "id": "inv_board_chair", "a": [8.4, 12.6], "b": [8.4, 17], "height": 2.7, "kind": "glass", "doors": [] }
+    { "id": "inv_board_chair", "a": [8.4, 12.6], "b": [8.4, 17], "height": 2.7, "kind": "glass", "doors": [] },
+    { "id": "mgr_north", "a": [-2.0, 0.2], "b": [1, 0.2], "height": 2.7, "kind": "glass", "doors": [[-0.6, 0.5]], "procedural": true },
+    { "id": "mgr_west", "a": [-2.0, 0.2], "b": [-2.0, 3.4], "height": 2.7, "kind": "glass", "doors": [], "procedural": true },
+    { "id": "mgr_east", "a": [1, 0.2], "b": [1, 3.4], "height": 2.7, "kind": "glass", "doors": [], "procedural": true }
   ],
   "furniture": [
     { "id": "desk_Jax", "kind": "desk", "pos": [-11.5, -9.2], "rot": 0, "size": [2.4, 0.75, 0.9], "obstacle": true },
@@ -144,7 +148,13 @@
     { "id": "vchair_C1", "kind": "meeting_chair", "pos": [12, 14.2], "rot": 0, "size": [0.55, 0.95, 0.55], "obstacle": true },
     { "id": "globe_Chair", "kind": "globe", "pos": [9.1, 14.3], "rot": 0, "size": [0.45, 1.1, 0.45], "obstacle": true },
     { "id": "safe_Chair", "kind": "safe", "pos": [9.1, 16.4], "rot": 90, "size": [0.6, 0.8, 0.6], "obstacle": true },
-    { "id": "plant_Chair", "kind": "plant", "pos": [9.1, 15.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true }
+    { "id": "plant_Chair", "kind": "plant", "pos": [9.1, 15.5], "rot": 0, "size": [0.5, 1.3, 0.5], "obstacle": true },
+    { "id": "desk_Manager", "kind": "desk", "pos": [-1.2, 2.2], "rot": 90, "size": [1.8, 0.75, 0.8], "obstacle": true, "procedural": true },
+    { "id": "chair_Manager", "kind": "office_chair", "pos": [-0.35, 2.2], "rot": 270, "size": [0.6, 1.1, 0.6], "obstacle": false, "procedural": true },
+    { "id": "key_Manager", "kind": "keyboard", "pos": [-0.98, 2.2], "rot": 90, "size": [0.46, 0.03, 0.16], "obstacle": false, "onTop": 0.75, "procedural": true },
+    { "id": "balcony_Owner", "kind": "balcony", "pos": [2.5, -3.0], "rot": 0, "size": [2.4, 1.2, 3.2], "obstacle": true, "procedural": true },
+    { "id": "stairs_Owner", "kind": "stairs", "pos": [4.7, -3.0], "rot": 0, "size": [2.0, 1.2, 1.1], "obstacle": true, "procedural": true },
+    { "id": "wall_record", "kind": "partition", "pos": [7.6, -4.2], "rot": 0, "size": [0.24, 2.3, 4.0], "obstacle": true, "procedural": true }
   ],
   "screens": [
     { "id": "whiteboard", "kind": "whiteboard", "center": [-13.93, 1.62, -1.0], "size": [4.2, 1.5], "facing": 90, "px": [1024, 366] },
@@ -210,7 +220,15 @@
     { "id": "mon_Chair_0", "kind": "monitor", "center": [11.2, 1.15, 14.88], "size": [0.62, 0.37], "facing": 0, "px": [512, 306] },
     { "id": "plate_Board", "kind": "plate", "center": [4.7, 2.2, 12.57], "size": [1.4, 0.28], "facing": 180, "px": [440, 112] },
     { "id": "plate_Chair", "kind": "plate", "center": [11.2, 2.2, 12.57], "size": [1.4, 0.28], "facing": 180, "px": [440, 112] },
-    { "id": "plate_Inv", "kind": "plate", "center": [1.07, 2.75, 10.05], "size": [1.8, 0.28], "facing": 90, "px": [440, 112] }
+    { "id": "plate_Inv", "kind": "plate", "center": [1.07, 2.75, 10.05], "size": [1.8, 0.28], "facing": 90, "px": [440, 112] },
+    { "id": "ovh_mgr_0", "kind": "monitor", "center": [-1.42, 1.12, 1.85], "size": [0.62, 0.37], "facing": 90, "px": [512, 306], "procedural": true },
+    { "id": "ovh_mgr_1", "kind": "monitor", "center": [-1.42, 1.12, 2.55], "size": [0.62, 0.37], "facing": 90, "px": [512, 306], "procedural": true },
+    { "id": "plate_Manager", "kind": "plate", "center": [-1.3, 2.2, 0.17], "size": [1.3, 0.28], "facing": 180, "px": [520, 112], "procedural": true },
+    { "id": "ovh_tickerwall", "kind": "tv", "center": [-9.0, 2.95, 3.3], "size": [9.4, 0.6], "facing": 180, "px": [2400, 154], "procedural": true },
+    { "id": "ovh_kz_E", "kind": "clock", "center": [-4.36, 2.45, -1.0], "size": [1.2, 1.2], "facing": 90, "px": [512, 512], "procedural": true },
+    { "id": "ovh_kz_W", "kind": "clock", "center": [-4.44, 2.45, -1.0], "size": [1.2, 1.2], "facing": 270, "px": [512, 512], "procedural": true },
+    { "id": "ovh_trophies", "kind": "poster", "center": [7.73, 1.35, -4.2], "size": [3.7, 1.9], "facing": 90, "px": [1480, 760], "procedural": true },
+    { "id": "ovh_scars", "kind": "poster", "center": [7.47, 1.35, -4.2], "size": [3.7, 1.9], "facing": 270, "px": [1480, 760], "procedural": true }
   ],
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },
