@@ -19,7 +19,7 @@ import { VENUES, sideFee, type VenueId } from "@/lib/predict/math";
 import { ENTRY_STYLE } from "@/components/desk/use-entry-state";
 import { createMeadFeed, type MeadFeed } from "./mead-feed";
 import { MeadScene, marketById, type MeadMood, type Reaction, type TicketSide } from "./mead-scene";
-import { MEAD, categoryLabel, cents, edgeTag, eventLabel, pct } from "./mead-screens";
+import { MEAD, categoryLabel, cents, edgeTag, eventLabel, gradeColor, pct, setupGradeLabel } from "./mead-screens";
 
 const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 const BTN =
@@ -110,7 +110,7 @@ function PaperTicket({ draft, onClose }: { draft: TicketDraft; onClose: () => vo
           <div className="rounded bg-black/30 p-1.5">
             <div className="opacity-70">Grade · gates</div>
             <div className="text-base font-black" style={{ color: MEAD.brass }}>
-              {m.setupGrade} · {m.gates.passed}/{m.gates.total}
+              {setupGradeLabel(m.setupGrade)} · {m.gates.passed}/{m.gates.total}
             </div>
           </div>
         </div>
@@ -308,8 +308,12 @@ export default function MeadHallTab() {
                   <span className="font-semibold">{m.outcome}</span> <span className="text-[var(--color-muted)]">{eventLabel(m)}</span>
                 </span>
                 <span className="w-12 text-right font-mono">{pct(m.winChance)}</span>
-                <span className="w-8 text-center font-black" style={{ color: m.setupGrade.startsWith("A") ? "#4ade80" : m.setupGrade === "B" ? MEAD.brass : "#94a3b8" }}>
-                  {m.setupGrade}
+                <span
+                  className={m.setupGrade != null ? "w-8 text-center font-black" : "w-8 text-center text-[9px] font-semibold leading-tight"}
+                  style={{ color: m.setupGrade == null ? gradeColor("—") : m.setupGrade.startsWith("A") ? "#4ade80" : m.setupGrade === "B" ? MEAD.brass : "#94a3b8" }}
+                  title={setupGradeLabel(m.setupGrade)}
+                >
+                  {setupGradeLabel(m.setupGrade)}
                 </span>
                 <button type="button" className="rounded bg-green-700 px-2 py-0.5 text-[11px] font-bold text-white disabled:opacity-40" disabled={m.yesPrice == null} onClick={() => setDraft({ market: m, side: "YES" })}>
                   YES {cents(m.yesPrice)}
@@ -333,7 +337,7 @@ export default function MeadHallTab() {
                 YES {cents(featured.yesPrice)} · NO {cents(featured.noPrice)} · win {pct(featured.winChance)}
               </div>
               <div style={{ color: MEAD.brass }}>
-                {edgeTag(featured.edge)} · grade {featured.setupGrade} · {featured.gates.word} {featured.gates.passed}/{featured.gates.total}
+                {edgeTag(featured.edge)} · {featured.setupGrade != null ? `grade ${featured.setupGrade}` : setupGradeLabel(null)} · {featured.gates.word} {featured.gates.passed}/{featured.gates.total}
               </div>
               {featured.gates.missing && <div className="text-[11px] text-[var(--color-muted)]">Missing: {featured.gates.missing}</div>}
             </div>

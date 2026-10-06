@@ -37,18 +37,22 @@ ok("never more signals than raw rows", board.signals.length <= fixture.markets.l
 check("engine version", board.engineVersion, "pm-signal/1");
 check("default fee model is Kalshi taker", board.feeModel, "kalshi");
 ok("every signal has the Prototype Lab fields", board.signals.every((s) =>
-  s.id && s.grade && Array.isArray(s.reasons) && s.reasons.length > 0 && s.headline &&
+  s.id && "grade" in s && Array.isArray(s.reasons) && s.reasons.length > 0 && s.headline &&
   "feeAdjustedYes" in s.implied && "cents" in s.spread && typeof s.liquidity.score === "number" &&
   "sinceOpen" in s.move && "velocityCentsPerHour" in s.move && "msToSettle" in s.settlement && s.freshness.asOf));
 ok("no model → every edge is 'no edge read'", board.signals.every((s) => s.edge.status === "no edge read" && s.edge.reason));
 check("noEdgeCount = all", board.noEdgeCount, board.signals.length);
-ok("no model → no grade better than B", board.signals.every((s) => gi(s.grade) >= gi("B")));
+ok("no edge read → NO letter (grade null, not ≤B)", board.signals.every((s) => s.grade === null && s.ungradedReason === "no edge read"));
+check("board.ungraded = all", board.ungraded, board.signals.length);
+check("counts hold no letters", Object.values(board.counts).reduce((a, b) => a + b, 0), 0);
+ok("headline says No grade", board.signals.every((s) => /^No grade \(setup \d+\)/.test(s.headline)));
+check("gradeLabel(null)", E.gradeLabel(null), "no grade");
 ok("prices are the raw prices (not invented)", board.signals.every((s) => {
   const r = fixture.markets.find((m) => m.ticker === s.id);
   const p = (v) => (v == null ? null : Number(v) > 0 && Number(v) <= 1 ? Number(v) : null);
   return r && s.prices.yesAsk === p(r.yes_ask_dollars) && s.prices.yesBid === p(r.yes_bid_dollars);
 }));
-ok("ranked: grade non-decreasing", board.signals.every((s, i, a) => i === 0 || gi(a[i - 1].grade) <= gi(s.grade)));
+ok("ranked: score non-increasing among ungraded", board.signals.every((s, i, a) => i === 0 || a[i - 1].score >= s.score));
 
 console.log("\nFee-adjusted implied probability (net of fees + slippage)");
 const base = {
@@ -67,17 +71,19 @@ check("spread 2¢", s0.spread.cents, 2);
 check("overround", s0.implied.overround, 0.02);
 check("time to settle in words", s0.settlement.words, "4.0 h");
 check("freshness live", s0.freshness.word, "live");
-check("coin-flip, no model → B (setup only)", s0.grade, "B");
-ok("reasons say why it is capped", s0.reasons.some((r) => r.effect === "cap" && /No edge read/.test(r.text)));
+check("coin-flip, no model → no letter", s0.grade, null);
+ok("reasons say why there is no letter", s0.reasons.some((r) => r.effect === "cap" && /No edge read.*no letter grade/.test(r.text)));
 
 console.log("\nFavorite–longshot: cheap YES grades down by default");
 const cheap = E.computeSignal({ ...base, ticker: "KXMLBGAME-TEST-CHEAP", yes_bid_dollars: "0.0600", yes_ask_dollars: "0.0700", no_bid_dollars: "0.9300", no_ask_dollars: "0.9400" }, { asOf, now });
-check("≤10¢ YES capped at D", gi(cheap.grade) >= gi("D"), true);
+check("≤10¢ YES, no model → no letter", cheap.grade, null);
+const cheapM = E.computeSignal({ ...base, ticker: "KXMLBGAME-TEST-CHEAP", yes_bid_dollars: "0.0600", yes_ask_dollars: "0.0700", no_bid_dollars: "0.9300", no_ask_dollars: "0.9400" }, { asOf, now, models: { "KXMLBGAME-TEST-CHEAP": { prob: 0.2, source: "ref", asOf } } });
+ok("≤10¢ YES with model still capped at D", cheapM.grade != null && gi(cheapM.grade) >= gi("D"));
 check("price bin lt10", cheap.priceBin, "lt10");
 ok("reason cites Kalshi evidence", cheap.reasons.some((r) => /60%/.test(r.text)));
 ok("maker vs taker note shown", cheap.reasons.some((r) => /Takers lost about 31%/.test(r.text)));
 const lng = E.computeSignal({ ...base, ticker: "KXMLBGAME-TEST-LS", yes_bid_dollars: "0.1400", yes_ask_dollars: "0.1500", no_bid_dollars: "0.8500", no_ask_dollars: "0.8600" }, { asOf, now });
-ok("10–20¢ YES capped at C", gi(lng.grade) >= gi("C"));
+check("10–20¢ YES, no model → no letter", lng.grade, null);
 ok("cheap scores below coin flip", cheap.score < s0.score && lng.score < s0.score);
 
 console.log("\nEdge only with a real model input");
@@ -95,11 +101,17 @@ check("model favouring NO grades the NO side", [noSide.edge.side, noSide.gradedS
 
 console.log("\nCaps: stale / last-trade / closed");
 const stale = E.computeSignal(base, { asOf, now: Date.parse(asOf) + 120_000 });
-ok("stale fetch → D or worse", gi(stale.grade) >= gi("D") && stale.freshness.staleReason === "fetch_age");
+ok("stale fetch, no model → no letter", stale.grade === null && stale.freshness.staleReason === "fetch_age");
+const staleM = E.computeSignal(base, { asOf, now: Date.parse(asOf) + 120_000, models: { [base.ticker]: { prob: 0.64, source: "ref", asOf } } });
+ok("stale fetch with model → D or worse", staleM.grade != null && gi(staleM.grade) >= gi("D"));
 const lastOnly = E.computeSignal({ ...base, ticker: "X-LT", yes_bid_dollars: "0", yes_ask_dollars: "0", no_ask_dollars: "0", no_bid_dollars: "0" }, { asOf, now });
-ok("last trade only → D or worse, liquidity none", gi(lastOnly.grade) >= gi("D") && lastOnly.freshness.priceBasis === "last_trade" && lastOnly.liquidity.score <= 20);
+ok("last trade only → no letter, liquidity none", lastOnly.grade === null && lastOnly.freshness.priceBasis === "last_trade" && lastOnly.liquidity.score <= 20);
 const closed = E.computeSignal({ ...base, ticker: "X-CL", status: "closed" }, { asOf, now });
-check("closed → F", closed.grade, "F");
+check("closed, no model → no letter", closed.grade, null);
+const closedM = E.computeSignal({ ...base, ticker: "X-CL", status: "closed" }, { asOf, now, models: { "X-CL": { prob: 0.64, source: "ref", asOf } } });
+check("closed with model → F", closedM.grade, "F");
+const rk = E.rankSignals([closedM, s0, withModel]).map((s) => s.grade);
+check("rank: A, then ungraded, then F", rk, ["A", null, "F"]);
 check("nothing real → null", E.computeSignal({ ticker: "X-NONE" }, { asOf, now }), null);
 const far = E.computeSignal({ ...base, ticker: "X-FAR", expected_expiration_time: "2026-11-30T00:00:00Z", close_time: "2026-11-30T00:00:00Z" }, { asOf, now });
 ok("long horizon grades slightly down", far.score === s0.score - 5);
@@ -107,9 +119,9 @@ ok("long horizon grades slightly down", far.score === s0.score - 5);
 console.log("\nNFL boost is moderate");
 const nfl = E.computeSignal({ ...base, ticker: "KXNFLGAME-TEST-MIN", event_ticker: "KXNFLGAME-TEST", _series: "KXNFLGAME" }, { asOf, now });
 check("NFL score = non-NFL + 3", nfl.score - s0.score, 3);
-check("NFL never passes the no-model cap", nfl.grade, "B");
+check("NFL, no model → still no letter", nfl.grade, null);
 const nflCheap = E.computeSignal({ ...cheap, ...{ ticker: "KXNFLGAME-TEST-CH", event_ticker: "KXNFLGAME-TEST", _series: "KXNFLGAME" }, yes_bid_dollars: "0.0600", yes_ask_dollars: "0.0700", no_ask_dollars: "0.9400", no_bid_dollars: "0.9300", yes_bid_size_fp: "800", yes_ask_size_fp: "900", volume_24h_fp: "5000", close_time: base.close_time, expected_expiration_time: base.expected_expiration_time, status: "active" }, { asOf, now });
-ok("NFL longshot still capped at D", gi(nflCheap.grade) >= gi("D"));
+check("NFL longshot, no model → no letter", nflCheap.grade, null);
 
 console.log("\nMove since open + velocity (real candles only)");
 const t0 = Date.parse("2026-10-05T22:00:00Z") / 1000;

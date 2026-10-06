@@ -17,7 +17,7 @@
  *     id, event, outcome,
  *     yesPrice, noPrice,           // 0–1
  *     winChance, edge,             // 0–1 / $/contract after fees
- *     setupGrade,                  // A+ | A | B | C | D
+ *     setupGrade,                  // A+ | A | B | C | D | null (null = no grade — signal had no edge read)
  *     gates,                       // { word, passed, total, missing }
  *     source,
  *     asOf,                        // ISO — FETCH time of the quote (never updated_time)
@@ -79,7 +79,11 @@ export interface PredictionMarket {
   noPrice: number | null;
   winChance: number | null;
   edge: number | null;
-  setupGrade: SetupGrade;
+  /**
+   * Scanner letter. `null` only for signal-engine rows with no letter grade
+   * (no edge read) — render NO_GRADE_LABEL, never a placeholder letter.
+   */
+  setupGrade: SetupGrade | null;
   gates: MarketGates;
   source: MarketSource;
   /** ISO fetch time of the quote. Kalshi rows: when we read the book — never `updated_time`. */
@@ -105,7 +109,8 @@ export interface PredictionMarket {
 
 /** Signal-engine view of a row for the Mead Hall screens (strings come from real MarketSignal fields). */
 export interface MarketHallView {
-  grade: "A" | "B" | "C" | "D" | "F";
+  /** Omitted when the signal has no letter grade (no edge read). */
+  grade?: "A" | "B" | "C" | "D" | "F";
   /** Jumbotron footer line (implied after fees · spread · move · settle). */
   line: string;
   /** Rune Board sub-line. */
@@ -173,7 +178,8 @@ const num = (v: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-export const gradeRank = (g: SetupGrade) => ["A+", "A", "B", "C", "D"].indexOf(g);
+/** Ungraded (null) ranks after every letter. */
+export const gradeRank = (g: SetupGrade | null) => (g == null ? 5 : ["A+", "A", "B", "C", "D"].indexOf(g));
 
 /** A letter for the setup, from the scanner's own readiness — a view, never a gate. */
 export function gradeFor(r: ScanRow): SetupGrade {

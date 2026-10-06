@@ -44,7 +44,8 @@ export interface PaperTicket {
   fee?: number;
   slippage?: number;
   role?: "taker" | "maker";
-  grade?: SignalGrade;
+  /** null = ungraded ("no edge read") — scored under byGrade "ungraded". */
+  grade?: SignalGrade | null;
   /** ISO time the forecast/price was snapshotted. */
   snapshotAt: string;
   /** ISO expected settlement / close (for time-to-close buckets). */
@@ -349,7 +350,14 @@ export function scorePaper(tickets: PaperTicket[], opts: ScorerOptions = {}): Pa
     overall,
     calibration: calibrationBuckets(scored, bins, minB),
     byTimeToClose,
-    byGrade: groupBy(scored, (t) => t.grade ?? null, ["A", "B", "C", "D", "F"], fees, slip, minB),
+    byGrade: groupBy(
+      scored,
+      (t) => (t.grade === null ? "ungraded" : (t.grade ?? null)),
+      ["A", "B", "C", "D", "F", "ungraded"],
+      fees,
+      slip,
+      minB,
+    ),
     byPriceBin: groupBy(
       scored,
       (t) => priceBinFor(t.entryPrice)?.id ?? null,

@@ -26,7 +26,9 @@ import {
   walkForward,
   durationWords,
   NO_EDGE_READ,
+  NO_GRADE_LABEL,
   TOO_FEW,
+  gradeLabel,
   type MarketSignal,
   type ModelInput,
   type PaperTicket,
@@ -107,17 +109,36 @@ function Ring({ value, label, sub, color }: { value: number | null; label: strin
   );
 }
 
-/** Calibration ring value: 1 − n-weighted mean |observed − forecast| over the scorer's buckets. */
-function calibrationScore(score: PaperScore): number | null {
-  if (score.overall.read !== "ok") return null;
-  let n = 0;
-  let gap = 0;
-  for (const b of score.calibration) {
-    if (b.gap == null || !b.n) continue;
-    n += b.n;
-    gap += b.n * Math.abs(b.gap);
+/**
+ * Calibration ring (Accuracy should-fix):
+ *   Prefer scorer Murphy REL — ring fill = 1 − REL (higher = better calibrated).
+ *   Else derived calibration gap over buckets with read === "ok" only (never thin bins).
+ */
+function calibrationScore(score: PaperScore): { value: number | null; label: string; sub: string } {
+  const need = `${TOO_FEW} (need ${score.minSample.overall})`;
+  if (score.overall.read === "ok") {
+    const rel = score.overall.murphy.reliability;
+    return {
+      value: Math.max(0, Math.min(1, 1 - rel)),
+      label: "Calibration (1−Murphy REL)",
+      sub: `Murphy REL ${rel} · Brier ${score.overall.brier} ±${score.overall.brierCi95} · lower REL is better`,
+    };
   }
-  return n ? 1 - gap / n : null;
+  // Derived fallback — only weight ok buckets (should-fix c). Still null until overall is ok.
+  let n = 0;
+  let gapSum = 0;
+  for (const b of score.calibration) {
+    if (b.read !== "ok" || b.gap == null || !b.n) continue;
+    n += b.n;
+    gapSum += b.n * Math.abs(b.gap);
+  }
+  const derived = n ? 1 - gapSum / n : null;
+  // Suppress ring until overall sample is ok (same gate as before); label stays honest.
+  return {
+    value: null,
+    label: "Calibration gap (derived)",
+    sub: derived == null ? need : `ok-bucket gap ready · overall ${need}`,
+  };
 }
 
 function Record({ tickets, title, compact = false }: { tickets: PaperTicket[]; title: string; compact?: boolean }) {
@@ -126,15 +147,21 @@ function Record({ tickets, title, compact = false }: { tickets: PaperTicket[]; t
   const o = score.overall;
   const ok = o.read === "ok" ? o : null;
   const cal = calibrationScore(score);
+  const settledLabel = score.settled === 0 ? "unsettled" : `${score.settled} settled`;
   return (
     <div className="space-y-2">
       <div className={LABEL} style={MUTED}>
-        {title} · {score.tickets} paper · {score.open} open · {score.settled} settled
+        {title} · {score.tickets} paper · {score.open} open · {settledLabel}
         {score.excludedPostOutcome ? ` · ${score.excludedPostOutcome} excluded (post-outcome)` : ""}
       </div>
+      {score.settled === 0 && (
+        <div className="text-[11px]" style={MUTED}>
+          unsettled — no settlements yet
+        </div>
+      )}
       <div className="flex flex-wrap gap-4">
         <Ring value={ok ? ok.hitRate : null} label="Hit rate" sub={ok ? `${ok.n} scored · net ${signedC(ok.netPerContract)}/contract after fees` : `${TOO_FEW} (need ${score.minSample.overall})`} color="#22c55e" />
-        <Ring value={cal} label="Calibration" sub={ok ? `1 − mean |observed − forecast| · Brier ${ok.brier} ±${ok.brierCi95}` : `${TOO_FEW} (need ${score.minSample.overall})`} color={MEAD.brass} />
+        <Ring value={cal.value} label={cal.label} sub={cal.sub} color={MEAD.brass} />
       </div>
       {!compact && (
         <>
@@ -213,8 +240,16 @@ function DeskPanel({ s, rank, tickets, focus }: { s: MarketSignal; rank: number;
   return (
     <section id={`pm-${s.id}`} className={PANEL} style={{ ...PANEL_STYLE, boxShadow: focus ? `0 0 0 2px ${MEAD.brass}` : undefined }} data-testid="pm-desk-panel">
       <div className="mb-2 flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 text-2xl font-black" style={{ borderColor: GRADE_COLOR[s.grade], color: GRADE_COLOR[s.grade] }} title={`setup score ${s.score}/100`}>
-          {s.grade}
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border-2 text-2xl font-black"
+          style={{
+            borderColor: s.grade != null ? GRADE_COLOR[s.grade] : "rgba(148,163,184,0.55)",
+            color: s.grade != null ? GRADE_COLOR[s.grade] : "#94a3b8",
+            fontSize: s.grade != null ? undefined : 11,
+          }}
+          title={s.grade != null ? `${gradeLabel(s.grade)} · setup score ${s.score}/100` : `${gradeLabel(s.grade)} — setup score ${s.score}/100${s.ungradedReason ? ` · ${s.ungradedReason}` : ""}`}
+        >
+          {s.grade != null ? s.grade : "—"}
         </div>
         <div className="min-w-0 flex-1">
           <div className={LABEL} style={{ color: MEAD.brass }}>
@@ -380,7 +415,7 @@ export default function PmAnalyzer() {
           PAPER ONLY
         </span>
         <span className="ml-auto text-[11px] text-[var(--color-muted)]">
-          {b ? `${b.signals.length} markets · A${b.counts.A} B${b.counts.B} C${b.counts.C} D${b.counts.D} F${b.counts.F} · ${b.noEdgeCount} no edge read · ${modelCount} model inputs` : "—"}
+          {b ? `${b.signals.length} markets · A${b.counts.A} B${b.counts.B} C${b.counts.C} D${b.counts.D} F${b.counts.F} · ${b.ungraded} ${NO_GRADE_LABEL} · ${b.noEdgeCount} no edge read · ${modelCount} model inputs` : "—"}
           {b?.candles ? ` · candles ${b.candles.read}/${b.candles.tried}` : ""} · {clock(b?.asOf)}
         </span>
         <button type="button" className={BTN} style={BTN_STYLE} onClick={() => feed?.refresh()} title="Re-read the signal board">
@@ -426,7 +461,7 @@ export default function PmAnalyzer() {
       <section className={PANEL} style={PANEL_STYLE}>
         <Record tickets={tickets} title="Paper record — all analyzer tickets" />
         <p className="mt-2 text-[10px]" style={MUTED}>
-          Tickets settle only from a real settled-market read; until one is wired every ticket stays open and the rings read “{TOO_FEW}”. Measure before trusting.
+          Paper tickets stay unsettled until a real settled-market read is wired; until then rings read “{TOO_FEW}”. Measure before trusting.
         </p>
       </section>
 
@@ -449,7 +484,7 @@ export default function PmAnalyzer() {
           Sports scanner + GO ledger — the model inputs behind “edge” ({modelCount})
         </summary>
         <p className="mt-1 text-[10px] text-[var(--color-muted)]">
-          Its conservative reference (DraftKings no-vig / ESPN live) is sent to the signal engine as the model input per ticker. Without one, a market reads “{NO_EDGE_READ}” and grades no better than B.
+          Its conservative reference (DraftKings no-vig / ESPN live) is sent to the signal engine as the model input per ticker. Without one, a market reads “{NO_EDGE_READ}” and shows {NO_GRADE_LABEL} (no letter).
         </p>
         <div className="mt-2">
           <PredictTab embedded onScanRows={onScanRows} />
