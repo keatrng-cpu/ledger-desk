@@ -37,6 +37,7 @@ import { managerStubRequested, roomManagerFeed } from "@/lib/room/manager-room-f
 import { managerLoopReadout } from "@/lib/room/manager-live-loop";
 import { reportRhAccount } from "@/lib/ui/rh-account";
 import { RhAccountStrip } from "@/components/desk/rh-account-strip";
+import { FloorCommandCenter } from "@/components/floor/command";
 import { REACTIONS, useWirePins, useWireReactions } from "./wire-chat";
 
 /** The z the stored EV test printed for its verdict, so this panel cannot quote a stale one. */
@@ -1107,39 +1108,7 @@ function GateBlocks({ gates }: { gates: GateRow[] }) {
   );
 }
 
-/* ── The decision strip: what the desk says, what the Manager says, what the account allows ── */
-
-function DecisionStrip({
-  entry,
-  managerState,
-  onManager,
-}: {
-  entry: ReturnType<typeof useEntryState>["read"];
-  managerState: ManagerRoomState | null;
-  onManager: () => void;
-}) {
-  const auto = useAutomation();
-  const d = entry ? displayEntry(entry, auto) : null;
-  const call = managerState?.call ?? null;
-  return (
-    <div className="grid gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
-      <div className="flex items-center gap-2" title={d?.hint ?? "Waiting for the desk"}>
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Desk</span>
-        <span className="rounded px-2 py-0.5 font-mono text-[13px] font-bold" style={{ color: d?.color ?? "var(--color-muted)", border: `1px solid ${d?.color ?? "var(--color-border)"}` }}>
-          {d?.label ?? "—"}
-        </span>
-      </div>
-      <button type="button" onClick={onManager} className="flex min-w-0 items-center gap-2 text-left" title="Open the Manager's stand">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
-        <span className="font-mono text-[11px] font-semibold text-[var(--color-fg)]">{managerState?.current ?? "—"}</span>
-        <span className="min-w-0 truncate text-[11px] text-[var(--color-muted)]">
-          {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
-        </span>
-      </button>
-      <RhAccountStrip />
-    </div>
-  );
-}
+/* Decision strip + command cards live in src/components/floor/command/* */
 
 export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | null } = {}) {
   const frame = useRoomStore((s) => s.frame);
@@ -1401,6 +1370,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </p>
       )}
 
+      <FloorCommandCenter desk={desk} entry={entry} managerState={managerState} onManager={openManager} />
+
       <div ref={wrap} className="relative h-[58vh] min-h-[340px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[#0b1220]">
         <FloorCanvas
           frame={frame}
@@ -1561,8 +1532,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           {walkMode ? "Walk mode: WASD walks · clicks don't follow (use Follow) · " : "Click a person to follow them · "}double-click a screen, the board or a TV to go to it · Esc lets go.
         </span>
       </div>
-
-      <DecisionStrip entry={entry} managerState={managerState} onManager={openManager} />
 
       {managerOpen && managerState && (
         <ManagerPanel
