@@ -227,6 +227,14 @@ export interface KalshiPublicMarket {
    */
   updated_time?: string;
   status?: string;
+  /** Kalshi market open time (ISO) — when trading began. */
+  open_time?: string;
+  /** Last trade price on the previous day (0 = no trade). */
+  previous_price_dollars?: string | number;
+  previous_yes_bid_dollars?: string | number;
+  previous_yes_ask_dollars?: string | number;
+  open_interest_fp?: string | number;
+  liquidity_dollars?: string | number;
   /** Optional tag from the fetcher (series ticker). */
   _series?: string;
 }
