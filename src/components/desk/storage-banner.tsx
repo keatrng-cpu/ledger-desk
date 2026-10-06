@@ -6,7 +6,6 @@ import {
   type StorageHealth,
 } from "@/lib/journal/storage-health";
 import { BUILD_ID } from "@/lib/build-id";
-import { cn } from "@/lib/utils";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { SIGN_IN_PATH } from "@/lib/auth/gates";
 
@@ -81,21 +80,32 @@ export function StorageBanner() {
   }
 
   const critical = health.deployed;
+  // DEV (not deployed): the embedded database is a local file that survives
+  // restarts — so it is neither "in-memory" nor an emergency. A small footer
+  // badge, with the full note on hover. Was a full-width amber alert on every
+  // tab titled "In-memory database" above text saying it is saved on disk.
+  if (!critical) {
+    return (
+      <div
+        role="status"
+        className="pointer-events-auto fixed bottom-2 left-2 z-30 flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] bg-[var(--color-surface)]/90 px-2.5 py-1 font-mono text-[10px] text-[var(--color-warn)] shadow backdrop-blur"
+        title="Local embedded database (dev) — saved on this machine and survives restarts, but not shared across devices and not a deployment."
+      >
+        <Database className="h-3 w-3" aria-hidden />
+        dev · local db ({health.backend}) · build {BUILD_ID}
+        <span className="text-[var(--color-border-strong)]">·</span>
+        <AccountChip />
+      </div>
+    );
+  }
   return (
     <div
       role="alert"
-      className={cn(
-        "mb-2 flex items-start gap-2 rounded-[var(--radius-md)] border px-3 py-2 text-xs",
-        critical
-          ? "border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_12%,transparent)] text-[var(--color-down)]"
-          : "border-[color-mix(in_oklab,var(--color-warn)_35%,var(--color-border))] text-[var(--color-warn)]",
-      )}
+      className="mb-2 flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_12%,transparent)] px-3 py-2 text-xs text-[var(--color-down)]"
     >
       <AlertOctagon className="mt-0.5 h-4 w-4 shrink-0" />
       <div className="min-w-0">
-        <p className="font-semibold">
-          {critical ? "NOT SAVING YOUR DATA" : "In-memory database (dev)"}
-        </p>
+        <p className="font-semibold">NOT SAVING YOUR DATA</p>
         <p className="mt-0.5 leading-relaxed opacity-90">{health.warning}</p>
         <p className="mt-1 font-mono text-[10px] opacity-70">
           backend {health.backend} · build {BUILD_ID}
