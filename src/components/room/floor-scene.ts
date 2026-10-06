@@ -577,6 +577,12 @@ class Avatar {
   speaking = false;
   /** Pacing back and forth around the target while not walking anywhere else. */
   pace = false;
+  /**
+   * Presentation only: a point a STANDING person turns to face (the war board
+   * while the desk is ARMED). Seated people keep facing their monitors and
+   * nobody's path or anchor changes. Null = the anchor's own facing.
+   */
+  gaze: V2 | null = null;
   private paceToB = true;
   private bodyY = 0;
   private slamCooldown = 0;
@@ -967,7 +973,8 @@ class Avatar {
           this.walkPhase += dt * 3.3;
         }
       } else {
-        this.yaw = angleLerp(this.yaw, target.yaw, 1 - Math.exp(-6 * dt));
+        const want = this.gaze && target.pose === "stand" ? yawTo(this.pos, this.gaze) : target.yaw;
+        this.yaw = angleLerp(this.yaw, want, 1 - Math.exp(-6 * dt));
         this.mode = target.pose;
       }
     }
@@ -1240,6 +1247,10 @@ export interface TalkBatch {
 }
 
 export interface FloorSceneOptions {
+  /** The canvas took / released the wheel (click-to-focus, Esc, click outside). */
+  onFocusChange?: (focused: boolean) => void;
+  /** A wheel over the unfocused canvas scrolled the page — show the "click to zoom" hint. */
+  onScrollHint?: () => void;
   onSpeaker?: (index: number, line: DialogueLine | null) => void;
   onMeetingDone?: () => void;
   onSelect?: (who: Character) => void;
@@ -1373,6 +1384,16 @@ function seeThrough(o: THREE.Object3D): boolean {
   return mats.every((x) => x.transparent && x.opacity < 0.6);
 }
 
+/** The desk's entry state (src/lib/ui/entry-state.ts), as the room's mood. */
+export type EntryMood = "WAIT" | "STALKING" | "ARMED" | "ENTER";
+/** Sky tint, intensity factor and board-light colour/strength per state. Lighting only — nothing reads it back. */
+const MOOD: Record<EntryMood, { sky: number; dim: number; glow: number; glowI: number; bg: string }> = {
+  WAIT: { sky: 0x9fb4ff, dim: 0.8, glow: 0x3b5bdb, glowI: 1.5, bg: "#0a1226" },
+  STALKING: { sky: 0xffe0a8, dim: 0.95, glow: 0xf59e0b, glowI: 5, bg: "#15110a" },
+  ARMED: { sky: 0xc8fff4, dim: 1, glow: 0x14b8a6, glowI: 6, bg: "#08161a" },
+  ENTER: { sky: 0xd2ffd9, dim: 1.08, glow: 0x22c55e, glowI: 9, bg: "#08170d" },
+};
+
 export class FloorScene {
   private readonly container: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
@@ -1387,6 +1408,18 @@ export class FloorScene {
   private readonly clock = new THREE.Clock();
   private readonly hemi: THREE.HemisphereLight;
   private readonly alarm: THREE.PointLight;
+  /** Entry-state mood: tints the hemisphere light and lights the board. */
+  private mood: EntryMood | null = null;
+  private readonly moodLight: THREE.PointLight;
+  private readonly moodSky = new THREE.Color(0xe0ecff);
+  private readonly moodBg = new THREE.Color("#0b1220");
+  private moodDim = 1;
+  /**
+   * Scroll capture. The canvas only zooms on the wheel after a click into it
+   * (focus) or with Ctrl/⌘ held; otherwise the wheel scrolls the page. Esc or
+   * a click outside lets go.
+   */
+  private focused = false;
   private frame: FloorFrame | null = null;
   /** Jax stands back at the board when his last chase call scored wrong. */
   private sterlingFirst = false;
@@ -1466,7 +1499,8 @@ export class FloorScene {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = "block";
-    this.renderer.domElement.style.touchAction = "none";
+    // Touch: let the page scroll vertically until the canvas is focused.
+    this.renderer.domElement.style.touchAction = "pan-y";
 
     this.scene.background = new THREE.Color("#0b1220");
     const cam = LAYOUT.camera.overview!;
@@ -1475,6 +1509,8 @@ export class FloorScene {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(...cam.target);
     this.controls.enableDamping = true;
+    // No scroll hijack: wheel zoom only once the canvas is focused (click) or with Ctrl/⌘ (onWheelCapture).
+    this.controls.enableZoom = false;
     this.controls.maxPolarAngle = 1.42;
     // The director frames speaker close-ups ~2.3 m out. A floor of 3 m used to push those cuts back through
     // the north wall (the view was the outside of the wall and a floating speech bubble).
@@ -1514,6 +1550,10 @@ export class FloorScene {
     this.alarm = new THREE.PointLight(0xff2222, 0, 16, 1.4);
     this.alarm.position.set(-7, 3.3, -1);
     this.scene.add(this.alarm);
+    const wb = LAYOUT.screens.find((x) => x.id === "whiteboard");
+    this.moodLight = new THREE.PointLight(MOOD.WAIT.glow, 0, 14, 1.5);
+    this.moodLight.position.set(wb ? wb.center[0] : -7, 2.9, wb ? wb.center[2] : -1);
+    this.scene.add(this.moodLight);
     this.buildWingFloors();
 
     this.buildScreens();
@@ -1543,6 +1583,9 @@ export class FloorScene {
     this.renderer.domElement.addEventListener("pointermove", this.onMove);
     this.renderer.domElement.addEventListener("pointerleave", this.onLeave);
     window.addEventListener("keydown", this.onKey);
+    // Capture phase, so zoom is switched on/off before OrbitControls sees the wheel.
+    this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: true });
+    document.addEventListener("pointerdown", this.onDocDown, true);
     this.resize();
     this.loop();
     // Dev-only handle for poking the scene from a browser console or a headless check.
@@ -2523,8 +2566,17 @@ export class FloorScene {
       const day = smoothstep(6.5, 8.5, hour) * (1 - smoothstep(17.5, 19.5, hour));
       const vix = f?.screens.vix ?? 0;
       const storm = vix >= 30 ? 0.55 : vix >= 20 ? 0.8 : 1;
-      this.hemi.intensity = 0.32 + 0.63 * day * storm;
-      this.sun.intensity = 0.2 + 1.5 * day * storm;
+      this.hemi.intensity = (0.32 + 0.63 * day * storm) * this.moodDim;
+      this.sun.intensity = (0.2 + 1.5 * day * storm) * this.moodDim;
+    }
+    // Entry mood: ease the sky tint and background, and breathe the board light.
+    if (this.mood) {
+      const k = 1 - Math.exp(-2.5 * dt);
+      this.hemi.color.lerp(this.moodSky, k);
+      if (this.scene.background instanceof THREE.Color) this.scene.background.lerp(this.moodBg, k);
+      const m = MOOD[this.mood];
+      const breathe = this.mood === "ENTER" ? 0.65 + 0.35 * Math.sin(t * 5) : this.mood === "ARMED" ? 0.8 + 0.2 * Math.sin(t * 2.4) : 1;
+      this.moodLight.intensity += (m.glowI * breathe - this.moodLight.intensity) * Math.min(1, k * 3);
     }
     if (f && t - this.lastWinDraw > ((f.screens.vix ?? 0) >= 25 ? 0.12 : 0.6)) {
       this.lastWinDraw = t;
@@ -2667,8 +2719,56 @@ export class FloorScene {
   }
 
   private onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && this.focused) this.setFocused(false);
     if (e.key === "Escape" && this.chase) this.follow(null);
   };
+
+  /* scroll capture */
+
+  private onWheelCapture = (e: WheelEvent) => {
+    const zoom = this.focused || e.ctrlKey || e.metaKey;
+    this.controls.enableZoom = zoom;
+    // Not ours: OrbitControls returns before preventDefault when zoom is off, so the page scrolls.
+    if (!zoom) this.opts.onScrollHint?.();
+  };
+
+  /** A press inside the canvas focuses it; a press anywhere else lets go. */
+  private onDocDown = (e: PointerEvent) => {
+    const inside = e.target instanceof Node && this.renderer.domElement.contains(e.target);
+    if (inside !== this.focused) this.setFocused(inside);
+  };
+
+  private setFocused(on: boolean) {
+    this.focused = on;
+    this.controls.enableZoom = on;
+    this.renderer.domElement.style.touchAction = on ? "none" : "pan-y";
+    this.opts.onFocusChange?.(on);
+  }
+
+  /** Let go of the wheel (the tab's hint overlay calls this, as Esc does). */
+  releaseFocus() {
+    if (this.focused) this.setFocused(false);
+  }
+
+  /* entry mood */
+
+  /**
+   * The room reacts to the desk's entry state: WAIT dims to blue, STALKING
+   * warms amber, ARMED goes teal and turns standing people to the board,
+   * ENTER lights the board green with a pulse. Lighting and facing only.
+   */
+  setEntryMood(state: EntryMood) {
+    if (state === this.mood) return;
+    this.mood = state;
+    const m = MOOD[state];
+    this.moodSky.setHex(m.sky);
+    this.moodBg.set(m.bg);
+    this.moodDim = m.dim;
+    this.moodLight.color.setHex(m.glow);
+    const wb = LAYOUT.screens.find((x) => x.id === "whiteboard");
+    const gaze: V2 | null = state === "ARMED" || state === "ENTER" ? (wb ? [wb.center[0], wb.center[2]] : null) : null;
+    for (const a of this.avatars.values()) a.gaze = gaze;
+  }
 
   dispose() {
     this.disposed = true;
@@ -2681,6 +2781,8 @@ export class FloorScene {
     this.renderer.domElement.removeEventListener("pointermove", this.onMove);
     this.renderer.domElement.removeEventListener("pointerleave", this.onLeave);
     window.removeEventListener("keydown", this.onKey);
+    this.renderer.domElement.removeEventListener("wheel", this.onWheelCapture, { capture: true });
+    document.removeEventListener("pointerdown", this.onDocDown, true);
     this.controls.dispose();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;

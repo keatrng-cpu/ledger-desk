@@ -232,6 +232,10 @@
     .shimmer {
       animation: none;
     }
+    .ticker-crawl {
+      animation: none !important;
+      padding-left: 0;
+    }
     *,
     *::before,
     *::after {
