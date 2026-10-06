@@ -3,14 +3,46 @@
  * Production (Keaton 2026-10-06): live-when-armed. Triple: Floor ARMED + PATH A+/A/A- + Stand.
  * Envelope: debit $150-$550, 1-4 contracts, ATM or OTM_1 only.
  * Agent: review_option_order then place_option_order (no preview_option_order tool).
+ * Buying-power hard gate (Keaton 2026-10-06): the agent MUST call get_portfolio
+ * (account_number) before propose and again before place. Spendable =
+ * buying_power.buying_power (never `cash` — unsettled proceeds on a cash account
+ * are not spendable). Spendable < $150 → nothing in the envelope can place → refuse.
  * scripts/verify-rh-autofire-gates.mjs pins refusals.
+ *
+ * Accuracy Review 2026-10-06: NO-GO until the hard BP gate passes on a FRESH
+ * get_portfolio read of the Agentic trade account (995386158) — stay disarmed.
+ * Mirrors src/lib/room/exec/gates.ts: the broker's numbers; unknown = no.
+ *
+ * Gate checklist (evaluation order):
+ *  1. env arms (RH_OPTIONS_AUTOFIRE_ENABLED, RH_LIVE_ARMED) + written confirmation
+ *  2. hard BP gate (evaluateRhBuyingPower) — fresh get_portfolio, Agentic account
+ *     number, agentic_allowed, option level >= 2, spendable >= $150
+ *  3. risk halt · news blackout · options session · one-book
+ *  4. Floor rules (evaluateRhFloorRules, mandate.ts ROOM_CLOCK / ROOM_MANDATE):
+ *     no new entries >= 11:00 ET · A+ only >= 10:00 ET · DTE 0/1 ·
+ *     tape (desk feed) <= 30s · CE touch confirmed. Missing signal → refuse.
+ *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 · Stand agentAgree
  */
+import { ROOM_CLOCK, ROOM_MANDATE } from "../room/mandate";
+import { etWallParts } from "../trading/sessions";
 
 export const RH_PATH_FLOOR = 0.65;
 export const RH_MIN_DEBIT_TOTAL = 150;
 export const RH_MAX_DEBIT_TOTAL = 550;
 export const RH_MIN_CONTRACTS = 1;
 export const RH_MAX_CONTRACTS = 4;
+
+/**
+ * THE trade account (Keaton 2026-10-06, revised): Agentic ••••6158 —
+ * option_level_2, limited_margin, agentic_allowed=true. Individual ••••7477 is
+ * display-only. Every propose/place requires this exact account_number.
+ */
+export const RH_PREFERRED_ACCOUNT_NUMBER = "995386158";
+export const RH_PREFERRED_ACCOUNT_MASK_LAST4 = "6158";
+export const RH_PREFERRED_ACCOUNT_LABEL = "Agentic";
+
+/** Floor tape rule: the desk feed the Floor decided on must be <= 30s old. */
+export const RH_MAX_TAPE_AGE_SEC = 30;
 
 export type RhStrikeOffset = "ATM" | "OTM_1";
 export const RH_ALLOWED_OFFSETS: readonly RhStrikeOffset[] = ["ATM", "OTM_1"];
@@ -29,6 +61,106 @@ export const RH_LIVE_DISARMED_REASON =
 export const RH_NOT_CONFIRMED_REASON =
   "RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING is false — flip in rh-autofire-gates.ts after confirming agentic options trading is permitted on this Robinhood account.";
 
+/** A get_portfolio read older than this cannot authorize a live ticket. */
+export const RH_BP_MAX_AGE_MS = 5 * 60_000;
+
+/**
+ * Robinhood account read for the BP gate + Floor context.
+ * Build from get_portfolio (+ get_accounts for type / unsettled / access) via
+ * rhAccountFromPortfolio in rh-account.ts. Only source "get_portfolio" with a
+ * fresh asOfMs can clear the gate; a desk snapshot (screenshot) is context only.
+ */
+export interface RhAccountSnapshot {
+  /** e.g. "Individual ••7477" — masked, never the full number. */
+  label: string;
+  /**
+   * get_accounts.account_number of the account read. Must equal
+   * RH_PREFERRED_ACCOUNT_NUMBER (Agentic 995386158) to clear the BP gate.
+   */
+  accountNumber?: string | null;
+  /** get_accounts.type: "cash" | "limited_margin" | "margin". */
+  accountType: string;
+  /** get_portfolio.cash — includes unsettled proceeds; NOT spendable by itself. */
+  cash: number;
+  /** get_portfolio.buying_power.buying_power — the authoritative spendable figure. */
+  buyingPower: number;
+  /** Options buying power when the source reports one separately; else null (= buyingPower). */
+  optionsBuyingPower?: number | null;
+  /** get_accounts.unsettled_funds (cash accounts). */
+  unsettledFunds?: number | null;
+  /** get_accounts.agentic_allowed — false = this agent cannot trade the account. */
+  agenticAllowed?: boolean | null;
+  /** get_accounts.option_level, e.g. "option_level_2". */
+  optionLevel?: string | null;
+  dayChangeUsd?: number | null;
+  dayChangePct?: number | null;
+  asOfMs: number;
+  source: "get_portfolio" | "desk_snapshot" | string;
+}
+
+/** What the account can actually put into an options debit right now. Never reads `cash`. */
+export function rhSpendable(a: RhAccountSnapshot | null | undefined): number {
+  if (!a) return 0;
+  const bp = Number(a.buyingPower);
+  const obp = a.optionsBuyingPower == null ? bp : Number(a.optionsBuyingPower);
+  const v = Math.min(Number.isFinite(bp) ? bp : 0, Number.isFinite(obp) ? obp : 0);
+  return v > 0 ? v : 0;
+}
+
+/**
+ * Hard BP gate. Fail closed: no read, stale read, non-live source, no access,
+ * no options level, or spendable under the $150 envelope floor → refuse.
+ * With `debitTotal`, also refuses when spendable cannot cover that ticket.
+ */
+export function evaluateRhBuyingPower(
+  a: RhAccountSnapshot | null | undefined,
+  nowMs: number,
+  debitTotal?: number | null,
+): RhAutofireGateResult {
+  if (!a) {
+    return { ok: false, gate: "bp_unknown", reason: "No Robinhood account read — agent must call get_portfolio before propose." };
+  }
+  if (a.source !== "get_portfolio") {
+    return { ok: false, gate: "bp_source", reason: `Account read is ${a.source || "unknown"}, not a live get_portfolio — context only, cannot authorize a ticket.` };
+  }
+  if (a.accountNumber !== RH_PREFERRED_ACCOUNT_NUMBER) {
+    return {
+      ok: false,
+      gate: "bp_wrong_account",
+      reason: `${a.label} (${a.accountNumber ? `••${String(a.accountNumber).slice(-4)}` : "no account number"}) is not the Agentic trade account ••${RH_PREFERRED_ACCOUNT_MASK_LAST4} — refuse.`,
+    };
+  }
+  if (typeof a.buyingPower !== "number" || !Number.isFinite(a.buyingPower)) {
+    return { ok: false, gate: "bp_unknown", reason: `${a.label} buying power is unknown — fail closed.` };
+  }
+  if (a.optionsBuyingPower != null && (typeof a.optionsBuyingPower !== "number" || !Number.isFinite(a.optionsBuyingPower))) {
+    return { ok: false, gate: "bp_unknown", reason: `${a.label} options buying power is unreadable — fail closed.` };
+  }
+  const age = nowMs - Number(a.asOfMs);
+  if (!(age >= -60_000 && age <= RH_BP_MAX_AGE_MS)) {
+    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old (max ${RH_BP_MAX_AGE_MS / 60_000}) — re-read before propose.` };
+  }
+  if (a.agenticAllowed !== true) {
+    return { ok: false, gate: "account_access", reason: `${a.label} is not tradable by this agent — read-only.` };
+  }
+  // Unknown option level = no (live treats unknown as no, as exec/gates.ts does).
+  if (a.optionLevel == null || !/option_level_[23]/.test(a.optionLevel)) {
+    return { ok: false, gate: "options_level", reason: `${a.label} options level ${a.optionLevel || "none"} < 2 — cannot buy calls/puts.` };
+  }
+  const sp = rhSpendable(a);
+  if (sp < RH_MIN_DEBIT_TOTAL) {
+    return {
+      ok: false,
+      gate: "bp_floor",
+      reason: `${a.label} buying power $${sp.toFixed(2)} < $${RH_MIN_DEBIT_TOTAL} min debit — nothing in the $${RH_MIN_DEBIT_TOTAL}-$${RH_MAX_DEBIT_TOTAL} envelope can place.`,
+    };
+  }
+  if (debitTotal != null && !(sp + 1e-9 >= Number(debitTotal))) {
+    return { ok: false, gate: "bp_ticket", reason: `Ticket debit $${Number(debitTotal).toFixed(2)} > buying power $${sp.toFixed(2)}.` };
+  }
+  return { ok: true, why: `BP $${sp.toFixed(2)} covers ${debitTotal != null ? `$${Number(debitTotal).toFixed(2)}` : `$${RH_MIN_DEBIT_TOTAL} floor`}` };
+}
+
 export type RhPathBand = "A+" | "A" | "A-" | string;
 
 export interface RhAutofireCandidate {
@@ -42,6 +174,16 @@ export interface RhAutofireCandidate {
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
+  /**
+   * Fresh get_portfolio read for the account that would place. Missing → refuse
+   * (gate "bp_unknown"). Required in practice; optional in the type so old
+   * callers fail closed instead of failing to compile.
+   */
+  account?: RhAccountSnapshot | null;
+  /** Floor rule signals — missing → refuse (fail closed). Clock = flags.nowMs. */
+  ceTouch?: boolean | null;
+  tapeAgeSec?: number | null;
+  dte?: number | null;
 }
 
 export interface RhTicketEnvelope {
@@ -54,6 +196,8 @@ export interface RhAutofireFlags {
   autofireEnabled: boolean;
   liveArmed: boolean;
   confirmedInWriting?: boolean;
+  /** Clock for the BP freshness check; defaults to Date.now(). */
+  nowMs?: number;
 }
 
 export type RhAutofireGateResult =
@@ -92,6 +236,38 @@ export function evaluateRhTicketEnvelope(t: RhTicketEnvelope): RhAutofireGateRes
   return { ok: true, why: `${n}ct · $${debit.toFixed(0)} · ${offset}` };
 }
 
+/**
+ * Floor rules re-read on the RH side (mandate.ts). Missing signals refuse.
+ * TODO(floor): wire ceTouch / tapeAgeSec / dte from the live Floor card into
+ * candidateFromFloorPathStand — until they are wired, autofire stays refused.
+ */
+export function evaluateRhFloorRules(
+  c: Pick<RhAutofireCandidate, "ceTouch" | "tapeAgeSec" | "dte" | "pathBand">,
+  nowMs: number,
+): RhAutofireGateResult {
+  const p = etWallParts(nowMs);
+  const min = p.hour * 60 + p.minute;
+  if (min >= ROOM_CLOCK.dayFlatMin) {
+    return { ok: false, gate: "after_11", reason: "No new entries at or after 11:00 ET (Floor mandate)." };
+  }
+  if (min >= ROOM_CLOCK.aPlusOnlyAfterMin && normalizeBand(c.pathBand) !== "A+") {
+    return { ok: false, gate: "aplus_after_10", reason: `After 10:00 ET A+ only — PATH band ${c.pathBand ?? "-"}.` };
+  }
+  if (typeof c.dte !== "number" || !(ROOM_MANDATE.dteAllowed as readonly number[]).includes(c.dte)) {
+    return { ok: false, gate: "dte", reason: `DTE ${c.dte ?? "unknown"} — Floor allows 0/1 only.` };
+  }
+  if (typeof c.tapeAgeSec !== "number" || !Number.isFinite(c.tapeAgeSec)) {
+    return { ok: false, gate: "tape_unknown", reason: "Tape (desk feed) age unknown — fail closed." };
+  }
+  if (c.tapeAgeSec > RH_MAX_TAPE_AGE_SEC) {
+    return { ok: false, gate: "tape_stale", reason: `Tape ${Math.round(c.tapeAgeSec)}s old (> ${RH_MAX_TAPE_AGE_SEC}s).` };
+  }
+  if (c.ceTouch !== true) {
+    return { ok: false, gate: "ce_touch", reason: "No confirmed CE touch — Floor entry trigger missing." };
+  }
+  return { ok: true, why: "Floor rules ok" };
+}
+
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {
   if (!flags.autofireEnabled) {
     return { ok: false, gate: "autofire_off", reason: "RH_OPTIONS_AUTOFIRE_ENABLED is not true." };
@@ -103,6 +279,9 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (!confirmed) {
     return { ok: false, gate: "confirmed", reason: RH_NOT_CONFIRMED_REASON };
   }
+  const nowMs = flags.nowMs ?? Date.now();
+  const bp = evaluateRhBuyingPower(c.account, nowMs);
+  if (!bp.ok) return bp;
   if (c.riskHalt) {
     return { ok: false, gate: "risk_halt", reason: "Risk halt is on — no new Robinhood entries." };
   }
@@ -115,6 +294,8 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (c.oneBookBlocked) {
     return { ok: false, gate: "one_book", reason: "One book rule — another underlier already open or locked today." };
   }
+  const floorRules = evaluateRhFloorRules(c, nowMs);
+  if (!floorRules.ok) return floorRules;
   if (c.floorVerdict !== "ARMED") {
     return { ok: false, gate: "floor", reason: `Floor desk is ${c.floorVerdict || "unknown"} — need ARMED.` };
   }
@@ -135,5 +316,5 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (c.agentAgree !== true) {
     return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };
   }
-  return { ok: true, why: `Floor ARMED · PATH ${band} Q ${conf.toFixed(2)} · Stand agrees · live armed` };
+  return { ok: true, why: `Floor ARMED · PATH ${band} Q ${conf.toFixed(2)} · Stand agrees · ${bp.why} · live armed` };
 }

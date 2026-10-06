@@ -2,7 +2,7 @@
  * Manager → agentAgree wiring checks (design step 5).
  * Invoked from verify-rh-autofire-gates.mjs.
  */
-export async function verifyManagerAgree(gates, rh, check, ARMED_FLAGS) {
+export async function verifyManagerAgree(gates, rh, check, ARMED_FLAGS, FUNDED = null) {
   const agree = await import("../src/lib/execution/manager-agree.ts");
 
   check("null ManagerCall → false", agree.agentAgreeFromManagerCall(null), false);
@@ -28,6 +28,12 @@ export async function verifyManagerAgree(gates, rh, check, ARMED_FLAGS) {
     newsBlackout: false,
     riskHalt: false,
     oneBookBlocked: false,
+    // Fresh funded get_portfolio read so the BP gate is not what these checks hit.
+    account: FUNDED,
+    // Floor rule signals (fail closed when missing).
+    ceTouch: true,
+    tapeAgeSec: 5,
+    dte: 1,
   };
 
   const fromManager = rh.candidateFromFloorPathStand({

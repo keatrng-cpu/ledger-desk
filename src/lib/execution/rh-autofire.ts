@@ -2,9 +2,12 @@
  * RH live proposal builder. Does NOT place.
  * Agent: review_option_order (preview — no preview_option_order) then place_option_order when armed.
  * Envelope $150-$550, 1-4 ct, ATM/OTM_1. Keaton 2026-10-06.
+ * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
+ * again before place (mayPlaceAfterReview.accountAtReview). BP < $150 → refused.
  */
 import {
   evaluateRhAutofireGates,
+  evaluateRhBuyingPower,
   evaluateRhTicketEnvelope,
   RH_LIVE_DISARMED_REASON,
   RH_MAX_CONTRACTS,
@@ -14,6 +17,7 @@ import {
   RH_NOT_CONFIRMED_REASON,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   RH_PATH_FLOOR,
+  type RhAccountSnapshot,
   type RhAutofireCandidate,
   type RhAutofireFlags,
   type RhAutofireGateResult,
@@ -31,10 +35,34 @@ export {
   resolveStandAgentAgree,
 } from "./manager-agree";
 export type { ManagerCallAgree, ManagerRoomStateAgree } from "./manager-agree";
+import { accountPlaceGate, type ManagerRhAccount } from "./manager-account";
+export {
+  accountPlaceGate,
+  canFillRhEnvelope,
+  DEFAULT_MANAGER_ROOM_ACCOUNT,
+  managerAccountLine,
+  managerRhAccountFromConnector,
+  RH_AGENTIC_SNAPSHOT_2026_10_06,
+  RH_INDIVIDUAL_ACCOUNT_MASK_LAST4,
+  RH_INDIVIDUAL_ACCOUNT_NUMBER,
+  RH_INDIVIDUAL_SNAPSHOT_2026_10_06,
+  RH_PREFERRED_ACCOUNT_LABEL,
+  RH_PREFERRED_ACCOUNT_MASK_LAST4,
+  RH_PREFERRED_ACCOUNT_NUMBER,
+  toManagerRhAccount,
+} from "./manager-account";
+export type { ManagerRhAccount, ManagerRoomStateAccount } from "./manager-account";
+
+export { rhAccountFromPortfolio, RH_DESK_ACCOUNT_SNAPSHOT, maskAccount } from "./rh-account";
 
 export {
   evaluateRhAutofireGates,
+  evaluateRhBuyingPower,
+  evaluateRhFloorRules,
   evaluateRhTicketEnvelope,
+  rhSpendable,
+  RH_BP_MAX_AGE_MS,
+  RH_MAX_TAPE_AGE_SEC,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   RH_PATH_FLOOR,
   RH_MIN_DEBIT_TOTAL,
@@ -44,7 +72,7 @@ export {
   RH_LIVE_DISARMED_REASON,
   RH_NOT_CONFIRMED_REASON,
 } from "./rh-autofire-gates";
-export type { RhAutofireCandidate, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
+export type { RhAccountSnapshot, RhAutofireCandidate, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
 
 function boolEnv(name: string, env: Record<string, string | undefined> = process.env): boolean {
   return (env[name] ?? "").trim().toLowerCase() === "true";
@@ -156,6 +184,10 @@ export function proposeRhLiveOption(args: {
   if (!envelope.ok) {
     return { gated: envelope, ticket: null, placeShape: null, mode: "refused", flags };
   }
+  const bp = evaluateRhBuyingPower(args.candidate.account, flags.nowMs ?? Date.now(), args.ticket.maxDebitTotal);
+  if (!bp.ok) {
+    return { gated: bp, ticket: null, placeShape: null, mode: "refused", flags };
+  }
   const ref = args.refIdHint ?? `rh-${args.ticket.decisionKey}`;
   return {
     gated,
@@ -173,14 +205,26 @@ export function mayPlaceAfterReview(args: {
   reviewHadBlockingAlert: boolean;
   agenticAllowed: boolean;
   optionsLevelOk: boolean;
+  /** ManagerRoomState.account — REQUIRED; absent/null → refuse (was fail-open). */
+  account?: ManagerRhAccount | null;
+  /** Fresh get_portfolio read taken after review_option_order. Missing → refuse. */
+  accountAtReview?: RhAccountSnapshot | null;
+  /** The reviewed ticket's total debit (limit × 100 × qty). */
+  debitTotal?: number | null;
+  nowMs?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
+  const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null);
+  if (!bp.ok) return { ok: false, reason: bp.reason };
   if (!args.liveArmedNow) return { ok: false, reason: RH_LIVE_DISARMED_REASON };
   if (!(args.confirmedInWriting ?? RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING)) {
     return { ok: false, reason: RH_NOT_CONFIRMED_REASON };
   }
   if (!args.agenticAllowed) return { ok: false, reason: "Robinhood account agentic_allowed=false — read-only." };
   if (!args.optionsLevelOk) return { ok: false, reason: "Options level < 2 — cannot buy calls/puts." };
+  // Fail closed: no Manager account block (Agentic 995386158, BP >= $150) → never place.
+  const acct = accountPlaceGate(args.account ?? null, { requiredDebitUsd: args.debitTotal ?? null });
+  if (!acct.ok) return { ok: false, reason: acct.reason };
   if (args.reviewHadBlockingAlert) {
     return { ok: false, reason: "review_option_order surfaced a blocking alert — human must acknowledge before place." };
   }
@@ -215,6 +259,12 @@ export function candidateFromFloorPathStand(args: {
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
+  /** Fresh get_portfolio read (rhAccountFromPortfolio). Missing → gates refuse bp_unknown. */
+  account?: RhAccountSnapshot | null;
+  /** Floor rule signals (missing → refuse). TODO(floor): feed from the live Floor card. */
+  ceTouch?: boolean | null;
+  tapeAgeSec?: number | null;
+  dte?: number | null;
 }): RhAutofireCandidate {
   const f = args.floor;
   const agreeArgs: {
@@ -236,6 +286,10 @@ export function candidateFromFloorPathStand(args: {
     newsBlackout: args.newsBlackout,
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
+    account: args.account ?? null,
+    ceTouch: args.ceTouch ?? null,
+    tapeAgeSec: args.tapeAgeSec ?? null,
+    dte: args.dte ?? null,
   };
 }
 

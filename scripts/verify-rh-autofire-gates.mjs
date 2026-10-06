@@ -21,6 +21,48 @@ const check = (name, got, want) => {
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 
+const NOW = Date.UTC(2026, 9, 6, 13, 35, 0);
+// Fresh get_portfolio read that can afford the envelope (test fixture only).
+const FUNDED = {
+  label: "Agentic ••6158",
+  accountNumber: "995386158",
+  accountType: "limited_margin",
+  cash: 2000,
+  buyingPower: 2000,
+  optionsBuyingPower: null,
+  unsettledFunds: 0,
+  agenticAllowed: true,
+  optionLevel: "option_level_2",
+  asOfMs: NOW - 30_000,
+  source: "get_portfolio",
+};
+// Keaton screenshot 2026-10-06: Individual $984.12 cash, $11.56 BP — but as a FRESH live read.
+const KEATON_LIVE = {
+  label: "Individual ••7477",
+  accountNumber: "995386158", // isolate the BP gate from the account-number gate
+  accountType: "cash",
+  cash: 984.12,
+  buyingPower: 11.56,
+  optionsBuyingPower: 11.56,
+  unsettledFunds: 972.56,
+  agenticAllowed: true, // isolate the BP gate from the access gate
+  optionLevel: "option_level_2",
+  asOfMs: NOW - 30_000,
+  source: "get_portfolio",
+};
+
+const acctMod = await import("../src/lib/execution/manager-account.ts");
+// Fresh, funded Agentic Manager block (test fixture only).
+const MANAGER_OK = acctMod.toManagerRhAccount({
+  cashUsd: 1000,
+  optionsBuyingPowerUsd: 1000,
+  asOf: new Date(NOW - 30_000).toISOString(),
+  accountNumber: "995386158",
+  agenticAllowed: true,
+  optionLevel: "option_level_2",
+  label: "Agentic",
+});
+
 const QUALIFIED = {
   floorVerdict: "ARMED",
   deskContracts: 2,
@@ -32,12 +74,18 @@ const QUALIFIED = {
   newsBlackout: false,
   riskHalt: false,
   oneBookBlocked: false,
+  account: FUNDED,
+  // Floor rule signals (fail closed when missing). NOW = 09:35 ET.
+  ceTouch: true,
+  tapeAgeSec: 5,
+  dte: 1,
 };
 
 const ARMED_FLAGS = {
   autofireEnabled: true,
   liveArmed: true,
   confirmedInWriting: true,
+  nowMs: NOW,
 };
 
 console.log("PATH floor, envelope, confirmation");
@@ -106,6 +154,101 @@ console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
   check("OTM_2 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 300, strikeOffset: "OTM_2" }).gate, "strike_offset");
 }
 
+console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 BP)");
+{
+  const keaton = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: KEATON_LIVE }, ARMED_FLAGS);
+  check("$11.56 BP refuses at bp_floor even fully qualified", [keaton.ok, keaton.gate], [false, "bp_floor"]);
+  check("bp_floor reason names $11.56 and $150", /\$11\.56/.test(keaton.reason ?? "") && /\$150/.test(keaton.reason ?? ""), true);
+  check("cash $984.12 is NOT spendable (BP rules)", gates.rhSpendable(KEATON_LIVE), 11.56);
+
+  const none = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: undefined }, ARMED_FLAGS);
+  check("no get_portfolio read refuses at bp_unknown", [none.ok, none.gate], [false, "bp_unknown"]);
+
+  const snap = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: rh.RH_DESK_ACCOUNT_SNAPSHOT }, ARMED_FLAGS);
+  check("desk snapshot (screenshot) cannot authorize", [snap.ok, snap.gate], [false, "bp_source"]);
+
+  const stale = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, asOfMs: NOW - 6 * 60_000 } }, ARMED_FLAGS);
+  check("6-min-old read refuses at bp_stale", [stale.ok, stale.gate], [false, "bp_stale"]);
+
+  const noAccess = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, agenticAllowed: false } }, ARMED_FLAGS);
+  check("account not tradable by agent refuses", [noAccess.ok, noAccess.gate], [false, "account_access"]);
+
+  const noLvl = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionLevel: "" } }, ARMED_FLAGS);
+  check("no options level refuses", [noLvl.ok, noLvl.gate], [false, "options_level"]);
+
+  const optBp = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionsBuyingPower: 149.99 } }, ARMED_FLAGS);
+  check("options BP below $150 refuses even with big BP", [optBp.ok, optBp.gate], [false, "bp_floor"]);
+
+  check("$150.00 exactly clears the floor", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 150 }, NOW).ok, true);
+  check("BP $300 refuses a $400 ticket", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 300 }, NOW, 400).gate, "bp_ticket");
+
+  const parsed = rh.rhAccountFromPortfolio({
+    portfolio: { data: { cash: "984.12", buying_power: { buying_power: "11.5600" } } },
+    account: { account_number: "415577477", type: "cash", unsettled_funds: "972.5600", brokerage_account_type: "individual", agentic_allowed: false, option_level: "option_level_2" },
+    asOfMs: NOW,
+  });
+  check("get_portfolio parse: BP from buying_power.buying_power", [parsed.buyingPower, parsed.cash, parsed.source], [11.56, 984.12, "get_portfolio"]);
+  check("get_portfolio parse: masked label", parsed.label, "Individual ••7477");
+  check("parsed carries account_number", parsed.accountNumber, "415577477");
+  check("parsed Individual refuses (not the Agentic trade account)", gates.evaluateRhBuyingPower(parsed, NOW).gate, "bp_wrong_account");
+  check("parsed Individual with access still refuses (wrong account)", gates.evaluateRhBuyingPower({ ...parsed, agenticAllowed: true }, NOW).gate, "bp_wrong_account");
+  check("same read on Agentic number → bp_floor", gates.evaluateRhBuyingPower({ ...parsed, accountNumber: "995386158", agenticAllowed: true }, NOW).gate, "bp_floor");
+
+  const flow = rh.candidateFromFloorPathStand({
+    floor: { verdict: "ARMED", deskContracts: 2, band: "A+", confluence: 0.72 },
+    pathActionable: true, agentAgree: true, optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false,
+    account: KEATON_LIVE,
+  });
+  const p = rh.proposeRhLiveOption({ candidate: flow, ticket: null, flags: ARMED_FLAGS });
+  check("candidateFromFloorPathStand carries account → propose refuses bp_floor", [p.mode, p.gated.gate], ["refused", "bp_floor"]);
+}
+
+console.log("\nhard BP gate — fail closed on unknown / wrong account (Accuracy)");
+{
+  const bp = (a, d) => gates.evaluateRhBuyingPower(a, NOW, d).gate ?? "ok";
+  check("preferred account is Agentic 995386158 / 6158", [gates.RH_PREFERRED_ACCOUNT_NUMBER, gates.RH_PREFERRED_ACCOUNT_MASK_LAST4, gates.RH_PREFERRED_ACCOUNT_LABEL], ["995386158", "6158", "Agentic"]);
+  check("fresh funded Agentic ok", bp(FUNDED), "ok");
+  check("null account → bp_unknown", bp(null), "bp_unknown");
+  check("BP null → bp_unknown", bp({ ...FUNDED, buyingPower: null }), "bp_unknown");
+  check("BP undefined → bp_unknown", bp({ ...FUNDED, buyingPower: undefined }), "bp_unknown");
+  check("BP NaN → bp_unknown", bp({ ...FUNDED, buyingPower: NaN }), "bp_unknown");
+  check("BP string → bp_unknown", bp({ ...FUNDED, buyingPower: "2000" }), "bp_unknown");
+  check("options BP NaN → bp_unknown", bp({ ...FUNDED, optionsBuyingPower: NaN }), "bp_unknown");
+  const noBp = rh.rhAccountFromPortfolio({ portfolio: { data: { cash: "1000" } }, account: { account_number: "995386158", type: "limited_margin", agentic_allowed: true, option_level: "option_level_2" }, asOfMs: NOW });
+  check("get_portfolio without buying_power → bp_unknown", bp(noBp), "bp_unknown");
+  check("Agentic unfunded $0 → bp_floor", bp({ ...FUNDED, cash: 0, buyingPower: 0 }), "bp_floor");
+  check("missing account number → bp_wrong_account", bp({ ...FUNDED, accountNumber: undefined }), "bp_wrong_account");
+  check("Individual 415577477 → bp_wrong_account", bp({ ...FUNDED, accountNumber: "415577477" }), "bp_wrong_account");
+  check("agenticAllowed unknown → account_access", bp({ ...FUNDED, agenticAllowed: null }), "account_access");
+  check("option level unknown → options_level", bp({ ...FUNDED, optionLevel: null }), "options_level");
+  const { account: _drop, ...noAcct } = QUALIFIED;
+  check("autofire: candidate without account → bp_unknown", gates.evaluateRhAutofireGates(noAcct, ARMED_FLAGS).gate, "bp_unknown");
+  check("autofire: BP null → bp_unknown", gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: null } }, ARMED_FLAGS).gate, "bp_unknown");
+  check("autofire: Agentic $0 → bp_floor", gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: 0 } }, ARMED_FLAGS).gate, "bp_floor");
+  const t = { underlier: "QQQ", side: "call", dteTarget: 1, strikeNote: "ATM", strikeOffset: "ATM", contracts: 2, estDebitEach: 2, maxDebitTotal: 400, decisionKey: "k", reason: "r" };
+  const pr = rh.proposeRhLiveOption({ candidate: noAcct, ticket: t, flags: ARMED_FLAGS });
+  check("propose without account → refused, no placeShape", [pr.mode, pr.placeShape, pr.gated.gate], ["refused", null, "bp_unknown"]);
+}
+
+console.log("\nFloor rules (fail closed when signals missing)");
+{
+  const at = (iso) => ({ ...ARMED_FLAGS, nowMs: Date.parse(iso) });
+  const acctAt = (iso) => ({ ...FUNDED, asOfMs: Date.parse(iso) - 10_000 });
+  const g = (o, f = ARMED_FLAGS) => gates.evaluateRhAutofireGates({ ...QUALIFIED, ...o }, f).gate ?? "ok";
+  check("09:35 ET A+ qualified ok", g({}), "ok");
+  check("09:35 ET band A ok", g({ pathBand: "A" }), "ok");
+  check("10:15 ET band A → aplus_after_10", g({ pathBand: "A", account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "aplus_after_10");
+  check("10:15 ET band A+ ok", g({ account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "ok");
+  check("11:00 ET → after_11", g({ account: acctAt("2026-10-06T15:00:00Z") }, at("2026-10-06T15:00:00Z")), "after_11");
+  check("DTE 2 → dte", g({ dte: 2 }), "dte");
+  check("DTE missing → dte", g({ dte: undefined }), "dte");
+  check("tape missing → tape_unknown", g({ tapeAgeSec: undefined }), "tape_unknown");
+  check("tape 31s → tape_stale", g({ tapeAgeSec: 31 }), "tape_stale");
+  check("tape 30s ok", g({ tapeAgeSec: 30 }), "ok");
+  check("CE touch missing → ce_touch", g({ ceTouch: undefined }), "ce_touch");
+  check("CE touch false → ce_touch", g({ ceTouch: false }), "ce_touch");
+}
+
 console.log("\nhappy path when fully armed + confirmed + envelope");
 {
   const g = gates.evaluateRhAutofireGates(QUALIFIED, ARMED_FLAGS);
@@ -149,6 +292,13 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     flags: ARMED_FLAGS,
   });
   check("OTM_2 ticket refuses", [tooFar.gated.ok, tooFar.gated.gate], [false, "strike_offset"]);
+
+  const thin = rh.proposeRhLiveOption({
+    candidate: { ...QUALIFIED, account: { ...FUNDED, buyingPower: 300 } },
+    ticket,
+    flags: ARMED_FLAGS,
+  });
+  check("$400 ticket on $300 BP refuses bp_ticket", [thin.gated.ok, thin.gated.gate], [false, "bp_ticket"]);
 }
 
 console.log("\nmayPlaceAfterReview preflight");
@@ -160,8 +310,17 @@ console.log("\nmayPlaceAfterReview preflight");
     reviewHadBlockingAlert: false,
     agenticAllowed: true,
     optionsLevelOk: true,
+    accountAtReview: FUNDED,
+    account: MANAGER_OK,
+    debitTotal: 400,
+    nowMs: NOW,
   };
   check("clean review may place", rh.mayPlaceAfterReview(base).ok, true);
+  const { account: _m, ...noManager } = base;
+  check("no Manager account key refuses place (fail closed)", rh.mayPlaceAfterReview(noManager).ok, false);
+  check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);
+  check("no re-read at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: undefined }).ok, false);
+  check("$11.56 BP at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: KEATON_LIVE }).ok, false);
   check("blocking alert refuses place", rh.mayPlaceAfterReview({ ...base, reviewHadBlockingAlert: true }).ok, false);
   check("disarm after review refuses place", rh.mayPlaceAfterReview({ ...base, liveArmedNow: false }).ok, false);
   check("default confirmation constant allows place when true", rh.mayPlaceAfterReview({ ...base, confirmedInWriting: undefined }).ok, true);
@@ -179,7 +338,13 @@ console.log("\nenv helpers default off (arm at 09:30 ET tomorrow)");
 console.log("\nManager → agentAgree wiring (design step 5)");
 {
   const { verifyManagerAgree } = await import("./verify-manager-agree.mjs");
-  await verifyManagerAgree(gates, rh, check, ARMED_FLAGS);
+  await verifyManagerAgree(gates, rh, check, ARMED_FLAGS, FUNDED);
+}
+
+console.log("\nManagerRoomState.account (read-only RH block)");
+{
+  const { verifyManagerAccount } = await import("./verify-manager-account.mjs");
+  await verifyManagerAccount(rh, check);
 }
 
 console.log("\nsource posture");
@@ -191,9 +356,16 @@ console.log("\nsource posture");
   check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 150/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
+  check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);
+  check("gates doc says agent must call get_portfolio", /get_portfolio/.test(gsrc), true);
+  check("spendable never reads cash", /a\.cash/.test(gsrc), false);
   const msrc = read("src/lib/execution/manager-agree.ts");
   check("manager-agree adapter exports resolveStandAgentAgree", /export function resolveStandAgentAgree/.test(msrc), true);
   check("manager-agree does not place", /place_option_order|CallDynamicTool/.test(msrc), false);
+  const asrc = read("src/lib/execution/manager-account.ts");
+  check("manager-account does not place", /place_option_order|CallDynamicTool/.test(asrc), false);
+  check("rh-autofire never hardcodes env arms true", /RH_LIVE_ARMED\s*=\s*true|RH_OPTIONS_AUTOFIRE_ENABLED\s*=\s*true/.test(src + gsrc), false);
+  check("rh-autofire does not place", /place_option_order\(|CallDynamicTool/.test(src), false);
   check("candidateFromFloorPathStand accepts manager", /manager\?:\s*ManagerRoomStateAgree/.test(src), true);
 }
 

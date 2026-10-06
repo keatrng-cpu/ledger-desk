@@ -6,16 +6,22 @@
  * no gate thresholds change. Absent Manager state → agentAgree false (safe).
  *
  * Does NOT place orders. Hard gates stay in rh-autofire-gates.ts.
+ * ManagerRoomState.account (read-only RH block) lives in manager-account.ts.
  */
+import type { ManagerRhAccount } from "./manager-account";
 
 /** Minimal ManagerCall shape the RH path needs (design ManagerCall.agentAgree). */
 export interface ManagerCallAgree {
   agentAgree: boolean;
 }
 
-/** Minimal ManagerRoomState shape — only `call` is read for the Stand bit. */
+/**
+ * Minimal ManagerRoomState shape — `call` is read for the Stand bit;
+ * `account` is the read-only RH block (cash / options BP / envelope) for monitors.
+ */
 export interface ManagerRoomStateAgree {
   call: ManagerCallAgree | null;
+  account?: ManagerRhAccount | null;
 }
 
 /**
