@@ -12,6 +12,7 @@ import {
   type PeopleBrains,
   PEOPLE_KEY,
 } from "@/lib/room/desk-atlas";
+import { CREW_STUDY, crewOf, learnCrewYears } from "@/lib/room/crew-years";
 
 const CREW: Record<
   BrainWho,
@@ -57,6 +58,7 @@ export function FloorBrains() {
     const sync = () => setTick((n) => n + 1);
     window.addEventListener(ATLAS_EVENT, sync);
     window.addEventListener("focus", sync);
+    learnCrewYears();
     return () => {
       window.removeEventListener(ATLAS_EVENT, sync);
       window.removeEventListener("focus", sync);
@@ -214,8 +216,9 @@ export function FloorBrains() {
               name={who}
               known={known}
               total={desk.nodes.length}
-              note={focus?.notes[0]?.text ?? null}
-              older={focus?.notes.slice(1, 4).map((n) => n.text) ?? []}
+              note={focus?.notes[0]?.text ?? crewOf(who)?.skill ?? null}
+              older={(focus?.notes.length ? focus.notes.slice(1, 4).map((n) => n.text) : crewOf(who)?.flaws) ?? []}
+              year={crewOf(who)}
             />
           ) : (
             <ShelfCard
@@ -248,6 +251,29 @@ export function FloorBrains() {
           </div>
         </aside>
       </div>
+      <div className="grid gap-2 border-t border-white/10 p-3 sm:grid-cols-5">
+        {CREW_STUDY.people.map((p) => {
+          const c = CREW[p.who];
+          const wr = p.full.wr == null ? "—" : `${Math.round(p.full.wr * 100)}%`;
+          return (
+            <button
+              key={p.who}
+              type="button"
+              onClick={() => setWho(p.who)}
+              className="rounded-md border px-2 py-2 text-left"
+              style={{ borderColor: who === p.who ? c.color : "rgba(255,255,255,0.1)" }}
+            >
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: c.color }}>
+                {p.who} · {p.year}
+              </p>
+              <p className="mt-1 font-mono text-[13px] text-white">
+                {p.full.wins}/{p.full.n} · {wr}
+              </p>
+              <p className="mt-1 text-[10px] leading-snug text-white/45">{p.flaws[0]}</p>
+            </button>
+          );
+        })}
+      </div>
       <p className="border-t border-white/10 px-4 py-2 text-[11px] text-white/45">
         The ring on each person is how much of the desk they have already read. A lit nerve means they wrote something of their own. The desk only keeps a line that raised probability, expectancy, or P&L.
       </p>
@@ -270,12 +296,14 @@ function PersonCard({
   total,
   note,
   older,
+  year,
 }: {
   name: BrainWho;
   known: number;
   total: number;
   note: string | null;
   older: string[];
+  year: ReturnType<typeof crewOf>;
 }) {
   const c = CREW[name];
   return (
@@ -285,7 +313,10 @@ function PersonCard({
       </p>
       <h4 className="mt-1 text-[22px] text-white">{name}</h4>
       <p className="mt-1 text-[12px] text-white/50">
-        Knows {known} of {total} desk nodes. Does not keep a private copy.
+        Knows {known} of {total} desk nodes.
+        {year
+          ? ` ${year.year} on real ES and MNQ: ${year.full.wins}/${year.full.n} (${year.full.wr == null ? "—" : `${Math.round(year.full.wr * 100)}%`}) at ${year.targetR}R. Second half ${year.h2.wins}/${year.h2.n}. ${year.desk ? "It cleared, so the desk kept it." : "It did not clear 65% out of sample, so the desk did not take it."}`
+          : ""}
       </p>
       <p className="mt-4 border-l-2 pl-3 text-[13px] leading-relaxed text-white" style={{ borderColor: c.color }}>
         {note ?? "Nothing of their own yet. They already know the desk, so they are not introducing themselves."}
