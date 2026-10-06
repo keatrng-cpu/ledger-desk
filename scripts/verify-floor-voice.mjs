@@ -2,6 +2,9 @@
  * The floor speaks the caption, in a person's pattern and the line's tone.
  * It does not write a line, and a new caption waits instead of cutting.
  * Digits, units, signs and code names are said the way the desk says them.
+ * The spoken form itself is src/lib/room/spoken-form.ts; verify-spoken-form.mjs pins its rules, the number invariant, the property
+ * test and the corpus check. The readings below are the ones the floor's own tests have always pinned (an amount, a sign, a unit, a
+ * strike, a code name), kept here so a change to the voice cannot quietly change what a person hears for them.
  */
 import { readFileSync } from "node:fs";
 import { digitsHeld, phrasePlan, speakHoldSec, speakable, toneOf, assignVoices, voiceGender, VOICE_CAST } from "../src/lib/room/floor-voice.ts";
@@ -35,17 +38,17 @@ check("plus is said, not skipped", spoken.includes("B plus") && spoken.includes(
 const said = [
   ["$1,000 account", /1,000 dollars/],
   ["+$128 on the close", /plus 128 dollars/],
-  ["−$33 on QQQ Oct 6 782C", /minus 33 dollars on Q Q Q Oct 6 782 call/],
+  ["−$33 on QQQ Oct 6 782C", /minus 33 dollars on Q Q Q October 6 782 call/],
   ["I'm watching the 5m close.", /5 minute close/],
   ["NQ +12 in 47 s.", /plus 12 in 47 seconds/],
   ["Stop outside 0.5-1.5 ATR: −0.24R/card.", /0\.5 to 1\.5 A T R: minus 0\.24 R per card/],
   ["PDH 30,080, 79 pts above.", /P D H 30,080, 79 points above/],
   ["0DTE A+ after 9:45", /0 D T E A plus/],
-  ["maxCashFracPerTrade in exec/limits.ts is yours", /max cash frac per trade in the limits file is yours/],
+  ["maxCashFracPerTrade in exec/limits.ts is yours", /max cash fraction per trade in the limits file is yours/],
   ["SERVER_RUNNER_BUILT is false", /server runner built is false/],
-  ["P(T1) 27%, E[R] +0.01R", /the odds of T1 27 percent, expected R plus 0\.01 R/],
-  ["3 × QQQ Oct 6 782C", /^3 Q Q Q Oct 6 782 call$/],
-  ["0/9 PATH, 1:1 at 09:45 ET", /0 of 9 PATH, 1 to 1 at 09:45 E T/],
+  ["P(T1) 27%, E[R] +0.01R", /chance of target 1, 27 percent, expected R plus 0\.01 R/],
+  ["3 × QQQ Oct 6 782C", /^3 Q Q Q October 6 782 call$/],
+  ["0/9 PATH, 1:1 at 09:45 ET", /0 of 9 path, 1 to 1 at 09:45 Eastern/],
 ];
 for (const [raw, want] of said) {
   const s = speakable(raw);

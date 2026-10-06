@@ -19,6 +19,9 @@
  *
  * Pure: no network, no real clock, no model.
  */
+const { spokenProblems } = await import("./lib/spoken-check.mjs");
+/** Every line any simulation below makes the room say — checked at the end for what a speech engine would be handed. */
+const SPOKEN = [];
 const { talkTick, freshTalkState } = await import("../src/lib/room/live-talk.ts");
 const { TALK } = await import("../src/lib/room/live-types.ts");
 const { ANIMS_BY_CHARACTER, ZONES_BY_CHARACTER } = await import("../src/lib/room/orchestrator.ts");
@@ -177,7 +180,10 @@ function drain(world, state, ticks = 12, stepMs = 15_000) {
     const w = { ...world, nowMs: world.nowMs + i * stepMs, clock: clockAt(world.nowMs + i * stepMs) };
     const r = talkTick(w, st);
     st = r.state;
-    if (r.item) items.push(r.item);
+    if (r.item) {
+      items.push(r.item);
+      SPOKEN.push(...r.item.lines);
+    }
   }
   return { items, state: st };
 }
@@ -347,7 +353,10 @@ console.log("the drill day, through the real race");
       const world = mkWorld(s.nowMs, { goal: W.goalLite(race, f.vix), seats: W.seatsLite(race), rnd: W.rndLite(race), week: null });
       const out = drain(world, st, 10, 15_000);
       st = out.state;
-      for (const it of out.items) said.push({ frame: i, it });
+      for (const it of out.items) {
+        said.push({ frame: i, it });
+        SPOKEN.push(...it.lines);
+      }
     }
     return { said, st };
   };
@@ -382,6 +391,13 @@ console.log("the drill day, through the real race");
       for (const l of it.lines) console.log(`  ${l.character.padEnd(8)} ${l.text}`);
     }
   }
+}
+
+console.log("what a speech engine would be handed");
+{
+  const unique = [...new Map(SPOKEN.map((l) => [l.text, l])).values()];
+  const bad = spokenProblems(unique);
+  check(`every distinct line the race said (${unique.length}) is speakable: numbers and signs held, no symbol, unit, code name or unspelled abbreviation left`, unique.length > 20 && bad.length === 0, bad.slice(0, 3).join(" || "));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

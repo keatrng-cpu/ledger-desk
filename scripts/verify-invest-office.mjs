@@ -38,6 +38,9 @@ const { drawScreen } = await import("../src/components/room/floor-screens.ts");
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
 const { etDateOf } = await import("../src/lib/room/option-math.ts");
 
+const { spokenProblems } = await import("./lib/spoken-check.mjs");
+/** Every line the wing says in the simulations below — checked at the end for what a speech engine would be handed. */
+const SPOKEN = [];
 const TRANSCRIPT = process.argv.includes("--transcript");
 let pass = 0;
 let fail = 0;
@@ -220,6 +223,7 @@ console.log("the voices");
       continue;
     }
     const item = { lines: ex.lines, facts: c.f.list, moves: ex.moves, urgency: 0 };
+    SPOKEN.push(...ex.lines);
     const u = unsourced(item);
     if (u.length) bad.push(`${t.id}: unsourced ${u.join()}`);
     bad.push(...legal(item).map((x) => `${t.id}: ${x}`));
@@ -297,7 +301,10 @@ function runDay(date, { from = 6 * 60, to = 23 * 60, state = freshTalkState(), w
     st = r.state;
     if (r.item) {
       busy = Math.max(busy, t) + r.item.estMs;
-      if (r.item.kind === "invest") items.push({ ...r.item, etMin: m });
+      if (r.item.kind === "invest") {
+        items.push({ ...r.item, etMin: m });
+        SPOKEN.push(...r.item.lines);
+      }
     }
   }
   return { items, state: st };
@@ -662,6 +669,13 @@ if (TRANSCRIPT) {
     console.log(`\n[${hhmm(i.etMin)} ET] ${i.label}`);
     for (const l of i.lines) console.log(`  ${l.character}: ${l.text}`);
   }
+}
+
+console.log("what a speech engine would be handed");
+{
+  const unique = [...new Map(SPOKEN.map((l) => [l.text, l])).values()];
+  const bad = spokenProblems(unique);
+  check(`every distinct line the wing said (${unique.length}) — every theme, the funnel, the book, the calendar, the board — is speakable`, unique.length > 40 && bad.length === 0, bad.slice(0, 3).join(" || "));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
