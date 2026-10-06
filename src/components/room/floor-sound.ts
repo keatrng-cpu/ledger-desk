@@ -1,11 +1,44 @@
 /**
- * The floor's sound — synthesized with WebAudio, no files. OFF by default and
- * remembered per browser; the tab's speaker toggle turns it on. Every sound
- * answers something the cycle decided (a fill, a winner, the bell at the
- * open) — the room never makes noise on its own.
+ * The floor's sound. OFF by default and remembered per browser; the tab's
+ * speaker toggle turns it on, and that click is what unlocks audio.
+ *
+ * Two layers, both presentation:
+ *  - event tones (WebAudio, no files) for what the cycle already decided
+ *    (a fill, a winner, the bell at the open);
+ *  - the line on the caption, spoken by the browser voice in that person's
+ *    pitch. The utterance is the caption text. It does not write a line,
+ *    pick a trade, or read a number the room did not already print.
  */
 
+import type { Character } from "@/lib/room/orchestrator";
 import type { FloorEvent } from "./floor-scene";
+
+/** Pitch and rate are the cast. Hints only pick a browser voice when one is installed. */
+export const VOICE_CAST: Record<Character, { pitch: number; rate: number; hints: readonly string[] }> = {
+  Gemma: { pitch: 1.16, rate: 0.96, hints: ["samantha", "victoria", "fiona", "moira", "karen"] },
+  Jax: { pitch: 0.84, rate: 1.1, hints: ["daniel", "alex", "fred", "rishi"] },
+  Nova: { pitch: 1.06, rate: 0.9, hints: ["karen", "moira", "serena", "samantha"] },
+  Sterling: { pitch: 0.74, rate: 0.88, hints: ["daniel", "rishi", "fred", "aaron"] },
+  Vince: { pitch: 0.96, rate: 1.02, hints: ["alex", "aaron", "tom", "daniel"] },
+};
+
+function englishVoices(): SpeechSynthesisVoice[] {
+  const all = window.speechSynthesis?.getVoices() ?? [];
+  const en = all.filter((v) => /^en([-_]|$)/i.test(v.lang));
+  return en.length ? en : all;
+}
+
+function pickVoice(who: Character, used: Set<string>): SpeechSynthesisVoice | null {
+  const pool = englishVoices();
+  const hints = VOICE_CAST[who].hints;
+  const fresh = (v: SpeechSynthesisVoice) => !used.has(v.voiceURI);
+  return (
+    pool.find((v) => fresh(v) && hints.some((h) => v.name.toLowerCase().includes(h))) ??
+    pool.find((v) => fresh(v)) ??
+    pool[0] ??
+    null
+  );
+}
 
 const STORAGE = "ledger-room-sound-v1";
 
@@ -47,8 +80,53 @@ export class FloorSound {
     return this.ctx;
   }
 
+  private sayToken = 0;
+  private primed = false;
+  private cast = new Map<Character, string>();
+
+  /** Must run from the speaker-toggle click. Primes both WebAudio and speech. */
   unlock(): void {
     this.ensure();
+    const synth = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+    if (!synth || this.primed) return;
+    this.primed = true;
+    synth.resume();
+    const warm = new SpeechSynthesisUtterance(" ");
+    warm.volume = 0.01;
+    warm.rate = 2;
+    synth.speak(warm);
+  }
+
+  /** Speak the caption, in that person's voice. No-op without a line. */
+  say(line: { character: Character; text: string }): void {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    const text = line.text.trim();
+    if (!text) return;
+    const synth = window.speechSynthesis;
+    const token = ++this.sayToken;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const cast = VOICE_CAST[line.character];
+    u.pitch = cast.pitch;
+    u.rate = cast.rate;
+    u.volume = Math.min(1, Math.max(0.35, this.volume));
+    u.lang = "en-US";
+    const voice = pickVoice(line.character, new Set(this.cast.values()));
+    if (voice) {
+      u.voice = voice;
+      this.cast.set(line.character, voice.voiceURI);
+    }
+    // Chrome drops an utterance spoken in the same turn as cancel().
+    window.setTimeout(() => {
+      if (token !== this.sayToken) return;
+      synth.resume();
+      synth.speak(u);
+    }, 40);
+  }
+
+  hush(): void {
+    this.sayToken++;
+    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
   }
 
   private tone(freq: number, start: number, dur: number, type: OscillatorType, gain: number, glideTo?: number) {
@@ -125,6 +203,7 @@ export class FloorSound {
   }
 
   dispose(): void {
+    this.hush();
     void this.ctx?.close();
     this.ctx = null;
     this.master = null;

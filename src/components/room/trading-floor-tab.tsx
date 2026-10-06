@@ -569,11 +569,24 @@ export default function TradingFloorTab() {
   }, []);
   const soundOnRef = useRef(false);
   soundOnRef.current = soundOn;
+  // A saved "on" still needs one gesture before the browser will speak.
+  useEffect(() => {
+    const arm = () => {
+      if (soundOnRef.current) sound.current?.unlock();
+    };
+    window.addEventListener("pointerdown", arm);
+    return () => window.removeEventListener("pointerdown", arm);
+  }, []);
   const onEvent = useCallback((e: FloorEvent) => {
     if (soundOnRef.current) sound.current?.play(e);
   }, []);
 
-  const onSpeaker = useCallback((i: number, line: DialogueLine | null) => setSpeaker({ i, line }), []);
+  const onSpeaker = useCallback((i: number, line: DialogueLine | null) => {
+    setSpeaker({ i, line });
+    if (!soundOnRef.current) return;
+    if (line?.text) sound.current?.say(line);
+    else sound.current?.hush();
+  }, []);
   // A follow or a fly-to is the viewer's own camera: no preset is "on" while it lasts.
   const onFollow = useCallback((who: Character | null) => {
     setFollowing(who);
@@ -619,14 +632,20 @@ export default function TradingFloorTab() {
           type="button"
           className={`${BTN} ml-auto`}
           aria-pressed={soundOn}
+          title={soundOn ? "Speaking the caption in each person's voice" : "Click to let the floor speak the caption"}
           onClick={() => {
             const on = !soundOn;
             setSoundOn(on);
-            if (on) sound.current?.unlock();
+            if (on) {
+              sound.current?.unlock();
+              if (speaker.line?.text) sound.current?.say(speaker.line);
+            } else {
+              sound.current?.hush();
+            }
             saveSoundPref({ on, volume: sound.current?.volume ?? 0.5 });
           }}
         >
-          {soundOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} {soundOn ? "Sound on" : "Sound off"}
+          {soundOn ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />} {soundOn ? "Voices on" : "Voices off"}
         </button>
         <label className="flex items-center gap-1 text-[11px] text-[var(--color-muted)]">
           <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
