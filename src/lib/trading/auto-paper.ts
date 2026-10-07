@@ -240,7 +240,26 @@ export function nextBandAfter(
   return { min: need };
 }
 
-/** n\u22653 and win rate under 45% \u2014 the same cold tape the brain already names. */
+/**
+ * The next futures-paper card. A loss raises the band (an A+ loss stands
+ * down). A win that did not beat the prior fill also raises the band, so
+ * the session has to get cleaner. An A+ that already won stays A+.
+ */
+export function sessionAim(
+  last: { band: string; r: number; won: boolean } | null,
+  prevR: number | null,
+): { min: number } | { skip: string } {
+  if (!last) return { min: 1 };
+  if (!last.won) return nextBandAfter(last.band, true);
+  if (prevR != null && Number.isFinite(prevR) && !(last.r > prevR)) {
+    const rank = bandRank(last.band);
+    if (rank >= 3) return { min: 3 };
+    return { min: Math.max(1, rank) + 1 };
+  }
+  return { min: 1 };
+}
+
+/** n≥3 and win rate under 45% — the same cold tape the brain already names. */
 export function strategyCold(n: number, wins: number): boolean {
   return n >= 3 && wins / n < 0.45;
 }
@@ -248,7 +267,8 @@ export function strategyCold(n: number, wins: number): boolean {
 /**
  * After the options window (11:00 ET) through the cash close, paper the
  * futures book on the $100k account. Same PATH floor, same one-book rule,
- * same ingest into the rates a backtest fills. A loss raises the next band.
+ * same ingest into the rates a backtest fills. A loss, or a win that did
+ * not beat the prior fill, raises the next band.
  */
 export function futuresPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   const s = load();
@@ -279,8 +299,15 @@ export function futuresPaperShouldTake(desk: DeskPayload): AutoPaperPick {
     .filter((t) => t.status === "closed" && (t.closedAt ?? 0) >= dayStart)
     .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0));
   const last = closedToday[0];
-  const lost = !!last && (last.pnlUsd ?? 0) <= 0;
-  const raised = nextBandAfter(last?.pathBand || last?.grade || "A-", lost);
+  const lastR = last?.rMultiple;
+  const prevR = closedToday[1]?.rMultiple;
+  const won = !!last && (last.pnlUsd ?? 0) > 0 && lastR != null && Number.isFinite(lastR);
+  const raised = sessionAim(
+    last && lastR != null && Number.isFinite(lastR)
+      ? { band: last.pathBand || last.grade || "A-", r: lastR, won }
+      : null,
+    prevR != null && Number.isFinite(prevR) ? prevR : null,
+  );
   if ("skip" in raised) return { take: null, skip: raised.skip };
   const minRank = Math.max(raised.min, lunch ? 3 : 1);
 
@@ -298,7 +325,9 @@ export function futuresPaperShouldTake(desk: DeskPayload): AutoPaperPick {
       skip: lunch
         ? "Lunch \u2014 futures paper is A+ only"
         : minRank > 1
-          ? "Last paper lost \u2014 waiting on a higher band"
+          ? won
+            ? "Last paper did not beat the prior R \u2014 waiting on a higher band"
+            : "Last paper lost \u2014 waiting on a higher band"
           : "No A+/A/A\u2212 PATH",
     };
   }
@@ -319,6 +348,19 @@ export function futuresPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   if (seq.word !== "TAKE") {
     return { take: null, skip: `SMC sequence ${seq.word}: ${seq.missing}` };
   }
+  const retrace = seq.layers.find((l) => l.id === "retrace");
+  if (retrace && retrace.state !== "pass") {
+    return { take: null, skip: `Armed \u2014 limit at CE, waiting for the touch: ${retrace.detail}` };
+  }
+
+  const counters = countersFromMemory(loadDeskMemory());
+  const gate = pathTakeGate(candidate, counters, { alreadyTookSymbolToday: null });
+  if (!gate.take && gate.reason !== "blake_long_demoted") {
+    return { take: null, skip: gate.detail };
+  }
+  if (gate.reason === "blake_long_demoted") {
+    return { take: null, skip: "blake_mech long \u2014 manual paper only" };
+  }
 
   const key = autoPaperKey(candidate);
   if (s.lastKey === key) return { take: null, skip: "Already auto-logged this card" };
@@ -332,30 +374,62 @@ export function futuresPaperShouldTake(desk: DeskPayload): AutoPaperPick {
 
 /** One line per closed futures-paper fill, so the brain can see if the session improved. */
 export function noteFuturesSession(
-  closed: { id: string; symbol: string; side: string; rMultiple?: number | null; strategy?: string }[],
+  closed: {
+    id: string;
+    symbol: string;
+    side: string;
+    rMultiple?: number | null;
+    strategy?: string;
+    pathBand?: string | null;
+    grade?: string;
+    closedAt?: number | null;
+  }[],
   etMin: number,
 ): void {
   if (etMin < 11 * 60 || etMin >= 16 * 60) return;
-  const prev = loadDeskMemory().book.lastPaperR ?? null;
-  for (const t of closed) {
+  const dayStart = tradingDayStart(new Date()).getTime();
+  const ids = new Set(closed.map((t) => t.id));
+  // The fill is already ingested, so book.lastPaperR is this close, not the one before it.
+  const prior = paperTradeHistory(40)
+    .filter(
+      (t) =>
+        t.status === "closed" &&
+        (t.closedAt ?? 0) >= dayStart &&
+        !ids.has(t.id) &&
+        t.rMultiple != null &&
+        Number.isFinite(t.rMultiple),
+    )
+    .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0));
+  let prev: number | null = prior[0]?.rMultiple ?? null;
+  const ordered = [...closed].sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0));
+  for (const t of ordered) {
     const r = t.rMultiple;
     if (r == null || !Number.isFinite(r)) continue;
     const mem = loadDeskMemory();
     const seen = mem.items.some(
       (i) => i.kind === "session" && (i.payload as { tradeId?: string } | undefined)?.tradeId === t.id,
     );
-    if (seen) continue;
+    if (seen) {
+      prev = r;
+      continue;
+    }
+    const band = t.pathBand || t.grade || "";
+    const atTop = bandRank(band) >= 3;
     const line =
       prev == null
         ? `Futures paper ${t.symbol} ${t.side} ${r >= 0 ? "+" : ""}${r.toFixed(2)}R \u2014 first of the session. It feeds the same rates as a backtest fill.`
         : r > prev
           ? `Futures paper ${t.symbol} ${t.side} ${r >= 0 ? "+" : ""}${r.toFixed(2)}R beat the last ${prev >= 0 ? "+" : ""}${prev.toFixed(2)}R.`
-          : `Futures paper ${t.symbol} ${t.side} ${r >= 0 ? "+" : ""}${r.toFixed(2)}R did not beat the last ${prev >= 0 ? "+" : ""}${prev.toFixed(2)}R. Next one needs a higher band.`;
+          : atTop
+            ? `Futures paper ${t.symbol} ${t.side} ${r >= 0 ? "+" : ""}${r.toFixed(2)}R did not beat the last ${prev >= 0 ? "+" : ""}${prev.toFixed(2)}R. Next one still has to be A+.`
+            : `Futures paper ${t.symbol} ${t.side} ${r >= 0 ? "+" : ""}${r.toFixed(2)}R did not beat the last ${prev >= 0 ? "+" : ""}${prev.toFixed(2)}R. Next one needs a higher band.`;
     remember("session", "Futures paper", line, ["paper", "futures", "session", t.symbol], {
       tradeId: t.id,
       r,
       prev,
       strategy: t.strategy ?? null,
+      band,
     });
+    prev = r;
   }
 }

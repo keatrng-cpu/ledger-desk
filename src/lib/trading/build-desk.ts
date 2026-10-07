@@ -236,13 +236,15 @@ async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: Ohlc
     `minute:${symbol}`,
     `minute:${symbol}`,
     async () => {
-      // Yahoo and the gateway are independent — fetched together, not in turn.
-      // Inside the live window the gateway's 1m bars are the fresher closed
-      // bars; overlay them from the Yahoo series' last bar forward.
-      const [y, gw] = await Promise.all([
-        fetchYahooBars(symbol, "1d", "1m").catch(() => null),
-        withBudget(readLiveBars(symbol, GATEWAY_BARS_LIMIT).catch(() => [] as OhlcBar[]), GATEWAY_BARS_BUDGET_MS, [] as OhlcBar[]),
-      ]);
+      // Gateway 1m is the tape when it is streaming. Yahoo is the hole-fill
+      // only — a delayed 1m print must not sit under a live book.
+      const gw = await withBudget(
+        readLiveBars(symbol, GATEWAY_BARS_LIMIT).catch(() => [] as OhlcBar[]),
+        GATEWAY_BARS_BUDGET_MS,
+        [] as OhlcBar[],
+      );
+      if (gw.length >= 30) return gw.slice(-MINUTE_KEEP);
+      const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
       const yahoo = y?.bars ?? [];
       const out = (gw.length ? mergeNewerBars(yahoo, gw) : yahoo).slice(-MINUTE_KEEP);
       return out.length ? out : null;

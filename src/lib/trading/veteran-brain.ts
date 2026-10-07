@@ -734,6 +734,14 @@ export function runVeteranBrain(
     if (paperItems[0]) {
       green.push(`Last paper: ${paperItems[0].title} — ${paperItems[0].summary.slice(0, 80)}`);
     }
+    const sessionNote = typeof window !== "undefined" ? recentByKind("session", 1)[0] : undefined;
+    if (sessionNote) {
+      const p = sessionNote.payload as { r?: number; prev?: number | null } | undefined;
+      const improved = p?.prev != null && p.r != null && p.r > p.prev;
+      const line = sessionNote.summary.slice(0, 160);
+      if (improved) green.push(line);
+      else yellow.push(line);
+    }
   } else if (paperOpenMem[0]) {
     layers.push({
       id: "paper_tape",

@@ -97,7 +97,7 @@ import {
   type DeskPayload,
 } from "@/lib/trading/build-desk";
 import { fetchLiveQuotes } from "@/lib/market/fetch-dual";
-import { applyQuoteToLastBar, stampSeriesFromBars } from "@/lib/market/freshest";
+import { applyQuoteToLastBar, pickFreshestQuote, stampSeriesFromBars } from "@/lib/market/freshest";
 import { etWallParts } from "@/lib/trading/sessions";
 import { buildLiveSays } from "@/lib/trading/live-says";
 
@@ -629,6 +629,21 @@ function quoteDelayMs(
   return live ? QUOTE_LIVE_MS : QUOTE_YAHOO_MS;
 }
 
+/** Rank on print age, then keep the original quote (its lag is the source's own). */
+function keepFresher(
+  incoming: DeskPayload["quotes"]["left"],
+  held: DeskPayload["quotes"]["left"],
+): DeskPayload["quotes"]["left"] {
+  const age = (q: DeskPayload["quotes"]["left"]): DeskPayload["quotes"]["left"] => ({
+    ...q,
+    lagSec: Math.max(0, Math.round((Date.now() - q.marketTimeMs) / 1000)),
+  });
+  const a = age(incoming);
+  const b = age(held);
+  const picked = pickFreshestQuote(a, b);
+  return picked === b ? held : incoming;
+}
+
 /**
  * The 1-2s quote poll, patched onto the desk the 20s build produced.
  *
@@ -650,22 +665,25 @@ function patchDeskQuotes(
   leftQ: DeskPayload["quotes"]["left"],
   rightQ: DeskPayload["quotes"]["right"],
 ): DeskPayload {
-  if (leftQ.source === "synthetic" || rightQ.source === "synthetic") return prev;
-  const leftBars = applyQuoteToLastBar(prev.left.bars, leftQ, prev.left.interval);
-  const rightBars = applyQuoteToLastBar(prev.right.bars, rightQ, prev.right.interval);
+  // One synthetic leg does not throw away a live print on the other.
+  const leftKept = leftQ.source === "synthetic" ? prev.quotes.left : keepFresher(leftQ, prev.quotes.left);
+  const rightKept = rightQ.source === "synthetic" ? prev.quotes.right : keepFresher(rightQ, prev.quotes.right);
+  if (leftKept.source === "synthetic" || rightKept.source === "synthetic") return prev;
+  const leftBars = applyQuoteToLastBar(prev.left.bars, leftKept, prev.left.interval);
+  const rightBars = applyQuoteToLastBar(prev.right.bars, rightKept, prev.right.interval);
   const left = stampSeriesFromBars(prev.left, leftBars);
   const right = stampSeriesFromBars(prev.right, rightBars);
-  left.price = leftQ.price;
-  left.changePct = leftQ.changePct;
-  left.marketTimeMs = leftQ.marketTimeMs;
-  left.marketTimeIso = leftQ.marketTimeIso;
-  right.price = rightQ.price;
-  right.changePct = rightQ.changePct;
-  right.marketTimeMs = rightQ.marketTimeMs;
-  right.marketTimeIso = rightQ.marketTimeIso;
+  left.price = leftKept.price;
+  left.changePct = leftKept.changePct;
+  left.marketTimeMs = leftKept.marketTimeMs;
+  left.marketTimeIso = leftKept.marketTimeIso;
+  right.price = rightKept.price;
+  right.changePct = rightKept.changePct;
+  right.marketTimeMs = rightKept.marketTimeMs;
+  right.marketTimeIso = rightKept.marketTimeIso;
   const next: DeskPayload = {
     ...prev,
-    quotes: { left: leftQ, right: rightQ },
+    quotes: { left: leftKept, right: rightKept },
     left,
     right,
   };
@@ -1337,21 +1355,14 @@ function MasterplacePage() {
           "Quotes",
         );
         if (!res.ok || cancelled) return;
-        delay = quoteDelayMs(res.left, res.right);
-        // Every print feeds the ladder's 30s rung (print-bars.ts).
-        recordPrint(res.left.symbol, res.left.price, res.left.marketTimeMs);
-        recordPrint(res.right.symbol, res.right.price, res.right.marketTimeMs);
-        // The patch is computed from the LATEST desk (deskRef) and every
-        // side effect runs here, in the poll — NOT inside a setDesk updater.
-        // React runs updaters while rendering MasterplacePage, so the ghost
-        // book's notify (and the paper/alarm/shadow writes) inside one fired
-        // SessionHud's setState mid-render: "Cannot update a component
-        // (SessionHud) while rendering a different component
-        // (MasterplacePage)". Same calls, same order, same desk — just outside
-        // render (and no longer double-run by StrictMode's updater replay).
         const prev = deskRef.current;
         if (!prev) return;
+        // Side effects stay in the poll, not inside a setDesk updater.
         const next = applyWordHysteresis(patchDeskQuotes(prev, res.left, res.right), wordHold);
+        delay = quoteDelayMs(next.quotes.left, next.quotes.right);
+        // Every print the desk actually kept feeds the ladder's 30s rung.
+        recordPrint(next.quotes.left.symbol, next.quotes.left.price, next.quotes.left.marketTimeMs);
+        recordPrint(next.quotes.right.symbol, next.quotes.right.price, next.quotes.right.marketTimeMs);
         deskRef.current = next;
         setDesk(next);
         {

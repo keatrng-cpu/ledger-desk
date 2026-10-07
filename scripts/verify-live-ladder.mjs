@@ -45,6 +45,13 @@ check("an A loss wants an A+", P.nextBandAfter("A", true).min === 3);
 check("an A+ loss stands down", "skip" in P.nextBandAfter("A+", true));
 check("three losers in five is cold", P.strategyCold(5, 2) === true);
 check("a 2-trade sample is not cold", P.strategyCold(2, 0) === false);
+check("a win that beat the last R keeps the floor", P.sessionAim({ band: "A-", r: 1.2, won: true }, 0.4).min === 1);
+check("a win that did not beat the last R wants the next band", P.sessionAim({ band: "A-", r: 0.3, won: true }, 1.1).min === 2);
+check("an A win that did not beat wants A+", P.sessionAim({ band: "A", r: 0.4, won: true }, 1.2).min === 3);
+check("an A+ win that did not beat stays A+", P.sessionAim({ band: "A+", r: 0.4, won: true }, 1.2).min === 3);
+check("no prior fill keeps the floor", P.sessionAim({ band: "A", r: 0.5, won: true }, null).min === 1);
+check("an A loss still wants A+", P.sessionAim({ band: "A", r: -1, won: false }, 0.5).min === 3);
+check("an A+ loss still stands the session down", "skip" in P.sessionAim({ band: "A+", r: -1, won: false }, 0.2));
 
 console.log(fail ? `\n${fail} failed` : "\nall passed");
 process.exit(fail ? 1 : 0);
