@@ -181,6 +181,7 @@ import {
   noteAutoPaperSkip,
 } from "@/lib/trading/auto-paper";
 import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
+import { onBeat } from "@/lib/live/keep-live";
 
 // three.js (~600 KB) loads only when the Floor tab is opened; the room's
 // engine (room-engine.ts) is plain TS and runs at page level below.
@@ -1263,14 +1264,16 @@ function MasterplacePage() {
   useEffect(() => {
     // Rebuild just after candles close (desk-cadence.ts), not on a
     // free-running timer that could sit on a closed candle for ~20s.
-    let id = 0;
-    const schedule = () => {
-      id = window.setTimeout(() => {
-        if (document.visibilityState === "visible") void load();
-        schedule();
-      }, msUntilNextDeskPoll());
-    };
-    schedule();
+    // Driven by the 1 s heartbeat (keep-live.ts), and NOT skipped when the tab is
+    // hidden: a trader on another Chrome tab still gets the new card at the candle
+    // close, so the Floor keeps deciding. A hidden tab's own setTimeout is clamped to
+    // once a second and then once a minute, which is why this is not a timeout chain.
+    let nextAt = Date.now() + msUntilNextDeskPoll();
+    const offBeat = onBeat(() => {
+      if (Date.now() < nextAt) return;
+      nextAt = Date.now() + msUntilNextDeskPoll();
+      void load();
+    });
     // The quote-poll effect below already does this (calls tick() the
     // instant the tab becomes visible again); without it, returning to a
     // backgrounded tab would show a stale desk build until the next
@@ -1280,7 +1283,7 @@ function MasterplacePage() {
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
-      window.clearTimeout(id);
+      offBeat();
       document.removeEventListener("visibilitychange", onVis);
     };
   }, [load]);
@@ -1291,6 +1294,7 @@ function MasterplacePage() {
     let inFlight = false;
     let delay = QUOTE_YAHOO_MS;
     let timer: number | null = null;
+    let lastStartAt = 0;
 
     const applyPaper = (next: DeskPayload) => {
       if (!listOpenPaperTrades().length) return;
@@ -1316,8 +1320,10 @@ function MasterplacePage() {
     };
 
     const tick = async () => {
-      if (cancelled || inFlight || document.visibilityState === "hidden") return;
+      // Not skipped when the tab is hidden: the room's stops, the Stand and the 11:00 flat read these quotes (keep-live.ts).
+      if (cancelled || inFlight) return;
       inFlight = true;
+      lastStartAt = Date.now();
       try {
         const res = await withClientTimeout(
           fetchLiveQuotes({
@@ -1420,9 +1426,14 @@ function MasterplacePage() {
       if (document.visibilityState === "visible") void tick();
     };
     document.addEventListener("visibilitychange", onVis);
+    // The setTimeout chain above is clamped in a hidden tab; the worker beat is not. Whichever fires first polls (inFlight guards a double).
+    const offBeat = onBeat(() => {
+      if (!cancelled && !inFlight && Date.now() - lastStartAt >= delay) void tick();
+    });
     return () => {
       cancelled = true;
       if (timer != null) window.clearTimeout(timer);
+      offBeat();
       document.removeEventListener("visibilitychange", onVis);
     };
     // Start once a desk exists; do not reset on every quote patch.
@@ -1521,9 +1532,7 @@ function MasterplacePage() {
     if (!desk) return;
 
     const tryAuto = () => {
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        return;
-      }
+      // Runs with the tab hidden too (it used to return here): the fill is a paper book write, it needs no screen.
       const pick = autoPaperShouldTake(desk);
       if (!pick.take) {
         if (pick.skip) noteAutoPaperSkip(pick.skip);
@@ -1616,9 +1625,10 @@ function MasterplacePage() {
   // hung Yahoo poll cannot leave a stop unfilled for 20s. Reads deskRef so it
   // never closes over a stale quote.
   useEffect(() => {
-    const id = window.setInterval(() => {
+    // Every 3 s on the heartbeat, hidden tab or not (a stop must not wait for the trader to look).
+    return onBeat(() => {
       const d = deskRef.current;
-      if (!d || document.visibilityState !== "visible") return;
+      if (!d) return;
       if (!listOpenPaperTrades().length) return;
       const { closed } = managePaperTradesAgainstPrice(managePricesFromDesk(d), {
         draws: {
@@ -1639,8 +1649,7 @@ function MasterplacePage() {
       );
       setEquity(getPaperAccount().equity);
       window.setTimeout(() => setPaperToast(null), 8000);
-    }, 3_000);
-    return () => window.clearInterval(id);
+    }, 3);
   }, []);
 
   const active = CATEGORIES.find((c) => c.id === cat) ?? CATEGORIES[0]!;

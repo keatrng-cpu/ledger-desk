@@ -70,6 +70,7 @@ import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
 import { roomManagerFeed } from "@/lib/room/manager-room-feed";
+import { onBeat } from "@/lib/live/keep-live";
 import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
@@ -756,16 +757,17 @@ export function useRoomEngine(desk: DeskPayload | null) {
   }, [desk, enabled, hydrated]);
   useEffect(() => {
     if (!enabled || !hydrated) return;
-    const id = window.setInterval(() => {
+    // The room's tick (talk, stops, the Stand's inputs) every 5 s on the heartbeat. It used to return when the Chrome tab was hidden,
+    // so the Floor went quiet the moment the trader looked at another tab (keep-live.ts).
+    return onBeat(() => {
       const d = deskRef.current;
-      if (!d || document.visibilityState === "hidden") return;
+      if (!d) return;
       try {
         liveTick(d);
       } catch (err) {
         console.error("[room] live tick failed:", err);
       }
-    }, 5000);
-    return () => window.clearInterval(id);
+    }, 5);
   }, [enabled, hydrated]);
 }
 
