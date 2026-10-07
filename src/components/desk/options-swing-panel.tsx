@@ -1,6 +1,7 @@
 import { StateWord } from "@/components/desk/state-word";
 import { useRhAccount } from "@/components/desk/use-entry-state";
 import { readRhAccount } from "@/lib/ui/rh-account";
+import { cn } from "@/lib/utils";
 import { RH_MAX_DEBIT_TOTAL, RH_MIN_DEBIT_TOTAL } from "@/lib/execution/rh-autofire-gates";
 import { useEffect, useMemo, useState } from "react";
 import {

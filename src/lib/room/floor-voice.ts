@@ -109,7 +109,8 @@ const TONE_SHIFT: Record<Tone, { pitch: number; rate: number }> = {
 /** Commas and periods make the browser sit. The words stay; the dwell does not. A question mark stays so the lift still hears it. */
 function forTheEar(s: string): string {
   return s
-    .replace(/,/g, "")
+    // A comma between digits is the thousands separator ("1,143"): without it an engine can say "eleven forty-three".
+    .replace(/,(?!\d)/g, "")
     .replace(/\.(?=\s|$)/g, "")
     .replace(/\s+/g, " ")
     .trim();

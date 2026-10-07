@@ -12,6 +12,10 @@ export interface BrainJobs {
   target: string;
   watch: string;
   book: string;
+  /** "The draw on the card is X." alone, or "" when the card has no target. */
+  draw: string;
+  /** "This card's own P(T1) if filled is N%…" alone, or "" when the card is not priced. */
+  odds: string;
   place: boolean;
   line: string;
 }
@@ -48,5 +52,5 @@ export function jobsFor(input: {
     ? "This is the fill. Watch the stop beyond the sweep. Do not add a second confirm."
     : `Watch, do not place. ${input.missing ? `Still missing ${input.missing}.` : "The raid, the arm, and a score are not the entry."}`;
   const line = `${setup} Entry: ${entry} Target: ${target} Watch: ${watch} ${BOOK}${odds}`;
-  return { setup, entry, target, watch, book: `${BOOK}${odds}`, place, line };
+  return { setup, entry, target, watch, book: `${BOOK}${odds}`, draw: targetPx.trim(), odds: odds.trim(), place, line };
 }

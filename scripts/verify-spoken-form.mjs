@@ -63,11 +63,13 @@ console.log("the table: one approved reading per rule");
     ["EV per dollar of debit: OTM_1 5.3¢, ATM -2.8¢. More expected P&L.", "E V per dollar of debit: 1 strike out 5.3 cents, at the money minus 2.8 cents. More expected P and L."],
     ["OTM_2 and OTM_1", "2 strikes out and 1 strike out"],
     ["flat −$17 → EV −$2, then 5 → 8", "flat minus 17 dollars, then E V minus 2 dollars, then 5 to 8"],
-    ["5.0× the cards, 1.5x ATR", "5.0 times the cards, 1.5 times A T R"],
+    ["5.0× the cards, 1.5x ATR", "5 times the cards, 1.5 times A T R"],
+    ["CE 29,960.00, stop 29,900.00, draw 30100.00, 777.50, 0.70, 0.65", "C E 29,960, stop 29,900, draw 30100, 777.5, 0.7, 0.65"],
+    ["1H/4H bias, 15m close, 1H high", "1 hour or 4 hours bias, 15 minute close, 1 hour high"],
     ["P(T1) 29%, E[R] 0.16", "chance of target 1, 29 percent, expected R 0.16"],
     ["P(T1|fill) 27%", "chance of target 1 if filled 27 percent"],
     ["HTF MNQ bull, ES bull. RSI 38 on QQQ", "higher timeframe M N Q bull, E S bull. R S I 38 on Q Q Q"],
-    ["ES/10 · NQ/40, 0.65–0.70", "E S over 10, N Q over 40, 0.65 to 0.70"],
+    ["ES/10 · NQ/40, 0.65–0.70", "E S over 10, N Q over 40, 0.65 to 0.7"],
     ["6 are collecting (0/30, 0/10)", "6 are collecting, 0 of 30, 0 of 10"],
     ["11:00 ET, 9:45 am, 2026-10-05", "11:00 Eastern, 9:45 A M, October 5, 2026"],
     ["A− needs 0.65; B+ is paper 0.5%.", "A minus needs 0.65, B plus is paper 0.5 percent."],
@@ -232,7 +234,10 @@ console.log("brevity: a long caption is said without its asides");
   const longAside = `${Array(20).fill("word").join(" ")}. ${Array(8).fill("more").join(" ")} (this aside has six whole words) ${Array(8).fill("end").join(" ")}.`;
   check("an aside is only dropped from a LONG line (a line at the threshold is said whole)", spokenDigest("Short line (this aside has six whole words) stays.") === spokenForm("Short line (this aside has six whole words) stays.") && !/aside/.test(spokenDigest(longAside)), spokenDigest(longAside).slice(-60));
   const plan = phrasePlan("Sterling", sterling);
-  check("the floor says the digest: the plan's words are the digest's, not the whole caption's", plan.map((p) => p.text).join(" ").replace(/\s+/g, " ") === said && !/for the record/i.test(plan.map((p) => p.text).join(" ")));
+  // The floor drops the dwell (commas and sentence stops) but keeps a comma inside a number: same words as the digest, nothing more.
+  const ear = (s) => s.replace(/,(?!\d)/g, "").replace(/\.(?=\s|$)/g, "").replace(/\s+/g, " ").trim();
+  check("the floor says the digest: the plan's words are the digest's, not the whole caption's", plan.map((p) => p.text).join(" ").replace(/\s+/g, " ") === ear(said) && !/for the record/i.test(plan.map((p) => p.text).join(" ")), plan.map((p) => p.text).join(" ").slice(0, 80));
+  check("the floor keeps the comma inside a number (1,143 is not said as 1143)", phrasePlan("Nova", "Swept 1,143 dollars so far, the rest waits.").some((p) => /1,143/.test(p.text)) && !phrasePlan("Nova", "Swept so far, the rest waits.").some((p) => /,/.test(p.text)));
   check("the caption on screen is untouched by it", /For the record/.test(sterling) && sterling.includes("(z 0.61)"));
   const flagged = (say) => spokenProblems([{ character: "Nova", text: nova }], { say });
   check("negative control: a digest that drops a number from the kept text is flagged", flagged(() => "Q Q Q October 6 776 call at 3 dollars 32 cents: model 31 percent to target 1 in 8 hours.").some((p) => /digest moved a number/.test(p)));

@@ -47,6 +47,7 @@ import {
   evaluateRhTicketEnvelope,
   RH_BPLUS_MAX_CONTRACTS,
   RH_MAX_CONTRACTS,
+  RH_MAX_DEBIT_TOTAL,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   isBplusBand,
   rhPathFloorForBand,
@@ -152,6 +153,11 @@ export function managerAgreeFromRoom(args: {
     // The Stand may only shrink the room's ticket, never grow it.
     contracts = Math.min(Math.max(0, Math.floor(plan.qty)), cap);
     estDebitEach = Number.isFinite(plan.quote?.ask) ? plan.quote.ask : null;
+    // Shrink to fit the envelope instead of vetoing: the room sized 2 contracts at $3.29 ($658, over the $550 cap) and the Stand
+    // vetoed it (debit_cap) although ONE contract ($329) is inside the envelope. Fewer contracts is less risk and is the Stand's
+    // job ("may only shrink"); the envelope itself ($150-$550, 1-4) is unchanged, and if even one contract is over the cap the
+    // ticket still refuses with debit_cap.
+    if (estDebitEach != null) while (contracts > 1 && Math.round(estDebitEach * 100 * contracts) > RH_MAX_DEBIT_TOTAL) contracts -= 1;
     estDebitTotal = estDebitEach != null ? Math.round(estDebitEach * 100 * contracts) : null;
     if (!strikeOffset) blocks.push("strike_offset");
     const env = evaluateRhTicketEnvelope({ contracts, debitTotal: estDebitTotal ?? Number.NaN, strikeOffset: strikeOffset ?? String(plan.offset) });

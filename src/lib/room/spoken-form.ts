@@ -182,6 +182,8 @@ function isoDates(s: string): string {
 function units(s: string): string {
   let t = s;
   t = t.replace(/(?<![\w.])(\d{1,2}(?::\d{2})?)\s?([AaPp])\.?[Mm]\.?(?![A-Za-z])/g, (_m, clock: string, ap: string) => `${clock} ${ap.toUpperCase()} M`);
+  // A capital H after a number is an hour timeframe (1H, 4H): "1H/4H" is "1 hour / 4 hours".
+  t = t.replace(/(?<![\w.])(\d+)H(?![\w'])/g, (_m, n: string) => `${n} ${num(n) === 1 ? "hour" : "hours"}`);
   t = t.replace(/(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?)(x)(?![\w'])/g, (_m, n: string) => `${n} times`);
   t = t.replace(/(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?)([KMB])(?![\w'])/g, (_m, n: string, k: string) => `${n} ${{ K: "thousand", M: "million", B: "billion" }[k as "K" | "M" | "B"]}`);
   t = t.replace(/(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?)(R)(?![\w'])/g, (_m, n: string) => `${n} R`);
@@ -204,10 +206,11 @@ function ratiosAndSlashes(s: string): string {
   t = t.replace(/\bR:R\b/g, "risk to reward");
   t = t.replace(/\b(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)\b/g, (m, a: string, b: string) => (/^\d{1,2}$/.test(a) && /^\d{2}$/.test(b) && Number(b) < 60 && Number(a) < 25 ? m : `${a} to ${b}`));
   t = t.replace(/\b(\d+)\/(\d+)\b/g, "$1 of $2");
-  t = t.replace(/\b([A-Za-z]{1,6})\/(\d+)/g, "$1 over $2");
+  t = t.replace(/\b([A-Z]{1,6})\/(\d+)/g, "$1 over $2");
   t = t.replace(/\bn\/a\b/gi, "not available");
   t = t.replace(/\bm\/m\b/gi, "month over month");
   t = t.replace(/\b([A-Za-z]+)\/([A-Za-z]+)\b/g, (_m, a: string, b: string) => (PER_UNIT.has(b.toLowerCase()) ? `${a} per ${b}` : `${a} or ${b}`));
+  t = t.replace(/\s*\/\s*/g, " or "); // any slash left ("1 hour/4 hours") separates two things
   return t;
 }
 
@@ -286,6 +289,9 @@ export function spokenForm(raw: string): string {
   s = ratiosAndSlashes(s);
   s = symbols(s);
   s = jargon(s);
+  // Trailing zeros carry no information and cost the engine "point zero zero": 29,960.00 is said 29,960, 777.50 is said 777.5,
+  // 0.70 is said 0.7. The value is identical (numbersHeld compares values); money has already been said as dollars and cents.
+  s = s.replace(/(\d)\.0+(?!\d)/g, "$1").replace(/(\d\.\d*?[1-9])0+(?!\d)/g, "$1");
   s = s.replace(/\.(?:\s*\.)+/g, ".").replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").replace(/([,.!?])(?:\s*,)+/g, "$1").replace(/,\s*\./g, ".").replace(/\s*,\s*([:;])/g, "$1").replace(/^[\s,.]+/, "").replace(/,\s*$/, "").trim();
   return s;
 }

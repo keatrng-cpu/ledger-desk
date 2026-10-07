@@ -876,6 +876,17 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     pT1: k.pT1,
     expR: k.expR,
   });
+  if (d.from != null) {
+    // The card was read out in full when it first appeared (the schools, the target, the book's record). A step from one tier to the
+    // next says only what changed: where it is now, where the entry is, what is still missing — never the same briefing again.
+    const pxs = (n: number) => (Number.isInteger(n) ? f.raw(n.toLocaleString("en-US")) : f.px(n)); // 29,960 not 29,960.00: nobody says "point zero zero"
+    const ce = k.entry != null ? ` CE ${pxs(k.entry)}${k.stop != null ? `, stop ${pxs(k.stop)}` : ""}.` : "";
+    lines.push(line("Vince", ANIM.Vince.watch!, `${f.raw(k.futSymbol)} ${k.futSide}, ${f.raw(d.from)} to ${f.raw(d.to)}.${ce}`));
+    lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
+    if (k.entryLine?.trim()) lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(j.entry)));
+    if (j.draw || j.odds) lines.push(line("Nova", ANIM.Nova.analyze!, f.raw([j.draw, j.odds].filter(Boolean).join(" "))));
+    return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
+  }
   lines.push(line("Vince", ANIM.Vince.watch!, f.raw(j.setup)));
   lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(j.target)));
   lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
