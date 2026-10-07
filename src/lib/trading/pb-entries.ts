@@ -30,6 +30,8 @@ export interface PbRead {
   sequence: PbSequence;
   label: string;
   act: string;
+  /** A shorter form of `act` for the voice, when the read has one (ltf-lead). The screen shows `act`. */
+  say?: string;
   enter: boolean;
 }
 

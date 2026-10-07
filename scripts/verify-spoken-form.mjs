@@ -245,6 +245,61 @@ console.log("brevity: a long caption is said without its asides");
   check("the real digest passes the same checker", flagged(spokenDigest).length === 0, flagged(spokenDigest).join());
 }
 
+console.log("the ladder strip: a grid of arrows is not read aloud");
+{
+  const { hasRungGrid, spokenDigest, digestOf } = await import("../src/lib/room/spoken-form.ts");
+  const line = "Both indexes, every rung: ES Q· M▲ W▲ D▲ | 4H▲ 1H▼ 30▼ | 15▼ 5▼ | 3▼ 2▼ 1▲ · dealing bull. MNQ Q· M▲ W▲ D▲ | 4H▲ 1H▼ 30▼ | 15▼ 5▲ | 3▲ 2▲ 1▲ · dealing bull. The 1m to 5m is only the entry. 5m inverse, the highest in the leg. NQ led. This index is the laggard. The dealing range reads against the short. That is a note. The entry is still the inverse.";
+  const said = spokenDigest(line);
+  const words = (s) => s.split(/\s+/).filter(Boolean).length;
+  check("the strip is recognised", hasRungGrid(line) && !hasRungGrid("The 1m to 5m is only the entry."));
+  check("each index is said as four tiers: up, down or mixed — read from the same glyphs", /E S: bias up, range mixed, confirm down, trigger mixed, dealing bull/.test(said) && /M N Q: bias up, range mixed, confirm mixed, trigger up, dealing bull/.test(said), said.slice(0, 220));
+  check("no arrow, no rung label, no pipe is spoken", !/[▲▼|]/.test(said) && !/\b(4H|1H|30|15)\b/.test(said.replace(/The 1m to 5m|5 minutes?|1 minutes?/g, "")), said);
+  check("a caption that still carries a strip is said at least a quarter shorter than it reads", words(said) <= words(spokenForm(line)) * 0.75, `${words(spokenForm(line))} -> ${words(said)}`);
+  check("the sentences after the grid are all still said", /dealing range reads against the short/.test(said) && /entry is still the inverse/.test(said) && /laggard/.test(said));
+  check("numbers: what is said is the caption's numbers minus the rung labels it did not read", numbersHeld(digestOf(line), said), JSON.stringify(numbersOf(digestOf(line))));
+  check("the caption on screen keeps the whole grid", line.includes("4H▲ 1H▼ 30▼") && digestOf(line) !== line);
+  check("a stray arrow is said as up or down, never skipped", spokenForm("MNQ ▲ then ES ▼") === "M N Q up then E S down");
+  check("a flat strip (all dots) reads flat, an empty tier is not invented", /bias flat/.test(spokenDigest("ES Q· M· W· D· | 4H· 1H· 30· | 15· 5· | 3· 2· 1· · dealing bull. Wait.")));
+  check("the checker passes the line (no symbol left, numbers held)", spokenProblems([{ character: "Sterling", text: line }]).length === 0, spokenProblems([{ character: "Sterling", text: line }]).join(" "));
+
+  // The source: the line Sterling quotes is built twice from the same facts — the screen's (strip, reminder, every sentence) and the voice's.
+  const { readLtfLead, applyLtf } = await import("../src/lib/trading/ltf-lead.ts");
+  const strip = (s) => `${s} Q· M▲ W▲ D▲ | 4H▲ 1H▼ 30▼ | 15▼ 5▼ | 3▼ 2▼ 1▲`;
+  const base = { symbol: "MNQ", side: "short", minute: [], otherSymbol: "MES", otherMinute: [], otherDraw: null, draw: null,
+    mineLadder: { symbol: "MNQ", strip: strip("MNQ").replace(/^MNQ /, ""), htf: "bull" }, otherLadder: { symbol: "ES", strip: strip("ES").replace(/^ES /, ""), htf: "bull" } };
+  const against = readLtfLead(base);
+  check("the screen's line is unchanged: the strips, the reminder and the note are all still there", /every rung: .*4H▲ 1H▼ 30▼/.test(against.line) && /only the entry/.test(against.line) && /That is a note/.test(against.line));
+  check("the voice's line has no strip, no pipe, no arrow, no reminder, no filler", !/[▲▼|·]|only the entry|That is a note|every rung/.test(against.say), against.say);
+  check("the voice's line keeps the facts: the rung, who led, and that the dealing range is against the trade", /inverse/.test(against.say) && /Neither index has the inverse/.test(against.say) && /dealing range reads against the short/.test(against.say), against.say);
+  check("the voice's line is under 30 spoken words (the screen's was ~100)", words(spokenForm(against.say)) < 30 && words(spokenForm(against.line)) > 3 * words(spokenForm(against.say)), `${words(spokenForm(against.line))} -> ${words(spokenForm(against.say))}`);
+  check("the floor holds the caption for a normal beat, not the 16 s cap", speakHoldSec("Sterling", against.say) < 12, String(speakHoldSec("Sterling", against.say)));
+  const draw = { name: "PDH", price: 24512.5, swept: false, side: "above" };
+  const pool = readLtfLead({ ...base, mineLadder: { ...base.mineLadder, htf: "neutral" }, draw });
+  check("a pool's price is said once, with its trailing zero dropped, and the number is held", /PDH 24512\.50 is unswept the other way/.test(pool.say) && numbersHeld(pool.say, spokenForm(pool.say)) && !/point zero zero/.test(spokenForm(pool.say)), pool.say);
+  check("a swept pool is the manipulation, not the target", /already traded, the manipulation, not the target/.test(readLtfLead({ ...base, mineLadder: { ...base.mineLadder, htf: "neutral" }, draw: { ...draw, swept: true } }).say));
+  const passed = applyLtf({ sequence: "wait", label: "WAIT", act: "x", enter: false }, { ...against, inverse: true, rung: 5, thisLeads: true });
+  check("applyLtf carries the voice's line beside the screen's, on the enter, the anticipation and the stand-down", passed.say === against.say && passed.act === against.line
+    && applyLtf({ sequence: "wait", label: "WAIT", act: "x", enter: false }, { ...against, inverse: true, rung: 5, thisLeads: false, leader: "NQ" }).say === against.say
+    && applyLtf({ sequence: "wait", label: "WAIT", act: "x", enter: false }, { ...against, thisLeads: false, leader: "ES" }).say === against.say);
+  // Through the real tier step: what Sterling is handed when a card moves from one tier to the next and when it first prints.
+  const { exTier } = await import("../src/lib/room/live-voices.ts");
+  const { Facts, freshTalkState } = await import("../src/lib/room/live-types.ts");
+  const card = { name: "A+ MNQ short", symbol: "MNQ", verdict: "ARMED", u: "QQQ", type: "PUT", band: "A+", tier: "armed", awayPts: 4, futSymbol: "MNQ", futSide: "short",
+    entry: 24500.5, stop: 24530, t1: 24420, pT1: 0.31, expR: 0.12, block: null, strategy: "tjr", setup: "sweep, displacement", fit: 0.8,
+    sequence: "ANTICIPATION · 5m", entryLine: against.line, entrySay: against.say, key: "k1" };
+  const sterling = (k, from) => {
+    const ex = exTier({ st: freshTalkState(), f: new Facts(), key: `t:${k.key}:${from}`, now: 1_000_000 }, { card: k, from, to: "armed", b: null });
+    return ex?.lines.filter((l) => l.character === "Sterling").map((l) => l.text).join(" ") ?? "";
+  };
+  for (const from of [null, "forming"]) {
+    const s = sterling(card, from);
+    check(`Sterling's ${from ? "tier step" : "first read"} says the voice's line, not the strip or the reminder`, /dealing range reads against the short/.test(s) && !/[▲▼|]|only the entry|every rung|That is a note/.test(s), s.slice(0, 160));
+  }
+  const without = sterling({ ...card, entrySay: null }, "forming");
+  check("a card with no voice line still says its screen line (nothing is lost, only the long form is preferred away)", /every rung|only the entry/.test(without), without.slice(0, 120));
+  check("the tier step for the user's card is under 40 spoken words from Sterling", words(spokenDigest(sterling(card, "forming"))) < 40, String(words(spokenDigest(sterling(card, "forming")))));
+}
+
 console.log("the clip: a cut is a finished thought");
 {
   const text = "The Execution card would refuse the room's tickets on a $1,000 account. The broker side caps a ticket at 10% of broker cash (limits.ts) — $100 on $1,000 — and the room's cheaper strike is about $339. The paper seats run on the same checklist.";

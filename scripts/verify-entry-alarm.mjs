@@ -313,8 +313,12 @@ const R = () => book("ES", "short", 7700);
     fileURLToPath(new URL("../src/routes/index.tsx", import.meta.url)),
     "utf8",
   );
-  const quotePollStart = route.indexOf("const res = await fetchLiveQuotes");
-  const quotePollEnd = route.indexOf("if (patched) applyPaper(patched)");
+  // The poll is `const tick = async () => { ... fetchLiveQuotes({ ... }) ... }`; the slice runs from that tick to the alarm call, so
+  // both side effects have to sit inside the per-quote tick (not in the 20s desk build).
+  const fetchAt = route.indexOf("fetchLiveQuotes({");
+  const quotePollStart = fetchAt < 0 ? -1 : route.lastIndexOf("const tick = async", fetchAt);
+  const alarmAt = route.indexOf("considerEntryAlarm(next)", fetchAt);
+  const quotePollEnd = alarmAt < 0 ? -1 : alarmAt + "considerEntryAlarm(next)".length;
   ok(quotePollStart > 0 && quotePollEnd > quotePollStart, "found the quote poll");
   const body = route.slice(quotePollStart, quotePollEnd);
   ok(

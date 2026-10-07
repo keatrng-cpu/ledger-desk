@@ -870,7 +870,7 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     symbol: k.futSymbol,
     side: k.futSide,
     sequence: k.sequence ?? k.tier,
-    entryLine: k.entryLine,
+    entryLine: k.entrySay?.trim() || k.entryLine,
     missing: k.block,
     target: k.t1,
     pT1: k.pT1,

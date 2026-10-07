@@ -228,6 +228,8 @@ export interface CardRead {
   sequence?: string | null;
   /** What the floor says about that sequence. */
   entryLine?: string | null;
+  /** The same read in the words the voice uses (no strip, no reminder). The screens keep `entryLine`. */
+  entrySay?: string | null;
 }
 
 export interface MindsRead {

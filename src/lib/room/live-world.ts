@@ -293,6 +293,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     fit: c.confluence,
     sequence: seq.label,
     entryLine: seq.act,
+    entrySay: seq.say ?? null,
   };
 }
 

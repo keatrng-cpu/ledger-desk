@@ -228,8 +228,8 @@ function symbols(s: string): string {
     .replace(/×/g, " times ")
     .replace(/[·•]/g, ", ")
     .replace(/←/g, " from ")
-    .replace(/↑/g, " up ")
-    .replace(/↓/g, " down ")
+    .replace(/[↑▲]/g, " up ")
+    .replace(/[↓▼]/g, " down ")
     .replace(/≥/g, " at least ")
     .replace(/≤/g, " at most ")
     .replace(/≈/g, " about ")
@@ -307,12 +307,36 @@ export const ASIDE_WORDS = 5;
 const rawWords = (s: string): number => s.split(/\s+/).filter(Boolean).length;
 
 /**
+ * The timeframe ladder strip the floor prints ("ES Q· M▲ W▲ D▲ | 4H▲ 1H▼ 30▼ | 15▼ 5▼ | 3▼ 2▼ 1▲ · dealing bull."): twelve rung labels with
+ * a glyph each. Read aloud that is a minute of arrows. The voice says each tier as up, down or mixed (counted from the same glyphs)
+ * and the dealing read; the caption keeps the grid. No number is invented — the rung labels are simply not read.
+ */
+const STRIP = /\b([A-Z]{2,4})\s+((?:[A-Z0-9]{1,2}[▲▼·]\s*(?:\|\s*)?){3,})(?:·\s*dealing\s+(bull|bear)\b\.?)?/g;
+const TIER_NAMES = ["bias", "range", "confirm", "trigger"];
+function stripWords(_m: string, sym: string, grid: string, dealing: string | undefined): string {
+  const tone = (g: string): string => {
+    const up = (g.match(/▲/g) ?? []).length;
+    const dn = (g.match(/▼/g) ?? []).length;
+    return up && !dn ? "up" : dn && !up ? "down" : up || dn ? "mixed" : "flat";
+  };
+  const tiers = grid
+    .split("|")
+    .map((g) => g.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((g, i) => `${TIER_NAMES[i]} ${tone(g)}`);
+  return `${sym}: ${tiers.join(", ")}${dealing ? `, dealing ${dealing}` : ""}.`;
+}
+/** True when the caption carries a ladder strip (its voice is the digest whatever its length). */
+export const hasRungGrid = (raw: string): boolean => new RegExp(STRIP.source).test(raw);
+
+/**
  * The caption with its asides taken out: parentheses of five words or more, and sentences the author opened with "For the record".
  * The first sentence always stays. Nothing here is rewritten, only removed — and the removed numbers are exactly the ones inside the
  * removed text, which `numbersHeld(digestOf(raw), spoken)` checks.
  */
 export function digestOf(raw: string): string {
-  const noAsides = raw.replace(/\s*\(([^()]*)\)/g, (m, inner: string) => (rawWords(inner) >= ASIDE_WORDS ? "" : m));
+  const noAsides = raw.replace(STRIP, stripWords).replace(/\s*\(([^()]*)\)/g, (m, inner: string) => (rawWords(inner) >= ASIDE_WORDS ? "" : m));
   const sentences = noAsides.split(/(?<=[.!?])\s+/);
   return sentences.filter((s, i) => i === 0 || !LEAD_INS.test(s.trim())).join(" ").trim();
 }
@@ -322,6 +346,7 @@ export function digestOf(raw: string): string {
  * unless the digest would leave too little to be a thought.
  */
 export function spokenDigest(raw: string): string {
+  if (hasRungGrid(raw)) return spokenForm(digestOf(raw));
   const full = spokenForm(raw);
   if (full.split(/\s+/).length <= DIGEST_ABOVE_WORDS) return full;
   const short = spokenForm(digestOf(raw));

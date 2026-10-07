@@ -16,7 +16,7 @@ const { spokenForm, spokenDigest, digestOf, chunkSpoken, numbersHeld, signsHeld 
 
 export const MAX_PIECE_WORDS = 34;
 
-const SYMBOLS = /[$%¢Δ−→←↑↓≥≤≈±×·•…~^*_#@<>=|[\]{}`"“”]/;
+const SYMBOLS = /[$%¢Δ−→←↑↓▲▼≥≤≈±×·•…~^*_#@<>=|[\]{}`"“”\/]/;
 const GLUED = /\d[A-Za-z]|[A-Za-z]\d/;
 const ORDINAL = /\b\d+(?:st|nd|rd|th)\b/g;
 const CAMEL = /\b[a-z]+[A-Z]/; // a code name (maxCashFrac); a brand (BlackRock) starts with a capital and is fine

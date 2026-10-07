@@ -28,7 +28,13 @@ export interface LtfLead {
   thisLeads: boolean;
   /** Unswept pool in the trade's direction, a swept pool, or a pool that fights the side. */
   bias: "with" | "against" | "swept" | "none";
+  /** The caption on screen: both ladder strips, the entry-only reminder, every sentence. */
   line: string;
+  /**
+   * What the voice says: the same facts as `line` (the rung, who led, the pool, the dealing read) without the twelve-rung strip, the
+   * "only the entry" reminder said on every card, or the "that is a note" filler. About a third of the words.
+   */
+  say: string;
 }
 
 function symbolOf(raw: string): "NQ" | "ES" {
@@ -88,7 +94,7 @@ export function readLtfLead(input: {
   const me = symbolOf(input.symbol);
   const other = symbolOf(input.otherSymbol);
   if (input.minute.length < 10 && !input.mineLadder && !input.otherLadder) {
-    return { known: false, inverse: false, rung: null, leader: "neither", thisLeads: true, bias: "none", line: "" };
+    return { known: false, inverse: false, rung: null, leader: "neither", thisLeads: true, bias: "none", line: "", say: "" };
   }
   const mine = input.minute.length >= 10 ? bestRung(input.minute, input.side) : null;
   const theirs = input.otherMinute.length >= 10 ? bestRung(input.otherMinute, input.side) : null;
@@ -136,6 +142,26 @@ export function readLtfLead(input: {
           ? `${me} led. ${other} has not.`
           : `${leader} led. This index is the laggard.`;
   const thisLeads = leader === me || leader === "both" || leader === "neither";
+  // The spoken read: the same four facts, each said once, none of the framing. The strip and the reminder stay on screen.
+  const leadShort =
+    leader === "both"
+      ? "NQ and ES inverted together."
+      : leader === "neither"
+        ? "Neither index has the inverse."
+        : leader === me
+          ? `${me} led, ${other} has not.`
+          : `${leader} led, this one lags.`;
+  const poolShort =
+    bias === "with"
+      ? `${pool} is unswept in the direction, the draw.`
+      : bias === "against"
+        ? htfAgainst
+          ? `The dealing range reads against the ${input.side}, a note. The entry stands.`
+          : `${pool} is unswept the other way, the bias. Do not fade it.`
+        : bias === "swept"
+          ? `${pool} already traded, the manipulation, not the target.`
+          : "No high-value pool is marked.";
+  const dealingShort = dealingWith ? `Dealing range ${mineHtf}, this ${input.side} continues it.` : "";
   return {
     known: true,
     inverse: mine != null,
@@ -144,6 +170,7 @@ export function readLtfLead(input: {
     thisLeads,
     bias,
     line: `${context} ${dealingSay} ${rungSay} ${leadSay} ${poolSay}`.replace(/\s+/g, " ").trim(),
+    say: `${rungSay} ${leadShort} ${dealingShort} ${poolShort}`.replace(/\s+/g, " ").trim(),
   };
 }
 
@@ -152,13 +179,13 @@ export function applyLtf(seq: PbRead, ltf: LtfLead | null): PbRead {
   if (!ltf?.known) return seq;
   if (seq.label === "DRAW SPENT" || seq.label === "STAND DOWN · ACCEPTED") return seq;
   if (!ltf.thisLeads && ltf.leader !== "neither") {
-    return { sequence: "wait", label: `STAND DOWN · ${ltf.leader} LEADS`, act: ltf.line, enter: false };
+    return { sequence: "wait", label: `STAND DOWN · ${ltf.leader} LEADS`, act: ltf.line, say: ltf.say, enter: false };
   }
   if (ltf.inverse && (ltf.thisLeads || ltf.leader === "both")) {
-    return { sequence: "inverse_after_sweep", label: `ENTER · ${ltf.rung}m`, act: ltf.line, enter: true };
+    return { sequence: "inverse_after_sweep", label: `ENTER · ${ltf.rung}m`, act: ltf.line, say: ltf.say, enter: true };
   }
   if (ltf.inverse) {
-    return { sequence: "inverse_after_sweep", label: `ANTICIPATION · ${ltf.rung}m`, act: ltf.line, enter: false };
+    return { sequence: "inverse_after_sweep", label: `ANTICIPATION · ${ltf.rung}m`, act: ltf.line, say: ltf.say, enter: false };
   }
   return seq;
 }
