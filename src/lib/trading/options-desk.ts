@@ -33,6 +33,7 @@ import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
 import { RH_MAX_DEBIT_TOTAL, confidenceFloorFor, contractsAfterEvent } from "@/lib/execution/rh-autofire-gates";
 import { gapDirection } from "./gap-direction";
+import { monthContractLine } from "./month-contract";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -726,6 +727,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
     const series = /ES/.test(c.symbol) === /ES/.test(desk.left.symbol) ? desk.left.bars : desk.right.bars;
     const gaps = gapDirection(series ?? []);
     reasons.push(gaps.line);
+    reasons.push(monthContractLine(2000));
     const want = c.side === "long" ? "long" : "short";
     if (gaps.side != null && gaps.side !== want) {
       blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
