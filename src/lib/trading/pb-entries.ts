@@ -16,6 +16,7 @@
  */
 
 export type PbSequence =
+  | "amd"
   | "tjr"
   | "reversal"
   | "inverse_after_sweep"
@@ -77,6 +78,24 @@ export function readPbEntry(input: {
       sequence: "reversal",
       label: "ANTICIPATION · REVERSAL",
       act: "Sweep printed and the shift started, against the old bias. Wait for the retrace into the gap or the CISD level. The raid is not the entry.",
+      enter: false,
+    };
+  }
+  // AMD: accumulation is the range, manipulation is the raid, distribution is the entry.
+  // The Judas swing is only the middle. Do not buy the breakout of the range.
+  if (bias && input.swept && (input.displaced || input.inverted) && (input.inArray || input.inverted)) {
+    return {
+      sequence: "amd",
+      label: "ENTER · AMD",
+      act: "Accumulation was the range. Manipulation was the sweep. Distribution is this retrace. Enter the gap the shift left. Stop beyond the raid. Target the other side of the range.",
+      enter: true,
+    };
+  }
+  if (bias && input.swept && !input.displaced && !input.inverted) {
+    return {
+      sequence: "amd",
+      label: "ANTICIPATION · AMD",
+      act: "The range was swept. That is manipulation, not the entry. Wait for delivery to shift and for the retrace into the gap. Do not chase the wick.",
       enter: false,
     };
   }
