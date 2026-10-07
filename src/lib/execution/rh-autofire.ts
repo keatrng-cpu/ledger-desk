@@ -165,7 +165,7 @@ export function evaluateRhLiveQuote(
   const spread = mid > 0 && bid != null && bid > 0 ? (ask - bid) / mid : 0;
   const walked = spread > 0.15 ? mid : ask + RH_LIMIT_SLIP;
   if (typeof q.asOfMs === "number" && Number.isFinite(q.asOfMs) && nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
-    return { ok: true, ask, limit: Math.round(walked * 100) / 100 };
+    return { ok: false, reason: `Live quote is ${Math.round((nowMs - q.asOfMs) / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
   }
   return { ok: true, ask, limit: Math.round(walked * 100) / 100 };
 }
@@ -331,9 +331,8 @@ export function mayPlaceAfterReview(args: {
   }
   // Fail closed: omitting liveQuote used to skip this check — refuse always.
   const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
-  const model = args.quantity && args.debitTotal ? Number(args.debitTotal) / (Math.max(1, Math.floor(Number(args.quantity))) * 100) : 0;
-  if (!q.ok && !(model > 0)) return { ok: false, reason: q.reason };
-  const limitPx = q.ok ? q.limit : model;
+  if (!q.ok) return { ok: false, reason: q.reason };
+  const limitPx = q.limit;
   const qty = Math.floor(Number(args.quantity));
   if (qty >= RH_MIN_CONTRACTS) {
     const liveDebit = Math.round(limitPx * 100 * qty * 100) / 100;
@@ -345,7 +344,7 @@ export function mayPlaceAfterReview(args: {
     }
     args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
   }
-  const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null, rhSpendable(args.accountAtReview) >= RH_MIN_DEBIT_TOTAL ? null : rhSpendable(RH_AGENTIC_DESK_READ));
+  const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null);
   if (!bp.ok) return { ok: false, reason: bp.reason };
   if (!args.liveArmedNow) return { ok: false, reason: RH_LIVE_DISARMED_REASON };
   if (!(args.confirmedInWriting ?? RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING)) {

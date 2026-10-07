@@ -79,10 +79,10 @@ console.log("verdicts");
   check("the plain rules pass: Vince takes at the checklist's size", (() => { const x = v("mechanical", gates()); return x.action === "take" && x.qty === 2 && x.override === null; })());
   check("Sterling: A+ takes, A takes, A− passes (a judgement)", v("protect", gates()).action === "take" && v("protect", gates(), { card: card({ band: "A" }) }).action === "take" && v("protect", gates(), { card: card({ band: "A−" }) }).action === "skip");
   check("Sterling prices it twice: a negative realized-decile EV passes", v("protect", gates(), { plan: plan({ ev: { scenarios: scen(150, -60, -10), calibrated: { evUsd: -3 } } }) }).action === "skip");
-  check("Gemma: HTF with the ticket takes; HTF against passes; inducement passes; mitigation passes", v("structure", gates()).action === "take" && v("structure", gates(), { desk: desk("bear") }).action === "skip" && v("structure", gates(), { card: card({ patterns: { inducement: true, mitigation: false } }) }).action === "skip" && v("structure", gates(), { card: card({ patterns: { inducement: false, mitigation: true } }) }).action === "skip");
+  check("Gemma: HTF with the ticket takes; HTF against passes; inducement and mitigation are notes, so she still takes", v("structure", gates()).action === "take" && v("structure", gates(), { desk: desk("bear") }).action === "skip" && v("structure", gates(), { card: card({ patterns: { inducement: true, mitigation: false } }) }).action === "take" && v("structure", gates(), { card: card({ patterns: { inducement: false, mitigation: true } }) }).action === "take");
   check("Gemma backs a put when HTF is bear", v("structure", gates(), { card: card({ type: "PUT" }), desk: desk("bear") }).action === "take");
-  check("one a day (Sterling, Gemma): the second card is a rule, not a judgement", v("protect", gates(), { seat: seatOf("protect", { counters: { ...seatOf("protect").counters, filledPlans: ["x"] } }) }).action === "blocked" && v("structure", gates(), { seat: seatOf("structure", { counters: { ...seatOf("structure").counters, filledPlans: ["x"] } }) }).gate === "style_cap");
-  check("the room's two a day (Vince, Nova, Jax, The Room) still allow a second", v("mechanical", gates(), { seat: seatOf("mechanical", { counters: { ...seatOf("mechanical").counters, filledPlans: ["x"] } }) }).action === "take" && v("mechanical", gates(), { seat: seatOf("mechanical", { counters: { ...seatOf("mechanical").counters, filledPlans: ["x", "y"] } }) }).action === "blocked");
+  check("Sterling is one a day; Gemma is two — one fill does not block her, two does", v("protect", gates(), { seat: seatOf("protect", { counters: { ...seatOf("protect").counters, filledPlans: ["x"] } }) }).action === "blocked" && v("structure", gates(), { seat: seatOf("structure", { counters: { ...seatOf("structure").counters, filledPlans: ["x"] } }) }).action === "take" && v("structure", gates(), { seat: seatOf("structure", { counters: { ...seatOf("structure").counters, filledPlans: ["x", "y"] } }) }).gate === "style_cap");
+  check("Vince is two a day; The Room has no daily cap", v("mechanical", gates(), { seat: seatOf("mechanical", { counters: { ...seatOf("mechanical").counters, filledPlans: ["x"] } }) }).action === "take" && v("mechanical", gates(), { seat: seatOf("mechanical", { counters: { ...seatOf("mechanical").counters, filledPlans: ["x", "y"] } }) }).action === "blocked" && v("room", gates(), { backers: 3, seat: seatOf("room", { counters: { ...seatOf("room").counters, filledPlans: ["x", "y"] } }) }).action === "take");
   check("The Room: two backers decline, three take", v("room", gates(), { backers: 2 }).action === "skip" && v("room", gates(), { backers: 2 }).gate === "consensus" && v("room", gates(), { backers: 3 }).action === "take");
 
   // Kelly by hand: r = pnl / (ask × 100); f = μ/σ².
@@ -184,7 +184,7 @@ const league = S.leagueRead(finalBook);
     for (const [k, x, y] of parts) if (x !== y) { same = false; where = `${k} @ frame ${i}`; }
   }
   check("the house room's book, counters, ghost room and every cycle's output are identical with and without the seats", same, where);
-  check("the seats' tickets are not in the house book", withSeats.at(-1).book.positions.every((p) => !String(p.id).startsWith("S")) && withSeats.at(-1).book.closed.every((c) => !String(c.id).startsWith("S")));
+  check("the seats' tickets are not in the house book", withSeats.at(-1).book.positions.every((p) => !/^S\d+$/.test(String(p.id))) && withSeats.at(-1).book.closed.every((c) => !/^S\d+$/.test(String(c.id))));
 
   // The accounts add up on every frame.
   let adds = true;
@@ -209,7 +209,7 @@ const league = S.leagueRead(finalBook);
   const mine = mech.closed[0];
   const rows = houseClosed.filter((c) => c.strike === mine?.strike && c.entryPx === mine?.entryPx);
   const lastRow = [...rows].sort((a, b) => b.closedAt - a.closedAt)[0];
-  check("Vince's two-contract ticket (the room's rules, the room's size) ends the way the room's identical ticket does: the same trim, the same final print, the same reason, the same total", mine && rows.length === 2 && mine.qty0 === 2 && lastRow.closedAt === mine.closedAt && lastRow.reason === mine.reason && near(rows.reduce((t, c) => t + c.pnlUsd, 0), mine.pnlUsd, 1e-6), json({ rows: rows.map((r) => [r.contracts, r.closedAt, r.reason, r.pnlUsd]), seat: mine && [mine.qty0, mine.closedAt, mine.reason, mine.pnlUsd] }));
+  check("Vince's ticket is the room's size after the 10:00 cut (one contract) and ends the way the room's identical ticket does: the same close, the same print, the same reason, the same total", mine && rows.length === 1 && mine.qty0 === 1 && lastRow.closedAt === mine.closedAt && lastRow.reason === mine.reason && near(rows.reduce((t, c) => t + c.pnlUsd, 0), mine.pnlUsd, 1e-6), json({ rows: rows.map((r) => [r.contracts, r.closedAt, r.reason, r.pnlUsd]), seat: mine && [mine.qty0, mine.closedAt, mine.reason, mine.pnlUsd] }));
   check("with ONE contract the same +40% takes it all (the mandate's rule on a single contract) — a different size, a different exit, on the same rules", finalBook.seats.find((s) => s.id === "mechanical").closed[0].reason.startsWith("take profit") && /one contract/.test(finalBook.seats.find((s) => s.id === "mechanical").closed[0].reason));
 
   // Decisions: once per plan-day for take / skip.
@@ -218,54 +218,53 @@ const league = S.leagueRead(finalBook);
   check("every seat takes or declines a card at most once (a judgement is final; only a rule's block is revisited)", Object.values(perSeatPlan).every((n) => n === 1), json(perSeatPlan));
   const seatOf = (id) => finalBook.seats.find((s) => s.id === id);
   const evTouch = finalBook.touches.find((t) => t.key.startsWith("MNQ:long:30996"));
-  check("the first card (the room's two strikes price negative): Vince, Gemma, Nova, Sterling and The Room decline on the pricing gate — only Jax overrides", evTouch && evTouch.per.press === "take" && ["protect", "mechanical", "structure", "edge", "room"].every((id) => evTouch.per[id] === "skip" && seatOf(id).decisions[0].gate === "ev"), json(evTouch));
   const jax = seatOf("press");
+  check("the option EV is a note, not a veto: Vince, Gemma, Jax and The Room take the first card; Sterling passes it priced twice and Nova passes it because Kelly stakes nothing", evTouch && ["mechanical", "structure", "press", "room"].every((id) => evTouch.per[id] === "take") && evTouch.per.protect === "skip" && seatOf("protect").decisions[0].gate === "style" && evTouch.per.edge === "skip" && seatOf("edge").decisions[0].gate === "style" && jax.decisions[0].override === null, json(evTouch));
   const jaxT = jax.closed[0];
-  check("Jax's override is on the ticket and in the decision", jaxT.override === "ev" && jax.decisions[0].override === "ev" && /overrides ev/.test(jax.decisions[0].why), json(jax.decisions[0]));
+  check("Jax's first take is not an override — the house did not refuse on the option EV", jaxT.override === null && jax.decisions[0].override === null && jax.decisions[0].why === "the rules pass", json(jax.decisions[0]));
   check("Jax bought a contract the room could not: further than one strike out, more than one of them, inside his 40% cap", (() => {
     const atm = Math.round(D.drillMarket(frames[11]).QQQ.price);
     return jaxT.strike >= atm + 2 && jaxT.qty0 >= 2 && jaxT.qty0 * jaxT.entryPx * 100 <= 0.4 * 1000 + 1e-6;
   })(), json(jaxT));
-  check("the room's theta stop closed it (the same exit rule every ticket has) at a loss — the lottery lost", /^theta/.test(jaxT.reason) && jaxT.pnlUsd < 0, json(jaxT));
-  check("…which tripped the daily halt (a loss past 2% of $1,000), so Jax was BLOCKED on the real card by the room's own rule", jax.counters.realizedToday <= -20 && jax.decisions.some((d) => d.action === "blocked" && d.gate === "halt_day"), json(jax.decisions.map((d) => [d.action, d.gate])));
+  check("the room's theta stop closed the first one (the same exit rule every ticket has) at a loss — the lottery lost", /^theta/.test(jaxT.reason) && jaxT.pnlUsd < 0, json(jaxT));
+  check("a −$33 theta loss is inside the 15% day halt ($150 of $1,000), so Jax is not halted: he still takes the A+ and the third card is the two-a-day rule", jax.counters.realizedToday > -150 && !jax.decisions.some((d) => d.gate === "halt_day") && jax.decisions.filter((d) => d.action === "take").length === 2 && jax.decisions.some((d) => d.action === "blocked" && d.gate === "style_cap"), json(jax.decisions.map((d) => [d.action, d.gate, d.why])));
   const aPlus = finalBook.touches.find((t) => t.key.startsWith("MNQ:long:31030"));
-  check("the A+ card: Sterling, Vince, Gemma, Nova and The Room take it; Jax is blocked", aPlus && ["protect", "mechanical", "structure", "edge", "room"].every((id) => aPlus.per[id] === "take") && aPlus.per.press === "blocked", json(aPlus));
-  const house = withSeats.at(-1).book.closed;
-  const houseStrike = house.find((c) => c.entryPx > 2.8 && c.entryPx < 2.9)?.strike;
-  check("Vince, Gemma and The Room hold the room's own contract (the strike one out the house also bought)", ["mechanical", "structure", "room"].every((id) => seatOf(id).closed[0]?.strike === houseStrike), json([houseStrike, ["mechanical", "structure", "room"].map((id) => seatOf(id).closed[0]?.strike)]));
+  check("the A+ card: Sterling, Nova and Jax take it; Vince, Gemma and The Room are still in the first QQQ, so one book blocks them", aPlus && ["protect", "edge", "press"].every((id) => aPlus.per[id] === "take") && ["mechanical", "structure", "room"].every((id) => aPlus.per[id] === "blocked" && seatOf(id).decisions.find((d) => d.planKey.startsWith("MNQ:long:31030")).gate === "one_book"), json(aPlus));
+  check("Vince, Gemma and The Room hold the room's own 09:56 contract (strike 776)", ["mechanical", "structure", "room"].every((id) => seatOf(id).closed[0]?.strike === 776) && withSeats.at(-1).book.positions.some((p) => p.id === "QQQ-776C-1"), json(["mechanical", "structure", "room"].map((id) => seatOf(id).closed[0]?.strike)));
   check("Sterling holds a contract the room would not pick: the nearest the money whose price fits his $250 (25%) cap", (() => {
     const t = seatOf("protect").closed[0];
-    return t.strike !== houseStrike && t.qty0 * t.entryPx * 100 <= 250 + 1e-6 && t.entryPx * 100 > 200;
+    return t.strike !== 776 && t.qty0 * t.entryPx * 100 <= 250 + 1e-6 && t.entryPx * 100 > 200;
   })(), json(seatOf("protect").closed[0]));
   check("Nova holds the contract with the most EV per dollar (cheaper than the room's, bought at her priced Kelly size)", (() => {
     const t = seatOf("edge").closed[0];
     return t && t.entryPx < 2.87 && /Kelly/.test(seatOf("edge").decisions.find((d) => d.action === "take").why);
   })(), json(seatOf("edge").closed[0]));
   const spy = finalBook.touches.find((t) => t.key.startsWith("ES:long"));
-  check("the SPY card at the touch is blocked for everyone by the room's own rules (one book, A+ only after 10:00, the halt)", spy && S.SEAT_IDS.every((id) => spy.per[id] === "blocked"), json(spy));
+  check("SPY is its own ticket: Vince and Gemma take it, The Room skips on two backers, Nova skips on Kelly, Sterling and Jax are at their day count", spy && spy.per.mechanical === "take" && spy.per.structure === "take" && spy.per.room === "skip" && seatOf("room").decisions.find((d) => d.planKey.startsWith("ES:")).gate === "consensus" && spy.per.edge === "skip" && seatOf("edge").decisions.find((d) => d.planKey.startsWith("ES:")).gate === "style" && spy.per.protect === "blocked" && seatOf("protect").decisions.find((d) => d.planKey.startsWith("ES:")).gate === "style_cap" && spy.per.press === "blocked" && seatOf("press").decisions.find((d) => d.planKey.startsWith("ES:")).gate === "style_cap", json(spy));
   const protect = seatOf("protect");
-  check("a seat that declined by judgement opens a ghost at the size it would have bought; a seat blocked by a rule opens none", protect.skipped.length === 1 && protect.skipped[0].kind === "skipped" && protect.skipped[0].meta.gate === "ev" && protect.skipped[0].contracts >= 1 && jax.skipped.length === 0);
+  check("a judgement opens a ghost; a rule does not (Sterling's pass is a ghost, Jax and Vince opened none)", protect.skipped.length === 1 && protect.skipped[0].kind === "skipped" && protect.skipped[0].meta.gate === "style" && protect.skipped[0].contracts >= 1 && jax.skipped.length === 0 && seatOf("mechanical").skipped.length === 0);
   check("no seat ever spent more than its ticket share of its cash on a ticket", finalBook.seats.every((s) => s.decisions.filter((d) => d.action === "take").every((d) => d.debitUsd <= S.seatCapFrac(s.id, GOAL) * 1000 + 1e-6)));
 
   // What each ticket made, and the league.
   const row = (id) => league.rows.find((r) => r.id === id);
   check("the league ranks by equity, highest first; progress = (equity − start) ÷ (target − start)", league.rows.every((r, i, a) => i === 0 || r.equity <= a[i - 1].equity) && league.rows.every((r) => near(r.progress, (r.equity - 1000) / 4000, 1e-12)));
-  check("Jax: one ticket, a loss, taken against the pricing gate — it is the whole of his override record", row("press").taken.n === 1 && row("press").overrides.n === 1 && row("press").overrides.usd === row("press").taken.usd && row("press").taken.usd < 0 && row("press").equity === league.rows.at(-1).equity);
-  check("the one declined ticket per judging seat: what saying no on the first card was worth (the +$161 the room would have made)", row("mechanical").declined.n === 1 && near(row("mechanical").declined.usd, 161, 1e-6) && row("protect").declined.n === 1, json([row("mechanical").declined, row("protect").declined]));
+  check("Jax: the closed ticket is the theta loss, there is no override, the A+ is still open, and he finishes last", row("press").taken.n === 1 && row("press").taken.usd < 0 && row("press").overrides.n === 0 && row("press").open === 1 && row("press").equity === league.rows.at(-1).equity, json(row("press")));
+  check("Nova saying no on the first card left +$161 on the table and her SPY no made −$56 (+$105 together); Sterling's pass made −$5; Vince took both of his", row("edge").declined.n === 2 && near(row("edge").declined.usd, 105) && near(seatOf("edge").skipped[0].closed.pnlUsd, 161) && near(seatOf("edge").skipped[1].closed.pnlUsd, -56) && row("protect").declined.n === 1 && near(row("protect").declined.usd, -5) && row("mechanical").declined.n === 0, json([row("edge").declined, row("protect").declined]));
   check("the leader is on top (a tie for first keeps whoever was already there) and nobody leads while no one is above the start", ["protect", "mechanical", "structure", "edge", "room"].includes(league.leader) && near(row(league.leader).equity, league.rows[0].equity, 0.5) && S.leagueRead(S.newSeatBook(GOAL, 0)).leader === null);
 }
 
 /* ── The syndicate ─────────────────────────────────────────────────── */
 console.log("syndicates");
 {
-  const y = finalBook.syndicates.find((x) => x.planKey.startsWith("MNQ:long:31030"));
-  check("one syndicate formed on the A+ card: five members, no dissent, Jax abstaining (a rule held him)", y && json(y.members) === json(["protect", "mechanical", "structure", "edge", "room"]) && y.dissent.length === 0 && json(y.abstain) === json(["press"]), json(y));
-  check("no syndicate on a card only one seat held (Jax alone on the first)", finalBook.syndicates.length === 1);
-  const mem = finalBook.seats.flatMap((s) => s.closed.filter((c) => c.syn === y.id));
-  check("it resolves when the last member's ticket closes, at the sum of their P&L", y.closedUsd != null && mem.length === 5 && near(y.closedUsd, mem.reduce((t, c) => t + c.pnlUsd, 0), 1e-9), json({ y, mem: mem.length }));
-  check("with no dissenters there is nothing to price (null, not zero)", y.dissentUsd === null && league.syndicates.dissentN === 0 && league.syndicates.dissentUsd === null);
-  check("co-signed and solo are tallied per seat: five co-signed one; Jax's was solo", ["protect", "mechanical", "structure", "edge", "room"].every((id) => league.rows.find((r) => r.id === id).coSigned.n === 1) && league.rows.find((r) => r.id === "press").solo.n === 1 && league.rows.find((r) => r.id === "press").coSigned.n === 0);
-  check("league syndicate totals", league.syndicates.n === 1 && league.syndicates.closed === 1 && near(league.syndicates.usd, y.closedUsd, 1e-9));
+  const first = finalBook.syndicates.find((x) => x.planKey.startsWith("MNQ:long:30996"));
+  const aPlusY = finalBook.syndicates.find((x) => x.planKey.startsWith("MNQ:long:31030"));
+  const spyY = finalBook.syndicates.find((x) => x.planKey.startsWith("ES:"));
+  const row = (id) => league.rows.find((r) => r.id === id);
+  check("three syndicates, and the first sums its members (+$450) and its dissenters (+$156)", finalBook.syndicates.length === 3 && json(first.members) === json(["mechanical", "structure", "press", "room"]) && json(first.dissent) === json(["protect", "edge"]) && first.abstain.length === 0 && near(first.closedUsd, 450) && near(first.dissentUsd, 156), json(first));
+  check("the A+ syndicate is still open (Jax has not closed), so it prices nothing — null, not zero", json(aPlusY.members) === json(["protect", "edge", "press"]) && json(aPlusY.abstain) === json(["mechanical", "structure", "room"]) && aPlusY.dissent.length === 0 && aPlusY.closedUsd === null && aPlusY.dissentUsd === null, json(aPlusY));
+  check("the SPY syndicate is Vince and Gemma, closed at −$102, dissent priced at −$107", json(spyY.members) === json(["mechanical", "structure"]) && json(spyY.dissent) === json(["edge", "room"]) && near(spyY.closedUsd, -102) && near(spyY.dissentUsd, -107), json(spyY));
+  check("co-signed and solo: Vince and Gemma signed two, everyone else one, and no closed ticket was alone", ["mechanical", "structure"].every((id) => row(id).coSigned.n === 2) && ["protect", "edge", "press", "room"].every((id) => row(id).coSigned.n === 1) && S.SEAT_IDS.every((id) => row(id).solo.n === 0), json(league.rows.map((r) => [r.id, r.coSigned, r.solo])));
+  check("league syndicate totals: 3 formed, 2 closed, +$348, dissent on 2 priced at +$49", league.syndicates.n === 3 && league.syndicates.closed === 2 && near(league.syndicates.usd, 348) && league.syndicates.dissentN === 2 && near(league.syndicates.dissentUsd, 49), json(league.syndicates));
   const kinds = finalBook.events.map((e) => e.kind);
   check("the events tell it: start, then open/skip/blocked per card, lead, syndicate, closes, syndicate_closed", ["start", "open", "skip", "blocked", "lead", "syndicate", "close", "syndicate_closed"].every((k) => kinds.includes(k)), kinds.join());
   check("event ids are unique and the book's counter is ahead of every one", new Set(finalBook.events.map((e) => e.id)).size === finalBook.events.length && finalBook.events.every((e) => Number(e.id.slice(1)) <= finalBook.seq));
@@ -273,8 +272,8 @@ console.log("syndicates");
   // A syndicate with a dissenter: raise the price floor so Nova's Kelly stake buys nothing on the one contract left.
   const dis = D.playDrill(undefined, { ...GOAL, minAskUsd: 300 });
   const sb = asLab(dis.at(-1).book.lab).seats;
-  const yd = sb.syndicates.find((x) => x.planKey.startsWith("MNQ:long:31030"));
-  check("with a $300 price floor Nova (Kelly stakes $220) declines the one contract left on her ladder: she is the dissent", yd && yd.dissent.includes("edge") && !yd.members.includes("edge"), json(yd));
+  const yd = sb.syndicates.find((x) => x.planKey.startsWith("MNQ:long:30996"));
+  check("with a $300 price floor Nova declines the first card and she is the dissent", yd && json(yd.dissent) === json(["edge"]) && !yd.members.includes("edge"), json(yd));
   const gh = sb.seats.flatMap((s) => s.skipped.filter((g) => g.planKey === yd.planKey));
   check("the dissenters' 'no' is priced from their declined tickets, once they have closed", yd.dissentUsd != null && gh.length === yd.dissent.length && gh.every((g) => g.closed) && near(yd.dissentUsd, gh.reduce((t, g) => t + g.closed.pnlUsd, 0), 1e-9), json({ yd, gh: gh.length }));
   const l2 = S.leagueRead(sb);
@@ -286,10 +285,10 @@ console.log("the room seat");
 {
   const rich = D.playDrill(undefined, RICH);
   const sb = asLab(rich.at(-1).book.lab).seats;
-  const aPlus = sb.touches.find((t) => t.key.startsWith("MNQ:long:31030"));
-  const takers = S.PERSONAL_SEATS.filter((id) => aPlus.per[id] === "take");
-  check("with $3,000 more of the five can afford it", takers.length >= 3, json(aPlus.per));
-  check("…so The Room takes the A+ card (3 or more backed it) and is in the syndicate", aPlus.per.room === "take" && sb.syndicates.some((y) => y.members.includes("room") && y.members.length >= 4), json({ per: aPlus.per, syn: sb.syndicates.map((y) => y.members) }));
+  const first = sb.touches.find((t) => t.key.startsWith("MNQ:long:30996"));
+  const takers = S.PERSONAL_SEATS.filter((id) => first.per[id] === "take");
+  check("with $3,000 the first card still draws three or more of the five", takers.length >= 3, json(first.per));
+  check("…so The Room takes it and is in a syndicate of at least four", first.per.room === "take" && sb.syndicates.some((y) => y.planKey.startsWith("MNQ:long:30996") && y.members.includes("room") && y.members.length >= 4), json({ per: first.per, syn: sb.syndicates.map((y) => y.members) }));
   const roomSeat = sb.seats.find((s) => s.id === "room");
   check("The Room's ticket is the checklist's size, no override", roomSeat.closed.length === 1 && roomSeat.closed[0].override === null);
 }

@@ -138,6 +138,7 @@ export function managerAgreeFromRoom(args: {
     if (!(card.dte === 0 || card.dte === 1)) blocks.push("dte");
     const floor = rhPathFloorForBand(card.band);
     if (floor == null) blocks.push("path_band");
+    else if (!(card.confluence >= floor)) blocks.push("path_floor");
     if (isBplusBand(card.band)) {
       const bp = evaluateRhBplusGate({
         pathBand: card.band,

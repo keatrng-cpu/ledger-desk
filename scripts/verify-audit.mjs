@@ -14,6 +14,7 @@
  *   - the module imports no config, no gate and no size: it cannot write a rule.
  */
 const A = await import("../src/lib/room/audit.ts");
+const { EXEC_FLAGS } = await import("../src/lib/room/exec/limits.ts");
 const fs = await import("node:fs");
 
 let pass = 0;
@@ -87,7 +88,12 @@ console.log("The ghost room and the card's odds");
 }
 
 console.log("Execution, the R&D board and the seats");
-check("the missing server runner is named while the flag is false", A.deskAudit(empty).some((x) => x.id === "runner" && x.owner === "Vince" && x.area === "execution"));
+const auditSrc = fs.readFileSync(new URL("../src/lib/room/audit.ts", import.meta.url), "utf8");
+check(
+  "the runner is named only while SERVER_RUNNER_BUILT is false",
+  /dead\.includes\("SERVER_RUNNER_BUILT"\)/.test(auditSrc) &&
+    A.deskAudit(empty).some((x) => x.id === "runner" && x.owner === "Vince" && x.area === "execution") === !EXEC_FLAGS.SERVER_RUNNER_BUILT,
+);
 {
   const exp = (status, n = 3, nNeeded = 10) => ({ id: `e${n}${status}`, owner: "Nova", title: "t", status, n, nNeeded, read: "r", proposal: null });
   check("no experiment decided yet is a low note about the window, not about a rule", A.deskAudit({ ...empty, rnd: { experiments: [exp("collecting", 3), exp("collecting", 5)] } }).find((x) => x.id === "rnd_empty")?.severity === "low");

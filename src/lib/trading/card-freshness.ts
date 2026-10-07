@@ -93,7 +93,7 @@ export function cardFreshness(
         ...base,
         state: "target_hit",
         reachStillMeaningful: false,
-        line: `TARGET ALREADY PRINTED at ${plan.t1.toFixed(2)} — price is ${livePrice.toFixed(2)}. This card is finished. A new displacement in the same direction is a new card and can arm. This one cannot hold the symbol.`,
+        line: `TARGET ALREADY PRINTED at ${plan.t1.toFixed(2)} — price is ${livePrice.toFixed(2)}. This card is finished. Do not enter it late. Re-scan for a continuation and a reversal. Each needs a NEW entry and stop. This one cannot hold the symbol.`,
       };
     }
   }

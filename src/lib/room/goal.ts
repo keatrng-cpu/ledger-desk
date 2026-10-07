@@ -211,13 +211,13 @@ export function modelFromMean(pWin: number, lossPct: number, meanPct: number, n:
   return { pWin, winPct, lossPct, meanPct, n, source };
 }
 
-/** The live book the floor prices the goal on: B+ and higher, managed to +45% / −20%. Not the unfiltered four-year mean. */
+/** The reference trade: NY AM, VIX 18, 1 DTE, ATM, every filled card (room-ev-test.json) with the mandate's loss. */
 export function referenceModel(): TradeModel {
-  const pWin = 0.48;
-  const lossPct = Math.abs(ROOM_MANDATE.hardStopPct) / 100;
-  const winPct = 0.45;
-  const meanPct = Math.round((pWin * winPct - (1 - pWin) * lossPct) * 1000) / 1000;
-  return { pWin, winPct, lossPct, meanPct, n: null, source: "live book · B+ and higher · +45% / −20%" };
+  const row = (ROOM_EV_TEST.results as { pop: string; vix: number; dte: number; half: string; all: { n: number; winRate: number; meanPctPremium: number } }[]).find(
+    (r) => r.pop === "nyam" && r.vix === 18 && r.dte === 1 && r.half === "all",
+  );
+  if (!row) throw new Error("room-ev-test.json has no NY AM / VIX 18 / 1 DTE row");
+  return modelFromMean(row.all.winRate, Math.abs(ROOM_MANDATE.hardStopPct) / 100, row.all.meanPctPremium, row.all.n, `room-ev-test.json · NY AM · VIX 18 · 1 DTE · n ${row.all.n}`);
 }
 
 /** Qualifying tickets the room can take per session — the measured NY AM fills, which is all it is open for. */
@@ -542,7 +542,7 @@ export interface PolicyDef {
 export const POLICIES: PolicyDef[] = [
   { id: "protect", owner: "Sterling", label: "Protect the floor", frac: 0.25, perDay: 1, stance: "small tickets, one a day — the account must still exist to hit anything" },
   { id: "mechanical", owner: "Vince", label: "Mechanical, at the cap", frac: "cap", perDay: 2, stance: "the room's rules, at the experiment's ticket cap" },
-  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.56, perDay: 2, stance: "the chart and the dealing range, sized to the $90–$550 envelope" },
+  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.56, perDay: 2, stance: "the chart and the dealing range, sized to the $150–$550 envelope" },
   { id: "edge", owner: "Nova", label: "Edge-weighted", frac: "kelly", perDay: 2, stance: "stake what the measured edge supports — nothing, if it supports nothing" },
   { id: "press", owner: "Jax", label: "Press", frac: 1, perDay: 2, stance: "the goal needs size; take every ticket the gates allow, as big as the cap lets you" },
 ];

@@ -63,7 +63,7 @@ console.log("grades accepted: A+, A, A-, B+");
   check("null band refuses", g({ ...BASE, pathBand: null }), "path_band");
   check("after 10:00 ET a 30-min-old BP read refuses bp_stale", g({ ...BASE, pathBand: "B+", confluence: 0.62 }, { ...FLAGS, nowMs: AFTER_10 }), "bp_stale");
   check("B+ after 10:00 ET (fresh BP) still ok — clock cuts size",
-    g({ ...BASE, pathBand: "B+", confluence: 0.62, account: { ...FUNDED, asOfMs: AFTER_10 - 10_000 } }, { ...FLAGS, nowMs: AFTER_10 }), "ok");
+    g({ ...BASE, ...BPLUS_OK, pathBand: "B+", confluence: 0.62, account: { ...FUNDED, asOfMs: AFTER_10 - 10_000 } }, { ...FLAGS, nowMs: AFTER_10 }), "ok");
 }
 
 console.log("\nPATH alarm fires on B+ (isPathFire) — isHighProbPath unchanged");

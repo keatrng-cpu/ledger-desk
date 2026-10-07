@@ -26,6 +26,7 @@
 import type { SetupCandidate } from "./scanner";
 import type { SmcMasterRead } from "./smc-master";
 import { MAX_RISK_ATR_TRADABLE, MIN_RISK_ATR, type TradePlan } from "./trade-plan";
+import { riskAtrBucket } from "./evidence";
 
 export interface CardPlan {
   symbol: string;
@@ -221,6 +222,9 @@ export function cardRisk(
   };
 }
 
+const signedR = (x: number | null | undefined) =>
+  x == null ? "" : ` — measured ${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(2)}R/card`;
+
 /**
  * Why anything that SIZES from this card should refuse — or null.
  *
@@ -233,8 +237,8 @@ export function cardSizeRefusal(
   c: Pick<SetupCandidate, "plan" | "stopSource" | "entryPx" | "invalidation" | "atr" | "side">,
 ): string | null {
   const risk = cardRisk(c);
-  // A landmark on the wrong side, or a stop wider than the cap, is repriced
-  // off the sweep in buildPaperLevels. It is not a stand-down.
+  // A stop wider than the cap is repriced off the sweep in buildPaperLevels.
+  // It is not a stand-down. A stop inside the 0.5×ATR floor still is.
   if (c.plan?.riskOverCap) return null;
   if (risk.source === "none" && c.plan) return null;
   if (risk.stop == null || risk.riskPts == null) {
@@ -242,6 +246,12 @@ export function cardSizeRefusal(
       ? "No stop on the correct side of the entry — nothing to size from"
       : "No numeric stop on this card — nothing to size from";
   }
-  if (!(risk.riskPts > 0)) return null;
+  if (!(risk.riskPts > 0)) return "Zero-width stop — nothing to size from";
+  if (risk.riskAtr != null && risk.riskAtr < MIN_RISK_ATR) {
+    return `Stop is ${risk.riskAtr.toFixed(2)}×ATR, inside the ${MIN_RISK_ATR}×ATR floor${signedR(riskAtrBucket(risk.riskAtr)?.exp)}`;
+  }
+  if (risk.riskAtr != null && risk.riskAtr > MAX_RISK_ATR_TRADABLE && !c.plan?.riskOverCap) {
+    return `Stop is ${risk.riskAtr.toFixed(2)}×ATR, beyond the ${MAX_RISK_ATR_TRADABLE}×ATR band${signedR(riskAtrBucket(risk.riskAtr)?.exp)}`;
+  }
   return null;
 }

@@ -669,7 +669,7 @@ export function evaluateEntry(
     const exp = expiryFor(e.dte, etDate);
     const capUsd = Math.min(capFrac * cash, MAX_DEBIT_USD);
     const afford = (q: OptionQuote) => Math.floor(capUsd / (q.ask * 100));
-    const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.flattenAllMin));
+    const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
     const futNow = desk.futures[e.underlier]?.price ?? 0;
     // The room only ever buys the touch, so a card that has not touched is
     // priced AT its CE (the ETF where the limit would fill, the ask it would

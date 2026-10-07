@@ -80,9 +80,18 @@ ok("nowMs is no longer discarded", !/void nowMs/.test(src));
 const right18 = buildTfLadder({ symbol: "T", daily, m15, m1: [], nowMs: et(tradeDateOf(nowMs), "00:00") + 18 * 60 * MIN });
 ok("at a fresh 18:00 session with no bars yet, the daily rung reads no open rather than inventing one", right18.reads.find((r) => r.tf === "1d").open == null || right18.reads.find((r) => r.tf === "1d").why.length > 0);
 
-console.log("\ndirection comes from Tier 1 only; the 1m–3m cannot move it");
-ok("a direction was read", base.direction !== "neutral");
-ok("decided by a Tier 1 rung", ["3M", "1M", "1w", "1d"].includes(base.decidedBy));
+console.log("\ndirection is HTF structure (the day and the 4H); the quarter and the 1m–3m do not vote");
+ok("a climb with no swing is not a direction from the quarter open", base.direction === "neutral" && base.decidedBy == null);
+ok("the quarter did not decide the no-swing tape", base.decidedBy !== "3M" && base.decidedBy !== "1M");
+// Hand-built daily swings (HH/HL). The 15m tape has no swings, so only the day can decide.
+const swingDaily = [100, 110, 140, 120, 110, 130, 160, 140, 130, 155, 190, 160].map((h, i) => {
+  const l = [70, 80, 100, 90, 85, 100, 125, 115, 110, 130, 155, 140][i];
+  const iso = new Date(Date.UTC(2026, 6, 1 + i)).toISOString().slice(0, 10);
+  return { t: et(iso, "00:00"), o: l + 5, h, l, c: (h + l) / 2, v: 100 };
+});
+const swing = buildTfLadder({ symbol: "T", daily: swingDaily, m15, m1: [], nowMs });
+ok("a daily HH/HL is a direction", swing.direction === "bull");
+ok("decided by the day, not the quarter", swing.decidedBy === "1d");
 const mk1m = (dir) => {
   const out = [];
   const start = nowMs - 120 * MIN;
@@ -94,8 +103,8 @@ const mk1m = (dir) => {
   }
   return out;
 };
-const up = buildTfLadder({ symbol: "T", daily, m15, m1: mk1m("up"), nowMs });
-const down = buildTfLadder({ symbol: "T", daily, m15, m1: mk1m("down"), nowMs });
+const up = buildTfLadder({ symbol: "T", daily: swingDaily, m15, m1: mk1m("up"), nowMs });
+const down = buildTfLadder({ symbol: "T", daily: swingDaily, m15, m1: mk1m("down"), nowMs });
 check("a bullish vs bearish 1m tape leaves direction unchanged", up.direction, down.direction);
 check("and leaves the deciding rung unchanged", up.decidedBy, down.decidedBy);
 ok("while the trigger tier itself did flip", up.tier4 !== down.tier4);

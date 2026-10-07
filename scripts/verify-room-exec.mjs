@@ -128,7 +128,7 @@ console.log("entry gates");
   check("live refuses the indicative feed", has(e({}, { phase: "live" }), "feed_not_opra"));
   check("live takes OPRA", !has(e({}, { phase: "live", quote: quote({ feed: "opra" }), account: account() }), "feed_not_opra"));
   check("3 contracts is $1,131: over the $1,000 ticket cap", has(e({ qty: 3 }), "ticket_cap"));
-  check("the cap is also 10% of the broker's CASH ($3,000 → $300)", has(e({}, { account: account({ cash: 3000 }) }), "ticket_cap"));
+  check("the cap is also 56% of the broker's cash ($1,000 → $560, under this ticket)", has(e({}, { account: account({ cash: 1000 }) }), "ticket_cap"));
   check("options buying power below the cost refuses", has(e({}, { account: account({ optionsBuyingPower: 500 }) }), "buying_power"));
   check("…an absent options buying power falls back to buying power", !has(e({}, { account: account({ optionsBuyingPower: null }) }), "buying_power") && has(e({}, { account: account({ optionsBuyingPower: null, buyingPower: 400 }) }), "buying_power"));
   const pos = (s, q = 1) => ({ symbol: s, qty: q, avgPx: 1 });
@@ -233,16 +233,16 @@ console.log("the room's book → intents, over the whole drill day");
     if (r.exits.length) exitsAt.push({ at: s.frame.at, ...r });
     before = s.book;
   }
-  check("one entry in the day: the 10:11 fill", entriesAt.length === 1 && entriesAt[0].at === "10:11", JSON.stringify(entriesAt.map((x) => x.at)));
+  check("two entries: 09:56 buys 2 QQQ (before the 10:00 cut) and 10:22 buys SPY (its own ticket)", entriesAt.length === 2 && entriesAt[0].at === "09:56" && entriesAt[1].at === "10:22" && entriesAt[0].entries[0].qty === 2 && entriesAt[0].entries[0].underlier === "QQQ" && entriesAt[1].entries[0].qty === 1 && entriesAt[1].entries[0].underlier === "SPY", JSON.stringify(entriesAt.map((x) => [x.at, x.entries.map((e) => [e.underlier, e.qty])])));
   const en = entriesAt[0]?.entries[0];
-  check("it is 2× QQQ calls, the strike the room booked, at the room's ask", en && en.role === "entry" && en.side === "buy" && en.underlier === "QQQ" && en.type === "CALL" && en.qty === 2 && en.modelPx > 0 && /^E\|\d{4}-\d{2}-\d{2}\|/.test(en.decisionKey), JSON.stringify(en));
-  check("it names the room position, so a never-filled entry can void it", typeof en?.positionId === "string" && en.positionId.length > 3);
+  check("the QQQ entry is the room's ask and names the position, so a never-filled entry can void it", en && en.role === "entry" && en.side === "buy" && en.type === "CALL" && en.modelPx > 0 && /^E\|\d{4}-\d{2}-\d{2}\|/.test(en.decisionKey) && typeof en.positionId === "string" && en.positionId.length > 3, JSON.stringify(en));
   check("lunch does not add an 11:00 time stop", !exitsAt.some((x) => x.at === "11:00"));
   check("exits are sells at the room's bid, with the reason", exitsAt.every((x) => x.exits.every((e) => e.role === "exit" && e.side === "sell" && e.modelPx > 0 && e.reason.length > 3)));
-  const fillStep = steps.find((s) => s.frame.at === "10:11");
+  const fillStep = steps.find((s) => s.frame.at === "09:56");
   const d = desiredOf(fillStep.book);
-  check("desired = what the room holds: one contract, 2 of it", d.length === 1 && d[0].qty === 2 && /^QQQ\d{6}C\d{8}$/.test(d[0].symbol), JSON.stringify(d));
-  check("desired is empty at the end of the day", desiredOf(steps[steps.length - 1].book).length === 0);
+  check("desired = what the room holds after 09:56: two of the QQQ", d.length === 1 && d[0].qty === 2 && /^QQQ\d{6}C\d{8}$/.test(d[0].symbol), JSON.stringify(d));
+  const end = desiredOf(steps[steps.length - 1].book);
+  check("the day still holds the QQQ runner — the clock did not flatten it", end.length === 1 && end[0].qty === 1 && /^QQQ\d{6}C\d{8}$/.test(end[0].symbol), JSON.stringify(end));
   check("a book that did nothing yields no intents", intentsFromCycle({ before: steps[0].book, after: steps[0].book, cycle: steps[0].cycle, nowMs: steps[0].nowMs }).entries.length === 0);
 }
 

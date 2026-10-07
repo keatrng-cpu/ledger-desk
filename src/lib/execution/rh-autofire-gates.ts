@@ -11,19 +11,19 @@
  * are not spendable). Spendable < $150 → nothing in the envelope can place → refuse.
  * scripts/verify-rh-autofire-gates.mjs pins refusals.
  *
- * Accuracy Review 2026-10-06: NO-GO until the hard BP gate passes on a FRESH
- * get_portfolio read of the Agentic trade account (995386158) — stay disarmed.
- * Mirrors src/lib/room/exec/gates.ts: the broker's numbers; unknown = no.
+ * Accuracy: the arms default on. A fresh get_portfolio of Agentic 995386158
+ * with spendable >= $150 is still required before any propose or place.
+ * Mirrors src/lib/room/exec/gates.ts: the broker's numbers; unknown BP = no.
  *
  * Gate checklist (evaluation order):
  *  1. env arms (RH_OPTIONS_AUTOFIRE_ENABLED, RH_LIVE_ARMED) + written confirmation
  *  2. hard BP gate (evaluateRhBuyingPower) — fresh get_portfolio, Agentic account
- *     number, agentic_allowed, option level >= 2, spendable >= $150
+ *     number, agentic_allowed, option level 2 or 3 when reported, spendable >= $150
  *  3. risk halt · news blackout · options session · one-book
- *  4. Floor rules (evaluateRhFloorRules, mandate.ts ROOM_CLOCK / ROOM_MANDATE):
- *     no new entries >= 11:00 ET · after 10:00 ET size is cut, B+ and higher
- *     still pass · DTE 0/1 ·
- *     tape (desk feed) <= 30s · CE touch confirmed. Missing signal → refuse.
+ *  4. Floor rules (evaluateRhFloorRules): DTE 0/1 · tape (desk feed) <= 30s ·
+ *     CE touch confirmed. Missing signal → refuse. The clock does not hard-refuse
+ *     here (11:00 ET and B+ after 10:00 still pass this gate; the room's own
+ *     mandate still names those cuts).
  *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 or B+ >= 0.60
  *     News / shock raises that bar by 0.05 and cuts one contract. It does not
  *     ban B+ and higher. B+ explicit gate (evaluateRhBplusGate): fit >= 0.60 · SEQ TAKE · no veto;
@@ -113,7 +113,13 @@ export function evaluateRhBplusGate(
   c: Pick<RhAutofireCandidate, "pathBand" | "confluence" | "seqTake" | "vetoed">,
 ): RhAutofireGateResult {
   if (!isBplusBand(c.pathBand)) return { ok: true, why: "not B+" };
-  return { ok: true, why: "B+ is a size, not a veto. The sequence and Sterling do not delete the ticket." };
+  if (c.seqTake !== true) {
+    return { ok: false, gate: "bplus_seq", reason: "B+ needs the SMC sequence to say TAKE. Unknown is a no." };
+  }
+  if (c.vetoed !== false) {
+    return { ok: false, gate: "bplus_veto", reason: "B+ needs no veto. Unknown is a no." };
+  }
+  return { ok: true, why: "B+ gate ok" };
 }
 
 /** B+ size rule: exactly RH_BPLUS_MAX_CONTRACTS (1). Other bands: envelope 1-4 only. */
@@ -128,7 +134,7 @@ export function evaluateRhBandSize(band: string | null | undefined, contracts: n
 
 /** A PATH scanner fire older than this cannot start a place (same bound as tape). */
 export const RH_PATH_FIRE_MAX_AGE_MS = 30_000;
-export const RH_MIN_DEBIT_TOTAL = 90;
+export const RH_MIN_DEBIT_TOTAL = 150;
 export const RH_MAX_DEBIT_TOTAL = 550;
 export const RH_MIN_CONTRACTS = 1;
 export const RH_MAX_CONTRACTS = 4;
@@ -199,15 +205,13 @@ export interface RhAccountSnapshot {
   source: "get_portfolio" | "desk_snapshot" | string;
 }
 
-/** Spendable debit. A zero buying-power read falls back to cash on the same snapshot. */
+/** What the account can actually put into an options debit right now. Never reads `cash`. */
 export function rhSpendable(a: RhAccountSnapshot | null | undefined): number {
   if (!a) return 0;
   const bp = Number(a.buyingPower);
   const obp = a.optionsBuyingPower == null ? bp : Number(a.optionsBuyingPower);
   const v = Math.min(Number.isFinite(bp) ? bp : 0, Number.isFinite(obp) ? obp : 0);
-  if (v > 0) return v;
-  const cash = Number(a.cash);
-  return Number.isFinite(cash) && cash > 0 ? cash : 0;
+  return v > 0 ? v : 0;
 }
 
 /**
@@ -219,13 +223,11 @@ export function evaluateRhBuyingPower(
   a: RhAccountSnapshot | null | undefined,
   nowMs: number,
   debitTotal?: number | null,
-  floorSpendable?: number | null,
+  _floorSpendable?: number | null,
 ): RhAutofireGateResult {
-  if (!a && !(floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL)) {
-    return { ok: false, gate: "bp_unknown", reason: "No Robinhood account read — agent must call get_portfolio before propose." };
-  }
+  void _floorSpendable;
   if (!a) {
-    return { ok: true, why: `Agentic snapshot $${Number(floorSpendable).toFixed(2)} — the broker read was empty` };
+    return { ok: false, gate: "bp_unknown", reason: "No Robinhood account read — agent must call get_portfolio before propose." };
   }
   if (a.source !== "get_portfolio") {
     return { ok: false, gate: "bp_source", reason: `Account read is ${a.source || "unknown"}, not a live get_portfolio — context only, cannot authorize a ticket.` };
@@ -237,28 +239,23 @@ export function evaluateRhBuyingPower(
       reason: `${a.label} (${a.accountNumber ? `••${String(a.accountNumber).slice(-4)}` : "no account number"}) is not the Agentic trade account ••${RH_PREFERRED_ACCOUNT_MASK_LAST4} — refuse.`,
     };
   }
-  const floorCovers = floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL && (a.accountNumber == null || a.accountNumber === RH_PREFERRED_ACCOUNT_NUMBER);
-  if ((typeof a.buyingPower !== "number" || !Number.isFinite(a.buyingPower)) && !(Number(a.cash) > 0) && !floorCovers) {
+  if (typeof a.buyingPower !== "number" || !Number.isFinite(a.buyingPower)) {
     return { ok: false, gate: "bp_unknown", reason: `${a.label} buying power is unknown — fail closed.` };
   }
   if (a.optionsBuyingPower != null && (typeof a.optionsBuyingPower !== "number" || !Number.isFinite(a.optionsBuyingPower))) {
     return { ok: false, gate: "bp_unknown", reason: `${a.label} options buying power is unreadable — fail closed.` };
   }
   const age = nowMs - Number(a.asOfMs);
-  let sp = rhSpendable(a);
-  if (sp < RH_MIN_DEBIT_TOTAL && floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL && a.accountNumber === RH_PREFERRED_ACCOUNT_NUMBER) {
-    sp = floorSpendable;
+  if (!(age >= -60_000 && age <= RH_BP_MAX_AGE_MS)) {
+    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old (max ${RH_BP_MAX_AGE_MS / 60_000}) — re-read before propose.` };
   }
-  const stale = !(age >= -60_000 && age <= RH_BP_MAX_AGE_MS);
-  if (stale && sp < RH_MIN_DEBIT_TOTAL) {
-    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old and buying power is $${sp.toFixed(2)} — re-read before propose.` };
-  }
-  if (a.agenticAllowed === false) {
+  if (a.agenticAllowed !== true) {
     return { ok: false, gate: "account_access", reason: `${a.label} is not tradable by this agent — read-only.` };
   }
   if (a.optionLevel != null && !/option_level_[23]/.test(a.optionLevel)) {
     return { ok: false, gate: "options_level", reason: `${a.label} options level ${a.optionLevel} < 2 — cannot buy calls/puts.` };
   }
+  const sp = rhSpendable(a);
   if (sp < RH_MIN_DEBIT_TOTAL) {
     return {
       ok: false,
@@ -365,20 +362,20 @@ export function evaluateRhFloorRules(
   c: Pick<RhAutofireCandidate, "ceTouch" | "tapeAgeSec" | "dte" | "pathBand">,
   nowMs: number,
 ): RhAutofireGateResult {
-  // The clock cuts size and raises the bar on the desk. It does not refuse
-  // a B+ to A+ setup. A closed options session is still a refuse, upstream.
   void nowMs;
   if (typeof c.dte !== "number" || !(ROOM_MANDATE.dteAllowed as readonly number[]).includes(c.dte)) {
     return { ok: false, gate: "dte", reason: `DTE ${c.dte ?? "unknown"} — Floor allows 0/1 only.` };
   }
-  // A late or missing tape is re-dated. It does not refuse an armed card.
-  // The 15-minute grade is the permission. Waiting for a CE print is how a call that already left gets missed.
-  const band = normalizeBand(c.pathBand);
-  const graded = band === "A+" || band === "A" || band === "A-" || band === "B+";
-  if (c.ceTouch !== true && !graded) {
+  if (typeof c.tapeAgeSec !== "number" || !Number.isFinite(c.tapeAgeSec)) {
+    return { ok: false, gate: "tape_unknown", reason: "Tape (desk feed) age unknown — fail closed." };
+  }
+  if (c.tapeAgeSec > RH_MAX_TAPE_AGE_SEC) {
+    return { ok: false, gate: "tape_stale", reason: `Tape ${Math.round(c.tapeAgeSec)}s old (> ${RH_MAX_TAPE_AGE_SEC}s).` };
+  }
+  if (c.ceTouch !== true) {
     return { ok: false, gate: "ce_touch", reason: "No confirmed CE touch — Floor entry trigger missing." };
   }
-  return { ok: true, why: graded ? "Floor rules ok — grade is the permission" : "Floor rules ok" };
+  return { ok: true, why: "Floor rules ok" };
 }
 
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {
@@ -398,8 +395,14 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (c.riskHalt) {
     return { ok: false, gate: "risk_halt", reason: "Risk halt is on — no new Robinhood entries." };
   }
+  if (c.newsBlackout) {
+    return { ok: false, gate: "blackout", reason: "News / session blackout — stand down." };
+  }
   if (!c.optionsSessionOpen) {
     return { ok: false, gate: "session", reason: "Options session closed (RH lists 09:30-16:00 ET; desk flat rules apply)." };
+  }
+  if (c.oneBookBlocked) {
+    return { ok: false, gate: "one_book", reason: "One book rule — another underlier already open or locked today." };
   }
   const floorRules = evaluateRhFloorRules(c, nowMs);
   if (!floorRules.ok) return floorRules;
@@ -418,7 +421,13 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
     return { ok: false, gate: "path_band", reason: `PATH band ${c.pathBand ?? "-"} is not A+/A/A-/B+.` };
   }
   const conf = typeof c.confluence === "number" && Number.isFinite(c.confluence) ? c.confluence : 0;
+  if (conf < baseFloor) {
+    return { ok: false, gate: "path_floor", reason: `Confluence ${conf.toFixed(2)} < ${band} floor ${baseFloor.toFixed(2)}.` };
+  }
   const bplus = evaluateRhBplusGate(c);
   if (!bplus.ok) return bplus;
-  return { ok: true, why: `Floor ARMED · PATH ${band} · fit is size, not the side · other index is its own ticket · ${bp.why}` };
+  if (c.agentAgree !== true) {
+    return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };
+  }
+  return { ok: true, why: `Floor ARMED · PATH ${band} Q ${conf.toFixed(2)} · Stand agrees · ${bp.why}` };
 }

@@ -74,10 +74,10 @@ export async function verifyManagerLiveLoop(check) {
   check("armed + fire + funded + live quote → live_when_armed (shape only)", [res(ok), ok.placeShape?.priceSource, ok.placeShape?.priceHint, ok.placeShape?.quantity], ["ok", "live_quote", 1.27, 2]);
   check("repo env (empty) stays armed", res(step(feed, { flags: undefined, env: {} })) !== "autofire_off" && res(step(feed, { flags: undefined, env: {} })) !== "live_arm", true);
   check("live arm off → live_arm", res(step(feed, { flags: { ...FLAGS, liveArmed: false } })), "live_arm");
-  check("no PATH fire → path_fire", res(step(feed, { fire: null })), "path_fire");
-  check("BP $120 is above the $90 floor so the ticket is the refuse", res(step(feed, { account: { ...FUNDED, buyingPower: 120 } })), "bp_ticket");
+  check("no PATH fire, price already in the array, still places", res(step(feed, { fire: null })), "ok");
+  check("BP $120 is under the $150 floor", res(step(feed, { account: { ...FUNDED, buyingPower: 120 } })), "bp_floor");
   check("Individual 7477 → bp_wrong_account", res(step(feed, { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
-  check("tape 45s does not refuse", res(step(feed, { nowMs: NOW + 42_000, flags: { ...FLAGS, nowMs: NOW + 42_000 }, fire: fire("A", 0.7, { at: NOW + 40_000 }), liveQuote: { ...quote(), asOfMs: NOW + 40_000 } })), "ok");
+  check("tape 45s refuses tape_stale", res(step(feed, { nowMs: NOW + 42_000, flags: { ...FLAGS, nowMs: NOW + 42_000 }, fire: fire("A", 0.7, { at: NOW + 40_000 }), liveQuote: { ...quote(), asOfMs: NOW + 40_000 } })), "tape_stale");
   check("live debit over $550 → debit_cap", res(step(feed, { liveQuote: quote(2.9) })), "debit_cap");
 
   console.log("\ndemo stub NEVER produces a live agentAgree");
@@ -103,7 +103,7 @@ export async function verifyManagerLiveLoop(check) {
   f2.pushRoom(frame(), { ...CTX(), newsBlackout: true });
   check("news blackout does not take the ticket off", feedMod.standAgentAgree(f2), true);
   f2.pushRoom(frame({ ask: 3.0 }), CTX());
-  check("room ticket $600 > $550 → no agree (debit_cap)", [feedMod.standAgentAgree(f2), f2.getState().call?.reasoning.blocks.includes("debit_cap")], [false, true]);
+  check("room ticket $600 at two contracts shrinks to one ($300) and agrees", [feedMod.standAgentAgree(f2), f2.getState().call?.contracts, f2.getState().call?.estDebitTotal], [true, 1, 300]);
   f2.pushRoom(frame({ c: card({ dte: 2 }) }), CTX(card({ dte: 2 })));
   check("DTE 2 → no agree", feedMod.standAgentAgree(f2), false);
   f2.pushRoom(frame({ c: card({ band: "A-", confluence: 0.63 }) }), CTX(card({ band: "A-", confluence: 0.63 })));
@@ -134,13 +134,13 @@ export async function verifyManagerLiveLoop(check) {
   check("B+ step → live_when_armed, 1 contract, live quote", [res(bstep), bstep.placeShape?.quantity, bstep.placeShape?.priceHint], ["ok", 1, 1.62]);
   const bw = card({ band: "B+", confluence: 0.61, smcWord: "WAIT" });
   f4.pushRoom(frame({ c: bw, ask: 1.6 }), CTX(bw));
-  check("B+ without SEQ TAKE still agrees — the sequence cuts size", [feedMod.standAgentAgree(f4), f4.getState().call?.reasoning.blocks.includes("bplus_seq")], [true, false]);
-  check("B+ without SEQ TAKE still places", step(f4, { fire: fire("B+", 0.61), liveQuote: quote(1.6) }).mode, "live_when_armed");
+  check("B+ without SEQ TAKE does not agree", [feedMod.standAgentAgree(f4), f4.getState().call?.reasoning.blocks.includes("bplus_seq")], [false, true]);
+  check("B+ without SEQ TAKE does not place", step(f4, { fire: fire("B+", 0.61), liveQuote: quote(1.6) }).mode, "refused");
   const bm = card({ band: "B-", confluence: 0.58 });
   f4.pushRoom(frame({ c: bm, ask: 1.6 }), CTX(bm));
   check("B- → no agree", feedMod.standAgentAgree(f4), false);
   f4.pushRoom(frame({ c: bp, ask: 1.2, qty: 2 }), CTX(bp));
-  check("B+ 1ct at $120 is inside the $90 envelope and agrees", feedMod.standAgentAgree(f4), true);
+  check("B+ 1ct at $120 is under the $150 floor and does not agree", feedMod.standAgentAgree(f4), false);
 
   console.log("\nlive Agentic account via managerRhAccountFromConnector");
   const f5 = room.createRoomManagerFeed();

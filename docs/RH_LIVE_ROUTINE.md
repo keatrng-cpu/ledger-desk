@@ -18,7 +18,7 @@ The old "stay disarmed / do not arm / do not place" line is withdrawn. The buyin
 ## Trigger model (Keaton 2026-10-06)
 
 - **The eye:** the continuous Floor / **Trade Now** read (options card verdict, desk feed, Stand). It watches every poll; it does **not** place by itself.
-- **The place trigger:** a **PATH scanner FIRE** (`considerPathAlarm` → `PathAlarmFire`, `isPathFire`). Only a fresh fire (≤ 30 s, `RH_PATH_FIRE_MAX_AGE_MS`) starts `proposeRhFromPathFire` → **`review_option_order`** → `mayPlaceAfterReview` → **`place_option_order`**.
+- **The place trigger:** a **PATH scanner FIRE** (`considerPathAlarm` → `PathAlarmFire`, `isPathFire`), or the live print already in the array. A fresh fire (≤ 30 s) starts `proposeRhFromPathFire`. With no fire, the place still starts when the Stand agrees, the Floor is **ARMED**, and price is in the array (`ceTouch` or a live desk). A stale fire with no touch and no desk refuses `path_fire_stale`. Then **`review_option_order`** → `mayPlaceAfterReview` → **`place_option_order`**. There is no five-minute place timer.
 - **Grades accepted on the LIVE path:** **A+, A, A−, and B+** (`RH_PATH_GRADES` = `APLUS_RULES.profitPath.onlyExecuteGrades`). B+ is live, not paper-only. B / C / skip never fire.
 - **Account:** **Agentic ••6158 (`995386158`) only.** Individual ••7477 is display-only.
 - **Funding:** Keaton funds the Agentic account **~09:30 ET**; until `get_portfolio(995386158)` shows BP ≥ $150 every place refuses (`bp_floor`).
@@ -29,7 +29,7 @@ The old "stay disarmed / do not arm / do not place" line is withdrawn. The buyin
 2. **Live PATH scanner FIRE** — actionable; band **A+/A/A− with confluence ≥ 0.65**, or **B+ with confluence ≥ 0.60** (`RH_PATH_FLOOR_BY_BAND`). The PATH floor stays **0.65**; B+ has its own band in `src/lib/aplus/config.ts` / `strategy-grade.ts pathBand` (`confluenceFloor − 0.05` = 0.60) — the config band edge, no new score.
 3. **Trading Stand (agent)** — `agentAgree === true` for this cycle (explicit; absence refuses). Source: the **real** Manager feed (`src/lib/room/manager-room-feed.ts`), built from the room engine's actual cycle — never the demo stub (see below).
 
-Floor mandate still applies: after **10:00 ET A+ only** (so B+ / A / A− fire only 09:30–10:00), no new entries at/after 11:00.
+Floor mandate still names after **10:00 ET A+ only** and flat at **11:00** on the room. The RH gate itself does not hard-refuse on that clock: `evaluateRhFloorRules` lets 11:00 ET and a B+ after 10:00 pass. The room's own rules still apply before Stand agree.
 
 ### B+ explicit gate (Accuracy + Keaton 2026-10-06) — `evaluateRhBplusGate`
 
@@ -40,7 +40,7 @@ RH_PATH_FLOOR stays **0.65** for A+/A/A−; B+ never lowers it. A B+ ticket need
 | `path_floor` | fit (confluence) **≥ 0.60** (`APLUS_RULES.profitPath.bPlusLive.fitFloor`) |
 | `bplus_seq` | SMC sequence **TAKE** on the PATH book's side (`candidate.seqTake === true`; unknown → refuse) |
 | `bplus_veto` | **no veto** — room beat not `vetoed`, Stand call not `VETO`, no Owner `DECLARE_VETO` (`candidate.vetoed === false`; unknown → refuse) |
-| shared | CE touch · tape ≤ 30 s · DTE 0\|1 · BP ≥ $150 (Agentic 995386158, fresh) · not ≥ 11:00 · A+ only ≥ 10:00 |
+| shared | CE touch · tape ≤ 30 s · DTE 0\|1 · BP ≥ $150 (Agentic 995386158, fresh) |
 | `bplus_size` | **exactly 1 contract** (`RH_BPLUS_MAX_CONTRACTS`), checked in `proposeRhLiveOption` and again in `mayPlaceAfterReview({ pathBand, quantity })` |
 
 B+ debit stays inside the normal **$150–$550** envelope (1 contract must cost ≥ $150 or it refuses `debit_floor`).
@@ -86,7 +86,7 @@ The agent **must call `get_portfolio` (account_number) before `proposeRhLiveOpti
 | `bp_source` | read is not a live `get_portfolio` (e.g. the desk screenshot snapshot) |
 | `bp_stale` | read older than 5 min |
 | `account_access` | `agentic_allowed` not `true` (unknown = no) |
-| `options_level` | options level < 2 or unknown |
+| `options_level` | a reported options level that is not 2 or 3. A level that was not reported (`null`) does not refuse. |
 | `bp_floor` | spendable < **$150** — nothing in the $150–$550 envelope can place |
 | `bp_ticket` | spendable < this ticket's debit |
 
@@ -98,13 +98,13 @@ Spendable = `buying_power.buying_power` (and options BP when reported) — **nev
 
 Run after risk/session/one-book, before Floor/PATH/Stand, on `flags.nowMs`:
 
-| gate | rule (mandate.ts) |
+| gate | rule |
 |------|------|
-| `after_11` | no new entries at/after **11:00 ET** |
-| `aplus_after_10` | after **10:00 ET** PATH band must be **A+** |
 | `dte` | **DTE 0 or 1**; missing → refuse |
 | `tape_unknown` / `tape_stale` | desk tape age **≤ 30 s**; missing → refuse |
 | `ce_touch` | CE touch must be confirmed (`ceTouch === true`) |
+
+The clock is not a refuse on this gate. 11:00 ET with a fresh BP is still ok. B+ after 10:00 ET with a fresh BP is still ok. The room mandate still names those cuts; this function does not re-apply them.
 
 **Wired (2026-10-06, `rh-floor-signals.ts`):** `candidateFromFloorPathStand` / `proposeRhFromPathFire` take `desk` (DeskPayload) + `floor.dte` and derive, fail-closed:
 

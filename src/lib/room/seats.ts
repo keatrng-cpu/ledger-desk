@@ -65,7 +65,7 @@ export const SEAT_NAME: Record<SeatId, string> = {
 export const SEAT_STYLE: Record<SeatId, string> = {
   protect: "A and A+ only, priced twice (the realized decile must not be negative), 25% tickets, one a day — the contract nearest the money that fits",
   mechanical: "the room's rules and the room's two strikes at the experiment's ticket cap, nothing added",
-  structure: "only what the higher timeframe backs and that carries no inducement or mitigation block, 40% tickets, one a day",
+  structure: "only what the higher timeframe backs — a decoy sweep or a mitigation block is a note, not a skip — two a day",
   edge: "stakes each ticket by its own priced edge (Kelly on the three paths) on the contract with the most EV per dollar — nothing when the edge is not positive",
   press: "overrides Nova's two pricing questions and buys the contract that puts the most delta to work for the cap",
   room: "takes a card only when at least three of the five back it, on the room's two strikes",

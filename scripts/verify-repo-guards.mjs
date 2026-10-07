@@ -273,6 +273,9 @@ for (const [path] of FLOORS) {
     "src/lib/auth/popup.server.ts",
     "src/lib/auth/verify.server.ts",
     "src/lib/journal/attest-fn.ts",
+    // Alpaca adapter is exercised by verify-room-exec. The live desk places on
+    // Robinhood (rh-autofire), so nothing under src/ imports this module.
+    "src/lib/room/exec/alpaca.ts",
   ]);
   // 2026-10-06: src/lib/execution/rh-autofire.ts came off — the real Manager feed's live loop
   // (src/lib/room/manager-live-loop.ts) drives it, and the Floor's Manager panel prints its read.

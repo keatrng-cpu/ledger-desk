@@ -84,13 +84,42 @@ def render() -> str:
     return json.dumps(build(), separators=(",", ":")) + "\n"
 
 
+# CPython's libm prints dust (worst seen ~1e-13) differently across machines.
+# A tenth of a cent is 1e-3, which is what the verifier's price mutant moves,
+# so 1e-9 still refuses a real change and accepts a different math library.
+DUST = 1e-9
+
+
+def same_fixture(have: str, text: str) -> bool:
+    if have == text:
+        return True
+    try:
+        a = json.loads(have)
+        b = json.loads(text)
+    except json.JSONDecodeError:
+        return False
+    meta = [k for k in a if k != "rows"]
+    if meta != [k for k in b if k != "rows"] or any(a[k] != b[k] for k in meta):
+        return False
+    rows_a, rows_b = a.get("rows"), b.get("rows")
+    if not isinstance(rows_a, list) or not isinstance(rows_b, list) or len(rows_a) != len(rows_b):
+        return False
+    for ra, rb in zip(rows_a, rows_b):
+        if len(ra) != len(rb):
+            return False
+        for x, y in zip(ra, rb):
+            if abs(float(x) - float(y)) > DUST:
+                return False
+    return True
+
+
 if __name__ == "__main__":
     text = render()
     if "--check" in sys.argv:
         path = __file__.replace("\\", "/").rsplit("/scripts/oracle/", 1)[0] + "/src/data/oracle-bs-grid.json"
         with open(path, "r", encoding="utf-8", newline="") as f:
             have = f.read().replace("\r\n", "\n")
-        if have != text:
+        if not same_fixture(have, text):
             sys.stderr.write("src/data/oracle-bs-grid.json is not what scripts/oracle/bs_oracle.py prints\n")
             sys.exit(1)
         print("oracle fixture is current")

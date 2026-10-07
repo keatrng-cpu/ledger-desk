@@ -189,7 +189,7 @@ export function smcMandateNote(): ResearchNote {
 export function rhLiveMandateNote(): ResearchNote {
   return {
     id: "rh_live_mandate",
-    line: "Agentic ••6158 is live. A setup that clears the chart can take $90–$550 even when that is a large share of the account. Sterling's ledger is a note, not a veto.",
+    line: "Agentic ••6158 is live. A setup that clears the chart can take $150–$550 even when that is a large share of the account. Sterling's ledger is a note, not a veto.",
     source: "docs/RH_LIVE_ROUTINE.md · manager-agree.ts",
   };
 }

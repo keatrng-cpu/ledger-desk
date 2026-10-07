@@ -294,7 +294,8 @@ export async function execStep(d: ExecDeps, req: StepRequest): Promise<StepResul
     }
     const quote = await b.quote(symbol).catch(() => null);
     const brokerSpend = account ? Math.max(account.optionsBuyingPower ?? account.buyingPower, account.cash, 0) : 0;
-    const floorSpendable = brokerSpend > 0 ? null : rhSpendable(RH_AGENTIC_DESK_READ);
+    // A missing account is a no. Only a real $0 read may yield to the Agentic snapshot.
+    const floorSpendable = account && brokerSpend <= 0 ? rhSpendable(RH_AGENTIC_DESK_READ) : null;
     const g = checkEntry(i, { phase, nowMs, feedLagSec: req.feedLagSec, account, positions, inflight, quote, attempt: 0, floorSpendable }, L);
     const refusals = [...runRefusals("entry"), ...g.refusals];
     const row = blankRow(i, phase, symbol, g.qty, nowMs);

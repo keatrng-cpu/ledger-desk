@@ -30,7 +30,7 @@ const check = (name, ok, detail = "") => {
 
 const steps = D.playDrill();
 const account = (now, o = {}) => ({ label: "Agentic ••6158", accountNumber: "995386158", accountType: "limited_margin", cash: 1000, buyingPower: 1000, optionsBuyingPower: null, unsettledFunds: 0, agenticAllowed: true, optionLevel: "option_level_2", asOfMs: now - 20_000, source: "get_portfolio", ...o });
-const quote = (now) => ({ optionId: "opt-live", askPrice: 1.2, bidPrice: 1.17, asOfMs: now - 2_000, source: "get_option_quotes" });
+const quote = (now) => ({ optionId: "opt-live", askPrice: 2, bidPrice: 1.95, asOfMs: now - 2_000, source: "get_option_quotes" });
 const armed = (now) => ({ autofireEnabled: true, liveArmed: true, confirmedInWriting: true, nowMs: now });
 
 /** Push one drill step into a feed and read what the loop proposes. */

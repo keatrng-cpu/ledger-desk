@@ -108,53 +108,47 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
   if (i.exp < today) no("expired", `${i.exp} is in the past`);
   else if (i.exp !== today && i.exp !== nextWeekday(today)) no("dte", `${i.exp} is beyond 1 DTE`);
 
-  // A late futures print is re-dated. It does not stand down a ticket the floor already agreed.
-  if (c.feedLagSec == null) notes.push("desk feed lag unknown — re-date the print, do not stand the ticket down");
-  else if (c.feedLagSec > L.maxFeedLagSec) notes.push(`desk feed ${Math.round(c.feedLagSec)}s old — refresh and re-date; a late print does not refuse the ticket`);
+  // The broker re-reads the desk feed the room decided on. Unknown or stale is a no.
+  if (c.feedLagSec == null || !(c.feedLagSec <= L.maxFeedLagSec)) {
+    no("desk_feed", c.feedLagSec == null ? "desk feed lag unknown" : `desk feed ${Math.round(c.feedLagSec)}s old (> ${L.maxFeedLagSec}s)`);
+  }
 
-  // The account. A missing read, or a $0 buying-power read, yields to the Agentic snapshot the floor already shows.
+  // The account. A missing read is a no. A reported level under 2 is a no.
+  // A level that was not reported is a note on paper and a no on live.
   const a = c.account;
   const floor = c.floorSpendable != null && Number.isFinite(c.floorSpendable) && c.floorSpendable > 0 ? c.floorSpendable : 0;
   if (!a && floor <= 0) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
   else if (!a) notes.push(`broker account unreadable — the Agentic snapshot has $${floor.toFixed(0)}. The ticket is not stood down.`);
   else {
     if (a.blocked === true || (a.status != null && a.status !== "ACTIVE")) no("account_blocked", `account ${a.status ?? "?"}${a.blocked ? " · trading blocked" : ""}`);
-    if (a.optionsLevel == null) notes.push("options approval level not reported — the Agentic account is the live book");
-    else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
+    if (a.optionsLevel == null) {
+      if (c.phase === "live") no("options_level", "options approval level unknown — live refuses unknown");
+      else notes.push("options approval level not reported");
+    } else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
   }
 
-  // The quote. A missing or wide quote walks to the mid or the model. It does not return no_quote.
+  // The quote. Missing, crossed, stale, wide, or far from the room's price refuses.
+  // Paper may note an indicative feed. Live refuses anything that is not OPRA.
   const q = c.quote;
   let limit: number | null = null;
-  if (!q) {
-    if (i.modelPx > 0) {
-      limit = r2(i.modelPx);
-      notes.push("no broker quote — limit is the room's model, not a refuse");
-    } else no("no_quote", "no broker quote and no model price");
-  } else {
+  if (!q) no("no_quote", "no broker quote");
+  else {
     const mid = q.mid > 0 ? q.mid : (q.bid + q.ask) / 2;
     const tradable = q.bid > 0 && q.ask > 0 && q.bid <= q.ask && mid > 0;
-    if (!tradable) {
-      if (i.modelPx > 0) {
-        limit = r2(i.modelPx);
-        notes.push(`quote ${q.bid} × ${q.ask} is not tradable — limit walked to the model`);
-      } else no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
-    } else {
+    if (!tradable) no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
+    else {
       const age = (c.nowMs - q.ts) / 1000;
-      if (!(age <= L.maxQuoteAgeSec)) notes.push(`quote ${Math.round(age)}s old — priced off it anyway`);
+      if (!(age <= L.maxQuoteAgeSec)) no("stale_quote", `quote ${Math.round(age)}s old (> ${L.maxQuoteAgeSec}s)`);
       const spread = (q.ask - q.bid) / mid;
-      if (spread > L.maxSpreadFrac) {
-        limit = r2(mid);
-        notes.push(`spread ${pct(spread, 1)} of mid — limit walked to the mid, not refused`);
-      } else {
-        if (i.modelPx > 0) {
-          const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
-          if (div > L.maxModelDivergence) notes.push(`broker ask ${q.ask.toFixed(2)} vs the room's ${i.modelPx.toFixed(2)} — sized off the ask anyway`);
-        }
-        limit = r2(q.ask + L.entrySlipUsd);
+      if (spread > L.maxSpreadFrac) no("wide_spread", `spread ${pct(spread, 0)} of mid (> ${pct(L.maxSpreadFrac)})`);
+      if (i.modelPx > 0) {
+        const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
+        if (div > L.maxModelDivergence) no("model_divergence", `broker ask ${q.ask.toFixed(2)} is ${(div * 100).toFixed(0)}% off the room's ${i.modelPx.toFixed(2)}`);
       }
+      limit = r2(q.ask + L.entrySlipUsd);
     }
-    if (q.feed !== "opra") notes.push(`quote feed "${q.feed}" — not a refuse`);
+    if (c.phase === "live" && q.feed !== "opra") no("feed_not_opra", `quote feed "${q.feed}" — live needs OPRA`);
+    else if (q.feed !== "opra") notes.push(`quote feed "${q.feed}" is indicative — paper only`);
   }
 
   // Money. A $0 broker read yields to the Agentic snapshot the floor already shows.

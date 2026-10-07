@@ -7,15 +7,15 @@ export async function verifyManagerAccount(rh, check) {
   const d = m.DEFAULT_MANAGER_ROOM_ACCOUNT;
   check("default account is funded Agentic read", [d.source, d.label, d.accountNumber, d.accountMaskLast4, d.isSnapshot, d.agenticAllowed, d.optionLevel], ["rh_live", "Agentic", "995386158", "6158", false, true, "option_level_2"]);
   check("default cash/BP is the funded read", [d.cashUsd, d.optionsBuyingPowerUsd], [996.12, 996.12]);
-  check("envelope 90/550", [d.envelopeMinUsd, d.envelopeMaxUsd], [90, 550]);
+  check("envelope 150/550", [d.envelopeMinUsd, d.envelopeMaxUsd], [150, 550]);
   check("funded BP fills the envelope", d.canFillEnvelope, true);
-  check("monitor line shows buying power ready", m.managerAccountLine(d), "BP $996.12 · envelope $90–$550 ok");
+  check("monitor line shows buying power ready", m.managerAccountLine(d), "BP $996.12 · envelope $150–$550 ok");
   check("preferred account 995386158 / 6158 / Agentic", [m.RH_PREFERRED_ACCOUNT_NUMBER, m.RH_PREFERRED_ACCOUNT_MASK_LAST4, m.RH_PREFERRED_ACCOUNT_LABEL], ["995386158", "6158", "Agentic"]);
   const ind = m.RH_INDIVIDUAL_SNAPSHOT_2026_10_06;
   check("Individual snapshot kept display-only", [ind.accountNumber, ind.accountMaskLast4, ind.cashUsd, ind.optionsBuyingPowerUsd, ind.agenticAllowed, ind.isSnapshot], ["415577477", "7477", 984.12, 11.56, false, true]);
-  check("Individual monitor line", m.managerAccountLine(ind), "BP $11.56 · below $90 envelope, arm blocked");
+  check("Individual monitor line", m.managerAccountLine(ind), "BP $11.56 · below $150 envelope, arm blocked");
   check("BP 150 fills", m.toManagerRhAccount({ cashUsd: 0, optionsBuyingPowerUsd: 150 }).canFillEnvelope, true);
-  check("BP 89.99 does not fill", m.toManagerRhAccount({ cashUsd: 0, optionsBuyingPowerUsd: 89.99 }).canFillEnvelope, false);
+  check("BP 149.99 does not fill", m.toManagerRhAccount({ cashUsd: 0, optionsBuyingPowerUsd: 149.99 }).canFillEnvelope, false);
   const unk = m.toManagerRhAccount({ cashUsd: 0, optionsBuyingPowerUsd: null });
   check("unknown BP stays NaN (not $0), canFill false", [Number.isNaN(unk.optionsBuyingPowerUsd), unk.canFillEnvelope, m.managerAccountLine(unk)], [true, false, "BP unknown · arm blocked"]);
   const fromConn = m.managerRhAccountFromConnector({
