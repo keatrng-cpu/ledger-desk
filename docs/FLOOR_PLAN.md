@@ -3,6 +3,17 @@
 Written 2026-10-07 from the code as it stands. Presentation only: nothing here places, sizes or refuses a trade, reads a gate, or touches `src/lib/aplus/config.ts`.
 Tick the boxes as items land. One run = one working session = one commit to `main`, pushed and checked by hash.
 
+## Status (2026-10-07, end of the first working session on this plan)
+
+**Shipped to main** (all checked by `scripts/floor-checks.mjs`, 19 checks against a running dev server, and the offline verifiers):
+- T1 test rig (`scripts/floor-checks.mjs`), L1 reflections on glass and metal plus soft contact shadows, L3 sharp screens (mipmaps, anisotropy 8).
+- Bugs reported from the live Floor: walking now starts only when asked and every camera choice ends it; the mouse is captured while walking (full 360); the Director's close-up keeps the speaker and the whole speech bubble in frame; stories no longer replay when the tab is reopened and three heartbeat topics that restated the rules and balance now speak only when their data moves; the back-wing flicker (a floor lying at exactly the height of two office floors, z-fighting) is resolved; the shadow pass lost ~100 small casters.
+- Voices: American-first casting, each person their own voice (female for the women, male for the men), natural-voice cadence (own pitch and pace, question lift, punctuation pauses). See `docs/TOOLING_PLAN.md`.
+
+**Done on branches, merged only where listed in the commit log:** locomotion and foot-planting modules (M1, M2); baked lighting, sliding glass doors, set dressing, size passes (D1, D3, D4, D5).
+
+**Not done:** T2 governor, L2 bloom, L4 light fakes, M3 to M5, D2 textures, C1 to C6, V1 to V3. The next session starts there.
+
 ## What exists today (checked in the code, so nothing below re-does it)
 
 | Area | State | Where |
@@ -32,11 +43,11 @@ Tooling present on this PC: Blender 5.2 (`C:/Program Files/Blender Foundation/Bl
 
 ## Run 1: see it (Track A, code only)
 
-- [ ] **T1 Test rig.** `scripts/floor-shots.mjs`: Playwright starts the `desk` server, opens the Floor tab, sets each camera preset through `window.__floor`, saves PNGs to `.cache/floor-shots/`, and writes `renderer.info` (draw calls, triangles, textures) to a baseline JSON. *Done when:* it runs in under 2 minutes and a second run reproduces the counts. Everything after is judged against this. **S**
+- [x] **T1 Test rig.** `scripts/floor-shots.mjs`: Playwright starts the `desk` server, opens the Floor tab, sets each camera preset through `window.__floor`, saves PNGs to `.cache/floor-shots/`, and writes `renderer.info` (draw calls, triangles, textures) to a baseline JSON. *Done when:* it runs in under 2 minutes and a second run reproduces the counts. Everything after is judged against this. **S**
 - [ ] **T2 Quality governor.** `floor-quality.ts`: measures frame time over 2 s and steps high / medium / low (pixel ratio, shadow size, post passes, particle counts); a manual Auto / High / Low switch in the tab; shows `renderer.info`. *Done when:* forcing "low" visibly drops the costs in the info readout, and "auto" settles within 5 s. Gates L2, L4, V1. **M**
-- [ ] **L1 Reflections and contact shadows.** A low-resolution `RoomEnvironment` PMREM as `scene.environment` at low intensity (glass, metal and screens finally reflect something); soft contact-shadow decals under people, the cat and chairs (point lamps cast no shadow). *Done when:* the glass walls and monitor bezels show a reflection in the screenshots and nobody floats. **S**
+- [x] **L1 Reflections and contact shadows.** A low-resolution `RoomEnvironment` PMREM as `scene.environment` at low intensity (glass, metal and screens finally reflect something); soft contact-shadow decals under people, the cat and chairs (point lamps cast no shadow). *Done when:* the glass walls and monitor bezels show a reflection in the screenshots and nobody floats. **S**
 - [ ] **L2 Bloom and SMAA.** `floor-post.ts`: selective bloom on emissives (LED strips, beacon, rack LEDs, screens) plus SMAA (a composer drops MSAA); governor-gated, off on "low". *Done when:* LEDs glow, white walls do not, and "low" restores the old path exactly. **M**
-- [ ] **L3 Screen sharpness.** Mipmaps on and anisotropy 8 for screen canvases, and a resolution step-up when the camera is within about 3 m (back down when far). *Done when:* a monitor flown to is crisp and a far TV no longer shimmers; texture memory change is read from `renderer.info`. **M**
+- [x] **L3 Screen sharpness.** Mipmaps on and anisotropy 8 for screen canvases, and a resolution step-up when the camera is within about 3 m (back down when far). *Done when:* a monitor flown to is crisp and a far TV no longer shimmers; texture memory change is read from `renderer.info`. **M**
 - [ ] **L4 Light fakes.** Glow sprites on the pendant lamps, additive window light shafts that follow the ET clock and the VIX weather the windows already show, about 60 instanced dust motes inside the shafts. *Done when:* shafts appear by day, fade by night, and cost under 1 draw call each. **S**
 
 ## Run 2: walk it (Track A, code only)
