@@ -25,6 +25,7 @@ import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import type { FloorLight } from "@/lib/room/floor-cues";
 import { speakHoldSec } from "@/lib/room/floor-voice";
+import { heardBefore, loadSaid, rememberSaid, saveSaid, type SaidRow } from "@/lib/room/said-memory";
 import {
   createStubManagerFeed,
   managerBubbleText,
@@ -1594,7 +1595,8 @@ export class FloorScene {
   private lastLightAt = -1;
   private shotN = 0;
   private lastUrgency: string | null = null;
-  /** Whose lines are playing: a cycle's meeting, or an exchange from the live talk. */
+  /** Lines already spoken this session. A repeat is skipped, not read again. */
+  private said: SaidRow[] = loadSaid();
   private source: "cycle" | "talk" | null = null;
   private batch: TalkBatch | null = null;
   private queue: TalkBatch[] = [];
@@ -2625,8 +2627,21 @@ export class FloorScene {
     // The meeting, one line at a time.
     const wall = this.wallSec();
     if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
-      this.lineIdx++;
-      const line = this.lines[this.lineIdx] ?? null;
+      let line: DialogueLine | null = null;
+      const now = Date.now();
+      while (this.lineIdx < this.lines.length) {
+        this.lineIdx++;
+        const next = this.lines[this.lineIdx] ?? null;
+        if (!next) {
+          line = null;
+          break;
+        }
+        if (heardBefore(next.text, this.said, now)) continue;
+        this.said = rememberSaid(next.text, this.said, now);
+        saveSaid(this.said);
+        line = next;
+        break;
+      }
       for (const a of this.avatars.values()) {
         a.speaking = Boolean(line && a.who === line.character);
         a.say(a.speaking && line ? line.text : null);
