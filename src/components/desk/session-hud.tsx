@@ -1,3 +1,5 @@
+import { SynapseChip } from "@/components/desk/synapse-rail";
+import type { SynapseTab } from "@/lib/trading/desk-synapse";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { AlertOctagon, ChevronDown, Clock, Crosshair, Radio, ShieldAlert, Sparkles, Zap } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
@@ -13,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { displayEntry, useAutomation, useEntryState } from "@/components/desk/use-entry-state";
 import { useFlashOn } from "@/components/desk/screen-flash";
 import { setFlashOn } from "@/lib/ui/flash-prefs";
+import { feedTone, sourceTag } from "@/lib/ui/feed-tone";
+import { effectiveLagSec } from "@/lib/trading/desk-fetch-guard";
+import { formatUtcClock } from "@/lib/market/yahoo";
 
 function QuoteChip({
   symbol,
@@ -68,6 +73,7 @@ export function SessionHud({
   children,
   tabs,
   onEntryChip,
+  synapseTab = "trade",
   liveRisk,
 }: {
   desk: DeskPayload;
@@ -78,6 +84,8 @@ export function SessionHud({
   tabs?: ReactNode;
   /** Click on the entry-state chip (index routes it to the Now tab). */
   onEntryChip?: () => void;
+  /** The Synapse feed to show behind the header chip (the tab you are on). */
+  synapseTab?: SynapseTab;
   /**
    * The live governor's state (journal/risk.ts), when signed in. Drives the
    * halt-room chip: dollars left before today's halt, in losses at A.
@@ -95,12 +103,23 @@ export function SessionHud({
   useEffect(() => setPaperReady(true), []);
 
   const ghost = matchingGhost(desk, ghosts);
-  const worstLagSec = Math.max(quotes.left.lagSec, quotes.right.lagSec);
+  // The payload's lagSec is frozen at fetch time. When the quote poll fails it
+  // keeps the last quotes, so a cached 1s lag kept the dot green on a stale
+  // tape. Age it by the time since fetch (wallNow ticks every second, so this
+  // re-renders); a frozen quote walks amber → red on its own.
+  const nowMs = Date.now();
+  const leftLagSec = effectiveLagSec(quotes.left, nowMs);
+  const rightLagSec = effectiveLagSec(quotes.right, nowMs);
+  const worstLagSec = Math.max(leftLagSec, rightLagSec);
   const synthetic =
     left.source === "synthetic" ||
     right.source === "synthetic" ||
     quotes.left.source === "synthetic" ||
     quotes.right.source === "synthetic";
+  const feedDot = feedTone(
+    [quotes.left.source, quotes.right.source, left.source, right.source],
+    worstLagSec,
+  );
 
   const best = scan.candidates.find((c) => c.actionable) ?? scan.candidates[0] ?? null;
   const smtNote = smtStack?.primary.active
@@ -119,6 +138,7 @@ export function SessionHud({
   // BUILT (every ~20s, slower when the tab is hidden), so on its own it sat
   // frozen between builds. Client-only (SSR prints the build stamp).
   const [etNow, setEtNow] = useState<string | null>(null);
+  const [utcNow, setUtcNow] = useState<string | null>(null);
   useEffect(() => {
     const fmt = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/New_York",
@@ -133,6 +153,7 @@ export function SessionHud({
     const tick = () => {
       const p = Object.fromEntries(fmt.formatToParts(new Date()).map((x) => [x.type, x.value]));
       setEtNow(`${p.weekday} ${p.month}/${p.day} ${p.hour}:${p.minute}:${p.second} ET`);
+      setUtcNow(formatUtcClock(Date.now()));
     };
     tick();
     const id = window.setInterval(tick, 1000);
@@ -268,14 +289,13 @@ export function SessionHud({
       {paperReady && shock?.active && (
         <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          {shock.line} · STAND DOWN {shockMmss} — impulse is the news, not the model. Second impulse
-          only.
+          {shock.line} · size cut, higher bar {shockMmss}. B+ to A+ still trade off the chart.
         </div>
       )}
       {paperReady && !shock?.active && shock?.tail && (
         <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          Post-shock tail {shockMmss} — A+ only, fresh sequence after the shock. {shock.line}
+          Post-shock tail {shockMmss} — B+ to A+ still live off the chart, size cut, higher bar. {shock.line}
         </div>
       )}
 
@@ -295,7 +315,7 @@ export function SessionHud({
             price={quotes.left.price}
             changePct={quotes.left.changePct}
             source={quotes.left.source}
-            lagSec={quotes.left.lagSec}
+            lagSec={leftLagSec}
           />
           <span className="text-[var(--color-subtle)]">|</span>
           <QuoteChip
@@ -303,19 +323,16 @@ export function SessionHud({
             price={quotes.right.price}
             changePct={quotes.right.changePct}
             source={quotes.right.source}
-            lagSec={quotes.right.lagSec}
+            lagSec={rightLagSec}
           />
 
           <span
-            aria-label={`Worst quote lag ${Math.round(worstLagSec)}s`}
-            title={`Worst quote lag vs exchange print time: ${Math.round(worstLagSec)}s`}
+            role="img"
+            aria-label={feedDot.label}
+            title={`${feedDot.title} — ${quotes.left.symbol} ${sourceTag(quotes.left.source)} ${Math.round(leftLagSec)}s · ${quotes.right.symbol} ${sourceTag(quotes.right.source)} ${Math.round(rightLagSec)}s.`}
             className={cn(
-              "inline-block h-2 w-2 rounded-full",
-              worstLagSec <= 15
-                ? "bg-[var(--color-up)]"
-                : worstLagSec <= 120
-                  ? "bg-[var(--color-warn)]"
-                  : "bg-[var(--color-down)]",
+              "inline-block h-2.5 w-2.5 cursor-help rounded-full ring-2 ring-[var(--color-bg)]",
+              feedDot.className,
             )}
           />
         </div>
@@ -349,6 +366,7 @@ export function SessionHud({
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
           <span className="hidden lg:inline">Flash</span>
         </button>
+        <SynapseChip tab={synapseTab} />
         <div className="flex-1" />
         <button
           type="button"
@@ -376,7 +394,7 @@ export function SessionHud({
               price={quotes.left.price}
               changePct={quotes.left.changePct}
               source={quotes.left.source}
-              lagSec={quotes.left.lagSec}
+              lagSec={leftLagSec}
             />
             <span className="text-[var(--color-subtle)]">|</span>
             <QuoteChip
@@ -384,23 +402,23 @@ export function SessionHud({
               price={quotes.right.price}
               changePct={quotes.right.changePct}
               source={quotes.right.source}
-              lagSec={quotes.right.lagSec}
+              lagSec={rightLagSec}
             />
 
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full border px-2 py-0.5",
-                worstLagSec <= 15 &&
+                feedDot.tone === "live" &&
                   "border-[color-mix(in_oklab,var(--color-up)_40%,var(--color-border))] text-[var(--color-up)]",
-                worstLagSec > 15 &&
-                  worstLagSec <= 120 &&
+                feedDot.tone === "delayed" &&
                   "border-[color-mix(in_oklab,var(--color-warn)_40%,var(--color-border))] text-[var(--color-warn)]",
-                worstLagSec > 120 &&
+                feedDot.tone === "not-live" &&
                   "border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] text-[var(--color-down)]",
               )}
-              title="Worst quote lag vs exchange print time"
+              title={feedDot.title}
+              aria-label={feedDot.label}
             >
-              lag {Math.round(worstLagSec)}s
+              {feedDot.chip}
             </span>
           </div>
           <div
@@ -468,7 +486,7 @@ export function SessionHud({
           <span className="ml-auto flex items-center gap-2 font-mono text-[12px]">
             <span className="inline-flex items-center gap-1 text-[var(--color-subtle)]">
               <Radio className="h-3 w-3 text-[var(--color-up)]" />
-              {wallNow}
+              {utcNow ?? wallNow}
             </span>
           </span>
         </div>

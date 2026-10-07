@@ -1,3 +1,7 @@
+import { StateWord } from "@/components/desk/state-word";
+import { useRhAccount } from "@/components/desk/use-entry-state";
+import { readRhAccount } from "@/lib/ui/rh-account";
+import { RH_MAX_DEBIT_TOTAL, RH_MIN_DEBIT_TOTAL } from "@/lib/execution/rh-autofire-gates";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
@@ -31,7 +35,7 @@ import {
   type RhFill,
   type RhIncomeRead,
 } from "@/lib/trading/rh-income";
-import { cn } from "@/lib/utils";
+import { schoolTicket } from "@/lib/trading/school-ticket";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictClass(v: RhVerdict): string {
@@ -99,6 +103,9 @@ function StrategyCard({ card }: { card: RhStrategyCard }) {
               <li key={t}>→ {t}</li>
             ))}
           </ul>
+          <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
+            {schoolTicket(card.ticket.underlier, card.ticket.side === "put" ? "short" : "long")}
+          </p>
         </div>
       )}
 
@@ -153,7 +160,12 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
             <th className="font-medium">Tenor</th>
             <th className="font-medium">Single</th>
             <th className="font-medium">Spread</th>
-            <th className="font-medium" title="Fits inside the $1,000 ticket ceiling">≤ $1,000</th>
+            <th
+              className="font-medium"
+              title={`Fits inside the $${RH_MAX_DEBIT_TOTAL} RH envelope (gate refuses above this)`}
+            >
+              {`≤ $${RH_MAX_DEBIT_TOTAL}`}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -169,6 +181,83 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * The sleeve as one budget bar: the debit ceiling, the loss cap inside it,
+ * the RH envelope ($150–$550, Trading Stand's account block) and the current
+ * buying power from ManagerRoomState.account (managerAccountLine). Display
+ * only — the envelope and BP gates live in rh-autofire-gates.ts.
+ */
+function SleeveBudgetBar({ maxDebit, riskPct }: { maxDebit: number; riskPct: number }) {
+  const acct = useRhAccount();
+  const r = acct ? readRhAccount(acct) : null;
+  const bp = acct && Number.isFinite(acct.optionsBuyingPowerUsd) ? acct.optionsBuyingPowerUsd : null;
+  const envMin = acct?.envelopeMinUsd ?? RH_MIN_DEBIT_TOTAL;
+  const envMax = acct?.envelopeMaxUsd ?? RH_MAX_DEBIT_TOTAL;
+  // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Legend + loss math use that
+  // envelope ceiling, not the sleeve's $1,000 sizer cap (rhTicketCapUsd = equity).
+  const debitCeiling = Math.min(maxDebit, envMax);
+  const loss = debitCeiling * riskPct;
+  const scale = Math.max(debitCeiling, envMax, bp ?? 0) * 1.08 || 1;
+  const pct = (x: number) => `${Math.min(100, Math.max(0, (x / scale) * 100))}%`;
+  // No account block at all → fail closed (same as the hard gate).
+  const blocked = r?.blocked ?? true;
+  return (
+    <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase text-[var(--color-subtle)]">
+        <span>Sleeve budget</span>
+        {r ? (
+          <span className={`normal-case font-mono text-[11px] font-semibold ${blocked ? "text-[#ef4444]" : "text-[var(--color-primary)]"}`}>
+            {r.who} · {r.line}
+            {acct?.isSnapshot ? ` · ${r.freshness}` : ""}
+          </span>
+        ) : (
+          <span className="normal-case font-mono text-[11px] font-semibold text-[#ef4444]">
+            no account · arm blocked
+          </span>
+        )}
+      </div>
+      <div className="relative h-5 overflow-hidden rounded bg-[var(--color-surface-3)]" aria-hidden>
+        {/* debit ceiling */}
+        <div className="absolute inset-y-0 left-0 bg-[color-mix(in_oklab,var(--color-primary)_28%,transparent)]" style={{ width: pct(debitCeiling) }} />
+        {/* loss cap inside it */}
+        <div className="absolute inset-y-0 left-0 bg-[color-mix(in_oklab,var(--color-down)_45%,transparent)]" style={{ width: pct(loss) }} />
+        {/* RH envelope band */}
+        <div
+          className="absolute inset-y-0 border-x-2 border-dashed border-[var(--color-warn)]"
+          style={{ left: pct(envMin), width: `calc(${pct(envMax)} - ${pct(envMin)})` }}
+        />
+        {/* current BP */}
+        {bp != null && (
+          <div
+            className={`absolute inset-y-0 w-1 ${blocked ? "bg-[#ef4444] pulse-veto" : "bg-[var(--color-up)]"}`}
+            style={{ left: `calc(${pct(bp)} - 2px)` }}
+          />
+        )}
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-[var(--color-muted)]">
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[color-mix(in_oklab,var(--color-primary)_45%,transparent)]" />
+          debit ceiling {usd(debitCeiling)}
+        </span>
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 rounded-sm bg-[color-mix(in_oklab,var(--color-down)_60%,transparent)]" />
+          loss cap {usd(loss)} ({Math.round(riskPct * 100)}% of debit)
+        </span>
+        <span>
+          <span className="mr-1 inline-block h-2 w-2 border border-dashed border-[var(--color-warn)]" />
+          RH envelope {usd(envMin)}–{usd(envMax)}
+        </span>
+        <span className={blocked ? "font-semibold text-[#ef4444]" : ""}>
+          <span className={`mr-1 inline-block h-2 w-1 ${blocked ? "bg-[#ef4444]" : "bg-[var(--color-up)]"}`} />
+          {bp == null
+            ? "BP — no account read · arm blocked"
+            : `BP ${usd(bp)}${blocked ? " — below the envelope, arm blocked" : ""}`}
+        </span>
+      </div>
     </div>
   );
 }
@@ -224,18 +313,17 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
               Robinhood · QQQ / SPY sleeve
             </h2>
             <p className="text-[11px] text-[var(--color-subtle)]">
-              ≤ $1,000 debit · loss capped 15% of the debit · exit on the futures level · Databento $199/mo first · not the $100k book
+              {`≤ $${RH_MAX_DEBIT_TOTAL} debit per ticket (RH envelope $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL})`} · loss capped{" "}
+              {Math.round(sleeve.riskPct * 100)}% of the debit · size from the level · exit on the futures level · estimates from ES/NQ · Databento $199/mo
+              first · not the $100k book
             </p>
           </div>
         </div>
-        <span
-          className={cn(
-            "rounded-full border px-2.5 py-1 font-mono text-[11px] font-bold tracking-wide",
-            verdictClass(book.best?.verdict ?? "STAND"),
-          )}
-        >
-          {book.best ? `${book.best.verdict} · ${book.best.ticket?.underlier}` : "STAND"}
-        </span>
+        <StateWord
+          raw={book.best?.verdict ?? "STAND"}
+          suffix={book.best?.ticket?.underlier}
+          className="py-1"
+        />
       </header>
 
       <div className="mb-3 flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">
@@ -282,6 +370,8 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
           <span className="text-[var(--color-subtle)]">= 1 thesis · never both QQQ and SPY</span>
         </p>
       </div>
+
+      <SleeveBudgetBar maxDebit={book.maxDebit} riskPct={sleeve.riskPct} />
 
       <div className="mb-3 grid gap-2 sm:grid-cols-3">
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2">

@@ -220,20 +220,28 @@ export interface CardRead {
   expR: number | null;
   block: string | null;
   strategy: string | null;
+  /** The confluences on the card, in the words those words actually mean. */
+  setup: string | null;
+  /** Scanner fit, 0–1. At 0.80 the floor reads the card out loud and arms. */
+  fit?: number | null;
+  /** Named sequence on the card: AMD, TJR, reversal, inverse, gap tap. */
+  sequence?: string | null;
+  /** What the floor says about that sequence. */
+  entryLine?: string | null;
 }
 
 export interface MindsRead {
   needs: Record<Character, { caffeine: number; fatigue: number; stress: number; loneliness: number; boredom: number }>;
   rank: Record<Character, number>;
   rel: Record<Character, Record<Character, { affinity: number; respect: number }>>;
-  memories: { who: Character; against: Character | null; clock: string; kind: string; text: string; outcome: string | null }[];
+  memories: { id: string; who: Character; against: Character | null; clock: string; kind: string; text: string; outcome: string | null; pnl: string | null; at: number }[];
 }
 
 export interface LabLite {
   refusals: { gate: string; n: number; pnlUsd: number; wins: number }[];
   twins: { n: number; deltaUsd: number };
   calibration: { n: number; meanP: number | null; hitRate: number | null; brier: number | null } | null;
-  track: Record<Character, { n: number; brier: number | null }>;
+  track: Record<Character, { n: number; brier: number | null; meanP?: number | null; hitRate?: number | null }>;
 }
 
 export interface WeekLite {
@@ -365,6 +373,10 @@ export interface ScanCardLite {
   stop: number | null;
   t1: number | null;
   block: string | null;
+  /** live enters. armed and forming are anticipation. gone does not chase. */
+  entryState: "live" | "armed" | "forming" | "gone" | "wait";
+  entryLine: string;
+  sequence: string;
 }
 
 /* ── The investment office ─────────────────────────────────────────────────
@@ -575,6 +587,8 @@ export interface TalkState {
   /** Each experiment's status the last time its verdict was announced. */
   rndSeen: Record<string, string>;
   rndPrimed: boolean;
+  /** Graded calls already turned into a lesson, plus the day's shelf review. */
+  lessonSeen?: string[];
   suppressed: number;
 }
 
@@ -621,6 +635,7 @@ export function freshTalkState(): TalkState {
     goalSig: {},
     rndSeen: {},
     rndPrimed: false,
+    lessonSeen: [],
     suppressed: 0,
   };
 }

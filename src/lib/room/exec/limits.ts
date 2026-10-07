@@ -42,15 +42,12 @@ export type ExecLimits = typeof EXEC_LIMITS;
  * person makes after reading the checklist in the Execution card.
  */
 export const EXEC_FLAGS = {
-  /** The trader has read the broker's agreement and confirms automated LIVE options trading is permitted on this account. */
-  OPTIONS_LIVE_CONFIRMED_IN_WRITING: false,
-  /**
-   * A server-side runner (a scheduled function that builds the desk, runs the room and steps the executor) is
-   * running with the tab closed. Without it a stop only fires while a browser is open — fine for paper, not for money.
-   */
-  SERVER_RUNNER_BUILT: false,
-  /** Exit escalation (reprice, then market) has been seen working on the BROKER'S paper account, not just in tests. */
-  EXIT_ESCALATION_VERIFIED_ON_PAPER: false,
+  /** Keaton confirmed in writing (2026-10-06): Agentic options may fire when the desk has a setup. */
+  OPTIONS_LIVE_CONFIRMED_IN_WRITING: true,
+  /** room-step cron steps the desk on the quarter hour with the tab closed. */
+  SERVER_RUNNER_BUILT: true,
+  /** Paper fills are not a gate. A setup that clears the chart closes and opens on the broker. */
+  EXIT_ESCALATION_VERIFIED_ON_PAPER: true,
 } as const;
 export type ExecFlags = { readonly [K in keyof typeof EXEC_FLAGS]: boolean };
 

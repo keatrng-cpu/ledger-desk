@@ -16,7 +16,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizeCronRequest, etWindow, isForced, jsonResponse, type CronRunResult } from "@/lib/alerts/cron";
 import { getSql } from "@/lib/db";
-import { brokerFromEnv } from "@/lib/room/exec/alpaca";
+import { rhAutofireEnabled, rhLiveArmed } from "@/lib/execution/rh-autofire";
 import { PgExecStore } from "@/lib/room/exec/exec-sql";
 import { execStep } from "@/lib/room/exec/executor";
 import { safetyNetDue } from "@/lib/room/exec/safety-net";
@@ -39,10 +39,10 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     if (wanted !== "paper" && wanted !== "live") {
       return jsonResponse({ ...base, ran: false, skipped: `execution phase is ${wanted}: nothing is sent, nothing to flatten` } satisfies CronRunResult, 200);
     }
-    const broker = brokerFromEnv(wanted);
+    const broker = null;
     const before = Date.now();
     const res = await execStep(
-      { store, broker, nowMs: before, liveKeys: Boolean(process.env.ALPACA_LIVE_KEY_ID && process.env.ALPACA_LIVE_SECRET_KEY) },
+      { store, broker, nowMs: before, liveKeys: rhAutofireEnabled() && rhLiveArmed() },
       { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true },
     );
     const sent = res.rows.filter((r) => r.role === "exit" && r.atMs >= before - 1000);

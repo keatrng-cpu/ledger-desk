@@ -15,6 +15,7 @@ import { floorCues, type FloorCues } from "@/lib/room/floor-cues";
 import { CATALYST_MAX_AGE_DAYS, type FeedRead, type GoalLite, type InvestLite, type InvestThemeLite, type RndLite, type ScanCardLite, type SeatsLite } from "@/lib/room/live-types";
 import { boardAgenda, daysBetween, dayPhrase, freshCatalysts, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
 import { etWallParts } from "@/lib/trading/sessions";
+import { feedTone } from "@/lib/ui/feed-tone";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
 import type { Underlier } from "@/lib/room/option-math";
 
@@ -417,6 +418,91 @@ function drawKillzoneClock(ctx: Ctx, cx: number, cy: number, r: number, etMin: n
   ctx.textAlign = "left";
 }
 
+function planPrice(f: FloorFrame, symbol: string): number | null {
+  const u = /ES/.test(symbol) ? "SPY" : "QQQ";
+  const px = f.screens.charts[u]?.price ?? null;
+  return typeof px === "number" && px > 0 ? px : null;
+}
+
+/** The desk ladder, drawn on the whiteboard: stop, entry, T1, T2, and where price is. */
+function drawPlanLadder(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  plan: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
+  price: number | null,
+) {
+  ctx.save();
+  ctx.fillStyle = "#0c1016";
+  ctx.fillRect(x, y, w, h);
+  const vals = [plan.entry, plan.stop, plan.t1, plan.t2, price].filter((v): v is number => v != null && Number.isFinite(v));
+  let lo = Math.min(...vals);
+  let hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.12 || 1;
+  lo -= pad;
+  hi += pad;
+  const yOf = (p: number) => y + 28 + ((hi - p) / (hi - lo)) * (h - 56);
+  const railX = x + w * 0.34;
+  const railW = w * 0.16;
+  ctx.fillStyle = "#1c2430";
+  ctx.fillRect(railX, y + 24, railW, h - 48);
+  const band = (a: number, b: number, color: string) => {
+    const top = Math.min(yOf(a), yOf(b));
+    const bh = Math.max(2, Math.abs(yOf(a) - yOf(b)));
+    ctx.fillStyle = color;
+    ctx.fillRect(railX, top, railW, bh);
+  };
+  band(plan.entry, plan.stop, "rgba(220,38,38,0.45)");
+  if (plan.t1 != null) band(plan.entry, plan.t1, "rgba(21,128,61,0.40)");
+  if (plan.t2 != null) band(plan.t1 ?? plan.entry, plan.t2, "rgba(21,128,61,0.18)");
+  const risk = Math.abs(plan.entry - plan.stop) || 1;
+  const rungs: { p: number; label: string; color: string }[] = [
+    { p: plan.stop, label: "STOP", color: "#f87171" },
+    { p: plan.entry, label: "ENTRY · CE", color: "#5eead4" },
+  ];
+  if (plan.t1 != null) {
+    const r = (plan.side === "long" ? plan.t1 - plan.entry : plan.entry - plan.t1) / risk;
+    rungs.push({ p: plan.t1, label: `T1 · ${r.toFixed(1)}R`, color: "#86efac" });
+  }
+  if (plan.t2 != null) {
+    const r = (plan.side === "long" ? plan.t2 - plan.entry : plan.entry - plan.t2) / risk;
+    rungs.push({ p: plan.t2, label: `T2 · ${r.toFixed(1)}R`, color: "#86efac" });
+  }
+  const placed = rungs.map((r) => ({ ...r, ly: yOf(r.p) })).sort((a, b) => a.ly - b.ly);
+  for (let i = 1; i < placed.length; i++) placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 22);
+  ctx.font = `700 18px ${MONO}`;
+  ctx.textBaseline = "middle";
+  for (const r of placed) {
+    ctx.strokeStyle = r.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(railX, yOf(r.p));
+    ctx.lineTo(railX + railW, yOf(r.p));
+    ctx.stroke();
+    ctx.fillStyle = r.color;
+    ctx.textAlign = "right";
+    ctx.fillText(r.label, railX - 8, r.ly);
+    ctx.textAlign = "left";
+    ctx.fillText(fmt(r.p), railX + railW + 8, r.ly);
+  }
+  if (price != null) {
+    const py = Math.max(y + 28, Math.min(y + h - 28, yOf(price)));
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.moveTo(railX - 8, py);
+    ctx.lineTo(railX - 18, py - 6);
+    ctx.lineTo(railX - 18, py + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = `700 14px ${MONO}`;
+    ctx.textAlign = "left";
+    ctx.fillText("now", railX + railW + 8, py - 16);
+  }
+  ctx.restore();
+}
+
 function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillStyle = "#f8fafc";
   ctx.fillRect(0, 0, w, h);
@@ -431,24 +517,11 @@ function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillText(title, 24, 46);
   ctx.font = `600 24px ${HAND}`;
   const p = f.screens.plan;
-  let yy = 92;
-  if (p) {
-    const rows: [string, number | null, string][] = [
-      ["CE", p.entry, ink],
-      ["STOP", p.stop, red],
-      ["T1", p.t1, green],
-      ["T2", p.t2, green],
-    ];
-    for (const [k, v, col] of rows) {
-      if (v == null) continue;
-      ctx.fillStyle = col;
-      ctx.fillText(`${k}  ${fmt(v, v > 1000 ? 0 : 2)}`, 28, yy);
-      yy += 34;
-    }
-  } else {
+  if (p) drawPlanLadder(ctx, 16, 64, w * 0.46, h - 150, p, planPrice(f, p.symbol));
+  else {
     ctx.fillStyle = "#475569";
-    ctx.fillText("no priced plan", 28, yy);
-    yy += 34;
+    ctx.font = `600 24px ${HAND}`;
+    ctx.fillText("no priced plan", 28, 100);
   }
   const b = f.output.broker_action;
   ctx.fillStyle = b.execute_trade ? red : "#334155";
@@ -782,6 +855,7 @@ const PLATE: Record<string, string> = {
   plate_Inv: "INVESTMENT OFFICE — the long game",
   plate_Board: "BOARDROOM — the chair and the five",
   plate_Chair: "CHAIR'S OFFICE — the CEO",
+  plate_Manager: "TRADING STAND — the Manager",
 };
 
 function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
@@ -810,9 +884,10 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
   const hour = etMin / 60;
   const night = hour < 6.5 || hour > 19.5;
   const dusk = !night && (hour < 8 || hour > 17.5);
-  const v = vix != null && vix > 0 ? vix : 16;
-  const storm = v >= 30;
-  const overcast = v >= 20;
+  // No invented VIX: missing/invalid pulse → clear sky from the clock only (same fail-closed as floor-props vixWeather).
+  const v = vix != null && Number.isFinite(vix) && vix > 0 ? vix : null;
+  const storm = v != null && v >= 30;
+  const overcast = v != null && v >= 20;
   const g = ctx.createLinearGradient(0, 0, 0, h);
   if (storm) {
     g.addColorStop(0, night ? "#05060b" : "#1f2430");
@@ -836,7 +911,7 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
     for (let i = 0; i < 40; i++) ctx.fillRect(rnd() * w, rnd() * h * 0.5, 2, 2);
   }
   // Clouds drift slowly with the clock.
-  const clouds = v < 15 ? 1 : v < 20 ? 3 : v < 30 ? 6 : 9;
+  const clouds = v == null ? 0 : v < 15 ? 1 : v < 20 ? 3 : v < 30 ? 6 : 9;
   for (let i = 0; i < clouds; i++) {
     const cx = ((rnd() * w + tSec * (6 + i)) % (w + 220)) - 110;
     const cy = 30 + rnd() * h * 0.3;
@@ -862,7 +937,7 @@ function drawWindow(ctx: Ctx, w: number, h: number, etMin: number, seed: number,
     // Rain: streaks that fall with the clock.
     ctx.strokeStyle = storm ? "rgba(191,219,254,0.55)" : "rgba(191,219,254,0.3)";
     ctx.lineWidth = 1.5;
-    const drops = storm ? 140 : v >= 25 ? 60 : 0;
+    const drops = storm ? 140 : v != null && v >= 25 ? 60 : 0;
     for (let i = 0; i < drops; i++) {
       const dx = rnd() * w;
       const dy = (rnd() * h + tSec * 420) % h;
@@ -1255,7 +1330,9 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
     ctx.fillText(fit(ctx, `${c.symbol} ${c.side.toUpperCase()}${c.strategy ? ` · ${c.strategy}` : ""}`, 520), 92, y + 24);
     ctx.font = `500 15px ${MONO}`;
     ctx.fillStyle = c.block ? C.down : C.muted;
-    const sub = c.block ?? `${(c.tier ?? "no plan").toUpperCase()}${c.awayPts != null ? ` · ${c.awayPts.toFixed(1)} pts away` : ""}`;
+    const state = c.sequence || (c.entryState === "live" ? "ENTER" : c.entryState === "gone" ? "ENTRY GONE" : "ANTICIPATION");
+    const sub = c.entryLine || c.block || `${state}${(c.tier ?? "")}`;
+    ctx.fillStyle = c.sequence?.startsWith("ENTER") ? C.up : c.sequence?.startsWith("STAND") || c.sequence?.startsWith("DRAW") ? C.down : c.entryState === "gone" ? C.down : C.amber;
     ctx.fillText(fit(ctx, sub, 410), 92, y + 48);
     if (c.entry != null && c.stop != null) {
       ctx.fillStyle = C.muted;
@@ -1401,11 +1478,28 @@ function drawFeed(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   const r = f.screens.race;
   const feed = r?.feed ?? null;
   clear(ctx, w, h);
-  const real = feed?.kind === "live_gateway" || feed?.kind === "databento";
-  const kindWord = !feed ? "no read" : feed.kind === "live_gateway" ? "LIVE GATEWAY" : feed.kind === "databento" ? "DATABENTO" : feed.kind === "yahoo" ? "YAHOO (delayed)" : feed.kind === "synthetic" ? "SYNTHETIC" : "NO FEED";
-  header(ctx, w, "OPS · THE FEED", kindWord, real ? C.up : feed?.kind === "yahoo" ? C.amber : C.down);
+  // Same honesty as the header feed dot: source first, then lag. Databento
+  // green only at ≤15s (not the old <90s Floor threshold). SYN/Y! never green.
+  // Unknown lag (null) stays null — feedTone paints red, never coerce to 0.
+  const sources = feed && feed.kind !== "none" ? [feed.kind] : [];
+  const tone = feedTone(sources, feed?.lagSec ?? null);
+  const accent = tone.tone === "live" ? C.up : tone.tone === "delayed" ? C.amber : C.down;
+  const kindWord = !feed || feed.kind === "none"
+    ? "NO FEED"
+    : feed.kind === "live_gateway"
+      ? "LIVE GATEWAY"
+      : feed.kind === "databento"
+        ? "DATABENTO"
+        : feed.kind === "yahoo"
+          ? "YAHOO (delayed)"
+          : feed.kind === "synthetic"
+            ? "SYNTHETIC"
+            : "NO FEED";
+  header(ctx, w, "OPS · THE FEED", kindWord, accent);
   const lag = feed?.lagSec;
-  kvLine(ctx, w, 80, "Newest print", lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`, lag != null && lag < 15 ? C.up : lag != null && lag < 120 ? C.amber : C.down);
+  const printWords =
+    lag == null ? "—" : lag < 90 ? `${Math.round(lag)} s old` : `${Math.round(lag / 60)} min old`;
+  kvLine(ctx, w, 80, "Newest print", printWords, accent);
   const cues = cuesOfFrame(f);
   const cx = w - 78;
   const cy = 168;

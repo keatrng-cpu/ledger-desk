@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OhlcBar } from "@/lib/market/types";
 import type { ChartOverlay } from "@/lib/trading/chart-overlay";
 import type { TradePlan } from "@/lib/trading/trade-plan";
@@ -198,6 +198,9 @@ export function CandlestickPane({
   const markersRef = useRef<any>(null);
   const primitiveRef = useRef<any>(null);
   const arraysRef = useRef<SmcArray[]>([]);
+  // Every level drawn on the pane, for the crosshair read-out.
+  const levelsRef = useRef<{ price: number; title: string; color: string }[]>([]);
+  const [readout, setReadout] = useState<{ price: number; y: number; hits: { price: number; title: string; color: string }[] } | null>(null);
   const onHoverRef = useRef(onHover);
   onHoverRef.current = onHover;
   // The overlay may arrive before the chart finishes its dynamic import;
@@ -239,6 +242,9 @@ export function CandlestickPane({
         // written in ET.
         localization: { timeFormatter: (t: number) => `${etLabel(t, true)} ET` },
         timeScale: {
+          // Room right of the last bar so a marker there ("raid …") is not
+          // clipped by the price scale.
+          rightOffset: 6,
           borderVisible: false,
           timeVisible: true,
           secondsVisible: false,
@@ -277,6 +283,16 @@ export function CandlestickPane({
       paintOverlay(bars, overlayRef.current.overlay, overlayRef.current.plan);
 
       chart.subscribeCrosshairMove((param: any) => {
+        // Level read-out: every drawn level near the cursor's price.
+        if (param?.point && levelsRef.current.length) {
+          const price = candle.coordinateToPrice(param.point.y);
+          const lo = candle.coordinateToPrice(param.point.y + 6);
+          const hi = candle.coordinateToPrice(param.point.y - 6);
+          if (price != null && lo != null && hi != null) {
+            const hits = levelsRef.current.filter((l) => l.price >= Math.min(lo, hi) && l.price <= Math.max(lo, hi));
+            setReadout({ price, y: param.point.y, hits });
+          }
+        } else setReadout(null);
         const cb = onHoverRef.current;
         if (!cb) return;
         if (!param?.time || !param.seriesData) {
@@ -335,8 +351,12 @@ export function CandlestickPane({
     }
     priceLinesRef.current = [];
 
+    // Collect first, then draw: lines whose labels would collide (two levels
+    // within ~2.5% of the visible range — e.g. "DOL PDH" and "BSL PDH" on the
+    // same print) share ONE axis label naming both; every line is still drawn.
+    const specs: Record<string, any>[] = [];
     const add = (opts: Record<string, unknown>) => {
-      priceLinesRef.current.push(candle.createPriceLine(opts));
+      specs.push(opts);
     };
 
     if (ov) {
@@ -382,6 +402,38 @@ export function CandlestickPane({
       }
     }
 
+    {
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (const b of currentBars) {
+        if (b.l < lo) lo = b.l;
+        if (b.h > hi) hi = b.h;
+      }
+      const eps = Number.isFinite(hi - lo) && hi > lo ? (hi - lo) * 0.025 : 0;
+      const labelled = specs.filter((s) => s.axisLabelVisible).sort((a, b) => b.price - a.price);
+      const groups: Record<string, any>[][] = [];
+      for (const s of labelled) {
+        const g = groups[groups.length - 1];
+        if (g && Math.abs(g[0]!.price - s.price) <= eps) g.push(s);
+        else groups.push([s]);
+      }
+      for (const s of specs) s.__name = s.title;
+      for (const g of groups) {
+        if (g.length < 2) continue;
+        g[0]!.title = g.map((s) => s.title).filter(Boolean).join(" / ");
+        for (const s of g.slice(1)) {
+          s.axisLabelVisible = false;
+          s.title = "";
+        }
+      }
+      levelsRef.current = specs.map((s) => ({ price: s.price, title: String(s.__name ?? s.title ?? ""), color: String(s.color) }));
+      for (const s of specs) {
+        const { __name, ...opts } = s;
+        void __name;
+        priceLinesRef.current.push(candle.createPriceLine(opts));
+      }
+    }
+
     // Markers: the raid, structure breaks, displacement candles.
     const markers: any[] = [];
     const sweep = pl?.sweep?.t != null ? { t: pl.sweep.t, price: pl.sweep.price, above: pl.side === "short" } : ov?.sweep ? { t: ov.sweep.t, price: ov.sweep.price, above: ov.sweep.side === "buyside" } : null;
@@ -393,7 +445,8 @@ export function CandlestickPane({
           position: sweep.above ? "aboveBar" : "belowBar",
           color: C.warn,
           shape: "circle",
-          text: `raid ${sweep.price.toFixed(2)}`,
+          // Short: the price is on the read-out and the level line already.
+          text: "raid",
           size: 1,
         });
       }
@@ -463,10 +516,22 @@ export function CandlestickPane({
   }, [height]);
 
   return (
-    <div
-      ref={elRef}
-      className="w-full overflow-hidden rounded-md"
-      style={{ height }}
-    />
+    <div className="relative w-full">
+      <div ref={elRef} className="w-full overflow-hidden rounded-md" style={{ height }} />
+      {readout && readout.hits.length > 0 && (
+        <div
+          className="pointer-events-none absolute left-2 z-10 rounded border border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_88%,transparent)] px-2 py-1 font-mono text-[10px] shadow"
+          style={{ top: Math.max(4, Math.min(height - 60, readout.y - 12)) }}
+          role="status"
+        >
+          <p className="text-[var(--color-muted)]">@ {readout.price.toFixed(2)}</p>
+          {readout.hits.map((h, i) => (
+            <p key={i} style={{ color: h.color }}>
+              {h.title || "level"} · {h.price.toFixed(2)}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

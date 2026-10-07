@@ -140,6 +140,12 @@ export function runVeteranBrain(
     dailyHaltHit?: boolean;
     weeklyHaltHit?: boolean;
     killzoneCapHit?: boolean;
+    /**
+     * The risk governor is silent (desk gate "unknown": timeout / transport /
+     * DB). The halt flags above are then only the LAST-KNOWN answer, so a
+     * "Risk unknown" veto is added and the brain never reads clear.
+     */
+    riskUnknown?: boolean;
   } | null,
   /**
    * Real per-strategy discretion, server-computed from Postgres live+paper
@@ -547,6 +553,13 @@ export function runVeteranBrain(
   }
 
   // 6) Risk governor (desk rules + optional live risk state)
+  // Governor silent: the flags below are last-known only. Veto regardless, so
+  // the veto list (and the posture built from the verdict) cannot read "None"
+  // while risk is unknown. A last-known halt still adds its own veto below.
+  const riskUnknown = !!liveRisk?.riskUnknown;
+  if (riskUnknown) {
+    vetoes.push("Risk unknown — governor unreachable, no new entries until it answers");
+  }
   if (liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit) {
     layers.push({
       id: "risk",
@@ -563,10 +576,19 @@ export function runVeteranBrain(
       label: "Risk",
       tone: "warn",
       score: -1,
-      detail: "Killzone cap hit",
+      detail: "Count this window is full. It does not stand a ticket down.",
     });
     score -= 1;
-    yellow.push("Max setups this KZ already used");
+    yellow.push("The count this window is a note, not a stop.");
+  } else if (riskUnknown) {
+    layers.push({
+      id: "risk",
+      label: "Risk",
+      tone: "fail",
+      score: -1,
+      detail: "Risk unknown — governor unreachable",
+    });
+    score -= 1;
   } else {
     layers.push({
       id: "risk",
@@ -1188,12 +1210,16 @@ export function runVeteranBrain(
     {
       tab: "Risk",
       status:
-        liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit
+        liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit || liveRisk?.riskUnknown
           ? "warn"
           : "ok",
       line: liveRisk?.dailyHaltHit || liveRisk?.weeklyHaltHit
-        ? "HALT — no new risk"
-        : `Open · grade 0.5–3% · 50% at T1 → BE · max ${risk.maxSetups}/KZ`,
+        ? liveRisk?.riskUnknown
+          ? "HALT (last known) · risk unknown — no new risk"
+          : "HALT — no new risk"
+        : liveRisk?.riskUnknown
+          ? "Risk unknown — governor unreachable, no new risk"
+          : `Open · grade 0.5–3% · 50% at T1 → BE · max ${risk.maxSetups}/KZ`,
     },
     {
       tab: "Veteran",

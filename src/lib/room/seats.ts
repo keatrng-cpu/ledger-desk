@@ -29,7 +29,6 @@
  * reported by rnd.ts with its sample sizes, and applying a change is the trader's.
  */
 
-import { APLUS_RULES } from "@/lib/aplus/config";
 import { emptyCounters, ledgerOfCounters, rollCountersOf, type RoomCounters } from "./counters";
 import { contractName, usd } from "./format";
 import { entriesOpen, goalClock, policyOf, type GoalSpec } from "./goal";
@@ -322,8 +321,8 @@ export function verdictFor(a: {
   if (hard[0]) return blocked(hard[0].id, hard[0].label);
   const plan = ev.plan;
   if (!plan || plan.qty < 1) return blocked("cash_cap", "no ticket can be bought");
-  const perDay = id === "room" ? APLUS_RULES.maxSetupsPerSession : policyOf(id).perDay;
-  if (seat.counters.filledPlans.length >= perDay) return blocked("style_cap", `${perDay} a day, taken`);
+  const perDay = id === "room" ? null : policyOf(id).perDay;
+  if (perDay != null && seat.counters.filledPlans.length >= perDay) return blocked("style_cap", `${perDay} a day, taken`);
   const qty = plan.qty;
   if (soft[0] && id !== "press") return skip(soft[0].id, soft[0].label, qty);
   const override = soft.length ? soft.map((g) => g.id).join("+") : null;
@@ -336,8 +335,6 @@ export function verdictFor(a: {
   if (id === "structure") {
     if (!htfAligned(a.desk?.htf[card.underlier], card.type))
       return skip("style", `the higher timeframe is ${a.desk?.htf[card.underlier] ?? "unread"} — structure does not back a ${card.type === "CALL" ? "call" : "put"}`, qty);
-    if (card.patterns?.inducement) return skip("style", "an inducement sweep sits in front of the real one", qty);
-    if (card.patterns?.mitigation) return skip("style", "the card rides a mitigation block", qty);
   }
   if (id === "edge") {
     const f = ticketKelly(plan.ev, plan.quote.ask);

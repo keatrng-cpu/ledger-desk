@@ -36,6 +36,7 @@ import { asGoal, defaultGoal, GOAL_STORAGE, type GoalSpec } from "@/lib/room/goa
 import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
+import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
@@ -65,9 +66,10 @@ import type { Void } from "@/lib/room/exec/executor";
 import { execAfterCycle, execFlatten } from "./exec-bridge";
 import { researchShelf } from "@/lib/room/research";
 // RH Individual account on the desk (Keaton 2026-10-06) — context for the seats, never a ticket.
-import { RH_DESK_ACCOUNT_SNAPSHOT } from "@/lib/execution/rh-account";
+import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
+import { roomManagerFeed } from "@/lib/room/manager-room-feed";
 import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
 
 const MINDS_STORAGE = "ledger-room-minds-v1";
@@ -121,7 +123,7 @@ function saveGoal(g: GoalSpec) {
 /* ── Frame building ─────────────────────────────────────────────────────── */
 
 const RESEARCH_LINES = (() => {
-  const shelf = researchShelf(RH_DESK_ACCOUNT_SNAPSHOT, RH_DESK_ACCOUNT_SNAPSHOT.asOfMs);
+  const shelf = researchShelf(RH_AGENTIC_DESK_READ, RH_AGENTIC_DESK_READ.asOfMs);
   return Object.fromEntries(Object.entries(shelf).map(([k, notes]) => [k, notes.map((n) => n.line)])) as FloorScreens["research"];
 })();
 
@@ -305,6 +307,12 @@ interface RoomState {
   tickAt: number | null;
   /** The 3D scene is mounted and will play what it is handed. */
   sceneOpen: boolean;
+  /**
+   * Floor 3D overhaul (Chunk A): what the ticker wall, liquidity lanes, VIX weather, stat banners, trophy shelf and wall
+   * of scars show — `floorProps` over the same world the live talk reads. Replaced only when its signature moves.
+   */
+  floorProps: FloorProps | null;
+  floorPropsSig: string;
   /** The server copy of the room (book + memory): restored at startup if richer, pushed after book changes. */
   backup: BackupState;
   /** The trader's goal (goal.ts) and the race it sets running (seats.ts): the plan, the league and the R&D board, once per desk build. */
@@ -337,6 +345,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   feedRead: null,
   tickAt: null,
   sceneOpen: false,
+  floorProps: null,
+  floorPropsSig: "",
   backup: { status: "idle", at: null, why: "Not checked yet." },
   goal: defaultGoal(0),
   race: null,
@@ -361,6 +371,9 @@ export const useRoomStore = create<RoomState>((set, get) => ({
         const sg = asSeatBook(asLab(snapshot.book.lab).seats)?.goal;
         if (sg) saveGoal(sg);
         set({ book: snapshot.book, minds: snapshot.minds, backup: state, frame: null, lastFetchedAt: null, ...(sg ? { goal: sg, race: null } : {}) });
+      } else if (snapshot?.minds && (snapshot.minds.memories?.length ?? 0) > (get().minds?.memories.length ?? 0)) {
+        saveMinds(snapshot.minds);
+        set({ minds: snapshot.minds, backup: state });
       } else {
         set({ backup: snapshot ? { ...state, why: "This browser's room is current." } : state });
       }
@@ -421,7 +434,7 @@ function runLiveCycle(desk: DeskPayload) {
   const input = toRoomInput(book, market);
   const read = readDeskForRoom(desk, od, exitWatchOf(book), nowMs, st.pulse.tenYear);
   const lab = labRead(asLab(book.lab), book.closed);
-  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: RH_DESK_ACCOUNT_SNAPSHOT }, nowMs);
+  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: RH_AGENTIC_DESK_READ }, nowMs);
   const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
   book = applyLab(book, cycle, market, read, nowMs, st.goal);
@@ -480,6 +493,17 @@ function runLiveCycle(desk: DeskPayload) {
     lastFetchedAt: desk.fetchedAt,
     wire: frameIsEvent(frame) && storyMoved(frame, s.frame) ? [cycleWire(frame, s.sceneOpen), ...s.wire].slice(0, TALK.wireKeep) : s.wire,
   }));
+  // The REAL Trading Stand Manager feed reads this cycle (chair beat, gates, call, plan,
+  // lenses) — not a demo cycle. Its agentAgree reaches the RH path only through
+  // managerStateForAgree → candidateFromFloorPathStand (every hard gate still applies).
+  try {
+    roomManagerFeed().pushRoom(
+      { id: frame.id, nowMs: frame.nowMs, output: frame.output, trace: frame.trace, roomP: frame.screens.roomP, lenses: frame.screens.lenses },
+      { card: read.entry, newsBlackout: read.news.blackout, synthetic: desk.feed === "synthetic" },
+    );
+  } catch (err) {
+    console.error("[room] manager feed push failed:", err);
+  }
   // The execution layer (exec/): what the room just did goes to the broker's side — shadow, paper, or nothing (off is the
   // default and a browser cannot change it). A synthetic desk feed is never a decision worth sending anywhere.
   if (desk.feed !== "synthetic") {
@@ -549,11 +573,11 @@ export function frameIsEvent(f: FloorFrame): boolean {
 }
 
 const TALK_STORAGE = "ledger-room-talk-v1";
-const TALK_KEEP_MS = 30 * 60_000;
+const TALK_KEEP_MS = 16 * 60 * 60_000;
 
 function loadTalk(): TalkState {
   try {
-    const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(TALK_STORAGE) : null;
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(TALK_STORAGE) : null;
     const o = raw ? (JSON.parse(raw) as { at?: number; state?: TalkState }) : null;
     if (o?.state?.v === 1 && typeof o.at === "number" && Date.now() - o.at < TALK_KEEP_MS) return o.state;
   } catch {
@@ -567,7 +591,7 @@ function saveTalk(state: TalkState, nowMs: number) {
   if (nowMs - lastSaveMs < 10_000) return;
   lastSaveMs = nowMs;
   try {
-    window.sessionStorage.setItem(TALK_STORAGE, JSON.stringify({ at: nowMs, state }));
+    window.localStorage.setItem(TALK_STORAGE, JSON.stringify({ at: nowMs, state }));
   } catch {
     // Storage full or blocked: the talk keeps its memory for this page.
   }
@@ -616,12 +640,24 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
   }
   const { item, state } = talkTick(world, st.talkState);
   saveTalk(state, nowMs);
+  // The overhaul's props: presentation only, never read back by the talk or the cycle.
+  let props: FloorProps | null = null;
+  try {
+    props = floorProps(world, { closed: st.book.closed, startCash: st.book.startCash, memories: st.minds?.memories ?? [], bookEvents: st.book.events });
+  } catch (err) {
+    console.error("[room] floor props failed:", err);
+  }
+  const propsSig = propsSignature(props);
   const feed = world.feed;
   const was = st.feedRead;
   const feedMoved = !was || was.kind !== feed.kind || (was.lagSec == null) !== (feed.lagSec == null) || Math.abs((was.lagSec ?? 0) - (feed.lagSec ?? 0)) >= 5;
   useRoomStore.setState((s) => {
     const next: Partial<RoomState> = { talkState: state, tickAt: nowMs };
     if (feedMoved) next.feedRead = feed;
+    if (propsSig !== s.floorPropsSig) {
+      next.floorProps = props;
+      next.floorPropsSig = propsSig;
+    }
     if (item) {
       const keep = s.pending.filter((p) => nowMs - p.at <= p.ttlMs);
       next.talkSeq = s.talkSeq + 1;
@@ -642,8 +678,12 @@ export function useRoomEngine(desk: DeskPayload | null) {
   useEffect(() => {
     useRoomStore.getState().hydrate();
   }, []);
+  // Wait for the first desk before pulling pulse/news so cold-start does not
+  // stack getPulse + getNewsFeed beside fetchTradingDesk / loadRisk (same
+  // serverless budget; Yahoo + RSS contention can starve the desk build).
+  const hasDesk = desk != null;
   useEffect(() => {
-    if (!enabled || !hydrated) return;
+    if (!enabled || !hydrated || !hasDesk) return;
     let alive = true;
     const pull = async () => {
       try {
@@ -662,10 +702,10 @@ export function useRoomEngine(desk: DeskPayload | null) {
       alive = false;
       window.clearInterval(id);
     };
-  }, [enabled, hydrated]);
+  }, [enabled, hydrated, hasDesk]);
   // Headlines: the news TVs and the talk both read them, so they are pulled here, not by the tab.
   useEffect(() => {
-    if (!enabled || !hydrated) return;
+    if (!enabled || !hydrated || !hasDesk) return;
     let alive = true;
     const pull = async () => {
       try {
@@ -686,7 +726,7 @@ export function useRoomEngine(desk: DeskPayload | null) {
       alive = false;
       window.clearInterval(id);
     };
-  }, [enabled, hydrated]);
+  }, [enabled, hydrated, hasDesk]);
   const fetchedAt = desk?.fetchedAt ?? null;
   useEffect(() => {
     if (!enabled || !hydrated || !desk || !fetchedAt) return;
@@ -724,7 +764,7 @@ export function useRoomEngine(desk: DeskPayload | null) {
       } catch (err) {
         console.error("[room] live tick failed:", err);
       }
-    }, 1000);
+    }, 5000);
     return () => window.clearInterval(id);
   }, [enabled, hydrated]);
 }

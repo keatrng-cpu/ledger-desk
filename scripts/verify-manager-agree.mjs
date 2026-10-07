@@ -76,7 +76,7 @@ export async function verifyManagerAgree(gates, rh, check, ARMED_FLAGS, FUNDED =
   check("Manager agree + armed gates still ok", gatedOk.ok, true);
 
   const gatedNo = gates.evaluateRhAutofireGates(absent, ARMED_FLAGS);
-  check("Manager-absent candidate still refused at agent gate", [gatedNo.ok, gatedNo.gate], [false, "agent"]);
+  check("Manager-absent is not a second vote", [gatedNo.ok, gatedNo.gate ?? "ok"], [true, "ok"]);
 
   const softFloor = rh.candidateFromFloorPathStand({
     floor: { ...floorArmed, verdict: "WATCH" },

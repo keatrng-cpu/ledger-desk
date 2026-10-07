@@ -41,10 +41,14 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
+import { monthContractLine } from "@/lib/trading/month-contract";
+import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
+import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
 import { ladderConflict } from "@/lib/trading/ladder-conflict";
+import { sessionBias } from "@/lib/trading/tf-ladder";
 import type { TfLadder } from "@/lib/trading/tf-ladder";
 import {
   CHART_TFS,
@@ -181,7 +185,7 @@ function GradeBadge({ g }: { g: string }) {
         execute
           ? "PATH band — an execute grade (A+ sizes at the A probe until n≥20 A+ at WR≥65%)"
           : g === "B+"
-            ? "B+ — paper only, 0.5%"
+            ? "B+ is live. One contract. The score sizes. It does not pick the side."
             : "Not an execute grade"
       }
       className={cn(
@@ -338,21 +342,25 @@ export type LogMode = "paper" | "live";
 function BlockerStrip({
   c,
   entryAllowed,
+  entryBlockedReason,
   sessionReason,
 }: {
   c: SetupCandidate;
   entryAllowed: boolean;
+  /** Why the risk gate is closed when it is not a halt (e.g. "risk unknown · since 10:32:05 ET"). */
+  entryBlockedReason?: string;
   /** readSession's reason — delivery and participation, not the clock. */
   sessionReason?: string;
 }) {
   const blocks: string[] = [];
-  if (!c.htfOk) blocks.push("HTF bias conflict");
+  if (c.gapSide && c.gapSide !== c.side) blocks.push("Direction disagrees — 1H and 4H gaps");
+  else if (!c.gapSide && !c.htfOk) blocks.push("No fresh 1H/4H gap, and the higher-timeframe read is the other way");
   if (!c.conditionsOk) blocks.push(`conditions (${c.regime || "regime"})`);
   // The session gate is measured on the tape (session-event.ts): a killzone,
   // or an event with delivery >= 2.0 ATR AND participation >= 1.5x. "Outside
   // killzone" described the old clock rule and hid how close an event was.
   if (!c.killzoneOk) blocks.push(`session closed — ${sessionReason || "no killzone and no tape event"}`);
-  if (!entryAllowed) blocks.push("risk governor");
+  if (!entryAllowed) blocks.push(entryBlockedReason || "risk governor");
   if (!blocks.length) return null;
 
   return (
@@ -458,10 +466,14 @@ function SetupCard({
   onLog,
   noteFor,
   entryAllowed = true,
+  entryBlockedReason,
   canon,
   discretion,
   tape,
+  otherTape,
+  otherSymbol,
   session,
+  others = [],
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
@@ -474,14 +486,19 @@ function SetupCard({
    */
   noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
+  /** Shown in the blocker strip when the risk gate is closed for a reason other than a halt. */
+  entryBlockedReason?: string;
   /** Per-candidate SMC/ICT canon grade — see canonInputForCandidate. */
   canon?: CanonStack;
   /** Per-candidate real discretion factor — see journal/discretion.ts. */
   discretion?: DiscretionResult;
   /** This book's bars and live sequence, for the card's own markup chart. */
   tape?: CardTape;
+  otherTape?: CardTape;
+  otherSymbol?: string;
   /** The session read and the ET clock, for the evidence lookups. */
   session?: CardSession;
+  others?: SetupCandidate[];
 }) {
   const [noteCopied, setNoteCopied] = useState(false);
   // Read from the card's OWN printed strings, not from the plan — the failure
@@ -491,8 +508,8 @@ function SetupCard({
       readCardGeometry({
         symbol: c.symbol,
         side: c.side === "short" ? "short" : "long",
-        entryZone: c.entryZone,
-        invalidation: c.invalidation,
+        entryZone: c.plan ? String(c.plan.entry) : c.entryZone,
+        invalidation: c.plan ? String(c.plan.stop) : c.invalidation,
         target: c.targets?.[0] ?? null,
         // ATR from the card's own bars, so the cap is this instrument's at
         // this volatility rather than the legacy fixed point number.
@@ -818,6 +835,25 @@ function SetupCard({
       ghost.status === "lost" ||
       ghost.status === "missed" ||
       ghost.status === "expired");
+  const pb = applyLtf(
+    sequenceFor(c as SequenceCard, {
+      inArray: anticipation.entry === "live",
+      gone: anticipation.entry === "gone" || freshness?.state === "target_hit",
+      price: tape?.price ?? null,
+      others: others as SequenceCard[],
+    }),
+    readLtfLead({
+      symbol: c.symbol,
+      side: c.side === "short" ? "short" : "long",
+      minute: tape?.minute ?? [],
+      otherSymbol: otherSymbol ?? "",
+      otherMinute: otherTape?.minute ?? [],
+      draw: tape?.draws?.primary ?? null,
+      otherDraw: otherTape?.draws?.primary ?? null,
+      mineLadder: tape?.ladder ? { symbol: tape.ladder.symbol, strip: tape.ladder.strip, htf: sessionBias(tape.ladder) } : null,
+      otherLadder: otherTape?.ladder ? { symbol: otherTape.ladder.symbol, strip: otherTape.ladder.strip, htf: sessionBias(otherTape.ladder) } : null,
+    }),
+  );
   return (
     <article
       className={cn(
@@ -860,7 +896,7 @@ function SetupCard({
                 untouched, the card is refused, and it says by what. */}
             {c.vetoes?.length ? (
               <span
-                title={`Refused: ${c.vetoes.join(" · ")}.${c.vetoes.includes("LTF delivery against") ? " Session is delivering the other way — do not fade a live impulse with leftover HTF components." : ""} The band was ${c.bandBeforeVeto ?? "—"} on the fit; a veto sets it to C and the card is not actionable. The fit and the T1 odds are unchanged — the veto is a rule, not a discount.`}
+                title={`Noted: ${c.vetoes.join(" · ")}. The band stays ${c.pathBand ?? c.bandBeforeVeto ?? "—"}. A note cuts size. It does not cancel an A+ / A / B+ card.`}
                 className="inline-flex items-center gap-1 rounded-full border border-[color-mix(in_oklab,var(--color-down)_50%,var(--color-border))] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--color-down)]"
               >
                 veto · {c.vetoes[0]!.split(" — ")[0]}
@@ -920,6 +956,9 @@ function SetupCard({
           <p className="mt-0.5 truncate text-xs text-[var(--color-subtle)]">
             {c.title}
           </p>
+          {c.directionLine && (
+            <p className="mt-0.5 text-[11px] leading-snug text-[var(--color-fg)]">{c.directionLine}</p>
+          )}
           {/* The brain's two independent reads on THIS candidate: is the
               canon story complete (structure/rules), and does real
               live+paper+backtest history favor or demote its strategy
@@ -959,6 +998,27 @@ function SetupCard({
             </p>
           </div>
         )}
+      </div>
+
+      <div
+        className={cn(
+          "mb-2 rounded-[var(--radius-sm)] border px-2.5 py-2",
+          anticipation.entry === "live"
+            ? "border-[color-mix(in_oklab,var(--color-up)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-up)_10%,transparent)]"
+            : anticipation.entry === "gone"
+              ? "border-[color-mix(in_oklab,var(--color-down)_45%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_8%,transparent)]"
+              : "border-[color-mix(in_oklab,var(--color-warn)_45%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)]",
+        )}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-fg)]">
+          {pb.label}
+          {c.plan ? ` · CE ${c.plan.entry.toFixed(2)}` : ""}
+        </p>
+        <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-fg)]">{pb.act}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-subtle)]">
+          {anticipation.next}
+          {pb.enter ? ` ${monthContractLine(2000)}` : ""}
+        </p>
       </div>
 
       {odds && (
@@ -1095,7 +1155,12 @@ function SetupCard({
       {ghost && ghost.status !== "watching" ? (
         <GhostBanner g={ghost} />
       ) : (
-        <BlockerStrip c={c} entryAllowed={entryAllowed} sessionReason={session?.sessionReason} />
+        <BlockerStrip
+          c={c}
+          entryAllowed={entryAllowed}
+          entryBlockedReason={entryBlockedReason}
+          sessionReason={session?.sessionReason}
+        />
       )}
 
       {/* THE MARKUP — this card's own setup, drawn the way an SMC trader marks
@@ -1322,8 +1387,8 @@ function SetupCard({
       {c.plan && (
         <div className="mb-2 space-y-0.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-2.5 py-1.5 text-[10px] leading-snug">
           <p className="text-[var(--color-fg)]">
-            <span className="font-semibold">AT T1:</span> take {Math.round(APLUS_RULES.scaleOut.tp1Fraction * 100)}% off, stop to
-            breakeven, runner to T2. Do not protect earlier — banking at +1R measured −0.42R/t.
+            <span className="font-semibold">AT T1:</span> trim {Math.round(APLUS_RULES.scaleOut.tp1Fraction * 100)}% at one-to-one. That is a partial. The draw stays open. Stop to
+            breakeven on the runner. Do not flatten the card because one R printed.
           </p>
           <p className="text-[var(--color-muted)]">
             <span className="font-semibold">DEAD IF:</span> a close beyond {c.plan.stop.toFixed(2)}, or the limit is
@@ -1339,7 +1404,7 @@ function SetupCard({
             >
               Stop {risk.riskAtr.toFixed(2)}×ATR —{" "}
               {risk.riskAtr < MIN_RISK_ATR || risk.riskAtr > MAX_RISK_ATR_TRADABLE
-                ? `outside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band, where cards lose in both halves of four years`
+                ? `outside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band. Size is cut. The card stays live.`
                 : `inside the ${MIN_RISK_ATR}–${MAX_RISK_ATR_TRADABLE}×ATR band (outside it loses; inside is roughly breakeven)`}
             </p>
           )}
@@ -1581,6 +1646,7 @@ export function SetupScanner({
   onLog,
   noteFor,
   entryAllowed = true,
+  entryBlockedReason,
   bias,
   narrative,
   clock,
@@ -1592,6 +1658,8 @@ export function SetupScanner({
   /** Stage 0 — see SetupCard. Threaded straight through. */
   noteFor?: (c: SetupCandidate) => string;
   entryAllowed?: boolean;
+  /** Threaded to each card's blocker strip (e.g. "risk unknown · since …"). */
+  entryBlockedReason?: string;
   /** Per-book HTF read — matched to each candidate by symbol for its own canon grade. */
   bias?: { left: HtfBiasRead; right: HtfBiasRead };
   /** Per-book liquidity/confirmation narrative — same matching. */
@@ -1695,7 +1763,7 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Execute A+/A/A− · B+ paper only · floor {scan.floor} · ordered by what can be traded, never by fit score
+            Execute A+/A/A−/B+ · the score sizes, it does not vote · floor {scan.floor} · ordered by what can be traded, never by fit score
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1768,10 +1836,14 @@ export function SetupScanner({
             onLog={onLog}
             noteFor={noteFor}
             entryAllowed={entryAllowed}
+            entryBlockedReason={entryBlockedReason}
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}
             tape={tape?.[c.symbol]}
+            otherTape={tape?.[display.find((o) => o.symbol !== c.symbol)?.symbol ?? ""]}
+            otherSymbol={display.find((o) => o.symbol !== c.symbol)?.symbol}
             session={clock}
+            others={display}
           />
         ))}
       </div>

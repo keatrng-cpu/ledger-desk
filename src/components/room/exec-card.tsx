@@ -1,10 +1,8 @@
 /**
  * The Floor's Execution card: where the room's decisions meet a broker.
  *
- * Off by default. Shadow records every decision beside the broker's real quote and sends nothing. Paper sends
- * through the gates to Alpaca's PAPER account. Live is a checklist the trader clears by committing code — the
- * button stays disabled until every line is ticked, and the card says which line is not. Every number here is
- * counted by the server from the audit table (src/lib/room/exec/gates.ts evidenceOf); none comes from a model.
+ * Off by default. Shadow records the decision and sends nothing. Live is Robinhood Agentic ••6158.
+ * This card never talks to Alpaca.
  */
 
 import { useEffect } from "react";
@@ -20,10 +18,10 @@ const BTN =
   "inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-40";
 
 const PHASES: { id: ExecPhase; label: string; blurb: string }[] = [
-  { id: "off", label: "Off", blurb: "Nothing is sent. The room is a paper book." },
-  { id: "shadow", label: "Shadow", blurb: "Every decision is recorded beside the broker's real quote and what each gate would have said. Nothing is sent — this is the evidence the model's prices are judged on." },
-  { id: "paper", label: "Paper", blurb: "Orders go to Alpaca's PAPER account through the gates: a marketable limit, cancelled if unfilled after 20 s, exits that escalate to market. One device at a time sends." },
-  { id: "live", label: "Live", blurb: "Real money. Shut until every line of the checklist is ticked." },
+  { id: "off", label: "Off", blurb: "Nothing is sent. The room keeps its own book. The account is still Robinhood Agentic ••6158." },
+  { id: "shadow", label: "Shadow", blurb: "The decision is written down and nothing is sent. Robinhood is not touched." },
+  { id: "paper", label: "Paper", blurb: "The room's own book only. Nothing is sent to a broker, and Alpaca is not one." },
+  { id: "live", label: "Live", blurb: "Robinhood Agentic ••6158. A setup that clears is reviewed, then placed on that account." },
 ];
 
 const STATUS_COLOR: Record<string, string> = {
@@ -101,7 +99,7 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
     <div className={CARD}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className={`${HEAD} mb-0 flex items-center gap-1.5`}>
-          <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Execution — orders to a broker
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Execution — Robinhood Agentic ••6158
         </div>
         <span className="rounded border border-[var(--color-border)] px-2 py-0.5 font-mono text-[11px] uppercase">{wanted}</span>
       </div>
@@ -116,7 +114,7 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
             className={`${BTN} ${wanted === p.id ? "border-[var(--color-primary)]" : ""}`}
             aria-pressed={wanted === p.id}
             disabled={!status || (p.id === "live" && !readiness?.ok)}
-            title={p.id === "live" && !readiness?.ok ? "Shut until every line of the checklist below is ticked" : p.blurb}
+            title={p.id === "live" && !readiness?.ok ? "Shut until the Robinhood lines below are ticked" : p.blurb}
             onClick={() => {
               void setPhase(p.id).then((r) => {
                 if (!r.ok) window.alert(r.why);
@@ -142,7 +140,7 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
             type="button"
             className={`${BTN} border-[var(--color-down)] text-[var(--color-down)]`}
             onClick={() => {
-              if (window.confirm("Close everything this system has bought at the broker, now, stepping down to market if it does not fill? New entries also stop (the kill switch goes on). The room's paper book keeps its positions until its own exit rules close them.")) void flattenBroker();
+              if (window.confirm("Close the Robinhood Agentic ••6158 positions this desk opened, by the chart's exit, and stop new entries? This does not call Alpaca.")) void flattenBroker();
             }}
           >
             Flatten all
@@ -152,7 +150,7 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
 
       <p className="mt-2 text-[11px] leading-snug text-[var(--color-muted)]">{blurb}</p>
       <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">
-        {status ? `keys: paper ${status.keys.paper ? "set" : "missing"} · live ${status.keys.live ? "set" : "missing"} · quotes: ${status.feed}${status.feed !== "opra" ? " (free, modified — never prices live)" : ""}` : "—"}
+        {status ? `Robinhood Agentic ••6158 · armed ${status.keys.live ? "yes" : "no"} · not Alpaca` : "—"}
         {last ? ` · ${last.role}${last.env ? ` · ${last.env}` : ""} · step ${etTime(last.atMs)} ET` : ""}
         {last?.account ? ` · acct $${Math.round(last.account.equity).toLocaleString()} (cash $${Math.round(last.account.cash).toLocaleString()})` : ""}
       </p>
@@ -196,7 +194,7 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
           )}
         </div>
         <div>
-          <div className={HEAD}>Live checklist — {readiness?.ok ? "cleared" : "shut"}</div>
+          <div className={HEAD}>Robinhood checklist — {readiness?.ok ? "cleared" : "shut"}</div>
           <ul className="space-y-0.5 text-[11px]">
             {(readiness?.items ?? []).map((i) => (
               <li key={i.id} className={i.ok ? "text-[var(--color-muted)]" : "text-[var(--color-fg)]"}>

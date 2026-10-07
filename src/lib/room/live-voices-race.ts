@@ -339,7 +339,10 @@ export function exCouncil(c: Ctx, d: CouncilData): Ex | null {
           () => `To make it likely we'd need ${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "a better win rate"}${g.needed.lambdaMultiple != null ? `, or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. Nobody's offering that. So we press when the card's good.`,
           () => `${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "More winners"}${g.needed.lambdaMultiple != null ? ` or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. That's the ask. I'll take the biggest ticket the cap allows.`,
         ])
-      : pick(c, "goal.council.jax.none", [() => `No win rate gets us there on these cards. So we take the best card and we size it.`, () => `The cards are the problem, not the wins. I want every one that clears.`])),
+      : pick(c, "goal.council.jax.none", [
+          () => `No measured win rate walks us there by itself. We take every B+ the chart clears, and we size it.`,
+          () => `The wins aren't the holdup. Every card that clears the chart gets a ticket.`,
+        ])),
   );
   const nq = d.b;
   const gem =
@@ -353,8 +356,8 @@ export function exCouncil(c: Ctx, d: CouncilData): Ex | null {
     const r = g.ladder.room;
     lines.push(
       line("Vince", ANIM.Vince.watch!, pick(c, "goal.council.vince", [
-        () => `${r ? `The room's two strikes run ${f.usd(r.askUsd)} — ${f.int(r.contracts)} at the ${f.pct(g.capFrac * 100, 0)} cap. ` : ""}The ladder goes ${f.usd(g.ladder.cheapestUsd ?? 0)} to ${f.usd(g.ladder.richestUsd ?? 0)}, down to delta ${f.raw(g.minDelta.toFixed(2))}. The seats may reach it; the room stays on two strikes.`,
-        () => `Contracts: ${f.int(g.ladder.n)} strikes on the ladder, ${f.usd(g.ladder.cheapestUsd ?? 0)} to ${f.usd(g.ladder.richestUsd ?? 0)}.${r ? ` The room's own ${f.usd(r.askUsd)} buys ${f.int(r.contracts)} at the cap.` : ""} Cheaper is a different trade; the seats are testing it.`,
+        () => `${r ? `The room's strike is ${f.usd(r.askUsd)} a contract — ${f.int(r.contracts)} is ${f.usd(r.askUsd * r.contracts)}, inside the ${f.pct(g.capFrac * 100, 0)} cap. ` : ""}The ladder runs ${f.usd(g.ladder.cheapestUsd ?? 0)} to ${f.usd(g.ladder.richestUsd ?? 0)} a contract, down to delta ${f.raw(g.minDelta.toFixed(2))}. We don't drop delta just to buy more.`,
+        () => `Contracts: ${f.int(g.ladder.n)} strikes, ${f.usd(g.ladder.cheapestUsd ?? 0)} to ${f.usd(g.ladder.richestUsd ?? 0)} each.${r ? ` The room's strike is ${f.usd(r.askUsd)}. ${f.int(r.contracts)} of them is ${f.usd(r.askUsd * r.contracts)}, inside the cap.` : ""} Cheaper than that is a different delta, not this trade.`,
       ])),
     );
   }
@@ -405,7 +408,7 @@ export function exReplan(c: Ctx, d: ReplanData): Ex | null {
     ])),
     g.paceLabel === "behind"
       ? line("Jax", ANIM.Jax.point!, pick(c, "goal.replan.jax.behind", [() => `Behind. So tomorrow I take the card, whatever the card is. …Whatever the gates allow.`, () => `I'm not saying relax the gates. I'm saying look at the clock.`]))
-      : line("Vince", ANIM.Vince.watch!, pick(c, "goal.replan.vince", [() => `Everything's flat by eleven. Nothing's carried. The book is clean.`, () => `The time stop did its job. The desk starts clean tomorrow.`])),
+      : line("Vince", ANIM.Vince.watch!, pick(c, "goal.replan.vince", [() => `Cash close. Whatever is still open follows the chart, not the lunch bell.`, () => `The session is over. We start clean tomorrow.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: boardMoves(lines) } : null;
 }

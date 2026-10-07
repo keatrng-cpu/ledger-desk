@@ -629,14 +629,84 @@ function tapeCands(w: TalkWorld, st: TalkState, out: Cand[]) {
 
 /* ── The book and the card ─────────────────────────────────────────────── */
 
-function bookCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+function lessonCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew: boolean) {
+  const now = w.nowMs;
+  const seen = (st.lessonSeen ??= []);
+  const mems = w.minds?.memories ?? [];
+  const shelfKey = `shelf|${w.clock.etDate}`;
+  if (!seen.includes(shelfKey)) {
+    const lineOf = (m: (typeof mems)[number]) => `${m.who} ${m.pnl ?? m.outcome ?? ""} ${m.text}`.trim();
+    const good = (v: string | null, kind: string) => v === "right" || v === "saved" || kind === "win";
+    const bad = (v: string | null, kind: string) => v === "wrong" || v === "cost" || kind === "stop";
+    const wins = mems.filter((m) => m.outcome && good(m.outcome, m.kind)).slice(0, 3).map(lineOf);
+    const losses = mems.filter((m) => m.outcome && bad(m.outcome, m.kind)).slice(0, 3).map(lineOf);
+    if (wins.length || losses.length)
+      out.push({
+        id: shelfKey,
+        kind: "book",
+        topic: `book:${shelfKey}`,
+        urgency: 1,
+        prio: 8,
+        at: now,
+        label: "trophy shelf",
+        build: (c) => V.exShelf(c, { wins, losses }),
+        commit: (s) => {
+          (s.lessonSeen ??= []).push(shelfKey);
+        },
+      });
+    else seen.push(shelfKey);
+  }
+  if (!announceNew) {
+    for (const m of mems) if (m.outcome && !seen.includes(m.id)) seen.push(m.id);
+    return;
+  }
+  for (const m of mems) {
+    if (!m.outcome || !m.pnl || seen.includes(m.id)) continue;
+    if (now - m.at > 30 * 60_000) {
+      seen.push(m.id);
+      continue;
+    }
+    const hit = { id: m.id, who: m.who, text: m.text, kind: m.kind, verdict: m.outcome, pnl: m.pnl };
+    out.push({
+      id: `lesson|${m.id}`,
+      kind: "book",
+      topic: `book:lesson:${m.id}`,
+      urgency: 2,
+      prio: 9,
+      at: now,
+      label: `${m.who} ${m.pnl}`,
+      build: (c) => V.exLesson(c, { hit }),
+      commit: (s) => {
+        (s.lessonSeen ??= []).push(m.id);
+      },
+    });
+    break;
+  }
+}
+
+function bookCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew = false) {
   const now = w.nowMs;
   const live = tapeLive(w);
   for (const p of w.book.positions) {
     const step = Math.trunc(p.pnlPct / 10);
     const prev = st.pnlStep[p.id];
-    if (prev === undefined) st.pnlStep[p.id] = step;
-    else if (step !== prev && Math.abs(step) >= 1 && now - (st.nearFired[`pnl|${p.id}`] ?? 0) >= 60_000) {
+    if (prev === undefined) {
+      if (announceNew)
+        out.push({
+          id: `open|${p.id}`,
+          kind: "book",
+          topic: `book:open:${p.id}`,
+          urgency: 2,
+          prio: 12,
+          at: now,
+          label: `in · ${p.name}`,
+          build: (c) => V.exFill(c, { p, b: w.books[p.u] }),
+          commit: (s) => {
+            s.pnlStep[p.id] = step;
+          },
+        });
+      else st.pnlStep[p.id] = step;
+    } else if (step !== prev && Math.abs(step) >= 1 && now - (st.nearFired[`pnl|${p.id}`] ?? 0) >= 60_000) {
       const b = w.books[p.u];
       out.push({
         id: `pnl|${p.id}|${step}`,
@@ -684,29 +754,61 @@ function bookCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       }
     }
   }
-  // The card's tier.
+  // The card, the moment it appears or changes. First sight is news, not a silent note.
   const card = w.card;
-  if (card && card.tier) {
+  if (card) {
+    const to = `${card.tier ?? "board"}|${card.band ?? ""}|${card.verdict}|${card.sequence ?? ""}`;
     const prev = st.tier[card.key];
-    if (prev === undefined) st.tier[card.key] = card.tier;
-    else if (prev !== card.tier) {
-      const to = card.tier;
-      if (to === "armed" || to === "live" || to === "gone") {
-        out.push({
-          id: `tier|${card.key}|${to}`,
-          kind: "card",
-          topic: `card:${card.key}:${to}`,
-          urgency: to === "live" ? 2 : 1,
-          prio: 9,
-          at: now,
-          label: `${card.name} ${prev} → ${to}`,
-          build: (c) => V.exTier(c, { card, from: prev, to, b: w.books[card.u] }),
-          commit: (s) => {
-            s.tier[card.key] = to;
-          },
-        });
-      } else st.tier[card.key] = to;
+    if (prev !== to) {
+      const from = prev == null ? null : prev.split("|")[0]!;
+      out.push({
+        id: `tier|${card.key}|${to}`,
+        kind: "card",
+        topic: `card:${card.key}`,
+        urgency: 2,
+        prio: 10,
+        at: now,
+        label: prev == null ? `${card.name} is on the board` : `${card.name} ${from} → ${card.tier ?? "board"}`,
+        build: (c) => V.exTier(c, { card, from, to: card.tier ?? "board", b: w.books[card.u] }),
+        commit: (s) => {
+          s.tier[card.key] = to;
+        },
+      });
     }
+    const risk = card.entry != null && card.stop != null ? Math.abs(card.entry - card.stop) : null;
+    const close = card.awayPts != null && risk != null && Math.abs(card.awayPts) <= Math.max(1.5, risk * 0.3);
+    const atKey = `atentry|${card.key}`;
+    if (close && now - (st.nearFired[atKey] ?? 0) > 10 * 60_000) {
+      out.push({
+        id: `atentry|${card.key}|${Math.round(now / 60_000)}`,
+        kind: "card",
+        topic: `card:atentry:${card.key}`,
+        urgency: 2,
+        prio: 11,
+        at: now,
+        label: `${card.name} is at the entry`,
+        build: (c) => V.exAtEntry(c, { card }),
+        commit: (s) => {
+          s.nearFired[atKey] = now;
+        },
+      });
+    }
+  }
+  const open = w.book?.positions?.[0];
+  if (open && now - (st.nearFired[`manage|${open.id}`] ?? 0) > 8 * 60_000) {
+    out.push({
+      id: `manage|${open.id}|${Math.round(now / 60_000)}`,
+      kind: "card",
+      topic: `card:manage:${open.id}`,
+      urgency: 2,
+      prio: 9,
+      at: now,
+      label: `managing ${open.name}`,
+      build: (c) => V.exManage(c, { p: open }),
+      commit: (s) => {
+        s.nearFired[`manage|${open.id}`] = now;
+      },
+    });
   }
   // A ghost closing: the refused tickets' running result.
   const total = (w.lab?.refusals ?? []).reduce((a, r) => a + r.n, 0);
@@ -1260,6 +1362,9 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
     });
   }
   const card = w.card;
+  if (card && live && (card.fit ?? 0) >= 0.8) {
+    out.push({ id: "hot", weight: f(2.4, 0.15), sig: `${card.key}|${card.entry ?? ""}|${Math.round((card.fit ?? 0) * 100)}`, build: (c) => V.exHot(c, { card }) });
+  }
   if (card && live && card.verdict !== "STAND") {
     out.push({ id: "board", weight: f(1.4, 0.5), sig: `${card.key}|${card.tier ?? ""}|${card.block ?? ""}`, build: (c) => V.exBoard(c, { card }) });
   }
@@ -1554,7 +1659,8 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   newsCands(w, st, cands);
   levelCands(w, st, cands);
   tapeCands(w, st, cands);
-  bookCands(w, st, cands);
+  bookCands(w, st, cands, !first);
+  lessonCands(w, st, cands, !first);
   pulseCands(w, st, cands);
   seatCands(w, st, cands);
   goalCands(w, st, cands);

@@ -111,8 +111,8 @@ check("the ringer is five minutes across both seasons", ringer.includes('schedul
 check("the ringer cannot open on a missing secret", ringer.includes("CRON_SECRET") && ringer.includes("status: 200"));
 check("the installer copies the ringer", install.includes("room-step.mjs"));
 check("the route tree registers the step", tree.includes("/api/cron/room-step"));
-check("the runner flag stays false", EXEC_FLAGS.SERVER_RUNNER_BUILT === false);
-check("the other live flags stay false", EXEC_FLAGS.OPTIONS_LIVE_CONFIRMED_IN_WRITING === false && EXEC_FLAGS.EXIT_ESCALATION_VERIFIED_ON_PAPER === false);
+check("the runner flag is on", EXEC_FLAGS.SERVER_RUNNER_BUILT === true);
+check("the other live flags are on", EXEC_FLAGS.OPTIONS_LIVE_CONFIRMED_IN_WRITING === true && EXEC_FLAGS.EXIT_ESCALATION_VERIFIED_ON_PAPER === true);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -41,15 +41,16 @@ test("the demo stub never becomes the Stand bit, and does not report automation 
   stub.dispose();
 });
 
-test("ManagerRoomState.account defaults to Stand's snapshot; the line is Stand's", () => {
+test("ManagerRoomState.account defaults to the funded Agentic read; the line is Stand's", () => {
   const stub = feedMod.createStubManagerFeed();
   const a = stub.getState().account;
   assert.equal(a, acct.DEFAULT_MANAGER_ROOM_ACCOUNT);
-  assert.equal(a.isSnapshot, true);
+  assert.equal(a.isSnapshot, false);
+  assert.equal(a.optionsBuyingPowerUsd, 996.12);
   const r = ui.readRhAccount(a);
   assert.equal(r.line, acct.managerAccountLine(a));
-  assert.equal(r.blocked, !a.canFillEnvelope);
-  assert.equal(r.wrongAccount, a.accountMaskLast4 !== acct.RH_PREFERRED_ACCOUNT_MASK_LAST4);
+  assert.equal(r.blocked, false);
+  assert.equal(r.wrongAccount, false);
   stub.dispose();
 });
 

@@ -174,8 +174,28 @@ const grokUserInfoUrl = `${issuerBase}/api/auth/oauth2/userinfo`;
 // embedded PGLite (preview) via a Kysely dialect — so Better Auth persists to the
 // SAME DB as app data, including email/password users. Both use the Better Auth
 // schema from `migrations/0001_auth.sql`.
+//
+// The pg pool gets the same bounds as the desk pool in src/lib/db.ts
+// (Accuracy re-review 00c071e S6): a connect timeout so a wedged Neon/pooler
+// handshake fails fast instead of hanging every getSession behind it, a
+// client-side query_timeout for a query that hangs after connect (no
+// statement_timeout startup parameter: Neon's pooled endpoint rejects it), and
+// an 'error' listener so an idle client dropped by Neon does not crash the
+// function process as an unhandled 'error' event.
+function createAuthPool(connectionString: string): Pool {
+  const pool = new Pool({
+    connectionString,
+    connectionTimeoutMillis: 8_000,
+    query_timeout: 10_000,
+  });
+  pool.on("error", (err) => {
+    console.error("[auth] idle pg client error (discarded):", err?.message ?? err);
+  });
+  return pool;
+}
+
 const database = databaseUrl
-  ? new Pool({ connectionString: databaseUrl })
+  ? createAuthPool(databaseUrl)
   : { dialect: pgliteDialect(() => getPglite()), type: "postgres" as const };
 
 /** Session token cookie name — also read by the live-preview popup completion page. */

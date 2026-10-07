@@ -148,27 +148,38 @@ const DRAWN_AS: Partial<Record<ComponentKey, MarkKind>> = {
 };
 
 const WHAT: Partial<Record<ComponentKey, string>> = {
-  sweep_significant: "A wick through a prior high/low that closed back inside.",
-  displacement: "A wide-range bar leaving an imbalance behind it.",
-  ifvg: "A gap that was filled and then rejected from the other side.",
-  order_block: "The last opposing candle before the displacement leg.",
-  mss: "Price closing through the last opposing swing point.",
-  cisd: "Close through the open of the originating candle series.",
-  ote: "Retrace into 61.8–79% of the post-sweep leg.",
-  smt: "NQ and ES disagreeing at the same swing — one made the high, one did not.",
-  pd: "Which half of the dealing range price is trading in.",
-  weekly_pd: "Where price sits against the weekly range.",
+  sweep_significant: "A wick through buy-side or sell-side liquidity that closes back inside. The raid. Not the entry.",
+  displacement: "An impulsive candle that leaves a fair value gap behind it.",
+  ifvg: "A fair value gap price has closed through, so the gap now holds from the other side. Inverting the 5-minute is this.",
+  order_block: "The last opposing candle before the displacement. Fresh until a later close spends it.",
+  mss: "Market structure shift: a close through the swing the raid just took. A reversal, not a break of structure with the trend.",
+  cisd: "Change in the state of delivery: a close back through the candles that delivered into the level.",
+  ote: "Optimal trade entry: a retrace into 62–79% of the dealing leg. Not the same as CE.",
+  smt: "NQ and ES diverge at the same swing — one takes the pool, the other does not. A clue at the level, not a setup by itself.",
+  pd: "Premium is above the dealing-range midpoint, discount is below it. Longs from discount, shorts from premium.",
+  weekly_pd: "The same premium and discount, measured on the weekly range.",
   structure: "Higher highs and higher lows, or the reverse, still intact.",
-  mid_bias: "The intermediate-term swing direction.",
+  mid_bias: "The intermediate swing's direction.",
   htf2_bias: "The second higher timeframe agreeing with the trade.",
-  daily_bias: "The daily candle's direction.",
-  opening_bias: "Position relative to the session open.",
-  mechanical_model: "The full ordered sweep → displace → invert → retest.",
-  breaker: "A failed order block price has traded back through.",
-  mitigation: "A block price returned to and respected.",
-  rejection: "A long wick refusing a level.",
-  propulsion: "Continuation from inside a prior block.",
+  daily_bias: "The daily candle's direction. The draw, not the trigger.",
+  opening_bias: "Where price sits against the session open.",
+  mechanical_model: "The ordered model: sweep, displace, invert, then the retest.",
+  breaker: "An order block price has closed through. It flips and is traded from the other side. Not a mitigation block.",
+  mitigation: "A failed second push — a lower high or a higher low — then structure breaks the other way. Not an entry we wait to tag.",
+  rejection: "The wick of a candle that ran a pool and closed back inside. The wick is the zone.",
+  propulsion: "A new order block that forms inside an older one, in the direction of the move.",
+  sponsored: "A fair value gap whose middle candle is displacement-sized. Still a fair value gap.",
 };
+
+/** One true sentence for the pieces actually on the card. The floor says this, not a nickname. */
+export function setupLine(components: readonly string[], strategy: string | null): string {
+  const order = ["sweep_significant", "ifvg", "displacement", "mss", "cisd", "order_block", "ote", "breaker", "smt", "pd"] as const;
+  const names = order.filter((k) => components.includes(k)).map((k) => LABELS[k]);
+  const lead = order.find((k) => components.includes(k));
+  const def = lead ? WHAT[lead] : null;
+  const named = names.slice(0, 4).join(", ");
+  return `${strategy ?? "No named model"}${named ? ` — ${named}` : ""}${def ? `. ${def}` : ""}`;
+}
 
 /** Heaviest first. A `must` outranks a structure key; redundant ranks last. */
 const CHANNEL_RANK: DriverChannel[] = [

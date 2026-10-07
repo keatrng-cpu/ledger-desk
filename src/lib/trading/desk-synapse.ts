@@ -20,6 +20,11 @@ import {
 } from "./desk-memory";
 import { runVeteranBrain, type VeteranBrief } from "./veteran-brain";
 import {
+  brainLiveRisk,
+  resolvePublishedRisk,
+  type RiskFetchState,
+} from "./desk-fetch-guard";
+import {
   countersFromMemory,
   isGoldStandardSetup,
   strategyPriority,
@@ -68,6 +73,12 @@ export interface DeskSynapseState {
   updatedAt: number;
   desk: DeskPayload | null;
   risk: RiskState | null;
+  /**
+   * The desk's risk gate state (index.tsx loadRisk). "unknown" means `risk` is
+   * only the last-known answer: the brain adds a "Risk unknown" veto and the
+   * risk feed says so, so no advisory surface reads clear (re-review S4).
+   */
+  riskGate: RiskFetchState;
   memory: DeskMemoryState;
   swing: SwingSignal | null;
   brain: VeteranBrief | null;
@@ -99,6 +110,8 @@ export interface DeskSynapseState {
   /** Publish desk poll */
   publishDesk: (desk: DeskPayload, risk?: RiskState | null) => void;
   publishRisk: (risk: RiskState | null) => void;
+  /** Publish the gate state; recomputes only when it changes. */
+  publishRiskGate: (state: RiskFetchState) => void;
   publishMemory: () => void;
   publishBacktest: (opts: {
     label: string;
@@ -306,10 +319,12 @@ function buildFeeds(ctx: {
   fused: FusedSetupView[];
   lastBacktest: DeskSynapseState["lastBacktest"];
   risk: RiskState | null;
+  riskGate?: RiskFetchState;
   boosts: Record<string, StrategyBoost>;
 }): Record<SynapseTab, string[]> {
   const { desk, brain, swing, memory, fused, lastBacktest, risk, boosts } =
     ctx;
+  const riskUnknown = ctx.riskGate === "unknown";
   const top = fused[0];
   const bookWr =
     (memory.book.paperTaken ?? 0) > 0
@@ -376,9 +391,13 @@ function buildFeeds(ctx: {
     : ["Swing idle"];
 
   const riskLines = [
-    risk
-      ? `Halt D/W: ${risk.dailyHaltHit ? "DAILY" : "ok"} / ${risk.weeklyHaltHit ? "WEEKLY" : "ok"}`
-      : "Risk state loading…",
+    riskUnknown
+      ? risk
+        ? `Risk unknown — governor unreachable · last known D/W: ${risk.dailyHaltHit ? "DAILY" : "ok"} / ${risk.weeklyHaltHit ? "WEEKLY" : "ok"}`
+        : "Risk unknown — governor unreachable"
+      : risk
+        ? `Halt D/W: ${risk.dailyHaltHit ? "DAILY" : "ok"} / ${risk.weeklyHaltHit ? "WEEKLY" : "ok"}`
+        : "Risk state loading…",
     `Paper equity $${Math.round(memory.book.equity).toLocaleString()} · A+ probe 2% · cap ${PATH_MONTH_CAP}/mo`,
     paperLine,
     desk
@@ -481,6 +500,7 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
   updatedAt: 0,
   desk: null,
   risk: null,
+  riskGate: "loading",
   memory: loadDeskMemory(),
   swing: null,
   brain: null,
@@ -511,13 +531,21 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
   publishDesk: (desk, risk) => {
     set({
       desk,
-      risk: risk !== undefined ? risk : get().risk,
+      // No risk arg = keep the last-known risk (and the brain's "Risk halt"
+      // veto). Soft/failed risk paths must omit it, never pass null.
+      risk: resolvePublishedRisk(risk, get().risk),
     });
     get().recompute();
   },
 
   publishRisk: (risk) => {
     set({ risk });
+    get().recompute();
+  },
+
+  publishRiskGate: (riskGate) => {
+    if (get().riskGate === riskGate) return;
+    set({ riskGate });
     get().recompute();
   },
 
@@ -541,7 +569,7 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
   },
 
   recompute: () => {
-    const { desk, risk } = get();
+    const { desk, risk, riskGate } = get();
     const memory =
       typeof window !== "undefined" ? loadDeskMemory() : get().memory;
     const boosts = buildBoosts(memory);
@@ -551,13 +579,8 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
           desk,
           memory,
           undefined,
-          risk
-            ? {
-                dailyHaltHit: risk.dailyHaltHit,
-                weeklyHaltHit: risk.weeklyHaltHit,
-                killzoneCapHit: risk.killzoneCapHit,
-              }
-            : null,
+          // Last-known flags + riskUnknown while the governor is silent (S4).
+          brainLiveRisk(riskGate, risk),
         )
       : null;
     const fused = fuseSetups(desk, memory, boosts, swing);
@@ -583,6 +606,7 @@ export const useDeskSynapse = create<DeskSynapseState>((set, get) => ({
       fused,
       lastBacktest: lb,
       risk,
+      riskGate,
       boosts,
     });
     const posture = buildPosture({ brain, swing, memory, fused, boosts });

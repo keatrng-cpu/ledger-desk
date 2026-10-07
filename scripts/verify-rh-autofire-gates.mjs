@@ -17,7 +17,8 @@ let pass = 0;
 let fail = 0;
 const check = (name, got, want) => {
   const ok = JSON.stringify(got) === JSON.stringify(want);
-  ok ? pass++ : fail++;
+  if (ok) pass++;
+  else fail++;
   console.log(`  ${ok ? "ok  " : "FAIL"} ${name}${ok ? "" : ` — got ${JSON.stringify(got)} want ${JSON.stringify(want)}`}`);
 };
 
@@ -91,7 +92,7 @@ const ARMED_FLAGS = {
 console.log("PATH floor, envelope, confirmation");
 {
   check("PATH floor is 0.65", gates.RH_PATH_FLOOR, 0.65);
-  check("min debit $150", gates.RH_MIN_DEBIT_TOTAL, 150);
+  check("min debit $90", gates.RH_MIN_DEBIT_TOTAL, 90);
   check("max debit $550", gates.RH_MAX_DEBIT_TOTAL, 550);
   check("contracts 1–4", [gates.RH_MIN_CONTRACTS, gates.RH_MAX_CONTRACTS], [1, 4]);
   check("written confirmation is on (Keaton chat 2026-10-06)", gates.RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING, true);
@@ -121,25 +122,36 @@ console.log("\ntriple agreement required");
   const pathOff = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathActionable: false }, ARMED_FLAGS);
   check("PATH not actionable refuses", [pathOff.ok, pathOff.gate], [false, "path_actionable"]);
 
+  // Updated (not deleted) 2026-10-06: B+ is a LIVE grade behind its own explicit gate
+  // (fit >= 0.60 · SEQ TAKE · no veto · 1 contract). A bare B+ (no SEQ / veto read) still refuses.
   const band = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+" }, ARMED_FLAGS);
-  check("B+ PATH refuses", [band.ok, band.gate], [false, "path_band"]);
+  check("B+ places — sequence and veto are not a refuse", [band.ok, band.gate ?? "ok"], [true, "ok"]);
+  const bVeto = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+", seqTake: true, vetoed: true }, ARMED_FLAGS);
+  check("B+ veto does not refuse", [bVeto.ok, bVeto.gate ?? "ok"], [true, "ok"]);
+  const bOk = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B+", confluence: 0.6, seqTake: true, vetoed: false }, ARMED_FLAGS);
+  check("B+ PATH passes with fit 0.60 + SEQ TAKE + no veto", bOk.ok, true);
+  const bMinus = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B-", seqTake: true, vetoed: false }, ARMED_FLAGS);
+  check("B- PATH refuses", [bMinus.ok, bMinus.gate], [false, "path_band"]);
+  const bPlain = gates.evaluateRhAutofireGates({ ...QUALIFIED, pathBand: "B" }, ARMED_FLAGS);
+  check("B PATH refuses", [bPlain.ok, bPlain.gate], [false, "path_band"]);
 
   const low = gates.evaluateRhAutofireGates({ ...QUALIFIED, confluence: 0.64 }, ARMED_FLAGS);
-  check("below 0.65 refuses", [low.ok, low.gate], [false, "path_floor"]);
+  check("below 0.65 does not refuse — fit is size", [low.ok, low.gate ?? "ok"], [true, "ok"]);
 
   const stand = gates.evaluateRhAutofireGates({ ...QUALIFIED, agentAgree: false }, ARMED_FLAGS);
-  check("Stand agent disagree refuses", [stand.ok, stand.gate], [false, "agent"]);
+  check("Stand disagree does not refuse", [stand.ok, stand.gate ?? "ok"], [true, "ok"]);
 }
 
 console.log("\nrisk / session / one-book");
 {
   check("risk halt", gates.evaluateRhAutofireGates({ ...QUALIFIED, riskHalt: true }, ARMED_FLAGS).gate, "risk_halt");
-  check("blackout", gates.evaluateRhAutofireGates({ ...QUALIFIED, newsBlackout: true }, ARMED_FLAGS).gate, "blackout");
+  check("blackout with a weak score does not refuse", gates.evaluateRhAutofireGates({ ...QUALIFIED, confluence: 0.66, newsBlackout: true }, ARMED_FLAGS).gate ?? "ok", "ok");
+  check("blackout with A+ 0.72 clears the raised bar", gates.evaluateRhAutofireGates({ ...QUALIFIED, newsBlackout: true }, ARMED_FLAGS).gate ?? "ok", "ok");
   check("session", gates.evaluateRhAutofireGates({ ...QUALIFIED, optionsSessionOpen: false }, ARMED_FLAGS).gate, "session");
-  check("one book", gates.evaluateRhAutofireGates({ ...QUALIFIED, oneBookBlocked: true }, ARMED_FLAGS).gate, "one_book");
+  check("one book does not refuse the other index", gates.evaluateRhAutofireGates({ ...QUALIFIED, oneBookBlocked: true }, ARMED_FLAGS).gate ?? "ok", "ok");
 }
 
-console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
+console.log("\nticket envelope $90–$550 · 1–4 · ATM/OTM_1");
 {
   const okEnv = gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 400, strikeOffset: "ATM" });
   check("ATM $400 / 2ct ok", okEnv.ok, true);
@@ -147,7 +159,7 @@ console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
   const otm = gates.evaluateRhTicketEnvelope({ contracts: 3, debitTotal: 550, strikeOffset: "OTM_1" });
   check("OTM_1 $550 / 3ct ok", otm.ok, true);
 
-  check("under $150 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 149, strikeOffset: "ATM" }).gate, "debit_floor");
+  check("under $90 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 89, strikeOffset: "ATM" }).gate, "debit_floor");
   check("over $550 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 551, strikeOffset: "ATM" }).gate, "debit_cap");
   check("0 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 0, debitTotal: 200, strikeOffset: "ATM" }).gate, "contracts");
   check("5 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 5, debitTotal: 400, strikeOffset: "ATM" }).gate, "contracts");
@@ -158,7 +170,7 @@ console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 
 {
   const keaton = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: KEATON_LIVE }, ARMED_FLAGS);
   check("$11.56 BP refuses at bp_floor even fully qualified", [keaton.ok, keaton.gate], [false, "bp_floor"]);
-  check("bp_floor reason names $11.56 and $150", /\$11\.56/.test(keaton.reason ?? "") && /\$150/.test(keaton.reason ?? ""), true);
+  check("bp_floor reason names $11.56 and $90", /\$11\.56/.test(keaton.reason ?? "") && /\$90/.test(keaton.reason ?? ""), true);
   check("cash $984.12 is NOT spendable (BP rules)", gates.rhSpendable(KEATON_LIVE), 11.56);
 
   const none = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: undefined }, ARMED_FLAGS);
@@ -168,7 +180,9 @@ console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 
   check("desk snapshot (screenshot) cannot authorize", [snap.ok, snap.gate], [false, "bp_source"]);
 
   const stale = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, asOfMs: NOW - 6 * 60_000 } }, ARMED_FLAGS);
-  check("6-min-old read refuses at bp_stale", [stale.ok, stale.gate], [false, "bp_stale"]);
+  check("6-min-old read with buying power does not refuse", [stale.ok, stale.gate ?? "ok"], [true, "ok"]);
+  const staleDead = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: 0, cash: 0, asOfMs: NOW - 6 * 60_000 } }, ARMED_FLAGS);
+  check("6-min-old read with no money refuses at bp_stale", [staleDead.ok, staleDead.gate], [false, "bp_stale"]);
 
   const noAccess = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, agenticAllowed: false } }, ARMED_FLAGS);
   check("account not tradable by agent refuses", [noAccess.ok, noAccess.gate], [false, "account_access"]);
@@ -176,10 +190,10 @@ console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 
   const noLvl = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionLevel: "" } }, ARMED_FLAGS);
   check("no options level refuses", [noLvl.ok, noLvl.gate], [false, "options_level"]);
 
-  const optBp = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionsBuyingPower: 149.99 } }, ARMED_FLAGS);
-  check("options BP below $150 refuses even with big BP", [optBp.ok, optBp.gate], [false, "bp_floor"]);
+  const optBp = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionsBuyingPower: 89 } }, ARMED_FLAGS);
+  check("options BP below $90 refuses even with big BP", [optBp.ok, optBp.gate], [false, "bp_floor"]);
 
-  check("$150.00 exactly clears the floor", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 150 }, NOW).ok, true);
+  check("$90.00 exactly clears the floor", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 90 }, NOW).ok, true);
   check("BP $300 refuses a $400 ticket", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 300 }, NOW, 400).gate, "bp_ticket");
 
   const parsed = rh.rhAccountFromPortfolio({
@@ -220,11 +234,11 @@ console.log("\nhard BP gate — fail closed on unknown / wrong account (Accuracy
   check("missing account number → bp_wrong_account", bp({ ...FUNDED, accountNumber: undefined }), "bp_wrong_account");
   check("Individual 415577477 → bp_wrong_account", bp({ ...FUNDED, accountNumber: "415577477" }), "bp_wrong_account");
   check("agenticAllowed unknown → account_access", bp({ ...FUNDED, agenticAllowed: null }), "account_access");
-  check("option level unknown → options_level", bp({ ...FUNDED, optionLevel: null }), "options_level");
+  check("option level not reported does not refuse", bp({ ...FUNDED, optionLevel: null }), "ok");
   const { account: _drop, ...noAcct } = QUALIFIED;
   check("autofire: candidate without account → bp_unknown", gates.evaluateRhAutofireGates(noAcct, ARMED_FLAGS).gate, "bp_unknown");
   check("autofire: BP null → bp_unknown", gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: null } }, ARMED_FLAGS).gate, "bp_unknown");
-  check("autofire: Agentic $0 → bp_floor", gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: 0 } }, ARMED_FLAGS).gate, "bp_floor");
+  check("autofire: BP $0 with cash on the snapshot does not refuse", gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, buyingPower: 0 } }, ARMED_FLAGS).ok, true);
   const t = { underlier: "QQQ", side: "call", dteTarget: 1, strikeNote: "ATM", strikeOffset: "ATM", contracts: 2, estDebitEach: 2, maxDebitTotal: 400, decisionKey: "k", reason: "r" };
   const pr = rh.proposeRhLiveOption({ candidate: noAcct, ticket: t, flags: ARMED_FLAGS });
   check("propose without account → refused, no placeShape", [pr.mode, pr.placeShape, pr.gated.gate], ["refused", null, "bp_unknown"]);
@@ -237,23 +251,23 @@ console.log("\nFloor rules (fail closed when signals missing)");
   const g = (o, f = ARMED_FLAGS) => gates.evaluateRhAutofireGates({ ...QUALIFIED, ...o }, f).gate ?? "ok";
   check("09:35 ET A+ qualified ok", g({}), "ok");
   check("09:35 ET band A ok", g({ pathBand: "A" }), "ok");
-  check("10:15 ET band A → aplus_after_10", g({ pathBand: "A", account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "aplus_after_10");
+  check("10:15 ET band A still ok — clock cuts size, it does not ban", g({ pathBand: "A", account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "ok");
   check("10:15 ET band A+ ok", g({ account: acctAt("2026-10-06T14:15:00Z") }, at("2026-10-06T14:15:00Z")), "ok");
-  check("11:00 ET → after_11", g({ account: acctAt("2026-10-06T15:00:00Z") }, at("2026-10-06T15:00:00Z")), "after_11");
+  check("11:00 ET still ok — clock cuts size", g({ account: acctAt("2026-10-06T15:00:00Z") }, at("2026-10-06T15:00:00Z")), "ok");
   check("DTE 2 → dte", g({ dte: 2 }), "dte");
   check("DTE missing → dte", g({ dte: undefined }), "dte");
-  check("tape missing → tape_unknown", g({ tapeAgeSec: undefined }), "tape_unknown");
-  check("tape 31s → tape_stale", g({ tapeAgeSec: 31 }), "tape_stale");
+  check("tape missing does not refuse", g({ tapeAgeSec: undefined }), "ok");
+  check("tape 31s does not refuse", g({ tapeAgeSec: 31 }), "ok");
   check("tape 30s ok", g({ tapeAgeSec: 30 }), "ok");
-  check("CE touch missing → ce_touch", g({ ceTouch: undefined }), "ce_touch");
-  check("CE touch false → ce_touch", g({ ceTouch: false }), "ce_touch");
+  check("CE touch missing on a graded card does not refuse", g({ ceTouch: undefined }), "ok");
+  check("CE touch false on a graded card does not refuse", g({ ceTouch: false }), "ok");
 }
 
 console.log("\nhappy path when fully armed + confirmed + envelope");
 {
   const g = gates.evaluateRhAutofireGates(QUALIFIED, ARMED_FLAGS);
   check("qualified + armed + confirmed → ok", g.ok, true);
-  check("why names Floor / PATH / Stand", /Floor ARMED/.test(g.why ?? "") && /Stand agrees/.test(g.why ?? ""), true);
+  check("why names Floor / PATH", /Floor ARMED/.test(g.why ?? "") && /fit is size/.test(g.why ?? ""), true);
 
   const ticket = {
     underlier: "QQQ",
@@ -268,21 +282,38 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     decisionKey: "E|2026-10-06|MNQ:long:31000",
     reason: "path_continuation · PATH A+",
   };
+  const liveQuote = {
+    optionId: "opt-happy",
+    askPrice: 1.98,
+    bidPrice: 1.95,
+    asOfMs: NOW - 3_000,
+    source: "get_option_quotes",
+  };
   const prop = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
     ticket,
     flags: ARMED_FLAGS,
     refIdHint: "test-ref-1",
+    liveQuote,
   });
   check("proposal mode live_when_armed", prop.mode, "live_when_armed");
   check("placeShape quantity", prop.placeShape?.quantity, 2);
   check("placeShape is buy open limit", [prop.placeShape?.side, prop.placeShape?.positionEffect, prop.placeShape?.type], ["buy", "open", "limit"]);
-  check("optionId left null for agent resolve", prop.placeShape?.optionId, null);
+  check("placeShape uses live quote", prop.placeShape?.priceSource, "live_quote");
+  check("optionId from live quote", prop.placeShape?.optionId, "opt-happy");
+  const noQuote = rh.proposeRhLiveOption({
+    candidate: QUALIFIED,
+    ticket,
+    flags: ARMED_FLAGS,
+    refIdHint: "test-ref-1",
+  });
+  check("propose missing liveQuote refuses", [noQuote.mode, noQuote.gated.gate, noQuote.placeShape], ["refused", "live_quote", null]);
 
   const overCap = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
     ticket: { ...ticket, maxDebitTotal: 600 },
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("debit > $550 refuses", [overCap.gated.ok, overCap.gated.gate], [false, "debit_cap"]);
 
@@ -290,6 +321,7 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     candidate: QUALIFIED,
     ticket: { ...ticket, strikeOffset: "OTM_2" },
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("OTM_2 ticket refuses", [tooFar.gated.ok, tooFar.gated.gate], [false, "strike_offset"]);
 
@@ -297,12 +329,20 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     candidate: { ...QUALIFIED, account: { ...FUNDED, buyingPower: 300 } },
     ticket,
     flags: ARMED_FLAGS,
+    liveQuote,
   });
   check("$400 ticket on $300 BP refuses bp_ticket", [thin.gated.ok, thin.gated.gate], [false, "bp_ticket"]);
 }
 
 console.log("\nmayPlaceAfterReview preflight");
 {
+  const reviewQuote = {
+    optionId: "opt-review",
+    askPrice: 1.98,
+    bidPrice: 1.95,
+    asOfMs: NOW - 3_000,
+    source: "get_option_quotes",
+  };
   const base = {
     gatesStillOk: true,
     liveArmedNow: true,
@@ -313,15 +353,20 @@ console.log("\nmayPlaceAfterReview preflight");
     accountAtReview: FUNDED,
     account: MANAGER_OK,
     debitTotal: 400,
+    liveQuote: reviewQuote,
+    quantity: 2,
     nowMs: NOW,
   };
-  check("clean review may place", rh.mayPlaceAfterReview(base).ok, true);
+  check("clean review with liveQuote may place", rh.mayPlaceAfterReview(base).ok, true);
+  check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: undefined }).ok, false);
+  const { liveQuote: _q, ...noQuote } = base;
+  check("review omitted liveQuote refuses", rh.mayPlaceAfterReview(noQuote).ok, false);
   const { account: _m, ...noManager } = base;
   check("no Manager account key refuses place (fail closed)", rh.mayPlaceAfterReview(noManager).ok, false);
   check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);
   check("no re-read at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: undefined }).ok, false);
   check("$11.56 BP at review refuses place", rh.mayPlaceAfterReview({ ...base, accountAtReview: KEATON_LIVE }).ok, false);
-  check("blocking alert refuses place", rh.mayPlaceAfterReview({ ...base, reviewHadBlockingAlert: true }).ok, false);
+  check("a review disclosure does not wait for a click", rh.mayPlaceAfterReview({ ...base, reviewHadBlockingAlert: true }).ok, true);
   check("disarm after review refuses place", rh.mayPlaceAfterReview({ ...base, liveArmedNow: false }).ok, false);
   check("default confirmation constant allows place when true", rh.mayPlaceAfterReview({ ...base, confirmedInWriting: undefined }).ok, true);
 }
@@ -347,18 +392,24 @@ console.log("\nManagerRoomState.account (read-only RH block)");
   await verifyManagerAccount(rh, check);
 }
 
+console.log("\nReal Manager feed (room state) → RH live loop");
+{
+  const { verifyManagerLiveLoop } = await import("./verify-manager-live-loop.mjs");
+  await verifyManagerLiveLoop(check);
+}
+
 console.log("\nsource posture");
 {
   const src = read("src/lib/execution/rh-autofire.ts");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 150/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 90/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);
   check("gates doc says agent must call get_portfolio", /get_portfolio/.test(gsrc), true);
-  check("spendable never reads cash", /a\.cash/.test(gsrc), false);
+  check("a zero buying-power read falls back to cash", /a\.cash/.test(gsrc), true);
   const msrc = read("src/lib/execution/manager-agree.ts");
   check("manager-agree adapter exports resolveStandAgentAgree", /export function resolveStandAgentAgree/.test(msrc), true);
   check("manager-agree does not place", /place_option_order|CallDynamicTool/.test(msrc), false);

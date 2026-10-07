@@ -159,6 +159,10 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
   const dte: 0 | 1 = card.id === "judas_ifvg_0dte" ? 0 : 1;
   const plan = book.smc.plan;
   const read = plan ? readEntry(plan, book.quote.price, book.draw.atr || null) : null;
+  const inversion =
+    book.smc.layers.some((l) => l.id === "retrace" && l.state === "pass" && l.detail.startsWith("5m IFVG inverted")) &&
+    read != null &&
+    !read.behind;
   return {
     card: card.id === "judas_ifvg_0dte" ? "judas_ifvg_0dte" : "path_continuation",
     name: card.name,
@@ -180,8 +184,8 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
     deltaMin: card.ticket?.deltaMin ?? 0.35,
     deltaMax: card.ticket?.deltaMax ?? (dte === 0 ? 0.5 : 0.45),
     plan: plan ? { entry: plan.entry, stop: plan.stop, t1: plan.t1, t2: plan.t2, rr1: plan.rr1 } : null,
-    tier: read?.tier ?? null,
-    awayPts: read?.awayPts ?? null,
+    tier: inversion ? "live" : (read?.tier ?? null),
+    awayPts: inversion ? 0 : (read?.awayPts ?? null),
     pT1: c?.hitOdds?.pT1 ?? null,
     expR: c?.hitOdds?.expR ?? null,
     pFill: c?.hitOdds?.pFill ?? null,
@@ -294,12 +298,17 @@ function releaseMove(minute: OhlcBar[], symbol: string, atMs: number, nowMs: num
   };
 }
 
-/** ARMED with a ticket first, then WATCH, then STAND; 1 DTE wins a tie (the day default). */
-function pickDayCard(od: OptionsDesk): RhStrategyCard | null {
+/** ARMED with a ticket first, then WATCH, then STAND. An index that already has a working plan yields to the other index. */
+function pickDayCard(od: OptionsDesk, open: ReadonlySet<string>): RhStrategyCard | null {
   const rank = (c: RhStrategyCard) => (c.verdict === "ARMED" && c.ticket ? 0 : c.verdict === "WATCH" ? 1 : 2);
   const day = od.day.filter((c) => c.id === "path_continuation" || c.id === "judas_ifvg_0dte");
+  const free = day.filter((c) => {
+    const u = c.ticket?.underlier;
+    return !u || !open.has(u);
+  });
+  const pool = free.length ? free : day;
   return (
-    [...day].sort(
+    [...pool].sort(
       (a, b) => rank(a) - rank(b) || b.score - a.score || (a.id === "path_continuation" ? -1 : 1),
     )[0] ?? null
   );
@@ -360,7 +369,8 @@ export function readDeskForRoom(
   const books = booksOf(desk);
   const esPx = books.SPY.quote.price;
   const nqPx = books.QQQ.quote.price;
-  const card = pickDayCard(od);
+  const open = new Set(watch.filter((w) => w.fut).map((w) => underlierOfSymbol(w.fut!.symbol)));
+  const card = pickDayCard(od, open);
 
   const exits = computeExits(
     watch,

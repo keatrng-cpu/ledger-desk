@@ -22,6 +22,7 @@ import {
   consequentEncroachment,
 } from "./fib";
 import { biasDisrespect } from "./htf-invalidation";
+import { gapDirection } from "./gap-direction";
 import type { SessionClock } from "./sessions";
 import {
   ALWAYS_SCAN,
@@ -81,6 +82,10 @@ export interface SetupCandidate {
   targets: string[];
   killzoneOk: boolean;
   htfOk: boolean;
+  /** 1H and 4H gap side when both agree and the touch is fresh. Null is not a vote. */
+  gapSide?: "long" | "short" | null;
+  /** Printed on the card. The score is not in this sentence. */
+  directionLine?: string;
   /**
    * How far the counter-bias release has come, when this side is fighting the
    * HTF read.
@@ -627,22 +632,28 @@ function scoreDirection(
     .map((b) => b.id as import("./strategies").StrategyId);
 
   const g = grade(score, APLUS_RULES.confluenceFloor);
+  const gaps = gapDirection(bars);
+  const cardSide = direction === "bull" ? "long" : "short";
+  const directionOk = gaps.side != null ? gaps.side === cardSide : htfOk;
 
   const hasEntryModel =
     present.includes("ifvg") || present.includes("order_block");
   const hasSweep =
     present.includes("sweep_significant") ||
     present.includes("mechanical_model");
+  const hot = score >= 0.8 && directionOk && clock.isWeekday && g !== "skip";
+  if (hot && !conditions.tradeable) reasons.push("Regime is quiet. Size is cut. A card at 0.80 is still read.");
   const actionable =
-    g !== "skip" &&
-    htfOk &&
+    hot ||
+    (g !== "skip" &&
+    directionOk &&
     killzoneOk &&
     clock.isWeekday &&
     conditionsOk &&
     bestModel.complete &&
     (hasEntryModel || present.includes("mechanical_model")) &&
     (hasSweep || present.includes("structure") || present.includes("mss")) &&
-    score >= APLUS_RULES.confluenceFloor - 0.05;
+    score >= APLUS_RULES.confluenceFloor - 0.05);
 
   const titleParts = [
     bestModel.label ||
@@ -699,6 +710,7 @@ function scoreDirection(
     grade: g,
     title: `${read.symbol} ${side} — ${titleParts.join(" · ")}`,
     reasons: [
+      gaps.line,
       `smc structure Q ${structureScore.toFixed(2)}`,
       `best model: ${bestModel.label} fit ${bestModel.fit.toFixed(2)} (alone)`,
       ...strategyBoard.slice(0, 4).map(
@@ -742,7 +754,9 @@ function scoreDirection(
     ],
     killzoneOk,
     htfOk,
-    conditionsOk,
+    gapSide: gaps.side,
+    directionLine: gaps.line,
+    conditionsOk: conditionsOk || hot,
     actionable,
     regime: conditions.regime,
     volatility: conditions.volatility,
@@ -787,21 +801,19 @@ export function boardRank(c: Pick<SetupCandidate, "htfOk" | "actionable">): numb
  * Until 2026-10-02 every veto multiplied the fit by 0.42. Nothing measured
  * that constant, and it made the veto a hard block in disguise (0.99 × 0.42
  * = 0.42, under the 0.65 floor for any card) while the card's other readers —
- * the ceiling line, the score drivers — re-derived the UNdiscounted fit from
- * the components and printed it beside the discounted one. The refusal is the
- * same as before: not actionable, PATH band down to C (so every downstream
- * gate that keys off the band still refuses), the reason first in `missing`.
- * The fit is left as the fit, and the card names the veto.
+ * The refusal used to drop the PATH band to C, which took the card off the board.
+ * The band stays. The veto is named in `missing` and `vetoes` so the room can say it.
  */
 export function applyVeto(c: SetupCandidate, label: string): void {
-  c.actionable = false;
   if (c.bandBeforeVeto === undefined) c.bandBeforeVeto = c.pathBand;
   c.vetoes = [...(c.vetoes ?? []).filter((v) => v !== label), label];
-  if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-  if (c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-" || c.pathBand === "B+") {
-    c.pathBand = "C";
-  }
+  // The band stays. A veto is a flag the room can say. It is not a new card and it does not take this one off the board.
   if (!c.missing.includes(label)) c.missing.unshift(label);
+}
+
+/** A measured pattern the room should say. It does not enter missing or vetoes, so an A+ / A / B+ card still trades. */
+function noteOnly(c: SetupCandidate, label: string): void {
+  if (!c.reasons.includes(label)) c.reasons.push(label);
 }
 
 /**
@@ -998,7 +1010,7 @@ export function scoreCandidates(
     const session = read.sessionStance ?? "neutral";
     const strong = (read.sessionStrength ?? 0) >= 0.28;
     if (!strong || session === "neutral" || session === need) continue;
-    applyVeto(c, "LTF delivery against");
+    noteOnly(c, "LTF delivery against — size note, the chart still calls it");
   }
 
   /**
@@ -1029,7 +1041,7 @@ export function scoreCandidates(
       mitigation: detectMitigationBlock(bars, c.side).present,
     };
     if (!c.patterns.inducement) continue;
-    applyVeto(c, "inducement — shallow decoy sweep before this one");
+    noteOnly(c, "inducement — shallow decoy sweep, size note, not a block");
   }
 
   /**
@@ -1054,7 +1066,7 @@ export function scoreCandidates(
    */
   for (const c of pathCandidates) {
     if (!c.patterns?.mitigation) continue;
-    applyVeto(c, "mitigation block — failed push origin, measured negative");
+    noteOnly(c, "mitigation block — failed second push, not the entry and not a block");
   }
 
   // The title carries "[path <band> · fit <x>]". It was stamped inside

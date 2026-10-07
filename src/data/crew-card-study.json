@@ -1,0 +1,82 @@
+{
+  "version": 2,
+  "source": "desk evidence pack, Q buckets",
+  "file": "src/data/evidence-pack.json",
+  "window": { "start": "2022-09-01", "end": "2026-09-01" },
+  "population": 1504,
+  "management": "Same card rule as the desk: limit at the midpoint, stop with one tick of slip, half off at the first target, runner to the second. A bar that touches both is a loss.",
+  "searched": "The pack does not split 0.90 by itself. The bucket that holds 0.90 is every card at 0.85 and above: 2,087 cards, 1,504 fills, Sep 2022 through Sep 2026. 2020 and 2021 are not on the tape. First target 31%. Direction 46.3%, which is worse than 53.6% at 0.65–0.70. Expectancy -0.15R, and -0.31R out of sample. The model's hottest decile hit the first target 61% of the time on 131 out-of-sample fills and still lost money.",
+  "note": "Joint read. All five took cards at 0.90 and up, which live inside the 0.85+ book. That book does not win 65%.",
+  "people": [
+    {
+      "who": "Gemma",
+      "year": 2026,
+      "rule": "The draw. Does a 0.90 card go the card's way more often?",
+      "desk": false,
+      "skill": "No. Cards at 0.85 and above, the book that holds 0.90, went the card's way 46.3% of the time. Cards at 0.65–0.70 went 53.6%. A higher fit is a weaker draw, not a stronger one.",
+      "flaws": [
+        "0.85+ went the card's way 46.3%. 0.65–0.70 went 53.6%. Raising the floor does not aim the draw.",
+        "The tape starts September 2022. 2020 and 2021 were not invented."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Jax",
+      "year": 2026,
+      "rule": "Take only 0.90 and better, and take all of them.",
+      "desk": false,
+      "skill": "1,504 fills is not a thin sample. The first target was reached 466 times, 31%. Waiting for 0.90 did not raise it.",
+      "flaws": [
+        "1,504 fills at 0.85 and above. First target 31%. More selective was not more right.",
+        "Out of sample the same book lost 0.31R a fill."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Nova",
+      "year": 2026,
+      "rule": "The number. Can the card's own probability model find a 65% pocket?",
+      "desk": false,
+      "skill": "The hottest decile, out of sample, hit the first target 61% of the time on 131 fills. That is the closest the model gets. It still is not 65%, and those fills lost 0.10R on average.",
+      "flaws": [
+        "Hottest decile: 61% to the first target, 131 fills, average result negative. Not 65%, and not a ticket.",
+        "The high-fit book itself is marked negative: -0.15R, and -0.31R after 2024."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Sterling",
+      "year": 2026,
+      "rule": "Do not turn 0.90 into a live gate.",
+      "desk": false,
+      "skill": "The high-fit book is the one the pack marks negative. Making 0.90 the only ticket would refuse the cards that are no worse, and keep the book that loses. I will not write that gate.",
+      "flaws": [
+        "0.85+ expectancy is -0.15R and the verdict is negative. A 0.90 gate would keep the losing book.",
+        "Live cards stay on the chart. The fit is a checklist, not a win rate."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    },
+    {
+      "who": "Vince",
+      "year": 2026,
+      "rule": "The fill. Does a high score fill, and does the fill win?",
+      "desk": false,
+      "skill": "72% of 0.85+ cards filled at the midpoint. Filling was not the problem. Of the fills, 31% reached the first target. I still rest the limit at the midpoint. I do not expect 65%.",
+      "flaws": [
+        "Fill rate 72%. First-target rate 31%. The order is getting in. The target is what usually does not print.",
+        "2020 and 2021 are not in the file, so they were not run."
+      ],
+      "h1": { "n": 917, "wins": 0, "wr": null, "sumR": -46.8, "expR": -0.051 },
+      "h2": { "n": 587, "wins": 0, "wr": null, "sumR": -181.4, "expR": -0.309 },
+      "full": { "n": 1504, "wins": 466, "wr": 0.31, "sumR": -228.6, "expR": -0.152 }
+    }
+  ]
+}

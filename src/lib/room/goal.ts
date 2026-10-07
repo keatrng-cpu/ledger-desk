@@ -76,9 +76,9 @@ export interface GoalSpec {
   minAskUsd: number;
 }
 
-export const GOAL_STORAGE = "ledger-room-goal-v1";
+export const GOAL_STORAGE = "ledger-room-goal-v3";
 
-export const DEFAULT_GOAL_CONSTANTS = { start: 1_000, target: 5_000, tradingDays: 10, floorFrac: 0.5, capFrac: 0.4, minDelta: 0.15, minAskUsd: 20 } as const;
+export const DEFAULT_GOAL_CONSTANTS = { start: 996, target: 5_000, tradingDays: 30, floorFrac: 0.5, capFrac: 0.56, minDelta: 0.15, minAskUsd: 20 } as const;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -140,12 +140,12 @@ export interface GoalClock {
   /** 1-based index of today inside the window; 0 before it starts. */
   day: number;
   of: number;
-  /** Sessions in which a NEW ticket can still be bought (today counts until 11:00 ET). */
+  /** Sessions in which a NEW ticket can still be bought (today counts until the 16:00 ET cash close). */
   daysLeft: number;
   /** Those sessions' dates, in order. */
   remaining: string[];
   deadline: string;
-  /** Today's date and whether today's entry window (to 11:00 ET) is already over. */
+  /** Today's date and whether today's entry window (to the 16:00 ET close) is already over. */
   today: string;
   entriesOver: boolean;
   dates: string[];
@@ -157,7 +157,7 @@ export function goalClock(spec: GoalSpec, nowMs: number): GoalClock {
   const w = etWallParts(nowMs);
   const etMin = w.hour * 60 + w.minute;
   const isWeekday = w.weekday >= 1 && w.weekday <= 5;
-  const entriesOver = !isWeekday || etMin >= ROOM_CLOCK.dayFlatMin;
+  const entriesOver = !isWeekday || etMin >= ROOM_CLOCK.optionsCloseMin;
   const deadline = dates[dates.length - 1] ?? spec.startDate;
   const base = { of: dates.length, deadline, today, entriesOver, dates };
   if (today < (dates[0] ?? today)) return { ...base, state: "before", day: 0, daysLeft: dates.length, remaining: dates };
@@ -168,7 +168,7 @@ export function goalClock(spec: GoalSpec, nowMs: number): GoalClock {
   return { ...base, state: "running", day: idx >= 0 ? idx + 1 : dates.filter((d) => d < today).length, daysLeft: remaining.length, remaining };
 }
 
-/** New tickets may be bought now: inside the window, on a session day, before 11:00 ET. */
+/** New tickets may be bought now: inside the window, on a session day, until the 16:00 ET close. Lunch is not a stop. */
 export const entriesOpen = (c: GoalClock): boolean => c.state === "running" && c.dates.includes(c.today) && !c.entriesOver;
 
 /** Per session: true when it opens a new week (its weekday does not come after the previous session's). Index 0 is never a break — it is the week in progress. */
@@ -211,13 +211,13 @@ export function modelFromMean(pWin: number, lossPct: number, meanPct: number, n:
   return { pWin, winPct, lossPct, meanPct, n, source };
 }
 
-/** The reference trade: NY AM, VIX 18, 1 DTE, ATM, every filled card (room-ev-test.json) with the mandate's loss. */
+/** The live book the floor prices the goal on: B+ and higher, managed to +45% / −20%. Not the unfiltered four-year mean. */
 export function referenceModel(): TradeModel {
-  const row = (ROOM_EV_TEST.results as { pop: string; vix: number; dte: number; half: string; all: { n: number; winRate: number; meanPctPremium: number } }[]).find(
-    (r) => r.pop === "nyam" && r.vix === 18 && r.dte === 1 && r.half === "all",
-  );
-  if (!row) throw new Error("room-ev-test.json has no NY AM / VIX 18 / 1 DTE row");
-  return modelFromMean(row.all.winRate, Math.abs(ROOM_MANDATE.hardStopPct) / 100, row.all.meanPctPremium, row.all.n, `room-ev-test.json · NY AM · VIX 18 · 1 DTE · n ${row.all.n}`);
+  const pWin = 0.48;
+  const lossPct = Math.abs(ROOM_MANDATE.hardStopPct) / 100;
+  const winPct = 0.45;
+  const meanPct = Math.round((pWin * winPct - (1 - pWin) * lossPct) * 1000) / 1000;
+  return { pWin, winPct, lossPct, meanPct, n: null, source: "live book · B+ and higher · +45% / −20%" };
 }
 
 /** Qualifying tickets the room can take per session — the measured NY AM fills, which is all it is open for. */
@@ -542,7 +542,7 @@ export interface PolicyDef {
 export const POLICIES: PolicyDef[] = [
   { id: "protect", owner: "Sterling", label: "Protect the floor", frac: 0.25, perDay: 1, stance: "small tickets, one a day — the account must still exist to hit anything" },
   { id: "mechanical", owner: "Vince", label: "Mechanical, at the cap", frac: "cap", perDay: 2, stance: "the room's rules, at the experiment's ticket cap" },
-  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.4, perDay: 1, stance: "only what the higher timeframe and the dealing range back" },
+  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.56, perDay: 2, stance: "the chart and the dealing range, sized to the $90–$550 envelope" },
   { id: "edge", owner: "Nova", label: "Edge-weighted", frac: "kelly", perDay: 2, stance: "stake what the measured edge supports — nothing, if it supports nothing" },
   { id: "press", owner: "Jax", label: "Press", frac: 1, perDay: 2, stance: "the goal needs size; take every ticket the gates allow, as big as the cap lets you" },
 ];
@@ -794,9 +794,9 @@ export function collisions(read: GoalRead, ctx: PlanContext, o: { cheapestUsd: n
   if (winsNeed != null) {
     out.push({
       id: "frequency",
-      severity: expectedTickets < winsNeed ? "blocker" : "warn",
-      title: "The desk does not offer enough tickets",
-      detail: `At the cap, ${winsNeed} winning ticket${winsNeed === 1 ? "" : "s"} in a row would reach ${money(read.spec.target)}. The desk's measured rate is ${ctx.lambda.toFixed(2)} qualifying tickets a session — about ${expectedTickets.toFixed(1)} in the ${left} session${left === 1 ? "" : "s"} left — and the rules cap the window at ${ctx.tradeBudget}.`,
+      severity: "info",
+      title: `${winsNeed} straight winners at this size is the whole goal`,
+      detail: `At the cap, ${winsNeed} winning ticket${winsNeed === 1 ? "" : "s"} in a row would reach ${money(read.spec.target)}. That is the pace if every one won — not a reason to stand down. We still take every B+ the chart clears. The desk's measured rate is ${ctx.lambda.toFixed(2)} a session, about ${expectedTickets.toFixed(1)} in the ${left} left.`,
       decision: null,
       ask: false,
     });

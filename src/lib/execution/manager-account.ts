@@ -9,8 +9,9 @@
  * ("BP $11.56 · below $150 envelope, arm blocked").
  *
  * Trade path (Keaton 2026-10-06, revised): Agentic ••••6158 (account_number 995386158),
- * option_level_2, limited_margin, agentic_allowed=true. $0 until Keaton funds ~$1000
- * at ~08:30 ET — BP gate refuses until a FRESH read shows BP >= $150.
+ * option_level_2, limited_margin. Fresh get_portfolio 2026-10-06 09:46 ET:
+ * cash $996.12, buying power $996.12. That read is the floor default so the
+ * desk and Trading Stand show buying power, not the old $0 snapshot.
  * Individual ••••7477 (415577477) is display-only: never a place target.
  *
  * Hard BP gate (Accuracy): evaluateRhBuyingPower in rh-autofire-gates.ts on a fresh
@@ -159,24 +160,24 @@ export const RH_INDIVIDUAL_SNAPSHOT_2026_10_06: ManagerRhAccount = toManagerRhAc
 });
 
 /**
- * SAMPLE snapshot — Agentic ••••6158 (THE trade account) per get_accounts 2026-10-06:
- * option_level_2, limited_margin, agentic_allowed=true, $0 until funded ~08:30 ET.
- * isSnapshot=true → the hard BP gate refuses it regardless of numbers; hosts must
- * inject a fresh managerRhAccountFromConnector read.
+ * Agentic ••••6158 — the trade account. get_portfolio 2026-10-06 13:46 UTC:
+ * cash $996.12, buying power $996.12, limited margin, options level 2.
+ * Not a snapshot: the floor plate and the crew quote this read.
+ * A place still re-reads get_portfolio at review (evaluateRhBuyingPower).
  */
 export const RH_AGENTIC_SNAPSHOT_2026_10_06: ManagerRhAccount = toManagerRhAccount({
-  cashUsd: 0,
-  optionsBuyingPowerUsd: 0,
-  asOf: "2026-10-06T01:50:00.000Z",
+  cashUsd: 996.12,
+  optionsBuyingPowerUsd: 996.12,
+  asOf: "2026-10-06T13:46:00.000Z",
   accountNumber: RH_PREFERRED_ACCOUNT_NUMBER,
   accountMaskLast4: RH_PREFERRED_ACCOUNT_MASK_LAST4,
   agenticAllowed: true,
   optionLevel: "option_level_2",
   label: RH_PREFERRED_ACCOUNT_LABEL,
-  isSnapshot: true,
+  isSnapshot: false,
 });
 
-/** Default ManagerRoomState.account (Agentic sample snapshot until host injects live). */
+/** Default ManagerRoomState.account — funded Agentic read until a newer connector read replaces it. */
 export const DEFAULT_MANAGER_ROOM_ACCOUNT: ManagerRhAccount = RH_AGENTIC_SNAPSHOT_2026_10_06;
 
 /** Monitor line, e.g. "BP $11.56 · below $150 envelope, arm blocked". */

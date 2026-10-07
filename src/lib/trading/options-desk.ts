@@ -12,7 +12,7 @@
  * fall back to a 1–3 wide vertical rather than a lottery OTM.
  */
 
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { isPathFire } from "@/lib/alerts/path-alarm";
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
@@ -31,6 +31,9 @@ import { CLOCK_WARN, STOP_FRAC_OF_DEBIT, sizeFromStop } from "./sleeve-sizing";
 import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
+import { RH_MAX_DEBIT_TOTAL, confidenceFloorFor, contractsAfterEvent } from "@/lib/execution/rh-autofire-gates";
+import { gapDirection } from "./gap-direction";
+import { monthContractLine } from "./month-contract";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
@@ -203,8 +206,22 @@ function afterSecondImpulse(clock: DeskPayload["clock"]): boolean {
   return clock.etHour > 10 || (clock.etHour === 10 && clock.etMinute >= 15);
 }
 
+/** One A- or better per index. QQQ follows MNQ, SPY follows ES. The first hit on each side is the card. */
+function pathCandidates(desk: DeskPayload): SetupCandidate[] {
+  const hits = desk.scan.candidates.filter((c) => isPathFire(c));
+  const picked: SetupCandidate[] = [];
+  const seen = new Set<string>();
+  for (const c of hits) {
+    const root = /ES/.test(c.symbol) ? "ES" : "NQ";
+    if (seen.has(root)) continue;
+    seen.add(root);
+    picked.push(c);
+  }
+  return picked;
+}
+
 function pathCandidate(desk: DeskPayload): SetupCandidate | undefined {
-  return desk.scan.candidates.find((c) => isHighProbPath(c));
+  return pathCandidates(desk)[0];
 }
 
 function componentsHint(c: SetupCandidate | undefined) {
@@ -427,40 +444,85 @@ function sizeProduct(
 } | null {
   const single = estimateDebitContract(spot, dte, delta, iv);
   const nMax = maxContracts(dte);
-  // SIZE FROM THE LEVEL when the sequence has priced one (trader's call,
-  // 2026-09-24, and what the hard-rules row already said): contracts =
-  // budget / (underlying move to invalidation x delta x 100). A tighter
-  // invalidation buys more contracts at the SAME risk, which is what the
-  // futures book has always done and the sleeve never has.
-  //
-  // The percentage brake is not the plan. It is a disaster backstop behind
-  // the level, so it no longer decides size when a level exists.
+  const pack = (
+    n: number,
+    prem: number,
+    d: number,
+    from: "level" | "ceiling",
+    note: string | null,
+    clock: boolean,
+  ) => {
+    const k = roundStrike(spot);
+    const steps = d >= 0.35 ? 0 : d >= 0.26 ? 1 : 2;
+    const otm = side === "put" ? k - steps : k + steps;
+    const where = steps === 0 ? "ATM" : `${steps} OTM`;
+    return {
+      product: "single" as const,
+      contracts: n,
+      each: prem,
+      total: n * prem,
+      strikeNote: `${where} ~${otm} ${side} · est $${(prem / 100).toFixed(2)} (not a chain mid)`,
+      clock,
+      sizedFrom: from,
+      sizeNote: note,
+    };
+  };
+  // SIZE FROM THE LEVEL when the sequence has priced one.
+  // ATM first. If that debit does not fit the sleeve, 1 OTM then 2 OTM.
+  // A good entry is not stood down because the model ATM was rich, and it is
+  // not stood down because one contract's modeled loss is over a small budget.
   if (plan) {
-    const sized = sizeFromStop({
-      plan,
-      delta,
-      premiumUsd: single,
-      dte,
-      riskBudgetUsd: riskBudget,
-    });
-    if (sized.contracts > 0) {
-      const n = Math.min(nMax, sized.contracts);
-      const k = roundStrike(spot);
-      const otm = side === "put" ? k - 1 : k + 1;
-      return {
-        product: "single",
-        contracts: n,
-        each: single,
-        total: n * single,
-        strikeNote: `ATM/~${otm} ${side} · est $${(single / 100).toFixed(2)} (not a chain mid)`,
-        clock: sized.clock,
-        sizedFrom: "level",
-        sizeNote: sized.lines[0] ?? null,
-      };
+    const tries = [...new Set([delta, 0.3, 0.22])].filter((d) => d >= 0.2);
+    for (const d of tries) {
+      const prem = estimateDebitContract(spot, dte, d, iv);
+      if (!(prem > 0) || prem > cap) continue;
+      const sized = sizeFromStop({
+        plan,
+        delta: d,
+        premiumUsd: prem,
+        dte,
+        riskBudgetUsd: riskBudget,
+      });
+      const tight = sized.lines[0]?.startsWith("STOP TOO TIGHT") === true;
+      if (tight) {
+        return pack(
+          1,
+          prem,
+          d,
+          "level",
+          "One contract. The stop is inside half an ATR, so size is not solved from it. The entry and the target still stand.",
+          brakeIsClock(dte),
+        );
+      }
+      if (sized.contracts > 0) {
+        const n = Math.min(nMax, sized.contracts);
+        const stepped = d < delta - 0.04;
+        return pack(
+          n,
+          prem,
+          d,
+          "level",
+          stepped
+            ? `ATM did not fit $${cap}. ${d <= 0.24 ? "2 OTM" : "1 OTM"} does. ${sized.lines[0] ?? ""}`.trim()
+            : (sized.lines[0] ?? null),
+          sized.clock,
+        );
+      }
     }
-    // One contract already risks more than the budget at this invalidation.
-    // That is a real refusal, not a reason to fall through and buy one anyway.
-    if (sized.unaffordable) return null;
+    for (const d of tries) {
+      const prem = estimateDebitContract(spot, dte, d, iv);
+      if (prem >= 90 && prem <= cap) {
+        return pack(
+          1,
+          prem,
+          d,
+          "level",
+          `One contract at $${prem}. The modeled loss at the stop is over the sleeve budget. The debit fits $${cap}, so the ticket is priced. The stop is still the exit.`,
+          brakeIsClock(dte),
+        );
+      }
+    }
+    return null;
   }
 
   // NO PRICED LEVEL — fall back to the ceiling, and say so downstream.
@@ -625,63 +687,112 @@ function underlierSheet(
     menu: rows.map((r) => {
       const single = estimateDebitContract(spot, r.dte, r.delta, iv);
       const spread = estimateSpreadContract(spot, r.dte, iv, pickWidth(underlier, r.dte));
+      // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Fit the green "1-lot"
+      // cell to the envelope, not the sleeve's $1,000 sizer cap.
+      const gateCap = Math.min(cap, RH_MAX_DEBIT_TOTAL);
       return {
         label: r.label,
         dte: r.dte,
         delta: r.delta,
         single,
         spread,
-        fitsSingle: single <= cap,
-        fitsSpread: spread <= cap,
+        fitsSingle: single <= gateCap,
+        fitsSpread: spread <= gateCap,
       };
     }),
   };
 }
 
-function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard {
+function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
+  const contracts = Math.max(1, Math.floor(n));
+  if (t.contracts <= contracts) {
+    return { ...t, sizeNote: [t.sizeNote, note].filter(Boolean).join(" · ") };
+  }
+  const total = Math.round(contracts * t.estDebitEach);
+  const workingStop = rhWorkingStop(total);
+  return {
+    ...t,
+    contracts,
+    estDebitTotal: total,
+    maxLoss: total,
+    workingStop,
+    riskPctOfSleeve: t.estDebitTotal > 0 ? (t.riskPctOfSleeve * total) / t.estDebitTotal : t.riskPctOfSleeve,
+    sizeNote: note,
+    robinhood: rhLine({
+      underlier: t.underlier,
+      side: t.side,
+      product: t.product,
+      contracts,
+      total,
+      each: t.estDebitEach,
+      strikeNote: t.strikeNote,
+      dte: t.dteTarget,
+    }),
+  };
+}
+
+function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forced?: SetupCandidate): RhStrategyCard {
   const blocks: string[] = [];
   const reasons: string[] = [];
   const clock = desk.clock;
   const day = desk.weekAhead?.today ?? weekDayFor(etDateKey());
-  const c = pathCandidate(desk);
+  const c = forced ?? pathCandidate(desk);
   const { es, nq, esPx, nqPx } = proxyPair(desk);
 
   if (!clock.isWeekday) blocks.push("Weekend");
-  if (clock.killzone !== "ny_am") blocks.push(`Not NY AM (${clock.killzoneLabel})`);
-  if (desk.news?.verdict === "blackout") blocks.push(desk.news.reason || "News blackout");
-  if (desk.shock?.tail && !desk.shock.active) blocks.push(`Post-shock tail — A+ only, no new RH debit · ${desk.shock.line}`);
   if (day?.kind === "holiday") blocks.push("Cash holiday");
-  if (eventKind(day?.kind) && !afterSecondImpulse(clock)) {
-    blocks.push("Event window — wait second impulse after 10:15 ET");
-  }
-  if (isJudasWindow(clock.etHour, clock.etMinute)) {
-    blocks.push("Judas 9:30–9:45 — no new day premium");
-  }
-  if (!c) blocks.push("No A+/A/A− PATH");
+  const eventOn =
+    desk.news?.verdict === "blackout" ||
+    desk.news?.verdict === "caution" ||
+    Boolean(desk.shock?.active) ||
+    Boolean(desk.shock?.tail);
+  const mins = clock.etHour * 60 + clock.etMinute;
+  const clockOn =
+    clock.killzone !== "ny_am" ||
+    isJudasWindow(clock.etHour, clock.etMinute) ||
+    mins >= 10 * 60 ||
+    (eventKind(day?.kind) && !afterSecondImpulse(clock));
+  const calendarOn = day?.kind === "range_build" || day?.kind === "a_plus_only";
+  const pressured = eventOn || clockOn || calendarOn;
+  if (!c) blocks.push("No A+/A/A− PATH"); // label kept stable for drills; B+ is accepted above
 
   if (c) {
     const band = String(c.pathBand || c.grade);
     reasons.push(`${c.symbol} ${c.side} PATH ${band} Q ${c.confluence.toFixed(2)}`);
     reasons.push(c.completeStrategy || c.strategyPrimary);
-    if (!c.htfOk) blocks.push("PATH is counter-HTF — no RH debit");
+    if (pressured) {
+      const need = confidenceFloorFor(band, true) ?? 1;
+      const why = eventOn ? "News" : clockOn ? "Clock" : "Day card";
+      reasons.push(
+        c.confluence < need
+          ? `${why} wants Q ${need.toFixed(2)} (have ${c.confluence.toFixed(2)}). Size is cut. The chart still calls the trade.`
+          : `${why} is noted. Bar ${need.toFixed(2)} cleared. Size is cut. The chart calls it.`,
+      );
+    }
+    const series = /ES/.test(c.symbol) === /ES/.test(desk.left.symbol) ? desk.left.bars : desk.right.bars;
+    const gaps = gapDirection(series ?? []);
+    reasons.push(gaps.line);
+    reasons.push(monthContractLine(2000));
+    const want = c.side === "long" ? "long" : "short";
+    if (gaps.side != null && gaps.side !== want) {
+      blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
+    } else if (gaps.side == null && !c.htfOk) {
+      blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
+    }
+    reasons.push("Internal or external is a note, not a filter. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold.");
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
-      blocks.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}`);
+      reasons.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}. Size is cut. The chart still calls it.`);
     }
-    if (day?.kind === "range_build" && band !== "A+") {
-      blocks.push("Monday range-build — A+ only for day premium");
-    }
-    if (day?.kind === "a_plus_only" && band !== "A+") {
-      blocks.push("Week card is A+ only");
+    if (day?.kind === "range_build" || day?.kind === "a_plus_only") {
+      reasons.push(`${day.kind === "range_build" ? "Monday range" : "Week card"} cuts size. It does not ban ${band}.`);
     }
     const seq =
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left
         : desk.smcMaster.right;
-    if (seq.word === "STAND") {
-      blocks.push(`SMC sequence: ${seq.missing}`);
-    } else if (seq.word === "WAIT") {
-      blocks.push(`SMC WAIT: ${seq.missing}`);
+    if (seq.word !== "TAKE") {
+      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size is cut. A missing layer does not take the path off.`);
     } else {
       reasons.push(`SMC TAKE ${seq.mustPass}/${seq.mustNeed}`);
     }
@@ -693,7 +804,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
-  const ticket =
+  let ticket =
     c && verdict !== "STAND"
       ? toTicket(
           underlier,
@@ -705,24 +816,28 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhS
           IV[underlier],
           cap,
           sleeve,
-          "NY AM. Flat 11:00 ET unless +50% premium and HTF still aligned.",
+          "Sized off the chart. Clock and news only cut size.",
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
             `Working stop $${rhWorkingStop(cap)} / −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
-            "Trim 50% at +40–60% of debit, stop → BE",
-            "Hard time stop 11:00 ET",
+            "Trim 50% at one-to-one. The draw stays open — one-to-one is a partial, not the flatten.",
+            "A close past the sweep stop ends it. The clock does not.",
           ],
           // Size from the LEVEL: the futures plan this option expresses.
           planForUnderlier(desk, underlier),
         )
       : null;
+  if (ticket && c && pressured) {
+    const n = contractsAfterEvent(c.confluence, String(c.pathBand || c.grade), true);
+    if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");
+  }
   if (c && verdict !== "STAND" && !ticket) {
-    blocks.push(`ATM 1–2 DTE too rich for $${cap} sleeve — stand, do not lotto OTM`);
+    blocks.push(`Nothing from ATM to 2 OTM fits $${cap}. No ticket to send.`);
   }
 
   return {
     id: "path_continuation",
-    name: "PATH continuation 1–2 DTE",
+    name: c ? `PATH ${c.symbol} ${c.side}` : "PATH continuation 1–2 DTE",
     horizon: "day",
     whyHighProb:
       `Same A+/A/A− PATH as Trade Now. 1–2 DTE so 0DTE pin does not own you. Size from the invalidation, then cap the ticket at $${cap} — the 15% brake is the backstop, not the plan.`,
@@ -747,41 +862,38 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
   const { esPx, nqPx } = proxyPair(desk);
 
   if (!clock.isWeekday) blocks.push("Weekend");
-  if (clock.killzone !== "ny_am") blocks.push(`Not NY AM (${clock.killzoneLabel})`);
-  if (isJudasWindow(clock.etHour, clock.etMinute)) blocks.push("Still in Judas — wait 9:45");
-  if (clock.etHour < 9 || (clock.etHour === 9 && clock.etMinute < 45)) {
-    blocks.push("0DTE only after 9:45 ET");
-  }
-  if (desk.news?.verdict === "blackout") blocks.push(desk.news.reason || "News blackout");
   if (day?.kind === "holiday") blocks.push("Cash holiday");
-  if (eventKind(day?.kind) && !afterSecondImpulse(clock)) {
-    blocks.push("No 0DTE into the event print");
+  if (isJudasWindow(clock.etHour, clock.etMinute)) reasons.push("Judas open — size stays 1. The chart still calls it.");
+  if (clock.killzone !== "ny_am") reasons.push(`Outside NY AM (${clock.killzoneLabel}) — size stays 1.`);
+  if (clock.etHour < 9 || (clock.etHour === 9 && clock.etMinute < 45)) reasons.push("Before 9:45 — 0DTE size stays 1.");
+  if (desk.news?.verdict === "blackout" || desk.news?.verdict === "caution" || desk.shock?.active || desk.shock?.tail) {
+    reasons.push("News or shock — 0DTE size stays 1. Not a ban.");
   }
-  if (day?.kind === "nfp") {
-    blocks.push("NFP Friday — 0DTE is seek-and-destroy unless A+ after 10:15");
-  }
-  if (!c) blocks.push("No A+/A/A− PATH");
-  if (band && band !== "A+") blocks.push(`0DTE needs A+ (have ${band})`);
-  if (c && !hint.displace) blocks.push("No displacement / MSS on the card");
-  if (c && !hint.ifvg && !hint.sweep) blocks.push("Need IFVG or the Judas sweep tagged");
+  if (eventKind(day?.kind) && !afterSecondImpulse(clock)) reasons.push("Event window — size stays 1, chart still calls it.");
+  if (day?.kind === "nfp") reasons.push("NFP — 0DTE size stays 1.");
+  if (!c) blocks.push("No A+/A/A− PATH"); // label kept stable for drills; B+ is accepted above
+  if (band && !["A+", "A", "A-", "A−", "B+"].includes(band)) blocks.push(`0DTE needs B+ or higher (have ${band})`);
+  if (c && !hint.displace) reasons.push("15m displacement not tagged. The 1m or 5m inverse is the entry. The grade is the permission.");
+  if (c && !hint.ifvg && !hint.sweep) reasons.push("Sweep or IFVG not on the 15m tag. External and internal both stay eligible. Size stays 1.");
 
-  if (c && band === "A+") {
-    reasons.push(`${c.symbol} ${c.side} A+ Q ${c.confluence.toFixed(2)}`);
+  const liveBand = band === "A+" || band === "A" || band === "A-" || band === "A−" || band === "B+";
+  if (c && liveBand) {
+    reasons.push(`${c.symbol} ${c.side} ${band} Q ${c.confluence.toFixed(2)}`);
     if (hint.sweep) reasons.push("Sweep tagged");
     if (hint.displace) reasons.push("Displacement / MSS tagged");
     if (hint.ifvg) reasons.push("IFVG tagged");
-    reasons.push("1 contract max — 0DTE gamma on a $1,000 sleeve");
+    reasons.push("1 contract — 0DTE.");
     const seq =
       c.symbol === desk.smcMaster.left.symbol
         ? desk.smcMaster.left
         : desk.smcMaster.right;
     if (seq.word !== "TAKE") {
-      blocks.push(`0DTE needs SMC TAKE (have ${seq.word} · ${seq.missing})`);
+      reasons.push(`SMC ${seq.word}: ${seq.missing}. Size stays 1. It does not take the path off.`);
     }
   }
 
-  const armed = blocks.length === 0 && Boolean(c) && band === "A+";
-  const watch = Boolean(c) && band === "A+" && blocks.every((b) => /Judas|9:45|NY AM/.test(b));
+  const armed = blocks.length === 0 && Boolean(c) && liveBand;
+  const watch = Boolean(c) && liveBand && blocks.every((b) => /Judas|9:45|NY AM|News|shock|NFP|Event/.test(b));
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
@@ -813,7 +925,7 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
     whyHighProb:
       `A+ after 9:45 with raid + MSS/IFVG only. Ticket ceiling $${cap}; the loss budget is 15% of what you actually pay.`,
     verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
-    score: band === "A+" ? c?.confluence ?? 0 : 0,
+    score: liveBand ? c?.confluence ?? 0 : 0,
     reasons,
     blocks,
     pathBand: band,
@@ -835,7 +947,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
   const bullish = smt?.state === "bullish_smt" || stack?.kind === "bullish";
 
   if (!clock.isWeekday) blocks.push("Weekend");
-  if (desk.news?.verdict === "blackout") blocks.push(desk.news.reason || "News blackout");
+  if (desk.news?.verdict === "blackout" || desk.news?.verdict === "caution") reasons.push("News is on — SMT size is cut. The divergence still calls it.");
   if (day?.kind === "holiday") blocks.push("Cash holiday");
   if (!bearish && !bullish) blocks.push("No active SMT (need HH vs LH or LL vs HL)");
 
@@ -951,12 +1063,10 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
   if (!eventKind(day?.kind) && day?.kind !== "two_way" && day?.kind !== "a_plus_only") {
     blocks.push(`Not an event-style day (${day?.kind ?? "no week card"})`);
   }
-  if (!afterSecondImpulse(clock)) blocks.push("Before 10:15 ET — stand the first impulse");
-  if (desk.news?.verdict === "blackout") blocks.push(desk.news.reason || "News still blacked out");
+  if (!afterSecondImpulse(clock)) reasons.push("Before 10:15 — size cut. The chart still calls it.");
+  if (desk.news?.verdict === "blackout" || desk.news?.verdict === "caution") reasons.push(desk.news?.reason || "News on — size cut, not a ban.");
   if (!c) blocks.push("Need PATH after the print");
-  if (c && day?.kind === "a_plus_only" && String(c.pathBand || c.grade) !== "A+") {
-    blocks.push("ADP / A+ only day");
-  }
+  if (c && day?.kind === "a_plus_only") reasons.push("Week card cuts size. It does not ban the path.");
   if (c) {
     reasons.push(`${c.symbol} ${c.side} ${c.pathBand || c.grade} after the window`);
     if (day?.trade) reasons.push(day.trade);
@@ -1072,8 +1182,10 @@ export function evaluateOptionsDesk(
   // The DEBIT ceiling: `cap` decides `single <= cap` and how many contracts
   // `floor(cap / single)` buys. It was $150, so every ticket was sized at a
   // sixth of the trader's stated $1,000 cap and most ATM rows read "too
-  // rich". The loss cap is a separate number — see rhRiskBudgetUsd.
-  const cap = rhTicketCapUsd(sleeve);
+  // rich". Clamp to RH_MAX_DEBIT_TOTAL so the sizer never builds a ticket the
+  // RH $550 gate refuses (e.g. a 5 DTE ~$575 single under a $1,000 sleeve).
+  // The loss cap is a separate number — see rhRiskBudgetUsd.
+  const cap = Math.min(rhTicketCapUsd(sleeve), RH_MAX_DEBIT_TOTAL);
   const swingSignal = evaluateOptionsSwing(desk);
   const { es, nq, esPx, nqPx } = proxyPair(desk);
   const nqWeaker = (nq.changePct ?? 0) < (es.changePct ?? 0) - 0.05;
@@ -1086,7 +1198,9 @@ export function evaluateOptionsDesk(
     qqq: underlierSheet("QQQ", nq, estimateSpot("QQQ", esPx, nqPx, desk.proxies), qqqRole, cap),
   };
 
-  const path = pathCandidate(desk);
+  const both = pathCandidates(desk);
+  const pathCards = both.length > 0 ? both.map((c) => pathContinuation(desk, sleeve, cap, c)) : [pathContinuation(desk, sleeve, cap)];
+  const path = both[0];
   const primary: SwingUnderlier = path
     ? underlierOf(path.symbol)
     : nq.topDown === "bear" || nqWeaker
@@ -1094,32 +1208,35 @@ export function evaluateOptionsDesk(
       : "SPY";
 
   const cards = [
-    pathContinuation(desk, sleeve, cap),
+    ...pathCards,
     judasIfvg0dte(desk, sleeve, cap),
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
     htfSwingCard(swingSignal, desk, sleeve, cap),
   ];
 
-  const best = cards.filter((c) => c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  const dayBest = cards.filter((c) => c.horizon === "day" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  const swingBest = cards.filter((c) => c.horizon === "swing" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
+  // The session sequence wins. A swing card does not take the fill away from a day setup that is already armed.
+  const best = dayBest ?? swingBest;
   const day = cards.filter((c) => c.horizon === "day");
   const swing = cards.filter((c) => c.horizon === "swing");
 
   const clock = desk.clock;
   const dayPlan = desk.weekAhead?.today;
   const gates = [
-    { id: "news", ok: desk.news?.verdict !== "blackout", label: "News not blacked out" },
+    { id: "news", ok: true, label: desk.news?.verdict === "clear" || !desk.news?.verdict ? "News clear" : `News ${desk.news.verdict} — size cut, chart decides` },
     {
       id: "judas",
-      ok: !isJudasWindow(clock.etHour, clock.etMinute),
-      label: "Outside Judas 9:30–9:45",
+      ok: true,
+      label: isJudasWindow(clock.etHour, clock.etMinute) ? "Judas — size cut, chart decides" : "Outside Judas 9:30–9:45",
     },
     {
       id: "htf",
       ok: desk.bias.left.topDown !== "neutral" || desk.bias.right.topDown !== "neutral",
       label: "HTF not neutral",
     },
-    { id: "path", ok: Boolean(path), label: "PATH A+/A/A− (day tickets)" },
+    { id: "path", ok: Boolean(path), label: path ? `PATH ${path.pathBand || path.grade} ${path.symbol} ${path.side}` : "No PATH card" },
     {
       id: "week",
       ok: dayPlan?.kind !== "holiday",
@@ -1127,8 +1244,11 @@ export function evaluateOptionsDesk(
     },
     {
       id: "smc",
-      ok: desk.smcMaster.oneBook?.word !== "STAND",
-      label: desk.smcMaster.thesis,
+      ok: true,
+      label:
+        desk.smcMaster.oneBook?.word === "STAND"
+          ? "SMC stand — size cut, the path stays"
+          : desk.smcMaster.thesis,
     },
     {
       id: "sleeve",
@@ -1161,7 +1281,7 @@ export function evaluateOptionsDesk(
 
 export function optionsDeskPlaybook(): string[] {
   return [
-    "Ticket ceiling $1,000 of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.",
+    `Ticket ceiling $${RH_MAX_DEBIT_TOTAL} of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.`,
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",

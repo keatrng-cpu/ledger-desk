@@ -385,14 +385,11 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
         const strong = (bias.sessionStrength ?? 0) >= 0.28;
         if (strong && session !== "neutral" && session !== need) {
           withBiasChecked++;
-          check(
-            `with-bias fade: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
-            c.actionable,
-            false,
-          );
           ok(
-            `with-bias fade: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
-            c.missing.includes("LTF delivery against"),
+            `with-bias fade: ${c.symbol} ${c.side} @ bar ${i} is a note, not a refusal`,
+            !c.missing.includes("LTF delivery against") &&
+              !(c.vetoes ?? []).some((v) => v.startsWith("LTF delivery")) &&
+              c.reasons.some((r) => r.startsWith("LTF delivery against")),
           );
         }
 
@@ -400,14 +397,11 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
         const ind = detectInducement(bars, c.side === "short" ? "short" : "long");
         if (ind.inducement) {
           inducementChecked++;
-          check(
-            `inducement veto: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
-            c.actionable,
-            false,
-          );
           ok(
-            `inducement veto: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
-            c.missing.includes("inducement — shallow decoy sweep before this one"),
+            `inducement: ${c.symbol} ${c.side} @ bar ${i} is a note, not a refusal`,
+            !c.missing.some((m) => m.startsWith("inducement")) &&
+              !(c.vetoes ?? []).some((v) => v.startsWith("inducement")) &&
+              c.reasons.some((r) => r.startsWith("inducement")),
           );
         }
 
@@ -416,14 +410,11 @@ console.log("\nscanner vetoes survive into the final candidate — the engine, n
         const mit = detectMitigationBlock(bars, c.side === "short" ? "short" : "long");
         if (mit.present) {
           mitigationChecked++;
-          check(
-            `mitigation veto: ${c.symbol} ${c.side} @ bar ${i} is not actionable`,
-            c.actionable,
-            false,
-          );
           ok(
-            `mitigation veto: ${c.symbol} ${c.side} @ bar ${i} names the reason`,
-            c.missing.includes("mitigation block — failed push origin, measured negative"),
+            `mitigation: ${c.symbol} ${c.side} @ bar ${i} is a note, not a refusal`,
+            !c.missing.some((m) => m.startsWith("mitigation block")) &&
+              !(c.vetoes ?? []).some((v) => v.startsWith("mitigation")) &&
+              c.reasons.some((r) => r.startsWith("mitigation block")),
           );
         }
       }

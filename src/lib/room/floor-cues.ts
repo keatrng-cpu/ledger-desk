@@ -5,6 +5,7 @@
  * already refusals. These are the words and the colours for them.
  */
 import { EXEC_LIMITS } from "./exec/limits";
+import { ROOM_CLOCK } from "./mandate";
 
 export type Stamp = "EV" | "HALT" | "TAPE" | "TIGHT" | "ONE" | "CLOCK" | "CASH" | null;
 export type Tint = "ink" | "amber" | "hatch";
@@ -178,8 +179,8 @@ export function floorCues(p: CueParts): FloorCues {
     calGap: p.modelP != null && p.calP != null ? p.modelP - p.calP : null,
     experiment: closest ? { title: closest.title, n: closest.n, nNeeded: closest.nNeeded } : null,
     clock: {
-      dim: p.etMin >= 10 * 60 && p.etMin < 11 * 60 && p.band !== "A+",
-      stopped: p.etMin >= 11 * 60,
+      dim: p.etMin >= 10 * 60 && p.etMin < ROOM_CLOCK.optionsCloseMin && p.band !== "A+",
+      stopped: p.etMin >= ROOM_CLOCK.optionsCloseMin,
     },
     judas: { on: judasOn, side: judasOn ? p.side : null },
     frost: p.highImpactMin != null && p.highImpactMin >= 0 && p.highImpactMin <= 15,

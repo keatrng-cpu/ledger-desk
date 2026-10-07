@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { PATH_MONTH_CAP, APLUS_PROBE_RISK } from "@/lib/trading/profit-rules";
@@ -204,10 +204,14 @@ export function RiskPanel({
           {liveError ? (
             <span className="text-[var(--color-warn)]">{liveError}</span>
           ) : (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Loading realized PnL + governor state…
-            </>
+            <div className="flex flex-wrap items-center gap-2" role="status" aria-label="Loading realized PnL and governor state">
+              {["w-28", "w-24", "w-32", "w-20"].map((w) => (
+                <span
+                  key={w}
+                  className={`h-6 ${w} animate-pulse rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)]`}
+                />
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -216,10 +220,10 @@ export function RiskPanel({
         {rows.map(([k, v]) => (
           <div
             key={k}
-            className="flex justify-between gap-3 border-b border-[var(--color-border)] py-1.5"
+            className="flex items-baseline justify-between gap-3 border-b border-[var(--color-border)] py-1.5"
           >
-            <span className="text-[var(--color-subtle)]">{k}</span>
-            <span className="text-right text-[var(--color-fg)]">{v}</span>
+            <span className="shrink-0 whitespace-nowrap text-[var(--color-subtle)]">{k}</span>
+            <span className="min-w-0 text-right leading-snug text-[var(--color-fg)] [overflow-wrap:anywhere]">{v}</span>
           </div>
         ))}
       </div>

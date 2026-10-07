@@ -22,12 +22,25 @@ import { Newspaper, RefreshCw } from "lucide-react";
 import { getFilings, getNewsFeed, type FilingsPayload, type NewsPayload } from "@/lib/news/news-server";
 import { dedupe, impactOf, orderItems, tagItem, type Horizon, type Tagged } from "@/lib/news/feed";
 import { ThesisCard } from "./thesis-card";
+import { NewsTimeline } from "./news-timeline";
+import { isConfigGap, scrubEnv, SETUP_URL } from "@/lib/ui/offline";
 import { coverageLine, eventDensity, timeline, type TimelineEvent } from "@/lib/news/schedule";
 import { fundProfile } from "@/lib/invest/exposure";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
 import { etToday } from "@/lib/invest/store";
 
 type Filter = "relevant" | Horizon | "all";
+type Stream = "market" | "sports";
+
+/** Impact from the existing tags (feed.ts tier): 1 high · 2 medium · 3 low. */
+const IMPACT: Record<1 | 2 | 3, { label: string; cls: string }> = {
+  1: { label: "High", cls: "border-[var(--color-down)] text-[var(--color-down)]" },
+  2: { label: "Med", cls: "border-[var(--color-warn)] text-[var(--color-warn)]" },
+  3: { label: "Low", cls: "border-[var(--color-border)] text-[var(--color-muted)]" },
+};
+
+/** Sports/Predict stream: sports-feed items and anything naming an NFL team. */
+const isSports = (t: Tagged) => t.sport === "nfl" || t.teams.length > 0;
 
 const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 const H3 = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]";
@@ -87,6 +100,8 @@ export function NewsTab() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("relevant");
+  const [stream, setStream] = useState<Stream>("market");
+  const [impact, setImpact] = useState<0 | 1 | 2 | 3>(0);
   const today = etToday();
 
   const load = useCallback(() => {
@@ -111,9 +126,14 @@ export function NewsTab() {
     return orderItems(dedupe(data.items.map((i) => tagItem(i, w, dossiers))));
   }, [data, qqq, dossiers]);
   const weight = useCallback((t: string) => (t === "GOOGL" ? (qqq.get("GOOGL") ?? 0) + (qqq.get("GOOG") ?? 0) : (qqq.get(t) ?? 0)), [qqq]);
-  const shown = tagged.filter((t) =>
-    filter === "all" ? true : filter === "relevant" ? t.tier <= 2 : t.horizons.includes(filter) && t.tier <= 2,
+  const inStream = tagged.filter((t) => (stream === "sports" ? isSports(t) : !isSports(t)));
+  const shown = inStream.filter(
+    (t) =>
+      (impact === 0 || t.tier === impact) &&
+      (stream === "sports" ||
+        (filter === "all" ? true : filter === "relevant" ? t.tier <= 2 : t.horizons.includes(filter) && t.tier <= 2)),
   );
+  const sportsCount = tagged.filter(isSports).length;
 
   const todayEvents = timeline(today, today);
   const nextHigh = timeline(addDays(today, 1), addDays(today, 30)).find((e) => e.kind === "macro-high" || e.kind === "fomc");
@@ -161,6 +181,8 @@ export function NewsTab() {
           <span className="self-center text-[10px] text-[var(--color-muted)]">Yahoo, delayed · vs prior close</span>
         </div>
       )}
+
+      <NewsTimeline today={today} events={timeline(today, addDays(today, 14))} />
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <section className={CARD}>
@@ -228,7 +250,16 @@ export function NewsTab() {
                 <p className="text-[11px] text-[var(--color-muted)]">No filings in the window.</p>
               )
             ) : (
-              <p className="text-[10px] leading-snug text-[var(--color-muted)]">{filings?.note ?? "Loading…"}</p>
+              filings && isConfigGap(filings.note) ? (
+                <p className="text-[10px] leading-snug text-[var(--color-muted)]">
+                  SEC filings offline — not set up on this server.{" "}
+                  <a href={SETUP_URL} target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] underline underline-offset-2">
+                    Setup
+                  </a>
+                </p>
+              ) : (
+                <p className="text-[10px] leading-snug text-[var(--color-muted)]">{filings ? scrubEnv(filings.note) : "Loading…"}</p>
+              )
             )}
           </div>
         </section>
@@ -237,20 +268,47 @@ export function NewsTab() {
       <section className={CARD}>
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <h3 className={`${H3} mb-0 mr-2`}>Headlines</h3>
-          {(["relevant", "day", "swing", "invest", "predict", "all"] as Filter[]).map((f) => (
+          <div role="tablist" aria-label="Headline stream" className="flex rounded border border-[var(--color-border)] p-0.5">
+            {(["market", "sports"] as Stream[]).map((st) => (
+              <button
+                key={st}
+                type="button"
+                role="tab"
+                aria-selected={stream === st}
+                onClick={() => setStream(st)}
+                className={`rounded px-2 py-0.5 text-[11px] ${stream === st ? "bg-[var(--color-accent)] font-semibold text-[var(--color-bg)]" : "text-[var(--color-muted)] hover:text-[var(--color-fg)]"}`}
+              >
+                {st === "market" ? "Market" : `Sports · Predict${sportsCount ? ` (${sportsCount})` : ""}`}
+              </button>
+            ))}
+          </div>
+          {stream === "market" &&
+            (["relevant", "day", "swing", "invest", "all"] as Filter[]).map((f) => (
+              <button
+                key={f}
+                type="button"
+                aria-pressed={filter === f}
+                onClick={() => setFilter(f)}
+                className={`${BTN} ${filter === f ? "border-[var(--color-accent)]" : ""}`}
+              >
+                {f === "relevant" ? "Relevant" : f === "day" ? "Futures" : f === "swing" ? "Options" : f === "invest" ? "Book" : "All"}
+              </button>
+            ))}
+          <span className="ml-1 text-[10px] uppercase text-[var(--color-muted)]">Impact</span>
+          {([0, 1, 2, 3] as const).map((k) => (
             <button
-              key={f}
+              key={k}
               type="button"
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-              className={`${BTN} ${filter === f ? "border-[var(--color-accent)]" : ""}`}
+              aria-pressed={impact === k}
+              onClick={() => setImpact(k)}
+              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${k === 0 ? "border-[var(--color-border)] text-[var(--color-muted)]" : IMPACT[k].cls} ${impact === k ? "ring-1 ring-[var(--color-accent)]" : "opacity-80"}`}
             >
-              {f === "relevant" ? "Relevant" : f === "day" ? "Futures" : f === "swing" ? "Options" : f === "invest" ? "Book" : f === "predict" ? "Predict" : "All"}
+              {k === 0 ? "Any" : IMPACT[k].label}
             </button>
           ))}
           {data && (
             <span className="ml-auto text-[10px] text-[var(--color-muted)]">
-              {shown.length} of {tagged.length} · fetched {ago(data.fetchedAt)} ago{data.cached ? " (cached)" : ""}
+              {shown.length} of {inStream.length} · fetched {ago(data.fetchedAt)} ago{data.cached ? " (cached)" : ""}
             </span>
           )}
         </div>
@@ -258,10 +316,21 @@ export function NewsTab() {
         {data?.failed.length ? (
           <p className="text-[10px] text-[var(--color-muted)]">Did not load: {data.failed.map((f) => `${f.source} (${f.why})`).join(", ")}</p>
         ) : null}
+        {data && shown.length === 0 && (
+          <p className="text-[11px] text-[var(--color-muted)]">
+            {stream === "sports" ? "No sports headlines in the feeds right now." : "No headlines match this filter."}
+          </p>
+        )}
         <ul className="space-y-1">
           {shown.slice(0, 60).map((t) => (
             <li key={t.id} className="border-t border-[var(--color-border)] pt-1 first:border-t-0">
               <p className="text-[11px] leading-snug">
+                <span
+                  className={`mr-1.5 inline-block rounded-full border px-1.5 text-[9px] font-bold uppercase ${IMPACT[t.tier].cls}`}
+                  title={`Impact from the fixed tags — ${t.why}`}
+                >
+                  {IMPACT[t.tier].label}
+                </span>
                 <span className="tabular-nums text-[var(--color-muted)]">{ago(t.published)} · {t.source} </span>
                 <a href={t.link} target="_blank" rel="noopener noreferrer" className={t.tier === 1 ? "font-medium hover:underline" : "hover:underline"}>
                   {t.title}

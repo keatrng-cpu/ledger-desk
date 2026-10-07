@@ -40,8 +40,8 @@ export const APLUS_RULES = {
   riskPctCeiling: 0.03,
   minRr: 1.0,
   tpMaxR: 3.0,
-  dailyLossLimitPct: 0.02,
-  weeklyLossLimitPct: 0.05,
+  dailyLossLimitPct: 0.15,
+  weeklyLossLimitPct: 0.3,
   maxSetupsPerSession: 2,
   /**
    * Take risk off (scale-out) — mandatory on paper/backtest book.
@@ -73,6 +73,21 @@ export const APLUS_RULES = {
     minSampleTrades: 100,
     actionFloor: 0.65,
     onlyExecuteGrades: ["A+", "A", "A-", "B+"] as const,
+    /**
+     * B+ on the LIVE Robinhood path (Accuracy + Keaton 2026-10-06). Explicit
+     * gate in rh-autofire-gates.ts (evaluateRhBplusGate) — A+/A/A- keep the
+     * 0.65 floor; B+ never lowers it. B+ needs ALL of: fit >= 0.60
+     * (confluenceFloor - 0.05, its own config band), SMC sequence TAKE on its
+     * side, no veto (room / Stand / Owner), plus the same CE touch, tape <= 30s,
+     * DTE 0|1, BP and 11:00 / 10:00-A+-only rules as every grade.
+     * Size: exactly 1 contract; debit still inside the $150-$550 envelope.
+     */
+    bPlusLive: {
+      fitFloor: 0.6,
+      requireSeqTake: true,
+      requireNoVeto: true,
+      maxContracts: 1,
+    },
   },
   dualPeer: { NQ: "ES", ES: "NQ", MNQ: "MES", MES: "MNQ" } as Record<
     string,

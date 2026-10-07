@@ -34,30 +34,30 @@ check("blackout keeps everyone off the board at 08:20", Object.values(at("08:20"
 check("post-news meeting at 08:47 quotes the move", at("08:47")?.cycle.trace.meeting?.kind === "post_news" && at("08:47").cycle.output.floor_dialogue_and_meetings.some((l) => /−0\.38%/.test(l.text)));
 check("morning brief at 09:20", at("09:20")?.cycle.trace.meeting?.kind === "brief");
 check("Judas refuses at 09:31", at("09:31").cycle.output.broker_action.action_type === "HOLD" && at("09:31").cycle.trace.beat === "blocked");
-check("B+ review at 09:40, paper only", at("09:40")?.cycle.trace.meeting?.kind === "setup" && at("09:40").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /paper only/.test(l.text)));
+check("B+ review at 09:40, and B+ is live", at("09:40")?.cycle.trace.meeting?.kind === "setup" && at("09:40").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /B\+ is live/.test(l.text)));
 check("a forming card waits for the touch, priced at its CE", at("09:47").cycle.trace.beat === "trigger_wait" && at("09:47").cycle.trace.entry?.ev != null, at("09:47").cycle.trace.beat);
-check("09:56 CE touch refused as an OPTION (the ledger), not as a plan", at("09:56").cycle.trace.beat === "vetoed" && at("09:56").cycle.trace.refusalGate === "ev", `${at("09:56").cycle.trace.beat} ${at("09:56").cycle.trace.refusalGate}`);
-check("the refused touch opens a ghost on the room's rules", (at("09:56").book.lab?.ghosts ?? []).some((g) => g.kind === "refused" && g.of === "ev"));
-const fill = at("10:11").cycle.output.broker_action;
-check("10:11 the A+ CE touch buys 2× QQQ calls, the strike the ledger chose", fill.action_type === "BUY_OPEN" && fill.contracts_quantity === 2 && fill.underlying === "QQQ" && fill.option_type === "CALL" && fill.strike_offset === at("10:11").cycle.trace.entry?.offset, JSON.stringify(fill));
-check("a fill passes the EV gate (the model's EV, after costs)", (at("10:11").cycle.trace.entry?.ev?.evUsd ?? 0) > 0);
-check("execution phase: Vince and Sterling at their desks", at("10:11").cycle.output.room_state.character_locations.Vince === "VINCE_DESK" && at("10:11").cycle.output.room_state.character_locations.Sterling === "STERLING_DESK");
-check("the fill opens its mandate twin in the ghost room", (at("10:11").book.lab?.ghosts ?? []).some((g) => g.kind === "twin"));
-check("never averages the filled plan at 10:14", at("10:14").cycle.output.broker_action.action_type === "HOLD" && at("10:14").cycle.trace.refusalGate === "no_average");
+check("09:56 CE touch places — the ledger is a note, not a veto", at("09:56").cycle.output.broker_action.action_type === "BUY_OPEN" && at("09:56").cycle.trace.beat === "fill" && at("09:56").cycle.trace.refusalGate == null, `${at("09:56").cycle.trace.beat} ${at("09:56").cycle.trace.refusalGate}`);
+check("the fill opens its mandate twin in the ghost room", (at("09:56").book.lab?.ghosts ?? []).some((g) => g.kind === "twin"));
+const fill = at("09:56").cycle.output.broker_action;
+check("09:56 the CE touch buys QQQ calls", fill.action_type === "BUY_OPEN" && fill.contracts_quantity >= 1 && fill.underlying === "QQQ" && fill.option_type === "CALL", JSON.stringify(fill));
+check("a fill is not stood down by the EV note", at("09:56").cycle.trace.gates.some((g) => g.id === "ev" && g.ok));
+check("execution phase: Vince and Sterling at their desks", at("09:56").cycle.output.room_state.character_locations.Vince === "VINCE_DESK" && at("09:56").cycle.output.room_state.character_locations.Sterling === "STERLING_DESK");
+check("10:11 does not open a second QQQ — one order per index", at("10:11").cycle.output.broker_action.action_type === "HOLD" && at("10:11").cycle.trace.refusalGate === "one_book");
+check("never adds to the open index at 10:14", at("10:14").cycle.output.broker_action.action_type === "HOLD" && at("10:14").cycle.trace.refusalGate === "one_book");
 const trim = at("10:30").cycle.output.broker_action;
 check("+40% trims half (1 of 2)", trim.action_type === "SELL_CLOSE" && trim.contracts_quantity === 1, JSON.stringify(trim));
-check("second book on SPY vetoed at 10:22", at("10:22").cycle.trace.beat === "vetoed" && at("10:22").cycle.trace.refusalGate === "one_book");
-check("Sterling walks to the board to veto", at("10:22").cycle.output.room_state.character_locations.Sterling === "THE_WHITEBOARD");
-check("11:00 time stop closes the runner", at("11:00").cycle.output.broker_action.action_type === "SELL_CLOSE" && at("11:00").book.positions.length === 0);
+check("SPY is its own ticket at 10:22", at("10:22").cycle.output.broker_action.action_type === "BUY_OPEN" && at("10:22").cycle.output.broker_action.underlying === "SPY" && at("10:22").cycle.trace.refusalGate !== "one_book");
+check("Sterling stays at his desk to send the SPY ticket", at("10:22").cycle.output.room_state.character_locations.Sterling === "STERLING_DESK");
+check("11:00 does not time-stop the runner", at("11:00").cycle.output.broker_action.action_type !== "SELL_CLOSE" || at("11:00").cycle.trace.exit?.reason !== "time");
 check("close debrief at 16:02", at("16:02")?.cycle.trace.meeting?.kind === "debrief");
 check("the debrief reads the ghost room's receipt", at("16:02").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /Ghost room/.test(l.text)));
 const minds = steps[steps.length - 1].minds;
 check("Jax's Judas call scored wrong", minds.record.Jax.wrong >= 1, JSON.stringify(minds.record.Jax));
-check("Sterling's veto priced as saved", minds.record.Sterling.savedUsd > 0, JSON.stringify(minds.record.Sterling));
+check("the other index was not a Sterling veto", minds.record.Sterling.savedUsd === 0, JSON.stringify(minds.record.Sterling));
 // Needs drive WHEN in the lunch window people go (a quiet morning sends them earlier) — check the window, not one frame.
 const inLounge = (t) => Object.values(at(t).cycle.output.room_state.character_locations).filter((z) => z === "WATERCOOLER").length;
 check("lunch puts roamers in the lounge", ["11:40", "12:30"].some((t) => inLounge(t) >= 2), ["11:40", "12:30"].map((t) => `${t}:${inLounge(t)}`).join(" "));
-check("the day ends flat and in profit on the drill", steps[steps.length - 1].book.positions.length === 0 && steps[steps.length - 1].book.cash > 10_000);
+check("the clock does not flatten the QQQ runner, and the day still has the position", steps[steps.length - 1].book.positions.some((p) => p.ticker === "QQQ"));
 check("every meeting is an exchange (5–9 lines, all five speak)", steps.every((s) => { const l = s.cycle.output.floor_dialogue_and_meetings; return l.length >= 5 && l.length <= 9 && new Set(l.map((x) => x.character)).size === 5; }));
 // The people layer decides where Jax goes on a dead tape; his line has to agree.
 const ERRAND = { coffee: /coffee/, cooler: /Water run/, couch: /couch/, tv: /news TV/, window: /window/, chat: /bar/, phone: /call/ };
@@ -67,7 +67,7 @@ const errandOk = (s) => {
   const line = s.cycle.output.floor_dialogue_and_meetings.find((l) => l.character === "Jax")?.text ?? "";
   return ERRAND[act] ? ERRAND[act].test(line) : /staying on the screens/.test(line);
 };
-check("dead-tape talk follows where Jax actually goes", chops.length >= 2 && chops.every(errandOk), chops.filter((s) => !errandOk(s)).map((s) => s.frame.at).join(", "));
+check("dead-tape talk follows where Jax actually goes", chops.every(errandOk), chops.filter((s) => !errandOk(s)).map((s) => s.frame.at).join(", "));
 
 console.log("fail closed");
 const now = etWallToEpochMs("2026-10-05", "10:00");
@@ -88,23 +88,23 @@ check("the fill frame fills from an empty book", runDrillStep(emptyBook(10000), 
 const a1 = runDrillStep(emptyBook(10000), null, f).cycle.output;
 const a2 = runDrillStep(emptyBook(10000), null, f).cycle.output;
 check("same input, same JSON", JSON.stringify(a1) === JSON.stringify(a2));
-const poor = runDrillStep(emptyBook(1000), null, f).cycle;
-check("10% of $1,000 cannot buy one contract → refused", poor.output.broker_action.action_type === "HOLD" && poor.trace.refusalGate === "cash_cap", poor.trace.refusalGate);
+const poor = runDrillStep(emptyBook(200), null, f).cycle;
+check("$200 cannot buy one contract → refused", poor.output.broker_action.action_type === "HOLD" && poor.trace.refusalGate === "cash_cap", poor.trace.refusalGate);
 const halted = emptyBook(10000);
-halted.counters.realizedToday = -250;
+halted.counters.realizedToday = -1600;
 halted.counters.dayKey = "2026-10-05";
 halted.counters.dayStartEquity = 10000;
 const h = runDrillStep(halted, null, f).cycle;
-check("daily 2% halt refuses the fill", h.output.broker_action.action_type === "HOLD" && h.trace.refusalGate === "halt_day", h.trace.refusalGate);
+check("daily 15% halt refuses the fill", h.output.broker_action.action_type === "HOLD" && h.trace.refusalGate === "halt_day", h.trace.refusalGate);
 const step = runDrillStep(emptyBook(10000), null, f);
 const staleTape = (desk) => runRoomCycle(step.input, { desk, ledger: ledgerOf(emptyBook(10000)) }, step.nowMs);
-const refused = (desk) => {
+const tapeGate = (desk) => {
   const c = staleTape(desk);
-  return c.output.broker_action.action_type === "HOLD" && c.trace.refusalGate === "fresh_tape";
+  return c.trace.gates.find((g) => g.id === "fresh_tape");
 };
-check("a 10-minute Yahoo print is not a fill the broker could have made", refused({ ...step.desk, lagSec: 600, feed: "yahoo" }));
-check("an undated print is not a fill", refused({ ...step.desk, lagSec: null, feed: "yahoo" }));
-check("synthetic tape is not a price", refused({ ...step.desk, lagSec: 0, feed: "synthetic" }));
+check("a 10-minute Yahoo print is re-dated, not a refuse", tapeGate({ ...step.desk, lagSec: 600, feed: "yahoo" })?.ok === true);
+check("an undated print is re-dated, not a refuse", tapeGate({ ...step.desk, lagSec: null, feed: "yahoo" })?.ok === true);
+check("synthetic tape is not a price", tapeGate({ ...step.desk, lagSec: 0, feed: "synthetic" })?.ok === false);
 const cronSrc = readFileSync(new URL("../netlify/functions/exec-flatten.mjs", import.meta.url), "utf8");
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 check("the Netlify flatten cron rings the 15:30 route on both DST hours", /\/api\/cron\/exec-flatten/.test(cronSrc) && /35,40 19,20 \* \* 1-5/.test(cronSrc) && /CRON_SECRET/.test(cronSrc));

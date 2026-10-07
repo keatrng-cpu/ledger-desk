@@ -15,11 +15,36 @@ import { readSession } from "@/lib/trading/session-event";
 import { readJudas } from "@/lib/trading/judas-window";
 import { buildEntryTicket, ticketHeadline } from "@/lib/trading/entry-ticket";
 import { allSeries } from "@/lib/trading/chart-timeframes";
+import { APLUS_RULES } from "@/lib/aplus/config";
 
 export const PATH_ALARM_STORAGE = "ledger-path-alarm";
 export const PATH_ALARM_EVENT = "ledger-path-alarm-fire";
 
 const HIGH_PROB = new Set(["A+", "A", "A-"]);
+
+/**
+ * PATH FIRE bands (Keaton 2026-10-06): A+, A, A-, AND B+ — the place trigger
+ * for the RH live path. Mirrors APLUS_RULES.profitPath.onlyExecuteGrades.
+ * B+ uses its own config band (confluenceFloor - 0.05 = 0.60); A+/A/A- keep
+ * the calibrated 0.65. `isHighProbPath` (A+/A/A- only) is unchanged for the
+ * paper book / sequence / ghost readers.
+ */
+export const PATH_FIRE_BANDS = new Set(["A+", "A", "A-", "B+"]);
+export const PATH_FIRE_FLOOR = APLUS_RULES.confluenceFloor;
+export const PATH_FIRE_FLOOR_BPLUS = Math.round((APLUS_RULES.confluenceFloor - 0.05) * 100) / 100;
+
+function fireBand(c: { pathBand?: string | null; grade?: string | null }): string {
+  return String(c.pathBand || c.grade || "").trim().replace("−", "-").replace("＋", "+");
+}
+
+/** A PATH scanner candidate that may FIRE (A+/A/A- >= 0.65, B+ >= 0.60, actionable). */
+export function isPathFire(c: SetupCandidate | undefined | null): boolean {
+  if (!c) return false;
+  if (isHighProbPath(c)) return true;
+  if (!c.actionable) return false;
+  if (fireBand(c) !== "B+") return false;
+  return (c.confluence ?? 0) >= PATH_FIRE_FLOOR_BPLUS;
+}
 
 export interface PathAlarmState {
   armed: boolean;
@@ -253,7 +278,8 @@ export function considerPathAlarm(
 ): PathAlarmFire | null {
   const s = load();
   if (!s.armed || s.muted) return null;
-  if (!isHighProbPath(candidate) || !candidate) return null;
+  // PATH FIRE: A+/A/A- and B+ (isPathFire). The RH place path keys off this fire.
+  if (!isPathFire(candidate) || !candidate) return null;
 
   const clock = desk.clock;
   const band = String(candidate.pathBand || candidate.grade);
@@ -370,7 +396,8 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
     // A PATH band, like every other alarm. The touch alarm checked the
     // sequence but never the grade, so B and B+ books beeped the trader to a
     // card the ticket will only paper.
-    if (!HIGH_PROB.has(String(book.pathBand ?? "").replace("−", "-"))) continue;
+    // B+ is a PATH fire band too (Keaton 2026-10-06) — B and below still never beep.
+    if (!PATH_FIRE_BANDS.has(String(book.pathBand ?? "").replace("−", "-"))) continue;
     // Judas per book, on this book's own minute tape (judas-window.ts). Fails
     // closed without minute tape, which is the old behaviour.
     if (

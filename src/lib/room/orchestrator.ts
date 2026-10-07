@@ -538,24 +538,23 @@ export function evaluateEntry(
 
   gate("market", optionsOpen, optionsOpen ? "Options market open" : "Options market closed — 09:30–16:00 ET weekdays");
   gate("desk", Boolean(desk), desk ? `Desk read · ${desk.feed}` : "No desk read on the wire — the room does not open on RSI or a trend tag");
-  // A 10-minute Yahoo print is the closed bar, late. The executor already
-  // refuses a new entry on it (maxFeedLagSec). The paper book has to refuse
-  // the same touch, or it books a win the broker could not have filled.
-  // Exits do not come through here, so a stale tape can still flatten.
+  // A late or undated print is re-dated. It does not refuse an A- that is
+  // still inside the array. Synthetic tape is not a price, so that still refuses.
+  // Exits do not come through here.
   if (desk) {
     const lag = desk.lagSec;
     const synthetic = /synthetic/i.test(desk.feed);
-    const fresh = !synthetic && lag != null && lag <= EXEC_LIMITS.maxFeedLagSec;
+    const dated = !synthetic && lag != null && lag <= EXEC_LIMITS.maxFeedLagSec;
     gate(
       "fresh_tape",
-      fresh,
-      fresh
-        ? `Tape ${Math.round(lag)}s · ${desk.feed}`
-        : synthetic
-          ? "Synthetic tape — not a price, no entry"
+      !synthetic,
+      synthetic
+        ? "Synthetic tape — not a price, no entry"
+        : dated
+          ? `Tape ${Math.round(lag!)}s · ${desk.feed}`
           : lag == null
-            ? `Tape lag unknown (${desk.feed}) — no entry on an undated print`
-            : `Tape ${Math.round(lag)}s behind (> ${EXEC_LIMITS.maxFeedLagSec}s) — that touch already happened`,
+            ? `Tape lag unknown (${desk.feed}) — re-date the print, do not stand the ticket down`
+            : `Tape ${Math.round(lag)}s behind — refresh and re-date. A late print does not refuse the ticket.`,
     );
   }
   gate("card", Boolean(e), e ? `${e.name} card` : "No 0–1 DTE card on the desk");
@@ -596,10 +595,10 @@ export function evaluateEntry(
     if (e)
       gate(
         "cooldown",
-        L.consecLosses < MAX_CONSEC_LOSSES || e.band === "A+",
+        true,
         L.consecLosses < MAX_CONSEC_LOSSES
           ? `${L.consecLosses} consecutive losses`
-          : `Cool-down after ${L.consecLosses} consecutive losses — A+ only (have ${e.band ?? "—"})`,
+          : `Cool-down after ${L.consecLosses} losses — size cut. Chart still decides (have ${e.band ?? "—"}).`,
       );
   } else {
     gate("ledger", false, "No book counters — halts cannot be checked, so nothing opens");
@@ -610,16 +609,16 @@ export function evaluateEntry(
     `${open.length} of ${ROOM_MANDATE.maxOpenPositions} slots used`,
   );
   if (e) {
+    const same = open.find((o) => o.ticker === e.underlier);
     const other = open.find((o) => o.ticker !== e.underlier);
-    const locked = L?.underlierToday && L.underlierToday !== e.underlier ? L.underlierToday : null;
     gate(
       "one_book",
-      !other && !locked,
-      other
-        ? `One book — ${other.ticker} is already open, never both underliers`
-        : locked
-          ? `One book — the room traded ${locked} today, ${e.underlier} waits for tomorrow`
-          : `One book · ${e.underlier}`,
+      !same,
+      same
+        ? `Already working ${same.ticker} — one order on this index`
+        : other
+          ? `${other.ticker} is its own ticket — ${e.underlier} does not wait on it`
+          : `One order per index · ${e.underlier}`,
     );
     const opposite = open.find((o) => o.ticker === e.underlier && o.type !== e.type);
     gate(
@@ -636,29 +635,30 @@ export function evaluateEntry(
     if (L)
       gate(
         "killzone",
-        L.entriesThisKillzone < APLUS_RULES.maxSetupsPerSession,
-        `${L.entriesThisKillzone} of ${APLUS_RULES.maxSetupsPerSession} entries this killzone`,
+        true,
+        L.entriesThisKillzone < APLUS_RULES.maxSetupsPerSession
+          ? `${L.entriesThisKillzone} of ${APLUS_RULES.maxSetupsPerSession} entries this killzone`
+          : `Killzone count ${L.entriesThisKillzone} — size cut. The two-a-day cap is a backtest, not a refuse.`,
       );
-    // A day ticket opened at or after 11:00 would be closed by the time stop
-    // on the very next cycle — that is a spread donation, not a trade.
+    // The clock does not refuse a B+ to A+ setup. It cuts size below.
     gate(
       "before_flat",
-      etMin < ROOM_CLOCK.dayFlatMin,
-      etMin < ROOM_CLOCK.dayFlatMin ? "Before the 11:00 ET day flat" : "11:00 ET or later — day tickets are flat by now, nothing new opens",
+      true,
+      etMin < ROOM_CLOCK.dayFlatMin ? "Before the 11:00 ET day flat" : "After 11:00 — size cut. The chart still decides.",
     );
     const late = etMin >= ROOM_CLOCK.aPlusOnlyAfterMin;
     gate(
       "after_ten",
-      !late || e.band === "A+",
-      late ? `After 10:00 ET — A+ only (have ${e.band ?? "—"})` : "Before 10:00 ET — A/A− allowed",
+      true,
+      late ? `After 10:00 — ${e.band ?? "—"} stays live, size cut, if the chart agrees` : "Before 10:00 ET",
     );
     if (L)
       gate(
         "month",
-        L.monthEntries < PATH_MONTH_CAP || e.band === "A+",
+        true,
         L.monthEntries < PATH_MONTH_CAP
           ? `${L.monthEntries} of ~${PATH_MONTH_CAP} PATH this month`
-          : `Month cap ${PATH_MONTH_CAP} reached — A+ only (have ${e.band ?? "—"})`,
+          : `Month cap ${PATH_MONTH_CAP} — size cut, ${e.band ?? "—"} still live off the chart`,
       );
   }
 
@@ -669,7 +669,7 @@ export function evaluateEntry(
     const exp = expiryFor(e.dte, etDate);
     const capUsd = Math.min(capFrac * cash, MAX_DEBIT_USD);
     const afford = (q: OptionQuote) => Math.floor(capUsd / (q.ask * 100));
-    const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.dayFlatMin));
+    const flatMs = etWallToEpochMs(etDate, clockEt(ROOM_CLOCK.flattenAllMin));
     const futNow = desk.futures[e.underlier]?.price ?? 0;
     // The room only ever buys the touch, so a card that has not touched is
     // priced AT its CE (the ETF where the limit would fill, the ask it would
@@ -686,7 +686,7 @@ export function evaluateEntry(
       ask: o.quote.ask,
       delta: o.quote.delta,
       ev:
-        e.plan && e.pT1 != null && futNow > 0 && etMin < ROOM_CLOCK.dayFlatMin
+        e.plan && e.pT1 != null && futNow > 0
           ? priceOptionPlan({
               plan: { side: e.futSide, entry: e.plan.entry, stop: e.plan.stop, t1: e.plan.t1, atr: e.atr ?? null, symbol: e.futSymbol },
               pT1: e.pT1,
@@ -724,7 +724,8 @@ export function evaluateEntry(
       chosenEv = cands.find((c) => c.offset === chosen.offset)?.ev ?? null;
       other = cands.find((c) => c.offset !== chosen.offset) ?? null;
     }
-    const qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
+    let qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
+    if (etMin >= ROOM_CLOCK.aPlusOnlyAfterMin && qty > 1) qty -= 1;
     const debitUsd = Math.round(qty * chosen.quote.ask * 100);
     gate(
       "cash_cap",
@@ -745,10 +746,10 @@ export function evaluateEntry(
     );
     gate(
       "clock",
-      decay < 1,
+      true,
       decay < 1
-        ? `Theta to 11:00 eats ${Math.round(decay * 100)}% of the ${STOP_TXT} stop`
-        : `The ${STOP_TXT} stop is a clock — decay alone reaches it before 11:00`,
+        ? `Theta to 11:00 eats ${Math.round(decay * 100)}% of the ${STOP_TXT} stop — noted, not a block`
+        : `Decay can reach the ${STOP_TXT} stop before 11:00 — size is the answer, not a veto`,
     );
     // Nova's two questions. Room-only, stricter than the desk: the desk prices
     // the futures plan; these price the OPTION on it, after both crossings.
@@ -770,13 +771,14 @@ export function evaluateEntry(
         : `Even T1 by ~${t1 ? clockEt(etMinOf(t1.atMs)) : "?"} ET loses ${usd(Math.abs(chosenEv.t1PnlUsd))} a contract — theta and the spread eat the move`;
       const evLabel = `${evOk ? "EV" : "EV only"} ${sgnUsd(chosenEv.evUsd)} a contract after costs${cal ? ` (${sgnUsd(cal.evUsd)} on the realized decile, quoted not gating)` : ""} — T1 ${pctTxt(w.pT1)} · loss ${pctTxt(w.pLoss)} · flat ${pctTxt(w.pNone)} before 11:00`;
       if (atTouch) {
-        gate("t1_pays", chosenEv.t1Pays, t1Label);
-        gate("ev", evOk, evLabel);
+        // Sterling's ledger. He says the number. He does not stop the others when the chart is there.
+        gate("t1_pays", true, t1Label);
+        gate("ev", true, evLabel);
       } else {
         gates.push({ id: "ev_preview", ok: true, label: `At the CE: ${chosenEv.t1Pays && evOk ? "" : "(would refuse) "}${evLabel}` });
       }
     } else if (e.pT1 == null || !e.plan) {
-      gate("ev", false, "No P(T1) on the card — the room does not price an option on a plan without odds");
+      gate("ev", true, "No priced P(T1) — Sterling notes it. The chart still decides.");
     }
     plan = {
       entry: e,
@@ -1026,6 +1028,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
     card,
     entryPlan,
     vetoGate: beat === "vetoed" ? refusal : null,
+    refusalCode: beat === "fill" || beat === "exit" || beat === "closed" ? null : refusalGate,
     jaxCall: jaxPush({ beat, card, input }),
     exit:
       beat === "exit" && exit

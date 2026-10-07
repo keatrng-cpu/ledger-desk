@@ -12,7 +12,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Percent, RefreshCw } from "lucide-react";
+import { Beer, Percent, RefreshCw } from "lucide-react";
 import { getPredictBoard, type PredictBoard } from "@/lib/predict/predict-server";
 import { LEAGUES, type League } from "@/lib/predict/board";
 import { VENUES, type VenueId } from "@/lib/predict/math";
@@ -66,7 +66,14 @@ function notify(body: string): void {
     .catch(direct);
 }
 
-export function PredictTab() {
+export interface PredictTabProps {
+  /** Rendered inside the PM analyzer: no "Open Mead Hall" jump (the hall is above). */
+  embedded?: boolean;
+  /** Each NEW board's scan rows — the analyzer turns them into real model inputs. */
+  onScanRows?: (rows: ScanRow[], asOf: string) => void;
+}
+
+export function PredictTab({ embedded = false, onScanRows }: PredictTabProps = {}) {
   const [league, setLeague] = useState<League>("nfl");
   const [board, setBoard] = useState<PredictBoard | null>(null);
   const [loading, setLoading] = useState(false);
@@ -122,6 +129,7 @@ export function PredictTab() {
     const r = scanBoard(board.games, fees, prevGaps.current);
     setRows(r);
     if (!isNew) return;
+    onScanRows?.(r, board.fetchedAt);
     const gaps = new Map<string, number>();
     for (const x of r) {
       if (x.gap == null) continue;
@@ -141,7 +149,7 @@ export function PredictTab() {
       tone(audio.current);
       notify(body);
     }
-  }, [board, fees, armed]);
+  }, [board, fees, armed, onScanRows]);
 
   const arm = (on: boolean) => {
     setArmed(on);
@@ -172,7 +180,7 @@ export function PredictTab() {
     <div className="space-y-3">
       <header className="flex flex-wrap items-center gap-2">
         <Percent size={15} className="text-[var(--color-muted)]" />
-        <h2 className="text-sm font-semibold">Predict</h2>
+        <h2 className="text-sm font-semibold">{embedded ? "Sports scanner" : "Predict"}</h2>
         <span className="text-[11px] text-[var(--color-muted)]">live scanner · event contracts vs the book and the live model</span>
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
           {(Object.keys(LEAGUES) as League[]).map((l) => (
@@ -193,6 +201,11 @@ export function PredictTab() {
           <button type="button" className={`flex items-center gap-1 ${BTN}`} onClick={() => load(league)} disabled={loading}>
             <RefreshCw size={11} /> {loading ? "…" : "Refresh"}
           </button>
+          {!embedded && (
+            <button type="button" className={`flex items-center gap-1 ${BTN}`} onClick={() => window.dispatchEvent(new CustomEvent("ledger:open-tab", { detail: "predict" }))} title="The PM analyzer — Mead Hall + desk panels, paper only">
+              <Beer size={11} /> Open analyzer
+            </button>
+          )}
         </div>
       </header>
 

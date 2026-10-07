@@ -9,7 +9,7 @@
 import { reachTier } from "./entry-trigger";
 import { GATE } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { isHighProbPath, isPathFire } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
 import { readSession } from "./session-event";
 import { readJudas, JUDAS_MIN_CONFLUENCE } from "./judas-window";
@@ -168,6 +168,7 @@ function pickCandidate(
       const onSide = book.filter((c) => c.side === raidSide);
       const pick =
         onSide.find((c) => isHighProbPath(c)) ??
+        onSide.find((c) => isPathFire(c)) ??
         [...onSide].sort((a, b) => b.confluence - a.confluence)[0];
       if (pick) return pick;
     }
@@ -194,7 +195,8 @@ function pickCandidate(
    * side, and refusing to name any card is worse than naming a weak one.
    */
   const alignedBook = need ? book.filter((c) => c.side === need) : book;
-  const alignedPath = alignedBook.find((c) => isHighProbPath(c));
+  // A+/A/A- first, then B+ (live PATH grade, Keaton 2026-10-06).
+  const alignedPath = alignedBook.find((c) => isHighProbPath(c)) ?? alignedBook.find((c) => isPathFire(c));
   const aligned = alignedBook[0];
   const path = book.find((c) => isHighProbPath(c));
   return (
@@ -477,6 +479,25 @@ function gradeBook(
       retraceDetail = `${fresh.kind.toUpperCase()} ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)} is ${away.toFixed(2)}pt ${dir} price — wait for it, do not chase ${price.toFixed(2)}`;
     }
   }
+  // An inverted 5m gap plus displacement IS the entry. CE is only the midpoint
+  // of that gap. A mitigation block is a failed second push — a different
+  // object — and this setup does not wait to tag one.
+  const inverted = cand?.reasons.some((r) => /ifvg \(inverted\)/i.test(r)) ?? false;
+  const displaced = Boolean(
+    mss || cand?.components.includes("displacement") || cand?.components.includes("mss"),
+  );
+  if (inverted && displaced && fresh && price != null && retraceState !== "pass") {
+    const pad = Math.max((fresh.top - fresh.bottom) * 0.25, 0.25);
+    const atTheClose = price >= fresh.bottom - pad && price <= fresh.top + pad;
+    if (atTheClose) {
+      retraceState = "pass";
+      retraceDetail = `5m IFVG inverted and displaced — that close is the entry. CE ${fresh.mid.toFixed(2)} is the midpoint of the gap, not a second level. This is not a mitigation block.`;
+    } else {
+      const ran = side === "short" ? price < fresh.bottom : price > fresh.top;
+      if (ran)
+        retraceDetail = `Displacement already left the array. Do not chase ${price.toFixed(2)}. Next entry is the pullback into ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)}, limit at CE ${fresh.mid.toFixed(2)}.`;
+    }
+  }
   // The numeric plan, priced from the SAME objects the layers were graded
   // from: `fresh` is the array the retrace layer selected, `dol` the draw it
   // priced, the sweep extreme the raid it demanded. Built here, before the
@@ -599,11 +620,19 @@ function gradeBook(
   });
 
   const musts = layers.filter((l) => l.must);
-  const mustPass = musts.filter((l) => l.state === "pass").length;
+  const htfPass = layers.some((l) => l.id === "htf" && l.state === "pass");
+  // PATH bar = A+/A/A- (>= 0.65) or B+ (>= 0.60, its own config band) —
+  // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
+  const pathOk = isPathFire(cand);
+  // A live path with HTF agreement is not stood down because the raid, the
+  // premium/discount half, or the LTF shift is missing. Those cut size.
+  // They are still on the card. They do not set the word to STAND.
+  const ignorable = (l: { id: string; state: string }) =>
+    pathOk && htfPass && (cand?.confluence ?? 0) >= 0.8 && (l.id === "sweep" || l.id === "pd_half" || l.id === "ltf" || l.id === "dol") && l.state === "fail";
+  const mustPass = musts.filter((l) => l.state === "pass" || ignorable(l)).length;
   const mustNeed = musts.length;
-  const mustFail = musts.find((l) => l.state === "fail");
+  const mustFail = musts.find((l) => l.state === "fail" && !ignorable(l));
   const mustWait = musts.find((l) => l.state === "wait");
-  const pathOk = isHighProbPath(cand);
 
   // Armed: every must-layer passes except the retrace, which is WAITING with
   // a named fresh array (price outside it, not missing). With
@@ -616,7 +645,7 @@ function gradeBook(
     !mustFail &&
     retraceLayer?.state === "wait" &&
     fresh != null &&
-    musts.every((l) => l.id === "retrace" || l.state === "pass");
+    musts.every((l) => l.id === "retrace" || l.state === "pass" || ignorable(l));
 
   let word: SmcMasterBook["word"] = "STAND";
   if (mustFail) word = "STAND";

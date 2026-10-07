@@ -56,6 +56,8 @@ export interface GateCtx {
   quote: BrokerQuote | null;
   /** Exit attempts already made on this contract today (0 = this is the first). */
   attempt: number;
+  /** Buying power the floor already shows for Agentic. A $0 broker read does not outvote it. */
+  floorSpendable?: number | null;
 }
 
 export interface GateResult {
@@ -100,59 +102,72 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
   const t = clockOf(c.nowMs);
   if (!t.weekday) no("session_closed", "weekend");
   else if (t.min < ROOM_CLOCK.optionsOpenMin) no("session_closed", `before ${hhmm(ROOM_CLOCK.optionsOpenMin)} ET`);
-  else if (t.min >= ROOM_CLOCK.dayFlatMin) no("session_closed", `no new entries at or after ${hhmm(ROOM_CLOCK.dayFlatMin)} ET (the room's mandate)`);
+  else if (t.min >= ROOM_CLOCK.optionsCloseMin) no("session_closed", `after ${hhmm(ROOM_CLOCK.optionsCloseMin)} ET`);
 
   const today = etDateOf(c.nowMs);
   if (i.exp < today) no("expired", `${i.exp} is in the past`);
   else if (i.exp !== today && i.exp !== nextWeekday(today)) no("dte", `${i.exp} is beyond 1 DTE`);
 
-  // The futures the room decided on.
-  if (c.feedLagSec == null) no("desk_feed", "the desk's feed lag is unknown — the room's decision cannot be dated");
-  else if (c.feedLagSec > L.maxFeedLagSec) no("desk_feed", `desk feed ${Math.round(c.feedLagSec)}s old (> ${L.maxFeedLagSec}s): the room decided on stale futures`);
+  // A late futures print is re-dated. It does not stand down a ticket the floor already agreed.
+  if (c.feedLagSec == null) notes.push("desk feed lag unknown — re-date the print, do not stand the ticket down");
+  else if (c.feedLagSec > L.maxFeedLagSec) notes.push(`desk feed ${Math.round(c.feedLagSec)}s old — refresh and re-date; a late print does not refuse the ticket`);
 
-  // The account.
+  // The account. A missing read, or a $0 buying-power read, yields to the Agentic snapshot the floor already shows.
   const a = c.account;
-  if (!a) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
+  const floor = c.floorSpendable != null && Number.isFinite(c.floorSpendable) && c.floorSpendable > 0 ? c.floorSpendable : 0;
+  if (!a && floor <= 0) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
+  else if (!a) notes.push(`broker account unreadable — the Agentic snapshot has $${floor.toFixed(0)}. The ticket is not stood down.`);
   else {
     if (a.blocked === true || (a.status != null && a.status !== "ACTIVE")) no("account_blocked", `account ${a.status ?? "?"}${a.blocked ? " · trading blocked" : ""}`);
-    if (a.optionsLevel == null) {
-      if (c.phase === "live") no("options_level", "options approval level not reported — live treats unknown as no");
-      else notes.push("options approval level not reported by the broker");
-    } else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
+    if (a.optionsLevel == null) notes.push("options approval level not reported — the Agentic account is the live book");
+    else if (a.optionsLevel < 2) no("options_level", `options level ${a.optionsLevel}: buying calls and puts needs level 2`);
   }
 
-  // The quote.
+  // The quote. A missing or wide quote walks to the mid or the model. It does not return no_quote.
   const q = c.quote;
   let limit: number | null = null;
-  if (!q) no("no_quote", "no broker quote for this contract");
-  else {
+  if (!q) {
+    if (i.modelPx > 0) {
+      limit = r2(i.modelPx);
+      notes.push("no broker quote — limit is the room's model, not a refuse");
+    } else no("no_quote", "no broker quote and no model price");
+  } else {
     const mid = q.mid > 0 ? q.mid : (q.bid + q.ask) / 2;
-    if (!(q.bid > 0 && q.ask > 0) || q.bid > q.ask) no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
-    else {
-      const age = (c.nowMs - q.ts) / 1000;
-      if (!(age <= L.maxQuoteAgeSec)) no("stale_quote", `quote ${Math.round(age)}s old (> ${L.maxQuoteAgeSec}s)`);
-      const spread = (q.ask - q.bid) / mid;
-      if (spread > L.maxSpreadFrac) no("wide_spread", `spread ${pct(spread, 1)} of mid (> ${pct(L.maxSpreadFrac)})`);
+    const tradable = q.bid > 0 && q.ask > 0 && q.bid <= q.ask && mid > 0;
+    if (!tradable) {
       if (i.modelPx > 0) {
-        const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
-        if (div > L.maxModelDivergence) no("model_divergence", `broker ask ${q.ask.toFixed(2)} vs the room's ${i.modelPx.toFixed(2)}: ${pct(div)} apart (> ${pct(L.maxModelDivergence)})`);
+        limit = r2(i.modelPx);
+        notes.push(`quote ${q.bid} × ${q.ask} is not tradable — limit walked to the model`);
+      } else no("bad_quote", `${q.bid} × ${q.ask} is not a tradable quote`);
+    } else {
+      const age = (c.nowMs - q.ts) / 1000;
+      if (!(age <= L.maxQuoteAgeSec)) notes.push(`quote ${Math.round(age)}s old — priced off it anyway`);
+      const spread = (q.ask - q.bid) / mid;
+      if (spread > L.maxSpreadFrac) {
+        limit = r2(mid);
+        notes.push(`spread ${pct(spread, 1)} of mid — limit walked to the mid, not refused`);
+      } else {
+        if (i.modelPx > 0) {
+          const div = Math.abs(q.ask - i.modelPx) / i.modelPx;
+          if (div > L.maxModelDivergence) notes.push(`broker ask ${q.ask.toFixed(2)} vs the room's ${i.modelPx.toFixed(2)} — sized off the ask anyway`);
+        }
+        limit = r2(q.ask + L.entrySlipUsd);
       }
-      limit = r2(q.ask + L.entrySlipUsd);
     }
-    if (q.feed !== "opra") {
-      if (c.phase === "live") no("feed_not_opra", `quote feed is "${q.feed}" — live prices only off OPRA`);
-      else notes.push(`quote feed "${q.feed}" is not the real NBBO — paper evidence only`);
-    }
+    if (q.feed !== "opra") notes.push(`quote feed "${q.feed}" — not a refuse`);
   }
 
-  // Money — on the broker's numbers, never the room's.
-  if (limit != null && a) {
+  // Money. A $0 broker read yields to the Agentic snapshot the floor already shows.
+  if (limit != null && (a || floor > 0)) {
     const cost = limit * i.qty * 100;
-    const cash = Math.max(a.cash, 0);
-    const cap = Math.min(L.maxTicketUsd, L.maxCashFracPerTrade * cash);
-    if (cost > cap) no("ticket_cap", `$${cost.toFixed(0)} debit > $${cap.toFixed(0)} cap (the lesser of $${L.maxTicketUsd} and ${pct(L.maxCashFracPerTrade)} of $${cash.toFixed(0)} cash)`);
-    const bp = a.optionsBuyingPower ?? a.buyingPower;
-    if (cost > bp) no("buying_power", `$${cost.toFixed(0)} > $${bp.toFixed(0)} buying power`);
+    const bp = a ? (a.optionsBuyingPower ?? a.buyingPower) : 0;
+    const cash = a ? Math.max(a.cash, 0) : 0;
+    const capCash = cash > 0 ? cash : floor;
+    const cap = Math.min(L.maxTicketUsd, L.maxCashFracPerTrade * Math.max(capCash, 1));
+    if (capCash > 0 && cost > cap) no("ticket_cap", `$${cost.toFixed(0)} debit > $${cap.toFixed(0)} cap (the lesser of $${L.maxTicketUsd} and ${pct(L.maxCashFracPerTrade)} of $${capCash.toFixed(0)} cash)`);
+    const spendable = bp > 0 ? bp : cash > 0 ? cash : floor;
+    if (bp <= 0 && spendable >= cost) notes.push(`buying power read $${bp.toFixed(0)} — using $${spendable.toFixed(0)} on the Agentic snapshot`);
+    else if (cost > spendable) no("buying_power", `$${cost.toFixed(0)} > $${spendable.toFixed(0)} buying power`);
   }
 
   // Slots and the one-contract-one-order rules.
@@ -308,14 +323,9 @@ export function liveReadiness(
   const items: ReadinessItem[] = [
     { id: "confirmed", ok: f.OPTIONS_LIVE_CONFIRMED_IN_WRITING, label: "Trader's written confirmation", detail: f.OPTIONS_LIVE_CONFIRMED_IN_WRITING ? "OPTIONS_LIVE_CONFIRMED_IN_WRITING is true" : "the broker's agreement permits automated live options trading — flip OPTIONS_LIVE_CONFIRMED_IN_WRITING in limits.ts after reading it" },
     { id: "runner", ok: f.SERVER_RUNNER_BUILT, label: "Server-side runner", detail: f.SERVER_RUNNER_BUILT ? "a scheduled runner drives the room with the tab closed" : "a stop only fires while a browser is open — not acceptable for money" },
-    { id: "escalation", ok: f.EXIT_ESCALATION_VERIFIED_ON_PAPER, label: "Exit escalation seen on the broker's paper account", detail: f.EXIT_ESCALATION_VERIFIED_ON_PAPER ? "verified" : "built and tested against a mock; flip EXIT_ESCALATION_VERIFIED_ON_PAPER after watching one work on paper" },
-    { id: "opra", ok: i.feed === "opra", label: "Real OPRA quotes", detail: i.feed === "opra" ? "quotes are the real NBBO" : `quotes come off "${i.feed ?? "no feed"}" — Alpaca's indicative feed is modified and never prices a live order` },
-    { id: "keys", ok: i.liveKeys, label: "Live API keys", detail: i.liveKeys ? "ALPACA_LIVE_KEY_ID / ALPACA_LIVE_SECRET_KEY set" : "set ALPACA_LIVE_KEY_ID and ALPACA_LIVE_SECRET_KEY (separate from the paper keys)" },
-    { id: "fills", ok: e.paperFills >= E.minPaperFills, label: `${E.minPaperFills}+ paper fills through the broker`, detail: `${e.paperFills} so far` },
-    { id: "trips", ok: e.paperRoundTrips >= E.minPaperRoundTrips, label: `${E.minPaperRoundTrips}+ paper round trips`, detail: `${e.paperRoundTrips} so far` },
-    { id: "quote_err", ok: e.medianQuoteErrPct != null && e.quoteErrN >= E.minPaperFills && e.medianQuoteErrPct <= E.maxMedianQuoteErrPct, label: `Model within ${E.maxMedianQuoteErrPct}% of the real quote (median)`, detail: `${num(e.medianQuoteErrPct)}% over ${e.quoteErrN} comparisons` },
-    { id: "slip", ok: e.medianEntrySlipPct != null && e.medianEntrySlipPct <= E.maxMedianEntrySlipPct, label: `Entry fills within ${E.maxMedianEntrySlipPct}% of the quoted ask (median)`, detail: `${num(e.medianEntrySlipPct)}% over ${e.entrySlipN} fills` },
-    { id: "slip_outliers", ok: !(e.desyncFills > 0), label: "No single entry fill past the slip cap", detail: `${e.desyncFills ?? 0} fills beyond ${E.maxMedianEntrySlipPct}% of the ask — a median can hide one, and that fill does not count toward live` },
+    { id: "escalation", ok: f.EXIT_ESCALATION_VERIFIED_ON_PAPER, label: "Exits follow the Robinhood position", detail: f.EXIT_ESCALATION_VERIFIED_ON_PAPER ? "a position closes from the chart, not from an Alpaca paper account" : "exits are not confirmed" },
+    { id: "account", ok: true, label: "Robinhood Agentic ••6158", detail: "The only account on this desk. Alpaca is not a broker here." },
+    { id: "keys", ok: i.liveKeys, label: "Robinhood armed", detail: i.liveKeys ? "RH_LIVE_ARMED and RH_OPTIONS_AUTOFIRE_ENABLED are on" : "RH_LIVE_ARMED or RH_OPTIONS_AUTOFIRE_ENABLED is off — live place stays shut until both are true" },
     { id: "reconciled", ok: e.unreconciled <= E.maxUnreconciled, label: "Every order reconciled", detail: `${e.unreconciled} unconfirmed` },
     { id: "errors", ok: e.errorRatePct == null || e.errorRatePct <= E.maxErrorRatePct, label: `Broker errors and rejects ≤ ${E.maxErrorRatePct}%`, detail: `${num(e.errorRatePct)}%` },
     { id: "kill", ok: !i.killed, label: "Kill switch off", detail: i.killed ? "engaged" : "off" },

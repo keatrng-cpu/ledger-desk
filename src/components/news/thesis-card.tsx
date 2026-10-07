@@ -6,7 +6,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, Sparkles } from "lucide-react";
+import { CloudOff, ExternalLink, RefreshCw, Sparkles } from "lucide-react";
+import { isConfigGap, scrubEnv, SETUP_URL } from "@/lib/ui/offline";
 import { getNewsThesis } from "@/lib/news/thesis-server";
 import type { ThesisResult, ThesisRun } from "@/lib/news/thesis";
 
@@ -115,6 +116,27 @@ export function ThesisCard() {
   useEffect(() => run(), [run]);
 
   const p = res?.primary ?? null;
+  // Every model that was tried failed for want of a key/setting → one calm
+  // offline card. No env var names, no per-model error dump.
+  const noRun = !!res && !(p && (p.thesis || p.raw)) && !(res.second && (res.second.thesis || res.second.raw));
+  const offline = noRun && res!.tried.length > 0 && res!.tried.every((t) => !t.ok && isConfigGap(t.error));
+  if (offline) {
+    return (
+      <section className={`${CARD} flex flex-wrap items-center gap-3`} role="status">
+        <CloudOff size={16} className="shrink-0 text-[var(--color-muted)]" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-semibold text-[var(--color-fg)]">AI thesis offline</p>
+          <p className="text-[11px] leading-snug text-[var(--color-muted)]">
+            The model connection isn&apos;t set up on this server, so there&apos;s no written thesis. Everything below — the
+            calendar, the timeline and each headline&apos;s summary and impact — still works without it.
+          </p>
+        </div>
+        <a href={SETUP_URL} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 ${BTN}`}>
+          Setup <ExternalLink size={11} aria-hidden />
+        </a>
+      </section>
+    );
+  }
   const at = res ? new Date(res.generatedAt).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) : null;
   return (
     <section className={`${CARD} border-[color-mix(in_oklab,var(--color-accent)_40%,transparent)]`}>
@@ -132,7 +154,7 @@ export function ThesisCard() {
         </button>
       </div>
       {loading && !res && <p className="text-[11px] text-[var(--color-muted)]">Reading the feeds, the calendar, the pulse and today's games, and searching other sources… up to ~25 seconds.</p>}
-      {err && <p className="text-[11px] text-[var(--color-warn)]">Thesis unavailable — {err}</p>}
+      {err && <p className="text-[11px] text-[var(--color-warn)]">Thesis unavailable — {scrubEnv(err)}</p>}
       {res && p && (p.thesis || p.raw) ? (
         <ThesisView run={p} />
       ) : res ? (
@@ -160,7 +182,7 @@ export function ThesisCard() {
       )}
       {res && res.tried.some((t) => t.error) && (
         <p className="mt-1 text-[10px] leading-snug text-[var(--color-muted)]">
-          Tried: {res.tried.map((t) => `${t.model} ${t.ok ? "✓" : `— ${t.error ?? "no JSON"}`}`).join(" · ")}
+          Tried: {res.tried.map((t) => `${t.model} ${t.ok ? "✓" : `— ${isConfigGap(t.error) ? "offline (not set up)" : scrubEnv(t.error ?? "no JSON")}`}`).join(" · ")}
         </p>
       )}
     </section>

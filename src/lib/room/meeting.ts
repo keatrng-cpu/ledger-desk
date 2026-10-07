@@ -225,7 +225,7 @@ function closed(f: Facts): Line[] {
     say("Jax", banter, "FURIOUS_TYPING"),
     say("Nova", note ? `Use the quiet, Jax. ${note.line}` : `${vixTxt(f)}. Nothing to price while it's shut.`, "NODDING"),
     say("Jax", quip, "POINTING"),
-    say("Sterling", `What makes a trade is the desk's word, the CE touch and my list — in that order. ${book}`, "CHECKING_TABLET"),
+    say("Sterling", `CE is the midpoint of a gap, and only when we are still inside it. An inverted 5m that has displaced is already the entry. A mitigation block is a failed second push — we don't wait to hit one. ${book}`, "CHECKING_TABLET"),
     say("Vince", `Options closed. Nothing routes until 09:30 ET.${d?.lagSec != null ? ` Futures feed ${d.feed}.` : ""}`, "STEADY_MONITORING"),
   ];
 }
@@ -263,9 +263,9 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
   const hot = hotTape(f);
   const push = jaxPush(f);
   const gemma = d?.judas
-    ? `Judas window until 09:45. Whatever runs off the open is the raid until it fails — name it, don't trade it. ${htfLine(f)}`
+    ? `Judas window. The open is the raid until it fails — name it. Size is cut. A card whose one-hour and four-hour gaps agree is still a ticket. ${htfLine(f)}`
     : d?.news.blackout
-      ? `${d.news.reason || "News blackout"} — ±15 minutes, hands off. The first impulse off a release is usually the raid. ${htfLine(f)}`
+      ? `${d.news.reason || "News on"} — size comes down. The first impulse off a release is usually the raid. The chart still decides. ${htfLine(f)}`
       : `${htfLine(f)} ${printLine(f)}`;
   const jax =
     hot && push
@@ -286,8 +286,8 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
     say(
       "Nova",
       d?.judas
-        ? "09:45, and a raid that closes back inside the pool it took. Then the sequence prices a CE and Vince rests a limit there."
-        : `${c.smcMissing} prints, the sequence prices a CE, and Vince rests the limit there. Until then it's a picture.`,
+        ? "09:45 is when size comes back up. A raid that closes back inside the pool is the sequence. A card that is already armed does not wait out the clock."
+        : `${c.smcMissing} is a missing layer. Size is cut. The one-minute or five-minute inverse is the entry. The fifteen-minute card is the permission.`,
       "WRITING_ON_WHITEBOARD",
     ),
     say("Sterling", `Desk ${c.verdict}: ${(c.blocks[0] ?? c.smcMissing).replace(/\.$/, "")}. Nothing to clear.${patternWarning(c)}`, "CHECKING_TABLET"),
@@ -334,7 +334,7 @@ function triggerWait(f: Facts, minds: MindState | null): Line[] {
     say("Jax", `${c.futSymbol} ${c.futSide}, PATH ${c.band ?? "—"} — ${where(c)}. ${sideWord(c.type).toUpperCase()}, now, before it leaves!`, "POINTING"),
     say("Vince", `We rest at CE ${px(c.plan?.entry ?? 0)}, Jax. ${fill ? fill.line : ""}`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Jax", "And if it never comes back?", "SHOUTING"),
-    say("Vince", `Then we didn't pay for a move we missed. Your own school says it: "${tjrNeverChase}." ${c.awayPts != null ? `${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}.` : ""}`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
+    say("Vince", `Then we didn't pay for a move we missed. The next entry is the pullback into the array, at CE — not the extension. "${tjrNeverChase}."`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Nova", `${greeksLine(f)}${memory ? ` ${memory}` : ""}`, "WRITING_ON_WHITEBOARD"),
     say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}. It fires on the CE touch and nothing else.`, "CHECKING_TABLET"),
   ];
@@ -477,7 +477,7 @@ function fill(f: Facts): Line[] {
       `Cleared. Slot ${f.input.portfolio.open_positions.length + 1}/${ROOM_MANDATE.maxOpenPositions} · debit ${usd(e.debitUsd)} under a ${usd(e.capUsd)} cap · ${STOP_TXT} = ${usd(-e.stopUsd)} · exit on the level first${room != null ? ` · day halt room ${usd(room)}` : ""}.`,
       "APPROVING",
     ),
-    say("Vince", `BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} (mid ${prem(e.quote.mid)} + ${prem(HALF_SPREAD)}) · ${src}. Sent.`, "SMASHING_ENTER_KEY"),
+    say("Vince", `We're in. BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} (mid ${prem(e.quote.mid)} + ${prem(HALF_SPREAD)}) · ${src}. Sent.`, "SMASHING_ENTER_KEY"),
     say("Gemma", `${htfLine(f)} If it's wrong, it's wrong at ${c.futSymbol} ${px(c.plan?.stop ?? 0)} — that's the exit, before any percentage.`, "GESTICURING_AT_WALL"),
     say("Nova", odds ? `For the record: ${odds.line}` : "For the record: most fills never see T1.", "NODDING"),
   ];
@@ -493,7 +493,6 @@ function holding(f: Facts): Line[] {
     lv && lv.t1 != null
       ? ` ${lv.symbol} ${px(lv.price)} against T1 ${px(lv.t1)} — ${ptsTxt(Math.abs(lv.t1 - lv.price))} to go.`
       : "";
-  const flatIn = ROOM_CLOCK.dayFlatMin - f.etMin;
   const room = f.ledger ? APLUS_RULES.dailyLossLimitPct * f.ledger.dayStartEquity + f.ledger.realizedTodayUsd : null;
   const hold = f.holds[best.id];
   const holdTxt = hold
@@ -504,7 +503,7 @@ function holding(f: Facts): Line[] {
     say("Nova", `Easy, Jax. ${best.id}: ${Math.abs(q.delta).toFixed(2)}Δ, theta ${prem(q.thetaDay)} a share a day.${toT1}${holdTxt}`, "ANALYZING"),
     say(
       "Gemma",
-      `${flatIn > 0 ? `${flatIn} minutes to the 11:00 flat.` : "Past the 11:00 flat for day tickets."} ${htfLine(f)} ${printLine(f)}`,
+      `${htfLine(f)} ${printLine(f)} Lunch is not a stop. We look until the close.`,
       "EXPLAINING",
     ),
   ];
@@ -515,7 +514,7 @@ function holding(f: Facts): Line[] {
     lines.push(
       say(
         "Sterling",
-        `Exits staged on ${best.id}: ${lv ? `${lv.symbol} ${px(lv.stop)} level, ` : ""}${best.trimmed ? "breakeven" : STOP_TXT}, 11:00.${room != null ? ` Halt room ${usd(room)}.` : ""}`,
+        `Exits staged on ${best.id}: ${lv ? `${lv.symbol} ${px(lv.stop)} level, ` : ""}${best.trimmed ? "breakeven" : STOP_TXT}, and the chart. Eleven o'clock does not flatten it.${room != null ? ` Halt room ${usd(room)}.` : ""}`,
         "CHECKING_TABLET",
       ),
     );
@@ -630,18 +629,18 @@ function exitLines(f: Facts): Line[] {
 }
 
 const VETO_WHY: Record<string, string> = {
-  one_book: "One book a day — MNQ or ES, never both. Two underliers on one morning is the same bet twice.",
+  one_book: "One order per index. QQQ is MNQ and SPY is ES. The other index is a second ticket, not a veto.",
   one_bias: "We don't buy the other side of our own position.",
   slots: "Three is the ceiling. We manage what we have.",
   cash_cap: "We don't buy smaller to make a contract fit the cap.",
   halt_day: "The day halt is the day halt. We're done until tomorrow.",
   halt_week: "The weekly halt is hit. Nothing new this week.",
-  killzone: "Two entries a killzone. That's the cap.",
-  after_ten: "After 10:00 it's A+ only, and this isn't one.",
-  month: "Nine PATH a month, then A+ only.",
-  cooldown: "Two losses in a row — A+ only until the streak breaks.",
+  killzone: "The killzone count cuts size. It does not take the ticket off.",
+  after_ten: "After 10:00 the size comes down. The chart still decides.",
+  month: "Month is full — size comes down. The chart still decides.",
+  cooldown: "Two losses in a row — size comes down. The chart still decides.",
   clock: "The stop would fire on theta before price ever got a vote. That's a clock, not a stop.",
-  before_flat: "It's past the 11:00 flat. Day tickets don't start now.",
+  before_flat: "Past 11:00 the size comes down. The chart still decides.",
   trigger: "Price walked off the plan. A new plan, or nothing.",
   no_average: "One plan, one fill. We never average.",
   ledger: "No book counters, no halt check, no ticket.",
@@ -781,7 +780,13 @@ function postNews(f: Facts, m: Meeting): Line[] {
   ];
 }
 
-function setupReview(f: Facts, m: Meeting): Line[] {
+function remembered(minds: MindState | null): string | null {
+  const pending = minds?.people?.pending;
+  if (pending) return pending.text;
+  return null;
+}
+
+function setupReview(f: Facts, m: Meeting, minds: MindState | null): Line[] {
   const s = m.setup!;
   const bPlus = s.band === "B+";
   const q = qNote();
@@ -795,15 +800,15 @@ function setupReview(f: Facts, m: Meeting): Line[] {
     say(
       "Sterling",
       bPlus
-        ? "B+ is paper only — half a percent on the futures book, no options ticket. That's the rule."
-        : s.actionable
-          ? "It's on Vince's list. It still needs the CE touch."
-          : `Not armed yet${s.missing ? ` — ${s.missing}` : ""}.`,
+        ? "B+ is live. Smaller size. Same chart."
+        : !s.actionable
+          ? `Not armed yet${s.missing ? ` — ${s.missing}` : ""}.`
+          : "If the 5m inverted and displaced, that close is the entry. CE is only the midpoint of a gap we are still inside. A mitigation block is a failed second push — we don't wait to hit one.",
       "CROSSING_ARMS",
     ),
     say("Gemma", `${htfLine(f)} The ${s.side} is ${f.desk?.htf[s.symbol.includes("ES") ? "SPY" : "QQQ"] === (s.side === "long" ? "bull" : "bear") ? "with" : "against"} the higher frame. ${printLine(f)}`, "GESTICURING_AT_WALL"),
-    say("Vince", f.card?.plan ? `CE would be ${px(f.card.plan.entry)} on ${f.card.futSymbol}.` : "No CE priced yet — nothing to rest.", "STEADY_MONITORING"),
-    say("Nova", q ? `And remember: ${q.line}` : creed("Nova"), "NODDING"),
+    say("Vince", f.card?.plan ? `The gap's midpoint — CE — is ${px(f.card.plan.entry)} on ${f.card.futSymbol}. We rest there only while price is still inside the gap.` : "No gap priced, so no midpoint.", "STEADY_MONITORING"),
+    say("Nova", q ? `And remember: ${q.line}` : remembered(minds) ?? creed("Nova"), "NODDING"),
   ];
 }
 
@@ -909,7 +914,7 @@ export function buildMeeting(
           : meeting.kind === "post_news"
             ? postNews(f, meeting)
             : meeting.kind === "setup"
-              ? setupReview(f, meeting)
+              ? setupReview(f, meeting, minds)
               : meeting.kind === "debrief"
                 ? debrief(f, minds)
                 : restamp(f);
@@ -923,10 +928,15 @@ export function buildMeeting(
   else if (f.beat === "blocked" && f.card) lines = blocked(f, minds);
   else lines = chop(f, minds, acts);
 
-  // RH account on the desk: when the Floor would fire but the RH account can't
-  // carry the $150 floor, Sterling says so — the armed RH path stands down.
+  // RH account on the desk. Funded Agentic: the crew says the buying power
+  // is ready. Short or inaccessible: Sterling says the armed path stands down.
   const wouldFire = f.beat === "fill" || f.beat === "trigger_wait" || (f.card?.verdict === "ARMED" && f.beat !== "closed" && f.beat !== "rejected");
-  if (wouldFire && "rhAccount" in f && rhAccountShort(f.rhAccount)) {
+  if ("rhAccount" in f && f.rhAccount && !rhAccountShort(f.rhAccount) && f.rhAccount.agenticAllowed !== false) {
+    lines.splice(1, 0, say("Sterling", rhAccountNote(f.rhAccount).line, "APPROVING"));
+    if (!lines.some((l) => l.who === "Vince")) {
+      lines.splice(2, 0, say("Vince", rhArmedPathNote(f.rhAccount, f.nowMs).line, "THUMBS_UP"));
+    }
+  } else if (wouldFire && "rhAccount" in f && rhAccountShort(f.rhAccount)) {
     lines.splice(Math.min(lines.length, 7), 0, say("Sterling", rhArmedPathNote(f.rhAccount, f.nowMs).line, "CROSSING_ARMS"));
   }
 

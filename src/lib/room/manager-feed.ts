@@ -1,8 +1,15 @@
 /**
  * Trading Stand Manager — room state contract (Design Atelier).
  *
- * Presentation + stub only. Does NOT wire agentAgree into rh-autofire gates,
- * does not place orders, does not touch Robinhood / exec/**.
+ * Two feeds implement ManagerFeed:
+ *  - the REAL feed (manager-room-feed.ts createRoomManagerFeed): ManagerRoomState
+ *    derived from the room engine's actual cycle (orchestrator chair/call output)
+ *    plus the live Agentic account read. Its state reaches the RH Stand bit via
+ *    managerStateForAgree → resolveStandAgentAgree / candidateFromFloorPathStand.
+ *  - the demo stub below (createStubManagerFeed, dev ?manager=stub only): a phase
+ *    cycle for presentation. managerStateForAgree returns null for it, so a demo
+ *    AGREED can NEVER become a live agentAgree.
+ * Nothing here places orders or touches Robinhood / exec/**.
  *
  * Open/close lifecycle may report through reportAutomation (read-only seam).
  */
@@ -11,6 +18,7 @@ import { reportAutomation } from "@/lib/ui/automation-state";
 import { agentAgreeFromManagerRoomState } from "@/lib/execution/manager-agree";
 import {
   DEFAULT_MANAGER_ROOM_ACCOUNT,
+  managerAccountLine,
   type ManagerRhAccount,
 } from "@/lib/execution/manager-account";
 
@@ -152,6 +160,35 @@ export interface ManagerRoomState {
    * Display + accountPlaceGate only; nothing here places.
    */
   account: ManagerRhAccount;
+  /**
+   * Floor → RH signals from the real room cycle (manager-room-feed.ts). Absent on
+   * the stub. Read by the live loop (manager-live-loop.ts) for evaluateRhFloorRules
+   * and the B+ gate; every missing value refuses.
+   */
+  signals?: ManagerRoomSignals;
+}
+
+export interface ManagerRoomSignals {
+  /** The room frame's instant (= desk.fetchedAt) — tape age = now − frameAt. */
+  frameAt: number;
+  /** Room beat this cycle (orchestrator Beat). */
+  beat: string;
+  /** Room "trigger" gate: CE touched at the array (null = no card / unknown). */
+  ceTouch: boolean | null;
+  /** Card DTE (0/1 by mandate; null = no card). */
+  dte: number | null;
+  /** SMC sequence word on the card's side is TAKE. */
+  seqTake: boolean | null;
+  /** Room vetoed / Stand VETO / Owner DECLARE_VETO for this decision. */
+  vetoed: boolean | null;
+  /** Futures book the card expresses (PATH fire match). */
+  futSymbol: string | null;
+  futSide: "long" | "short" | null;
+  expiry: string | null;
+  /** Room's own option price estimate per share (model — the live quote replaces it). */
+  estDebitEach: number | null;
+  /** Desk feed is synthetic — never live. */
+  synthetic: boolean;
 }
 
 /* ── Steer (chips → emit only; no gate wiring) ──────────────────────────── */
@@ -422,7 +459,7 @@ function buildState(
     open: mockOpen(phase, cycleId, now),
     close: mockClose(phase, now),
     ...baseSnaps(mood),
-    // The RH account block: the Individual ••••7477 snapshot until a host injects a live read.
+    // The RH account block: funded Agentic ••••6158 until a host injects a newer read.
     account: DEFAULT_MANAGER_ROOM_ACCOUNT,
   };
 }
@@ -613,8 +650,11 @@ export function createStubManagerFeed(
 
 /** Caption text for the Manager speech bubble from room state. */
 export function managerBubbleText(s: ManagerRoomState): string | null {
-  if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}`;
-  return `[${s.current}] Standing by.`;
+  const acct = s.account ? ` ${managerAccountLine(s.account)}. Cash $${s.account.cashUsd.toFixed(2)} on Agentic ••••6158.` : "";
+  if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}${acct}`;
+  // Nothing to say while idle: no bubble rather than a "[IDLE] Standing by." filler over the stand.
+  if (s.current === "IDLE") return null;
+  return `[${s.current}] Buying power is on the desk.${acct}`;
 }
 
 /** Map ManagerPhase → rough EntryMood tint for the avatar accent. */

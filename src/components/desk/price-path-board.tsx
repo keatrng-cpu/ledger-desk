@@ -1,3 +1,4 @@
+import { StateWord } from "@/components/desk/state-word";
 /**
  * Instant "where is price going" — HTF + dealing + draw + PATH, both books.
  * One glance. Not a trigger. Hard gates still live on the scanner.
@@ -387,19 +388,7 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
         <p className="text-[12px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">
           Where price is going
         </p>
-        <span
-          className={cn(
-            "rounded-full border px-2.5 py-0.5 font-mono text-[11px] font-bold",
-            v.word === "TAKE" &&
-              "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
-            v.word === "STAND" &&
-              "border-[var(--color-border)] text-[var(--color-muted)]",
-            v.word === "MANAGE" &&
-              "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] text-[var(--color-warn)]",
-          )}
-        >
-          {v.word}
-        </span>
+        <StateWord raw={v.word} />
       </header>
       <p className="mb-2 font-mono text-[13px] text-[var(--color-muted)]">
         <Plain>{desk.smcMaster.thesis}</Plain>

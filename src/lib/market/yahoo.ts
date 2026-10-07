@@ -83,7 +83,40 @@ const YAHOO_HEADERS = {
   Accept: "application/json",
 } as const;
 
-export async function yahooChart(
+/**
+ * In-flight sharing (2026-10-06 desk budget). The desk build asks for the
+ * SAME 1d/1m chart twice per book — once for the ladder's minute bars, once
+ * for the live quote's meta — and the quote poll asks again. One request per
+ * (ticker, range, interval) is in flight at a time; later callers join it.
+ * Nothing is cached past the request's own lifetime, so freshness is
+ * unchanged: a joiner gets the exact response the first caller got.
+ */
+const chartInflight = new Map<string, Promise<YahooChartResult | null>>();
+
+/**
+ * Hedge delay for the sequential-host path. query1 used to get the full 15s
+ * abort before query2 was even tried (30s worst case on the desk's critical
+ * path). Now query2 starts if query1 has not answered by this point; the
+ * first good answer wins. 1m charts already race both hosts.
+ */
+const HOST_HEDGE_MS = 2_500;
+
+export function yahooChart(
+  yahoo: string,
+  range: YahooRange,
+  interval: YahooInterval,
+): Promise<YahooChartResult | null> {
+  const key = `${yahoo}|${range}|${interval}`;
+  const running = chartInflight.get(key);
+  if (running) return running;
+  const p = yahooChartOnce(yahoo, range, interval).finally(() => {
+    chartInflight.delete(key);
+  });
+  chartInflight.set(key, p);
+  return p;
+}
+
+async function yahooChartOnce(
   yahoo: string,
   range: YahooRange,
   interval: YahooInterval,
@@ -112,14 +145,40 @@ export async function yahooChart(
       return null;
     }
   }
-  for (const host of YAHOO_HOSTS) {
-    try {
-      return await fetchOne(host);
-    } catch {
-      /* next host */
-    }
-  }
-  return null;
+  // Hedged: host N+1 starts when host N fails OR has been silent for
+  // HOST_HEDGE_MS, whichever comes first. A healthy query1 (sub-second)
+  // never triggers a second request.
+  return await new Promise<YahooChartResult | null>((resolve) => {
+    let pending = 0;
+    let next = 0;
+    let done = false;
+    const launch = () => {
+      if (done || next >= YAHOO_HOSTS.length) return;
+      const host = YAHOO_HOSTS[next++]!;
+      pending++;
+      const hedge = setTimeout(launch, HOST_HEDGE_MS);
+      fetchOne(host).then(
+        (json) => {
+          clearTimeout(hedge);
+          if (!done) {
+            done = true;
+            resolve(json);
+          }
+        },
+        () => {
+          clearTimeout(hedge);
+          pending--;
+          if (done) return;
+          if (next < YAHOO_HOSTS.length) launch();
+          else if (pending === 0) {
+            done = true;
+            resolve(null);
+          }
+        },
+      );
+    };
+    launch();
+  });
 }
 
 
@@ -464,16 +523,27 @@ export function pearsonCorr(a: number[], b: number[]): number | null {
   return Number.isFinite(r) ? r : null;
 }
 
-/** Align two series by exact bar timestamps, then compute returns. */
+/**
+ * Align two series by exact bar timestamps, then compute returns.
+ * Drops the last paired bar only when it is still forming (`nowMs < t + barMs`).
+ * When the market is closed / the last bar is complete, it is kept — so a
+ * closed session does not throw away a real closed bar.
+ */
 export function alignedReturnPairs(
   left: OhlcBar[],
   right: OhlcBar[],
+  opts?: { nowMs?: number; barMs?: number },
 ): { left: number[]; right: number[] } {
   const mapR = new Map(right.map((b) => [b.t, b.c]));
-  const paired: { lc: number; rc: number }[] = [];
+  const paired: { t: number; lc: number; rc: number }[] = [];
   for (const b of left) {
     const rc = mapR.get(b.t);
-    if (rc != null) paired.push({ lc: b.c, rc });
+    if (rc != null) paired.push({ t: b.t, lc: b.c, rc });
+  }
+  // Exclude the forming (last) bar only while it is still open.
+  if (paired.length > 0 && opts?.nowMs != null && opts?.barMs != null && opts.barMs > 0) {
+    const last = paired[paired.length - 1]!;
+    if (opts.nowMs < last.t + opts.barMs) paired.pop();
   }
   const lr: number[] = [];
   const rr: number[] = [];

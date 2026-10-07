@@ -29,8 +29,12 @@ function makeTag(title: string, subtitle: string, color: string): THREE.Sprite {
   ctx.fillText(subtitle, 30, 68);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  sp.scale.set(1.15, 0.25, 1);
+  sp.center.set(0.5, 0);
+  sp.scale.set(1.0, 0.22, 1);
   sp.renderOrder = 10;
   return sp;
 }
@@ -41,8 +45,11 @@ function makeBubble(): { sprite: THREE.Sprite; canvas: HTMLCanvasElement; tex: T
   canvas.height = 240;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, opacity: 0 }));
-  sprite.scale.set(2.7, 1.01, 1);
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0 }));
+  sprite.center.set(0.5, 0);
+  sprite.scale.set(2.2, 0.82, 1);
   sprite.renderOrder = 20;
   return { sprite, canvas, tex };
 }
@@ -109,8 +116,12 @@ export class OwnerAvatar {
   readonly height = 1.78;
   readonly hipH: number;
   pos: V2;
+  /** Floor height under the Owner (the balcony deck, the stairs); 0 on the office floor. */
+  elevation = 0;
   yaw = 0;
   moving = false;
+  /** Chunk C item 25 — seated on the balcony chair. */
+  seated = false;
   private walkPhase = 0;
   private bodyY = 0;
 
@@ -215,8 +226,18 @@ export class OwnerAvatar {
     this.root.rotation.y = this.yaw;
   }
 
-  /** Try a world step; caller supplies walkability. */
+  /** Sit / stand on the balcony chair (Chunk C item 25). */
+  setSeated(on: boolean) {
+    this.seated = on;
+    if (on) this.moving = false;
+  }
+
+  /** Try a world step; caller supplies walkability. Standing only — seated Owner must stand first. */
   tryMove(dx: number, dz: number, walkable: (x: number, z: number) => boolean): boolean {
+    if (this.seated) {
+      this.moving = false;
+      return false;
+    }
     if (Math.abs(dx) < 1e-6 && Math.abs(dz) < 1e-6) {
       this.moving = false;
       return false;
@@ -247,9 +268,9 @@ export class OwnerAvatar {
   }
 
   update(dt: number, t: number) {
-    if (this.moving) this.walkPhase += dt * 1.35 * 4.4;
-    else this.moving = false;
-    this.root.position.set(this.pos[0], 0, this.pos[1]);
+    if (this.moving && !this.seated) this.walkPhase += dt * 1.35 * 4.4;
+    else if (!this.seated) this.moving = false;
+    this.root.position.set(this.pos[0], this.elevation, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const k = 1 - Math.exp(-12 * dt);
     const setR = (g: THREE.Object3D, rx: number, ry = 0, rz = 0) => {
@@ -257,6 +278,22 @@ export class OwnerAvatar {
       g.rotation.y += (ry - g.rotation.y) * k;
       g.rotation.z += (rz - g.rotation.z) * k;
     };
+    if (this.seated) {
+      const seat = 0.47 - this.hipH;
+      this.bodyY = damp(this.bodyY, seat, 10, dt);
+      setR(this.hipL, -1.5);
+      setR(this.hipR, -1.5);
+      this.knL.rotation.x += (1.5 - this.knL.rotation.x) * k;
+      this.knR.rotation.x += (1.5 - this.knR.rotation.x) * k;
+      setR(this.shL, -0.55 + 0.04 * Math.sin(t * 1.2), 0, 0.06);
+      setR(this.shR, -0.5 + 0.04 * Math.sin(t * 1.2 + 1), 0, -0.06);
+      this.elL.rotation.x += (-0.9 - this.elL.rotation.x) * k;
+      this.elR.rotation.x += (-0.85 - this.elR.rotation.x) * k;
+      setR(this.spine, 0.08 + 0.02 * Math.sin(t * 1.1));
+      this.body.position.y = this.bodyY;
+      this.tag.position.y = this.bodyY + this.height + 0.42;
+      return;
+    }
     if (this.moving) {
       const s = Math.sin(this.walkPhase);
       setR(this.hipL, 0.55 * s);
@@ -282,7 +319,7 @@ export class OwnerAvatar {
       this.bodyY = damp(this.bodyY, 0, 10, dt);
     }
     this.body.position.y = this.bodyY;
-    this.tag.position.y = this.bodyY + this.height + 0.23;
+    this.tag.position.y = this.bodyY + this.height + 0.42;
   }
 }
 
@@ -305,8 +342,12 @@ function makePlate(): { sprite: THREE.Sprite; canvas: HTMLCanvasElement; tex: TH
   canvas.height = 150;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  sprite.scale.set(1.9, 0.445, 1);
+  sprite.center.set(0.5, 0);
+  sprite.scale.set(1.7, 0.4, 1);
   sprite.renderOrder = 11;
   sprite.visible = false;
   return { sprite, canvas, tex };
@@ -495,7 +536,7 @@ export class ManagerAvatar {
     this.plate = pl.sprite;
     this.plateCanvas = pl.canvas;
     this.plateTex = pl.tex;
-    this.plate.position.set(0.95, 1.25, 0.2);
+    this.plate.position.set(1.15, 1.55, 0.55);
     this.root.add(this.plate);
     this.root.traverse((o) => {
       o.userData.proto = "manager";
@@ -553,8 +594,8 @@ export class ManagerAvatar {
     this.root.position.set(this.pos[0], 0, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const headY = this.bodyY + this.height + 0.05;
-    this.tag.position.y = headY + 0.22;
-    this.bubble.position.y = headY + 0.9;
+    this.tag.position.y = headY + 0.36;
+    this.bubble.position.y = headY + 0.64;
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.showBubble && this.bubbleText ? 1 : 0, 8, dt);
   }

@@ -95,6 +95,19 @@ const womenShutOut = assignVoices(malesOnly);
 check("no male voice for gemma", womenShutOut.Gemma === null && womenShutOut.Nova === null);
 check("a saved male voice is not kept for gemma", assignVoices(installed, { Gemma: "dan" }).Gemma !== "dan");
 check("one female voice is shared, not swapped", assignVoices(installed.filter((v) => v.voiceURI === "ukf" || voiceGender(v.name) === "male")).Nova === "ukf");
+const deskVoices = [
+  { name: "Microsoft Zira", voiceURI: "zira", lang: "en-US" },
+  { name: "Samantha", voiceURI: "sam", lang: "en-US" },
+  { name: "Microsoft Fred", voiceURI: "fred", lang: "en-US" },
+  { name: "Microsoft Guy Online (Natural)", voiceURI: "guy", lang: "en-US" },
+  { name: "Google UK English Male", voiceURI: "ukm", lang: "en-GB" },
+];
+const smoother = assignVoices(deskVoices);
+check("nova skips zira", smoother.Nova === "sam");
+check("sterling skips fred", smoother.Sterling === "guy");
+check("a saved fred is dropped", assignVoices(deskVoices, { Sterling: "fred" }).Sterling === "guy");
+check("nova and sterling sit near a natural pace", VOICE_CAST.Nova.rate >= 0.98 && VOICE_CAST.Sterling.rate >= 0.98);
+check("the utterance uses the voice's own language", /u\.lang = voice\?\.lang/.test(sound));
 
 if (failed) {
   console.error(`${failed} check(s) failed`);

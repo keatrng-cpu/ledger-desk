@@ -52,7 +52,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   },
   PATH: {
     plain: "trade-quality band",
-    tip: "The desk's two-axis grade (A+ / A / A− trade, B+ paper, below journal only).",
+    tip: "The desk's grade. A+, A, A−, and B+ can place. The score sizes. It does not pick the side.",
   },
   HTF: {
     plain: "higher timeframe",

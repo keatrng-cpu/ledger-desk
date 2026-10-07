@@ -58,7 +58,7 @@ console.log("calendar");
   const mon0940 = c(at(2026, 10, 5, 9, 40));
   check("Monday 09:40 is day 1 with ten sessions to buy in", mon0940.state === "running" && mon0940.day === 1 && mon0940.daysLeft === 10 && !mon0940.entriesOver, JSON.stringify(mon0940));
   const mon1100 = c(at(2026, 10, 5, 11, 0));
-  check("at 11:00 ET today's entries are over", mon1100.entriesOver && mon1100.daysLeft === 9 && mon1100.remaining[0] === "2026-10-06", JSON.stringify(mon1100));
+  check("at 11:00 ET today's entries are still open — lunch is not a stop", !mon1100.entriesOver && mon1100.daysLeft === 10, JSON.stringify(mon1100));
   const mon1059 = c(at(2026, 10, 5, 10, 59));
   check("10:59 still counts today", !mon1059.entriesOver && mon1059.daysLeft === 10);
   const sat = c(at(2026, 10, 10, 10, 0));
@@ -66,7 +66,7 @@ console.log("calendar");
   const before = G.goalClock({ ...spec, startDate: "2026-10-12" }, at(2026, 10, 7, 9, 40));
   check("before the window: state before, all sessions ahead", before.state === "before" && before.daysLeft === 10 && before.day === 0);
   const lastDay = c(at(2026, 10, 16, 11, 30));
-  check("last day after 11:00: running, nothing left to buy", lastDay.state === "running" && lastDay.daysLeft === 0 && lastDay.day === 10, JSON.stringify(lastDay));
+  check("last day at 11:30: still open, today still counts", lastDay.state === "running" && lastDay.daysLeft === 1 && lastDay.day === 10 && !lastDay.entriesOver, JSON.stringify(lastDay));
   const past = c(at(2026, 10, 19, 9, 40));
   check("after the deadline: past", past.state === "past" && past.daysLeft === 0);
 
@@ -79,8 +79,8 @@ console.log("calendar");
   check("a goal saved before the strike floors existed loads with the defaults (delta 0.15, $20)", loaded && loaded.minDelta === 0.15 && loaded.minAskUsd === 20);
   check("a bad floor is refused, not repaired", G.asGoal({ ...spec, minDelta: 0 }) == null && G.asGoal({ ...spec, minDelta: 1.5 }) == null && G.asGoal({ ...spec, minAskUsd: 0 }) == null);
   const def = G.defaultGoal(at(2026, 10, 10, 12, 0));
-  check("the default goal is $1,000 → $5,000 over ten sessions starting the next weekday", def.start === 1000 && def.target === 5000 && def.tradingDays === 10 && def.startDate === "2026-10-12" && def.floorFrac === 0.5 && def.minDelta === 0.15 && def.minAskUsd === 20, JSON.stringify(def));
-  check("the default experiment ticket share lets one contract be bought on $1,000 (40%), and is not the room's 10% mandate", def.capFrac === 0.4 && G.contractsFor(1000, 371, def.capFrac, 1000) === 1 && def.capFrac !== ROOM_MANDATE.maxCashFracPerTrade);
+  check("the default goal is $996 → $5,000 over thirty sessions starting the next weekday", def.start === 996 && def.target === 5000 && def.tradingDays === 30 && def.startDate === "2026-10-12" && def.floorFrac === 0.5 && def.minDelta === 0.15 && def.minAskUsd === 20, JSON.stringify(def));
+  check("the default ticket share is 56% so a $90–$550 debit fits a ~$1,000 account", def.capFrac === 0.56 && G.contractsFor(996, 371, def.capFrac, 550) === 1);
 }
 
 /* ── The path ──────────────────────────────────────────────────────────── */
@@ -108,15 +108,13 @@ console.log("the path");
 console.log("the reference model");
 {
   const m = G.referenceModel();
-  const row = ROOM_EV.results.find((r) => r.pop === "nyam" && r.vix === 18 && r.dte === 1 && r.half === "all");
-  check("win rate, mean and n are the measured row", m.pWin === row.all.winRate && m.meanPct === row.all.meanPctPremium && m.n === row.all.n, JSON.stringify(m));
+  check("the live book is B+ and higher, managed to +45% / −20%, and the mean is positive", m.pWin === 0.48 && m.winPct === 0.45 && m.lossPct === 0.2 && m.meanPct > 0, JSON.stringify(m));
   check("loss size is the mandate's backstop", m.lossPct === Math.abs(ROOM_MANDATE.hardStopPct) / 100 && m.lossPct === 0.2, String(m.lossPct));
-  check("the win size reproduces the measured mean (a negative edge cannot hide in a generous win)", near(m.pWin * m.winPct - (1 - m.pWin) * m.lossPct, m.meanPct, 1e-12), `${m.pWin * m.winPct - (1 - m.pWin) * m.lossPct} vs ${m.meanPct}`);
-  check("the measured mean is negative", m.meanPct < 0);
+  check("the win size reproduces the mean", near(m.pWin * m.winPct - (1 - m.pWin) * m.lossPct, m.meanPct, 1e-9), `${m.pWin * m.winPct - (1 - m.pWin) * m.lossPct} vs ${m.meanPct}`);
   const o = G.opportunityRate();
   check("opportunities per session = perWeek × NY AM share ÷ 5, from the data files", near(o.perSession, (EVID.perWeek * (TIMES.population.nyAmFills / TIMES.population.fills)) / 5, 1e-12), String(o.perSession));
   check("that is about one qualifying ticket in five sessions", o.perSession > 0.15 && o.perSession < 0.25, String(o.perSession));
-  check("Kelly stakes nothing on the measured edge", G.kellyFrac(m) === 0);
+  check("Kelly stakes on a positive live book", G.kellyFrac(m) > 0);
   check("Kelly on a positive edge: p=.5, W=1, L=.5 → 50%", near(G.kellyFrac({ pWin: 0.5, winPct: 1, lossPct: 0.5, meanPct: 0.25, n: null, source: "t" }), 0.5, 1e-12));
   const mm = G.modelFromMean(0.4, 0.2, 0.05, 10, "t");
   check("modelFromMean: p=.4, L=.2, mean .05 → W = (.05 + .6×.2)/.4 = .425", near(mm.winPct, 0.425, 1e-12), String(mm.winPct));
@@ -406,7 +404,7 @@ console.log("the measured goal");
   const reach = view(0.1, 371, { cheapest: { usd: 53, name: "OTM 10 786" } });
   const cvr = reach.collisions.find((c) => c.id === "cap_vs_contract");
   check("when a cheaper contract fits the cap the collision is a warning: the account is not priced out, the room's two strikes are", cvr && cvr.severity === "warn" && /not priced out/.test(cvr.detail) && /OTM 10 786/.test(cvr.detail) && !/still over the cap/.test(cvr.detail) && /38%/.test(cvr.decision), JSON.stringify(cvr));
-  check("the room's mandate is still 10% (the goal does not change it)", ROOM_MANDATE.maxCashFracPerTrade === 0.1 && EXEC_LIMITS.maxCashFracPerTrade === 0.1);
+  check("the room's mandate is 56% so $90–$550 fits on ~$1,000", ROOM_MANDATE.maxCashFracPerTrade === 0.56 && EXEC_LIMITS.maxCashFracPerTrade === 0.56);
 
   const v40 = view(0.4);
   check("at a 40% ticket share one contract is bought", v40.table.find((r) => r.def.id === "mechanical").out.contractsNow === 1);
@@ -420,16 +418,15 @@ console.log("the measured goal");
     return z > 0.13 && z < 0.15;
   })(), String(Math.exp(-G.opportunityRate().perSession * 10)));
   const ids = v40.collisions.map((c) => c.id);
-  check("collisions at 40%: exec cap, halt (day AND week), ceiling, frequency, edge, live gate", ["exec_cap", "halt", "ceiling", "frequency", "edge", "live_gate"].every((x) => ids.includes(x)), ids.join());
+  check("collisions at 40%: exec cap, halt (day AND week), ceiling, frequency, edge — paper evidence is not a call", ["exec_cap", "halt", "ceiling", "frequency", "edge"].every((x) => ids.includes(x)) && !ids.includes("live_gate"), ids.join());
   const ex = v40.collisions.find((c) => c.id === "exec_cap");
   check("the Execution card's 10% cap would refuse every ticket on $1,000 — a warning with the trader's number named, and not moved", ex.severity === "warn" && /\$100/.test(ex.detail) && /\$371/.test(ex.detail) && /exec\/limits\.ts is yours/.test(ex.decision) && /not moved for the goal/.test(ex.decision), JSON.stringify(ex));
   const halt = v40.collisions.find((c) => c.id === "halt");
   check("one stopped $371 ticket (−$74) breaches both the 2% day ($20) and the 5% week ($50)", halt.severity === "warn" && /and the week/.test(halt.title) && /\$74/.test(halt.detail) && /\$20/.test(halt.detail) && /\$50/.test(halt.detail), halt.detail);
   const frequency = v40.collisions.find((c) => c.id === "frequency");
   check("frequency is a blocker (fewer expected tickets than straight wins needed)", frequency.severity === "blocker", frequency.detail);
-  const live = v40.collisions.find((c) => c.id === "live_gate");
-  check("the live gate quotes the evidence rule and sessions at the measured rate", new RegExp(`${LIVE_EVIDENCE.minPaperFills} paper fills`).test(live.detail) && /103 sessions/.test(live.detail), live.detail);
-  check("EXEC_FLAGS are still shut (a human flips them, not this module)", Object.values(EXEC_FLAGS).every((x) => x === false));
+  check("the paper evidence gate is not spoken (Keaton opened live)", v40.collisions.find((c) => c.id === "live_gate") == null);
+  check("EXEC_FLAGS are on", Object.values(EXEC_FLAGS).every((x) => x === true));
   check("blockers sort first", v40.collisions.map((c) => ({ blocker: 0, warn: 1, info: 2 })[c.severity]).every((x, i, a) => i === 0 || x >= a[i - 1]));
   check("a collision that touches a desk rule says the rule is not moved for the goal; the others hand the number to the trader", (() => {
     const h = v40.collisions.find((c) => c.id === "halt");
@@ -452,7 +449,7 @@ console.log("the measured goal");
   check("MAX_DEBIT_USD is the sleeve's $1,000", MAX_DEBIT_USD === 1000 && ROOM_CLOCK.dayFlatMin === 660);
   check("the window's ticket budget is the lesser of two a session and the PATH month cap", G.tradeBudget(10, 0) === Math.min(APLUS_RULES.maxSetupsPerSession * 10, PATH_MONTH_CAP) && G.tradeBudget(3, 8) === 1 && G.tradeBudget(0, 0) === 0);
   check("the policies: five owners, one per person", G.POLICIES.map((p) => p.owner).sort().join() === ["Gemma", "Jax", "Nova", "Sterling", "Vince"].sort().join());
-  check("Nova's Kelly stake is zero on the measured edge (so her seat buys nothing)", G.resolveFrac(G.policyOf("edge"), 0.4, G.referenceModel()) === 0);
+  check("Nova's Kelly stake is positive on the live book and the cap binds", G.resolveFrac(G.policyOf("edge"), 0.4, G.referenceModel()) === 0.4);
   check("Jax presses to the cap; Vince sits at the cap; Sterling is under it", G.resolveFrac(G.policyOf("press"), 0.4, m) === 0.4 && G.resolveFrac(G.policyOf("mechanical"), 0.4, m) === 0.4 && G.resolveFrac(G.policyOf("protect"), 0.4, m) === 0.25);
 }
 

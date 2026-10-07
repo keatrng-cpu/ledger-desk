@@ -23,6 +23,7 @@
  */
 
 import { ROOM_MANDATE } from "./mandate";
+import { jobsFor } from "./brain-feed";
 import { BLACKOUT_MIN } from "@/lib/news/schedule";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
 import { EXEC_LIMITS } from "./exec/limits";
@@ -116,6 +117,7 @@ export const clip = (s: string, n: number): string => {
 };
 
 export const WB: TalkMove = { zone: "THE_WHITEBOARD" };
+const BOARD: Ex["moves"] = { Gemma: WB, Jax: WB, Nova: WB, Sterling: WB, Vince: WB };
 
 /** What a person does with their hands when they speak without anything in particular to act out. */
 export const NEUTRAL: Record<Character, Animation> = {
@@ -261,19 +263,19 @@ export function exTape(c: Ctx, d: TapeData): Ex | null {
             () => `${f.raw(d.held!.name)} is on the wrong side of this${p && d.heldStopDist != null ? `; ${f.pts(d.heldStopDist)} pts to the level` : ""}. We don't negotiate with the stop.`,
           ],
     );
-  } else if (d.card && (d.card.tier === "armed" || d.card.tier === "live" || d.card.tier === "forming")) {
+  } else if (d.card) {
+    const k = d.card;
     stand = pick(c, "tape.card", [
-      () => `The card is ${d.card!.tier}${d.card!.entry != null ? `: CE ${f.lvl(d.card!.entry)}${d.card!.awayPts != null ? `, ${f.pts(d.card!.awayPts)} pts away` : ""}` : ""}. Nothing happens until it touches.`,
-      () => `${f.raw(d.card!.name)} is ${d.card!.tier}. I don't chase the print — the entry rests at CE${d.card!.entry != null ? ` ${f.lvl(d.card!.entry)}` : ""}.`,
-      () => `${d.card!.tier === "live" ? "We're at the array." : "Not at the array yet."} The order waits for CE; it never pays the print.`,
+      () => `${f.raw(k.name)} is the card${k.tier ? `, ${k.tier}` : ""}${k.entry != null ? `, CE ${f.lvl(k.entry)}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts` : ""}. I have it.`,
+      () => `Card's ${f.raw(k.name)}. It doesn't have to move again for me to see it.`,
+      () => `${k.tier === "live" ? "We're at the array." : k.tier ? `The card is ${k.tier}.` : "The card is on the board."} That's the one.`,
     ]);
-    standBy = "Vince";
+    standBy = "Sterling";
   } else {
     stand = pick(c, "tape.none", [
-      () => `No ticket, no opinion. The card has to move before I do.`,
-      () => `Nothing on the board. A move isn't a card.`,
-      () => `Conditions, not predictions. None of mine are met.`,
-      () => `Pretty. Not a trade.`,
+      () => `Board's empty. No card up.`,
+      () => `Nothing graded. A move isn't a card until the board prints one.`,
+      () => `No card on the board. I'll call it the moment one lands.`,
     ]);
   }
   if (!d.held && d.lagSec != null && d.lagSec >= 90) {
@@ -627,9 +629,9 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
   if (d.step === 60) {
     lines.push(
       line("Sterling", ANIM.Sterling.tablet!, pick(c, "cal.60.sterling", [
-        () => `${name} at ${f.raw(d.timeEt)} ET — ${f.mins(d.minutes)}. Blackout opens at −${bo}; no new tickets inside it.`,
-        () => `${f.mins(d.minutes)} to ${name}. The blackout is ±${bo} minutes. We trade around it, not through it.`,
-        () => `Calendar: ${name}, ${f.raw(d.timeEt)} ET. ${f.mins(d.minutes)} out.`,
+        () => `${name} at ${f.raw(d.timeEt)} ET — ${f.mins(d.minutes)}. News cuts the size. It does not take the card off.`,
+        () => `${f.mins(d.minutes)} to ${name}. The print changes the size, not whether an A-minus can work.`,
+        () => `Calendar: ${name}, ${f.raw(d.timeEt)} ET. ${f.mins(d.minutes)} out. The chart still calls it.`,
       ])),
     );
     lines.push(
@@ -641,14 +643,14 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
   } else if (d.step === 5 || d.step === 1) {
     lines.push(
       line("Sterling", ANIM.Sterling.arms!, pick(c, `cal.${d.step}.sterling`, d.step === 5
-        ? [() => `${f.mins(d.minutes)} to ${name}. Hands off the keyboard.`, () => `${name} in ${f.mins(d.minutes)}. Nothing new from here.`, () => `${f.mins(d.minutes)}. We're done deciding; now we watch.`]
-        : [() => `${f.mins(d.minutes)}. ${name}.`, () => `Last minute. Nobody touches anything.`, () => `One minute out. Quiet, everyone.`])),
+        ? [() => `${f.mins(d.minutes)} to ${name}. Size comes in. The ticket stays if the gaps agree.`, () => `${name} in ${f.mins(d.minutes)}. We don't stand the card down for the clock.`, () => `${f.mins(d.minutes)}. The chart is still the call.`]
+        : [() => `${f.mins(d.minutes)}. ${name}. Size only.`, () => `Last minute. An armed card is not cancelled by the print.`, () => `One minute out. The gaps still decide.`])),
     );
     lines.push(
       line("Vince", ANIM.Vince.watch!, pick(c, `cal.${d.step}.vince`, [
-        () => (d.held ? `We're holding through it — the level stands; the exits are mechanical.` : `Nothing resting. No tickets inside ±${bo}.`),
-        () => `The blackout has the keyboard.`,
-        () => (d.held ? `Position's on. The level is the only thing that can close it.` : `Flat into the print. That's the position.`),
+        () => (d.held ? `We're holding through it — the level stands; the exits are mechanical.` : `Nothing resting. A new A-minus still works. The print only cuts size.`),
+        () => `News is a size cut for ${bo} minutes either side. It is not a veto.`,
+        () => (d.held ? `Position's on. The level is the only thing that can close it.` : `Flat into the print is a choice. An armed card is not cancelled.`),
       ])),
     );
     if (d.step === 5) {
@@ -686,8 +688,8 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
     lines.push(line("Jax", ANIM.Jax.point!, pick(c, "cal.5p.jax", [() => `Chasing it?`, () => `Tell me that's not the Judas.`, () => `Is it real or is it the fake? Ask me in ten minutes.`])));
     lines.push(
       line("Sterling", ANIM.Sterling.arms!, pick(c, "cal.5p.sterling", [
-        () => (d.blackout ? `Blackout holds until +${bo}. No.` : `Blackout's over. The gates are the same as before the print.`),
-        () => (d.blackout ? `Still inside the window. The answer is no.` : `The window's closed. The rules aren't any looser for it.`),
+        () => (d.blackout ? `The print is in the window. Size is cut. The card is not dead.` : `The window's over. Size goes back. The rules don't get looser.`),
+        () => (d.blackout ? `Still inside it. That changes the size, not the side.` : `The window's closed. We didn't stand down for it.`),
       ])),
     );
   }
@@ -731,7 +733,7 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       break;
     case "open":
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.open.vince", [() => `Bell. ${px ? `${px}${gap ? `, ${gap}` : ""}.` : "We're open."}`, () => `We're open${px ? ` — ${px}` : ""}.`])));
-      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: nothing until ${f.hhmm(9 * 60 + 45)} unless the raid resolves first.`, () => `The first fifteen minutes belong to the raid. Tickets wait until ${f.hhmm(9 * 60 + 45)}.`])));
+      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: the raid gets a name. Size stays small. A card whose direction agrees still places.`, () => `The first fifteen minutes are the raid. They cut size. They do not take a ticket off.`])));
       lines.push(line("Jax", ANIM.Jax.point!, pick(c, "sess.open.jax", [() => `Whatever it does, it'll fake first.`, () => `First fifteen minutes lie. I'll just watch.`, () => `Ring it. Let's see who it hurts.`])));
       break;
     case "judas_end":
@@ -739,12 +741,12 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "sess.judas.sterling", [() => `Gates are live. Everything else is the same.`, () => `The gates are open to a card. They're not open to a hunch.`])));
       break;
     case "aplus":
-      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.aplus.sterling", [() => `${f.hhmm(10 * 60)}. A+ only from here, unless we're already in a trade.`, () => `After ${f.hhmm(10 * 60)} the bar is A+. Nothing less gets a ticket.`])));
+      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.aplus.sterling", [() => `${f.hhmm(10 * 60)}. Size comes down from here. B+ to A+ still trade if the chart agrees.`, () => `After ${f.hhmm(10 * 60)} the ticket is smaller. The clock does not cancel a setup.`])));
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.aplus.vince", [() => `${f.int(d.positions)} open. ${f.int(d.monthEntries)}/${cap} PATH this month.`, () => `${d.positions ? `${f.int(d.positions)} on the book` : "Flat"}, ${f.int(d.monthEntries)} of ${cap} PATH used.`])));
       break;
     case "flat":
-      lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "sess.flat.sterling", [() => `${f.hhmm(11 * 60)}. Day tickets are flat by now. ${d.positions ? `${f.int(d.positions)} still open — that's a rule I'm reading.` : "Nothing open."}`, () => `${f.hhmm(11 * 60)}: no new day tickets. ${d.positions ? `${f.int(d.positions)} open and under review.` : "We're flat."}`])));
-      lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "sess.flat.jax", [() => `Rest of the day's for watching.`, () => `And now the market does what it does without us.`, () => `Eleven o'clock. The best part of the day just ended.`])));
+      lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "sess.flat.sterling", [() => `${f.hhmm(11 * 60)}. Lunch. Size comes down. We keep looking until the close.`, () => `${f.hhmm(11 * 60)} is not a stop. A card that clears still gets a ticket.`])));
+      lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "sess.flat.jax", [() => `Lunch doesn't mean we stop looking.`, () => `I'm still on the chart. A setup is a setup.`, () => `Eleven o'clock. Smaller size. Same job.`])));
       break;
     case "flatten":
       lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.flatten.sterling", [() => `${f.hhmm(15 * 60 + 30)}. The broker force-sells expiring contracts from here. ${d.positions ? `We hold ${f.int(d.positions)}. Out.` : "We're flat."}`, () => `Last-resort flatten time, ${f.hhmm(15 * 60 + 30)}. ${d.positions ? `${f.int(d.positions)} open — closing.` : "Nothing to close."}`])));
@@ -863,37 +865,154 @@ export interface TierData {
 export function exTier(c: Ctx, d: TierData): Ex | null {
   const f = c.f;
   const k = d.card;
-  const entry = k.entry != null ? f.lvl(k.entry) : null;
   const lines: (Line | null)[] = [];
-  if (d.to === "armed") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.armed.vince", [
-      () => `${f.raw(k.name)} is armed${entry ? `: CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts away` : ""}.`,
-      () => `Price came into range of the card${entry ? ` — CE ${entry}` : ""}. Now it's a waiting game.`,
-      () => `Armed. ${entry ? `The entry rests at ${entry}.` : "The entry waits for the array."}`,
-    ])));
-    lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null
-      ? pick(c, "tier.armed.nova", [
-          () => `P(T1) ${f.frac(k.pT1!)} if filled${k.expR != null ? `, E[R] ${signed(k.expR)}${f.r(k.expR)} a fill` : ""}. The price of waiting is the fill rate.`,
-          () => `If it fills: ${f.frac(k.pT1!)} to reach T1${k.expR != null ? `, ${signed(k.expR)}${f.r(k.expR)} expected` : ""}. Distance from CE is what costs the fill.`,
-        ])
-      : null));
-    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "tier.armed.jax", [() => `Come on, come to papa.`, () => `Close. Come on.`, () => `Armed is the best word in this building.`])));
-  } else if (d.to === "live") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.live.vince", [
-      () => `Price is at CE${entry ? ` ${entry}` : ""}. This is the touch.`,
-      () => `${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}. Gates get read now.`,
-      () => `Touch. ${entry ? `CE ${entry}.` : ""} Sterling, it's yours.`,
-    ])));
-    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Gates are read now — not before. Nobody moves until I've cleared it.`, () => `Reading the gates. One at a time, in order.`])));
-    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now or never.`, () => `Pull the trigger — no, wait for Sterling.`, () => `That's it, that's the one!`])));
-  } else if (d.to === "gone") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [() => `The card walked off without us. It's spent.`, () => `${f.raw(k.name)} is gone — price left the array. We don't chase.`, () => `It left. A limit that doesn't fill is a limit that did its job.`])));
-    lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "tier.gone.sterling", [() => `Missing one is the cheapest mistake there is.`, () => `No fill, no loss. That's the system working.`])));
-  } else {
-    return null;
-  }
-  const out = compact(lines);
-  return out.length >= 2 ? { lines: out, moves: {} } : null;
+  const j = jobsFor({
+    symbol: k.futSymbol,
+    side: k.futSide,
+    sequence: k.sequence ?? k.tier,
+    entryLine: k.entryLine,
+    missing: k.block,
+    target: k.t1,
+    pT1: k.pT1,
+    expR: k.expR,
+  });
+  lines.push(line("Vince", ANIM.Vince.watch!, f.raw(j.setup)));
+  lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(j.target)));
+  lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
+  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(j.book)));
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(j.entry)));
+  return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
+}
+
+/** Price is near the entry drawn on the whiteboard. They gather and decide. */
+export function exAtEntry(c: Ctx, d: { card: CardRead }): Ex | null {
+  const f = c.f;
+  const k = d.card;
+  const seq = k.sequence ?? "";
+  const stand = seq.startsWith("STAND") || seq.startsWith("BIAS") || seq.startsWith("DRAW") || seq.startsWith("ENTRY GONE");
+  const agree = seq.startsWith("ENTER") && k.tier === "live";
+  const away = k.awayPts != null ? `${f.pts(Math.abs(k.awayPts))} pts from the entry` : "at the entry";
+  const lines: (Line | null)[] = [
+    line("Gemma", ANIM.Gemma.explain!, `${f.raw(k.futSymbol)} ${k.futSide}. Price is ${away}. The ladder is on the board.`),
+    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, stand ? "This is not the fill. The raid does not get the order." : "Watch the entry. We do not swing before it prints."),
+    line("Sterling", stand ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, stand ? "The card and the desk do not agree. Nobody places." : agree ? "The card and the desk agree." : "Not yet. The array has not been touched."),
+    line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? `If it fills, P(T1) ${f.frac(k.pT1)}${k.expR != null ? `, E[R] ${signed(k.expR)}${Math.abs(k.expR).toFixed(2)}` : ""}.` : "No priced T1. Do not invent one."),
+    line(
+      "Vince",
+      agree ? ANIM.Vince.enter! : ANIM.Vince.watch!,
+      agree
+        ? "Price is in the array. Agentic places the month ticket if the account gates are already clear. We stay on the board and watch it."
+        : "Hands off the key until price is in the array and the card still says enter.",
+    ),
+  ];
+  return { lines: compact(lines), moves: BOARD };
+}
+
+/** An open ticket. They stay at the board and manage it off the same ladder. */
+export function exManage(c: Ctx, d: { p: PositionRead }): Ex | null {
+  const f = c.f;
+  const p = d.p;
+  const stop = p.plan?.stop != null ? f.lvl(p.plan.stop) : "the stop";
+  const t1 = p.plan?.t1 != null ? f.lvl(p.plan.t1) : "the draw";
+  const lines: (Line | null)[] = [
+    line("Vince", ANIM.Vince.watch!, `${f.raw(p.name)} is on. Stop ${stop}. Target ${t1}. We manage it here.`),
+    line("Gemma", ANIM.Gemma.explain!, "The ladder is the trade. Eyes on the entry we filled, not the next one."),
+    line("Jax", ANIM.Jax.point!, p.pnlPct >= 0 ? "Let it work. Don't yank it." : "It's against us. The stop is the stop."),
+    line("Nova", ANIM.Nova.analyze!, `${p.contracts} on. ${signed(p.pnlPct)}${Math.abs(p.pnlPct).toFixed(1)}% from the fill.`),
+    line("Sterling", p.pnlPct <= -15 ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, p.pnlPct <= -15 ? "If it tags the stop, it is done. No add." : "Size stays. We do not add while it is open."),
+  ];
+  return { lines: compact(lines), moves: BOARD };
+}
+
+export function exFill(c: Ctx, d: { p: PositionRead; b: TapeBook | null }): Ex | null {
+  const f = c.f;
+  const side = d.p.type === "CALL" ? "calls" : "puts";
+  const entry = d.p.plan?.entry != null ? f.lvl(d.p.plan.entry) : null;
+  const lines = compact([
+    line("Vince", ANIM.Vince.watch!, pick(c, "fill.vince", [
+      () => `We're in. ${f.int(d.p.contracts)} ${d.p.u} ${side}${entry ? `, from ${entry}` : ""}. ${f.raw(d.p.name)}.`,
+      () => `Filled. ${f.int(d.p.contracts)} ${d.p.u} ${side}. It's on the book.`,
+    ])),
+    line("Sterling", ANIM.Sterling.approve!, pick(c, "fill.sterling", [
+      () => `Said and sent. The stop is the level. We do not add.`,
+      () => `We're in. One plan, one fill.`,
+    ])),
+    line("Jax", ANIM.Jax.shout!, pick(c, "fill.jax", [() => `We're in! Hands off it.`, () => `That's the fill. Don't touch it.`])),
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "fill.gemma", [
+      () => `Entry was the array. If this one had already left, we would have waited for the pullback.`,
+      () => `On the board: filled at the spot, not at a chase.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
+}
+
+export interface LessonHit {
+  id: string;
+  who: Character;
+  text: string;
+  kind: string;
+  verdict: string;
+  pnl: string;
+}
+
+/** A graded winner or loser becomes a drill. Everyone hears the number. */
+export function exLesson(c: Ctx, d: { hit: LessonHit }): Ex | null {
+  const f = c.f;
+  const good = d.hit.verdict === "right" || d.hit.verdict === "saved" || d.hit.kind === "win";
+  const num = d.hit.pnl;
+  const what = f.raw(d.hit.text);
+  const who = d.hit.who;
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "lesson.gemma", [
+      () => `${who} ${good ? "won" : "lost"} ${num}. Paper. The chart ${good ? "paid the side" : "did the other thing"}. We learn the tape.`,
+      () => `Shelf. ${what}. ${num}. Everyone look at it.`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "lesson.vince", [
+      () => good
+        ? `Entry was the spot. We repeat that. We do not move the order because it worked once.`
+        : `Entry was late or it was a chase. Next one rests at CE. We do not buy the extension.`,
+    ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "lesson.nova", [
+      () => good
+        ? `Target held. ${num}. The draw was real. We do not stretch T1 to feel clever.`
+        : `Target did not pay. ${num}. Analytics stays the number on the card, not a new story.`,
+    ])),
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "lesson.sterling", [
+      () => `Arithmetic. ${num} on paper. A winner does not buy a bigger next ticket. A loser does not get averaged.`,
+      () => `${num}. Size stays inside the debit. That is the whole improvement.`,
+    ])),
+    line("Jax", ANIM.Jax.point!, pick(c, "lesson.jax", [
+      () => good ? `I'll take the ${num}. I still don't get to skip the retest.` : `That's mine. ${num}. Next entry is the array. I'm not chasing it.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
+}
+
+/** Once a day the floor reads the shelf out loud so a winner and a loser are not private. */
+export function exShelf(c: Ctx, d: { wins: string[]; losses: string[] }): Ex | null {
+  if (!d.wins.length && !d.losses.length) return null;
+  const f = c.f;
+  const win = f.raw(d.wins[0] ?? "none");
+  const loss = f.raw(d.losses[0] ?? "none");
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "shelf.gemma", [
+      () => `Trophy wall. Winner: ${win}. Loser: ${loss}. Paper, both of them. Everyone knows.`,
+      () => `Look at the shelf. ${win}. And the scar: ${loss}.`,
+    ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "shelf.nova", [
+      () => `We keep the winner's target and we throw out the loser's story. The number is the teacher.`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "shelf.vince", [
+      () => `Entries. The winner filled at the spot. The loser is why we wait for the pullback.`,
+    ])),
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "shelf.sterling", [
+      () => `Arithmetic does not care who called it. ${win} does not raise size. ${loss} does not get a second ticket.`,
+    ])),
+    line("Jax", ANIM.Jax.point!, pick(c, "shelf.jax", [
+      () => `I see both. I'll chase the process, not the last print.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: BOARD } : null;
 }
 
 export interface GhostData {
@@ -1030,7 +1149,11 @@ export interface DealingData {
 export function exDealing(c: Ctx, d: DealingData): Ex | null {
   const f = c.f;
   const rule =
-    d.zone === "premium" ? "Shorts live up here; longs don't." : d.zone === "discount" ? "Longs live down here; shorts don't." : "Equilibrium. Nobody's trade.";
+    d.zone === "premium"
+      ? "Premium — above the dealing-range midpoint. Shorts belong here. A long from here is the wrong half."
+      : d.zone === "discount"
+        ? "Discount — below the midpoint. Longs belong here. A short from here is the wrong half."
+        : "Equilibrium — the midpoint of the dealing range. Not premium, not discount.";
   const lines = compact([
     line("Gemma", ANIM.Gemma.wall!, pick(c, "hb.deal.gemma", [
       () => `${d.b.say} sits ${f.pct(d.posPct)} up the range ${f.lvl(d.low)}–${f.lvl(d.high)} — ${d.zone}. ${rule}`,
@@ -1083,7 +1206,7 @@ export function exHtf(c: Ctx, d: HtfData): Ex | null {
     line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.htf.gemma", [
       () => (b.htf === "none" ? `No higher-timeframe bias means no trade against it either.` : `Higher timeframe is ${b.htf === "bull" ? "bullish" : "bearish"}. Longs ${b.htf === "bull" ? "are" : "aren't"} on the menu${b.htf === "bear" ? " unless the disrespect is documented" : ""}.`),
       () => (b.htf === "none" ? `Without a bias the higher timeframes are a coin flip. We don't flip coins.` : `The higher timeframe is the boss. ${b.htf === "bull" ? "It says buy the dips." : "It says sell the rallies."}`),
-      () => `Top-down is ${b.htf === "none" ? "undecided" : b.htf === "bull" ? "up" : "down"}. That's a gate, not an opinion.`,
+      () => `Top-down is ${b.htf === "none" ? "undecided" : b.htf === "bull" ? "up" : "down"}. Direction comes from the gaps. A missing layer cuts size. It does not veto.`,
     ])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
@@ -1092,14 +1215,35 @@ export function exHtf(c: Ctx, d: HtfData): Ex | null {
 export interface BoardData {
   card: CardRead;
 }
+export function exHot(c: Ctx, d: BoardData): Ex | null {
+  const f = c.f;
+  const k = d.card;
+  const fit = k.fit ?? 0;
+  if (fit < 0.8) return null;
+  const where =
+    k.entry != null && k.awayPts != null
+      ? `Price is ${f.pts(Math.abs(k.awayPts))} pts from the entry at ${f.lvl(k.entry)}.`
+      : k.entry != null
+        ? `The entry is ${f.lvl(k.entry)}.`
+        : "The entry is not priced yet.";
+  const lines = compact([
+    line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the draw"}.`),
+    line("Gemma", ANIM.Gemma.wall!, "Bias is the one-hour and the four-hour gaps. Respected bullish, or a bearish gap that failed, is long. The reverse is short. The draw is the liquidity or the open gap in that direction, and we mark it before the entry."),
+    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the one-minute or five-minute gap. Then the inverse, or the gap holds. The fifteen-minute grade is the permission, not the trigger. Two a day is the backtest. Live, a count does not stand a ticket down."),
+    line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side. A short printed target gets repriced, it does not stand the card down. QQQ and SPY are separate tickets."),
+    line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. Direction agrees, so it places. No second confirm.`),
+  ]);
+  return { lines, moves: BOARD };
+}
+
 export function exBoard(c: Ctx, d: BoardData): Ex | null {
   const f = c.f;
   const k = d.card;
   const lines = compact([
     line("Vince", ANIM.Vince.watch!, pick(c, "hb.board.vince", [
-      () => `Best card on the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}${k.pT1 != null ? `, P(T1) ${f.frac(k.pT1)}` : ""}${k.expR != null ? `, E[R] ${signed(k.expR)}${f.r(k.expR)} a fill` : ""}.`,
-      () => `Top of the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}${k.pT1 != null ? `. ${f.frac(k.pT1)} to T1 if filled` : ""}.`,
-      () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide} is the one to watch${k.expR != null ? ` — ${signed(k.expR)}${f.r(k.expR)} a fill on the model` : ""}.`,
+      () => `${f.raw(k.name)}. ${k.setup ? f.raw(k.setup) : "No confluence tagged on it."}`,
+      () => `Top of the board: ${k.band ?? "—"} ${k.futSymbol} ${k.futSide}. ${k.setup ? f.raw(k.setup) : ""}`,
+      () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide}. Buy-side sits above the highs, sell-side under the lows. ${k.setup ? f.raw(k.setup) : "Nothing tagged."}`,
     ])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, "hb.board.sterling", [
       () => (k.block ? `${k.verdict === "ARMED" ? "Armed, but " : "Held back by: "}${f.raw(clip(k.block, 90))}.` : `Nothing blocking it. The touch is what's missing.`),

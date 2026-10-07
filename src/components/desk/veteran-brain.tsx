@@ -1,3 +1,4 @@
+import { StateWord } from "@/components/desk/state-word";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Brain,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { RiskState } from "@/lib/journal/risk";
+import { brainLiveRisk, type RiskFetchState } from "@/lib/trading/desk-fetch-guard";
 import {
   loadDeskMemory,
   pinNote,
@@ -25,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
-import { evidenceHeadlines } from "@/lib/trading/evidence";
+import { EvidenceTiles } from "@/components/desk/evidence-tiles";
 
 function verdictStyle(v: DiscretionVerdict): string {
   switch (v) {
@@ -64,9 +66,12 @@ function stratStatusClass(s: string): string {
 export function VeteranBrainPanel({
   desk,
   risk,
+  riskGate = "ok",
 }: {
   desk: DeskPayload;
   risk?: RiskState | null;
+  /** Desk risk gate state; "unknown" adds the brain's "Risk unknown" veto. */
+  riskGate?: RiskFetchState;
 }) {
   const [mem, setMem] = useState<DeskMemoryState>(() => loadDeskMemory());
   const fused = useDeskSynapse((s) => s.fusedSetups);
@@ -107,15 +112,9 @@ export function VeteranBrainPanel({
         desk,
         mem,
         asked,
-        risk
-          ? {
-              dailyHaltHit: risk.dailyHaltHit,
-              weeklyHaltHit: risk.weeklyHaltHit,
-              killzoneCapHit: risk.killzoneCapHit,
-            }
-          : null,
+        brainLiveRisk(riskGate, risk ?? null),
       ),
-    [desk, mem, asked, risk, tick],
+    [desk, mem, asked, risk, riskGate, tick],
   );
 
   // Auto-log discretion changes into memory (no user action)
@@ -163,16 +162,7 @@ export function VeteranBrainPanel({
       {/* What the brain's discretion has to stay inside: the desk's own four
           years, measured under the rule as coded. The 2024 22-trade seed
           below is history for the rate card; this is the evidence. */}
-      <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)]/40 px-3 py-2">
-        <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
-          Measured · four years of the desk&apos;s own cards (Lab › Evidence)
-        </p>
-        {evidenceHeadlines().map((l) => (
-          <p key={l} className="mt-0.5 text-[11px] leading-snug text-[var(--color-fg)]">
-            {l}
-          </p>
-        ))}
-      </div>
+      <EvidenceTiles />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-start gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[color-mix(in_oklab,var(--color-primary)_16%,transparent)] text-[var(--color-primary)]">
@@ -193,14 +183,7 @@ export function VeteranBrainPanel({
             <Radar className="h-3 w-3 animate-pulse" />
             Live
           </span>
-          <span
-            className={cn(
-              "rounded-full border px-2.5 py-1 font-mono text-[11px] font-bold tracking-wide",
-              verdictStyle(brief.verdict),
-            )}
-          >
-            {brief.verdict}
-          </span>
+          <StateWord raw={brief.verdict} className="py-1" />
           <button
             type="button"
             className="rounded-full border border-[var(--color-border)] p-1.5 text-[var(--color-muted)] hover:text-[var(--color-fg)]"
@@ -286,9 +269,9 @@ export function VeteranBrainPanel({
           Auto-read tabs
         </p>
         <div className="grid gap-1 sm:grid-cols-2">
-          {brief.tabReads.map((t) => (
+          {brief.tabReads.map((t, i) => (
             <div
-              key={t.tab}
+              key={`${t.tab}-${i}`}
               className="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1.5 text-[11px]"
             >
               <div className="flex items-center justify-between gap-2">

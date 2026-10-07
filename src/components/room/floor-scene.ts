@@ -25,6 +25,7 @@ import { Bell, Confetti, TicketFlight, drawEmote, type EmoteKind } from "./floor
 import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFrame } from "./floor-screens";
 import type { FloorLight } from "@/lib/room/floor-cues";
 import { speakHoldSec } from "@/lib/room/floor-voice";
+import { heardBefore, loadSaid, rememberSaid, saveSaid, type SaidRow } from "@/lib/room/said-memory";
 import {
   createStubManagerFeed,
   managerBubbleText,
@@ -34,7 +35,8 @@ import {
   type StubManagerFeed,
 } from "@/lib/room/manager-feed";
 import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
-import { nearestOpenFloor, onFreeFloor } from "./owner-walk";
+import { FloorOverhaul } from "./floor-overhaul";
+import type { FloorProps } from "@/lib/room/floor-props";
 import { readRhAccount } from "@/lib/ui/rh-account";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
@@ -68,6 +70,16 @@ interface Layout {
 }
 export const LAYOUT = layoutJson as unknown as Layout;
 export const CREW_ORDER: Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
+
+/** The Owner's balcony deck and stairs from the plan (axis-aligned; rot 0), for the Owner's walk and height. */
+const BALCONY = (() => {
+  const box = (id: string) => {
+    const f = LAYOUT.furniture.find((x) => x.id === id);
+    if (!f) return null;
+    return { x0: f.pos[0] - f.size[0] / 2, x1: f.pos[0] + f.size[0] / 2, z0: f.pos[1] - f.size[2] / 2, z1: f.pos[1] + f.size[2] / 2, h: f.size[1] };
+  };
+  return { deck: box("balcony_Owner"), stairs: box("stairs_Owner") };
+})();
 const SCHOOL_LABEL: Record<string, string> = { ict: "ICT", tjr: "TJR", blake: "Blake Mech", patty: "Patty/PB", smc: "SMC" };
 
 const DEG = Math.PI / 180;
@@ -740,8 +752,11 @@ class Avatar {
     this.bubbleCanvas.height = 240;
     this.bubbleTex = new THREE.CanvasTexture(this.bubbleCanvas);
     this.bubbleTex.colorSpace = THREE.SRGBColorSpace;
-    this.bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.bubbleTex, transparent: true, depthTest: false, opacity: 0 }));
-    this.bubble.scale.set(2.7, 1.01, 1);
+    this.bubbleTex.generateMipmaps = false;
+    this.bubbleTex.minFilter = THREE.LinearFilter;
+    this.bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.bubbleTex, transparent: true, depthWrite: false, opacity: 0 }));
+    this.bubble.center.set(0.5, 0);
+    this.bubble.scale.set(2.2, 0.82, 1);
     this.bubble.renderOrder = 20;
     this.root.add(this.bubble);
     this.emoteCanvas = document.createElement("canvas");
@@ -862,8 +877,12 @@ class Avatar {
     ctx.fillText(`${SCHOOL_LABEL[school] ?? school} · ${role}`, 30, 68);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-    sp.scale.set(1.05, 0.23, 1);
+    sp.center.set(0.5, 0);
+    sp.scale.set(0.92, 0.2, 1);
     sp.renderOrder = 10;
     return sp;
   }
@@ -1031,8 +1050,8 @@ class Avatar {
       }
     }
     const headY = this.bodyY + this.height + 0.05;
-    this.tag.position.y = headY + 0.18;
-    this.bubble.position.y = headY + 0.85;
+    this.tag.position.y = headY + 0.34;
+    this.bubble.position.y = headY + 0.62;
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.speaking && this.bubbleText ? 1 : 0, 8, dt);
     this.emote.position.y = headY + 0.5 + 0.03 * Math.sin(t * 2.4);
@@ -1207,6 +1226,10 @@ export const PLACES: Place[] = [
   { id: "jumbo_S", label: "Ghost room", group: "war room" },
   { id: "jumbo_W", label: "Calibration", group: "war room" },
   { id: "jumbo_N", label: "The vote", group: "war room" },
+  { id: "ovh_kz_E", label: "Killzone clock", group: "war room" },
+  { id: "ovh_tickerwall", label: "Ticker wall", group: "war room" },
+  { id: "ovh_mgr_0", label: "Manager's office", group: "war room" },
+  { id: "ovh_mgr_board", label: "Discretion board", group: "war room" },
   { id: "tv_rnd", label: "R&D board", group: "annex" },
   { id: "mon_Rnd_0", label: "Desk audit", group: "annex" },
   { id: "mon_Ops_0", label: "The feed", group: "annex" },
@@ -1219,12 +1242,23 @@ export const PLACES: Place[] = [
   { id: "mon_Chair_0", label: "Chair's page", group: "invest" },
   { id: "tv_leader", label: "League table", group: "lounge" },
   { id: "tv_lounge", label: "Lounge TV", group: "lounge" },
+  { id: "ovh_trophies", label: "Trophy shelf", group: "lounge" },
+  { id: "ovh_scars", label: "Wall of scars", group: "lounge" },
 ];
+
+/** Overhaul screens that are not chips but still deserve a name when the viewer flies to them. */
+const OVH_LABEL: Record<string, string> = {
+  ovh_kz_W: "Killzone clock",
+  ovh_mgr_1: "Manager's office",
+  ovh_mgr_2: "Manager arms monitor",
+  ovh_mgr_board: "Discretion board",
+};
 
 /** A readable name for any screen id, for the tab's "looking at" label. */
 export function screenLabel(id: string): string {
   const hit = PLACES.find((p) => p.id === id);
   if (hit) return hit.label;
+  if (OVH_LABEL[id]) return OVH_LABEL[id]!;
   const m = /^mon_([A-Za-z]+)_\d+$/.exec(id);
   if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : m[1] === "Inv" ? "Investment monitors" : m[1] === "Chair" ? "Chair's monitor" : `${m[1]}'s monitors`;
   const p = /^plate_([A-Za-z]+)$/.exec(id);
@@ -1234,7 +1268,7 @@ export function screenLabel(id: string): string {
 }
 
 /** Things the floor does that a speaker (or the tab) may want to hear. */
-export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow";
+export type FloorEvent = "fill" | "exit_win" | "exit_loss" | "bell" | "alert" | "meow" | "thunder";
 
 /**
  * One exchange from the live talk (lib/room/live-talk.ts): a few lines, who walks where for them, and how long it
@@ -1275,8 +1309,14 @@ export interface FloorSceneOptions {
   onManagerInspect?: (state: ManagerRoomState) => void;
   /** Walk mode toggled (Owner WASD). */
   onWalkModeChange?: (on: boolean) => void;
+  /** Owner view: behind them, or through their eyes. */
+  onPovChange?: (pov: "first" | "third") => void;
   /** Proximity prompt near a crew member or the Manager. */
   onProximity?: (kind: "crew" | "manager" | null, who?: Character) => void;
+  /** Chunk C item 26 — Owner pressed E for a 1:1 with crew or Manager. */
+  onOneOnOne?: (target: { kind: "crew"; who: Character } | { kind: "manager" }) => void;
+  /** Chunk C item 25 — Owner sat / stood on the balcony chair. */
+  onOwnerSit?: (seated: boolean) => void;
 }
 
 const FLOOR_COLORS: Record<string, string> = {
@@ -1317,6 +1357,9 @@ const FURNITURE_COLORS: Record<string, string> = {
   bench: "#475569",
   globe: "#1d4ed8",
   armchair: "#7c2d12",
+  balcony: "#3f4a5a",
+  stairs: "#3f4a5a",
+  partition: "#1f2937",
 };
 
 /** The cash open and close, ET minutes — the bell rings when the clock crosses them. */
@@ -1374,6 +1417,44 @@ function fallbackPiece(f: Layout["furniture"][number], mat: THREE.Material): THR
     case "jumbotron": {
       // Inside the four screen faces, so the screens never z-fight a solid box.
       box(w - 0.08, h - 0.04, d - 0.08, 0, h / 2, 0);
+      break;
+    }
+    case "balcony": {
+      // The Owner's balcony: a deck on posts with a glass rail, open on the +x side where the stairs land.
+      const deck = 0.14;
+      box(w, deck, d, 0, h - deck / 2, 0);
+      for (const sx of [-1, 1]) for (const sz of [-1, 0, 1]) box(0.12, h - deck, 0.12, sx * (w / 2 - 0.08), (h - deck) / 2, sz * (d / 2 - 0.08));
+      const glass = new THREE.MeshStandardMaterial({ color: "#9cc3ff", transparent: true, opacity: 0.22, roughness: 0.05, depthWrite: false });
+      glass.name = "glass";
+      const rail = new THREE.MeshStandardMaterial({ color: "#cbd5e1", metalness: 0.6, roughness: 0.3 });
+      const railH = 1.0;
+      const gap = 0.6; // half-width of the stair opening on the +x side
+      const panel = (pw: number, pd: number, x: number, z: number) => {
+        box(pw, railH, pd, x, h + railH / 2, z, glass).castShadow = false;
+        box(pw === 0.03 ? 0.05 : pw, 0.05, pd === 0.03 ? 0.05 : pd, x, h + railH, z, rail);
+      };
+      panel(0.03, d, -w / 2 + 0.02, 0);
+      panel(w, 0.03, 0, -d / 2 + 0.02);
+      panel(w, 0.03, 0, d / 2 - 0.02);
+      const side = (d / 2 - gap) / 1;
+      panel(0.03, side, w / 2 - 0.02, -(gap + side / 2));
+      panel(0.03, side, w / 2 - 0.02, gap + side / 2);
+      break;
+    }
+    case "stairs": {
+      // Stairs down toward +x: the top step meets the balcony deck at -x.
+      const n = 7;
+      const run = w / n;
+      for (let i = 0; i < n; i++) {
+        const sh = (h * (n - i)) / n;
+        box(run + 0.002, sh, d, -w / 2 + (i + 0.5) * run, sh / 2, 0);
+      }
+      const rail = new THREE.MeshStandardMaterial({ color: "#cbd5e1", metalness: 0.6, roughness: 0.3 });
+      for (const sz of [-1, 1]) {
+        const len = Math.hypot(w, h);
+        const r = box(len, 0.05, 0.05, 0, h / 2 + 0.95, sz * (d / 2 - 0.03), rail);
+        r.rotation.z = -Math.atan2(h, w);
+      }
       break;
     }
     case "desk":
@@ -1484,12 +1565,19 @@ export class FloorScene {
   private readonly owner: OwnerAvatar;
   /** Prototype Lab: Trading Stand Manager — seated at chair_desk. */
   private readonly manager: ManagerAvatar;
+  /** Where the Manager looks from the corner-office chair (the camera comes from that side). */
+  private readonly managerLook: V2;
+  /** Chunk A overhaul set pieces (pit, lanes, banners, weather, trophy cups) — presentation only. */
+  private readonly overhaul: FloorOverhaul;
   private readonly managerFeed: ManagerFeed;
   private unsubManager: (() => void) | null = null;
   private readonly stubFeed: StubManagerFeed | null;
-  /** WASD walk the Owner when focused. Default on for the proto. */
+  /** WASD / arrows walk the Owner when the floor is focused. */
   private walkMode = true;
   private readonly keys = { w: false, a: false, s: false, d: false };
+  /** Through the owner's eyes, or a chase camera behind them. */
+  private pov: "first" | "third" = "third";
+  private lookPitch = -0.06;
   /** Third-person chase of the Owner (separate from crew Character chase). */
   private ownerChase = false;
   private ownerChaseHead: THREE.Vector3 | null = null;
@@ -1498,13 +1586,17 @@ export class FloorScene {
   private ownerChaseCheckAt = 0;
   private nearCrew: Character | null = null;
   private nearManager = false;
-  private proxPrompt: "crew" | "manager" | null = null;
+  private nearChair = false;
+  private proxPrompt: "crew" | "manager" | "chair" | null = null;
+  /** Balcony chair seat (xz); Owner sit/stand (Chunk C 25). */
+  private readonly balconyChair: V2 | null;
   private flickerUntil = 0;
   private lastWinDraw = 0;
   private lastLightAt = -1;
   private shotN = 0;
   private lastUrgency: string | null = null;
-  /** Whose lines are playing: a cycle's meeting, or an exchange from the live talk. */
+  /** Lines already spoken this session. A repeat is skipped, not read again. */
+  private said: SaidRow[] = loadSaid();
   private source: "cycle" | "talk" | null = null;
   private batch: TalkBatch | null = null;
   private queue: TalkBatch[] = [];
@@ -1521,7 +1613,7 @@ export class FloorScene {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = "block";
     // Touch: let the page scroll vertically until the canvas is focused.
@@ -1559,8 +1651,9 @@ export class FloorScene {
     sun.position.set(10, 22, 12);
     sun.castShadow = true;
     sun.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048);
-    Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 16, bottom: -16, near: 1, far: 70 });
-    sun.shadow.bias = -0.0004;
+    Object.assign(sun.shadow.camera, { left: -18, right: 18, top: 14, bottom: -14, near: 2, far: 48 });
+    sun.shadow.bias = -0.001;
+    sun.shadow.normalBias = 0.12;
     sun.shadow.camera.updateProjectionMatrix();
     sun.target.position.set(-2, 0, -1);
     this.scene.add(sun, sun.target);
@@ -1596,18 +1689,25 @@ export class FloorScene {
       this.avatars.set(who, a);
       this.scene.add(a.root);
     }
-    // Owner home: Prototype Lab annex (office_RnD). Manager: war-room stand desk (not chair_office).
-    const lab = LAYOUT.spots.office_rnd ?? { pos: [-0.6, 5.15] as [number, number], look: [-0.6, 3.9] as [number, number] };
-    // Stand slightly south of the R&D desk so Owner can walk the floor freely.
-    // "R&D seat minus 1.2 m" lands inside desk_RnD, and a step off a blocked cell is refused — the Owner could not move at all. Start on
-    // the nearest open floor (owner-walk.ts); tickOwnerManager also frees an Owner that ends up on a blocked cell.
-    const ownerStart: [number, number] = nearestOpenFloor(this.nav, [lab.pos[0], lab.pos[1] - 1.2]);
+    // Owner home: the balcony over the war room (Chunk A item 8) — starts on its deck, looking at the pit.
+    const bal = BALCONY.deck;
+    const ownerStart: [number, number] = bal ? [bal.x0 + 0.7, (bal.z0 + bal.z1) / 2] : [-0.6, 3.95];
     const ownerLook: [number, number] = [-8, -1];
     this.owner = new OwnerAvatar(ownerStart, ownerLook);
+    this.owner.elevation = this.heightAt(ownerStart[0], ownerStart[1]);
     this.scene.add(this.owner.root);
-    // Trading Stand at war-room meeting chair facing the table.
-    this.manager = new ManagerAvatar({ pos: [-6.9, 0.05], look: [-8.0, -1.0] });
+    const oChair = LAYOUT.furniture.find((x) => x.id === "chair_Owner");
+    this.balconyChair = oChair ? [oChair.pos[0], oChair.pos[1]] : null;
+    // Trading Stand in the glass corner office (chair_Manager in the plan), facing its monitors and the pit beyond;
+    // the old war-room meeting chair if the plan has no corner office.
+    const mChair = LAYOUT.furniture.find((x) => x.id === "chair_Manager");
+    const mDesk = LAYOUT.furniture.find((x) => x.id === "desk_Manager");
+    this.managerLook = mChair && mDesk ? [mDesk.pos[0], mDesk.pos[1]] : [-8.0, -1.0];
+    this.manager = new ManagerAvatar({ pos: mChair ? [mChair.pos[0], mChair.pos[1]] : [-6.9, 0.05], look: this.managerLook });
     this.scene.add(this.manager.root);
+    this.overhaul = new FloorOverhaul();
+    this.overhaul.onThunder = () => this.opts.onEvent?.("thunder");
+    this.scene.add(this.overhaul.root);
     if (opts.managerFeed) {
       this.managerFeed = opts.managerFeed;
       this.stubFeed = null;
@@ -1633,7 +1733,7 @@ export class FloorScene {
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("keyup", this.onKeyUp);
     // Capture phase, so zoom is switched on/off before OrbitControls sees the wheel.
-    this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: true });
+    this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: false });
     document.addEventListener("pointerdown", this.onDocDown, true);
     this.resize();
     this.loop();
@@ -1724,15 +1824,35 @@ export class FloorScene {
       root.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;
-        m.castShadow = true;
-        m.receiveShadow = true;
         const mats = Array.isArray(m.material) ? m.material : [m.material];
+        const blob = `${m.name} ${mats.map((mat) => (mat as THREE.Material).name ?? "").join(" ")}`.toLowerCase();
+        const glass =
+          /glass|lens|window/.test(blob) ||
+          mats.some((mat) => {
+            const s = mat as THREE.MeshStandardMaterial;
+            return s.transparent === true || (typeof s.opacity === "number" && s.opacity < 0.92);
+          });
+        const deskTop = /desk_|table_/.test(m.name);
         for (const mat of mats) {
           const std = mat as THREE.MeshStandardMaterial;
-          if (/glass|lens/i.test(std.name)) {
+          if (std && "shadowSide" in std) std.shadowSide = THREE.FrontSide;
+          if (glass) {
             std.transparent = true;
             std.depthWrite = false;
-            m.castShadow = false;
+          }
+        }
+        // Glass and window panes flash black when they take a shadow. Desk tops
+        // do the same (two faces, one depth). Floors still receive.
+        m.castShadow = !glass;
+        m.receiveShadow = !glass && !deskTop;
+        if (m.geometry) {
+          if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+          const box = m.geometry.boundingBox;
+          if (box) {
+            const sx = box.max.x - box.min.x;
+            const sy = box.max.y - box.min.y;
+            const sz = box.max.z - box.min.z;
+            if (Math.max(sx, sy, sz) < 0.06) m.castShadow = false;
           }
         }
       });
@@ -1861,6 +1981,9 @@ export class FloorScene {
       const ctx = canvas.getContext("2d")!;
       const tex = new THREE.CanvasTexture(canvas);
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.generateMipmaps = false;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
       tex.anisotropy = 4;
       if (s.id === "marquee") tex.wrapS = THREE.RepeatWrapping;
       this.screens.set(s.id, { id: s.id, canvas, ctx, tex, w: s.px[0], h: s.px[1] });
@@ -1874,12 +1997,20 @@ export class FloorScene {
       // glTF UVs put v=0 at the top of the image; a plane built here does not.
       rec.tex.flipY = !fromGltf;
       rec.tex.needsUpdate = true;
-      const mat = new THREE.MeshBasicMaterial({ map: rec.tex, toneMapped: false });
+      const mat = new THREE.MeshBasicMaterial({
+        map: rec.tex,
+        toneMapped: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
+      });
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh) {
           m.material = mat;
           m.castShadow = false;
+          m.receiveShadow = false;
+          m.translateZ(0.012);
         }
       });
     }
@@ -2265,7 +2396,10 @@ export class FloorScene {
       this.preset = "free";
       return;
     }
+    // The director must not yank the lens off the owner while they are walking.
+    if (p === "auto" && this.ownerChase) return;
     this.follow(null);
+    if (p !== "follow") this.stopOwnerChase();
     this.preset = p;
     if (p === "follow") return;
     if (p === "auto") return this.directorShot(this.lines[this.lineIdx] ?? null);
@@ -2481,7 +2615,10 @@ export class FloorScene {
     const dt = Math.min(this.clock.getDelta(), 0.1);
     this.time += dt;
     this.tick(dt);
-    this.controls.update();
+    // OrbitControls rewrites the camera from its own orbit. While walking that fights the follow
+    // cam and the view springs back. The walk camera places itself.
+    if (this.ownerChase) this.camera.lookAt(this.controls.target);
+    else this.controls.update();
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -2490,8 +2627,21 @@ export class FloorScene {
     // The meeting, one line at a time.
     const wall = this.wallSec();
     if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
-      this.lineIdx++;
-      const line = this.lines[this.lineIdx] ?? null;
+      let line: DialogueLine | null = null;
+      const now = Date.now();
+      while (this.lineIdx < this.lines.length) {
+        this.lineIdx++;
+        const next = this.lines[this.lineIdx] ?? null;
+        if (!next) {
+          line = null;
+          break;
+        }
+        if (heardBefore(next.text, this.said, now)) continue;
+        this.said = rememberSaid(next.text, this.said, now);
+        saveSaid(this.said);
+        line = next;
+        break;
+      }
       for (const a of this.avatars.values()) {
         a.speaking = Boolean(line && a.who === line.character);
         a.say(a.speaking && line ? line.text : null);
@@ -2532,6 +2682,11 @@ export class FloorScene {
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
       const pose = wingPose(a.who, this.wingShown);
       if (pose && !mine) a.anim = pose;
+      // 23: body language from minds needs / entry mood when ambient at desk (Chunk B).
+      if (!mine && !pose && (act === "desk" || act === "desk_lean" || act === "desk_stretch" || act === "desk_drink" || act === "desk_phone")) {
+        const bl = this.overhaul.bodyLang().find((b) => b.who === a.who);
+        if (bl) a.anim = bl.anim as AnimKey;
+      }
       a.update(dt, t);
     }
     // Spectacle.
@@ -2556,6 +2711,8 @@ export class FloorScene {
     }
     this.cat.update(dt, t);
     this.tickOwnerManager(dt, t);
+    this.overhaul.update(dt, t, this.clockMs());
+    this.overhaul.drawScreens(this.screens, this.clockMs());
     // Day and night follow the ET clock (the drill's own clock in a drill); a storm dims the sun.
     if (t - this.lastLightAt > 1) {
       this.lastLightAt = t;
@@ -2610,8 +2767,10 @@ export class FloorScene {
     this.alarm.intensity = flicker ? (Math.sin(t * 40) > 0 ? 14 : 0) : urg === "HIGH_ALERT" ? 6 + 6 * Math.sin(t * 6) : 0;
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
-    if (this.ownerChase) this.ownerChaseRide(dt, t);
-    else if (this.chase) this.chaseRide(dt, t);
+    if (this.ownerChase) {
+      if (this.pov === "first") this.ownerEyes();
+      else this.ownerChaseRide(dt, t);
+    } else if (this.chase) this.chaseRide(dt, t);
     if (this.preset === "follow") {
       const line = this.lines[this.lineIdx];
       const who = line ? this.avatars.get(line.character) : null;
@@ -2621,7 +2780,7 @@ export class FloorScene {
         const want = p.clone().add(new THREE.Vector3(Math.sin(who.yaw) * 4.2 + 1.2, 2.6, Math.cos(who.yaw) * 4.2 + 1.2));
         this.camera.position.lerp(want, 1 - Math.exp(-1.6 * dt));
       }
-    } else if (this.camGoal) {
+    } else if (this.camGoal && !this.ownerChase) {
       const k = 1 - Math.exp(-2.6 * dt);
       this.camera.position.lerp(this.camGoal.pos, k);
       this.controls.target.lerp(this.camGoal.target, k);
@@ -2666,6 +2825,8 @@ export class FloorScene {
       this.opts.onManagerInspect?.(this.managerFeed.getState());
       return;
     }
+    // Walk mode is its own camera (the Owner chase): a click on a person must not yank it into a crew follow.
+    if (this.walkMode) return;
     const p = this.personAt(ray);
     if (!p) return;
     this.follow(p.who);
@@ -2706,6 +2867,11 @@ export class FloorScene {
 
   /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
   private onMove = (e: PointerEvent) => {
+    // Move the mouse to turn. No button, and it stops when the mouse stops — a held offset was the rubber band.
+    if (this.ownerChase && this.focused && e.pointerType !== "touch" && (e.movementX !== 0 || e.movementY !== 0)) {
+      this.owner.yaw -= e.movementX * 0.0045;
+      this.lookPitch = Math.max(-0.55, Math.min(0.42, this.lookPitch - e.movementY * 0.0022));
+    }
     if (e.pointerType !== "mouse" || e.buttons) return;
     const now = performance.now();
     if (now - this.hoverAt < 120) return;
@@ -2715,13 +2881,15 @@ export class FloorScene {
     const hit = this.screenAlong(ray);
     let label: string | null = null;
     const mgrDist = this.protoAt(ray, "manager");
-    if (p && (!hit || p.at < hit.at) && (mgrDist == null || p.at < mgrDist)) label = `${p.who} — click to follow`;
+    if (p && (!hit || p.at < hit.at) && (mgrDist == null || p.at < mgrDist)) label = this.walkMode ? `${p.who} — walk mode (turn Walk off to follow)` : `${p.who} — click to follow`;
     else if (mgrDist != null && (!hit || mgrDist < hit.at)) label = "Trading Stand — click to inspect";
     else if (hit) label = `${screenLabel(hit.id)} — double-click to go there`;
     this.setHover(label);
   };
 
-  private onLeave = () => this.setHover(null);
+  private onLeave = () => {
+    this.setHover(null);
+  };
 
   private setHover(label: string | null) {
     this.renderer.domElement.style.cursor = label ? "pointer" : "";
@@ -2730,31 +2898,77 @@ export class FloorScene {
     this.opts.onHover?.(label);
   }
 
+  private typing(e: KeyboardEvent): boolean {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return false;
+    const tag = t.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+  }
+
+  /** WASD and the arrows are the same four directions. */
+  private moveKey(e: KeyboardEvent): "w" | "a" | "s" | "d" | null {
+    switch (e.key) {
+      case "w":
+      case "W":
+      case "ArrowUp":
+        return "w";
+      case "s":
+      case "S":
+      case "ArrowDown":
+        return "s";
+      case "a":
+      case "A":
+      case "ArrowLeft":
+        return "a";
+      case "d":
+      case "D":
+      case "ArrowRight":
+        return "d";
+      default:
+        return null;
+    }
+  }
+
   private onKey = (e: KeyboardEvent) => {
+    if (this.typing(e)) return;
     if (e.key === "Escape") {
       if (this.focused) this.setFocused(false);
       if (this.chase) this.follow(null);
       this.clearWalkKeys();
       return;
     }
+    const move = this.moveKey(e);
+    if (move) {
+      // Only while the floor is focused, so arrows can still scroll the rest of the page.
+      if (!this.focused) return;
+      if (!this.walkMode) this.setWalkMode(true);
+      this.keys[move] = true;
+      e.preventDefault();
+      return;
+    }
     if (!this.focused) return;
     const k = e.key.toLowerCase();
-    if (k === "w" || k === "a" || k === "s" || k === "d") {
-      if (this.walkMode) {
-        this.keys[k] = true;
-        e.preventDefault();
-      }
+    if (k === "v") {
+      this.setPov(this.pov === "first" ? "third" : "first");
+      e.preventDefault();
+      return;
+    }
+    if (k === "f") {
+      this.toggleBalconySit();
+      e.preventDefault();
       return;
     }
     if (k === "e") {
-      this.interactProximity();
+      // Seated: E stands (same as F); else 1:1 with nearby crew / Manager.
+      if (this.owner.seated) this.toggleBalconySit(false);
+      else this.interactProximity();
       e.preventDefault();
     }
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
-    const k = e.key.toLowerCase();
-    if (k === "w" || k === "a" || k === "s" || k === "d") this.keys[k] = false;
+    const move = this.moveKey(e);
+    if (move) this.keys[move] = false;
   };
 
   private clearWalkKeys() {
@@ -2765,6 +2979,11 @@ export class FloorScene {
   /* scroll capture */
 
   private onWheelCapture = (e: WheelEvent) => {
+    if (this.ownerChase && this.focused && this.pov === "third") {
+      this.ownerChaseWant = Math.min(6.5, Math.max(1.8, this.ownerChaseWant + Math.sign(e.deltaY) * 0.32));
+      e.preventDefault();
+      return;
+    }
     const zoom = this.focused || e.ctrlKey || e.metaKey;
     this.controls.enableZoom = zoom;
     // Not ours: OrbitControls returns before preventDefault when zoom is off, so the page scrolls.
@@ -2795,7 +3014,25 @@ export class FloorScene {
     if (this.focused) this.setFocused(false);
   }
 
-  /** Prototype Lab: WASD walks Owner when focused. */
+  /** Click Walk, or press a move key: stand in the owner's view. */
+  engageOwner() {
+    this.setWalkMode(true);
+    this.setFocused(true);
+  }
+
+  /** First person is the owner's eyes. Third person is just behind them. */
+  setPov(p: "first" | "third") {
+    if (p === this.pov) return;
+    this.pov = p;
+    if (!this.ownerChase) {
+      this.opts.onPovChange?.(p);
+      return;
+    }
+    this.ownerChase = false;
+    this.startOwnerChase();
+    this.opts.onPovChange?.(p);
+  }
+
   setWalkMode(on: boolean) {
     if (on === this.walkMode) return;
     this.walkMode = on;
@@ -2810,6 +3047,29 @@ export class FloorScene {
 
   isWalkMode() {
     return this.walkMode;
+  }
+
+  /** Fly to the Manager's trading stand: the first clear spot around it with an unbroken line to the stand. */
+  focusManager(): boolean {
+    if (this.ownerChase) this.stopOwnerChase();
+    const [mx, mz] = this.manager.pos;
+    const target = new THREE.Vector3(mx, 1.25, mz);
+    const away = Math.atan2(mx - this.managerLook[0], mz - this.managerLook[1]); // come from the side the Manager faces
+    for (const d of [3.2, 2.6, 2.0]) {
+      for (const da of [0, 0.7, -0.7, 1.4, -1.4, Math.PI]) {
+        const ang = away + Math.PI + da;
+        const from = new THREE.Vector3(mx + Math.sin(ang) * d, 2.1, mz + Math.cos(ang) * d);
+        const ray = from.clone().sub(target);
+        const len = ray.length();
+        if (this.solidAlong(target, ray.normalize(), len, 0.55) < Infinity) continue;
+        this.follow(null);
+        this.preset = "free";
+        this.camGoal = { pos: from, target };
+        this.opts.onFocus?.("Trading Stand");
+        return true;
+      }
+    }
+    return false;
   }
 
   getManagerFeed(): ManagerFeed {
@@ -2827,45 +3087,62 @@ export class FloorScene {
     this.ownerChase = true;
     this.ownerChaseHead = null;
     this.preset = "free";
-    this.ownerChaseWant = 3.2;
-    this.ownerChaseY = this.owner.height * 0.78;
+    this.camGoal = null;
+    if (this.pov === "first") {
+      this.controls.enabled = false;
+      this.owner.root.visible = false;
+      this.ownerEyes();
+      return;
+    }
+    this.controls.enabled = true;
+    this.controls.enableRotate = false;
+    this.controls.enablePan = false;
+    this.owner.root.visible = true;
+    this.ownerChaseY = this.owner.height * 0.78 + this.owner.elevation;
     const behind = this.owner.yaw + Math.PI;
     const d = 3.2;
     const x = this.owner.pos[0] + Math.sin(behind) * d;
     const z = this.owner.pos[1] + Math.cos(behind) * d;
-    this.camGoal = {
-      pos: new THREE.Vector3(x, this.ownerChaseY + 1.1, z),
-      target: new THREE.Vector3(this.owner.pos[0], this.ownerChaseY, this.owner.pos[1]),
-    };
+    this.camera.position.set(x, this.ownerChaseY + 1.1, z);
+    this.controls.target.set(this.owner.pos[0], this.ownerChaseY, this.owner.pos[1]);
   }
 
   private stopOwnerChase() {
     this.ownerChase = false;
     this.ownerChaseHead = null;
+    this.controls.enabled = true;
+    this.controls.enableRotate = true;
+    this.controls.enablePan = true;
+    this.owner.root.visible = true;
   }
 
-  private ownerChaseRide(dt: number, t: number) {
+  /** The owner's eyes. The body is hidden so the lens is not inside the head. */
+  private ownerEyes() {
     const a = this.owner;
-    this.ownerChaseY = damp(this.ownerChaseY, a.height * 0.78, 4, dt);
-    const head = new THREE.Vector3(a.pos[0], this.ownerChaseY, a.pos[1]);
-    this.ownerChaseHead ??= head.clone();
-    const delta = head.clone().sub(this.ownerChaseHead);
-    this.ownerChaseHead.copy(head);
-    this.camera.position.add(delta);
-    this.controls.target.add(delta);
-    if (this.camGoal) {
-      this.camGoal.pos.add(delta);
-      this.camGoal.target.add(delta);
-    }
-    // Hold orbit distance the viewer set.
-    if (t - this.ownerChaseCheckAt < 0.12) return;
-    this.ownerChaseCheckAt = t;
-    const want = Math.max(this.ownerChaseWant, 1.4);
-    const dist = this.camera.position.distanceTo(this.controls.target);
-    if (Math.abs(dist - want) > 0.35) {
-      const dir = this.camera.position.clone().sub(this.controls.target).normalize();
-      this.camera.position.copy(this.controls.target).add(dir.multiplyScalar(want));
-    }
+    const eyeY = a.height * 0.9 + a.elevation;
+    const cp = Math.cos(this.lookPitch);
+    const dir = new THREE.Vector3(Math.sin(a.yaw) * cp, Math.sin(this.lookPitch), Math.cos(a.yaw) * cp);
+    this.camera.position.set(a.pos[0], eyeY, a.pos[1]);
+    this.controls.target.copy(this.camera.position).add(dir);
+    this.camGoal = null;
+    this.owner.root.visible = false;
+    this.controls.enabled = false;
+  }
+
+  /** Behind the owner, placed exactly. A lerp here is what made the view rubber-band. */
+  private ownerChaseRide(_dt: number, _t: number) {
+    const a = this.owner;
+    const eye = a.height * 0.72 + a.elevation;
+    const look = new THREE.Vector3(a.pos[0] + Math.sin(a.yaw) * 2, eye + 0.15 + this.lookPitch * 0.55, a.pos[1] + Math.cos(a.yaw) * 2);
+    const backX = -Math.sin(a.yaw);
+    const backZ = -Math.cos(a.yaw);
+    const dir = new THREE.Vector3(backX, 0, backZ);
+    let dist = this.ownerChaseWant;
+    const from = new THREE.Vector3(a.pos[0], eye + 0.15, a.pos[1]);
+    const hit = this.solidAlong(from, dir, dist + 0.15, 0.28);
+    if (hit < dist) dist = Math.max(1.6, hit - 0.3);
+    this.camera.position.set(a.pos[0] + backX * dist, eye + 0.58 - this.lookPitch * 0.25, a.pos[1] + backZ * dist);
+    this.controls.target.copy(look);
   }
 
   private walkable = (x: number, z: number) => {
@@ -2873,46 +3150,75 @@ export class FloorScene {
     return this.nav.free(i, j);
   };
 
+  /**
+   * The Owner's floor height: the balcony deck, the stairs (a ramp along their run), or the floor. The crew's nav
+   * grid treats the balcony and stairs as solid (they never climb them); only the Owner walks up.
+   */
+  private heightAt(x: number, z: number): number {
+    const d = BALCONY.deck;
+    const s = BALCONY.stairs;
+    if (d && x >= d.x0 && x <= d.x1 && z >= d.z0 && z <= d.z1) return d.h;
+    if (s && x >= s.x0 && x <= s.x1 + 0.4 && z >= s.z0 && z <= s.z1) return Math.max(0, s.h * (1 - (x - s.x0) / (s.x1 - s.x0)));
+    return 0;
+  }
+
+  /** Can the Owner stand at (x, z) from where they are now: on the deck or stairs, or open floor — never a ledge jump. */
+  private ownerWalkable = (x: number, z: number) => {
+    const d = BALCONY.deck;
+    const s = BALCONY.stairs;
+    const m = 0.22;
+    const onDeck = !!d && x >= d.x0 + m && x <= d.x1 + 0.05 && z >= d.z0 + m && z <= d.z1 - m;
+    const onStairs = !!s && x >= s.x0 - 0.05 && x <= s.x1 + 0.4 && z >= s.z0 + 0.12 && z <= s.z1 - 0.12;
+    // The deck's open +x edge is only open where the stairs land.
+    if (onDeck && d && x > d.x1 - m && !(s && z >= s.z0 + 0.12 && z <= s.z1 - 0.12)) return false;
+    if (!onDeck && !onStairs && !this.walkable(x, z)) return false;
+    const from = this.heightAt(this.owner.pos[0], this.owner.pos[1]);
+    return Math.abs(this.heightAt(x, z) - from) < 0.35;
+  };
+
   private tickOwnerManager(dt: number, t: number) {
     // WASD only while focused + walk mode (never hijacks page when unfocused).
     if (this.focused && this.walkMode) {
-      // A refused step moves nothing, so an Owner on a blocked cell is stuck for good: put them on open floor first.
-      if (!onFreeFloor(this.nav, this.owner.pos)) this.owner.pos = nearestOpenFloor(this.nav, this.owner.pos);
       let mx = 0;
       let mz = 0;
-      // Camera-relative: W toward look, A/D strafe.
-      const forward = new THREE.Vector3();
-      this.camera.getWorldDirection(forward);
-      forward.y = 0;
-      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
-      else forward.normalize();
-      const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+      // Mouse-right and D both turn and step to the viewer's right.
+      const yaw = this.owner.yaw;
+      const fx = Math.sin(yaw);
+      const fz = Math.cos(yaw);
+      const rx = -Math.cos(yaw);
+      const rz = Math.sin(yaw);
       if (this.keys.w) {
-        mx += forward.x;
-        mz += forward.z;
+        mx += fx;
+        mz += fz;
       }
       if (this.keys.s) {
-        mx -= forward.x;
-        mz -= forward.z;
+        mx -= fx;
+        mz -= fz;
       }
       if (this.keys.d) {
-        mx += right.x;
-        mz += right.z;
+        mx += rx;
+        mz += rz;
       }
       if (this.keys.a) {
-        mx -= right.x;
-        mz -= right.z;
+        mx -= rx;
+        mz -= rz;
       }
       const len = Math.hypot(mx, mz);
+      const face = this.owner.yaw;
       if (len > 1e-6) {
-        const speed = 2.4 * dt;
-        this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.walkable);
+        if (this.owner.seated) this.toggleBalconySit(false);
+        else {
+          const speed = 2.6 * dt;
+          this.owner.tryMove((mx / len) * speed, (mz / len) * speed, this.ownerWalkable);
+          this.owner.yaw = face;
+        }
       } else {
         this.owner.moving = false;
       }
     } else {
       this.owner.moving = false;
     }
+    this.owner.elevation = damp(this.owner.elevation, this.heightAt(this.owner.pos[0], this.owner.pos[1]), 14, dt);
     this.owner.update(dt, t);
     this.manager.update(dt, t);
     this.updateProximity();
@@ -2930,28 +3236,64 @@ export class FloorScene {
       }
     }
     const nearMgr = Math.hypot(this.owner.pos[0] - this.manager.pos[0], this.owner.pos[1] - this.manager.pos[1]) < PROX;
+    const chair = this.balconyChair;
+    const nearChair =
+      !!chair && Math.hypot(this.owner.pos[0] - chair[0], this.owner.pos[1] - chair[1]) < 0.85 && this.heightAt(this.owner.pos[0], this.owner.pos[1]) > 0.8;
     this.nearCrew = near;
     this.nearManager = nearMgr && !near;
-    let prompt: "crew" | "manager" | null = null;
-    if (this.nearManager) prompt = "manager";
+    this.nearChair = nearChair;
+    let prompt: "crew" | "manager" | "chair" | null = null;
+    if (this.owner.seated) prompt = "chair";
+    else if (nearChair && !near && !nearMgr) prompt = "chair";
+    else if (this.nearManager) prompt = "manager";
     else if (this.nearCrew) prompt = "crew";
     if (prompt !== this.proxPrompt) {
       this.proxPrompt = prompt;
-      this.opts.onProximity?.(prompt, this.nearCrew ?? undefined);
-      if (prompt === "crew" && this.nearCrew) this.setHover(`${this.nearCrew} — E / click to open`);
-      else if (prompt === "manager") this.setHover("Trading Stand — E / click to inspect");
+      this.opts.onProximity?.(prompt === "chair" ? null : prompt, this.nearCrew ?? undefined);
+      if (prompt === "chair") this.setHover(this.owner.seated ? "Seated — F / E / WASD to stand" : "Balcony chair — F to sit");
+      else if (prompt === "crew" && this.nearCrew) this.setHover(`${this.nearCrew} — E for 1:1`);
+      else if (prompt === "manager") this.setHover("Trading Stand — E for 1:1");
     }
+  }
+
+  /** Chunk C item 25 — sit on / stand from the balcony chair. */
+  private toggleBalconySit(force?: boolean) {
+    const want = force ?? !this.owner.seated;
+    if (want) {
+      if (!this.nearChair && !this.owner.seated) return;
+      const chair = this.balconyChair;
+      if (chair) {
+        this.owner.pos = [chair[0], chair[1]];
+        this.owner.yaw = Math.atan2(-8 - chair[0], -1 - chair[1]); // face the pit
+        this.owner.elevation = this.heightAt(chair[0], chair[1]);
+      }
+      this.owner.setSeated(true);
+      this.clearWalkKeys();
+      this.opts.onOwnerSit?.(true);
+      this.setHover("Seated — F / E / WASD to stand");
+      return;
+    }
+    if (!this.owner.seated) return;
+    this.owner.setSeated(false);
+    this.opts.onOwnerSit?.(false);
+    this.setHover(this.nearChair ? "Balcony chair — F to sit" : null);
   }
 
   private interactProximity() {
+    // Chunk C item 26 — E opens a 1:1 with Manager or a crew member (presentation).
     if (this.nearManager) {
+      this.opts.onOneOnOne?.({ kind: "manager" });
       this.opts.onManagerInspect?.(this.managerFeed.getState());
       return;
     }
-    if (this.nearCrew) this.opts.onSelect?.(this.nearCrew);
+    if (this.nearCrew) {
+      this.opts.onOneOnOne?.({ kind: "crew", who: this.nearCrew });
+      this.opts.onSelect?.(this.nearCrew);
+    }
   }
 
   private applyManagerFeed(s: ManagerRoomState) {
+    this.overhaul?.setManager(s, this.managerFeed.getLastSteer(), this.managerFeed.getRules());
     this.manager.say(managerBubbleText(s));
     this.manager.setMoodAccent(phaseToMoodTint(s.current));
     // The account monitor: Trading Stand's managerAccountLine, red when blocked.
@@ -2959,6 +3301,19 @@ export class FloorScene {
       const r = readRhAccount(s.account);
       this.manager.setAccount({ who: r.who, line: r.line, blocked: r.blocked, snapshot: s.account.isSnapshot ? r.freshness : null });
     } else this.manager.setAccount(null);
+  }
+
+  /**
+   * Floor overhaul data (Chunk A set pieces + Chunk B school boards): the room engine's `floorProps` read of the live world.
+   * Null clears every piece to its labelled empty / awaiting-model state.
+   */
+  setFloorProps(p: FloorProps | null, signature = "") {
+    this.overhaul.setProps(p, signature);
+  }
+
+  /** Chunk D 35 — presentation scrubber index into floorProps.moments (does not rewind the room). */
+  setScrubIndex(index: number | null) {
+    this.overhaul.setScrubIndex(index);
   }
 
   /* entry mood */

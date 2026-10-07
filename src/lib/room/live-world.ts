@@ -11,8 +11,12 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
-import { isHighProbPath } from "@/lib/alerts/path-alarm";
+import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
+import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
+import { sessionBias } from "@/lib/trading/tf-ladder";
+import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
+import { setupLine } from "@/lib/trading/score-drivers";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import { volumeRatio } from "@/lib/trading/session-event";
@@ -174,13 +178,20 @@ export function atrOf(desk: DeskPayload): Record<Underlier, { atr: number | null
 export function feedOf(desk: DeskPayload): TalkWorld["feed"] {
   const qs = [desk.quotes.left, desk.quotes.right].filter((q) => q && Number.isFinite(q.price));
   if (!qs.length) return { kind: "none", lagSec: null };
-  if (desk.feed === "synthetic" || qs.every((q) => q.source === "synthetic")) return { kind: "synthetic", lagSec: null };
   const lags = qs.map((q) => q.lagSec).filter((x) => Number.isFinite(x));
-  const lagSec = lags.length ? Math.min(...lags) : null;
-  const gw = qs.every((q) => q.source === "live_gateway");
-  if (gw) return { kind: "live_gateway", lagSec };
-  const src = qs.find((q) => q.source !== "live_gateway")?.source;
-  return { kind: src === "databento" ? "databento" : "yahoo", lagSec };
+  // Worst lag across legs — never the best (min) of a mixed feed.
+  const lagSec = lags.length ? Math.max(...lags) : null;
+  // Worst source wins: any SYN → synthetic; else any Y! → yahoo; else DB; else gateway.
+  if (desk.feed === "synthetic" || qs.some((q) => q.source === "synthetic")) {
+    const allSyn = desk.feed === "synthetic" || qs.every((q) => q.source === "synthetic");
+    // Pure synthetic stamps lagSec:0 — don't advertise an invented delay.
+    return { kind: "synthetic", lagSec: allSyn ? null : lagSec };
+  }
+  if (qs.some((q) => q.source === "yahoo")) return { kind: "yahoo", lagSec };
+  if (qs.every((q) => q.source === "live_gateway")) return { kind: "live_gateway", lagSec };
+  if (qs.some((q) => q.source === "databento")) return { kind: "databento", lagSec };
+  // Unrecognized mix — never flatter as live.
+  return { kind: "yahoo", lagSec };
 }
 
 function calendarRead(desk: DeskPayload, nowMs: number): CalRead {
@@ -200,17 +211,70 @@ function calendarRead(desk: DeskPayload, nowMs: number): CalRead {
 
 const SETUP_BANDS = new Set(["A+", "A", "A-", "A−", "B+"]);
 
+function graded(c: { pathBand?: string | null; bandBeforeVeto?: string | null }): boolean {
+  return SETUP_BANDS.has(String(c.pathBand ?? "")) || SETUP_BANDS.has(String(c.bandBeforeVeto ?? ""));
+}
+
+/** The card's own plan, else the book plan on the same side. The tier is read off the price that just printed. */
+function planFor(
+  c: { side: string; plan?: { entry: number; stop: number; t1?: number | null; side: "long" | "short"; entryZone: { top: number; bottom: number } | null; atr: number | null } | null },
+  bookPlan: { side: string; entry?: number; stop?: number; t1?: number | null } | null,
+) {
+  if (c.plan?.entryZone) return c.plan;
+  if (bookPlan && bookPlan.side === c.side && bookPlan.entry != null) return bookPlan as NonNullable<typeof c.plan>;
+  return null;
+}
+
+function ladderBrief(desk: DeskPayload, symbol: string) {
+  const L = desk.ladder;
+  if (!L) return null;
+  const es = /ES/.test(symbol);
+  const pick = /ES/.test(L.left.symbol) === es ? L.left : L.right;
+  return { symbol: pick.symbol, strip: pick.strip, htf: sessionBias(pick) };
+}
+
 function cardRead(desk: DeskPayload): CardRead | null {
-  const c = [...desk.scan.candidates].filter((x) => SETUP_BANDS.has(String(x.pathBand ?? ""))).sort(compareForBoard)[0];
-  if (!c) return null;
-  const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
-  const b = booksOf(desk)[u];
-  const plan = b.smc.plan && b.smc.plan.side === c.side ? b.smc.plan : null;
-  const read = plan ? readEntry(plan, b.quote.price, b.draw.atr || null) : null;
+  const ranked = [...desk.scan.candidates].filter(graded).sort(compareForBoard);
+  if (!ranked.length) return null;
+  const books = booksOf(desk);
+  const readOf = (c: (typeof ranked)[number]) => {
+    const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
+    const b = books[u];
+    const plan = planFor(c, b.smc.plan);
+    const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
+    return { u, b, plan, read };
+  };
+  const live = ranked.find((c) => {
+    const t = readOf(c).read?.tier;
+    return t === "live" || t === "armed" || t === "forming";
+  });
+  const c = live ?? ranked[0]!;
+  const { u, b, plan, read } = readOf(c);
+  const otherU = u === "QQQ" ? "SPY" : "QQQ";
+  const otherB = books[otherU];
+  const seq = applyLtf(
+    sequenceFor(c as SequenceCard, {
+      inArray: read?.tier === "live",
+      gone: read?.tier === "gone",
+      price: b.quote.price,
+      others: ranked as SequenceCard[],
+    }),
+    readLtfLead({
+      symbol: c.symbol,
+      side: c.side === "short" ? "short" : "long",
+      minute: b.minute,
+      otherSymbol: otherB.series.symbol,
+      otherMinute: otherB.minute,
+      draw: b.draw.primary,
+      otherDraw: otherB.draw.primary,
+      mineLadder: ladderBrief(desk, c.symbol),
+      otherLadder: ladderBrief(desk, otherB.series.symbol),
+    }),
+  );
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
-    verdict: c.actionable && isHighProbPath(c) ? "ARMED" : "WATCH",
+    verdict: (c.confluence ?? 0) >= 0.8 && c.htfOk ? "ARMED" : c.actionable && isPathFire(c) ? "ARMED" : "WATCH",
     u,
     type: c.side === "short" ? "PUT" : "CALL",
     band: c.pathBand ? String(c.pathBand) : null,
@@ -220,31 +284,56 @@ function cardRead(desk: DeskPayload): CardRead | null {
     futSide: c.side === "short" ? "short" : "long",
     entry: plan?.entry ?? null,
     stop: plan?.stop ?? null,
-    t1: plan?.t1 ?? null,
+    t1: plan && "t1" in plan ? (plan.t1 ?? null) : null,
     pT1: c.hitOdds?.pT1 ?? null,
     expR: c.hitOdds?.expR ?? null,
-    block: c.missing?.[0] ?? null,
+    block: c.missing?.[0] ?? c.vetoes?.[0] ?? null,
     strategy: c.completeStrategy || c.strategyPrimary || null,
+    setup: setupLine(c.components ?? [], c.completeStrategy || c.strategyPrimary || null),
+    fit: c.confluence,
+    sequence: seq.label,
+    entryLine: seq.act,
   };
 }
 
 /** The scanner board, as the war room's TV shows it: the desk's graded candidates in board order, each with its plan and entry tier. */
 export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
-  return [...desk.scan.candidates]
-    .filter((c) => c.pathBand)
-    .sort(compareForBoard)
+  const ranked = [...desk.scan.candidates].filter((c) => c.pathBand).sort(compareForBoard);
+  const books = booksOf(desk);
+  return ranked
     .slice(0, limit)
     .map((c) => {
       const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
-      const b = booksOf(desk)[u];
-      const plan = b.smc.plan && b.smc.plan.side === c.side ? b.smc.plan : null;
-      const read = plan ? readEntry(plan, b.quote.price, b.draw.atr || null) : null;
+      const b = books[u];
+      const plan = planFor(c, b.smc.plan);
+      const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
+      const mine = c.symbol.includes("ES") ? books.SPY : books.QQQ;
+      const other = c.symbol.includes("ES") ? books.QQQ : books.SPY;
+      const seq = applyLtf(
+        sequenceFor(c as SequenceCard, {
+          inArray: read?.tier === "live",
+          gone: read?.tier === "gone",
+          price: b.quote.price,
+          others: ranked as SequenceCard[],
+        }),
+        readLtfLead({
+          symbol: c.symbol,
+          side: c.side === "short" ? "short" : "long",
+          minute: mine.minute,
+          otherSymbol: other.series.symbol,
+          otherMinute: other.minute,
+          draw: mine.draw.primary,
+          otherDraw: other.draw.primary,
+          mineLadder: ladderBrief(desk, c.symbol),
+          otherLadder: ladderBrief(desk, other.series.symbol),
+        }),
+      );
       return {
         key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
         name: `${c.pathBand} ${c.symbol} ${c.side}`,
         symbol: c.symbol,
         strategy: c.completeStrategy || c.strategyPrimary || null,
-        verdict: c.actionable && isHighProbPath(c) ? "ARMED" : SETUP_BANDS.has(String(c.pathBand ?? "")) ? "WATCH" : "STAND",
+        verdict: c.actionable && isPathFire(c) ? "ARMED" : SETUP_BANDS.has(String(c.pathBand ?? "")) ? "WATCH" : "STAND",
         band: c.pathBand ? String(c.pathBand) : null,
         u,
         side: c.side === "short" ? "short" : "long",
@@ -256,6 +345,9 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         stop: plan?.stop ?? null,
         t1: plan?.t1 ?? null,
         block: c.missing?.[0] ?? null,
+        entryState: read?.tier ?? "wait",
+        entryLine: seq.act,
+        sequence: seq.label,
       } satisfies ScanCardLite;
     });
 }
@@ -291,7 +383,22 @@ function mindsRead(m: MindState | null): MindsRead | null {
     needs: m.needs,
     rank: m.rank,
     rel: m.rel,
-    memories: m.memories.slice(0, 12).map((x) => ({ who: x.who, against: x.against ?? null, clock: x.clock, kind: x.kind, text: x.text, outcome: x.outcome?.verdict ?? null })),
+    memories: m.memories.slice(0, 24).map((x) => ({
+      id: x.id,
+      who: x.who,
+      against: x.against ?? null,
+      clock: x.clock,
+      kind: x.kind,
+      text: x.text,
+      outcome: x.outcome?.verdict ?? null,
+      pnl:
+        x.outcome?.usd != null
+          ? `${x.outcome.usd >= 0 ? "+" : "−"}$${Math.abs(Math.round(x.outcome.usd))}`
+          : x.outcome?.movePct != null
+            ? `${x.outcome.movePct >= 0 ? "+" : "−"}${Math.abs(x.outcome.movePct).toFixed(2)}%`
+            : null,
+      at: x.outcome?.at ?? x.at,
+    })),
   };
 }
 
@@ -301,7 +408,7 @@ export function labLite(lab: LabRead | null): LabLite | null {
     refusals: lab.refusals,
     twins: { n: lab.twins.n, deltaUsd: lab.twins.deltaUsd },
     calibration: lab.calibration ? { n: lab.calibration.n, meanP: lab.calibration.meanP, hitRate: lab.calibration.hitRate, brier: lab.calibration.brier } : null,
-    track: Object.fromEntries(Object.entries(lab.track).map(([k, v]) => [k, { n: v.n, brier: v.brier }])) as LabLite["track"],
+    track: Object.fromEntries(Object.entries(lab.track).map(([k, v]) => [k, { n: v.n, brier: v.brier, meanP: v.meanP, hitRate: v.hitRate }])) as LabLite["track"],
   };
 }
 

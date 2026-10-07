@@ -36,6 +36,7 @@ import { DisciplinePanel } from "@/components/journal/discipline-panel";
 import { TakeMomentsPanel } from "@/components/desk/take-moments-panel";
 import { markTakeAction, observeTakeMoments, tickMomentOutcomes } from "@/lib/trading/take-moments";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
+import { RhAccountStrip } from "@/components/desk/rh-account-strip";
 import { PaperBookPanel } from "@/components/desk/paper-book-panel";
 import { TradeDebriefPanel } from "@/components/desk/trade-debrief-panel";
 import {
@@ -64,6 +65,7 @@ import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
+import { FloorBrains } from "@/components/desk/floor-brains";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
@@ -72,10 +74,9 @@ import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
-import { PredictTab } from "@/components/predict/predict-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
 import { useRoomEngine } from "@/components/room/room-engine";
-import { useDeskSynapse, getDeskSynapse } from "@/lib/trading/desk-synapse";
+import { useDeskSynapse, getDeskSynapse, type SynapseTab } from "@/lib/trading/desk-synapse";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { buildTradeNote, missingLayers } from "@/lib/trading/trade-note";
 import {
@@ -87,7 +88,7 @@ import {
   fetchYearStudySeed,
   hydrateFromYearStudy,
 } from "@/lib/trading/bt-seed";
-import { SynapseRail } from "@/components/desk/synapse-rail";
+import { SYNAPSE_TABS } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory, emptyDeskMemory } from "@/lib/trading/desk-memory";
 import { Button } from "@/components/ui/button";
@@ -159,6 +160,16 @@ import type { RiskState } from "@/lib/journal/risk";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { formatUtcClock } from "@/lib/market/yahoo";
+import {
+  brainLiveRisk,
+  deskStaleLine,
+  readRiskGoverned,
+  riskEntryAllowed,
+  riskEntryBlockedReason,
+  riskUnknownLine,
+  withClientTimeout,
+  type RiskFetchState,
+} from "@/lib/trading/desk-fetch-guard";
 import { cn } from "@/lib/utils";
 import { EntryHero } from "@/components/desk/entry-hero";
 import { ScreenFlash } from "@/components/desk/screen-flash";
@@ -174,6 +185,18 @@ import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 // three.js (~600 KB) loads only when the Floor tab is opened; the room's
 // engine (room-engine.ts) is plain TS and runs at page level below.
 const TradingFloorTab = lazy(() => import("@/components/room/trading-floor-tab"));
+// The Mead Hall (2026-10-06): the prediction-market sports bar — three.js too, so lazy like the Floor.
+const MeadHallTab = lazy(() => import("@/components/mead/mead-hall-tab"));
+// PM analyzer (2026-10-06, Keaton): Predict + Mead Hall merged — the hall on top
+// (signal board → hallLayout), a desk panel per market below. three.js → lazy.
+const PmAnalyzer = lazy(() => import("@/components/predict/pm-analyzer"));
+// DEV capture only — Accuracy attachment re-render. `?capture=mead` mounts the
+// Mead Hall without waiting on /api/desk. import.meta.env.DEV is statically
+// false in production builds, so this is dead code there.
+const isMeadCapture = () =>
+  import.meta.env.DEV &&
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("capture") === "mead";
 
 export const Route = createFileRoute("/")({
   component: MasterplacePage,
@@ -193,7 +216,10 @@ export const Route = createFileRoute("/")({
  */
 function describeDeskError(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e ?? "");
-  if (/inactivity timeout|<html|<head|<title/i.test(raw) || /504/.test(raw)) {
+  if (/timed out after/i.test(raw)) {
+    return "Desk build timed out waiting on the server — market data or risk/auth may be slow. Retrying on the next poll.";
+  }
+  if (/inactivity timeout|<html|<head|<title/i.test(raw) || /\b504\b/.test(raw)) {
     return "Desk build ran long and the edge gave up (504) — market data upstream was slow. Retrying on the next poll.";
   }
   if (/failed to fetch|networkerror|load failed/i.test(raw)) {
@@ -201,6 +227,17 @@ function describeDeskError(e: unknown): string {
   }
   return raw.length > 240 ? `${raw.slice(0, 240)}…` : raw || "Desk load failed";
 }
+
+/** Slightly above Netlify/Pro edge (~26s) so a real 504 still surfaces; below "forever". */
+const DESK_CLIENT_TIMEOUT_MS = 35_000;
+/** Risk/auth/DB must not hold the desk hostage on cold start. */
+const RISK_CLIENT_TIMEOUT_MS = 12_000;
+/**
+ * The quote poll had no bound of its own: one hung fetchLiveQuotes froze the
+ * poll (inFlight never cleared) while the HUD kept the last quotes. 8s is well
+ * past a healthy 1-2s quote read and short enough that the poll recovers.
+ */
+const QUOTE_CLIENT_TIMEOUT_MS = 8_000;
 /** Live gateway tick is already in Postgres — 1s is free. */
 const QUOTE_LIVE_MS = 1_000;
 /** Yahoo delayed print. Match the tape, don't hammer the free host. */
@@ -663,6 +700,7 @@ function managePricesFromDesk(desk: DeskPayload): Record<string, ManagePrice> {
 type DeskCategory =
   | "news"
   | "predict"
+  | "mead"
   | "discuss"
   | "floor"
   | "brain"
@@ -711,9 +749,11 @@ const CATEGORIES: {
     id: "predict",
     label: "Predict",
     short: "Pred",
-    hint: "Event contracts · live board",
+    hint: "PM analyzer · Mead Hall + desk · paper",
     icon: Percent,
   },
+  // "mead" is no longer its own tab: the Mead Hall lives at the top of the
+  // Predict analyzer. The id stays as an alias (ledger:open-tab "mead" → Predict).
   {
     id: "tape",
     label: "Charts",
@@ -745,7 +785,7 @@ const CATEGORIES: {
     id: "floor",
     label: "Floor",
     short: "Floor",
-    hint: "3D room · 5 desks · paper QQQ/SPY",
+    hint: "3D room · Robinhood Agentic ••6158",
     icon: Building2,
   },
   {
@@ -789,6 +829,7 @@ function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
   const publishDesk = useDeskSynapse((s) => s.publishDesk);
   const publishRisk = useDeskSynapse((s) => s.publishRisk);
+  const publishRiskGate = useDeskSynapse((s) => s.publishRiskGate);
   const publishMemory = useDeskSynapse((s) => s.publishMemory);
   const memoryBook = useDeskSynapse((s) => s.memory);
   const [error, setError] = useState<string | null>(null);
@@ -809,8 +850,27 @@ function MasterplacePage() {
   // store seeds memory from localStorage at creation, so the client's first
   // render otherwise differs from the server's.
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
-  const [wallNow, setWallNow] = useState(() => formatUtcClock(Date.now()));
+  const [wallNow] = useState(() => formatUtcClock(Date.now()));
   const [cat, setCat] = useState<DeskCategory>("trade");
+  // DEV capture only — Accuracy attachment re-render (set after mount: SSR-safe).
+  const [captureMead, setCaptureMead] = useState(false);
+  useEffect(() => {
+    if (isMeadCapture()) {
+      setCaptureMead(true);
+      setCat("mead");
+      setLoading(false);
+    }
+  }, []);
+  // "Open Mead Hall" on the Predict tab asks for a tab by id (a window event, so Predict needs no prop).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail;
+      if (id === "mead") setCat("predict");
+      else if (CATEGORIES.some((c) => c.id === id)) setCat(id as DeskCategory);
+    };
+    window.addEventListener("ledger:open-tab", on);
+    return () => window.removeEventListener("ledger:open-tab", on);
+  }, []);
   // The trading floor runs one paper cycle per desk refresh on every tab, so
   // its level stops and 11:00 time exit fire with the Floor tab closed.
   useRoomEngine(desk);
@@ -822,14 +882,20 @@ function MasterplacePage() {
   const [logMode, setLogMode] = useState<"paper" | "live">("paper");
   const deskRef = useRef<DeskPayload | null>(null);
 
-  // Three states, not two, so the entry gate cannot fail OPEN while loading:
-  // a user genuinely halted from a prior session must not see a green light
-  // during the load window on refresh. "no-session" (signed-out preview) has
-  // no governor at all, so it falls back to allowed — the server still
-  // authoritatively rejects the write either way.
-  const [riskFetchState, setRiskFetchState] = useState<
-    "loading" | "no-session" | "ok"
-  >("loading");
+  // Four states, so the entry gate cannot fail OPEN while loading OR when the
+  // governor cannot be reached: a user genuinely halted from a prior session
+  // must not see a green light during the load window on refresh, nor when a
+  // risk read times out. "no-session" (signed-out preview) has no governor at
+  // all, so it falls back to allowed — the server still authoritatively
+  // rejects the write either way — and it is ONLY set on a genuine signed-out
+  // answer ("Unauthorized"). A timeout / transport / DB error is "unknown":
+  // entry blocked, last-known risk kept, and the banner says since when.
+  // See src/lib/trading/desk-fetch-guard.ts.
+  const [riskFetchState, setRiskFetchState] = useState<RiskFetchState>("loading");
+  /** First failed risk read of the current outage (ms). null while the governor answers. */
+  const [riskUnknownSince, setRiskUnknownSince] = useState<number | null>(null);
+  /** Newest loadRisk call owns the gate; an older, slower answer is dropped. */
+  const riskSeq = useRef(0);
 
   // Real per-strategy sizing/verdict factor from journal/discretion.ts — see
   // that file for what feeds it. null while loading or signed out; every
@@ -840,33 +906,62 @@ function MasterplacePage() {
   );
 
   const loadRisk = useCallback(async () => {
-    try {
-      const [rs, , disc] = await Promise.all([
-        getRiskState(),
-        getSettings(),
-        getDiscretionState(),
-      ]);
+    const seq = ++riskSeq.current;
+    // Each read is bounded on its own budget (a wedged Neon connect must not
+    // hold the gate in "loading" forever) and settled separately: the
+    // GOVERNOR (getRiskState) alone decides the gate state. A discretion or
+    // settings miss degrades discretion to neutral; it never flips the gate.
+    const [outcome, , discR] = await Promise.all([
+      readRiskGoverned(() => getRiskState(), RISK_CLIENT_TIMEOUT_MS),
+      withClientTimeout(getSettings(), RISK_CLIENT_TIMEOUT_MS, "Settings").catch(() => null),
+      withClientTimeout(getDiscretionState(), RISK_CLIENT_TIMEOUT_MS, "Discretion").then(
+        (v) => ({ ok: true as const, v }),
+        () => ({ ok: false as const }),
+      ),
+    ]);
+    if (seq !== riskSeq.current) return null; // a newer read owns the gate
+    // Paper book equity is client desk-memory — never overwrite with server settings $100k
+    setEquity(getPaperAccount().equity);
+    if (outcome.state === "ok") {
+      const rs = outcome.risk;
       publishRisk(rs);
       setRisk(rs);
-      setDiscretion(disc);
-      // Paper book equity is client desk-memory — never overwrite with server settings $100k
-      setEquity(getPaperAccount().equity);
+      setDiscretion(discR.ok ? discR.v : null);
       setRiskFetchState("ok");
+      setRiskUnknownSince(null);
       return rs;
-    } catch {
-      setEquity(getPaperAccount().equity);
+    }
+    if (outcome.state === "no-session") {
+      // The server SAID nobody is signed in — the preview has no governor.
+      // `risk` is deliberately NOT cleared: if this session already saw a
+      // halt, riskEntryAllowed keeps entry blocked on it (re-review S7), and
+      // the synapse keeps its "Risk halt" veto.
       setRiskFetchState("no-session");
+      setRiskUnknownSince(null);
       setDiscretion(null);
       return null;
     }
+    // Timeout / transport / DB: we do not know. Fail CLOSED. Do NOT publish
+    // null — the synapse keeps the last-known risk (and its "Risk halt" veto),
+    // `risk` keeps the last answer, and entry is blocked until the governor
+    // answers again.
+    setRiskFetchState("unknown");
+    setRiskUnknownSince((prev) => prev ?? Date.now());
+    return null;
   }, [publishRisk]);
 
-  const entryAllowed =
-    riskFetchState === "loading"
-      ? false
-      : riskFetchState === "no-session" || !risk
-        ? true
-        : !risk.dailyHaltHit && !risk.weeklyHaltHit && !risk.killzoneCapHit;
+  // Mirror the gate into the synapse so the brain/posture/feeds know when
+  // `risk` is only last-known (re-review S4: "Risk unknown" veto).
+  useEffect(() => {
+    publishRiskGate(riskFetchState);
+  }, [riskFetchState, publishRiskGate]);
+
+  const entryAllowed = riskEntryAllowed(riskFetchState, risk);
+  const entryBlockedReason = riskEntryBlockedReason(
+    riskFetchState,
+    risk,
+    riskUnknownSince,
+  );
 
   /**
    * Everything a scanner card needs to draw its OWN setup, keyed by symbol.
@@ -1014,17 +1109,33 @@ function MasterplacePage() {
   const deskInFlight = useRef(false);
 
   const load = useCallback(async () => {
+    // DEV capture only — Accuracy attachment re-render: no desk fetch.
+    if (isMeadCapture()) {
+      setLoading(false);
+      return;
+    }
     if (deskInFlight.current) return;
     deskInFlight.current = true;
     setLoading(true);
-    setError(null);
+    // The error is cleared on the next SUCCESS, not at the start of a retry,
+    // so the "Desk stale" strip stays up while the retry is in flight.
     try {
-      const [res, rs] = await Promise.all([
+      // Desk and risk used to share one Promise.all with no client timeout:
+      // a hung getRiskState (Neon connect) or fetchTradingDesk left
+      // loading=true / desk=null forever ("Building desk…") and deskInFlight
+      // blocked every retry. Risk now runs on its own (bounded inside
+      // loadRisk, which publishes to the synapse itself on success) and the
+      // desk never waits on it. publishDesk below gets NO risk argument, so
+      // the synapse keeps whatever risk it last had — a slow or failed risk
+      // read can never wipe a known halt.
+      void loadRisk();
+      const res = await withClientTimeout(
         fetchTradingDesk({
           data: { left: "MNQ", right: "ES" },
         }),
-        loadRisk(),
-      ]);
+        DESK_CLIENT_TIMEOUT_MS,
+        "Desk build",
+      );
       if (!res.ok) {
         setError(res.error);
       } else {
@@ -1033,7 +1144,10 @@ function MasterplacePage() {
         const held = applyWordHysteresis(res, wordHold);
         deskRef.current = held; // the quote poll patches from the newest build
         setDesk(held);
-        publishDesk(held, rs);
+        setError(null);
+        // No risk arg: keep the synapse's last-known risk (desk-synapse.ts
+        // publishDesk keeps get().risk when risk is undefined).
+        publishDesk(held);
         try {
           reconcilePaperBookToMemory();
         } catch {
@@ -1205,9 +1319,13 @@ function MasterplacePage() {
       if (cancelled || inFlight || document.visibilityState === "hidden") return;
       inFlight = true;
       try {
-        const res = await fetchLiveQuotes({
-          data: { left: "MNQ", right: "ES" },
-        });
+        const res = await withClientTimeout(
+          fetchLiveQuotes({
+            data: { left: "MNQ", right: "ES" },
+          }),
+          QUOTE_CLIENT_TIMEOUT_MS,
+          "Quotes",
+        );
         if (!res.ok || cancelled) return;
         delay = quoteDelayMs(res.left, res.right);
         // Every print feeds the ladder's 30s rung (print-bars.ts).
@@ -1310,15 +1428,6 @@ function MasterplacePage() {
     // Start once a desk exists; do not reset on every quote patch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [desk ? "ready" : "boot"]);
-
-
-  useEffect(() => {
-    const id = window.setInterval(
-      () => setWallNow(formatUtcClock(Date.now())),
-      1000,
-    );
-    return () => window.clearInterval(id);
-  }, []);
 
   // Paper open/close → brain + synapse memory refresh
   useEffect(() => {
@@ -1541,13 +1650,7 @@ function MasterplacePage() {
         desk,
         mounted ? loadDeskMemory() : undefined,
         undefined,
-        risk
-          ? {
-              dailyHaltHit: risk.dailyHaltHit,
-              weeklyHaltHit: risk.weeklyHaltHit,
-              killzoneCapHit: risk.killzoneCapHit,
-            }
-            : null,
+        brainLiveRisk(riskFetchState, risk),
         discretion?.byStrategy,
       )
     : null;
@@ -1628,6 +1731,7 @@ function MasterplacePage() {
             wallNow={wallNow}
             liveRisk={risk}
             onEntryChip={() => setCat("trade")}
+            synapseTab={(SYNAPSE_TABS as string[]).includes(cat) ? (cat as SynapseTab) : "trade"}
             tabs={
               <nav aria-label="Profit categories">
                 <div className="flex flex-wrap gap-1">
@@ -1674,8 +1778,27 @@ function MasterplacePage() {
           </SessionHud>
         )}
         <ScreenFlash desk={desk} />
+        <div className="mt-2 px-1">
+          <RhAccountStrip />
+        </div>
         <StorageBanner />
         {risk && <HaltBanner risk={risk} />}
+
+        {/* DEV capture only — Accuracy attachment re-render */}
+        {captureMead && !desk && (
+          <div className="mt-3 min-h-[50vh]">
+            <Suspense
+              fallback={
+                <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                  Opening the Mead Hall…
+                </div>
+              }
+            >
+              <MeadHallTab />
+            </Suspense>
+          </div>
+        )}
 
         {loading && !desk && (
           <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
@@ -1690,26 +1813,52 @@ function MasterplacePage() {
           </p>
         )}
 
+        {/* A rebuild that fails AFTER the first desk used to show nothing:
+            the old desk sat there looking current. Say it is stale, when it
+            was built, and why. */}
+        {error && desk && (
+          <p
+            role="status"
+            className="mt-3 rounded-[var(--radius-md)] border border-[var(--color-warn)]/40 px-3 py-2 font-mono text-xs text-[var(--color-warn)]"
+          >
+            {deskStaleLine(desk.fetchedAt, error)}
+          </p>
+        )}
+
+        {riskFetchState === "unknown" && (
+          <p
+            role="status"
+            className="mt-3 rounded-[var(--radius-md)] border border-[var(--color-down)]/40 px-3 py-2 font-mono text-xs text-[var(--color-down)]"
+          >
+            Risk governor unreachable · {riskUnknownLine(riskUnknownSince)} · entry blocked until it answers
+            {risk ? " · last known risk kept" : ""}
+          </p>
+        )}
+
         {desk && (
           <>
             <div className="mt-3 min-h-[50vh] space-y-4">
-              {/* Learn carries no synapse feed: it is the one tab that is not a
-                  live surface, and a live rail above a lesson is the clutter
-                  this rework exists to remove. Now has its own board instead. */}
-              {cat !== "trade" &&
-                cat !== "learn" &&
-                cat !== "invest" &&
-                cat !== "news" &&
-                cat !== "predict" &&
-                cat !== "discuss" &&
-                cat !== "floor" && <SynapseRail tab={cat} />}
+              {/* The Synapse box used to repeat here at the top of Options,
+                  Charts, Brain, Book and Lab. It is now ONE header chip
+                  (SessionHud → SynapseChip) that expands into the same box. */}
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {/* The kill-rule check now lives inside the panel, beside the
                   research it checks. */}
               {cat === "invest" && <InvestPanel />}
               {cat === "news" && <NewsTab />}
-              {cat === "predict" && <PredictTab />}
+              {(cat === "predict" || cat === "mead") && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                      Opening the analyzer…
+                    </div>
+                  }
+                >
+                  <PmAnalyzer />
+                </Suspense>
+              )}
               {cat === "discuss" && <DiscussTab desk={desk} />}
               {cat === "floor" && (
                 <Suspense
@@ -1728,10 +1877,11 @@ function MasterplacePage() {
                 <div className="space-y-5">
                   <SectionHead
                     n="V"
-                    title="Veteran brain"
-                    sub="SMC/ICT discretion · remembers backtests & journal · never overrides hard gates"
+                    title="Brains"
+                    sub="One desk brain. Five minds wired into it. A line is kept only when it improves the book."
                   />
-                  <VeteranBrainPanel desk={desk} risk={risk} />
+                  <FloorBrains />
+                  <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
                   <TradingCoach desk={desk} />
                 </div>
               )}
@@ -1768,6 +1918,7 @@ function MasterplacePage() {
                     onLog={onLog}
                     noteFor={noteFor}
                     entryAllowed={entryAllowed}
+                    entryBlockedReason={entryBlockedReason}
                     bias={desk.bias}
                     narrative={desk.narrative}
                     clock={{
@@ -1876,11 +2027,8 @@ function MasterplacePage() {
 
               {cat === "swing" && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="S"
-                    title="Robinhood QQQ / SPY"
-                    sub="≤ $1,000 debit per ticket · loss capped 15% of the debit · size from the level · estimates from ES/NQ"
-                  />
+                  {/* One header: the sleeve panel's own ("Robinhood · QQQ / SPY
+                      sleeve") — the duplicate SectionHead above it is gone. */}
                   {/* The overnight question is asked before the intraday
                       cards, because at 15:00 it is the only one left. */}
                   <OvernightBoard desk={desk} />
@@ -1956,11 +2104,8 @@ function MasterplacePage() {
 
               {(cat === "lab" || cat === "risk") && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="R"
-                    title="Risk governor"
-                    sub={`Paper $${Math.round(paper.equity).toLocaleString()} · A+ 2% probe (3% once earned) / A 2% / A− 1% / B+ 0.5% paper`}
-                  />
+                  {/* RiskPanel carries its own "Risk governor" header and the
+                      paper equity / risk-ladder rows — no second heading. */}
                   <RiskPanel desk={desk} liveRisk={risk} />
                   <ApexSimPanel />
                   <EvidenceTable />

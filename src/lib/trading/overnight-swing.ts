@@ -139,11 +139,11 @@ export const DECIDE_START_MIN = 15 * 60;
 export const DECIDE_END_MIN = 15 * 60 + 55;
 
 /** RTH close for equity/ETF options; index-tracking ETPs get the 16:15 bell. */
-const ETF_CLOSE_MIN = 16 * 60 + 15;
+export const ETF_CLOSE_MIN = 16 * 60 + 15;
 /** Equity/ETF options reopen at 09:30 ET. */
-const RTH_OPEN_MIN = 9 * 60 + 30;
+export const RTH_OPEN_MIN = 9 * 60 + 30;
 /** Cboe Global Trading Hours for SPX/XSP/VIX/RUT: 20:15 → 09:25 ET. */
-const GTH_OPEN_MIN = 20 * 60 + 15;
+export const GTH_OPEN_MIN = 20 * 60 + 15;
 
 /** Instruments that can actually be traded overnight at this broker. */
 export const OVERNIGHT_TRADABLE = new Set(["SPX", "XSP", "VIX", "RUT"]);
