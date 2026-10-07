@@ -8,6 +8,7 @@
  * (negative controls at the bottom) so a check that cannot fail is caught.
  */
 const L = await import("../src/lib/room/floor-locomotion.ts");
+const F = await import("../src/lib/room/floor-feet.ts");
 const FS = await import("../src/components/room/floor-scene.ts");
 
 let fail = 0;
@@ -123,7 +124,7 @@ function walk(poly, step, init, maxSeconds = 90) {
   while (t < maxSeconds) {
     st = step(st, DT);
     t += DT;
-    frames.push({ pos: st.pos, yaw: st.yaw, speed: st.speed, phase: st.phase, lean: st.lean, yawRate: st.yawRate, arrived: st.arrived });
+    frames.push({ pos: st.pos, yaw: st.yaw, speed: st.speed, phase: st.phase, stride: st.stride, lean: st.lean, yawRate: st.yawRate, arrived: st.arrived });
     if (st.arrived) break;
   }
   return { frames, seconds: t, final: st };
@@ -257,10 +258,26 @@ const runs = smoothed.map((r) => {
   for (const x of runs.slice(0, 30)) {
     const dist = L.pathLength(x.r.sm);
     const phase = unwrapSum(x.run.frames);
-    const implied = (phase * L.strideOf(P.height)) / Math.PI;
+    const implied = (phase * x.run.frames.at(-1).stride) / Math.PI;
     worst = Math.max(worst, Math.abs(implied - dist) / dist);
   }
   check(`phase advances by distance / stride (worst error ${(worst * 100).toFixed(2)}% of distance)`, worst < 0.01, `${worst}`);
+  // The route is walked with a step that fits a whole number of steps, so it ends with the feet together.
+  const nominal = L.strideOf(P.height);
+  const long = runs.filter((x) => L.pathLength(x.r.sm) >= 8);
+  const mid = runs.filter((x) => L.pathLength(x.r.sm) >= 1.5);
+  const endsAligned = runs
+    .filter((x) => L.pathLength(x.r.sm) >= 0.3)
+    .every((x) => {
+      const d = (((x.run.frames.at(-1).phase - F.REST_PHASE) % Math.PI) + Math.PI) % Math.PI;
+      return Math.min(d, Math.PI - d) < 1e-6;
+    });
+  check(`every route ends on the rest phase (feet side by side), starting from rest (${runs.length} routes)`, endsAligned);
+  const dev = (x) => Math.abs(x.run.frames.at(-1).stride / nominal - 1);
+  check(
+    `the step is stretched at most ${(Math.max(...long.map(dev)) * 100).toFixed(1)}% on routes over 8 m, and stays within 0.7 to 1.4 times on every route over 1.5 m`,
+    long.every((x) => dev(x) < 0.05) && mid.every((x) => x.run.frames.at(-1).stride / nominal >= 0.69 && x.run.frames.at(-1).stride / nominal <= 1.41),
+  );
   const poly = L.smoothPath([[0, 0], [10, 0]], () => true);
   const cad = (height) => {
     const p = L.walkParams({ height });
@@ -269,7 +286,7 @@ const runs = smoothed.map((r) => {
   };
   const tall = cad(1.86);
   const short = cad(1.66);
-  check(`a shorter person takes more steps over the same 10 m (${short.steps.toFixed(1)} vs ${tall.steps.toFixed(1)})`, short.steps > tall.steps * 1.08);
+  check(`a shorter person takes more steps over the same 10 m (${short.steps.toFixed(1)} vs ${tall.steps.toFixed(1)})`, short.steps > tall.steps + 0.5);
   const cruise = cad(1.75);
   const cruiseTime = cruise.run.seconds - 1.3;
   check(`cadence at cruise is a human one (${((cruise.steps / cruiseTime) * 60).toFixed(0)} steps/min)`, (cruise.steps / cruiseTime) * 60 > 90 && (cruise.steps / cruiseTime) * 60 < 135);

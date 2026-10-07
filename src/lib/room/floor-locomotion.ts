@@ -18,6 +18,8 @@
  * Axes are the scene's: x east, z south; yaw = atan2(dx, dz) (0 faces +z), exactly as `Avatar` uses it.
  */
 
+import { REST_PHASE } from "./floor-feet";
+
 export type V2 = [number, number];
 export type Walkable = (x: number, z: number) => boolean;
 
@@ -456,6 +458,14 @@ export interface MoverState {
   speed: number;
   /** Gait phase, radians in [0, 2pi). One full turn is two steps; it advances by distance / stride. */
   phase: number;
+  /**
+   * The step length this route is walked with, metres: 0.42 x height, stretched or shrunk by at most a few percent
+   * (more on a short route) so a whole number of steps fits and the walk ends with the feet together. Pass THIS to
+   * `footPlan` as its stride: it is the number that advances the phase.
+   */
+  stride: number;
+  /** The gait phase when this route began; the end-of-route phase is chosen from it. */
+  p0: number;
   /** Roll into the turn, radians; it has the sign of `yawRate` (positive = into a turn toward +yaw). */
   lean: number;
   arrived: boolean;
@@ -517,8 +527,42 @@ export const strideOf = (height: number, ratio = WALK_PARAMS.strideRatio): numbe
 /** Gait-phase radians per metre walked: pi per step. */
 export const phasePerMetre = (height: number, ratio = WALK_PARAMS.strideRatio): number => Math.PI / strideOf(height, ratio);
 
-export function initMover(pos: V2, yaw = 0): MoverState {
-  return { pos: [pos[0], pos[1]], yaw, speed: 0, phase: 0, lean: 0, arrived: false, s: 0, yawRate: 0 };
+/** A walker at rest on `pos`, on the phase where the feet are side by side (see `REST_PHASE`). */
+export function initMover(pos: V2, yaw = 0, height = WALK_PARAMS.height): MoverState {
+  return { pos: [pos[0], pos[1]], yaw, speed: 0, phase: REST_PHASE, stride: strideOf(height), p0: REST_PHASE, lean: 0, arrived: false, s: 0, yawRate: 0 };
+}
+
+/** Start a new route from where the walker is now (call it when the path array is replaced). */
+export function replan(state: MoverState): MoverState {
+  return { ...state, s: 0, p0: state.phase, arrived: false };
+}
+
+/**
+ * The step length that makes a walk of `length` metres end on the rest phase, given the phase it starts on:
+ * the phase must advance by r0 + k pi, and k is the one that keeps the step closest to `stride0` (within 0.7 to
+ * 1.4 times it where possible). A route too short to take a step is walked with `stride0` as it is.
+ */
+export function routeStride(length: number, stride0: number, phase0: number): number {
+  const target = (Math.PI * length) / stride0;
+  if (target < 1.2) return stride0;
+  const r0 = (((REST_PHASE - phase0) % Math.PI) + Math.PI) % Math.PI;
+  const k0 = Math.max(0, Math.floor((target - r0) / Math.PI));
+  let best = stride0;
+  let bestErr = Infinity;
+  let bestOk = false;
+  for (const k of [k0, k0 + 1]) {
+    const d = r0 + k * Math.PI;
+    if (d < 0.5) continue;
+    const ratio = target / d;
+    const ok = ratio >= 0.7 && ratio <= 1.4;
+    const err = Math.abs(ratio - 1);
+    if ((ok && !bestOk) || (ok === bestOk && err < bestErr)) {
+      best = stride0 * ratio;
+      bestErr = err;
+      bestOk = ok;
+    }
+  }
+  return best;
 }
 
 /** Seconds a walk of `length` metres takes with this mover, from the profile alone (ramp up, cruise, ramp down). */
@@ -615,7 +659,9 @@ function substep(st: MoverState, path: V2[], h: number, p: MoverParams): MoverSt
   const P = prep(path);
   const total = P.total;
   let { s, speed, yaw, yawRate, lean, phase } = st;
+  const stride = routeStride(total, strideOf(p.height, p.strideRatio), st.p0);
   s = clamp(s, 0, total);
+  const sIn = s;
   const rem = total - s;
   // Nothing (or next to nothing) left to walk: stand exactly on the end.
   const done = rem <= 1e-6 || (speed === 0 && rem < 2e-3);
@@ -668,7 +714,8 @@ function substep(st: MoverState, path: V2[], h: number, p: MoverParams): MoverSt
   yaw = wrapPi(yaw + yawRate * h);
   const leanTarget = clamp(p.leanGain * speed * yawRate, -p.maxLean, p.maxLean);
   lean += (leanTarget - lean) * (1 - Math.exp(-p.leanResponse * h));
-  phase = (phase + (Math.PI * dist) / strideOf(p.height, p.strideRatio)) % TAU;
+  // Measure the distance as the change in arc length (the snap onto the end counts), so the phase telescopes exactly.
+  phase = (phase + (Math.PI * (s - sIn)) / stride) % TAU;
   const arrived = s >= total - 1e-9 && speed === 0;
-  return { pos: pointAt(path, P, s), yaw, speed, phase, lean, arrived, s, yawRate };
+  return { pos: pointAt(path, P, s), yaw, speed, phase, stride, p0: st.p0, lean, arrived, s, yawRate };
 }
