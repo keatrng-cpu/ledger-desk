@@ -187,5 +187,19 @@
     "actual": "-$105.6B",
     "vs": "Jul rev -$92.8B",
     "note": "BEA/Census CB 26-160, BEA 26-44. Deficit up $12.7B. Exports $315.2B (+$4.5B), imports $420.8B (+$17.2B). Goods deficit $136.6B. Not a PATH trigger. Minutes not printed."
+  },
+  {
+    "date": "2026-10-07",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Wed. No labor/ISM print. Claims next Thu 8:30. NFP already printed Fri Oct 2."
+  },
+  {
+    "date": "2026-10-07",
+    "name": "FOMC Minutes (Sep 15\u201316)",
+    "actual": "Most see another hike by year-end; no date",
+    "vs": "Sep decision +25bps unanimous 12-0; SEP median one more hike",
+    "note": "Fed official 14:00 ET. Most: another increase likely appropriate by year end, data-dependent. Several: current rate not or only mildly restrictive. Oct 28 odds little changed: FedWatch ~17% hike / >80% hold vs ~78% hold pre-release. Not a new decision."
   }
 ]

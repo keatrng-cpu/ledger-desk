@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Oct 28 hike odds little changed into minutes: Reuters Oct 7 ~78% hold (CME FedWatch) vs 22.7% +25 / 77.3% hold Oct 6 and 22.1/77.9 Oct 4. CPI Sep is Wed Oct 14, not this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Minutes Oct 7 14:00: most see another hike by year-end, timing unspecified. Oct 28 hike odds little changed after the print: FedWatch ~17% +25 / >80% hold (InvestmentNews 17.2%) vs Reuters ~78% hold pre-release and 22.7/77.3 Oct 6. CPI Sep is Wed Oct 14, not this week.",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -241,9 +241,9 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     pwh: 31282.5,
     pwl: 30357,
     eq: 30819.75,
-    drawUp: "PWH 31,282.50 already taken (Tue high 31,616.50). Next BSL only if the hold survives the minutes pullback",
+    drawUp: "PWH 31,282.50 already taken (Tue high 31,616.50). Wed failed back through it and reclaimed — next BSL only if the reclaim holds",
     drawDown: "Fail back through PWH 31,282.50 then prior-week 30,357",
-    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~30,357–31,282.50). This week already took PWH; Tue high 31,616.50, Mon low 30,957.50. Wed open is a pullback toward PWH, not a new weekly low. Live CWH/CWL from bars — not hardcoded.",
+    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~30,357–31,282.50). Tue high 31,616.50, Mon low 30,957.50. Wed failed back through PWH and reclaimed; not a new weekly low. Live CWH/CWL from bars — not hardcoded.",
   },
   es: {
     settle: 7804,
@@ -300,13 +300,13 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     {
       date: "2026-10-07",
       weekday: "Wed",
-      dailyBias: "Stand into minutes. Delivery is after 14:00, not 14:01.",
+      dailyBias: "Minutes hawkish on year-end, Oct hold intact. NQ failed PWH. Not a new HTF trend.",
       kind: "event",
-      news: [{ timeEt: "14:00", name: "FOMC Minutes (Sep meeting)", impact: "high", note: "Fed calendar Oct 7 2:00 p.m. Minutes of Sep 15–16. Consumer credit 15:00 is not the blackout." }],
-      likelyTape: "Week range so far took both PWH (NQ Tue 31,616.50 / Mon low 30,957.50; ES Tue 7,897.50 / Mon low 7,760.25). Overnight pulled NQ back toward the PWH 31,282.50 band into 14:00 — not a new weekly low. Hawkish minutes reprice Oct 28. Dovish minutes squeeze. Do not invent the print.",
-      trade: "Flatten before 13:45. A+ only after 14:15 with MSS + IFVG. Do not hold a runner into the release.",
-      skipIf: "Anything still open at 13:45. No displacement after 14:15.",
-      pathNote: "Sep hike already printed (+25 to 3.75–4.00%). Minutes are the path, not a new decision.",
+      news: [{ timeEt: "14:00", name: "FOMC Minutes (Sep meeting)", impact: "high", note: "Fed official 14:00 ET. Most: another hike likely appropriate by year-end, no date, data-dependent. Several: current rate not or only mildly restrictive. Consumer credit 15:00 is not the blackout." }],
+      likelyTape: "Minutes did not date the next hike. NQ session 31,143–31,521 last ~31,395 failed back through PWH 31,282.50 and reclaimed (Tue high 31,616.50 untouched). ES 7,815.75–7,884 last ~7,853 held seed PWH 7,810, lost Sep 21–25 7,848.50 intraday, reclaimed near it. PWL untouched. Failed NQ PWH hold, not a new HTF trend.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase the NQ reclaim of PWH. Minutes are not a new decision.",
+      skipIf: "No MSS + IFVG. NQ failed to hold PWH. Already booked the week.",
+      pathNote: "PWH/PWL seed unchanged. Next session claims blackout Thu 8:15–8:45. CPI Wed Oct 14.",
     },
     {
       date: "2026-10-08",
