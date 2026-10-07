@@ -18,6 +18,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import layoutJson from "@/data/floor-layout.json";
 import type { AgentAct } from "@/lib/room/agents";
 import type { Animation, Character, DialogueLine } from "@/lib/room/orchestrator";
@@ -297,6 +298,43 @@ export class NavGrid {
     pts.push(b);
     return pts;
   }
+}
+
+/* ── Contact shadows ─────────────────────────────────────────────────────── */
+
+let blobTexture: THREE.CanvasTexture | null = null;
+let blobMaterial: THREE.MeshBasicMaterial | null = null;
+let blobGeometry: THREE.PlaneGeometry | null = null;
+
+/**
+ * A soft dark disc on the floor under a person or the cat. The sun's shadow is hard-edged and thrown to one side, so feet
+ * seemed to float; this grounds them. Shared texture, material and geometry; the disc never writes depth and wins over the
+ * floor by a depth offset, so it cannot flicker against it.
+ */
+export function contactBlob(diameter: number): THREE.Mesh {
+  if (!blobTexture) {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d")!;
+    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, "rgba(0,0,0,0.55)");
+    grad.addColorStop(0.55, "rgba(0,0,0,0.28)");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+    blobTexture = new THREE.CanvasTexture(c);
+    blobTexture.colorSpace = THREE.SRGBColorSpace;
+    blobMaterial = new THREE.MeshBasicMaterial({ map: blobTexture, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+    blobGeometry = new THREE.PlaneGeometry(1, 1);
+    blobGeometry.rotateX(-Math.PI / 2);
+  }
+  const m = new THREE.Mesh(blobGeometry!, blobMaterial!);
+  m.scale.set(diameter, 1, diameter);
+  m.position.y = 0.016;
+  m.renderOrder = 1;
+  m.name = "contact_blob";
+  m.raycast = () => undefined; // never picked: a click goes to the person or the floor behind it
+  return m;
 }
 
 /* ── People ─────────────────────────────────────────────────────────────── */
@@ -645,6 +683,7 @@ class Avatar {
     const capsule = (r: number, len: number, m: THREE.Material) => shadowed(new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 6, 12), m));
 
     this.root.add(this.body);
+    this.root.add(contactBlob(0.9));
     // Pelvis.
     const hips = new THREE.Group();
     hips.position.y = this.hipH;
@@ -1108,6 +1147,7 @@ class Cat {
   private targetNear: Character | null = null;
 
   constructor(start: V2) {
+    this.root.add(contactBlob(0.5));
     const fur = new THREE.MeshStandardMaterial({ color: "#d97706", roughness: 0.85 });
     const light = new THREE.MeshStandardMaterial({ color: "#fde68a", roughness: 0.85 });
     const dark = new THREE.MeshStandardMaterial({ color: "#1f2937", roughness: 0.4 });
@@ -1515,6 +1555,7 @@ export class FloorScene {
   private readonly container: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
+  private envTex: THREE.Texture | null = null;
   private readonly camera: THREE.PerspectiveCamera;
   private readonly controls: OrbitControls;
   private readonly nav = new NavGrid(LAYOUT);
@@ -1653,6 +1694,16 @@ export class FloorScene {
     this.renderer.domElement.style.touchAction = "pan-y";
 
     this.scene.background = new THREE.Color("#0b1220");
+    // Reflections: a small generated room as an environment map, handed ONLY to glass and metal (see loadEnvironment). Set as
+    // scene.environment it also lit every carpet and wall: at the lowest useful intensity it still raised the whole picture by
+    // ~30%, which is a change of mood, not a reflection. A device without float render targets keeps the old look.
+    try {
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      this.envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmrem.dispose();
+    } catch {
+      this.envTex = null;
+    }
     const cam = LAYOUT.camera.overview!;
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
     this.camera.position.set(...cam.pos);
@@ -1728,6 +1779,7 @@ export class FloorScene {
     const ownerLook: [number, number] = [-8, -1];
     this.owner = new OwnerAvatar(ownerStart, ownerLook);
     this.owner.elevation = this.heightAt(ownerStart[0], ownerStart[1]);
+    this.owner.root.add(contactBlob(0.9));
     this.scene.add(this.owner.root);
     const oChair = LAYOUT.furniture.find((x) => x.id === "chair_Owner");
     this.balconyChair = oChair ? [oChair.pos[0], oChair.pos[1]] : null;
@@ -1737,6 +1789,7 @@ export class FloorScene {
     const mDesk = LAYOUT.furniture.find((x) => x.id === "desk_Manager");
     this.managerLook = mChair && mDesk ? [mDesk.pos[0], mDesk.pos[1]] : [-8.0, -1.0];
     this.manager = new ManagerAvatar({ pos: mChair ? [mChair.pos[0], mChair.pos[1]] : [-6.9, 0.05], look: this.managerLook });
+    this.manager.root.add(contactBlob(0.9));
     this.scene.add(this.manager.root);
     this.overhaul = new FloorOverhaul();
     this.overhaul.onThunder = () => this.opts.onEvent?.("thunder");
@@ -1876,6 +1929,11 @@ export class FloorScene {
           if (glass) {
             std.transparent = true;
             std.depthWrite = false;
+          }
+          // Glass and metal reflect the little generated room; everything else keeps its lighting exactly as it was.
+          if (this.envTex && std && "envMap" in std && (glass || (std.metalness ?? 0) >= 0.35)) {
+            std.envMap = this.envTex;
+            std.envMapIntensity = glass ? 0.8 : 0.45;
           }
         }
         // Glass and window panes flash black when they take a shadow. Desk tops
@@ -2097,10 +2155,13 @@ export class FloorScene {
       const ctx = canvas.getContext("2d")!;
       const tex = new THREE.CanvasTexture(canvas);
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.generateMipmaps = false;
-      tex.minFilter = THREE.LinearFilter;
+      // Mipmaps and a higher anisotropy: a text-heavy board drawn at 1480 px and seen at 200 px shimmered with plain linear
+      // filtering. About +25 MB of the ~77 MB the 81 screens already hold; one mip chain per upload, and screens upload on
+      // change, not every frame.
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
       tex.magFilter = THREE.LinearFilter;
-      tex.anisotropy = 4;
+      tex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
       if (s.id === "marquee") tex.wrapS = THREE.RepeatWrapping;
       this.screens.set(s.id, { id: s.id, canvas, ctx, tex, w: s.px[0], h: s.px[1] });
     }
@@ -3583,6 +3644,7 @@ export class FloorScene {
     for (const r of this.screens.values()) r.tex.dispose();
     for (const tk of this.tickets) tk.dispose();
     for (const c of this.confetti) c.dispose();
+    this.envTex?.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
