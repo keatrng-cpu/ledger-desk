@@ -8,7 +8,8 @@
  *
  * The 1, 2, 3, 4, and 5 minute are the entry only.
  * Every slower rung, on both indexes, is the bias. They are read together.
- * A higher-timeframe ladder against the trade stands it down.
+ * A higher-timeframe ladder against the trade is a note. It does not stand a ticket down.
+ * Four years of cards against the ladder paid the same as cards with it.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
@@ -115,7 +116,7 @@ export function readLtfLead(input: {
       ? `${pool} is unswept in the direction. That pool is the draw.`
       : bias === "against"
         ? htfAgainst
-          ? `Higher timeframes on this index read against the ${input.side}. The ladder stands it down. The 1m to 5m does not override that.`
+          ? `Higher timeframes on this index read against the ${input.side}. That is a note. It does not stand the ticket down.`
           : `${pool} is unswept the other way. That pool is the bias. Do not fade it.`
         : bias === "swept"
           ? `${pool} already traded. That was the manipulation, not the target.`
@@ -148,10 +149,7 @@ export function applyLtf(seq: PbRead, ltf: LtfLead | null): PbRead {
   if (!ltf.thisLeads && ltf.leader !== "neither") {
     return { sequence: "wait", label: `STAND DOWN · ${ltf.leader} LEADS`, act: ltf.line, enter: false };
   }
-  if (ltf.bias === "against") {
-    return { sequence: "wait", label: "BIAS · LIQUIDITY", act: ltf.line, enter: false };
-  }
-  if (ltf.inverse && ltf.thisLeads && ltf.leader !== "neither") {
+  if (ltf.inverse && (ltf.thisLeads || ltf.leader === "both")) {
     return { sequence: "inverse_after_sweep", label: `ENTER · ${ltf.rung}m`, act: ltf.line, enter: true };
   }
   if (ltf.inverse) {
