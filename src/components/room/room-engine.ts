@@ -28,6 +28,7 @@ import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { getNewsFeed, getPulse } from "@/lib/news/news-server";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import type { MindState } from "@/lib/room/agents";
+import { noteExchange, noteNerve } from "@/lib/room/brain-traffic";
 import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-read";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
@@ -656,6 +657,11 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     if (patch) world = patch(world);
   }
   const { item, state } = talkTick(world, st.talkState);
+  if (item) {
+    const speakers = item.lines.map((l) => l.character);
+    noteExchange(speakers, item.at, item.label);
+    if (item.kind === "card") for (const who of speakers) noteNerve("hub", who, item.label, item.at);
+  }
   saveTalk(state, nowMs);
   // The overhaul's props: presentation only, never read back by the talk or the cycle.
   let props: FloorProps | null = null;

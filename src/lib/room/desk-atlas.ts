@@ -17,6 +17,7 @@
  * pinned on the SMC shelf. A school node answers `recall` only when the query names
  * the school, so "bias" or "target" alone still reach the desk's own lines.
  */
+import { noteNerve } from "./brain-traffic";
 import { BOOK } from "./brain-feed";
 import { FACETS, HYBRIDS, SCHOOL_AVATAR, SCHOOL_BRIEF, SCHOOL_KEYS, SCHOOL_SAY, type Facet, type SchoolKey } from "@/lib/trading/school-brief";
 
@@ -110,6 +111,14 @@ const SEED: Seed[] = [
   { id: "smc:mss", shelf: "smc", title: "MSS", who: "Nova", confidence: 88, n: 1, pinned: true, tags: ["mss", "choch", "displacement"], text: "MSS breaks the dealing range the other way. Wait for displacement after it before calling it a shift." },
   { id: "smc:ob", shelf: "smc", title: "Order block", who: "Nova", confidence: 84, n: 1, pinned: true, tags: ["ob", "displacement"], text: "An order block is the last opposite candle before displacement. A close through it kills it." },
   { id: "smc:ote", shelf: "smc", title: "OTE", who: "Gemma", confidence: 80, n: 1, pinned: true, tags: ["ote", "ce"], text: "OTE is the 62–79% return into the leg. It is a location. It is not a signal by itself." },
+  { id: "smc:po3", shelf: "smc", title: "Power of 3", who: "Gemma", confidence: 90, n: 1, pinned: true, tags: ["po3", "amd", "judas"], text: "Power of 3 is accumulation, the Judas manipulation, then distribution. Do not buy the wick out of the range." },
+  { id: "smc:pd", shelf: "smc", title: "Premium and discount", who: "Gemma", confidence: 90, n: 1, pinned: true, tags: ["premium", "discount", "dealing"], text: "Longs take the array in discount. Shorts take it in premium. The dealing-range midpoint is the line between them. It is not an entry." },
+  { id: "smc:dol", shelf: "smc", title: "Draw on liquidity", who: "Gemma", confidence: 90, n: 1, pinned: true, tags: ["dol", "erl", "irl"], text: "External liquidity is the draw. Internal liquidity is the partial. A pool that already traded is not the draw." },
+  { id: "smc:bos", shelf: "smc", title: "Break of structure", who: "Vince", confidence: 88, n: 1, pinned: true, tags: ["bos", "choch"], text: "A break of structure continues the leg. A change of character is the first break the other way. Neither is the fill until a candle closes through." },
+  { id: "smc:breaker", shelf: "smc", title: "Breaker", who: "Sterling", confidence: 88, n: 1, pinned: true, tags: ["breaker"], text: "A breaker is a failed order block that held from the other side. The entry is the return into it after the shift, not the break itself." },
+  { id: "smc:smt", shelf: "smc", title: "SMT", who: "Nova", confidence: 90, n: 1, pinned: true, tags: ["smt", "nq", "es"], text: "SMT is NQ and ES failing to take the same high or low. It names the leader. It is not a ticket." },
+  { id: "smc:killzone", shelf: "smc", title: "Kill zone", who: "Gemma", confidence: 86, n: 1, pinned: true, tags: ["killzone", "silver", "macro"], text: "ICT delivers in the London window, the New York index window, and the Silver Bullet hours. On this desk the clock changes size. It does not block the chart." },
+  { id: "smc:retest", shelf: "smc", title: "Retest", who: "Vince", confidence: 90, n: 1, pinned: true, tags: ["retest", "poi"], text: "The fill is the retest of the gap or the order block the displacement left. The impulse is not the order." },
   { id: "mkt:hours", shelf: "market", title: "Hours", who: "Vince", confidence: 94, n: 1, pinned: true, tags: ["hours", "session"], text: "QQQ and SPY options trade 09:30–16:15 ET. There are no extended-hours options." },
   { id: "mkt:lunch", shelf: "market", title: "Lunch", who: "Gemma", confidence: 86, n: 1, pinned: true, tags: ["lunch", "size"], text: "Eleven to one is thinner. Size down. Keep reading the chart until the cash close." },
   { id: "mkt:judas", shelf: "market", title: "Judas", who: "Jax", confidence: 86, n: 1, pinned: true, tags: ["judas", "open"], text: "09:30–09:45 is the raid. The entry is after the sub-15m resolves, not on the spike." },
@@ -204,6 +213,15 @@ const EDGES: AtlasEdge[] = [
   { from: "smc:displacement", to: "smc:ob", why: "the candle displacement leaves behind" },
   { from: "smc:mitigation", to: "smc:ob", why: "a failed second push, not a new entry" },
   { from: "smc:ote", to: "smc:ce", why: "both are locations, not signals" },
+  { from: "smc:amd", to: "smc:po3", why: "the session cycle is power of three" },
+  { from: "smc:sequence", to: "smc:pd", why: "the array has to sit in the right half" },
+  { from: "smc:draw", to: "smc:dol", why: "external liquidity is the draw" },
+  { from: "smc:mss", to: "smc:bos", why: "a shift is a close, not a label" },
+  { from: "smc:ob", to: "smc:breaker", why: "a failed block that held the other way" },
+  { from: "smc:leader", to: "smc:smt", why: "the divergence that names the leader" },
+  { from: "mkt:judas", to: "smc:killzone", why: "the open raid sits inside his hours" },
+  { from: "smc:displacement", to: "smc:retest", why: "the impulse leaves the array the fill uses" },
+  { from: "smc:pd", to: "smc:ote", why: "OTE is a discount or premium location" },
   { from: "mkt:judas", to: "mkt:open", why: "the raid and the retest" },
   { from: "mkt:bias", to: "disc:band", why: "bias sizes a live band" },
   { from: "mkt:lunch", to: "bt:lunch", why: "why lunch size is cut" },
@@ -353,6 +371,7 @@ export function atlasSpeak(a: DeskAtlas | null | undefined, focus = ""): string 
 function rewrite(a: DeskAtlas, id: string, text: string, who: string, now: number, bump: number): DeskAtlas {
   const cur = nodeById(a, id);
   if (!cur || cur.text === text) return a;
+  noteNerve(who, "hub", cur.title, now);
   const next: AtlasNode = {
     ...cur,
     text,
@@ -391,6 +410,7 @@ export function improveAtlas(a: DeskAtlas, input: { shelf: AtlasShelf; title: st
     tags: tokens(title).slice(0, 4),
     prior: [],
   };
+  noteNerve(who, "hub", title, now);
   return { ...a, updatedAt: now, nodes: [node, ...a.nodes] };
 }
 
@@ -398,6 +418,7 @@ export function gradeAtlas(a: DeskAtlas, id: string, right: boolean, now = Date.
   const cur = nodeById(a, id);
   if (!cur) return a;
   const next = { ...cur, at: now, n: cur.n + 1, confidence: clamp(cur.confidence + (right ? 6 : -8), 8, 99) };
+  noteNerve(cur.who, "hub", cur.title, now);
   return { ...a, updatedAt: now, nodes: a.nodes.map((n) => (n.id === id ? next : n)) };
 }
 
@@ -438,6 +459,41 @@ export function absorbAtlas(prev: DeskAtlas | null | undefined, pulse: AtlasPuls
   const next = { ...a, last };
   if (next.updatedAt !== (prev?.updatedAt ?? -1) || next.last !== prev?.last) saveAtlas(next);
   return next;
+}
+
+/** The four reads on the brain desk. Scores are the node's own confidence, never a decoration. */
+const LOGIC_ROWS: { id: string; bars: string[] }[] = [
+  { id: "smc:sequence", bars: ["smc:ltf", "smc:amd", "smc:po3"] },
+  { id: "smc:displacement", bars: ["smc:retest", "smc:ce"] },
+  { id: "smc:leader", bars: ["smc:smt", "smc:ltf"] },
+  { id: "smc:draw", bars: ["smc:dol", "smc:sweep"] },
+];
+
+export interface LogicBar {
+  id: string;
+  label: string;
+  confidence: number;
+}
+
+export interface LogicRow {
+  id: string;
+  title: string;
+  text: string;
+  confidence: number;
+  bars: LogicBar[];
+}
+
+export function collectiveLogic(a: DeskAtlas): LogicRow[] {
+  return LOGIC_ROWS.map((row) => {
+    const n = nodeById(a, row.id);
+    const bars = row.bars
+      .map((id) => {
+        const b = nodeById(a, id);
+        return b ? { id, label: b.title, confidence: b.confidence } : null;
+      })
+      .filter((b): b is LogicBar => !!b);
+    return { id: row.id, title: n?.title ?? row.id, text: n?.text ?? "", confidence: n?.confidence ?? 0, bars };
+  });
 }
 
 export const ATLAS_SHELVES: { id: AtlasShelf; label: string; owner: string; job: string }[] = [
@@ -564,6 +620,8 @@ export function syncPeople(prev: PeopleBrains | null | undefined, desk: DeskAtla
       people[w] = { ...people[w], known: { ...people[w].known, [one.id]: one.at } };
     }
     pending = { who, text, at: now };
+    noteNerve("hub", who, one.title, now);
+    for (const other of BRAIN_CREW) if (other !== who) noteNerve(who, other, one.title, now);
   }
   const next = { version: 1 as const, people, pending, best: base.best ?? { pT1: null, expR: null } };
   if (next.pending !== base.pending || one) savePeople(next);

@@ -1931,7 +1931,7 @@ function MasterplacePage() {
                   <SectionHead
                     n="V"
                     title="Brains"
-                    sub="One desk brain. Five minds wired into it. A line is kept only when it improves the book."
+                    sub="The book in the middle. A nerve lights only when a seat writes it, reads it, or says it."
                   />
                   <FloorBrains />
                   <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
