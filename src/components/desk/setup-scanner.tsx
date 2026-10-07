@@ -813,7 +813,13 @@ function SetupCard({
    * What ICT, TJR, Blake and Patty each make of this card (school-brief.ts): the trader's own description of each school, graded from
    * the facts this card already carries. The Floor's characters say the same reads aloud. Display only: it gates nothing and sizes nothing.
    */
-  const schools = useMemo(() => schoolReads(schoolFactsFrom(c, tape?.ladder ?? null)), [c, tape?.ladder]);
+  const schools = useMemo(() => {
+    const seq = tape?.sequence && tape.sequence.side === c.side ? tape.sequence : null;
+    const layers = seq
+      ? (Object.entries(seq.states) as [string, "pass" | "wait" | "fail"][]).map(([id, state]) => ({ id, state }))
+      : null;
+    return schoolReads(schoolFactsFrom(c, tape?.ladder ?? null, layers));
+  }, [c, tape?.ladder, tape?.sequence]);
 
   const look = useMemo(() => {
     if (!spent || !tape?.draws || tape.price == null) return null;

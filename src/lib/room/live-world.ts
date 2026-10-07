@@ -241,10 +241,22 @@ function ladderBrief(desk: DeskPayload, symbol: string) {
   return pick ? { symbol: pick.symbol, strip: pick.strip, htf: sessionBias(pick) } : null;
 }
 
+/** The sequence layers for this card's own book and side. The other side's book is not this card's sweep. */
+function sequenceLayers(
+  desk: { smcMaster?: { left: { symbol: string; side: string | null; layers: { id: string; state: "pass" | "wait" | "fail" }[] }; right: { symbol: string; side: string | null; layers: { id: string; state: "pass" | "wait" | "fail" }[] } } | null },
+  c: { symbol: string; side: string },
+) {
+  const m = desk.smcMaster;
+  if (!m) return null;
+  const es = /ES/.test(c.symbol);
+  const book = [m.left, m.right].find((b) => /ES/.test(b.symbol) === es && b.side === c.side);
+  return book?.layers ?? null;
+}
+
 /** What each of the four schools makes of this card: one consensus line and one sentence per school, keyed by the cast seat that presents it. */
-export function schoolsOf(desk: Pick<DeskPayload, "ladder">, c: Parameters<typeof schoolFactsFrom>[0] & { symbol: string }): NonNullable<CardRead["schools"]> {
+export function schoolsOf(desk: Pick<DeskPayload, "ladder"> & { smcMaster?: Parameters<typeof sequenceLayers>[0]["smcMaster"] }, c: Parameters<typeof schoolFactsFrom>[0] & { symbol: string }): NonNullable<CardRead["schools"]> {
   const side = c.side === "short" ? "short" : "long";
-  const reads = schoolReads(schoolFactsFrom(c, ladderOf(desk, c.symbol)));
+  const reads = schoolReads(schoolFactsFrom(c, ladderOf(desk, c.symbol), sequenceLayers(desk, c)));
   const by: Record<string, string> = {};
   for (const r of reads) by[SCHOOL_AVATAR[r.school]] = schoolSentence(r, side);
   return { line: consensusLine(reads, side), by };

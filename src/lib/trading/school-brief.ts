@@ -145,6 +145,12 @@ export interface SchoolFacts {
   /** The card's array was tested before (the mitigation-block read); null when not read. */
   mitigated: boolean | null;
   ladder: LadderLite | null;
+  /**
+   * smc-master's layers for this side, when the desk has them. A present layer
+   * outranks the scanner component: the component can say "sweep" on a card
+   * whose sequence says there was none.
+   */
+  layers?: readonly { id: string; state: "pass" | "wait" | "fail" }[] | null;
 }
 
 export interface SchoolCheck {
@@ -167,6 +173,12 @@ type Def = {
 };
 
 const has = (f: SchoolFacts, ...keys: string[]): boolean => keys.some((k) => f.components.includes(k));
+const layerOf = (f: SchoolFacts, id: string) => f.layers?.find((l) => l.id === id)?.state ?? null;
+/** A sequence layer, when the desk graded one, wins. Otherwise the scanner component. */
+const sequenced = (f: SchoolFacts, id: string, fallback: boolean): boolean => {
+  const s = layerOf(f, id);
+  return s ? s === "pass" : fallback;
+};
 const yes = (ok: boolean, why?: string): [CheckState, string] => [ok ? "pass" : "fail", why ?? ""];
 const UNREAD = "the desk does not read this";
 
@@ -187,10 +199,34 @@ const timeCheck = (need: string, must: boolean): Def => ({
   need,
   have: "the window",
   must,
-  test: (f) => yes(f.killzoneOk, f.killzoneOk ? "inside a killzone" : "outside the killzones"),
+  test: (f) => {
+    const s = layerOf(f, "time");
+    const ok = s ? s === "pass" : f.killzoneOk;
+    return yes(ok, ok ? "inside a killzone" : s ? "the sequence is outside the window" : "outside the killzones");
+  },
 });
-const sweepCheck: Def = { id: "sweep", need: "a sweep of a pool", have: "the sweep", must: true, test: (f) => yes(has(f, "sweep_significant")) };
-const halfCheck = (need: string): Def => ({ id: "half", need, have: "the right half", must: true, test: (f) => yes(has(f, "pd")) });
+const sweepCheck: Def = {
+  id: "sweep",
+  need: "a sweep of a pool",
+  have: "the sweep",
+  must: true,
+  test: (f) => {
+    const s = layerOf(f, "sweep");
+    if (s) return yes(s === "pass", s === "pass" ? "the sequence swept" : "the sequence has no sweep");
+    return yes(has(f, "sweep_significant"));
+  },
+};
+const halfCheck = (need: string): Def => ({
+  id: "half",
+  need,
+  have: "the right half",
+  must: true,
+  test: (f) => {
+    const s = layerOf(f, "pd_half");
+    if (s) return yes(s === "pass", s === "pass" ? "the sequence is in the right half" : "the sequence is in the wrong half");
+    return yes(has(f, "pd"));
+  },
+});
 const unread = (id: string, need: string): Def => ({ id, need, have: need, must: false, test: () => ["unknown", UNREAD] });
 
 const DEFS: Record<SchoolKey, Def[]> = {
@@ -204,15 +240,18 @@ const DEFS: Record<SchoolKey, Def[]> = {
       need: "a structure shift with displacement",
       have: "the shift",
       must: true,
-      test: (f) => yes(has(f, "mss", "cisd") && has(f, "displacement")),
+      test: (f) => yes(sequenced(f, "ltf", has(f, "mss", "cisd") && has(f, "displacement"))),
     },
     {
       id: "draw",
       need: "an unswept draw to aim at",
       have: "the draw",
       must: true,
-      test: (f) =>
-        f.drawName == null ? ["unknown", "the card names no draw"] : f.drawSwept ? ["fail", `${f.drawName} already traded`] : ["pass", `${f.drawName} has not traded`],
+      test: (f) => {
+        const s = layerOf(f, "target");
+        if (s) return yes(s === "pass", s === "pass" ? "the sequence priced a target" : "the sequence has no target");
+        return f.drawName == null ? ["unknown", "the card names no draw"] : f.drawSwept ? ["fail", `${f.drawName} already traded`] : ["pass", `${f.drawName} has not traded`];
+      },
     },
     { id: "rest", need: "an OTE, order block or gap to rest at", have: "the array", must: false, test: (f) => yes(has(f, "ote", "ifvg", "order_block", "breaker")) },
     { id: "smt", need: "SMT between NQ and ES", have: "SMT", must: false, test: (f) => (has(f, "smt") ? ["pass", "SMT printed"] : ["unknown", "no SMT printed"]) },
@@ -220,8 +259,8 @@ const DEFS: Record<SchoolKey, Def[]> = {
   tjr: [
     biasCheck("the 1 hour and 4 hour structure to agree with the side"),
     sweepCheck,
-    { id: "shift", need: "a break of structure on the 5 or 1 minute", have: "the break", must: true, test: (f) => yes(has(f, "mss", "cisd")) },
-    { id: "displacement", need: "displacement on the break", have: "the displacement", must: true, test: (f) => yes(has(f, "displacement")) },
+    { id: "shift", need: "a break of structure on the 5 or 1 minute", have: "the break", must: true, test: (f) => yes(sequenced(f, "ltf", has(f, "mss", "cisd"))) },
+    { id: "displacement", need: "displacement on the break", have: "the displacement", must: true, test: (f) => yes(sequenced(f, "ltf", has(f, "displacement"))) },
     { id: "rest", need: "a fresh gap or order block to rest the limit at", have: "the gap", must: true, test: (f) => yes(has(f, "ifvg", "order_block")) },
     timeCheck("the session open", false),
     {
@@ -265,7 +304,7 @@ const DEFS: Record<SchoolKey, Def[]> = {
       need: "a displacement that breaks structure",
       have: "the shift",
       must: true,
-      test: (f) => yes(has(f, "displacement") && has(f, "mss", "cisd")),
+      test: (f) => yes(sequenced(f, "ltf", has(f, "displacement") && has(f, "mss", "cisd"))),
     },
     halfCheck("deep discount for a long or premium for a short"),
     {
@@ -286,10 +325,11 @@ const DEFS: Record<SchoolKey, Def[]> = {
   ],
 };
 
-/** The grader's facts from a scanner card and the ladder of the index it trades. Nothing here is computed again: each is a field the card already carries. */
+/** The grader's facts from a scanner card, the ladder of the index it trades, and — when the desk has graded this side — the sequence layers. Nothing here is computed again. */
 export function schoolFactsFrom(
   c: Pick<SetupCandidate, "side" | "components" | "killzoneOk" | "htfDisrespected" | "draw" | "plan" | "patterns">,
   ladder: LadderLite | null,
+  layers?: SchoolFacts["layers"],
 ): SchoolFacts {
   return {
     side: c.side,
@@ -301,6 +341,7 @@ export function schoolFactsFrom(
     rr1: c.plan?.rr1 ?? null,
     mitigated: c.patterns ? c.patterns.mitigation : null,
     ladder,
+    layers: layers ?? null,
   };
 }
 
