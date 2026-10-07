@@ -11,7 +11,15 @@
  * Characters write. A close, a new card, or a person at the brain tab improves
  * a node in place and keeps the prior text on the node. Confidence moves when
  * the tape agrees or does not. Nothing here places a trade.
+ *
+ * The four schools (ICT, TJR, PB Blake, PB Patty) are seeded from the trader's own
+ * description (src/data/school-brief.json): nine facets each plus the two hybrids,
+ * pinned on the SMC shelf. A school node answers `recall` only when the query names
+ * the school, so "bias" or "target" alone still reach the desk's own lines.
  */
+import { BOOK } from "./brain-feed";
+import { FACETS, HYBRIDS, SCHOOL_AVATAR, SCHOOL_BRIEF, SCHOOL_KEYS, SCHOOL_SAY, type Facet, type SchoolKey } from "@/lib/trading/school-brief";
+
 export type AtlasShelf = "now" | "discretion" | "smc" | "market" | "backtest";
 
 export interface AtlasPrior {
@@ -110,8 +118,66 @@ const SEED: Seed[] = [
   { id: "bt:path", shelf: "backtest", title: "PATH band", who: "Nova", confidence: 80, n: 1, pinned: true, tags: ["path", "band"], text: "PATH B+ and higher is the fire band. A grade below that does not get a ticket." },
   { id: "bt:paper", shelf: "backtest", title: "Paper record", who: "Vince", confidence: 82, n: 1, pinned: true, tags: ["paper", "robinhood"], text: "Paper fills are not a gate. Robinhood does not wait on an Alpaca record." },
   { id: "bt:chase", shelf: "backtest", title: "Chase", who: "Sterling", confidence: 78, n: 1, pinned: true, tags: ["chase", "ce"], text: "Chasing the extension after a missed CE is the losing pattern. The pullback is the measured entry." },
+  { id: "bt:book", shelf: "backtest", title: "Joint book", who: "Vince", confidence: 82, n: 1, pinned: true, tags: ["book", "joint", "fit", "draw"], text: BOOK },
   { id: "bt:lunch", shelf: "backtest", title: "Lunch size", who: "Sterling", confidence: 74, n: 1, pinned: true, tags: ["lunch", "size"], text: "Full size through lunch is the leak. Afternoon size stays smaller. The search does not." },
 ];
+
+export const schoolNodeId = (school: SchoolKey, facet: Facet): string => `school:${school}:${facet}`;
+/** The words that name a school. A facet word ("bias", "target") does not: that is the desk's own line. */
+const SCHOOL_NAMES = new Set(["ict", "tjr", "blake", "patty", "pb", "hybrid"]);
+
+/** The trader's brief as brain nodes. A facet whose style differs from a measured desk rule carries that rule in the same node. */
+function schoolSeeds(): Seed[] {
+  const out: Seed[] = [];
+  for (const s of SCHOOL_KEYS) {
+    for (const f of FACETS) {
+      const b = SCHOOL_BRIEF[s].facets[f];
+      out.push({
+        id: schoolNodeId(s, f),
+        shelf: "smc",
+        title: `${SCHOOL_SAY[s]} ${f}`,
+        who: SCHOOL_AVATAR[s],
+        confidence: 88,
+        n: 1,
+        pinned: true,
+        tags: [s, SCHOOL_SAY[s].toLowerCase(), ...(s === "blake" || s === "patty" ? ["pb"] : []), f],
+        text: b.deskNote ? `${b.short} ${b.deskNote}` : b.short,
+      });
+    }
+  }
+  const pair = { ict_tjr: ["ict", "tjr"], blake_patty: ["blake", "patty", "pb"] } as const;
+  for (const id of ["ict_tjr", "blake_patty"] as const) {
+    const h = HYBRIDS[id];
+    out.push({
+      id: `school:hybrid:${id}`,
+      shelf: "smc",
+      title: h.name,
+      who: id === "ict_tjr" ? "Gemma" : "Nova",
+      confidence: 84,
+      n: 1,
+      pinned: true,
+      tags: ["hybrid", ...pair[id]],
+      text: h.deskNote ? `${h.short} ${h.deskNote}` : h.short,
+    });
+  }
+  return out;
+}
+SEED.push(...schoolSeeds());
+
+function schoolEdges(): AtlasEdge[] {
+  const out: AtlasEdge[] = [];
+  for (const s of SCHOOL_KEYS) {
+    out.push({ from: schoolNodeId(s, "bias"), to: schoolNodeId(s, "entry"), why: `${SCHOOL_SAY[s]}'s direction comes before its entry` });
+    out.push({ from: schoolNodeId(s, "entry"), to: schoolNodeId(s, "target"), why: `where ${SCHOOL_SAY[s]} aims once in` });
+    out.push({ from: schoolNodeId(s, "entry"), to: schoolNodeId(s, "arrays"), why: `the array ${SCHOOL_SAY[s]} rests at` });
+    out.push({ from: "smc:sequence", to: schoolNodeId(s, "entry"), why: `${SCHOOL_SAY[s]}'s version of the sequence` });
+  }
+  out.push({ from: "school:hybrid:ict_tjr", to: schoolNodeId("ict", "entry"), why: "the OTE half" });
+  out.push({ from: "school:hybrid:ict_tjr", to: schoolNodeId("tjr", "entry"), why: "the sweep and the first gap" });
+  out.push({ from: "school:hybrid:blake_patty", to: schoolNodeId("blake", "timeframes"), why: "the 15 minute frame" });
+  out.push({ from: "school:hybrid:blake_patty", to: schoolNodeId("patty", "entry"), why: "the breaker and gap" });
+  return out;
+}
 
 const EDGES: AtlasEdge[] = [
   { from: "now:account", to: "disc:place", why: "the account the place rule sends to" },
@@ -143,6 +209,7 @@ const EDGES: AtlasEdge[] = [
   { from: "mkt:lunch", to: "bt:lunch", why: "why lunch size is cut" },
   { from: "bt:paper", to: "disc:place", why: "the record that must not gate the account" },
 ];
+EDGES.push(...schoolEdges());
 
 function cloneSeed(now: number): DeskAtlas {
   return {
@@ -168,7 +235,9 @@ export function loadAtlas(): DeskAtlas | null {
     const raw = localStorage.getItem(ATLAS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
-    return isAtlas(parsed) ? parsed : null;
+    if (!isAtlas(parsed)) return null;
+    // An atlas saved before a seed was added still gets it (the school nodes arrived 2026-10-07); a current one is returned as stored.
+    return SEED.every((s) => parsed.nodes.some((n) => n.id === s.id)) ? parsed : mergeAtlas(parsed, null);
   } catch {
     return null;
   }
@@ -190,10 +259,17 @@ export function mergeAtlas(a: DeskAtlas | null | undefined, b: DeskAtlas | null 
   const incoming = [a, b].filter(isAtlas);
   if (!incoming.length) return base;
   const byId = new Map(base.nodes.map((n) => [n.id, n]));
+  const seeds = new Map(base.nodes.map((n) => [n.id, n]));
   for (const src of incoming) {
     for (const n of src.nodes) {
       const cur = byId.get(n.id);
-      if (!cur || n.at >= cur.at) byId.set(n.id, { ...n, prior: (n.prior ?? []).slice(0, 5), tags: n.tags ?? [] });
+      // The seeds are stamped with the merge time, so "newer wins" let the seed beat every rewrite and every grade on every merge:
+      // a live card's line went back to "No live card yet" and a school node lost what the tape had taught it. Against a seed, a stored
+      // node wins when the brain has changed it (rewritten: it has a prior text; confirmed or graded: its count moved). An untouched
+      // stored copy still gives way, so a seed edited in code reaches an atlas saved before the edit.
+      const touched = (n.n ?? 1) > (cur?.n ?? 1) || (n.prior?.length ?? 0) > 0;
+      const wins = !cur || (cur === seeds.get(n.id) ? touched : n.at >= cur.at);
+      if (wins) byId.set(n.id, { ...n, prior: (n.prior ?? []).slice(0, 5), tags: n.tags ?? [] });
     }
   }
   const nodes = [...byId.values()].filter((n) => n.pinned || byId.has(n.id));
@@ -248,6 +324,8 @@ export function recall(a: DeskAtlas, query: string): AtlasRecall {
   let best: AtlasNode | null = null;
   let score = 0;
   for (const n of a.nodes) {
+    // A school's node answers only when the question names the school ("ict bias"); "bias" alone is the desk's own line.
+    if (n.id.startsWith("school:") && !q.some((w) => SCHOOL_NAMES.has(w) && n.tags.includes(w))) continue;
     const bag = tokens(`${n.title} ${n.text} ${n.tags.join(" ")}`);
     let s = 0;
     for (const w of q) if (bag.includes(w)) s += n.title.toLowerCase().includes(w) ? 3 : 1;

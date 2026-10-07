@@ -50,6 +50,7 @@ import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
 import { ladderConflict } from "@/lib/trading/ladder-conflict";
 import { sessionBias } from "@/lib/trading/tf-ladder";
 import type { TfLadder } from "@/lib/trading/tf-ladder";
+import { SCHOOL_SAY, schoolFactsFrom, schoolReads } from "@/lib/trading/school-brief";
 import {
   CHART_TFS,
   TF_MARKS,
@@ -808,6 +809,12 @@ function SetupCard({
     [tape?.ladder, c.side],
   );
 
+  /**
+   * What ICT, TJR, Blake and Patty each make of this card (school-brief.ts): the trader's own description of each school, graded from
+   * the facts this card already carries. The Floor's characters say the same reads aloud. Display only: it gates nothing and sizes nothing.
+   */
+  const schools = useMemo(() => schoolReads(schoolFactsFrom(c, tape?.ladder ?? null)), [c, tape?.ladder]);
+
   const look = useMemo(() => {
     if (!spent || !tape?.draws || tape.price == null) return null;
     return nextLook(tape.draws, c.side, tape.price);
@@ -1019,6 +1026,28 @@ function SetupCard({
           {anticipation.next}
           {pb.enter ? ` ${monthContractLine(2000)}` : ""}
         </p>
+      </div>
+
+      <div className="mb-2 flex flex-wrap gap-1.5" aria-label="What each school makes of this card">
+        {schools.map((r) => (
+          <span
+            key={r.school}
+            title={`${SCHOOL_SAY[r.school]} reads ${r.bias.dir === "none" ? "no direction" : r.bias.dir}: ${r.bias.why}.\n${r.checks
+              .map((k) => `${k.state === "pass" ? "has" : k.state === "fail" ? "lacks" : "cannot grade"} ${k.have}${k.detail ? ` (${k.detail})` : ""}`)
+              .join("\n")}\nA read of the card, never a gate.`}
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] leading-tight",
+              r.verdict === "fits"
+                ? "border-[color-mix(in_oklab,var(--color-up)_50%,transparent)] text-[var(--color-up)]"
+                : r.verdict === "against"
+                  ? "border-[var(--color-border)] text-[var(--color-muted)]"
+                  : "border-[color-mix(in_oklab,var(--color-warn)_50%,transparent)] text-[var(--color-warn)]",
+            )}
+          >
+            {SCHOOL_SAY[r.school]} ·{" "}
+            {r.verdict === "fits" ? "fits" : r.verdict === "against" ? `reads ${r.bias.dir}` : `needs ${r.next}`}
+          </span>
+        ))}
       </div>
 
       {odds && (

@@ -875,6 +875,7 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     target: k.t1,
     pT1: k.pT1,
     expR: k.expR,
+    schools: k.schools,
   });
   if (d.from != null) {
     // The card was read out in full when it first appeared (the schools, the target, the book's record). A step from one tier to the
@@ -887,11 +888,15 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     if (j.draw || j.odds) lines.push(line("Nova", ANIM.Nova.analyze!, f.raw([j.draw, j.odds].filter(Boolean).join(" "))));
     return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
   }
+  // Each seat opens with its own school's read of THIS card (ICT Gemma, TJR Jax, Blake Nova, Patty Sterling), then the job it already had.
+  // The static canon recital and the book record are not read out on every card: the brain holds them (desk-atlas: smc:*, bt:book).
+  const mine = (who: string) => (j.school[who] ? `${j.school[who]} ` : "");
+  const graded = Object.keys(j.school).length > 0;
   lines.push(line("Vince", ANIM.Vince.watch!, f.raw(j.setup)));
-  lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(j.target)));
-  lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
-  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(j.book)));
-  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(j.entry)));
+  lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(graded ? `${mine("Gemma")}${j.draw || j.target}` : j.target)));
+  lines.push(line("Jax", ANIM.Jax.point!, f.raw(`${mine("Jax")}${j.watch}`)));
+  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(graded ? `${mine("Nova")}${j.odds}`.trim() : j.book)));
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(`${mine("Sterling")}${j.entry}`)));
   return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
 }
 

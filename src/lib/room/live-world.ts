@@ -13,7 +13,8 @@ import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
-import { sessionBias } from "@/lib/trading/tf-ladder";
+import { sessionBias, type TfLadder } from "@/lib/trading/tf-ladder";
+import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -225,12 +226,26 @@ function planFor(
   return null;
 }
 
-function ladderBrief(desk: DeskPayload, symbol: string) {
+/** The timeframe ladder of the index a symbol trades. */
+function ladderOf(desk: Pick<DeskPayload, "ladder">, symbol: string): TfLadder | null {
   const L = desk.ladder;
   if (!L) return null;
   const es = /ES/.test(symbol);
-  const pick = /ES/.test(L.left.symbol) === es ? L.left : L.right;
-  return { symbol: pick.symbol, strip: pick.strip, htf: sessionBias(pick) };
+  return /ES/.test(L.left.symbol) === es ? L.left : L.right;
+}
+
+function ladderBrief(desk: DeskPayload, symbol: string) {
+  const pick = ladderOf(desk, symbol);
+  return pick ? { symbol: pick.symbol, strip: pick.strip, htf: sessionBias(pick) } : null;
+}
+
+/** What each of the four schools makes of this card: one consensus line and one sentence per school, keyed by the cast seat that presents it. */
+export function schoolsOf(desk: Pick<DeskPayload, "ladder">, c: Parameters<typeof schoolFactsFrom>[0] & { symbol: string }): NonNullable<CardRead["schools"]> {
+  const side = c.side === "short" ? "short" : "long";
+  const reads = schoolReads(schoolFactsFrom(c, ladderOf(desk, c.symbol)));
+  const by: Record<string, string> = {};
+  for (const r of reads) by[SCHOOL_AVATAR[r.school]] = schoolSentence(r, side);
+  return { line: consensusLine(reads, side), by };
 }
 
 function cardRead(desk: DeskPayload): CardRead | null {
@@ -294,6 +309,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     sequence: seq.label,
     entryLine: seq.act,
     entrySay: seq.say ?? null,
+    schools: schoolsOf(desk, c),
   };
 }
 

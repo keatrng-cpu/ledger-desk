@@ -230,6 +230,11 @@ export interface CardRead {
   entryLine?: string | null;
   /** The same read in the words the voice uses (no strip, no reminder). The screens keep `entryLine`. */
   entrySay?: string | null;
+  /**
+   * What ICT, TJR, Blake and Patty each make of this card, graded from facts the desk already carries (school-brief.ts).
+   * `by` is keyed by the cast seat that presents the school: Gemma ICT, Jax TJR, Nova Blake, Sterling Patty. Narration, never a gate.
+   */
+  schools?: { line: string; by: Record<string, string> };
 }
 
 export interface MindsRead {

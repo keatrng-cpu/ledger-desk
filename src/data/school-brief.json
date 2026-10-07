@@ -1,0 +1,193 @@
+{
+  "source": "The trader's own description of ICT, TJR, PB Blake and PB Patty, given in chat 2026-10-07. It is the trader's reading of each school, stored as given. It is not independently verified against the founders' own material (smc-canon.ts SCHOOLS carries the researched, source-labelled version). Where this and the desk's measured rules differ, the desk's rule stands and the node says so.",
+  "asOf": "2026-10-07",
+  "schools": {
+    "ict": {
+      "name": "ICT (Michael Huddleston)",
+      "avatar": "Gemma",
+      "facets": {
+        "market": {
+          "short": "ICT reads the market as a time-and-price algorithm, IPDA, that delivers price to hunt stops or rebalance gaps in set states: consolidation, expansion, retracement, reversal.",
+          "long": "ICT views the market as a fully automated, time-and-price-regulated machine governed by the Interbank Price Delivery Algorithm (IPDA). He rejects the idea of buying and selling pressure creating trends; instead, he asserts that the central bank algorithm delivers price to precise data points to either hunt retail stops or rebalance internal inefficiencies. The market moves on a repetitive script dictated by macro time cycles, specific algorithmic delivery states (consolidation, expansion, retracement, reversal), and institutional order flow."
+        },
+        "entry": {
+          "short": "ICT enters in killzones or Silver Bullet windows, at OTE 62, 70.5 or 79%, an order block open, or the first tap of a fair value gap, in discount for longs and premium for shorts.",
+          "long": "Entries are strictly executed during high-probability macroeconomic windows known as Killzones (London, New York, and London Close) or within the specific Silver Bullet hourly windows. ICT utilizes the Optimal Trade Entry (OTE) model, mapping a Fibonacci grid from a swing high to a swing low to locate entries between the 62%, 70.5%, and 79% retracement levels. He also triggers trades directly at the open of higher-timeframe institutional Order Blocks (OB) or within the first tap of a raw Fair Value Gap (FVG), ensuring that price is physically pulling back into a distinct Premium or Discount zone before execution."
+        },
+        "target": {
+          "short": "ICT targets the draw on liquidity: previous day and week highs and lows and old session pools, then the minus 0.27 and minus 0.62 extensions of the dealing range.",
+          "long": "Targets are based entirely on the Draw on Liquidity (DOL), which is the specific magnetic pool of resting orders the algorithm is currently seeking. ICT targets structural landmarks like Previous Daily Highs/Lows (PDH/PDL), Previous Weekly Highs/Lows (PWH/PWL), or old session liquidity pools. Additionally, he employs Fibonacci extensions to project standard algorithmic profit targets, specifically hunting the -0.27 and -0.62 extension levels of the dealing range to exit positions where institutional algorithms are mathematically engineered to reverse or stall."
+        },
+        "confluence": {
+          "short": "ICT wants time, price and inter-market together: a higher-timeframe array and a lower-timeframe gap inside a 90-minute macro window, with SMT divergence between NQ and ES.",
+          "long": "Confluence in the ICT methodology requires the synchronization of Time, Price, and Inter-market Relationships. A high-probability setup occurs when a higher-timeframe PD Array aligns with a lower-timeframe FVG precisely within a specific 90-minute algorithmic Macro window. He layers this with SMT (Smart Money Tool) Divergence, looking for correlated assets to split from their standard correlation (such as the NASDAQ making a lower low while the S&P 500 makes a higher low at a key support pool), which unmasks true institutional accumulation or distribution."
+        },
+        "liquidity": {
+          "short": "Buy-side liquidity rests above old highs, sell-side below old lows. Price cycles between purging external pools and rebalancing internal gaps like fair value gaps.",
+          "long": "Liquidity is categorized into Buy-Side Liquidity (BSL) and Sell-Side Liquidity (SSL), representing the clusters of retail stop-losses resting above old highs and below old lows. ICT views this resting volume as the physical counter-party liquidity required for central banks to activate multi-billion dollar positions without shifting the market against themselves. He tracks Internal Range Liquidity (Inefficiencies like FVGs) and External Range Liquidity (Old Swing Highs/Lows), analyzing how the market constantly cycles between rebalancing an internal void and purging an external pool."
+        },
+        "timeframes": {
+          "short": "ICT anchors bias on the monthly, weekly and daily, finds the dealing range on the 4-hour and 1-hour, and uses the 15, 5 and 1 minute only to time the entry.",
+          "long": "Timeframe analysis is bound by a strict hierarchical Top-Down Framework that treats lower timeframes as subservient to higher-timeframe narratives. ICT anchors his structural bias on the Monthly, Weekly, and Daily charts, utilizing them to map the dominant institutional order flow direction and key structural arrays. He then drops to the 4-Hour and 1-Hour charts to locate intra-week dealing ranges, and finally utilizes the 15-minute, 5-minute, and 1-minute charts strictly as precision execution instruments to catch localized structural shifts inside the higher-timeframe zones."
+        },
+        "bias": {
+          "short": "Daily bias is where the daily candle draws next. A bullish day drops below the daily open, midnight New York, to make the low, the Judas swing, then expands.",
+          "long": "Daily Bias is established by identifying where the Daily candle is highly likely to draw toward next on its sequential liquidity delivery script. ICT reviews the previous daily candle close to determine if institutional order flow is expanding, or if it has just swept a key pool and is preparing for a correction. He maps the daily Institutional Order Flow Entry Drill (IOFED) and watches how price reacts at the Daily Opening Price (midnight New York time); a bullish daily bias requires price to drop below the opening price to form the low of the day (the \"Judas Swing\") before expanding aggressively higher."
+        },
+        "ranges": {
+          "short": "The dealing range runs swing to swing with a 50% line. Above is premium, where smart money only sells. Below is discount, where it only buys. Equilibrium is a low-probability gamble.",
+          "long": "Ranges are viewed as Dealing Ranges mapped out by tracing a definitive institutional expansion leg from a validated swing high to a swing low. ICT applies a 50% grid over this range to establish the exact Equilibrium threshold, dividing the trading field into two distinct halves. The zone above 50% is classified as Premium (where smart money only seeks to sell), and the zone below 50% is classified as Discount (where smart money only seeks to buy), treating any execution that occurs inside the exact equilibrium line as a low-probability, high-risk gamble."
+        },
+        "arrays": {
+          "short": "The PD array matrix ranks arrays premium to discount: old highs and lows, rejection blocks, order blocks, fair value gaps, volume imbalances, mitigation and breaker blocks.",
+          "long": "Arrays are categorized within a fixed hierarchical index known as the PD Array Matrix, which ranks institutional price structures from premium to discount. This structural checklist consists of Old Highs/Lows, Rejection Blocks, Order Blocks, Fair Value Gaps, Volume Imbalances, and Mitigation/Breaker Blocks. The algorithm checks these structures sequentially when returning to a range, and ICT monitors how price respects or invalidates these specific boundaries to confirm whether institutional order flow remains intact or is reversing."
+        }
+      }
+    },
+    "tjr": {
+      "name": "TJR",
+      "avatar": "Jax",
+      "facets": {
+        "market": {
+          "short": "TJR sees a game of inducement: consolidation, a manipulation sweep, then expansion. Every move is built to trap retail breakouts and breakdowns.",
+          "long": "TJR interprets the market as a simplified, highly mechanical game of inducement and structural psychology built directly around retail trader traps. He strips away heavy algorithmic jargon to view price action through a highly practical lens: the market moves from consolidation to a manipulation sweep, followed by an aggressive expansion leg. For TJR, every single market move is designed to trick retail traders into buying breakouts or selling breakdowns prematurely, creating the liquidity pockets required to fuel institutional trends."
+        },
+        "entry": {
+          "short": "TJR needs a clean sweep, then a displacement break of structure on the 5 or 1 minute. He rests a limit at the opening edge of the new gap or order block, stop at the sweep.",
+          "long": "Entries are strictly contingent on a clean Liquidity Sweep followed by a lower-timeframe Market Structure Shift (MSS). TJR waits for a clear, obvious retail level to be purged, and then demands an aggressive, displacement-fueled break of structural support or resistance on the 5-minute or 1-minute chart. Once displacement is confirmed via a strong closing candle, he places a limit order directly at the opening boundary of the newly formed Fair Value Gap (FVG) or the high-volume Order Block (OB) that initiated the structural break, keeping his stop-loss tightly protected at the sweep high or low."
+        },
+        "target": {
+          "short": "TJR takes heavy partials at 2R, moves the stop to break-even, and runs the rest to the opposing swing or retail liquidity until those stops are cleared.",
+          "long": "TJR uses a practical, systematic targeting model that prioritizes capital preservation via a standardized 1:2 Risk-to-Reward ratio milestone. Once his position reaches a 2R payout, he systematically takes heavy partial profits and moves his stop-loss to break-even to ensure a guaranteed winning trade. For his remaining running contracts, he targets the opposing structural swing points or prominent retail trendline liquidity pools on the intraday chart, holding the position until those counter-stops are fully cleared.",
+          "deskNote": "The desk's own measured rule is 50% off at T1, then break-even, runner to T2. Banking at plus 1R measured worse. TJR's 2R partial is his style, not the desk's rule."
+        },
+        "confluence": {
+          "short": "TJR keeps it simple: time of day, a key session level, and a lower-timeframe shift. A sweep at the New York 9:30 open of a daily level, with displacement, is enough.",
+          "long": "TJR utilizes a streamlined confluence matrix that layers Time of Day, Key Session Highs/Lows, and Lower-Timeframe Structural Shifts. He does not over-complicate his charts with multiple variables; instead, he looks for the simple convergence of a primary intraday session open (like the New York 9:30 AM equity open) hitting a major daily key level. If a clear liquidity sweep occurs at that exact time window and produces a concurrent lower-timeframe displacement shift, the confluence criteria are fully satisfied for execution."
+        },
+        "liquidity": {
+          "short": "TJR targets retail pattern liquidity: double tops and bottoms, trendlines, textbook support and resistance. He waits for them to break and hunts the stops behind.",
+          "long": "TJR focuses heavily on Retail Pattern Liquidity, specifically targeting double tops, double bottoms, clear trendlines, and support/resistance zones that retail textbooks teach traders to trade. He looks at these visual patterns as clusters of highly concentrated money waiting to be taken. He maps these levels out on his charts not to trade them as support or resistance, but to wait patiently for the market to aggressively break past them, hunting the stops resting directly on the other side."
+        },
+        "timeframes": {
+          "short": "TJR uses three steps: the 1 hour for direction, the 5 minute for the sweep and displacement, and the 1 minute for the entry and a tighter stop.",
+          "long": "TJR utilizes a fixed, highly repeatable three-step timeframe alignment process: 1-Hour for Direction, 5-Minute for Confirmation, and 1-Minute for Entry. He maps out his primary liquidity pools and daily key levels on the 1-Hour chart to establish his overall session workspace. He then shifts attention to the 5-minute chart to watch for the actual liquidity sweep and subsequent displacement shift, dropping to the 1-minute chart exclusively to refine his entry execution points and secure a tighter stop-loss."
+        },
+        "bias": {
+          "short": "TJR's bias is 1-hour and 4-hour structure. Higher highs and higher lows is bullish, so he ignores sells. He holds it until a closing candle breaks structure or a major higher-timeframe pool is swept.",
+          "long": "Bias is kept highly objective and is determined by Higher-Timeframe Market Structure (HTF MS) on the 1-Hour and 4-Hour charts. If the 1-Hour chart is printing clear higher highs and higher lows, TJR establishes a strict bullish bias for the day, meaning he will completely ignore sell setups and only hunt long opportunities. He holds this session bias until the higher-timeframe structure is structurally broken by a clean closing candle, or until a major higher-timeframe liquidity pool is completely swept."
+        },
+        "ranges": {
+          "short": "TJR treats the session range, like Asia, as a coiled spring. He waits for a manipulation break outside it to trap breakout traders, then trades the other way.",
+          "long": "TJR looks at ranges as Intraday Accumulation Cycles where retail orders are building up volume on both sides of the market. He isolates the active trading range of the current or previous session (such as the Asia Session Range) and maps the boundaries out clearly. He views these ranges as coiling springs, waiting for a definitive manipulation breakout to occur outside the range boundaries to trap breakout traders before executing his position in the opposite direction."
+        },
+        "arrays": {
+          "short": "TJR uses fresh, unmitigated fair value gaps and order blocks made by big displacement candles. A weak or already-tested array is discarded.",
+          "long": "TJR simplifies the use of arrays, focusing almost exclusively on Fair Value Gaps (FVGs) and clear Order Blocks (OBs) that exhibit massive displacement. He looks for arrays that are fresh, unmitigated, and formed by large institutional candles that leave an obvious imbalance in price. If an FVG or Order Block lacks aggressive velocity or has already been repeatedly stepped into, he considers it weak or mitigated, and will entirely discard the setup."
+        }
+      }
+    },
+    "blake": {
+      "name": "PB Blake",
+      "avatar": "Nova",
+      "facets": {
+        "market": {
+          "short": "Blake reads internal versus external liquidity cycles inside daily and weekly boundaries: price reaches for external swings to clear stops, then moves inward to rebalance.",
+          "long": "PB Blake views the market as a structural framework of Internal vs. External Liquidity delivery cycles operating within strict daily and weekly boundaries. He focuses on the narrative of the market, treating price delivery as a sequential journey where the market continuously reaches for external swing points to clear long-term stops, and then shifts inward to rebalance internal inefficiencies. He models price action around the structural behavior of institutional order flow, tracking how major institutions defend specific price legs."
+        },
+        "entry": {
+          "short": "Blake waits for a tap of a higher-timeframe array, then enters the retest of an inversion gap or breaker on the 1 to 3 minute, deep in discount for longs.",
+          "long": "Entries are engineered around Premium vs. Discount validation within refined execution zones. PB Blake waits for price to tap a higher-timeframe array and drops down to lower timeframes to identify an Inversion Fair Value Gap (IFVG) or a validated Breaker Block. He prefers to enter trades on the precise retest of these structural failure points, ensuring that the entry is highly refined on a 1-minute to 3-minute chart, and that the position is initiated deep inside a discounted zone relative to the local dealing range."
+        },
+        "target": {
+          "short": "Blake targets major liquidity pools and higher-timeframe arrays: equal highs and lows, prior session extremes, unmitigated daily order blocks, scaling out as price moves into them.",
+          "long": "Targeting is structured around clearing Major Liquidity Pools and Higher-Timeframe Target Arrays. PB Blake identifies where the higher-timeframe market structure is drawing to next and builds his take-profit plan around those specific points. He targets Relative Equal Highs/Lows (EQH/EQL), previous session extremes, and unmitigated daily order blocks, scaling out of his positions sequentially as price moves deeper into the opposing external structural boundaries.",
+          "deskNote": "The desk scales 50% at T1 with the stop to break-even and a runner to T2, and that rule is measured. Blake's sequential scale-out is his style, not the desk's rule."
+        },
+        "confluence": {
+          "short": "Blake wants an internal array nested inside an external one: a lower-timeframe gap or breaker inside a 4-hour or daily order block, with the session trend. That earns heavy size.",
+          "long": "Confluence for PB Blake centers on the structural nesting of arrays, specifically looking for an Internal Array resting inside an External Array. He looks for a lower-timeframe FVG or Breaker Block that is perfectly aligned and nested directly inside a higher-timeframe (like a 4-Hour or Daily) Order Block or Liquidity Sweep zone. When this structural nesting occurs in alignment with an active intraday session trend, it creates a high-probability confluence that warrants a heavy position size.",
+          "deskNote": "Size is set by the desk's grade and the sleeve rules, not by a school's confidence. A nested array raises the read, not the size."
+        },
+        "liquidity": {
+          "short": "External liquidity is the swing highs and lows. Internal is the gaps left in an expansion leg. Price purges external, then uses internal gaps as stepping stones on the way back.",
+          "long": "PB Blake focuses deeply on the mechanics of Internal vs. External Liquidity distribution. External liquidity is defined as the structural swing highs and lows of the market, while internal liquidity represents the imbalances and gaps left behind within an expansion leg. He analyzes how the market purges external liquidity to shift the trend, and then utilizes internal liquidity as a series of stepping stones or draw areas that price must systematically retrace through during its corrective phases."
+        },
+        "timeframes": {
+          "short": "Blake maps the narrative on the daily and 4-hour, the trend on the 15 minute, and times the entry on the 1 to 2 minute. The 15 minute is the session anchor.",
+          "long": "PB Blake operates a highly synchronized multi-timeframe grid, typically mapping out long-term narrative on the Daily and 4-Hour charts, tracking local trend cycles on the 15-Minute chart, and timing execution on the 1-Minute to 2-Minute charts. The 15-minute chart acts as his structural anchor for the trading session, allowing him to observe structural internal shifts and frame setups that line up directly with the overarching daily macro direction."
+        },
+        "bias": {
+          "short": "Blake's bias is weekly and daily order flow plus the daily open. He checks whether the early session engineered a manipulation into a key array, which confirms the day's direction.",
+          "long": "Bias is formulated by tracking the Weekly and Daily Order Flow direction along with the current daily opening price expansion. PB Blake analyzes whether the weekly candle is expanding toward a specific liquidity pool or retracing to fill an inefficiency. He combines this with the Daily Open (Judas Swing) model, identifying if the early session has successfully engineered a manipulation move into a key institutional array, which confirms the true expansion direction for the rest of the day."
+        },
+        "ranges": {
+          "short": "Ranges are dynamic valuation zones. Blake watches price around equilibrium and avoids dead zones: price must expand out of a range before he frames a new setup on a deep pullback.",
+          "long": "Ranges are evaluated as Dynamic Valuation Zones that dictate the fair value of an asset during a specific trading session. PB Blake maps out the current dealing range from structural high to structural low and monitors how price behaves around the equilibrium line. He uses ranges to prevent over-trading in dead zones, maintaining strict execution rules that require price to expand completely out of a consolidated range before he frames a new setup on a deep pullback."
+        },
+        "arrays": {
+          "short": "Blake leans on inversion fair value gaps and breaker blocks. A broken zone that flips becomes a floor or ceiling for future price.",
+          "long": "PB Blake places a high analytical emphasis on Inversion Fair Value Gaps (IFVGs) and Breaker Blocks, tracking the transition of institutional support and resistance arrays. He monitors arrays that were previously broken through with heavy displacement, recognizing that when an institutional sell-zone is invalidated and flipped into an inversion gap, it represents a massive block of institutional orders supporting the market, creating a strong floor or ceiling for future price delivery."
+        }
+      }
+    },
+    "patty": {
+      "name": "PB Patty",
+      "avatar": "Sterling",
+      "facets": {
+        "market": {
+          "short": "Patty reads price as strict mechanics. Algorithms must leave readable footprints, so he trusts only structure, closing-candle mechanics, and array validation or invalidation.",
+          "long": "PB Patty looks at the market through a lens of highly refined structural mechanics and algorithmic order delivery validation. He views price action as a sequence of strict mathematical rules where institutional algorithms must leave precise, readable footprints before any sustainable move can occur. He strips away any subjective interpretation of price, focusing entirely on hard structural evidence, closing candle mechanics, and the systematic validation or invalidation of key price arrays."
+        },
+        "entry": {
+          "short": "Patty enters where a breaker block overlaps a fresh fair value gap, after a stop-hunt and a displacement that breaks structure, with a tight closing-candle confirmation.",
+          "long": "Entries are highly systematic, focusing on Breaker Blocks paired directly with a fresh Fair Value Gap (FVG). PB Patty waits for a stop-hunt to clear a liquidity pool, followed by an aggressive displacement move that breaks structural market structure, transforming an old Order Block into a valid Breaker Block. He executes his limit orders directly at the confluence point where the Breaker Block overlaps with the newly created FVG, requiring tight closing candle confirmation to validate that smart money is actively defending the zone."
+        },
+        "target": {
+          "short": "Patty targets the opposing premium or discount array and intraday pools. He exits at the first unmitigated higher-timeframe array rather than chasing an extended trend.",
+          "long": "Targets are mapped out using strict Structural Targets and Premium/Discount Arrays located on the opposing side of the dealing range. PB Patty focuses on clearing out intraday resting liquidity points, such as session highs, session lows, and relative equal boundaries. He aims to fully exit his trades as soon as price taps the first unmitigated premium or discount array on the higher timeframe, choosing to secure certain profits rather than trying to catch extended, over-extended market trends.",
+          "deskNote": "The desk scales 50% at T1 and runs the rest to T2; a full exit at the first array is Patty's style, not the desk's rule."
+        },
+        "confluence": {
+          "short": "Patty wants dense stacking: an inversion gap nested with a breaker and an OTE level, inside a session-open window like the New York AM or PM silver bullet.",
+          "long": "PB Patty builds his execution model around High-Density Array Confluence and Session Open Timing. He requires a setup to feature multiple overlapping structural arrays, such as an Inversion FVG nesting perfectly with a Breaker Block and an OTE Fibonacci level. When these multiple structural layers converge within an active session open window (such as the New York AM or PM silver bullet windows), it provides the maximum quantitative edge required for trade execution."
+        },
+        "liquidity": {
+          "short": "Patty treats liquidity as the fuel for repricing. He reads the speed of price into a pool to judge a sweep-and-reverse against a full structural breakdown.",
+          "long": "PB Patty treats liquidity as the primary catalyst for Algorithmic Repricing Moves. He monitors how the market constructs pools of liquidity by trapping retail traders into clear chart patterns, and then meticulously maps out where these stop clusters rest. He evaluates liquidity not just as static points on a chart, but as a dynamic fuel source, analyzing the speed and velocity of price delivery as it approaches a liquidity pool to determine if it will result in a clean sweep-and-reverse or a full structural expansion breakdown."
+        },
+        "timeframes": {
+          "short": "Patty uses the 4-hour for the narrative, the 15 minute for session structure, and the 3 or 1 minute for entry. The 15 minute is the bridge that validates lower-timeframe blocks.",
+          "long": "PB Patty uses a highly disciplined timeframe routine, utilizing the 4-Hour chart for macroscopic narrative, the 15-Minute chart for localized session structure, and the 3-Minute or 1-Minute chart for hyper-refined entry execution. He heavily relies on the 15-minute chart to identify the formation of key structural zones, treating it as the primary bridge that validates whether lower-timeframe order block mitigations are genuinely backed by institutional order flow."
+        },
+        "bias": {
+          "short": "Patty's bias is the daily state, expansion, retracement or consolidation, combined with the direction of the lower-timeframe structure shift, toward the next unmitigated higher-timeframe array.",
+          "long": "Bias is determined by analyzing Daily Structure and Institutional Delivery States. PB Patty reviews whether the current daily candle is trading within an expansion phase, a retracement phase, or a consolidation phase. He combines this daily analysis with the direction of the immediate lower-timeframe market structure shift, ensuring his session bias is completely locked in alignment with the path of least resistance toward the next major unmitigated higher-timeframe array."
+        },
+        "ranges": {
+          "short": "Patty marks the leg and watches the 50% mark. Longs only from deep discount, shorts only from premium. The dealing range filters out low-probability setups.",
+          "long": "Ranges are viewed as Mathematical Dealing Fields used to evaluate structural premium and discount pricing mechanics. PB Patty maps out the structural boundaries of a leg using precise swing points and monitors price delivery relative to the 50% equilibrium mark. He uses the dealing range to filter out low-probability setups, strictly mandating that long entries must only be executed within deep discount arrays, while short entries are strictly reserved for premium arrays."
+        },
+        "arrays": {
+          "short": "Patty prioritizes inversion gaps, breaker blocks and unmitigated order blocks. When a premium array fails and flips to an inversion, that flip is the foundation for his next trade.",
+          "long": "PB Patty focuses extensively on the interaction and transition of PD Arrays, prioritizing Inversion FVGs, Breaker Blocks, and Unmitigated Order Blocks. He analyzes how these arrays interact sequentially, tracking whether price is respecting premium arrays or slicing through them with displacement. When a premium array fails to hold price and flips into an inversion array, he reads this as an algorithmic shift in institutional order flow, utilizing that flipped array as a high-probability foundation to execute his next intraday position."
+        }
+      }
+    }
+  },
+  "hybrids": {
+    "ict_tjr": {
+      "name": "ICT + TJR",
+      "blueprint": "NY Open Sweep (TJR Style) into an OTE Zone (ICT)",
+      "short": "ICT plus TJR: ICT's daily bias and SMT pick the index and direction. After the New York open, wait for an Asia or London sweep inside an OTE zone, enter the first 1-minute gap displacement, and take TJR's 2R partial.",
+      "long": "This execution model merges ICT's macroeconomic precision with TJR's mechanical execution logic. The trader utilizes ICT's Daily Bias framework and Inter-market SMT Divergence to isolate the primary asset and direction for the day. Once the New York session opens, the trader abandons complex macro models and simply waits for a clean TJR-style Asia or London Session Sweep. As soon as this sweep occurs inside an ICT Optimal Trade Entry (OTE) zone, the trader drops to the 1-minute chart to execute immediately on the first low-timeframe FVG displacement, utilizing TJR's strict 1:2 RR partial take-profit rule to completely eliminate downside risk early in the expansion.",
+      "deskNote": "The 2R partial is TJR's rule. The desk's measured rule is 50% at T1 then break-even."
+    },
+    "blake_patty": {
+      "name": "PB Blake + PB Patty",
+      "blueprint": "15m Trend Frame (Blake) executed via Breaker + IFVG Confluence (Patty)",
+      "short": "Blake plus Patty: map the 15-minute internal versus external cycle, then enter only on a breaker nested with an inversion gap on the 1 minute, validated by the closing candle.",
+      "long": "This framework synthesizes PB Blake's macro-to-micro internal structural transitions with PB Patty's hyper-refined array stacking rules. The trader utilizes PB Blake's model to map out the 15-minute chart Internal vs. External Liquidity cycles, tracking exactly when an external liquidity sweep has occurred and price is ready to draw back toward an internal range imbalance. Instead of entering on a standard FVG, the trader applies PB Patty's strict entry protocol: looking exclusively for a Breaker Block nested directly with an Inversion Fair Value Gap (IFVG) on the 1-minute chart. This creates an execution model with a highly refined stop-loss, entering a position only when institutional support has physically flipped and been mathematically validated by closing candle mechanics."
+    }
+  }
+}
