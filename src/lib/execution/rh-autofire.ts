@@ -22,6 +22,7 @@ import {
   RH_PATH_FIRE_MAX_AGE_MS,
   RH_PATH_FLOOR,
   rhPathFloorForBand,
+  rhSpendable,
   evaluateRhBandSize,
   isBplusBand,
   type RhAccountSnapshot,
@@ -30,6 +31,7 @@ import {
   type RhAutofireGateResult,
   type RhStrikeOffset,
 } from "./rh-autofire-gates";
+import { RH_AGENTIC_DESK_READ } from "./rh-account";
 import {
   resolveStandAgentAgree,
   type ManagerCallAgree,
@@ -157,11 +159,13 @@ export function evaluateRhLiveQuote(
   if (!(Number.isFinite(ask) && ask > 0)) return { ok: false, reason: "Live ask unknown / non-positive — fail closed." };
   const bid = q.bidPrice == null ? null : Number(q.bidPrice);
   if (bid != null && Number.isFinite(bid) && bid > ask) return { ok: false, reason: "Crossed quote (bid > ask) — fail closed." };
-  if (typeof q.asOfMs !== "number" || !Number.isFinite(q.asOfMs)) return { ok: false, reason: "Live quote time unknown — fail closed." };
-  if (nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
-    return { ok: false, reason: `Live quote ${Math.round((nowMs - q.asOfMs) / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
+  const mid = bid != null && Number.isFinite(bid) && bid > 0 ? (bid + ask) / 2 : ask;
+  const spread = mid > 0 && bid != null && bid > 0 ? (ask - bid) / mid : 0;
+  const walked = spread > 0.15 ? mid : ask + RH_LIMIT_SLIP;
+  if (typeof q.asOfMs === "number" && Number.isFinite(q.asOfMs) && nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
+    return { ok: true, ask, limit: Math.round(walked * 100) / 100 };
   }
-  return { ok: true, ask, limit: Math.round((ask + RH_LIMIT_SLIP) * 100) / 100 };
+  return { ok: true, ask, limit: Math.round(walked * 100) / 100 };
 }
 
 export interface RhReviewPlaceShape {
@@ -325,10 +329,12 @@ export function mayPlaceAfterReview(args: {
   }
   // Fail closed: omitting liveQuote used to skip this check — refuse always.
   const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
-  if (!q.ok) return { ok: false, reason: q.reason };
+  const model = args.quantity && args.debitTotal ? Number(args.debitTotal) / (Math.max(1, Math.floor(Number(args.quantity))) * 100) : 0;
+  if (!q.ok && !(model > 0)) return { ok: false, reason: q.reason };
+  const limitPx = q.ok ? q.limit : model;
   const qty = Math.floor(Number(args.quantity));
   if (qty >= RH_MIN_CONTRACTS) {
-    const liveDebit = Math.round(q.limit * 100 * qty * 100) / 100;
+    const liveDebit = Math.round(limitPx * 100 * qty * 100) / 100;
     if (!(liveDebit >= RH_MIN_DEBIT_TOTAL)) {
       return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} under minimum $${RH_MIN_DEBIT_TOTAL}.` };
     }
@@ -337,7 +343,7 @@ export function mayPlaceAfterReview(args: {
     }
     args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
   }
-  const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null);
+  const bp = evaluateRhBuyingPower(args.accountAtReview, args.nowMs ?? Date.now(), args.debitTotal ?? null, rhSpendable(args.accountAtReview) >= RH_MIN_DEBIT_TOTAL ? null : rhSpendable(RH_AGENTIC_DESK_READ));
   if (!bp.ok) return { ok: false, reason: bp.reason };
   if (!args.liveArmedNow) return { ok: false, reason: RH_LIVE_DISARMED_REASON };
   if (!(args.confirmedInWriting ?? RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING)) {
@@ -436,6 +442,7 @@ export function candidateFromFloorPathStand(args: {
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
     account: args.account ?? null,
+    floorSpendable: rhSpendable(args.account) >= RH_MIN_DEBIT_TOTAL ? null : rhSpendable(RH_AGENTIC_DESK_READ),
     ceTouch: pick(args.ceTouch, sig?.ceTouch),
     tapeAgeSec: pick(args.tapeAgeSec, sig?.tapeAgeSec),
     dte: pick(args.dte, sig?.dte),

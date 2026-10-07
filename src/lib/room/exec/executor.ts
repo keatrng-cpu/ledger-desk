@@ -27,6 +27,8 @@ import { checkEntry, checkExit, checkRun, evidenceOf, liveReadiness, type Eviden
 import { clientOrderId, reconcileKey, type DesiredPosition } from "./intent";
 import { EXEC_LIMITS, type ExecFlags, type ExecLimits } from "./limits";
 import { occSymbol, parseOcc } from "./occ";
+import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
+import { rhSpendable } from "@/lib/execution/rh-autofire-gates";
 import type { AuditRow, BrokerAccount, BrokerOrder, BrokerPosition, BrokerQuote, ExecPhase, OptionsBroker, OrderIntent, RowStatus } from "./types";
 
 export interface ExecState {
@@ -291,7 +293,9 @@ export async function execStep(d: ExecDeps, req: StepRequest): Promise<StepResul
       continue;
     }
     const quote = await b.quote(symbol).catch(() => null);
-    const g = checkEntry(i, { phase, nowMs, feedLagSec: req.feedLagSec, account, positions, inflight, quote, attempt: 0 }, L);
+    const brokerSpend = account ? Math.max(account.optionsBuyingPower ?? account.buyingPower, account.cash, 0) : 0;
+    const floorSpendable = brokerSpend > 0 ? null : rhSpendable(RH_AGENTIC_DESK_READ);
+    const g = checkEntry(i, { phase, nowMs, feedLagSec: req.feedLagSec, account, positions, inflight, quote, attempt: 0, floorSpendable }, L);
     const refusals = [...runRefusals("entry"), ...g.refusals];
     const row = blankRow(i, phase, symbol, g.qty, nowMs);
     row.quote = quote;

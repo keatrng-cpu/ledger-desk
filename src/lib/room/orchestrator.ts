@@ -1028,7 +1028,7 @@ export function runRoomCycle(input: RoomInput, ctx: RoomContext | null, nowMs: n
     card,
     entryPlan,
     vetoGate: beat === "vetoed" ? refusal : null,
-    refusalCode: beat === "vetoed" ? refusalGate : null,
+    refusalCode: beat === "fill" || beat === "exit" || beat === "closed" ? null : refusalGate,
     jaxCall: jaxPush({ beat, card, input }),
     exit:
       beat === "exit" && exit

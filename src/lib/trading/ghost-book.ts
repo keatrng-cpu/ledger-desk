@@ -798,19 +798,25 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
     const base = ghostId(c, day);
     const revisions = ghostRevisions(byId, base);
     const prev = revisions[revisions.length - 1] ?? null;
+    const still = prev ? samePlan(prev, zone, levels) : false;
     if (prev && (prev.status === "won" || prev.status === "lost" || prev.status === "missed" || prev.status === "expired")) {
-      if (takenIds.has(c.id) || takenIds.has(prev.id)) prev.taken = true;
-      continue;
+      if (still) {
+        if (takenIds.has(c.id) || takenIds.has(prev.id)) prev.taken = true;
+        continue;
+      }
+      // A new displacement in the same direction. The dead card does not hold the symbol.
+      prev.status = "expired";
     }
     // FROZEN AT FIRST SIGHT. The old draft kept prev.seenAt but re-read every
     // level from the current candidate, so 10:30's entry, stop and target got
     // tested against tape dated from the first sighting. A ghost is one
     // experiment about one plan: while the plan still stands, nothing about
     // it moves. Only `taken` (the trader clicked Log) is allowed to change.
-    if (prev && samePlan(prev, zone, levels)) {
+    if (prev && still && prev.status === "watching") {
       if (takenIds.has(c.id) || takenIds.has(prev.id)) prev.taken = true;
       continue;
     }
+    if (prev && prev.status === "watching" && !still) prev.status = "expired";
     // The plan moved materially, so this is a different experiment and gets
     // its own row rather than overwriting the one already being scored. The
     // cap stops a jittering candidate from minting a ghost every poll.
@@ -820,6 +826,11 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
       ...desk.scan.blocked.slice(0, 3),
       ...(c.actionable ? [] : c.missing.slice(0, 2)),
     ];
+    const inherit =
+      prev != null &&
+      prev.side === c.side &&
+      Number.isFinite(prev.tp1) &&
+      (c.side === "long" ? prev.tp1 > levels.tp1 : prev.tp1 < levels.tp1);
     const draft: GhostTrade = {
       id,
       dayKey: day,
@@ -836,8 +847,8 @@ export function observeAndTickGhosts(desk: DeskPayload, takenIds: Set<string> = 
       entryHi: zone.hi,
       entry: levels.entry,
       stop: levels.stop,
-      tp1: levels.tp1,
-      targetLabel: c.targets[0] ?? "",
+      tp1: inherit ? prev!.tp1 : levels.tp1,
+      targetLabel: inherit ? `inherited draw ${prev!.targetLabel || px(prev!.tp1)}` : (c.targets[0] ?? ""),
       // A revision starts unfilled. Carrying the old plan's fill forward would
       // credit a touch of a zone this plan never had.
       taken: takenIds.has(c.id) || takenIds.has(id),

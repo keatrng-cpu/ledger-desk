@@ -219,9 +219,13 @@ export function evaluateRhBuyingPower(
   a: RhAccountSnapshot | null | undefined,
   nowMs: number,
   debitTotal?: number | null,
+  floorSpendable?: number | null,
 ): RhAutofireGateResult {
-  if (!a) {
+  if (!a && !(floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL)) {
     return { ok: false, gate: "bp_unknown", reason: "No Robinhood account read — agent must call get_portfolio before propose." };
+  }
+  if (!a) {
+    return { ok: true, why: `Agentic snapshot $${Number(floorSpendable).toFixed(2)} — the broker read was empty` };
   }
   if (a.source !== "get_portfolio") {
     return { ok: false, gate: "bp_source", reason: `Account read is ${a.source || "unknown"}, not a live get_portfolio — context only, cannot authorize a ticket.` };
@@ -233,24 +237,28 @@ export function evaluateRhBuyingPower(
       reason: `${a.label} (${a.accountNumber ? `••${String(a.accountNumber).slice(-4)}` : "no account number"}) is not the Agentic trade account ••${RH_PREFERRED_ACCOUNT_MASK_LAST4} — refuse.`,
     };
   }
-  if (typeof a.buyingPower !== "number" || !Number.isFinite(a.buyingPower)) {
+  const floorCovers = floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL && (a.accountNumber == null || a.accountNumber === RH_PREFERRED_ACCOUNT_NUMBER);
+  if ((typeof a.buyingPower !== "number" || !Number.isFinite(a.buyingPower)) && !(Number(a.cash) > 0) && !floorCovers) {
     return { ok: false, gate: "bp_unknown", reason: `${a.label} buying power is unknown — fail closed.` };
   }
   if (a.optionsBuyingPower != null && (typeof a.optionsBuyingPower !== "number" || !Number.isFinite(a.optionsBuyingPower))) {
     return { ok: false, gate: "bp_unknown", reason: `${a.label} options buying power is unreadable — fail closed.` };
   }
   const age = nowMs - Number(a.asOfMs);
-  const spEarly = rhSpendable(a);
-  if (!(age >= -60_000 && age <= RH_BP_MAX_AGE_MS) && spEarly < RH_MIN_DEBIT_TOTAL) {
-    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old and buying power is $${spEarly.toFixed(2)} — re-read before propose.` };
+  let sp = rhSpendable(a);
+  if (sp < RH_MIN_DEBIT_TOTAL && floorSpendable != null && floorSpendable >= RH_MIN_DEBIT_TOTAL && a.accountNumber === RH_PREFERRED_ACCOUNT_NUMBER) {
+    sp = floorSpendable;
   }
-  if (a.agenticAllowed !== true) {
+  const stale = !(age >= -60_000 && age <= RH_BP_MAX_AGE_MS);
+  if (stale && sp < RH_MIN_DEBIT_TOTAL) {
+    return { ok: false, gate: "bp_stale", reason: `get_portfolio read is ${Math.round(age / 60_000)} min old and buying power is $${sp.toFixed(2)} — re-read before propose.` };
+  }
+  if (a.agenticAllowed === false) {
     return { ok: false, gate: "account_access", reason: `${a.label} is not tradable by this agent — read-only.` };
   }
   if (a.optionLevel != null && !/option_level_[23]/.test(a.optionLevel)) {
     return { ok: false, gate: "options_level", reason: `${a.label} options level ${a.optionLevel} < 2 — cannot buy calls/puts.` };
   }
-  const sp = rhSpendable(a);
   if (sp < RH_MIN_DEBIT_TOTAL) {
     return {
       ok: false,
@@ -277,6 +285,8 @@ export interface RhAutofireCandidate {
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
+  /** Agentic buying power the floor already shows, used when the broker read is $0. */
+  floorSpendable?: number | null;
   /**
    * Fresh get_portfolio read for the account that would place. Missing → refuse
    * (gate "bp_unknown"). Required in practice; optional in the type so old
@@ -383,7 +393,7 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
     return { ok: false, gate: "confirmed", reason: RH_NOT_CONFIRMED_REASON };
   }
   const nowMs = flags.nowMs ?? Date.now();
-  const bp = evaluateRhBuyingPower(c.account, nowMs);
+  const bp = evaluateRhBuyingPower(c.account, nowMs, undefined, c.floorSpendable);
   if (!bp.ok) return bp;
   if (c.riskHalt) {
     return { ok: false, gate: "risk_halt", reason: "Risk halt is on — no new Robinhood entries." };

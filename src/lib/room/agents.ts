@@ -724,7 +724,7 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
   }
   const band = s.card?.band ?? "";
   const graded = band === "A+" || band === "A" || band === "A-" || band === "A−" || band === "B+";
-  if (s.card && graded && s.refusalCode && s.beat === "vetoed") {
+  if (s.card && graded && s.refusalCode && s.beat !== "fill" && s.beat !== "chop") {
     const text = `${s.card.futSymbol} ${band} was not filled. The gate was ${s.refusalCode}. Grade that gate, not the fit. The score does not go up because it was high.`;
     atlas = improveAtlas(atlas, {
       shelf: "discretion",

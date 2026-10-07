@@ -233,13 +233,15 @@ export function cardSizeRefusal(
   c: Pick<SetupCandidate, "plan" | "stopSource" | "entryPx" | "invalidation" | "atr" | "side">,
 ): string | null {
   const risk = cardRisk(c);
+  // A landmark on the wrong side, or a stop wider than the cap, is repriced
+  // off the sweep in buildPaperLevels. It is not a stand-down.
+  if (c.plan?.riskOverCap) return null;
+  if (risk.source === "none" && c.plan) return null;
   if (risk.stop == null || risk.riskPts == null) {
     return c.stopSource === "none" || risk.source === "none"
       ? "No stop on the correct side of the entry — nothing to size from"
       : "No numeric stop on this card — nothing to size from";
   }
-  if (!(risk.riskPts > 0)) return "Zero-width stop — nothing to size from";
-  if (c.plan?.riskOverCap) return "Stop is wider than this symbol's cap — a landmark, not a stop";
-  // The 0.5–1.5 ATR band is printed on the card. It changes size. It does not refuse the ticket.
+  if (!(risk.riskPts > 0)) return null;
   return null;
 }

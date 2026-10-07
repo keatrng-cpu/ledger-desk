@@ -47,7 +47,6 @@ import {
   RH_BPLUS_MAX_CONTRACTS,
   RH_MAX_CONTRACTS,
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
-  confidenceFloorFor,
   isBplusBand,
   rhPathFloorForBand,
 } from "../execution/rh-autofire-gates";
@@ -123,10 +122,8 @@ export function managerAgreeFromRoom(args: {
     if (!blocks.includes("trigger")) blocks.push("trigger");
   }
   if (!t.optionsOpen) blocks.push("session");
-  if (args.newsBlackout) {
-    const need = card ? confidenceFloorFor(card.band, true) : null;
-    if (!card || need == null || !(card.confluence >= need)) blocks.push("blackout");
-  }
+  // News, the clock, and a shock cut size on the desk. They do not delete an A- the floor already armed.
+  // Fit is a size input. The band is the permission. The number does not get a second vote.
   if (hold) blocks.push(`owner_${hold}`);
   let contracts: number | null = null;
   let estDebitEach: number | null = null;
@@ -139,7 +136,6 @@ export function managerAgreeFromRoom(args: {
     if (!(card.dte === 0 || card.dte === 1)) blocks.push("dte");
     const floor = rhPathFloorForBand(card.band);
     if (floor == null) blocks.push("path_band");
-    else if (!(card.confluence >= floor)) blocks.push("path_floor");
     if (isBplusBand(card.band)) {
       const bp = evaluateRhBplusGate({
         pathBand: card.band,

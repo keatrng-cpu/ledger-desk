@@ -294,15 +294,21 @@ export function buildPaperLevels(
     : inv != null && (side === "long" ? inv < entry : inv > entry)
       ? "structure"
       : "fallback";
-  if (plan) {
+  const sweep = plan?.sweep ?? null;
+  const wrongSide = plan != null && (side === "long" ? plan.stop >= entry : plan.stop <= entry);
+  const wide = plan != null && (plan.riskOverCap || Math.abs(entry - plan.stop) > maxRisk);
+  if (plan && !wrongSide && !wide) {
     stop = plan.stop;
-  } else if (inv != null) {
+  } else if (sweep != null && (side === "long" ? sweep < entry : sweep > entry)) {
+    const pad = Math.max(0.25, Math.abs(entry - sweep) * 0.05);
+    stop = side === "long" ? sweep - pad : sweep + pad;
+  } else if (!plan && inv != null) {
     stop =
       side === "long"
         ? Math.min(inv, entry - entry * 0.0004)
         : Math.max(inv, entry + entry * 0.0004);
   } else {
-    const pad = Math.min(maxRisk * 0.5, entry * 0.001);
+    const pad = Math.min(maxRisk * 0.5, Math.max(entry * 0.001, 0.25));
     stop = side === "long" ? entry - pad : entry + pad;
   }
 
@@ -311,7 +317,7 @@ export function buildPaperLevels(
     riskPts = Math.max(maxRisk * 0.25, entry * 0.0006);
     stop = side === "long" ? entry - riskPts : entry + riskPts;
   }
-  if (!plan && riskPts > maxRisk) {
+  if ((!plan || wrongSide || wide) && riskPts > maxRisk) {
     riskPts = maxRisk;
     stop = side === "long" ? entry - riskPts : entry + riskPts;
   }

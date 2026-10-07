@@ -56,6 +56,8 @@ export interface GateCtx {
   quote: BrokerQuote | null;
   /** Exit attempts already made on this contract today (0 = this is the first). */
   attempt: number;
+  /** Buying power the floor already shows for Agentic. A $0 broker read does not outvote it. */
+  floorSpendable?: number | null;
 }
 
 export interface GateResult {
@@ -110,9 +112,11 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
   if (c.feedLagSec == null) notes.push("desk feed lag unknown — re-date the print, do not stand the ticket down");
   else if (c.feedLagSec > L.maxFeedLagSec) notes.push(`desk feed ${Math.round(c.feedLagSec)}s old — refresh and re-date; a late print does not refuse the ticket`);
 
-  // The account.
+  // The account. A missing read, or a $0 buying-power read, yields to the Agentic snapshot the floor already shows.
   const a = c.account;
-  if (!a) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
+  const floor = c.floorSpendable != null && Number.isFinite(c.floorSpendable) && c.floorSpendable > 0 ? c.floorSpendable : 0;
+  if (!a && floor <= 0) no("no_account", "the broker account is unreadable — buying power and approval cannot be verified");
+  else if (!a) notes.push(`broker account unreadable — the Agentic snapshot has $${floor.toFixed(0)}. The ticket is not stood down.`);
   else {
     if (a.blocked === true || (a.status != null && a.status !== "ACTIVE")) no("account_blocked", `account ${a.status ?? "?"}${a.blocked ? " · trading blocked" : ""}`);
     if (a.optionsLevel == null) notes.push("options approval level not reported — the Agentic account is the live book");
@@ -153,15 +157,16 @@ export function checkEntry(i: OrderIntent, c: GateCtx, L: ExecLimits = EXEC_LIMI
     if (q.feed !== "opra") notes.push(`quote feed "${q.feed}" — not a refuse`);
   }
 
-  // Money — on the broker's numbers, never the room's.
-  if (limit != null && a) {
+  // Money. A $0 broker read yields to the Agentic snapshot the floor already shows.
+  if (limit != null && (a || floor > 0)) {
     const cost = limit * i.qty * 100;
-    const cash = Math.max(a.cash, 0);
-    const cap = Math.min(L.maxTicketUsd, L.maxCashFracPerTrade * cash);
-    if (cost > cap) no("ticket_cap", `$${cost.toFixed(0)} debit > $${cap.toFixed(0)} cap (the lesser of $${L.maxTicketUsd} and ${pct(L.maxCashFracPerTrade)} of $${cash.toFixed(0)} cash)`);
-    const bp = a.optionsBuyingPower ?? a.buyingPower;
-    const spendable = bp > 0 ? bp : cash;
-    if (bp <= 0 && cash >= cost) notes.push(`buying power read $${bp.toFixed(0)} — using cash $${cash.toFixed(0)} on the Agentic snapshot`);
+    const bp = a ? (a.optionsBuyingPower ?? a.buyingPower) : 0;
+    const cash = a ? Math.max(a.cash, 0) : 0;
+    const capCash = cash > 0 ? cash : floor;
+    const cap = Math.min(L.maxTicketUsd, L.maxCashFracPerTrade * Math.max(capCash, 1));
+    if (capCash > 0 && cost > cap) no("ticket_cap", `$${cost.toFixed(0)} debit > $${cap.toFixed(0)} cap (the lesser of $${L.maxTicketUsd} and ${pct(L.maxCashFracPerTrade)} of $${capCash.toFixed(0)} cash)`);
+    const spendable = bp > 0 ? bp : cash > 0 ? cash : floor;
+    if (bp <= 0 && spendable >= cost) notes.push(`buying power read $${bp.toFixed(0)} — using $${spendable.toFixed(0)} on the Agentic snapshot`);
     else if (cost > spendable) no("buying_power", `$${cost.toFixed(0)} > $${spendable.toFixed(0)} buying power`);
   }
 

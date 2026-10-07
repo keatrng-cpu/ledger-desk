@@ -628,9 +628,9 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
   if (d.step === 60) {
     lines.push(
       line("Sterling", ANIM.Sterling.tablet!, pick(c, "cal.60.sterling", [
-        () => `${name} at ${f.raw(d.timeEt)} ET — ${f.mins(d.minutes)}. Blackout opens at −${bo}; no new tickets inside it.`,
-        () => `${f.mins(d.minutes)} to ${name}. The blackout is ±${bo} minutes. We trade around it, not through it.`,
-        () => `Calendar: ${name}, ${f.raw(d.timeEt)} ET. ${f.mins(d.minutes)} out.`,
+        () => `${name} at ${f.raw(d.timeEt)} ET — ${f.mins(d.minutes)}. News cuts the size. It does not take the card off.`,
+        () => `${f.mins(d.minutes)} to ${name}. The print changes the size, not whether an A-minus can work.`,
+        () => `Calendar: ${name}, ${f.raw(d.timeEt)} ET. ${f.mins(d.minutes)} out. The chart still calls it.`,
       ])),
     );
     lines.push(
@@ -642,14 +642,14 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
   } else if (d.step === 5 || d.step === 1) {
     lines.push(
       line("Sterling", ANIM.Sterling.arms!, pick(c, `cal.${d.step}.sterling`, d.step === 5
-        ? [() => `${f.mins(d.minutes)} to ${name}. Hands off the keyboard.`, () => `${name} in ${f.mins(d.minutes)}. Nothing new from here.`, () => `${f.mins(d.minutes)}. We're done deciding; now we watch.`]
-        : [() => `${f.mins(d.minutes)}. ${name}.`, () => `Last minute. Nobody touches anything.`, () => `One minute out. Quiet, everyone.`])),
+        ? [() => `${f.mins(d.minutes)} to ${name}. Size comes in. The ticket stays if the gaps agree.`, () => `${name} in ${f.mins(d.minutes)}. We don't stand the card down for the clock.`, () => `${f.mins(d.minutes)}. The chart is still the call.`]
+        : [() => `${f.mins(d.minutes)}. ${name}. Size only.`, () => `Last minute. An armed card is not cancelled by the print.`, () => `One minute out. The gaps still decide.`])),
     );
     lines.push(
       line("Vince", ANIM.Vince.watch!, pick(c, `cal.${d.step}.vince`, [
-        () => (d.held ? `We're holding through it — the level stands; the exits are mechanical.` : `Nothing resting. No tickets inside ±${bo}.`),
-        () => `The blackout has the keyboard.`,
-        () => (d.held ? `Position's on. The level is the only thing that can close it.` : `Flat into the print. That's the position.`),
+        () => (d.held ? `We're holding through it — the level stands; the exits are mechanical.` : `Nothing resting. A new A-minus still works. The print only cuts size.`),
+        () => `News is a size cut for ${bo} minutes either side. It is not a veto.`,
+        () => (d.held ? `Position's on. The level is the only thing that can close it.` : `Flat into the print is a choice. An armed card is not cancelled.`),
       ])),
     );
     if (d.step === 5) {
@@ -687,8 +687,8 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
     lines.push(line("Jax", ANIM.Jax.point!, pick(c, "cal.5p.jax", [() => `Chasing it?`, () => `Tell me that's not the Judas.`, () => `Is it real or is it the fake? Ask me in ten minutes.`])));
     lines.push(
       line("Sterling", ANIM.Sterling.arms!, pick(c, "cal.5p.sterling", [
-        () => (d.blackout ? `Blackout holds until +${bo}. No.` : `Blackout's over. The gates are the same as before the print.`),
-        () => (d.blackout ? `Still inside the window. The answer is no.` : `The window's closed. The rules aren't any looser for it.`),
+        () => (d.blackout ? `The print is in the window. Size is cut. The card is not dead.` : `The window's over. Size goes back. The rules don't get looser.`),
+        () => (d.blackout ? `Still inside it. That changes the size, not the side.` : `The window's closed. We didn't stand down for it.`),
       ])),
     );
   }
@@ -1190,7 +1190,7 @@ export function exHtf(c: Ctx, d: HtfData): Ex | null {
     line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.htf.gemma", [
       () => (b.htf === "none" ? `No higher-timeframe bias means no trade against it either.` : `Higher timeframe is ${b.htf === "bull" ? "bullish" : "bearish"}. Longs ${b.htf === "bull" ? "are" : "aren't"} on the menu${b.htf === "bear" ? " unless the disrespect is documented" : ""}.`),
       () => (b.htf === "none" ? `Without a bias the higher timeframes are a coin flip. We don't flip coins.` : `The higher timeframe is the boss. ${b.htf === "bull" ? "It says buy the dips." : "It says sell the rallies."}`),
-      () => `Top-down is ${b.htf === "none" ? "undecided" : b.htf === "bull" ? "up" : "down"}. That's a gate, not an opinion.`,
+      () => `Top-down is ${b.htf === "none" ? "undecided" : b.htf === "bull" ? "up" : "down"}. Direction comes from the gaps. A missing layer cuts size. It does not veto.`,
     ])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
