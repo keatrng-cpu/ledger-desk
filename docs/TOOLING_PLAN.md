@@ -121,3 +121,22 @@ The floor is a Three.js scene with procedural capsule people on a Blender-built 
 3. **Create `brainlab/.env` yourself** from `.env.example` if you want the read-only quote script. Never paste credentials into chat. Do not store the MFA seed; use a one-time code for the run.
 4. **Pass the two circuit-breaker inputs** from the Robinhood agent: `lastPlaceAtMs` (when it last placed an order) and `dayPnlPct` (the account's P&L today as a fraction, from `get_portfolio`). Absent means "not asserted"; the throttle and the drawdown stop only bite when they are passed.
 5. **Decide the schools' gate** once the measurement exists.
+
+## Hosting the lab 24/7: looked at 2026-10-07, not built
+
+The idea: a free cloud host running a Python daemon (a `robin_stocks` option-chain scanner, GitPython auto-commit, Obsidian sync) in a Docker/PM2 loop. Checked against the hosts' current pages and docs; where sources disagreed, the claim is marked.
+
+| Option | What a search of its current terms found | Fit |
+|--------|-------------------------------------------|-----|
+| [Render free](https://render.com/docs/free) | Spins down after 15 min with no inbound traffic; local disk is lost on every spin-down, restart or deploy; 750 free hours a month; no persistent disk, no one-off jobs. | Cannot be a 24/7 daemon. |
+| Railway | A 30-day trial with $5 credit, then Hobby at $5 a month; sources disagree on whether any permanent free tier exists (confirm on railway.com/pricing). | Not free. |
+| PythonAnywhere free | No always-on tasks; outbound internet limited to an allow-list; 100 CPU-seconds a day; scheduled-task terms conflict between sources. | Cannot reach Databento, Yahoo or Robinhood. |
+| Hugging Face Spaces | Not checked this pass. | Unverified. |
+| GitHub Actions on this public repo | Scheduled workflows run free; GitHub disables them after 60 days with no repo activity ([docs](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows)), which this repo's push rate prevents. | The one free option that fits (below). |
+
+**Decisions**
+1. **No free always-on host.** The desk does not need one: Netlify (Pro) runs `room-step` every 5 minutes and `exec-flatten`, Supabase holds the books, and the gateway stays on the trader's PC (the trader declined cloud for it on 2026-10-01).
+2. **`robin_stocks` is not installed.** It is an unofficial wrapper (Robinhood publishes no public API; the project's own README warns it places orders without the app's confirmations), needs the account password and an MFA code or seed on whatever host runs it, and unofficial access is the commonly cited reason for account restrictions. The ToS wording was read second-hand, not from Robinhood. The desk's order path is the external agent through `review_option_order` and `place_option_order`; a second Robinhood login on a free third-party host would add a credential and no capability. Real option quotes come from Alpaca's indicative feed in the Execution card's shadow phase (an official API key the trader sets), which is also what prices the Black-Scholes model's error.
+3. **The free thing that fits is GitHub Actions**, credential-free: `npm run lab:check`, the weekly `scripts/check-research-sources.mjs`, and `verify-all` on every push, so a red verifier is visible on the commit instead of only in a local hook. Not written yet: it cannot be pushed without the `workflow` scope (see `docs/pending-workflows/README.md`), and `verify-all` reads `.cache` captures that are not in the repo, so a CI run needs a decision on which verifiers can run there. Install the three pending workflows first.
+4. **No Dockerfile.** Docker is not installed on this machine, so an image could not be built or run here; an untested Dockerfile would be a claim, not a deliverable.
+5. **Auto-commit stays local.** `brainlab/gitnote.py` refuses the floor file and any push. Pushing from a cloud host to a public repo needs a deploy key and a review of what it may write; not done.
