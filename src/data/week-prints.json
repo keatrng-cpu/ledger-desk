@@ -178,7 +178,14 @@
     "date": "2026-10-06",
     "name": "ADP NER Pulse (4 wks ending Sep 19)",
     "actual": "+23.75k/wk",
-    "vs": "prior +20k / no consensus",
-    "note": "ADP official Oct 6 8:15 ET. Weekly pulse, not monthly ADP. No ISM/JOLTS/claims/NFP today. Trade (not a stamp series) BEA Aug deficit -$105.6B vs Jul rev -$92.8B."
+    "vs": "prior week +22.5k (Sep 12) / Sep 5 +20k / no consensus",
+    "note": "ADP official Oct 6 8:15 ET. Four-week average ending Sep 19. Fifth weekly acceleration. Weekly pulse, not monthly ADP. No ISM/JOLTS/claims/NFP today."
+  },
+  {
+    "date": "2026-10-06",
+    "name": "International Trade (Aug)",
+    "actual": "-$105.6B",
+    "vs": "Jul rev -$92.8B",
+    "note": "BEA/Census CB 26-160, BEA 26-44. Deficit up $12.7B. Exports $315.2B (+$4.5B), imports $420.8B (+$17.2B). Goods deficit $136.6B. Not a PATH trigger. Minutes not printed."
   }
 ]
