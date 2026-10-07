@@ -37,6 +37,7 @@ import {
 import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
 import { FloorOverhaul } from "./floor-overhaul";
 import type { FloorProps } from "@/lib/room/floor-props";
+import { gestureFor, presenceOf, visemeScale } from "@/lib/room/floor-presence";
 import { readRhAccount } from "@/lib/ui/rh-account";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
@@ -580,6 +581,8 @@ class Avatar {
   private readonly knR = new THREE.Group();
   private readonly props: Record<"mug" | "tablet" | "marker" | "phone" | "thumb", THREE.Object3D>;
   private readonly mouth: THREE.Mesh;
+  private readonly eyes: THREE.Mesh[] = [];
+  private readonly brow: THREE.Mesh;
   private readonly mark: THREE.Mesh;
   private readonly markMat: THREE.MeshStandardMaterial;
   readonly hipH: number;
@@ -666,8 +669,12 @@ class Avatar {
     for (const x of [-0.045, 0.045]) {
       const eye = new THREE.Mesh(new THREE.SphereGeometry(0.017, 10, 8), dark);
       eye.position.set(x, 0.14, 0.118);
+      this.eyes.push(eye);
       this.head.add(eye);
     }
+    this.brow = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.01, 0.018), dark);
+    this.brow.position.set(0, 0.178, 0.12);
+    this.head.add(this.brow);
     this.mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.008, 0.035, 4, 8), dark);
     this.mouth.rotation.z = Math.PI / 2;
     this.mouth.position.set(0, 0.075, 0.122);
@@ -1038,8 +1045,16 @@ class Avatar {
     this.props.marker.visible = pose.marker;
     this.props.phone.visible = pose.phone;
     this.props.thumb.visible = pose.thumb;
-    // Talking mouth.
-    this.mouth.scale.y = this.speaking ? 1 + 2.2 * Math.abs(Math.sin(t * 13)) : 1;
+    const face = presenceOf(this.who, this.bubbleText || null, t, this.speaking);
+    const mouth = visemeScale(face.viseme);
+    this.mouth.scale.set(mouth.x, this.speaking ? mouth.y : 1, 1);
+    this.mouth.position.y = 0.075 + (this.speaking ? mouth.drop : 0);
+    for (const eye of this.eyes) {
+      eye.scale.y = face.blink ? 0.12 : 1;
+      eye.position.y = face.look === "down" ? 0.132 : face.look === "board" ? 0.146 : 0.14;
+    }
+    this.brow.position.y = face.brow === "up" ? 0.19 : face.brow === "down" ? 0.17 : 0.178;
+    this.brow.scale.y = face.brow === "down" ? 1.4 : 1;
     // Enter-key slam event.
     if (key === "SMASHING_ENTER_KEY") {
       const ph = (t * 0.9) % 1;
@@ -2687,6 +2702,9 @@ export class FloorScene {
         const bl = this.overhaul.bodyLang().find((b) => b.who === a.who);
         if (bl) a.anim = bl.anim as AnimKey;
       }
+      const soft = a.anim === "TALK" || a.anim === "IDLE" || a.anim === "EXPLAINING" || a.anim === "STEADY_MONITORING" || a.anim === "WATCH" || a.anim === "ANALYZING";
+      const gesture = gestureFor(a.who, mine?.text ?? null);
+      if (mine && soft && gesture) a.anim = gesture;
       a.update(dt, t);
     }
     // Spectacle.

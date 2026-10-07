@@ -90,5 +90,11 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Decision:** `brainlab/` may read a Robinhood chain, greeks, bid, ask, and buying power. It may judge a quote against the desk's spread, age, debit, and noise cuts, and it may log a fill the desk already got. It must not send, cancel, or replace an order. The book takes print age and last-minute noise as `now:precision`, and speaks one line as `now:read` from the lines it already holds. Neither line is a gate.
 - **Why:** A second sender double-fires. A book that repeats five versions of the same card is not a book.
 
+### 2026-10-07 — The floor's faces follow the line. The other engines do not run here
+- **Status:** ADOPTED · **Decided by:** Keaton (asked for ACE, Spline, ComfyUI, Tripo, Godot, and Blender on the floor) · **Source:** this session.
+- **Decision:** Mouth shape, brow, blink, look, and the hand gesture come from the words the person is saying (`src/lib/room/floor-presence.ts`). The office stays the Blender GLB from `scripts/blender/build_floor.py`. ACE, Spline, ComfyUI, Tripo, and Godot are not installed on this host, and `bpy` needs Python 3.11, so none of them were faked. A gesture does not change a ticket.
+- **Why:** A cloud avatar engine that is not connected still has to be drawn by something. The something that is already on the floor is the five people.
+
+
 
 
