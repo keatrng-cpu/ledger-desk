@@ -444,40 +444,85 @@ function sizeProduct(
 } | null {
   const single = estimateDebitContract(spot, dte, delta, iv);
   const nMax = maxContracts(dte);
-  // SIZE FROM THE LEVEL when the sequence has priced one (trader's call,
-  // 2026-09-24, and what the hard-rules row already said): contracts =
-  // budget / (underlying move to invalidation x delta x 100). A tighter
-  // invalidation buys more contracts at the SAME risk, which is what the
-  // futures book has always done and the sleeve never has.
-  //
-  // The percentage brake is not the plan. It is a disaster backstop behind
-  // the level, so it no longer decides size when a level exists.
+  const pack = (
+    n: number,
+    prem: number,
+    d: number,
+    from: "level" | "ceiling",
+    note: string | null,
+    clock: boolean,
+  ) => {
+    const k = roundStrike(spot);
+    const steps = d >= 0.35 ? 0 : d >= 0.26 ? 1 : 2;
+    const otm = side === "put" ? k - steps : k + steps;
+    const where = steps === 0 ? "ATM" : `${steps} OTM`;
+    return {
+      product: "single" as const,
+      contracts: n,
+      each: prem,
+      total: n * prem,
+      strikeNote: `${where} ~${otm} ${side} · est $${(prem / 100).toFixed(2)} (not a chain mid)`,
+      clock,
+      sizedFrom: from,
+      sizeNote: note,
+    };
+  };
+  // SIZE FROM THE LEVEL when the sequence has priced one.
+  // ATM first. If that debit does not fit the sleeve, 1 OTM then 2 OTM.
+  // A good entry is not stood down because the model ATM was rich, and it is
+  // not stood down because one contract's modeled loss is over a small budget.
   if (plan) {
-    const sized = sizeFromStop({
-      plan,
-      delta,
-      premiumUsd: single,
-      dte,
-      riskBudgetUsd: riskBudget,
-    });
-    if (sized.contracts > 0) {
-      const n = Math.min(nMax, sized.contracts);
-      const k = roundStrike(spot);
-      const otm = side === "put" ? k - 1 : k + 1;
-      return {
-        product: "single",
-        contracts: n,
-        each: single,
-        total: n * single,
-        strikeNote: `ATM/~${otm} ${side} · est $${(single / 100).toFixed(2)} (not a chain mid)`,
-        clock: sized.clock,
-        sizedFrom: "level",
-        sizeNote: sized.lines[0] ?? null,
-      };
+    const tries = [...new Set([delta, 0.3, 0.22])].filter((d) => d >= 0.2);
+    for (const d of tries) {
+      const prem = estimateDebitContract(spot, dte, d, iv);
+      if (!(prem > 0) || prem > cap) continue;
+      const sized = sizeFromStop({
+        plan,
+        delta: d,
+        premiumUsd: prem,
+        dte,
+        riskBudgetUsd: riskBudget,
+      });
+      const tight = sized.lines[0]?.startsWith("STOP TOO TIGHT") === true;
+      if (tight) {
+        return pack(
+          1,
+          prem,
+          d,
+          "level",
+          "One contract. The stop is inside half an ATR, so size is not solved from it. The entry and the target still stand.",
+          brakeIsClock(dte),
+        );
+      }
+      if (sized.contracts > 0) {
+        const n = Math.min(nMax, sized.contracts);
+        const stepped = d < delta - 0.04;
+        return pack(
+          n,
+          prem,
+          d,
+          "level",
+          stepped
+            ? `ATM did not fit $${cap}. ${d <= 0.24 ? "2 OTM" : "1 OTM"} does. ${sized.lines[0] ?? ""}`.trim()
+            : (sized.lines[0] ?? null),
+          sized.clock,
+        );
+      }
     }
-    // One contract already risks more than the budget at this invalidation.
-    // That is a real refusal, not a reason to fall through and buy one anyway.
-    if (sized.unaffordable) return null;
+    for (const d of tries) {
+      const prem = estimateDebitContract(spot, dte, d, iv);
+      if (prem >= 90 && prem <= cap) {
+        return pack(
+          1,
+          prem,
+          d,
+          "level",
+          `One contract at $${prem}. The modeled loss at the stop is over the sleeve budget. The debit fits $${cap}, so the ticket is priced. The stop is still the exit.`,
+          brakeIsClock(dte),
+        );
+      }
+    }
+    return null;
   }
 
   // NO PRICED LEVEL — fall back to the ceiling, and say so downstream.
@@ -787,7 +832,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
     if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");
   }
   if (c && verdict !== "STAND" && !ticket) {
-    blocks.push(`ATM 1–2 DTE too rich for $${cap} sleeve — stand, do not lotto OTM`);
+    blocks.push(`Nothing from ATM to 2 OTM fits $${cap}. No ticket to send.`);
   }
 
   return {
