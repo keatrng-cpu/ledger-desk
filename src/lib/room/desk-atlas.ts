@@ -92,6 +92,8 @@ const SEED: Seed[] = [
   { id: "now:chart", shelf: "now", title: "Chart", who: "Gemma", confidence: 80, n: 1, pinned: true, tags: ["chart", "ladder", "nq", "es"], text: "No chart read yet. NQ and ES structure lands here, higher, middle, and lower." },
   { id: "now:backtest", shelf: "now", title: "Backtest", who: "Vince", confidence: 80, n: 1, pinned: true, tags: ["backtest", "lesson"], text: "No new backtest lesson. The joint book stays on the backtest shelf." },
   { id: "now:journal", shelf: "now", title: "Journal", who: "Sterling", confidence: 80, n: 1, pinned: true, tags: ["journal", "close"], text: "No journal close yet." },
+  { id: "now:precision", shelf: "now", title: "Precision", who: "Jax", confidence: 80, n: 1, pinned: true, tags: ["tape", "noise", "lag"], text: "No precision read yet. Print age and the last minute's noise land here. A note, not a gate." },
+  { id: "now:read", shelf: "now", title: "Read", who: "Vince", confidence: 84, n: 1, pinned: true, tags: ["read", "book"], text: "No book read yet. The book speaks once the chart and another line are both in." },
   { id: "now:news", shelf: "now", title: "News", who: "Gemma", confidence: 85, n: 1, pinned: true, tags: ["news"], text: "News and the clock change size and the bar to take it. They do not block a B+ or better when the chart is there." },
   { id: "disc:sterling", shelf: "discretion", title: "Sterling", who: "Sterling", confidence: 84, n: 1, pinned: true, tags: ["sterling", "veto"], text: "Sterling's ledger is a note. It is not a veto." },
   { id: "disc:place", shelf: "discretion", title: "Place", who: "Vince", confidence: 86, n: 1, pinned: true, tags: ["place", "robinhood"], text: "A cleared setup is reviewed and placed on Agentic. Nobody has to click." },
@@ -200,6 +202,10 @@ const EDGES: AtlasEdge[] = [
   { from: "now:news", to: "mkt:lunch", why: "clock and news both size, neither blocks" },
   { from: "now:school", to: "smc:sequence", why: "the schools grade the sequence on the card" },
   { from: "now:chart", to: "mkt:bias", why: "the ladder is the chart's bias" },
+  { from: "now:precision", to: "now:chart", why: "the tape sits on the chart. It is a note, not a gate." },
+  { from: "now:read", to: "now:card", why: "one line the five share, built from the lines already in the book" },
+  { from: "now:school", to: "now:read", why: "the schools are in the one line" },
+  { from: "now:precision", to: "now:read", why: "the tape is in the one line" },
   { from: "now:backtest", to: "bt:book", why: "a graded card joins the measured book" },
   { from: "now:journal", to: "bt:paper", why: "a close is what the journal remembers" },
   { from: "disc:sterling", to: "disc:band", why: "a note on size, not a stop" },
@@ -326,7 +332,7 @@ export function shelfOf(a: DeskAtlas, shelf: AtlasShelf): AtlasNode[] {
 }
 
 export function nowLines(a: DeskAtlas): AtlasNode[] {
-  const order = ["now:card", "now:school", "now:chart", "now:backtest", "now:journal", "now:entry", "now:session", "now:news", "now:account", "now:goal"];
+  const order = ["now:read", "now:precision", "now:card", "now:school", "now:chart", "now:backtest", "now:journal", "now:entry", "now:session", "now:news", "now:account", "now:goal"];
   return order.map((id) => nodeById(a, id)).filter((n): n is AtlasNode => !!n);
 }
 

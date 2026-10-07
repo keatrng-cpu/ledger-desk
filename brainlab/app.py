@@ -8,6 +8,7 @@ from __future__ import annotations
 import streamlit as st
 
 from bars import mt5_bars, yahoo_bars
+from router import judge
 from intake import parse_issue, render
 from legs import say
 from memory import index_notes, recall, remember
@@ -67,3 +68,24 @@ if parsed:
     if parsed["symbol"] and st.button("Remember this note"):
         remember(f"issue-{parsed['symbol']}-{parsed['side'] or 'na'}", render(parsed))
         st.write("Stored in the local book. The floor was not told to trade it.")
+
+st.subheader("Quote")
+st.caption("Checks the desk's own cuts. Robinhood on the desk is the only place an order can go.")
+bid = st.number_input("Bid", value=1.00, step=0.01)
+ask = st.number_input("Ask", value=1.05, step=0.01)
+if st.button("Judge the quote"):
+    calm = [100 + i * 0.02 for i in range(40)]
+    st.write(judge({
+        "symbol": "QQQ",
+        "expiration": "2026-10-08",
+        "strike": 500,
+        "right": "put",
+        "qty": 1,
+        "debit": 200,
+        "buying_power": 800,
+        "bid": bid,
+        "ask": ask,
+        "quote_ts_ms": 1_000,
+        "now_ms": 1_000,
+        "closes": calm,
+    }))

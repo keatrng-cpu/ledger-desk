@@ -52,6 +52,14 @@ const twice = F.fuelBrains(once.atlas, once.people, {
   journal: null,
 });
 check("the same school line is not written again", A.nodeById(twice.atlas, "now:school").n === nBefore && N.allNerves().length === before);
+const P = await import("../src/lib/room/brain-precision.ts");
+check("a flat spike is called noise", P.precisionSentence({ symbol: "MNQ", lagSec: 2, closes: Array(30).fill(100).concat([130]) }).includes("noise"));
+check("a smooth tape is not called noise", P.precisionSentence({ symbol: "MNQ", lagSec: 2, closes: Array.from({ length: 40 }, (_, i) => 100 + i * 0.02) }).includes("not a noise bar"));
+check("the book speaks one line", (A.nodeById(once.atlas, "now:read")?.text ?? "").includes("Chart:") && A.nodeById(once.atlas, "now:read").text.includes("School:"));
+check("precision is a note the book keeps", (() => {
+  const withTape = F.fuelBrains(once.atlas, once.people, { nowMs: 4_000, school: null, card: null, chart: null, backtest: null, journal: null, precision: "MNQ print is 2s old. last minute is 0.3z, not a noise bar. A note for the book. Not a gate." });
+  return A.nodeById(withTape.atlas, "now:precision").text.includes("not a noise bar") && A.nodeById(withTape.atlas, "now:read").text.includes("Tape:");
+})());
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

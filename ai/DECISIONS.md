@@ -85,4 +85,10 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Decision:** `brainlab/` is the audit lab. Yahoo bars use the same MNQ/ES/NQ symbols as `src/lib/market/yahoo.ts`. MetaTrader 5 is the same bar shape and fails closed when the Windows terminal is absent. Swing legs are confirmed pivots; ATR comes from `pandas-ta-classic` (the pandas-ta build that still installs; the upstream name has no 3.10 wheel). Chroma stores notes on disk; Marqo is used only if a server URL is set. Issue intake is `.github/workflows/brain-intake.yml` (and a Probot app of the same comment, run one of them). PR-Agent runs when someone comments `/review` and `OPENAI_KEY` exists. CodeRabbit reads `.coderabbit.yaml` after the GitHub App is installed. None of these write the room cycle, a gate, or an order.
 - **Why:** The desk already has a live price. A second feed that can place is how a lab becomes a second broker.
 
+### 2026-10-07 — Robinhood is the only execution path
+- **Status:** ADOPTED · **Decided by:** Keaton · **Source:** this session.
+- **Decision:** `brainlab/` may read a Robinhood chain, greeks, bid, ask, and buying power. It may judge a quote against the desk's spread, age, debit, and noise cuts, and it may log a fill the desk already got. It must not send, cancel, or replace an order. The book takes print age and last-minute noise as `now:precision`, and speaks one line as `now:read` from the lines it already holds. Neither line is a gate.
+- **Why:** A second sender double-fires. A book that repeats five versions of the same card is not a book.
+
+
 

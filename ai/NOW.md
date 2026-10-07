@@ -36,7 +36,7 @@ Full queue (15 items) lives in issue #7 and `ai/HANDOFF.md`; not duplicated here
 ## Live constraints
 
 - **Git is the bus.** Work, research, and assignments land on branches; that is how desks see each other.
-- **Brain lab** (`brainlab/`, 2026-10-07). Yahoo, swing legs, and a local note store for audit. Streamlit: `streamlit run brainlab/app.py`. Not an order path. CodeRabbit reads `.coderabbit.yaml`. PR-Agent runs on a `/review` comment once `OPENAI_KEY` is set.
+- **Brain lab** (`brainlab/`, 2026-10-07). Reads bars, chains, and greeks. Does not place. The book keeps print age and noise on `now:precision` and one shared line on `now:read`. Neither is a gate. Streamlit: `streamlit run brainlab/app.py`. CodeRabbit reads `.coderabbit.yaml`. PR-Agent runs on a `/review` comment once `OPENAI_KEY` is set.
 - **Uncommitted work is invisible.** If it is not committed and pushed, no other desk, agent, or session can see it — treat it as not done.
 - **One task in flight per repo.** Do not start the next queue item until the current one is done or explicitly parked by Dual Desk.
 - **Merge path:** branch → Accuracy Review → Release Watch → **Design Atelier merges** to `main`. No direct commits to `main` from desk work.

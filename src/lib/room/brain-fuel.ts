@@ -4,6 +4,7 @@
  */
 
 import { noteNerve } from "./brain-traffic";
+import { bookSentence } from "./brain-read";
 import {
   ATLAS_EVENT,
   BRAIN_CREW,
@@ -25,6 +26,8 @@ export interface BrainFuel {
   chart: string | null;
   backtest: string | null;
   journal: string | null;
+  /** Print age and noise. Optional so a cycle with no tape still fuels. */
+  precision?: string | null;
 }
 
 const SLOTS: { title: string; key: keyof Omit<BrainFuel, "nowMs">; who: BrainWho }[] = [
@@ -33,6 +36,7 @@ const SLOTS: { title: string; key: keyof Omit<BrainFuel, "nowMs">; who: BrainWho
   { title: "Chart", key: "chart", who: "Gemma" },
   { title: "Backtest", key: "backtest", who: "Vince" },
   { title: "Journal", key: "journal", who: "Sterling" },
+  { title: "Precision", key: "precision", who: "Jax" },
 ];
 
 function savePeople(p: PeopleBrains): void {
@@ -60,6 +64,18 @@ export function fuelBrains(
     if (nodeById(a, id)?.text === text) continue;
     a = improveAtlas(a, { shelf: "now", title: slot.title, text, who: slot.who, nowMs: fuel.nowMs });
     changed.push({ id, title: slot.title, text, who: slot.who });
+  }
+  const read = bookSentence([
+    { label: "Chart", text: nodeById(a, "now:chart")?.text },
+    { label: "Card", text: nodeById(a, "now:card")?.text },
+    { label: "School", text: nodeById(a, "now:school")?.text },
+    { label: "Tape", text: nodeById(a, "now:precision")?.text },
+    { label: "Backtest", text: nodeById(a, "now:backtest")?.text },
+    { label: "Journal", text: nodeById(a, "now:journal")?.text },
+  ]);
+  if (read && nodeById(a, "now:read")?.text !== read) {
+    a = improveAtlas(a, { shelf: "now", title: "Read", text: read, who: "Vince", nowMs: fuel.nowMs });
+    changed.push({ id: "now:read", title: "Read", text: read, who: "Vince" });
   }
   if (!changed.length) return { atlas: a, people: people?.version === 1 && people.people ? people : people ?? freshPeople() };
 

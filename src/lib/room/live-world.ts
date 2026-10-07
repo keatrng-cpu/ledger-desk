@@ -28,6 +28,7 @@ import { fundProfile } from "@/lib/invest/exposure";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
 import type { MindState } from "./agents";
 import { booksOf, closedBars } from "./desk-read";
+import { precisionSentence } from "./brain-precision";
 import { pushPrint } from "./live-talk";
 import type {
   BookRead,
@@ -265,7 +266,7 @@ export function schoolsOf(desk: Pick<DeskPayload, "ladder"> & { smcMaster?: Para
 const biasWord = (b: "bull" | "bear" | "neutral") => (b === "bull" ? "up" : b === "bear" ? "down" : "flat");
 
 /** What the book takes from the desk this cycle. Empty means that source had nothing new to say. */
-export function brainSources(desk: DeskPayload): { school: string | null; card: string | null; chart: string | null; backtest: string | null } {
+export function brainSources(desk: DeskPayload): { school: string | null; card: string | null; chart: string | null; backtest: string | null; precision: string | null } {
   const card = cardRead(desk);
   const school = card?.schools?.line?.trim() || null;
   const cardLine = card ? [`${card.futSymbol} ${card.futSide}.`, card.sequence, card.entrySay || card.entryLine].filter(Boolean).join(" ") : null;
@@ -274,7 +275,15 @@ export function brainSources(desk: DeskPayload): { school: string | null; card: 
   const latest = loadHiAlerts()
     .filter((h) => h.outcome?.done)
     .sort((a, b) => b.lastMs - a.lastMs)[0];
-  return { school, card: cardLine, chart, backtest: latest ? lessonOf(latest) : null };
+  const books = booksOf(desk);
+  const tape = (quote: { symbol: string; lagSec: number }, minute: { c: number }[], bars: { c: number }[]) =>
+    precisionSentence({
+      symbol: quote.symbol,
+      lagSec: quote.lagSec,
+      closes: (minute.length >= 9 ? minute : bars).map((b) => b.c).filter((c) => c > 0).slice(-40),
+    });
+  const precision = [tape(books.QQQ.quote, books.QQQ.minute, books.QQQ.series.bars), tape(books.SPY.quote, books.SPY.minute, books.SPY.series.bars)].filter(Boolean).join(" ") || null;
+  return { school, card: cardLine, chart, backtest: latest ? lessonOf(latest) : null, precision };
 }
 
 function cardRead(desk: DeskPayload): CardRead | null {
