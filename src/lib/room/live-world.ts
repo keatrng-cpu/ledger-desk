@@ -12,6 +12,7 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
+import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -240,12 +241,25 @@ function cardRead(desk: DeskPayload): CardRead | null {
   });
   const c = live ?? ranked[0]!;
   const { u, b, plan, read } = readOf(c);
-  const seq = sequenceFor(c as SequenceCard, {
-    inArray: read?.tier === "live",
-    gone: read?.tier === "gone",
-    price: b.quote.price,
-    others: ranked as SequenceCard[],
-  });
+  const otherU = u === "QQQ" ? "SPY" : "QQQ";
+  const otherB = books[otherU];
+  const seq = applyLtf(
+    sequenceFor(c as SequenceCard, {
+      inArray: read?.tier === "live",
+      gone: read?.tier === "gone",
+      price: b.quote.price,
+      others: ranked as SequenceCard[],
+    }),
+    readLtfLead({
+      symbol: c.symbol,
+      side: c.side === "short" ? "short" : "long",
+      minute: b.minute,
+      otherSymbol: otherB.series.symbol,
+      otherMinute: otherB.minute,
+      draw: b.draw.primary,
+      otherDraw: otherB.draw.primary,
+    }),
+  );
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
@@ -274,19 +288,33 @@ function cardRead(desk: DeskPayload): CardRead | null {
 /** The scanner board, as the war room's TV shows it: the desk's graded candidates in board order, each with its plan and entry tier. */
 export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
   const ranked = [...desk.scan.candidates].filter((c) => c.pathBand).sort(compareForBoard);
+  const books = booksOf(desk);
   return ranked
     .slice(0, limit)
     .map((c) => {
       const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
-      const b = booksOf(desk)[u];
+      const b = books[u];
       const plan = planFor(c, b.smc.plan);
       const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
-      const seq = sequenceFor(c as SequenceCard, {
-        inArray: read?.tier === "live",
-        gone: read?.tier === "gone",
-        price: b.quote.price,
-        others: ranked as SequenceCard[],
-      });
+      const mine = c.symbol.includes("ES") ? books.SPY : books.QQQ;
+      const other = c.symbol.includes("ES") ? books.QQQ : books.SPY;
+      const seq = applyLtf(
+        sequenceFor(c as SequenceCard, {
+          inArray: read?.tier === "live",
+          gone: read?.tier === "gone",
+          price: b.quote.price,
+          others: ranked as SequenceCard[],
+        }),
+        readLtfLead({
+          symbol: c.symbol,
+          side: c.side === "short" ? "short" : "long",
+          minute: mine.minute,
+          otherSymbol: other.series.symbol,
+          otherMinute: other.minute,
+          draw: mine.draw.primary,
+          otherDraw: other.draw.primary,
+        }),
+      );
       return {
         key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
         name: `${c.pathBand} ${c.symbol} ${c.side}`,

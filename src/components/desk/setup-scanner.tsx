@@ -43,6 +43,7 @@ import {
 import { anticipate } from "@/lib/trading/setup-anticipation";
 import { monthContractLine } from "@/lib/trading/month-contract";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
+import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
@@ -468,6 +469,8 @@ function SetupCard({
   canon,
   discretion,
   tape,
+  otherTape,
+  otherSymbol,
   session,
   others = [],
 }: {
@@ -490,6 +493,8 @@ function SetupCard({
   discretion?: DiscretionResult;
   /** This book's bars and live sequence, for the card's own markup chart. */
   tape?: CardTape;
+  otherTape?: CardTape;
+  otherSymbol?: string;
   /** The session read and the ET clock, for the evidence lookups. */
   session?: CardSession;
   others?: SetupCandidate[];
@@ -829,12 +834,23 @@ function SetupCard({
       ghost.status === "lost" ||
       ghost.status === "missed" ||
       ghost.status === "expired");
-  const pb = sequenceFor(c as SequenceCard, {
-    inArray: anticipation.entry === "live",
-    gone: anticipation.entry === "gone" || freshness?.state === "target_hit",
-    price: tape?.price ?? null,
-    others: others as SequenceCard[],
-  });
+  const pb = applyLtf(
+    sequenceFor(c as SequenceCard, {
+      inArray: anticipation.entry === "live",
+      gone: anticipation.entry === "gone" || freshness?.state === "target_hit",
+      price: tape?.price ?? null,
+      others: others as SequenceCard[],
+    }),
+    readLtfLead({
+      symbol: c.symbol,
+      side: c.side === "short" ? "short" : "long",
+      minute: tape?.minute ?? [],
+      otherSymbol: otherSymbol ?? "",
+      otherMinute: otherTape?.minute ?? [],
+      draw: tape?.draws?.primary ?? null,
+      otherDraw: otherTape?.draws?.primary ?? null,
+    }),
+  );
   return (
     <article
       className={cn(
@@ -1821,6 +1837,8 @@ export function SetupScanner({
             canon={guidedById.get(c.id)?.canon}
             discretion={guidedById.get(c.id)?.disc}
             tape={tape?.[c.symbol]}
+            otherTape={tape?.[display.find((o) => o.symbol !== c.symbol)?.symbol ?? ""]}
+            otherSymbol={display.find((o) => o.symbol !== c.symbol)?.symbol}
             session={clock}
             others={display}
           />
