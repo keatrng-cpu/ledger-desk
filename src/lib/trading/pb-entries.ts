@@ -16,6 +16,8 @@
  */
 
 export type PbSequence =
+  | "tjr"
+  | "reversal"
   | "inverse_after_sweep"
   | "gap_tap_displace"
   | "gap_tap_inverse"
@@ -56,6 +58,42 @@ export function readPbEntry(input: {
       sequence: "wait",
       label: "NO TARGET",
       act: "Patty does not take a gap that defends nothing. Mark the draw before the inverse.",
+      enter: false,
+    };
+  }
+  // Reversal: the sweep failed and delivery changed. CISD is the early close
+  // through the sweep leg. MSS is the displacement break. The entry is the
+  // retrace into that gap, not the raid itself.
+  if (input.swept && input.displaced && !input.htfOk && (input.inverted || input.inArray)) {
+    return {
+      sequence: "reversal",
+      label: "ENTER · REVERSAL",
+      act: "The raid failed. Delivery shifted against the old bias. Enter the retrace into the gap the shift left. Stop beyond the sweep. Do not fade a sweep that accepted through.",
+      enter: true,
+    };
+  }
+  if (input.swept && input.displaced && !input.htfOk) {
+    return {
+      sequence: "reversal",
+      label: "ANTICIPATION · REVERSAL",
+      act: "Sweep printed and the shift started, against the old bias. Wait for the retrace into the gap or the CISD level. The raid is not the entry.",
+      enter: false,
+    };
+  }
+  // TJR: sweep, then market structure shift, then the retrace into the FVG or the order block.
+  if (bias && input.swept && input.displaced && (input.inArray || input.inverted)) {
+    return {
+      sequence: "tjr",
+      label: "ENTER · TJR",
+      act: "Sweep, then the shift, then the retrace. Price is back in the gap the displacement left. Stop beyond the sweep. Target is the next unswept pool.",
+      enter: true,
+    };
+  }
+  if (bias && input.swept && input.displaced) {
+    return {
+      sequence: "tjr",
+      label: "ANTICIPATION · TJR",
+      act: "Sweep and the structure shift have printed. Wait for the retrace into the fair value gap or the last opposing candle. Do not chase the break.",
       enter: false,
     };
   }

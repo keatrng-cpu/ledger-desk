@@ -171,7 +171,7 @@ export function takeWordNote(): ResearchNote | null {
 export function scannerMandateNote(): ResearchNote {
   return {
     id: "scanner_mandate",
-    line: "Entries are the 1m to 5m inverse after a sweep in bias, the displacement off a gap tap, or the inverse of the gap that tap formed. The array fill is the entry only when no inverse has printed. A count does not stand a ticket down.",
+    line: "TJR is sweep, shift, retrace into the gap. A reversal is that raid failing and delivery changing. Patty is the 1m to 5m inverse, or the gap tap. The raid is not the entry. A count does not stand a ticket down.",
     source: "PATH scanner · APLUS_RULES.confluenceFloor",
   };
 }
