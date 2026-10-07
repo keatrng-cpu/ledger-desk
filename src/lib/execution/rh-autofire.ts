@@ -507,13 +507,23 @@ export function proposeRhFromPathFire(args: {
     flags,
   });
   const fire = args.fire;
-  if (!fire) return refuse("path_fire", "No PATH scanner fire — the fire is the place trigger.");
-  if (!(typeof fire.at === "number" && Number.isFinite(fire.at)) || nowMs - fire.at > RH_PATH_FIRE_MAX_AGE_MS || fire.at - nowMs > 5_000) {
+  // The scanner fire is how a setup gets noticed. It is not a second permission.
+  // Floor ARMED, the Stand agrees, and price is in the array: a missing or old
+  // fire does not stand the ticket down.
+  const agreeArgs: { manager?: ManagerRoomStateAgree | null; managerCall?: ManagerCallAgree | null; agentAgree?: boolean } = {};
+  if ("manager" in args) agreeArgs.manager = args.manager;
+  if ("managerCall" in args) agreeArgs.managerCall = args.managerCall;
+  if ("agentAgree" in args) agreeArgs.agentAgree = args.agentAgree;
+  const standAgrees = resolveStandAgentAgree(agreeArgs);
+  const entryLive = standAgrees && args.floor?.verdict === "ARMED" && (args.ceTouch === true || args.desk != null);
+  if (!fire && !entryLive) return refuse("path_fire", "No PATH scanner fire — the fire is the place trigger.");
+  if (fire && (!Number.isFinite(fire.at) || nowMs - fire.at > RH_PATH_FIRE_MAX_AGE_MS || fire.at - nowMs > 5_000) && !entryLive) {
     return refuse("path_fire_stale", `PATH fire ${fire.key} is not fresh (> ${RH_PATH_FIRE_MAX_AGE_MS / 1000}s).`);
   }
-  const floorMin = rhPathFloorForBand(fire.grade);
-  if (floorMin == null) return refuse("path_band", `PATH fire band ${fire.grade || "-"} is not A+/A/A-/B+.`);
-  if (args.ticket) {
+  const grade = fire?.grade ?? args.floor?.band ?? null;
+  const floorMin = rhPathFloorForBand(grade);
+  if (floorMin == null) return refuse("path_band", `PATH fire band ${grade || "-"} is not A+/A/A-/B+.`);
+  if (fire && args.ticket) {
     const wantSide = fire.side === "short" ? "put" : "call";
     const wantU = fire.symbol.includes("ES") ? "SPY" : "QQQ";
     if (args.ticket.side !== wantSide || args.ticket.underlier !== wantU) {
@@ -527,9 +537,14 @@ export function proposeRhFromPathFire(args: {
   if ("manager" in args) agree.manager = args.manager;
   if ("managerCall" in args) agree.managerCall = args.managerCall;
   const candidate = candidateFromFloorPathStand({
-    // PATH band + confluence come from the FIRE (the scanner), not the card.
-    floor: args.floor ? { ...args.floor, band: fire.grade, confluence: fire.confluence } : null,
-    pathActionable: true, // a PATH fire only exists for an actionable candidate (isPathFire)
+    // PATH band + confluence come from the fire when one exists. The room's
+    // card is enough once the entry is already live.
+    floor: args.floor
+      ? fire
+        ? { ...args.floor, band: fire.grade, confluence: fire.confluence }
+        : args.floor
+      : null,
+    pathActionable: true,
     agentAgree: args.agentAgree,
     ...agree,
     optionsSessionOpen: args.optionsSessionOpen,
@@ -543,15 +558,15 @@ export function proposeRhFromPathFire(args: {
     seqTake: args.seqTake,
     vetoed: args.vetoed,
     desk: args.desk ?? null,
-    pathSymbol: fire.symbol,
-    pathSide: fire.side,
+    pathSymbol: fire?.symbol ?? null,
+    pathSide: fire?.side ?? null,
     nowMs,
   });
   return proposeRhLiveOption({
     candidate,
     ticket: args.ticket,
     flags,
-    refIdHint: args.refIdHint ?? `rh-${fire.key}`,
+    refIdHint: args.refIdHint ?? `rh-${fire?.key ?? "entry"}`,
     liveQuote: args.liveQuote ?? null,
   });
 }
