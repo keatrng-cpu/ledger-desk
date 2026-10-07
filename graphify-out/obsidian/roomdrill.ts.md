@@ -1,0 +1,86 @@
+---
+source_file: "src/lib/room/drill.ts"
+type: "code"
+community: "Community 4"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_4
+---
+
+# room/drill.ts
+
+## Connections
+- [[Agenda]] - `imports` [EXTRACTED]
+- [[AgendaEvent]] - `imports` [EXTRACTED]
+- [[AgendaSetup]] - `imports` [EXTRACTED]
+- [[B_PLUS]] - `contains` [EXTRACTED]
+- [[DRILL_DATE]] - `contains` [EXTRACTED]
+- [[DRILL_LABEL]] - `contains` [EXTRACTED]
+- [[DrillFrame]] - `contains` [EXTRACTED]
+- [[DrillStep]] - `contains` [EXTRACTED]
+- [[ES_PLAN]] - `contains` [EXTRACTED]
+- [[GoalSpec]] - `imports` [EXTRACTED]
+- [[HIT_ODDS_MODEL]] - `imports` [EXTRACTED]
+- [[MindState]] - `imports` [EXTRACTED]
+- [[NEXT_AFTER]] - `contains` [EXTRACTED]
+- [[NQ_PLAN]] - `contains` [EXTRACTED]
+- [[PLAN_B]] - `contains` [EXTRACTED]
+- [[RELEASE]] - `contains` [EXTRACTED]
+- [[RoomBook]] - `imports` [EXTRACTED]
+- [[RoomCycle]] - `imports` [EXTRACTED]
+- [[RoomDeskRead]] - `imports` [EXTRACTED]
+- [[RoomEntryRead]] - `imports` [EXTRACTED]
+- [[RoomInput]] - `imports` [EXTRACTED]
+- [[Trend]] - `imports` [EXTRACTED]
+- [[Underlier]] - `imports` [EXTRACTED]
+- [[UnderlierTape]] - `imports` [EXTRACTED]
+- [[agents.ts]] - `imports_from` [EXTRACTED]
+- [[applyCycle()]] - `imports` [EXTRACTED]
+- [[applyLab()]] - `imports` [EXTRACTED]
+- [[asLab()]] - `imports` [EXTRACTED]
+- [[computeExits()]] - `imports` [EXTRACTED]
+- [[computeHeld()]] - `imports` [EXTRACTED]
+- [[cycle.ts]] - `imports_from` [EXTRACTED]
+- [[desk-read.ts]] - `imports_from` [EXTRACTED]
+- [[drillDeskRead()]] - `contains` [EXTRACTED]
+- [[drillFrames()]] - `contains` [EXTRACTED]
+- [[drillMarket()]] - `contains` [EXTRACTED]
+- [[drillNowMs()]] - `contains` [EXTRACTED]
+- [[emptyBook()]] - `imports` [EXTRACTED]
+- [[etWallToEpochMs()]] - `imports` [EXTRACTED]
+- [[exitWatchOf()]] - `imports` [EXTRACTED]
+- [[goal.ts]] - `imports_from` [EXTRACTED]
+- [[hit-odds-model.ts]] - `imports_from` [EXTRACTED]
+- [[judasCard()]] - `contains` [EXTRACTED]
+- [[lab.ts]] - `imports_from` [EXTRACTED]
+- [[labRead]] - `imports` [EXTRACTED]
+- [[ledgerOf()]] - `imports` [EXTRACTED]
+- [[markBook()]] - `imports` [EXTRACTED]
+- [[minutesBetween()]] - `contains` [EXTRACTED]
+- [[nqCard()]] - `contains` [EXTRACTED]
+- [[oddsOn()]] - `contains` [EXTRACTED]
+- [[option-math.ts]] - `imports_from` [EXTRACTED]
+- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
+- [[paper-book.ts]] - `imports_from` [EXTRACTED]
+- [[planBCard()]] - `contains` [EXTRACTED]
+- [[planHitOdds()]] - `imports` [EXTRACTED]
+- [[playDrill()]] - `contains` [EXTRACTED]
+- [[rollCounters()]] - `imports` [EXTRACTED]
+- [[runDrillStep()]] - `contains` [EXTRACTED]
+- [[runRoomCycle()]] - `imports` [EXTRACTED]
+- [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[standCard()]] - `contains` [EXTRACTED]
+- [[tierFill()]] - `contains` [EXTRACTED]
+- [[toRoomInput()]] - `imports` [EXTRACTED]
+- [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-snapshot.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_4

@@ -73,3 +73,10 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
   3. Root **`PROGRAM.md` is a different document**: an unsigned regulatory program/track-record definition with `DECIDE:` blocks, meant to be sealed (`npm run seal`) and pinned to a public timestamp. Mixing living session state into it, or editing it to add a pointer before it is sealed, would muddy its dated-evidence purpose. So no pointer line was added there.
   4. Tool-neutral: Claude and Grok both read `ai/`; putting canon under `.grok/` would make it Grok-specific (Claude has its own `.claude/`).
 - **Follow-up (not done here):** for "agents load NOW each session" to be automatic, `AGENTS.md` / `CLAUDE.md` need a one-line pointer to `ai/NOW.md` after merge — owner/approval: Keaton or Dual Desk.
+
+### 2026-10-07 — Graphify has been run; the vault holds the code graph and the book
+- **Status:** ADOPTED · **Decided by:** Keaton (asked to implement Obsidian and Graphify) · **Source:** this session, on `main` after `295bd7f`.
+- **Decision:** `graphify extract . --code-only` is the code map (local tree-sitter, no model). `graphify-out/obsidian/` is that graph as a vault. The trading book is written beside it by `scripts/export-brain-vault.mjs` into `graphify-out/obsidian/brain/` and is not merged into `graph.json`. The 2026-10-06 hand-built import ranking stays at `graphify-out/SEED_REPORT.md`. Community names stay "Community N" until a labeling pass is asked for. Rebuild with `graphify update .`, then `graphify cluster-only . --no-label --no-viz`, then `graphify export obsidian`, then `npx tsx scripts/export-brain-vault.mjs`.
+- **Why:** The graph answers where the code connects. The book answers what the floor recalls. Putting the book inside `graph.json` would make a trading line look like a function.
+- **Supersedes:** the note in the 2026-10-05 Graphify entry that Graphify had not been run. Does not replace that entry's decision that Graphify stays the code map and markdown canon sits beside it.
+

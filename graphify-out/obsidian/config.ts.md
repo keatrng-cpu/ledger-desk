@@ -1,0 +1,86 @@
+---
+source_file: "src/lib/aplus/config.ts"
+type: "code"
+community: "Community 26"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_26
+---
+
+# config.ts
+
+## Connections
+- [[APLUS_RULES]] - `contains` [EXTRACTED]
+- [[CONTRACTS_1]] - `contains` [EXTRACTED]
+- [[ContractKey]] - `contains` [EXTRACTED]
+- [[RiskGrade]] - `contains` [EXTRACTED]
+- [[analytics-server.ts]] - `imports_from` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[apex-sim.ts]] - `imports_from` [EXTRACTED]
+- [[aplus-ops.tsx]] - `imports_from` [EXTRACTED]
+- [[backtest-account.mjs]] - `dynamic_import` [EXTRACTED]
+- [[build-desk.ts]] - `imports_from` [EXTRACTED]
+- [[cases.ts]] - `imports_from` [EXTRACTED]
+- [[claude-handoff.ts]] - `imports_from` [EXTRACTED]
+- [[curriculum.ts]] - `imports_from` [EXTRACTED]
+- [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
+- [[entry-state.ts]] - `imports_from` [EXTRACTED]
+- [[entry-ticket.ts]] - `imports_from` [EXTRACTED]
+- [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
+- [[execution-gate.ts]] - `imports_from` [EXTRACTED]
+- [[fit-gauge.tsx]] - `imports_from` [EXTRACTED]
+- [[ghost-book.ts]] - `imports_from` [EXTRACTED]
+- [[goal.ts]] - `imports_from` [EXTRACTED]
+- [[income-target.ts]] - `imports_from` [EXTRACTED]
+- [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[journalserver.ts]] - `imports_from` [EXTRACTED]
+- [[live-voices-race.ts]] - `imports_from` [EXTRACTED]
+- [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
+- [[management.ts]] - `imports_from` [EXTRACTED]
+- [[meeting.ts]] - `imports_from` [EXTRACTED]
+- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
+- [[order-intent.ts]] - `imports_from` [EXTRACTED]
+- [[overnight-swing.ts]] - `imports_from` [EXTRACTED]
+- [[paper-account.ts]] - `imports_from` [EXTRACTED]
+- [[paper-book-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[paper-manager.ts]] - `imports_from` [EXTRACTED]
+- [[path-alarm.ts]] - `imports_from` [EXTRACTED]
+- [[pnl.ts]] - `imports_from` [EXTRACTED]
+- [[profit-path.ts]] - `imports_from` [EXTRACTED]
+- [[profit-path.tsx]] - `imports_from` [EXTRACTED]
+- [[profit-rules.ts]] - `imports_from` [EXTRACTED]
+- [[replay-drill.ts]] - `imports_from` [EXTRACTED]
+- [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
+- [[risk-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[risk.ts]] - `imports_from` [EXTRACTED]
+- [[riskDollars()]] - `contains` [EXTRACTED]
+- [[riskGradeFromScore()]] - `contains` [EXTRACTED]
+- [[riskPctForGrade()]] - `contains` [EXTRACTED]
+- [[riskPctForScore()]] - `contains` [EXTRACTED]
+- [[sample-run.ts]] - `imports_from` [EXTRACTED]
+- [[score.ts]] - `imports_from` [EXTRACTED]
+- [[session-backtest.ts]] - `dynamic_import` [EXTRACTED]
+- [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
+- [[shadow-book-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[simulate-path-trade.ts]] - `imports_from` [EXTRACTED]
+- [[sizeContracts()]] - `contains` [EXTRACTED]
+- [[smc-master.ts]] - `imports_from` [EXTRACTED]
+- [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
+- [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
+- [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
+- [[verify-apex-sim.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-cases.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-entry-ticket.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-income-target.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-take-census.mjs]] - `imports_from` [EXTRACTED]
+- [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_26

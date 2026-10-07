@@ -1,0 +1,87 @@
+---
+source_file: "src/lib/room/floor-props.ts"
+type: "code"
+community: "Community 42"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_42
+---
+
+# floor-props.ts
+
+## Connections
+- [[AWAITING_SCHOOL_MODEL]] - `imports` [EXTRACTED]
+- [[BookRead_1]] - `imports` [EXTRACTED]
+- [[CardRead]] - `imports` [EXTRACTED]
+- [[FeedRead]] - `imports` [EXTRACTED]
+- [[KillzoneId]] - `imports` [EXTRACTED]
+- [[LabLite]] - `imports` [EXTRACTED]
+- [[Lane]] - `contains` [EXTRACTED]
+- [[LaneKind]] - `contains` [EXTRACTED]
+- [[Memory]] - `imports` [EXTRACTED]
+- [[PATH_MONTH_CAP]] - `imports` [EXTRACTED]
+- [[Plaque]] - `contains` [EXTRACTED]
+- [[RaceAnim]] - `imports` [EXTRACTED]
+- [[RoomClosedTrade]] - `imports` [EXTRACTED]
+- [[RoomEvent]] - `imports` [EXTRACTED]
+- [[SESSION_COLOR]] - `contains` [EXTRACTED]
+- [[SHORT_2]] - `contains` [EXTRACTED]
+- [[SchoolFloor]] - `imports` [EXTRACTED]
+- [[SchoolModelHook]] - `imports` [EXTRACTED]
+- [[SessionMoment]] - `imports` [EXTRACTED]
+- [[SessionSegment]] - `contains` [EXTRACTED]
+- [[TalkWorld]] - `imports` [EXTRACTED]
+- [[TapeBook]] - `imports` [EXTRACTED]
+- [[Tile]] - `contains` [EXTRACTED]
+- [[Tone]] - `contains` [EXTRACTED]
+- [[Underlier]] - `imports` [EXTRACTED]
+- [[WeatherBand]] - `contains` [EXTRACTED]
+- [[agents.ts]] - `imports_from` [EXTRACTED]
+- [[buildSchoolFloor()]] - `imports` [EXTRACTED]
+- [[cardTile()]] - `contains` [EXTRACTED]
+- [[contractName()]] - `imports` [EXTRACTED]
+- [[contractOf()]] - `contains` [EXTRACTED]
+- [[etWallParts]] - `imports` [EXTRACTED]
+- [[feedSourceTag()]] - `contains` [EXTRACTED]
+- [[feedTile()]] - `contains` [EXTRACTED]
+- [[floor-overhaul.test.mjs]] - `dynamic_import` [EXTRACTED]
+- [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
+- [[floor-race-replay.ts]] - `imports_from` [EXTRACTED]
+- [[floor-scene.ts]] - `imports_from` [EXTRACTED]
+- [[floorProps]] - `contains` [EXTRACTED]
+- [[fmtDelay()]] - `contains` [EXTRACTED]
+- [[fmtPct()_1]] - `contains` [EXTRACTED]
+- [[fmtPx()]] - `contains` [EXTRACTED]
+- [[gateWord()]] - `imports` [EXTRACTED]
+- [[inSeg()]] - `contains` [EXTRACTED]
+- [[isPdh()]] - `contains` [EXTRACTED]
+- [[isPdl()]] - `contains` [EXTRACTED]
+- [[liquidityTrack]] - `contains` [EXTRACTED]
+- [[live-types.ts]] - `imports_from` [EXTRACTED]
+- [[option-math.ts]] - `imports_from` [EXTRACTED]
+- [[paper-book.ts]] - `imports_from` [EXTRACTED]
+- [[profit-rules.ts]] - `imports_from` [EXTRACTED]
+- [[propsSignature()]] - `contains` [EXTRACTED]
+- [[pulseDelaySec()]] - `contains` [EXTRACTED]
+- [[raceAnimFrom()]] - `imports` [EXTRACTED]
+- [[raceReplaySignature()]] - `imports` [EXTRACTED]
+- [[resolveKillzone()]] - `imports` [EXTRACTED]
+- [[room-engine.ts]] - `imports_from` [EXTRACTED]
+- [[roomformat.ts]] - `imports_from` [EXTRACTED]
+- [[school-contract.ts]] - `imports_from` [EXTRACTED]
+- [[sessionDial]] - `contains` [EXTRACTED]
+- [[sessionMoments()]] - `imports` [EXTRACTED]
+- [[sessionSegments()]] - `contains` [EXTRACTED]
+- [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[statProps()]] - `contains` [EXTRACTED]
+- [[tickerTiles()]] - `contains` [EXTRACTED]
+- [[toneOf()]] - `contains` [EXTRACTED]
+- [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
+- [[trophiesAndScars()]] - `contains` [EXTRACTED]
+- [[until()]] - `contains` [EXTRACTED]
+- [[usd()_3]] - `imports` [EXTRACTED]
+- [[vixWeather]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_42

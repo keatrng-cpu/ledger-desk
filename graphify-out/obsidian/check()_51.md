@@ -1,0 +1,18 @@
+---
+source_file: "scripts/verify-desk-cadence.mjs"
+type: "code"
+community: "Community 248"
+location: "L19"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_248
+---
+
+# check()
+
+## Connections
+- [[ok()_21]] - `calls` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_248

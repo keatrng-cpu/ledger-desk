@@ -1,0 +1,85 @@
+---
+source_file: "src/lib/trading/veteran-brain.ts"
+type: "code"
+community: "Community 9"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_9
+---
+
+# veteran-brain.ts
+
+## Connections
+- [[ALWAYS_SCAN]] - `imports` [EXTRACTED]
+- [[APLUS_RULES]] - `imports` [EXTRACTED]
+- [[BrainLayer]] - `contains` [EXTRACTED]
+- [[CanonStack]] - `imports` [EXTRACTED]
+- [[DeskMemoryState]] - `imports` [EXTRACTED]
+- [[DeskPayload]] - `imports` [EXTRACTED]
+- [[DiscretionResult]] - `imports` [EXTRACTED]
+- [[DiscretionVerdict_1]] - `contains` [EXTRACTED]
+- [[LayerTone]] - `contains` [EXTRACTED]
+- [[MIN_EFFECTIVE_N]] - `imports` [EXTRACTED]
+- [[PATH_MONTH_CAP]] - `imports` [EXTRACTED]
+- [[PROFIT_ACTION_FLOOR]] - `imports` [EXTRACTED]
+- [[SetupCandidate]] - `imports` [EXTRACTED]
+- [[StrategyId]] - `imports` [EXTRACTED]
+- [[StrategyMarketGrade]] - `imports` [EXTRACTED]
+- [[StrategyRead]] - `contains` [EXTRACTED]
+- [[TabRead]] - `contains` [EXTRACTED]
+- [[VeteranBrief]] - `contains` [EXTRACTED]
+- [[answerVeteranQuestion()]] - `contains` [EXTRACTED]
+- [[bookWr()]] - `contains` [EXTRACTED]
+- [[bucketExpectancy()]] - `imports` [EXTRACTED]
+- [[bucketWr()]] - `imports` [EXTRACTED]
+- [[build-desk.ts]] - `imports_from` [EXTRACTED]
+- [[buildScorecard()]] - `imports` [EXTRACTED]
+- [[canonCoachLines()]] - `imports` [EXTRACTED]
+- [[canonInputForCandidate()]] - `imports` [EXTRACTED]
+- [[clamp01()_2]] - `contains` [EXTRACTED]
+- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[countersFromMemory()]] - `imports` [EXTRACTED]
+- [[describeProfitRules()]] - `imports` [EXTRACTED]
+- [[desk-memory.ts]] - `imports_from` [EXTRACTED]
+- [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
+- [[discretion-memory.ts]] - `imports_from` [EXTRACTED]
+- [[discretion.ts]] - `imports_from` [EXTRACTED]
+- [[fmtR()_1]] - `imports` [EXTRACTED]
+- [[getAllShadows()]] - `imports` [EXTRACTED]
+- [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[isBlakeLongDemoted()]] - `imports` [EXTRACTED]
+- [[isGoldStandardSetup()]] - `imports` [EXTRACTED]
+- [[listOpenPaperTrades()]] - `imports` [EXTRACTED]
+- [[loadDeskMemory()]] - `imports` [EXTRACTED]
+- [[loadLastDebrief()]] - `imports` [EXTRACTED]
+- [[loadPaperTrades()]] - `imports` [EXTRACTED]
+- [[market-narrative.ts]] - `imports_from` [EXTRACTED]
+- [[memoryDigest()]] - `imports` [EXTRACTED]
+- [[month-ahead.ts]] - `imports_from` [EXTRACTED]
+- [[monthAheadFocusLine()]] - `imports` [EXTRACTED]
+- [[narrativeCoachLines()]] - `imports` [EXTRACTED]
+- [[paper-manager.ts]] - `imports_from` [EXTRACTED]
+- [[profit-path.ts]] - `imports_from` [EXTRACTED]
+- [[profit-rules.ts]] - `imports_from` [EXTRACTED]
+- [[rateCardForSetup()]] - `imports` [EXTRACTED]
+- [[recentByKind()]] - `imports` [EXTRACTED]
+- [[resolveMonthAhead()]] - `imports` [EXTRACTED]
+- [[resolveWeekAhead()]] - `imports` [EXTRACTED]
+- [[runVeteranBrain()]] - `contains` [EXTRACTED]
+- [[scoreCanonStack()]] - `imports` [EXTRACTED]
+- [[sessionLive()]] - `imports` [EXTRACTED]
+- [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[shadow-store.ts]] - `imports_from` [EXTRACTED]
+- [[smc-canon.ts]] - `imports_from` [EXTRACTED]
+- [[strategies.ts]] - `imports_from` [EXTRACTED]
+- [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
+- [[topStrategyRates()]] - `imports` [EXTRACTED]
+- [[trade-debrief.ts]] - `imports_from` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
+- [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
+- [[week-ahead.ts]] - `imports_from` [EXTRACTED]
+- [[weekAheadFocusLine()]] - `imports` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_9

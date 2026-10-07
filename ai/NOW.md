@@ -11,7 +11,7 @@
 ## Read order (every session)
 
 1. `ai/NOW.md` — this file
-2. `graphify-out/GRAPH_REPORT.md` — code map (currently a hand-built seed; Graphify not yet run here)
+2. `graphify-out/GRAPH_REPORT.md` — code map from a real Graphify run (`graphify extract . --code-only`, 2026-10-07). Open `graphify-out/obsidian/` as a vault. The trading book is `graphify-out/obsidian/brain/`. The older import ranking is `graphify-out/SEED_REPORT.md`.
 3. `ai/DECISIONS.md` — append-only decision log + open locks
 4. `ai/HANDOFF.md` — Dual Desk's current packet (today only on branch `coord/2026-10-06-desk-assignments` @ `ceb62b7`)
 5. Then file search (`CLAUDE.md` code map, `ai/research/INDEX.md`, source)

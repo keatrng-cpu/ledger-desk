@@ -1,0 +1,88 @@
+---
+source_file: "src/components/lab/apex-sim-panel.tsx"
+type: "code"
+community: "Community 59"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_59
+---
+
+# apex-sim-panel.tsx
+
+## Connections
+- [[APEX_AUTOMATION_PROHIBITED_REASON]] - `imports` [EXTRACTED]
+- [[APEX_EVAL_RULES]] - `imports` [EXTRACTED]
+- [[APEX_MECHANICS]] - `imports` [EXTRACTED]
+- [[APEX_RULES_APPLY_TO]] - `imports` [EXTRACTED]
+- [[APEX_RULES_AS_OF]] - `imports` [EXTRACTED]
+- [[APEX_SIZES]] - `imports` [EXTRACTED]
+- [[AccountPhase]] - `imports` [EXTRACTED]
+- [[ApexSimInput]] - `imports` [EXTRACTED]
+- [[ApexSimOk]] - `imports` [EXTRACTED]
+- [[ApexSimPanel()]] - `contains` [EXTRACTED]
+- [[ApexSimResult]] - `imports` [EXTRACTED]
+- [[ApexSize]] - `imports` [EXTRACTED]
+- [[ApexSizeRules]] - `imports` [EXTRACTED]
+- [[Button]] - `imports` [EXTRACTED]
+- [[CAP_OPTIONS]] - `contains` [EXTRACTED]
+- [[CONFIDENCE_LABEL]] - `imports` [EXTRACTED]
+- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[Card()_1]] - `imports` [EXTRACTED]
+- [[CardContent()]] - `imports` [EXTRACTED]
+- [[CardDescription()]] - `imports` [EXTRACTED]
+- [[CardHeader()]] - `imports` [EXTRACTED]
+- [[CardTitle()]] - `imports` [EXTRACTED]
+- [[ConfidenceTag()]] - `contains` [EXTRACTED]
+- [[ContractKey]] - `imports` [EXTRACTED]
+- [[DEFAULT_ROOM]] - `contains` [EXTRACTED]
+- [[DEFAULT_ROOM_BUFFER]] - `imports` [EXTRACTED]
+- [[DEFAULT_STOP_PTS]] - `imports` [EXTRACTED]
+- [[DrawdownType]] - `imports` [EXTRACTED]
+- [[EvidenceDist]] - `imports` [EXTRACTED]
+- [[Field()]] - `contains` [EXTRACTED]
+- [[FigureCell()]] - `contains` [EXTRACTED]
+- [[ResultsTable()]] - `contains` [EXTRACTED]
+- [[RoomForm]] - `contains` [EXTRACTED]
+- [[RuleConfidence]] - `imports` [EXTRACTED]
+- [[RuleFigure]] - `imports` [EXTRACTED]
+- [[RulesTable()]] - `contains` [EXTRACTED]
+- [[RunRecord]] - `contains` [EXTRACTED]
+- [[SIM_DEFAULT_PATHS]] - `imports` [EXTRACTED]
+- [[SYMBOLS_4]] - `contains` [EXTRACTED]
+- [[Seg()]] - `contains` [EXTRACTED]
+- [[Stat()_3]] - `contains` [EXTRACTED]
+- [[SubHead()]] - `contains` [EXTRACTED]
+- [[TPW_OPTIONS]] - `contains` [EXTRACTED]
+- [[TRADES_PER_WEEK_MAX]] - `imports` [EXTRACTED]
+- [[TRADES_PER_WEEK_MIN]] - `imports` [EXTRACTED]
+- [[apex-sim.ts]] - `imports_from` [EXTRACTED]
+- [[apexRulesFor()]] - `imports` [EXTRACTED]
+- [[autofire-gates.ts]] - `imports_from` [EXTRACTED]
+- [[button.tsx]] - `imports_from` [EXTRACTED]
+- [[card.tsx]] - `imports_from` [EXTRACTED]
+- [[clampTradesPerWeek()]] - `imports` [EXTRACTED]
+- [[cn()]] - `imports` [EXTRACTED]
+- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[defaultSimInput()]] - `imports` [EXTRACTED]
+- [[diffTone()]] - `contains` [EXTRACTED]
+- [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[inputKey()]] - `contains` [EXTRACTED]
+- [[loadEvidenceDist()]] - `imports` [EXTRACTED]
+- [[lucide-react_1]] - `imports_from` [EXTRACTED]
+- [[money()_12]] - `contains` [EXTRACTED]
+- [[num()_11]] - `contains` [EXTRACTED]
+- [[pct()_16]] - `contains` [EXTRACTED]
+- [[persist()_1]] - `contains` [EXTRACTED]
+- [[pp()]] - `contains` [EXTRACTED]
+- [[rMult()]] - `contains` [EXTRACTED]
+- [[react]] - `imports_from` [EXTRACTED]
+- [[restore()]] - `contains` [EXTRACTED]
+- [[roomToLiquidation()]] - `imports` [EXTRACTED]
+- [[runApexSim()]] - `imports` [EXTRACTED]
+- [[simCaveats()]] - `imports` [EXTRACTED]
+- [[simHonestyLine()]] - `imports` [EXTRACTED]
+- [[utils.ts]] - `imports_from` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_59
