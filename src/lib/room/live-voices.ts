@@ -893,7 +893,7 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
       () => `All five. ${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}.`,
     ])));
     lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Direction agrees. The grade is the permission. I do not get a second vote.`, () => `The side is already called. Size is the only thing left.`])));
-    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now. The inverse is the entry.`, () => `It's in the array. Place it.`, () => `That's the one. Don't wait on a second yes.`])));
+    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now. TJR retrace, reversal, or the inverse. Place the month ticket.`, () => `Shift printed. Retrace is the entry.`, () => `The raid is not the fill.`])));
   } else if (d.to === "gone") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [
       () => `Missed ${f.raw(k.name)}. We do not chase it. The next entry is the pullback into the array, at CE.`,
@@ -1213,7 +1213,7 @@ export function exHot(c: Ctx, d: BoardData): Ex | null {
   const lines = compact([
     line("Nova", ANIM.Nova.board!, `${k.futSymbol} ${k.futSide} is ${fit.toFixed(2)}. ${where} Stop ${k.stop != null ? f.lvl(k.stop) : "—"}. Target ${k.t1 != null ? f.lvl(k.t1) : "the draw"}.`),
     line("Gemma", ANIM.Gemma.wall!, "Bias is the one-hour and the four-hour gaps. Respected bullish, or a bearish gap that failed, is long. The reverse is short. The draw is the liquidity or the open gap in that direction, and we mark it before the entry."),
-    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the one-minute or five-minute gap. Then the inverse, or the gap holds. The fifteen-minute grade is the permission, not the trigger. Two a day is the backtest. Live, the count cuts size."),
+    line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the one-minute or five-minute gap. Then the inverse, or the gap holds. The fifteen-minute grade is the permission, not the trigger. Two a day is the backtest. Live, a count does not stand a ticket down."),
     line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side. A short printed target gets repriced, it does not stand the card down. QQQ and SPY are separate tickets."),
     line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. Direction agrees, so it places. No second confirm.`),
   ]);
