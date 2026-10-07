@@ -182,6 +182,8 @@ import {
 } from "@/lib/trading/auto-paper";
 import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 import { onBeat } from "@/lib/live/keep-live";
+import { gradeAll, loadHiAlerts, recordHiAlerts, saveHiAlerts } from "@/lib/trading/hi-alert";
+import { loadPaperTrades } from "@/lib/trading/paper-manager";
 
 // three.js (~600 KB) loads only when the Floor tab is opened; the room's
 // engine (room-engine.ts) is plain TS and runs at page level below.
@@ -1524,6 +1526,41 @@ function MasterplacePage() {
     },
     [desk, discretion],
   );
+
+  // High-alert ledger (hi-alert.ts): every card at fit 0.90+ is kept whether or not it was taken, with why, and graded on the chart.
+  // Runs on every desk build (and, with keep-live.ts, with the Chrome tab hidden). A failure here never reaches the desk.
+  useEffect(() => {
+    if (!desk) return;
+    try {
+      const now = Date.now();
+      const w = etWallParts(now);
+      const day = `${w.year}-${String(w.month).padStart(2, "0")}-${String(w.day).padStart(2, "0")}`;
+      const trades = loadPaperTrades();
+      const books = [desk.smcMaster.left, desk.smcMaster.right];
+      const ladderFor = (sym: string) => (/ES/.test(sym) === /ES/.test(desk.ladder.left.symbol) ? desk.ladder.left : desk.ladder.right);
+      let list = recordHiAlerts(loadHiAlerts(), desk.scan.candidates, {
+        nowMs: now,
+        day,
+        clock: desk.clock,
+        blocked: desk.scan.blocked,
+        bookFor: (sym, side) => {
+          const b = books.find((x) => x && x.symbol === sym && x.side === side);
+          return b ? { word: b.word ?? null, missing: b.missing ?? null, detail: b.missingDetail ?? null } : null;
+        },
+        ladderFor,
+        takenFor: (sym, side) => {
+          if (trades.some((t) => t.symbol === sym && t.side === side && t.openedAt >= now - 6 * 3_600_000)) return "paper";
+          const r = restingFor(sym);
+          return r && r.side === side ? "rested" : "no";
+        },
+      });
+      list = gradeAll(list, { [desk.left.symbol]: desk.left.bars, [desk.right.symbol]: desk.right.bars }, now);
+      saveHiAlerts(list);
+    } catch {
+      /* the ledger must never break the desk */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desk?.fetchedAt]);
 
   // Auto paper: same onLog("paper") path as the Trade Now button, so equity,
   // desk-memory stats, debrief, journal mirror, and the veteran brain all
