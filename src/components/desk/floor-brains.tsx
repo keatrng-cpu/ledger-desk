@@ -268,7 +268,7 @@ export function FloorBrains() {
           })}
       </div>
       <p className="border-t border-white/10 px-4 py-2 text-[11px] leading-relaxed text-white/45">
-        A path stays dim until something real moves on it. A seat writing the book lights the spoke into the hub. The book handing that line back lights it out. Speech on the floor lights the seat that said it to the seat that heard it. Power of 3, premium and discount, the draw, the break, the breaker, SMT, the kill zone, and the retest sit in the book beside the four schools.
+        A path stays dim until something real moves on it. A seat writing the book lights the spoke into the hub. The book handing that line back lights it out. Speech on the floor lights the seat that said it to the seat that heard it. The school read, the card, both indexes, the latest graded backtest, and the latest journal close write the book, and the book hands each new line to all five.
       </p>
     </section>
   );

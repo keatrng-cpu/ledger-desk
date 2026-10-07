@@ -15,7 +15,7 @@ import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { sessionBias, type TfLadder } from "@/lib/trading/tf-ladder";
 import { deliveryLine, deliveryOfLadder, pickFocus } from "./focus-pick";
-import { loadHiAlerts, recallHiAlerts } from "@/lib/trading/hi-alert";
+import { loadHiAlerts, lessonOf, recallHiAlerts } from "@/lib/trading/hi-alert";
 import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
@@ -260,6 +260,21 @@ export function schoolsOf(desk: Pick<DeskPayload, "ladder"> & { smcMaster?: Para
   const by: Record<string, string> = {};
   for (const r of reads) by[SCHOOL_AVATAR[r.school]] = schoolSentence(r, side);
   return { line: consensusLine(reads, side), by };
+}
+
+const biasWord = (b: "bull" | "bear" | "neutral") => (b === "bull" ? "up" : b === "bear" ? "down" : "flat");
+
+/** What the book takes from the desk this cycle. Empty means that source had nothing new to say. */
+export function brainSources(desk: DeskPayload): { school: string | null; card: string | null; chart: string | null; backtest: string | null } {
+  const card = cardRead(desk);
+  const school = card?.schools?.line?.trim() || null;
+  const cardLine = card ? [`${card.futSymbol} ${card.futSide}.`, card.sequence, card.entrySay || card.entryLine].filter(Boolean).join(" ") : null;
+  const leg = (l: TfLadder) => `${l.symbol}: higher timeframe ${biasWord(l.htf)}, middle ${biasWord(l.mtf)}, lower ${biasWord(l.ltf)}.`;
+  const chart = desk.ladder?.left && desk.ladder?.right ? `${leg(desk.ladder.left)} ${leg(desk.ladder.right)}` : null;
+  const latest = loadHiAlerts()
+    .filter((h) => h.outcome?.done)
+    .sort((a, b) => b.lastMs - a.lastMs)[0];
+  return { school, card: cardLine, chart, backtest: latest ? lessonOf(latest) : null };
 }
 
 function cardRead(desk: DeskPayload): CardRead | null {

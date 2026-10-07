@@ -29,6 +29,7 @@ import { getNewsFeed, getPulse } from "@/lib/news/news-server";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import type { MindState } from "@/lib/room/agents";
 import { noteExchange, noteNerve } from "@/lib/room/brain-traffic";
+import { fuelBrains } from "@/lib/room/brain-fuel";
 import { booksOf, marketDataFromDesk, readDeskForRoom } from "@/lib/room/desk-read";
 import { etDateOf, type Underlier } from "@/lib/room/option-math";
 import { runRoomCycle, type RoomCycle } from "@/lib/room/orchestrator";
@@ -39,7 +40,7 @@ import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, talkTick } from "@/lib/room/live-talk";
 import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
-import { atrOf, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
+import { atrOf, brainSources, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
 import { deskAudit } from "@/lib/room/audit";
 import { freshnessOf } from "@/lib/room/data-fresh";
@@ -445,9 +446,16 @@ function runLiveCycle(desk: DeskPayload) {
   const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
   book = applyLab(book, cycle, market, read, nowMs, st.goal);
+  const src = brainSources(desk);
+  const closed = book.closed[0];
+  const journal = closed
+    ? `${closed.ticker} ${closed.type === "CALL" ? "calls" : "puts"} closed ${closed.reason.replaceAll("_", " ")}, ${closed.pnlUsd >= 0 ? "paid" : "cost"} ${Math.abs(Math.round(closed.pnlUsd))} dollars.`
+    : null;
+  const fueled = cycle.minds ? fuelBrains(cycle.minds.atlas, cycle.minds.people, { nowMs, ...src, journal }) : null;
+  const minds = cycle.minds && fueled ? { ...cycle.minds, atlas: fueled.atlas, people: fueled.people } : cycle.minds;
   saveRoomBook(book);
-  saveMinds(cycle.minds);
-  void backupRoom(book, cycle.minds, { nowMs })?.then((backup) => useRoomStore.setState({ backup }));
+  saveMinds(minds);
+  void backupRoom(book, minds, { nowMs })?.then((backup) => useRoomStore.setState({ backup }));
 
   const books = booksOf(desk);
   const chart = (u: Underlier) => {
@@ -469,7 +477,7 @@ function runLiveCycle(desk: DeskPayload) {
   const frame = frameFromCycle({
     id: seq,
     nowMs,
-    cycle,
+    cycle: { ...cycle, minds },
     book,
     caption: null,
     lab: labNow,
@@ -493,7 +501,7 @@ function runLiveCycle(desk: DeskPayload) {
   });
   useRoomStore.setState((s) => ({
     book,
-    minds: cycle.minds,
+    minds,
     frame,
     race,
     frameSeq: seq,

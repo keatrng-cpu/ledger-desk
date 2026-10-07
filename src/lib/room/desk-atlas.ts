@@ -88,6 +88,10 @@ const SEED: Seed[] = [
   { id: "now:session", shelf: "now", title: "Session", who: "Gemma", confidence: 80, n: 1, pinned: true, tags: ["session", "clock"], text: "The chart leads until 16:00 ET. Eleven o'clock cuts size. It does not stop the search." },
   { id: "now:entry", shelf: "now", title: "Entry", who: "Nova", confidence: 88, n: 1, pinned: true, tags: ["entry", "ce", "chase"], text: "A missed touch waits for the pullback into the array or its CE. An extension is not an entry." },
   { id: "now:card", shelf: "now", title: "Card", who: "Nova", confidence: 60, n: 0, pinned: false, tags: ["card"], text: "No live card yet. Do not invent one." },
+  { id: "now:school", shelf: "now", title: "School", who: "Nova", confidence: 80, n: 1, pinned: true, tags: ["school", "ict", "tjr"], text: "No school read yet. The four schools grade the card that is on." },
+  { id: "now:chart", shelf: "now", title: "Chart", who: "Gemma", confidence: 80, n: 1, pinned: true, tags: ["chart", "ladder", "nq", "es"], text: "No chart read yet. NQ and ES structure lands here, higher, middle, and lower." },
+  { id: "now:backtest", shelf: "now", title: "Backtest", who: "Vince", confidence: 80, n: 1, pinned: true, tags: ["backtest", "lesson"], text: "No new backtest lesson. The joint book stays on the backtest shelf." },
+  { id: "now:journal", shelf: "now", title: "Journal", who: "Sterling", confidence: 80, n: 1, pinned: true, tags: ["journal", "close"], text: "No journal close yet." },
   { id: "now:news", shelf: "now", title: "News", who: "Gemma", confidence: 85, n: 1, pinned: true, tags: ["news"], text: "News and the clock change size and the bar to take it. They do not block a B+ or better when the chart is there." },
   { id: "disc:sterling", shelf: "discretion", title: "Sterling", who: "Sterling", confidence: 84, n: 1, pinned: true, tags: ["sterling", "veto"], text: "Sterling's ledger is a note. It is not a veto." },
   { id: "disc:place", shelf: "discretion", title: "Place", who: "Vince", confidence: 86, n: 1, pinned: true, tags: ["place", "robinhood"], text: "A cleared setup is reviewed and placed on Agentic. Nobody has to click." },
@@ -194,6 +198,10 @@ const EDGES: AtlasEdge[] = [
   { from: "now:entry", to: "smc:ce", why: "the missed-entry rule is the CE rule" },
   { from: "now:entry", to: "bt:chase", why: "the measured reason not to chase" },
   { from: "now:news", to: "mkt:lunch", why: "clock and news both size, neither blocks" },
+  { from: "now:school", to: "smc:sequence", why: "the schools grade the sequence on the card" },
+  { from: "now:chart", to: "mkt:bias", why: "the ladder is the chart's bias" },
+  { from: "now:backtest", to: "bt:book", why: "a graded card joins the measured book" },
+  { from: "now:journal", to: "bt:paper", why: "a close is what the journal remembers" },
   { from: "disc:sterling", to: "disc:band", why: "a note on size, not a stop" },
   { from: "disc:band", to: "bt:path", why: "the band the studies actually fired" },
   { from: "smc:sequence", to: "smc:amd", why: "the session cycle" },
@@ -318,7 +326,7 @@ export function shelfOf(a: DeskAtlas, shelf: AtlasShelf): AtlasNode[] {
 }
 
 export function nowLines(a: DeskAtlas): AtlasNode[] {
-  const order = ["now:card", "now:entry", "now:session", "now:news", "now:account", "now:goal"];
+  const order = ["now:card", "now:school", "now:chart", "now:backtest", "now:journal", "now:entry", "now:session", "now:news", "now:account", "now:goal"];
   return order.map((id) => nodeById(a, id)).filter((n): n is AtlasNode => !!n);
 }
 
