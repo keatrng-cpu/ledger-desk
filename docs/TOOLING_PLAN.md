@@ -97,6 +97,8 @@ Accuracy and the brain
 
 ## Next: the floor
 
+**The full, ordered plan (25 items, six runs, with checks and budgets) is `docs/FLOOR_PLAN.md`. The notes below are the earlier reasoning it grew from.**
+
 The floor is a Three.js scene with procedural capsule people on a Blender-built `office.glb`. Grok's own review: nothing below helps until the five have a skeleton and a face.
 - **NEXT, Blender path (the one that keeps the names the floor looks up):** a real head (blendshapes: viseme set, brow, blink) and a joint skeleton on each of the five in `scripts/blender/build_floor.py`; rebuild `office.glb` and portraits. Blender 5.0.1 headless is the exporter. `bpy` wants Python 3.11; this machine runs 3.14, so use Blender's own Python.
 - **NEXT, after the rig:** map the spoken line to visemes. Audio2Face (ACE) is an open-source audio-to-52-blendshapes model and would drive an ARKit-style head; it needs a GPU or NVIDIA's cloud. Cheaper first: drive the existing visemes from the text through `spoken-form.ts` (the line is already digit-checked), no GPU.
