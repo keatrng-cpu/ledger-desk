@@ -883,7 +883,7 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     const pxs = (n: number) => (Number.isInteger(n) ? f.raw(n.toLocaleString("en-US")) : f.px(n)); // 29,960 not 29,960.00: nobody says "point zero zero"
     const ce = k.entry != null ? ` CE ${pxs(k.entry)}${k.stop != null ? `, stop ${pxs(k.stop)}` : ""}.` : "";
     lines.push(line("Vince", ANIM.Vince.watch!, `${f.raw(k.futSymbol)} ${k.futSide}, ${f.raw(d.from)} to ${f.raw(d.to)}.${ce}`));
-    lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
+    lines.push(line("Jax", ANIM.Jax.point!, f.raw(k.delivery ? `${k.delivery} ${j.watch}` : j.watch)));
     if (k.entryLine?.trim()) lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(j.entry)));
     if (j.draw || j.odds) lines.push(line("Nova", ANIM.Nova.analyze!, f.raw([j.draw, j.odds].filter(Boolean).join(" "))));
     return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
@@ -894,7 +894,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
   const graded = Object.keys(j.school).length > 0;
   lines.push(line("Vince", ANIM.Vince.watch!, f.raw(j.setup)));
   lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(graded ? `${mine("Gemma")}${j.draw || j.target}` : j.target)));
-  lines.push(line("Jax", ANIM.Jax.point!, f.raw(`${mine("Jax")}${j.watch}`)));
+  // The delivery comes first: a card the lower timeframes are not delivering is said to wait before anything else about it is said.
+  lines.push(line("Jax", ANIM.Jax.point!, f.raw(`${k.delivery ? `${k.delivery} ` : ""}${mine("Jax")}${j.watch}`)));
   lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(graded ? `${mine("Nova")}${j.odds}`.trim() : j.book)));
   lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(`${mine("Sterling")}${j.entry}`)));
   return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
@@ -910,7 +911,7 @@ export function exAtEntry(c: Ctx, d: { card: CardRead }): Ex | null {
   const away = k.awayPts != null ? `${f.pts(Math.abs(k.awayPts))} pts from the entry` : "at the entry";
   const lines: (Line | null)[] = [
     line("Gemma", ANIM.Gemma.explain!, `${f.raw(k.futSymbol)} ${k.futSide}. Price is ${away}. The ladder is on the board.`),
-    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, stand ? "This is not the fill. The raid does not get the order." : "Watch the entry. We do not swing before it prints."),
+    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, k.delivery ? f.raw(k.delivery) : stand ? "This is not the fill. The raid does not get the order." : "Watch the entry. We do not swing before it prints."),
     line("Sterling", stand ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, stand ? "The card and the desk do not agree. Nobody places." : agree ? "The card and the desk agree." : "Not yet. The array has not been touched."),
     line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? `If it fills, P(T1) ${f.frac(k.pT1)}${k.expR != null ? `, E[R] ${signed(k.expR)}${Math.abs(k.expR).toFixed(2)}` : ""}.` : "No priced T1. Do not invent one."),
     line(

@@ -235,6 +235,11 @@ export interface CardRead {
    * `by` is keyed by the cast seat that presents the school: Gemma ICT, Jax TJR, Nova Blake, Sterling Patty. Narration, never a gate.
    */
   schools?: { line: string; by: Record<string, string> };
+  /**
+   * What the lower timeframes are doing against this card, or that the focus just moved to it (focus-pick.ts). Empty when the delivery needs no
+   * comment. The Floor says it first: a short with no displacement down and the 1 to 3 minute delivering up is not something to keep trying to take.
+   */
+  delivery?: string | null;
 }
 
 export interface MindsRead {

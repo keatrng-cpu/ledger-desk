@@ -14,6 +14,7 @@ import { readEntry } from "@/lib/trading/entry-trigger";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { sessionBias, type TfLadder } from "@/lib/trading/tf-ladder";
+import { deliveryLine, deliveryOfLadder, pickFocus } from "./focus-pick";
 import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
@@ -259,11 +260,17 @@ function cardRead(desk: DeskPayload): CardRead | null {
     const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
     return { u, b, plan, read };
   };
-  const live = ranked.find((c) => {
-    const t = readOf(c).read?.tier;
-    return t === "live" || t === "armed" || t === "forming";
-  });
-  const c = live ?? ranked[0]!;
+  // The card the five talk about follows the DELIVERY (focus-pick.ts): when the 1 to 3 minute is delivering the other way and the card on top has no
+  // displacement of its own, the focus moves to the card the tape is supporting, within the desk's gates. The HTF gate itself is not touched.
+  const pick = pickFocus(
+    ranked,
+    (x) => {
+      const t = readOf(x).read?.tier;
+      return t === "live" || t === "armed" || t === "forming";
+    },
+    (x) => deliveryOfLadder(ladderOf(desk, x.symbol), x),
+  )!;
+  const c = pick.card;
   const { u, b, plan, read } = readOf(c);
   const otherU = u === "QQQ" ? "SPY" : "QQQ";
   const otherB = books[otherU];
@@ -310,6 +317,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     entryLine: seq.act,
     entrySay: seq.say ?? null,
     schools: schoolsOf(desk, c),
+    delivery: deliveryLine(pick) || null,
   };
 }
 
