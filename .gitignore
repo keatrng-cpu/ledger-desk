@@ -28,3 +28,9 @@ gateway/.venv/
 src/data/*.json.part
 .cache/
 .claude/worktrees/
+
+# Brain lab vector store and one-off bar dumps. Rebuilt locally. Not the book.
+brainlab/.chroma/
+brainlab/out/
+brainlab/**/__pycache__/
+

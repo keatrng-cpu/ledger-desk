@@ -80,3 +80,9 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Why:** The graph answers where the code connects. The book answers what the floor recalls. Putting the book inside `graph.json` would make a trading line look like a function.
 - **Supersedes:** the note in the 2026-10-05 Graphify entry that Graphify had not been run. Does not replace that entry's decision that Graphify stays the code map and markdown canon sits beside it.
 
+### 2026-10-07 — Lab tools sit beside the desk, not on the order path
+- **Status:** ADOPTED · **Decided by:** Keaton (asked to use yfinance, MetaTrader 5, pandas-ta, Chroma or Marqo, Probot, PR-Agent, Streamlit, and CodeRabbit) · **Source:** this session.
+- **Decision:** `brainlab/` is the audit lab. Yahoo bars use the same MNQ/ES/NQ symbols as `src/lib/market/yahoo.ts`. MetaTrader 5 is the same bar shape and fails closed when the Windows terminal is absent. Swing legs are confirmed pivots; ATR comes from `pandas-ta-classic` (the pandas-ta build that still installs; the upstream name has no 3.10 wheel). Chroma stores notes on disk; Marqo is used only if a server URL is set. Issue intake is `.github/workflows/brain-intake.yml` (and a Probot app of the same comment, run one of them). PR-Agent runs when someone comments `/review` and `OPENAI_KEY` exists. CodeRabbit reads `.coderabbit.yaml` after the GitHub App is installed. None of these write the room cycle, a gate, or an order.
+- **Why:** The desk already has a live price. A second feed that can place is how a lab becomes a second broker.
+
+

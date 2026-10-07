@@ -1,0 +1,64 @@
+# PR-Agent (Qodo, open source). Does not run on every pull request.
+# Comment /review, /describe, or /improve on the PR, or run this workflow by hand.
+# Add a repository secret named OPENAI_KEY. Without it, the job says so and stops.
+name: PR Agent
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: string
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+jobs:
+  pr_agent_job:
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.issue.pull_request &&
+          (
+            contains(github.event.comment.body, '/review') ||
+            contains(github.event.comment.body, '/describe') ||
+            contains(github.event.comment.body, '/improve')
+          )
+        )
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Secret present
+        id: key
+        env:
+          KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Say the key is missing
+        if: steps.key.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.issue?.number || "${{ github.event.inputs.pr }}";
+            if (!pr) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(pr),
+              body: "PR-Agent is wired. Add the OPENAI_KEY repository secret, then comment /review again. No review was posted.",
+            });
+      - name: PR Agent
+        if: steps.key.outputs.skip == 'false'
+        uses: qodo-ai/pr-agent@main
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested"]'

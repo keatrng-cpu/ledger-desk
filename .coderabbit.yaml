@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Install the CodeRabbit GitHub App once. This file is what it reads.
+language: en-US
+tone_instructions: Be direct. Quote the file. Do not invent a price, a win rate, or a sample size.
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  path_filters:
+    - "!graphify-out/**"
+    - "!brainlab/.chroma/**"
+  instructions: |
+    The desk scores trades in code. Do not suggest an LLM inside the quote poll or the scoring path.
+    Do not suggest lowering confluenceFloor or aPlusThreshold.
+    Do not suggest arming a live order flag, skipping review_option_order, or placing an order from a comment.
+    graphify-out is generated. Do not review those notes as source.
+  path_instructions:
+    - path: "src/lib/aplus/config.ts"
+      instructions: |
+        These numbers are the floor. Do not propose an edit that lowers confluenceFloor (0.65) or aPlusThreshold.
+    - path: "src/lib/execution/**"
+      instructions: |
+        Fail closed. A missing field refuses. Do not add a fallback that turns a refused card into an order.
+    - path: "src/lib/room/**"
+      instructions: |
+        The floor recalls the book. Do not replace that with a vector search or a model call on the live cycle.
+    - path: "brainlab/**"
+      instructions: |
+        This lab audits bars and notes. It must not gain an order path, a size, or a write into the room cycle.
+  auto_review:
+    enabled: true
+    drafts: false
+chat:
+  art: false

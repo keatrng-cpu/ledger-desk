@@ -1,0 +1,9 @@
+{
+  "name": "ledger-brain-intake",
+  "private": true,
+  "type": "module",
+  "description": "GitHub App that turns an opened issue into a brain note. Needs APP_ID and a private key. The Actions workflow does the same job without the app.",
+  "dependencies": {
+    "probot": "^13.4.5"
+  }
+}
