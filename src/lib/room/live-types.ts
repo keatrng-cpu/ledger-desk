@@ -240,6 +240,8 @@ export interface CardRead {
    * comment. The Floor says it first: a short with no displacement down and the 1 to 3 minute delivering up is not something to keep trying to take.
    */
   delivery?: string | null;
+  /** What the last graded 0.90-plus cards like this one did, from the high-alert ledger (hi-alert.ts). Null when there is no history. */
+  recall?: string | null;
 }
 
 export interface MindsRead {

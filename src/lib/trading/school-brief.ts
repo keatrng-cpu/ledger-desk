@@ -16,6 +16,7 @@
  */
 
 import raw from "@/data/school-brief.json";
+import { STRATEGY_SCHOOL } from "./smc-canon";
 import type { SetupCandidate } from "./scanner";
 import type { LadderBias, TfRead } from "./tf-ladder";
 
@@ -51,6 +52,12 @@ export const HYBRIDS = raw.hybrids as unknown as Record<"ict_tjr" | "blake_patty
 export const BRIEF_SOURCE: string = raw.source;
 export const BRIEF_AS_OF: string = raw.asOf;
 
+/** The school whose rules a card's best model follows, among the four that have a grader. Null for models with none (continuation, SMT, Ronan). */
+export function ownSchool(strategy: string | null | undefined): SchoolKey | null {
+  const s = (STRATEGY_SCHOOL as Record<string, string | null>)[String(strategy ?? "")];
+  return s === "ict" || s === "tjr" || s === "blake" || s === "patty" ? s : null;
+}
+
 /** What the voice calls each school. */
 export const SCHOOL_SAY: Record<SchoolKey, string> = { ict: "ICT", tjr: "TJR", blake: "Blake", patty: "Patty" };
 /** The cast seat that presents each school on the Floor. */
@@ -68,6 +75,8 @@ export interface BiasRead {
 export interface LadderLite {
   reads: ReadonlyArray<Pick<TfRead, "tf" | "bias" | "vsOpenPct">>;
   tier3: LadderBias;
+  /** The trigger rungs (3, 2, 1 minute). Optional: only the delivery read needs them. */
+  tier4?: LadderBias;
   phase: string;
 }
 

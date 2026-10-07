@@ -896,7 +896,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
   lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(graded ? `${mine("Gemma")}${j.draw || j.target}` : j.target)));
   // The delivery comes first: a card the lower timeframes are not delivering is said to wait before anything else about it is said.
   lines.push(line("Jax", ANIM.Jax.point!, f.raw(`${k.delivery ? `${k.delivery} ` : ""}${mine("Jax")}${j.watch}`)));
-  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(graded ? `${mine("Nova")}${j.odds}`.trim() : j.book)));
+  // Nova also gives what the ledger remembers: the last graded 0.90-plus cards of this model and side, and whether passing was right.
+  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(graded ? `${mine("Nova")}${j.odds}${k.recall ? ` ${k.recall}` : ""}`.trim() : j.book)));
   lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(`${mine("Sterling")}${j.entry}`)));
   return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
 }

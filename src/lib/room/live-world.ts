@@ -15,6 +15,7 @@ import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { sessionBias, type TfLadder } from "@/lib/trading/tf-ladder";
 import { deliveryLine, deliveryOfLadder, pickFocus } from "./focus-pick";
+import { loadHiAlerts, recallHiAlerts } from "@/lib/trading/hi-alert";
 import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
@@ -318,6 +319,7 @@ function cardRead(desk: DeskPayload): CardRead | null {
     entrySay: seq.say ?? null,
     schools: schoolsOf(desk, c),
     delivery: deliveryLine(pick) || null,
+    recall: recallHiAlerts(loadHiAlerts(), { strategy: c.completeStrategy || c.strategyPrimary || null, side: c.side === "short" ? "short" : "long" }),
   };
 }
 

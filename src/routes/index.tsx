@@ -183,6 +183,7 @@ import {
 import { msUntilNextDeskPoll } from "@/lib/trading/desk-cadence";
 import { onBeat } from "@/lib/live/keep-live";
 import { gradeAll, loadHiAlerts, recordHiAlerts, saveHiAlerts } from "@/lib/trading/hi-alert";
+import { feedLedger } from "@/lib/room/hi-alert-brain";
 import { loadPaperTrades } from "@/lib/trading/paper-manager";
 
 // three.js (~600 KB) loads only when the Floor tab is opened; the room's
@@ -1555,6 +1556,8 @@ function MasterplacePage() {
         },
       });
       list = gradeAll(list, { [desk.left.symbol]: desk.left.bars, [desk.right.symbol]: desk.right.bars }, now);
+      // A card the chart has finished grading is written to the brain once: the lesson, the school graded, the character's own note.
+      list = feedLedger(list, now);
       saveHiAlerts(list);
     } catch {
       /* the ledger must never break the desk */

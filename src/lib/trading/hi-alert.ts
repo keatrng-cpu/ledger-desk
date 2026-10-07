@@ -18,6 +18,7 @@
  */
 
 import type { OhlcBar } from "@/lib/market/types";
+import { deliveryLine, deliveryOfLadder, type Delivery } from "@/lib/room/focus-pick";
 import { cardEvidence } from "./evidence";
 import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "./scanner";
 import { SCHOOL_SAY, schoolFactsFrom, schoolReads, type LadderLite, type SchoolKey, type Verdict } from "./school-brief";
@@ -77,6 +78,11 @@ export interface HiAlert {
   schools: { school: SchoolKey; verdict: Verdict; next: string | null }[];
   sequence: { word: string | null; missing: string | null } | null;
   outcome: HiOutcome | null;
+  /**
+   * Whether the lower timeframes were delivering this card's way when it was FIRST seen (focus-pick.ts). "against" is the case the Floor kept
+   * discussing a short while the 1 to 3 minute delivered up; recording it beside the chart grade is what lets the desk learn whether it mattered.
+   */
+  deliveryAtSight?: Delivery | null;
   /** The brain has been given this one (so it is written once). */
   fed?: boolean;
 }
@@ -97,6 +103,13 @@ export interface HiCtx {
 const r2 = (n: number) => Math.round(n * 100) / 100;
 const pct = (p: number) => `${Math.round(p * 100)}%`;
 const signed = (n: number) => `${n >= 0 ? "+" : "−"}${Math.abs(n).toFixed(2)}`;
+
+/** The card's delivery on its own index's ladder: are the 3, 2 and 1 minute going its way? "unknown" without a ladder. */
+function deliveryOf(c: SetupCandidate, ctx: HiCtx): Delivery {
+  const lad = ctx.ladderFor(c.symbol);
+  if (!lad?.tier4) return "unknown";
+  return deliveryOfLadder({ tier3: lad.tier3, tier4: lad.tier4 }, { side: c.side === "short" ? "short" : "long", actionable: Boolean(c.actionable) });
+}
 
 /* ── Why ─────────────────────────────────────────────────────────────────── */
 
@@ -122,6 +135,8 @@ export function explainHiAlert(c: SetupCandidate, ctx: HiCtx, taken: Taken): str
     if (book && book.word !== "TAKE") {
       out.push(`The SMC sequence says ${book.word ?? "WAIT"}${book.missing ? `, missing ${book.missing}${book.detail ? ` (${book.detail})` : ""}` : ""}.`);
     }
+    const d = deliveryOf(c, ctx);
+    if (d === "against") out.push(deliveryLine({ card: { side, htfOk: c.htfOk, actionable: c.actionable }, switchedFrom: null, topDelivery: d, delivery: d }));
     if (!c.actionable && !out.length) out.push(`Not actionable: ${c.missing.slice(0, 3).join("; ") || "the model is not complete"}.`);
     else if (!c.actionable && c.missing.length) out.push(`Also holding it: ${c.missing.slice(0, 2).join("; ")}.`);
     if (c.actionable && !out.length) out.push("It cleared the scanner but no order was rested for it (no CE touch, or an earlier fill was open).");
@@ -193,6 +208,7 @@ export function recordHiAlerts(prev: readonly HiAlert[], cands: readonly SetupCa
           ? { entry: c.plan.entry, stop: c.plan.stop, t1: c.plan.t1, t2: c.plan.t2, riskAtr: c.plan.riskAtr }
           : null,
         everActionable: read.actionable,
+        deliveryAtSight: deliveryOf(c, ctx),
         taken,
         why: explainHiAlert(c, ctx, taken),
         outcome: null,
@@ -336,7 +352,8 @@ export function lessonOf(h: HiAlert): string {
           ? "Taking it paid."
           : "Taking it lost.";
   const why = h.taken === "no" ? (h.why[0] ?? "") : "";
-  return `${who}, ${h.day}: ${h.taken === "no" ? "not taken" : "taken"}${why ? ` (${why.replace(/\.$/, "")})` : ""}; it ${OUTCOME_TEXT[o.status]}${o.R != null ? ` at ${signed(o.R)} R` : ""}. ${verdict}`;
+  const against = h.deliveryAtSight === "against" ? " The 1 to 3 minute was against it." : "";
+  return `${who}, ${h.day}: ${h.taken === "no" ? "not taken" : "taken"}${why ? ` (${why.replace(/\.$/, "")})` : ""}; it ${OUTCOME_TEXT[o.status]}${o.R != null ? ` at ${signed(o.R)} R` : ""}.${against} ${verdict}`;
 }
 
 /** What the last graded cards like this one did. Same model and side. Null when there is no history, so nothing is invented. */
@@ -356,12 +373,19 @@ export function recallHiAlerts(list: readonly HiAlert[], q: { strategy: string |
 
 /* ── Persistence (browser only; fails closed) ────────────────────────────── */
 
+let memoRaw: string | null = null;
+let memoList: HiAlert[] = [];
+
 export function loadHiAlerts(): HiAlert[] {
   try {
     if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(HI_ALERT_KEY);
+    // The Floor reads this every few seconds: parse again only when the stored text changed.
+    if (raw === memoRaw) return memoList;
     const parsed = raw ? (JSON.parse(raw) as unknown) : null;
-    return Array.isArray(parsed) ? (parsed as HiAlert[]).filter((h) => h && typeof h.id === "string") : [];
+    memoList = Array.isArray(parsed) ? (parsed as HiAlert[]).filter((h) => h && typeof h.id === "string") : [];
+    memoRaw = raw;
+    return memoList;
   } catch {
     return [];
   }
