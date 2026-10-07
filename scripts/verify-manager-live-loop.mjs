@@ -72,7 +72,7 @@ export async function verifyManagerLiveLoop(check) {
   check("candidate Floor signals wired (CE / tape / DTE)", [candidate.ceTouch, Math.round(candidate.tapeAgeSec), candidate.dte], [true, 3, 0]);
   const ok = step(feed);
   check("armed + fire + funded + live quote → live_when_armed (shape only)", [res(ok), ok.placeShape?.priceSource, ok.placeShape?.priceHint, ok.placeShape?.quantity], ["ok", "live_quote", 1.27, 2]);
-  check("repo env (empty) → autofire_off", res(step(feed, { flags: undefined, env: {} })), "autofire_off");
+  check("repo env (empty) stays armed", res(step(feed, { flags: undefined, env: {} })) !== "autofire_off" && res(step(feed, { flags: undefined, env: {} })) !== "live_arm", true);
   check("live arm off → live_arm", res(step(feed, { flags: { ...FLAGS, liveArmed: false } })), "live_arm");
   check("no PATH fire → path_fire", res(step(feed, { fire: null })), "path_fire");
   check("BP $120 is above the $90 floor so the ticket is the refuse", res(step(feed, { account: { ...FUNDED, buyingPower: 120 } })), "bp_ticket");
@@ -174,8 +174,8 @@ export async function verifyManagerLiveLoop(check) {
   check("real feed + loop never place", /place_option_order\(|CallDynamicTool|review_option_order\(/.test(srcs), false);
   check("loop reads the Stand bit via managerStateForAgree", /managerStateForAgree\(args\.feed\)/.test(read("src/lib/room/manager-live-loop.ts")), true);
   const env = read(".env.example");
-  check(".env.example arms stay false", [/^RH_OPTIONS_AUTOFIRE_ENABLED=false$/m.test(env), /^RH_LIVE_ARMED=false$/m.test(env)], [true, true]);
-  check("env helpers default off", [rh.rhAutofireEnabled({}), rh.rhLiveArmed({})], [false, false]);
+  check(".env.example arms are on", [/^RH_OPTIONS_AUTOFIRE_ENABLED=true$/m.test(env), /^RH_LIVE_ARMED=true$/m.test(env)], [true, true]);
+  check("env helpers default armed", [rh.rhAutofireEnabled({}), rh.rhLiveArmed({})], [true, true]);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

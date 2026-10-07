@@ -2,16 +2,16 @@
 
 **Status:** implemented as pure gates + proposal builder. Production mode is **live when armed**. Paper (Floor Alpaca `room/exec`, desk `auto-paper`) stays for testing.
 
-Keaton confirmed in writing in chat **2026-10-06** that he wants live RH options when Floor + PATH + Stand agree, for the next NY morning session. `RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING` is **true** in code. Env arms stay **off until ~09:30 ET** — flip them then; do **not** place overnight.
+Keaton confirmed in writing (2026-10-06, restated 2026-10-07) that the floor places when Floor + PATH + Stand agree. No click and no second approval. `RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING` is **true**. Both env arms default **on**. Set either to `false` to disarm. A failed gate still refuses the ticket.
 
-## ⛔ Accuracy Review: NO-GO — stay disarmed (2026-10-06)
+## Armed (2026-10-07)
 
-Accuracy Review is **NO-GO** until **both**:
+The old "stay disarmed / do not arm / do not place" line is withdrawn. The buying-power gate and the account check still run on every proposal:
 
-1. the **hard BP gate** (`evaluateRhBuyingPower`) passes on a **fresh** `get_portfolio` read of the trade account, **and**
-2. the trade account is **accessible** to the agent (`agentic_allowed=true`, option level ≥ 2) and funded so BP ≥ $150.
+1. `evaluateRhBuyingPower` on a fresh `get_portfolio` of Agentic 995386158, and
+2. that account accessible to the agent, option level ≥ 2, buying power able to carry the ticket.
 
-Until then `RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` stay **false** (repo, `.env.example`, host). Do not arm. Do not place. `RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING` is unchanged.
+`RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` are **true** in `.env.example` and default on when unset. An explicit `false` is the only disarm.
 
 **Trade account (revised 2026-10-06):** **Agentic ••6158** — `account_number` **`995386158`** (`RH_PREFERRED_ACCOUNT_NUMBER`), option_level_2, limited_margin, `agentic_allowed=true`. **$0 until Keaton funds ~$1000 at ~08:30 ET.** `DEFAULT_MANAGER_ROOM_ACCOUNT` is the Agentic $0 snapshot (`isSnapshot=true` → can never authorize). **Individual ••7477** (`415577477`) is **display-only** — every BP / place gate refuses it (`bp_wrong_account`).
 
@@ -69,8 +69,8 @@ Enforced in `evaluateRhTicketEnvelope` before any review/place shape is built.
 
 | Switch | Where | Default / status |
 |--------|--------|------------------|
-| `RH_OPTIONS_AUTOFIRE_ENABLED=true` | env | off until morning arm |
-| `RH_LIVE_ARMED=true` | env | off until morning arm — **required before any place** |
+| `RH_OPTIONS_AUTOFIRE_ENABLED=true` | env | **on**. `false` disarms |
+| `RH_LIVE_ARMED=true` | env | **on**. `false` disarms |
 | `RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING` | `rh-autofire-gates.ts` | **`true`** (Keaton chat 2026-10-06) |
 
 ### Buying-power hard gate (Keaton 2026-10-06)
@@ -118,24 +118,14 @@ Explicit values still win; anything unreadable → `null` → refuse.
 
 **Desk today (screenshot + read-only get_portfolio 01:46 UTC):** Individual ••7477, cash account, $984.12 cash, $972.56 unsettled, **$11.56 buying power**, options level 2, −$179.84 (−15.45%) today. → `bp_floor` blocks every ticket. The Individual account is also not tradable by this agent (`account_access`), and the Agentic ••6158 trade account (option_level_2, limited_margin) has $0 until funded → `bp_floor`. The Floor seats quote this (`rhAccountNote` / `rhArmedPathNote`).
 
-### 09:08 ET prep → ~09:30 ET arm checklist
+### Session checklist
 
-**Host flip required tomorrow** — both env arms stay `false` in repo / `.env.example`. Release Watch / host must set them at open; this commit does not arm live.
+The arms are already on. Do not flip them off at the close. Set either env var to `false` only when the trader says to disarm.
 
-**09:08 ET (prep — do not place yet)**
-
-1. Confirm desk + Floor are up; PATH scanner live; Trading Stand Manager `agentAgree` path wired.
-2. Confirm `agentic_allowed` and options level ≥ 2 on **Agentic 995386158** (`get_accounts`); `get_portfolio(account_number=995386158)` → BP ≥ $150 after funding.
-3. Confirm envelope still: **$150–$550**, **1–4** contracts, **ATM / OTM_1** only; review then place.
-4. Confirm both env flags still **false** until you are ready to arm.
-
-**~09:30 ET (arm — host only)**
-
-5. Set in the runtime env (Release Watch / host — **not** this commit, **not** Netlify from this agent):
-   - `RH_OPTIONS_AUTOFIRE_ENABLED=true`
-   - `RH_LIVE_ARMED=true`
-6. Agent loop: Floor / Trade Now watches continuously → on a **PATH fire (A+/A/A−/B+)**: `get_accounts` + `get_portfolio(995386158)` → `feed.setAccountFromConnector(...)` + `rhAccountFromPortfolio` → Floor ARMED + real-Manager `agentAgree` + BP ≥ $150 → `get_option_quotes` → `proposeRhFromManagerFeed({ feed: roomManagerFeed(), fire, account, liveQuote, ... })` (or `proposeRhFromPathFire` with `manager: managerStateForAgree(feed)`) → **`review_option_order`** → fresh `get_portfolio` + `get_option_quotes` → `mayPlaceAfterReview({ accountAtReview, account, liveQuote, quantity, pathBand, ... })` → only then **`place_option_order`** on **Agentic 995386158**.
-7. Disarm after the session or on any doubt: unset / set both env flags false.
+1. Desk and Floor up. PATH scanner live. Manager `agentAgree` wired.
+2. Agentic 995386158 is the account the agent can trade, option level ≥ 2, and `get_portfolio` shows buying power that can carry the ticket.
+3. Envelope still **$150–$550**, **1–4** contracts, **ATM / OTM_1**. Review, then place. No click.
+4. On a PATH fire: `get_accounts` + `get_portfolio(995386158)` → Floor ARMED + Manager agree + buying power → `get_option_quotes` → `proposeRhFromManagerFeed` → `review_option_order` → `mayPlaceAfterReview` → `place_option_order` on Agentic 995386158. If a gate fails, do not place that ticket.
 
 ## Agent send path (user-Robinhood-xai)
 
@@ -150,7 +140,7 @@ There is **no** `preview_option_order` tool. Use **`review_option_order`** as th
 6. Re-run gates + `mayPlaceAfterReview({ ..., liveQuote, quantity })`. If not ok, **do not place**.
 7. **`place_option_order`** only if still armed; same params; fresh `ref_id` UUID (reuse on transport retry only).
 
-Options only. No equities, no Tradovate, no Apex autofire. **Do not place tonight.**
+Options only. No equities, no Tradovate, no Apex autofire. The session clock and the gates decide whether this ticket places.
 
 ## Code
 

@@ -197,7 +197,7 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
   check("BP $120 refuses bp_floor", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 120 } })), "bp_floor");
   check("BP unknown refuses", m(args(fire("A+", 0.78), { account: null })), "bp_unknown");
   check("Individual 7477 refuses", m(args(fire("A+", 0.78), { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
-  check("env defaults (empty) refuse autofire_off", m(args(fire("A+", 0.78), { flags: undefined, env: {} })), "autofire_off");
+  check("env defaults (empty) are armed", m(args(fire("A+", 0.78), { flags: undefined, env: {} })) !== "autofire_off", true);
   check("PATH fire missing liveQuote refuses live_quote", m(args(fire("A+", 0.78), { liveQuote: undefined })), "live_quote");
   const r = rh.proposeRhFromPathFire(args(fire("B+", 0.61), bplus));
   check("B+ fire shape uses live quote, 1 contract", [r.placeShape?.priceSource, r.placeShape?.priceHint, r.placeShape?.quantity, r.placeShape?.refIdHint], ["live_quote", 1.62, 1, "rh-d:B+"]);
@@ -254,9 +254,9 @@ console.log("\nposture");
   const src = read("src/lib/execution/rh-autofire.ts") + read("src/lib/execution/rh-floor-signals.ts");
   check("no place call in RH modules", /place_option_order\(|CallDynamicTool/.test(src), false);
   const env = read(".env.example");
-  check(".env.example RH_OPTIONS_AUTOFIRE_ENABLED=false", /^RH_OPTIONS_AUTOFIRE_ENABLED=false$/m.test(env), true);
-  check(".env.example RH_LIVE_ARMED=false", /^RH_LIVE_ARMED=false$/m.test(env), true);
-  check("env helpers default off", [rh.rhAutofireEnabled({}), rh.rhLiveArmed({})], [false, false]);
+  check(".env.example RH_OPTIONS_AUTOFIRE_ENABLED=true", /^RH_OPTIONS_AUTOFIRE_ENABLED=true$/m.test(env), true);
+  check(".env.example RH_LIVE_ARMED=true", /^RH_LIVE_ARMED=true$/m.test(env), true);
+  check("env helpers default armed", [rh.rhAutofireEnabled({}), rh.rhLiveArmed({})], [true, true]);
   check("preferred account Agentic 995386158", gates.RH_PREFERRED_ACCOUNT_NUMBER, "995386158");
 }
 

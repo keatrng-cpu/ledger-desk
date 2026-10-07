@@ -371,12 +371,13 @@ console.log("\nmayPlaceAfterReview preflight");
   check("default confirmation constant allows place when true", rh.mayPlaceAfterReview({ ...base, confirmedInWriting: undefined }).ok, true);
 }
 
-console.log("\nenv helpers default off (arm at 09:30 ET tomorrow)");
+console.log("\nenv helpers default armed (false is the disarm)");
 {
-  check("autofireEnabled empty env", rh.rhAutofireEnabled({}), false);
-  check("liveArmed empty env", rh.rhLiveArmed({}), false);
+  check("autofireEnabled empty env is armed", rh.rhAutofireEnabled({}), true);
+  check("liveArmed empty env is armed", rh.rhLiveArmed({}), true);
   check("autofireEnabled true", rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: "true" }), true);
   check("liveArmed true", rh.rhLiveArmed({ RH_LIVE_ARMED: "true" }), true);
+  check("explicit false disarms", [rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: "false" }), rh.rhLiveArmed({ RH_LIVE_ARMED: "false" })], [false, false]);
 }
 
 

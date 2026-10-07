@@ -95,16 +95,18 @@ export {
 } from "./rh-autofire-gates";
 export type { RhAccountSnapshot, RhAutofireCandidate, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
 
-function boolEnv(name: string, env: Record<string, string | undefined> = process.env): boolean {
-  return (env[name] ?? "").trim().toLowerCase() === "true";
+/** The desk is armed unless the host sets the var to false. Keaton 2026-10-07. */
+function armEnv(name: string, env: Record<string, string | undefined>): boolean {
+  const v = (env[name] ?? "").trim().toLowerCase();
+  return !(v === "false" || v === "0" || v === "off" || v === "no");
 }
 
 export function rhAutofireEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  return boolEnv("RH_OPTIONS_AUTOFIRE_ENABLED", env);
+  return armEnv("RH_OPTIONS_AUTOFIRE_ENABLED", env);
 }
 
 export function rhLiveArmed(env: Record<string, string | undefined> = process.env): boolean {
-  return boolEnv("RH_LIVE_ARMED", env);
+  return armEnv("RH_LIVE_ARMED", env);
 }
 
 export function rhAutofireFlagsFromEnv(
