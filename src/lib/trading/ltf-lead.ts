@@ -6,7 +6,9 @@
  * ICT bias is the unswept high-value pool: PDH, PDL, the session extreme,
  * equal highs and lows. A pool that already traded is manipulation, not the draw.
  *
- * The index that prints that inverse first is the leader. The other stands down.
+ * The 1, 2, 3, 4, and 5 minute are the entry only.
+ * Every slower rung, on both indexes, is the bias. They are read together.
+ * A higher-timeframe ladder against the trade stands it down.
  */
 
 import type { OhlcBar } from "@/lib/market/types";
@@ -78,13 +80,16 @@ export function readLtfLead(input: {
   otherMinute: OhlcBar[];
   draw: LiquidityTarget | null;
   otherDraw: LiquidityTarget | null;
+  /** Higher timeframes on this index. Direction is read from the top down. */
+  mineLadder?: { symbol: string; strip: string; htf: "bull" | "bear" | "neutral" } | null;
+  otherLadder?: { symbol: string; strip: string; htf: "bull" | "bear" | "neutral" } | null;
 }): LtfLead {
   const me = symbolOf(input.symbol);
   const other = symbolOf(input.otherSymbol);
-  if (input.minute.length < 10) {
+  if (input.minute.length < 10 && !input.mineLadder && !input.otherLadder) {
     return { known: false, inverse: false, rung: null, leader: "neither", thisLeads: true, bias: "none", line: "" };
   }
-  const mine = bestRung(input.minute, input.side);
+  const mine = input.minute.length >= 10 ? bestRung(input.minute, input.side) : null;
   const theirs = input.otherMinute.length >= 10 ? bestRung(input.otherMinute, input.side) : null;
   let leader: LtfLead["leader"] = "neither";
   if (mine && theirs) {
@@ -93,13 +98,25 @@ export function readLtfLead(input: {
   } else if (mine) leader = me;
   else if (theirs) leader = other;
 
-  const bias = liquidity(input.draw, input.side);
+  const biasPool = liquidity(input.draw, input.side);
+  const mineHtf = input.mineLadder?.htf ?? "neutral";
+  const htfAgainst = (mineHtf === "bull" && input.side === "short") || (mineHtf === "bear" && input.side === "long");
+  const bias = htfAgainst ? "against" : biasPool;
+  const strips = [input.mineLadder, input.otherLadder]
+    .filter((l): l is NonNullable<typeof l> => !!l?.strip)
+    .map((l) => `${l.symbol} ${l.strip} ${l.htf}`)
+    .join(". ");
+  const context = strips
+    ? `Both indexes, every rung: ${strips}. The 1m to 5m is only the entry.`
+    : "Both indexes. The 1m to 5m is only the entry.";
   const pool = input.draw ? `${input.draw.name} ${input.draw.price.toFixed(2)}` : "no high-value pool";
   const poolSay =
     bias === "with"
       ? `${pool} is unswept in the direction. That pool is the draw.`
       : bias === "against"
-        ? `${pool} is unswept the other way. That pool is the bias. Do not fade it.`
+        ? htfAgainst
+          ? `Higher timeframes on this index read against the ${input.side}. The ladder stands it down. The 1m to 5m does not override that.`
+          : `${pool} is unswept the other way. That pool is the bias. Do not fade it.`
         : bias === "swept"
           ? `${pool} already traded. That was the manipulation, not the target.`
           : "No high-value pool is marked.";
@@ -120,7 +137,7 @@ export function readLtfLead(input: {
     leader,
     thisLeads,
     bias,
-    line: `${rungSay} ${leadSay} ${poolSay} PB takes that highest inverse. TJR enters the retrace into it. ICT targets the unswept pool.`,
+    line: `${context} ${rungSay} ${leadSay} ${poolSay}`,
   };
 }
 

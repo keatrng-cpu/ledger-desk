@@ -42,6 +42,7 @@ import type {
 } from "./orchestrator";
 import { ivFor, quoteOption, type OptionType, type Underlier } from "./option-math";
 import { absorbAtlas, improveAtlas, offerToBrains, saveAtlas, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
+import { jobsFor } from "./brain-feed";
 
 export const CREW: readonly Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
 
@@ -702,7 +703,18 @@ function recordEvents(m0: MindState, s: Situation, meeting: Meeting | null): Min
     nowMs: s.nowMs,
     etMin: s.etMin,
     cardKey: s.card ? `${s.card.futSymbol}:${s.card.futSide}:${s.card.band ?? ""}:${s.card.smcWord}` : null,
-    cardLine: s.card ? `${s.card.futSymbol} ${s.card.futSide} ${s.card.smcWord}${s.card.band ? ` ${s.card.band}` : ""}. Entry is the array.` : null,
+    cardLine: s.card
+      ? jobsFor({
+          symbol: s.card.futSymbol,
+          side: s.card.futSide,
+          sequence: s.card.tier,
+          smcWord: s.card.smcWord,
+          missing: s.card.smcMissing,
+          target: s.card.plan?.t1 ?? null,
+          pT1: s.card.pT1,
+          expR: s.card.expR,
+        }).line
+      : null,
     exitId: s.exit?.id ?? null,
     exitLine: s.exit ? `${s.exit.id} ${s.exit.pnl >= 0 ? "paid" : "cost"} ${Math.abs(s.exit.pnl).toFixed(1)}%` : null,
     newsOn: s.blackout,

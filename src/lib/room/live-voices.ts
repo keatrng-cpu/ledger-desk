@@ -23,6 +23,7 @@
  */
 
 import { ROOM_MANDATE } from "./mandate";
+import { jobsFor } from "./brain-feed";
 import { BLACKOUT_MIN } from "@/lib/news/schedule";
 import { PATH_MONTH_CAP } from "@/lib/trading/profit-rules";
 import { EXEC_LIMITS } from "./exec/limits";
@@ -864,57 +865,23 @@ export interface TierData {
 export function exTier(c: Ctx, d: TierData): Ex | null {
   const f = c.f;
   const k = d.card;
-  const entry = k.entry != null ? f.lvl(k.entry) : null;
   const lines: (Line | null)[] = [];
-  if (k.entryLine) {
-    const name = k.sequence ?? "Sequence";
-    lines.push(line("Vince", ANIM.Vince.watch!, () => `${f.raw(k.name)}. ${f.raw(name)}.`));
-    lines.push(line("Gemma", ANIM.Gemma.explain!, () => f.raw(k.entryLine!)));
-    lines.push(line("Jax", ANIM.Jax.point!, () => (k.entryLine!.startsWith("Enter") || name.startsWith("ENTER") ? `That's the fill. Place the month ticket.` : `Not yet. The raid is not the entry.`)));
-    lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? () => `If it fills, P(T1) ${f.frac(k.pT1!)}${k.expR != null ? `, E[R] ${signed(k.expR)}` : ""}. The sequence does not change that number.` : () => `No priced T1 on this one. The sequence still has to have a draw.`));
-    lines.push(line("Sterling", ANIM.Sterling.tablet!, () => (name.startsWith("STAND") || name.startsWith("DRAW") ? `Stood down. Size stays.` : `Month ticket only if this is the fill. A count does not stand it down.`)));
-    return { lines: compact(lines), moves: name.startsWith("ENTER") || d.to === "live" ? BOARD : {} };
-  }
-  if (d.from == null || d.to === "forming" || d.to === "board") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.new.vince", [
-      () => `${f.raw(k.name)} just printed${entry ? `, CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts out` : ""}.`,
-      () => `New card. ${f.raw(k.name)}${k.tier ? `, ${k.tier}` : ""}.`,
-    ])));
-    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.new.sterling", [
-      () => `I see it. ${k.block ? f.raw(k.block) : "The card is on the board."}`,
-      () => `${f.raw(k.name)}. Called as it landed.`,
-    ])));
-  } else if (d.to === "armed") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.armed.vince", [
-      () => `Anticipation. ${f.raw(k.name)} is armed${entry ? `, CE ${entry}` : ""}. We do not enter until price is in the array.`,
-      () => `Armed is not the fill. Wait for ${entry ?? "the array"}.`,
-    ])));
-    lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null
-      ? pick(c, "tier.armed.nova", [
-          () => `P(T1) ${f.frac(k.pT1!)} if filled${k.expR != null ? `, E[R] ${signed(k.expR)}${f.r(k.expR)} a fill` : ""}. The price of waiting is the fill rate.`,
-          () => `If it fills: ${f.frac(k.pT1!)} to reach T1${k.expR != null ? `, ${signed(k.expR)}${f.r(k.expR)} expected` : ""}. Distance from CE is what costs the fill.`,
-        ])
-      : null));
-    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "tier.armed.jax", [() => `Come on, come to papa.`, () => `Close. Come on.`, () => `Armed is the best word in this building.`])));
-  } else if (d.to === "live") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.live.vince", [
-      () => `War board. Price is at CE${entry ? ` ${entry}` : ""}. This is the touch.`,
-      () => `All five. ${d.b ? `${d.b.say} ` : ""}is in the array${entry ? ` — ${entry}` : ""}.`,
-    ])));
-    lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "tier.live.sterling", [() => `Direction agrees. The grade is the permission. I do not get a second vote.`, () => `The side is already called. Size is the only thing left.`])));
-    lines.push(line("Jax", ANIM.Jax.shout!, pick(c, "tier.live.jax", [() => `Now. TJR retrace, reversal, or the inverse. Place the month ticket.`, () => `Shift printed. Retrace is the entry.`, () => `The raid is not the fill.`])));
-  } else if (d.to === "gone") {
-    lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.gone.vince", [
-      () => `Missed ${f.raw(k.name)}. We do not chase it. The next entry is the pullback into the array, at CE.`,
-      () => `It left without us. Buying it up here is a chase. We wait for the array.`,
-    ])));
-    lines.push(line("Sterling", ANIM.Sterling.approve!, pick(c, "tier.gone.sterling", [() => `Missing one is the cheapest mistake there is. The next ticket is the pullback, not this print.`, () => `No fill, no chase. We get back in at the array.`])));
-  } else {
-    return null;
-  }
-  const out = compact(lines);
-  const gather = d.to === "armed" || d.to === "live" || d.card.verdict === "ARMED";
-  return out.length >= 2 ? { lines: out, moves: gather ? BOARD : {} } : null;
+  const j = jobsFor({
+    symbol: k.futSymbol,
+    side: k.futSide,
+    sequence: k.sequence ?? k.tier,
+    entryLine: k.entryLine,
+    missing: k.block,
+    target: k.t1,
+    pT1: k.pT1,
+    expR: k.expR,
+  });
+  lines.push(line("Vince", ANIM.Vince.watch!, () => f.raw(j.setup)));
+  lines.push(line("Gemma", ANIM.Gemma.explain!, () => f.raw(j.target)));
+  lines.push(line("Jax", ANIM.Jax.point!, () => f.raw(j.watch)));
+  lines.push(line("Nova", ANIM.Nova.analyze!, () => f.raw(j.book)));
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, () => f.raw(j.entry)));
+  return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
 }
 
 export function exFill(c: Ctx, d: { p: PositionRead; b: TapeBook | null }): Ex | null {

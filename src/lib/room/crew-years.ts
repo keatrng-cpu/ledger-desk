@@ -1,6 +1,7 @@
 import study from "@/data/crew-card-study.json";
 import { improveAtlas, loadAtlas, mergeAtlas, offerToBrains, saveAtlas, type BrainWho, type PeopleBrains } from "./desk-atlas";
 import { PERFECT_STANDARD } from "./perfect-entry";
+import { SCHOOLS } from "@/lib/trading/smc-canon";
 import book from "@/data/perfect-entry-book.json";
 
 export interface CrewHalf {
@@ -70,6 +71,21 @@ export function learnCrewYears(): void {
         text: `Sep 2022 through Sep 2026, entries 9:30 to 11:30, two a day. The target is the draw marked first. ${lines} The two-a-day book reached the draw 19 of 29 times and made about zero R. After 2024 it was 5 of 11. It did not clear 68%.`,
       }));
       localStorage.setItem("ledger-perfect-book-v1", book.note);
+    }
+    if (localStorage.getItem("ledger-schools-v1") !== "1") {
+      const schools: { title: string; who: "Gemma" | "Jax" | "Sterling" | "Nova" | "Vince"; text: string }[] = [
+        { title: "ICT", who: "Gemma", text: `${SCHOOLS.ict.name}. ${SCHOOLS.ict.sequence.join(". ")}. Entry: ${SCHOOLS.ict.entry}` },
+        { title: "TJR", who: "Jax", text: `${SCHOOLS.tjr.name}. ${SCHOOLS.tjr.sequence.join(". ")}. Entry: ${SCHOOLS.tjr.entry}` },
+        { title: "Patty", who: "Sterling", text: `${SCHOOLS.patty.name}. ${SCHOOLS.patty.sequence.join(". ")}. Entry: ${SCHOOLS.patty.entry}` },
+        { title: "Blake", who: "Nova", text: `${SCHOOLS.blake.name}. ${SCHOOLS.blake.sequence.join(". ")}. Entry: ${SCHOOLS.blake.entry}` },
+        { title: "SMC", who: "Vince", text: `${SCHOOLS.smc.name}. ${SCHOOLS.smc.sequence.join(". ")}. Entry: ${SCHOOLS.smc.entry}` },
+      ];
+      let atlas = loadAtlas() ?? mergeAtlas(null, null);
+      for (const s of schools) {
+        atlas = improveAtlas(atlas, { shelf: "smc", title: s.title, text: s.text, who: s.who, nowMs: Date.now() });
+      }
+      saveAtlas(atlas);
+      localStorage.setItem("ledger-schools-v1", "1");
     }
     if (localStorage.getItem(KEY) === study.note) return;
     let people: PeopleBrains | null = null;

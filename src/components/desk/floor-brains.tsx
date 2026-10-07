@@ -278,7 +278,7 @@ export function FloorBrains() {
           })}
       </div>
       <p className="border-t border-white/10 px-4 py-2 text-[11px] text-white/45">
-        The floor reads NQ and ES together. The entry is the highest 1m to 5m inverse on the index that led. The other stands down. An unswept PDH, PDL, or session pool sets the bias. A pool that already traded was the manipulation. When that entry prints, all five say which index and which minute.
+        The brain holds ICT, TJR, Patty, Blake, and SMC, plus the measured book. On a card it says the setup, the entry, the target, and the watch. NQ and ES are read together on every rung. The 1m to 5m is only the entry. A higher-timeframe ladder against the trade stands it down.
       </p>
       <p className="px-4 pb-3 text-[11px] text-white/55">
         Month ticket on $2,000: 4 contracts at $150, debit $600. Stop $180. A double pays $600. No count stands a ticket down. $3,000 needs 66%. At the measured 40%, nine of these net about $1,200 if every stop fills. Size rises one contract after nine closes clear. A win does not raise it.

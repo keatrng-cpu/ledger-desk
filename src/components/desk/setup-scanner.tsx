@@ -849,6 +849,8 @@ function SetupCard({
       otherMinute: otherTape?.minute ?? [],
       draw: tape?.draws?.primary ?? null,
       otherDraw: otherTape?.draws?.primary ?? null,
+      mineLadder: tape?.ladder ? { symbol: tape.ladder.symbol, strip: tape.ladder.strip, htf: tape.ladder.htf } : null,
+      otherLadder: otherTape?.ladder ? { symbol: otherTape.ladder.symbol, strip: otherTape.ladder.strip, htf: otherTape.ladder.htf } : null,
     }),
   );
   return (

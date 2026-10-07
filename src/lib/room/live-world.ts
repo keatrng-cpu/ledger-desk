@@ -224,6 +224,14 @@ function planFor(
   return null;
 }
 
+function ladderBrief(desk: DeskPayload, symbol: string) {
+  const L = desk.ladder;
+  if (!L) return null;
+  const es = /ES/.test(symbol);
+  const pick = /ES/.test(L.left.symbol) === es ? L.left : L.right;
+  return { symbol: pick.symbol, strip: pick.strip, htf: pick.htf };
+}
+
 function cardRead(desk: DeskPayload): CardRead | null {
   const ranked = [...desk.scan.candidates].filter(graded).sort(compareForBoard);
   if (!ranked.length) return null;
@@ -258,6 +266,8 @@ function cardRead(desk: DeskPayload): CardRead | null {
       otherMinute: otherB.minute,
       draw: b.draw.primary,
       otherDraw: otherB.draw.primary,
+      mineLadder: ladderBrief(desk, c.symbol),
+      otherLadder: ladderBrief(desk, otherB.series.symbol),
     }),
   );
   return {
@@ -313,6 +323,8 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
           otherMinute: other.minute,
           draw: mine.draw.primary,
           otherDraw: other.draw.primary,
+          mineLadder: ladderBrief(desk, c.symbol),
+          otherLadder: ladderBrief(desk, other.series.symbol),
         }),
       );
       return {
