@@ -3,12 +3,17 @@ build_floor.py - headless Blender build of the trading-floor 3D assets.
 
 What it builds
   public/floor/office.glb
-      The static office: one floor plane per room, the walls (solid, glass with
-      mullions and door frames, the low cutaway wall, the east window wall), every
-      furniture entry, one quad per screen (plus its physical housing), the emissive
-      LED strips / beacon / rack LED panel, and a little extra life (pendant lamps,
-      a wall clock, desk props). Procedural PBR colours only - no image textures,
-      no lights, no cameras.
+      The static office: one floor per room, the walls (solid, glass with mullions and door frames, the low cutaway wall,
+      the east window wall), every furniture entry, one quad per screen (plus its physical housing), the emissive LED
+      strips / beacon / rack LED panel, and a little extra life (pendant lamps, a wall clock, desk props). Procedural PBR
+      colours only - no image textures, no lights, no cameras - plus, since the Run 3 pass:
+        floor_dress.py  set dressing (cables, desk clutter, foliage, posters, floor wayfinding), geo_dress_* / geo_decal_*
+        floor_doors.py  a sliding glass panel in every glass-wall door gap, door_<wall>_<i>, slide extras
+        floor_opt.py    hidden faces dropped, screen materials merged, identical meshes shared
+        floor_ao.py     ambient occlusion baked into COLOR_0 (floors and wall faces merged by a kd-tree)
+        floor_pack.py   COLOR_0 packed to bytes, unused accessors dropped
+  public/floor/office.draco.glb
+      The same scene Draco-compressed by Blender's exporter (kept only if it is at least 40% smaller). Needs a DRACOLoader.
   public/floor/portraits/{jax,nova,sterling,gemma,vince}.png
       256x256 stylized busts of the crew, Cycles CPU, on a solid #0f172a ground.
 
@@ -22,20 +27,30 @@ Source of truth
 
 Naming contract (what the runtime looks up)
   - rooms[].id, walls[].id, furniture[].id, screens[].id, emissives[].id are
-    object names, verbatim. Everything else is prefixed geo_.
+    object names, verbatim. Everything else is prefixed geo_ (or door_ for the sliding panels).
   - screens: a single UV'd quad (u left->right seen from the front, v
-    bottom->top), its own material scr_<id>, 5 mm in front of its housing.
+    bottom->top), 5 mm in front of its housing. All screens share one material, scr_blank (the runtime replaces a screen's
+    material with its own canvas material, found by the node's exact name).
   - keyboards: one mesh, one material mat_key_<Name>.
   - emissives: material mat_<id> (the rack LED panel: mat_rack_leds).
-  - No geo_ object or material name contains an emissive id or "key_<Name>",
+  - No geo_ / door_ object or material name contains an emissive id or "key_<Name>",
     because the runtime substring-matches those.
+  - Objects with identical geometry share one glTF mesh (several nodes, one mesh); node names, transforms and extras are
+    still per object.
 
-Rebuild (from the repo root)
-  pip install bpy==5.0.1                        # Blender as a Python module (Python 3.11)
-  python scripts/blender/build_floor.py         # office.glb + portraits
-  python scripts/blender/build_floor.py --office
-  python scripts/blender/build_floor.py --portraits
-  python scripts/blender/build_floor.py --verify   # re-import office.glb, check names / tris / size
+Rebuild (from the repo root). Blender 5.2 as an application works; the older bpy module route (pip install bpy==5.0.1)
+runs the same script. Under the application, everything after "--" goes to this script:
+  "C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup -P scripts/blender/build_floor.py -- <flags>
+  <flags>   (none)        office.glb + office.draco.glb + portraits + --verify
+            --office      the office pair only        --portraits   the five busts only
+            --verify      re-import office.glb and check names / triangles / size
+            --no-ao  --no-doors  --no-dress  --no-opt  --no-compress    skip that pass (A/B)
+            --keep-meshopt                              also leave office.meshopt.glb (measured, not shipped)
+  env: FLOOR_OUT_DIR=<dir> writes there instead of public/floor; FLOOR_AO_LATTICE / FLOOR_AO_TOL tune the AO merge;
+       FLOOR_HOOK=<script.py> runs a script against the finished scene before export (FLOOR_HOOK_ONLY=1 stops there).
+Checks: node scripts/blender/glb-stats.mjs public/floor/office.glb [--against old.glb]
+        node scripts/blender/preview-glb.mjs --glb public/floor/office.glb --out <dir> --shots overview,front [--open-doors]
+        npx tsx scripts/verify-room.mjs
 """
 
 import json
@@ -1443,6 +1458,36 @@ def tri_count():
     return sum(len(p.vertices) - 2 for o in bpy.data.objects if o.type == "MESH" for p in o.data.polygons)
 
 
+def export_compressed(opts):
+    """The same scene again, compressed by Blender's own exporter: Draco (office.draco.glb) always, meshopt only to be
+    measured (scratch file next to it, deleted unless --keep-meshopt). The plain office.glb stays the file that loads with
+    a bare GLTFLoader; these need DRACOLoader / MeshoptDecoder on the loader."""
+    common = dict(export_format="GLB", use_selection=False, export_yup=True, export_apply=True, export_cameras=False,
+                  export_lights=False, export_animations=False, export_skins=False, export_morph=False,
+                  export_texcoords=True, export_normals=True, export_materials="EXPORT", export_extras=True,
+                  export_vertex_color="ACTIVE", export_all_vertex_colors=False)
+    draco = os.path.join(OUT_DIR, "office.draco.glb")
+    bpy.ops.export_scene.gltf(filepath=draco, export_draco_mesh_compression_enable=True,
+                              export_draco_mesh_compression_level=7, export_draco_position_quantization=14,
+                              export_draco_normal_quantization=10, export_draco_texcoord_quantization=12,
+                              export_draco_color_quantization=8, export_draco_generic_quantization=12, **common)
+    plain = os.path.getsize(GLB_PATH)
+    dsz = os.path.getsize(draco)
+    print("office.draco.glb: %d bytes (%.1f%% of the plain %d)" % (dsz, 100.0 * dsz / plain, plain))
+    meshopt = os.path.join(OUT_DIR, "office.meshopt.glb")
+    try:
+        bpy.ops.export_scene.gltf(filepath=meshopt, export_meshopt_compression_enable=True, **common)
+        msz = os.path.getsize(meshopt)
+        print("office.meshopt.glb: %d bytes (%.1f%% of the plain)" % (msz, 100.0 * msz / plain))
+        if "--keep-meshopt" not in opts:
+            os.remove(meshopt)
+    except Exception as exc:        # an exporter without the meshopt bridge
+        print("meshopt export skipped: %s" % exc)
+    if dsz > 0.6 * plain:
+        os.remove(draco)
+        print("office.draco.glb removed: not at least 40%% smaller than the plain file")
+
+
 def build_office(opts=frozenset()):
     """opts: switches from the command line (see main). Everything on by default except what is named --no-*."""
     reset_scene()
@@ -1462,9 +1507,20 @@ def build_office(opts=frozenset()):
     if "--no-doors" not in opts:
         import floor_doors
         floor_doors.build(core)
+    if "--no-opt" not in opts:
+        import floor_opt
+        floor_opt.hidden_faces(core)
+        floor_opt.merge_screen_materials(core)
+        floor_opt.dedupe_meshes(core)
+        print("after size passes: %d tris" % tri_count())
     if "--no-ao" not in opts:
         import floor_ao
         floor_ao.bake(core)
+    hook = os.environ.get("FLOOR_HOOK")      # debugging: run a script against the finished scene, before export
+    if hook:
+        exec(compile(open(hook).read(), hook, "exec"), {"core": core, "bpy": bpy, "__name__": "floor_hook"})
+        if os.environ.get("FLOOR_HOOK_ONLY"):
+            return
     os.makedirs(OUT_DIR, exist_ok=True)
     bpy.ops.export_scene.gltf(
         filepath=GLB_PATH, export_format="GLB", use_selection=False, export_yup=True, export_apply=True,
@@ -1476,6 +1532,8 @@ def build_office(opts=frozenset()):
     floor_pack.pack(GLB_PATH)
     print("office.glb written: %s  (%d bytes, ~%d tris, %d objects)" % (
         GLB_PATH, os.path.getsize(GLB_PATH), tri_count(), len(bpy.data.objects)))
+    if "--no-compress" not in opts:
+        export_compressed(opts)
 
 
 # --------------------------------------------------------------------------

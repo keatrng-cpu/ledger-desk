@@ -87,10 +87,18 @@ class Dress:
 
     # ---- object helpers -----------------------------------------------
 
+    # metres beyond which the runtime may hide a piece (glTF extras "cull_distance"): small things go first
+    CULL = {"geo_dress_cables": 11.0, "geo_dress_clutter": 13.0, "geo_dress_leaves": 18.0, "geo_dress_shelf": 15.0,
+            "geo_dress_wall": 26.0, "geo_decal": 34.0}
+
     def finish(self, name, g, x, z, y=0.0, yaw=0.0):
         if not g.v:
             return None
         ob = self.core.make_obj(name, g, (x, -z, y), yaw)
+        for pre, dist in self.CULL.items():
+            if name.startswith(pre):
+                ob["cull_distance"] = float(dist)
+                break
         self.names.append(name)
         self.tris += sum(len(p.vertices) - 2 for p in ob.data.polygons)
         return ob
