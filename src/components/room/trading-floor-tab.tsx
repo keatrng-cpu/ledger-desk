@@ -74,6 +74,14 @@ const CAMERAS: { id: CameraPreset; label: string }[] = [
 
 /* ── The 3D canvas ──────────────────────────────────────────────────────── */
 
+/**
+ * The stories (cycle frames with a script) the floor has already played, by frame id. Module state on purpose: the scene is
+ * rebuilt every time the tab is opened, and a fresh scene "has shown nothing", so it used to play the latest story's whole
+ * script again on every visit — the same RH rules and balance, again. Reopening the tab shows the room as it is now; a
+ * script plays once.
+ */
+const playedStories = new Set<number>();
+
 /** A trade, an exit or a change of story — the room drops what it is saying. */
 function storyChanged(next: FloorFrame, prev: FloorFrame | null): boolean {
   return (
@@ -102,9 +110,15 @@ function FloorCanvas({
   onOneOnOne,
   onOwnerSit,
   onPov,
+  onWalkMode,
+  onLock,
 }: {
   frame: FloorFrame | null;
   camera: CameraPreset;
+  /** The scene ended (or started) walking on its own: a camera button, Esc, a follow. The tab's toggle follows it. */
+  onWalkMode?: (on: boolean) => void;
+  /** The mouse was captured for looking around, or given back. */
+  onLock?: (locked: boolean) => void;
   onCanvasFocus: (focused: boolean) => void;
   onScrollHint: () => void;
   onManagerInspect: (state: ManagerRoomState) => void;
@@ -124,8 +138,8 @@ function FloorCanvas({
 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<FloorScene | null>(null);
-  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov });
-  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov };
+  const cbs = useRef({ onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov, onWalkMode, onLock });
+  cbs.current = { onSpeaker, onMeetingDone, onSelect, onEnvironment, onEvent, onFollow, onFocus, onHover, onCanvasFocus, onScrollHint, onManagerInspect, onOneOnOne, onOwnerSit, onPov, onWalkMode, onLock };
   const [error, setError] = useState<string | null>(null);
   // What the scene is showing, whether a cycle's own meeting is running (a ticket, an exit, a director's call), and
   // the newest event waiting for it to end. All per scene instance.
@@ -143,7 +157,10 @@ function FloorCanvas({
     const sc = scene.current;
     if (!sc) return;
     shown.current = f;
-    if (talk) playing.current = true;
+    if (talk) {
+      playing.current = true;
+      playedStories.add(f.id);
+    }
     sc.apply(f, 1, talk);
   }, []);
 
@@ -186,6 +203,8 @@ function FloorCanvas({
         onOneOnOne: (t) => cbs.current.onOneOnOne(t),
         onOwnerSit: (on) => cbs.current.onOwnerSit?.(on),
         onPovChange: (p) => cbs.current.onPov?.(p),
+        onWalkModeChange: (on) => cbs.current.onWalkMode?.(on),
+        onLockChange: (on) => cbs.current.onLock?.(on),
         // The real room feed (room engine cycles + live account); the demo stub only on dev ?manager=stub.
         managerFeed: managerStubRequested() ? undefined : roomManagerFeed(),
         onTalk: (id, st) => {
@@ -204,7 +223,8 @@ function FloorCanvas({
         scene.current.setFloorProps(st.floorProps, st.floorPropsSig);
       }
       const f = latest.current.frame;
-      if (f) show(f, frameIsEvent(f));
+      // A story that already played (before the tab was closed) is shown as the room's state, not played again.
+      if (f) show(f, frameIsEvent(f) && !playedStories.has(f.id));
       flushTalk();
     } catch (e) {
       setError(e instanceof Error ? e.message : "WebGL is unavailable in this browser.");
@@ -1342,14 +1362,10 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const execStatus = useExecStore((s) => s.status);
   const execError = useExecStore((s) => s.error);
   const [canvasFocused, setCanvasFocused] = useState(false);
-  const [walkMode, setWalkMode] = useState(() => {
-    if (typeof window === "undefined") return true;
-    try {
-      return window.localStorage.getItem("ledger.floor.walk") !== "0";
-    } catch {
-      return true;
-    }
-  });
+  // Walking is something you start (the Walk button or a move key) and any camera choice ends. It used to be saved and
+  // default ON, so a click anywhere in the canvas threw the camera into the owner's eyes and a camera button never ended it.
+  const [walkMode, setWalkMode] = useState(false);
+  const [mouseLocked, setMouseLocked] = useState(false);
   const [pov, setPov] = useState<"first" | "third">("third");
   const [showJson, setShowJson] = useState(false);
   const [managerState, setManagerState] = useState<ManagerRoomState | null>(null);
@@ -1405,14 +1421,9 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useEffect(() => {
     if (mood) sceneRef.current?.setEntryMood(mood);
   }, [mood, env]);
-  // Walk is a dedicated mode: the scene follows the tab's choice (saved), and in it a click never becomes a follow.
+  // Walk is a dedicated mode: the scene follows the tab's choice, and in it a click never becomes a follow.
   useEffect(() => {
     sceneRef.current?.setWalkMode(walkMode);
-    try {
-      window.localStorage.setItem("ledger.floor.walk", walkMode ? "1" : "0");
-    } catch {
-      /* storage unavailable */
-    }
   }, [walkMode, env]);
   const openManager = useCallback(() => {
     const sc = sceneRef.current;
@@ -1616,7 +1627,11 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           }}
           onOwnerSit={setOwnerSeated}
           onPov={setPov}
+          onWalkMode={setWalkMode}
+          onLock={setMouseLocked}
         />
+        {/* The mouse is captured while walking: a small dot marks the middle so you know where you are looking. */}
+        {mouseLocked && walkMode && <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80 shadow" aria-hidden />}
         <PlanOverlay frame={frame} className="pointer-events-none absolute right-2 top-[4.25rem] z-10 hidden w-52 sm:block" />
         {/* Scroll capture hint, bottom-centre (clear of the camera buttons).
             Shown for a few seconds on arrival, when the wheel is refused, and
@@ -1630,13 +1645,13 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         >
           {canvasFocused ? (
             <>
-              {walkMode ? (pov === "first" ? "Eyes · " : "Behind · ") + (ownerSeated ? "F/E to stand · " : "WASD or arrows · point the mouse to look · ") : ""}Scroll zooms ·{" "}
+              {walkMode ? (pov === "first" ? "Eyes · " : "Behind · ") + (ownerSeated ? "F/E to stand · " : "WASD or arrows · the mouse turns you all the way round · ") : ""}Scroll zooms ·{" "}
               <button type="button" className="pointer-events-auto underline" onClick={() => sceneRef.current?.releaseFocus()}>
-                Esc releases
+                Esc gives the cursor back
               </button>
             </>
           ) : (
-            "Click the floor · WASD or arrows walk · point the mouse to look · V switches eyes"
+            "Click Walk or press W to walk · V switches eyes · Esc to stop · the camera buttons leave the walk"
           )}
         </div>
         <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
@@ -1677,7 +1692,12 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             <button
               key={c.id}
               type="button"
-              onClick={() => setCamera(c.id)}
+              onClick={() => {
+                // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
+                // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
+                if (camera === c.id) sceneRef.current?.setCamera(c.id);
+                else setCamera(c.id);
+              }}
               className={`rounded px-2 py-0.5 text-[10px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
             >
               {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}

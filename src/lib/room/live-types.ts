@@ -553,6 +553,14 @@ export interface TalkItem {
   ttlMs: number;
 }
 
+/**
+ * Heartbeat topics that restate facts the brain and the boards already hold: the PATH counters, the goal and the balance,
+ * the contract price list. They speak the first time and again only when their data MOVES, never because 70 minutes passed
+ * (that was the same script on every visit). `loadTalk` also carries their memory across the 16-hour state expiry, so a new
+ * day does not start by reciting them.
+ */
+export const STABLE_HEARTBEATS: readonly string[] = ["rules", "goalnight", "ladder"];
+
 export interface TalkState {
   v: 1;
   seq: number;

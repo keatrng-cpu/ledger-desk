@@ -38,6 +38,7 @@ import { deskAudit } from "./audit";
 import {
   ATM_DELTA,
   Facts,
+  STABLE_HEARTBEATS,
   TALK,
   freshTalkState,
   hash32,
@@ -60,6 +61,29 @@ import type { Character } from "./orchestrator";
 
 export { freshTalkState };
 export type { TalkItem, TalkState, TalkWorld };
+
+/**
+ * The talk state to start from, given what was saved: whole while it is young; once it has expired a new day starts fresh
+ * EXCEPT that the STABLE topics (the rules counters, the balance and goal, the price list: what the brain already holds)
+ * keep their memory for a week, so a new day does not open by reciting them. Fresh after that, or with nothing saved.
+ */
+export function restoreTalkState(saved: { at?: number; state?: TalkState } | null | undefined, nowMs: number, keepMs: number, stableKeepMs: number): TalkState {
+  if (!saved || saved.state?.v !== 1 || typeof saved.at !== "number") return freshTalkState();
+  const age = nowMs - saved.at;
+  if (age < keepMs) return saved.state;
+  const fresh = freshTalkState();
+  if (age >= stableKeepMs) return fresh;
+  for (const id of STABLE_HEARTBEATS) {
+    const key = `hb:${id}`;
+    const at = saved.state.topicAt?.[key];
+    const sig = saved.state.topicSig?.[key];
+    if (typeof at === "number" && typeof sig === "string") {
+      fresh.topicAt[key] = at;
+      fresh.topicSig[key] = sig;
+    }
+  }
+  return fresh;
+}
 
 /* ── The tape ring ─────────────────────────────────────────────────────── */
 
@@ -1399,7 +1423,8 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
     });
     if (w.goal.ladder.n > 0 && !w.goal.ladder.priced) {
       const l = w.goal.ladder;
-      out.push({ id: "ladder", weight: f(0.8, 0.6), sig: `${l.n}|${Math.round(l.cheapestUsd ?? 0)}|${Math.round(l.richestUsd ?? 0)}`, build: (c) => R.exLadderPlain(c, { g: w.goal! }) });
+      // The price list drifts with every tick; only a move of $25 or a change in the number of strikes is news.
+      out.push({ id: "ladder", weight: f(0.8, 0.6), sig: `${l.n}|${Math.round((l.cheapestUsd ?? 0) / 25)}|${Math.round((l.richestUsd ?? 0) / 25)}`, build: (c) => R.exLadderPlain(c, { g: w.goal! }) });
     }
     if (!day && w.week?.next) {
       out.push({ id: "goalnight", weight: 1.2, sig: `${w.clock.etDate}|${w.goal.daysLeft}`, build: (c) => R.exGoalNight(c, { g: w.goal!, next: w.week!.next }) });
@@ -1533,8 +1558,10 @@ function heartbeatCand(w: TalkWorld, st: TalkState): Cand | null {
     const changed = st.topicSig[key] !== hb.sig;
     const never = st.topicAt[key] == null;
     if (now - (st.topicAt[family] ?? 0) < TALK.heartbeatFamilyGapMs) continue;
-    // Said once already: it comes back when its data has moved, or after a long while — never on a timer alone.
-    const eligible = never || (changed && age >= TALK.heartbeatChangedGapMs) || age >= TALK.heartbeatTopicCooldownMs;
+    // Said once already: it comes back when its data has moved, or after a long while — never on a timer alone. A STABLE
+    // topic (restating what the brain holds: the rules counters, the balance and goal, the price list) has no "long while".
+    const stable = STABLE_HEARTBEATS.includes(hb.id);
+    const eligible = never || (changed && age >= TALK.heartbeatChangedGapMs) || (!stable && age >= TALK.heartbeatTopicCooldownMs);
     if (!eligible) continue;
     const score = hb.weight * (1 + Math.min(never ? 3 : age / TALK.heartbeatTopicCooldownMs, 3)) * (changed && !never ? 1.5 : 1) + (hash32(`${hb.id}|${st.seq}`) % 100) / 1000;
     if (!best || score > best.score) best = { hb, score };

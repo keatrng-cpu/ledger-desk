@@ -21,8 +21,8 @@
 const { spokenProblems } = await import("./lib/spoken-check.mjs");
 /** Every line any simulation below makes the room say — checked at the end for what a speech engine would be handed. */
 const SPOKEN = [];
-const { talkTick, freshTalkState, pushPrint, moveOver } = await import("../src/lib/room/live-talk.ts");
-const { TALK, Facts, hash32 } = await import("../src/lib/room/live-types.ts");
+const { talkTick, freshTalkState, pushPrint, moveOver, restoreTalkState } = await import("../src/lib/room/live-talk.ts");
+const { TALK, Facts, hash32, STABLE_HEARTBEATS } = await import("../src/lib/room/live-types.ts");
 const { ANIMS_BY_CHARACTER, ZONES_BY_CHARACTER } = await import("../src/lib/room/orchestrator.ts");
 const { globexOpenAt } = await import("../src/lib/room/live-world.ts");
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
@@ -645,6 +645,49 @@ const QUIET = (() => {
   const kinds = {};
   for (const i of sim.items) kinds[i.kind] = (kinds[i.kind] ?? 0) + 1;
   console.log(`      ${sim.items.length} exchanges — ${JSON.stringify(kinds)}`);
+}
+
+console.log("Stable topics: what the brain already holds is said once, not on a timer");
+{
+  const said = (topic) => QUIET.items.filter((i) => i.topic === topic).length;
+  check("the PATH counters are said at most once on a day they never moved (was: every ~70 min)", said("hb:rules") <= 1, String(said("hb:rules")));
+  check("the contract price list is said at most once on a day its rungs never moved $25", said("hb:ladder") <= 1, String(said("hb:ladder")));
+  check("the stable list is exactly the three topics that restate the rules, the balance/goal and the price list", JSON.stringify([...STABLE_HEARTBEATS].sort()) === JSON.stringify(["goalnight", "ladder", "rules"]), JSON.stringify(STABLE_HEARTBEATS));
+  // The saved state across a day boundary (what the tab sees when it is opened on a new day).
+  const HOUR = 60 * MIN;
+  const saved = freshTalkState();
+  saved.seq = 9;
+  saved.topicAt["hb:rules"] = 1_000;
+  saved.topicSig["hb:rules"] = "3|0|0|0";
+  saved.topicAt["hb:goalnight"] = 2_000;
+  saved.topicSig["hb:goalnight"] = "2026-10-06|29";
+  saved.topicAt["hb:board"] = 3_000;
+  saved.topicSig["hb:board"] = "x";
+  const S0 = 5_000_000;
+  const young = restoreTalkState({ at: S0, state: saved }, S0 + 2 * HOUR, 16 * HOUR, 7 * 24 * HOUR);
+  check("a young state is kept whole", young === saved || (young.seq === 9 && young.topicAt["hb:board"] === 3_000));
+  const next = restoreTalkState({ at: S0, state: saved }, S0 + 20 * HOUR, 16 * HOUR, 7 * 24 * HOUR);
+  check("an expired state starts fresh (the sequence number resets)", next.seq === 0);
+  check("…but the stable topics keep their memory, so a new day does not open by reciting them", next.topicAt["hb:rules"] === 1_000 && next.topicSig["hb:rules"] === "3|0|0|0" && next.topicAt["hb:goalnight"] === 2_000);
+  check("…and nothing else is carried (a board talk or a headline may be said again)", next.topicAt["hb:board"] === undefined && next.topicSig["hb:board"] === undefined);
+  const old = restoreTalkState({ at: S0, state: saved }, S0 + 8 * 24 * HOUR, 16 * HOUR, 7 * 24 * HOUR);
+  check("after a week everything is forgotten", old.seq === 0 && old.topicAt["hb:rules"] === undefined);
+  check("with nothing saved, or a state of another shape, it starts fresh", restoreTalkState(null, S0, 1, 1).seq === 0 && restoreTalkState({ at: S0, state: { v: 2 } }, S0, 9, 9).seq === 0);
+  // A carried topic does not speak again unless its data moved: simulate the first hour of a new day with the carried memory.
+  const T1 = at(2026, 10, 7, 9, 46);
+  // The probe: the same world, no memory. It must say the rules (so the carried case below is not vacuous), and its
+  // state holds the signature the world really has.
+  const probe = new Sim(T1, { dt: 2000 });
+  probe.run(150 * 60, walker(81));
+  const realSig = probe.st.topicSig["hb:rules"];
+  check("precondition: with no memory the room does say the rules counters within the first 150 minutes", probe.items.some((i) => i.topic === "hb:rules") && typeof realSig === "string", String(realSig));
+  const carried = freshTalkState();
+  carried.topicAt["hb:rules"] = T1 - 20 * HOUR;
+  carried.topicSig["hb:rules"] = realSig;
+  const simCarry = new Sim(T1, { dt: 2000 });
+  simCarry.st = carried;
+  simCarry.run(150 * 60, walker(81));
+  check("a new day with the rules already said on the same numbers does not open by saying them", !simCarry.items.some((i) => i.topic === "hb:rules"), String(simCarry.items.filter((i) => i.topic === "hb:rules").length));
 }
 
 if (process.argv.includes("--transcript")) {

@@ -650,7 +650,11 @@ export function createStubManagerFeed(
 
 /** Caption text for the Manager speech bubble from room state. */
 export function managerBubbleText(s: ManagerRoomState): string | null {
-  const acct = s.account ? ` ${managerAccountLine(s.account)}. Cash $${s.account.cashUsd.toFixed(2)} on Agentic ••••6158.` : "";
+  // The balance and the envelope already sit on the account monitor over the stand and in the header strip. Saying them in
+  // every bubble was the same "RH rules and balance" again and again; the bubble carries the account only when it changes
+  // the answer: the envelope cannot be filled, or the buying power is unknown.
+  const a = s.account;
+  const acct = a && (!Number.isFinite(a.optionsBuyingPowerUsd) || !a.canFillEnvelope) ? ` ${managerAccountLine(a)}.` : "";
   if (s.call?.reasoning.thesis) return `[${s.current}] ${s.call.reasoning.thesis}${acct}`;
   // Nothing to say while idle: no bubble rather than a "[IDLE] Standing by." filler over the stand.
   if (s.current === "IDLE") return null;

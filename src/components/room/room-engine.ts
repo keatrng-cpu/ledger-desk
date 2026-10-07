@@ -37,7 +37,7 @@ import { asLab, labRead, type LabRead } from "@/lib/room/lab";
 import { asGoal, defaultGoal, GOAL_STORAGE, type GoalSpec } from "@/lib/room/goal";
 import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
-import { freshTalkState, talkTick } from "@/lib/room/live-talk";
+import { freshTalkState, restoreTalkState, talkTick } from "@/lib/room/live-talk";
 import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
 import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, brainSources, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
@@ -601,11 +601,14 @@ export function frameIsEvent(f: FloorFrame): boolean {
 const TALK_STORAGE = "ledger-room-talk-v1";
 const TALK_KEEP_MS = 16 * 60 * 60_000;
 
+/** How long the memory of a STABLE topic (the rules counters, the balance and goal, the price list) outlives the rest. */
+const STABLE_KEEP_MS = 7 * 24 * 60 * 60_000;
+
 function loadTalk(): TalkState {
   try {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(TALK_STORAGE) : null;
     const o = raw ? (JSON.parse(raw) as { at?: number; state?: TalkState }) : null;
-    if (o?.state?.v === 1 && typeof o.at === "number" && Date.now() - o.at < TALK_KEEP_MS) return o.state;
+    return restoreTalkState(o, Date.now(), TALK_KEEP_MS, STABLE_KEEP_MS);
   } catch {
     // Storage blocked: the talk starts fresh.
   }

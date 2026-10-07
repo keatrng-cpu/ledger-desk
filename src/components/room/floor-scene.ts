@@ -601,6 +601,8 @@ class Avatar {
   moving = false;
   anim: AnimKey = "IDLE";
   speaking = false;
+  /** Metres from the camera, set by the scene each frame: how close the bubble and tag sit to the head. */
+  viewDist = 99;
   /** Pacing back and forth around the target while not walking anywhere else. */
   pace = false;
   /**
@@ -1065,8 +1067,12 @@ class Avatar {
       }
     }
     const headY = this.bodyY + this.height + 0.05;
-    this.tag.position.y = headY + 0.34;
-    this.bubble.position.y = headY + 0.62;
+    // Near the lens the bubble hugs the head and is a little smaller, so a close-up frames face and words together; from
+    // across the room it floats higher and larger, where it has to carry. `viewDist` is set by the scene every frame.
+    const near = Math.max(0, Math.min(1, (7 - this.viewDist) / 3.8)); // 1 inside 3.2 m, 0 beyond 7 m
+    this.tag.position.y = headY + 0.34 - 0.12 * near;
+    this.bubble.position.y = headY + 0.62 - 0.2 * near;
+    this.bubble.scale.set(2.2 - 0.4 * near, 0.82 - 0.15 * near, 1);
     const bm = this.bubble.material as THREE.SpriteMaterial;
     bm.opacity = damp(bm.opacity, this.speaking && this.bubbleText ? 1 : 0, 8, dt);
     this.emote.position.y = headY + 0.5 + 0.03 * Math.sin(t * 2.4);
@@ -1322,8 +1328,10 @@ export interface FloorSceneOptions {
   managerFeed?: ManagerFeed;
   /** Owner approached the Manager — open the inspect panel. */
   onManagerInspect?: (state: ManagerRoomState) => void;
-  /** Walk mode toggled (Owner WASD). */
+  /** Walk mode toggled (Owner WASD), by the viewer or by the scene (any camera move that is not the owner's own ends it). */
   onWalkModeChange?: (on: boolean) => void;
+  /** The mouse was captured for looking around (true), or given back (false: Esc, a camera button, leaving the walk). */
+  onLockChange?: (locked: boolean) => void;
   /** Owner view: behind them, or through their eyes. */
   onPovChange?: (pov: "first" | "third") => void;
   /** Proximity prompt near a crew member or the Manager. */
@@ -1587,8 +1595,18 @@ export class FloorScene {
   private readonly managerFeed: ManagerFeed;
   private unsubManager: (() => void) | null = null;
   private readonly stubFeed: StubManagerFeed | null;
-  /** WASD / arrows walk the Owner when the floor is focused. */
-  private walkMode = true;
+  /**
+   * WASD / arrows walk the Owner when the floor is focused. OFF until the viewer asks (the Walk button, or a move key):
+   * it used to start on, so every click inside the canvas threw the camera into the owner's eyes, and a camera
+   * button never switched it off, which is why leaving the walk "phased you back to the owner".
+   */
+  private walkMode = false;
+  /** The mouse is captured (Pointer Lock): turning has no screen edge to run out of. */
+  private locked = false;
+  /** We asked for the capture and still want it: losing it unasked (Esc) means "let go of the floor". */
+  private wantLock = false;
+  /** A short glide from wherever the camera was into the owner's view, so walking starts with a move, not a cut. */
+  private walkBlend: { t: number; pos: THREE.Vector3; target: THREE.Vector3 } | null = null;
   private readonly keys = { w: false, a: false, s: false, d: false };
   /** Through the owner's eyes, or a chase camera behind them. */
   private pov: "first" | "third" = "third";
@@ -1747,6 +1765,10 @@ export class FloorScene {
     this.renderer.domElement.addEventListener("pointerleave", this.onLeave);
     window.addEventListener("keydown", this.onKey);
     window.addEventListener("keyup", this.onKeyUp);
+    // A key held while the window loses focus never sends its keyup: without these the owner walks on by itself.
+    window.addEventListener("blur", this.onBlur);
+    document.addEventListener("visibilitychange", this.onBlur);
+    document.addEventListener("pointerlockchange", this.onPointerLock);
     // Capture phase, so zoom is switched on/off before OrbitControls sees the wheel.
     this.renderer.domElement.addEventListener("wheel", this.onWheelCapture, { capture: true, passive: false });
     document.addEventListener("pointerdown", this.onDocDown, true);
@@ -1867,7 +1889,9 @@ export class FloorScene {
             const sx = box.max.x - box.min.x;
             const sy = box.max.y - box.min.y;
             const sz = box.max.z - box.min.z;
-            if (Math.max(sx, sy, sz) < 0.06) m.castShadow = false;
+            // The shadow pass redraws every caster every frame (~740 meshes, ~129k triangles). Anything under 25 cm (cups,
+            // plugs, desk clutter) throws a shadow nobody can see and was ~230 of them: not worth a draw call each frame.
+            if (Math.max(sx, sy, sz) < 0.25) m.castShadow = false;
           }
         }
       });
@@ -1890,7 +1914,84 @@ export class FloorScene {
       this.attachEmissives(root);
       this.opts.onEnvironment?.("fallback");
     }
+    this.resolveCoplanar();
+    // The overhaul's decals (lanes, the pit ring, the weather plane) are built a moment later: resolve those too.
+    window.setTimeout(() => {
+      if (!this.disposed) this.resolveCoplanar();
+    }, 1500);
     if (this.frame) this.drawAll(this.frame);
+  }
+
+  /**
+   * Two flat surfaces at the same height that share ground fight for the pixel (z-fighting), and the loser flashes dark as
+   * the camera moves. The visible case was the back wings: the lounge floor lies at exactly the height of the Ops and Goal
+   * office floors and covers them, so those rooms flickered black. For every pair of big flat meshes within 12 mm of each
+   * other that overlap, the SMALLER one (the room that sits inside the other, the rug on the floor) wins by a depth offset
+   * (stronger for each larger surface it sits on), and a transparent flat layer stops writing depth so two decals at one
+   * height cannot cancel each other. Idempotent; materials are cloned so shared carpet materials are not touched.
+   */
+  private resolveCoplanar() {
+    type Flat = { m: THREE.Mesh; y: number; x0: number; x1: number; z0: number; z1: number; area: number };
+    const flats: Flat[] = [];
+    const v = new THREE.Vector3();
+    this.scene.updateMatrixWorld(true);
+    this.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || !m.geometry || !m.visible) return;
+      const g = m.geometry;
+      if (!g.boundingBox) g.computeBoundingBox();
+      const bb = g.boundingBox;
+      if (!bb) return;
+      let x0 = Infinity;
+      let x1 = -Infinity;
+      let y0 = Infinity;
+      let y1 = -Infinity;
+      let z0 = Infinity;
+      let z1 = -Infinity;
+      for (const x of [bb.min.x, bb.max.x])
+        for (const y of [bb.min.y, bb.max.y])
+          for (const z of [bb.min.z, bb.max.z]) {
+            v.set(x, y, z).applyMatrix4(m.matrixWorld);
+            x0 = Math.min(x0, v.x);
+            x1 = Math.max(x1, v.x);
+            y0 = Math.min(y0, v.y);
+            y1 = Math.max(y1, v.y);
+            z0 = Math.min(z0, v.z);
+            z1 = Math.max(z1, v.z);
+          }
+      if (y1 - y0 > 0.03 || x1 - x0 < 1.5 || z1 - z0 < 1.5) return;
+      flats.push({ m, y: (y0 + y1) / 2, x0, x1, z0, z1, area: (x1 - x0) * (z1 - z0) });
+    });
+    for (const f of flats) {
+      const mats = Array.isArray(f.m.material) ? f.m.material : [f.m.material];
+      if (mats.some((mt) => mt.transparent)) for (const mt of mats) mt.depthWrite = false;
+    }
+    const larger = new Map<THREE.Mesh, number>();
+    for (let i = 0; i < flats.length; i++) {
+      for (let j = i + 1; j < flats.length; j++) {
+        const a = flats[i]!;
+        const b = flats[j]!;
+        if (Math.abs(a.y - b.y) > 0.012) continue;
+        const ox = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);
+        const oz = Math.min(a.z1, b.z1) - Math.max(a.z0, b.z0);
+        if (ox <= 0.5 || oz <= 0.5) continue;
+        const small = a.area <= b.area ? a : b;
+        larger.set(small.m, (larger.get(small.m) ?? 0) + 1);
+      }
+    }
+    for (const [m, n] of larger) {
+      if (m.userData.coplanarFixed) continue;
+      m.userData.coplanarFixed = true;
+      const step = Math.min(6, 2 * n);
+      const fix = (mt: THREE.Material) => {
+        const c = mt.clone();
+        c.polygonOffset = true;
+        c.polygonOffsetFactor = -step;
+        c.polygonOffsetUnits = -step;
+        return c;
+      };
+      m.material = Array.isArray(m.material) ? m.material.map(fix) : fix(m.material);
+    }
   }
 
   /**
@@ -2331,19 +2432,29 @@ export class FloorScene {
    */
   private closeShot(a: Avatar, side: number): { pos: V3; target: V3 } | null {
     const at = a.framing();
-    const head = at.mode === "stand" ? 1.62 : 1.25;
-    const target = new THREE.Vector3(at.pos[0], head - 0.05, at.pos[1]);
+    const headC = at.mode === "stand" ? 1.62 : 1.25;
+    // The speech bubble rides above the head (Avatar.update: at this range its bottom is 0.42 m over the crown, it is 0.67 m
+    // tall and 1.8 m wide). A shot that aims at the head from 2.3 m sees only about 0.9 m above its aim point, so the
+    // bubble was cut off, and the director read as "too far out and no words". Aim between the chest and the bubble's top and
+    // stand far enough back that both, and the bubble's width, sit inside 85% of the view.
+    const tanV = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2);
+    const below = 0.4;
+    const above = 0.14 + 0.42 + 0.67 + 0.1;
+    const fitD = Math.max((below + above) / (2 * tanV * 0.85), 1.8 / (2 * tanV * Math.max(0.5, this.camera.aspect) * 0.85));
+    const baseD = THREE.MathUtils.clamp(fitD, 2.3, 5);
+    const target = new THREE.Vector3(at.pos[0], headC + (above - below) / 2, at.pos[1]);
+    const headPt = new THREE.Vector3(at.pos[0], headC, at.pos[1]);
     const bx = LAYOUT.bounds;
     // [distance, angle off the way they face]
     const spots: [number, number][] = [
-      [2.3, 0.4 * side],
-      [2.3, -0.4 * side],
-      [2.5, 1.3 * side],
-      [2.5, -1.3 * side],
-      [2.2, 2.4 * side],
-      [2.2, -2.4 * side],
-      [3.2, 0.2 * side],
-      [3.2, 2.9],
+      [baseD, 0.4 * side],
+      [baseD, -0.4 * side],
+      [baseD + 0.2, 1.3 * side],
+      [baseD + 0.2, -1.3 * side],
+      [baseD - 0.1, 2.4 * side],
+      [baseD - 0.1, -2.4 * side],
+      [baseD + 0.9, 0.2 * side],
+      [baseD + 0.9, 2.9],
     ];
     for (const [d, ang] of spots) {
       const x = at.pos[0] + Math.sin(at.yaw + ang) * d;
@@ -2354,8 +2465,8 @@ export class FloorScene {
       const from = new THREE.Vector3(x, y, z);
       // Clear air: no wall or desk within half a metre sideways of the lens.
       if (([[1, 0], [-1, 0], [0, 1], [0, -1]] as const).some(([dx, dz]) => this.solidAlong(from, new THREE.Vector3(dx, 0, dz), 0.5) < Infinity)) continue;
-      // An unbroken line to their head.
-      const toHead = target.clone().sub(from);
+      // An unbroken line to their head (not to the aim point above it, which can sit behind a monitor wall).
+      const toHead = headPt.clone().sub(from);
       const len = toHead.length();
       if (this.solidAlong(from, toHead.normalize(), len - 0.3) < Infinity) continue;
       return { pos: [x, y, z], target: [target.x, target.y, target.z] };
@@ -2411,10 +2522,11 @@ export class FloorScene {
       this.preset = "free";
       return;
     }
-    // The director must not yank the lens off the owner while they are walking.
-    if (p === "auto" && this.ownerChase) return;
+    // Choosing a camera is the viewer saying "I'm done walking" — including choosing the Director while walking, which
+    // used to be ignored (the button was already "on"), leaving the owner's camera stuck. The director itself only cuts
+    // when the preset is "auto", and walking sets the preset to "free", so it never takes the lens off a walker.
+    this.leaveWalk();
     this.follow(null);
-    if (p !== "follow") this.stopOwnerChase();
     this.preset = p;
     if (p === "follow") return;
     if (p === "auto") return this.directorShot(this.lines[this.lineIdx] ?? null);
@@ -2430,6 +2542,7 @@ export class FloorScene {
    */
   follow(who: Character | null) {
     if (who === this.chase) return;
+    if (who) this.leaveWalk();
     this.chase = who;
     this.chaseHead = null;
     this.camGoal = null;
@@ -2561,6 +2674,7 @@ export class FloorScene {
       dist *= 0.82;
       if (dist < 1.1) break;
     }
+    this.leaveWalk();
     this.follow(null);
     this.preset = "free";
     this.camGoal = { pos: from, target: center };
@@ -2578,6 +2692,7 @@ export class FloorScene {
   focusLine(i: number) {
     const k = Math.floor(i);
     if (k < 0 || k >= this.lines.length) return;
+    this.leaveWalk();
     this.lineIdx = k - 1;
     this.lineEndsAt = this.wallSec();
   }
@@ -2705,6 +2820,7 @@ export class FloorScene {
       const soft = a.anim === "TALK" || a.anim === "IDLE" || a.anim === "EXPLAINING" || a.anim === "STEADY_MONITORING" || a.anim === "WATCH" || a.anim === "ANALYZING";
       const gesture = gestureFor(a.who, mine?.text ?? null);
       if (mine && soft && gesture) a.anim = gesture;
+      a.viewDist = this.camera.position.distanceTo(a.root.position);
       a.update(dt, t);
     }
     // Spectacle.
@@ -2786,7 +2902,7 @@ export class FloorScene {
     for (const m of this.keyMats.values()) m.emissiveIntensity = damp(m.emissiveIntensity, 0, 6, dt);
     // Camera.
     if (this.ownerChase) {
-      if (this.pov === "first") this.ownerEyes();
+      if (this.pov === "first") this.ownerEyes(dt);
       else this.ownerChaseRide(dt, t);
     } else if (this.chase) this.chaseRide(dt, t);
     if (this.preset === "follow") {
@@ -2886,10 +3002,15 @@ export class FloorScene {
   /** Over a person or a screen: the pointer says so and the tab gets the words. Throttled — it casts a ray through the office. */
   private onMove = (e: PointerEvent) => {
     // Move the mouse to turn. No button, and it stops when the mouse stops — a held offset was the rubber band.
+    // The mouse is captured while walking (Pointer Lock), so the movement never runs out at a screen edge: a full turn
+    // is as many mouse-widths as you like. Some browsers send one huge first event after the capture; it is clamped.
     if (this.ownerChase && this.focused && e.pointerType !== "touch" && (e.movementX !== 0 || e.movementY !== 0)) {
-      this.owner.yaw -= e.movementX * 0.0045;
-      this.lookPitch = Math.max(-0.55, Math.min(0.42, this.lookPitch - e.movementY * 0.0022));
+      const mx = Math.max(-160, Math.min(160, e.movementX));
+      const my = Math.max(-160, Math.min(160, e.movementY));
+      this.owner.yaw -= mx * 0.0045;
+      this.lookPitch = Math.max(-0.55, Math.min(0.42, this.lookPitch - my * 0.0022));
     }
+    if (this.locked) return; // the pointer is hidden: nothing under it to label
     if (e.pointerType !== "mouse" || e.buttons) return;
     const now = performance.now();
     if (now - this.hoverAt < 120) return;
@@ -2950,8 +3071,11 @@ export class FloorScene {
   private onKey = (e: KeyboardEvent) => {
     if (this.typing(e)) return;
     if (e.key === "Escape") {
+      // Esc is "I'm done walking": release the wheel, the mouse and the owner camera, and leave walk mode so the next
+      // click in the canvas is just a click.
       if (this.focused) this.setFocused(false);
       if (this.chase) this.follow(null);
+      this.setWalkMode(false);
       this.clearWalkKeys();
       return;
     }
@@ -3030,6 +3154,7 @@ export class FloorScene {
   /** Let go of the wheel (the tab's hint overlay calls this, as Esc does). */
   releaseFocus() {
     if (this.focused) this.setFocused(false);
+    this.setWalkMode(false);
   }
 
   /** Click Walk, or press a move key: stand in the owner's view. */
@@ -3063,13 +3188,75 @@ export class FloorScene {
     this.opts.onWalkModeChange?.(on);
   }
 
+  /**
+   * Any move of the camera that is not the owner's own ends the walk: the mode (so the next click in the canvas is not
+   * read as "start walking"), the held keys, the mouse capture and the owner camera. Called by every camera preset, a
+   * follow, a fly-to-screen and the Manager's stand.
+   */
+  private leaveWalk() {
+    this.walkBlend = null;
+    this.setWalkMode(false);
+    this.clearWalkKeys();
+    if (this.ownerChase) this.stopOwnerChase();
+    this.unlockPointer();
+  }
+
+  /** Capture the mouse for looking around. Needs a click or a key (the browser's rule); a refusal just leaves edge-limited looking. */
+  private lockPointer() {
+    const el = this.renderer.domElement;
+    if (this.locked || typeof el.requestPointerLock !== "function") return;
+    if (window.matchMedia?.("(pointer: coarse)").matches) return;
+    this.wantLock = true;
+    try {
+      const r = el.requestPointerLock() as unknown as Promise<void> | undefined;
+      r?.catch?.(() => {
+        this.wantLock = false;
+      });
+    } catch {
+      this.wantLock = false;
+    }
+  }
+
+  /** Give the mouse back. Asked for here, so the change event that follows is not read as an Esc. */
+  private unlockPointer() {
+    this.wantLock = false;
+    if (typeof document !== "undefined" && document.pointerLockElement === this.renderer.domElement) document.exitPointerLock();
+  }
+
+  private onPointerLock = () => {
+    const now = document.pointerLockElement === this.renderer.domElement;
+    if (now === this.locked) return;
+    this.locked = now;
+    this.opts.onLockChange?.(now);
+    // Lost without our asking is Esc (the browser keeps that key for itself while the mouse is captured): let go of the floor.
+    if (!now && this.wantLock) {
+      this.wantLock = false;
+      if (this.focused) this.setFocused(false);
+      this.setWalkMode(false);
+    }
+  };
+
+  /** The window lost focus or the tab was hidden: a key held now never sends its keyup, so nothing may stay held. */
+  private onBlur = () => this.clearWalkKeys();
+
+  /** Ease from the view the camera had into the owner's, over about 0.75 s, so the click that starts the walk is a glide. */
+  private applyWalkBlend(dt: number) {
+    const b = this.walkBlend;
+    if (!b) return;
+    b.t = Math.min(1, b.t + dt / 0.75);
+    const k = b.t * b.t * (3 - 2 * b.t);
+    this.camera.position.lerpVectors(b.pos, this.camera.position, k);
+    this.controls.target.lerpVectors(b.target, this.controls.target, k);
+    if (b.t >= 1) this.walkBlend = null;
+  }
+
   isWalkMode() {
     return this.walkMode;
   }
 
   /** Fly to the Manager's trading stand: the first clear spot around it with an unbroken line to the stand. */
   focusManager(): boolean {
-    if (this.ownerChase) this.stopOwnerChase();
+    this.leaveWalk();
     const [mx, mz] = this.manager.pos;
     const target = new THREE.Vector3(mx, 1.25, mz);
     const away = Math.atan2(mx - this.managerLook[0], mz - this.managerLook[1]); // come from the side the Manager faces
@@ -3102,14 +3289,17 @@ export class FloorScene {
     if (this.ownerChase) return;
     // Prefer Owner chase over crew follow while walking.
     if (this.chase) this.follow(null);
+    // Where the lens is now: the walk glides from here to the owner's view instead of cutting to it.
+    this.walkBlend = { t: 0, pos: this.camera.position.clone(), target: this.controls.target.clone() };
     this.ownerChase = true;
     this.ownerChaseHead = null;
     this.preset = "free";
     this.camGoal = null;
+    this.lockPointer();
     if (this.pov === "first") {
       this.controls.enabled = false;
       this.owner.root.visible = false;
-      this.ownerEyes();
+      this.ownerEyes(0);
       return;
     }
     this.controls.enabled = true;
@@ -3128,6 +3318,8 @@ export class FloorScene {
   private stopOwnerChase() {
     this.ownerChase = false;
     this.ownerChaseHead = null;
+    this.walkBlend = null;
+    this.unlockPointer();
     this.controls.enabled = true;
     this.controls.enableRotate = true;
     this.controls.enablePan = true;
@@ -3135,7 +3327,7 @@ export class FloorScene {
   }
 
   /** The owner's eyes. The body is hidden so the lens is not inside the head. */
-  private ownerEyes() {
+  private ownerEyes(dt: number) {
     const a = this.owner;
     const eyeY = a.height * 0.9 + a.elevation;
     const cp = Math.cos(this.lookPitch);
@@ -3145,10 +3337,11 @@ export class FloorScene {
     this.camGoal = null;
     this.owner.root.visible = false;
     this.controls.enabled = false;
+    this.applyWalkBlend(dt);
   }
 
   /** Behind the owner, placed exactly. A lerp here is what made the view rubber-band. */
-  private ownerChaseRide(_dt: number, _t: number) {
+  private ownerChaseRide(dt: number, _t: number) {
     const a = this.owner;
     const eye = a.height * 0.72 + a.elevation;
     const look = new THREE.Vector3(a.pos[0] + Math.sin(a.yaw) * 2, eye + 0.15 + this.lookPitch * 0.55, a.pos[1] + Math.cos(a.yaw) * 2);
@@ -3161,6 +3354,7 @@ export class FloorScene {
     if (hit < dist) dist = Math.max(1.6, hit - 0.3);
     this.camera.position.set(a.pos[0] + backX * dist, eye + 0.58 - this.lookPitch * 0.25, a.pos[1] + backZ * dist);
     this.controls.target.copy(look);
+    this.applyWalkBlend(dt);
   }
 
   private walkable = (x: number, z: number) => {
@@ -3367,6 +3561,10 @@ export class FloorScene {
     this.renderer.domElement.removeEventListener("pointerleave", this.onLeave);
     window.removeEventListener("keydown", this.onKey);
     window.removeEventListener("keyup", this.onKeyUp);
+    window.removeEventListener("blur", this.onBlur);
+    document.removeEventListener("visibilitychange", this.onBlur);
+    document.removeEventListener("pointerlockchange", this.onPointerLock);
+    this.unlockPointer();
     this.renderer.domElement.removeEventListener("wheel", this.onWheelCapture, { capture: true });
     document.removeEventListener("pointerdown", this.onDocDown, true);
     this.unsubManager?.();
