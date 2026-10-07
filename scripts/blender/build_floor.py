@@ -1456,6 +1456,9 @@ def build_office(opts=frozenset()):
     build_extras()
     core = core_ns()
     print("base geometry: %d tris" % tri_count())
+    if "--no-dress" not in opts:
+        import floor_dress
+        floor_dress.build(core)
     if "--no-doors" not in opts:
         import floor_doors
         floor_doors.build(core)
