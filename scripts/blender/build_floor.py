@@ -44,14 +44,18 @@ import os
 import random
 import struct
 import sys
+import types
 
 import bpy
 from mathutils import Matrix, Vector
 
+sys.dont_write_bytecode = True      # the helper modules (floor_*.py) must not leave __pycache__ in the repo
 HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 LAYOUT_PATH = os.path.join(REPO, "src", "data", "floor-layout.json")
-OUT_DIR = os.path.join(REPO, "public", "floor")
+OUT_DIR = os.environ.get("FLOOR_OUT_DIR") or os.path.join(REPO, "public", "floor")
 GLB_PATH = os.path.join(OUT_DIR, "office.glb")
 PORTRAIT_DIR = os.path.join(OUT_DIR, "portraits")
 
@@ -1430,7 +1434,17 @@ def reset_scene():
     MATS.clear()
 
 
-def build_office():
+def core_ns():
+    """The helpers and plan data the feature modules (floor_*.py) build on, as one namespace."""
+    return types.SimpleNamespace(**{k: v for k, v in globals().items() if not k.startswith("__")})
+
+
+def tri_count():
+    return sum(len(p.vertices) - 2 for o in bpy.data.objects if o.type == "MESH" for p in o.data.polygons)
+
+
+def build_office(opts=frozenset()):
+    """opts: switches from the command line (see main). Everything on by default except what is named --no-*."""
     reset_scene()
     for name in ("carpet_red", "carpet_violet", "carpet_green", "carpet_navy", "carpet_slate", "wood", "tile"):
         ensure(name)
@@ -1440,16 +1454,22 @@ def build_office():
     build_screens()
     build_emissives()
     build_extras()
+    core = core_ns()
+    print("base geometry: %d tris" % tri_count())
+    if "--no-ao" not in opts:
+        import floor_ao
+        floor_ao.bake(core)
     os.makedirs(OUT_DIR, exist_ok=True)
     bpy.ops.export_scene.gltf(
         filepath=GLB_PATH, export_format="GLB", use_selection=False, export_yup=True, export_apply=True,
         export_cameras=False, export_lights=False, export_animations=False, export_skins=False,
         export_morph=False, export_texcoords=True, export_normals=True, export_materials="EXPORT",
-        export_extras=False,
+        export_extras=True, export_vertex_color="ACTIVE", export_all_vertex_colors=False,
     )
-    tris = sum(len(p.vertices) - 2 for o in bpy.data.objects if o.type == "MESH" for p in o.data.polygons)
+    import floor_pack
+    floor_pack.pack(GLB_PATH)
     print("office.glb written: %s  (%d bytes, ~%d tris, %d objects)" % (
-        GLB_PATH, os.path.getsize(GLB_PATH), tris, len(bpy.data.objects)))
+        GLB_PATH, os.path.getsize(GLB_PATH), tri_count(), len(bpy.data.objects)))
 
 
 # --------------------------------------------------------------------------
@@ -1771,7 +1791,7 @@ def main(argv):
     args = set(a for a in argv if a.startswith("--"))
     do_all = not (args & {"--office", "--portraits", "--verify"})
     if do_all or "--office" in args:
-        build_office()
+        build_office(args)
     if do_all or "--portraits" in args:
         build_portraits()
     if do_all or "--verify" in args:
@@ -1781,4 +1801,6 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    # Under `blender -b -P build_floor.py -- --office` everything before "--" belongs to Blender.
+    _argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
+    main(_argv)
