@@ -16,7 +16,7 @@
  */
 
 import type { Character } from "@/lib/room/orchestrator";
-import { assignVoices, phrasePlan, VOICE_CAST, type SpokenPhrase } from "@/lib/room/floor-voice";
+import { assignVoices, isNaturalVoice, phrasePlan, setVoiceQuality, VOICE_CAST, type SpokenPhrase } from "@/lib/room/floor-voice";
 import type { FloorEvent } from "./floor-scene";
 
 export { VOICE_CAST };
@@ -27,7 +27,8 @@ function englishVoices(): SpeechSynthesisVoice[] {
   return en.length ? en : all;
 }
 
-const CAST_KEY = "ledger-room-cast-v3";
+// v4: the cast is now American-first (v3 kept the British Google pair and Sonia / Libby / Ryan for anyone who had them saved).
+const CAST_KEY = "ledger-room-cast-v4";
 
 function loadCast(): Partial<Record<Character, string>> {
   try {
@@ -265,6 +266,24 @@ export class FloorSound {
       }
     }
     if (changed) saveCast(this.saved);
+    // A cast that is mostly natural voices speaks the natural plan (own pitch and pace, pauses, a lifted question); a legacy cast keeps the conservative one.
+    const names = (["Gemma", "Nova", "Jax", "Sterling", "Vince"] as const).map((w) => voices.find((v) => v.voiceURI === this.saved[w])?.name);
+    setVoiceQuality(names.filter((n) => isNaturalVoice(n)).length >= 3);
+  }
+
+  /** Does anyone else hold this person's voice? (Too few voices of one gender: they then differ by register, not by voice.) */
+  private sharesVoice(who: Character): boolean {
+    const uri = this.saved[who];
+    return !!uri && (Object.entries(this.saved) as [Character, string][]).some(([w, u]) => w !== who && u === uri);
+  }
+
+  /** Who has which voice, for the Voices button: the person, the voice's name, its gender, and whether it shares or is a natural voice. */
+  castSummary(): { who: Character; voice: string | null; gender: "female" | "male"; natural: boolean; shared: boolean }[] {
+    this.bindVoices();
+    return (["Gemma", "Nova", "Jax", "Sterling", "Vince"] as const).map((who) => {
+      const v = this.voiceFor(who);
+      return { who, voice: v?.name ?? null, gender: VOICE_CAST[who].lean, natural: isNaturalVoice(v?.name), shared: this.sharesVoice(who) };
+    });
   }
 
   private voiceFor(who: Character): SpeechSynthesisVoice | null {
@@ -281,7 +300,8 @@ export class FloorSound {
   say(line: { character: Character; text: string; animation?: string }): void {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     if (this.mutes.voices) return;
-    const parts = phrasePlan(line.character, line.text, line.animation);
+    this.bindVoices();
+    const parts = phrasePlan(line.character, line.text, line.animation, { natural: isNaturalVoice(this.voiceFor(line.character)?.name), shared: this.sharesVoice(line.character) });
     if (!parts.length || !parts[0].text) return;
     this.queue.push({ token: this.gen, who: line.character, parts });
     if (this.queue.length > 6) this.queue.splice(0, this.queue.length - 6);

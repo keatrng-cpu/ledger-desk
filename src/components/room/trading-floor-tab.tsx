@@ -1539,7 +1539,11 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           type="button"
           className={`${BTN} ml-auto`}
           aria-pressed={soundOn}
-          title={soundOn ? "Speaking the caption in each person's voice" : "Click to let the floor speak the caption"}
+          title={
+            soundOn
+              ? (sound.current?.castSummary() ?? []).map((c) => `${c.who} (${c.gender}): ${c.voice ?? "browser default"}${c.natural ? " · natural" : ""}${c.shared ? " · shares a voice, own pitch" : ""}`).join("\n") || "Speaking the caption in each person's voice"
+              : "Click to let the floor speak the caption in each person's own voice (American, male for the men, female for the women)"
+          }
           onClick={() => {
             const on = !soundOn;
             setSoundOn(on);

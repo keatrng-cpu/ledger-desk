@@ -7,7 +7,7 @@
  * strike, a code name), kept here so a change to the voice cannot quietly change what a person hears for them.
  */
 import { readFileSync } from "node:fs";
-import { digitsHeld, phrasePlan, speakHoldSec, speakable, toneOf, assignVoices, voiceGender, VOICE_CAST } from "../src/lib/room/floor-voice.ts";
+import { digitsHeld, phrasePlan, speakHoldSec, speakable, toneOf, assignVoices, voiceGender, VOICE_CAST, isNaturalVoice } from "../src/lib/room/floor-voice.ts";
 
 const sound = readFileSync("src/components/room/floor-sound.ts", "utf8");
 const tab = readFileSync("src/components/room/trading-floor-tab.tsx", "utf8");
@@ -27,7 +27,7 @@ const structure = phrasePlan("Gemma", "The draw is still premium, discount below
 const spoken = speakable("B+ on MNQ, floor 0.65, $12, 0-1 DTE.");
 
 check("utterance is a phrase of the caption", /new SpeechSynthesisUtterance\(p\.text\)/.test(sound));
-check("say plans the line", /phrasePlan\(line\.character, line\.text, line\.animation\)/.test(sound));
+check("say plans the line (the natural plan only for a natural voice)", /phrasePlan\(line\.character, line\.text, line\.animation, \{ natural: isNaturalVoice\(/.test(sound));
 check("a new line waits", /this\.queue\.push/.test(sound) && /Only hush\(\)/.test(sound));
 check("hush is the only cut", /hush\(\): void[\s\S]*speechSynthesis\?\.cancel/.test(sound));
 check("cast is the five", ["Gemma", "Jax", "Nova", "Sterling", "Vince"].every((n) => VOICE_CAST[n]));
@@ -108,6 +108,65 @@ check("sterling skips fred", smoother.Sterling === "guy");
 check("a saved fred is dropped", assignVoices(deskVoices, { Sterling: "fred" }).Sterling === "guy");
 check("nova and sterling sit near a natural pace", VOICE_CAST.Nova.rate >= 0.98 && VOICE_CAST.Sterling.rate >= 0.98);
 check("the utterance uses the voice's own language", /u\.lang = voice\?\.lang/.test(sound));
+
+console.log("natural voices: American, each person's own register, varied cadence");
+{
+  const crew = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
+  const line = "The sweep took the high at 782.50. Is that a raid? No, it is a stop run! The draw is below, so we wait.";
+  const nat = Object.fromEntries(crew.map((w) => [w, phrasePlan(w, line, undefined, { natural: true })]));
+  const leg = Object.fromEntries(crew.map((w) => [w, phrasePlan(w, line, undefined, { natural: false })]));
+  const mean = (a, k) => a.reduce((s, p) => s + p[k], 0) / a.length;
+  const spread = (plans, k) => {
+    const m = crew.map((w) => mean(plans[w], k));
+    return Math.max(...m) - Math.min(...m);
+  };
+  check("natural: the five differ in pitch by at least 0.10", spread(nat, "pitch") >= 0.1);
+  check("control: the legacy plan cannot tell them apart by pitch (under 0.05), so the check above is meaningful", spread(leg, "pitch") < 0.05);
+  check("natural: the five differ in pace by at least 0.15", spread(nat, "rate") >= 0.15);
+  const byRate = [...crew].sort((a, b) => mean(nat[a], "rate") - mean(nat[b], "rate"));
+  const byPitch = [...crew].sort((a, b) => mean(nat[a], "pitch") - mean(nat[b], "pitch"));
+  check("Sterling is the slowest and the lowest, Jax the fastest", byRate[0] === "Sterling" && byRate[4] === "Jax" && byPitch[0] === "Sterling");
+  check("Gemma is the brightest voice", byPitch[4] === "Gemma");
+  const g = nat.Jax;
+  check("the line is spoken as several pieces", g.length >= 3, String(g.length));
+  check("a question lifts: its piece sits above the sentence before it, for every person", crew.every((w) => { const p = nat[w]; const i = p.findIndex((x) => x.text.endsWith("?")); return i > 0 && p[i].pitch > p[i - 1].pitch; }));
+  check("a sentence end breathes: full-stop and question pauses are 200 ms or more, the last piece has none", g.slice(0, -1).filter((p) => /[.?]$/.test(p.text)).every((p) => p.gap >= 200) && g[g.length - 1].gap === 0);
+  check("three or more distinct pitch values in one line: not a drone", new Set(g.map((p) => p.pitch.toFixed(3))).size >= 3);
+  check("the same line is spoken the same way every time (deterministic)", JSON.stringify(phrasePlan("Gemma", line, undefined, { natural: true })) === JSON.stringify(phrasePlan("Gemma", line, undefined, { natural: true })));
+  check("two different lines differ a little for the same person (not stamped)", phrasePlan("Nova", "Range used is forty percent.", undefined, { natural: true })[0].rate !== phrasePlan("Nova", "Range used is fifty percent.", undefined, { natural: true })[0].rate);
+  const calm = "The room is quiet and the tape is flat.";
+  const stopN = mean(phrasePlan("Vince", "Stopped. The halt is on.", undefined, { natural: true }), "rate") - mean(phrasePlan("Vince", calm, undefined, { natural: true }), "rate");
+  const stopL = mean(phrasePlan("Vince", "Stopped. The halt is on.", undefined, { natural: false }), "rate") - mean(phrasePlan("Vince", calm, undefined, { natural: false }), "rate");
+  check("a stop slows a natural voice at least twice as far as a legacy one", stopN < 0 && stopN <= stopL * 2, stopN.toFixed(3) + " vs " + stopL.toFixed(3));
+  check("natural plans keep the punctuation the voice can use; the legacy plan strips it", nat.Sterling.some((p) => p.text.includes(",") || /[.?!]$/.test(p.text)) && !leg.Sterling.some((p) => p.text.includes(",") || p.text.endsWith(".")));
+  const digits = (plans) => plans.map((p) => p.text).join(" ").replace(/[^0-9]/g, "");
+  check("no digit moves between the two plans, or inside a natural one", crew.every((w) => digits(nat[w]) === digits(leg[w])) && digits(nat.Jax).length > 0);
+  check("legacy plan unchanged: pitch stays in 0.98 to 1.03", crew.every((w) => leg[w].every((p) => p.pitch >= 0.98 && p.pitch <= 1.03)));
+  check("natural plan stays inside what an engine takes (pitch 0.82-1.2, rate 0.85-1.3)", crew.every((w) => nat[w].every((p) => p.pitch >= 0.82 && p.pitch <= 1.2 && p.rate >= 0.85 && p.rate <= 1.3)));
+  check("which voices count as natural", isNaturalVoice("Microsoft Aria Online (Natural) - English (United States)") && isNaturalVoice("Samantha (Enhanced)") && isNaturalVoice("Ava (Premium)") && !isNaturalVoice("Microsoft David Desktop - English (United States)") && !isNaturalVoice("Google US English") && !isNaturalVoice("English (America) espeak") && !isNaturalVoice(null));
+  const v = (name, voiceURI, lang) => ({ name, voiceURI, lang });
+  const edge = [
+    v("Microsoft Aria Online (Natural) - English (United States)", "aria", "en-US"),
+    v("Microsoft Jenny Online (Natural) - English (United States)", "jenny", "en-US"),
+    v("Microsoft Michelle Online (Natural) - English (United States)", "michelle", "en-US"),
+    v("Microsoft Guy Online (Natural) - English (United States)", "guy", "en-US"),
+    v("Microsoft Davis Online (Natural) - English (United States)", "davis", "en-US"),
+    v("Microsoft Tony Online (Natural) - English (United States)", "tony", "en-US"),
+    v("Microsoft Andrew Online (Natural) - English (United States)", "andrew", "en-US"),
+    v("Microsoft Sonia Online (Natural) - English (United Kingdom)", "sonia", "en-GB"),
+    v("Microsoft Ryan Online (Natural) - English (United Kingdom)", "ryan", "en-GB"),
+    v("Microsoft Libby Online (Natural) - English (United Kingdom)", "libby", "en-GB"),
+    v("Google UK English Female", "guf", "en-GB"),
+  ];
+  const cast = assignVoices(edge);
+  const us = new Set(["aria", "jenny", "michelle", "guy", "davis", "tony", "andrew"]);
+  check("American first: with American voices to spare nobody gets a British one", crew.every((w) => us.has(cast[w])), JSON.stringify(cast));
+  check("five people, five different voices when the browser has them", new Set(crew.map((w) => cast[w])).size === 5, JSON.stringify(cast));
+  check("the gender gate holds on the cast", ["Gemma", "Nova"].every((w) => voiceGender(edge.find((x) => x.voiceURI === cast[w]).name) === "female") && ["Jax", "Sterling", "Vince"].every((w) => voiceGender(edge.find((x) => x.voiceURI === cast[w]).name) === "male"));
+  const oneUs = assignVoices([v("Microsoft Aria Online (Natural) - English (United States)", "aria", "en-US"), v("Microsoft Sonia Online (Natural) - English (United Kingdom)", "sonia", "en-GB"), v("Microsoft Ryan Online (Natural) - English (United Kingdom)", "ryan", "en-GB")]);
+  check("with a single American voice the British ones stay available as a fallback", Object.values(oneUs).every(Boolean), JSON.stringify(oneUs));
+  check("a saved British voice is replaced once American ones exist", assignVoices(edge, { Gemma: "sonia" }).Gemma !== "sonia");
+}
 
 if (failed) {
   console.error(`${failed} check(s) failed`);
