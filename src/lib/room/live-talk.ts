@@ -775,6 +775,40 @@ function bookCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew = false
         },
       });
     }
+    const risk = card.entry != null && card.stop != null ? Math.abs(card.entry - card.stop) : null;
+    const close = card.awayPts != null && risk != null && Math.abs(card.awayPts) <= Math.max(1.5, risk * 0.3);
+    const atKey = `atentry|${card.key}`;
+    if (close && now - (st.nearFired[atKey] ?? 0) > 10 * 60_000) {
+      out.push({
+        id: `atentry|${card.key}|${Math.round(now / 60_000)}`,
+        kind: "card",
+        topic: `card:atentry:${card.key}`,
+        urgency: 2,
+        prio: 11,
+        at: now,
+        label: `${card.name} is at the entry`,
+        build: (c) => V.exAtEntry(c, { card }),
+        commit: (s) => {
+          s.nearFired[atKey] = now;
+        },
+      });
+    }
+  }
+  const open = w.book?.positions?.[0];
+  if (open && now - (st.nearFired[`manage|${open.id}`] ?? 0) > 8 * 60_000) {
+    out.push({
+      id: `manage|${open.id}|${Math.round(now / 60_000)}`,
+      kind: "card",
+      topic: `card:manage:${open.id}`,
+      urgency: 2,
+      prio: 9,
+      at: now,
+      label: `managing ${open.name}`,
+      build: (c) => V.exManage(c, { p: open }),
+      commit: (s) => {
+        s.nearFired[`manage|${open.id}`] = now;
+      },
+    });
   }
   // A ghost closing: the refused tickets' running result.
   const total = (w.lab?.refusals ?? []).reduce((a, r) => a + r.n, 0);

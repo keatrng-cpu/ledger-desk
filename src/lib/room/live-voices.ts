@@ -876,12 +876,52 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     pT1: k.pT1,
     expR: k.expR,
   });
-  lines.push(line("Vince", ANIM.Vince.watch!, () => f.raw(j.setup)));
-  lines.push(line("Gemma", ANIM.Gemma.explain!, () => f.raw(j.target)));
-  lines.push(line("Jax", ANIM.Jax.point!, () => f.raw(j.watch)));
-  lines.push(line("Nova", ANIM.Nova.analyze!, () => f.raw(j.book)));
-  lines.push(line("Sterling", ANIM.Sterling.tablet!, () => f.raw(j.entry)));
+  lines.push(line("Vince", ANIM.Vince.watch!, f.raw(j.setup)));
+  lines.push(line("Gemma", ANIM.Gemma.explain!, f.raw(j.target)));
+  lines.push(line("Jax", ANIM.Jax.point!, f.raw(j.watch)));
+  lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(j.book)));
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(j.entry)));
   return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
+}
+
+/** Price is near the entry drawn on the whiteboard. They gather and decide. */
+export function exAtEntry(c: Ctx, d: { card: CardRead }): Ex | null {
+  const f = c.f;
+  const k = d.card;
+  const seq = k.sequence ?? "";
+  const stand = seq.startsWith("STAND") || seq.startsWith("BIAS") || seq.startsWith("DRAW") || seq.startsWith("ENTRY GONE");
+  const agree = seq.startsWith("ENTER") && k.tier === "live";
+  const away = k.awayPts != null ? `${f.pts(Math.abs(k.awayPts))} pts from the entry` : "at the entry";
+  const lines: (Line | null)[] = [
+    line("Gemma", ANIM.Gemma.explain!, `${f.raw(k.futSymbol)} ${k.futSide}. Price is ${away}. The ladder is on the board.`),
+    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, stand ? "This is not the fill. The raid does not get the order." : "Watch the entry. We do not swing before it prints."),
+    line("Sterling", stand ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, stand ? "The card and the desk do not agree. Nobody places." : agree ? "The card and the desk agree." : "Not yet. The array has not been touched."),
+    line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? `If it fills, P(T1) ${f.frac(k.pT1)}${k.expR != null ? `, E[R] ${signed(k.expR)}${Math.abs(k.expR).toFixed(2)}` : ""}.` : "No priced T1. Do not invent one."),
+    line(
+      "Vince",
+      agree ? ANIM.Vince.enter! : ANIM.Vince.watch!,
+      agree
+        ? "Price is in the array. Agentic places the month ticket if the account gates are already clear. We stay on the board and watch it."
+        : "Hands off the key until price is in the array and the card still says enter.",
+    ),
+  ];
+  return { lines: compact(lines), moves: BOARD };
+}
+
+/** An open ticket. They stay at the board and manage it off the same ladder. */
+export function exManage(c: Ctx, d: { p: PositionRead }): Ex | null {
+  const f = c.f;
+  const p = d.p;
+  const stop = p.plan?.stop != null ? f.lvl(p.plan.stop) : "the stop";
+  const t1 = p.plan?.t1 != null ? f.lvl(p.plan.t1) : "the draw";
+  const lines: (Line | null)[] = [
+    line("Vince", ANIM.Vince.watch!, `${f.raw(p.name)} is on. Stop ${stop}. Target ${t1}. We manage it here.`),
+    line("Gemma", ANIM.Gemma.explain!, "The ladder is the trade. Eyes on the entry we filled, not the next one."),
+    line("Jax", ANIM.Jax.point!, p.pnlPct >= 0 ? "Let it work. Don't yank it." : "It's against us. The stop is the stop."),
+    line("Nova", ANIM.Nova.analyze!, `${p.contracts} on. ${signed(p.pnlPct)}${Math.abs(p.pnlPct).toFixed(1)}% from the fill.`),
+    line("Sterling", p.pnlPct <= -15 ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, p.pnlPct <= -15 ? "If it tags the stop, it is done. No add." : "Size stays. We do not add while it is open."),
+  ];
+  return { lines: compact(lines), moves: BOARD };
 }
 
 export function exFill(c: Ctx, d: { p: PositionRead; b: TapeBook | null }): Ex | null {

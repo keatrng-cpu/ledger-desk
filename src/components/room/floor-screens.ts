@@ -418,6 +418,91 @@ function drawKillzoneClock(ctx: Ctx, cx: number, cy: number, r: number, etMin: n
   ctx.textAlign = "left";
 }
 
+function planPrice(f: FloorFrame, symbol: string): number | null {
+  const u = /ES/.test(symbol) ? "SPY" : "QQQ";
+  const px = f.screens.charts[u]?.price ?? null;
+  return typeof px === "number" && px > 0 ? px : null;
+}
+
+/** The desk ladder, drawn on the whiteboard: stop, entry, T1, T2, and where price is. */
+function drawPlanLadder(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  plan: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
+  price: number | null,
+) {
+  ctx.save();
+  ctx.fillStyle = "#0c1016";
+  ctx.fillRect(x, y, w, h);
+  const vals = [plan.entry, plan.stop, plan.t1, plan.t2, price].filter((v): v is number => v != null && Number.isFinite(v));
+  let lo = Math.min(...vals);
+  let hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.12 || 1;
+  lo -= pad;
+  hi += pad;
+  const yOf = (p: number) => y + 28 + ((hi - p) / (hi - lo)) * (h - 56);
+  const railX = x + w * 0.34;
+  const railW = w * 0.16;
+  ctx.fillStyle = "#1c2430";
+  ctx.fillRect(railX, y + 24, railW, h - 48);
+  const band = (a: number, b: number, color: string) => {
+    const top = Math.min(yOf(a), yOf(b));
+    const bh = Math.max(2, Math.abs(yOf(a) - yOf(b)));
+    ctx.fillStyle = color;
+    ctx.fillRect(railX, top, railW, bh);
+  };
+  band(plan.entry, plan.stop, "rgba(220,38,38,0.45)");
+  if (plan.t1 != null) band(plan.entry, plan.t1, "rgba(21,128,61,0.40)");
+  if (plan.t2 != null) band(plan.t1 ?? plan.entry, plan.t2, "rgba(21,128,61,0.18)");
+  const risk = Math.abs(plan.entry - plan.stop) || 1;
+  const rungs: { p: number; label: string; color: string }[] = [
+    { p: plan.stop, label: "STOP", color: "#f87171" },
+    { p: plan.entry, label: "ENTRY · CE", color: "#5eead4" },
+  ];
+  if (plan.t1 != null) {
+    const r = (plan.side === "long" ? plan.t1 - plan.entry : plan.entry - plan.t1) / risk;
+    rungs.push({ p: plan.t1, label: `T1 · ${r.toFixed(1)}R`, color: "#86efac" });
+  }
+  if (plan.t2 != null) {
+    const r = (plan.side === "long" ? plan.t2 - plan.entry : plan.entry - plan.t2) / risk;
+    rungs.push({ p: plan.t2, label: `T2 · ${r.toFixed(1)}R`, color: "#86efac" });
+  }
+  const placed = rungs.map((r) => ({ ...r, ly: yOf(r.p) })).sort((a, b) => a.ly - b.ly);
+  for (let i = 1; i < placed.length; i++) placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 22);
+  ctx.font = `700 18px ${MONO}`;
+  ctx.textBaseline = "middle";
+  for (const r of placed) {
+    ctx.strokeStyle = r.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(railX, yOf(r.p));
+    ctx.lineTo(railX + railW, yOf(r.p));
+    ctx.stroke();
+    ctx.fillStyle = r.color;
+    ctx.textAlign = "right";
+    ctx.fillText(r.label, railX - 8, r.ly);
+    ctx.textAlign = "left";
+    ctx.fillText(fmt(r.p), railX + railW + 8, r.ly);
+  }
+  if (price != null) {
+    const py = Math.max(y + 28, Math.min(y + h - 28, yOf(price)));
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.moveTo(railX - 8, py);
+    ctx.lineTo(railX - 18, py - 6);
+    ctx.lineTo(railX - 18, py + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = `700 14px ${MONO}`;
+    ctx.textAlign = "left";
+    ctx.fillText("now", railX + railW + 8, py - 16);
+  }
+  ctx.restore();
+}
+
 function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillStyle = "#f8fafc";
   ctx.fillRect(0, 0, w, h);
@@ -432,24 +517,11 @@ function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.fillText(title, 24, 46);
   ctx.font = `600 24px ${HAND}`;
   const p = f.screens.plan;
-  let yy = 92;
-  if (p) {
-    const rows: [string, number | null, string][] = [
-      ["CE", p.entry, ink],
-      ["STOP", p.stop, red],
-      ["T1", p.t1, green],
-      ["T2", p.t2, green],
-    ];
-    for (const [k, v, col] of rows) {
-      if (v == null) continue;
-      ctx.fillStyle = col;
-      ctx.fillText(`${k}  ${fmt(v, v > 1000 ? 0 : 2)}`, 28, yy);
-      yy += 34;
-    }
-  } else {
+  if (p) drawPlanLadder(ctx, 16, 64, w * 0.46, h - 150, p, planPrice(f, p.symbol));
+  else {
     ctx.fillStyle = "#475569";
-    ctx.fillText("no priced plan", 28, yy);
-    yy += 34;
+    ctx.font = `600 24px ${HAND}`;
+    ctx.fillText("no priced plan", 28, 100);
   }
   const b = f.output.broker_action;
   ctx.fillStyle = b.execute_trade ? red : "#334155";
