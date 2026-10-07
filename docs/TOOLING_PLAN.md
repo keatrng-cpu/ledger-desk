@@ -155,3 +155,13 @@ Proposed: a CrewAI or AutoGen "crew" of model-backed nodes (Anthropic, OpenAI, x
 6. **Langflow / Flowise** add a web server, more keys and a second place the logic lives, for a pipeline that is already readable in code.
 
 What does fit is already planned: a deterministic sender that polls an authenticated desk endpoint (`/api/desk/rh-cycle`, see the Grok prompt for the RH sender) and runs `review_option_order` then `place_option_order` under the existing gates. A model may read the journal afterwards and write a post-mortem (narration, never a gate); that is the only place a crew framework could sit.
+
+### Revised the same day: an analyst crew is allowed, a firing crew is not
+
+The trader clarified (2026-10-07) that the crew was never meant to fire orders: execution stays desk to Robinhood, deterministic, and never falls back on a model. Scoped that way, a CrewAI (or AutoGen) crew is acceptable for research, analytics, explaining numbers, proposing desk optimisations and Floor enhancements. Conditions, so it cannot drift into the decision path:
+
+- **No order path, no broker code, no broker credentials.** The crew's tools are read-only. A guard test fails if anything under the crew imports an execution, broker or `robin_stocks` module (the lab's `selfcheck` and `verify-lab-constants` already do this for `brainlab`).
+- **A model is never the source of a number.** All arithmetic, backtests and calculations run in code (the existing `scripts/*.mjs` and `brainlab` Python); the agents read the result, explain it and propose. The account rule (100% accuracy) stands.
+- **Proposals, not commits.** Output is markdown plus draft issues or pull requests. A change to a rule or a number still needs a day-clustered |z| >= 2 measurement and the trader's call; `config.ts` is never edited by a model; no auto-commit to `main` (GitPython stays limited to notes).
+- **Schedule: after the close and weekly, not market hours,** from GitHub Actions or locally. Secrets are only the model keys (OPENAI_KEY, ANTHROPIC_API_KEY, XAI_API_KEY), never a brokerage credential. Fetched web text is untrusted, so the crew has no write tool beyond opening a draft PR and a spend cap per run.
+- Model names in the pasted sample are out of date: take current ones from each provider's docs. Pin the framework version and verify the install in the lab venv before relying on it.
