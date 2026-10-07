@@ -171,7 +171,7 @@ export function takeWordNote(): ResearchNote | null {
 export function scannerMandateNote(): ResearchNote {
   return {
     id: "scanner_mandate",
-    line: "Live PATH cards at A+/A/A− with confluence at or above 0.65 are the desk's actionable set — talk past one and you're trading opinion.",
+    line: "Enter only when the card says ENTER and price is in the array. Armed and forming are anticipation. A count does not stand a ticket down. The month ticket sizes the fill.",
     source: "PATH scanner · APLUS_RULES.confluenceFloor",
   };
 }

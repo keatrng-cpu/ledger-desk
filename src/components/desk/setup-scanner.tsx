@@ -41,6 +41,7 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
+import { entryCall, monthContractLine } from "@/lib/trading/month-contract";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
@@ -969,6 +970,27 @@ function SetupCard({
             </p>
           </div>
         )}
+      </div>
+
+      <div
+        className={cn(
+          "mb-2 rounded-[var(--radius-sm)] border px-2.5 py-2",
+          anticipation.entry === "live"
+            ? "border-[color-mix(in_oklab,var(--color-up)_55%,transparent)] bg-[color-mix(in_oklab,var(--color-up)_10%,transparent)]"
+            : anticipation.entry === "gone"
+              ? "border-[color-mix(in_oklab,var(--color-down)_45%,transparent)] bg-[color-mix(in_oklab,var(--color-down)_8%,transparent)]"
+              : "border-[color-mix(in_oklab,var(--color-warn)_45%,transparent)] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)]",
+        )}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-fg)]">
+          {entryCall(anticipation.entry, c.plan?.entry ?? null).label}
+          {c.plan ? ` · CE ${c.plan.entry.toFixed(2)}` : ""}
+        </p>
+        <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-fg)]">{anticipation.next}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-subtle)]">
+          {entryCall(anticipation.entry, c.plan?.entry ?? null).act}
+          {anticipation.entry === "live" ? ` ${monthContractLine(2000)}` : ""}
+        </p>
       </div>
 
       {odds && (

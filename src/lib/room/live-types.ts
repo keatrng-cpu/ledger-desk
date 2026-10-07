@@ -369,6 +369,9 @@ export interface ScanCardLite {
   stop: number | null;
   t1: number | null;
   block: string | null;
+  /** live enters. armed and forming are anticipation. gone does not chase. */
+  entryState: "live" | "armed" | "forming" | "gone" | "wait";
+  entryLine: string;
 }
 
 /* ── The investment office ─────────────────────────────────────────────────

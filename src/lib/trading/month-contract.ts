@@ -2,8 +2,8 @@
  * The month ticket. Size, stop, and target are rules. The win rate is a result.
  *
  * A contract is about $150. The account funds one ticket. The stop is 30% of
- * the debit. The winner is a double. Nine closes, then stand down. Size does
- * not rise on a win. It rises one contract after nine closes clear the bar.
+ * the debit. The winner is a double. A count does not stand a ticket down.
+ * Nine closes is the sample that raises size. A win does not.
  */
 
 export const CONTRACT_USD = 150;
@@ -114,5 +114,15 @@ export function nextContracts(equity: number, closes: MonthClose[]): { contracts
 export function monthContractLine(equity: number): string {
   const t = ticketForEquity(equity);
   const at40 = Math.round(monthDollars(0.4, t));
-  return `Month ticket. ${t.contracts} contracts at $${CONTRACT_USD}, debit $${t.debit}. Stop $${t.stop}, a double pays $${t.winner}, ${t.ratio.toFixed(1)} to 1. Nine closes, one open. $${2000} needs ${Math.round(t.winRateFor2k * 100)}%. $${3000} needs ${Math.round(t.winRateFor3k * 100)}%. At the measured 40% this ticket nets about $${at40} if every stop fills. Size rises one contract after nine closes clear, not on a win.`;
+  return `Month ticket. ${t.contracts} contracts at $${CONTRACT_USD}, debit $${t.debit}. Stop $${t.stop}, a double pays $${t.winner}, ${t.ratio.toFixed(1)} to 1. No count stands a ticket down. $${2000} needs ${Math.round(t.winRateFor2k * 100)}%. $${3000} needs ${Math.round(t.winRateFor3k * 100)}%. At the measured 40% nine of these net about $${at40} if every stop fills. Size rises one contract after nine closes clear, not on a win.`;
+}
+
+/** What the card and the floor say. Armed is anticipation. Live is the entry. */
+export function entryCall(tier: string | null, entry: number | null): { label: string; act: string } {
+  const px = entry != null ? entry.toFixed(2) : "the array";
+  if (tier === "live") return { label: "ENTER", act: `Price is in the array. Rest the limit at ${px}. This is the fill, and the month ticket.` };
+  if (tier === "armed") return { label: "ANTICIPATION", act: `Ready, not filled. Wait for price to come into ${px}. Do not enter on the arm.` };
+  if (tier === "forming") return { label: "ANTICIPATION", act: `Early. The entry is ${px} when price returns. Look away until the touch.` };
+  if (tier === "gone") return { label: "ENTRY GONE", act: `Price left ${px}. Do not chase. The next entry is a new pullback into the array.` };
+  return { label: "ANTICIPATION", act: `The sequence is not complete. ${px} is the entry only after the array prints and price is in it.` };
 }

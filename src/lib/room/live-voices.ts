@@ -877,8 +877,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     ])));
   } else if (d.to === "armed") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.armed.vince", [
-      () => `War board. ${f.raw(k.name)} is armed${entry ? `, CE ${entry}` : ""}. Everyone here.`,
-      () => `Armed. All five at the board${entry ? `. The entry rests at ${entry}` : ""}.`,
+      () => `Anticipation. ${f.raw(k.name)} is armed${entry ? `, CE ${entry}` : ""}. We do not enter until price is in the array.`,
+      () => `Armed is not the fill. Wait for ${entry ?? "the array"}.`,
     ])));
     lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null
       ? pick(c, "tier.armed.nova", [

@@ -11,6 +11,7 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
+import { entryCall } from "@/lib/trading/month-contract";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -290,6 +291,8 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         stop: plan?.stop ?? null,
         t1: plan?.t1 ?? null,
         block: c.missing?.[0] ?? null,
+        entryState: read?.tier ?? "wait",
+        entryLine: entryCall(read?.tier ?? null, plan?.entry ?? null).act,
       } satisfies ScanCardLite;
     });
 }
