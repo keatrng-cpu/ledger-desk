@@ -29,3 +29,38 @@ export function schoolTicket(symbol: string, side: "long" | "short"): string {
     `Target — PB: the unfilled 5m or 15m gap, then the next pool. The internal extreme is the break-even. TJR: the liquidity on the other side of the range. ICT: the draw that has not traded.`,
   ].join(" ");
 }
+
+const px = (n: number) => n.toFixed(2);
+
+/**
+ * School prices, said next to the card. The order stays at CE. A level the
+ * card does not have is named as missing. Nothing here is a new entry.
+ */
+export function schoolPlanPrices(
+  plan: {
+    side: "long" | "short";
+    entry: number;
+    entryZone: { top: number; bottom: number } | null;
+    stop: number;
+  } | null,
+): string {
+  if (!plan || !Number.isFinite(plan.entry)) return "No plan on the card. Nothing is rested.";
+  const zone = plan.entryZone;
+  if (!zone || ![zone.top, zone.bottom].every((n) => Number.isFinite(n)) || zone.top === zone.bottom) {
+    return `Rest stays at CE ${px(plan.entry)}. TJR gap edge, the ICT OTE band, and the Patty overlap are not on this card.`;
+  }
+  const lo = Math.min(zone.top, zone.bottom);
+  const hi = Math.max(zone.top, zone.bottom);
+  const span = hi - lo;
+  const edge = plan.side === "long" ? lo : hi;
+  const a = plan.side === "long" ? hi - 0.62 * span : lo + 0.62 * span;
+  const b = plan.side === "long" ? hi - 0.79 * span : lo + 0.79 * span;
+  const oteLo = Math.min(a, b);
+  const oteHi = Math.max(a, b);
+  return [
+    `Rest stays at CE ${px(plan.entry)}.`,
+    `TJR gap edge ${px(edge)}.`,
+    `ICT OTE ${px(oteLo)}–${px(oteHi)}.`,
+    `Patty breaker–FVG overlap ${px(lo)}–${px(hi)}.`,
+  ].join(" ");
+}

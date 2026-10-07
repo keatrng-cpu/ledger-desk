@@ -21,7 +21,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import { deliveryLine, deliveryOfLadder, type Delivery } from "@/lib/room/focus-pick";
 import { cardEvidence } from "./evidence";
 import { HIGH_CONFLUENCE_THRESHOLD, type SetupCandidate } from "./scanner";
-import { SCHOOL_SAY, schoolFactsFrom, schoolReads, type LadderLite, type SchoolKey, type Verdict } from "./school-brief";
+import { SCHOOL_SAY, schoolFactsFrom, schoolReads, type LadderLite, type SchoolFacts, type SchoolKey, type Verdict } from "./school-brief";
 
 export const HI_ALERT_MIN = HIGH_CONFLUENCE_THRESHOLD;
 export const HI_ALERT_KEY = "ledger-hialert-v1";
@@ -97,6 +97,8 @@ export interface HiCtx {
   /** The SMC sequence book for this card's symbol and side, if the desk graded one. */
   bookFor: (symbol: string, side: "long" | "short") => { word: string | null; missing: string | null; detail?: string | null } | null;
   ladderFor: (symbol: string) => LadderLite | null;
+  /** Sequence layers for this card's own book and side. When present they outrank the scanner component. */
+  layersFor?: (symbol: string, side: "long" | "short") => SchoolFacts["layers"] | null;
   takenFor: (symbol: string, side: "long" | "short") => Taken;
 }
 
@@ -149,7 +151,7 @@ export function explainHiAlert(c: SetupCandidate, ctx: HiCtx, taken: Taken): str
   if (p?.riskAtr != null && (p.riskAtr < 0.5 || p.riskAtr > 1.5)) {
     out.push(`The stop is ${p.riskAtr.toFixed(2)}× ATR, outside the 0.5–1.5 band the four years favour; size is cut.`);
   }
-  const reads = schoolReads(schoolFactsFrom(c, ctx.ladderFor(c.symbol)));
+  const reads = schoolReads(schoolFactsFrom(c, ctx.ladderFor(c.symbol), ctx.layersFor?.(c.symbol, side) ?? null));
   const off = reads.filter((r) => r.verdict !== "fits");
   if (off.length) out.push(off.slice(0, 3).map((r) => (r.verdict === "against" ? `${SCHOOL_SAY[r.school]} reads the other way` : `${SCHOOL_SAY[r.school]} needs ${r.next}`)).join("; ") + ".");
   return out;
@@ -172,7 +174,7 @@ export function recordHiAlerts(prev: readonly HiAlert[], cands: readonly SetupCa
     const id = idOf(c, ctx.day);
     const taken = ctx.takenFor(c.symbol, side);
     const book = ctx.bookFor(c.symbol, side);
-    const reads = schoolReads(schoolFactsFrom(c, ctx.ladderFor(c.symbol)));
+    const reads = schoolReads(schoolFactsFrom(c, ctx.ladderFor(c.symbol), ctx.layersFor?.(c.symbol, side) ?? null));
     const evidence = cardEvidence({
       confluence: c.confluence,
       riskAtr: c.plan?.riskAtr ?? null,

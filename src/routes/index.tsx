@@ -1549,6 +1549,10 @@ function MasterplacePage() {
           return b ? { word: b.word ?? null, missing: b.missing ?? null, detail: b.missingDetail ?? null } : null;
         },
         ladderFor,
+        layersFor: (sym, side) => {
+          const b = books.find((x) => x && x.symbol === sym && x.side === side);
+          return b?.layers ?? null;
+        },
         takenFor: (sym, side) => {
           if (trades.some((t) => t.symbol === sym && t.side === side && t.openedAt >= now - 6 * 3_600_000)) return "paper";
           const r = restingFor(sym);

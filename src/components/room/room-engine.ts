@@ -70,6 +70,8 @@ import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
 import { roomManagerFeed } from "@/lib/room/manager-room-feed";
+import { rhCycleOnDesk } from "@/lib/room/manager-live-loop";
+import type { RhCycle } from "@/lib/execution/rh-cycle";
 import { onBeat } from "@/lib/live/keep-live";
 import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
 
@@ -319,6 +321,8 @@ interface RoomState {
   /** The trader's goal (goal.ts) and the race it sets running (seats.ts): the plan, the league and the R&D board, once per desk build. */
   goal: GoalSpec;
   race: Race | null;
+  /** Look, place, manage, or close. The poll writes it. It does not send. */
+  rhCycle: RhCycle | null;
   setGoal: (g: GoalSpec) => string | null;
   hydrate: () => void;
   setEnabled: (on: boolean) => void;
@@ -351,6 +355,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   backup: { status: "idle", at: null, why: "Not checked yet." },
   goal: defaultGoal(0),
   race: null,
+  rhCycle: null,
   setGoal: (g) => {
     const ok = asGoal(g);
     if (!ok) return "That goal is not valid — check the numbers (the target must be above the start; the ticket share between 1% and 100%).";
@@ -505,6 +510,7 @@ function runLiveCycle(desk: DeskPayload) {
   } catch (err) {
     console.error("[room] manager feed push failed:", err);
   }
+  noteRh(desk, nowMs);
   // The execution layer (exec/): what the room just did goes to the broker's side — shadow, paper, or nothing (off is the
   // default and a browser cannot change it). A synthetic desk feed is never a decision worth sending anywhere.
   if (desk.feed !== "synthetic") {
@@ -512,6 +518,16 @@ function runLiveCycle(desk: DeskPayload) {
       { before: bookBefore, after: book, cycle, feedLagSec: read.lagSec, nowMs },
       { getBook: () => useRoomStore.getState().book, onVoids: applyVoids },
     );
+  }
+}
+
+/** The live poll's Robinhood decision. No timer of its own, and it does not send. */
+function noteRh(desk: DeskPayload, nowMs: number) {
+  try {
+    const rhCycle = rhCycleOnDesk({ feed: roomManagerFeed(), desk, held: null, account: null, nowMs });
+    useRoomStore.setState({ rhCycle });
+  } catch (err) {
+    console.error("[room] rh cycle failed:", err);
   }
 }
 
@@ -670,6 +686,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     }
     return next;
   });
+  noteRh(desk, nowMs);
 }
 
 /** Mount once at the page level: the room runs while the desk does. */

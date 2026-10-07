@@ -166,6 +166,21 @@ Options only. No equities, no Tradovate, no Apex autofire. The session clock and
 - Per-day cooldown after a loss / max fires per session on the RH path (Floor mandate `maxSetupsPerSession` is not yet re-read RH-side).
 - Monthly loss cap, `room_orders` ledger write of each review/place, sleeve sizing re-read against live BP.
 
+## The cycle (Keaton 2026-10-07)
+
+`decideRhCycle` (`src/lib/execution/rh-cycle.ts`) is what the desk's quote poll runs. There is no five-minute timer.
+
+| phase | when | what the sender does |
+|-------|------|----------------------|
+| look | no desk position, or the proposal is refused | nothing |
+| place | `live_when_armed` and the live option id is on the ticket | `review_option_order`, then `place_option_order`, buy to open, no click |
+| manage | a position this desk opened, and no exit has printed | nothing |
+| close | 15:30 ET, premium at or through −25%, futures invalidation, a 15-minute failed hold, or 11:00 ET while under +50% | `review_option_order`, then `place_option_order`, sell to close |
+
+A position this desk did not open is not closed and blocks a new open. The poll writes the phase. It does not send. The sender is the agent with a fresh `get_portfolio` and `get_option_quotes`. Account **995386158** only.
+
+An A+ card that does not place is stopped by one of `managerAgreeFromRoom`'s `blocks`: `synthetic_feed`, the room beat (not a fill), `no_buy_open`, `no_entry_plan`, a failed room gate, `trigger`, `session`, an owner hold, `card`, `floor`, `floor_ticket`, `dte`, `path_band`, `path_floor`, a B+ gate, `strike_offset`, or the envelope. Two shorts can miss on different ids. LTF and MTF may flip; the higher-timeframe gate stays absolute except through `biasDisrespect`.
+
 ## Do not
 
 - Deploy Netlify (Release Watch owns that).

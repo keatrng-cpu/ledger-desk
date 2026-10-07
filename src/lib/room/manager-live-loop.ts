@@ -35,6 +35,10 @@ import {
   type RhPathFireTrigger,
 } from "../execution/rh-autofire";
 import { managerStateForAgree, type ManagerFeed, type ManagerRoomState } from "./manager-feed";
+import { decideRhCycle, type RhCycle, type RhHeld } from "../execution/rh-cycle";
+import { isPathFire } from "../alerts/path-alarm";
+import type { DeskPayload } from "../trading/build-desk";
+import { SCHOOL_GATE, schoolFactsFrom, schoolGate, schoolReads } from "../trading/school-brief";
 
 /** Ticket the Stand's call expresses (null when the call is not a live agree). */
 export function ticketFromManagerState(s: ManagerRoomState | null): RhLiveTicket | null {
@@ -156,4 +160,46 @@ export function managerLoopReadout(
     "BP / arms / live quote checked at propose",
   ];
   return { standBit, floor, bplus, line: parts.join(" · ") };
+}
+
+/**
+ * The live poll's cycle. Same gates as proposeRhFromManagerFeed. The school
+ * gate is read only while SCHOOL_GATE.enabled is on. This does not place.
+ */
+export function rhCycleOnDesk(args: {
+  feed: ManagerFeed | null | undefined;
+  desk: DeskPayload | null;
+  held: RhHeld | null;
+  account: RhAccountSnapshot | null;
+  liveQuote?: RhLiveOptionQuote | null;
+  nowMs: number;
+}): RhCycle {
+  const desk = args.desk;
+  const top = desk?.scan.candidates.find((c) => isPathFire(c)) ?? null;
+  const at = desk ? Date.parse(desk.fetchedAt) : NaN;
+  const fire = top
+    ? {
+        key: `${top.symbol}|${top.side}|${top.pathBand ?? top.grade}`,
+        symbol: top.symbol,
+        side: top.side === "short" ? ("short" as const) : ("long" as const),
+        grade: String(top.pathBand ?? top.grade ?? ""),
+        confluence: top.confluence,
+        at: Number.isFinite(at) ? at : args.nowMs,
+      }
+    : null;
+  const proposal = proposeRhFromManagerFeed({
+    feed: args.feed,
+    fire,
+    account: args.account,
+    liveQuote: args.liveQuote ?? null,
+    desk: desk as RhDeskSlice | null,
+    nowMs: args.nowMs,
+  });
+  let school: { ok: boolean; reason: string | null } | null = null;
+  if (SCHOOL_GATE.enabled && top && desk) {
+    const es = /ES/.test(top.symbol);
+    const book = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && /ES/.test(b.symbol) === es && b.side === top.side);
+    school = schoolGate(top.strategyPrimary, schoolReads(schoolFactsFrom(top, null, book?.layers ?? null)));
+  }
+  return decideRhCycle({ proposal, held: args.held, nowMs: args.nowMs, school });
 }

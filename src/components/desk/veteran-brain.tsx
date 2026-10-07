@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
 import { EvidenceTiles } from "@/components/desk/evidence-tiles";
+import { HiAlertPanel } from "@/components/desk/hi-alert-panel";
 
 function verdictStyle(v: DiscretionVerdict): string {
   switch (v) {
@@ -163,6 +164,7 @@ export function VeteranBrainPanel({
           years, measured under the rule as coded. The 2024 22-trade seed
           below is history for the rate card; this is the evidence. */}
       <EvidenceTiles />
+      <HiAlertPanel />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-start gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[color-mix(in_oklab,var(--color-primary)_16%,transparent)] text-[var(--color-primary)]">

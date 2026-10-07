@@ -51,6 +51,7 @@ import { ladderConflict } from "@/lib/trading/ladder-conflict";
 import { sessionBias } from "@/lib/trading/tf-ladder";
 import type { TfLadder } from "@/lib/trading/tf-ladder";
 import { SCHOOL_SAY, schoolFactsFrom, schoolReads } from "@/lib/trading/school-brief";
+import { schoolPlanPrices } from "@/lib/trading/school-ticket";
 import {
   CHART_TFS,
   TF_MARKS,
@@ -1055,6 +1056,9 @@ function SetupCard({
           </span>
         ))}
       </div>
+      {c.plan && (
+        <p className="mb-2 text-[10px] leading-snug text-[var(--color-subtle)]">{schoolPlanPrices(c.plan)}</p>
+      )}
 
       {odds && (
         <p

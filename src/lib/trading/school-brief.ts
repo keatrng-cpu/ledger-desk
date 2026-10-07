@@ -9,10 +9,7 @@
  *     components, the clock, the draw, the timeframe ladder). A fact the desk does not read is "unknown", never a guess, so a character
  *     can never claim a nesting, a macro window or a closing-candle quality the desk never measured.
  *
- * This is narration and readiness, never a gate. The 0.65 floor, the PATH bands, `topDown`, the one-book rule and the sleeve sizing do not
- * read anything here. Four years of cards say the ladder carries direction but not R (tf-ladder.ts, 2026-10-01), and the desk acts only on
- * a measured |z| >= 2. Where a school's style differs from a measured desk rule (TJR's 2R partial, a full exit at the first array), the
- * brief's `deskNote` says the desk's rule stands.
+ * This is narration and readiness. `schoolGate` can refuse a card whose own school failed a must, and it ships off until that refusal is measured. The 0.65 floor, the PATH bands, `topDown`, the one-book rule and the sleeve sizing do not read it. Four years of cards say the ladder carries direction but not R (tf-ladder.ts, 2026-10-01), and the desk acts only on a measured |z| >= 2. Where a school's style differs from a measured desk rule (TJR's 2R partial, a full exit at the first array), the brief's `deskNote` says the desk's rule stands.
  */
 
 import raw from "@/data/school-brief.json";
@@ -407,6 +404,28 @@ export function consensusLine(reads: SchoolRead[], side: "long" | "short"): stri
   if (against.length) parts.push(`${join(against)} ${against.length === 1 ? "reads" : "read"} the other way`);
   for (const r of reads.filter((x) => x.verdict === "missing").slice(0, 2)) parts.push(`${SCHOOL_SAY[r.school]} needs ${r.next}`);
   return parts.length ? `${parts.join(". ")}.` : "";
+}
+
+/**
+ * School gate. Off until a day-clustered measurement says the cards it
+ * refuses are not better (z of refused-minus-taken must not be ≥ +2).
+ * Narration does not read this. A caller that wants the measured rule
+ * passes `enabled`.
+ */
+export const SCHOOL_GATE = { enabled: false };
+
+export function schoolGate(
+  strategy: string | null | undefined,
+  reads: readonly SchoolRead[],
+  enabled: boolean = SCHOOL_GATE.enabled,
+): { ok: boolean; reason: string | null } {
+  if (!enabled) return { ok: true, reason: null };
+  const own = ownSchool(strategy);
+  if (!own) return { ok: true, reason: null };
+  const r = reads.find((x) => x.school === own);
+  if (!r || r.verdict === "fits") return { ok: true, reason: null };
+  const reason = r.verdict === "against" ? `${SCHOOL_SAY[own]} reads the other way.` : `${SCHOOL_SAY[own]} needs ${r.next ?? "a must"}.`;
+  return { ok: false, reason };
 }
 
 /** The reversal case the trader asked for: the higher-timeframe bias was disrespected and ICT, TJR and Patty each pass every must they can grade. */
