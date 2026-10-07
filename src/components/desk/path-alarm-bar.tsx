@@ -104,7 +104,7 @@ export function PathAlarmBar({ desk }: { desk?: DeskPayload }) {
             "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
             "border-[color-mix(in_oklab,var(--color-up)_45%,var(--color-border))] text-[var(--color-up)]",
           )}
-          title="Auto paper rests a limit at CE for a sequence TAKE on a PATH A+/A/A− card in NY AM; it fills on the touch and books stats"
+          title="Auto paper rests a limit at CE in NY AM, then papers futures on the $100k book after 11:00 ET"
         >
           Auto paper on
         </button>

@@ -5,21 +5,12 @@ import type {
   IndexSymbol,
   LiveQuotesPayload,
 } from "./types";
-import {
-  fetchDatabentoBars,
-  hasDatabentoKey,
-} from "./databento";
-import { readLiveTickFresh, quoteFromLiveTick } from "./live-gateway";
-import { pickFreshestQuote, priorSessionClose, rebaseQuote, stitchLiveSession } from "./freshest";
+import { loadLiveQuote, loadStructureSeries } from "./live-ladder";
+import { priorSessionClose, rebaseQuote } from "./freshest";
 import {
   alignedReturnPairs,
   buildComparisonNote,
-  YAHOO_MAP,
-  fetchYahooBars,
-  fetchYahooLiveQuote,
   pearsonCorr,
-  syntheticBars,
-  syntheticQuote,
   type YahooInterval,
   type YahooRange,
 } from "./yahoo";
@@ -64,46 +55,8 @@ async function loadSymbol(
   symbol: IndexSymbol,
   range: YahooRange,
   interval: YahooInterval,
-  minutes: number,
 ) {
-  let historical: Awaited<ReturnType<typeof fetchDatabentoBars>> = null;
-  if (hasDatabentoKey()) {
-    try {
-      const db = await fetchDatabentoBars(
-        symbol,
-        range === "3mo" ? "3mo" : range === "1mo" ? "1mo" : range === "5d" ? "5d" : "1d",
-        minutes >= 1440 ? 60 : minutes,
-      );
-      if (db && db.bars.length >= 20) historical = db;
-    } catch {
-      /* fall through */
-    }
-  }
-  let live = null;
-  try {
-    live = await fetchYahooBars(symbol, range, interval);
-  } catch {
-    /* fall through */
-  }
-  return stitchLiveSession(historical, live) ?? syntheticBars(symbol);
-}
-
-async function loadQuote(symbol: IndexSymbol, previousClose?: number) {
-  // Gateway first. If a live tick is already in Postgres, skip Yahoo —
-  // waiting on the delayed chart is what made Trade Now feel frozen, and
-  // hammering Yahoo while the gateway is up is how you get rate-limited
-  // for free. No extra Databento spend.
-  const tick = await readLiveTickFresh(symbol);
-  if (tick) {
-    return quoteFromLiveTick(
-      tick,
-      YAHOO_MAP[symbol].yahoo,
-      previousClose || tick.price,
-    );
-  }
-  const yahoo = await fetchYahooLiveQuote(symbol).catch(() => null);
-  const picked = pickFreshestQuote(yahoo);
-  return picked && picked.source !== "synthetic" ? rebaseQuote(picked, previousClose ?? null) : picked ?? syntheticQuote(symbol);
+  return loadStructureSeries(symbol, range, interval, 20);
 }
 
 
@@ -118,16 +71,17 @@ export const fetchDualIndexes = createServerFn({ method: "POST" })
     const fetchedAtMs = Date.now();
     try {
       const [left, right] = await Promise.all([
-        loadSymbol(data.left, cfg.range, cfg.interval, cfg.minutes),
-        loadSymbol(data.right, cfg.range, cfg.interval, cfg.minutes),
+        loadSymbol(data.left, cfg.range, cfg.interval),
+        loadSymbol(data.right, cfg.range, cfg.interval),
       ]);
 
       const [leftQ, rightQ] = await Promise.all([
-        // The prior SESSION close, not the chart window's (priorSessionClose).
-        // A 1d range holds only today's session, and only there is Yahoo's
-        // chartPreviousClose the prior close — hence the fallback.
-        loadQuote(data.left, priorSessionClose(left.bars) ?? left.previousClose ?? undefined),
-        loadQuote(data.right, priorSessionClose(right.bars) ?? right.previousClose ?? undefined),
+        loadLiveQuote(data.left, left).then((q) =>
+          rebaseQuote(q, priorSessionClose(left.bars) ?? left.previousClose),
+        ),
+        loadLiveQuote(data.right, right).then((q) =>
+          rebaseQuote(q, priorSessionClose(right.bars) ?? right.previousClose),
+        ),
       ]);
 
       if (leftQ.source !== "synthetic") {
@@ -192,8 +146,8 @@ export const fetchLiveQuotes = createServerFn({ method: "POST" })
     const fetchedAtMs = Date.now();
     try {
       const [left, right] = await Promise.all([
-        loadQuote(data.left),
-        loadQuote(data.right),
+        loadLiveQuote(data.left),
+        loadLiveQuote(data.right),
       ]);
       return {
         ok: true,

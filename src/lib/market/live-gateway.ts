@@ -222,6 +222,35 @@ export function quoteFromLiveTick(
   };
 }
 
+/** Last fresh 1m gateway bar, as a quote. Used when the tick row missed. */
+export function quoteFromLiveBar(
+  symbol: IndexSymbol,
+  bar: OhlcBar,
+  yahoo: string,
+  previousClose: number,
+): LiveQuote {
+  const now = Date.now();
+  const change = bar.c - previousClose;
+  return {
+    symbol,
+    yahoo,
+    price: bar.c,
+    marketTimeMs: bar.t,
+    marketTimeIso: new Date(bar.t).toISOString(),
+    previousClose,
+    change,
+    changePct: previousClose ? (change / previousClose) * 100 : 0,
+    dayHigh: bar.h,
+    dayLow: bar.l,
+    volume: bar.v,
+    fetchedAtMs: now,
+    fetchedAtIso: new Date(now).toISOString(),
+    lagSec: Math.max(0, Math.round((now - bar.t) / 1000)),
+    timezone: "America/New_York",
+    source: "live_gateway",
+  };
+}
+
 /**
  * Recent 1m bars for one symbol, newest-last (matching OhlcBar ordering
  * conventions elsewhere in this repo). Returns [] rather than null on

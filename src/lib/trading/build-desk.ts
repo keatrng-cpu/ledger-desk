@@ -33,6 +33,7 @@ import {
 import {
   readLiveTickFresh,
   quoteFromLiveTick,
+  quoteFromLiveBar,
   readLiveBars,
   type LiveGatewayTick,
 } from "@/lib/market/live-gateway";
@@ -294,20 +295,21 @@ async function load(
         cloneSeries,
       )
     : Promise.resolve(null);
-  // Yahoo carries the live end of the structure series. A cold instance has
-  // nothing to fall back to, so only then may it wait up to the cold cap.
-  const yahoo = budgetedLeg(
-    `yahoo:${symbol}`,
-    `yahoo:${symbol}:${range}:${interval}`,
-    () => fetchYahooBars(symbol, range, interval),
-    {
-      waitMs,
-      coldWaitMs: remaining(t0, DESK_COLD_CAP_MS),
-      maxStaleMs: SERIES_MAX_STALE_MS,
-      isGood: (s) => s.bars.length >= 10,
-    },
-    cloneSeries,
-  );
+  // Yahoo is the fallback for the live end. It is not started when Databento
+  // history is already in hand and the gateway is streaming bars.
+  const fetchYahoo = () =>
+    budgetedLeg(
+      `yahoo:${symbol}`,
+      `yahoo:${symbol}:${range}:${interval}`,
+      () => fetchYahooBars(symbol, range, interval),
+      {
+        waitMs,
+        coldWaitMs: remaining(t0, DESK_COLD_CAP_MS),
+        maxStaleMs: SERIES_MAX_STALE_MS,
+        isGood: (s) => s.bars.length >= 10,
+      },
+      cloneSeries,
+    );
   // The gateway's own closed 1m bars, when it is streaming (09:00–11:30 ET).
   // Yahoo's bars run ~10 minutes behind the print and Databento historical
   // 15–20; inside the live window the last two or three 15m bars of the
@@ -321,10 +323,25 @@ async function load(
     [] as OhlcBar[],
   );
 
-  const [dbR, yR, gw] = await Promise.all([databento, yahoo, gateway]);
+  const [dbR, gw] = await Promise.all([databento, gateway]);
+  const historical = dbR?.value && dbR.value.bars.length >= 30 ? dbR.value : null;
+  // Yahoo is the fallback. A live gateway on a full Databento history is the print.
+  const yR =
+    historical && gw.length
+      ? {
+          value: null as SymbolSeries | null,
+          leg: {
+            id: `yahoo:${symbol}`,
+            status: "fresh" as LegStatus,
+            ms: 0,
+            ageSec: 0,
+            note: "skipped — gateway bars on databento",
+          },
+          fetchedAtMs: null as number | null,
+        }
+      : await fetchYahoo();
   const legs: BudgetLeg[] = [yR.leg];
   if (dbR) legs.push(dbR.leg);
-  const historical = dbR?.value && dbR.value.bars.length >= 30 ? dbR.value : null;
   const live = yR.value;
 
   // The structure series is as fresh as its live end. Yahoo owns that end;
@@ -373,15 +390,22 @@ interface QuoteInputs {
 }
 
 async function quoteInputs(symbol: IndexSymbol, t0: number): Promise<QuoteInputs> {
-  const [tick, yahoo] = await Promise.all([
-    readLiveTickFresh(symbol).catch(() => null),
-    budgetedLeg(
-      `yahooQuote:${symbol}`,
-      `yahooQuote:${symbol}`,
-      () => fetchYahooLiveQuote(symbol),
-      { waitMs: remaining(t0, DESK_BUDGET_MS), maxStaleMs: QUOTE_MAX_STALE_MS },
-    ),
-  ]);
+  const tick = await readLiveTickFresh(symbol).catch(() => null);
+  if (tick) {
+    return {
+      tick,
+      yahoo: {
+        value: null,
+        leg: { id: `yahooQuote:${symbol}`, status: "fresh", ms: 0, ageSec: 0, note: "skipped — gateway tick" },
+      },
+    };
+  }
+  const yahoo = await budgetedLeg(
+    `yahooQuote:${symbol}`,
+    `yahooQuote:${symbol}`,
+    () => fetchYahooLiveQuote(symbol),
+    { waitMs: remaining(t0, DESK_BUDGET_MS), maxStaleMs: QUOTE_MAX_STALE_MS },
+  );
   const yq = yahoo.value
     ? yahoo.leg.status === "stale"
       ? { ...reageQuote(yahoo.value), stale: true }
@@ -409,6 +433,17 @@ function quote(
       quote: quoteFromLiveTick(inputs.tick, yahooSym, previousClose || inputs.tick.price),
       leg: { id, status: "fresh", ms: 0, ageSec: Math.round(inputs.tick.ageMs / 1000), note: "gateway tick" },
     };
+  }
+
+  const lastBar = series?.bars.at(-1);
+  if (series?.source === "live_gateway" && lastBar) {
+    const barQ = quoteFromLiveBar(symbol, lastBar, yahooSym, previousClose || lastBar.c);
+    if (barQ.lagSec <= 90) {
+      return {
+        quote: rebaseQuote(barQ, sessionPrev),
+        leg: { id, status: "fresh", ms: 0, ageSec: barQ.lagSec, note: "gateway bar" },
+      };
+    }
   }
 
   const yahooQ = inputs.yahoo.value;

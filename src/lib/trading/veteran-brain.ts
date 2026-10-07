@@ -1205,7 +1205,7 @@ export function runVeteranBrain(
     {
       tab: "Tape",
       status: "ok",
-      line: `${desk.quotes.left.symbol} ${desk.quotes.left.price} · ${desk.quotes.right.symbol} ${desk.quotes.right.price} · feed ${desk.feed} · levels ${desk.levels?.[0]?.items?.length ?? 0}+`,
+      line: `${desk.quotes.left.symbol} ${desk.quotes.left.price} (${desk.quotes.left.source} ${desk.quotes.left.lagSec}s) · ${desk.quotes.right.symbol} ${desk.quotes.right.price} (${desk.quotes.right.source} ${desk.quotes.right.lagSec}s) · bars ${desk.feed}`,
     },
     {
       tab: "Risk",

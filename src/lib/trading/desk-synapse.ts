@@ -416,7 +416,7 @@ function buildFeeds(ctx: {
 
   const tape = desk
     ? [
-        `Feed ${desk.feed} · ${desk.quotes.left.symbol} ${desk.quotes.left.price} · ${desk.quotes.right.symbol} ${desk.quotes.right.price}`,
+        `Feed ${desk.feed} · print ${desk.quotes.left.source} ${desk.quotes.left.lagSec}s / ${desk.quotes.right.source} ${desk.quotes.right.lagSec}s · ${desk.quotes.left.symbol} ${desk.quotes.left.price} · ${desk.quotes.right.symbol} ${desk.quotes.right.price}`,
         desk.scan.smt.note,
         desk.smc
           ? `${desk.bias.left.symbol}: ${desk.smc.left.arrays.slice(0, 2).map((a) => a.label).join(", ") || "no array"} · ${desk.smc.left.alerts[0]?.label ?? "no alert"}`

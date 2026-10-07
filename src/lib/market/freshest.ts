@@ -1,7 +1,7 @@
 /**
- * Always pick the newest print. Databento historical last-bar as "live quote"
- * was the desk's biggest self-inflicted lag: a 10h-old CME window beat Yahoo's
- * ~10 min delayed last trade, so NY AM looked frozen.
+ * Live print first. Gateway tick, then a fresh gateway bar, then a
+ * session-fresh Databento bar, then Yahoo. A 10h-old Databento window must
+ * not beat Yahoo, and a delayed Yahoo print must not beat a live tick.
  */
 import type { LiveQuote, OhlcBar, SymbolSeries } from "./types";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
@@ -47,6 +47,24 @@ export function rebaseQuote(q: LiveQuote, previousClose: number | null): LiveQuo
   return { ...q, previousClose, change, changePct: (change / previousClose) * 100 };
 }
 
+/** A Databento last-bar older than this is not a live price. Yahoo may be. */
+export const DATABENTO_QUOTE_FRESH_SEC = 30 * 60;
+
+/**
+ * Lower rank wins. A delayed Yahoo print does not beat a live gateway tick
+ * or a session-fresh Databento bar just because its lag number is smaller.
+ * Stale rows rank null and drop out of the pick.
+ */
+export function liveQuoteRank(q: LiveQuote): number | null {
+  if (q.source === "synthetic") return null;
+  if (!Number.isFinite(q.price) || q.price <= 0 || !Number.isFinite(q.marketTimeMs)) return null;
+  if (q.source === "live_gateway" && q.lagSec <= 5) return 0;
+  if (q.source === "live_gateway" && q.lagSec <= 90) return 1;
+  if (q.source === "databento" && q.lagSec <= DATABENTO_QUOTE_FRESH_SEC) return 2;
+  if (q.source === "yahoo") return 3;
+  return null;
+}
+
 export function pickFreshestQuote(
   ...quotes: Array<LiveQuote | null | undefined>
 ): LiveQuote | null {
@@ -57,14 +75,12 @@ export function pickFreshestQuote(
   });
   if (!ok.length) return quotes.find((q) => q != null) ?? null;
 
-  const gw = ok.find((q) => q.source === "live_gateway" && q.lagSec <= 5);
-  if (gw) return gw;
-
-  ok.sort((a, b) => {
-    if (a.lagSec !== b.lagSec) return a.lagSec - b.lagSec;
-    return b.marketTimeMs - a.marketTimeMs;
-  });
-  return ok[0] ?? null;
+  const ranked = ok
+    .map((q) => ({ q, rank: liveQuoteRank(q) }))
+    .filter((x): x is { q: LiveQuote; rank: number } => x.rank != null);
+  if (!ranked.length) return ok[0] ?? null;
+  ranked.sort((a, b) => a.rank - b.rank || a.q.lagSec - b.q.lagSec);
+  return ranked[0]!.q;
 }
 
 /** Append/replace overlay bars that are at or after the base last timestamp. */

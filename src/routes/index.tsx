@@ -176,6 +176,8 @@ import { ScreenFlash } from "@/components/desk/screen-flash";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
 import {
   autoPaperShouldTake,
+  futuresPaperShouldTake,
+  noteFuturesSession,
   rememberAutoPaperKey,
   releaseAutoPaperKey,
   noteAutoPaperSkip,
@@ -623,9 +625,7 @@ function quoteDelayMs(
   left: { source: string; lagSec: number },
   right: { source: string; lagSec: number },
 ): number {
-  const live =
-    (left.source === "live_gateway" && left.lagSec <= 5) ||
-    (right.source === "live_gateway" && right.lagSec <= 5);
+  const live = left.source === "live_gateway" || right.source === "live_gateway";
   return live ? QUOTE_LIVE_MS : QUOTE_YAHOO_MS;
 }
 
@@ -1313,6 +1313,7 @@ function MasterplacePage() {
       });
       if (!closed.length) return;
       mirrorClosedPaperTrades(closed);
+      noteFuturesSession(closed, next.clock.etHour * 60 + next.clock.etMinute);
       const last = closed[closed.length - 1]!;
       setLastPaperClosed(last);
       setPaperToast(
@@ -1576,8 +1577,12 @@ function MasterplacePage() {
     if (!desk) return;
 
     const tryAuto = () => {
-      // Runs with the tab hidden too (it used to return here): the fill is a paper book write, it needs no screen.
-      const pick = autoPaperShouldTake(desk);
+      // Runs with the tab hidden too: the fill is a paper book write, it needs no screen.
+      const pick0 = autoPaperShouldTake(desk);
+      const pick =
+        pick0.take || !pick0.skip.startsWith("Not NY AM")
+          ? pick0
+          : futuresPaperShouldTake(desk);
       if (!pick.take) {
         if (pick.skip) noteAutoPaperSkip(pick.skip);
         return;
@@ -1644,6 +1649,7 @@ function MasterplacePage() {
     const { closed } = managePaperTradesAgainstPrice(prices, drawCtx);
     if (closed.length) {
       mirrorClosedPaperTrades(closed);
+      noteFuturesSession(closed, desk.clock.etHour * 60 + desk.clock.etMinute);
       reconcilePaperBookToMemory();
       publishMemory();
       const last = closed[closed.length - 1]!;
@@ -1655,15 +1661,8 @@ function MasterplacePage() {
       window.setTimeout(() => setPaperToast(null), 8000);
     }
   }, [desk?.fetchedAt, desk?.quotes.left.price, desk?.quotes.right.price]);
-  // REMOVED 2026-09-23. This effect ran `closeOpenAtStructureLow(7763, ...)` on
-  // every quote tick with marks for BOTH books. 7763 was one session's ES low,
-  // hardcoded, left in the permanent poll loop — and because the old function
-  // closed a LONG whenever its mark sat above the level, an MNQ long at 30,800
-  // satisfied `30800 >= 7762.75` and was flattened at its own mark the instant
-  // it opened, booked as a structure take-profit. Every long on either book,
-  // every session. See closeOpenAtStructureLevel in paper-manager.ts. A real
-  // version of this belongs on the plan's own T1, per book, not on a constant
-  // typed in during one afternoon.
+  // REMOVED 2026-09-23. closeOpenAtStructureLow(7763) flattened every long
+  // because 30800 >= 7763. A real structure exit belongs on the plan's own T1.
 
   // Backup paper manage — quote tick is the fast path. This only exists so a
   // hung Yahoo poll cannot leave a stop unfilled for 20s. Reads deskRef so it
@@ -1686,6 +1685,7 @@ function MasterplacePage() {
       });
       if (!closed.length) return;
       mirrorClosedPaperTrades(closed);
+      noteFuturesSession(closed, d.clock.etHour * 60 + d.clock.etMinute);
       const last = closed[closed.length - 1]!;
       setLastPaperClosed(last);
       setPaperToast(

@@ -61,8 +61,8 @@ export function PaperBookPanel({
             Paper book · auto-managed
           </h3>
           <p className="text-[10px] text-[var(--color-subtle)]">
-            {APLUS_RULES.scaleOut.tp1Fraction * 100}% at T1 (the plan&apos;s draw) → stop to BE →
-            runner to T2 · managed on live prints · Auto paper fills TAKE cards in NY AM
+            {APLUS_RULES.scaleOut.tp1Fraction * 100}% at T1 (the plan's draw) → stop to BE →
+            runner to T2 · managed on live prints · Auto paper fills TAKE cards in NY AM, then futures after 11:00 ET
           </p>
         </div>
       </header>
