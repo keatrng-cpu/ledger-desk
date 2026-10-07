@@ -14,8 +14,10 @@ BRAIN_NOTES = ROOT / "graphify-out" / "obsidian" / "brain"
 
 def _chroma(path: Path | None = None):
     import chromadb
+    from chromadb.config import Settings
 
-    client = chromadb.PersistentClient(path=str(path or DEFAULT_PATH))
+    # Chroma sends anonymous usage telemetry unless told not to. The notes are the trader's own book: nothing leaves this machine.
+    client = chromadb.PersistentClient(path=str(path or DEFAULT_PATH), settings=Settings(anonymized_telemetry=False))
     return client.get_or_create_collection("desk-brain")
 
 
@@ -66,6 +68,52 @@ def recall(query: str, n: int = 4, path: Path | None = None) -> list[dict]:
             }
         )
     return out
+
+
+def ledger_notes(rows: list[dict]) -> list[tuple[str, str]]:
+    """The high-alert ledger (the Brain tab's Copy JSON) as (id, text) notes: the lesson, then why, then the card's own evidence.
+
+    A record that is not graded yet has no lesson and is skipped: an open card is not memory.
+    """
+    notes: list[tuple[str, str]] = []
+    for r in rows:
+        lesson = str(r.get("lesson") or "").strip()
+        if not lesson or r.get("call") == "open":
+            continue
+        why = " ".join(str(w) for w in (r.get("why") or [])[:3])
+        evidence = " ".join(str(e) for e in (r.get("evidence") or [])[:2])
+        text = " ".join(x for x in (lesson, why, evidence) if x)
+        notes.append((f"hialert-{r.get('id')}", text[:8000]))
+    return notes
+
+
+def index_ledger(json_path: Path, path: Path | None = None) -> int:
+    """Index a ledger export. Returns how many graded cards were stored."""
+    import json
+
+    rows = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    if not isinstance(rows, list):
+        raise RuntimeError("a ledger export is a JSON list")
+    notes = ledger_notes(rows)
+    if not notes:
+        return 0
+    col = _chroma(path)
+    col.upsert(ids=[i for i, _ in notes], documents=[t for _, t in notes], metadatas=[{"file": i, "kind": "hi-alert"} for i, _ in notes])
+    return len(notes)
+
+
+def recall_like(card: dict, n: int = 4, path: Path | None = None) -> list[dict]:
+    """Notes that read like this card. SIMILARITY, not evidence: each hit says so, and nothing here changes a score or a gate.
+
+    The query is built from the card's model, side, symbol and what it was missing. A confident-looking neighbour can be the wrong lesson,
+    which is why the floor's own recall (hi-alert.ts recallHiAlerts, same model and side, counts) is the one that speaks.
+    """
+    parts = [card.get("strategy"), card.get("side"), card.get("sym") or card.get("symbol"), *(card.get("why") or [])[:2]]
+    query = " ".join(str(p) for p in parts if p)
+    hits = recall(query, n=n, path=path)
+    for h in hits:
+        h["similarity_only"] = True
+    return hits
 
 
 def marqo_recall(query: str, url: str, index: str = "desk-brain", n: int = 4) -> list[dict]:

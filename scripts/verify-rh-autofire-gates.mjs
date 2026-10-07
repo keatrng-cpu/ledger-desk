@@ -98,6 +98,35 @@ console.log("PATH floor, envelope, confirmation");
   check("written confirmation is on (Keaton chat 2026-10-06)", gates.RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING, true);
 }
 
+console.log("\ncircuit breaker: one placement per 60 s, and no new entries once the account is down the desk's own daily limit");
+{
+  const NOW = ARMED_FLAGS.nowMs ?? Date.now();
+  const gateOf = (r) => (r.ok ? "ok" : r.gate);
+  const full = (over) => gates.evaluateRhAutofireGates({ ...QUALIFIED, ...over }, { ...ARMED_FLAGS, nowMs: NOW });
+  check("the throttle is exactly 60 seconds (the trader's number)", gates.RH_MIN_PLACE_GAP_MS, 60_000);
+  check("a candidate with no breaker input is not asserted: the baseline still passes the whole chain", gateOf(full({})), "ok");
+  check("an order placed 59 s ago is refused: throttle", gateOf(full({ lastPlaceAtMs: NOW - 59_000 })), "throttle");
+  check("an order placed 1 s ago is refused: throttle", gateOf(full({ lastPlaceAtMs: NOW - 1_000 })), "throttle");
+  check("exactly 60 s ago is allowed", gateOf(full({ lastPlaceAtMs: NOW - 60_000 })), "ok");
+  check("an hour ago is allowed", gateOf(full({ lastPlaceAtMs: NOW - 3_600_000 })), "ok");
+  check("none placed today (null) is allowed", gateOf(full({ lastPlaceAtMs: null })), "ok");
+  check("a placement stamped in the future is refused (clocks disagree: fail closed)", gateOf(full({ lastPlaceAtMs: NOW + 5_000 })), "throttle");
+  check("... and says it is a clock disagreement, not an ordinary throttle", /future|clocks disagree/.test(gates.evaluateRhCircuitBreaker({ lastPlaceAtMs: NOW + 5_000 }, NOW).reason) && !/one placement per/.test(gates.evaluateRhCircuitBreaker({ lastPlaceAtMs: NOW + 5_000 }, NOW).reason), true);
+  check("a non-finite stamp is not asserted (it cannot throttle, and it cannot pass for a fresh one)", gateOf(full({ lastPlaceAtMs: Number.NaN })), "ok");
+  const LIMIT = (await import("../src/lib/aplus/config.ts")).APLUS_RULES.dailyLossLimitPct;
+  check("the drawdown limit is the desk's own daily loss limit, not a new number", gates.evaluateRhCircuitBreaker({ dayPnlPct: -LIMIT }, NOW).ok, false);
+  check("down exactly the limit: refused as drawdown", gateOf(full({ dayPnlPct: -LIMIT })), "drawdown");
+  check("down more than the limit: refused as drawdown", gateOf(full({ dayPnlPct: -(LIMIT + 0.05) })), "drawdown");
+  check("down a little less than the limit is allowed", gateOf(full({ dayPnlPct: -(LIMIT - 0.01) })), "ok");
+  check("up on the day is allowed", gateOf(full({ dayPnlPct: 0.1 })), "ok");
+  check("an unread P&L (null / NaN) is not asserted", [gateOf(full({ dayPnlPct: null })), gateOf(full({ dayPnlPct: Number.NaN }))], ["ok", "ok"]);
+  const dd = gates.evaluateRhCircuitBreaker({ dayPnlPct: -(LIMIT + 0.01) }, NOW);
+  check("the refusal says flatten is advised and does not place anything itself", /flatten what is open through review_option_order/.test(dd.reason) && Object.keys(dd).sort().join() === "gate,ok,reason", true);
+  check("throttle and drawdown together: the throttle names itself first", gateOf(full({ lastPlaceAtMs: NOW - 1_000, dayPnlPct: -0.9 })), "throttle");
+  check("the breaker cannot be skipped by an armed, confirmed, qualified candidate (it sits before the Floor rules)", gateOf(gates.evaluateRhAutofireGates({ ...QUALIFIED, lastPlaceAtMs: NOW - 5_000, floorVerdict: "WATCH" }, { ...ARMED_FLAGS, nowMs: NOW })), "throttle");
+  check("an unarmed desk still says unarmed first (the breaker never masks the arm switches)", gateOf(gates.evaluateRhAutofireGates({ ...QUALIFIED, lastPlaceAtMs: NOW - 5_000 }, { autofireEnabled: false, liveArmed: true, confirmedInWriting: true, nowMs: NOW })), "autofire_off");
+}
+
 console.log("\nlive stays shut without arm / autofire (confirmation may be on)");
 {
   const noAuto = gates.evaluateRhAutofireGates(QUALIFIED, { autofireEnabled: false, liveArmed: true, confirmedInWriting: true });
@@ -378,6 +407,14 @@ console.log("\nenv helpers default armed (false is the disarm)");
   check("autofireEnabled true", rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: "true" }), true);
   check("liveArmed true", rh.rhLiveArmed({ RH_LIVE_ARMED: "true" }), true);
   check("explicit false disarms", [rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: "false" }), rh.rhLiveArmed({ RH_LIVE_ARMED: "false" })], [false, false]);
+  // The kill switch must not fail open on a word it does not recognize (2026-10-07).
+  for (const word of ["disabled", "disable", "nope", "f", "n", "stop", "0", "off", "no", "FALSE", " False ", "unarmed", "tru"]) {
+    check(`'${word}' disarms both switches`, [rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: word }), rh.rhLiveArmed({ RH_LIVE_ARMED: word })], [false, false]);
+  }
+  for (const word of ["true", "TRUE", " true ", "1", "on", "yes"]) {
+    check(`'${word}' arms both switches`, [rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: word }), rh.rhLiveArmed({ RH_LIVE_ARMED: word })], [true, true]);
+  }
+  check("blank or whitespace is the armed default, same as unset", [rh.rhAutofireEnabled({ RH_OPTIONS_AUTOFIRE_ENABLED: "  " }), rh.rhLiveArmed({ RH_LIVE_ARMED: "" })], [true, true]);
 }
 
 

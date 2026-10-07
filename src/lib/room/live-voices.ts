@@ -898,7 +898,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
   lines.push(line("Jax", ANIM.Jax.point!, f.raw(`${k.delivery ? `${k.delivery} ` : ""}${mine("Jax")}${j.watch}`)));
   // Nova also gives what the ledger remembers: the last graded 0.90-plus cards of this model and side, and whether passing was right.
   lines.push(line("Nova", ANIM.Nova.analyze!, f.raw(graded ? `${mine("Nova")}${j.odds}${k.recall ? ` ${k.recall}` : ""}`.trim() : j.book)));
-  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(`${mine("Sterling")}${j.entry}`)));
+  // PB's map first when there is one: the 1 hour / 4 hour sponsored gap, and whether the 1 to 5 minute inverse printed inside it.
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, f.raw(`${k.sponsored ? `${k.sponsored} ` : ""}${mine("Sterling")}${j.entry}`)));
   return { lines: compact(lines), moves: j.place || d.to === "live" ? BOARD : {} };
 }
 

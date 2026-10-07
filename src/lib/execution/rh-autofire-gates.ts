@@ -302,6 +302,14 @@ export interface RhAutofireCandidate {
    */
   seqTake?: boolean | null;
   vetoed?: boolean | null;
+  /**
+   * Circuit-breaker inputs (evaluateRhCircuitBreaker), passed by whatever places the order.
+   * lastPlaceAtMs: when this system last PLACED a Robinhood order (null/absent = none today).
+   * dayPnlPct: the trade account's P&L today as a fraction of its value at the open (-0.04 = down 4%), from get_portfolio.
+   * Absent means "not asserted", never "passed": the routine doc says the agent passes both.
+   */
+  lastPlaceAtMs?: number | null;
+  dayPnlPct?: number | null;
 }
 
 export interface RhTicketEnvelope {
@@ -378,6 +386,36 @@ export function evaluateRhFloorRules(
   return { ok: true, why: "Floor rules ok" };
 }
 
+/** Throttle guard (the trader, 2026-10-07): at most one placement per 60 seconds, so a logic loop can never fire a burst of orders. */
+export const RH_MIN_PLACE_GAP_MS = 60_000;
+
+/**
+ * Hard circuit breaker on the Robinhood path. Two refusals, both fail-closed when the input is present and bad:
+ *   throttle  — the last placement was under 60 s ago, or is in the future (a clock that disagrees cannot be trusted).
+ *   drawdown  — the trade account is down at least the desk's own daily loss limit today (APLUS_RULES.dailyLossLimitPct); no new entries.
+ * It refuses NEW entries only. It never places, cancels or sells anything: closing what is open is an agent action through
+ * review_option_order, and the reason says flatten is advised. A missing input is "not asserted" (the doc tells the agent to pass both).
+ */
+export function evaluateRhCircuitBreaker(c: Pick<RhAutofireCandidate, "lastPlaceAtMs" | "dayPnlPct">, nowMs: number): RhAutofireGateResult {
+  const last = c.lastPlaceAtMs;
+  if (typeof last === "number" && Number.isFinite(last)) {
+    const gap = nowMs - last;
+    if (gap < 0) return { ok: false, gate: "throttle", reason: "The last placement is timestamped in the future — clocks disagree, fail closed." };
+    if (gap < RH_MIN_PLACE_GAP_MS) {
+      return { ok: false, gate: "throttle", reason: `Last order was ${Math.round(gap / 1000)}s ago — one placement per ${RH_MIN_PLACE_GAP_MS / 1000}s.` };
+    }
+  }
+  const pnl = c.dayPnlPct;
+  if (typeof pnl === "number" && Number.isFinite(pnl) && pnl <= -APLUS_RULES.dailyLossLimitPct) {
+    return {
+      ok: false,
+      gate: "drawdown",
+      reason: `Account is ${(pnl * 100).toFixed(1)}% today (limit −${(APLUS_RULES.dailyLossLimitPct * 100).toFixed(0)}%) — no new entries; flatten what is open through review_option_order.`,
+    };
+  }
+  return { ok: true, why: "circuit breaker ok" };
+}
+
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {
   if (!flags.autofireEnabled) {
     return { ok: false, gate: "autofire_off", reason: "RH_OPTIONS_AUTOFIRE_ENABLED is not true." };
@@ -395,6 +433,8 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (c.riskHalt) {
     return { ok: false, gate: "risk_halt", reason: "Risk halt is on — no new Robinhood entries." };
   }
+  const breaker = evaluateRhCircuitBreaker(c, nowMs);
+  if (!breaker.ok) return breaker;
   if (c.newsBlackout) {
     return { ok: false, gate: "blackout", reason: "News / session blackout — stand down." };
   }

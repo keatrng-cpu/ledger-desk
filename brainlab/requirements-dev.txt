@@ -1,0 +1,7 @@
+# Audit and security tools for the lab. Installed beside requirements.txt by `npm run lab:setup`.
+# Each was vetted before it was added (2026-10-07): the real package, the real author, no network or exec calls in its source.
+smartmoneyconcepts==0.0.27   # Joshua Attridge, MIT. An independent reference for the desk's FVG detector (brainlab/smc_ref.py). NOT "smart-money-concepts": that name is not on PyPI.
+python-dotenv>=1.0           # Loads brainlab/.env (git-ignored) for the read-only Robinhood quote script.
+bandit==1.9.4                # PyCQA. Python security scan; CI fails on Medium and above.
+# Not installed on purpose: pydash (a lodash clone, nothing to do with secrets), ccxt (crypto exchanges), backtrader (abandoned since 2019),
+# vectorbt (a second backtester beside the four-year evidence pipeline), fvg-detector and pylimits (no such package on PyPI).

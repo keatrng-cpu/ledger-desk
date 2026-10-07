@@ -1,0 +1,75 @@
+# PR-Agent (Qodo, open source), pinned to a release commit. Does not run on every pull request.
+# Comment /review, /describe, or /improve on the PR, or run this workflow by hand.
+# Only the repo owner, a member, or a collaborator can trigger it. This repo is public and OPENAI_KEY is a paid key:
+# without that gate any GitHub user could comment /review and spend it.
+# Add a repository secret named OPENAI_KEY. Without it, the job says so and stops.
+# The standing refusals (never lower the floor, no model in the poll, no order path) are in .pr_agent.toml at the repo root.
+name: PR Agent
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: string
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+concurrency:
+  group: pr-agent-${{ github.event.issue.number || github.event.inputs.pr }}
+  cancel-in-progress: false
+jobs:
+  pr_agent_job:
+    timeout-minutes: 10
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event.issue.pull_request &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+          (
+            contains(github.event.comment.body, '/review') ||
+            contains(github.event.comment.body, '/describe') ||
+            contains(github.event.comment.body, '/improve')
+          )
+        )
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Secret present
+        id: key
+        env:
+          KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Say the key is missing
+        if: steps.key.outputs.skip == 'true'
+        uses: actions/github-script@v7
+        env:
+          PR_INPUT: ${{ github.event.inputs.pr }}
+        with:
+          script: |
+            const pr = context.payload.issue?.number || process.env.PR_INPUT;
+            if (!pr) return;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(pr),
+              body: "PR-Agent is wired. Add the OPENAI_KEY repository secret, then comment /review again. No review was posted.",
+            });
+      - name: PR Agent
+        if: steps.key.outputs.skip == 'false'
+        # Pinned to the v0.47.0 release commit. A third-party action on a moving branch runs with this repo's token and key.
+        uses: qodo-ai/pr-agent@8e5a9295973b24af4b70cafd0b660a230811ef9e # v0.47.0
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "review_requested"]'

@@ -1,0 +1,28 @@
+# Gitleaks config. The default rules stay ON; this only records the findings that were looked at and are not secrets.
+# First full-history scan 2026-10-07 (536 commits): 11 hits, all from the noisy `generic-api-key` rule, none from a provider rule.
+# A real key pasted into one of these files is still caught by the provider rules (AWS, Stripe, GitHub, Anthropic, OpenAI, private keys ...).
+title = "ledger-desk"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "localStorage key NAMES (POS_KEY, SWEEP_KEY, STORAGE_KEY, KEY = \"ledger-...\"), a variable called KEY holding a storage name"
+targetRules = ["generic-api-key"]
+paths = [
+  '''src/lib/room/invest-sources\.ts''',
+  '''src/lib/invest/store\.ts''',
+  '''src/components/lab/apex-sim-panel\.tsx''',
+  '''src/lib/trading/take-moments\.ts''',
+  '''src/lib/trading/pending-order\.ts''',
+]
+
+[[allowlists]]
+description = "Generated Graphify cache: a file path that happens to look like a key (0001_auth.sql). Not source."
+targetRules = ["generic-api-key"]
+paths = ['''graphify-out/''']
+
+[[allowlists]]
+description = "The Grok app-builder platform's shared PREVIEW OAuth client, baked into the template on purpose (low privilege, *.grok-sandbox.com only; see the comment in the file). Not a brokerage or data key."
+targetRules = ["generic-api-key"]
+paths = ['''src/lib/auth/preview\.ts''']

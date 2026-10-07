@@ -1,0 +1,26 @@
+# PR-Agent reads this file from the default branch. It is the standing instruction for /review, /describe and /improve.
+# The same refusals as .coderabbit.yaml: a review bot that "improves" the guard is how a floor moves.
+
+[pr_reviewer]
+extra_instructions = """
+This repo scores trades in deterministic code and places live option orders through a fail-closed gate chain.
+Do not suggest lowering confluenceFloor (0.65) or aPlusThreshold in src/lib/aplus/config.ts, or any change to a number in that file.
+Do not suggest a language model, a vector search, or a network call inside the quote poll, the scoring path, or the room cycle.
+Do not suggest arming a live order flag, skipping review_option_order, adding a fallback that turns a refused card into an order, or placing an order from a comment.
+Do not suggest widening the $150-$550 debit envelope, the 1-4 contract range, the DTE 0-1 rule, or the buying-power gate.
+School reads, the hi-alert ledger, focus-pick and keep-live are narration and readiness only. Do not suggest wiring them into a gate, a score or a size without a measured day-clustered |z| >= 2.
+brainlab/ is an audit lab: it must not gain an order path, a size, or a write into the room cycle.
+Quote the file. Do not invent a price, a win rate, or a sample size.
+"""
+
+[pr_code_suggestions]
+extra_instructions = """
+Never suggest an edit to src/lib/aplus/config.ts that changes a number. Never suggest a model call in the poll or scoring path.
+Never suggest removing a refusal in src/lib/execution/** or src/lib/room/exec/**: a missing field must refuse.
+Prefer a failing test or a verifier check over a new abstraction.
+"""
+
+[pr_description]
+extra_instructions = """
+State whether the change touches a gate, a size, a floor, or an order path, and whether a verifier covers it. Do not invent a result.
+"""

@@ -1,46 +1,105 @@
+import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import { ledgerExport, ledgerStats, loadHiAlerts, type LedgerRow } from "@/lib/trading/hi-alert";
+import { onBeat } from "@/lib/live/keep-live";
+
+const CALL_TEXT: Record<LedgerRow["call"], string> = {
+  right: "passing was right",
+  cost: "passing cost",
+  paid: "taking it paid",
+  lost: "taking it lost",
+  open: "still being graded",
+};
+const CALL_TONE: Record<LedgerRow["call"], string> = {
+  right: "text-[var(--color-up)]",
+  cost: "text-[var(--color-down)]",
+  paid: "text-[var(--color-up)]",
+  lost: "text-[var(--color-down)]",
+  open: "text-[var(--color-muted)]",
+};
+
 /**
- * The high-alert ledger on the Brain tab. The rows are the ones hi-alert.ts
- * already keeps. This panel does not grade and does not decide.
+ * The high-alert ledger (hi-alert.ts): every card at fit 0.90 or higher, taken or not, with why and how the chart graded it.
+ * The Floor's five read these as lessons. Copy or download the JSON and paste it into the lab (brainlab, "High-alert ledger"), which indexes
+ * the graded ones for similarity search. Nothing here gates or sizes anything.
  */
-import { useEffect, useState } from "react";
-import { loadHiAlerts, type HiAlert } from "@/lib/trading/hi-alert";
-
-function when(ms: number): string {
-  const d = new Date(ms);
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-function row(h: HiAlert): string {
-  const taken = h.taken === "no" ? "passed" : h.taken;
-  const out = h.outcome ? `${h.outcome.status}${h.outcome.R != null ? ` ${h.outcome.R >= 0 ? "+" : ""}${h.outcome.R.toFixed(2)}R` : ""}` : "open";
-  return `${h.day} ${h.sym} ${h.side} fit ${h.fit.toFixed(2)} ${taken} ${out}`;
-}
-
 export function HiAlertPanel() {
-  const [rows, setRows] = useState<HiAlert[]>([]);
-  useEffect(() => {
-    const read = () => setRows([...loadHiAlerts()].reverse().slice(0, 24));
-    read();
-    const id = window.setInterval(read, 15_000);
-    return () => window.clearInterval(id);
-  }, []);
+  const [tick, setTick] = useState(0);
+  const [copied, setCopied] = useState<"" | "copied" | "failed">("");
+  // The ledger is written by the desk loop (also with the tab hidden); this refreshes the view every 15 s.
+  useEffect(() => onBeat(() => setTick((n) => n + 1), 15), []);
+  const list = useMemo(() => loadHiAlerts(), [tick]);
+  const rows = useMemo(() => ledgerExport(list), [list]);
+  const stats = useMemo(() => ledgerStats(list), [list]);
+
+  const json = () => JSON.stringify(rows, null, 2);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(json());
+      setCopied("copied");
+    } catch {
+      setCopied("failed");
+    }
+    window.setTimeout(() => setCopied(""), 2500);
+  };
+  const download = () => {
+    try {
+      const url = URL.createObjectURL(new Blob([json()], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `hi-alert-ledger-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setCopied("failed");
+    }
+  };
+
   return (
-    <section className="mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5" aria-label="High alert ledger">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-fg)]">0.90 ledger</h3>
-      {rows.length === 0 ? (
-        <p className="mt-1 text-[11px] text-[var(--color-subtle)]">No 0.90 card kept yet. The ledger fills while the desk is open, including a hidden tab.</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {rows.map((h) => (
-            <li key={h.id} className="text-[11px] leading-snug text-[var(--color-fg)]">
-              <span className="font-mono">{row(h)}</span>
-              {h.why[0] ? <span className="block text-[var(--color-subtle)]">{h.why[0]}</span> : null}
-              {h.why[1] ? <span className="block text-[var(--color-subtle)]">{h.why[1]}</span> : null}
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="mt-1 text-[10px] text-[var(--color-subtle)]">First seen {rows[0] ? when(rows[0].firstMs) : "—"}. Passing right is on the graded row.</p>
+    <section className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-4" aria-label="High-alert ledger">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold text-[var(--color-fg)]">High-alert ledger · fit 0.90 and up</h3>
+        <div className="flex gap-2">
+          <button type="button" onClick={copy} disabled={!rows.length} className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 py-1 text-[11px] text-[var(--color-fg)] disabled:opacity-40">
+            {copied === "copied" ? "Copied" : copied === "failed" ? "Copy failed" : "Copy JSON"}
+          </button>
+          <button type="button" onClick={download} disabled={!rows.length} className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 py-1 text-[11px] text-[var(--color-fg)] disabled:opacity-40">
+            Download
+          </button>
+        </div>
+      </div>
+      <p className="mt-1 text-[12px] leading-snug text-[var(--color-muted)]">
+        {stats.n === 0
+          ? "No card has reached 0.90 on this browser yet. Each one is kept here whether or not it is taken, with why, and graded on the chart."
+          : `${stats.n} kept · passed right ${stats.passedRight}, passing cost ${stats.passedCost} · taken: paid ${stats.paid}, lost ${stats.lost}. ${stats.note}`}
+      </p>
+      <p className="mt-0.5 text-[11px] leading-snug text-[var(--color-subtle)]">
+        Kept in this browser only. It fills while a desk tab is open (a hidden Chrome tab counts). A high fit is not a high win rate: Q 0.85+ went the card's way less often than 0.65–0.70 over four years.
+      </p>
+      <ul className="mt-2 space-y-1.5">
+        {rows.slice(0, 12).map((r) => (
+          <li key={r.id} className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2.5 py-1.5">
+            <details>
+              <summary className="cursor-pointer list-none text-[12px] leading-snug text-[var(--color-fg)]">
+                <span className="font-mono text-[11px] text-[var(--color-muted)]">{r.day.slice(5)}</span> {r.sym} {r.side} · fit {r.fit.toFixed(2)} ·{" "}
+                {r.taken === "no" ? "not taken" : r.taken === "paper" ? "taken (paper)" : "limit rested"} ·{" "}
+                <span className={cn("font-medium", CALL_TONE[r.call])}>{CALL_TEXT[r.call]}</span>
+                {r.R != null ? <span className="font-mono text-[11px] text-[var(--color-muted)]"> · {r.R >= 0 ? "+" : "−"}{Math.abs(r.R).toFixed(2)}R</span> : null}
+              </summary>
+              <p className="mt-1 text-[12px] leading-snug text-[var(--color-fg)]">{r.lesson}</p>
+              {r.why.length > 0 && (
+                <ul className="mt-1 list-disc pl-4 text-[11px] leading-snug text-[var(--color-muted)]">
+                  {r.why.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              )}
+              {r.evidence.length > 0 && <p className="mt-1 text-[11px] leading-snug text-[var(--color-subtle)]">Four years: {r.evidence.join(" · ")}</p>}
+            </details>
+          </li>
+        ))}
+      </ul>
+      {rows.length > 12 && <p className="mt-1 text-[11px] text-[var(--color-subtle)]">{rows.length - 12} older cards are in the JSON.</p>}
     </section>
   );
 }

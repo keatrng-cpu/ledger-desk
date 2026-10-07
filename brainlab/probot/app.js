@@ -11,7 +11,8 @@ export default (app) => {
   app.on("issues.opened", async (context) => {
     const title = context.payload.issue.title || "";
     const body = context.payload.issue.body || "";
-    const note = execFileSync("python3", ["brainlab/intake.py", "--title", title, "--body", body], {
+    // `--title=…` form: an issue body that starts with "-" must not be read as another option. execFileSync takes an argv array, never a shell.
+    const note = execFileSync("python3", ["brainlab/intake.py", `--title=${title}`, `--body=${body}`], {
       encoding: "utf8",
     });
     await context.octokit.issues.createComment(context.issue({ body: note }));

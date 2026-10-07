@@ -28,6 +28,20 @@ reviews:
     - path: "brainlab/**"
       instructions: |
         This lab audits bars and notes. It must not gain an order path, a size, or a write into the room cycle.
+        Any number copied from the desk (spread, slip, debit, quote age, contracts) must match its TypeScript source; scripts/verify-lab-constants.mjs pins that.
+        robin_stocks is for reads only and must never log in with a stored password or a stored session.
+    - path: ".github/**"
+      instructions: |
+        This repo is public. A workflow that reads issue or comment text must gate on author_association (OWNER, MEMBER, COLLABORATOR),
+        pass untrusted text through env or a file and never interpolate it into a script, pin third-party actions to a commit, and set a timeout.
+    - path: "src/lib/trading/{school-brief,hi-alert}.ts"
+      instructions: |
+        Narration and readiness only. Do not wire a school read or the high-alert ledger into a gate, a score or a size
+        unless the change cites a measured day-clustered |z| >= 2 on the four-year cards.
+    - path: "src/lib/room/{focus-pick,hi-alert-brain,keep-live}.ts"
+      instructions: |
+        focus-pick chooses what the Floor discusses and never bypasses the HTF gate. hi-alert-brain must not turn a hypothetical (not taken)
+        result into a desk rule. src/lib/live/keep-live.ts is a heartbeat only: it must not add a network call or an order path.
   auto_review:
     enabled: true
     drafts: false

@@ -65,6 +65,17 @@ Plus: options session open, no news blackout, no risk halt, one-book clear.
 
 Enforced in `evaluateRhTicketEnvelope` before any review/place shape is built.
 
+## Circuit breaker (2026-10-07)
+
+Two more refusals sit in the gate chain right after the risk halt (`evaluateRhCircuitBreaker`, `rh-autofire-gates.ts`). They refuse NEW entries only; they never place, cancel or sell anything.
+
+| gate | rule |
+|------|------|
+| `throttle` | the last placement was under **60 s** ago (`RH_MIN_PLACE_GAP_MS`, the trader's number), or its timestamp is in the future (clocks disagree: fail closed) |
+| `drawdown` | the trade account is down at least the desk's own daily loss limit today (`APLUS_RULES.dailyLossLimitPct`, no new number). The reason says to flatten what is open through `review_option_order`. |
+
+**The agent must pass both inputs** (`lastPlaceAtMs`: when it last placed an order; `dayPnlPct`: the trade account's P&L today as a fraction of its value at the open, from `get_portfolio`, -0.04 = down 4%). An absent input is "not asserted", never "passed", so these two gates only bite when the agent supplies them. Also: **`RH_OPTIONS_AUTOFIRE_ENABLED` and `RH_LIVE_ARMED` arm when unset or blank, and disarm on ANY other value that is not true/1/on/yes** ("disabled", "nope" and typos disarm).
+
 ## Arm / confirmation
 
 | Switch | Where | Default / status |

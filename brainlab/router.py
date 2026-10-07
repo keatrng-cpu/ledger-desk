@@ -53,5 +53,6 @@ def judge(raw: dict, db=None) -> dict:
         "status": "usable",
         "reason": "Inside the desk's spread, age, debit, and noise cuts. A note. Not a gate. The desk places.",
         "limit": intent.limit_px,
+        "debit": intent.debit_at_limit,
         "ticket": ticket,
     }

@@ -15,6 +15,7 @@
 import raw from "@/data/school-brief.json";
 import { STRATEGY_SCHOOL } from "./smc-canon";
 import type { SetupCandidate } from "./scanner";
+import type { SponsoredRead } from "./sponsored-gap";
 import type { LadderBias, TfRead } from "./tf-ladder";
 
 export type SchoolKey = "ict" | "tjr" | "blake" | "patty";
@@ -148,6 +149,8 @@ export interface SchoolFacts {
    * whose sequence says there was none.
    */
   layers?: readonly { id: string; state: "pass" | "wait" | "fail" }[] | null;
+  /** PB's sponsored-gap read (sponsored-gap.ts). Absent means the higher-timeframe gaps were not read: unknown, never a pass. */
+  sponsored?: Pick<SponsoredRead, "state" | "trigger"> | null;
 }
 
 export interface SchoolCheck {
@@ -224,6 +227,19 @@ const halfCheck = (need: string): Def => ({
     return yes(has(f, "pd"));
   },
 });
+/** PB (Blake and Patty): the 1 hour / 4 hour sponsored gap is the map. A preference, not a must: it never refuses a card by itself. */
+const htfGapCheck: Def = {
+  id: "htf_gap",
+  need: "a 1 hour or 4 hour sponsored gap in play",
+  have: "the sponsored gap",
+  must: false,
+  test: (f) =>
+    f.sponsored == null
+      ? ["unknown", "the higher-timeframe gaps are not read"]
+      : f.sponsored.state === "in_gap" || f.sponsored.state === "near"
+        ? ["pass", f.sponsored.trigger ? "the 1 to 5 minute inverse printed in it" : "price is in or at it"]
+        : ["fail", f.sponsored.state === "far" ? "the nearest one is not near" : "none on this side"],
+};
 const unread = (id: string, need: string): Def => ({ id, need, have: need, must: false, test: () => ["unknown", UNREAD] });
 
 const DEFS: Record<SchoolKey, Def[]> = {
@@ -290,6 +306,7 @@ const DEFS: Record<SchoolKey, Def[]> = {
     { id: "invert", need: "an inversion gap or breaker", have: "the inversion", must: true, test: (f) => yes(has(f, "ifvg", "breaker")) },
     halfCheck("deep discount for a long or premium for a short"),
     timeCheck("the 9:30 to 11:00 or 13:00 to 15:00 window", false),
+    htfGapCheck,
     unread("nested", "a lower array nested inside a 4 hour or daily one"),
   ],
   patty: [
@@ -318,6 +335,7 @@ const DEFS: Record<SchoolKey, Def[]> = {
       must: false,
       test: (f) => yes(["ifvg", "breaker", "ote"].filter((k) => has(f, k)).length >= 2),
     },
+    htfGapCheck,
     timeCheck("a session-open window", false),
   ],
 };
@@ -327,6 +345,7 @@ export function schoolFactsFrom(
   c: Pick<SetupCandidate, "side" | "components" | "killzoneOk" | "htfDisrespected" | "draw" | "plan" | "patterns">,
   ladder: LadderLite | null,
   layers?: SchoolFacts["layers"],
+  sponsored?: SchoolFacts["sponsored"],
 ): SchoolFacts {
   return {
     side: c.side,
@@ -339,6 +358,7 @@ export function schoolFactsFrom(
     mitigated: c.patterns ? c.patterns.mitigation : null,
     ladder,
     layers: layers ?? null,
+    sponsored: sponsored ?? null,
   };
 }
 

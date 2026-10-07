@@ -373,6 +373,76 @@ export function recallHiAlerts(list: readonly HiAlert[], q: { strategy: string |
   return `The last ${n} ${HI_ALERT_MIN.toFixed(2)}-plus ${q.strategy ?? "model"} ${q.side} card${n === 1 ? "" : "s"}: ${parts.join(", ") || "none resolved"}${decided ? `. Passing was right ${right} of ${decided} times` : ""}.`;
 }
 
+/* ── Export and summary ─────────────────────────────────────────────────── */
+
+/** One row of the ledger export: what the Python lab (brainlab/memory.py ledger_notes) and the Brain tab read. */
+export interface LedgerRow {
+  id: string;
+  day: string;
+  sym: string;
+  side: "long" | "short";
+  strategy: string | null;
+  fit: number;
+  taken: Taken;
+  call: Call;
+  lesson: string;
+  why: string[];
+  evidence: string[];
+  status: HiStatus | null;
+  R: number | null;
+  deliveryAtSight: Delivery | null;
+}
+
+/** Newest first. Pure: the same list gives the same JSON, which is what the lab indexes and what the trader can paste anywhere. */
+export function ledgerExport(list: readonly HiAlert[]): LedgerRow[] {
+  return [...list]
+    .sort((a, b) => b.lastMs - a.lastMs)
+    .map((h) => ({
+      id: h.id,
+      day: h.day,
+      sym: h.sym,
+      side: h.side,
+      strategy: h.strategy,
+      fit: h.fit,
+      taken: h.taken,
+      call: callOf(h),
+      lesson: lessonOf(h),
+      why: h.why,
+      evidence: h.evidence,
+      status: h.outcome?.status ?? null,
+      R: h.outcome?.R ?? null,
+      deliveryAtSight: h.deliveryAtSight ?? null,
+    }));
+}
+
+export interface LedgerStats {
+  n: number;
+  graded: number;
+  /** Cards not taken, graded: passing was right / passing cost. */
+  passedRight: number;
+  passedCost: number;
+  /** Cards taken, graded: paid / lost. */
+  paid: number;
+  lost: number;
+  /** Said once beside any rate: how few cards this is. */
+  note: string;
+}
+
+export function ledgerStats(list: readonly HiAlert[]): LedgerStats {
+  const calls = list.map((h) => callOf(h));
+  const count = (c: Call) => calls.filter((x) => x === c).length;
+  const graded = calls.filter((c) => c !== "open").length;
+  return {
+    n: list.length,
+    graded,
+    passedRight: count("right"),
+    passedCost: count("cost"),
+    paid: count("paid"),
+    lost: count("lost"),
+    note: graded < 20 ? `${graded} graded card${graded === 1 ? "" : "s"}: too few for a rate. Read the lessons, not the percentage.` : `${graded} graded cards.`,
+  };
+}
+
 /* ── Persistence (browser only; fails closed) ────────────────────────────── */
 
 let memoRaw: string | null = null;

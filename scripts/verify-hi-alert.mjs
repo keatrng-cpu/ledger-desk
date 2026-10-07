@@ -167,6 +167,53 @@ console.log("the desk uses it");
   check("a paper fill or a rested limit on the same book and side is what 'taken' means", /t\.symbol === sym && t\.side === side/.test(idx) && /r && r\.side === side \? "rested" : "no"/.test(idx));
 }
 
+console.log("the export, the summary, and the Python lab reading them");
+{
+  const done = (id, taken, status, R, why = ["Outside the session."]) => ({
+    id, day: "2026-10-07", firstMs: 1, lastMs: Number(id.split("|").pop()), sym: "ES", side: "short", fit: 0.99, band: "A+", strategy: "patty",
+    plan: { entry: 100, stop: 102, t1: 98, t2: 96, riskAtr: 0.23 }, pT1: 0.2, expR: -0.33, actionable: false, everActionable: false, taken, why,
+    evidence: ["Q 0.85+ -0.15R n1504"], schools: [], sequence: null, deliveryAtSight: "against",
+    outcome: status ? { status, done: status !== "pending", filled: status !== "unfilled", R, mfeR: 1, maeR: -1, barsSeen: 12 } : null,
+  });
+  const list = [done("d|ES|short|1", "no", "unfilled", null), done("d|ES|short|2", "no", "t1", 0.5), done("d|ES|short|3", "paper", "stopped", -1.12), done("d|ES|short|4", "paper", "t2", 1.5), done("d|ES|short|5", "no", "pending", null), done("d|ES|short|6", "no", null, null)];
+  const rows = H.ledgerExport(list);
+  check("the export is newest first and carries what the lab and the panel read", rows[0].id === "d|ES|short|6" && rows.every((r) => ["id", "day", "sym", "side", "strategy", "fit", "taken", "call", "lesson", "why", "evidence", "status", "R", "deliveryAtSight"].every((k) => k in r)));
+  check("each row's call is the chart's verdict on the decision", rows.find((r) => r.id.endsWith("|1")).call === "right" && rows.find((r) => r.id.endsWith("|2")).call === "cost" && rows.find((r) => r.id.endsWith("|3")).call === "lost" && rows.find((r) => r.id.endsWith("|4")).call === "paid" && rows.find((r) => r.id.endsWith("|5")).call === "open");
+  check("a record that was never graded exports as open with a lesson that says so", rows[0].call === "open" && /still being graded/.test(rows[0].lesson) && rows[0].status === null && rows[0].R === null);
+  const st = H.ledgerStats(list);
+  check("the summary counts each outcome, and warns that this is too few cards for a rate", st.n === 6 && st.graded === 4 && st.passedRight === 1 && st.passedCost === 1 && st.paid === 1 && st.lost === 1 && /too few for a rate/.test(st.note), JSON.stringify(st));
+  check("with 20 or more graded cards the warning goes", H.ledgerStats(Array.from({ length: 20 }, (_, i) => done(`d|ES|short|${i + 10}`, "no", "unfilled", null))).note === "20 graded cards.");
+  check("an empty ledger exports and summarises to nothing, not an error", H.ledgerExport([]).length === 0 && H.ledgerStats([]).n === 0);
+
+  // The contract with the Python lab: what the TypeScript side writes is what brainlab/memory.py ledger_notes reads.
+  const { spawnSync } = await import("node:child_process");
+  const { existsSync, writeFileSync, mkdtempSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const { fileURLToPath } = await import("node:url");
+  const pyPath = fileURLToPath(new URL(process.platform === "win32" ? "../brainlab/.venv/Scripts/python.exe" : "../brainlab/.venv/bin/python", import.meta.url));
+  if (!existsSync(pyPath)) {
+    console.log("  skip the Python contract check: the lab is not set up (npm run lab:setup). Nothing is claimed about it.");
+  } else {
+    const tmp = join(mkdtempSync(join(tmpdir(), "ledger-")), "ledger.json");
+    writeFileSync(tmp, JSON.stringify(rows));
+    const r = spawnSync(pyPath, ["-c", "import json,sys; sys.path.insert(0,'brainlab'); from memory import ledger_notes; n=ledger_notes(json.load(open(sys.argv[1]))); print(json.dumps([[i,t[:40]] for i,t in n]))", tmp], { cwd: fileURLToPath(new URL("..", import.meta.url)), encoding: "utf8", env: { ...process.env, PYTHONUTF8: "1" } });
+    const notes = r.status === 0 ? JSON.parse(r.stdout) : null;
+    check("the lab turns exactly the graded cards into notes (4 of 6; the open ones are skipped)", notes?.length === 4 && notes.every(([id]) => id.startsWith("hialert-d|ES|short|")), r.stderr?.slice(0, 200) ?? "");
+  }
+}
+
+console.log("the Brain tab shows it");
+{
+  const idx = readFileSync(new URL("../src/routes/index.tsx", import.meta.url), "utf8");
+  const panel = readFileSync(new URL("../src/components/desk/hi-alert-panel.tsx", import.meta.url), "utf8");
+  const vet = readFileSync(new URL("../src/components/desk/veteran-brain.tsx", import.meta.url), "utf8");
+  check("the panel is mounted ONCE in the Brain tab (inside the veteran-brain panel), not a second time in the shell", /import \{ HiAlertPanel \} from "@\/components\/desk\/hi-alert-panel"/.test(vet) && (vet.match(/<HiAlertPanel \/>/g) ?? []).length === 1 && !/HiAlertPanel/.test(idx));
+  check("it reads the ledger, refreshes on the heartbeat, and offers Copy and Download", /loadHiAlerts\(\)/.test(panel) && /onBeat\(\(\) => setTick/.test(panel) && /Copy JSON/.test(panel) && /Download/.test(panel));
+  check("it says the ledger is browser-only and a high fit is not a high win rate", /Kept in this browser only/.test(panel) && /A high fit is not a high win rate/.test(panel));
+  check("it gates nothing: no config, size or order import", !/aplus\/config|rh-autofire|sleeve|APLUS_RULES/.test(panel));
+}
+
 console.log("no model, no clock, no randomness");
 {
   const src = readFileSync(new URL("../src/lib/trading/hi-alert.ts", import.meta.url), "utf8");

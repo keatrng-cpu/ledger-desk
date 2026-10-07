@@ -38,6 +38,44 @@ def yahoo_bars(symbol: str = "MNQ", period: str = "5d", interval: str = "60m") -
     return _flatten(df)
 
 
+def desk_bars(symbol: str = "MNQ", n: int = 400, path: str | None = None) -> pd.DataFrame:
+    """The desk's own 15m bars (src/data/history-4y.json), newest `n`, with a UTC index. The bars the engine actually graded on."""
+    import json
+    from pathlib import Path
+
+    key = symbol.upper()
+    if key not in YAHOO:
+        raise RuntimeError(f"{symbol} is not a desk symbol. Use MNQ, ES, or NQ.")
+    p = Path(path) if path else Path(__file__).resolve().parents[1] / "src" / "data" / "history-4y.json"
+    rows = (json.loads(p.read_text(encoding="utf-8")).get("bars") or {}).get(key) or []
+    if not rows:
+        raise RuntimeError(f"the desk has no stored bars for {key}")
+    df = pd.DataFrame(rows[-n:]).rename(columns={"o": "open", "h": "high", "l": "low", "c": "close"})
+    df["at"] = pd.to_datetime(df["t"], unit="ms", utc=True)
+    return _flatten(df.set_index("at"))
+
+
+def compare_bars(a: pd.DataFrame, b: pd.DataFrame) -> dict:
+    """Do two sources print the same bars? Joined on the timestamp; the gap is in points and in the first source's average bar range.
+
+    This is the audit the lab exists for: Yahoo's 15m bar against the bar the desk graded on. A gap that is a large share of a bar is a
+    reason to distrust a card built on that stretch, and it is reported as a number, never fixed silently.
+    """
+    both = a.join(b, how="inner", lsuffix="_a", rsuffix="_b")
+    if both.empty:
+        return {"overlap": 0, "note": "The two frames share no timestamps (check the timezone and the interval)."}
+    unit = float((a["high"] - a["low"]).mean()) or float("nan")
+    diffs = {c: (both[f"{c}_a"] - both[f"{c}_b"]).abs() for c in ("open", "high", "low", "close")}
+    worst = max(float(d.max()) for d in diffs.values())
+    return {
+        "overlap": int(len(both)),
+        "max_gap_points": round(worst, 4),
+        "max_gap_vs_avg_range": None if unit != unit else round(worst / unit, 3),
+        "close_mean_gap_points": round(float(diffs["close"].mean()), 4),
+        "bars_off_by_more_than_a_quarter_range": int(sum(int((d > 0.25 * unit).sum()) for d in diffs.values())) if unit == unit else None,
+    }
+
+
 def mt5_bars(symbol: str, timeframe: str = "H1", count: int = 200) -> pd.DataFrame:
     """Same columns as yahoo_bars. Only works on Windows with the MT5 terminal installed and logged in."""
     try:

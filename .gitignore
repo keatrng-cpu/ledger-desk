@@ -34,3 +34,10 @@ brainlab/.chroma/
 brainlab/out/
 brainlab/**/__pycache__/
 
+
+# The lab virtualenv (brainlab/requirements.txt installs here)
+brainlab/.venv/
+brainlab/*.db
+
+# Graphify writes a parse cache beside its report (9,000+ generated files, ~30 MB). The report and the Obsidian notes stay tracked; the cache does not.
+graphify-out/cache/

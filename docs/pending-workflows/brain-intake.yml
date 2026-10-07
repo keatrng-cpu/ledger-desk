@@ -1,0 +1,44 @@
+name: Brain intake
+# Turns an opened issue into a note comment. It writes nothing to the book and places nothing.
+# Only the repo owner, a member, or a collaborator's issue is read: this repo is public, and an outsider's text should not make the bot post.
+on:
+  issues:
+    types: [opened]
+permissions:
+  issues: write
+  contents: read
+concurrency:
+  group: brain-intake-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  intake:
+    timeout-minutes: 5
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Write the issue to a file
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            fs.writeFileSync("/tmp/issue.json", JSON.stringify({
+              title: context.payload.issue.title || "",
+              body: context.payload.issue.body || "",
+            }));
+      - name: Parse
+        run: python3 brainlab/intake.py --json /tmp/issue.json > /tmp/note.md
+      - name: Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: fs.readFileSync("/tmp/note.md", "utf8"),
+            });

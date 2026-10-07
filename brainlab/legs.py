@@ -22,17 +22,36 @@ def swings(df: pd.DataFrame, left: int = 2, right: int = 2) -> list[dict]:
     found: list[dict] = []
     for i in range(left, len(df) - right):
         h, l = float(high[i]), float(low[i])
-        if h > float(high[i - left : i].max()) and h > float(high[i + 1 : i + 1 + right].max()):
+        # `>=` against the bars before it: an equal high (a double top, which is exactly what ICT calls equal highs) used to produce NO swing
+        # at all, because neither of the two equal bars was strictly higher than the other. The later of the pair now counts, and it must
+        # still be strictly higher than what follows.
+        if h >= float(high[i - left : i].max()) and h > float(high[i + 1 : i + 1 + right].max()):
             found.append({"kind": "high", "i": i, "px": h, "at": str(index[i])})
-        if l < float(low[i - left : i].min()) and l < float(low[i + 1 : i + 1 + right].min()):
+        if l <= float(low[i - left : i].min()) and l < float(low[i + 1 : i + 1 + right].min()):
             found.append({"kind": "low", "i": i, "px": l, "at": str(index[i])})
     found.sort(key=lambda s: s["i"])
     return found
 
 
+def alternate(points: list[dict]) -> list[dict]:
+    """Two highs in a row (no confirmed low between them) are one extreme: keep the higher. Same for lows.
+
+    Pairing neighbours and skipping equal kinds used to drop a leg and could measure it from the lower of two highs.
+    """
+    out: list[dict] = []
+    for p in points:
+        if out and out[-1]["kind"] == p["kind"]:
+            better = p["px"] > out[-1]["px"] if p["kind"] == "high" else p["px"] < out[-1]["px"]
+            if better:
+                out[-1] = p
+        else:
+            out.append(p)
+    return out
+
+
 def legs(df: pd.DataFrame, left: int = 2, right: int = 2) -> list[dict]:
     """One leg is a confirmed high and the next confirmed low, or the reverse. The range is their distance, also in ATR."""
-    points = swings(df, left, right)
+    points = alternate(swings(df, left, right))
     scale = atr(df)
     out: list[dict] = []
     for a, b in zip(points, points[1:]):

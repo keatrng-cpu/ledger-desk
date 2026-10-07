@@ -14,6 +14,10 @@ import { readFileSync } from "node:fs";
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => void store.set(k, v), removeItem: (k) => void store.delete(k) };
 globalThis.window = globalThis;
+// The brain's modules announce a change with window.dispatchEvent (desk-atlas, brain-traffic). A bare globalThis has none, so the shim gives it a no-op.
+globalThis.dispatchEvent = () => true;
+globalThis.addEventListener = () => {};
+globalThis.removeEventListener = () => {};
 
 const A = await import("../src/lib/room/desk-atlas.ts");
 const B = await import("../src/lib/room/hi-alert-brain.ts");

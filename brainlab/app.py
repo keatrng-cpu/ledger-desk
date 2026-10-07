@@ -70,9 +70,11 @@ if parsed:
         st.write("Stored in the local book. The floor was not told to trade it.")
 
 st.subheader("Quote")
-st.caption("Checks the desk's own cuts. Robinhood on the desk is the only place an order can go.")
-bid = st.number_input("Bid", value=1.00, step=0.01)
-ask = st.number_input("Ask", value=1.05, step=0.01)
+st.caption("Checks the desk's own cuts. The debit is worked out from the ask plus the 2 cent limit, never typed. Robinhood on the desk is the only place an order can go.")
+bid = st.number_input("Bid", value=1.95, step=0.01)
+ask = st.number_input("Ask", value=1.98, step=0.01)
+qty = st.number_input("Contracts", min_value=1, max_value=4, value=1, step=1)
+bp = st.number_input("Buying power of the trade account", value=800.0, step=10.0)
 if st.button("Judge the quote"):
     calm = [100 + i * 0.02 for i in range(40)]
     st.write(judge({
@@ -80,12 +82,48 @@ if st.button("Judge the quote"):
         "expiration": "2026-10-08",
         "strike": 500,
         "right": "put",
-        "qty": 1,
-        "debit": 200,
-        "buying_power": 800,
+        "qty": int(qty),
+        "buying_power": float(bp),
         "bid": bid,
         "ask": ask,
         "quote_ts_ms": 1_000,
         "now_ms": 1_000,
         "closes": calm,
     }))
+
+st.subheader("Bars audit")
+st.caption("Yahoo's 15 minute bars against the bars the desk graded on (src/data/history-4y.json). A gap that is a large share of a bar is a reason to doubt a card built there.")
+if st.button("Compare Yahoo with the desk's bars"):
+    try:
+        from bars import compare_bars, desk_bars
+
+        st.write(compare_bars(yahoo_bars(symbol, period="5d", interval="15m"), desk_bars(symbol)))
+    except Exception as e:
+        st.error(str(e))
+
+st.subheader("Slippage")
+st.caption("Fill minus the limit we meant, per contract. A test needs 20 fills; below that the page prints no p-value.")
+try:
+    from fills import slippage_report
+
+    st.write(slippage_report())
+except Exception as e:
+    st.error(str(e))
+
+st.subheader("High-alert ledger")
+st.caption("Paste the Brain tab's Copy JSON. Graded cards are stored as notes. Similarity is not evidence and never changes a score.")
+ledger = st.text_area("Ledger JSON", height=120)
+if st.button("Index the ledger") and ledger.strip():
+    try:
+        import json
+        import tempfile
+        from pathlib import Path
+
+        from memory import index_ledger
+
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "ledger.json"
+            p.write_text(ledger, encoding="utf-8")
+            st.write(f"{index_ledger(p)} graded cards indexed.")
+    except Exception as e:
+        st.error(str(e))

@@ -1,4 +1,8 @@
-"""Turn an opened GitHub issue into a note. Reads only what was written. Does not file an order."""
+"""Turn an opened GitHub issue into a note. Reads only what was written. Does not file an order.
+
+The comment it produces is posted on a PUBLIC repo, so the text is made inert first: no @mention, no link, no HTML.
+When the issue names both a long and a short, the side is left unwritten instead of guessing the first one.
+"""
 
 from __future__ import annotations
 
@@ -8,25 +12,49 @@ import re
 import sys
 
 SYMBOLS = ("MNQ", "MES", "NQ", "ES")
+_URL = re.compile(r"https?://\S+", re.I)
+_SHORT = re.compile(r"\b(short|shorts|shorted)\b", re.I)
+_LONG = re.compile(r"\b(long|longs)\b", re.I)
+# "put" and "call" are ordinary words ("call me at 5pm", "put it back"). They count only with an option word, a dollar amount or a
+# three-digit-plus strike within the same short clause ("puts at 500", "calls 24500", "ATM puts"), never a lone digit.
+_NEAR = r"(?:\$\d|\d{3,}|\b(?:atm|otm|itm|strike|spread|option|options|contract|contracts|debit|expiry|expiration|dte)\b)"
+_PUT = re.compile(rf"(?:\b(?:atm|otm|itm)\s+)?\bputs?\b(?:(?<=\b(?:atm|otm|itm) put)|(?<=\b(?:atm|otm|itm) puts)|(?=[^.!?\n]{{0,25}}?{_NEAR}))", re.I)
+_CALL = re.compile(rf"(?:\b(?:atm|otm|itm)\s+)?\bcalls?\b(?:(?<=\b(?:atm|otm|itm) call)|(?<=\b(?:atm|otm|itm) calls)|(?=[^.!?\n]{{0,25}}?{_NEAR}))", re.I)
+
+
+def safe_text(text: str, limit: int = 2000) -> str:
+    """Collapse whitespace, drop links, and break @mentions and HTML so the comment cannot ping anyone or render markup."""
+    flat = " ".join((text or "").split())
+    flat = _URL.sub("[link removed]", flat)
+    flat = flat.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    flat = flat.replace("@", "@​")
+    return flat[:limit]
 
 
 def parse_issue(title: str, body: str) -> dict:
     text = f"{title}\n{body}"
     upper = text.upper()
     symbol = next((s for s in SYMBOLS if re.search(rf"\b{s}\b", upper)), None)
+    says_short = bool(_SHORT.search(text) or _PUT.search(text))
+    says_long = bool(_LONG.search(text) or _CALL.search(text))
     side = None
-    if re.search(r"\b(short|put|puts|sell)\b", text, re.I):
+    if says_short and not says_long:
         side = "short"
-    elif re.search(r"\b(long|call|calls|buy)\b", text, re.I):
+    elif says_long and not says_short:
         side = "long"
-    note = " ".join((body or "").split())
-    return {"symbol": symbol, "side": side, "title": (title or "").strip(), "note": note[:2000]}
+    return {
+        "symbol": symbol,
+        "side": side,
+        "both_sides": says_short and says_long,
+        "title": safe_text(title, 200),
+        "note": safe_text(body or "", 2000),
+    }
 
 
 def render(parsed: dict) -> str:
     if not parsed["symbol"]:
         return "No symbol in the issue. Nothing was added to the book. This is not an order.\n"
-    side = parsed["side"] or "no side written"
+    side = "both a long and a short were written; no side taken" if parsed.get("both_sides") else (parsed["side"] or "no side written")
     note = parsed["note"] or "(no body)"
     return (
         "### Brain intake\n\n"

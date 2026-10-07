@@ -242,6 +242,11 @@ export interface CardRead {
   delivery?: string | null;
   /** What the last graded 0.90-plus cards like this one did, from the high-alert ledger (hi-alert.ts). Null when there is no history. */
   recall?: string | null;
+  /**
+   * PB's tiered map and if-then (sponsored-gap.ts): where price stands against the 1 hour / 4 hour sponsored gap on this side and whether the
+   * 1 to 5 minute inverse printed inside it. Null when there is no such gap. Narration only.
+   */
+  sponsored?: string | null;
 }
 
 export interface MindsRead {

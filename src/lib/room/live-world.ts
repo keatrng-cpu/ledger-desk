@@ -15,6 +15,8 @@ import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
 import { sessionBias, type TfLadder } from "@/lib/trading/tf-ladder";
 import { deliveryLine, deliveryOfLadder, pickFocus } from "./focus-pick";
+import { sponsoredRead, type SponsoredRead } from "@/lib/trading/sponsored-gap";
+import type { SmcArray } from "@/lib/trading/smc-board";
 import { loadHiAlerts, lessonOf, recallHiAlerts } from "@/lib/trading/hi-alert";
 import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
 import { isPathFire } from "@/lib/alerts/path-alarm";
@@ -254,10 +256,28 @@ function sequenceLayers(
   return book?.layers ?? null;
 }
 
+/** The sponsored-gap read for a card: this index's own tape, its price and ATR, and the 1 to 5 minute inverse the Floor already computed. */
+export function sponsoredFor(
+  desk: { smc?: { left: { symbol?: string; arrays: SmcArray[] }; right: { symbol?: string; arrays: SmcArray[] } } | undefined; left: { symbol: string }; right: { symbol: string }; quotes: { left: { price: number }; right: { price: number } } },
+  c: { symbol: string; side: string; atr?: number | null; plan?: { atr?: number | null } | null },
+  ltf: { inverse: boolean; rung: number | null },
+): SponsoredRead {
+  const isLeft = c.symbol === desk.left.symbol;
+  const tape = desk.smc ? (isLeft ? desk.smc.left : desk.smc.right) : null;
+  return sponsoredRead({
+    arrays: tape?.arrays ?? null,
+    side: c.side === "short" ? "short" : "long",
+    price: (isLeft ? desk.quotes.left : desk.quotes.right)?.price ?? null,
+    atr: c.plan?.atr ?? c.atr ?? null,
+    inverse: ltf.inverse,
+    rung: ltf.rung,
+  });
+}
+
 /** What each of the four schools makes of this card: one consensus line and one sentence per school, keyed by the cast seat that presents it. */
-export function schoolsOf(desk: Pick<DeskPayload, "ladder"> & { smcMaster?: Parameters<typeof sequenceLayers>[0]["smcMaster"] }, c: Parameters<typeof schoolFactsFrom>[0] & { symbol: string }): NonNullable<CardRead["schools"]> {
+export function schoolsOf(desk: Pick<DeskPayload, "ladder"> & { smcMaster?: Parameters<typeof sequenceLayers>[0]["smcMaster"] }, c: Parameters<typeof schoolFactsFrom>[0] & { symbol: string }, sponsored?: SponsoredRead | null): NonNullable<CardRead["schools"]> {
   const side = c.side === "short" ? "short" : "long";
-  const reads = schoolReads(schoolFactsFrom(c, ladderOf(desk, c.symbol), sequenceLayers(desk, c)));
+  const reads = schoolReads(schoolFactsFrom(c, ladderOf(desk, c.symbol), sequenceLayers(desk, c), sponsored ?? null));
   const by: Record<string, string> = {};
   for (const r of reads) by[SCHOOL_AVATAR[r.school]] = schoolSentence(r, side);
   return { line: consensusLine(reads, side), by };
@@ -311,6 +331,17 @@ function cardRead(desk: DeskPayload): CardRead | null {
   const { u, b, plan, read } = readOf(c);
   const otherU = u === "QQQ" ? "SPY" : "QQQ";
   const otherB = books[otherU];
+  const ltf = readLtfLead({
+    symbol: c.symbol,
+    side: c.side === "short" ? "short" : "long",
+    minute: b.minute,
+    otherSymbol: otherB.series.symbol,
+    otherMinute: otherB.minute,
+    draw: b.draw.primary,
+    otherDraw: otherB.draw.primary,
+    mineLadder: ladderBrief(desk, c.symbol),
+    otherLadder: ladderBrief(desk, otherB.series.symbol),
+  });
   const seq = applyLtf(
     sequenceFor(c as SequenceCard, {
       inArray: read?.tier === "live",
@@ -318,18 +349,10 @@ function cardRead(desk: DeskPayload): CardRead | null {
       price: b.quote.price,
       others: ranked as SequenceCard[],
     }),
-    readLtfLead({
-      symbol: c.symbol,
-      side: c.side === "short" ? "short" : "long",
-      minute: b.minute,
-      otherSymbol: otherB.series.symbol,
-      otherMinute: otherB.minute,
-      draw: b.draw.primary,
-      otherDraw: otherB.draw.primary,
-      mineLadder: ladderBrief(desk, c.symbol),
-      otherLadder: ladderBrief(desk, otherB.series.symbol),
-    }),
+    ltf,
   );
+  // PB's tiered map and if-then (sponsored-gap.ts): the 1 hour / 4 hour sponsored gap on this side, and whether the 1 to 5 minute inverse printed inside it.
+  const sponsored = sponsoredFor(desk, c, ltf);
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
@@ -353,7 +376,8 @@ function cardRead(desk: DeskPayload): CardRead | null {
     sequence: seq.label,
     entryLine: seq.act,
     entrySay: seq.say ?? null,
-    schools: schoolsOf(desk, c),
+    schools: schoolsOf(desk, c, sponsored),
+    sponsored: sponsored.state === "none" ? null : sponsored.line,
     delivery: deliveryLine(pick) || null,
     recall: recallHiAlerts(loadHiAlerts(), { strategy: c.completeStrategy || c.strategyPrimary || null, side: c.side === "short" ? "short" : "long" }),
   };

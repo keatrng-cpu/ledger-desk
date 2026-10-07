@@ -8,9 +8,22 @@ from __future__ import annotations
 import os
 
 
+def _load_env() -> None:
+    """Read brainlab/.env (git-ignored) into the environment, without overriding what is already set. Absent file or package: nothing happens."""
+    try:
+        from pathlib import Path
+
+        from dotenv import load_dotenv
+
+        load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
+    except ImportError:
+        pass
+
+
 def login():
     import robin_stocks.robinhood as rh
 
+    _load_env()
     user = os.environ.get("ROBINHOOD_USERNAME")
     password = os.environ.get("ROBINHOOD_PASSWORD")
     if not user or not password:
@@ -51,9 +64,15 @@ def option_quote(symbol: str, expiration: str, strike: float, right: str) -> dic
     }
 
 
-def buying_power() -> float | None:
+#: The desk trades ONE account (docs/RH_LIVE_ROUTINE.md): Agentic ••6158. The default account for this login is the Individual one, whose
+#: buying power ($11.56 on 2026-10-06) would read as "no room to trade" and is not the account an order goes to.
+TRADE_ACCOUNT = "995386158"
+
+
+def buying_power(account_number: str | None = None) -> float | None:
+    """Option buying power of the TRADE account. An unreadable field is None, not zero."""
     rh = login()
-    profile = rh.load_portfolio_profile() or {}
+    profile = rh.load_portfolio_profile(account_number=account_number or os.environ.get("RH_ACCOUNT_NUMBER") or TRADE_ACCOUNT) or {}
     raw = profile.get("option_buying_power") or profile.get("buying_power")
     try:
         return float(raw)

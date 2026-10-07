@@ -95,10 +95,15 @@ export {
 } from "./rh-autofire-gates";
 export type { RhAccountSnapshot, RhAutofireCandidate, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
 
-/** The desk is armed unless the host sets the var to false. Keaton 2026-10-07. */
+/**
+ * The desk is armed unless the host sets the var to something other than yes. Keaton 2026-10-07: unset means armed, an explicit false disarms.
+ * A kill switch must not fail OPEN on a word it does not recognize: "disabled", "nope", "f" or a typo is somebody trying to turn it off,
+ * so any explicit value arms only when it clearly says yes (true, 1, on, yes). Unset or blank is the armed default.
+ */
 function armEnv(name: string, env: Record<string, string | undefined>): boolean {
   const v = (env[name] ?? "").trim().toLowerCase();
-  return !(v === "false" || v === "0" || v === "off" || v === "no");
+  if (v === "") return true;
+  return v === "true" || v === "1" || v === "on" || v === "yes";
 }
 
 export function rhAutofireEnabled(env: Record<string, string | undefined> = process.env): boolean {
@@ -389,6 +394,9 @@ export function candidateFromFloorPathStand(args: {
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
+  /** Circuit-breaker inputs (evaluateRhCircuitBreaker): when this system last placed an order, and the account's P&L today as a fraction. */
+  lastPlaceAtMs?: number | null;
+  dayPnlPct?: number | null;
   /** Fresh get_portfolio read (rhAccountFromPortfolio). Missing → gates refuse bp_unknown. */
   account?: RhAccountSnapshot | null;
   /**
@@ -442,6 +450,8 @@ export function candidateFromFloorPathStand(args: {
     newsBlackout: args.newsBlackout,
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
+    lastPlaceAtMs: args.lastPlaceAtMs ?? null,
+    dayPnlPct: args.dayPnlPct ?? null,
     account: args.account ?? null,
     floorSpendable: rhSpendable(args.account) >= RH_MIN_DEBIT_TOTAL ? null : rhSpendable(RH_AGENTIC_DESK_READ),
     ceTouch: pick(args.ceTouch, sig?.ceTouch),
@@ -484,6 +494,9 @@ export function proposeRhFromPathFire(args: {
   newsBlackout: boolean;
   riskHalt: boolean;
   oneBookBlocked: boolean;
+  /** Circuit-breaker inputs (evaluateRhCircuitBreaker): when this system last placed an order, and the account's P&L today as a fraction. */
+  lastPlaceAtMs?: number | null;
+  dayPnlPct?: number | null;
   account?: RhAccountSnapshot | null;
   desk?: RhDeskSlice | null;
   ceTouch?: boolean | null;
@@ -552,6 +565,8 @@ export function proposeRhFromPathFire(args: {
     newsBlackout: args.newsBlackout,
     riskHalt: args.riskHalt,
     oneBookBlocked: args.oneBookBlocked,
+    lastPlaceAtMs: args.lastPlaceAtMs ?? null,
+    dayPnlPct: args.dayPnlPct ?? null,
     account: args.account ?? null,
     ceTouch: args.ceTouch,
     tapeAgeSec: args.tapeAgeSec,

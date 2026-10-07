@@ -112,6 +112,9 @@ export function proposeRhFromManagerFeed(args: {
   flags?: RhAutofireFlags;
   env?: Record<string, string | undefined>;
   nowMs?: number;
+  /** Circuit-breaker inputs, passed through to the gates (evaluateRhCircuitBreaker). */
+  lastPlaceAtMs?: number | null;
+  dayPnlPct?: number | null;
 }): RhAutofireProposal & { manager: ManagerRoomState | null } {
   const baseFlags = args.flags ?? rhAutofireFlagsFromEnv(args.env);
   const nowMs = args.nowMs ?? baseFlags.nowMs ?? Date.now();
@@ -126,6 +129,8 @@ export function proposeRhFromManagerFeed(args: {
     newsBlackout: candidate.newsBlackout,
     riskHalt: candidate.riskHalt,
     oneBookBlocked: candidate.oneBookBlocked,
+    lastPlaceAtMs: args.lastPlaceAtMs ?? null,
+    dayPnlPct: args.dayPnlPct ?? null,
     account: args.account,
     desk: args.desk,
     ceTouch: args.desk ? undefined : candidate.ceTouch,
