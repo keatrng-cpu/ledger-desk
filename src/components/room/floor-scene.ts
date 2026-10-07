@@ -34,6 +34,7 @@ import {
   type StubManagerFeed,
 } from "@/lib/room/manager-feed";
 import { OwnerAvatar, ManagerAvatar } from "./floor-proto-avatars";
+import { nearestOpenFloor, onFreeFloor } from "./owner-walk";
 import { readRhAccount } from "@/lib/ui/rh-account";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
@@ -1598,7 +1599,9 @@ export class FloorScene {
     // Owner home: Prototype Lab annex (office_RnD). Manager: war-room stand desk (not chair_office).
     const lab = LAYOUT.spots.office_rnd ?? { pos: [-0.6, 5.15] as [number, number], look: [-0.6, 3.9] as [number, number] };
     // Stand slightly south of the R&D desk so Owner can walk the floor freely.
-    const ownerStart: [number, number] = [lab.pos[0], lab.pos[1] - 1.2];
+    // "R&D seat minus 1.2 m" lands inside desk_RnD, and a step off a blocked cell is refused — the Owner could not move at all. Start on
+    // the nearest open floor (owner-walk.ts); tickOwnerManager also frees an Owner that ends up on a blocked cell.
+    const ownerStart: [number, number] = nearestOpenFloor(this.nav, [lab.pos[0], lab.pos[1] - 1.2]);
     const ownerLook: [number, number] = [-8, -1];
     this.owner = new OwnerAvatar(ownerStart, ownerLook);
     this.scene.add(this.owner.root);
@@ -2873,6 +2876,8 @@ export class FloorScene {
   private tickOwnerManager(dt: number, t: number) {
     // WASD only while focused + walk mode (never hijacks page when unfocused).
     if (this.focused && this.walkMode) {
+      // A refused step moves nothing, so an Owner on a blocked cell is stuck for good: put them on open floor first.
+      if (!onFreeFloor(this.nav, this.owner.pos)) this.owner.pos = nearestOpenFloor(this.nav, this.owner.pos);
       let mx = 0;
       let mz = 0;
       // Camera-relative: W toward look, A/D strafe.
