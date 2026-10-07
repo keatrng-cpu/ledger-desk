@@ -403,6 +403,24 @@ function majority(reads: TfRead[], tie: Tf | null): LadderBias {
   return t && t.source !== "none" ? t.bias : "neutral";
 }
 
+/**
+ * The bias a continuation is taken off.
+ *
+ * The quarter open is not that bias. Price can sit above the quarter open for
+ * months while the 4H, 1H, and 30m are a bearish leg. The dealing range is the
+ * structure. The day breaks a tie. The quarter is context, not the side.
+ */
+export function sessionBias(ladder: {
+  tier2: LadderBias;
+  htf: LadderBias;
+  reads: readonly { tf: Tf; bias: LadderBias; source: TfRead["source"] }[];
+}): LadderBias {
+  if (ladder.tier2 !== "neutral") return ladder.tier2;
+  const day = ladder.reads.find((r) => r.tf === "1d" && r.source !== "none");
+  if (day && day.bias !== "neutral") return day.bias;
+  return ladder.htf;
+}
+
 const glyph = (b: LadderBias) => (b === "bull" ? "▲" : b === "bear" ? "▼" : "·");
 const word = (b: LadderBias) => (b === "bull" ? "bull" : b === "bear" ? "bear" : "flat");
 

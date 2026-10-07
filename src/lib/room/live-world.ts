@@ -13,6 +13,7 @@ import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { applyLtf, readLtfLead } from "@/lib/trading/ltf-lead";
+import { sessionBias } from "@/lib/trading/tf-ladder";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -229,7 +230,7 @@ function ladderBrief(desk: DeskPayload, symbol: string) {
   if (!L) return null;
   const es = /ES/.test(symbol);
   const pick = /ES/.test(L.left.symbol) === es ? L.left : L.right;
-  return { symbol: pick.symbol, strip: pick.strip, htf: pick.htf };
+  return { symbol: pick.symbol, strip: pick.strip, htf: sessionBias(pick) };
 }
 
 function cardRead(desk: DeskPayload): CardRead | null {

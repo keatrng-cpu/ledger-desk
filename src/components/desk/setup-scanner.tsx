@@ -48,6 +48,7 @@ import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
 import { ladderConflict } from "@/lib/trading/ladder-conflict";
+import { sessionBias } from "@/lib/trading/tf-ladder";
 import type { TfLadder } from "@/lib/trading/tf-ladder";
 import {
   CHART_TFS,
@@ -849,8 +850,8 @@ function SetupCard({
       otherMinute: otherTape?.minute ?? [],
       draw: tape?.draws?.primary ?? null,
       otherDraw: otherTape?.draws?.primary ?? null,
-      mineLadder: tape?.ladder ? { symbol: tape.ladder.symbol, strip: tape.ladder.strip, htf: tape.ladder.htf } : null,
-      otherLadder: otherTape?.ladder ? { symbol: otherTape.ladder.symbol, strip: otherTape.ladder.strip, htf: otherTape.ladder.htf } : null,
+      mineLadder: tape?.ladder ? { symbol: tape.ladder.symbol, strip: tape.ladder.strip, htf: sessionBias(tape.ladder) } : null,
+      otherLadder: otherTape?.ladder ? { symbol: otherTape.ladder.symbol, strip: otherTape.ladder.strip, htf: sessionBias(otherTape.ladder) } : null,
     }),
   );
   return (

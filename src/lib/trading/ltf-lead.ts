@@ -102,10 +102,15 @@ export function readLtfLead(input: {
   const biasPool = liquidity(input.draw, input.side);
   const mineHtf = input.mineLadder?.htf ?? "neutral";
   const htfAgainst = (mineHtf === "bull" && input.side === "short") || (mineHtf === "bear" && input.side === "long");
+  const dealingWith =
+    (mineHtf === "bear" && input.side === "short") || (mineHtf === "bull" && input.side === "long");
+  const dealingSay = dealingWith
+    ? `Dealing range is ${mineHtf}. This ${input.side} is continuation of it.`
+    : "";
   const bias = htfAgainst ? "against" : biasPool;
   const strips = [input.mineLadder, input.otherLadder]
     .filter((l): l is NonNullable<typeof l> => !!l?.strip)
-    .map((l) => `${l.symbol} ${l.strip} ${l.htf}`)
+    .map((l) => `${l.symbol} ${l.strip} · dealing ${l.htf}`)
     .join(". ");
   const context = strips
     ? `Both indexes, every rung: ${strips}. The 1m to 5m is only the entry.`
@@ -116,7 +121,7 @@ export function readLtfLead(input: {
       ? `${pool} is unswept in the direction. That pool is the draw.`
       : bias === "against"
         ? htfAgainst
-          ? `Higher timeframes on this index read against the ${input.side}. That is a note. It does not stand the ticket down.`
+          ? `The dealing range reads against the ${input.side}. That is a note. The entry is still the inverse.`
           : `${pool} is unswept the other way. That pool is the bias. Do not fade it.`
         : bias === "swept"
           ? `${pool} already traded. That was the manipulation, not the target.`
@@ -138,7 +143,7 @@ export function readLtfLead(input: {
     leader,
     thisLeads,
     bias,
-    line: `${context} ${rungSay} ${leadSay} ${poolSay}`,
+    line: `${context} ${dealingSay} ${rungSay} ${leadSay} ${poolSay}`.replace(/\s+/g, " ").trim(),
   };
 }
 
