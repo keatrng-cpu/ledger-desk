@@ -42,12 +42,7 @@ export function HaltBanner({ risk }: { risk: RiskState }) {
         <AlertTriangle className="h-5 w-5 shrink-0 text-[var(--color-warn)]" />
         <div className="min-w-0">
           <p className="text-sm font-semibold tracking-tight text-[var(--color-warn)]">
-            Killzone cap hit — {risk.entriesThisKillzone}/{risk.killzoneCap}{" "}
-            entries this window ({risk.killzoneLabel}).
-          </p>
-          <p className="text-xs text-[var(--color-muted)]">
-            No further setups this killzone. Wait for the next window or journal
-            only.
+            {risk.entriesThisKillzone} this window ({risk.killzoneLabel}). The count does not stand a ticket down.
           </p>
         </div>
       </div>

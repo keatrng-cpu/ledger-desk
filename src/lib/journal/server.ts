@@ -704,13 +704,6 @@ export const openTrade = createServerFn({ method: "POST" })
         );
         throw new Error(`Weekly halt active: ${detail} No new live entries this week.`);
       }
-      if (risk.killzoneCapHit) {
-        const detail = `${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}.`;
-        void sendAlert(context.userId, haltHitAlert({ scope: "killzone", detail })).catch(
-          () => undefined,
-        );
-        throw new Error(`Killzone cap reached (${detail}) No new live entries this window.`);
-      }
     }
 
     // Profit-rule gate (ROADMAP B1) — same pathTakeGate the backtest runs.
@@ -972,7 +965,7 @@ export type RealFillInput = z.input<typeof realFillSchema>;
  * Record a fill that already happened. NEVER refuses on a desk rule.
  *
  * `openTrade` is the gate for an order the desk is about to place, and it
- * refuses halts, killzone caps, pathTakeGate and a second open position.
+ * refuses a loss halt and pathTakeGate. A trade count is not a refusal.
  * Applied to a FILL, that refusal is a lie by omission: the trade happened,
  * and the rows it drops are the overrides — the only rows that can tell a
  * mis-tuned gate from a discipline leak. So this runs the same gates purely
@@ -993,7 +986,6 @@ export const recordRealFill = createServerFn({ method: "POST" })
       const risk = await computeLiveRiskState(sql, context.userId);
       if (risk.dailyHaltHit) gate = `Daily halt: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}`;
       else if (risk.weeklyHaltHit) gate = `Weekly halt: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}`;
-      else if (risk.killzoneCapHit) gate = `Killzone cap: ${risk.entriesThisKillzone}/${risk.killzoneCap} in ${risk.killzoneLabel}`;
       if (!gate) {
         await assertOpenAllowed(sql, context.userId, {
           symbol: data.symbol,

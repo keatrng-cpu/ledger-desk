@@ -126,7 +126,7 @@ test("entry gate: no-session allowed (server still rejects writes); ok reads the
   assert.equal(G.riskEntryAllowed("ok", CLEAN), true);
   assert.equal(G.riskEntryAllowed("ok", HALTED), false);
   assert.equal(G.riskEntryAllowed("ok", { ...CLEAN, weeklyHaltHit: true }), false);
-  assert.equal(G.riskEntryAllowed("ok", { ...CLEAN, killzoneCapHit: true }), false);
+  assert.equal(G.riskEntryAllowed("ok", { ...CLEAN, killzoneCapHit: true }), true);
   assert.equal(G.riskEntryAllowed("ok", null), false);
 });
 
@@ -230,7 +230,7 @@ test("S5: only the exact 'Unauthorized' message is signed out", () => {
 test("S7: a genuine 401 after a known halt keeps entry BLOCKED", () => {
   assert.equal(G.riskEntryAllowed("no-session", HALTED), false);
   assert.equal(G.riskEntryAllowed("no-session", { ...CLEAN, weeklyHaltHit: true }), false);
-  assert.equal(G.riskEntryAllowed("no-session", { ...CLEAN, killzoneCapHit: true }), false);
+  assert.equal(G.riskEntryAllowed("no-session", { ...CLEAN, killzoneCapHit: true }), true);
   // Signed-out preview with no halt seen is still allowed (server rejects writes).
   assert.equal(G.riskEntryAllowed("no-session", null), true);
   assert.equal(G.riskEntryAllowed("no-session", CLEAN), true);

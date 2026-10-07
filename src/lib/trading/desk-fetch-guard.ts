@@ -125,9 +125,9 @@ export function resolvePublishedRisk<R>(next: R | null | undefined, prev: R | nu
   return next !== undefined ? next : prev;
 }
 
-/** True when a risk read carries any entry-blocking flag. */
+/** True when a loss halt is on. A trade count is not a halt. */
 export function riskHalted(risk: RiskHaltFlags | null | undefined): boolean {
-  return !!risk && (risk.dailyHaltHit || risk.weeklyHaltHit || risk.killzoneCapHit);
+  return !!risk && (risk.dailyHaltHit || risk.weeklyHaltHit);
 }
 
 /**

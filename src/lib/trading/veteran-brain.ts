@@ -576,10 +576,10 @@ export function runVeteranBrain(
       label: "Risk",
       tone: "warn",
       score: -1,
-      detail: "Killzone cap hit",
+      detail: "Count this window is full. It does not stand a ticket down.",
     });
     score -= 1;
-    yellow.push("Max setups this KZ already used");
+    yellow.push("The count this window is a note, not a stop.");
   } else if (riskUnknown) {
     layers.push({
       id: "risk",
