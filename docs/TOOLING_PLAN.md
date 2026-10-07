@@ -142,26 +142,3 @@ The idea: a free cloud host running a Python daemon (a `robin_stocks` option-cha
 3. **The free thing that fits is GitHub Actions**, credential-free: `npm run lab:check`, the weekly `scripts/check-research-sources.mjs`, and `verify-all` on every push, so a red verifier is visible on the commit instead of only in a local hook. Not written yet: it cannot be pushed without the `workflow` scope (see `docs/pending-workflows/README.md`), and `verify-all` reads `.cache` captures that are not in the repo, so a CI run needs a decision on which verifiers can run there. Install the three pending workflows first.
 4. **No Dockerfile.** Docker is not installed on this machine, so an image could not be built or run here; an untested Dockerfile would be a claim, not a deliverable.
 5. **Auto-commit stays local.** `brainlab/gitnote.py` refuses the floor file and any push. Pushing from a cloud host to a public repo needs a deploy key and a review of what it may write; not done.
-
-## Multi-agent LLM desks (CrewAI, AutoGen, Langflow/Flowise, GitHub Actions cron): declined, 2026-10-07
-
-Proposed: a CrewAI or AutoGen "crew" of model-backed nodes (Anthropic, OpenAI, xAI) that analyse the market and place Robinhood orders through `robin_stocks`, woken by a GitHub Actions cron every 5 to 15 minutes, with Langflow or Flowise as a visual builder. Not installed, for these reasons, so the idea is not re-proposed without a new one:
-
-1. **A model decides and places.** The desk's standing rules are that scoring is deterministic, no language model sits in the poll or the decision path, a model never overrides a gate, and a model never changes a number (the account rule is stricter still: accuracy has to be 100%). In that design the agents choose the strike and the quantity and send the order. The Grok, Claude and Discuss narration stays narration for exactly this reason.
-2. **The sample code fabricates.** Its market tool returns a hard-coded sentence about EUR/USD, and its order tool returns "Successfully executed" without sending anything. A loop built on that would report fills that never happened, which breaks the desk's first rule (never invent fills).
-3. **Debate is not edge.** The repo's own rule is to act only on a day-clustered |z| >= 2 difference, and none of the model-opinion features measured so far passed it. Agents agreeing with each other is not a measurement.
-4. **GitHub Actions cannot be the sender.** Cron on Actions has a 5-minute floor and is routinely delayed, the place window needs a poll about every 60 seconds, and it would put brokerage credentials in a public repo's secrets with a model reading untrusted headlines (prompt injection) next to the order tool. The brokerage tools live in the agent that holds the Robinhood connector, not in a workflow.
-5. **`robin_stocks`** is unofficial (see the hosting note above): the account password and MFA on another host, and account-restriction risk.
-6. **Langflow / Flowise** add a web server, more keys and a second place the logic lives, for a pipeline that is already readable in code.
-
-What does fit is already planned: a deterministic sender that polls an authenticated desk endpoint (`/api/desk/rh-cycle`, see the Grok prompt for the RH sender) and runs `review_option_order` then `place_option_order` under the existing gates. A model may read the journal afterwards and write a post-mortem (narration, never a gate); that is the only place a crew framework could sit.
-
-### Revised the same day: an analyst crew is allowed, a firing crew is not
-
-The trader clarified (2026-10-07) that the crew was never meant to fire orders: execution stays desk to Robinhood, deterministic, and never falls back on a model. Scoped that way, a CrewAI (or AutoGen) crew is acceptable for research, analytics, explaining numbers, proposing desk optimisations and Floor enhancements. Conditions, so it cannot drift into the decision path:
-
-- **No order path, no broker code, no broker credentials.** The crew's tools are read-only. A guard test fails if anything under the crew imports an execution, broker or `robin_stocks` module (the lab's `selfcheck` and `verify-lab-constants` already do this for `brainlab`).
-- **A model is never the source of a number.** All arithmetic, backtests and calculations run in code (the existing `scripts/*.mjs` and `brainlab` Python); the agents read the result, explain it and propose. The account rule (100% accuracy) stands.
-- **Proposals, not commits.** Output is markdown plus draft issues or pull requests. A change to a rule or a number still needs a day-clustered |z| >= 2 measurement and the trader's call; `config.ts` is never edited by a model; no auto-commit to `main` (GitPython stays limited to notes).
-- **Schedule: after the close and weekly, not market hours,** from GitHub Actions or locally. Secrets are only the model keys (OPENAI_KEY, ANTHROPIC_API_KEY, XAI_API_KEY), never a brokerage credential. Fetched web text is untrusted, so the crew has no write tool beyond opening a draft PR and a spend cap per run.
-- Model names in the pasted sample are out of date: take current ones from each provider's docs. Pin the framework version and verify the install in the lab venv before relying on it.
