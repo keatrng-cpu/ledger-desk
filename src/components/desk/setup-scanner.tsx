@@ -42,7 +42,7 @@ import {
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
 import { monthContractLine } from "@/lib/trading/month-contract";
-import { readPbEntry } from "@/lib/trading/pb-entries";
+import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
@@ -469,6 +469,7 @@ function SetupCard({
   discretion,
   tape,
   session,
+  others = [],
 }: {
   c: SetupCandidate;
   onLog?: (c: SetupCandidate, mode: LogMode) => void;
@@ -491,6 +492,7 @@ function SetupCard({
   tape?: CardTape;
   /** The session read and the ET clock, for the evidence lookups. */
   session?: CardSession;
+  others?: SetupCandidate[];
 }) {
   const [noteCopied, setNoteCopied] = useState(false);
   // Read from the card's OWN printed strings, not from the plan — the failure
@@ -827,18 +829,11 @@ function SetupCard({
       ghost.status === "lost" ||
       ghost.status === "missed" ||
       ghost.status === "expired");
-  const comps = new Set((c.components ?? []).map((x) => String(x)));
-  const pb = readPbEntry({
-    side: c.side === "short" ? "short" : "long",
-    htfOk: c.htfOk,
-    gapAgrees: c.gapSide == null || c.gapSide === c.side,
-    swept: comps.has("sweep") || /sweep/i.test(c.strategyPrimary || ""),
-    inverted: comps.has("ifvg") || /inverse|ifvg/i.test(c.strategyPrimary || ""),
-    displaced: comps.has("displacement") || comps.has("mss") || /displac/i.test(c.strategyPrimary || ""),
-    gapTapped: c.gapSide != null && c.gapSide === c.side,
-    target: (c.targets?.length ?? 0) > 0 || c.plan?.t1 != null,
+  const pb = sequenceFor(c as SequenceCard, {
     inArray: anticipation.entry === "live",
-    gone: anticipation.entry === "gone",
+    gone: anticipation.entry === "gone" || freshness?.state === "target_hit",
+    price: tape?.price ?? null,
+    others: others as SequenceCard[],
   });
   return (
     <article
@@ -1827,6 +1822,7 @@ export function SetupScanner({
             discretion={guidedById.get(c.id)?.disc}
             tape={tape?.[c.symbol]}
             session={clock}
+            others={display}
           />
         ))}
       </div>

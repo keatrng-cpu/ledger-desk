@@ -171,7 +171,7 @@ export function takeWordNote(): ResearchNote | null {
 export function scannerMandateNote(): ResearchNote {
   return {
     id: "scanner_mandate",
-    line: "AMD is range, raid, then distribution. TJR is sweep, shift, retrace into the gap. A reversal is that raid failing and delivery changing. Patty is the 1m to 5m inverse, or the gap tap. The raid is not the entry. A count does not stand a ticket down.",
+    line: "AMD, TJR, reversal, the 1m to 5m inverse, and the gap tap are the entries. A sweep that held is not a fade. The other index has to agree. A shift without a gap is not an entry. A draw that already traded is spent. The raid is not the fill.",
     source: "PATH scanner · APLUS_RULES.confluenceFloor",
   };
 }

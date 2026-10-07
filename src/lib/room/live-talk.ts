@@ -757,7 +757,7 @@ function bookCands(w: TalkWorld, st: TalkState, out: Cand[], announceNew = false
   // The card, the moment it appears or changes. First sight is news, not a silent note.
   const card = w.card;
   if (card) {
-    const to = `${card.tier ?? "board"}|${card.band ?? ""}|${card.verdict}`;
+    const to = `${card.tier ?? "board"}|${card.band ?? ""}|${card.verdict}|${card.sequence ?? ""}`;
     const prev = st.tier[card.key];
     if (prev !== to) {
       const from = prev == null ? null : prev.split("|")[0]!;

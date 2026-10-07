@@ -1258,9 +1258,9 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
     ctx.fillText(fit(ctx, `${c.symbol} ${c.side.toUpperCase()}${c.strategy ? ` · ${c.strategy}` : ""}`, 520), 92, y + 24);
     ctx.font = `500 15px ${MONO}`;
     ctx.fillStyle = c.block ? C.down : C.muted;
-    const state = c.entryState === "live" ? "ENTER" : c.entryState === "gone" ? "ENTRY GONE" : "ANTICIPATION";
+    const state = c.sequence || (c.entryState === "live" ? "ENTER" : c.entryState === "gone" ? "ENTRY GONE" : "ANTICIPATION");
     const sub = c.entryLine || c.block || `${state}${(c.tier ?? "")}`;
-    ctx.fillStyle = c.entryState === "live" ? C.up : c.entryState === "gone" ? C.down : C.amber;
+    ctx.fillStyle = c.sequence?.startsWith("ENTER") ? C.up : c.sequence?.startsWith("STAND") || c.sequence?.startsWith("DRAW") ? C.down : c.entryState === "gone" ? C.down : C.amber;
     ctx.fillText(fit(ctx, sub, 410), 92, y + 48);
     if (c.entry != null && c.stop != null) {
       ctx.fillStyle = C.muted;

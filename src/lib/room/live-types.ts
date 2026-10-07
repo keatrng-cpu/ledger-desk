@@ -224,6 +224,10 @@ export interface CardRead {
   setup: string | null;
   /** Scanner fit, 0–1. At 0.80 the floor reads the card out loud and arms. */
   fit?: number | null;
+  /** Named sequence on the card: AMD, TJR, reversal, inverse, gap tap. */
+  sequence?: string | null;
+  /** What the floor says about that sequence. */
+  entryLine?: string | null;
 }
 
 export interface MindsRead {
@@ -372,6 +376,7 @@ export interface ScanCardLite {
   /** live enters. armed and forming are anticipation. gone does not chase. */
   entryState: "live" | "armed" | "forming" | "gone" | "wait";
   entryLine: string;
+  sequence: string;
 }
 
 /* ── The investment office ─────────────────────────────────────────────────

@@ -11,7 +11,7 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
-import { readPbEntry } from "@/lib/trading/pb-entries";
+import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -239,7 +239,13 @@ function cardRead(desk: DeskPayload): CardRead | null {
     return t === "live" || t === "armed" || t === "forming";
   });
   const c = live ?? ranked[0]!;
-  const { u, plan, read } = readOf(c);
+  const { u, b, plan, read } = readOf(c);
+  const seq = sequenceFor(c as SequenceCard, {
+    inArray: read?.tier === "live",
+    gone: read?.tier === "gone",
+    price: b.quote.price,
+    others: ranked as SequenceCard[],
+  });
   return {
     key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
     name: `${c.pathBand} ${c.symbol} ${c.side}`,
@@ -260,20 +266,27 @@ function cardRead(desk: DeskPayload): CardRead | null {
     strategy: c.completeStrategy || c.strategyPrimary || null,
     setup: setupLine(c.components ?? [], c.completeStrategy || c.strategyPrimary || null),
     fit: c.confluence,
+    sequence: seq.label,
+    entryLine: seq.act,
   };
 }
 
 /** The scanner board, as the war room's TV shows it: the desk's graded candidates in board order, each with its plan and entry tier. */
 export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
-  return [...desk.scan.candidates]
-    .filter((c) => c.pathBand)
-    .sort(compareForBoard)
+  const ranked = [...desk.scan.candidates].filter((c) => c.pathBand).sort(compareForBoard);
+  return ranked
     .slice(0, limit)
     .map((c) => {
       const u: Underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
       const b = booksOf(desk)[u];
       const plan = planFor(c, b.smc.plan);
       const read = plan ? readEntry(plan as unknown as Parameters<typeof readEntry>[0], b.quote.price, (c.plan?.atr ?? b.draw.atr) || null) : null;
+      const seq = sequenceFor(c as SequenceCard, {
+        inArray: read?.tier === "live",
+        gone: read?.tier === "gone",
+        price: b.quote.price,
+        others: ranked as SequenceCard[],
+      });
       return {
         key: `${c.symbol}:${c.side}:${c.pathBand}:${c.id}`,
         name: `${c.pathBand} ${c.symbol} ${c.side}`,
@@ -292,18 +305,8 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         t1: plan?.t1 ?? null,
         block: c.missing?.[0] ?? null,
         entryState: read?.tier ?? "wait",
-        entryLine: readPbEntry({
-          side: c.side === "short" ? "short" : "long",
-          htfOk: c.htfOk,
-          gapAgrees: c.gapSide == null || c.gapSide === c.side,
-          swept: (c.components ?? []).some((x) => String(x) === "sweep"),
-          inverted: (c.components ?? []).some((x) => String(x) === "ifvg"),
-          displaced: (c.components ?? []).some((x) => String(x) === "displacement" || String(x) === "mss"),
-          gapTapped: c.gapSide != null && c.gapSide === c.side,
-          target: (c.targets?.length ?? 0) > 0 || plan?.t1 != null,
-          inArray: read?.tier === "live",
-          gone: read?.tier === "gone",
-        }).act,
+        entryLine: seq.act,
+        sequence: seq.label,
       } satisfies ScanCardLite;
     });
 }

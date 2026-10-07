@@ -866,6 +866,15 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
   const k = d.card;
   const entry = k.entry != null ? f.lvl(k.entry) : null;
   const lines: (Line | null)[] = [];
+  if (k.entryLine) {
+    const name = k.sequence ?? "Sequence";
+    lines.push(line("Vince", ANIM.Vince.watch!, () => `${f.raw(k.name)}. ${f.raw(name)}.`));
+    lines.push(line("Gemma", ANIM.Gemma.explain!, () => f.raw(k.entryLine!)));
+    lines.push(line("Jax", ANIM.Jax.point!, () => (k.entryLine!.startsWith("Enter") || name.startsWith("ENTER") ? `That's the fill. Place the month ticket.` : `Not yet. The raid is not the entry.`)));
+    lines.push(line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? () => `If it fills, P(T1) ${f.frac(k.pT1!)}${k.expR != null ? `, E[R] ${signed(k.expR)}` : ""}. The sequence does not change that number.` : () => `No priced T1 on this one. The sequence still has to have a draw.`));
+    lines.push(line("Sterling", ANIM.Sterling.tablet!, () => (name.startsWith("STAND") || name.startsWith("DRAW") ? `Stood down. Size stays.` : `Month ticket only if this is the fill. A count does not stand it down.`)));
+    return { lines: compact(lines), moves: name.startsWith("ENTER") || d.to === "live" ? BOARD : {} };
+  }
   if (d.from == null || d.to === "forming" || d.to === "board") {
     lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "tier.new.vince", [
       () => `${f.raw(k.name)} just printed${entry ? `, CE ${entry}` : ""}${k.awayPts != null ? `, ${f.pts(k.awayPts)} pts out` : ""}.`,
