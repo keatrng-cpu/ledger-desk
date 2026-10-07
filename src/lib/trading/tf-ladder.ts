@@ -37,9 +37,12 @@
  * with too few closed candles reads from location alone and says so.
  *
  * HOW THE TIERS ARE CONJOINED
- * DIRECTION is the highest Tier-1 rung with a read (Q, then M, then W, then
- * D). The tiers below are read RELATIVE to it — range (Tier 2), confirm
- * (Tier 3), trigger (Tier 4) — and the PHASE is what they say against it:
+ * DIRECTION is not the quarter and not a period open. The quarter and the
+ * month stay on the strip and do not vote. HTF is the daily and the 4H
+ * (the week only when its swings are clean). MTF is the 1H, 30m, and 15m.
+ * LTF is the 5m down to the 1m. A rung is bullish on HH/HL, bearish on
+ * LH/LL, and otherwise only if the last close disrespected a swing or
+ * respected one. Above an open is not a bias.
  *   all with                                 → expansion (continuations only)
  *   range with · confirm with · trigger against → pullback starting (do not chase)
  *   range with · confirm against · trigger against → pullback (wait for the turn)
@@ -358,6 +361,22 @@ const NONE = (tf: Tf): TfRead => ({
   source: "none",
 });
 
+function respectOf(bars: OhlcBar[]): { bias: LadderBias; how: string } {
+  const { highs, lows } = swings(bars);
+  if (bars.length < 5 || highs.length < 1 || lows.length < 1) return { bias: "neutral", how: "no swing" };
+  const last = bars[bars.length - 1]!.c;
+  const sh = highs[highs.length - 1]!;
+  const sl = lows[lows.length - 1]!;
+  if (last < sl) return { bias: "bear", how: "swing low disrespected" };
+  if (last > sh) return { bias: "bull", how: "swing high disrespected" };
+  const span = sh - sl;
+  if (!(span > 0)) return { bias: "neutral", how: "no swing" };
+  const pos = (last - sl) / span;
+  if (pos <= 0.35) return { bias: "bull", how: "swing low respected" };
+  if (pos >= 0.65) return { bias: "bear", how: "swing high respected" };
+  return { bias: "neutral", how: "inside the swings" };
+}
+
 function readRung(
   tf: Tf,
   closed: OhlcBar[],
@@ -370,18 +389,25 @@ function readRung(
   const kept = closed.slice(-KEEP);
   const vsOpenPct = periodOpen != null && last != null && periodOpen > 0 ? ((last - periodOpen) / periodOpen) * 100 : null;
   const structure = structureOf(kept);
-  const thr = OPEN_THRESHOLD_PCT[tf];
-  const location: LadderBias = vsOpenPct == null ? "neutral" : vsOpenPct > thr ? "bull" : vsOpenPct < -thr ? "bear" : "neutral";
-  let bias: LadderBias;
-  if (structure === "HH/HL") bias = "bull";
-  else if (structure === "LH/LL") bias = "bear";
-  else bias = location;
+  const held = respectOf(kept);
+  let bias: LadderBias = "neutral";
+  let how = "no structure";
+  if (structure === "HH/HL") {
+    bias = "bull";
+    how = "HH/HL";
+  } else if (structure === "LH/LL") {
+    bias = "bear";
+    how = "LH/LL";
+  } else if (held.bias !== "neutral") {
+    bias = held.bias;
+    how = held.how;
+  }
   const locTxt =
     vsOpenPct == null ? "" : `${vsOpenPct >= 0 ? "+" : ""}${vsOpenPct.toFixed(Math.abs(vsOpenPct) < 0.1 ? 3 : 2)}% vs ${openNote || "open"}`;
   const why =
     structure === "n/a"
       ? `${locTxt || "no open"} (${kept.length} closed — location only)`
-      : `${structure} on ${kept.length} closed · ${locTxt}`;
+      : `${how} on ${kept.length} closed · ${locTxt}`;
   return { tf, tier: TF_TIER[tf], bias, structure, open: periodOpen, last, vsOpenPct, bars: kept.length, why, source };
 }
 
@@ -410,15 +436,10 @@ function majority(reads: TfRead[], tie: Tf | null): LadderBias {
  * months while the 4H, 1H, and 30m are a bearish leg. The dealing range is the
  * structure. The day breaks a tie. The quarter is context, not the side.
  */
-export function sessionBias(ladder: {
-  tier2: LadderBias;
-  htf: LadderBias;
-  reads: readonly { tf: Tf; bias: LadderBias; source: TfRead["source"] }[];
-}): LadderBias {
-  if (ladder.tier2 !== "neutral") return ladder.tier2;
-  const day = ladder.reads.find((r) => r.tf === "1d" && r.source !== "none");
-  if (day && day.bias !== "neutral") return day.bias;
-  return ladder.htf;
+export function sessionBias(ladder: { htf: LadderBias; mtf: LadderBias }): LadderBias {
+  if (ladder.htf !== "neutral") return ladder.htf;
+  if (ladder.mtf !== "neutral") return ladder.mtf;
+  return "neutral";
 }
 
 const glyph = (b: LadderBias) => (b === "bull" ? "▲" : b === "bear" ? "▼" : "·");
@@ -538,15 +559,32 @@ export function buildTfLadder(input: LadderInput): TfLadder {
   const tier3 = majority(t3, "15m");
   const tier4 = majority(t4, "1m");
 
-  // Direction from the top of Tier 1.
-  let direction: LadderBias = "neutral";
-  let decidedBy: Tf | null = null;
-  for (const r of t1) {
-    if (r.source === "none" || r.bias === "neutral") continue;
-    direction = r.bias;
-    decidedBy = r.tf;
-    break;
-  }
+  const frameBias = (tfs: Tf[], tie: Tf, structureOnly: ReadonlySet<Tf> = new Set()): { bias: LadderBias; by: Tf | null } => {
+    const rows = reads.filter(
+      (r) =>
+        tfs.includes(r.tf) &&
+        r.source !== "none" &&
+        r.bias !== "neutral" &&
+        (!structureOnly.has(r.tf) || r.structure === "HH/HL" || r.structure === "LH/LL"),
+    );
+    const bull = rows.filter((r) => r.bias === "bull").length;
+    const bear = rows.filter((r) => r.bias === "bear").length;
+    let bias: LadderBias = "neutral";
+    if (bull > bear) bias = "bull";
+    else if (bear > bull) bias = "bear";
+    else {
+      const t = rows.find((r) => r.tf === tie);
+      bias = t?.bias ?? "neutral";
+    }
+    const by = rows.find((r) => r.tf === tie && r.bias === bias)?.tf ?? rows.find((r) => r.bias === bias)?.tf ?? null;
+    return { bias, by };
+  };
+  // Quarter and month do not vote. HTF is the day and the 4H. The week votes only on a clean swing.
+  const htfRead = frameBias(["4h", "1d", "1w"], "4h", new Set(["1w"]));
+  const mtfRead = frameBias(["1h", "30m", "15m"], "1h");
+  const ltfRead = frameBias(["5m", "3m", "2m", "1m"], "5m");
+  const direction = htfRead.bias;
+  const decidedBy = htfRead.by;
 
   const w = (b: LadderBias) => direction !== "neutral" && b === direction;
   const a = (b: LadderBias) => direction !== "neutral" && b !== "neutral" && b !== direction;
@@ -627,9 +665,9 @@ export function buildTfLadder(input: LadderInput): TfLadder {
     swing: tier2,
     intraday: tier3,
     micro: tier4,
-    htf: tier1,
-    mtf: tier2,
-    ltf: majority([...t3, ...t4], "15m"),
+    htf: htfRead.bias,
+    mtf: mtfRead.bias,
+    ltf: ltfRead.bias,
     ipda,
     phase,
     alignment,

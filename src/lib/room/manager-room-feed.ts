@@ -20,6 +20,7 @@
  * rh-autofire-gates.ts / rh-autofire.ts. Nothing here places an order.
  */
 import type { BrokerAction, Gate, RoomEntryRead, RoomOutput, RoomTrace } from "./orchestrator";
+import { schoolTicket } from "@/lib/trading/school-ticket";
 import type {
   ArmSnap,
   CallAction,
@@ -238,7 +239,7 @@ export function managerStateFromRoom(args: {
           decisionKey,
           reasoning: {
             thesis: verdict.agree
-              ? `Room fills ${card?.underlier} ${card?.type === "PUT" ? "put" : "call"} ${verdict.strikeOffset} ×${verdict.contracts} — Stand agrees (live path still gated).`
+              ? `Room fills ${card?.underlier} ${card?.type === "PUT" ? "put" : "call"} ${verdict.strikeOffset} ×${verdict.contracts}. ${schoolTicket(card?.futSymbol ?? card?.underlier ?? "Index", card?.futSide === "short" ? "short" : "long")}`
               : t.refusal
                 ? `Stand aside — ${t.refusal}`
                 : t.beat === "trigger_wait"

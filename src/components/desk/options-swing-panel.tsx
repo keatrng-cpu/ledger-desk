@@ -35,7 +35,7 @@ import {
   type RhFill,
   type RhIncomeRead,
 } from "@/lib/trading/rh-income";
-import { cn } from "@/lib/utils";
+import { schoolTicket } from "@/lib/trading/school-ticket";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictClass(v: RhVerdict): string {
@@ -103,6 +103,9 @@ function StrategyCard({ card }: { card: RhStrategyCard }) {
               <li key={t}>→ {t}</li>
             ))}
           </ul>
+          <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
+            {schoolTicket(card.ticket.underlier, card.ticket.side === "put" ? "short" : "long")}
+          </p>
         </div>
       )}
 
