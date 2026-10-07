@@ -1488,6 +1488,36 @@ def export_compressed(opts):
         print("office.draco.glb removed: not at least 40%% smaller than the plain file")
 
 
+def export_textured(opts):
+    """The same scene with the tiling material set: office.tex.glb (a plain glB with four embedded JPEG tiles).
+    A second file, not the default: scripts/verify-room.mjs asserts that office.glb carries no images."""
+    import tempfile
+    import floor_pack
+    import floor_tex
+    tiles = floor_tex.tile_jpegs(floor_tex.make_tiles(), tempfile.mkdtemp(prefix="floor_tiles_"))
+    floor_tex.add_uvs(core_ns())
+    path = os.path.join(OUT_DIR, "office.tex.glb")
+    bpy.ops.export_scene.gltf(
+        filepath=path, export_format="GLB", use_selection=False, export_yup=True, export_apply=True,
+        export_cameras=False, export_lights=False, export_animations=False, export_skins=False, export_morph=False,
+        export_texcoords=True, export_normals=True, export_materials="EXPORT", export_extras=True,
+        export_vertex_color="ACTIVE", export_all_vertex_colors=False)
+    floor_pack.pack(path)
+    floor_tex.embed(path, tiles)
+    print("office.tex.glb written: %s  (%d bytes; plain office.glb is %d)" % (path, os.path.getsize(path), os.path.getsize(GLB_PATH)))
+    if "--tex-draco" in opts:
+        dr = os.path.join(OUT_DIR, "office.tex.draco.glb")
+        bpy.ops.export_scene.gltf(
+            filepath=dr, export_format="GLB", use_selection=False, export_yup=True, export_apply=True, export_cameras=False,
+            export_lights=False, export_animations=False, export_skins=False, export_morph=False, export_texcoords=True,
+            export_normals=True, export_materials="EXPORT", export_extras=True, export_vertex_color="ACTIVE",
+            export_all_vertex_colors=False, export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=7,
+            export_draco_position_quantization=14, export_draco_normal_quantization=10, export_draco_texcoord_quantization=12,
+            export_draco_color_quantization=8, export_draco_generic_quantization=12)
+        floor_tex.embed(dr, floor_tex.tile_jpegs(floor_tex.make_tiles(), tempfile.mkdtemp(prefix="floor_tiles_")))
+        print("office.tex.draco.glb written: %d bytes" % os.path.getsize(dr))
+
+
 def build_office(opts=frozenset()):
     """opts: switches from the command line (see main). Everything on by default except what is named --no-*."""
     reset_scene()
@@ -1534,6 +1564,8 @@ def build_office(opts=frozenset()):
         GLB_PATH, os.path.getsize(GLB_PATH), tri_count(), len(bpy.data.objects)))
     if "--no-compress" not in opts:
         export_compressed(opts)
+    if "--no-textures" not in opts:
+        export_textured(opts)
 
 
 # --------------------------------------------------------------------------
