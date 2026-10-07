@@ -41,7 +41,8 @@ import {
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
 import { anticipate } from "@/lib/trading/setup-anticipation";
-import { entryCall, monthContractLine } from "@/lib/trading/month-contract";
+import { monthContractLine } from "@/lib/trading/month-contract";
+import { readPbEntry } from "@/lib/trading/pb-entries";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
 import type { DrawRead } from "@/lib/trading/draw";
 import { cardFreshness, nextLook } from "@/lib/trading/card-freshness";
@@ -826,6 +827,19 @@ function SetupCard({
       ghost.status === "lost" ||
       ghost.status === "missed" ||
       ghost.status === "expired");
+  const comps = new Set((c.components ?? []).map((x) => String(x)));
+  const pb = readPbEntry({
+    side: c.side === "short" ? "short" : "long",
+    htfOk: c.htfOk,
+    gapAgrees: c.gapSide == null || c.gapSide === c.side,
+    swept: comps.has("sweep") || /sweep/i.test(c.strategyPrimary || ""),
+    inverted: comps.has("ifvg") || /inverse|ifvg/i.test(c.strategyPrimary || ""),
+    displaced: comps.has("displacement") || comps.has("mss") || /displac/i.test(c.strategyPrimary || ""),
+    gapTapped: c.gapSide != null && c.gapSide === c.side,
+    target: (c.targets?.length ?? 0) > 0 || c.plan?.t1 != null,
+    inArray: anticipation.entry === "live",
+    gone: anticipation.entry === "gone",
+  });
   return (
     <article
       className={cn(
@@ -983,13 +997,13 @@ function SetupCard({
         )}
       >
         <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-fg)]">
-          {entryCall(anticipation.entry, c.plan?.entry ?? null).label}
+          {pb.label}
           {c.plan ? ` · CE ${c.plan.entry.toFixed(2)}` : ""}
         </p>
-        <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-fg)]">{anticipation.next}</p>
+        <p className="mt-0.5 text-[12px] leading-snug text-[var(--color-fg)]">{pb.act}</p>
         <p className="mt-0.5 text-[10px] leading-snug text-[var(--color-subtle)]">
-          {entryCall(anticipation.entry, c.plan?.entry ?? null).act}
-          {anticipation.entry === "live" ? ` ${monthContractLine(2000)}` : ""}
+          {anticipation.next}
+          {pb.enter ? ` ${monthContractLine(2000)}` : ""}
         </p>
       </div>
 

@@ -11,7 +11,7 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
-import { entryCall } from "@/lib/trading/month-contract";
+import { readPbEntry } from "@/lib/trading/pb-entries";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -292,7 +292,18 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         t1: plan?.t1 ?? null,
         block: c.missing?.[0] ?? null,
         entryState: read?.tier ?? "wait",
-        entryLine: entryCall(read?.tier ?? null, plan?.entry ?? null).act,
+        entryLine: readPbEntry({
+          side: c.side === "short" ? "short" : "long",
+          htfOk: c.htfOk,
+          gapAgrees: c.gapSide == null || c.gapSide === c.side,
+          swept: (c.components ?? []).some((x) => String(x) === "sweep"),
+          inverted: (c.components ?? []).some((x) => String(x) === "ifvg"),
+          displaced: (c.components ?? []).some((x) => String(x) === "displacement" || String(x) === "mss"),
+          gapTapped: c.gapSide != null && c.gapSide === c.side,
+          target: (c.targets?.length ?? 0) > 0 || plan?.t1 != null,
+          inArray: read?.tier === "live",
+          gone: read?.tier === "gone",
+        }).act,
       } satisfies ScanCardLite;
     });
 }
