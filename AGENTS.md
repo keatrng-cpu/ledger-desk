@@ -14,7 +14,7 @@ node scripts/agent-sync.mjs --agent grok
 
 Claude uses `--agent claude`. If the script exits 2, `git pull --rebase origin main` and run it again. Do not edit a file in that brief until you have read its diff. Brief: [docs/agent-sync.md](./docs/agent-sync.md).
 
-**Find code by search, not by reading.** Do not open `CLAUDE.md`'s code map or walk `src/` to locate a file. Search the one-line index, then open only the hit:
+**Find code by search, not by reading.** Start at [.ai/system_map.md](./.ai/system_map.md). Do not open `CLAUDE.md`'s code map or walk `src/` to locate a file. Search the one-line index, then open only the hit:
 
 ```
 rg -n "raid|entry|floor" docs/code-index.md
