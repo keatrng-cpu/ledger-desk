@@ -130,9 +130,28 @@ export interface SmtLevelRead {
   /** This book's extreme in the divergence (its swept or its held price). */
   extreme: number | null;
   timeframe: string | null;
+  /**
+   * ITEM 11 — did THIS book lead the divergence?
+   *
+   * True when this symbol made the new extreme (it is `d.leader`), false when
+   * it is the laggard that held, null when there is no active divergence to
+   * lead. `thisLed` has been computed below since the file was written and was
+   * thrown away; the laggard is not a second setup on the same divergence, so
+   * the optional SMT factor is now only earned by the leader (smc-canon.ts).
+   *
+   * null is NOT a refusal: no divergence read behaves exactly as it does today.
+   */
+  led: boolean | null;
 }
 
-const NONE: SmtLevelRead = { present: false, atLevel: false, level: null, extreme: null, timeframe: null };
+const NONE: SmtLevelRead = {
+  present: false,
+  atLevel: false,
+  level: null,
+  extreme: null,
+  timeframe: null,
+  led: null,
+};
 
 /**
  * Read one book's side of a divergence. `isLeft` says whether this book is
@@ -153,7 +172,7 @@ export function smtAtLevel(input: {
   if (pointsLong !== (input.side === "long")) return NONE;
   const thisLed = d.leader === (input.isLeft ? "left" : "right");
   const extreme = thisLed ? (d.sweepPrice ?? null) : (d.holdPrice ?? null);
-  const base = { present: true, extreme, timeframe: d.timeframe ?? null };
+  const base = { present: true, extreme, timeframe: d.timeframe ?? null, led: thisLed };
   if (extreme == null || !Number.isFinite(extreme)) return { ...base, atLevel: false, level: null };
   const atr = input.atr != null && input.atr > 0 ? input.atr : atr14(input.bars);
   if (atr == null || !(atr > 0)) return { ...base, atLevel: false, level: null };

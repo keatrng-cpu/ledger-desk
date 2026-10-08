@@ -4,6 +4,9 @@
  */
 
 import { SCORE_KEYS, type ComponentKey } from "./engine-weights";
+// One definition of each model's hours and required pool. smc-canon.ts imports
+// only the TYPE `StrategyId` back from here, so this is not a runtime cycle.
+import { modelMayBeNamed } from "./smc-canon";
 
 export type StrategyId =
   | "tjr"
@@ -14,6 +17,7 @@ export type StrategyId =
   | "continuation"
   | "patty"
   | "ronan"
+  | "silver_bullet"
   | "smt";
 
 export const ALWAYS_SCAN: StrategyId[] = [
@@ -25,6 +29,9 @@ export const ALWAYS_SCAN: StrategyId[] = [
   "continuation",
   "blake_mech",
   "ronan",
+  // ITEM 24: a named model so 10:00–11:00 stops being "just NY AM" that a
+  // Patty or a continuation can take. Window-gated in gradeAllStrategies.
+  "silver_bullet",
   // "smt" is NOT scanned as a model (trader's call 2026-10-02): SMT forms the
   // timeframe bias and scores only as a component, only at a major level or
   // HTF array (smt-level.ts). As a standalone model, "SMT + any array" made a
@@ -73,6 +80,13 @@ export const STRATEGY_NARRATIVE: Record<
     liquidity: "Nearest significant liquidity after the higher-timeframe gap",
     school: "Patty",
     confirm: "HTF gap, then a 5m gap or shift. Objective met, day done.",
+  },
+  silver_bullet: {
+    story: "reversal",
+    entry: "The raid of the 09:30–10:00 range, then the displacement away from it",
+    liquidity: "The OPENING range's own high/low — not the overnight range, which is Judas's pool",
+    school: "ICT",
+    confirm: "or_raid of the 09:30–10:00 dealing range + displacement, 10:00–11:00 ET. Full size.",
   },
   continuation: {
     story: "continuation",
@@ -178,17 +192,13 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
 
   const judasShift = structure || mss || cisd;
   const judasBias = openB || daily || input.daily === dir;
-  const judasMin = input.etMin;
-  if (
-    sig &&
-    judasShift &&
-    judasBias &&
-    ifvg &&
-    comps.has("opening_raid") &&
-    judasMin != null &&
-    judasMin >= 9 * 60 + 30 &&
-    judasMin < 9 * 60 + 45
-  ) {
+  // Same hours and the same pool requirement as everything else that reads
+  // MODEL_REQUIREMENTS — the 09:30/09:45 literals used to live here as well.
+  const judasName = modelMayBeNamed("judas", {
+    etMin: input.etMin ?? null,
+    components: input.components,
+  });
+  if (sig && judasShift && judasBias && ifvg && judasName.ok) {
     matches.push({ strategy: "judas", reasons: ["judas: 09:30–09:45 raid, then the failure"] });
   }
 
@@ -204,17 +214,48 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     });
   }
 
-  const pattyMin = input.etMin;
-  const pattyClock =
-    pattyMin != null &&
-    ((pattyMin >= 9 * 60 + 45 && pattyMin < 11 * 60) ||
-      (pattyMin >= 13 * 60 + 30 && pattyMin < 14 * 60 + 30));
+  /**
+   * ITEM 14 — PATTY IS A HIGHER-TIMEFRAME GAP.
+   *
+   * This read `ifvg`, which is ANY gap on the execution series. So a 15-minute
+   * gap with the daily merely agreeing and a displacement anywhere completed
+   * "Patty" — a model whose whole premise is a 1h/4h gap the market has not
+   * mitigated and a 5m close back into THAT gap. Patty now needs `htf_gap`
+   * (scanner.ts: a 1h/4h fvg/ifvg on this side, still fresh or partial, with a
+   * close back inside it). Hours and the requirement come from one definition
+   * (`MODEL_REQUIREMENTS.patty`), not from a literal repeated in three files.
+   *
+   * `ifvg` stays in the condition: the execution-series gap is still where the
+   * 5m confirmation prints. It is no longer SUFFICIENT.
+   */
+  const pattyName = modelMayBeNamed("patty", { etMin: input.etMin ?? null, components: input.components });
   const htfContext = input.daily === dir || input.mid === dir || comps.has("weekly_pd");
-  if (ifvg && htfContext && (cisd || mss || disp) && pattyClock) {
+  if (pattyName.ok && ifvg && htfContext && (cisd || mss || disp)) {
     matches.push({
       strategy: "patty",
-      reasons: ["patty: higher-timeframe gap, then the 5m confirmation — not the touch"],
+      reasons: [`patty: ${pattyName.why}`],
     });
+  }
+
+  /**
+   * ITEM 24 — THE SILVER BULLET IS THE RAID OF THE 09:30–10:00 RANGE.
+   *
+   * 10:00–11:00 ET was just "NY AM", so whatever model happened to fit took
+   * the hour's name. The silver bullet is Judas's shape on a different range:
+   * the opening range gets raided, then price displaces away from it. Any OTHER
+   * sweep in that hour is not one — which is what `or_raid` in
+   * `MODEL_REQUIREMENTS.silver_bullet.requires` enforces.
+   *
+   * FULL SIZE by the trader's rule, and NO size bonus from this name:
+   * `or_raid` carries weight 0 and `SILVER_BULLET_EVIDENCE.grantsSize` is
+   * false. The window measured flat; this is a naming fix.
+   */
+  const sbName = modelMayBeNamed("silver_bullet", {
+    etMin: input.etMin ?? null,
+    components: input.components,
+  });
+  if (sbName.ok && (ifvg || comps.has("order_block"))) {
+    matches.push({ strategy: "silver_bullet", reasons: [`silver_bullet: ${sbName.why}`] });
   }
 
   const withTrend =
@@ -276,6 +317,7 @@ export function strategyLabel(id: string): string {
     patty: "Patty",
     continuation: "Continuation",
     ronan: "Ronan",
+    silver_bullet: "Silver Bullet",
     smt: "SMT",
   };
   return map[id] ?? id;
