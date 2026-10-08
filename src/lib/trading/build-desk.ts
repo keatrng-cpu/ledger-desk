@@ -57,6 +57,7 @@ import {
   type OhlcBar,
 } from "@/lib/market/types";
 import { applyLtfReaction } from "./ltf-reaction";
+import { getSessionClock, sessionLive, type SessionClock } from "./sessions";
 import { applySession } from "./session-event";
 import { buildLiveSays, type LiveSays } from "./live-says";
 import { buildTfLadder, ladderTags, type TfLadder } from "./tf-ladder";
