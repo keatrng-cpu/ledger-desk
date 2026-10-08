@@ -1,11 +1,10 @@
 /**
  * GET /api/cron/exec-flatten — the execution layer's unattended safety net.
  *
- * From 15:30 ET (the room's own last-resort flatten) until the close, flatten every contract the executor owns at
- * the broker, even with every browser closed. It never opens anything and never sells what this system did not
- * buy; it does not take the executor lease, so it cannot lock a live browser out. It guarantees no automated
- * position is carried into the close — it does NOT manage a position during the day (that is the room engine,
- * which runs in a browser; a server-side runner is what live still needs).
+ * From 15:30 ET until the close: close every Robinhood option this desk opened,
+ * even with the execution phase off and every browser closed. The Alpaca
+ * executor is not the sender (its broker stays null). A kill stops new entries
+ * on the room step; this route only flattens.
  *
  * Auth and shape: the same as the other cron routes (lib/alerts/cron.ts) — `Authorization: Bearer <CRON_SECRET>`,
  * 503 when unset, 401 when wrong. `CRON_USER_ID` MUST be this trader's id (the Execution card prints it): the
@@ -36,21 +35,40 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     const store = new PgExecStore((t, p) => sql.query(t, p), auth.userId);
     const wanted = (await store.state()).wanted;
     await store.markNet(now.getTime());
-    if (wanted !== "paper" && wanted !== "live") {
-      return jsonResponse({ ...base, ran: false, skipped: `execution phase is ${wanted}: nothing is sent, nothing to flatten` } satisfies CronRunResult, 200);
-    }
-    const broker = null;
     const before = Date.now();
-    const res = await execStep(
-      { store, broker, nowMs: before, liveKeys: rhAutofireEnabled() && rhLiveArmed() },
-      { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true },
-    );
-    const sent = res.rows.filter((r) => r.role === "exit" && r.atMs >= before - 1000);
+    let alpaca: { role: string; ordersSent: number; notes: string[] } | null = null;
+    if (wanted === "paper" || wanted === "live") {
+      const broker = null;
+      const res = await execStep(
+        { store, broker, nowMs: before, liveKeys: rhAutofireEnabled() && rhLiveArmed() },
+        { deviceId: "cron-flatten", entries: [], exits: [], desired: [], feedLagSec: null, flatten: true, force: true },
+      );
+      const sent = res.rows.filter((r) => r.role === "exit" && r.atMs >= before - 1000);
+      alpaca = { role: res.role, ordersSent: sent.length, notes: res.notes.slice(0, 5) };
+    }
+    let rh: { sent: boolean; phase: string; why: string } = { sent: false, phase: "look", why: "not run" };
+    try {
+      const { runRhDesk } = await import("@/lib/execution/rh-dispatch");
+      const { fileLedger } = await import("@/lib/execution/rh-ledger");
+      const { toolingFromEnv } = await import("@/lib/execution/rh-http");
+      const out = await runRhDesk({
+        desk: null,
+        manager: null,
+        nowMs: before,
+        tooling: toolingFromEnv(),
+        ledger: fileLedger(),
+        flatten: true,
+      });
+      rh = { sent: out.sent, phase: out.cycle.phase, why: out.why };
+    } catch (err) {
+      console.error("[cron] exec-flatten robinhood failed:", err);
+      rh = { sent: false, phase: "look", why: "sender failed" };
+    }
     return jsonResponse(
       {
         ...base,
         ran: true,
-        detail: { phase: wanted, role: res.role, ordersSent: sent.length, positionsLeft: res.positions?.length ?? null, notes: res.notes.slice(0, 5) },
+        detail: { phase: wanted, role: alpaca?.role ?? "robinhood", ordersSent: alpaca?.ordersSent ?? 0, positionsLeft: null, notes: alpaca?.notes ?? [], rh },
       } satisfies CronRunResult,
       200,
     );

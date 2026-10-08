@@ -279,6 +279,7 @@ export function managerStateFromRoom(args: {
     expiry: plan?.exp ?? null,
     estDebitEach: verdict.estDebitEach,
     synthetic,
+    strike: plan?.quote?.strike ?? null,
   };
   return {
     version: 1,

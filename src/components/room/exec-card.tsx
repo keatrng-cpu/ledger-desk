@@ -135,17 +135,16 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
         >
           <OctagonX className="h-3 w-3" aria-hidden /> {status?.killed ? "Kill ON — release" : "Kill switch"}
         </button>
-        {(wanted === "paper" || wanted === "live") && (
-          <button
-            type="button"
-            className={`${BTN} border-[var(--color-down)] text-[var(--color-down)]`}
-            onClick={() => {
-              if (window.confirm("Close the Robinhood Agentic ••6158 positions this desk opened, by the chart's exit, and stop new entries? This does not call Alpaca.")) void flattenBroker();
-            }}
-          >
-            Flatten all
-          </button>
-        )}
+        <button
+          type="button"
+          className={`${BTN} border-[var(--color-down)] text-[var(--color-down)]`}
+          disabled={!status}
+          onClick={() => {
+            void flattenBroker();
+          }}
+        >
+          Flatten all
+        </button>
       </div>
 
       <p className="mt-2 text-[11px] leading-snug text-[var(--color-muted)]">{blurb}</p>
@@ -154,9 +153,9 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
         {last ? ` · ${last.role}${last.env ? ` · ${last.env}` : ""} · step ${etTime(last.atMs)} ET` : ""}
         {last?.account ? ` · acct $${Math.round(last.account.equity).toLocaleString()} (cash $${Math.round(last.account.cash).toLocaleString()})` : ""}
       </p>
-      {status && (wanted === "paper" || wanted === "live") && (
+      {status && (
         <p className={`mt-1 text-[10px] leading-snug ${status.netMs ? "text-[var(--color-subtle)]" : "text-[var(--color-down)]"}`}>
-          Safety net (cron /api/cron/exec-flatten — flattens what the executor owns from 15:30 ET with every tab closed):{" "}
+          Safety net (cron /api/cron/exec-flatten — from 15:30 ET, closes the Robinhood positions this desk opened, tab shut or not):{" "}
           {status.netMs
             ? `last ran ${new Date(status.netMs).toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })} ET.`
             : `never ran. Schedule it and set CRON_USER_ID=${status.userId} (this trader's id) on the server — until then a position outlives a closed tab.`}

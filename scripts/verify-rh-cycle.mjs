@@ -105,5 +105,10 @@ check("unknown close is not a failed hold", failedHoldClose({ side: "short", ent
 const nobid = decideRhCycle({ proposal: null, held: held({ bid: null }), nowMs: flat });
 check("a flatten with no bid is a market close", nobid.order?.type === "market" && nobid.order.price == null, nobid.order?.type);
 
+const forced = decideRhCycle({ proposal: refused, held: held(), nowMs: ten, forceClose: "Account is down. Flatten." });
+check("forceClose sells a desk position before the clock", forced.phase === "close" && /Flatten/.test(forced.reason), forced.reason);
+const notOurs = decideRhCycle({ proposal: null, held: held({ deskOwned: false }), nowMs: ten, forceClose: "Flatten." });
+check("forceClose does not sell a position this desk did not open", notOurs.phase === "look" && notOurs.order == null, notOurs.phase);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

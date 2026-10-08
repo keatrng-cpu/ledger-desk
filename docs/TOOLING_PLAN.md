@@ -20,7 +20,7 @@ poll or scoring path, no order path in the lab, a change to a number waits on a 
 | Arm switch (`rh-autofire.ts`) | Unset = armed (the trader's call, 2026-10-07), but any unrecognized word ("disabled", "nope", a typo) also **armed**. A kill switch failed open. |
 | Secrets | The full history (536 commits) had never been scanned. First scan: **no real credential**; 11 generic-rule false positives (storage-key names, a platform preview OAuth client). |
 | `graphify-out/` | 9,000+ generated files and 32 MB in a public repo. |
-| Robinhood execution | There is no in-repo executor and the lab must not gain one. Orders go through the desk's gated agent (`review_option_order` then `place_option_order`). |
+| Robinhood execution | The desk sender is `src/lib/execution/rh-dispatch.ts` (review, then place or close, Agentic 995386158). The lab must not gain an order path. `robin_stocks` does not place. |
 
 ## Done this session (each has a test; the count is the list)
 

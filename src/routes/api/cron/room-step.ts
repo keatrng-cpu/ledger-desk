@@ -4,7 +4,11 @@
  * Builds the same desk the browser builds, then rolls, marks, and runs the
  * room. The fill is the room's paper book (applyCycle / applyLab). The five
  * already decided the ticket; this only persists that decision and their
- * memory. It never imports a broker and never calls the executor.
+ * memory. It does not import the Alpaca executor.
+ *
+ * After the book is saved it runs the Robinhood sender on this same desk
+ * (review, then place or close). No token means the cycle is decided and
+ * nothing is sent. A sender failure does not roll back the paper book.
  *
  * Skips outside the options session (09:30–16:00 ET, which includes the
  * 15:30 flatten). Skips when a browser saved the book inside the 90s lease.
@@ -110,6 +114,37 @@ async function handle({ request }: { request: Request }): Promise<Response> {
       return jsonResponse({ ...base, ran: false, skipped: "snapshot changed while the room stepped" } satisfies CronRunResult, 200);
     }
     const ba = cycle.output.broker_action;
+    let rh: { sent: boolean; phase: string; why: string } = { sent: false, phase: "look", why: "not run" };
+    try {
+      const { runRhDesk } = await import("@/lib/execution/rh-dispatch");
+      const { fileLedger } = await import("@/lib/execution/rh-ledger");
+      const { toolingFromEnv } = await import("@/lib/execution/rh-http");
+      const { createRoomManagerFeed } = await import("@/lib/room/manager-room-feed");
+      const { PgExecStore } = await import("@/lib/room/exec/exec-sql");
+      const feed = createRoomManagerFeed();
+      feed.pushRoom(
+        { id: Math.max(1, cycle.trace.etMin || 1), nowMs, output: cycle.output, trace: cycle.trace, lenses: cycle.trace.lenses },
+        { card: read.entry, newsBlackout: read.news.blackout, synthetic: res.feed === "synthetic" },
+      );
+      let blockNewEntries = false;
+      try {
+        blockNewEntries = (await new PgExecStore((t, p) => sql.query(t, p), auth.userId).state()).killed === true;
+      } catch {
+        blockNewEntries = true;
+      }
+      const out = await runRhDesk({
+        desk: res,
+        manager: feed.getState(),
+        nowMs,
+        tooling: toolingFromEnv(),
+        ledger: fileLedger(),
+        blockNewEntries,
+      });
+      rh = { sent: out.sent, phase: out.cycle.phase, why: out.why };
+    } catch (err) {
+      console.error("[cron] room-step robinhood failed:", err);
+      rh = { sent: false, phase: "look", why: "sender failed" };
+    }
     return jsonResponse(
       {
         ...base,
@@ -122,6 +157,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
           lagSec: read.lagSec,
           positions: book.positions.length,
           history: rank.history,
+          rh,
         },
       } satisfies CronRunResult,
       200,

@@ -189,6 +189,8 @@ export interface ManagerRoomSignals {
   estDebitEach: number | null;
   /** Desk feed is synthetic — never live. */
   synthetic: boolean;
+  /** The room plan's strike. Missing → the sender cannot name a contract. */
+  strike?: number | null;
 }
 
 /* ── Steer (chips → emit only; no gate wiring) ──────────────────────────── */

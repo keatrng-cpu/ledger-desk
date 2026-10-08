@@ -36,9 +36,25 @@ import {
 } from "../execution/rh-autofire";
 import { managerStateForAgree, type ManagerFeed, type ManagerRoomState } from "./manager-feed";
 import { decideRhCycle, type RhCycle, type RhHeld } from "../execution/rh-cycle";
+import { evaluateRhCircuitBreaker } from "../execution/rh-autofire-gates";
 import { isPathFire } from "../alerts/path-alarm";
 import type { DeskPayload } from "../trading/build-desk";
+import type { SetupCandidate } from "../trading/scanner";
 import { SCHOOL_GATE, schoolFactsFrom, schoolGate, schoolReads } from "../trading/school-brief";
+
+/** What the cycle reads off a desk. A full DeskPayload satisfies it. */
+export interface RhCycleDesk {
+  fetchedAt: string;
+  feed?: string;
+  left?: { symbol?: string; bars?: { t: number; c: number }[] } | null;
+  right?: { symbol?: string; bars?: { t: number; c: number }[] } | null;
+  quotes?: DeskPayload["quotes"] | { left?: { price?: number | null } | null; right?: { price?: number | null } | null } | null;
+  scan?: { candidates?: SetupCandidate[] } | null;
+  smcMaster?: {
+    left?: { symbol?: string; side?: string | null; layers?: unknown; plan?: { symbol?: string; side?: string; entry?: number; stop?: number; entryZone?: { top: number; bottom: number } | null } | null } | null;
+    right?: { symbol?: string; side?: string | null; layers?: unknown; plan?: { symbol?: string; side?: string; entry?: number; stop?: number; entryZone?: { top: number; bottom: number } | null } | null } | null;
+  } | null;
+}
 
 /** Ticket the Stand's call expresses (null when the call is not a live agree). */
 export function ticketFromManagerState(s: ManagerRoomState | null): RhLiveTicket | null {
@@ -169,18 +185,25 @@ export function managerLoopReadout(
 
 /**
  * The live poll's cycle. Same gates as proposeRhFromManagerFeed. The school
- * gate is read only while SCHOOL_GATE.enabled is on. This does not place.
+ * gate is read only while SCHOOL_GATE.enabled is on. This does not place —
+ * rh-dispatch.ts is the only sender.
  */
 export function rhCycleOnDesk(args: {
   feed: ManagerFeed | null | undefined;
-  desk: DeskPayload | null;
+  desk: RhCycleDesk | null;
   held: RhHeld | null;
   account: RhAccountSnapshot | null;
   liveQuote?: RhLiveOptionQuote | null;
   nowMs: number;
+  /** Circuit breaker. A drawdown on a desk-owned position becomes a close. */
+  lastPlaceAtMs?: number | null;
+  dayPnlPct?: number | null;
+  /** Flatten / kill. A desk-owned position comes off even if no other exit printed. */
+  forceClose?: string | null;
 }): RhCycle {
   const desk = args.desk;
-  const top = desk?.scan.candidates.find((c) => isPathFire(c)) ?? null;
+  const candidates = (desk?.scan?.candidates ?? []) as SetupCandidate[];
+  const top = candidates.find((c) => isPathFire(c)) ?? null;
   const at = desk ? Date.parse(desk.fetchedAt) : NaN;
   const fire = top
     ? {
@@ -199,12 +222,20 @@ export function rhCycleOnDesk(args: {
     liveQuote: args.liveQuote ?? null,
     desk: desk as RhDeskSlice | null,
     nowMs: args.nowMs,
+    lastPlaceAtMs: args.lastPlaceAtMs ?? null,
+    dayPnlPct: args.dayPnlPct ?? null,
   });
   let school: { ok: boolean; reason: string | null } | null = null;
   if (SCHOOL_GATE.enabled && top && desk) {
     const es = /ES/.test(top.symbol);
-    const book = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && /ES/.test(b.symbol) === es && b.side === top.side);
-    school = schoolGate(top.strategyPrimary, schoolReads(schoolFactsFrom(top, null, book?.layers ?? null)));
+    const book = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && /ES/.test(String(b.symbol ?? "")) === es && b.side === top.side);
+    school = schoolGate(top.strategyPrimary, schoolReads(schoolFactsFrom(top, null, (book?.layers ?? null) as Parameters<typeof schoolFactsFrom>[2])));
   }
-  return decideRhCycle({ proposal, held: args.held, nowMs: args.nowMs, school });
+  const breaker = evaluateRhCircuitBreaker(
+    { lastPlaceAtMs: args.lastPlaceAtMs ?? null, dayPnlPct: args.dayPnlPct ?? null },
+    args.nowMs,
+  );
+  const drawdown = breaker.ok === false && breaker.gate === "drawdown" ? breaker.reason : null;
+  const force = args.forceClose ?? (args.held?.deskOwned ? drawdown : null);
+  return decideRhCycle({ proposal, held: args.held, nowMs: args.nowMs, school, forceClose: force });
 }

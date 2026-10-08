@@ -393,8 +393,8 @@ export const RH_MIN_PLACE_GAP_MS = 60_000;
  * Hard circuit breaker on the Robinhood path. Two refusals, both fail-closed when the input is present and bad:
  *   throttle  — the last placement was under 60 s ago, or is in the future (a clock that disagrees cannot be trusted).
  *   drawdown  — the trade account is down at least the desk's own daily loss limit today (APLUS_RULES.dailyLossLimitPct); no new entries.
- * It refuses NEW entries only. It never places, cancels or sells anything: closing what is open is an agent action through
- * review_option_order, and the reason says flatten is advised. A missing input is "not asserted" (the doc tells the agent to pass both).
+ * It refuses NEW entries only. It never places, cancels or sells: closing what is open is the sender
+ * (rh-dispatch.ts), which force-closes a desk-owned position when this gate is drawdown. A missing input is "not asserted".
  */
 export function evaluateRhCircuitBreaker(c: Pick<RhAutofireCandidate, "lastPlaceAtMs" | "dayPnlPct">, nowMs: number): RhAutofireGateResult {
   const last = c.lastPlaceAtMs;

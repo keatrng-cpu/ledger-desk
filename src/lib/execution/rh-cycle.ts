@@ -138,12 +138,15 @@ export function decideRhCycle(args: {
   held: RhHeld | null;
   nowMs: number;
   school?: { ok: boolean; reason: string | null } | null;
+  /** A desk-owned position must come off even if no other exit has printed. */
+  forceClose?: string | null;
 }): RhCycle {
   const held = args.held;
   if (held && held.quantity > 0 && !held.deskOwned) {
     return { phase: "look", reason: "A position this desk did not open is already on. No new ticket, and it is not closed.", order: null };
   }
   if (held && held.quantity > 0 && held.deskOwned) {
+    if (args.forceClose) return closeOf(held, args.forceClose);
     const et = etMinOf(args.nowMs);
     const pnl = premiumPct(held);
     if (et >= RH_FLATTEN_MIN) return closeOf(held, "15:30 ET. The day position comes off.");

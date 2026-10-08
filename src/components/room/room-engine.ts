@@ -72,7 +72,7 @@ import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
 import { roomManagerFeed } from "@/lib/room/manager-room-feed";
-import { rhCycleOnDesk } from "@/lib/room/manager-live-loop";
+import { stepRhDesk } from "@/lib/execution/rh-server";
 import type { RhCycle } from "@/lib/execution/rh-cycle";
 import { onBeat } from "@/lib/live/keep-live";
 import type { FloorFrame, FloorScreens, LedgerScreen, RaceScreen } from "./floor-screens";
@@ -323,7 +323,7 @@ interface RoomState {
   /** The trader's goal (goal.ts) and the race it sets running (seats.ts): the plan, the league and the R&D board, once per desk build. */
   goal: GoalSpec;
   race: Race | null;
-  /** Look, place, manage, or close. The poll writes it. It does not send. */
+  /** Look, place, manage, or close. The poll asks the sender. A send is prefixed Sent. */
   rhCycle: RhCycle | null;
   setGoal: (g: GoalSpec) => string | null;
   hydrate: () => void;
@@ -530,14 +530,115 @@ function runLiveCycle(desk: DeskPayload) {
   }
 }
 
-/** The live poll's Robinhood decision. No timer of its own, and it does not send. */
-function noteRh(desk: DeskPayload, nowMs: number) {
-  try {
-    const rhCycle = rhCycleOnDesk({ feed: roomManagerFeed(), desk, held: null, account: null, nowMs });
-    useRoomStore.setState({ rhCycle });
-  } catch (err) {
-    console.error("[room] rh cycle failed:", err);
+/** The live poll's Robinhood step. At most once every 20s. The server reads the account and sends. */
+const RH_GAP_MS = 20_000;
+let rhLastMs = 0;
+let rhTimer: ReturnType<typeof setTimeout> | null = null;
+let rhBusy = false;
+let rhQueued = false;
+let rhQueuedFlatten = false;
+
+function speakRh(r: { cycle: RhCycle; sent: boolean; why: string }): RhCycle {
+  if (r.sent) return { ...r.cycle, reason: `Sent. ${r.cycle.reason}` };
+  if ((r.cycle.phase === "place" || r.cycle.phase === "close") && r.why) {
+    return { ...r.cycle, reason: `${r.cycle.reason} not sent: ${r.why}` };
   }
+  return r.cycle;
+}
+
+function rhBody(desk: DeskPayload, flatten: boolean) {
+  const bar = (bars: { t: number; c: number }[]) => {
+    const span = 15 * 60_000;
+    const now = Date.now();
+    let last: { t: number; c: number } | null = null;
+    for (const b of bars) if (b.t + span <= now + 1500) last = { t: b.t, c: b.c };
+    return last ? [last] : [];
+  };
+  const book = (b: DeskPayload["smcMaster"]["left"] | null | undefined) =>
+    b
+      ? {
+          symbol: b.symbol,
+          side: b.side,
+          plan: b.plan
+            ? { symbol: b.plan.symbol, side: b.plan.side, entry: b.plan.entry, stop: b.plan.stop, entryZone: b.plan.entryZone }
+            : null,
+        }
+      : null;
+  return {
+    flatten,
+    desk: {
+      fetchedAt: desk.fetchedAt,
+      feed: desk.feed,
+      left: { symbol: desk.left.symbol, bars: bar(desk.left.bars) },
+      right: { symbol: desk.right.symbol, bars: bar(desk.right.bars) },
+      quotes: { left: { price: desk.quotes.left.price }, right: { price: desk.quotes.right.price } },
+      scan: {
+        candidates: desk.scan.candidates.slice(0, 8).map((c) => ({
+          symbol: c.symbol,
+          side: c.side,
+          pathBand: c.pathBand,
+          grade: c.grade,
+          confluence: c.confluence,
+          actionable: c.actionable,
+          strategyPrimary: c.strategyPrimary,
+        })),
+      },
+      smcMaster: { left: book(desk.smcMaster?.left), right: book(desk.smcMaster?.right) },
+    },
+    manager: roomManagerFeed().getState(),
+  };
+}
+
+async function sendRh(desk: DeskPayload, flatten: boolean) {
+  if (rhBusy) {
+    rhQueued = true;
+    if (flatten) rhQueuedFlatten = true;
+    return;
+  }
+  rhBusy = true;
+  try {
+    const result = await stepRhDesk({ data: rhBody(desk, flatten) });
+    useRoomStore.setState({ rhCycle: speakRh(result) });
+  } catch (err) {
+    console.error("[room] rh step failed:", err);
+  } finally {
+    rhBusy = false;
+    if (rhQueued) {
+      const flat = rhQueuedFlatten;
+      rhQueued = false;
+      rhQueuedFlatten = false;
+      const next = latestDesk;
+      if (next) void sendRh(next, flat);
+    }
+  }
+}
+
+function noteRh(desk: DeskPayload, _nowMs: number) {
+  if (typeof window === "undefined") return;
+  latestDesk = desk;
+  const wait = RH_GAP_MS - (Date.now() - rhLastMs);
+  if (wait <= 0) {
+    rhLastMs = Date.now();
+    void sendRh(desk, false);
+    return;
+  }
+  if (rhTimer) return;
+  rhTimer = setTimeout(() => {
+    rhTimer = null;
+    rhLastMs = Date.now();
+    const d = latestDesk;
+    if (d) void sendRh(d, false);
+  }, wait);
+}
+
+/** The trader's Flatten button: close what this desk opened. No second click. */
+export function flattenRhNow(): void {
+  const desk = latestDesk;
+  if (!desk) {
+    void stepRhDesk({ data: { flatten: true, desk: null, manager: null } }).catch((err) => console.error("[room] rh flatten failed:", err));
+    return;
+  }
+  void sendRh(desk, true);
 }
 
 /** The desk the engine last saw, so a change of goal can show its plan at once instead of at the next desk build. */
@@ -569,8 +670,9 @@ export function refreshInvestScreens(): void {
   useRoomStore.setState({ frame: { ...f, screens: { ...f.screens, invest: readInvestOffice(Date.now()) } } });
 }
 
-/** The trader's Flatten button (Execution card): close everything the executor owns at the broker, and stop new entries. */
+/** The trader's Flatten button: stop new executor entries, and close what this desk opened at Robinhood. */
 export function flattenBroker(): Promise<void> {
+  flattenRhNow();
   return execFlatten({ getBook: () => useRoomStore.getState().book, onVoids: applyVoids });
 }
 
