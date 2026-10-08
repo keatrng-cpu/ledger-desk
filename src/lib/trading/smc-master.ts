@@ -362,7 +362,10 @@ function gradeBook(
   // No sub-15m tape, no release. See JUDAS_MIN_CONFLUENCE below for the grade
   // it additionally has to carry.
   const judas = judasRead.blocked;
-  const newsBlk = news.verdict === "blackout";
+  const retestReady =
+    narrative.liquidity.lastSweep !== "none" &&
+    (narrative.confirmation === "armed_entry" || narrative.confirmation === "confirmed");
+  const newsBlk = news.verdict === "blackout" && !retestReady;
   const dol = draw.primary;
   const dolAgrees =
     !!dol &&
@@ -614,8 +617,10 @@ function gradeBook(
     must: true,
     state: judas || judasUndergrade || newsBlk ? "fail" : "pass",
     detail: newsBlk
-      ? news.reason || "News blackout"
-      : judasUndergrade
+      ? `${news.reason || "News spike"}. No retest yet — do not chase the print.`
+      : news.verdict === "blackout" && retestReady
+        ? "The print was the raid. The retest is the trade."
+        : judasUndergrade
         ? `${judasRead.reason} — but Q ${(cand?.confluence ?? 0).toFixed(2)} is under the ${JUDAS_MIN_CONFLUENCE} this window demands.`
         : judas
           ? judasRead.reason
@@ -629,11 +634,15 @@ function gradeBook(
   // PATH bar = A+/A/A- (>= 0.65) or B+ (>= 0.60, its own config band) —
   // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
   const pathOk = isPathFire(cand);
-  // A live path with HTF agreement is not stood down because the raid, the
-  // premium/discount half, or the LTF shift is missing. Those cut size.
-  // They are still on the card. They do not set the word to STAND.
+  // Premium/discount and the draw can be off on a live path and still be a
+  // size note. The raid and the lower-timeframe reaction cannot. A card
+  // with no sweep is not a take, however high the fit is.
   const ignorable = (l: { id: string; state: string }) =>
-    pathOk && htfPass && (cand?.confluence ?? 0) >= 0.8 && (l.id === "sweep" || l.id === "pd_half" || l.id === "ltf" || l.id === "dol") && l.state === "fail";
+    pathOk &&
+    htfPass &&
+    (cand?.confluence ?? 0) >= 0.8 &&
+    (l.id === "pd_half" || l.id === "dol") &&
+    l.state === "fail";
   const mustPass = musts.filter((l) => l.state === "pass" || ignorable(l)).length;
   const mustNeed = musts.length;
   const mustFail = musts.find((l) => l.state === "fail" && !ignorable(l));

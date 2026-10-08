@@ -52,13 +52,9 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "blake_mech",
     label: "Blake Mech",
-    must: ["ifvg"],
-    mustAnyOf: [
-      ["structure", "cisd", "mss"],
-      ["displacement", "mss", "mechanical_model"],
-    ],
-    nice: ["sweep_significant", "mid_bias", "order_block"],
-    structureNote: "IFVG + structure shift entry (Blake path)",
+    must: ["sweep_significant", "cisd", "ifvg"],
+    nice: ["displacement", "order_block"],
+    structureNote: "Sweep, then the body-close inversion. The wick retest is the other model.",
   },
   {
     id: "tjr",
@@ -74,7 +70,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "judas",
     label: "Judas",
-    must: ["sweep_significant"],
+    must: ["opening_raid", "sweep_significant"],
     mustAnyOf: [
       ["ifvg", "order_block"],
       ["structure", "mss", "cisd"],
@@ -94,10 +90,13 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
     id: "patty",
     label: "Patty",
-    must: ["ifvg", "sweep_significant"],
-    mustAnyOf: [["displacement", "cisd", "mss"]],
-    nice: ["opening_bias", "daily_bias"],
-    structureNote: "9:30–11 ET: open manip into 15m/1H level then 1–5m IFVG",
+    must: ["ifvg"],
+    mustAnyOf: [
+      ["cisd", "mss", "displacement"],
+      ["daily_bias", "mid_bias", "weekly_pd"],
+    ],
+    nice: ["opening_bias"],
+    structureNote: "Higher-timeframe gap, then the 5m confirmation. 9:45–11:00 and 13:30–14:30. Not the touch. Not lunch.",
   },
   {
     id: "continuation",
@@ -317,9 +316,15 @@ export function gradeAllStrategies(
   },
 ): StrategyMarketGrade[] {
   const etMin = opts?.etMin;
+  const inJudas = etMin != null && etMin >= 9 * 60 + 30 && etMin < 9 * 60 + 45;
+  const inPatty =
+    etMin != null &&
+    ((etMin >= 9 * 60 + 45 && etMin < 11 * 60) || (etMin >= 13 * 60 + 30 && etMin < 14 * 60 + 30));
   const ids = ALWAYS_SCAN.filter((id) => {
-    if (id !== "judas") return true;
-    return etMin != null && etMin >= 9 * 60 + 30 && etMin < 9 * 60 + 45;
+    if (id === "judas") return inJudas;
+    if (id === "patty") return inPatty;
+    if (id === "blake_mech" && components.includes("mechanical_model")) return false;
+    return true;
   });
   const board = ids.map((id) => gradeStrategyAgainstMarket(id, components, opts));
   board.sort((a, b) => {

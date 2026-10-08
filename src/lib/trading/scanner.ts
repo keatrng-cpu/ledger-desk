@@ -7,6 +7,7 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
 import {
+  detectFvgs,
   detectInducement,
   detectMitigationBlock,
   summarizeDetectors,
@@ -16,13 +17,17 @@ import {
 import type { ComponentKey } from "./engine-weights";
 import {
   buildImpulseLeg,
+  isUsableLeg,
   readOte,
   inOte,
   oteZoneOverlap,
   consequentEncroachment,
+  retracementRatio,
 } from "./fib";
+import { GATE } from "./gate-tuning";
 import { biasDisrespect } from "./htf-invalidation";
-import { cisdThroughSeries, extensionAllows } from "./raid-pair";
+import { cisdThroughSeries, extensionAllows, pairedDisplacement, polaritySweep } from "./raid-pair";
+import { readLtfReaction } from "./ltf-reaction";
 import { gapDirection } from "./gap-direction";
 import type { SessionClock } from "./sessions";
 import {
@@ -203,12 +208,21 @@ export function protectiveInvalidation(
   read: HtfBiasRead,
   direction: "bull" | "bear",
   entryPx: number | null,
+  sweepWick?: number | null,
 ): { text: string; source: "structure" | "none" } {
   const long = direction === "bull";
   const beyond = (px: number | null | undefined): px is number =>
     px != null &&
     Number.isFinite(px) &&
     (entryPx == null || (long ? px < entryPx : px > entryPx));
+  // The model stop is the wick that took the pool. Yesterday's high or low
+  // is a different level, and it only stands in when there was no raid.
+  if (beyond(sweepWick)) {
+    return {
+      text: `${long ? "Below the raid wick" : "Above the raid wick"} ${sweepWick!.toFixed(2)}`,
+      source: "structure",
+    };
+  }
   const day = long ? read.pdl : read.pdh;
   if (beyond(day)) {
     return {
@@ -313,6 +327,54 @@ function resolveIfvg(
   };
 }
 
+function etMinutesOf(t: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(t));
+  const h = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const m = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return h * 60 + m;
+}
+
+/** Overnight high and low. A Judas raid takes this range, not a swing born after 9:30. */
+function overnightRange(bars: OhlcBar[]): { hi: number; lo: number } | null {
+  const pre = bars.filter((b) => {
+    const m = etMinutesOf(b.t);
+    return m >= 18 * 60 || m < 9 * 60 + 30;
+  });
+  if (pre.length < 4) return null;
+  const recent = pre.slice(-26);
+  return {
+    hi: Math.max(...recent.map((b) => b.h)),
+    lo: Math.min(...recent.map((b) => b.l)),
+  };
+}
+
+function impulseZone(
+  bars: OhlcBar[],
+  direction: "bull" | "bear",
+  lastClose: number,
+): "premium" | "discount" | "equilibrium" | null {
+  if (GATE.dealingRange !== "impulse" || bars.length < 20) return null;
+  const raid = polaritySweep(bars, direction);
+  if (!raid) return null;
+  const leg = buildImpulseLeg(bars, direction, {
+    originPrice: raid.wickExtreme,
+    originIndex: raid.index,
+    lookback: Math.max(2, bars.length - raid.index),
+  });
+  if (!isUsableLeg(leg)) return null;
+  const ratio = retracementRatio(leg, lastClose);
+  if (ratio == null) return "equilibrium";
+  if (ratio > 1) return direction === "bull" ? "premium" : "discount";
+  if (ratio >= 0.55) return direction === "bull" ? "discount" : "premium";
+  if (ratio <= 0.45) return direction === "bull" ? "premium" : "discount";
+  return "equilibrium";
+}
+
 function scoreDirection(
   direction: "bull" | "bear",
   read: HtfBiasRead,
@@ -329,6 +391,7 @@ function scoreDirection(
   book: "left" | "right",
   tape?: SmcTape,
   smtLevel?: SmtLevelRead,
+  minute?: OhlcBar[],
 ): SetupCandidate {
   const side: SetupSide = direction === "bull" ? "long" : "short";
   const present: ComponentKey[] = [];
@@ -457,20 +520,18 @@ function scoreDirection(
   const wpd = weeklyPdBias(read);
   add("weekly_pd", wpd === direction, wpd ? `weekly_pd ${wpd}` : undefined);
 
-  const disp = Boolean(
-    (det.displacement.latest &&
-      det.displacement.latest.direction === direction) ||
-      tapeHits.displacement,
-  );
+  const raid = bars.length > 20 ? polaritySweep(bars, direction) : null;
+  const dispEvent = raid ? pairedDisplacement(bars, raid, direction) : null;
+  const disp = dispEvent != null;
   const structure = read.lastBOS?.direction === direction;
-  const cisd = cisdThroughSeries(bars, direction);
-  add("cisd", cisd, cisd ? "cisd (close back through the opposing delivery)" : undefined);
-  add("displacement", disp, disp ? "displacement" : undefined);
+  const cisd = raid != null && cisdThroughSeries(bars, direction, raid.index + 1);
+  add("cisd", cisd, cisd ? "cisd (body close after the raid)" : undefined);
+  add("displacement", disp, disp ? "displacement after the raid" : undefined);
   add("structure", Boolean(structure), structure ? "structure BOS" : undefined);
   add(
     "mss",
-    Boolean((structure && disp) || tapeHits.mss),
-    structure && disp ? "mss" : tapeHits.mss ? "mss (tape)" : undefined,
+    Boolean(structure && disp),
+    structure && disp ? "mss after the raid" : undefined,
   );
 
   const openBias = openingBiasFrom(read);
@@ -480,10 +541,12 @@ function scoreDirection(
     openBias ? `opening_bias ${openBias}` : undefined,
   );
 
+  const lastClose = bars.length ? bars[bars.length - 1]!.c : read.last ?? Number.NaN;
+  const half = impulseZone(bars, direction, lastClose) ?? read.dealing?.zone ?? null;
   const pdOk =
-    (direction === "bull" && read.dealing?.zone === "discount") ||
-    (direction === "bear" && read.dealing?.zone === "premium");
-  add("pd", Boolean(pdOk), pdOk ? `pd ${read.dealing?.zone}` : undefined);
+    (direction === "bull" && half === "discount") ||
+    (direction === "bear" && half === "premium");
+  add("pd", Boolean(pdOk), pdOk ? `pd ${half}` : undefined);
 
   const sponsored =
     (ifvg.zone != null && ifvg.zone.middleBodyAtrRatio >= 1.5) ||
@@ -507,17 +570,17 @@ function scoreDirection(
    * reversal entry with.
    */
   const sweepAnchor =
-    det.sweep.latest &&
+    raid ??
+    (det.sweep.latest &&
     ((direction === "bull" && det.sweep.latest.side === "sellside") ||
       (direction === "bear" && det.sweep.latest.side === "buyside"))
       ? det.sweep.latest
-      : null;
+      : null);
   const impulseLeg = buildImpulseLeg(bars, direction, {
     originPrice: sweepAnchor?.wickExtreme,
     originIndex: sweepAnchor?.index,
   });
   const oteRead = readOte(impulseLeg);
-  const lastClose = bars.length ? bars[bars.length - 1]!.c : Number.NaN;
   const oteHit = inOte(oteRead, lastClose);
   add(
     "ote",
@@ -587,11 +650,21 @@ function scoreDirection(
   const killzoneOk = sessionLive(clock);
   const conditionsOk = conditions.tradeable;
 
+  const range = overnightRange(bars);
+  const opening =
+    range != null &&
+    raid != null &&
+    (direction === "bull" ? raid.wickExtreme <= range.lo : raid.wickExtreme >= range.hi);
+  add("opening_raid", opening, opening ? "opening_raid of the overnight range" : undefined);
+  const ltf = readLtfReaction(minute, direction, raid?.t ?? null);
+  add("ltf_reaction", ltf.confirmed, ltf.confirmed ? ltf.reason : undefined);
+
   const structureScore = structureLayerScore(present);
   const strategyBoard = gradeAllStrategies(present, {
     htfOk,
     killzoneOk,
     conditionsOk,
+    etMin: clock.etHour * 60 + clock.etMinute,
   });
   const bestModel = strategyBoard[0]!;
   const score = bestModel.fit;
@@ -644,46 +717,45 @@ function scoreDirection(
   ];
 
   /**
-   * Entry price, in ICT construction order — most specific first.
-   *
-   * 1. OTE x array overlap. Two independent reasons agreeing on one price is
-   *    the highest-quality entry there is, so when the retracement band and
-   *    the FVG/OB intersect, that intersection IS the entry.
-   * 2. Consequent Encroachment — the 50% of the gap, not its edges. ICT
-   *    prices an FVG at CE; quoting the whole gap (as this did) makes the
-   *    planned 1R depend on which edge you happened to fill at, which is why
-   *    the same setup could book materially different R.
-   * 3. The OTE band alone, when there is no array to intersect with.
-   * 4. Dealing-range half — the old coarse fallback, unchanged.
+   * The fill is the array this displacement left, or the retest of that
+   * array. An older gap's midpoint is not an entry.
    */
-  const zone = ifvg.zone;
-  const overlap = zone ? oteZoneOverlap(oteRead, zone.top, zone.bottom) : null;
-  const entryZone = overlap
-    ? `${overlap.low.toFixed(2)} – ${overlap.high.toFixed(2)} (OTE×array, CE ${overlap.mid.toFixed(2)})`
-    : zone
-      ? `${zone.bottom.toFixed(2)} – ${zone.top.toFixed(2)} (CE ${consequentEncroachment(zone.top, zone.bottom).toFixed(2)})`
-      : oteRead
-        ? `${oteRead.zoneLow.toFixed(2)} – ${oteRead.zoneHigh.toFixed(2)} (OTE, opt ${oteRead.optimal.toFixed(2)})`
-        : read.dealing
-          ? direction === "bull"
-            ? `${read.dealing.low.toFixed(2)} – ${read.dealing.eq.toFixed(2)}`
-            : `${read.dealing.eq.toFixed(2)} – ${read.dealing.high.toFixed(2)}`
-          : "await array";
-
-  // The same construction as a NUMBER, so the invalidation below can be
-  // checked against the side of the entry it is supposed to protect.
-  const entryPx = overlap
-    ? overlap.mid
-    : zone
-      ? consequentEncroachment(zone.top, zone.bottom)
-      : oteRead
-        ? oteRead.optimal
-        : read.dealing
-          ? direction === "bull"
-            ? (read.dealing.low + read.dealing.eq) / 2
-            : (read.dealing.eq + read.dealing.high) / 2
-          : null;
-  const inv = protectiveInvalidation(read, direction, entryPx);
+  const born = dispEvent
+    ? detectFvgs(bars).find(
+        (g) =>
+          g.kind === direction &&
+          g.createdIndex >= dispEvent.index &&
+          g.createdIndex <= dispEvent.index + 3 &&
+          g.fill !== "full",
+      )
+    : null;
+  const flipped = dispEvent
+    ? detectFvgs(bars).find(
+        (g) =>
+          g.kind !== direction &&
+          g.inverted &&
+          g.invertedIndex != null &&
+          g.invertedIndex >= dispEvent.index &&
+          g.invertedIndex <= dispEvent.index + 3,
+      )
+    : null;
+  const gap = born ?? flipped ?? null;
+  const mechFill =
+    det.mechanical.complete && det.mechanical.retest && mechDir === direction
+      ? det.mechanical.retest.price
+      : null;
+  const overlap = gap ? oteZoneOverlap(oteRead, gap.top, gap.bottom) : null;
+  const ce = gap ? consequentEncroachment(gap.top, gap.bottom) : null;
+  const entryPx = mechFill ?? (overlap ? overlap.mid : ce);
+  const entryZone =
+    mechFill != null
+      ? `retest ${mechFill.toFixed(2)} of the array this displacement left`
+      : overlap
+        ? `${overlap.low.toFixed(2)} – ${overlap.high.toFixed(2)} (OTE×this array, CE ${overlap.mid.toFixed(2)})`
+        : ce != null && gap
+          ? `${gap.bottom.toFixed(2)} – ${gap.top.toFixed(2)} (CE ${ce.toFixed(2)} of this displacement)`
+          : "await the array this displacement left";
+  const inv = protectiveInvalidation(read, direction, entryPx, raid?.wickExtreme ?? null);
 
   return {
     id: `${read.symbol}-${side}`,
@@ -758,6 +830,8 @@ export interface ScoreCandidatesOptions {
   divergence?: Parameters<typeof smtRead>[2];
   leftBars?: OhlcBar[];
   rightBars?: OhlcBar[];
+  leftMinute?: OhlcBar[];
+  rightMinute?: OhlcBar[];
   leftTape?: SmcTape;
   rightTape?: SmcTape;
 }
@@ -831,7 +905,7 @@ export function scoreCandidates(
   clock: SessionClock,
   opts: ScoreCandidatesOptions = {},
 ): ScanResult {
-  const { divergence, leftBars, rightBars, leftTape, rightTape } = opts;
+  const { divergence, leftBars, rightBars, leftTape, rightTape, leftMinute, rightMinute } = opts;
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
@@ -860,10 +934,11 @@ export function scoreCandidates(
     [right, detR, barsR, condR, "right"] as const,
   ]) {
     const tape = book === "left" ? leftTape : rightTape;
+    const minute = book === "left" ? leftMinute : rightMinute;
     const lvlLong = smtAtLevel({ divergence, isLeft: book === "left", side: "long", bars, arrays: tape?.arrays ?? [] });
     const lvlShort = smtAtLevel({ divergence, isLeft: book === "left", side: "short", bars, arrays: tape?.arrays ?? [] });
-    const bull = scoreDirection("bull", read, det, bars, cond, clock, smt, book, tape, lvlLong);
-    const bear = scoreDirection("bear", read, det, bars, cond, clock, smt, book, tape, lvlShort);
+    const bull = scoreDirection("bull", read, det, bars, cond, clock, smt, book, tape, lvlLong, minute);
+    const bear = scoreDirection("bear", read, det, bars, cond, clock, smt, book, tape, lvlShort, minute);
     bull.smtLevel = lvlLong;
     bear.smtLevel = lvlShort;
     candidates.push(bull, bear);
@@ -1131,6 +1206,7 @@ export function scanSetups(
   leftBars?: OhlcBar[],
   rightBars?: OhlcBar[],
   tapes?: { left?: SmcTape; right?: SmcTape },
+  minutes?: { left?: OhlcBar[]; right?: OhlcBar[] },
 ): ScanResult {
   return scoreCandidates(left, right, clock, {
     divergence,
@@ -1138,5 +1214,7 @@ export function scanSetups(
     rightBars,
     leftTape: tapes?.left,
     rightTape: tapes?.right,
+    leftMinute: minutes?.left,
+    rightMinute: minutes?.right,
   });
 }

@@ -675,6 +675,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       left.bars,
       right.bars,
       smc,
+      { left: minuteL, right: minuteR },
     );
     // Detectors only ever see CLOSED bars. The forming bar (patched with the
     // live print above) is for price location, never for "displacement" or

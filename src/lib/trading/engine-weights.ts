@@ -42,6 +42,10 @@ export const RAW_WEIGHTS = {
   rejection: 3,
   propulsion: 3,
   daily_bias: 3,
+  /** 1m–5m displacement that held after the raid. A gate, not a score. */
+  ltf_reaction: 0,
+  /** The 9:30 sweep took the overnight range, not a swing born after the open. */
+  opening_raid: 0,
 } as const;
 
 export type ComponentKey = keyof typeof RAW_WEIGHTS;

@@ -152,9 +152,15 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
       strategy: "mechanical",
       reasons: ["ordered sweep→displace→invert→retest"],
     });
+  }
+
+  // Blake is the body-close inversion after the sweep. The wick back into
+  // the gap is the mechanical retest, a different fill, and it does not
+  // wear Blake's name.
+  if (!mechanical && sig && cisd && ifvg && inverted) {
     matches.push({
       strategy: "blake_mech",
-      reasons: ["blake mech: swing sweep, then the inversion close"],
+      reasons: ["blake: sweep, then the body-close inversion. Not the wick retest."],
     });
   }
 
@@ -178,6 +184,7 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     judasShift &&
     judasBias &&
     ifvg &&
+    comps.has("opening_raid") &&
     judasMin != null &&
     judasMin >= 9 * 60 + 30 &&
     judasMin < 9 * 60 + 45
@@ -199,7 +206,9 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
 
   const pattyMin = input.etMin;
   const pattyClock =
-    pattyMin != null && pattyMin >= 9 * 60 + 45 && pattyMin < 14 * 60 + 30;
+    pattyMin != null &&
+    ((pattyMin >= 9 * 60 + 45 && pattyMin < 11 * 60) ||
+      (pattyMin >= 13 * 60 + 30 && pattyMin < 14 * 60 + 30));
   const htfContext = input.daily === dir || input.mid === dir || comps.has("weekly_pd");
   if (ifvg && htfContext && (cisd || mss || disp) && pattyClock) {
     matches.push({

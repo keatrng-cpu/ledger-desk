@@ -417,10 +417,7 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     (side === "long" && htf === "bull") ||
     (side === "short" && htf === "bear");
   const alignedMtf =
-    mtf == null ||
-    mtf === "neutral" ||
-    (side === "long" && mtf === "bull") ||
-    (side === "short" && mtf === "bear");
+    (side === "long" && mtf === "bull") || (side === "short" && mtf === "bear");
   const pdHalf =
     (side === "long" && dealingZone === "discount") ||
     (side === "short" && dealingZone === "premium");
@@ -450,12 +447,10 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     (side === "long" && swept === "ssl") ||
     (side === "short" && swept === "bsl");
   const ltfOk =
-    confirmation === "confirmed" ||
     confirmation === "armed_entry" ||
-    confirmation === "sweep_displace" ||
-    has(components, "mss", "cisd");
-  const poi =
-    has(components, "ifvg", "order_block", "pd", "breaker", "mitigation");
+    confirmation === "confirmed" ||
+    (confirmation === "sweep_displace" && has(components, "ltf_reaction"));
+  const poi = has(components, "ifvg", "order_block", "breaker");
   /**
    * A POI array AND a real OTE retracement pointing at the same price.
    *
@@ -517,7 +512,7 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       pass: ltfOk && confirmation !== "sweep_only" && confirmation !== "none",
       detail: ltfOk
         ? `LTF confirm ${confirmation}`
-        : "Need MSS/CISD + displacement after the sweep",
+        : "Need the 1m–5m displacement after the raid, or the array that displacement left",
     },
     {
       id: "time",
@@ -552,8 +547,10 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       must: true,
       pass: alignedMtf,
       detail: alignedMtf
-        ? `MTF ${mtf ?? "n/a"} does not fight`
-        : `MTF ${mtf} fights — cut size or wait`,
+        ? `MTF ${mtf ?? "n/a"} agrees`
+        : mtf == null || mtf === "neutral"
+          ? "Middle timeframe unread — that is not agreement"
+          : `MTF ${mtf} fights — wait`,
     },
   ];
 
@@ -563,10 +560,11 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
   const optionalHits = opts.filter((f) => f.pass).length;
   const score = mustHits / musts.length + optionalHits * 0.08;
 
+  const sweepPassed = factors.find((f) => f.id === "sweep")?.pass === true;
   let grade: CanonStack["grade"] = "skip";
   if (mustHits === musts.length && optionalHits >= 2) grade = "A+";
   else if (mustHits === musts.length) grade = "A";
-  else if (mustHits === musts.length - 1 && ltfOk && alignedHtf) grade = "A-";
+  else if (mustHits === musts.length - 1 && ltfOk && alignedHtf && sweepPassed) grade = "A-";
   else if (mustHits >= 3) grade = "B";
 
   const school =

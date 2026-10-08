@@ -120,6 +120,8 @@ const LABELS: Record<ComponentKey, string> = {
   rejection: "Rejection block",
   propulsion: "Propulsion block",
   daily_bias: "Daily bias",
+  ltf_reaction: "1m–5m reaction",
+  opening_raid: "Opening-range raid",
 };
 
 /**

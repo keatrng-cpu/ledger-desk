@@ -320,11 +320,10 @@ function confirmationState(
     : false;
 
   if (!sweepOk && !shift) return "none";
-  if (sweepOk && !shift) return "sweep_only";
-  if (sweepOk && shift && !hasArray) return "sweep_displace";
-  if (sweepOk && shift && hasArray) return "armed_entry";
-  if (shift && hasArray) return "confirmed";
-  return "sweep_displace";
+  if (!sweepOk) return "none";
+  if (!shift) return "sweep_only";
+  if (!hasArray) return "sweep_displace";
+  return "armed_entry";
 }
 
 function entryModel(
