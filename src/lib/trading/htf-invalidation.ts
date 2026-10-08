@@ -38,6 +38,7 @@ import type { DetectorSummary } from "./detectors";
 import { detectDisplacements, detectFvgs, detectSweeps } from "./detectors";
 import type { OhlcBar } from "../market/types";
 import type { HtfBiasRead } from "./structure";
+import { strongExtension } from "./raid-pair";
 
 /**
  * How recent the distribution evidence must be, in bars. Displacement from
@@ -149,7 +150,15 @@ export function biasDisrespect(
     { id: "ltf", label: "Mid + LTF both flipped", pass: ltfAgrees },
   ];
 
-  const disrespected = checks.every((c) => c.pass);
+  // The four-check signature still releases. So does the case on the board:
+  // the old frame still says bear while price has already extended the other
+  // way, or structure has broken and price has left. That label is not a
+  // hard block. A pullback with no extension and no broken structure does
+  // not release — the bounce test has neither.
+  const extended = bars != null && strongExtension(bars) === direction;
+  const structureLeft = structureFlipped && (distribution || extended);
+  const signature = checks.every((c) => c.pass);
+  const disrespected = signature || extended || structureLeft;
   const missing = checks.filter((c) => !c.pass).map((c) => c.label);
 
   return {
@@ -157,7 +166,11 @@ export function biasDisrespect(
     direction: disrespected ? direction : null,
     checks,
     reason: disrespected
-      ? `HTF ${read.topDown} DISRESPECTED — raid + displacement + structure + LTF all ${direction}. Bias spent; ${direction === "bull" ? "long" : "short"} released.`
+      ? extended && !signature
+        ? `HTF ${read.topDown} DISRESPECTED — price extended ${direction}. The old frame is not a block.`
+        : structureLeft && !signature
+          ? `HTF ${read.topDown} DISRESPECTED — structure broke and price left ${direction}. The old frame is not a block.`
+          : `HTF ${read.topDown} DISRESPECTED — raid + displacement + structure + LTF all ${direction}. Bias spent; ${direction === "bull" ? "long" : "short"} released.`
       : `HTF ${read.topDown} still stands — needs ${missing.join(" + ")}.`,
   };
 }

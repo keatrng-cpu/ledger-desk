@@ -330,7 +330,7 @@ function triggerWait(f: Facts, minds: MindState | null): Line[] {
   const memory = jaxMemory(minds);
   const tjrNeverChase = SCHOOLS.tjr.sequence.find((s) => /never chase/i.test(s)) ?? "Enter on the shift or first clean retrace — never chase";
   return [
-    say("Gemma", `${htfLine(f)} The ${c.futSymbol} ${c.futSide} is ${aligned(f, c) ? "with" : "AGAINST"} the higher frame. ${printLine(f)}`, "GESTICURING_AT_WALL"),
+    say("Gemma", `${htfLine(f)} The ${c.futSymbol} ${c.futSide} is ${aligned(f, c) ? "with" : "against"} the higher-frame label. A disrespected structure does not block it. ${printLine(f)}`, "GESTICURING_AT_WALL"),
     say("Jax", `${c.futSymbol} ${c.futSide}, PATH ${c.band ?? "—"} — ${where(c)}. ${sideWord(c.type).toUpperCase()}, now, before it leaves!`, "POINTING"),
     say("Vince", `We rest at CE ${px(c.plan?.entry ?? 0)}, Jax. ${fill ? fill.line : ""}`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Jax", "And if it never comes back?", "SHOUTING"),
@@ -807,7 +807,7 @@ function setupReview(f: Facts, m: Meeting, minds: MindState | null): Line[] {
           : "If the 5m inverted and displaced, that close is the entry. CE is only the midpoint of a gap we are still inside. A mitigation block is a failed second push — we don't wait to hit one.",
       "CROSSING_ARMS",
     ),
-    say("Gemma", `${htfLine(f)} The ${s.side} is ${f.desk?.htf[s.symbol.includes("ES") ? "SPY" : "QQQ"] === (s.side === "long" ? "bull" : "bear") ? "with" : "against"} the higher frame. ${printLine(f)}`, "GESTICURING_AT_WALL"),
+    say("Gemma", `${htfLine(f)} The ${s.side} is ${f.desk?.htf[s.symbol.includes("ES") ? "SPY" : "QQQ"] === (s.side === "long" ? "bull" : "bear") ? "with" : "against"} the higher-frame label. A disrespected structure does not block it. ${printLine(f)}`, "GESTICURING_AT_WALL"),
     say("Vince", f.card?.plan ? `The gap's midpoint — CE — is ${px(f.card.plan.entry)} on ${f.card.futSymbol}. We rest there only while price is still inside the gap.` : "No gap priced, so no midpoint.", "STEADY_MONITORING"),
     say("Nova", q ? `And remember: ${q.line}` : remembered(minds) ?? creed("Nova"), "NODDING"),
   ];
