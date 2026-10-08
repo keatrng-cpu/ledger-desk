@@ -18,6 +18,16 @@ node scripts/agent-sync.mjs --agent claude
 
 Grok runs the same command with `--agent grok`. The script lists every commit and new file since that agent's bookmark (`docs/agent-sync.json`), writes the brief to `docs/agent-sync.md`, then moves the bookmark to HEAD. Exit 2 means origin is ahead: `git pull --rebase origin main` and run it again. Read `git show SHA -- path` before editing a file in the brief. Do not redo a commit already on main, and do not revert the other agent's commit to land yours. Push to `main`, then run the script once more so the bookmark matches what you pushed.
 
+## Find the file before you read it
+
+Do not walk `src/` and do not read the code map below to locate a file. Search [docs/code-index.md](./docs/code-index.md) — one line per file, exports and the header sentence — then open only the hit.
+
+```
+rg -n "raid|entry|floor" docs/code-index.md
+```
+
+Regenerate with `node scripts/code-index.mjs` after a file is added or renamed. The code map below is the history of decisions, not the locator.
+
 ---
 
 ## Hard rules (do not drift)
