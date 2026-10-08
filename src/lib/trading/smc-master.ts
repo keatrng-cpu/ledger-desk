@@ -43,12 +43,12 @@ function worthLine(plan: TradePlan): string {
   if (!odds) return plan.worth?.headline ?? "worth unpriced — no session history on this book";
   return `T1 ${Math.round(odds.pT1 * 100)}% if filled (four-year model) · ${odds.expR >= 0 ? "+" : ""}${odds.expR.toFixed(2)}R per fill`;
 }
-import { planStopText } from "./card-plan";
+import { applyRunnerPool, drawPoolsForSide, planStopText } from "./card-plan";
 import { buildImpulseLeg, isUsableLeg, retracementRatio } from "./fib";
 import type { OhlcBar } from "@/lib/market/types";
 import type { SmcTape } from "./smc-board";
 import type { HtfBiasRead, SmtStack } from "./structure";
-import type { DrawRead } from "./draw";
+import type { DrawRead, LiquidityTarget } from "./draw";
 import type { MarketNarrative } from "./market-narrative";
 import type { ScanResult, SetupCandidate } from "./scanner";
 import type { NewsRead } from "./news";
@@ -110,6 +110,40 @@ export interface SmcMasterBook {
    * odds floor rather than a percentage off four sessions.
    */
   plan: TradePlan | null;
+
+  /**
+   * ITEM 1 — the POOLS this plan points at, so the card, the chart and the
+   * order read the same two levels the target layer graded.
+   *
+   * `t1` is the next unswept pool in the trade's direction, `t2` the external
+   * pool beyond it (`drawPoolsForSide`). `reliable` is `draw.baseRateReliable`,
+   * carried so a reach percentage off four sessions is printed as null rather
+   * than as a number. Optional: a book with no side or no priced plan has none.
+   */
+  pools?: {
+    t1: LiquidityTarget | null;
+    t2: LiquidityTarget | null;
+    why: string;
+    reliable: boolean;
+  } | null;
+
+  /**
+   * ITEM 1 — the PARTIAL: equilibrium of the IMPULSE LEG.
+   *
+   * Null whenever the dealing range is the 80-bar window, because that box's
+   * midpoint is a location and taking half off at it is not the rule.
+   */
+  partial?: number | null;
+
+  /**
+   * ITEM 10 — the pick, and whether it was a COMPLETE sequence.
+   *
+   * `candidateComplete` false means the board is showing the nearest card, not
+   * a tradable one; the word is then WAIT at best.
+   */
+  candidateComplete?: boolean;
+  /** Which parts of the complete sequence this pick is missing. */
+  candidateMissing?: string[];
 }
 
 export interface SmcMasterRead {
@@ -152,66 +186,107 @@ function factorState(
   return "fail";
 }
 
+/**
+ * ITEM 10 — THE COMPLETE SEQUENCE, PART BY PART.
+ *
+ * The board sorted by `confluence`, and that number does not predict the first
+ * target (four years: Q 0.85+ went the card's way 46.3% vs 53.6% at 0.65–0.70
+ * — anti-predictive on direction). So a card with a MISSING must could sit on
+ * top of a complete one purely by carrying more structure.
+ *
+ * These five are the sequence as the desk states it, each read off the card
+ * the scanner already built — no new detection, no new threshold:
+ *
+ *   raid         `sweep_significant` — a wick through the pool that closed
+ *                back inside, filtered to this side's polarity in scanner.ts.
+ *   displacement `displacement` — `pairedDisplacement`, a LATER close inside
+ *                the mechanical window answering that raid.
+ *   array        `entryPx != null` — the scanner prices CE only from the gap
+ *                that displacement left (`born ?? flipped`). An older gap
+ *                leaves `entryPx` null, so this is "the array from THAT
+ *                displacement" and not "some array exists".
+ *   mtf          `mid_bias` — a missing or neutral middle frame is not
+ *                agreement, so its absence is a gap.
+ *   window       `killzoneOk` — `sessionLive`, the killzone or a measured
+ *                delivery+participation bar.
+ */
+export const SEQUENCE_PARTS = ["raid", "displacement", "array", "mtf", "window"] as const;
+export type SequencePart = (typeof SEQUENCE_PARTS)[number];
+
+export function sequenceGaps(c: SetupCandidate): SequencePart[] {
+  const has = (k: string) => c.components.includes(k as never);
+  const out: SequencePart[] = [];
+  if (!has("sweep_significant") && !has("mechanical_model")) out.push("raid");
+  if (!has("displacement")) out.push("displacement");
+  if (c.entryPx == null) out.push("array");
+  if (!has("mid_bias")) out.push("mtf");
+  if (!c.killzoneOk) out.push("window");
+  return out;
+}
+
+/** True only when every part of the sequence is on the card. */
+export function sequenceComplete(c: SetupCandidate): boolean {
+  return sequenceGaps(c).length === 0;
+}
+
+/**
+ * The book's cards, ordered so a COMPLETE sequence always outranks an
+ * incomplete one.
+ *
+ * Order: HTF-allowed side first (CLAUDE.md makes `topDown` absolute, and the
+ * 2026-09-25 board put a refused counter-trend short above an allowed long
+ * purely on band), then the raid's side when `GATE.sideFromRaid` names one,
+ * then COMPLETENESS, then the PATH grade, and only then the fit — which is the
+ * last tiebreak because it is not monotone in outcome.
+ *
+ * Exported so the verifier can order a hand-built book without going through
+ * the whole desk.
+ */
+export function eligibleCandidates(
+  scan: ScanResult,
+  bias: Pick<HtfBiasRead, "symbol" | "topDown">,
+  narrative: MarketNarrative,
+): SetupCandidate[] {
+  const book = scan.candidates.filter((c) => c.symbol === bias.symbol);
+  const need = bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null;
+  const swept = narrative.liquidity.lastSweep;
+  const raidSide = swept === "ssl" ? "long" : swept === "bsl" ? "short" : null;
+  const rank = (c: SetupCandidate) => {
+    // A released counter-bias card (disrespect + distribution) counts as
+    // aligned — that is the one documented exception to the absolute gate.
+    const aligned = need == null || c.side === need || c.htfDisrespected === true;
+    return [
+      c.htfOk ? 1 : 0,
+      aligned ? 1 : 0,
+      GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,
+      sequenceComplete(c) ? 1 : 0,
+      isHighProbPath(c) ? 2 : isPathFire(c) ? 1 : 0,
+    ];
+  };
+  return [...book].sort((a, b) => {
+    const ra = rank(a);
+    const rb = rank(b);
+    for (let i = 0; i < ra.length; i++) {
+      if (ra[i] !== rb[i]) return rb[i]! - ra[i]!;
+    }
+    return b.confluence - a.confluence;
+  });
+}
+
 function pickCandidate(
   scan: ScanResult,
   bias: HtfBiasRead,
   narrative: MarketNarrative,
 ): SetupCandidate | undefined {
-  const book = scan.candidates.filter((c) => c.symbol === bias.symbol);
-  const need = bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null;
-  // GATE.sideFromRaid: the raid names the side. SSL taken arms a long, BSL
-  // taken arms a short — graded only when the HTF gate allows that side.
-  if (GATE.sideFromRaid) {
-    const swept = narrative.liquidity.lastSweep;
-    const raidSide = swept === "ssl" ? "long" : swept === "bsl" ? "short" : null;
-    if (raidSide) {
-      const onSide = book.filter((c) => c.side === raidSide);
-      const pick =
-        onSide.find((c) => isHighProbPath(c)) ??
-        onSide.find((c) => isPathFire(c)) ??
-        [...onSide].sort((a, b) => b.confluence - a.confluence)[0];
-      if (pick) return pick;
-    }
-  }
-  /**
-   * HTF ALIGNMENT OUTRANKS BAND. Fixed 2026-09-25 from a live board.
-   *
-   * This was `path ?? aligned ?? top-confluence`, and `path` was not filtered
-   * by side — so a card the HTF gate REFUSES could win the one-book pick
-   * purely by carrying a better band. Observed at 09:35 ET inside Judas: HTF
-   * bull, draw 8pt above price at 90% reach, the desk's own header reading
-   * "prefer long ideas in leader if HTF agree" — and the headline card was a
-   * counter-trend SHORT at Q 0.83 over the aligned long at 0.78. The short was
-   * simultaneously blocked on HTF conflict, 2/4 on counter-bias, carrying a
-   * 0.5x ladder penalty and printing an inverted invalidation. It still
-   * outranked the long, because band beat side.
-   *
-   * That is the desk contradicting itself on one screen, and the trader's eye
-   * goes to the headline. CLAUDE.md calls `topDown` an ABSOLUTE gate; a card
-   * it refuses must never be the pick while one it allows exists.
-   *
-   * Order now: aligned AND PATH-grade, then aligned at all, then PATH, then
-   * best score. The last two still exist because a neutral HTF has no aligned
-   * side, and refusing to name any card is worse than naming a weak one.
-   */
-  const alignedBook = need ? book.filter((c) => c.side === need) : book;
-  // A+/A/A- first, then B+ (live PATH grade, Keaton 2026-10-06).
-  const alignedPath = alignedBook.find((c) => isHighProbPath(c)) ?? alignedBook.find((c) => isPathFire(c));
-  const aligned = alignedBook[0];
-  const path = book.find((c) => isHighProbPath(c));
-  // The old HTF side stays the headline only while it is still a live path.
-  // Once price has disrespected it, the released side is the book — a spent
-  // short must not sit on top of the long the tape is delivering.
-  const released = book
-    .filter((c) => c.htfDisrespected === true && c.htfOk)
-    .sort((a, b) => b.confluence - a.confluence)[0];
-  if (released && !alignedPath) return released;
-  return (
-    alignedPath ??
-    aligned ??
-    path ??
-    [...book].sort((a, b) => b.confluence - a.confluence)[0]
-  );
+  // ITEM 10: completeness decides the pick. A higher fit with a missing must
+  // LOSES to a complete sequence; when nothing is complete the nearest card is
+  // still named (refusing to name any card is worse than naming a weak one)
+  // but `candidateComplete` is false on the book and the word cannot be TAKE.
+  // `eligibleCandidates` orders the WHOLE book, so the only empty case is a
+  // book with no cards at all. The old cascade (raid side -> aligned+PATH ->
+  // aligned -> PATH -> best score) is now the first four keys of that sort,
+  // with COMPLETENESS inserted ahead of the band — which is item 10.
+  return eligibleCandidates(scan, bias, narrative)[0];
 }
 
 /**
@@ -330,6 +405,16 @@ function gradeBook(
   const rungs = allSeries(bars ?? [], minute ?? []);
   const judasRead = readJudas(rungs, clock, side);
 
+  /**
+   * ITEM 11 — SMT TRADES THE INDEX THAT INVERTED FIRST.
+   *
+   * `smtLevel.led` is `thisLed` from smt-level.ts: true when THIS book made
+   * the divergence's new extreme. The laggard is not a second setup on the
+   * same divergence, so it does not earn the optional SMT factor. `null` is
+   * "no divergence read" and behaves exactly as today — absence of evidence is
+   * not a refusal.
+   */
+  const smtLed = cand?.smtLevel?.led ?? null;
   const canon = scoreCanonStack(
     cand
       ? {
@@ -337,6 +422,7 @@ function gradeBook(
           dealingZone: dealing?.zone ?? null,
           inKillzone: session.live,
           killzoneLabel: session.reason,
+          smtLed,
         }
       : {
           side,
@@ -350,6 +436,7 @@ function gradeBook(
           smt: smtOn,
           components: [],
           strategy: null,
+          smtLed,
         },
   );
 
@@ -514,18 +601,55 @@ function gradeBook(
         retraceDetail = `Displacement already left the array. Do not chase ${price.toFixed(2)}. Next entry is the pullback into ${fresh.bottom.toFixed(2)}–${fresh.top.toFixed(2)}, limit at CE ${fresh.mid.toFixed(2)}.`;
     }
   }
+  /**
+   * ITEM 1 — THE TARGET IS A POOL, NOT A LOCATION.
+   *
+   * `dol` is `draw.primary`: the highest-SCORING magnet, where the score mixes
+   * excursion rate, kind weight and HTF alignment. On a trending tape that is
+   * routinely the equilibrium of the 80-bar box — a level this file's own
+   * comment above calls "a different object ... a 20-hour box". Nobody's stop
+   * rests at an equilibrium the desk computed. `drawPoolsForSide` instead takes
+   * the next UNSWEPT pool in the trade's direction ahead of CE, then the
+   * external pool beyond it.
+   *
+   * GATED BEHIND THE OLD PRECONDITION ON PURPOSE. `dolAgrees` still has to be
+   * true before any target is priced, exactly as before, so this can only ever
+   * REMOVE a target (an EQ that used to qualify no longer does), never create
+   * one. A pool sitting ahead of CE while the primary magnet points the other
+   * way would be a NEW take: an unmeasured loosening, deliberately not taken.
+   * That is the obvious next question for the trader.
+   */
+  const entryCE = fresh?.mid ?? null;
+  const pools = dolAgrees
+    ? drawPoolsForSide(draw, side, entryCE)
+    : {
+        t1: null as LiquidityTarget | null,
+        t2: null as LiquidityTarget | null,
+        why: dol
+          ? `${dol.name} ${dol.price.toFixed(2)} sits behind the ${side ?? "trade"} — the draw does not agree, so no target is priced.`
+          : "No magnet yet — nothing to price.",
+      };
+  /**
+   * The PARTIAL: equilibrium of the IMPULSE LEG only.
+   *
+   * `dealing.source === "impulse"` is the leg the displacement made away from
+   * the raid, and its midpoint is a place to take half off. When the dealing
+   * read fell back to the 80-bar window there is no impulse leg, and that box's
+   * EQ is not a partial either — null, and the chart draws nothing.
+   */
+  const partial = dealing?.source === "impulse" ? dealing.eq : null;
   // The numeric plan, priced from the SAME objects the layers were graded
-  // from: `fresh` is the array the retrace layer selected, `dol` the draw it
-  // priced, the sweep extreme the raid it demanded. Built here, before the
+  // from: `fresh` is the array the retrace layer selected, `pools.t1` the pool
+  // it priced, the sweep extreme the raid it demanded. Built here, before the
   // target layer, because that layer is a fact about the plan.
-  const plan = buildTradePlan({
+  const planRaw = buildTradePlan({
     symbol: bias.symbol,
     side,
     price: price ?? 0,
     entryArray: fresh ?? null,
     sweepExtreme: narrative.liquidity.lastSweepExtreme,
     sweepT: narrative.liquidity.lastSweepT,
-    dol: dolAgrees ? dol : null,
+    dol: pools.t1,
     range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
     arrays: tape?.arrays ?? [],
     // The same bars every other layer was graded on, so the target odds are
@@ -534,6 +658,10 @@ function gradeBook(
     // someone else's history.
     bars,
   });
+  // T2 is the EXTERNAL POOL, not the dealing range's own edge. `buildTradePlan`
+  // takes only `range` for T2 (trade-plan.ts — not this agent's file), so the
+  // runner is re-pointed here: one field, on the one object everything reads.
+  const plan = planRaw ? applyRunnerPool(planRaw, pools.t2) : null;
 
   // TARGET PRICED ≥ 1:1. The trade must have somewhere to go before it has
   // somewhere to enter. Measured 2026-09-21 on two months of refusals
@@ -642,15 +770,28 @@ function gradeBook(
   // PATH bar = A+/A/A- (>= 0.65) or B+ (>= 0.60, its own config band) —
   // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
   const pathOk = isPathFire(cand);
-  // Premium/discount and the draw can be off on a live path and still be a
-  // size note. The raid and the lower-timeframe reaction cannot. A card
-  // with no sweep is not a take, however high the fit is.
+  /**
+   * ITEM 13 — pd_half IS NOT IGNORABLE. The draw still is.
+   *
+   * A high fit AT EQUILIBRIUM is exactly the location the model refuses: the
+   * dealing range has a midpoint, longs come from the discount half and shorts
+   * from the premium half, and a card sitting on the midpoint has no half. The
+   * old clause let a 0.80+ fit walk past a FAILED `pd_half` on a live PATH,
+   * which is the one place the fit must not buy a pass.
+   *
+   * SCOPE, NOT VALUE: the 0.8 literal is unchanged; only which layers it
+   * reaches. `dol` keeps the pass — a magnet currently sitting behind the trade
+   * is a size note and reverses on the next bars.
+   *
+   * Direction of error is safe: TAKE -> WAIT/STAND only, never the reverse.
+   * Cost is frequency on a desk already at 23 TAKEs in 5,049 four-year cards.
+   * Note `pd_half` only reaches `fail` when `dealing == null` (the waiting
+   * clause above forces `wait` whenever a dealing range exists), i.e. when
+   * there is no location read at all — so the practical effect is that a card
+   * with NO range cannot be taken on fit alone.
+   */
   const ignorable = (l: { id: string; state: string }) =>
-    pathOk &&
-    htfPass &&
-    (cand?.confluence ?? 0) >= 0.8 &&
-    (l.id === "pd_half" || l.id === "dol") &&
-    l.state === "fail";
+    pathOk && htfPass && (cand?.confluence ?? 0) >= 0.8 && l.id === "dol" && l.state === "fail";
   const mustPass = musts.filter((l) => l.state === "pass" || ignorable(l)).length;
   const mustNeed = musts.length;
   const mustFail = musts.find((l) => l.state === "fail" && !ignorable(l));
@@ -669,17 +810,43 @@ function gradeBook(
     fresh != null &&
     musts.every((l) => l.id === "retrace" || l.state === "pass" || ignorable(l));
 
+  /**
+   * ITEM 10 — AN INCOMPLETE SEQUENCE IS WAIT, NOT THE BEST INCOMPLETE.
+   *
+   * `pickCandidate` now puts a complete sequence on top, but when NOTHING on
+   * the book is complete it still names the nearest card so the chart has
+   * something to draw. The word must not follow that card to a TAKE: the raid,
+   * the paired displacement, the array that displacement left, the middle
+   * frame and the window are the sequence, and a card missing one of them is
+   * not a trade however high its fit.
+   *
+   * Only ever downgrades TAKE -> WAIT. STAND is left alone, because a STAND
+   * already carries a named failing must and that is the more useful sentence.
+   */
+  const candGaps = cand ? sequenceGaps(cand) : null;
+  const candComplete = candGaps != null && candGaps.length === 0;
+
   let word: SmcMasterBook["word"] = "STAND";
   if (mustFail) word = "STAND";
   else if (armed && pathOk) word = "TAKE";
   else if (mustWait || !pathOk) word = "WAIT";
   else if (mustPass === mustNeed && pathOk) word = "TAKE";
+  if (word === "TAKE" && !candComplete) word = "WAIT";
 
   const blocker = mustFail ?? (armed ? null : mustWait) ?? null;
+  const incompleteLabel =
+    word === "WAIT" && !candComplete && candGaps?.length
+      ? `Sequence incomplete — no ${candGaps.join(", no ")}`
+      : null;
   const missing =
-    blocker?.label ?? (!pathOk ? "No A+/A/A− PATH" : armed ? "Armed — limit at CE" : "Sequence complete");
+    blocker?.label ??
+    incompleteLabel ??
+    (!pathOk ? "No A+/A/A− PATH" : armed ? "Armed — limit at CE" : "Sequence complete");
   const missingDetail =
     blocker?.detail ??
+    (incompleteLabel && cand
+      ? `${cand.symbol} ${cand.side} fit ${cand.confluence.toFixed(2)} is the nearest card on this book, not a complete one. Missing: ${candGaps!.join(", ")}. A higher fit does not replace a missing part of the sequence.`
+      : null) ??
     (!pathOk
       ? cand
         ? `${cand.symbol} ${cand.side} grades ${String(cand.pathBand || cand.grade)} Q ${cand.confluence.toFixed(2)} — below the PATH bar`
@@ -710,12 +877,31 @@ function gradeBook(
     // The plan's stop when there is a plan — the prose and the numbers are
     // two views of one derivation, and the handoff reads the prose.
     invalidation: plan ? planStopText(plan) : (cand?.invalidation ?? "Beyond the sweep extreme"),
-    t1: cand?.targets[0] ?? (dol ? `${dol.name} ${dol.price.toFixed(2)}` : "IRL"),
-    t2: cand?.targets[1] ?? "ERL runner",
+    /**
+     * ITEM 16 — the prose quotes THE PLAN, not the scanner's target string.
+     *
+     * This read `cand.targets[0]`, which is the nearest in-direction draw level
+     * — a different number from the `plan.t1` the target layer directly above
+     * graded and the ticket sizes from. The card's own prose could therefore
+     * name "EQ 24150.00" while the order rested for a pool 60 points away.
+     * The scanner's string is now only the fallback for a book with no plan.
+     */
+    t1:
+      plan?.t1 != null
+        ? `${pools.t1?.name ?? plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)}${plan.rr1 != null ? ` · ${plan.rr1.toFixed(2)}R` : ""}`
+        : (cand?.targets[0] ?? (dol ? `${dol.name} ${dol.price.toFixed(2)}` : "IRL")),
+    t2:
+      plan?.t2 != null
+        ? `${pools.t2?.name ?? "external"} ${plan.t2.toFixed(2)}${plan.rr2 != null ? ` · ${plan.rr2.toFixed(2)}R` : ""}`
+        : (cand?.targets[1] ?? "ERL runner"),
     pathBand: cand ? String(cand.pathBand || cand.grade) : null,
     // The same plan the target layer graded — one object, so the drawing
     // cannot disagree with the grade.
     plan,
+    pools: { ...pools, reliable: draw.baseRateReliable },
+    partial,
+    candidateComplete: candComplete,
+    candidateMissing: candGaps ?? [],
   };
 }
 

@@ -65,6 +65,7 @@ import {
   templateFor,
 } from "./strategy-grade";
 import type { MarkKind } from "./setup-anticipation";
+import type { CardPlan, DeskLevelKind } from "./card-plan";
 
 /** Which scoring channel a component pays into. */
 export type DriverChannel =
@@ -121,7 +122,10 @@ const LABELS: Record<ComponentKey, string> = {
   propulsion: "Propulsion block",
   daily_bias: "Daily bias",
   ltf_reaction: "1m–5m reaction",
-  opening_raid: "Opening-range raid",
+  opening_raid: "Overnight-range raid",
+  blake_swing: "Blake swing pair",
+  htf_gap: "1h/4h gap",
+  or_raid: "Opening-range raid (09:30–10:00)",
 };
 
 /**
@@ -145,6 +149,10 @@ const DRAWN_AS: Partial<Record<ComponentKey, MarkKind>> = {
   ote: "array",
   mss: "displacement",
   cisd: "displacement",
+  blake_swing: "sweep",
+  htf_gap: "array",
+  or_raid: "pool",
+  opening_raid: "pool",
   pd: "eq",
   weekly_pd: "eq",
 };
@@ -171,7 +179,72 @@ const WHAT: Partial<Record<ComponentKey, string>> = {
   rejection: "The wick of a candle that ran a pool and closed back inside. The wick is the zone.",
   propulsion: "A new order block that forms inside an older one, in the direction of the move.",
   sponsored: "A fair value gap whose middle candle is displacement-sized. Still a fair value gap.",
+  blake_swing:
+    "A first extreme, a pullback, then a push that TAKES that extreme — and a body close back through the pullback. Not any close through any candles.",
+  htf_gap:
+    "A 1-hour or 4-hour gap the market has not mitigated, that price has CLOSED back into. Patty's object. The touch is not the entry.",
+  or_raid:
+    "The raid of the 09:30–10:00 opening range. The silver bullet's pool — not the overnight range, which is Judas's.",
+  opening_raid:
+    "The raid of the OVERNIGHT range (18:00–09:30). Judas's pool.",
 };
+
+/**
+ * ITEM 16 — THE MARKS COME FROM THE TICKET, NOT FROM WHATEVER IS PRESENT.
+ *
+ * `DRAWN_AS` above maps a COMPONENT to a mark kind, which answers "what should
+ * the chart show for this piece of structure" — the right question for the
+ * score explanation this module exists to give. It is the wrong question for
+ * the trade: a card can carry three `array` components and two `pool`s, and
+ * the chart would draw whichever the component list happened to contain rather
+ * than the raid wick, the limit, the partial and the draw that the ORDER is
+ * made of.
+ *
+ * `planMarks` draws the plan object. `CardPlan.levels` is derived once in
+ * `cardPlanFrom` and is the same list the card's target line and the Robinhood
+ * ticket read, so a mark on the chart cannot be at a price the order is not.
+ *
+ * Returns [] for a card with no priced plan — the chart then draws the
+ * component marks and nothing claims to be a ticket.
+ */
+export interface PlanMark {
+  kind: MarkKind;
+  label: string;
+  price: number;
+  /** What the trader does at this level. */
+  action: string;
+}
+
+const PLAN_MARK_KIND: Record<DeskLevelKind, MarkKind> = {
+  raid: "sweep",
+  entry: "entry",
+  stop: "stop",
+  partial: "target",
+  draw: "target",
+  runner: "target",
+};
+
+const PLAN_MARK_ACTION: Record<DeskLevelKind, string> = {
+  raid: "The wick the stop sits beyond. The market already proved it rejects here.",
+  entry: "Rest the limit here. Never pay the print.",
+  stop: "Out. Beyond the raid, not inside the noise.",
+  partial: "Equilibrium of the impulse leg — a place to take half off.",
+  draw: "T1, the draw. 50% off, stop to breakeven, runner to T2.",
+  runner: "T2, external liquidity. The runner's level.",
+};
+
+export function planMarks(
+  plan: Pick<CardPlan, "levels"> | null | undefined,
+): PlanMark[] {
+  const levels = plan?.levels;
+  if (!levels?.length) return [];
+  return levels.map((l) => ({
+    kind: PLAN_MARK_KIND[l.kind],
+    label: l.label,
+    price: l.price,
+    action: PLAN_MARK_ACTION[l.kind],
+  }));
+}
 
 /** One true sentence for the pieces actually on the card. The floor says this, not a nickname. */
 export function setupLine(components: readonly string[], strategy: string | null): string {

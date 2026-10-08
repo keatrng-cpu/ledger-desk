@@ -175,6 +175,97 @@ console.log("\nresting orders book THEIR levels");
   check("restable round-trips a plan", restableFromCard(booked)?.entry, 7805.5);
 }
 
+console.log("\nitem 16 — the plan object reaches the ORDER, not just the card");
+{
+  /**
+   * The ticket, the paper book and the Log dialog all size from `c.plan`, and
+   * the chart draws `plan.levels`. The question this block asks is the one the
+   * old three-targets bug answered wrongly: does the thing a resting order
+   * promises match the thing drawn, through every path that rebuilds a plan?
+   *
+   * NEGATIVE CONTROL for this block: delete `levels: deskLevelsOf(plan)` from
+   * `withOrderLevels` and "a resting order's card still carries levels" fails;
+   * drop `partial` from `restableFromCard` and the partial line fails.
+   */
+  const { cardPlanFrom, deskLevelsOf, planTargetText, poolFrom, applyRunnerPool } = await import(
+    "../src/lib/trading/card-plan.ts"
+  );
+  const pool = (name, price, kind, swept = false) => ({
+    name,
+    price,
+    kind,
+    side: "above",
+    distancePoints: 60,
+    distanceAtr: 3,
+    liquidityWeight: 0.85,
+    swept,
+    reachProbability: 0.7,
+    score: 0.7,
+    why: [],
+  });
+  const plan = {
+    symbol: "MNQ",
+    side: "long",
+    price: 24005,
+    entry: 24000,
+    entryZone: { top: 24004, bottom: 23996 },
+    stop: 23970,
+    riskPts: 30,
+    riskTooTight: false,
+    riskTooWide: false,
+    riskAtr: 20,
+    riskOverCap: false,
+    t1: 24060,
+    t2: 24100,
+    rr1: 2,
+    rr2: 3.33,
+    sweep: { price: 23972, t: 1 },
+    range: { high: 24100, low: 23900, eq: 24000 },
+    draw: { price: 24060, name: "EQH x3", reachProbability: 0.7 },
+    arrays: [],
+    levels: [],
+  };
+  const withRunner = applyRunnerPool(plan, pool("PDH", 24160, "prior"));
+  const cp = cardPlanFrom(withRunner, {
+    partial: 24030,
+    drawPool: poolFrom(pool("EQH x3", 24060, "pool"), true),
+    runnerPool: poolFrom(pool("PDH", 24160, "prior"), true),
+  });
+
+  // restableFromCard is what `restLimit` sends to the broker.
+  const rest = restableFromCard({ plan: cp });
+  check("the resting order's limit IS the plan's CE", rest.entry, cp.entry);
+  check("its stop IS the plan's stop", rest.stop, cp.stop);
+  check("its T1 IS the plan's draw", rest.t1, cp.t1);
+  check("its T2 IS the plan's runner", rest.t2, cp.t2);
+  check("and it carries the partial", rest.partial, 24030);
+  // Every level drawn is a level the order knows about.
+  const prices = cp.levels.map((l) => l.price);
+  check("every drawn level is one of the order's own numbers",
+    prices.every((p) => [cp.raid.price, cp.entry, cp.stop, cp.partial, cp.t1, cp.t2].includes(p)), true);
+  check("nothing is drawn twice", new Set(cp.levels.map((l) => l.kind)).size, cp.levels.length);
+
+  // A card re-levelled from a RESTING order still carries a derived level list.
+  const booked = withOrderLevels(
+    { ...esShort, symbol: "MNQ", side: "long", plan: cp, atr: 20 },
+    { symbol: "MNQ", side: "long", limit: 23998, stop: 23968, t1: 24058, t2: 24098, riskPts: 30, zone: null },
+  );
+  check("a resting order's card still carries levels", booked.plan.levels.length > 0, true);
+  check("its entry level is the ORDER's limit, not the card's CE", booked.plan.levels.find((l) => l.kind === "entry").price, 23998);
+  check("its draw level is the ORDER's T1", booked.plan.levels.find((l) => l.kind === "draw").price, 24058);
+  check("a resting order promises no partial", booked.plan.partial, null);
+  check("and draws none", booked.plan.levels.some((l) => l.kind === "partial"), false);
+  check("the raid wick rides along for the stop's story", booked.plan.raid?.price, 23972);
+
+  // The target text the card prints is parseable by the price-first rule every
+  // downstream reader uses.
+  const t = planTargetText(cp);
+  const firstOf = (s) => Number(String(s).replace(/,/g, "").match(/-?\d+(?:\.\d+)?/)?.[0]);
+  check("target line 1 parses to T1", firstOf(t[0]), cp.t1);
+  check("target line 2 parses to T2", firstOf(t[1]), cp.t2);
+  check("a bare plan derives only entry and stop", deskLevelsOf({ ...cp, raid: null, partial: null, t1: null, t2: null }).map((l) => l.kind), ["entry", "stop"]);
+}
+
 console.log("\nthe evidence pack lookups");
 {
   check("the pack is loaded", EVIDENCE.baseline.n > 1000, true);
