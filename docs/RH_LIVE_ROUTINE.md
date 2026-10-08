@@ -192,6 +192,92 @@ A position this desk did not open is not closed and blocks a new open. The open 
 
 An A+ card that does not place is stopped by one of `managerAgreeFromRoom`'s `blocks`: `synthetic_feed`, the room beat (not a fill), `no_buy_open`, `no_entry_plan`, a failed room gate, `trigger`, `session`, an owner hold, `card`, `floor`, `floor_ticket`, `dte`, `path_band`, `path_floor`, a B+ gate, `strike_offset`, or the envelope. Two shorts can miss on different ids. LTF and MTF may flip; the higher-timeframe gate stays absolute except through `biasDisrespect`.
 
+## The desk job: the close does not need a chat open (2026-10-08, ITEM 19)
+
+**Route:** `GET /api/cron/rh-manage` (`src/routes/api/cron/rh-manage.ts`). **Ships OFF.**
+
+### What was wrong
+
+The cycle could already decide to close. Every path that actually **sent** that close was a passenger on something else:
+
+| sender | dies when |
+|--------|-----------|
+| the browser poll (`room-engine.ts` → `stepRhDesk`) | the tab closes |
+| `/api/cron/room-step` | the Robinhood sender sits at the **end** of a paper-book pipeline. It is never reached when the desk build fails (503), the feed is synthetic (200 skipped), the stored snapshot is not a room book (200 skipped), the room output violates its contract (500), the snapshot is oversized (500), the compare-and-swap loses to a browser write (200 skipped), or anything in `runRoomCycle` / `applyCycle` throws (500) |
+| `/api/cron/exec-flatten` | only runs from 15:30 ET |
+
+So a wick that broke the level at 10:05 with the tab closed had no closer until **15:30** unless the paper book happened to write cleanly that minute. `rh-manage` is the close path with nothing upstream of it: no paper book, no snapshot, no room cycle, no contract check. Read the broker, read the desk, decide, close.
+
+### It cannot open — four independent layers
+
+1. `manager: null` — with no live Manager there is no `AGREE_LIVE` ticket to place.
+2. `blockNewEntries: true` — `runRhDesk` rewrites a `place` phase to `look`.
+3. `closeOnlyTooling` — in the route itself: `review` returns a blocking alert and `place` **throws** on any leg that is not `{ side: "sell", position_effect: "close" }`. This layer lives in the caller on purpose, so a future edit to `rh-dispatch.ts` cannot quietly turn this job into an opener.
+4. The arm (below).
+
+Each layer is tested alone in `scripts/verify-rh-desk-job.mjs`, against a **control** that proves the same configuration does open when the sender is called normally.
+
+### What it closes
+
+Only what this system opened. `sqlLedger` (`rh_desk_book`) is the desk book, and `runRhDesk` leaves a Robinhood position with no row in it alone. There is no "flatten everything" here — that is `exec-flatten`.
+
+### Stale or synthetic feed
+
+The desk is passed **only** when the feed is real and inside `RH_MAX_TAPE_AGE_SEC` (30 s). Otherwise `desk: null` goes in, which is a hard refusal to read a level off a price we do not trust: with no desk the **futures invalidation and the 15-minute failed hold cannot fire at all**. What still fires is priced on broker numbers, which are always current — the −25% premium backstop, the drawdown breaker, and 15:30 ET.
+
+This is deliberately **not** "send nothing on a stale feed". That reading would disable the −25% backstop exactly when the tape is misbehaving, which is worse than closing on a number the broker just quoted. Flagged as a judgement call, not a measurement.
+
+### One wick, one close
+
+| mechanism | what it stops |
+|-----------|----------------|
+| `refIdFor("close:<decisionKey>")` is a **stable** uuid per position, passed to `place_option_order` as `ref_id` (`rh-mcp.ts`) | a resend of the same close, deduped broker-side |
+| a sent close drops the row from `rh_desk_book` | the next run has nothing to close |
+| `ledger.claim(now)` — the route takes the one placement slot (a single conditional `UPDATE`, so two instances cannot both win) **before** it sends, and only when a desk-owned row exists | two serverless instances closing the same wick |
+| an in-process `inFlight` guard | the same instance being rung twice |
+
+No row means nothing to close, so the slot is left alone and an opener is never delayed by this job.
+
+### Arm and kill switch
+
+| switch | where | default |
+|--------|-------|---------|
+| `RH_DESK_JOB_CONFIRMED_IN_WRITING` | `src/routes/api/cron/rh-manage.ts` (code constant) | **`false`** — only a human edits that line |
+| `RH_DESK_JOB_ENABLED` | env | unset = off. Must be exactly `true` |
+
+**Both** are required. Setting the env var alone does nothing; editing the constant alone does nothing. `RH_DESK_JOB_ENABLED` is read per request, so flipping it in Netlify stops the job on the next minute with no deploy — that is the kill switch. The Execution card's own kill (`room_exec_state.killed`) is read and reported; it blocks entries and by design does **not** trap a close.
+
+### Where the Robinhood refresh token actually lives
+
+In Postgres: table **`rh_oauth`**, one row per `user_id`, written by `/api/rh/callback` and read by `readOauth` → `ensureAccess` → `toolingForDesk` (`rh-oauth.ts`, `rh-mcp.ts`). It never reaches the browser, git or a log line. The access token is short-lived and refreshed in place; `invalid_grant` drops the row and the trader signs in once more.
+
+**Can a Netlify scheduled function reach it? Yes — with two conditions.**
+
+1. `DATABASE_URL` must be the real Supabase **transaction pooler** host. Without a working one `db.ts` falls back to ephemeral PGLite, where `rh_oauth` is empty on every cold start, so the job finds no sign-in and sends nothing.
+2. `CRON_USER_ID` must be the trader's own user id. A cron has no session, so it uses `cronUserId()`; a wrong id reads no token, `toolingForDesk` falls through to `RH_ACCESS_TOKEN` (normally unset) and returns `null`. The route reports `userId` and `linked` in its own response precisely so that failure is visible instead of silent.
+
+The function itself is not the sender — the SSR route is (that is the function with the database), exactly as `netlify/functions/room-step.mjs` rings `/api/cron/room-step`. A ringer for this route is listed under **Still missing**.
+
+### Before it is switched on
+
+Every line below must be true. None of them is checked by code; they are the trader's to confirm.
+
+1. `DATABASE_URL` is the Supabase pooler host, and `select 1 from rh_oauth where user_id = '<CRON_USER_ID>'` returns a row. (Grep any new value for `db.` + `.supabase.co` first — that trap has bitten twice.)
+2. `CRON_USER_ID` equals that `user_id`. Run `?force=1` once and read `detail.userId` / `detail.linked` in the response.
+3. `CRON_SECRET` is set on the site, and an unauthenticated `GET` of the route returns **401** (503 would mean the secret is missing).
+4. The ringer and the schedule exist (**Still missing** below), and a forced run has been seen returning `ran: true` with `phase: "manage"` on a real open position.
+5. At least one close has been observed end to end **in the browser path** first, so the review → place shape is known good on a real Robinhood response.
+6. `scripts/verify-rh-desk-job.mjs` passes, and `npx tsc --noEmit` is clean.
+7. The trader has read the stale-feed trade-off above and accepts that a refused feed leaves the level stop inactive until the tape recovers.
+8. Only then: set `RH_DESK_JOB_ENABLED=true` **and** edit `RH_DESK_JOB_CONFIRMED_IN_WRITING` to `true` in the route.
+
+### Still missing
+
+- **A scheduler.** Not wired, because `vercel.json`, `netlify/functions/*` and `scripts/install-netlify-cron.mjs` are owned elsewhere. What is needed: `netlify/functions/rh-manage.mjs`, a copy of `room-step.mjs` with the path and log label changed and `export const config = { schedule: "* 13-21 * * 1-5" }`; `"rh-manage.mjs"` added to the copy list in `install-netlify-cron.mjs`; and `/api/cron/rh-manage` at `"*/2 13-21 * * 1-5"` in `vercel.json` if the site ever runs there. Until then the route only answers a manual `?force=1` or any scheduler that can send the bearer header.
+- **The row is dropped when the close is SUBMITTED, not when it fills** (`placeOrder` in `rh-dispatch.ts`). An unfilled close therefore turns the position into a "foreign" one the desk will never close again. That is good idempotency and bad management. The fix belongs in `rh-dispatch.ts` / `rh-ledger.ts`: keep the row, stamp `closingRefId` + `closingAt` on it, and drop it only once `get_option_positions` no longer lists the contract (or re-send the same `ref_id` after a timeout). Not done here — those files are owned elsewhere this pass.
+- **The 11:00 rule is not in the cycle.** `RH_DAY_FLAT_MIN` and `RH_PAST_ELEVEN_MIN_PCT` are exported from `rh-cycle.ts` and read by nothing; `decideRhCycle` applies 15:30, −25%, the level and the failed hold only. The table above ("11:00 ET while under +50%") describes the mandate, not the code. Belongs in `rh-cycle.ts`.
+- **No live Robinhood response has been seen through this route.** The guard, the gates and the sender are tested against a simulated `RhTooling` on PGLite, not against Robinhood's servers.
+
 ## Do not
 
 - Deploy Netlify (Release Watch owns that).

@@ -16,6 +16,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
+import { Route as ApiCronRhManageRouteImport } from './routes/api/cron/rh-manage'
 import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
@@ -59,6 +60,11 @@ const ApiCronExecFlattenRoute = ApiCronExecFlattenRouteImport.update({
 const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
   id: '/api/cron/review',
   path: '/api/cron/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronRhManageRoute = ApiCronRhManageRouteImport.update({
+  id: '/api/cron/rh-manage',
+  path: '/api/cron/rh-manage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronRoomStepRoute = ApiCronRoomStepRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/review'
+    | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/review'
+    | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/review'
+    | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
+  ApiCronRhManageRoute: typeof ApiCronRhManageRoute
   ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
   ApiDeskCardRoute: typeof ApiDeskCardRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/review'
       fullPath: '/api/cron/review'
       preLoaderRoute: typeof ApiCronReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/rh-manage': {
+      id: '/api/cron/rh-manage'
+      path: '/api/cron/rh-manage'
+      fullPath: '/api/cron/rh-manage'
+      preLoaderRoute: typeof ApiCronRhManageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/room-step': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
+  ApiCronRhManageRoute: ApiCronRhManageRoute,
   ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
   ApiDeskCardRoute: ApiDeskCardRoute,
