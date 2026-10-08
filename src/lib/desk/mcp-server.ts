@@ -10,12 +10,12 @@ export const MCP_PROTOCOL = "2025-03-26";
 const TOOLS = [
   {
     name: "read_desk",
-    description: "Live ledger desk: clock, quotes, scanner, floor verdict, brain, and what the floor just said. No account, no positions, no orders.",
+    description: "Live ledger desk on one card: Databento or gateway tape with lag, the strategy, chart levels, the brain word, the floor ticket, and Grok's last report. No account balance. Does not place.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
     name: "read_scanner",
-    description: "Top setup-scanner cards: symbol, side, PATH band, confluence, actionable.",
+    description: "Top setup-scanner cards plus the shared wire: strategy name, entry, stop, draw, and tape source.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
@@ -61,9 +61,10 @@ export interface McpReply {
 }
 
 function slice(card: DeskListenCard, name: ToolName): unknown {
-  if (name === "read_scanner") return { at: card.at, clock: card.clock, quotes: card.quotes, scanner: card.scanner };
-  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said };
-  if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain };
+  const wire = card.wire ?? null;
+  if (name === "read_scanner") return { at: card.at, clock: card.clock, quotes: card.quotes, scanner: card.scanner, wire };
+  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said, wire };
+  if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain, wire };
   return card;
 }
 

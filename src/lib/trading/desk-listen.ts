@@ -26,6 +26,8 @@ export interface DeskListenCard {
     band: string | null;
     q: number;
     actionable: boolean;
+    strategy: string | null;
+    entry: number | null;
   }[];
   floor: {
     id: string | null;
@@ -43,6 +45,57 @@ export interface DeskListenCard {
   };
   said: { who: string; line: string }[];
   report: GrokReport | null;
+  /**
+   * The one packet the strategy, brain, tape, chart, floor, and Grok share.
+   * Each seat reads this. None of them keeps a private copy of the trade.
+   */
+  wire: DeskWire;
+}
+
+export interface DeskWire {
+  tape: {
+    feed: string;
+    fresh: boolean;
+    left: { symbol: string; price: number; source: string; lagSec: number };
+    right: { symbol: string; price: number; source: string; lagSec: number };
+  };
+  strategy: {
+    symbol: string;
+    side: string;
+    name: string;
+    band: string | null;
+    q: number;
+    actionable: boolean;
+    entry: number | null;
+    stop: string | null;
+    draw: string | null;
+  } | null;
+  brain: {
+    word: string | null;
+    thesis: string;
+    missing: string | null;
+    htfReleased: boolean;
+  };
+  chart: { symbol: string; levels: { name: string; price: number }[] }[];
+  floor: {
+    verdict: string;
+    blocks: string[];
+    ticket: {
+      underlier: string;
+      side: string;
+      dte: number;
+      contracts: number;
+      debit: number;
+      stop: string | null;
+      targets: string[];
+    } | null;
+  };
+  execution: {
+    phase: "look" | "hand" | "report";
+    to: "grok";
+    account: "agentic-6158";
+    broker: "robinhood";
+  };
 }
 
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
@@ -52,6 +105,57 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
   const verdict = best?.verdict ?? "STAND";
   const handed = verdict === "ARMED" && Boolean(best?.ticket);
+  const top = desk.scan.candidates[0] ?? null;
+  const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
+  const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
+  const phase = handed ? "hand" : "look";
+  const wire: DeskWire = {
+    tape: {
+      feed: desk.feed,
+      fresh: tapeFresh,
+      left: { symbol: desk.quotes.left.symbol, price: desk.quotes.left.price, source: desk.quotes.left.source, lagSec: desk.quotes.left.lagSec },
+      right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
+    },
+    strategy: top
+      ? {
+          symbol: top.symbol,
+          side: top.side,
+          name: top.completeStrategy || top.strategyPrimary || "model",
+          band: top.pathBand ?? top.grade,
+          q: top.confluence,
+          actionable: top.actionable,
+          entry: top.entryPx ?? null,
+          stop: top.invalidation || null,
+          draw: top.draw?.name ?? null,
+        }
+      : null,
+    brain: {
+      word: book?.word ?? null,
+      thesis: desk.smcMaster.thesis,
+      missing: book?.missing ?? null,
+      htfReleased,
+    },
+    chart: desk.levels.slice(0, 2).map((lvl) => ({
+      symbol: lvl.symbol,
+      levels: lvl.items.slice(0, 6).map((item) => ({ name: item.name, price: item.price })),
+    })),
+    floor: {
+      verdict,
+      blocks: (best?.blocks ?? []).slice(0, 4),
+      ticket: best?.ticket
+        ? {
+            underlier: best.ticket.underlier,
+            side: best.ticket.side,
+            dte: best.ticket.dteTarget,
+            contracts: best.ticket.contracts,
+            debit: best.ticket.estDebitTotal,
+            stop: best.ticket.invalidation || null,
+            targets: best.ticket.targets.slice(0, 3),
+          }
+        : null,
+    },
+    execution: { phase, to: "grok", account: "agentic-6158", broker: "robinhood" },
+  };
   const said = [
     {
       who: "Vince",
@@ -66,6 +170,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     {
       who: "Nova",
       line: book ? `${book.word}. ${book.missing}.` : "No book yet.",
+    },
+    {
+      who: "Gemma",
+      line: `Tape is ${desk.feed}, ${desk.quotes.left.symbol} ${desk.quotes.left.lagSec}s, ${desk.quotes.right.symbol} ${desk.quotes.right.lagSec}s. ${tapeFresh ? "Fresh enough to read." : "Stale. Do not arm on it."}`,
     },
   ];
   return {
@@ -87,6 +195,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       band: c.pathBand ?? c.grade,
       q: c.confluence,
       actionable: c.actionable,
+      strategy: c.completeStrategy || c.strategyPrimary || null,
+      entry: c.entryPx ?? null,
     })),
     floor: {
       id: best?.id ?? null,
@@ -112,5 +222,6 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     },
     said,
     report: null,
+    wire,
   };
 }

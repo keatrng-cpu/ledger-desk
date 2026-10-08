@@ -66,9 +66,11 @@ export function reportLine(report: GrokReport): string {
 
 export function attachGrokReport(card: DeskListenCard, report: GrokReport | null): DeskListenCard {
   if (!report) return { ...card, report: null };
+  const phase = report.status === "stood" ? "look" : "report";
   return {
     ...card,
     report,
+    wire: { ...card.wire, execution: { ...card.wire.execution, phase } },
     said: [...card.said, { who: "Sterling", line: reportLine(report) }],
   };
 }
