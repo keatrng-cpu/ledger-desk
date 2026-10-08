@@ -509,7 +509,9 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       id: "ltf",
       label: "LTF shift + displacement",
       must: true,
-      pass: ltfOk && confirmation !== "sweep_only" && confirmation !== "none",
+      // `ltfOk` is already only armed_entry, confirmed, or sweep_displace with a live ltf_reaction, so a further
+      // "not sweep_only, not none" could never be false. The two dead comparisons broke `tsc` (TS2367) on main.
+      pass: ltfOk,
       detail: ltfOk
         ? `LTF confirm ${confirmation}`
         : "Need the 1m–5m displacement after the raid, or the array that displacement left",
