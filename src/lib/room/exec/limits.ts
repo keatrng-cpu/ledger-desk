@@ -44,7 +44,7 @@ export type ExecLimits = typeof EXEC_LIMITS;
 export const EXEC_FLAGS = {
   /** Keaton confirmed in writing (2026-10-06): Agentic options may fire when the desk has a setup. */
   OPTIONS_LIVE_CONFIRMED_IN_WRITING: true,
-  /** room-step cron steps the desk on the quarter hour with the tab closed. */
+  /** room-step cron steps the desk every minute in the session when the tab is closed. */
   SERVER_RUNNER_BUILT: true,
   /** Paper fills are not a gate. A setup that clears the chart closes and opens on the broker. */
   EXIT_ESCALATION_VERIFIED_ON_PAPER: true,

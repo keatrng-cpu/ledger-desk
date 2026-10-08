@@ -7,8 +7,9 @@
  * memory. It does not import the Alpaca executor.
  *
  * After the book is saved it runs the Robinhood sender on this same desk
- * (review, then place or close). No token means the cycle is decided and
- * nothing is sent. A sender failure does not roll back the paper book.
+ * (review, then place or close). No stored Robinhood sign-in means the cycle
+ * is decided and nothing is sent. Opening the desk does not sign in again.
+ * A sender failure does not roll back the paper book.
  *
  * Skips outside the options session (09:30–16:00 ET, which includes the
  * 15:30 flatten). Skips when a browser saved the book inside the 90s lease.
@@ -118,7 +119,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     try {
       const { runRhDesk } = await import("@/lib/execution/rh-dispatch");
       const { sqlLedger } = await import("@/lib/execution/rh-ledger");
-      const { toolingFromEnv } = await import("@/lib/execution/rh-http");
+      const { toolingForDesk } = await import("@/lib/execution/rh-mcp");
       const { createRoomManagerFeed } = await import("@/lib/room/manager-room-feed");
       const { PgExecStore } = await import("@/lib/room/exec/exec-sql");
       const feed = createRoomManagerFeed();
@@ -136,7 +137,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
         desk: res,
         manager: feed.getState(),
         nowMs,
-        tooling: toolingFromEnv(),
+        tooling: await toolingForDesk(sql, auth.userId),
         ledger: sqlLedger(sql),
         blockNewEntries,
       });

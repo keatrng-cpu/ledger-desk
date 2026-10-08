@@ -15,7 +15,7 @@
  * the old throttling in the background. Nothing here touches a rule, a gate, a size or an order.
  *
  * What it cannot do: draw the 3D floor or speak the voices (those exist only while the Floor tab is open), or run if the browser is
- * closed or the computer sleeps. The server's `room-step` function covers the paper book every five minutes in the NY session.
+ * closed or the computer sleeps. The server's `room-step` function covers the paper book every minute in the NY session.
  */
 
 type Listener = () => void;

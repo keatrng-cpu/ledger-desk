@@ -50,12 +50,12 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     try {
       const { runRhDesk } = await import("@/lib/execution/rh-dispatch");
       const { sqlLedger } = await import("@/lib/execution/rh-ledger");
-      const { toolingFromEnv } = await import("@/lib/execution/rh-http");
+      const { toolingForDesk } = await import("@/lib/execution/rh-mcp");
       const out = await runRhDesk({
         desk: null,
         manager: null,
         nowMs: before,
-        tooling: toolingFromEnv(),
+        tooling: await toolingForDesk(sql, auth.userId),
         ledger: sqlLedger(sql),
         flatten: true,
       });

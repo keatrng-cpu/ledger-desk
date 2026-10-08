@@ -1,7 +1,7 @@
 /**
  * Authenticated step for the desk's own Robinhood sender.
- * The handler loads the ledger (node:fs) only on the server.
  * The browser can ask. It cannot arm, and it cannot skip review.
+ * The sign-in is the row in rh_oauth. Opening the desk does not connect again.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -37,7 +37,7 @@ export const stepRhDesk = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<RhDispatchResult> => {
     const { runRhDesk } = await import("./rh-dispatch");
     const { sqlLedger } = await import("./rh-ledger");
-    const { toolingFromEnv } = await import("./rh-http");
+    const { toolingForDesk } = await import("./rh-mcp");
     let sql: Sql | null = null;
     try {
       const { getSql } = await import("@/lib/db");
@@ -63,9 +63,25 @@ export const stepRhDesk = createServerFn({ method: "POST" })
       desk: asDesk(data.desk),
       manager: asManager(data.manager),
       nowMs: Date.now(),
-      tooling: toolingFromEnv(),
+      tooling: await toolingForDesk(sql, context.userId),
       ledger: sqlLedger(sql),
       flatten: data.flatten === true,
       blockNewEntries,
     });
+  });
+
+/** Whether this trader's Robinhood sign-in is stored. Never returns the token. */
+export const rhLinkStatus = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }): Promise<{ linked: boolean; account: string }> => {
+    const { RH_PREFERRED_ACCOUNT_NUMBER } = await import("./rh-autofire-gates");
+    const account = `••${RH_PREFERRED_ACCOUNT_NUMBER.slice(-4)}`;
+    try {
+      const { getSql } = await import("@/lib/db");
+      const { readOauth } = await import("./rh-oauth");
+      const row = await readOauth(await getSql(), context.userId);
+      return { linked: row != null, account };
+    } catch {
+      return { linked: false, account };
+    }
   });

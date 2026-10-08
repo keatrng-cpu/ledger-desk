@@ -530,10 +530,7 @@ function runLiveCycle(desk: DeskPayload) {
   }
 }
 
-/** The live poll's Robinhood step. At most once every 20s. The server reads the account and sends. */
-const RH_GAP_MS = 20_000;
-let rhLastMs = 0;
-let rhTimer: ReturnType<typeof setTimeout> | null = null;
+/** The desk build is the clock. A send already in flight keeps the next one. There is no extra wait. */
 let rhBusy = false;
 let rhQueued = false;
 let rhQueuedFlatten = false;
@@ -616,19 +613,7 @@ async function sendRh(desk: DeskPayload, flatten: boolean) {
 function noteRh(desk: DeskPayload, _nowMs: number) {
   if (typeof window === "undefined") return;
   latestDesk = desk;
-  const wait = RH_GAP_MS - (Date.now() - rhLastMs);
-  if (wait <= 0) {
-    rhLastMs = Date.now();
-    void sendRh(desk, false);
-    return;
-  }
-  if (rhTimer) return;
-  rhTimer = setTimeout(() => {
-    rhTimer = null;
-    rhLastMs = Date.now();
-    const d = latestDesk;
-    if (d) void sendRh(d, false);
-  }, wait);
+  void sendRh(desk, false);
 }
 
 /** The trader's Flatten button: close what this desk opened. No second click. */

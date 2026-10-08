@@ -5,12 +5,13 @@
  * This card never talks to Alpaca.
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { OctagonX, ShieldCheck } from "lucide-react";
 import { parseOcc } from "@/lib/room/exec/occ";
 import type { AuditRow, ExecPhase } from "@/lib/room/exec/types";
 import { useExecStore } from "./exec-bridge";
 import { flattenBroker } from "./room-engine";
+import { rhLinkStatus } from "@/lib/execution/rh-server";
 
 const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 const HEAD = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]";
@@ -81,8 +82,13 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
   const setPhase = useExecStore((s) => s.setPhase);
   const setKill = useExecStore((s) => s.setKill);
 
+  const [link, setLink] = useState<{ linked: boolean; account: string } | null>(null);
+
   useEffect(() => {
     void refresh();
+    void rhLinkStatus()
+      .then(setLink)
+      .catch(() => setLink(null));
     const id = window.setInterval(() => void refresh(), 30_000);
     return () => window.clearInterval(id);
   }, [refresh]);
@@ -145,9 +151,17 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
         >
           Flatten all
         </button>
+        <a className={BTN} href="/api/rh/connect">
+          {link?.linked ? "Reconnect Robinhood" : "Connect Robinhood"}
+        </a>
       </div>
 
       <p className="mt-2 text-[11px] leading-snug text-[var(--color-muted)]">{blurb}</p>
+      <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
+        {link?.linked
+          ? `Robinhood ${link.account} is signed in on the server. Opening the desk again does not ask you to connect.`
+          : "Connect Robinhood once. The site keeps that sign-in. You do not paste a token, and you do not connect again each time you open the desk."}
+      </p>
       <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">
         {status ? `Robinhood Agentic ••6158 · armed ${status.keys.live ? "yes" : "no"} · not Alpaca` : "—"}
         {last ? ` · ${last.role}${last.env ? ` · ${last.env}` : ""} · step ${etTime(last.atMs)} ET` : ""}

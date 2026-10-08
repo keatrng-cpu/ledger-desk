@@ -20,6 +20,8 @@ import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
+import { Route as ApiRhCallbackRouteImport } from './routes/api/rh/callback'
+import { Route as ApiRhConnectRouteImport } from './routes/api/rh/connect'
 import { Route as ApiRoomCycleRouteImport } from './routes/api/room/cycle'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +79,16 @@ const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
   path: '/api/engine/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRhCallbackRoute = ApiRhCallbackRouteImport.update({
+  id: '/api/rh/callback',
+  path: '/api/rh/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRhConnectRoute = ApiRhConnectRouteImport.update({
+  id: '/api/rh/connect',
+  path: '/api/rh/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRoomCycleRoute = ApiRoomCycleRouteImport.update({
   id: '/api/room/cycle',
   path: '/api/room/cycle',
@@ -95,6 +107,8 @@ export interface FileRoutesByFullPath {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/callback': typeof ApiRhCallbackRoute
+  '/api/rh/connect': typeof ApiRhConnectRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +123,8 @@ export interface FileRoutesByTo {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/callback': typeof ApiRhCallbackRoute
+  '/api/rh/connect': typeof ApiRhConnectRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesById {
@@ -124,6 +140,8 @@ export interface FileRoutesById {
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/callback': typeof ApiRhCallbackRoute
+  '/api/rh/connect': typeof ApiRhConnectRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +158,8 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/callback'
+    | '/api/rh/connect'
     | '/api/room/cycle'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +174,8 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/callback'
+    | '/api/rh/connect'
     | '/api/room/cycle'
   id:
     | '__root__'
@@ -168,6 +190,8 @@ export interface FileRouteTypes {
     | '/api/desk/handoff'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/callback'
+    | '/api/rh/connect'
     | '/api/room/cycle'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +207,8 @@ export interface RootRouteChildren {
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
+  ApiRhCallbackRoute: typeof ApiRhCallbackRoute
+  ApiRhConnectRoute: typeof ApiRhConnectRoute
   ApiRoomCycleRoute: typeof ApiRoomCycleRoute
 }
 
@@ -265,6 +291,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEngineJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rh/callback': {
+      id: '/api/rh/callback'
+      path: '/api/rh/callback'
+      fullPath: '/api/rh/callback'
+      preLoaderRoute: typeof ApiRhCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rh/connect': {
+      id: '/api/rh/connect'
+      path: '/api/rh/connect'
+      fullPath: '/api/rh/connect'
+      preLoaderRoute: typeof ApiRhConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/room/cycle': {
       id: '/api/room/cycle'
       path: '/api/room/cycle'
@@ -287,6 +327,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
+  ApiRhCallbackRoute: ApiRhCallbackRoute,
+  ApiRhConnectRoute: ApiRhConnectRoute,
   ApiRoomCycleRoute: ApiRoomCycleRoute,
 }
 export const routeTree = rootRouteImport

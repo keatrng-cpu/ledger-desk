@@ -2,9 +2,10 @@
  * Netlify schedule for GET /api/cron/room-step.
  *
  * The step lives on the SSR route — that is the function with the database.
- * This file only rings it. Every five minutes from 13:00 through 21:00 UTC
- * covers 09:30–16:00 ET in both EST and EDT. The route skips anything
- * outside the options session, so the extra hours do not trade.
+ * This file only rings it. Every minute from 13:00 through 21:00 UTC covers
+ * 09:30–16:00 ET in both EST and EDT. The route skips anything outside the
+ * options session, so the extra hours do not trade. When the desk is open,
+ * the desk build itself sends — this schedule is only for a closed tab.
  *
  * A site with no CRON_SECRET returns 200. A schedule must not fail every
  * weekday before the secret exists. This file only rings the route. The
@@ -30,4 +31,4 @@ export default async () => {
   return new Response(body, { status: 200 });
 };
 
-export const config = { schedule: "*/5 13-21 * * 1-5" };
+export const config = { schedule: "* 13-21 * * 1-5" };

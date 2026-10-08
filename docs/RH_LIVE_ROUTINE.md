@@ -179,7 +179,7 @@ Options only. No equities, no Tradovate, no Apex autofire. The session clock and
 
 ## The cycle (Keaton 2026-10-07)
 
-`decideRhCycle` (`src/lib/execution/rh-cycle.ts`) is what the desk's quote poll runs. There is no five-minute timer.
+`decideRhCycle` (`src/lib/execution/rh-cycle.ts`) is what each desk build runs. There is no extra wait on top of that build. With the tab closed, room-step runs every minute during the session and uses the same sender.
 
 | phase | when | what the sender does |
 |-------|------|----------------------|
@@ -188,7 +188,7 @@ Options only. No equities, no Tradovate, no Apex autofire. The session clock and
 | manage | a position this desk opened, and no exit has printed | nothing |
 | close | 15:30 ET, premium at or through −25%, futures invalidation, a 15-minute failed hold, or 11:00 ET while under +50% | `review_option_order`, then `place_option_order`, sell to close |
 
-A position this desk did not open is not closed and blocks a new open. The poll and the room-step cron call the desk sender (`runRhDesk`): review, then place or close, on account **995386158**. The book of what this desk opened is `rh_desk_book` (one row for that account), so a cold start still manages and closes it. A review route that is not on the session does not block; the desk gates still run, then the order posts. With no `RH_ACCESS_TOKEN` the cycle is decided and nothing is sent. Closes of a position this desk opened do not wait on a click or on the Alpaca phase. Python does not place. The brain does not place. The floor poll and the cron are the sender.
+A position this desk did not open is not closed and blocks a new open. The open desk and the room-step cron call the desk sender (`runRhDesk`): review, then place or close, on account **995386158**, through the trading MCP. The book of what this desk opened is `rh_desk_book` (one row for that account), so a cold start still manages and closes it. The sign-in is one click on the floor (`/api/rh/connect`). The refresh token stays in `rh_oauth`. Opening the desk again does not connect again. With no stored sign-in the cycle is decided and nothing is sent. Closes of a position this desk opened do not wait on a click or on the Alpaca phase. Python does not place. The brain does not place. The floor and the cron are the sender.
 
 An A+ card that does not place is stopped by one of `managerAgreeFromRoom`'s `blocks`: `synthetic_feed`, the room beat (not a fill), `no_buy_open`, `no_entry_plan`, a failed room gate, `trigger`, `session`, an owner hold, `card`, `floor`, `floor_ticket`, `dte`, `path_band`, `path_floor`, a B+ gate, `strike_offset`, or the envelope. Two shorts can miss on different ids. LTF and MTF may flip; the higher-timeframe gate stays absolute except through `biasDisrespect`.
 
