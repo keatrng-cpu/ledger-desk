@@ -166,7 +166,10 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
       <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
         {link?.linked
           ? `Robinhood ${link.account} is signed in on the server. Opening the desk again does not ask you to connect.`
-          : "Connect Robinhood once. The site keeps that sign-in. You do not paste a token, and you do not connect again each time you open the desk."}
+          : "Site sign-in is refused by Robinhood until they allowlist this desk. While the Grok app is open, this Grok session is the sender."}
+      </p>
+      <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
+        Desk, floor, and brain decide the take. This session does not score and does not send while the app is closed. Account is Agentic ••6158 only.
       </p>
       <p className="mt-1 font-mono text-[10px] text-[var(--color-subtle)]">
         {status ? `Robinhood Agentic ••6158 · armed ${status.keys.live ? "yes" : "no"} · not Alpaca` : "—"}
