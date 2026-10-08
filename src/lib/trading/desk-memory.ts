@@ -3,6 +3,15 @@
  * Backtest fills feed strategy/band/side rates the veteran brain uses live.
  */
 
+import {
+  loadAtlas,
+  mergeAtlas,
+  saveAtlas,
+  type AtlasEdge,
+  type AtlasNode,
+  type DeskAtlas,
+} from "@/lib/room/desk-atlas";
+
 export type MemoryKind =
   | "backtest"
   | "journal"
@@ -84,6 +93,30 @@ export interface DeskMemoryState {
     /** Last N fills for brain recall */
     recentFills: BacktestFillRecord[];
   };
+  /**
+   * Which draws this desk has already traded into, by `poolId`. The atlas is
+   * the brain's copy of this (one node per pool, linked to `smc:draw`); the
+   * atlas keeps only 40 unpinned nodes, so this ledger is the durable one and
+   * `poolTaken` falls back to it.
+   */
+  pools?: Record<string, PoolRecord>;
+}
+
+/** One draw, and whether it has already been taken. */
+export interface PoolRecord {
+  /** `pool:<symbol>:<slug>` — the id the atlas node carries too. */
+  id: string;
+  symbol: string;
+  /** The pool as the card named it: "PDH", "London low", "Asia high". */
+  pool: string;
+  price: number;
+  /** True once price actually traded through it. */
+  taken: boolean;
+  /** ET date of the session that took it, or last looked at it. */
+  date: string;
+  /** The trade that targeted it: side and how it ended. */
+  by: string;
+  updatedAt: number;
 }
 
 const KEY = "ledger.desk.memory.v2";
@@ -123,6 +156,7 @@ function empty(): DeskMemoryState {
       gold: emptyBucket(),
       recentFills: [],
     },
+    pools: {},
   };
 }
 
@@ -728,4 +762,290 @@ export function topStrategyRates(
       sumR: b.sumR,
     }))
     .sort((a, b) => b.n - a.n || b.wr - a.wr);
+}
+
+/* ------------------------------------------------------------------ *
+ * The session the brain can read back.
+ *
+ * `now:wire` is a pinned atlas node that SAYS the wire exists. Nothing ever
+ * wrote the other end of it: a trade closed, `ingestPaperFill` moved the book
+ * and the rates, `absorbAtlas` wrote one line titled "Close <id>" — and the
+ * raid that armed it, the array the displacement left, the fill, the partial
+ * and the exit were never stored anywhere the next session reads. So the next
+ * open could not see that the draw it is about to target had already been
+ * taken, which is the desk's own rule ("A pool or a gap that already traded is
+ * spent. No second entry in the same leg." — smc:draw).
+ *
+ * What follows writes that story as an atlas node LINKED to the draw, plus one
+ * node per draw that says whether the pool was taken, and a durable ledger in
+ * this module's own state because the atlas keeps only 40 unpinned nodes.
+ *
+ * Idempotent on purpose: writing the same story twice must not move a node's
+ * `at`, because after the mergeAtlas fix `at` means "when this line last
+ * changed" (scripts/verify-brain-nerve.mjs).
+ * ------------------------------------------------------------------ */
+
+/** The raid, the array, the fill, the partial, the exit, and the draw it aimed at. */
+export interface SessionTradeStory {
+  /** ET trade date, "YYYY-MM-DD". */
+  date: string;
+  symbol: string;
+  side: "long" | "short";
+  strategy?: string;
+  band?: string;
+  /** The pool the raid took. A buyside raid arms a short; a sellside raid arms a long. */
+  raid: { pool: string; price: number };
+  /** The array that displacement LEFT, and where the limit rested (its CE). */
+  array: { kind: string; price: number };
+  /** The fill, or null when the limit was never touched. */
+  fill: { price: number } | null;
+  /** The partial at T1, or null when T1 never printed. */
+  partial: { price: number; r: number } | null;
+  /** How it ended, or null while it is still open. */
+  exit: { price: number; reason: string; r: number; usd?: number } | null;
+  /** The draw the plan targeted. */
+  draw: { pool: string; price: number };
+  /** True when price actually traded through the draw. */
+  drawTaken: boolean;
+}
+
+function slug(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "pool";
+}
+
+/** `pool:<symbol>:<slug>` — one id for the atlas node and the ledger row. */
+export function poolId(symbol: string, pool: string): string {
+  return `pool:${slug(symbol)}:${slug(pool)}`;
+}
+
+/** `backtest:trade:<date>:<symbol>:<side>:<draw>` — one node per closed trade. */
+export function sessionTradeNodeId(story: SessionTradeStory): string {
+  return `backtest:trade:${story.date}:${slug(story.symbol)}:${story.side}:${slug(story.draw.pool)}`;
+}
+
+const px = (n: number): string => (Number.isFinite(n) ? String(Math.round(n * 100) / 100) : "?");
+
+/** The sentence the brain says back. Every number comes from the story. */
+export function sessionTradeLine(story: SessionTradeStory): string {
+  const raidSide = story.side === "short" ? "buyside" : "sellside";
+  const parts = [
+    `${story.symbol} ${story.side} ${story.date}: the ${raidSide} raid took ${story.raid.pool} at ${px(story.raid.price)}`,
+    `displacement left the ${story.array.kind} at ${px(story.array.price)}`,
+    story.fill ? `filled ${px(story.fill.price)}` : "never filled",
+  ];
+  if (story.partial) parts.push(`half off at ${px(story.partial.price)} for ${story.partial.r >= 0 ? "+" : ""}${story.partial.r.toFixed(2)}R`);
+  else if (story.fill) parts.push("no partial");
+  if (story.exit) {
+    parts.push(
+      `out ${px(story.exit.price)} on ${story.exit.reason} for ${story.exit.r >= 0 ? "+" : ""}${story.exit.r.toFixed(2)}R`,
+    );
+  }
+  parts.push(
+    story.drawTaken
+      ? `the draw ${story.draw.pool} ${px(story.draw.price)} TRADED — that pool is spent`
+      : `the draw ${story.draw.pool} ${px(story.draw.price)} is still open`,
+  );
+  return `${parts.join(". ")}.`;
+}
+
+/** What the draw node says once a session has looked at it. */
+export function poolLine(story: SessionTradeStory): string {
+  return story.drawTaken
+    ? `${story.symbol} ${story.draw.pool} at ${px(story.draw.price)} was TAKEN on ${story.date} by the ${story.side}. Spent: no second entry in the same leg.`
+    : `${story.symbol} ${story.draw.pool} at ${px(story.draw.price)} is still open. The ${story.side} of ${story.date} aimed at it and did not reach it.`;
+}
+
+/**
+ * The nodes and edges one closed trade adds. Pure — no atlas, no storage.
+ * The trade node hangs off `smc:draw` (the desk's own rule about spent pools)
+ * and off its own draw node, so `neighborsOf` walks from the rule to the pool
+ * to the trade.
+ */
+export function sessionTradeNodes(
+  story: SessionTradeStory,
+  nowMs: number,
+): { nodes: AtlasNode[]; edges: AtlasEdge[] } {
+  const tradeId = sessionTradeNodeId(story);
+  const drawId = poolId(story.symbol, story.draw.pool);
+  const won = (story.exit?.r ?? 0) > 0;
+  const trade: AtlasNode = {
+    id: tradeId,
+    shelf: "backtest",
+    title: `${story.symbol} ${story.side} ${story.date}`,
+    text: sessionTradeLine(story),
+    who: "Sterling",
+    at: nowMs,
+    // A session that happened is a fact, not a teaching. It starts mid and is
+    // graded by whoever reads it back, like every other unpinned line.
+    confidence: 55,
+    n: 1,
+    pinned: false,
+    tags: [
+      "session",
+      "closed",
+      slug(story.symbol),
+      story.side,
+      slug(story.raid.pool),
+      slug(story.draw.pool),
+      ...(story.strategy ? [slug(story.strategy)] : []),
+      ...(story.exit ? [won ? "win" : "loss"] : []),
+    ].slice(0, 12),
+    prior: [],
+  };
+  const draw: AtlasNode = {
+    id: drawId,
+    shelf: "market",
+    title: `${story.symbol} ${story.draw.pool}`,
+    text: poolLine(story),
+    who: "Gemma",
+    at: nowMs,
+    confidence: story.drawTaken ? 80 : 60,
+    n: 1,
+    pinned: false,
+    tags: ["pool", "draw", slug(story.symbol), slug(story.draw.pool), story.drawTaken ? "taken" : "open"],
+    prior: [],
+  };
+  return {
+    nodes: [trade, draw],
+    edges: [
+      { from: tradeId, to: drawId, why: "the draw this trade targeted" },
+      { from: drawId, to: "smc:draw", why: "a pool that already traded is spent" },
+    ],
+  };
+}
+
+/**
+ * Add a closed trade to an atlas. Pure and idempotent: the same story written
+ * twice returns the SAME atlas object, so no node's `at` moves and the people's
+ * "what changed" map stays honest.
+ */
+export function applySessionTrade(
+  atlas: DeskAtlas,
+  story: SessionTradeStory,
+  nowMs: number,
+): DeskAtlas {
+  const { nodes, edges } = sessionTradeNodes(story, nowMs);
+  let changed = false;
+  const byId = new Map(atlas.nodes.map((n) => [n.id, n]));
+  for (const fresh of nodes) {
+    const cur = byId.get(fresh.id);
+    if (!cur) {
+      byId.set(fresh.id, fresh);
+      changed = true;
+      continue;
+    }
+    if (cur.text === fresh.text) continue; // nothing changed: keep its time
+    byId.set(fresh.id, {
+      ...cur,
+      text: fresh.text,
+      who: fresh.who,
+      tags: fresh.tags,
+      at: nowMs,
+      n: cur.n + 1,
+      confidence: fresh.confidence,
+      prior: [{ at: cur.at, text: cur.text }, ...cur.prior].slice(0, 5),
+    });
+    changed = true;
+  }
+  const edgeKey = (e: AtlasEdge) => `${e.from}>${e.to}`;
+  const edgeMap = new Map(atlas.edges.map((e) => [edgeKey(e), e]));
+  for (const e of edges) {
+    if (!edgeMap.has(edgeKey(e))) {
+      edgeMap.set(edgeKey(e), e);
+      changed = true;
+    }
+  }
+  if (!changed) return atlas;
+  return { ...atlas, updatedAt: nowMs, nodes: [...byId.values()], edges: [...edgeMap.values()] };
+}
+
+export interface PoolRead {
+  id: string;
+  taken: boolean;
+  /** The line the brain says. null when this desk has never looked at the pool. */
+  text: string | null;
+  /** Where the answer came from. */
+  from: "atlas" | "ledger" | "unknown";
+}
+
+/**
+ * Has this draw already been taken? The question the next session asks.
+ * The atlas answers first (it is the brain's copy and can be graded); the
+ * module's own ledger answers when the atlas has evicted the node.
+ */
+export function poolTaken(
+  symbol: string,
+  pool: string,
+  opts?: { atlas?: DeskAtlas | null; state?: DeskMemoryState },
+): PoolRead {
+  const id = poolId(symbol, pool);
+  const node = opts?.atlas?.nodes.find((n) => n.id === id) ?? null;
+  if (node) return { id, taken: node.tags.includes("taken"), text: node.text, from: "atlas" };
+  const row = (opts?.state ?? loadDeskMemory()).pools?.[id];
+  if (row) {
+    return {
+      id,
+      taken: row.taken,
+      text: `${row.symbol} ${row.pool} at ${px(row.price)} ${row.taken ? "was TAKEN" : "is still open"} — ${row.date}, ${row.by}.`,
+      from: "ledger",
+    };
+  }
+  return { id, taken: false, text: null, from: "unknown" };
+}
+
+/** Every draw this desk has a record of, newest first. */
+export function poolLedger(state?: DeskMemoryState): PoolRecord[] {
+  const s = state ?? loadDeskMemory();
+  return Object.values(s.pools ?? {}).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+/**
+ * Write a closed trade into the atlas, the pool ledger and the memory tape.
+ * The one call the paper manager / room exit path makes when a trade ends.
+ * Side-effectful (localStorage) — the pure parts above are what the verifier
+ * drives.
+ */
+export function rememberSessionTrade(
+  story: SessionTradeStory,
+  nowMs = Date.now(),
+): { state: DeskMemoryState; atlas: DeskAtlas } {
+  const atlas = applySessionTrade(mergeAtlas(loadAtlas(), null, nowMs), story, nowMs);
+  saveAtlas(atlas);
+
+  const state = loadDeskMemory();
+  const id = poolId(story.symbol, story.draw.pool);
+  const pools = { ...(state.pools ?? {}) };
+  const by = `${story.side} ${story.strategy ?? "desk"}${story.exit ? ` out on ${story.exit.reason}` : ""}`;
+  const prior = pools[id];
+  // A pool stays taken once it has been taken: a later session that did not
+  // reach it does not un-spend it.
+  pools[id] = {
+    id,
+    symbol: story.symbol,
+    pool: story.draw.pool,
+    price: story.draw.price,
+    taken: story.drawTaken || !!prior?.taken,
+    date: story.drawTaken || !prior ? story.date : prior.date,
+    by: story.drawTaken || !prior ? by : prior.by,
+    updatedAt: nowMs,
+  };
+  state.pools = pools;
+
+  const dup = state.items.some(
+    (i) => i.kind === "session" && (i.payload as { nodeId?: string } | undefined)?.nodeId === sessionTradeNodeId(story),
+  );
+  if (!dup) {
+    const item: MemoryItem = {
+      id: uid(),
+      kind: "session",
+      ts: nowMs,
+      title: `SESSION ${story.symbol} ${story.side.toUpperCase()} ${story.date}`,
+      summary: sessionTradeLine(story).slice(0, 800),
+      tags: ["session", story.symbol, story.side, slug(story.draw.pool), story.drawTaken ? "draw-taken" : "draw-open"],
+      payload: { nodeId: sessionTradeNodeId(story), story },
+    };
+    state.items = [item, ...state.items].slice(0, MAX_ITEMS);
+  }
+  saveDeskMemory(state);
+  return { state, atlas };
 }

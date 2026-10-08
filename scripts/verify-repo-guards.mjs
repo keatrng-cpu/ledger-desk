@@ -276,6 +276,13 @@ for (const [path] of FLOORS) {
     // Alpaca adapter is exercised by verify-room-exec. The live desk places on
     // Robinhood (rh-autofire), so nothing under src/ imports this module.
     "src/lib/room/exec/alpaca.ts",
+    // 2026-10-08: the tape-freshness decision (ITEM 21). Pure and verified by
+    // verify-tape-trust.mjs, but it only becomes a gate when scanner.ts calls
+    // it — one line, in `src/lib/trading/scanner.ts`, right after the candidate
+    // is built:
+    //   if (applyTapeTrust(c, tapeTrust(bars, { nowMs, interval: read.interval, lagSec: quote?.lagSec, source: quote?.source }))) return c;
+    // Comes off this list the moment that line lands.
+    "src/lib/market/tape-trust.ts",
   ]);
   // 2026-10-06: src/lib/execution/rh-autofire.ts came off — the real Manager feed's live loop
   // (src/lib/room/manager-live-loop.ts) drives it, and the Floor's Manager panel prints its read.
