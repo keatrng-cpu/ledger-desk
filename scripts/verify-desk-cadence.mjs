@@ -4,15 +4,15 @@
  * Found 2026-10-01: every scoring input changes only on a candle close (and
  * every frame from 1m to 4h closes on a minute boundary), but the desk rebuilt
  * on a free-running 20s timer, so a freshly closed candle could wait ~20s to
- * be graded. desk-cadence.ts aligns the rebuild to DESK_CLOSE_LAG_MS after
- * each minute (the gateway writes the closed 1m bar ~1s after it) plus one
- * mid-minute rebuild.
+ * be graded. The close is still graded DESK_CLOSE_LAG_MS after the minute.
+ * Between closes the board rebuilds every DESK_POLL_GAP_MS so a new score
+ * is not held for the rest of the minute.
  *
  * Run: npx tsx scripts/verify-desk-cadence.mjs
  */
 import { readFileSync } from "node:fs";
 
-const { msUntilNextDeskPoll, DESK_CLOSE_LAG_MS, DESK_MID_MINUTE_MS } = await import("../src/lib/trading/desk-cadence.ts");
+const { msUntilNextDeskPoll, DESK_CLOSE_LAG_MS, DESK_POLL_GAP_MS } = await import("../src/lib/trading/desk-cadence.ts");
 
 let pass = 0;
 let fail = 0;
@@ -29,8 +29,8 @@ const at = (sec) => minute + sec * 1000;
 console.log("\nthe next rebuild lands just after the minute closes");
 check("at :00.5 → the :02 rebuild (1.5s)", msUntilNextDeskPoll(at(0.5)), 1500);
 check("at :01.9 → still the :02 rebuild", msUntilNextDeskPoll(at(1.6)), 400);
-check("at :02.5 → the mid-minute :32 rebuild", msUntilNextDeskPoll(at(2.5)), 29500);
-check("at :45 → the next minute's :02 rebuild", msUntilNextDeskPoll(at(45)), 17000);
+check("at :02.5 → the next gap, not the rest of the minute", msUntilNextDeskPoll(at(2.5)), DESK_POLL_GAP_MS);
+check("at :45 → the next gap", msUntilNextDeskPoll(at(45)), DESK_POLL_GAP_MS);
 check("at :59.9 → the next minute's :02 rebuild", msUntilNextDeskPoll(at(59.9)), 2100);
 
 console.log("\nit can never spin or stall");
@@ -42,12 +42,11 @@ for (let ms = 0; ms < 60_000; ms += 37) {
   best = Math.min(best, d);
 }
 ok(`never schedules sooner than 250ms (min ${best}ms)`, best > 250);
-ok(`never waits longer than ~31s (max ${worst}ms)`, worst <= 30_250);
+ok(`never waits longer than one gap (max ${worst}ms)`, worst <= DESK_POLL_GAP_MS + 50);
 
-console.log("\nevery candle close is graded within a few seconds, with fewer rebuilds");
+console.log("\na new score is graded on the close and again within one gap");
 ok("a closed 1m candle is picked up DESK_CLOSE_LAG_MS after the minute", DESK_CLOSE_LAG_MS <= 3000);
-const perMinute = [DESK_CLOSE_LAG_MS, DESK_MID_MINUTE_MS].length;
-ok(`${perMinute} rebuilds a minute, fewer than the old 20s timer's 3`, perMinute < 3);
+ok("the gap is a few seconds, not half a minute", DESK_POLL_GAP_MS <= 5_000);
 
 console.log("\nthe shell uses it");
 const shell = readFileSync("src/routes/index.tsx", "utf8");

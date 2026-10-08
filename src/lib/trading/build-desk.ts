@@ -190,15 +190,15 @@ const QUOTE_MAX_STALE_MS = 15 * 60_000;
 
 /**
  * The ladder's extra series. Daily bars move once a day and are cached for
- * ten minutes; 1m bars are cached for 20s (one poll) so a burst of polls
- * does not fan out into a burst of Yahoo calls. Both run inside the desk
+ * ten minutes; 1m bars are cached for 2s so a new closed bar is in the next
+ * grade, while two polls in the same breath share one fetch. Both run inside the desk
  * wall budget: a slow fetch serves last-good (flagged stale in
  * `budget.legs`) or an empty series, and the ladder marks the rung "no data"
  * rather than holding the desk.
  */
 const DAILY_CACHE_MS = 10 * 60_000;
 const DAILY_MAX_STALE_MS = 24 * 3_600_000;
-const MINUTE_CACHE_MS = 20_000;
+const MINUTE_CACHE_MS = 2_000;
 const MINUTE_MAX_STALE_MS = 15 * 60_000;
 /** 1m bars shipped per book — 8h covers every LTF rung with room. */
 const MINUTE_KEEP = 480;
