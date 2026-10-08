@@ -7,10 +7,14 @@ import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
 import {
+  confirmSweepOnTape,
+  detectBlakeSwing,
   detectFvgs,
   detectInducement,
   detectMitigationBlock,
+  readArmingSweep,
   summarizeDetectors,
+  DISPLACEMENT_RULE,
   type DetectorSummary,
   type FvgResult,
 } from "./detectors";
@@ -38,7 +42,7 @@ import {
   type StrategyId,
 } from "./strategies";
 import type { HtfBiasRead } from "./structure";
-import { smtRead } from "./structure";
+import { etSessionKey, smtRead } from "./structure";
 import { smtAtLevel, type SmtLevelRead } from "./smt-level";
 import type { HitOdds } from "./hit-odds";
 import { tapeHitsForSide, type SmcTape } from "./smc-board";
@@ -54,6 +58,7 @@ import {
   type StrategyMarketGrade,
 } from "./strategy-grade";
 import { sessionLive } from "@/lib/trading/sessions";
+import { applyTapeTrust, tapeTrust } from "@/lib/market/tape-trust";
 
 export type SetupSide = "long" | "short";
 
@@ -172,6 +177,58 @@ export interface SetupCandidate {
   smtLevel?: SmtLevelRead;
   /** P(T1 | filled) and its drivers, four-year model (hit-odds.ts). Attached by build-desk. */
   hitOdds?: HitOdds | null;
+
+  /**
+   * ITEM 5 — WHAT MADE THIS A DISPLACEMENT.
+   *
+   * `DISPLACEMENT_RULE.rule` stays `"body"` (the 1.5 x ATR body test) — the
+   * DEFAULT IS NOT FLIPPED. Nothing in this repo compares the three rules on
+   * the four-year capture, the gap rule measures 1.70x today's event rate and
+   * overlaps today's events on only 16% of a 10,840 union, so flipping it is a
+   * different detector and an unmeasured edge claim.
+   *
+   * What lands here is the EVIDENCE, so the census can decide: whether the
+   * candle also left a gap, whether that gap still HELD, and which test it
+   * satisfied. Reported, never gating.
+   */
+  displacement?: {
+    rule: string;
+    bodyQualified: boolean;
+    qualifiedBy: "body" | "gap" | "both";
+    gapHeld: boolean;
+    gap: { top: number; bottom: number } | null;
+  } | null;
+
+  /**
+   * ITEM 7 — did the FINER tape agree the raid was a raid?
+   *
+   * Three-state on purpose (`confirmSweepOnTape`): "confirmed" is a wick
+   * through the pool that closed back inside on the 1m, "breakout" is a 1m
+   * CLOSE outside it, and "no_tape" is THE QUESTION WAS NOT ANSWERED.
+   *
+   * "no_tape" must never read as confirmation and must never read as a
+   * refusal. Collapsing it to a boolean either arms unverified raids or shuts
+   * the desk off every time the gateway is down and in every backtest — where
+   * it would look like a quiet session rather than a blind one.
+   */
+  raidTape?: { verdict: "confirmed" | "breakout" | "no_tape"; reason: string } | null;
+
+  /**
+   * ITEM 12 — was the raid the trap rather than the trade?
+   *
+   * `readArmingSweep`: the latest polarity raid took a MINOR pool while a more
+   * extreme swing beyond it sits unswept, so the obvious liquidity is still
+   * out there. A FLAG and a note, NOT a refusal — Wave 1 deliberately did not
+   * gate on it, the rule refuses 12.1% MNQ / 9.2% ES of same-polarity sweeps,
+   * and nothing has measured its expectancy. The nearest measurement
+   * (inducement, z = -1.39) is under the |z| >= 2 bar.
+   */
+  arming?: {
+    inducementOnly: boolean;
+    armingSweep: number | null;
+    unsweptBeyond: number | null;
+    reason: string;
+  } | null;
 }
 
 export interface ScanResult {
@@ -353,6 +410,37 @@ function overnightRange(bars: OhlcBar[]): { hi: number; lo: number } | null {
   };
 }
 
+/**
+ * ITEM 24 — the 09:30–10:00 ET OPENING range of the latest trade date.
+ *
+ * The silver bullet's pool. Deliberately separate from `overnightRange` above
+ * (18:00–09:30, Judas's pool): the two models are the same shape on different
+ * ranges, and conflating them is how "any sweep in the 10:00 hour" became a
+ * silver bullet.
+ *
+ * `endMs` is the close of the range's last bar, so a caller can require the
+ * raid to have happened AFTER the range finished forming — a wick inside the
+ * first half hour is the range being built, not a raid of it. Closed-bar only:
+ * a bucket is included when its whole span sits inside the window, which on
+ * the 15m series the desk grades is exactly the 09:30 and 09:45 candles.
+ */
+function openingRange(bars: OhlcBar[]): { hi: number; lo: number; endMs: number } | null {
+  if (!bars.length) return null;
+  const last = bars[bars.length - 1]!;
+  const dayKey = etSessionKey(last.t);
+  const inWindow = bars.filter((b) => {
+    if (etSessionKey(b.t) !== dayKey) return false;
+    const m = etMinutesOf(b.t);
+    return m >= 9 * 60 + 30 && m < 10 * 60;
+  });
+  if (!inWindow.length) return null;
+  return {
+    hi: Math.max(...inWindow.map((b) => b.h)),
+    lo: Math.min(...inWindow.map((b) => b.l)),
+    endMs: inWindow[inWindow.length - 1]!.t,
+  };
+}
+
 function impulseZone(
   bars: OhlcBar[],
   direction: "bull" | "bear",
@@ -392,11 +480,52 @@ function scoreDirection(
   tape?: SmcTape,
   smtLevel?: SmtLevelRead,
   minute?: OhlcBar[],
+  /**
+   * ITEM 21 — THE CLOSED PREFIX, FOR DETECTION ONLY.
+   *
+   * `bars` arrives with the live print patched onto the FORMING bar
+   * (`applyQuoteToLastBar`), and that is correct for LOCATION: how far price
+   * is from the array, which half of the range it sits in, what the last print
+   * is. The measured entry-location result wants the live print (price already
+   * at CE is a real, measured state).
+   *
+   * It is NOT correct for DETECTION. A sweep is "a wick through the pool that
+   * CLOSED back inside". A displacement is a body against a CLOSED range. A
+   * fair-value gap needs the third candle to have printed. A forming bar has
+   * no close, and its high/low are one live tick — so reading a raid or a
+   * displacement off it is reading a statement about a bar that has not
+   * happened. One tick under a swing low at 10:07 printed a phantom sweep that
+   * 10:15 erased.
+   *
+   * `closed ?? bars` on every detection site, so the two halves can land
+   * independently and a caller that passes nothing behaves exactly as today.
+   * Every index-bearing detector (`raid.index`, `dispEvent.index`,
+   * `gap.createdIndex`) must read the SAME array, which is why they move
+   * together rather than one at a time.
+   */
+  closed?: OhlcBar[],
 ): SetupCandidate {
   const side: SetupSide = direction === "bull" ? "long" : "short";
   const present: ComponentKey[] = [];
   const missing: string[] = [];
   const reasons: string[] = [];
+  /**
+   * NOTES THAT MUST SURVIVE.
+   *
+   * The returned `reasons` array is `[gaps.line, structure Q, best model,
+   * ...board.slice(0,4), ...reasons.slice(0, 8)]` — the component log is
+   * TRUNCATED AT EIGHT. Anything pushed to `reasons` after the first eight
+   * `add()` calls is silently dropped, which is where the item 7, 11 and 12
+   * notes all land. Found by `scripts/verify-desk-enhancements.mjs`, which
+   * read the structured `arming` flag on the card and an empty reason list
+   * beside it.
+   *
+   * These go in front of that tail instead, so a read the desk made is a read
+   * the trader can see.
+   */
+  const notes: string[] = [];
+  /** The detection series. LOCATION keeps `bars`. */
+  const cb = closed && closed.length ? closed : bars;
 
   const add = (key: ComponentKey, ok: boolean, detail?: string) => {
     if (ok) {
@@ -484,16 +613,37 @@ function scoreDirection(
    * held it — because the read is about THIS book's own extreme at a level.
    * (Until 2026-10-02 only the holder was credited, wherever it printed.)
    */
+  /**
+   * ITEM 11, ADDED 2026-10-08: THE LEADER, NOT THE LAGGARD.
+   *
+   * The comment above ("Either book can earn it") is what shipped on
+   * 2026-10-02 and it is half right: the read IS about this book's own extreme
+   * at a level. What it missed is that a divergence has ONE trade in it. If NQ
+   * made the high and NQ is the index that displaced, the ES short is the same
+   * divergence seen from the other side — not a second setup — and crediting
+   * both books double-counts one fact across two cards that then compete for
+   * the one-book pick.
+   *
+   * `smtLevel.led` is `thisLed` (smt-level.ts), which was already computed and
+   * discarded. `false` is the laggard and does not score. `null` is "no
+   * divergence", which cannot reach here anyway because `present` is false.
+   */
   void smt;
   void book;
-  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel);
+  const smtLed = smtLevel?.led ?? null;
+  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel && smtLed !== false);
   add(
     "smt",
     smtHits,
     smtHits
-      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"})`
+      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"}) — this book led the divergence`
       : undefined,
   );
+  if (smtLevel?.present && smtLevel.atLevel && smtLed === false) {
+    notes.push(
+      `SMT at ${smtLevel.level}, but the OTHER index made the extreme — the laggard is not a second setup. Trade the book that led.`,
+    );
+  }
 
   const detSweepOk = Boolean(
     det.sweep.latest &&
@@ -520,17 +670,17 @@ function scoreDirection(
   const wpd = weeklyPdBias(read);
   add("weekly_pd", wpd === direction, wpd ? `weekly_pd ${wpd}` : undefined);
 
-  const raid = bars.length > 20 ? polaritySweep(bars, direction) : null;
-  const dispEvent = raid ? pairedDisplacement(bars, raid, direction) : null;
+  const raid = cb.length > 20 ? polaritySweep(cb, direction) : null;
+  const dispEvent = raid ? pairedDisplacement(cb, raid, direction) : null;
   const disp = dispEvent != null;
   const structure = read.lastBOS?.direction === direction;
-  const cisd = raid != null && cisdThroughSeries(bars, direction, raid.index + 1);
+  const cisd = raid != null && cisdThroughSeries(cb, direction, raid.index + 1);
   add("cisd", cisd, cisd ? "cisd (body close after the raid)" : undefined);
   add("displacement", disp, disp ? "displacement after the raid" : undefined);
   add("structure", Boolean(structure), structure ? "structure BOS" : undefined);
   // The shift is a later close through the swing the raid leaned on, not an older BOS.
   const leaned = raid
-    ? bars.slice(Math.max(0, raid.index - 8), raid.index + 1)
+    ? cb.slice(Math.max(0, raid.index - 8), raid.index + 1)
     : [];
   const leanedLevel = leaned.length
     ? direction === "bull"
@@ -540,7 +690,7 @@ function scoreDirection(
   const shifted =
     raid != null &&
     leanedLevel != null &&
-    bars.slice(raid.index + 1).some((b) => (direction === "bull" ? b.c > leanedLevel : b.c < leanedLevel));
+    cb.slice(raid.index + 1).some((b) => (direction === "bull" ? b.c > leanedLevel : b.c < leanedLevel));
   add(
     "mss",
     shifted,
@@ -589,7 +739,9 @@ function scoreDirection(
       (direction === "bear" && det.sweep.latest.side === "buyside"))
       ? det.sweep.latest
       : null);
-  const impulseLeg = buildImpulseLeg(bars, direction, {
+  // `sweepAnchor.index` indexes the DETECTION series (raid, or det.sweep which
+  // build-desk already derives from closed bars), so the leg must read it too.
+  const impulseLeg = buildImpulseLeg(cb, direction, {
     originPrice: sweepAnchor?.wickExtreme,
     originIndex: sweepAnchor?.index,
   });
@@ -626,8 +778,10 @@ function scoreDirection(
   );
 
   let rejection = false;
-  if (bars.length >= 3) {
-    const b = bars[bars.length - 1]!;
+  // A rejection wick is a fact about a FINISHED candle — its close decides
+  // where the body sits inside the range, so a forming bar cannot have one.
+  if (cb.length >= 3) {
+    const b = cb[cb.length - 1]!;
     const range = b.h - b.l || 1;
     if (direction === "bull") {
       rejection =
@@ -664,8 +818,121 @@ function scoreDirection(
     raid != null &&
     (direction === "bull" ? raid.wickExtreme <= range.lo : raid.wickExtreme >= range.hi);
   add("opening_raid", opening, opening ? "opening_raid of the overnight range" : undefined);
+
+  /**
+   * ITEM 24 — `or_raid`: the raid took the 09:30–10:00 ET OPENING range.
+   *
+   * Distinct from `opening_raid` directly above, which is the OVERNIGHT range
+   * — Judas's pool. The silver bullet is the same shape on a different range,
+   * and without this component "10:00–11:00 ET" was just NY AM, so a Patty or
+   * a continuation could take the hour's name.
+   *
+   * Weight 0 (engine-weights.ts): this decides whether the name is allowed and
+   * adds nothing to the score.
+   */
+  const orRange = openingRange(cb);
+  const orRaid =
+    orRange != null &&
+    raid != null &&
+    raid.t > orRange.endMs &&
+    (direction === "bull" ? raid.wickExtreme <= orRange.lo : raid.wickExtreme >= orRange.hi);
+  add(
+    "or_raid",
+    orRaid,
+    orRaid
+      ? `or_raid — the raid took the 09:30–10:00 range (${orRange!.lo.toFixed(2)}–${orRange!.hi.toFixed(2)})`
+      : undefined,
+  );
+
+  /**
+   * ITEM 14 — `htf_gap`: a 1h/4h gap, still unmitigated, that price closed
+   * back INTO. Patty's own object.
+   *
+   * Patty's template `must` was `ifvg`, which is any gap on the execution
+   * series, so a 15-minute gap with the daily agreeing completed the model.
+   * The tape (smc-board.ts) already carries each array's own timeframe, so the
+   * higher-timeframe gap is readable without a new detector: a 1h or 4h
+   * fvg/ifvg/sponsored array on this side, state fresh or partial (i.e. not
+   * mitigated), with a CLOSED bar back inside its boundaries.
+   *
+   * The CLOSE is what makes it the confirmation rather than the touch: a wick
+   * into the gap is price arriving, a close inside it is price accepting.
+   * Weight 0 — a naming gate, not a score.
+   */
+  const htfGapArr = (tape?.arrays ?? []).find(
+    (a) =>
+      (a.tf === "1h" || a.tf === "4h") &&
+      a.side === direction &&
+      (a.kind === "fvg" || a.kind === "ifvg" || a.kind === "sponsored") &&
+      (a.state === "fresh" || a.state === "partial"),
+  );
+  const htfGapClosedInto = Boolean(
+    htfGapArr &&
+      cb.some((b) => b.t >= htfGapArr.t && b.c >= htfGapArr.bottom && b.c <= htfGapArr.top),
+  );
+  add(
+    "htf_gap",
+    htfGapClosedInto,
+    htfGapClosedInto
+      ? `htf_gap — unmitigated ${htfGapArr!.tf} ${htfGapArr!.kind} ${htfGapArr!.bottom.toFixed(2)}–${htfGapArr!.top.toFixed(2)}, closed back into`
+      : undefined,
+  );
+
+  /**
+   * ITEM 15 — `blake_swing`: the confirmed swing pair.
+   *
+   * First extreme, pullback, a second push that TAKES that extreme, then a
+   * body close back through the PULLBACK level. `cisd` (a close through any
+   * run of opposing candles) is true on a large share of bars and was
+   * `blake_mech`'s must; this is the model as stated.
+   */
+  const blake = cb.length > 20 ? detectBlakeSwing(cb, side) : null;
+  add(
+    "blake_swing",
+    Boolean(blake?.present),
+    blake?.present
+      ? `blake_swing — body close ${blake.swing!.confirmClose.toFixed(2)} back through the pullback ${blake.swing!.pullback.price.toFixed(2)}, raid wick ${blake.swing!.stop.toFixed(2)}`
+      : undefined,
+  );
+
   const ltf = readLtfReaction(minute, direction, raid?.t ?? null);
   add("ltf_reaction", ltf.confirmed, ltf.confirmed ? ltf.reason : undefined);
+
+  /**
+   * ITEM 7 — grade the raid against the CLOSED finer tape, three-state.
+   *
+   * `breakout` is the only verdict that changes anything, and it only ever
+   * REMOVES: the 1m says price CLOSED outside the pool, so the 15m "wick that
+   * closed back inside" was a breakout the structure series could not see.
+   * Measured disagreement is 1.1% MNQ / 1.7% ES, so this is a rare, named
+   * refusal and not a new regime.
+   *
+   * `no_tape` is routed to the WAIT side of the line — a reason on the card,
+   * `actionable` untouched. It must not refuse: the gateway is down for most
+   * of the day and for every backtest, and a refusal there would read as a
+   * quiet session rather than a blind one.
+   */
+  const raidTape = raid ? confirmSweepOnTape(raid, cb, minute ?? null) : null;
+  if (raidTape?.verdict === "breakout") {
+    missing.push(
+      `raid is a BREAKOUT on the finer tape — ${raidTape.closedOutside} closed bar(s) outside the pool. Not a sweep.`,
+    );
+    notes.push(`raid BREAKOUT on the finer tape — ${raidTape.reason}`);
+  } else if (raidTape?.verdict === "no_tape") {
+    notes.push(`raid unverified on the finer tape — ${raidTape.reason}`);
+  } else if (raidTape?.verdict === "confirmed") {
+    notes.push(`raid confirmed on the finer tape — ${raidTape.reason}`);
+  }
+
+  /**
+   * ITEM 12 — the arming read. A flag and a note; it refuses nothing.
+   */
+  const armRead = cb.length > 20 ? readArmingSweep(cb, side) : null;
+  if (armRead?.inducementOnly) {
+    notes.push(
+      `arming: ${armRead.reason} The obvious pool beyond is still unswept — this raid may be the trap, not the trade. Flag only.`,
+    );
+  }
 
   const structureScore = structureLayerScore(present);
   const strategyBoard = gradeAllStrategies(present, {
@@ -696,7 +963,7 @@ function scoreDirection(
     .map((b) => b.id as import("./strategies").StrategyId);
 
   const g = grade(score, APLUS_RULES.confluenceFloor);
-  const gaps = gapDirection(bars);
+  const gaps = gapDirection(cb);
   const cardSide = direction === "bull" ? "long" : "short";
   const directionOk = gaps.side != null ? gaps.side === cardSide : htfOk;
 
@@ -728,8 +995,11 @@ function scoreDirection(
    * The fill is the array this displacement left, or the retest of that
    * array. An older gap's midpoint is not an entry.
    */
+  // `dispEvent.index` indexes the DETECTION series, so the gap search must
+  // read the same array or `createdIndex >= dispEvent.index` compares two
+  // different coordinate systems and silently picks the wrong gap.
   const born = dispEvent
-    ? detectFvgs(bars).find(
+    ? detectFvgs(cb).find(
         (g) =>
           g.kind === direction &&
           g.createdIndex >= dispEvent.index &&
@@ -738,7 +1008,7 @@ function scoreDirection(
       )
     : null;
   const flipped = dispEvent
-    ? detectFvgs(bars).find(
+    ? detectFvgs(cb).find(
         (g) =>
           g.kind !== direction &&
           g.inverted &&
@@ -760,7 +1030,7 @@ function scoreDirection(
   const near = gap ? (direction === "bull" ? gap.top : gap.bottom) : null;
   const far = gap ? (direction === "bull" ? gap.bottom : gap.top) : null;
   const bodyClose = gap
-    ? bars.slice(gap.createdIndex).find((b) => (direction === "bull" ? b.c > gap.top : b.c < gap.bottom))?.c ?? null
+    ? cb.slice(gap.createdIndex).find((b) => (direction === "bull" ? b.c > gap.top : b.c < gap.bottom))?.c ?? null
     : null;
   const etMin = clock.etHour * 60 + clock.etMinute;
   const silverHour = (etMin >= 600 && etMin < 660) || (etMin >= 840 && etMin < 900);
@@ -811,6 +1081,7 @@ function scoreDirection(
         (b) =>
           `${b.label}: fit ${b.fit.toFixed(2)}${b.complete ? " ✓" : " · " + b.missing.slice(0, 2).join(",")}`,
       ),
+      ...notes,
       ...reasons.slice(0, 8),
     ],
     missing: [
@@ -835,8 +1106,24 @@ function scoreDirection(
     entryPx: entryPx != null && Number.isFinite(entryPx) ? entryPx : null,
     invalidation: inv.text,
     stopSource: inv.source,
+    /**
+     * PLACEHOLDER TARGETS ONLY — `attachPlansToCards` (card-plan.ts)
+     * overwrites these from the plan object the sequence actually graded.
+     * They survive only for a card whose book never priced a plan.
+     *
+     * ITEM 1 LABEL FIX: the third line read "Next unfilled pool (clamped
+     * 1–3R)". There is no 1–3R clamp anywhere in this file or in
+     * trade-plan.ts, and CLAUDE.md records that clamp as MEASURED at
+     * −0.12R/t as a T1 cap and therefore NOT applied. The string described a
+     * rule the code does not have. It now says what is actually true: the
+     * priced target, when there is one, comes from the plan.
+     *
+     * The EQ on the first line is likewise a LOCATION, not liquidity (item 1,
+     * card-plan.ts LOCATION_KINDS) — it is labelled as one so a card with no
+     * plan cannot read as if its first target were a pool.
+     */
     targets: [
-      read.dealing ? `EQ ${read.dealing.eq.toFixed(2)}` : "1R",
+      read.dealing ? `EQ ${read.dealing.eq.toFixed(2)} — a location, not a pool` : "1R",
       direction === "bull"
         ? read.pdh
           ? `PDH ${read.pdh.toFixed(2)}`
@@ -844,16 +1131,42 @@ function scoreDirection(
         : read.pdl
           ? `PDL ${read.pdl.toFixed(2)}`
           : "External sellside",
-      "Next unfilled pool (clamped 1–3R)",
+      "Priced target comes from the plan — no plan on this card yet",
     ],
     killzoneOk,
     htfOk,
     gapSide: gaps.side,
     directionLine: gaps.line,
     conditionsOk: conditionsOk || hot,
+    // NOTE: `applyProfitPathToCandidate` recomputes `actionable` from scratch
+    // and never reads the prior value, so a refusal written HERE is discarded
+    // two steps later. Items 7 and 21 therefore apply theirs in
+    // `scoreCandidates` on `pathCandidates`, which is the last word — the same
+    // trap that silently killed the with-bias fade veto for its whole life.
     actionable,
     regime: conditions.regime,
     volatility: conditions.volatility,
+    // ITEM 5 — the evidence, with the default rule unchanged.
+    displacement: dispEvent
+      ? {
+          rule: DISPLACEMENT_RULE.rule,
+          bodyQualified: dispEvent.bodyQualified,
+          qualifiedBy: dispEvent.qualifiedBy,
+          gapHeld: dispEvent.gapHeld,
+          gap: dispEvent.gap ? { top: dispEvent.gap.top, bottom: dispEvent.gap.bottom } : null,
+        }
+      : null,
+    // ITEM 7 — three-state, never collapsed.
+    raidTape: raidTape ? { verdict: raidTape.verdict, reason: raidTape.reason } : null,
+    // ITEM 12 — a flag, not a refusal.
+    arming: armRead
+      ? {
+          inducementOnly: armRead.inducementOnly,
+          armingSweep: armRead.armingSweep?.sweptLevel ?? null,
+          unsweptBeyond: armRead.unsweptBeyond?.price ?? null,
+          reason: armRead.reason,
+        }
+      : null,
   };
 }
 
@@ -873,6 +1186,27 @@ export interface ScoreCandidatesOptions {
   rightMinute?: OhlcBar[];
   leftTape?: SmcTape;
   rightTape?: SmcTape;
+  /**
+   * ITEM 21 — the CLOSED prefix of each series, for detection only.
+   *
+   * `build-desk.ts` has computed these since the day the forming-bar patch
+   * landed (`closedL` / `closedR` at :635-636) and simply never passed them,
+   * so every sweep, gap and displacement on the board was read off a bar that
+   * had not closed. Optional: omitted means today's behaviour exactly.
+   */
+  leftClosed?: OhlcBar[];
+  rightClosed?: OhlcBar[];
+  /**
+   * ITEM 21 — freshness, one call. When a series' last CLOSED bar is more than
+   * one bucket behind, the card cannot arm (`applyTapeTrust`). Pass the desk
+   * build time and the quote's own lag; omit and nothing is gated.
+   */
+  trust?: {
+    nowMs: number;
+    interval?: string | number;
+    left?: { lagSec?: number | null; source?: string | null };
+    right?: { lagSec?: number | null; source?: string | null };
+  };
 }
 
 /**
@@ -944,7 +1278,18 @@ export function scoreCandidates(
   clock: SessionClock,
   opts: ScoreCandidatesOptions = {},
 ): ScanResult {
-  const { divergence, leftBars, rightBars, leftTape, rightTape, leftMinute, rightMinute } = opts;
+  const {
+    divergence,
+    leftBars,
+    rightBars,
+    leftTape,
+    rightTape,
+    leftMinute,
+    rightMinute,
+    leftClosed,
+    rightClosed,
+    trust,
+  } = opts;
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
   const blocked: string[] = [];
@@ -957,31 +1302,38 @@ export function scoreCandidates(
 
   const barsL = leftBars ?? [];
   const barsR = rightBars ?? [];
-  const condL = assessConditions(barsL);
-  const condR = assessConditions(barsR);
+  // ITEM 21: DETECTION reads the closed prefix. `?? bars` everywhere, so a
+  // caller that passes nothing gets today's behaviour exactly.
+  const closedL = leftClosed?.length ? leftClosed : barsL;
+  const closedR = rightClosed?.length ? rightClosed : barsR;
+  const condL = assessConditions(closedL);
+  const condR = assessConditions(closedR);
   if (!condL.tradeable)
     blocked.push(`${left.symbol}: ${condL.reasons[0] ?? "conditions gate"}`);
   if (!condR.tradeable)
     blocked.push(`${right.symbol}: ${condR.reasons[0] ?? "conditions gate"}`);
 
-  const detL = summarizeDetectors(barsL);
-  const detR = summarizeDetectors(barsR);
+  const detL = summarizeDetectors(closedL);
+  const detR = summarizeDetectors(closedR);
 
   const candidates: SetupCandidate[] = [];
-  for (const [read, det, bars, cond, book] of [
-    [left, detL, barsL, condL, "left"] as const,
-    [right, detR, barsR, condR, "right"] as const,
+  for (const [read, det, bars, closed, cond, book] of [
+    [left, detL, barsL, closedL, condL, "left"] as const,
+    [right, detR, barsR, closedR, condR, "right"] as const,
   ]) {
     const tape = book === "left" ? leftTape : rightTape;
     const minute = book === "left" ? leftMinute : rightMinute;
-    const lvlLong = smtAtLevel({ divergence, isLeft: book === "left", side: "long", bars, arrays: tape?.arrays ?? [] });
-    const lvlShort = smtAtLevel({ divergence, isLeft: book === "left", side: "short", bars, arrays: tape?.arrays ?? [] });
-    const bull = scoreDirection("bull", read, det, bars, cond, clock, smt, book, tape, lvlLong, minute);
-    const bear = scoreDirection("bear", read, det, bars, cond, clock, smt, book, tape, lvlShort, minute);
+    // SMT is a CONFIRMATION — a forming bar can print a transient HH on NQ
+    // before ES prints its own, which is a divergence that never closed.
+    const lvlLong = smtAtLevel({ divergence, isLeft: book === "left", side: "long", bars: closed, arrays: tape?.arrays ?? [] });
+    const lvlShort = smtAtLevel({ divergence, isLeft: book === "left", side: "short", bars: closed, arrays: tape?.arrays ?? [] });
+    const bull = scoreDirection("bull", read, det, bars, cond, clock, smt, book, tape, lvlLong, minute, closed);
+    const bear = scoreDirection("bear", read, det, bars, cond, clock, smt, book, tape, lvlShort, minute, closed);
     bull.smtLevel = lvlLong;
     bear.smtLevel = lvlShort;
     candidates.push(bull, bear);
   }
+
 
   /**
    * HTF top-down gate — absolute UNTIL the bias is disrespected.
@@ -1001,7 +1353,9 @@ export function scoreCandidates(
   for (const c of candidates) {
     const read = c.symbol === left.symbol ? left : right;
     const det = c.symbol === left.symbol ? detL : detR;
-    const bars = c.symbol === left.symbol ? barsL : barsR;
+    // A bias is disrespected by a raid, a displacement and a structure break —
+    // all facts about CLOSED bars (item 21).
+    const bars = c.symbol === left.symbol ? closedL : closedR;
     const need = c.side === "long" ? "bull" : "bear";
     if (read.topDown === need) continue;
 
@@ -1130,7 +1484,8 @@ export function scoreCandidates(
    * drift.
    */
   for (const c of pathCandidates) {
-    const bars = c.symbol === left.symbol ? barsL : barsR;
+    // Both reads are sweep/structure facts — closed bars (item 21).
+    const bars = c.symbol === left.symbol ? closedL : closedR;
     if (!bars.length) continue;
     // Every card carries both reads — the P(T1) model prices them whether or
     // not they veto.
@@ -1167,8 +1522,54 @@ export function scoreCandidates(
     noteOnly(c, "mitigation block — failed second push, not the entry and not a block");
   }
 
+  /**
+   * ITEM 7 — A BREAKOUT ON THE FINER TAPE IS NOT A RAID.
+   *
+   * Applied HERE, not in `scoreDirection`, because
+   * `applyProfitPathToCandidate` recomputes `actionable` from scratch and
+   * discards anything written earlier. Only the `breakout` verdict acts:
+   * `no_tape` is a reason on the card and nothing else, because the question
+   * was not answered and both booleans are wrong answers to that.
+   */
   for (const c of pathCandidates) {
-    const bars = c.symbol === left.symbol ? barsL : barsR;
+    if (c.raidTape?.verdict !== "breakout") continue;
+    c.actionable = false;
+    const label = "raid is a BREAKOUT on the finer tape — not a sweep";
+    if (!c.missing.includes(label)) c.missing.unshift(label);
+  }
+
+  /**
+   * ITEM 21 — A LATE TAPE CANNOT ARM. One call, removal only.
+   *
+   * `tapeTrust` counts whole CLOSED buckets between the series' last close and
+   * the desk build, takes the worse of that and the quote's own lag, and
+   * refuses past one bucket (the trader's rule, and about the tolerance
+   * Databento historical already imposes without the live entitlement).
+   *
+   * Also applied after the path pass, for the same reason as item 7 above.
+   *
+   * DECLINED, AND SAID SO: this does NOT touch `QUOTE_EXECUTION_MAX_LAG_SEC`
+   * (120 s, market/types.ts). Read literally, "lag of more than one closed
+   * bar" on the 15m series is 900 s — a 7.5x RELAXATION of the gate that stops
+   * a fill being priced on a stale print. Bar age, quote lag and fetch age are
+   * three different measurements; this adds the one that was genuinely
+   * ungated and leaves the tighter one exactly where it is.
+   */
+  if (trust) {
+    for (const c of pathCandidates) {
+      const isLeft = c.symbol === left.symbol;
+      const t = tapeTrust(isLeft ? closedL : closedR, {
+        nowMs: trust.nowMs,
+        interval: trust.interval,
+        lagSec: (isLeft ? trust.left : trust.right)?.lagSec ?? null,
+        source: (isLeft ? trust.left : trust.right)?.source ?? null,
+      });
+      applyTapeTrust(c, t);
+    }
+  }
+
+  for (const c of pathCandidates) {
+    const bars = c.symbol === left.symbol ? closedL : closedR;
     if (!bars.length || extensionAllows(bars, c.side)) continue;
     c.grade = "skip";
     c.pathBand = "skip";
@@ -1257,6 +1658,17 @@ export function scanSetups(
   rightBars?: OhlcBar[],
   tapes?: { left?: SmcTape; right?: SmcTape },
   minutes?: { left?: OhlcBar[]; right?: OhlcBar[] },
+  /**
+   * ITEM 21 — TRAILING AND OPTIONAL, so every existing caller is untouched.
+   *
+   * `closed` is the detection series. `trust` is the freshness decision.
+   * `scripts/capture-signals.mjs` passes SEVEN arguments today and keeps
+   * working unchanged; the four-year census therefore still runs with the
+   * forming bar in play and without the freshness gate, which is exactly the
+   * behaviour its existing numbers were computed under.
+   */
+  closed?: { left?: OhlcBar[]; right?: OhlcBar[] },
+  trust?: ScoreCandidatesOptions["trust"],
 ): ScanResult {
   return scoreCandidates(left, right, clock, {
     divergence,
@@ -1266,5 +1678,8 @@ export function scanSetups(
     rightTape: tapes?.right,
     leftMinute: minutes?.left,
     rightMinute: minutes?.right,
+    leftClosed: closed?.left,
+    rightClosed: closed?.right,
+    trust,
   });
 }

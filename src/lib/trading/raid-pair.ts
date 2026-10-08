@@ -17,7 +17,7 @@ import {
   detectFvgs,
   detectOrderBlocks,
   detectSweeps,
-  MM_DISPLACE_WITHIN,
+  mechanicalWindowBars,
   type DisplacementEvent,
   type SweepEvent,
 } from "./detectors";
@@ -31,34 +31,82 @@ export function recentRealSweeps(bars: OhlcBar[]): SweepEvent[] {
   );
 }
 
-/** The sweep that arms this side. A later sweep of the other pool does not replace it. */
+/**
+ * The sweep that arms this side. A later sweep of the other pool does not
+ * replace it.
+ *
+ * ITEM 12, DELIBERATELY NOT WIRED HERE. `readArmingSweep` (detectors.ts) can
+ * say that the latest polarity raid took only a MINOR pool while a more extreme
+ * swing beyond it is still unswept, i.e. that the raid may be the trap. Making
+ * this function return `armingSweep` would turn that into a hard refusal of
+ * 12.1% of MNQ and 9.2% of ES same-polarity sweeps, with ZERO measurement
+ * behind it — and the 2026-09-21 precedent (18 gate variants, 0 takes) shows
+ * how invisible that failure mode is. It is surfaced on the card instead
+ * (`SetupCandidate.arming`, scanner.ts) and is the trader's call to promote.
+ */
 export function polaritySweep(bars: OhlcBar[], direction: "bull" | "bear"): SweepEvent | null {
   const side = direction === "bull" ? "sellside" : "buyside";
   const hits = recentRealSweeps(bars).filter((s) => s.side === side);
   return hits.length ? hits[hits.length - 1]! : null;
 }
 
-/** A later bar, inside the mechanical window. The sweep candle itself is not the shift. */
+/**
+ * A later bar, inside the mechanical window. The sweep candle itself is not
+ * the shift.
+ *
+ * ITEM 6 — THE WINDOW IS WALL-CLOCK, NOT A BAR COUNT.
+ *
+ * This used the flat `MM_DISPLACE_WITHIN` (6), which is "a handful of candles"
+ * on the 5m rung the model was described on and **90 minutes** on the 15m
+ * series the desk actually grades. A displacement an hour and a half after a
+ * raid is a different story, not the answer to that raid.
+ *
+ * `mechanicalWindowBars(bars)` reads the series' own bar spacing and takes the
+ * MINIMUM of 30 wall-clock minutes and the original 6 bars, so no series
+ * anywhere gets a LOOSER window than it has today — on 15m it tightens 6 -> 2,
+ * on 5m it is unchanged at 6, and it falls back to 6 whenever the spacing
+ * cannot be read (one bar, identical timestamps). `MM_WINDOW.mode = "bars"`
+ * restores the old behaviour exactly in one flip.
+ *
+ * KNOWN RISK, STATED: on 15m, 30 minutes is 2 candles. The mechanical model
+ * carries the highest single weight (0.14) and may complete less often, which
+ * pushes the board onto weaker models rather than onto nothing. That is a
+ * tightening in the safe direction (fewer takes, never more) and the four-year
+ * census is what should confirm the cost.
+ */
 export function pairedDisplacement(
   bars: OhlcBar[],
   sweep: SweepEvent,
   direction: "bull" | "bear",
 ): DisplacementEvent | null {
+  const within = mechanicalWindowBars(bars);
   const hits = detectDisplacements(bars).filter(
-    (d) =>
-      d.direction === direction &&
-      d.index > sweep.index &&
-      d.index <= sweep.index + MM_DISPLACE_WITHIN,
+    (d) => d.direction === direction && d.index > sweep.index && d.index <= sweep.index + within,
   );
   return hits.length ? hits[hits.length - 1]! : null;
 }
 
-/** The gap or order block the displacement just left. An older gap does not qualify. */
+/**
+ * The gap or order block the displacement just left. An older gap does not
+ * qualify.
+ *
+ * ITEM 5 — the event now CARRIES the gap it left (`disp.gap`, Wave 1), so the
+ * cheap answer is read off the displacement itself instead of re-deriving it
+ * from a full `detectFvgs` pass. Same question, one source: a displacement
+ * that reports its own gap cannot disagree with the gap list about whether it
+ * left one.
+ *
+ * The `detectFvgs` scan stays as the fallback. `disp.gap` is null whenever the
+ * third candle has not printed yet — the absence of evidence, not a no — and
+ * it is also null for a displacement detected under a rule that did not need a
+ * gap. The order-block branch is untouched.
+ */
 export function displacementLeftArray(
   bars: OhlcBar[],
   disp: DisplacementEvent,
   direction: "bull" | "bear",
 ): boolean {
+  if (disp.gap) return true;
   const gap = detectFvgs(bars).some(
     (g) => g.kind === direction && g.createdIndex >= disp.index && g.createdIndex <= disp.index + 3,
   );

@@ -667,6 +667,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const drawL = drawOnLiquidity(biasL, left.bars, left.price);
     const drawR = drawOnLiquidity(biasR, right.bars, right.price);
 
+    /**
+     * ITEM 21 — the closed prefix and the freshness decision, both passed.
+     *
+     * `closedL` / `closedR` were computed above and, until now, never reached
+     * the scanner: every sweep, gap and displacement on the board was read off
+     * `left.bars`, whose last element is the FORMING bar with the live print
+     * patched onto it. Location still reads the live series (the measured
+     * entry-location result wants the live print); detection reads these.
+     *
+     * `trust` refuses a card whose last CLOSED bar is more than one bucket
+     * behind the build. Removal only — it cannot create a take.
+     */
     const scan = scanSetups(
       biasL,
       biasR,
@@ -676,6 +688,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       right.bars,
       smc,
       { left: minuteL, right: minuteR },
+      { left: closedL, right: closedR },
+      {
+        nowMs: left.marketTimeMs ?? right.marketTimeMs ?? Date.now(),
+        interval: left.interval,
+        left: { lagSec: lq.lagSec, source: lq.source },
+        right: { lagSec: rq.lagSec, source: rq.source },
+      },
     );
     // Detectors only ever see CLOSED bars. The forming bar (patched with the
     // live print above) is for price location, never for "displacement" or
