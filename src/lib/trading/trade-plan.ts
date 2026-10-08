@@ -395,7 +395,8 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
 
   // The pad the retrace layer uses for "price is inside the array". Reused
   // here so the stop sits just outside the same boundary the gate tests.
-  const pad = Math.max((entryArray.top - entryArray.bottom) * 0.25, 0.25);
+  // Just beyond the wick. A quarter of the array is room the model does not ask for.
+  const pad = 0.25;
 
   // Stop: beyond the raid wick if there was one — that extreme is the level
   // the market already proved it would reject. Without a raid, beyond the far

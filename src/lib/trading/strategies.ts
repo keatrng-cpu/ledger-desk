@@ -235,10 +235,11 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     input.topDown === dir &&
     ifvg &&
     (mid || daily || openB || input.weeklyPd === dir);
-  if (narrative && (structure || cisd || disp)) {
+  // A narrative name is not a confirmation. Ronan needs the body close after the raid.
+  if (narrative && cisd) {
     matches.push({
       strategy: "ronan",
-      reasons: ["ronan: HTF narrative + IFVG + confirmation"],
+      reasons: ["ronan: HTF narrative + the body close after the raid"],
     });
   }
 

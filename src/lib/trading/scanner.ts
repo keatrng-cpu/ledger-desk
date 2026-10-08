@@ -528,10 +528,23 @@ function scoreDirection(
   add("cisd", cisd, cisd ? "cisd (body close after the raid)" : undefined);
   add("displacement", disp, disp ? "displacement after the raid" : undefined);
   add("structure", Boolean(structure), structure ? "structure BOS" : undefined);
+  // The shift is a later close through the swing the raid leaned on, not an older BOS.
+  const leaned = raid
+    ? bars.slice(Math.max(0, raid.index - 8), raid.index + 1)
+    : [];
+  const leanedLevel = leaned.length
+    ? direction === "bull"
+      ? Math.max(...leaned.map((b) => b.h))
+      : Math.min(...leaned.map((b) => b.l))
+    : null;
+  const shifted =
+    raid != null &&
+    leanedLevel != null &&
+    bars.slice(raid.index + 1).some((b) => (direction === "bull" ? b.c > leanedLevel : b.c < leanedLevel));
   add(
     "mss",
-    Boolean(structure && disp),
-    structure && disp ? "mss after the raid" : undefined,
+    shifted,
+    shifted ? "mss — later close through the swing the raid leaned on" : undefined,
   );
 
   const openBias = openingBiasFrom(read);
@@ -582,13 +595,8 @@ function scoreDirection(
   });
   const oteRead = readOte(impulseLeg);
   const oteHit = inOte(oteRead, lastClose);
-  add(
-    "ote",
-    oteHit,
-    oteHit && oteRead
-      ? `ote ${oteRead.zoneLow.toFixed(2)}–${oteRead.zoneHigh.toFixed(2)} (opt ${oteRead.optimal.toFixed(2)})`
-      : undefined,
-  );
+  // A fib with no gap is not an entry. The overlap is applied once the gap is known.
+  add("ote", false);
 
   // Honest components from the multi-TF tape (smc-board.ts) — breaker was
   // always false before; propulsion lights when a sponsored gap + displacement
@@ -740,21 +748,52 @@ function scoreDirection(
       )
     : null;
   const gap = born ?? flipped ?? null;
-  const mechFill =
-    det.mechanical.complete && det.mechanical.retest && mechDir === direction
-      ? det.mechanical.retest.price
-      : null;
   const overlap = gap ? oteZoneOverlap(oteRead, gap.top, gap.bottom) : null;
+  if (overlap) {
+    add(
+      "ote",
+      true,
+      `ote ${overlap.low.toFixed(2)}–${overlap.high.toFixed(2)} overlaps this gap`,
+    );
+  }
   const ce = gap ? consequentEncroachment(gap.top, gap.bottom) : null;
-  const entryPx = mechFill ?? (overlap ? overlap.mid : ce);
-  const entryZone =
-    mechFill != null
-      ? `retest ${mechFill.toFixed(2)} of the array this displacement left`
-      : overlap
-        ? `${overlap.low.toFixed(2)} – ${overlap.high.toFixed(2)} (OTE×this array, CE ${overlap.mid.toFixed(2)})`
-        : ce != null && gap
-          ? `${gap.bottom.toFixed(2)} – ${gap.top.toFixed(2)} (CE ${ce.toFixed(2)} of this displacement)`
-          : "await the array this displacement left";
+  const near = gap ? (direction === "bull" ? gap.top : gap.bottom) : null;
+  const far = gap ? (direction === "bull" ? gap.bottom : gap.top) : null;
+  const bodyClose = gap
+    ? bars.slice(gap.createdIndex).find((b) => (direction === "bull" ? b.c > gap.top : b.c < gap.bottom))?.c ?? null
+    : null;
+  const etMin = clock.etHour * 60 + clock.etMinute;
+  const silverHour = (etMin >= 600 && etMin < 660) || (etMin >= 840 && etMin < 900);
+  const gapEt = gap
+    ? (() => {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/New_York",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        }).formatToParts(new Date(gap.createdT));
+        const h = Number(parts.find((x) => x.type === "hour")?.value ?? "0");
+        const m = Number(parts.find((x) => x.type === "minute")?.value ?? "0");
+        return h * 60 + m;
+      })()
+    : null;
+  const gapInThisHour = gapEt != null && Math.floor(gapEt / 60) === Math.floor(etMin / 60);
+  const silverOk = !silverHour || gapInThisHour;
+  let entryPx = ce;
+  let entryZone =
+    ce != null && gap && near != null && far != null
+      ? `near ${near.toFixed(2)} · CE ${ce.toFixed(2)} · far ${far.toFixed(2)}${bodyClose != null ? ` · close ${bodyClose.toFixed(2)}` : ""}`
+      : "await the array this displacement left";
+  if (!silverOk) {
+    entryPx = null;
+    entryZone = "not a silver bullet — the gap did not form in this hour";
+  } else if (entryPx != null && Number.isFinite(lastClose)) {
+    const height = gap ? Math.max(gap.top - gap.bottom, 1) : 8;
+    if (Math.abs(lastClose - entryPx) > Math.max(height * 2, 8)) {
+      entryPx = null;
+      entryZone = `${entryZone} — resting, price is not at the array`;
+    }
+  }
   const inv = protectiveInvalidation(read, direction, entryPx, raid?.wickExtreme ?? null);
 
   return {
@@ -1146,6 +1185,17 @@ export function scoreCandidates(
   // The title carries "[path <band> · fit <x>]". It was stamped inside
   // applyProfitPathToCandidate, BEFORE the vetoes above, and never restamped —
   // so a vetoed card read "[path A+ · Q 0.84]" over a C badge. Stamped last.
+  // A dead hour does not publish a priced A-band ticket.
+  if (!sessionLive(clock)) {
+    for (const c of pathCandidates) {
+      c.entryPx = null;
+      c.entryZone = "outside the window — no priced entry";
+      if (c.pathBand === "A+" || c.pathBand === "A" || c.pathBand === "A-") c.pathBand = "B";
+      c.actionable = false;
+      c.missing.unshift("outside the window — no priced entry");
+    }
+  }
+
   for (const c of pathCandidates) stampPathTitle(c);
 
   /**

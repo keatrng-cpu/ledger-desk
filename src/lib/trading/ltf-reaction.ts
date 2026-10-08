@@ -1,26 +1,31 @@
 /**
- * Lower-timeframe reaction. A closed 1m, 2m, 3m, 4m, or 5m displacement
- * AFTER the raid is the confirmation the 15m book is waiting on. The raid
- * itself, and a displacement that the next bars close back through, is the
- * manipulation — it does not confirm.
+ * Lower-timeframe confirmation. The raid is not the entry. The confirm is a
+ * later body close through the gap that the manipulation leg left, on the
+ * highest 1m–5m rung that has that gap. A 1-minute flicker does not confirm
+ * while a higher gap is still waiting on its close.
  *
- * Closed bars only. The forming bucket is dropped. No raid, no confirmation:
- * an LTF push with nothing swept is the leg into liquidity, not the reaction.
+ * 15s and 30s are read only when the tape is actually finer than one minute.
+ * A one-minute feed cannot invent them.
+ *
+ * Closed bars only. The forming bucket is dropped.
  */
 
 import { aggregateBars } from "../market/databento";
 import type { OhlcBar } from "../market/types";
 import type { MarketNarrative } from "./market-narrative";
-import { detectDisplacements, type DisplacementEvent } from "./detectors";
+import { detectFvgs, type FvgResult } from "./detectors";
+import { cisdThroughSeries } from "./raid-pair";
 
 export const LTF_REACTION_MINUTES = [1, 2, 3, 4, 5] as const;
 
 export interface LtfReaction {
   confirmed: boolean;
-  /** A displacement printed and then failed. Not a reason to enter. */
+  /** A close printed and then failed back through the gap. Not a reason to enter. */
   manipulated: boolean;
   tf: string | null;
   reason: string;
+  /** The four fills, once a gap has been closed through. */
+  fills?: { near: number; ce: number; far: number; bodyClose: number } | null;
 }
 
 function closedOnly(bars: OhlcBar[], minutes: number, nowMs: number): OhlcBar[] {
@@ -28,24 +33,46 @@ function closedOnly(bars: OhlcBar[], minutes: number, nowMs: number): OhlcBar[] 
   return bars.filter((b) => nowMs >= b.t + span);
 }
 
-function failedAfter(bars: OhlcBar[], disp: DisplacementEvent, direction: "bull" | "bear"): boolean {
-  return bars.some((b) => b.t > disp.t && (direction === "bull" ? b.c < disp.open : b.c > disp.open));
+function bucket(minute: OhlcBar[], minutes: number, nowMs: number): OhlcBar[] {
+  const bars = minutes >= 2 ? aggregateBars(minute, minutes) : minute;
+  return closedOnly(bars, minutes, nowMs);
 }
 
-function onRung(
+function throughGap(bar: OhlcBar, gap: FvgResult, direction: "bull" | "bear"): boolean {
+  return direction === "bull" ? bar.c > gap.top : bar.c < gap.bottom;
+}
+
+function failedGap(bars: OhlcBar[], gap: FvgResult, after: number, direction: "bull" | "bear"): boolean {
+  return bars.some(
+    (b) => b.t > after && (direction === "bull" ? b.c < gap.bottom : b.c > gap.top),
+  );
+}
+
+function rungRead(
   minute: OhlcBar[],
   minutes: number,
   direction: "bull" | "bear",
   raidT: number,
   nowMs: number,
-): { kind: "confirm" | "manip" | "none"; tf: string } {
+): { kind: "confirm" | "wait" | "manip" | "none"; tf: string; fills?: LtfReaction["fills"] } {
   const tf = `${minutes}m`;
-  const closed = closedOnly(minutes === 1 ? minute : aggregateBars(minute, minutes), minutes, nowMs);
-  const after = detectDisplacements(closed).filter((d) => d.t > raidT);
-  const latest = after[after.length - 1];
-  if (!latest) return { kind: "none", tf };
-  if (latest.direction !== direction || failedAfter(closed, latest, direction)) return { kind: "manip", tf };
-  return { kind: "confirm", tf };
+  const closed = bucket(minute, minutes, nowMs);
+  const gaps = detectFvgs(closed).filter((g) => g.createdT > raidT && g.kind !== direction);
+  if (!gaps.length) return { kind: "none", tf };
+  const gap = gaps[gaps.length - 1]!;
+  const closeBar = closed.find((b) => b.t > gap.createdT && throughGap(b, gap, direction));
+  if (!closeBar) return { kind: "wait", tf };
+  if (failedGap(closed, gap, closeBar.t, direction)) return { kind: "manip", tf };
+  const raidIndex = closed.findIndex((b) => b.t >= raidT);
+  const shifted = raidIndex >= 0 && cisdThroughSeries(closed, direction, raidIndex + 1);
+  if (!shifted) return { kind: "wait", tf };
+  const near = direction === "bull" ? gap.top : gap.bottom;
+  const far = direction === "bull" ? gap.bottom : gap.top;
+  return {
+    kind: "confirm",
+    tf,
+    fills: { near, ce: (gap.top + gap.bottom) / 2, far, bodyClose: closeBar.c },
+  };
 }
 
 export function readLtfReaction(
@@ -55,7 +82,7 @@ export function readLtfReaction(
   nowMs: number = Date.now(),
 ): LtfReaction {
   if (!minute || minute.length < 20) {
-    return { confirmed: false, manipulated: false, tf: null, reason: "No 1m tape — LTF displacement cannot be read." };
+    return { confirmed: false, manipulated: false, tf: null, reason: "No 1m tape — the close through the gap cannot be read." };
   }
   if (raidT == null) {
     return {
@@ -65,36 +92,51 @@ export function readLtfReaction(
       reason: "No raid yet. An LTF push is the manipulation until a sweep is named.",
     };
   }
+  const span = minute.length > 1 ? minute[1]!.t - minute[0]!.t : 60_000;
+  const rungs = span > 0 && span <= 30_000 ? [5, 4, 3, 2, 1, 0.5, 0.25] : [5, 4, 3, 2, 1];
+  let waiting: string | null = null;
   let manipulated: string | null = null;
-  for (const minutes of LTF_REACTION_MINUTES) {
-    const rung = onRung(minute, minutes, direction, raidT, nowMs);
+  for (const minutes of rungs) {
+    const rung = rungRead(minute, minutes, direction, raidT, nowMs);
     if (rung.kind === "confirm") {
       return {
         confirmed: true,
         manipulated: false,
         tf: rung.tf,
-        reason: `${rung.tf} displacement ${direction} closed after the raid and held. That is the reaction, not the sweep.`,
+        fills: rung.fills,
+        reason: `${rung.tf} body close through the gap after the raid, and the delivery shifted. Highest rung that had the gap.`,
       };
     }
+    if (rung.kind === "wait" && !waiting) waiting = rung.tf;
     if (rung.kind === "manip") manipulated = rung.tf;
+    if (rung.kind === "wait") break;
+  }
+  if (waiting) {
+    return {
+      confirmed: false,
+      manipulated: false,
+      tf: waiting,
+      reason: `Wait for the ${waiting} body close through the gap. A lower rung does not confirm while this one is open.`,
+    };
   }
   if (manipulated) {
     return {
       confirmed: false,
       manipulated: true,
       tf: manipulated,
-      reason: `${manipulated} displacement failed or ran the other way. That is the manipulation. Wait for a later bar that holds.`,
+      reason: `${manipulated} close failed back through the gap. That is the manipulation. Wait for a later close.`,
     };
   }
+  const fine = span <= 30_000 ? "" : " Finest tape is 1m, so 15s and 30s are not in the feed.";
   return {
     confirmed: false,
     manipulated: false,
     tf: null,
-    reason: "No 1m–5m displacement after the raid yet.",
+    reason: `No 1m–5m gap inside the leg after the raid yet.${fine}`,
   };
 }
 
-/** Upgrade a 15m narrative when a held 1m–5m displacement is the missing shift. */
+/** Upgrade a 15m narrative when the highest post-raid gap has been closed through. */
 export function applyLtfReaction(
   n: MarketNarrative,
   minute: OhlcBar[] | null | undefined,
@@ -104,16 +146,16 @@ export function applyLtfReaction(
   const read = readLtfReaction(minute, direction, n.liquidity.lastSweepT, nowMs);
   const paint = (line: string) => n.sequence.map((s) => (s.startsWith("2.") ? line : s));
   if (!read.confirmed) {
-    if (!read.manipulated) return n;
+    if (!read.manipulated && !read.tf) return n;
     return { ...n, sequence: paint(`2. Displacement: ${read.reason}`) };
   }
   const already =
     n.confirmation === "armed_entry" || n.confirmation === "confirmed" || n.confirmation === "sweep_displace";
   const confirmation = already || n.liquidity.lastSweep === "none" ? n.confirmation : "sweep_displace";
   const waitFor = n.waitFor.filter((w) => !/Displacement candle|Do NOT enter on sweep/.test(w));
-  const sequence = paint(`2. Displacement ${direction} on the ${read.tf} — after the raid, and it held`).map((s) =>
+  const sequence = paint(`2. ${read.reason}`).map((s) =>
     !already && s.startsWith("3.")
-      ? "3. Confirmation: the lower timeframe displaced after the raid and the close held"
+      ? "3. Confirmation: a later body close through the gap the raid left"
       : s,
   );
   return { ...n, confirmation, sequence, waitFor };

@@ -37,7 +37,7 @@ export const DISPLACEMENT_K = 1.5;
  * requiring a displacement-grade middle body keeps FVGs meaningful without
  * demanding the full 1.5× displacement threshold.
  */
-export const FVG_MIDDLE_BODY_ATR = 1.0;
+export const FVG_MIDDLE_BODY_ATR = 0;
 
 /**
  * Order block: how many consecutive same-direction candles we walk back
@@ -189,7 +189,8 @@ export function detectFvgs(bars: OhlcBar[]): FvgResult[] {
     const atrHere = atr[i - 1]!;
     if (!Number.isFinite(atrHere) || atrHere <= 0) continue;
     const ratio = body(mid) / atrHere;
-    // Threshold: middle body must be >= FVG_MIDDLE_BODY_ATR × ATR(14).
+    // The gap is candle 1's wick not meeting candle 3's wick. A small middle
+    // body can still leave that hole, so the body-size filter is off.
     if (ratio < FVG_MIDDLE_BODY_ATR) continue;
 
     // Bull FVG: gap between bar[i-2] high and bar[i] low, middle candle up.

@@ -131,8 +131,14 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : null,
     brain: {
       word: book?.word ?? null,
-      thesis: desk.smcMaster.thesis,
-      missing: book?.missing ?? null,
+      thesis:
+        top && book && (top.symbol !== book.symbol || top.side !== book.side)
+          ? `${book.word ?? "WAIT"} ${top.symbol} ${top.side} · same book · the other side is not this entry`
+          : desk.smcMaster.thesis,
+      missing:
+        top && book && (top.symbol !== book.symbol || top.side !== book.side)
+          ? "same book — brain was on the other side"
+          : book?.missing ?? null,
       htfReleased,
     },
     chart: desk.levels.slice(0, 2).map((lvl) => ({
