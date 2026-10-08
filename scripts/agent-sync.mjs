@@ -119,12 +119,13 @@ if (agent) {
   lines.push(`## Since ${agent} last looked`);
   lines.push("");
   if (!known(bookmark)) {
-    lines.push("No bookmark yet. The last 15 commits are the unseen set.");
+    lines.push("No prior bookmark. This run is the baseline, and the last 15 commits are listed below.");
   } else if (!unseen.length) {
     lines.push(`Bookmark \`${bookmark.slice(0, 7)}\` is HEAD. Nothing new.`);
   } else {
     lines.push(`Bookmark was \`${bookmark.slice(0, 7)}\`. ${unseen.length} commit(s) landed after it.`);
   }
+  lines.push(`Bookmark after this run: \`${agent}\` → \`${short}\`.`);
   lines.push("");
 }
 lines.push("## Last 15 commits");
