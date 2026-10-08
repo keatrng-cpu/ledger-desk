@@ -100,7 +100,13 @@ export function ExecCard({ collapsed = false }: { collapsed?: boolean } = {}) {
   const blurb = PHASES.find((p) => p.id === wanted)?.blurb ?? "";
   const fmt = (x: number | null | undefined, d = 1, unit = "%") => (x == null ? "—" : `${x.toFixed(d)}${unit}`);
 
-  if (collapsed) return null;
+  if (collapsed) {
+    return (
+      <a className={BTN} href="/api/rh/connect">
+        {link?.linked ? "Robinhood connected" : "Connect Robinhood"}
+      </a>
+    );
+  }
   return (
     <div className={CARD}>
       <div className="flex flex-wrap items-center justify-between gap-2">
