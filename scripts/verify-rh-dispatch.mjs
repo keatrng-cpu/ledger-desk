@@ -213,6 +213,79 @@ check("a clean review may close", closeMaySend({ ok: true, blocking: false, aler
 check("a missing review route may close", closeMaySend({ ok: false, blocking: true, alerts: ["Robinhood review is not available on this session."] }));
 check("a rejected close may not", closeMaySend({ ok: false, blocking: true, alerts: ["Order rejected"] }) === false);
 
+console.log("the book and the wire");
+{
+  const ledger = memoryLedger();
+  check("the first claim takes the slot", await ledger.claim(NOW) === true);
+  check("a second claim inside the minute does not", (await ledger.claim(NOW + 1_000)) === false);
+  check("the slot opens again after the minute", await ledger.claim(NOW + 61_000) === true);
+}
+{
+  const { toolingFromEnv } = await import("../src/lib/execution/rh-http.ts");
+  const { refIdFor: ref } = await import("../src/lib/execution/rh-tools.ts");
+  const posts = [];
+  const fetchImpl = async (url, init) => {
+    const method = init?.method ?? "GET";
+    posts.push({ url: String(url), method, body: init?.body ? JSON.parse(init.body) : null });
+    if (String(url).includes("/options/orders/review")) return new Response("missing", { status: 404 });
+    if (method === "POST" && String(url).endsWith("/options/orders/")) return new Response(JSON.stringify({ id: "ord-9" }), { status: 201 });
+    return new Response("{}", { status: 200 });
+  };
+  const order = {
+    account_number: "995386158",
+    legs: [{ option_id: "opt-live", side: "buy", position_effect: "open", ratio_quantity: 1 }],
+    type: "limit",
+    quantity: "1",
+    price: "2.00",
+    time_in_force: "gfd",
+    market_hours: "regular_hours",
+    chain_symbol: "QQQ",
+    underlying_type: "equity",
+    refKey: "open:k",
+  };
+  const wire = toolingFromEnv({ RH_ACCESS_TOKEN: "desk-test" }, fetchImpl);
+  const review = await wire.review(order);
+  check("a missing review route does not block the open", review.blocking === false && review.ok === true, JSON.stringify(review));
+  const placed = await wire.place(order, ref(order.refKey));
+  const sell = { ...order, legs: [{ ...order.legs[0], side: "sell", position_effect: "close" }], refKey: "close:k" };
+  await wire.place(sell, ref(sell.refKey));
+  const buyBody = posts.find((p) => p.method === "POST" && p.url.endsWith("/options/orders/") && p.body?.direction === "debit");
+  const sellBody = posts.find((p) => p.body?.direction === "credit");
+  check("place still posts when review is absent", placed.id === "ord-9" && !!buyBody, posts.map((p) => p.url).join(" "));
+  check("a buy is a debit and a sell is a credit", !!buyBody && !!sellBody);
+  check("review and place share the stable ref", buyBody.body.ref_id === ref("open:k") && posts.find((p) => p.url.includes("/review"))?.body?.ref_id === ref("open:k"));
+}
+if (!process.env.DATABASE_URL) {
+  const { PGlite } = await import("@electric-sql/pglite");
+  const { sqlLedger } = await import("../src/lib/execution/rh-ledger.ts");
+  const pg = new PGlite();
+  await pg.exec(readFileSync(new URL("../migrations/0020_rh_desk_book.sql", import.meta.url), "utf8"));
+  const sql = {
+    query: async (text, params) => (await pg.query(text, params)).rows,
+  };
+  const a = sqlLedger(sql);
+  const opened = {
+    optionId: "opt-sql",
+    decisionKey: "k-sql",
+    underlier: "QQQ",
+    optionType: "put",
+    quantity: 1,
+    avgDebit: 2,
+    entry: 1,
+    stop: 2,
+    side: "short",
+    refId: "r",
+    openedAt: NOW,
+  };
+  check("the book claims once across two instances", (await a.claim(NOW)) === true && (await sqlLedger(sql).claim(NOW + 1_000)) === false);
+  await a.put(opened);
+  const seen = await sqlLedger(sql).list();
+  check("a second instance still knows what this desk opened", seen.length === 1 && seen[0].optionId === "opt-sql", JSON.stringify(seen));
+  await sqlLedger(sql).drop("opt-sql");
+  check("a drop is still gone after the instance is gone", (await sqlLedger(sql).list()).length === 0);
+  await pg.close();
+}
+
 console.log("posture");
 {
   const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -227,6 +300,7 @@ console.log("posture");
   check("15:30 calls the robinhood sender and does not require the alpaca phase", /runRhDesk\(/.test(flat) && /flatten:\s*true/.test(flat));
   const step = read("src/routes/api/cron/room-step.ts");
   check("room-step calls the same sender", /runRhDesk\(/.test(step));
+  check("the floor, the step, and the flatten share the database book", /sqlLedger\(/.test(read("src/lib/execution/rh-server.ts")) && /sqlLedger\(/.test(step) && /sqlLedger\(/.test(flat));
   check("room-step still does not import the alpaca executor", [...step.matchAll(/^import .+$/gm)].every((m) => !/alpaca|exec\/executor|execAfterCycle/i.test(m[0])));
   const env = read(".env.example");
   check("env example no longer says node never places", /Node never places/.test(env) === false && /RH_ACCESS_TOKEN/.test(env));

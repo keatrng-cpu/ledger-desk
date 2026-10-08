@@ -4,6 +4,7 @@
  */
 import { createHash } from "node:crypto";
 import type { RhOrder } from "./rh-cycle";
+import { RH_MIN_PLACE_GAP_MS } from "./rh-autofire-gates";
 
 export interface RhPos {
   optionId: string;
@@ -64,6 +65,11 @@ export interface RhLedger {
   /** A placement that is no longer a row (a close) still counts for the 60s throttle. */
   notePlace(at: number): Promise<void>;
   lastPlaceAt(): Promise<number | null>;
+  /**
+   * Take the one placement slot. False when another placement holds it.
+   * The SQL book does this in one update, so two instances cannot both win.
+   */
+  claim(at: number): Promise<boolean>;
 }
 
 export function memoryLedger(seed: DeskOpen[] = [], placedAt: number | null = null): RhLedger {
@@ -92,6 +98,12 @@ export function memoryLedger(seed: DeskOpen[] = [], placedAt: number | null = nu
       if (last == null) return from;
       if (from == null) return last;
       return Math.max(last, from);
+    },
+    async claim(at) {
+      if (!Number.isFinite(at)) return false;
+      if (last != null && (at < last || at - last < RH_MIN_PLACE_GAP_MS)) return false;
+      last = at;
+      return true;
     },
   };
 }

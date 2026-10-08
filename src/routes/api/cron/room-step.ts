@@ -117,7 +117,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
     let rh: { sent: boolean; phase: string; why: string } = { sent: false, phase: "look", why: "not run" };
     try {
       const { runRhDesk } = await import("@/lib/execution/rh-dispatch");
-      const { fileLedger } = await import("@/lib/execution/rh-ledger");
+      const { sqlLedger } = await import("@/lib/execution/rh-ledger");
       const { toolingFromEnv } = await import("@/lib/execution/rh-http");
       const { createRoomManagerFeed } = await import("@/lib/room/manager-room-feed");
       const { PgExecStore } = await import("@/lib/room/exec/exec-sql");
@@ -137,7 +137,7 @@ async function handle({ request }: { request: Request }): Promise<Response> {
         manager: feed.getState(),
         nowMs,
         tooling: toolingFromEnv(),
-        ledger: fileLedger(),
+        ledger: sqlLedger(sql),
         blockNewEntries,
       });
       rh = { sent: out.sent, phase: out.cycle.phase, why: out.why };

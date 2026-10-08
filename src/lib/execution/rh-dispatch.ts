@@ -384,6 +384,8 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
     nowMs,
   });
   if (!may.ok) return { cycle, sent: false, why: may.reason, orderId: null };
+  const claimed = await args.ledger.claim(nowMs);
+  if (!claimed) return { cycle, sent: false, why: "A placement is already in flight. Nothing new was sent.", orderId: null };
   const side = optType === "put" ? "put" : "call";
   const u: "QQQ" | "SPY" = underlier === "SPY" ? "SPY" : "QQQ";
   const futSide = sig?.futSide === "short" || sig?.futSide === "long" ? sig.futSide : side === "put" ? "short" : "long";

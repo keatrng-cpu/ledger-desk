@@ -6,6 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
+import type { Sql } from "@/lib/db";
 import type { RhDispatchResult } from "./rh-dispatch";
 import type { RhCycleDesk } from "../room/manager-live-loop";
 import type { ManagerRoomState } from "../room/manager-feed";
@@ -35,17 +36,27 @@ export const stepRhDesk = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<RhDispatchResult> => {
     const { runRhDesk } = await import("./rh-dispatch");
-    const { fileLedger } = await import("./rh-ledger");
+    const { sqlLedger } = await import("./rh-ledger");
     const { toolingFromEnv } = await import("./rh-http");
-    let blockNewEntries = false;
+    let sql: Sql | null = null;
     try {
       const { getSql } = await import("@/lib/db");
+      sql = await getSql();
+    } catch {
+      const why = "The desk book could not be read. Nothing was sent.";
+      return { cycle: { phase: "look", reason: why, order: null }, sent: false, why, orderId: null };
+    }
+    if (!sql) {
+      const why = "The desk book could not be read. Nothing was sent.";
+      return { cycle: { phase: "look", reason: why, order: null }, sent: false, why, orderId: null };
+    }
+    let blockNewEntries = false;
+    try {
       const { PgExecStore } = await import("@/lib/room/exec/exec-sql");
-      const sql = await getSql();
       const store = new PgExecStore((text, params) => sql.query(text, params), context.userId);
       blockNewEntries = (await store.state()).killed === true;
     } catch {
-      // The kill switch could not be read. No new entry until it can.
+      // The kill switch could not be read. No new entry until it can. A close still can.
       blockNewEntries = true;
     }
     return runRhDesk({
@@ -53,7 +64,7 @@ export const stepRhDesk = createServerFn({ method: "POST" })
       manager: asManager(data.manager),
       nowMs: Date.now(),
       tooling: toolingFromEnv(),
-      ledger: fileLedger(),
+      ledger: sqlLedger(sql),
       flatten: data.flatten === true,
       blockNewEntries,
     });

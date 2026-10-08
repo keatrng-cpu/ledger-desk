@@ -7,7 +7,8 @@
  * outside the options session, so the extra hours do not trade.
  *
  * A site with no CRON_SECRET returns 200. A schedule must not fail every
- * weekday before the secret exists. This function cannot open a trade.
+ * weekday before the secret exists. This file only rings the route. The
+ * route is the sender.
  */
 
 export default async () => {

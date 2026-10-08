@@ -6,6 +6,7 @@
 import { RH_PREFERRED_ACCOUNT_NUMBER } from "./rh-autofire-gates";
 import type { RhOrder } from "./rh-cycle";
 import type { RhPos, RhQuote, RhTooling } from "./rh-tools";
+import { refIdFor } from "./rh-tools";
 
 const BASE = "https://api.robinhood.com";
 
@@ -46,6 +47,7 @@ function placeBody(order: RhOrder, refId: string): Record<string, unknown> {
     quantity: order.quantity,
     time_in_force: order.time_in_force,
     ref_id: refId,
+    direction: order.legs[0]?.side === "sell" ? "credit" : "debit",
   };
   if (order.type === "limit" && order.price) body.price = order.price;
   return body;
@@ -125,11 +127,15 @@ export function toolingFromEnv(
       const res = await fetchImpl(`${base}/options/orders/review/`, {
         method: "POST",
         headers,
-        body: JSON.stringify(placeBody(order, refFrom(order))),
+        body: JSON.stringify(placeBody(order, refIdFor(order.refKey))),
       });
       const body = await readJson(res);
       if (res.status === 404 || res.status === 405) {
-        return { ok: false, blocking: true, alerts: ["Robinhood review is not available on this session."] };
+        return {
+          ok: true,
+          blocking: false,
+          alerts: ["Robinhood has no review route on this session. The desk gates still apply."],
+        };
       }
       const alerts = alertLines(body);
       const blocking = res.status >= 400 || alerts.some((a) => /not enough|rejected|cannot|insufficient|halt/i.test(a));
@@ -148,10 +154,6 @@ export function toolingFromEnv(
       return { id: body.id };
     },
   };
-}
-
-function refFrom(order: RhOrder): string {
-  return order.refKey;
 }
 
 function alertLines(body: unknown): string[] {

@@ -55,8 +55,8 @@
 # exec-flatten and room-step are scheduled functions
 # (netlify/functions/*.mjs). The build copies them into
 # .netlify/functions-internal beside Nitro's SSR function.
-# exec-flatten rings GET /api/cron/exec-flatten. It opens nothing.
-# room-step rings GET /api/cron/room-step: one paper cycle, no broker.
+# exec-flatten rings GET /api/cron/exec-flatten. It closes what this desk opened. It opens nothing.
+# room-step rings GET /api/cron/room-step: one room cycle, then the same Robinhood sender the floor uses.
 # Neither does anything until CRON_SECRET is set. The flatten route still
 # no-ops unless the execution phase is paper or live.
 #
