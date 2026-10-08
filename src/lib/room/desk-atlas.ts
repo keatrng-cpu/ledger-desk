@@ -307,6 +307,12 @@ export function mergeAtlas(a: DeskAtlas | null | undefined, b: DeskAtlas | null 
       const touched = (n.n ?? 1) > (cur?.n ?? 1) || (n.prior?.length ?? 0) > 0;
       const wins = !cur || (cur === seeds.get(n.id) ? touched : n.at >= cur.at);
       if (wins) byId.set(n.id, { ...n, prior: (n.prior ?? []).slice(0, 5), tags: n.tags ?? [] });
+      // The seed stays, but a node's `at` means "when this line last changed", and `cloneSeed(now)` stamps every seed with the
+      // merge time. So an untouched stored line came back stamped NOW: on every pulse all ninety lines looked new, the people's
+      // `known` map was meaningless, and `syncPeople` handed back whichever line sorts first (now:read) instead of the one that
+      // actually moved. When the seed and the stored copy say the same thing, nothing changed: keep the time it last changed.
+      // A seed whose text or title was edited in code is genuinely new and keeps the merge stamp.
+      else if (cur === seeds.get(n.id) && cur.text === n.text && cur.title === n.title) byId.set(n.id, { ...cur, at: n.at });
     }
   }
   const nodes = [...byId.values()].filter((n) => n.pinned || byId.has(n.id));
