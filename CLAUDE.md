@@ -7,6 +7,17 @@ Deterministic TypeScript **scores and gates**. You **narrate, grade live tape ag
 
 If the trader pastes a `=== LEDGER DESK HANDOFF ===` block, that **is** the live desk. Treat it as ground truth for that timestamp (note `lagSec`).
 
+## Dual workflow — read before you edit
+
+Grok and Claude share **one** `main`. Neither has a private tree. A commit you have not read is code you have not seen.
+
+```
+git fetch origin main
+node scripts/agent-sync.mjs --agent claude
+```
+
+Grok runs the same command with `--agent grok`. The script lists every commit and new file since that agent's bookmark (`docs/agent-sync.json`), writes the brief to `docs/agent-sync.md`, then moves the bookmark to HEAD. Exit 2 means origin is ahead: `git pull --rebase origin main` and run it again. Read `git show SHA -- path` before editing a file in the brief. Do not redo a commit already on main, and do not revert the other agent's commit to land yours. Push to `main`, then run the script once more so the bookmark matches what you pushed.
+
 ---
 
 ## Hard rules (do not drift)

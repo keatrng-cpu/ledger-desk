@@ -150,10 +150,7 @@ combination that actually pays — and the desk refuses the rest.
       (`5bdb8dc`, `fb1fcac`). If it recurs it is the sandbox serving a stale
       origin, not the app — verify by comparing the badge to the deployed SHA
       before debugging anything else.
-- [ ] **D3. Agent sync.** Two agents pushed 44 and 2 commits into the same files
-      and produced a 5-file conflict, two `drawOnLiquidity` implementations, and
-      two paper engines. Convention: branch per agent, `main` only via merge,
-      and a `CONTRACTS.md` naming who owns which module.
+- [x] **D3. Agent sync.** Shared `main`, not a branch per agent. `node scripts/agent-sync.mjs --agent grok|claude` prints commits and new files since that agent's bookmark before either one edits. Brief: `docs/agent-sync.md`.
 - [ ] **D4. Feed coherence.** Charts poll 2s; the desk polls 30s; **paper
       stop/TP fills are evaluated against the 30s-stale quote** while you watch
       the 2s price. Evaluate fills against the fast feed or state the lag on the
