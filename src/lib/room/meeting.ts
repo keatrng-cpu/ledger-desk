@@ -637,7 +637,7 @@ const VETO_WHY: Record<string, string> = {
   halt_day: "The day halt is the day halt. We're done until tomorrow.",
   halt_week: "The weekly halt is hit. Nothing new this week.",
   killzone: "The killzone count cuts size. It does not take the ticket off.",
-  after_ten: "Through 11:00 the size stands. After 11:00 the size comes down. The chart still decides.",
+  after_ten: "Size stands through 11:00 and again in the New York afternoon. Lunch is the cut.",
   month: "Month is full — size comes down. The chart still decides.",
   cooldown: "Two losses in a row — size comes down. The chart still decides.",
   clock: "The stop would fire on theta before price ever got a vote. That's a clock, not a stop.",

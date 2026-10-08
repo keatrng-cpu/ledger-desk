@@ -164,7 +164,7 @@ function pickCandidate(
   if (GATE.sideFromRaid) {
     const swept = narrative.liquidity.lastSweep;
     const raidSide = swept === "ssl" ? "long" : swept === "bsl" ? "short" : null;
-    if (raidSide && (need == null || need === raidSide)) {
+    if (raidSide) {
       const onSide = book.filter((c) => c.side === raidSide);
       const pick =
         onSide.find((c) => isHighProbPath(c)) ??

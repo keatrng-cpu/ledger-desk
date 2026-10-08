@@ -68,11 +68,11 @@ export const STRATEGY_NARRATIVE: Record<
     confirm: "Inverted FVG after significant sweep",
   },
   patty: {
-    story: "reversal",
-    entry: "1–5m IFVG after 9:30 manip into 15m/1H gap or intermediate H/L",
-    liquidity: "Pre-market accumulation then open raid of key level",
-    school: "Patty Swing",
-    confirm: "Open window + displacement/CISD — one trade, day done",
+    story: "continuation",
+    entry: "5m confirmation at a 1H/4H gap — the touch is not the trade",
+    liquidity: "Nearest significant liquidity after the higher-timeframe gap",
+    school: "Patty",
+    confirm: "HTF gap, then a 5m gap or shift. Objective met, day done.",
   },
   continuation: {
     story: "continuation",
@@ -121,20 +121,12 @@ export interface ClassifyInput {
   weeklyPd: "bull" | "bear" | "neutral" | null;
   ifvgInverted: boolean;
   significantSweep: boolean;
+  /** Minutes after midnight ET. Judas is only 09:30–09:45. */
+  etMin?: number | null;
 }
 
 function componentsOf(reasons: string[]): Set<string> {
   return new Set(reasons.filter((r) => SCORE_KEYS.has(r)));
-}
-
-function nyWindow(killzone: string): boolean {
-  const kz = killzone.toLowerCase().replace(/\s+/g, "_");
-  return (
-    kz.includes("ny_am") ||
-    kz.includes("ny_open") ||
-    kz.includes("new_york") ||
-    (kz.includes("ny") && !kz.includes("asia") && !kz.includes("london"))
-  );
 }
 
 export function classify(input: ClassifyInput): StrategyMatch[] {
@@ -162,12 +154,7 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     });
     matches.push({
       strategy: "blake_mech",
-      reasons: ["blake mech: mechanical sequence + IFVG path"],
-    });
-  } else if (ifvg && (structure || cisd) && (disp || mss)) {
-    matches.push({
-      strategy: "blake_mech",
-      reasons: ["blake mech: IFVG + structure/CISD + displacement"],
+      reasons: ["blake mech: swing sweep, then the inversion close"],
     });
   }
 
@@ -184,12 +171,18 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
   }
 
   const judasShift = structure || mss || cisd;
-  const judasBias =
-    openB || daily || input.daily === dir;
-  if (sig && judasShift && judasBias && ifvg) {
-    const why = ["judas: significant sweep + shift + bias + IFVG"];
-    if (nyWindow(input.killzone)) why.push("session/open window");
-    matches.push({ strategy: "judas", reasons: why });
+  const judasBias = openB || daily || input.daily === dir;
+  const judasMin = input.etMin;
+  if (
+    sig &&
+    judasShift &&
+    judasBias &&
+    ifvg &&
+    judasMin != null &&
+    judasMin >= 9 * 60 + 30 &&
+    judasMin < 9 * 60 + 45
+  ) {
+    matches.push({ strategy: "judas", reasons: ["judas: 09:30–09:45 raid, then the failure"] });
   }
 
   if (ifvg && inverted && sig && (structure || cisd || mss)) {
@@ -204,10 +197,14 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
     });
   }
 
-  if (ifvg && sig && (disp || cisd || mss) && (nyWindow(input.killzone) || openB)) {
+  const pattyMin = input.etMin;
+  const pattyClock =
+    pattyMin != null && pattyMin >= 9 * 60 + 45 && pattyMin < 14 * 60 + 30;
+  const htfContext = input.daily === dir || input.mid === dir || comps.has("weekly_pd");
+  if (ifvg && htfContext && (cisd || mss || disp) && pattyClock) {
     matches.push({
       strategy: "patty",
-      reasons: ["patty: open/session manip + IFVG + displacement/CISD"],
+      reasons: ["patty: higher-timeframe gap, then the 5m confirmation — not the touch"],
     });
   }
 

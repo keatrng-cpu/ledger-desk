@@ -154,13 +154,13 @@ export const ORIGINAL_GATE: Readonly<GateTuning> = Object.freeze({
  * Set 2026-09-21: the two mis-coding fixes on, everything else original.
  */
 export const GATE: GateTuning = {
-  sameBarDisplacement: true,
+  sameBarDisplacement: false,
   armedIsTake: false,
   retracePad: 0.25,
   recentSweepBars: 24,
   recentDisplacementBars: 12,
   displacementK: 1.5,
-  dealingRange: "window",
+  dealingRange: "impulse",
   sideFromRaid: true,
 };
 

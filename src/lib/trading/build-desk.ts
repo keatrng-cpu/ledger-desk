@@ -57,6 +57,7 @@ import {
   type OhlcBar,
 } from "@/lib/market/types";
 import { applyLtfReaction } from "./ltf-reaction";
+import { namingSweep } from "./raid-pair";
 import { getSessionClock, sessionLive, type SessionClock } from "./sessions";
 import { applySession } from "./session-event";
 import { buildLiveSays, type LiveSays } from "./live-says";
@@ -694,18 +695,15 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // narrative is now built for the side that raid arms, so the layers
     // grade the trade the sequence is actually considering. An SSL raid arms
     // a long, a BSL raid arms a short.
-    const raidDir = (
-      b: typeof biasL,
-      d: typeof detL,
-    ): "bull" | "bear" | null => {
-      const probe = buildMarketNarrative(b, d, clock, "bull");
-      const swept = probe.liquidity.lastSweep;
-      return swept === "ssl" ? "bull" : swept === "bsl" ? "bear" : null;
+    const raidDir = (bars: OhlcBar[]): "bull" | "bear" | null => {
+      const named = namingSweep(bars);
+      if (!named) return null;
+      return named.side === "sellside" ? "bull" : "bear";
     };
     const dirL: "bull" | "bear" =
-      raidDir(biasL, detL) ?? (biasL.topDown === "bear" ? "bear" : "bull");
+      raidDir(closedL) ?? (biasL.topDown === "bear" ? "bear" : "bull");
     const dirR: "bull" | "bear" =
-      raidDir(biasR, detR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
+      raidDir(closedR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
     const narrL = applyLtfReaction(
       buildMarketNarrative(biasL, detL, clock, dirL, left.bars),
       minuteL,

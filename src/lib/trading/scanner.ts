@@ -22,6 +22,7 @@ import {
   consequentEncroachment,
 } from "./fib";
 import { biasDisrespect } from "./htf-invalidation";
+import { cisdThroughSeries } from "./raid-pair";
 import { gapDirection } from "./gap-direction";
 import type { SessionClock } from "./sessions";
 import {
@@ -266,20 +267,6 @@ function weeklyPdBias(
   return "neutral";
 }
 
-function sigSweepKinds(label: string): boolean {
-  const u = label.toUpperCase();
-  return (
-    u.includes("PDH") ||
-    u.includes("PDL") ||
-    u.includes("PWH") ||
-    u.includes("PWL") ||
-    u.includes("EQH") ||
-    u.includes("EQL") ||
-    u.includes("SESSION") ||
-    u.includes("SWING")
-  );
-}
-
 function resolveIfvg(
   direction: "bull" | "bear",
   det: DetectorSummary,
@@ -445,30 +432,25 @@ function scoreDirection(
       : undefined,
   );
 
-  const sweeps = read.liquidity.filter((l) => l.swept);
-  const sideSweep =
-    direction === "bull"
-      ? sweeps.filter((l) => l.side === "sellside")
-      : sweeps.filter((l) => l.side === "buyside");
   const detSweepOk = Boolean(
     det.sweep.latest &&
+      det.sweep.latest.closeBackInside > 0 &&
       ((direction === "bull" && det.sweep.latest.side === "sellside") ||
         (direction === "bear" && det.sweep.latest.side === "buyside")),
   );
-  // A sweep only counts from the mechanical model while that sequence is
-  // still ALIVE (detectors.ts A2). Before liveness existed, a sweep whose
-  // sequence had been dead for hundreds of bars kept lighting this component.
+  // A pool "swept" flag only means price is beyond the level. A breakout
+  // does that. A sweep is a wick through the pool that closed back inside.
   const sig =
-    sideSweep.some((l) => sigSweepKinds(l.label)) ||
     detSweepOk ||
     (det.mechanical.alive &&
       det.mechanical.sweep != null &&
+      det.mechanical.sweep.closeBackInside > 0 &&
       mechDir === direction);
   add(
     "sweep_significant",
     sig,
     sig
-      ? `sweep_significant (${sideSweep[0]?.label ?? det.sweep.latest?.side ?? "det"})`
+      ? `sweep_significant (${det.sweep.latest?.side ?? "det"})`
       : undefined,
   );
 
@@ -481,8 +463,8 @@ function scoreDirection(
       tapeHits.displacement,
   );
   const structure = read.lastBOS?.direction === direction;
-  const cisd = Boolean(structure && disp);
-  add("cisd", cisd, cisd ? "cisd (BOS+displacement)" : undefined);
+  const cisd = cisdThroughSeries(bars, direction);
+  add("cisd", cisd, cisd ? "cisd (close back through the opposing delivery)" : undefined);
   add("displacement", disp, disp ? "displacement" : undefined);
   add("structure", Boolean(structure), structure ? "structure BOS" : undefined);
   add(
@@ -617,6 +599,7 @@ function scoreDirection(
   const matches = classify({
     direction,
     killzone: clock.killzone,
+    etMin: clock.etHour * 60 + clock.etMinute,
     components: present,
     topDown: read.topDown,
     mid: read.mid,

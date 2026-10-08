@@ -646,11 +646,15 @@ export function evaluateEntry(
       true,
       etMin < ROOM_CLOCK.dayFlatMin ? "Before the 11:00 ET day flat" : "After 11:00 — size cut. The chart still decides.",
     );
-    const late = etMin >= ROOM_CLOCK.dayFlatMin;
+    const lunch = etMin >= ROOM_CLOCK.dayFlatMin && etMin < 13 * 60 + 30;
     gate(
       "after_ten",
       true,
-      late ? `After 11:00 — ${e.band ?? "—"} stays live, size cut, if the chart agrees` : "Through 11:00 ET — size stands",
+      lunch
+        ? `Lunch — ${e.band ?? "—"} stays live, size cut`
+        : etMin >= 13 * 60 + 30
+          ? "NY PM — size stands"
+          : "Through 11:00 ET — size stands",
     );
     if (L)
       gate(
@@ -725,7 +729,7 @@ export function evaluateEntry(
       other = cands.find((c) => c.offset !== chosen.offset) ?? null;
     }
     let qty = opts.qtyFrom === "cap" ? afford(chosen.quote) : Math.min(e.deskContracts ?? 0, afford(chosen.quote));
-    if (etMin >= ROOM_CLOCK.dayFlatMin && qty > 1) qty -= 1;
+    if (etMin >= ROOM_CLOCK.dayFlatMin && etMin < 13 * 60 + 30 && qty > 1) qty -= 1;
     const debitUsd = Math.round(qty * chosen.quote.ask * 100);
     gate(
       "cash_cap",

@@ -153,9 +153,6 @@ export function decideRhCycle(args: {
     if (pnl != null && pnl <= -RH_DISASTER_PCT) return closeOf(held, `Premium is ${(pnl * 100).toFixed(0)}%. The 25% backstop.`);
     if (levelHit(held)) return closeOf(held, "Price is through the futures invalidation.");
     if (held.failedHold) return closeOf(held, "A 15-minute close failed the hold.");
-    if (et >= RH_DAY_FLAT_MIN && (pnl == null || pnl < RH_PAST_ELEVEN_MIN_PCT)) {
-      return closeOf(held, "11:00 ET and the position is under +50%.");
-    }
     const pnlTxt = pnl == null ? "premium unread" : `${pnl >= 0 ? "+" : ""}${(pnl * 100).toFixed(0)}%`;
     return { phase: "manage", reason: `Open. ${pnlTxt}. Stop and the 15-minute close still govern.`, order: null };
   }

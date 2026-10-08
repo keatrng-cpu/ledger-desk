@@ -746,10 +746,8 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
     desk.news?.verdict === "caution" ||
     Boolean(desk.shock?.active) ||
     Boolean(desk.shock?.tail);
-  const mins = clock.etHour * 60 + clock.etMinute;
   const clockOn =
-    clock.killzone !== "ny_am" ||
-    mins >= 11 * 60 ||
+    (clock.killzone !== "ny_am" && clock.killzone !== "ny_pm") ||
     (eventKind(day?.kind) && !afterSecondImpulse(clock));
   const calendarOn = day?.kind === "range_build" || day?.kind === "a_plus_only";
   const pressured = eventOn || clockOn || calendarOn;

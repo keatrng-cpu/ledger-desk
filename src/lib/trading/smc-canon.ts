@@ -452,7 +452,8 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
   const ltfOk =
     confirmation === "confirmed" ||
     confirmation === "armed_entry" ||
-    has(components, "mss", "cisd", "displacement", "structure");
+    confirmation === "sweep_displace" ||
+    has(components, "mss", "cisd");
   const poi =
     has(components, "ifvg", "order_block", "pd", "breaker", "mitigation");
   /**
@@ -525,7 +526,7 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       pass: inKillzone,
       detail: inKillzone
         ? killzoneLabel || "In window"
-        : "Outside London / NY AM — watch only",
+        : "Outside NY AM / NY PM — watch only",
     },
     {
       id: "smt",
@@ -548,7 +549,7 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     {
       id: "mtf",
       label: "MTF intact",
-      must: false,
+      must: true,
       pass: alignedMtf,
       detail: alignedMtf
         ? `MTF ${mtf ?? "n/a"} does not fight`

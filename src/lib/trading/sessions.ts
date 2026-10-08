@@ -192,17 +192,17 @@ export function resolveKillzone(hour: number, minute: number): {
     return {
       id: "london",
       label: "London open",
-      inTradeWindow: true,
+      inTradeWindow: false,
       nextWindow: "NY AM 9:30 ET",
-      sessionPhase: "London expansion",
+      sessionPhase: "London — not the options window",
     };
   if (m >= 5 * 60 && m < 8 * 60 + 30)
     return {
       id: "london",
       label: "London / pre-NY",
-      inTradeWindow: true,
+      inTradeWindow: false,
       nextWindow: "NY AM 9:30 ET",
-      sessionPhase: "London continuation",
+      sessionPhase: "London — not the options window",
     };
   if (m >= 8 * 60 + 30 && m < 11 * 60)
     return {

@@ -12,6 +12,11 @@
  */
 
 import { GATE } from "./gate-tuning";
+import {
+  displacementLeftArray,
+  pairedDisplacement,
+  polaritySweep,
+} from "./raid-pair";
 import type { OhlcBar } from "@/lib/market/types";
 import type { DetectorSummary } from "./detectors";
 import type { HtfBiasRead } from "./structure";
@@ -274,25 +279,30 @@ function confirmationState(
   det: DetectorSummary,
   direction: "bull" | "bear",
   liq: LiquidityMap,
+  bars?: OhlcBar[],
 ): ConfirmationState {
-  // Sweep POLARITY: a long needs sell-side taken (SSL raid), a short needs
-  // buy-side taken. Any-side "lastSweep !== none" used to pass here, so a
-  // BSL raid could confirm a long — the exact trade the raid was against.
-  const raid = det.sweep.latest;
-  const sweepOk =
-    raid != null &&
-    ((direction === "bull" && raid.side === "sellside") ||
-      (direction === "bear" && raid.side === "buyside"));
+  void liq;
+  // This side keeps its own raid. A later sweep of the other pool is the
+  // target, or a different trade, and it does not erase this one.
+  const paired = bars && bars.length > 20 ? polaritySweep(bars, direction) : null;
+  const raid = paired ?? det.sweep.latest;
+  const sweepOk = paired
+    ? true
+    : raid != null &&
+      ((direction === "bull" && raid.side === "sellside") ||
+        (direction === "bear" && raid.side === "buyside"));
 
-  // The shift has to come AFTER the raid it confirms. A displacement that
-  // printed before the sweep is the leg INTO liquidity, not the reversal.
-  // With GATE.sameBarDisplacement the raid candle itself may be the
-  // displacement — one 15m print that sweeps the pool and closes far back
-  // through it. Without it, the shift must print on a LATER bar.
+  // The shift is a later candle, inside the mechanical window of THIS raid.
+  // The raid candle is the manipulation. A displacement from another hour is
+  // not the answer to this sweep.
+  const dispEvent =
+    paired && bars ? pairedDisplacement(bars, paired, direction) : null;
   const disp =
-    det.displacement.latest != null &&
-    det.displacement.latest.direction === direction &&
-    (raid == null ||
+    dispEvent != null ||
+    (!paired &&
+      det.displacement.latest != null &&
+      det.displacement.latest.direction === direction &&
+      raid != null &&
       (GATE.sameBarDisplacement
         ? det.displacement.latest.index >= raid.index
         : det.displacement.latest.index > raid.index));
@@ -305,12 +315,9 @@ function confirmationState(
 
   const shift = disp || mech;
 
-  const hasArray =
-    det.fvg.count > 0 ||
-    det.fvg.open > 0 ||
-    det.fvg.inverted > 0 ||
-    det.orderBlock.latest != null ||
-    det.mechanical.complete;
+  const hasArray = dispEvent && bars
+    ? displacementLeftArray(bars, dispEvent, direction)
+    : false;
 
   if (!sweepOk && !shift) return "none";
   if (sweepOk && !shift) return "sweep_only";
@@ -427,8 +434,25 @@ export function buildMarketNarrative(
   bars?: OhlcBar[],
 ): MarketNarrative {
   const liquidity = buildLiquidityMap(read, det);
+  const ownRaid = bars && bars.length > 20 ? polaritySweep(bars, direction) : null;
+  if (ownRaid) {
+    liquidity.lastSweep = ownRaid.side === "buyside" ? "bsl" : "ssl";
+    liquidity.lastSweepT = ownRaid.t;
+    liquidity.lastSweepLevel = ownRaid.sweptLevel;
+    liquidity.lastSweepExtreme = ownRaid.wickExtreme;
+    liquidity.lastSweepLabel = `${ownRaid.side} sweep`;
+  } else if (
+    (direction === "bull" && liquidity.lastSweep === "bsl") ||
+    (direction === "bear" && liquidity.lastSweep === "ssl")
+  ) {
+    liquidity.lastSweep = "none";
+    liquidity.lastSweepT = null;
+    liquidity.lastSweepLevel = null;
+    liquidity.lastSweepExtreme = null;
+    liquidity.lastSweepLabel = null;
+  }
   const cls = classifyNarrative(read, liquidity, direction);
-  const conf = confirmationState(det, direction, liquidity);
+  const conf = confirmationState(det, direction, liquidity, bars);
   const entry = entryModel(det, direction, conf);
   const dol = withEmpiricalTarget(
     drawOnLiquidity(read, liquidity, cls),
