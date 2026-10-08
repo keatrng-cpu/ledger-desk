@@ -390,12 +390,20 @@ function gradeBook(
       // deliver, and a hard FAIL would set the word to STAND and stop the
       // chart being drawn for a condition that reverses in fifteen minutes.
       (f.id === "time" && !session.live);
+    // The desk card and the floor are built from this same tape. A fighting
+    // middle frame is the brain's note. It is not a second veto the scanner
+    // already chose not to apply, or the floor stands while the brain does not.
+    const deskCleared = Boolean(cand?.actionable);
+    const mtfNote = f.id === "mtf";
     return {
       id: f.id,
       label: f.label,
-      must: f.must,
-      state: factorState(f.pass, f.must, waiting),
-      detail: f.detail,
+      must: mtfNote ? false : f.must,
+      state: factorState(f.pass, mtfNote ? false : f.must, waiting),
+      detail:
+        mtfNote && !f.pass && deskCleared
+          ? `${f.detail} Desk card cleared this side. Middle frame is a note, not a stand.`
+          : f.detail,
     };
   });
 

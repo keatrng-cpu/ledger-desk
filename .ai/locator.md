@@ -16,7 +16,7 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - Judas is 09:30–09:45 and fails closed — `src/lib/trading/judas-window.ts` `readJudas`
 - The card grade — `src/lib/trading/scanner.ts` `scanSetups`
 - Which model the card is — `src/lib/trading/strategies.ts`
-- The one book and the brain word — `src/lib/trading/smc-master.ts`
+- Brain word versus the desk card — `src/lib/trading/smc-master.ts` `gradeBook`
 - Entry, stop, targets — `src/lib/trading/trade-plan.ts`
 - One stop on the card — `src/lib/trading/card-plan.ts` `protectiveInvalidation`
 - Rest the limit, do not chase — `src/lib/trading/entry-trigger.ts` `readEntry`
