@@ -32,6 +32,7 @@ import {
   loadPaperTrades,
 } from "./paper-manager";
 import { recentByKind } from "./desk-memory";
+import { researchRead } from "./research-retain";
 import { loadLastDebrief } from "./trade-debrief";
 // Aliased: journal/discretion.ts's own DiscretionVerdict ("demote"/"favor"/…)
 // is a different type from this file's own DiscretionVerdict export
@@ -1117,6 +1118,18 @@ export function runVeteranBrain(
         ? "If you take it, cut size in half — protect the book."
         : "Walk away is a position. Journal the skip.",
   ];
+
+  const research = researchRead(desk, realDiscretion);
+  if (research) {
+    monologue.push(research.summary);
+    layers.push({
+      id: "research_note",
+      label: "Research",
+      tone: research.status === "note" ? "info" : "warn",
+      score: 0,
+      detail: research.summary,
+    });
+  }
 
   const focus =
     verdict === "TAKE" && rawBest

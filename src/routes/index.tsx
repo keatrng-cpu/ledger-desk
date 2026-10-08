@@ -91,6 +91,7 @@ import {
 import { SYNAPSE_TABS } from "@/components/desk/synapse-rail";
 import { runVeteranBrain } from "@/lib/trading/veteran-brain";
 import { loadDeskMemory, emptyDeskMemory } from "@/lib/trading/desk-memory";
+import { rememberResearch, researchRead } from "@/lib/trading/research-retain";
 import { Button } from "@/components/ui/button";
 import {
   fetchTradingDesk,
@@ -1719,6 +1720,11 @@ function MasterplacePage() {
       )
     : null;
 
+  useEffect(() => {
+    if (!desk) return;
+    const line = researchRead(desk, discretion?.byStrategy ?? null);
+    if (line) rememberResearch(line);
+  }, [desk?.fetchedAt, discretion]);
 
   return (
     <div className="ld-readable min-h-dvh bg-[var(--color-bg)]">
