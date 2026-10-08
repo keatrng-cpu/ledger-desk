@@ -10,7 +10,7 @@
  * Every number in every line is read from the cycle's facts, the desk's
  * research files (research.ts) or the room's own memory — never written here.
  * Research shelf includes live PATH/SMC and the RH live-when-armed envelope
- * ($150–$550, 1–4 ATM/OTM_1, review then place, Manager agentAgree).
+ * ($50–$550, 1–4 ATM/OTM_1, review then place, Manager agentAgree).
  * Animations are chosen per line and then fitted to where the person is
  * standing, so nobody writes on a whiteboard from the watercooler.
  */

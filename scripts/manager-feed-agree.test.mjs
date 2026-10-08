@@ -57,7 +57,7 @@ test("ManagerRoomState.account defaults to the funded Agentic read; the line is 
 test("below-envelope reads red with Stand's exact words; the Individual block reads display-only", () => {
   const ind = ui.readRhAccount(acct.RH_INDIVIDUAL_SNAPSHOT_2026_10_06);
   assert.equal(ind.blocked, true);
-  assert.equal(ind.line, "BP $11.56 · below $150 envelope, arm blocked");
+  assert.equal(ind.line, "BP $11.56 · below $50 envelope, arm blocked");
   assert.equal(ind.who, "Individual ••••7477");
   const ok = ui.readRhAccount(acct.toManagerRhAccount({ cashUsd: 1000, optionsBuyingPowerUsd: 1000 }));
   assert.equal(ok.blocked, false);

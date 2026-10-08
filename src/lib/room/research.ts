@@ -13,7 +13,7 @@
  * Live duty (Keaton 2026-10-06): every character stays aware of the live PATH
  * setup scanner, SMC research, and the Robinhood live-when-armed envelope. When a
  * card is on the board they cite the PATH band + confluence and the SMC sequence
- * (or what is missing). They also know live RH (when armed) is $150–$550 debit,
+ * (or what is missing). They also know live RH (when armed) is $50–$550 debit,
  * 1–4 contracts ATM/OTM_1, review_option_order then place, and Manager agentAgree
  * is the Stand bit. They watch the tape and do their own shelf research — they do
  * not ignore a live A+/A/A− setup because the room is mid-banter.
@@ -25,7 +25,7 @@
  *   Jax      — how rarely the desk actually says TAKE + chase discipline on live PATH + RH size.
  *
  * RH account on the desk (Keaton 2026-10-06): every seat also carries the RH
- * Individual account read — cash vs buying power, whether BP clears the $150
+ * Individual account read — cash vs buying power, whether BP clears the $50
  * envelope floor, and whether the armed path can fire at all (rhAccountNote /
  * rhArmedPathNote). The numbers come from the account snapshot passed in, never
  * written here.
@@ -196,7 +196,7 @@ export function rhLiveMandateNote(): ResearchNote {
 
 const usd2 = (x: number) => `$${x.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-/** True when the account read on the desk cannot put $150 into an options debit. */
+/** True when the account read on the desk cannot put $50 into an options debit. */
 export function rhAccountShort(a: RhAccountSnapshot | null | undefined): boolean {
   return rhSpendable(a) < RH_MIN_DEBIT_TOTAL;
 }

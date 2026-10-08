@@ -75,7 +75,7 @@ export async function verifyManagerLiveLoop(check) {
   check("repo env (empty) stays armed", res(step(feed, { flags: undefined, env: {} })) !== "autofire_off" && res(step(feed, { flags: undefined, env: {} })) !== "live_arm", true);
   check("live arm off → live_arm", res(step(feed, { flags: { ...FLAGS, liveArmed: false } })), "live_arm");
   check("no PATH fire, price already in the array, still places", res(step(feed, { fire: null })), "ok");
-  check("BP $120 is under the $150 floor", res(step(feed, { account: { ...FUNDED, buyingPower: 120 } })), "bp_floor");
+  check("BP $40 is under the $50 floor", res(step(feed, { account: { ...FUNDED, buyingPower: 40 } })), "bp_floor");
   check("Individual 7477 → bp_wrong_account", res(step(feed, { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
   check("tape 45s refuses tape_stale", res(step(feed, { nowMs: NOW + 42_000, flags: { ...FLAGS, nowMs: NOW + 42_000 }, fire: fire("A", 0.7, { at: NOW + 40_000 }), liveQuote: { ...quote(), asOfMs: NOW + 40_000 } })), "tape_stale");
   check("live debit over $550 → debit_cap", res(step(feed, { liveQuote: quote(2.9) })), "debit_cap");
@@ -139,8 +139,8 @@ export async function verifyManagerLiveLoop(check) {
   const bm = card({ band: "B-", confluence: 0.58 });
   f4.pushRoom(frame({ c: bm, ask: 1.6 }), CTX(bm));
   check("B- → no agree", feedMod.standAgentAgree(f4), false);
-  f4.pushRoom(frame({ c: bp, ask: 1.2, qty: 2 }), CTX(bp));
-  check("B+ 1ct at $120 is under the $150 floor and does not agree", feedMod.standAgentAgree(f4), false);
+  f4.pushRoom(frame({ c: bp, ask: 0.4, qty: 1 }), CTX(bp));
+  check("B+ 1ct at $40 is under the $50 floor and does not agree", feedMod.standAgentAgree(f4), false);
 
   console.log("\nlive Agentic account via managerRhAccountFromConnector");
   const f5 = room.createRoomManagerFeed();

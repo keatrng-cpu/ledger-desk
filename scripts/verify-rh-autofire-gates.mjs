@@ -92,7 +92,7 @@ const ARMED_FLAGS = {
 console.log("PATH floor, envelope, confirmation");
 {
   check("PATH floor is 0.65", gates.RH_PATH_FLOOR, 0.65);
-  check("min debit $150", gates.RH_MIN_DEBIT_TOTAL, 150);
+  check("min debit $50", gates.RH_MIN_DEBIT_TOTAL, 50);
   check("max debit $550", gates.RH_MAX_DEBIT_TOTAL, 550);
   check("contracts 1–4", [gates.RH_MIN_CONTRACTS, gates.RH_MAX_CONTRACTS], [1, 4]);
   check("written confirmation is on (Keaton chat 2026-10-06)", gates.RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING, true);
@@ -180,7 +180,7 @@ console.log("\nrisk / session / one-book");
   check("one book refuses", gates.evaluateRhAutofireGates({ ...QUALIFIED, oneBookBlocked: true }, ARMED_FLAGS).gate, "one_book");
 }
 
-console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
+console.log("\nticket envelope $50–$550 · 1–4 · ATM/OTM_1");
 {
   const okEnv = gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 400, strikeOffset: "ATM" });
   check("ATM $400 / 2ct ok", okEnv.ok, true);
@@ -188,7 +188,7 @@ console.log("\nticket envelope $150–$550 · 1–4 · ATM/OTM_1");
   const otm = gates.evaluateRhTicketEnvelope({ contracts: 3, debitTotal: 550, strikeOffset: "OTM_1" });
   check("OTM_1 $550 / 3ct ok", otm.ok, true);
 
-  check("under $150 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 149, strikeOffset: "ATM" }).gate, "debit_floor");
+  check("under $50 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 49, strikeOffset: "ATM" }).gate, "debit_floor");
   check("over $550 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 551, strikeOffset: "ATM" }).gate, "debit_cap");
   check("0 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 0, debitTotal: 200, strikeOffset: "ATM" }).gate, "contracts");
   check("5 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 5, debitTotal: 400, strikeOffset: "ATM" }).gate, "contracts");
@@ -199,7 +199,7 @@ console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 
 {
   const keaton = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: KEATON_LIVE }, ARMED_FLAGS);
   check("$11.56 BP refuses at bp_floor even fully qualified", [keaton.ok, keaton.gate], [false, "bp_floor"]);
-  check("bp_floor reason names $11.56 and $150", /\$11\.56/.test(keaton.reason ?? "") && /\$150/.test(keaton.reason ?? ""), true);
+  check("bp_floor reason names $11.56 and $50", /\$11\.56/.test(keaton.reason ?? "") && /\$50/.test(keaton.reason ?? ""), true);
   check("cash $984.12 is NOT spendable (BP rules)", gates.rhSpendable(KEATON_LIVE), 11.56);
 
   const none = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: undefined }, ARMED_FLAGS);
@@ -219,10 +219,10 @@ console.log("\nbuying-power hard gate (Keaton 2026-10-06: $984.12 cash / $11.56 
   const noLvl = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionLevel: "" } }, ARMED_FLAGS);
   check("no options level refuses", [noLvl.ok, noLvl.gate], [false, "options_level"]);
 
-  const optBp = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionsBuyingPower: 149 } }, ARMED_FLAGS);
-  check("options BP below $150 refuses even with big BP", [optBp.ok, optBp.gate], [false, "bp_floor"]);
+  const optBp = gates.evaluateRhAutofireGates({ ...QUALIFIED, account: { ...FUNDED, optionsBuyingPower: 49 } }, ARMED_FLAGS);
+  check("options BP below $50 refuses even with big BP", [optBp.ok, optBp.gate], [false, "bp_floor"]);
 
-  check("$150.00 exactly clears the floor", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 150 }, NOW).ok, true);
+  check("$50.00 exactly clears the floor", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 50 }, NOW).ok, true);
   check("BP $300 refuses a $400 ticket", gates.evaluateRhBuyingPower({ ...FUNDED, buyingPower: 300 }, NOW, 400).gate, "bp_ticket");
 
   const parsed = rh.rhAccountFromPortfolio({
@@ -442,7 +442,7 @@ console.log("\nsource posture");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 150/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);

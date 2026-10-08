@@ -13,7 +13,7 @@
  *   Vince    SMC      POI, shift, retest, the limit at CE — the operator.
  *
  * Live RH awareness (Keaton 2026-10-06): when the desk is live-when-armed, seats
- * know the envelope — $150–$550 debit, 1–4 ATM/OTM_1, review_option_order then
+ * know the envelope — $50–$550 debit, 1–4 ATM/OTM_1, review_option_order then
  * place, Manager agentAgree as the Stand bit — via research shelf + meeting cites.
  *
  * Word choice is deterministic: a variant is picked from the event's own key and skips the one used last time

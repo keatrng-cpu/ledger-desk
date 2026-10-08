@@ -542,7 +542,7 @@ export interface PolicyDef {
 export const POLICIES: PolicyDef[] = [
   { id: "protect", owner: "Sterling", label: "Protect the floor", frac: 0.25, perDay: 1, stance: "small tickets, one a day — the account must still exist to hit anything" },
   { id: "mechanical", owner: "Vince", label: "Mechanical, at the cap", frac: "cap", perDay: 2, stance: "the room's rules, at the experiment's ticket cap" },
-  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.56, perDay: 2, stance: "the chart and the dealing range, sized to the $150–$550 envelope" },
+  { id: "structure", owner: "Gemma", label: "Structure only", frac: 0.56, perDay: 2, stance: "the chart and the dealing range, sized to the $50–$550 envelope" },
   { id: "edge", owner: "Nova", label: "Edge-weighted", frac: "kelly", perDay: 2, stance: "stake what the measured edge supports — nothing, if it supports nothing" },
   { id: "press", owner: "Jax", label: "Press", frac: 1, perDay: 2, stance: "the goal needs size; take every ticket the gates allow, as big as the cap lets you" },
 ];
