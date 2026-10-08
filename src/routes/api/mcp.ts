@@ -8,7 +8,7 @@ import { deskListenCard, type DeskListenCard } from "@/lib/trading/desk-listen";
 import { attachGrokReport, writeGrokReport } from "@/lib/desk/grok-report";
 import { encodeMcp, handleMcpMessage, wantsSse } from "@/lib/desk/mcp-server";
 
-const FRESH_MS = 20_000;
+const FRESH_MS = 1_000;
 let cached: { at: number; card: DeskListenCard } | null = null;
 
 async function baseCard(): Promise<DeskListenCard> {

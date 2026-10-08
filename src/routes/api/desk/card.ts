@@ -11,7 +11,7 @@ import { fetchTradingDesk } from "@/lib/trading/build-desk";
 import { deskListenCard, type DeskListenCard } from "@/lib/trading/desk-listen";
 import { attachGrokReport } from "@/lib/desk/grok-report";
 
-const FRESH_MS = 20_000;
+const FRESH_MS = 1_000;
 let cached: { at: number; card: DeskListenCard } | null = null;
 
 async function withReport(card: DeskListenCard): Promise<DeskListenCard> {
