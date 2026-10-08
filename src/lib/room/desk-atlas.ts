@@ -91,12 +91,12 @@ const SEED: Seed[] = [
   { id: "now:school", shelf: "now", title: "School", who: "Nova", confidence: 80, n: 1, pinned: true, tags: ["school", "ict", "tjr"], text: "No school read yet. The four schools grade the card that is on." },
   { id: "now:chart", shelf: "now", title: "Chart", who: "Gemma", confidence: 80, n: 1, pinned: true, tags: ["chart", "ladder", "nq", "es"], text: "No chart read yet. NQ and ES structure lands here, higher, middle, and lower." },
   { id: "now:backtest", shelf: "now", title: "Backtest", who: "Vince", confidence: 80, n: 1, pinned: true, tags: ["backtest", "lesson"], text: "No new backtest lesson. The joint book stays on the backtest shelf." },
-  { id: "now:journal", shelf: "now", title: "Journal", who: "Sterling", confidence: 80, n: 1, pinned: true, tags: ["journal", "close"], text: "No journal close yet." },
+  { id: "now:journal", shelf: "now", title: "Journal", who: "Sterling", confidence: 80, n: 1, pinned: true, tags: ["journal", "close", "grok"], text: "Grok reports back to this floor: whether the ticket was taken, the pnl, and a journal paragraph. Sterling reads that onto the book." },
   { id: "now:precision", shelf: "now", title: "Precision", who: "Jax", confidence: 80, n: 1, pinned: true, tags: ["tape", "noise", "lag"], text: "No precision read yet. Print age and the last minute's noise land here. A note, not a gate." },
   { id: "now:read", shelf: "now", title: "Read", who: "Vince", confidence: 84, n: 1, pinned: true, tags: ["read", "book"], text: "No book read yet. The book speaks once the chart and another line are both in." },
   { id: "now:news", shelf: "now", title: "News", who: "Gemma", confidence: 85, n: 1, pinned: true, tags: ["news"], text: "News and the clock change size and the bar to take it. They do not block a B+ or better when the chart is there." },
   { id: "disc:sterling", shelf: "discretion", title: "Sterling", who: "Sterling", confidence: 84, n: 1, pinned: true, tags: ["sterling", "veto"], text: "Sterling's ledger is a note. It is not a veto." },
-  { id: "disc:place", shelf: "discretion", title: "Place", who: "Vince", confidence: 86, n: 1, pinned: true, tags: ["place", "robinhood"], text: "A cleared setup is reviewed and placed on Agentic. Nobody has to click." },
+  { id: "disc:place", shelf: "discretion", title: "Place", who: "Vince", confidence: 86, n: 1, pinned: true, tags: ["place", "robinhood", "grok"], text: "A cleared setup is handed to Grok on this floor. Grok hears what we say through the LedgerDesk connector, then reviews and places on Agentic. We do not place it ourselves." },
   { id: "disc:band", shelf: "discretion", title: "Band", who: "Nova", confidence: 86, n: 1, pinned: true, tags: ["band", "b+"], text: "B+ and higher are live. Below that is a note. B+ is one contract." },
   { id: "disc:envelope", shelf: "discretion", title: "Envelope", who: "Sterling", confidence: 82, n: 1, pinned: true, tags: ["risk", "size"], text: "Debit stays between $150 and $550, even when that is a large share of the account." },
   { id: "smc:sequence", shelf: "smc", title: "Sequence", who: "Nova", confidence: 92, n: 1, pinned: true, tags: ["sequence", "sweep", "displacement"], text: "The entries are AMD, TJR, reversal, the 1m to 5m inverse, and the gap tap. A missing step is a wait. The raid is not the fill." },
@@ -195,7 +195,7 @@ function schoolEdges(): AtlasEdge[] {
 }
 
 const EDGES: AtlasEdge[] = [
-  { from: "now:account", to: "disc:place", why: "the account the place rule sends to" },
+  { from: "now:account", to: "disc:place", why: "the account Grok places on after the floor hands the ticket over" },
   { from: "now:goal", to: "disc:envelope", why: "size is how the goal is attempted" },
   { from: "now:entry", to: "smc:ce", why: "the missed-entry rule is the CE rule" },
   { from: "now:entry", to: "bt:chase", why: "the measured reason not to chase" },

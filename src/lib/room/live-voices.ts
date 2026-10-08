@@ -920,7 +920,7 @@ export function exAtEntry(c: Ctx, d: { card: CardRead }): Ex | null {
       "Vince",
       agree ? ANIM.Vince.enter! : ANIM.Vince.watch!,
       agree
-        ? "Price is in the array. Agentic places the month ticket if the account gates are already clear. We stay on the board and watch it."
+        ? "Price is in the array. I hand the ticket to Grok. Grok hears this floor through the connector and places on Agentic if the gates are already clear."
         : "Hands off the key until price is in the array and the card still says enter.",
     ),
   ];
@@ -934,7 +934,7 @@ export function exManage(c: Ctx, d: { p: PositionRead }): Ex | null {
   const stop = p.plan?.stop != null ? f.lvl(p.plan.stop) : "the stop";
   const t1 = p.plan?.t1 != null ? f.lvl(p.plan.t1) : "the draw";
   const lines: (Line | null)[] = [
-    line("Vince", ANIM.Vince.watch!, `${f.raw(p.name)} is on. Stop ${stop}. Target ${t1}. We manage it here.`),
+    line("Vince", ANIM.Vince.watch!, `${f.raw(p.name)} is on. Stop ${stop}. Target ${t1}. We manage it here. Grok reports the pnl and the journal line back to this floor.`),
     line("Gemma", ANIM.Gemma.explain!, "The ladder is the trade. Eyes on the entry we filled, not the next one."),
     line("Jax", ANIM.Jax.point!, p.pnlPct >= 0 ? "Let it work. Don't yank it." : "It's against us. The stop is the stop."),
     line("Nova", ANIM.Nova.analyze!, `${p.contracts} on. ${signed(p.pnlPct)}${Math.abs(p.pnlPct).toFixed(1)}% from the fill.`),
@@ -1250,7 +1250,7 @@ export function exHot(c: Ctx, d: BoardData): Ex | null {
     line("Gemma", ANIM.Gemma.wall!, "Bias is the one-hour and the four-hour gaps. Respected bullish, or a bearish gap that failed, is long. The reverse is short. The draw is the liquidity or the open gap in that direction, and we mark it before the entry."),
     line("Jax", ANIM.Jax.point!, "Sweep the pool on the other side, external or internal. Then the one-minute or five-minute gap. Then the inverse, or the gap holds. The fifteen-minute grade is the permission, not the trigger. Two a day is the backtest. Live, a count does not stand a ticket down."),
     line("Sterling", ANIM.Sterling.tablet!, "The target is the draw. A score does not pick the side. A short printed target gets repriced, it does not stand the card down. QQQ and SPY are separate tickets."),
-    line("Vince", ANIM.Vince.watch!, `Robinhood is armed on Agentic. The limit sits at ${k.entry != null ? f.lvl(k.entry) : "the array"}. Direction agrees, so it places. No second confirm.`),
+    line("Vince", ANIM.Vince.watch!, `I hand the limit to Grok at ${k.entry != null ? f.lvl(k.entry) : "the array"}. Grok hears us on the connector. Direction agrees, so Grok places. No second confirm.`),
   ]);
   return { lines, moves: BOARD };
 }

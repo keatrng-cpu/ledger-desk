@@ -393,6 +393,11 @@ export function PricePathBoard({ desk }: { desk: DeskPayload }) {
       <p className="mb-2 font-mono text-[13px] text-[var(--color-muted)]">
         <Plain>{desk.smcMaster.thesis}</Plain>
       </p>
+      {desk.grokReport && (
+        <p className="mb-2 text-[13px] text-[var(--color-fg)]">
+          <Plain>{`Sterling — Grok ${desk.grokReport.status}. Taken ${desk.grokReport.taken ? "yes" : "no"}. ${desk.grokReport.pnl == null ? "pnl unread" : `${desk.grokReport.pnl >= 0 ? "+" : ""}$${desk.grokReport.pnl.toFixed(2)}`}. ${desk.grokReport.journal}`}</Plain>
+        </p>
+      )}
       {/* The ●○× must-layer row per book is now the ring inside each book
           column below (hover a segment for the layer and its detail). */}
       <p className="mb-2 text-[15px] font-medium text-[var(--color-fg)]">

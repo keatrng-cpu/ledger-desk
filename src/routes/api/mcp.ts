@@ -5,12 +5,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchTradingDesk } from "@/lib/trading/build-desk";
 import { deskListenCard, type DeskListenCard } from "@/lib/trading/desk-listen";
+import { attachGrokReport, writeGrokReport } from "@/lib/desk/grok-report";
 import { encodeMcp, handleMcpMessage, wantsSse } from "@/lib/desk/mcp-server";
 
 const FRESH_MS = 20_000;
 let cached: { at: number; card: DeskListenCard } | null = null;
 
-async function loadCard(): Promise<DeskListenCard> {
+async function baseCard(): Promise<DeskListenCard> {
   const now = Date.now();
   if (cached && now - cached.at < FRESH_MS) return cached.card;
   const res = await fetchTradingDesk({ data: { left: "MNQ", right: "ES" } });
@@ -18,6 +19,17 @@ async function loadCard(): Promise<DeskListenCard> {
   const card = deskListenCard(res);
   cached = { at: now, card };
   return card;
+}
+
+async function loadCard(): Promise<DeskListenCard> {
+  const card = await baseCard();
+  try {
+    const { getSql } = await import("@/lib/db");
+    const { readGrokReport } = await import("@/lib/desk/grok-report");
+    return attachGrokReport(card, await readGrokReport(await getSql()));
+  } catch {
+    return attachGrokReport(card, null);
+  }
 }
 
 function out(reply: ReturnType<typeof encodeMcp>): Response {
@@ -41,7 +53,10 @@ async function post({ request }: { request: Request }): Promise<Response> {
     );
     return out(reply);
   }
-  const handled = await handleMcpMessage(raw, loadCard);
+  const handled = await handleMcpMessage(raw, loadCard, async (args) => {
+    const { getSql } = await import("@/lib/db");
+    return writeGrokReport(await getSql(), args);
+  });
   return out(encodeMcp(handled, wantsSse(request.headers.get("accept"))));
 }
 

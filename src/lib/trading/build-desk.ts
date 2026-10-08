@@ -155,6 +155,8 @@ export interface DeskPayload {
   budget: DeskBudgetRead;
   /** Top-level mirror of budget.stale for consumers that only read flags. */
   stale: boolean;
+  /** Last thing Grok reported back to this floor. Null until a report is written. */
+  grokReport?: import("@/lib/desk/grok-report").GrokReport | null;
 }
 
 export interface DeskError {
@@ -501,7 +503,18 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
     const right = (input?.right ?? "ES") as IndexSymbol;
     return { left, right };
   })
-  .handler(async ({ data }): Promise<DeskPayload | DeskError> => buildTradingDesk(data));
+  .handler(async ({ data }): Promise<DeskPayload | DeskError> => {
+    const desk = await buildTradingDesk(data);
+    if (!desk.ok) return desk;
+    try {
+      const { getSql } = await import("@/lib/db");
+      const { readGrokReport } = await import("@/lib/desk/grok-report");
+      desk.grokReport = await readGrokReport(await getSql());
+    } catch {
+      desk.grokReport = null;
+    }
+    return desk;
+  });
 
 /**
  * The desk build itself, as a plain function so scripts can exercise the

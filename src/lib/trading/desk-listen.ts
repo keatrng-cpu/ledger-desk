@@ -5,6 +5,7 @@
 import type { DeskPayload } from "./build-desk";
 import { evaluateOptionsDesk } from "./options-desk";
 import { isJudasWindow } from "./sessions";
+import type { GrokReport } from "@/lib/desk/grok-report";
 
 export interface DeskListenCard {
   ok: true;
@@ -40,6 +41,8 @@ export interface DeskListenCard {
     word: string | null;
     missing: string | null;
   };
+  said: { who: string; line: string }[];
+  report: GrokReport | null;
 }
 
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
@@ -47,6 +50,24 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const best = floor.best;
   const book = desk.smcMaster.oneBook;
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
+  const verdict = best?.verdict ?? "STAND";
+  const handed = verdict === "ARMED" && Boolean(best?.ticket);
+  const said = [
+    {
+      who: "Vince",
+      line: handed
+        ? "Cleared. I hand this ticket to Grok. Grok hears this floor through the LedgerDesk connector and places it on Agentic."
+        : `Nothing to hand Grok. The floor is ${verdict}.`,
+    },
+    {
+      who: "Sterling",
+      line: "Grok can hear what we say on the connector. We do not place it ourselves.",
+    },
+    {
+      who: "Nova",
+      line: book ? `${book.word}. ${book.missing}.` : "No book yet.",
+    },
+  ];
   return {
     ok: true,
     at: desk.fetchedAt,
@@ -69,7 +90,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     })),
     floor: {
       id: best?.id ?? null,
-      verdict: best?.verdict ?? "STAND",
+      verdict,
       band: best?.pathBand ?? null,
       blocks: (best?.blocks ?? []).slice(0, 4),
       ticket: best?.ticket
@@ -89,5 +110,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       word: book?.word ?? null,
       missing: book?.missing ?? null,
     },
+    said,
+    report: null,
   };
 }

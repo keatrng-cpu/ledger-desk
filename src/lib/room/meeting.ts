@@ -253,8 +253,8 @@ function focusQuote(f: Facts): string {
   const q = f.focus.quote;
   const src = f.desk ? f.desk.spotSource[f.focus.underlier] : `${f.focus.underlier} ${px(f.input.market_data[f.focus.underlier].price)} (caller)`;
   return q
-    ? `${contractName(f.focus.underlier, q.strike, f.focus.type, f.focus.exp)} ${prem(q.bid)} × ${prem(q.ask)} (model, ${prem(q.ask - q.bid)} wide) · ${src}. Nothing to route.`
-    : "Nothing to route.";
+    ? `${contractName(f.focus.underlier, q.strike, f.focus.type, f.focus.exp)} ${prem(q.bid)} × ${prem(q.ask)} (model, ${prem(q.ask - q.bid)} wide) · ${src}. Nothing to hand Grok.`
+    : "Nothing to hand Grok.";
 }
 
 function blocked(f: Facts, minds: MindState | null): Line[] {
@@ -336,7 +336,7 @@ function triggerWait(f: Facts, minds: MindState | null): Line[] {
     say("Jax", "And if it never comes back?", "SHOUTING"),
     say("Vince", `Then we didn't pay for a move we missed. The next entry is the pullback into the array, at CE — not the extension. "${tjrNeverChase}."`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"),
     say("Nova", `${greeksLine(f)}${memory ? ` ${memory}` : ""}`, "WRITING_ON_WHITEBOARD"),
-    say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}. It fires on the CE touch and nothing else.`, "CHECKING_TABLET"),
+    say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}. On the CE touch we hand it to Grok. Grok hears this floor through the connector.`, "CHECKING_TABLET"),
   ];
 }
 
@@ -436,13 +436,14 @@ function debate(f: Facts, minds: MindState | null, mode: "wait" | "fill" | "veto
       ),
     );
     const src = f.desk ? f.desk.spotSource[c.underlier] : `${c.underlier} ${px(f.input.market_data[c.underlier].price)}`;
-    lines.push(say("Vince", `BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} · ${src}. Sent.`, "SMASHING_ENTER_KEY"));
+    lines.push(say("Vince", `Handing Grok BUY_OPEN ${e.qty}× ${contractName(c.underlier, e.quote.strike, c.type, e.exp)} · limit ${prem(e.quote.ask)} · ${src}. Grok hears this floor through the connector.`, "THUMBS_UP"));
+    lines.push(say("Gemma", "Grok places or stands down, then reports back whether we took it, the pnl, and a journal paragraph.", "EXPLAINING"));
   } else if (mode === "wait") {
     if (ch.decisive) {
       lines.push(say("Sterling", "Not cleared. It's priced at its CE already — if it touches, the ledger refuses it and the ghost room takes it.", "CROSSING_ARMS"));
-      lines.push(say("Vince", `Watching CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing will route on this one.`, "STEADY_MONITORING"));
+      lines.push(say("Vince", `Watching CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing to hand Grok on this one.`, "STEADY_MONITORING"));
     } else {
-      lines.push(say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}, fires on the CE touch only. ${preMortem(c, ev)}`, "CHECKING_TABLET"));
+      lines.push(say("Sterling", `Pre-cleared: ${e.qty}× ≤ ${usd(e.capUsd)}. On the CE touch we hand it to Grok. Grok hears this floor through the connector. ${preMortem(c, ev)}`, "CHECKING_TABLET"));
       lines.push(say("Vince", `Resting at CE ${px(c.plan.entry)}${c.awayPts != null ? ` — ${ptsTxt(c.awayPts)} away, ${(c.tier ?? "—").toUpperCase()}` : ""}. Nothing crosses the spread early.`, c.tier === "armed" ? "THUMBS_UP" : "STEADY_MONITORING"));
     }
   } else {

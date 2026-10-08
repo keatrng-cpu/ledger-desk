@@ -189,7 +189,7 @@ export function smcMandateNote(): ResearchNote {
 export function rhLiveMandateNote(): ResearchNote {
   return {
     id: "rh_live_mandate",
-    line: "Agentic ••6158 is live. A setup that clears the chart can take $150–$550 even when that is a large share of the account. Sterling's ledger is a note, not a veto.",
+    line: "The floor hands a cleared ticket to Grok. Grok places or stands down on Agentic ••6158, then reports back whether it was taken, the pnl, and a journal paragraph. Sterling's ledger is a note, not a veto.",
     source: "docs/RH_LIVE_ROUTINE.md · manager-agree.ts",
   };
 }
@@ -239,7 +239,7 @@ export function rhArmedPathNote(a: RhAccountSnapshot | null | undefined, nowMs: 
       a.accountNumber === "995386158" &&
       sp >= RH_MIN_DEBIT_TOTAL;
     line = ready
-      ? `Armed RH path is live on Agentic ••6158: ${usd2(sp)} buying power is ready. Fire when Trading Stand, the desk, or the market presents a trade.`
+      ? `Armed path is live on Agentic ••6158: ${usd2(sp)} buying power is ready. The floor hands the ticket to Grok. Grok places or stands down, then reports the pnl and a journal line back.`
       : g.ok
         ? "Armed RH path: BP clears the floor — still needs RH_LIVE_ARMED, Floor ARMED, PATH A-band, Manager agentAgree, then review before place."
         : `Armed RH path waits on a fresh get_portfolio read before anything is proposed (${g.gate}).`;

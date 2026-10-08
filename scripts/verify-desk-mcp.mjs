@@ -38,7 +38,7 @@ check("initialized is empty", note.status === 202 && note.body == null);
 
 const list = await handleMcpMessage({ jsonrpc: "2.0", id: 2, method: "tools/list" }, async () => card);
 const names = (list.body?.result?.tools ?? []).map((t) => t.name);
-check("tools", ["read_desk", "read_scanner", "read_floor", "read_brain"].every((n) => names.includes(n)));
+check("tools", ["read_desk", "read_scanner", "read_floor", "read_brain", "report_trade"].every((n) => names.includes(n)));
 
 const call = await handleMcpMessage(
   { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "read_floor", arguments: {} } },
@@ -56,6 +56,26 @@ check("no place tool", bad.body?.result?.isError === true);
 const sse = encodeMcp(init, true);
 check("sse", wantsSse("text/event-stream") && sse.contentType === "text/event-stream" && sse.body.startsWith("event: message"));
 check("json preferred", wantsSse("application/json, text/event-stream") === false);
+const reported = await handleMcpMessage(
+  {
+    jsonrpc: "2.0",
+    id: 5,
+    method: "tools/call",
+    params: { name: "report_trade", arguments: { taken: false, status: "stood", journal: "No sweep. Stood down." } },
+  },
+  async () => card,
+  async (args) => ({ ...args, saved: true }),
+);
+check("report", reported.body?.result?.content?.[0]?.text?.includes('"saved":true'));
+
+const missing = await handleMcpMessage(
+  { jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "report_trade", arguments: { taken: true } } },
+  async () => card,
+  async () => {
+    throw new Error("journal paragraph is required");
+  },
+);
+check("report rejects", missing.body?.result?.isError === true);
 
 if (failed) {
   console.error(failed, "failed");

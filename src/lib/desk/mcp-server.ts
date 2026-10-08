@@ -10,7 +10,7 @@ export const MCP_PROTOCOL = "2025-03-26";
 const TOOLS = [
   {
     name: "read_desk",
-    description: "Live ledger desk: clock, quotes, scanner, floor verdict, and brain. No account, no positions, no orders.",
+    description: "Live ledger desk: clock, quotes, scanner, floor verdict, brain, and what the floor just said. No account, no positions, no orders.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
@@ -20,13 +20,35 @@ const TOOLS = [
   },
   {
     name: "read_floor",
-    description: "Options floor verdict, blocks, and the ticket shape if one exists. Does not place.",
+    description: "Options floor verdict, the ticket if one exists, and what Vince, Sterling, and Nova just said. Does not place.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
     name: "read_brain",
     description: "SMC brain: one book, TAKE / WAIT / STAND, and the missing layer.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "report_trade",
+    description:
+      "Report back to the floor after a ticket was handed to Grok. Say whether it was taken, the pnl, a journal paragraph, and the status: placed, stood, managing, or closed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taken: { type: "boolean" },
+        status: { type: "string", enum: ["placed", "stood", "managing", "closed"] },
+        pnl: { type: ["number", "null"] },
+        journal: { type: "string" },
+        underlier: { type: "string" },
+        side: { type: "string" },
+        contracts: { type: "number" },
+        entry: { type: "number" },
+        exit: { type: "number" },
+        reason: { type: "string" },
+      },
+      required: ["taken", "status", "journal"],
+      additionalProperties: false,
+    },
   },
 ] as const;
 
@@ -40,7 +62,7 @@ export interface McpReply {
 
 function slice(card: DeskListenCard, name: ToolName): unknown {
   if (name === "read_scanner") return { at: card.at, clock: card.clock, quotes: card.quotes, scanner: card.scanner };
-  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor };
+  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said };
   if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain };
   return card;
 }
@@ -53,7 +75,11 @@ function fail(id: unknown, code: number, message: string): McpReply {
   return { status: 200, sse: false, body: { jsonrpc: "2.0", id: id ?? null, error: { code, message } } };
 }
 
-export async function handleMcpMessage(raw: unknown, load: () => Promise<DeskListenCard>): Promise<McpReply> {
+export async function handleMcpMessage(
+  raw: unknown,
+  load: () => Promise<DeskListenCard>,
+  report?: (args: unknown) => Promise<unknown>,
+): Promise<McpReply> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fail(null, -32600, "Invalid request");
   const msg = raw as { jsonrpc?: unknown; id?: unknown; method?: unknown; params?: unknown };
   if (msg.jsonrpc !== "2.0" || typeof msg.method !== "string") return fail(msg.id, -32600, "Invalid request");
@@ -72,11 +98,21 @@ export async function handleMcpMessage(raw: unknown, load: () => Promise<DeskLis
   if (msg.method === "ping") return result(msg.id, {});
   if (msg.method === "tools/list") return result(msg.id, { tools: TOOLS });
   if (msg.method === "tools/call") {
-    const params = (msg.params ?? {}) as { name?: unknown };
+    const params = (msg.params ?? {}) as { name?: unknown; arguments?: unknown };
     const name = params.name;
     const known = TOOLS.some((t) => t.name === name);
     if (!known) {
       return result(msg.id, { content: [{ type: "text", text: "Unknown tool" }], isError: true });
+    }
+    if (name === "report_trade") {
+      if (!report) return result(msg.id, { content: [{ type: "text", text: "Report is not wired" }], isError: true });
+      try {
+        const saved = await report(params.arguments ?? {});
+        return result(msg.id, { content: [{ type: "text", text: JSON.stringify(saved) }], isError: false });
+      } catch (err) {
+        const why = err instanceof Error ? err.message : "Report failed";
+        return result(msg.id, { content: [{ type: "text", text: why }], isError: true });
+      }
     }
     try {
       const card = await load();
