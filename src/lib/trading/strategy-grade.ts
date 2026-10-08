@@ -11,6 +11,7 @@
 import { APLUS_RULES, type RiskGrade } from "@/lib/aplus/config";
 import { WEIGHTS, type ComponentKey } from "./engine-weights";
 import { ALWAYS_SCAN, type StrategyId } from "./strategies";
+import { MODEL_REQUIREMENTS, inModelWindow } from "./smc-canon";
 
 const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
 const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
@@ -51,10 +52,22 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   },
   {
     id: "blake_mech",
+    /**
+     * ITEM 15 — the must is the SWING, not a bare CISD.
+     *
+     * `cisd` is "a close back through a run of opposing candles"
+     * (raid-pair.ts cisdThroughSeries) — true on a large share of bars. Blake
+     * is specifically a swing pair: a first extreme, a pullback, a second push
+     * that TAKES that extreme, then a body close back through the PULLBACK
+     * level. `detectBlakeSwing` is that, and `blake_swing` is the component.
+     *
+     * `cisd` moves to `nice`, so a card with the generic close still scores
+     * something and can no longer COMPLETE the model on it.
+     */
     label: "Blake Mech",
-    must: ["sweep_significant", "cisd", "ifvg"],
-    nice: ["displacement", "order_block"],
-    structureNote: "Sweep, then the body-close inversion. The wick retest is the other model.",
+    must: ["sweep_significant", "blake_swing", "ifvg"],
+    nice: ["displacement", "order_block", "cisd"],
+    structureNote: "Sweep, then the swing-pair body close through the pullback. The wick retest is the other model.",
   },
   {
     id: "tjr",
@@ -89,14 +102,38 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   },
   {
     id: "patty",
+    /**
+     * ITEM 14 — the must is the HIGHER-TIMEFRAME gap.
+     *
+     * `must: ["ifvg"]` meant any gap on the execution series: a 15m gap with
+     * the daily agreeing and a displacement anywhere COMPLETED Patty, which is
+     * not Patty. `htf_gap` is a 1h/4h fvg/ifvg on this side, still unmitigated,
+     * that price has closed back INTO. `ifvg` drops to the confirmation any-of
+     * group, where the 5m gap belongs.
+     */
     label: "Patty",
-    must: ["ifvg"],
+    must: ["htf_gap"],
     mustAnyOf: [
-      ["cisd", "mss", "displacement"],
+      ["cisd", "mss", "displacement", "ifvg"],
       ["daily_bias", "mid_bias", "weekly_pd"],
     ],
-    nice: ["opening_bias"],
-    structureNote: "Higher-timeframe gap, then the 5m confirmation. 9:45–11:00 and 13:30–14:30. Not the touch. Not lunch.",
+    nice: ["opening_bias", "ifvg"],
+    structureNote: "An unmitigated 1h/4h gap, then the 5m close back INTO it. 9:45–11:00 and 13:30–14:30. Not the touch. Not lunch. No sweep needed.",
+  },
+  {
+    id: "silver_bullet",
+    /**
+     * ITEM 24 — the 10:00–11:00 model, named only when the OPENING range was
+     * the pool taken. `or_raid` is the 09:30–10:00 range raid (scanner.ts),
+     * distinct from `opening_raid` (the OVERNIGHT range, Judas's pool).
+     * Both `or_raid` and the window are required, so any other sweep in that
+     * hour cannot take this name.
+     */
+    label: "Silver Bullet",
+    must: ["or_raid", "displacement"],
+    mustAnyOf: [["ifvg", "order_block"]],
+    nice: ["mss", "cisd", "mid_bias", "ote"],
+    structureNote: "The raid of the 09:30–10:00 range, then the displacement. 10:00–11:00 ET only. Full size, and the name grants nothing.",
   },
   {
     id: "continuation",
@@ -315,14 +352,15 @@ export function gradeAllStrategies(
     etMin?: number | null;
   },
 ): StrategyMarketGrade[] {
-  const etMin = opts?.etMin;
-  const inJudas = etMin != null && etMin >= 9 * 60 + 30 && etMin < 9 * 60 + 45;
-  const inPatty =
-    etMin != null &&
-    ((etMin >= 9 * 60 + 45 && etMin < 11 * 60) || (etMin >= 13 * 60 + 30 && etMin < 14 * 60 + 30));
+  const etMin = opts?.etMin ?? null;
+  /**
+   * The hours come from `MODEL_REQUIREMENTS` (smc-canon.ts), not from literals
+   * repeated here. Judas's 09:30–09:45 and Patty's 09:45–11:00 / 13:30–14:30
+   * were hard-coded in this function AND in strategies.ts `classify` with no
+   * shared constant — same values, two copies, either able to drift.
+   */
   const ids = ALWAYS_SCAN.filter((id) => {
-    if (id === "judas") return inJudas;
-    if (id === "patty") return inPatty;
+    if (MODEL_REQUIREMENTS[id]?.windows) return inModelWindow(id, etMin);
     if (id === "blake_mech" && components.includes("mechanical_model")) return false;
     return true;
   });

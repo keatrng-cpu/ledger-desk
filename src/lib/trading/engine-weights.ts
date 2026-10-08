@@ -32,6 +32,21 @@ export const RAW_WEIGHTS = {
    */
   ote: 4,
   cisd: 4,
+  /**
+   * ITEM 15 — the Blake swing pair, confirmed.
+   *
+   * `detectBlakeSwing`: a first extreme, a pullback, a second push that TAKES
+   * that extreme, and a body close back through the pullback level. That is
+   * the model; a bare CISD ("a close back through some opposing candles") is
+   * not, and `blake_mech`'s must is now this.
+   *
+   * WEIGHTED AT `cisd`'s LEVEL, NOT HIGHER. It is rarer and better defined,
+   * which is a stronger DEFINITION, not a stronger expectancy claim — nobody
+   * has measured this detector's R. Blake goes from ~80% of bars to 1.31%, so
+   * the long re-promotion counter (profit-rules.ts, n >= 15 at WR >= 0.55) is
+   * now effectively unreachable. Stated plainly: that is the trader's call.
+   */
+  blake_swing: 4,
   displacement: 4,
   mss: 4,
   opening_bias: 4,
@@ -46,6 +61,23 @@ export const RAW_WEIGHTS = {
   ltf_reaction: 0,
   /** The 9:30 sweep took the overnight range, not a swing born after the open. */
   opening_raid: 0,
+  /**
+   * ITEM 14 — a 1h or 4h gap, still unmitigated, with a close back INTO it.
+   *
+   * Patty's own object. Weight 0, the same gate pattern as `ltf_reaction` and
+   * `opening_raid` above: it decides whether a model may be NAMED and adds
+   * nothing to the score, so naming Patty correctly cannot inflate a card.
+   */
+  htf_gap: 0,
+  /**
+   * ITEM 24 — the raid of the 09:30–10:00 ET opening range.
+   *
+   * The silver bullet's pool, distinct from `opening_raid` (the OVERNIGHT
+   * range, which is Judas's pool). Weight 0 for the same reason: completing a
+   * template already adds +0.03 fit and lifts the not-complete clamp, so a
+   * scored `or_raid` could turn a C into B+/A− off a naming fix.
+   */
+  or_raid: 0,
 } as const;
 
 export type ComponentKey = keyof typeof RAW_WEIGHTS;

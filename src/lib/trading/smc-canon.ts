@@ -192,6 +192,8 @@ export const STRATEGY_SCHOOL: Record<StrategyId, SchoolId | null> = {
   mechanical: "blake",
   blake_mech: "blake",
   judas: "ict",
+  // Item 24: the silver bullet is ICT's own window and ICT's own shape.
+  silver_bullet: "ict",
   pdi: "blake",
   continuation: "smc",
   patty: "patty",
@@ -342,11 +344,168 @@ export interface CanonInput {
    * exist in practice.
    */
   htfDisrespected?: boolean;
+  /**
+   * ITEM 11 — did this book LEAD the divergence (smt-level.ts `led`)?
+   *
+   * `false` is the laggard: the other index made the extreme and displaced, so
+   * this side is not a second setup on the same divergence and does not earn
+   * the optional SMT factor. `null`/`undefined` means no divergence read and
+   * behaves exactly as before.
+   */
+  smtLed?: boolean | null;
 }
+
+/**
+ * ITEM 11 — SMT credits the index that inverted FIRST.
+ *
+ * Switchable for the same reason GATE is: nothing writes it at runtime, and a
+ * sweep script can restore the pre-2026-10-08 behaviour (either book earns the
+ * factor wherever the divergence printed) in one flip.
+ *
+ * SAFE BY CONSTRUCTION, AND THE LIMIT OF WHAT IS WIRED. `smt` is an OPTIONAL
+ * factor (`must: false` below), so this can move the A+/A boundary — A+ needs
+ * two optional hits — and can never move the WORD. The work order also asks
+ * for the laggard to be "stood down"; a refusal on the laggard would be a NEW
+ * hard gate with no measurement behind it, so what ships is the removal of the
+ * factor plus a named reason. Promoting it to a stand-down is the trader's call.
+ */
+export const SMT_TRADES_THE_LEADER = { value: true };
 
 function has(comps: string[], ...keys: string[]): boolean {
   const set = new Set(comps);
   return keys.some((k) => set.has(k));
+}
+
+/** Minutes after ET midnight, inclusive start / exclusive end. */
+export type EtWindow = readonly [number, number];
+
+export interface ModelRequirement {
+  id: StrategyId;
+  /** The ONLY hours this model may be named in. Null = any hour. */
+  windows: readonly EtWindow[] | null;
+  /** The pool a raid must have taken for this model to be itself. */
+  pool: "overnight_range" | "opening_range_0930_1000" | null;
+  /** Components without which the name is wrong, whatever else is on the tape. */
+  requires: readonly ComponentKey[];
+  note: string;
+}
+
+/**
+ * ONE definition of each time-and-pool-bound model.
+ *
+ * Patty's hours were hard-coded in TWO places (`strategies.ts` classify and
+ * `strategy-grade.ts` gradeAllStrategies) with the same values and no shared
+ * constant, and Judas's in a third. Same values, one definition — a change in
+ * one place can no longer leave the other naming a model out of its hours.
+ */
+export const MODEL_REQUIREMENTS: Readonly<Partial<Record<StrategyId, ModelRequirement>>> = {
+  judas: {
+    id: "judas",
+    windows: [[9 * 60 + 30, 9 * 60 + 45]],
+    pool: "overnight_range",
+    requires: ["opening_raid", "sweep_significant"],
+    note: "09:30–09:45 ET, and the pool is the OVERNIGHT range. Fading the failed raid.",
+  },
+  patty: {
+    id: "patty",
+    // ITEM 14: 09:45–11:00 and 13:30–14:30 only. Not lunch.
+    windows: [
+      [9 * 60 + 45, 11 * 60],
+      [13 * 60 + 30, 14 * 60 + 30],
+    ],
+    pool: null,
+    requires: ["htf_gap"],
+    note: "A 1h/4h gap, still unmitigated, then a close back INTO it. The touch is not the entry, and Patty needs no sweep.",
+  },
+  silver_bullet: {
+    id: "silver_bullet",
+    /**
+     * ITEM 24: only the 10:00–11:00 ET window is added.
+     *
+     * CLAUDE.md measured 10:00–11:00 FLAT and 03:00–04:00 at −0.32R/−0.45R
+     * (half-hour buckets). 14:00–15:00 has no measurement here. This is a
+     * NAMING fix — "10:00–11:00 is just NY AM, so a Patty or a continuation
+     * can take the name" — and emphatically not an edge claim, which is why
+     * the other two ICT windows are deliberately absent.
+     */
+    windows: [[10 * 60, 11 * 60]],
+    pool: "opening_range_0930_1000",
+    requires: ["or_raid", "displacement"],
+    note: "The raid of the 09:30–10:00 dealing range, then the displacement. Judas's shape on a different range.",
+  },
+};
+
+/**
+ * ITEM 24 — the silver bullet carries NO size, only a name.
+ *
+ * Completing a template adds +0.03 fit and lifts the not-complete clamp
+ * (`strategy-grade.ts`), so a falsely-named model can turn a C into B+/A−.
+ * `or_raid` therefore carries weight 0 (engine-weights.ts) and this says in
+ * the tree that the window grants nothing.
+ */
+export const SILVER_BULLET_EVIDENCE = {
+  window: "10:00–11:00 ET",
+  measuredR: 0,
+  note: "CLAUDE.md: 10:00–11:00 measured FLAT; 03:00–04:00 measured −0.32R/−0.45R. A name, not an edge.",
+  grantsSize: false,
+} as const;
+
+/**
+ * The 62–79% OTE size cut, measured and NOT wired.
+ *
+ * Recorded so the idea is not silently re-proposed: entry inside the OTE band
+ * measured +0.06R at z = 0.43 (scripts/measure-model-claims.mjs, 2026-10-01),
+ * far inside the |z| >= 2 bar this repo holds a new finding to.
+ */
+export const OTE_SIZE_CUT_EVIDENCE = {
+  deltaR: 0.06,
+  z: 0.43,
+  source: "scripts/measure-model-claims.mjs (2026-10-01)",
+  wired: false,
+} as const;
+
+/** True when `etMin` falls inside any of the model's windows. */
+export function inModelWindow(id: StrategyId, etMin: number | null | undefined): boolean {
+  const req = MODEL_REQUIREMENTS[id];
+  if (!req?.windows) return true;
+  if (etMin == null || !Number.isFinite(etMin)) return false;
+  return req.windows.some(([a, b]) => etMin >= a && etMin < b);
+}
+
+/**
+ * May this model be NAMED on this tape, in this hour?
+ *
+ * A pure precondition check: it refuses a NAME, it never grants one. A model
+ * with no entry in `MODEL_REQUIREMENTS` is unconstrained and always passes, so
+ * adding this call to a classifier can only ever remove a wrong name.
+ */
+export function modelMayBeNamed(
+  id: StrategyId,
+  input: { etMin: number | null; components: readonly string[] },
+): { ok: boolean; why: string } {
+  const req = MODEL_REQUIREMENTS[id];
+  if (!req) return { ok: true, why: "No time or pool requirement for this model." };
+  if (!inModelWindow(id, input.etMin)) {
+    const hours = (req.windows ?? [])
+      .map(([a, b]) => `${hhmm(a)}–${hhmm(b)}`)
+      .join(" and ");
+    return {
+      ok: false,
+      why: `${id} is only itself at ${hours} ET — ${input.etMin == null ? "no clock" : hhmm(input.etMin)} is outside it.`,
+    };
+  }
+  const set = new Set(input.components);
+  const lacking = req.requires.filter((k) => !set.has(k));
+  if (lacking.length) {
+    return { ok: false, why: `${id} needs ${lacking.join(" + ")} — ${req.note}` };
+  }
+  return { ok: true, why: req.note };
+}
+
+function hhmm(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 /**
@@ -464,6 +623,9 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
    */
   const oteOverlap =
     has(components, "ifvg", "order_block") && has(components, "ote") && pdHalf;
+  // ITEM 11: false is "this book is the laggard". null/undefined is "no
+  // divergence read", which must behave exactly as it did before.
+  const smtEarned = !SMT_TRADES_THE_LEADER.value || input.smtLed !== false;
 
   const factors: CanonFactor[] = [
     {
@@ -529,8 +691,14 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       id: "smt",
       label: "SMT (optional)",
       must: false,
-      pass: smt,
-      detail: smt ? "Correlated pair failed to confirm extreme" : "No SMT — not required",
+      // ITEM 11: the leader trades it. The laggard held — that is the same
+      // divergence seen from the other side, not a second setup.
+      pass: smt && smtEarned,
+      detail: !smt
+        ? "No SMT — not required"
+        : smtEarned
+          ? "Correlated pair failed to confirm extreme"
+          : "SMT present, but the OTHER index made the extreme and displaced. The laggard is not a second setup — trade the book that led.",
     },
     {
       id: "overlap",
