@@ -65,10 +65,10 @@ export const TF_ROLE: Record<ChartTf, string> = {
   "4h": "bias — where the week is going",
   "1h": "structure — the dealing range and the draw",
   "15m": "the setup — what the engine grades",
-  "5m": "confirmation — the shift after the raid",
-  "3m": "the open's manipulation leg, resolved",
-  "2m": "the open's manipulation leg, resolved",
-  "1m": "timing — the turn inside the array",
+  "5m": "confirmation — a closed displacement after the raid, if it holds",
+  "3m": "the open's reaction, or its manipulation if the close fails",
+  "2m": "the open's reaction, or its manipulation if the close fails",
+  "1m": "timing — a held displacement confirms; a close back through the open does not",
 };
 
 export interface TfSeries {

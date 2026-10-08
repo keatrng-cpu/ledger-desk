@@ -56,7 +56,7 @@ import {
   type SymbolSeries,
   type OhlcBar,
 } from "@/lib/market/types";
-import { getSessionClock, sessionLive, type SessionClock } from "./sessions";
+import { applyLtfReaction } from "./ltf-reaction";
 import { applySession } from "./session-event";
 import { buildLiveSays, type LiveSays } from "./live-says";
 import { buildTfLadder, ladderTags, type TfLadder } from "./tf-ladder";
@@ -705,8 +705,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       raidDir(biasL, detL) ?? (biasL.topDown === "bear" ? "bear" : "bull");
     const dirR: "bull" | "bear" =
       raidDir(biasR, detR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
-    const narrL = buildMarketNarrative(biasL, detL, clock, dirL, left.bars);
-    const narrR = buildMarketNarrative(biasR, detR, clock, dirR, right.bars);
+    const narrL = applyLtfReaction(
+      buildMarketNarrative(biasL, detL, clock, dirL, left.bars),
+      minuteL,
+      dirL,
+    );
+    const narrR = applyLtfReaction(
+      buildMarketNarrative(biasR, detR, clock, dirR, right.bars),
+      minuteR,
+      dirR,
+    );
     const narrative = {
       left: narrL,
       right: narrR,

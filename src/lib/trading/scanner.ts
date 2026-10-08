@@ -908,7 +908,7 @@ export function scoreCandidates(
     const need = c.side === "long" ? "bull" : "bear";
     if (read.topDown === need) continue;
 
-    const disrespect = biasDisrespect(read, det, need, bars.length);
+    const disrespect = biasDisrespect(read, det, need, bars.length, bars);
     if (disrespect.disrespected) {
       // Bias invalidated: the gate releases, and says so on the record.
       // 2026-09-23: this set the flag and continued, but htfOk was ALREADY

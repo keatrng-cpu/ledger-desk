@@ -749,8 +749,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
   const mins = clock.etHour * 60 + clock.etMinute;
   const clockOn =
     clock.killzone !== "ny_am" ||
-    isJudasWindow(clock.etHour, clock.etMinute) ||
-    mins >= 10 * 60 ||
+    mins >= 11 * 60 ||
     (eventKind(day?.kind) && !afterSecondImpulse(clock));
   const calendarOn = day?.kind === "range_build" || day?.kind === "a_plus_only";
   const pressured = eventOn || clockOn || calendarOn;

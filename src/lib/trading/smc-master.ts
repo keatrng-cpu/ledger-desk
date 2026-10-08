@@ -199,6 +199,13 @@ function pickCandidate(
   const alignedPath = alignedBook.find((c) => isHighProbPath(c)) ?? alignedBook.find((c) => isPathFire(c));
   const aligned = alignedBook[0];
   const path = book.find((c) => isHighProbPath(c));
+  // The old HTF side stays the headline only while it is still a live path.
+  // Once price has disrespected it, the released side is the book — a spent
+  // short must not sit on top of the long the tape is delivering.
+  const released = book
+    .filter((c) => c.htfDisrespected === true && c.htfOk)
+    .sort((a, b) => b.confluence - a.confluence)[0];
+  if (released && !alignedPath) return released;
   return (
     alignedPath ??
     aligned ??

@@ -35,6 +35,8 @@
  */
 
 import type { DetectorSummary } from "./detectors";
+import { detectDisplacements, detectFvgs, detectSweeps } from "./detectors";
+import type { OhlcBar } from "../market/types";
 import type { HtfBiasRead } from "./structure";
 
 /**
@@ -76,6 +78,7 @@ export function biasDisrespect(
   det: DetectorSummary,
   direction: "bull" | "bear",
   barCount: number,
+  bars?: OhlcBar[],
 ): BiasDisrespect {
   // Only meaningful when we are asking to trade AGAINST the HTF read.
   if (read.topDown === direction) return NOT_DISRESPECTED;
@@ -86,30 +89,58 @@ export function biasDisrespect(
   const recentEnough = (index: number | undefined | null): boolean =>
     index != null && barCount - index <= DISRESPECT_RECENCY_BARS;
 
-  // 1) MANIPULATION — liquidity was taken on the side that traps the old
-  //    bias. A bull release needs sellside swept (shorts trapped at the low).
-  const sweep = det.sweep.latest;
-  const manipulation =
-    !!sweep &&
-    recentEnough(sweep.index) &&
-    ((direction === "bull" && sweep.side === "sellside") ||
-      (direction === "bear" && sweep.side === "buyside"));
+  // A later sweep of the OTHER side is often the target, not a new raid.
+  // The low that trapped the old bias still counts after the high is tagged.
+  const sweeps = bars ? detectSweeps(bars) : [];
+  const raid =
+    sweeps.filter(
+      (s) =>
+        recentEnough(s.index) &&
+        ((direction === "bull" && s.side === "sellside") ||
+          (direction === "bear" && s.side === "buyside")),
+    ).at(-1) ??
+    (det.sweep.latest &&
+    recentEnough(det.sweep.latest.index) &&
+    ((direction === "bull" && det.sweep.latest.side === "sellside") ||
+      (direction === "bear" && det.sweep.latest.side === "buyside"))
+      ? det.sweep.latest
+      : null);
+  const manipulation = !!raid;
 
-  // 2) DISTRIBUTION — displacement in the new direction. This is the actual
-  //    "distribute" step: institutional delivery away from the raid, not
-  //    drift back into the range.
-  const disp = det.displacement.latest;
-  const distribution =
-    !!disp && disp.direction === direction && recentEnough(disp.index);
+  const disps = bars ? detectDisplacements(bars) : [];
+  const disp =
+    disps.find(
+      (d) =>
+        d.direction === direction &&
+        recentEnough(d.index) &&
+        (raid == null || d.index > raid.index),
+    ) ??
+    (det.displacement.latest &&
+    det.displacement.latest.direction === direction &&
+    recentEnough(det.displacement.latest.index) &&
+    (raid == null || det.displacement.latest.index > raid.index)
+      ? det.displacement.latest
+      : null);
+  const distribution = !!disp;
 
-  // 3) STRUCTURE BROKEN against the old bias — the market has printed a new
-  //    structural leg in `direction`, not merely a strong candle.
-  const structureFlipped = read.lastBOS?.direction === direction;
+  // A 15m inverse is structure changing hands before the swing BOS prints.
+  // Bear gap closed through and inverted = bullish. The reverse is bearish.
+  const inverse = bars
+    ? detectFvgs(bars).some(
+        (g) =>
+          g.inverted &&
+          recentEnough(g.invertedIndex) &&
+          ((direction === "bull" && g.kind === "bear") ||
+            (direction === "bear" && g.kind === "bull")),
+      )
+    : false;
+  const structureFlipped = read.lastBOS?.direction === direction || inverse;
 
-  // 4) LOWER TIMEFRAMES AGREE — both mid and ltf now read `direction`.
-  //    Requiring BOTH is what separates a real regime change from one noisy
-  //    timeframe disagreeing with the daily.
-  const ltfAgrees = read.mid === direction && read.ltf === direction;
+  // Mid can lag a fast inverse. LTF agreeing plus the inverse is enough.
+  // Mid and LTF both agreeing is still enough on its own.
+  const ltfAgrees =
+    (read.mid === direction && read.ltf === direction) ||
+    (read.ltf === direction && structureFlipped);
 
   const checks = [
     { id: "manipulation", label: "Liquidity raid (manipulation)", pass: manipulation },
