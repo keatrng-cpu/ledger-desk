@@ -87,20 +87,21 @@ export function isProfitPathEligible(g: ProfitGrade | PathBand): boolean {
   return g === "A+" || g === "A" || g === "A-" || g === "B+";
 }
 
-export function applyProfitPathToCandidate(c: SetupCandidate): SetupCandidate {
+export function applyProfitPathToCandidate(
+  c: SetupCandidate,
+  opts?: { etMin?: number | null },
+): SetupCandidate {
   const components = c.components || [];
-  const board = gradeAllStrategies(components, {
+  const gradeOpts = {
     htfOk: c.htfOk,
     killzoneOk: c.killzoneOk,
     conditionsOk: c.conditionsOk,
-  });
+    etMin: opts?.etMin,
+  };
+  const board = gradeAllStrategies(components, gradeOpts);
   const best =
     board[0] ??
-    bestStrategyGrade(components, {
-      htfOk: c.htfOk,
-      killzoneOk: c.killzoneOk,
-      conditionsOk: c.conditionsOk,
-    });
+    bestStrategyGrade(components, gradeOpts);
   // Near-complete counts toward path so the desk is not starved of entries.
   const complete = best.complete || Boolean(best.nearComplete);
   const q = best.fit;

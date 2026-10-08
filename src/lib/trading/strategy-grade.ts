@@ -312,11 +312,16 @@ export function gradeAllStrategies(
     htfOk?: boolean;
     killzoneOk?: boolean;
     conditionsOk?: boolean;
+    /** Minutes after midnight ET. Judas is a model only from 09:30 to 09:45. */
+    etMin?: number | null;
   },
 ): StrategyMarketGrade[] {
-  const board = ALWAYS_SCAN.map((id) =>
-    gradeStrategyAgainstMarket(id, components, opts),
-  );
+  const etMin = opts?.etMin;
+  const ids = ALWAYS_SCAN.filter((id) => {
+    if (id !== "judas") return true;
+    return etMin != null && etMin >= 9 * 60 + 30 && etMin < 9 * 60 + 45;
+  });
+  const board = ids.map((id) => gradeStrategyAgainstMarket(id, components, opts));
   board.sort((a, b) => {
     if (a.complete !== b.complete) return a.complete ? -1 : 1;
     if (a.nearComplete !== b.nearComplete) return a.nearComplete ? -1 : 1;
@@ -331,6 +336,7 @@ export function bestStrategyGrade(
     htfOk?: boolean;
     killzoneOk?: boolean;
     conditionsOk?: boolean;
+    etMin?: number | null;
   },
 ): StrategyMarketGrade {
   const board = gradeAllStrategies(components, opts);

@@ -279,9 +279,7 @@ function gradeBook(
   minute: OhlcBar[] | undefined,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias, narrative);
-  const side =
-    cand?.side ??
-    (bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null);
+  const side = cand?.side ?? null;
 
   // The range premium/discount is graded on. Impulse leg when the knob says
   // so AND a raid of this side's polarity exists to anchor it; the 80-bar

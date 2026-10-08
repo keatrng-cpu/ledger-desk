@@ -22,7 +22,7 @@ import {
   consequentEncroachment,
 } from "./fib";
 import { biasDisrespect } from "./htf-invalidation";
-import { cisdThroughSeries } from "./raid-pair";
+import { cisdThroughSeries, extensionAllows } from "./raid-pair";
 import { gapDirection } from "./gap-direction";
 import type { SessionClock } from "./sessions";
 import {
@@ -964,7 +964,8 @@ export function scoreCandidates(
   }
 
   // Profit path: incomplete-pattern veto + calibration floor (0.65) for action
-  const pathCandidates = candidates.map(applyProfitPathToCandidate);
+  const etMin = clock.etHour * 60 + clock.etMinute;
+  const pathCandidates = candidates.map((c) => applyProfitPathToCandidate(c, { etMin }));
 
   /**
    * With-bias fade veto — Claude's disrespect release is for COUNTER-bias
@@ -1052,6 +1053,21 @@ export function scoreCandidates(
     noteOnly(c, "mitigation block — failed second push, not the entry and not a block");
   }
 
+  for (const c of pathCandidates) {
+    const bars = c.symbol === left.symbol ? barsL : barsR;
+    if (!bars.length || extensionAllows(bars, c.side)) continue;
+    c.grade = "skip";
+    c.pathBand = "skip";
+    c.actionable = false;
+    if (c.htfRelease) c.htfRelease = { ...c.htfRelease, met: 0 };
+    c.missing.unshift("extension — fading a run with no reversal signs");
+    c.reasons.unshift(
+      c.side === "short"
+        ? "Bullish extension. A short needs bearish signs inside it."
+        : "Bearish extension. A long needs bullish signs inside it.",
+    );
+  }
+
   // The title carries "[path <band> · fit <x>]". It was stamped inside
   // applyProfitPathToCandidate, BEFORE the vetoes above, and never restamped —
   // so a vetoed card read "[path A+ · Q 0.84]" over a C badge. Stamped last.
@@ -1077,7 +1093,10 @@ export function scoreCandidates(
    */
   pathCandidates.sort(compareForBoard);
 
-  const best = pathCandidates[0];
+  const tradable = pathCandidates.filter(
+    (c) => c.pathBand !== "skip" || !c.missing.some((m) => m.startsWith("extension —")),
+  );
+  const best = tradable[0];
   let focus = "Stand down — no setup clears engine-aligned gates.";
   if (best && best.actionable) {
     focus = `Focus: ${best.symbol} ${best.side.toUpperCase()} [${best.strategyPrimary || "model"}] (${best.pathBand ?? best.grade}, fit ${best.confluence.toFixed(2)}). ${best.strategyWhy[0] ?? best.reasons[0] ?? ""}`;
@@ -1090,7 +1109,7 @@ export function scoreCandidates(
   return {
     floor,
     aPlus: APLUS_RULES.aPlusThreshold,
-    candidates: pathCandidates.slice(0, 8),
+    candidates: tradable.slice(0, 8),
     blocked,
     focus,
     smt,
