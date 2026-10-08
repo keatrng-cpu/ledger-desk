@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Minutes Oct 7 14:00: most see another hike by year-end, timing unspecified. Oct 28 hike odds little changed after the print: FedWatch ~17% +25 / >80% hold (InvestmentNews 17.2%) vs Reuters ~78% hold pre-release and 22.7/77.3 Oct 6. CPI Sep is Wed Oct 14, not this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Minutes Oct 7 14:00: most see another hike by year-end, timing unspecified. Oct 28 hike odds little changed after the print: FedWatch ~17% +25 / >80% hold (InvestmentNews 17.2%) vs Reuters ~78% hold pre-release and 22.7/77.3 Oct 6. Thu claims 197k vs 200k (DOL, prev rev 199k); no official FedWatch restamp after the print. CPI Sep is Wed Oct 14, not this week.",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -311,13 +311,13 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     {
       date: "2026-10-08",
       weekday: "Thu",
-      dailyBias: "Selective after minutes. Claims are medium.",
+      dailyBias: "Claims soft-in-line. NQ failed PWH and closed under it. Not a new HTF trend.",
       kind: "selective",
-      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET. Prior print 197k (week ending Sep 26). Rarely trends the day." }],
-      likelyTape: "Post-minutes digest inside the week box unless Wed took a side and held. Claims are not a new HTF trend.",
-      trade: "Post-8:45 mechanical only if MSS + IFVG. Do not carry a loser into Friday.",
-      skipIf: "Chop, or already booked the week.",
-      pathNote: "Next is Fri UMich 10:00. CPI is Wed Oct 14.",
+      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL official Oct 8. 197k vs exp 200k, prev rev 199k (was 197k). Week ending Oct 3. Continuing 1.716M vs 1.699M rev. 4-wk avg 198k. Not a labor-break." }],
+      likelyTape: "Claims 197k vs 200k. NQ session 30,792.50–31,466 last ~31,005 failed back through PWH 31,282.50 and closed under it (Tue high 31,616.50 untouched). ES 7,783–7,858.25 last ~7,820 lost seed PWH 7,810 intraday, last near it. PWL untouched both. Failed hold, not a new HTF trend.",
+      trade: "Blackout done. Mechanical only if MSS + IFVG already there. Do not chase the NQ fail back under PWH. Do not carry a loser into Friday.",
+      skipIf: "No MSS + IFVG. NQ failed to hold PWH. Already booked the week.",
+      pathNote: "PWH/PWL seed unchanged. Next session UMich blackout Fri 9:45–10:15. Mon Oct 12 cash closed. CPI Wed Oct 14.",
     },
     {
       date: "2026-10-09",

@@ -201,5 +201,12 @@
     "actual": "Most see another hike by year-end; no date",
     "vs": "Sep decision +25bps unanimous 12-0; SEP median one more hike",
     "note": "Fed official 14:00 ET. Most: another increase likely appropriate by year end, data-dependent. Several: current rate not or only mildly restrictive. Oct 28 odds little changed: FedWatch ~17% hike / >80% hold vs ~78% hold pre-release. Not a new decision."
+  },
+  {
+    "date": "2026-10-08",
+    "name": "Initial Jobless Claims",
+    "actual": "197k",
+    "vs": "exp 200k / prev 197k rev 199k",
+    "note": "DOL official week ending Oct 3. -2k vs revised prior. 4-wk avg 198k. Continuing 1.716M (week ending Sep 26) vs 1.699M rev, +17k. IUR 1.1%. Soft-to-in-line; not a labor-break. No ISM/JOLTS/ADP/NFP today."
   }
 ]
