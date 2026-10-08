@@ -55,6 +55,17 @@ export interface ShockEvent {
   kind: ShockKind;
 }
 
+export interface ShockBrief {
+  /** What the move is. The calendar name when one is near, otherwise unscheduled. */
+  headline: string;
+  /** What the candle did, in one sentence. */
+  summary: string;
+  /** The impulse side and what the desk does with it. Not a forecast. */
+  effect: string;
+  /** Wick back inside is manipulation. A close through is delivery. */
+  wick: string;
+}
+
 export interface ShockRead {
   /** Within the hard lock — desk stands down. */
   active: boolean;
@@ -69,6 +80,8 @@ export interface ShockRead {
   event: ShockEvent | null;
   /** One line for the banner / news reason. */
   line: string;
+  /** Headline, summary, direction, wick. Empty when no shock. */
+  brief: ShockBrief | null;
 }
 
 const NONE: ShockRead = {
@@ -81,6 +94,7 @@ const NONE: ShockRead = {
   freshFloorMs: null,
   event: null,
   line: "",
+  brief: null,
 };
 
 interface BookShock {
@@ -88,6 +102,9 @@ interface BookShock {
   side: "up" | "down";
   pts: number;
   atrMult: number;
+  /** Closed shock bar. Absent on a forming move. */
+  bar: OhlcBar | null;
+  prior: OhlcBar | null;
 }
 
 /** Root symbol → the absolute-points floor. */
@@ -123,7 +140,16 @@ export function detectBookShock(
     if (range >= floor && mult >= SHOCK_RANGE_MULT) {
       // A shock candle: direction from its body.
       const side: "up" | "down" = b.c >= b.o ? "up" : "down";
-      if (!best || b.t > best.at) best = { at: b.t, side, pts: +range.toFixed(2), atrMult: +mult.toFixed(2) };
+      if (!best || b.t > best.at) {
+        best = {
+          at: b.t,
+          side,
+          pts: +range.toFixed(2),
+          atrMult: +mult.toFixed(2),
+          bar: b,
+          prior: closedBars[i - 1] ?? null,
+        };
+      }
     }
   }
 
@@ -136,7 +162,9 @@ export function detectBookShock(
     if (move >= floor && mult >= SHOCK_RANGE_MULT) {
       const side: "up" | "down" = quote.price >= lastClosed.c ? "up" : "down";
       const at = quote.marketTimeMs || nowMs;
-      if (!best || at > best.at) best = { at, side, pts: +move.toFixed(2), atrMult: +mult.toFixed(2) };
+      if (!best || at > best.at) {
+        best = { at, side, pts: +move.toFixed(2), atrMult: +mult.toFixed(2), bar: null, prior: lastClosed };
+      }
     }
   }
 
@@ -148,6 +176,56 @@ function fmtPts(n: number): string {
 }
 
 /**
+ * The shock candle, read as a wick. A close back inside the prior bar is the
+ * manipulation. A close through it is the delivery. The side is the impulse,
+ * not a forecast.
+ */
+export function shockBrief(
+  lead: { symbol: string; shock: BookShock },
+  kind: ShockKind,
+  calendarName: string | null,
+): ShockBrief {
+  const down = lead.shock.side === "down";
+  const impulse = down ? "bearish" : "bullish";
+  const cause =
+    kind === "macro"
+      ? "Both books moved, so this is a macro or political impulse, not one index."
+      : kind === "nq-led"
+        ? "Nasdaq led. A mega-cap headline fits this better than a broad print."
+        : kind === "es-led"
+          ? "The S&P led. Broader than a single Nasdaq name."
+          : "One book moved. The other did not confirm it.";
+  const bar = lead.shock.bar;
+  const prior = lead.shock.prior;
+  let wick: string;
+  if (!bar) {
+    wick = "The candle is still forming. A wick through a pool that closes back inside is the manipulation. A close through is the delivery. Do not call it either until the bar closes.";
+  } else {
+    const range = bar.h - bar.l || 1;
+    const body = Math.abs(bar.c - bar.o);
+    const upper = bar.h - Math.max(bar.o, bar.c);
+    const lower = Math.min(bar.o, bar.c) - bar.l;
+    const wickShare = Math.round((Math.max(upper, lower) / range) * 100);
+    const backInside = prior != null && bar.c <= prior.h && bar.c >= prior.l;
+    const closedThrough = prior != null && (down ? bar.c < prior.l : bar.c > prior.h);
+    const shape = `Body ${Math.round((body / range) * 100)}% of the range, wick ${wickShare}%.`;
+    wick = backInside
+      ? `${shape} The close came back inside the prior bar. That is a data wick, not the delivery. The spike is the manipulation.`
+      : closedThrough
+        ? `${shape} The close is through the prior bar. That is delivery, not a wick to fade.`
+        : `${shape} The close is on the spike side and did not return inside. Treat the spike as the impulse until a later close says otherwise.`;
+  }
+  return {
+    headline: calendarName
+      ? calendarName
+      : "Unscheduled — not on the calendar. The cause is a headline the desk does not have a name for.",
+    summary: `${lead.symbol} ${down ? "fell" : "rose"} ${fmtPts(lead.shock.pts)} points, ${lead.shock.atrMult.toFixed(1)} times its range. ${cause}`,
+    effect: `${impulse[0]!.toUpperCase()}${impulse.slice(1)} impulse. Stand the spike. Size is cut and the bar is higher until the tail ends. A new trade needs a raid and a later close after this candle, not a fade of the wick.`,
+    wick,
+  };
+}
+
+/**
  * Merge the two books into one desk-wide shock read. Correlation classifies
  * the cause — which changes nothing the desk DOES (it stands down either way),
  * but tells the trader (and the Tier-2 hook) what to look for.
@@ -156,6 +234,7 @@ export function readShock(
   left: { symbol: string; closedBars: OhlcBar[]; quote: { price: number; marketTimeMs: number } | null },
   right: { symbol: string; closedBars: OhlcBar[]; quote: { price: number; marketTimeMs: number } | null },
   nowMs: number,
+  calendarName: string | null = null,
 ): ShockRead {
   const l = detectBookShock(left.symbol, left.closedBars, left.quote, nowMs);
   const r = detectBookShock(right.symbol, right.closedBars, right.quote, nowMs);
@@ -185,6 +264,7 @@ export function readShock(
   const kindLabel =
     kind === "macro" ? "macro/political — both books" : kind === "nq-led" ? "NQ-led (mega-cap?)" : kind === "es-led" ? "ES-led" : "single-index";
   const line = `SHOCK ${lead.s} ${arrow}${fmtPts(lead.b.pts)}pt · ${lead.b.atrMult.toFixed(1)}× ATR · ${kindLabel}`;
+  const brief = shockBrief({ symbol: lead.s, shock: lead.b }, kind, calendarName);
 
   return {
     active,
@@ -196,5 +276,6 @@ export function readShock(
     freshFloorMs: at,
     event: { at, symbol: lead.s, side: lead.b.side, pts: lead.b.pts, atrMult: lead.b.atrMult, kind },
     line,
+    brief,
   };
 }

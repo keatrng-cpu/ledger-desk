@@ -731,15 +731,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // feeding it here manufactures a catastrophic candle that never traded.
     // readShock takes a null quote and falls back to the closed bars alone.
     const nowMs = Date.now();
+    const newsBase = newsRead(new Date());
+    const nearPrint = newsBase.nextEvent != null && Math.abs(newsBase.nextEvent.minutesAway) <= 90;
     const shock = readShock(
       { symbol: left.symbol, closedBars: closedL, quote: quotesLive ? { price: lq.price, marketTimeMs: lq.marketTimeMs } : null },
       { symbol: right.symbol, closedBars: closedR, quote: quotesLive ? { price: rq.price, marketTimeMs: rq.marketTimeMs } : null },
       nowMs,
+      nearPrint ? newsBase.nextEvent!.name : null,
     );
 
     // News gate: a scheduled high-impact release inside the risk window kills
     // actionability the same way bad data does — the engine skips these too.
-    const newsBase = newsRead(new Date());
     const news: NewsRead =
       shock.active
         ? {

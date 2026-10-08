@@ -25,6 +25,6 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - The wire Grok reads — `src/lib/trading/desk-listen.ts` `DeskWire`
 - The floor narrates and does not gate — `src/lib/room/`
 - Live tape — `src/lib/market/databento.ts`, `src/lib/market/live-gateway.ts`
-- The numbers agents do not edit — `src/lib/aplus/config.ts`
+- A shock candle, the headline and the wick — `src/lib/trading/shock.ts` `shockBrief`
 
 Add a line here when a behavior gets a new owner. Do not paste the function.

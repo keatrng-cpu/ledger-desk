@@ -287,15 +287,29 @@ export function SessionHud({
         </div>
       )}
       {paperReady && shock?.active && (
-        <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
-          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          {shock.line} · size cut, higher bar {shockMmss}. B+ to A+ still trade off the chart.
+        <div className="mx-auto mt-2 flex max-w-7xl items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_22%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
+          <AlertOctagon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            {shock.line} · size cut, higher bar {shockMmss}. B+ to A+ still trade off the chart.
+            {shock.brief && (
+              <span className="mt-1 block normal-case tracking-normal">
+                {shock.brief.headline} {shock.brief.summary} {shock.brief.effect} {shock.brief.wick}
+              </span>
+            )}
+          </span>
         </div>
       )}
       {paperReady && !shock?.active && shock?.tail && (
-        <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
-          <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
-          Post-shock tail {shockMmss} — B+ to A+ still live off the chart, size cut, higher bar. {shock.line}
+        <div className="mx-auto mt-2 flex max-w-7xl items-start gap-2 rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-warn)]">
+          <AlertOctagon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Post-shock tail {shockMmss} — B+ to A+ still live off the chart, size cut, higher bar. {shock.line}
+            {shock.brief && (
+              <span className="mt-1 block normal-case tracking-normal">
+                {shock.brief.headline} {shock.brief.summary} {shock.brief.effect} {shock.brief.wick}
+              </span>
+            )}
+          </span>
         </div>
       )}
 
