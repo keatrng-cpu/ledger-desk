@@ -4,9 +4,9 @@ MNQ/ES desk. TypeScript scores and gates. Grok places the Robinhood ticket. Clau
 
 Do not relocate `src/`. The domain folders are the modules. A new `src/core` tree would break every import for a layout no agent reads.
 
-## Locate a file
+## Locate a behavior
 
-Search [docs/code-index.md](../docs/code-index.md). Do not read it whole. Do not walk `src/`.
+Search [.ai/locator.md](./locator.md) first. It names the function. Search [docs/code-index.md](../docs/code-index.md) only on a miss. Do not read either file whole. Do not walk `src/`.
 
 ```
 rg -n "raid|entry|floor" docs/code-index.md

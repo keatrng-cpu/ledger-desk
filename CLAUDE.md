@@ -20,7 +20,7 @@ Grok runs the same command with `--agent grok`. The script lists every commit an
 
 ## Find the file before you read it
 
-Start at [.ai/system_map.md](./.ai/system_map.md). Do not walk `src/` and do not read the code map below to locate a file. Search [docs/code-index.md](./docs/code-index.md) — one line per file, exports and the header sentence — then open only the hit. Who calls whom is [.ai/dependency_graph.md](./.ai/dependency_graph.md). Edit style is [.ai/prompt_rules.md](./.ai/prompt_rules.md).
+Start at [.ai/locator.md](./.ai/locator.md). It names the function. Do not walk `src/` and do not read the code map below to locate a file. On a miss, search [docs/code-index.md](./docs/code-index.md) — one line per file, exports and the header sentence — then open only the hit. Who calls whom is [.ai/dependency_graph.md](./.ai/dependency_graph.md). Edit style is [.ai/prompt_rules.md](./.ai/prompt_rules.md).
 
 ```
 rg -n "raid|entry|floor" docs/code-index.md
