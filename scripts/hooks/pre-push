@@ -7,9 +7,13 @@
 # nothing checked before it left.
 #
 # Install: npm run hooks:install
+#
+# --baseline means a verifier that was ALREADY red (scripts/verify-baseline.json, with the reason) is reported and does
+# not block; a NEW break, or a known one that got worse, does. Nine were red at once before this, so every push used
+# --no-verify and nothing was checked. Shrink that file; never grow it to go green.
 # Skip once (and say why in the commit): git push --no-verify
 #
-echo "pre-push: typecheck + all verifiers (~60s, --no-verify to skip)"
+echo "pre-push: typecheck + verifiers, new breaks only (~5m, --no-verify to skip)"
 
 npm run typecheck || {
   echo ""
@@ -17,9 +21,9 @@ npm run typecheck || {
   exit 1
 }
 
-npx tsx scripts/verify-all.mjs || {
+npx tsx scripts/verify-all.mjs --baseline || {
   echo ""
-  echo "pre-push BLOCKED: a verifier failed."
+  echo "pre-push BLOCKED: a NEW verifier break (or a known one got worse)."
   echo "These guard stubbed plan files, the single TAKE object, dark modules"
   echo "and sleeve sizing. If you are sure, push with --no-verify."
   exit 1

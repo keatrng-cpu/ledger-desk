@@ -1,0 +1,64 @@
+# The shared gate for Grok and Claude.
+#
+# WHY THIS EXISTS. The only check on this repo is a LOCAL pre-push hook (.git/hooks/pre-push, installed by
+# `npm run hooks:install`). It runs the typecheck and every verifier, and it is good — but it only exists on a machine
+# that installed it, and both agents routinely push with `--no-verify`. The hook's own comment says it: "The guards only
+# help if they run. week-ahead.ts was stubbed to a one-line placeholder three times, and each time the push went out
+# clean because nothing checked before it left."
+#
+# What that cost, measured on 2026-10-08: two TypeScript errors sat on main and deployed (Vite does not typecheck, so
+# the Netlify build stayed green); a constant was lowered 150 -> 50 without its three tests; nine verifiers were red at
+# once, which is why everyone used --no-verify, which is why nothing was checked at all.
+#
+# This job runs on the server, so no flag skips it. It uses --baseline, so it blocks only on a NEW break or a WORSE
+# failing count — a gate nobody can pass is a gate nobody runs.
+#
+# INSTALL: this file cannot be pushed from a token without the `workflow` scope. See the README beside it.
+name: Desk gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Grok pushes often; a superseded run is wasted minutes, but never cancel a run on main.
+  group: desk-gate-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+
+      # 1. The typecheck. This is the one that would have caught the two errors that shipped.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # 2. Every verifier, blocking only on a new or worse break.
+      - name: Verifiers (new breaks only)
+        run: node scripts/verify-all.mjs --baseline
+
+      # 3. Truth in labelling: a verifier that went green must leave the baseline, or the list rots
+      #    and quietly starts hiding real breaks again.
+      - name: Known-red list is still honest
+        run: |
+          out=$(node scripts/verify-all.mjs --baseline 2>&1 || true)
+          if echo "$out" | grep -q "^FIXED"; then
+            echo "$out" | grep "^FIXED"
+            echo ""
+            echo "A verifier in scripts/verify-baseline.json passes now. Delete its entry in the same commit that fixed it."
+            exit 1
+          fi

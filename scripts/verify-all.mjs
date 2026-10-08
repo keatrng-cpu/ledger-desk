@@ -17,7 +17,7 @@
  * It is also what the pre-push hook runs, so the guards actually bite.
  */
 
-import { readdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
@@ -30,6 +30,24 @@ const SCRIPTS = join(ROOT, "scripts");
 const SKIP = new Set(["verify-all.mjs"]);
 
 const only = process.argv.slice(2).filter((a) => !a.startsWith("-"));
+/**
+ * --baseline: fail only on a NEW break.
+ *
+ * WHY: a gate nobody can pass is a gate nobody runs. Eight verifiers were red on main at once, so every push needed
+ * --no-verify, so nothing was checked at all — which is how two typecheck errors and a changed constant with stale tests
+ * reached main and deployed. The baseline records what is ALREADY red, with the reason and the date. A verifier that is
+ * red and known, with no MORE failures than recorded, is reported and does not block. Anything worse, or anything new,
+ * blocks. A known-red verifier that now passes is reported as fixed so the entry gets removed rather than rotting.
+ * --update-baseline rewrites the file from this run; it is deliberately explicit, never automatic.
+ */
+const useBaseline = process.argv.includes("--baseline") || process.argv.includes("--update-baseline");
+const writeBaseline = process.argv.includes("--update-baseline");
+const BASELINE = new URL("./verify-baseline.json", import.meta.url);
+let baseline = { capturedAt: null, onCommit: null, known: {} };
+if (useBaseline && existsSync(BASELINE)) {
+  try { baseline = JSON.parse(readFileSync(BASELINE, "utf8")); } catch { /* a corrupt baseline must not hide a break: known stays empty */ }
+}
+const knownOf = (label) => (useBaseline ? baseline.known?.[label] ?? null : null);
 
 const files = readdirSync(SCRIPTS)
   .filter((f) => /^verify-.*\.mjs$/.test(f) && !SKIP.has(f))
@@ -43,6 +61,9 @@ if (!files.length) {
 
 const t0 = Date.now();
 const failed = [];
+const knownRed = [];
+const fixed = [];
+const seen = {};
 let ran = 0;
 
 for (const f of files) {
@@ -66,17 +87,44 @@ for (const f of files) {
   const m = out.match(/(\d+)\s+passed,\s*(\d+)\s+failed/);
   const ok = r.status === 0;
 
+  const failing = m ? Number(m[2]) : ok ? 0 : 1;
+  const known = knownOf(label);
+  if (!ok) seen[label] = { failing, why: known?.why ?? "NOT YET EXPLAINED — say what is red and why, or fix it", since: known?.since ?? new Date().toISOString().slice(0, 10) };
+
   if (ok) {
     console.log(m ? `${m[1]} passed` : "ok");
+    if (known) fixed.push(label);
+  } else if (known && failing <= known.failing) {
+    // Red before this change, and no worse. Reported, not a block.
+    console.log(m ? `known red (${m[2]} failing, baseline ${known.failing})` : `known red (exit ${r.status})`);
+    knownRed.push({ label, failing, known });
   } else {
-    console.log(m ? `FAILED (${m[2]} failing)` : `FAILED (exit ${r.status})`);
-    failed.push({ label, out });
+    console.log(m ? `FAILED (${m[2]} failing${known ? `, baseline ${known.failing}` : ""})` : `FAILED (exit ${r.status})`);
+    failed.push({ label, out, failing, known });
   }
 }
 
 console.log(
-  `\n${ran - failed.length}/${ran} verifiers passed in ${((Date.now() - t0) / 1000).toFixed(1)}s`,
+  `\n${ran - failed.length - knownRed.length}/${ran} verifiers passed in ${((Date.now() - t0) / 1000).toFixed(1)}s`,
 );
+
+if (knownRed.length) {
+  console.log(`\n${knownRed.length} already red before this change (reported, not a block):`);
+  for (const k of knownRed) console.log(`  ${k.label.padEnd(20)} ${k.failing} failing — ${k.known.why}`);
+}
+if (fixed.length) {
+  console.log(`\nFIXED — green again, delete from scripts/verify-baseline.json: ${fixed.join(", ")}`);
+}
+if (writeBaseline) {
+  const next = {
+    capturedAt: new Date().toISOString().slice(0, 10),
+    onCommit: process.env.GIT_SHA ?? null,
+    note: "Verifiers already red when this was captured. `--baseline` blocks only on a NEW break or a WORSE count. Shrink this list; never grow it to make a push go green.",
+    known: seen,
+  };
+  writeFileSync(BASELINE, `${JSON.stringify(next, null, 2)}\n`);
+  console.log(`\nbaseline written: ${Object.keys(seen).length} known-red verifier(s) -> scripts/verify-baseline.json`);
+}
 
 if (failed.length) {
   for (const f of failed) {

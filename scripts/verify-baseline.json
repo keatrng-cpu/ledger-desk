@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-10-08",
+  "onCommit": "f4cd8a2a",
+  "note": "Verifiers already red when this was captured, each with the reason it is red. `node scripts/verify-all.mjs --baseline` blocks only on a NEW break or a WORSE failing count, so the gate is usable again. SHRINK this list; never grow it to make a push go green. A verifier that goes green is reported as FIXED - delete its entry.",
+  "known": {
+    "day-change": {
+      "failing": 2,
+      "why": "Red on clean origin/main before any of this work (verified by checking out origin/main in a scratch worktree). fetch-dual does not hand loadQuote the session baseline. Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "lab-constants": {
+      "failing": 1,
+      "why": "Red before this work order. Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "paper-step": {
+      "failing": 1,
+      "why": "Red before this work order. Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "repo-guards": {
+      "failing": 2,
+      "why": "Dark modules: finished code under src/lib that nothing imports yet (the Floor locomotion/feet/IK modules merged ahead of their wiring). Either wire them or move them out; do not baseline new ones.",
+      "since": "2026-10-08"
+    },
+    "research-retain": {
+      "failing": 1,
+      "why": "Red before this work order (8 failing on both sides of the wave-1 merge). Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "rh-path-fire": {
+      "failing": 3,
+      "why": "Grok lowered RH_MIN_DEBIT_TOTAL from 150 to 50 (commit 270f36b, \"lower the options debit floor to $50\") and the three checks still encode the old $150 envelope. The code matches the trader's $50-$550 band, so the TESTS are stale. Item 9 settles it. Do not rewrite a money gate's tests just to go green.",
+      "since": "2026-10-08"
+    },
+    "room-exec": {
+      "failing": 1,
+      "why": "Red before this work order. Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "room-seats": {
+      "failing": 2,
+      "why": "Red before this work order. Not yet diagnosed.",
+      "since": "2026-10-08"
+    },
+    "trade-plan": {
+      "failing": 9,
+      "why": "Red on fd57236 before the 25-item work order began. The stop/raid-wick and R assertions. Items 1 and 16 rewrite exactly this area, so it is expected to go green there rather than be patched here.",
+      "since": "2026-10-08"
+    }
+  }
+}
