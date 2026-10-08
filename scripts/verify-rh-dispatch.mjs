@@ -49,13 +49,13 @@ function frame(nowMs = NOW - 3_000) {
   };
 }
 
-function desk(nowMs = NOW) {
+function desk(nowMs = NOW, px = 21000) {
   return {
     fetchedAt: new Date(nowMs - 3_000).toISOString(),
     feed: "databento",
-    left: { symbol: "MNQ", bars: [{ t: nowMs - 20 * 60_000, c: 21000 }] },
+    left: { symbol: "MNQ", bars: [{ t: nowMs - 20 * 60_000, c: px }] },
     right: { symbol: "ES", bars: [{ t: nowMs - 20 * 60_000, c: 5800 }] },
-    quotes: { left: { price: 21000 }, right: { price: 5800 } },
+    quotes: { left: { price: px }, right: { price: 5800 } },
     scan: { candidates: [{ symbol: "MNQ", side: "short", pathBand: "A", grade: "A", confluence: 0.7, actionable: true, strategyPrimary: "TJR" }] },
     smcMaster: {
       left: { symbol: "MNQ", side: "short", plan: { symbol: "MNQ", side: "short", entry: 21000, stop: 21030, entryZone: { top: 21010, bottom: 20990 } } },
@@ -155,10 +155,13 @@ console.log("blocking review does not open");
   check("blocking review does not place an open", out.sent === false && !t.calls.some((c) => Array.isArray(c) && c[0] === "place"), out.why);
 }
 
+// The short's raid wick is 21030 (row().stop). These two blocks are about the KILL SWITCH and a blocking review not
+// trapping an exit, so they are triggered by the rule that closes a position today: a futures mark through the wick.
+// Until item 3 they leaned on a -30% premium print, which no longer closes a plan whose futures never left the wick.
 console.log("close");
 {
   const t = tooling({ nowMs: TEN, quote: { bid: 1.4, ask: 1.45, asOfMs: TEN - 1_000 }, positions: [{ optionId: "opt-1", quantity: 2, averagePrice: 2, chainSymbol: "QQQ", optionType: "put" }] });
-  const out = await runRhDesk({ desk: desk(TEN), manager: null, nowMs: TEN, tooling: t, ledger: memoryLedger([row()]), blockNewEntries: true });
+  const out = await runRhDesk({ desk: desk(TEN, 21055), manager: null, nowMs: TEN, tooling: t, ledger: memoryLedger([row()]), blockNewEntries: true });
   const place = t.calls.find((c) => Array.isArray(c) && c[0] === "place");
   check("a losing desk position is sold even when the kill is on and there is no proposal", out.sent === true && place?.[1] === "sell" && place?.[2] === "close", `${out.cycle.phase} ${out.why} ${JSON.stringify(place)}`);
   check("the close reviews before it sells", t.calls.some((c) => Array.isArray(c) && c[0] === "review" && c[1] === "sell"));
@@ -172,7 +175,7 @@ console.log("close through a buying-power review");
     positions: [{ optionId: "opt-1", quantity: 2, averagePrice: 2, chainSymbol: "QQQ", optionType: "put" }],
     review: { ok: false, blocking: true, alerts: ["not enough buying power"] },
   });
-  const out = await runRhDesk({ desk: desk(TEN), manager: null, nowMs: TEN, tooling: t, ledger: memoryLedger([row()]) });
+  const out = await runRhDesk({ desk: desk(TEN, 21055), manager: null, nowMs: TEN, tooling: t, ledger: memoryLedger([row()]) });
   check("a buying-power review does not trap the close", out.sent === true, out.why);
 }
 
