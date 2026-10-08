@@ -49,8 +49,39 @@ export const OB_SCAN_BACK = 3;
 /**
  * Mechanical model: displacement must occur within N bars after the sweep.
  * Engine uses N = 6 — a reversal that takes longer is not "mechanical".
+ *
+ * N is a BAR count, and that is the bug: the desk grades on a 15m series, so
+ * 6 bars is NINETY MINUTES. The trader's model is "the next 1m-5m close after
+ * the raid, within a handful of those candles" — a displacement an hour and a
+ * half later is a different story, not the answer to that raid. The live
+ * window is now `mechanicalWindowBars(bars)`, which reads the series' own bar
+ * spacing. This constant stays exported as the original rule (the curriculum,
+ * the sweep harness and raid-pair.ts quote it) and as the CEILING.
  */
 export const MM_DISPLACE_WITHIN = 6;
+
+/**
+ * The mechanical confirmation window in MINUTES — the unit the model is
+ * actually stated in. 30 minutes: on the 5m rung that is 6 candles (exactly
+ * the original handful), on 1m it is capped back to 6 by MM_DISPLACE_WITHIN,
+ * and on the desk's 15m structure series it is 2 candles instead of 6.
+ *
+ * NOT a measured number — it is the trader's own description of the model
+ * converted to a unit that survives a change of timeframe. What it buys is
+ * one-directional: `mechanicalWindowBars` takes the MINIMUM of this and the
+ * original bar count, so no series anywhere gets a LOOSER window than it has
+ * today. The 15m tightening (6 -> 2) is the fix ITEM 6 asks for.
+ */
+export const MM_DISPLACE_WITHIN_MINUTES = 30;
+
+/**
+ * Which unit the mechanical window is measured in. "minutes" is live;
+ * "bars" restores the pre-2026-10-08 behaviour exactly (a flat 6 bars on
+ * every series). Mutable for the same reason GATE is: scripts/sweep-gates.mjs
+ * flips a knob between runs so every variant goes through the live code path.
+ * At runtime nothing writes to it.
+ */
+export const MM_WINDOW: { mode: "minutes" | "bars" } = { mode: "minutes" };
 
 /** Swing fractal width for sweep reference points (left/right bars). */
 export const MM_SWING_WIDTH = 3;
@@ -103,6 +134,51 @@ export function rollingAtr(bars: OhlcBar[], period = ATR_PERIOD): number[] {
 
 function body(b: OhlcBar): number {
   return Math.abs(b.c - b.o);
+}
+
+/** Consecutive-bar deltas sampled for `barSpanMs`. 60 is long enough that the
+ *  overnight/weekend gaps in a session series stay a minority of the sample,
+ *  so the MEDIAN is the true spacing. */
+export const BAR_SPAN_SAMPLE = 60;
+
+/**
+ * The series' own bar spacing in ms, as the median of the last
+ * BAR_SPAN_SAMPLE positive timestamp deltas. Median, not mean: a session gap
+ * (17:00 -> 18:00 ET) or a feed hole would drag a mean to nonsense, and the
+ * desk's 15m series carries both. NaN with fewer than two bars.
+ *
+ * This is the one place a detector is allowed to ask "what timeframe am I
+ * on?" — every window expressed in minutes derives from it.
+ */
+export function barSpanMs(bars: OhlcBar[]): number {
+  if (bars.length < 2) return NaN;
+  const from = Math.max(1, bars.length - BAR_SPAN_SAMPLE);
+  const deltas: number[] = [];
+  for (let i = from; i < bars.length; i++) {
+    const d = bars[i]!.t - bars[i - 1]!.t;
+    if (d > 0) deltas.push(d);
+  }
+  if (!deltas.length) return NaN;
+  deltas.sort((a, b) => a - b);
+  return deltas[Math.floor(deltas.length / 2)]!;
+}
+
+/**
+ * The mechanical confirmation window for THIS series, in bars: the tighter of
+ * MM_DISPLACE_WITHIN_MINUTES of clock time and the original MM_DISPLACE_WITHIN
+ * bar count, floored at 1 (a window of zero bars could never confirm
+ * anything, which would be a silent kill switch rather than a tightening).
+ *
+ * Falls back to MM_DISPLACE_WITHIN whenever the spacing cannot be read — a
+ * series with one bar, or every timestamp identical. Fails to TODAY'S
+ * behaviour, never to "no window".
+ */
+export function mechanicalWindowBars(bars: OhlcBar[]): number {
+  if (MM_WINDOW.mode === "bars") return MM_DISPLACE_WITHIN;
+  const span = barSpanMs(bars);
+  if (!Number.isFinite(span) || span <= 0) return MM_DISPLACE_WITHIN;
+  const byMinutes = Math.floor((MM_DISPLACE_WITHIN_MINUTES * 60_000) / span);
+  return Math.max(1, Math.min(MM_DISPLACE_WITHIN, byMinutes));
 }
 
 export interface SwingPoint {
@@ -298,6 +374,45 @@ export function detectFvgs(bars: OhlcBar[]): FvgResult[] {
 /* Displacement                                                         */
 /* ------------------------------------------------------------------ */
 
+/** The gap a displacement candle left, as the middle candle of its own
+ *  3-bar window. `createdIndex` is the THIRD candle — the bar at which the
+ *  gap becomes a fact, which is one bar AFTER the displacement itself. */
+export interface DisplacementGap {
+  top: number;
+  bottom: number;
+  createdIndex: number;
+  createdT: number;
+}
+
+/**
+ * Which test lets a candle through as displacement.
+ *
+ *   "body"   — body >= GATE.displacementK x ATR(14). The original rule, and
+ *              TODAY'S DEFAULT, so nothing downstream moves until the
+ *              scanner owner flips it.
+ *   "gap"    — the candle LEFT a fair-value gap and no later bar has CLOSED
+ *              back through it, whatever the body measured. This is the rule
+ *              the trader describes: delivery that skipped price and held is
+ *              displacement; a fat candle that filled its own path is not.
+ *   "either" — body OR held gap.
+ *
+ * Mutable on purpose, same contract as GATE: scripts set it between runs so
+ * each variant goes through the live code path. Nothing writes it at runtime.
+ *
+ * NOT MEASURED. No |z| >= 2 result in this repo compares these three on the
+ * four-year capture — `scripts/measure-*` has never swept the displacement
+ * DEFINITION, only its multiple (gate-tuning.ts v6/v17, displacementK 1.25,
+ * which moved 0 takes). Flipping the default is an edge claim and needs the
+ * same bar every other claim here is held to.
+ */
+export type DisplacementRule = "body" | "gap" | "either";
+export const DISPLACEMENT_RULE: { rule: DisplacementRule } = { rule: "body" };
+
+/** How far forward `gapClosedIndex` is located. `gapHeld` itself is exact to
+ *  the end of the series regardless (it comes from a suffix scan); this only
+ *  bounds the search for WHERE, so a 100k-bar history stays O(n). */
+export const GAP_CLOSE_SCAN_BARS = 240;
+
 export interface DisplacementEvent {
   index: number;
   t: number;
@@ -310,33 +425,124 @@ export interface DisplacementEvent {
   ratio: number;
   open: number;
   close: number;
+  /** The fair-value gap this candle left, or null when it closed none.
+   *  Known only once the third candle prints, so a displacement on the last
+   *  bar of the series always reports null — that is the absence of
+   *  evidence, not a no. */
+  gap: DisplacementGap | null;
+  /** "gap left, close held": a gap exists AND no later bar CLOSED back
+   *  through its far side. false whenever `gap` is null. */
+  gapHeld: boolean;
+  /** Index of the bar that closed back through the gap; null while held, and
+   *  null when the close-through is further out than GAP_CLOSE_SCAN_BARS. */
+  gapClosedIndex: number | null;
+  /** The original 1.5-ATR body test, reported whether or not it gated. */
+  bodyQualified: boolean;
+  /** Which test this candle actually satisfied. */
+  qualifiedBy: "body" | "gap" | "both";
+}
+
+/** The 3-bar gap whose MIDDLE candle is bar `i`, in `direction`. Same
+ *  geometry detectFvgs uses (candle 1's wick not reaching candle 3's), read
+ *  from the displacement's own point of view instead of the third candle's.
+ *  Inlined rather than calling detectFvgs: that function is O(bars x gaps)
+ *  and detectOrderBlocks/detectMechanicalModel already call it, so routing
+ *  displacement through it would multiply the cost the file's own
+ *  performance note warns about. */
+function gapLeftBy(bars: OhlcBar[], i: number, direction: "bull" | "bear"): DisplacementGap | null {
+  if (i < 1 || i + 1 >= bars.length) return null;
+  const a = bars[i - 1]!;
+  const c = bars[i + 1]!;
+  if (direction === "bull") {
+    if (!(a.h < c.l)) return null;
+    return { top: c.l, bottom: a.h, createdIndex: i + 1, createdT: c.t };
+  }
+  if (!(a.l > c.h)) return null;
+  return { top: a.l, bottom: c.h, createdIndex: i + 1, createdT: c.t };
 }
 
 /**
- * Displacement candles: body >= DISPLACEMENT_K (1.5) × rolling ATR(14) of
- * bar ranges, with the close in the move's direction (bull = c > o).
+ * Displacement candles.
+ *
+ * Under the default rule ("body") this is unchanged: body >=
+ * GATE.displacementK (1.5) × rolling ATR(14) of bar ranges, close in the
+ * move's direction. What is NEW is that every event now carries the gap it
+ * left and whether that gap still holds, so "a big candle" and "delivery that
+ * skipped price and held" stop being the same fact — and so the gap-first
+ * rule can be switched on (DISPLACEMENT_RULE) without a second detector that
+ * could disagree with this one.
  */
-export function detectDisplacements(bars: OhlcBar[]): DisplacementEvent[] {
+export function detectDisplacements(
+  bars: OhlcBar[],
+  opts: { rule?: DisplacementRule } = {},
+): DisplacementEvent[] {
   if (bars.length < MIN_BARS) return [];
+  const rule = opts.rule ?? DISPLACEMENT_RULE.rule;
   const atr = rollingAtr(bars);
+
+  // Suffix extremes of CLOSES: minCloseAfter[i] = min close over j > i. One
+  // O(n) pass gives an exact "did anything ever close through this level"
+  // answer for every candidate, instead of a forward scan per displacement
+  // (which is the O(n^2)-over-full-history shape this file already got
+  // burned by once in build-evidence-pack.mjs).
+  const n = bars.length;
+  const minCloseAfter: number[] = new Array<number>(n).fill(Infinity);
+  const maxCloseAfter: number[] = new Array<number>(n).fill(-Infinity);
+  for (let i = n - 2; i >= 0; i--) {
+    minCloseAfter[i] = Math.min(minCloseAfter[i + 1]!, bars[i + 1]!.c);
+    maxCloseAfter[i] = Math.max(maxCloseAfter[i + 1]!, bars[i + 1]!.c);
+  }
+
   const out: DisplacementEvent[] = [];
   for (let i = ATR_PERIOD; i < bars.length; i++) {
     const b = bars[i]!;
     const a = atr[i]!;
     if (!Number.isFinite(a) || a <= 0) continue;
+    if (b.c === b.o) continue; // no direction, so neither test can read it
+    const direction: "bull" | "bear" = b.c > b.o ? "bull" : "bear";
     const bs = body(b);
-    if (bs >= GATE.displacementK * a && b.c !== b.o) {
-      out.push({
-        index: i,
-        t: b.t,
-        direction: b.c > b.o ? "bull" : "bear",
-        bodySize: +bs.toFixed(2),
-        atr: +a.toFixed(2),
-        ratio: +(bs / a).toFixed(2),
-        open: b.o,
-        close: b.c,
-      });
+    const bodyQualified = bs >= GATE.displacementK * a;
+
+    const gap = gapLeftBy(bars, i, direction);
+    let gapHeld = false;
+    let gapClosedIndex: number | null = null;
+    if (gap) {
+      const k = gap.createdIndex;
+      const closedThrough =
+        direction === "bull" ? minCloseAfter[k]! < gap.bottom : maxCloseAfter[k]! > gap.top;
+      gapHeld = !closedThrough;
+      if (closedThrough) {
+        const ceil = Math.min(n - 1, k + GAP_CLOSE_SCAN_BARS);
+        for (let j = k + 1; j <= ceil; j++) {
+          const c = bars[j]!.c;
+          if (direction === "bull" ? c < gap.bottom : c > gap.top) {
+            gapClosedIndex = j;
+            break;
+          }
+        }
+      }
     }
+    const gapQualified = gap != null && gapHeld;
+
+    const keep =
+      rule === "body" ? bodyQualified : rule === "gap" ? gapQualified : bodyQualified || gapQualified;
+    if (!keep) continue;
+
+    out.push({
+      index: i,
+      t: b.t,
+      direction,
+      bodySize: +bs.toFixed(2),
+      atr: +a.toFixed(2),
+      ratio: +(bs / a).toFixed(2),
+      open: b.o,
+      close: b.c,
+      gap,
+      gapHeld,
+      gapClosedIndex,
+      bodyQualified,
+      qualifiedBy: bodyQualified && gapQualified ? "both" : bodyQualified ? "body" : "gap",
+    });
   }
   return out;
 }
@@ -568,6 +774,149 @@ export function detectSweeps(bars: OhlcBar[]): SweepEvent[] {
   return out;
 }
 
+/* ------------------------------------------------------------------ */
+/* Sweep confirmation on the finer tape                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A sweep is a 15-MINUTE object here, and that is the hole: detectSweeps runs
+ * on whatever bars it is handed, so a 15m candle whose wick pokes a pool and
+ * whose close comes back inside is called a raid even when the 1-minute
+ * candles underneath CLOSED outside and stayed there for ten minutes. That is
+ * a breakout wearing a raid's shape, and it is exactly the trade the desk
+ * must not take.
+ *
+ * Tri-state on purpose. A boolean would have to pick a side when there is no
+ * finer tape at all, and both choices are wrong: `true` lets an unverified
+ * raid arm, `false` shuts the desk off every time the gateway is down and
+ * Yahoo's 1m hole-fill is thin. "no_tape" says the question was not answered,
+ * and NOTHING may read it as confirmation.
+ */
+export type SweepTapeVerdict = "confirmed" | "breakout" | "no_tape";
+
+export interface SweepTapeRead {
+  verdict: SweepTapeVerdict;
+  /** Closed finer-tape bars found inside the sweep candle's own span. */
+  barsSeen: number;
+  /** Closed bars the span should contain at this spacing. */
+  barsExpected: number;
+  /** First closed finer bar whose WICK traded through the pool (index into
+   *  the covered slice, not the caller's array). */
+  wickIndex: number | null;
+  /** First closed finer bar at/after the wick that CLOSED back inside. */
+  closeBackIndex: number | null;
+  /** How many closed finer bars CLOSED outside the pool. 0 with a
+   *  "confirmed" verdict means the raid was a pure wick on the fine tape. */
+  closedOutside: number;
+  reason: string;
+}
+
+/** Fraction of the sweep candle the finer tape must actually cover before the
+ *  question can be answered. A 1m feed that holds only the first third of a
+ *  15m candle cannot tell you where that candle closed, so it must read
+ *  "no_tape" rather than confirm off a partial window. */
+export const SWEEP_TAPE_MIN_COVERAGE = 0.8;
+
+/**
+ * Grade a sweep against the CLOSED finer tape inside its own candle.
+ *
+ * `structureBars` is the series the sweep was detected on (its spacing gives
+ * the candle's span); `minute` is the finer series. Both spacings are read
+ * from the data (barSpanMs) — no 15m or 1m is hard-coded, so this works
+ * unchanged on a 5m structure series or a 15-second tape.
+ *
+ * Closed bars only: a finer bar counts when `nowMs >= b.t + fineSpan`. The
+ * forming bar is never evidence about where anything closed.
+ */
+export function confirmSweepOnTape(
+  sweep: SweepEvent,
+  structureBars: OhlcBar[],
+  minute: OhlcBar[] | null | undefined,
+  opts: { nowMs?: number } = {},
+): SweepTapeRead {
+  const noTape = (reason: string, barsSeen = 0, barsExpected = 0): SweepTapeRead => ({
+    verdict: "no_tape",
+    barsSeen,
+    barsExpected,
+    wickIndex: null,
+    closeBackIndex: null,
+    closedOutside: 0,
+    reason,
+  });
+
+  if (!minute || minute.length < 2)
+    return noTape("No finer tape — a wick through the pool cannot be told from a breakout.");
+  const structSpan = barSpanMs(structureBars);
+  const fineSpan = barSpanMs(minute);
+  if (!Number.isFinite(structSpan) || structSpan <= 0 || !Number.isFinite(fineSpan) || fineSpan <= 0)
+    return noTape("Bar spacing unreadable on one of the two series.");
+  if (fineSpan >= structSpan)
+    return noTape("The second series is not finer than the one the raid was found on.");
+
+  const nowMs = opts.nowMs ?? Date.now();
+  const from = sweep.t;
+  const to = sweep.t + structSpan;
+  const covered = minute.filter((b) => b.t >= from && b.t < to && nowMs >= b.t + fineSpan);
+  const expected = Math.max(1, Math.round(structSpan / fineSpan));
+  const need = Math.ceil(SWEEP_TAPE_MIN_COVERAGE * expected);
+  if (covered.length < need)
+    return noTape(
+      `Only ${covered.length} of ${expected} closed finer bars inside the raid candle — not enough to say where it closed.`,
+      covered.length,
+      expected,
+    );
+
+  const isBuy = sweep.side === "buyside";
+  const lvl = sweep.sweptLevel;
+
+  let wickIndex: number | null = null;
+  for (let i = 0; i < covered.length; i++) {
+    const b = covered[i]!;
+    if (isBuy ? b.h > lvl : b.l < lvl) {
+      wickIndex = i;
+      break;
+    }
+  }
+  if (wickIndex == null)
+    return noTape(
+      "The finer tape never traded through the pool this raid claims — the two series disagree, so neither is evidence.",
+      covered.length,
+      expected,
+    );
+
+  let closeBackIndex: number | null = null;
+  let closedOutside = 0;
+  for (let i = wickIndex; i < covered.length; i++) {
+    const b = covered[i]!;
+    const outside = isBuy ? b.c >= lvl : b.c <= lvl;
+    if (outside) closedOutside++;
+    else if (closeBackIndex == null) closeBackIndex = i;
+  }
+
+  if (closeBackIndex == null)
+    return {
+      verdict: "breakout",
+      barsSeen: covered.length,
+      barsExpected: expected,
+      wickIndex,
+      closeBackIndex: null,
+      closedOutside,
+      reason: `Every one of ${closedOutside} closed finer bars after the wick CLOSED outside the pool. That is a breakout, not a raid.`,
+    };
+
+  return {
+    verdict: "confirmed",
+    barsSeen: covered.length,
+    barsExpected: expected,
+    wickIndex,
+    closeBackIndex,
+    closedOutside,
+    reason: closedOutside
+      ? `Wick through the pool, ${closedOutside} finer close(s) outside, then a close back inside. Confirmed, but price accepted outside first.`
+      : "Wick through the pool and every finer bar closed back inside. A clean raid.",
+  };
+}
+
 /**
  * Inducement: was the sweep a card is keyed on preceded by a SHALLOWER sweep
  * of the same polarity — the decoy grab TradingHub/Photon's framing names,
@@ -636,6 +985,132 @@ export function detectInducement(
       ) ?? null;
 
   return { inducement: decoy != null, mainSweep: main, decoy };
+}
+
+/**
+ * The OTHER half of inducement, and the half that decides whether a card may
+ * arm: `detectInducement` above answers "did a decoy print BEFORE the raid we
+ * are keyed on" (shallow first, then deep — the configuration measured at
+ * -0.259R). It says nothing about the case where the decoy IS the latest
+ * raid: price took a minor pool and the obvious swing beyond it is STILL
+ * unswept. That raid is the trap. The raid that arms is the one that takes
+ * the swing the inducement sat in front of.
+ *
+ * `lookbackBars` bounds what counts as "the obvious swing beyond": 80 bars is
+ * the same window structure.ts's dealingRange uses, so the pool has to belong
+ * to the range being traded rather than to a high from days ago.
+ *
+ * EXPORTED AS A TEST, NOT WIRED AS A GATE — deliberately. This repo's only
+ * measured inducement result is on the other configuration, and the
+ * difference test there came in at z = -1.39 (under the |z| >= 2 bar). A
+ * refusal built on "the bigger pool is still out there" has NO measurement at
+ * all yet; wiring it as a must-layer would be asserting the answer. Measure
+ * `inducementOnly` against the four-year capture the way
+ * scripts/measure-model-claims.mjs measures the others, then decide.
+ */
+export interface InducementArmRead {
+  /** The latest polarity raid took a MINOR pool while a more extreme swing
+   *  beyond it sits unswept. On this reading it must not arm the trade. */
+  inducementOnly: boolean;
+  /** The raid that may arm this side — the one that took the swing the
+   *  inducement sat in front of. null while only the decoy has printed. */
+  armingSweep: SweepEvent | null;
+  /** The raid that is (or was) the decoy. */
+  inducementSweep: SweepEvent | null;
+  /** The NEAREST still-unswept swing beyond the decoy: the pool price has
+   *  yet to take, and the one whose raid would arm. */
+  unsweptBeyond: SwingPoint | null;
+  reason: string;
+}
+
+/** How far back a still-unswept pool may sit and still be "the obvious swing
+ *  beyond". 80 bars = structure.ts's own dealing-range window (20h on 15m). */
+export const ARM_LOOKBACK_BARS = 80;
+
+const NO_ARM: InducementArmRead = {
+  inducementOnly: false,
+  armingSweep: null,
+  inducementSweep: null,
+  unsweptBeyond: null,
+  reason: "No raid of this polarity inside the recency window.",
+};
+
+export function readArmingSweep(
+  bars: OhlcBar[],
+  side: "long" | "short",
+  opts: { recentSweepBars?: number; lookbackBars?: number; inducementWindowBars?: number } = {},
+): InducementArmRead {
+  if (bars.length < MIN_BARS) return NO_ARM;
+  const recentWindow = opts.recentSweepBars ?? GATE.recentSweepBars;
+  const lookback = opts.lookbackBars ?? ARM_LOOKBACK_BARS;
+  const inducementWindow = opts.inducementWindowBars ?? INDUCEMENT_WINDOW_BARS;
+  const wantSide = side === "long" ? "sellside" : "buyside";
+  const sweeps = detectSweeps(bars).filter((s) => s.side === wantSide);
+  if (!sweeps.length) return NO_ARM;
+
+  const latest = sweeps[sweeps.length - 1]!;
+  const lastIndex = bars.length - 1;
+  if (lastIndex - latest.index > recentWindow) return NO_ARM;
+
+  // The pool a raid of this polarity takes: a buyside raid takes swing HIGHS,
+  // a sellside raid takes swing LOWS.
+  const poolKind: "high" | "low" = wantSide === "buyside" ? "high" : "low";
+  const floor = Math.max(0, latest.index - lookback);
+  const beyond = fractalSwings(bars).filter(
+    (s) =>
+      s.kind === poolKind &&
+      s.index >= floor &&
+      // Confirmed before the raid printed — a swing the raid could not have
+      // known about is not a pool it chose to leave alone.
+      s.index + MM_SWING_WIDTH < latest.index &&
+      (poolKind === "high" ? s.price > latest.sweptLevel : s.price < latest.sweptLevel),
+  );
+
+  // Still unswept at the last bar: nothing since has traded through it.
+  const unswept = beyond.filter((s) => {
+    for (let j = s.index + 1; j <= lastIndex; j++) {
+      const b = bars[j]!;
+      if (poolKind === "high" ? b.h > s.price : b.l < s.price) return false;
+    }
+    return true;
+  });
+
+  if (unswept.length) {
+    // The NEAREST one beyond: least extreme, because that is the next pool
+    // price must take, and the raid of IT is the one that would arm.
+    const nearest = unswept.reduce((best, s) =>
+      poolKind === "high" ? (s.price < best.price ? s : best) : (s.price > best.price ? s : best),
+    );
+    return {
+      inducementOnly: true,
+      armingSweep: null,
+      inducementSweep: latest,
+      unsweptBeyond: nearest,
+      reason: `The raid took ${latest.sweptLevel} while the ${poolKind === "high" ? "high" : "low"} at ${nearest.price} is still unswept beyond it. That is the inducement, not the arming raid.`,
+    };
+  }
+
+  // Nothing bigger is left standing, so this raid took the swing the
+  // inducement sat in front of. Name the decoy it cleared, when there was one.
+  const decoy =
+    [...sweeps]
+      .reverse()
+      .find(
+        (s) =>
+          s.index < latest.index &&
+          latest.index - s.index <= inducementWindow &&
+          (wantSide === "sellside" ? s.sweptLevel > latest.sweptLevel : s.sweptLevel < latest.sweptLevel),
+      ) ?? null;
+
+  return {
+    inducementOnly: false,
+    armingSweep: latest,
+    inducementSweep: decoy,
+    unsweptBeyond: null,
+    reason: decoy
+      ? `The raid at ${latest.sweptLevel} took the pool the decoy at ${decoy.sweptLevel} sat in front of. This is the arming raid.`
+      : `No more extreme pool of this polarity is left unswept inside ${lookback} bars. This raid arms.`,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -1027,6 +1502,149 @@ export function detectMitigationBlock(
   return NO_MITIGATION;
 }
 
+/* ------------------------------------------------------------------ */
+/* Blake — the swing, not a generic CISD                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Blake's model is a SWING with four named parts, and the desk has been
+ * grading it with `cisdThroughSeries` (raid-pair.ts) — "a close back through
+ * a run of opposing candles". That fires on any momentum flip anywhere, with
+ * no raid, no pullback and no level to close through. It is a different
+ * model wearing Blake's name.
+ *
+ * For a long: a LOW, then a pullback HIGH, then a LOWER LOW that takes the
+ * first low, then a candle whose BODY closes back through that pullback high.
+ * Short is the mirror. The lower low IS the raid (it takes the first low's
+ * resting orders) and the pullback high is the level the body has to reclaim
+ * — a close through it is the statement that the raid failed. A CISD that
+ * never traded back through the pullback swing does not qualify, which is
+ * precisely the case the generic test was passing.
+ *
+ * All four parts come from `fractalSwings`, so a part is only usable
+ * MM_SWING_WIDTH bars after it formed — no lookahead.
+ *
+ * This is a DETECTOR, not a new gate: it is stricter than what ships today,
+ * so wiring it will cut the blake card count, and nobody has measured by how
+ * much or at what expectancy. Report, then measure, then wire.
+ */
+export const BLAKE_WINDOW_BARS = 16;
+
+export interface BlakeSwing {
+  /** Polarity of the trade the swing implies. */
+  kind: "bull" | "bear";
+  /** L1 / H1 — the first extreme the later push took out. */
+  firstExtreme: SwingPoint;
+  /** The pullback swing between them. Its PRICE is the level a body must
+   *  close through, and the one the generic CISD test never checked. */
+  pullback: SwingPoint;
+  /** L2 / H2 — the lower low (or higher high) that took `firstExtreme`. */
+  takeExtreme: SwingPoint;
+  /** The candle whose body closed back through `pullback`. */
+  confirmIndex: number;
+  confirmT: number;
+  confirmClose: number;
+  /** The raid wick — `takeExtreme`'s own price, i.e. the stop side. */
+  stop: number;
+}
+
+export interface BlakeRead {
+  present: boolean;
+  swing: BlakeSwing | null;
+  reason: string;
+}
+
+const NO_BLAKE = (reason: string): BlakeRead => ({ present: false, swing: null, reason });
+
+/**
+ * `side` follows the long/short convention the rest of this file uses.
+ * Scans swing pairs newest-first and returns the first fully confirmed one,
+ * same convention as detectMitigationBlock.
+ *
+ * `confirmWithinBars` defaults to MM_DISPLACE_WITHIN (6) — the same
+ * handful-of-candles family as the mechanical window, not a new number. Pass
+ * `mechanicalWindowBars(bars)` for the minute-derived version.
+ * `maxAgeBars` defaults to GATE.recentSweepBars, the window every other layer
+ * already uses for "is this the raid this session trades".
+ */
+export function detectBlakeSwing(
+  bars: OhlcBar[],
+  side: "long" | "short",
+  opts: { windowBars?: number; confirmWithinBars?: number; maxAgeBars?: number } = {},
+): BlakeRead {
+  if (bars.length < MIN_BARS) return NO_BLAKE("Not enough bars for swings.");
+  const windowBars = opts.windowBars ?? BLAKE_WINDOW_BARS;
+  const confirmWithin = opts.confirmWithinBars ?? MM_DISPLACE_WITHIN;
+  const maxAge = opts.maxAgeBars ?? GATE.recentSweepBars;
+  const long = side === "long";
+  const extremeKind: "high" | "low" = long ? "low" : "high";
+  const pullbackKind: "high" | "low" = long ? "high" : "low";
+  const lastIndex = bars.length - 1;
+
+  const all = fractalSwings(bars);
+  const extremes = all.filter((s) => s.kind === extremeKind);
+  if (extremes.length < 2) return NO_BLAKE("Fewer than two swings of the raid's own kind.");
+
+  let sawTake = false;
+  let sawPullback = false;
+  for (let i = extremes.length - 1; i >= 1; i--) {
+    const take = extremes[i]!;
+    const first = extremes[i - 1]!;
+    if (take.index - first.index > windowBars) continue;
+    // The second push must TAKE the first extreme, not merely follow it.
+    const took = long ? take.price < first.price : take.price > first.price;
+    if (!took) continue;
+    sawTake = true;
+
+    // The pullback between them. When several printed, the relevant level is
+    // the most extreme one — the full height of the pullback is what a body
+    // has to reclaim, and taking the nearest instead would be the loose read.
+    const between = all.filter(
+      (s) => s.kind === pullbackKind && s.index > first.index && s.index < take.index,
+    );
+    if (!between.length) continue;
+    const pullback = between.reduce((best, s) =>
+      long ? (s.price > best.price ? s : best) : (s.price < best.price ? s : best),
+    );
+    sawPullback = true;
+
+    const ceil = Math.min(lastIndex, take.index + confirmWithin);
+    for (let j = take.index + 1; j <= ceil; j++) {
+      const b = bars[j]!;
+      // BODY close through the level: the close is beyond it AND the candle
+      // is a body in that direction. A wick that pierced and closed back is
+      // the thing this detector exists to refuse.
+      const bodyThrough = long ? b.c > pullback.price && b.c > b.o : b.c < pullback.price && b.c < b.o;
+      if (!bodyThrough) continue;
+      if (lastIndex - j > maxAge)
+        return NO_BLAKE(
+          `A blake swing confirmed ${lastIndex - j} bars ago, past the ${maxAge}-bar window. Not this session's.`,
+        );
+      return {
+        present: true,
+        swing: {
+          kind: long ? "bull" : "bear",
+          firstExtreme: first,
+          pullback,
+          takeExtreme: take,
+          confirmIndex: j,
+          confirmT: b.t,
+          confirmClose: b.c,
+          stop: take.price,
+        },
+        reason: `${long ? "Low" : "High"} at ${first.price}, pullback ${pullbackKind} at ${pullback.price}, ${long ? "lower low" : "higher high"} at ${take.price} took it, then a body close at ${b.c} back through the pullback.`,
+      };
+    }
+  }
+
+  if (sawPullback)
+    return NO_BLAKE(
+      "The raid and the pullback printed, but no body ever closed back through the pullback swing. A CISD here is not blake.",
+    );
+  if (sawTake) return NO_BLAKE("A lower low took the prior low, but no pullback swing sits between them.");
+  return NO_BLAKE("No second push took the prior extreme inside the window.");
+}
+
 /**
  * Mechanical model (engine weight 0.14 — its highest): sweep → displacement
  * in the opposite direction within MM_DISPLACE_WITHIN (6) bars → FVG or iFVG
@@ -1064,6 +1682,10 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
   if (!sweeps.length) return idle;
   const displacements = detectDisplacements(bars);
   const fvgs = detectFvgs(bars);
+  // ITEM 6: the confirmation window in the series' OWN units. On the desk's
+  // 15m structure series this is 2 bars (30 min), not 6 (90 min) — a
+  // displacement ninety minutes after the raid is no longer the answer to it.
+  const within = mechanicalWindowBars(bars);
 
   const rank: Record<MechanicalState, number> = {
     idle: 0,
@@ -1094,12 +1716,12 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
       ageBars: 0,
     };
 
-    // Leg 2: opposite-direction displacement within MM_DISPLACE_WITHIN bars.
+    // Leg 2: opposite-direction displacement inside the minute-derived window.
     const disp = displacements.find(
       (d) =>
         d.direction === wantDisp &&
         d.index > sweep.index &&
-        d.index <= sweep.index + MM_DISPLACE_WITHIN,
+        d.index <= sweep.index + within,
     );
     if (disp) {
       seq.displacement = disp;
@@ -1212,7 +1834,7 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
       ? "structure_break"
       : contrarySweep
         ? "contrary_sweep"
-        : seq.state === "swept" && seq.ageBars > MM_DISPLACE_WITHIN
+        : seq.state === "swept" && seq.ageBars > within
           ? // The displacement window closed empty — leg 2 can no longer
             // arrive for this sweep, so the sequence can never advance.
             "displacement_window_closed"
@@ -1270,6 +1892,12 @@ export interface DetectorSummary {
     latest: SweepEvent | null;
     /** Most recent ever, regardless of age (history / debrief only). */
     lastEver: SweepEvent | null;
+    /**
+     * Tri-state confirmation of `latest` on the finer tape. null means the
+     * question was NOT ASKED (no `minute` series handed in) — which must
+     * read the same as "no_tape": never as confirmation.
+     */
+    tape: SweepTapeRead | null;
   };
   mechanical: MechanicalSequence;
 }
@@ -1298,7 +1926,10 @@ function recent<T extends { index: number }>(events: T[], total: number, window:
  * detector. This is the shape the scanner integrator consumes — see
  * INTEGRATION-P2.md for how each field maps onto a confluence component.
  */
-export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
+export function summarizeDetectors(
+  bars: OhlcBar[],
+  opts: { minute?: OhlcBar[] | null; nowMs?: number } = {},
+): DetectorSummary {
   const fvgs = detectFvgs(bars);
   const displacements = detectDisplacements(bars);
   const blocks = detectOrderBlocks(bars);
@@ -1306,6 +1937,7 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
   const mechanical = detectMechanicalModel(bars);
   const atrSeries = rollingAtr(bars);
   const lastAtr = atrSeries.length ? atrSeries[atrSeries.length - 1]! : NaN;
+  const latestSweep = recent(sweeps, bars.length, GATE.recentSweepBars);
 
   return {
     bars: bars.length,
@@ -1329,8 +1961,12 @@ export function summarizeDetectors(bars: OhlcBar[]): DetectorSummary {
     },
     sweep: {
       count: sweeps.length,
-      latest: recent(sweeps, bars.length, GATE.recentSweepBars),
+      latest: latestSweep,
       lastEver: sweeps.length ? sweeps[sweeps.length - 1]! : null,
+      tape:
+        opts.minute && latestSweep
+          ? confirmSweepOnTape(latestSweep, bars, opts.minute, { nowMs: opts.nowMs })
+          : null,
     },
     mechanical,
   };
