@@ -266,3 +266,218 @@ export function sleeveViolations(actual: {
   if (actual.exitedOnLevel === false) out.push("exit was discretionary, not on the plan's invalidation");
   return out;
 }
+
+/* ------------------------------------------------------------------ *
+ * SIZING FROM THE LIVE CONTRACT AND THE RAID WICK
+ *
+ * `sizeFromStop` above solves the right equation with the wrong inputs when
+ * options-desk.ts calls it: the delta it is handed is the MENU value (0.40,
+ * 0.35, a (lo+hi)/2 midpoint) and the premium is `estimateDebitContract` — a
+ * Black-Scholes-shaped guess off spot, a fixed IV and sqrt(time). Both inputs
+ * are invented, so the two numbers that decide the ticket are invented:
+ *
+ *   contracts = riskBudget / (underlierMove x delta x 100)
+ *   debit     = contracts x premium
+ *
+ * With a guessed delta the first is wrong by whatever the guess is wrong by,
+ * and with a guessed premium the second is a price nobody will fill. The wick
+ * distance DID move `underlierMove`, so the solve was not frozen — but the
+ * delta and the dollar both were, and the count was then clamped to 1-2 by
+ * `maxContracts`, which threw most of the remaining geometry away again.
+ *
+ * This solves the same equation from numbers the broker actually quoted:
+ *   delta      the LIVE contract's |delta| off the chain
+ *   debit      the LIVE ask x 100 — the limit that will be sent
+ *   distance   entry -> the level the position actually exits on
+ *
+ * and then REFUSES rather than rounding. Nothing here is an edge claim: it
+ * makes the ticket's risk the risk the ticket says it is.
+ * ------------------------------------------------------------------ */
+
+export interface LiveSizeInput {
+  /**
+   * The futures plan this option expresses. `sweep` is the raid wick — the
+   * level the desk's own rule puts the stop beyond.
+   */
+  plan: Pick<TradePlan, "symbol" | "side" | "entry" | "stop" | "riskPts"> & {
+    sweep?: number | null;
+    riskTooTight?: boolean;
+    riskAtr?: number | null;
+  };
+  /** |delta| of the LIVE contract, 0-1. Not a menu row. */
+  delta: number;
+  /** The LIVE ask, per share. This is the limit; the debit is ask x 100. */
+  askPerShare: number;
+  /** Dollars willing to lose when the underlying reaches the exit level. */
+  riskBudgetUsd: number;
+  /** Broker debit floor (RH_MIN_DEBIT_TOTAL). Under it nothing can place. */
+  minDebitUsd: number;
+  /** Broker debit ceiling (RH_MAX_DEBIT_TOTAL). Over it nothing can place. */
+  maxDebitUsd: number;
+  /** Hard contract cap from the envelope / the DTE rule. */
+  maxContracts: number;
+  dte: number;
+  holdHours?: number;
+}
+
+export interface LiveSleeveSize {
+  /** 0 means SKIP. There is no "take it small and hope" branch. */
+  contracts: number;
+  /** contracts x ask x 100. The real debit, not an estimate. */
+  debitUsd: number;
+  /** The limit to rest or send. Equals the live ask. */
+  limitPerShare: number;
+  /** Dollar loss when the underlying reaches `exitPx`. */
+  lossAtInvalidationUsd: number;
+  /** The level the size was solved against. */
+  exitPx: number;
+  /** The raid wick itself, when the plan named one. */
+  wickPx: number | null;
+  /** Futures points from entry to `exitPx`. */
+  distancePts: number;
+  /** Underlying (ETF) points that distance is worth. */
+  underlierMovePts: number;
+  /** Premium dollars one contract loses at `exitPx`. */
+  lossPerContractUsd: number;
+  /** Which bound decided the count. */
+  boundBy: "risk" | "debit_ceiling" | "contract_cap" | "none";
+  skip: boolean;
+  skipReason: string | null;
+  decayToBrake: number;
+  clock: boolean;
+  minDte: number | null;
+  lines: string[];
+}
+
+/**
+ * The level the position actually comes off at, and the raid wick behind it.
+ *
+ * The desk's rule is "the stop is the raid wick" with the stop resting BEYOND
+ * it, so `plan.stop` is at or past `plan.sweep`. Sizing off the NEARER of the
+ * two would buy more contracts than the real exit distance supports, and the
+ * position would then lose more than the budget on the stop it actually
+ * works. So the solve uses the FARTHER one and names the wick beside it.
+ */
+export function exitLevelFor(plan: LiveSizeInput["plan"]): { exitPx: number; wickPx: number | null } {
+  const wick = plan.sweep != null && Number.isFinite(plan.sweep) ? plan.sweep : null;
+  if (wick == null) return { exitPx: plan.stop, wickPx: null };
+  const farther = Math.abs(wick - plan.entry) > Math.abs(plan.stop - plan.entry) ? wick : plan.stop;
+  return { exitPx: farther, wickPx: wick };
+}
+
+export function sizeFromLiveContract(input: LiveSizeInput): LiveSleeveSize {
+  const holdHours = input.holdHours ?? 4;
+  const div = UNDERLIER_DIVISOR[input.plan.symbol.toUpperCase()] ?? null;
+  const { exitPx, wickPx } = exitLevelFor(input.plan);
+  const limitPerShare = round2(input.askPerShare);
+  const decayToBrake = (dailyDecayFrac(input.dte) * holdHours) / 24 / STOP_FRAC_OF_DEBIT;
+
+  const skeleton: LiveSleeveSize = {
+    contracts: 0,
+    debitUsd: 0,
+    limitPerShare,
+    lossAtInvalidationUsd: 0,
+    exitPx,
+    wickPx,
+    distancePts: Math.abs(input.plan.entry - exitPx),
+    underlierMovePts: 0,
+    lossPerContractUsd: 0,
+    boundBy: "none",
+    skip: true,
+    skipReason: null,
+    decayToBrake,
+    clock: decayToBrake >= 1,
+    minDte: minDteFor(holdHours),
+    lines: [],
+  };
+
+  const skip = (reason: string): LiveSleeveSize => ({ ...skeleton, skipReason: reason, lines: [reason] });
+
+  if (!div) {
+    return skip(`No underlier divisor for ${input.plan.symbol} — the futures move cannot be translated to the ETF. SKIP.`);
+  }
+  if (!(input.delta > 0 && input.delta < 1)) {
+    return skip("The live contract's delta is missing or outside 0-1. The size is not solved from a guess. SKIP.");
+  }
+  if (!(limitPerShare > 0)) return skip("No live ask on the chosen contract. There is no limit to send. SKIP.");
+  if (!(skeleton.distancePts > 0)) {
+    return skip("Entry and the exit level are the same price — there is no distance to size against. SKIP.");
+  }
+  if (input.plan.riskTooTight) {
+    const atr = input.plan.riskAtr;
+    return skip(
+      `STOP TOO TIGHT TO SIZE. ${input.plan.riskPts.toFixed(2)}pt of risk` +
+        (atr ? ` against an ATR of ${atr.toFixed(2)} — under ${MIN_RISK_ATR}x one bar's range.` : ".") +
+        " A size solved from it would price risk that is not there. Re-price the stop beyond the raid wick, or stand. SKIP.",
+    );
+  }
+
+  const each = round2(limitPerShare * 100);
+  if (each > input.maxDebitUsd) {
+    return skip(
+      `ONE CONTRACT IS $${each.toFixed(0)} AT THE LIVE ASK, OVER THE $${input.maxDebitUsd} ticket ceiling. SKIP — the ticket is not shrunk below one contract and it is not bought over the band.`,
+    );
+  }
+
+  const underlierMovePts = skeleton.distancePts / div;
+  const lossPerContractUsd = underlierMovePts * input.delta * 100;
+  if (!(lossPerContractUsd > 0)) return skip("The live delta prices a zero loss at the exit level. SKIP.");
+
+  const byRisk = Math.floor(input.riskBudgetUsd / lossPerContractUsd);
+  if (byRisk < 1) {
+    return skip(
+      `ONE CONTRACT LOSES ABOUT $${lossPerContractUsd.toFixed(0)} when ${input.plan.symbol} reaches ${exitPx.toFixed(2)}, against a $${input.riskBudgetUsd.toFixed(0)} budget. SKIP — take a lower delta, a nearer strike, or a plan with a tighter invalidation. Do not take this one small and hope.`,
+    );
+  }
+  const byDebit = Math.floor(input.maxDebitUsd / each);
+  const byCap = Math.max(0, Math.floor(input.maxContracts));
+  const contracts = Math.min(byRisk, byDebit, byCap);
+  if (contracts < 1) return skip(`The contract cap is ${byCap}. Nothing to send. SKIP.`);
+
+  const debitUsd = round2(contracts * each);
+  if (debitUsd > input.maxDebitUsd + 1e-9) {
+    return skip(`Solved debit $${debitUsd.toFixed(0)} is over the $${input.maxDebitUsd} ceiling. SKIP — never oversize.`);
+  }
+  if (debitUsd < input.minDebitUsd) {
+    return skip(
+      `Solved debit $${debitUsd.toFixed(0)} is under the $${input.minDebitUsd} broker floor — the envelope refuses it, so it is not sent. SKIP.`,
+    );
+  }
+
+  const boundBy: LiveSleeveSize["boundBy"] =
+    contracts === byRisk ? "risk" : contracts === byDebit ? "debit_ceiling" : "contract_cap";
+  const lossAtInvalidationUsd = round2(contracts * lossPerContractUsd);
+  const lines: string[] = [
+    `${contracts} contract${contracts === 1 ? "" : "s"} at the LIVE ask $${limitPerShare.toFixed(2)} = $${debitUsd.toFixed(0)} debit. Solved from delta ${input.delta.toFixed(2)} and the ${skeleton.distancePts.toFixed(2)}pt distance from ${input.plan.entry.toFixed(2)} to ${exitPx.toFixed(2)}${wickPx != null ? ` (the raid wick ${wickPx.toFixed(2)})` : ""} — about $${lossAtInvalidationUsd.toFixed(0)} if the level goes.`,
+  ];
+  if (boundBy === "debit_ceiling") {
+    lines.push(
+      `The $${input.maxDebitUsd} ceiling bound the size, not the geometry, so this ticket risks LESS than the $${input.riskBudgetUsd.toFixed(0)} budget.`,
+    );
+  } else if (boundBy === "contract_cap") {
+    lines.push(`The ${byCap}-contract cap bound the size. The geometry would have allowed ${Math.min(byRisk, byDebit)}.`);
+  }
+  if (skeleton.clock) {
+    lines.push(
+      `CLOCK — at ${input.dte} DTE theta alone removes the whole ${Math.round(STOP_FRAC_OF_DEBIT * 100)}% premium brake inside a ${holdHours}h hold. The brake fires on time, not on price. ${skeleton.minDte ?? "More"} DTE fixes it.`,
+    );
+  } else if (decayToBrake >= CLOCK_WARN) {
+    lines.push(`Decay eats ${Math.round(decayToBrake * 100)}% of the premium brake over ${holdHours}h before price moves at all.`);
+  }
+  lines.push(
+    `EXIT ON THE LEVEL. Sell when ${input.plan.symbol} reaches ${exitPx.toFixed(2)}. The $${round2(debitUsd * STOP_FRAC_OF_DEBIT).toFixed(0)} premium brake is the backstop, not the plan.`,
+  );
+
+  return {
+    ...skeleton,
+    contracts,
+    debitUsd,
+    lossAtInvalidationUsd,
+    underlierMovePts: Math.round(underlierMovePts * 1e4) / 1e4,
+    lossPerContractUsd: round2(lossPerContractUsd),
+    boundBy,
+    skip: false,
+    skipReason: null,
+    lines,
+  };
+}

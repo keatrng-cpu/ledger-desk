@@ -27,11 +27,24 @@ import {
 import { loadRhSleeve, rhRiskBudgetUsd, rhTicketCapUsd, type RhSleeve } from "./options-sleeve";
 // sleeve-sizing.ts is the authority on the new model; this file now actually
 // imports it rather than naming it in a comment.
-import { CLOCK_WARN, STOP_FRAC_OF_DEBIT, sizeFromStop } from "./sleeve-sizing";
+import {
+  CLOCK_WARN,
+  MAX_DEBIT_USD,
+  STOP_FRAC_OF_DEBIT,
+  sizeFromLiveContract,
+  sizeFromStop,
+  type LiveSleeveSize,
+} from "./sleeve-sizing";
 import type { TradePlan } from "./trade-plan";
 import { dailyDecayFrac } from "./stop-coherence";
 import { RH_WORKING_STOP_PCT, rhWorkingStop, DATABENTO_MONTHLY_USD, RH_WEEKLY_FLOOR_USD, RH_WEEKLY_STRETCH_USD } from "./rh-income";
-import { RH_MAX_DEBIT_TOTAL, confidenceFloorFor, contractsAfterEvent } from "@/lib/execution/rh-autofire-gates";
+import {
+  RH_MAX_CONTRACTS,
+  RH_MAX_DEBIT_TOTAL,
+  RH_MIN_DEBIT_TOTAL,
+  confidenceFloorFor,
+  contractsAfterEvent,
+} from "@/lib/execution/rh-autofire-gates";
 import { gapDirection } from "./gap-direction";
 import { monthContractLine } from "./month-contract";
 
@@ -45,6 +58,29 @@ export type RhStrategyId =
   | "smt_lead"
   | "event_second"
   | "htf_swing";
+
+/** The contract the ticket actually names, priced by the market. */
+export interface LiveTicketLeg {
+  occ: string;
+  optionId: string;
+  expiry: string;
+  strike: number;
+  type: OptionSide;
+  bid: number | null;
+  ask: number;
+  delta: number;
+  /** The limit. Equal to `ask` by construction — the desk never pays the print. */
+  limitPerShare: number;
+  asOfMs: number;
+  /** The futures level the size was solved against. */
+  exitPx: number;
+  /** The raid wick behind it, when the plan named one. */
+  wickPx: number | null;
+  /** Dollars this ticket loses when the futures reach `exitPx`. */
+  lossAtInvalidationUsd: number;
+  /** Which bound decided the contract count. */
+  boundBy: "risk" | "debit_ceiling" | "contract_cap" | "none";
+}
 
 export interface RhTicket {
   underlier: SwingUnderlier;
@@ -71,6 +107,20 @@ export interface RhTicket {
    *   risk solved for and should be re-sized once the sequence prices a stop.
    */
   sizedFrom: "level" | "ceiling";
+  /**
+   * Where the DEBIT and the LIMIT came from.
+   *
+   * "live_chain" — a real OCC contract off a get_option_quotes read: its own
+   *   bid, ask and delta, the size solved from that delta and the raid-wick
+   *   distance, and a limit that IS the live ask. Only this can be sent.
+   * "model" — estimateDebitContract. A shape for the tab. `order.kind` is
+   *   "none" on these, so nothing downstream can mistake one for an order.
+   */
+  pricedFrom: "live_chain" | "model";
+  /** The real leg, when one was read. Null on a model-priced shape. */
+  live: LiveTicketLeg | null;
+  /** How this ticket may reach the broker right now. */
+  order: RhOrderPlan;
   sizeNote: string | null;
   workingStop: number;
   workingStopPct: number;
@@ -421,6 +471,404 @@ export function brakeIsClock(dte: number, holdHours = 4): boolean {
   return decayOverHold / STOP_FRAC_OF_DEBIT >= CLOCK_WARN;
 }
 
+/* ================================================================== *
+ * THE REAL CONTRACT, THE REAL PRICE, AND HOW THE ORDER REACHES IT
+ *
+ * Everything above this line prices a SHAPE: "0DTE 0.40 delta, est $1.85,
+ * ATM ~620 put". Robinhood does not fill a shape. It fills one OCC contract
+ * at a price somebody is showing, and `estimateDebitContract` is not that
+ * price — it is spot x IV x sqrt(t) x 0.4, scaled by a delta the desk chose
+ * off a menu. On a 1 DTE ATM option the whole premium is about 0.4% of the
+ * ETF, so the model and the ask routinely differ by more than the premium.
+ *
+ * So a ticket now has two layers:
+ *   - the SHAPE, still modelled, still labelled an estimate, for the tab;
+ *   - the LEG, only when a live chain was read: a real OCC symbol, that
+ *     contract's own bid, ask and delta, and a limit that IS the live ask.
+ * A ticket with no leg is marked `pricedFrom: "model"` and its order kind is
+ * "none" — it can be looked at and it can never be sent. That is also what
+ * rh-autofire.ts already enforces downstream (`priceSource: "model"` cannot
+ * arm); this makes the desk say it at the point the ticket is built, instead
+ * of building a sendable-looking ticket and having the gate catch it.
+ * ================================================================== */
+
+/** A contract as the chain quotes it. Nothing here is derived from a model. */
+export interface LiveOptionContract {
+  /** OCC 21-character symbol, e.g. "QQQ   261009P00620000". */
+  occ: string;
+  /** Broker instrument id — what place_option_order takes. */
+  optionId: string;
+  underlier: SwingUnderlier;
+  type: OptionSide;
+  strike: number;
+  /** Expiry as yyyy-mm-dd. */
+  expiry: string;
+  /** Per share. */
+  bid: number | null;
+  /** Per share. The limit comes from here and nowhere else. */
+  ask: number | null;
+  /** Signed as the chain gives it; the sizer uses the magnitude. */
+  delta: number | null;
+  asOfMs: number;
+}
+
+export interface LiveChain {
+  underlier: SwingUnderlier;
+  contracts: LiveOptionContract[];
+  /** Must be `get_option_quotes`-grade. A model-built chain cannot arm. */
+  source: string;
+}
+
+/**
+ * Same window the live-quote gate uses (RH_LIVE_QUOTE_MAX_AGE_MS = 30s). A
+ * 0-1 DTE ask older than that is not the ask.
+ */
+export const CHAIN_MAX_AGE_MS = 30_000;
+/** The one source whose quotes may price an order. */
+export const LIVE_CHAIN_SOURCE = "get_option_quotes";
+/** Widest bid/ask, as a share of the mid, that still prices a limit. */
+export const MAX_LEG_SPREAD_SHARE = 0.15;
+
+/** The OCC symbol, built the one way, so a chain's own string can be checked against it. */
+export function occSymbol(root: string, expiry: string, type: OptionSide, strike: number): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expiry.trim());
+  if (!m || !(strike > 0)) return null;
+  const r = root.trim().toUpperCase();
+  if (!/^[A-Z]{1,6}$/.test(r)) return null;
+  const thousandths = Math.round(strike * 1000);
+  if (!Number.isFinite(thousandths) || thousandths <= 0 || thousandths > 99_999_999) return null;
+  return (
+    r.padEnd(6, " ") +
+    m[1].slice(2) +
+    m[2] +
+    m[3] +
+    (type === "put" ? "P" : "C") +
+    String(thousandths).padStart(8, "0")
+  );
+}
+
+/**
+ * Is this contract quoted well enough to put a limit on it?
+ *
+ * Fails closed on every input the limit depends on. A crossed book, a missing
+ * delta or a stale ask each mean the two numbers that decide the ticket — the
+ * price and the size — would come from somewhere other than the market.
+ */
+export function liveContractUsable(
+  c: LiveOptionContract,
+  nowMs: number,
+): { ok: true; ask: number; bid: number | null; delta: number } | { ok: false; reason: string } {
+  const ask = Number(c.ask);
+  if (!(Number.isFinite(ask) && ask > 0)) return { ok: false, reason: `${c.occ || c.optionId}: no live ask.` };
+  const bidRaw = c.bid == null ? null : Number(c.bid);
+  const bid = bidRaw != null && Number.isFinite(bidRaw) ? bidRaw : null;
+  if (bid != null && bid > ask) return { ok: false, reason: `${c.occ}: crossed book (bid ${bid} > ask ${ask}).` };
+  const delta = Math.abs(Number(c.delta));
+  if (!(Number.isFinite(delta) && delta > 0 && delta < 1)) {
+    return { ok: false, reason: `${c.occ}: delta unknown — the size cannot be solved.` };
+  }
+  if (!Number.isFinite(c.asOfMs) || nowMs - c.asOfMs > CHAIN_MAX_AGE_MS) {
+    return { ok: false, reason: `${c.occ}: quote ${Math.round((nowMs - c.asOfMs) / 1000)}s old (> ${CHAIN_MAX_AGE_MS / 1000}s).` };
+  }
+  const mid = bid != null && bid > 0 ? (bid + ask) / 2 : ask;
+  if (mid > 0 && bid != null && bid > 0 && (ask - bid) / mid > MAX_LEG_SPREAD_SHARE) {
+    return { ok: false, reason: `${c.occ}: bid/ask is ${Math.round(((ask - bid) / mid) * 100)}% of the mid.` };
+  }
+  if (!c.optionId) return { ok: false, reason: `${c.occ}: no broker instrument id.` };
+  const expected = occSymbol(c.underlier, c.expiry, c.type, c.strike);
+  if (expected && c.occ && c.occ.trim() !== expected.trim()) {
+    return { ok: false, reason: `OCC ${c.occ} does not describe ${c.underlier} ${c.expiry} ${c.strike} ${c.type}.` };
+  }
+  return { ok: true, ask, bid, delta };
+}
+
+/**
+ * The contract the ticket names: the usable one whose delta sits nearest the
+ * middle of the card's own band. Ties go to the tighter book, because the
+ * crossing is the one cost the desk pays with certainty.
+ */
+export function pickLiveContract(
+  chain: LiveChain | null | undefined,
+  want: { side: OptionSide; deltaMin: number; deltaMax: number; expiry?: string | null },
+  nowMs: number,
+): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number } | { refusal: string } {
+  if (!chain) return { refusal: "No live chain was read — the ticket is a model estimate and cannot be sent." };
+  if (chain.source !== LIVE_CHAIN_SOURCE) {
+    return { refusal: `Chain source ${chain.source || "-"} is not ${LIVE_CHAIN_SOURCE}.` };
+  }
+  const mid = (want.deltaMin + want.deltaMax) / 2;
+  const rejected: string[] = [];
+  const ok: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number }[] = [];
+  for (const c of chain.contracts) {
+    if (c.type !== want.side) continue;
+    if (want.expiry && c.expiry !== want.expiry) continue;
+    const u = liveContractUsable(c, nowMs);
+    if (!u.ok) {
+      rejected.push(u.reason);
+      continue;
+    }
+    if (u.delta < want.deltaMin || u.delta > want.deltaMax) continue;
+    ok.push({ contract: c, ask: u.ask, bid: u.bid, delta: u.delta });
+  }
+  if (ok.length === 0) {
+    return {
+      refusal:
+        `No live ${want.side} between delta ${want.deltaMin.toFixed(2)} and ${want.deltaMax.toFixed(2)}` +
+        (rejected.length ? ` — ${rejected[0]}` : " in the chain that was read.") +
+        " No contract, no ticket.",
+    };
+  }
+  ok.sort((a, b) => {
+    const d = Math.abs(a.delta - mid) - Math.abs(b.delta - mid);
+    if (Math.abs(d) > 1e-9) return d;
+    const sa = a.bid != null ? a.ask - a.bid : Number.POSITIVE_INFINITY;
+    const sb = b.bid != null ? b.ask - b.bid : Number.POSITIVE_INFINITY;
+    return sa - sb;
+  });
+  return ok[0];
+}
+
+/* ------------------------------------------------------------------ *
+ * WHERE PRICE IS, AND WHETHER THAT MAKES THE ORDER MARKETABLE
+ *
+ * The sender used to buy at the ask whenever the card said ARMED. The card
+ * says ARMED about the SETUP; it says nothing about where price is standing.
+ * So a ticket could go in at the ask with the futures a full ATR away from
+ * the array the plan rests in — which is the chase the desk refuses on the
+ * futures book and has measured: resting at CE beats paying the print, and
+ * price already AT the CE when the card prints is itself the worse bucket
+ * (-0.201R vs -0.056R/card). The entry is the array. Until price is in it,
+ * the only correct order is a limit sitting there.
+ * ------------------------------------------------------------------ */
+
+export type ArrayState = "inside" | "approaching" | "through" | "unknown";
+
+export interface ArrayRead {
+  state: ArrayState;
+  /** The middle of the array — where a limit rests. CE. */
+  restAt: number | null;
+  /** The raid wick the stop sits beyond. */
+  wickPx: number | null;
+  detail: string;
+}
+
+/**
+ * Read the futures price against the array and the raid wick.
+ *
+ * "through" is decided on the raid wick, not the array's far edge: the wick
+ * is the level the whole card was read off, and once price is beyond it the
+ * setup is gone whether or not a limit is still sitting in the array.
+ */
+export function arrayStateOf(args: {
+  px: number | null | undefined;
+  side: "long" | "short";
+  entry: number | null | undefined;
+  zone: { top: number; bottom: number } | null | undefined;
+  stop?: number | null;
+  sweep?: number | null;
+}): ArrayRead {
+  const px = args.px == null ? null : Number(args.px);
+  const entry = args.entry == null ? null : Number(args.entry);
+  const zone =
+    args.zone && Number.isFinite(args.zone.top) && Number.isFinite(args.zone.bottom)
+      ? { top: Math.max(args.zone.top, args.zone.bottom), bottom: Math.min(args.zone.top, args.zone.bottom) }
+      : null;
+  const restAt = zone ? (zone.top + zone.bottom) / 2 : entry != null && Number.isFinite(entry) ? entry : null;
+  const wickRaw = args.sweep != null && Number.isFinite(args.sweep) ? Number(args.sweep) : null;
+  const stopRaw = args.stop != null && Number.isFinite(args.stop) ? Number(args.stop) : null;
+  const wickPx = wickRaw ?? stopRaw;
+
+  if (px == null || !Number.isFinite(px) || restAt == null) {
+    return { state: "unknown", restAt, wickPx, detail: "No futures mark or no array to read it against." };
+  }
+  if (wickPx != null && (args.side === "long" ? px <= wickPx : px >= wickPx)) {
+    return {
+      state: "through",
+      restAt,
+      wickPx,
+      detail: `${px.toFixed(2)} is through the raid wick ${wickPx.toFixed(2)}. The level the card was read off is gone.`,
+    };
+  }
+  if (zone && px >= zone.bottom && px <= zone.top) {
+    return {
+      state: "inside",
+      restAt,
+      wickPx,
+      detail: `${px.toFixed(2)} is inside the array ${zone.bottom.toFixed(2)}-${zone.top.toFixed(2)}.`,
+    };
+  }
+  if (!zone) {
+    return {
+      state: "approaching",
+      restAt,
+      wickPx,
+      detail: `No array edges on the plan — only the entry ${restAt.toFixed(2)}. A limit rests there; nothing is paid at the ask.`,
+    };
+  }
+  return {
+    state: "approaching",
+    restAt,
+    wickPx,
+    detail: `${px.toFixed(2)} is outside the array ${zone.bottom.toFixed(2)}-${zone.top.toFixed(2)}. The limit waits at ${restAt.toFixed(2)}.`,
+  };
+}
+
+/** How the order may reach the broker. "none" is not an error — it is a wait. */
+export type RhOrderKind = "marketable_limit" | "resting_limit" | "none";
+
+export interface RhOrderPlan {
+  kind: RhOrderKind;
+  /** Marketable: the live ask. Resting: the CE. Null when nothing is sendable. */
+  limitPerShare: number | null;
+  /** The futures price the limit is waiting for, when it is a rest. */
+  restAt: number | null;
+  arrayState: ArrayState;
+  reason: string;
+}
+
+/**
+ * Confirmation states this desk will build an order for at all.
+ *
+ * `sweep_displace` means the raid and the shift printed and price has NOT
+ * traded back into the array (market-narrative.ts returns it exactly when
+ * there is no array under price yet). That state is an ARM, not a fill: the
+ * only correct order is a limit resting at the CE. It arms at all only with a
+ * live 1m-5m reaction beside it — smc-canon.ts already requires the same
+ * pair, so this is the same rule, not a second one.
+ */
+export function orderPlanFor(args: {
+  /** desk.narrative[book].confirmation */
+  confirmation: string | null | undefined;
+  /** The card's components — "ltf_reaction" is the live 1m-5m shift. */
+  components: readonly string[] | undefined;
+  array: ArrayRead;
+  /** The live ask of the picked contract. Null when there is no live leg. */
+  liveAsk: number | null;
+}): RhOrderPlan {
+  const base = { arrayState: args.array.state, restAt: args.array.restAt };
+  const none = (reason: string): RhOrderPlan => ({ ...base, kind: "none", limitPerShare: null, reason });
+  const conf = (args.confirmation ?? "").trim();
+  const hasLtf = (args.components ?? []).includes("ltf_reaction");
+
+  if (args.liveAsk == null || !(args.liveAsk > 0)) {
+    return none("No live ask on a real contract. A model price is not an order.");
+  }
+  if (args.array.state === "through") return none(args.array.detail);
+  if (args.array.state === "unknown") {
+    return none(`${args.array.detail} Nothing is sent on an unread location.`);
+  }
+  if (conf === "sweep_displace" && !hasLtf) {
+    return none(
+      "Sweep and displacement printed but there is no live 1m-5m reaction. A shift with no reaction is not an arm, so there is no order.",
+    );
+  }
+  if (args.array.state === "approaching") {
+    return {
+      ...base,
+      kind: "resting_limit",
+      limitPerShare: args.liveAsk,
+      reason:
+        (conf === "sweep_displace"
+          ? "Sweep, displacement and a live 1m-5m reaction: the trade is ARMED and price has not come back to the array. "
+          : "") +
+        `A limit rests at ${args.array.restAt != null ? args.array.restAt.toFixed(2) : "the CE"}; nothing marketable is sent until the futures are inside the array. ${args.array.detail}`,
+    };
+  }
+  return {
+    ...base,
+    kind: "marketable_limit",
+    limitPerShare: args.liveAsk,
+    reason: `${args.array.detail} Price is at the array, so the limit goes in at the LIVE ask $${args.liveAsk.toFixed(2)} — not at a modelled price, and not chased from away.`,
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * A WORKING ORDER IS NEVER LEFT PENDING
+ *
+ * One replace at the new ask, then cancel. The 20s beat is the same one the
+ * room's Alpaca executor already uses to cancel an unfilled entry
+ * (src/lib/room/exec), so a stale entry cannot fill minutes later on a setup
+ * that has moved on.
+ * ------------------------------------------------------------------ */
+
+export const RH_WORK_BEAT_MS = 20_000;
+export const RH_MAX_REPLACEMENTS = 1;
+
+export type RhWorkingAction = "hold" | "replace" | "cancel";
+
+export function decideWorkingOrder(args: {
+  placedAtMs: number;
+  nowMs: number;
+  /** Replacements already sent for this order. */
+  replacements: number;
+  /** Filled (fully or partly) — there is nothing working. */
+  filled: boolean;
+  /** The limit currently resting, per share. */
+  limitPerShare: number;
+  /** The ask now, per share. Null when the chain went unreadable. */
+  liveAsk: number | null;
+  side: "long" | "short";
+  /** The raid wick. */
+  wickPx: number | null;
+  /**
+   * The last CLOSED futures bar's close since the order went in. A wick
+   * through the level is not a close through it — same rule as the
+   * failed-hold exit.
+   */
+  lastCloseSincePlace: number | null;
+}): { action: RhWorkingAction; limitPerShare: number | null; reason: string } {
+  if (args.filled) return { action: "hold", limitPerShare: args.limitPerShare, reason: "Filled. Nothing is working." };
+  const close = args.lastCloseSincePlace;
+  if (
+    args.wickPx != null &&
+    close != null &&
+    Number.isFinite(close) &&
+    (args.side === "long" ? close < args.wickPx : close > args.wickPx)
+  ) {
+    return {
+      action: "cancel",
+      limitPerShare: null,
+      reason: `A closed bar at ${close.toFixed(2)} went through the raid wick ${args.wickPx.toFixed(2)}. The setup is gone; the working order comes off.`,
+    };
+  }
+  const elapsed = args.nowMs - args.placedAtMs;
+  if (!Number.isFinite(elapsed) || elapsed < RH_WORK_BEAT_MS) {
+    return {
+      action: "hold",
+      limitPerShare: args.limitPerShare,
+      reason: `Working ${Math.max(0, Math.round(elapsed / 1000))}s. The beat is ${RH_WORK_BEAT_MS / 1000}s.`,
+    };
+  }
+  const ask = args.liveAsk == null ? null : Number(args.liveAsk);
+  const askOk = ask != null && Number.isFinite(ask) && ask > 0;
+  if (args.replacements >= RH_MAX_REPLACEMENTS) {
+    return {
+      action: "cancel",
+      limitPerShare: null,
+      reason: `Unfilled ${Math.round(elapsed / 1000)}s after ${args.replacements} replacement. One replace, then it comes off — a pending order is not a plan.`,
+    };
+  }
+  if (!askOk) {
+    return {
+      action: "cancel",
+      limitPerShare: null,
+      reason: `Unfilled after ${Math.round(elapsed / 1000)}s and there is no live ask to replace at. It comes off rather than sitting there.`,
+    };
+  }
+  if (Math.abs(ask - args.limitPerShare) < 0.005) {
+    return {
+      action: "cancel",
+      limitPerShare: null,
+      reason: `Unfilled ${Math.round(elapsed / 1000)}s at $${args.limitPerShare.toFixed(2)} and the ask has not moved. Replacing at the same price would change nothing, so it comes off.`,
+    };
+  }
+  return {
+    action: "replace",
+    limitPerShare: Math.round(ask * 100) / 100,
+    reason: `Unfilled ${Math.round(elapsed / 1000)}s at $${args.limitPerShare.toFixed(2)}. Cancel and replace ONCE at the new ask $${ask.toFixed(2)}.`,
+  };
+}
+
 function sizeProduct(
   underlier: SwingUnderlier,
   side: OptionSide,
@@ -580,6 +1028,125 @@ function sizeProduct(
   return null;
 }
 
+/**
+ * What a card needs to price a REAL ticket: the chain, where the futures are,
+ * and what the tape confirmed. All of it optional — with none of it the desk
+ * still prints its modelled shape, marked as one and not sendable.
+ */
+export interface LiveTicketCtx {
+  chain: LiveChain | null;
+  /** Futures mark for the book this option expresses. */
+  futuresPx: number | null;
+  /** desk.narrative[book].confirmation. */
+  confirmation: string | null;
+  /** The card's components — "ltf_reaction" is the live 1m-5m shift. */
+  components: readonly string[];
+  /** Only this expiry, when the card knows which one it wants. */
+  expiry?: string | null;
+  nowMs: number;
+}
+
+/**
+ * The live reads a desk build may hand the options cards.
+ *
+ * Optional on purpose: with none of it the tab still prices its modelled
+ * shapes and marks every one unsendable. With a chain, the cards that can
+ * actually be traded name a real contract at a real price.
+ */
+export interface RhLiveInputs {
+  /**
+   * One chain per underlier, ALREADY narrowed to the expiry the desk wants
+   * (that is how a chain read is requested: by expiration date). Pass the
+   * `get_option_quotes` read, not a modelled grid.
+   */
+  chains?: Partial<Record<SwingUnderlier, LiveChain | null>> | null;
+  nowMs?: number;
+}
+
+/** The per-card live context: the chain for this underlier, the futures mark, the tape. */
+function liveCtxFor(
+  desk: DeskPayload,
+  underlier: SwingUnderlier,
+  c: SetupCandidate | undefined,
+  inputs: RhLiveInputs | null | undefined,
+): LiveTicketCtx | null {
+  if (!inputs) return null;
+  const { esPx, nqPx } = proxyPair(desk);
+  const futuresPx = underlier === "SPY" ? esPx : nqPx;
+  const n = desk.narrative;
+  const book = n && c ? (c.symbol === desk.left.symbol ? n.left : n.right) : null;
+  return {
+    chain: inputs.chains?.[underlier] ?? null,
+    futuresPx: Number.isFinite(futuresPx) && futuresPx > 0 ? futuresPx : null,
+    confirmation: book?.confirmation ?? null,
+    components: c?.components ?? [],
+    nowMs: inputs.nowMs ?? Date.now(),
+    expiry: null,
+  };
+}
+
+/**
+ * Solve the REAL leg: pick the contract off the chain, then size it from that
+ * contract's own delta and the distance to the raid wick, inside the broker's
+ * $50-$550 debit band. A refusal is a SKIP; it is never shrunk into the band.
+ */
+function liveLegFor(
+  underlier: SwingUnderlier,
+  side: OptionSide,
+  dte: number,
+  deltaLo: number,
+  deltaHi: number,
+  plan: TradePlan,
+  live: LiveTicketCtx,
+): { leg: LiveTicketLeg; size: LiveSleeveSize } | { refusal: string } | null {
+  if (!live.chain) return null;
+  const picked = pickLiveContract(
+    live.chain,
+    { side, deltaMin: deltaLo, deltaMax: deltaHi, expiry: live.expiry ?? null },
+    live.nowMs,
+  );
+  if ("refusal" in picked) return { refusal: picked.refusal };
+  const size = sizeFromLiveContract({
+    plan: {
+      symbol: plan.symbol,
+      side: plan.side,
+      entry: plan.entry,
+      stop: plan.stop,
+      riskPts: plan.riskPts,
+      sweep: plan.sweep?.price ?? null,
+      riskTooTight: plan.riskTooTight,
+      riskAtr: plan.riskAtr ?? null,
+    },
+    delta: picked.delta,
+    askPerShare: picked.ask,
+    riskBudgetUsd: MAX_DEBIT_USD * STOP_FRAC_OF_DEBIT,
+    minDebitUsd: RH_MIN_DEBIT_TOTAL,
+    maxDebitUsd: RH_MAX_DEBIT_TOTAL,
+    maxContracts: Math.min(RH_MAX_CONTRACTS, maxContracts(dte)),
+    dte,
+  });
+  if (size.skip) return { refusal: size.skipReason ?? "The live contract could not be sized. SKIP." };
+  return {
+    size,
+    leg: {
+      occ: picked.contract.occ,
+      optionId: picked.contract.optionId,
+      expiry: picked.contract.expiry,
+      strike: picked.contract.strike,
+      type: picked.contract.type,
+      bid: picked.bid,
+      ask: picked.ask,
+      delta: picked.delta,
+      limitPerShare: size.limitPerShare,
+      asOfMs: picked.contract.asOfMs,
+      exitPx: size.exitPx,
+      wickPx: size.wickPx,
+      lossAtInvalidationUsd: size.lossAtInvalidationUsd,
+      boundBy: size.boundBy,
+    },
+  };
+}
+
 function rhLine(t: {
   underlier: SwingUnderlier;
   side: OptionSide;
@@ -589,9 +1156,22 @@ function rhLine(t: {
   each: number;
   strikeNote: string;
   dte: number;
+  /** The real leg, when there is one. */
+  leg?: LiveTicketLeg | null;
+  order?: RhOrderPlan | null;
 }): string {
   const verb = t.product === "debit_spread" ? "DEBIT SPREAD" : "BUY TO OPEN";
-  return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · cut −${Math.round(RH_WORKING_STOP_PCT * 100)}% ($${rhWorkingStop(t.total)}) · defined max = debit. No naked short. Do not average.`;
+  const tail = ` · cut −${Math.round(RH_WORKING_STOP_PCT * 100)}% ($${rhWorkingStop(t.total)}) · defined max = debit. No naked short. Do not average.`;
+  if (t.leg && t.order) {
+    const how =
+      t.order.kind === "marketable_limit"
+        ? `LIMIT $${t.leg.limitPerShare.toFixed(2)} (the live ask) — price is at the array`
+        : t.order.kind === "resting_limit"
+          ? `REST a limit; do not pay the ask. Waiting for ${t.order.restAt != null ? t.order.restAt.toFixed(2) : "the CE"}`
+          : "DO NOT SEND";
+    return `Robinhood: ${verb} ${t.contracts} ${t.leg.occ.trim()} · ${how} · $${t.total.toFixed(0)} total · exit on ${t.leg.exitPx.toFixed(2)}${tail}`;
+  }
+  return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · MODEL PRICE — not sendable until a live chain names the contract${tail}`;
 }
 
 function toTicket(
@@ -609,19 +1189,46 @@ function toTicket(
   targets: string[],
   /** The futures plan this option expresses. Null = size from the ceiling. */
   plan: TradePlan | null = null,
+  /** The live chain, the futures mark and the card's confirmation. */
+  live: LiveTicketCtx | null = null,
 ): RhTicket | null {
-  const sized = sizeProduct(
-    underlier,
-    side,
-    spot,
-    dte,
-    (deltaLo + deltaHi) / 2,
-    iv,
-    cap,
-    rhRiskBudgetUsd(sleeve),
-    plan,
-  );
+  const legSized = plan && live ? liveLegFor(underlier, side, dte, deltaLo, deltaHi, plan, live) : null;
+  // A live chain that refuses the leg is a SKIP, not a fallback to the model:
+  // the whole point is that the ticket names a contract somebody is quoting.
+  if (live?.chain && legSized && "refusal" in legSized) {
+    return null;
+  }
+  const leg = legSized && !("refusal" in legSized) ? legSized : null;
+
+  const sized = leg
+    ? {
+        product: "single" as const,
+        contracts: leg.size.contracts,
+        each: Math.round(leg.leg.limitPerShare * 100 * 100) / 100,
+        total: leg.size.debitUsd,
+        strikeNote: `${leg.leg.occ.trim()} · ${leg.leg.strike} ${side} · bid $${leg.leg.bid != null ? leg.leg.bid.toFixed(2) : "-"} / ask $${leg.leg.ask.toFixed(2)} · delta ${leg.leg.delta.toFixed(2)} (live chain)`,
+        clock: leg.size.clock,
+        sizedFrom: "level" as const,
+        sizeNote: leg.size.lines.join(" "),
+      }
+    : sizeProduct(underlier, side, spot, dte, (deltaLo + deltaHi) / 2, iv, cap, rhRiskBudgetUsd(sleeve), plan);
   if (!sized) return null;
+
+  const array = arrayStateOf({
+    px: live?.futuresPx ?? null,
+    side: plan?.side ?? (side === "put" ? "short" : "long"),
+    entry: plan?.entry ?? null,
+    zone: plan?.entryZone ?? null,
+    stop: plan?.stop ?? null,
+    sweep: plan?.sweep?.price ?? null,
+  });
+  const order = orderPlanFor({
+    confirmation: live?.confirmation ?? null,
+    components: live?.components,
+    array,
+    liveAsk: leg?.leg.limitPerShare ?? null,
+  });
+
   const workingStop = rhWorkingStop(sized.total);
   return {
     underlier,
@@ -637,6 +1244,9 @@ function toTicket(
     estDebitEach: sized.each,
     estDebitTotal: sized.total,
     sizedFrom: sized.sizedFrom,
+    pricedFrom: leg ? "live_chain" : "model",
+    live: leg?.leg ?? null,
+    order,
     sizeNote: sized.sizeNote,
     maxLoss: sized.total,
     workingStop,
@@ -655,7 +1265,62 @@ function toTicket(
       each: sized.each,
       strikeNote: sized.strikeNote,
       dte,
+      leg: leg?.leg ?? null,
+      order,
     }),
+  };
+}
+
+/**
+ * The ticket as the existing live-quote gate wants it
+ * (rh-autofire.ts RhLiveOptionQuote). Null on a model-priced ticket, which is
+ * exactly what makes that gate refuse — so the sender needs no new branch.
+ */
+export function rhLiveQuoteFromTicket(t: RhTicket): {
+  optionId: string;
+  askPrice: number;
+  bidPrice: number | null;
+  asOfMs: number;
+  source: "get_option_quotes";
+} | null {
+  if (!t.live) return null;
+  return {
+    optionId: t.live.optionId,
+    askPrice: t.live.ask,
+    bidPrice: t.live.bid,
+    asOfMs: t.live.asOfMs,
+    source: "get_option_quotes",
+  };
+}
+
+/**
+ * May this ticket be sent RIGHT NOW, and as what?
+ *
+ * The one answer the sender needs. A model price, a missing leg, price away
+ * from the array or a closed-through wick each come back as a refusal with
+ * the reason, so no caller has to re-derive any of it.
+ */
+export function rhSendableFromTicket(t: RhTicket):
+  | { ok: true; kind: "marketable_limit"; optionId: string; limitPerShare: number; quantity: number; reason: string }
+  | { ok: false; kind: RhOrderKind; restAt: number | null; reason: string } {
+  if (!t.live || t.pricedFrom !== "live_chain") {
+    return {
+      ok: false,
+      kind: "none",
+      restAt: null,
+      reason: "This ticket is a model estimate, not a contract. Nothing is sent until a live chain names one.",
+    };
+  }
+  if (t.order.kind !== "marketable_limit" || t.order.limitPerShare == null) {
+    return { ok: false, kind: t.order.kind, restAt: t.order.restAt, reason: t.order.reason };
+  }
+  return {
+    ok: true,
+    kind: "marketable_limit",
+    optionId: t.live.optionId,
+    limitPerShare: t.order.limitPerShare,
+    quantity: t.contracts,
+    reason: t.order.reason,
   };
 }
 
@@ -710,12 +1375,35 @@ function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
   }
   const total = Math.round(contracts * t.estDebitEach);
   const workingStop = rhWorkingStop(total);
+  // A live leg's own numbers scale with the count. The loss at the exit level
+  // is per contract, so shrinking the ticket shrinks the loss with it —
+  // leaving the old figure there would overstate the risk of a cut ticket.
+  const live: LiveTicketLeg | null =
+    t.live && t.contracts > 0
+      ? {
+          ...t.live,
+          lossAtInvalidationUsd: Math.round(((t.live.lossAtInvalidationUsd * contracts) / t.contracts) * 100) / 100,
+        }
+      : t.live;
+  // Under the broker floor nothing can be sent, so say so rather than
+  // printing a cut ticket that the envelope will refuse.
+  const order: RhOrderPlan =
+    t.live && total < RH_MIN_DEBIT_TOTAL
+      ? {
+          ...t.order,
+          kind: "none",
+          limitPerShare: null,
+          reason: `Cut to ${contracts} contract${contracts === 1 ? "" : "s"} = $${total}, under the $${RH_MIN_DEBIT_TOTAL} broker floor. ${note} Nothing is sent.`,
+        }
+      : t.order;
   return {
     ...t,
     contracts,
     estDebitTotal: total,
     maxLoss: total,
     workingStop,
+    live,
+    order,
     riskPctOfSleeve: t.estDebitTotal > 0 ? (t.riskPctOfSleeve * total) / t.estDebitTotal : t.riskPctOfSleeve,
     sizeNote: note,
     robinhood: rhLine({
@@ -727,11 +1415,19 @@ function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
       each: t.estDebitEach,
       strikeNote: t.strikeNote,
       dte: t.dteTarget,
+      leg: live,
+      order,
     }),
   };
 }
 
-function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forced?: SetupCandidate): RhStrategyCard {
+function pathContinuation(
+  desk: DeskPayload,
+  sleeve: RhSleeve,
+  cap: number,
+  forced?: SetupCandidate,
+  liveInputs?: RhLiveInputs | null,
+): RhStrategyCard {
   const blocks: string[] = [];
   const reasons: string[] = [];
   const clock = desk.clock;
@@ -822,6 +1518,7 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
           ],
           // Size from the LEVEL: the futures plan this option expresses.
           planForUnderlier(desk, underlier),
+          liveCtxFor(desk, underlier, c, liveInputs),
         )
       : null;
   if (ticket && c && pressured) {
@@ -829,7 +1526,14 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
     if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");
   }
   if (c && verdict !== "STAND" && !ticket) {
-    blocks.push(`Nothing from ATM to 2 OTM fits $${cap}. No ticket to send.`);
+    blocks.push(
+      liveInputs?.chains?.[underlier]
+        ? `No live contract in the delta band could be sized inside $${RH_MIN_DEBIT_TOTAL}-$${RH_MAX_DEBIT_TOTAL} against the raid wick. SKIP — the ticket is not oversized to make one.`
+        : `Nothing from ATM to 2 OTM fits $${cap}. No ticket to send.`,
+    );
+  }
+  if (ticket && ticket.order.kind !== "marketable_limit") {
+    reasons.push(ticket.order.reason);
   }
 
   return {
@@ -848,7 +1552,12 @@ function pathContinuation(desk: DeskPayload, sleeve: RhSleeve, cap: number, forc
   };
 }
 
-function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard {
+function judasIfvg0dte(
+  desk: DeskPayload,
+  sleeve: RhSleeve,
+  cap: number,
+  liveInputs?: RhLiveInputs | null,
+): RhStrategyCard {
   const blocks: string[] = [];
   const reasons: string[] = [];
   const clock = desk.clock;
@@ -912,8 +1621,10 @@ function judasIfvg0dte(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStra
           ["Working stop −25% of debit or failed displacement", "Flat rest at structure or 11:00"],
           // Size from the LEVEL: the futures plan this option expresses.
           planForUnderlier(desk, underlier),
+          liveCtxFor(desk, underlier, c, liveInputs),
         )
       : null;
+  if (ticket && ticket.order.kind !== "marketable_limit") reasons.push(ticket.order.reason);
 
   return {
     id: "judas_ifvg_0dte",
@@ -1175,6 +1886,13 @@ function htfSwingCard(
 export function evaluateOptionsDesk(
   desk: DeskPayload,
   sleeve: RhSleeve = loadRhSleeve(),
+  /**
+   * Live chain reads, when the caller has a Robinhood session. Omitted → every
+   * ticket stays a labelled model shape with `order.kind: "none"`, which is
+   * what the tab has always shown and what the live-quote gate already
+   * refused to send.
+   */
+  liveInputs?: RhLiveInputs | null,
 ): OptionsDesk {
   // The DEBIT ceiling: `cap` decides `single <= cap` and how many contracts
   // `floor(cap / single)` buys. It was $150, so every ticket was sized at a
@@ -1196,7 +1914,10 @@ export function evaluateOptionsDesk(
   };
 
   const both = pathCandidates(desk);
-  const pathCards = both.length > 0 ? both.map((c) => pathContinuation(desk, sleeve, cap, c)) : [pathContinuation(desk, sleeve, cap)];
+  const pathCards =
+    both.length > 0
+      ? both.map((c) => pathContinuation(desk, sleeve, cap, c, liveInputs))
+      : [pathContinuation(desk, sleeve, cap, undefined, liveInputs)];
   const path = both[0];
   const primary: SwingUnderlier = path
     ? underlierOf(path.symbol)
@@ -1206,7 +1927,7 @@ export function evaluateOptionsDesk(
 
   const cards = [
     ...pathCards,
-    judasIfvg0dte(desk, sleeve, cap),
+    judasIfvg0dte(desk, sleeve, cap, liveInputs),
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
     htfSwingCard(swingSignal, desk, sleeve, cap),
@@ -1255,8 +1976,11 @@ export function evaluateOptionsDesk(
   ];
 
   const watch = cards.find((c) => c.verdict === "WATCH");
+  const send = best?.ticket ? rhSendableFromTicket(best.ticket) : null;
   const focus = best?.ticket
-    ? `RH ${best.ticket.product === "debit_spread" ? "SPREAD" : "BUY"} ${best.ticket.contracts} ${best.ticket.underlier} ${best.ticket.side.toUpperCase()} · ${best.name} · pay ~$${best.ticket.estDebitTotal} · max loss $${best.ticket.maxLoss}`
+    ? send?.ok
+      ? `RH BUY ${best.ticket.contracts} ${best.ticket.live!.occ.trim()} · LIMIT $${send.limitPerShare.toFixed(2)} (live ask) · ${best.name} · $${best.ticket.estDebitTotal.toFixed(0)} · exit on ${best.ticket.live!.exitPx.toFixed(2)}`
+      : `${best.ticket.order.kind === "resting_limit" ? "REST" : "HOLD"} — ${best.name}: ${send?.reason ?? best.ticket.order.reason}`
     : watch
       ? `WATCH — ${watch.name}: ${watch.blocks[0] ?? "timing"}`
       : `STAND RH — ${cards.find((c) => c.blocks[0])?.blocks[0] ?? "no high-prob ticket"}`;
@@ -1278,6 +2002,8 @@ export function evaluateOptionsDesk(
 
 export function optionsDeskPlaybook(): string[] {
   return [
+    `The ticket names a REAL contract or there is no ticket. A live ${LIVE_CHAIN_SOURCE} read gives the OCC symbol, that contract's own bid, ask and delta, and the limit IS the live ask — never a modelled price. Size comes from that delta and the distance to the raid wick, inside the $${RH_MIN_DEBIT_TOTAL}-$${RH_MAX_DEBIT_TOTAL} band; a solved debit over the band is a SKIP, never a smaller guess.`,
+    `The futures must be IN the array before anything marketable goes out. Away from it the order is a limit resting at the CE. Sweep + displacement + a live 1m-5m reaction ARMS that limit; it does not buy at the ask. A closed bar through the raid wick cancels a working order, and an order unfilled after ${RH_WORK_BEAT_MS / 1000}s is replaced at the new ask ONCE and then cancelled — nothing is left pending.`,
     `Ticket ceiling $${RH_MAX_DEBIT_TOTAL} of DEBIT; the loss is capped at 15% of what you actually pay. Size from the LEVEL: contracts = loss budget / (underlying move to the futures invalidation × delta × 100) — a tighter invalidation buys more contracts at the same risk. Exit on that level; the −25% working stop is the disaster backstop, not the plan.`,
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",

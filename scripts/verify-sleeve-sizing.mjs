@@ -9,8 +9,15 @@
  *
  * Run: npx tsx scripts/verify-sleeve-sizing.mjs
  */
-const { sizeFromStop, minDteFor, sleeveViolations, MAX_DEBIT_USD, STOP_FRAC_OF_DEBIT } =
-  await import("../src/lib/trading/sleeve-sizing.ts");
+const {
+  sizeFromStop,
+  minDteFor,
+  sleeveViolations,
+  sizeFromLiveContract,
+  exitLevelFor,
+  MAX_DEBIT_USD,
+  STOP_FRAC_OF_DEBIT,
+} = await import("../src/lib/trading/sleeve-sizing.ts");
 
 let pass = 0;
 let fail = 0;
@@ -88,6 +95,57 @@ const over = sleeveViolations({ debitUsd: 1500, realisedLossUsd: 400, exitedOnLe
 ok("a debit over the cap is caught", over.some((x) => /over the \$1000 per-trade cap/.test(x)));
 ok("a loss past the brake is caught", over.some((x) => /over the 15% brake/.test(x)));
 check("a clean ticket has no violations", sleeveViolations({ debitUsd: 300, realisedLossUsd: 40, exitedOnLevel: true }).length, 0);
+
+/**
+ * THE LIVE SOLVE (2026-10-08).
+ *
+ * `sizeFromStop` above is handed a MENU delta and an `estimateDebitContract`
+ * premium by options-desk.ts, so two of its three inputs are invented and the
+ * debit it reports is a price nobody will fill. `sizeFromLiveContract` solves
+ * the same equation from the chain's own delta and the chain's own ask, and
+ * refuses rather than rounding when the answer leaves the broker's band.
+ */
+console.log("\nthe live solve uses the chain's delta and ask, not a menu row");
+const live = (over = {}) =>
+  sizeFromLiveContract({
+    plan: { symbol: "MNQ", side: "short", entry: 24_900, stop: 24_948, riskPts: 48, sweep: 24_944, ...(over.plan ?? {}) },
+    delta: 0.41,
+    askPerShare: 0.4,
+    riskBudgetUsd: 150,
+    minDebitUsd: 50,
+    maxDebitUsd: 550,
+    maxContracts: 20,
+    dte: 7,
+    ...Object.fromEntries(Object.entries(over).filter(([k]) => k !== "plan")),
+  });
+
+const l = live();
+check("a 48pt wick at delta 0.41 on a $40 contract buys 3", l.contracts, 3);
+check("the debit is the LIVE ask x 100 x contracts", l.debitUsd, 120);
+check("the limit is the live ask", l.limitPerShare, 0.4);
+ok("the loss at the level is inside the budget", l.lossAtInvalidationUsd <= 150);
+ok("it is not a skip", !l.skip);
+
+ok("a tighter wick buys MORE", live({ plan: { riskPts: 12, stop: 24_912, sweep: 24_908 } }).contracts > l.contracts);
+ok("a wider wick buys FEWER", live({ plan: { riskPts: 72, stop: 24_972, sweep: 24_968 } }).contracts < l.contracts);
+ok("a smaller live delta buys MORE at the same wick", live({ delta: 0.2 }).contracts > l.contracts);
+
+console.log("\nout of the broker's band is a SKIP, never a smaller guess");
+const tooBig = live({ askPerShare: 6 });
+check("one $600 contract is not bought", tooBig.contracts, 0);
+ok("and it says it is over the ceiling", /OVER THE \$550 ticket ceiling/.test(tooBig.skipReason ?? ""));
+const tooSmall = live({ askPerShare: 0.2, maxContracts: 1 });
+check("a $20 ticket is not sent", tooSmall.contracts, 0);
+ok("and it says the floor refused it", /under the \$50 broker floor/.test(tooSmall.skipReason ?? ""));
+ok("a guessed delta is refused outright", live({ delta: 0 }).skip && /not solved from a guess/.test(live({ delta: 0 }).skipReason ?? ""));
+ok("no live ask is refused outright", live({ askPerShare: 0 }).skip);
+
+console.log("\nthe exit level is the raid wick or beyond it, never nearer");
+check("the farther of stop and wick", exitLevelFor({ entry: 24_900, stop: 24_948, sweep: 24_944 }).exitPx, 24_948);
+check("a wick beyond the stop wins", exitLevelFor({ entry: 24_900, stop: 24_948, sweep: 24_960 }).exitPx, 24_960);
+check("no wick → the stop", exitLevelFor({ entry: 24_900, stop: 24_948, sweep: null }).exitPx, 24_948);
+ok("and the wick is still named on the ticket", live().lines.some((x) => /raid wick 24944/.test(x)));
+ok("the ticket still says to exit on the level", live().lines.some((x) => /EXIT ON THE LEVEL/.test(x)));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
