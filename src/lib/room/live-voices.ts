@@ -733,7 +733,7 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       break;
     case "open":
       lines.push(line("Vince", ANIM.Vince.watch!, pick(c, "sess.open.vince", [() => `Bell. ${px ? `${px}${gap ? `, ${gap}` : ""}.` : "We're open."}`, () => `We're open${px ? ` — ${px}` : ""}.`])));
-      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: the raid gets a name. Size stays small. A card whose direction agrees still places.`, () => `The first fifteen minutes are the raid. They cut size. They do not take a ticket off.`])));
+      lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.open.sterling", [() => `Judas window: the raid gets a name. Size stays the desk size. A card whose direction agrees still places.`, () => `The first fifteen minutes are the raid. They do not cut size, and they do not take a ticket off.`])));
       lines.push(line("Jax", ANIM.Jax.point!, pick(c, "sess.open.jax", [() => `Whatever it does, it'll fake first.`, () => `First fifteen minutes lie. I'll just watch.`, () => `Ring it. Let's see who it hurts.`])));
       break;
     case "judas_end":

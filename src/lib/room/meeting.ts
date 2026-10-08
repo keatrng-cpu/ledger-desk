@@ -263,7 +263,7 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
   const hot = hotTape(f);
   const push = jaxPush(f);
   const gemma = d?.judas
-    ? `Judas window. The open is the raid until it fails — name it. Size is cut. A card whose one-hour and four-hour gaps agree is still a ticket. ${htfLine(f)}`
+    ? `Judas window. The open is the raid until it fails — name it. Size is not cut. A card whose one-hour and four-hour gaps agree is still a full-size ticket. ${htfLine(f)}`
     : d?.news.blackout
       ? `${d.news.reason || "News on"} — size comes down. The first impulse off a release is usually the raid. The chart still decides. ${htfLine(f)}`
       : `${htfLine(f)} ${printLine(f)}`;
@@ -286,7 +286,7 @@ function blocked(f: Facts, minds: MindState | null): Line[] {
     say(
       "Nova",
       d?.judas
-        ? "09:45 is when size comes back up. A raid that closes back inside the pool is the sequence. A card that is already armed does not wait out the clock."
+        ? "A raid that closes back inside the pool is the sequence. Size stays the desk size through 09:45. A card that is already armed does not wait out the clock."
         : `${c.smcMissing} is a missing layer. Size is cut. The one-minute or five-minute inverse is the entry. The fifteen-minute card is the permission.`,
       "WRITING_ON_WHITEBOARD",
     ),
