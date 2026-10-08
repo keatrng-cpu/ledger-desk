@@ -466,8 +466,9 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   }
   const bplus = evaluateRhBplusGate(c);
   if (!bplus.ok) return bplus;
+  // Desk manager bit only. A Grok bot reply, silence, or quota does not set this.
   if (c.agentAgree !== true) {
-    return { ok: false, gate: "agent", reason: "Trading Stand (agent) has not agreed this cycle." };
+    return { ok: false, gate: "agent", reason: "Desk stand has not agreed this cycle." };
   }
   return { ok: true, why: `Floor ARMED · PATH ${band} Q ${conf.toFixed(2)} · Stand agrees · ${bp.why}` };
 }
