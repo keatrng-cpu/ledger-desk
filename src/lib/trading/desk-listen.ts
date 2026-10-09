@@ -34,7 +34,7 @@ export interface DeskListenCard {
     verdict: string;
     band: string | null;
     blocks: string[];
-    ticket: { underlier: string; side: string; dte: number; contracts: number; debit: number } | null;
+    ticket: { underlier: string; side: string; dte: number; contracts: number; debit: number; pricedFrom: "live_chain" | "model" } | null;
   };
   brain: {
     thesis: string;
@@ -86,6 +86,7 @@ export interface DeskWire {
       dte: number;
       contracts: number;
       debit: number;
+      pricedFrom: "live_chain" | "model";
       stop: string | null;
       targets: string[];
     } | null;
@@ -100,11 +101,16 @@ export interface DeskWire {
 
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const floor = evaluateOptionsDesk(desk);
-  const best = floor.best;
+  const armed = floor.best;
+  const shown =
+    armed ??
+    floor.day.find((c) => c.verdict === "WATCH") ??
+    floor.swing.find((c) => c.verdict === "WATCH") ??
+    null;
   const book = desk.smcMaster.oneBook;
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
-  const verdict = best?.verdict ?? "STAND";
-  const handed = verdict === "ARMED" && Boolean(best?.ticket);
+  const verdict = shown?.verdict ?? "STAND";
+  const handed = armed?.verdict === "ARMED" && Boolean(armed.ticket);
   const top = desk.scan.candidates[0] ?? null;
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
@@ -147,16 +153,17 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     })),
     floor: {
       verdict,
-      blocks: (best?.blocks ?? []).slice(0, 4),
-      ticket: best?.ticket
+      blocks: (shown?.blocks ?? []).slice(0, 4),
+      ticket: shown?.ticket
         ? {
-            underlier: best.ticket.underlier,
-            side: best.ticket.side,
-            dte: best.ticket.dteTarget,
-            contracts: best.ticket.contracts,
-            debit: best.ticket.estDebitTotal,
-            stop: best.ticket.invalidation || null,
-            targets: best.ticket.targets.slice(0, 3),
+            underlier: shown.ticket.underlier,
+            side: shown.ticket.side,
+            dte: shown.ticket.dteTarget,
+            contracts: shown.ticket.contracts,
+            debit: shown.ticket.estDebitTotal,
+            pricedFrom: shown.ticket.pricedFrom,
+            stop: shown.ticket.invalidation || null,
+            targets: shown.ticket.targets.slice(0, 3),
           }
         : null,
     },
@@ -167,7 +174,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       who: "Vince",
       line: handed
         ? "Cleared. I hand this ticket to Grok. Grok hears this floor through the LedgerDesk connector and places it on Agentic."
-        : `Nothing to hand Grok. The floor is ${verdict}.`,
+        : shown?.blocks?.[0]
+          ? `Not handed. ${shown.blocks[0]}`
+          : `Nothing to hand Grok. The floor is ${verdict}.`,
     },
     {
       who: "Sterling",
@@ -205,17 +214,18 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       entry: c.entryPx ?? null,
     })),
     floor: {
-      id: best?.id ?? null,
+      id: shown?.id ?? null,
       verdict,
-      band: best?.pathBand ?? null,
-      blocks: (best?.blocks ?? []).slice(0, 4),
-      ticket: best?.ticket
+      band: shown?.pathBand ?? null,
+      blocks: (shown?.blocks ?? []).slice(0, 4),
+      ticket: shown?.ticket
         ? {
-            underlier: best.ticket.underlier,
-            side: best.ticket.side,
-            dte: best.ticket.dteTarget,
-            contracts: best.ticket.contracts,
-            debit: best.ticket.estDebitTotal,
+            underlier: shown.ticket.underlier,
+            side: shown.ticket.side,
+            dte: shown.ticket.dteTarget,
+            contracts: shown.ticket.contracts,
+            debit: shown.ticket.estDebitTotal,
+            pricedFrom: shown.ticket.pricedFrom,
           }
         : null,
     },

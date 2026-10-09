@@ -22,7 +22,7 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - Rest the limit, do not chase — `src/lib/trading/entry-trigger.ts` `readEntry`
 - The Robinhood ticket — `src/lib/trading/options-desk.ts`
 - Send and close — `src/lib/execution/rh-cycle.ts`
-- The wire Grok reads — `src/lib/trading/desk-listen.ts` `DeskWire`
+- A handed ticket — `src/lib/trading/options-desk.ts` `gateHand`
 - The floor narrates and does not gate — `src/lib/room/`
 - Live tape — `src/lib/market/databento.ts`, `src/lib/market/live-gateway.ts`
 - A shock candle, the headline and the wick — `src/lib/trading/shock.ts` `shockBrief`

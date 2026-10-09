@@ -1473,6 +1473,9 @@ function pathContinuation(
       blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
     }
     reasons.push("Internal or external is a note, not a filter. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold.");
+    if (c.entryPx == null || !Number.isFinite(c.entryPx)) {
+      reasons.push("No entry price. Price is not at the array, so this stays a watch.");
+    }
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
       reasons.push(`Dealing ${proxy.dealing?.zone} fights ${c.side}. Size is cut. The chart still calls it.`);
@@ -1491,8 +1494,9 @@ function pathContinuation(
     }
   }
 
-  const armed = blocks.length === 0 && Boolean(c);
-  const watch = Boolean(c) && blocks.every((b) => /NY AM|Judas|Event window|range-build|SMC WAIT/.test(b));
+  const noEntry = Boolean(c && (c.entryPx == null || !Number.isFinite(c.entryPx)));
+  const armed = blocks.length === 0 && Boolean(c) && !noEntry;
+  const watch = Boolean(c) && (noEntry || blocks.every((b) => /NY AM|Judas|Event window|range-build|SMC WAIT/.test(b)));
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const side = c ? sideFromFutures(c.side) : "put";
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
@@ -1714,6 +1718,13 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
 
   const sessionOk =
     clock.killzone === "ny_am" || clock.killzone === "ny_pm" || sessionLive(clock);
+  const book = desk.smcMaster.oneBook;
+  const smtFuturesSide: "long" | "short" = side === "call" ? "long" : "short";
+  if (book?.word === "STAND") {
+    blocks.push("Brain is standing. SMT does not take the other book.");
+  } else if (book?.side && book.side !== smtFuturesSide) {
+    blocks.push(`Brain is ${book.side}. This SMT is ${smtFuturesSide}.`);
+  }
   const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
   const watch = (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
@@ -1883,6 +1894,36 @@ function htfSwingCard(
   };
 }
 
+function holdReasons(desk: DeskPayload, card: RhStrategyCard): string[] {
+  if (card.verdict !== "ARMED" || !card.ticket) return [];
+  const holds: string[] = [];
+  const t = card.ticket;
+  const send = rhSendableFromTicket(t);
+  if (!send.ok) holds.push(send.reason);
+  else if (t.estDebitTotal < RH_MIN_DEBIT_TOTAL || t.estDebitTotal > RH_MAX_DEBIT_TOTAL) {
+    holds.push(`Live debit $${Math.round(t.estDebitTotal)} is outside $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL}.`);
+  }
+  const book = desk.smcMaster?.oneBook;
+  if (!book?.symbol || !book.side) holds.push("Brain has no book for this ticket.");
+  else if (book.word === "STAND") holds.push(`Brain is standing. ${book.missing ?? ""}`.trim());
+  else {
+    const under = /ES/.test(book.symbol) ? "SPY" : "QQQ";
+    const opt = book.side === "long" ? "call" : "put";
+    if (t.underlier !== under || t.side !== opt) {
+      holds.push(`Ticket is ${t.underlier} ${t.side}. Brain is ${book.symbol} ${book.side}.`);
+    }
+    const match = desk.scan.candidates.find((c) => c.symbol === book.symbol && c.side === book.side);
+    if (match?.entryPx == null) holds.push("No entry price. Price is not at the array.");
+  }
+  return holds;
+}
+
+function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
+  const holds = holdReasons(desk, card);
+  if (!holds.length) return card;
+  return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6) };
+}
+
 export function evaluateOptionsDesk(
   desk: DeskPayload,
   sleeve: RhSleeve = loadRhSleeve(),
@@ -1931,7 +1972,7 @@ export function evaluateOptionsDesk(
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
     htfSwingCard(swingSignal, desk, sleeve, cap),
-  ];
+  ].map((c) => gateHand(desk, c));
 
   const dayBest = cards.filter((c) => c.horizon === "day" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
   const swingBest = cards.filter((c) => c.horizon === "swing" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
