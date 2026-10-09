@@ -194,11 +194,12 @@ export function InvestPanel() {
         <span className="text-[11px] text-[var(--color-muted)]">years · shares held · funded by a cut of realized options P&amp;L</span>
       </header>
 
-      <p className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
-        This tab never reads the PATH word, the 0.65 floor, the killzone or the Judas window, and it never flashes. Futures is
-        hours, the options sleeve is days, this is years — the only wire between them is the monthly sweep below, and it runs one
-        way.
-      </p>
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
+        <summary className="cursor-pointer">Years, not minutes. This tab does not read the option floor.</summary>
+        <p className="mt-1">
+          It never reads the PATH word, the 0.65 floor, the killzone, or the Judas window, and it never flashes. The only wire to the sleeve is the monthly sweep, and it runs one way.
+        </p>
+      </details>
 
       {uncovered.length > 0 && (
         <Note tone="warn">

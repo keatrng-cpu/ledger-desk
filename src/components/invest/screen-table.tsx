@@ -112,7 +112,7 @@ export function ScreenTable() {
   };
 
   return (
-    <Card title={`Screen · ${rows.length} captured companies`}>
+    <Card title="Screen" right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{`${rows.length} captured · scroll sideways`}</span>}>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1040px] text-[11px] tabular-nums">
           <thead className="text-[10px] uppercase text-[var(--color-muted)]">

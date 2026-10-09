@@ -51,7 +51,8 @@ export function ResearchCard({
   const oldest = oldestAsOf();
   return (
     <Card
-      title={`Research · fundamentals ${snapshotCapturedAt()}${oldest && oldest !== snapshotCapturedAt() ? ` (oldest row ${oldest})` : ""} · 10y ${RISK_FREE.yieldPct}% (${RISK_FREE.asOf})`}
+      title="Research"
+      right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{`fundamentals ${snapshotCapturedAt()}${oldest && oldest !== snapshotCapturedAt() ? ` · oldest ${oldest}` : ""} · 10y ${RISK_FREE.yieldPct}%`}</span>}
     >
       <div className="space-y-1.5">
         {ALL_DOSSIERS.map((d) => {
