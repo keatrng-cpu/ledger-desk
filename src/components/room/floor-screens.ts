@@ -85,8 +85,8 @@ export interface FloorScreens {
   roomP: number | null;
   /** The race, the audit, the scanner and the feed, for the annex offices and the scanner TV. */
   race: RaceScreen | null;
-  /** The investment wing's read of the Invest tab and the dated research file (invest-office.ts) — null when the ledger is unreadable. */
-  invest: InvestLite | null;
+  /** Overnight through a week, graded live. Empty until the desk builds the swing book. */
+  swing: { name: string; verdict: string; score: number; note: string }[];
 }
 
 export interface FloorFrame {
@@ -2190,6 +2190,41 @@ function drawAnnexMonitor(id: string, ctx: Ctx, w: number, h: number, f: FloorFr
   return false;
 }
 
+function drawSwing(ctx: Ctx, w: number, h: number, f: FloorFrame) {
+  clear(ctx, w, h);
+  const rows = f.screens.swing ?? [];
+  const lead = rows[0];
+  header(ctx, w, "SWING", lead ? lead.verdict : "—", lead?.verdict === "ARMED" ? C.up : C.cyan);
+  ctx.font = `500 15px ${FONT}`;
+  ctx.fillStyle = C.muted;
+  ctx.fillText("Held through the next open", 16, 58);
+  if (!rows.length) {
+    ctx.fillStyle = C.text;
+    ctx.font = `600 22px ${FONT}`;
+    ctx.fillText("No swing book on this read.", 16, 110);
+    return;
+  }
+  const rowH = Math.min(68, (h - 78) / rows.length);
+  rows.forEach((r, i) => {
+    const y = 72 + i * rowH;
+    ctx.fillStyle = i === 0 ? "#122033" : "#0c121c";
+    ctx.fillRect(12, y, w - 24, rowH - 6);
+    const col = r.verdict === "ARMED" ? C.up : r.verdict === "WATCH" ? C.amber : C.muted;
+    ctx.fillStyle = col;
+    ctx.font = `700 18px ${MONO}`;
+    ctx.fillText(r.verdict, 22, y + 24);
+    ctx.fillStyle = C.text;
+    ctx.font = `700 20px ${FONT}`;
+    ctx.fillText(r.name, 130, y + 24);
+    ctx.fillStyle = C.muted;
+    ctx.font = `500 14px ${MONO}`;
+    ctx.fillText(r.score.toFixed(2), w - 70, y + 24);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = `500 14px ${FONT}`;
+    ctx.fillText(r.note, 22, y + 46);
+  });
+}
+
 /** Screens that move between cycles (weather) — the scene redraws these on a timer. */
 export const ANIMATED_SCREENS = new Set(["window_0", "window_1", "window_2"]);
 
@@ -2205,6 +2240,7 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "whiteboard") drawWhiteboard(ctx, w, h, f);
     else if (id === "marquee") drawMarquee(ctx, w, h, f);
     else if (id === "tv_scanner") drawScanner(ctx, w, h, f, clockMs);
+    else if (id === "tv_swing") drawSwing(ctx, w, h, f);
     else if (id === "tv_rnd") drawRndBoard(ctx, w, h, f);
     else if (id === "tv_goal") drawSeatLeague(ctx, w, h, f);
     else if (id === "tv_portfolio") drawInvPortfolio(ctx, w, h, f);

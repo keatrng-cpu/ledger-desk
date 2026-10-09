@@ -486,6 +486,14 @@ function runLiveCycle(desk: DeskPayload) {
     screens: {
       market,
       charts: { QQQ: chart("QQQ"), SPY: chart("SPY") },
+      swing: od.swing
+        .filter((c) => c.id.startsWith("swing_"))
+        .map((c) => ({
+          name: c.name.replace(/^Swing · /, ""),
+          verdict: c.verdict,
+          score: c.score,
+          note: (c.verdict === "ARMED" ? c.reasons[0] : c.blocks[0] || c.reasons.at(-1) || "").slice(0, 78),
+        })),
       plan,
       news: st.news,
       calendar: calendarFor(nowMs),

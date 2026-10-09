@@ -160,6 +160,7 @@
   "screens": [
     { "id": "whiteboard", "kind": "whiteboard", "center": [-13.93, 1.62, -1.0], "size": [4.2, 1.5], "facing": 90, "px": [1024, 366] },
     { "id": "tv_chart_QQQ", "kind": "tv", "center": [-13.9, 2.98, -2.05], "size": [2.0, 1.12], "facing": 90, "px": [768, 430] },
+    { "id": "tv_swing", "kind": "tv", "center": [-13.9, 2.98, -4.35], "size": [1.85, 1.12], "facing": 90, "px": [896, 502], "procedural": true },
     { "id": "tv_chart_SPY", "kind": "tv", "center": [-13.9, 2.98, 0.05], "size": [2.0, 1.12], "facing": 90, "px": [768, 430] },
     { "id": "tv_news", "kind": "tv", "center": [-13.9, 1.7, 2.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },
     { "id": "tv_calendar", "kind": "tv", "center": [-13.9, 1.7, -4.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },

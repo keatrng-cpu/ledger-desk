@@ -1325,6 +1325,7 @@ export const PLACES: Place[] = [
   { id: "whiteboard", label: "War board", group: "war room" },
   { id: "tv_scanner", label: "Setup scanner", group: "war room" },
   { id: "tv_chart_QQQ", label: "QQQ chart", group: "war room" },
+  { id: "tv_swing", label: "Swing cards", group: "war room" },
   { id: "tv_chart_SPY", label: "SPY chart", group: "war room" },
   { id: "tv_news", label: "News", group: "war room" },
   { id: "tv_calendar", label: "Calendar", group: "war room" },
