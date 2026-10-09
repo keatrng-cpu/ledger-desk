@@ -681,8 +681,11 @@ function scoreLeg(
   if (dte < 1 && hour >= 15 && row.delta < 0.45) return null;
   const reach = strikeReach(row.contract.type, aim.spot, row.contract.strike, aim.targetPts);
   const bePts = row.ask / row.delta;
-  // The pool has to pay the debit. A closer target is not a take-profit for this contract.
-  if (aim.targetPts * reach < bePts) return null;
+  // A 40% gain on the debit is the take the book already trims at. Requiring
+  // the pool to repay the whole debit needs a move this book does not get,
+  // and it turns a payable target into a skip.
+  const payPts = (0.4 * row.ask) / row.delta;
+  if (aim.targetPts * reach < payPts) return null;
   const pSetup = aim.pSetup != null && aim.pSetup > 0 && aim.pSetup < 1 ? aim.pSetup : 0.5;
   let pPay = pSetup * reach;
   if (expectedMove != null && expectedMove > 0 && aim.targetPts < expectedMove * 0.35) pPay *= 0.6;
@@ -760,7 +763,7 @@ export function pickLiveContract(
   const scored = ok.map((row) => scoreLeg(row, aim, nowMs, expectedMove)).filter((x): x is ScoredLeg => x != null);
   if (scored.length === 0) {
     return {
-      refusal: `No ${want.side} clears the debit inside $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL}, a 0.30–0.65 delta, an 8% spread, and a target that pays the ask. No contract, no ticket.`,
+      refusal: `No ${want.side} clears $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL}, a 0.30–0.65 delta, an 8% spread, and a target that pays 40% of the debit. No contract, no ticket.`,
     };
   }
   const spread = (r: ScoredLeg) => (r.bid != null ? r.ask - r.bid : Number.POSITIVE_INFINITY);

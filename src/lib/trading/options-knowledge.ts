@@ -45,7 +45,7 @@ export const OPTION_LESSONS: OptionLesson[] = [
   {
     id: "breakeven",
     title: "What the target has to pay",
-    grade: "Delta times the target, times how much of the move reaches the strike, has to cover the ask. If it does not, the contract is not a candidate.",
+    grade: "The pool has to be worth at least 40 percent of the debit. Repaying the entire ask is the full win, not the requirement to take the trade.",
     body: "Premium is intrinsic plus extrinsic. Deep in the money barely decays and barely returns a percent, because you paid for the intrinsic. Out of the money is all extrinsic. At expiration a call breaks even at the strike plus the debit. On an intraday sale the bar is the debit divided by the delta: that many points of the underlying have to print, in the direction of the trade, before the contract has earned back what you paid. A pool closer than that is not a take-profit. It is a target the option cannot reach in dollars.",
   },
   {
