@@ -13,6 +13,7 @@ import type { SessionClock } from "./sessions";
 import type { NewsRead } from "./news";
 import { loadRhSleeve, rhRiskBudgetUsd } from "./options-sleeve";
 import { sessionLive } from "@/lib/trading/sessions";
+import { sequenceGaps } from "./smc-master";
 
 export type OptionSide = "call" | "put";
 export type SwingUnderlier = "SPY" | "QQQ";
@@ -224,6 +225,28 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     if (best.side === "put" && best.proxy.dealing?.zone === "discount") {
       blocks.push("Put into discount — wait premium or displacement");
     }
+    const wantSide = best.side === "call" ? "long" : "short";
+    const mine = ["QQQ", "NQ", "MNQ"].includes(best.underlier) ? ["NQ", "MNQ"] : ["ES", "MES"];
+    const card = desk.scan.candidates.find((c) => mine.includes(c.symbol) && c.side === wantSide) ?? null;
+    const book = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && mine.includes(b.symbol)) ?? null;
+    const gaps = card ? sequenceGaps(card) : ["raid", "displacement", "array"];
+    if (!book?.side && !card) blocks.push("No raid on this book. The higher-timeframe arrow is not a swing.");
+    else if (book?.side && book.side !== wantSide) blocks.push(`Book is ${book.side}. This swing is ${wantSide}.`);
+    if (gaps.includes("raid")) blocks.push("No sweep that closed back inside. A close that stays outside is a breakout.");
+    if (gaps.includes("displacement")) blocks.push("The raid has no later shift. The sweep candle is not the hold.");
+    if (gaps.includes("array")) blocks.push("Not back in the gap the shift left. The limit waits there.");
+    if (book?.word === "STAND") blocks.push("Book is standing. A swing does not override it.");
+    const rr = book?.plan?.rr1 ?? null;
+    if (rr != null && rr < 1) blocks.push(`Target is ${rr.toFixed(1)}R. An overnight hold needs at least 1:1.`);
+    const otherSym = mine[0] === "NQ" ? ["ES", "MES"] : ["NQ", "MNQ"];
+    const other = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && otherSym.includes(b.symbol)) ?? null;
+    if (other?.side && (book?.side || wantSide) && other.side !== (book?.side ?? wantSide)) {
+      blocks.push(`${other.symbol} is ${other.side}. This book is ${book?.side ?? wantSide}. They disagree. No swing.`);
+    }
+    if (best.proxy.daily === "bull" && best.side === "put") blocks.push("Daily is bull. A put held overnight fights the frame.");
+    if (best.proxy.daily === "bear" && best.side === "call") blocks.push("Daily is bear. A call held overnight fights the frame.");
+    if (!gaps.length) reasons.push("Raid, a later shift, and the gap are on the book.");
+    else if (!gaps.includes("raid") && !gaps.includes("displacement")) reasons.push("Raid and shift are in. Waiting on the gap.");
   }
 
   if (best && scanBest) {
