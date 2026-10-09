@@ -588,7 +588,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
 
       <div className="mb-3">
         <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-          Swing book
+          Swing book — held through the next open
         </p>
         <div className="space-y-2">
           {book.swing.map((c) => (

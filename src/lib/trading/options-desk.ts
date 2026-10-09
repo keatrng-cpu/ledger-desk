@@ -20,6 +20,7 @@ import { etDateKey, weekDayFor, type WeekDayKind } from "./week-ahead";
 import type { SetupCandidate } from "./scanner";
 import {
   evaluateOptionsSwing,
+  SWING_SPANS,
   type OptionSide,
   type SwingUnderlier,
   type SwingSignal,
@@ -57,7 +58,12 @@ export type RhStrategyId =
   | "judas_ifvg_0dte"
   | "smt_lead"
   | "event_second"
-  | "htf_swing";
+  | "swing_overnight"
+  | "swing_2"
+  | "swing_3"
+  | "swing_4"
+  | "swing_5"
+  | "swing_week";
 
 /** The contract the ticket actually names, priced by the market. */
 export interface LiveTicketLeg {
@@ -2003,65 +2009,71 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
   };
 }
 
-function htfSwingCard(
-  swing: SwingSignal,
-  desk: DeskPayload,
-  sleeve: RhSleeve,
-  cap: number,
-): RhStrategyCard {
+function swingSpanCards(swing: SwingSignal, desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard[] {
   const { esPx, nqPx } = proxyPair(desk);
-  const verdict: RhVerdict =
-    swing.verdict === "ARMED_CALL" || swing.verdict === "ARMED_PUT"
-      ? "ARMED"
-      : swing.verdict === "WATCH"
-        ? "WATCH"
-        : "STAND";
   const plan = swing.plan;
   const side = plan?.side ?? "put";
   const underlier = plan?.underlier ?? "QQQ";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
-  const extraBlocks = [...swing.blocks];
-  if (desk.monthAhead?.phase?.id === "labor" && verdict === "ARMED") {
-    extraBlocks.push("Labor / NFP week — do not pay 21–45 DTE into Friday");
-  }
-  const laborWatch = extraBlocks.some((b) => /Labor/.test(b));
-  const ticket =
-    plan && verdict !== "STAND" && !laborWatch
-      ? toTicket(
-          underlier,
-          side,
-          spot,
-          21,
-          0.3,
-          0.4,
-          IV[underlier],
-          cap,
-          sleeve,
-          `${plan.holdSessionsMin}–${plan.holdSessionsMax} sessions`,
-          plan.invalidation,
-          [
-            ...plan.targets,
-            `ATM 21–45 DTE may not fit $${cap} — expect a vertical or STAND`,
-          ],
-          // Size from the LEVEL: the futures plan this option expresses.
-          planForUnderlier(desk, underlier),
-        )
-      : null;
+  const fut = planForUnderlier(desk, underlier);
+  const rr = fut?.rr1 ?? null;
+  let lead = SWING_SPANS[0]!;
+  if (rr != null && rr >= 6) lead = SWING_SPANS[5]!;
+  else if (rr != null && rr >= 4.5) lead = SWING_SPANS[4]!;
+  else if (rr != null && rr >= 3.5) lead = SWING_SPANS[3]!;
+  else if (rr != null && rr >= 2.5) lead = SWING_SPANS[2]!;
+  else if (rr != null && rr >= 1.5) lead = SWING_SPANS[1]!;
+  if (swing.timing.fridayCaution && lead.sessions > 1) lead = SWING_SPANS[0]!;
+  const base: RhVerdict =
+    swing.verdict === "ARMED_CALL" || swing.verdict === "ARMED_PUT" ? "ARMED" : swing.verdict === "WATCH" ? "WATCH" : "STAND";
 
-  return {
-    id: "htf_swing",
-    name: "HTF swing 21–45 DTE",
-    horizon: "swing",
-    whyHighProb:
-      `HTF absolute + correct half. On a $${cap} cap a naked 40Δ is reachable where it was not before — size it from the invalidation, not from the cap.`,
-    verdict: laborWatch ? "WATCH" : verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
-    score: swing.confidence,
-    reasons: [...swing.reasons],
-    blocks: extraBlocks,
-    pathBand: null,
-    proxy: swing.proxySymbol,
-    ticket,
-  };
+  return SWING_SPANS.map((span) => {
+    const blocks = [...swing.blocks];
+    if (swing.timing.fridayCaution && span.sessions > 1) blocks.push("Friday — this hold runs past the next open.");
+    if (desk.monthAhead?.phase?.id === "labor" && span.sessions >= 3) blocks.push("Labor week — three sessions or more waits.");
+    const leadCard = span.id === lead.id;
+    let verdict: RhVerdict = base === "STAND" ? "STAND" : leadCard ? base : "WATCH";
+    if (blocks.length > swing.blocks.length && verdict === "ARMED") verdict = "WATCH";
+    const ticket =
+      plan && verdict !== "STAND"
+        ? toTicket(
+            underlier,
+            side,
+            spot,
+            span.dteTarget,
+            0.4,
+            0.55,
+            IV[underlier],
+            cap,
+            sleeve,
+            `${span.sessions} session${span.sessions === 1 ? "" : "s"} — still open at the next morning's open`,
+            plan.invalidation,
+            [
+              `Hold ${span.label}. Exit at the pool if it pays 40% of the debit.`,
+              "A daily close through the sweep wick ends it. Do not average.",
+            ],
+            fut,
+          )
+        : null;
+    return {
+      id: span.id,
+      name: `Swing · ${span.label}`,
+      horizon: "swing" as const,
+      whyHighProb: `A swing is a contract held through ${span.sessions} close${span.sessions === 1 ? "" : "s"} into the next open. About ${span.dteTarget} DTE so it is still alive then. Delta 0.40–0.55. Not a same-day ticket.`,
+      verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
+      score: Math.max(0, swing.confidence - Math.abs(span.sessions - lead.sessions) * 0.03),
+      reasons: [
+        ...swing.reasons,
+        leadCard
+          ? `This hold matches the draw${rr != null ? ` at ${rr.toFixed(1)}R` : ""}.`
+          : `${lead.label} is the hold the draw grades. This card is the longer or shorter one.`,
+      ],
+      blocks,
+      pathBand: null,
+      proxy: swing.proxySymbol,
+      ticket,
+    };
+  }).sort((a, b) => b.score - a.score);
 }
 
 function holdReasons(desk: DeskPayload, card: RhStrategyCard): string[] {
@@ -2141,7 +2153,7 @@ export function evaluateOptionsDesk(
     judasIfvg0dte(desk, sleeve, cap, liveInputs),
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
-    htfSwingCard(swingSignal, desk, sleeve, cap),
+    ...swingSpanCards(swingSignal, desk, sleeve, cap),
   ].map((c) => gateHand(desk, c));
 
   const dayBest = cards.filter((c) => c.horizon === "day" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
