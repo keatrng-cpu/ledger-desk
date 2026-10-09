@@ -29,6 +29,7 @@ import {
   type RhStrategyCard,
 } from "@/lib/trading/options-desk";
 import { loadRhSleeve } from "@/lib/trading/options-sleeve";
+import { schoolTicket } from "@/lib/trading/school-ticket";
 import { factsForUnderlier, fourFacts, type CounterRead, type FourFacts } from "@/lib/trading/ticket-facts";
 
 function usd(n: number): string {
@@ -246,6 +247,12 @@ export function OptionTicket({ desk }: { desk: DeskPayload }) {
             </span>
             {!modelOnly ? null : <span className="text-[var(--color-warn)]"> — no buy line.</span>}
             <span className="block text-[11px] text-[var(--color-muted)]">{t.strikeNote}</span>
+            {/* The school's own sentence for this ticket. It used to live on
+                each StrategyCard; those are one line each now, so it belongs
+                on the ticket that is actually drawn. */}
+            <span className="block text-[11px] leading-snug text-[var(--color-fg)]">
+              {schoolTicket(t.underlier, t.side === "put" ? "short" : "long")}
+            </span>
           </>
         )}
       </Row>

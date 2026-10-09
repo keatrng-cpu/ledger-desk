@@ -20,6 +20,7 @@ import { etDateKey, weekDayFor, type WeekDayKind } from "./week-ahead";
 import type { SetupCandidate } from "./scanner";
 import {
   evaluateOptionsSwing,
+  SWING_SPANS,
   type OptionSide,
   type SwingUnderlier,
   type SwingSignal,
@@ -57,7 +58,12 @@ export type RhStrategyId =
   | "judas_ifvg_0dte"
   | "smt_lead"
   | "event_second"
-  | "htf_swing";
+  | "swing_overnight"
+  | "swing_2"
+  | "swing_3"
+  | "swing_4"
+  | "swing_5"
+  | "swing_week";
 
 /** The contract the ticket actually names, priced by the market. */
 export interface LiveTicketLeg {
@@ -582,50 +588,210 @@ export function liveContractUsable(
   return { ok: true, ask, bid, delta };
 }
 
+/** What the underlying has to do, so the chain can be ranked instead of matched to a delta. */
+export interface ContractAim {
+  /** ETF price. Strikes live on this, not on the future. */
+  spot: number;
+  /** ETF points from the entry to the target. */
+  targetPts: number;
+  /** ETF points from the entry to the stop. */
+  stopPts: number;
+  /**
+   * Probability the target prints before the stop. The same number for every
+   * strike. A missing one is treated as a coin flip, which still ranks the
+   * contracts against each other.
+   */
+  pSetup?: number;
+  minDebitUsd?: number;
+  maxDebitUsd?: number;
+  maxContracts?: number;
+}
+
+/** Calendar days until the expiry, from the quote clock. A bad date sorts last. */
+function dteOf(expiry: string, nowMs: number): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expiry);
+  if (!m) return 99;
+  const exp = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, 20, 0, 0);
+  return Math.max(0, (exp - nowMs) / 86_400_000);
+}
+
 /**
- * The contract the ticket names: the usable one whose delta sits nearest the
- * middle of the card's own band. Ties go to the tighter book, because the
- * crossing is the one cost the desk pays with certainty.
+ * How much of the planned move is still in the strike.
+ * 1 when the strike is at the money or in the money. 0 when the target
+ * finishes short of the strike. Linear between the two.
+ */
+function strikeReach(side: OptionSide, spot: number, strike: number, targetPts: number): number {
+  if (!(targetPts > 0) || !(spot > 0)) return 1;
+  const beyond = side === "call" ? Math.max(0, strike - spot) : Math.max(0, spot - strike);
+  if (beyond <= 0) return 1;
+  if (beyond >= targetPts) return 0;
+  return 1 - beyond / targetPts;
+}
+
+interface ScoredLeg {
+  contract: LiveOptionContract;
+  ask: number;
+  bid: number | null;
+  delta: number;
+  qty: number;
+  cost: number;
+  roi: number;
+  pPay: number;
+  dte: number;
+  /** Underlying points the delta needs before the debit is back. */
+  bePts: number;
+}
+
+/** New York hour of the quote, 0–23. The option clock is not the machine clock. */
+function etHour(nowMs: number): number {
+  const h = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    hourCycle: "h23",
+  })
+    .formatToParts(new Date(nowMs))
+    .find((p) => p.type === "hour")?.value;
+  const n = Number(h);
+  return Number.isFinite(n) ? n : 12;
+}
+
+/** The quantity whose debit sits in the band. One contract when it fits. Two only to clear the floor. */
+function qtyInBand(ask: number, minDebit: number, maxDebit: number, maxQty: number): number | null {
+  const each = ask * 100;
+  if (!(each > 0)) return null;
+  for (let n = 1; n <= maxQty; n++) {
+    const cost = each * n;
+    if (cost >= minDebit && cost <= maxDebit) return n;
+    if (cost > maxDebit) return null;
+  }
+  return null;
+}
+
+function scoreLeg(
+  row: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number },
+  aim: ContractAim,
+  nowMs: number,
+  expectedMove: number | null,
+): ScoredLeg | null {
+  const minDebit = aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL;
+  const maxDebit = aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL;
+  const qty = qtyInBand(row.ask, minDebit, maxDebit, Math.max(1, aim.maxContracts ?? 2));
+  if (qty == null) return null;
+  const dte = dteOf(row.contract.expiry, nowMs);
+  if (dte > 5) return null;
+  // 0.30–0.65. Under that is a lottery. Over that is intrinsic with a poor percent return.
+  if (row.delta < 0.3 || row.delta > 0.65) return null;
+  const spreadShare = row.bid != null && row.bid > 0 ? (row.ask - row.bid) / row.ask : 0;
+  if (spreadShare > 0.08) return null;
+  const hour = etHour(nowMs);
+  if (dte < 1 && hour >= 15 && row.delta < 0.45) return null;
+  const reach = strikeReach(row.contract.type, aim.spot, row.contract.strike, aim.targetPts);
+  const bePts = row.ask / row.delta;
+  // A 40% gain on the debit is the take the book already trims at. Requiring
+  // the pool to repay the whole debit needs a move this book does not get,
+  // and it turns a payable target into a skip.
+  const payPts = (0.4 * row.ask) / row.delta;
+  if (aim.targetPts * reach < payPts) return null;
+  const pSetup = aim.pSetup != null && aim.pSetup > 0 && aim.pSetup < 1 ? aim.pSetup : 0.5;
+  let pPay = pSetup * reach;
+  if (expectedMove != null && expectedMove > 0 && aim.targetPts < expectedMove * 0.35) pPay *= 0.6;
+  let win = row.delta * aim.targetPts * 100 * qty * reach;
+  if (dte < 1 && hour >= 14 && row.delta < 0.4) win *= 0.7;
+  const cost = row.ask * 100 * qty;
+  const loss = Math.min(cost, row.delta * Math.max(0, aim.stopPts) * 100 * qty);
+  const ev = pPay * win - (1 - pPay) * loss;
+  const roi = (cost > 0 ? ev / cost : -1) - spreadShare;
+  return { ...row, qty, cost, roi, pPay, dte, bePts };
+}
+
+/**
+ * The contract the ticket names.
+ *
+ * With an aim — the ETF price, the points to the target, the points to the
+ * stop — every usable contract of this side is scored and the best expected
+ * return on the debit wins. The setup's probability is the same for each
+ * strike. The strike changes whether that move reaches it, what the debit
+ * is, and how much delta the debit buys. Expiry is in the same race: a
+ * later date only wins if its ask still pays more per dollar.
+ *
+ * Without an aim, the old rule stands: the usable contract whose delta sits
+ * nearest the middle of the card's band. Ties go to the tighter book.
  */
 export function pickLiveContract(
   chain: LiveChain | null | undefined,
   want: { side: OptionSide; deltaMin: number; deltaMax: number; expiry?: string | null },
   nowMs: number,
-): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number } | { refusal: string } {
+  aim?: ContractAim | null,
+): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number; roi: number | null; pPay: number | null; dte: number | null; bePts: number | null; considered: number } | { refusal: string } {
   if (!chain) return { refusal: "No live chain was read — the ticket is a model estimate and cannot be sent." };
   if (chain.source !== LIVE_CHAIN_SOURCE) {
     return { refusal: `Chain source ${chain.source || "-"} is not ${LIVE_CHAIN_SOURCE}.` };
   }
+  const scoring = aim != null && aim.spot > 0 && aim.targetPts > 0;
   const mid = (want.deltaMin + want.deltaMax) / 2;
   const rejected: string[] = [];
   const ok: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number }[] = [];
   for (const c of chain.contracts) {
     if (c.type !== want.side) continue;
-    if (want.expiry && c.expiry !== want.expiry) continue;
+    if (!scoring && want.expiry && c.expiry !== want.expiry) continue;
     const u = liveContractUsable(c, nowMs);
     if (!u.ok) {
       rejected.push(u.reason);
       continue;
     }
-    if (u.delta < want.deltaMin || u.delta > want.deltaMax) continue;
+    if (!scoring && (u.delta < want.deltaMin || u.delta > want.deltaMax)) continue;
     ok.push({ contract: c, ask: u.ask, bid: u.bid, delta: u.delta });
   }
   if (ok.length === 0) {
     return {
       refusal:
-        `No live ${want.side} between delta ${want.deltaMin.toFixed(2)} and ${want.deltaMax.toFixed(2)}` +
+        `No live ${want.side}` +
+        (scoring ? "" : ` between delta ${want.deltaMin.toFixed(2)} and ${want.deltaMax.toFixed(2)}`) +
         (rejected.length ? ` — ${rejected[0]}` : " in the chain that was read.") +
         " No contract, no ticket.",
     };
   }
-  ok.sort((a, b) => {
-    const d = Math.abs(a.delta - mid) - Math.abs(b.delta - mid);
-    if (Math.abs(d) > 1e-9) return d;
-    const sa = a.bid != null ? a.ask - a.bid : Number.POSITIVE_INFINITY;
-    const sb = b.bid != null ? b.ask - b.bid : Number.POSITIVE_INFINITY;
-    return sa - sb;
+  if (!scoring) {
+    ok.sort((a, b) => {
+      const d = Math.abs(a.delta - mid) - Math.abs(b.delta - mid);
+      if (Math.abs(d) > 1e-9) return d;
+      const sa = a.bid != null ? a.ask - a.bid : Number.POSITIVE_INFINITY;
+      const sb = b.bid != null ? b.ask - b.bid : Number.POSITIVE_INFINITY;
+      return sa - sb;
+    });
+    const best = ok[0]!;
+    return { ...best, roi: null, pPay: null, dte: null, bePts: null, considered: ok.length };
+  }
+  const atm = ok.reduce((a, b) =>
+    Math.abs(a.contract.strike - aim.spot) <= Math.abs(b.contract.strike - aim.spot) ? a : b,
+  );
+  const expectedMove = atm.ask > 0 ? atm.ask * 2 : null;
+  const scored = ok.map((row) => scoreLeg(row, aim, nowMs, expectedMove)).filter((x): x is ScoredLeg => x != null);
+  if (scored.length === 0) {
+    return {
+      refusal: `No ${want.side} clears $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL}, a 0.30–0.65 delta, an 8% spread, and a target that pays 40% of the debit. No contract, no ticket.`,
+    };
+  }
+  const spread = (r: ScoredLeg) => (r.bid != null ? r.ask - r.bid : Number.POSITIVE_INFINITY);
+  const inBand = (r: ScoredLeg) => r.delta >= want.deltaMin && r.delta <= want.deltaMax;
+  scored.sort((a, b) => {
+    if (Math.abs(a.roi - b.roi) > 0.02) return b.roi - a.roi;
+    if (Math.abs(a.pPay - b.pPay) > 0.02) return b.pPay - a.pPay;
+    if (inBand(a) !== inBand(b)) return inBand(a) ? -1 : 1;
+    return spread(a) - spread(b);
   });
-  return ok[0];
+  const best = scored[0]!;
+  return {
+    contract: best.contract,
+    ask: best.ask,
+    bid: best.bid,
+    delta: best.delta,
+    roi: best.roi,
+    pPay: best.pPay,
+    dte: best.dte,
+    bePts: best.bePts,
+    considered: scored.length,
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -1093,17 +1259,22 @@ function liveCtxFor(
 function liveLegFor(
   underlier: SwingUnderlier,
   side: OptionSide,
+  spot: number,
   dte: number,
   deltaLo: number,
   deltaHi: number,
   plan: TradePlan,
   live: LiveTicketCtx,
-): { leg: LiveTicketLeg; size: LiveSleeveSize } | { refusal: string } | null {
+): { leg: LiveTicketLeg; size: LiveSleeveSize; why: string } | { refusal: string } | null {
   if (!live.chain) return null;
+  const ratio = underlier === "SPY" ? 10 : 40;
+  const stopPts = Math.abs(plan.stop - plan.entry) / ratio;
+  const targetPts = plan.t1 != null ? Math.abs(plan.t1 - plan.entry) / ratio : stopPts;
   const picked = pickLiveContract(
     live.chain,
     { side, deltaMin: deltaLo, deltaMax: deltaHi, expiry: live.expiry ?? null },
     live.nowMs,
+    spot > 0 && targetPts > 0 ? { spot, targetPts, stopPts, maxContracts: Math.min(RH_MAX_CONTRACTS, maxContracts(dte)) } : null,
   );
   if ("refusal" in picked) return { refusal: picked.refusal };
   const size = sizeFromLiveContract({
@@ -1126,8 +1297,13 @@ function liveLegFor(
     dte,
   });
   if (size.skip) return { refusal: size.skipReason ?? "The live contract could not be sized. SKIP." };
+  const why =
+    picked.roi != null && picked.pPay != null
+      ? ` · ${picked.dte != null ? picked.dte.toFixed(1) : "?"}d · pays ${(picked.pPay * 100).toFixed(0)}% · EV ${(picked.roi * 100).toFixed(0)}% · needs ${picked.bePts != null ? picked.bePts.toFixed(2) : "?"}pt to clear the debit · exit at the pool · best of ${picked.considered}`
+      : " (live chain)";
   return {
     size,
+    why,
     leg: {
       occ: picked.contract.occ,
       optionId: picked.contract.optionId,
@@ -1192,7 +1368,7 @@ function toTicket(
   /** The live chain, the futures mark and the card's confirmation. */
   live: LiveTicketCtx | null = null,
 ): RhTicket | null {
-  const legSized = plan && live ? liveLegFor(underlier, side, dte, deltaLo, deltaHi, plan, live) : null;
+  const legSized = plan && live ? liveLegFor(underlier, side, spot, dte, deltaLo, deltaHi, plan, live) : null;
   // A live chain that refuses the leg is a SKIP, not a fallback to the model:
   // the whole point is that the ticket names a contract somebody is quoting.
   if (live?.chain && legSized && "refusal" in legSized) {
@@ -1206,7 +1382,7 @@ function toTicket(
         contracts: leg.size.contracts,
         each: Math.round(leg.leg.limitPerShare * 100 * 100) / 100,
         total: leg.size.debitUsd,
-        strikeNote: `${leg.leg.occ.trim()} · ${leg.leg.strike} ${side} · bid $${leg.leg.bid != null ? leg.leg.bid.toFixed(2) : "-"} / ask $${leg.leg.ask.toFixed(2)} · delta ${leg.leg.delta.toFixed(2)} (live chain)`,
+        strikeNote: `${leg.leg.occ.trim()} · ${leg.leg.strike} ${side} · bid $${leg.leg.bid != null ? leg.leg.bid.toFixed(2) : "-"} / ask $${leg.leg.ask.toFixed(2)} · delta ${leg.leg.delta.toFixed(2)}${leg.why}`,
         clock: leg.size.clock,
         sizedFrom: "level" as const,
         sizeNote: leg.size.lines.join(" "),
@@ -1833,65 +2009,71 @@ function eventSecond(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrate
   };
 }
 
-function htfSwingCard(
-  swing: SwingSignal,
-  desk: DeskPayload,
-  sleeve: RhSleeve,
-  cap: number,
-): RhStrategyCard {
+function swingSpanCards(swing: SwingSignal, desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard[] {
   const { esPx, nqPx } = proxyPair(desk);
-  const verdict: RhVerdict =
-    swing.verdict === "ARMED_CALL" || swing.verdict === "ARMED_PUT"
-      ? "ARMED"
-      : swing.verdict === "WATCH"
-        ? "WATCH"
-        : "STAND";
   const plan = swing.plan;
   const side = plan?.side ?? "put";
   const underlier = plan?.underlier ?? "QQQ";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
-  const extraBlocks = [...swing.blocks];
-  if (desk.monthAhead?.phase?.id === "labor" && verdict === "ARMED") {
-    extraBlocks.push("Labor / NFP week — do not pay 21–45 DTE into Friday");
-  }
-  const laborWatch = extraBlocks.some((b) => /Labor/.test(b));
-  const ticket =
-    plan && verdict !== "STAND" && !laborWatch
-      ? toTicket(
-          underlier,
-          side,
-          spot,
-          21,
-          0.3,
-          0.4,
-          IV[underlier],
-          cap,
-          sleeve,
-          `${plan.holdSessionsMin}–${plan.holdSessionsMax} sessions`,
-          plan.invalidation,
-          [
-            ...plan.targets,
-            `ATM 21–45 DTE may not fit $${cap} — expect a vertical or STAND`,
-          ],
-          // Size from the LEVEL: the futures plan this option expresses.
-          planForUnderlier(desk, underlier),
-        )
-      : null;
+  const fut = planForUnderlier(desk, underlier);
+  const rr = fut?.rr1 ?? null;
+  let lead = SWING_SPANS[0]!;
+  if (rr != null && rr >= 6) lead = SWING_SPANS[5]!;
+  else if (rr != null && rr >= 4.5) lead = SWING_SPANS[4]!;
+  else if (rr != null && rr >= 3.5) lead = SWING_SPANS[3]!;
+  else if (rr != null && rr >= 2.5) lead = SWING_SPANS[2]!;
+  else if (rr != null && rr >= 1.5) lead = SWING_SPANS[1]!;
+  if (swing.timing.fridayCaution && lead.sessions > 1) lead = SWING_SPANS[0]!;
+  const base: RhVerdict =
+    swing.verdict === "ARMED_CALL" || swing.verdict === "ARMED_PUT" ? "ARMED" : swing.verdict === "WATCH" ? "WATCH" : "STAND";
 
-  return {
-    id: "htf_swing",
-    name: "HTF swing 21–45 DTE",
-    horizon: "swing",
-    whyHighProb:
-      `HTF absolute + correct half. On a $${cap} cap a naked 40Δ is reachable where it was not before — size it from the invalidation, not from the cap.`,
-    verdict: laborWatch ? "WATCH" : verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
-    score: swing.confidence,
-    reasons: [...swing.reasons],
-    blocks: extraBlocks,
-    pathBand: null,
-    proxy: swing.proxySymbol,
-    ticket,
-  };
+  return SWING_SPANS.map((span) => {
+    const blocks = [...swing.blocks];
+    if (swing.timing.fridayCaution && span.sessions > 1) blocks.push("Friday — this hold runs past the next open.");
+    if (desk.monthAhead?.phase?.id === "labor" && span.sessions >= 3) blocks.push("Labor week — three sessions or more waits.");
+    const leadCard = span.id === lead.id;
+    let verdict: RhVerdict = base === "STAND" ? "STAND" : leadCard ? base : "WATCH";
+    if (blocks.length > swing.blocks.length && verdict === "ARMED") verdict = "WATCH";
+    const ticket =
+      plan && verdict !== "STAND"
+        ? toTicket(
+            underlier,
+            side,
+            spot,
+            span.dteTarget,
+            0.4,
+            0.55,
+            IV[underlier],
+            cap,
+            sleeve,
+            `${span.sessions} session${span.sessions === 1 ? "" : "s"} — still open at the next morning's open`,
+            plan.invalidation,
+            [
+              `Hold ${span.label}. Exit at the pool if it pays 40% of the debit.`,
+              "A daily close through the sweep wick ends it. Do not average.",
+            ],
+            fut,
+          )
+        : null;
+    return {
+      id: span.id,
+      name: `Swing · ${span.label}`,
+      horizon: "swing" as const,
+      whyHighProb: `A swing is a contract held through ${span.sessions} close${span.sessions === 1 ? "" : "s"} into the next open. About ${span.dteTarget} DTE so it is still alive then. Delta 0.40–0.55. Not a same-day ticket.`,
+      verdict: (verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH") as RhVerdict,
+      score: Math.max(0, swing.confidence - Math.abs(span.sessions - lead.sessions) * 0.03),
+      reasons: [
+        ...swing.reasons,
+        leadCard
+          ? `This hold matches the draw${rr != null ? ` at ${rr.toFixed(1)}R` : ""}.`
+          : `${lead.label} is the hold the draw grades. This card is the longer or shorter one.`,
+      ],
+      blocks,
+      pathBand: null,
+      proxy: swing.proxySymbol,
+      ticket,
+    };
+  }).sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -1979,7 +2161,7 @@ export function evaluateOptionsDesk(
     judasIfvg0dte(desk, sleeve, cap, liveInputs),
     smtLead(desk, sleeve, cap),
     eventSecond(desk, sleeve, cap),
-    htfSwingCard(swingSignal, desk, sleeve, cap),
+    ...swingSpanCards(swingSignal, desk, sleeve, cap),
   ].map((c) => gateHand(desk, c));
 
   const dayBest = cards.filter((c) => c.horizon === "day" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
@@ -2057,7 +2239,8 @@ export function optionsDeskPlaybook(): string[] {
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",
-    "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract.",
+    "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract. After 14:00 ET a same-day delta under 0.40 is charged for theta. After 15:00 a same-day delta under 0.45 is not taken.",
+    "The contract is the highest expected return inside $50–$550, delta 0.30–0.65, spread at most 8% of the ask, and only if the pool pays the debit. Exit at that pool. A model price is not a candidate.",
     "SMT lead 3–7 DTE when NQ and ES disagree. Event days: first impulse is the sweep; debit the second after 10:15.",
     "Trim 50% at +40–60% of debit, stop to BE. Time-stop day tickets 11:00 ET. Never average. Separate from the $100k futures paper book.",
   ];

@@ -13,6 +13,7 @@ import type { SessionClock } from "./sessions";
 import type { NewsRead } from "./news";
 import { loadRhSleeve, rhRiskBudgetUsd } from "./options-sleeve";
 import { sessionLive } from "@/lib/trading/sessions";
+import { sequenceGaps } from "./smc-master";
 
 export type OptionSide = "call" | "put";
 export type SwingUnderlier = "SPY" | "QQQ";
@@ -71,6 +72,27 @@ export const SWING_RISK_PCT = {
   probe: 0.075,
 } as const;
 
+/**
+ * A swing is a contract that is still open at the next morning's open.
+ * The hold is the number of sessions it is meant to survive. The expiration
+ * is past that hold, never a 0DTE.
+ */
+export const SWING_SPANS: {
+  id: "swing_overnight" | "swing_2" | "swing_3" | "swing_4" | "swing_5" | "swing_week";
+  sessions: number;
+  label: string;
+  dteTarget: number;
+  dteMin: number;
+  dteMax: number;
+}[] = [
+  { id: "swing_overnight", sessions: 1, label: "Overnight", dteTarget: 2, dteMin: 1, dteMax: 3 },
+  { id: "swing_2", sessions: 2, label: "2 sessions", dteTarget: 3, dteMin: 2, dteMax: 4 },
+  { id: "swing_3", sessions: 3, label: "3 sessions", dteTarget: 4, dteMin: 3, dteMax: 6 },
+  { id: "swing_4", sessions: 4, label: "4 sessions", dteTarget: 5, dteMin: 4, dteMax: 7 },
+  { id: "swing_5", sessions: 5, label: "5 sessions", dteTarget: 6, dteMin: 5, dteMax: 8 },
+  { id: "swing_week", sessions: 7, label: "Week", dteTarget: 10, dteMin: 7, dteMax: 14 },
+];
+
 function weekdayEt(clock: SessionClock): number {
   const w = clock.weekday;
   if (typeof w === "number") return w;
@@ -99,7 +121,7 @@ export function swingTiming(
   let label = "No entry window";
   if (weekend) label = "Weekend — manage only, no new swings";
   else if (!newsOk) label = `News ${news.verdict} — no new multi-day premium`;
-  else if (friday) label = "Friday caution — only manage open; no new DTE≤7";
+  else if (friday) label = "Friday — an overnight into the next open can still be a swing. A longer hold waits.";
   else if (monThu && clock.killzone === "ny_am")
     label = "Prime: NY AM Mon–Thu — can arm swing after HTF clear";
   else if (monThu && sessionOk)
@@ -107,7 +129,7 @@ export function swingTiming(
   else if (monThu) label = "Mon–Thu but outside session — plan levels only";
 
   return {
-    entryDayOk: monThu && !weekend,
+    entryDayOk: (monThu || friday) && !weekend,
     entrySessionOk: sessionOk && !weekend,
     newsOk,
     fridayCaution,
@@ -177,14 +199,10 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     desk.scan.candidates.find((c) => c.htfOk && (c.confluence ?? 0) >= 0.55) ??
     null;
 
-  if (!timing.entryDayOk) blocks.push("Not a Mon–Thu entry day");
+  if (!timing.entryDayOk) blocks.push("Weekend — manage only");
   if (!timing.newsOk)
     blocks.push(`News ${desk.news.verdict}: ${desk.news.reason}`);
-  if (timing.fridayCaution) blocks.push("Friday — no new multi-day premium");
   if (!timing.entrySessionOk) blocks.push("Outside swing arm session");
-  if (desk.monthAhead?.phase?.id === "labor") {
-    blocks.push("Labor / NFP week — HTF swing is WATCH, use SMT or event tickets");
-  }
   if (desk.weekAhead?.today?.kind === "nfp" || desk.weekAhead?.today?.kind === "holiday") {
     blocks.push("Week card forbids new multi-day premium today");
   }
@@ -207,6 +225,28 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     if (best.side === "put" && best.proxy.dealing?.zone === "discount") {
       blocks.push("Put into discount — wait premium or displacement");
     }
+    const wantSide = best.side === "call" ? "long" : "short";
+    const mine = ["QQQ", "NQ", "MNQ"].includes(best.underlier) ? ["NQ", "MNQ"] : ["ES", "MES"];
+    const card = desk.scan.candidates.find((c) => mine.includes(c.symbol) && c.side === wantSide) ?? null;
+    const book = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && mine.includes(b.symbol)) ?? null;
+    const gaps = card ? sequenceGaps(card) : ["raid", "displacement", "array"];
+    if (!book?.side && !card) blocks.push("No raid on this book. The higher-timeframe arrow is not a swing.");
+    else if (book?.side && book.side !== wantSide) blocks.push(`Book is ${book.side}. This swing is ${wantSide}.`);
+    if (gaps.includes("raid")) blocks.push("No sweep that closed back inside. A close that stays outside is a breakout.");
+    if (gaps.includes("displacement")) blocks.push("The raid has no later shift. The sweep candle is not the hold.");
+    if (gaps.includes("array")) blocks.push("Not back in the gap the shift left. The limit waits there.");
+    if (book?.word === "STAND") blocks.push("Book is standing. A swing does not override it.");
+    const rr = book?.plan?.rr1 ?? null;
+    if (rr != null && rr < 1) blocks.push(`Target is ${rr.toFixed(1)}R. An overnight hold needs at least 1:1.`);
+    const otherSym = mine[0] === "NQ" ? ["ES", "MES"] : ["NQ", "MNQ"];
+    const other = [desk.smcMaster?.left, desk.smcMaster?.right].find((b) => b && otherSym.includes(b.symbol)) ?? null;
+    if (other?.side && (book?.side || wantSide) && other.side !== (book?.side ?? wantSide)) {
+      blocks.push(`${other.symbol} is ${other.side}. This book is ${book?.side ?? wantSide}. They disagree. No swing.`);
+    }
+    if (best.proxy.daily === "bull" && best.side === "put") blocks.push("Daily is bull. A put held overnight fights the frame.");
+    if (best.proxy.daily === "bear" && best.side === "call") blocks.push("Daily is bear. A call held overnight fights the frame.");
+    if (!gaps.length) reasons.push("Raid, a later shift, and the gap are on the book.");
+    else if (!gaps.includes("raid") && !gaps.includes("displacement")) reasons.push("Raid and shift are in. Waiting on the gap.");
   }
 
   if (best && scanBest) {
@@ -228,7 +268,6 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     timing.entryDayOk &&
     timing.entrySessionOk &&
     timing.newsOk &&
-    !timing.fridayCaution &&
     blocks.length === 0 &&
     (best?.score ?? 0) >= 0.55;
 
@@ -255,9 +294,9 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     plan = {
       underlier: best.underlier,
       side: best.side,
-      dteMin: 14,
-      dteMax: 45,
-      dteTarget: 28,
+      dteMin: 1,
+      dteMax: 14,
+      dteTarget: 3,
       deltaMin: 0.35,
       deltaMax: 0.5,
       riskPct,
@@ -289,7 +328,7 @@ export function evaluateOptionsSwing(desk: DeskPayload): SwingSignal {
     {
       id: "day",
       ok: timing.entryDayOk,
-      label: "Mon–Thu entry day",
+      label: "Mon–Fri. A swing is anything still open at the next morning's open",
     },
     {
       id: "session",
@@ -353,10 +392,9 @@ export function optionsSwingPlaybook(): string[] {
   return [
     "RH sleeve: ≤ $1,000 debit per ticket, loss capped 15% of the debit, sized from the futures invalidation. Not the $100k futures book.",
     "SPY follows ES HTF · QQQ follows NQ HTF — absolute gate. One underlier.",
-    "Arm only Mon–Thu when news clear; NY AM preferred.",
-    "21–45 DTE ATM often costs more than the $1,000 ceiling — use a vertical rather than an OTM lottery ticket.",
-    "Trim ~50% at +50–80% of debit; invalidate if HTF flips.",
-    "Friday / Labor week: manage only — no new 21–45 DTE.",
+    "A swing is still open at the next morning's open. The cards are overnight, 2, 3, 4, 5 sessions, and a week. Expiration sits past that hold.",
+    "Arm on a weekday when news is clear. Friday can take the overnight only. Three sessions or more waits in a labor week.",
+    "Delta 0.40–0.55. The draw's R picks which hold card leads. Trim half when the pool pays 40% of the debit.",
     "Separate from futures PATH — one thesis preferred.",
   ];
 }
