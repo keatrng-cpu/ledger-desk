@@ -1646,11 +1646,9 @@ export function detectBlakeSwing(
 }
 
 /**
- * Mechanical model (engine weight 0.14 — its highest): sweep → displacement
- * in the opposite direction within MM_DISPLACE_WITHIN (6) bars → FVG or iFVG
- * created by that displacement → retest of the zone. `complete` is true ONLY
- * with all legs — partial sequences are reported with their state but never
- * marked complete (engine lesson: "refuse partial sequences").
+ * Blake's mechanical model: a sweep, a displacement that answers it, and a
+ * body close through the gap that delivered into that sweep. The close is
+ * the entry. A new gap and a later retest are not this model.
  *
  * SELECTION (changed in Phase A2): still-ALIVE first, then how far the
  * sequence got, then recency. Previously it ranked by state alone with
@@ -1727,70 +1725,43 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
       seq.displacement = disp;
       seq.state = "displaced";
 
-      // Leg 3: FVG created by the displacement (displacement bar is one of
-      // the 3 candles: createdIndex ∈ [disp.index, disp.index + 2]) with the
-      // move's direction — OR an opposite-direction FVG that the displacement
-      // leg inverted (iFVG), inversion landing in the same window.
-      const fvg = fvgs.find(
-        (g) =>
-          g.kind === wantDisp &&
-          g.createdIndex >= disp.index &&
-          g.createdIndex <= disp.index + 2,
-      );
+      // Blake: the zone is the gap that delivered INTO the raid, inverted by a
+      // body close after the sweep. A new gap the displacement leaves is a
+      // different model. The close is the entry. A later retest is not required.
       const ifvg = fvgs.find(
         (g) =>
           g.kind !== wantDisp &&
           g.inverted &&
+          g.createdIndex < sweep.index &&
           g.invertedIndex != null &&
+          g.invertedIndex > sweep.index &&
           g.invertedIndex >= disp.index &&
           g.invertedIndex <= disp.index + 2,
       );
-      const zoneSrc = fvg ?? ifvg;
-      if (zoneSrc) {
-        const createdIndex =
-          zoneSrc === fvg
-            ? zoneSrc.createdIndex
-            : (zoneSrc.invertedIndex ?? zoneSrc.createdIndex);
+      if (ifvg && ifvg.invertedIndex != null) {
+        const createdIndex = ifvg.invertedIndex;
         seq.zone = {
-          source: zoneSrc === fvg ? "fvg" : "ifvg",
-          top: zoneSrc.top,
-          bottom: zoneSrc.bottom,
+          source: "ifvg",
+          top: ifvg.top,
+          bottom: ifvg.bottom,
           createdIndex,
           createdT: bars[createdIndex]!.t,
         };
-        seq.state = "inverted";
-
-        // Leg 4: retest. First the price must LEAVE the zone (armed →
-        // retest_ready), then trade back into it (complete).
-        let armed = false;
+        seq.state = "complete";
+        seq.legsComplete = true;
+        const stop = direction === "long" ? bars[createdIndex]!.l : bars[createdIndex]!.h;
         for (let j = createdIndex + 1; j < bars.length; j++) {
           const b = bars[j]!;
-          const away =
-            direction === "long"
-              ? b.l > seq.zone.top // fully above a bullish zone
-              : b.h < seq.zone.bottom; // fully below a bearish zone
-          const touch =
-            direction === "long"
-              ? b.l <= seq.zone.top && b.h >= seq.zone.bottom
-              : b.h >= seq.zone.bottom && b.l <= seq.zone.top;
-          if (!armed && away) {
-            armed = true;
-            seq.state = "retest_ready";
-            continue;
-          }
-          if (armed && touch) {
+          const back =
+            direction === "long" ? b.l <= seq.zone.top && b.h >= seq.zone.bottom : b.h >= seq.zone.bottom && b.l <= seq.zone.top;
+          if (back && !seq.retest) {
             seq.retest = {
               index: j,
               t: b.t,
-              price:
-                direction === "long"
-                  ? Math.min(b.h, seq.zone.top)
-                  : Math.max(b.l, seq.zone.bottom),
+              price: direction === "long" ? Math.min(b.h, seq.zone.top) : Math.max(b.l, seq.zone.bottom),
             };
-            seq.state = "complete";
-            seq.legsComplete = true;
-            break;
           }
+          if (direction === "long" ? b.c < stop : b.c > stop) break;
         }
       }
     }
@@ -1810,12 +1781,21 @@ export function detectMechanicalModel(bars: OhlcBar[]): MechanicalSequence {
     // level is what the entire model is predicated on holding (it is also the
     // trade's stop), so it invalidates from the moment the sweep prints, not
     // only after arming.
+    // Blake's stop is the inversion candle, tighter than the sweep wick.
+    // Before that close prints, the sweep wick is still the line.
+    const blakeStop =
+      seq.zone != null
+        ? direction === "long"
+          ? bars[seq.zone.createdIndex]!.l
+          : bars[seq.zone.createdIndex]!.h
+        : null;
     let structureBreak = false;
     for (let j = sweep.index + 1; j <= lastIndex; j++) {
       const c = bars[j]!.c;
-      if (
-        direction === "long" ? c < sweep.wickExtreme : c > sweep.wickExtreme
-      ) {
+      const throughSweep = direction === "long" ? c < sweep.wickExtreme : c > sweep.wickExtreme;
+      const throughInversion =
+        blakeStop != null && j > seq.zone!.createdIndex && (direction === "long" ? c < blakeStop : c > blakeStop);
+      if (throughSweep || throughInversion) {
         structureBreak = true;
         break;
       }

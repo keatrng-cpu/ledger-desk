@@ -552,7 +552,7 @@ function scoreDirection(
   add(
     "mechanical_model",
     mechHit,
-    mechHit ? "mechanical_model: sweep→displace→invert→retest" : undefined,
+    mechHit ? "mechanical_model: sweep, displacement, body close through the gap" : undefined,
   );
 
   add("mid_bias", read.mid === direction, `mid_bias ${read.mid}`);
@@ -941,7 +941,11 @@ function scoreDirection(
     conditionsOk,
     etMin: clock.etHour * 60 + clock.etMinute,
   });
-  const bestModel = strategyBoard[0]!;
+  const bestModel =
+    strategyBoard.find((b) => b.complete) ??
+    strategyBoard.find((b) => b.id !== "mechanical" && b.nearComplete) ??
+    strategyBoard.find((b) => b.id !== "mechanical") ??
+    strategyBoard[0]!;
   const score = bestModel.fit;
 
   const matches = classify({

@@ -48,7 +48,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     must: ["mechanical_model", "sweep_significant"],
     mustAnyOf: [["ifvg", "order_block"]],
     nice: ["mid_bias", "htf2_bias", "displacement", "mss"],
-    structureNote: "Ordered sweep→displace→invert→retest sequence",
+    structureNote: "Sweep, then a body close through the gap that delivered into it. That close is the entry.",
   },
   {
     id: "blake_mech",
