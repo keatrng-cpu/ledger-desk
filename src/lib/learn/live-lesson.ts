@@ -289,7 +289,7 @@ function displacementRead(f: FourFacts, bars: OhlcBar[]): { state: LessonState; 
   if (disp) {
     return {
       state: "pass",
-      live: `${dir === "bull" ? "Bullish" : "Bearish"} displacement closed at ${disp.close.toFixed(2)}, ${disp.ratio.toFixed(2)} times the 14-bar range, ${disp.index - sweep.index} bar${disp.index - sweep.index === 1 ? "" : "s"} after the raid (window ${within}). ${f.ltf.reason}`,
+      live: `${dir === "bull" ? "Bullish" : "Bearish"} displacement closed at ${disp.close.toFixed(2)}, ${disp.ratio.toFixed(2)} times the 14-bar range, ${disp.index - sweep.index} bar${disp.index - sweep.index === 1 ? "" : "s"} after the raid, inside the ${within}-bar window. Separately, the 1–5 minute confirm: ${f.ltf.reason}`,
       say: `The displacement is the later close at ${disp.close.toFixed(2)}, not the raid candle.`,
     };
   }
@@ -297,13 +297,13 @@ function displacementRead(f: FourFacts, bars: OhlcBar[]): { state: LessonState; 
   if (since > within) {
     return {
       state: "fail",
-      live: `${since} bars since the raid with no qualifying close — the ${within}-bar window has passed. ${f.ltf.reason}`,
+      live: `On the graded series: ${since} bars since the raid with no qualifying close, so the ${within}-bar window has passed. Separately, the 1–5 minute confirm: ${f.ltf.reason}`,
       say: "The window after that raid closed with no displacement. A later candle is a different story.",
     };
   }
   return {
     state: "wait",
-    live: `${since} of ${within} bars used since the raid, no 1.5x body close yet. ${f.ltf.reason}`,
+    live: `On the graded series: ${since} of ${within} bars used since the raid, no 1.5 times body close yet. Separately, the 1–5 minute confirm: ${f.ltf.reason}`,
     say: "The raid is in. I am waiting for the later close, not the raid candle.",
   };
 }
