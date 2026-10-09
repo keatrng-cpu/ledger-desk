@@ -205,11 +205,13 @@ function header(ctx: Ctx, w: number, title: string, right: string, accent: strin
   ctx.fillStyle = C.text;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
+  const titleW = ctx.measureText(title).width;
   ctx.fillText(title, 14, 22);
   ctx.font = `600 18px ${MONO}`;
+  const room = w - titleW - 36;
   ctx.fillStyle = C.muted;
   ctx.textAlign = "right";
-  ctx.fillText(right, w - 14, 22);
+  ctx.fillText(ctx.measureText(right).width > room ? fit(ctx, right, Math.max(40, room)) : right, w - 14, 22);
   ctx.textAlign = "left";
 }
 
@@ -351,31 +353,42 @@ function drawNews(ctx: Ctx, w: number, h: number, f: FloorFrame, big = false) {
 function drawCalendar(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   clear(ctx, w, h);
   header(ctx, w, "CALENDAR", f.clockLabel, C.amber);
-  let yy = 72;
+  let yy = 78;
   const cal = f.screens.calendar.slice(0, 6);
-  ctx.font = `600 19px ${FONT}`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
   if (!cal.length) {
     ctx.fillStyle = C.muted;
+    ctx.font = `600 19px ${FONT}`;
     ctx.fillText("No releases on today's calendar.", 16, yy);
     yy += 30;
   }
   for (const e of cal) {
+    if (yy > h - 56) break;
     ctx.fillStyle = e.status === "next" ? C.amber : e.status === "printed" ? C.muted : C.text;
-    ctx.font = `700 19px ${MONO}`;
+    ctx.font = `700 18px ${MONO}`;
     ctx.fillText(e.timeEt, 16, yy);
-    ctx.font = `600 19px ${FONT}`;
-    ctx.fillText(`${e.name}${e.impact === "high" ? "  ●" : ""}`, 100, yy);
-    ctx.fillStyle = C.muted;
-    ctx.font = `500 15px ${FONT}`;
-    ctx.fillText(e.status === "printed" ? "printed" : e.status === "next" ? "next — ±15m blackout" : "", 100, yy + 20);
-    yy += 50;
-    if (yy > h - 60) break;
+    const nameX = 16 + ctx.measureText(e.timeEt).width + 16;
+    ctx.font = `600 18px ${FONT}`;
+    const mark = e.impact === "high" ? " ●" : "";
+    ctx.fillText(fit(ctx, `${e.name}${mark}`, Math.max(48, w - nameX - 16)), nameX, yy);
+    const sub = e.status === "printed" ? "printed" : e.status === "next" ? "next — ±15m blackout" : "";
+    if (sub) {
+      ctx.fillStyle = C.muted;
+      ctx.font = `500 14px ${FONT}`;
+      ctx.fillText(fit(ctx, sub, Math.max(48, w - nameX - 16)), nameX, yy + 20);
+    }
+    yy += sub ? 46 : 32;
   }
   ctx.fillStyle = C.text;
-  ctx.font = `700 20px ${MONO}`;
+  ctx.font = `700 18px ${MONO}`;
   const v = f.screens.vix;
   const t = f.screens.tenYear;
-  ctx.fillText(`VIX ${v != null && v > 0 ? v.toFixed(2) : "—"}   10Y ${t != null ? t.toFixed(2) + "%" : "—"}`, 16, h - 18);
+  ctx.fillText(
+    fit(ctx, `VIX ${v != null && v > 0 ? v.toFixed(2) : "—"}    10Y ${t != null ? t.toFixed(2) + "%" : "—"}`, w - 32),
+    16,
+    h - 16,
+  );
 }
 
 /* ── Whiteboard ─────────────────────────────────────────────────────────── */
@@ -537,13 +550,13 @@ function drawWhiteboard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.font = `600 20px ${HAND}`;
   for (const g of gates) {
     ctx.fillStyle = g.ok ? green : red;
-    ctx.fillText(`${g.ok ? "✓" : "✗"} ${g.label.slice(0, 46)}`, w * 0.46, gy);
+    ctx.fillText(fit(ctx, `${g.ok ? "✓" : "✗"} ${g.label}`, Math.max(40, w - (16 + w * 0.5) - 16)), 16 + w * 0.5, gy);
     gy += 30;
     if (gy > h - 60) break;
   }
   if (!gates.length) {
     ctx.fillStyle = "#475569";
-    ctx.fillText(f.trace.refusal ? `✗ ${f.trace.refusal.slice(0, 46)}` : "nothing to clear", w * 0.46, gy);
+    ctx.fillText(f.trace.refusal ? fit(ctx, `✗ ${f.trace.refusal}`, w * 0.48) : "nothing to clear", 16 + w * 0.5, gy);
   }
   const cues = cuesOfFrame(f);
   if (cues.stamp) {
@@ -603,8 +616,10 @@ function tapeBlock(ctx: Ctx, w: number, h: number, u: Underlier, f: FloorFrame, 
   ctx.font = `600 22px ${MONO}`;
   ctx.fillStyle = t.rsi >= 70 ? C.down : t.rsi <= 30 ? C.up : C.muted;
   ctx.fillText(`RSI ${t.rsi.toFixed(0)}`, 18, 170);
+  const rsiW = ctx.measureText(`RSI ${t.rsi.toFixed(0)}`).width;
   ctx.fillStyle = t.volume_spike ? C.amber : C.muted;
-  ctx.fillText(t.volume_spike ? "VOLUME SPIKE" : "volume normal", 150, 170);
+  const vol = t.volume_spike ? "VOLUME SPIKE" : "volume normal";
+  ctx.fillText(fit(ctx, vol, Math.max(40, w - 36 - rsiW)), 18 + rsiW + 16, 170);
   ctx.fillStyle = t.trend === "BULLISH" ? C.up : t.trend === "BEARISH" ? C.down : C.muted;
   ctx.fillText(t.trend, 18, 210);
   const s = f.screens.charts[u];
@@ -1171,7 +1186,7 @@ function drawVote(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText(pct(p), w - 62, yy);
     ctx.font = `500 12px ${FONT}`;
     ctx.fillStyle = C.muted;
-    ctx.fillText(L[c].basis.slice(0, 70), 130, yy + 22);
+    ctx.fillText(fit(ctx, L[c].basis, Math.max(40, w - 146)), 130, yy + 22);
     yy += 50;
   }
   if (f.screens.roomP != null) {
@@ -1199,7 +1214,15 @@ function drawLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   })).sort((a, b) => b.rank - a.rank);
   ctx.font = `600 15px ${FONT}`;
   ctx.fillStyle = C.muted;
-  ctx.fillText("#   name       credibility   calls R/W/F        Brier", 16, 68);
+  ctx.fillText("#", 16, 68);
+  const nameX = 52;
+  const rankX = Math.round(w * 0.34);
+  const callsX = Math.round(w * 0.58);
+  const brierX = Math.round(w * 0.78);
+  ctx.fillText("name", nameX, 68);
+  ctx.fillText("cred", rankX, 68);
+  ctx.fillText("R/W/F", callsX, 68);
+  ctx.fillText("Brier", brierX, 68);
   let yy = 104;
   rows.forEach((r, i) => {
     ctx.fillStyle = i === 0 ? "#fde68a" : C.text;
@@ -1207,18 +1230,18 @@ function drawLeague(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ctx.fillText(`${i + 1}`, 16, yy);
     ctx.fillStyle = CREW_COLOR[r.c];
     ctx.font = `800 24px ${FONT}`;
-    ctx.fillText(r.c, 48, yy);
+    ctx.fillText(fit(ctx, r.c, rankX - nameX - 12), nameX, yy);
     ctx.fillStyle = C.text;
     ctx.font = `700 22px ${MONO}`;
-    ctx.fillText(String(r.rank).padStart(3), 230, yy);
+    ctx.fillText(String(r.rank).padStart(3), rankX, yy);
     ctx.fillStyle = C.muted;
-    ctx.fillRect(282, yy - 12, 100, 8);
+    ctx.fillRect(rankX + 52, yy - 12, Math.max(24, callsX - rankX - 70), 8);
     ctx.fillStyle = CREW_COLOR[r.c];
-    ctx.fillRect(282, yy - 12, r.rank, 8);
+    ctx.fillRect(rankX + 52, yy - 12, Math.min(r.rank, Math.max(24, callsX - rankX - 70)), 8);
     ctx.fillStyle = C.text;
-    ctx.font = `600 19px ${MONO}`;
-    ctx.fillText(r.rec ? `${r.rec.right}/${r.rec.wrong}/${r.rec.flat}` : "—", 410, yy);
-    ctx.fillText(r.brier != null ? `${r.brier.toFixed(3)} (n${r.n})` : `— (n${r.n})`, 560, yy);
+    ctx.font = `600 18px ${MONO}`;
+    ctx.fillText(r.rec ? `${r.rec.right}/${r.rec.wrong}/${r.rec.flat}` : "—", callsX, yy);
+    ctx.fillText(fit(ctx, r.brier != null ? `${r.brier.toFixed(3)} n${r.n}` : `— n${r.n}`, w - brierX - 12), brierX, yy);
     yy += 58;
   });
 }
@@ -1298,8 +1321,10 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
   ctx.font = `600 13px ${FONT}`;
   ctx.fillStyle = C.muted;
   ctx.textAlign = "right";
-  ctx.fillText("P(T1)", 706, 62);
-  ctx.fillText("E[R]", 790, 62);
+  const pCol = w - 148;
+  const eCol = w - 18;
+  ctx.fillText("P(T1)", pCol, 62);
+  ctx.fillText("E[R]", eCol, 62);
   ctx.textAlign = "left";
   ctx.fillText("BAND   SETUP", 24, 62);
   cards.slice(0, 6).forEach((c, i) => {
@@ -1327,25 +1352,27 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
     ctx.textAlign = "left";
     ctx.fillStyle = C.text;
     ctx.font = `700 20px ${FONT}`;
-    ctx.fillText(fit(ctx, `${c.symbol} ${c.side.toUpperCase()}${c.strategy ? ` · ${c.strategy}` : ""}`, 520), 92, y + 24);
+    ctx.fillText(fit(ctx, `${c.symbol} ${c.side.toUpperCase()}${c.strategy ? ` · ${c.strategy}` : ""}`, Math.max(80, pCol - 110)), 92, y + 24);
     ctx.font = `500 15px ${MONO}`;
-    ctx.fillStyle = c.block ? C.down : C.muted;
     const state = c.sequence || (c.entryState === "live" ? "ENTER" : c.entryState === "gone" ? "ENTRY GONE" : "ANTICIPATION");
     const sub = c.entryLine || c.block || `${state}${(c.tier ?? "")}`;
+    const planLine = c.entry != null && c.stop != null ? `E ${px(c.entry)} · S ${px(c.stop)} · T1 ${px(c.t1)}` : "";
+    const planMax = planLine ? Math.min(260, w * 0.32) : 0;
+    const subMax = Math.max(80, w - 28 - 92 - planMax);
     ctx.fillStyle = c.sequence?.startsWith("ENTER") ? C.up : c.sequence?.startsWith("STAND") || c.sequence?.startsWith("DRAW") ? C.down : c.entryState === "gone" ? C.down : C.amber;
-    ctx.fillText(fit(ctx, sub, 410), 92, y + 48);
-    if (c.entry != null && c.stop != null) {
+    ctx.fillText(fit(ctx, sub, subMax), 92, y + 48);
+    if (planLine) {
       ctx.fillStyle = C.muted;
       ctx.textAlign = "right";
-      ctx.fillText(fit(ctx, `E ${px(c.entry)} · S ${px(c.stop)} · T1 ${px(c.t1)}`, 300), 706 - 8, y + 48);
+      ctx.fillText(fit(ctx, planLine, planMax), w - 16, y + 48);
       ctx.textAlign = "left";
     }
     ctx.textAlign = "right";
-    ctx.font = `800 26px ${MONO}`;
+    ctx.font = `800 22px ${MONO}`;
     ctx.fillStyle = c.pT1 != null ? (c.pT1 >= 0.4 ? C.up : c.pT1 >= 0.25 ? C.amber : C.muted) : C.muted;
-    ctx.fillText(c.pT1 != null ? `${Math.round(c.pT1 * 100)}%` : "—", 706, y + 30);
+    ctx.fillText(c.pT1 != null ? `${Math.round(c.pT1 * 100)}%` : "—", pCol, y + 28);
     ctx.fillStyle = c.expR != null ? (c.expR > 0 ? C.up : C.down) : C.muted;
-    ctx.fillText(c.expR != null ? `${c.expR > 0 ? "+" : ""}${c.expR.toFixed(2)}` : "—", 790, y + 30);
+    ctx.fillText(c.expR != null ? `${c.expR > 0 ? "+" : ""}${c.expR.toFixed(2)}` : "—", eCol, y + 28);
     ctx.textAlign = "left";
   });
 }
@@ -2212,16 +2239,24 @@ function drawSwing(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     const col = r.verdict === "ARMED" ? C.up : r.verdict === "WATCH" ? C.amber : C.muted;
     ctx.fillStyle = col;
     ctx.font = `700 18px ${MONO}`;
+    const verdictW = ctx.measureText(r.verdict).width;
     ctx.fillText(r.verdict, 22, y + 24);
     ctx.fillStyle = C.text;
     ctx.font = `700 20px ${FONT}`;
-    ctx.fillText(r.name, 130, y + 24);
+    const score = r.score.toFixed(2);
+    ctx.font = `500 14px ${MONO}`;
+    const scoreW = ctx.measureText(score).width;
+    ctx.font = `700 20px ${FONT}`;
+    const nameX = 22 + verdictW + 16;
+    ctx.fillText(fit(ctx, r.name, Math.max(40, w - 28 - nameX - scoreW - 16)), nameX, y + 24);
     ctx.fillStyle = C.muted;
     ctx.font = `500 14px ${MONO}`;
-    ctx.fillText(r.score.toFixed(2), w - 70, y + 24);
+    ctx.textAlign = "right";
+    ctx.fillText(score, w - 22, y + 24);
+    ctx.textAlign = "left";
     ctx.fillStyle = "#94a3b8";
     ctx.font = `500 14px ${FONT}`;
-    ctx.fillText(r.note, 22, y + 46);
+    ctx.fillText(fit(ctx, r.note, w - 44), 22, y + 46);
   });
 }
 
