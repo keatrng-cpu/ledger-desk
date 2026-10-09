@@ -405,9 +405,20 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
     p.knL = p.knR = 1.5;
     if (mode === "couch") p.spine[0] = -0.28;
   }
-  // Breathing everywhere.
-  p.spine[0] += 0.02 * Math.sin(t * 1.3);
+  // Breathing, small enough that a gesture does not vibrate.
+  p.spine[0] += 0.012 * Math.sin(t * 1.1);
+  const deskHands = () => {
+    p.shL = [-0.72, -0.1, 0.06];
+    p.shR = [-0.72, 0.1, -0.06];
+    p.elL = p.elR = -1.05;
+    p.head[0] = 0.16;
+    p.spine[0] += 0.04;
+  };
   const walk = (stride: number) => {
+    if (seated) {
+      deskHands();
+      return;
+    }
     const s = Math.sin(walkPhase);
     p.hipL = 0.55 * s * stride;
     p.hipR = -0.55 * s * stride;
@@ -424,18 +435,25 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       walk(1);
       break;
     case "PACING":
+      if (seated) {
+        deskHands();
+        break;
+      }
       walk(0.7);
       p.shR = [-0.5, 0.3, -0.1];
       p.elR = -2.1;
       p.head[0] = 0.12;
       break;
     case "SHOUTING": {
-      const shake = 0.15 * Math.sin(t * 14);
-      p.shL = [-2.6 + shake, 0, 0.5];
-      p.shR = [-2.6 - shake, 0, -0.5];
-      p.elL = p.elR = -0.4;
-      p.head[0] = -0.3;
-      if (!seated) p.bodyY += 0.04 * Math.abs(Math.sin(t * 9));
+      if (seated) {
+        deskHands();
+        break;
+      }
+      const shake = 0.08 * Math.sin(t * 8);
+      p.shL = [-2.4 + shake, 0, 0.35];
+      p.shR = [-2.4 - shake, 0, -0.35];
+      p.elL = p.elR = -0.45;
+      p.head[0] = -0.2;
       break;
     }
     case "POINTING":
@@ -445,11 +463,11 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     case "FURIOUS_TYPING":
       if (seated) {
-        p.shL = [-0.55 + 0.05 * Math.sin(t * 26), -0.15, 0.1];
-        p.shR = [-0.55 + 0.05 * Math.sin(t * 29 + 1), 0.15, -0.1];
-        p.elL = p.elR = -1.05;
-        p.spine[0] += 0.18;
-        p.head[0] = 0.12;
+        p.shL = [-0.7 + 0.03 * Math.sin(t * 8), -0.08, 0.05];
+        p.shR = [-0.7 + 0.03 * Math.sin(t * 9 + 1), 0.08, -0.05];
+        p.elL = p.elR = -1.15;
+        p.spine[0] += 0.08;
+        p.head[0] = 0.22;
       } else {
         p.shL = [-0.45, -0.35, 0.15];
         p.shR = [-0.45 + 0.04 * Math.sin(t * 22), 0.35, -0.15];
@@ -458,22 +476,27 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
         p.phone = true;
       }
       break;
-    case "GESTICURING_AT_WALL":
-      p.shR = [-2.1 + 0.25 * Math.sin(t * 2.2), 0, -0.25];
-      p.elR = -0.3;
-      p.shL = [-0.6, 0, 0.3 + 0.15 * Math.sin(t * 2)];
+    case "GESTICULATING_AT_WALL":
+      if (seated) {
+        deskHands();
+        p.shR = [-1.05 + 0.06 * Math.sin(t * 1.4), 0.04, -0.08];
+        p.elR = -0.85;
+        break;
+      }
+      p.shR = [-1.7 + 0.12 * Math.sin(t * 1.6), 0, -0.15];
+      p.elR = -0.45;
+      p.shL = [-0.55, 0, 0.15];
       p.elL = -0.9;
-      p.head[0] = -0.1;
+      p.head[0] = -0.06;
       break;
     case "EXPLAINING":
     case "TALK": {
-      const a = key === "TALK" ? 0.6 : 1;
-      p.shL = [-0.55 * a, 0, 0.25 + 0.2 * a * Math.sin(t * 2.5)];
-      p.shR = [-0.55 * a, 0, -0.25 - 0.2 * a * Math.sin(t * 2.5 + 1.2)];
-      p.elL = -1.0 + 0.15 * Math.sin(t * 3);
-      p.elR = -1.0 + 0.15 * Math.sin(t * 3 + 1.5);
-      p.spine[1] = 0.15 * a * Math.sin(t * 1.1);
-      p.head[0] = 0.05 * Math.sin(t * 2);
+      const a = seated ? 0.35 : key === "TALK" ? 0.6 : 1;
+      p.shL = [-0.6 * a, 0, 0.12 + 0.08 * a * Math.sin(t * 1.6)];
+      p.shR = [-0.6 * a, 0, -0.12 - 0.08 * a * Math.sin(t * 1.6 + 1.2)];
+      p.elL = -1.05;
+      p.elR = -1.05;
+      p.head[0] = 0.04 * Math.sin(t * 1.4);
       break;
     }
     case "WRITING_ON_WHITEBOARD":
@@ -486,6 +509,13 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       p.head[0] = 0.08 + 0.22 * Math.max(0, Math.sin(t * 5));
       break;
     case "ANALYZING":
+      if (seated) {
+        deskHands();
+        p.shR = [-0.85, 0.15, -0.05];
+        p.elR = -1.35;
+        p.head[0] = 0.2;
+        break;
+      }
       p.shR = [-0.45, 0.2, -0.1];
       p.elR = -2.15;
       p.shL = [-0.35, -0.8, 0.1];
@@ -539,7 +569,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
         p.shR = [0.1, -1.2, -0.45];
         p.elL = p.elR = -1.5;
       }
-      p.head[1] = 0.35 * Math.sin(t * 0.6);
+      p.head[1] = (seated ? 0.12 : 0.35) * Math.sin(t * 0.45);
       break;
     case "DRINK":
       p.shR = [-0.5 - 0.9 * sip(t), 0.2, -0.1];
@@ -561,6 +591,10 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       p.phone = true;
       break;
     case "STRETCH": {
+      if (seated) {
+        deskHands();
+        break;
+      }
       const up = (t % 7) / 7 < 0.4;
       p.shL = up ? [-2.9, 0, 0.2] : [0, 0, 0.08];
       p.shR = up ? [-2.9, 0, -0.2] : [0, 0, -0.08];
@@ -568,12 +602,22 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     }
     case "LEAN_BACK":
+      if (seated) {
+        deskHands();
+        p.spine[0] = -0.12;
+        break;
+      }
       p.spine[0] = -0.22;
       p.shL = [-2.6, 0, 0.6];
       p.shR = [-2.6, 0, -0.6];
       p.elL = p.elR = -2.4;
       break;
     case "CHEER": {
+      if (seated) {
+        deskHands();
+        p.head[0] = -0.06;
+        break;
+      }
       const pump = Math.abs(Math.sin(t * 7));
       p.shL = [-2.75 - 0.15 * pump, 0, 0.45];
       p.shR = [-2.75 - 0.15 * pump, 0, -0.45];
@@ -1244,16 +1288,17 @@ class Cat {
     this.root.position.set(this.pos[0], 0, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const walking = this.mode === "walk";
-    this.legs.forEach((g, i) => {
-      g.rotation.x = walking ? Math.sin(this.walkPhase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * 0.6 : 0;
-    });
-    // Sit: hind end down. Sleep: curled low, head down.
     const sitK = this.mode === "sit" ? 1 : 0;
     const sleepK = this.mode === "sleep" ? 1 : 0;
-    this.bodyGroup.rotation.x = damp(this.bodyGroup.rotation.x, -0.5 * sitK, 6, dt);
-    this.bodyGroup.position.y = damp(this.bodyGroup.position.y, -0.1 * sleepK + 0.03 * sitK, 6, dt);
-    this.head.rotation.x = damp(this.head.rotation.x, sleepK ? 0.6 : sitK ? 0.45 : 0.1 * Math.sin(t * 1.3), 4, dt);
-    this.tail.rotation.y = Math.sin(t * (walking ? 6 : 1.6)) * (sleepK ? 0.1 : 0.5);
+    this.legs.forEach((g, i) => {
+      if (walking) g.rotation.x = Math.sin(this.walkPhase + (i % 2 ? Math.PI : 0)) * 0.45;
+      else if (i > 1) g.rotation.x = (sitK + sleepK) * 1.15;
+      else g.rotation.x = 0;
+    });
+    this.bodyGroup.rotation.x = damp(this.bodyGroup.rotation.x, sleepK ? 0.25 : 0.08 * sitK, 6, dt);
+    this.bodyGroup.position.y = damp(this.bodyGroup.position.y, sleepK ? -0.05 : 0, 6, dt);
+    this.head.rotation.x = damp(this.head.rotation.x, sleepK ? 0.2 : sitK ? -0.12 : 0.06 * Math.sin(t * 1.1), 4, dt);
+    this.tail.rotation.y = Math.sin(t * (walking ? 4 : 1.2)) * (sleepK ? 0.08 : 0.28);
   }
 }
 
