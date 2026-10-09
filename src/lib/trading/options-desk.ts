@@ -582,50 +582,175 @@ export function liveContractUsable(
   return { ok: true, ask, bid, delta };
 }
 
+/** What the underlying has to do, so the chain can be ranked instead of matched to a delta. */
+export interface ContractAim {
+  /** ETF price. Strikes live on this, not on the future. */
+  spot: number;
+  /** ETF points from the entry to the target. */
+  targetPts: number;
+  /** ETF points from the entry to the stop. */
+  stopPts: number;
+  /**
+   * Probability the target prints before the stop. The same number for every
+   * strike. A missing one is treated as a coin flip, which still ranks the
+   * contracts against each other.
+   */
+  pSetup?: number;
+  minDebitUsd?: number;
+  maxDebitUsd?: number;
+  maxContracts?: number;
+}
+
+/** Calendar days until the expiry, from the quote clock. A bad date sorts last. */
+function dteOf(expiry: string, nowMs: number): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expiry);
+  if (!m) return 99;
+  const exp = Date.UTC(+m[1]!, +m[2]! - 1, +m[3]!, 20, 0, 0);
+  return Math.max(0, (exp - nowMs) / 86_400_000);
+}
+
 /**
- * The contract the ticket names: the usable one whose delta sits nearest the
- * middle of the card's own band. Ties go to the tighter book, because the
- * crossing is the one cost the desk pays with certainty.
+ * How much of the planned move is still in the strike.
+ * 1 when the strike is at the money or in the money. 0 when the target
+ * finishes short of the strike. Linear between the two.
+ */
+function strikeReach(side: OptionSide, spot: number, strike: number, targetPts: number): number {
+  if (!(targetPts > 0) || !(spot > 0)) return 1;
+  const beyond = side === "call" ? Math.max(0, strike - spot) : Math.max(0, spot - strike);
+  if (beyond <= 0) return 1;
+  if (beyond >= targetPts) return 0;
+  return 1 - beyond / targetPts;
+}
+
+interface ScoredLeg {
+  contract: LiveOptionContract;
+  ask: number;
+  bid: number | null;
+  delta: number;
+  qty: number;
+  cost: number;
+  roi: number;
+  pPay: number;
+  dte: number;
+}
+
+/** The quantity whose debit sits in the band. One contract when it fits. Two only to clear the floor. */
+function qtyInBand(ask: number, minDebit: number, maxDebit: number, maxQty: number): number | null {
+  const each = ask * 100;
+  if (!(each > 0)) return null;
+  for (let n = 1; n <= maxQty; n++) {
+    const cost = each * n;
+    if (cost >= minDebit && cost <= maxDebit) return n;
+    if (cost > maxDebit) return null;
+  }
+  return null;
+}
+
+function scoreLeg(
+  row: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number },
+  aim: ContractAim,
+  nowMs: number,
+): ScoredLeg | null {
+  const minDebit = aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL;
+  const maxDebit = aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL;
+  const qty = qtyInBand(row.ask, minDebit, maxDebit, Math.max(1, aim.maxContracts ?? 2));
+  if (qty == null) return null;
+  const dte = dteOf(row.contract.expiry, nowMs);
+  if (dte > 5) return null;
+  if (row.delta < 0.15 || row.delta > 0.75) return null;
+  const reach = strikeReach(row.contract.type, aim.spot, row.contract.strike, aim.targetPts);
+  const pSetup = aim.pSetup != null && aim.pSetup > 0 && aim.pSetup < 1 ? aim.pSetup : 0.5;
+  const pPay = pSetup * reach;
+  const cost = row.ask * 100 * qty;
+  const win = row.delta * aim.targetPts * 100 * qty * reach;
+  const loss = Math.min(cost, row.delta * Math.max(0, aim.stopPts) * 100 * qty);
+  const ev = pPay * win - (1 - pPay) * loss;
+  return { ...row, qty, cost, roi: cost > 0 ? ev / cost : -1, pPay, dte };
+}
+
+/**
+ * The contract the ticket names.
+ *
+ * With an aim — the ETF price, the points to the target, the points to the
+ * stop — every usable contract of this side is scored and the best expected
+ * return on the debit wins. The setup's probability is the same for each
+ * strike. The strike changes whether that move reaches it, what the debit
+ * is, and how much delta the debit buys. Expiry is in the same race: a
+ * later date only wins if its ask still pays more per dollar.
+ *
+ * Without an aim, the old rule stands: the usable contract whose delta sits
+ * nearest the middle of the card's band. Ties go to the tighter book.
  */
 export function pickLiveContract(
   chain: LiveChain | null | undefined,
   want: { side: OptionSide; deltaMin: number; deltaMax: number; expiry?: string | null },
   nowMs: number,
-): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number } | { refusal: string } {
+  aim?: ContractAim | null,
+): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number; roi: number | null; pPay: number | null; dte: number | null; considered: number } | { refusal: string } {
   if (!chain) return { refusal: "No live chain was read — the ticket is a model estimate and cannot be sent." };
   if (chain.source !== LIVE_CHAIN_SOURCE) {
     return { refusal: `Chain source ${chain.source || "-"} is not ${LIVE_CHAIN_SOURCE}.` };
   }
+  const scoring = aim != null && aim.spot > 0 && aim.targetPts > 0;
   const mid = (want.deltaMin + want.deltaMax) / 2;
   const rejected: string[] = [];
   const ok: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number }[] = [];
   for (const c of chain.contracts) {
     if (c.type !== want.side) continue;
-    if (want.expiry && c.expiry !== want.expiry) continue;
+    if (!scoring && want.expiry && c.expiry !== want.expiry) continue;
     const u = liveContractUsable(c, nowMs);
     if (!u.ok) {
       rejected.push(u.reason);
       continue;
     }
-    if (u.delta < want.deltaMin || u.delta > want.deltaMax) continue;
+    if (!scoring && (u.delta < want.deltaMin || u.delta > want.deltaMax)) continue;
     ok.push({ contract: c, ask: u.ask, bid: u.bid, delta: u.delta });
   }
   if (ok.length === 0) {
     return {
       refusal:
-        `No live ${want.side} between delta ${want.deltaMin.toFixed(2)} and ${want.deltaMax.toFixed(2)}` +
+        `No live ${want.side}` +
+        (scoring ? "" : ` between delta ${want.deltaMin.toFixed(2)} and ${want.deltaMax.toFixed(2)}`) +
         (rejected.length ? ` — ${rejected[0]}` : " in the chain that was read.") +
         " No contract, no ticket.",
     };
   }
-  ok.sort((a, b) => {
-    const d = Math.abs(a.delta - mid) - Math.abs(b.delta - mid);
-    if (Math.abs(d) > 1e-9) return d;
-    const sa = a.bid != null ? a.ask - a.bid : Number.POSITIVE_INFINITY;
-    const sb = b.bid != null ? b.ask - b.bid : Number.POSITIVE_INFINITY;
-    return sa - sb;
+  if (!scoring) {
+    ok.sort((a, b) => {
+      const d = Math.abs(a.delta - mid) - Math.abs(b.delta - mid);
+      if (Math.abs(d) > 1e-9) return d;
+      const sa = a.bid != null ? a.ask - a.bid : Number.POSITIVE_INFINITY;
+      const sb = b.bid != null ? b.ask - b.bid : Number.POSITIVE_INFINITY;
+      return sa - sb;
+    });
+    const best = ok[0]!;
+    return { ...best, roi: null, pPay: null, dte: null, considered: ok.length };
+  }
+  const scored = ok.map((row) => scoreLeg(row, aim, nowMs)).filter((x): x is ScoredLeg => x != null);
+  if (scored.length === 0) {
+    return {
+      refusal: `No ${want.side} in the chain pays inside $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL} with a delta the move can use. No contract, no ticket.`,
+    };
+  }
+  const spread = (r: ScoredLeg) => (r.bid != null ? r.ask - r.bid : Number.POSITIVE_INFINITY);
+  const inBand = (r: ScoredLeg) => r.delta >= want.deltaMin && r.delta <= want.deltaMax;
+  scored.sort((a, b) => {
+    if (Math.abs(a.roi - b.roi) > 0.02) return b.roi - a.roi;
+    if (Math.abs(a.pPay - b.pPay) > 0.02) return b.pPay - a.pPay;
+    if (inBand(a) !== inBand(b)) return inBand(a) ? -1 : 1;
+    return spread(a) - spread(b);
   });
-  return ok[0];
+  const best = scored[0]!;
+  return {
+    contract: best.contract,
+    ask: best.ask,
+    bid: best.bid,
+    delta: best.delta,
+    roi: best.roi,
+    pPay: best.pPay,
+    dte: best.dte,
+    considered: scored.length,
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -1093,6 +1218,7 @@ function liveCtxFor(
 function liveLegFor(
   underlier: SwingUnderlier,
   side: OptionSide,
+  spot: number,
   dte: number,
   deltaLo: number,
   deltaHi: number,
@@ -1100,10 +1226,14 @@ function liveLegFor(
   live: LiveTicketCtx,
 ): { leg: LiveTicketLeg; size: LiveSleeveSize } | { refusal: string } | null {
   if (!live.chain) return null;
+  const ratio = underlier === "SPY" ? 10 : 40;
+  const stopPts = Math.abs(plan.stop - plan.entry) / ratio;
+  const targetPts = plan.t1 != null ? Math.abs(plan.t1 - plan.entry) / ratio : stopPts;
   const picked = pickLiveContract(
     live.chain,
     { side, deltaMin: deltaLo, deltaMax: deltaHi, expiry: live.expiry ?? null },
     live.nowMs,
+    spot > 0 && targetPts > 0 ? { spot, targetPts, stopPts, maxContracts: Math.min(RH_MAX_CONTRACTS, maxContracts(dte)) } : null,
   );
   if ("refusal" in picked) return { refusal: picked.refusal };
   const size = sizeFromLiveContract({
@@ -1126,8 +1256,13 @@ function liveLegFor(
     dte,
   });
   if (size.skip) return { refusal: size.skipReason ?? "The live contract could not be sized. SKIP." };
+  const why =
+    picked.roi != null && picked.pPay != null
+      ? ` · ${picked.dte != null ? picked.dte.toFixed(1) : "?"}d · pays ${(picked.pPay * 100).toFixed(0)}% · EV ${(picked.roi * 100).toFixed(0)}% of debit · best of ${picked.considered}`
+      : " (live chain)";
   return {
     size,
+    why,
     leg: {
       occ: picked.contract.occ,
       optionId: picked.contract.optionId,
@@ -1192,7 +1327,7 @@ function toTicket(
   /** The live chain, the futures mark and the card's confirmation. */
   live: LiveTicketCtx | null = null,
 ): RhTicket | null {
-  const legSized = plan && live ? liveLegFor(underlier, side, dte, deltaLo, deltaHi, plan, live) : null;
+  const legSized = plan && live ? liveLegFor(underlier, side, spot, dte, deltaLo, deltaHi, plan, live) : null;
   // A live chain that refuses the leg is a SKIP, not a fallback to the model:
   // the whole point is that the ticket names a contract somebody is quoting.
   if (live?.chain && legSized && "refusal" in legSized) {
@@ -1206,7 +1341,7 @@ function toTicket(
         contracts: leg.size.contracts,
         each: Math.round(leg.leg.limitPerShare * 100 * 100) / 100,
         total: leg.size.debitUsd,
-        strikeNote: `${leg.leg.occ.trim()} · ${leg.leg.strike} ${side} · bid $${leg.leg.bid != null ? leg.leg.bid.toFixed(2) : "-"} / ask $${leg.leg.ask.toFixed(2)} · delta ${leg.leg.delta.toFixed(2)} (live chain)`,
+        strikeNote: `${leg.leg.occ.trim()} · ${leg.leg.strike} ${side} · bid $${leg.leg.bid != null ? leg.leg.bid.toFixed(2) : "-"} / ask $${leg.leg.ask.toFixed(2)} · delta ${leg.leg.delta.toFixed(2)}${leg.why}`,
         clock: leg.size.clock,
         sizedFrom: "level" as const,
         sizeNote: leg.size.lines.join(" "),

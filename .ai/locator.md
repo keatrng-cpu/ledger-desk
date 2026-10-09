@@ -20,7 +20,7 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - Entry, stop, targets — `src/lib/trading/trade-plan.ts`
 - One stop on the card — `src/lib/trading/card-plan.ts` `protectiveInvalidation`
 - Rest the limit, do not chase — `src/lib/trading/entry-trigger.ts` `readEntry`
-- The Robinhood ticket — `src/lib/trading/options-desk.ts`
+- Which contract — `src/lib/trading/options-desk.ts` `pickLiveContract`
 - Send and close — `src/lib/execution/rh-cycle.ts`
 - Blake's mechanical model — `src/lib/trading/detectors.ts` `detectMechanicalModel`
 - The floor narrates and does not gate — `src/lib/room/`
