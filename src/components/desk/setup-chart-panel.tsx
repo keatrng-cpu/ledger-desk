@@ -399,7 +399,10 @@ export function SetupChartPanel({ desk }: { desk: DeskPayload }) {
                       <span className="font-semibold">{tf}</span>
                       {tf === read.watch && <span className="text-[11px] text-[var(--color-accent)]">watch</span>}
                     </p>
-                    <Sparkline bars={sv} />
+                    <Sparkline
+                      bars={sv}
+                      marks={previewMarks(buildChartOverlay(desk, book.symbol, sv))}
+                    />
                     <p className="truncate text-[11px] text-[var(--color-muted)]">{sv.length ? role : rungs[tf].coverage}</p>
                   </button>
                 );
@@ -793,8 +796,14 @@ function Key() {
   );
 }
 
-/** A rung's closes as a thumbnail — real bars, no levels; click swaps it into the main chart. */
-function Sparkline({ bars }: { bars: { c: number }[] }) {
+/** A rung's closes, plus the two levels that rung exists to show: equilibrium or the raid, and the nearest gap. */
+function Sparkline({
+  bars,
+  marks,
+}: {
+  bars: { c: number }[];
+  marks?: { price: number; color: string }[];
+}) {
   if (bars.length < 2) {
     return <div className="my-1 h-10 rounded-sm bg-[var(--color-surface-2)]" aria-hidden />;
   }
@@ -802,10 +811,25 @@ function Sparkline({ bars }: { bars: { c: number }[] }) {
   const lo = Math.min(...cs);
   const hi = Math.max(...cs);
   const span = hi - lo || 1;
-  const pts = cs.map((c, i) => `${((i / (cs.length - 1)) * 100).toFixed(2)},${(38 - ((c - lo) / span) * 36).toFixed(2)}`).join(" ");
+  const yOf = (p: number) => 38 - ((p - lo) / span) * 36;
+  const pts = cs.map((c, i) => `${((i / (cs.length - 1)) * 100).toFixed(2)},${yOf(c).toFixed(2)}`).join(" ");
   const up = cs.at(-1)! >= cs[0]!;
+  const lines = (marks ?? []).filter((m) => m.price >= lo - span * 0.05 && m.price <= hi + span * 0.05).slice(0, 2);
   return (
     <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="my-1 h-10 w-full" aria-hidden>
+      {lines.map((m) => (
+        <line
+          key={`${m.color}-${m.price}`}
+          x1={0}
+          x2={100}
+          y1={yOf(m.price)}
+          y2={yOf(m.price)}
+          stroke={m.color}
+          strokeWidth={0.6}
+          strokeDasharray="2 1.5"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
       <polyline
         points={pts}
         fill="none"
@@ -815,4 +839,15 @@ function Sparkline({ bars }: { bars: { c: number }[] }) {
       />
     </svg>
   );
+}
+
+function previewMarks(ov: ReturnType<typeof buildChartOverlay>): { price: number; color: string }[] {
+  if (!ov) return [];
+  const out: { price: number; color: string }[] = [];
+  if (ov.sweep) out.push({ price: ov.sweep.price, color: "var(--color-warn)" });
+  else if (ov.range) out.push({ price: ov.range.eq, color: "var(--color-muted)" });
+  const gap = ov.arrays.find((a) => a.kind === "fvg" || a.kind === "ifvg") ?? ov.arrays[0];
+  if (gap) out.push({ price: gap.mid, color: "var(--color-primary)" });
+  else if (ov.draw && !ov.sweep) out.push({ price: ov.draw.price, color: "var(--color-up)" });
+  return out;
 }
