@@ -2,40 +2,45 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `b0bb7850`. Fetched origin. Local main matches origin.
+HEAD `42838117`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-No prior bookmark. This run is the baseline, and the last 15 commits are listed below.
-Bookmark after this run: `claude` → `b0bb7850`.
+Bookmark was `b0bb785`. 14 commit(s) landed after it.
+Bookmark after this run: `claude` → `42838117`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `42838117` | 2026-10-09T11:41 | Merge remote-tracking branch 'origin/main' | — |
+| `09931a8b` | 2026-10-09T11:34 | Merge origin/main: declare screens.invest, which 18 typecheck errors needed | M src/components/room/floor-screens.ts |
+| `41a4beb8` | 2026-10-09T16:32 | keep the chart marks from painting over each other | M src/components/desk/setup-chart-panel.tsx, M src/components/desk/setup-chart.tsx |
+| `ffea297e` | 2026-10-09T11:31 | Merge remote-tracking branch 'origin/main' | — |
+| `8f07af44` | 2026-10-09T16:25 | show the live Robinhood ask on the floor, the brain, and the desk | A src/components/desk/option-marks.tsx, M src/components/desk/options-swing-panel.tsx, M src/components/desk/veteran-brain.tsx, M src/components/room/floor-screens.ts, M src/lib/desk/mcp-server.ts, A src/lib/execution/option-marks.ts, M src/lib/room/live-types.ts, M src/lib/room/live-world.ts, M src/lib/trading/build-desk.ts, M src/lib/trading/desk-listen.ts |
+| `b86abb5b` | 2026-10-09T11:18 | Merge origin/main: Grok's swing spans, and tsc back to 0 | — |
+| `f07b6b4e` | 2026-10-09T16:12 | stop screen text from drawing on top of itself | M src/components/room/floor-screens.ts |
+| `df2a8caa` | 2026-10-09T16:09 | put the live swing grades on the wall beside the charts | M src/components/room/floor-scene.ts, M src/components/room/floor-screens.ts, M src/components/room/room-engine.ts, M src/data/floor-layout.json |
+| `f93ba028` | 2026-10-09T11:07 | the bar opens on the ticket, and the Learn tab is nine live lessons | M .ai/locator.md, M CLAUDE.md, M docs/agent-sync.json, M docs/agent-sync.md, M scripts/verify-baseline.json, A scripts/verify-live-lesson.mjs, A src/components/desk/brain-word.tsx, A src/components/desk/four-facts-board.tsx, A src/components/desk/option-ticket.tsx, M src/components/desk/options-swing-panel.tsx, M src/components/learn/learn-tab.tsx, A src/components/learn/live-lessons.tsx, M src/components/room/floor-scene.ts, M src/lib/aplus/confluence.ts, A src/lib/learn/live-lesson.ts, M src/lib/room/brain-feed.ts, M src/lib/room/live-talk.ts, M src/lib/room/live-types.ts, M src/lib/room/live-voices.ts, M src/lib/room/live-world.ts, M src/lib/trading/market-narrative.ts, M src/lib/trading/options-desk.ts, M src/lib/trading/school-brief.ts, M src/lib/trading/score-drivers.ts, M src/lib/trading/strategies.ts, A src/lib/trading/ticket-facts.ts, M src/routes/index.tsx |
+| `c12116fe` | 2026-10-09T16:01 | arm a swing only after the raid, a later shift, and agreement | M src/lib/trading/options-swing.ts |
+| `57d09f27` | 2026-10-09T15:59 | grade each swing hold as its own card | M .ai/locator.md, M src/components/desk/options-swing-panel.tsx, M src/lib/trading/options-desk.ts, M src/lib/trading/options-swing.ts |
+| `1713b317` | 2026-10-09T15:38 | take a contract when the pool pays the 40 percent trim | M src/lib/trading/options-desk.ts, M src/lib/trading/options-knowledge.ts |
+| `14d91403` | 2026-10-09T15:36 | grade the chain on debit cleared, spread, and the afternoon clock | M .ai/locator.md, M src/components/desk/options-swing-panel.tsx, M src/lib/trading/options-desk.ts, A src/lib/trading/options-knowledge.ts |
+| `5293507e` | 2026-10-09T15:19 | rank the live chain by expected return, not by the middle of a delta band | M .ai/locator.md, M src/lib/trading/options-desk.ts |
 | `b0bb7850` | 2026-10-09T14:57 | keep seated people in their chairs and stop the cat face-planting | M src/components/room/floor-scene.ts |
-| `0c3abe62` | 2026-10-09T14:41 | let a finished model lead, and make the mechanical model Blake's close | M .ai/locator.md, M src/lib/trading/detectors.ts, M src/lib/trading/scanner.ts, M src/lib/trading/strategy-grade.ts |
-| `bcd0e928` | 2026-10-09T14:35 | let a named raid take without the half or the higher timeframe standing it down | M .ai/locator.md, M scripts/verify-smc-master.mjs, M src/lib/trading/smc-master.ts |
-| `3e61f9ef` | 2026-10-09T14:21 | do not hand a ticket the brain, the entry, and the ask do not share | M .ai/locator.md, M src/lib/trading/desk-listen.ts, M src/lib/trading/options-desk.ts |
-| `fd86b3d1` | 2026-10-09T13:37 | let a graded card be placed inside the Judas window | M src/lib/trading/options-desk.ts, M src/lib/trading/smc-master.ts |
-| `851ed93e` | 2026-10-09T12:13 | desk: restamp Oct 5–9 notes for Thu NQ week low; UMich not printed | M src/lib/trading/week-ahead.ts |
-| `326cf9fd` | 2026-10-08T15:57 | Merge remote-tracking branch 'origin/main' into HEAD | — |
-| `961f223a` | 2026-10-08T20:52 | Restamp Thu Oct 8: claims 197k, NQ failed PWH hold. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `f357e18e` | 2026-10-08T15:20 | Merge branch 'worktree-agent-a6ff34f4323d885b6' into HEAD | — |
-| `f30d0ddb` | 2026-10-08T14:18 | one plan object, and the draw is the target | M scripts/verify-card-plan.mjs, A scripts/verify-smc-master.mjs, M src/lib/trading/card-plan.ts, M src/lib/trading/score-drivers.ts, M src/lib/trading/smc-master.ts |
-| `157126f4` | 2026-10-08T14:17 | detect on closed bars, and grade the raid against the finer tape | M scripts/verify-desk-enhancements.mjs, M src/lib/trading/build-desk.ts, M src/lib/trading/raid-pair.ts, M src/lib/trading/scanner.ts |
-| `783bee4d` | 2026-10-08T14:16 | name each model by its own object and its own hour | M src/lib/trading/engine-weights.ts, M src/lib/trading/smc-canon.ts, M src/lib/trading/smt-level.ts, M src/lib/trading/strategies.ts, M src/lib/trading/strategy-grade.ts |
-| `e75ce71e` | 2026-10-08T13:07 | gate: block on what you broke, not on what was already broken | M AGENTS.md, A docs/pending-workflows/desk-gate.yml, M scripts/hooks/pre-push, M scripts/verify-all.mjs, A scripts/verify-baseline.json |
-| `f4cd8a2a` | 2026-10-08T12:30 | dispatch: close the fixture through the wick, now that -30% alone does not | M scripts/verify-rh-dispatch.mjs |
-| `9c1b7242` | 2026-10-08T12:30 | give the close its own job instead of a seat on somebody else's | M docs/RH_LIVE_ROUTINE.md, A scripts/verify-rh-desk-job.mjs, M src/routeTree.gen.ts, A src/routes/api/cron/rh-manage.ts |
 
 ## New files in those commits
 
-- `scripts/verify-smc-master.mjs` in `f30d0ddb`
-- `docs/pending-workflows/desk-gate.yml` in `e75ce71e`
-- `scripts/verify-baseline.json` in `e75ce71e`
-- `scripts/verify-rh-desk-job.mjs` in `9c1b7242`
-- `src/routes/api/cron/rh-manage.ts` in `9c1b7242`
+- `src/components/desk/option-marks.tsx` in `8f07af44`
+- `src/lib/execution/option-marks.ts` in `8f07af44`
+- `scripts/verify-live-lesson.mjs` in `f93ba028`
+- `src/components/desk/brain-word.tsx` in `f93ba028`
+- `src/components/desk/four-facts-board.tsx` in `f93ba028`
+- `src/components/desk/option-ticket.tsx` in `f93ba028`
+- `src/components/learn/live-lessons.tsx` in `f93ba028`
+- `src/lib/learn/live-lesson.ts` in `f93ba028`
+- `src/lib/trading/ticket-facts.ts` in `f93ba028`
+- `src/lib/trading/options-knowledge.ts` in `14d91403`
 
 ## Before you edit
 
