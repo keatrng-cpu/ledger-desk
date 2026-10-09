@@ -62,9 +62,9 @@ export interface McpReply {
 
 function slice(card: DeskListenCard, name: ToolName): unknown {
   const wire = card.wire ?? null;
-  if (name === "read_scanner") return { at: card.at, clock: card.clock, quotes: card.quotes, scanner: card.scanner, wire };
-  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said, wire };
-  if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain, wire };
+  if (name === "read_scanner") return { at: card.at, clock: card.clock, quotes: card.quotes, scanner: card.scanner, optionMarks: card.optionMarks, wire };
+  if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said, optionMarks: card.optionMarks, wire };
+  if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain, optionMarks: card.optionMarks, wire };
   return card;
 }
 

@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import { OptionMarksStrip } from "@/components/desk/option-marks";
 import type { RiskState } from "@/lib/journal/risk";
 import { brainLiveRisk, type RiskFetchState } from "@/lib/trading/desk-fetch-guard";
 import {
@@ -160,6 +161,7 @@ export function VeteranBrainPanel({
 
   return (
     <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_oklab,var(--color-primary)_30%,var(--color-border))] bg-[var(--color-surface)] p-3 sm:p-4">
+      <OptionMarksStrip marks={desk.optionMarks} />
       {/* What the brain's discretion has to stay inside: the desk's own four
           years, measured under the rule as coded. The 2024 22-trade seed
           below is history for the rate card; this is the evidence. */}

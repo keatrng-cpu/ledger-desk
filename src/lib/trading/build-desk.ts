@@ -97,6 +97,8 @@ export interface DeskPayload {
   quotes: { left: LiveQuote; right: LiveQuote };
   /** Cash SPY/QQQ spots for the Robinhood sleeve. Null = fall back to ES/10, NQ/40 (labelled). */
   proxies: { SPY: ProxySpot | null; QQQ: ProxySpot | null };
+  /** Live Robinhood asks for the ATM call and put. Null when the session is not connected. */
+  optionMarks?: import("@/lib/execution/option-marks").OptionMark[] | null;
   /** Tape circuit breaker — unscheduled catastrophic candle. See shock.ts. */
   shock: ShockRead;
   bias: { left: HtfBiasRead; right: HtfBiasRead };
@@ -511,7 +513,13 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
     try {
       const { getSql } = await import("@/lib/db");
       const { readGrokReport } = await import("@/lib/desk/grok-report");
-      desk.grokReport = await readGrokReport(await getSql());
+      const { readOptionMarks } = await import("@/lib/execution/option-marks");
+      const sql = await getSql();
+      desk.grokReport = await readGrokReport(sql);
+      desk.optionMarks = await Promise.race([
+        readOptionMarks({ QQQ: desk.proxies.QQQ?.price ?? null, SPY: desk.proxies.SPY?.price ?? null }, sql),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
+      ]);
     } catch {
       desk.grokReport = null;
     }
