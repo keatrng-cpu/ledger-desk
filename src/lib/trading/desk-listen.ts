@@ -28,6 +28,8 @@ export interface DeskListenCard {
     actionable: boolean;
     strategy: string | null;
     entry: number | null;
+    /** Live Robinhood ask for this side, when the session returned one. */
+    ask: number | null;
   }[];
   floor: {
     id: string | null;
@@ -43,6 +45,8 @@ export interface DeskListenCard {
     word: string | null;
     missing: string | null;
   };
+  /** ATM call and put asks, the same numbers the floor and the desk are showing. */
+  optionMarks: { underlier: string; side: string; strike: number; ask: number; bid: number | null; ageSec: number }[];
   said: { who: string; line: string }[];
   report: GrokReport | null;
   /**
@@ -89,6 +93,7 @@ export interface DeskWire {
       pricedFrom: "live_chain" | "model";
       stop: string | null;
       targets: string[];
+      liveAsk: number | null;
     } | null;
   };
   execution: {
@@ -164,6 +169,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
             pricedFrom: shown.ticket.pricedFrom,
             stop: shown.ticket.invalidation || null,
             targets: shown.ticket.targets.slice(0, 3),
+            liveAsk: desk.optionMarks?.find((m) => m.underlier === shown.ticket!.underlier && m.side === shown.ticket!.side)?.ask ?? null,
           }
         : null,
     },
@@ -204,15 +210,20 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       left: { symbol: desk.quotes.left.symbol, price: desk.quotes.left.price, lagSec: desk.quotes.left.lagSec },
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, lagSec: desk.quotes.right.lagSec },
     },
-    scanner: desk.scan.candidates.slice(0, 3).map((c) => ({
-      symbol: c.symbol,
-      side: c.side,
-      band: c.pathBand ?? c.grade,
-      q: c.confluence,
-      actionable: c.actionable,
-      strategy: c.completeStrategy || c.strategyPrimary || null,
-      entry: c.entryPx ?? null,
-    })),
+    scanner: desk.scan.candidates.slice(0, 4).map((c) => {
+      const underlier = c.symbol.includes("ES") ? "SPY" : "QQQ";
+      const optSide = c.side === "short" ? "put" : "call";
+      return {
+        symbol: c.symbol,
+        side: c.side,
+        band: c.pathBand ?? c.grade,
+        q: c.confluence,
+        actionable: c.actionable,
+        strategy: c.completeStrategy || c.strategyPrimary || null,
+        entry: c.entryPx ?? null,
+        ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
+      };
+    }),
     floor: {
       id: shown?.id ?? null,
       verdict,
@@ -236,6 +247,14 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       word: book?.word ?? null,
       missing: book?.missing ?? null,
     },
+    optionMarks: (desk.optionMarks ?? []).map((m) => ({
+      underlier: m.underlier,
+      side: m.side,
+      strike: m.strike,
+      ask: m.ask,
+      bid: m.bid,
+      ageSec: Math.max(0, Math.round((Date.now() - m.asOfMs) / 1000)),
+    })),
     said,
     report: null,
     wire,

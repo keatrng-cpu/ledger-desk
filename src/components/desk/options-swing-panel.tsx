@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { DeskPayload } from "@/lib/trading/build-desk";
+import { OptionMarksStrip } from "@/components/desk/option-marks";
 import {
   evaluateOptionsDesk,
   optionsDeskPlaybook,
@@ -305,6 +306,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
 
   return (
     <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_oklab,var(--color-primary)_28%,var(--color-border))] bg-[var(--color-surface)] p-3 sm:p-4">
+      <OptionMarksStrip marks={desk.optionMarks} />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-start gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[color-mix(in_oklab,var(--color-primary)_14%,transparent)] text-[var(--color-primary)]">

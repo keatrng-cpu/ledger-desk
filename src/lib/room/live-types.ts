@@ -391,6 +391,8 @@ export interface ScanCardLite {
   entry: number | null;
   stop: number | null;
   t1: number | null;
+  /** Live Robinhood ask for this card's underlier and side. Null when the session has no quote. */
+  ask: number | null;
   block: string | null;
   /** live enters. armed and forming are anticipation. gone does not chase. */
   entryState: "live" | "armed" | "forming" | "gone" | "wait";

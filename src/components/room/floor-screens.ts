@@ -1323,7 +1323,8 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
   ctx.textAlign = "right";
   const pCol = w - 148;
   const eCol = w - 18;
-  ctx.fillText("P(T1)", pCol, 62);
+  const priced = cards.some((c) => c.ask != null);
+  ctx.fillText(priced ? "ASK" : "P(T1)", pCol, 62);
   ctx.fillText("E[R]", eCol, 62);
   ctx.textAlign = "left";
   ctx.fillText("BAND   SETUP", 24, 62);
@@ -1370,7 +1371,7 @@ function drawScanner(ctx: Ctx, w: number, h: number, f: FloorFrame, clockMs = 0)
     ctx.textAlign = "right";
     ctx.font = `800 22px ${MONO}`;
     ctx.fillStyle = c.pT1 != null ? (c.pT1 >= 0.4 ? C.up : c.pT1 >= 0.25 ? C.amber : C.muted) : C.muted;
-    ctx.fillText(c.pT1 != null ? `${Math.round(c.pT1 * 100)}%` : "—", pCol, y + 28);
+    ctx.fillText(c.ask != null ? `$${c.ask.toFixed(2)}` : c.pT1 != null ? `${Math.round(c.pT1 * 100)}%` : "—", pCol, y + 28);
     ctx.fillStyle = c.expR != null ? (c.expR > 0 ? C.up : C.down) : C.muted;
     ctx.fillText(c.expR != null ? `${c.expR > 0 ? "+" : ""}${c.expR.toFixed(2)}` : "—", eCol, y + 28);
     ctx.textAlign = "left";

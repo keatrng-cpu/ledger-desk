@@ -431,6 +431,7 @@ export function scannerCards(desk: DeskPayload, limit = 6): ScanCardLite[] {
         entry: plan?.entry ?? null,
         stop: plan?.stop ?? null,
         t1: plan?.t1 ?? null,
+        ask: desk.optionMarks?.find((m) => m.underlier === u && m.side === (c.side === "short" ? "put" : "call"))?.ask ?? null,
         block: c.missing?.[0] ?? null,
         entryState: read?.tier ?? "wait",
         entryLine: seq.act,
