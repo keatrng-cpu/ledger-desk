@@ -755,13 +755,16 @@ type CategoryDef = {
  * So the session opens on the ticket, then the futures card the option
  * expresses, then the tape it was read from, then why — and the room sits
  * under the brain rather than beside Predict. News is a schedule, not a
- * destination. Book is after the trade. Learn is last, and since
- * `src/lib/learn/live-lesson.ts` it is no longer a dead checklist.
+ * destination. Book is after the trade. Learn is the last of the session
+ * tabs, and since `src/lib/learn/live-lesson.ts` it is no longer a dead
+ * checklist. Invest and Predict sit after Learn (trader's call 2026-10-09):
+ * the day is traded first, the longer book and the event book are still one
+ * click away.
  *
- * Predict, Discuss, Lab and Invest stay in `DeskCategory`, in the router and
- * in `ledger:open-tab` — they are reachable, they are simply not on the bar.
- * They live in HIDDEN_CATEGORIES below so their ids and icons stay named in
- * one place instead of being deleted and rediscovered.
+ * Discuss and Lab stay in `DeskCategory`, in the router and in
+ * `ledger:open-tab` — reachable, not on the bar. They live in
+ * HIDDEN_CATEGORIES below so their ids and icons stay named in one place
+ * instead of being deleted and rediscovered.
  */
 const CATEGORIES: CategoryDef[] = [
   {
@@ -820,14 +823,26 @@ const CATEGORIES: CategoryDef[] = [
     hint: "Nine lessons, graded live",
     icon: GraduationCap,
   },
+  {
+    id: "invest",
+    label: "Invest",
+    short: "Inv",
+    hint: "Shares · sweep · 2035",
+    icon: Landmark,
+  },
+  {
+    id: "predict",
+    label: "Predict",
+    short: "Pred",
+    hint: "Event contracts",
+    icon: Percent,
+  },
 ];
 
 /** Off the bar, still in the type, the router and `ledger:open-tab`. */
 const HIDDEN_CATEGORIES: CategoryDef[] = [
-  { id: "predict", label: "Predict", short: "Pred", hint: "Event contracts", icon: Percent },
   { id: "discuss", label: "Discuss", short: "Talk", hint: "Grok + Claude · 6 checkpoints", icon: MessagesSquare },
   { id: "lab", label: "Lab", short: "Lab", hint: "Risk · rules · replay", icon: FlaskConical },
-  { id: "invest", label: "Invest", short: "Inv", hint: "Shares · sweep · 2035", icon: Landmark },
 ];
 
 /**
