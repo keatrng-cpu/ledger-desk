@@ -739,30 +739,23 @@ function gradeBook(
     price: fresh?.mid,
   });
 
-  // A Judas entry must ALSO clear the A+ tag, not merely the action floor.
-  // The open is the least-informed moment of the day — the session's own
-  // structure does not exist yet — so the one setup allowed through is the
-  // fully complete one CLAUDE.md always said this carve-out was for.
-  const judasUndergrade =
-    judasRead.stage === "released" &&
-    (cand?.confluence ?? 0) < JUDAS_MIN_CONFLUENCE;
+  // Judas is the open. It is not a stand. A card the desk already graded can
+  // be placed inside 09:30–09:45. The raid and the later close stay on the
+  // card. News blackout stays a fail: that is the print, not the window.
+  const judasUndergrade = false;
 
   layers.push({
     id: "clean",
     label: "Judas / news",
     must: true,
-    state: judas || judasUndergrade || newsBlk ? "fail" : "pass",
+    state: newsBlk ? "fail" : "pass",
     detail: newsBlk
       ? `${news.reason || "News spike"}. No retest yet — do not chase the print.`
       : news.verdict === "blackout" && retestReady
         ? "The print was the raid. The retest is the trade."
-        : judasUndergrade
-        ? `${judasRead.reason} — but Q ${(cand?.confluence ?? 0).toFixed(2)} is under the ${JUDAS_MIN_CONFLUENCE} this window demands.`
-        : judas
-          ? judasRead.reason
-          : judasRead.inWindow
-            ? judasRead.reason
-            : "Tape is tradable",
+        : judasRead.inWindow
+          ? `${judasRead.reason} The window does not block the ticket.`
+          : "Tape is tradable",
   });
 
   const musts = layers.filter((l) => l.must);

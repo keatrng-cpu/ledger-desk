@@ -1569,9 +1569,9 @@ function judasIfvg0dte(
 
   if (!clock.isWeekday) blocks.push("Weekend");
   if (day?.kind === "holiday") blocks.push("Cash holiday");
-  if (isJudasWindow(clock.etHour, clock.etMinute)) reasons.push("Judas open — size stays 1. The chart still calls it.");
+  if (isJudasWindow(clock.etHour, clock.etMinute)) reasons.push("Judas open — full size. The chart still calls it.");
   if (clock.killzone !== "ny_am") reasons.push(`Outside NY AM (${clock.killzoneLabel}) — size stays 1.`);
-  if (clock.etHour < 9 || (clock.etHour === 9 && clock.etMinute < 45)) reasons.push("Before 9:45 — 0DTE size stays 1.");
+  if (clock.etHour < 9 || (clock.etHour === 9 && clock.etMinute < 45)) reasons.push("Judas window — full size.");
   if (desk.news?.verdict === "blackout" || desk.news?.verdict === "caution" || desk.shock?.active || desk.shock?.tail) {
     reasons.push("News or shock — 0DTE size stays 1. Not a ban.");
   }
@@ -1947,7 +1947,7 @@ export function evaluateOptionsDesk(
     {
       id: "judas",
       ok: true,
-      label: isJudasWindow(clock.etHour, clock.etMinute) ? "Judas — size cut, chart decides" : "Outside Judas 9:30–9:45",
+      label: isJudasWindow(clock.etHour, clock.etMinute) ? "Judas — full size, chart decides" : "Outside Judas 9:30–9:45",
     },
     {
       id: "htf",
