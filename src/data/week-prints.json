@@ -208,5 +208,19 @@
     "actual": "197k",
     "vs": "exp 200k / prev 197k rev 199k",
     "note": "DOL official week ending Oct 3. -2k vs revised prior. 4-wk avg 198k. Continuing 1.716M (week ending Sep 26) vs 1.699M rev, +17k. IUR 1.1%. Soft-to-in-line; not a labor-break. No ISM/JOLTS/ADP/NFP today."
+  },
+  {
+    "date": "2026-10-09",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Fri. No labor/ISM print. UMich Oct P is the only scheduled medium print."
+  },
+  {
+    "date": "2026-10-09",
+    "name": "UMich Sentiment (Oct P)",
+    "actual": "46.3",
+    "vs": "exp ~47.6\u201348.0 / prev 48.1",
+    "note": "UMich official prelim. Current conditions 44.7 (record low, prev 50.9). Expectations 47.3 (prev 46.3). 1y inflation 4.7% (prev 4.6%), 5-10y 3.5% (prev 3.4%). Soft. Not ISM/JOLTS/ADP/claims/NFP."
   }
 ]
