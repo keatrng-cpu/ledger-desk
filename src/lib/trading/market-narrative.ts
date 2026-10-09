@@ -110,7 +110,7 @@ const RULES = [
   "DOL = next unmitigated ERL (BSL/SSL, PDH/PDL, EQH/EQL). IRL = partials.",
   "EQH/EQL densest stops, then session/PDH/PDL, then swings / Asia.",
   "Do not drop to LTF until price is at a valid HTF/MTF POI.",
-  "Mechanical: sweep → displace → invert → retest (ordered).",
+  "Mechanical (Blake): sweep → displace → body close through the gap that ran into the pool. The close IS the entry; a later retest is a note.",
   "TJR: HTF sweep first, then 5m BOS/IFVG/79%/SMT — never chase the raid.",
   "Patty: pre-market AMD → 9:30 manip into 15m/1H level → 1–5m IFVG. One trade.",
   "SMT: relative strength across indices — companion entry model required.",

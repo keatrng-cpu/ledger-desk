@@ -25,6 +25,7 @@ import { canonFor } from "@/lib/learn/canon";
 import { DrillCall, WhyBox } from "./drill-call";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { LiveExampleChart } from "./live-example";
+import { LiveLessonBoard } from "./live-lessons";
 
 /** Lessons the trader has marked done — this browser only, display state. */
 const DONE_KEY = "ledger.learn.done";
@@ -111,6 +112,14 @@ export function LearnTab({ desk }: { desk: DeskPayload }) {
       </nav>
 
       <article className="flex min-w-0 flex-col gap-3">
+        {/* The nine lessons first (trader's call 2026-10-09): the condition,
+            the pass, the tape that is not it, and what the desk reads right
+            now. The 18-step curriculum below is unchanged, including step 18's
+            replay drill. A checked box is progress, never a permission. */}
+        <LiveLessonBoard desk={desk} />
+        <div className="lg:hidden">
+          <LiveExampleChart desk={desk} />
+        </div>
         <ModuleView
           key={active.id}
           module={active}

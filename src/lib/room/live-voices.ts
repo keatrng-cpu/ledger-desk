@@ -876,6 +876,8 @@ export function exTier(c: Ctx, d: TierData): Ex | null {
     pT1: k.pT1,
     expR: k.expR,
     schools: k.schools,
+    // The sentence the detector owns, not a line from a bank.
+    lesson: k.lessonSay ?? null,
   });
   if (d.from != null) {
     // The card was read out in full when it first appeared (the schools, the target, the book's record). A step from one tier to the
@@ -1265,8 +1267,8 @@ export function exBoard(c: Ctx, d: BoardData): Ex | null {
       () => `${k.band ?? "—"} ${k.futSymbol} ${k.futSide}. Buy-side sits above the highs, sell-side under the lows. ${k.setup ? f.raw(k.setup) : "Nothing tagged."}`,
     ])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, "hb.board.sterling", [
-      () => (k.block ? `${k.verdict === "ARMED" ? "Armed, but " : "Held back by: "}${f.raw(clip(k.block, 90))}.` : `Nothing blocking it. The touch is what's missing.`),
-      () => (k.block ? `What it still needs: ${f.raw(clip(k.block, 90))}.` : `Gates are clear. It's waiting on price.`),
+      () => (k.block ? `${k.verdict === "ARMED" ? "Armed, but " : "Held back by: "}${f.raw(clip(k.block, 90))}.${k.lessonSay ? ` ${f.raw(clip(k.lessonSay, 110))}` : ""}` : `Nothing blocking it. The touch is what's missing.`),
+      () => (k.block ? `What it still needs: ${f.raw(clip(k.block, 90))}.${k.lessonSay ? ` ${f.raw(clip(k.lessonSay, 110))}` : ""}` : `Gates are clear. It's waiting on price.`),
     ])),
     k.expR != null
       ? line("Nova", ANIM.Nova.analyze!, pick(c, "hb.board.nova", [() => `E[R] ranks cards well but runs optimistic at the top. I quote it; I don't trust the decimals.`, () => `The model's top fifth priced higher than it realized. Rank, don't bank.`, () => `Expected R is a ranking, not a promise.`]))
@@ -1558,6 +1560,8 @@ export function exWelcome(c: Ctx, d: WelcomeData): Ex | null {
 /** The five compare notes. Discretion is each school's own no. Nothing here is a ticket. */
 export interface HuddleData {
   missing: string | null;
+  /** The lesson for that layer (live-lesson.ts), carried on the card. */
+  lesson?: string | null;
   experiment: { owner: Character; title: string; n: number; nNeeded: number } | null;
   leader: string | null;
   seated: string | null;
@@ -1576,7 +1580,9 @@ export function exHuddle(c: Ctx, d: HuddleData): Ex | null {
           ? `The stamp is ${f.raw(d.stamp)}. That is the whole room's no, Jax included.`
           : `The sequence is intact. Adding a layer to force a trade is how a good desk gets worse.`,
       () => d.missing
-        ? `${f.raw(d.missing)} is still missing. Discount, premium, the draw — none of them substitute for it.`
+        ? d.lesson
+          ? `${f.raw(d.missing)} is still missing. ${f.raw(clip(d.lesson, 120))}`
+          : `${f.raw(d.missing)} is still missing. Discount, premium, the draw — none of them substitute for it.`
         : `I am not teaching a new model today. The one on the board is the one we trade.`,
     ])),
     line("Jax", ANIM.Jax.point!, pick(c, d.jaxWrong ? "hb.huddle.jax.wrong" : "hb.huddle.jax", d.jaxWrong

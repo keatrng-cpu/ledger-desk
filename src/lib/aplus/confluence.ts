@@ -62,7 +62,7 @@ export const CONFLUENCE_KNOWLEDGE: ConfluenceKnowledge = {
     "Observed 843 scored candidates; best 0.635 vs floor 0.75; cleared 0 — selectivity held.",
     "Hot (low-information alone): ifvg, structure — require complementary cold/mechanical confirmation.",
     "Cold: mechanical_model, order_block, breaker, mitigation, propulsion — detection gap or scarce.",
-    "Mechanical model (sweep→displace→invert→retest) is rare. Refuse partial sequences.",
+    "Mechanical model (sweep→displace→body close through the pre-raid gap) is rare. Refuse partial sequences.",
     "HTF top_down remains an absolute gate — not a weighted input.",
     "Strategy catalog always-on: mechanical, tjr, judas, pdi, patty, continuation, blake_mech, ronan, smt.",
   ],

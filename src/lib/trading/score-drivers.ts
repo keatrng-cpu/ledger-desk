@@ -173,7 +173,7 @@ const WHAT: Partial<Record<ComponentKey, string>> = {
   htf2_bias: "The second higher timeframe agreeing with the trade.",
   daily_bias: "The daily candle's direction. The draw, not the trigger.",
   opening_bias: "Where price sits against the session open.",
-  mechanical_model: "The ordered model: sweep, displace, invert, then the retest.",
+  mechanical_model: "The ordered model: sweep, displace, then the body close through the gap that ran into the pool. The close is the entry.",
   breaker: "An order block price has closed through. It flips and is traded from the other side. Not a mitigation block.",
   mitigation: "A failed second push — a lower high or a higher low — then structure breaks the other way. Not an entry we wait to tag.",
   rejection: "The wick of a candle that ran a pool and closed back inside. The wick is the zone.",

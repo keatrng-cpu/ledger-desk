@@ -247,6 +247,14 @@ export interface CardRead {
    * 1 to 5 minute inverse printed inside it. Null when there is no such gap. Narration only.
    */
   sponsored?: string | null;
+  /**
+   * The LESSON for the layer the grader named as missing (live-lesson.ts
+   * `sayForMissing`), in one sentence. The mouth has to match the detector:
+   * before this, a seat saying what was missing read a phrase bank, so it could
+   * ask for a retest the detector no longer wants. Null when the layer has no
+   * lesson. Narration only — nothing reads it as a gate.
+   */
+  lessonSay?: string | null;
 }
 
 export interface MindsRead {

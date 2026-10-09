@@ -19,6 +19,7 @@ import { sponsoredRead, type SponsoredRead } from "@/lib/trading/sponsored-gap";
 import type { SmcArray } from "@/lib/trading/smc-board";
 import { loadHiAlerts, lessonOf, recallHiAlerts } from "@/lib/trading/hi-alert";
 import { SCHOOL_AVATAR, consensusLine, schoolFactsFrom, schoolReads, schoolSentence } from "@/lib/trading/school-brief";
+import { sayForMissing } from "@/lib/learn/live-lesson";
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import { compareForBoard } from "@/lib/trading/scanner";
 import { setupLine } from "@/lib/trading/score-drivers";
@@ -378,6 +379,9 @@ function cardRead(desk: DeskPayload): CardRead | null {
     entrySay: seq.say ?? null,
     schools: schoolsOf(desk, c, sponsored),
     sponsored: sponsored.state === "none" ? null : sponsored.line,
+    // The lesson for the layer the sequence named as missing, so a seat says
+    // what the detector actually wants instead of a phrase from a bank.
+    lessonSay: sayForMissing(desk, b.smc?.missing ?? null, desk.left.symbol === c.symbol ? "left" : "right"),
     delivery: deliveryLine(pick) || null,
     recall: recallHiAlerts(loadHiAlerts(), { strategy: c.completeStrategy || c.strategyPrimary || null, side: c.side === "short" ? "short" : "long" }),
   };

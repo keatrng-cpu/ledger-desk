@@ -37,6 +37,13 @@ export function jobsFor(input: {
   expR?: number | null;
   /** The four schools graded on this card (school-brief.ts, via live-world). */
   schools?: { line: string; by: Record<string, string> } | null;
+  /**
+   * The LESSON for the layer that is missing (live-lesson.ts `sayForMissing`,
+   * attached per card by live-world). When present it replaces the phrase this
+   * function used to invent: a bank line can ask for a retest the detector no
+   * longer wants, and a lesson cannot, because it is read off the detector.
+   */
+  lesson?: string | null;
 }): BrainJobs {
   const seq = input.sequence?.trim() || input.smcWord?.trim() || "no sequence yet";
   const place = seq.startsWith("ENTER");
@@ -56,9 +63,14 @@ export function jobsFor(input: {
       ? `${SCHOOLS.patty.entry} ${SCHOOLS.tjr.sequence[3]}.`
       : `${SCHOOLS.blake.entry} Until that prints, this is a watch.`;
   const target = `${SCHOOLS.smc.sequence[1]}. ${SCHOOLS.tjr.sequence[4]}.${targetPx}`;
+  const lesson = input.lesson?.trim();
   const watch = place
     ? "This is the fill. Watch the stop beyond the sweep. Do not add a second confirm."
-    : `Watch, do not place. ${input.missing ? `Still missing ${input.missing}.` : "The raid, the arm, and a score are not the entry."}`;
+    : `Watch, do not place. ${
+        input.missing
+          ? `Still missing ${input.missing}.${lesson ? ` ${lesson}` : ""}`
+          : (lesson ?? "The raid, the arm, and a score are not the entry.")
+      }`;
   const line = `${setup} Entry: ${entry} Target: ${target} Watch: ${watch} ${BOOK}${odds}`;
   return { setup, entry, target, watch, book: `${BOOK}${odds}`, draw: targetPx.trim(), odds: odds.trim(), school: input.schools?.by ?? {}, place, line };
 }

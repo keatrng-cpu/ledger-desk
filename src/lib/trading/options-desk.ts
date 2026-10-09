@@ -1894,7 +1894,15 @@ function htfSwingCard(
   };
 }
 
-function holdReasons(desk: DeskPayload, card: RhStrategyCard): string[] {
+/**
+ * Why a ticket is not handed: the debit is not a live ask inside the envelope,
+ * the brain is standing or on the other book, or price is not at the array.
+ *
+ * Exported so the Options tab's one ticket can print WHICH requirement is red
+ * instead of re-deriving the same three answers beside the engine that
+ * already has them.
+ */
+export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
   if (card.verdict !== "ARMED" || !card.ticket) return [];
   const holds: string[] = [];
   const t = card.ticket;
@@ -1919,7 +1927,7 @@ function holdReasons(desk: DeskPayload, card: RhStrategyCard): string[] {
 }
 
 function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
-  const holds = holdReasons(desk, card);
+  const holds = ticketHolds(desk, card);
   if (!holds.length) return card;
   return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6) };
 }

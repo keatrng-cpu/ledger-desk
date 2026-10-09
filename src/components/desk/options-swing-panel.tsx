@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
-  Circle,
   Layers,
   ShieldAlert,
   Sparkles,
@@ -17,7 +16,6 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import {
   evaluateOptionsDesk,
   optionsDeskPlaybook,
-  type RhStrategyCard,
   type RhVerdict,
   type UnderlierQuote,
 } from "@/lib/trading/options-desk";
@@ -36,7 +34,6 @@ import {
   type RhFill,
   type RhIncomeRead,
 } from "@/lib/trading/rh-income";
-import { schoolTicket } from "@/lib/trading/school-ticket";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictClass(v: RhVerdict): string {
@@ -49,87 +46,6 @@ function verdictClass(v: RhVerdict): string {
 
 function usd(n: number): string {
   return `$${Math.round(n).toLocaleString()}`;
-}
-
-function StrategyCard({ card }: { card: RhStrategyCard }) {
-  return (
-    <article className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
-      <header className="mb-1.5 flex items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-[var(--color-fg)]">{card.name}</p>
-          <p className="text-[10px] text-[var(--color-subtle)]">
-            {card.horizon} · {card.whyHighProb}
-          </p>
-        </div>
-        <span
-          className={cn(
-            "shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold",
-            verdictClass(card.verdict),
-          )}
-        >
-          {card.verdict}
-        </span>
-      </header>
-
-      {card.ticket && (
-        <div className="mb-2 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5">
-          <p className="font-mono text-[12px] text-[var(--color-fg)]">
-            {card.ticket.product === "debit_spread" ? "SPREAD" : "BUY"} {card.ticket.contracts}{" "}
-            {card.ticket.underlier} {card.ticket.side.toUpperCase()}
-            <span className="text-[var(--color-muted)]">
-              {" "}
-              · DTE {card.ticket.dteTarget} · Δ {card.ticket.deltaMin}–{card.ticket.deltaMax} · pay{" "}
-              {usd(card.ticket.estDebitTotal)} · cut {usd(card.ticket.workingStop)} · ceiling{" "}
-              {usd(card.ticket.maxLoss)}
-            </span>
-          </p>
-          <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">{card.ticket.strikeNote}</p>
-          {/* How the size was decided. "ceiling" means no priced stop yet —
-              the real risk has not been solved for. The ticket carried this
-              and the card never showed it. */}
-          <p
-            className={cn(
-              "mt-0.5 text-[10px] leading-snug",
-              card.ticket.sizedFrom === "ceiling" ? "text-[var(--color-warn)]" : "text-[var(--color-subtle)]",
-            )}
-          >
-            Sized from the {card.ticket.sizedFrom === "level" ? "futures invalidation (the rule)" : "debit ceiling — no priced stop yet"}
-            {card.ticket.sizeNote ? ` · ${card.ticket.sizeNote}` : ""}
-          </p>
-          <p className="mt-0.5 text-[11px] text-[var(--color-fg)]">Hold {card.ticket.hold}</p>
-          <p className="text-[11px] text-[var(--color-muted)]">Invalid: {card.ticket.invalidation}</p>
-          <p className="text-[11px] text-[var(--color-warn)]">{card.ticket.cutRule}</p>
-          <ul className="mt-1 space-y-0.5 text-[11px] text-[var(--color-muted)]">
-            {card.ticket.targets.map((t) => (
-              <li key={t}>→ {t}</li>
-            ))}
-          </ul>
-          <p className="mt-1 text-[11px] leading-snug text-[var(--color-fg)]">
-            {schoolTicket(card.ticket.underlier, card.ticket.side === "put" ? "short" : "long")}
-          </p>
-        </div>
-      )}
-
-      <div className="grid gap-2 sm:grid-cols-2">
-        <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
-          {(card.reasons.length ? card.reasons : ["—"]).map((r) => (
-            <li key={r} className="flex gap-1">
-              <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-up)]" />
-              {r}
-            </li>
-          ))}
-        </ul>
-        <ul className="space-y-0.5 text-[11px] text-[var(--color-muted)]">
-          {(card.blocks.length ? card.blocks : ["None"]).map((r) => (
-            <li key={r} className="flex gap-1">
-              <Circle className="mt-1 h-2 w-2 shrink-0 text-[var(--color-down)]" />
-              {r}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </article>
-  );
 }
 
 function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
@@ -574,26 +490,39 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </ul>
       </div>
 
+      {/* ONE LINE PER CARD (trader's call 2026-10-09). The ticket is drawn
+          once, above this panel, by `option-ticket.tsx`. Path, SMT, event and
+          the swing read stay here as a line each — what each one says and what
+          is holding it — rather than as a second board of full tickets the
+          trader has to re-read and compare against the one above. */}
       <div className="mb-3">
         <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-          Day book
+          The other reads
         </p>
-        <div className="space-y-2">
-          {book.day.map((c) => (
-            <StrategyCard key={c.id} card={c} />
+        <ul className="divide-y divide-[var(--color-border)] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)]">
+          {book.cards.map((c) => (
+            <li key={c.id} className="flex flex-wrap items-baseline gap-x-2 px-2.5 py-1.5 text-[11px]">
+              <span
+                className={cn(
+                  "shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold",
+                  verdictClass(c.verdict),
+                )}
+              >
+                {c.verdict}
+              </span>
+              <span className="font-medium text-[var(--color-fg)]">{c.name}</span>
+              <span className="font-mono text-[10px] text-[var(--color-muted)]">
+                {c.horizon}
+                {c.ticket
+                  ? ` · ${c.ticket.contracts} ${c.ticket.underlier} ${c.ticket.side} ${usd(c.ticket.estDebitTotal)}${c.ticket.pricedFrom === "live_chain" ? " live" : " model"}`
+                  : " · no ticket"}
+              </span>
+              <span className="min-w-0 flex-1 text-[var(--color-muted)]">
+                {c.blocks[0] ?? c.reasons[0] ?? "—"}
+              </span>
+            </li>
           ))}
-        </div>
-      </div>
-
-      <div className="mb-3">
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-subtle)]">
-          Swing book
-        </p>
-        <div className="space-y-2">
-          {book.swing.map((c) => (
-            <StrategyCard key={c.id} card={c} />
-          ))}
-        </div>
+        </ul>
       </div>
 
       <div className="rounded-[var(--radius-md)] border border-[color-mix(in_oklab,var(--color-primary)_22%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-primary)_6%,transparent)] px-3 py-2">

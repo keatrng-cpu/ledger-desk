@@ -19,9 +19,9 @@
       "since": "2026-10-08"
     },
     "repo-guards": {
-      "failing": 2,
-      "why": "Dark modules: finished code under src/lib that nothing imports yet (the Floor locomotion/feet/IK modules merged ahead of their wiring). Either wire them or move them out; do not baseline new ones.",
-      "since": "2026-10-08"
+      "failing": 3,
+      "why": "Was 2 on 2026-10-08. The third came in with Grok's 851ed93e..b0bb7850, NOT with this work order (checked: repo-guards is 54/3 on a clean b0bb7850 with every change here stashed). The three: (a) five dark modules nothing imports (rh-http, rh-ledger, rh-mcp, floor-ik, floor-locomotion) - finished code waiting on a caller; (b) verify.server.ts and tape-trust.ts are now imported, so they must come OFF KNOWN_DARK; (c) the Judas assertion encodes the clean layer failing inside 09:30-09:45, which fd86b3d1 ('let a graded card be placed inside the Judas window') deliberately changed - the guard is stale against a change the trader asked for, and it is Grok's commit to settle, not a number to edit here.",
+      "since": "2026-10-09"
     },
     "research-retain": {
       "failing": 1,

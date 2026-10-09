@@ -22,6 +22,8 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - Rest the limit, do not chase — `src/lib/trading/entry-trigger.ts` `readEntry`
 - The Robinhood ticket — `src/lib/trading/options-desk.ts`
 - Send and close — `src/lib/execution/rh-cycle.ts`
+- The nine lessons, graded live — `src/lib/learn/live-lesson.ts` `readLiveLessons`
+- Direction, counter-bias, entry, target — one reader — `src/lib/trading/ticket-facts.ts` `fourFacts`
 - Blake's mechanical model — `src/lib/trading/detectors.ts` `detectMechanicalModel`
 - The floor narrates and does not gate — `src/lib/room/`
 - Live tape — `src/lib/market/databento.ts`, `src/lib/market/live-gateway.ts`

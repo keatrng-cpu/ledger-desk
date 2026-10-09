@@ -476,7 +476,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
         p.phone = true;
       }
       break;
-    case "GESTICULATING_AT_WALL":
+    case "GESTICURING_AT_WALL":
       if (seated) {
         deskHands();
         p.shR = [-1.05 + 0.06 * Math.sin(t * 1.4), 0.04, -0.08];

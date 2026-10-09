@@ -1491,6 +1491,7 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
       build: (c) =>
         V.exHuddle(c, {
           missing,
+          lesson: w.card?.lessonSay ?? null,
           experiment: experiment ? { owner: experiment.owner, title: experiment.title, n: experiment.n, nNeeded: experiment.nNeeded } : null,
           leader: w.seats?.leader ?? null,
           seated,

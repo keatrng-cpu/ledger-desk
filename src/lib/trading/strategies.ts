@@ -48,7 +48,7 @@ export const STRATEGY_NARRATIVE: Record<
 > = {
   mechanical: {
     story: "either",
-    entry: "Ordered retest after sweep→displace→invert",
+    entry: "The body close through the pre-raid gap after sweep→displace. The close is the entry; a retest is a note.",
     liquidity: "Significant sweep starts the sequence",
     school: "Blake Mech",
     confirm: "Inversion + unfilled FVG after hunt",
@@ -164,7 +164,7 @@ export function classify(input: ClassifyInput): StrategyMatch[] {
   if (mechanical) {
     matches.push({
       strategy: "mechanical",
-      reasons: ["ordered sweep→displace→invert→retest"],
+      reasons: ["ordered sweep→displace→body close through the pre-raid gap"],
     });
   }
 

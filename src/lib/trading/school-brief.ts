@@ -303,7 +303,18 @@ const DEFS: Record<SchoolKey, Def[]> = {
         return d === "none" ? ["unknown", "the 15 minute is not read"] : yes(d === f.side, `the 15 minute is ${up(d)}`);
       },
     },
-    { id: "invert", need: "an inversion gap or breaker", have: "the inversion", must: true, test: (f) => yes(has(f, "ifvg", "breaker")) },
+    // The entry is the BODY CLOSE through the gap that ran into the pool
+    // (detectors.ts detectMechanicalModel, 0c3abe6). The trader's own
+    // description of Blake PREFERS a retest of it; the desk does not require
+    // one, so the need says what the detector wants and the retest stays a
+    // preference in the trader's paragraph rather than a requirement here.
+    {
+      id: "invert",
+      need: "a body close through the gap that ran into the pool",
+      have: "the inversion close",
+      must: true,
+      test: (f) => yes(has(f, "ifvg", "breaker")),
+    },
     halfCheck("deep discount for a long or premium for a short"),
     timeCheck("the 9:30 to 11:00 or 13:00 to 15:00 window", false),
     htfGapCheck,

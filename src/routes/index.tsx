@@ -67,6 +67,9 @@ import { TradingCoach } from "@/components/desk/trading-coach";
 import { VeteranBrainPanel } from "@/components/desk/veteran-brain";
 import { FloorBrains } from "@/components/desk/floor-brains";
 import { SmcPlaybook } from "@/components/desk/smc-playbook";
+import { BrainWord } from "@/components/desk/brain-word";
+import { ChartMarks, FourFactsBoard } from "@/components/desk/four-facts-board";
+import { OptionTicket } from "@/components/desk/option-ticket";
 import { OptionsSwingPanel } from "@/components/desk/options-swing-panel";
 import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { PricePathBoard } from "@/components/desk/price-path-board";
@@ -737,73 +740,58 @@ type DeskCategory =
   | "risk"
   | "lab";
 
-const CATEGORIES: {
+type CategoryDef = {
   id: DeskCategory;
   label: string;
   short: string;
   hint: string;
   icon: typeof Crosshair;
-}[] = [
-  {
-    id: "trade",
-    label: "Now",
-    short: "Now",
-    hint: "Draw · PATH · paper",
-    icon: Crosshair,
-  },
-  // Beside Now because the day's schedule is the first thing a session needs:
-  // what releases, which heavyweights report, and what the tape just heard.
-  {
-    id: "news",
-    label: "News",
-    short: "News",
-    hint: "Schedule · headlines · filings",
-    icon: Newspaper,
-  },
+};
+
+/**
+ * THE BAR, IN THE ORDER THE DAY IS TRADED (trader's call 2026-10-09).
+ *
+ * The product is ONE QQQ or SPY option, entered on an array, aimed at a draw.
+ * So the session opens on the ticket, then the futures card the option
+ * expresses, then the tape it was read from, then why — and the room sits
+ * under the brain rather than beside Predict. News is a schedule, not a
+ * destination. Book is after the trade. Learn is last, and since
+ * `src/lib/learn/live-lesson.ts` it is no longer a dead checklist.
+ *
+ * Predict, Discuss, Lab and Invest stay in `DeskCategory`, in the router and
+ * in `ledger:open-tab` — they are reachable, they are simply not on the bar.
+ * They live in HIDDEN_CATEGORIES below so their ids and icons stay named in
+ * one place instead of being deleted and rediscovered.
+ */
+const CATEGORIES: CategoryDef[] = [
   {
     id: "swing",
     label: "Options",
     short: "Opt",
-    hint: "QQQ/SPY · $1k · 15%",
+    hint: "One ticket · QQQ/SPY · live ask",
     icon: Layers,
   },
-  // Event contracts (Robinhood / Kalshi): its own clock — minutes to a game.
   {
-    id: "predict",
-    label: "Predict",
-    short: "Pred",
-    hint: "PM analyzer · Mead Hall + desk · paper",
-    icon: Percent,
+    id: "trade",
+    label: "Now",
+    short: "Now",
+    hint: "The futures card the option expresses",
+    icon: Crosshair,
   },
-  // "mead" is no longer its own tab: the Mead Hall lives at the top of the
-  // Predict analyzer. The id stays as an alias (ledger:open-tab "mead" → Predict).
   {
     id: "tape",
     label: "Charts",
     short: "Tape",
-    hint: "MNQ/ES · levels",
+    hint: "The array · the raid · the draw",
     icon: LineChart,
   },
   {
     id: "brain",
     label: "Brain",
     short: "Brain",
-    hint: "TAKE / STAND",
+    hint: "Why this side · what is missing",
     icon: Brain,
   },
-  // Its own tab (trader's call 2026-09-28): 6 fixed ET checkpoints where Grok
-  // and Claude read the same snapshot independently, then each reply once —
-  // a confidence check beside Brain's on-demand coach, never a gate.
-  {
-    id: "discuss",
-    label: "Discuss",
-    short: "Talk",
-    hint: "Grok + Claude · 6 checkpoints",
-    icon: MessagesSquare,
-  },
-  // The 3D room (2026-10-04): five SMC personalities trade a PAPER QQQ/SPY
-  // 0–1 DTE book off this desk's own cards and gates — a way to watch the
-  // desk think, never a gate and never a broker.
   {
     id: "floor",
     label: "Floor",
@@ -812,38 +800,47 @@ const CATEGORIES: {
     icon: Building2,
   },
   {
+    id: "news",
+    label: "News",
+    short: "News",
+    hint: "Schedule and shock",
+    icon: Newspaper,
+  },
+  {
     id: "path",
     label: "Book",
     short: "Book",
-    hint: "WR · journal · BT",
+    hint: "Journal after the trade",
     icon: TrendingUp,
   },
-  {
-    id: "lab",
-    label: "Lab",
-    short: "Lab",
-    hint: "Risk · rules · replay",
-    icon: FlaskConical,
-  },
-  // Years, not minutes. Sits beside Learn because both are read between
-  // sessions rather than during one — and because putting a five-year book
-  // next to the PATH board is how a hold becomes a trade.
-  {
-    id: "invest",
-    label: "Invest",
-    short: "Inv",
-    hint: "Shares · sweep · 2035",
-    icon: Landmark,
-  },
-  // Last on purpose: the only tab that is not opened during a live session.
   {
     id: "learn",
     label: "Learn",
     short: "Learn",
-    hint: "SMC · sequence · discretion",
+    hint: "Nine lessons, graded live",
     icon: GraduationCap,
   },
 ];
+
+/** Off the bar, still in the type, the router and `ledger:open-tab`. */
+const HIDDEN_CATEGORIES: CategoryDef[] = [
+  { id: "predict", label: "Predict", short: "Pred", hint: "Event contracts", icon: Percent },
+  { id: "discuss", label: "Discuss", short: "Talk", hint: "Grok + Claude · 6 checkpoints", icon: MessagesSquare },
+  { id: "lab", label: "Lab", short: "Lab", hint: "Risk · rules · replay", icon: FlaskConical },
+  { id: "invest", label: "Invest", short: "Inv", hint: "Shares · sweep · 2035", icon: Landmark },
+];
+
+/**
+ * Every id a tab body exists for, bar or not, so `ledger:open-tab` still
+ * reaches Predict, Discuss, Lab and Invest after they left the bar. "mead" is
+ * handled separately above (it opens Predict).
+ */
+const OPENABLE: ReadonlySet<string> = new Set<string>([
+  ...CATEGORIES.map((c) => c.id),
+  ...HIDDEN_CATEGORIES.map((c) => c.id),
+  "backtest",
+  "risk",
+]);
 
 /** TAKE-hold state for word-hysteresis.ts — lives for the tab's lifetime. */
 const wordHold = createHysteresisState();
@@ -874,7 +871,8 @@ function MasterplacePage() {
   // render otherwise differs from the server's.
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow] = useState(() => formatUtcClock(Date.now()));
-  const [cat, setCat] = useState<DeskCategory>("trade");
+  // The session opens on the ticket (trader's call 2026-10-09).
+  const [cat, setCat] = useState<DeskCategory>("swing");
   // DEV capture only — Accuracy attachment re-render (set after mount: SSR-safe).
   const [captureMead, setCaptureMead] = useState(false);
   useEffect(() => {
@@ -889,7 +887,7 @@ function MasterplacePage() {
     const on = (e: Event) => {
       const id = (e as CustomEvent<string>).detail;
       if (id === "mead") setCat("predict");
-      else if (CATEGORIES.some((c) => c.id === id)) setCat(id as DeskCategory);
+      else if (OPENABLE.has(id)) setCat(id as DeskCategory);
     };
     window.addEventListener("ledger:open-tab", on);
     return () => window.removeEventListener("ledger:open-tab", on);
@@ -1708,7 +1706,12 @@ function MasterplacePage() {
     }, 3);
   }, []);
 
-  const active = CATEGORIES.find((c) => c.id === cat) ?? CATEGORIES[0]!;
+  // Off-bar tabs still have a header: Lab, Invest, Predict and Discuss are
+  // reachable by `ledger:open-tab` and must not be labelled "Options".
+  const active =
+    CATEGORIES.find((c) => c.id === cat) ??
+    HIDDEN_CATEGORIES.find((c) => c.id === cat) ??
+    CATEGORIES[0]!;
 
   const brainSnap = desk
     ? runVeteranBrain(
@@ -1945,6 +1948,11 @@ function MasterplacePage() {
 
               {cat === "brain" && (
                 <div className="space-y-5">
+                  {/* The word, the one missing layer, the lesson for it, and
+                      which of the four conditions is red. Nine green-and-red
+                      rows are a diagnostic, not a headline — the notes sit
+                      under this card's own disclosure. */}
+                  <BrainWord desk={desk} />
                   <SectionHead
                     n="V"
                     title="Brains"
@@ -1958,6 +1966,11 @@ function MasterplacePage() {
 
               {cat === "trade" && (
                 <div className="space-y-4">
+                  {/* The same four facts the ticket shows, for both books,
+                      then the option underneath — Now is the futures card the
+                      option expresses, read from one reader so the two tabs
+                      cannot disagree about the entry. */}
+                  <FourFactsBoard desk={desk} />
                   <EntryHero desk={desk} />
                   <PricePathBoard desk={desk} />
                   {/* 15:00–15:55 ET: the overnight decision is due, and the
@@ -2097,11 +2110,20 @@ function MasterplacePage() {
 
               {cat === "swing" && (
                 <div className="space-y-5">
-                  {/* One header: the sleeve panel's own ("Robinhood · QQQ / SPY
-                      sleeve") — the duplicate SectionHead above it is gone. */}
-                  {/* The overnight question is asked before the intraday
-                      cards, because at 15:00 it is the only one left. */}
-                  <OvernightBoard desk={desk} />
+                  {/* FIRST PAINT OF THE SESSION (trader's call 2026-10-09): one
+                      ticket — direction, counter-bias, entry, target, contract,
+                      and the conditions the buy line is predicated on. The
+                      strategy menu that used to open this tab is one line per
+                      card inside the sleeve panel below. */}
+                  <OptionTicket desk={desk} />
+                  {/* The overnight question, only inside its own window. At
+                      15:00 it is the only one left; before that it is a second
+                      board in front of the ticket. */}
+                  {desk.clock.isWeekday &&
+                    desk.clock.etHour * 60 + desk.clock.etMinute >= DECIDE_START_MIN &&
+                    desk.clock.etHour * 60 + desk.clock.etMinute <= DECIDE_END_MIN && (
+                      <OvernightBoard desk={desk} />
+                    )}
                   <OptionsSwingPanel desk={desk} />
                 </div>
               )}
@@ -2162,13 +2184,16 @@ function MasterplacePage() {
 
               {cat === "tape" && (
                 <div className="space-y-5">
-                  <SectionHead
-                    n="T"
-                    title="Dual tape"
-                    sub="MNQ · ES · mark levels from liquidity"
-                  />
+                  {/* The raid wick, the array and the draw. Everything else the
+                      tape knows is real and sits BELOW them. */}
+                  <ChartMarks desk={desk} />
                   <DualIndexCharts desk={desk} />
-                  <LiquidityPanel desk={desk} />
+                  <DeskFold
+                    title="Liquidity map"
+                    sub="every pool the tape knows — under the three marks, not above them"
+                  >
+                    <LiquidityPanel desk={desk} />
+                  </DeskFold>
                 </div>
               )}
 
