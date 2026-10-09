@@ -21,6 +21,7 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - One stop on the card — `src/lib/trading/card-plan.ts` `protectiveInvalidation`
 - Rest the limit, do not chase — `src/lib/trading/entry-trigger.ts` `readEntry`
 - Which contract — `src/lib/trading/options-desk.ts` `pickLiveContract`
+- What the option grade means — `src/lib/trading/options-knowledge.ts` `OPTION_LESSONS`
 - Send and close — `src/lib/execution/rh-cycle.ts`
 - Blake's mechanical model — `src/lib/trading/detectors.ts` `detectMechanicalModel`
 - The floor narrates and does not gate — `src/lib/room/`

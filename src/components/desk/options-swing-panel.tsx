@@ -37,6 +37,7 @@ import {
   type RhIncomeRead,
 } from "@/lib/trading/rh-income";
 import { schoolTicket } from "@/lib/trading/school-ticket";
+import { OPTION_LESSONS } from "@/lib/trading/options-knowledge";
 import { useDeskSynapse } from "@/lib/trading/desk-synapse";
 
 function verdictClass(v: RhVerdict): string {
@@ -606,6 +607,20 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
             <li key={p}>· {p}</li>
           ))}
         </ul>
+        <p className="mb-1 mt-3 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)]">
+          Knowledge
+        </p>
+        <div className="space-y-1">
+          {OPTION_LESSONS.map((lesson) => (
+            <details key={lesson.id} className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1">
+              <summary className="cursor-pointer text-[11px] font-medium text-[var(--color-fg)]">
+                {lesson.title}
+              </summary>
+              <p className="mt-1 text-[11px] leading-snug text-[var(--color-muted)]">{lesson.body}</p>
+              <p className="mt-1 text-[10px] leading-snug text-[var(--color-fg)]">Grade: {lesson.grade}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   );

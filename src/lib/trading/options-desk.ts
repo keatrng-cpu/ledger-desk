@@ -632,6 +632,21 @@ interface ScoredLeg {
   roi: number;
   pPay: number;
   dte: number;
+  /** Underlying points the delta needs before the debit is back. */
+  bePts: number;
+}
+
+/** New York hour of the quote, 0–23. The option clock is not the machine clock. */
+function etHour(nowMs: number): number {
+  const h = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    hourCycle: "h23",
+  })
+    .formatToParts(new Date(nowMs))
+    .find((p) => p.type === "hour")?.value;
+  const n = Number(h);
+  return Number.isFinite(n) ? n : 12;
 }
 
 /** The quantity whose debit sits in the band. One contract when it fits. Two only to clear the floor. */
@@ -650,6 +665,7 @@ function scoreLeg(
   row: { contract: LiveOptionContract; ask: number; bid: number | null; delta: number },
   aim: ContractAim,
   nowMs: number,
+  expectedMove: number | null,
 ): ScoredLeg | null {
   const minDebit = aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL;
   const maxDebit = aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL;
@@ -657,15 +673,26 @@ function scoreLeg(
   if (qty == null) return null;
   const dte = dteOf(row.contract.expiry, nowMs);
   if (dte > 5) return null;
-  if (row.delta < 0.15 || row.delta > 0.75) return null;
+  // 0.30–0.65. Under that is a lottery. Over that is intrinsic with a poor percent return.
+  if (row.delta < 0.3 || row.delta > 0.65) return null;
+  const spreadShare = row.bid != null && row.bid > 0 ? (row.ask - row.bid) / row.ask : 0;
+  if (spreadShare > 0.08) return null;
+  const hour = etHour(nowMs);
+  if (dte < 1 && hour >= 15 && row.delta < 0.45) return null;
   const reach = strikeReach(row.contract.type, aim.spot, row.contract.strike, aim.targetPts);
+  const bePts = row.ask / row.delta;
+  // The pool has to pay the debit. A closer target is not a take-profit for this contract.
+  if (aim.targetPts * reach < bePts) return null;
   const pSetup = aim.pSetup != null && aim.pSetup > 0 && aim.pSetup < 1 ? aim.pSetup : 0.5;
-  const pPay = pSetup * reach;
+  let pPay = pSetup * reach;
+  if (expectedMove != null && expectedMove > 0 && aim.targetPts < expectedMove * 0.35) pPay *= 0.6;
+  let win = row.delta * aim.targetPts * 100 * qty * reach;
+  if (dte < 1 && hour >= 14 && row.delta < 0.4) win *= 0.7;
   const cost = row.ask * 100 * qty;
-  const win = row.delta * aim.targetPts * 100 * qty * reach;
   const loss = Math.min(cost, row.delta * Math.max(0, aim.stopPts) * 100 * qty);
   const ev = pPay * win - (1 - pPay) * loss;
-  return { ...row, qty, cost, roi: cost > 0 ? ev / cost : -1, pPay, dte };
+  const roi = (cost > 0 ? ev / cost : -1) - spreadShare;
+  return { ...row, qty, cost, roi, pPay, dte, bePts };
 }
 
 /**
@@ -686,7 +713,7 @@ export function pickLiveContract(
   want: { side: OptionSide; deltaMin: number; deltaMax: number; expiry?: string | null },
   nowMs: number,
   aim?: ContractAim | null,
-): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number; roi: number | null; pPay: number | null; dte: number | null; considered: number } | { refusal: string } {
+): { contract: LiveOptionContract; ask: number; bid: number | null; delta: number; roi: number | null; pPay: number | null; dte: number | null; bePts: number | null; considered: number } | { refusal: string } {
   if (!chain) return { refusal: "No live chain was read — the ticket is a model estimate and cannot be sent." };
   if (chain.source !== LIVE_CHAIN_SOURCE) {
     return { refusal: `Chain source ${chain.source || "-"} is not ${LIVE_CHAIN_SOURCE}.` };
@@ -724,12 +751,16 @@ export function pickLiveContract(
       return sa - sb;
     });
     const best = ok[0]!;
-    return { ...best, roi: null, pPay: null, dte: null, considered: ok.length };
+    return { ...best, roi: null, pPay: null, dte: null, bePts: null, considered: ok.length };
   }
-  const scored = ok.map((row) => scoreLeg(row, aim, nowMs)).filter((x): x is ScoredLeg => x != null);
+  const atm = ok.reduce((a, b) =>
+    Math.abs(a.contract.strike - aim.spot) <= Math.abs(b.contract.strike - aim.spot) ? a : b,
+  );
+  const expectedMove = atm.ask > 0 ? atm.ask * 2 : null;
+  const scored = ok.map((row) => scoreLeg(row, aim, nowMs, expectedMove)).filter((x): x is ScoredLeg => x != null);
   if (scored.length === 0) {
     return {
-      refusal: `No ${want.side} in the chain pays inside $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL} with a delta the move can use. No contract, no ticket.`,
+      refusal: `No ${want.side} clears the debit inside $${aim.minDebitUsd ?? RH_MIN_DEBIT_TOTAL}–$${aim.maxDebitUsd ?? RH_MAX_DEBIT_TOTAL}, a 0.30–0.65 delta, an 8% spread, and a target that pays the ask. No contract, no ticket.`,
     };
   }
   const spread = (r: ScoredLeg) => (r.bid != null ? r.ask - r.bid : Number.POSITIVE_INFINITY);
@@ -749,6 +780,7 @@ export function pickLiveContract(
     roi: best.roi,
     pPay: best.pPay,
     dte: best.dte,
+    bePts: best.bePts,
     considered: scored.length,
   };
 }
@@ -1258,7 +1290,7 @@ function liveLegFor(
   if (size.skip) return { refusal: size.skipReason ?? "The live contract could not be sized. SKIP." };
   const why =
     picked.roi != null && picked.pPay != null
-      ? ` · ${picked.dte != null ? picked.dte.toFixed(1) : "?"}d · pays ${(picked.pPay * 100).toFixed(0)}% · EV ${(picked.roi * 100).toFixed(0)}% of debit · best of ${picked.considered}`
+      ? ` · ${picked.dte != null ? picked.dte.toFixed(1) : "?"}d · pays ${(picked.pPay * 100).toFixed(0)}% · EV ${(picked.roi * 100).toFixed(0)}% · needs ${picked.bePts != null ? picked.bePts.toFixed(2) : "?"}pt to clear the debit · exit at the pool · best of ${picked.considered}`
       : " (live chain)";
   return {
     size,
@@ -2184,7 +2216,8 @@ export function optionsDeskPlaybook(): string[] {
     `Databento rent $${DATABENTO_MONTHLY_USD}/mo ≈ $${RH_WEEKLY_FLOOR_USD}/week. One clean PATH covers the bill. $${RH_WEEKLY_STRETCH_USD}/week is a stretch after n≥20 A+ WR≥65% — never a reason to take a B+.`,
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",
-    "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract.",
+    "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract. After 14:00 ET a same-day delta under 0.40 is charged for theta. After 15:00 a same-day delta under 0.45 is not taken.",
+    "The contract is the highest expected return inside $50–$550, delta 0.30–0.65, spread at most 8% of the ask, and only if the pool pays the debit. Exit at that pool. A model price is not a candidate.",
     "SMT lead 3–7 DTE when NQ and ES disagree. Event days: first impulse is the sweep; debit the second after 10:15.",
     "Trim 50% at +40–60% of debit, stop to BE. Time-stop day tickets 11:00 ET. Never average. Separate from the $100k futures paper book.",
   ];
