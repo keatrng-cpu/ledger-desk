@@ -87,6 +87,13 @@ export interface FloorScreens {
   race: RaceScreen | null;
   /** Overnight through a week, graded live. Empty until the desk builds the swing book. */
   swing: { name: string; verdict: string; score: number; note: string }[];
+  /**
+   * The investment wing's TVs and monitors (invest-office.ts). Null until the
+   * Invest ledger is read from this browser. The field is referenced in seven
+   * places in this file and set by `room-engine.ts`, but was not declared —
+   * eighteen typecheck errors on main.
+   */
+  invest: InvestLite | null;
 }
 
 export interface FloorFrame {
