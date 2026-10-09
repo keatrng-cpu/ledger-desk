@@ -18,6 +18,22 @@ node scripts/agent-sync.mjs --agent claude
 
 Grok runs the same command with `--agent grok`. The script lists every commit and new file since that agent's bookmark (`docs/agent-sync.json`), writes the brief to `docs/agent-sync.md`, then moves the bookmark to HEAD. Exit 2 means origin is ahead: `git pull --rebase origin main` and run it again. Read `git show SHA -- path` before editing a file in the brief. Do not redo a commit already on main, and do not revert the other agent's commit to land yours. Push to `main`, then run the script once more so the bookmark matches what you pushed.
 
+## Tools that fire without being asked
+
+Four project skills auto-trigger from their descriptions — do not wait to be told, and never make the trader type a slash command:
+
+| When | Invoke |
+|---|---|
+| Start of any coding session, before a commit, after a pull | **agent-sync** — `node scripts/agent-sync.mjs --agent claude`, so Grok's commits are read, not redone |
+| Before opening any file | **code-index** — `.ai/locator.md`, then `docs/code-index.md`. Never walk `src/` |
+| A figure from outside the repo enters the desk; any calculation, projection, option price or backtest result is reported | **desk-accuracy** — a model may find, read and explain a number; it may never be the source of one |
+| The desk needs a number it does not hold (a filing, holdings, a KPI, an earnings or macro calendar, a yield, an option chain, a dated research figure) or work touches Supabase, Netlify, the gateway task, a three.js / TanStack / Vite API, or `office.glb` | **desk-data** — which connector is the source, and which of the ~40 connected ones belong near this desk at all |
+
+Reach for the connector rather than recall: **Alpha Vantage** (fundamentals, earnings, ETF holdings, chains — free key is 25/day, which is why those files are committed), **Financial Datasets** (SEC filings and items without `SEC_USER_AGENT`, insider and institutional holdings, segments, KPIs, macro), **Bigdata.com** (`bigdata_events_calendar` — the four-year release calendar `exits.ts`'s `event` rule and `measure-room-ev.mjs` are blocked on), **FireCrawl** (the primary page behind a figure), **Supabase** (`nfwuvpsxnxctinywwrgh` — migrations, rows, advisors, logs), **Netlify** (deploy + whether an env var is present, never its value), **Context7** (three.js / TanStack / Vite signatures instead of a guess). None of them may enter the scoring loop, a verifier, or a poll — the desk stays deterministic and the gates read committed files.
+
+Also standing: **code-review** and **security-review** before a push that touches the order path; **dataviz** before any chart; **claude-api** before touching `coach/claude-server.ts` or anything that calls Anthropic or xAI. The `small-business`, `sales`, `marketing`, `human-resources`, `legal`, `bio-research`, `pigment` and `activecampaign` skills and servers are noise in this repo — do not reach for them, and do not report their auth errors as problems here.
+
+
 ## Find the file before you read it
 
 Start at [.ai/locator.md](./.ai/locator.md). It names the function. Do not walk `src/` and do not read the code map below to locate a file. On a miss, search [docs/code-index.md](./docs/code-index.md) — one line per file, exports and the header sentence — then open only the hit. Who calls whom is [.ai/dependency_graph.md](./.ai/dependency_graph.md). Edit style is [.ai/prompt_rules.md](./.ai/prompt_rules.md).
