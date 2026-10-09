@@ -49,6 +49,8 @@ import { BookCard } from "@/components/invest/book-card";
 import { ExposureCard } from "@/components/invest/exposure-card";
 import { ResearchCard, type Judged } from "@/components/invest/research-card";
 import { ScreenTable } from "@/components/invest/screen-table";
+import { LongBoard } from "@/components/invest/long-board";
+import { LONG_NAMES } from "@/lib/invest/long-board";
 import { LimitsCard } from "@/components/invest/limits-card";
 import { DataCard } from "@/components/invest/data-card";
 import { IpoCard } from "@/components/invest/ipo-card";
@@ -105,7 +107,7 @@ export function InvestPanel() {
   /* ---- marks: once per visit and on request, never polled ------------- */
   const [marks, setMarks] = useState<InvestMarks | null>(() => readMarksCache());
   const [marksState, setMarksState] = useState<{ loading: boolean; error: string | null }>({ loading: false, error: null });
-  const wanted = useMemo(() => [...new Set([...held.map((h) => h.ticker), "VTI"])].slice(0, MARKS_MAX_TICKERS), [held]);
+  const wanted = useMemo(() => [...new Set([...held.map((h) => h.ticker), ...LONG_NAMES.map((n) => n.ticker)])].slice(0, MARKS_MAX_TICKERS), [held]);
   const since = useMemo(() => held.flatMap((h) => h.lots.map((l) => l.date)).sort()[0], [held]);
   const earliestLot = useMemo(() => ledger.lots.map((l) => l.date).sort()[0], [ledger]);
   const fetchMarks = useCallback(() => {
@@ -220,6 +222,7 @@ export function InvestPanel() {
         onWrite={onWrite}
       />
       <ExposureCard read={exposure} dry={dry} />
+      <LongBoard marks={marks} weights={[...weights.entries()].map(([ticker, weight]) => ({ ticker, weight }))} />
       <ResearchCard
         weights={weights}
         held={heldSet}
