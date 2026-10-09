@@ -50,6 +50,7 @@ import { ExposureCard } from "@/components/invest/exposure-card";
 import { ResearchCard, type Judged } from "@/components/invest/research-card";
 import { ScreenTable } from "@/components/invest/screen-table";
 import { LongBoard } from "@/components/invest/long-board";
+import { FunnelCard } from "@/components/invest/funnel-card";
 import { LONG_NAMES } from "@/lib/invest/long-board";
 import { LimitsCard } from "@/components/invest/limits-card";
 import { DataCard } from "@/components/invest/data-card";
@@ -223,6 +224,7 @@ export function InvestPanel() {
         onWrite={onWrite}
       />
       <ExposureCard read={exposure} dry={dry} />
+      <FunnelCard waitingUsd={queue.waitingUsd} marks={marks} />
       <LongBoard marks={marks} weights={[...weights.entries()].map(([ticker, weight]) => ({ ticker, weight }))} />
       <ResearchCard
         weights={weights}
