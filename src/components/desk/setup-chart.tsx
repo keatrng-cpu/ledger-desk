@@ -762,7 +762,7 @@ export function SetupChart({
     if (nearest) filledGroups.add(nearest);
   }
 
-  const labelledGroups = new Set<(typeof arrayGroups)[number]>();
+  const labelledGroups = new Map<(typeof arrayGroups)[number], number>();
   {
     const taken: { x: number; y: number; w: number }[] = [];
 
@@ -791,11 +791,11 @@ export function SetupChart({
       // So only the raid's own line row is reserved; its text is offset from
       // that row and carries a plate, which is what actually makes an overlap
       // readable. Belt, not straitjacket.
-      const raidY = scale.y(sweep.price);
+      const raidY = scale.y(sweep.price) + (sweep.above ? 14 : -9);
       const raidX = scale.x(sweepIdx);
-      const raidW = 150;
+      const raidW = 168;
       const flipped = raidX > PAD_L + PLOT_W * 0.72;
-      taken.push({ x: flipped ? raidX - raidW - 6 : raidX + 6, y: raidY, w: raidW });
+      taken.push({ x: flipped ? raidX - raidW - 6 : raidX + 4, y: raidY, w: raidW });
     }
 
     const byImportance = entryDrawn
@@ -803,18 +803,14 @@ export function SetupChart({
       : arrayGroups;
     for (const g of byImportance) {
       const name = groupName(g, g.entry);
-      const y = scale.y(groupLabelAnchor(g).top);
+      let y = scale.y(groupLabelAnchor(g).top);
       const x = groupLabelX(g, name);
       const w = plateWidth(name, g.entry != null);
-      // Real overlap: rows within one line box AND horizontal spans that
-      // actually intersect. The old test compared a fixed 150px against the
-      // anchor x, which let two long names on nearby rows both draw.
-      const clashes = taken.some(
-        (t) => Math.abs(t.y - y) < 12 && x < t.x + t.w && t.x < x + w,
-      );
-      if (!clashes) {
+      const hit = (yy: number) => taken.some((t) => Math.abs(t.y - yy) < 12 && x < t.x + t.w && t.x < x + w);
+      if (hit(y)) y += 13;
+      if (!hit(y)) {
         taken.push({ x, y, w });
-        labelledGroups.add(g);
+        labelledGroups.set(g, y);
       }
     }
   }
@@ -980,22 +976,29 @@ export function SetupChart({
           const key = `${g.outer.kind}-${g.outer.tf}-${g.outer.t}-${g.outer.top}`;
           const isEntry = g.entry != null;
           const anchor = groupLabelAnchor(g);
-          const y = scale.y(anchor.top);
+          const y = labelledGroups.get(g) ?? scale.y(anchor.top);
           const x0 = xStart(anchor.t);
           const name = groupName(g, g.entry);
           // Same measurement the collision pass used, so what was tested is
           // what is drawn.
           const labelX = groupLabelX(g, name);
           const labelW = plateWidth(name, isEntry);
+          const pocket =
+            g.inner.find((b) => b === g.entry) ??
+            [...g.inner].sort(
+              (a, b) => Math.abs(a.mid - lastClose) - Math.abs(b.mid - lastClose),
+            )[0];
+          const outerMode =
+            g.entry === g.outer ? "entry" : g.inner.length ? "edge" : filledGroups.has(g) ? "box" : "edge";
           return (
             <g key={key}>
-              {arrayInk(
-                g.outer,
-                g.entry === g.outer ? "entry" : filledGroups.has(g) ? "box" : "edge",
-                `${key}-o`,
-              )}
+              {arrayInk(g.outer, outerMode, `${key}-o`)}
               {g.inner.map((b, n) =>
-                arrayInk(b, b === g.entry ? "entry" : "edge", `${key}-i${n}`),
+                arrayInk(
+                  b,
+                  b === g.entry ? "entry" : b === pocket && filledGroups.has(g) ? "box" : "edge",
+                  `${key}-i${n}`,
+                ),
               )}
               {labelledGroups.has(g) && (
                 // At the box's origin, where the candles are already history,
@@ -1717,8 +1720,9 @@ function RiskRail({ plan, scale }: { plan: TradePlan; scale: Scale }) {
  * beside it is the unambiguous half of the row, and a name bleeding off the
  * edge is the same overprinting this column was built to end.
  */
-function fitName(s: string, max = 15): string {
-  return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
+function fitName(s: string, max = 16): string {
+  const bare = s.replace(/^(BSL|SSL)\s+/i, "");
+  return bare.length <= max ? bare : `${bare.slice(0, max - 1)}…`;
 }
 
 function poolColor(p: OverlayPool): string {
