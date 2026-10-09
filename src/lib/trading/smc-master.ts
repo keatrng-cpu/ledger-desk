@@ -194,8 +194,9 @@ function factorState(
  * — anti-predictive on direction). So a card with a MISSING must could sit on
  * top of a complete one purely by carrying more structure.
  *
- * These five are the sequence as the desk states it, each read off the card
- * the scanner already built — no new detection, no new threshold:
+ * These three are the sequence the brain may call a take: the raid, the
+ * later displacement, and the array that displacement left. Each is read
+ * off the card the scanner already built.
  *
  *   raid         `sweep_significant` — a wick through the pool that closed
  *                back inside, filtered to this side's polarity in scanner.ts.
@@ -205,12 +206,12 @@ function factorState(
  *                that displacement left (`born ?? flipped`). An older gap
  *                leaves `entryPx` null, so this is "the array from THAT
  *                displacement" and not "some array exists".
- *   mtf          `mid_bias` — a missing or neutral middle frame is not
- *                agreement, so its absence is a gap.
- *   window       `killzoneOk` — `sessionLive`, the killzone or a measured
- *                delivery+participation bar.
+ *
+ * The middle frame and the kill zone are notes. They do not keep a finished
+ * raid, displacement, and array from being a TAKE. The 1:1 target is a must
+ * layer of its own, graded below, not a fifth sequence part.
  */
-export const SEQUENCE_PARTS = ["raid", "displacement", "array", "mtf", "window"] as const;
+export const SEQUENCE_PARTS = ["raid", "displacement", "array"] as const;
 export type SequencePart = (typeof SEQUENCE_PARTS)[number];
 
 export function sequenceGaps(c: SetupCandidate): SequencePart[] {
@@ -219,8 +220,6 @@ export function sequenceGaps(c: SetupCandidate): SequencePart[] {
   if (!has("sweep_significant") && !has("mechanical_model")) out.push("raid");
   if (!has("displacement")) out.push("displacement");
   if (c.entryPx == null) out.push("array");
-  if (!has("mid_bias")) out.push("mtf");
-  if (!c.killzoneOk) out.push("window");
   return out;
 }
 
@@ -459,38 +458,47 @@ function gradeBook(
     ((side === "short" && dol.side === "below") ||
       (side === "long" && dol.side === "above"));
 
+  const sweepNamed = canon.factors.some((x) => x.id === "sweep" && x.pass);
+  const ltfNamed = canon.factors.some((x) => x.id === "ltf" && x.pass);
   const layers: SmcLayer[] = canon.factors.map((f) => {
     const waiting =
       (f.id === "sweep" && narrative.liquidity.lastSweep === "none") ||
       (f.id === "ltf" &&
         (narrative.confirmation === "sweep_only" ||
           narrative.confirmation === "none")) ||
-      // 2026-09-23: pd_half was HARD-FAILING. It fails on 75-80% of
-      // trade-window bars and is also the single most REVERSIBLE state on
-      // the board — premium becomes discount by price simply moving. A
-      // mislabelled FAIL sets the word to STAND, tells the trader the
-      // session is dead, and makes shouldMarkUp refuse to draw the chart,
-      // for a condition a ten-minute retrace would have satisfied. Same
-      // for dol when a magnet exists but currently sits behind the trade.
-      (f.id === "pd_half" && dealing != null) ||
-      // A quiet out-of-window tape is WAITING, not failing: the next bar can
-      // deliver, and a hard FAIL would set the word to STAND and stop the
-      // chart being drawn for a condition that reverses in fifteen minutes.
+      // Equilibrium has no half, so it still waits. A premium or discount
+      // that fights the raid is a note once the raid and the displacement
+      // have already named the side — the twenty-hour box was standing down
+      // open shorts that then paid.
+      (f.id === "pd_half" && dealing?.zone === "equilibrium") ||
       (f.id === "time" && !session.live);
-    // The desk card and the floor are built from this same tape. A fighting
-    // middle frame is the brain's note. It is not a second veto the scanner
-    // already chose not to apply, or the floor stands while the brain does not.
     const deskCleared = Boolean(cand?.actionable);
     const mtfNote = f.id === "mtf";
+    const halfNote =
+      f.id === "pd_half" &&
+      dealing != null &&
+      dealing.zone !== "equilibrium" &&
+      sweepNamed &&
+      ltfNamed &&
+      !f.pass;
+    const htfNote = f.id === "htf" && sweepNamed && !f.pass;
+    const timeNote = f.id === "time";
+    const note = mtfNote || halfNote || htfNote || timeNote;
+    const noteLine = halfNote
+      ? `${f.detail} The raid and the displacement named ${side}. The half is a note, not a halt.`
+      : htfNote
+        ? `${f.detail} The raid named ${side}. A fighting higher timeframe does not stand this book.`
+        : timeNote && !f.pass
+          ? `${f.detail} The window is a note. It does not veto the raid.`
+          : mtfNote && !f.pass && deskCleared
+            ? `${f.detail} Desk card cleared this side. Middle frame is a note, not a stand.`
+            : f.detail;
     return {
       id: f.id,
       label: f.label,
-      must: mtfNote ? false : f.must,
-      state: factorState(f.pass, mtfNote ? false : f.must, waiting),
-      detail:
-        mtfNote && !f.pass && deskCleared
-          ? `${f.detail} Desk card cleared this side. Middle frame is a note, not a stand.`
-          : f.detail,
+      must: note ? false : f.must,
+      state: factorState(f.pass, note ? false : f.must, waiting),
+      detail: noteLine,
     };
   });
 
@@ -764,24 +772,21 @@ function gradeBook(
   // Keaton 2026-10-06: B+ is a live PATH grade, so the sequence may say TAKE on it.
   const pathOk = isPathFire(cand);
   /**
-   * ITEM 13 — pd_half IS NOT IGNORABLE. The draw still is.
+   * ITEM 13 — equilibrium is not a take. A fighting half is a note.
    *
-   * A high fit AT EQUILIBRIUM is exactly the location the model refuses: the
-   * dealing range has a midpoint, longs come from the discount half and shorts
-   * from the premium half, and a card sitting on the midpoint has no half. The
-   * old clause let a 0.80+ fit walk past a FAILED `pd_half` on a live PATH,
-   * which is the one place the fit must not buy a pass.
+   * A high fit AT EQUILIBRIUM is still refused: the range has a midpoint and
+   * no half, so `pd_half` stays a must and a wait. A premium or discount that
+   * fights the side is different. Once the raid and the later displacement
+   * have named the trade, that twenty-hour box does not stand the book. It
+   * is marked a note above, not added to this fit bypass.
    *
-   * SCOPE, NOT VALUE: the 0.8 literal is unchanged; only which layers it
-   * reaches. `dol` keeps the pass — a magnet currently sitting behind the trade
-   * is a size note and reverses on the next bars.
+   * The draw still uses the fit bypass. A magnet sitting behind the trade is
+   * a size note and reverses on the next bars.
    *
    * Direction of error is safe: TAKE -> WAIT/STAND only, never the reverse.
    * Cost is frequency on a desk already at 23 TAKEs in 5,049 four-year cards.
-   * Note `pd_half` only reaches `fail` when `dealing == null` (the waiting
-   * clause above forces `wait` whenever a dealing range exists), i.e. when
-   * there is no location read at all — so the practical effect is that a card
-   * with NO range cannot be taken on fit alone.
+   * Note `pd_half` reaches `fail` only when there is no dealing range at all.
+   * Equilibrium waits. A half that fights a named raid is a note, not a fail.
    */
   const ignorable = (l: { id: string; state: string }) =>
     pathOk && htfPass && (cand?.confluence ?? 0) >= 0.8 && l.id === "dol" && l.state === "fail";
@@ -809,9 +814,8 @@ function gradeBook(
    * `pickCandidate` now puts a complete sequence on top, but when NOTHING on
    * the book is complete it still names the nearest card so the chart has
    * something to draw. The word must not follow that card to a TAKE: the raid,
-   * the paired displacement, the array that displacement left, the middle
-   * frame and the window are the sequence, and a card missing one of them is
-   * not a trade however high its fit.
+   * the paired displacement, and the array that displacement left are the
+   * sequence, and a card missing one of them is not a trade however high its fit.
    *
    * Only ever downgrades TAKE -> WAIT. STAND is left alone, because a STAND
    * already carries a named failing must and that is the more useful sentence.

@@ -343,19 +343,23 @@ const mk = (over = {}) => ({
   ...over,
 });
 
-check("SEQUENCE_PARTS is the five-part sequence", [...SEQUENCE_PARTS], [
+check("SEQUENCE_PARTS is the raid, the displacement, and the array", [...SEQUENCE_PARTS], [
   "raid",
   "displacement",
   "array",
-  "mtf",
-  "window",
 ]);
-ok("a card with all five is complete", sequenceComplete(mk()));
+ok("a card with the three is complete", sequenceComplete(mk()));
 check("no raid is named", sequenceGaps(mk({ components: ["displacement", "mid_bias"] })), ["raid"]);
 check("no displacement is named", sequenceGaps(mk({ components: ["sweep_significant", "mid_bias"] })), ["displacement"]);
 check("no array (entryPx null) is named", sequenceGaps(mk({ entryPx: null })), ["array"]);
-check("a missing middle frame is named", sequenceGaps(mk({ components: ["sweep_significant", "displacement"] })), ["mtf"]);
-check("outside the window is named", sequenceGaps(mk({ killzoneOk: false })), ["window"]);
+ok(
+  "a missing middle frame is a note, not a gap",
+  !sequenceGaps(mk({ components: ["sweep_significant", "displacement"] })).includes("mtf"),
+);
+ok(
+  "outside the window is a note, not a gap",
+  !sequenceGaps(mk({ killzoneOk: false })).includes("window"),
+);
 // The mechanical model stands in for the raid, because detectors.ts only calls
 // a sequence complete when its own sweep closed back inside.
 ok(
