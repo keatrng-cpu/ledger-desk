@@ -848,9 +848,12 @@ export function useRoomEngine(desk: DeskPayload | null) {
         const r = await getNewsFeed();
         if (!alive) return;
         const now = Date.now();
+        const lite = newsLiteFrom(r.items);
+        // The TV rows carry the same ticker tags the talk matches on, so the news desk's monitor and the five agree on which headline touches the list.
+        const tagged = new Map(lite.map((n) => [n.title, n.tickers]));
         useRoomStore.setState({
-          news: r.items.slice(0, 12).map((i) => ({ title: i.title, source: i.source, age: ageOf(i.published, now) })),
-          newsLite: newsLiteFrom(r.items),
+          news: r.items.slice(0, 12).map((i) => ({ title: i.title, source: i.source, age: ageOf(i.published, now), tickers: tagged.get(i.title) ?? [] })),
+          newsLite: lite,
         });
       } catch {
         // The TV says "no headlines" and the talk has nothing new to read.

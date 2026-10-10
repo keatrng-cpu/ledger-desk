@@ -54,7 +54,7 @@ const legal = (item) => {
   }
   for (const [who, m] of Object.entries(item.moves)) {
     if (m.zone && m.zone !== "ANNEX" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
-    if (m.zone === "ANNEX" && !/^office_(rnd|ops|goal)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
+    if (m.zone === "ANNEX" && !/^(office_(rnd|ops|goal)|inv_(cio|scout|news|struct|wall)|board_(chair|tv|tv2|north)|chair_desk)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
   }
   return bad;
 };

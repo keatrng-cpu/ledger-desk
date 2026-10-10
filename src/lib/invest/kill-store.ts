@@ -100,14 +100,22 @@ export function latestJudgement(ticker: string): KillJudgement | null {
   return loadKillJudgements().find((j) => j.ticker === ticker) ?? null;
 }
 
-/** Latest judgement per ticker, only where that latest one is TRIPPED. */
-export function trippedTickers(): Map<string, KillJudgement> {
+/**
+ * Latest judgement per ticker, only where that latest one is TRIPPED — the pure core over a newest-first list, so the Floor's
+ * investment office reads the same rule from the same rows (invest-firm.ts) instead of re-deriving it.
+ */
+export function trippedFrom(rows: KillJudgement[]): Map<string, KillJudgement> {
   const out = new Map<string, KillJudgement>();
   const seen = new Set<string>();
-  for (const j of loadKillJudgements()) {
+  for (const j of rows) {
     if (seen.has(j.ticker)) continue;
     seen.add(j.ticker);
     if (j.tripped) out.set(j.ticker, j);
   }
   return out;
+}
+
+/** Latest judgement per ticker, only where that latest one is TRIPPED. */
+export function trippedTickers(): Map<string, KillJudgement> {
+  return trippedFrom(loadKillJudgements());
 }

@@ -13,7 +13,7 @@ import type { LabRead } from "@/lib/room/lab";
 import type { AuditItem } from "@/lib/room/audit";
 import { floorCues, type FloorCues } from "@/lib/room/floor-cues";
 import { CATALYST_MAX_AGE_DAYS, type FeedRead, type GoalLite, type InvestLite, type InvestThemeLite, type RndLite, type ScanCardLite, type SeatsLite } from "@/lib/room/live-types";
-import { boardAgenda, daysBetween, dayPhrase, freshCatalysts, lookAt, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
+import { boardAgenda, dateSay, daysBetween, dayPhrase, firmDay, firmWeek, freshCatalysts, lookAt, opsHealth, themeOfTheDay, watchHit } from "@/lib/room/invest-read";
 import { etWallParts } from "@/lib/trading/sessions";
 import { feedTone } from "@/lib/ui/feed-tone";
 import type { Character, RoomOutput, RoomTrace, UnderlierTape } from "@/lib/room/orchestrator";
@@ -63,7 +63,8 @@ export interface FloorScreens {
   market: Record<Underlier, UnderlierTape>;
   charts: Record<Underlier, ChartSeries | null>;
   plan: { symbol: string; side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null } | null;
-  news: { title: string; source: string; age: string }[];
+  /** The headline TVs. `tickers` are the feed's own tags for the headline (the talk matches on them; the news desk's monitor must too). */
+  news: { title: string; source: string; age: string; tickers?: string[] }[];
   calendar: { timeEt: string; name: string; impact: string; status: "printed" | "next" | "later" }[];
   book: {
     cash: number;
@@ -1726,6 +1727,8 @@ const INV_ACCENT = "#2dd4bf";
 const INV_TIER_COLOR: Record<string, string> = { safe: "#34d399", mid: "#fbbf24", high: "#fb7185" };
 const INV_SLEEVE_COLOR: Record<string, string> = { ballast: C.cyan, compounder: C.violet, drypowder: C.amber };
 const INV_SLEEVE_NAME: Record<string, string> = { ballast: "Ballast", compounder: "Compounders", drypowder: "Dry powder" };
+/** The funnel's eight sleeves, as a person says them. */
+const INV_SLEEVE_LONG: Record<string, string> = { safety: "Safety", power: "Power", grid: "Grid", health: "Health", fuel: "Fuel", building: "Buildings", compute: "Compute", space: "Space" };
 
 /** Recorded dollars as they are: cents when they have cents ($240.50 is never drawn as $241), whole dollars otherwise. */
 const invUsd = (n: number): string => (Number.isInteger(n) ? money(n) : `${n < 0 ? "−" : ""}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
@@ -1836,15 +1839,21 @@ function drawInvFunnel(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.textBaseline = "middle";
   kvLine(ctx, w, 78, "Swept into the long book", invUsd(fn.sweptUsd), C.up, 19);
   kvLine(ctx, w, 106, "Waiting to be bought", invUsd(fn.waitingUsd), fn.waitingUsd > 0 ? C.amber : C.muted, 19);
-  // The same split the Invest tab uses. Local weights, no fetch.
-  const split: [string, number][] = [["Safety", 0.42], ["Power", 0.14], ["Grid", 0.12], ["Health", 0.14], ["Fuel", 0.06], ["Halls", 0.05], ["Compute", 0.04], ["Space", 0.03]];
-  const light = split.slice().sort((a, b) => a[1] - b[1])[0]!;
+  // The eight sleeves of the Invest tab's split (funnel.ts FUNNEL through splitSweep, read once in invest-firm.ts) — nothing is copied here.
+  const split = inv.firm?.board.split ?? [];
   ctx.font = `500 12px ${FONT}`;
   ctx.fillStyle = C.muted;
-  wrap(ctx, `Of the waiting dollars: safety ${invUsd(fn.waitingUsd * 0.42)}, power ${invUsd(fn.waitingUsd * 0.14)}, health ${invUsd(fn.waitingUsd * 0.14)}. Lightest sleeve is ${light[0]} at ${Math.round(light[1] * 100)}%. The room does not pick a name.`, 14, 128, w - 28, 15, 2);
+  ctx.fillText(fn.waitingUsd > 0 ? "Of the waiting dollars, by sleeve (the Invest tab's split):" : "The Invest tab's split, by sleeve (nothing is waiting):", 14, 126);
+  split.forEach((s, i) => {
+    const x = 14 + (i % 4) * 186;
+    const y = 144 + Math.floor(i / 4) * 17;
+    ctx.fillStyle = C.text;
+    ctx.font = `600 12px ${FONT}`;
+    ctx.fillText(ell(ctx, `${INV_SLEEVE_LONG[s.sleeve] ?? s.sleeve} ${Math.round(s.weight * 100)}%${fn.waitingUsd > 0 ? ` · ${invUsd(s.usd)}` : ""}`, 178), x, y);
+  });
   ctx.font = `500 13px ${FONT}`;
   ctx.fillStyle = C.muted;
-  wrap(ctx, fn.ladderLine, 14, 166, w - 28, 16, 1);
+  wrap(ctx, fn.ladderLine, 14, 184, w - 28, 16, 1);
   if (fn.avgMonthlyUsd != null && fn.fiveYearUsd != null && fn.tenYearUsd != null) {
     const rows: [string, number][] = [
       ["1 year", fn.avgMonthlyUsd * 12],
@@ -1853,10 +1862,10 @@ function drawInvFunnel(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     ];
     ctx.font = `600 14px ${FONT}`;
     ctx.fillStyle = C.text;
-    ctx.fillText(`At the logged average, ${invUsd(fn.avgMonthlyUsd)} a month:`, 14, 188);
+    ctx.fillText(`At the logged average, ${invUsd(fn.avgMonthlyUsd)} a month:`, 14, 208);
     const max = Math.max(1, fn.tenYearUsd);
     rows.forEach(([lab, v], i) => {
-      const y = 216 + i * 34;
+      const y = 236 + i * 32;
       ctx.font = `500 15px ${FONT}`;
       ctx.fillStyle = C.muted;
       ctx.fillText(lab, 14, y);
@@ -1872,11 +1881,11 @@ function drawInvFunnel(ctx: Ctx, w: number, h: number, f: FloorFrame) {
     });
     ctx.font = `500 12px ${FONT}`;
     ctx.fillStyle = C.muted;
-    ctx.fillText("Contributions only — no return assumed.", 14, 322);
+    ctx.fillText("Contributions only — no return assumed.", 14, 334);
   } else {
     ctx.font = `500 15px ${FONT}`;
     ctx.fillStyle = C.muted;
-    wrap(ctx, "No month has been logged yet. The path appears with the first sweep — a month has to end, and close above the data rent, before it flows.", 14, 200, w - 28, 22, 4);
+    wrap(ctx, "No month has been logged yet. The path appears with the first sweep — a month has to end, and close above the data rent, before it flows.", 14, 214, w - 28, 22, 4);
   }
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = C.text;
@@ -2033,8 +2042,8 @@ function drawInvBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
       ctx.font = `500 12px ${FONT}`;
       ctx.fillStyle = C.muted;
       ctx.fillText(c.when, 226, y);
-      ctx.fillStyle = c.why === "held" ? C.up : c.why === "theme" ? C.cyan : C.muted;
-      ctx.fillText(c.why === "theme" ? "vehicle" : c.why, 356, y);
+      ctx.fillStyle = c.why === "held" ? C.up : c.why === "theme" || c.why === "board" ? C.cyan : C.muted;
+      ctx.fillText(c.why === "theme" ? "vehicle" : c.why === "board" ? "long board" : c.why, 356, y);
     });
   }
   ctx.fillStyle = C.grid;
@@ -2043,23 +2052,42 @@ function drawInvBoard(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   ctx.font = `700 15px ${FONT}`;
   ctx.fillText("AGENDA", 492, 78);
   const items = boardAgenda(inv);
-  let y = 106;
-  ctx.font = `500 15px ${FONT}`;
+  let y = 104;
+  ctx.font = `500 14px ${FONT}`;
   if (!items.length) {
     ctx.fillStyle = C.muted;
-    wrap(ctx, "Nothing on the agenda — the plan stands.", 492, y, w - 506, 20, 3);
+    wrap(ctx, "Nothing on the agenda — the plan stands.", 492, y, w - 506, 19, 2);
   } else {
-    for (const a of items) {
+    for (const a of items.slice(0, 3)) {
       ctx.fillStyle = C.amber;
       ctx.fillText("▸", 492, y);
       ctx.fillStyle = C.text;
       const text = a.kind === "waiting" ? `${invUsd(a.usd ?? 0)} swept, not yet bought` : a.kind === "rebalance" ? "A sleeve is past its band" : a.kind === "drift" ? "Drift is outside the band but too small to trade" : `Book under ${money(500)} — arithmetic, not allocation`;
-      y = wrap(ctx, text, 510, y, w - 524, 20, 3) + 10;
+      y = wrap(ctx, text, 510, y, w - 524, 19, 2) + 8;
     }
   }
+  // THE FIRM'S WEEK: the standing reviews, one rhythm (invest-read.ts firmDay) that the five follow in the talk. Today's is marked.
+  const today = firmDay(inv.dayKey);
+  ctx.fillStyle = C.grid;
+  ctx.fillRect(492, 246, w - 506, 1);
+  ctx.fillStyle = C.text;
+  ctx.font = `700 13px ${FONT}`;
+  ctx.fillText(today.reviews.length ? `${today.weekday.toUpperCase()}'S STANDING REVIEW` : "THE FIRM'S WEEK", 492, 266);
+  ctx.font = `600 14px ${FONT}`;
+  ctx.fillStyle = INV_ACCENT;
+  ctx.fillText(ell(ctx, today.reviews.length ? today.title : "No review today; the week is below", w - 506), 492, 286);
+  firmWeek().forEach((d, i) => {
+    const yy = 308 + i * 17;
+    const on = d.weekday === today.weekday;
+    ctx.font = `${on ? 700 : 500} 12px ${FONT}`;
+    ctx.fillStyle = on ? INV_ACCENT : C.muted;
+    ctx.fillText(`${on ? "▸ " : "  "}${d.weekday.slice(0, 3)}`, 492, yy);
+    ctx.fillStyle = on ? C.text : C.muted;
+    ctx.fillText(ell(ctx, d.title, w - 506 - 50), 540, yy);
+  });
   ctx.fillStyle = C.muted;
-  ctx.font = `500 12px ${FONT}`;
-  wrap(ctx, "No order is placed from this room. Orders live in the Invest tab, one dossier at a time.", 492, h - 58, w - 506, 16, 3);
+  ctx.font = `500 11px ${FONT}`;
+  wrap(ctx, "No order is placed from this room. Orders live in the Invest tab, one dossier at a time.", 492, h - 30, w - 506, 14, 2);
 }
 
 /** The monitors of the investment wing: Nova's allocation, Jax's scout, Gemma's news, Vince's structure, the chair's one page. */
@@ -2078,16 +2106,21 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
       return `${ts.filter((t) => t.held.length > 0).length}/${ts.length}`;
     });
     header(ctx, w, title, inv.book.valuedAtCost ? "at cost" : "", INV_ACCENT);
-    kvLine(ctx, w, 78, "Sweep rate · months", `${inv.funnel.ratePct}% · ${inv.funnel.closedMonths}`, C.text, 16);
-    kvLine(ctx, w, 104, "Swept so far", invUsd(inv.funnel.sweptUsd), C.up, 16);
-    kvLine(ctx, w, 130, "Waiting to be bought", invUsd(inv.funnel.waitingUsd), inv.funnel.waitingUsd > 0 ? C.amber : C.muted, 16);
-    kvLine(ctx, w, 156, "Long book at cost", invUsd(inv.book.totalUsd), C.text, 16);
-    kvLine(ctx, w, 182, "Sleeves outside the band", String(inv.book.beyondBand), inv.book.beyondBand > 0 ? C.amber : C.up, 16);
-    kvLine(ctx, w, 208, "Research held · safe/mid/high", cov.join(" · "), C.text, 16);
-    kvLine(ctx, w, 234, "Other income", inv.other ? `${invUsd(inv.other.monthlyUsd)} × ${inv.other.ratePct}%` : "not entered", inv.other ? C.text : C.muted, 16);
+    const firm = inv.firm ?? null;
+    const health = opsHealth(firm?.ops);
+    const dyn = firm?.compliance.dynamic ?? [];
+    kvLine(ctx, w, 68, "Sweep rate · months", `${inv.funnel.ratePct}% · ${inv.funnel.closedMonths}`, C.text, 14);
+    kvLine(ctx, w, 89, "Swept so far", invUsd(inv.funnel.sweptUsd), C.up, 14);
+    kvLine(ctx, w, 110, "Waiting to be bought", invUsd(inv.funnel.waitingUsd), inv.funnel.waitingUsd > 0 ? C.amber : C.muted, 14);
+    kvLine(ctx, w, 131, "Long book at cost", invUsd(inv.book.totalUsd), C.text, 14);
+    kvLine(ctx, w, 152, "Sleeves outside the band", String(inv.book.beyondBand), inv.book.beyondBand > 0 ? C.amber : C.up, 14);
+    kvLine(ctx, w, 173, "Research held · safe/mid/high", cov.join(" · "), C.text, 14);
+    kvLine(ctx, w, 194, "Other income", inv.other ? `${invUsd(inv.other.monthlyUsd)} × ${inv.other.ratePct}%` : "not entered", inv.other ? C.text : C.muted, 14);
+    kvLine(ctx, w, 215, "Ledger health", health.text, health.ok ? C.up : C.amber, 14);
+    kvLine(ctx, w, 236, "Restricted today", firm ? `${firm.compliance.banned.length} fixed${dyn.length ? ` + ${dyn.length} from the journal` : firm.compliance.journalFills == null ? " · journal unread" : ""}` : "not read", C.text, 14);
     ctx.fillStyle = C.muted;
     ctx.font = `500 12px ${FONT}`;
-    wrap(ctx, inv.next ? inv.next.line : "Nothing swept is waiting to be bought.", 14, 268, w - 28, 16, 2);
+    wrap(ctx, inv.next ? inv.next.line : "Nothing swept is waiting to be bought.", 14, 262, w - 28, 16, 2);
     return true;
   }
   if (idx === 0) {
@@ -2100,7 +2133,7 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
     });
     ctx.textAlign = "left";
     inv.book.sleeves.forEach((s, i) => {
-      const y = 100 + i * 34;
+      const y = 92 + i * 26;
       const out = !inv.book.belowMeaningful && Math.abs(s.driftPct) > inv.book.driftBand;
       ctx.font = `600 15px ${FONT}`;
       ctx.fillStyle = C.text;
@@ -2118,10 +2151,27 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
     });
     ctx.fillStyle = C.muted;
     ctx.font = `500 12px ${FONT}`;
-    ctx.fillText(`Band ±${Math.round(inv.book.driftBand * 100)}% · no trade below the desk's minimum`, 14, 214);
-    ctx.fillStyle = C.text;
-    ctx.font = `600 14px ${FONT}`;
-    wrap(ctx, inv.next ? `Next dollar · ${inv.next.line}` : "Next dollar · nothing waiting.", 14, 244, w - 28, 18, 3);
+    ctx.fillText(`Band ±${Math.round(inv.book.driftBand * 100)}% · no trade below the desk's minimum`, 14, 176);
+    // LOOK-THROUGH AND CAPS: the funds opened up, at cost (exposure.ts lookThrough; the caps are long-board.ts) — the risk committee's numbers.
+    const risk = inv.firm?.risk ?? null;
+    if (risk) {
+      ctx.fillStyle = C.grid;
+      ctx.fillRect(14, 186, w - 28, 1);
+      ctx.fillStyle = C.text;
+      ctx.font = `700 12px ${FONT}`;
+      ctx.fillText(risk.preview ? "LOOK-THROUGH · the first dollar, all VTI" : "LOOK-THROUGH · the funds opened up", 14, 204);
+      const over = risk.overlapQQQ >= risk.overlapWarn;
+      kvLine(ctx, w, 224, `QQQ overlap (warns at ${Math.round(risk.overlapWarn * 100)}%)`, `${Math.round(risk.overlapQQQ * 100)}%${risk.overlapPartial ? " floor" : ""}`, over ? C.amber : C.text, 13);
+      kvLine(ctx, w, 243, "Tech + communication", `${Math.round(risk.techWeight * 100)}%${risk.preview ? "" : ` · fees ${invUsd(risk.feeUsdYear)}/yr`}`, C.text, 13);
+      const top = risk.names[0];
+      kvLine(ctx, w, 262, `Largest line vs ${Math.round(risk.nameCap * 100)}% name cap`, top ? `${top.ticker} ${(top.weight * 100).toFixed(1)}%` : "—", top && !risk.preview && top.weight > risk.nameCap ? C.amber : C.text, 13);
+      const growthOver = risk.sleeves.filter((x) => x.sleeve !== "safety" && x.over);
+      kvLine(ctx, w, 281, `Growth sleeves over ${Math.round(risk.sleeveCap * 100)}%`, growthOver.length ? growthOver.map((x) => `${x.sleeve} ${Math.round(x.weight * 100)}%`).join(" · ") : "none", growthOver.length ? C.amber : C.up, 13);
+    } else {
+      ctx.fillStyle = C.text;
+      ctx.font = `600 14px ${FONT}`;
+      wrap(ctx, inv.next ? `Next dollar · ${inv.next.line}` : "Next dollar · nothing waiting.", 14, 214, w - 28, 18, 3);
+    }
     return true;
   }
   if (idx === 1) {
@@ -2150,9 +2200,10 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
   }
   if (idx === 2) {
     header(ctx, w, title, "headlines on the list", INV_ACCENT);
-    const rows = f.screens.news.map((n) => ({ n, hit: watchHit(inv, n.title, []) }));
-    const hits = rows.filter((r) => r.hit).slice(0, 5);
-    const show = hits.length ? hits : rows.slice(0, 5);
+    // The same match the talk makes: the feed's own ticker tags count (an empty list here once hid every headline the talk was discussing).
+    const rows = f.screens.news.map((n) => ({ n, hit: watchHit(inv, n.title, n.tickers ?? []) }));
+    const hits = rows.filter((r) => r.hit).slice(0, 3);
+    const show = hits.length ? hits : rows.slice(0, 3);
     if (!show.length) {
       ctx.fillStyle = C.muted;
       ctx.font = `500 15px ${FONT}`;
@@ -2160,7 +2211,7 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
       return true;
     }
     show.forEach((r, i) => {
-      const y = 76 + i * 44;
+      const y = 74 + i * 40;
       ctx.fillStyle = r.hit ? C.amber : C.muted;
       ctx.font = `700 11px ${FONT}`;
       ctx.fillText(r.hit ? `${r.hit.kind.toUpperCase()} · ${ell(ctx, r.hit.label, w - 160)}` : "no match", 14, y);
@@ -2172,6 +2223,22 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
       ctx.font = `600 13px ${FONT}`;
       ctx.fillText(ell(ctx, r.n.title, w - 28), 14, y + 18);
     });
+    // KILL RULES: the due-diligence record (kill-store.ts, read the way the Invest tab reads it). The model never trips a rule; a person does.
+    const dd = inv.firm?.diligence ?? null;
+    if (dd) {
+      ctx.fillStyle = C.grid;
+      ctx.fillRect(14, 196, w - 28, 1);
+      ctx.fillStyle = C.text;
+      ctx.font = `700 12px ${FONT}`;
+      ctx.fillText(`KILL RULES · ${dd.rules} written, checked every ${dd.intervalDays} days`, 14, 214);
+      if (!dd.readable) {
+        kvLine(ctx, w, 236, "Record", "not readable here", C.muted, 13);
+      } else {
+        kvLine(ctx, w, 236, "Last check", dd.lastRanAt ? `${dateSay(dd.lastRanAt.slice(0, 10), inv.dayKey)} · ${dd.daysSince} ${dd.daysSince === 1 ? "day" : "days"} ago` : "none on record", dd.lastRanAt ? C.text : C.amber, 13);
+        kvLine(ctx, w, 255, "Answers with sources", dd.lastRanAt ? `${dd.sourced} of ${dd.results}` : "—", C.text, 13);
+        kvLine(ctx, w, 274, "Judged tripped by the trader", dd.tripped.length ? ell(ctx, dd.tripped.map((x) => x.ticker).join(" "), 150) : "none", dd.tripped.length ? C.amber : C.up, 13);
+      }
+    }
     ctx.fillStyle = C.muted;
     ctx.font = `500 11px ${FONT}`;
     ctx.fillText(hits.length ? "a headline is context — never a verdict" : "nothing touches the book or the list right now", 14, h - 10);
@@ -2188,18 +2255,31 @@ function drawInvMonitor(who: string, idx: number, ctx: Ctx, w: number, h: number
   ctx.fillStyle = C.text;
   ctx.font = `700 17px ${FONT}`;
   ctx.fillText(ell(ctx, t.name, w - 28), 14, 72);
-  t.competitors.slice(0, 4).forEach((c, i) => {
-    const y = 96 + i * 38;
+  t.competitors.slice(0, 3).forEach((c, i) => {
+    const y = 94 + i * 30;
     ctx.fillStyle = C.cyan;
     ctx.font = `700 13px ${FONT}`;
     ctx.fillText(ell(ctx, c.ticker ? `${c.name} · ${c.ticker}` : c.name, w - 28), 14, y);
     ctx.fillStyle = C.muted;
     ctx.font = `500 12px ${FONT}`;
-    ctx.fillText(ell(ctx, c.angle, w - 28), 14, y + 16);
+    ctx.fillText(ell(ctx, c.angle, w - 28), 14, y + 14);
   });
   ctx.fillStyle = C.text;
   ctx.font = `600 12px ${FONT}`;
-  ctx.fillText(ell(ctx, `Vehicles · ${t.vehicles.slice(0, 4).map((v) => v.ticker).join(" ")}`, w - 28), 14, h - 26);
+  ctx.fillText(ell(ctx, `Vehicles · ${t.vehicles.slice(0, 4).map((v) => v.ticker).join(" ")}`, w - 28), 14, 190);
+  // THE RESTRICTED LIST: the fixed wash-sale list, whatever the RH journal adds inside its window, and the names whose add gate is shut on a written watch.
+  const cp = inv.firm?.compliance ?? null;
+  if (cp) {
+    ctx.fillStyle = C.grid;
+    ctx.fillRect(14, 200, w - 28, 1);
+    ctx.fillStyle = C.text;
+    ctx.font = `700 12px ${FONT}`;
+    ctx.fillText("RESTRICTED LIST · off limits to the book", 14, 217);
+    kvLine(ctx, w, 237, "Fixed", ell(ctx, cp.banned.join(" "), w - 100), C.text, 13);
+    const dyn = cp.dynamic;
+    kvLine(ctx, w, 256, "Journal adds", ell(ctx, cp.journalFills == null ? "journal unread" : dyn.length ? `${dyn.slice(0, 2).map((u) => `${u.underlier} through ${dateSay(u.throughDate, inv.dayKey)}`).join(" · ")}${dyn.length > 2 ? ` · +${dyn.length - 2} more` : ""}` : `none inside ${cp.lookbackDays} days`, w - 130), dyn.length ? C.amber : C.muted, 13);
+    kvLine(ctx, w, 275, "Watch gates", ell(ctx, [...new Set(cp.watch.map((x) => x.ticker))].join(" ") || "none", w - 120), C.text, 13);
+  }
   ctx.fillStyle = C.muted;
   ctx.font = `500 11px ${FONT}`;
   ctx.fillText("research, not a recommendation — the dossier gate decides", 14, h - 10);

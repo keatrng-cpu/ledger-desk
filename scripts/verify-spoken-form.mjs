@@ -165,6 +165,9 @@ console.log("the real vocabulary: every ticker the desk can name");
   const { ALL_DOSSIERS } = await import("../src/lib/invest/dossiers.ts");
   const { TICKER_SAY } = await import("../src/lib/room/spoken-form.ts");
   const tickers = new Set(ALL_DOSSIERS.map((d) => d.ticker));
+  // …and every name on the Invest tab's long board, which the investment wing's reviews and study passes now say.
+  const { LONG_NAMES } = await import("../src/lib/invest/long-board.ts");
+  for (const n of LONG_NAMES) tickers.add(n.ticker);
   for (const t of themes.themes) {
     for (const v of t.vehicles) tickers.add(v.ticker);
     for (const c of t.competitors) if (c.ticker) tickers.add(c.ticker);

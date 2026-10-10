@@ -11,7 +11,7 @@
  */
 
 import { LONG_NAMES } from "@/lib/invest/long-board";
-import { freshCatalysts, themeOfTheDay, watchHit } from "./invest-read";
+import { freshCatalysts, lookAt, themeOfTheDay, watchHit } from "./invest-read";
 import { hash32, type InvestLite, type NewsLite, type PredictLite } from "./live-types";
 
 export interface StudyWatch {
@@ -274,7 +274,8 @@ export function toPredictLite(r: {
 export function studyPack(i: StudyInput): StudyPack {
   const bucket = Math.floor(i.etMin / 90);
   const inv = i.invest;
-  const theme = inv ? themeOfTheDay(inv, bucket) : null;
+  // The theme the closed room names is the theme `tv_theme` shows: the same look (invest-read.ts lookAt), not a 90-minute bucket of its own.
+  const theme = inv ? themeOfTheDay(inv, lookAt(i.etMin, !i.weekend)) : null;
   const dm = theme?.demand[0] ?? null;
   const cat = inv ? freshCatalysts(inv)[0] ?? null : null;
   const ranked = [...i.news].sort((a, b) => (b.publishedMs ?? 0) - (a.publishedMs ?? 0));

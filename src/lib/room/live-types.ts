@@ -439,18 +439,260 @@ export interface InvestThemeLite {
   held: string[];
 }
 
-/** A report on the committed earnings calendar that touches the office: a name the book holds, a theme's vehicle, or a competitor on the research list. */
+/** A report on the committed earnings calendar that touches the office: a name the book holds, a name on the Invest tab's long board, a theme's vehicle, or a competitor on the research list. */
 export interface InvestCatalyst {
   /** The calendar's own date, YYYY-MM-DD. */
   date: string;
   when: "pre-market" | "after close" | "time not stated";
   ticker: string;
   name: string;
-  why: "held" | "theme" | "competitor";
+  why: "held" | "board" | "theme" | "competitor";
   /** The research theme it ties to, or null for a held name that is in no theme. */
   theme: string | null;
+  /** The long-board sleeve of a name that is on the Invest tab's long board (a held name on the board carries it too), else null/absent. */
+  sleeve?: string | null;
   /** The trader's pre-written rule that takes the name out (its dossier), or null when it has none. */
   killRule: string | null;
+}
+
+/** What a headline can touch: the book, a theme's vehicle, a name on the long board, a competitor on the research list. */
+export type WatchKind = "held" | "theme" | "board" | "competitor";
+
+/* ── The firm's standing reviews ───────────────────────────────────────────
+ * What an investment firm looks at that is NOT a price: look-through and caps, the restricted list, the kill-rule record, the
+ * ledger's health, tax lots, the funding waterfall, one company memo, the funnel and the long board, the policy's own evidence and the
+ * data's age. invest-firm.ts builds it (pure, from the Invest tab's own functions); the book is valued at COST so nothing here
+ * is a performance, an unrealised figure, a drawdown or a trend. Bounded and JSON-small on purpose. Narration and drawing only.
+ */
+
+export type FirmReviewId = "memo" | "macro" | "risk" | "compliance" | "ops" | "diligence" | "tax" | "funding" | "board" | "policy" | "fresh";
+
+export interface FirmRisk {
+  /** Nothing is held: the look-through is the default all-VTI landing pad, said as such. */
+  preview: boolean;
+  totalUsd: number;
+  overlapQQQ: number;
+  overlapWarn: number;
+  overlapPartial: boolean;
+  techWeight: number;
+  sectorUnknown: number;
+  feeUsdYear: number;
+  feeBlended: number;
+  /** Largest look-through lines (direct + inside funds), at most three. */
+  names: { ticker: string; weight: number; direct: number; viaFunds: number }[];
+  sectors: { sector: string; weight: number }[];
+  directTechWeight: number;
+  directTechWarn: boolean;
+  nameCap: number;
+  sleeveCap: number;
+  /** Look-through names above the per-name cap (never the funds themselves). */
+  namesOverCap: { ticker: string; weight: number }[];
+  /** The long board's sleeves the book holds, with the sleeve cap applied. */
+  sleeves: { sleeve: string; weight: number; over: boolean }[];
+  /** Long-board names that are the same bet as the options sleeve. */
+  computeNames: string[];
+  /** The funnel's compute slice: its share of a swept dollar, and the Invest tab's own reason it is small. */
+  computeShare: number;
+  computeDemand: string;
+  /** The reason sentence of that text (its second), the tab's own words for why the slice is small. */
+  computeWhy: string;
+}
+
+export interface FirmCompliance {
+  /** The static wash-sale list while the sleeve trades QQQ and SPY options. */
+  banned: string[];
+  traded: string[];
+  twins: string[];
+  /** Held tickers that should not be held (book.banned). */
+  heldBanned: { ticker: string }[];
+  /** Underliers the RH journal traded inside the look-back that the static list does not cover. */
+  dynamic: { underlier: string; lastAt: string; throughDate: string }[];
+  lookbackDays: number;
+  /** Days either side of a sale that a replacement purchase defers the loss (ledger.ts WASH_WINDOW_DAYS). */
+  washWindowDays: number;
+  /** Fills in the RH journal, or null when it could not be read. */
+  journalFills: number | null;
+  watch: { ticker: string; source: "dossier" | "board"; reason: string; clearsWhen: string }[];
+  dossiers: number;
+  addable: number;
+  blocked: number;
+  /** Dossiers with a blank required field, with the fields. */
+  incomplete: { ticker: string; missing: string[] }[];
+}
+
+export interface FirmDiligence {
+  /** Kill rules that exist (dossiers with a written rule). */
+  rules: number;
+  intervalDays: number;
+  /** Days until the next check is due (0 when due now), or null when no check is on record. */
+  dueInDays: number | null;
+  /** The kill-rule store could be read (false on a server, or when storage is blocked). */
+  readable: boolean;
+  lastRanAt: string | null;
+  daysSince: number | null;
+  due: boolean;
+  results: number;
+  sourced: number;
+  /** Results in the last run with no judgement by a person dated on/after the run. */
+  unjudged: number;
+  /** Rules a PERSON judged tripped (their latest judgement), newest first. */
+  tripped: { ticker: string; judgedAt: string }[];
+  judgedCount: number;
+}
+
+/** What the ledger replay could not apply, by kind (ledger.ts words each problem; invest-firm.ts sorts them into these). */
+export type LedgerProblemKind = "duplicate" | "void-missing" | "void-void" | "sale-short" | "month-twice" | "other";
+
+export interface FirmOps {
+  entries: number;
+  problemCount: number;
+  problems: { kind: LedgerProblemKind; n: number }[];
+  voidCount: number;
+  voids: { date: string; kind: string; ticker: string | null; reason: string }[];
+  missedCount: number;
+  missed: string[];
+  /** Sweep-funded buys above the sweep (the deploy queue's over-spend line), else 0. */
+  overSpendUsd: number;
+  waitingUsd: number;
+  /** The RH journal's size against its cap, or null when it could not be read. */
+  journal: { fills: number; cap: number; atCap: boolean } | null;
+}
+
+export interface FirmTaxYear {
+  year: number;
+  stGainUsd: number;
+  ltGainUsd: number;
+  washDeferredEstUsd: number;
+  dividendsUsd: number;
+  sales: number;
+}
+
+export interface FirmTax {
+  thisYear: FirmTaxYear;
+  lastYear: FirmTaxYear | null;
+  openLots: number;
+  positions: { ticker: string; lots: number; shares: number; longTermShares: number; nextLongTerm: string | null }[];
+  /** The earliest date an open short-term lot turns long-term, and whose it is. */
+  nextTurn: { ticker: string; date: string } | null;
+  /** A lot came from the pre-lot store and its date is approximate. */
+  approx: boolean;
+  washFlagged: number;
+}
+
+export interface FirmFunding {
+  months: number;
+  ratePct: number;
+  rentUsd: number;
+  sleeveTargetUsd: number;
+  /** The share of gross at which the tab says the data bill is the story (policy.ts RENT_DRAG_ALARM). */
+  rentAlarmAt: number;
+  last: {
+    month: string;
+    verdict: string;
+    realizedUsd: number;
+    rentUsd: number;
+    restoreUsd: number;
+    sweptUsd: number;
+    ratePct: number;
+    rentDrag: number | null;
+    rentAlarm: boolean;
+    annualRentUsd: number;
+    annualSweepUsd: number;
+  } | null;
+  /** The RH journal's closed P&L for the month before this one, or null when the journal could not be read. */
+  journal: { month: string; realizedUsd: number; closed: number; open: number; openDebitUsd: number; capNote: string | null } | null;
+  /** What a month must realize for a sweep of this size at the earned rate (policy.realizedNeededFor). */
+  needs: { sweepUsd: number; realizedUsd: number }[];
+}
+
+export interface FirmMemo {
+  ticker: string;
+  name: string;
+  held: boolean;
+  /** The Invest tab's long-board sleeve, or null. */
+  sleeve: string | null;
+  dossier: boolean;
+  sells: string | null;
+  moat: string | null;
+  useIn2035: string | null;
+  killRule: string | null;
+  boardKill: string | null;
+  boardEvidence: string | null;
+  competitor: string | null;
+  boardRole: string | null;
+  regulatory: string | null;
+  caveat: string | null;
+  operator: { ceo: string; level: "verified" | "asserted" | "blank" } | null;
+  gate: { canAdd: boolean; reason: string } | null;
+  watch: { reason: string; clearsWhen: string } | null;
+  fundamentalsAsOf: string | null;
+  durabilityAsOf: string;
+  required: number | null;
+  delivered: number | null;
+  deliveredBasis: string | null;
+  read: "asks-less" | "about-record" | "asks-more" | "unknown";
+  earningsYield: number | null;
+  earningsYieldBasis: "forward" | "trailing" | null;
+  riskFreePct: number;
+  riskFreeAsOf: string;
+  spreadPts: number | null;
+  maxWeight: number | null;
+  /** The look-through weight in the book at cost, or null when nothing is held. */
+  weight: number | null;
+  catalyst: { date: string; when: "pre-market" | "after close" | "time not stated" } | null;
+}
+
+export interface FirmBoard {
+  waitingUsd: number;
+  /** The eight sleeves of the funnel, in the policy's order, with the next name in each. */
+  split: { sleeve: string; weight: number; usd: number; ticker: string | null; state: "pass" | "wait" | "fail" | "none"; line: string }[];
+  counts: { pass: number; wait: number; fail: number; total: number };
+  /** Why names wait, most common first (first sentence of the board's own reason). */
+  reasons: { reason: string; n: number }[];
+  leftOff: { area: string; why: string }[];
+  ipo: {
+    capturedAt: string;
+    upcoming: number;
+    nextUpcoming: { company: string; ticker: string | null; expected: string | null; status: string } | null;
+    priced: { company: string; ticker: string; stage: string; eligibleFrom: string | null; lockupEnds: string | null; onBoard: boolean }[];
+    lockupDays: number;
+    trackRecordDays: number;
+  };
+}
+
+export interface FirmPolicy {
+  horizons: { horizon: string; window: string; usable: boolean; say: string }[];
+  baseRates: { id: string; say: string; soWhat: string }[];
+  traps: { ticker: string; lesson: string }[];
+}
+
+export interface FirmFresh {
+  maxDays: number;
+  items: { id: string; label: string; asOf: string; ageDays: number }[];
+  stalest: { id: string; label: string; asOf: string; ageDays: number } | null;
+  stale: boolean;
+}
+
+export interface FirmMacro {
+  riskFreePct: number;
+  riskFreeAsOf: string;
+}
+
+export interface InvestFirm {
+  /** The ET date the reads were taken for. */
+  asOf: string;
+  risk: FirmRisk;
+  compliance: FirmCompliance;
+  diligence: FirmDiligence;
+  /** Null when the ledger could not be read (a world built without one). */
+  ops: FirmOps | null;
+  tax: FirmTax | null;
+  funding: FirmFunding | null;
+  memo: FirmMemo | null;
+  board: FirmBoard;
+  policy: FirmPolicy;
+  fresh: FirmFresh;
+  macro: FirmMacro;
 }
 
 export interface InvestLite {
@@ -484,7 +726,9 @@ export interface InvestLite {
   catalysts: InvestCatalyst[];
   catalystsAsOf: string;
   /** What a headline has to mention to matter to the office: the book's tickers, a theme's vehicles, a competitor. */
-  watch: Record<string, { label: string; kind: "held" | "theme" | "competitor" }>;
+  watch: Record<string, { label: string; kind: WatchKind }>;
+  /** The firm's standing reviews (invest-firm.ts), or null/absent in a world built without them. */
+  firm?: InvestFirm | null;
   dayKey: string;
 }
 
@@ -514,6 +758,10 @@ export interface DataFreshness {
   macroCalendarEnds: string | null;
   /** The last full `check-research-sources.mjs --write` run, or null when none is on record. */
   sourceCheck: { checkedAt: string; facts: number; findings: number; researchAsOf: string | null } | null;
+  /** The Invest tab's committed snapshots (fundamentals, durability, fund profiles, IPO watch) with their own dates. Absent in worlds built without them, which raises nothing. */
+  invest?: { id: string; label: string; asOf: string }[];
+  /** How old (in days) an Invest snapshot may be before the long board turns a name to wait — the board's own line, carried so the audit holds no number of its own. */
+  investMaxDays?: number;
 }
 
 export interface TalkWorld {
