@@ -51,6 +51,7 @@ export class FloorMead {
   private readonly frustum = new THREE.Frustum();
   private readonly pv = new THREE.Matrix4();
   private readonly lit = new WeakMap<THREE.Object3D, boolean>();
+  private readonly atBar = new WeakMap<THREE.Object3D, boolean>();
   private lastState: HallFeedState | null = null;
   private recordAt = 0;
 
@@ -182,6 +183,10 @@ export class FloorMead {
         this.lit.set(t.root, inside);
         setLayer(t.root, inside ? HALL_LAYER : 0);
       }
+      // Whoever walks up to the bar gets a word from the bartender.
+      const near = inside && Math.hypot(hx - 5.2, hz + 4.25) < 3.6;
+      if (near && !this.atBar.get(t.root)) this.hall.greet();
+      this.atBar.set(t.root, near);
     }
   }
 
@@ -201,8 +206,11 @@ export class FloorMead {
     if (!this.frustum.intersectsBox(this.bounds)) return false;
     const saved = camera.layers.mask;
     camera.layers.set(HALL_LAYER);
-    renderer.render(scene, camera);
-    camera.layers.mask = saved;
+    try {
+      renderer.render(scene, camera);
+    } finally {
+      camera.layers.mask = saved;
+    }
     return true;
   }
 

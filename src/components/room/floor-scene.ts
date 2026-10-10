@@ -1891,9 +1891,16 @@ export class FloorScene {
     this.buildWingFloors();
 
     this.buildScreens();
-    this.mead = new FloorMead({ mobile, onReaction: (r) => this.meadReacted(r) });
-    this.scene.add(this.mead.root);
-    for (const rec of this.mead.screenRecs()) this.screens.set(rec.id, rec);
+    // The hall is an addition to the office, never a condition of it: if it cannot be built the Floor still opens without it.
+    try {
+      const hall = new FloorMead({ mobile, onReaction: (r) => this.meadReacted(r) });
+      this.scene.add(hall.root);
+      for (const rec of hall.screenRecs()) this.screens.set(rec.id, rec);
+      this.mead = hall;
+    } catch (e) {
+      console.warn("[floor] the Mead Hall could not be built", e);
+      this.mead = null;
+    }
     // A sight line, a hover or a double-click must see the hall too; and two draw passes a frame are one frame's work.
     this.sightRay.layers.enable(HALL_LAYER);
     this.renderer.info.autoReset = false;
@@ -2964,9 +2971,12 @@ export class FloorScene {
       const bg = this.scene.background;
       this.scene.background = null;
       r.autoClear = false;
-      r.render(this.scene, this.camera);
-      r.autoClear = true;
-      this.scene.background = bg;
+      try {
+        r.render(this.scene, this.camera);
+      } finally {
+        r.autoClear = true;
+        this.scene.background = bg;
+      }
     } else r.render(this.scene, this.camera);
   }
 

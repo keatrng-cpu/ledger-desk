@@ -107,6 +107,8 @@ export class MeadHall {
   private readonly floorHome: boolean;
   private readonly key: THREE.DirectionalLight;
   private frameNo = 0;
+  private greetN = 0;
+  private lastGreet = -999;
   private readonly moodLight: THREE.PointLight;
   private readonly flashLight: THREE.PointLight;
   private readonly neon: { canvas: HTMLCanvasElement; tex: THREE.CanvasTexture; mat: THREE.MeshBasicMaterial };
@@ -786,6 +788,14 @@ export class MeadHall {
 
   getMood(): MeadMood {
     return this.mood;
+  }
+
+  /** The bartender says hello to someone who has just come up to the bar (at most one greeting in four minutes; no numbers, no advice). */
+  greet() {
+    if (this.time - this.lastGreet < 240) return;
+    this.lastGreet = this.time;
+    const hello = ["Horn of mead?", "Pull up a stool.", "The first round is on the hall.", "Paper prices only in here.", "Ask the board, not me."];
+    this.bartender.say(hello[this.greetN++ % hello.length]!, "idle", this.time, 3.4);
   }
 
   getState(): PredictionMarketFeedState {
