@@ -34,3 +34,6 @@ Add a line here when a behavior gets a new owner. Do not paste the function.
 - The long board, a year-clock card that does not buy — `src/lib/invest/long-board.ts` `gradeLongCard`
 - The swept-dollar split, after rent and the sleeve refill — `src/lib/invest/funnel.ts` `splitSweep`
 - Closed-hours study: long board, watchlist headlines, a name not on the list, the prediction book — `src/lib/room/off-hours-study.ts` `studyPack`
+- The Mead Hall, built once for the Predict tab and the Floor — `src/components/mead/mead-hall-build.ts` `MeadHall`
+- Where the Mead Hall stands: its walls, doorway, spots, screens, cameras — `src/lib/room/mead-hall-layout.ts` (the plan is written from it by `scripts/build-mead-plan.mjs`)
+- The Floor's Mead Hall: its own lights, its own pass, who is inside it — `src/components/room/floor-mead.ts` `FloorMead`

@@ -150,13 +150,20 @@ test("trophies and scars: book wins/losses, graded vetoes and calls, ghost room;
   assert.equal(propsSignature(null), propsSignature(null));
 });
 
-test("layout: the overhaul's pieces are procedural and the balcony / stairs are crew obstacles", () => {
+test("layout: the overhaul's runtime pieces are procedural, the Manager's office is baked, and the balcony / stairs are crew obstacles", () => {
   const all = [...LAYOUT.furniture, ...LAYOUT.screens, ...(LAYOUT.walls ?? []), ...(LAYOUT.rooms ?? [])];
-  const ids = ["balcony_Owner", "stairs_Owner", "chair_Owner", "desk_Manager", "chair_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_trophies", "ovh_scars", "plate_Manager", "ovh_mgr_0", "ovh_mgr_1", "ovh_mgr_2", "ovh_mgr_board", "ovh_schools", "ovh_checklist", "ovh_debate", "ovh_briefing", "ovh_ranks"];
+  // Still built by the scene at runtime (Blender skips them).
+  const ids = ["balcony_Owner", "stairs_Owner", "chair_Owner", "ovh_trophies", "ovh_scars", "ovh_schools", "ovh_checklist", "ovh_debate", "ovh_briefing", "ovh_ranks"];
   for (const id of ids) {
     const p = all.find((x) => x.id === id);
     assert.ok(p, `${id} in layout`);
     assert.equal(p.procedural, true, `${id} is procedural (Blender skips it)`);
+  }
+  // Baked into office.glb since 2ad10c73 (the glass corner office, the swing TV, the ticker and the clocks): in the plan, not procedural.
+  for (const id of ["desk_Manager", "chair_Manager", "plate_Manager", "ovh_tickerwall", "ovh_kz_E", "ovh_mgr_0", "ovh_mgr_1", "ovh_mgr_2", "ovh_mgr_board"]) {
+    const p = all.find((x) => x.id === id);
+    assert.ok(p, `${id} in layout`);
+    assert.ok(!p.procedural, `${id} is baked into the GLB`);
   }
   for (const id of ["balcony_Owner", "stairs_Owner"]) assert.equal(LAYOUT.furniture.find((f) => f.id === id).obstacle, true);
 });
@@ -229,13 +236,10 @@ test("Chunk B hit ranks: only real lab track rates; null stays awaiting", () => 
 
 const { armLeverDisplay } = await import("../src/lib/room/arm-lever.ts");
 
-test("Chunk C layout: balcony chair + Manager 3rd monitor + discretion board are procedural", () => {
+test("Chunk C layout: the balcony chair is procedural; the Manager's 3rd monitor and the discretion board are in the plan (baked)", () => {
   const all = [...LAYOUT.furniture, ...LAYOUT.screens];
-  for (const id of ["chair_Owner", "ovh_mgr_2", "ovh_mgr_board"]) {
-    const p = all.find((x) => x.id === id);
-    assert.ok(p, `${id} in layout`);
-    assert.equal(p.procedural, true);
-  }
+  assert.equal(all.find((x) => x.id === "chair_Owner")?.procedural, true);
+  for (const id of ["ovh_mgr_2", "ovh_mgr_board"]) assert.ok(all.find((x) => x.id === id), `${id} in layout`);
   const chair = LAYOUT.furniture.find((f) => f.id === "chair_Owner");
   assert.equal(chair.onTop, 1.2, "chair sits on the balcony deck");
   assert.equal(LAYOUT.screens.filter((s) => /^ovh_mgr_[012]$/.test(s.id)).length, 3, "three Manager monitors");
