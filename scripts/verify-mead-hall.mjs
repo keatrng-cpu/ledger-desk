@@ -137,7 +137,7 @@ check("the Floor does not draw canvases for the hall's plan screens (the hall ow
 const cams = Object.keys(L.HALL_CAMERAS).map((k) => (k === "overview" ? "mead" : `mead_${k}`));
 check("every hall camera is in the plan, the scene's CameraPreset and (the overview) the tab's chips", cams.every((c) => plan.camera[c]) && cams.every((c) => src.floorScene.includes(`"${c}"`)) && /id: "mead", label: "Mead Hall"/.test(src.tab));
 check("the tab lists the hall's views and its Go-to row", /mead hall/.test(src.tab) && /MEAD_VIEWS/.test(src.tab));
-check("the Floor's hall reads the Predict tab's own board feed", /createSignalHallFeed/.test(src.feed) && /getPredictionSignals/.test(src.feed));
+check("the Floor's hall reads the Predict analyzer's own graded board (loadHallBoard, scanner models included) and publishes it to the hall store the talk reads", /createSignalHallFeed/.test(src.feed) && /load:\s*loadHallBoard/.test(src.feed) && /setHall\(/.test(src.feed));
 check("the Skald's Ledger reads sentences the engines already wrote (go-ledger, paper-scorer, journal)", /goStats\(\)\.line|go\.line/.test(src.record) && /paper\.verdict/.test(src.record) && /journal\.line/.test(src.record));
 
 check("a tap on a market in the Floor's hall opens its desk panel in the Predict analyzer (paper only: a panel, nothing more)", /onHallTap/.test(src.floorScene) && /onHallTap: \(id\) => openPredictAt\(id\)/.test(src.tab) && /export function openPredictAt/.test(src.link) && /takePredictFocus\(\)/.test(src.analyzer));
