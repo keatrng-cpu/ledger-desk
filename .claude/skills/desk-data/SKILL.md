@@ -43,11 +43,35 @@ files, never a live connector.
 
 - **Context7** `mcp__c4ea2d0f-*` — `resolve-library-id` then `query-docs` for three.js, TanStack Start/Router, Vite, better-auth.
   Use it instead of guessing an API; this repo pins exact versions and a wrong signature costs a build.
-- **Blender** `mcp__Blender__*` (26 tools) — registered, but it only answers when Blender is actually running with the MCP addon
-  on **localhost:9876**. `scripts/blender/build_floor.py` is the only thing that may write `public/floor/office.glb`, and
-  `src/data/floor-layout.json` is the single plan both it and the three.js runtime read. If Blender is not up, say so: a plan
-  change that needs a GLB rebuild is blocked on the trader opening it, and the runtime's `procedural` fallback is the alternative.
-  The `blender-*` and `text-to-blender` skills are for that session, not for editing `floor-scene.ts`.
+- **Blender** `mcp__Blender__*` (26 tools) — **connected and working as of 2026-10-09.** Blender **5.2.2 LTS** at
+  `C:/Program Files/Blender Foundation/Blender 5.2/blender.exe`, with the official Blender Lab MCP add-on installed and enabled
+  (`bl_ext.user_default.mcp`, v1.0.3, from `projects.blender.org/lab/blender_mcp`). It answers only while Blender is RUNNING with
+  the server started, on `localhost:9876`.
+
+  To start it:
+
+  ```
+  blender.exe --online-mode --python-expr "import bpy; bpy.app.timers.register(lambda: bpy.ops.blmcp.server_start() and None, first_interval=2.0)"
+  ```
+
+  `--online-mode` is required (the add-on refuses unless `bpy.app.online_access`), and the operator is `blmcp.server_start` /
+  `blmcp.server_stop`. There is no autostart, which is deliberate — see below. Confirm with
+  `get_blendfile_summary_path_info`, not by assuming.
+
+  **Security, read before leaving it up.** The add-on was read line by line before install: it has **no outbound network code at
+  all** (no `urllib`, `requests`, `httpx`, `urlopen`, `smtplib`) so it cannot phone home on its own, and it binds
+  `DEFAULT_HOST = "localhost"` only, never `0.0.0.0`, so nothing off this machine can reach it. `weak_sandbox.py` is honest that
+  it is "not really a sandbox" — it blocks `sys.exit` and a few operators, nothing more. **The socket has NO authentication**:
+  while it is listening, any local process running as this user can send Python to it and have Blender execute it. So start it for
+  the job and stop it after (`blmcp.server_stop`, or just close Blender). Blender's own page says the same in stronger terms:
+  it "will execute LLM generated code ... without any guards in place".
+
+  `scripts/blender/build_floor.py` is still the ONLY thing that may write `public/floor/office.glb`, and
+  `src/data/floor-layout.json` is the single plan both it and the three.js runtime read — MCP is for inspecting and checking, not
+  for hand-editing the model. Verified through MCP on 2026-10-09: the committed GLB is 3.48 MB, **279 objects, 0 lights,
+  0 cameras, 90,240 triangles**, 174 materials, and every exact screen node the runtime looks up resolves (including the
+  `led_urgency` / `led_urgency_front` prefix trap) — which matches the code map's claims. The `blender-*` and `text-to-blender`
+  skills are for driving that session, not for editing `floor-scene.ts`.
 - **visualize** `mcp__6f616b42-*` and the **dataviz** skill — for a chart in the reply. The desk's own panels are React and live in
   `src/components/`; do not render a PNG where a component belongs.
 
