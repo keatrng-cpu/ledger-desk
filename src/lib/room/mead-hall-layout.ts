@@ -174,7 +174,7 @@ export const HALL_SCREENS: HallScreenSpec[] = [
   { id: "mead_tv_2", label: "Over-bar TV 3", kind: "tv", center: [7.35, 3.6, -6.68], size: [1.75, 1.37], facing: 0, px: [512, 400] },
   { id: "mead_booth_0", label: "Booth market watch", kind: "tv", center: [-6.8, 1.15, -2.5], size: [0.8, 0.6], facing: 70, px: [512, 384] },
   { id: "mead_booth_1", label: "Booth market watch", kind: "tv", center: [-6.8, 1.15, 0.9], size: [0.8, 0.6], facing: 70, px: [512, 384] },
-  { id: "mead_ledger", label: "The Skald's Ledger", kind: "poster", center: [8.86, 2.55, 2.4], size: [2.6, 1.8], facing: 270, px: [1024, 710] },
+  { id: "mead_ledger", label: "The Skald's Ledger", kind: "poster", center: [-8.86, 2.55, 9.0], size: [2.6, 1.8], facing: 90, px: [1024, 710] },
 ];
 
 /** The doorway-side camera chips the Floor tab lists under "Mead Hall". */

@@ -672,3 +672,253 @@ export function drawTapShield(c: HTMLCanvasElement, label: "YES" | "NO") {
   ctx.fillText(label, W / 2, H * 0.5);
   ctx.textAlign = "left";
 }
+
+/**
+ * What the hall's Ledger, Long Table and lectern screens show on top of the feed: every field a value the signal engine, the
+ * ledgers or the clock already produced (strings and numbers, formatted by the caller). Nothing here is computed into a signal;
+ * a missing field draws "—". Presentation only.
+ */
+export interface HallExtras {
+  crowd?: { mood: "surging" | "sliding" | "restless" | "quiet"; energy: number | null; basedOn: number; reason: string } | null;
+  /** Letters on the board: A, B, C, D, F counts, then the ungraded ("no edge read") count. */
+  board?: { counts: Record<string, number>; ungraded: number; stale: boolean; asOf: string | null; label: string } | null;
+  /** The paper record, as the engine's own words. */
+  record?: { go: string; paper: string; journal: string; read: string } | null;
+  /** The nearest settlement on the board. */
+  next?: { outcome: string; words: string; phase: string } | null;
+  /** Wall-clock ms, for the settle countdown. */
+  clockMs?: number;
+}
+
+/* ── The lobby's screens: the Skald's Ledger, the Long Table's board, the lectern ───────────────────────────────────── */
+
+const CHALK_BOARD = "#1d2420";
+
+/** The Skald's Ledger: what the hall has seen. Four panels — the crowd, the board, the record, the next settlement. A pick appears nowhere. */
+export function drawLedger(c: HTMLCanvasElement, s: PredictionMarketFeedState, x: HallExtras = {}) {
+  const ctx = c.getContext("2d")!;
+  const W = c.width;
+  const H = c.height;
+  ctx.fillStyle = "#5b3a1e";
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = CHALK_BOARD;
+  ctx.fillRect(22, 22, W - 44, H - 44);
+  ctx.globalAlpha = 0.06;
+  for (let i = 0; i < 300; i++) {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect((i * 97) % W, (i * 57) % H, 2 + (i % 5) * 6, 1);
+  }
+  ctx.globalAlpha = 1;
+  knotBorder(ctx, 30, 30, W - 60, H - 60, MEAD.brassDim, 16);
+  ctx.textAlign = "center";
+  ctx.fillStyle = MEAD.chalk;
+  ctx.font = `900 54px ${SLAB}`;
+  ctx.fillText("THE SKALD'S LEDGER", W / 2, 96);
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `700 24px ${FONT}`;
+  ctx.fillText("WHAT THE HALL HAS SEEN · PAPER ONLY", W / 2, 132);
+  ctx.textAlign = "left";
+
+  const panel = (px: number, py: number, title: string) => {
+    plate(ctx, px, py, 440, 226, 14, "rgba(255,255,255,0.04)", "rgba(196,163,90,0.35)", 2);
+    ctx.fillStyle = MEAD.brass;
+    ctx.font = `800 22px ${FONT}`;
+    ctx.fillText(title, px + 20, py + 34);
+  };
+  const dash = "—";
+
+  // THE CROWD — real price velocity only.
+  panel(48, 156, "THE CROWD");
+  const cr = x.crowd ?? null;
+  const moodCol = cr?.mood === "surging" ? "#86efac" : cr?.mood === "sliding" ? "#fca5a5" : cr?.mood === "restless" ? MEAD.brass : "#94a3b8";
+  ctx.fillStyle = moodCol;
+  ctx.font = `900 50px ${SLAB}`;
+  ctx.fillText(cr ? cr.mood.toUpperCase() : dash, 68, 232);
+  plate(ctx, 68, 252, 400, 22, 11, "rgba(255,255,255,0.12)");
+  if (cr?.energy != null) plate(ctx, 68, 252, Math.max(10, 400 * Math.max(0, Math.min(1, cr.energy))), 22, 11, moodCol);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = `700 22px ${FONT}`;
+  ctx.fillText(cr?.energy != null ? `energy ${Math.round(cr.energy * 100)}%  ·  ${cr.basedOn} real moves` : "no velocity read", 68, 304);
+  ctx.fillStyle = "#a7c4b5";
+  ctx.font = `600 17px ${FONT}`;
+  ctx.fillText(fit(ctx, cr?.reason ?? "The hall reacts only to real price velocity.", 400), 68, 332);
+
+  // THE BOARD — letters the engine gave, and the rows it would not grade.
+  panel(536, 156, "THE BOARD");
+  const b = x.board ?? null;
+  const letters = ["A", "B", "C", "D", "F"];
+  const maxN = Math.max(1, ...letters.map((l) => b?.counts?.[l] ?? 0));
+  letters.forEach((l, i) => {
+    const n = b?.counts?.[l] ?? 0;
+    const bx = 560 + i * 62;
+    const bh = b ? Math.round((n / maxN) * 76) : 0;
+    plate(ctx, bx, 288 - bh, 40, Math.max(bh, 4), 6, b ? gradeColor(l) : "rgba(255,255,255,0.12)");
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = `800 20px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(b ? String(n) : dash, bx + 20, 276 - bh);
+    ctx.fillStyle = MEAD.brass;
+    ctx.fillText(l, bx + 20, 312);
+    ctx.textAlign = "left";
+  });
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = `700 21px ${FONT}`;
+  ctx.fillText(b ? `no edge read ${b.ungraded}` : "no board yet", 868, 252);
+  if (b?.stale) {
+    plate(ctx, 868, 266, 92, 30, 15, "#7f1d1d", "#fca5a5", 2);
+    ctx.fillStyle = "#fecaca";
+    ctx.font = `800 17px ${FONT}`;
+    ctx.fillText("STALE", 888, 288);
+  }
+  ctx.fillStyle = "#a7c4b5";
+  ctx.font = `600 17px ${FONT}`;
+  ctx.fillText(fit(ctx, `${b?.label ?? s.label ?? "Kalshi"} · ${b?.asOf ? new Date(b.asOf).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : dash}`, 400), 556, 340);
+
+  // THE RECORD — the engine's own words; "too few to read" stays too few.
+  panel(48, 396, "THE RECORD");
+  const rc = x.record ?? null;
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = `700 21px ${FONT}`;
+  ctx.fillText(fit(ctx, rc?.go ?? "GO ledger —", 400), 68, 468);
+  ctx.fillText(fit(ctx, rc?.paper ?? "paper book —", 400), 68, 502);
+  ctx.fillText(fit(ctx, rc?.journal ?? "journal —", 400), 68, 536);
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `700 19px ${FONT}`;
+  ctx.fillText(fit(ctx, rc?.read ?? "", 400), 68, 576);
+
+  // NEXT TO SETTLE.
+  panel(536, 396, "NEXT TO SETTLE");
+  const nx = x.next ?? null;
+  ctx.fillStyle = MEAD.white;
+  ctx.font = `800 30px ${FONT}`;
+  ctx.fillText(fit(ctx, nx?.outcome ?? dash, 400), 556, 476);
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = `700 24px ${FONT}`;
+  ctx.fillText(fit(ctx, nx?.words ?? "no settlement on the board", 400), 556, 520);
+  if (nx) {
+    const closing = nx.phase === "closing_soon";
+    plate(ctx, 556, 540, 190, 32, 16, closing ? "#7c2d12" : "rgba(255,255,255,0.1)", closing ? "#fb923c" : "rgba(196,163,90,0.5)", 2);
+    ctx.fillStyle = closing ? "#fed7aa" : "#e2e8f0";
+    ctx.font = `800 17px ${FONT}`;
+    ctx.fillText(nx.phase.replace("_", " ").toUpperCase(), 574, 562);
+  }
+  ctx.textAlign = "center";
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `800 21px ${SLAB}`;
+  ctx.fillText("NOTHING HERE IS A PICK. A PRICE IS NOT A PROMISE.", W / 2, H - 40);
+  ctx.textAlign = "left";
+}
+
+/** The Long Table's board, laid flat: the featured market and the next four, as the engine printed them. */
+export function drawTabletop(c: HTMLCanvasElement, s: PredictionMarketFeedState, x: HallExtras = {}) {
+  const ctx = c.getContext("2d")!;
+  const W = c.width;
+  const H = c.height;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, MEAD.pineDeep);
+  g.addColorStop(1, MEAD.pineInk);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  knotBorder(ctx, 6, 6, W - 12, H - 12, MEAD.brass, 18);
+  const feat = s.markets.find((m) => m.id === s.featuredId) ?? null;
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `800 24px ${SLAB}`;
+  ctx.fillText("THE LONG TABLE", 44, 56);
+  ctx.fillStyle = "#a7c4b5";
+  ctx.font = `600 18px ${FONT}`;
+  ctx.textAlign = "right";
+  ctx.fillText(x.board?.stale ? "STALE READ" : `${(s.label ?? "BOARD").toUpperCase()}`, W - 44, 56);
+  ctx.textAlign = "left";
+  if (feat) {
+    ctx.fillStyle = MEAD.white;
+    ctx.font = `900 46px ${FONT}`;
+    ctx.fillText(fit(ctx, feat.outcome, 520), 44, 118);
+    ctx.fillStyle = "#a7c4b5";
+    ctx.font = `700 21px ${FONT}`;
+    ctx.fillText(fit(ctx, `${categoryLabel(feat)} · ${eventLabel(feat)}`, 520), 44, 150);
+    ctx.fillStyle = "#4ade80";
+    ctx.font = `900 40px ${FONT}`;
+    ctx.fillText(`YES ${price2(feat.yesPrice)}`, 44, 214);
+    ctx.fillStyle = "#f87171";
+    ctx.fillText(`NO ${price2(feat.noPrice)}`, 290, 214);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = `700 22px ${FONT}`;
+    if (feat.hall) {
+      ctx.fillText(fit(ctx, feat.hall.sub, 520), 44, 262);
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = `600 19px ${FONT}`;
+      ctx.fillText(fit(ctx, feat.hall.line, 560), 44, 300);
+    } else {
+      ctx.fillText(`win ${pct(feat.winChance)}   ·   ${edgeTag(feat.edge)}`, 44, 262);
+    }
+  } else {
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = `700 34px ${FONT}`;
+    ctx.fillText("Nothing on the board yet.", 44, 150);
+  }
+  plate(ctx, 640, 80, 340, 236, 12, "rgba(255,255,255,0.05)", "rgba(196,163,90,0.35)", 2);
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `800 18px ${FONT}`;
+  ctx.fillText("ALSO ON THE BOARD", 658, 108);
+  s.markets
+    .filter((m) => m.id !== s.featuredId)
+    .slice(0, 4)
+    .forEach((m, i) => {
+      const y = 148 + i * 44;
+      ctx.fillStyle = MEAD.white;
+      ctx.font = `700 20px ${FONT}`;
+      ctx.fillText(fit(ctx, m.outcome, 200), 658, y);
+      ctx.fillStyle = MEAD.brass;
+      ctx.textAlign = "right";
+      ctx.fillText(price2(m.yesPrice), 878, y);
+      ctx.fillStyle = gradeColor(gradeText(m));
+      ctx.font = `900 22px ${SLAB}`;
+      ctx.fillText(gradeText(m), 962, y);
+      ctx.textAlign = "left";
+    });
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = `600 17px ${FONT}`;
+  ctx.textAlign = "center";
+  ctx.fillText("The five argue the cents here. Paper only. Nobody picks a winner.", W / 2, H - 22);
+  ctx.textAlign = "left";
+}
+
+/** The Skald's stand: the conditions under which a row would earn a paper ticket — as conditions, never a prediction. */
+export function drawLectern(c: HTMLCanvasElement, s: PredictionMarketFeedState) {
+  const ctx = c.getContext("2d")!;
+  const W = c.width;
+  const H = c.height;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, MEAD.pineDeep);
+  g.addColorStop(1, MEAD.pineInk);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  knotBorder(ctx, 6, 6, W - 12, H - 12, MEAD.brass, 14);
+  ctx.textAlign = "center";
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `900 30px ${SLAB}`;
+  ctx.fillText("THE SKALD'S STAND", W / 2, 58);
+  const feat = s.markets.find((m) => m.id === s.featuredId) ?? null;
+  ctx.fillStyle = MEAD.white;
+  ctx.font = `800 26px ${FONT}`;
+  ctx.fillText(fit(ctx, feat ? feat.outcome : "No market on the board", W - 60), W / 2, 100);
+  ctx.fillStyle = "#a7c4b5";
+  ctx.font = `600 18px ${FONT}`;
+  ctx.fillText(fit(ctx, feat?.hall?.sub ?? "", W - 60), W / 2, 128);
+  ctx.textAlign = "left";
+  ctx.fillStyle = MEAD.brass;
+  ctx.font = `800 20px ${FONT}`;
+  ctx.fillText("A ROW EARNS A PAPER TICKET ONLY WHEN IT HAS", 36, 178);
+  ctx.font = `700 24px ${FONT}`;
+  ["a real model input", "an edge after fees", "a price that is fresh", "depth on both sides"].forEach((t, i) => {
+    ctx.fillStyle = MEAD.brass;
+    ctx.fillText("◆", 40, 222 + i * 40);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillText(t, 76, 222 + i * 40);
+  });
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = `600 16px ${FONT}`;
+  ctx.fillText("Conditions, not a prediction.", W / 2, H - 24);
+  ctx.textAlign = "left";
+}

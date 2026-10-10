@@ -264,7 +264,7 @@
     { "id": "mead_tv_2", "kind": "tv", "center": [30.61, 3.6, -9.68], "size": [1.75, 1.37], "facing": 0, "px": [512, 400], "procedural": true, "hall": true },
     { "id": "mead_booth_0", "kind": "tv", "center": [16.46, 1.15, -5.5], "size": [0.8, 0.6], "facing": 70, "px": [512, 384], "procedural": true, "hall": true },
     { "id": "mead_booth_1", "kind": "tv", "center": [16.46, 1.15, -2.1], "size": [0.8, 0.6], "facing": 70, "px": [512, 384], "procedural": true, "hall": true },
-    { "id": "mead_ledger", "kind": "poster", "center": [32.12, 2.55, -0.6], "size": [2.6, 1.8], "facing": 270, "px": [1024, 710], "procedural": true, "hall": true }
+    { "id": "mead_ledger", "kind": "poster", "center": [14.4, 2.55, 6], "size": [2.6, 1.8], "facing": 90, "px": [1024, 710], "procedural": true, "hall": true }
   ],
   "emissives": [
     { "id": "led_urgency", "kind": "led_strip", "a": [-13.95, 3.42, -5.4], "b": [-13.95, 3.42, 3.4], "thickness": 0.06 },
