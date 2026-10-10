@@ -324,7 +324,8 @@ export function exFirmDiligence(c: Ctx, d: { inv: InvestLite }): Ex | null {
 export function exFirmOps(c: Ctx, d: { inv: InvestLite }): Ex | null {
   const f = c.f;
   const x = d.inv.firm?.ops;
-  if (!x) return null;
+  // An empty ledger has nothing to review; "no entry, and the replay applied every one" would be a sentence about nothing.
+  if (!x || !x.entries) return null;
   const today = d.inv.dayKey;
   const lines: (Line | null)[] = [];
   lines.push(

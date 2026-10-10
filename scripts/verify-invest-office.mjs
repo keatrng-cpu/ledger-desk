@@ -957,6 +957,8 @@ function near(a, b, e = 1e-4) {
     }
   }
   check(`the same ten voices on four other worlds (empty book, no ledger, unreadable stores, a tripped rule with a banned holding) are legal, sourced, and clean (${spoken} exchanges)`, spoken >= 28 && bad.length === 0, bad.slice(0, 3).join(" | "));
+  const emptyW = worlds["empty book"];
+  check("an empty ledger has nothing to review: no operations exchange and no tax exchange; the risk review speaks about the first dollar (all VTI); the funding review says no month is logged", FV.exFirmOps(ctxF("e1"), { inv: emptyW }) === null && FV.exFirmTax(ctxF("e2"), { inv: emptyW }) === null && /first dollar/.test(textOf({ lines: FV.exFirmRisk(ctxF("e3"), { inv: emptyW }).lines })) && /No month is logged yet/.test(textOf({ lines: FV.exFirmFunding(ctxF("e4"), { inv: emptyW }).lines })));
   const banned = worlds["a tripped rule and a banned holding"];
   const cb = runFirm("banned", (c) => FV.exFirmCompliance(c, { inv: banned }), { keep: false });
   check("a banned holding is the first thing the chair says", banned.firm.compliance.heldBanned.some((h) => h.ticker === "SPY") && /holds SPY/.test(cb.ex.lines[0].text) && cb.ex.lines[0].character === "Sterling", cb.text?.slice(0, 160));
