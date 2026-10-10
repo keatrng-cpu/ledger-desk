@@ -752,6 +752,14 @@ class Avatar {
     neck.position.y = 0.5 * s;
     this.spine.add(neck);
     this.head.position.y = 0.56 * s;
+    // THE HEAD WAS ONE SIZE FOR ALL FIVE. Every limb and the torso scale by `s` (height / 1.75) and
+    // `b` (build), but the skull, eyes, brow, mouth, hair and head accessories are all written at fixed
+    // radii — so Sterling at 1.86 m and Nova at 1.66 m wore identical heads. Across the crew's
+    // 1.66-1.86 m that is a 12% spread, which reads as a big head on the short ones and a small head
+    // on the tall ones. Scaling the head GROUP keeps every feature in proportion to each other and
+    // leaves the group's origin where it was, so `framing()`, the line-of-sight head point, the name
+    // tag and the speech bubble (all parented to `root`, not here) are untouched.
+    this.head.scale.setScalar(s);
     this.spine.add(this.head);
     const skull = shadowed(new THREE.Mesh(new THREE.SphereGeometry(0.13, 24, 18), skin));
     skull.position.y = 0.12;
@@ -881,10 +889,31 @@ class Avatar {
 
   private hairMesh(kind: string, m: THREE.Material): THREE.Object3D {
     const g = new THREE.Group();
+    // THE HAIR USED TO COVER THE FACE. The dome is r 0.138 on a skull of r 0.13, and it was swept to
+    // 0.55pi — 9 degrees PAST the equator — so its rim sat at y 0.100-0.106 while the eyes are at
+    // y 0.123-0.157 and the brow at 0.173-0.183. Its front surface was z 0.131 against eyes at
+    // z 0.118. Every style that calls this (buzz, short, bun, long, and the slick default) therefore
+    // had the eyes and the brow INSIDE the hair shell. Rendered the old and new geometry in Blender
+    // to be sure rather than reasoning about it: the old rim cuts a band straight across the eyes.
+    //
+    // A horizontal rim cannot be above the brow at the front AND cover the nape at the back, which is
+    // why the original swept past the equator. So the dome is TILTED BACK instead:
+    //   theta 0.55pi -> 0.5pi   rim at the equator, no lip curling in under the face
+    //   rotation.x -0.46        front of the rim rises to y ~0.184 (just clear of the brow top 0.183),
+    //                           back drops to ~0.054, which covers the nape
+    //   r 0.138 -> 0.147        the tilt swings the apex back, so the dome needs the extra radius to
+    //                           still enclose the skull's crown at y 0.2565
+    //   centre y 0.125 -> 0.119, z -0.010 -> -0.012
+    // `scaleY` is hair VOLUME. Squashing it used to drop the apex below the crown and expose scalp,
+    // so a squashed dome is scaled about its TOP (the max(0, ...) term); a taller one needs no
+    // correction because it already covers everything the unscaled dome did. Checked in Blender at
+    // scaleY 0.90, 1.00, 1.02 and 1.15: face clear, crown covered, nape covered at all four.
     const cap = (scaleY = 1, back = 0) => {
-      const c = new THREE.Mesh(new THREE.SphereGeometry(0.138, 22, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), m);
-      c.position.set(0, 0.125, -0.01 - back);
-      c.scale.set(1, scaleY, 1.02);
+      const r = 0.147;
+      const c = new THREE.Mesh(new THREE.SphereGeometry(r, 22, 14, 0, Math.PI * 2, 0, Math.PI * 0.5), m);
+      c.position.set(0, 0.119 + r * Math.max(0, 1 - scaleY), -0.012 - back);
+      c.scale.set(1, scaleY, 1);
+      c.rotation.x = -0.46;
       c.castShadow = true;
       return c;
     };
@@ -919,7 +948,10 @@ class Avatar {
     const g = new THREE.Group();
     if (kind === "acc_cap") {
       const crown = new THREE.Mesh(new THREE.SphereGeometry(0.142, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), accent);
-      crown.position.y = 0.14;
+      // Same bug as the hair: the crown's rim sat at y 0.14, which IS eye height, and its front
+      // reached z 0.142 against eyes at z 0.118 — so Jax's cap covered his eyes. The rim now starts
+      // above them (eye tops are y 0.157), and a half sphere has no geometry below its own centre.
+      crown.position.y = 0.165;
       const brim = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.012, 0.11), accent);
       brim.position.set(0, 0.15, -0.17);
       g.add(crown, brim);

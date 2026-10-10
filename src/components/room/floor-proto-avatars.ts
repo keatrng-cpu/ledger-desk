@@ -123,6 +123,8 @@ export class OwnerAvatar {
   /** Chunk C item 25 — seated on the balcony chair. */
   seated = false;
   private walkPhase = 0;
+  /** Metres travelled since the last `update`, so the gait advances by ground covered. */
+  private stepDist = 0;
   private bodyY = 0;
 
   constructor(start: V2, look: V2) {
@@ -244,32 +246,48 @@ export class OwnerAvatar {
     }
     const nx = this.pos[0] + dx;
     const nz = this.pos[1] + dz;
+    // The yaw is the direction ASKED FOR, in every branch. The slide branches used to write
+    // `atan2(dx, 0.0001)` and `atan2(0.0001, dz)`, which are +/-pi/2 and 0/pi exactly — so brushing a
+    // wall snapped the body to face due east, west, north or south whatever heading it had. In a room
+    // made of glass partitions and desks you slide constantly, so that fired all the time. Sliding is
+    // a constraint on POSITION; it is not a decision about which way you are facing.
+    const want = Math.atan2(dx, dz);
     if (!walkable(nx, nz)) {
-      // Slide on axes
+      // Blocked head-on: keep whichever single axis is still free.
       if (walkable(nx, this.pos[1])) {
+        this.stepDist += Math.abs(dx);
         this.pos = [nx, this.pos[1]];
-        this.yaw = Math.atan2(dx, 0.0001);
+        this.yaw = want;
         this.moving = true;
         return true;
       }
       if (walkable(this.pos[0], nz)) {
+        this.stepDist += Math.abs(dz);
         this.pos = [this.pos[0], nz];
-        this.yaw = Math.atan2(0.0001, dz);
+        this.yaw = want;
         this.moving = true;
         return true;
       }
       this.moving = false;
       return false;
     }
+    this.stepDist += Math.hypot(dx, dz);
     this.pos = [nx, nz];
-    this.yaw = Math.atan2(dx, dz);
+    this.yaw = want;
     this.moving = true;
     return true;
   }
 
   update(dt: number, t: number) {
-    if (this.moving && !this.seated) this.walkPhase += dt * 1.35 * 4.4;
+    // THE FEET USED TO SKATE. This advanced the gait by `dt * 1.35 * 4.4`, where 1.35 is the CREW's
+    // walking speed — but the Owner walks at 2.6 m/s (floor-scene.ts), so the legs cycled at 52% of
+    // the rate the ground was passing, and while sliding along a wall only one axis of the step was
+    // covered while the legs still cycled for the whole of it. The gait is a function of DISTANCE, not
+    // of time: 4.4 radians of phase per metre, which is the same constant, now applied to the metres
+    // actually travelled. `stepDist` is filled by tryMove and consumed here.
+    if (this.moving && !this.seated) this.walkPhase += this.stepDist * 4.4;
     else if (!this.seated) this.moving = false;
+    this.stepDist = 0;
     this.root.position.set(this.pos[0], this.elevation, this.pos[1]);
     this.root.rotation.y = this.yaw;
     const k = 1 - Math.exp(-12 * dt);
