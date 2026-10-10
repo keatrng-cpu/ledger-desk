@@ -1836,11 +1836,11 @@ function drawInvFunnel(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   kvLine(ctx, w, 78, "Swept into the long book", invUsd(fn.sweptUsd), C.up, 19);
   kvLine(ctx, w, 106, "Waiting to be bought", invUsd(fn.waitingUsd), fn.waitingUsd > 0 ? C.amber : C.muted, 19);
   // The same split the Invest tab uses. Local weights, no fetch.
-  const split: [string, number][] = [["Safety", 0.4], ["Power", 0.18], ["Grid", 0.15], ["Fuel", 0.08], ["Compute", 0.08], ["Halls", 0.05], ["Space", 0.03], ["Health", 0.03]];
+  const split: [string, number][] = [["Safety", 0.42], ["Power", 0.14], ["Grid", 0.12], ["Health", 0.14], ["Fuel", 0.06], ["Halls", 0.05], ["Compute", 0.04], ["Space", 0.03]];
   const light = split.slice().sort((a, b) => a[1] - b[1])[0]!;
   ctx.font = `500 12px ${FONT}`;
   ctx.fillStyle = C.muted;
-  wrap(ctx, `Of the waiting dollars: safety ${invUsd(fn.waitingUsd * 0.4)}, power ${invUsd(fn.waitingUsd * 0.18)}, grid ${invUsd(fn.waitingUsd * 0.15)}. Lightest sleeve is ${light[0]} at ${Math.round(light[1] * 100)}%. The room does not pick a name.`, 14, 128, w - 28, 15, 2);
+  wrap(ctx, `Of the waiting dollars: safety ${invUsd(fn.waitingUsd * 0.42)}, power ${invUsd(fn.waitingUsd * 0.14)}, health ${invUsd(fn.waitingUsd * 0.14)}. Lightest sleeve is ${light[0]} at ${Math.round(light[1] * 100)}%. The room does not pick a name.`, 14, 128, w - 28, 15, 2);
   ctx.font = `500 13px ${FONT}`;
   ctx.fillStyle = C.muted;
   wrap(ctx, fn.ladderLine, 14, 166, w - 28, 16, 1);

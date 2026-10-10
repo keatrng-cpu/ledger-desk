@@ -20,14 +20,14 @@ export interface FunnelSlice {
 }
 
 export const FUNNEL: FunnelSlice[] = [
-  { sleeve: "safety", weight: 0.4, demand: "The net. Total market and bills. Survives a year the growth book does not." },
-  { sleeve: "power", weight: 0.18, demand: "The first thing a hall buys. A contracted nuclear or gas year, not a new reactor design." },
-  { sleeve: "grid", weight: 0.15, demand: "Switchgear, turbines, the crews, and the cooling in the room. The build after the plant." },
-  { sleeve: "fuel", weight: 0.08, demand: "Uranium, components, and the gas pipe. A fleet does not run on a headline." },
-  { sleeve: "compute", weight: 0.08, demand: "The chip and the switch. Small on purpose: the options sleeve is already this bet." },
+  { sleeve: "safety", weight: 0.42, demand: "The net. VTI is already 33.8% information technology, so the ballast has to be large enough that the growth sleeves cannot double that bet." },
+  { sleeve: "power", weight: 0.14, demand: "The first contracted year a hall buys. Operators with a fleet, not a new reactor design." },
+  { sleeve: "grid", weight: 0.12, demand: "Switchgear, turbines, the crews, and the cooling. The build after the plant." },
+  { sleeve: "health", weight: 0.14, demand: "The other cash flow. Aging and procedures do not stop if the data-center build pauses. VTI holds 9.3% healthcare; this sleeve is the name, not the sector ETF." },
+  { sleeve: "fuel", weight: 0.06, demand: "Uranium, components, and the gas pipe. A fleet does not run on a headline." },
   { sleeve: "building", weight: 0.05, demand: "The hall itself. Rent and power available, not a model." },
+  { sleeve: "compute", weight: 0.04, demand: "The chip and the switch. Cut on purpose: VTI's top holding is NVDA, and the options sleeve is already this bet." },
   { sleeve: "space", weight: 0.03, demand: "The high-variance slice. Listed launch only, and it waits until the dossier exists." },
-  { sleeve: "health", weight: 0.03, demand: "Cash that does not stop if the data-center build pauses." },
 ];
 
 const SUM = FUNNEL.reduce((s, x) => s + x.weight, 0);
