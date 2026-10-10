@@ -195,6 +195,12 @@ export function InvestPanel() {
         <span className="text-[11px] text-[var(--color-muted)]">years · shares held · funded by a cut of realized options P&amp;L</span>
       </header>
 
+      <div className="sticky top-0 z-20 flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-2.5 py-1.5 text-[11px]">
+        <span>Swept <span className="font-medium tabular-nums">${queue.sweptUsd.toFixed(2)}</span></span>
+        <span>Waiting <span className="font-medium tabular-nums">{queue.waitingUsd > 0 ? `$${queue.waitingUsd.toFixed(2)}` : "—"}</span></span>
+        <span>Next <span className="font-medium">{next.ticker ?? next.sleeve}</span></span>
+      </div>
+
       <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
         <summary className="cursor-pointer">Years, not minutes. This tab does not read the option floor.</summary>
         <p className="mt-1">
@@ -212,20 +218,13 @@ export function InvestPanel() {
 
       <SweepCard closedMonths={ledger.sweeps.length} rate={ladder} onWrite={onWrite} />
       <HabitCard ledger={ledger} ladder={ladder} next={next} onWrite={onWrite} />
-      <BookCard
-        ledger={ledger}
-        book={book}
-        reb={reb}
-        marks={marks}
-        marksMsg={marksMsg}
-        onRefreshMarks={fetchMarks}
-        shadow={shadow}
-        waitingUsd={queue.waitingUsd}
-        onWrite={onWrite}
-      />
-      <ExposureCard read={exposure} dry={dry} />
       <FunnelCard waitingUsd={queue.waitingUsd} marks={marks} />
-      <LongBoard marks={marks} weights={[...weights.entries()].map(([ticker, weight]) => ({ ticker, weight }))} />
+      <LongBoard
+        marks={marks}
+        weights={[...weights.entries()].map(([ticker, weight]) => ({ ticker, weight }))}
+        onRefresh={fetchMarks}
+        refreshing={marksState.loading}
+      />
       <ResearchCard
         weights={weights}
         held={heldSet}
@@ -234,12 +233,32 @@ export function InvestPanel() {
         closes={closes}
         belowMeaningful={book.positions.length > 0 && book.belowMeaningful}
       />
-      {/* The kill rules, checked on demand with a weekly floor — a
-          multi-year holding does not need a poll, and each run spends API
-          budget. A person, never the model, marks a rule tripped. */}
-      <KillWatchPanel />
       <ScreenTable />
       <IpoCard />
+
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
+        <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">The book</summary>
+        <div className="mt-2 space-y-3">
+          <BookCard
+            ledger={ledger}
+            book={book}
+            reb={reb}
+            marks={marks}
+            marksMsg={marksMsg}
+            onRefreshMarks={fetchMarks}
+            shadow={shadow}
+            waitingUsd={queue.waitingUsd}
+            onWrite={onWrite}
+          />
+          <ExposureCard read={exposure} dry={dry} />
+        </div>
+      </details>
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
+        <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Kill rules</summary>
+        <div className="mt-2">
+          <KillWatchPanel />
+        </div>
+      </details>
       <LimitsCard />
       <DataCard sync={sync} syncing={syncing} onSync={runSync} entries={ledger.entries.length} onWrite={onWrite} />
 

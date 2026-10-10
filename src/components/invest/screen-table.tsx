@@ -56,8 +56,11 @@ const COLS: { key: Col; label: string; title: string }[] = [
   { key: "qqq", label: "In QQQ", title: "Weight inside QQQ" },
 ];
 
+const SHORT: Col[] = ["ticker", "implied", "ey", "record", "gap"];
+
 export function ScreenTable() {
   const [sort, setSort] = useState<{ col: Col; dir: 1 | -1 }>({ col: "implied", dir: 1 });
+  const [allCols, setAllCols] = useState(false);
   const rows = useMemo(() => {
     return allFundamentals()
       .filter((f) => !f.pendingCapture && f.marketCap)
@@ -112,13 +115,26 @@ export function ScreenTable() {
   };
 
   return (
-    <Card title="Screen" right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{`${rows.length} captured · scroll sideways`}</span>}>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1040px] text-[11px] tabular-nums">
+    <Card title="Screen" right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{`${rows.length} captured`}</span>}>
+      <div className="mb-2">
+        <button type="button" onClick={() => setAllCols((v) => !v)} className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-[10px] text-[var(--color-muted)]">
+          {allCols ? "Fewer columns" : "All columns"}
+        </button>
+      </div>
+      <div className="space-y-1 md:hidden">
+        {sorted.map((r) => (
+          <div key={r.ticker} className="rounded border border-[var(--color-border)] px-2 py-1.5 text-[11px]">
+            <p className="font-medium">{r.ticker} <span className="font-normal text-[var(--color-muted)]">{r.status}</span></p>
+            <p className="tabular-nums text-[var(--color-muted)]">implied {fmt("implied", r.implied)} · EY {fmt("ey", r.ey)} · record {fmt("record", r.record)}</p>
+          </div>
+        ))}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full text-[11px] tabular-nums">
           <thead className="text-[10px] uppercase text-[var(--color-muted)]">
             <tr>
-              {COLS.map((c) => (
-                <th key={c.key} className={`py-1 pr-2 font-medium ${c.key === "ticker" ? "text-left" : "text-right"}`} title={c.title}>
+              {COLS.filter((c) => allCols || SHORT.includes(c.key)).map((c) => (
+                <th key={c.key} className={`sticky py-1 pr-2 font-medium ${c.key === "ticker" ? "left-0 z-10 bg-[var(--color-surface-1)] text-left" : "text-right"}`} title={c.title}>
                   <button
                     type="button"
                     className="uppercase underline-offset-2 hover:underline"
@@ -135,14 +151,14 @@ export function ScreenTable() {
           <tbody>
             {sorted.map((r) => (
               <tr key={r.ticker} className="border-t border-[var(--color-border)]" title={r.note ?? undefined}>
-                <td className="py-1 pr-2 text-left">
+                <td className="sticky left-0 z-10 bg-[var(--color-surface-1)] py-1 pr-2 text-left">
                   <span className="font-medium">{r.ticker}</span>{" "}
                   <span className="text-[10px] text-[var(--color-muted)]">
                     {r.status}
                     {r.note ? " *" : ""}
                   </span>
                 </td>
-                {COLS.slice(1).map((c) => (
+                {COLS.filter((c) => c.key !== "ticker" && (allCols || SHORT.includes(c.key))).map((c) => (
                   <td
                     key={c.key}
                     className={`pr-2 text-right ${

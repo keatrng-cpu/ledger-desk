@@ -21,9 +21,9 @@ const SLEEVE_LABEL: Record<LongSleeve, string> = {
 };
 
 function stateClass(state: LongState): string {
-  if (state === "fail") return "border-[color-mix(in_oklab,var(--color-warn)_50%,transparent)] text-[var(--color-warn)]";
-  if (state === "pass") return "border-[var(--color-border-strong)] text-[var(--color-fg)]";
-  return "border-[var(--color-border)] text-[var(--color-muted)]";
+  if (state === "fail") return "border-[var(--color-warn)] bg-[color-mix(in_oklab,var(--color-warn)_12%,transparent)] text-[var(--color-warn)]";
+  if (state === "pass") return "border-[var(--color-fg)] bg-[var(--color-surface-1)] text-[var(--color-fg)]";
+  return "border-dashed border-[var(--color-border)] text-[var(--color-muted)]";
 }
 
 function Fact({ label, value }: { label: string; value: string }) {
@@ -35,7 +35,17 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function LongBoard({ marks, weights }: { marks: InvestMarks | null; weights: { ticker: string; weight: number }[] }) {
+export function LongBoard({
+  marks,
+  weights,
+  onRefresh,
+  refreshing,
+}: {
+  marks: InvestMarks | null;
+  weights: { ticker: string; weight: number }[];
+  onRefresh?: () => void;
+  refreshing?: boolean;
+}) {
   const cards = useMemo(() => gradeBoard({ marks: marks?.marks }), [marks]);
   const [sleeve, setSleeve] = useState<LongSleeve | "all">("all");
   const [state, setState] = useState<LongState | "all">("all");
@@ -51,9 +61,21 @@ export function LongBoard({ marks, weights }: { marks: InvestMarks | null; weigh
     : null;
 
   return (
-    <Card title="Long board" right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{quoteAt ? `quotes ${quoteAt} ET` : "no quote yet"}</span>}>
+    <Card
+      title="Names"
+      right={
+        <span className="flex items-center gap-2 font-mono text-[10px] text-[var(--color-muted)]">
+          {quoteAt ? `quotes ${quoteAt} ET` : "no quote yet"}
+          {onRefresh && (
+            <button type="button" onClick={onRefresh} className="rounded border border-[var(--color-border)] px-1.5 py-0.5 normal-case">
+              {refreshing ? "…" : "Refresh"}
+            </button>
+          )}
+        </span>
+      }
+    >
       <p className="mb-2 text-[11px] leading-relaxed text-[var(--color-muted)]">
-        Safety net, then the chain that feeds a data center. A card ranks a name. The add gate is still the only thing that can allow a buy.
+        The 25 names. The dollars are in the split above. Pass still does not buy.
       </p>
       <div className="mb-2 flex flex-wrap gap-1">
         {(["all", "pass", "wait", "fail"] as const).map((s) => (
