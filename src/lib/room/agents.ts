@@ -44,6 +44,7 @@ import { ivFor, quoteOption, type OptionType, type Underlier } from "./option-ma
 import { absorbAtlas, improveAtlas, offerToBrains, saveAtlas, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
 import { jobsFor } from "./brain-feed";
 import { gamesOn, marketClosed } from "./off-hours";
+import { HALL_SPOTS } from "./mead-hall-layout";
 
 export const CREW: readonly Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
 
@@ -149,7 +150,11 @@ export type Activity =
   | "study"
   | "mead";
 
-/** Lounge activities and the spot (floor-layout.json `spots`) each one uses. */
+/**
+ * Lounge activities and the spot (floor-layout.json `spots`) each one uses.
+ * `study` and `mead` are the Mead Hall wing (mead-hall-layout.ts HALL_SPOTS): study sits at the Long Table or stands at the Rune Board;
+ * mead is the bar, the jumbotron, the pool table, the hearth and the chat corner.
+ */
 export const ACTIVITY_SPOTS: Partial<Record<Activity, string[]>> = {
   coffee: ["coffee"],
   cooler: ["cooler"],
@@ -158,9 +163,34 @@ export const ACTIVITY_SPOTS: Partial<Record<Activity, string[]>> = {
   window: ["window_0", "window_1"],
   chat: ["bar_0", "bar_1", "bar_2"],
   phone: ["phone_corner"],
-  study: ["study_0", "study_1", "mead_2"],
-  mead: ["mead_0", "mead_1", "mead_2"],
+  study: ["mead_long_n0", "mead_long_n1", "mead_long_n2", "mead_long_s0", "mead_long_s1", "mead_long_s2", "mead_board"],
+  mead: ["mead_bar_0", "mead_bar_1", "mead_tap", "mead_jumbo_0", "mead_jumbo_1", "mead_pool_0", "mead_pool_1", "mead_hearth_0", "mead_hearth_1", "mead_chat_0", "mead_chat_1", "mead_chat_2", "mead_door"],
 };
+
+/**
+ * Each person's corner of the hall, so the five do not all crowd one spot (two on one spot stand shoulder to shoulder): Gemma at the
+ * Rune Board and the chat corner, Jax at the taps and the pool table, Nova on the north side of the Long Table and by the hearth,
+ * Sterling on the south side and by the second hearth chair, Vince under the jumbotron reading the cents. Pools are disjoint within
+ * an activity; the pick inside a pool is the same hashed minute-bucket pick as any other lounge spot.
+ */
+export const HALL_HABITS: Record<Character, { study: string[]; mead: string[] }> = {
+  Gemma: { study: ["mead_board", "mead_long_n0"], mead: ["mead_chat_0", "mead_door"] },
+  Jax: { study: ["mead_long_s1", "mead_long_s2"], mead: ["mead_tap", "mead_bar_0", "mead_bar_1", "mead_pool_0", "mead_pool_1"] },
+  Nova: { study: ["mead_long_n1"], mead: ["mead_hearth_0", "mead_chat_1"] },
+  Sterling: { study: ["mead_long_s0"], mead: ["mead_hearth_1", "mead_chat_2"] },
+  Vince: { study: ["mead_long_n2"], mead: ["mead_jumbo_0", "mead_jumbo_1"] },
+};
+
+const HALL_SPOT_IDS: ReadonlySet<string> = new Set(HALL_SPOTS.map((s) => s.id));
+
+/**
+ * The hall spot a person's act puts them at, or null. Sterling and Vince keep their desk zone in the cycle's contract (the trader's
+ * schema does not give them the lounge), but when the market is shut their act can still be `study` or `mead` with a hall spot: the
+ * scene reads this to stand them there. A desk act, or a lounge act with a lounge spot, is not the hall.
+ */
+export function hallSpotOf(a: { act: Activity; spot: string | null }): string | null {
+  return (a.act === "study" || a.act === "mead") && a.spot != null && HALL_SPOT_IDS.has(a.spot) ? a.spot : null;
+}
 
 const LOUNGE: ReadonlySet<Activity> = new Set(["coffee", "cooler", "couch", "tv", "window", "chat", "phone", "study", "mead"]);
 
@@ -530,7 +560,7 @@ function chooseFree(who: Character, prev: AgentAct, n: Needs, s: Situation, mind
     return options.includes(prev.act) ? prev : { act: "desk", since: s.nowMs, spot: null, with: null };
   }
   const act = best.a;
-  const spots = ACTIVITY_SPOTS[act] ?? null;
+  const spots = (act === "study" || act === "mead" ? HALL_HABITS[who][act] : null) ?? ACTIVITY_SPOTS[act] ?? null;
   let withWho: Character | null = null;
   if (act === "chat") {
     // Chat with the roamer they like most who is also free.

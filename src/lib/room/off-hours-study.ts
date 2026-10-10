@@ -11,6 +11,7 @@
  */
 
 import { LONG_NAMES } from "@/lib/invest/long-board";
+import { eventWords, HALL_TALK_MAX_SEC } from "./hall-lite";
 import { freshCatalysts, lookAt, themeOfTheDay, watchHit } from "./invest-read";
 import { hash32, type InvestLite, type NewsLite, type PredictLite } from "./live-types";
 
@@ -86,6 +87,8 @@ export interface StudyInput {
   weekend: boolean;
   etDate: string;
   etMin: number;
+  /** The moment of the look. When given, a prediction read older than the hall's talk limit is not read as current. */
+  nowMs?: number;
   news: NewsLite[];
   invest: InvestLite | null;
   predict: PredictLite | null;
@@ -101,6 +104,8 @@ const STOP = new Set([
   "about", "after", "against", "ahead", "among", "before", "being", "below", "between", "could", "first", "from", "games", "going", "have", "higher", "lower", "market", "markets",
   "money", "next", "open", "over", "point", "points", "price", "prices", "since", "spread", "stock", "stocks", "their", "there", "these", "those", "today", "total", "trade",
   "trades", "trading", "under", "until", "week", "weeks", "which", "while", "whose", "would", "yesterday", "prediction", "predicted", "contract", "contracts", "chance", "percent",
+  // Dates and report words in a readable event label ("GDP for the third quarter of 2026") are not a subject either.
+  "january", "february", "august", "september", "october", "november", "december", "quarter", "third", "second", "fourth", "decision", "report", "above", "below",
 ]);
 
 const STUDY_TOPICS = ["ai-capex", "energy", "ipo", "earnings", "regulation", "geopolitics", "nfl"] as const;
@@ -206,7 +211,12 @@ function outsidersOf(news: NewsLite[], inv: InvestLite | null): StudyOutsider[] 
   return out;
 }
 
-function linkScore(event: string, outcome: string, n: NewsLite): number {
+/**
+ * How strongly a headline shares a subject with a market: 2 per shared word of five letters or more (minus the stop list), +3 when a
+ * ticker symbol the headline carries is written in the market's text. A symbol is matched as written (upper case), so "ON" the
+ * semiconductor never links to "on October 5". Below 2 nothing links.
+ */
+export function linkScore(event: string, outcome: string, n: NewsLite): number {
   const words = new Set(tokens(`${event} ${outcome}`));
   const title = new Set(tokens(n.title));
   let score = 0;
@@ -215,7 +225,7 @@ function linkScore(event: string, outcome: string, n: NewsLite): number {
     score += w.length >= 5 ? 2 : 1;
   }
   for (const t of n.tickers) {
-    if (t.length >= 2 && new RegExp(`(^|[^A-Za-z])${t}([^A-Za-z]|$)`, "i").test(`${event} ${outcome}`)) score += 3;
+    if (t.length >= 2 && /^[A-Za-z]+$/.test(t) && new RegExp(`(^|[^A-Za-z])${t.toUpperCase()}([^A-Za-z]|$)`).test(`${event} ${outcome}`)) score += 3;
   }
   return score;
 }
@@ -257,12 +267,18 @@ export function toPredictLite(r: {
   reason?: string;
   markets: { event: string; outcome: string; yesPrice: number | null; setupGrade: string | null }[];
 }): PredictLite {
-  const rows = r.markets.slice(0, 6).map((m) => ({
-    event: m.event,
-    outcome: m.outcome,
-    yesCents: yesCentsOf(m.yesPrice),
-    grade: m.setupGrade,
-  }));
+  // The raw feed's `event` is a Kalshi event ticker ("KXNFLGAME-26OCT05MINDET"): said aloud it is junk, so it is turned into words
+  // (hall-lite `eventWords`); a human title passes through. The board path (hall-lite `predictLiteFromBoard`) is what the live
+  // room uses now; this stays for callers that only hold the raw feed. A grade here is the feed's, not the signal engine's.
+  const rows = r.markets.slice(0, 6).map((m) => {
+    const w = eventWords(m.event);
+    return {
+      event: `${w.famSay}${w.when ? ` ${w.when}` : ""}`,
+      outcome: m.outcome,
+      yesCents: yesCentsOf(m.yesPrice),
+      grade: m.setupGrade,
+    };
+  });
   return {
     asOf: r.asOf,
     source: r.label || r.source || "Kalshi",
@@ -279,6 +295,9 @@ export function studyPack(i: StudyInput): StudyPack {
   const dm = theme?.demand[0] ?? null;
   const cat = inv ? freshCatalysts(inv)[0] ?? null : null;
   const ranked = [...i.news].sort((a, b) => (b.publishedMs ?? 0) - (a.publishedMs ?? 0));
+  // A prediction read that is too old to be a look at the book is said to be old, not read as if it were today's.
+  const predictAgeMin = i.predict && i.nowMs != null ? (i.nowMs - Date.parse(i.predict.asOf)) / 60_000 : null;
+  const predictOld = predictAgeMin != null && !(predictAgeMin <= HALL_TALK_MAX_SEC / 60);
   return {
     weekend: i.weekend,
     today: i.etDate,
@@ -300,8 +319,16 @@ export function studyPack(i: StudyInput): StudyPack {
     catalyst: cat ? { ticker: cat.ticker, name: cat.name, date: cat.date, when: cat.when } : null,
     hits: hitsOf(ranked, inv),
     outsiders: outsidersOf(ranked, inv),
-    predicts: i.predict ? predictsOf(i.predict.rows, ranked) : [],
+    predicts: i.predict && !predictOld ? predictsOf(i.predict.rows, ranked) : [],
     predictSource: i.predict?.source ?? null,
-    predictWhy: i.predict ? (i.predict.rows.length ? null : i.predict.reason) : "The prediction book has not been read this session.",
+    predictWhy: i.predict
+      ? predictOld
+        ? Number.isFinite(predictAgeMin)
+          ? `The last prediction read is ${Math.round(predictAgeMin as number)} minutes old, so it is not read as current.`
+          : "The last prediction read has no valid time, so it is not read as current."
+        : i.predict.rows.length
+          ? null
+          : i.predict.reason
+      : "The prediction book has not been read this session.",
   };
 }

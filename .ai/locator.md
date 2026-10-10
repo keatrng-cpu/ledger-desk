@@ -41,3 +41,8 @@ Add a line here when a behavior gets a new owner. Do not paste the function.
 - The firm's week, one list for the talk and the board TV — `src/lib/room/invest-read.ts` `firmDay`
 - The firm's voices — `src/lib/room/live-voices-invest-firm.ts`
 - A click on a market on a hall screen opens its desk panel in the Predict analyzer — `src/components/room/floor-link.ts` `openPredictAt`
+- The prediction board the Floor talks about, copied from the signal engine — `src/lib/room/hall-lite.ts` `hallLiteFrom`
+- Where the hall's board is held and published — `src/lib/room/hall-store.ts` `setHall` / `hallLiteNow`
+- The pull (scanner models into the signal engine) — `src/components/room/hall-read.ts` `loadHallBoard`
+- What the five say in the Mead Hall — `src/lib/room/live-voices-mead.ts` `meadBeats`
+- Where the five stand in the hall — `src/lib/room/agents.ts` `HALL_HABITS`, `hallSpotOf`

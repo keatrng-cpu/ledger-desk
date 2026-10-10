@@ -23,7 +23,7 @@ import type { Animation, Beat, Character, DialogueLine, EntryTier, Zone } from "
 import type { OptionType, Underlier } from "./option-math";
 import type { Sleeve } from "@/lib/invest/universe";
 
-export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat" | "goal" | "seat" | "rnd" | "invest";
+export type TalkKind = "tape" | "level" | "news" | "calendar" | "session" | "book" | "card" | "pulse" | "feed" | "heartbeat" | "goal" | "seat" | "rnd" | "invest" | "hall";
 
 /** 0 = chatter (waits for a quiet room), 1 = worth interrupting the chatter, 2 = drop everything. */
 export type Urgency = 0 | 1 | 2;
@@ -732,12 +732,157 @@ export interface InvestLite {
   dayKey: string;
 }
 
-/** A few prediction rows the floor has actually read. Paper only. Empty when the feed has not come back. */
+/**
+ * A few prediction rows the floor has actually read. Paper only. Empty when the feed has not come back.
+ * `event` is a READABLE label ("NFL game, October 5"), never a Kalshi ticker. `grade` is the signal engine's letter, or null when the
+ * engine has none (no model input: "no edge read") — null is "no grade", never a placeholder letter.
+ */
 export interface PredictLite {
   asOf: string;
   source: string;
   reason: string | null;
   rows: { event: string; outcome: string; yesCents: number | null; grade: string | null }[];
+}
+
+/* ── The Mead Hall: the prediction board the hall is showing ───────────── */
+
+/** A time to settle, already in the unit a person would say it in. */
+export interface HallSpan {
+  n: number;
+  unit: "minute" | "minutes" | "hour" | "hours" | "day" | "days";
+}
+
+/** One market on the hall's screens: the jumbotron (slot 0) or one of the Rune Board's five (slots 1–5). Every number is the engine's own field, rounded for speech. */
+export interface HallRowLite {
+  /** The Kalshi ticker. Never spoken; the verifier joins rows to the engine's signals by it. */
+  id: string;
+  /** 0 = jumbotron, 1–5 = the Rune Board, in the hall's order. */
+  slot: number;
+  /** The family tag the hall's screens use (NFL, NBA, ECON, WEATHER, CRYPTO, POLITICS, MARKET…) and its spoken name ("NFL game"). */
+  fam: string;
+  famSay: string;
+  /** "on October 5", "in October 2026", "for the third quarter of 2026" — read from the event ticker's date part, or null. */
+  when: string | null;
+  /** The contract's outcome, made speakable (° → degrees, ≥ → at least). */
+  outcome: string;
+  nfl: boolean;
+  yesAskC: number | null;
+  yesBidC: number | null;
+  noAskC: number | null;
+  /** The book's mid, in cents (one decimal). */
+  midC: number | null;
+  /** What YES must win to pay after the taker fee and a cent of slippage, in percent (one decimal), and the same for NO. */
+  needsYesPct: number | null;
+  needsNoPct: number | null;
+  /** needsYesPct minus midC, in points: what crossing the spread and paying the fee costs before the contract is right at all. */
+  costPts: number | null;
+  /** The taker fee at the YES ask, cents per contract (two decimals). */
+  feeYesC: number | null;
+  spreadC: number | null;
+  liq: "deep" | "ok" | "thin" | "none";
+  liqScore: number;
+  askSize: number | null;
+  /** Move since the open reference, cents (one decimal, signed), and where the reference came from. */
+  moveC: number | null;
+  moveBasis: "candles_open" | "previous_day" | "none";
+  /** Velocity in cents per hour (one decimal, signed) over `velHours` hours, from `velPoints` real hourly trade points — only when the engine has real trades. */
+  velCph: number | null;
+  velHours: number | null;
+  velPoints: number;
+  /** Time to settle, and the engine's phase word. */
+  settle: HallSpan | null;
+  phase: "open" | "closing_soon" | "closed" | "unknown";
+  /** The engine's freshness at the moment it read the book, and its stale flag. */
+  fresh: "live" | "recent" | "stale";
+  stale: boolean;
+  staleReason: string | null;
+  basis: "book" | "last_trade" | "none";
+  /** The engine's own word: "edge" when a real model input exists, else the literal "no edge read". */
+  edgeStatus: "edge" | "no edge read";
+  /** The edge, only when a real model input exists. */
+  edge: null | { side: "yes" | "no"; netC: number; modelPct: number; needPct: number | null; modelSrc: string };
+  /** Why there is no edge read (the engine's reason, made speakable), or null when there is one. */
+  noEdgeWhy: string | null;
+  /** The engine's letter, or null for "no grade". Never a placeholder. */
+  grade: "A" | "B" | "C" | "D" | "F" | null;
+  /** The setup score (0–100), shown with or without a letter. */
+  score: number;
+  /** The side the engine's grade is for (yes unless a real edge favours no) and that side's ask, in cents. */
+  gradedSide: "yes" | "no";
+  gradedAskC: number | null;
+  /** The price band of the side the engine graded. */
+  bin: null | { id: string; loC: number; hiC: number; points: number; cap: "C" | "D" | null };
+  /** The engine's own cap and down-grade reasons, made speakable and shortened. */
+  why: string[];
+  /** The sports scanner's eight must-layers for this contract, when the scanner has it. `clears` = every layer passes. */
+  scan: null | { passed: number; total: number; clears: boolean; miss: string | null; limitC: number | null; askC: number | null; gapC: number | null; ref: string | null; live: boolean };
+  /** The four conditions the lectern states, for this row. */
+  conds: { model: boolean; edge: boolean; fresh: boolean; depth: boolean };
+  /** How many of the four hold. */
+  condsMet: number;
+}
+
+/** What the paper side of the hall has on record, read in the browser. Null fields are "nothing on record". */
+export interface HallRecordLite {
+  /** The scanner's go ledger. */
+  goN: number;
+  goSettled: number;
+  goWins: number;
+  /** Dollars per contract held to settlement, summed over settled prints. */
+  goNet: number;
+  /** The Predict tab's journal of the trader's own fills. */
+  jOpen: number;
+  jClosed: number;
+  jNet: number;
+  /** The analyzer's paper book. */
+  paperTickets: number;
+  paperOpen: number;
+  paperSettled: number;
+  /** "ok" once the scorer has the samples to read; otherwise "too few to read". */
+  paperRead: "ok" | "too few to read";
+  paperHitPct: number | null;
+  /** Settled count under which every record here is noise (the engine's own rule). */
+  minSettled: number;
+}
+
+export interface HallLite {
+  /** When the board was read (ISO), how old that is now, and where it came from. */
+  asOf: string;
+  ageSec: number;
+  source: string;
+  /** The board's full source label as the engine prints it. */
+  label: string;
+  /** The engine's rule: a quote older than this is stale. A read older than `talkMaxSec` is not talked from at all. */
+  staleSec: number;
+  talkMaxSec: number;
+  /** Older than the engine's staleness rule (or the engine itself said stale). */
+  stale: boolean;
+  /** Older than `talkMaxSec`. */
+  old: boolean;
+  /** A failed pull kept the last board. */
+  held: boolean;
+  /** The pull ran out of time, and the markets it skipped. */
+  partial: boolean;
+  skipped: number;
+  reason: string | null;
+  total: number;
+  counts: { A: number; B: number; C: number; D: number; F: number };
+  ungraded: number;
+  /** Markets with no edge read, and markets with a real model input behind them. */
+  noEdge: number;
+  modeled: number;
+  crowd: { mood: "surging" | "sliding" | "restless" | "quiet"; energyPct: number | null; basedOn: number; reaction: "cheer" | "groan" | "hail" | null; reason: string };
+  /** Kalshi's fee schedule as the engine prices it: rates in percent, and the per-contract fee at fifty cents and at ten. */
+  fee: { takerPct: number; makerPct: number; peakPriceC: number; peakC: number; lowPriceC: number; lowC: number; slipC: number };
+  /** The evidence the price bands rest on. */
+  flb: { authors: string; year: number; takerLossPct: number; makerLossPct: number };
+  /** The numbers behind the lectern's conditions, all read from the code that enforces them. */
+  rules: { modelMaxMin: number; staleSec: number; minDepth: number; maxSpreadC: number; velWindowH: number; minSettled: number };
+  rows: HallRowLite[];
+  /** The scanner's rows came with this read (count), and how old they are. */
+  scanned: number;
+  scanAgeSec: number | null;
+  record: HallRecordLite | null;
 }
 
 /** A catalyst list built from an earnings calendar captured more than this many days ago is not spoken from, and the audit says so. */
@@ -786,6 +931,8 @@ export interface TalkWorld {
   invest: InvestLite | null;
   /** Prediction rows the floor has read. Null until a closed-hours poll returns. Paper only. */
   predict: PredictLite | null;
+  /** The prediction board the Mead Hall shows (signal engine + sports scanner + the paper records). Absent in worlds built without it; null until a read returns. */
+  hall?: HallLite | null;
   /** How old the committed data is (the audit reads it). Absent in worlds built without it, which raises nothing. */
   fresh?: DataFreshness | null;
   /** The measured headline lines (evidence.ts) — real findings the night shift can quote. */
@@ -797,9 +944,12 @@ export interface TalkWorld {
 /* ── What a tick produces ──────────────────────────────────────────────── */
 
 export interface TalkMove {
-  /** The cycle contract's zones, or "ANNEX": presentation-only, an office of the annex (the spot says which). */
-  zone?: Zone | "ANNEX";
-  /** A spot id from floor-layout.json: a lounge spot (tv_watch_0, window_0, bar_1, coffee, …) or an annex office (office_rnd, office_ops, office_goal). */
+  /**
+   * The cycle contract's zones, or "ANNEX": presentation-only, an office of the annex (the spot says which); or "HALL": the Mead Hall wing
+   * (mead-hall-layout.ts), presentation-only, where the spot is one of HALL_SPOTS and any of the five may stand.
+   */
+  zone?: Zone | "ANNEX" | "HALL";
+  /** A spot id from floor-layout.json: a lounge spot (tv_watch_0, window_0, bar_1, coffee, …), an annex office (office_rnd, office_ops, office_goal) or a hall spot (mead_jumbo_0, mead_lectern, …). */
   spot?: string;
 }
 
