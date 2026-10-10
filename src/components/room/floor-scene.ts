@@ -40,7 +40,7 @@ import { FloorOverhaul } from "./floor-overhaul";
 import type { FloorProps } from "@/lib/room/floor-props";
 import { gestureFor, presenceOf, visemeScale } from "@/lib/room/floor-presence";
 import { readRhAccount } from "@/lib/ui/rh-account";
-import { HALL_PLACES, HALL_SCREENS } from "@/lib/room/mead-hall-layout";
+import { HALL_PLACES, HALL_SCREENS, inHall } from "@/lib/room/mead-hall-layout";
 import { FloorMead, HALL_LAYER } from "./floor-mead";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
@@ -2584,8 +2584,11 @@ export class FloorScene {
       this.camera.position.set(...pos);
       this.controls.target.set(...target);
     };
+    // A speaker in the Mead Hall is framed from the hall, not from the war room: the wide cuts and the fallback are the hall's own.
+    const speaker = line ? this.avatars.get(line.character) : null;
+    const there = speaker ? inHall(speaker.framing().pos[0], speaker.framing().pos[1]) : false;
     if (!line || this.shotN % 5 === 0) {
-      const c = LAYOUT.camera[this.shotN % 10 === 0 ? "overview" : "quant"] ?? LAYOUT.camera.overview!;
+      const c = LAYOUT.camera[there ? (this.shotN % 10 === 0 ? "mead_aerial" : "mead") : this.shotN % 10 === 0 ? "overview" : "quant"] ?? LAYOUT.camera.overview!;
       return cut(c.pos, c.target);
     }
     const a = this.avatars.get(line.character)!;
@@ -2596,7 +2599,7 @@ export class FloorScene {
     const shot = this.closeShot(a, this.shotN % 2 ? 1 : -1);
     if (!shot) {
       // Nowhere with a clear view of them: a wide shot beats a close-up of the back of a monitor.
-      const c = LAYOUT.camera.quant ?? LAYOUT.camera.overview!;
+      const c = (there ? LAYOUT.camera.mead : LAYOUT.camera.quant) ?? LAYOUT.camera.overview!;
       return cut(c.pos, c.target);
     }
     cut(shot.pos, shot.target);

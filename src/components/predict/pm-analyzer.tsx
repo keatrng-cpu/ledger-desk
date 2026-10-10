@@ -40,7 +40,8 @@ import type { ScanRow } from "@/lib/predict/scanner";
 import { addPaper, loadPaper, subscribePaper } from "@/lib/predict/pm-paper-store";
 import { MeadScene, type Reaction, type TicketSide } from "@/components/mead/mead-scene";
 import { MEAD, categoryLabel, eventLabel } from "@/components/mead/mead-screens";
-import { createSignalHallFeed, crowdLabel, EMPTY_FEED, signalToHallMarket, type HallFeedState, type SignalHallFeed } from "@/components/mead/mead-signal-feed";
+import { createSignalHallFeed, crowdLabel, EMPTY_FEED, hallExtrasFrom, signalToHallMarket, type HallFeedState, type SignalHallFeed } from "@/components/mead/mead-signal-feed";
+import { readHallRecord } from "@/components/mead/mead-record";
 import { PredictTab } from "./predict-tab";
 
 const BTN =
@@ -379,6 +380,8 @@ export default function PmAnalyzer() {
   useEffect(() => {
     if (!scene.current || state.status === "idle") return;
     scene.current.setFeed(state.hall);
+    // The Skald's Ledger and the Long Table: the crowd, the board's letters, the record, the next settlement.
+    scene.current.setExtras(hallExtrasFrom(state, readHallRecord()));
     if (state.layout && state.board && !state.held) scene.current.setCrowd(state.layout.crowd, state.board.asOf);
   }, [state, ready]);
 
@@ -450,9 +453,9 @@ export default function PmAnalyzer() {
           </button>
         )}
         <div className="absolute bottom-2 right-2 flex flex-wrap gap-1">
-          {(["overview", "jumbotron", "board", "bar"] as const).map((w) => (
+          {(["overview", "jumbotron", "board", "bar", "table", "hearth"] as const).map((w) => (
             <button key={w} type="button" className={BTN} style={BTN_STYLE} onClick={() => scene.current?.look(w)}>
-              <Camera className="h-3 w-3" /> {w === "board" ? "Rune Board" : w[0].toUpperCase() + w.slice(1)}
+              <Camera className="h-3 w-3" /> {w === "board" ? "Rune Board" : w === "table" ? "Long Table" : w[0].toUpperCase() + w.slice(1)}
             </button>
           ))}
         </div>

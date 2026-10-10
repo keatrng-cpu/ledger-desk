@@ -20,7 +20,8 @@ import { MeadHall, type HallScreen } from "@/components/mead/mead-hall-build";
 import { setLayer } from "@/components/mead/mead-hall-kit";
 import { readHallRecord } from "@/components/mead/mead-record";
 import { hallExtrasFrom, type HallFeedState } from "@/components/mead/mead-signal-feed";
-import { HALL_AT, HALL_ROOM, floorToHall } from "@/lib/room/mead-hall-layout";
+import { HALL_AT, HALL_DOOR, HALL_DOOR_H, HALL_ROOM, floorToHall } from "@/lib/room/mead-hall-layout";
+import { MEAD, helmet, knotBorder } from "@/components/mead/mead-screens";
 import type { Reaction } from "@/components/mead/mead-people";
 
 /** The three.js layer the hall and its lights live on. 0 is the office. */
@@ -60,11 +61,66 @@ export class FloorMead {
     this.root.add(this.hall.root);
     // The hall's regulars and their speech bubbles are scenery: a sight line or a click goes through them.
     for (const p of this.hall.people) p.root.traverse((o) => (o.raycast = () => undefined));
+    this.buildDoorSign();
     const R = HALL_ROOM;
     this.bounds.set(
       new THREE.Vector3(R.x0 + HALL_AT.x - 0.4, -0.2, R.z0 + HALL_AT.z - 0.4),
       new THREE.Vector3(R.x1 + HALL_AT.x + 0.4, R.h + 3.4, R.z1 + HALL_AT.z + 0.4),
     );
+  }
+
+  /**
+   * On the lounge's side of the doorway: a carved timber head beam, a sign, and a lantern either side — so anyone in the lounge
+   * knows what the great doorway leads to. Lit by the office's lights like everything else in the lounge (layer 0).
+   */
+  private buildDoorSign() {
+    const cv = document.createElement("canvas");
+    cv.width = 1024;
+    cv.height = 224;
+    const c = cv.getContext("2d")!;
+    c.fillStyle = MEAD.pineDeep;
+    c.fillRect(0, 0, 1024, 224);
+    knotBorder(c, 6, 6, 1012, 212, MEAD.brass, 18);
+    helmet(c, 104, 112, 120);
+    c.fillStyle = "#e0c888";
+    c.font = "900 84px 'Rockwell', 'Roboto Slab', Georgia, serif";
+    c.fillText("THE MEAD HALL", 190, 118);
+    c.fillStyle = "#a7c4b5";
+    c.font = "800 30px Inter, system-ui, sans-serif";
+    c.fillText("PREDICTION MARKETS · PAPER ONLY", 192, 172);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    const x = HALL_ROOM.x0 - HALL_ROOM.wallT - 0.2; // on the lounge's face of its east wall
+    const z = (HALL_DOOR.z0 + HALL_DOOR.z1) / 2;
+    const g = new THREE.Group();
+    g.name = "mead_door_sign";
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 0.634), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    sign.rotation.y = -Math.PI / 2;
+    sign.position.set(x - 0.09, HALL_DOOR_H + 0.62, z);
+    g.add(sign);
+    const wood = new THREE.MeshStandardMaterial({ color: "#3b2411", roughness: 0.8 });
+    const brass = new THREE.MeshStandardMaterial({ color: MEAD.brass, roughness: 0.35, metalness: 0.6 });
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.26, HALL_DOOR.z1 - HALL_DOOR.z0 + 0.5), wood);
+    beam.position.set(x - 0.02, HALL_DOOR_H + 0.13, z);
+    g.add(beam);
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 3.06), wood);
+    frame.position.set(x - 0.01, HALL_DOOR_H + 0.62, z);
+    g.add(frame);
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.05, 3.14), brass);
+    trim.position.set(x - 0.04, HALL_DOOR_H + 0.99, z);
+    g.add(trim);
+    for (const dz of [-1.75, 1.75]) {
+      const lantern = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.085, 0.3, 6), new THREE.MeshStandardMaterial({ color: "#ffcf7a", roughness: 0.3, emissive: new THREE.Color(0xffa53a), emissiveIntensity: 2.2 }));
+      lantern.position.set(x - 0.14, HALL_DOOR_H - 0.5, z + dz);
+      g.add(lantern);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.12, 6), wood);
+      cap.position.set(x - 0.14, HALL_DOOR_H - 0.29, z + dz);
+      g.add(cap);
+    }
+    // Sightlines and clicks go through the sign: it is a decoration, not a wall.
+    g.traverse((o) => (o.raycast = () => undefined));
+    this.root.add(g);
   }
 
   /** Every screen the hall owns, in the form FloorScene keeps its own in (so hover, double-click and Go-to treat them alike). */

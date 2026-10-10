@@ -394,6 +394,7 @@ export function buildHallExtras(ctx: HallExtrasCtx): HallExtrasHandle {
     x.fill();
   });
   const flames: THREE.Mesh[] = [];
+  let boost = 0;
   for (const [fz, fh] of [
     [-0.32, 0.8],
     [0.0, 1.05],
@@ -487,21 +488,26 @@ export function buildHallExtras(ctx: HallExtrasCtx): HallExtrasHandle {
   }
 
   const fireBase = [0.8, 1.05, 0.7];
+  // The crowd's real energy (0 to 1, from price velocity) feeds the hearth and the pennants: the hall roars when the market does.
+  let energy = 0;
   return {
-    update(_dt: number, t: number) {
+    update(dt: number, t: number) {
+      const target = Math.max(0, Math.min(1, energy));
+      boost += (target - boost) * (1 - Math.exp(-1.5 * dt));
       flames.forEach((f, i) => {
-        const flick = 0.82 + 0.18 * Math.sin(t * (7 + i * 2.3) + i * 1.9) * Math.sin(t * 3.1 + i);
-        f.scale.set(0.9 + 0.1 * Math.sin(t * 9 + i), flick, 1);
+        const flick = (0.82 + 0.18 * Math.sin(t * (7 + i * 2.3) + i * 1.9) * Math.sin(t * 3.1 + i)) * (1 + 0.3 * boost);
+        f.scale.set((0.9 + 0.1 * Math.sin(t * 9 + i)) * (1 + 0.15 * boost), flick, 1);
         f.position.y = 0.25 + (fireBase[i]! * flick) / 2;
         (f.material as THREE.MeshBasicMaterial).opacity = 0.75 + 0.25 * flick;
       });
-      fire.intensity = 10 + 2.6 * Math.sin(t * 8.3) * Math.sin(t * 3.7) + 1.4 * Math.sin(t * 17.1);
+      fire.intensity = (10 + 2.6 * Math.sin(t * 8.3) * Math.sin(t * 3.7) + 1.4 * Math.sin(t * 17.1)) * (1 + 0.5 * boost);
       pennants.forEach((g, i) => {
-        g.rotation.z = 0.035 * Math.sin(t * 0.8 + i * 1.7);
+        g.rotation.z = 0.035 * (1 + 2.2 * boost) * Math.sin(t * (0.8 + 0.8 * boost) + i * 1.7);
         g.rotation.x = 0.02 * Math.sin(t * 0.6 + i);
       });
     },
     redraw(state: PredictionMarketFeedState, extra: HallExtras) {
+      energy = extra.crowd?.energy ?? 0;
       for (const sc of screens) {
         if (sc.kind === "ledger") drawLedger(sc.canvas, state, extra);
         else if (sc.kind === "table") drawTabletop(sc.canvas, state, extra);

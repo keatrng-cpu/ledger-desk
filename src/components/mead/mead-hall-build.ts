@@ -261,6 +261,32 @@ export class MeadHall {
       this.box(W, 0.07, 0.3, brass, 0, 1.04, zf);
       for (let x = R.x0; x <= R.x1 + 0.01; x += W / 4) this.box(0.34, R.h, 0.34, wood, x, R.h / 2, zf - 0.1);
     }
+    // In the Floor the hall is seen from outside too (from the lounge, from the overview): an outer skin of planks that carries
+    // a little light of its own, so the tall walls read as a timber hall and not as black cliffs behind the building.
+    if (this.floorHome) {
+      const plank = k.canvasTex(512, 512, (c) => woodCanvas(c, "#3f5d4b", "#243b2e"));
+      plank.tex.wrapS = plank.tex.wrapT = THREE.RepeatWrapping;
+      const skinMat = k.own(
+        new THREE.MeshStandardMaterial({ map: plank.tex, emissive: new THREE.Color(0xffffff), emissiveMap: plank.tex, emissiveIntensity: 0.95, roughness: 0.9 }),
+      );
+      /** A plank-covered plane `len` wide and `h` tall, its bottom edge at y0, facing yaw ry, centred on (cx, cz). */
+      const skin = (cx: number, cz: number, len: number, h: number, y0: number, ry: number) => {
+        const geo = new THREE.PlaneGeometry(len, h);
+        const uv = geo.getAttribute("uv");
+        for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * len) / 3, (uv.getY(i) * h) / 3);
+        const m = new THREE.Mesh(geo, skinMat);
+        m.position.set(cx, y0 + h / 2, cz);
+        m.rotation.y = ry;
+        this.root.add(m);
+      };
+      const out = 0.215;
+      skin(0, R.z0 - out, W + 0.5, R.h, 0, Math.PI);
+      skin(R.x1 + out, cz, D + 0.5, R.h, 0, Math.PI / 2);
+      skin(0, R.z1 + out, W + 0.5, 1.0, 0, 0);
+      skin(R.x0 - out, (R.z0 - 0.2 + HALL_DOOR.z0) / 2, HALL_DOOR.z0 - R.z0 + 0.2, R.h, 0, -Math.PI / 2);
+      skin(R.x0 - out, (HALL_DOOR.z1 + R.z1 + 0.2) / 2, R.z1 + 0.2 - HALL_DOOR.z1, R.h, 0, -Math.PI / 2);
+      skin(R.x0 - out, (HALL_DOOR.z0 + HALL_DOOR.z1) / 2, HALL_DOOR.z1 - HALL_DOOR.z0, R.h - HALL_DOOR_H, HALL_DOOR_H, -Math.PI / 2);
+    }
     // Knotwork frieze above the screens.
     const frieze = k.canvasTex(2048, 128, (c) => drawKnotPanel(c, MEAD.pineDeep));
     const fz = new THREE.Mesh(new THREE.PlaneGeometry(W, 0.9), k.own(new THREE.MeshStandardMaterial({ map: frieze.tex, roughness: 0.8 })));
