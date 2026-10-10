@@ -37,3 +37,7 @@ Add a line here when a behavior gets a new owner. Do not paste the function.
 - The Mead Hall, built once for the Predict tab and the Floor — `src/components/mead/mead-hall-build.ts` `MeadHall`
 - Where the Mead Hall stands: its walls, doorway, spots, screens, cameras — `src/lib/room/mead-hall-layout.ts` (the plan is written from it by `scripts/build-mead-plan.mjs`)
 - The Floor's Mead Hall: its own lights, its own pass, who is inside it — `src/components/room/floor-mead.ts` `FloorMead`
+- The firm's standing reviews (look-through, restricted list, kill-rule record, ledger health, tax lots, funding, memo, funnel, policy, data age) — `src/lib/room/invest-firm.ts` `buildFirm`
+- The firm's week, one list for the talk and the board TV — `src/lib/room/invest-read.ts` `firmDay`
+- The firm's voices — `src/lib/room/live-voices-invest-firm.ts`
+- A click on a market on a hall screen opens its desk panel in the Predict analyzer — `src/components/room/floor-link.ts` `openPredictAt`
