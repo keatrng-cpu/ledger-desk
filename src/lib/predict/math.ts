@@ -78,6 +78,10 @@ export interface FeeModel {
   checkedAt: string;
 }
 
+/** Kalshi's published fee rates (eff. 2026-07-07): the taker pays RATE·C·P(1−P) rounded up per order; NFL makers pay a quarter of that. One definition, read by the venue below and by the Floor's talk. */
+export const KALSHI_TAKER_RATE = 0.07;
+export const KALSHI_MAKER_RATE = 0.0175;
+
 const cents = (x: number) => Math.round(x * 100) / 100;
 const ceilCents = (x: number) => Math.ceil(x * 100 - 1e-9) / 100;
 /** Robinhood's commission: k·p(1−p) per contract, capped at 1¢, rounded up per trade. */
@@ -115,8 +119,8 @@ export const VENUES: Record<VenueId, FeeModel> = {
   kalshi: {
     id: "kalshi",
     label: "Kalshi direct (taker)",
-    perSide: (p, c) => ceilCents(0.07 * c * p * (1 - p)),
-    maker: (p, c) => ceilCents(0.0175 * c * p * (1 - p)),
+    perSide: (p, c) => ceilCents(KALSHI_TAKER_RATE * c * p * (1 - p)),
+    maker: (p, c) => ceilCents(KALSHI_MAKER_RATE * c * p * (1 - p)),
     source: "Kalshi taker fee 7%·C·p(1−p), rounded up (NFL makers 1.75%)",
     checkedAt: "2026-09-27",
   },

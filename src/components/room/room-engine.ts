@@ -26,8 +26,9 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evaluateOptionsDesk } from "@/lib/trading/options-desk";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { getNewsFeed, getPulse } from "@/lib/news/news-server";
-import { getPredictionMarketFeed } from "@/lib/predict/predict-server";
-import { toPredictLite } from "@/lib/room/off-hours-study";
+import { predictLiteFromBoard } from "@/lib/room/hall-lite";
+import { getHall, subscribeHall } from "@/lib/room/hall-store";
+import { pullHall } from "./hall-read";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import type { MindState } from "@/lib/room/agents";
 import { noteExchange, noteNerve } from "@/lib/room/brain-traffic";
@@ -863,11 +864,20 @@ export function useRoomEngine(desk: DeskPayload | null) {
       window.clearInterval(id);
     };
   }, [enabled, hydrated, hasDesk]);
-  // Prediction book: only while the cash session is shut, so the Kalshi read does not sit on the desk fetch.
-  // Paper only. A failed pull keeps the last rows.
+  // Prediction book: the Mead Hall's board (hall-store.ts). The room's background pull runs only while the cash session is shut, so
+  // the Kalshi read does not sit on the desk fetch, and once every ten minutes. It takes the PM analyzer's own path (the sports
+  // scanner's model inputs into the signal engine), so a row is graded where a model exists and says "no edge read" where it does not.
+  // The Floor tab's own view-bound feed publishes into the same store (faster, while the tab is visible); the study pass's rows
+  // follow whichever board is newest. Paper only. A failed pull holds the last board.
   useEffect(() => {
     if (!enabled || !hydrated || !hasDesk) return;
     let alive = true;
+    const follow = () => {
+      const b = getHall().board;
+      if (b) useRoomStore.setState({ predict: predictLiteFromBoard(b, Date.now()) });
+    };
+    follow();
+    const off = subscribeHall(follow);
     const cashOpen = () => {
       const p = etWallParts(Date.now());
       const etMin = p.hour * 60 + p.minute;
@@ -875,23 +885,19 @@ export function useRoomEngine(desk: DeskPayload | null) {
     };
     const pull = async () => {
       if (cashOpen()) return;
-      try {
-        const r = await getPredictionMarketFeed({ data: {} });
-        if (!alive) return;
-        useRoomStore.setState({ predict: toPredictLite(r) });
-      } catch {
-        if (!alive) return;
-        const prev = useRoomStore.getState().predict;
-        if (prev && prev.rows.length) return;
-        useRoomStore.setState({
-          predict: { asOf: new Date().toISOString(), source: "Kalshi", reason: "The prediction feed did not answer.", rows: [] },
-        });
-      }
+      await pullHall(() => alive);
+      if (!alive || getHall().board) return;
+      const prev = useRoomStore.getState().predict;
+      if (prev && prev.rows.length) return;
+      useRoomStore.setState({
+        predict: { asOf: new Date().toISOString(), source: "Kalshi", reason: "The prediction feed did not answer.", rows: [] },
+      });
     };
     void pull();
     const id = window.setInterval(pull, 10 * 60_000);
     return () => {
       alive = false;
+      off();
       window.clearInterval(id);
     };
   }, [enabled, hydrated, hasDesk]);

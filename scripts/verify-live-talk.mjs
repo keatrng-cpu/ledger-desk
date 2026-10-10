@@ -27,6 +27,12 @@ const { ANIMS_BY_CHARACTER, ZONES_BY_CHARACTER } = await import("../src/lib/room
 const { globexOpenAt } = await import("../src/lib/room/live-world.ts");
 const { etWallParts } = await import("../src/lib/trading/sessions.ts");
 const { PATH_MONTH_CAP } = await import("../src/lib/trading/profit-rules.ts");
+const MX = await import("./lib/mead-fixture.mjs");
+const { HALL_SPOTS } = await import("../src/lib/room/mead-hall-layout.ts");
+const HALL_IDS = new Set(HALL_SPOTS.map((s) => s.id));
+/** The Mead Hall wing (zone HALL): any of the five may stand at any of its spots. A board, a screen or the lectern is a place to write or gesture. */
+const HALL_BOARD = /^mead_(board|long_|lectern|jumbo_)/;
+const hallBoard = (m) => m?.zone === "HALL" && HALL_BOARD.test(m.spot ?? "");
 
 let pass = 0;
 let fail = 0;
@@ -145,6 +151,9 @@ function mkWorld(nowMs, o = {}) {
             headline: "Labor week",
           }
         : o.week,
+    // A populated prediction board (the real chain: Kalshi fixture → Predict board → scanner → signal engine), read at the last ten-minute poll.
+    predict: o.predict === undefined ? MX.predictAt(nowMs) : o.predict,
+    hall: o.hall === undefined ? MX.hallAt(nowMs) : o.hall,
     evidence: o.evidence ?? [
       "Every card at or above 0.65, taken as coded: −0.14R/card over 3508 fills — the card alone is not an edge.",
       "Stop outside 0.5-1.5 ATR: −0.24R/card, losing in both halves.",
@@ -222,13 +231,19 @@ const legal = (item) => {
     if (!ANIMS_BY_CHARACTER[l.character]?.includes(l.animation)) bad.push(`${l.character} cannot ${l.animation}`);
     if (!l.text.trim()) bad.push(`${l.character} said nothing`);
     if (l.animation === "SMASHING_ENTER_KEY") bad.push("a talk line must never send an order");
-    if (l.character === "Nova" && l.animation === "WRITING_ON_WHITEBOARD" && item.moves.Nova?.zone !== "THE_WHITEBOARD") bad.push("Nova writes on a board she is not at");
-    if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD") bad.push("Gemma gestures at a wall she is not at");
+    if (l.character === "Nova" && l.animation === "WRITING_ON_WHITEBOARD" && item.moves.Nova?.zone !== "THE_WHITEBOARD" && !hallBoard(item.moves.Nova)) bad.push("Nova writes on a board she is not at");
+    if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD" && !hallBoard(item.moves.Gemma)) bad.push("Gemma gestures at a wall she is not at");
   }
+  const taken = new Map();
   for (const [who, m] of Object.entries(item.moves)) {
-    if (m.zone && m.zone !== "ANNEX" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
+    if (m.zone && m.zone !== "ANNEX" && m.zone !== "HALL" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
     if (m.zone === "ANNEX" && !/^office_(rnd|ops|goal)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
-    if (m.spot && m.zone !== "WATERCOOLER" && m.zone !== "ANNEX") bad.push(`${who}: a spot without the watercooler or annex zone`);
+    if (m.zone === "HALL" && !(/^mead_/.test(m.spot ?? "") && HALL_IDS.has(m.spot))) bad.push(`${who}: the hall needs one of its spots, not ${m.spot}`);
+    if (m.spot && m.zone !== "WATERCOOLER" && m.zone !== "ANNEX" && m.zone !== "HALL") bad.push(`${who}: a spot without the watercooler, annex or hall zone`);
+    if (m.zone === "HALL" && m.spot) {
+      if (taken.has(m.spot)) bad.push(`${who} and ${taken.get(m.spot)} share the hall spot ${m.spot}`);
+      taken.set(m.spot, who);
+    }
   }
   return bad;
 };
@@ -710,6 +725,7 @@ console.log("Off hours (Tue 22:00 → Wed 01:00 ET, options shut, Globex open)")
   check("it reads tomorrow's plan", [...topics].some((t) => t === "hb:tomorrow"), JSON.stringify([...topics]));
   check("it reads the overnight range", [...topics].some((t) => t.startsWith("hb:overnight")), JSON.stringify([...topics]));
   check("it reads a measured finding", [...topics].some((t) => t === "hb:evidence"));
+  check("with a populated prediction board it reads the Mead Hall's jumbotron and the prediction book, in words (no Kalshi ticker, no placeholder grade)", [...topics].some((t) => t.startsWith("hb:hall:")) && sim.items.filter((i) => /^hb:(hall:|study:predict)/.test(i.topic)).every((i) => i.lines.every((l) => !/\bKX[A-Z0-9]+|scanner grade/.test(l.text))), JSON.stringify([...topics].filter((t) => /hall|study/.test(t))));
   check("it does not talk about the open or the board", ![...topics].some((t) => t === "hb:board") && !sim.items.some((i) => i.topic === "session:open"));
   check("legal and sourced", sim.items.every((i) => legal(i).length === 0 && unsourced(i).length === 0), JSON.stringify(sim.items.flatMap((i) => [...legal(i), ...unsourced(i)]).slice(0, 4)));
 }

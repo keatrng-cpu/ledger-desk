@@ -35,6 +35,7 @@ import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
+import * as M from "./live-voices-mead";
 import { freshCatalysts, investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
 import { deskAudit } from "./audit";
 import {
@@ -1318,13 +1319,52 @@ function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   }
 }
 
+/* ── The Mead Hall's crowd ─────────────────────────────────────────────── */
+
+/** The hall reacts to a real move at most this often, and only once the jumbotron has been introduced today. */
+const HALL_CROWD_GAP_MS = 25 * 60_000;
+
+/**
+ * When the signal engine's crowd read is surging or sliding on real price velocity, the hall reacts: the five say what the velocity
+ * is. Chatter (urgency 0), only while the options book is shut, never inside the desk's morning, never on a read too old to talk
+ * from, and not before the board itself has been read aloud. A price move is shown, never graded.
+ */
+function hallCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const h = w.hall;
+  if (!h || h.old || !h.rows.length || w.clock.optionsOpen || liveWindow(w)) return;
+  if (st.topicAt["hb:hall:board"] == null) return;
+  const offer = M.crowdOffer(h);
+  if (!offer) return;
+  if (st.topicSig["hall:crowd"] === offer.sig || w.nowMs - (st.topicAt["hall:crowd"] ?? 0) < HALL_CROWD_GAP_MS) return;
+  out.push({
+    id: `hall|crowd|${offer.sig}`,
+    kind: "hall",
+    topic: "hall:crowd",
+    urgency: 0,
+    prio: 2,
+    at: w.nowMs,
+    label: `the hall's crowd · ${h.crowd.mood}`,
+    build: offer.build,
+    commit: (s) => {
+      s.topicSig["hall:crowd"] = offer.sig;
+    },
+  });
+}
+
 /* ── Heartbeats ────────────────────────────────────────────────────────── */
+
+/** 09:25–11:15 ET on a trading day: the desk's morning. The investment office, the prediction study and the Mead Hall all stay out of it. */
+function liveWindow(w: TalkWorld): boolean {
+  const trading = w.clock.isWeekday && !w.clock.holiday;
+  return trading && w.clock.etMin >= INV_LIVE_FROM_MIN && w.clock.etMin < INV_LIVE_TO_MIN;
+}
 
 function studyOf(w: TalkWorld) {
   return studyPack({
     weekend: !w.clock.isWeekday,
     etDate: w.clock.etDate,
     etMin: w.clock.etMin,
+    nowMs: w.nowMs,
     news: w.news,
     invest: w.invest,
     predict: w.predict,
@@ -1576,21 +1616,25 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
         build: (c) => IV.exStudyOutsider(c, study),
       });
     }
-    out.push({
-      id: "study:predict",
-      weight: studyW + 0.05,
-      sig: study.predicts.length
-        ? study.predicts.map((p) => `${p.event}|${p.yesCents ?? ""}|${p.newsTitle ?? ""}`).join("|")
-        : `empty|${study.predictWhy ?? ""}`,
-      build: (c) => IV.exStudyPredict(c, study),
-    });
-    if (gamesOn(w.clock)) {
-      out.push({
-        id: "mead",
-        weight: 1.4,
-        sig: `${w.clock.etDate}|games`,
-        build: (c) => V.exMead(c),
-      });
+    // The prediction and Mead Hall talk keep out of the desk's own morning like the investment office does (09:25–11:15 ET on a
+    // trading day): the options book opens at 09:30, so without this guard they could speak in the five minutes before it.
+    if (!liveWindow(w)) {
+      // Said when there is something new to say about the book (a different row or a price that moved a few cents, a headline that
+      // now links, the read going old), not on a timer: the same rows in the same words every 70 minutes taught nothing.
+      const predictSig = study.predicts.length
+        ? study.predicts.map((p) => `${p.event}|${p.yesCents == null ? "" : Math.round(p.yesCents / 3)}|${p.grade ?? ""}|${p.newsTitle ?? ""}`).join("|")
+        : `empty|${(study.predictWhy ?? "").replace(/\d+/g, "#")}`;
+      if (st.topicSig["hb:study:predict"] !== predictSig) {
+        out.push({ id: "study:predict", weight: studyW + 0.05, sig: predictSig, build: (c) => IV.exStudyPredict(c, study) });
+      }
+      if (gamesOn(w.clock)) {
+        // Once a day: the line names whatever is on the jumbotron when it is said (or just the rules, with no board to stand on).
+        const meadSig = `${w.clock.etDate}|games`;
+        if (st.topicSig["hb:mead"] !== meadSig) out.push({ id: "mead", weight: 1.4, sig: meadSig, build: (c) => M.exMead(c, w.hall) });
+      }
+      // The hall's board: what the jumbotron shows, the fee, the model question, the price bands, the crowd, the clock, the record,
+      // a headline that shares a subject, and the lectern's conditions. Each only with data it can stand on (live-voices-mead.ts).
+      out.push(...M.meadBeats(w, st));
     }
   }
   return out;
@@ -1747,6 +1791,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   goalCands(w, st, cands);
   rndCands(w, st, cands);
   investCands(w, st, cands);
+  hallCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
 

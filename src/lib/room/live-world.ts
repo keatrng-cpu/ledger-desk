@@ -39,6 +39,7 @@ import type {
   CalRead,
   CardRead,
   GoalLite,
+  HallLite,
   InvestLite,
   LabLite,
   LevelRef,
@@ -54,6 +55,7 @@ import type {
   TapeSample,
   WeekLite,
 } from "./live-types";
+import { hallLiteNow } from "./hall-store";
 import { contractsFor } from "./goal";
 import { ROOM_MANDATE } from "./mandate";
 import type { Race } from "./race";
@@ -630,6 +632,8 @@ export interface WorldInput {
   invest?: InvestLite | null;
   /** Last prediction-feed read. Absent until a closed-hours poll returns. */
   predict?: PredictLite | null;
+  /** The Mead Hall's prediction board (hall-lite.ts, from the hall store). Absent until a read returns. */
+  hall?: HallLite | null;
   busyUntil: number;
 }
 
@@ -672,6 +676,8 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     rnd: rndLite(i.race ?? null),
     invest: i.invest ?? null,
     predict: i.predict ?? null,
+    // The hall's board comes from the hall store (hall-store.ts) unless a caller hands one in (a verifier, a replay).
+    hall: i.hall !== undefined ? i.hall : hallLiteNow(nowMs),
     fresh: freshnessOf(etDateOf(nowMs)),
     evidence: evidenceHeadlines(),
     busyUntil: i.busyUntil,

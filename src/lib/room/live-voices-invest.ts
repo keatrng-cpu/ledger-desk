@@ -23,6 +23,7 @@ import { ANIM, type InvestCatalyst, type InvestLite, type InvestThemeLite, type 
 import { clip, compact, line, NEUTRAL, pick, type Ctx, type Ex } from "./live-voices";
 import { boardAgenda, dayPhrase, freshCatalysts, themeOfTheDay, tierCoverage, whenPhrase } from "./invest-read";
 import type { StudyPack, StudyPredict } from "./off-hours-study";
+import { HALL_STUDY_MOVES } from "./live-voices-mead";
 
 const AT = (spot: string): TalkMove => ({ zone: "ANNEX", spot });
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
@@ -393,21 +394,15 @@ export function exInvCatalysts(c: Ctx, d: { inv: InvestLite }): Ex | null {
   return out.length ? { lines: out, moves: { Gemma: AT("inv_news"), Vince: AT("inv_struct"), Sterling: AT("inv_wall"), Nova: AT("inv_cio") } } : null;
 }
 
-const IN_MEAD = (spot: string): TalkMove => ({ zone: "WATERCOOLER", spot });
-
-const STUDY_MOVES = {
-  Gemma: IN_MEAD("study_0"),
-  Vince: IN_MEAD("study_1"),
-  Nova: IN_MEAD("mead_2"),
-  Jax: IN_MEAD("mead_0"),
-  Sterling: IN_MEAD("mead_1"),
-};
+/** The closed room studies seated at the Mead Hall's Long Table (live-voices-mead.ts holds the hall's spots; the old lounge corner is gone). */
+const STUDY_MOVES = HALL_STUDY_MOVES;
 
 const bookLean = (cents: number): string => (cents >= 65 ? "likely" : cents <= 35 ? "unlikely" : "near the middle");
 
 function yesLine(f: Ctx["f"], p: StudyPredict): string {
-  const px = p.yesCents == null ? "no yes price on the book" : `yes ${f.int(p.yesCents)} cents`;
-  const grade = p.grade ? `, scanner grade ${f.raw(p.grade)}` : "";
+  const px = p.yesCents == null ? "no yes price on the book" : `yes asks ${p.yesCents === 1 ? "a cent" : `${f.int(p.yesCents)}¢`}`;
+  // The engine's letter, or no letter at all: a market with no model input has no grade, and that is said, not hidden behind a placeholder.
+  const grade = p.grade ? `, the engine's grade ${f.raw(p.grade)}` : ", no edge read, so no grade";
   return `${f.raw(clip(p.event, 70))}, outcome ${f.raw(clip(p.outcome, 36))}, ${px}${grade}`;
 }
 
@@ -603,7 +598,7 @@ export function exStudyPredict(c: Ctx, d: StudyPack): Ex | null {
     const lean = bookLean(p.yesCents);
     lines.push(
       line("Vince", ANIM.Vince.watch!, pick(c, "study.pred.lean", [
-        () => `At ${f.int(p.yesCents!)} cents the book is pricing that outcome as ${lean}. That is the printed price, not our side.`,
+        () => `At ${p.yesCents === 1 ? "a cent" : `${f.int(p.yesCents!)}¢`} the book is pricing that outcome as ${lean}. That is the printed price, not our side.`,
         () => `The contract says ${lean}. We read the cents. We do not send them.`,
       ])),
     );

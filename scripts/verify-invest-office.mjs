@@ -62,6 +62,8 @@ const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m %
 const SPOT_OK = /^(inv_(cio|scout|news|struct|wall)|board_(chair|tv|tv2|north)|chair_desk)$/;
 const VERDICT_WORDS = /\b(TAKE|STAND|MANAGE|PATH)\b/;
 const ADVICE = /\b(i|we) recommend\b|\byou should\b|\bshould (buy|sell|own|add)\b|\bwill (outperform|beat the market|rally|double)\b|(?<!\b(?:not|no|never) )\bguarantee|\bundervalued\b|\bovervalued\b|\bcan'?t lose\b|\brisk-free\b|\bprice target\b/i;
+const { HALL_SPOTS } = await import("../src/lib/room/mead-hall-layout.ts");
+const HALL_IDS = new Set(HALL_SPOTS.map((s) => s.id));
 const legal = (item) => {
   const bad = [];
   for (const l of item.lines) {
@@ -73,6 +75,11 @@ const legal = (item) => {
     if (ADVICE.test(l.text)) bad.push(`advice language in "${l.text.slice(0, 50)}"`);
   }
   for (const [who, m] of Object.entries(item.moves)) {
+    // The Mead Hall wing (zone HALL) is open to all five; a hall move must name one of the hall's own spots.
+    if (m.zone === "HALL") {
+      if (!(/^mead_/.test(m.spot ?? "") && HALL_IDS.has(m.spot))) bad.push(`${who}: the hall needs one of its spots, not ${m.spot}`);
+      continue;
+    }
     if (m.zone !== "ANNEX") bad.push(`${who}: an investment move must be an annex spot`);
     if (!SPOT_OK.test(m.spot ?? "")) bad.push(`${who}: spot ${m.spot} is not a wing spot`);
   }

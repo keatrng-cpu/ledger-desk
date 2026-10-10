@@ -43,18 +43,22 @@ const at = (y, mo, d, h, mi, s = 0) => Date.UTC(y, mo - 1, d, h + 4, mi, s); // 
 const textOf = (item) => item.lines.map((l) => l.text).join(" ");
 const numbersOf = (text) => (text.match(/\d[\d,]*\.?\d*/g) ?? []).map((x) => x.replace(/[.,]+$/, ""));
 const unsourced = (item) => numbersOf(textOf(item)).filter((n) => !item.facts.includes(n));
+const { HALL_SPOTS } = await import("../src/lib/room/mead-hall-layout.ts");
+const HALL_IDS = new Set(HALL_SPOTS.map((s) => s.id));
+const hallBoard = (m) => m?.zone === "HALL" && /^mead_(board|long_|lectern|jumbo_)/.test(m.spot ?? "");
 const legal = (item) => {
   const bad = [];
   for (const l of item.lines) {
     if (!ANIMS_BY_CHARACTER[l.character]?.includes(l.animation)) bad.push(`${l.character} cannot ${l.animation}`);
     if (!l.text.trim()) bad.push(`${l.character} said nothing`);
     if (l.animation === "SMASHING_ENTER_KEY") bad.push("a talk line must never send an order");
-    if (l.character === "Nova" && l.animation === "WRITING_ON_WHITEBOARD" && item.moves.Nova?.zone !== "THE_WHITEBOARD") bad.push("Nova writes on a board she is not at");
-    if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD") bad.push("Gemma gestures at a wall she is not at");
+    if (l.character === "Nova" && l.animation === "WRITING_ON_WHITEBOARD" && item.moves.Nova?.zone !== "THE_WHITEBOARD" && !hallBoard(item.moves.Nova)) bad.push("Nova writes on a board she is not at");
+    if (l.character === "Gemma" && l.animation === "GESTICURING_AT_WALL" && item.moves.Gemma?.zone !== "THE_WHITEBOARD" && !hallBoard(item.moves.Gemma)) bad.push("Gemma gestures at a wall she is not at");
   }
   for (const [who, m] of Object.entries(item.moves)) {
-    if (m.zone && m.zone !== "ANNEX" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
+    if (m.zone && m.zone !== "ANNEX" && m.zone !== "HALL" && !ZONES_BY_CHARACTER[who].includes(m.zone)) bad.push(`${who} cannot go to ${m.zone}`);
     if (m.zone === "ANNEX" && !/^office_(rnd|ops|goal)$/.test(m.spot ?? "")) bad.push(`${who}: the annex needs one of its offices as the spot`);
+    if (m.zone === "HALL" && !(/^mead_/.test(m.spot ?? "") && HALL_IDS.has(m.spot))) bad.push(`${who}: the hall needs one of its spots, not ${m.spot}`);
   }
   return bad;
 };
