@@ -142,6 +142,17 @@ export class FloorMead {
     return this.hall.root;
   }
 
+  /**
+   * A click on one of the hall's screens (found by name by the Floor's own sight-line pick): which market and which side the spot
+   * under the pointer stands for — the jumbotron's YES / NO boxes, a bar tap, a TV, a Rune Board row, a booth row. Null on a dead spot.
+   */
+  tapFor(screenId: string, ray: THREE.Raycaster): { id: string; side: "YES" | "NO" } | null {
+    const sc = this.hall.screens.find((s) => s.id === screenId);
+    if (!sc) return null;
+    const hit = ray.intersectObject(sc.mesh, false)[0];
+    return hit?.uv ? this.hall.ticketFor(sc, hit.uv) : null;
+  }
+
   /** A new read of the prediction board (the Predict tab's own feed). The same read never redraws twice. */
   setFeed(state: HallFeedState) {
     if (this.lastState === state) return;

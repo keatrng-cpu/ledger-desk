@@ -42,7 +42,7 @@ import { MeadScene, type Reaction, type TicketSide } from "@/components/mead/mea
 import { MEAD, categoryLabel, eventLabel } from "@/components/mead/mead-screens";
 import { createSignalHallFeed, crowdLabel, EMPTY_FEED, hallExtrasFrom, signalToHallMarket, type HallFeedState, type SignalHallFeed } from "@/components/mead/mead-signal-feed";
 import { readHallRecord } from "@/components/mead/mead-record";
-import { openFloorAt } from "@/components/room/floor-link";
+import { openFloorAt, takePredictFocus } from "@/components/room/floor-link";
 import { PredictTab } from "./predict-tab";
 
 const BTN =
@@ -353,6 +353,21 @@ export default function PmAnalyzer() {
   }, []);
 
   /** Hall YES/NO tap → jump to that market's desk panel (the ticket is placed from the panel). */
+  // A tap on a market in the Floor's Mead Hall asks for its desk panel: take the request once, open it when the board has the market.
+  const wantFocus = useRef<string | null>(null);
+  useEffect(() => {
+    // (React's dev double-mount runs this twice: the second read is empty and must not erase the first.)
+    const v = takePredictFocus();
+    if (v) wantFocus.current = v;
+  }, []);
+  useEffect(() => {
+    const id = wantFocus.current;
+    if (!id || !state.ordered.some((s) => s.id === id)) return;
+    wantFocus.current = null;
+    setFocusId(id);
+    window.setTimeout(() => document.getElementById(`pm-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+  }, [state.ordered]);
+
   const onTicket = useCallback((id: string, _side: TicketSide) => {
     setFocusId(id);
     window.setTimeout(() => document.getElementById(`pm-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 30);

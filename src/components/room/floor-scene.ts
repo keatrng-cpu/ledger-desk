@@ -1475,6 +1475,8 @@ export interface TalkBatch {
 }
 
 export interface FloorSceneOptions {
+  /** A click on a market on one of the Mead Hall's screens (the jumbotron's YES / NO, a tap, a TV, a board row): open its desk panel. */
+  onHallTap?: (marketId: string, side: "YES" | "NO") => void;
   /** The canvas took / released the wheel (click-to-focus, Esc, click outside). */
   onFocusChange?: (focused: boolean) => void;
   /** A wheel over the unfocused canvas scrolled the page — show the "click to zoom" hint. */
@@ -3218,7 +3220,13 @@ export class FloorScene {
     // Walk mode is its own camera (the Owner chase): a click on a person must not yank it into a crew follow.
     if (this.walkMode) return;
     const p = this.personAt(ray);
-    if (!p) return;
+    if (!p) {
+      // Not a person: a market on one of the hall's screens opens its desk panel (an unobstructed screen only: a wall or a person in front swallows the click).
+      const sc = this.screenAlong(ray);
+      const tap = sc && sc.id.startsWith("mead_") ? this.mead?.tapFor(sc.id, ray) : null;
+      if (tap) this.opts.onHallTap?.(tap.id, tap.side);
+      return;
+    }
     this.follow(p.who);
     this.opts.onSelect?.(p.who);
   };

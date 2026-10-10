@@ -41,6 +41,8 @@ const src = {
   tab: read("src/components/room/trading-floor-tab.tsx"),
   feed: read("src/components/room/use-mead-feed.ts"),
   layout: read("src/lib/room/mead-hall-layout.ts"),
+  link: read("src/components/room/floor-link.ts"),
+  analyzer: read("src/components/predict/pm-analyzer.tsx"),
 };
 
 console.log("one hall");
@@ -138,8 +140,12 @@ check("the tab lists the hall's views and its Go-to row", /mead hall/.test(src.t
 check("the Floor's hall reads the Predict tab's own board feed", /createSignalHallFeed/.test(src.feed) && /getPredictionSignals/.test(src.feed));
 check("the Skald's Ledger reads sentences the engines already wrote (go-ledger, paper-scorer, journal)", /goStats\(\)\.line|go\.line/.test(src.record) && /paper\.verdict/.test(src.record) && /journal\.line/.test(src.record));
 
+check("a tap on a market in the Floor's hall opens its desk panel in the Predict analyzer (paper only: a panel, nothing more)", /onHallTap/.test(src.floorScene) && /onHallTap: \(id\) => openPredictAt\(id\)/.test(src.tab) && /export function openPredictAt/.test(src.link) && /takePredictFocus\(\)/.test(src.analyzer));
+check("the analyzer links back to the Floor's hall, and the Floor takes the camera it asked for once", /openFloorAt\(\"mead\"\)/.test(src.analyzer) && /takeFloorCamera\(\)/.test(src.tab));
+check("the Floor's overview takes in the wing (the camera is the layout's FLOOR_OVERVIEW)", JSON.stringify(plan.camera.overview.pos) === JSON.stringify(L.FLOOR_OVERVIEW.pos) && JSON.stringify(plan.camera.overview.target) === JSON.stringify(L.FLOOR_OVERVIEW.target));
+
 console.log("the guards");
-const all = Object.entries(src).filter(([k]) => ["build", "extras", "kit", "people", "scene", "screens", "record", "floorMead", "layout"].includes(k));
+const all = Object.entries(src).filter(([k]) => ["build", "extras", "kit", "people", "scene", "screens", "record", "floorMead", "layout", "link"].includes(k));
 const strip = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 const marks = all.filter(([, t]) => /\bskol\b|vikings|\bNFL shield\b|minnesota vikings/i.test(strip(t))).map(([k]) => k);
 check("no team or league marks in the hall's code (original Norse art only)", marks.length === 0, marks.join());

@@ -16,7 +16,7 @@ import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orch
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
 import { useMeadFloorFeed } from "./use-mead-feed";
-import { takeFloorCamera } from "./floor-link";
+import { openPredictAt, takeFloorCamera } from "./floor-link";
 import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
 import { BED_LAYERS, FloorSound, loadBedMutes, loadSoundPref, saveSoundPref, type BedLayer } from "./floor-sound";
@@ -204,6 +204,7 @@ function FloorCanvas({
           if (next && next !== shown.current) show(next, true);
         },
         onSelect: (w) => cbs.current.onSelect(w),
+        onHallTap: (id) => openPredictAt(id),
         onEnvironment: (s) => cbs.current.onEnvironment(s),
         onEvent: (e) => cbs.current.onEvent(e),
         onFollow: (w) => cbs.current.onFollow(w),
