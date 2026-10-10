@@ -878,6 +878,7 @@ const PLATE: Record<string, string> = {
   plate_Board: "BOARDROOM — the chair and the five",
   plate_Chair: "CHAIR'S OFFICE — the CEO",
   plate_Manager: "TRADING STAND — the Manager",
+  plate_Mead: "MEAD HALL — paper games",
 };
 
 function drawPlate(id: string, ctx: Ctx, w: number, h: number) {
@@ -2274,6 +2275,24 @@ function drawSwing(ctx: Ctx, w: number, h: number, f: FloorFrame) {
   });
 }
 
+function drawMead(ctx: Ctx, w: number, h: number, f: FloorFrame): void {
+  ctx.fillStyle = "#1c1410";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#e7d7b1";
+  ctx.font = `700 28px ${FONT}`;
+  ctx.fillText("MEAD HALL", 24, 48);
+  ctx.fillStyle = "#d6c4a2";
+  ctx.font = `500 16px ${FONT}`;
+  const weekend = !isWeekdayAt(f.nowMs);
+  const shut = weekend || f.etMin < 9 * 60 + 30 || f.etMin >= 16 * 60;
+  const games = (weekend && f.etMin >= 12 * 60 && f.etMin < 23 * 60 + 30) || (!weekend && f.etMin >= 19 * 60 && f.etMin < 23 * 60 + 30);
+  ctx.fillText(shut ? "Options book closed. Study the record." : "Options book open. This screen waits.", 24, 88);
+  ctx.fillText(games ? "Game window. Paper only. No broker." : "No game window on the clock.", 24, 116);
+  ctx.fillStyle = "#8d7b62";
+  ctx.font = `500 14px ${FONT}`;
+  ctx.fillText("Walk in from the lounge. A number that is not on this screen is not a line.", 24, 156);
+}
+
 /** Screens that move between cycles (weather) — the scene redraws these on a timer. */
 export const ANIMATED_SCREENS = new Set(["window_0", "window_1", "window_2"]);
 
@@ -2290,6 +2309,7 @@ export function drawScreen(id: string, ctx: Ctx, w: number, h: number, f: FloorF
     else if (id === "marquee") drawMarquee(ctx, w, h, f);
     else if (id === "tv_scanner") drawScanner(ctx, w, h, f, clockMs);
     else if (id === "tv_swing") drawSwing(ctx, w, h, f);
+    else if (id === "tv_mead") drawMead(ctx, w, h, f);
     else if (id === "tv_rnd") drawRndBoard(ctx, w, h, f);
     else if (id === "tv_goal") drawSeatLeague(ctx, w, h, f);
     else if (id === "tv_portfolio") drawInvPortfolio(ctx, w, h, f);

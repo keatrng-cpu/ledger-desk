@@ -45,6 +45,7 @@ import type {
   MindsRead,
   NewsLite,
   PositionRead,
+  PredictLite,
   RndLite,
   ScanCardLite,
   SeatsLite,
@@ -627,6 +628,8 @@ export interface WorldInput {
   race?: Race | null;
   /** The investment office's read of the Invest tab and the research file (invest-office.ts). */
   invest?: InvestLite | null;
+  /** Last prediction-feed read. Absent until a closed-hours poll returns. */
+  predict?: PredictLite | null;
   busyUntil: number;
 }
 
@@ -668,6 +671,7 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     seats: seatsLite(i.race ?? null),
     rnd: rndLite(i.race ?? null),
     invest: i.invest ?? null,
+    predict: i.predict ?? null,
     fresh: freshnessOf(etDateOf(nowMs)),
     evidence: evidenceHeadlines(),
     busyUntil: i.busyUntil,

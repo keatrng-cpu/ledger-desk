@@ -43,6 +43,7 @@ import type {
 import { ivFor, quoteOption, type OptionType, type Underlier } from "./option-math";
 import { absorbAtlas, improveAtlas, offerToBrains, saveAtlas, syncPeople, type DeskAtlas, type PeopleBrains } from "./desk-atlas";
 import { jobsFor } from "./brain-feed";
+import { gamesOn, marketClosed } from "./off-hours";
 
 export const CREW: readonly Character[] = ["Gemma", "Jax", "Nova", "Sterling", "Vince"];
 
@@ -144,7 +145,9 @@ export type Activity =
   | "tv"
   | "window"
   | "chat"
-  | "phone";
+  | "phone"
+  | "study"
+  | "mead";
 
 /** Lounge activities and the spot (floor-layout.json `spots`) each one uses. */
 export const ACTIVITY_SPOTS: Partial<Record<Activity, string[]>> = {
@@ -155,9 +158,11 @@ export const ACTIVITY_SPOTS: Partial<Record<Activity, string[]>> = {
   window: ["window_0", "window_1"],
   chat: ["bar_0", "bar_1", "bar_2"],
   phone: ["phone_corner"],
+  study: ["study_0", "study_1", "mead_2"],
+  mead: ["mead_0", "mead_1", "mead_2"],
 };
 
-const LOUNGE: ReadonlySet<Activity> = new Set(["coffee", "cooler", "couch", "tv", "window", "chat", "phone"]);
+const LOUNGE: ReadonlySet<Activity> = new Set(["coffee", "cooler", "couch", "tv", "window", "chat", "phone", "study", "mead"]);
 
 export interface Needs {
   caffeine: number;
@@ -457,6 +462,8 @@ const MIN_DWELL_MIN: Partial<Record<Activity, number>> = {
   chat: 5,
   phone: 4,
   desk: 8,
+  study: 12,
+  mead: 15,
   desk_drink: 3,
   desk_lean: 6,
   desk_phone: 4,
@@ -495,6 +502,10 @@ function utility(who: Character, act: Activity, n: Needs, s: Situation, minuteBu
       return n.boredom * 0.4 + likeBonus - (session ? 0.3 : 0) + noise;
     case "desk_stretch":
       return n.fatigue * 0.5 + likeBonus * 0.5 + noise;
+    case "study":
+      return marketClosed(s) ? 0.72 + t.diligence * 0.2 - (gamesOn(s) ? 0.15 : 0) + noise : -1;
+    case "mead":
+      return gamesOn(s) && marketClosed(s) ? 0.9 + t.sociability * 0.15 + noise : -1;
     default:
       return -1;
   }
@@ -503,8 +514,10 @@ function utility(who: Character, act: Activity, n: Needs, s: Situation, minuteBu
 function chooseFree(who: Character, prev: AgentAct, n: Needs, s: Situation, minds: MindState): AgentAct {
   const t = TRAITS[who];
   const bucket = Math.floor(s.nowMs / 60_000);
-  const options: Activity[] = t.roams
-    ? ["desk", "coffee", "cooler", "couch", "tv", "window", "chat", "phone"]
+  const closed = marketClosed(s);
+  const games = gamesOn(s);
+  const options: Activity[] = t.roams || closed
+    ? ["desk", "coffee", "cooler", "couch", "tv", "window", "chat", "phone", ...(closed ? (["study"] as Activity[]) : []), ...(games && closed ? (["mead"] as Activity[]) : [])]
     : ["desk", "desk_drink", "desk_lean", "desk_phone", "desk_stretch"];
   const dwellMin = (s.nowMs - prev.since) / 60_000;
   const committed = dwellMin < (MIN_DWELL_MIN[prev.act] ?? 3) && options.includes(prev.act);

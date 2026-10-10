@@ -22,6 +22,7 @@ import type { Sleeve } from "@/lib/invest/universe";
 import { ANIM, type InvestCatalyst, type InvestLite, type InvestThemeLite, type Line, type NewsLite, type TalkMove } from "./live-types";
 import { clip, compact, line, NEUTRAL, pick, type Ctx, type Ex } from "./live-voices";
 import { boardAgenda, dayPhrase, freshCatalysts, themeOfTheDay, tierCoverage, whenPhrase } from "./invest-read";
+import type { StudyPack, StudyPredict } from "./off-hours-study";
 
 const AT = (spot: string): TalkMove => ({ zone: "ANNEX", spot });
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
@@ -390,4 +391,254 @@ export function exInvCatalysts(c: Ctx, d: { inv: InvestLite }): Ex | null {
   );
   const out = compact(lines);
   return out.length ? { lines: out, moves: { Gemma: AT("inv_news"), Vince: AT("inv_struct"), Sterling: AT("inv_wall"), Nova: AT("inv_cio") } } : null;
+}
+
+const IN_MEAD = (spot: string): TalkMove => ({ zone: "WATERCOOLER", spot });
+
+const STUDY_MOVES = {
+  Gemma: IN_MEAD("study_0"),
+  Vince: IN_MEAD("study_1"),
+  Nova: IN_MEAD("mead_2"),
+  Jax: IN_MEAD("mead_0"),
+  Sterling: IN_MEAD("mead_1"),
+};
+
+const bookLean = (cents: number): string => (cents >= 65 ? "likely" : cents <= 35 ? "unlikely" : "near the middle");
+
+function yesLine(f: Ctx["f"], p: StudyPredict): string {
+  const px = p.yesCents == null ? "no yes price on the book" : `yes ${f.int(p.yesCents)} cents`;
+  const grade = p.grade ? `, scanner grade ${f.raw(p.grade)}` : "";
+  return `${f.raw(clip(p.event, 70))}, outcome ${f.raw(clip(p.outcome, 36))}, ${px}${grade}`;
+}
+
+/** Closed session. The Invest theme, the dollars waiting, and four names off the long-board watchlist. */
+export function exStudyInvest(c: Ctx, d: StudyPack): Ex | null {
+  const f = c.f;
+  const lines: (Line | null)[] = [];
+  const shut = d.weekend ? "Weekend study. The cash session is shut." : "The options book is shut.";
+  if (d.theme) {
+    const t = d.theme;
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.inv.theme", [
+        () => `${shut} Invest theme: ${f.raw(t.name)}, ${f.raw(t.tier)} tier. ${f.raw(stop(clip(t.claim, 110)))}`,
+        () => `${shut} We are on ${f.raw(t.name)}. ${f.raw(stop(clip(t.claim, 110)))} Evidence on that theme is ${f.raw(t.evidence)}.`,
+      ])),
+    );
+    lines.push(
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.inv.fig", [
+        () => `The figure under that claim: ${f.raw(t.figure)} — ${f.raw(t.sourceName)}, ${f.raw(t.asOf)}.`,
+        () => t.risk ? `Source ${f.raw(t.sourceName)}, ${f.raw(t.asOf)}. The written risk: ${f.raw(stop(clip(t.risk, 100)))}` : `Source ${f.raw(t.sourceName)}, ${f.raw(t.asOf)}. ${f.raw(t.figure)}.`,
+      ])),
+    );
+  } else {
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.inv.notheme", [
+        () => `${shut} No invest theme is loaded, so we read the long board by name.`,
+        () => `${shut} The research file has no theme in this pass. The watchlist still does.`,
+      ])),
+    );
+  }
+  if (d.watch.length) {
+    const lead = d.watch[0]!;
+    const names = d.watch.map((w) => w.ticker);
+    lines.push(
+      line("Vince", ANIM.Vince.watch!, pick(c, "study.inv.watch", [
+        () => `Long-board watchlist this pass: ${f.raw(list(names))}. Lead is ${lead.ticker}, ${f.raw(lead.name)}, ${f.raw(lead.sleeve)} sleeve. ${f.raw(stop(clip(lead.role, 110)))}`,
+        () => `On the table: ${f.raw(list(names))}. ${lead.ticker} is ${f.raw(lead.name)}. ${f.raw(stop(clip(lead.role, 110)))} A name stays off the book until a dossier clears the gate.`,
+      ])),
+    );
+  }
+  if (d.book) {
+    const b = d.book;
+    lines.push(
+      line("Nova", ANIM.Nova.write!, pick(c, "study.inv.book", [
+        () => b.nextTicker && b.nextUsd != null
+          ? `${cash(f, b.sweptUsd)} has been swept, ${cash(f, b.waitingUsd)} is not bought yet. Next dollar on the ladder is ${b.nextTicker}, ${f.raw(b.nextSleeve ?? "the sleeve")}, ${cash(f, b.nextUsd)}.`
+          : `${cash(f, b.sweptUsd)} swept, ${cash(f, b.waitingUsd)} waiting. ${f.int(b.positions)} ${b.positions === 1 ? "position" : "positions"} on the book, valued at cost.`,
+        () => `The funnel is a count, not an order. Waiting ${cash(f, b.waitingUsd)} across ${f.int(b.positions)} ${b.positions === 1 ? "name" : "names"}.`,
+      ])),
+    );
+  } else {
+    lines.push(
+      line("Nova", ANIM.Nova.write!, pick(c, "study.inv.nobook", [
+        () => `The live invest book is not in the room, so I will not quote a swept dollar.`,
+      ])),
+    );
+  }
+  if (d.catalyst) {
+    const cat = d.catalyst;
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.inv.cat", [
+        () => `Next report that touches the office: ${f.raw(cat.name)} (${cat.ticker}) ${f.raw(dayPhrase(cat.date, d.today))} ${whenPhrase(cat.when)}. A date is not a ticket.`,
+      ])),
+    );
+  }
+  lines.push(
+    line("Sterling", ANIM.Sterling.arms!, pick(c, "study.inv.stand", [
+      () => `Nothing sends from study. The long board ranks. It does not buy.`,
+      () => `We can read the sleeve and the name. We cannot place the name from this room.`,
+    ])),
+  );
+  const out = compact(lines);
+  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+}
+
+/** Headlines that name a company already on the long board or the office watch. */
+export function exStudyWatchNews(c: Ctx, d: StudyPack): Ex | null {
+  const hit = d.hits[0];
+  if (!hit) return null;
+  const f = c.f;
+  const where = hit.kind === "held" ? "a name the book holds" : hit.kind === "competitor" ? "a competitor already on the research list" : hit.kind === "theme" ? "a theme on the research file" : "the long-board watchlist";
+  const lines: (Line | null)[] = [
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "study.hit.head", [
+      () => `${f.raw(hit.source)}: “${f.raw(clip(hit.title, 96))}”`,
+      () => `Headline, ${f.raw(hit.source)}. “${f.raw(clip(hit.title, 90))}”`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "study.hit.who", [
+      () => `${hit.ticker ? `${hit.ticker}, ` : ""}${f.raw(hit.label)}${hit.sleeve ? `, ${f.raw(hit.sleeve)} sleeve` : ""}. That is ${f.raw(where)}.${hit.role ? ` ${f.raw(stop(clip(hit.role, 90)))}` : ""}`,
+      () => `That name is already ours to study: ${hit.ticker ? `${hit.ticker}, ` : ""}${f.raw(hit.label)}. ${f.raw(where)}.`,
+    ])),
+  ];
+  if (hit.impact) {
+    lines.push(
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.hit.impact", [
+        () => `The feed's own line on what it moves: ${f.raw(clip(hit.impact!, 110))}`,
+      ])),
+    );
+  }
+  const second = d.hits[1];
+  if (second) {
+    lines.push(
+      line("Jax", ANIM.Jax.point!, pick(c, "study.hit.two", [
+        () => `Also on the wire: ${second.ticker || f.raw(second.label)}. “${f.raw(clip(second.title, 80))}” — ${f.raw(second.source)}.`,
+      ])),
+    );
+  }
+  lines.push(
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "study.hit.stand", [
+      () => `A headline does not clear a dossier, and it does not change a sleeve. We study ${hit.ticker || f.raw(hit.label)}. We do not add size.`,
+      () => `Noted on ${hit.ticker || f.raw(hit.label)}. The kill rule is what a headline can move. This room does not.`,
+    ])),
+  );
+  const out = compact(lines);
+  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+}
+
+/** A company in the news that is not on the watchlist. Discuss it. Do not add it. */
+export function exStudyOutsider(c: Ctx, d: StudyPack): Ex | null {
+  const o = d.outsiders[0];
+  if (!o) return null;
+  const f = c.f;
+  const lines: (Line | null)[] = [
+    line("Jax", ANIM.Jax.point!, pick(c, "study.out.head", [
+      () => `${o.ticker} is in a headline and not on our watchlist. “${f.raw(clip(o.title, 88))}” — ${f.raw(o.source)}.`,
+      () => `New name, ${o.ticker}. Not on the long board. ${f.raw(o.source)}: “${f.raw(clip(o.title, 84))}”`,
+    ])),
+  ];
+  if (o.beside) {
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.out.beside", [
+        () => `It sat in the same headline as ${o.beside!.ticker}, ${f.raw(o.beside!.name)}, which is the ${f.raw(o.beside!.sleeve)} sleeve. Same story, not the same name.`,
+        () => `${o.ticker} showed up next to ${o.beside!.ticker}. ${f.raw(o.beside!.name)} is already on the ${f.raw(o.beside!.sleeve)} list. ${o.ticker} is not.`,
+      ])),
+    );
+  } else if (o.topic) {
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.out.topic", [
+        () => `No watchlist name is in that headline. The feed tagged it ${f.raw(o.topic!)}. That is a reason to read it, not a reason to own it.`,
+      ])),
+    );
+  } else {
+    lines.push(
+      line("Vince", ANIM.Vince.watch!, pick(c, "study.out.alone", [
+        () => `No watchlist name is in that headline. ${o.ticker} stays a candidate for the next study pass.`,
+      ])),
+    );
+  }
+  const second = d.outsiders[1];
+  if (second) {
+    lines.push(
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.out.two", [
+        () => `A second name off the list: ${second.ticker}.${second.beside ? ` It sat next to ${second.beside.ticker}.` : ""} “${f.raw(clip(second.title, 70))}”`,
+      ])),
+    );
+  }
+  lines.push(
+    line("Sterling", ANIM.Sterling.arms!, pick(c, "study.out.stand", [
+      () => `${o.ticker} can be discussed. It cannot be added from a headline. A dossier is the gate.`,
+      () => `Study ${o.ticker}. Do not put it on the board until the dossier exists.`,
+    ])),
+  );
+  const out = compact(lines);
+  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+}
+
+/** The prediction tab, and a headline only when it shares a subject with that market. Paper only. */
+export function exStudyPredict(c: Ctx, d: StudyPack): Ex | null {
+  const f = c.f;
+  const lines: (Line | null)[] = [];
+  const p = d.predicts[0];
+  if (!p) {
+    lines.push(
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.pred.empty", [
+        () => d.predictWhy ? `Prediction feed: ${f.raw(clip(d.predictWhy, 120))}` : `The prediction book is empty. I will not invent a market.`,
+      ])),
+    );
+    lines.push(
+      line("Sterling", ANIM.Sterling.arms!, pick(c, "study.pred.empty.stand", [
+        () => `No row, no side. A missing book is not a guess.`,
+      ])),
+    );
+    const out = compact(lines);
+    return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+  }
+  const src = d.predictSource ? `${f.raw(d.predictSource)}. ` : "";
+  lines.push(
+    line("Nova", ANIM.Nova.analyze!, pick(c, "study.pred.row", [
+      () => `${src}Prediction tab, paper only. ${yesLine(f, p)}.`,
+      () => `${src}On the prediction book: ${yesLine(f, p)}.`,
+    ])),
+  );
+  if (p.yesCents != null) {
+    const lean = bookLean(p.yesCents);
+    lines.push(
+      line("Vince", ANIM.Vince.watch!, pick(c, "study.pred.lean", [
+        () => `At ${f.int(p.yesCents!)} cents the book is pricing that outcome as ${lean}. That is the printed price, not our side.`,
+        () => `The contract says ${lean}. We read the cents. We do not send them.`,
+      ])),
+    );
+  }
+  if (p.newsTitle && p.newsSource) {
+    const title = p.newsTitle;
+    const source = p.newsSource;
+    const topic = p.newsTopic;
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.pred.news", [
+        () => `${f.raw(source)} shares a subject with that market: “${f.raw(clip(title, 90))}”${topic ? ` The feed tagged it ${f.raw(topic)}.` : ""} A headline is not a side.`,
+        () => `Related wire, ${f.raw(source)}: “${f.raw(clip(title, 88))}” Same subject as the contract. Not a ticket.`,
+      ])),
+    );
+  } else {
+    lines.push(
+      line("Gemma", ANIM.Gemma.explain!, pick(c, "study.pred.nonews", [
+        () => `No headline in the feed shares a subject with that market. I will not borrow one.`,
+      ])),
+    );
+  }
+  const second = d.predicts[1];
+  if (second) {
+    lines.push(
+      line("Jax", ANIM.Jax.point!, pick(c, "study.pred.two", [
+        () => `Also on the board: ${yesLine(f, second)}.${second.newsTitle ? ` A headline sits next to it.` : ""}`,
+      ])),
+    );
+  }
+  lines.push(
+    line("Sterling", ANIM.Sterling.arms!, pick(c, "study.pred.stand", [
+      () => `Paper only. A prediction and a study note do not touch the Robinhood book.`,
+      () => `We can argue the cents. We cannot send a game, and we cannot send a study.`,
+    ])),
+  );
+  const out = compact(lines);
+  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
 }

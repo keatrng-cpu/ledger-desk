@@ -1475,6 +1475,58 @@ export function exEvidence(c: Ctx, d: EvidenceData): Ex | null {
   return lines.length >= 2 ? { lines, moves: { Nova: WB } } : null;
 }
 
+export interface ClosedStudyData {
+  weekend: boolean;
+  books: { say: string; lo: number; hi: number; px: number }[];
+}
+export function exClosedStudy(c: Ctx, d: ClosedStudyData): Ex | null {
+  const f = c.f;
+  const range = d.books.length
+    ? d.books.map((b) => `${b.say} ${f.lvl(b.lo)}–${f.lvl(b.hi)}, last ${f.lvl(b.px)}`).join(". ")
+    : null;
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.study.gemma", [
+      () => d.weekend
+        ? `Weekend. The cash session is shut. We study what already printed. We do not invent a Monday print.`
+        : `The options book is closed. What is on the screen is the record, not a new ticket.`,
+      () => d.weekend
+        ? `No one is at a live order. The work is the week: what was swept, what was left.`
+        : `Session is over. Read the day. Do not extend it.`,
+    ])),
+    line("Vince", ANIM.Vince.watch!, pick(c, "hb.study.vince", [
+      () => range ? `The ranges we actually have: ${range}.` : `No fresh range on the tape. I will not mark a level that did not print.`,
+      () => range ? `For the next open I am keeping ${range}.` : `Nothing to mark until the tape comes back.`,
+    ])),
+    line("Nova", ANIM.Nova.analyze!, pick(c, "hb.study.nova", [
+      () => `A closed market is for the count. A missing layer stays missing until a bar answers it.`,
+      () => `We grade what closed. We do not raise a score because the room is bored.`,
+    ])),
+    line("Sterling", ANIM.Sterling.tablet!, pick(c, "hb.study.sterling", [
+      () => `Nothing sends while the session is shut. Study is not a fill.`,
+      () => `The book stays flat until the open. Talk is allowed. An order is not.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: {} } : null;
+}
+
+export function exMead(c: Ctx): Ex | null {
+  const lines = compact([
+    line("Gemma", ANIM.Gemma.explain!, pick(c, "hb.mead.gemma", [
+      () => `Games are on. The Mead Hall is the glass room off the lounge. The screen is paper.`,
+      () => `If a number is on that screen we can argue it. If it is not, we do not make one up.`,
+    ])),
+    line("Jax", ANIM.Jax.shout!, pick(c, "hb.mead.jax", [
+      () => `I want a side. Sterling is going to say no, and he is right about the broker.`,
+      () => `A game is not a sweep. I can still say which way I think it breaks.`,
+    ])),
+    line("Sterling", ANIM.Sterling.arms!, pick(c, "hb.mead.sterling", [
+      () => `Paper only. A game does not touch the Robinhood book.`,
+      () => `We can sit in the Mead Hall. We cannot send a game as a ticket.`,
+    ])),
+  ]);
+  return lines.length >= 2 ? { lines, moves: {} } : null;
+}
+
 export interface TomorrowData {
   weekday: string;
   kind: string | null;

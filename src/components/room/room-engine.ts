@@ -26,6 +26,8 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evaluateOptionsDesk } from "@/lib/trading/options-desk";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { getNewsFeed, getPulse } from "@/lib/news/news-server";
+import { getPredictionMarketFeed } from "@/lib/predict/predict-server";
+import { toPredictLite } from "@/lib/room/off-hours-study";
 import { etWallParts, etWallToEpochMs } from "@/lib/trading/sessions";
 import type { MindState } from "@/lib/room/agents";
 import { noteExchange, noteNerve } from "@/lib/room/brain-traffic";
@@ -39,7 +41,7 @@ import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, restoreTalkState, talkTick } from "@/lib/room/live-talk";
 import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
-import { TALK, type FeedRead, type NewsLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
+import { TALK, type FeedRead, type NewsLite, type PredictLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, brainSources, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
 import { deskAudit } from "@/lib/room/audit";
@@ -300,6 +302,8 @@ interface RoomState {
   news: FloorScreens["news"];
   /** The headlines as the talk reads them (tagged, tiered), newest first. */
   newsLite: NewsLite[];
+  /** Last prediction-book read. Null until a closed-hours poll returns. Paper only. */
+  predict: PredictLite | null;
   /** The talk's memory: what was said, when, and what has already been announced. */
   talkState: TalkState;
   /** Ticks with an exchange in them since this page loaded — the Floor tab plays whatever is `pending`. */
@@ -345,6 +349,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   pulse: { vix: null, tenYear: null, at: null },
   news: [],
   newsLite: [],
+  predict: null,
   talkState: freshTalkState(),
   talkSeq: 0,
   pending: [],
@@ -756,6 +761,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     lab: st.frame?.screens.lab ?? null,
     race: st.race,
     invest: readInvestOffice(nowMs),
+    predict: st.predict,
     busyUntil: 0,
   });
   if (import.meta.env.DEV) {
@@ -852,6 +858,38 @@ export function useRoomEngine(desk: DeskPayload | null) {
     };
     void pull();
     const id = window.setInterval(pull, 150_000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [enabled, hydrated, hasDesk]);
+  // Prediction book: only while the cash session is shut, so the Kalshi read does not sit on the desk fetch.
+  // Paper only. A failed pull keeps the last rows.
+  useEffect(() => {
+    if (!enabled || !hydrated || !hasDesk) return;
+    let alive = true;
+    const cashOpen = () => {
+      const p = etWallParts(Date.now());
+      const etMin = p.hour * 60 + p.minute;
+      return p.weekday >= 1 && p.weekday <= 5 && etMin >= 9 * 60 + 30 && etMin < 16 * 60;
+    };
+    const pull = async () => {
+      if (cashOpen()) return;
+      try {
+        const r = await getPredictionMarketFeed({ data: {} });
+        if (!alive) return;
+        useRoomStore.setState({ predict: toPredictLite(r) });
+      } catch {
+        if (!alive) return;
+        const prev = useRoomStore.getState().predict;
+        if (prev && prev.rows.length) return;
+        useRoomStore.setState({
+          predict: { asOf: new Date().toISOString(), source: "Kalshi", reason: "The prediction feed did not answer.", rows: [] },
+        });
+      }
+    };
+    void pull();
+    const id = window.setInterval(pull, 10 * 60_000);
     return () => {
       alive = false;
       window.clearInterval(id);

@@ -17,7 +17,8 @@
     { "id": "invest_floor", "label": "Investment Office — the long game", "x": [1, 14], "z": [8, 12.6], "floor": "carpet_charcoal" },
     { "id": "boardroom", "label": "Boardroom — the chair and the five", "x": [1, 8.4], "z": [12.6, 17], "floor": "walnut" },
     { "id": "chair_office", "label": "Chair's office — the CEO", "x": [8.4, 14], "z": [12.6, 17], "floor": "carpet_red" },
-    { "id": "office_Manager", "label": "Trading Stand — the Manager's glass corner office", "x": [-2.0, 1], "z": [0.2, 3.4], "floor": "carpet_charcoal" }
+    { "id": "office_Manager", "label": "Trading Stand — the Manager's glass corner office", "x": [-2.0, 1], "z": [0.2, 3.4], "floor": "carpet_charcoal" },
+    { "id": "mead_hall", "label": "Mead Hall — paper games, off the tape", "x": [10.2, 13.7], "z": [-1.6, 4.2], "floor": "walnut", "procedural": true }
   ],
   "walls": [
     { "id": "ext_north", "a": [-14, -10], "b": [14, -10], "height": 3.6, "kind": "solid", "doors": [] },
@@ -46,7 +47,10 @@
     { "id": "inv_board_chair", "a": [8.4, 12.6], "b": [8.4, 17], "height": 2.7, "kind": "glass", "doors": [] },
     { "id": "mgr_north", "a": [-2.0, 0.2], "b": [1, 0.2], "height": 2.7, "kind": "glass", "doors": [[-0.6, 0.5]] },
     { "id": "mgr_west", "a": [-2.0, 0.2], "b": [-2.0, 3.4], "height": 2.7, "kind": "glass", "doors": [] },
-    { "id": "mgr_east", "a": [1, 0.2], "b": [1, 3.4], "height": 2.7, "kind": "glass", "doors": [] }
+    { "id": "mgr_east", "a": [1, 0.2], "b": [1, 3.4], "height": 2.7, "kind": "glass", "doors": [] },
+    { "id": "mead_west", "a": [10.2, -1.6], "b": [10.2, 4.2], "height": 2.7, "kind": "glass", "doors": [[0.8, 2.2]], "procedural": true },
+    { "id": "mead_south", "a": [10.2, -1.6], "b": [13.7, -1.6], "height": 2.7, "kind": "glass", "doors": [], "procedural": true },
+    { "id": "mead_north", "a": [10.2, 4.2], "b": [13.7, 4.2], "height": 2.7, "kind": "glass", "doors": [], "procedural": true }
   ],
   "furniture": [
     { "id": "desk_Jax", "kind": "desk", "pos": [-11.5, -9.2], "rot": 0, "size": [2.4, 0.75, 0.9], "obstacle": true },
@@ -155,7 +159,11 @@
     { "id": "balcony_Owner", "kind": "balcony", "pos": [2.5, -3.0], "rot": 0, "size": [2.4, 1.2, 3.2], "obstacle": true, "procedural": true },
     { "id": "stairs_Owner", "kind": "stairs", "pos": [4.7, -3.0], "rot": 0, "size": [2.0, 1.2, 1.1], "obstacle": true, "procedural": true },
     { "id": "chair_Owner", "kind": "office_chair", "pos": [2.15, -1.85], "rot": 200, "size": [0.55, 1.0, 0.55], "obstacle": false, "onTop": 1.2, "procedural": true },
-    { "id": "wall_record", "kind": "partition", "pos": [7.6, -4.2], "rot": 0, "size": [0.24, 2.3, 4.0], "obstacle": true, "procedural": true }
+    { "id": "wall_record", "kind": "partition", "pos": [7.6, -4.2], "rot": 0, "size": [0.24, 2.3, 4.0], "obstacle": true, "procedural": true },
+    { "id": "mead_bar", "kind": "counter", "pos": [13.15, 1.3], "rot": 90, "size": [2.2, 1.05, 0.5], "obstacle": true, "procedural": true },
+    { "id": "mead_stool_0", "kind": "bar_stool", "pos": [12.45, 0.7], "rot": 90, "size": [0.4, 0.75, 0.4], "obstacle": true, "procedural": true },
+    { "id": "mead_stool_1", "kind": "bar_stool", "pos": [12.45, 1.9], "rot": 90, "size": [0.4, 0.75, 0.4], "obstacle": true, "procedural": true },
+    { "id": "mead_table", "kind": "bar_table", "pos": [11.35, 3.15], "rot": 0, "size": [0.9, 1.05, 0.9], "obstacle": true, "procedural": true }
   ],
   "screens": [
     { "id": "whiteboard", "kind": "whiteboard", "center": [-13.93, 1.62, -1.0], "size": [4.2, 1.5], "facing": 90, "px": [1024, 366] },
@@ -165,6 +173,8 @@
     { "id": "tv_news", "kind": "tv", "center": [-13.9, 1.7, 2.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },
     { "id": "tv_calendar", "kind": "tv", "center": [-13.9, 1.7, -4.25], "size": [1.8, 1.0], "facing": 90, "px": [768, 426] },
     { "id": "tv_lounge", "kind": "tv", "center": [11.5, 1.9, -9.93], "size": [2.4, 1.35], "facing": 0, "px": [896, 504] },
+    { "id": "tv_mead", "kind": "tv", "center": [12.0, 1.7, -1.48], "size": [1.7, 0.95], "facing": 0, "px": [768, 430], "procedural": true },
+    { "id": "plate_Mead", "kind": "plate", "center": [10.05, 2.15, 2.7], "size": [1.1, 0.28], "facing": 270, "px": [480, 112], "procedural": true },
     { "id": "jumbo_E", "kind": "tv", "center": [-7.18, 2.85, -1.0], "size": [1.6, 0.9], "facing": 90, "px": [640, 360] },
     { "id": "jumbo_W", "kind": "tv", "center": [-8.82, 2.85, -1.0], "size": [1.6, 0.9], "facing": 270, "px": [640, 360] },
     { "id": "jumbo_S", "kind": "tv", "center": [-8.0, 2.85, -0.18], "size": [1.6, 0.9], "facing": 0, "px": [640, 360] },
@@ -280,6 +290,11 @@
     "bar_1": { "pos": [5.55, 0.75], "look": [5.0, 0.0], "pose": "stand", "act": "chat" },
     "bar_2": { "pos": [5.0, -0.8], "look": [5.0, 0.0], "pose": "stand", "act": "chat" },
     "phone_corner": { "pos": [2.6, 5.6], "look": [1.6, 6.6], "pose": "stand", "act": "phone" },
+    "mead_0": { "pos": [11.15, 0.85], "look": [13.1, 0.85], "pose": "stand", "act": "chat" },
+    "mead_1": { "pos": [11.15, 1.85], "look": [13.1, 1.85], "pose": "stand", "act": "chat" },
+    "mead_2": { "pos": [11.55, 2.55], "look": [12.0, 1.6], "pose": "stand", "act": "tv" },
+    "study_0": { "pos": [11.15, 3.55], "look": [11.35, 3.15], "pose": "stand", "act": "chat" },
+    "study_1": { "pos": [12.15, 3.55], "look": [11.35, 3.15], "pose": "stand", "act": "chat" },
     "printer": { "pos": [-0.4, 6.6], "look": [-0.4, 7.4], "pose": "stand", "act": "printer" },
     "entrance": { "pos": [8.0, 7.3], "look": [8.0, 5.0], "pose": "stand", "act": "door" },
     "office_rnd": { "pos": [-0.6, 5.15], "look": [-0.6, 3.9], "pose": "sit", "act": "desk" },
@@ -304,6 +319,7 @@
     "offices": { "pos": [-6.0, 9.5, 2.8], "target": [-6.5, 0.6, -7.5] },
     "front": { "pos": [-8.5, 7.5, 12.5], "target": [-8.5, 0.8, 5.0] },
     "lounge": { "pos": [6.5, 6.0, 3.5], "target": [9.0, 0.9, -6.5] },
+    "mead": { "pos": [7.2, 3.4, 1.4], "target": [12.2, 1.2, 1.4] },
     "rnd": { "pos": [-1.5, 4.9, 11.2], "target": [-1.5, 0.9, 5.4] },
     "ops": { "pos": [4.9, 4.9, 11.6], "target": [4.9, 0.9, 6.0] },
     "goal": { "pos": [11.8, 4.9, 11.6], "target": [11.8, 0.9, 6.0] },

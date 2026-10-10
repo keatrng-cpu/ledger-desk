@@ -488,6 +488,14 @@ export interface InvestLite {
   dayKey: string;
 }
 
+/** A few prediction rows the floor has actually read. Paper only. Empty when the feed has not come back. */
+export interface PredictLite {
+  asOf: string;
+  source: string;
+  reason: string | null;
+  rows: { event: string; outcome: string; yesCents: number | null; grade: string | null }[];
+}
+
 /** A catalyst list built from an earnings calendar captured more than this many days ago is not spoken from, and the audit says so. */
 export const CATALYST_MAX_AGE_DAYS = 21;
 
@@ -528,6 +536,8 @@ export interface TalkWorld {
   rnd: RndLite | null;
   /** The investment office's read of the Invest tab and the research file — null until the engine has computed it. */
   invest: InvestLite | null;
+  /** Prediction rows the floor has read. Null until a closed-hours poll returns. Paper only. */
+  predict: PredictLite | null;
   /** How old the committed data is (the audit reads it). Absent in worlds built without it, which raises nothing. */
   fresh?: DataFreshness | null;
   /** The measured headline lines (evidence.ts) — real findings the night shift can quote. */

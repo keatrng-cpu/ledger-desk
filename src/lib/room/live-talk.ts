@@ -29,6 +29,8 @@
  */
 
 import { ROOM_CLOCK } from "./mandate";
+import { gamesOn } from "./off-hours";
+import { studyPack } from "./off-hours-study";
 import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
@@ -1318,6 +1320,17 @@ function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
 
 /* ── Heartbeats ────────────────────────────────────────────────────────── */
 
+function studyOf(w: TalkWorld) {
+  return studyPack({
+    weekend: !w.clock.isWeekday,
+    etDate: w.clock.etDate,
+    etMin: w.clock.etMin,
+    news: w.news,
+    invest: w.invest,
+    predict: w.predict,
+  });
+}
+
 interface Hb {
   id: string;
   weight: number;
@@ -1537,6 +1550,46 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
             wins: w.book.winsToday,
             refusals: w.lab && w.lab.refusals.length ? { n: w.lab.refusals.reduce((a, r) => a + r.n, 0), pnlUsd: w.lab.refusals.reduce((a, r) => a + r.pnlUsd, 0) } : null,
           }),
+      });
+    }
+    const study = studyOf(w);
+    const studyW = w.clock.isWeekday ? 1.45 : 1.7;
+    out.push({
+      id: "study:invest",
+      weight: studyW,
+      sig: `${w.clock.etDate}|${study.bucket}|${study.theme?.name ?? ""}|${study.watch.map((n) => n.ticker).join(",")}|${Math.round(study.book?.waitingUsd ?? 0)}|${study.book?.nextTicker ?? ""}|${study.catalyst?.ticker ?? ""}`,
+      build: (c) => IV.exStudyInvest(c, study),
+    });
+    if (study.hits.length) {
+      out.push({
+        id: "study:watch",
+        weight: studyW,
+        sig: study.hits.map((h) => h.title).join("|"),
+        build: (c) => IV.exStudyWatchNews(c, study),
+      });
+    }
+    if (study.outsiders.length) {
+      out.push({
+        id: "study:outsider",
+        weight: studyW - 0.05,
+        sig: study.outsiders.map((o) => `${o.ticker}|${o.title}`).join("|"),
+        build: (c) => IV.exStudyOutsider(c, study),
+      });
+    }
+    out.push({
+      id: "study:predict",
+      weight: studyW + 0.05,
+      sig: study.predicts.length
+        ? study.predicts.map((p) => `${p.event}|${p.yesCents ?? ""}|${p.newsTitle ?? ""}`).join("|")
+        : `empty|${study.predictWhy ?? ""}`,
+      build: (c) => IV.exStudyPredict(c, study),
+    });
+    if (gamesOn(w.clock)) {
+      out.push({
+        id: "mead",
+        weight: 1.4,
+        sig: `${w.clock.etDate}|games`,
+        build: (c) => V.exMead(c),
       });
     }
   }
