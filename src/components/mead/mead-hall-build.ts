@@ -790,6 +790,14 @@ export class MeadHall {
     return this.mood;
   }
 
+  /** Seen from far away (the Floor's overview) the regulars are specks: stop drawing them, and every draw call they cost with them. */
+  setFar(far: boolean) {
+    if (far === this.far) return;
+    this.far = far;
+    for (const p of this.people) p.root.visible = !far;
+  }
+  private far = false;
+
   /** The bartender says hello to someone who has just come up to the bar (at most one greeting in four minutes; no numbers, no advice). */
   greet() {
     if (this.time - this.lastGreet < 240) return;

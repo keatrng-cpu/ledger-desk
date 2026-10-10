@@ -13,6 +13,8 @@
  *               at several window shapes;
  *   z-fighting  no pair of big flat surfaces shares a height and footprint without one of them winning by depth offset, and no
  *               flat transparent decal writes depth;
+ *   mead hall   the wing east of the lounge draws in a pass of its own (its lights on its own layer), only when it is in view; the
+ *               five walk in through the doorway and are lit by the hall, and are back on the office's layer when they go home;
  *   budget      draw calls, triangles, textures, shader programs and shadow casters, written to .cache/floor-shots/baseline.json
  *               (compared with the previous run: more than 15% worse is a failure).
  * With --shots it also saves a PNG per camera preset to .cache/floor-shots/ for a look.
@@ -95,6 +97,22 @@ check("following a person ends it", !walk.follow.walk && !walk.follow.chase);
 check("Esc ends it and clears the keys", !walk.esc.walk && !walk.esc.chase && !walk.esc.w && !walk.esc.focused);
 check("flying to a screen ends it", !walk.flyTo.walk && !walk.flyTo.chase);
 
+// The live talk walks people about on its own clock (a heartbeat can send Sterling to the board mid-check). Measure the framing with
+// everyone at their own seat: drop new exchanges, end the one playing, send people home, and let them walk there.
+await page.evaluate(() => {
+  const f = window.__floor;
+  f.say = () => "dropped";
+  f.queue.length = 0;
+  f.batch = null;
+  f.source = null;
+  f.lines = [];
+  f.lineIdx = 0;
+  f.sendHome();
+  for (let i = 0; i < 600; i++) {
+    f.time += 0.1;
+    f.tick(0.1);
+  }
+});
 console.log("director framing (head and the whole speech bubble inside the frame)");
 for (const [w, h] of [
   [1500, 900],
@@ -207,6 +225,61 @@ const zf = await page.evaluate(() => {
   return { pairs, bad: bad.slice(0, 6) };
 });
 check("every same-height overlap has a winner, and no flat decal writes depth", zf.bad.length === 0, JSON.stringify(zf.bad));
+
+console.log("the Mead Hall (its own lights, its own pass; the five can walk in and out)");
+const hall = await page.evaluate(() => {
+  const f = window.__floor;
+  const r = { exists: Boolean(f.mead) };
+  if (!f.mead) return r;
+  const look = (pos, tgt) => {
+    f.camGoal = null;
+    f.camera.position.set(...pos);
+    f.controls.target.set(...tgt);
+    f.camera.lookAt(...tgt);
+    f.camera.updateMatrixWorld(true);
+  };
+  look([23.9, 5.4, 9.6], [23.5, 2.1, -6]);
+  r.drawnInView = f.mead.pass(f.renderer, f.scene, f.camera);
+  look([-30, 8, -30], [-40, 0, -40]);
+  r.drawnOutOfView = f.mead.pass(f.renderer, f.scene, f.camera);
+  r.cameraLayersRestored = f.camera.layers.mask === 1;
+  r.hallOnItsLayer = f.mead.hall.root.layers.mask === 2;
+  let hallLights = 0;
+  let officeLights = 0;
+  let shared = 0;
+  f.scene.traverse((o) => {
+    if (!o.isLight) return;
+    if (o.layers.mask === 2) hallLights++;
+    else if (o.layers.mask === 1) officeLights++;
+    else shared++;
+  });
+  Object.assign(r, { hallLights, officeLights, shared });
+  r.screens = ["mead_jumbo", "mead_board", "mead_tv_0", "mead_tv_1", "mead_tv_2", "mead_booth_0", "mead_booth_1", "mead_ledger"].map((id) => [id, Boolean(f.mead.hall.root.getObjectByName(id)), f.screens.has(id)]);
+  r.focus = f.focusScreen("mead_jumbo");
+  const moves = { Nova: { zone: "HALL", spot: "mead_long_n1" }, Vince: { zone: "HALL", spot: "mead_jumbo_0" }, Gemma: { zone: "HALL", spot: "mead_board" }, Jax: { zone: "HALL", spot: "mead_bar_0" }, Sterling: { zone: "HALL", spot: "mead_lectern" } };
+  f.startBatch({ id: "floor-checks-hall", at: Date.now(), ttlMs: 900000, urgency: 2, lines: [], moves });
+  for (let i = 0; i < 700; i++) {
+    f.time += 0.1;
+    f.tick(0.1);
+  }
+  r.inside = [...f.avatars.values()].map((a) => ({ who: a.who, layer: a.root.layers.mask, x: +a.pos[0].toFixed(1), mode: a.mode }));
+  f.sendHome();
+  for (let i = 0; i < 1400; i++) {
+    f.time += 0.1;
+    f.tick(0.1);
+  }
+  r.home = [...f.avatars.values()].map((a) => ({ who: a.who, layer: a.root.layers.mask, x: +a.pos[0].toFixed(1) }));
+  f.setCamera("overview");
+  return r;
+});
+check("the Floor builds a Mead Hall", hall.exists);
+check("the hall draws in a pass of its own when it is in view, and not when it is not", hall.drawnInView === true && hall.drawnOutOfView === false, JSON.stringify([hall.drawnInView, hall.drawnOutOfView]));
+check("the camera's layers are restored after the hall's pass", hall.cameraLayersRestored === true);
+check("the hall and its lights are on the hall's layer (the office's sun and lamps are not)", hall.hallOnItsLayer === true && hall.hallLights >= 8 && hall.officeLights >= 6 && hall.shared === 0, JSON.stringify([hall.hallLights, hall.officeLights, hall.shared]));
+check("every screen the plan names has a mesh in the hall and a canvas the Floor can pick", hall.screens.every(([, mesh, rec]) => mesh && rec), JSON.stringify(hall.screens.filter(([, m, r]) => !(m && r))));
+check("a hall screen can be flown to", hall.focus === true);
+check("the five walk in through the doorway: all inside the wing and on the hall's layer (stool at the bar, sat at the table)", hall.inside.every((a) => a.x > 14.3 && a.layer === 2) && hall.inside.some((a) => a.mode === "stool") && hall.inside.some((a) => a.mode === "sit"), JSON.stringify(hall.inside));
+check("sent home they leave the wing and are back on the office's layer", hall.home.every((a) => a.x < 14 && a.layer === 1), JSON.stringify(hall.home));
 
 console.log("budget (counts, not speed)");
 const info = await page.evaluate(async () => {

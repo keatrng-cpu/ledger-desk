@@ -48,6 +48,7 @@ export class FloorMead {
   readonly root = new THREE.Group();
   readonly hall: MeadHall;
   private readonly bounds = new THREE.Box3();
+  private readonly center = new THREE.Vector3(HALL_AT.x, 2, HALL_AT.z + 4);
   private readonly frustum = new THREE.Frustum();
   private readonly pv = new THREE.Matrix4();
   private readonly lit = new WeakMap<THREE.Object3D, boolean>();
@@ -204,6 +205,11 @@ export class FloorMead {
     this.pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.pv);
     if (!this.frustum.intersectsBox(this.bounds)) return false;
+    // Level of detail: from across the site (the Floor's overview) the hall's regulars are drawn no more. A margin so the camera
+    // hovering at the line does not make them flicker.
+    const d = camera.position.distanceTo(this.center);
+    if (d > 33) this.hall.setFar(true);
+    else if (d < 29) this.hall.setFar(false);
     const saved = camera.layers.mask;
     camera.layers.set(HALL_LAYER);
     try {
