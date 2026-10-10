@@ -19,6 +19,23 @@ const STAGE: Record<string, string> = {
   research: "RESEARCHABLE",
 };
 
+const DESK_WATCH: { name: string; state: "filed" | "watch" | "longer" | "off"; line: string }[] = [
+  { name: "Anthropic", state: "filed", line: "Confidential filing, June 2026. No prospectus, ticker, or date. Kill: the compute bill in a public filing." },
+  { name: "OpenAI", state: "filed", line: "Confidential filing, then a 2026 listing ruled out. Stays on the watch. No date." },
+  { name: "Anduril", state: "watch", line: "Said it will list. No file. Revenue is real. Kill: the operating loss eating the growth." },
+  { name: "Databricks", state: "longer", line: "No file. The watch starts when a registration statement exists." },
+  { name: "Waymo", state: "longer", line: "Alphabet's choice. The public way to hold it today is Alphabet, which the sleeve already overlaps." },
+  { name: "Safe Superintelligence", state: "off", line: "No public model. A listing is not the next event. A public artifact is." },
+  { name: "Figure AI", state: "off", line: "Pilots, not a fleet. Same rule as a reactor that has not been built." },
+];
+
+const WATCH_CLS = {
+  filed: "border-[var(--color-border-strong)] text-[var(--color-fg)]",
+  watch: "border-[var(--color-border-strong)] text-[var(--color-fg)]",
+  longer: "border-[var(--color-border)] text-[var(--color-muted)]",
+  off: "border-[color-mix(in_oklab,var(--color-warn)_50%,transparent)] text-[var(--color-warn)]",
+} as const;
+
 export function IpoCard() {
   const today = etToday();
   const up = upcomingIpos(today);
@@ -33,6 +50,18 @@ export function IpoCard() {
         it is a research candidate like any company — dossier, verified operator, kill rule, price vs record — never a buy by
         itself.
       </Note>
+      <div className="mt-2 border-t border-[var(--color-border)] pt-2">
+        <p className="mb-1 text-[10px] uppercase tracking-wide text-[var(--color-muted)]">Desk watch</p>
+        <ul className="space-y-1">
+          {DESK_WATCH.map((w) => (
+            <li key={w.name} className="text-[11px] leading-snug">
+              <span className={`rounded border px-1 text-[9px] font-semibold uppercase ${WATCH_CLS[w.state]}`}>{w.state}</span>{" "}
+              <span className="font-medium">{w.name}</span>
+              <p className="text-[10px] text-[var(--color-muted)]">{w.line}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
       {ev.length > 0 && (
         <ul className="mt-2 space-y-0.5 border-t border-[var(--color-border)] pt-2">
           {ev.map((e) => (

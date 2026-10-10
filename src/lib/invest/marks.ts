@@ -5,7 +5,7 @@
  * without pulling the server-function runtime in with it.
  */
 
-export const MARKS_MAX_TICKERS = 12;
+export const MARKS_MAX_TICKERS = 40;
 
 export interface TickerMarks {
   ticker: string;

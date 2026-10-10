@@ -231,7 +231,7 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     "Prior week (Sep 28–Oct 2) tape already in the seed: NQ ~30,357–31,282.50 tagged and faded near 31,050–31,074; ES ~7,672.75–7,810, Sep 21–25 PWH 7,848.50 untouched. Soft NFP already printed. Do not invent CWH/CWL.",
   po3: "Mon ISM Services manipulates. Tue trade is not the raid. Wed minutes distribute after 14:00. Thu claims. Fri UMich is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Minutes Oct 7 14:00: most see another hike by year-end, timing unspecified. Oct 28 hike odds little changed after the print: FedWatch ~17% +25 / >80% hold (InvestmentNews 17.2%) vs Reuters ~78% hold pre-release and 22.7/77.3 Oct 6. Thu claims 197k vs 200k (DOL, prev rev 199k); no official FedWatch restamp after the print. CPI Sep is Wed Oct 14, not this week. Fri 07:10 CT: UMich not printed. NQ week range still ~30,792.50–31,616.50; ES ~7,760.25–7,897.50. Fri Globex has not extended either. No official FedWatch restamp after Thu claims (still ~17% hike / >80% hold after minutes).",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep printed Mon 54.9 vs ~55.0 / prev 55.4 (prices 74.0). BEA trade Aug printed Tue −$105.6B vs Jul rev −$92.8B. ADP NER Pulse Tue +23.75k/wk (four weeks ending Sep 19) vs prior +20k — not monthly ADP. No ISM/JOLTS/claims/NFP Tue. Fed calendar: Sep 15–16 minutes Wed Oct 7 14:00. Claims Thu 8:30. UMich Oct P Fri 10:00. Minutes Oct 7 14:00: most see another hike by year-end, timing unspecified. Oct 28 hike odds little changed after the print: FedWatch ~17% +25 / >80% hold (InvestmentNews 17.2%) vs Reuters ~78% hold pre-release and 22.7/77.3 Oct 6. Thu claims 197k vs 200k (DOL, prev rev 199k); no official FedWatch restamp after the print. CPI Sep is Wed Oct 14, not this week. UMich Oct P printed Fri 46.3 vs ~47.6–48.0 / Sep F 48.1 (current conditions 44.7 record low; 1y infl 4.7% from 4.6%). NQ Fri session 30,953–31,266.50 last ~31,110.50 stayed under PWH 31,282.50 and above Thu week low 30,792.50. ES Fri 7,817–7,870.50 last ~7,863 stayed under Tue week high 7,897.50, above Mon week low 7,760.25. No new week extreme. No official FedWatch restamp after UMich (still ~17% hike / >80% hold after minutes).",
   asymmetry:
     "A+ into ISM and the minutes. Flatten before 13:45 Wed. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -241,9 +241,9 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     pwh: 31282.5,
     pwl: 30357,
     eq: 30819.75,
-    drawUp: "PWH 31,282.50 already taken (Tue high 31,616.50 still the week high). Thu closed back under it; Fri Globex ~31,266.50 has not reclaimed — next BSL only if the reclaim holds",
-    drawDown: "Week low 30,792.50 (Thu) then prior-week 30,357. Fri Globex has not extended the low",
-    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~30,357–31,282.50). Week high still Tue 31,616.50. Thu made the week low 30,792.50 (Mon 30,957.50 no longer the low). Fri Globex so far ~30,953–31,266.50 has not taken either extreme and is still under PWH. Live CWH/CWL from bars — not hardcoded.",
+    drawUp: "PWH 31,282.50 already taken (Tue high 31,616.50 still the week high). Fri session high 31,266.50 did not reclaim — next BSL only if a reclaim holds",
+    drawDown: "Week low 30,792.50 (Thu) then prior-week 30,357. Fri low 30,953 did not extend it",
+    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~30,357–31,282.50). Week high still Tue 31,616.50. Week low still Thu 30,792.50. Fri session 30,953–31,266.50 did not take either extreme and closed under PWH. Live CWH/CWL from bars — not hardcoded.",
   },
   es: {
     settle: 7804,
@@ -252,9 +252,9 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     pwh: 7810,
     pwl: 7672.75,
     eq: 7741.38,
-    drawUp: "PWH 7,810 and Sep 21–25 7,848.50 already taken (Tue high 7,897.50). Next only if the hold survives minutes",
-    drawDown: "Fail back through 7,848.50 then PWH 7,810 then prior-week 7,672.75",
-    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~7,672.75–7,810). Week high still Tue 7,897.50; week low still Mon 7,760.25 (Thu RTH low 7,783 did not extend it). Fri Globex so far ~7,817–7,853.50 has not taken either extreme. Live CWH/CWL from bars — not hardcoded.",
+    drawUp: "PWH 7,810 and Sep 21–25 7,848.50 already taken (Tue high 7,897.50 still the week high). Fri high 7,870.50 did not extend it",
+    drawDown: "Fail back through 7,848.50 then PWH 7,810 then prior-week 7,672.75. Fri low 7,817 did not take week low 7,760.25",
+    note: "PWH/PWL seed unchanged (Sep 28–Oct 2 ~7,672.75–7,810). Week high still Tue 7,897.50; week low still Mon 7,760.25. Fri session 7,817–7,870.50 did not take either extreme. Live CWH/CWL from bars — not hardcoded.",
   },
   filters: [
     "±15 min: ISM Services Mon 10:00 · trade Tue 8:30 · minutes Wed 14:00 · claims Thu 8:30 · UMich Fri 10:00",
@@ -322,13 +322,13 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
     {
       date: "2026-10-09",
       weekday: "Fri",
-      dailyBias: "Selective. UMich not printed. Overnight bounce has not taken week extremes.",
+      dailyBias: "Soft UMich. No new week extreme. Not a new HTF trend.",
       kind: "selective",
-      news: [{ timeEt: "10:00", name: "UMich Sentiment (Oct P)", impact: "medium", note: "10:00 ET prelim. Consensus cluster ~48.0 vs Sep F 48.1. Not printed. Not NFP. Columbus Day Mon Oct 12 — cash closed." }],
-      likelyTape: "UMich still 10:00 ET — not printed. Fri Globex NQ ~30,953–31,266.50 (last ~31,228) under PWH 31,282.50, above Thu week low 30,792.50. ES ~7,817–7,853.50 (last ~7,848) near Sep 21–25 7,848.50, above Mon week low 7,760.25. No new week extreme. Do not invent a Friday trend.",
-      trade: "Stand 9:45–10:15. A+ only after MSS + IFVG. Flatten into the weekend unless BE.",
-      skipIf: "No MSS + IFVG. Already took the week. Do not swing into a holiday Globex.",
-      pathNote: "PWH/PWL seed unchanged. Next hard print is CPI Wed Oct 14 8:30. Mon Oct 12 cash closed.",
+      news: [{ timeEt: "10:00", name: "UMich Sentiment (Oct P)", impact: "medium", note: "UMich official prelim 46.3 vs ~47.6–48.0 / Sep F 48.1. Current conditions 44.7 record low. 1y infl 4.7% from 4.6%. Not NFP. Columbus Day Mon Oct 12 — cash closed." }],
+      likelyTape: "UMich 46.3 soft. NQ session 30,953–31,266.50 last ~31,110.50 under PWH 31,282.50, above Thu week low 30,792.50. ES 7,817–7,870.50 last ~7,863 under Tue week high 7,897.50, above Mon week low 7,760.25. No new week extreme. Not a new HTF trend.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase the bounce under NQ PWH. Flatten into the weekend unless BE.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into holiday Globex.",
+      pathNote: "PWH/PWL seed unchanged. Mon/Tue already took PWH; Fri did not invent a new extreme or HTF trend. Next hard print CPI Wed Oct 14 8:30. Mon Oct 12 cash closed.",
     },
   ],
 };

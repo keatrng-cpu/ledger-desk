@@ -457,6 +457,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     }
     case "POINTING":
+      if (seated) { deskHands(); break; }
       p.shR = [-1.55 + 0.06 * Math.sin(t * 6), 0, -0.05];
       p.elR = -0.05;
       p.spine[0] += 0.08;
@@ -500,6 +501,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     }
     case "WRITING_ON_WHITEBOARD":
+      if (seated) { deskHands(); break; }
       p.shR = [-1.95 + 0.12 * Math.sin(t * 7), 0, -0.18 + 0.12 * Math.cos(t * 5)];
       p.elR = -0.35;
       p.head[0] = -0.12;
@@ -540,11 +542,13 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       p.tablet = true;
       break;
     case "APPROVING":
+      if (seated) { deskHands(); break; }
       p.shR = [-1.25 + 0.05 * Math.sin(t * 3), 0, -0.15];
       p.elR = -0.9;
       p.head[0] = 0.15 * Math.max(0, Math.sin(t * 4));
       break;
     case "SMASHING_ENTER_KEY": {
+      if (seated) { deskHands(); break; }
       const ph = (t * 0.9) % 1;
       p.spine[0] += 0.35;
       p.shR = [ph < 0.7 ? -0.6 - 1.8 * (ph / 0.7) : -2.4 + 1.8 * ((ph - 0.7) / 0.3), 0, -0.1];
@@ -554,6 +558,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     }
     case "THUMBS_UP":
+      if (seated) { deskHands(); p.thumb = true; break; }
       p.shR = [-1.2, 0, -0.1];
       p.elR = -1.25 + 0.06 * Math.sin(t * 4);
       p.thumb = true;
@@ -627,6 +632,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       break;
     }
     case "FACEPALM":
+      if (seated) { deskHands(); p.head[0] = 0.28; break; }
       p.shR = [-1.75, 0.35, -0.45];
       p.elR = -2.25;
       p.shL = [-0.2, 0, 0.1];

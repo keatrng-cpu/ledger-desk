@@ -217,6 +217,7 @@ export function InvestOfficePanel({ frame, onGo }: { frame: FloorFrame | null; o
                 </p>
               </div>
               <div>
+                <div className="mb-2 text-[10px] leading-snug text-[var(--color-muted)]">Long board on the Invest tab: safety, power, grid, fuel, compute, building, space, health. The room does not pick one.</div>
                 <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Research the book holds</div>
                 {(["safe", "mid", "high"] as const).map((tier) => {
                   const ts = inv.themes.filter((t) => t.tier === tier);

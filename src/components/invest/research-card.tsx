@@ -13,6 +13,7 @@
  *   - The operator line links the filing that verified it.
  */
 
+import { useMemo, useState } from "react";
 import { Info } from "lucide-react";
 import { ALL_DOSSIERS, RISK_FREE } from "@/lib/invest/dossiers";
 import { fundamentalsFor, snapshotCapturedAt, oldestAsOf, canAdd } from "@/lib/invest/universe";
@@ -49,12 +50,43 @@ export function ResearchCard({
   belowMeaningful: boolean;
 }) {
   const oldest = oldestAsOf();
+  const [q, setQ] = useState("");
+  const [sleeve, setSleeve] = useState<"all" | "ballast" | "drypowder" | "compounder">("all");
+  const sleeves = ["ballast", "drypowder", "compounder"] as const;
+  const rows = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return ALL_DOSSIERS.filter((d) => {
+      if (sleeve !== "all" && d.sleeve !== sleeve) return false;
+      if (!needle) return true;
+      return `${d.ticker} ${d.name} ${d.sells}`.toLowerCase().includes(needle);
+    });
+  }, [q, sleeve]);
   return (
     <Card
-      title={`Research · fundamentals ${snapshotCapturedAt()}${oldest && oldest !== snapshotCapturedAt() ? ` (oldest row ${oldest})` : ""} · 10y ${RISK_FREE.yieldPct}% (${RISK_FREE.asOf})`}
+      title="Research"
+      right={<span className="font-mono text-[10px] text-[var(--color-muted)]">{`fundamentals ${snapshotCapturedAt()}${oldest && oldest !== snapshotCapturedAt() ? ` · oldest ${oldest}` : ""} · 10y ${RISK_FREE.yieldPct}%`}</span>}
     >
-      <div className="space-y-1.5">
-        {ALL_DOSSIERS.map((d) => {
+      <div className="mb-2 flex flex-wrap items-center gap-1">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search a name"
+          className="min-w-0 flex-1 rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2 py-1 text-[11px]"
+        />
+        <button type="button" onClick={() => setSleeve("all")} className={`rounded-full border px-2 py-0.5 text-[10px] ${sleeve === "all" ? "border-[var(--color-fg)] text-[var(--color-fg)]" : "border-[var(--color-border)] text-[var(--color-muted)]"}`}>All</button>
+        {sleeves.map((s) => (
+          <button key={s} type="button" onClick={() => setSleeve(s)} className={`rounded-full border px-2 py-0.5 text-[10px] uppercase ${sleeve === s ? "border-[var(--color-fg)] text-[var(--color-fg)]" : "border-[var(--color-border)] text-[var(--color-muted)]"}`}>{s}</button>
+        ))}
+      </div>
+      <div className="space-y-2">
+        {sleeves.filter((s) => sleeve === "all" || sleeve === s).map((s) => {
+          const group = rows.filter((d) => d.sleeve === s);
+          if (!group.length) return null;
+          return (
+            <details key={s} open={q.trim().length > 0} className="rounded border border-[var(--color-border)]">
+              <summary className="cursor-pointer px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{s} · {group.length}</summary>
+              <div className="space-y-1.5 p-1.5">
+        {group.map((d) => {
           const j = judgements.get(d.ticker);
           const ctx: VerdictContext = {
             held,
@@ -195,6 +227,11 @@ export function ResearchCard({
             </details>
           );
         })}
+              </div>
+            </details>
+          );
+        })}
+        {rows.length === 0 && <p className="text-[11px] text-[var(--color-muted)]">Nothing matches.</p>}
       </div>
     </Card>
   );

@@ -49,6 +49,9 @@ import { BookCard } from "@/components/invest/book-card";
 import { ExposureCard } from "@/components/invest/exposure-card";
 import { ResearchCard, type Judged } from "@/components/invest/research-card";
 import { ScreenTable } from "@/components/invest/screen-table";
+import { LongBoard } from "@/components/invest/long-board";
+import { FunnelCard } from "@/components/invest/funnel-card";
+import { LONG_NAMES } from "@/lib/invest/long-board";
 import { LimitsCard } from "@/components/invest/limits-card";
 import { DataCard } from "@/components/invest/data-card";
 import { IpoCard } from "@/components/invest/ipo-card";
@@ -105,7 +108,7 @@ export function InvestPanel() {
   /* ---- marks: once per visit and on request, never polled ------------- */
   const [marks, setMarks] = useState<InvestMarks | null>(() => readMarksCache());
   const [marksState, setMarksState] = useState<{ loading: boolean; error: string | null }>({ loading: false, error: null });
-  const wanted = useMemo(() => [...new Set([...held.map((h) => h.ticker), "VTI"])].slice(0, MARKS_MAX_TICKERS), [held]);
+  const wanted = useMemo(() => [...new Set([...held.map((h) => h.ticker), ...LONG_NAMES.map((n) => n.ticker)])].slice(0, MARKS_MAX_TICKERS), [held]);
   const since = useMemo(() => held.flatMap((h) => h.lots.map((l) => l.date)).sort()[0], [held]);
   const earliestLot = useMemo(() => ledger.lots.map((l) => l.date).sort()[0], [ledger]);
   const fetchMarks = useCallback(() => {
@@ -192,11 +195,18 @@ export function InvestPanel() {
         <span className="text-[11px] text-[var(--color-muted)]">years · shares held · funded by a cut of realized options P&amp;L</span>
       </header>
 
-      <p className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
-        This tab never reads the PATH word, the 0.65 floor, the killzone or the Judas window, and it never flashes. Futures is
-        hours, the options sleeve is days, this is years — the only wire between them is the monthly sweep below, and it runs one
-        way.
-      </p>
+      <div className="sticky top-0 z-20 flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-2.5 py-1.5 text-[11px]">
+        <span>Swept <span className="font-medium tabular-nums">${queue.sweptUsd.toFixed(2)}</span></span>
+        <span>Waiting <span className="font-medium tabular-nums">{queue.waitingUsd > 0 ? `$${queue.waitingUsd.toFixed(2)}` : "—"}</span></span>
+        <span>Next <span className="font-medium">{next.ticker ?? next.sleeve}</span></span>
+      </div>
+
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
+        <summary className="cursor-pointer">Years, not minutes. This tab does not read the option floor.</summary>
+        <p className="mt-1">
+          It never reads the PATH word, the 0.65 floor, the killzone, or the Judas window, and it never flashes. The only wire to the sleeve is the monthly sweep, and it runs one way.
+        </p>
+      </details>
 
       {uncovered.length > 0 && (
         <Note tone="warn">
@@ -208,18 +218,13 @@ export function InvestPanel() {
 
       <SweepCard closedMonths={ledger.sweeps.length} rate={ladder} onWrite={onWrite} />
       <HabitCard ledger={ledger} ladder={ladder} next={next} onWrite={onWrite} />
-      <BookCard
-        ledger={ledger}
-        book={book}
-        reb={reb}
+      <FunnelCard waitingUsd={queue.waitingUsd} marks={marks} />
+      <LongBoard
         marks={marks}
-        marksMsg={marksMsg}
-        onRefreshMarks={fetchMarks}
-        shadow={shadow}
-        waitingUsd={queue.waitingUsd}
-        onWrite={onWrite}
+        weights={[...weights.entries()].map(([ticker, weight]) => ({ ticker, weight }))}
+        onRefresh={fetchMarks}
+        refreshing={marksState.loading}
       />
-      <ExposureCard read={exposure} dry={dry} />
       <ResearchCard
         weights={weights}
         held={heldSet}
@@ -228,12 +233,32 @@ export function InvestPanel() {
         closes={closes}
         belowMeaningful={book.positions.length > 0 && book.belowMeaningful}
       />
-      {/* The kill rules, checked on demand with a weekly floor — a
-          multi-year holding does not need a poll, and each run spends API
-          budget. A person, never the model, marks a rule tripped. */}
-      <KillWatchPanel />
       <ScreenTable />
       <IpoCard />
+
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
+        <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">The book</summary>
+        <div className="mt-2 space-y-3">
+          <BookCard
+            ledger={ledger}
+            book={book}
+            reb={reb}
+            marks={marks}
+            marksMsg={marksMsg}
+            onRefreshMarks={fetchMarks}
+            shadow={shadow}
+            waitingUsd={queue.waitingUsd}
+            onWrite={onWrite}
+          />
+          <ExposureCard read={exposure} dry={dry} />
+        </div>
+      </details>
+      <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
+        <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">Kill rules</summary>
+        <div className="mt-2">
+          <KillWatchPanel />
+        </div>
+      </details>
       <LimitsCard />
       <DataCard sync={sync} syncing={syncing} onSync={runSync} entries={ledger.entries.length} onWrite={onWrite} />
 
