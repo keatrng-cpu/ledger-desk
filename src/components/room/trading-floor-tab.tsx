@@ -15,6 +15,7 @@ import { TALK } from "@/lib/room/live-types";
 import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
+import { useMeadFloorFeed } from "./use-mead-feed";
 import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
 import { BED_LAYERS, FloorSound, loadBedMutes, loadSoundPref, saveSoundPref, type BedLayer } from "./floor-sound";
@@ -56,6 +57,15 @@ const COLOR: Record<Character, string> = Object.fromEntries(
 COLOR.Sterling = LAYOUT.crew.Sterling.colors.accent ?? "#b91c1c";
 COLOR.Vince = LAYOUT.crew.Vince.colors.accent ?? "#22d3ee";
 
+/** Ways to look at the Mead Hall, under its Go-to row (the screens there are Go-to chips like every other). */
+const MEAD_VIEWS: { id: CameraPreset; label: string }[] = [
+  { id: "mead_door", label: "From the door" },
+  { id: "mead_table", label: "Long Table" },
+  { id: "mead_hearth", label: "Hearth" },
+  { id: "mead_bar", label: "Bar" },
+  { id: "mead_aerial", label: "From above" },
+];
+
 const CAMERAS: { id: CameraPreset; label: string }[] = [
   { id: "auto", label: "Director" },
   { id: "overview", label: "Floor" },
@@ -69,6 +79,7 @@ const CAMERAS: { id: CameraPreset; label: string }[] = [
   { id: "goal", label: "Goal room" },
   { id: "invest", label: "Investment" },
   { id: "boardroom", label: "Boardroom" },
+  { id: "mead", label: "Mead Hall" },
   { id: "follow", label: "Speaker" },
 ];
 
@@ -1412,6 +1423,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const [hover, setHover] = useState<string | null>(null);
   const sceneRef = useRef<FloorScene | null>(null);
   const [env, setEnv] = useState<"glb" | "fallback" | null>(null);
+  // The Mead Hall's screens show the Predict tab's own prediction-market board, read while this tab is open.
+  useMeadFloorFeed(sceneRef, env);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   // The room's lighting follows the desk's entry state (the same word as the Now hero).
@@ -1782,14 +1795,20 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             </button>
           ))}
         </div>
-        {(["war room", "annex", "invest", "lounge"] as const).map((group) => (
+        {(["war room", "annex", "invest", "lounge", "mead hall"] as const).map((group) => (
           <div key={group} className="flex flex-wrap items-center gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{group === "war room" ? "Go to" : group === "annex" ? "Annex" : group === "invest" ? "Invest wing" : "Lounge"}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--color-muted)]">{group === "war room" ? "Go to" : group === "annex" ? "Annex" : group === "invest" ? "Invest wing" : group === "mead hall" ? "Mead Hall" : "Lounge"}</span>
             {PLACES.filter((p) => p.group === group).map((p) => (
               <button key={p.id} type="button" className={BTN} onClick={() => goTo(p.id)}>
                 {p.label}
               </button>
             ))}
+            {group === "mead hall" &&
+              MEAD_VIEWS.map((v) => (
+                <button key={v.id} type="button" className={BTN} onClick={() => setCamera(v.id)}>
+                  {v.label}
+                </button>
+              ))}
           </div>
         ))}
         <span className="text-[10px] text-[var(--color-subtle)]">

@@ -49,7 +49,7 @@ export class Person {
     const shirt = kit.mat(look.shirt, 0.75);
     const pants = kit.mat(look.pants ?? "#1a3329", 0.8);
     const capsule = (r: number, l: number, m: THREE.Material) => {
-      const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(r, l, 4, 10), m);
+      const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(r, l, 3, 8), m);
       mesh.castShadow = true;
       return mesh;
     };
@@ -77,22 +77,22 @@ export class Person {
     torso.scale.set(1, 1, 0.75);
     this.body.add(torso);
     // brass collar trim
-    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 6, 16), kit.mat(MEAD.brass, 0.4, 0.4));
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 5, 12), kit.mat(MEAD.brass, 0.4, 0.4));
     collar.rotation.x = Math.PI / 2;
     collar.position.y = 0.62;
     this.body.add(collar);
     this.head.position.y = 0.78;
     this.body.add(this.head);
-    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), skin);
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 10), skin);
     skull.castShadow = true;
     this.head.add(skull);
     for (const x of [-0.05, 0.05]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), kit.mat("#111"));
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 4), kit.mat("#111"));
       eye.position.set(x, 0.02, 0.13);
       this.head.add(eye);
     }
     if (look.hair) {
-      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.148, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), kit.mat(look.hair, 0.9));
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.148, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), kit.mat(look.hair, 0.9));
       hair.position.y = 0.01;
       this.head.add(hair);
     }
@@ -106,7 +106,7 @@ export class Person {
       // Nasal/spectacle iron helm — no cartoon white/gold curved horns.
       const steel = kit.mat("#8a9099", 0.35, 0.75);
       const iron = kit.mat(MEAD.iron, 0.4, 0.7);
-      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.155, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), steel);
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.155, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2), steel);
       dome.position.y = 0.02;
       this.head.add(dome);
       const band = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.018, 6, 20), iron);
@@ -128,7 +128,7 @@ export class Person {
       const upper = capsule(0.055, 0.28, shirt);
       upper.position.y = -0.2;
       g.add(upper);
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), skin);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), skin);
       hand.position.y = -0.44;
       g.add(hand);
       if (withMug) {

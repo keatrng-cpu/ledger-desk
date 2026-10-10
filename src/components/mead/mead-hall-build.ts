@@ -105,6 +105,8 @@ export class MeadHall {
   readonly opts: HallOptions;
   readonly layer: number;
   private readonly floorHome: boolean;
+  private readonly key: THREE.DirectionalLight;
+  private frameNo = 0;
   private readonly moodLight: THREE.PointLight;
   private readonly flashLight: THREE.PointLight;
   private readonly neon: { canvas: HTMLCanvasElement; tex: THREE.CanvasTexture; mat: THREE.MeshBasicMaterial };
@@ -143,6 +145,9 @@ export class MeadHall {
     Object.assign(key.shadow.camera, { ...reach, near: 1, far: 40 });
     key.shadow.bias = -0.0005;
     key.shadow.camera.updateProjectionMatrix();
+    // In the Floor the hall is one part of a big scene: its shadows refresh every third frame (people still move, the room does not).
+    if (this.floorHome) key.shadow.autoUpdate = false;
+    this.key = key;
     this.root.add(key, key.target);
     this.moodLight = new THREE.PointLight(MOOD.WAIT.glow, MOOD.WAIT.glowI, 14, 1.4);
     this.moodLight.position.set(-1.8, 3.2, -5.2);
@@ -815,6 +820,7 @@ export class MeadHall {
 
   update(dt: number, _t?: number) {
     this.time += dt;
+    if (this.floorHome && this.frameNo++ % 3 === 0) this.key.shadow.needsUpdate = true;
     const t = this.time;
     for (const p of this.people) p.update(dt, t);
     // Mood light breathes like the Floor's board light; a reaction flashes the room.

@@ -81,71 +81,83 @@ const cameras = Object.entries(HALL_CAMERAS).map(([k, c]) => {
 });
 
 // ── patch ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-const text = readFileSync(FILE, "utf8");
-// The checked-out plan may carry CRLF (core.autocrlf on Windows): split on either, write back with the same ending.
-const EOL = text.includes("\r\n") ? "\r\n" : "\n";
-const lines = text.split(/\r?\n/);
 
-/** Replace the owned entries of one section (`"name": [` … `]` or `{` … `}`) and append `add`. */
-function patchSection(name, open, close, idOf, add) {
-  const start = lines.findIndex((l) => l.startsWith(`  "${name}": ${open}`));
-  if (start < 0) throw new Error(`section ${name} not found`);
-  let end = start + 1;
-  while (!lines[end].startsWith(`  ${close}`)) end++;
-  const body = lines.slice(start + 1, end).map((l) => l.replace(/,\s*$/, ""));
-  const kept = body.filter((l) => !OWNED(idOf(l) ?? ""));
-  const merged = [...kept, ...add];
-  // Blank lines separate groups in the plan and stay as they are; only the last entry goes without a comma.
-  let last = merged.length - 1;
-  while (last >= 0 && !merged[last].trim()) last--;
-  const all = merged.map((l, i) => (l.trim() && i < last ? `${l},` : l));
-  lines.splice(start + 1, end - start - 1, ...all);
-}
-const idArr = (l) => /"id":\s*"([^"]+)"/.exec(l)?.[1];
-const idObj = (l) => /^\s*"([^"]+)":\s*\{/.exec(l)?.[1];
+/** The plan text with the Mead Hall written into it (pure: text in, text out). */
+export function buildMeadPlan(text) {
+  // The checked-out plan may carry CRLF (core.autocrlf on Windows): split on either, write back with the same ending.
+  const EOL = text.includes("\r\n") ? "\r\n" : "\n";
+  const lines = text.split(/\r?\n/);
 
-patchSection("rooms", "[", "]", idArr, rooms);
-patchSection("walls", "[", "]", idArr, walls);
-patchSection("furniture", "[", "]", idArr, furniture);
-patchSection("screens", "[", "]", idArr, screens);
-patchSection("spots", "{", "}", idObj, spots);
-patchSection("camera", "{", "}", idObj, cameras);
-
-// bounds + shell
-const bi = lines.findIndex((l) => l.startsWith('  "bounds":'));
-const old = /"x":\s*\[(-?[\d.]+),\s*(-?[\d.]+)\],\s*"z":\s*\[(-?[\d.]+),\s*(-?[\d.]+)\]/.exec(lines[bi]);
-if (!old) throw new Error("bounds line not understood");
-const shellX1 = lines.some((l) => l.startsWith('  "shell":')) ? null : Number(old[2]);
-lines[bi] = `  "bounds": { "x": [${old[1]}, ${BOUNDS_X1}], "z": [${old[3]}, ${old[4]}] },`;
-if (shellX1 != null) lines.splice(bi + 1, 0, `  "shell": { "x": [${old[1]}, ${shellX1}], "z": [${old[3]}, ${old[4]}] },`);
-
-// the lounge's east wall: the doorway into the hall
-const ei = lines.findIndex((l) => /"id":\s*"ext_east"/.test(l));
-lines[ei] = lines[ei]
-  .replace(/"doors":\s*\[(?:\[[^\]]*\],?\s*)*\](,\s*"doorH":\s*[\d.]+)?/, `"doors": [${arr(HALL_DOOR_FLOOR)}], "doorH": ${HALL_DOOR_H}`);
-
-// the weather windows step aside for it; their spots follow
-const WINDOW_Z = { window_0: -6.4, window_1: -1.8, window_2: 6.1 };
-for (const [id, z] of Object.entries(WINDOW_Z)) {
-  const wi = lines.findIndex((l) => new RegExp(`"id":\\s*"${id}"`).test(l));
-  if (wi < 0) throw new Error(`${id} not found`);
-  lines[wi] = lines[wi].replace(/"center":\s*\[([-\d.]+),\s*([-\d.]+),\s*([-\d.]+)\]/, (_m, x, y) => `"center": [${x}, ${y}, ${z}]`);
-}
-for (const [id, z] of Object.entries({ window_0: -6.4, window_1: -1.8 })) {
-  const si = lines.findIndex((l) => new RegExp(`^\\s*"${id}":\\s*\\{`).test(l));
-  if (si < 0) continue;
-  lines[si] = lines[si].replace(/"pos":\s*\[([-\d.]+),\s*([-\d.]+)\]/, (_m, x) => `"pos": [${x}, ${z}]`).replace(/"look":\s*\[([-\d.]+),\s*([-\d.]+)\]/, (_m, x) => `"look": [${x}, ${z}]`);
-}
-
-const out = lines.join(EOL);
-JSON.parse(out); // the plan must stay valid JSON
-if (CHECK) {
-  if (out !== text) {
-    console.error("floor-layout.json is not what scripts/build-mead-plan.mjs would write — run it and commit the result");
-    process.exit(1);
+  /** Replace the owned entries of one section (`"name": [` … `]` or `{` … `}`) and append `add`. */
+  function patchSection(name, open, close, idOf, add) {
+    const start = lines.findIndex((l) => l.startsWith(`  "${name}": ${open}`));
+    if (start < 0) throw new Error(`section ${name} not found`);
+    let end = start + 1;
+    while (!lines[end].startsWith(`  ${close}`)) end++;
+    const body = lines.slice(start + 1, end).map((l) => l.replace(/,\s*$/, ""));
+    const kept = body.filter((l) => !OWNED(idOf(l) ?? ""));
+    const merged = [...kept, ...add];
+    // Blank lines separate groups in the plan and stay as they are; only the last entry goes without a comma.
+    let last = merged.length - 1;
+    while (last >= 0 && !merged[last].trim()) last--;
+    const all = merged.map((l, i) => (l.trim() && i < last ? `${l},` : l));
+    lines.splice(start + 1, end - start - 1, ...all);
   }
-  console.log("mead plan is current");
-} else {
-  writeFileSync(FILE, out);
-  console.log(`wrote ${FILE}: ${rooms.length} room, ${walls.length} walls, ${furniture.length} nav blocks, ${screens.length} screens, ${spots.length} spots, ${cameras.length} cameras; bounds x[1] ${BOUNDS_X1}`);
+  const idArr = (l) => /"id":\s*"([^"]+)"/.exec(l)?.[1];
+  const idObj = (l) => /^\s*"([^"]+)":\s*\{/.exec(l)?.[1];
+
+  patchSection("rooms", "[", "]", idArr, rooms);
+  patchSection("walls", "[", "]", idArr, walls);
+  patchSection("furniture", "[", "]", idArr, furniture);
+  patchSection("screens", "[", "]", idArr, screens);
+  patchSection("spots", "{", "}", idObj, spots);
+  patchSection("camera", "{", "}", idObj, cameras);
+
+  // bounds + shell
+  const bi = lines.findIndex((l) => l.startsWith('  "bounds":'));
+  const old = /"x":\s*\[(-?[\d.]+),\s*(-?[\d.]+)\],\s*"z":\s*\[(-?[\d.]+),\s*(-?[\d.]+)\]/.exec(lines[bi]);
+  if (!old) throw new Error("bounds line not understood");
+  const shellX1 = lines.some((l) => l.startsWith('  "shell":')) ? null : Number(old[2]);
+  lines[bi] = `  "bounds": { "x": [${old[1]}, ${BOUNDS_X1}], "z": [${old[3]}, ${old[4]}] },`;
+  if (shellX1 != null) lines.splice(bi + 1, 0, `  "shell": { "x": [${old[1]}, ${shellX1}], "z": [${old[3]}, ${old[4]}] },`);
+
+  // the lounge's east wall: the doorway into the hall
+  const ei = lines.findIndex((l) => /"id":\s*"ext_east"/.test(l));
+  lines[ei] = lines[ei].replace(/"doors":\s*\[(?:\[[^\]]*\],?\s*)*\](,\s*"doorH":\s*[\d.]+)?/, `"doors": [${arr(HALL_DOOR_FLOOR)}], "doorH": ${HALL_DOOR_H}`);
+
+  // the weather windows step aside for it; their spots follow
+  const WINDOW_Z = { window_0: -6.4, window_1: -1.8, window_2: 6.1 };
+  for (const [id, z] of Object.entries(WINDOW_Z)) {
+    const wi = lines.findIndex((l) => new RegExp(`"id":\\s*"${id}"`).test(l));
+    if (wi < 0) throw new Error(`${id} not found`);
+    lines[wi] = lines[wi].replace(/"center":\s*\[([-\d.]+),\s*([-\d.]+),\s*([-\d.]+)\]/, (_m, x, y) => `"center": [${x}, ${y}, ${z}]`);
+  }
+  for (const [id, z] of Object.entries({ window_0: -6.4, window_1: -1.8 })) {
+    const si = lines.findIndex((l) => new RegExp(`^\\s*"${id}":\\s*\\{`).test(l));
+    if (si < 0) continue;
+    lines[si] = lines[si].replace(/"pos":\s*\[([-\d.]+),\s*([-\d.]+)\]/, (_m, x) => `"pos": [${x}, ${z}]`).replace(/"look":\s*\[([-\d.]+),\s*([-\d.]+)\]/, (_m, x) => `"look": [${x}, ${z}]`);
+  }
+
+  const out = lines.join(EOL);
+  JSON.parse(out); // the plan must stay valid JSON
+  return out;
+}
+
+export const MEAD_PLAN_COUNTS = { rooms: rooms.length, walls: walls.length, blocks: furniture.length, screens: screens.length, spots: spots.length, cameras: cameras.length, boundsX1: BOUNDS_X1 };
+
+// Run as a script (not when a verifier imports it).
+if (process.argv[1]?.endsWith("build-mead-plan.mjs")) {
+  const text = readFileSync(FILE, "utf8");
+  const out = buildMeadPlan(text);
+  if (CHECK) {
+    if (out !== text) {
+      console.error("floor-layout.json is not what scripts/build-mead-plan.mjs would write — run it and commit the result");
+      process.exit(1);
+    }
+    console.log("mead plan is current");
+  } else {
+    writeFileSync(FILE, out);
+    const c = MEAD_PLAN_COUNTS;
+    console.log(`wrote ${FILE}: ${c.rooms} room, ${c.walls} walls, ${c.blocks} nav blocks, ${c.screens} screens, ${c.spots} spots, ${c.cameras} cameras; bounds x[1] ${c.boundsX1}`);
+  }
 }

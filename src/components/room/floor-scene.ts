@@ -40,6 +40,8 @@ import { FloorOverhaul } from "./floor-overhaul";
 import type { FloorProps } from "@/lib/room/floor-props";
 import { gestureFor, presenceOf, visemeScale } from "@/lib/room/floor-presence";
 import { readRhAccount } from "@/lib/ui/rh-account";
+import { HALL_PLACES, HALL_SCREENS } from "@/lib/room/mead-hall-layout";
+import { FloorMead, HALL_LAYER } from "./floor-mead";
 
 /* ── The plan ───────────────────────────────────────────────────────────── */
 
@@ -48,7 +50,7 @@ type V3 = [number, number, number];
 interface Anchor {
   pos: V2;
   look: V2;
-  pose: "sit" | "stand" | "couch";
+  pose: "sit" | "stand" | "couch" | "stool";
   role?: string;
   act?: string;
 }
@@ -56,10 +58,10 @@ interface Layout {
   bounds: { x: V2; z: V2 };
   ceiling: number;
   /** `procedural` entries (the annex offices) are built at runtime from this plan; the Blender GLB predates them. */
-  rooms: { id: string; label: string; x: V2; z: V2; floor: string; procedural?: boolean }[];
-  walls: { id: string; a: V2; b: V2; height: number; kind: string; doors: V2[]; procedural?: boolean }[];
-  furniture: { id: string; kind: string; pos: V2; rot: number; size: V3; obstacle: boolean; style?: string; onTop?: number; procedural?: boolean; navSize?: V3 }[];
-  screens: { id: string; kind: string; center: V3; size: V2; facing: number; px: V2; procedural?: boolean }[];
+  rooms: { id: string; label: string; x: V2; z: V2; floor: string; procedural?: boolean; hall?: boolean }[];
+  walls: { id: string; a: V2; b: V2; height: number; kind: string; doors: V2[]; procedural?: boolean; hall?: boolean }[];
+  furniture: { id: string; kind: string; pos: V2; rot: number; size: V3; obstacle: boolean; style?: string; onTop?: number; procedural?: boolean; hall?: boolean; navSize?: V3 }[];
+  screens: { id: string; kind: string; center: V3; size: V2; facing: number; px: V2; procedural?: boolean; hall?: boolean }[];
   emissives: { id: string; kind: string; a: V3; b: V3; thickness: number }[];
   anchors: Record<string, Partial<Record<Character, Anchor>>>;
   spots: Record<string, Anchor>;
@@ -351,7 +353,8 @@ type AnimKey =
   | "STRETCH"
   | "LEAN_BACK"
   | "CHEER"
-  | "FACEPALM";
+  | "FACEPALM"
+  | "POOL";
 
 interface Pose {
   spine: V3;
@@ -370,6 +373,7 @@ interface Pose {
   marker: boolean;
   phone: boolean;
   thumb: boolean;
+  cue: boolean;
 }
 
 function basePose(): Pose {
@@ -390,20 +394,23 @@ function basePose(): Pose {
     marker: false,
     phone: false,
     thumb: false,
+    cue: false,
   };
 }
 
 const sip = (t: number) => Math.pow(Math.max(0, Math.sin(t * 0.9)), 6);
 
-function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH: number, walkPhase: number): Pose {
+function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch" | "stool", hipH: number, walkPhase: number): Pose {
   const p = basePose();
   const seated = mode !== "stand";
   if (seated) {
-    const seat = mode === "couch" ? 0.42 : 0.47;
+    const seat = mode === "couch" ? 0.42 : mode === "stool" ? 0.76 : 0.47;
     p.bodyY = seat - hipH;
     p.hipL = p.hipR = -1.5;
     p.knL = p.knR = 1.5;
     if (mode === "couch") p.spine[0] = -0.28;
+    // At the bar: leaning a little forward on the rail, feet hanging over the stool's ring.
+    if (mode === "stool") p.spine[0] = 0.12;
   }
   // Breathing, small enough that a gesture does not vibrate.
   p.spine[0] += 0.012 * Math.sin(t * 1.1);
@@ -454,6 +461,26 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
       p.shR = [-2.4 - shake, 0, -0.35];
       p.elL = p.elR = -0.45;
       p.head[0] = -0.2;
+      break;
+    }
+    case "POOL": {
+      // Bent over the rail, the cue in the right hand, a stroke now and then.
+      if (seated) {
+        deskHands();
+        break;
+      }
+      const stroke = Math.pow(Math.max(0, Math.sin(t * 1.3)), 6);
+      p.spine = [0.62, 0.18, 0];
+      p.head[0] = -0.4;
+      p.shR = [-1.15 + 0.35 * stroke, 0.25, -0.1];
+      p.elR = -0.35 - 0.3 * stroke;
+      p.shL = [-1.0, -0.3, 0.3];
+      p.elL = -0.2;
+      p.hipL = -0.3;
+      p.hipR = 0.25;
+      p.knL = 0.45;
+      p.knR = 0.1;
+      p.cue = true;
       break;
     }
     case "POINTING":
@@ -649,7 +676,7 @@ function poseFor(key: AnimKey, t: number, mode: "stand" | "sit" | "couch", hipH:
 interface Target {
   pos: V2;
   yaw: number;
-  pose: "stand" | "sit" | "couch";
+  pose: "stand" | "sit" | "couch" | "stool";
   key: string;
 }
 
@@ -667,7 +694,7 @@ class Avatar {
   private readonly hipR = new THREE.Group();
   private readonly knL = new THREE.Group();
   private readonly knR = new THREE.Group();
-  private readonly props: Record<"mug" | "tablet" | "marker" | "phone" | "thumb", THREE.Object3D>;
+  private readonly props: Record<"mug" | "tablet" | "marker" | "phone" | "thumb" | "cue", THREE.Object3D>;
   private readonly mouth: THREE.Mesh;
   private readonly eyes: THREE.Mesh[] = [];
   private readonly brow: THREE.Mesh;
@@ -684,7 +711,7 @@ class Avatar {
   yaw = 0;
   private path: V2[] = [];
   private target: Target | null = null;
-  mode: "stand" | "sit" | "couch" = "stand";
+  mode: "stand" | "sit" | "couch" | "stool" = "stand";
   private walkPhase = 0;
   moving = false;
   anim: AnimKey = "IDLE";
@@ -847,7 +874,12 @@ class Avatar {
     const thumb = shadowed(new THREE.Mesh(new THREE.CapsuleGeometry(0.016, 0.04, 4, 8), skin));
     thumb.position.set(0, 0.05, 0.01);
     handR.add(thumb);
-    this.props = { mug, tablet, marker, phone, thumb };
+    // A pool cue for the Mead Hall: long, tapered, held out along the forearm.
+    const cue = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.016, 1.3, 8), mat("#d6b88a", 0.5)));
+    cue.rotation.x = Math.PI / 2;
+    cue.position.set(0, -0.02, 0.5);
+    handR.add(cue);
+    this.props = { mug, tablet, marker, phone, thumb, cue };
     for (const k of Object.keys(this.props) as (keyof typeof this.props)[]) this.props[k].visible = false;
 
     // Name tag and speech bubble.
@@ -1075,7 +1107,14 @@ class Avatar {
   }
 
   /** Where a camera should look: where they will be, not where they are mid-walk (the shot would lose them). */
-  framing(): { pos: V2; yaw: number; mode: "stand" | "sit" | "couch" } {
+  /** The plan spot this person is heading to or standing at (a Mead Hall spot carries what to do there), if any. */
+  spotId(): string | null {
+    const k = this.target?.key;
+    if (!k || !k.startsWith("spot:")) return null;
+    return k.slice(5, k.lastIndexOf(":"));
+  }
+
+  framing(): { pos: V2; yaw: number; mode: "stand" | "sit" | "couch" | "stool" } {
     const t = this.moving ? this.target : null;
     return t ? { pos: t.pos, yaw: t.yaw, mode: t.pose } : { pos: this.pos, yaw: this.yaw, mode: this.mode };
   }
@@ -1168,6 +1207,7 @@ class Avatar {
     this.props.marker.visible = pose.marker;
     this.props.phone.visible = pose.phone;
     this.props.thumb.visible = pose.thumb;
+    this.props.cue.visible = pose.cue;
     const face = presenceOf(this.who, this.bubbleText || null, t, this.speaking);
     const mouth = visemeScale(face.viseme);
     this.mouth.scale.set(mouth.x, this.speaking ? mouth.y : 1, 1);
@@ -1351,13 +1391,13 @@ interface ScreenRec {
   h: number;
 }
 
-export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "rnd" | "ops" | "goal" | "invest" | "boardroom" | "follow" | "auto" | "free";
+export type CameraPreset = "overview" | "board" | "quant" | "offices" | "front" | "lounge" | "rnd" | "ops" | "goal" | "invest" | "boardroom" | "mead" | "mead_door" | "mead_jumbotron" | "mead_board" | "mead_bar" | "mead_table" | "mead_hearth" | "mead_aerial" | "follow" | "auto" | "free";
 
 /** Where a viewer can go: a screen (double-click does the same), a bank of monitors, or an annex office. */
 export interface Place {
   id: string;
   label: string;
-  group: "war room" | "annex" | "lounge" | "invest";
+  group: "war room" | "annex" | "lounge" | "invest" | "mead hall";
 }
 export const PLACES: Place[] = [
   { id: "whiteboard", label: "War board", group: "war room" },
@@ -1389,6 +1429,7 @@ export const PLACES: Place[] = [
   { id: "tv_lounge", label: "Lounge TV", group: "lounge" },
   { id: "ovh_trophies", label: "Trophy shelf", group: "lounge" },
   { id: "ovh_scars", label: "Wall of scars", group: "lounge" },
+  ...HALL_PLACES.map((h) => ({ id: h.id, label: h.label, group: "mead hall" as const })),
 ];
 
 /** Overhaul screens that are not chips but still deserve a name when the viewer flies to them. */
@@ -1403,6 +1444,9 @@ const OVH_LABEL: Record<string, string> = {
 export function screenLabel(id: string): string {
   const hit = PLACES.find((p) => p.id === id);
   if (hit) return hit.label;
+  const hall = HALL_SCREENS.find((h) => h.id === id);
+  if (hall) return hall.label;
+  if (id.startsWith("mead_")) return "The Mead Hall";
   if (OVH_LABEL[id]) return OVH_LABEL[id]!;
   const m = /^mon_([A-Za-z]+)_\d+$/.exec(id);
   if (m) return m[1] === "Rnd" ? "R&D monitors" : m[1] === "Ops" ? "Ops monitors" : m[1] === "Goal" ? "Goal monitors" : m[1] === "Inv" ? "Investment monitors" : m[1] === "Chair" ? "Chair's monitor" : `${m[1]}'s monitors`;
@@ -1687,6 +1731,8 @@ export class FloorScene {
   /** The annex offices, built at runtime from the plan when the Blender GLB (which predates them) loads. */
   private annexRoot: THREE.Object3D | null = null;
   private readonly sightRay = new THREE.Raycaster();
+  /** The Mead Hall wing east of the lounge: its own lights, its own pass (floor-mead.ts). */
+  private mead: FloorMead | null = null;
   /** Third-person: the person the camera rides with, the last head point the rig followed, and how far back the viewer wants to be. */
   private chase: Character | null = null;
   private chaseHead: THREE.Vector3 | null = null;
@@ -1845,6 +1891,12 @@ export class FloorScene {
     this.buildWingFloors();
 
     this.buildScreens();
+    this.mead = new FloorMead({ mobile, onReaction: (r) => this.meadReacted(r) });
+    this.scene.add(this.mead.root);
+    for (const rec of this.mead.screenRecs()) this.screens.set(rec.id, rec);
+    // A sight line, a hover or a double-click must see the hall too; and two draw passes a frame are one frame's work.
+    this.sightRay.layers.enable(HALL_LAYER);
+    this.renderer.info.autoReset = false;
     this.scene.add(this.bell.root);
     this.cat = new Cat(LAYOUT.spots.couch_1?.pos ?? [10, -4]);
     this.cat.onArrive = (near) => {
@@ -2142,7 +2194,7 @@ export class FloorScene {
    */
   private buildFallback(onlyProcedural: boolean): THREE.Group {
     const g = new THREE.Group();
-    const wanted = <T extends { procedural?: boolean }>(x: T) => !onlyProcedural || Boolean(x.procedural);
+    const wanted = <T extends { procedural?: boolean; hall?: boolean }>(x: T) => !x.hall && (!onlyProcedural || Boolean(x.procedural));
     const std = (hex: string, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
       new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), roughness: 0.75, ...extra });
     for (const r of LAYOUT.rooms) {
@@ -2233,6 +2285,7 @@ export class FloorScene {
 
   private buildScreens() {
     for (const s of LAYOUT.screens) {
+      if (s.hall) continue; // the Mead Hall owns its own canvases (FloorMead registers them)
       const canvas = document.createElement("canvas");
       canvas.width = s.px[0];
       canvas.height = s.px[1];
@@ -2565,7 +2618,7 @@ export class FloorScene {
 
   /** The static office: the GLB (or the box plan) and the annex built beside it. People are not in it. */
   private staticRoots(): THREE.Object3D[] {
-    return [this.officeRoot, this.annexRoot].filter((r): r is THREE.Object3D => r != null);
+    return [this.officeRoot, this.annexRoot, this.mead?.meshRoot].filter((r): r is THREE.Object3D => r != null);
   }
 
   /**
@@ -2577,7 +2630,7 @@ export class FloorScene {
    */
   private closeShot(a: Avatar, side: number): { pos: V3; target: V3 } | null {
     const at = a.framing();
-    const headC = at.mode === "stand" ? 1.62 : 1.25;
+    const headC = at.mode === "stand" ? 1.62 : at.mode === "stool" ? 1.55 : 1.25;
     // The speech bubble rides above the head (Avatar.update: at this range its bottom is 0.42 m over the crown, it is 0.67 m
     // tall and 1.8 m wide). A shot that aims at the head from 2.3 m sees only about 0.9 m above its aim point, so the
     // bubble was cut off, and the director read as "too far out and no words". Aim between the chest and the bubble's top and
@@ -2620,7 +2673,7 @@ export class FloorScene {
   }
 
   private targetFor(who: Character, zone: string, act: AgentAct | null, used: Map<string, number>): Target {
-    const spotId = (zone === "WATERCOOLER" || zone === "ANNEX") && act?.spot ? act.spot : null;
+    const spotId = (zone === "WATERCOOLER" || zone === "ANNEX" || zone === "HALL") && act?.spot ? act.spot : null;
     let anchor: Anchor | undefined = spotId ? LAYOUT.spots[spotId] : LAYOUT.anchors[zone]?.[who];
     let key = spotId ? `spot:${spotId}` : `${zone}`;
     if (!anchor) {
@@ -2712,7 +2765,7 @@ export class FloorScene {
 
   /** Chest height standing, shoulder height seated — what the chase looks at. */
   private chestY(a: Avatar): number {
-    return a.mode === "stand" ? a.height * 0.78 : a.height * 0.58;
+    return a.mode === "stand" ? a.height * 0.78 : a.mode === "stool" ? a.height * 0.72 : a.height * 0.58;
   }
 
   /** The first spot behind or beside them with clear air and an unbroken line to them. */
@@ -2894,8 +2947,41 @@ export class FloorScene {
     // cam and the view springs back. The walk camera places itself.
     if (this.ownerChase) this.camera.lookAt(this.controls.target);
     else this.controls.update();
-    this.renderer.render(this.scene, this.camera);
+    this.renderFrame();
   };
+
+  /**
+   * One frame: the Mead Hall first (its own layer and lights, which also paints the background), then the office over it with the
+   * hall's depth already in place. When the hall is out of view it costs nothing and the office is drawn the ordinary way.
+   */
+  private renderFrame() {
+    const r = this.renderer;
+    r.info.reset();
+    if (this.mead && this.mead.pass(r, this.scene, this.camera)) {
+      const bg = this.scene.background;
+      this.scene.background = null;
+      r.autoClear = false;
+      r.render(this.scene, this.camera);
+      r.autoClear = true;
+      this.scene.background = bg;
+    } else r.render(this.scene, this.camera);
+  }
+
+  /** The hall's crowd reacted (a price moved): whoever of the five is inside it reacts with them. */
+  private meadReacted(kind: "cheer" | "groan" | "hail") {
+    if (!this.mead) return;
+    for (const a of this.avatars.values()) {
+      if (!this.mead.isInside(a.root)) continue;
+      const good = kind !== "groan";
+      const key: AnimKey = a.who === "Sterling" ? (good ? "APPROVING" : "CROSSING_ARMS") : good ? "CHEER" : "FACEPALM";
+      a.reaction = { key, until: this.time + (kind === "hail" ? 3.2 : 2.4) };
+    }
+  }
+
+  /** The Mead Hall's feed (the Predict tab's own read of the prediction-market board), handed over by the tab. */
+  setHall(state: import("@/components/mead/mead-signal-feed").HallFeedState) {
+    this.mead?.setFeed(state);
+  }
 
   private tick(dt: number) {
     const t = this.time;
@@ -2952,7 +3038,10 @@ export class FloorScene {
       const current = this.lines[this.lineIdx];
       const mine = current && current.character === a.who ? current : null;
       const last = [...this.lines.slice(0, Math.max(0, this.lineIdx + 1))].reverse().find((l) => l.character === a.who);
-      const act = f?.acts?.[a.who]?.act ?? "desk";
+      // At a Mead Hall spot the spot says what to do (watch the jumbotron, play pool, sip at the bar); elsewhere the cycle's act does.
+      const sid = a.spotId();
+      const spotAct = sid ? LAYOUT.spots[sid]?.act : undefined;
+      const act = spotAct && spotAct.startsWith("mead_") ? spotAct : (f?.acts?.[a.who]?.act ?? "desk");
       a.pace = (mine?.animation ?? last?.animation) === "PACING";
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
       const pose = wingPose(a.who, this.wingShown);
@@ -2990,6 +3079,14 @@ export class FloorScene {
     }
     this.cat.update(dt, t);
     this.tickOwnerManager(dt, t);
+    if (this.mead) {
+      this.mead.update(dt, t);
+      const inside: { root: THREE.Object3D; x: number; z: number }[] = [];
+      for (const a of this.avatars.values()) inside.push({ root: a.root, x: a.pos[0], z: a.pos[1] });
+      inside.push({ root: this.owner.root, x: this.owner.pos[0], z: this.owner.pos[1] });
+      inside.push({ root: this.cat.root, x: this.cat.root.position.x, z: this.cat.root.position.z });
+      this.mead.sync(inside);
+    }
     this.overhaul.update(dt, t, this.clockMs());
     this.overhaul.drawScreens(this.screens, this.clockMs());
     // Day and night follow the ET clock (the drill's own clock in a drill); a storm dims the sun.
@@ -3085,6 +3182,7 @@ export class FloorScene {
     const rect = this.renderer.domElement.getBoundingClientRect();
     const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     const ray = new THREE.Raycaster();
+    ray.layers.enable(HALL_LAYER);
     ray.setFromCamera(ndc, this.camera);
     return ray;
   }
@@ -3695,6 +3793,7 @@ export class FloorScene {
   }
 
   dispose() {
+    this.mead?.dispose();
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     this.resizeObs?.disconnect();
@@ -3783,6 +3882,21 @@ function ambientFor(who: Character, act: string, lastAnim: Animation | null): An
       return "CHECKING_TABLET";
     case "desk_stretch":
       return who === "Vince" ? "ANALYZING" : "STRETCH";
+    case "mead_watch":
+      return "WATCH";
+    case "mead_chat":
+      return "TALK";
+    case "mead_board":
+      return who === "Gemma" ? "GESTICURING_AT_WALL" : who === "Jax" ? "POINTING" : who === "Nova" ? "ANALYZING" : who === "Sterling" ? "CROSSING_ARMS" : "STEADY_MONITORING";
+    case "mead_bar":
+    case "mead_hearth":
+      return "DRINK";
+    case "mead_pool":
+      return "POOL";
+    case "mead_table":
+      return who === "Sterling" ? "CROSSING_ARMS" : "TALK";
+    case "mead_present":
+      return "EXPLAINING";
     case "meeting":
       // At the board they keep their last gesture going, quieter.
       if (lastAnim === "CROSSING_ARMS" || lastAnim === "WRITING_ON_WHITEBOARD" || lastAnim === "CHECKING_TABLET") return lastAnim;

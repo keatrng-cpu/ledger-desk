@@ -13,6 +13,7 @@
  */
 
 import type { MarketHallView, PredictionMarket, PredictionMarketFeedState, SetupGrade } from "@/lib/predict/prediction-market-feed";
+import type { HallExtras } from "./mead-screens";
 import { hallLayout, type CrowdRead, type HallLayout, type MarketSignal, type SignalBoard, type SignalGrade } from "@/lib/predict/signal-engine";
 
 export interface HallFeedState {
@@ -219,4 +220,28 @@ export function reactionForCrowd(c: CrowdRead): "cheer" | "groan" | "hail" | nul
 export function crowdLabel(c: CrowdRead | null | undefined): string {
   if (!c) return "crowd —";
   return c.energy == null ? `crowd quiet · ${c.reason}` : `crowd ${c.mood} · energy ${Math.round(c.energy * 100)}% · ${c.reason}`;
+}
+
+/**
+ * What the Ledger and the Long Table show beyond the feed: the crowd read, the board's letter counts, the nearest settlement and —
+ * when the browser has one — the record. Every field is one the signal engine already made; nothing is computed into a signal.
+ */
+export function hallExtrasFrom(s: HallFeedState, record: HallExtras["record"] = null): HallExtras {
+  const b = s.board;
+  const crowd = s.layout?.crowd ?? null;
+  let next: HallExtras["next"] = null;
+  let best = Infinity;
+  for (const m of s.ordered) {
+    const ms = m.settlement.msToSettle;
+    if (ms != null && ms > 0 && ms < best) {
+      best = ms;
+      next = { outcome: m.outcome, words: m.settlement.words, phase: m.settlement.phase };
+    }
+  }
+  return {
+    crowd,
+    board: b ? { counts: b.counts, ungraded: b.ungraded, stale: b.stale || s.held, asOf: b.asOf, label: b.label } : null,
+    record,
+    next,
+  };
 }
