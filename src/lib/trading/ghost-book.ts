@@ -7,7 +7,7 @@
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import type { DeskPayload } from "./build-desk";
-import { remember } from "./desk-memory";
+import { pinNote, remember } from "./desk-memory";
 import { buildPaperLevels } from "./paper-manager";
 import type { SetupCandidate } from "./scanner";
 import { getSessionClock, etWallToEpochMs, etWallParts, isJudasWindow, sessionLive} from "./sessions";
@@ -768,6 +768,15 @@ function rememberGhost(g: GhostTrade): void {
     ["ghost", g.symbol, g.side, g.strategy, g.status],
     { ghostId: g.id, r: g.r, status: g.status, taken: g.taken },
   );
+  if (typeof window !== "undefined" && g.status === "won" && (g.r ?? 0) >= 1) {
+    try {
+      pinNote(
+        `${g.symbol} ${g.side} ${g.strategy} hit T1 · fit ${g.confluence.toFixed(2)} · keep this shape`,
+      );
+    } catch {
+      /* a pin is memory, not the book */
+    }
+  }
   const d = debriefGhost(g);
   if (d) pushDebrief(d);
 }

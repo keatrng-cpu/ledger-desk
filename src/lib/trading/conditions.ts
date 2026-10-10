@@ -61,6 +61,8 @@ export function assessConditions(bars: OhlcBar[]): MarketConditions {
   }
 
   const er = efficiencyRatio(bars, DEFAULT_ER_N);
+  const sessionEr = efficiencyRatio(bars, 12);
+  const sessionImpulse = sessionEr >= DEFAULT_ER_TREND;
   const curAtr = atr(bars.slice(-(DEFAULT_ATR_N + 1)), DEFAULT_ATR_N);
   const baseAtr = atr(bars, Math.min(bars.length - 1, DEFAULT_BASELINE_ATR_N));
   const atrRatio = baseAtr ? curAtr / baseAtr : 0;
@@ -78,8 +80,7 @@ export function assessConditions(bars: OhlcBar[]): MarketConditions {
   const reasons: string[] = [];
   let tradeable = true;
   if (regime === "dead") {
-    const sessionEr = efficiencyRatio(bars, 12);
-    if (sessionEr >= DEFAULT_ER_TREND) {
+    if (sessionImpulse) {
       regime = "trending";
       reasons.push(
         `session impulse ER ${sessionEr.toFixed(2)} overrides overnight chop`,
@@ -89,13 +90,27 @@ export function assessConditions(bars: OhlcBar[]): MarketConditions {
       reasons.push(`dead regime (efficiency ${er.toFixed(2)}) — chop, stand aside`);
     }
   }
+  // A live impulse keeps a SOFT ATR extreme tradable. A truly dead tape
+  // (below 0.30 or above 4.0) still stands aside — those are not "moderate".
   if (atrRatio < DEFAULT_MIN_ATR_RATIO) {
-    tradeable = false;
-    reasons.push(`volatility too low (ATR ratio ${atrRatio.toFixed(2)})`);
+    if (sessionImpulse && atrRatio >= 0.3) {
+      reasons.push(
+        `session impulse ER ${sessionEr.toFixed(2)} keeps a soft low-ATR print (${atrRatio.toFixed(2)}) tradable`,
+      );
+    } else {
+      tradeable = false;
+      reasons.push(`volatility too low (ATR ratio ${atrRatio.toFixed(2)})`);
+    }
   }
   if (atrRatio > DEFAULT_MAX_ATR_RATIO) {
-    tradeable = false;
-    reasons.push(`volatility too high (ATR ratio ${atrRatio.toFixed(2)})`);
+    if (sessionImpulse && atrRatio <= 4) {
+      reasons.push(
+        `session impulse ER ${sessionEr.toFixed(2)} keeps a moderate high-ATR print (${atrRatio.toFixed(2)}) tradable`,
+      );
+    } else {
+      tradeable = false;
+      reasons.push(`volatility too high (ATR ratio ${atrRatio.toFixed(2)})`);
+    }
   }
   if (tradeable) {
     reasons.push(`${regime} regime, ${volatility} volatility — environment OK`);

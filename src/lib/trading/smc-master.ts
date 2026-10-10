@@ -7,7 +7,7 @@
  */
 
 import { reachTier } from "./entry-trigger";
-import { GATE } from "./gate-tuning";
+import { GATE, preferZone } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import { isHighProbPath, isPathFire } from "@/lib/alerts/path-alarm";
 import { isJudasWindow, type SessionClock } from "./sessions";
@@ -166,8 +166,8 @@ export interface SmcMasterInput {
   /** Live prints — the retrace layer is a fact about WHERE price is now. */
   quotes?: { left: { price: number }; right: { price: number } };
   /**
-   * The bars each book was read from. Needed only for the impulse-leg
-   * dealing range (GATE.dealingRange === "impulse"); build-desk passes its
+   * The bars each book was read from. Needed for the impulse-leg dealing
+   * range (GATE.dealingRange "impulse" or "hybrid"); build-desk passes its
    * series, which carry `bars`, through the spread.
    */
   left?: { bars: OhlcBar[]; minute?: OhlcBar[] };
@@ -258,6 +258,7 @@ export function eligibleCandidates(
       c.htfOk ? 1 : 0,
       aligned ? 1 : 0,
       GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,
+      c.smtLevel?.led === true ? 1 : 0,
       sequenceComplete(c) ? 1 : 0,
       isHighProbPath(c) ? 2 : isPathFire(c) ? 1 : 0,
     ];
@@ -268,6 +269,9 @@ export function eligibleCandidates(
     for (let i = 0; i < ra.length; i++) {
       if (ra[i] !== rb[i]) return rb[i]! - ra[i]!;
     }
+    const eb = b.hitOdds?.expRPerCard;
+    const ea = a.hitOdds?.expRPerCard;
+    if (ea != null && eb != null && eb !== ea) return eb - ea;
     return b.confluence - a.confluence;
   });
 }
@@ -368,8 +372,16 @@ function gradeBook(
         ratio: null,
       }
     : null;
+  const impulse =
+    GATE.dealingRange === "window" ? null : impulseDealing(bars, side, narrative, price);
+  const chosen =
+    side == null
+      ? null
+      : preferZone(side, impulse?.zone ?? null, windowDealing?.zone ?? null);
   const dealing =
-    (GATE.dealingRange === "impulse" ? impulseDealing(bars, side, narrative, price) : null) ??
+    (impulse && impulse.zone === chosen ? impulse : null) ??
+    (windowDealing && windowDealing.zone === chosen ? windowDealing : null) ??
+    impulse ??
     windowDealing;
 
   /**
@@ -498,7 +510,12 @@ function gradeBook(
       label: f.label,
       must: note ? false : f.must,
       state: factorState(f.pass, note ? false : f.must, waiting),
-      detail: noteLine,
+      detail:
+        f.id === "pd_half" && dealing
+          ? `${noteLine} · graded on the ${dealing.source} range (${dealing.zone}${
+              dealing.ratio != null ? `, retrace ${(dealing.ratio * 100).toFixed(0)}%` : ""
+            })`
+          : noteLine,
     };
   });
 

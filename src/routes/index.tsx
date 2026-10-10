@@ -224,6 +224,28 @@ export const Route = createFileRoute("/")({
  * long) and self-healing (the next poll usually succeeds), so it should read
  * that way.
  */
+function BuildingDesk({ since }: { since: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const sec = Math.max(0, Math.round((now - since) / 1000));
+  return (
+    <div className="mt-10 flex flex-col items-center justify-center gap-1 text-sm text-[var(--color-muted)]">
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+        Building desk… {sec}s
+      </div>
+      <p className="max-w-md text-center text-[12px] text-[var(--color-subtle)]">
+        {sec >= 12
+          ? "Still waiting on market data. A hang past 35s prints the reason under this line instead of spinning forever."
+          : "Waiting on quotes, structure, and the sequence."}
+      </p>
+    </div>
+  );
+}
+
 function describeDeskError(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e ?? "");
   if (/timed out after/i.test(raw)) {
@@ -875,6 +897,7 @@ function MasterplacePage() {
   const memoryBook = useDeskSynapse((s) => s.memory);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [buildingSince, setBuildingSince] = useState<number | null>(() => Date.now());
   // Hydration guard for brainSnap below. `typeof window !== "undefined"` is
   // NOT sufficient here — it's already true on the client's very FIRST
   // render, before React has reconciled against the server HTML. So the SSR
@@ -1060,7 +1083,13 @@ function MasterplacePage() {
               // pd_half layer graded against; `plan` is the only source of a
               // priced entry and stop — the chart never derives either.
               dealing: m.dealing
-                ? { high: m.dealing.high, low: m.dealing.low, eq: m.dealing.eq }
+                ? {
+                    high: m.dealing.high,
+                    low: m.dealing.low,
+                    eq: m.dealing.eq,
+                    zone: m.dealing.zone,
+                    source: m.dealing.source,
+                  }
                 : null,
               plan: m.plan
                 ? {
@@ -1070,6 +1099,13 @@ function MasterplacePage() {
                     t1: m.plan.t1 ?? null,
                   }
                 : null,
+              gap: (() => {
+                const open = m.layers.filter((l) => l.must && l.state !== "pass");
+                const first = open[0];
+                return first
+                  ? { id: first.id, label: first.label, detail: first.detail, open: open.length }
+                  : null;
+              })(),
             }
           : null,
       };
@@ -1187,6 +1223,7 @@ function MasterplacePage() {
         deskRef.current = held; // the quote poll patches from the newest build
         setDesk(held);
         setError(null);
+        setBuildingSince(null);
         // No risk arg: keep the synapse's last-known risk (desk-synapse.ts
         // publishDesk keeps get().risk when risk is undefined).
         publishDesk(held);
@@ -1894,12 +1931,7 @@ function MasterplacePage() {
           </div>
         )}
 
-        {loading && !desk && (
-          <div className="mt-10 flex items-center justify-center gap-2 text-sm text-[var(--color-muted)]">
-            <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
-            Building desk…
-          </div>
-        )}
+        {loading && !desk && <BuildingDesk since={buildingSince ?? Date.now()} />}
 
         {error && !desk && (
           <p className="mt-6 rounded-[var(--radius-md)] border border-[var(--color-down)]/30 px-4 py-3 text-sm text-[var(--color-down)]">

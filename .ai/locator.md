@@ -14,6 +14,7 @@ rg -n "sweep|stop|robinhood" .ai/locator.md
 - Higher-timeframe disrespect releases the gate — `src/lib/trading/htf-invalidation.ts` `biasDisrespect`
 - Lower-timeframe confirm after the raid — `src/lib/trading/ltf-reaction.ts` `readLtfReaction`
 - Judas is 09:30–09:45 and fails closed — `src/lib/trading/judas-window.ts` `readJudas`
+- Premium/discount passes if either the impulse leg or the 80-bar window is the correct half — `src/lib/trading/gate-tuning.ts` `preferZone`
 - The card grade — `src/lib/trading/scanner.ts` `scanSetups`
 - Which model the card is — `src/lib/trading/strategies.ts`
 - Brain word versus the desk card — `src/lib/trading/smc-master.ts` `gradeBook`

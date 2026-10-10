@@ -54,29 +54,25 @@
  * side (v13-v17) removes the sweep-polarity failure as designed, and the
  * remaining AND of pd_half + ltf + dol + retrace still never completes.
  *
- * WHAT IS LIVE, AND WHY
- * Two knobs are on because they correct identified mis-codings of the
- * model, at zero measured cost on this tape:
- *   - sameBarDisplacement: a candle that sweeps the pool and closes far back
- *     through it IS the displacement; the original index > raid.index rule
- *     scored it "not yet shifted". ICT's description carries no separate-bar
- *     requirement.
- *   - sideFromRaid: SSL taken arms a long, BSL taken arms a short. The
- *     original graded the scanner's pick and then failed the sweep layer
- *     when the raid had armed the other side — the first blocker on 42-52%
- *     of bars. The HTF gate still decides whether that side may be graded.
- * Everything else stays at the original value. armedIsTake is off: it moved
- * nothing on the tape, and although auto-paper.ts now waits for the touch
- * before booking, a green TAKE while price is outside the array is a
- * promise the paper book cannot yet keep. The impulse range is off because
- * it is tighter. The real fork — dropping pd_half or ltf from the musts —
- * changes what the model IS, and that is the trader's call, measured first.
- *
- * MUTABLE ON PURPOSE
- * The sweep script sets fields between runs so every variant goes through
- * the identical code path the live desk uses. At runtime nothing writes to
- * it. Keep it that way: a knob that moves during a session is a different
- * desk from the one that was tested.
+ * WHAT IS LIVE (2026-10-10 — trader ordered the frequency pass)
+ * The 2026-09-21 sweep died on pd_half before these knobs could matter.
+ * They are on now because they correct the model, not because a new edge
+ * was measured:
+ *   - sameBarDisplacement: a candle that sweeps and closes back through the
+ *     pool IS the displacement. ICT states no separate-bar rule.
+ *   - armedIsTake: the sequence is complete and the limit rests at the array.
+ *     auto-paper still waits for the touch before it books.
+ *   - dealingRange "hybrid": pd_half passes when EITHER the impulse leg OR
+ *     the 80-bar window is the correct half. Impulse-only was stricter than
+ *     the window and failed ~80% of NY AM bars. A fighting half is still a
+ *     note in smc-master once the raid and the displacement have named the
+ *     side; equilibrium still waits.
+ *   - displacementK 1.25 (was 1.5) and displacement recency 20 bars / ~5h
+ *     (was 12 / ~3h). Sweep recency 32 bars / ~8h (was 24 / ~6h). These
+ *     widen the window a raid can still be answered inside. They are NOT a
+ *     measured expectancy claim — Claude should re-run scripts/sweep-gates.mjs
+ *     before treating the new take-rate as an edge.
+ * sideFromRaid stays on. retracePad stays 0.25. Nothing writes GATE at runtime.
  */
 
 export interface GateTuning {
@@ -119,8 +115,10 @@ export interface GateTuning {
    * extreme after it — ICT's own dealing range for the entry ("buy the
    * discount of the leg that displaced away from the sweep"). Requires a
    * raid of the correct polarity; otherwise falls back to the window.
+   *
+   * "hybrid": pass when either range is the correct half (preferZone).
    */
-  dealingRange: "window" | "impulse";
+  dealingRange: "window" | "impulse" | "hybrid";
   /**
    * Whether the last raid's polarity picks the side the sequence grades.
    *
@@ -150,19 +148,50 @@ export const ORIGINAL_GATE: Readonly<GateTuning> = Object.freeze({
 });
 
 /**
- * The live rule set — see the header for the table it was chosen from.
- * Set 2026-09-21: the two mis-coding fixes on, everything else original.
+ * Live rule set as of 2026-10-10. Numbers: sameBarDisplacement false→true,
+ * armedIsTake false→true, recentSweepBars 24→32, recentDisplacementBars 12→20,
+ * displacementK 1.5→1.25, dealingRange "impulse"→"hybrid". sideFromRaid stays true.
  */
 export const GATE: GateTuning = {
-  sameBarDisplacement: false,
-  armedIsTake: false,
+  sameBarDisplacement: true,
+  armedIsTake: true,
   retracePad: 0.25,
-  recentSweepBars: 24,
-  recentDisplacementBars: 12,
-  displacementK: 1.5,
-  dealingRange: "impulse",
+  recentSweepBars: 32,
+  recentDisplacementBars: 20,
+  displacementK: 1.25,
+  dealingRange: "hybrid",
   sideFromRaid: true,
 };
+
+export type HalfZone = "premium" | "discount" | "equilibrium";
+
+/** True when this half is the one the side is allowed to trade from. */
+export function halfAgrees(side: "long" | "short", zone: HalfZone | null | undefined): boolean {
+  if (!zone || zone === "equilibrium") return false;
+  return side === "long" ? zone === "discount" : zone === "premium";
+}
+
+/**
+ * Which premium/discount the pd_half layer grades.
+ *
+ * "window" — the 80-bar box only.
+ * "impulse" — the post-raid leg, else the window.
+ * "hybrid" — whichever of the two is the correct half. Impulse wins when
+ * both agree, so the chart tints the leg ICT actually enters on. When
+ * neither agrees, the impulse is still shown if it exists: the card should
+ * name the tighter range that failed, not hide it.
+ */
+export function preferZone(
+  side: "long" | "short",
+  impulse: HalfZone | null,
+  window: HalfZone | null,
+): HalfZone | null {
+  if (GATE.dealingRange === "window") return window;
+  if (GATE.dealingRange === "impulse") return impulse ?? window;
+  if (impulse && halfAgrees(side, impulse)) return impulse;
+  if (window && halfAgrees(side, window)) return window;
+  return impulse ?? window;
+}
 
 /** Replace every knob at once (sweep use). Returns the previous values. */
 export function setGate(next: Partial<GateTuning>): GateTuning {

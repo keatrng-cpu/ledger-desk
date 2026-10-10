@@ -465,7 +465,7 @@ function gapLeftBy(bars: OhlcBar[], i: number, direction: "bull" | "bear"): Disp
  * Displacement candles.
  *
  * Under the default rule ("body") this is unchanged: body >=
- * GATE.displacementK (1.5) × rolling ATR(14) of bar ranges, close in the
+ * GATE.displacementK × rolling ATR(14) of bar ranges, close in the
  * move's direction. What is NEW is that every event now carries the gap it
  * left and whether that gap still holds, so "a big candle" and "delivery that
  * skipped price and held" stop being the same fact — and so the gap-first

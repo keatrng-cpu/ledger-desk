@@ -22,6 +22,23 @@ import {
   compare,
   type Sample,
 } from "@/lib/trading/calibration";
+import { GATE } from "@/lib/trading/gate-tuning";
+
+function GateReadout() {
+  return (
+    <div className="mb-3 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-[11px] leading-snug text-[var(--color-muted)]">
+      <p className="font-semibold text-[var(--color-fg)]">Live sequence knobs</p>
+      <p className="mt-1 font-mono text-[10px]">
+        sameBar {GATE.sameBarDisplacement ? "on" : "off"} · armedTake {GATE.armedIsTake ? "on" : "off"} ·
+        range {GATE.dealingRange} · disp {GATE.displacementK}×ATR · sweep {GATE.recentSweepBars} bars ·
+        disp age {GATE.recentDisplacementBars} bars · raid-picks-side {GATE.sideFromRaid ? "on" : "off"}
+      </p>
+      <p className="mt-1 text-[10px] text-[var(--color-subtle)]">
+        Display only. A knob that moves during a session is a different desk from the one that was tested — A/B stays in scripts/sweep-gates.mjs.
+      </p>
+    </div>
+  );
+}
 
 /**
  * R for one shadow leg. The row's OWN `r` first — the shadow book computes it
@@ -86,11 +103,14 @@ export function CalibrationPanel() {
 
   if (read.n === 0) {
     return (
-      <p className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-3 text-[11px] leading-snug text-[var(--color-subtle)]">
-        No resolved shadow trades yet. Every refusal the sequence makes opens a
-        limit leg and a chase leg; once they resolve, this grades the desk's own
-        numbers against what happened.
-      </p>
+      <div>
+        <GateReadout />
+        <p className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-3 text-[11px] leading-snug text-[var(--color-subtle)]">
+          No resolved shadow trades yet. Every refusal the sequence makes opens a
+          limit leg and a chase leg; once they resolve, this grades the desk's own
+          numbers against what happened.
+        </p>
+      </div>
     );
   }
 
@@ -124,6 +144,7 @@ export function CalibrationPanel() {
 
   return (
     <div className="flex flex-col gap-2.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2.5">
+      <GateReadout />
       {/* ── Is the headline number a probability at all? ─────────────────── */}
       <div>
         <p className="text-[9px] uppercase tracking-wider text-[var(--color-subtle)]">
