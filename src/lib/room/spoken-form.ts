@@ -92,6 +92,8 @@ export const TICKER_SAY: Readonly<Record<string, string>> = {
   CEG: "Constellation", CRWD: "CrowdStrike", PANW: "Palo Alto", ROK: "Rockwell", PWR: "Quanta", CCJ: "Cameco", LEU: "Centrus",
   OKLO: "Oklo", IONQ: "Ion Q", QBTS: "D-Wave", RKLB: "Rocket Lab", BLK: "BlackRock", SCHW: "Schwab", STT: "State Street", SYM: "Symbotic",
   GEV: "G E Vernova", FANUY: "Fanuc", SIEGY: "Siemens", GRID: "grid", HACK: "hack", PAVE: "pave", ROBO: "robo", SHLD: "shield", BUG: "bug",
+  // The Invest tab's long board (long-board.ts): the names a person says rather than spells.
+  VST: "Vistra", TLN: "Talen", VRT: "Vertiv", WMB: "Williams", EQIX: "Equinix", ETR: "Entergy", ANET: "Arista", UNH: "UnitedHealth", ISRG: "Intuitive Surgical", SPCX: "SpaceX", DLR: "Digital Realty",
 };
 
 /** A word in a code name, said as a person would say it. */

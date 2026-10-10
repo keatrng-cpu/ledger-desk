@@ -93,7 +93,7 @@ export function exFirmRisk(c: Ctx, d: { inv: InvestLite }): Ex | null {
             () => `Nothing is held yet, so take the first dollar. It lands in VTI, which overlaps QQQ by ${f.frac(r.overlapQQQ)} and is ${f.frac(r.techWeight)} tech and communication services once it is opened.`,
           ])
         : pick(c, "firm-risk-num", [
-            () => `Opened up, this book overlaps QQQ by ${f.frac(r.overlapQQQ)} and is ${f.frac(r.techWeight)} tech and communication services. The tab warns at ${f.frac(r.overlapWarn)}, so we are ${over ? "over" : "inside"} that line.${r.overlapPartial ? " Part of it sits in a fund whose list is partial, so read it as a floor." : ""}`,
+            () => `Opened up, this book overlaps QQQ by ${f.frac(r.overlapQQQ)} and is ${f.frac(r.techWeight)} tech and communication services. The tab warns at ${f.frac(r.overlapWarn)}; we are ${over ? "over" : "inside"} it.${r.overlapPartial ? " One fund's list is partial, so read that as a floor." : ""}`,
             () => `At cost and opened up: ${f.frac(r.overlapQQQ)} overlap with QQQ, ${f.frac(r.techWeight)} tech and communication. The warning line is ${f.frac(r.overlapWarn)}, and we are ${over ? "past" : "under"} it.`,
           ]),
     ),
@@ -422,6 +422,7 @@ export function exFirmTax(c: Ctx, d: { inv: InvestLite }): Ex | null {
       ANIM.Nova.analyze!,
       pick(c, "firm-tax-open", [
         () => `Tax and lots. The ledger holds ${f.int(x.openLots)} open ${plural(x.openLots, "lot", "lots")}. Every buy is its own lot, because the holding period runs per lot, and long-term means more than a year: the first long-term day is the day after the anniversary.`,
+        () => `Lots first. ${f.int(x.openLots)} open ${plural(x.openLots, "lot", "lots")} in the ledger, each with its own clock. The holding period runs per lot, so a small top-up last month is short-term however old the first share is.`,
       ]),
     ),
   );
@@ -492,6 +493,7 @@ export function exFirmFunding(c: Ctx, d: { inv: InvestLite }): Ex | null {
       ANIM.Nova.analyze!,
       pick(c, "firm-fund-order", [
         () => `Funding review. The waterfall runs in order. Data rent of ${cash(f, x.rentUsd)} first, then the sleeve back to ${cash(f, x.sleeveTargetUsd)}, then ${f.int(x.ratePct)}% of what is left becomes shares. A losing month sweeps nothing.`,
+        () => `Funding, in order. Rent of ${cash(f, x.rentUsd)} comes off the month first, the options sleeve is filled back to ${cash(f, x.sleeveTargetUsd)} next, and only then does ${f.int(x.ratePct)}% of the remainder become shares.`,
       ]),
     ),
   );
@@ -662,6 +664,7 @@ export function exFirmMacro(c: Ctx, d: { inv: InvestLite; pulse: { vix: number |
       ANIM.Gemma.explain!,
       pick(c, "firm-macro-pulse", [
         () => `Rates backdrop for the long book. The ten-year is ${f.pct(m.liveTenPct, 2)}${m.vix != null ? ` and the vix ${f.raw(m.vix.toFixed(1))}` : ""}${d.pulse.at != null ? `, read at ${f.clock(d.pulse.at)} Eastern` : ""}. Context for the book, not a call.`,
+        () => `Rates, for the long book only. The ten-year reads ${f.pct(m.liveTenPct, 2)}${m.vix != null ? `, the vix ${f.raw(m.vix.toFixed(1))}` : ""}${d.pulse.at != null ? `, as of ${f.clock(d.pulse.at)} Eastern` : ""}. It is context, not a call.`,
       ]),
     ),
   );
@@ -719,6 +722,7 @@ export function exFirmBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
       pick(c, "firm-board-split", [
         () =>
           `The funnel splits what survives rent and the sleeve eight ways: ${list(b.split.map((s) => `${sleeveSay(s.sleeve)} ${f.frac(s.weight)}`))}.${b.waitingUsd > 0 && first ? ` On ${cash(f, b.waitingUsd)} waiting, safety would take ${cash(f, first.usd)}.` : " Nothing is waiting, so the split is a plan and not an order."}`,
+        () => `Eight sleeves share whatever survives rent and the sleeve: ${list(b.split.map((s) => `${sleeveSay(s.sleeve)} ${f.frac(s.weight)}`))}.${b.waitingUsd > 0 && first ? ` Of ${cash(f, b.waitingUsd)} waiting, safety's share is ${cash(f, first.usd)}.` : " With nothing waiting, this is a plan, not an order."}`,
       ]),
     ),
   );
@@ -792,7 +796,7 @@ export function exFirmPolicy(c: Ctx, d: { inv: InvestLite }): Ex | null {
       line(
         "Sterling",
         ANIM.Sterling.tablet!,
-        pick(c, "firm-pol-horizon", [() => `Policy, what the tab says it can know. Short horizon: ${f.raw(stop(short.say))} Mid horizon: ${f.raw(stop(mid.say))} Long horizon: ${f.raw(stop(long.say))}`]),
+        pick(c, "firm-pol-horizon", [() => `Policy, what the tab says it can know. Short horizon: ${f.raw(stop(short.say))} Mid horizon: ${f.raw(stop(mid.say))} Long horizon: ${f.raw(stop(long.say))}`, () => `Before anyone opens a dossier, the tab says what it can know. Short: ${f.raw(stop(short.say))} Mid: ${f.raw(stop(mid.say))} Long: ${f.raw(stop(long.say))}`]),
       ),
     );
   }
@@ -824,6 +828,7 @@ export function exFirmFresh(c: Ctx, d: { inv: InvestLite }): Ex | null {
       ANIM.Gemma.explain!,
       pick(c, "firm-fresh-open", [
         () => `Data freshness. The stalest snapshot the Invest tab reads is the ${s.label}, captured ${f.raw(dateSay(s.asOf, today))}, ${f.int(s.ageDays)} days ago. The line the long board draws is ${f.int(x.maxDays)}.`,
+        () => `A snapshot has aged out. The ${s.label}, captured ${f.raw(dateSay(s.asOf, today))}, is ${f.int(s.ageDays)} days old, and the board's own line is ${f.int(x.maxDays)}.`,
       ]),
     ),
     line("Vince", ANIM.Vince.watch!, pick(c, `firm-fresh-effect-${s.id}`, [() => FRESH_EFFECT[s.id] ?? "Every figure drawn from that snapshot is that old."])),

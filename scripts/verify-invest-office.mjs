@@ -706,14 +706,39 @@ const extraBad = (item) => {
   return out;
 };
 const ctxF = (key, nowMs = NOW) => ({ st: freshTalkState(), f: new Facts(), key, now: nowMs });
-/** Run a builder, check every guard, and keep the lines for the speech check. */
-function runFirm(name, fn, { keep = true } = {}) {
-  const c = ctxF(name);
-  const ex = fn(c);
-  if (!ex) return { ex: null, item: null, bad: [] };
-  const item = { lines: ex.lines, facts: c.f.list, moves: ex.moves, urgency: 0 };
-  if (keep) SPOKEN.push(...ex.lines);
-  return { ex, item, text: textOf(item), bad: [...legal(item), ...unsourced(item), ...extraBad(item)] };
+/** The text of every variant a builder can choose, answering includes() and all() only if EVERY variant does — a mutated phrase in the variant the first key did not pick must still be seen. */
+class AllText {
+  constructor(ts) {
+    this.ts = ts;
+  }
+  includes(s) {
+    return this.ts.every((t) => t.includes(s));
+  }
+  all(re) {
+    return this.ts.every((t) => re.test(t));
+  }
+  slice(a, b) {
+    return this.ts[0].slice(a, b);
+  }
+  toString() {
+    return this.ts[0];
+  }
+}
+/** Run a builder under ten different keys (a bank of phrases picks by the key, so ten reach both variants of a pair), check every guard on every run, and keep the lines for the speech check. */
+function runFirm(name, fn, { keep = true, keys = 10 } = {}) {
+  const runs = [];
+  for (let k = 0; k < keys; k++) {
+    const c = ctxF(k ? `${name}#${k}` : name);
+    const ex = fn(c);
+    if (!ex) {
+      if (k === 0) return { ex: null, item: null, bad: [], text: new AllText([""]), runs };
+      continue;
+    }
+    const item = { lines: ex.lines, facts: c.f.list, moves: ex.moves, urgency: 0 };
+    if (keep) SPOKEN.push(...ex.lines);
+    runs.push({ ex, item, text: textOf(item), bad: [...legal(item), ...unsourced(item), ...extraBad(item)] });
+  }
+  return { ex: runs[0].ex, item: runs[0].item, text: new AllText(runs.map((r) => r.text)), bad: [...new Set(runs.flatMap((r) => r.bad))], runs };
 }
 const has = (text, ...subs) => subs.filter((s) => !text.includes(s));
 
@@ -724,6 +749,15 @@ function diffFirm(fm, ip = IP, day = ip.dayKey) {
   const ck = (name, ok) => {
     if (!ok) bad.push(name);
   };
+  try {
+    diffInto(fm, ip, day, ck);
+  } catch (e) {
+    // A builder that drops a whole section is a failure with a name, not a crash of the verifier.
+    bad.push(`threw: ${String(e).slice(0, 90)}`);
+  }
+  return bad;
+}
+function diffInto(fm, ip, day, ck) {
   const cards = LB.gradeBoard({ today: day });
   // risk — exposure.ts lookThrough, long-board.ts sleeveLoad / NAME_CAP / SLEEVE_CAP, universe.ts concentrationWarning
   const lt = EXP.lookThrough(ip.book.positions.map((p) => ({ ticker: p.ticker, valueUsd: p.valueUsd })));
@@ -811,7 +845,6 @@ function diffFirm(fm, ip = IP, day = ip.dayKey) {
   const snaps = [["universe", UNI.snapshotCapturedAt()], ["durability", DUR.durabilityCapturedAt()], ["fund-profiles", EXP.profilesCapturedAt()], ["ipo-watch", IPO.ipoCapturedAt()]];
   ck("fresh.ages", snaps.every(([id, asOf]) => fm.fresh.items.find((x) => x.id === id)?.asOf === asOf && fm.fresh.items.find((x) => x.id === id)?.ageDays === IR.daysBetween(asOf, day)) && fm.fresh.maxDays === LB.CAPTURE_MAX_DAYS && fm.fresh.stale === (fm.fresh.stalest.ageDays > LB.CAPTURE_MAX_DAYS) && fm.fresh.items.every((x) => x.ageDays <= fm.fresh.stalest.ageDays));
   ck("macro.riskfree", fm.macro.riskFreePct === RISK_FREE.yieldPct && fm.macro.riskFreeAsOf === RISK_FREE.asOf);
-  return bad;
 }
 function near(a, b, e = 1e-4) {
   return Math.abs(a - b) <= e;
@@ -865,8 +898,8 @@ function near(a, b, e = 1e-4) {
   const lt = EXP.lookThrough(IP.book.positions.map((p) => ({ ticker: p.ticker, valueUsd: p.valueUsd })));
   const risk = runFirm("risk", (c) => FV.exFirmRisk(c, { inv: INVF }));
   check("risk: five people, wing spots, no verdict word, nothing at a price; says the overlap, the tech weight, the biggest line and the cap", risk.ex && risk.ex.lines.length >= 5 && new Set(risk.ex.lines.map((l) => l.character)).size >= 4 && risk.bad.length === 0 && has(risk.text, `${Math.round(lt.overlapQQQ * 100)}%`, `${Math.round(lt.techWeight * 100)}%`, `${(lt.names[0].weight * 100).toFixed(1)}%`, lt.names[0].ticker, `${Math.round(LB.NAME_CAP * 100)}%`, `${Math.round(EXP.OVERLAP_WARN * 100)}%`).length === 0, risk.bad.join(" | ") || risk.text);
-  check("risk: it teaches the mechanism (the smaller of the two weights, added up) and says why compute is the small sleeve, in the tab's own words", /smaller of its weight/.test(risk.text) && risk.text.includes(FM.risk.computeWhy.slice(0, 30)) && FM.risk.computeNames.every((t) => risk.text.includes(t)) && risk.text.includes(`${Math.round(FM.risk.computeShare * 100)}%`), risk.text);
-  check("risk: the safety sleeve is the net — the cap is read about the others, and the line says so", /Safety is the net/.test(risk.text));
+  check("risk: it teaches the mechanism (the smaller of the two weights, added up) and says why compute is the small sleeve, in the tab's own words", risk.text.all(/smaller of its weight/) && risk.text.includes(FM.risk.computeWhy.slice(0, 30)) && FM.risk.computeNames.every((t) => risk.text.includes(t)) && risk.text.includes(`${Math.round(FM.risk.computeShare * 100)}%`), risk.text);
+  check("risk: the safety sleeve is the net — the cap is read about the others, and the line says so", risk.text.all(/Safety is the net/));
   const comp = runFirm("compliance", (c) => FV.exFirmCompliance(c, { inv: INVF }));
   check("compliance: the fixed list, the journal's extra underlier with the day it clears, the 30-day rule and the gate count", comp.ex && comp.bad.length === 0 && has(comp.text, ...Object.keys(UNI.WASH_SALE_BANNED), "IWM", "25 November", `${RHB.WASH_LOOKBACK_DAYS} day`, `${LED.WASH_WINDOW_DAYS} days either side`, `${ALL_DOSSIERS.filter((d) => UNI.canAdd(d).canAdd).length} of ${ALL_DOSSIERS.length}`).length === 0, comp.bad.join(" | ") || comp.text);
   check("compliance: it names the watch names and one written clearing condition word for word", FM.compliance.watch.every((w) => comp.text.includes(w.ticker)) && FM.compliance.watch.some((w) => comp.text.includes(w.clearsWhen.slice(0, 40))), comp.text.slice(-300));
@@ -880,7 +913,7 @@ function near(a, b, e = 1e-4) {
   const fund = runFirm("funding", (c) => FV.exFirmFunding(c, { inv: INVF }));
   check("funding: the waterfall order, the last logged month, rent drag, the annual rent against the annual sweep, the journal's month, and the backwards arithmetic", fund.ex && fund.bad.length === 0 && has(fund.text, "$199", "$1,000", "20%", "September 2026", "$1,100", "$140.50", "18%", "$2,388", "$1,686", "$699", "a gain of $40").length === 0, fund.bad.join(" | ") || fund.text);
   const memo = runFirm("memo", (c) => FV.exFirmMemo(c, { inv: INVF }));
-  check("memo: five content lines across the five people, the dated valuation read, the whole kill rule, ending with the house wording", memo.ex && memo.bad.length === 0 && new Set(memo.ex.lines.map((l) => l.character)).size === 5 && /None of this is a recommendation/.test(memo.ex.lines.at(-1).text) && memo.text.includes(FM.memo.name) && (FM.memo.killRule ? memo.text.includes(FM.memo.killRule.slice(0, 60)) : true) && memo.text.includes(String((FM.memo.required * 100).toFixed(1))), memo.bad.join(" | ") || memo.text);
+  check("memo: five content lines across the five people, the dated valuation read, the whole kill rule, ending with the house wording", memo.ex && memo.bad.length === 0 && new Set(memo.ex.lines.map((l) => l.character)).size === 5 && /None of this is a recommendation/.test(memo.ex.lines.at(-1).text) && memo.text.includes(FM.memo?.name) && (FM.memo?.killRule ? memo.text.includes(FM.memo?.killRule.slice(0, 60)) : true) && memo.text.includes(String((FM.memo?.required * 100).toFixed(1))), memo.bad.join(" | ") || memo.text);
   const board = runFirm("board", (c) => FV.exFirmBoard(c, { inv: INVF }));
   check("board: the eight-way split, the next names, the pass/wait/fail count with the commonest reason, a left-off area, the IPO rule", board.ex && board.bad.length === 0 && has(board.text, "42%", "14%", "12%", "6%", "5%", "4%", "3%", `${LB.LONG_NAMES.length} names`, "2 pass", "No dossier", "four public quarters").length === 0, board.bad.join(" | ") || board.text);
   const pol = runFirm("policy", (c) => FV.exFirmPolicy(c, { inv: INVF }));
@@ -893,7 +926,7 @@ function near(a, b, e = 1e-4) {
   check("macro: the live ten-year beside the dossiers' dated one (5.18% as of 24 September), the shift in every spread as arithmetic, and a worked name", mac.ex && mac.bad.length === 0 && has(mac.text, "4.10%", "5.18%", "24 September", `${Math.abs(mr.deltaPts).toFixed(2)} points lower`, `${Math.abs(mr.deltaPts).toFixed(2)} points wider`, "not a call").length === 0 && mr.deltaPts === Math.round((4.1 - RISK_FREE.yieldPct) * 100) / 100, mac.bad.join(" | ") || mac.text);
   check("macro: no pulse, no exchange", FV.exFirmMacro(ctxF("m0"), { inv: INVF, pulse: { vix: 16, tenYear: null, at: NOW } }) === null);
   const minutes = runFirm("minutes", (c) => IV.exInvBoard(c, { inv: INVF }));
-  check("the evening board's minutes carry the week's rhythm — Tuesday's standing review, named from the list the board TV draws", minutes.ex && minutes.bad.length === 0 && /risk committee and compliance on today's calendar: look-through and caps, then the restricted list/.test(minutes.text) && IR.firmDay(INVF.dayKey).title === "Risk committee and compliance", minutes.bad.join(" | ") || minutes.text);
+  check("the evening board's minutes carry the week's rhythm — Tuesday's standing review, named from the list the board TV draws", minutes.ex && minutes.bad.length === 0 && minutes.text.all(/risk committee and compliance on today's calendar: look-through and caps, then the restricted list/) && IR.firmDay(INVF.dayKey).title === "Risk committee and compliance", minutes.bad.join(" | ") || minutes.text);
 
   // The same voices on every other world: nothing held, nothing logged, a dark journal, a ledger with problems.
   const worlds = {
@@ -1045,6 +1078,8 @@ const FIRM_EV = [];
   check("…not again the next day while nothing changed", alerts(sun).length === 0, alertTopics(sun).join());
   check("…and again when a different rule is judged tripped (Monday: the diligence alert only; the ban is unchanged)", JSON.stringify(alertTopics(mon)) === JSON.stringify(["diligence"]) && /NVDA/.test(textOf(alerts(mon)[0])), alertTopics(mon).join());
   check("…on the weekday of the same review, the review says it and the alert does not repeat it (Tuesday: the compliance review, no compliance alert)", tue.items.some((i) => i.topic === "invest:firm:compliance:2026-10-13") && !alertTopics(tue).includes("compliance"), tue.items.map((i) => i.topic).join());
+  const tueCold = runDay("2026-10-13", { state: freshTalkState(), world: alertWorld("2026-10-13") });
+  check("from a cold start on its own weekday the review says the ban and no alert goes ahead of it (Tuesday: compliance is said once, by the review)", tueCold.items.filter((i) => i.topic.includes("compliance")).map((i) => i.topic).join() === "invest:firm:compliance:2026-10-13" && /holds SPY/.test(textOf(tueCold.items.find((i) => i.topic === "invest:firm:compliance:2026-10-13"))), tueCold.items.map((i) => i.topic).join());
   const calm = runDay("2026-10-10", { state: freshTalkState(), world: worldFor("2026-10-10") });
   check("a clean world raises no alert, and the seeded world's one tripped rule raises exactly the diligence alert", alerts(runDay("2026-10-10", { state: freshTalkState(), world: alertWorld("2026-10-10", { kill: { lastRun: KILL.lastRun, judgements: [] }, entries: FIRM_ENTRIES }) })).length === 0 && alertTopics(calm).join() === "diligence", alertTopics(calm).join());
   const bad = LED.replay([E({ id: "dup-1", kind: "buy", date: "2026-01-05", ticker: "VTI", sleeve: "ballast", shares: 1, costUsd: 100, source: "other" }), E({ id: "dup-1", kind: "buy", date: "2026-01-06", ticker: "VTI", sleeve: "ballast", shares: 1, costUsd: 100, source: "other" })]);
@@ -1116,8 +1151,8 @@ console.log("the audit's defects");
   const reworded = nb.line.replace(TAB_TAIL, "Pick among the ADD names below.");
   check("   …and a reworded sentence is exactly what that check catches (floorWords would be a silent no-op)", !reworded.includes(TAB_TAIL) && floorWords(reworded) === reworded);
   // 7 — the invest study heartbeats keep out of 09:25–09:30, which `optionsOpen` leaves open.
-  const hbs = (from, to, world) => {
-    let st = freshTalkState();
+  const hbs = (from, to, world, start = freshTalkState()) => {
+    let st = start;
     let busy = 0;
     const out = [];
     for (let m = from; m < to; m++) {
@@ -1132,10 +1167,20 @@ console.log("the audit's defects");
     }
     return out;
   };
-  const early = hbs(9 * 60 + 25, 9 * 60 + 30);
-  const control = hbs(8 * 60, 9 * 60 + 20);
+  // A room that is already primed, whose prediction pass was just said (and is unchanged, so not due), and whose study family is not on its gap:
+  // the one study pass that is due is the invest one — at 09:25 if the guard let it, at 08:50 certainly. (The prediction pass is another stream's.)
+  const primedAt = (h, mi) => {
+    const s = freshTalkState();
+    s.primed = true;
+    s.dayKey = "2026-10-07";
+    s.topicAt["hb:study:predict"] = at(2026, 10, 7, h, mi) - 60_000;
+    s.topicSig["hb:study:predict"] = "empty|The prediction book has not been read this session.";
+    return s;
+  };
+  const early = hbs(9 * 60 + 25, 9 * 60 + 30, {}, primedAt(9, 25));
+  const control = hbs(8 * 60 + 50, 8 * 60 + 55, {}, primedAt(8, 50));
   check("7. no invest study pass between 09:25 and 09:30 on a trading day (it was open: optionsOpen starts at 09:30)", early.every((i) => !/^hb:study:(invest|watch|outsider)$/.test(i.topic)), early.map((i) => `${hhmm(i.etMin)} ${i.topic}`).join());
-  check("   …and the control: the same room before 09:25 does study the long game", control.some((i) => /^hb:study:invest$/.test(i.topic)), control.map((i) => `${hhmm(i.etMin)} ${i.topic}`).join());
+  check("   …and the control: the same room at 08:50 does study the long game, at once (so the check above can see a leak)", control.some((i) => /^hb:study:invest$/.test(i.topic)), control.map((i) => `${hhmm(i.etMin)} ${i.topic}`).join());
   const studyNews = [{ id: "n1", title: "CEG and SMCI lead a power rally", source: "Wire", publishedMs: NOW - 600_000, tier: 3, why: "", impact: null, tickers: ["CEG", "SMCI"], topics: ["ai-capex"], primary: false }];
   const night = hbs(17 * 60, 20 * 60, { news: studyNews });
   const studyItems = night.filter((i) => /^hb:study:(invest|watch|outsider)$/.test(i.topic));
@@ -1148,7 +1193,7 @@ console.log("the audit's defects");
 console.log("the data's age");
 {
   const fresh = DFRESH.freshnessOf("2026-10-06");
-  check("data-fresh.ts carries the Invest tab's five snapshots with the dates they carry", ["universe", "durability", "fund-profiles", "ipo-watch"].every((id) => fresh.invest.find((s) => s.id === id)) && fresh.invest.find((s) => s.id === "universe").asOf === UNI.snapshotCapturedAt() && fresh.invest.find((s) => s.id === "durability").asOf === DUR.durabilityCapturedAt() && fresh.invest.find((s) => s.id === "fund-profiles").asOf === EXP.profilesCapturedAt() && fresh.invest.find((s) => s.id === "ipo-watch").asOf === IPO.ipoCapturedAt(), JSON.stringify(fresh.invest));
+  check("data-fresh.ts carries the Invest tab's five snapshots with the dates they carry", ["universe", "durability", "fund-profiles", "ipo-watch"].every((id) => (fresh.invest ?? []).find((s) => s.id === id)) && (fresh.invest ?? []).find((s) => s.id === "universe")?.asOf === UNI.snapshotCapturedAt() && (fresh.invest ?? []).find((s) => s.id === "durability")?.asOf === DUR.durabilityCapturedAt() && (fresh.invest ?? []).find((s) => s.id === "fund-profiles")?.asOf === EXP.profilesCapturedAt() && (fresh.invest ?? []).find((s) => s.id === "ipo-watch")?.asOf === IPO.ipoCapturedAt(), JSON.stringify(fresh.invest));
   const itemsAt = (today, patch = {}) => AUDIT.deskAudit({ feed: null, goal: null, lab: null, rnd: null, seats: null, fresh: { ...DFRESH.freshnessOf(today), ...patch } }).filter((x) => x.id === "invest_data_old");
   const edge = IR.plusDays(UNI.snapshotCapturedAt(), LB.CAPTURE_MAX_DAYS);
   const oldest = UNI.oldestAsOf();
@@ -1288,7 +1333,7 @@ console.log("the firm on the walls");
   check("every problem the replay can raise (duplicate id, void of nothing, void of a void, a sale larger than the shares, a month logged twice) has its own kind, and none falls to 'other'", led.problems.length >= 5 && new Set(kinds).size === 5 && !kinds.includes("other"), `${led.problems.join(" || ")} → ${kinds.join()}`);
   const world = buildInvest({ ...firmInputs(FIRM_ENTRIES), ledger: led });
   const r = runFirm("problems", (c) => FV.exFirmOps(c, { inv: world }));
-  check("the ops voice says them by kind (never an entry id, which a speech engine cannot say), with counts", r.ex && r.bad.length === 0 && /could not apply/.test(r.text) && !/dup-1|void-x|sell-9|sw-1a/.test(r.text) && /sale larger than the shares open then/.test(r.text), `${r.bad.join(" | ")} :: ${r.text}`);
+  check("the ops voice says them by kind (never an entry id, which a speech engine cannot say), with counts", r.ex && r.bad.length === 0 && r.text.all(/could not apply/) && r.runs.every((x) => !/dup-1|void-x|sell-9|sw-1a/.test(x.text)) && r.text.all(/sale larger than the shares open then/), `${r.bad.join(" | ")} :: ${r.text}`);
   check("a reworded problem would land in 'other' — the loud case the check above is for", FIRM.problemKind("Something else went wrong with entry abc.") === "other");
 }
 
