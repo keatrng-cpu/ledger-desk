@@ -13,9 +13,14 @@
 
 import { DRIFT_BAND, type BookRead, type NextBuy, type RebalanceRead } from "@/lib/invest/book";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
+import type { KillJudgement, StoredKillRun } from "@/lib/invest/kill-store";
+import type { LedgerRead } from "@/lib/invest/ledger";
+import { LONG_NAMES } from "@/lib/invest/long-board";
 import { contributionPath, type DeployQueue, type RateLadder } from "@/lib/invest/policy";
 import { earningsCapturedAt, timeline } from "@/lib/news/schedule";
-import type { InvestCatalyst, InvestLite, InvestThemeLite } from "./live-types";
+import type { RhFill } from "@/lib/trading/rh-income";
+import type { InvestCatalyst, InvestLite, InvestThemeLite, WatchKind } from "./live-types";
+import { buildFirm } from "./invest-firm";
 import { plusDays } from "./invest-read";
 import { RESEARCH, usableThemes, type ResearchTheme } from "./invest-themes";
 
@@ -34,6 +39,14 @@ export interface InvestInputs {
   other: { monthlyUsd: number; ratePct: number } | null;
   themes?: ResearchTheme[];
   themesAsOf?: string;
+  /**
+   * What the firm's standing reviews (invest-firm.ts) read beyond the book. All optional: a world built without a ledger gets the
+   * reviews that need none and `null` for the three that do — never a guess. The instant defaults to midday on `dayKey`.
+   */
+  ledger?: LedgerRead | null;
+  rhFills?: RhFill[] | null;
+  kill?: { lastRun: StoredKillRun | null; judgements: KillJudgement[] } | null;
+  nowMs?: number;
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -42,26 +55,37 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * The Invest tab's next-buy line ends "…below — the tab does not pick a company for you", written for someone looking at that
  * tab. On the Floor nobody is, so that one known tail is reworded; every figure and the rest of the line are untouched.
  */
-const TAB_TAIL = "Choose among the ADD names below — the tab does not pick a company for you.";
-const FLOOR_TAIL = "Which company is the trader's call, from the Invest tab's ADD list — the office never picks one.";
+export const TAB_TAIL = "Choose among the ADD names below — the tab does not pick a company for you.";
+export const FLOOR_TAIL = "Which company is the trader's call, from the Invest tab's ADD list — the office never picks one.";
+/**
+ * An exact-string swap of ONE sentence the Invest tab writes (book.ts nextBuy). It is silent by design when the line has no such tail,
+ * so a reword on the tab would turn it into a no-op without a sound — scripts/verify-invest-office.mjs builds the one book that makes
+ * nextBuy write that sentence and fails if the tab's wording no longer contains TAB_TAIL.
+ */
 export const floorWords = (line: string): string => line.replace(TAB_TAIL, FLOOR_TAIL);
 
 /** Days ahead the office looks on the earnings calendar. */
 export const CATALYST_WINDOW_DAYS = 14;
 const WHEN_RANK = { "pre-market": 0, "time not stated": 1, "after close": 2 } as const;
 
+/** The Invest tab's long board, by ticker — the names the tab itself researches (UNH, ASML and ISRG report inside a window and were invisible without this). */
+const BOARD_SLEEVE = new Map(LONG_NAMES.map((n) => [n.ticker.toUpperCase(), n.sleeve as string]));
+
 /**
  * Reports on the committed earnings calendar, from `dayKey` for two weeks, that touch the office: a name the book holds first,
- * then a vehicle of a research theme that is a stock, then a competitor on a theme's list. Where the name has a dossier, the
- * trader's own pre-written kill rule travels with it: a report is read against that rule, not against the one-day price reaction.
+ * then a name on the Invest tab's long board, then a vehicle of a research theme that is a stock, then a competitor on a theme's
+ * list. Where the name has a dossier, the trader's own pre-written kill rule travels with it: a report is read against that
+ * rule, not against the one-day price reaction.
  */
 export function catalystsFor(dayKey: string, held: string[], themes: InvestThemeLite[]): InvestCatalyst[] {
   const heldSet = new Set(held.map((t) => t.toUpperCase()));
-  const why = new Map<string, { why: InvestCatalyst["why"]; theme: string | null }>();
-  for (const t of heldSet) why.set(t, { why: "held", theme: themes.find((th) => th.vehicles.some((v) => v.ticker.toUpperCase() === t) || th.competitors.some((c) => c.ticker?.toUpperCase() === t))?.name ?? null });
+  const why = new Map<string, { why: InvestCatalyst["why"]; theme: string | null; sleeve: string | null }>();
+  const themeOf = (t: string): string | null => themes.find((th) => th.vehicles.some((v) => v.ticker.toUpperCase() === t) || th.competitors.some((c) => c.ticker?.toUpperCase() === t))?.name ?? null;
+  for (const t of heldSet) why.set(t, { why: "held", theme: themeOf(t), sleeve: BOARD_SLEEVE.get(t) ?? null });
+  for (const [t, sleeve] of BOARD_SLEEVE) if (!why.has(t)) why.set(t, { why: "board", theme: themeOf(t), sleeve });
   // Two passes, so a name that is one theme's vehicle and another's competitor is a vehicle whichever theme is listed first.
-  for (const th of themes) for (const v of th.vehicles) if (v.kind === "stock" && !why.has(v.ticker.toUpperCase())) why.set(v.ticker.toUpperCase(), { why: "theme", theme: th.name });
-  for (const th of themes) for (const c of th.competitors) if (c.ticker && !why.has(c.ticker.toUpperCase())) why.set(c.ticker.toUpperCase(), { why: "competitor", theme: th.name });
+  for (const th of themes) for (const v of th.vehicles) if (v.kind === "stock" && !why.has(v.ticker.toUpperCase())) why.set(v.ticker.toUpperCase(), { why: "theme", theme: th.name, sleeve: null });
+  for (const th of themes) for (const c of th.competitors) if (c.ticker && !why.has(c.ticker.toUpperCase())) why.set(c.ticker.toUpperCase(), { why: "competitor", theme: th.name, sleeve: null });
   const rule = (t: string): string | null => {
     const d = ALL_DOSSIERS.find((x) => x.kind === "company" && x.ticker.toUpperCase() === t);
     return d && d.killRule && !/^none/i.test(d.killRule.trim()) ? d.killRule : null;
@@ -78,10 +102,11 @@ export function catalystsFor(dayKey: string, held: string[], themes: InvestTheme
       name: e.name.replace(/ earnings$/, ""),
       why: w.why,
       theme: w.theme,
+      sleeve: w.sleeve,
       killRule: rule(e.ticker.toUpperCase()),
     });
   }
-  const rank = { held: 0, theme: 1, competitor: 2 } as const;
+  const rank = { held: 0, board: 1, theme: 2, competitor: 3 } as const;
   return out.sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : WHEN_RANK[a.when] - WHEN_RANK[b.when] || rank[a.why] - rank[b.why] || (a.ticker < b.ticker ? -1 : 1)));
 }
 
@@ -104,13 +129,16 @@ export function buildInvest(i: InvestInputs): InvestLite {
 
   // What a headline has to mention to matter: the book's own tickers, a theme's vehicles, a competitor's name or ticker.
   const watch: InvestLite["watch"] = {};
-  const put = (key: string, label: string, kind: "held" | "theme" | "competitor") => {
+  const put = (key: string, label: string, kind: WatchKind) => {
     const k = key.trim();
     if (k.length >= 3 && !watch[k]) watch[k] = { label, kind };
   };
   for (const tk of heldSet) put(tk, tk, "held");
+  for (const t of themes) for (const v of t.vehicles) put(v.ticker.toUpperCase(), t.name, "theme");
+  // The names on the Invest tab's long board. The closed-hours study already read them through the feed's own tickers; in session the
+  // headline matcher saw only the book, the vehicles and the competitors, so a headline on CEG was discussed after 16:00 and not at 14:00.
+  for (const n of LONG_NAMES) put(n.ticker.toUpperCase(), n.ticker, "board");
   for (const t of themes) {
-    for (const v of t.vehicles) put(v.ticker.toUpperCase(), t.name, "theme");
     for (const c of t.competitors) {
       put(c.name.toLowerCase(), `${t.name} — ${c.name}`, "competitor");
       const first = c.name.split(/\s+/)[0] ?? "";
@@ -152,6 +180,17 @@ export function buildInvest(i: InvestInputs): InvestLite {
     catalysts: catalystsFor(i.dayKey, i.held, themes),
     catalystsAsOf: earningsCapturedAt(),
     watch,
+    firm: buildFirm({
+      dayKey: i.dayKey,
+      nowMs: i.nowMs ?? Date.parse(`${i.dayKey}T17:00:00Z`),
+      book: i.book,
+      held: i.held.map((t) => t.toUpperCase()),
+      ledger: i.ledger ?? null,
+      queue: i.queue,
+      ladder: i.ladder,
+      rhFills: i.rhFills ?? null,
+      kill: i.kill ?? null,
+    }),
     dayKey: i.dayKey,
   };
 }

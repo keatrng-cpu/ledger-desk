@@ -38,6 +38,15 @@ export const SOURCE_CHECK_OLD_DAYS = 35;
 /** The macro calendar feeds the ±15 min blackout; warn a week before it runs out. */
 export const MACRO_RUNWAY_DAYS = 7;
 
+/** What re-captures each of the Invest tab's committed snapshots (all by hand and on purpose: the free Alpha Vantage key allows 25 requests a day). */
+const INVEST_REFRESH: Record<string, string> = {
+  universe: "npm run capture:invest (scripts/capture-invest-universe.mjs) refreshes src/data/invest-universe.json",
+  "oldest-row": "npm run capture:invest (scripts/capture-invest-universe.mjs) refreshes the rows, oldest first",
+  durability: "node scripts/capture-durability.mjs refreshes src/data/invest-durability.json",
+  "fund-profiles": "node scripts/capture-invest-universe.mjs --etf refreshes src/data/invest-etf-profiles.json",
+  "ipo-watch": "src/data/ipo-watch.json is researched by hand from the filings it cites: re-research it and re-stamp capturedAt",
+};
+
 /** Findings about the committed data itself — a snapshot says when it was taken, and its age is a fact. */
 function freshnessItems(x: DataFreshness): AuditItem[] {
   const out: AuditItem[] = [];
@@ -60,6 +69,12 @@ function freshnessItems(x: DataFreshness): AuditItem[] {
     else if (sc.researchAsOf != null && sc.researchAsOf !== x.researchAsOf)
       out.push({ id: "sources_behind", owner: "Gemma", area: "data", severity: "low", title: "The research file changed after its source check", evidence: `the check was of the ${sc.researchAsOf} file; the file is now ${x.researchAsOf}`, proposal: "Run scripts/check-research-sources.mjs --write on the current file." });
   }
+  // The Invest tab's snapshots: the long board turns a growth name to wait past CAPTURE_MAX_DAYS, and the look-through, the price-versus-record
+  // comparison and the IPO rule read the others at the same age. The stalest one is the finding.
+  const limit = x.investMaxDays;
+  const inv = (x.invest ?? []).map((s) => ({ ...s, age: ageDays(s.asOf, x.today) })).sort((a, b) => b.age - a.age)[0];
+  if (inv && limit != null && inv.age > limit)
+    out.push({ id: "invest_data_old", owner: "Gemma", area: "data", severity: inv.age > limit * 2 ? "med" : "low", title: "A snapshot the Invest tab reads has aged out", evidence: `the ${inv.label} is as of ${inv.asOf}, ${inv.age} days ago; the long board turns a growth name to wait after ${limit}`, proposal: `${INVEST_REFRESH[inv.id] ?? "Re-capture it and stamp its date"}. A snapshot is refreshed on purpose, never polled.` });
   if (x.macroCalendarEnds == null)
     out.push({ id: "macro_empty", owner: "Gemma", area: "data", severity: "high", title: "There is no macro calendar", evidence: "src/data/news-calendar.json has no events, so the ±15 min news blackout has nothing to read", proposal: "Stamp the official BLS, BEA, Census, ISM and Fed schedules into it (official schedules only)." });
   else {

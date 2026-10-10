@@ -7,6 +7,8 @@
 
 import report from "@/data/source-check-report.json";
 import { calendarEnds, earningsCapturedAt } from "@/lib/news/schedule";
+import { CAPTURE_MAX_DAYS } from "@/lib/invest/long-board";
+import { investSnapshots } from "./invest-firm";
 import { RESEARCH } from "./invest-themes";
 import type { DataFreshness } from "./live-types";
 
@@ -29,5 +31,9 @@ export function freshnessOf(today: string): DataFreshness {
     researchAsOf: RESEARCH.asOf,
     macroCalendarEnds: calendarEnds(),
     sourceCheck: readSourceReport(report),
+    // The Invest tab's own committed snapshots (fundamentals, durability record, fund profiles, IPO watch), each with the date it carries.
+    invest: investSnapshots(),
+    // The line the long board itself draws (long-board.ts CAPTURE_MAX_DAYS); the audit reads it from here so it holds no number of its own.
+    investMaxDays: CAPTURE_MAX_DAYS,
   };
 }

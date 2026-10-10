@@ -12,9 +12,11 @@
  */
 
 import { buildBook, nextBuy, rebalanceCheck, type Position } from "@/lib/invest/book";
+import { loadKillJudgements, loadLastRun, subscribeKill } from "@/lib/invest/kill-store";
 import { heldPositions, sweepFundedUsd } from "@/lib/invest/ledger";
 import { deployQueue, rateLadder } from "@/lib/invest/policy";
 import { etToday, loadLedger, subscribeInvest } from "@/lib/invest/store";
+import { loadRhIncome, subscribeRhIncome } from "@/lib/trading/rh-income";
 import { buildInvest } from "./invest-office";
 import type { InvestLite } from "./live-types";
 
@@ -72,10 +74,22 @@ let wired = false;
 function wire() {
   if (wired || typeof window === "undefined") return;
   wired = true;
-  // A ledger write (this tab or another) or an other-income edit drops the memo; the next read rebuilds it.
-  subscribeInvest(() => {
+  // A ledger write (this tab or another), a new RH fill, a kill-rule judgement or an other-income edit drops the memo; the next read rebuilds it.
+  const drop = () => {
     memo = null;
-  });
+  };
+  subscribeInvest(drop);
+  subscribeRhIncome(drop);
+  subscribeKill(drop);
+}
+
+/** A storage read that fails is "not read", never a crash and never an empty answer passed off as a real one. */
+function tryRead<T>(f: () => T): T | null {
+  try {
+    return f();
+  } catch {
+    return null;
+  }
 }
 
 /** Why the office is dark, or null. */
@@ -106,6 +120,12 @@ export function readInvestOffice(nowMs: number): InvestLite | null {
       held: held.map((h) => h.ticker),
       sweptMonthly: ledger.sweeps.map((s) => s.sweptUsd),
       other: loadOtherIncome(),
+      // The firm's reviews read the Invest tab's own stores, the way the tab does: the RH options journal (the wash window and the
+      // month's realised P&L) and the kill-rule record (the last run and every judgement a person made).
+      ledger,
+      nowMs,
+      rhFills: tryRead(() => loadRhIncome().fills),
+      kill: tryRead(() => ({ lastRun: loadLastRun(), judgements: loadKillJudgements() })),
     });
     memo = { at: nowMs, day, v };
     problem = null;

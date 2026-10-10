@@ -35,7 +35,8 @@ import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
 import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
-import { freshCatalysts, investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
+import * as IF from "./live-voices-invest-firm";
+import { firmDay, freshCatalysts, investLooks, themeOfTheDay, watchHit, type WatchHit } from "./invest-read";
 import { deskAudit } from "./audit";
 import {
   ATM_DELTA,
@@ -47,6 +48,7 @@ import {
   norm,
   playMs,
   type CardRead,
+  type FirmReviewId,
   type NewsLite,
   type SeatEventLite,
   type PositionRead,
@@ -1316,6 +1318,130 @@ function investCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       commit: () => {},
     });
   }
+
+  firmCands(w, st, out, inv, trading);
+}
+
+/*
+ * The firm's standing reviews (invest-firm.ts reads the Invest tab's own functions; the voices are live-voices-invest-firm.ts).
+ * One rhythm, written once in invest-read.ts `firmDay` so the board TV draws the same week: Monday the investment committee (a company
+ * memo, then the rates backdrop), Tuesday risk and compliance, Wednesday operations and due diligence, Thursday tax and funding,
+ * Friday the funnel and the long board, then the policy's evidence. The first review of a day opens after the live window and the
+ * second in the afternoon; each is said once a day. The data-age review is not on the week: it speaks when the stalest snapshot the
+ * board reads has aged past the board's own line, then again only if the stalest changes or a week passes. Every one is chatter
+ * (urgency 0) and sits inside `investCands`, so it inherits the 09:25 to 11:15 ET guard and the scheduler's budget and quiet gap.
+ */
+const FIRM_FROM_MIN = { trading: [12 * 60 + 15, 15 * 60], rest: [10 * 60 + 30, 14 * 60] } as const;
+const FIRM_FRESH_FROM_MIN = { trading: 13 * 60, rest: 11 * 60 + 30 } as const;
+const FIRM_FRESH_REPEAT_MS = 7 * 86_400_000;
+
+const FIRM_LABEL: Record<FirmReviewId, string> = {
+  memo: "the investment committee · a company memo",
+  macro: "the rates backdrop · the long book's ten-year",
+  risk: "the risk committee · look-through and caps",
+  compliance: "compliance · the restricted list",
+  ops: "operations · the ledger's health",
+  diligence: "due diligence · the kill rules",
+  tax: "tax and lots",
+  funding: "the funding review · the waterfall",
+  board: "the funnel and the long board",
+  policy: "policy · what the tab can know",
+  fresh: "data freshness · a snapshot has aged out",
+};
+
+function firmCands(w: TalkWorld, st: TalkState, out: Cand[], inv: NonNullable<TalkWorld["invest"]>, trading: boolean) {
+  if (!inv.firm) return;
+  const now = w.nowMs;
+  const day = w.clock.etDate;
+  const m = w.clock.etMin;
+  const build = (id: FirmReviewId): ((c: V.Ctx) => V.Ex | null) => {
+    switch (id) {
+      case "memo": return (c) => IF.exFirmMemo(c, { inv });
+      case "macro": return (c) => IF.exFirmMacro(c, { inv, pulse: w.pulse });
+      case "risk": return (c) => IF.exFirmRisk(c, { inv });
+      case "compliance": return (c) => IF.exFirmCompliance(c, { inv });
+      case "ops": return (c) => IF.exFirmOps(c, { inv });
+      case "diligence": return (c) => IF.exFirmDiligence(c, { inv });
+      case "tax": return (c) => IF.exFirmTax(c, { inv });
+      case "funding": return (c) => IF.exFirmFunding(c, { inv });
+      case "board": return (c) => IF.exFirmBoard(c, { inv });
+      case "policy": return (c) => IF.exFirmPolicy(c, { inv });
+      case "fresh": return (c) => IF.exFirmFresh(c, { inv });
+    }
+  };
+  // Off the weekly rhythm: something that is wrong now is said once when it appears (and again only if it changes) instead of waiting for its
+  // weekday — a banned holding, a ledger the replay could not apply, a rule a person judged tripped. The weekly review of the same kind, when
+  // it speaks, records the same signature, so the alert never repeats what the review just said.
+  const f = inv.firm;
+  const alertSig: Partial<Record<FirmReviewId, string>> = {};
+  if (f.compliance.heldBanned.length) alertSig.compliance = f.compliance.heldBanned.map((h) => h.ticker).sort().join(",");
+  if (f.ops && f.ops.problemCount) alertSig.ops = f.ops.problems.map((p) => `${p.kind}:${p.n}`).join(",");
+  if (f.diligence.tripped.length) alertSig.diligence = f.diligence.tripped.map((t) => `${t.ticker}@${t.judgedAt}`).join(",");
+  const alertTopic = (id: FirmReviewId) => `invest:firm-alert:${id}`;
+  const today = firmDay(day);
+  today.reviews.forEach((id, k) => {
+    const topic = `invest:firm:${id}:${day}`;
+    const from = (trading ? FIRM_FROM_MIN.trading : FIRM_FROM_MIN.rest)[k] ?? FIRM_FROM_MIN.trading[1];
+    if (m < from || st.topicAt[topic] != null) return;
+    const sig = alertSig[id];
+    out.push({
+      id: `invest|firm|${id}|${day}`,
+      kind: "invest",
+      topic,
+      urgency: 0,
+      prio: 3 - Math.min(k, 1),
+      at: now,
+      label: FIRM_LABEL[id],
+      build: build(id),
+      commit: (s) => {
+        if (sig) {
+          s.topicSig[alertTopic(id)] = sig;
+          s.topicAt[alertTopic(id)] = now;
+        }
+      },
+    });
+  });
+  for (const id of ["compliance", "ops", "diligence"] as const) {
+    const sig = alertSig[id];
+    const topic = alertTopic(id);
+    const weeklyPending = today.reviews.includes(id) && st.topicAt[`invest:firm:${id}:${day}`] == null;
+    if (!sig || weeklyPending || m < (trading ? 11 * 60 + 30 : 10 * 60)) continue;
+    if (st.topicAt[topic] != null && st.topicSig[topic] === sig) continue;
+    out.push({
+      id: `invest|firm|alert|${id}|${day}`,
+      kind: "invest",
+      topic,
+      urgency: 0,
+      prio: 3,
+      at: now,
+      label: `${FIRM_LABEL[id]} · off the weekly rhythm`,
+      build: build(id),
+      commit: (s) => {
+        s.topicSig[topic] = sig;
+      },
+    });
+  }
+  // The data's age: a fixed topic, not a day-keyed one, so it is not said every day while the same snapshot stays old.
+  const fresh = inv.firm.fresh;
+  if (fresh.stale && fresh.stalest && m >= (trading ? FIRM_FRESH_FROM_MIN.trading : FIRM_FRESH_FROM_MIN.rest)) {
+    const fTopic = "invest:firm-fresh";
+    const sig = `${fresh.stalest.id}|${fresh.stalest.asOf}`;
+    if (st.topicAt[fTopic] == null || st.topicSig[fTopic] !== sig || now - st.topicAt[fTopic]! >= FIRM_FRESH_REPEAT_MS) {
+      out.push({
+        id: `invest|firm|fresh|${day}`,
+        kind: "invest",
+        topic: fTopic,
+        urgency: 0,
+        prio: 2,
+        at: now,
+        label: FIRM_LABEL.fresh,
+        build: build("fresh"),
+        commit: (s) => {
+          s.topicSig[fTopic] = sig;
+        },
+      });
+    }
+  }
 }
 
 /* ── Heartbeats ────────────────────────────────────────────────────────── */
@@ -1554,27 +1680,32 @@ function heartbeats(w: TalkWorld, st: TalkState): Hb[] {
     }
     const study = studyOf(w);
     const studyW = w.clock.isWeekday ? 1.45 : 1.7;
-    out.push({
-      id: "study:invest",
-      weight: studyW,
-      sig: `${w.clock.etDate}|${study.bucket}|${study.theme?.name ?? ""}|${study.watch.map((n) => n.ticker).join(",")}|${Math.round(study.book?.waitingUsd ?? 0)}|${study.book?.nextTicker ?? ""}|${study.catalyst?.ticker ?? ""}`,
-      build: (c) => IV.exStudyInvest(c, study),
-    });
-    if (study.hits.length) {
+    // The investment wing's study passes keep out of the futures book's morning like the rest of the office (investCands): `optionsOpen`
+    // only starts at 09:30, so 09:25 to 09:30 on a trading day was open to them before this guard.
+    const invQuiet = w.clock.isWeekday && !w.clock.holiday && w.clock.etMin >= INV_LIVE_FROM_MIN && w.clock.etMin < INV_LIVE_TO_MIN;
+    if (!invQuiet) {
       out.push({
-        id: "study:watch",
+        id: "study:invest",
         weight: studyW,
-        sig: study.hits.map((h) => h.title).join("|"),
-        build: (c) => IV.exStudyWatchNews(c, study),
+        sig: `${w.clock.etDate}|${study.bucket}|${study.theme?.name ?? ""}|${study.watch.map((n) => n.ticker).join(",")}|${Math.round(study.book?.waitingUsd ?? 0)}|${study.book?.nextTicker ?? ""}|${study.catalyst?.ticker ?? ""}`,
+        build: (c) => IV.exStudyInvest(c, study),
       });
-    }
-    if (study.outsiders.length) {
-      out.push({
-        id: "study:outsider",
-        weight: studyW - 0.05,
-        sig: study.outsiders.map((o) => `${o.ticker}|${o.title}`).join("|"),
-        build: (c) => IV.exStudyOutsider(c, study),
-      });
+      if (study.hits.length) {
+        out.push({
+          id: "study:watch",
+          weight: studyW,
+          sig: study.hits.map((h) => h.title).join("|"),
+          build: (c) => IV.exStudyWatchNews(c, study),
+        });
+      }
+      if (study.outsiders.length) {
+        out.push({
+          id: "study:outsider",
+          weight: studyW - 0.05,
+          sig: study.outsiders.map((o) => `${o.ticker}|${o.title}`).join("|"),
+          build: (c) => IV.exStudyOutsider(c, study),
+        });
+      }
     }
     out.push({
       id: "study:predict",
@@ -1678,7 +1809,7 @@ function rollDay(st: TalkState, w: TalkWorld) {
   // Day-scoped goal talk (the council, the re-plan, a call asked of the trader) starts over; the pace and the finals persist.
   st.goalSig = Object.fromEntries(Object.entries(st.goalSig).filter(([k]) => k === "pace" || k === "paceAt" || k.startsWith("final|") || k.startsWith("ladder|") || k.includes(w.clock.etDate)));
   // Day-keyed investment topics start over; the book's signature and each headline's seen-mark persist.
-  for (const k of Object.keys(st.topicAt)) if (/^invest:(funnel|theme|board|catalyst):/.test(k) && !k.includes(w.clock.etDate)) delete st.topicAt[k];
+  for (const k of Object.keys(st.topicAt)) if (/^invest:(funnel|theme|board|catalyst|firm):/.test(k) && !k.includes(w.clock.etDate)) delete st.topicAt[k];
   st.dayKey = w.clock.etDate;
 }
 

@@ -19,9 +19,10 @@
 
 import { BOOK_MEANINGFUL_USD } from "@/lib/invest/book";
 import type { Sleeve } from "@/lib/invest/universe";
-import { ANIM, type InvestCatalyst, type InvestLite, type InvestThemeLite, type Line, type NewsLite, type TalkMove } from "./live-types";
+import { ANIM, type InvestCatalyst, type InvestLite, type InvestThemeLite, type Line, type NewsLite, type TalkMove, type WatchKind } from "./live-types";
 import { clip, compact, line, NEUTRAL, pick, type Ctx, type Ex } from "./live-voices";
-import { boardAgenda, dayPhrase, freshCatalysts, themeOfTheDay, tierCoverage, whenPhrase } from "./invest-read";
+import { boardAgenda, dayPhrase, firmDay, FIRM_REVIEW_NAME, freshCatalysts, themeOfTheDay, tierCoverage, whenPhrase } from "./invest-read";
+import { INVEST_STUDY_MOVES } from "./live-voices-invest-firm";
 import type { StudyPack, StudyPredict } from "./off-hours-study";
 
 const AT = (spot: string): TalkMove => ({ zone: "ANNEX", spot });
@@ -247,10 +248,10 @@ export function exInvTheme(c: Ctx, d: { inv: InvestLite; theme: InvestThemeLite 
 
 /* ── A headline that touches a name in the book or a theme on the list ─── */
 
-export function exInvNews(c: Ctx, d: { inv: InvestLite; n: NewsLite; hit: { key: string; label: string; kind: "held" | "theme" | "competitor" } }): Ex | null {
+export function exInvNews(c: Ctx, d: { inv: InvestLite; n: NewsLite; hit: { key: string; label: string; kind: WatchKind } }): Ex | null {
   const f = c.f;
   const { n, hit } = d;
-  const touch = hit.kind === "held" ? `a name in the book, ${hit.label}` : hit.kind === "theme" ? `the ${hit.label} theme` : `${hit.label}, a competitor on the research list`;
+  const touch = hit.kind === "held" ? `a name in the book, ${hit.label}` : hit.kind === "theme" ? `the ${hit.label} theme` : hit.kind === "board" ? `${hit.label}, a name on the long board` : `${hit.label}, a competitor on the research list`;
   const lines: (Line | null)[] = [];
   lines.push(
     line(
@@ -268,7 +269,9 @@ export function exInvNews(c: Ctx, d: { inv: InvestLite; n: NewsLite; hit: { key:
       ANIM.Vince.watch!,
       hit.kind === "held"
         ? pick(c, "inv-news-held", [() => "It's in the book, so the weekly kill-rule check reads it. A headline alone doesn't make a verdict."])
-        : pick(c, "inv-news-map", [() => "Context for the competitor map, not a signal. The dossier's kill rules are what a headline can move."]),
+        : hit.kind === "board"
+          ? pick(c, "inv-news-board", [() => "It's on the long board and not in the book, so it is context for the board's notes. The dossier's kill rules are what a headline can move."])
+          : pick(c, "inv-news-map", [() => "Context for the competitor map, not a signal. The dossier's kill rules are what a headline can move."]),
     ),
   );
   lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "inv-news-chair", [() => "Noted. Nothing changes today: long-term moves come from the dossier and the sweep, not from a headline."])));
@@ -304,6 +307,17 @@ export function exInvBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
         "Jax",
         ANIM.Jax.point!,
         pick(c, "inv-board-theme", [() => `Theme for the minutes: ${f.raw(t.name)}, ${t.tier} tier, evidence ${t.evidence}.`]),
+      ),
+    );
+  }
+  // The week's rhythm is part of the minutes: which standing review the calendar put on this day (the board TV draws the same list).
+  const standing = firmDay(inv.dayKey);
+  if (standing.reviews.length && inv.firm) {
+    lines.push(
+      line(
+        "Sterling",
+        ANIM.Sterling.tablet!,
+        pick(c, "inv-board-standing", [() => `The week's rhythm put ${standing.title.toLowerCase()} on today's calendar: ${standing.reviews.map((r) => FIRM_REVIEW_NAME[r]).join(", then ")}.`]),
       ),
     );
   }
@@ -354,9 +368,11 @@ export function exInvCatalysts(c: Ctx, d: { inv: InvestLite }): Ex | null {
       ANIM.Vince.watch!,
       lead.why === "held"
         ? pick(c, "inv-cat-held", [() => (lead.theme ? `We hold ${lead.ticker}, and it sits in the ${f.raw(lead.theme)} theme.` : `We hold ${lead.ticker}.`)])
-        : lead.why === "theme"
-          ? pick(c, "inv-cat-theme", [() => `${lead.ticker} is a vehicle in the ${f.raw(lead.theme ?? "research")} theme — we do not hold it.`])
-          : pick(c, "inv-cat-comp", [() => `${lead.ticker} competes in the ${f.raw(lead.theme ?? "research")} theme. Context for the map, not a position.`]),
+        : lead.why === "board"
+          ? pick(c, "inv-cat-board", [() => `${lead.ticker} is on the long board${lead.sleeve ? `, in the ${f.raw(lead.sleeve === "building" ? "buildings" : lead.sleeve)} sleeve` : ""} — we do not hold it.`])
+          : lead.why === "theme"
+            ? pick(c, "inv-cat-theme", [() => `${lead.ticker} is a vehicle in the ${f.raw(lead.theme ?? "research")} theme — we do not hold it.`])
+            : pick(c, "inv-cat-comp", [() => `${lead.ticker} competes in the ${f.raw(lead.theme ?? "research")} theme. Context for the map, not a position.`]),
     ),
   );
   lines.push(
@@ -451,7 +467,7 @@ export function exStudyInvest(c: Ctx, d: StudyPack): Ex | null {
   if (d.book) {
     const b = d.book;
     lines.push(
-      line("Nova", ANIM.Nova.write!, pick(c, "study.inv.book", [
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.inv.book", [
         () => b.nextTicker && b.nextUsd != null
           ? `${cash(f, b.sweptUsd)} has been swept, ${cash(f, b.waitingUsd)} is not bought yet. Next dollar on the ladder is ${b.nextTicker}, ${f.raw(b.nextSleeve ?? "the sleeve")}, ${cash(f, b.nextUsd)}.`
           : `${cash(f, b.sweptUsd)} swept, ${cash(f, b.waitingUsd)} waiting. ${f.int(b.positions)} ${b.positions === 1 ? "position" : "positions"} on the book, valued at cost.`,
@@ -460,7 +476,7 @@ export function exStudyInvest(c: Ctx, d: StudyPack): Ex | null {
     );
   } else {
     lines.push(
-      line("Nova", ANIM.Nova.write!, pick(c, "study.inv.nobook", [
+      line("Nova", ANIM.Nova.analyze!, pick(c, "study.inv.nobook", [
         () => `The live invest book is not in the room, so I will not quote a swept dollar.`,
       ])),
     );
@@ -480,7 +496,7 @@ export function exStudyInvest(c: Ctx, d: StudyPack): Ex | null {
     ])),
   );
   const out = compact(lines);
-  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+  return out.length >= 2 ? { lines: out, moves: INVEST_STUDY_MOVES } : null;
 }
 
 /** Headlines that name a company already on the long board or the office watch. */
@@ -521,7 +537,7 @@ export function exStudyWatchNews(c: Ctx, d: StudyPack): Ex | null {
     ])),
   );
   const out = compact(lines);
-  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+  return out.length >= 2 ? { lines: out, moves: INVEST_STUDY_MOVES } : null;
 }
 
 /** A company in the news that is not on the watchlist. Discuss it. Do not add it. */
@@ -570,7 +586,7 @@ export function exStudyOutsider(c: Ctx, d: StudyPack): Ex | null {
     ])),
   );
   const out = compact(lines);
-  return out.length >= 2 ? { lines: out, moves: STUDY_MOVES } : null;
+  return out.length >= 2 ? { lines: out, moves: INVEST_STUDY_MOVES } : null;
 }
 
 /** The prediction tab, and a headline only when it shares a subject with that market. Paper only. */
