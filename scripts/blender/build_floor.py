@@ -82,6 +82,10 @@ with open(LAYOUT_PATH) as fh:
 for _key in ("rooms", "walls", "furniture", "screens", "emissives"):
     LAYOUT[_key] = [i for i in LAYOUT.get(_key, []) if not i.get("procedural")]
 
+# The building's own edge. `bounds` is what walking and the camera may use, and it reaches past the building (the Mead Hall wing
+# east of the lounge is built at runtime); the exterior test, the base slab and the one-sided baseboards belong to the shell.
+SHELL = LAYOUT.get("shell") or LAYOUT["bounds"]
+
 FURN = LAYOUT["furniture"]
 SCREENS = LAYOUT["screens"]
 EMISSIVES = LAYOUT["emissives"]
@@ -580,7 +584,7 @@ def build_rooms():
         cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
         make_obj(r["id"], g, origin=(cx, -cz, 0.0))
     # a dark base slab under the whole plan so the cutaway reads as a model
-    (bx0, bx1), (bz0, bz1) = LAYOUT["bounds"]["x"], LAYOUT["bounds"]["z"]
+    (bx0, bx1), (bz0, bz1) = SHELL["x"], SHELL["z"]
     g = Geo()
     m = WALL_T / 2 + 0.02
     box(g, ((bx0 + bx1) / 2, -(bz0 + bz1) / 2, -0.085), (bx1 - bx0 + 2 * m, bz1 - bz0 + 2 * m, 0.15), "slab", 0.02)
@@ -598,7 +602,7 @@ def door_frame_at(u, c, horiz):
 
 
 def build_walls():
-    (bx0, bx1), (bz0, bz1) = LAYOUT["bounds"]["x"], LAYOUT["bounds"]["z"]
+    (bx0, bx1), (bz0, bz1) = SHELL["x"], SHELL["z"]
     t = WALL_T
     for wl in LAYOUT["walls"]:
         g = Geo()
@@ -663,16 +667,30 @@ def build_walls():
                     w_, h_ = s["size"]
                     ops.append((along - w_ / 2, along + w_ / 2, sy_ - h_ / 2, sy_ + h_ / 2))
             ops.sort()
+            # A door in a window wall (the lounge's east wall opens into the Mead Hall): a full-height opening, its own height
+            # from the wall's `doorH` (a hall doorway is taller than an office door), framed by jambs and a head.
+            door_h = min(H - 0.25, float(wl.get("doorH", DOOR_H)))
+            dops = [(d0, d1, 0.0, door_h) for d0, d1 in doors]
             cur = u0 - t / 2
-            for oa, ob_, ya, yb in ops:
-                wb(cur, oa, -0.01, H, -t / 2, t / 2, "wall")
-                wb(oa, ob_, -0.01, ya, -t / 2, t / 2, "wall")
+            for oa, ob_, ya, yb in sorted(ops + dops):
+                if oa > cur + 1e-6:
+                    wb(cur, oa, -0.01, H, -t / 2, t / 2, "wall")
+                if ya > 1e-6:
+                    wb(oa, ob_, -0.01, ya, -t / 2, t / 2, "wall")
                 wb(oa, ob_, yb, H, -t / 2, t / 2, "wall")
                 cur = ob_
             wb(cur, u1 + t / 2, -0.01, H, -t / 2, t / 2, "wall")
             sd = sides[0]
+            bb_spans = [(u0 + t / 2, u1 - t / 2)] if not doors else [(max(ua, u0 + t / 2), min(ub, u1 - t / 2)) for ua, ub in spans]
             for sd2 in sides:
-                wb(u0 + t / 2, u1 - t / 2, 0.0, 0.1, sd2 * t / 2, sd2 * (t / 2 + 0.014), "baseboard", 0.003)
+                for ba, bb in bb_spans:
+                    wb(ba, bb, 0.0, 0.1, sd2 * t / 2, sd2 * (t / 2 + 0.014), "baseboard", 0.003)
+            for d0, d1 in doors:
+                if not door_frame_at((d0 + d1) / 2, c, horiz):
+                    wb(d0, d0 + 0.05, 0.0, door_h + 0.05, -t / 2 - 0.01, t / 2 + 0.01, "alu", 0.004)
+                    wb(d1 - 0.05, d1, 0.0, door_h + 0.05, -t / 2 - 0.01, t / 2 + 0.01, "alu", 0.004)
+                wb(d0, d1, door_h, door_h + 0.05, -t / 2 - 0.01, t / 2 + 0.01, "alu", 0.004)
+                wb(d0, d1, 0.0, 0.006, -t / 2 + 0.01, t / 2 - 0.01, "alu")   # threshold strip
             fw = 0.055
             for oa, ob_, ya, yb in ops:
                 din, dout = sd * (t / 2 + 0.035), -sd * (t / 2 + 0.01)
