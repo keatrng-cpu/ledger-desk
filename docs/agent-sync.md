@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `e1d0fb0`. Fetched origin. Local main matches origin.
+HEAD `2c413e9`. Fetched origin. Local main matches origin.
 
 ## Since grok last looked
 
-Bookmark was `f1725f0`. 61 commit(s) landed after it.
-Bookmark after this run: `grok` → `e1d0fb0`.
+Bookmark was `e1d0fb0`. 2 commit(s) landed after it.
+Bookmark after this run: `grok` → `2c413e9`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `2c413e9` | 2026-10-10T20:30 | let a correct half and a same-bar raid complete the sequence | M .ai/locator.md, M CLAUDE.md, M docs/code-index.md, M src/components/desk/calibration-panel.tsx, M src/components/desk/setup-scanner.tsx, M src/lib/trading/conditions.ts, M src/lib/trading/detectors.ts, M src/lib/trading/draw.ts, M src/lib/trading/gate-tuning.ts, M src/lib/trading/ghost-book.ts, M src/lib/trading/scanner.ts, M src/lib/trading/smc-master.ts, M src/lib/trading/strategy-grade.ts, M src/lib/trading/veteran-brain.ts, M src/routes/index.tsx |
+| `54d1d21` | 2026-10-10T17:25 | agent-sync: bookmark grok at the study commit | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e1d0fb0` | 2026-10-10T17:25 | let the closed room study the long board and the prediction book | M .ai/locator.md, M docs/code-index.md, A scripts/verify-off-hours-study.mjs, M src/components/room/floor-screens.ts, M src/components/room/room-engine.ts, M src/data/floor-layout.json, M src/lib/room/agents.ts, M src/lib/room/live-talk.ts, M src/lib/room/live-types.ts, M src/lib/room/live-voices-invest.ts, M src/lib/room/live-voices.ts, M src/lib/room/live-world.ts, A src/lib/room/off-hours-study.ts, A src/lib/room/off-hours.ts |
 | `2bec8d3` | 2026-10-10T10:44 | floor: get the hair off the eyes, size the head to the body, stop the owner skating | M src/components/room/floor-proto-avatars.ts, M src/components/room/floor-scene.ts |
 | `2ad10c7` | 2026-10-09T23:36 | floor: bake the Manager's glass office, the swing TV, the ticker and the clocks | M public/floor/office.glb, M src/data/floor-layout.json |
@@ -26,8 +28,6 @@ Bookmark after this run: `grok` → `e1d0fb0`.
 | `6070c4c` | 2026-10-09T20:40 | split the surviving sweep across the long sleeves | M .ai/locator.md, A scripts/verify-funnel.mjs, M src/components/desk/invest-panel.tsx, A src/components/invest/funnel-card.tsx, A src/lib/invest/funnel.ts |
 | `e96f5ac` | 2026-10-09T20:33 | make the Invest tab readable: filter the board, fold the fine print | M src/components/desk/invest-panel.tsx, M src/components/invest/long-board.tsx, M src/components/invest/research-card.tsx, M src/components/invest/screen-table.tsx |
 | `a783d08` | 2026-10-09T20:32 | add a long board to the Invest tab that ranks and does not buy | M .ai/locator.md, A scripts/verify-long-board.mjs, M src/components/desk/invest-panel.tsx, A src/components/invest/long-board.tsx, M src/components/room/invest-office-panel.tsx, A src/lib/invest/long-board.ts, M src/lib/invest/marks.ts |
-| `736985a` | 2026-10-09T12:38 | Merge remote-tracking branch 'origin/main' | — |
-| `5c46f3f` | 2026-10-09T12:38 | route the desk to its own connectors without being asked | A .claude/skills/desk-data/SKILL.md, M CLAUDE.md |
 
 ## New files in those commits
 
@@ -40,7 +40,6 @@ Bookmark after this run: `grok` → `e1d0fb0`.
 - `scripts/verify-long-board.mjs` in `a783d08`
 - `src/components/invest/long-board.tsx` in `a783d08`
 - `src/lib/invest/long-board.ts` in `a783d08`
-- `.claude/skills/desk-data/SKILL.md` in `5c46f3f`
 
 ## Before you edit
 
