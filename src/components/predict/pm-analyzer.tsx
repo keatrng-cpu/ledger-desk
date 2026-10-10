@@ -42,6 +42,7 @@ import { MeadScene, type Reaction, type TicketSide } from "@/components/mead/mea
 import { MEAD, categoryLabel, eventLabel } from "@/components/mead/mead-screens";
 import { createSignalHallFeed, crowdLabel, EMPTY_FEED, hallExtrasFrom, signalToHallMarket, type HallFeedState, type SignalHallFeed } from "@/components/mead/mead-signal-feed";
 import { readHallRecord } from "@/components/mead/mead-record";
+import { openFloorAt } from "@/components/room/floor-link";
 import { PredictTab } from "./predict-tab";
 
 const BTN =
@@ -421,6 +422,9 @@ export default function PmAnalyzer() {
           {b ? `${b.signals.length} markets · A${b.counts.A} B${b.counts.B} C${b.counts.C} D${b.counts.D} F${b.counts.F} · ${b.ungraded} ${NO_GRADE_LABEL} · ${b.noEdgeCount} no edge read · ${modelCount} model inputs` : "—"}
           {b?.candles ? ` · candles ${b.candles.read}/${b.candles.tried}` : ""} · {clock(b?.asOf)}
         </span>
+        <button type="button" className={BTN} style={BTN_STYLE} onClick={() => openFloorAt("mead")} title="Open the Floor looking into the Mead Hall, where the five study this board">
+          <Camera className="h-3 w-3" /> The five in the hall
+        </button>
         <button type="button" className={BTN} style={BTN_STYLE} onClick={() => feed?.refresh()} title="Re-read the signal board">
           <RefreshCw className="h-3 w-3" /> Refresh
         </button>

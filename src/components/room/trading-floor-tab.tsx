@@ -16,6 +16,7 @@ import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orch
 import { ROOM_DEFAULT_CASH } from "@/lib/room/paper-book";
 import { FloorScene, LAYOUT, PLACES, type CameraPreset, type FloorEvent } from "./floor-scene";
 import { useMeadFloorFeed } from "./use-mead-feed";
+import { takeFloorCamera } from "./floor-link";
 import { RacePanel } from "./race-panel";
 import { InvestOfficePanel } from "./invest-office-panel";
 import { BED_LAYERS, FloorSound, loadBedMutes, loadSoundPref, saveSoundPref, type BedLayer } from "./floor-sound";
@@ -1414,7 +1415,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const book = useRoomStore((s) => s.book);
   const reset = useRoomStore((s) => s.reset);
   const backup = useRoomStore((s) => s.backup);
-  const [camera, setCamera] = useState<CameraPreset>("auto");
+  // Another tab (the Predict analyzer) can ask the Floor to open looking into the Mead Hall.
+  const [camera, setCamera] = useState<CameraPreset>(() => (takeFloorCamera() as CameraPreset | null) ?? "auto");
   const [speaker, setSpeaker] = useState<{ i: number; line: DialogueLine | null }>({ i: -1, line: null });
   const [selected, setSelected] = useState<Character | null>(null);
   // Navigation: who the camera is riding with, and what it flew to (a screen, a bank of monitors).
