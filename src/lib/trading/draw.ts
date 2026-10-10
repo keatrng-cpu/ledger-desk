@@ -117,9 +117,9 @@ export function empiricalReachRate(samples: number[], distance: number): number 
 }
 
 const KIND_WEIGHT: Record<string, number> = {
-  weekly: 0.95,
-  prior: 0.9,
-  external: 0.92,
+  weekly: 0.98,
+  prior: 0.96,
+  external: 0.97,
   pool: 0.85,
   session: 0.55,
   range: 0.5,

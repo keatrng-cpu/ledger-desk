@@ -455,10 +455,14 @@ export function pathBand(opts: {
   htfOk: boolean;
 }): PathBand {
   if (!opts.complete) {
+    // Near-complete can be B+ (one contract) once HTF agrees and the fit is
+    // within 0.05 of the floor. It does NOT become A−. A− is live 1% size
+    // and an incomplete template has not earned that. Claude can promote it
+    // only after a sweep shows the extra band pays.
     if (
       opts.nearComplete &&
       opts.htfOk &&
-      opts.quality >= PROFIT_ACTION_FLOOR - 0.03
+      opts.quality >= PROFIT_ACTION_FLOOR - 0.05
     ) {
       return "B+";
     }

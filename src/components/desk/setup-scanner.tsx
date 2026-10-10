@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { APLUS_RULES } from "@/lib/aplus/config";
-import { compareForBoard, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
+import { boardRank, type ScanResult, type SetupCandidate } from "@/lib/trading/scanner";
 import { cardRisk, cardSizeRefusal } from "@/lib/trading/card-plan";
 import { cardEvidence, qBucket } from "@/lib/trading/evidence";
 import { FitGauge } from "@/components/desk/viz/fit-gauge";
@@ -40,6 +40,7 @@ import {
   subscribeGhosts,
   type GhostTrade,
 } from "@/lib/trading/ghost-book";
+import { census, loadCensus } from "@/lib/trading/take-census";
 import { anticipate } from "@/lib/trading/setup-anticipation";
 import { monthContractLine } from "@/lib/trading/month-contract";
 import { sequenceFor, type SequenceCard } from "@/lib/trading/pb-entries";
@@ -146,7 +147,13 @@ export interface CardSequence {
   /** The entry array's edges, from the priced plan. */
   zone: { top: number; bottom: number } | null;
   /** smc-master's dealing range, for the EQ mark and the premium/discount tint. */
-  dealing?: { high: number; low: number; eq: number } | null;
+  dealing?: {
+    high: number;
+    low: number;
+    eq: number;
+    zone?: "premium" | "discount" | "equilibrium";
+    source?: "window" | "impulse";
+  } | null;
   /**
    * The priced plan. Entry and stop are drawn only when it exists; the zone
    * and T1 are what `card-freshness.ts` needs to tell a LIVE card from one
@@ -172,6 +179,8 @@ export interface CardSequence {
   mustPass: number;
   mustNeed: number;
   states: Record<string, "pass" | "wait" | "fail">;
+  /** The first must-layer that is not passing, when the sequence is not TAKE. */
+  gap?: { id: string; label: string; detail: string; open: number } | null;
 }
 
 /**
@@ -363,6 +372,7 @@ function BlockerStrip({
   // killzone" described the old clock rule and hid how close an event was.
   if (!c.killzoneOk) blocks.push(`session closed — ${sessionReason || "no killzone and no tape event"}`);
   if (!entryAllowed) blocks.push(entryBlockedReason || "risk governor");
+  for (const v of c.vetoes ?? []) blocks.push(`size note — ${v}`);
   if (!blocks.length) return null;
 
   return (
@@ -791,8 +801,9 @@ function SetupCard({
    * then is the stop and the target, which is what the ghost banner carries.
    */
   /** smc-master's word for THIS side, or null when it has no read on it. */
+  const seqForSide = tape?.sequence ?? null;
   const seqWord =
-    tape?.sequence && tape.sequence.side === c.side ? tape.sequence.word : null;
+    seqForSide && seqForSide.side === c.side ? seqForSide.word : null;
 
   const inPlay = ghost?.status === "filled";
   const spent = !inPlay && freshness != null && freshness.state !== "live";
@@ -983,6 +994,15 @@ function SetupCard({
             <div className="mt-1.5 flex flex-wrap items-center gap-1">
               {canon && <CanonBadge stack={canon} />}
               {discretion && <DiscretionBadge d={discretion} />}
+              {canon &&
+                (() => {
+                  const miss = canon.factors.find((f) => f.must && !f.pass);
+                  return miss ? (
+                    <span className="basis-full text-[10px] leading-snug text-[var(--color-down)]">
+                      Open must — {miss.label}: {miss.detail}
+                    </span>
+                  ) : null;
+                })()}
             </div>
           )}
         </div>
@@ -1034,6 +1054,35 @@ function SetupCard({
           {pb.enter ? ` ${monthContractLine(2000)}` : ""}
         </p>
       </div>
+
+      {seqForSide?.gap && seqWord !== "TAKE" && (
+        <div className="mb-2 rounded-[var(--radius-sm)] border border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-warn)_8%,transparent)] px-2.5 py-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-warn)]">
+            {seqForSide.gap.open === 1 ? "Almost — one layer open" : `${seqForSide.gap.open} layers open`}
+            {" · "}
+            {seqForSide.mustPass}/{seqForSide.mustNeed}
+          </p>
+          <p className="mt-0.5 text-[11px] leading-snug text-[var(--color-fg)]">
+            {seqForSide.gap.label}: {seqForSide.gap.detail}
+          </p>
+        </div>
+      )}
+      {seqForSide?.dealing?.zone && seqForSide.side === c.side && (
+        <p className="mb-2 font-mono text-[10px] text-[var(--color-subtle)]">
+          Half · {seqForSide.dealing.zone} on the {seqForSide.dealing.source ?? "window"} range · EQ{" "}
+          {seqForSide.dealing.eq.toFixed(2)}
+        </p>
+      )}
+      {seqForSide && seqForSide.side && seqForSide.side !== c.side && (
+        <p className="mb-2 text-[10px] text-[var(--color-warn)]">
+          Compose split — the sequence is grading {seqForSide.side.toUpperCase()}, this card is {c.side.toUpperCase()}.
+        </p>
+      )}
+      {seqWord === "TAKE" && c.htfOk && seqForSide?.side === c.side && (
+        <p className="mb-2 text-[10px] text-[var(--color-up)]">
+          Composed — scanner, sequence, and HTF on {c.side}.
+        </p>
+      )}
 
       <div className="mb-2 flex flex-wrap gap-1.5" aria-label="What each school makes of this card">
         {schools.map((r) => (
@@ -1770,28 +1819,41 @@ export function SetupScanner({
    * pattern as sizeContracts' discretionMult clamp.
    */
   /**
-   * The board order: what can be TRADED first, never the fit score.
-   *
-   * This used to re-sort by Q plus a canon bonus, silently undoing
-   * scanner.ts `compareForBoard` (HTF, then actionable) — so the top card
-   * was the highest-Q card, which is the measured-worst direction bucket.
-   * Now: takeable first, then the sequence's word for that side, then
-   * whether anything that sizes would refuse. Q only breaks exact ties
-   * inside compareForBoard.
+   * The board order: what can be traded first, then expected R (plus a small
+   * memory boost, SMT-leader bump, and external-draw bump). The sequence
+   * word breaks the rest. Fit is not the sort.
    */
   const wordRank = (c: SetupCandidate) => {
     const seq = tape?.[c.symbol]?.sequence;
     const w = seq && seq.side === c.side ? seq.word : null;
     return w === "TAKE" ? 2 : w === "WAIT" ? 1 : 0;
   };
+  const edge = (c: SetupCandidate) => {
+    const priced = c.hitOdds?.expRPerCard;
+    const id = c.completeStrategy || c.strategyPrimary || "";
+    const boost = boosts[id]?.boost ?? 0;
+    const led = c.smtLevel?.led === true ? 0.03 : 0;
+    const erl =
+      c.draw && (c.draw.kind === "external" || c.draw.kind === "weekly" || c.draw.kind === "prior")
+        ? 0.02
+        : 0;
+    return (priced ?? c.confluence * 0.05) + boost + led + erl;
+  };
   const display = [...guided]
     .sort(
       (a, b) =>
-        compareForBoard(a.c, b.c) ||
+        boardRank(b.c) - boardRank(a.c) ||
+        edge(b.c) - edge(a.c) ||
         wordRank(b.c) - wordRank(a.c) ||
         Number(cardSizeRefusal(a.c) != null) - Number(cardSizeRefusal(b.c) != null),
     )
     .map((g) => g.c);
+  const pace = useMemo(() => {
+    const read = census(loadCensus());
+    const top = read.byLayer[0];
+    const month = `${APLUS_RULES.targetTradesPerMonth.min}–${APLUS_RULES.targetTradesPerMonth.max}/mo`;
+    return `${read.line} Target ${month}.${top ? ` Top wait: ${top.layer} (${Math.round(top.share * 100)}% of non-takes).` : ""}`;
+  }, [scan]);
   const guidedById = new Map(guided.map((g) => [g.c.id, g]));
 
   return (
@@ -1802,8 +1864,14 @@ export function SetupScanner({
             2 · Active setup scanner
           </h2>
           <p className="text-xs text-[var(--color-subtle)]">
-            Execute A+/A/A−/B+ · the score sizes, it does not vote · floor {scan.floor} · ordered by what can be traded, never by fit score
+            Execute A+/A/A−/B+ · the score sizes, it does not vote · floor {scan.floor} · ordered by what can be traded, then expected R
           </p>
+          <p className="mt-1 max-w-3xl text-[11px] leading-snug text-[var(--color-muted)]">{pace}</p>
+          {clock && !clock.inTradeWindow && (
+            <p className="mt-1 text-[11px] text-[var(--color-subtle)]">
+              Outside the NY window — this scanner does not seed Asia entries. The overnight board owns the hold.
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button

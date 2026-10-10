@@ -28,7 +28,7 @@ import {
   consequentEncroachment,
   retracementRatio,
 } from "./fib";
-import { GATE } from "./gate-tuning";
+import { GATE, preferZone } from "./gate-tuning";
 import { biasDisrespect } from "./htf-invalidation";
 import { cisdThroughSeries, extensionAllows, pairedDisplacement, polaritySweep } from "./raid-pair";
 import { readLtfReaction } from "./ltf-reaction";
@@ -446,7 +446,7 @@ function impulseZone(
   direction: "bull" | "bear",
   lastClose: number,
 ): "premium" | "discount" | "equilibrium" | null {
-  if (GATE.dealingRange !== "impulse" || bars.length < 20) return null;
+  if ((GATE.dealingRange !== "impulse" && GATE.dealingRange !== "hybrid") || bars.length < 20) return null;
   const raid = polaritySweep(bars, direction);
   if (!raid) return null;
   const leg = buildImpulseLeg(bars, direction, {
@@ -705,7 +705,8 @@ function scoreDirection(
   );
 
   const lastClose = bars.length ? bars[bars.length - 1]!.c : read.last ?? Number.NaN;
-  const half = impulseZone(bars, direction, lastClose) ?? read.dealing?.zone ?? null;
+  const impulseHalf = impulseZone(bars, direction, lastClose);
+  const half = preferZone(side, impulseHalf, read.dealing?.zone ?? null);
   const pdOk =
     (direction === "bull" && half === "discount") ||
     (direction === "bear" && half === "premium");
@@ -1053,10 +1054,16 @@ function scoreDirection(
     : null;
   const gapInThisHour = gapEt != null && Math.floor(gapEt / 60) === Math.floor(etMin / 60);
   const silverOk = !silverHour || gapInThisHour;
-  let entryPx = ce;
+  const oteEntry =
+    overlap && oteRead
+      ? oteRead.optimal >= overlap.low && oteRead.optimal <= overlap.high
+        ? oteRead.optimal
+        : overlap.mid
+      : null;
+  let entryPx = oteEntry ?? ce;
   let entryZone =
     ce != null && gap && near != null && far != null
-      ? `near ${near.toFixed(2)} · CE ${ce.toFixed(2)} · far ${far.toFixed(2)}${bodyClose != null ? ` · close ${bodyClose.toFixed(2)}` : ""}`
+      ? `${oteEntry != null ? `OTE ${oteEntry.toFixed(2)} · ` : ""}near ${near.toFixed(2)} · CE ${ce.toFixed(2)} · far ${far.toFixed(2)}${bodyClose != null ? ` · close ${bodyClose.toFixed(2)}` : ""}`
       : "await the array this displacement left";
   if (!silverOk) {
     entryPx = null;
