@@ -24,6 +24,7 @@ import {
   HALL_DOOR_H,
   HALL_ROOM,
   HALL_SCREENS,
+  FLOOR_OVERVIEW,
   HALL_SPOTS,
   boxToFurniture,
   hallCameraToFloor,
@@ -112,6 +113,11 @@ export function buildMeadPlan(text) {
   patchSection("screens", "[", "]", idArr, screens);
   patchSection("spots", "{", "}", idObj, spots);
   patchSection("camera", "{", "}", idObj, cameras);
+
+  // the Floor's default camera takes in the wing too
+  const oi = lines.findIndex((l) => /^\s*"overview":\s*\{/.test(l));
+  if (oi < 0) throw new Error("overview camera not found");
+  lines[oi] = lines[oi].replace(/"overview":\s*\{[^}]*\}/, `"overview": { "pos": ${arr(FLOOR_OVERVIEW.pos)}, "target": ${arr(FLOOR_OVERVIEW.target)} }`);
 
   // bounds + shell
   const bi = lines.findIndex((l) => l.startsWith('  "bounds":'));

@@ -146,6 +146,9 @@ export const HALL_CAMERAS: Record<string, HallCamera> = {
   aerial: { pos: [4, 13.5, 19], target: [0, 0, 2] },
 };
 
+/** The Floor's default camera, refitted to take in the building AND the wing east of it (the old one stopped at the lounge's east wall). */
+export const FLOOR_OVERVIEW: HallCamera = { pos: [23, 24, 30], target: [7, 0.2, 0.5] };
+
 export const hallCameraToFloor = (c: HallCamera): HallCamera => {
   const [px, pz] = hallToFloor(c.pos[0], c.pos[2]);
   const [tx, tz] = hallToFloor(c.target[0], c.target[2]);
