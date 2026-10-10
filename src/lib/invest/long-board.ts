@@ -138,8 +138,8 @@ export function gradeLongCard(
   else if (dossier.kind === "company" && (!fund || fund.pendingCapture)) waits.push("No captured fundamentals row.");
   if (growth.demand === "heroic") waits.push("Heroic implied growth. The price needs a decade the record has not delivered.");
   if (name.book === "growth" && fund && !fund.pendingCapture && quality.present < 2) waits.push("Quality legs missing. Return on capital or margin is blank.");
-  if ((name.sleeve === "power" || name.sleeve === "grid") && dur?.capexToOcf != null && dur.capexToOcf > 1) waits.push("Capex is above operating cash.");
-  if ((name.sleeve === "space" || name.sleeve === "fuel") && dur?.sharesCagr != null && dur.sharesCagr > 0.03) waits.push("Share count is rising.");
+  if ((name.sleeve === "power" || name.sleeve === "grid") && dur?.yahoo?.capexToOcf != null && dur.yahoo!.capexToOcf > 1) waits.push("Capex is above operating cash.");
+  if ((name.sleeve === "space" || name.sleeve === "fuel") && dur?.yahoo?.sharesCagr != null && dur.yahoo!.sharesCagr > 0.03) waits.push("Share count is rising.");
   if (COMPUTE_OVERLAP.has(name.ticker)) waits.push("Overlaps the options sleeve. Under the name cap, not the core.");
   const captured = fund?.asOf ?? snapshotCapturedAt();
   const age = ageDays(captured, today);
@@ -169,8 +169,8 @@ export function gradeLongCard(
     price,
     drawdown,
     trend,
-    capex: dur?.capexToOcf == null ? "capex —" : `capex / cash ${(dur.capexToOcf * 100).toFixed(0)}%`,
-    dilution: dur?.sharesCagr == null ? "share count —" : `shares ${(dur.sharesCagr * 100).toFixed(1)}%/yr`,
+    capex: dur?.yahoo?.capexToOcf == null ? "capex —" : `capex / cash ${(dur.yahoo!.capexToOcf * 100).toFixed(0)}%`,
+    dilution: dur?.yahoo?.sharesCagr == null ? "share count —" : `shares ${(dur.yahoo!.sharesCagr * 100).toFixed(1)}%/yr`,
     overlap: COMPUTE_OVERLAP.has(name.ticker) ? "same bet as the sleeve" : "not in the sleeve set",
     shares: one,
     source: `${name.source} · ${name.sourceDate}`,
