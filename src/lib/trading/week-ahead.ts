@@ -333,7 +333,128 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
   ],
 };
 
-const PLANS: WeekPlan[] = [WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
+/** Week of Oct 12 – Oct 16 2026. Columbus Day → CPI → PPI/retail → import prices. No NFP. */
+export const WEEK_OCT12_OCT16: WeekPlan = {
+  id: "2026-10-12",
+  weekLabel: "Oct 12 – Oct 16, 2026",
+  weekStart: "2026-10-12",
+  weekEnd: "2026-10-16",
+  headline:
+    "Holiday then CPI week. Cash closed Mon, post-holiday Tue, CPI Wed 8:30 + Beige Book 14:00, PPI/retail/claims Thu 8:30, import prices Fri 8:30. No NFP. Oct 28 FOMC next.",
+  htfBias:
+    "Prior week (Oct 5–9) tape already in the seed: NQ week high Tue 31,616.50 / low Thu 30,792.50; ES Tue 7,897.50 / Mon 7,760.25. Soft NFP and soft UMich already printed. Do not invent CWH/CWL.",
+  po3: "Mon holiday Globex is fake. Tue post-holiday range-build. Wed CPI manipulates. Thu PPI/retail distributes. Fri import prices is a medium close, not NFP.",
+  macro:
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep 54.9. Minutes Oct 7: most see another hike by year-end, no date. Oct 28 hike odds little changed after UMich: FedWatch ~17% +25 / >80% hold (Kalshi ~15–16%). CPI Sep Wed Oct 14 8:30 (BLS). Consensus cluster ~0.6% m/m / 3.6% y/y headline; core ~0.2% / 2.5%. Beige Book 14:00. Thu PPI + Retail Sales + claims 8:30. Fri import/export prices 8:30 + IP 9:15. No official FedWatch restamp required yet.",
+  asymmetry:
+    "A+ into CPI. Flatten before 13:45 Wed if holding. blake_mech longs stay paper. PATH floor 0.65.",
+  nq: {
+    settle: 31110,
+    rangeLo: 30792.5,
+    rangeHi: 31616.5,
+    pwh: 31616.5,
+    pwl: 30792.5,
+    eq: 31204.5,
+    drawUp: "Prior-week 31,616.50 — only if tape is already there",
+    drawDown: "Prior-week 30,792.50 then next SSL",
+    note: "PWH/PWL = Oct 5–9 week (NQ high 31,616.50 Tue / low 30,792.50 Thu). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+  },
+  es: {
+    settle: 7863,
+    rangeLo: 7760.25,
+    rangeHi: 7897.5,
+    pwh: 7897.5,
+    pwl: 7760.25,
+    eq: 7828.88,
+    drawUp: "Prior-week 7,897.50",
+    drawDown: "Prior-week 7,760.25",
+    note: "PWH/PWL = Oct 5–9 ES week (7,897.50 Tue / 7,760.25 Mon). Live CWH/CWL from bars. No fake live prints.",
+  },
+  filters: [
+    "±15 min: CPI Wed 8:30 · Beige Book Wed 14:00 · PPI/retail/claims Thu 8:30 · import prices Fri 8:30",
+    "No entry 8:00–8:45 Wed or Thu",
+    "Flatten before 13:45 Wed. No multi-day swing into CPI.",
+    "Judas on. One book. PATH floor 0.65.",
+  ],
+  ops: [
+    "Mon cash closed — Globex fake, do not treat Asia as HTF",
+    "Tue post-holiday Judas, A+ until range is in",
+    "Wed stand 8:00–8:45; A+ only after 9:45; flatten before Beige Book if open",
+    "Thu 8:15–8:45 stand",
+    "Fri 8:15–8:45 stand",
+  ],
+  outcomes: [
+    { p: 40, name: "Hot CPI", detail: "October hike repricing. NQ-lead lower only after BSL raid + MSS. Do not fade the first CPI spike." },
+    { p: 35, name: "In-line CPI", detail: "Two-way inside last week's box. Stand unless A+. Beige Book is not a fresh tick before 14:00." },
+    { p: 25, name: "Soft CPI", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
+  ],
+  days: [
+    {
+      date: "2026-10-12",
+      weekday: "Mon",
+      dailyBias: "Holiday. Cash closed. Globex is not HTF.",
+      kind: "holiday",
+      news: [],
+      likelyTape: "Columbus Day. Cash closed. Prior week NQ 30,792.50–31,616.50 / ES 7,760.25–7,897.50 still the box. Do not invent a range from Asia.",
+      trade: "No cash entry. Do not treat Globex as the week's raid.",
+      skipIf: "Anything that looks like a clean high/low in thin Globex.",
+      pathNote: "PWH/PWL seed is last week. Next is Tue post-holiday.",
+    },
+    {
+      date: "2026-10-13",
+      weekday: "Tue",
+      dailyBias: "Post-holiday range-build. Not the week's raid.",
+      kind: "range_build",
+      news: [{ timeEt: "10:00", name: "Existing Home Sales (Sep)", impact: "medium", note: "NAR 10:00 ET. Consensus cluster ~3.96M vs Aug 3.98M. Not a PATH trigger. NFIB 6:00 is premarket." }],
+      likelyTape: "Post-holiday Judas inside last week's box: NQ PWH 31,616.50 / PWL 30,792.50; ES 7,897.50 / 7,760.25. Existing home sales is not the raid.",
+      trade: "Mechanical only if they sweep last week H/L with MSS. Do not chase the open.",
+      skipIf: "No raid of prior-week H/L. Chop, or already booked.",
+      pathNote: "Sunday inside-week story until CPI. Next is Wed CPI 8:30.",
+    },
+    {
+      date: "2026-10-14",
+      weekday: "Wed",
+      dailyBias: "CPI is the week's event. Do not fade the first 30 min.",
+      kind: "event",
+      news: [
+        { timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS official 8:30 ET. Consensus cluster ~0.6% m/m / 3.6% y/y headline; core ~0.2% / 2.5%. Hot core = October hike. Soft = squeeze." },
+        { timeEt: "14:00", name: "Beige Book", impact: "medium", note: "Fed official 14:00 ET. Not the blackout. Flatten before 13:45 if holding." },
+      ],
+      likelyTape: "CPI is the raid. Prior-week box still the reference. Do not invent a take of PWH/PWL before the print.",
+      trade: "Blackout 8:00–8:45. A+ only after 9:45 if MSS + IFVG. Do not short the first CPI spike. Flatten before Beige Book.",
+      skipIf: "No MSS + IFVG by 10:15. Already have a book. Anything open at 13:45.",
+      pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims 8:30.",
+    },
+    {
+      date: "2026-10-15",
+      weekday: "Thu",
+      dailyBias: "Post-CPI. Selective if the range is clean.",
+      kind: "selective",
+      news: [
+        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET. Prev 197k. Rarely trends the day." },
+        { timeEt: "08:30", name: "PPI (Sep)", impact: "high", note: "BLS 8:30 ET. Consensus cluster ~0.5% m/m headline. Not NFP." },
+        { timeEt: "08:30", name: "Retail Sales (Sep)", impact: "high", note: "Census 8:30 ET. Consensus cluster ~0.3% m/m vs Aug +1.2%. Control group is the tell." },
+      ],
+      likelyTape: "Prints done relative to CPI. Still inside or reacting to Wednesday's box. Do not invent a new HTF trend from the second impulse alone.",
+      trade: "Blackout 8:15–8:45. Mechanical only if MSS + IFVG already there after 9:45. Do not carry a loser into Friday.",
+      skipIf: "No MSS + IFVG. Chop, or already booked the week.",
+      pathNote: "PWH/PWL seed unchanged. Next is Fri import prices 8:30.",
+    },
+    {
+      date: "2026-10-16",
+      weekday: "Fri",
+      dailyBias: "Medium close. Not NFP. Flatten into the weekend.",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "Import/Export Price Indexes (Sep)", impact: "medium", note: "BLS 8:30 ET. Not NFP. IP 9:15 is not the blackout." }],
+      likelyTape: "Import prices is not the raid. Prior-week extremes still the reference unless CPI already took them.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Flatten into the weekend unless BE.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into next week.",
+      pathNote: "PWH/PWL seed unchanged. Next hard print is housing next week then Oct 28 FOMC.",
+    },
+  ],
+};
+
+const PLANS: WeekPlan[] = [WEEK_OCT12_OCT16, WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
@@ -477,3 +598,4 @@ export function overlayWeekAhead(
   const next = nextPlan.days.find((d) => d.date > read.dateKey) ?? null;
   return { ...read, plan: nextPlan, today, next, focus: today ?? next, live: Boolean(nq.live || es.live), refreshedAt: now.toISOString() };
 }
+
