@@ -1741,7 +1741,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </button>
         </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
-        <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8" aria-live="polite" aria-atomic="true" data-testid="floor-caption">
           {speaker.line ? (
             <p className="text-[13px] leading-snug text-white">
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
@@ -1751,7 +1751,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               {speaker.line.text}
             </p>
           ) : (
-            <p className="text-[12px] text-slate-400">{frame ? "Watching the tape…" : "Building the floor…"}</p>
+            <p className="text-[12px] text-slate-400">{frame ? (frame.screens.plan ? `Quiet · plan ${frame.screens.plan.symbol} CE ${fmtPx(frame.screens.plan.entry)} · ${etTime(Date.now()).slice(0, 5)} ET` : `Quiet · no priced plan · ${etTime(Date.now()).slice(0, 5)} ET`) : "Building the floor…"}</p>
           )}
         </div>
         <TickerCrawl desk={desk} frame={frame} entry={entry} />

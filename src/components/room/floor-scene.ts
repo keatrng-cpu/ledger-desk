@@ -1838,6 +1838,37 @@ export class FloorScene {
   private queue: TalkBatch[] = [];
   /** floor-62 #15: adaptive quality — EMA of frame rate and the step-down level reached (0 full, 1 no shadows, 2 DPR 1). */
   private fpsEma = 60;
+  /** floor-62 #13: screen meshes that fade out of the speaker's sightline. */
+  private readonly fadeMeshes: THREE.Mesh[] = [];
+  private readonly fadeRay = new THREE.Raycaster();
+  private fadeHits = new Set<THREE.Mesh>();
+  private fadeClock = 0;
+  private fadeOccluders(dt: number) {
+    this.fadeClock += dt;
+    if (this.fadeClock >= 0.2) {
+      this.fadeClock = 0;
+      this.fadeHits = new Set();
+      const sp = [...this.avatars.values()].find((a) => a.speaking);
+      if (sp && this.fadeMeshes.length) {
+        const head = new THREE.Vector3(sp.pos[0], sp.height * 0.9, sp.pos[1]);
+        const cam = this.camera.position.clone();
+        const dir = head.clone().sub(cam);
+        const far = dir.length();
+        this.fadeRay.set(cam, dir.normalize());
+        this.fadeRay.far = Math.max(0, far - 0.3);
+        for (const h of this.fadeRay.intersectObjects(this.fadeMeshes, false)) this.fadeHits.add(h.object as THREE.Mesh);
+      }
+    }
+    const k = 1 - Math.exp(-8 * dt);
+    for (const m of this.fadeMeshes) {
+      const mat = m.material as THREE.MeshBasicMaterial;
+      const want = this.fadeHits.has(m) ? 0.22 : 1;
+      if (Math.abs(mat.opacity - want) > 0.005) {
+        mat.opacity += (want - mat.opacity) * k;
+        mat.depthWrite = mat.opacity > 0.95;
+      }
+    }
+  }
   private lowSince = 0;
   private qualityLevel = 0;
   /** floor-62 #14: prefers-reduced-motion — no pacing, no ambient camera drift. */
@@ -2379,9 +2410,12 @@ export class FloorScene {
         polygonOffsetFactor: -2,
         polygonOffsetUnits: -2,
       });
+      // floor-62 #13/#54: screens can fade when they stand between the camera and whoever is speaking.
+      mat.transparent = true;
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh) {
+          this.fadeMeshes.push(m);
           m.material = mat;
           m.castShadow = false;
           m.receiveShadow = false;
@@ -3058,6 +3092,7 @@ export class FloorScene {
 
   private tick(dt: number) {
     const t = this.time;
+    this.fadeOccluders(dt);
     // The meeting, one line at a time.
     const wall = this.wallSec();
     if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
