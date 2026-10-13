@@ -113,6 +113,8 @@ export interface DeskWire {
     legs: number | null;
     /** Fix 36: add-on at the second LTF gap after a reversal confirms. */
     addOn: { tf: string; entry: number; zone: { top: number; bottom: number } } | null;
+    /** Fixes 1–4, 6, 9–15, 21, 22 (day-context.ts); macroRisk always null (fix 5, no feed). */
+    context: Record<string, unknown> | null;
     /** Fix 16–18. */
     exitPlan: { trailRule: string; trailPx: number | null; timeStopBars: number; timeStopTf: string; killExit: boolean; killWhy: string | null } | null;
     /** Which plan target `target` is (T1 unless T1 < 1R and T2 clears it). */
@@ -261,6 +263,16 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           setups: (top as { setups?: string[] }).setups ?? [],
           legs: (top as { legs?: number }).legs ?? null,
           addOn: (top as { addOn?: DeskWireAddOn }).addOn ?? null,
+          context: (() => {
+            const dc = (top as { dayCtx?: Record<string, unknown> }).dayCtx ?? null;
+            if (!dc) return null;
+            // ladder from the FINAL plan zone (plans can attach after the context pass)
+            const z = (top.plan as { entryZone?: { top: number; bottom: number } } | null | undefined)?.entryZone;
+            const ladder = z && z.top > z.bottom
+              ? [{ px: top.side === "short" ? z.bottom : z.top, pct: 40 }, { px: +((z.top + z.bottom) / 2).toFixed(2), pct: 40 }, { px: top.side === "short" ? z.top : z.bottom, pct: 20 }]
+              : dc.ladder ?? null;
+            return { ...dc, ladder, macroNote: "DXY/10y: no real feed wired into the desk — null, not synthesized (fix 5)." };
+          })(),
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,

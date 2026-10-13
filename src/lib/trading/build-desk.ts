@@ -1,5 +1,7 @@
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
+import * as dayc from "@/lib/smc/day-context";
+import { rollingAtr as rollAtr } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { continuationPlan, planAt, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
@@ -1232,6 +1234,78 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         (c as { setups?: string[] }).setups = tags;
         if (tags.length) c.reasons.push(`Setups (${regime}): ${tags.join("; ")}`);
+      }
+      // Fixes 1–4, 6, 9–15, 21, 22: day/session context (day-context.ts).
+      // Nudges are summed per card and capped at ±0.06 so context refines a
+      // grade, never makes one. Every read is null without its bars.
+      const nowCtx = Date.now();
+      const dayRead = (isL: boolean) => {
+        const minute = (isL ? minuteL : minuteR) ?? [];
+        const daily = (isL ? dailyL : dailyR) ?? [];
+        const b15 = isL ? closedL : closedR;
+        const px = (isL ? lq : rq)?.price ?? null;
+        const m = minute.slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        return {
+          minute: m, b5, px,
+          bias: dayc.dailyBias(daily, m, nowCtx),
+          pd: dayc.premiumDiscount(px, daily, b15, nowCtx),
+          seq: dayc.sessionSequence(m, nowCtx),
+          or: dayc.openingRange(m, nowCtx),
+          stopRun: dayc.stopRun(m),
+          blocks: dayc.blocks5m(b5),
+          trig: dayc.triggerTf(b15, rollAtr(b15)),
+        };
+      };
+      const dayL = dayRead(true), dayR = dayRead(false);
+      (payload as { dayContext?: unknown }).dayContext = {
+        left: { ...dayL, minute: undefined, b5: undefined }, right: { ...dayR, minute: undefined, b5: undefined },
+        macroRisk: null, macroNote: dayc.MACRO_RISK_NOTE,
+      };
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const d = isL ? dayL : dayR;
+        const side = c.side as "long" | "short";
+        const regime = setups.regimeOf(c);
+        let n = 0; const why: string[] = [];
+        const nudge = (v: number, w: string) => { n += v; why.push(`${v > 0 ? "+" : ""}${v.toFixed(2)} ${w}`); };
+        if (d.bias?.bias) nudge(d.bias.bias === side ? 0.02 : -0.02, `daily bias ${d.bias.bias} (${d.bias.why.join(", ")})`);
+        if (d.pd?.dailyZone && d.pd.h4Zone && d.pd.dailyZone === d.pd.h4Zone) {
+          const good = (side === "long") === (d.pd.dailyZone === "discount");
+          nudge(good ? 0.01 : -0.01, `${d.pd.dailyZone} on daily+4h`);
+        }
+        if (d.seq?.nyFavours) nudge(d.seq.nyFavours === side ? 0.02 : -0.01, `London swept ${d.seq.londonSwept} → NY ${d.seq.nyFavours}`);
+        const pair = dayc.pairAlignment(mtfContext.books.map((b) => b.align[side]?.score));
+        if (pair) { if (pair.score >= 0.67) nudge(0.02, `ES/NQ aligned ${pair.score}`); else if (pair.score <= 0.33) nudge(-0.02, `ES/NQ not aligned ${pair.score}`); }
+        if (d.or?.read && d.or.read.side === side) {
+          const fit = d.or.read.kind === "break" ? regime === "trend" : regime !== "trend";
+          if (fit) nudge(0.02, `opening range ${d.or.read.kind} ${side}`);
+        }
+        if (d.stopRun && d.stopRun.side === side) nudge(0.02, `1m stop-run at ${d.stopRun.level}`);
+        const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((x) => ({ name: x.name, price: x.price }));
+        const fs = dayc.failedSweep(d.b5, levels);
+        if (fs) {
+          if (fs.side !== side && c.setupRegime === "reversal") nudge(-0.03, `${fs.name} ${fs.level}: 2 5m closes beyond — breakout, not a sweep`);
+          else if (fs.side === side) why.push(`breakout through ${fs.name} ${fs.level}`);
+        }
+        const zone = (c.plan as { entryZone?: { top: number; bottom: number } } | null | undefined)?.entryZone ?? null;
+        const want = side === "long" ? "bull" : "bear";
+        const ob = zone ? d.blocks.find((b) => (b.kind === "ob" || b.kind === "breaker") && b.dir === want && dayc.overlaps(b, zone)) : undefined;
+        if (ob) nudge(0.02, `${ob.kind} overlaps the entry gap`);
+        const sw5 = mtfContext.books.find((b) => b.symbol === c.symbol)?.rungs.find((r) => r.tf === "5m")?.sweep;
+        const dec = dayc.ageDecay(sw5?.ageBars);
+        if (dec) nudge(dec, `sweep is ${sw5!.ageBars} 5m bars old`);
+        const qs = dayc.qSpread(c.strategyBoard as never);
+        if (qs && qs.agree >= 3) nudge(0.01, `${qs.agree}/${qs.n} strategies within 0.05 of the best`);
+        const total = Math.max(-0.06, Math.min(0.06, n));
+        if (total) c.confluence = +Math.max(0, Math.min(0.99, c.confluence + total)).toFixed(4);
+        (c as { dayCtx?: unknown }).dayCtx = {
+          nudge: +total.toFixed(3), why, dailyBias: d.bias?.bias ?? null, pd: d.pd, sessionSeq: d.seq, pair,
+          openingRange: d.or ? { high: d.or.high, low: d.or.low, read: d.or.read, sd: d.or.sd } : null,
+          stopRun: d.stopRun, breakout: fs, ladder: dayc.entryLadder(side, zone), obFvg: Boolean(ob),
+          triggerTf: d.trig, ageDecay: dec, qSpread: qs, macroRisk: null, blocks: d.blocks.slice(-8),
+        };
+        if (why.length) c.reasons.push(`Day context (${total >= 0 ? "+" : ""}${total.toFixed(2)}): ${why.join("; ")}`);
       }
       // Fix 31: displacement ≥ 0.6 plus a BOS/CHoCH out of the range on 3m/5m
       // in this side's direction clears chop (the range resolved).
