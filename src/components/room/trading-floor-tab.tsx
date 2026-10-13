@@ -9,6 +9,7 @@
  */
 
 import { kzSeatNote } from "@/lib/desk/kz-disp";
+import { planGeometry, RULES_HASH } from "@/lib/room/floor-discipline";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Copy, Expand, Footprints, RotateCcw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
@@ -1220,6 +1221,15 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
           <p className="mb-1 font-mono text-[11px] text-slate-300">
             {p.symbol} {p.side.toUpperCase()}
           </p>
+          {(() => {
+            // floor-62 #1: never show an inverted plan as if it were valid.
+            const g = planGeometry(p.side, p.entry, p.stop, p.t1, p.t2);
+            return g.ok ? null : (
+              <p role="alert" data-testid="plan-geometry" className="mb-1 rounded border border-[#f87171] bg-[#7f1d1d]/60 px-1.5 py-0.5 text-[10px] font-semibold text-[#fecaca]">
+                Geometry mismatch: {g.why}
+              </p>
+            );
+          })()}
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[13px]">
             <dt className="text-slate-300">CE</dt>
             <dd className="text-right font-semibold">{fmtPx(p.entry)}</dd>
@@ -1366,7 +1376,7 @@ function DecisionStrip({
         </span>
       </button>
       <RhAccountStrip />
-      <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="kz-seat" title="kzDisp item 49 (shadow note, never a vote)">{kzSeatNote()}</div>
+      <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · rules ${RULES_HASH}`}>{kzSeatNote()}</div>
     </div>
   );
 }

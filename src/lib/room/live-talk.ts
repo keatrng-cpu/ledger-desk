@@ -33,7 +33,7 @@ import { gamesOn } from "./off-hours";
 import { studyPack } from "./off-hours-study";
 import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
-import { disciplineLines, planGeometry, skepticChallenge, isTopGrade, RULES_HASH, bandEdges } from "./floor-discipline";
+import { disciplineLines, planGeometry, skepticChallenge, isTopGrade, RULES_HASH, bandEdges, kzNoteParts } from "./floor-discipline";
 import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
 import * as IF from "./live-voices-invest-firm";
@@ -1928,11 +1928,15 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   investCands(w, st, cands);
   hallCands(w, st, cands);
   skepticCands(w, st, cands);
+  geometryCands(w, st, cands);
   rulesCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
 
+  // floor-62 #44: an inverted plan is never narrated — only the geometry warning (and the skeptic) speak about it.
+  const badGeo = w.card ? !planGeometry(w.card.futSide, w.card.entry, w.card.stop, w.card.t1).ok : false;
   const tryEmit = (c: Cand): TalkItem | null => {
+    if (badGeo && c.kind === "card" && c.topic !== "skeptic" && c.topic !== "geometry") return null;
     if (!allowed(c, w, st)) return null;
     const draft = clone(st);
     const f = new Facts();
@@ -2061,11 +2065,38 @@ function rulesCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       const detail = diff.length
         ? diff.map((b) => `${b} ${old[b] == null ? "new" : f.raw(old[b]!.toFixed(2))} to ${edges[b] == null ? "removed" : f.raw(edges[b]!.toFixed(2))}`).join(", ")
         : `band edges unchanged, A-minus still ${f.raw((edges["A-"] ?? 0).toFixed(2))}`;
-      return { lines: V.compact([V.line("Nova", "WRITING_ON_WHITEBOARD", `Desk scoring changed, rules ${f.raw(RULES_HASH)}: ${detail}. Grades on the board are re-read on the new edges.`)]), moves: {} };
+      const kz = kzNoteParts();
+      const kzTxt = ` Kill Zone: ${f.int(kz.live)} of ${f.int(kz.items)} items live.`;
+      return { lines: V.compact([V.line("Nova", "WRITING_ON_WHITEBOARD", `Desk scoring changed, rules ${f.raw(RULES_HASH)}: ${detail}.${kzTxt} Grades on the board are re-read on the new edges.`)]), moves: {} };
     },
     commit: (s) => {
       s.topicSig["rules"] = RULES_HASH;
       s.topicSig["rules.edges"] = JSON.stringify(edges);
+    },
+  });
+}
+
+function geometryCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const k = w.card;
+  if (!k) return;
+  const geo = planGeometry(k.futSide, k.entry, k.stop, k.t1);
+  if (geo.ok) return;
+  const sig = `${k.key}|${k.entry}|${k.stop}|${k.t1}`;
+  if (st.topicSig["geometry"] === sig) return;
+  out.push({
+    id: `geometry|${sig}`,
+    kind: "card",
+    topic: "geometry",
+    urgency: 2,
+    prio: 8,
+    at: w.nowMs,
+    label: `inverted plan on ${k.futSymbol}`,
+    build: (c) => ({
+      lines: V.compact([V.line("Sterling", "CHECKING_TABLET", `Plan check failed on ${c.f.raw(k.futSymbol)} ${k.futSide}: ${c.f.raw(geo.ok ? "" : geo.why)}. The board holds it until the levels are fixed.`)]),
+      moves: {},
+    }),
+    commit: (s) => {
+      s.topicSig["geometry"] = sig;
     },
   });
 }

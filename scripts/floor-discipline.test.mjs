@@ -71,3 +71,27 @@ test("skeptic reads the live A- edge (parity with desk-rules.json)", () => {
   assert.equal(D.rulesHashOf({ a: 1 }) === D.rulesHashOf({ a: 2 }), false);
   assert.deepEqual(D.bandDiff({ "A-": 0.65 }, { "A-": 0.66 }), [{ band: "A-", from: 0.65, to: 0.66 }]);
 });
+
+const M = await import("../src/lib/room/floor-motion.ts");
+const S = await import("../src/lib/room/said-memory.ts");
+test("motion: ease in, decelerate on arrival, turn first, sidestep", () => {
+  let v = 0;
+  for (let i = 0; i < 100; i++) v = M.nextSpeed(v, 1.35, 5, 0.016);
+  assert.ok(Math.abs(v - 1.35) < 1e-9);
+  assert.ok(M.nextSpeed(0, 1.35, 5, 0.016) < 0.1, "no instant full speed");
+  assert.ok(M.nextSpeed(1.35, 1.35, 0.1, 0.016) < 0.5, "slows near the end");
+  assert.equal(M.turnFirst(0, Math.PI), true);
+  assert.equal(M.turnFirst(0, 0.3), false);
+  assert.deepEqual(M.separation([0, 0], [0, 1], [[0, -0.3]]), [0, 0], "someone behind is ignored");
+  const [sx] = M.separation([0, 0], [0, 1], [[0.05, 0.3]]);
+  assert.ok(sx < 0, "steps away from someone ahead-right");
+});
+test("said-memory: a material number change is said again; a cent of drift is not", () => {
+  const t = 1_000_000;
+  let rows = S.rememberSaid("Buying power $996.12 on the account.", [], t);
+  assert.equal(S.heardBefore("Buying power $996.13 on the account.", rows, t + 1000), true);
+  assert.equal(S.heardBefore("Buying power $1,250.00 on the account.", rows, t + 1000), false);
+  rows = S.rememberSaid("3 of 8 PATH entries used.", [], t);
+  assert.equal(S.heardBefore("4 of 8 PATH entries used.", rows, t + 1000), false);
+  assert.equal(S.heardBefore("3 of 8 PATH entries used.", rows, t + 1000), true);
+});

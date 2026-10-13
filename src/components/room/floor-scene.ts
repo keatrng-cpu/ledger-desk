@@ -27,6 +27,8 @@ import { ANIMATED_SCREENS, cuesOfFrame, drawScreen, URGENCY_COLOR, type FloorFra
 import type { FloorLight } from "@/lib/room/floor-cues";
 import { speakHoldSec } from "@/lib/room/floor-voice";
 import { heardBefore, loadSaid, rememberSaid, saveSaid, type SaidRow } from "@/lib/room/said-memory";
+import { hasLiveNumber } from "@/lib/room/floor-discipline";
+import { WALK, nextSpeed, separation, turnFirst } from "@/lib/room/floor-motion";
 import {
   createStubManagerFeed,
   managerBubbleText,
@@ -711,6 +713,11 @@ class Avatar {
   yaw = 0;
   private path: V2[] = [];
   private target: Target | null = null;
+  /** floor-62 #11: current walking speed (m/s), eased toward the gait speed. */
+  private speedNow = 0;
+  private nav: NavGrid | null = null;
+  /** floor-62 #10: everyone else on the floor, for personal space (set by the scene). */
+  others: () => V2[] = () => [];
   mode: "stand" | "sit" | "couch" | "stool" = "stand";
   private walkPhase = 0;
   moving = false;
@@ -1126,9 +1133,17 @@ class Avatar {
       return;
     }
     this.target = t;
+    this.nav = nav;
     const far = Math.hypot(t.pos[0] - this.pos[0], t.pos[1] - this.pos[1]) > 0.08;
     if (far) {
-      this.path = nav.path(this.pos, t.pos);
+      const path = nav.path(this.pos, t.pos);
+      // floor-62 #12: no route found — stay put rather than walk through the furniture.
+      if (!nav.lastFound) {
+        this.path = [];
+        this.moving = false;
+        return;
+      }
+      this.path = path;
       this.moving = true;
       this.mode = "stand";
     }
@@ -1142,18 +1157,33 @@ class Avatar {
       const dx = next[0] - this.pos[0];
       const dz = next[1] - this.pos[1];
       const d = Math.hypot(dx, dz);
-      const speed = this.anim === "PACING" ? 0.8 : 1.35;
-      const step = speed * dt;
+      const gait = this.anim === "PACING" ? WALK.pace : WALK.walk;
+      // floor-62 #11: ease in, decelerate over the last metres; #17: turn toward the first leg before stepping off.
+      let rem = d;
+      for (let i = 1; i < this.path.length; i++) rem += Math.hypot(this.path[i]![0] - this.path[i - 1]![0], this.path[i]![1] - this.path[i - 1]![1]);
+      const heading = Math.atan2(dx, dz);
+      this.speedNow = turnFirst(this.yaw, heading) ? 0 : nextSpeed(this.speedNow, gait, rem, dt);
+      const step = this.speedNow * dt;
       if (d <= step) {
         this.pos = [next[0], next[1]];
         this.path.shift();
       } else {
-        this.pos = [this.pos[0] + (dx / d) * step, this.pos[1] + (dz / d) * step];
+        // floor-62 #10: a sidestep around anyone inside personal space.
+        const [sx, sz] = separation(this.pos, [dx / d, dz / d], this.others());
+        const nx = this.pos[0] + (dx / d) * step + sx * step;
+        const nz = this.pos[1] + (dz / d) * step + sz * step;
+        // floor-62 #16: the next step is blocked (someone parked a prop, the grid changed) — re-plan from here.
+        const nav = this.nav;
+        if (nav && !nav.free(...nav.cellOf(nx, nz)) && this.target) {
+          this.path = nav.path(this.pos, this.target.pos);
+          if (!nav.lastFound) this.path = [];
+        } else this.pos = [nx, nz];
       }
-      this.yaw = angleLerp(this.yaw, Math.atan2(dx, dz), 1 - Math.exp(-10 * dt));
-      this.walkPhase += dt * speed * 4.4;
+      this.yaw = angleLerp(this.yaw, heading, 1 - Math.exp(-10 * dt));
+      this.walkPhase += dt * this.speedNow * 4.4;
       if (!this.path.length) {
         this.moving = false;
+        this.speedNow = 0;
         if (target) this.mode = target.pose;
       }
     } else if (target) {
@@ -1166,10 +1196,10 @@ class Avatar {
         const d = Math.hypot(dx, dz);
         if (d < 0.05) this.paceToB = !this.paceToB;
         else {
-          const step = Math.min(d, 0.75 * dt);
+          const step = Math.min(d, WALK.pace * dt); // floor-62 #18: one pacing speed
           this.pos = [this.pos[0] + (dx / d) * step, this.pos[1] + (dz / d) * step];
           this.yaw = angleLerp(this.yaw, Math.atan2(dx, dz), 1 - Math.exp(-8 * dt));
-          this.walkPhase += dt * 3.3;
+          this.walkPhase += dt * WALK.pace * 4.4;
         }
       } else {
         const want = this.gaze && target.pose === "stand" ? yawTo(this.pos, this.gaze) : target.yaw;
@@ -1806,6 +1836,27 @@ export class FloorScene {
   private source: "cycle" | "talk" | null = null;
   private batch: TalkBatch | null = null;
   private queue: TalkBatch[] = [];
+  /** floor-62 #15: adaptive quality — EMA of frame rate and the step-down level reached (0 full, 1 no shadows, 2 DPR 1). */
+  private fpsEma = 60;
+  private lowSince = 0;
+  private qualityLevel = 0;
+  /** floor-62 #14: prefers-reduced-motion — no pacing, no ambient camera drift. */
+  readonly reducedMotion = typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+  private fpsMeter(dt: number) {
+    if (dt <= 0) return;
+    this.fpsEma += (1 / dt - this.fpsEma) * 0.05;
+    const now = performance.now();
+    if (this.fpsEma >= 40) {
+      this.lowSince = 0;
+      return;
+    }
+    if (!this.lowSince) this.lowSince = now;
+    if (now - this.lowSince < 3000 || this.qualityLevel >= 2) return;
+    this.qualityLevel++;
+    this.lowSince = now;
+    if (this.qualityLevel === 1) this.renderer.shadowMap.enabled = false;
+    if (this.qualityLevel === 2) this.renderer.setPixelRatio(1);
+  }
   /** People an exchange sent somewhere (to the board, to the coffee): a cycle refresh leaves them be until it ends. */
   private readonly away = new Set<Character>();
 
@@ -1916,6 +1967,7 @@ export class FloorScene {
       const a = new Avatar(who, this.nav);
       if (who === "Vince") a.onSlam = () => this.flashKey("key_Vince");
       this.avatars.set(who, a);
+      a.others = () => [...this.avatars.values()].filter((o) => o !== a).map((o) => o.pos);
       this.scene.add(a.root);
     }
     // Owner home: the balcony over the war room (Chunk A item 8) — starts on its deck, looking at the pit.
@@ -2952,9 +3004,15 @@ export class FloorScene {
       this.clock.getDelta();
       return;
     }
-    const dt = Math.min(this.clock.getDelta(), 0.1);
-    this.time += dt;
-    this.tick(dt);
+    // floor-62 #19: a slow frame is run as several ≤0.1 s steps (up to 0.5 s), so walking keeps wall time with speech.
+    let real = Math.min(this.clock.getDelta(), 0.5);
+    this.fpsMeter(real);
+    while (real > 1e-6) {
+      const dt = Math.min(real, 0.1);
+      real -= dt;
+      this.time += dt;
+      this.tick(dt);
+    }
     // OrbitControls rewrites the camera from its own orbit. While walking that fights the follow
     // cam and the view springs back. The walk camera places itself.
     if (this.ownerChase) this.camera.lookAt(this.controls.target);
@@ -3012,6 +3070,8 @@ export class FloorScene {
           line = null;
           break;
         }
+        // floor-62 #7/#8: the cycle script obeys the same rule as live talk — a line cites a live number or is skipped.
+        if (!hasLiveNumber(next.text)) continue;
         if (heardBefore(next.text, this.said, now)) continue;
         this.said = rememberSaid(next.text, this.said, now);
         saveSaid(this.said);
@@ -3057,7 +3117,7 @@ export class FloorScene {
       const sid = a.spotId();
       const spotAct = sid ? LAYOUT.spots[sid]?.act : undefined;
       const act = spotAct && spotAct.startsWith("mead_") ? spotAct : (f?.acts?.[a.who]?.act ?? "desk");
-      a.pace = (mine?.animation ?? last?.animation) === "PACING";
+      a.pace = !this.reducedMotion && (mine?.animation ?? last?.animation) === "PACING";
       a.anim = mine ? mine.animation : ambientFor(a.who, act, last?.animation ?? null);
       const pose = wingPose(a.who, this.wingShown);
       if (pose && !mine) a.anim = pose;

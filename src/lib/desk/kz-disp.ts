@@ -20,7 +20,10 @@ export function kzScoreDelta(): number {
   }
   return d;
 }
-/** Floor "Kill Zone" seat line (item 49) — shadow: shown as a note citing the backtest, never a vote. */
+/** Floor "Kill Zone" seat line (item 49) — shadow: shown as a note, never a vote. floor-62 #3: every number is read live
+ * from desk-rules.json kzDisp (no literal backtest figures; the backtest lives in desk-watcher tools/kz_backtest.py). */
 export function kzSeatNote(): string {
-  return `Kill Zone seat (shadow): ${Object.keys(KZ.items).length} items logged, ${kzLiveItems().length} live; skeptic: 20-day backtest hit 30%/-0.06R, not promoted.`;
+  const n = Object.keys(KZ.items).length;
+  const live = kzLiveItems().length;
+  return `Kill Zone seat (shadow): ${n} items logged, ${live} live, ${n - live} shadow; skeptic: not promoted until the kz backtest clears${live ? ` — ${live} item${live === 1 ? "" : "s"} now scoring` : ""}.`;
 }
