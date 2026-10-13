@@ -1,3 +1,4 @@
+# Install: copy to .github/workflows/backtest.yml (needs a token with the `workflow` scope; the agent token lacks it).
 name: backtest
 on:
   schedule: [{ cron: "15 22 * * 1-5" }]   # nightly after the close (17:15 CT)
