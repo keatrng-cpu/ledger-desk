@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[dot-buildRoom()]] - `indirect_call` [INFERRED]
 - [[helmet()]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_41

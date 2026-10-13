@@ -12,7 +12,7 @@ tags:
 # pglite-dialect.ts
 
 ## Connections
-- [[@electric-sqlpglite]] - `imports_from` [EXTRACTED]
+- [[@electric-sqlpglite_1]] - `imports_from` [EXTRACTED]
 - [[Client]] - `contains` [EXTRACTED]
 - [[LazyPGliteDriver]] - `contains` [EXTRACTED]
 - [[PGliteConnection]] - `contains` [EXTRACTED]

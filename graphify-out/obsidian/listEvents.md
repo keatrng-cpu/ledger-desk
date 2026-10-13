@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[getSql()]] - `calls` [EXTRACTED]
-- [[iso()_1]] - `calls` [EXTRACTED]
+- [[iso()_2]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_23

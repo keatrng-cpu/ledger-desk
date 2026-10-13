@@ -12,6 +12,7 @@ tags:
 # regime()
 
 ## Connections
+- [[2. Wiring the writers — the integrator owns this]] - `references` [INFERRED]
 - [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_240

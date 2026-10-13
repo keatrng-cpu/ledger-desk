@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/predict/prediction-market-feed.ts"
+source_file: "scripts/log-trade.mjs"
 type: "code"
-community: "Community 12"
-location: "L176"
+community: "Community 121"
+location: "L119"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/Community_121
 ---
 
 # num()
 
 ## Connections
-- [[gradeKalshiPublicMarket()]] - `calls` [EXTRACTED]
-- [[prediction-market-feed.ts]] - `contains` [EXTRACTED]
+- [[log-trade.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/Community_121

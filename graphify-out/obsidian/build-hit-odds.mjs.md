@@ -12,7 +12,7 @@ tags:
 # build-hit-odds.mjs
 
 ## Connections
-- [[BARS_13]] - `contains` [EXTRACTED]
+- [[BARS_17]] - `contains` [EXTRACTED]
 - [[DAYIDX_1]] - `contains` [EXTRACTED]
 - [[H_13]] - `contains` [EXTRACTED]
 - [[IS]] - `contains` [EXTRACTED]
@@ -41,7 +41,7 @@ tags:
 - [[elapsedFractionOf()]] - `contains` [EXTRACTED]
 - [[fillByTier]] - `contains` [EXTRACTED]
 - [[fills_3]] - `contains` [EXTRACTED]
-- [[fit()_7]] - `contains` [EXTRACTED]
+- [[fit()_8]] - `contains` [EXTRACTED]
 - [[fitted]] - `contains` [EXTRACTED]
 - [[hit-odds.ts]] - `dynamic_import` [EXTRACTED]
 - [[idxAt()_1]] - `contains` [EXTRACTED]
@@ -59,8 +59,8 @@ tags:
 - [[r4()_4]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rnd()_4]] - `contains` [EXTRACTED]
-- [[rowOf()_1]] - `contains` [EXTRACTED]
-- [[rows_13]] - `contains` [EXTRACTED]
+- [[rowOf()_2]] - `contains` [EXTRACTED]
+- [[rows_16]] - `contains` [EXTRACTED]
 - [[scaler()]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[sig()_1]] - `contains` [EXTRACTED]
@@ -69,7 +69,7 @@ tags:
 - [[smt-level.ts]] - `dynamic_import` [EXTRACTED]
 - [[solve()]] - `contains` [EXTRACTED]
 - [[started_1]] - `contains` [EXTRACTED]
-- [[steps_2]] - `contains` [EXTRACTED]
+- [[steps_3]] - `contains` [EXTRACTED]
 - [[structure.ts]] - `dynamic_import` [EXTRACTED]
 - [[target-odds.ts]] - `dynamic_import` [EXTRACTED]
 - [[tf-ladder.ts]] - `dynamic_import` [EXTRACTED]

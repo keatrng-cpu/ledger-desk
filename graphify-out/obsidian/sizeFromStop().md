@@ -12,10 +12,11 @@ tags:
 # sizeFromStop()
 
 ## Connections
+- [[UI map (categories)]] - `references` [INFERRED]
 - [[dailyDecayFrac()]] - `calls` [EXTRACTED]
 - [[minDteFor()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
-- [[round2()_13]] - `calls` [EXTRACTED]
+- [[round2()_12]] - `calls` [EXTRACTED]
 - [[sizeProduct()]] - `calls` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]

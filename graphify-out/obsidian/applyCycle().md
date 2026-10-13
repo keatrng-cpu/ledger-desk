@@ -12,11 +12,12 @@ tags:
 # applyCycle()
 
 ## Connections
+- [[What was wrong]] - `references` [INFERRED]
 - [[attribute()_1]] - `calls` [EXTRACTED]
 - [[bookRealized()]] - `calls` [EXTRACTED]
 - [[etDateOf()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
-- [[money()_8]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
+- [[money()_9]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]
 - [[planKey()]] - `calls` [EXTRACTED]
 - [[pushEvent()]] - `calls` [EXTRACTED]

@@ -15,6 +15,6 @@ tags:
 - [[DisciplinePanel()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[discipline-panel.tsx]] - `contains` [EXTRACTED]
-- [[money()_4]] - `calls` [EXTRACTED]
+- [[money()_5]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_23

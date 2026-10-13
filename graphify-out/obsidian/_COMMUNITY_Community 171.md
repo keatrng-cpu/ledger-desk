@@ -16,7 +16,7 @@ members: 22
 - [[S]] - code - scripts/verify-room-exec.mjs
 - [[T_2]] - code - scripts/verify-room-exec.mjs
 - [[account()]] - code - scripts/verify-room-exec.mjs
-- [[check()_20]] - code - scripts/verify-room-exec.mjs
+- [[check()_27]] - code - scripts/verify-room-exec.mjs
 - [[close()_2]] - code - scripts/verify-room-exec.mjs
 - [[codes()]] - code - scripts/verify-room-exec.mjs
 - [[ctx()]] - code - scripts/verify-room-exec.mjs
@@ -41,17 +41,17 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 150]]
-- 2 edges to [[_COMMUNITY_Community 4]]
-- 2 edges to [[_COMMUNITY_Community 177]]
-- 1 edge to [[_COMMUNITY_Community 198]]
+- 4 edges to [[_COMMUNITY_Community 150]]
+- 1 edge to [[_COMMUNITY_Community 13]]
+- 1 edge to [[_COMMUNITY_Community 0]]
+- 1 edge to [[_COMMUNITY_Community 1]]
 - 1 edge to [[_COMMUNITY_Community 122]]
 - 1 edge to [[_COMMUNITY_Community 154]]
-- 1 edge to [[_COMMUNITY_Community 11]]
-- 1 edge to [[_COMMUNITY_Community 61]]
-- 1 edge to [[_COMMUNITY_Community 87]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 177]]
 - 1 edge to [[_COMMUNITY_Community 222]]
 - 1 edge to [[_COMMUNITY_Community 31]]
+- 1 edge to [[_COMMUNITY_Community 4]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 
 ## Top bridge nodes

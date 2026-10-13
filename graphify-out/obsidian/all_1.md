@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-curriculum.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 118"
-location: "L119"
+community: "Community 137"
+location: "L321"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/Community_137
 ---
 
 # all
 
 ## Connections
-- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/Community_137

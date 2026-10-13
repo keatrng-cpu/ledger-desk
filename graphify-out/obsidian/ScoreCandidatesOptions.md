@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
 community: "Community 40"
-location: "L773"
+location: "L1191"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # ScoreCandidatesOptions
 
 ## Connections
+- [[A3 — one scorer]] - `references` [INFERRED]
 - [[OhlcBar]] - `references` [EXTRACTED]
 - [[SmcTape]] - `references` [EXTRACTED]
 - [[smtRead()]] - `references` [EXTRACTED]

@@ -11,7 +11,7 @@ members: 9
 
 ## Members
 - [[WHY the trader asked that the characters journal the setups (taken or passed),…]] - rationale - scripts/verify-hi-alert-brain.mjs
-- [[check()_43]] - code - scripts/verify-hi-alert-brain.mjs
+- [[check()_53]] - code - scripts/verify-hi-alert-brain.mjs
 - [[conf()]] - code - scripts/verify-hi-alert-brain.mjs
 - [[entryId()]] - code - scripts/verify-hi-alert-brain.mjs
 - [[fresh()]] - code - scripts/verify-hi-alert-brain.mjs
@@ -28,13 +28,14 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 21]]
 - 1 edge to [[_COMMUNITY_Community 102]]
-- 1 edge to [[_COMMUNITY_Community 13]]
+- 1 edge to [[_COMMUNITY_Community 137]]
+- 1 edge to [[_COMMUNITY_Community 162]]
 - 1 edge to [[_COMMUNITY_Community 18]]
+- 1 edge to [[_COMMUNITY_Community 21]]
 - 1 edge to [[_COMMUNITY_Community 217]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 92]]
 
 ## Top bridge nodes
-- [[verify-hi-alert-brain.mjs]] - degree 16, connects to 7 communities
+- [[verify-hi-alert-brain.mjs]] - degree 16, connects to 8 communities

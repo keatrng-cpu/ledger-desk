@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 4"
+community: "Community 177"
 location: "L216"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/Community_177
 ---
 
 # etDateOf()
@@ -18,6 +18,7 @@ tags:
 - [[calendarFor()]] - `calls` [EXTRACTED]
 - [[calendarRead()]] - `calls` [EXTRACTED]
 - [[checkEntry()]] - `calls` [EXTRACTED]
+- [[complianceOf()]] - `calls` [EXTRACTED]
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[counters.ts]] - `imports` [EXTRACTED]
 - [[defaultGoal()]] - `calls` [EXTRACTED]
@@ -32,6 +33,7 @@ tags:
 - [[goalClock]] - `calls` [EXTRACTED]
 - [[intent.ts]] - `imports` [EXTRACTED]
 - [[intentsFromCycle()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[lab.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 - [[option-math.ts]] - `contains` [EXTRACTED]
@@ -48,4 +50,4 @@ tags:
 - [[weekendMsBetween()]] - `calls` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/Community_177

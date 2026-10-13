@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[manager-room-feed.ts]] - `imports_from` [EXTRACTED]
-- [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
-- [[px()_6]] - `contains` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports_from` [EXTRACTED]
+- [[px()_8]] - `contains` [EXTRACTED]
 - [[schoolPlanPrices()]] - `contains` [EXTRACTED]
 - [[schoolTicket()]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]

@@ -10,15 +10,15 @@ members: 16
 **Members:** 16 nodes
 
 ## Members
-- [[check()_28]] - code - scripts/verify-gateway-window.mjs
+- [[check()_40]] - code - scripts/verify-gateway-window.mjs
 - [[evalMin()]] - code - scripts/verify-gateway-window.mjs
-- [[hhmm()_2]] - code - scripts/verify-gateway-window.mjs
+- [[hhmm()_3]] - code - scripts/verify-gateway-window.mjs
 - [[keepAlive]] - code - scripts/verify-gateway-window.mjs
 - [[ok()_14]] - code - scripts/verify-gateway-window.mjs
 - [[pair()]] - code - scripts/verify-gateway-window.mjs
 - [[ps1]] - code - scripts/verify-gateway-window.mjs
 - [[ps1Code]] - code - scripts/verify-gateway-window.mjs
-- [[py]] - code - scripts/verify-gateway-window.mjs
+- [[py_1]] - code - scripts/verify-gateway-window.mjs
 - [[pyEnd]] - code - scripts/verify-gateway-window.mjs
 - [[pyStart]] - code - scripts/verify-gateway-window.mjs
 - [[readme]] - code - scripts/verify-gateway-window.mjs
@@ -35,7 +35,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[verify-gateway-window.mjs]] - degree 16, connects to 1 community

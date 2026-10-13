@@ -12,7 +12,7 @@ tags:
 # assertOpenAllowed()
 
 ## Connections
-- [[bookOf()_3]] - `calls` [EXTRACTED]
+- [[bookOf()_4]] - `calls` [EXTRACTED]
 - [[candidateFromOpenInput()]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 - [[openTrade]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
 community: "Community 9"
-location: "L135"
+location: "L136"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -37,6 +37,7 @@ tags:
 - [[narrativeCoachLines()]] - `calls` [EXTRACTED]
 - [[rateCardForSetup()]] - `calls` [EXTRACTED]
 - [[recentByKind()]] - `calls` [EXTRACTED]
+- [[researchRead]] - `calls` [EXTRACTED]
 - [[resolveMonthAhead()]] - `calls` [EXTRACTED]
 - [[resolveWeekAhead()]] - `calls` [EXTRACTED]
 - [[scoreCanonStack()]] - `calls` [EXTRACTED]

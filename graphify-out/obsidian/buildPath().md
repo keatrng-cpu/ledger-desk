@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[buildSessionBrief()]] - `calls` [EXTRACTED]
-- [[fmt()_2]] - `calls` [EXTRACTED]
+- [[fmt()_3]] - `calls` [EXTRACTED]
 - [[lastSwept()]] - `calls` [EXTRACTED]
 - [[nearestUntapped()]] - `calls` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]

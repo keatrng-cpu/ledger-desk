@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[ChecklistItem]] - `imports` [EXTRACTED]
-- [[Ctx_2]] - `contains` [EXTRACTED]
+- [[Ctx_3]] - `contains` [EXTRACTED]
 - [[HitRank]] - `imports` [EXTRACTED]
 - [[ManagerRoomState]] - `imports` [EXTRACTED]
 - [[ManagerSteer]] - `imports` [EXTRACTED]
@@ -32,11 +32,11 @@ tags:
 - [[drawHitRanks()]] - `contains` [EXTRACTED]
 - [[drawSchoolDeskPlate()]] - `contains` [EXTRACTED]
 - [[drawSchoolsBoard()]] - `contains` [EXTRACTED]
-- [[fit()_1]] - `contains` [EXTRACTED]
+- [[fit()_3]] - `contains` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
 - [[manager-feed.ts]] - `imports_from` [EXTRACTED]
 - [[relToneColor()]] - `contains` [EXTRACTED]
 - [[school-contract.ts]] - `imports_from` [EXTRACTED]
-- [[wrap()]] - `contains` [EXTRACTED]
+- [[wrap()_1]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_24

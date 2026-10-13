@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-world.ts"
 type: "code"
 community: "Community 29"
-location: "L559"
+location: "L600"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # seatsLite()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[live-world.ts]] - `contains` [EXTRACTED]
 - [[raceScreenOf()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]

@@ -12,8 +12,8 @@ tags:
 # handoff.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
-- [[Route_7]] - `contains` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
+- [[Route_10]] - `contains` [EXTRACTED]
 - [[authorizeCronRequest()]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildClaudeHandoff()]] - `imports` [EXTRACTED]

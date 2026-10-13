@@ -12,7 +12,7 @@ tags:
 # clean
 
 ## Connections
-- [[mk()_1]] - `calls` [EXTRACTED]
+- [[mk()_2]] - `calls` [EXTRACTED]
 - [[verify-invest-book.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_30

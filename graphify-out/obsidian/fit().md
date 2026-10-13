@@ -1,25 +1,19 @@
 ---
-source_file: "src/components/room/floor-overhaul.ts"
+source_file: "src/components/room/floor-overhaul-race.ts"
 type: "code"
-community: "Community 24"
-location: "L85"
+community: "Community 10"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/Community_10
 ---
 
 # fit()
 
 ## Connections
-- [[drawKillzoneClock()]] - `calls` [EXTRACTED]
-- [[drawManagerBook()]] - `calls` [EXTRACTED]
-- [[drawManagerCall()]] - `calls` [EXTRACTED]
-- [[drawScars()]] - `calls` [EXTRACTED]
-- [[drawTickerWall()]] - `calls` [EXTRACTED]
-- [[drawTrack()]] - `calls` [EXTRACTED]
-- [[drawTrophies()]] - `calls` [EXTRACTED]
-- [[floor-overhaul.ts]] - `contains` [EXTRACTED]
-- [[wrap()_2]] - `calls` [EXTRACTED]
+- [[drawRaceBoard()]] - `calls` [EXTRACTED]
+- [[drawScrubberBoard()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/Community_10

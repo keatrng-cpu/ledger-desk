@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/sync.ts"
 type: "code"
-community: "Community 147"
+community: "Community 34"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_34
 ---
 
 # sync.ts
@@ -23,9 +23,9 @@ tags:
 - [[loadEntries()]] - `imports` [EXTRACTED]
 - [[mergeEntries()]] - `imports` [EXTRACTED]
 - [[replaceEntries()]] - `imports` [EXTRACTED]
-- [[run()_1]] - `contains` [EXTRACTED]
-- [[same()]] - `contains` [EXTRACTED]
+- [[run()_4]] - `contains` [EXTRACTED]
+- [[same()_2]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[syncInvestLedger()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_34

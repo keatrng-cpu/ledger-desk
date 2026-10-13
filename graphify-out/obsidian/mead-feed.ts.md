@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-feed.ts"
 type: "code"
-community: "Community 12"
+community: "Community 172"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/Community_172
 ---
 
 # mead-feed.ts
@@ -26,4 +26,4 @@ tags:
 - [[stateFromBoard()]] - `imports` [EXTRACTED]
 - [[stateFromKalshiResult()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/Community_172

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 125"
-location: "L220"
+community: "Community 0"
+location: "L255"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/Community_0
 ---
 
 # MindState
@@ -36,4 +36,4 @@ tags:
 - [[snapshot-sync.ts]] - `imports` [EXTRACTED]
 - [[snapshot.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/Community_0

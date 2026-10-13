@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-manager-account.mjs"
 type: "code"
-community: "Community 119"
+community: "Community 15"
 location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/Community_15
 ---
 
 # verifyManagerAccount()
@@ -15,4 +15,4 @@ tags:
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
 - [[verify-manager-account.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/Community_15

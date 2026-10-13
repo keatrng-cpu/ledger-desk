@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
 community: "Community 13"
-location: "L1068"
+location: "L1071"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,8 @@ tags:
 # exPulse()
 
 ## Connections
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L640"
+location: "L663"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,8 +15,8 @@ tags:
 - [[clear()]] - `calls` [EXTRACTED]
 - [[drawScreen()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[fmt()_3]] - `calls` [EXTRACTED]
-- [[money()_6]] - `calls` [EXTRACTED]
+- [[fmt()_4]] - `calls` [EXTRACTED]
+- [[money()_7]] - `calls` [EXTRACTED]
 - [[tapeBlock()]] - `calls` [EXTRACTED]
 - [[textBlock()]] - `calls` [EXTRACTED]
 

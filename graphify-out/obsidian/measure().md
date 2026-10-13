@@ -12,7 +12,7 @@ tags:
 # measure()
 
 ## Connections
-- [[dayKey()_11]] - `calls` [EXTRACTED]
+- [[dayKey()_12]] - `calls` [EXTRACTED]
 - [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
 - [[weekday()_2]] - `calls` [EXTRACTED]
 - [[windowMove()]] - `calls` [EXTRACTED]

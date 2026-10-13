@@ -2,7 +2,7 @@
 source_file: "src/lib/market/freshest.ts"
 type: "code"
 community: "Community 29"
-location: "L90"
+location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED

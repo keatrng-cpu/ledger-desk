@@ -2,7 +2,7 @@
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
 community: "Community 39"
-location: "L86"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED

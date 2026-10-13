@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 77"
+community: "Community 43"
 location: "L434"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/Community_43
 ---
 
 # orderIntentSchema
@@ -16,4 +16,4 @@ tags:
 - [[shadow.ts]] - `imports` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/Community_43

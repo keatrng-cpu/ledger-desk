@@ -12,10 +12,11 @@ tags:
 # collisions()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[contractsFor()]] - `calls` [EXTRACTED]
 - [[goal.ts]] - `contains` [EXTRACTED]
 - [[kellyFrac()]] - `calls` [EXTRACTED]
-- [[money()_10]] - `calls` [EXTRACTED]
+- [[money()_11]] - `calls` [EXTRACTED]
 - [[pct1()]] - `calls` [EXTRACTED]
 - [[viewGoal()]] - `calls` [EXTRACTED]
 - [[winsNeeded()]] - `calls` [EXTRACTED]

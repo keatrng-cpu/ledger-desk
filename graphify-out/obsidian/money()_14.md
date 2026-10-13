@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/desk/risk-panel.tsx"
+source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 9"
-location: "L14"
+community: "Community 59"
+location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/Community_59
 ---
 
 # money()
 
 ## Connections
-- [[LimitBar()]] - `calls` [EXTRACTED]
-- [[risk-panel.tsx]] - `contains` [EXTRACTED]
+- [[ApexSimPanel()]] - `calls` [EXTRACTED]
+- [[ResultsTable()]] - `calls` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/Community_59

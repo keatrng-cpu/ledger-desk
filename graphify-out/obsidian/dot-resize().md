@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L2791"
+community: "Community 283"
+location: "L3182"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/Community_283
 ---
 
 # .resize()
 
 ## Connections
-- [[dot-constructor()_15]] - `calls` [EXTRACTED]
+- [[dot-constructor()_17]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/Community_283

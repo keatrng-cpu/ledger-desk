@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[BTN]] - `imports` [EXTRACTED]
-- [[CARD_2]] - `imports` [EXTRACTED]
+- [[CARD_4]] - `imports` [EXTRACTED]
 - [[H3]] - `imports` [EXTRACTED]
 - [[JournalRead]] - `imports` [EXTRACTED]
 - [[LAYER_NAME]] - `contains` [EXTRACTED]
@@ -24,7 +24,7 @@ tags:
 - [[SetupSquare()]] - `contains` [EXTRACTED]
 - [[StatsStrip()]] - `contains` [EXTRACTED]
 - [[WinRing()]] - `contains` [EXTRACTED]
-- [[c()_2]] - `contains` [EXTRACTED]
+- [[c()_3]] - `contains` [EXTRACTED]
 - [[go-ledger.ts]] - `imports_from` [EXTRACTED]
 - [[goStats]] - `imports` [EXTRACTED]
 - [[pc()_2]] - `contains` [EXTRACTED]

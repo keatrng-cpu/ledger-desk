@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[addDays()_3]] - `calls` [EXTRACTED]
 - [[barDateKey()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[week-ahead.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_134

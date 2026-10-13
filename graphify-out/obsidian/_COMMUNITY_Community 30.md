@@ -16,10 +16,10 @@ members: 64
 - [[again]] - code - scripts/verify-invest-book.mjs
 - [[allVti]] - code - scripts/verify-invest-book.mjs
 - [[aug]] - code - scripts/verify-invest-book.mjs
-- [[big_1]] - code - scripts/verify-invest-book.mjs
+- [[big_2]] - code - scripts/verify-invest-book.mjs
 - [[cap]] - code - scripts/verify-invest-book.mjs
 - [[chart_1]] - code - scripts/verify-invest-book.mjs
-- [[check()_57]] - code - scripts/verify-invest-book.mjs
+- [[check()_76]] - code - scripts/verify-invest-book.mjs
 - [[clean_1]] - code - scripts/verify-invest-book.mjs
 - [[closesMap]] - code - scripts/verify-invest-book.mjs
 - [[dispatchEvent()_1]] - code - scripts/verify-invest-book.mjs
@@ -35,24 +35,24 @@ members: 64
 - [[lotsX]] - code - scripts/verify-invest-book.mjs
 - [[mem_1]] - code - scripts/verify-invest-book.mjs
 - [[mix]] - code - scripts/verify-invest-book.mjs
-- [[mk()_1]] - code - scripts/verify-invest-book.mjs
-- [[months]] - code - scripts/verify-invest-book.mjs
+- [[mk()_2]] - code - scripts/verify-invest-book.mjs
+- [[months_1]] - code - scripts/verify-invest-book.mjs
 - [[msftEff]] - code - scripts/verify-invest-book.mjs
 - [[msftV]] - code - scripts/verify-invest-book.mjs
 - [[noComp]] - code - scripts/verify-invest-book.mjs
-- [[now_8]] - code - scripts/verify-invest-book.mjs
-- [[ok()_24]] - code - scripts/verify-invest-book.mjs
-- [[over_1]] - code - scripts/verify-invest-book.mjs
+- [[now_12]] - code - scripts/verify-invest-book.mjs
+- [[ok()_25]] - code - scripts/verify-invest-book.mjs
+- [[over_2]] - code - scripts/verify-invest-book.mjs
 - [[parsed_1]] - code - scripts/verify-invest-book.mjs
 - [[prev]] - code - scripts/verify-invest-book.mjs
 - [[q_1]] - code - scripts/verify-invest-book.mjs
 - [[qqqP]] - code - scripts/verify-invest-book.mjs
 - [[qsum]] - code - scripts/verify-invest-book.mjs
-- [[r2()_5]] - code - scripts/verify-invest-book.mjs
+- [[r2()_6]] - code - scripts/verify-invest-book.mjs
 - [[r4()_2]] - code - scripts/verify-invest-book.mjs
 - [[rec()_2]] - code - scripts/verify-invest-book.mjs
 - [[removeEventListener()_1]] - code - scripts/verify-invest-book.mjs
-- [[series]] - code - scripts/verify-invest-book.mjs
+- [[series_2]] - code - scripts/verify-invest-book.mjs
 - [[sgov]] - code - scripts/verify-invest-book.mjs
 - [[sh]] - code - scripts/verify-invest-book.mjs
 - [[small_1]] - code - scripts/verify-invest-book.mjs
@@ -83,13 +83,12 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 4 edges to [[_COMMUNITY_Community 5]]
+- 3 edges to [[_COMMUNITY_Community 5]]
+- 2 edges to [[_COMMUNITY_Community 209]]
 - 2 edges to [[_COMMUNITY_Community 34]]
+- 2 edges to [[_COMMUNITY_Community 86]]
 - 1 edge to [[_COMMUNITY_Community 100]]
-- 1 edge to [[_COMMUNITY_Community 209]]
-- 1 edge to [[_COMMUNITY_Community 215]]
-- 1 edge to [[_COMMUNITY_Community 11]]
-- 1 edge to [[_COMMUNITY_Community 86]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
-- [[verify-invest-book.mjs]] - degree 74, connects to 7 communities
+- [[verify-invest-book.mjs]] - degree 74, connects to 6 communities

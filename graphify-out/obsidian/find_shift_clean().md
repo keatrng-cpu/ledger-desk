@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[BSL raid, then a bear displacement that CLOSES through the last protected low.]] - `rationale_for` [EXTRACTED]
-- [[atr()_1]] - `calls` [EXTRACTED]
+- [[atr()_2]] - `calls` [EXTRACTED]
 - [[build-learn-figures.py]] - `contains` [EXTRACTED]
 - [[last_pivot_low_before()]] - `calls` [EXTRACTED]
 - [[ny_am()]] - `calls` [EXTRACTED]

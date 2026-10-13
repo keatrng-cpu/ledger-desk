@@ -10,10 +10,10 @@ members: 6
 **Members:** 6 nodes
 
 ## Members
-- [[at()_5]] - code - scripts/verify-desk-cadence.mjs
-- [[check()_51]] - code - scripts/verify-desk-cadence.mjs
+- [[at()_8]] - code - scripts/verify-desk-cadence.mjs
+- [[check()_62]] - code - scripts/verify-desk-cadence.mjs
 - [[minute_1]] - code - scripts/verify-desk-cadence.mjs
-- [[ok()_21]] - code - scripts/verify-desk-cadence.mjs
+- [[ok()_23]] - code - scripts/verify-desk-cadence.mjs
 - [[shell_1]] - code - scripts/verify-desk-cadence.mjs
 - [[verify-desk-cadence.mjs]] - code - scripts/verify-desk-cadence.mjs
 
@@ -25,7 +25,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 8]]
 
 ## Top bridge nodes

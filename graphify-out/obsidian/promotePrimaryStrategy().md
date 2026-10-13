@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 46"
+community: "Community 127"
 location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/Community_127
 ---
 
 # promotePrimaryStrategy()
@@ -19,4 +19,4 @@ tags:
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[strategyPriority()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/Community_127

@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/school-ticket.ts"
+source_file: "src/components/desk/week-ahead-panel.tsx"
 type: "code"
-community: "Community 231"
-location: "L33"
+community: "Community 14"
+location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/Community_14
 ---
 
 # px()
 
 ## Connections
-- [[school-ticket.ts]] - `contains` [EXTRACTED]
-- [[schoolPlanPrices()]] - `calls` [EXTRACTED]
+- [[BookCol()]] - `calls` [EXTRACTED]
+- [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/Community_14

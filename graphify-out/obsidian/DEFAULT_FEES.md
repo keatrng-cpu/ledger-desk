@@ -2,7 +2,7 @@
 source_file: "src/lib/predict/math.ts"
 type: "code"
 community: "Community 2"
-location: "L144"
+location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[board.ts]] - `imports` [EXTRACTED]
 - [[go-ledger.ts]] - `imports` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[predictjournal.ts]] - `imports` [EXTRACTED]
 - [[predictscanner.ts]] - `imports` [EXTRACTED]

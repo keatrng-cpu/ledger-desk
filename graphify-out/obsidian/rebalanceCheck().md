@@ -12,6 +12,7 @@ tags:
 # rebalanceCheck()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[InvestPanel()]] - `calls` [EXTRACTED]
 - [[book.ts]] - `contains` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 84"
+community: "Community 127"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/Community_127
 ---
 
 # strategy-grade.ts
@@ -15,6 +15,7 @@ tags:
 - [[ALWAYS_SCAN]] - `imports` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[ComponentKey]] - `imports` [EXTRACTED]
+- [[MODEL_REQUIREMENTS]] - `imports` [EXTRACTED]
 - [[RiskGrade]] - `imports` [EXTRACTED]
 - [[SMC_STRUCTURE_KEYS]] - `contains` [EXTRACTED]
 - [[STRATEGY_TEMPLATES]] - `contains` [EXTRACTED]
@@ -32,9 +33,10 @@ tags:
 - [[bestStrategyGrade()]] - `contains` [EXTRACTED]
 - [[config.ts]] - `imports_from` [EXTRACTED]
 - [[engine-weights.ts]] - `imports_from` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[gradeAllStrategies()]] - `contains` [EXTRACTED]
 - [[gradeStrategyAgainstMarket()]] - `contains` [EXTRACTED]
+- [[inModelWindow()]] - `imports` [EXTRACTED]
 - [[isPathTake()]] - `contains` [EXTRACTED]
 - [[isStrategyComplete()]] - `contains` [EXTRACTED]
 - [[pathBand]] - `contains` [EXTRACTED]
@@ -42,11 +44,13 @@ tags:
 - [[qualityScore()]] - `contains` [EXTRACTED]
 - [[score-drivers.ts]] - `imports_from` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
+- [[smc-canon.ts]] - `imports_from` [EXTRACTED]
 - [[strategies.ts]] - `imports_from` [EXTRACTED]
 - [[structureLayerScore()]] - `contains` [EXTRACTED]
 - [[templateFor()]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-score-drivers.mjs]] - `imports_from` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/Community_127

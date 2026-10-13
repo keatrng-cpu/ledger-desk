@@ -1,15 +1,16 @@
 ---
 type: community
-cohesion: 0.16
+cohesion: 0.15
 members: 17
 ---
 
 # Community 195
 
-**Cohesion:** 0.16 - loosely connected
+**Cohesion:** 0.15 - loosely connected
 **Members:** 17 nodes
 
 ## Members
+- [[3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion]] - document - INTEGRATION-D.md
 - [[ANALYTICS_RISK_PCT]] - code - src/lib/journal/analytics-server.ts
 - [[AnalyticsPayload]] - code - src/lib/journal/analytics-server.ts
 - [[AnalyticsReport]] - code - src/lib/journal/analytics.ts
@@ -24,7 +25,6 @@ members: 17
 - [[exportTradesCsv]] - code - src/lib/journal/analytics-server.ts
 - [[getAnalytics]] - code - src/lib/journal/analytics-server.ts
 - [[iso()]] - code - src/lib/journal/analytics-server.ts
-- [[readClosed()]] - code - src/lib/journal/analytics-server.ts
 - [[readEquity()]] - code - src/lib/journal/analytics-server.ts
 - [[toAnalyticsTrade()]] - code - src/lib/journal/analytics-server.ts
 
@@ -37,19 +37,23 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 7 edges to [[_COMMUNITY_Community 167]]
+- 5 edges to [[_COMMUNITY_Community 155]]
 - 4 edges to [[_COMMUNITY_Community 106]]
-- 3 edges to [[_COMMUNITY_Community 123]]
 - 3 edges to [[_COMMUNITY_Community 19]]
-- 3 edges to [[_COMMUNITY_Community 155]]
-- 3 edges to [[_COMMUNITY_Community 65]]
-- 2 edges to [[_COMMUNITY_Community 189]]
-- 2 edges to [[_COMMUNITY_Community 94]]
+- 3 edges to [[_COMMUNITY_Community 87]]
+- 2 edges to [[_COMMUNITY_Community 65]]
 - 2 edges to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 87]]
+- 1 edge to [[_COMMUNITY_Community 14]]
+- 1 edge to [[_COMMUNITY_Community 44]]
+- 1 edge to [[_COMMUNITY_Community 105]]
+- 1 edge to [[_COMMUNITY_Community 122]]
+- 1 edge to [[_COMMUNITY_Community 123]]
+- 1 edge to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 240]]
 
 ## Top bridge nodes
-- [[analytics-server.ts]] - degree 31, connects to 10 communities
-- [[getAnalytics]] - degree 7, connects to 3 communities
-- [[AnalyticsReport]] - degree 5, connects to 3 communities
-- [[readClosed()]] - degree 7, connects to 2 communities
+- [[analytics-server.ts]] - degree 31, connects to 11 communities
+- [[getAnalytics]] - degree 8, connects to 5 communities
+- [[AnalyticsReport]] - degree 6, connects to 3 communities
+- [[3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion]] - degree 4, connects to 3 communities
 - [[exportTradesCsv]] - degree 5, connects to 2 communities

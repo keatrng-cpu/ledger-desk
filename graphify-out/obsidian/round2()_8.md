@@ -1,23 +1,19 @@
 ---
-source_file: "src/lib/room/quant.ts"
+source_file: "src/lib/trading/override-log.ts"
 type: "code"
-community: "Community 52"
-location: "L102"
+community: "Community 60"
+location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/Community_60
 ---
 
 # round2()
 
 ## Connections
-- [[attribute()_1]] - `calls` [EXTRACTED]
-- [[backstopped()]] - `calls` [EXTRACTED]
-- [[breakevenSpot()]] - `calls` [EXTRACTED]
-- [[holdValue()]] - `calls` [EXTRACTED]
-- [[premiumStopOf()]] - `calls` [EXTRACTED]
-- [[priceOptionPlan()]] - `calls` [EXTRACTED]
-- [[quant.ts]] - `contains` [EXTRACTED]
+- [[override-log.ts]] - `contains` [EXTRACTED]
+- [[overrideScorecard()]] - `calls` [EXTRACTED]
+- [[summarise()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/Community_60

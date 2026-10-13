@@ -15,7 +15,7 @@ tags:
 - [[Activity()]] - `contains` [EXTRACTED]
 - [[BUTTON_1]] - `imports` [EXTRACTED]
 - [[BookCard()]] - `contains` [EXTRACTED]
-- [[BookRead]] - `imports` [EXTRACTED]
+- [[BookRead_1]] - `imports` [EXTRACTED]
 - [[BuyForm()]] - `contains` [EXTRACTED]
 - [[BuySource]] - `imports` [EXTRACTED]
 - [[Card()_2]] - `imports` [EXTRACTED]
@@ -59,7 +59,7 @@ tags:
 - [[taxYear()]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_5]] - `imports` [EXTRACTED]
+- [[usd()_6]] - `imports` [EXTRACTED]
 - [[voidEntry()]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_34

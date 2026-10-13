@@ -12,7 +12,7 @@ tags:
 # scanSide()
 
 ## Connections
-- [[c()_3]] - `calls` [EXTRACTED]
+- [[c()_4]] - `calls` [EXTRACTED]
 - [[ceilC()]] - `calls` [EXTRACTED]
 - [[feePerContract()]] - `calls` [EXTRACTED]
 - [[inactivesDue()]] - `calls` [EXTRACTED]

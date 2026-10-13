@@ -1,8 +1,8 @@
 ---
-source_file: "src/routes/index.tsx"
+source_file: "src/routes/api/cron/weekly.ts"
 type: "code"
 community: "Community 54"
-location: "L205"
+location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[index.tsx]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
+- [[weekly.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_54

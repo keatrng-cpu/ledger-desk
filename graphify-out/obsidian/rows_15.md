@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 55"
-location: "L86"
+community: "Community 36"
+location: "L258"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/Community_36
 ---
 
 # rows
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
+- [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/Community_36

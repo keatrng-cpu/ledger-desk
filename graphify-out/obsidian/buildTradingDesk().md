@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
 community: "Community 1"
-location: "L474"
+location: "L534"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,9 +13,10 @@ tags:
 
 ## Connections
 - [[analyzeStructure()]] - `calls` [EXTRACTED]
+- [[applyLtfReaction()]] - `calls` [EXTRACTED]
 - [[applyQuoteToLastBar()]] - `calls` [EXTRACTED]
 - [[applySession()]] - `calls` [EXTRACTED]
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[attachPlansToCards()]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `contains` [EXTRACTED]
 - [[buildLiveSays()]] - `calls` [EXTRACTED]
@@ -38,6 +39,7 @@ tags:
 - [[loadDaily()]] - `calls` [EXTRACTED]
 - [[loadMinute()]] - `calls` [EXTRACTED]
 - [[loadSpot()]] - `calls` [EXTRACTED]
+- [[namingSweep()]] - `calls` [EXTRACTED]
 - [[newsRead]] - `calls` [EXTRACTED]
 - [[overlayMonthAhead()]] - `calls` [EXTRACTED]
 - [[overlayWeekAhead()]] - `calls` [EXTRACTED]

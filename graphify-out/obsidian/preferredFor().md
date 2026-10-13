@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 90"
-location: "L371"
+community: "Community 20"
+location: "L377"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Community_20
 ---
 
 # preferredFor()
@@ -15,4 +15,4 @@ tags:
 - [[buildMarketNarrative()]] - `calls` [EXTRACTED]
 - [[market-narrative.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Community_20

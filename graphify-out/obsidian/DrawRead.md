@@ -13,12 +13,12 @@ tags:
 
 ## Connections
 - [[CardTape]] - `references` [EXTRACTED]
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[ManageContext]] - `references` [EXTRACTED]
 - [[SessionBriefInput]] - `references` [EXTRACTED]
 - [[SmcMasterInput]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[card-freshness.ts]] - `imports` [EXTRACTED]
+- [[card-plan.ts]] - `imports` [EXTRACTED]
 - [[draw.ts]] - `contains` [EXTRACTED]
 - [[management.ts]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[SetupChart()]] - `calls` [EXTRACTED]
-- [[arrayName()_1]] - `calls` [EXTRACTED]
+- [[arrayName()]] - `calls` [EXTRACTED]
 - [[setup-chart.tsx]] - `contains` [EXTRACTED]
 - [[verify-chart-labels.mjs]] - `imports` [EXTRACTED]
 

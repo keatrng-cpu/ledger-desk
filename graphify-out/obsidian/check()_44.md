@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-no-bot-entry.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 237"
-location: "L25"
+community: "Community 211"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_237
+  - community/Community_211
 ---
 
 # check()
 
 ## Connections
-- [[verify-no-bot-entry.mjs]] - `contains` [EXTRACTED]
+- [[ok()_18]] - `calls` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_237
+#graphify/code #graphify/EXTRACTED #community/Community_211

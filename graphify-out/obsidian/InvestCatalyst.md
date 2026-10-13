@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-types.ts"
 type: "code"
 community: "Community 49"
-location: "L428"
+location: "L443"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 40"
+community: "Community 127"
 location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/Community_127
 ---
 
 # applyProfitPathToCandidate()
@@ -19,8 +19,8 @@ tags:
 - [[gradeAllStrategies()]] - `calls` [EXTRACTED]
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 - [[promotePrimaryStrategy()]] - `calls` [EXTRACTED]
-- [[scoreCandidates()]] - `indirect_call` [INFERRED]
+- [[scoreCandidates()]] - `calls` [EXTRACTED]
 - [[stampPathTitle()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/Community_127

@@ -12,7 +12,7 @@ tags:
 # structure.ts
 
 ## Connections
-- [[Bias]] - `contains` [EXTRACTED]
+- [[Bias_1]] - `contains` [EXTRACTED]
 - [[DealingRange]] - `contains` [EXTRACTED]
 - [[EMPTY_SESSION_LEVELS]] - `contains` [EXTRACTED]
 - [[HtfBiasRead]] - `contains` [EXTRACTED]
@@ -76,6 +76,7 @@ tags:
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[voteBias()]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_58

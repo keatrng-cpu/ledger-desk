@@ -12,6 +12,7 @@ tags:
 # exKillzone()
 
 ## Connections
+- [[dot-pct()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]

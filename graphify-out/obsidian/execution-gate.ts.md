@@ -34,7 +34,7 @@ tags:
 - [[readExecutionReadiness()]] - `contains` [EXTRACTED]
 - [[risk.ts]] - `imports_from` [EXTRACTED]
 - [[tradingDayStart()]] - `imports` [EXTRACTED]
-- [[tradovate-client.ts]] - `dynamic_import` [EXTRACTED]
+- [[tradovate-client.ts]] - `imports_from` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_43

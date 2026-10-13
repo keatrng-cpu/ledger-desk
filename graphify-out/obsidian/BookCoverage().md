@@ -16,7 +16,7 @@ tags:
 - [[SectionHead()]] - `calls` [EXTRACTED]
 - [[StatTile()]] - `calls` [EXTRACTED]
 - [[analytics-panel.tsx]] - `contains` [EXTRACTED]
-- [[money()_1]] - `calls` [EXTRACTED]
+- [[money()_2]] - `calls` [EXTRACTED]
 - [[rr()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_167

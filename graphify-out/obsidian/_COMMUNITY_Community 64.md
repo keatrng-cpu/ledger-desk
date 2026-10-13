@@ -1,13 +1,13 @@
 ---
 type: community
-cohesion: 0.09
-members: 45
+cohesion: 0.10
+members: 44
 ---
 
 # Community 64
 
-**Cohesion:** 0.09 - loosely connected
-**Members:** 45 nodes
+**Cohesion:** 0.10 - loosely connected
+**Members:** 44 nodes
 
 ## Members
 - [[(pool, pierce) if bar i wicks through the prior pool and closes back inside.]] - rationale - scripts/build-learn-figures.py
@@ -22,7 +22,7 @@ members: 45
 - [[Slice July–August 2026 15m history into teaching figures. HARD RULE a figure…]] - rationale - scripts/build-learn-figures.py
 - [[aligned()_1]] - code - scripts/build-learn-figures.py
 - [[assert_figure()]] - code - scripts/build-learn-figures.py
-- [[atr()_1]] - code - scripts/build-learn-figures.py
+- [[atr()_2]] - code - scripts/build-learn-figures.py
 - [[bear_structure_before()]] - code - scripts/build-learn-figures.py
 - [[build-learn-figures.py]] - code - scripts/build-learn-figures.py
 - [[datetime_2]] - code
@@ -47,7 +47,6 @@ members: 45
 - [[ny_am()]] - code - scripts/build-learn-figures.py
 - [[ny_rth()]] - code - scripts/build-learn-figures.py
 - [[ohlc()]] - code - scripts/build-learn-figures.py
-- [[pathlib]] - concept
 - [[pivots()]] - code - scripts/build-learn-figures.py
 - [[raid_at()]] - code - scripts/build-learn-figures.py
 - [[range_fig()]] - code - scripts/build-learn-figures.py
@@ -64,12 +63,9 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 131]]
-- 1 edge to [[_COMMUNITY_Community 156]]
-- 1 edge to [[_COMMUNITY_Community 192]]
 - 1 edge to [[_COMMUNITY_Community 226]]
 - 1 edge to [[_COMMUNITY_Community 225]]
+- 1 edge to [[_COMMUNITY_Community 146]]
 
 ## Top bridge nodes
-- [[pathlib]] - degree 4, connects to 3 communities
-- [[build-learn-figures.py]] - degree 37, connects to 2 communities
+- [[build-learn-figures.py]] - degree 37, connects to 3 communities

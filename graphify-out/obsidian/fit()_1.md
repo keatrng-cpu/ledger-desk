@@ -1,23 +1,19 @@
 ---
-source_file: "src/components/room/floor-overhaul-school.ts"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 24"
-location: "L25"
+community: "Community 130"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/Community_130
 ---
 
 # fit()
 
 ## Connections
-- [[drawBriefing()]] - `calls` [EXTRACTED]
-- [[drawChecklist()]] - `calls` [EXTRACTED]
-- [[drawDebateBoard()]] - `calls` [EXTRACTED]
-- [[drawHitRanks()]] - `calls` [EXTRACTED]
-- [[drawSchoolDeskPlate()]] - `calls` [EXTRACTED]
-- [[floor-overhaul-school.ts]] - `contains` [EXTRACTED]
-- [[wrap()]] - `calls` [EXTRACTED]
+- [[cardPhrase()]] - `calls` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/Community_130

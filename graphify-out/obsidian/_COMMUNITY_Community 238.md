@@ -10,12 +10,12 @@ members: 9
 **Members:** 9 nodes
 
 ## Members
-- [[BIG]] - code - scripts/verify-overnight.mjs
+- [[BIG_1]] - code - scripts/verify-overnight.mjs
 - [[FRI]] - code - scripts/verify-overnight.mjs
 - [[MORNING_1]] - code - scripts/verify-overnight.mjs
 - [[SLEEVE_1]] - code - scripts/verify-overnight.mjs
 - [[WED]] - code - scripts/verify-overnight.mjs
-- [[check()_45]] - code - scripts/verify-overnight.mjs
+- [[check()_55]] - code - scripts/verify-overnight.mjs
 - [[desk()_1]] - code - scripts/verify-overnight.mjs
 - [[goodTicket]] - code - scripts/verify-overnight.mjs
 - [[verify-overnight.mjs]] - code - scripts/verify-overnight.mjs
@@ -28,9 +28,8 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 172]]
+- 2 edges to [[_COMMUNITY_Community 89]]
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 89]]
 
 ## Top bridge nodes
-- [[verify-overnight.mjs]] - degree 11, connects to 3 communities
+- [[verify-overnight.mjs]] - degree 11, connects to 2 communities

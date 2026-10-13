@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 132"
+community: "Community 26"
 location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/Community_26
 ---
 
 # MAX_SAME_SIDE_WEEK
@@ -15,4 +15,4 @@ tags:
 - [[curriculum.ts]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/Community_26

@@ -12,7 +12,7 @@ tags:
 # needed
 
 ## Connections
-- [[bisect()]] - `calls` [EXTRACTED]
+- [[bisect()_1]] - `calls` [EXTRACTED]
 - [[goal.ts]] - `contains` [EXTRACTED]
 - [[policyOf()]] - `calls` [EXTRACTED]
 - [[simFor()]] - `calls` [EXTRACTED]

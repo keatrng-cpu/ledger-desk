@@ -1,20 +1,18 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 37"
-location: "L1306"
+community: "Community 224"
+location: "L302"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_224
 ---
 
 # .dispose()
 
 ## Connections
-- [[dot-dispose()_7]] - `calls` [EXTRACTED]
-- [[dot-dispose()_8]] - `calls` [EXTRACTED]
-- [[dot-retag()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[dot-dispose()_6]] - `calls` [INFERRED]
+- [[StubManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_224

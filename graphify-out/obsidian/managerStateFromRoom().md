@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 38"
+community: "Community 158"
 location: "L212"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/Community_158
 ---
 
 # managerStateFromRoom()
@@ -21,4 +21,4 @@ tags:
 - [[phaseFor()]] - `calls` [EXTRACTED]
 - [[schoolTicket()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/Community_158

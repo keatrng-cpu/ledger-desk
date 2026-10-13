@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-agree.ts"
 type: "code"
-community: "Community 38"
+community: "Community 15"
 location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/Community_15
 ---
 
 # ManagerRoomStateAgree
@@ -16,4 +16,4 @@ tags:
 - [[manager-agree.ts]] - `contains` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/Community_15

@@ -13,8 +13,10 @@ tags:
 
 ## Connections
 - [[KillWatchPanel()]] - `calls` [EXTRACTED]
+- [[invest-sources.ts]] - `imports` [EXTRACTED]
 - [[kill-store.ts]] - `contains` [EXTRACTED]
 - [[kill-watch-panel.tsx]] - `imports` [EXTRACTED]
-- [[read()_7]] - `calls` [EXTRACTED]
+- [[read()_13]] - `calls` [EXTRACTED]
+- [[readInvestOffice()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_80

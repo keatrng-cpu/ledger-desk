@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 36"
-location: "L258"
+community: "Community 20"
+location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/Community_20
 ---
 
 # rows
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/Community_20

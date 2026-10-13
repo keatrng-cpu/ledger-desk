@@ -10,7 +10,7 @@ members: 27
 **Members:** 27 nodes
 
 ## Members
-- [[BARS_1]] - code - scripts/measure-amd-signals.mjs
+- [[BARS_2]] - code - scripts/measure-amd-signals.mjs
 - [[H_1]] - code - scripts/measure-amd-signals.mjs
 - [[IS_YEARS_1]] - code - scripts/measure-amd-signals.mjs
 - [[OOS_YEARS_1]] - code - scripts/measure-amd-signals.mjs
@@ -27,7 +27,7 @@ members: 27
 - [[measure-amd-signals.mjs]] - code - scripts/measure-amd-signals.mjs
 - [[r3()_2]] - code - scripts/measure-amd-signals.mjs
 - [[result_1]] - code - scripts/measure-amd-signals.mjs
-- [[rows_1]] - code - scripts/measure-amd-signals.mjs
+- [[rows_2]] - code - scripts/measure-amd-signals.mjs
 - [[show()_1]] - code - scripts/measure-amd-signals.mjs
 - [[sim()_1]] - code - scripts/measure-amd-signals.mjs
 - [[sims_1]] - code - scripts/measure-amd-signals.mjs
@@ -46,8 +46,8 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 298]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 

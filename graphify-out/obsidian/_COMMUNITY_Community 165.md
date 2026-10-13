@@ -1,38 +1,60 @@
 ---
 type: community
-cohesion: 0.10
-members: 23
+cohesion: 0.04
+members: 45
 ---
 
 # Community 165
 
-**Cohesion:** 0.10 - loosely connected
-**Members:** 23 nodes
+**Cohesion:** 0.04 - loosely connected
+**Members:** 45 nodes
 
 ## Members
-- [[Blotter]] - code - src/lib/room/floor-cues.ts
-- [[CueParts]] - code - src/lib/room/floor-cues.ts
-- [[Flight]] - code - src/lib/room/floor-cues.ts
-- [[LIGHT_BAND]] - code - src/lib/room/floor-cues.ts
-- [[RangeZone]] - code - src/lib/room/floor-cues.ts
-- [[Stamp]] - code - src/lib/room/floor-cues.ts
-- [[Tint]] - code - src/lib/room/floor-cues.ts
-- [[a_1]] - code - scripts/verify-floor-cues.mjs
-- [[agreed]] - code - scripts/verify-floor-cues.mjs
-- [[base_3]] - code - scripts/verify-floor-cues.mjs
-- [[check()_18]] - code - scripts/verify-floor-cues.mjs
-- [[clockVeto()]] - code - src/lib/room/floor-cues.ts
-- [[fill]] - code - scripts/verify-floor-cues.mjs
-- [[floor-cues.ts]] - code - src/lib/room/floor-cues.ts
-- [[floorCues]] - code - src/lib/room/floor-cues.ts
-- [[floorLightOf()]] - code - src/lib/room/floor-cues.ts
-- [[freshTape()]] - code - src/lib/room/floor-cues.ts
-- [[gone]] - code - scripts/verify-floor-cues.mjs
-- [[late]] - code - scripts/verify-floor-cues.mjs
-- [[raid]] - code - scripts/verify-floor-cues.mjs
-- [[stampOf()]] - code - src/lib/room/floor-cues.ts
-- [[syn]] - code - scripts/verify-floor-cues.mjs
-- [[verify-floor-cues.mjs]] - code - scripts/verify-floor-cues.mjs
+- [[arm]] - code - scripts/verify-detectors.mjs
+- [[armed]] - code - scripts/verify-detectors.mjs
+- [[at()_3]] - code - scripts/verify-detectors.mjs
+- [[atr]] - code - scripts/verify-detectors.mjs
+- [[bearishClose]] - code - scripts/verify-detectors.mjs
+- [[big]] - code - scripts/verify-detectors.mjs
+- [[bigBody]] - code - scripts/verify-detectors.mjs
+- [[bigNoGap]] - code - scripts/verify-detectors.mjs
+- [[blakeOk]] - code - scripts/verify-detectors.mjs
+- [[bodyAndSpentGap]] - code - scripts/verify-detectors.mjs
+- [[brRead]] - code - scripts/verify-detectors.mjs
+- [[breakout]] - code - scripts/verify-detectors.mjs
+- [[bs]] - code - scripts/verify-detectors.mjs
+- [[cisdOnly]] - code - scripts/verify-detectors.mjs
+- [[cleanRaid]] - code - scripts/verify-detectors.mjs
+- [[closedBack]] - code - scripts/verify-detectors.mjs
+- [[gapOnly]] - code - scripts/verify-detectors.mjs
+- [[gapped]] - code - scripts/verify-detectors.mjs
+- [[good_2]] - code - scripts/verify-detectors.mjs
+- [[h1]] - code - scripts/verify-detectors.mjs
+- [[handRolled]] - code - scripts/verify-detectors.mjs
+- [[ind]] - code - scripts/verify-detectors.mjs
+- [[induceBase]] - code - scripts/verify-detectors.mjs
+- [[lateDisp]] - code - scripts/verify-detectors.mjs
+- [[lateRead]] - code - scripts/verify-detectors.mjs
+- [[lateReturn]] - code - scripts/verify-detectors.mjs
+- [[m1]] - code - scripts/verify-detectors.mjs
+- [[m15_1]] - code - scripts/verify-detectors.mjs
+- [[m5]] - code - scripts/verify-detectors.mjs
+- [[na]] - code - scripts/verify-detectors.mjs
+- [[noTake]] - code - scripts/verify-detectors.mjs
+- [[noTapes]] - code - scripts/verify-detectors.mjs
+- [[notBlake]] - code - scripts/verify-detectors.mjs
+- [[okRead]] - code - scripts/verify-detectors.mjs
+- [[seqBars]] - code - scripts/verify-detectors.mjs
+- [[seqMin]] - code - scripts/verify-detectors.mjs
+- [[smallHeldGap]] - code - scripts/verify-detectors.mjs
+- [[spent]] - code - scripts/verify-detectors.mjs
+- [[spentEither]] - code - scripts/verify-detectors.mjs
+- [[summed]] - code - scripts/verify-detectors.mjs
+- [[sweep]] - code - scripts/verify-detectors.mjs
+- [[sweepsLate]] - code - scripts/verify-detectors.mjs
+- [[trap_1]] - code - scripts/verify-detectors.mjs
+- [[verify-detectors.mjs]] - code - scripts/verify-detectors.mjs
+- [[wickOnly]] - code - scripts/verify-detectors.mjs
 
 ## Live Query (requires Dataview plugin)
 
@@ -42,11 +64,10 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 25]]
-- 2 edges to [[_COMMUNITY_Community 17]]
-- 2 edges to [[_COMMUNITY_Community 0]]
-- 2 edges to [[_COMMUNITY_Community 122]]
+- 4 edges to [[_COMMUNITY_Community 340]]
+- 2 edges to [[_COMMUNITY_Community 348]]
+- 2 edges to [[_COMMUNITY_Community 35]]
+- 1 edge to [[_COMMUNITY_Community 40]]
 
 ## Top bridge nodes
-- [[floor-cues.ts]] - degree 20, connects to 4 communities
-- [[floorCues]] - degree 6, connects to 1 community
+- [[verify-detectors.mjs]] - degree 53, connects to 4 communities

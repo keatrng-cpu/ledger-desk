@@ -1,23 +1,18 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 25"
-location: "L191"
+community: "Community 179"
+location: "L199"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_179
 ---
 
 # fmt()
 
 ## Connections
-- [[drawChart()]] - `calls` [EXTRACTED]
-- [[drawMarquee()]] - `calls` [EXTRACTED]
-- [[drawMonitor()]] - `calls` [EXTRACTED]
-- [[drawPlanLadder()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[px()_7]] - `calls` [EXTRACTED]
-- [[tapeBlock()]] - `calls` [EXTRACTED]
+- [[buildPath()]] - `calls` [EXTRACTED]
+- [[session-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_179

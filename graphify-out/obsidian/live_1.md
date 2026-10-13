@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-paper-step.mjs"
+source_file: "scripts/verify-invest.mjs"
 type: "code"
-community: "Community 143"
-location: "L62"
+community: "Community 107"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_107
 ---
 
 # live
 
 ## Connections
-- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
+- [[verify-invest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_107

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[PathAlarmBar()]] - `calls` [EXTRACTED]
-- [[load()_4]] - `calls` [EXTRACTED]
+- [[load()_5]] - `calls` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 - [[path-alarm.ts]] - `contains` [EXTRACTED]
 

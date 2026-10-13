@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
-- [[num()_10]] - `calls` [EXTRACTED]
+- [[num()_9]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_219

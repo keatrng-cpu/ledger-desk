@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/mead/mead-feed.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 37"
-location: "L23"
+community: "Community 172"
+location: "L168"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_172
 ---
 
 # .getState()
 
 ## Connections
-- [[MeadFeed]] - `method` [EXTRACTED]
-- [[PredictionMarketFeedState]] - `references` [EXTRACTED]
+- [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_172

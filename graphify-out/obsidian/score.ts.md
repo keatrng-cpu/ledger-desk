@@ -12,7 +12,7 @@ tags:
 # score.ts
 
 ## Connections
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[MAX_ROOM_FRACTION_PER_TRADE]] - `contains` [EXTRACTED]
 - [[MAX_STATE_AGE_HOURS]] - `contains` [EXTRACTED]

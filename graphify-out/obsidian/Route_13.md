@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/engine/journal.ts"
+source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 95"
-location: "L87"
+community: "Community 54"
+location: "L211"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/Community_54
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[enginejournal.ts]] - `contains` [EXTRACTED]
+- [[index.tsx]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/Community_54

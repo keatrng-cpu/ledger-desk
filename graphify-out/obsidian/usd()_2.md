@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/room/rnd.ts"
+source_file: "src/components/desk/options-swing-panel.tsx"
 type: "code"
-community: "Community 194"
-location: "L95"
+community: "Community 153"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/Community_153
 ---
 
 # usd()
 
 ## Connections
-- [[rnd.ts]] - `contains` [EXTRACTED]
-- [[rndRead]] - `calls` [EXTRACTED]
+- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
+- [[QuoteSheet()]] - `calls` [EXTRACTED]
+- [[SleeveBudgetBar()]] - `calls` [EXTRACTED]
+- [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/Community_153

@@ -22,6 +22,6 @@ tags:
 - [[etToday()]] - `calls` [EXTRACTED]
 - [[isDate()]] - `calls` [EXTRACTED]
 - [[recordBuy()]] - `calls` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_6]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_34

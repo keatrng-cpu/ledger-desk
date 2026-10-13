@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-account.ts"
 type: "code"
-community: "Community 9"
+community: "Community 44"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/Community_44
 ---
 
 # paper-account.ts
@@ -31,4 +31,4 @@ tags:
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[trade-debrief.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/Community_44

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/trade-log-panel.tsx"
 type: "code"
-community: "Community 8"
+community: "Community 216"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_216
 ---
 
 # trade-log-panel.tsx
@@ -20,4 +20,4 @@ tags:
 - [[setup-memory.ts]] - `imports_from` [EXTRACTED]
 - [[trade-log.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_216

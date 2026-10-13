@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 210"
+community: "Community 160"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/Community_160
 ---
 
 # shock.ts
@@ -31,5 +31,6 @@ tags:
 - [[minPts()]] - `contains` [EXTRACTED]
 - [[readShock()]] - `contains` [EXTRACTED]
 - [[rollingAtr()]] - `imports` [EXTRACTED]
+- [[shockBrief]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/Community_160

@@ -12,13 +12,13 @@ tags:
 # checklist.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[CronRunResult]] - `imports` [EXTRACTED]
-- [[Route_2]] - `contains` [EXTRACTED]
+- [[Route_4]] - `contains` [EXTRACTED]
 - [[authorizeCronRequest()]] - `imports` [EXTRACTED]
 - [[cron-stats-server.ts]] - `imports_from` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
-- [[etWindow]] - `imports` [EXTRACTED]
+- [[etWindow_1]] - `imports` [EXTRACTED]
 - [[fmtR()_2]] - `imports` [EXTRACTED]
 - [[getSessionClock()]] - `imports` [EXTRACTED]
 - [[handleChecklist()]] - `indirect_call` [INFERRED]

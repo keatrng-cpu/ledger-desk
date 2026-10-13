@@ -1,12 +1,12 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
-location: "L449"
+community: "Community 41"
+location: "L189"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_41
 ---
 
 # .add()
@@ -18,8 +18,7 @@ tags:
 - [[dot-buildCrowd()]] - `calls` [EXTRACTED]
 - [[dot-buildPoolTable()]] - `calls` [EXTRACTED]
 - [[dot-buildRoom()]] - `calls` [EXTRACTED]
-- [[dot-constructor()_17]] - `calls` [EXTRACTED]
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[dot-constructor()_19]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_41

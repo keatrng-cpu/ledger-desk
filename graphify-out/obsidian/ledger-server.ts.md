@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ledger-server.ts"
 type: "code"
-community: "Community 147"
+community: "Community 34"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_34
 ---
 
 # ledger-server.ts
@@ -26,6 +26,6 @@ tags:
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sync.ts]] - `imports_from` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_34

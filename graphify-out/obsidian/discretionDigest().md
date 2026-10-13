@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 187"
+community: "Community 111"
 location: "L832"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/Community_111
 ---
 
 # discretionDigest()
@@ -20,4 +20,4 @@ tags:
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[fmtR()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/Community_111

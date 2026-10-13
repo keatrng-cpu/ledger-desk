@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[SetupCard()]] - `calls` [EXTRACTED]
-- [[px()_6]] - `calls` [EXTRACTED]
+- [[px()_8]] - `calls` [EXTRACTED]
 - [[school-ticket.ts]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[verify-school-gate.mjs]] - `imports` [EXTRACTED]

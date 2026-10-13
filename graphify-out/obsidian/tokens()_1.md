@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/room/floor-voice.ts"
+source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 75"
-location: "L170"
+community: "Community 21"
+location: "L359"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/Community_21
 ---
 
 # tokens()
 
 ## Connections
-- [[floor-voice.ts]] - `contains` [EXTRACTED]
-- [[voiceGender()]] - `calls` [EXTRACTED]
+- [[desk-atlas.ts]] - `contains` [EXTRACTED]
+- [[improveAtlas()]] - `calls` [EXTRACTED]
+- [[recall()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/Community_21

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-curriculum.mjs"
+source_file: "scripts/verify-propfirm-score.mjs"
 type: "code"
-community: "Community 118"
-location: "L35"
+community: "Community 108"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/Community_108
 ---
 
 # check()
 
 ## Connections
-- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
+- [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/Community_108

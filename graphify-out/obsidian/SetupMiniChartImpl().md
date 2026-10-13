@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-mini-chart.tsx"
 type: "code"
-community: "Community 186"
+community: "Community 163"
 location: "L356"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/Community_163
 ---
 
 # SetupMiniChartImpl()
@@ -22,4 +22,4 @@ tags:
 - [[shortLabel()]] - `calls` [EXTRACTED]
 - [[showsContext()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/Community_163

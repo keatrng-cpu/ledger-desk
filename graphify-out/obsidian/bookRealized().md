@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[applyCycle()]] - `calls` [EXTRACTED]
 - [[markBook()]] - `calls` [EXTRACTED]
-- [[money()_8]] - `calls` [EXTRACTED]
+- [[money()_9]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_4

@@ -2,7 +2,7 @@
 source_file: "src/lib/predict/math.ts"
 type: "code"
 community: "Community 2"
-location: "L138"
+location: "L142"
 tags:
   - graphify/code
   - graphify/EXTRACTED

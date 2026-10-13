@@ -17,6 +17,7 @@ tags:
 - [[Col]] - `contains` [EXTRACTED]
 - [[Note()]] - `imports` [EXTRACTED]
 - [[RISK_FREE]] - `imports` [EXTRACTED]
+- [[SHORT_5]] - `contains` [EXTRACTED]
 - [[ScreenTable()]] - `contains` [EXTRACTED]
 - [[allFundamentals()]] - `imports` [EXTRACTED]
 - [[dossierFor()]] - `imports` [EXTRACTED]

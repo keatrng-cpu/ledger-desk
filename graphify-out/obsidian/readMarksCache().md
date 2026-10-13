@@ -2,7 +2,7 @@
 source_file: "src/components/desk/invest-panel.tsx"
 type: "code"
 community: "Community 100"
-location: "L59"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED

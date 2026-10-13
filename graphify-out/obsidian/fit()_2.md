@@ -1,8 +1,8 @@
 ---
-source_file: "src/components/room/floor-overhaul-war.ts"
+source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
 community: "Community 24"
-location: "L13"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,9 +12,14 @@ tags:
 # fit()
 
 ## Connections
-- [[drawDiscretionBoard()]] - `calls` [EXTRACTED]
-- [[drawManagerArms()]] - `calls` [EXTRACTED]
-- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
-- [[wrap()_1]] - `calls` [EXTRACTED]
+- [[drawKillzoneClock()]] - `calls` [EXTRACTED]
+- [[drawManagerBook()]] - `calls` [EXTRACTED]
+- [[drawManagerCall()]] - `calls` [EXTRACTED]
+- [[drawScars()]] - `calls` [EXTRACTED]
+- [[drawTickerWall()]] - `calls` [EXTRACTED]
+- [[drawTrack()]] - `calls` [EXTRACTED]
+- [[drawTrophies()]] - `calls` [EXTRACTED]
+- [[floor-overhaul.ts]] - `contains` [EXTRACTED]
+- [[wrap()_3]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_24

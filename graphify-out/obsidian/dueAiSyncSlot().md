@@ -12,6 +12,7 @@ tags:
 # dueAiSyncSlot()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[DiscussTab()]] - `calls` [EXTRACTED]
 - [[ai-sync.ts]] - `contains` [EXTRACTED]
 - [[dateKey()]] - `calls` [EXTRACTED]

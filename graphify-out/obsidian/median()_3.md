@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/draw.ts"
+source_file: "src/lib/trading/take-census.ts"
 type: "code"
-community: "Community 72"
-location: "L81"
+community: "Community 229"
+location: "L201"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/Community_229
 ---
 
 # median()
 
 ## Connections
-- [[draw.ts]] - `contains` [EXTRACTED]
-- [[drawOnLiquidity()]] - `calls` [EXTRACTED]
+- [[census]] - `calls` [EXTRACTED]
+- [[take-census.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/Community_229

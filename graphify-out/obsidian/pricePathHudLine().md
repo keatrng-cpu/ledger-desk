@@ -2,7 +2,7 @@
 source_file: "src/components/desk/price-path-board.tsx"
 type: "code"
 community: "Community 69"
-location: "L434"
+location: "L439"
 tags:
   - graphify/code
   - graphify/EXTRACTED

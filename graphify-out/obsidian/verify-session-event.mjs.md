@@ -12,8 +12,8 @@ tags:
 # verify-session-event.mjs
 
 ## Connections
-- [[check()_27]] - `contains` [EXTRACTED]
-- [[clockAt()_3]] - `contains` [EXTRACTED]
+- [[check()_38]] - `contains` [EXTRACTED]
+- [[clockAt()_4]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
 - [[gradeAt()_1]] - `contains` [EXTRACTED]

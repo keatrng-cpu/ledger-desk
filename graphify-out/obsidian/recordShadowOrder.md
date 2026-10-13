@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/shadow.ts"
 type: "code"
-community: "Community 8"
+community: "Community 44"
 location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_44
 ---
 
 # recordShadowOrder
@@ -18,4 +18,4 @@ tags:
 - [[recordArmedShadow()]] - `calls` [EXTRACTED]
 - [[shadow.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_44

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
 community: "Community 51"
-location: "L497"
+location: "L498"
 tags:
   - graphify/code
   - graphify/EXTRACTED

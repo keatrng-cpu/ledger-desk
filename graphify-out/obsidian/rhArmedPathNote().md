@@ -12,6 +12,7 @@ tags:
 # rhArmedPathNote()
 
 ## Connections
+- [[Floor rules on the RH path (`evaluateRhFloorRules`, fail closed)]] - `references` [INFERRED]
 - [[buildMeeting()]] - `calls` [EXTRACTED]
 - [[evaluateRhBuyingPower()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]

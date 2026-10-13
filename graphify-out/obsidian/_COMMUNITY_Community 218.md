@@ -18,7 +18,7 @@ members: 12
 - [[doc_2]] - code - scripts/capture-durability.mjs
 - [[lastN()]] - code - scripts/capture-durability.mjs
 - [[only_1]] - code - scripts/capture-durability.mjs
-- [[round4()_2]] - code - scripts/capture-durability.mjs
+- [[round4()_3]] - code - scripts/capture-durability.mjs
 - [[tickers]] - code - scripts/capture-durability.mjs
 - [[universe]] - code - scripts/capture-durability.mjs
 - [[yahoo()]] - code - scripts/capture-durability.mjs
@@ -31,7 +31,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[capture-durability.mjs]] - degree 12, connects to 1 community

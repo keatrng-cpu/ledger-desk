@@ -2,7 +2,7 @@
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
 community: "Community 88"
-location: "L324"
+location: "L341"
 tags:
   - graphify/code
   - graphify/EXTRACTED

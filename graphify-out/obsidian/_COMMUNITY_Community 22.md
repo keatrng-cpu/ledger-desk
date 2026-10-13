@@ -11,7 +11,7 @@ members: 71
 
 ## Members
 - [[ERRAND]] - code - scripts/verify-room.mjs
-- [[LAYOUT_2]] - code - scripts/verify-room.mjs
+- [[LAYOUT_4]] - code - scripts/verify-room.mjs
 - [[argsQ]] - code - scripts/verify-room.mjs
 - [[atr8]] - code - scripts/verify-room.mjs
 - [[bad_2]] - code - scripts/verify-room.mjs
@@ -25,7 +25,7 @@ members: 71
 - [[cdfFB]] - code - scripts/verify-room.mjs
 - [[ceoDesk]] - code - scripts/verify-room.mjs
 - [[chCal]] - code - scripts/verify-room.mjs
-- [[check()_36]] - code - scripts/verify-room.mjs
+- [[check()_48]] - code - scripts/verify-room.mjs
 - [[chops]] - code - scripts/verify-room.mjs
 - [[closedGhost()]] - code - scripts/verify-room.mjs
 - [[cronSrc]] - code - scripts/verify-room.mjs
@@ -38,13 +38,13 @@ members: 71
 - [[evm]] - code - scripts/verify-room.mjs
 - [[evx]] - code - scripts/verify-room.mjs
 - [[f_1]] - code - scripts/verify-room.mjs
-- [[file_2]] - code - scripts/verify-room.mjs
+- [[file_3]] - code - scripts/verify-room.mjs
 - [[fileFB]] - code - scripts/verify-room.mjs
 - [[flatQ]] - code - scripts/verify-room.mjs
 - [[g1000]] - code - scripts/verify-room.mjs
 - [[g956]] - code - scripts/verify-room.mjs
 - [[gHeld]] - code - scripts/verify-room.mjs
-- [[glb]] - code - scripts/verify-room.mjs
+- [[glb_1]] - code - scripts/verify-room.mjs
 - [[halted]] - code - scripts/verify-room.mjs
 - [[labX]] - code - scripts/verify-room.mjs
 - [[lens_1]] - code - scripts/verify-room.mjs
@@ -52,7 +52,7 @@ members: 71
 - [[neg]] - code - scripts/verify-room.mjs
 - [[noneHi]] - code - scripts/verify-room.mjs
 - [[noneLo]] - code - scripts/verify-room.mjs
-- [[now_7]] - code - scripts/verify-room.mjs
+- [[now_9]] - code - scripts/verify-room.mjs
 - [[nowQ]] - code - scripts/verify-room.mjs
 - [[pick2]] - code - scripts/verify-room.mjs
 - [[pkg]] - code - scripts/verify-room.mjs
@@ -60,8 +60,8 @@ members: 71
 - [[posX]] - code - scripts/verify-room.mjs
 - [[quoteQ]] - code - scripts/verify-room.mjs
 - [[rel]] - code - scripts/verify-room.mjs
-- [[step_1]] - code - scripts/verify-room.mjs
-- [[steps]] - code - scripts/verify-room.mjs
+- [[step]] - code - scripts/verify-room.mjs
+- [[steps_1]] - code - scripts/verify-room.mjs
 - [[stopped]] - code - scripts/verify-room.mjs
 - [[t1m]] - code - scripts/verify-room.mjs
 - [[t1x]] - code - scripts/verify-room.mjs
@@ -90,18 +90,17 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 0]]
-- 3 edges to [[_COMMUNITY_Community 52]]
+- 5 edges to [[_COMMUNITY_Community 52]]
 - 2 edges to [[_COMMUNITY_Community 261]]
 - 2 edges to [[_COMMUNITY_Community 262]]
 - 2 edges to [[_COMMUNITY_Community 263]]
-- 2 edges to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 11]]
-- 1 edge to [[_COMMUNITY_Community 198]]
+- 2 edges to [[_COMMUNITY_Community 0]]
+- 2 edges to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 13]]
+- 1 edge to [[_COMMUNITY_Community 298]]
 - 1 edge to [[_COMMUNITY_Community 104]]
 - 1 edge to [[_COMMUNITY_Community 17]]
-- 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 4]]
 
 ## Top bridge nodes
-- [[verify-room.mjs]] - degree 90, connects to 12 communities
+- [[verify-room.mjs]] - degree 90, connects to 11 communities

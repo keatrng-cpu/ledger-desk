@@ -1,23 +1,27 @@
 ---
 source_file: "src/lib/room/invest-office.ts"
 type: "code"
-community: "Community 128"
-location: "L22"
+community: "Community 100"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/Community_100
 ---
 
 # InvestInputs
 
 ## Connections
-- [[BookRead]] - `references` [EXTRACTED]
+- [[BookRead_1]] - `references` [EXTRACTED]
+- [[KillJudgement]] - `references` [EXTRACTED]
+- [[LedgerRead]] - `references` [EXTRACTED]
 - [[RebalanceRead]] - `references` [EXTRACTED]
 - [[ResearchTheme]] - `references` [EXTRACTED]
+- [[RhFill]] - `references` [EXTRACTED]
+- [[StoredKillRun]] - `references` [EXTRACTED]
 - [[deployQueue]] - `references` [EXTRACTED]
 - [[invest-office.ts]] - `contains` [EXTRACTED]
 - [[nextBuy]] - `references` [EXTRACTED]
 - [[rateLadder]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/Community_100

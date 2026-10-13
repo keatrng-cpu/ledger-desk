@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 60"
+community: "Community 26"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_26
 ---
 
 # profit-rules.ts
@@ -51,7 +51,7 @@ tags:
 - [[live-voices.ts]] - `imports_from` [EXTRACTED]
 - [[monthKeyFromMs()]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[override-log.ts]] - `imports_from` [EXTRACTED]
+- [[override-log.ts]] - `re_exports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[paperFillsForMonth()]] - `contains` [EXTRACTED]
 - [[pathCapReached()]] - `contains` [EXTRACTED]
@@ -72,4 +72,4 @@ tags:
 - [[verify-live-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_26

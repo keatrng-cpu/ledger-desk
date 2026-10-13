@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[bs()]] - `calls` [EXTRACTED]
 - [[bs_oracle.py]] - `contains` [EXTRACTED]
-- [[build()_1]] - `calls` [EXTRACTED]
+- [[build()_3]] - `calls` [EXTRACTED]
 - [[math]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_226

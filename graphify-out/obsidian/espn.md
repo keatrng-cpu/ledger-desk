@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/lib/mead-fixture.mjs"
 type: "code"
-community: "Community 36"
-location: "L97"
+community: "Community 279"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/Community_279
 ---
 
 # espn
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/Community_279

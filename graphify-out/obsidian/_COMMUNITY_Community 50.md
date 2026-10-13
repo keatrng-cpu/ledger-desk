@@ -16,11 +16,11 @@ members: 52
 - [[FracRule]] - code - src/lib/room/goal.ts
 - [[GOAL_STORAGE]] - code - src/lib/room/goal.ts
 - [[GoalRead]] - code - src/lib/room/goal.ts
+- [[GoalView]] - code - src/lib/room/goal.ts
 - [[LADDER_EPS]] - code - src/lib/room/goal.ts
 - [[LadderRow]] - code - src/lib/room/goal.ts
 - [[Opportunity]] - code - src/lib/room/goal.ts
 - [[POLICIES]] - code - src/lib/room/goal.ts
-- [[PolicyDef]] - code - src/lib/room/goal.ts
 - [[PolicyRow]] - code - src/lib/room/goal.ts
 - [[Rung_1]] - code - src/lib/room/contract-ladder.ts
 - [[SimInput]] - code - src/lib/room/goal.ts
@@ -28,7 +28,7 @@ members: 52
 - [[SimPolicy]] - code - src/lib/room/goal.ts
 - [[TradeModel]] - code - src/lib/room/goal.ts
 - [[arrivalPmf()]] - code - src/lib/room/goal.ts
-- [[bisect()]] - code - src/lib/room/goal.ts
+- [[bisect()_1]] - code - src/lib/room/goal.ts
 - [[collisions()]] - code - src/lib/room/goal.ts
 - [[contractsFor()]] - code - src/lib/room/goal.ts
 - [[dateOf()]] - code - src/lib/room/goal.ts
@@ -42,7 +42,7 @@ members: 52
 - [[memoView()]] - code - src/lib/room/race.ts
 - [[modelFromMean()]] - code - src/lib/room/goal.ts
 - [[modelFromRung()]] - code - src/lib/room/goal.ts
-- [[money()_10]] - code - src/lib/room/goal.ts
+- [[money()_11]] - code - src/lib/room/goal.ts
 - [[needed]] - code - src/lib/room/goal.ts
 - [[opportunityRate()]] - code - src/lib/room/goal.ts
 - [[outcomesOf()]] - code - src/lib/room/goal.ts
@@ -71,31 +71,33 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 15 edges to [[_COMMUNITY_Community 0]]
-- 6 edges to [[_COMMUNITY_Community 18]]
+- 14 edges to [[_COMMUNITY_Community 52]]
 - 6 edges to [[_COMMUNITY_Community 57]]
-- 4 edges to [[_COMMUNITY_Community 4]]
-- 4 edges to [[_COMMUNITY_Community 122]]
-- 3 edges to [[_COMMUNITY_Community 29]]
+- 6 edges to [[_COMMUNITY_Community 4]]
+- 5 edges to [[_COMMUNITY_Community 0]]
 - 3 edges to [[_COMMUNITY_Community 194]]
+- 3 edges to [[_COMMUNITY_Community 29]]
+- 3 edges to [[_COMMUNITY_Community 26]]
 - 2 edges to [[_COMMUNITY_Community 10]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 2 edges to [[_COMMUNITY_Community 85]]
+- 2 edges to [[_COMMUNITY_Community 177]]
 - 2 edges to [[_COMMUNITY_Community 58]]
-- 2 edges to [[_COMMUNITY_Community 52]]
+- 2 edges to [[_COMMUNITY_Community 122]]
+- 2 edges to [[_COMMUNITY_Community 150]]
+- 2 edges to [[_COMMUNITY_Community 85]]
+- 1 edge to [[_COMMUNITY_Community 100]]
 - 1 edge to [[_COMMUNITY_Community 104]]
+- 1 edge to [[_COMMUNITY_Community 125]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 - 1 edge to [[_COMMUNITY_Community 208]]
 - 1 edge to [[_COMMUNITY_Community 212]]
-- 1 edge to [[_COMMUNITY_Community 221]]
-- 1 edge to [[_COMMUNITY_Community 9]]
-- 1 edge to [[_COMMUNITY_Community 60]]
+- 1 edge to [[_COMMUNITY_Community 299]]
+- 1 edge to [[_COMMUNITY_Community 48]]
 - 1 edge to [[_COMMUNITY_Community 76]]
 - 1 edge to [[_COMMUNITY_Community 51]]
 
 ## Top bridge nodes
-- [[goal.ts]] - degree 89, connects to 19 communities
+- [[goal.ts]] - degree 89, connects to 20 communities
 - [[goalClock]] - degree 8, connects to 4 communities
+- [[Rung_1]] - degree 5, connects to 2 communities
 - [[src_data_room_ev_test]] - degree 3, connects to 2 communities
-- [[contractsFor()]] - degree 8, connects to 1 community
-- [[viewGoal()]] - degree 8, connects to 1 community
+- [[GoalView]] - degree 3, connects to 2 communities

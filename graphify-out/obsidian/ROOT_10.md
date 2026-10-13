@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/check-research-sources.mjs"
+source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 70"
-location: "L26"
+community: "Community 298"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/Community_298
 ---
 
 # ROOT
 
 ## Connections
-- [[check-research-sources.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/Community_298

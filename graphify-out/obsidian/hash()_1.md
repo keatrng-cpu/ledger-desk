@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-overhaul.ts"
+source_file: "src/lib/room/floor-presence.ts"
 type: "code"
-community: "Community 24"
-location: "L132"
+community: "Community 17"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/Community_17
 ---
 
 # hash()
 
 ## Connections
-- [[floor-overhaul.ts]] - `contains` [EXTRACTED]
+- [[floor-presence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/Community_17

@@ -1,25 +1,33 @@
 ---
 type: community
-cohesion: 0.08
-members: 48
+cohesion: 0.06
+members: 56
 ---
 
 # Community 58
 
-**Cohesion:** 0.08 - loosely connected
-**Members:** 48 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 56 nodes
 
 ## Members
+- [[1. Session-correct levels (already live, no wiring needed)]] - document - INTEGRATION-P3.md
+- [[3. Ladder — replace levelsFrom]] - document - INTEGRATION-P3.md
+- [[4. News gate — mount the chip]] - document - INTEGRATION-P3.md
+- [[5. Config note]] - document - INTEGRATION-P3.md
 - [[BUCKET_EDGES]] - code - src/lib/trading/replay.ts
 - [[CalibrationBucket]] - code - src/lib/trading/replay.ts
 - [[DealingRange]] - code - src/lib/trading/structure.ts
 - [[EMPTY_SESSION_LEVELS]] - code - src/lib/trading/structure.ts
 - [[FLOOR_CANDIDATES]] - code - src/lib/trading/replay.ts
 - [[FloorRow]] - code - src/lib/trading/replay.ts
+- [[INTEGRATION-P0 — Truth & safety (branch agentsphase-p0)]] - document - INTEGRATION-P0.md
+- [[INTEGRATION-P0]] - document - INTEGRATION-P0.md
+- [[INTEGRATION-P3]] - document - INTEGRATION-P3.md
 - [[MajorLevel]] - code - src/lib/trading/smt-level.ts
 - [[NONE_2]] - code - src/lib/trading/smt-level.ts
 - [[NO_DIVERGENCE]] - code - src/lib/trading/structure.ts
 - [[NumericPlan]] - code - src/lib/trading/replay.ts
+- [[Phase 3 integration notes (signal quality)]] - document - INTEGRATION-P3.md
 - [[ROutcome]] - code - src/lib/trading/replay.ts
 - [[ReplayOptions]] - code - src/lib/trading/replay.ts
 - [[ReversalAlert]] - code - src/lib/trading/structure.ts
@@ -31,7 +39,7 @@ members: 48
 - [[Swing]] - code - src/lib/trading/structure.ts
 - [[analyzeStructure()]] - code - src/lib/trading/structure.ts
 - [[atr14()]] - code - src/lib/trading/smt-level.ts
-- [[dayChangePct()_5]] - code - src/lib/trading/replay.ts
+- [[dayChangePct()_7]] - code - src/lib/trading/replay.ts
 - [[etSessionKey()]] - code - src/lib/trading/structure.ts
 - [[etStampShort()]] - code - src/lib/trading/structure.ts
 - [[etWallParts]] - code - src/lib/trading/sessions.ts
@@ -67,65 +75,62 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
+- 18 edges to [[_COMMUNITY_Community 40]]
+- 15 edges to [[_COMMUNITY_Community 20]]
 - 11 edges to [[_COMMUNITY_Community 1]]
-- 10 edges to [[_COMMUNITY_Community 40]]
-- 9 edges to [[_COMMUNITY_Community 20]]
-- 8 edges to [[_COMMUNITY_Community 56]]
-- 6 edges to [[_COMMUNITY_Community 179]]
-- 6 edges to [[_COMMUNITY_Community 27]]
+- 9 edges to [[_COMMUNITY_Community 179]]
+- 7 edges to [[_COMMUNITY_Community 4]]
+- 7 edges to [[_COMMUNITY_Community 35]]
+- 6 edges to [[_COMMUNITY_Community 52]]
 - 6 edges to [[_COMMUNITY_Community 101]]
-- 6 edges to [[_COMMUNITY_Community 35]]
-- 5 edges to [[_COMMUNITY_Community 65]]
-- 5 edges to [[_COMMUNITY_Community 161]]
-- 5 edges to [[_COMMUNITY_Community 4]]
-- 5 edges to [[_COMMUNITY_Community 46]]
+- 5 edges to [[_COMMUNITY_Community 115]]
 - 5 edges to [[_COMMUNITY_Community 48]]
+- 5 edges to [[_COMMUNITY_Community 161]]
 - 5 edges to [[_COMMUNITY_Community 89]]
-- 4 edges to [[_COMMUNITY_Community 0]]
-- 4 edges to [[_COMMUNITY_Community 104]]
+- 5 edges to [[_COMMUNITY_Community 87]]
+- 5 edges to [[_COMMUNITY_Community 46]]
+- 4 edges to [[_COMMUNITY_Community 100]]
 - 4 edges to [[_COMMUNITY_Community 31]]
-- 3 edges to [[_COMMUNITY_Community 29]]
-- 3 edges to [[_COMMUNITY_Community 49]]
-- 3 edges to [[_COMMUNITY_Community 115]]
-- 3 edges to [[_COMMUNITY_Community 72]]
-- 3 edges to [[_COMMUNITY_Community 6]]
+- 4 edges to [[_COMMUNITY_Community 130]]
+- 3 edges to [[_COMMUNITY_Community 160]]
 - 3 edges to [[_COMMUNITY_Community 69]]
+- 3 edges to [[_COMMUNITY_Community 25]]
 - 3 edges to [[_COMMUNITY_Community 76]]
+- 3 edges to [[_COMMUNITY_Community 29]]
+- 3 edges to [[_COMMUNITY_Community 3]]
+- 3 edges to [[_COMMUNITY_Community 134]]
 - 3 edges to [[_COMMUNITY_Community 8]]
-- 3 edges to [[_COMMUNITY_Community 90]]
-- 2 edges to [[_COMMUNITY_Community 126]]
-- 2 edges to [[_COMMUNITY_Community 130]]
-- 2 edges to [[_COMMUNITY_Community 134]]
-- 2 edges to [[_COMMUNITY_Community 145]]
-- 2 edges to [[_COMMUNITY_Community 150]]
-- 2 edges to [[_COMMUNITY_Community 152]]
-- 2 edges to [[_COMMUNITY_Community 57]]
-- 2 edges to [[_COMMUNITY_Community 14]]
-- 2 edges to [[_COMMUNITY_Community 82]]
-- 2 edges to [[_COMMUNITY_Community 83]]
-- 2 edges to [[_COMMUNITY_Community 42]]
-- 2 edges to [[_COMMUNITY_Community 45]]
+- 2 edges to [[_COMMUNITY_Community 24]]
 - 2 edges to [[_COMMUNITY_Community 50]]
+- 2 edges to [[_COMMUNITY_Community 27]]
+- 2 edges to [[_COMMUNITY_Community 310]]
+- 2 edges to [[_COMMUNITY_Community 83]]
+- 2 edges to [[_COMMUNITY_Community 150]]
+- 2 edges to [[_COMMUNITY_Community 0]]
+- 2 edges to [[_COMMUNITY_Community 57]]
+- 2 edges to [[_COMMUNITY_Community 152]]
+- 2 edges to [[_COMMUNITY_Community 82]]
+- 2 edges to [[_COMMUNITY_Community 126]]
+- 2 edges to [[_COMMUNITY_Community 145]]
+- 2 edges to [[_COMMUNITY_Community 10]]
+- 2 edges to [[_COMMUNITY_Community 14]]
+- 2 edges to [[_COMMUNITY_Community 119]]
+- 2 edges to [[_COMMUNITY_Community 45]]
+- 1 edge to [[_COMMUNITY_Community 102]]
+- 1 edge to [[_COMMUNITY_Community 177]]
+- 1 edge to [[_COMMUNITY_Community 6]]
 - 1 edge to [[_COMMUNITY_Community 9]]
-- 1 edge to [[_COMMUNITY_Community 143]]
-- 1 edge to [[_COMMUNITY_Community 73]]
-- 1 edge to [[_COMMUNITY_Community 10]]
 - 1 edge to [[_COMMUNITY_Community 127]]
 - 1 edge to [[_COMMUNITY_Community 151]]
 - 1 edge to [[_COMMUNITY_Community 164]]
-- 1 edge to [[_COMMUNITY_Community 18]]
 - 1 edge to [[_COMMUNITY_Community 182]]
 - 1 edge to [[_COMMUNITY_Community 203]]
-- 1 edge to [[_COMMUNITY_Community 24]]
-- 1 edge to [[_COMMUNITY_Community 25]]
-- 1 edge to [[_COMMUNITY_Community 3]]
 - 1 edge to [[_COMMUNITY_Community 39]]
-- 1 edge to [[_COMMUNITY_Community 52]]
 - 1 edge to [[_COMMUNITY_Community 53]]
 
 ## Top bridge nodes
-- [[etWallParts]] - degree 97, connects to 39 communities
-- [[structure.ts]] - degree 65, connects to 21 communities
-- [[smt-level.ts]] - degree 21, connects to 8 communities
-- [[replay.ts]] - degree 26, connects to 7 communities
-- [[analyzeStructure()]] - degree 17, connects to 4 communities
+- [[etWallParts]] - degree 101, connects to 35 communities
+- [[structure.ts]] - degree 66, connects to 20 communities
+- [[smt-level.ts]] - degree 22, connects to 10 communities
+- [[replay.ts]] - degree 26, connects to 6 communities
+- [[replayScan()]] - degree 9, connects to 4 communities

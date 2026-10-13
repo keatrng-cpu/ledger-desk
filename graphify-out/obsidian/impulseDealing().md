@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
 community: "Community 40"
-location: "L221"
+location: "L306"
 tags:
   - graphify/code
   - graphify/EXTRACTED

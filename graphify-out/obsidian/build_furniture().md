@@ -2,7 +2,7 @@
 source_file: "scripts/blender/build_floor.py"
 type: "code"
 community: "Community 180"
-location: "L1200"
+location: "L1237"
 tags:
   - graphify/code
   - graphify/EXTRACTED

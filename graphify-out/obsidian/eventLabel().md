@@ -18,6 +18,7 @@ tags:
 - [[drawBooth()]] - `calls` [EXTRACTED]
 - [[drawJumbotron()]] - `calls` [EXTRACTED]
 - [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
 - [[drawTv()]] - `calls` [EXTRACTED]
 - [[marketName()]] - `calls` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]

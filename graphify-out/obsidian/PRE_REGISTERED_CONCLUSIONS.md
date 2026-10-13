@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-census.ts"
 type: "code"
-community: "Community 26"
+community: "Community 229"
 location: "L119"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_229
 ---
 
 # PRE_REGISTERED_CONCLUSIONS
@@ -15,4 +15,4 @@ tags:
 - [[take-census.ts]] - `contains` [EXTRACTED]
 - [[verify-take-census.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_229

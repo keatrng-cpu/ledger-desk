@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-pm-signal-engine.mjs"
+source_file: "scripts/lib/mead-fixture.mjs"
 type: "code"
-community: "Community 68"
-location: "L120"
+community: "Community 279"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_68
+  - community/Community_279
 ---
 
 # nfl
 
 ## Connections
-- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
+- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_68
+#graphify/code #graphify/EXTRACTED #community/Community_279

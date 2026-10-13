@@ -12,6 +12,7 @@ tags:
 # listOpenPaperTrades()
 
 ## Connections
+- [[A4 — the dead second paper engine is gone]] - `references` [INFERRED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[PaperBookPanel()]] - `calls` [EXTRACTED]
 - [[auto-paper.ts]] - `imports` [EXTRACTED]
@@ -20,6 +21,7 @@ tags:
 - [[closeOpenAtStructureLevel()]] - `calls` [EXTRACTED]
 - [[closePaperTrade()]] - `calls` [EXTRACTED]
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[loadPaperTrades()]] - `calls` [EXTRACTED]
 - [[openPaperTradeInstant()]] - `calls` [EXTRACTED]

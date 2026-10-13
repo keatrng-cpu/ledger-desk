@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.05
-members: 45
+members: 43
 ---
 
 # Community 66
 
 **Cohesion:** 0.05 - loosely connected
-**Members:** 45 nodes
+**Members:** 43 nodes
 
 ## Members
 - [[MUSTS]] - code - scripts/verify-setup-anticipation.mjs
@@ -16,14 +16,13 @@ members: 45
 - [[aArr]] - code - scripts/verify-setup-anticipation.mjs
 - [[aDsp]] - code - scripts/verify-setup-anticipation.mjs
 - [[aSweep]] - code - scripts/verify-setup-anticipation.mjs
-- [[all_3]] - code - scripts/verify-setup-anticipation.mjs
+- [[all_5]] - code - scripts/verify-setup-anticipation.mjs
 - [[armedShort]] - code - scripts/verify-setup-anticipation.mjs
 - [[arrPrinted]] - code - scripts/verify-setup-anticipation.mjs
 - [[awaitedAll]] - code - scripts/verify-setup-anticipation.mjs
-- [[bare_2]] - code - scripts/verify-setup-anticipation.mjs
+- [[bare_3]] - code - scripts/verify-setup-anticipation.mjs
 - [[bothWays]] - code - scripts/verify-setup-anticipation.mjs
 - [[canonOnly]] - code - scripts/verify-setup-anticipation.mjs
-- [[check()_63]] - code - scripts/verify-setup-anticipation.mjs
 - [[deadOne]] - code - scripts/verify-setup-anticipation.mjs
 - [[deadTwo]] - code - scripts/verify-setup-anticipation.mjs
 - [[far0]] - code - scripts/verify-setup-anticipation.mjs
@@ -36,7 +35,7 @@ members: 45
 - [[hiProgress]] - code - scripts/verify-setup-anticipation.mjs
 - [[inZone]] - code - scripts/verify-setup-anticipation.mjs
 - [[judas]] - code - scripts/verify-setup-anticipation.mjs
-- [[live_5]] - code - scripts/verify-setup-anticipation.mjs
+- [[live_7]] - code - scripts/verify-setup-anticipation.mjs
 - [[longSweep]] - code - scripts/verify-setup-anticipation.mjs
 - [[nearRare]] - code - scripts/verify-setup-anticipation.mjs
 - [[nearly]] - code - scripts/verify-setup-anticipation.mjs
@@ -46,7 +45,6 @@ members: 45
 - [[noPrice_1]] - code - scripts/verify-setup-anticipation.mjs
 - [[noZone]] - code - scripts/verify-setup-anticipation.mjs
 - [[nullPrice]] - code - scripts/verify-setup-anticipation.mjs
-- [[ok()_26]] - code - scripts/verify-setup-anticipation.mjs
 - [[printedAll]] - code - scripts/verify-setup-anticipation.mjs
 - [[reachable]] - code - scripts/verify-setup-anticipation.mjs
 - [[sevenOfTen]] - code - scripts/verify-setup-anticipation.mjs
@@ -65,7 +63,8 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 5 edges to [[_COMMUNITY_Community 252]]
-- 1 edge to [[_COMMUNITY_Community 205]]
+- 2 edges to [[_COMMUNITY_Community 349]]
+- 1 edge to [[_COMMUNITY_Community 163]]
 
 ## Top bridge nodes
-- [[verify-setup-anticipation.mjs]] - degree 50, connects to 2 communities
+- [[verify-setup-anticipation.mjs]] - degree 50, connects to 3 communities

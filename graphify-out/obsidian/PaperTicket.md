@@ -12,7 +12,7 @@ tags:
 # PaperTicket
 
 ## Connections
-- [[Side_1]] - `references` [EXTRACTED]
+- [[Side_2]] - `references` [EXTRACTED]
 - [[SignalGrade]] - `references` [EXTRACTED]
 - [[paper-scorer.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]

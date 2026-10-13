@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/build-learn-engine.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 203"
-location: "L55"
+community: "Community 20"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_203
+  - community/Community_20
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
-- [[dayKey()_10]] - `calls` [EXTRACTED]
+- [[dayKey()_9]] - `calls` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_203
+#graphify/code #graphify/EXTRACTED #community/Community_20

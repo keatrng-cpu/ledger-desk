@@ -1,18 +1,33 @@
 ---
-source_file: "src/components/room/floor-overhaul-race.ts"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 42"
-location: "L19"
+community: "Community 25"
+location: "L226"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_25
 ---
 
 # wrap()
 
 ## Connections
-- [[drawScrubberBoard()]] - `calls` [EXTRACTED]
-- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
+- [[drawAudit()]] - `calls` [EXTRACTED]
+- [[drawChalk()]] - `calls` [EXTRACTED]
+- [[drawGoalLadder()]] - `calls` [EXTRACTED]
+- [[drawGoalOdds()]] - `calls` [EXTRACTED]
+- [[drawInvBoard()]] - `calls` [EXTRACTED]
+- [[drawInvFunnel()]] - `calls` [EXTRACTED]
+- [[drawInvMonitor()]] - `calls` [EXTRACTED]
+- [[drawInvPortfolio()]] - `calls` [EXTRACTED]
+- [[drawInvTheme()]] - `calls` [EXTRACTED]
+- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawNews()]] - `calls` [EXTRACTED]
+- [[drawProposals()]] - `calls` [EXTRACTED]
+- [[drawRefusals()]] - `calls` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[invDark()]] - `calls` [EXTRACTED]
+- [[textBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_25

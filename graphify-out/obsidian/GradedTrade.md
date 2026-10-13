@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 94"
-location: "L232"
+community: "Community 155"
+location: "L233"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_155
 ---
 
 # GradedTrade
@@ -17,4 +17,4 @@ tags:
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_155

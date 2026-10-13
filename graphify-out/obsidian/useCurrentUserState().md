@@ -14,8 +14,10 @@ tags:
 ## Connections
 - [[AccountChip()]] - `calls` [EXTRACTED]
 - [[LoginPage()]] - `calls` [EXTRACTED]
+- [[Reading the user  protecting routes]] - `references` [INFERRED]
 - [[SignedIn()]] - `calls` [EXTRACTED]
 - [[SignedOut()]] - `calls` [EXTRACTED]
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
 - [[gates.tsx]] - `imports` [EXTRACTED]
 - [[login.tsx]] - `imports` [EXTRACTED]
 - [[storage-banner.tsx]] - `imports` [EXTRACTED]

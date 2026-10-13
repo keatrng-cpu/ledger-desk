@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L194"
+location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # clear()
 
 ## Connections
+- [[4. News gate — mount the chip]] - `references` [INFERRED]
 - [[drawAudit()]] - `calls` [EXTRACTED]
 - [[drawCalendar()]] - `calls` [EXTRACTED]
 - [[drawCalibration()]] - `calls` [EXTRACTED]
@@ -37,6 +38,7 @@ tags:
 - [[drawRndBoard()]] - `calls` [EXTRACTED]
 - [[drawScanner()]] - `calls` [EXTRACTED]
 - [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
 - [[drawVote()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[tapeBlock()]] - `calls` [EXTRACTED]

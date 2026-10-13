@@ -2,7 +2,7 @@
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
 community: "Community 120"
-location: "L1731"
+location: "L1865"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED

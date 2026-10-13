@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-world.ts"
 type: "code"
 community: "Community 29"
-location: "L245"
+location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED

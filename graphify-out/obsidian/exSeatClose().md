@@ -12,6 +12,10 @@ tags:
 # exSeatClose()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-pct()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[anim()]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]

@@ -50,6 +50,6 @@ tags:
 - [[setExecPhase]] - `contains` [EXTRACTED]
 - [[stepSchema]] - `imports` [EXTRACTED]
 - [[storeFor()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_122

@@ -12,7 +12,7 @@ tags:
 # all()
 
 ## Connections
-- [[check()_39]] - `calls` [EXTRACTED]
+- [[check()_50]] - `calls` [EXTRACTED]
 - [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_227

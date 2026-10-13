@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
 community: "Community 40"
-location: "L201"
+location: "L264"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,8 @@ tags:
 # protectiveInvalidation()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
+- [[Locator_1]] - `references` [INFERRED]
 - [[scoreDirection()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 

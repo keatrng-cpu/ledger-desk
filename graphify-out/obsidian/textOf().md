@@ -2,7 +2,7 @@
 source_file: "scripts/verify-invest-office.mjs"
 type: "code"
 community: "Community 137"
-location: "L53"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,8 @@ tags:
 # textOf()
 
 ## Connections
+- [[extraBad()]] - `calls` [EXTRACTED]
+- [[runFirm()]] - `calls` [EXTRACTED]
 - [[unsourced()]] - `calls` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 

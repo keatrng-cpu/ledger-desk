@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
 community: "Community 8"
-location: "L396"
+location: "L466"
 tags:
   - graphify/code
   - graphify/EXTRACTED

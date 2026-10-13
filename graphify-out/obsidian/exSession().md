@@ -12,6 +12,11 @@ tags:
 # exSession()
 
 ## Connections
+- [[dot-hhmm()]] - `calls` [INFERRED]
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-lvl()]] - `calls` [INFERRED]
+- [[dot-pts()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]

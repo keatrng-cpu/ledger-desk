@@ -1,12 +1,12 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-kit.ts"
 type: "code"
-community: "Community 37"
-location: "L101"
+community: "Community 41"
+location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_41
 ---
 
 # woodCanvas()
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[dot-buildBar()]] - `calls` [EXTRACTED]
 - [[dot-buildRoom()]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `contains` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-kit.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_41

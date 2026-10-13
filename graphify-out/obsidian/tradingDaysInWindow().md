@@ -12,7 +12,7 @@ tags:
 # tradingDaysInWindow()
 
 ## Connections
-- [[etParts()_1]] - `calls` [EXTRACTED]
+- [[etParts()_2]] - `calls` [EXTRACTED]
 - [[pad()]] - `calls` [EXTRACTED]
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `contains` [EXTRACTED]

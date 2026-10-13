@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 53"
-location: "L329"
+community: "Community 186"
+location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/Community_186
 ---
 
 # windows
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/Community_186

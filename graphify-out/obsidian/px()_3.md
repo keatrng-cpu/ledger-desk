@@ -1,18 +1,21 @@
 ---
-source_file: "src/components/desk/week-ahead-panel.tsx"
+source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 134"
-location: "L5"
+community: "Community 126"
+location: "L147"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/Community_126
 ---
 
 # px()
 
 ## Connections
-- [[BookCol()]] - `calls` [EXTRACTED]
-- [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
+- [[analyzeShadow()]] - `calls` [EXTRACTED]
+- [[applyRange()]] - `calls` [EXTRACTED]
+- [[openShadows()]] - `calls` [EXTRACTED]
+- [[shadow-book.ts]] - `contains` [EXTRACTED]
+- [[tickShadow()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/Community_126

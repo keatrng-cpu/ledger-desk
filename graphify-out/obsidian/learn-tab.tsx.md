@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/learn-tab.tsx"
 type: "code"
-community: "Community 67"
+community: "Community 280"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/Community_280
 ---
 
 # learn-tab.tsx
@@ -20,6 +20,7 @@ tags:
 - [[LearnModule]] - `imports` [EXTRACTED]
 - [[LearnTab()]] - `contains` [EXTRACTED]
 - [[LiveExampleChart()]] - `imports` [EXTRACTED]
+- [[LiveLessonBoard()]] - `imports` [EXTRACTED]
 - [[LiveStrip()]] - `contains` [EXTRACTED]
 - [[MODULES]] - `imports` [EXTRACTED]
 - [[ModuleView()]] - `contains` [EXTRACTED]
@@ -28,7 +29,7 @@ tags:
 - [[Scenarios()]] - `contains` [EXTRACTED]
 - [[Spec()]] - `contains` [EXTRACTED]
 - [[StepButton()]] - `contains` [EXTRACTED]
-- [[Verdict_1]] - `imports` [EXTRACTED]
+- [[Verdict]] - `imports` [EXTRACTED]
 - [[Walkthroughs()]] - `imports` [EXTRACTED]
 - [[WhyBox()]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
@@ -43,9 +44,10 @@ tags:
 - [[learn-figure.tsx]] - `imports_from` [EXTRACTED]
 - [[learndrill.ts]] - `imports_from` [EXTRACTED]
 - [[live-example.tsx]] - `imports_from` [EXTRACTED]
+- [[live-lessons.tsx]] - `imports_from` [EXTRACTED]
 - [[liveFacts()]] - `contains` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
-- [[readDone()]] - `contains` [EXTRACTED]
+- [[readDone()_1]] - `contains` [EXTRACTED]
 - [[replay-drill.tsx]] - `imports_from` [EXTRACTED]
 - [[scenarioCall()]] - `imports` [EXTRACTED]
 - [[scenarios.ts]] - `imports_from` [EXTRACTED]
@@ -54,4 +56,4 @@ tags:
 - [[verdictStyle()]] - `contains` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/Community_280

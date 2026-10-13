@@ -12,6 +12,7 @@ tags:
 # .bodyLang()
 
 ## Connections
+- [[dot-tick()_2]] - `calls` [INFERRED]
 - [[BodyLang]] - `references` [EXTRACTED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 

@@ -13,11 +13,11 @@ tags:
 
 ## Connections
 - [[dot-x()]] - `indirect_call` [INFERRED]
-- [[@electric-sqlpglite_2]] - `dynamic_import` [EXTRACTED]
+- [[@electric-sqlpglite]] - `dynamic_import` [EXTRACTED]
 - [[T_2]] - `contains` [EXTRACTED]
 - [[account()]] - `contains` [EXTRACTED]
 - [[alpaca.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_20]] - `contains` [EXTRACTED]
+- [[check()_27]] - `contains` [EXTRACTED]
 - [[close()_2]] - `contains` [EXTRACTED]
 - [[codes()]] - `contains` [EXTRACTED]
 - [[ctx()]] - `contains` [EXTRACTED]

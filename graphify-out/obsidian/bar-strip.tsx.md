@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/bar-strip.tsx"
 type: "code"
-community: "Community 39"
+community: "Community 14"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_14
 ---
 
 # bar-strip.tsx
@@ -21,4 +21,4 @@ tags:
 - [[shadow-book-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_14

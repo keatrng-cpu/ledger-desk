@@ -1,8 +1,8 @@
 ---
-source_file: "scripts/diagnose-sequence.mjs"
+source_file: "scripts/diagnose-path.mjs"
 type: "code"
 community: "Community 20"
-location: "L14"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # stride
 
 ## Connections
-- [[diagnose-sequence.mjs]] - `contains` [EXTRACTED]
+- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_20

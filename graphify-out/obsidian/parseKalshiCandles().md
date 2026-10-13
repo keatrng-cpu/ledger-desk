@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[historyFromCandles()]] - `calls` [EXTRACTED]
-- [[num()_3]] - `calls` [EXTRACTED]
+- [[num()_1]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 - [[unitPrice()]] - `calls` [EXTRACTED]
 

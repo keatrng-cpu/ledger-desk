@@ -2,7 +2,7 @@
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
 community: "Community 16"
-location: "L219"
+location: "L220"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -12,7 +12,7 @@ tags:
 # LiveGateway
 
 ## Connections
-- [[dot-__init__()_2]] - `method` [EXTRACTED]
+- [[dot-__init__()_3]] - `method` [EXTRACTED]
 - [[dot-_db()]] - `method` [EXTRACTED]
 - [[dot-drop_partial_minutes()]] - `method` [EXTRACTED]
 - [[dot-flush_minute_bar()]] - `method` [EXTRACTED]
@@ -23,6 +23,6 @@ tags:
 - [[dot-touch_ticks()]] - `method` [EXTRACTED]
 - [[dot-upsert_tick()]] - `method` [EXTRACTED]
 - [[databento_live_gateway.py]] - `contains` [EXTRACTED]
-- [[main()_6]] - `calls` [EXTRACTED]
+- [[main()_9]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_74

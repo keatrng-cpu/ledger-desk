@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-cues.ts"
 type: "code"
-community: "Community 165"
+community: "Community 25"
 location: "L144"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_165
+  - community/Community_25
 ---
 
 # floorCues
@@ -19,4 +19,4 @@ tags:
 - [[freshTape()]] - `calls` [EXTRACTED]
 - [[stampOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_165
+#graphify/code #graphify/EXTRACTED #community/Community_25

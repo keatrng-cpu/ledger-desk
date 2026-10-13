@@ -1,18 +1,20 @@
 ---
-source_file: "src/components/desk/month-ahead-panel.tsx"
+source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 152"
-location: "L10"
+community: "Community 130"
+location: "L178"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/Community_130
 ---
 
 # px()
 
 ## Connections
-- [[BookCol()_1]] - `calls` [EXTRACTED]
-- [[month-ahead-panel.tsx]] - `contains` [EXTRACTED]
+- [[analyzeExpired()]] - `calls` [EXTRACTED]
+- [[analyzeMissed()]] - `calls` [EXTRACTED]
+- [[ghost-book.ts]] - `contains` [EXTRACTED]
+- [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/Community_130

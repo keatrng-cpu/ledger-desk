@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[dot-placeCups()]] - `calls` [EXTRACTED]
 - [[dot-placeRels()]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [INFERRED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 - [[drawBanner()]] - `calls` [EXTRACTED]
 - [[drawBriefing()]] - `calls` [EXTRACTED]

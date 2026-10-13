@@ -1,20 +1,20 @@
 ---
 source_file: "scripts/verify-room-snapshot.mjs"
 type: "code"
-community: "Community 61"
+community: "Community 125"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_125
 ---
 
 # verify-room-snapshot.mjs
 
 ## Connections
-- [[@electric-sqlpglite_2]] - `dynamic_import` [EXTRACTED]
-- [[check()_62]] - `contains` [EXTRACTED]
-- [[db_2]] - `contains` [EXTRACTED]
+- [[@electric-sqlpglite]] - `dynamic_import` [EXTRACTED]
+- [[check()_9]] - `contains` [EXTRACTED]
+- [[db]] - `contains` [EXTRACTED]
 - [[m]] - `contains` [EXTRACTED]
 - [[paper-book.ts]] - `dynamic_import` [EXTRACTED]
 - [[put()]] - `contains` [EXTRACTED]
@@ -23,7 +23,7 @@ tags:
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
 - [[sent()]] - `contains` [EXTRACTED]
 - [[snapshot.ts]] - `dynamic_import` [EXTRACTED]
-- [[steps_3]] - `contains` [EXTRACTED]
+- [[steps]] - `contains` [EXTRACTED]
 - [[tagNow()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_125

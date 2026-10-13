@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-paper-step.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 143"
-location: "L95"
+community: "Community 22"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_22
 ---
 
 # step
 
 ## Connections
-- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_22

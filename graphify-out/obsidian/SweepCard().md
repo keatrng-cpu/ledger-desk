@@ -24,7 +24,7 @@ tags:
 - [[rentVsSweep()]] - `calls` [EXTRACTED]
 - [[rhMonth()]] - `calls` [EXTRACTED]
 - [[sweep-card.tsx]] - `contains` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_6]] - `calls` [EXTRACTED]
 - [[usd0()]] - `calls` [EXTRACTED]
 - [[validateSweepMonth()]] - `calls` [EXTRACTED]
 

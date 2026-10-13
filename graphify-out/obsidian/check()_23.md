@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-option-math-oracle.mjs"
+source_file: "scripts/verify-desk-enhancements.mjs"
 type: "code"
-community: "Community 191"
-location: "L27"
+community: "Community 164"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/Community_164
 ---
 
 # check()
 
 ## Connections
-- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
+- [[ok()_9]] - `calls` [EXTRACTED]
+- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/Community_164

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
 community: "Community 96"
-location: "L362"
+location: "L364"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # numbersOf()
 
 ## Connections
-- [[num()_16]] - `calls` [EXTRACTED]
+- [[num()_21]] - `calls` [EXTRACTED]
 - [[numbersHeld()]] - `calls` [EXTRACTED]
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 

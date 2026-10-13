@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[PopupMessage]] - `contains` [EXTRACTED]
 - [[SESSION_TOKEN_COOKIE]] - `imports` [EXTRACTED]
-- [[auth]] - `imports` [EXTRACTED]
+- [[auth_1]] - `imports` [EXTRACTED]
 - [[authserver.ts]] - `imports_from` [EXTRACTED]
 - [[completionHtml()]] - `contains` [EXTRACTED]
 - [[completionResponse()]] - `contains` [EXTRACTED]

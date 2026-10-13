@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
-location: "L280"
+community: "Community 92"
+location: "L313"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/Community_92
 ---
 
 # cardRead()
@@ -25,13 +25,15 @@ tags:
 - [[live-world.ts]] - `contains` [EXTRACTED]
 - [[loadHiAlerts()]] - `calls` [EXTRACTED]
 - [[pickFocus()]] - `calls` [EXTRACTED]
-- [[planFor()]] - `calls` [EXTRACTED]
+- [[planFor()_1]] - `calls` [EXTRACTED]
 - [[readEntry()]] - `calls` [EXTRACTED]
 - [[readLtfLead()]] - `calls` [EXTRACTED]
 - [[recallHiAlerts()]] - `calls` [EXTRACTED]
+- [[sayForMissing()]] - `calls` [EXTRACTED]
 - [[schoolsOf()]] - `calls` [EXTRACTED]
 - [[sequenceFor()]] - `calls` [EXTRACTED]
 - [[setupLine()]] - `calls` [EXTRACTED]
+- [[sponsoredFor()]] - `calls` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/Community_92

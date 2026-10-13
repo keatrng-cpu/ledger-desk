@@ -2,7 +2,7 @@
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
 community: "Community 16"
-location: "L18"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,9 +12,12 @@ tags:
 # HallFeedState
 
 ## Connections
+- [[dot-setFeed()]] - `references` [EXTRACTED]
+- [[FloorMead]] - `references` [EXTRACTED]
 - [[MarketSignal]] - `references` [EXTRACTED]
 - [[PredictionMarketFeedState]] - `references` [EXTRACTED]
 - [[SignalBoard]] - `references` [EXTRACTED]
+- [[floor-mead.ts]] - `imports` [EXTRACTED]
 - [[hallLayout]] - `references` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]

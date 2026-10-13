@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-autofire-gates.mjs"
+source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 119"
-location: "L27"
+community: "Community 298"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/Community_298
 ---
 
 # FUNDED
 
 ## Connections
-- [[verify-rh-autofire-gates.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/Community_298

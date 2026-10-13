@@ -14,21 +14,21 @@ members: 27
 - [[allUp]] - code - scripts/verify-target-odds.mjs
 - [[bad]] - code - scripts/verify-target-odds.mjs
 - [[bar()_1]] - code - scripts/verify-target-odds.mjs
-- [[check()_9]] - code - scripts/verify-target-odds.mjs
+- [[check()_13]] - code - scripts/verify-target-odds.mjs
 - [[down()]] - code - scripts/verify-target-odds.mjs
 - [[e]] - code - scripts/verify-target-odds.mjs
 - [[es]] - code - scripts/verify-target-odds.mjs
 - [[few]] - code - scripts/verify-target-odds.mjs
 - [[flat]] - code - scripts/verify-target-odds.mjs
-- [[hist]] - code - scripts/verify-target-odds.mjs
+- [[hist_1]] - code - scripts/verify-target-odds.mjs
 - [[noT1]] - code - scripts/verify-target-odds.mjs
 - [[noT2]] - code - scripts/verify-target-odds.mjs
 - [[none]] - code - scripts/verify-target-odds.mjs
 - [[odds]] - code - scripts/verify-target-odds.mjs
-- [[ok()_5]] - code - scripts/verify-target-odds.mjs
+- [[ok()_4]] - code - scripts/verify-target-odds.mjs
 - [[r1_1]] - code - scripts/verify-target-odds.mjs
 - [[r2]] - code - scripts/verify-target-odds.mjs
-- [[t_1]] - code - scripts/verify-target-odds.mjs
+- [[t]] - code - scripts/verify-target-odds.mjs
 - [[thin_1]] - code - scripts/verify-target-odds.mjs
 - [[tie]] - code - scripts/verify-target-odds.mjs
 - [[tied]] - code - scripts/verify-target-odds.mjs
@@ -46,8 +46,9 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 72]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 72]]
 
 ## Top bridge nodes
-- [[verify-target-odds.mjs]] - degree 29, connects to 2 communities
+- [[verify-target-odds.mjs]] - degree 29, connects to 3 communities

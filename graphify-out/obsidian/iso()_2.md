@@ -1,19 +1,21 @@
 ---
-source_file: "scripts/capture-history.mjs"
+source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 71"
-location: "L74"
+community: "Community 23"
+location: "L170"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_23
 ---
 
 # iso()
 
 ## Connections
-- [[capture-history.mjs]] - `contains` [EXTRACTED]
-- [[months()]] - `calls` [EXTRACTED]
-- [[pad()_1]] - `calls` [EXTRACTED]
+- [[getSettings]] - `calls` [EXTRACTED]
+- [[journalserver.ts]] - `contains` [EXTRACTED]
+- [[listEvents]] - `calls` [EXTRACTED]
+- [[mapTrade()]] - `calls` [EXTRACTED]
+- [[updateEquity]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_23

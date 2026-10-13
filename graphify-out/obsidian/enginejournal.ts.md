@@ -12,9 +12,9 @@ tags:
 # engine/journal.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[MAX_EVENTS_PER_BATCH]] - `imports` [EXTRACTED]
-- [[Route_13]] - `contains` [EXTRACTED]
+- [[Route_18]] - `contains` [EXTRACTED]
 - [[auth-server.ts]] - `imports_from` [EXTRACTED]
 - [[authorizeBridgeRequest()]] - `imports` [EXTRACTED]
 - [[formatIssues()]] - `imports` [EXTRACTED]

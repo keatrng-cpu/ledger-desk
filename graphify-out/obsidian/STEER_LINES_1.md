@@ -1,8 +1,8 @@
 ---
-source_file: "src/lib/room/manager-room-feed.ts"
+source_file: "src/lib/room/manager-feed.ts"
 type: "code"
 community: "Community 38"
-location: "L359"
+location: "L327"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # STEER_LINES
 
 ## Connections
-- [[manager-room-feed.ts]] - `contains` [EXTRACTED]
+- [[manager-feed.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_38

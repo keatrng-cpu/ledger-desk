@@ -1,8 +1,8 @@
 ---
-source_file: "scripts/verify-live-talk.mjs"
+source_file: "scripts/lib/mead-world.mjs"
 type: "code"
 community: "Community 142"
-location: "L89"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # clockAt()
 
 ## Connections
+- [[mead-world.mjs]] - `contains` [EXTRACTED]
 - [[mkWorld()_1]] - `calls` [EXTRACTED]
-- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_142

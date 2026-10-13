@@ -29,7 +29,7 @@ members: 46
 - [[Readable]] - code - src/lib/predict/paper-scorer.ts
 - [[ScoreCore]] - code - src/lib/predict/paper-scorer.ts
 - [[ScorerOptions]] - code - src/lib/predict/paper-scorer.ts
-- [[Side_1]] - code - src/lib/predict/signal-engine.ts
+- [[Side_2]] - code - src/lib/predict/signal-engine.ts
 - [[SignalGrade]] - code - src/lib/predict/signal-engine.ts
 - [[TOO_FEW]] - code - src/lib/predict/signal-evidence.ts
 - [[TooFew]] - code - src/lib/predict/signal-evidence.ts
@@ -41,7 +41,7 @@ members: 46
 - [[calibrationBuckets()]] - code - src/lib/predict/paper-scorer.ts
 - [[core()]] - code - src/lib/predict/paper-scorer.ts
 - [[fitRecalibration()]] - code - src/lib/predict/paper-scorer.ts
-- [[fixture_1]] - code - scripts/pm-analyzer.test.mjs
+- [[fixture_2]] - code - scripts/pm-analyzer.test.mjs
 - [[gate()]] - code - src/lib/predict/paper-scorer.ts
 - [[groupBy()_1]] - code - src/lib/predict/paper-scorer.ts
 - [[murphy()]] - code - src/lib/predict/paper-scorer.ts
@@ -65,17 +65,22 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 17 edges to [[_COMMUNITY_Community 16]]
-- 17 edges to [[_COMMUNITY_Community 12]]
+- 18 edges to [[_COMMUNITY_Community 16]]
+- 13 edges to [[_COMMUNITY_Community 12]]
+- 11 edges to [[_COMMUNITY_Community 114]]
 - 5 edges to [[_COMMUNITY_Community 2]]
+- 4 edges to [[_COMMUNITY_Community 7]]
 - 3 edges to [[_COMMUNITY_Community 78]]
+- 2 edges to [[_COMMUNITY_Community 172]]
+- 2 edges to [[_COMMUNITY_Community 279]]
 - 2 edges to [[_COMMUNITY_Community 41]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 210]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 68]]
 
 ## Top bridge nodes
+- [[paper-scorer.ts]] - degree 51, connects to 7 communities
+- [[signals.ts]] - degree 9, connects to 6 communities
 - [[pm-analyzer.test.mjs]] - degree 11, connects to 5 communities
-- [[signals.ts]] - degree 7, connects to 4 communities
-- [[paper-scorer.ts]] - degree 47, connects to 3 communities
-- [[signal-evidence.ts]] - degree 14, connects to 2 communities
-- [[scorePaper()]] - degree 11, connects to 2 communities
+- [[scorePaper()]] - degree 15, connects to 3 communities
+- [[signal-evidence.ts]] - degree 15, connects to 2 communities

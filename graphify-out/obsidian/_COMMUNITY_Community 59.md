@@ -38,7 +38,7 @@ members: 47
 - [[RulesTable()]] - code - src/components/lab/apex-sim-panel.tsx
 - [[RunRecord]] - code - src/components/lab/apex-sim-panel.tsx
 - [[SIM_DEFAULT_PATHS]] - code - src/lib/propfirm/apex-sim.ts
-- [[SYMBOLS_4]] - code - src/components/lab/apex-sim-panel.tsx
+- [[SYMBOLS_5]] - code - src/components/lab/apex-sim-panel.tsx
 - [[Seg()]] - code - src/components/lab/apex-sim-panel.tsx
 - [[Stat()_3]] - code - src/components/lab/apex-sim-panel.tsx
 - [[SubHead()]] - code - src/components/lab/apex-sim-panel.tsx
@@ -50,8 +50,8 @@ members: 47
 - [[defaultSimInput()]] - code - src/lib/propfirm/apex-sim.ts
 - [[diffTone()]] - code - src/components/lab/apex-sim-panel.tsx
 - [[inputKey()]] - code - src/components/lab/apex-sim-panel.tsx
-- [[money()_12]] - code - src/components/lab/apex-sim-panel.tsx
-- [[num()_11]] - code - src/components/lab/apex-sim-panel.tsx
+- [[money()_14]] - code - src/components/lab/apex-sim-panel.tsx
+- [[num()_15]] - code - src/components/lab/apex-sim-panel.tsx
 - [[pct()_16]] - code - src/components/lab/apex-sim-panel.tsx
 - [[persist()_1]] - code - src/components/lab/apex-sim-panel.tsx
 - [[pp()]] - code - src/components/lab/apex-sim-panel.tsx
@@ -69,12 +69,14 @@ SORT file.name ASC
 - 29 edges to [[_COMMUNITY_Community 76]]
 - 24 edges to [[_COMMUNITY_Community 14]]
 - 8 edges to [[_COMMUNITY_Community 188]]
-- 4 edges to [[_COMMUNITY_Community 8]]
-- 2 edges to [[_COMMUNITY_Community 26]]
+- 3 edges to [[_COMMUNITY_Community 8]]
 - 2 edges to [[_COMMUNITY_Community 43]]
+- 1 edge to [[_COMMUNITY_Community 108]]
+- 1 edge to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 69]]
 
 ## Top bridge nodes
-- [[apex-sim-panel.tsx]] - degree 72, connects to 6 communities
+- [[apex-sim-panel.tsx]] - degree 72, connects to 8 communities
 - [[ApexSimPanel()]] - degree 30, connects to 4 communities
 - [[ResultsTable()]] - degree 8, connects to 1 community
 - [[RulesTable()]] - degree 5, connects to 1 community

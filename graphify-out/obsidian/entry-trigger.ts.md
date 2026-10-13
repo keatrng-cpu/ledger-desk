@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
-- [[EntryRead_1]] - `contains` [EXTRACTED]
+- [[EntryRead]] - `contains` [EXTRACTED]
 - [[EntryTier_1]] - `contains` [EXTRACTED]
 - [[LossPreview]] - `contains` [EXTRACTED]
 - [[MANAGEMENT_EVIDENCE]] - `imports` [EXTRACTED]
@@ -43,6 +43,7 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[take-moments.ts]] - `imports_from` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[touchKey()]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-entry-alarm.mjs]] - `dynamic_import` [EXTRACTED]

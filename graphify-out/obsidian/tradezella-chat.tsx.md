@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/tradezella-chat.tsx"
 type: "code"
-community: "Community 146"
+community: "Community 46"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/Community_46
 ---
 
 # tradezella-chat.tsx
@@ -47,7 +47,7 @@ tags:
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[markAllCharts()]] - `imports` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
-- [[remember()_1]] - `imports` [EXTRACTED]
+- [[remember()_2]] - `imports` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
@@ -57,4 +57,4 @@ tags:
 - [[useDeskSynapse]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/Community_46

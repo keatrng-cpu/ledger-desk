@@ -12,6 +12,7 @@ tags:
 # rhAccountNote()
 
 ## Connections
+- [[Floor rules on the RH path (`evaluateRhFloorRules`, fail closed)]] - `references` [INFERRED]
 - [[buildMeeting()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
 - [[research.ts]] - `contains` [EXTRACTED]

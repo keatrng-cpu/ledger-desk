@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-audit.mjs"
+source_file: "scripts/verify-rnd.mjs"
 type: "code"
-community: "Community 235"
-location: "L22"
+community: "Community 208"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_235
+  - community/Community_208
 ---
 
 # check()
 
 ## Connections
-- [[verify-audit.mjs]] - `contains` [EXTRACTED]
+- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_235
+#graphify/code #graphify/EXTRACTED #community/Community_208

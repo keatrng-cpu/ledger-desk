@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 7"
+community: "Community 2"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_2
 ---
 
 # board.ts
@@ -24,7 +24,7 @@ tags:
 - [[LEAGUES]] - `contains` [EXTRACTED]
 - [[LONGSHOT_BELOW]] - `imports` [EXTRACTED]
 - [[League]] - `contains` [EXTRACTED]
-- [[MONTHS_4]] - `contains` [EXTRACTED]
+- [[MONTHS]] - `contains` [EXTRACTED]
 - [[POLY_BACK]] - `contains` [EXTRACTED]
 - [[POLY_CODE]] - `contains` [EXTRACTED]
 - [[PolyMarket]] - `contains` [EXTRACTED]
@@ -43,8 +43,9 @@ tags:
 - [[inactivesLine()]] - `contains` [EXTRACTED]
 - [[lateUnderdog()]] - `contains` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
 - [[noVig()]] - `imports` [EXTRACTED]
-- [[num()_13]] - `contains` [EXTRACTED]
+- [[num()_16]] - `contains` [EXTRACTED]
 - [[p0()]] - `contains` [EXTRACTED]
 - [[parseAmerican()]] - `imports` [EXTRACTED]
 - [[parseEspnScoreboard()]] - `contains` [EXTRACTED]
@@ -66,4 +67,4 @@ tags:
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weatherFlag()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_2

@@ -2,7 +2,7 @@
 source_file: "src/routes/index.tsx"
 type: "code"
 community: "Community 8"
-location: "L424"
+location: "L452"
 tags:
   - graphify/code
   - graphify/EXTRACTED

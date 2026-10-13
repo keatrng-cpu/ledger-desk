@@ -1,18 +1,20 @@
 ---
 type: community
-cohesion: 0.05
-members: 107
+cohesion: 0.04
+members: 129
 ---
 
 # Community 1
 
-**Cohesion:** 0.05 - loosely connected
-**Members:** 107 nodes
+**Cohesion:** 0.04 - loosely connected
+**Members:** 129 nodes
 
 ## Members
+- [[@electric-sqlpglite]] - code - @electric-sql/pglite
 - [[BAR_FRESH_MS]] - code - src/lib/market/live-gateway.ts
 - [[BarsRead]] - code - src/lib/trading/build-desk.ts
 - [[BudgetLeg]] - code - src/lib/market/desk-budget.ts
+- [[DATABENTO_QUOTE_FRESH_SEC]] - code - src/lib/market/freshest.ts
 - [[DESK_BUDGET_MS]] - code - src/lib/market/desk-budget.ts
 - [[DESK_COLD_CAP_MS]] - code - src/lib/market/desk-budget.ts
 - [[DeskBudgetRead]] - code - src/lib/market/desk-budget.ts
@@ -28,6 +30,8 @@ members: 107
 - [[LiveGatewayTick]] - code - src/lib/market/live-gateway.ts
 - [[LiveQuote]] - code - src/lib/market/types.ts
 - [[LiveQuotesPayload]] - code - src/lib/market/types.ts
+- [[NOW]] - code - scripts/verify-live-gateway.mjs
+- [[ProxySpot]] - code - src/lib/market/yahoo.ts
 - [[QuoteInputs]] - code - src/lib/trading/build-desk.ts
 - [[RANGE_MAP]] - code - src/lib/market/fetch-dual.ts
 - [[RH_EVENT_CONFIDENCE_LIFT]] - code - src/lib/execution/rh-autofire-gates.ts
@@ -36,6 +40,7 @@ members: 107
 - [[TICK_READ_WAIT_MS]] - code - src/lib/market/live-gateway.ts
 - [[VALID_RANGE]] - code - src/lib/market/fetch-dual.ts
 - [[VALID_SYM]] - code - src/lib/market/fetch-dual.ts
+- [[WHY on 2026-10-05 the desk showed lag 620s (Yahoo) for ES while the…]] - rationale - scripts/verify-live-gateway.mjs
 - [[YAHOO_HEADERS]] - code - src/lib/market/yahoo.ts
 - [[YAHOO_HOSTS]] - code - src/lib/market/yahoo.ts
 - [[YAHOO_MAP]] - code - src/lib/market/yahoo.ts
@@ -47,6 +52,7 @@ members: 107
 - [[__lastGoodSize()]] - code - src/lib/market/desk-budget.ts
 - [[__resetDeskBudgetCache()]] - code - src/lib/market/desk-budget.ts
 - [[alignedReturnPairs()]] - code - src/lib/market/yahoo.ts
+- [[applyLtfReaction()]] - code - src/lib/trading/ltf-reaction.ts
 - [[applyQuoteToLastBar()]] - code - src/lib/market/freshest.ts
 - [[budget.ts]] - code - src/lib/market/budget.ts
 - [[budgetedLeg()]] - code - src/lib/market/desk-budget.ts
@@ -54,9 +60,12 @@ members: 107
 - [[buildComparisonNote()]] - code - src/lib/market/yahoo.ts
 - [[buildTradingDesk()]] - code - src/lib/trading/build-desk.ts
 - [[chartInflight]] - code - src/lib/market/yahoo.ts
+- [[check()]] - code - scripts/verify-live-gateway.mjs
+- [[check()_1]] - code - scripts/verify-live-ladder.mjs
 - [[cloneBars()]] - code - src/lib/trading/build-desk.ts
 - [[cloneSeries()]] - code - src/lib/trading/build-desk.ts
 - [[closedBars()]] - code - src/lib/market/freshest.ts
+- [[dbRange()]] - code - src/lib/market/live-ladder.ts
 - [[desk-budget.ts]] - code - src/lib/market/desk-budget.ts
 - [[dualNarrativeSummary()]] - code - src/lib/trading/market-narrative.ts
 - [[fetch-dual.ts]] - code - src/lib/market/fetch-dual.ts
@@ -71,37 +80,47 @@ members: 107
 - [[intervalMs()]] - code - src/lib/market/freshest.ts
 - [[isDeskStaleBlocked()]] - code - src/lib/market/desk-budget.ts
 - [[isoDate()]] - code - src/lib/market/freshest.ts
+- [[ladderTags()]] - code - src/lib/trading/tf-ladder.ts
 - [[lastGood]] - code - src/lib/market/desk-budget.ts
 - [[lastGood_1]] - code - src/lib/market/live-gateway.ts
 - [[lastLoggedAt]] - code - src/lib/market/live-gateway.ts
 - [[live-gateway.ts]] - code - src/lib/market/live-gateway.ts
+- [[live-ladder.ts]] - code - src/lib/market/live-ladder.ts
+- [[liveQuoteRank()]] - code - src/lib/market/freshest.ts
 - [[load()]] - code - src/lib/trading/build-desk.ts
 - [[loadDaily()]] - code - src/lib/trading/build-desk.ts
+- [[loadLiveQuote()]] - code - src/lib/market/live-ladder.ts
 - [[loadMinute()]] - code - src/lib/trading/build-desk.ts
-- [[loadQuote()]] - code - src/lib/market/fetch-dual.ts
 - [[loadSpot()]] - code - src/lib/trading/build-desk.ts
+- [[loadStructureSeries()]] - code - src/lib/market/live-ladder.ts
 - [[loadSymbol()]] - code - src/lib/market/fetch-dual.ts
 - [[logOnce()]] - code - src/lib/market/live-gateway.ts
 - [[markettypes.ts]] - code - src/lib/market/types.ts
 - [[mergeNewerBars()]] - code - src/lib/market/freshest.ts
-- [[minutesOf()]] - code - src/lib/trading/build-desk.ts
+- [[minutesOf()]] - code - src/lib/market/live-ladder.ts
+- [[minutesOf()_1]] - code - src/lib/trading/build-desk.ts
 - [[parsePair()]] - code - src/lib/market/fetch-dual.ts
 - [[parseYahooChart()]] - code - src/lib/market/yahoo.ts
 - [[pearsonCorr()]] - code - src/lib/market/yahoo.ts
 - [[pickFreshestQuote()]] - code - src/lib/market/freshest.ts
 - [[priorSessionClose()]] - code - src/lib/market/freshest.ts
+- [[q()]] - code - scripts/verify-live-ladder.mjs
 - [[quote()]] - code - src/lib/trading/build-desk.ts
+- [[quoteFromDatabentoSeries()]] - code - src/lib/market/databento.ts
+- [[quoteFromLiveBar()]] - code - src/lib/market/live-gateway.ts
 - [[quoteFromLiveTick()]] - code - src/lib/market/live-gateway.ts
 - [[quoteStatusFromSeries()]] - code - src/lib/market/desk-budget.ts
 - [[readLiveBars()]] - code - src/lib/market/live-gateway.ts
 - [[readLiveTick()]] - code - src/lib/market/live-gateway.ts
 - [[readLiveTickFresh()]] - code - src/lib/market/live-gateway.ts
+- [[readShock()]] - code - src/lib/trading/shock.ts
 - [[reageQuote()]] - code - src/lib/trading/build-desk.ts
 - [[reageSpot()]] - code - src/lib/trading/build-desk.ts
 - [[rebaseQuote()]] - code - src/lib/market/freshest.ts
 - [[referenceLevels()]] - code - src/lib/trading/structure.ts
 - [[remaining()]] - code - src/lib/market/desk-budget.ts
-- [[scanSetups()]] - code - src/lib/trading/scanner.ts
+- [[resolveMonthAhead()]] - code - src/lib/trading/month-ahead.ts
+- [[row()]] - code - scripts/verify-live-gateway.mjs
 - [[seriesReturns()]] - code - src/lib/market/yahoo.ts
 - [[setLastGood()]] - code - src/lib/market/desk-budget.ts
 - [[stampSeriesFromBars()]] - code - src/lib/market/freshest.ts
@@ -113,7 +132,10 @@ members: 107
 - [[tickFromRow()]] - code - src/lib/market/live-gateway.ts
 - [[tickOrCached()]] - code - src/lib/market/live-gateway.ts
 - [[tickSymbol()]] - code - src/lib/market/live-gateway.ts
+- [[verify-live-gateway.mjs]] - code - scripts/verify-live-gateway.mjs
+- [[verify-live-ladder.mjs]] - code - scripts/verify-live-ladder.mjs
 - [[withBudget()]] - code - src/lib/market/budget.ts
+- [[within()]] - code - src/lib/market/live-ladder.ts
 - [[yahoo.ts]] - code - src/lib/market/yahoo.ts
 - [[yahooChart()]] - code - src/lib/market/yahoo.ts
 - [[yahooChartOnce()]] - code - src/lib/market/yahoo.ts
@@ -126,72 +148,81 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 19 edges to [[_COMMUNITY_Community 56]]
-- 17 edges to [[_COMMUNITY_Community 14]]
-- 14 edges to [[_COMMUNITY_Community 98]]
+- 22 edges to [[_COMMUNITY_Community 14]]
+- 20 edges to [[_COMMUNITY_Community 160]]
+- 17 edges to [[_COMMUNITY_Community 98]]
+- 17 edges to [[_COMMUNITY_Community 40]]
+- 16 edges to [[_COMMUNITY_Community 8]]
+- 14 edges to [[_COMMUNITY_Community 9]]
+- 13 edges to [[_COMMUNITY_Community 164]]
 - 11 edges to [[_COMMUNITY_Community 58]]
-- 10 edges to [[_COMMUNITY_Community 27]]
-- 10 edges to [[_COMMUNITY_Community 8]]
-- 9 edges to [[_COMMUNITY_Community 20]]
-- 8 edges to [[_COMMUNITY_Community 46]]
-- 8 edges to [[_COMMUNITY_Community 4]]
-- 8 edges to [[_COMMUNITY_Community 72]]
-- 8 edges to [[_COMMUNITY_Community 35]]
+- 11 edges to [[_COMMUNITY_Community 35]]
+- 11 edges to [[_COMMUNITY_Community 20]]
+- 9 edges to [[_COMMUNITY_Community 187]]
+- 7 edges to [[_COMMUNITY_Community 46]]
+- 7 edges to [[_COMMUNITY_Community 152]]
 - 7 edges to [[_COMMUNITY_Community 134]]
-- 7 edges to [[_COMMUNITY_Community 160]]
-- 7 edges to [[_COMMUNITY_Community 39]]
-- 7 edges to [[_COMMUNITY_Community 9]]
-- 6 edges to [[_COMMUNITY_Community 115]]
+- 6 edges to [[_COMMUNITY_Community 179]]
+- 6 edges to [[_COMMUNITY_Community 101]]
+- 6 edges to [[_COMMUNITY_Community 184]]
 - 6 edges to [[_COMMUNITY_Community 29]]
-- 6 edges to [[_COMMUNITY_Community 40]]
-- 6 edges to [[_COMMUNITY_Community 48]]
-- 5 edges to [[_COMMUNITY_Community 152]]
-- 5 edges to [[_COMMUNITY_Community 210]]
-- 5 edges to [[_COMMUNITY_Community 101]]
-- 5 edges to [[_COMMUNITY_Community 90]]
-- 5 edges to [[_COMMUNITY_Community 15]]
-- 4 edges to [[_COMMUNITY_Community 65]]
+- 6 edges to [[_COMMUNITY_Community 4]]
+- 5 edges to [[_COMMUNITY_Community 115]]
+- 5 edges to [[_COMMUNITY_Community 130]]
+- 4 edges to [[_COMMUNITY_Community 178]]
+- 4 edges to [[_COMMUNITY_Community 87]]
+- 4 edges to [[_COMMUNITY_Community 31]]
+- 4 edges to [[_COMMUNITY_Community 15]]
 - 4 edges to [[_COMMUNITY_Community 126]]
-- 4 edges to [[_COMMUNITY_Community 130]]
-- 4 edges to [[_COMMUNITY_Community 82]]
-- 4 edges to [[_COMMUNITY_Community 33]]
+- 3 edges to [[_COMMUNITY_Community 39]]
 - 3 edges to [[_COMMUNITY_Community 19]]
-- 3 edges to [[_COMMUNITY_Community 178]]
-- 3 edges to [[_COMMUNITY_Community 31]]
-- 3 edges to [[_COMMUNITY_Community 179]]
-- 3 edges to [[_COMMUNITY_Community 78]]
+- 3 edges to [[_COMMUNITY_Community 254]]
+- 3 edges to [[_COMMUNITY_Community 44]]
+- 3 edges to [[_COMMUNITY_Community 105]]
+- 3 edges to [[_COMMUNITY_Community 272]]
+- 3 edges to [[_COMMUNITY_Community 69]]
+- 3 edges to [[_COMMUNITY_Community 33]]
+- 3 edges to [[_COMMUNITY_Community 89]]
+- 3 edges to [[_COMMUNITY_Community 48]]
 - 2 edges to [[_COMMUNITY_Community 10]]
-- 2 edges to [[_COMMUNITY_Community 61]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 2 edges to [[_COMMUNITY_Community 104]]
-- 2 edges to [[_COMMUNITY_Community 69]]
-- 2 edges to [[_COMMUNITY_Community 89]]
-- 2 edges to [[_COMMUNITY_Community 67]]
+- 2 edges to [[_COMMUNITY_Community 52]]
+- 2 edges to [[_COMMUNITY_Community 78]]
+- 2 edges to [[_COMMUNITY_Community 163]]
+- 2 edges to [[_COMMUNITY_Community 82]]
+- 2 edges to [[_COMMUNITY_Community 72]]
+- 2 edges to [[_COMMUNITY_Community 161]]
+- 2 edges to [[_COMMUNITY_Community 280]]
+- 1 edge to [[_COMMUNITY_Community 100]]
+- 1 edge to [[_COMMUNITY_Community 301]]
+- 1 edge to [[_COMMUNITY_Community 61]]
+- 1 edge to [[_COMMUNITY_Community 278]]
+- 1 edge to [[_COMMUNITY_Community 309]]
+- 1 edge to [[_COMMUNITY_Community 171]]
+- 1 edge to [[_COMMUNITY_Community 125]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 220]]
-- 1 edge to [[_COMMUNITY_Community 189]]
-- 1 edge to [[_COMMUNITY_Community 186]]
+- 1 edge to [[_COMMUNITY_Community 27]]
 - 1 edge to [[_COMMUNITY_Community 25]]
-- 1 edge to [[_COMMUNITY_Community 163]]
 - 1 edge to [[_COMMUNITY_Community 92]]
-- 1 edge to [[_COMMUNITY_Community 44]]
-- 1 edge to [[_COMMUNITY_Community 158]]
 - 1 edge to [[_COMMUNITY_Community 145]]
 - 1 edge to [[_COMMUNITY_Community 245]]
-- 1 edge to [[_COMMUNITY_Community 11]]
-- 1 edge to [[_COMMUNITY_Community 161]]
+- 1 edge to [[_COMMUNITY_Community 297]]
+- 1 edge to [[_COMMUNITY_Community 277]]
+- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 104]]
 - 1 edge to [[_COMMUNITY_Community 153]]
 - 1 edge to [[_COMMUNITY_Community 139]]
-- 1 edge to [[_COMMUNITY_Community 146]]
-- 1 edge to [[_COMMUNITY_Community 18]]
 - 1 edge to [[_COMMUNITY_Community 51]]
-- 1 edge to [[_COMMUNITY_Community 60]]
+- 1 edge to [[_COMMUNITY_Community 56]]
 - 1 edge to [[_COMMUNITY_Community 73]]
-- 1 edge to [[_COMMUNITY_Community 172]]
 - 1 edge to [[_COMMUNITY_Community 149]]
+- 1 edge to [[_COMMUNITY_Community 210]]
+- 1 edge to [[_COMMUNITY_Community 315]]
+- 1 edge to [[_COMMUNITY_Community 94]]
 
 ## Top bridge nodes
-- [[build-desk.ts]] - degree 179, connects to 48 communities
-- [[markettypes.ts]] - degree 59, connects to 32 communities
-- [[buildTradingDesk()]] - degree 41, connects to 21 communities
-- [[yahoo.ts]] - degree 38, connects to 8 communities
-- [[freshest.ts]] - degree 25, connects to 8 communities
+- [[build-desk.ts]] - degree 199, connects to 50 communities
+- [[markettypes.ts]] - degree 69, connects to 32 communities
+- [[buildTradingDesk()]] - degree 43, connects to 18 communities
+- [[freshest.ts]] - degree 30, connects to 8 communities
+- [[yahoo.ts]] - degree 39, connects to 7 communities

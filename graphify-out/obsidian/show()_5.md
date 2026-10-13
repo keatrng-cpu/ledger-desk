@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-evidence-pack.mjs"
+source_file: "scripts/measure-tf-tiers.mjs"
 type: "code"
-community: "Community 181"
-location: "L486"
+community: "Community 170"
+location: "L314"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_181
+  - community/Community_170
 ---
 
 # show()
 
 ## Connections
-- [[build-evidence-pack.mjs]] - `contains` [EXTRACTED]
+- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_181
+#graphify/code #graphify/EXTRACTED #community/Community_170

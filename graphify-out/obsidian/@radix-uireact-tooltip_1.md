@@ -2,7 +2,7 @@
 source_file: "package.json"
 type: "code"
 community: "Community 47"
-location: "L79"
+location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # @radix-ui/react-tooltip
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_47

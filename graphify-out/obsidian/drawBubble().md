@@ -12,7 +12,7 @@ tags:
 # drawBubble()
 
 ## Connections
-- [[dot-say()_3]] - `calls` [EXTRACTED]
+- [[dot-say()_1]] - `calls` [EXTRACTED]
 - [[floor-proto-avatars.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_193

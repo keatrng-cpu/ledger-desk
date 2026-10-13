@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[dot-say()_4]] - `calls` [EXTRACTED]
-- [[fit()_5]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `imports` [EXTRACTED]
+- [[fit()_7]] - `calls` [EXTRACTED]
+- [[mead-people.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_41

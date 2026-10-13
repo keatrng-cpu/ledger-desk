@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 109"
+community: "Community 284"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/Community_284
 ---
 
 # schedule.ts
@@ -15,7 +15,7 @@ tags:
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[BLACKOUT_MIN]] - `contains` [EXTRACTED]
 - [[CAL]] - `contains` [EXTRACTED]
-- [[CalEvent]] - `contains` [EXTRACTED]
+- [[CalEvent_1]] - `contains` [EXTRACTED]
 - [[Density]] - `contains` [EXTRACTED]
 - [[EARN]] - `contains` [EXTRACTED]
 - [[EarningsDoc]] - `contains` [EXTRACTED]
@@ -32,15 +32,16 @@ tags:
 - [[eventDensity()]] - `contains` [EXTRACTED]
 - [[exposure.ts]] - `imports_from` [EXTRACTED]
 - [[fundProfile]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-office.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices.ts]] - `imports_from` [EXTRACTED]
 - [[macroImplication()]] - `contains` [EXTRACTED]
+- [[news-calendar]] - `imports_from` [EXTRACTED]
 - [[news-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[news-timeline.tsx]] - `imports_from` [EXTRACTED]
 - [[src_data_earnings_calendar]] - `imports_from` [EXTRACTED]
-- [[src_data_news_calendar]] - `imports_from` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[timeline()]] - `contains` [EXTRACTED]
 - [[verify-news-ipo.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/Community_284

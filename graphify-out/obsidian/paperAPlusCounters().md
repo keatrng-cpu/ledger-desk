@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 60"
+community: "Community 44"
 location: "L227"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_44
 ---
 
 # paperAPlusCounters()
@@ -20,4 +20,4 @@ tags:
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 - [[recordArmedShadow()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_44

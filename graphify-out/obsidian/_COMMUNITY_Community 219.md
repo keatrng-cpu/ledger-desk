@@ -11,12 +11,12 @@ members: 12
 
 ## Members
 - [[ETF_MODE]] - code - scripts/capture-invest-universe.mjs
-- [[args_1]] - code - scripts/capture-invest-universe.mjs
+- [[args_3]] - code - scripts/capture-invest-universe.mjs
 - [[bIdx]] - code - scripts/capture-invest-universe.mjs
 - [[capture-invest-universe.mjs]] - code - scripts/capture-invest-universe.mjs
 - [[captureEtfProfiles()]] - code - scripts/capture-invest-universe.mjs
 - [[doc_3]] - code - scripts/capture-invest-universe.mjs
-- [[num()_10]] - code - scripts/capture-invest-universe.mjs
+- [[num()_9]] - code - scripts/capture-invest-universe.mjs
 - [[only_2]] - code - scripts/capture-invest-universe.mjs
 - [[queue]] - code - scripts/capture-invest-universe.mjs
 - [[readKey()_1]] - code - scripts/capture-invest-universe.mjs
@@ -31,7 +31,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[capture-invest-universe.mjs]] - degree 12, connects to 1 community

@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[WHY the Brain tab used to draw five lines that pulsed whenever a person had…]] - `rationale_for` [EXTRACTED]
 - [[brain-traffic.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_52]] - `contains` [EXTRACTED]
+- [[check()_65]] - `contains` [EXTRACTED]
 - [[desk-atlas.ts]] - `dynamic_import` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rewrite]] - `contains` [EXTRACTED]
-- [[src_4]] - `contains` [EXTRACTED]
+- [[src_7]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_251

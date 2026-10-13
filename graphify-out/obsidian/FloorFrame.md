@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 17"
-location: "L92"
+community: "Community 214"
+location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/Community_214
 ---
 
 # FloorFrame
@@ -18,6 +18,7 @@ tags:
 - [[dot-updateEmotes()]] - `references` [EXTRACTED]
 - [[AgentAct]] - `references` [EXTRACTED]
 - [[Character]] - `references` [EXTRACTED]
+- [[Code map]] - `references` [INFERRED]
 - [[FloorScene]] - `references` [EXTRACTED]
 - [[MindState]] - `references` [EXTRACTED]
 - [[RoomOutput]] - `references` [EXTRACTED]
@@ -30,4 +31,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/Community_214

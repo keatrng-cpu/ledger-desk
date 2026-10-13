@@ -12,19 +12,19 @@ tags:
 # verify-exit-rules.mjs
 
 ## Connections
-- [[bar()_6]] - `contains` [EXTRACTED]
-- [[base_5]] - `contains` [EXTRACTED]
-- [[card_3]] - `contains` [EXTRACTED]
-- [[check()_31]] - `contains` [EXTRACTED]
+- [[bar()_7]] - `contains` [EXTRACTED]
+- [[base_6]] - `contains` [EXTRACTED]
+- [[card_6]] - `contains` [EXTRACTED]
+- [[check()_44]] - `contains` [EXTRACTED]
 - [[closeThrough]] - `contains` [EXTRACTED]
 - [[exit-rules.ts]] - `dynamic_import` [EXTRACTED]
 - [[fh]] - `contains` [EXTRACTED]
-- [[ok()_17]] - `contains` [EXTRACTED]
+- [[ok()_18]] - `contains` [EXTRACTED]
 - [[pm]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[sbase]] - `contains` [EXTRACTED]
 - [[shell]] - `contains` [EXTRACTED]
-- [[t0_7]] - `contains` [EXTRACTED]
+- [[t0_10]] - `contains` [EXTRACTED]
 - [[wick]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_211

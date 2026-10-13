@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 15"
-location: "L417"
+community: "Community 56"
+location: "L448"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/Community_56
 ---
 
 # schoolGate()
@@ -18,4 +18,4 @@ tags:
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 - [[verify-school-gate.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/Community_56

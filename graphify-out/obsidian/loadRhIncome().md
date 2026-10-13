@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 215"
+community: "Community 153"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/Community_153
 ---
 
 # loadRhIncome()
@@ -21,9 +21,11 @@ tags:
 - [[claude-handoff.ts]] - `imports` [EXTRACTED]
 - [[closeRhFill()]] - `calls` [EXTRACTED]
 - [[empty()]] - `calls` [EXTRACTED]
+- [[invest-sources.ts]] - `imports` [EXTRACTED]
 - [[logRhFill()]] - `calls` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 - [[overnight-board.tsx]] - `imports` [EXTRACTED]
+- [[readInvestOffice()]] - `calls` [EXTRACTED]
 - [[readRhIncome()]] - `calls` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports` [EXTRACTED]
 - [[rh-income.ts]] - `contains` [EXTRACTED]
@@ -31,4 +33,4 @@ tags:
 - [[subscribeRhIncome()]] - `calls` [EXTRACTED]
 - [[uncoveredUnderliers()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/Community_153

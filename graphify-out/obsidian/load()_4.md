@@ -1,23 +1,18 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "src/lib/execution/rh-ledger.ts"
 type: "code"
-community: "Community 48"
-location: "L90"
+community: "Community 223"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/Community_223
 ---
 
 # load()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[considerEntryAlarm()]] - `calls` [EXTRACTED]
-- [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[disarmPathAlarm()]] - `calls` [EXTRACTED]
-- [[getPathAlarmState()]] - `calls` [EXTRACTED]
-- [[mutePathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[dot-path()]] - `indirect_call` [INFERRED]
+- [[fileLedger()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/Community_223

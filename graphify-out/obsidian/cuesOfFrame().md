@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L106"
+location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,7 +15,7 @@ tags:
 - [[dot-apply()]] - `calls` [EXTRACTED]
 - [[dot-drawAll()]] - `calls` [EXTRACTED]
 - [[dot-react()]] - `calls` [EXTRACTED]
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
 - [[drawCalibration()]] - `calls` [EXTRACTED]
 - [[drawChart()]] - `calls` [EXTRACTED]
 - [[drawFeed()]] - `calls` [EXTRACTED]

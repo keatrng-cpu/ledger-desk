@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-day-change.mjs"
+source_file: "scripts/verify-judas-window.mjs"
 type: "code"
-community: "Community 220"
-location: "L27"
+community: "Community 20"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_220
+  - community/Community_20
 ---
 
 # check()
 
 ## Connections
-- [[ok()_19]] - `calls` [EXTRACTED]
-- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
+- [[verify-judas-window.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_220
+#graphify/code #graphify/EXTRACTED #community/Community_20

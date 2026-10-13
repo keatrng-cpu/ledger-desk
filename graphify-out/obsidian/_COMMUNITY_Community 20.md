@@ -1,89 +1,102 @@
 ---
 type: community
 cohesion: 0.03
-members: 75
+members: 88
 ---
 
 # Community 20
 
 **Cohesion:** 0.03 - loosely connected
-**Members:** 75 nodes
+**Members:** 88 nodes
 
 ## Members
-- [[COVERAGE_MIN_DAYS]] - code - src/lib/trading/news.ts
+- [[DetectorSummary]] - code - src/lib/trading/detectors.ts
+- [[DrawOnLiquidity]] - code - src/lib/trading/market-narrative.ts
+- [[DrawSide]] - code - src/lib/trading/draw.ts
 - [[ET_PARTS_FMT]] - code - src/lib/trading/sessions.ts
-- [[FlattenDecision]] - code - src/lib/trading/management.ts
-- [[FlattenReason]] - code - src/lib/trading/management.ts
-- [[KILLZONE_FLATTEN_LEAD_MIN]] - code - src/lib/trading/management.ts
-- [[LiveSays]] - code - src/lib/trading/live-says.ts
-- [[LiveSaysPrint]] - code - src/lib/trading/live-says.ts
-- [[MANAGEMENT_BAR_MINUTES]] - code - src/lib/trading/management.ts
-- [[MAX_BARS_IN_TRADE]] - code - src/lib/trading/management.ts
-- [[MIN_HOLD_MINUTES]] - code - src/lib/trading/management.ts
-- [[ManagedPosition]] - code - src/lib/trading/management.ts
-- [[ManagementContext]] - code - src/lib/trading/management.ts
-- [[MarketSource_1]] - code - src/lib/market/types.ts
-- [[NEWS_CALENDAR]] - code - src/lib/trading/news.ts
-- [[NEWS_FLATTEN_LEAD_MIN]] - code - src/lib/trading/management.ts
+- [[EntryModel]] - code - src/lib/trading/market-narrative.ts
+- [[KIND_WEIGHT]] - code - src/lib/trading/draw.ts
+- [[LiquidityMap]] - code - src/lib/trading/market-narrative.ts
+- [[LiquiditySide]] - code - src/lib/trading/market-narrative.ts
+- [[MIN_SESSIONS_FOR_BASE_RATE]] - code - src/lib/trading/draw.ts
 - [[NY_AM_LIVE_END_MIN]] - code - src/lib/trading/sessions.ts
-- [[NY_AM_LIVE_LABEL]] - code - src/lib/trading/sessions.ts
 - [[NY_AM_LIVE_START_MIN]] - code - src/lib/trading/sessions.ts
-- [[NewsEvent]] - code - src/lib/trading/news.ts
-- [[NewsVerdict]] - code - src/lib/trading/news.ts
-- [[PROGRESS_R]] - code - src/lib/trading/management.ts
-- [[RETARGET_MAX_TP2_R]] - code - src/lib/trading/management.ts
-- [[RETARGET_MIN_TP1_R]] - code - src/lib/trading/management.ts
-- [[RetargetResult]] - code - src/lib/trading/management.ts
-- [[SESSION_END_FLATTEN_LEAD_MIN]] - code - src/lib/trading/management.ts
+- [[NarrativeClass]] - code - src/lib/trading/market-narrative.ts
+- [[Phase A — One scoring path (2–3 days)]] - document - ROADMAP.md
+- [[Phase B — The desk runs itself (4–6 days) ← highest leverage]] - document - ROADMAP.md
+- [[Phase C — Evidence (runs continuously from Phase B; read at n≥30)]] - document - ROADMAP.md
+- [[Phase D — Friction (do the cheap ones NOW, in parallel)]] - document - ROADMAP.md
+- [[Phase E — Execution (LAST — gated, not scheduled)]] - document - ROADMAP.md
+- [[ROADMAP v2 — from a desk that helps if you look to a desk that runs]] - document - ROADMAP.md
+- [[ROADMAP]] - document - ROADMAP.md
+- [[RULES_1]] - code - src/lib/trading/market-narrative.ts
+- [[RawLevel]] - code - src/lib/trading/draw.ts
+- [[Sequencing]] - document - ROADMAP.md
+- [[The one thing that decides everything]] - document - ROADMAP.md
 - [[WEEKDAY_MAP]] - code - src/lib/trading/sessions.ts
-- [[buildLiveSays()]] - code - src/lib/trading/live-says.ts
-- [[check()_25]] - code - scripts/verify-judas-window.mjs
-- [[check()_26]] - code - scripts/verify-news-coverage.mjs
-- [[check()_27]] - code - scripts/verify-session-event.mjs
-- [[clockAt()_3]] - code - scripts/verify-session-event.mjs
-- [[dayChangePct()_1]] - code - scripts/diagnose-sequence.mjs
-- [[dayChangePct()_2]] - code - scripts/probe-closest.mjs
-- [[dayChangePct()_3]] - code - scripts/trace-session.mjs
-- [[dayKey()_8]] - code - scripts/probe-closest.mjs
-- [[dayKey()_9]] - code - scripts/trace-session.mjs
-- [[describeFlatten()]] - code - src/lib/trading/management.ts
+- [[WHY on 2026-10-05 the Floor's voices were found to be stating wrong numbers.…]] - rationale - scripts/verify-spoken-form.mjs
+- [[all_4]] - code - scripts/build-shadow-replay.mjs
+- [[biasAlignment()]] - code - src/lib/trading/draw.ts
+- [[build-shadow-replay.mjs]] - code - scripts/build-shadow-replay.mjs
+- [[buildLiquidityMap()]] - code - src/lib/trading/market-narrative.ts
+- [[buildMarketNarrative()]] - code - src/lib/trading/market-narrative.ts
+- [[candidateLevels()]] - code - src/lib/trading/draw.ts
+- [[card_5]] - code - scripts/build-shadow-replay.mjs
+- [[check()_37]] - code - scripts/verify-judas-window.mjs
+- [[check()_38]] - code - scripts/verify-session-event.mjs
+- [[check()_39]] - code - scripts/verify-spoken-form.mjs
+- [[classifyNarrative()]] - code - src/lib/trading/market-narrative.ts
+- [[clockAt()_4]] - code - scripts/verify-session-event.mjs
+- [[dayChangePct()_1]] - code - scripts/build-shadow-replay.mjs
+- [[dayChangePct()_2]] - code - scripts/diagnose-path.mjs
+- [[dayChangePct()_3]] - code - scripts/diagnose-sequence.mjs
+- [[dayChangePct()_4]] - code - scripts/probe-closest.mjs
+- [[dayChangePct()_5]] - code - scripts/trace-session.mjs
+- [[dayKey()_9]] - code - scripts/probe-closest.mjs
+- [[dayKey()_10]] - code - scripts/trace-session.mjs
+- [[deskAt()]] - code - scripts/build-shadow-replay.mjs
+- [[diagnose-path.mjs]] - code - scripts/diagnose-path.mjs
 - [[diagnose-sequence.mjs]] - code - scripts/diagnose-sequence.mjs
-- [[ev()_1]] - code - scripts/verify-news-coverage.mjs
-- [[flat()]] - code - src/lib/trading/management.ts
+- [[draw.ts]] - code - src/lib/trading/draw.ts
+- [[drawOnLiquidity()]] - code - src/lib/trading/draw.ts
+- [[empiricalReachRate()]] - code - src/lib/trading/draw.ts
+- [[etParts()]] - code - src/lib/trading/sessions.ts
 - [[gradeAt()]] - code - scripts/verify-judas-window.mjs
 - [[gradeAt()_1]] - code - scripts/verify-session-event.mjs
-- [[history_1]] - code - scripts/diagnose-sequence.mjs
-- [[history_2]] - code - scripts/probe-closest.mjs
-- [[history_3]] - code - scripts/trace-session.mjs
+- [[groupSessions()]] - code - src/lib/trading/draw.ts
+- [[history_1]] - code - scripts/build-shadow-replay.mjs
+- [[history_2]] - code - scripts/diagnose-path.mjs
+- [[history_3]] - code - scripts/diagnose-sequence.mjs
+- [[history_4]] - code - scripts/probe-closest.mjs
+- [[history_5]] - code - scripts/trace-session.mjs
 - [[hm()]] - code - scripts/trace-session.mjs
-- [[hold()]] - code - src/lib/trading/management.ts
 - [[inWin]] - code - scripts/verify-judas-window.mjs
-- [[isLivePrint()]] - code - src/lib/trading/live-says.ts
-- [[isNewsEvent()]] - code - src/lib/trading/news.ts
-- [[isNyAmLiveWindow()]] - code - src/lib/trading/sessions.ts
+- [[inc()]] - code - scripts/diagnose-path.mjs
 - [[judasTape()]] - code - scripts/verify-judas-window.mjs
-- [[live_3]] - code - scripts/verify-news-coverage.mjs
-- [[live-says.ts]] - code - src/lib/trading/live-says.ts
-- [[management.ts]] - code - src/lib/trading/management.ts
-- [[minutesUntilKillzoneChange()]] - code - src/lib/trading/management.ts
-- [[news.ts]] - code - src/lib/trading/news.ts
-- [[now_5]] - code - scripts/verify-news-coverage.mjs
+- [[market-narrative.ts]] - code - src/lib/trading/market-narrative.ts
+- [[median()_2]] - code - src/lib/trading/draw.ts
+- [[mergeCoincident()]] - code - src/lib/trading/draw.ts
+- [[nodefs]] - code - node:fs
 - [[outWin]] - code - scripts/verify-judas-window.mjs
-- [[printOf()]] - code - src/lib/trading/live-says.ts
+- [[poolTouchBoost()]] - code - src/lib/trading/draw.ts
+- [[preferredFor()]] - code - src/lib/trading/market-narrative.ts
 - [[probe-closest.mjs]] - code - scripts/probe-closest.mjs
-- [[progressRead()]] - code - src/lib/trading/management.ts
 - [[quiet()]] - code - scripts/verify-session-event.mjs
-- [[r1()]] - code - scripts/verify-judas-window.mjs
-- [[rows_10]] - code - scripts/probe-closest.mjs
+- [[r1()_1]] - code - scripts/verify-judas-window.mjs
+- [[remainingExcursions()]] - code - src/lib/trading/draw.ts
+- [[round2()_4]] - code - src/lib/trading/draw.ts
+- [[rows_11]] - code - scripts/build-shadow-replay.mjs
+- [[rows_12]] - code - scripts/probe-closest.mjs
 - [[sessions.ts]] - code - src/lib/trading/sessions.ts
-- [[shouldFlatten()]] - code - src/lib/trading/management.ts
-- [[src_data_news_calendar]] - concept
-- [[stride]] - code - scripts/diagnose-sequence.mjs
+- [[stride]] - code - scripts/diagnose-path.mjs
+- [[stride_1]] - code - scripts/diagnose-sequence.mjs
+- [[t0_8]] - code - scripts/build-shadow-replay.mjs
 - [[top]] - code - scripts/probe-closest.mjs
 - [[trace-session.mjs]] - code - scripts/trace-session.mjs
 - [[verify-judas-window.mjs]] - code - scripts/verify-judas-window.mjs
-- [[verify-news-coverage.mjs]] - code - scripts/verify-news-coverage.mjs
 - [[verify-session-event.mjs]] - code - scripts/verify-session-event.mjs
+- [[verify-spoken-form.mjs]] - code - scripts/verify-spoken-form.mjs
+- [[withEmpiricalTarget()]] - code - src/lib/trading/market-narrative.ts
 - [[withShock()]] - code - scripts/verify-session-event.mjs
 
 ## Live Query (requires Dataview plugin)
@@ -94,92 +107,102 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 16 edges to [[_COMMUNITY_Community 56]]
-- 11 edges to [[_COMMUNITY_Community 35]]
-- 10 edges to [[_COMMUNITY_Community 90]]
-- 9 edges to [[_COMMUNITY_Community 1]]
-- 9 edges to [[_COMMUNITY_Community 44]]
-- 9 edges to [[_COMMUNITY_Community 58]]
-- 8 edges to [[_COMMUNITY_Community 115]]
-- 7 edges to [[_COMMUNITY_Community 40]]
-- 6 edges to [[_COMMUNITY_Community 8]]
-- 6 edges to [[_COMMUNITY_Community 31]]
-- 6 edges to [[_COMMUNITY_Community 4]]
+- 33 edges to [[_COMMUNITY_Community 40]]
+- 22 edges to [[_COMMUNITY_Community 35]]
+- 15 edges to [[_COMMUNITY_Community 179]]
+- 15 edges to [[_COMMUNITY_Community 58]]
+- 12 edges to [[_COMMUNITY_Community 115]]
+- 11 edges to [[_COMMUNITY_Community 1]]
+- 7 edges to [[_COMMUNITY_Community 31]]
+- 6 edges to [[_COMMUNITY_Community 160]]
 - 6 edges to [[_COMMUNITY_Community 72]]
+- 6 edges to [[_COMMUNITY_Community 143]]
+- 5 edges to [[_COMMUNITY_Community 39]]
 - 5 edges to [[_COMMUNITY_Community 130]]
-- 4 edges to [[_COMMUNITY_Community 179]]
+- 5 edges to [[_COMMUNITY_Community 164]]
+- 5 edges to [[_COMMUNITY_Community 52]]
+- 4 edges to [[_COMMUNITY_Community 187]]
 - 4 edges to [[_COMMUNITY_Community 48]]
-- 3 edges to [[_COMMUNITY_Community 42]]
+- 4 edges to [[_COMMUNITY_Community 69]]
+- 4 edges to [[_COMMUNITY_Community 119]]
+- 3 edges to [[_COMMUNITY_Community 10]]
+- 3 edges to [[_COMMUNITY_Community 127]]
+- 3 edges to [[_COMMUNITY_Community 44]]
 - 3 edges to [[_COMMUNITY_Community 0]]
-- 3 edges to [[_COMMUNITY_Community 18]]
-- 3 edges to [[_COMMUNITY_Community 11]]
-- 3 edges to [[_COMMUNITY_Community 27]]
+- 3 edges to [[_COMMUNITY_Community 126]]
+- 3 edges to [[_COMMUNITY_Community 182]]
 - 3 edges to [[_COMMUNITY_Community 29]]
-- 2 edges to [[_COMMUNITY_Community 126]]
+- 3 edges to [[_COMMUNITY_Community 53]]
+- 3 edges to [[_COMMUNITY_Community 9]]
+- 3 edges to [[_COMMUNITY_Community 89]]
+- 2 edges to [[_COMMUNITY_Community 101]]
+- 2 edges to [[_COMMUNITY_Community 137]]
+- 2 edges to [[_COMMUNITY_Community 142]]
 - 2 edges to [[_COMMUNITY_Community 161]]
-- 2 edges to [[_COMMUNITY_Community 172]]
-- 2 edges to [[_COMMUNITY_Community 182]]
-- 2 edges to [[_COMMUNITY_Community 217]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 2 edges to [[_COMMUNITY_Community 33]]
-- 2 edges to [[_COMMUNITY_Community 53]]
-- 2 edges to [[_COMMUNITY_Community 227]]
-- 2 edges to [[_COMMUNITY_Community 89]]
-- 2 edges to [[_COMMUNITY_Community 52]]
-- 1 edge to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 39]]
-- 1 edge to [[_COMMUNITY_Community 10]]
-- 1 edge to [[_COMMUNITY_Community 101]]
-- 1 edge to [[_COMMUNITY_Community 109]]
+- 2 edges to [[_COMMUNITY_Community 163]]
+- 2 edges to [[_COMMUNITY_Community 18]]
+- 2 edges to [[_COMMUNITY_Community 212]]
+- 2 edges to [[_COMMUNITY_Community 22]]
+- 2 edges to [[_COMMUNITY_Community 5]]
+- 2 edges to [[_COMMUNITY_Community 45]]
+- 2 edges to [[_COMMUNITY_Community 4]]
+- 2 edges to [[_COMMUNITY_Community 8]]
+- 1 edge to [[_COMMUNITY_Community 90]]
+- 1 edge to [[_COMMUNITY_Community 100]]
+- 1 edge to [[_COMMUNITY_Community 111]]
 - 1 edge to [[_COMMUNITY_Community 117]]
 - 1 edge to [[_COMMUNITY_Community 134]]
 - 1 edge to [[_COMMUNITY_Community 136]]
-- 1 edge to [[_COMMUNITY_Community 137]]
+- 1 edge to [[_COMMUNITY_Community 138]]
+- 1 edge to [[_COMMUNITY_Community 14]]
 - 1 edge to [[_COMMUNITY_Community 141]]
-- 1 edge to [[_COMMUNITY_Community 142]]
 - 1 edge to [[_COMMUNITY_Community 145]]
 - 1 edge to [[_COMMUNITY_Community 150]]
 - 1 edge to [[_COMMUNITY_Community 152]]
 - 1 edge to [[_COMMUNITY_Community 157]]
-- 1 edge to [[_COMMUNITY_Community 160]]
-- 1 edge to [[_COMMUNITY_Community 163]]
-- 1 edge to [[_COMMUNITY_Community 164]]
+- 1 edge to [[_COMMUNITY_Community 162]]
 - 1 edge to [[_COMMUNITY_Community 166]]
 - 1 edge to [[_COMMUNITY_Community 169]]
 - 1 edge to [[_COMMUNITY_Community 170]]
 - 1 edge to [[_COMMUNITY_Community 171]]
+- 1 edge to [[_COMMUNITY_Community 175]]
 - 1 edge to [[_COMMUNITY_Community 181]]
 - 1 edge to [[_COMMUNITY_Community 183]]
+- 1 edge to [[_COMMUNITY_Community 184]]
 - 1 edge to [[_COMMUNITY_Community 185]]
-- 1 edge to [[_COMMUNITY_Community 69]]
+- 1 edge to [[_COMMUNITY_Community 61]]
+- 1 edge to [[_COMMUNITY_Community 206]]
+- 1 edge to [[_COMMUNITY_Community 308]]
+- 1 edge to [[_COMMUNITY_Community 208]]
+- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 275]]
+- 1 edge to [[_COMMUNITY_Community 96]]
+- 1 edge to [[_COMMUNITY_Community 254]]
+- 1 edge to [[_COMMUNITY_Community 98]]
+- 1 edge to [[_COMMUNITY_Community 27]]
 - 1 edge to [[_COMMUNITY_Community 6]]
 - 1 edge to [[_COMMUNITY_Community 25]]
-- 1 edge to [[_COMMUNITY_Community 49]]
 - 1 edge to [[_COMMUNITY_Community 83]]
 - 1 edge to [[_COMMUNITY_Community 23]]
 - 1 edge to [[_COMMUNITY_Community 76]]
 - 1 edge to [[_COMMUNITY_Community 50]]
 - 1 edge to [[_COMMUNITY_Community 3]]
 - 1 edge to [[_COMMUNITY_Community 57]]
-- 1 edge to [[_COMMUNITY_Community 60]]
 - 1 edge to [[_COMMUNITY_Community 73]]
 - 1 edge to [[_COMMUNITY_Community 82]]
 - 1 edge to [[_COMMUNITY_Community 46]]
-- 1 edge to [[_COMMUNITY_Community 9]]
 - 1 edge to [[_COMMUNITY_Community 55]]
-- 1 edge to [[_COMMUNITY_Community 45]]
 - 1 edge to [[_COMMUNITY_Community 78]]
-- 1 edge to [[_COMMUNITY_Community 239]]
 - 1 edge to [[_COMMUNITY_Community 228]]
 - 1 edge to [[_COMMUNITY_Community 91]]
 - 1 edge to [[_COMMUNITY_Community 220]]
-- 1 edge to [[_COMMUNITY_Community 212]]
 - 1 edge to [[_COMMUNITY_Community 238]]
-- 1 edge to [[_COMMUNITY_Community 22]]
+- 1 edge to [[_COMMUNITY_Community 227]]
+- 1 edge to [[_COMMUNITY_Community 94]]
 
 ## Top bridge nodes
-- [[sessions.ts]] - degree 117, connects to 73 communities
-- [[news.ts]] - degree 31, connects to 14 communities
-- [[management.ts]] - degree 36, connects to 9 communities
-- [[verify-judas-window.mjs]] - degree 18, connects to 9 communities
-- [[probe-closest.mjs]] - degree 16, connects to 8 communities
+- [[sessions.ts]] - degree 123, connects to 71 communities
+- [[draw.ts]] - degree 56, connects to 21 communities
+- [[market-narrative.ts]] - degree 53, connects to 16 communities
+- [[nodefs]] - degree 13, connects to 10 communities
+- [[build-shadow-replay.mjs]] - degree 22, connects to 9 communities

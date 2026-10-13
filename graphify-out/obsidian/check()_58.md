@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/verify-apex-sim.mjs"
 type: "code"
-community: "Community 36"
-location: "L19"
+community: "Community 243"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/Community_243
 ---
 
 # check()
 
 ## Connections
-- [[ok()_25]] - `calls` [EXTRACTED]
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[verify-apex-sim.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/Community_243

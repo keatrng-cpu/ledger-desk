@@ -10,7 +10,7 @@ members: 7
 **Members:** 7 nodes
 
 ## Members
-- [[check()_49]] - code - scripts/verify-freshness-gate.mjs
+- [[check()_60]] - code - scripts/verify-freshness-gate.mjs
 - [[runawayPrice]] - code - scripts/verify-freshness-gate.mjs
 - [[seedStoppedLong()]] - code - scripts/verify-freshness-gate.mjs
 - [[seedTargetHitLong()]] - code - scripts/verify-freshness-gate.mjs

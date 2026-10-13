@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/ui/entry-state.ts"
+source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 56"
-location: "L85"
+community: "Community 23"
+location: "L352"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_23
 ---
 
 # bookOf()
 
 ## Connections
-- [[deriveEntryState()]] - `calls` [EXTRACTED]
-- [[entry-state.ts]] - `contains` [EXTRACTED]
+- [[assertOpenAllowed()]] - `calls` [EXTRACTED]
+- [[candidateFromOpenInput()]] - `calls` [EXTRACTED]
+- [[journalserver.ts]] - `contains` [EXTRACTED]
+- [[readBookCounters()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_23

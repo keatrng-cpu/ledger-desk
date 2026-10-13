@@ -2,7 +2,7 @@
 source_file: "scripts/verify-sleeve-sizing.mjs"
 type: "code"
 community: "Community 213"
-location: "L57"
+location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED

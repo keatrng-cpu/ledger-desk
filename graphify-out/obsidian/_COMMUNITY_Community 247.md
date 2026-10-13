@@ -10,10 +10,10 @@ members: 6
 **Members:** 6 nodes
 
 ## Members
-- [[check()_50]] - code - scripts/verify-ai-sync.mjs
+- [[check()_61]] - code - scripts/verify-ai-sync.mjs
 - [[et()_3]] - code - scripts/verify-ai-sync.mjs
 - [[firstDue]] - code - scripts/verify-ai-sync.mjs
-- [[ok()_20]] - code - scripts/verify-ai-sync.mjs
+- [[ok()_22]] - code - scripts/verify-ai-sync.mjs
 - [[tuesdayDue]] - code - scripts/verify-ai-sync.mjs
 - [[verify-ai-sync.mjs]] - code - scripts/verify-ai-sync.mjs
 

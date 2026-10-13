@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[leagueRead]] - `calls` [EXTRACTED]
-- [[money()_11]] - `calls` [EXTRACTED]
+- [[money()_13]] - `calls` [EXTRACTED]
 - [[seats.ts]] - `contains` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 - [[verdictFor()_2]] - `calls` [EXTRACTED]

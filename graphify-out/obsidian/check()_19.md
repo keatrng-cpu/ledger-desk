@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "brainlab/selfcheck.py"
 type: "code"
-community: "Community 166"
-location: "L20"
+community: "Community 146"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/Community_146
 ---
 
 # check()
 
 ## Connections
-- [[ok()_10]] - `calls` [EXTRACTED]
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[selfcheck.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/Community_146

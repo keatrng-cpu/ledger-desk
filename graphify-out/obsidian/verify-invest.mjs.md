@@ -12,7 +12,7 @@ tags:
 # verify-invest.mjs
 
 ## Connections
-- [[NOW]] - `contains` [EXTRACTED]
+- [[NOW_1]] - `contains` [EXTRACTED]
 - [[NOW2]] - `contains` [EXTRACTED]
 - [[allRestore]] - `contains` [EXTRACTED]
 - [[balanced]] - `contains` [EXTRACTED]
@@ -24,7 +24,7 @@ tags:
 - [[book_1]] - `contains` [EXTRACTED]
 - [[book.ts]] - `dynamic_import` [EXTRACTED]
 - [[cc]] - `contains` [EXTRACTED]
-- [[check()]] - `contains` [EXTRACTED]
+- [[check()_3]] - `contains` [EXTRACTED]
 - [[combined]] - `contains` [EXTRACTED]
 - [[dirty]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `dynamic_import` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[fakeVoo]] - `contains` [EXTRACTED]
 - [[investevidence.ts]] - `dynamic_import` [EXTRACTED]
 - [[kill-watch.ts]] - `dynamic_import` [EXTRACTED]
-- [[live]] - `contains` [EXTRACTED]
+- [[live_1]] - `contains` [EXTRACTED]
 - [[losing]] - `contains` [EXTRACTED]
 - [[msft]] - `contains` [EXTRACTED]
 - [[noPrice]] - `contains` [EXTRACTED]
@@ -45,7 +45,7 @@ tags:
 - [[qs]] - `contains` [EXTRACTED]
 - [[reb]] - `contains` [EXTRACTED]
 - [[rvs]] - `contains` [EXTRACTED]
-- [[short]] - `contains` [EXTRACTED]
+- [[short_1]] - `contains` [EXTRACTED]
 - [[techHeavy]] - `contains` [EXTRACTED]
 - [[traps]] - `contains` [EXTRACTED]
 - [[universe.ts]] - `dynamic_import` [EXTRACTED]

@@ -12,7 +12,10 @@ tags:
 # rentVsSweep()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[SweepCard()]] - `calls` [EXTRACTED]
+- [[fundingOf()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 - [[round2()_14]] - `calls` [EXTRACTED]
 - [[sweep-card.tsx]] - `imports` [EXTRACTED]

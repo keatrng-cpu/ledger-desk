@@ -12,7 +12,7 @@ tags:
 # FeedDeadlineError
 
 ## Connections
-- [[dot-constructor()_20]] - `method` [EXTRACTED]
+- [[dot-constructor()_23]] - `method` [EXTRACTED]
 - [[fetchKalshiFeedRaw()]] - `calls` [EXTRACTED]
 - [[getPredictionSignals]] - `calls` [EXTRACTED]
 - [[predict-server.ts]] - `contains` [EXTRACTED]

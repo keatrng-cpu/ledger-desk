@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
-location: "L1016"
+community: "Community 41"
+location: "L813"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_41
 ---
 
 # .flashArg()
 
 ## Connections
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
 - [[dot-redraw()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[dot-update()_10]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_41

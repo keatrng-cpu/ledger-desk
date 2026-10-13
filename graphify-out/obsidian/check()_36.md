@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-room.mjs"
+source_file: "scripts/verify-kill-watch.mjs"
 type: "code"
-community: "Community 22"
-location: "L22"
+community: "Community 197"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/Community_197
 ---
 
 # check()
 
 ## Connections
-- [[verify-room.mjs]] - `contains` [EXTRACTED]
+- [[ok()_13]] - `calls` [EXTRACTED]
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/Community_197

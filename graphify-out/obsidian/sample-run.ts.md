@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/sample-run.ts"
 type: "code"
-community: "Community 94"
+community: "Community 14"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_14
 ---
 
 # sample-run.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BacktestPayload]] - `contains` [EXTRACTED]
-- [[Bias_1]] - `contains` [EXTRACTED]
+- [[Bias]] - `contains` [EXTRACTED]
 - [[BiasStack]] - `contains` [EXTRACTED]
 - [[COMPONENT_WEIGHTS]] - `imports` [EXTRACTED]
 - [[CONFLUENCE_KNOWLEDGE]] - `imports` [EXTRACTED]
@@ -34,4 +34,4 @@ tags:
 - [[equityCurve()]] - `imports` [EXTRACTED]
 - [[seeded()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_14

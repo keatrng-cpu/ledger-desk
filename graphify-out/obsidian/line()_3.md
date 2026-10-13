@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[slice()]] - `calls` [EXTRACTED]
+- [[slice()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_55

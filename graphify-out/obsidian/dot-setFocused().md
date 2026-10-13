@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 28"
-location: "L2999"
+location: "L3405"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,7 @@ tags:
 - [[dot-engageOwner()]] - `calls` [EXTRACTED]
 - [[dot-onDocDown()]] - `calls` [EXTRACTED]
 - [[dot-onKey()]] - `calls` [EXTRACTED]
+- [[dot-onPointerLock()]] - `calls` [EXTRACTED]
 - [[dot-releaseFocus()]] - `calls` [EXTRACTED]
 - [[dot-startOwnerChase()]] - `calls` [EXTRACTED]
 - [[dot-stopOwnerChase()]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
 community: "Community 92"
-location: "L345"
+location: "L376"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 72"
+community: "Community 20"
 location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/Community_20
 ---
 
 # candidateLevels()
@@ -16,4 +16,4 @@ tags:
 - [[drawOnLiquidity()]] - `calls` [EXTRACTED]
 - [[poolTouchBoost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/Community_20

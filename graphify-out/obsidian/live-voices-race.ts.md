@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 140"
+community: "Community 18"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/Community_18
 ---
 
 # live-voices-race.ts
@@ -19,7 +19,7 @@ tags:
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[CouncilData]] - `contains` [EXTRACTED]
-- [[Ctx]] - `imports` [EXTRACTED]
+- [[Ctx_1]] - `imports` [EXTRACTED]
 - [[DecisionData]] - `contains` [EXTRACTED]
 - [[Ex]] - `imports` [EXTRACTED]
 - [[Exp]] - `contains` [EXTRACTED]
@@ -32,7 +32,7 @@ tags:
 - [[LadderPlainData]] - `contains` [EXTRACTED]
 - [[LeadData]] - `contains` [EXTRACTED]
 - [[LeagueData]] - `contains` [EXTRACTED]
-- [[Line_1]] - `imports` [EXTRACTED]
+- [[Line]] - `imports` [EXTRACTED]
 - [[NEUTRAL]] - `imports` [EXTRACTED]
 - [[OFFICE()]] - `contains` [EXTRACTED]
 - [[PaceData]] - `contains` [EXTRACTED]
@@ -92,4 +92,4 @@ tags:
 - [[verify-audit.mjs]] - `dynamic_import` [EXTRACTED]
 - [[voice()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/Community_18

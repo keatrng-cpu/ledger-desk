@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
 community: "Community 113"
-location: "L109"
+location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,6 +15,7 @@ tags:
 - [[dot-applyBed()]] - `method` [EXTRACTED]
 - [[dot-bed()]] - `method` [EXTRACTED]
 - [[dot-bindVoices()]] - `method` [EXTRACTED]
+- [[dot-castSummary()]] - `method` [EXTRACTED]
 - [[dot-chime()]] - `method` [EXTRACTED]
 - [[dot-clockTick()]] - `method` [EXTRACTED]
 - [[dot-dispose()]] - `method` [EXTRACTED]
@@ -28,6 +29,7 @@ tags:
 - [[dot-play()]] - `method` [EXTRACTED]
 - [[dot-say()]] - `method` [EXTRACTED]
 - [[dot-setMuted()]] - `method` [EXTRACTED]
+- [[dot-sharesVoice()]] - `method` [EXTRACTED]
 - [[dot-tapeTick()]] - `method` [EXTRACTED]
 - [[dot-tone()]] - `method` [EXTRACTED]
 - [[dot-unlock()]] - `method` [EXTRACTED]

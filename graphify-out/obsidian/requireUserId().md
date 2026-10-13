@@ -12,7 +12,9 @@ tags:
 # requireUserId()
 
 ## Connections
+- [[Per-user data (server-side — mandatory)]] - `references` [INFERRED]
 - [[UnauthorizedError]] - `calls` [EXTRACTED]
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
 - [[getSessionUser()]] - `calls` [EXTRACTED]
 - [[verify.server.ts]] - `contains` [EXTRACTED]
 

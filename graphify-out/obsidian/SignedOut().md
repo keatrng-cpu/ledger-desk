@@ -12,6 +12,8 @@ tags:
 # SignedOut()
 
 ## Connections
+- [[Reading the user  protecting routes]] - `references` [INFERRED]
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
 - [[gates.tsx]] - `contains` [EXTRACTED]
 - [[useCurrentUserState()]] - `calls` [EXTRACTED]
 

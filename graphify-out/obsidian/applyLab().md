@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[asLab()]] - `calls` [EXTRACTED]
 - [[ensureSeats()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]

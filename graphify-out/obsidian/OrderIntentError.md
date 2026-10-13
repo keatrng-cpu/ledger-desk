@@ -12,7 +12,7 @@ tags:
 # OrderIntentError
 
 ## Connections
-- [[dot-constructor()_23]] - `method` [EXTRACTED]
+- [[dot-constructor()_26]] - `method` [EXTRACTED]
 - [[buildOrderIntent()]] - `calls` [EXTRACTED]
 - [[order-intent.ts]] - `contains` [EXTRACTED]
 

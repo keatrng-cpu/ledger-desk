@@ -25,7 +25,7 @@ tags:
 - [[rth_days()]] - `calls` [EXTRACTED]
 - [[session_extreme()]] - `calls` [EXTRACTED]
 - [[swings()_1]] - `calls` [EXTRACTED]
-- [[walk()_1]] - `calls` [EXTRACTED]
+- [[walk()]] - `calls` [EXTRACTED]
 - [[year_of()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_131

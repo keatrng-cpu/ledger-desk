@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-focus-pick.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 244"
-location: "L23"
+community: "Community 22"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_244
+  - community/Community_22
 ---
 
 # check()
 
 ## Connections
-- [[verify-focus-pick.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_244
+#graphify/code #graphify/EXTRACTED #community/Community_22

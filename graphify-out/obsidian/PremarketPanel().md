@@ -23,7 +23,7 @@ tags:
 - [[buildSessionBrief()]] - `calls` [EXTRACTED]
 - [[buildSmcTape()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[fmt()_1]] - `calls` [EXTRACTED]
+- [[fmt()_2]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[premarket-panel.tsx]] - `contains` [EXTRACTED]
 

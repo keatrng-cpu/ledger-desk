@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/room/time-odds.ts"
+source_file: "scripts/verify-desk-cadence.mjs"
 type: "code"
-community: "Community 52"
-location: "L94"
+community: "Community 248"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/Community_248
 ---
 
 # at()
 
 ## Connections
-- [[before()]] - `calls` [EXTRACTED]
-- [[priceOptionPlan()]] - `calls` [EXTRACTED]
-- [[quantileBar()]] - `calls` [EXTRACTED]
-- [[time-odds.ts]] - `contains` [EXTRACTED]
-- [[windowOdds]] - `calls` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/Community_248

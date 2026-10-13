@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
 community: "Community 1"
-location: "L393"
+location: "L425"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -17,6 +17,7 @@ tags:
 - [[pickFreshestQuote()]] - `calls` [EXTRACTED]
 - [[priorSessionClose()]] - `calls` [EXTRACTED]
 - [[quoteFromDatabentoSeries()]] - `calls` [EXTRACTED]
+- [[quoteFromLiveBar()]] - `calls` [EXTRACTED]
 - [[quoteFromLiveTick()]] - `calls` [EXTRACTED]
 - [[quoteStatusFromSeries()]] - `calls` [EXTRACTED]
 - [[rebaseQuote()]] - `calls` [EXTRACTED]

@@ -1,17 +1,20 @@
 ---
 source_file: "package.json"
-type: "code"
-community: "Community 47"
-location: "L57"
+type: "concept"
+community: "Community 190"
+location: "L61"
 tags:
-  - graphify/code
+  - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/Community_190
 ---
 
 # @electric-sql/pglite
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[createPgliteSql()]] - `imports_from` [EXTRACTED]
+- [[package.json]] - `imports` [EXTRACTED]
+- [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
+- [[verify-rh-oauth.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/concept #graphify/EXTRACTED #community/Community_190

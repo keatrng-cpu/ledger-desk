@@ -1,22 +1,19 @@
 ---
-source_file: "src/lib/invest/book.ts"
+source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 100"
-location: "L256"
+community: "Community 111"
+location: "L367"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/Community_111
 ---
 
 # verdictFor()
 
 ## Connections
-- [[ResearchCard()]] - `calls` [EXTRACTED]
-- [[book.ts]] - `contains` [EXTRACTED]
-- [[canAdd()]] - `calls` [EXTRACTED]
-- [[pctR()]] - `calls` [EXTRACTED]
-- [[research-card.tsx]] - `imports` [EXTRACTED]
-- [[washSaleBan()]] - `calls` [EXTRACTED]
+- [[KillzoneScore]] - `calls` [EXTRACTED]
+- [[decidedN()]] - `calls` [EXTRACTED]
+- [[discretion-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/Community_111

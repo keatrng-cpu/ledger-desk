@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[authorizeCronRequest()]] - `calls` [EXTRACTED]
-- [[etWindow]] - `calls` [EXTRACTED]
+- [[etWindow_1]] - `calls` [EXTRACTED]
 - [[fmtR()_2]] - `calls` [EXTRACTED]
 - [[fmtWr()]] - `calls` [EXTRACTED]
 - [[isForced()]] - `calls` [EXTRACTED]

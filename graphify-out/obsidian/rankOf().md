@@ -12,8 +12,9 @@ tags:
 # rankOf()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[getRoomSnapshot]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[putRoomSnapshot]] - `calls` [EXTRACTED]
 - [[rankKey()]] - `calls` [EXTRACTED]
 - [[restoreRoomIfRicher()]] - `calls` [EXTRACTED]

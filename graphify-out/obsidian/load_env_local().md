@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[Load ..gateway.env.local if present so this runs without run-local.ps1.]] - `rationale_for` [EXTRACTED]
-- [[main()_5]] - `calls` [EXTRACTED]
+- [[main()_6]] - `calls` [EXTRACTED]
 - [[smoke_live.py]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_225

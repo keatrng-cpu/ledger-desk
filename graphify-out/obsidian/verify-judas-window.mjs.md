@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[chart-timeframes.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_25]] - `contains` [EXTRACTED]
+- [[check()_37]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
 - [[gradeAt()]] - `contains` [EXTRACTED]
@@ -24,7 +24,7 @@ tags:
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
 - [[outWin]] - `contains` [EXTRACTED]
-- [[r1()]] - `contains` [EXTRACTED]
+- [[r1()_1]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-board.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-master.ts]] - `dynamic_import` [EXTRACTED]

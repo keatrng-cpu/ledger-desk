@@ -1,112 +1,142 @@
 ---
 type: community
-cohesion: 0.06
-members: 99
+cohesion: 0.04
+members: 129
 ---
 
 # Community 4
 
-**Cohesion:** 0.06 - loosely connected
-**Members:** 99 nodes
+**Cohesion:** 0.04 - loosely connected
+**Members:** 129 nodes
 
 ## Members
-- [[Agenda]] - code - src/lib/room/agents.ts
-- [[AgendaEvent]] - code - src/lib/room/agents.ts
-- [[AgendaSetup]] - code - src/lib/room/agents.ts
-- [[B_PLUS]] - code - src/lib/room/drill.ts
-- [[DRILL_DATE]] - code - src/lib/room/drill.ts
-- [[DRILL_LABEL]] - code - src/lib/room/drill.ts
-- [[DrillFrame]] - code - src/lib/room/drill.ts
-- [[ES_PLAN]] - code - src/lib/room/drill.ts
-- [[ExitWatch]] - code - src/lib/room/desk-read.ts
+- [[GoalForm()]] - code - src/components/room/race-panel.tsx
 - [[HeldLevels]] - code - src/lib/room/orchestrator.ts
-- [[NEXT_AFTER]] - code - src/lib/room/drill.ts
-- [[NQ_PLAN]] - code - src/lib/room/drill.ts
-- [[PLAN_B]] - code - src/lib/room/drill.ts
-- [[RELEASE]] - code - src/lib/room/drill.ts
+- [[LedgerScreen]] - code - src/components/room/floor-screens.ts
+- [[PAPER_STEP_CAS_SQL]] - code - src/lib/room/paper-step.ts
+- [[PAPER_STEP_INSERT_SQL]] - code - src/lib/room/paper-step.ts
+- [[PAPER_STEP_READ_SQL]] - code - src/lib/room/paper-step.ts
+- [[RESEARCH_LINES]] - code - src/components/room/room-engine.ts
 - [[ROOM_BOOK_STORAGE]] - code - src/lib/room/paper-book.ts
+- [[ROOM_DEFAULT_CASH]] - code - src/lib/room/paper-book.ts
 - [[ROOM_DRILL_STORAGE]] - code - src/lib/room/paper-book.ts
+- [[Rings]] - code - src/lib/room/live-world.ts
 - [[RoomContext]] - code - src/lib/room/orchestrator.ts
+- [[RoomDev]] - code - src/components/room/room-engine.ts
 - [[RoomExitRead]] - code - src/lib/room/orchestrator.ts
 - [[RoomFut]] - code - src/lib/room/paper-book.ts
 - [[SETUP_BANDS_1]] - code - src/lib/room/desk-read.ts
 - [[TapeMeta]] - code - src/lib/room/desk-read.ts
-- [[Trend]] - code - src/lib/room/orchestrator.ts
+- [[WireStatus]] - code - src/components/room/room-engine.ts
+- [[ageOf()]] - code - src/components/room/room-engine.ts
 - [[agendaFromDesk()]] - code - src/lib/room/desk-read.ts
 - [[applyCycle()]] - code - src/lib/room/paper-book.ts
 - [[applyLab()]] - code - src/lib/room/paper-book.ts
 - [[applyVoids()]] - code - src/components/room/room-engine.ts
+- [[asGoal()]] - code - src/lib/room/goal.ts
 - [[asLab()]] - code - src/lib/room/lab.ts
 - [[asSeatBook()]] - code - src/lib/room/seats.ts
-- [[atrOf()]] - code - src/lib/room/live-world.ts
+- [[at()_10]] - code - scripts/verify-paper-step.mjs
+- [[atrOf()_1]] - code - src/lib/room/live-world.ts
+- [[body]] - code - scripts/verify-paper-step.mjs
 - [[bookRead()]] - code - src/lib/room/live-world.ts
 - [[bookRealized()]] - code - src/lib/room/paper-book.ts
+- [[bookScreen()]] - code - src/components/room/room-engine.ts
 - [[booksOf()]] - code - src/lib/room/desk-read.ts
+- [[browserHoldsLease()]] - code - src/lib/room/paper-step.ts
 - [[calendarFor()]] - code - src/components/room/room-engine.ts
-- [[calendarRead()]] - code - src/lib/room/live-world.ts
 - [[cardEntry()]] - code - src/lib/room/desk-read.ts
+- [[check()_86]] - code - scripts/verify-paper-step.mjs
 - [[closedBars()_1]] - code - src/lib/room/desk-read.ts
 - [[computeExits()]] - code - src/lib/room/desk-read.ts
 - [[computeHeld()]] - code - src/lib/room/desk-read.ts
 - [[cycle.ts]] - code - src/routes/api/room/cycle.ts
 - [[cycleWire()]] - code - src/components/room/room-engine.ts
+- [[db_2]] - code - scripts/verify-paper-step.mjs
+- [[decidePaperStep()]] - code - src/lib/room/paper-step.ts
+- [[defaultGoal()]] - code - src/lib/room/goal.ts
 - [[desk-read.ts]] - code - src/lib/room/desk-read.ts
 - [[drillDeskRead()]] - code - src/lib/room/drill.ts
-- [[drillFrames()]] - code - src/lib/room/drill.ts
-- [[drillMarket()]] - code - src/lib/room/drill.ts
 - [[drillNowMs()]] - code - src/lib/room/drill.ts
 - [[emptyBook()]] - code - src/lib/room/paper-book.ts
+- [[emptyRings()]] - code - src/lib/room/live-world.ts
 - [[ensureSeats()]] - code - src/lib/room/seats.ts
 - [[equityOf()]] - code - src/lib/room/paper-book.ts
-- [[etDateOf()]] - code - src/lib/room/option-math.ts
-- [[etWallToEpochMs()]] - code - src/lib/trading/sessions.ts
+- [[etClockLabel()]] - code - src/components/room/room-engine.ts
 - [[exitWatchOf()]] - code - src/lib/room/paper-book.ts
-- [[expiryMs()]] - code - src/lib/room/option-math.ts
-- [[fetchTradingDesk]] - code - src/lib/trading/build-desk.ts
-- [[handle()_2]] - code - src/routes/api/cron/room-step.ts
+- [[failedHold()]] - code - src/lib/trading/exit-rules.ts
+- [[feedMayStep()]] - code - src/lib/room/paper-step.ts
+- [[flattenRhNow()]] - code - src/components/room/room-engine.ts
+- [[frameFromCycle()]] - code - src/components/room/room-engine.ts
+- [[freshTalkState()]] - code - src/lib/room/live-types.ts
+- [[getHall()]] - code - src/lib/room/hall-store.ts
+- [[getPulse]] - code - src/lib/news/news-server.ts
+- [[handle()_3]] - code - src/routes/api/cron/room-step.ts
 - [[handleGet()]] - code - src/routes/api/room/cycle.ts
 - [[handlePost()]] - code - src/routes/api/room/cycle.ts
-- [[judasCard()]] - code - src/lib/room/drill.ts
+- [[iCas]] - code - scripts/verify-paper-step.mjs
+- [[iDue]] - code - scripts/verify-paper-step.mjs
+- [[iFeed]] - code - scripts/verify-paper-step.mjs
+- [[iLease]] - code - scripts/verify-paper-step.mjs
+- [[imports]] - code - scripts/verify-paper-step.mjs
+- [[install]] - code - scripts/verify-paper-step.mjs
 - [[labRead]] - code - src/lib/room/lab.ts
-- [[labWatchList()]] - code - src/lib/room/lab.ts
 - [[ledgerOf()]] - code - src/lib/room/paper-book.ts
+- [[ledgerScreenOf()]] - code - src/components/room/room-engine.ts
+- [[live_6]] - code - scripts/verify-paper-step.mjs
+- [[loadEnabled()]] - code - src/components/room/room-engine.ts
+- [[loadGoal()]] - code - src/components/room/room-engine.ts
+- [[loadMinds()]] - code - src/components/room/room-engine.ts
 - [[loadPulse()]] - code - src/lib/news/news-server.ts
+- [[loadRoomBook()]] - code - src/lib/room/paper-book.ts
+- [[loadTalk()]] - code - src/components/room/room-engine.ts
 - [[markBook()]] - code - src/lib/room/paper-book.ts
 - [[marketDataFromDesk()]] - code - src/lib/room/desk-read.ts
-- [[minutesBetween()]] - code - src/lib/room/drill.ts
-- [[money()_7]] - code - src/lib/room/lab.ts
-- [[money()_8]] - code - src/lib/room/paper-book.ts
-- [[nqCard()]] - code - src/lib/room/drill.ts
-- [[oddsOn()]] - code - src/lib/room/drill.ts
+- [[mon()]] - code - scripts/verify-paper-step.mjs
+- [[money()_9]] - code - src/lib/room/paper-book.ts
+- [[noteRh()]] - code - src/components/room/room-engine.ts
 - [[outputViolations()]] - code - src/lib/room/orchestrator.ts
 - [[paper-book.ts]] - code - src/lib/room/paper-book.ts
+- [[paper-step.ts]] - code - src/lib/room/paper-step.ts
+- [[paperStepDue()]] - code - src/lib/room/paper-step.ts
 - [[pickDayCard()]] - code - src/lib/room/desk-read.ts
-- [[planBCard()]] - code - src/lib/room/drill.ts
-- [[planHitOdds()]] - code - src/lib/trading/hit-odds-model.ts
-- [[planKey()]] - code - src/lib/room/orchestrator.ts
 - [[playDrill()]] - code - src/lib/room/drill.ts
+- [[pullHall()]] - code - src/components/room/hall-read.ts
 - [[pushEvent()]] - code - src/lib/room/paper-book.ts
 - [[readDeskForRoom()]] - code - src/lib/room/desk-read.ts
 - [[refreshRace()]] - code - src/components/room/room-engine.ts
 - [[releaseMove()]] - code - src/lib/room/desk-read.ts
+- [[restoreTalkState()]] - code - src/lib/room/live-talk.ts
+- [[rhBody()]] - code - src/components/room/room-engine.ts
+- [[ringer]] - code - scripts/verify-paper-step.mjs
+- [[rings_1]] - code - src/components/room/room-engine.ts
 - [[rollCounters()]] - code - src/lib/room/paper-book.ts
+- [[room-engine.ts]] - code - src/components/room/room-engine.ts
 - [[room-step.ts]] - code - src/routes/api/cron/room-step.ts
-- [[roomdrill.ts]] - code - src/lib/room/drill.ts
-- [[round3()]] - code - src/lib/room/lab.ts
+- [[route_2]] - code - scripts/verify-paper-step.mjs
 - [[rsiWilder()]] - code - src/lib/room/desk-read.ts
 - [[runDrillStep()]] - code - src/lib/room/drill.ts
 - [[runLiveCycle()]] - code - src/components/room/room-engine.ts
 - [[runRoomCycle()]] - code - src/lib/room/orchestrator.ts
+- [[saveGoal()]] - code - src/components/room/room-engine.ts
+- [[saveMinds()]] - code - src/components/room/room-engine.ts
 - [[saveRoomBook()]] - code - src/lib/room/paper-book.ts
 - [[savedAtMsOf()]] - code - src/lib/room/paper-step.ts
+- [[sendRh()]] - code - src/components/room/room-engine.ts
+- [[speakRh()]] - code - src/components/room/room-engine.ts
 - [[spotSource()]] - code - src/lib/trading/options-desk.ts
-- [[standCard()]] - code - src/lib/room/drill.ts
+- [[src_lib_room_live_talk_freshtalkstate]] - concept
+- [[step_1]] - code - scripts/verify-paper-step.mjs
 - [[storyMoved()]] - code - src/components/room/room-engine.ts
+- [[subscribeHall()]] - code - src/lib/room/hall-store.ts
 - [[tapeBook()]] - code - src/lib/room/live-world.ts
-- [[tierFill()]] - code - src/lib/room/drill.ts
 - [[toRoomInput()]] - code - src/lib/room/paper-book.ts
+- [[tree]] - code - scripts/verify-paper-step.mjs
 - [[trendOf()]] - code - src/lib/room/desk-read.ts
 - [[underlierOfSymbol()]] - code - src/lib/room/desk-read.ts
+- [[useRoomEngine()]] - code - src/components/room/room-engine.ts
+- [[useRoomStore]] - code - src/components/room/room-engine.ts
+- [[verify-paper-step.mjs]] - code - scripts/verify-paper-step.mjs
 - [[voidPosition()]] - code - src/lib/room/paper-book.ts
 - [[volumeRatio()]] - code - src/lib/trading/session-event.ts
 
@@ -118,66 +148,76 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 89 edges to [[_COMMUNITY_Community 0]]
-- 39 edges to [[_COMMUNITY_Community 18]]
-- 29 edges to [[_COMMUNITY_Community 29]]
-- 23 edges to [[_COMMUNITY_Community 31]]
-- 23 edges to [[_COMMUNITY_Community 57]]
-- 17 edges to [[_COMMUNITY_Community 52]]
-- 15 edges to [[_COMMUNITY_Community 125]]
-- 13 edges to [[_COMMUNITY_Community 73]]
-- 11 edges to [[_COMMUNITY_Community 143]]
-- 9 edges to [[_COMMUNITY_Community 81]]
-- 8 edges to [[_COMMUNITY_Community 1]]
-- 7 edges to [[_COMMUNITY_Community 10]]
-- 7 edges to [[_COMMUNITY_Community 56]]
-- 7 edges to [[_COMMUNITY_Community 104]]
-- 6 edges to [[_COMMUNITY_Community 3]]
-- 6 edges to [[_COMMUNITY_Community 177]]
-- 6 edges to [[_COMMUNITY_Community 20]]
-- 5 edges to [[_COMMUNITY_Community 58]]
-- 4 edges to [[_COMMUNITY_Community 101]]
+- 72 edges to [[_COMMUNITY_Community 0]]
+- 50 edges to [[_COMMUNITY_Community 52]]
+- 33 edges to [[_COMMUNITY_Community 29]]
+- 23 edges to [[_COMMUNITY_Community 125]]
+- 22 edges to [[_COMMUNITY_Community 31]]
+- 17 edges to [[_COMMUNITY_Community 57]]
+- 15 edges to [[_COMMUNITY_Community 73]]
+- 13 edges to [[_COMMUNITY_Community 10]]
+- 12 edges to [[_COMMUNITY_Community 114]]
+- 12 edges to [[_COMMUNITY_Community 177]]
+- 11 edges to [[_COMMUNITY_Community 3]]
+- 11 edges to [[_COMMUNITY_Community 51]]
+- 11 edges to [[_COMMUNITY_Community 94]]
+- 10 edges to [[_COMMUNITY_Community 122]]
+- 10 edges to [[_COMMUNITY_Community 100]]
+- 8 edges to [[_COMMUNITY_Community 150]]
+- 7 edges to [[_COMMUNITY_Community 103]]
+- 7 edges to [[_COMMUNITY_Community 18]]
+- 7 edges to [[_COMMUNITY_Community 58]]
+- 7 edges to [[_COMMUNITY_Community 251]]
+- 6 edges to [[_COMMUNITY_Community 158]]
+- 6 edges to [[_COMMUNITY_Community 299]]
+- 6 edges to [[_COMMUNITY_Community 50]]
+- 6 edges to [[_COMMUNITY_Community 1]]
+- 6 edges to [[_COMMUNITY_Community 54]]
+- 5 edges to [[_COMMUNITY_Community 104]]
+- 5 edges to [[_COMMUNITY_Community 81]]
+- 5 edges to [[_COMMUNITY_Community 116]]
+- 4 edges to [[_COMMUNITY_Community 162]]
 - 4 edges to [[_COMMUNITY_Community 115]]
-- 4 edges to [[_COMMUNITY_Community 122]]
-- 4 edges to [[_COMMUNITY_Community 130]]
-- 4 edges to [[_COMMUNITY_Community 50]]
-- 4 edges to [[_COMMUNITY_Community 54]]
-- 3 edges to [[_COMMUNITY_Community 42]]
-- 3 edges to [[_COMMUNITY_Community 39]]
-- 3 edges to [[_COMMUNITY_Community 51]]
+- 4 edges to [[_COMMUNITY_Community 222]]
+- 4 edges to [[_COMMUNITY_Community 92]]
+- 4 edges to [[_COMMUNITY_Community 184]]
+- 4 edges to [[_COMMUNITY_Community 179]]
+- 3 edges to [[_COMMUNITY_Community 160]]
+- 3 edges to [[_COMMUNITY_Community 25]]
+- 3 edges to [[_COMMUNITY_Community 300]]
+- 3 edges to [[_COMMUNITY_Community 71]]
 - 3 edges to [[_COMMUNITY_Community 8]]
-- 3 edges to [[_COMMUNITY_Community 116]]
-- 2 edges to [[_COMMUNITY_Community 15]]
-- 2 edges to [[_COMMUNITY_Community 126]]
-- 2 edges to [[_COMMUNITY_Community 150]]
-- 2 edges to [[_COMMUNITY_Community 19]]
-- 2 edges to [[_COMMUNITY_Community 171]]
+- 3 edges to [[_COMMUNITY_Community 48]]
+- 2 edges to [[_COMMUNITY_Community 14]]
 - 2 edges to [[_COMMUNITY_Community 194]]
-- 2 edges to [[_COMMUNITY_Community 22]]
-- 2 edges to [[_COMMUNITY_Community 221]]
-- 2 edges to [[_COMMUNITY_Community 61]]
-- 1 edge to [[_COMMUNITY_Community 153]]
-- 1 edge to [[_COMMUNITY_Community 172]]
-- 1 edge to [[_COMMUNITY_Community 27]]
-- 1 edge to [[_COMMUNITY_Community 100]]
-- 1 edge to [[_COMMUNITY_Community 110]]
-- 1 edge to [[_COMMUNITY_Community 21]]
-- 1 edge to [[_COMMUNITY_Community 222]]
-- 1 edge to [[_COMMUNITY_Community 38]]
-- 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 185]]
-- 1 edge to [[_COMMUNITY_Community 189]]
-- 1 edge to [[_COMMUNITY_Community 212]]
-- 1 edge to [[_COMMUNITY_Community 217]]
-- 1 edge to [[_COMMUNITY_Community 237]]
-- 1 edge to [[_COMMUNITY_Community 25]]
-- 1 edge to [[_COMMUNITY_Community 48]]
+- 2 edges to [[_COMMUNITY_Community 40]]
+- 2 edges to [[_COMMUNITY_Community 9]]
+- 2 edges to [[_COMMUNITY_Community 128]]
+- 2 edges to [[_COMMUNITY_Community 129]]
+- 2 edges to [[_COMMUNITY_Community 130]]
+- 2 edges to [[_COMMUNITY_Community 19]]
+- 2 edges to [[_COMMUNITY_Community 109]]
+- 2 edges to [[_COMMUNITY_Community 44]]
+- 2 edges to [[_COMMUNITY_Community 274]]
+- 2 edges to [[_COMMUNITY_Community 15]]
+- 2 edges to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 214]]
+- 1 edge to [[_COMMUNITY_Community 89]]
+- 1 edge to [[_COMMUNITY_Community 13]]
+- 1 edge to [[_COMMUNITY_Community 39]]
+- 1 edge to [[_COMMUNITY_Community 85]]
+- 1 edge to [[_COMMUNITY_Community 35]]
+- 1 edge to [[_COMMUNITY_Community 105]]
+- 1 edge to [[_COMMUNITY_Community 171]]
+- 1 edge to [[_COMMUNITY_Community 22]]
+- 1 edge to [[_COMMUNITY_Community 32]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 83]]
 - 1 edge to [[_COMMUNITY_Community 82]]
-- 1 edge to [[_COMMUNITY_Community 40]]
 
 ## Top bridge nodes
+- [[room-engine.ts]] - degree 183, connects to 44 communities
 - [[desk-read.ts]] - degree 65, connects to 19 communities
-- [[paper-book.ts]] - degree 74, connects to 15 communities
-- [[roomdrill.ts]] - degree 70, connects to 15 communities
-- [[runLiveCycle()]] - degree 34, connects to 13 communities
-- [[room-step.ts]] - degree 52, connects to 11 communities
+- [[room-step.ts]] - degree 57, connects to 16 communities
+- [[paper-book.ts]] - degree 74, connects to 12 communities
+- [[runLiveCycle()]] - degree 34, connects to 10 communities

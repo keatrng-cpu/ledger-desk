@@ -1,22 +1,25 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 45"
-location: "L281"
+community: "Community 41"
+location: "L215"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/Community_41
 ---
 
 # fit()
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
-- [[cvLambda()]] - `calls` [EXTRACTED]
-- [[rowOf()_1]] - `calls` [EXTRACTED]
-- [[scaler()]] - `calls` [EXTRACTED]
-- [[sig()_1]] - `calls` [EXTRACTED]
-- [[solve()]] - `calls` [EXTRACTED]
+- [[drawBooth()]] - `calls` [EXTRACTED]
+- [[drawBubble()_1]] - `calls` [EXTRACTED]
+- [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawLectern()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
+- [[drawTv()]] - `calls` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/Community_41

@@ -1,27 +1,43 @@
 ---
 type: community
-cohesion: 0.17
-members: 12
+cohesion: 0.07
+members: 28
 ---
 
 # Community 221
 
-**Cohesion:** 0.17 - loosely connected
-**Members:** 12 nodes
+**Cohesion:** 0.07 - loosely connected
+**Members:** 28 nodes
 
 ## Members
-- [[GOAL_1]] - code - scripts/verify-room-seats.mjs
-- [[RICH]] - code - scripts/verify-room-seats.mjs
-- [[WHY the trader asked for the five to be agents that compete with each other on…]] - rationale - scripts/verify-room-seats.mjs
-- [[check()_38]] - code - scripts/verify-room-seats.mjs
-- [[frames]] - code - scripts/verify-room-seats.mjs
-- [[json()_2]] - code - scripts/verify-room-seats.mjs
-- [[league_1]] - code - scripts/verify-room-seats.mjs
-- [[near()_4]] - code - scripts/verify-room-seats.mjs
-- [[stepsOf()]] - code - scripts/verify-room-seats.mjs
-- [[verify-room-seats.mjs]] - code - scripts/verify-room-seats.mjs
-- [[withSeats]] - code - scripts/verify-room-seats.mjs
-- [[without]] - code - scripts/verify-room-seats.mjs
+- [[Anti-patterns]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Border radius (concentric, mandatory)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Buttons (token overlay  fallback)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Cards  menus (token overlay  fallback)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Color discipline]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Components (product chrome)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Content tone in the UI]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Design tokens (encode once, reuse)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[HUD chips]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Implementation checklist]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Inputs (token overlay  fallback)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Layout and fluidness]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Motion and fluidity (production transitions)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Motion token usage (match by role, not by copying random ms)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Non-negotiable anti-slop rules]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Overlay-specific guidance]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Pattern → recipe (pick by what the user sees)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Reach for shadcn first]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Refined UI (product chrome and overlays)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Review format]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Scope]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Setup (when the project can use React + Tailwind)]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Surfaces, borders, depth]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Typography pairing and weight]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Universal rules]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[Visual language]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[When shadcn is not available]] - document - .grok/skills/design-ui/references/refined-ui.md
+- [[refined-ui]] - document - .grok/skills/design-ui/references/refined-ui.md
 
 ## Live Query (requires Dataview plugin)
 
@@ -29,15 +45,3 @@ members: 12
 TABLE source_file, type FROM #community/Community_221
 SORT file.name ASC
 ```
-
-## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 0]]
-- 2 edges to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 235]]
-- 1 edge to [[_COMMUNITY_Community 125]]
-- 1 edge to [[_COMMUNITY_Community 50]]
-- 1 edge to [[_COMMUNITY_Community 52]]
-- 1 edge to [[_COMMUNITY_Community 57]]
-
-## Top bridge nodes
-- [[verify-room-seats.mjs]] - degree 20, connects to 7 communities

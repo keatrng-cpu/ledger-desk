@@ -12,13 +12,15 @@ tags:
 # Character
 
 ## Connections
-- [[dot-constructor()_4]] - `references` [EXTRACTED]
+- [[dot-castSummary()]] - `references` [EXTRACTED]
+- [[dot-constructor()_12]] - `references` [EXTRACTED]
 - [[dot-follow()]] - `references` [EXTRACTED]
 - [[dot-following()]] - `references` [EXTRACTED]
 - [[dot-goTo()_1]] - `references` [EXTRACTED]
 - [[dot-personAt()]] - `references` [EXTRACTED]
 - [[dot-pickCatTarget()]] - `references` [EXTRACTED]
 - [[dot-say()]] - `references` [EXTRACTED]
+- [[dot-sharesVoice()]] - `references` [EXTRACTED]
 - [[dot-targetFor()]] - `references` [EXTRACTED]
 - [[dot-voiceFor()]] - `references` [EXTRACTED]
 - [[AgentAct]] - `references` [EXTRACTED]
@@ -78,6 +80,7 @@ tags:
 - [[labRead]] - `references` [EXTRACTED]
 - [[live-talk.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `imports` [EXTRACTED]
+- [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[live-voices.ts]] - `imports` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]

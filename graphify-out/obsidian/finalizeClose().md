@@ -19,7 +19,7 @@ tags:
 - [[loadPaperTrades()]] - `calls` [EXTRACTED]
 - [[managePaperTradesAgainstPrice()]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
-- [[pointValue()_1]] - `calls` [EXTRACTED]
+- [[pointValue()]] - `calls` [EXTRACTED]
 - [[pushDebrief()]] - `calls` [EXTRACTED]
 - [[setOpenPaperCount()]] - `calls` [EXTRACTED]
 

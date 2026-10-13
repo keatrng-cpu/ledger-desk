@@ -18,9 +18,11 @@ tags:
 - [[earningsImplication()]] - `calls` [EXTRACTED]
 - [[eventDensity()]] - `calls` [EXTRACTED]
 - [[fundProfile]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[invest-office.ts]] - `imports` [EXTRACTED]
 - [[macroImplication()]] - `calls` [EXTRACTED]
 - [[news-tab.tsx]] - `imports` [EXTRACTED]
+- [[nextReport()]] - `calls` [EXTRACTED]
 - [[schedule.ts]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/engine-weights.ts"
 type: "code"
-community: "Community 114"
-location: "L60"
+community: "Community 127"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/Community_127
 ---
 
 # SCORE_KEYS
@@ -15,4 +15,4 @@ tags:
 - [[engine-weights.ts]] - `contains` [EXTRACTED]
 - [[strategies.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/Community_127

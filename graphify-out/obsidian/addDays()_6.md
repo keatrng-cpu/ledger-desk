@@ -1,20 +1,19 @@
 ---
-source_file: "src/lib/invest/ledger.ts"
+source_file: "src/lib/invest/ipo.ts"
 type: "code"
-community: "Community 34"
-location: "L163"
+community: "Community 86"
+location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/Community_86
 ---
 
 # addDays()
 
 ## Connections
-- [[buyWashWarning()]] - `calls` [EXTRACTED]
-- [[ledger.ts]] - `contains` [EXTRACTED]
-- [[longTermFrom()]] - `calls` [EXTRACTED]
-- [[washFor()]] - `calls` [EXTRACTED]
+- [[ipo.ts]] - `contains` [EXTRACTED]
+- [[ipoRead]] - `calls` [EXTRACTED]
+- [[upcomingIpos()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/Community_86

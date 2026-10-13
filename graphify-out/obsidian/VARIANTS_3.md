@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-regimes.mjs"
+source_file: "scripts/measure-micro-entry.mjs"
 type: "code"
-community: "Community 240"
-location: "L75"
+community: "Community 199"
+location: "L168"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/Community_199
 ---
 
 # VARIANTS
 
 ## Connections
-- [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
+- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_240
+#graphify/code #graphify/EXTRACTED #community/Community_199

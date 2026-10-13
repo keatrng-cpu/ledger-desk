@@ -1,20 +1,19 @@
 ---
-source_file: "scripts/crew-year-backtest.py"
+source_file: "scripts/blender/glb-stats.mjs"
 type: "code"
-community: "Community 156"
-location: "L304"
+community: "Community 143"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/Community_143
 ---
 
 # stats()
 
 ## Connections
-- [[choose_target()]] - `calls` [EXTRACTED]
-- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
-- [[find_flaws()]] - `calls` [EXTRACTED]
-- [[main()_3]] - `calls` [EXTRACTED]
+- [[glb-stats.mjs]] - `contains` [EXTRACTED]
+- [[primTris()]] - `calls` [EXTRACTED]
+- [[readGlb()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/Community_143

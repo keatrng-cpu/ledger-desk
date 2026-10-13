@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/lab/evidence-table.tsx"
+source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 99"
-location: "L15"
+community: "Community 299"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/Community_299
 ---
 
 # SECTIONS
 
 ## Connections
-- [[evidence-table.tsx]] - `contains` [EXTRACTED]
+- [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/Community_299

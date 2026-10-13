@@ -26,11 +26,14 @@ tags:
 - [[factors.ts]] - `imports_from` [EXTRACTED]
 - [[fundamentalsFor()]] - `imports` [EXTRACTED]
 - [[impliedGrowth]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[pc()_4]] - `contains` [EXTRACTED]
 - [[requiredVsDelivered]] - `contains` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
 - [[screen-table.tsx]] - `imports_from` [EXTRACTED]
 - [[src_data_invest_durability]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_5

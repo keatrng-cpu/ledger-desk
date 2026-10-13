@@ -1,47 +1,76 @@
 ---
 type: community
-cohesion: 0.07
-members: 83
+cohesion: 0.03
+members: 153
 ---
 
 # Community 14
 
-**Cohesion:** 0.07 - loosely connected
-**Members:** 83 nodes
+**Cohesion:** 0.03 - loosely connected
+**Members:** 153 nodes
 
 ## Members
 - [[AlertStrip()]] - code - src/components/desk/premarket-panel.tsx
-- [[AlertsPanel()]] - code - src/components/desk/alerts-panel.tsx
 - [[AplusOps()]] - code - src/components/dashboard/aplus-ops.tsx
 - [[ArrayRow()]] - code - src/components/desk/premarket-panel.tsx
+- [[BacktestPayload]] - code - src/lib/aplus/sample-run.ts
+- [[Bias]] - code - src/lib/aplus/sample-run.ts
 - [[BiasChip()]] - code - src/components/desk/htf-bias-board.tsx
 - [[BiasIcon()]] - code - src/components/desk/htf-bias-board.tsx
 - [[BiasPill()]] - code - src/components/dashboard/aplus-ops.tsx
-- [[BridgeStatus()]] - code - src/components/bridge/bridge-status.tsx
+- [[BiasStack]] - code - src/lib/aplus/sample-run.ts
+- [[BookCol()]] - code - src/components/desk/week-ahead-panel.tsx
 - [[Button]] - code - src/components/ui/button.tsx
 - [[ButtonProps]] - code - src/components/ui/button.tsx
+- [[CALL_TEXT]] - code - src/components/desk/hi-alert-panel.tsx
+- [[CALL_TONE]] - code - src/components/desk/hi-alert-panel.tsx
+- [[COMPONENT_WEIGHTS]] - code - src/lib/aplus/confluence.ts
+- [[CONFLUENCE_KNOWLEDGE]] - code - src/lib/aplus/confluence.ts
+- [[COUNTER_TONE]] - code - src/components/desk/option-ticket.tsx
 - [[Card()]] - code - src/components/desk/htf-bias-board.tsx
 - [[Card()_1]] - code - src/components/ui/card.tsx
 - [[CardContent()]] - code - src/components/ui/card.tsx
 - [[CardDescription()]] - code - src/components/ui/card.tsx
 - [[CardHeader()]] - code - src/components/ui/card.tsx
 - [[CardTitle()]] - code - src/components/ui/card.tsx
-- [[DOT]] - code - src/components/bridge/bridge-status.tsx
+- [[CoachNarration]] - code - src/lib/coach/claude-server.ts
+- [[Conditions()]] - code - src/components/desk/option-ticket.tsx
+- [[CopyClaudeHandoff()]] - code - src/components/desk/copy-claude-handoff.tsx
+- [[CounterChip()]] - code - src/components/desk/option-ticket.tsx
+- [[DayRow()]] - code - src/components/desk/week-ahead-panel.tsx
+- [[DbRow]] - code - src/lib/engine/ingest.ts
 - [[DualIndexCharts()]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[EngineData]] - code - src/components/dashboard/aplus-ops.tsx
-- [[Health]] - code - src/components/bridge/bridge-status.tsx
+- [[EngineRunKind]] - code - src/lib/engine/ingest.ts
+- [[EngineRunMeta]] - code - src/lib/engine/ingest.ts
+- [[EngineRunRow]] - code - src/lib/engine/ingest.ts
+- [[EvidenceBucket]] - code - src/lib/trading/evidence.ts
 - [[HtfBiasBoard()]] - code - src/components/desk/htf-bias-board.tsx
-- [[Kv()]] - code - src/components/dashboard/aplus-ops.tsx
-- [[LABEL]] - code - src/components/bridge/bridge-status.tsx
+- [[JournalRow]] - code - src/lib/aplus/sample-run.ts
+- [[JsonValue]] - code - src/lib/engine/ingest.ts
+- [[KINDS_1]] - code - src/lib/engine/ingest.ts
+- [[Kv()_1]] - code - src/components/dashboard/aplus-ops.tsx
+- [[LatestEngineRunResult]] - code - src/lib/engine/ingest.ts
+- [[LessonCard()]] - code - src/components/learn/live-lessons.tsx
+- [[LessonState]] - code - src/lib/learn/live-lesson.ts
 - [[LevelRow()]] - code - src/components/desk/premarket-panel.tsx
+- [[ListEngineRunsResult]] - code - src/lib/engine/ingest.ts
 - [[LiveClock()]] - code - src/components/dashboard/dual-index-charts.tsx
+- [[LiveLessonBoard()]] - code - src/components/learn/live-lessons.tsx
+- [[Metrics]] - code - src/lib/aplus/analytics.ts
+- [[OptionTicket()]] - code - src/components/desk/option-ticket.tsx
 - [[PAIRS]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[PathCard()]] - code - src/components/desk/premarket-panel.tsx
-- [[PathPlan]] - code - src/lib/trading/session-brief.ts
 - [[PremarketPanel()]] - code - src/components/desk/premarket-panel.tsx
-- [[PricedLevel]] - code - src/lib/trading/session-brief.ts
+- [[PremarketSnapshot]] - code - src/lib/aplus/sample-run.ts
+- [[ProfitPathSnapshot]] - code - src/lib/trading/profit-path.ts
 - [[RANGES]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[ReplayReport()]] - code - src/components/lab/replay-report.tsx
+- [[RhStrategyCard]] - code - src/lib/trading/options-desk.ts
+- [[Row()_3]] - code - src/components/desk/option-ticket.tsx
+- [[Row()_4]] - code - src/components/lab/evidence-table.tsx
+- [[SCHEMAS]] - code - src/lib/engine/ingest.ts
+- [[SECTIONS_1]] - code - src/components/lab/evidence-table.tsx
 - [[Section()]] - code - src/components/dashboard/aplus-ops.tsx
 - [[ShadowOrderReview()]] - code - src/components/desk/shadow-order-review.tsx
 - [[SmcAlert]] - code - src/lib/trading/smc-board.ts
@@ -49,50 +78,91 @@ members: 83
 - [[Spark()]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[SymbolHeader()]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[Tab]] - code - src/components/dashboard/aplus-ops.tsx
+- [[TradingCoach()]] - code - src/components/desk/trading-coach.tsx
+- [[UploadEngineRunResult]] - code - src/lib/engine/ingest.ts
 - [[UploadKind]] - code - src/components/dashboard/aplus-ops.tsx
 - [[VerdictBanner()]] - code - src/components/desk/premarket-panel.tsx
-- [[ago()_2]] - code - src/components/bridge/bridge-status.tsx
+- [[VoiceCard()]] - code - src/components/desk/trading-coach.tsx
+- [[WEAK_SAMPLE_THRESHOLD]] - code - src/lib/aplus/analytics.ts
+- [[WeekAheadPanel()]] - code - src/components/desk/week-ahead-panel.tsx
+- [[WeekAheadRead]] - code - src/lib/trading/week-ahead.ts
+- [[WeekBookLevels]] - code - src/lib/trading/week-ahead.ts
+- [[WeekDayPlan]] - code - src/lib/trading/week-ahead.ts
 - [[alertTone()]] - code - src/components/desk/premarket-panel.tsx
 - [[alerts-panel.tsx]] - code - src/components/desk/alerts-panel.tsx
 - [[aplus-ops.tsx]] - code - src/components/dashboard/aplus-ops.tsx
+- [[aplusanalytics.ts]] - code - src/lib/aplus/analytics.ts
+- [[backtestSchema]] - code - src/lib/engine/ingest.ts
+- [[bar-strip.tsx]] - code - src/components/desk/viz/bar-strip.tsx
 - [[barMsForInterval()]] - code - src/components/dashboard/dual-index-charts.tsx
-- [[bridge-status.tsx]] - code - src/components/bridge/bridge-status.tsx
+- [[biasSchema]] - code - src/lib/engine/ingest.ts
+- [[buildBacktestPayload()]] - code - src/lib/aplus/sample-run.ts
+- [[buildCoachNotes()]] - code - src/components/desk/trading-coach.tsx
+- [[buildDemoTrades()]] - code - src/lib/aplus/sample-run.ts
 - [[buildNarrative()]] - code - src/lib/aplus/sample-run.ts
 - [[buildPremarketSnapshot()]] - code - src/lib/aplus/sample-run.ts
 - [[button.tsx]] - code - src/components/ui/button.tsx
 - [[buttonVariants]] - code - src/components/ui/button.tsx
 - [[card.tsx]] - code - src/components/ui/card.tsx
 - [[cn()]] - code - src/lib/utils.ts
+- [[computeMetrics()]] - code - src/lib/aplus/analytics.ts
+- [[copy-claude-handoff.tsx]] - code - src/components/desk/copy-claude-handoff.tsx
 - [[dual-index-charts.tsx]] - code - src/components/dashboard/dual-index-charts.tsx
+- [[equityCurve()]] - code - src/lib/aplus/analytics.ts
+- [[evidence-table.tsx]] - code - src/components/lab/evidence-table.tsx
 - [[expCls()]] - code - src/components/lab/replay-report.tsx
+- [[factsForUnderlier()]] - code - src/lib/trading/ticket-facts.ts
 - [[fetchLiveQuotes]] - code - src/lib/market/fetch-dual.ts
-- [[fmt()]] - code - src/components/dashboard/aplus-ops.tsx
-- [[fmt()_1]] - code - src/components/desk/premarket-panel.tsx
+- [[fmt()_1]] - code - src/components/dashboard/aplus-ops.tsx
+- [[fmt()_2]] - code - src/components/desk/premarket-panel.tsx
 - [[fmtPrice()]] - code - src/components/dashboard/dual-index-charts.tsx
-- [[fmtTime()]] - code - src/components/desk/alerts-panel.tsx
-- [[fmtTime()_1]] - code - src/components/desk/shadow-order-review.tsx
+- [[fmtTime()]] - code - src/components/desk/shadow-order-review.tsx
 - [[formatCurrency()]] - code - src/lib/utils.ts
 - [[formatExchangeClock()]] - code - src/lib/market/yahoo.ts
 - [[formatNumber()]] - code - src/lib/utils.ts
 - [[formatPct()]] - code - src/lib/utils.ts
 - [[formatUtcClock()]] - code - src/lib/market/yahoo.ts
+- [[hi-alert-panel.tsx]] - code - src/components/desk/hi-alert-panel.tsx
 - [[htf-bias-board.tsx]] - code - src/components/desk/htf-bias-board.tsx
-- [[isPushEnabled()]] - code - src/lib/alerts/client.ts
+- [[ingest.ts]] - code - src/lib/engine/ingest.ts
+- [[journalRowSchema]] - code - src/lib/engine/ingest.ts
+- [[knowledgeSchema]] - code - src/lib/engine/ingest.ts
 - [[latestEngineRun]] - code - src/lib/engine/ingest.ts
+- [[legForUnderlier()]] - code - src/lib/trading/ticket-facts.ts
+- [[listEngineRuns]] - code - src/lib/engine/ingest.ts
 - [[listShadowOrders]] - code - src/lib/execution/shadow.ts
+- [[live-lessons.tsx]] - code - src/components/learn/live-lessons.tsx
+- [[maxDrawdown()]] - code - src/lib/aplus/analytics.ts
+- [[metricsSchema]] - code - src/lib/engine/ingest.ts
 - [[normalizedPct()]] - code - src/lib/market/yahoo.ts
+- [[option-ticket.tsx]] - code - src/components/desk/option-ticket.tsx
 - [[paneMarkup()]] - code - src/components/dashboard/dual-index-charts.tsx
-- [[pct()_3]] - code - src/components/lab/replay-report.tsx
+- [[pct()_2]] - code - src/components/lab/replay-report.tsx
+- [[pickCard()]] - code - src/components/desk/option-ticket.tsx
 - [[premarket-panel.tsx]] - code - src/components/desk/premarket-panel.tsx
-- [[pushSupport]] - code - src/lib/alerts/client.ts
+- [[premarketSchema]] - code - src/lib/engine/ingest.ts
+- [[px()_6]] - code - src/components/desk/week-ahead-panel.tsx
+- [[r()]] - code - src/components/lab/evidence-table.tsx
 - [[react]] - concept - package.json
+- [[readDone()]] - code - src/components/learn/live-lessons.tsx
 - [[recharts]] - concept - package.json
 - [[replay-report.tsx]] - code - src/components/lab/replay-report.tsx
+- [[replaySchema]] - code - src/lib/engine/ingest.ts
 - [[rollingCorr()]] - code - src/components/dashboard/dual-index-charts.tsx
 - [[runReplay]] - code - src/lib/engine/replay-server.ts
+- [[sample-run.ts]] - code - src/lib/aplus/sample-run.ts
+- [[schoolTicket()]] - code - src/lib/trading/school-ticket.ts
+- [[seeded()]] - code - src/lib/aplus/sample-run.ts
 - [[shadow-order-review.tsx]] - code - src/components/desk/shadow-order-review.tsx
-- [[togglePaperMode]] - code - src/lib/bridge/paper-server.ts
+- [[sharpe()]] - code - src/lib/aplus/analytics.ts
+- [[stateChip()]] - code - src/components/learn/live-lessons.tsx
+- [[toIso()]] - code - src/lib/engine/ingest.ts
+- [[tradeSchema]] - code - src/lib/engine/ingest.ts
+- [[trading-coach.tsx]] - code - src/components/desk/trading-coach.tsx
+- [[uploadEngineRun]] - code - src/lib/engine/ingest.ts
+- [[usd()_1]] - code - src/components/desk/option-ticket.tsx
 - [[utils.ts]] - code - src/lib/utils.ts
+- [[week-ahead-panel.tsx]] - code - src/components/desk/week-ahead-panel.tsx
 
 ## Live Query (requires Dataview plugin)
 
@@ -102,77 +172,99 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 53 edges to [[_COMMUNITY_Community 8]]
+- 52 edges to [[_COMMUNITY_Community 8]]
+- 48 edges to [[_COMMUNITY_Community 69]]
 - 24 edges to [[_COMMUNITY_Community 59]]
-- 23 edges to [[_COMMUNITY_Community 19]]
-- 19 edges to [[_COMMUNITY_Community 69]]
-- 18 edges to [[_COMMUNITY_Community 33]]
-- 17 edges to [[_COMMUNITY_Community 1]]
-- 17 edges to [[_COMMUNITY_Community 26]]
-- 16 edges to [[_COMMUNITY_Community 9]]
-- 16 edges to [[_COMMUNITY_Community 39]]
+- 24 edges to [[_COMMUNITY_Community 23]]
+- 22 edges to [[_COMMUNITY_Community 1]]
+- 20 edges to [[_COMMUNITY_Community 9]]
+- 20 edges to [[_COMMUNITY_Community 19]]
+- 18 edges to [[_COMMUNITY_Community 39]]
+- 16 edges to [[_COMMUNITY_Community 44]]
 - 15 edges to [[_COMMUNITY_Community 48]]
-- 14 edges to [[_COMMUNITY_Community 23]]
-- 11 edges to [[_COMMUNITY_Community 65]]
-- 11 edges to [[_COMMUNITY_Community 44]]
+- 14 edges to [[_COMMUNITY_Community 127]]
+- 14 edges to [[_COMMUNITY_Community 187]]
+- 12 edges to [[_COMMUNITY_Community 93]]
 - 11 edges to [[_COMMUNITY_Community 167]]
-- 10 edges to [[_COMMUNITY_Community 93]]
-- 10 edges to [[_COMMUNITY_Community 146]]
+- 10 edges to [[_COMMUNITY_Community 33]]
+- 10 edges to [[_COMMUNITY_Community 46]]
 - 9 edges to [[_COMMUNITY_Community 139]]
-- 9 edges to [[_COMMUNITY_Community 99]]
-- 8 edges to [[_COMMUNITY_Community 27]]
-- 8 edges to [[_COMMUNITY_Community 94]]
-- 8 edges to [[_COMMUNITY_Community 214]]
-- 6 edges to [[_COMMUNITY_Community 134]]
+- 8 edges to [[_COMMUNITY_Community 26]]
+- 8 edges to [[_COMMUNITY_Community 89]]
+- 7 edges to [[_COMMUNITY_Community 87]]
+- 7 edges to [[_COMMUNITY_Community 92]]
+- 6 edges to [[_COMMUNITY_Community 73]]
+- 6 edges to [[_COMMUNITY_Community 272]]
 - 6 edges to [[_COMMUNITY_Community 152]]
-- 6 edges to [[_COMMUNITY_Community 153]]
 - 5 edges to [[_COMMUNITY_Community 179]]
+- 5 edges to [[_COMMUNITY_Community 153]]
 - 5 edges to [[_COMMUNITY_Community 32]]
+- 4 edges to [[_COMMUNITY_Community 106]]
+- 4 edges to [[_COMMUNITY_Community 123]]
 - 4 edges to [[_COMMUNITY_Community 35]]
+- 4 edges to [[_COMMUNITY_Community 134]]
 - 4 edges to [[_COMMUNITY_Community 108]]
-- 4 edges to [[_COMMUNITY_Community 186]]
+- 4 edges to [[_COMMUNITY_Community 161]]
+- 4 edges to [[_COMMUNITY_Community 280]]
+- 4 edges to [[_COMMUNITY_Community 95]]
+- 4 edges to [[_COMMUNITY_Community 163]]
 - 4 edges to [[_COMMUNITY_Community 145]]
-- 3 edges to [[_COMMUNITY_Community 56]]
-- 3 edges to [[_COMMUNITY_Community 77]]
-- 3 edges to [[_COMMUNITY_Community 127]]
+- 3 edges to [[_COMMUNITY_Community 111]]
+- 3 edges to [[_COMMUNITY_Community 155]]
+- 3 edges to [[_COMMUNITY_Community 99]]
+- 3 edges to [[_COMMUNITY_Community 43]]
+- 3 edges to [[_COMMUNITY_Community 100]]
+- 3 edges to [[_COMMUNITY_Community 15]]
 - 3 edges to [[_COMMUNITY_Community 79]]
-- 3 edges to [[_COMMUNITY_Community 67]]
 - 3 edges to [[_COMMUNITY_Community 2]]
+- 2 edges to [[_COMMUNITY_Community 4]]
+- 2 edges to [[_COMMUNITY_Community 130]]
+- 2 edges to [[_COMMUNITY_Community 334]]
+- 2 edges to [[_COMMUNITY_Community 158]]
+- 2 edges to [[_COMMUNITY_Community 231]]
 - 2 edges to [[_COMMUNITY_Community 58]]
-- 2 edges to [[_COMMUNITY_Community 114]]
+- 2 edges to [[_COMMUNITY_Community 71]]
 - 2 edges to [[_COMMUNITY_Community 54]]
-- 2 edges to [[_COMMUNITY_Community 147]]
-- 2 edges to [[_COMMUNITY_Community 86]]
-- 2 edges to [[_COMMUNITY_Community 18]]
+- 2 edges to [[_COMMUNITY_Community 34]]
+- 2 edges to [[_COMMUNITY_Community 209]]
+- 2 edges to [[_COMMUNITY_Community 5]]
+- 2 edges to [[_COMMUNITY_Community 67]]
 - 2 edges to [[_COMMUNITY_Community 51]]
 - 1 edge to [[_COMMUNITY_Community 10]]
-- 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 100]]
+- 1 edge to [[_COMMUNITY_Community 102]]
+- 1 edge to [[_COMMUNITY_Community 195]]
+- 1 edge to [[_COMMUNITY_Community 3]]
+- 1 edge to [[_COMMUNITY_Community 164]]
+- 1 edge to [[_COMMUNITY_Community 40]]
+- 1 edge to [[_COMMUNITY_Community 294]]
 - 1 edge to [[_COMMUNITY_Community 101]]
+- 1 edge to [[_COMMUNITY_Community 104]]
+- 1 edge to [[_COMMUNITY_Community 105]]
 - 1 edge to [[_COMMUNITY_Community 109]]
-- 1 edge to [[_COMMUNITY_Community 118]]
+- 1 edge to [[_COMMUNITY_Community 114]]
+- 1 edge to [[_COMMUNITY_Community 122]]
+- 1 edge to [[_COMMUNITY_Community 20]]
 - 1 edge to [[_COMMUNITY_Community 233]]
 - 1 edge to [[_COMMUNITY_Community 174]]
-- 1 edge to [[_COMMUNITY_Community 161]]
 - 1 edge to [[_COMMUNITY_Community 82]]
 - 1 edge to [[_COMMUNITY_Community 88]]
-- 1 edge to [[_COMMUNITY_Community 92]]
 - 1 edge to [[_COMMUNITY_Community 80]]
-- 1 edge to [[_COMMUNITY_Community 89]]
-- 1 edge to [[_COMMUNITY_Community 187]]
-- 1 edge to [[_COMMUNITY_Community 34]]
-- 1 edge to [[_COMMUNITY_Community 5]]
+- 1 edge to [[_COMMUNITY_Community 27]]
+- 1 edge to [[_COMMUNITY_Community 229]]
+- 1 edge to [[_COMMUNITY_Community 216]]
+- 1 edge to [[_COMMUNITY_Community 86]]
+- 1 edge to [[_COMMUNITY_Community 305]]
 - 1 edge to [[_COMMUNITY_Community 6]]
 - 1 edge to [[_COMMUNITY_Community 41]]
 - 1 edge to [[_COMMUNITY_Community 232]]
 - 1 edge to [[_COMMUNITY_Community 16]]
 - 1 edge to [[_COMMUNITY_Community 222]]
-- 1 edge to [[_COMMUNITY_Community 49]]
+- 1 edge to [[_COMMUNITY_Community 299]]
 - 1 edge to [[_COMMUNITY_Community 149]]
 
 ## Top bridge nodes
-- [[react]] - degree 90, connects to 53 communities
-- [[utils.ts]] - degree 54, connects to 23 communities
-- [[cn()]] - degree 143, connects to 22 communities
-- [[button.tsx]] - degree 24, connects to 12 communities
+- [[react]] - degree 98, connects to 57 communities
+- [[cn()]] - degree 156, connects to 23 communities
+- [[utils.ts]] - degree 59, connects to 22 communities
 - [[Button]] - degree 40, connects to 11 communities
+- [[button.tsx]] - degree 24, connects to 11 communities

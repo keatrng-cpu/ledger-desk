@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[goal.ts]] - `imports` [EXTRACTED]
+- [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `imports` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-floor-cues.mjs"
 type: "code"
-community: "Community 175"
-location: "L60"
+community: "Community 25"
+location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/Community_25
 ---
 
 # gone
 
 ## Connections
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/Community_25

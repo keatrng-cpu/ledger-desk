@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/word-hysteresis.ts"
 type: "code"
-community: "Community 56"
+community: "Community 8"
 location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_8
 ---
 
 # stabilizeBook()
@@ -16,4 +16,4 @@ tags:
 - [[outsideByHeights()]] - `calls` [EXTRACTED]
 - [[word-hysteresis.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_8

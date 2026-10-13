@@ -1,23 +1,25 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 37"
-location: "L132"
+community: "Community 41"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_41
 ---
 
 # Person
 
 ## Connections
-- [[dot-buildCrowd()]] - `calls` [EXTRACTED]
-- [[dot-constructor()_17]] - `method` [EXTRACTED]
-- [[dot-dispose()_8]] - `method` [EXTRACTED]
+- [[dot-buildCrowd()]] - `references` [EXTRACTED]
+- [[dot-constructor()_20]] - `method` [EXTRACTED]
+- [[dot-face()]] - `method` [EXTRACTED]
 - [[dot-react()_2]] - `method` [EXTRACTED]
 - [[dot-say()_4]] - `method` [EXTRACTED]
-- [[dot-update()_10]] - `method` [EXTRACTED]
-- [[mead-scene.ts]] - `contains` [EXTRACTED]
+- [[dot-update()_12]] - `method` [EXTRACTED]
+- [[MeadHall]] - `references` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
+- [[mead-people.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_41

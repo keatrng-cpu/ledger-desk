@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 39"
+community: "Community 254"
 location: "L240"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_254
 ---
 
 # MAX_RISK_ATR_TRADABLE
@@ -18,4 +18,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_254

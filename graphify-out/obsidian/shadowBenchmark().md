@@ -12,6 +12,7 @@ tags:
 # shadowBenchmark()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[InvestPanel()]] - `calls` [EXTRACTED]
 - [[book.ts]] - `contains` [EXTRACTED]
 - [[excessVsBenchmark()]] - `calls` [EXTRACTED]

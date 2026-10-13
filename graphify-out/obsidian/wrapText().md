@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-markup.ts"
 type: "code"
-community: "Community 146"
+community: "Community 46"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/Community_46
 ---
 
 # wrapText()
@@ -15,4 +15,4 @@ tags:
 - [[chart-markup.ts]] - `contains` [EXTRACTED]
 - [[markChart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/Community_46

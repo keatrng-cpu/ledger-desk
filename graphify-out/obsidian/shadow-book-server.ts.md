@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book-server.ts"
 type: "code"
-community: "Community 149"
+community: "Community 87"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/Community_87
 ---
 
 # shadow-book-server.ts
@@ -17,7 +17,7 @@ tags:
 - [[authMiddleware]] - `imports` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[getSql()]] - `imports` [EXTRACTED]
-- [[listSchema]] - `contains` [EXTRACTED]
+- [[listSchema_1]] - `contains` [EXTRACTED]
 - [[listShadowTrades]] - `contains` [EXTRACTED]
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
@@ -25,6 +25,6 @@ tags:
 - [[shadowSchema]] - `contains` [EXTRACTED]
 - [[upsertSchema]] - `contains` [EXTRACTED]
 - [[upsertShadowTrades]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/Community_87

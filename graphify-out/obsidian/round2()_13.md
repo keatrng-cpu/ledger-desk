@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/sleeve-sizing.ts"
+source_file: "src/lib/invest/funnel.ts"
 type: "code"
-community: "Community 85"
-location: "L113"
+community: "Community 86"
+location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/Community_86
 ---
 
 # round2()
 
 ## Connections
-- [[sizeFromStop()]] - `calls` [EXTRACTED]
-- [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
+- [[funnel.ts]] - `contains` [EXTRACTED]
+- [[splitSweep()]] - `calls` [EXTRACTED]
+- [[workedMonth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/Community_86

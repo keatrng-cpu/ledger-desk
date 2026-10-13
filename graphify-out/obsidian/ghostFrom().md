@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L266"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # ghostFrom()
@@ -18,4 +18,4 @@ tags:
 - [[stepLab()]] - `calls` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

@@ -12,6 +12,11 @@ tags:
 # getSessionUser()
 
 ## Connections
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
+- [[callback.ts]] - `imports` [EXTRACTED]
+- [[connect.ts]] - `imports` [EXTRACTED]
+- [[handle()_5]] - `calls` [EXTRACTED]
+- [[handle()_6]] - `calls` [EXTRACTED]
 - [[requireUserId()]] - `calls` [EXTRACTED]
 - [[verify.server.ts]] - `contains` [EXTRACTED]
 

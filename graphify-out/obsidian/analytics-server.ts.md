@@ -42,6 +42,6 @@ tags:
 - [[readClosed()]] - `contains` [EXTRACTED]
 - [[readEquity()]] - `contains` [EXTRACTED]
 - [[toAnalyticsTrade()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_195

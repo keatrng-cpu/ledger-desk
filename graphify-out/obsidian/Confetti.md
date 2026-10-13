@@ -12,10 +12,10 @@ tags:
 # Confetti
 
 ## Connections
-- [[dot-constructor()_11]] - `method` [EXTRACTED]
-- [[dot-dispose()_3]] - `method` [EXTRACTED]
+- [[dot-constructor()_10]] - `method` [EXTRACTED]
+- [[dot-dispose()_4]] - `method` [EXTRACTED]
 - [[dot-react()]] - `calls` [EXTRACTED]
-- [[dot-update()_7]] - `method` [EXTRACTED]
+- [[dot-update()_5]] - `method` [EXTRACTED]
 - [[FloorScene]] - `references` [EXTRACTED]
 - [[floor-fx.ts]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `imports` [EXTRACTED]

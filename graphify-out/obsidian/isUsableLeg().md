@@ -14,8 +14,10 @@ tags:
 ## Connections
 - [[fib.ts]] - `contains` [EXTRACTED]
 - [[impulseDealing()]] - `calls` [EXTRACTED]
+- [[impulseZone()]] - `calls` [EXTRACTED]
 - [[readOte()]] - `calls` [EXTRACTED]
 - [[retracementRatio()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_40

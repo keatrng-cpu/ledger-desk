@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
 community: "Community 73"
-location: "L1055"
+location: "L1950"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[afterSecondImpulse()]] - `calls` [EXTRACTED]
 - [[estimateSpot()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `calls` [EXTRACTED]
 - [[eventKind()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]

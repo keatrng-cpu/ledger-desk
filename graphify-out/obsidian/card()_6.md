@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-hi-alert.mjs"
 type: "code"
-community: "Community 92"
+community: "Community 308"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/Community_308
 ---
 
 # card()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-hi-alert.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/Community_308

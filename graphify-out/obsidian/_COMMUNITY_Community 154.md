@@ -1,19 +1,18 @@
 ---
 type: community
-cohesion: 0.09
-members: 24
+cohesion: 0.10
+members: 23
 ---
 
 # Community 154
 
-**Cohesion:** 0.09 - loosely connected
-**Members:** 24 nodes
+**Cohesion:** 0.10 - loosely connected
+**Members:** 23 nodes
 
 ## Members
-- [[dot-account()]] - code - src/lib/room/exec/types.ts
 - [[dot-byClientId()]] - code - src/lib/room/exec/types.ts
 - [[dot-cancel()]] - code - src/lib/room/exec/types.ts
-- [[dot-constructor()_3]] - code - src/lib/room/exec/alpaca.ts
+- [[dot-constructor()_5]] - code - src/lib/room/exec/alpaca.ts
 - [[dot-get()]] - code - src/lib/room/exec/types.ts
 - [[dot-openOrders()]] - code - src/lib/room/exec/types.ts
 - [[dot-positions()]] - code - src/lib/room/exec/types.ts
@@ -31,7 +30,7 @@ members: 24
 - [[alpacaBroker()]] - code - src/lib/room/exec/alpaca.ts
 - [[brokerFromEnv()]] - code - src/lib/room/exec/alpaca.ts
 - [[call()]] - code - src/lib/room/exec/alpaca.ts
-- [[num()_7]] - code - src/lib/room/exec/alpaca.ts
+- [[num()_5]] - code - src/lib/room/exec/alpaca.ts
 - [[orderOf()]] - code - src/lib/room/exec/alpaca.ts
 - [[parseTs()]] - code - src/lib/room/exec/alpaca.ts
 
@@ -43,13 +42,13 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 6 edges to [[_COMMUNITY_Community 150]]
-- 3 edges to [[_COMMUNITY_Community 177]]
+- 9 edges to [[_COMMUNITY_Community 150]]
+- 1 edge to [[_COMMUNITY_Community 94]]
 - 1 edge to [[_COMMUNITY_Community 122]]
 - 1 edge to [[_COMMUNITY_Community 171]]
 
 ## Top bridge nodes
 - [[alpaca.ts]] - degree 18, connects to 2 communities
 - [[OptionsBroker]] - degree 12, connects to 2 communities
-- [[BrokerOrder]] - degree 3, connects to 2 communities
+- [[BrokerOrder]] - degree 3, connects to 1 community
 - [[dot-get()]] - degree 2, connects to 1 community

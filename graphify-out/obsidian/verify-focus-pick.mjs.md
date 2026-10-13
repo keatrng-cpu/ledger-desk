@@ -12,9 +12,9 @@ tags:
 # verify-focus-pick.mjs
 
 ## Connections
-- [[L()_3]] - `contains` [EXTRACTED]
+- [[L()_4]] - `contains` [EXTRACTED]
 - [[WHY the Floor took the board's first card. On 2026-10-07 that was an ES short…]] - `rationale_for` [EXTRACTED]
-- [[check()_48]] - `contains` [EXTRACTED]
+- [[check()_59]] - `contains` [EXTRACTED]
 - [[focus-pick.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-types.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-voices.ts]] - `dynamic_import` [EXTRACTED]

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-markup.ts"
 type: "code"
-community: "Community 146"
+community: "Community 46"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/Community_46
 ---
 
 # chart-markup.ts
@@ -27,4 +27,4 @@ tags:
 - [[tradezella-chat.tsx]] - `imports_from` [EXTRACTED]
 - [[wrapText()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/Community_46

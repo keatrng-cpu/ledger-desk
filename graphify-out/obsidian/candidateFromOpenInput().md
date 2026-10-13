@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[assertOpenAllowed()]] - `calls` [EXTRACTED]
-- [[bookOf()_3]] - `calls` [EXTRACTED]
+- [[bookOf()_4]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 - [[strategyFromReason()]] - `calls` [EXTRACTED]
 

@@ -1,17 +1,21 @@
 ---
 source_file: "package.json"
-type: "code"
-community: "Community 168"
-location: "L126"
+type: "concept"
+community: "Community 189"
+location: "L130"
 tags:
-  - graphify/code
+  - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_168
+  - community/Community_189
 ---
 
 # playwright
 
 ## Connections
-- [[devDependencies]] - `contains` [EXTRACTED]
+- [[browser-smoke.mjs]] - `imports_from` [EXTRACTED]
+- [[floor-checks.mjs]] - `imports_from` [EXTRACTED]
+- [[package.json]] - `imports` [EXTRACTED]
+- [[png-diff.mjs]] - `imports_from` [EXTRACTED]
+- [[preview-glb.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_168
+#graphify/concept #graphify/EXTRACTED #community/Community_189

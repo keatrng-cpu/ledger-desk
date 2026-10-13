@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-entry-alarm.mjs"
 type: "code"
-community: "Community 208"
-location: "L57"
+community: "Community 206"
+location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/Community_206
 ---
 
 # book()
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[L()_3]] - `calls` [EXTRACTED]
+- [[R()_1]] - `calls` [EXTRACTED]
+- [[verify-entry-alarm.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/Community_206

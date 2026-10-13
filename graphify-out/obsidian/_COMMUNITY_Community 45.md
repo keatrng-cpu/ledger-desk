@@ -10,7 +10,7 @@ members: 55
 **Members:** 55 nodes
 
 ## Members
-- [[BARS_13]] - code - scripts/build-hit-odds.mjs
+- [[BARS_17]] - code - scripts/build-hit-odds.mjs
 - [[DAYIDX_1]] - code - scripts/build-hit-odds.mjs
 - [[H_13]] - code - scripts/build-hit-odds.mjs
 - [[IS]] - code - scripts/build-hit-odds.mjs
@@ -38,7 +38,7 @@ members: 55
 - [[elapsedFractionOf()]] - code - scripts/build-hit-odds.mjs
 - [[fillByTier]] - code - scripts/build-hit-odds.mjs
 - [[fills_3]] - code - scripts/build-hit-odds.mjs
-- [[fit()_7]] - code - scripts/build-hit-odds.mjs
+- [[fit()_8]] - code - scripts/build-hit-odds.mjs
 - [[fitted]] - code - scripts/build-hit-odds.mjs
 - [[idxAt()_1]] - code - scripts/build-hit-odds.mjs
 - [[inputsFor()_1]] - code - scripts/build-hit-odds.mjs
@@ -54,14 +54,14 @@ members: 55
 - [[prod]] - code - scripts/build-hit-odds.mjs
 - [[r4()_4]] - code - scripts/build-hit-odds.mjs
 - [[rnd()_4]] - code - scripts/build-hit-odds.mjs
-- [[rowOf()_1]] - code - scripts/build-hit-odds.mjs
-- [[rows_13]] - code - scripts/build-hit-odds.mjs
+- [[rowOf()_2]] - code - scripts/build-hit-odds.mjs
+- [[rows_16]] - code - scripts/build-hit-odds.mjs
 - [[scaler()]] - code - scripts/build-hit-odds.mjs
 - [[sig()_1]] - code - scripts/build-hit-odds.mjs
 - [[sim()_8]] - code - scripts/build-hit-odds.mjs
 - [[solve()]] - code - scripts/build-hit-odds.mjs
 - [[started_1]] - code - scripts/build-hit-odds.mjs
-- [[steps_2]] - code - scripts/build-hit-odds.mjs
+- [[steps_3]] - code - scripts/build-hit-odds.mjs
 - [[tierOf()]] - code - scripts/build-hit-odds.mjs
 - [[vsRace]] - code - scripts/build-hit-odds.mjs
 - [[vsRw]] - code - scripts/build-hit-odds.mjs
@@ -74,13 +74,13 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
+- 2 edges to [[_COMMUNITY_Community 20]]
 - 2 edges to [[_COMMUNITY_Community 35]]
-- 2 edges to [[_COMMUNITY_Community 72]]
 - 2 edges to [[_COMMUNITY_Community 58]]
 - 1 edge to [[_COMMUNITY_Community 101]]
 - 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 72]]
 
 ## Top bridge nodes
 - [[build-hit-odds.mjs]] - degree 64, connects to 7 communities

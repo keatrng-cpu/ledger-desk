@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 27"
+community: "Community 48"
 location: "L108"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_48
 ---
 
 # readJudas()
 
 ## Connections
+- [[Locator_1]] - `references` [INFERRED]
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
@@ -26,4 +27,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[summarizeDetectors()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_48

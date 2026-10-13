@@ -12,6 +12,7 @@ tags:
 # MIN_SAMPLE_OVERALL
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]
 

@@ -1,18 +1,21 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 198"
-location: "L715"
+community: "Community 13"
+location: "L1146"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_198
+  - graphify/INFERRED
+  - community/Community_13
 ---
 
 # .frac()
 
 ## Connections
-- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[dot-add()]] - `calls` [EXTRACTED]
 - [[Facts_1]] - `method` [EXTRACTED]
+- [[exAtEntry()]] - `calls` [INFERRED]
+- [[exCouncil()]] - `calls` [INFERRED]
+- [[exLab()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/INFERRED #community/Community_13

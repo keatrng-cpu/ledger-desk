@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-seats.mjs"
+source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 221"
-location: "L38"
+community: "Community 212"
+location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_221
+  - community/Community_212
 ---
 
 # near()
 
 ## Connections
-- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
+- [[verify-goal.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_221
+#graphify/code #graphify/EXTRACTED #community/Community_212

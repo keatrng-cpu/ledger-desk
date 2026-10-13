@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/room/meeting.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 3"
-location: "L882"
+community: "Community 24"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/Community_24
 ---
 
 # fit()
 
 ## Connections
-- [[buildMeeting()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `contains` [EXTRACTED]
+- [[drawDiscretionBoard()]] - `calls` [EXTRACTED]
+- [[drawManagerArms()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
+- [[wrap()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/Community_24

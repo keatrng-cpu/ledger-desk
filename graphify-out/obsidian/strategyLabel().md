@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
 community: "Community 39"
-location: "L262"
+location: "L310"
 tags:
   - graphify/code
   - graphify/EXTRACTED

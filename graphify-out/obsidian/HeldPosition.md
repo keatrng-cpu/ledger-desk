@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[Sleeve]] - `references` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[ledger.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_34

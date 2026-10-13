@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 12"
+community: "Community 172"
 location: "L524"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/Community_172
 ---
 
 # stateFromBoard()
@@ -24,4 +24,4 @@ tags:
 - [[scanBoard()]] - `calls` [EXTRACTED]
 - [[topIdsFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/Community_172

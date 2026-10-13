@@ -12,6 +12,8 @@ tags:
 # clientOrderId()
 
 ## Connections
+- [[E1 — `OrderIntent`]] - `references` [INFERRED]
+- [[E4 — shadow mode (records; sends nothing)]] - `references` [INFERRED]
 - [[blankRow()]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[fnv()]] - `calls` [EXTRACTED]

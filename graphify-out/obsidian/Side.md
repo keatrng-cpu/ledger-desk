@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/learn/replay-drill.ts"
+source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 6"
-location: "L92"
+community: "Community 267"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/Community_267
 ---
 
 # Side
 
 ## Connections
-- [[replay-drill.ts]] - `contains` [EXTRACTED]
+- [[floor-feet.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/Community_267

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/canon-box.tsx"
 type: "code"
-community: "Community 118"
+community: "Community 305"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/Community_305
 ---
 
 # canon-box.tsx
@@ -22,4 +22,4 @@ tags:
 - [[statusStyle()]] - `contains` [EXTRACTED]
 - [[whoColor()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/Community_305

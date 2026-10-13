@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
 community: "Community 48"
-location: "L71"
+location: "L72"
 tags:
   - graphify/code
   - graphify/EXTRACTED

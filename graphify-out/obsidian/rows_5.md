@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-option-time.mjs"
+source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 169"
-location: "L77"
+community: "Community 157"
+location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_169
+  - community/Community_157
 ---
 
 # rows
 
 ## Connections
-- [[measure-option-time.mjs]] - `contains` [EXTRACTED]
+- [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_169
+#graphify/code #graphify/EXTRACTED #community/Community_157

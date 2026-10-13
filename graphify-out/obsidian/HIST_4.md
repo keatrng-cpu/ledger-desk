@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/capture-signals.mjs"
 type: "code"
-community: "Community 53"
-location: "L73"
+community: "Community 182"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/Community_182
 ---
 
 # HIST
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[capture-signals.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/Community_182

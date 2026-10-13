@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/lib/room/mead-hall-layout.ts"
 type: "code"
-community: "Community 41"
-location: "L63"
+community: "Community 147"
+location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/Community_147
 ---
 
 # Box
 
 ## Connections
-- [[mead-scene.ts]] - `contains` [EXTRACTED]
+- [[mead-hall-layout.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/Community_147

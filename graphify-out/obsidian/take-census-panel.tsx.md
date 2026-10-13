@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/take-census-panel.tsx"
 type: "code"
-community: "Community 26"
+community: "Community 229"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_229
 ---
 
 # take-census-panel.tsx
@@ -22,4 +22,4 @@ tags:
 - [[take-census.ts]] - `imports_from` [EXTRACTED]
 - [[useShadowBook()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_229

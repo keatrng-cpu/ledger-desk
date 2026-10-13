@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 9"
+community: "Community 44"
 location: "L1251"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/Community_44
 ---
 
 # getRiskState
@@ -20,4 +20,4 @@ tags:
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 - [[risk-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/Community_44

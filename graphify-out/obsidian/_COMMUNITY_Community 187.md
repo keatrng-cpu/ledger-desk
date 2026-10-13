@@ -1,34 +1,50 @@
 ---
 type: community
-cohesion: 0.26
-members: 19
+cohesion: 0.11
+members: 35
 ---
 
 # Community 187
 
-**Cohesion:** 0.26 - loosely connected
-**Members:** 19 nodes
+**Cohesion:** 0.11 - loosely connected
+**Members:** 35 nodes
 
 ## Members
-- [[ReasonRow()]] - code - src/components/desk/shadow-book-panel.tsx
-- [[Row()_1]] - code - src/components/desk/shadow-book-panel.tsx
-- [[ShadowBookPanel()]] - code - src/components/desk/shadow-book-panel.tsx
-- [[StripRow]] - code - src/components/desk/viz/bar-strip.tsx
-- [[Totals()]] - code - src/components/desk/shadow-book-panel.tsx
-- [[buildScorecard()]] - code - src/lib/trading/discretion-memory.ts
-- [[ciText()]] - code - src/lib/trading/discretion-memory.ts
-- [[decidedN()]] - code - src/lib/trading/discretion-memory.ts
-- [[discretionDigest()]] - code - src/lib/trading/discretion-memory.ts
-- [[etDayKey()_1]] - code - src/lib/trading/shadow-book.ts
-- [[fmtR()_1]] - code - src/lib/trading/discretion-memory.ts
-- [[fmtUsd()]] - code - src/lib/trading/discretion-memory.ts
-- [[legLine()]] - code - src/lib/trading/discretion-memory.ts
-- [[liveR()]] - code - src/components/desk/shadow-book-panel.tsx
-- [[px()_5]] - code - src/components/desk/shadow-book-panel.tsx
-- [[reasonLine()]] - code - src/lib/trading/discretion-memory.ts
-- [[shadow-book-panel.tsx]] - code - src/components/desk/shadow-book-panel.tsx
-- [[splitByKillzone()]] - code - src/lib/trading/discretion-memory.ts
-- [[statusTone()]] - code - src/components/desk/shadow-book-panel.tsx
+- [[BookSide]] - code - src/lib/trading/ticket-facts.ts
+- [[BrainWord()]] - code - src/components/desk/brain-word.tsx
+- [[EntryRead]] - code - src/lib/trading/entry-trigger.ts
+- [[FactCondition]] - code - src/lib/trading/ticket-facts.ts
+- [[LESSONS]] - code - src/lib/learn/live-lesson.ts
+- [[LESSON_BY_ID]] - code - src/lib/learn/live-lesson.ts
+- [[LESSON_IDS]] - code - src/lib/learn/live-lesson.ts
+- [[LessonDef]] - code - src/lib/learn/live-lesson.ts
+- [[LessonId]] - code - src/lib/learn/live-lesson.ts
+- [[LiveLesson]] - code - src/lib/learn/live-lesson.ts
+- [[LtfReaction]] - code - src/lib/trading/ltf-reaction.ts
+- [[UNDERLIER_OF]] - code - src/lib/trading/ticket-facts.ts
+- [[arrayRead()]] - code - src/lib/learn/live-lesson.ts
+- [[askRead()]] - code - src/lib/learn/live-lesson.ts
+- [[atrOf()]] - code - src/lib/trading/draw.ts
+- [[barsOf()]] - code - src/lib/learn/live-lesson.ts
+- [[brain-word.tsx]] - code - src/components/desk/brain-word.tsx
+- [[candidateFor()]] - code - src/lib/trading/ticket-facts.ts
+- [[counterOf()]] - code - src/lib/trading/ticket-facts.ts
+- [[counterRead()]] - code - src/lib/learn/live-lesson.ts
+- [[drawRead()]] - code - src/lib/learn/live-lesson.ts
+- [[fourFacts]] - code - src/lib/trading/ticket-facts.ts
+- [[halfRead()]] - code - src/lib/learn/live-lesson.ts
+- [[inversionRead()]] - code - src/lib/learn/live-lesson.ts
+- [[judasRead()]] - code - src/lib/learn/live-lesson.ts
+- [[legOf()]] - code - src/lib/learn/live-lesson.ts
+- [[lessonForLayer()]] - code - src/lib/learn/live-lesson.ts
+- [[live-lesson.ts]] - code - src/lib/learn/live-lesson.ts
+- [[namingSweep()]] - code - src/lib/trading/raid-pair.ts
+- [[nextLesson()]] - code - src/lib/learn/live-lesson.ts
+- [[poolName()]] - code - src/lib/trading/ticket-facts.ts
+- [[raidRead()]] - code - src/lib/learn/live-lesson.ts
+- [[readLiveLessons()]] - code - src/lib/learn/live-lesson.ts
+- [[sayForMissing()]] - code - src/lib/learn/live-lesson.ts
+- [[ticket-facts.ts]] - code - src/lib/trading/ticket-facts.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -38,21 +54,32 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 19 edges to [[_COMMUNITY_Community 111]]
-- 5 edges to [[_COMMUNITY_Community 126]]
-- 4 edges to [[_COMMUNITY_Community 39]]
-- 4 edges to [[_COMMUNITY_Community 139]]
+- 18 edges to [[_COMMUNITY_Community 35]]
+- 14 edges to [[_COMMUNITY_Community 14]]
+- 9 edges to [[_COMMUNITY_Community 1]]
+- 7 edges to [[_COMMUNITY_Community 40]]
+- 7 edges to [[_COMMUNITY_Community 8]]
+- 5 edges to [[_COMMUNITY_Community 73]]
+- 4 edges to [[_COMMUNITY_Community 29]]
 - 4 edges to [[_COMMUNITY_Community 9]]
-- 3 edges to [[_COMMUNITY_Community 149]]
-- 3 edges to [[_COMMUNITY_Community 8]]
-- 2 edges to [[_COMMUNITY_Community 48]]
+- 4 edges to [[_COMMUNITY_Community 48]]
+- 4 edges to [[_COMMUNITY_Community 20]]
+- 3 edges to [[_COMMUNITY_Community 39]]
+- 3 edges to [[_COMMUNITY_Community 89]]
+- 3 edges to [[_COMMUNITY_Community 15]]
+- 2 edges to [[_COMMUNITY_Community 160]]
+- 2 edges to [[_COMMUNITY_Community 82]]
+- 2 edges to [[_COMMUNITY_Community 98]]
+- 2 edges to [[_COMMUNITY_Community 229]]
+- 2 edges to [[_COMMUNITY_Community 72]]
 - 2 edges to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 229]]
-- 1 edge to [[_COMMUNITY_Community 14]]
+- 2 edges to [[_COMMUNITY_Community 205]]
+- 1 edge to [[_COMMUNITY_Community 92]]
+- 1 edge to [[_COMMUNITY_Community 85]]
 
 ## Top bridge nodes
-- [[shadow-book-panel.tsx]] - degree 27, connects to 8 communities
-- [[fmtR()_1]] - degree 16, connects to 3 communities
-- [[buildScorecard()]] - degree 13, connects to 3 communities
-- [[ShadowBookPanel()]] - degree 12, connects to 3 communities
-- [[discretionDigest()]] - degree 7, connects to 2 communities
+- [[ticket-facts.ts]] - degree 39, connects to 16 communities
+- [[live-lesson.ts]] - degree 54, connects to 15 communities
+- [[fourFacts]] - degree 18, connects to 5 communities
+- [[readLiveLessons()]] - degree 20, connects to 4 communities
+- [[brain-word.tsx]] - degree 12, connects to 4 communities

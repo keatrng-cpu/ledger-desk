@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[dot-constructor()_8]] - `calls` [EXTRACTED]
 - [[dot-constructor()_9]] - `calls` [EXTRACTED]
-- [[dot-constructor()_4]] - `calls` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [EXTRACTED]
 - [[floor-proto-avatars.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_193

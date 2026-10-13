@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L2197"
+location: "L2380"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[dot-drawAll()]] - `calls` [EXTRACTED]
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
 - [[cuesOfFrame()]] - `calls` [EXTRACTED]
 - [[drawAnnexMonitor()]] - `calls` [EXTRACTED]
 - [[drawCalendar()]] - `calls` [EXTRACTED]
@@ -29,6 +29,7 @@ tags:
 - [[drawLeague()]] - `calls` [EXTRACTED]
 - [[drawLedger()]] - `calls` [EXTRACTED]
 - [[drawMarquee()]] - `calls` [EXTRACTED]
+- [[drawMead()]] - `calls` [EXTRACTED]
 - [[drawMonitor()]] - `calls` [EXTRACTED]
 - [[drawNeon()]] - `calls` [EXTRACTED]
 - [[drawNews()]] - `calls` [EXTRACTED]
@@ -37,6 +38,7 @@ tags:
 - [[drawRndBoard()]] - `calls` [EXTRACTED]
 - [[drawScanner()]] - `calls` [EXTRACTED]
 - [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
 - [[drawVote()]] - `calls` [EXTRACTED]
 - [[drawWhiteboard()]] - `calls` [EXTRACTED]
 - [[drawWindow()]] - `calls` [EXTRACTED]

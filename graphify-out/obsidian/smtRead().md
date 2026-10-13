@@ -12,6 +12,8 @@ tags:
 # smtRead()
 
 ## Connections
+- [[2. Swing-based SMT — wire into build-desk]] - `references` [INFERRED]
+- [[Hard rules (do not drift)]] - `references` [INFERRED]
 - [[ScanResult]] - `references` [EXTRACTED]
 - [[ScoreCandidatesOptions]] - `references` [EXTRACTED]
 - [[scoreCandidates()]] - `calls` [EXTRACTED]

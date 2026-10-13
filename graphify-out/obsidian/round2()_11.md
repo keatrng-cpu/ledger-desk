@@ -1,8 +1,8 @@
 ---
-source_file: "src/lib/execution/order-intent.ts"
+source_file: "src/lib/journal/pnl.ts"
 type: "code"
 community: "Community 77"
-location: "L476"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # round2()
 
 ## Connections
-- [[buildOrderIntent()]] - `calls` [EXTRACTED]
-- [[order-intent.ts]] - `contains` [EXTRACTED]
+- [[computeTradePnl()]] - `calls` [EXTRACTED]
+- [[pnl.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_77

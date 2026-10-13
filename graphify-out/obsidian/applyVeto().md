@@ -1,17 +1,19 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
-location: "L807"
+community: "Community 35"
+location: "L1248"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_40
+  - graphify/INFERRED
+  - community/Community_35
 ---
 
 # applyVeto()
 
 ## Connections
+- [[3.3 Everything else that fights measured evidence]] - `references` [INFERRED]
+- [[Code map]] - `references` [INFERRED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/INFERRED #community/Community_35

@@ -12,6 +12,8 @@ tags:
 # managePaperTradesAgainstPrice()
 
 ## Connections
+- [[5. Hooks for B4 (alerts)  B5 (cron) — owned by another agent]] - `references` [INFERRED]
+- [[INTEGRATION-B — wiring left for the integrator]] - `references` [INFERRED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[failedHold()]] - `calls` [EXTRACTED]
 - [[finalizeClose()]] - `calls` [EXTRACTED]

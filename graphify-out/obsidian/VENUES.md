@@ -2,7 +2,7 @@
 source_file: "src/lib/predict/math.ts"
 type: "code"
 community: "Community 2"
-location: "L86"
+location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # VENUES
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
 - [[SetupSquare()]] - `calls` [EXTRACTED]
-- [[c()_2]] - `calls` [EXTRACTED]
+- [[c()_3]] - `calls` [EXTRACTED]
 - [[predict-scanner.tsx]] - `contains` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 - [[sc()_1]] - `calls` [EXTRACTED]

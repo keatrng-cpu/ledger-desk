@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
-location: "L2375"
+community: "Community 214"
+location: "L2711"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/Community_214
 ---
 
 # .updateEmotes()
@@ -17,4 +17,4 @@ tags:
 - [[FloorFrame]] - `references` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/Community_214

@@ -15,8 +15,9 @@ tags:
 - [[dot-drop_partial_minutes()]] - `calls` [EXTRACTED]
 - [[dot-run_once()]] - `calls` [EXTRACTED]
 - [[LiveGateway]] - `method` [EXTRACTED]
+- [[Option A — run it on the desk PC, free (Windows Task Scheduler)]] - `references` [INFERRED]
 - [[in_ny_am_window()]] - `calls` [EXTRACTED]
-- [[main()_6]] - `calls` [INFERRED]
+- [[main()_9]] - `calls` [INFERRED]
 - [[window_closed_for_today()]] - `calls` [EXTRACTED]
 - [[window_label()]] - `calls` [EXTRACTED]
 

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-sleeve-sizing.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 213"
-location: "L17"
+community: "Community 186"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_213
+  - community/Community_186
 ---
 
 # check()
 
 ## Connections
-- [[ok()_18]] - `calls` [EXTRACTED]
-- [[verify-sleeve-sizing.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_213
+#graphify/code #graphify/EXTRACTED #community/Community_186

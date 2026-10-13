@@ -12,7 +12,7 @@ tags:
 # verify-income-target.mjs
 
 ## Connections
-- [[check()_55]] - `contains` [EXTRACTED]
+- [[check()_67]] - `contains` [EXTRACTED]
 - [[config.ts]] - `dynamic_import` [EXTRACTED]
 - [[income-target.ts]] - `dynamic_import` [EXTRACTED]
 

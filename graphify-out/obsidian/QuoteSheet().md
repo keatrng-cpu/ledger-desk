@@ -2,7 +2,7 @@
 source_file: "src/components/desk/options-swing-panel.tsx"
 type: "code"
 community: "Community 153"
-location: "L135"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,6 +15,6 @@ tags:
 - [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
-- [[usd()_1]] - `calls` [EXTRACTED]
+- [[usd()_2]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_153

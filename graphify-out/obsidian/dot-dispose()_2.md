@@ -1,19 +1,17 @@
 ---
-source_file: "src/components/room/floor-scene.ts"
+source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 17"
-location: "L3340"
+community: "Community 16"
+location: "L152"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/Community_16
 ---
 
 # .dispose()
 
 ## Connections
-- [[dot-dispose()_2]] - `calls` [EXTRACTED]
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
-- [[FloorScene]] - `method` [EXTRACTED]
+- [[SignalHallFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/Community_16

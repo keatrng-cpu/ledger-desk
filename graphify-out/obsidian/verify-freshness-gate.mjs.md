@@ -12,7 +12,7 @@ tags:
 # verify-freshness-gate.mjs
 
 ## Connections
-- [[check()_49]] - `contains` [EXTRACTED]
+- [[check()_60]] - `contains` [EXTRACTED]
 - [[markettypes.ts]] - `dynamic_import` [EXTRACTED]
 - [[paper-manager.ts]] - `dynamic_import` [EXTRACTED]
 - [[runawayPrice]] - `contains` [EXTRACTED]

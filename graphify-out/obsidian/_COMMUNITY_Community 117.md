@@ -29,7 +29,7 @@ members: 31
 - [[namedPools()]] - code - scripts/measure-model-claims.mjs
 - [[r3()]] - code - scripts/measure-model-claims.mjs
 - [[result]] - code - scripts/measure-model-claims.mjs
-- [[rows]] - code - scripts/measure-model-claims.mjs
+- [[rows_1]] - code - scripts/measure-model-claims.mjs
 - [[show()]] - code - scripts/measure-model-claims.mjs
 - [[sim()]] - code - scripts/measure-model-claims.mjs
 - [[sims]] - code - scripts/measure-model-claims.mjs
@@ -51,7 +51,7 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 101]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 

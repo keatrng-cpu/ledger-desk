@@ -12,6 +12,7 @@ tags:
 # parseDiscussRead()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[ExchangeCard()]] - `calls` [EXTRACTED]
 - [[ReadTag()]] - `calls` [EXTRACTED]
 - [[ai-sync.ts]] - `contains` [EXTRACTED]

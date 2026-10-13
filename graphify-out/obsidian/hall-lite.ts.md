@@ -1,0 +1,85 @@
+---
+source_file: "src/lib/room/hall-lite.ts"
+type: "code"
+community: "Community 114"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_114
+---
+
+# hall-lite.ts
+
+## Connections
+- [[FLB_SOURCE]] - `imports` [EXTRACTED]
+- [[HALL_ROWS]] - `contains` [EXTRACTED]
+- [[HALL_TALK_MAX_SEC]] - `contains` [EXTRACTED]
+- [[HallLite]] - `imports` [EXTRACTED]
+- [[HallLiteInput]] - `contains` [EXTRACTED]
+- [[HallRecordLite]] - `imports` [EXTRACTED]
+- [[HallRowLite]] - `imports` [EXTRACTED]
+- [[HallSpan]] - `imports` [EXTRACTED]
+- [[JournalRead]] - `imports` [EXTRACTED]
+- [[KALSHI_MAKER_RATE]] - `imports` [EXTRACTED]
+- [[KALSHI_TAKER_RATE]] - `imports` [EXTRACTED]
+- [[LAYER_SAY]] - `contains` [EXTRACTED]
+- [[MAKER_TAKER]] - `imports` [EXTRACTED]
+- [[MAX_MODEL_AGE_MS]] - `imports` [EXTRACTED]
+- [[MIN_SAMPLE_OVERALL]] - `imports` [EXTRACTED]
+- [[MONTH_ABBR]] - `contains` [EXTRACTED]
+- [[MONTH_FULL]] - `contains` [EXTRACTED]
+- [[MarketSignal]] - `imports` [EXTRACTED]
+- [[PREDICTION_STALE_MS]] - `imports` [EXTRACTED]
+- [[PRICE_BINS]] - `imports` [EXTRACTED]
+- [[PaperScore]] - `imports` [EXTRACTED]
+- [[PredictLite]] - `imports` [EXTRACTED]
+- [[QUARTER]] - `contains` [EXTRACTED]
+- [[SCAN_1]] - `imports` [EXTRACTED]
+- [[SERIES]] - `contains` [EXTRACTED]
+- [[ScanRow]] - `imports` [EXTRACTED]
+- [[SignalBoard]] - `imports` [EXTRACTED]
+- [[TOO_FEW]] - `imports` [EXTRACTED]
+- [[VELOCITY_WINDOW_MS]] - `imports` [EXTRACTED]
+- [[VENUES]] - `imports` [EXTRACTED]
+- [[cents()]] - `contains` [EXTRACTED]
+- [[cents1()]] - `contains` [EXTRACTED]
+- [[crowdReaction()]] - `contains` [EXTRACTED]
+- [[eventWords()]] - `contains` [EXTRACTED]
+- [[familyTag()]] - `contains` [EXTRACTED]
+- [[feePerContract()]] - `imports` [EXTRACTED]
+- [[flbCitation()]] - `contains` [EXTRACTED]
+- [[go-ledger.ts]] - `imports_from` [EXTRACTED]
+- [[goStats]] - `imports` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
+- [[hall-store.ts]] - `imports_from` [EXTRACTED]
+- [[hallLayout]] - `imports` [EXTRACTED]
+- [[hallLiteFrom()]] - `contains` [EXTRACTED]
+- [[isNflMarket()]] - `imports` [EXTRACTED]
+- [[live-types.ts]] - `imports_from` [EXTRACTED]
+- [[live-voices-mead.ts]] - `imports_from` [EXTRACTED]
+- [[math.ts]] - `imports_from` [EXTRACTED]
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
+- [[off-hours-study.ts]] - `imports_from` [EXTRACTED]
+- [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
+- [[predictjournal.ts]] - `imports_from` [EXTRACTED]
+- [[predictscanner.ts]] - `imports_from` [EXTRACTED]
+- [[predictLiteFromBoard()]] - `contains` [EXTRACTED]
+- [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
+- [[r1()]] - `contains` [EXTRACTED]
+- [[r2()]] - `contains` [EXTRACTED]
+- [[recordLiteFrom()]] - `contains` [EXTRACTED]
+- [[room-engine.ts]] - `imports_from` [EXTRACTED]
+- [[rowOf()_1]] - `contains` [EXTRACTED]
+- [[sayable()]] - `contains` [EXTRACTED]
+- [[scanOf()]] - `contains` [EXTRACTED]
+- [[shorten()]] - `contains` [EXTRACTED]
+- [[signal-engine.ts]] - `imports_from` [EXTRACTED]
+- [[signal-evidence.ts]] - `imports_from` [EXTRACTED]
+- [[sourceName()]] - `contains` [EXTRACTED]
+- [[spanOf()]] - `contains` [EXTRACTED]
+- [[subjectOf()]] - `contains` [EXTRACTED]
+- [[titleCase()]] - `contains` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_114

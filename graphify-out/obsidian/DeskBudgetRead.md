@@ -12,7 +12,6 @@ tags:
 # DeskBudgetRead
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[desk-budget.ts]] - `contains` [EXTRACTED]
 

@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 25"
-location: "L997"
+community: "Community 10"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_10
 ---
 
 # CREW_COLOR
 
 ## Connections
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_10

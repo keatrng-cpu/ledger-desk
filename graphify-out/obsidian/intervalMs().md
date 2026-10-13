@@ -2,7 +2,7 @@
 source_file: "src/lib/market/freshest.ts"
 type: "code"
 community: "Community 1"
-location: "L110"
+location: "L126"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,5 +15,7 @@ tags:
 - [[applyQuoteToLastBar()]] - `calls` [EXTRACTED]
 - [[closedBars()]] - `calls` [EXTRACTED]
 - [[freshest.ts]] - `contains` [EXTRACTED]
+- [[tape-trust.ts]] - `imports` [EXTRACTED]
+- [[tapeTrust]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_1

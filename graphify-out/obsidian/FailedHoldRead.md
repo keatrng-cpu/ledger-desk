@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/exit-rules.ts"
 type: "code"
-community: "Community 39"
+community: "Community 160"
 location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_160
 ---
 
 # FailedHoldRead
@@ -15,4 +15,4 @@ tags:
 - [[OhlcBar]] - `references` [EXTRACTED]
 - [[exit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_160

@@ -12,6 +12,7 @@ tags:
 # logSweep()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[SweepCard()]] - `calls` [EXTRACTED]
 - [[append()]] - `calls` [EXTRACTED]
 - [[etMonth()]] - `calls` [EXTRACTED]

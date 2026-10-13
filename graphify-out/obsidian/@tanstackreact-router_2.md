@@ -1,8 +1,8 @@
 ---
-source_file: "src/router.tsx"
+source_file: "src/routeTree.gen.ts"
 type: "code"
 community: "Community 54"
-location: "L13"
+location: "L254"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # @tanstack/react-router
 
 ## Connections
-- [[router.tsx]] - `contains` [EXTRACTED]
+- [[routeTree.gen.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_54

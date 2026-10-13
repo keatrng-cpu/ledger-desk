@@ -1,48 +1,74 @@
 ---
 type: community
-cohesion: 0.10
-members: 33
+cohesion: 0.07
+members: 59
 ---
 
 # Community 114
 
-**Cohesion:** 0.10 - loosely connected
-**Members:** 33 nodes
+**Cohesion:** 0.07 - loosely connected
+**Members:** 59 nodes
 
 ## Members
-- [[ALWAYS_SCAN]] - code - src/lib/trading/strategies.ts
-- [[AnalyzeInput]] - code - src/lib/trading/tradezella-analyze.ts
-- [[COMPONENT_KEYS]] - code - src/lib/trading/engine-weights.ts
-- [[COMPONENT_WEIGHTS]] - code - src/lib/aplus/confluence.ts
-- [[CONFLUENCE_KNOWLEDGE]] - code - src/lib/aplus/confluence.ts
-- [[ClassifyInput]] - code - src/lib/trading/strategies.ts
-- [[ComponentKey]] - code - src/lib/trading/engine-weights.ts
-- [[ComponentWeight]] - code - src/lib/aplus/confluence.ts
-- [[ConfluenceItem]] - code - src/lib/trading/tradezella-analyze.ts
-- [[ConfluenceKnowledge]] - code - src/lib/aplus/confluence.ts
-- [[RAW_WEIGHTS]] - code - src/lib/trading/engine-weights.ts
-- [[SCORE_KEYS]] - code - src/lib/trading/engine-weights.ts
-- [[STRATEGY_CATALOG]] - code - src/lib/aplus/confluence.ts
-- [[STRATEGY_NARRATIVE]] - code - src/lib/trading/strategies.ts
-- [[StrategyMatch]] - code - src/lib/trading/strategies.ts
-- [[TOTAL]] - code - src/lib/trading/engine-weights.ts
-- [[TimeframeBias]] - code - src/lib/trading/tradezella-analyze.ts
-- [[TradezellaStats]] - code - src/lib/trading/tradezella-analyze.ts
-- [[WEIGHTS]] - code - src/lib/trading/engine-weights.ts
-- [[analyzeTradezella()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[classify()]] - code - src/lib/trading/strategies.ts
-- [[componentsOf()]] - code - src/lib/trading/strategies.ts
-- [[confluence.ts]] - code - src/lib/aplus/confluence.ts
-- [[detectMentionedComponents()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[detectStrategies()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[engine-weights.ts]] - code - src/lib/trading/engine-weights.ts
-- [[gradeOf()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[inferSide()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[nyWindow()]] - code - src/lib/trading/strategies.ts
-- [[parseStats()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[scoreFromComponents()]] - code - src/lib/trading/tradezella-analyze.ts
-- [[strategies.ts]] - code - src/lib/trading/strategies.ts
-- [[tradezella-analyze.ts]] - code - src/lib/trading/tradezella-analyze.ts
+- [[EMPTY]] - code - src/lib/room/hall-store.ts
+- [[HALL_PULL_BUDGET_MS]] - code - src/components/room/hall-read.ts
+- [[HALL_ROWS]] - code - src/lib/room/hall-lite.ts
+- [[HallDeps]] - code - src/components/room/hall-read.ts
+- [[HallFeed]] - code - src/lib/room/hall-store.ts
+- [[HallLite]] - code - src/lib/room/live-types.ts
+- [[HallLiteInput]] - code - src/lib/room/hall-lite.ts
+- [[HallPatch]] - code - src/lib/room/hall-store.ts
+- [[HallRecordLite]] - code - src/lib/room/live-types.ts
+- [[HallStatus]] - code - src/lib/room/hall-store.ts
+- [[LAYER_SAY]] - code - src/lib/room/hall-lite.ts
+- [[LIVE_2]] - code - src/components/room/hall-read.ts
+- [[MAX_MODEL_AGE_MS]] - code - src/lib/predict/signal-engine.ts
+- [[MONTH_ABBR]] - code - src/lib/room/hall-lite.ts
+- [[MONTH_FULL]] - code - src/lib/room/hall-lite.ts
+- [[ModelInput]] - code - src/lib/predict/signal-engine.ts
+- [[PREDICTION_STALE_MS]] - code - src/lib/predict/prediction-market-feed.ts
+- [[PredictTabProps]] - code - src/components/predict/predict-tab.tsx
+- [[QUARTER]] - code - src/lib/room/hall-lite.ts
+- [[SERIES]] - code - src/lib/room/hall-lite.ts
+- [[ScanRow]] - code - src/lib/predict/scanner.ts
+- [[SignalBoard]] - code - src/lib/predict/signal-engine.ts
+- [[VELOCITY_WINDOW_MS]] - code - src/lib/predict/signal-engine.ts
+- [[boardMs()]] - code - src/lib/room/hall-store.ts
+- [[cents()]] - code - src/lib/room/hall-lite.ts
+- [[cents1()]] - code - src/lib/room/hall-lite.ts
+- [[createSignalHallFeed()]] - code - src/components/mead/mead-signal-feed.ts
+- [[crowdReaction()]] - code - src/lib/room/hall-lite.ts
+- [[eventWords()]] - code - src/lib/room/hall-lite.ts
+- [[familyTag()]] - code - src/lib/room/hall-lite.ts
+- [[flbCitation()]] - code - src/lib/room/hall-lite.ts
+- [[hall-lite.ts]] - code - src/lib/room/hall-lite.ts
+- [[hall-read.ts]] - code - src/components/room/hall-read.ts
+- [[hall-store.ts]] - code - src/lib/room/hall-store.ts
+- [[hallLiteFrom()]] - code - src/lib/room/hall-lite.ts
+- [[isNflMarket()]] - code - src/lib/predict/prediction-market-feed.ts
+- [[lastGaps]] - code - src/components/room/hall-read.ts
+- [[loadHallBoard()]] - code - src/components/room/hall-read.ts
+- [[modelInputsFromScanRows()]] - code - src/lib/predict/signal-engine.ts
+- [[predictLiteFromBoard()]] - code - src/lib/room/hall-lite.ts
+- [[r1()]] - code - src/lib/room/hall-lite.ts
+- [[r2()]] - code - src/lib/room/hall-lite.ts
+- [[readHallRecord()]] - code - src/components/room/hall-read.ts
+- [[recordLiteFrom()]] - code - src/lib/room/hall-lite.ts
+- [[resetHall()]] - code - src/lib/room/hall-store.ts
+- [[resetHallGaps()]] - code - src/components/room/hall-read.ts
+- [[rowOf()_1]] - code - src/lib/room/hall-lite.ts
+- [[sayable()]] - code - src/lib/room/hall-lite.ts
+- [[scanOf()]] - code - src/lib/room/hall-lite.ts
+- [[scannerRows()]] - code - src/components/room/hall-read.ts
+- [[setHall()]] - code - src/lib/room/hall-store.ts
+- [[shorten()]] - code - src/lib/room/hall-lite.ts
+- [[sourceName()]] - code - src/lib/room/hall-lite.ts
+- [[spanOf()]] - code - src/lib/room/hall-lite.ts
+- [[subs]] - code - src/lib/room/hall-store.ts
+- [[titleCase()]] - code - src/lib/room/hall-lite.ts
+- [[use-mead-feed.ts]] - code - src/components/room/use-mead-feed.ts
+- [[useMeadFloorFeed()]] - code - src/components/room/use-mead-feed.ts
+- [[withBudget()_1]] - code - src/components/room/hall-read.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -52,23 +78,32 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 15 edges to [[_COMMUNITY_Community 84]]
-- 10 edges to [[_COMMUNITY_Community 46]]
-- 8 edges to [[_COMMUNITY_Community 40]]
-- 7 edges to [[_COMMUNITY_Community 146]]
-- 7 edges to [[_COMMUNITY_Community 94]]
-- 4 edges to [[_COMMUNITY_Community 39]]
-- 4 edges to [[_COMMUNITY_Community 26]]
-- 3 edges to [[_COMMUNITY_Community 9]]
-- 3 edges to [[_COMMUNITY_Community 127]]
-- 2 edges to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 186]]
-- 1 edge to [[_COMMUNITY_Community 90]]
-- 1 edge to [[_COMMUNITY_Community 151]]
+- 31 edges to [[_COMMUNITY_Community 2]]
+- 20 edges to [[_COMMUNITY_Community 16]]
+- 14 edges to [[_COMMUNITY_Community 12]]
+- 12 edges to [[_COMMUNITY_Community 4]]
+- 11 edges to [[_COMMUNITY_Community 63]]
+- 7 edges to [[_COMMUNITY_Community 172]]
+- 6 edges to [[_COMMUNITY_Community 18]]
+- 5 edges to [[_COMMUNITY_Community 7]]
+- 5 edges to [[_COMMUNITY_Community 198]]
+- 4 edges to [[_COMMUNITY_Community 29]]
+- 4 edges to [[_COMMUNITY_Community 103]]
+- 3 edges to [[_COMMUNITY_Community 51]]
+- 3 edges to [[_COMMUNITY_Community 210]]
+- 2 edges to [[_COMMUNITY_Community 100]]
+- 2 edges to [[_COMMUNITY_Community 40]]
+- 2 edges to [[_COMMUNITY_Community 41]]
+- 1 edge to [[_COMMUNITY_Community 0]]
+- 1 edge to [[_COMMUNITY_Community 162]]
+- 1 edge to [[_COMMUNITY_Community 28]]
+- 1 edge to [[_COMMUNITY_Community 14]]
+- 1 edge to [[_COMMUNITY_Community 17]]
+- 1 edge to [[_COMMUNITY_Community 279]]
 
 ## Top bridge nodes
-- [[strategies.ts]] - degree 24, connects to 9 communities
-- [[ComponentKey]] - degree 16, connects to 7 communities
-- [[tradezella-analyze.ts]] - degree 33, connects to 6 communities
-- [[engine-weights.ts]] - degree 16, connects to 5 communities
-- [[ALWAYS_SCAN]] - degree 6, connects to 4 communities
+- [[hall-lite.ts]] - degree 69, connects to 12 communities
+- [[hall-read.ts]] - degree 43, connects to 9 communities
+- [[hall-store.ts]] - degree 25, connects to 6 communities
+- [[use-mead-feed.ts]] - degree 11, connects to 5 communities
+- [[HallLite]] - degree 7, connects to 5 communities

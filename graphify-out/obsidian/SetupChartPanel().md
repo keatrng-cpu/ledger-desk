@@ -29,6 +29,7 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[pickBook()_1]] - `calls` [EXTRACTED]
 - [[planRiskText()]] - `calls` [EXTRACTED]
+- [[previewMarks()]] - `calls` [EXTRACTED]
 - [[readEntry()]] - `calls` [EXTRACTED]
 - [[refusingLayer()]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `contains` [EXTRACTED]

@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[direction-book.py]] - `contains` [EXTRACTED]
 - [[pack()]] - `calls` [EXTRACTED]
-- [[row()]] - `calls` [EXTRACTED]
+- [[row()_2]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_131

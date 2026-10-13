@@ -12,9 +12,12 @@ tags:
 # rhAccountFromPortfolio()
 
 ## Connections
+- [[Buying-power hard gate (Keaton 2026-10-06)]] - `references` [INFERRED]
 - [[executionrh-account.ts]] - `contains` [EXTRACTED]
 - [[maskAccount()]] - `calls` [EXTRACTED]
-- [[num()_6]] - `calls` [EXTRACTED]
+- [[num()_4]] - `calls` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports` [EXTRACTED]
+- [[runRhDesk()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_15

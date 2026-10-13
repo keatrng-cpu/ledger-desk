@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 42"
+community: "Community 10"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_10
 ---
 
 # floor-props.ts
 
 ## Connections
 - [[AWAITING_SCHOOL_MODEL]] - `imports` [EXTRACTED]
-- [[BookRead_1]] - `imports` [EXTRACTED]
+- [[BookRead]] - `imports` [EXTRACTED]
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[FeedRead]] - `imports` [EXTRACTED]
 - [[KillzoneId]] - `imports` [EXTRACTED]
@@ -27,7 +27,7 @@ tags:
 - [[RoomClosedTrade]] - `imports` [EXTRACTED]
 - [[RoomEvent]] - `imports` [EXTRACTED]
 - [[SESSION_COLOR]] - `contains` [EXTRACTED]
-- [[SHORT_2]] - `contains` [EXTRACTED]
+- [[SHORT]] - `contains` [EXTRACTED]
 - [[SchoolFloor]] - `imports` [EXTRACTED]
 - [[SchoolModelHook]] - `imports` [EXTRACTED]
 - [[SessionMoment]] - `imports` [EXTRACTED]
@@ -52,7 +52,7 @@ tags:
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 - [[floorProps]] - `contains` [EXTRACTED]
 - [[fmtDelay()]] - `contains` [EXTRACTED]
-- [[fmtPct()_1]] - `contains` [EXTRACTED]
+- [[fmtPct()]] - `contains` [EXTRACTED]
 - [[fmtPx()]] - `contains` [EXTRACTED]
 - [[gateWord()]] - `imports` [EXTRACTED]
 - [[inSeg()]] - `contains` [EXTRACTED]
@@ -81,7 +81,7 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[trophiesAndScars()]] - `contains` [EXTRACTED]
 - [[until()]] - `contains` [EXTRACTED]
-- [[usd()_3]] - `imports` [EXTRACTED]
+- [[usd()_4]] - `imports` [EXTRACTED]
 - [[vixWeather]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_10

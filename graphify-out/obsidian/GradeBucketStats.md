@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 94"
-location: "L213"
+community: "Community 127"
+location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_127
 ---
 
 # GradeBucketStats
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_127

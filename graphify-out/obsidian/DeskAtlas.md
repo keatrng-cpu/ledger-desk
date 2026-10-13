@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
+community: "Community 81"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/Community_81
 ---
 
 # DeskAtlas
@@ -17,6 +17,7 @@ tags:
 - [[agents.ts]] - `imports` [EXTRACTED]
 - [[brain-fuel.ts]] - `imports` [EXTRACTED]
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
+- [[desk-memory.ts]] - `imports` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/Community_81

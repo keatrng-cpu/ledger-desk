@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 114"
-location: "L19"
+community: "Community 127"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/Community_127
 ---
 
 # ALWAYS_SCAN
@@ -19,4 +19,4 @@ tags:
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/Community_127

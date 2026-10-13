@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 177"
+community: "Community 150"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_177
+  - community/Community_150
 ---
 
 # executor.ts
@@ -64,4 +64,4 @@ tags:
 - [[rowPatchFromBroker()]] - `contains` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_177
+#graphify/code #graphify/EXTRACTED #community/Community_150

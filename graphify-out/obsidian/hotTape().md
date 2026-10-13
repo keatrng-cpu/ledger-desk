@@ -12,7 +12,7 @@ tags:
 # hotTape()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
 - [[blocked()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
 

@@ -12,6 +12,7 @@ tags:
 # tickOrCached()
 
 ## Connections
+- [[Hard rules (do not drift)]] - `references` [INFERRED]
 - [[live-gateway.ts]] - `contains` [EXTRACTED]
 - [[readLiveTickFresh()]] - `calls` [EXTRACTED]
 

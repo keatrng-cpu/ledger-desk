@@ -1,17 +1,18 @@
 ---
 source_file: "vite.config.ts"
 type: "code"
-community: "Community 230"
+community: "Community 79"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_230
+  - community/Community_79
 ---
 
 # authPopupPlugin()
 
 ## Connections
+- [[Wiring (do this once)]] - `references` [INFERRED]
 - [[vite.config.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_230
+#graphify/code #graphify/EXTRACTED #community/Community_79

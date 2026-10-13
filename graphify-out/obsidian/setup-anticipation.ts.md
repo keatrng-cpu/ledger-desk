@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 205"
+community: "Community 163"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/Community_163
 ---
 
 # setup-anticipation.ts
@@ -29,7 +29,7 @@ tags:
 - [[anticipate()]] - `contains` [EXTRACTED]
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_8]] - `contains` [EXTRACTED]
+- [[pct()_6]] - `contains` [EXTRACTED]
 - [[score-drivers.ts]] - `imports_from` [EXTRACTED]
 - [[setup-mini-chart.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-setup-anticipation.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_205
+#graphify/code #graphify/EXTRACTED #community/Community_163

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-learn-history.mjs"
+source_file: "scripts/build-learn-cases.mjs"
 type: "code"
-community: "Community 11"
-location: "L35"
+community: "Community 143"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_143
 ---
 
 # out
 
 ## Connections
-- [[capture-learn-history.mjs]] - `contains` [EXTRACTED]
+- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_143

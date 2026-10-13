@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/engine/heartbeat.ts"
+source_file: "src/routes/api/room/cycle.ts"
 type: "code"
-community: "Community 95"
-location: "L75"
+community: "Community 54"
+location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/Community_54
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[heartbeat.ts]] - `contains` [EXTRACTED]
+- [[cycle.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/Community_54

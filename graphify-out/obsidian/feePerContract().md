@@ -2,7 +2,7 @@
 source_file: "src/lib/predict/math.ts"
 type: "code"
 community: "Community 2"
-location: "L153"
+location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,6 +15,8 @@ tags:
 - [[SideRow()]] - `calls` [EXTRACTED]
 - [[entryEdge()]] - `calls` [EXTRACTED]
 - [[go-ledger.ts]] - `imports` [EXTRACTED]
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
+- [[hallLiteFrom()]] - `calls` [EXTRACTED]
 - [[impliedFor()]] - `calls` [EXTRACTED]
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[netOf()]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
 community: "Community 96"
-location: "L158"
+location: "L160"
 tags:
   - graphify/code
   - graphify/EXTRACTED

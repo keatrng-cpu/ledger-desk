@@ -2,7 +2,7 @@
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
 community: "Community 96"
-location: "L348"
+location: "L350"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # spokenDigest()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[digestOf()]] - `calls` [EXTRACTED]
 - [[floor-voice.ts]] - `imports` [EXTRACTED]
 - [[hasRungGrid()]] - `calls` [EXTRACTED]

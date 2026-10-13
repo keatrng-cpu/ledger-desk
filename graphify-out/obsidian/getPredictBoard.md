@@ -16,6 +16,7 @@ tags:
 - [[buildBoard()]] - `calls` [EXTRACTED]
 - [[extrasFor()]] - `calls` [EXTRACTED]
 - [[getJson()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[liveHomeWp()]] - `calls` [EXTRACTED]
 - [[parseEspnScoreboard()]] - `calls` [EXTRACTED]
 - [[parseKalshiEvents()]] - `calls` [EXTRACTED]

@@ -13,7 +13,9 @@ tags:
 
 ## Connections
 - [[book-card.tsx]] - `imports` [EXTRACTED]
+- [[funnel-card.tsx]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
+- [[long-board.tsx]] - `imports` [EXTRACTED]
 - [[marks-server.ts]] - `imports` [EXTRACTED]
 - [[marks.ts]] - `contains` [EXTRACTED]
 

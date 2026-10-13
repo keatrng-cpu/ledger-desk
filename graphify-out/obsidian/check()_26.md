@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-news-coverage.mjs"
+source_file: "scripts/verify-floor-presence.mjs"
 type: "code"
-community: "Community 20"
-location: "L20"
+community: "Community 17"
+location: "L8"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_17
 ---
 
 # check()
 
 ## Connections
-- [[verify-news-coverage.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-presence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_17

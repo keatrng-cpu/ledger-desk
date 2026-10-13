@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-fx.ts"
 type: "code"
 community: "Community 196"
-location: "L194"
+location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # .update()
 
 ## Connections
-- [[Bell]] - `method` [EXTRACTED]
+- [[TicketFlight]] - `method` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_196

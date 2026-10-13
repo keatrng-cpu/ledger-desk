@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-snapshot.mjs"
+source_file: "scripts/build-hit-odds.mjs"
 type: "code"
-community: "Community 61"
-location: "L30"
+community: "Community 45"
+location: "L378"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_45
 ---
 
 # steps
 
 ## Connections
-- [[verify-room-snapshot.mjs]] - `contains` [EXTRACTED]
+- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_45

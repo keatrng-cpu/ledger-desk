@@ -1,17 +1,18 @@
 ---
 source_file: "package.json"
-type: "code"
-community: "Community 47"
-location: "L97"
+type: "concept"
+community: "Community 233"
+location: "L101"
 tags:
-  - graphify/code
+  - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/Community_233
 ---
 
 # react-dom
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[package.json]] - `imports` [EXTRACTED]
+- [[render-setup-chart.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/concept #graphify/EXTRACTED #community/Community_233

@@ -1,17 +1,21 @@
 ---
 source_file: "src/lib/execution/rh-autofire.ts"
 type: "code"
-community: "Community 15"
-location: "L231"
+community: "Community 56"
+location: "L244"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/Community_56
 ---
 
 # proposeRhLiveOption()
 
 ## Connections
+- [[Agent send path (user-Robinhood-xai)]] - `references` [INFERRED]
+- [[B+ explicit gate (Accuracy + Keaton 2026-10-06) — `evaluateRhBplusGate`]] - `references` [INFERRED]
+- [[Buying-power hard gate (Keaton 2026-10-06)]] - `references` [INFERRED]
+- [[Manager feed → live loop (Design Atelier, Keaton-approved 2026-10-06)]] - `references` [INFERRED]
 - [[buildRhReviewPlaceShape()]] - `calls` [EXTRACTED]
 - [[evaluateRhAutofireGates()]] - `calls` [EXTRACTED]
 - [[evaluateRhBandSize()]] - `calls` [EXTRACTED]
@@ -22,4 +26,4 @@ tags:
 - [[rh-autofire.ts]] - `contains` [EXTRACTED]
 - [[rhAutofireFlagsFromEnv()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/Community_56

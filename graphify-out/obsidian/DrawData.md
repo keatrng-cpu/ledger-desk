@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
 community: "Community 162"
-location: "L1190"
+location: "L1193"
 tags:
   - graphify/code
   - graphify/EXTRACTED

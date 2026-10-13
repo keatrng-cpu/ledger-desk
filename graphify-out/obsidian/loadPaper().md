@@ -14,9 +14,13 @@ tags:
 ## Connections
 - [[PmAnalyzer()]] - `calls` [EXTRACTED]
 - [[addPaper()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
+- [[mead-record.ts]] - `imports` [EXTRACTED]
 - [[parsePaperBook()]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 - [[pm-paper-store.ts]] - `contains` [EXTRACTED]
+- [[readHallRecord()_1]] - `calls` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 - [[removePaper()]] - `calls` [EXTRACTED]
 - [[resolvePaper()]] - `calls` [EXTRACTED]
 - [[store()]] - `calls` [EXTRACTED]

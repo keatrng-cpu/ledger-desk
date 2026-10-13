@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-floor-voice.mjs"
+source_file: "scripts/verify-income-target.mjs"
 type: "code"
-community: "Community 75"
-location: "L16"
+community: "Community 26"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/Community_26
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-voice.mjs]] - `contains` [EXTRACTED]
+- [[verify-income-target.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/Community_26

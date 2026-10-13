@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 104"
+community: "Community 10"
 location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_10
 ---
 
 # Animation
@@ -20,4 +20,4 @@ tags:
 - [[meeting.ts]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_10

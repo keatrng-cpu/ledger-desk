@@ -12,6 +12,7 @@ tags:
 # analyzeStructure()
 
 ## Connections
+- [[1. Session-correct levels (already live, no wiring needed)]] - `references` [INFERRED]
 - [[Snapshot]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]

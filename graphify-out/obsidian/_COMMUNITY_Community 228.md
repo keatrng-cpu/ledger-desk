@@ -10,15 +10,15 @@ members: 11
 **Members:** 11 nodes
 
 ## Members
-- [[H_10]] - code - scripts/measure-news-bias.mjs
+- [[H_11]] - code - scripts/measure-news-bias.mjs
 - [[agree()_1]] - code - scripts/measure-news-bias.mjs
 - [[atrAt()_1]] - code - scripts/measure-news-bias.mjs
-- [[dayKey()_11]] - code - scripts/measure-news-bias.mjs
+- [[dayKey()_12]] - code - scripts/measure-news-bias.mjs
 - [[etMin()_2]] - code - scripts/measure-news-bias.mjs
 - [[line()_1]] - code - scripts/measure-news-bias.mjs
 - [[measure()]] - code - scripts/measure-news-bias.mjs
 - [[measure-news-bias.mjs]] - code - scripts/measure-news-bias.mjs
-- [[pct()_9]] - code - scripts/measure-news-bias.mjs
+- [[pct()_8]] - code - scripts/measure-news-bias.mjs
 - [[weekday()_2]] - code - scripts/measure-news-bias.mjs
 - [[windowMove()]] - code - scripts/measure-news-bias.mjs
 
@@ -31,7 +31,7 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[measure-news-bias.mjs]] - degree 12, connects to 2 communities

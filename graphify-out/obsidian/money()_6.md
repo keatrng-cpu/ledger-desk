@@ -1,27 +1,19 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/journal/journal-panel.tsx"
 type: "code"
-community: "Community 25"
-location: "L192"
+community: "Community 23"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_23
 ---
 
 # money()
 
 ## Connections
-- [[drawGoalLadder()]] - `calls` [EXTRACTED]
-- [[drawGoalOdds()]] - `calls` [EXTRACTED]
-- [[drawGoalProgress()]] - `calls` [EXTRACTED]
-- [[drawInvBoard()]] - `calls` [EXTRACTED]
-- [[drawInvFunnel()]] - `calls` [EXTRACTED]
-- [[drawInvPortfolio()]] - `calls` [EXTRACTED]
-- [[drawMarquee()]] - `calls` [EXTRACTED]
-- [[drawMonitor()]] - `calls` [EXTRACTED]
-- [[drawSeatLeague()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[invUsd()]] - `calls` [EXTRACTED]
+- [[JournalPanel()]] - `calls` [EXTRACTED]
+- [[PnlText()]] - `calls` [EXTRACTED]
+- [[journal-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_23

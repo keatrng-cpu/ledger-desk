@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/detectors.ts"
 type: "code"
 community: "Community 39"
-location: "L955"
+location: "L1431"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,8 @@ tags:
 # detectMitigationBlock()
 
 ## Connections
+- [[3.3 Everything else that fights measured evidence]] - `references` [INFERRED]
+- [[Code map]] - `references` [INFERRED]
 - [[SetupCard()]] - `calls` [EXTRACTED]
 - [[detectors.ts]] - `contains` [EXTRACTED]
 - [[fractalSwings()]] - `calls` [EXTRACTED]

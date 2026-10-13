@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 7"
+community: "Community 2"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_2
 ---
 
 # noVig()
@@ -18,4 +18,4 @@ tags:
 - [[nflGames()]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_2

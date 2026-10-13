@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 50"
+community: "Community 10"
 location: "L526"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/Community_10
 ---
 
 # PolicyDef
@@ -15,4 +15,4 @@ tags:
 - [[Character]] - `references` [EXTRACTED]
 - [[goal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/Community_10

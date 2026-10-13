@@ -36,7 +36,7 @@ tags:
 - [[stats()]] - `contains` [EXTRACTED]
 - [[swings()_1]] - `contains` [EXTRACTED]
 - [[take_two()]] - `contains` [EXTRACTED]
-- [[walk()_1]] - `contains` [EXTRACTED]
+- [[walk()]] - `contains` [EXTRACTED]
 - [[year_of()]] - `contains` [EXTRACTED]
 - [[zoneinfo]] - `imports_from` [EXTRACTED]
 

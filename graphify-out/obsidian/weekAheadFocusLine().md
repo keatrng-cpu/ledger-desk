@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 33"
-location: "L368"
+community: "Community 9"
+location: "L489"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/Community_9
 ---
 
 # weekAheadFocusLine()
@@ -18,4 +18,4 @@ tags:
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 - [[week-ahead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/Community_9

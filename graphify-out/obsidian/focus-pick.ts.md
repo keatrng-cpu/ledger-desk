@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/focus-pick.ts"
 type: "code"
-community: "Community 29"
+community: "Community 92"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/Community_92
 ---
 
 # focus-pick.ts
@@ -24,4 +24,4 @@ tags:
 - [[pickFocus()]] - `contains` [EXTRACTED]
 - [[verify-focus-pick.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/Community_92

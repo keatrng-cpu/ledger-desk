@@ -1,27 +1,31 @@
 ---
 type: community
-cohesion: 0.08
-members: 86
+cohesion: 0.10
+members: 90
 ---
 
 # Community 13
 
-**Cohesion:** 0.08 - loosely connected
-**Members:** 86 nodes
+**Cohesion:** 0.10 - loosely connected
+**Members:** 90 nodes
 
 ## Members
-- [[BOARD]] - code - src/lib/room/live-voices.ts
-- [[EvidenceData]] - code - src/lib/room/live-voices.ts
-- [[FeedData]] - code - src/lib/room/live-voices.ts
-- [[GhostData]] - code - src/lib/room/live-voices.ts
-- [[LabData]] - code - src/lib/room/live-voices.ts
+- [[dot-add()]] - code - src/lib/room/live-types.ts
+- [[dot-clock()]] - code - src/lib/room/live-types.ts
+- [[dot-frac()]] - code - src/lib/room/live-types.ts
+- [[dot-hhmm()]] - code - src/lib/room/live-types.ts
+- [[dot-int()]] - code - src/lib/room/live-types.ts
+- [[dot-lvl()]] - code - src/lib/room/live-types.ts
+- [[dot-mins()]] - code - src/lib/room/live-types.ts
+- [[dot-pct()]] - code - src/lib/room/live-types.ts
+- [[dot-pts()]] - code - src/lib/room/live-types.ts
+- [[dot-px()]] - code - src/lib/room/live-types.ts
+- [[dot-r()]] - code - src/lib/room/live-types.ts
+- [[dot-raw()]] - code - src/lib/room/live-types.ts
+- [[dot-usd()]] - code - src/lib/room/live-types.ts
+- [[dot-x()]] - code - src/lib/room/live-types.ts
+- [[Facts_1]] - code - src/lib/room/live-types.ts
 - [[OFFICE()]] - code - src/lib/room/live-voices-race.ts
-- [[PulseData]] - code - src/lib/room/live-voices.ts
-- [[RecapData]] - code - src/lib/room/live-voices.ts
-- [[RulesData]] - code - src/lib/room/live-voices.ts
-- [[TomorrowData]] - code - src/lib/room/live-voices.ts
-- [[WB]] - code - src/lib/room/live-voices.ts
-- [[WeekData]] - code - src/lib/room/live-voices.ts
 - [[agoText()]] - code - src/lib/room/live-voices.ts
 - [[anim()]] - code - src/lib/room/live-voices-race.ts
 - [[boardMoves()]] - code - src/lib/room/live-voices-race.ts
@@ -31,6 +35,7 @@ members: 86
 - [[exAudit()]] - code - src/lib/room/live-voices-race.ts
 - [[exBoard()]] - code - src/lib/room/live-voices.ts
 - [[exCalendar()]] - code - src/lib/room/live-voices.ts
+- [[exClosedStudy()]] - code - src/lib/room/live-voices.ts
 - [[exCouncil()]] - code - src/lib/room/live-voices-race.ts
 - [[exDealing()]] - code - src/lib/room/live-voices.ts
 - [[exDecision()]] - code - src/lib/room/live-voices-race.ts
@@ -76,26 +81,25 @@ members: 86
 - [[exSession()]] - code - src/lib/room/live-voices.ts
 - [[exShelf()]] - code - src/lib/room/live-voices.ts
 - [[exSmt()]] - code - src/lib/room/live-voices.ts
+- [[exStudyOutsider()]] - code - src/lib/room/live-voices-invest.ts
+- [[exStudyPredict()]] - code - src/lib/room/live-voices-invest.ts
+- [[exStudyWatchNews()]] - code - src/lib/room/live-voices-invest.ts
 - [[exSyndicateClosed()]] - code - src/lib/room/live-voices-race.ts
 - [[exTape()]] - code - src/lib/room/live-voices.ts
-- [[exTier()]] - code - src/lib/room/live-voices.ts
 - [[exTomorrow()]] - code - src/lib/room/live-voices.ts
 - [[exTouchRound()]] - code - src/lib/room/live-voices-race.ts
 - [[exVol()]] - code - src/lib/room/live-voices.ts
 - [[exWeek()]] - code - src/lib/room/live-voices.ts
 - [[exWelcome()]] - code - src/lib/room/live-voices.ts
-- [[jobsFor()]] - code - src/lib/room/brain-feed.ts
-- [[lead()]] - code - src/lib/room/live-voices.ts
 - [[line()]] - code - src/lib/room/live-voices.ts
-- [[live-voices.ts]] - code - src/lib/room/live-voices.ts
 - [[nameOf()]] - code - src/lib/room/live-voices-race.ts
 - [[oddsTxt()]] - code - src/lib/room/live-voices-race.ts
 - [[pick()]] - code - src/lib/room/live-voices.ts
 - [[plural()]] - code - src/lib/room/live-voices-race.ts
-- [[recentSpeaks()]] - code - src/lib/room/live-voices.ts
 - [[signed()]] - code - src/lib/room/live-voices.ts
 - [[stop()]] - code - src/lib/room/live-voices-race.ts
 - [[voice()]] - code - src/lib/room/live-voices-race.ts
+- [[yesLine()]] - code - src/lib/room/live-voices-invest.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -105,29 +109,24 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 33 edges to [[_COMMUNITY_Community 140]]
-- 29 edges to [[_COMMUNITY_Community 49]]
-- 23 edges to [[_COMMUNITY_Community 162]]
-- 6 edges to [[_COMMUNITY_Community 103]]
-- 5 edges to [[_COMMUNITY_Community 10]]
-- 4 edges to [[_COMMUNITY_Community 18]]
-- 3 edges to [[_COMMUNITY_Community 0]]
-- 2 edges to [[_COMMUNITY_Community 198]]
-- 2 edges to [[_COMMUNITY_Community 127]]
-- 2 edges to [[_COMMUNITY_Community 109]]
-- 2 edges to [[_COMMUNITY_Community 122]]
-- 2 edges to [[_COMMUNITY_Community 217]]
-- 1 edge to [[_COMMUNITY_Community 104]]
-- 1 edge to [[_COMMUNITY_Community 21]]
-- 1 edge to [[_COMMUNITY_Community 81]]
-- 1 edge to [[_COMMUNITY_Community 9]]
-- 1 edge to [[_COMMUNITY_Community 60]]
-- 1 edge to [[_COMMUNITY_Community 244]]
-- 1 edge to [[_COMMUNITY_Community 236]]
+- 55 edges to [[_COMMUNITY_Community 198]]
+- 53 edges to [[_COMMUNITY_Community 162]]
+- 40 edges to [[_COMMUNITY_Community 215]]
+- 35 edges to [[_COMMUNITY_Community 49]]
+- 32 edges to [[_COMMUNITY_Community 18]]
+- 5 edges to [[_COMMUNITY_Community 103]]
+- 1 edge to [[_COMMUNITY_Community 4]]
+- 1 edge to [[_COMMUNITY_Community 287]]
+- 1 edge to [[_COMMUNITY_Community 142]]
+- 1 edge to [[_COMMUNITY_Community 22]]
+- 1 edge to [[_COMMUNITY_Community 171]]
+- 1 edge to [[_COMMUNITY_Community 213]]
+- 1 edge to [[_COMMUNITY_Community 212]]
+- 1 edge to [[_COMMUNITY_Community 324]]
 
 ## Top bridge nodes
-- [[live-voices.ts]] - degree 118, connects to 17 communities
-- [[pick()]] - degree 63, connects to 3 communities
-- [[jobsFor()]] - degree 5, connects to 3 communities
-- [[compact()]] - degree 65, connects to 2 communities
-- [[line()]] - degree 65, connects to 2 communities
+- [[pick()]] - degree 93, connects to 6 communities
+- [[dot-x()]] - degree 14, connects to 6 communities
+- [[compact()]] - degree 95, connects to 5 communities
+- [[line()]] - degree 95, connects to 5 communities
+- [[clip()_1]] - degree 37, connects to 5 communities

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
 community: "Community 96"
-location: "L276"
+location: "L278"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,12 +12,13 @@ tags:
 # spokenForm()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[codeNames()]] - `calls` [EXTRACTED]
 - [[dropRepeatedTickers()]] - `calls` [EXTRACTED]
 - [[floor-voice.ts]] - `imports` [EXTRACTED]
 - [[isoDates()]] - `calls` [EXTRACTED]
 - [[jargon()]] - `calls` [EXTRACTED]
-- [[money()_15]] - `calls` [EXTRACTED]
+- [[money()_16]] - `calls` [EXTRACTED]
 - [[ratiosAndSlashes()]] - `calls` [EXTRACTED]
 - [[speakable()]] - `calls` [EXTRACTED]
 - [[spoken-form.ts]] - `contains` [EXTRACTED]

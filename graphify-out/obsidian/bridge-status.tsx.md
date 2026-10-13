@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/bridge/bridge-status.tsx"
 type: "code"
-community: "Community 14"
+community: "Community 95"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_95
 ---
 
 # bridge-status.tsx
@@ -16,7 +16,7 @@ tags:
 - [[BridgeStatusPayload]] - `imports` [EXTRACTED]
 - [[DOT]] - `contains` [EXTRACTED]
 - [[Health]] - `contains` [EXTRACTED]
-- [[LABEL]] - `contains` [EXTRACTED]
+- [[LABEL_1]] - `contains` [EXTRACTED]
 - [[ago()_2]] - `contains` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
 - [[getBridgeStatus]] - `imports` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[togglePaperMode]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_95

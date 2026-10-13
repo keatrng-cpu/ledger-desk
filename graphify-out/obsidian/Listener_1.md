@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/auto-paper.ts"
+source_file: "src/lib/live/keep-live.ts"
 type: "code"
-community: "Community 60"
-location: "L29"
+community: "Community 71"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_71
 ---
 
 # Listener
 
 ## Connections
-- [[auto-paper.ts]] - `contains` [EXTRACTED]
+- [[keep-live.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_71

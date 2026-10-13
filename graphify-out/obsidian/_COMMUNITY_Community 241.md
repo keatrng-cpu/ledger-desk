@@ -10,9 +10,9 @@ members: 8
 **Members:** 8 nodes
 
 ## Members
-- [[base_7]] - code - scripts/verify-brain-fuel.mjs
-- [[check()_46]] - code - scripts/verify-brain-fuel.mjs
-- [[empty_1]] - code - scripts/verify-brain-fuel.mjs
+- [[base_9]] - code - scripts/verify-brain-fuel.mjs
+- [[check()_57]] - code - scripts/verify-brain-fuel.mjs
+- [[empty_2]] - code - scripts/verify-brain-fuel.mjs
 - [[once]] - code - scripts/verify-brain-fuel.mjs
 - [[peers]] - code - scripts/verify-brain-fuel.mjs
 - [[people]] - code - scripts/verify-brain-fuel.mjs
@@ -27,8 +27,10 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 21]]
-- 1 edge to [[_COMMUNITY_Community 88]]
+- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 300]]
+- 1 edge to [[_COMMUNITY_Community 29]]
+- 1 edge to [[_COMMUNITY_Community 251]]
 
 ## Top bridge nodes
-- [[verify-brain-fuel.mjs]] - degree 10, connects to 2 communities
+- [[verify-brain-fuel.mjs]] - degree 11, connects to 4 communities

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/paper-step.ts"
 type: "code"
-community: "Community 143"
+community: "Community 4"
 location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_4
 ---
 
 # decidePaperStep()
@@ -18,4 +18,4 @@ tags:
 - [[paperStepDue()]] - `calls` [EXTRACTED]
 - [[verify-paper-step.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_4

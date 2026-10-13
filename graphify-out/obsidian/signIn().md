@@ -12,6 +12,7 @@ tags:
 # signIn()
 
 ## Connections
+- [[Wiring (do this once)]] - `references` [INFERRED]
 - [[authclient.ts]] - `contains` [EXTRACTED]
 - [[getBearerToken()]] - `calls` [EXTRACTED]
 - [[inLivePreview()]] - `calls` [EXTRACTED]

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 56"
+community: "Community 115"
 location: "L174"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_115
 ---
 
 # Snapshot
@@ -21,11 +21,11 @@ tags:
 - [[drawOnLiquidity()]] - `calls` [EXTRACTED]
 - [[etTime()]] - `calls` [EXTRACTED]
 - [[getSessionClock()]] - `calls` [EXTRACTED]
-- [[gradeSmcMaster()]] - `references` [EXTRACTED]
+- [[gradeSmcMaster()]] - `calls` [EXTRACTED]
 - [[newsRead]] - `calls` [EXTRACTED]
-- [[px()]] - `calls` [EXTRACTED]
+- [[px()_2]] - `calls` [EXTRACTED]
 - [[scanSetups()]] - `calls` [EXTRACTED]
 - [[smtDivergenceStack()]] - `calls` [EXTRACTED]
 - [[summarizeDetectors()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_115

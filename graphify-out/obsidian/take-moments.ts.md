@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[LedgerSummary]] - `contains` [EXTRACTED]
 - [[MomentAction]] - `contains` [EXTRACTED]
-- [[MomentKind]] - `contains` [EXTRACTED]
+- [[MomentKind_1]] - `contains` [EXTRACTED]
 - [[OhlcBar]] - `imports` [EXTRACTED]
 - [[PATH]] - `contains` [EXTRACTED]
 - [[SmcMasterBook]] - `imports` [EXTRACTED]

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/entry-state.test.mjs"
+source_file: "scripts/verify-board-rank.mjs"
 type: "code"
-community: "Community 78"
-location: "L35"
+community: "Community 29"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/Community_29
 ---
 
 # card()
 
 ## Connections
-- [[desk()_3]] - `calls` [EXTRACTED]
-- [[entry-state.test.mjs]] - `contains` [EXTRACTED]
+- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/Community_29

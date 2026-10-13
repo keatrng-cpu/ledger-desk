@@ -1,25 +1,23 @@
 ---
 type: community
-cohesion: 0.13
-members: 26
+cohesion: 0.14
+members: 23
 ---
 
 # Community 148
 
-**Cohesion:** 0.13 - loosely connected
-**Members:** 26 nodes
+**Cohesion:** 0.14 - loosely connected
+**Members:** 23 nodes
 
 ## Members
 - [[FIGURES]] - code - src/lib/learn/figures.ts
 - [[Figure]] - code - src/lib/learn/figures.ts
-- [[FigureBar]] - code - src/lib/learn/figures.ts
 - [[FigureMark]] - code - src/lib/learn/figures.ts
 - [[FigureTone]] - code - src/lib/learn/figures.ts
 - [[LearnFigure()]] - code - src/components/learn/learn-figure.tsx
 - [[Leg]] - code - src/lib/learn/figures.ts
 - [[Scale]] - code - src/components/learn/learn-figure.tsx
 - [[Scenario]] - code - src/lib/learn/scenarios.ts
-- [[TapeMarks]] - code - src/lib/learn/tape.ts
 - [[buildScale()]] - code - src/components/learn/learn-figure.tsx
 - [[figures.ts]] - code - src/lib/learn/figures.ts
 - [[fvg()]] - code - src/lib/learn/figures.ts
@@ -34,7 +32,6 @@ members: 26
 - [[smtLag()]] - code - src/lib/learn/figures.ts
 - [[smtLead()]] - code - src/lib/learn/figures.ts
 - [[src_data_learn_figures]] - concept
-- [[tape.ts]] - code - src/lib/learn/tape.ts
 - [[toneColor()]] - code - src/components/learn/learn-figure.tsx
 
 ## Live Query (requires Dataview plugin)
@@ -45,14 +42,15 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 9 edges to [[_COMMUNITY_Community 124]]
-- 7 edges to [[_COMMUNITY_Community 67]]
+- 8 edges to [[_COMMUNITY_Community 124]]
+- 6 edges to [[_COMMUNITY_Community 280]]
 - 2 edges to [[_COMMUNITY_Community 132]]
 - 1 edge to [[_COMMUNITY_Community 118]]
+- 1 edge to [[_COMMUNITY_Community 67]]
 
 ## Top bridge nodes
-- [[figures.ts]] - degree 25, connects to 4 communities
+- [[figures.ts]] - degree 25, connects to 5 communities
+- [[learn-figure.tsx]] - degree 11, connects to 2 communities
 - [[Scenario]] - degree 3, connects to 2 communities
-- [[learn-figure.tsx]] - degree 11, connects to 1 community
 - [[LearnFigure()]] - degree 7, connects to 1 community
-- [[FigureBar]] - degree 5, connects to 1 community
+- [[Figure]] - degree 4, connects to 1 community

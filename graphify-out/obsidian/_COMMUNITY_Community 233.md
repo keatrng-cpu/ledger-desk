@@ -10,12 +10,12 @@ members: 9
 **Members:** 9 nodes
 
 ## Members
-- [[T0_8]] - code - scripts/render-setup-chart.mjs
-- [[bars_12]] - code - scripts/render-setup-chart.mjs
+- [[T0_12]] - code - scripts/render-setup-chart.mjs
+- [[bars_14]] - code - scripts/render-setup-chart.mjs
 - [[entryArray]] - code - scripts/render-setup-chart.mjs
 - [[markup]] - code - scripts/render-setup-chart.mjs
-- [[plan]] - code - scripts/render-setup-chart.mjs
-- [[react-dom]] - concept - package.json
+- [[plan_1]] - code - scripts/render-setup-chart.mjs
+- [[react-dom_1]] - concept - package.json
 - [[render-setup-chart.mjs]] - code - scripts/render-setup-chart.mjs
 - [[rnd()_3]] - code - scripts/render-setup-chart.mjs
 - [[themed]] - code - scripts/render-setup-chart.mjs
@@ -29,11 +29,11 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 27]]
 - 1 edge to [[_COMMUNITY_Community 72]]
 - 1 edge to [[_COMMUNITY_Community 32]]
 
 ## Top bridge nodes
 - [[render-setup-chart.mjs]] - degree 12, connects to 4 communities
-- [[react-dom]] - degree 2, connects to 1 community
+- [[react-dom_1]] - degree 2, connects to 1 community

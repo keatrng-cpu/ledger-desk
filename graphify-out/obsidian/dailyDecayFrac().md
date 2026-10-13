@@ -17,6 +17,7 @@ tags:
 - [[minDteFor()]] - `calls` [EXTRACTED]
 - [[minDteForHold()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
+- [[sizeFromLiveContract()]] - `calls` [EXTRACTED]
 - [[sizeFromStop()]] - `calls` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `imports` [EXTRACTED]
 - [[stop-coherence.ts]] - `contains` [EXTRACTED]

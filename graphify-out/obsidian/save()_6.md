@@ -1,23 +1,21 @@
 ---
-source_file: "src/lib/trading/pending-order.ts"
+source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 82"
-location: "L156"
+community: "Community 8"
+location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/Community_8
 ---
 
 # save()
 
 ## Connections
-- [[cancelPending()]] - `calls` [EXTRACTED]
-- [[confirmPendingFill()]] - `calls` [EXTRACTED]
-- [[emit()_3]] - `calls` [EXTRACTED]
-- [[pending-order.ts]] - `contains` [EXTRACTED]
-- [[releasePending()]] - `calls` [EXTRACTED]
-- [[restLimit()]] - `calls` [EXTRACTED]
-- [[tickPending()]] - `calls` [EXTRACTED]
+- [[auto-paper.ts]] - `contains` [EXTRACTED]
+- [[noteAutoPaperSkip()]] - `calls` [EXTRACTED]
+- [[releaseAutoPaperKey()]] - `calls` [EXTRACTED]
+- [[rememberAutoPaperKey()]] - `calls` [EXTRACTED]
+- [[setAutoPaper()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/Community_8

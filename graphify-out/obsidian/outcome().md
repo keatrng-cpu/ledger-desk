@@ -2,7 +2,7 @@
 source_file: "scripts/verify-hi-alert-brain.mjs"
 type: "code"
 community: "Community 236"
-location: "L34"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[cycle.ts]] - `imports` [EXTRACTED]
 - [[emptyCounters()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[loadRoomBook()]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]

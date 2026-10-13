@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[Load gateway.env.local then repo .env so this runs without run-local.ps1.]] - `rationale_for` [EXTRACTED]
 - [[databento_live_gateway.py]] - `contains` [EXTRACTED]
-- [[main()_6]] - `calls` [EXTRACTED]
+- [[main()_9]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_74

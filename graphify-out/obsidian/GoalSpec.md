@@ -12,6 +12,7 @@ tags:
 # GoalSpec
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[RaceInput]] - `references` [EXTRACTED]
 - [[RoomState]] - `references` [EXTRACTED]
 - [[SeatBook]] - `references` [EXTRACTED]

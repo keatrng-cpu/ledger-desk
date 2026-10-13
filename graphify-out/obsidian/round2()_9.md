@@ -1,8 +1,8 @@
 ---
-source_file: "src/lib/trading/draw.ts"
+source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
 community: "Community 72"
-location: "L394"
+location: "L281"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,8 +12,7 @@ tags:
 # round2()
 
 ## Connections
-- [[draw.ts]] - `contains` [EXTRACTED]
-- [[drawOnLiquidity()]] - `calls` [EXTRACTED]
-- [[expectedR()]] - `calls` [EXTRACTED]
+- [[buildTradePlan()]] - `calls` [EXTRACTED]
+- [[trade-plan.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_72

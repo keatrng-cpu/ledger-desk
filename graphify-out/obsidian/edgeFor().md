@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[computeSignal()]] - `calls` [EXTRACTED]
 - [[isoOrNull()]] - `calls` [EXTRACTED]
-- [[r4()_1]] - `calls` [EXTRACTED]
+- [[r4()]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_12

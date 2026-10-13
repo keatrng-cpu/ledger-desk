@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 137"
-location: "L267"
+community: "Community 130"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/Community_130
 ---
 
 # bookOf()
 
 ## Connections
-- [[mkWorld()]] - `calls` [EXTRACTED]
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/Community_130

@@ -14,12 +14,12 @@ tags:
 ## Connections
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BuiltPaperLevels]] - `imports` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[ORDER_INTENT_VERSION]] - `contains` [EXTRACTED]
 - [[OrderContext]] - `contains` [EXTRACTED]
 - [[OrderEntryType]] - `contains` [EXTRACTED]
-- [[OrderIntent_1]] - `contains` [EXTRACTED]
+- [[OrderIntent_2]] - `contains` [EXTRACTED]
 - [[OrderIntentError]] - `contains` [EXTRACTED]
 - [[OrderIntentInput]] - `contains` [EXTRACTED]
 - [[OrderIntentWire]] - `contains` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[orderIntentSchema]] - `contains` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[pnl.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_11]] - `contains` [EXTRACTED]
+- [[round2()_10]] - `contains` [EXTRACTED]
 - [[round4()_4]] - `contains` [EXTRACTED]
 - [[shadow.ts]] - `imports_from` [EXTRACTED]
 - [[toIso()_1]] - `contains` [EXTRACTED]
@@ -52,6 +52,6 @@ tags:
 - [[trimOrNull()]] - `contains` [EXTRACTED]
 - [[tryBuildOrderIntent()]] - `contains` [EXTRACTED]
 - [[validateOrderIntent()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_77

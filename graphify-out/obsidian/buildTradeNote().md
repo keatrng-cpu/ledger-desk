@@ -13,10 +13,10 @@ tags:
 
 ## Connections
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
-- [[etParts()_2]] - `calls` [EXTRACTED]
+- [[etParts()_3]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[missingLayers()]] - `calls` [EXTRACTED]
-- [[num()_14]] - `calls` [EXTRACTED]
+- [[num()_17]] - `calls` [EXTRACTED]
 - [[trade-note.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_8

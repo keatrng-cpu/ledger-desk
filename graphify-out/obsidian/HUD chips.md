@@ -1,0 +1,17 @@
+---
+source_file: ".grok/skills/design-ui/references/refined-ui.md"
+type: "document"
+community: "Community 221"
+location: "L269"
+tags:
+  - graphify/document
+  - graphify/EXTRACTED
+  - community/Community_221
+---
+
+# HUD chips
+
+## Connections
+- [[Components (product chrome)]] - `contains` [EXTRACTED]
+
+#graphify/document #graphify/EXTRACTED #community/Community_221

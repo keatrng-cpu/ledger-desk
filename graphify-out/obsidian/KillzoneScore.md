@@ -15,6 +15,6 @@ tags:
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[killzoneLine()]] - `calls` [EXTRACTED]
 - [[scoreOf()]] - `calls` [EXTRACTED]
-- [[verdictFor()_1]] - `calls` [EXTRACTED]
+- [[verdictFor()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_111

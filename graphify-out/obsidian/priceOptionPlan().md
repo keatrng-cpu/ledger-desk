@@ -12,7 +12,8 @@ tags:
 # priceOptionPlan()
 
 ## Connections
-- [[at()_8]] - `calls` [EXTRACTED]
+- [[Code map]] - `references` [INFERRED]
+- [[at()_12]] - `calls` [EXTRACTED]
 - [[backstopped()]] - `calls` [EXTRACTED]
 - [[barGrid()]] - `calls` [EXTRACTED]
 - [[bidAt()]] - `calls` [EXTRACTED]
@@ -30,7 +31,7 @@ tags:
 - [[premiumStopOf()]] - `calls` [EXTRACTED]
 - [[quant.ts]] - `contains` [EXTRACTED]
 - [[repricedOdds()]] - `calls` [EXTRACTED]
-- [[round2()_8]] - `calls` [EXTRACTED]
+- [[round2()_7]] - `calls` [EXTRACTED]
 - [[t1AtrOf()]] - `calls` [EXTRACTED]
 - [[windowOdds]] - `calls` [EXTRACTED]
 - [[yearsToExpiry()]] - `calls` [EXTRACTED]

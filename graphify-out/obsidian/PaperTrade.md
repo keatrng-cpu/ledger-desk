@@ -12,6 +12,8 @@ tags:
 # PaperTrade
 
 ## Connections
+- [[2. `srcroutesindex.tsx` — pass the draw into the management tick (B3)]] - `references` [INFERRED]
+- [[3. `srccomponentsdeskpaper-book-panel.tsx` — surface the new fields]] - `references` [INFERRED]
 - [[ContractKey]] - `references` [EXTRACTED]
 - [[TradeDebrief]] - `references` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]

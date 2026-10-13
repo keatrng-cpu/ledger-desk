@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 27"
+community: "Community 160"
 location: "L67"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_160
 ---
 
 # JudasStage
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[judas-window.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_160

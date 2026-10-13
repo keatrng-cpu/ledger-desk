@@ -12,8 +12,11 @@ tags:
 # whenPhrase()
 
 ## Connections
+- [[exFirmMemo()]] - `calls` [EXTRACTED]
 - [[exInvCatalysts()]] - `calls` [EXTRACTED]
+- [[exStudyInvest()]] - `calls` [EXTRACTED]
 - [[invest-read.ts]] - `contains` [EXTRACTED]
+- [[live-voices-invest-firm.ts]] - `imports` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_49

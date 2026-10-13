@@ -12,6 +12,10 @@ tags:
 # exLevel()
 
 ## Connections
+- [[dot-lvl()]] - `calls` [INFERRED]
+- [[dot-pts()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-span()]] - `calls` [INFERRED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

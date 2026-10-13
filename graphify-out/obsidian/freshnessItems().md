@@ -2,7 +2,7 @@
 source_file: "src/lib/room/audit.ts"
 type: "code"
 community: "Community 18"
-location: "L42"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED

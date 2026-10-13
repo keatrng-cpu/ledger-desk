@@ -1,5 +1,5 @@
 ---
-source_file: "src/components/desk/alerts-panel.tsx"
+source_file: "src/components/desk/shadow-order-review.tsx"
 type: "code"
 community: "Community 14"
 location: "L28"
@@ -12,7 +12,7 @@ tags:
 # fmtTime()
 
 ## Connections
-- [[AlertsPanel()]] - `calls` [EXTRACTED]
-- [[alerts-panel.tsx]] - `contains` [EXTRACTED]
+- [[ShadowOrderReview()]] - `calls` [EXTRACTED]
+- [[shadow-order-review.tsx]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_14

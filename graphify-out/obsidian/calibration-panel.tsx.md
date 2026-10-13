@@ -13,11 +13,14 @@ tags:
 
 ## Connections
 - [[CalibrationPanel()]] - `contains` [EXTRACTED]
+- [[GATE_4]] - `imports` [EXTRACTED]
+- [[GateReadout()]] - `contains` [EXTRACTED]
 - [[Sample]] - `imports` [EXTRACTED]
 - [[calibration.ts]] - `imports_from` [EXTRACTED]
 - [[compare()]] - `imports` [EXTRACTED]
 - [[conditional()]] - `imports` [EXTRACTED]
-- [[expectancy_1]] - `imports` [EXTRACTED]
+- [[expectancy]] - `imports` [EXTRACTED]
+- [[gate-tuning.ts]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[rOf()_1]] - `contains` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]

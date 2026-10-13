@@ -2,7 +2,7 @@
 source_file: "scripts/verify-invest-office.mjs"
 type: "code"
 community: "Community 137"
-location: "L56"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -12,6 +12,7 @@ tags:
 # CHECK_INTERVAL_DAYS
 
 ## Connections
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[kill-watch.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_80

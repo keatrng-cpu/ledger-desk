@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[has()_3]] - `calls` [EXTRACTED]
+- [[has()_4]] - `calls` [EXTRACTED]
 - [[runTrade()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_55

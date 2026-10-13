@@ -1,8 +1,8 @@
 ---
-source_file: "gateway/smoke_live.py"
+source_file: "brainlab/intake.py"
 type: "code"
 community: "Community 225"
-location: "L65"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,8 +12,10 @@ tags:
 # main()
 
 ## Connections
-- [[load_env_local()]] - `calls` [EXTRACTED]
-- [[smoke_live.py]] - `contains` [EXTRACTED]
-- [[time]] - `calls` [EXTRACTED]
+- [[argparse]] - `calls` [EXTRACTED]
+- [[intake.py]] - `contains` [EXTRACTED]
+- [[json_1]] - `calls` [EXTRACTED]
+- [[parse_issue()]] - `calls` [EXTRACTED]
+- [[render()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_225

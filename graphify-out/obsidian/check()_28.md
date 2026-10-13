@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-gateway-window.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 200"
-location: "L23"
+community: "Community 175"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_200
+  - community/Community_175
 ---
 
 # check()
 
 ## Connections
-- [[ok()_14]] - `calls` [EXTRACTED]
-- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
+- [[ok()_12]] - `calls` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_200
+#graphify/code #graphify/EXTRACTED #community/Community_175

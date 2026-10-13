@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[GameCard()]] - `calls` [EXTRACTED]
-- [[c()_1]] - `calls` [EXTRACTED]
-- [[cents()_1]] - `calls` [EXTRACTED]
+- [[c()_2]] - `calls` [EXTRACTED]
+- [[cents()_2]] - `calls` [EXTRACTED]
 - [[feePerContract()]] - `calls` [EXTRACTED]
 - [[limitPriceFor()]] - `calls` [EXTRACTED]
 - [[makerFee()]] - `calls` [EXTRACTED]

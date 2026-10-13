@@ -12,11 +12,11 @@ members: 15
 ## Members
 - [[ET()_2]] - code - scripts/build-learn-engine.mjs
 - [[FIGS]] - code - scripts/build-learn-engine.mjs
-- [[HIST_3]] - code - scripts/build-learn-engine.mjs
+- [[HIST_6]] - code - scripts/build-learn-engine.mjs
 - [[build-learn-engine.mjs]] - code - scripts/build-learn-engine.mjs
 - [[captions]] - code - scripts/build-learn-engine.mjs
-- [[dayChangePct()_4]] - code - scripts/build-learn-engine.mjs
-- [[dayKey()_10]] - code - scripts/build-learn-engine.mjs
+- [[dayChangePct()_6]] - code - scripts/build-learn-engine.mjs
+- [[dayKey()_11]] - code - scripts/build-learn-engine.mjs
 - [[etHM()]] - code - scripts/build-learn-engine.mjs
 - [[found]] - code - scripts/build-learn-engine.mjs
 - [[idxAt()]] - code - scripts/build-learn-engine.mjs
@@ -34,7 +34,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 58]]
 

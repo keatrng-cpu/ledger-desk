@@ -12,6 +12,7 @@ tags:
 # RENT_DRAG_ALARM
 
 ## Connections
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_86

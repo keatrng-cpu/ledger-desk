@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 27"
+community: "Community 160"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_160
 ---
 
 # judas-window.ts
@@ -35,4 +35,4 @@ tags:
 - [[summarizeDetectors()]] - `imports` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_160

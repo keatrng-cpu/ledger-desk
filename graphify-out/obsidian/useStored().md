@@ -12,7 +12,7 @@ tags:
 # useStored()
 
 ## Connections
-- [[read()_5]] - `calls` [EXTRACTED]
+- [[read()_12]] - `calls` [EXTRACTED]
 - [[useWirePins()]] - `calls` [EXTRACTED]
 - [[useWireReactions()]] - `calls` [EXTRACTED]
 - [[wire-chat.ts]] - `contains` [EXTRACTED]

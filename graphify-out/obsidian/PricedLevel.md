@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 14"
+community: "Community 179"
 location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_179
 ---
 
 # PricedLevel
@@ -15,4 +15,4 @@ tags:
 - [[premarket-panel.tsx]] - `imports` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_179

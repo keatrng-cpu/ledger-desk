@@ -12,7 +12,7 @@ tags:
 # nySessionWindowBars()
 
 ## Connections
-- [[etParts()_1]] - `calls` [EXTRACTED]
+- [[etParts()_2]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_46

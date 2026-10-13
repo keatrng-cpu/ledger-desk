@@ -12,7 +12,7 @@ tags:
 # focusQuote()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
 - [[blocked()]] - `calls` [EXTRACTED]
 - [[chop()]] - `calls` [EXTRACTED]
 - [[contractName()]] - `calls` [EXTRACTED]
@@ -20,6 +20,6 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[postNews()]] - `calls` [EXTRACTED]
 - [[prem()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
+- [[px()_10]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_3

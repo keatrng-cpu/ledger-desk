@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.10
-members: 36
+members: 34
 ---
 
 # Community 101
 
 **Cohesion:** 0.10 - loosely connected
-**Members:** 36 nodes
+**Members:** 34 nodes
 
 ## Members
 - [[Book()]] - code - src/components/desk/tf-ladder-panel.tsx
@@ -39,13 +39,11 @@ members: 36
 - [[resampleCalendar()]] - code - src/lib/trading/tf-ladder.ts
 - [[respectOf()]] - code - src/lib/trading/tf-ladder.ts
 - [[structureOf()]] - code - src/lib/trading/tf-ladder.ts
-- [[submit()]] - code - src/components/learn/replay-drill.tsx
 - [[swings()]] - code - src/lib/trading/tf-ladder.ts
 - [[tf-ladder-panel.tsx]] - code - src/components/desk/tf-ladder-panel.tsx
 - [[tf-ladder.ts]] - code - src/lib/trading/tf-ladder.ts
 - [[tone()]] - code - src/components/desk/tf-ladder-panel.tsx
 - [[tradeDateOf()]] - code - src/lib/trading/tf-ladder.ts
-- [[word()]] - code - src/lib/trading/tf-ladder.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -56,31 +54,28 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 6 edges to [[_COMMUNITY_Community 58]]
-- 5 edges to [[_COMMUNITY_Community 1]]
+- 6 edges to [[_COMMUNITY_Community 1]]
+- 5 edges to [[_COMMUNITY_Community 39]]
 - 4 edges to [[_COMMUNITY_Community 102]]
-- 4 edges to [[_COMMUNITY_Community 4]]
-- 3 edges to [[_COMMUNITY_Community 39]]
+- 4 edges to [[_COMMUNITY_Community 52]]
 - 3 edges to [[_COMMUNITY_Community 8]]
 - 3 edges to [[_COMMUNITY_Community 163]]
-- 2 edges to [[_COMMUNITY_Community 27]]
-- 2 edges to [[_COMMUNITY_Community 126]]
-- 2 edges to [[_COMMUNITY_Community 29]]
-- 1 edge to [[_COMMUNITY_Community 56]]
-- 1 edge to [[_COMMUNITY_Community 6]]
-- 1 edge to [[_COMMUNITY_Community 67]]
+- 2 edges to [[_COMMUNITY_Community 160]]
+- 2 edges to [[_COMMUNITY_Community 67]]
+- 2 edges to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 9]]
 - 1 edge to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 242]]
-- 1 edge to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 29]]
+- 1 edge to [[_COMMUNITY_Community 126]]
 - 1 edge to [[_COMMUNITY_Community 45]]
-- 1 edge to [[_COMMUNITY_Community 90]]
 - 1 edge to [[_COMMUNITY_Community 183]]
 - 1 edge to [[_COMMUNITY_Community 117]]
 - 1 edge to [[_COMMUNITY_Community 170]]
 - 1 edge to [[_COMMUNITY_Community 166]]
 
 ## Top bridge nodes
-- [[tf-ladder.ts]] - degree 55, connects to 17 communities
+- [[tf-ladder.ts]] - degree 55, connects to 16 communities
 - [[tf-ladder-panel.tsx]] - degree 15, connects to 6 communities
-- [[buildTfLadder()]] - degree 17, connects to 3 communities
+- [[buildTfLadder()]] - degree 17, connects to 4 communities
 - [[tradeDateOf()]] - degree 8, connects to 2 communities
 - [[isoOf()]] - degree 5, connects to 1 community

@@ -30,6 +30,6 @@ tags:
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot-review.tsx]] - `imports_from` [EXTRACTED]
 - [[toSummary()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_93

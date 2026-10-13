@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tf-ladder.ts"
 type: "code"
-community: "Community 29"
+community: "Community 39"
 location: "L439"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/Community_39
 ---
 
 # sessionBias()
@@ -18,4 +18,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[tf-ladder.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/Community_39

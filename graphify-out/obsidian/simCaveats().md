@@ -15,7 +15,7 @@ tags:
 - [[ApexSimPanel()]] - `calls` [EXTRACTED]
 - [[apex-sim-panel.tsx]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `contains` [EXTRACTED]
-- [[fmtPct()]] - `calls` [EXTRACTED]
+- [[fmtPct()_1]] - `calls` [EXTRACTED]
 - [[fmtUsd()_1]] - `calls` [EXTRACTED]
 - [[signedR()_2]] - `calls` [EXTRACTED]
 

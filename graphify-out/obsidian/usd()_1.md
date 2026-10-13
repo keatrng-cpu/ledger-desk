@@ -1,21 +1,18 @@
 ---
-source_file: "src/components/desk/options-swing-panel.tsx"
+source_file: "src/components/desk/option-ticket.tsx"
 type: "code"
-community: "Community 153"
-location: "L50"
+community: "Community 14"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/Community_14
 ---
 
 # usd()
 
 ## Connections
-- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
-- [[QuoteSheet()]] - `calls` [EXTRACTED]
-- [[SleeveBudgetBar()]] - `calls` [EXTRACTED]
-- [[StrategyCard()]] - `calls` [EXTRACTED]
-- [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
+- [[OptionTicket()]] - `calls` [EXTRACTED]
+- [[option-ticket.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/Community_14

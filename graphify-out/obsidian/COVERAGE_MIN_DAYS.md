@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 20"
-location: "L47"
+community: "Community 179"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_179
 ---
 
 # COVERAGE_MIN_DAYS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[news.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_179

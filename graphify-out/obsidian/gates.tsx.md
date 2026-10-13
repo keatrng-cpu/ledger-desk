@@ -12,7 +12,7 @@ tags:
 # gates.tsx
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[RedirectToSignIn()]] - `contains` [EXTRACTED]
 - [[SIGN_IN_PATH]] - `contains` [EXTRACTED]
 - [[SignedIn()]] - `contains` [EXTRACTED]

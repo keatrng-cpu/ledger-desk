@@ -12,13 +12,13 @@ members: 17
 ## Members
 - [[addEventListener()]] - code - scripts/verify-kill-watch.mjs
 - [[annotated]] - code - scripts/verify-kill-watch.mjs
-- [[bare]] - code - scripts/verify-kill-watch.mjs
+- [[bare_1]] - code - scripts/verify-kill-watch.mjs
 - [[both]] - code - scripts/verify-kill-watch.mjs
-- [[check()_24]] - code - scripts/verify-kill-watch.mjs
+- [[check()_36]] - code - scripts/verify-kill-watch.mjs
 - [[dispatchEvent()]] - code - scripts/verify-kill-watch.mjs
 - [[many_1]] - code - scripts/verify-kill-watch.mjs
 - [[mem]] - code - scripts/verify-kill-watch.mjs
-- [[now_4]] - code - scripts/verify-kill-watch.mjs
+- [[now_6]] - code - scripts/verify-kill-watch.mjs
 - [[numbered]] - code - scripts/verify-kill-watch.mjs
 - [[ok()_13]] - code - scripts/verify-kill-watch.mjs
 - [[p1_1]] - code - scripts/verify-kill-watch.mjs
@@ -37,7 +37,7 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 2 edges to [[_COMMUNITY_Community 80]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[verify-kill-watch.mjs]] - degree 19, connects to 2 communities

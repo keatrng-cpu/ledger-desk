@@ -12,8 +12,11 @@ tags:
 # isPathFire()
 
 ## Connections
+- [[Code]] - `references` [INFERRED]
+- [[Trigger model (Keaton 2026-10-06)]] - `references` [INFERRED]
 - [[cardRead()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
+- [[eligibleCandidates()]] - `calls` [EXTRACTED]
 - [[fireBand()]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
@@ -22,7 +25,6 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[path-alarm.ts]] - `contains` [EXTRACTED]
 - [[pathCandidates()]] - `calls` [EXTRACTED]
-- [[pickCandidate()]] - `calls` [EXTRACTED]
 - [[rhCycleOnDesk()]] - `calls` [EXTRACTED]
 - [[scannerCards()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]

@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 137"
-location: "L312"
+community: "Community 103"
+location: "L124"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/Community_103
 ---
 
 # topicOf()
 
 ## Connections
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[off-hours-study.ts]] - `contains` [EXTRACTED]
+- [[outsidersOf()]] - `calls` [EXTRACTED]
+- [[predictsOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/Community_103

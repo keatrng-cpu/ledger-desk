@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[PropFirmPanel()]] - `calls` [EXTRACTED]
-- [[money()]] - `calls` [EXTRACTED]
+- [[money()_1]] - `calls` [EXTRACTED]
 - [[propfirm-panel.tsx]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_108

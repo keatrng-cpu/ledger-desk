@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-word-hold.mjs"
+source_file: "scripts/verify-focus-pick.mjs"
 type: "code"
-community: "Community 56"
-location: "L13"
+community: "Community 244"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_244
 ---
 
 # check()
 
 ## Connections
-- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
+- [[verify-focus-pick.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_244

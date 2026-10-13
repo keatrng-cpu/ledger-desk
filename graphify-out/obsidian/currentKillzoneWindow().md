@@ -12,6 +12,8 @@ tags:
 # currentKillzoneWindow()
 
 ## Connections
+- [[3 · build-desk checklist risk item + scanner suppression]] - `references` [INFERRED]
+- [[What shipped]] - `references` [INFERRED]
 - [[computeLiveRiskState()]] - `calls` [EXTRACTED]
 - [[etDateParts()]] - `calls` [EXTRACTED]
 - [[etWallToUtc()]] - `calls` [EXTRACTED]

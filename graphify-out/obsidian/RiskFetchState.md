@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-fetch-guard.ts"
 type: "code"
-community: "Community 8"
+community: "Community 9"
 location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_9
 ---
 
 # RiskFetchState
@@ -18,4 +18,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_9

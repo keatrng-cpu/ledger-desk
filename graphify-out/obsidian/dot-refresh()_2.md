@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/predict/prediction-market-feed.ts"
+source_file: "src/components/mead/mead-feed.ts"
 type: "code"
-community: "Community 7"
-location: "L170"
+community: "Community 41"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_41
 ---
 
 # .refresh()
 
 ## Connections
-- [[PredictionMarketFeed]] - `method` [EXTRACTED]
-- [[createPredictionMarketFeed()]] - `calls` [EXTRACTED]
+- [[MeadFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_41

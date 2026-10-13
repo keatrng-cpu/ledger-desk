@@ -1,0 +1,21 @@
+---
+source_file: "src/lib/trading/detectors.ts"
+type: "code"
+community: "Community 40"
+location: "L831"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_40
+---
+
+# confirmSweepOnTape()
+
+## Connections
+- [[barSpanMs()]] - `calls` [EXTRACTED]
+- [[detectors.ts]] - `contains` [EXTRACTED]
+- [[scoreDirection()]] - `calls` [EXTRACTED]
+- [[summarizeDetectors()]] - `calls` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_40

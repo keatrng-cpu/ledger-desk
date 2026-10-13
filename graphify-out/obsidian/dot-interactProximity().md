@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 28"
-location: "L3282"
+location: "L3758"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # .interactProximity()
 
 ## Connections
+- [[dot-getState()_2]] - `calls` [INFERRED]
 - [[dot-onKey()]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 

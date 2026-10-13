@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.14
-members: 37
+members: 38
 ---
 
 # Community 93
 
 **Cohesion:** 0.14 - loosely connected
-**Members:** 37 nodes
+**Members:** 38 nodes
 
 ## Members
 - [[BiasSection()]] - code - src/components/desk/snapshot-review.tsx
@@ -26,8 +26,9 @@ members: 37
 - [[ScanSection()]] - code - src/components/desk/snapshot-review.tsx
 - [[SnapRow]] - code - src/lib/journal/snapshots.ts
 - [[SnapshotDetail()]] - code - src/components/desk/snapshot-review.tsx
+- [[SnapshotReview()]] - code - src/components/desk/snapshot-review.tsx
 - [[SnapshotRow()]] - code - src/components/desk/snapshot-review.tsx
-- [[arr()_2]] - code - src/components/desk/snapshot-review.tsx
+- [[arr()_4]] - code - src/components/desk/snapshot-review.tsx
 - [[biasCls()]] - code - src/components/desk/snapshot-review.tsx
 - [[bool()_1]] - code - src/components/desk/snapshot-review.tsx
 - [[captureInput]] - code - src/lib/journal/snapshots.ts
@@ -36,14 +37,14 @@ members: 37
 - [[getSnapshot]] - code - src/lib/journal/snapshots.ts
 - [[listInput]] - code - src/lib/journal/snapshots.ts
 - [[listSnapshots]] - code - src/lib/journal/snapshots.ts
-- [[num()_15]] - code - src/components/desk/snapshot-review.tsx
+- [[num()_18]] - code - src/components/desk/snapshot-review.tsx
 - [[obj()]] - code - src/components/desk/snapshot-review.tsx
 - [[pctOf()_1]] - code - src/components/desk/snapshot-review.tsx
-- [[px()_13]] - code - src/components/desk/snapshot-review.tsx
+- [[px()_16]] - code - src/components/desk/snapshot-review.tsx
 - [[score()_1]] - code - src/components/desk/snapshot-review.tsx
 - [[snapshot-review.tsx]] - code - src/components/desk/snapshot-review.tsx
 - [[snapshots.ts]] - code - src/lib/journal/snapshots.ts
-- [[str()_1]] - code - src/components/desk/snapshot-review.tsx
+- [[str()_2]] - code - src/components/desk/snapshot-review.tsx
 - [[strList()]] - code - src/components/desk/snapshot-review.tsx
 - [[toSummary()]] - code - src/lib/journal/snapshots.ts
 - [[verdictCls()]] - code - src/components/desk/snapshot-review.tsx
@@ -56,17 +57,18 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 10 edges to [[_COMMUNITY_Community 14]]
-- 9 edges to [[_COMMUNITY_Community 8]]
+- 12 edges to [[_COMMUNITY_Community 14]]
+- 5 edges to [[_COMMUNITY_Community 8]]
 - 3 edges to [[_COMMUNITY_Community 23]]
 - 3 edges to [[_COMMUNITY_Community 19]]
-- 3 edges to [[_COMMUNITY_Community 65]]
-- 1 edge to [[_COMMUNITY_Community 189]]
-- 1 edge to [[_COMMUNITY_Community 87]]
+- 3 edges to [[_COMMUNITY_Community 87]]
+- 1 edge to [[_COMMUNITY_Community 105]]
+- 1 edge to [[_COMMUNITY_Community 122]]
+- 1 edge to [[_COMMUNITY_Community 69]]
 
 ## Top bridge nodes
 - [[snapshots.ts]] - degree 19, connects to 6 communities
-- [[snapshot-review.tsx]] - degree 40, connects to 3 communities
-- [[SnapshotDetail()]] - degree 12, connects to 2 communities
-- [[getSnapshot]] - degree 5, connects to 2 communities
-- [[listSnapshots]] - degree 5, connects to 2 communities
+- [[snapshot-review.tsx]] - degree 40, connects to 4 communities
+- [[SnapshotReview()]] - degree 9, connects to 2 communities
+- [[SnapshotDetail()]] - degree 12, connects to 1 community
+- [[BiasSection()]] - degree 10, connects to 1 community

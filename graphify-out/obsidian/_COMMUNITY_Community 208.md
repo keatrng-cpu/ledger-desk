@@ -10,14 +10,14 @@ members: 14
 **Members:** 14 nodes
 
 ## Members
-- [[GOAL]] - code - scripts/verify-rnd.mjs
+- [[GOAL_2]] - code - scripts/verify-rnd.mjs
 - [[WHY the trader wants the five to be always trying to make the whole ledger…]] - rationale - scripts/verify-rnd.mjs
-- [[book()_2]] - code - scripts/verify-rnd.mjs
-- [[check()_30]] - code - scripts/verify-rnd.mjs
+- [[book()_3]] - code - scripts/verify-rnd.mjs
+- [[check()_42]] - code - scripts/verify-rnd.mjs
 - [[closedRow()]] - code - scripts/verify-rnd.mjs
-- [[get()_1]] - code - scripts/verify-rnd.mjs
-- [[json()_1]] - code - scripts/verify-rnd.mjs
-- [[near()_2]] - code - scripts/verify-rnd.mjs
+- [[get()_2]] - code - scripts/verify-rnd.mjs
+- [[json()_2]] - code - scripts/verify-rnd.mjs
+- [[near()_3]] - code - scripts/verify-rnd.mjs
 - [[refusedGhost()]] - code - scripts/verify-rnd.mjs
 - [[rnd()_1]] - code - scripts/verify-rnd.mjs
 - [[skipGhost()]] - code - scripts/verify-rnd.mjs
@@ -33,11 +33,11 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 0]]
+- 1 edge to [[_COMMUNITY_Community 298]]
 - 1 edge to [[_COMMUNITY_Community 194]]
-- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 20]]
 - 1 edge to [[_COMMUNITY_Community 50]]
+- 1 edge to [[_COMMUNITY_Community 52]]
 - 1 edge to [[_COMMUNITY_Community 57]]
 
 ## Top bridge nodes

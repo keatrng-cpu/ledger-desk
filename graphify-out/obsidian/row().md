@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/direction-book.py"
+source_file: "scripts/verify-live-gateway.mjs"
 type: "code"
-community: "Community 131"
-location: "L484"
+community: "Community 1"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/Community_1
 ---
 
 # row()
 
 ## Connections
-- [[main()_2]] - `contains` [EXTRACTED]
-- [[stats()]] - `calls` [EXTRACTED]
+- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/Community_1

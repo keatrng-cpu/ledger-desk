@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/habit-card.tsx"
 type: "code"
-community: "Community 86"
+community: "Community 100"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/Community_100
 ---
 
 # habit-card.tsx
@@ -33,7 +33,7 @@ tags:
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sweepFundedUsd()]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_5]] - `imports` [EXTRACTED]
+- [[usd()_6]] - `imports` [EXTRACTED]
 - [[voidEntry()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/Community_100

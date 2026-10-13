@@ -1,31 +1,21 @@
 ---
-source_file: "src/lib/room/live-types.ts"
+source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 198"
-location: "L681"
+community: "Community 180"
+location: "L262"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/Community_180
 ---
 
 # .add()
 
 ## Connections
-- [[dot-clock()]] - `calls` [EXTRACTED]
-- [[dot-frac()]] - `calls` [EXTRACTED]
-- [[dot-hhmm()]] - `calls` [EXTRACTED]
-- [[dot-int()]] - `calls` [EXTRACTED]
-- [[dot-lvl()]] - `calls` [EXTRACTED]
-- [[dot-mins()]] - `calls` [EXTRACTED]
-- [[dot-pct()]] - `calls` [EXTRACTED]
-- [[dot-pts()]] - `calls` [EXTRACTED]
-- [[dot-px()]] - `calls` [EXTRACTED]
-- [[dot-r()]] - `calls` [EXTRACTED]
-- [[dot-raw()]] - `calls` [EXTRACTED]
-- [[dot-span()]] - `calls` [EXTRACTED]
-- [[dot-usd()]] - `calls` [EXTRACTED]
-- [[dot-x()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[Geo]] - `method` [EXTRACTED]
+- [[_newell()_1]] - `calls` [EXTRACTED]
+- [[build_rooms()]] - `calls` [INFERRED]
+- [[ensure()]] - `calls` [EXTRACTED]
+- [[shell()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/Community_180

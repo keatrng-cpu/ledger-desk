@@ -12,6 +12,7 @@ tags:
 # sweepRate()
 
 ## Connections
+- [[3. Arithmetic runs in code]] - `references` [INFERRED]
 - [[planSweep()]] - `calls` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 - [[rateLadder]] - `calls` [EXTRACTED]

@@ -10,8 +10,8 @@ members: 20
 **Members:** 20 nodes
 
 ## Members
-- [[BARS_8]] - code - scripts/build-evidence-pack.mjs
-- [[H_6]] - code - scripts/build-evidence-pack.mjs
+- [[BARS_10]] - code - scripts/build-evidence-pack.mjs
+- [[H_7]] - code - scripts/build-evidence-pack.mjs
 - [[IS_YEARS_6]] - code - scripts/build-evidence-pack.mjs
 - [[OOS_YEARS_6]] - code - scripts/build-evidence-pack.mjs
 - [[barAtOrBefore()_1]] - code - scripts/build-evidence-pack.mjs
@@ -19,16 +19,16 @@ members: 20
 - [[build-evidence-pack.mjs]] - code - scripts/build-evidence-pack.mjs
 - [[clustered()_4]] - code - scripts/build-evidence-pack.mjs
 - [[cut()]] - code - scripts/build-evidence-pack.mjs
-- [[dayKey()_6]] - code - scripts/build-evidence-pack.mjs
+- [[dayKey()_7]] - code - scripts/build-evidence-pack.mjs
 - [[dirHit()_4]] - code - scripts/build-evidence-pack.mjs
 - [[driftAt()]] - code - scripts/build-evidence-pack.mjs
-- [[pack]] - code - scripts/build-evidence-pack.mjs
-- [[r3()_7]] - code - scripts/build-evidence-pack.mjs
-- [[rows_7]] - code - scripts/build-evidence-pack.mjs
-- [[show()_5]] - code - scripts/build-evidence-pack.mjs
+- [[pack_1]] - code - scripts/build-evidence-pack.mjs
+- [[r3()_8]] - code - scripts/build-evidence-pack.mjs
+- [[rows_8]] - code - scripts/build-evidence-pack.mjs
+- [[show()_6]] - code - scripts/build-evidence-pack.mjs
 - [[sim()_6]] - code - scripts/build-evidence-pack.mjs
 - [[sims_4]] - code - scripts/build-evidence-pack.mjs
-- [[within()]] - code - scripts/build-evidence-pack.mjs
+- [[within()_1]] - code - scripts/build-evidence-pack.mjs
 - [[yearOf()_5]] - code - scripts/build-evidence-pack.mjs
 
 ## Live Query (requires Dataview plugin)
@@ -39,8 +39,8 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 298]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 

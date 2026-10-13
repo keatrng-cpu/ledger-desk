@@ -1,0 +1,19 @@
+---
+source_file: "src/lib/room/live-talk.ts"
+type: "code"
+community: "Community 103"
+location: "L1353"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_103
+---
+
+# firmCands()
+
+## Connections
+- [[firmDay]] - `calls` [EXTRACTED]
+- [[investCands()]] - `calls` [EXTRACTED]
+- [[live-talk.ts]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_103

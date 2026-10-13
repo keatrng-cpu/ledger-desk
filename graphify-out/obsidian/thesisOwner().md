@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "Community 3"
 location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_3
 ---
 
 # thesisOwner()
@@ -16,4 +16,4 @@ tags:
 - [[debate.ts]] - `contains` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_3

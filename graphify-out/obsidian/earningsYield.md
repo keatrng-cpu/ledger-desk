@@ -15,6 +15,8 @@ tags:
 - [[ResearchCard()]] - `calls` [EXTRACTED]
 - [[ScreenTable()]] - `calls` [EXTRACTED]
 - [[factors.ts]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[memoOf()]] - `calls` [EXTRACTED]
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 

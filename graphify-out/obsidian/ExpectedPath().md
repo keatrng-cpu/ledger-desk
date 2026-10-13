@@ -2,7 +2,7 @@
 source_file: "src/components/desk/setup-chart-panel.tsx"
 type: "code"
 community: "Community 139"
-location: "L504"
+location: "L507"
 tags:
   - graphify/code
   - graphify/EXTRACTED

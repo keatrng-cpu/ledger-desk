@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-trigger.mjs"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 82"
-location: "L16"
+community: "Community 278"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/Community_278
 ---
 
 # check()
 
 ## Connections
-- [[verify-entry-trigger.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/Community_278

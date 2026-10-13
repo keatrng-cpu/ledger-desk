@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-floor-rh-account.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 3"
-location: "L12"
+community: "Community 239"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/Community_239
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-rh-account.mjs]] - `contains` [EXTRACTED]
+- [[eq()_1]] - `calls` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/Community_239

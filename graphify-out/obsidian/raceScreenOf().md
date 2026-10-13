@@ -2,7 +2,7 @@
 source_file: "src/components/room/room-engine.ts"
 type: "code"
 community: "Community 29"
-location: "L257"
+location: "L260"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # raceScreenOf()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[deskAudit()]] - `calls` [EXTRACTED]
 - [[etDateOf()]] - `calls` [EXTRACTED]
 - [[feedOf()]] - `calls` [EXTRACTED]

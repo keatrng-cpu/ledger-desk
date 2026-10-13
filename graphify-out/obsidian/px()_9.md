@@ -1,34 +1,19 @@
 ---
-source_file: "src/lib/room/format.ts"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 3"
-location: "L11"
+community: "Community 25"
+location: "L1301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/Community_25
 ---
 
 # px()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
-- [[blocked()]] - `calls` [EXTRACTED]
-- [[brief()]] - `calls` [EXTRACTED]
-- [[chop()]] - `calls` [EXTRACTED]
-- [[closed()]] - `calls` [EXTRACTED]
-- [[debate()]] - `calls` [EXTRACTED]
-- [[evaluateEntry()]] - `calls` [EXTRACTED]
-- [[exitLines()]] - `calls` [EXTRACTED]
-- [[fill()]] - `calls` [EXTRACTED]
-- [[focusQuote()]] - `calls` [EXTRACTED]
-- [[holding()]] - `calls` [EXTRACTED]
-- [[idleLine()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `imports` [EXTRACTED]
-- [[orchestrator.ts]] - `imports` [EXTRACTED]
-- [[roomformat.ts]] - `contains` [EXTRACTED]
-- [[setupReview()]] - `calls` [EXTRACTED]
-- [[thesisText()]] - `calls` [EXTRACTED]
-- [[triggerWait()]] - `calls` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[fmt()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/Community_25

@@ -13,12 +13,14 @@ tags:
 
 ## Connections
 - [[SessionLevels]] - `calls` [EXTRACTED]
-- [[dayChangePct()_5]] - `calls` [EXTRACTED]
+- [[dayChangePct()_7]] - `calls` [EXTRACTED]
 - [[draw.ts]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[groupSessions()]] - `calls` [EXTRACTED]
+- [[openingRange()]] - `calls` [EXTRACTED]
 - [[pad2()_6]] - `calls` [EXTRACTED]
 - [[replay.ts]] - `imports` [EXTRACTED]
 - [[structure.ts]] - `contains` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_58

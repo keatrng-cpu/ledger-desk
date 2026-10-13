@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-board-rank.mjs"
 type: "code"
-community: "Community 254"
+community: "Community 29"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/Community_29
 ---
 
 # order()
@@ -15,4 +15,4 @@ tags:
 - [[compareForBoard()]] - `indirect_call` [INFERRED]
 - [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/Community_29

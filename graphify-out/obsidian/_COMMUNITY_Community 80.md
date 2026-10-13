@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.11
-members: 40
+members: 39
 ---
 
 # Community 80
 
 **Cohesion:** 0.11 - loosely connected
-**Members:** 40 nodes
+**Members:** 39 nodes
 
 ## Members
 - [[CHECK_INTERVAL_DAYS]] - code - src/lib/invest/kill-watch.ts
@@ -18,11 +18,10 @@ members: 40
 - [[KILL_STORE_EVENT]] - code - src/lib/invest/kill-store.ts
 - [[KillCheck]] - code - src/lib/invest/kill-watch-server.ts
 - [[KillCheckState]] - code - src/lib/invest/kill-watch.ts
-- [[KillJudgement]] - code - src/lib/invest/kill-store.ts
 - [[KillResult]] - code - src/lib/invest/kill-watch.ts
 - [[KillWatchPanel()]] - code - src/components/desk/kill-watch-panel.tsx
 - [[MAX_CITATIONS]] - code - src/lib/invest/kill-watch.ts
-- [[StoredKillRun]] - code - src/lib/invest/kill-store.ts
+- [[diligenceOf()]] - code - src/lib/room/invest-firm.ts
 - [[emit()_2]] - code - src/lib/invest/kill-store.ts
 - [[envKey()_1]] - code - src/lib/invest/kill-watch-server.ts
 - [[formatResult()]] - code - src/lib/invest/kill-watch.ts
@@ -42,12 +41,12 @@ members: 40
 - [[loadLastRun()]] - code - src/lib/invest/kill-store.ts
 - [[notRun()]] - code - src/lib/invest/kill-watch-server.ts
 - [[parseXaiResponse()]] - code - src/lib/invest/kill-watch.ts
-- [[read()_7]] - code - src/lib/invest/kill-store.ts
+- [[read()_13]] - code - src/lib/invest/kill-store.ts
 - [[runKillCheck]] - code - src/lib/invest/kill-watch-server.ts
 - [[saveRun()]] - code - src/lib/invest/kill-store.ts
 - [[sinceDaysFor()]] - code - src/lib/invest/kill-watch.ts
-- [[subscribeKill()]] - code - src/lib/invest/kill-store.ts
 - [[summaryFor()]] - code - src/lib/invest/kill-watch.ts
+- [[trippedFrom()]] - code - src/lib/invest/kill-store.ts
 - [[trippedTickers()]] - code - src/lib/invest/kill-store.ts
 - [[write()_1]] - code - src/lib/invest/kill-store.ts
 
@@ -59,18 +58,20 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 8 edges to [[_COMMUNITY_Community 100]]
+- 19 edges to [[_COMMUNITY_Community 100]]
+- 8 edges to [[_COMMUNITY_Community 86]]
 - 4 edges to [[_COMMUNITY_Community 5]]
 - 3 edges to [[_COMMUNITY_Community 129]]
-- 3 edges to [[_COMMUNITY_Community 65]]
+- 3 edges to [[_COMMUNITY_Community 87]]
+- 2 edges to [[_COMMUNITY_Community 137]]
 - 2 edges to [[_COMMUNITY_Community 197]]
 - 1 edge to [[_COMMUNITY_Community 107]]
+- 1 edge to [[_COMMUNITY_Community 122]]
 - 1 edge to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 87]]
 
 ## Top bridge nodes
-- [[kill-watch.ts]] - degree 24, connects to 4 communities
+- [[kill-watch.ts]] - degree 26, connects to 6 communities
+- [[kill-store.ts]] - degree 23, connects to 4 communities
 - [[kill-watch-panel.tsx]] - degree 18, connects to 2 communities
-- [[kill-store.ts]] - degree 18, connects to 2 communities
 - [[kill-watch-server.ts]] - degree 16, connects to 2 communities
 - [[KillWatchPanel()]] - degree 14, connects to 1 community

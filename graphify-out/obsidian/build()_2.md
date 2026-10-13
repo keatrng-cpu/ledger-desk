@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-take-census.mjs"
+source_file: "scripts/verify-mead-talk.mjs"
 type: "code"
-community: "Community 26"
-location: "L26"
+community: "Community 210"
+location: "L133"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_210
 ---
 
 # build()
 
 ## Connections
-- [[verify-take-census.mjs]] - `contains` [EXTRACTED]
+- [[buildAll()]] - `calls` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_210

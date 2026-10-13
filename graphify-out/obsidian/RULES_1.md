@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/learn/replay-drill.ts"
+source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 6"
-location: "L203"
+community: "Community 20"
+location: "L103"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/Community_20
 ---
 
 # RULES
 
 ## Connections
-- [[replay-drill.ts]] - `contains` [EXTRACTED]
-- [[replay-drill.tsx]] - `imports` [EXTRACTED]
+- [[market-narrative.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/Community_20

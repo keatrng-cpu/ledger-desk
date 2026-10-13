@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/synapse-rail.tsx"
 type: "code"
-community: "Community 214"
+community: "Community 69"
 location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Community_69
 ---
 
 # SynapseRail()
@@ -19,4 +19,4 @@ tags:
 - [[synapse-rail.tsx]] - `contains` [EXTRACTED]
 - [[useDeskSynapse]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Community_69

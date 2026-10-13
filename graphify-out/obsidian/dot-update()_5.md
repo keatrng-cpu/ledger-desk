@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/room/floor-proto-avatars.ts"
+source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 193"
-location: "L270"
+community: "Community 196"
+location: "L130"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/Community_196
 ---
 
 # .update()
 
 ## Connections
-- [[OwnerAvatar]] - `method` [EXTRACTED]
-- [[damp()_1]] - `calls` [EXTRACTED]
+- [[Confetti]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/Community_196

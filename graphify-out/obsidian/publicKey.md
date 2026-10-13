@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/gen-vapid.mjs"
 type: "code"
-community: "Community 70"
+community: "Community 65"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/Community_65
 ---
 
 # publicKey
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[gen-vapid.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/Community_65

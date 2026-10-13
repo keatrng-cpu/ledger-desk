@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/smoke-desk-budget.mjs"
 type: "code"
-community: "Community 78"
+community: "Community 210"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/Community_210
 ---
 
 # fn()
@@ -14,5 +14,6 @@ tags:
 ## Connections
 - [[call()_1]] - `calls` [EXTRACTED]
 - [[smoke-desk-budget.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/Community_210

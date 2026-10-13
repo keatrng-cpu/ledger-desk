@@ -1,17 +1,19 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 20"
+community: "Community 179"
 location: "L250"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_179
 ---
 
 # shouldFlatten()
 
 ## Connections
+- [[4. Live positions are still unmanaged]] - `references` [INFERRED]
+- [[5. Hooks for B4 (alerts)  B5 (cron) — owned by another agent]] - `references` [INFERRED]
 - [[flat()]] - `calls` [EXTRACTED]
 - [[hold()]] - `calls` [EXTRACTED]
 - [[managePaperTradesAgainstPrice()]] - `calls` [EXTRACTED]
@@ -22,4 +24,4 @@ tags:
 - [[progressRead()]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_179

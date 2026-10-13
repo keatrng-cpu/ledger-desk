@@ -1,8 +1,8 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
 community: "Community 16"
-location: "L1026"
+location: "L767"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,8 +13,10 @@ tags:
 
 ## Connections
 - [[dot-react()_1]] - `calls` [EXTRACTED]
+- [[dot-setCrowd()_1]] - `calls` [INFERRED]
+- [[dot-setFeed()]] - `calls` [INFERRED]
 - [[CrowdRead]] - `references` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
 - [[reactionForCrowd()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_16

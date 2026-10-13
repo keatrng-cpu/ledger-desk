@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-shadow-book.mjs"
+source_file: "scripts/verify-curriculum.mjs"
 type: "code"
-community: "Community 126"
-location: "L18"
+community: "Community 118"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/Community_118
 ---
 
 # check()
 
 ## Connections
-- [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
+- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/Community_118

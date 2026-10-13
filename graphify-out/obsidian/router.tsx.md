@@ -12,8 +12,8 @@ tags:
 # router.tsx
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
-- [[@tanstackreact-router_2]] - `contains` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_1]] - `contains` [EXTRACTED]
 - [[AppErrorComponent()]] - `imports` [EXTRACTED]
 - [[Register]] - `contains` [EXTRACTED]
 - [[error-component.tsx]] - `imports_from` [EXTRACTED]

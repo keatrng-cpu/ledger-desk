@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire.ts"
 type: "code"
-community: "Community 122"
-location: "L99"
+community: "Community 94"
+location: "L103"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/Community_94
 ---
 
 # armEnv()
@@ -16,4 +16,4 @@ tags:
 - [[rhAutofireEnabled()]] - `calls` [EXTRACTED]
 - [[rhLiveArmed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/Community_94

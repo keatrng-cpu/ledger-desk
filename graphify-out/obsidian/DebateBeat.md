@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 10"
-location: "L196"
+community: "Community 24"
+location: "L198"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/Community_24
 ---
 
 # DebateBeat
@@ -17,4 +17,4 @@ tags:
 - [[manager-feed.ts]] - `contains` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/Community_24

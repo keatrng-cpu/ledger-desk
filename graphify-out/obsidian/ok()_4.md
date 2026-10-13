@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-news-ipo.mjs"
+source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 133"
-location: "L25"
+community: "Community 138"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_133
+  - community/Community_138
 ---
 
 # ok()
 
 ## Connections
-- [[check()_7]] - `calls` [EXTRACTED]
-- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
+- [[check()_13]] - `calls` [EXTRACTED]
+- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_133
+#graphify/code #graphify/EXTRACTED #community/Community_138

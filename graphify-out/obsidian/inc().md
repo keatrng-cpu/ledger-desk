@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/diagnose-path.mjs"
 type: "code"
-community: "Community 90"
+community: "Community 20"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Community_20
 ---
 
 # inc()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Community_20

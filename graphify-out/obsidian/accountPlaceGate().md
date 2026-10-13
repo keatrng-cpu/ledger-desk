@@ -12,6 +12,8 @@ tags:
 # accountPlaceGate()
 
 ## Connections
+- [[Buying-power hard gate (Keaton 2026-10-06)]] - `references` [INFERRED]
+- [[Code]] - `references` [INFERRED]
 - [[manager-account.ts]] - `contains` [EXTRACTED]
 - [[managerAccountLine()]] - `calls` [EXTRACTED]
 - [[mayPlaceAfterReview()]] - `calls` [EXTRACTED]

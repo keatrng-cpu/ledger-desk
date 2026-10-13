@@ -11,13 +11,13 @@ members: 48
 
 ## Members
 - [[ALL_YEARS]] - code - scripts/backtest-account.mjs
-- [[BARS_15]] - code - scripts/backtest-account.mjs
-- [[BASE_8]] - code - scripts/backtest-account.mjs
+- [[BARS_19]] - code - scripts/backtest-account.mjs
+- [[BASE_13]] - code - scripts/backtest-account.mjs
 - [[EXIT_AXES]] - code - scripts/backtest-account.mjs
 - [[H_15]] - code - scripts/backtest-account.mjs
 - [[IS_1]] - code - scripts/backtest-account.mjs
 - [[OOS_1]] - code - scripts/backtest-account.mjs
-- [[OUT_7]] - code - scripts/backtest-account.mjs
+- [[OUT_11]] - code - scripts/backtest-account.mjs
 - [[PIN]] - code - scripts/backtest-account.mjs
 - [[RISK]] - code - scripts/backtest-account.mjs
 - [[SESSIONS]] - code - scripts/backtest-account.mjs
@@ -25,7 +25,7 @@ members: 48
 - [[TOP_1]] - code - scripts/backtest-account.mjs
 - [[anyhour]] - code - scripts/backtest-account.mjs
 - [[argOf()_3]] - code - scripts/backtest-account.mjs
-- [[argv_2]] - code - scripts/backtest-account.mjs
+- [[argv_4]] - code - scripts/backtest-account.mjs
 - [[armed()_1]] - code - scripts/backtest-account.mjs
 - [[atrAt()_2]] - code - scripts/backtest-account.mjs
 - [[atrCache]] - code - scripts/backtest-account.mjs
@@ -36,7 +36,7 @@ members: 48
 - [[dayKey()_14]] - code - scripts/backtest-account.mjs
 - [[eligible]] - code - scripts/backtest-account.mjs
 - [[exitVariants()]] - code - scripts/backtest-account.mjs
-- [[has()_3]] - code - scripts/backtest-account.mjs
+- [[has()_4]] - code - scripts/backtest-account.mjs
 - [[isTake()]] - code - scripts/backtest-account.mjs
 - [[line()_3]] - code - scripts/backtest-account.mjs
 - [[monthKey()]] - code - scripts/backtest-account.mjs
@@ -44,13 +44,13 @@ members: 48
 - [[opportunities()]] - code - scripts/backtest-account.mjs
 - [[oppsFor()]] - code - scripts/backtest-account.mjs
 - [[pnlOver()]] - code - scripts/backtest-account.mjs
-- [[rows_15]] - code - scripts/backtest-account.mjs
+- [[rows_18]] - code - scripts/backtest-account.mjs
 - [[runAccount()]] - code - scripts/backtest-account.mjs
 - [[runTrade()]] - code - scripts/backtest-account.mjs
 - [[s1]] - code - scripts/backtest-account.mjs
 - [[score()]] - code - scripts/backtest-account.mjs
 - [[shockScore()_1]] - code - scripts/backtest-account.mjs
-- [[slice()]] - code - scripts/backtest-account.mjs
+- [[slice()_1]] - code - scripts/backtest-account.mjs
 - [[sole()]] - code - scripts/backtest-account.mjs
 - [[stage1]] - code - scripts/backtest-account.mjs
 - [[stage2]] - code - scripts/backtest-account.mjs
@@ -68,10 +68,10 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 115]]
-- 1 edge to [[_COMMUNITY_Community 158]]
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 46]]
+- 1 edge to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[backtest-account.mjs]] - degree 52, connects to 5 communities

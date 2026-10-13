@@ -12,11 +12,11 @@ tags:
 # openShadows()
 
 ## Connections
-- [[etDayKey()_1]] - `calls` [EXTRACTED]
+- [[etDayKey()]] - `calls` [EXTRACTED]
 - [[etTime()_1]] - `calls` [EXTRACTED]
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
 - [[observeShadows()]] - `calls` [EXTRACTED]
-- [[px()_1]] - `calls` [EXTRACTED]
+- [[px()_3]] - `calls` [EXTRACTED]
 - [[r2()_2]] - `calls` [EXTRACTED]
 - [[readSession()]] - `calls` [EXTRACTED]
 - [[refusingLayer()]] - `calls` [EXTRACTED]

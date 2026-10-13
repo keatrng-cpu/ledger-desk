@@ -1,42 +1,65 @@
 ---
 type: community
-cohesion: 0.12
-members: 27
+cohesion: 0.06
+members: 50
 ---
 
 # Community 140
 
-**Cohesion:** 0.12 - loosely connected
-**Members:** 27 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 50 nodes
 
 ## Members
-- [[ANIM]] - code - src/lib/room/live-types.ts
-- [[AUDIT_OFFICE]] - code - src/lib/room/live-voices-race.ts
-- [[CouncilData]] - code - src/lib/room/live-voices-race.ts
-- [[DecisionData]] - code - src/lib/room/live-voices-race.ts
-- [[Exp]] - code - src/lib/room/live-voices-race.ts
-- [[FinishData]] - code - src/lib/room/live-voices-race.ts
-- [[GoalFinalData]] - code - src/lib/room/live-voices-race.ts
-- [[GoalLite]] - code - src/lib/room/live-types.ts
-- [[GoalNightData]] - code - src/lib/room/live-voices-race.ts
-- [[LadderPlainData]] - code - src/lib/room/live-voices-race.ts
-- [[LeadData]] - code - src/lib/room/live-voices-race.ts
-- [[LeagueData]] - code - src/lib/room/live-voices-race.ts
-- [[NEUTRAL]] - code - src/lib/room/live-voices.ts
-- [[PaceData]] - code - src/lib/room/live-voices-race.ts
-- [[ROOM_BACKERS]] - code - src/lib/room/seats.ts
-- [[ReplanData]] - code - src/lib/room/live-voices-race.ts
-- [[SEAT_NAME]] - code - src/lib/room/seats.ts
-- [[SEAT_OWNER]] - code - src/lib/room/seats.ts
-- [[STATUS_WORD]] - code - src/lib/room/live-voices-race.ts
-- [[SeatCloseData]] - code - src/lib/room/live-voices-race.ts
-- [[SeatEventLite]] - code - src/lib/room/live-types.ts
-- [[SeatRowLite]] - code - src/lib/room/live-types.ts
-- [[SyndicateClosedData]] - code - src/lib/room/live-voices-race.ts
-- [[TouchRoundData]] - code - src/lib/room/live-voices-race.ts
-- [[WeekLite]] - code - src/lib/room/live-types.ts
-- [[list()_1]] - code - src/lib/room/live-voices-race.ts
-- [[live-voices-race.ts]] - code - src/lib/room/live-voices-race.ts
+- [[0 = open sky, 1 = buried. Close hits count fully, far hits fade out.]] - rationale - scripts/blender/floor_ao.py
+- [[AO over a rectangle (origin org, unit axes du and dv, size w x h, outward…]] - rationale - scripts/blender/floor_ao.py
+- [[Cosine-weighted directions about +Z (Hammersley).]] - rationale - scripts/blender/floor_ao.py
+- [[Delete polygons nobody can see down-facing faces at floor level, and faces…]] - rationale - scripts/blender/floor_opt.py
+- [[Extent of a screen along the wall axis.]] - rationale - scripts/blender/floor_doors.py
+- [[Merge every large vertical face of the solid  low  window walls by the kd…]] - rationale - scripts/blender/floor_ao.py
+- [[Names - category for every mesh object 'floor', 'wall', 'obj' or None.]] - rationale - scripts/blender/floor_ao.py
+- [[One scr_blank for every scr_id material.]] - rationale - scripts/blender/floor_opt.py
+- [[Orthonormal frame about normal n, rotated by ang.]] - rationale - scripts/blender/floor_ao.py
+- [[Point in a 2D polygon after dropping axis `drop` (crossing number).]] - rationale - scripts/blender/floor_opt.py
+- [[Re-mesh every room floor from the kd merge and bake it. Returns the triangle…]] - rationale - scripts/blender/floor_ao.py
+- [[Rectangles (i0, i1, j0, j1) over lattice vertices whose corner-bilinear fit…]] - rationale - scripts/blender/floor_ao.py
+- [[Share one mesh datablock between objects with identical geometry. Returns…]] - rationale - scripts/blender/floor_opt.py
+- [[Triangles (lattice index pairs) for one rectangle, using every neighbour-…]] - rationale - scripts/blender/floor_ao.py
+- [[Write the AO colour attribute for every loop of me. Returns the number of…]] - rationale - scripts/blender/floor_ao.py
+- [[_along_range()]] - code - scripts/blender/floor_doors.py
+- [[_bake_mesh()]] - code - scripts/blender/floor_ao.py
+- [[_build_bvh()]] - code - scripts/blender/floor_ao.py
+- [[_frame()]] - code - scripts/blender/floor_ao.py
+- [[_hemisphere()]] - code - scripts/blender/floor_ao.py
+- [[_inside()]] - code - scripts/blender/floor_opt.py
+- [[_kd_leaves()]] - code - scripts/blender/floor_ao.py
+- [[_mesh_key()]] - code - scripts/blender/floor_opt.py
+- [[_mesh_world()]] - code - scripts/blender/floor_ao.py
+- [[_newell()]] - code - scripts/blender/floor_opt.py
+- [[_occlusion()]] - code - scripts/blender/floor_ao.py
+- [[_rect_tris()]] - code - scripts/blender/floor_ao.py
+- [[_shade()]] - code - scripts/blender/floor_ao.py
+- [[bake()]] - code - scripts/blender/floor_ao.py
+- [[bar()_2]] - code - scripts/blender/floor_doors.py
+- [[bmesh]] - concept
+- [[build()_1]] - code - scripts/blender/floor_doors.py
+- [[build_floors()]] - code - scripts/blender/floor_ao.py
+- [[build_walls()]] - code - scripts/blender/floor_ao.py
+- [[classify()_1]] - code - scripts/blender/floor_ao.py
+- [[dedupe_meshes()]] - code - scripts/blender/floor_opt.py
+- [[floor_ao.py]] - code - scripts/blender/floor_ao.py
+- [[floor_ao.py - baked ambient occlusion for the office, written as vertex colours…]] - rationale - scripts/blender/floor_ao.py
+- [[floor_doors.py]] - code - scripts/blender/floor_doors.py
+- [[floor_doors.py - sliding glass door panels for every door gap in a glass wall.…]] - rationale - scripts/blender/floor_doors.py
+- [[floor_opt.py]] - code - scripts/blender/floor_opt.py
+- [[floor_opt.py - size passes run on the finished scene, before the glTF export.…]] - rationale - scripts/blender/floor_opt.py
+- [[half()]] - code - scripts/blender/floor_ao.py
+- [[hashlib]] - concept
+- [[hidden_faces()]] - code - scripts/blender/floor_opt.py
+- [[mathutils]] - concept
+- [[mathutils_bvhtree]] - concept
+- [[merge_screen_materials()]] - code - scripts/blender/floor_opt.py
+- [[numpy]] - concept
+- [[refine_rect()]] - code - scripts/blender/floor_ao.py
 
 ## Live Query (requires Dataview plugin)
 
@@ -46,25 +69,18 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 33 edges to [[_COMMUNITY_Community 13]]
-- 13 edges to [[_COMMUNITY_Community 18]]
-- 5 edges to [[_COMMUNITY_Community 162]]
-- 5 edges to [[_COMMUNITY_Community 49]]
-- 4 edges to [[_COMMUNITY_Community 57]]
-- 3 edges to [[_COMMUNITY_Community 0]]
-- 2 edges to [[_COMMUNITY_Community 10]]
-- 2 edges to [[_COMMUNITY_Community 29]]
-- 2 edges to [[_COMMUNITY_Community 103]]
-- 2 edges to [[_COMMUNITY_Community 198]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 25]]
-- 1 edge to [[_COMMUNITY_Community 42]]
-- 1 edge to [[_COMMUNITY_Community 194]]
-- 1 edge to [[_COMMUNITY_Community 235]]
+- 7 edges to [[_COMMUNITY_Community 202]]
+- 4 edges to [[_COMMUNITY_Community 273]]
+- 4 edges to [[_COMMUNITY_Community 226]]
+- 2 edges to [[_COMMUNITY_Community 281]]
+- 1 edge to [[_COMMUNITY_Community 120]]
+- 1 edge to [[_COMMUNITY_Community 146]]
+- 1 edge to [[_COMMUNITY_Community 269]]
+- 1 edge to [[_COMMUNITY_Community 296]]
 
 ## Top bridge nodes
-- [[live-voices-race.ts]] - degree 79, connects to 12 communities
-- [[GoalLite]] - degree 20, connects to 5 communities
-- [[ANIM]] - degree 4, connects to 3 communities
-- [[SeatEventLite]] - degree 6, connects to 2 communities
-- [[SeatRowLite]] - degree 6, connects to 2 communities
+- [[numpy]] - degree 17, connects to 5 communities
+- [[floor_ao.py]] - degree 23, connects to 3 communities
+- [[mathutils]] - degree 5, connects to 2 communities
+- [[floor_opt.py]] - degree 12, connects to 1 community
+- [[bake()]] - degree 8, connects to 1 community

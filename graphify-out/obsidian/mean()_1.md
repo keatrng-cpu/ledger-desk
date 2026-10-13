@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[calibration.ts]] - `contains` [EXTRACTED]
-- [[expectancy_1]] - `calls` [EXTRACTED]
+- [[expectancy]] - `calls` [EXTRACTED]
 - [[reliability]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_174

@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/learn/curriculum.ts"
+source_file: "src/components/lab/replay-report.tsx"
 type: "code"
-community: "Community 132"
-location: "L80"
+community: "Community 14"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/Community_14
 ---
 
 # pct()
 
 ## Connections
-- [[curriculum.ts]] - `contains` [EXTRACTED]
+- [[ReplayReport()]] - `calls` [EXTRACTED]
+- [[replay-report.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/Community_14

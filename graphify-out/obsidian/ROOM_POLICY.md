@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exits.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # ROOM_POLICY
@@ -17,4 +17,4 @@ tags:
 - [[orchestrator.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

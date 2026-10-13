@@ -12,7 +12,10 @@ tags:
 # RH_MIN_DEBIT_TOTAL
 
 ## Connections
+- [[live-lesson.ts]] - `imports` [EXTRACTED]
 - [[manager-account.ts]] - `imports` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports` [EXTRACTED]
+- [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 - [[research.ts]] - `imports` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]

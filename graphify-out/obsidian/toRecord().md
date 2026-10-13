@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[fingerprint()]] - `calls` [EXTRACTED]
 - [[loggedRecords()]] - `indirect_call` [INFERRED]
-- [[num()_8]] - `calls` [EXTRACTED]
+- [[num()_7]] - `calls` [EXTRACTED]
 - [[shapeLabel()]] - `calls` [EXTRACTED]
 - [[trade-log.ts]] - `contains` [EXTRACTED]
 

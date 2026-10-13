@@ -12,6 +12,7 @@ tags:
 # PaperScore
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[paper-scorer.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 

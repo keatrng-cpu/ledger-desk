@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 27"
+community: "Community 160"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_160
 ---
 
 # ChartSeries
@@ -15,4 +15,4 @@ tags:
 - [[OhlcBar]] - `references` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_160

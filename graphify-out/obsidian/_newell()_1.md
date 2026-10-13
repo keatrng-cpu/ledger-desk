@@ -1,0 +1,18 @@
+---
+source_file: "scripts/blender/build_floor.py"
+type: "code"
+community: "Community 180"
+location: "L244"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_180
+---
+
+# _newell()
+
+## Connections
+- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[build_floor.py]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_180

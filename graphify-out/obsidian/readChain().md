@@ -1,20 +1,21 @@
 ---
 source_file: "src/lib/journal/attest-server.ts"
 type: "code"
-community: "Community 97"
+community: "Community 285"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_97
+  - community/Community_285
 ---
 
 # readChain()
 
 ## Connections
+- [[dot-query()]] - `calls` [INFERRED]
 - [[attest-server.ts]] - `contains` [EXTRACTED]
 - [[chainHealth]] - `calls` [EXTRACTED]
 - [[sealUserChain()]] - `calls` [EXTRACTED]
 - [[verifyUserChain()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_97
+#graphify/code #graphify/EXTRACTED #community/Community_285

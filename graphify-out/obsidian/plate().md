@@ -14,6 +14,8 @@ tags:
 ## Connections
 - [[drawBooth()]] - `calls` [EXTRACTED]
 - [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
 - [[drawTv()]] - `calls` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 - [[srcBadge()]] - `calls` [EXTRACTED]

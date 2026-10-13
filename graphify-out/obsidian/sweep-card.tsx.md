@@ -37,7 +37,7 @@ tags:
 - [[rhMonth()]] - `imports` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_5]] - `imports` [EXTRACTED]
+- [[usd()_6]] - `imports` [EXTRACTED]
 - [[usd0()]] - `imports` [EXTRACTED]
 - [[validateSweepMonth()]] - `imports` [EXTRACTED]
 

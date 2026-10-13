@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/journal/attest-server.ts"
 type: "code"
-community: "Community 97"
+community: "Community 285"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_97
+  - community/Community_285
 ---
 
 # appendAttestation()
 
 ## Connections
+- [[dot-query()]] - `calls` [INFERRED]
 - [[attest-server.ts]] - `contains` [EXTRACTED]
 - [[buildLink()]] - `calls` [EXTRACTED]
 - [[closeTrade]] - `calls` [EXTRACTED]
@@ -21,4 +22,4 @@ tags:
 - [[openTrade]] - `calls` [EXTRACTED]
 - [[recordRealFill]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_97
+#graphify/code #graphify/EXTRACTED #community/Community_285

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/state-words.ts"
 type: "code"
-community: "Community 214"
+community: "Community 69"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Community_69
 ---
 
 # displayLead()
@@ -17,4 +17,4 @@ tags:
 - [[state-words.ts]] - `contains` [EXTRACTED]
 - [[synapse-rail.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Community_69

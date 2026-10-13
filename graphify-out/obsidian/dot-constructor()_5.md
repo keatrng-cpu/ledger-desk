@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-scene.ts"
+source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 17"
-location: "L1089"
+community: "Community 154"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/Community_154
 ---
 
 # .constructor()
 
 ## Connections
-- [[Cat]] - `method` [EXTRACTED]
+- [[AlpacaError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/Community_154

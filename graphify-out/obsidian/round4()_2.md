@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/capture-durability.mjs"
+source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 218"
-location: "L50"
+community: "Community 209"
+location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_218
+  - community/Community_209
 ---
 
 # round4()
 
 ## Connections
-- [[cagr()]] - `calls` [EXTRACTED]
-- [[capture-durability.mjs]] - `contains` [EXTRACTED]
+- [[exposure.ts]] - `contains` [EXTRACTED]
+- [[lookThrough()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_218
+#graphify/code #graphify/EXTRACTED #community/Community_209

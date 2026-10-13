@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 42"
+community: "Community 10"
 location: "L434"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_10
 ---
 
 # floorProps
@@ -33,4 +33,4 @@ tags:
 - [[tickerTiles()]] - `calls` [EXTRACTED]
 - [[trophiesAndScars()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_10

@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[fib.ts]] - `contains` [EXTRACTED]
 - [[impulseDealing()]] - `calls` [EXTRACTED]
+- [[impulseZone()]] - `calls` [EXTRACTED]
 - [[scoreDirection()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]

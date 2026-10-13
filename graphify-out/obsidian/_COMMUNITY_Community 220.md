@@ -10,13 +10,13 @@ members: 12
 **Members:** 12 nodes
 
 ## Members
-- [[bar()_7]] - code - scripts/verify-day-change.mjs
-- [[base_6]] - code - scripts/verify-day-change.mjs
-- [[check()_37]] - code - scripts/verify-day-change.mjs
+- [[bar()_8]] - code - scripts/verify-day-change.mjs
+- [[base_7]] - code - scripts/verify-day-change.mjs
+- [[check()_49]] - code - scripts/verify-day-change.mjs
 - [[desk]] - code - scripts/verify-day-change.mjs
 - [[dual]] - code - scripts/verify-day-change.mjs
 - [[month]] - code - scripts/verify-day-change.mjs
-- [[ok()_19]] - code - scripts/verify-day-change.mjs
+- [[ok()_20]] - code - scripts/verify-day-change.mjs
 - [[p]] - code - scripts/verify-day-change.mjs
 - [[q]] - code - scripts/verify-day-change.mjs
 - [[verify-day-change.mjs]] - code - scripts/verify-day-change.mjs
@@ -33,7 +33,7 @@ SORT file.name ASC
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 1]]
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[verify-day-change.mjs]] - degree 14, connects to 3 communities

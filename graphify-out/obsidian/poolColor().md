@@ -2,7 +2,7 @@
 source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
 community: "Community 27"
-location: "L1724"
+location: "L1728"
 tags:
   - graphify/code
   - graphify/EXTRACTED

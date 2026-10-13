@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-sleeve-migration.mjs"
+source_file: "scripts/verify-repo-guards.mjs"
 type: "code"
-community: "Community 85"
-location: "L43"
+community: "Community 314"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/Community_314
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-sleeve-migration.mjs]] - `contains` [EXTRACTED]
+- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/Community_314

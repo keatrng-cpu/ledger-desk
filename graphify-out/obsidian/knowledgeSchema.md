@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/engine/ingest.ts"
 type: "code"
-community: "Community 65"
+community: "Community 14"
 location: "L107"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/Community_14
 ---
 
 # knowledgeSchema
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[ingest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/Community_14

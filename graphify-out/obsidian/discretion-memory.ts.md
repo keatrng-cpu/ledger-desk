@@ -63,7 +63,7 @@ tags:
 - [[splitByKillzone()]] - `contains` [EXTRACTED]
 - [[tCrit95()]] - `contains` [EXTRACTED]
 - [[tagFamily()]] - `contains` [EXTRACTED]
-- [[verdictFor()_1]] - `contains` [EXTRACTED]
+- [[verdictFor()]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[zTwoSided()]] - `contains` [EXTRACTED]
 

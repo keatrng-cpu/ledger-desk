@@ -1,27 +1,40 @@
 ---
 type: community
-cohesion: 0.10
-members: 68
+cohesion: 0.06
+members: 98
 ---
 
 # Community 25
 
-**Cohesion:** 0.10 - loosely connected
-**Members:** 68 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 98 nodes
 
 ## Members
 - [[BAND_COLOR]] - code - src/components/room/floor-screens.ts
+- [[Blotter]] - code - src/lib/room/floor-cues.ts
 - [[C_2]] - code - src/components/room/floor-screens.ts
-- [[CREW_COLOR]] - code - src/components/room/floor-screens.ts
+- [[CREW_COLOR_1]] - code - src/components/room/floor-screens.ts
 - [[CREW_ORDER_1]] - code - src/components/room/floor-screens.ts
-- [[Ctx_4]] - code - src/components/room/floor-screens.ts
+- [[Ctx_5]] - code - src/components/room/floor-screens.ts
+- [[CueParts]] - code - src/lib/room/floor-cues.ts
+- [[Flight]] - code - src/lib/room/floor-cues.ts
 - [[INV_SLEEVE_COLOR]] - code - src/components/room/floor-screens.ts
+- [[INV_SLEEVE_LONG]] - code - src/components/room/floor-screens.ts
 - [[INV_SLEEVE_NAME]] - code - src/components/room/floor-screens.ts
 - [[INV_TIER_COLOR]] - code - src/components/room/floor-screens.ts
+- [[LIGHT_BAND]] - code - src/lib/room/floor-cues.ts
 - [[PLATE]] - code - src/components/room/floor-screens.ts
-- [[SEV_COLOR_1]] - code - src/components/room/floor-screens.ts
-- [[STATUS_COLOR_2]] - code - src/components/room/floor-screens.ts
+- [[RangeZone]] - code - src/lib/room/floor-cues.ts
+- [[SEV_COLOR]] - code - src/components/room/floor-screens.ts
+- [[STATUS_COLOR_1]] - code - src/components/room/floor-screens.ts
+- [[Stamp]] - code - src/lib/room/floor-cues.ts
+- [[Tint]] - code - src/lib/room/floor-cues.ts
+- [[a_2]] - code - scripts/verify-floor-cues.mjs
+- [[agreed]] - code - scripts/verify-floor-cues.mjs
+- [[base_10]] - code - scripts/verify-floor-cues.mjs
+- [[check()_63]] - code - scripts/verify-floor-cues.mjs
 - [[clear()]] - code - src/components/room/floor-screens.ts
+- [[clockVeto()]] - code - src/lib/room/floor-cues.ts
 - [[cuesOfFrame()]] - code - src/components/room/floor-screens.ts
 - [[drawAnnexMonitor()]] - code - src/components/room/floor-screens.ts
 - [[drawAudit()]] - code - src/components/room/floor-screens.ts
@@ -44,6 +57,7 @@ members: 68
 - [[drawLeague()]] - code - src/components/room/floor-screens.ts
 - [[drawLedger()]] - code - src/components/room/floor-screens.ts
 - [[drawMarquee()]] - code - src/components/room/floor-screens.ts
+- [[drawMead()]] - code - src/components/room/floor-screens.ts
 - [[drawMonitor()]] - code - src/components/room/floor-screens.ts
 - [[drawNeon()]] - code - src/components/room/floor-screens.ts
 - [[drawNews()]] - code - src/components/room/floor-screens.ts
@@ -56,28 +70,44 @@ members: 68
 - [[drawScanner()]] - code - src/components/room/floor-screens.ts
 - [[drawScreen()]] - code - src/components/room/floor-screens.ts
 - [[drawSeatLeague()]] - code - src/components/room/floor-screens.ts
+- [[drawSwing()]] - code - src/components/room/floor-screens.ts
 - [[drawVote()]] - code - src/components/room/floor-screens.ts
 - [[drawWhiteboard()]] - code - src/components/room/floor-screens.ts
 - [[drawWindow()]] - code - src/components/room/floor-screens.ts
 - [[ell()]] - code - src/components/room/floor-screens.ts
 - [[etMinOfClock()]] - code - src/components/room/floor-screens.ts
-- [[fit()_3]] - code - src/components/room/floor-screens.ts
+- [[fill]] - code - scripts/verify-floor-cues.mjs
+- [[firmWeek()]] - code - src/lib/room/invest-read.ts
+- [[fit()_5]] - code - src/components/room/floor-screens.ts
+- [[floor-cues.ts]] - code - src/lib/room/floor-cues.ts
 - [[floor-screens.ts]] - code - src/components/room/floor-screens.ts
-- [[fmt()_3]] - code - src/components/room/floor-screens.ts
+- [[floorCues]] - code - src/lib/room/floor-cues.ts
+- [[floorLightOf()]] - code - src/lib/room/floor-cues.ts
+- [[fmt()_4]] - code - src/components/room/floor-screens.ts
+- [[freshTape()]] - code - src/lib/room/floor-cues.ts
+- [[gone_1]] - code - scripts/verify-floor-cues.mjs
 - [[header()]] - code - src/components/room/floor-screens.ts
 - [[invChip()]] - code - src/components/room/floor-screens.ts
 - [[invDark()]] - code - src/components/room/floor-screens.ts
+- [[invThemeNow()]] - code - src/components/room/floor-screens.ts
 - [[invUsd()]] - code - src/components/room/floor-screens.ts
+- [[isWeekdayAt()]] - code - src/components/room/floor-screens.ts
 - [[kvLine()]] - code - src/components/room/floor-screens.ts
-- [[money()_6]] - code - src/components/room/floor-screens.ts
-- [[pct()_10]] - code - src/components/room/floor-screens.ts
-- [[pctSmall()_1]] - code - src/components/room/floor-screens.ts
+- [[late]] - code - scripts/verify-floor-cues.mjs
+- [[money()_7]] - code - src/components/room/floor-screens.ts
+- [[opsHealth()]] - code - src/lib/room/invest-read.ts
+- [[pct()_9]] - code - src/components/room/floor-screens.ts
+- [[pctSmall()]] - code - src/components/room/floor-screens.ts
 - [[planPrice()]] - code - src/components/room/floor-screens.ts
-- [[px()_7]] - code - src/components/room/floor-screens.ts
-- [[signed()_2]] - code - src/components/room/floor-screens.ts
+- [[px()_9]] - code - src/components/room/floor-screens.ts
+- [[raid]] - code - scripts/verify-floor-cues.mjs
+- [[signed()_1]] - code - src/components/room/floor-screens.ts
+- [[stampOf()]] - code - src/lib/room/floor-cues.ts
+- [[syn]] - code - scripts/verify-floor-cues.mjs
 - [[tapeBlock()]] - code - src/components/room/floor-screens.ts
 - [[textBlock()]] - code - src/components/room/floor-screens.ts
-- [[wrap()_3]] - code - src/components/room/floor-screens.ts
+- [[verify-floor-cues.mjs]] - code - scripts/verify-floor-cues.mjs
+- [[wrap()_4]] - code - src/components/room/floor-screens.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -87,31 +117,32 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 20 edges to [[_COMMUNITY_Community 49]]
-- 11 edges to [[_COMMUNITY_Community 18]]
-- 10 edges to [[_COMMUNITY_Community 17]]
-- 9 edges to [[_COMMUNITY_Community 0]]
-- 3 edges to [[_COMMUNITY_Community 165]]
-- 3 edges to [[_COMMUNITY_Community 33]]
-- 2 edges to [[_COMMUNITY_Community 27]]
-- 2 edges to [[_COMMUNITY_Community 28]]
-- 1 edge to [[_COMMUNITY_Community 10]]
-- 1 edge to [[_COMMUNITY_Community 125]]
-- 1 edge to [[_COMMUNITY_Community 140]]
-- 1 edge to [[_COMMUNITY_Community 196]]
+- 12 edges to [[_COMMUNITY_Community 49]]
+- 10 edges to [[_COMMUNITY_Community 18]]
+- 8 edges to [[_COMMUNITY_Community 0]]
+- 8 edges to [[_COMMUNITY_Community 214]]
+- 7 edges to [[_COMMUNITY_Community 100]]
+- 6 edges to [[_COMMUNITY_Community 17]]
+- 4 edges to [[_COMMUNITY_Community 103]]
+- 4 edges to [[_COMMUNITY_Community 52]]
+- 3 edges to [[_COMMUNITY_Community 4]]
+- 3 edges to [[_COMMUNITY_Community 58]]
+- 3 edges to [[_COMMUNITY_Community 69]]
+- 2 edges to [[_COMMUNITY_Community 10]]
+- 2 edges to [[_COMMUNITY_Community 160]]
+- 2 edges to [[_COMMUNITY_Community 215]]
+- 2 edges to [[_COMMUNITY_Community 150]]
 - 1 edge to [[_COMMUNITY_Community 1]]
 - 1 edge to [[_COMMUNITY_Community 104]]
 - 1 edge to [[_COMMUNITY_Community 137]]
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 58]]
 - 1 edge to [[_COMMUNITY_Community 81]]
-- 1 edge to [[_COMMUNITY_Community 52]]
+- 1 edge to [[_COMMUNITY_Community 299]]
 - 1 edge to [[_COMMUNITY_Community 51]]
 
 ## Top bridge nodes
-- [[floor-screens.ts]] - degree 123, connects to 19 communities
-- [[cuesOfFrame()]] - degree 18, connects to 4 communities
-- [[drawScreen()]] - degree 31, connects to 2 communities
-- [[drawInvBoard()]] - degree 12, connects to 1 community
-- [[drawInvMonitor()]] - degree 11, connects to 1 community
+- [[floor-screens.ts]] - degree 130, connects to 21 communities
+- [[floor-cues.ts]] - degree 20, connects to 4 communities
+- [[drawScreen()]] - degree 33, connects to 2 communities
+- [[cuesOfFrame()]] - degree 18, connects to 2 communities
+- [[drawInvBoard()]] - degree 15, connects to 2 communities

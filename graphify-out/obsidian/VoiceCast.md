@@ -2,7 +2,7 @@
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
 community: "Community 10"
-location: "L18"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED

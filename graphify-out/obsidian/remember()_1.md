@@ -1,30 +1,19 @@
 ---
-source_file: "src/lib/trading/desk-memory.ts"
+source_file: "brainlab/memory.py"
 type: "code"
-community: "Community 9"
-location: "L235"
+community: "Community 268"
+location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/Community_268
 ---
 
 # remember()
 
 ## Connections
-- [[TradezellaChat()]] - `calls` [EXTRACTED]
-- [[VeteranBrainPanel()]] - `calls` [EXTRACTED]
-- [[desk-memory.ts]] - `contains` [EXTRACTED]
-- [[ghost-book.ts]] - `imports` [EXTRACTED]
-- [[ingestBacktestResult()]] - `calls` [EXTRACTED]
-- [[loadDeskMemory()]] - `calls` [EXTRACTED]
-- [[pinNote()]] - `calls` [EXTRACTED]
-- [[rememberGhost()]] - `calls` [EXTRACTED]
-- [[rememberLiveSetup()]] - `calls` [EXTRACTED]
-- [[saveDeskMemory()]] - `calls` [EXTRACTED]
-- [[tradezella-chat.tsx]] - `imports` [EXTRACTED]
-- [[uid()_1]] - `calls` [EXTRACTED]
-- [[updateBookFromBacktest()]] - `calls` [EXTRACTED]
-- [[veteran-brain.tsx]] - `imports` [EXTRACTED]
+- [[Path_3]] - `references` [EXTRACTED]
+- [[_chroma()]] - `calls` [EXTRACTED]
+- [[memory.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/Community_268

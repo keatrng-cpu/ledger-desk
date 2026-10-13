@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-session-event.mjs"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 20"
+community: "Community 185"
 location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_185
 ---
 
 # clockAt()
 
 ## Connections
-- [[verify-session-event.mjs]] - `contains` [EXTRACTED]
+- [[drain()]] - `calls` [EXTRACTED]
+- [[mkWorld()_3]] - `calls` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_185

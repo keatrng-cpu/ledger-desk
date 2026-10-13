@@ -1,26 +1,43 @@
 ---
 type: community
-cohesion: 0.18
-members: 12
+cohesion: 0.08
+members: 29
 ---
 
 # Community 217
 
-**Cohesion:** 0.18 - loosely connected
-**Members:** 12 nodes
+**Cohesion:** 0.08 - loosely connected
+**Members:** 29 nodes
 
 ## Members
-- [[dot-libspoken-check.mjs]] - code - scripts/lib/lib/spoken-check.mjs
-- [[MAX_PIECE_WORDS]] - code - scripts/lib/spoken-check.mjs
-- [[WHY on 2026-10-05 the Floor's voices were found to be stating wrong numbers.…]] - rationale - scripts/verify-spoken-form.mjs
+- [[ATLAS_KEY]] - code - src/lib/room/desk-atlas.ts
+- [[ATLAS_SHELVES]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasEdge]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasNode]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasPrior]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasPulse]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasRecall]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasShelf]] - code - src/lib/room/desk-atlas.ts
+- [[BOOK_4]] - code - src/lib/room/brain-feed.ts
+- [[BrainJobs]] - code - src/lib/room/brain-feed.ts
+- [[BrainOffer]] - code - src/lib/room/desk-atlas.ts
+- [[EDGES]] - code - src/lib/room/desk-atlas.ts
+- [[LOGIC_ROWS]] - code - src/lib/room/desk-atlas.ts
+- [[LogicBar]] - code - src/lib/room/desk-atlas.ts
+- [[LogicRow]] - code - src/lib/room/desk-atlas.ts
+- [[PersonBrain]] - code - src/lib/room/desk-atlas.ts
+- [[PersonNote]] - code - src/lib/room/desk-atlas.ts
+- [[SCHOOL_NAMES]] - code - src/lib/room/desk-atlas.ts
+- [[SHELVES]] - code - src/lib/room/desk-atlas.ts
+- [[Seed]] - code - src/lib/room/desk-atlas.ts
 - [[WHY the trader gave the desk its own description of ICT, TJR, PB Blake and PB…]] - rationale - scripts/verify-school-brief.mjs
-- [[check()_34]] - code - scripts/verify-school-brief.mjs
-- [[check()_35]] - code - scripts/verify-spoken-form.mjs
-- [[nodefs]] - code - node:fs
-- [[spoken-check.mjs]] - code - scripts/lib/spoken-check.mjs
-- [[spokenProblems()]] - code - scripts/lib/spoken-check.mjs
+- [[brain-feed.ts]] - code - src/lib/room/brain-feed.ts
+- [[check()_47]] - code - scripts/verify-school-brief.mjs
+- [[desk-atlas.ts]] - code - src/lib/room/desk-atlas.ts
+- [[schoolEdges()]] - code - src/lib/room/desk-atlas.ts
+- [[schoolNodeId()]] - code - src/lib/room/desk-atlas.ts
+- [[schoolSeeds()]] - code - src/lib/room/desk-atlas.ts
 - [[verify-school-brief.mjs]] - code - scripts/verify-school-brief.mjs
-- [[verify-spoken-form.mjs]] - code - scripts/verify-spoken-form.mjs
 - [[words()]] - code - scripts/verify-school-brief.mjs
 
 ## Live Query (requires Dataview plugin)
@@ -31,32 +48,31 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 96]]
-- 2 edges to [[_COMMUNITY_Community 13]]
-- 2 edges to [[_COMMUNITY_Community 18]]
-- 2 edges to [[_COMMUNITY_Community 20]]
-- 2 edges to [[_COMMUNITY_Community 29]]
-- 1 edge to [[_COMMUNITY_Community 102]]
+- 20 edges to [[_COMMUNITY_Community 21]]
+- 9 edges to [[_COMMUNITY_Community 102]]
+- 8 edges to [[_COMMUNITY_Community 253]]
+- 7 edges to [[_COMMUNITY_Community 88]]
+- 5 edges to [[_COMMUNITY_Community 300]]
+- 4 edges to [[_COMMUNITY_Community 81]]
+- 3 edges to [[_COMMUNITY_Community 9]]
+- 3 edges to [[_COMMUNITY_Community 162]]
+- 3 edges to [[_COMMUNITY_Community 251]]
+- 1 edge to [[_COMMUNITY_Community 92]]
+- 1 edge to [[_COMMUNITY_Community 10]]
 - 1 edge to [[_COMMUNITY_Community 127]]
 - 1 edge to [[_COMMUNITY_Community 137]]
-- 1 edge to [[_COMMUNITY_Community 142]]
-- 1 edge to [[_COMMUNITY_Community 164]]
-- 1 edge to [[_COMMUNITY_Community 185]]
-- 1 edge to [[_COMMUNITY_Community 206]]
-- 1 edge to [[_COMMUNITY_Community 208]]
-- 1 edge to [[_COMMUNITY_Community 21]]
-- 1 edge to [[_COMMUNITY_Community 212]]
-- 1 edge to [[_COMMUNITY_Community 61]]
-- 1 edge to [[_COMMUNITY_Community 235]]
-- 1 edge to [[_COMMUNITY_Community 22]]
-- 1 edge to [[_COMMUNITY_Community 244]]
+- 1 edge to [[_COMMUNITY_Community 18]]
+- 1 edge to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 29]]
+- 1 edge to [[_COMMUNITY_Community 96]]
+- 1 edge to [[_COMMUNITY_Community 328]]
+- 1 edge to [[_COMMUNITY_Community 241]]
+- 1 edge to [[_COMMUNITY_Community 339]]
 - 1 edge to [[_COMMUNITY_Community 236]]
-- 1 edge to [[_COMMUNITY_Community 5]]
-- 1 edge to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 75]]
 
 ## Top bridge nodes
-- [[nodefs]] - degree 11, connects to 8 communities
+- [[desk-atlas.ts]] - degree 79, connects to 13 communities
 - [[verify-school-brief.mjs]] - degree 12, connects to 7 communities
-- [[verify-spoken-form.mjs]] - degree 11, connects to 7 communities
-- [[spoken-check.mjs]] - degree 11, connects to 6 communities
+- [[brain-feed.ts]] - degree 9, connects to 4 communities
+- [[schoolNodeId()]] - degree 5, connects to 1 community
+- [[ATLAS_SHELVES]] - degree 2, connects to 1 community

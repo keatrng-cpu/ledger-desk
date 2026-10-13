@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 28"
-location: "L3157"
+location: "L3633"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # .heightAt()
 
 ## Connections
-- [[dot-constructor()_15]] - `calls` [EXTRACTED]
+- [[dot-constructor()_17]] - `calls` [EXTRACTED]
 - [[dot-ownerWalkable()]] - `calls` [EXTRACTED]
 - [[dot-tickOwnerManager()]] - `calls` [EXTRACTED]
 - [[dot-toggleBalconySit()]] - `calls` [EXTRACTED]

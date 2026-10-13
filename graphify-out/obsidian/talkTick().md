@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
 community: "Community 103"
-location: "L1624"
+location: "L1880"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -20,6 +20,7 @@ tags:
 - [[feedCands()]] - `calls` [EXTRACTED]
 - [[feedSentence()]] - `calls` [EXTRACTED]
 - [[goalCands()]] - `calls` [EXTRACTED]
+- [[hallCands()]] - `calls` [EXTRACTED]
 - [[heartbeatCand()]] - `calls` [EXTRACTED]
 - [[investCands()]] - `calls` [EXTRACTED]
 - [[lessonCands()]] - `calls` [EXTRACTED]

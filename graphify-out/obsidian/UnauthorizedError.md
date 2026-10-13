@@ -12,7 +12,8 @@ tags:
 # UnauthorizedError
 
 ## Connections
-- [[dot-constructor()_19]] - `method` [EXTRACTED]
+- [[dot-constructor()_22]] - `method` [EXTRACTED]
+- [[Per-user data (server-side — mandatory)]] - `references` [INFERRED]
 - [[requireUserId()]] - `calls` [EXTRACTED]
 - [[verify.server.ts]] - `contains` [EXTRACTED]
 

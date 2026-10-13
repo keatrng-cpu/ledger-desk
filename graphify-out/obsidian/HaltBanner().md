@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
+- [[What shipped]] - `references` [INFERRED]
 - [[halt-banner.tsx]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 

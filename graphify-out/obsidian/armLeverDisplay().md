@@ -12,7 +12,7 @@ tags:
 # armLeverDisplay()
 
 ## Connections
-- [[dot-update()_9]] - `calls` [EXTRACTED]
+- [[dot-update()_8]] - `calls` [EXTRACTED]
 - [[arm-lever.ts]] - `contains` [EXTRACTED]
 - [[drawManagerArms()]] - `calls` [EXTRACTED]
 - [[floor-overhaul-war.ts]] - `re_exports` [EXTRACTED]

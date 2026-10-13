@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/trading-coach.tsx"
 type: "code"
-community: "Community 48"
+community: "Community 14"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/Community_14
 ---
 
 # TradingCoach()
@@ -22,4 +22,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[trading-coach.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/Community_14

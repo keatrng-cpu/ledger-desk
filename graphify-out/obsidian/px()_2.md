@@ -1,20 +1,21 @@
 ---
-source_file: "src/lib/trading/ghost-book.ts"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 130"
-location: "L178"
+community: "Community 115"
+location: "L170"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/Community_115
 ---
 
 # px()
 
 ## Connections
-- [[analyzeExpired()]] - `calls` [EXTRACTED]
-- [[analyzeMissed()]] - `calls` [EXTRACTED]
-- [[ghost-book.ts]] - `contains` [EXTRACTED]
-- [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
+- [[Snapshot]] - `calls` [EXTRACTED]
+- [[buildSteps()]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[simulate()]] - `calls` [EXTRACTED]
+- [[simulateMarket()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/Community_115

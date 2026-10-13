@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-paper-step.mjs"
+source_file: "scripts/verify-news-ipo.mjs"
 type: "code"
-community: "Community 143"
-location: "L26"
+community: "Community 133"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_133
 ---
 
 # check()
 
 ## Connections
-- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
+- [[ok()_3]] - `calls` [EXTRACTED]
+- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_133

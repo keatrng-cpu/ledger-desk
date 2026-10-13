@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/learn-tab.tsx"
 type: "code"
-community: "Community 67"
-location: "L238"
+community: "Community 280"
+location: "L247"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/Community_280
 ---
 
 # ModuleView()
@@ -28,4 +28,4 @@ tags:
 - [[liveFacts()]] - `calls` [EXTRACTED]
 - [[scenariosFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/Community_280

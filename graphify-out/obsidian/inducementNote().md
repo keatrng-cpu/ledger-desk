@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[byKey()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
-- [[n()]] - `calls` [EXTRACTED]
+- [[n()_1]] - `calls` [EXTRACTED]
 - [[patternWarning()]] - `calls` [EXTRACTED]
-- [[r()_1]] - `calls` [EXTRACTED]
+- [[r()_2]] - `calls` [EXTRACTED]
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[researchShelf()]] - `calls` [EXTRACTED]
 

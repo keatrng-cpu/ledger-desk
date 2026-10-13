@@ -12,6 +12,7 @@ tags:
 # AnalyticsReport
 
 ## Connections
+- [[3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion]] - `references` [INFERRED]
 - [[AnalyticsPayload]] - `references` [EXTRACTED]
 - [[Metrics]] - `references` [EXTRACTED]
 - [[analytics-panel.tsx]] - `imports` [EXTRACTED]

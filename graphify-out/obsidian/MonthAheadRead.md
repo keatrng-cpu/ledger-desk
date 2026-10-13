@@ -12,7 +12,6 @@ tags:
 # MonthAheadRead
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[month-ahead-panel.tsx]] - `imports` [EXTRACTED]
 - [[month-ahead.ts]] - `contains` [EXTRACTED]

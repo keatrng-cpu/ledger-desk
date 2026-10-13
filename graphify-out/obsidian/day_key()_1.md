@@ -17,6 +17,6 @@ tags:
 - [[crew-year-backtest.py]] - `contains` [EXTRACTED]
 - [[et()]] - `calls` [EXTRACTED]
 - [[signals()]] - `calls` [EXTRACTED]
-- [[walk()_2]] - `calls` [EXTRACTED]
+- [[walk()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_156

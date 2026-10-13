@@ -12,7 +12,7 @@ tags:
 # htfLine()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
 - [[blocked()]] - `calls` [EXTRACTED]
 - [[brief()]] - `calls` [EXTRACTED]
 - [[closed()]] - `calls` [EXTRACTED]

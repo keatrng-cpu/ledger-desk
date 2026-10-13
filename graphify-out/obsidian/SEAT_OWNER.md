@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 140"
+community: "Community 57"
 location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/Community_57
 ---
 
 # SEAT_OWNER
@@ -15,4 +15,4 @@ tags:
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/Community_57

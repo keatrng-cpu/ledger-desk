@@ -2,7 +2,7 @@
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
 community: "Community 16"
-location: "L144"
+location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,7 +16,7 @@ tags:
 - [[PmAnalyzer()]] - `calls` [EXTRACTED]
 - [[Ring()]] - `calls` [EXTRACTED]
 - [[calibrationScore()]] - `calls` [EXTRACTED]
-- [[pct()_6]] - `calls` [EXTRACTED]
+- [[pct()_5]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 - [[scorePaper()]] - `calls` [EXTRACTED]
 - [[signedC()_1]] - `calls` [EXTRACTED]

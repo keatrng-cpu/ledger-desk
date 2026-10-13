@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[QuoteInputs]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
-- [[fetch-dual.ts]] - `imports` [EXTRACTED]
 - [[live-gateway.ts]] - `contains` [EXTRACTED]
-- [[loadQuote()]] - `calls` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
+- [[loadLiveQuote()]] - `calls` [EXTRACTED]
 - [[readLiveTick()]] - `calls` [EXTRACTED]
 - [[tickOrCached()]] - `calls` [EXTRACTED]
 

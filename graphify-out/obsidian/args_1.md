@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-invest-universe.mjs"
+source_file: "scripts/blender/png-diff.mjs"
 type: "code"
-community: "Community 219"
-location: "L74"
+community: "Community 189"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_219
+  - community/Community_189
 ---
 
 # args
 
 ## Connections
-- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
+- [[png-diff.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_219
+#graphify/code #graphify/EXTRACTED #community/Community_189

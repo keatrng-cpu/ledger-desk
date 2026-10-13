@@ -1,20 +1,38 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L147"
+community: "Community 283"
+location: "L1812"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_283
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-add()_2]] - `calls` [EXTRACTED]
-- [[Person]] - `method` [EXTRACTED]
-- [[canvasTex()_1]] - `calls` [EXTRACTED]
-- [[mat()_1]] - `calls` [EXTRACTED]
+- [[dot-applyManagerFeed()]] - `calls` [EXTRACTED]
+- [[dot-buildScreens()]] - `calls` [EXTRACTED]
+- [[dot-buildWingFloors()]] - `calls` [EXTRACTED]
+- [[dot-dispose()_6]] - `calls` [EXTRACTED]
+- [[dot-flashKey()]] - `calls` [EXTRACTED]
+- [[dot-getState()_2]] - `calls` [INFERRED]
+- [[dot-heightAt()]] - `calls` [EXTRACTED]
+- [[dot-loadEnvironment()]] - `calls` [EXTRACTED]
+- [[dot-loop()_1]] - `calls` [EXTRACTED]
+- [[dot-meadReacted()]] - `calls` [EXTRACTED]
+- [[dot-resize()]] - `calls` [EXTRACTED]
+- [[dot-screenRecs()]] - `calls` [INFERRED]
+- [[dot-subscribe()_2]] - `calls` [INFERRED]
+- [[Avatar]] - `calls` [EXTRACTED]
+- [[Cat]] - `calls` [EXTRACTED]
+- [[FloorMead]] - `calls` [EXTRACTED]
+- [[FloorOverhaul]] - `calls` [EXTRACTED]
+- [[FloorScene]] - `method` [EXTRACTED]
+- [[ManagerAvatar]] - `calls` [EXTRACTED]
+- [[OwnerAvatar]] - `calls` [EXTRACTED]
+- [[contactBlob()]] - `calls` [EXTRACTED]
+- [[createStubManagerFeed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_283

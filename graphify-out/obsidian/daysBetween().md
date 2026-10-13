@@ -16,6 +16,8 @@ tags:
 - [[drawInvBoard()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `imports` [EXTRACTED]
 - [[freshCatalysts()]] - `calls` [EXTRACTED]
+- [[freshOf()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[invest-read.ts]] - `contains` [EXTRACTED]
 - [[utcNoon()]] - `calls` [EXTRACTED]
 

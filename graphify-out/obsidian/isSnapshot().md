@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[getRoomSnapshot]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[putRoomSnapshot]] - `calls` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[snapshot-server.ts]] - `imports` [EXTRACTED]

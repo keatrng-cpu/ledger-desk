@@ -12,6 +12,8 @@ tags:
 # exNewsCatchUp()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

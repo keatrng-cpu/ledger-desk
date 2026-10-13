@@ -13,6 +13,8 @@ tags:
 
 ## Connections
 - [[KillWatchPanel()]] - `calls` [EXTRACTED]
+- [[diligenceOf()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[kill-watch-panel.tsx]] - `imports` [EXTRACTED]
 - [[kill-watch.ts]] - `contains` [EXTRACTED]
 

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
 - [[cvLambda()]] - `calls` [EXTRACTED]
-- [[rowOf()_1]] - `calls` [EXTRACTED]
+- [[rowOf()_2]] - `calls` [EXTRACTED]
 - [[sig()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_45

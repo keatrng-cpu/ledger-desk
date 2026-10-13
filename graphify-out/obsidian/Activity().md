@@ -15,7 +15,7 @@ tags:
 - [[BookCard()]] - `calls` [EXTRACTED]
 - [[Note()]] - `calls` [EXTRACTED]
 - [[book-card.tsx]] - `contains` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_6]] - `calls` [EXTRACTED]
 - [[voidEntry()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_34

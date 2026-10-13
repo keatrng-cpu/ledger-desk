@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-voices-invest.ts"
 type: "code"
 community: "Community 13"
-location: "L249"
+location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # exInvNews()
 
 ## Connections
-- [[AT()_7]] - `calls` [EXTRACTED]
+- [[AT()_11]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

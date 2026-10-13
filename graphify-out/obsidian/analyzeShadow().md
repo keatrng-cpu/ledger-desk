@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[observeShadows()]] - `calls` [EXTRACTED]
-- [[px()_1]] - `calls` [EXTRACTED]
+- [[px()_3]] - `calls` [EXTRACTED]
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_126

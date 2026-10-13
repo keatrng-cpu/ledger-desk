@@ -1,18 +1,19 @@
 ---
-source_file: "scripts/measure-news-bias.mjs"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 228"
-location: "L135"
+community: "Community 25"
+location: "L1022"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/Community_25
 ---
 
 # pct()
 
 ## Connections
-- [[line()_1]] - `calls` [EXTRACTED]
-- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
+- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawVote()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/Community_25

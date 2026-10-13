@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-shadow-replay.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 90"
-location: "L22"
+community: "Community 20"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Community_20
 ---
 
 # history
 
 ## Connections
-- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Community_20

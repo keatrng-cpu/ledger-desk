@@ -12,6 +12,8 @@ tags:
 # buildAnalytics()
 
 ## Connections
+- [[6. Verification]] - `references` [INFERRED]
+- [[The one thing that matters]] - `references` [INFERRED]
 - [[analytics-server.ts]] - `imports` [EXTRACTED]
 - [[buildEquityCurve()]] - `calls` [EXTRACTED]
 - [[buildReadout()]] - `calls` [EXTRACTED]

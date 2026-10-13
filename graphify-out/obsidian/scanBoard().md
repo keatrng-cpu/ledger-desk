@@ -13,10 +13,12 @@ tags:
 
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 - [[predictscanner.ts]] - `contains` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 - [[scanSide()]] - `calls` [EXTRACTED]
+- [[scannerRows()]] - `calls` [EXTRACTED]
 - [[stateFromBoard()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_2

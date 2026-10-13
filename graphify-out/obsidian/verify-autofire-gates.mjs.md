@@ -13,10 +13,10 @@ tags:
 
 ## Connections
 - [[QUALIFIED]] - `contains` [EXTRACTED]
-- [[ROOT_3]] - `contains` [EXTRACTED]
+- [[ROOT_1]] - `contains` [EXTRACTED]
 - [[autofire-gates.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_2]] - `contains` [EXTRACTED]
-- [[read()]] - `contains` [EXTRACTED]
+- [[check()_5]] - `contains` [EXTRACTED]
+- [[read()_1]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 - [[ref_node_url]] - `imports_from` [EXTRACTED]

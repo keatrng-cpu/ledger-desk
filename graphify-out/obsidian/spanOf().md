@@ -1,0 +1,18 @@
+---
+source_file: "src/lib/room/hall-lite.ts"
+type: "code"
+community: "Community 114"
+location: "L136"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_114
+---
+
+# spanOf()
+
+## Connections
+- [[hall-lite.ts]] - `contains` [EXTRACTED]
+- [[rowOf()_1]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_114

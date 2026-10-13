@@ -1,92 +1,99 @@
 ---
 type: community
-cohesion: 0.05
-members: 77
+cohesion: 0.04
+members: 84
 ---
 
 # Community 18
 
-**Cohesion:** 0.05 - loosely connected
-**Members:** 77 nodes
+**Cohesion:** 0.04 - loosely connected
+**Members:** 84 nodes
 
 ## Members
+- [[ANIM]] - code - src/lib/room/live-types.ts
 - [[ATM_DELTA]] - code - src/lib/room/live-types.ts
+- [[AUDIT_OFFICE]] - code - src/lib/room/live-voices-race.ts
 - [[AuditItem]] - code - src/lib/room/audit.ts
-- [[BackupState]] - code - src/lib/room/snapshot-sync.ts
-- [[Cand]] - code - src/lib/room/live-talk.ts
+- [[CATALYST_MAX_AGE_DAYS]] - code - src/lib/room/live-types.ts
+- [[CalEvent]] - code - src/lib/room/live-types.ts
+- [[CalRead]] - code - src/lib/room/live-types.ts
 - [[ClockRead]] - code - src/lib/room/live-types.ts
-- [[DataFreshness]] - code - src/lib/room/live-types.ts
-- [[DialogueLine]] - code - src/lib/room/orchestrator.ts
+- [[CouncilData]] - code - src/lib/room/live-voices-race.ts
+- [[DecisionData]] - code - src/lib/room/live-voices-race.ts
 - [[EARNINGS_AGEING_DAYS]] - code - src/lib/room/audit.ts
 - [[EntryTier]] - code - src/lib/room/orchestrator.ts
+- [[Ex]] - code - src/lib/room/live-voices.ts
+- [[Exp]] - code - src/lib/room/live-voices-race.ts
 - [[FeedRead]] - code - src/lib/room/live-types.ts
-- [[GoalForm()]] - code - src/components/room/race-panel.tsx
+- [[FinishData]] - code - src/lib/room/live-voices-race.ts
+- [[FirmBoard]] - code - src/lib/room/live-types.ts
+- [[FirmCompliance]] - code - src/lib/room/live-types.ts
+- [[FirmDiligence]] - code - src/lib/room/live-types.ts
+- [[FirmFresh]] - code - src/lib/room/live-types.ts
+- [[FirmFunding]] - code - src/lib/room/live-types.ts
+- [[FirmMacro]] - code - src/lib/room/live-types.ts
+- [[FirmMemo]] - code - src/lib/room/live-types.ts
+- [[FirmOps]] - code - src/lib/room/live-types.ts
+- [[FirmPolicy]] - code - src/lib/room/live-types.ts
+- [[FirmRisk]] - code - src/lib/room/live-types.ts
+- [[FirmTax]] - code - src/lib/room/live-types.ts
+- [[FirmTaxYear]] - code - src/lib/room/live-types.ts
+- [[GoalFinalData]] - code - src/lib/room/live-voices-race.ts
+- [[GoalLite]] - code - src/lib/room/live-types.ts
+- [[GoalNightData]] - code - src/lib/room/live-voices-race.ts
+- [[HallSpan]] - code - src/lib/room/live-types.ts
+- [[INVEST_REFRESH]] - code - src/lib/room/audit.ts
+- [[InvestFirm]] - code - src/lib/room/live-types.ts
+- [[InvestSleeveRead]] - code - src/lib/room/live-types.ts
 - [[LabLite]] - code - src/lib/room/live-types.ts
-- [[LedgerScreen]] - code - src/components/room/floor-screens.ts
+- [[LadderCardData]] - code - src/lib/room/live-voices-race.ts
+- [[LadderPlainData]] - code - src/lib/room/live-voices-race.ts
+- [[LeadData]] - code - src/lib/room/live-voices-race.ts
+- [[LeagueData]] - code - src/lib/room/live-voices-race.ts
+- [[LedgerProblemKind]] - code - src/lib/room/live-types.ts
+- [[Line]] - code - src/lib/room/live-types.ts
 - [[MACRO_RUNWAY_DAYS]] - code - src/lib/room/audit.ts
-- [[NewsLite]] - code - src/lib/room/live-types.ts
+- [[MeadBeat]] - code - src/lib/room/live-voices-mead.ts
 - [[ORDER]] - code - src/lib/room/audit.ts
-- [[OWNER_COLOR]] - code - src/components/room/race-panel.tsx
-- [[RESEARCH_LINES]] - code - src/components/room/room-engine.ts
+- [[PaceData]] - code - src/lib/room/live-voices-race.ts
 - [[RESEARCH_OLD_DAYS]] - code - src/lib/room/audit.ts
 - [[RESEARCH_STALE_DAYS]] - code - src/lib/room/audit.ts
-- [[RacePanel()]] - code - src/components/room/race-panel.tsx
 - [[RaceScreen]] - code - src/components/room/floor-screens.ts
-- [[RaceTrack()]] - code - src/components/room/race-panel.tsx
-- [[RhCycle]] - code - src/lib/execution/rh-cycle.ts
-- [[Rings]] - code - src/lib/room/live-world.ts
+- [[ReplanData]] - code - src/lib/room/live-voices-race.ts
 - [[RndLite]] - code - src/lib/room/live-types.ts
-- [[RoomDev]] - code - src/components/room/room-engine.ts
-- [[RoomState]] - code - src/components/room/room-engine.ts
-- [[SECTIONS]] - code - src/components/room/race-panel.tsx
-- [[SEV_COLOR]] - code - src/components/room/race-panel.tsx
 - [[SOURCE_CHECK_OLD_DAYS]] - code - src/lib/room/audit.ts
-- [[STATUS_COLOR]] - code - src/components/room/race-panel.tsx
+- [[STABLE_HEARTBEATS]] - code - src/lib/room/live-types.ts
+- [[STATUS_WORD]] - code - src/lib/room/live-voices-race.ts
 - [[ScanCardLite]] - code - src/lib/room/live-types.ts
+- [[SeatCloseData]] - code - src/lib/room/live-voices-race.ts
+- [[SeatEventLite]] - code - src/lib/room/live-types.ts
+- [[SeatRowLite]] - code - src/lib/room/live-types.ts
 - [[SeatsLite]] - code - src/lib/room/live-types.ts
-- [[SectionId]] - code - src/components/room/race-panel.tsx
-- [[TALK]] - code - src/lib/room/live-types.ts
-- [[TalkItem]] - code - src/lib/room/live-types.ts
-- [[TalkKind]] - code - src/lib/room/live-types.ts
-- [[TalkState]] - code - src/lib/room/live-types.ts
-- [[TalkWorld]] - code - src/lib/room/live-types.ts
+- [[SyndicateClosedData]] - code - src/lib/room/live-voices-race.ts
+- [[TALK_1]] - code - src/lib/room/live-types.ts
+- [[TalkMove]] - code - src/lib/room/live-types.ts
 - [[TapeSample]] - code - src/lib/room/live-types.ts
-- [[Urgency]] - code - src/lib/room/live-types.ts
-- [[WireEntry]] - code - src/components/room/room-engine.ts
+- [[TouchRoundData]] - code - src/lib/room/live-voices-race.ts
+- [[WHY the trader wants the five analyzing the ledger desk and looking for fixes…]] - rationale - scripts/verify-audit.mjs
+- [[WeekLite]] - code - src/lib/room/live-types.ts
+- [[Zone]] - code - src/lib/room/orchestrator.ts
 - [[ageDays()]] - code - src/lib/room/audit.ts
-- [[ageOf()]] - code - src/components/room/room-engine.ts
-- [[asGoal()]] - code - src/lib/room/goal.ts
 - [[audit.ts]] - code - src/lib/room/audit.ts
-- [[calendarEnds()]] - code - src/lib/news/schedule.ts
-- [[data-fresh.ts]] - code - src/lib/room/data-fresh.ts
-- [[defaultGoal()]] - code - src/lib/room/goal.ts
+- [[auditSrc]] - code - scripts/verify-audit.mjs
+- [[check()_30]] - code - scripts/verify-audit.mjs
 - [[deskAudit()]] - code - src/lib/room/audit.ts
-- [[earningsCapturedAt()]] - code - src/lib/news/schedule.ts
-- [[eventText()]] - code - src/components/room/race-panel.tsx
-- [[freshTalkState()]] - code - src/lib/room/live-types.ts
+- [[empty_1]] - code - scripts/verify-audit.mjs
+- [[feed()]] - code - scripts/verify-audit.mjs
 - [[freshnessItems()]] - code - src/lib/room/audit.ts
-- [[freshnessOf()]] - code - src/lib/room/data-fresh.ts
+- [[goal()]] - code - scripts/verify-audit.mjs
+- [[ids()]] - code - scripts/verify-audit.mjs
 - [[lineMs()]] - code - src/lib/room/live-types.ts
+- [[list()_1]] - code - src/lib/room/live-voices-race.ts
 - [[live-types.ts]] - code - src/lib/room/live-types.ts
-- [[loadEnabled()]] - code - src/components/room/room-engine.ts
-- [[loadGoal()]] - code - src/components/room/room-engine.ts
-- [[loadMinds()]] - code - src/components/room/room-engine.ts
-- [[loadRoomBook()]] - code - src/lib/room/paper-book.ts
-- [[loadTalk()]] - code - src/components/room/room-engine.ts
-- [[money()_2]] - code - src/components/room/race-panel.tsx
+- [[live-voices-race.ts]] - code - src/lib/room/live-voices-race.ts
 - [[money()_3]] - code - src/lib/room/audit.ts
-- [[pctSmall()]] - code - src/components/room/race-panel.tsx
 - [[playMs()]] - code - src/lib/room/live-types.ts
-- [[race-panel.tsx]] - code - src/components/room/race-panel.tsx
-- [[readSourceReport()]] - code - src/lib/room/data-fresh.ts
-- [[rings_1]] - code - src/components/room/room-engine.ts
-- [[room-engine.ts]] - code - src/components/room/room-engine.ts
-- [[saveGoal()]] - code - src/components/room/room-engine.ts
-- [[saveMinds()]] - code - src/components/room/room-engine.ts
-- [[signed()_1]] - code - src/components/room/race-panel.tsx
-- [[src_data_source_check_report]] - concept
-- [[src_lib_room_live_talk_freshtalkstate]] - concept
-- [[useRoomStore]] - code - src/components/room/room-engine.ts
+- [[verify-audit.mjs]] - code - scripts/verify-audit.mjs
 
 ## Live Query (requires Dataview plugin)
 
@@ -96,64 +103,46 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 39 edges to [[_COMMUNITY_Community 4]]
-- 28 edges to [[_COMMUNITY_Community 29]]
-- 23 edges to [[_COMMUNITY_Community 0]]
-- 21 edges to [[_COMMUNITY_Community 103]]
-- 17 edges to [[_COMMUNITY_Community 10]]
-- 16 edges to [[_COMMUNITY_Community 125]]
-- 16 edges to [[_COMMUNITY_Community 51]]
-- 13 edges to [[_COMMUNITY_Community 140]]
+- 32 edges to [[_COMMUNITY_Community 13]]
+- 23 edges to [[_COMMUNITY_Community 162]]
+- 22 edges to [[_COMMUNITY_Community 10]]
+- 17 edges to [[_COMMUNITY_Community 103]]
+- 14 edges to [[_COMMUNITY_Community 86]]
 - 13 edges to [[_COMMUNITY_Community 49]]
-- 12 edges to [[_COMMUNITY_Community 42]]
-- 11 edges to [[_COMMUNITY_Community 25]]
-- 8 edges to [[_COMMUNITY_Community 122]]
-- 7 edges to [[_COMMUNITY_Community 104]]
-- 7 edges to [[_COMMUNITY_Community 128]]
-- 6 edges to [[_COMMUNITY_Community 162]]
-- 6 edges to [[_COMMUNITY_Community 15]]
-- 6 edges to [[_COMMUNITY_Community 3]]
-- 6 edges to [[_COMMUNITY_Community 8]]
-- 6 edges to [[_COMMUNITY_Community 50]]
-- 5 edges to [[_COMMUNITY_Community 109]]
-- 4 edges to [[_COMMUNITY_Community 17]]
-- 4 edges to [[_COMMUNITY_Community 13]]
-- 4 edges to [[_COMMUNITY_Community 88]]
-- 3 edges to [[_COMMUNITY_Community 81]]
-- 3 edges to [[_COMMUNITY_Community 100]]
-- 3 edges to [[_COMMUNITY_Community 21]]
-- 3 edges to [[_COMMUNITY_Community 20]]
-- 3 edges to [[_COMMUNITY_Community 235]]
-- 2 edges to [[_COMMUNITY_Community 83]]
-- 2 edges to [[_COMMUNITY_Community 198]]
-- 2 edges to [[_COMMUNITY_Community 28]]
+- 11 edges to [[_COMMUNITY_Community 29]]
+- 10 edges to [[_COMMUNITY_Community 0]]
+- 10 edges to [[_COMMUNITY_Community 25]]
+- 7 edges to [[_COMMUNITY_Community 4]]
+- 7 edges to [[_COMMUNITY_Community 198]]
+- 6 edges to [[_COMMUNITY_Community 100]]
+- 6 edges to [[_COMMUNITY_Community 114]]
+- 6 edges to [[_COMMUNITY_Community 128]]
+- 6 edges to [[_COMMUNITY_Community 215]]
+- 4 edges to [[_COMMUNITY_Community 299]]
+- 4 edges to [[_COMMUNITY_Community 57]]
+- 3 edges to [[_COMMUNITY_Community 52]]
 - 2 edges to [[_COMMUNITY_Community 34]]
-- 2 edges to [[_COMMUNITY_Community 222]]
-- 2 edges to [[_COMMUNITY_Community 73]]
-- 2 edges to [[_COMMUNITY_Community 116]]
-- 2 edges to [[_COMMUNITY_Community 14]]
-- 2 edges to [[_COMMUNITY_Community 38]]
-- 2 edges to [[_COMMUNITY_Community 52]]
-- 2 edges to [[_COMMUNITY_Community 217]]
-- 1 edge to [[_COMMUNITY_Community 224]]
-- 1 edge to [[_COMMUNITY_Community 56]]
-- 1 edge to [[_COMMUNITY_Community 129]]
-- 1 edge to [[_COMMUNITY_Community 1]]
-- 1 edge to [[_COMMUNITY_Community 137]]
+- 2 edges to [[_COMMUNITY_Community 137]]
+- 2 edges to [[_COMMUNITY_Community 150]]
+- 2 edges to [[_COMMUNITY_Community 20]]
+- 2 edges to [[_COMMUNITY_Community 51]]
+- 1 edge to [[_COMMUNITY_Community 194]]
+- 1 edge to [[_COMMUNITY_Community 235]]
+- 1 edge to [[_COMMUNITY_Community 102]]
+- 1 edge to [[_COMMUNITY_Community 122]]
 - 1 edge to [[_COMMUNITY_Community 142]]
-- 1 edge to [[_COMMUNITY_Community 177]]
-- 1 edge to [[_COMMUNITY_Community 58]]
-- 1 edge to [[_COMMUNITY_Community 32]]
-- 1 edge to [[_COMMUNITY_Community 57]]
-- 1 edge to [[_COMMUNITY_Community 71]]
 - 1 edge to [[_COMMUNITY_Community 5]]
 - 1 edge to [[_COMMUNITY_Community 244]]
 - 1 edge to [[_COMMUNITY_Community 236]]
+- 1 edge to [[_COMMUNITY_Community 210]]
 - 1 edge to [[_COMMUNITY_Community 185]]
+- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 48]]
 
 ## Top bridge nodes
-- [[room-engine.ts]] - degree 170, connects to 37 communities
-- [[live-types.ts]] - degree 83, connects to 26 communities
-- [[audit.ts]] - degree 28, connects to 8 communities
-- [[race-panel.tsx]] - degree 26, connects to 8 communities
-- [[DialogueLine]] - degree 15, connects to 7 communities
+- [[live-types.ts]] - degree 114, connects to 29 communities
+- [[live-voices-race.ts]] - degree 79, connects to 10 communities
+- [[audit.ts]] - degree 30, connects to 9 communities
+- [[TalkMove]] - degree 9, connects to 5 communities
+- [[Ex]] - degree 9, connects to 5 communities

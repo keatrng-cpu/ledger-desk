@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[board_2]] - `contains` [EXTRACTED]
-- [[fixture_1]] - `contains` [EXTRACTED]
+- [[fixture_2]] - `contains` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `dynamic_import` [EXTRACTED]
 - [[pm-paper-store.ts]] - `dynamic_import` [EXTRACTED]

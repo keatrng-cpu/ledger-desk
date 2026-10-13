@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/evidence-table.tsx"
 type: "code"
-community: "Community 99"
+community: "Community 8"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/Community_8
 ---
 
 # EvidenceTable()
@@ -19,4 +19,4 @@ tags:
 - [[evidenceHeadlines()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/Community_8

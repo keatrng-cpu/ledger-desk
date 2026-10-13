@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-invest.mjs"
+source_file: "scripts/verify-live-gateway.mjs"
 type: "code"
-community: "Community 107"
+community: "Community 1"
 location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_107
+  - community/Community_1
 ---
 
 # check()
 
 ## Connections
-- [[ok()]] - `calls` [EXTRACTED]
-- [[verify-invest.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_107
+#graphify/code #graphify/EXTRACTED #community/Community_1

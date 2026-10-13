@@ -12,11 +12,11 @@ tags:
 # login.tsx
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[Field()_1]] - `contains` [EXTRACTED]
 - [[LoginPage()]] - `indirect_call` [INFERRED]
 - [[Mode_1]] - `contains` [EXTRACTED]
-- [[Route_11]] - `contains` [EXTRACTED]
+- [[Route_17]] - `contains` [EXTRACTED]
 - [[Shell()_1]] - `contains` [EXTRACTED]
 - [[authclient.ts]] - `imports_from` [EXTRACTED]
 - [[authClient]] - `imports` [EXTRACTED]

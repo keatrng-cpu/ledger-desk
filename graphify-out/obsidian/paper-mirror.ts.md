@@ -33,6 +33,6 @@ tags:
 - [[paperOpenSchema]] - `contains` [EXTRACTED]
 - [[pnl.ts]] - `imports_from` [EXTRACTED]
 - [[sideSchema_1]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_87

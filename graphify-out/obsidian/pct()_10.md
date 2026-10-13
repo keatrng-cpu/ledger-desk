@@ -1,19 +1,18 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/desk/profit-path.tsx"
 type: "code"
-community: "Community 25"
-location: "L998"
+community: "Community 26"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_26
 ---
 
 # pct()
 
 ## Connections
-- [[drawLedger()]] - `calls` [EXTRACTED]
-- [[drawVote()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[ProfitPathPanel()]] - `calls` [EXTRACTED]
+- [[profit-path.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_26

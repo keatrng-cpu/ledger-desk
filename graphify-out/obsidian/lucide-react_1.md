@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 8"
-location: "L93"
+community: "Community 69"
+location: "L97"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_69
 ---
 
 # lucide-react
@@ -42,6 +42,7 @@ tags:
 - [[month-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[news-chip.tsx]] - `imports_from` [EXTRACTED]
 - [[news-tab.tsx]] - `imports_from` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports_from` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[overnight-board.tsx]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
@@ -75,4 +76,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_8
+#graphify/concept #graphify/EXTRACTED #community/Community_69

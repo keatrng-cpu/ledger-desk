@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L190"
+community: "Community 330"
+location: "L304"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/Community_330
 ---
 
 # betterThanRobotic()
@@ -17,4 +17,4 @@ tags:
 - [[robotic()]] - `calls` [EXTRACTED]
 - [[voiceGender()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/Community_330

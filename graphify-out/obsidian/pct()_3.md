@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/lab/replay-report.tsx"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 14"
-location: "L18"
+community: "Community 150"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_150
 ---
 
 # pct()
 
 ## Connections
-- [[ReplayReport()]] - `calls` [EXTRACTED]
-- [[replay-report.tsx]] - `contains` [EXTRACTED]
+- [[checkEntry()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_150

@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/goal.ts"
+source_file: "src/components/desk/risk-panel.tsx"
 type: "code"
-community: "Community 50"
-location: "L746"
+community: "Community 44"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/Community_44
 ---
 
 # money()
 
 ## Connections
-- [[collisions()]] - `calls` [EXTRACTED]
-- [[goal.ts]] - `contains` [EXTRACTED]
+- [[LimitBar()]] - `calls` [EXTRACTED]
+- [[risk-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/Community_44

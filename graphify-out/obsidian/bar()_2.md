@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-take-moments.mjs"
+source_file: "scripts/blender/floor_doors.py"
 type: "code"
-community: "Community 145"
-location: "L23"
+community: "Community 140"
+location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/Community_140
 ---
 
 # bar()
 
 ## Connections
-- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
+- [[build()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/Community_140

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[bears]] - `contains` [EXTRACTED]
-- [[check()_7]] - `contains` [EXTRACTED]
+- [[check()_11]] - `contains` [EXTRACTED]
 - [[cpi]] - `contains` [EXTRACTED]
 - [[cpiEv]] - `contains` [EXTRACTED]
 - [[cut]] - `contains` [EXTRACTED]
@@ -31,7 +31,7 @@ tags:
 - [[nflSrc]] - `contains` [EXTRACTED]
 - [[noW()]] - `indirect_call` [INFERRED]
 - [[nv]] - `contains` [EXTRACTED]
-- [[ok()_4]] - `contains` [EXTRACTED]
+- [[ok()_3]] - `contains` [EXTRACTED]
 - [[parsed]] - `contains` [EXTRACTED]
 - [[pf]] - `contains` [EXTRACTED]
 - [[r1]] - `contains` [EXTRACTED]

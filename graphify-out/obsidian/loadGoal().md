@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 18"
-location: "L109"
+community: "Community 4"
+location: "L112"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/Community_4
 ---
 
 # loadGoal()
@@ -17,4 +17,4 @@ tags:
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/Community_4

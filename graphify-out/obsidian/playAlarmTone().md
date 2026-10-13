@@ -15,7 +15,7 @@ tags:
 - [[armPathAlarm()]] - `calls` [EXTRACTED]
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[ctx()_1]] - `calls` [EXTRACTED]
+- [[ctx()_2]] - `calls` [EXTRACTED]
 - [[path-alarm.ts]] - `contains` [EXTRACTED]
 - [[testPathAlarm()]] - `calls` [EXTRACTED]
 

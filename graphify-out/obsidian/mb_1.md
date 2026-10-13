@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-history.mjs"
+source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 71"
-location: "L261"
+community: "Community 36"
+location: "L206"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_36
 ---
 
 # mb
 
 ## Connections
-- [[capture-history.mjs]] - `contains` [EXTRACTED]
+- [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_36

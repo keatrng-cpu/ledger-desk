@@ -14,8 +14,8 @@ tags:
 ## Connections
 - [[computeSignal()]] - `calls` [EXTRACTED]
 - [[isoOrNull()]] - `calls` [EXTRACTED]
-- [[num()_3]] - `calls` [EXTRACTED]
-- [[r4()_1]] - `calls` [EXTRACTED]
+- [[num()_1]] - `calls` [EXTRACTED]
+- [[r4()]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 - [[unitPrice()]] - `calls` [EXTRACTED]
 

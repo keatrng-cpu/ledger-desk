@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
-- [[c()_1]] - `calls` [EXTRACTED]
+- [[c()_2]] - `calls` [EXTRACTED]
 - [[closeTrade()]] - `calls` [EXTRACTED]
 - [[deleteTrade()]] - `calls` [EXTRACTED]
 - [[feesFor()]] - `calls` [EXTRACTED]

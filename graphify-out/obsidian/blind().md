@@ -1,24 +1,18 @@
 ---
-source_file: "src/lib/room/meeting.ts"
+source_file: "src/lib/market/tape-trust.ts"
 type: "code"
-community: "Community 3"
-location: "L233"
+community: "Community 164"
+location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/Community_164
 ---
 
 # blind()
 
 ## Connections
-- [[buildMeeting()]] - `calls` [EXTRACTED]
-- [[focusQuote()]] - `calls` [EXTRACTED]
-- [[hotTape()]] - `calls` [EXTRACTED]
-- [[htfLine()]] - `calls` [EXTRACTED]
-- [[jaxPush()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `contains` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
-- [[say()]] - `calls` [EXTRACTED]
+- [[tape-trust.ts]] - `contains` [EXTRACTED]
+- [[tapeTrust]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/Community_164

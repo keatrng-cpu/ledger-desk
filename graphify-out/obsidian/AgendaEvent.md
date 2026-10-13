@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 4"
-location: "L245"
+community: "Community 81"
+location: "L280"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/Community_81
 ---
 
 # AgendaEvent
@@ -16,4 +16,4 @@ tags:
 - [[desk-read.ts]] - `imports` [EXTRACTED]
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/Community_81

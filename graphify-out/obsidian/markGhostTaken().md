@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
 community: "Community 130"
-location: "L914"
+location: "L923"
 tags:
   - graphify/code
   - graphify/EXTRACTED

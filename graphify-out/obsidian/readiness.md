@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 12"
+community: "Community 172"
 location: "L257"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/Community_172
 ---
 
 # readiness
@@ -19,4 +19,4 @@ tags:
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 - [[rowToMarket()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/Community_172

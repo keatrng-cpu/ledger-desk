@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/simulate-path-trade.ts"
+source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 158"
-location: "L157"
+community: "Community 44"
+location: "L713"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Community_44
 ---
 
 # pointValue()
 
 ## Connections
-- [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
-- [[simulatePathTrade()]] - `calls` [EXTRACTED]
+- [[finalizeClose()]] - `calls` [EXTRACTED]
+- [[paper-manager.ts]] - `contains` [EXTRACTED]
+- [[reconcilePaperBookToMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/Community_44

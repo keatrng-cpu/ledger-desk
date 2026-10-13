@@ -12,7 +12,7 @@ tags:
 # research.ts
 
 ## Connections
-- [[EVIDENCE_2]] - `imports` [EXTRACTED]
+- [[EVIDENCE_1]] - `imports` [EXTRACTED]
 - [[EvidenceBucket]] - `imports` [EXTRACTED]
 - [[HIT_ODDS_MODEL]] - `imports` [EXTRACTED]
 - [[RESEARCH_BUILT]] - `contains` [EXTRACTED]
@@ -30,12 +30,12 @@ tags:
 - [[inducementNote()]] - `contains` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[mitigationNote()]] - `contains` [EXTRACTED]
-- [[n()]] - `contains` [EXTRACTED]
+- [[n()_1]] - `contains` [EXTRACTED]
 - [[oddsNote()]] - `contains` [EXTRACTED]
 - [[pct()_12]] - `contains` [EXTRACTED]
 - [[pick()_1]] - `contains` [EXTRACTED]
 - [[qNote()]] - `contains` [EXTRACTED]
-- [[r()_1]] - `contains` [EXTRACTED]
+- [[r()_2]] - `contains` [EXTRACTED]
 - [[researchShelf()]] - `contains` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[rhAccountNote()]] - `contains` [EXTRACTED]

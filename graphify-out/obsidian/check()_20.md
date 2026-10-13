@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-exec.mjs"
+source_file: "scripts/verify-rh-autofire-gates.mjs"
 type: "code"
-community: "Community 171"
-location: "L31"
+community: "Community 15"
+location: "L18"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_171
+  - graphify/INFERRED
+  - community/Community_15
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-autofire-gates.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/INFERRED #community/Community_15

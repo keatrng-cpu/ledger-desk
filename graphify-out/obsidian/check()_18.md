@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-floor-cues.mjs"
+source_file: "scripts/verify-take-moments.mjs"
 type: "code"
-community: "Community 165"
-location: "L9"
+community: "Community 145"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_165
+  - community/Community_145
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
+- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_165
+#graphify/code #graphify/EXTRACTED #community/Community_145

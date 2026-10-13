@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/score-drivers.ts"
 type: "code"
-community: "Community 186"
-location: "L84"
+community: "Community 163"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/Community_163
 ---
 
 # ScoreDriver
@@ -18,4 +18,4 @@ tags:
 - [[score-drivers.ts]] - `contains` [EXTRACTED]
 - [[setup-mini-chart.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/Community_163

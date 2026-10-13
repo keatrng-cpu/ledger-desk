@@ -12,14 +12,14 @@ tags:
 # verify-hit-odds.mjs
 
 ## Connections
-- [[arr]] - `contains` [EXTRACTED]
-- [[bars_3]] - `contains` [EXTRACTED]
-- [[base_2]] - `contains` [EXTRACTED]
+- [[arr_1]] - `contains` [EXTRACTED]
+- [[bars_5]] - `contains` [EXTRACTED]
+- [[base_3]] - `contains` [EXTRACTED]
 - [[bd]] - `contains` [EXTRACTED]
 - [[c]] - `contains` [EXTRACTED]
-- [[card]] - `contains` [EXTRACTED]
+- [[card_1]] - `contains` [EXTRACTED]
 - [[chart]] - `contains` [EXTRACTED]
-- [[check()_14]] - `contains` [EXTRACTED]
+- [[check()_21]] - `contains` [EXTRACTED]
 - [[cmp]] - `contains` [EXTRACTED]
 - [[code()]] - `contains` [EXTRACTED]
 - [[div()]] - `contains` [EXTRACTED]
@@ -40,7 +40,7 @@ tags:
 - [[sm]] - `contains` [EXTRACTED]
 - [[smt-level.ts]] - `dynamic_import` [EXTRACTED]
 - [[strategies.ts]] - `dynamic_import` [EXTRACTED]
-- [[t0_4]] - `contains` [EXTRACTED]
+- [[t0_3]] - `contains` [EXTRACTED]
 - [[tight]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 

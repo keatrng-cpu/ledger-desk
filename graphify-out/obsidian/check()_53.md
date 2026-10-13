@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-board-rank.mjs"
+source_file: "scripts/verify-hi-alert-brain.mjs"
 type: "code"
-community: "Community 254"
-location: "L27"
+community: "Community 236"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/Community_236
 ---
 
 # check()
 
 ## Connections
-- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
+- [[verify-hi-alert-brain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/Community_236

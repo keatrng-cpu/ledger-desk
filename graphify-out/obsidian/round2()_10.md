@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/trade-plan.ts"
+source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 72"
-location: "L281"
+community: "Community 77"
+location: "L476"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/Community_77
 ---
 
 # round2()
 
 ## Connections
-- [[buildTradePlan()]] - `calls` [EXTRACTED]
-- [[trade-plan.ts]] - `contains` [EXTRACTED]
+- [[buildOrderIntent()]] - `calls` [EXTRACTED]
+- [[order-intent.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/Community_77

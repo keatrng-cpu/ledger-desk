@@ -12,6 +12,7 @@ tags:
 # exGoalFinal()
 
 ## Connections
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[boardMoves()]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

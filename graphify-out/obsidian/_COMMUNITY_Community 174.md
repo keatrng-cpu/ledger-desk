@@ -1,18 +1,19 @@
 ---
 type: community
-cohesion: 0.20
-members: 21
+cohesion: 0.19
+members: 22
 ---
 
 # Community 174
 
-**Cohesion:** 0.20 - loosely connected
-**Members:** 21 nodes
+**Cohesion:** 0.19 - loosely connected
+**Members:** 22 nodes
 
 ## Members
 - [[Bucket_2]] - code - src/lib/trading/calibration.ts
 - [[CalibrationPanel()]] - code - src/components/desk/calibration-panel.tsx
 - [[CalibrationVerdict]] - code - src/lib/trading/calibration.ts
+- [[GateReadout()]] - code - src/components/desk/calibration-panel.tsx
 - [[MIN_BUCKET_N]] - code - src/lib/trading/calibration.ts
 - [[PRIOR_STRENGTH]] - code - src/lib/trading/calibration.ts
 - [[Sample]] - code - src/lib/trading/calibration.ts
@@ -21,10 +22,10 @@ members: 21
 - [[calibration.ts]] - code - src/lib/trading/calibration.ts
 - [[compare()]] - code - src/lib/trading/calibration.ts
 - [[conditional()]] - code - src/lib/trading/calibration.ts
-- [[expectancy_1]] - code - src/lib/trading/calibration.ts
-- [[fails_2]] - code - scripts/verify-calibration.mjs
+- [[expectancy]] - code - src/lib/trading/calibration.ts
+- [[fails_1]] - code - scripts/verify-calibration.mjs
 - [[mean()_1]] - code - src/lib/trading/calibration.ts
-- [[near()_1]] - code - scripts/verify-calibration.mjs
+- [[near()_2]] - code - scripts/verify-calibration.mjs
 - [[ok()_11]] - code - scripts/verify-calibration.mjs
 - [[rOf()_1]] - code - src/components/desk/calibration-panel.tsx
 - [[reliability]] - code - src/lib/trading/calibration.ts
@@ -42,10 +43,12 @@ SORT file.name ASC
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 149]]
 - 3 edges to [[_COMMUNITY_Community 8]]
-- 2 edges to [[_COMMUNITY_Community 11]]
+- 2 edges to [[_COMMUNITY_Community 40]]
 - 1 edge to [[_COMMUNITY_Community 14]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 11]]
 
 ## Top bridge nodes
-- [[calibration-panel.tsx]] - degree 12, connects to 3 communities
-- [[CalibrationPanel()]] - degree 9, connects to 2 communities
-- [[verify-calibration.mjs]] - degree 14, connects to 1 community
+- [[calibration-panel.tsx]] - degree 15, connects to 4 communities
+- [[verify-calibration.mjs]] - degree 14, connects to 2 communities
+- [[CalibrationPanel()]] - degree 10, connects to 2 communities

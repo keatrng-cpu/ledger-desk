@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/evidence-table.tsx"
 type: "code"
-community: "Community 99"
+community: "Community 14"
 location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/Community_14
 ---
 
 # Row()
@@ -15,6 +15,6 @@ tags:
 - [[EvidenceTable()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[evidence-table.tsx]] - `contains` [EXTRACTED]
-- [[r()_2]] - `calls` [EXTRACTED]
+- [[r()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/Community_14

@@ -1,51 +1,40 @@
 ---
 type: community
-cohesion: 0.09
-members: 39
+cohesion: 0.11
+members: 28
 ---
 
 # Community 84
 
-**Cohesion:** 0.09 - loosely connected
-**Members:** 39 nodes
+**Cohesion:** 0.11 - loosely connected
+**Members:** 28 nodes
 
 ## Members
 - [[CHANNEL_RANK]] - code - src/lib/trading/score-drivers.ts
-- [[CanonInput]] - code - src/lib/trading/smc-canon.ts
+- [[COMPONENT_KEYS]] - code - src/lib/trading/engine-weights.ts
 - [[DRAWN_AS]] - code - src/lib/trading/score-drivers.ts
+- [[DeskLevelKind]] - code - src/lib/trading/card-plan.ts
 - [[DriverChannel]] - code - src/lib/trading/score-drivers.ts
-- [[LABELS]] - code - src/lib/trading/score-drivers.ts
+- [[LABELS_1]] - code - src/lib/trading/score-drivers.ts
 - [[NO_BONUS]] - code - scripts/verify-score-drivers.mjs
+- [[PLAN_MARK_ACTION]] - code - src/lib/trading/score-drivers.ts
+- [[PLAN_MARK_KIND]] - code - src/lib/trading/score-drivers.ts
 - [[SMC_STRUCTURE_KEYS]] - code - src/lib/trading/strategy-grade.ts
 - [[STRATEGY_TEMPLATES]] - code - src/lib/trading/strategy-grade.ts
-- [[SetupPlan]] - code - src/lib/trading/tradezella-analyze.ts
-- [[StrategyId]] - code - src/lib/trading/strategies.ts
-- [[StrategyMarketGrade]] - code - src/lib/trading/strategy-grade.ts
-- [[StrategyRead]] - code - src/lib/trading/veteran-brain.ts
-- [[StrategyTemplate]] - code - src/lib/trading/strategy-grade.ts
 - [[WHAT]] - code - src/lib/trading/score-drivers.ts
-- [[bandIsPath()]] - code - src/lib/trading/strategy-grade.ts
-- [[bandLiveAllowed()]] - code - src/lib/trading/strategy-grade.ts
-- [[bandPaperOnly()]] - code - src/lib/trading/strategy-grade.ts
-- [[bandSizeMult()]] - code - src/lib/trading/strategy-grade.ts
-- [[bandToDisplayGrade()]] - code - src/lib/trading/strategy-grade.ts
-- [[bestCompleteStrategy()]] - code - src/lib/trading/strategy-grade.ts
-- [[bestStrategyGrade()]] - code - src/lib/trading/strategy-grade.ts
-- [[fails_6]] - code - scripts/verify-score-drivers.mjs
-- [[gradeAllStrategies()]] - code - src/lib/trading/strategy-grade.ts
+- [[fails_7]] - code - scripts/verify-score-drivers.mjs
 - [[gradeStrategyAgainstMarket()]] - code - src/lib/trading/strategy-grade.ts
 - [[heaviest()]] - code - src/lib/trading/score-drivers.ts
 - [[isStrategyComplete()]] - code - src/lib/trading/strategy-grade.ts
 - [[missingDrivers()]] - code - src/lib/trading/score-drivers.ts
-- [[near()_7]] - code - scripts/verify-score-drivers.mjs
-- [[ok()_28]] - code - scripts/verify-score-drivers.mjs
-- [[pathBand]] - code - src/lib/trading/strategy-grade.ts
-- [[qualityScore()]] - code - src/lib/trading/strategy-grade.ts
+- [[near()_8]] - code - scripts/verify-score-drivers.mjs
+- [[ok()_30]] - code - scripts/verify-score-drivers.mjs
+- [[planMarks()]] - code - src/lib/trading/score-drivers.ts
 - [[reconstruct()]] - code - src/lib/trading/score-drivers.ts
 - [[score-drivers.ts]] - code - src/lib/trading/score-drivers.ts
 - [[scoreDrivers()]] - code - src/lib/trading/score-drivers.ts
 - [[scoreGap]] - code - src/lib/trading/score-drivers.ts
-- [[strategy-grade.ts]] - code - src/lib/trading/strategy-grade.ts
+- [[setupLine()]] - code - src/lib/trading/score-drivers.ts
 - [[templateFor()]] - code - src/lib/trading/strategy-grade.ts
 - [[templateReads()]] - code - scripts/verify-score-drivers.mjs
 - [[verify-score-drivers.mjs]] - code - scripts/verify-score-drivers.mjs
@@ -58,27 +47,20 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 15 edges to [[_COMMUNITY_Community 114]]
-- 11 edges to [[_COMMUNITY_Community 40]]
+- 14 edges to [[_COMMUNITY_Community 127]]
 - 7 edges to [[_COMMUNITY_Community 39]]
-- 6 edges to [[_COMMUNITY_Community 9]]
-- 6 edges to [[_COMMUNITY_Community 94]]
-- 3 edges to [[_COMMUNITY_Community 186]]
-- 3 edges to [[_COMMUNITY_Community 146]]
-- 2 edges to [[_COMMUNITY_Community 127]]
+- 5 edges to [[_COMMUNITY_Community 163]]
+- 2 edges to [[_COMMUNITY_Community 254]]
 - 2 edges to [[_COMMUNITY_Community 29]]
-- 2 edges to [[_COMMUNITY_Community 46]]
-- 2 edges to [[_COMMUNITY_Community 10]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 56]]
-- 1 edge to [[_COMMUNITY_Community 60]]
-- 1 edge to [[_COMMUNITY_Community 90]]
+- 1 edge to [[_COMMUNITY_Community 35]]
+- 1 edge to [[_COMMUNITY_Community 40]]
+- 1 edge to [[_COMMUNITY_Community 92]]
 - 1 edge to [[_COMMUNITY_Community 164]]
-- 1 edge to [[_COMMUNITY_Community 205]]
+- 1 edge to [[_COMMUNITY_Community 46]]
 
 ## Top bridge nodes
-- [[strategy-grade.ts]] - degree 36, connects to 8 communities
-- [[StrategyId]] - degree 15, connects to 7 communities
-- [[score-drivers.ts]] - degree 27, connects to 6 communities
+- [[score-drivers.ts]] - degree 34, connects to 7 communities
 - [[verify-score-drivers.mjs]] - degree 16, connects to 2 communities
-- [[gradeAllStrategies()]] - degree 8, connects to 2 communities
+- [[gradeStrategyAgainstMarket()]] - degree 9, connects to 2 communities
+- [[scoreGap]] - degree 6, connects to 2 communities
+- [[COMPONENT_KEYS]] - degree 3, connects to 2 communities

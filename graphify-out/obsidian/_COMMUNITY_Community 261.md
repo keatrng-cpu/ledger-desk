@@ -10,7 +10,7 @@ members: 2
 **Members:** 2 nodes
 
 ## Members
-- [[at()_6]] - code - scripts/verify-room.mjs
+- [[at()_9]] - code - scripts/verify-room.mjs
 - [[inLounge()]] - code - scripts/verify-room.mjs
 
 ## Live Query (requires Dataview plugin)
@@ -24,5 +24,5 @@ SORT file.name ASC
 - 2 edges to [[_COMMUNITY_Community 22]]
 
 ## Top bridge nodes
-- [[at()_6]] - degree 2, connects to 1 community
+- [[at()_9]] - degree 2, connects to 1 community
 - [[inLounge()]] - degree 2, connects to 1 community

@@ -48,22 +48,22 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 14 edges to [[_COMMUNITY_Community 109]]
+- 12 edges to [[_COMMUNITY_Community 109]]
+- 9 edges to [[_COMMUNITY_Community 2]]
 - 7 edges to [[_COMMUNITY_Community 116]]
-- 7 edges to [[_COMMUNITY_Community 7]]
-- 7 edges to [[_COMMUNITY_Community 5]]
 - 6 edges to [[_COMMUNITY_Community 232]]
+- 5 edges to [[_COMMUNITY_Community 209]]
 - 5 edges to [[_COMMUNITY_Community 29]]
 - 3 edges to [[_COMMUNITY_Community 80]]
-- 2 edges to [[_COMMUNITY_Community 2]]
-- 1 edge to [[_COMMUNITY_Community 8]]
-- 1 edge to [[_COMMUNITY_Community 18]]
+- 2 edges to [[_COMMUNITY_Community 284]]
+- 2 edges to [[_COMMUNITY_Community 4]]
+- 2 edges to [[_COMMUNITY_Community 5]]
 - 1 edge to [[_COMMUNITY_Community 133]]
-- 1 edge to [[_COMMUNITY_Community 65]]
+- 1 edge to [[_COMMUNITY_Community 87]]
 
 ## Top bridge nodes
-- [[thesis-server.ts]] - degree 39, connects to 8 communities
-- [[newsLiteFrom()]] - degree 8, connects to 4 communities
+- [[thesis-server.ts]] - degree 39, connects to 9 communities
+- [[fundProfile]] - degree 12, connects to 4 communities
 - [[build()]] - degree 16, connects to 3 communities
-- [[fundProfile]] - degree 12, connects to 3 communities
+- [[newsLiteFrom()]] - degree 8, connects to 3 communities
 - [[dedupe()]] - degree 7, connects to 3 communities

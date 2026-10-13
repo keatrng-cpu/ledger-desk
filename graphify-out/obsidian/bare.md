@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-kill-watch.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 197"
-location: "L87"
+community: "Community 119"
+location: "L237"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_197
+  - community/Community_119
 ---
 
 # bare
 
 ## Connections
-- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_197
+#graphify/code #graphify/EXTRACTED #community/Community_119

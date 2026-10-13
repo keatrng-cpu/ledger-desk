@@ -15,7 +15,7 @@ tags:
 - [[clamp()_1]] - `calls` [EXTRACTED]
 - [[computeSignal()]] - `calls` [EXTRACTED]
 - [[logScore()]] - `calls` [EXTRACTED]
-- [[num()_3]] - `calls` [EXTRACTED]
+- [[num()_1]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_12

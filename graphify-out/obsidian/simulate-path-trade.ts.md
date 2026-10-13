@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 158"
+community: "Community 46"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Community_46
 ---
 
 # simulate-path-trade.ts
 
 ## Connections
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[DEFAULT_MAX_RISK_PTS]] - `contains` [EXTRACTED]
 - [[MAX_RISK_ATR]] - `contains` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[parseFirstPrice()]] - `contains` [EXTRACTED]
 - [[parseZoneMid()]] - `contains` [EXTRACTED]
-- [[pointValue()]] - `contains` [EXTRACTED]
+- [[pointValue()_1]] - `contains` [EXTRACTED]
 - [[resolveGrade()]] - `contains` [EXTRACTED]
 - [[riskGradeFromScore()]] - `imports` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/Community_46

@@ -12,17 +12,17 @@ tags:
 # diagnose-sequence.mjs
 
 ## Connections
-- [[dayChangePct()_1]] - `contains` [EXTRACTED]
+- [[dayChangePct()_3]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[history_1]] - `contains` [EXTRACTED]
+- [[history_3]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `dynamic_import` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-board.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-master.ts]] - `dynamic_import` [EXTRACTED]
-- [[stride]] - `contains` [EXTRACTED]
+- [[stride_1]] - `contains` [EXTRACTED]
 - [[structure.ts]] - `dynamic_import` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 

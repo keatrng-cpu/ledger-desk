@@ -12,12 +12,14 @@ tags:
 # signals.ts
 
 ## Connections
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
-- [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
+- [[paper-scorer.ts]] - `re_exports` [EXTRACTED]
 - [[pm-analyzer.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports_from` [EXTRACTED]
-- [[signal-engine.ts]] - `imports_from` [EXTRACTED]
-- [[signal-evidence.ts]] - `imports_from` [EXTRACTED]
+- [[signal-engine.ts]] - `re_exports` [EXTRACTED]
+- [[signal-evidence.ts]] - `re_exports` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_63

@@ -1,18 +1,19 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 94"
+community: "Community 14"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_14
 ---
 
 # computeMetrics()
 
 ## Connections
 - [[JournalPanel()]] - `calls` [EXTRACTED]
+- [[Unlock ladder (ROADMAP Phase 4)]] - `references` [INFERRED]
 - [[aplusanalytics.ts]] - `contains` [EXTRACTED]
 - [[buildAnalytics()]] - `calls` [EXTRACTED]
 - [[buildBacktestPayload()]] - `calls` [EXTRACTED]
@@ -27,4 +28,4 @@ tags:
 - [[sample-run.ts]] - `imports` [EXTRACTED]
 - [[sharpe()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_14

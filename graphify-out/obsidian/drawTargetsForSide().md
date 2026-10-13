@@ -1,21 +1,23 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 40"
+community: "Community 179"
 location: "L375"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/Community_179
 ---
 
 # drawTargetsForSide()
 
 ## Connections
+- [[card-plan.ts]] - `imports` [EXTRACTED]
 - [[draw.ts]] - `contains` [EXTRACTED]
+- [[drawPoolsForSide()]] - `calls` [EXTRACTED]
 - [[management.ts]] - `imports` [EXTRACTED]
 - [[retarget()]] - `calls` [EXTRACTED]
 - [[scoreCandidates()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/Community_179

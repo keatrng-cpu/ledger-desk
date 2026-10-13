@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/store.ts"
 type: "code"
-community: "Community 147"
+community: "Community 34"
 location: "L454"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_34
 ---
 
 # exportLedger()
@@ -17,4 +17,4 @@ tags:
 - [[loadEntries()]] - `calls` [EXTRACTED]
 - [[store.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_34

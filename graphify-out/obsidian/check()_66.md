@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-keep-live.mjs"
+source_file: "scripts/verify-card-plan.mjs"
 type: "code"
-community: "Community 71"
-location: "L19"
+community: "Community 254"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_254
 ---
 
 # check()
 
 ## Connections
-- [[verify-keep-live.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_254

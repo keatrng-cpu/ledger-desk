@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[BANNED]] - `contains` [EXTRACTED]
-- [[EVIDENCE_1]] - `contains` [EXTRACTED]
+- [[EVIDENCE_2]] - `contains` [EXTRACTED]
 - [[InvestTier]] - `imports` [EXTRACTED]
 - [[RESEARCH]] - `contains` [EXTRACTED]
 - [[ResearchFile]] - `contains` [EXTRACTED]

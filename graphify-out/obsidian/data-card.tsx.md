@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/data-card.tsx"
 type: "code"
-community: "Community 147"
+community: "Community 34"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_34
 ---
 
 # data-card.tsx
@@ -26,4 +26,4 @@ tags:
 - [[sync.ts]] - `imports_from` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_34

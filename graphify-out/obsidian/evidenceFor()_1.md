@@ -14,7 +14,9 @@ tags:
 ## Connections
 - [[ResearchCard()]] - `calls` [EXTRACTED]
 - [[evidenceSummary()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[investevidence.ts]] - `contains` [EXTRACTED]
+- [[memoOf()]] - `calls` [EXTRACTED]
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[strictGate]] - `calls` [EXTRACTED]
 - [[unsourced]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/components/desk/calibration-panel.tsx"
 type: "code"
 community: "Community 174"
-location: "L33"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED

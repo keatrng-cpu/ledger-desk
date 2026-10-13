@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "Community 10"
 location: "L132"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_10
 ---
 
 # Argument
@@ -18,4 +18,4 @@ tags:
 - [[debate.ts]] - `contains` [EXTRACTED]
 - [[floor-school-contracts.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_10

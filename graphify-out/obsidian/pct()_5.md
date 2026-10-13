@@ -1,18 +1,20 @@
 ---
-source_file: "scripts/crew-year-backtest.py"
+source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 156"
-location: "L419"
+community: "Community 16"
+location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/Community_16
 ---
 
 # pct()
 
 ## Connections
-- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
-- [[main()_3]] - `calls` [EXTRACTED]
+- [[DeskPanel()]] - `calls` [EXTRACTED]
+- [[Record()]] - `calls` [EXTRACTED]
+- [[Ring()]] - `calls` [EXTRACTED]
+- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/Community_16

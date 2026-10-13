@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-kill-watch.mjs"
+source_file: "scripts/verify-tape-trust.mjs"
 type: "code"
-community: "Community 197"
-location: "L23"
+community: "Community 164"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_197
+  - community/Community_164
 ---
 
 # check()
 
 ## Connections
-- [[ok()_13]] - `calls` [EXTRACTED]
-- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
+- [[verify-tape-trust.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_197
+#graphify/code #graphify/EXTRACTED #community/Community_164

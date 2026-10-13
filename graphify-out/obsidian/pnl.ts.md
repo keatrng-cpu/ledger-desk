@@ -12,7 +12,7 @@ tags:
 # pnl.ts
 
 ## Connections
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[TradePnlInput]] - `contains` [EXTRACTED]
 - [[TradePnlResult]] - `contains` [EXTRACTED]
@@ -23,6 +23,6 @@ tags:
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[order-intent.ts]] - `imports_from` [EXTRACTED]
 - [[paper-mirror.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_12]] - `contains` [EXTRACTED]
+- [[round2()_11]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_77

@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.09
-members: 32
+members: 31
 ---
 
 # Community 116
 
 **Cohesion:** 0.09 - loosely connected
-**Members:** 32 nodes
+**Members:** 31 nodes
 
 ## Members
 - [[CIK]] - code - src/lib/news/news-server.ts
@@ -35,7 +35,6 @@ members: 32
 - [[decodeEntities()]] - code - src/lib/news/feed.ts
 - [[feed.ts]] - code - src/lib/news/feed.ts
 - [[fetchText()]] - code - src/lib/news/news-server.ts
-- [[getPulse]] - code - src/lib/news/news-server.ts
 - [[hash()]] - code - src/lib/news/feed.ts
 - [[loadNews()]] - code - src/lib/news/news-server.ts
 - [[nameRegex()]] - code - src/lib/news/feed.ts
@@ -53,17 +52,15 @@ SORT file.name ASC
 ## Connections to other communities
 - 9 edges to [[_COMMUNITY_Community 109]]
 - 7 edges to [[_COMMUNITY_Community 129]]
-- 3 edges to [[_COMMUNITY_Community 4]]
+- 5 edges to [[_COMMUNITY_Community 4]]
 - 2 edges to [[_COMMUNITY_Community 29]]
 - 2 edges to [[_COMMUNITY_Community 5]]
-- 2 edges to [[_COMMUNITY_Community 18]]
-- 1 edge to [[_COMMUNITY_Community 8]]
 - 1 edge to [[_COMMUNITY_Community 133]]
-- 1 edge to [[_COMMUNITY_Community 65]]
+- 1 edge to [[_COMMUNITY_Community 87]]
 
 ## Top bridge nodes
-- [[news-server.ts]] - degree 25, connects to 6 communities
+- [[news-server.ts]] - degree 25, connects to 5 communities
 - [[feed.ts]] - degree 29, connects to 4 communities
-- [[getPulse]] - degree 3, connects to 2 communities
 - [[FeedItem]] - degree 5, connects to 1 community
 - [[loadNews()]] - degree 5, connects to 1 community
+- [[Tagged]] - degree 3, connects to 1 community

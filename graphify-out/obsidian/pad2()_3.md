@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[cron.ts]] - `contains` [EXTRACTED]
-- [[etWindow]] - `calls` [EXTRACTED]
+- [[etWindow_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_31

@@ -12,7 +12,7 @@ tags:
 # ok()
 
 ## Connections
-- [[check()_12]] - `calls` [EXTRACTED]
+- [[check()_17]] - `calls` [EXTRACTED]
 - [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_144

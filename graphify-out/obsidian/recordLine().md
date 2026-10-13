@@ -2,7 +2,7 @@
 source_file: "src/lib/room/agents.ts"
 type: "code"
 community: "Community 3"
-location: "L877"
+location: "L920"
 tags:
   - graphify/code
   - graphify/EXTRACTED

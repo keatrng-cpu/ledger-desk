@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-amd-signals.mjs"
+source_file: "scripts/measure-model-claims.mjs"
 type: "code"
-community: "Community 136"
-location: "L77"
+community: "Community 117"
+location: "L134"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_136
+  - community/Community_117
 ---
 
 # rows
 
 ## Connections
-- [[measure-amd-signals.mjs]] - `contains` [EXTRACTED]
+- [[measure-model-claims.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_136
+#graphify/code #graphify/EXTRACTED #community/Community_117

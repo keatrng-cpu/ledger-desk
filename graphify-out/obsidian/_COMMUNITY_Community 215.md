@@ -1,28 +1,44 @@
 ---
 type: community
-cohesion: 0.27
-members: 13
+cohesion: 0.20
+members: 29
 ---
 
 # Community 215
 
-**Cohesion:** 0.27 - loosely connected
-**Members:** 13 nodes
+**Cohesion:** 0.20 - loosely connected
+**Members:** 29 nodes
 
 ## Members
-- [[RH_JOURNAL_CAP]] - code - src/lib/invest/rh-bridge.ts
-- [[RhMonthRead]] - code - src/lib/invest/rh-bridge.ts
-- [[WASH_LOOKBACK_DAYS]] - code - src/lib/invest/rh-bridge.ts
-- [[banReason()]] - code - src/lib/invest/rh-bridge.ts
-- [[banReasonFrom()]] - code - src/lib/invest/rh-bridge.ts
-- [[etMonthKey()]] - code - src/lib/trading/rh-income.ts
-- [[loadRhIncome()]] - code - src/lib/trading/rh-income.ts
-- [[recentUnderliersFrom()]] - code - src/lib/invest/rh-bridge.ts
-- [[rh-bridge.ts]] - code - src/lib/invest/rh-bridge.ts
-- [[rhMonth()]] - code - src/lib/invest/rh-bridge.ts
-- [[rhMonthFrom()]] - code - src/lib/invest/rh-bridge.ts
-- [[round2()_5]] - code - src/lib/invest/rh-bridge.ts
-- [[uncoveredUnderliers()]] - code - src/lib/invest/rh-bridge.ts
+- [[AT()_7]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[FRESH_EFFECT]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[INVEST_STUDY_MOVES]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[PROBLEM_SAY]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[SLEEVE_SAY]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[cash()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[dateSay()]] - code - src/lib/room/invest-read.ts
+- [[exFirmBoard()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmCompliance()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmDiligence()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmFresh()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmFunding()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmMacro()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmMemo()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmOps()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmPolicy()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmRisk()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[exFirmTax()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[gainLoss()_1]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[list()_2]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[live-voices-invest-firm.ts]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[monthSay()]] - code - src/lib/room/invest-read.ts
+- [[pc1()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[plural()_2]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[pts1()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[rot()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[sentencesWithin()]] - code - src/lib/room/invest-read.ts
+- [[sleeveSay()]] - code - src/lib/room/live-voices-invest-firm.ts
+- [[stop()_1]] - code - src/lib/room/live-voices-invest-firm.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -32,21 +48,19 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 11 edges to [[_COMMUNITY_Community 153]]
-- 3 edges to [[_COMMUNITY_Community 89]]
-- 3 edges to [[_COMMUNITY_Community 100]]
-- 3 edges to [[_COMMUNITY_Community 34]]
-- 3 edges to [[_COMMUNITY_Community 86]]
-- 2 edges to [[_COMMUNITY_Community 57]]
-- 2 edges to [[_COMMUNITY_Community 48]]
-- 2 edges to [[_COMMUNITY_Community 33]]
-- 1 edge to [[_COMMUNITY_Community 128]]
-- 1 edge to [[_COMMUNITY_Community 5]]
-- 1 edge to [[_COMMUNITY_Community 30]]
+- 40 edges to [[_COMMUNITY_Community 13]]
+- 12 edges to [[_COMMUNITY_Community 49]]
+- 6 edges to [[_COMMUNITY_Community 18]]
+- 3 edges to [[_COMMUNITY_Community 103]]
+- 2 edges to [[_COMMUNITY_Community 162]]
+- 2 edges to [[_COMMUNITY_Community 25]]
+- 1 edge to [[_COMMUNITY_Community 100]]
+- 1 edge to [[_COMMUNITY_Community 86]]
+- 1 edge to [[_COMMUNITY_Community 137]]
 
 ## Top bridge nodes
-- [[rh-bridge.ts]] - degree 20, connects to 8 communities
-- [[loadRhIncome()]] - degree 18, connects to 4 communities
-- [[etMonthKey()]] - degree 6, connects to 2 communities
-- [[banReason()]] - degree 5, connects to 1 community
-- [[rhMonth()]] - degree 5, connects to 1 community
+- [[live-voices-invest-firm.ts]] - degree 49, connects to 7 communities
+- [[dateSay()]] - degree 13, connects to 2 communities
+- [[exFirmMemo()]] - degree 12, connects to 2 communities
+- [[exFirmMacro()]] - degree 8, connects to 2 communities
+- [[sentencesWithin()]] - degree 6, connects to 2 communities

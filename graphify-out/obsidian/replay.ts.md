@@ -24,7 +24,7 @@ tags:
 - [[ReplayOutcome]] - `contains` [EXTRACTED]
 - [[analyzeStructure()]] - `imports` [EXTRACTED]
 - [[calibrationReport]] - `contains` [EXTRACTED]
-- [[dayChangePct()_5]] - `contains` [EXTRACTED]
+- [[dayChangePct()_7]] - `contains` [EXTRACTED]
 - [[etSessionKey()]] - `imports` [EXTRACTED]
 - [[getSessionClock()]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
@@ -35,7 +35,7 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[simulate()_2]] - `contains` [EXTRACTED]
 - [[smtDivergence()]] - `imports` [EXTRACTED]
-- [[stats()_3]] - `contains` [EXTRACTED]
+- [[stats()_4]] - `contains` [EXTRACTED]
 - [[structure.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 

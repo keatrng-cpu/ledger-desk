@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-live-talk.mjs"
+source_file: "scripts/verify-shadow-book.mjs"
 type: "code"
-community: "Community 142"
-location: "L33"
+community: "Community 126"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/Community_126
 ---
 
 # check()
 
 ## Connections
-- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/Community_126

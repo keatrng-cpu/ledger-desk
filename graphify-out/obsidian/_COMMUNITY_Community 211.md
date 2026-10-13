@@ -10,17 +10,17 @@ members: 13
 **Members:** 13 nodes
 
 ## Members
-- [[bar()_6]] - code - scripts/verify-exit-rules.mjs
-- [[base_5]] - code - scripts/verify-exit-rules.mjs
-- [[card_3]] - code - scripts/verify-exit-rules.mjs
-- [[check()_31]] - code - scripts/verify-exit-rules.mjs
+- [[bar()_7]] - code - scripts/verify-exit-rules.mjs
+- [[base_6]] - code - scripts/verify-exit-rules.mjs
+- [[card_6]] - code - scripts/verify-exit-rules.mjs
+- [[check()_44]] - code - scripts/verify-exit-rules.mjs
 - [[closeThrough]] - code - scripts/verify-exit-rules.mjs
 - [[fh]] - code - scripts/verify-exit-rules.mjs
-- [[ok()_17]] - code - scripts/verify-exit-rules.mjs
+- [[ok()_18]] - code - scripts/verify-exit-rules.mjs
 - [[pm]] - code - scripts/verify-exit-rules.mjs
 - [[sbase]] - code - scripts/verify-exit-rules.mjs
 - [[shell]] - code - scripts/verify-exit-rules.mjs
-- [[t0_7]] - code - scripts/verify-exit-rules.mjs
+- [[t0_10]] - code - scripts/verify-exit-rules.mjs
 - [[verify-exit-rules.mjs]] - code - scripts/verify-exit-rules.mjs
 - [[wick]] - code - scripts/verify-exit-rules.mjs
 
@@ -32,8 +32,8 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
-- 1 edge to [[_COMMUNITY_Community 39]]
+- 1 edge to [[_COMMUNITY_Community 160]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
 - [[verify-exit-rules.mjs]] - degree 14, connects to 2 communities

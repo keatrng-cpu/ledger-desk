@@ -12,11 +12,11 @@ tags:
 # verify-desk-cadence.mjs
 
 ## Connections
-- [[at()_5]] - `contains` [EXTRACTED]
-- [[check()_51]] - `contains` [EXTRACTED]
+- [[at()_8]] - `contains` [EXTRACTED]
+- [[check()_62]] - `contains` [EXTRACTED]
 - [[desk-cadence.ts]] - `dynamic_import` [EXTRACTED]
 - [[minute_1]] - `contains` [EXTRACTED]
-- [[ok()_21]] - `contains` [EXTRACTED]
+- [[ok()_23]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[shell_1]] - `contains` [EXTRACTED]
 

@@ -15,7 +15,7 @@ tags:
 - [[WHY the Manager is called a Grok bot, and when Grok's usage ran out the…]] - `rationale_for` [EXTRACTED]
 - [[account()_1]] - `contains` [EXTRACTED]
 - [[armed()]] - `contains` [EXTRACTED]
-- [[check()_44]] - `contains` [EXTRACTED]
+- [[check()_54]] - `contains` [EXTRACTED]
 - [[fills_1]] - `contains` [EXTRACTED]
 - [[manager-feed.ts]] - `dynamic_import` [EXTRACTED]
 - [[manager-live-loop.ts]] - `dynamic_import` [EXTRACTED]
@@ -25,6 +25,6 @@ tags:
 - [[rh-autofire-gates.ts]] - `dynamic_import` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
 - [[run()_2]] - `contains` [EXTRACTED]
-- [[steps_1]] - `contains` [EXTRACTED]
+- [[steps_2]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_237

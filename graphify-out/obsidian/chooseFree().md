@@ -2,7 +2,7 @@
 source_file: "src/lib/room/agents.ts"
 type: "code"
 community: "Community 81"
-location: "L503"
+location: "L544"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,7 +13,9 @@ tags:
 
 ## Connections
 - [[agents.ts]] - `contains` [EXTRACTED]
-- [[hash01()]] - `calls` [EXTRACTED]
+- [[gamesOn()]] - `calls` [EXTRACTED]
+- [[hash01()_1]] - `calls` [EXTRACTED]
+- [[marketClosed()]] - `calls` [EXTRACTED]
 - [[planAgents()]] - `calls` [EXTRACTED]
 - [[utility()]] - `calls` [EXTRACTED]
 

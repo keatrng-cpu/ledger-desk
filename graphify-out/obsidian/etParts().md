@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 31"
+community: "Community 20"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/Community_20
 ---
 
 # etParts()
@@ -15,4 +15,4 @@ tags:
 - [[getSessionClock()]] - `calls` [EXTRACTED]
 - [[sessions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/Community_20

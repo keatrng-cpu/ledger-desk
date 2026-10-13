@@ -12,6 +12,9 @@ tags:
 # exLadderCard()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices-race.ts]] - `contains` [EXTRACTED]

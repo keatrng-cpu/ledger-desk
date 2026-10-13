@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-hit-odds.mjs"
 type: "code"
-community: "Community 175"
-location: "L18"
+community: "Community 151"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/Community_151
 ---
 
 # check()
 
 ## Connections
-- [[ok()_12]] - `calls` [EXTRACTED]
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[ok()_7]] - `calls` [EXTRACTED]
+- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/Community_151

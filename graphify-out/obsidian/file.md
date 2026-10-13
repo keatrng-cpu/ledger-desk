@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-cases.mjs"
+source_file: "scripts/verify-figures.mjs"
 type: "code"
-community: "Community 11"
-location: "L18"
+community: "Community 132"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_132
 ---
 
 # file
 
 ## Connections
-- [[verify-cases.mjs]] - `contains` [EXTRACTED]
+- [[verify-figures.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_132

@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "brainlab/rhread.py"
 type: "code"
-community: "Community 59"
-location: "L110"
+community: "Community 306"
+location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/Community_306
 ---
 
 # num()
 
 ## Connections
-- [[ApexSimPanel()]] - `calls` [EXTRACTED]
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[option_quote()]] - `contains` [EXTRACTED]
+- [[row()_2]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/Community_306

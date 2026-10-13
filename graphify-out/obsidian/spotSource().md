@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
 community: "Community 4"
-location: "L282"
+location: "L338"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # spotSource()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[crossedSpot()]] - `calls` [EXTRACTED]
 - [[desk-read.ts]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]

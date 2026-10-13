@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-take-moments.mjs"
+source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 145"
-location: "L15"
+community: "Community 138"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/Community_138
 ---
 
 # check()
 
 ## Connections
-- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
+- [[ok()_4]] - `calls` [EXTRACTED]
+- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/Community_138

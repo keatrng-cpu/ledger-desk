@@ -47,6 +47,7 @@ tags:
 - [[has()]] - `contains` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports_from` [EXTRACTED]
 - [[hi-alert.ts]] - `imports_from` [EXTRACTED]
+- [[htfGapCheck]] - `contains` [EXTRACTED]
 - [[layerOf()]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
@@ -62,6 +63,8 @@ tags:
 - [[sequenced()]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[smc-canon.ts]] - `imports_from` [EXTRACTED]
+- [[sponsored-gap.ts]] - `imports_from` [EXTRACTED]
+- [[sponsoredRead]] - `imports` [EXTRACTED]
 - [[src_data_school_brief]] - `imports_from` [EXTRACTED]
 - [[sweepCheck]] - `contains` [EXTRACTED]
 - [[tf-ladder.ts]] - `imports_from` [EXTRACTED]
@@ -72,6 +75,7 @@ tags:
 - [[verify-hi-alert-brain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-school-brief.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-school-gate.mjs]] - `imports_from` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 - [[yes()]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_102

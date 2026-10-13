@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/journal/log-setup-dialog.tsx"
 type: "code"
-community: "Community 26"
+community: "Community 23"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_23
 ---
 
 # FormValues
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[log-setup-dialog.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_23

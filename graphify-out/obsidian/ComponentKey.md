@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/engine-weights.ts"
 type: "code"
-community: "Community 114"
-location: "L47"
+community: "Community 127"
+location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/Community_127
 ---
 
 # ComponentKey
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[ComponentWeight]] - `references` [EXTRACTED]
 - [[ConfluenceItem]] - `references` [EXTRACTED]
+- [[ModelRequirement]] - `references` [EXTRACTED]
 - [[ScoreDriver]] - `references` [EXTRACTED]
 - [[SetupCandidate]] - `references` [EXTRACTED]
 - [[StrategyTemplate]] - `references` [EXTRACTED]
@@ -29,4 +30,4 @@ tags:
 - [[tradezella-analyze.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/Community_127

@@ -1,23 +1,23 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 42"
+community: "Community 10"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_10
 ---
 
 # floor-race-replay.ts
 
 ## Connections
-- [[CREW_COLOR_1]] - `contains` [EXTRACTED]
+- [[CREW_COLOR]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[FLOOR_AVATAR_SCHOOL]] - `imports` [EXTRACTED]
 - [[FloorSchoolSeatId]] - `imports` [EXTRACTED]
 - [[GoalLite]] - `imports` [EXTRACTED]
-- [[MomentKind_1]] - `contains` [EXTRACTED]
+- [[MomentKind]] - `contains` [EXTRACTED]
 - [[RaceAnim]] - `contains` [EXTRACTED]
 - [[RaceRunner]] - `contains` [EXTRACTED]
 - [[RoomClosedTrade]] - `imports` [EXTRACTED]
@@ -45,6 +45,6 @@ tags:
 - [[seatMomentText()]] - `contains` [EXTRACTED]
 - [[sessionMoments()]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_3]] - `imports` [EXTRACTED]
+- [[usd()_4]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_10

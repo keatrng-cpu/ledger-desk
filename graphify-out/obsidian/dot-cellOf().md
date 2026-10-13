@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 223"
-location: "L167"
+location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # .cellOf()
 
 ## Connections
-- [[dot-constructor()_13]] - `calls` [EXTRACTED]
+- [[dot-constructor()_14]] - `calls` [EXTRACTED]
 - [[dot-lineFree()]] - `calls` [EXTRACTED]
 - [[dot-markDisc()]] - `calls` [EXTRACTED]
 - [[dot-path()]] - `calls` [EXTRACTED]

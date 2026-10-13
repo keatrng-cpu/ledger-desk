@@ -12,6 +12,8 @@ tags:
 # oddsTxt()
 
 ## Connections
+- [[dot-pct()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
 - [[exCouncil()]] - `calls` [EXTRACTED]
 - [[exFinish()]] - `calls` [EXTRACTED]
 - [[exLadderCard()]] - `calls` [EXTRACTED]

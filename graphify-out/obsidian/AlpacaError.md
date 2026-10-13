@@ -12,7 +12,7 @@ tags:
 # AlpacaError
 
 ## Connections
-- [[dot-constructor()_3]] - `method` [EXTRACTED]
+- [[dot-constructor()_5]] - `method` [EXTRACTED]
 - [[alpaca.ts]] - `contains` [EXTRACTED]
 - [[call()]] - `calls` [EXTRACTED]
 

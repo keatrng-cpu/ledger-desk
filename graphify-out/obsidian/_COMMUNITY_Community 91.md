@@ -10,7 +10,7 @@ members: 37
 **Members:** 37 nodes
 
 ## Members
-- [[BARS_18]] - code - scripts/measure-room-ev.mjs
+- [[BARS_21]] - code - scripts/measure-room-ev.mjs
 - [[CURVES]] - code - scripts/measure-room-ev.mjs
 - [[DTES]] - code - scripts/measure-room-ev.mjs
 - [[ETF]] - code - scripts/measure-room-ev.mjs
@@ -18,7 +18,7 @@ members: 37
 - [[IS_YEARS_10]] - code - scripts/measure-room-ev.mjs
 - [[MANDATE_EXITS]] - code - scripts/measure-room-ev.mjs
 - [[OOS_YEARS_9]] - code - scripts/measure-room-ev.mjs
-- [[OUT_9]] - code - scripts/measure-room-ev.mjs
+- [[OUT_13]] - code - scripts/measure-room-ev.mjs
 - [[POPS]] - code - scripts/measure-room-ev.mjs
 - [[RATIO]] - code - scripts/measure-room-ev.mjs
 - [[ROOM_EXITS]] - code - scripts/measure-room-ev.mjs
@@ -31,17 +31,17 @@ members: 37
 - [[etMin()_3]] - code - scripts/measure-room-ev.mjs
 - [[exits]] - code - scripts/measure-room-ev.mjs
 - [[fillBarOf()]] - code - scripts/measure-room-ev.mjs
-- [[fmt()_4]] - code - scripts/measure-room-ev.mjs
+- [[fmt()_5]] - code - scripts/measure-room-ev.mjs
 - [[measure-room-ev.mjs]] - code - scripts/measure-room-ev.mjs
 - [[mulberry32()_1]] - code - scripts/measure-room-ev.mjs
 - [[outside_1]] - code - scripts/measure-room-ev.mjs
 - [[pairedDiff()]] - code - scripts/measure-room-ev.mjs
 - [[primary]] - code - scripts/measure-room-ev.mjs
-- [[r2()_8]] - code - scripts/measure-room-ev.mjs
-- [[r3()_10]] - code - scripts/measure-room-ev.mjs
+- [[r2()_10]] - code - scripts/measure-room-ev.mjs
+- [[r3()_11]] - code - scripts/measure-room-ev.mjs
 - [[results_2]] - code - scripts/measure-room-ev.mjs
-- [[round2()_15]] - code - scripts/measure-room-ev.mjs
-- [[rows_18]] - code - scripts/measure-room-ev.mjs
+- [[round2()_17]] - code - scripts/measure-room-ev.mjs
+- [[rows_19]] - code - scripts/measure-room-ev.mjs
 - [[secondary]] - code - scripts/measure-room-ev.mjs
 - [[simOption()]] - code - scripts/measure-room-ev.mjs
 - [[summary()]] - code - scripts/measure-room-ev.mjs
@@ -56,11 +56,10 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 2 edges to [[_COMMUNITY_Community 52]]
-- 1 edge to [[_COMMUNITY_Community 0]]
-- 1 edge to [[_COMMUNITY_Community 104]]
+- 3 edges to [[_COMMUNITY_Community 52]]
+- 1 edge to [[_COMMUNITY_Community 178]]
 - 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
-- [[measure-room-ev.mjs]] - degree 42, connects to 5 communities
+- [[measure-room-ev.mjs]] - degree 42, connects to 4 communities

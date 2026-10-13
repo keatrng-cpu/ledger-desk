@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 17"
-location: "L2194"
+location: "L2377"
 tags:
   - graphify/code
   - graphify/EXTRACTED

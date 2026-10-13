@@ -12,6 +12,7 @@ tags:
 # callClaude()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[askDeskCoach]] - `calls` [EXTRACTED]
 - [[askDeskDiscuss]] - `calls` [EXTRACTED]
 - [[claude-server.ts]] - `contains` [EXTRACTED]

@@ -19,6 +19,6 @@ tags:
 - [[seats.ts]] - `contains` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 - [[ticketKelly()]] - `calls` [EXTRACTED]
-- [[usd()_3]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_57

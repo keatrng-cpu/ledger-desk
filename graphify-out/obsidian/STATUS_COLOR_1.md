@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/exec-card.tsx"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 222"
-location: "L27"
+community: "Community 25"
+location: "L1270"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/Community_25
 ---
 
 # STATUS_COLOR
 
 ## Connections
-- [[exec-card.tsx]] - `contains` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/Community_25

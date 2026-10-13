@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[SCHOOL_GATE]] - `imports` [EXTRACTED]
-- [[bare_1]] - `contains` [EXTRACTED]
-- [[check()_41]] - `contains` [EXTRACTED]
+- [[bare_2]] - `contains` [EXTRACTED]
+- [[check()_52]] - `contains` [EXTRACTED]
 - [[line_2]] - `contains` [EXTRACTED]
 - [[missing_2]] - `contains` [EXTRACTED]
 - [[on]] - `contains` [EXTRACTED]

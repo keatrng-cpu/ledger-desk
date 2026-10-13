@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-fx.ts"
 type: "code"
 community: "Community 196"
-location: "L87"
+location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,8 @@ tags:
 # .dispose()
 
 ## Connections
-- [[dot-dispose()_3]] - `calls` [EXTRACTED]
-- [[TicketFlight]] - `method` [EXTRACTED]
+- [[dot-dispose()_4]] - `calls` [EXTRACTED]
+- [[dot-dispose()_5]] - `calls` [EXTRACTED]
+- [[Confetti]] - `method` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_196

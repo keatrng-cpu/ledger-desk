@@ -13,6 +13,8 @@ tags:
 
 ## Connections
 - [[go-ledger.ts]] - `contains` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 - [[recordGo()]] - `calls` [EXTRACTED]
 - [[resolveGo()]] - `calls` [EXTRACTED]
 

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
 community: "Community 73"
-location: "L360"
+location: "L481"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,7 @@ tags:
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[buildSessionBrief()]] - `calls` [EXTRACTED]
 - [[eventSecond()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[judasIfvg0dte()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[pathContinuation()]] - `calls` [EXTRACTED]

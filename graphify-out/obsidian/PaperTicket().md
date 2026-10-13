@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[MeadHallTab()]] - `calls` [EXTRACTED]
 - [[categoryLabel()]] - `calls` [EXTRACTED]
-- [[cents()_3]] - `calls` [EXTRACTED]
+- [[cents()_4]] - `calls` [EXTRACTED]
 - [[eventLabel()]] - `calls` [EXTRACTED]
 - [[logEntry()]] - `calls` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `contains` [EXTRACTED]

@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/invest/store.ts"
+source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 147"
-location: "L212"
+community: "Community 154"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_154
 ---
 
 # num()
 
 ## Connections
-- [[isEntry()]] - `calls` [EXTRACTED]
-- [[store.ts]] - `contains` [EXTRACTED]
+- [[alpaca.ts]] - `contains` [EXTRACTED]
+- [[orderOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_154

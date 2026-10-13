@@ -16,6 +16,11 @@ tags:
 - [[ScreenTable()]] - `calls` [EXTRACTED]
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[dossiers.ts]] - `contains` [EXTRACTED]
+- [[gradeLongCard()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[long-board.ts]] - `imports` [EXTRACTED]
+- [[memoCandidates()]] - `calls` [EXTRACTED]
+- [[memoOf()]] - `calls` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_5

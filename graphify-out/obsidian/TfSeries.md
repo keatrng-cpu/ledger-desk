@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-timeframes.ts"
 type: "code"
-community: "Community 27"
+community: "Community 160"
 location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_160
 ---
 
 # TfSeries
@@ -16,4 +16,4 @@ tags:
 - [[chart-timeframes.ts]] - `contains` [EXTRACTED]
 - [[judas-window.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_160

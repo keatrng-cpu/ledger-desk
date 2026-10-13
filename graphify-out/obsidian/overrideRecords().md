@@ -12,7 +12,7 @@ tags:
 # overrideRecords()
 
 ## Connections
-- [[num()_8]] - `calls` [EXTRACTED]
+- [[num()_7]] - `calls` [EXTRACTED]
 - [[readTradeLog()]] - `calls` [EXTRACTED]
 - [[trade-log.ts]] - `contains` [EXTRACTED]
 

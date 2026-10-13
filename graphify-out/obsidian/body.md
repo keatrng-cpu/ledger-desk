@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-paper-step.mjs"
 type: "code"
-community: "Community 143"
+community: "Community 4"
 location: "L104"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_4
 ---
 
 # body
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_4

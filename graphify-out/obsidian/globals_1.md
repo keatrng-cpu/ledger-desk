@@ -2,7 +2,7 @@
 source_file: "package.json"
 type: "concept"
 community: "Community 32"
-location: "L123"
+location: "L127"
 tags:
   - graphify/concept
   - graphify/EXTRACTED

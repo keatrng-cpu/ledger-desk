@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[A bear displacement FOLLOWED by a BSL raid — the body was the leg into the…]] - `rationale_for` [EXTRACTED]
-- [[atr()_1]] - `calls` [EXTRACTED]
+- [[atr()_2]] - `calls` [EXTRACTED]
 - [[build-learn-figures.py]] - `contains` [EXTRACTED]
 - [[ny_am()]] - `calls` [EXTRACTED]
 - [[raid_at()]] - `calls` [EXTRACTED]

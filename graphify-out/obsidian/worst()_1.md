@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
-- [[walk()_3]] - `calls` [EXTRACTED]
+- [[walk()_2]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_191

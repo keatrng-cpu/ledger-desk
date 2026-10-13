@@ -18,7 +18,7 @@ tags:
 - [[checkScheduledJobs]] - `contains` [EXTRACTED]
 - [[cron-stats-server.ts]] - `imports_from` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
-- [[etWindow]] - `imports` [EXTRACTED]
+- [[etWindow_1]] - `imports` [EXTRACTED]
 - [[fmtR()_2]] - `imports` [EXTRACTED]
 - [[fmtWr()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
@@ -41,6 +41,6 @@ tags:
 - [[tradingDayStart()]] - `imports` [EXTRACTED]
 - [[tradingWeekStart()]] - `imports` [EXTRACTED]
 - [[windowStats]] - `imports` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_31

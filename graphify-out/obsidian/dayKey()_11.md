@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/measure-news-bias.mjs"
+source_file: "scripts/build-learn-engine.mjs"
 type: "code"
-community: "Community 228"
-location: "L53"
+community: "Community 203"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/Community_203
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure()]] - `calls` [EXTRACTED]
-- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
+- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
+- [[dayChangePct()_6]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/Community_203

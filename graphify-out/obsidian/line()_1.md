@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
-- [[pct()_9]] - `calls` [EXTRACTED]
+- [[pct()_8]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_228

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/journal/log-setup-dialog.tsx"
 type: "code"
-community: "Community 26"
+community: "Community 23"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_23
 ---
 
 # log-setup-dialog.tsx
@@ -16,7 +16,7 @@ tags:
 - [[@radix-uireact-dialog]] - `imports_from` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[Button]] - `imports` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[DiscretionResult]] - `imports` [EXTRACTED]
 - [[EXIT_REASONS]] - `imports` [EXTRACTED]
@@ -29,7 +29,7 @@ tags:
 - [[OpenTradeInput]] - `imports` [EXTRACTED]
 - [[RealFillInput]] - `imports` [EXTRACTED]
 - [[STATE_SCALE]] - `imports` [EXTRACTED]
-- [[SYMBOLS_3]] - `contains` [EXTRACTED]
+- [[SYMBOLS_2]] - `contains` [EXTRACTED]
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[buildPaperLevels()]] - `imports` [EXTRACTED]
 - [[button.tsx]] - `imports_from` [EXTRACTED]
@@ -54,6 +54,6 @@ tags:
 - [[riskPctForScore()]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_23

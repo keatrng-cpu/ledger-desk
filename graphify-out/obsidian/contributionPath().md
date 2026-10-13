@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 86"
+community: "Community 100"
 location: "L436"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/Community_100
 ---
 
 # contributionPath()
@@ -21,4 +21,4 @@ tags:
 - [[policy.ts]] - `contains` [EXTRACTED]
 - [[round2()_14]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/Community_100

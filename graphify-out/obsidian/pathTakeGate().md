@@ -1,20 +1,26 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 60"
+community: "Community 44"
 location: "L235"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_44
 ---
 
 # pathTakeGate()
 
 ## Connections
+- [[0. The B1 decision, stated once]] - `references` [INFERRED]
+- [[3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion]] - `references` [INFERRED]
+- [[INTEGRATION-B — wiring left for the integrator]] - `references` [INFERRED]
+- [[Phase B — The desk runs itself (4–6 days) ← highest leverage]] - `references` [INFERRED]
+- [[What to do next]] - `references` [INFERRED]
 - [[assertOpenAllowed()]] - `calls` [EXTRACTED]
 - [[auto-paper.ts]] - `imports` [EXTRACTED]
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[isBlakeLongDemoted()]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
 - [[pathCapReached()]] - `calls` [EXTRACTED]
@@ -22,4 +28,4 @@ tags:
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_44

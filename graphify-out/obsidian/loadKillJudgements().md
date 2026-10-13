@@ -12,10 +12,12 @@ tags:
 # loadKillJudgements()
 
 ## Connections
+- [[invest-sources.ts]] - `imports` [EXTRACTED]
 - [[judgeKill()]] - `calls` [EXTRACTED]
 - [[kill-store.ts]] - `contains` [EXTRACTED]
 - [[latestJudgement()]] - `calls` [EXTRACTED]
-- [[read()_7]] - `calls` [EXTRACTED]
+- [[read()_13]] - `calls` [EXTRACTED]
+- [[readInvestOffice()]] - `calls` [EXTRACTED]
 - [[trippedTickers()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_80

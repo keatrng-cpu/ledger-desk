@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/blender/glb-stats.mjs"
 type: "code"
-community: "Community 53"
-location: "L61"
+community: "Community 143"
+location: "L104"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/Community_143
 ---
 
 # argv
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[glb-stats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/Community_143

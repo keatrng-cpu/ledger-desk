@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/browser-guard.mjs"
 type: "code"
-community: "Community 11"
+community: "Community 277"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_277
 ---
 
 # browser-guard.mjs
@@ -16,7 +16,7 @@ tags:
 - [[browser-smoke.mjs]] - `imports_from` [EXTRACTED]
 - [[checkedOutputPath()]] - `contains` [EXTRACTED]
 - [[checkedUrl()]] - `contains` [EXTRACTED]
-- [[fail()]] - `contains` [EXTRACTED]
+- [[fail()_1]] - `contains` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_277

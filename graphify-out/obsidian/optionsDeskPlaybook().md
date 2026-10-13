@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
 community: "Community 153"
-location: "L1282"
+location: "L2234"
 tags:
   - graphify/code
   - graphify/EXTRACTED

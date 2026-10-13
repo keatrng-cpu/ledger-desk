@@ -10,23 +10,23 @@ members: 20
 **Members:** 20 nodes
 
 ## Members
-- [[BARS_9]] - code - scripts/measure-exit-plan.mjs
-- [[H_8]] - code - scripts/measure-exit-plan.mjs
+- [[BARS_11]] - code - scripts/measure-exit-plan.mjs
+- [[H_9]] - code - scripts/measure-exit-plan.mjs
 - [[IS_YEARS_7]] - code - scripts/measure-exit-plan.mjs
 - [[OOS_YEARS_7]] - code - scripts/measure-exit-plan.mjs
 - [[POOLS]] - code - scripts/measure-exit-plan.mjs
-- [[VARIANTS_1]] - code - scripts/measure-exit-plan.mjs
+- [[VARIANTS_2]] - code - scripts/measure-exit-plan.mjs
 - [[cards_1]] - code - scripts/measure-exit-plan.mjs
 - [[clusteredMean()_1]] - code - scripts/measure-exit-plan.mjs
-- [[dayKey()_7]] - code - scripts/measure-exit-plan.mjs
+- [[dayKey()_8]] - code - scripts/measure-exit-plan.mjs
 - [[externalT2()]] - code - scripts/measure-exit-plan.mjs
 - [[gate_2]] - code - scripts/measure-exit-plan.mjs
 - [[halves()_1]] - code - scripts/measure-exit-plan.mjs
 - [[inBand_2]] - code - scripts/measure-exit-plan.mjs
 - [[measure-exit-plan.mjs]] - code - scripts/measure-exit-plan.mjs
-- [[out_4]] - code - scripts/measure-exit-plan.mjs
-- [[r3()_8]] - code - scripts/measure-exit-plan.mjs
-- [[rows_9]] - code - scripts/measure-exit-plan.mjs
+- [[out_3]] - code - scripts/measure-exit-plan.mjs
+- [[r3()_9]] - code - scripts/measure-exit-plan.mjs
+- [[rows_10]] - code - scripts/measure-exit-plan.mjs
 - [[sim()_7]] - code - scripts/measure-exit-plan.mjs
 - [[unpairedDiff()_1]] - code - scripts/measure-exit-plan.mjs
 - [[weekKey()_1]] - code - scripts/measure-exit-plan.mjs
@@ -40,7 +40,7 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 1 edge to [[_COMMUNITY_Community 101]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 
 ## Top bridge nodes

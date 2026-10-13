@@ -29,6 +29,6 @@ tags:
 - [[rankOf()]] - `imports` [EXTRACTED]
 - [[snapshot-sync.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot.ts]] - `imports_from` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_125

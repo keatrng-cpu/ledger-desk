@@ -13,6 +13,8 @@ tags:
 
 ## Connections
 - [[dot-setCrowd()]] - `references` [EXTRACTED]
+- [[dot-setCrowd()_1]] - `references` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]

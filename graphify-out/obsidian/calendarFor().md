@@ -2,7 +2,7 @@
 source_file: "src/components/room/room-engine.ts"
 type: "code"
 community: "Community 4"
-location: "L159"
+location: "L162"
 tags:
   - graphify/code
   - graphify/EXTRACTED

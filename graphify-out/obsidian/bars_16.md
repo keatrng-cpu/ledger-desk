@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-history.mjs"
+source_file: "scripts/capture-intrabar.mjs"
 type: "code"
-community: "Community 71"
-location: "L226"
+community: "Community 319"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_319
 ---
 
 # bars
 
 ## Connections
-- [[capture-history.mjs]] - `contains` [EXTRACTED]
+- [[capture-intrabar.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_319

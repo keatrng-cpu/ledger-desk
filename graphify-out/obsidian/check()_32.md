@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-goal.mjs"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 212"
-location: "L38"
+community: "Community 185"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_212
+  - community/Community_185
 ---
 
 # check()
 
 ## Connections
-- [[verify-goal.mjs]] - `contains` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_212
+#graphify/code #graphify/EXTRACTED #community/Community_185

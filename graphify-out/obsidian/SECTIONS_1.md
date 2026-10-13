@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/invest-office-panel.tsx"
+source_file: "src/components/lab/evidence-table.tsx"
 type: "code"
-community: "Community 49"
-location: "L29"
+community: "Community 14"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/Community_14
 ---
 
 # SECTIONS
 
 ## Connections
-- [[invest-office-panel.tsx]] - `contains` [EXTRACTED]
+- [[evidence-table.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/Community_14

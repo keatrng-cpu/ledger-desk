@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 39"
-location: "L65"
+community: "Community 254"
+location: "L346"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_254
 ---
 
 # cardPlanFrom()
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[attachPlansToCards()]] - `calls` [EXTRACTED]
 - [[card-plan.ts]] - `contains` [EXTRACTED]
-- [[r2()_6]] - `calls` [EXTRACTED]
+- [[deskLevelsOf()]] - `calls` [EXTRACTED]
+- [[r2()_5]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_254

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-ticket.ts"
 type: "code"
-community: "Community 26"
+community: "Community 48"
 location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_48
 ---
 
 # EntryTicket
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[entry-ticket.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_48

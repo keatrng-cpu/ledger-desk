@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/learn/walkthroughs.tsx"
+source_file: "scripts/verify-replay-drills.mjs"
 type: "code"
-community: "Community 67"
-location: "L27"
+community: "Community 227"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/Community_227
 ---
 
 # FILE
 
 ## Connections
-- [[walkthroughs.tsx]] - `contains` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/Community_227

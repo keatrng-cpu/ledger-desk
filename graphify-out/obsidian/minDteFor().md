@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[dailyDecayFrac()]] - `calls` [EXTRACTED]
+- [[sizeFromLiveContract()]] - `calls` [EXTRACTED]
 - [[sizeFromStop()]] - `calls` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
 

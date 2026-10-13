@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/contract-ladder.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # contract-ladder.ts
@@ -31,7 +31,7 @@ tags:
 - [[priceOptionPlan()]] - `imports` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[quoteOption()]] - `imports` [EXTRACTED]
-- [[r2()]] - `contains` [EXTRACTED]
+- [[r2()_8]] - `contains` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[roomRungs()]] - `contains` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

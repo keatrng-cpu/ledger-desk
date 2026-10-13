@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-live-talk.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 142"
-location: "L158"
+community: "Community 137"
+location: "L718"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/Community_137
 ---
 
 # .constructor()
 
 ## Connections
-- [[Sim]] - `method` [EXTRACTED]
+- [[AllText]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/Community_137

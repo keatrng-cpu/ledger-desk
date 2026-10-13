@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 83"
-location: "L16"
+community: "Community 261"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/Community_261
 ---
 
 # at()
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[inLounge()]] - `calls` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/Community_261

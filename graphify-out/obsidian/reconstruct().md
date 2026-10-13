@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/score-drivers.ts"
 type: "code"
 community: "Community 84"
-location: "L302"
+location: "L377"
 tags:
   - graphify/code
   - graphify/EXTRACTED

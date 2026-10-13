@@ -1,48 +1,51 @@
 ---
 type: community
 cohesion: 0.07
-members: 99
+members: 104
 ---
 
 # Community 3
 
 **Cohesion:** 0.07 - loosely connected
-**Members:** 99 nodes
+**Members:** 104 nodes
 
 ## Members
 - [[ALLOWED]] - code - src/lib/room/meeting.ts
 - [[DEFAULT_ANIM]] - code - src/lib/room/meeting.ts
 - [[GATE_WORD]] - code - src/lib/room/format.ts
 - [[JAX_ERRAND]] - code - src/lib/room/meeting.ts
-- [[Line]] - code - src/lib/room/meeting.ts
+- [[Line_1]] - code - src/lib/room/meeting.ts
 - [[OWNER_ANIM]] - code - src/lib/room/meeting.ts
-- [[PeopleCards()]] - code - src/components/room/trading-floor-tab.tsx
 - [[RESEARCH_BUILT]] - code - src/lib/room/research.ts
 - [[ResearchNote]] - code - src/lib/room/research.ts
+- [[RhAccountSnapshot]] - code - src/lib/execution/rh-autofire-gates.ts
 - [[STOP_TXT]] - code - src/lib/room/format.ts
 - [[VETO_WHY]] - code - src/lib/room/meeting.ts
 - [[aligned()]] - code - src/lib/room/meeting.ts
 - [[attributionLine()]] - code - src/lib/room/meeting.ts
 - [[bandNote()]] - code - src/lib/room/research.ts
 - [[baselineNote()]] - code - src/lib/room/research.ts
-- [[blind()]] - code - src/lib/room/meeting.ts
+- [[blind()_1]] - code - src/lib/room/meeting.ts
 - [[blocked()]] - code - src/lib/room/meeting.ts
 - [[brief()]] - code - src/lib/room/meeting.ts
 - [[buildMeeting()]] - code - src/lib/room/meeting.ts
 - [[byKey()]] - code - src/lib/room/research.ts
-- [[check()_56]] - code - scripts/verify-floor-rh-account.mjs
+- [[check()_75]] - code - scripts/verify-floor-rh-account.mjs
 - [[chop()]] - code - src/lib/room/meeting.ts
 - [[closed()]] - code - src/lib/room/meeting.ts
 - [[contractName()]] - code - src/lib/room/format.ts
 - [[creed()]] - code - src/lib/room/meeting.ts
+- [[debate()]] - code - src/lib/room/meeting.ts
 - [[debrief()]] - code - src/lib/room/meeting.ts
+- [[etMinOfMs()]] - code - src/lib/room/meeting.ts
 - [[eventNote()]] - code - src/lib/room/research.ts
 - [[exitLines()]] - code - src/lib/room/meeting.ts
 - [[fill()]] - code - src/lib/room/meeting.ts
 - [[fillTierNote()]] - code - src/lib/room/research.ts
-- [[fit()_4]] - code - src/lib/room/meeting.ts
+- [[fit()_6]] - code - src/lib/room/meeting.ts
 - [[focusQuote()]] - code - src/lib/room/meeting.ts
 - [[funded_2]] - code - scripts/verify-floor-rh-account.mjs
+- [[gateRecord()]] - code - src/lib/room/debate.ts
 - [[ghostDebrief()]] - code - src/lib/room/meeting.ts
 - [[greeksLine()]] - code - src/lib/room/meeting.ts
 - [[holding()]] - code - src/lib/room/meeting.ts
@@ -57,7 +60,7 @@ members: 99
 - [[lastScored()]] - code - src/lib/room/agents.ts
 - [[meeting.ts]] - code - src/lib/room/meeting.ts
 - [[mitigationNote()]] - code - src/lib/room/research.ts
-- [[n()]] - code - src/lib/room/research.ts
+- [[n()_1]] - code - src/lib/room/research.ts
 - [[oddsNote()]] - code - src/lib/room/research.ts
 - [[patternWarning()]] - code - src/lib/room/meeting.ts
 - [[pct()_12]] - code - src/lib/room/research.ts
@@ -69,9 +72,9 @@ members: 99
 - [[priceText()]] - code - src/lib/room/meeting.ts
 - [[printLine()]] - code - src/lib/room/meeting.ts
 - [[ptsTxt()]] - code - src/lib/room/format.ts
-- [[px()_9]] - code - src/lib/room/format.ts
+- [[px()_10]] - code - src/lib/room/format.ts
 - [[qNote()]] - code - src/lib/room/research.ts
-- [[r()_1]] - code - src/lib/room/research.ts
+- [[r()_2]] - code - src/lib/room/research.ts
 - [[rSigned()]] - code - src/lib/room/format.ts
 - [[rankTitle()]] - code - src/lib/room/agents.ts
 - [[recordLine()]] - code - src/lib/room/agents.ts
@@ -87,7 +90,7 @@ members: 99
 - [[rhLiveMandateNote()]] - code - src/lib/room/research.ts
 - [[rhNoteOf()]] - code - src/lib/room/meeting.ts
 - [[roomformat.ts]] - code - src/lib/room/format.ts
-- [[say()]] - code - src/lib/room/meeting.ts
+- [[say()_1]] - code - src/lib/room/meeting.ts
 - [[scannerMandateNote()]] - code - src/lib/room/research.ts
 - [[scoreboard()]] - code - src/lib/room/meeting.ts
 - [[sessionNote()]] - code - src/lib/room/research.ts
@@ -95,13 +98,15 @@ members: 99
 - [[shelf]] - code - scripts/verify-floor-rh-account.mjs
 - [[shortDate()]] - code - src/lib/room/option-math.ts
 - [[sideWord()]] - code - src/lib/room/format.ts
+- [[signedCents()]] - code - src/lib/room/meeting.ts
 - [[signedPct()]] - code - src/lib/room/format.ts
 - [[smcMandateNote()]] - code - src/lib/room/research.ts
 - [[takeWordNote()]] - code - src/lib/room/research.ts
+- [[thesisOwner()]] - code - src/lib/room/debate.ts
 - [[thesisText()]] - code - src/lib/room/meeting.ts
 - [[trendWord()]] - code - src/lib/room/meeting.ts
 - [[triggerWait()]] - code - src/lib/room/meeting.ts
-- [[usd()_3]] - code - src/lib/room/format.ts
+- [[usd()_4]] - code - src/lib/room/format.ts
 - [[usd2()]] - code - src/lib/room/research.ts
 - [[verify-floor-rh-account.mjs]] - code - scripts/verify-floor-rh-account.mjs
 - [[vetoMemory()]] - code - src/lib/room/meeting.ts
@@ -118,30 +123,32 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 51 edges to [[_COMMUNITY_Community 0]]
-- 27 edges to [[_COMMUNITY_Community 104]]
-- 16 edges to [[_COMMUNITY_Community 42]]
-- 13 edges to [[_COMMUNITY_Community 15]]
-- 11 edges to [[_COMMUNITY_Community 81]]
-- 9 edges to [[_COMMUNITY_Community 52]]
-- 8 edges to [[_COMMUNITY_Community 51]]
-- 7 edges to [[_COMMUNITY_Community 57]]
-- 6 edges to [[_COMMUNITY_Community 18]]
-- 6 edges to [[_COMMUNITY_Community 4]]
-- 3 edges to [[_COMMUNITY_Community 10]]
-- 3 edges to [[_COMMUNITY_Community 99]]
+- 38 edges to [[_COMMUNITY_Community 52]]
+- 31 edges to [[_COMMUNITY_Community 0]]
+- 24 edges to [[_COMMUNITY_Community 10]]
+- 17 edges to [[_COMMUNITY_Community 104]]
+- 11 edges to [[_COMMUNITY_Community 4]]
+- 11 edges to [[_COMMUNITY_Community 56]]
+- 8 edges to [[_COMMUNITY_Community 15]]
+- 8 edges to [[_COMMUNITY_Community 81]]
+- 6 edges to [[_COMMUNITY_Community 51]]
+- 6 edges to [[_COMMUNITY_Community 57]]
+- 3 edges to [[_COMMUNITY_Community 58]]
 - 2 edges to [[_COMMUNITY_Community 29]]
-- 2 edges to [[_COMMUNITY_Community 127]]
-- 2 edges to [[_COMMUNITY_Community 26]]
-- 1 edge to [[_COMMUNITY_Community 125]]
-- 1 edge to [[_COMMUNITY_Community 17]]
+- 2 edges to [[_COMMUNITY_Community 40]]
+- 1 edge to [[_COMMUNITY_Community 14]]
+- 1 edge to [[_COMMUNITY_Community 35]]
+- 1 edge to [[_COMMUNITY_Community 127]]
+- 1 edge to [[_COMMUNITY_Community 178]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 - 1 edge to [[_COMMUNITY_Community 212]]
-- 1 edge to [[_COMMUNITY_Community 58]]
+- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 99]]
 
 ## Top bridge nodes
-- [[meeting.ts]] - degree 142, connects to 15 communities
+- [[meeting.ts]] - degree 142, connects to 12 communities
 - [[roomformat.ts]] - degree 34, connects to 8 communities
-- [[contractName()]] - degree 20, connects to 7 communities
-- [[research.ts]] - degree 39, connects to 4 communities
-- [[usd()_3]] - degree 26, connects to 4 communities
+- [[research.ts]] - degree 39, connects to 7 communities
+- [[contractName()]] - degree 20, connects to 6 communities
+- [[usd()_4]] - degree 26, connects to 4 communities

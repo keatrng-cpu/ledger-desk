@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-autofire-gates.mjs"
+source_file: "scripts/verify-sponsored-gap.mjs"
 type: "code"
-community: "Community 11"
-location: "L31"
+community: "Community 102"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_102
 ---
 
 # check()
 
 ## Connections
-- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_102

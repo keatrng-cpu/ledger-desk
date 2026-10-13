@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-fuel.mjs"
+source_file: "scripts/verify-audit.mjs"
 type: "code"
-community: "Community 241"
-location: "L20"
+community: "Community 18"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_241
+  - community/Community_18
 ---
 
 # empty
 
 ## Connections
-- [[verify-brain-fuel.mjs]] - `contains` [EXTRACTED]
+- [[verify-audit.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_241
+#graphify/code #graphify/EXTRACTED #community/Community_18

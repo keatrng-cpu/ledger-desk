@@ -12,6 +12,7 @@ tags:
 # voteBias()
 
 ## Connections
+- [[INTEGRATION-P0 — Truth & safety (branch agentsphase-p0)]] - `references` [INFERRED]
 - [[analyzeStructure()]] - `calls` [EXTRACTED]
 - [[structure.ts]] - `contains` [EXTRACTED]
 

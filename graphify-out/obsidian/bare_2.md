@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-setup-anticipation.mjs"
+source_file: "scripts/verify-school-gate.mjs"
 type: "code"
-community: "Community 66"
-location: "L304"
+community: "Community 231"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_66
+  - community/Community_231
 ---
 
 # bare
 
 ## Connections
-- [[verify-setup-anticipation.mjs]] - `contains` [EXTRACTED]
+- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_66
+#graphify/code #graphify/EXTRACTED #community/Community_231

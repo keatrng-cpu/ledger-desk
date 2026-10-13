@@ -1,12 +1,12 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
-location: "L971"
+community: "Community 41"
+location: "L728"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Community_41
 ---
 
 # .emptyState()
@@ -14,9 +14,10 @@ tags:
 ## Connections
 - [[dot-buildBooths()]] - `calls` [EXTRACTED]
 - [[dot-buildScreens()_1]] - `calls` [EXTRACTED]
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
+- [[dot-getState()_4]] - `calls` [EXTRACTED]
 - [[dot-redraw()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[dot-update()_10]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
 - [[PredictionMarketFeedState]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Community_41

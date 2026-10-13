@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L506"
+location: "L527"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,7 @@ tags:
 - [[drawKillzoneClock()_1]] - `calls` [EXTRACTED]
 - [[drawPlanLadder()]] - `calls` [EXTRACTED]
 - [[drawScreen()]] - `calls` [EXTRACTED]
+- [[fit()_5]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[planPrice()]] - `calls` [EXTRACTED]
 

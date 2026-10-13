@@ -1,21 +1,23 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/room/floor-overhaul-school.ts"
 type: "code"
-community: "Community 25"
-location: "L1241"
+community: "Community 24"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_24
 ---
 
 # fit()
 
 ## Connections
-- [[drawAudit()]] - `calls` [EXTRACTED]
-- [[drawRndBoard()]] - `calls` [EXTRACTED]
-- [[drawScanner()]] - `calls` [EXTRACTED]
-- [[drawSeatLeague()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[drawBriefing()]] - `calls` [EXTRACTED]
+- [[drawChecklist()]] - `calls` [EXTRACTED]
+- [[drawDebateBoard()]] - `calls` [EXTRACTED]
+- [[drawHitRanks()]] - `calls` [EXTRACTED]
+- [[drawSchoolDeskPlate()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-school.ts]] - `contains` [EXTRACTED]
+- [[wrap()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_24

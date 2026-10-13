@@ -1,8 +1,8 @@
 ---
-source_file: "scripts/verify-repo-guards.mjs"
+source_file: "scripts/verify-autofire-gates.mjs"
 type: "code"
 community: "Community 11"
-location: "L49"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # read()
 
 ## Connections
-- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
+- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_11

@@ -17,9 +17,9 @@ tags:
 - [[execStep()]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[gates.ts]] - `contains` [EXTRACTED]
-- [[hhmm()_1]] - `calls` [EXTRACTED]
+- [[hhmm()_2]] - `calls` [EXTRACTED]
 - [[nextWeekday()]] - `calls` [EXTRACTED]
-- [[pct()_4]] - `calls` [EXTRACTED]
+- [[pct()_3]] - `calls` [EXTRACTED]
 - [[r2()_3]] - `calls` [EXTRACTED]
 - [[symbolOf()]] - `calls` [EXTRACTED]
 

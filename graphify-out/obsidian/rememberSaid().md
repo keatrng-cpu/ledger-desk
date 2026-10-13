@@ -12,7 +12,7 @@ tags:
 # rememberSaid()
 
 ## Connections
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
 - [[floor-scene.ts]] - `imports` [EXTRACTED]
 - [[said-memory.ts]] - `contains` [EXTRACTED]
 - [[speechExact()]] - `calls` [EXTRACTED]

@@ -12,10 +12,10 @@ tags:
 # verify-spot-cross.mjs
 
 ## Connections
-- [[T0_5]] - `contains` [EXTRACTED]
+- [[T0_4]] - `contains` [EXTRACTED]
 - [[WHY a 1-DTE ATM option costs ~0.4% of the ETF, so a 1% error in the spot an…]] - `rationale_for` [EXTRACTED]
-- [[bar()_3]] - `contains` [EXTRACTED]
-- [[check()_16]] - `contains` [EXTRACTED]
+- [[bar()_4]] - `contains` [EXTRACTED]
+- [[check()_22]] - `contains` [EXTRACTED]
 - [[close()_1]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `dynamic_import` [EXTRACTED]
 - [[options-desk.ts]] - `dynamic_import` [EXTRACTED]

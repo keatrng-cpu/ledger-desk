@@ -2,7 +2,7 @@
 source_file: "package.json"
 type: "code"
 community: "Community 47"
-location: "L60"
+location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # @radix-ui/react-alert-dialog
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_47

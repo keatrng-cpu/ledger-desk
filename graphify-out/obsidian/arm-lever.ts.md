@@ -15,7 +15,7 @@ tags:
 - [[ArmLeverPosition]] - `contains` [EXTRACTED]
 - [[ArmLeverSnap]] - `contains` [EXTRACTED]
 - [[armLeverDisplay()]] - `contains` [EXTRACTED]
-- [[floor-overhaul-war.ts]] - `imports_from` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `re_exports` [EXTRACTED]
 - [[floor-overhaul.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
 

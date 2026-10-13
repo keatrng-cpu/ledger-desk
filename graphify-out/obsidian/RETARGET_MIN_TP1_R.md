@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 20"
+community: "Community 179"
 location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_179
 ---
 
 # RETARGET_MIN_TP1_R
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[management.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_179

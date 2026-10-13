@@ -1,17 +1,17 @@
 ---
-source_file: "package.json"
+source_file: "src/router.tsx"
 type: "code"
-community: "Community 47"
-location: "L82"
+community: "Community 54"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/Community_54
 ---
 
 # @tanstack/react-router
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[router.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/code #graphify/EXTRACTED #community/Community_54

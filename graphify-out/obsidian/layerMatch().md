@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[learndrill.ts]] - `contains` [EXTRACTED]
-- [[norm()_1]] - `calls` [EXTRACTED]
+- [[norm()_2]] - `calls` [EXTRACTED]
 - [[pickLayer()]] - `calls` [EXTRACTED]
 - [[scoreCall()]] - `calls` [EXTRACTED]
 

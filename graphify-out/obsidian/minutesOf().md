@@ -1,8 +1,8 @@
 ---
-source_file: "src/lib/trading/build-desk.ts"
+source_file: "src/lib/market/live-ladder.ts"
 type: "code"
 community: "Community 1"
-location: "L255"
+location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # minutesOf()
 
 ## Connections
-- [[build-desk.ts]] - `contains` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
+- [[live-ladder.ts]] - `contains` [EXTRACTED]
+- [[loadStructureSeries()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_1

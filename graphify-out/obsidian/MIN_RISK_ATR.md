@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 85"
+community: "Community 254"
 location: "L208"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/Community_254
 ---
 
 # MIN_RISK_ATR
@@ -19,4 +19,4 @@ tags:
 - [[sleeve-sizing.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/Community_254

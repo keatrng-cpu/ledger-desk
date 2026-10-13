@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-geometry.mjs"
+source_file: "scripts/verify-brain-vault.mjs"
 type: "code"
-community: "Community 158"
-location: "L21"
+community: "Community 143"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Community_143
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/Community_143

@@ -13,7 +13,9 @@ tags:
 
 ## Connections
 - [[MeadHallTab()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
 - [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 

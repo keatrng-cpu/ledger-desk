@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics-server.ts"
 type: "code"
-community: "Community 195"
+community: "Community 155"
 location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_195
+  - community/Community_155
 ---
 
 # readClosed()
@@ -20,4 +20,4 @@ tags:
 - [[getDiscretionState]] - `calls` [EXTRACTED]
 - [[toAnalyticsTrade()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_195
+#graphify/code #graphify/EXTRACTED #community/Community_155

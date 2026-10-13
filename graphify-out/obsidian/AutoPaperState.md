@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 60"
-location: "L21"
+community: "Community 48"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_48
 ---
 
 # AutoPaperState
@@ -15,4 +15,4 @@ tags:
 - [[auto-paper.ts]] - `contains` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_48

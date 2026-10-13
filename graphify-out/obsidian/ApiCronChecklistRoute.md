@@ -2,7 +2,7 @@
 source_file: "src/routeTree.gen.ts"
 type: "code"
 community: "Community 54"
-location: "L40"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 60"
+community: "Community 26"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/Community_26
 ---
 
 # BuiltPaperLevels
@@ -17,4 +17,4 @@ tags:
 - [[order-intent.ts]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/Community_26

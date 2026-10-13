@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 7"
+community: "Community 172"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_172
 ---
 
 # League
@@ -21,4 +21,4 @@ tags:
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_172

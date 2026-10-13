@@ -19,6 +19,6 @@ tags:
 - [[getBookCounters]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[listTrades]] - `calls` [EXTRACTED]
-- [[money()_4]] - `calls` [EXTRACTED]
+- [[money()_5]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_23

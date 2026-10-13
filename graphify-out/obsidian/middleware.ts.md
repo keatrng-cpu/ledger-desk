@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/middleware.ts"
 type: "code"
-community: "Community 65"
+community: "Community 87"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/Community_87
 ---
 
 # middleware.ts
@@ -31,6 +31,7 @@ tags:
 - [[paper-mirror.ts]] - `imports_from` [EXTRACTED]
 - [[paper-server.ts]] - `imports_from` [EXTRACTED]
 - [[replay-server.ts]] - `imports_from` [EXTRACTED]
+- [[rh-server.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book-server.ts]] - `imports_from` [EXTRACTED]
 - [[shadow.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot-server.ts]] - `imports_from` [EXTRACTED]
@@ -39,4 +40,4 @@ tags:
 - [[trigger-server.ts]] - `imports_from` [EXTRACTED]
 - [[verify.server.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/Community_87

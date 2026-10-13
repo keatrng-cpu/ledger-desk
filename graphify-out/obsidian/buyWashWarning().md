@@ -13,10 +13,10 @@ tags:
 
 ## Connections
 - [[BuyForm()]] - `calls` [EXTRACTED]
-- [[addDays()_6]] - `calls` [EXTRACTED]
+- [[addDays()_5]] - `calls` [EXTRACTED]
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[ledger.ts]] - `contains` [EXTRACTED]
-- [[round2()_7]] - `calls` [EXTRACTED]
+- [[round2()_6]] - `calls` [EXTRACTED]
 - [[washFamily()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_34

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-tf-tiers.mjs"
+source_file: "scripts/measure-option-time.mjs"
 type: "code"
-community: "Community 170"
-location: "L314"
+community: "Community 169"
+location: "L283"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_170
+  - community/Community_169
 ---
 
 # show()
 
 ## Connections
-- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
+- [[measure-option-time.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_170
+#graphify/code #graphify/EXTRACTED #community/Community_169

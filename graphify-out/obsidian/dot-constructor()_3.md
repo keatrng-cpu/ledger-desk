@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/exec/alpaca.ts"
+source_file: "scripts/lib/mead-world.mjs"
 type: "code"
-community: "Community 154"
-location: "L40"
+community: "Community 142"
+location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/Community_142
 ---
 
 # .constructor()
 
 ## Connections
-- [[AlpacaError]] - `method` [EXTRACTED]
+- [[Sim]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/Community_142

@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/room/wire-chat.ts"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 51"
-location: "L24"
+community: "Community 186"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/Community_186
 ---
 
 # read()
 
 ## Connections
-- [[useStored()]] - `calls` [EXTRACTED]
-- [[wire-chat.ts]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/Community_186

@@ -12,6 +12,8 @@ tags:
 # tradingWeekStart()
 
 ## Connections
+- [[3 · build-desk checklist risk item + scanner suppression]] - `references` [INFERRED]
+- [[What shipped]] - `references` [INFERRED]
 - [[checklist.ts]] - `imports` [EXTRACTED]
 - [[computeLiveRiskState()]] - `calls` [EXTRACTED]
 - [[etDateParts()]] - `calls` [EXTRACTED]

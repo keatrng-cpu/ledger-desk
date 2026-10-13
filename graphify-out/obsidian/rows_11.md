@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-regimes.mjs"
+source_file: "scripts/build-shadow-replay.mjs"
 type: "code"
-community: "Community 240"
-location: "L103"
+community: "Community 20"
+location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/Community_20
 ---
 
 # rows
 
 ## Connections
-- [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
+- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_240
+#graphify/code #graphify/EXTRACTED #community/Community_20

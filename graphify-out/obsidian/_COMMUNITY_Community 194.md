@@ -26,7 +26,7 @@ members: 18
 - [[tOne()_1]] - code - src/lib/room/rnd.ts
 - [[tTxt()]] - code - src/lib/room/rnd.ts
 - [[tWelch()]] - code - src/lib/room/rnd.ts
-- [[usd()_2]] - code - src/lib/room/rnd.ts
+- [[usd()_3]] - code - src/lib/room/rnd.ts
 - [[verdictKey()]] - code - src/lib/room/rnd.ts
 
 ## Live Query (requires Dataview plugin)
@@ -37,16 +37,17 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 9 edges to [[_COMMUNITY_Community 0]]
+- 5 edges to [[_COMMUNITY_Community 0]]
+- 4 edges to [[_COMMUNITY_Community 52]]
 - 3 edges to [[_COMMUNITY_Community 50]]
 - 2 edges to [[_COMMUNITY_Community 10]]
-- 2 edges to [[_COMMUNITY_Community 57]]
 - 2 edges to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 140]]
+- 2 edges to [[_COMMUNITY_Community 57]]
+- 1 edge to [[_COMMUNITY_Community 18]]
 - 1 edge to [[_COMMUNITY_Community 208]]
 
 ## Top bridge nodes
-- [[rnd.ts]] - degree 29, connects to 6 communities
-- [[rndRead]] - degree 14, connects to 3 communities
+- [[rnd.ts]] - degree 29, connects to 7 communities
+- [[rndRead]] - degree 14, connects to 4 communities
 - [[SeatId]] - degree 3, connects to 2 communities
 - [[RndExperiment]] - degree 2, connects to 1 community

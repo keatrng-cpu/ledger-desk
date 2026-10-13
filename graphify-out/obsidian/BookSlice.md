@@ -12,7 +12,7 @@ tags:
 # BookSlice
 
 ## Connections
-- [[Bias]] - `references` [EXTRACTED]
+- [[Bias_1]] - `references` [EXTRACTED]
 - [[etStamp()_1]] - `calls` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 - [[toLevel()]] - `indirect_call` [INFERRED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/smt-level.ts"
 type: "code"
 community: "Community 58"
-location: "L135"
+location: "L147"
 tags:
   - graphify/code
   - graphify/EXTRACTED

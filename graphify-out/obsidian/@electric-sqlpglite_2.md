@@ -1,21 +1,17 @@
 ---
-source_file: "@electric-sql/pglite"
+source_file: "package.json"
 type: "code"
-community: "Community 61"
+community: "Community 47"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_47
 ---
 
 # @electric-sql/pglite
 
 ## Connections
-- [[db.ts]] - `dynamic_import` [EXTRACTED]
-- [[verify-attestation.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-live-gateway.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-paper-step.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-room-snapshot.mjs]] - `dynamic_import` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_47

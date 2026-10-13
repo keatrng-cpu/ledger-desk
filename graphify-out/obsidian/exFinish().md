@@ -12,6 +12,7 @@ tags:
 # exFinish()
 
 ## Connections
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[anim()]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

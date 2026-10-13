@@ -1,20 +1,17 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "scripts/verify-hi-alert.mjs"
 type: "code"
-community: "Community 48"
-location: "L133"
+community: "Community 308"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/Community_308
 ---
 
 # ctx()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
-- [[playAlarmTone()]] - `calls` [EXTRACTED]
-- [[shockSiren()]] - `calls` [EXTRACTED]
+- [[verify-hi-alert.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/Community_308

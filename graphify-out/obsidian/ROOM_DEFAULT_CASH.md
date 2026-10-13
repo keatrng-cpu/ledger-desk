@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 51"
+community: "Community 4"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/Community_4
 ---
 
 # ROOM_DEFAULT_CASH
@@ -16,4 +16,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/Community_4

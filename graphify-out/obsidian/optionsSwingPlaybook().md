@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 172"
-location: "L352"
+community: "Community 9"
+location: "L391"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/Community_9
 ---
 
 # optionsSwingPlaybook()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/Community_9

@@ -12,6 +12,8 @@ tags:
 # computeRiskFlags()
 
 ## Connections
+- [[3 · build-desk checklist risk item + scanner suppression]] - `references` [INFERRED]
+- [[What shipped]] - `references` [INFERRED]
 - [[computeLiveRiskState()]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
 - [[risk.ts]] - `contains` [EXTRACTED]

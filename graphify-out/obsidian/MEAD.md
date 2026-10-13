@@ -12,7 +12,11 @@ tags:
 # MEAD
 
 ## Connections
+- [[floor-mead.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-extras.ts]] - `imports` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-people.ts]] - `imports` [EXTRACTED]
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]

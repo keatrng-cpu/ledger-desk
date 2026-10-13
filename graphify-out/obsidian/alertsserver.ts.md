@@ -32,6 +32,6 @@ tags:
 - [[subscribeToAlerts]] - `contains` [EXTRACTED]
 - [[subscriptionSchema]] - `contains` [EXTRACTED]
 - [[unsubscribeFromAlerts]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_19

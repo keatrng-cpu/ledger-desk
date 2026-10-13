@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-exit-plan.mjs"
+source_file: "scripts/build-evidence-pack.mjs"
 type: "code"
-community: "Community 183"
-location: "L118"
+community: "Community 181"
+location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_183
+  - community/Community_181
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
+- [[build-evidence-pack.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_183
+#graphify/code #graphify/EXTRACTED #community/Community_181

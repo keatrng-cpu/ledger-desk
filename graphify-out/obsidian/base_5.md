@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-exit-rules.mjs"
+source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 211"
-location: "L34"
+community: "Community 205"
+location: "L301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_211
+  - community/Community_205
 ---
 
 # base
 
 ## Connections
-- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_211
+#graphify/code #graphify/EXTRACTED #community/Community_205

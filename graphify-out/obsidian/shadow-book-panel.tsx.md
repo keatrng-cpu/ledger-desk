@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/shadow-book-panel.tsx"
 type: "code"
-community: "Community 187"
+community: "Community 111"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/Community_111
 ---
 
 # shadow-book-panel.tsx
@@ -27,17 +27,17 @@ tags:
 - [[buildScorecard()]] - `imports` [EXTRACTED]
 - [[config.ts]] - `imports_from` [EXTRACTED]
 - [[discretion-memory.ts]] - `imports_from` [EXTRACTED]
-- [[etDayKey()_1]] - `imports` [EXTRACTED]
+- [[etDayKey()]] - `imports` [EXTRACTED]
 - [[etTime()_1]] - `imports` [EXTRACTED]
 - [[fmtR()_1]] - `imports` [EXTRACTED]
 - [[fmtUsd()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[liveR()]] - `contains` [EXTRACTED]
-- [[px()_5]] - `contains` [EXTRACTED]
+- [[px()_1]] - `contains` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-store.ts]] - `imports_from` [EXTRACTED]
 - [[statusTone()]] - `contains` [EXTRACTED]
 - [[useShadowBook()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/Community_111

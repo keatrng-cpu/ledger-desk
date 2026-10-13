@@ -12,17 +12,17 @@ tags:
 # floor-overhaul-war.ts
 
 ## Connections
-- [[Ctx_3]] - `contains` [EXTRACTED]
+- [[Ctx_4]] - `contains` [EXTRACTED]
 - [[DiscretionRule]] - `imports` [EXTRACTED]
 - [[ManagerRoomState]] - `imports` [EXTRACTED]
-- [[arm-lever.ts]] - `imports_from` [EXTRACTED]
+- [[arm-lever.ts]] - `re_exports` [EXTRACTED]
 - [[armLeverDisplay()]] - `re_exports` [EXTRACTED]
 - [[drawDiscretionBoard()]] - `contains` [EXTRACTED]
 - [[drawManagerArms()]] - `contains` [EXTRACTED]
-- [[fit()_2]] - `contains` [EXTRACTED]
+- [[fit()_4]] - `contains` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
 - [[manager-feed.ts]] - `imports_from` [EXTRACTED]
 - [[monitorFrame()_1]] - `contains` [EXTRACTED]
-- [[wrap()_1]] - `contains` [EXTRACTED]
+- [[wrap()_2]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_24

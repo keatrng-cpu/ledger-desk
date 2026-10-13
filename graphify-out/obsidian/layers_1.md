@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-entry-ticket.mjs"
 type: "code"
-community: "Community 26"
+community: "Community 48"
 location: "L150"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_48
 ---
 
 # layers
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-entry-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_48

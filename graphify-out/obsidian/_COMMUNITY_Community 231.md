@@ -11,12 +11,12 @@ members: 10
 
 ## Members
 - [[SCHOOL_GATE]] - code - src/lib/trading/school-brief.ts
-- [[bare_1]] - code - scripts/verify-school-gate.mjs
-- [[check()_41]] - code - scripts/verify-school-gate.mjs
+- [[bare_2]] - code - scripts/verify-school-gate.mjs
+- [[check()_52]] - code - scripts/verify-school-gate.mjs
 - [[line_2]] - code - scripts/verify-school-gate.mjs
 - [[missing_2]] - code - scripts/verify-school-gate.mjs
 - [[on]] - code - scripts/verify-school-gate.mjs
-- [[px()_6]] - code - src/lib/trading/school-ticket.ts
+- [[px()_8]] - code - src/lib/trading/school-ticket.ts
 - [[school-ticket.ts]] - code - src/lib/trading/school-ticket.ts
 - [[schoolPlanPrices()]] - code - src/lib/trading/school-ticket.ts
 - [[verify-school-gate.mjs]] - code - scripts/verify-school-gate.mjs
@@ -30,10 +30,10 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 39]]
-- 2 edges to [[_COMMUNITY_Community 15]]
-- 2 edges to [[_COMMUNITY_Community 153]]
+- 2 edges to [[_COMMUNITY_Community 14]]
+- 2 edges to [[_COMMUNITY_Community 56]]
 - 2 edges to [[_COMMUNITY_Community 102]]
-- 1 edge to [[_COMMUNITY_Community 38]]
+- 1 edge to [[_COMMUNITY_Community 158]]
 
 ## Top bridge nodes
 - [[school-ticket.ts]] - degree 7, connects to 3 communities

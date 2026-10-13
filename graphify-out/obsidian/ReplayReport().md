@@ -12,6 +12,7 @@ tags:
 # ReplayReport()
 
 ## Connections
+- [[1. Mount `ReplayReport` in the Lab section]] - `references` [INFERRED]
 - [[Button]] - `calls` [EXTRACTED]
 - [[Card()_1]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
@@ -23,7 +24,7 @@ tags:
 - [[expCls()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[latestEngineRun]] - `calls` [EXTRACTED]
-- [[pct()_3]] - `calls` [EXTRACTED]
+- [[pct()_2]] - `calls` [EXTRACTED]
 - [[replay-report.tsx]] - `contains` [EXTRACTED]
 - [[runReplay]] - `calls` [EXTRACTED]
 

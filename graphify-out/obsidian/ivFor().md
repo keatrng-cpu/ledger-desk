@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L129"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # ivFor()
@@ -35,4 +35,4 @@ tags:
 - [[resolveMemories()]] - `calls` [EXTRACTED]
 - [[stepGhost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

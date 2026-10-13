@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[dot-beat()]] - `method` [EXTRACTED]
-- [[dot-constructor()_22]] - `method` [EXTRACTED]
+- [[dot-constructor()_25]] - `method` [EXTRACTED]
 - [[dot-fail()]] - `method` [EXTRACTED]
 - [[dot-terminate()]] - `method` [EXTRACTED]
 - [[verify-keep-live.mjs]] - `contains` [EXTRACTED]

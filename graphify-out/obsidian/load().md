@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
 community: "Community 1"
-location: "L268"
+location: "L277"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -22,7 +22,7 @@ tags:
 - [[fetchYahooBars()]] - `calls` [EXTRACTED]
 - [[hasDatabentoKey()]] - `calls` [EXTRACTED]
 - [[mergeNewerBars()]] - `calls` [EXTRACTED]
-- [[minutesOf()]] - `calls` [EXTRACTED]
+- [[minutesOf()_1]] - `calls` [EXTRACTED]
 - [[readLiveBars()]] - `calls` [EXTRACTED]
 - [[remaining()]] - `calls` [EXTRACTED]
 - [[stampSeriesFromBars()]] - `calls` [EXTRACTED]

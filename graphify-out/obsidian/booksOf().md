@@ -13,7 +13,8 @@ tags:
 
 ## Connections
 - [[agendaFromDesk()]] - `calls` [EXTRACTED]
-- [[atrOf()]] - `calls` [EXTRACTED]
+- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[brainSources()]] - `calls` [EXTRACTED]
 - [[cardEntry()]] - `calls` [EXTRACTED]
 - [[cardRead()]] - `calls` [EXTRACTED]
 - [[desk-read.ts]] - `contains` [EXTRACTED]

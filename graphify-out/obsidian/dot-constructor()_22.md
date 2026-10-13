@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-keep-live.mjs"
+source_file: "src/lib/auth/verify.server.ts"
 type: "code"
-community: "Community 71"
-location: "L30"
+community: "Community 65"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_65
 ---
 
 # .constructor()
 
 ## Connections
-- [[FakeWorker]] - `method` [EXTRACTED]
+- [[UnauthorizedError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_65

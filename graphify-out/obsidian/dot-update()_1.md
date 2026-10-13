@@ -1,19 +1,23 @@
 ---
-source_file: "src/lib/room/exec/executor.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 110"
-location: "L51"
+community: "Community 17"
+location: "L1137"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_110
+  - community/Community_17
 ---
 
 # .update()
 
 ## Connections
-- [[AuditRow]] - `references` [EXTRACTED]
-- [[ExecStore]] - `method` [EXTRACTED]
-- [[execStep()]] - `calls` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
+- [[angleLerp()]] - `calls` [EXTRACTED]
+- [[damp()]] - `calls` [EXTRACTED]
+- [[poseFor()]] - `calls` [EXTRACTED]
+- [[presenceOf()]] - `calls` [EXTRACTED]
+- [[visemeScale()]] - `calls` [EXTRACTED]
+- [[yawTo()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_110
+#graphify/code #graphify/EXTRACTED #community/Community_17

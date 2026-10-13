@@ -35,7 +35,7 @@ tags:
 - [[pctOf()]] - `contains` [EXTRACTED]
 - [[prem()]] - `contains` [EXTRACTED]
 - [[ptsTxt()]] - `contains` [EXTRACTED]
-- [[px()_9]] - `contains` [EXTRACTED]
+- [[px()_10]] - `contains` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[rSigned()]] - `contains` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[shortDate()]] - `imports` [EXTRACTED]
 - [[sideWord()]] - `contains` [EXTRACTED]
 - [[signedPct()]] - `contains` [EXTRACTED]
-- [[usd()_3]] - `contains` [EXTRACTED]
+- [[usd()_4]] - `contains` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_3

@@ -1,8 +1,8 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
 community: "Community 41"
-location: "L44"
+location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,9 +12,11 @@ tags:
 # TicketSide
 
 ## Connections
+- [[MeadSceneOptions]] - `references` [EXTRACTED]
 - [[TicketDraft]] - `references` [EXTRACTED]
+- [[mead-hall-build.ts]] - `contains` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
-- [[mead-scene.ts]] - `contains` [EXTRACTED]
+- [[mead-scene.ts]] - `imports` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_41

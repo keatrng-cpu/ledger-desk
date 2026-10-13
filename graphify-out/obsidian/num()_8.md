@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/trading/trade-log.ts"
+source_file: "src/lib/desk/grok-report.ts"
 type: "code"
-community: "Community 176"
-location: "L65"
+community: "Community 184"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_176
+  - community/Community_184
 ---
 
 # num()
 
 ## Connections
-- [[overrideRecords()]] - `calls` [EXTRACTED]
-- [[toRecord()]] - `calls` [EXTRACTED]
-- [[trade-log.ts]] - `contains` [EXTRACTED]
+- [[grok-report.ts]] - `contains` [EXTRACTED]
+- [[parseGrokReport()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_176
+#graphify/code #graphify/EXTRACTED #community/Community_184

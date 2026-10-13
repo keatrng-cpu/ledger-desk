@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L1725"
+location: "L1764"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -19,6 +19,6 @@ tags:
 - [[drawInvTheme()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[header()]] - `calls` [EXTRACTED]
-- [[wrap()_3]] - `calls` [EXTRACTED]
+- [[wrap()_4]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_25

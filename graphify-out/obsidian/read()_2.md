@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-rh-path-fire.mjs"
+source_file: "scripts/verify-tooling-guards.mjs"
 type: "code"
-community: "Community 11"
-location: "L13"
+community: "Community 143"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_143
 ---
 
 # read()
 
 ## Connections
-- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
+- [[liveWf()]] - `calls` [EXTRACTED]
+- [[verify-tooling-guards.mjs]] - `contains` [EXTRACTED]
+- [[wf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_143

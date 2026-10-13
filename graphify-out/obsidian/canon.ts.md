@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/canon.ts"
 type: "code"
-community: "Community 118"
+community: "Community 305"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/Community_305
 ---
 
 # canon.ts
@@ -23,4 +23,4 @@ tags:
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/Community_305

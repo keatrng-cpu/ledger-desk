@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 8"
-location: "L128"
+community: "Community 254"
+location: "L469"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_254
 ---
 
 # restableFromCard()
@@ -16,4 +16,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[restPaperLimit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_254

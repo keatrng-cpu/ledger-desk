@@ -5,17 +5,23 @@ community: "Community 13"
 location: "L624"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
+  - graphify/INFERRED
   - community/Community_13
 ---
 
 # exCalendar()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-mins()]] - `calls` [INFERRED]
+- [[dot-pts()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-span()]] - `calls` [INFERRED]
+- [[dot-x()]] - `calls` [INFERRED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 - [[pick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/INFERRED #community/Community_13

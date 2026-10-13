@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/journal/server.ts"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 23"
-location: "L352"
+community: "Community 185"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/Community_185
 ---
 
 # bookOf()
 
 ## Connections
-- [[assertOpenAllowed()]] - `calls` [EXTRACTED]
-- [[candidateFromOpenInput()]] - `calls` [EXTRACTED]
-- [[journalserver.ts]] - `contains` [EXTRACTED]
-- [[readBookCounters()]] - `calls` [EXTRACTED]
+- [[mkWorld()_3]] - `calls` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/Community_185

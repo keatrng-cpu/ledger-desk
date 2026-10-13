@@ -2,7 +2,7 @@
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
 community: "Community 39"
-location: "L466"
+location: "L476"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # SetupCard()
 
 ## Connections
+- [[2 · Trigger on scanner cards (`srccomponentsdesksetup-scanner.tsx`)]] - `references` [INFERRED]
 - [[BarStrip()]] - `calls` [EXTRACTED]
 - [[BlockerStrip()]] - `calls` [EXTRACTED]
 - [[Button]] - `calls` [EXTRACTED]
@@ -27,7 +28,7 @@ tags:
 - [[allSeries()]] - `calls` [EXTRACTED]
 - [[anticipate()]] - `calls` [EXTRACTED]
 - [[applyLtf()]] - `calls` [EXTRACTED]
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[autoTf()]] - `calls` [EXTRACTED]
 - [[cardEvidence()]] - `calls` [EXTRACTED]
 - [[cardFreshness()]] - `calls` [EXTRACTED]

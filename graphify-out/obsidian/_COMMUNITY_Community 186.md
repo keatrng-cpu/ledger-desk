@@ -1,34 +1,52 @@
 ---
 type: community
-cohesion: 0.18
-members: 19
+cohesion: 0.06
+members: 37
 ---
 
 # Community 186
 
-**Cohesion:** 0.18 - loosely connected
-**Members:** 19 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 37 nodes
 
 ## Members
-- [[MARK_PRIORITY]] - code - src/components/desk/setup-mini-chart.tsx
-- [[MINI_BARS]] - code - src/components/desk/setup-mini-chart.tsx
-- [[MarkKind]] - code - src/lib/trading/setup-anticipation.ts
-- [[STATE_GLYPH]] - code - src/components/desk/setup-mini-chart.tsx
-- [[STATE_INK]] - code - src/components/desk/setup-mini-chart.tsx
-- [[Scale_1]] - code - src/components/desk/setup-mini-chart.tsx
-- [[ScoreDriver]] - code - src/lib/trading/score-drivers.ts
-- [[SetupAnticipation]] - code - src/lib/trading/setup-anticipation.ts
-- [[SetupMiniChartImpl()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[SetupMiniChartProps]] - code - src/components/desk/setup-mini-chart.tsx
-- [[TfMarkSpec]] - code - src/lib/trading/chart-timeframes.ts
-- [[buildMiniScale()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[finite()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[markColor()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[marksFor()]] - code - src/lib/trading/chart-timeframes.ts
-- [[pickRows()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[setup-mini-chart.tsx]] - code - src/components/desk/setup-mini-chart.tsx
-- [[shortLabel()]] - code - src/components/desk/setup-mini-chart.tsx
-- [[showsContext()]] - code - src/lib/trading/chart-timeframes.ts
+- [[ROOT_3]] - code - scripts/verify-mead-hall.mjs
+- [[hx0, hz0]] - code - scripts/verify-mead-hall.mjs
+- [[hx1, hz1]] - code - scripts/verify-mead-hall.mjs
+- [[acts]] - code - scripts/verify-mead-hall.mjs
+- [[all_3]] - code - scripts/verify-mead-hall.mjs
+- [[cams]] - code - scripts/verify-mead-hall.mjs
+- [[check()_33]] - code - scripts/verify-mead-hall.mjs
+- [[clear]] - code - scripts/verify-mead-hall.mjs
+- [[crowd]] - code - scripts/verify-mead-hall.mjs
+- [[east_1]] - code - scripts/verify-mead-hall.mjs
+- [[far]] - code - scripts/verify-mead-hall.mjs
+- [[free()]] - code - scripts/verify-mead-hall.mjs
+- [[glb]] - code - scripts/verify-mead-hall.mjs
+- [[gltf]] - code - scripts/verify-mead-hall.mjs
+- [[hallPlan]] - code - scripts/verify-mead-hall.mjs
+- [[hallRooms]] - code - scripts/verify-mead-hall.mjs
+- [[jsonLen]] - code - scripts/verify-mead-hall.mjs
+- [[lost]] - code - scripts/verify-mead-hall.mjs
+- [[lounge]] - code - scripts/verify-mead-hall.mjs
+- [[marks_1]] - code - scripts/verify-mead-hall.mjs
+- [[nameInBuilder()]] - code - scripts/verify-mead-hall.mjs
+- [[names_2]] - code - scripts/verify-mead-hall.mjs
+- [[nav]] - code - scripts/verify-mead-hall.mjs
+- [[nearDoor]] - code - scripts/verify-mead-hall.mjs
+- [[orders]] - code - scripts/verify-mead-hall.mjs
+- [[plan]] - code - scripts/verify-mead-hall.mjs
+- [[planScreens]] - code - scripts/verify-mead-hall.mjs
+- [[planText]] - code - scripts/verify-mead-hall.mjs
+- [[reach()_1]] - code - scripts/verify-mead-hall.mjs
+- [[read()_5]] - code - scripts/verify-mead-hall.mjs
+- [[rnd]] - code - scripts/verify-mead-hall.mjs
+- [[src_5]] - code - scripts/verify-mead-hall.mjs
+- [[stack_1]] - code - scripts/verify-mead-hall.mjs
+- [[strip()]] - code - scripts/verify-mead-hall.mjs
+- [[verify-mead-hall.mjs]] - code - scripts/verify-mead-hall.mjs
+- [[walled]] - code - scripts/verify-mead-hall.mjs
+- [[windows]] - code - scripts/verify-mead-hall.mjs
 
 ## Live Query (requires Dataview plugin)
 
@@ -38,18 +56,9 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 9 edges to [[_COMMUNITY_Community 163]]
-- 5 edges to [[_COMMUNITY_Community 205]]
-- 4 edges to [[_COMMUNITY_Community 27]]
-- 4 edges to [[_COMMUNITY_Community 14]]
-- 4 edges to [[_COMMUNITY_Community 39]]
-- 3 edges to [[_COMMUNITY_Community 84]]
-- 1 edge to [[_COMMUNITY_Community 114]]
-- 1 edge to [[_COMMUNITY_Community 1]]
+- 2 edges to [[_COMMUNITY_Community 147]]
+- 1 edge to [[_COMMUNITY_Community 17]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 
 ## Top bridge nodes
-- [[setup-mini-chart.tsx]] - degree 32, connects to 7 communities
-- [[MarkKind]] - degree 6, connects to 3 communities
-- [[marksFor()]] - degree 6, connects to 2 communities
-- [[ScoreDriver]] - degree 5, connects to 2 communities
-- [[SetupMiniChartImpl()]] - degree 9, connects to 1 community
+- [[verify-mead-hall.mjs]] - degree 40, connects to 3 communities

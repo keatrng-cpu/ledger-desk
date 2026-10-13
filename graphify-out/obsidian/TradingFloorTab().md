@@ -2,7 +2,7 @@
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
 community: "Community 51"
-location: "L1339"
+location: "L1372"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -42,10 +42,12 @@ tags:
 - [[saveSoundPref()]] - `calls` [EXTRACTED]
 - [[sessionDial]] - `calls` [EXTRACTED]
 - [[standAgentAgree()]] - `calls` [EXTRACTED]
+- [[takeFloorCamera()]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 - [[useAutomation()]] - `calls` [EXTRACTED]
 - [[useEntryState()]] - `calls` [EXTRACTED]
 - [[useExecStore]] - `calls` [EXTRACTED]
+- [[useMeadFloorFeed()]] - `calls` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_51

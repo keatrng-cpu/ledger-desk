@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/drill.ts"
 type: "code"
-community: "Community 4"
+community: "Community 0"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/Community_0
 ---
 
 # room/drill.ts
@@ -83,4 +83,4 @@ tags:
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/Community_0

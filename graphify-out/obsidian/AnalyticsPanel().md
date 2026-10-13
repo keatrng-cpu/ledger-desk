@@ -12,7 +12,9 @@ tags:
 # AnalyticsPanel()
 
 ## Connections
+- [[1. Mount the snapshot review (B6) — `srcroutesindex.tsx`]] - `references` [INFERRED]
 - [[Button]] - `calls` [EXTRACTED]
+- [[INTEGRATION-D — Phase C (evidence)]] - `references` [INFERRED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[ReportView()]] - `calls` [EXTRACTED]
 - [[StatTile()]] - `calls` [EXTRACTED]

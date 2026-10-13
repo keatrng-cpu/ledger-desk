@@ -1,8 +1,8 @@
 ---
-source_file: "src/routes/__root.tsx"
+source_file: "src/routes/api/desk/handoff.ts"
 type: "code"
 community: "Community 54"
-location: "L12"
+location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,11 +12,8 @@ tags:
 # Route
 
 ## Connections
-- [[AuthProvider()]] - `calls` [EXTRACTED]
-- [[CreatedWithGrokBanner()]] - `calls` [EXTRACTED]
-- [[FileRoutesById]] - `references` [EXTRACTED]
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[__root.tsx]] - `contains` [EXTRACTED]
+- [[handoff.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_54

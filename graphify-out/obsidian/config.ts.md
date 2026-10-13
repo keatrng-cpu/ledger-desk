@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 26"
+community: "Community 48"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_48
 ---
 
 # config.ts
 
 ## Connections
 - [[APLUS_RULES]] - `contains` [EXTRACTED]
-- [[CONTRACTS_1]] - `contains` [EXTRACTED]
+- [[CONTRACTS]] - `contains` [EXTRACTED]
 - [[ContractKey]] - `contains` [EXTRACTED]
 - [[RiskGrade]] - `contains` [EXTRACTED]
 - [[analytics-server.ts]] - `imports_from` [EXTRACTED]
@@ -36,6 +36,7 @@ tags:
 - [[income-target.ts]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
+- [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports_from` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
 - [[management.ts]] - `imports_from` [EXTRACTED]
@@ -52,6 +53,7 @@ tags:
 - [[profit-path.tsx]] - `imports_from` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[replay-drill.ts]] - `imports_from` [EXTRACTED]
+- [[research-retain.ts]] - `imports_from` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[risk-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[risk.ts]] - `imports_from` [EXTRACTED]
@@ -61,7 +63,7 @@ tags:
 - [[riskPctForScore()]] - `contains` [EXTRACTED]
 - [[sample-run.ts]] - `imports_from` [EXTRACTED]
 - [[score.ts]] - `imports_from` [EXTRACTED]
-- [[session-backtest.ts]] - `dynamic_import` [EXTRACTED]
+- [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[shadow-book-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
@@ -69,6 +71,7 @@ tags:
 - [[sizeContracts()]] - `contains` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
@@ -78,9 +81,12 @@ tags:
 - [[verify-entry-ticket.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-income-target.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-research-retain.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-take-census.mjs]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_48

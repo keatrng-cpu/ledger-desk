@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 187"
+community: "Community 111"
 location: "L431"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/Community_111
 ---
 
 # splitByKillzone()
@@ -16,4 +16,4 @@ tags:
 - [[decidedN()]] - `calls` [EXTRACTED]
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/Community_111

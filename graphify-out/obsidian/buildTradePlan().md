@@ -12,13 +12,13 @@ tags:
 # buildTradePlan()
 
 ## Connections
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[elapsedFractionOf()_1]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[groupSessions()]] - `calls` [EXTRACTED]
 - [[maxRiskFor()]] - `calls` [EXTRACTED]
 - [[priceWorth()]] - `calls` [EXTRACTED]
-- [[round2()_10]] - `calls` [EXTRACTED]
+- [[round2()_9]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[targetOdds]] - `calls` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]

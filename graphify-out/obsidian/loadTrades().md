@@ -14,9 +14,11 @@ tags:
 ## Connections
 - [[closeTrade()]] - `calls` [EXTRACTED]
 - [[deleteTrade()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[loadRecent()]] - `calls` [EXTRACTED]
 - [[logEntry()]] - `calls` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
 - [[predictjournal.ts]] - `contains` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_2

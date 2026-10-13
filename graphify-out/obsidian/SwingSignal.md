@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
 community: "Community 9"
-location: "L51"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED

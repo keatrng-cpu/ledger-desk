@@ -12,6 +12,7 @@ tags:
 # blackScholes()
 
 ## Connections
+- [[3. Arithmetic runs in code]] - `references` [INFERRED]
 - [[attribute()_1]] - `calls` [EXTRACTED]
 - [[decayToStop()]] - `calls` [EXTRACTED]
 - [[normCdf()]] - `calls` [EXTRACTED]

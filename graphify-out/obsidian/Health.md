@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/bridge/bridge-status.tsx"
 type: "code"
-community: "Community 14"
+community: "Community 95"
 location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_95
 ---
 
 # Health
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[bridge-status.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_95

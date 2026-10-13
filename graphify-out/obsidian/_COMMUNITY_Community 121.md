@@ -12,7 +12,7 @@ members: 30
 ## Members
 - [[KNOWN_LAYERS]] - code - scripts/log-trade.mjs
 - [[bool()]] - code - scripts/log-trade.mjs
-- [[contracts]] - code - scripts/log-trade.mjs
+- [[contracts_1]] - code - scripts/log-trade.mjs
 - [[doc]] - code - scripts/log-trade.mjs
 - [[entryFill]] - code - scripts/log-trade.mjs
 - [[exitFill]] - code - scripts/log-trade.mjs
@@ -25,7 +25,7 @@ members: 30
 - [[log-trade.mjs]] - code - scripts/log-trade.mjs
 - [[missing]] - code - scripts/log-trade.mjs
 - [[missingLayers]] - code - scripts/log-trade.mjs
-- [[num()_4]] - code - scripts/log-trade.mjs
+- [[num()_2]] - code - scripts/log-trade.mjs
 - [[outcome_1]] - code - scripts/log-trade.mjs
 - [[planEntry]] - code - scripts/log-trade.mjs
 - [[planStop]] - code - scripts/log-trade.mjs
@@ -49,7 +49,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 216]]
 - 1 edge to [[_COMMUNITY_Community 85]]
 

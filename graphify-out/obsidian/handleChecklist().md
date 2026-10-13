@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[authorizeCronRequest()]] - `calls` [EXTRACTED]
 - [[checklist.ts]] - `indirect_call` [INFERRED]
-- [[etWindow]] - `calls` [EXTRACTED]
+- [[etWindow_1]] - `calls` [EXTRACTED]
 - [[fmtR()_2]] - `calls` [EXTRACTED]
 - [[getSessionClock()]] - `calls` [EXTRACTED]
 - [[isForced()]] - `calls` [EXTRACTED]

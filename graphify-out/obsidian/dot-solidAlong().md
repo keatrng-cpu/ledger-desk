@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 28"
-location: "L2292"
+location: "L2618"
 tags:
   - graphify/code
   - graphify/EXTRACTED

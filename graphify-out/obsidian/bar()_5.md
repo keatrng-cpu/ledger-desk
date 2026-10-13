@@ -1,18 +1,20 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/render-mead-attachments.mjs"
 type: "code"
-community: "Community 175"
-location: "L106"
+community: "Community 173"
+location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/Community_173
 ---
 
 # bar()
 
 ## Connections
-- [[bars_7]] - `calls` [EXTRACTED]
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[render-mead-attachments.mjs]] - `contains` [EXTRACTED]
+- [[rr()_1]] - `calls` [EXTRACTED]
+- [[text()]] - `calls` [EXTRACTED]
+- [[tv()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/Community_173

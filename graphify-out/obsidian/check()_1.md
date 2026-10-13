@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-propfirm-score.mjs"
+source_file: "scripts/verify-live-ladder.mjs"
 type: "code"
-community: "Community 108"
-location: "L18"
+community: "Community 1"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/Community_1
 ---
 
 # check()
 
 ## Connections
-- [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-ladder.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/Community_1

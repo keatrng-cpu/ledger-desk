@@ -16,7 +16,7 @@ tags:
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
 - [[setFlashOn()]] - `contains` [EXTRACTED]
-- [[subs_1]] - `contains` [EXTRACTED]
+- [[subs_2]] - `contains` [EXTRACTED]
 - [[subscribeFlash()]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_33

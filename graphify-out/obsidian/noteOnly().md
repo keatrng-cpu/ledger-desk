@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
 community: "Community 40"
-location: "L815"
+location: "L1256"
 tags:
   - graphify/code
   - graphify/EXTRACTED

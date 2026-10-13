@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/journal/server.ts"
+source_file: "scripts/verify-mead-talk.mjs"
 type: "code"
-community: "Community 23"
-location: "L170"
+community: "Community 210"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/Community_210
 ---
 
 # iso()
 
 ## Connections
-- [[getSettings]] - `calls` [EXTRACTED]
-- [[journalserver.ts]] - `contains` [EXTRACTED]
-- [[listEvents]] - `calls` [EXTRACTED]
-- [[mapTrade()]] - `calls` [EXTRACTED]
-- [[updateEquity]] - `calls` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/Community_210

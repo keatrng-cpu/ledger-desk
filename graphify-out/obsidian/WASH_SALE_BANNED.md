@@ -12,6 +12,7 @@ tags:
 # WASH_SALE_BANNED
 
 ## Connections
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[invest-themes.ts]] - `imports` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]

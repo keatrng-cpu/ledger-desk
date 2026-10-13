@@ -12,7 +12,7 @@ tags:
 # HttpError
 
 ## Connections
-- [[dot-constructor()_21]] - `method` [EXTRACTED]
+- [[dot-constructor()_24]] - `method` [EXTRACTED]
 - [[getJson()]] - `calls` [EXTRACTED]
 - [[predict-server.ts]] - `contains` [EXTRACTED]
 

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/trade-log-panel.tsx"
 type: "code"
-community: "Community 8"
+community: "Community 216"
 location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_216
 ---
 
 # TradeLogPanel()
@@ -17,4 +17,4 @@ tags:
 - [[readTradeLog()]] - `calls` [EXTRACTED]
 - [[trade-log-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_216

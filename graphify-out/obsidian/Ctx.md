@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/room/live-voices.ts"
+source_file: "src/components/room/floor-overhaul-race.ts"
 type: "code"
-community: "Community 198"
-location: "L47"
+community: "Community 10"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/Community_10
 ---
 
 # Ctx
 
 ## Connections
-- [[Facts_1]] - `references` [EXTRACTED]
-- [[TalkState]] - `references` [EXTRACTED]
-- [[live-voices-invest.ts]] - `imports` [EXTRACTED]
-- [[live-voices-race.ts]] - `imports` [EXTRACTED]
-- [[live-voices.ts]] - `contains` [EXTRACTED]
+- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/Community_10

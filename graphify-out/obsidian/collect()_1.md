@@ -18,6 +18,6 @@ tags:
 - [[et()]] - `calls` [EXTRACTED]
 - [[main()_3]] - `calls` [EXTRACTED]
 - [[signals()]] - `calls` [EXTRACTED]
-- [[walk()_2]] - `calls` [EXTRACTED]
+- [[walk()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_156

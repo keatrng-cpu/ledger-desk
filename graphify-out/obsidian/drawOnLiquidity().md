@@ -1,19 +1,20 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 72"
+community: "Community 20"
 location: "L247"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/Community_20
 ---
 
 # drawOnLiquidity()
 
 ## Connections
+- [[Phase B — The desk runs itself (4–6 days) ← highest leverage]] - `references` [INFERRED]
 - [[Snapshot]] - `calls` [EXTRACTED]
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[biasAlignment()]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildMarketNarrative()]] - `calls` [EXTRACTED]
@@ -24,12 +25,12 @@ tags:
 - [[empiricalReachRate()]] - `calls` [EXTRACTED]
 - [[groupSessions()]] - `calls` [EXTRACTED]
 - [[market-narrative.ts]] - `imports` [EXTRACTED]
-- [[median()_3]] - `calls` [EXTRACTED]
+- [[median()_2]] - `calls` [EXTRACTED]
 - [[mergeCoincident()]] - `calls` [EXTRACTED]
 - [[remainingExcursions()]] - `calls` [EXTRACTED]
-- [[round2()_9]] - `calls` [EXTRACTED]
+- [[round2()_4]] - `calls` [EXTRACTED]
 - [[scoreCandidates()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[withEmpiricalTarget()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/Community_20

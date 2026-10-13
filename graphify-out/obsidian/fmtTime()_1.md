@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/shadow-order-review.tsx"
+source_file: "src/components/desk/alerts-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "Community 19"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_19
 ---
 
 # fmtTime()
 
 ## Connections
-- [[ShadowOrderReview()]] - `calls` [EXTRACTED]
-- [[shadow-order-review.tsx]] - `contains` [EXTRACTED]
+- [[AlertsPanel()]] - `calls` [EXTRACTED]
+- [[alerts-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_19

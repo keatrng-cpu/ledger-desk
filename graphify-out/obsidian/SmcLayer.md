@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 229"
+community: "Community 272"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/Community_272
 ---
 
 # SmcLayer
@@ -26,4 +26,4 @@ tags:
 - [[smc-master.ts]] - `contains` [EXTRACTED]
 - [[trade-note.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/Community_272

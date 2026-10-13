@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
 community: "Community 9"
-location: "L123"
+location: "L124"
 tags:
   - graphify/code
   - graphify/EXTRACTED

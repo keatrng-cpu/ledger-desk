@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]
-- [[firstPrice()]] - `calls` [EXTRACTED]
+- [[firstPrice()_1]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
-- [[zoneMid()_1]] - `calls` [EXTRACTED]
+- [[zoneMid()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_44

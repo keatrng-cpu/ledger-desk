@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/exit-rules.ts"
 type: "code"
-community: "Community 39"
+community: "Community 160"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_160
 ---
 
 # exit-rules.ts
@@ -25,4 +25,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[verify-exit-rules.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_160

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-live-gateway.mjs"
+source_file: "scripts/verify-ai-sync.mjs"
 type: "code"
-community: "Community 61"
-location: "L30"
+community: "Community 247"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_247
 ---
 
 # check()
 
 ## Connections
-- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
+- [[ok()_22]] - `calls` [EXTRACTED]
+- [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_247

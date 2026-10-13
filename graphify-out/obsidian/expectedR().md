@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[priceWorth()]] - `calls` [EXTRACTED]
-- [[round2()_9]] - `calls` [EXTRACTED]
+- [[round2()_4]] - `calls` [EXTRACTED]
 - [[target-odds.ts]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 

@@ -12,7 +12,6 @@ tags:
 # SessionBrief
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[FloorSchoolDebateBriefing]] - `references` [EXTRACTED]
 - [[SchoolModelHook]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]

@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/propfirm/apex-sim.ts"
+source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 188"
-location: "L1320"
+community: "Community 10"
+location: "L281"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_188
+  - community/Community_10
 ---
 
 # fmtPct()
 
 ## Connections
-- [[apex-sim.ts]] - `contains` [EXTRACTED]
-- [[runApexSim()]] - `calls` [EXTRACTED]
-- [[simCaveats()]] - `calls` [EXTRACTED]
+- [[floor-props.ts]] - `contains` [EXTRACTED]
+- [[statProps()]] - `calls` [EXTRACTED]
+- [[tickerTiles()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_188
+#graphify/code #graphify/EXTRACTED #community/Community_10

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 94"
+community: "Community 14"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_14
 ---
 
 # equityCurve()
@@ -17,4 +17,4 @@ tags:
 - [[computeMetrics()]] - `calls` [EXTRACTED]
 - [[sample-run.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_14

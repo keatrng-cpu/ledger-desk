@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 172"
-location: "L74"
+community: "Community 9"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/Community_9
 ---
 
 # weekdayEt()
@@ -15,4 +15,4 @@ tags:
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 - [[swingTiming]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/Community_9

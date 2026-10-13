@@ -1,13 +1,13 @@
 ---
 type: community
-cohesion: 0.20
-members: 27
+cohesion: 0.19
+members: 28
 ---
 
 # Community 135
 
-**Cohesion:** 0.20 - loosely connected
-**Members:** 27 nodes
+**Cohesion:** 0.19 - loosely connected
+**Members:** 28 nodes
 
 ## Members
 - [[DEFAULT_APP_NAME]] - code - scripts/grok-pwa-shared.mjs
@@ -23,6 +23,7 @@ members: 27
 - [[grok-pwa.ts]] - code - server/middleware/grok-pwa.ts
 - [[grokPwaHeadTags()]] - code - scripts/grok-pwa-shared.mjs
 - [[grokPwaMiddleware()]] - code - server/middleware/grok-pwa.ts
+- [[grokPwaPlugin()]] - code - scripts/grok-pwa-plugin.mjs
 - [[injectGrokPwaHead()]] - code - scripts/grok-pwa-shared.mjs
 - [[injectHeadStreaming()]] - code - server/middleware/grok-pwa.ts
 - [[isDocumentPath()]] - code - scripts/grok-pwa-shared.mjs
@@ -46,9 +47,11 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 230]]
-- 3 edges to [[_COMMUNITY_Community 11]]
+- 2 edges to [[_COMMUNITY_Community 230]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 277]]
+- 1 edge to [[_COMMUNITY_Community 11]]
 
 ## Top bridge nodes
-- [[grok-pwa-plugin.mjs]] - degree 20, connects to 2 communities
-- [[injectGrokPwaHead()]] - degree 4, connects to 1 community
+- [[grok-pwa-plugin.mjs]] - degree 20, connects to 4 communities
+- [[grokPwaPlugin()]] - degree 3, connects to 1 community

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 210"
-location: "L105"
+community: "Community 160"
+location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/Community_160
 ---
 
 # detectBookShock()
@@ -17,4 +17,4 @@ tags:
 - [[rollingAtr()]] - `calls` [EXTRACTED]
 - [[shock.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/Community_160

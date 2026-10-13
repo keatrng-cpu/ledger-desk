@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/invest/kill-store.ts"
+source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 80"
-location: "L46"
+community: "Community 205"
+location: "L295"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/Community_205
 ---
 
 # read()
 
 ## Connections
-- [[kill-store.ts]] - `contains` [EXTRACTED]
-- [[loadKillJudgements()]] - `calls` [EXTRACTED]
-- [[loadLastRun()]] - `calls` [EXTRACTED]
+- [[mkDesk()]] - `calls` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/Community_205

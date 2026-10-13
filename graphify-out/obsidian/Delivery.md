@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[HiAlert]] - `references` [EXTRACTED]
+- [[LedgerRow]] - `references` [EXTRACTED]
 - [[focus-pick.ts]] - `contains` [EXTRACTED]
 - [[hi-alert.ts]] - `imports` [EXTRACTED]
 

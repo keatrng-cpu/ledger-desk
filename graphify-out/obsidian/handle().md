@@ -1,17 +1,21 @@
 ---
-source_file: "src/routes/api/auth/$.ts"
+source_file: "src/routes/api/desk/card.ts"
 type: "code"
-community: "Community 105"
-location: "L33"
+community: "Community 184"
+location: "L27"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_105
+  - graphify/EXTRACTED
+  - community/Community_184
 ---
 
 # handle()
 
 ## Connections
-- [[$.ts]] - `indirect_call` [INFERRED]
+- [[card.ts]] - `indirect_call` [INFERRED]
+- [[deskListenCard]] - `calls` [EXTRACTED]
+- [[fetchTradingDesk]] - `calls` [EXTRACTED]
+- [[jsonResponse()]] - `calls` [EXTRACTED]
+- [[withReport()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/Community_184

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[WHY the trader asked that the characters journal the setups (taken or passed),…]] - `rationale_for` [EXTRACTED]
-- [[check()_43]] - `contains` [EXTRACTED]
+- [[check()_53]] - `contains` [EXTRACTED]
 - [[conf()]] - `contains` [EXTRACTED]
 - [[desk-atlas.ts]] - `dynamic_import` [EXTRACTED]
 - [[entryId()]] - `contains` [EXTRACTED]

@@ -12,9 +12,9 @@ tags:
 # heartbeat.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[ENGINE_MODES]] - `imports` [EXTRACTED]
-- [[Route_12]] - `contains` [EXTRACTED]
+- [[Route_11]] - `contains` [EXTRACTED]
 - [[auth-server.ts]] - `imports_from` [EXTRACTED]
 - [[authorizeBridgeRequest()]] - `imports` [EXTRACTED]
 - [[formatIssues()]] - `imports` [EXTRACTED]

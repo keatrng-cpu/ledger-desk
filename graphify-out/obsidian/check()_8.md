@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 137"
-location: "L47"
+community: "Community 125"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/Community_125
 ---
 
 # check()
 
 ## Connections
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/Community_125

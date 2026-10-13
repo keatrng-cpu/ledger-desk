@@ -1,17 +1,17 @@
 ---
-source_file: "package.json"
+source_file: "scripts/build-replay-drills.mjs"
 type: "code"
-community: "Community 62"
-location: "L38"
+community: "Community 53"
+location: "L331"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_62
+  - community/Community_53
 ---
 
 # log
 
 ## Connections
-- [[scripts_1]] - `contains` [EXTRACTED]
+- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_62
+#graphify/code #graphify/EXTRACTED #community/Community_53

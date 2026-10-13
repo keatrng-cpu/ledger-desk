@@ -2,7 +2,7 @@
 source_file: "src/components/room/exec-card.tsx"
 type: "code"
 community: "Community 222"
-location: "L40"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED

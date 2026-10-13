@@ -12,8 +12,11 @@ tags:
 # oldestAsOf()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[ResearchCard()]] - `calls` [EXTRACTED]
 - [[allFundamentals()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[investSnapshots()]] - `calls` [EXTRACTED]
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
 

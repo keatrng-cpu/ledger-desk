@@ -1,20 +1,17 @@
 ---
-source_file: "scripts/crew-year-backtest.py"
+source_file: "scripts/blender/floor_ao.py"
 type: "code"
-community: "Community 156"
-location: "L317"
+community: "Community 140"
+location: "L101"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/Community_140
 ---
 
 # half()
 
 ## Connections
-- [[choose_target()]] - `calls` [EXTRACTED]
-- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
-- [[find_flaws()]] - `calls` [EXTRACTED]
-- [[main()_3]] - `calls` [EXTRACTED]
+- [[_rect_tris()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/Community_140

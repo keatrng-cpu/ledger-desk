@@ -20,6 +20,7 @@ tags:
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
 - [[handle()_1]] - `calls` [EXTRACTED]
 - [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[handleChecklist()]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[handleHandoff()]] - `calls` [EXTRACTED]
@@ -30,6 +31,7 @@ tags:
 - [[jsonResponse()]] - `calls` [EXTRACTED]
 - [[review.ts]] - `imports` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
+- [[run()_3]] - `calls` [EXTRACTED]
 - [[secureEquals()]] - `calls` [EXTRACTED]
 - [[weekly.ts]] - `imports` [EXTRACTED]
 

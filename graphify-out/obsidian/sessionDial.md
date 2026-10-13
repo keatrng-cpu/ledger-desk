@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 42"
+community: "Community 24"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_24
 ---
 
 # sessionDial
 
 ## Connections
-- [[dot-update()_9]] - `calls` [EXTRACTED]
+- [[dot-update()_8]] - `calls` [EXTRACTED]
 - [[TradingFloorTab()]] - `calls` [EXTRACTED]
 - [[drawKillzoneClock()]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 - [[until()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_24

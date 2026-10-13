@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
 - [[dayKey()_14]] - `calls` [EXTRACTED]
-- [[has()_3]] - `calls` [EXTRACTED]
+- [[has()_4]] - `calls` [EXTRACTED]
 - [[monthKey()]] - `calls` [EXTRACTED]
 - [[runTrade()]] - `calls` [EXTRACTED]
 - [[weekKey()_2]] - `calls` [EXTRACTED]

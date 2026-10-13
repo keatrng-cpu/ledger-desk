@@ -1,17 +1,16 @@
 ---
 type: community
-cohesion: 0.13
-members: 30
+cohesion: 0.14
+members: 29
 ---
 
 # Community 123
 
-**Cohesion:** 0.13 - loosely connected
-**Members:** 30 nodes
+**Cohesion:** 0.14 - loosely connected
+**Members:** 29 nodes
 
 ## Members
 - [[CoachContext]] - code - src/lib/coach/claude-server.ts
-- [[CoachNarration]] - code - src/lib/coach/claude-server.ts
 - [[CoachVoice]] - code - src/lib/coach/claude-server.ts
 - [[DISCUSS_ROUND1_PROMPT]] - code - src/lib/coach/claude-server.ts
 - [[DISCUSS_ROUND2_PROMPT]] - code - src/lib/coach/claude-server.ts
@@ -49,21 +48,22 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 8 edges to [[_COMMUNITY_Community 155]]
-- 4 edges to [[_COMMUNITY_Community 48]]
+- 10 edges to [[_COMMUNITY_Community 155]]
+- 4 edges to [[_COMMUNITY_Community 14]]
 - 4 edges to [[_COMMUNITY_Community 161]]
 - 3 edges to [[_COMMUNITY_Community 106]]
-- 3 edges to [[_COMMUNITY_Community 195]]
-- 3 edges to [[_COMMUNITY_Community 65]]
+- 3 edges to [[_COMMUNITY_Community 100]]
+- 3 edges to [[_COMMUNITY_Community 87]]
 - 2 edges to [[_COMMUNITY_Community 19]]
 - 2 edges to [[_COMMUNITY_Community 99]]
 - 1 edge to [[_COMMUNITY_Community 39]]
-- 1 edge to [[_COMMUNITY_Community 87]]
-- 1 edge to [[_COMMUNITY_Community 189]]
+- 1 edge to [[_COMMUNITY_Community 105]]
+- 1 edge to [[_COMMUNITY_Community 122]]
+- 1 edge to [[_COMMUNITY_Community 195]]
 
 ## Top bridge nodes
 - [[claude-server.ts]] - degree 48, connects to 10 communities
-- [[buildLoopContext()]] - degree 11, connects to 4 communities
+- [[buildLoopContext()]] - degree 11, connects to 3 communities
 - [[neutralDiscretion()]] - degree 5, connects to 2 communities
 - [[askDeskDiscuss]] - degree 11, connects to 1 community
 - [[askDeskCoach]] - degree 10, connects to 1 community

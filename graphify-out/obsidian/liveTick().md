@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 88"
-location: "L644"
+community: "Community 251"
+location: "L748"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/Community_251
 ---
 
 # liveTick()
@@ -25,4 +25,4 @@ tags:
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/Community_251

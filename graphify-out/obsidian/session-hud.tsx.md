@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/session-hud.tsx"
 type: "code"
-community: "Community 33"
+community: "Community 69"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/Community_69
 ---
 
 # session-hud.tsx
@@ -62,4 +62,4 @@ tags:
 - [[weekAheadFocusLine()]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/Community_69

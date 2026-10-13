@@ -12,8 +12,8 @@ tags:
 # .drawPitBase()
 
 ## Connections
-- [[dot-constructor()_14]] - `calls` [EXTRACTED]
-- [[dot-update()_9]] - `calls` [EXTRACTED]
+- [[dot-constructor()_15]] - `calls` [EXTRACTED]
+- [[dot-update()_8]] - `calls` [EXTRACTED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 - [[sessionSegments()]] - `calls` [EXTRACTED]
 

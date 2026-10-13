@@ -12,6 +12,7 @@ tags:
 # TOO_FEW
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]

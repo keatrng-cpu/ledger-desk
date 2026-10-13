@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
 community: "Community 134"
-location: "L345"
+location: "L466"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,7 +15,7 @@ tags:
 - [[addDays()_3]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[stampPrints()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]

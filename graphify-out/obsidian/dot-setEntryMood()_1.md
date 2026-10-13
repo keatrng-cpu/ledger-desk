@@ -1,17 +1,18 @@
 ---
-source_file: "src/components/room/floor-scene.ts"
+source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 28"
-location: "L3326"
+community: "Community 224"
+location: "L301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/Community_224
 ---
 
 # .setEntryMood()
 
 ## Connections
-- [[FloorScene]] - `method` [EXTRACTED]
+- [[dot-setEntryMood()]] - `calls` [INFERRED]
+- [[StubManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/Community_224

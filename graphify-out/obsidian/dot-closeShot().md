@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L2317"
+community: "Community 289"
+location: "L2643"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/Community_289
 ---
 
 # .closeShot()
@@ -15,6 +15,8 @@ tags:
 - [[dot-directorShot()]] - `calls` [EXTRACTED]
 - [[dot-framing()]] - `calls` [EXTRACTED]
 - [[dot-solidAlong()]] - `calls` [EXTRACTED]
+- [[Code map]] - `references` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
+- [[Run 6 view it (Track A)]] - `references` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/Community_289

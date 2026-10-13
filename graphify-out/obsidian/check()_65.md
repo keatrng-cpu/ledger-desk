@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-source-check.mjs"
+source_file: "scripts/verify-brain-nerve.mjs"
 type: "code"
-community: "Community 70"
-location: "L16"
+community: "Community 251"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/Community_251
 ---
 
 # check()
 
 ## Connections
-- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-nerve.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/Community_251

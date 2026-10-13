@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-shadow-replay.mjs"
 type: "code"
-community: "Community 90"
+community: "Community 20"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Community_20
 ---
 
 # all
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Community_20

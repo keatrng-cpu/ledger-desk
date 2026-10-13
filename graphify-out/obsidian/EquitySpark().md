@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[ReportView()]] - `calls` [EXTRACTED]
 - [[analytics-panel.tsx]] - `contains` [EXTRACTED]
-- [[money()_1]] - `calls` [EXTRACTED]
+- [[money()_2]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_167

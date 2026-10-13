@@ -1,20 +1,19 @@
 ---
-source_file: "scripts/oracle/bs_oracle.py"
+source_file: "scripts/blender/floor_doors.py"
 type: "code"
-community: "Community 226"
-location: "L57"
+community: "Community 140"
+location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/Community_140
 ---
 
 # build()
 
 ## Connections
-- [[bs()]] - `calls` [EXTRACTED]
-- [[bs_oracle.py]] - `contains` [EXTRACTED]
-- [[ncdf()]] - `calls` [EXTRACTED]
-- [[render()]] - `calls` [EXTRACTED]
+- [[_along_range()]] - `calls` [EXTRACTED]
+- [[bar()_2]] - `contains` [EXTRACTED]
+- [[floor_doors.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/Community_140

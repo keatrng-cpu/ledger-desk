@@ -2,7 +2,7 @@
 source_file: "src/lib/room/agents.ts"
 type: "code"
 community: "Community 21"
-location: "L605"
+location: "L648"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[absorbAtlas()]] - `calls` [EXTRACTED]
 - [[agents.ts]] - `contains` [EXTRACTED]
-- [[hhmm()_3]] - `calls` [EXTRACTED]
+- [[hhmm()_4]] - `calls` [EXTRACTED]
 - [[improveAtlas()]] - `calls` [EXTRACTED]
 - [[jobsFor()]] - `calls` [EXTRACTED]
 - [[nudge()]] - `calls` [EXTRACTED]

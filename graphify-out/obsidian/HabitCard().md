@@ -22,7 +22,7 @@ tags:
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[missedMonths()]] - `calls` [EXTRACTED]
 - [[sweepFundedUsd()]] - `calls` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_6]] - `calls` [EXTRACTED]
 - [[voidEntry()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_100

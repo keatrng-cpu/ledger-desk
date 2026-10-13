@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 185"
-location: "L37"
+community: "Community 160"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/Community_160
 ---
 
 # check()
 
 ## Connections
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/Community_160

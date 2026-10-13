@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "scripts/capture-signals.mjs"
 type: "code"
-community: "Community 55"
-location: "L48"
+community: "Community 182"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/Community_182
 ---
 
 # argv
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
+- [[capture-signals.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/Community_182

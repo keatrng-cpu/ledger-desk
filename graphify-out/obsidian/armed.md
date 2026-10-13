@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/verify-detectors.mjs"
 type: "code"
-community: "Community 83"
-location: "L43"
+community: "Community 165"
+location: "L251"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/Community_165
 ---
 
 # armed
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/Community_165

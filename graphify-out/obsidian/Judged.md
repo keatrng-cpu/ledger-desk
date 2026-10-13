@@ -2,7 +2,7 @@
 source_file: "src/components/invest/research-card.tsx"
 type: "code"
 community: "Community 5"
-location: "L27"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED

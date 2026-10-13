@@ -12,11 +12,11 @@ tags:
 # verify-chart-labels.mjs
 
 ## Connections
-- [[arr()]] - `contains` [EXTRACTED]
+- [[arr()_2]] - `contains` [EXTRACTED]
 - [[fails_5]] - `contains` [EXTRACTED]
 - [[groupName()]] - `imports` [EXTRACTED]
 - [[groupNestedArrays()]] - `imports` [EXTRACTED]
-- [[ok()_23]] - `contains` [EXTRACTED]
+- [[ok()_24]] - `contains` [EXTRACTED]
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_27

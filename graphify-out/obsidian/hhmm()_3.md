@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/room/agents.ts"
+source_file: "scripts/verify-gateway-window.mjs"
 type: "code"
-community: "Community 21"
-location: "L331"
+community: "Community 200"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/Community_200
 ---
 
 # hhmm()
 
 ## Connections
-- [[agents.ts]] - `contains` [EXTRACTED]
-- [[recordEvents()]] - `calls` [EXTRACTED]
+- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/Community_200

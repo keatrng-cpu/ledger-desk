@@ -12,6 +12,8 @@ tags:
 # DATA_RENT_MONTHLY_USD
 
 ## Connections
+- [[funnel.ts]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 - [[sweep-card.tsx]] - `imports` [EXTRACTED]
 

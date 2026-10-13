@@ -2,7 +2,7 @@
 source_file: "package.json"
 type: "code"
 community: "Community 47"
-location: "L90"
+location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # date-fns
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_47

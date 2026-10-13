@@ -27,8 +27,8 @@ tags:
 - [[main()_4]] - `contains` [EXTRACTED]
 - [[minute_of()_2]] - `contains` [EXTRACTED]
 - [[pathlib]] - `imports_from` [EXTRACTED]
-- [[stats()_2]] - `contains` [EXTRACTED]
-- [[walk()_4]] - `contains` [EXTRACTED]
+- [[stats()_3]] - `contains` [EXTRACTED]
+- [[walk()_3]] - `contains` [EXTRACTED]
 - [[year_of()_1]] - `contains` [EXTRACTED]
 - [[zoneinfo]] - `imports_from` [EXTRACTED]
 

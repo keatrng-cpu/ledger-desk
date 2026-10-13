@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
 community: "Community 39"
-location: "L236"
+location: "L589"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # cardSizeRefusal()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[SetupCard()]] - `calls` [EXTRACTED]
 - [[SetupScanner()]] - `calls` [EXTRACTED]
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
 community: "Community 134"
-location: "L431"
+location: "L552"
 tags:
   - graphify/code
   - graphify/EXTRACTED

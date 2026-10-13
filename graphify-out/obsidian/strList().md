@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[CandidateCard()]] - `calls` [EXTRACTED]
 - [[ScanSection()]] - `calls` [EXTRACTED]
-- [[arr()_2]] - `calls` [EXTRACTED]
+- [[arr()_4]] - `calls` [EXTRACTED]
 - [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_93

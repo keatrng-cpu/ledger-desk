@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/backtest-account.mjs"
 type: "code"
-community: "Community 90"
-location: "L58"
+community: "Community 55"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Community_55
 ---
 
 # argv
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[backtest-account.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Community_55

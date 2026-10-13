@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/race.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # race.ts
@@ -55,4 +55,4 @@ tags:
 - [[verify-race-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[viewGoal()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

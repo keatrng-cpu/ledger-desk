@@ -2,7 +2,7 @@
 source_file: "src/components/room/room-engine.ts"
 type: "code"
 community: "Community 4"
-location: "L435"
+location: "L441"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,7 +16,7 @@ tags:
 - [[applyLab()]] - `calls` [EXTRACTED]
 - [[applyVoids()]] - `indirect_call` [INFERRED]
 - [[asLab()]] - `calls` [EXTRACTED]
-- [[atrOf()]] - `calls` [EXTRACTED]
+- [[atrOf()_1]] - `calls` [EXTRACTED]
 - [[backupRoom()]] - `calls` [EXTRACTED]
 - [[booksOf()]] - `calls` [EXTRACTED]
 - [[brainSources()]] - `calls` [EXTRACTED]

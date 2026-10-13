@@ -12,6 +12,7 @@ tags:
 # mirrorOpenRow()
 
 ## Connections
+- [[Files_3]] - `references` [INFERRED]
 - [[backfillPaperTrades]] - `calls` [EXTRACTED]
 - [[mirrorPaperOpen]] - `calls` [EXTRACTED]
 - [[paper-backfill.ts]] - `imports` [EXTRACTED]

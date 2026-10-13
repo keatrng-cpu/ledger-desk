@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[dossiers.ts]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[invest-office.ts]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[investevidence.ts]] - `imports` [EXTRACTED]

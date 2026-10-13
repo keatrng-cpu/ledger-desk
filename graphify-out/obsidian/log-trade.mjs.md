@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[KNOWN_LAYERS]] - `contains` [EXTRACTED]
 - [[bool()]] - `contains` [EXTRACTED]
-- [[contracts]] - `contains` [EXTRACTED]
+- [[contracts_1]] - `contains` [EXTRACTED]
 - [[doc]] - `contains` [EXTRACTED]
 - [[entryFill]] - `contains` [EXTRACTED]
 - [[exitFill]] - `contains` [EXTRACTED]
@@ -26,7 +26,7 @@ tags:
 - [[load()_1]] - `contains` [EXTRACTED]
 - [[missing]] - `contains` [EXTRACTED]
 - [[missingLayers]] - `contains` [EXTRACTED]
-- [[num()_4]] - `contains` [EXTRACTED]
+- [[num()_2]] - `contains` [EXTRACTED]
 - [[outcome_1]] - `contains` [EXTRACTED]
 - [[planEntry]] - `contains` [EXTRACTED]
 - [[planStop]] - `contains` [EXTRACTED]

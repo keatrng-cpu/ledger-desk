@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L180"
+community: "Community 217"
+location: "L183"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/Community_217
 ---
 
 # schoolEdges()
@@ -15,4 +15,4 @@ tags:
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 - [[schoolNodeId()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/Community_217

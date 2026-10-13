@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-sources.ts"
 type: "code"
-community: "Community 49"
-location: "L48"
+community: "Community 100"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/Community_100
 ---
 
 # saveOtherIncome()
@@ -17,4 +17,4 @@ tags:
 - [[invest-sources.ts]] - `contains` [EXTRACTED]
 - [[valid()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/Community_100

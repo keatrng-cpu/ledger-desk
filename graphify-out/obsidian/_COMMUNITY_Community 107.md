@@ -10,7 +10,7 @@ members: 34
 **Members:** 34 nodes
 
 ## Members
-- [[NOW]] - code - scripts/verify-invest.mjs
+- [[NOW_1]] - code - scripts/verify-invest.mjs
 - [[NOW2]] - code - scripts/verify-invest.mjs
 - [[allRestore]] - code - scripts/verify-invest.mjs
 - [[balanced]] - code - scripts/verify-invest.mjs
@@ -21,13 +21,13 @@ members: 34
 - [[blankMoat]] - code - scripts/verify-invest.mjs
 - [[book_1]] - code - scripts/verify-invest.mjs
 - [[cc]] - code - scripts/verify-invest.mjs
-- [[check()]] - code - scripts/verify-invest.mjs
+- [[check()_3]] - code - scripts/verify-invest.mjs
 - [[combined]] - code - scripts/verify-invest.mjs
 - [[dirty]] - code - scripts/verify-invest.mjs
 - [[drawn]] - code - scripts/verify-invest.mjs
 - [[etnQ]] - code - scripts/verify-invest.mjs
 - [[fakeVoo]] - code - scripts/verify-invest.mjs
-- [[live]] - code - scripts/verify-invest.mjs
+- [[live_1]] - code - scripts/verify-invest.mjs
 - [[losing]] - code - scripts/verify-invest.mjs
 - [[msft]] - code - scripts/verify-invest.mjs
 - [[noPrice]] - code - scripts/verify-invest.mjs
@@ -37,7 +37,7 @@ members: 34
 - [[qs]] - code - scripts/verify-invest.mjs
 - [[reb]] - code - scripts/verify-invest.mjs
 - [[rvs]] - code - scripts/verify-invest.mjs
-- [[short]] - code - scripts/verify-invest.mjs
+- [[short_1]] - code - scripts/verify-invest.mjs
 - [[techHeavy]] - code - scripts/verify-invest.mjs
 - [[traps]] - code - scripts/verify-invest.mjs
 - [[unjudged]] - code - scripts/verify-invest.mjs

@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 59"
-location: "L100"
+community: "Community 52"
+location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/Community_52
 ---
 
 # money()
 
 ## Connections
-- [[ApexSimPanel()]] - `calls` [EXTRACTED]
-- [[ResultsTable()]] - `calls` [EXTRACTED]
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[lab.ts]] - `contains` [EXTRACTED]
+- [[labRead]] - `calls` [EXTRACTED]
+- [[stepGhost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/Community_52

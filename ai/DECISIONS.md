@@ -95,6 +95,7 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Decision:** Mouth shape, brow, blink, look, and the hand gesture come from the words the person is saying (`src/lib/room/floor-presence.ts`). The office stays the Blender GLB from `scripts/blender/build_floor.py`. ACE, Spline, ComfyUI, Tripo, and Godot are not installed on this host, and `bpy` needs Python 3.11, so none of them were faked. A gesture does not change a ticket.
 - **Why:** A cloud avatar engine that is not connected still has to be drawn by something. The something that is already on the floor is the five people.
 
-
-
-
+### 2026-10-13 — Code graph refreshed at `b3d58e0f`; NOW.md marks WS-KG0 done
+- **Status:** PROPOSED (pending Accuracy Review → Release Watch → Design Atelier merge) · **Decided by:** Graph Keeper, following Keaton's standing graph workflow (flag and rebuild stale graphs) · **Source:** branch `graph/2026-10-13-refresh`.
+- **Decision:** The 2026-10-07 graph (built from `295bd7f1`) was 144 commits behind `main`. Rebuilt with the adopted 2026-10-07 steps: `graphify update .` (hash-cached, code only), `graphify cluster-only . --no-label --no-viz`, `graphify export obsidian`. Result: 11,719 nodes, 28,687 edges, 350 communities, still named "Community N". `scripts/export-brain-vault.mjs` was not re-run (no `node_modules` on the build host), so `graphify-out/obsidian/brain/` is unchanged. 22 `.sql` files add nothing because `tree_sitter_sql` is not installed. `ai/NOW.md` now says WS-KG0 is on `main` and WS-P1 is unblocked.
+- **Why:** NOW.md is read first every session and still said WS-KG0 was in flight on its branch and that the canon was not on `main`.

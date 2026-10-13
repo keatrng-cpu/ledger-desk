@@ -19,6 +19,7 @@ tags:
 - [[dual-index-charts.tsx]] - `imports` [EXTRACTED]
 - [[freshest.ts]] - `imports` [EXTRACTED]
 - [[live-gateway.ts]] - `imports` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `contains` [EXTRACTED]
 - [[yahoo.ts]] - `imports` [EXTRACTED]
 

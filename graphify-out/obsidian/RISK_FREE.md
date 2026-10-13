@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[dossiers.ts]] - `contains` [EXTRACTED]
 - [[factors.ts]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 

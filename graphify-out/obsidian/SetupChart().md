@@ -33,7 +33,7 @@ tags:
 - [[resolveKillzone()]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 - [[setup-chart.tsx]] - `contains` [EXTRACTED]
-- [[shortName()_1]] - `calls` [EXTRACTED]
+- [[shortName()]] - `calls` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_27

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[PremarketPanel()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[fmt()_1]] - `calls` [EXTRACTED]
+- [[fmt()_2]] - `calls` [EXTRACTED]
 - [[premarket-panel.tsx]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_14

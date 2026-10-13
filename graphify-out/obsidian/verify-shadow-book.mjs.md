@@ -12,9 +12,9 @@ tags:
 # verify-shadow-book.mjs
 
 ## Connections
-- [[T0_2]] - `contains` [EXTRACTED]
+- [[T0]] - `contains` [EXTRACTED]
 - [[bar()]] - `contains` [EXTRACTED]
-- [[check()_6]] - `contains` [EXTRACTED]
+- [[check()_10]] - `contains` [EXTRACTED]
 - [[make()]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[shadow-book.ts]] - `dynamic_import` [EXTRACTED]

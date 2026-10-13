@@ -1,22 +1,28 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 41"
-location: "L215"
+community: "Community 25"
+location: "L1273"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/Community_25
 ---
 
 # fit()
 
 ## Connections
-- [[drawBooth()]] - `calls` [EXTRACTED]
-- [[drawBubble()_1]] - `calls` [EXTRACTED]
-- [[drawJumbotron()]] - `calls` [EXTRACTED]
-- [[drawRuneBoard()]] - `calls` [EXTRACTED]
-- [[drawTv()]] - `calls` [EXTRACTED]
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[drawAudit()]] - `calls` [EXTRACTED]
+- [[drawCalendar()]] - `calls` [EXTRACTED]
+- [[drawLeague()]] - `calls` [EXTRACTED]
+- [[drawRndBoard()]] - `calls` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
+- [[drawVote()]] - `calls` [EXTRACTED]
+- [[drawWhiteboard()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[header()]] - `calls` [EXTRACTED]
+- [[tapeBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/Community_25

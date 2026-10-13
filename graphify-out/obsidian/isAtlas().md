@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L254"
+community: "Community 253"
+location: "L265"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/Community_253
 ---
 
 # isAtlas()
@@ -16,4 +16,4 @@ tags:
 - [[loadAtlas()]] - `calls` [EXTRACTED]
 - [[mergeAtlas()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/Community_253

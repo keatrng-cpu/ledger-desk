@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/tradezella-chat.tsx"
 type: "code"
-community: "Community 146"
+community: "Community 46"
 location: "L869"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/Community_46
 ---
 
 # TradezellaChat()
@@ -20,9 +20,9 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[ingestBacktestResult()]] - `calls` [EXTRACTED]
 - [[markAllCharts()]] - `calls` [EXTRACTED]
-- [[remember()_1]] - `calls` [EXTRACTED]
+- [[remember()_2]] - `calls` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `contains` [EXTRACTED]
 - [[uid()]] - `calls` [EXTRACTED]
 - [[useDeskSynapse]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/Community_46

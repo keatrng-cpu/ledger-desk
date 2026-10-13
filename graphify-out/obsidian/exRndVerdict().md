@@ -12,6 +12,8 @@ tags:
 # exRndVerdict()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
 - [[OFFICE()]] - `calls` [EXTRACTED]
 - [[anim()]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]

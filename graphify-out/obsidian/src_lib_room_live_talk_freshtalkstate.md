@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 18"
+community: "Community 4"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/Community_4
 ---
 
 # src_lib_room_live_talk_freshtalkstate
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_18
+#graphify/concept #graphify/EXTRACTED #community/Community_4

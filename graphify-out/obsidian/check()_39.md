@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-replay-drills.mjs"
+source_file: "scripts/verify-spoken-form.mjs"
 type: "code"
-community: "Community 227"
-location: "L45"
+community: "Community 20"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/Community_20
 ---
 
 # check()
 
 ## Connections
-- [[all()]] - `calls` [EXTRACTED]
-- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[verify-spoken-form.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/Community_20

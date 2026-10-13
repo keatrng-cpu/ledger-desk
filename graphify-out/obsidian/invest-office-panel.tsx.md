@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/invest-office-panel.tsx"
 type: "code"
-community: "Community 49"
+community: "Community 100"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/Community_100
 ---
 
 # invest-office-panel.tsx
@@ -15,12 +15,12 @@ tags:
 - [[FloorFrame]] - `imports` [EXTRACTED]
 - [[InvestLite]] - `imports` [EXTRACTED]
 - [[InvestOfficePanel()]] - `contains` [EXTRACTED]
-- [[KV()_1]] - `contains` [EXTRACTED]
+- [[KV()]] - `contains` [EXTRACTED]
 - [[OtherIncome()]] - `contains` [EXTRACTED]
-- [[SECTIONS_1]] - `contains` [EXTRACTED]
+- [[SECTIONS]] - `contains` [EXTRACTED]
 - [[SLEEVE_COLOR]] - `contains` [EXTRACTED]
 - [[SLEEVE_NAME]] - `contains` [EXTRACTED]
-- [[SectionId_1]] - `contains` [EXTRACTED]
+- [[SectionId]] - `contains` [EXTRACTED]
 - [[TIER_COLOR]] - `contains` [EXTRACTED]
 - [[boardAgenda()]] - `imports` [EXTRACTED]
 - [[contributionPath()]] - `imports` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[loadOtherIncome()]] - `imports` [EXTRACTED]
 - [[lookAt()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[money()_9]] - `contains` [EXTRACTED]
+- [[money()]] - `contains` [EXTRACTED]
 - [[money2()]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[usableThemes()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/Community_100

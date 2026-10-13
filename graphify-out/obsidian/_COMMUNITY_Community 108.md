@@ -1,15 +1,16 @@
 ---
 type: community
-cohesion: 0.12
-members: 34
+cohesion: 0.11
+members: 35
 ---
 
 # Community 108
 
-**Cohesion:** 0.12 - loosely connected
-**Members:** 34 nodes
+**Cohesion:** 0.11 - loosely connected
+**Members:** 35 nodes
 
 ## Members
+- [[CONTRACTS]] - code - src/lib/aplus/config.ts
 - [[DailyResult]] - code - src/lib/propfirm/account.ts
 - [[MAX_ROOM_FRACTION_PER_TRADE]] - code - src/lib/propfirm/score.ts
 - [[MAX_STATE_AGE_HOURS]] - code - src/lib/propfirm/score.ts
@@ -27,13 +28,13 @@ members: 34
 - [[Stat()]] - code - src/components/desk/propfirm-panel.tsx
 - [[TRADE]] - code - scripts/verify-propfirm-score.mjs
 - [[account.ts]] - code - src/lib/propfirm/account.ts
-- [[check()_1]] - code - scripts/verify-propfirm-score.mjs
+- [[check()_4]] - code - scripts/verify-propfirm-score.mjs
 - [[derivePropAccount()]] - code - src/lib/propfirm/account.ts
 - [[emptyPropAccount()]] - code - src/lib/propfirm/account.ts
 - [[knownFirms()]] - code - src/lib/propfirm/rules.ts
 - [[knownSizes()]] - code - src/lib/propfirm/rules.ts
 - [[loadPropAccount()]] - code - src/lib/propfirm/account.ts
-- [[money()]] - code - src/components/desk/propfirm-panel.tsx
+- [[money()_1]] - code - src/components/desk/propfirm-panel.tsx
 - [[propfirm-panel.tsx]] - code - src/components/desk/propfirm-panel.tsx
 - [[rules.ts]] - code - src/lib/propfirm/rules.ts
 - [[rulesFor()]] - code - src/lib/propfirm/rules.ts
@@ -53,19 +54,26 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 5 edges to [[_COMMUNITY_Community 76]]
+- 6 edges to [[_COMMUNITY_Community 76]]
+- 4 edges to [[_COMMUNITY_Community 44]]
 - 4 edges to [[_COMMUNITY_Community 14]]
-- 4 edges to [[_COMMUNITY_Community 8]]
-- 3 edges to [[_COMMUNITY_Community 44]]
+- 3 edges to [[_COMMUNITY_Community 8]]
 - 3 edges to [[_COMMUNITY_Community 188]]
 - 3 edges to [[_COMMUNITY_Community 243]]
-- 2 edges to [[_COMMUNITY_Community 26]]
+- 2 edges to [[_COMMUNITY_Community 23]]
+- 2 edges to [[_COMMUNITY_Community 77]]
+- 2 edges to [[_COMMUNITY_Community 48]]
 - 1 edge to [[_COMMUNITY_Community 9]]
+- 1 edge to [[_COMMUNITY_Community 69]]
 - 1 edge to [[_COMMUNITY_Community 40]]
+- 1 edge to [[_COMMUNITY_Community 59]]
+- 1 edge to [[_COMMUNITY_Community 43]]
+- 1 edge to [[_COMMUNITY_Community 270]]
+- 1 edge to [[_COMMUNITY_Community 46]]
 
 ## Top bridge nodes
-- [[propfirm-panel.tsx]] - degree 26, connects to 5 communities
+- [[CONTRACTS]] - degree 12, connects to 9 communities
+- [[propfirm-panel.tsx]] - degree 26, connects to 6 communities
 - [[score.ts]] - degree 19, connects to 4 communities
 - [[PropFirmPanel()]] - degree 15, connects to 3 communities
 - [[rules.ts]] - degree 12, connects to 2 communities
-- [[rulesFor()]] - degree 5, connects to 2 communities

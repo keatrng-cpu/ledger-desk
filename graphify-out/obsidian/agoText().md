@@ -12,6 +12,8 @@ tags:
 # agoText()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-mins()]] - `calls` [INFERRED]
 - [[exNews()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 

@@ -12,6 +12,7 @@ tags:
 # JournalRead
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[predict-scanner.tsx]] - `imports` [EXTRACTED]
 - [[predictjournal.ts]] - `contains` [EXTRACTED]
 

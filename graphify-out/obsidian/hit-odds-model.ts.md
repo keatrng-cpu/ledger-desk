@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hit-odds-model.ts"
 type: "code"
-community: "Community 104"
+community: "Community 178"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_178
 ---
 
 # hit-odds-model.ts
@@ -30,4 +30,4 @@ tags:
 - [[src_data_hit_odds_model]] - `imports_from` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_178

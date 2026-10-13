@@ -12,7 +12,7 @@ tags:
 # ok()
 
 ## Connections
-- [[check()]] - `calls` [EXTRACTED]
+- [[check()_3]] - `calls` [EXTRACTED]
 - [[verify-invest.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_107

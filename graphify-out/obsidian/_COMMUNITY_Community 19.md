@@ -1,15 +1,16 @@
 ---
 type: community
-cohesion: 0.05
-members: 75
+cohesion: 0.06
+members: 71
 ---
 
 # Community 19
 
-**Cohesion:** 0.05 - loosely connected
-**Members:** 75 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 71 nodes
 
 ## Members
+- [[4. Web Push (B4) — zero new dependencies]] - document - INTEGRATION-C.md
 - [[ALERT_KINDS]] - code - src/lib/alerts/types.ts
 - [[ALERT_LABELS]] - code - src/lib/alerts/types.ts
 - [[ALERT_URGENCY]] - code - src/lib/alerts/types.ts
@@ -20,20 +21,21 @@ members: 75
 - [[AlertRow]] - code - src/lib/alerts/store-server.ts
 - [[AlertSpec]] - code - src/lib/alerts/send-server.ts
 - [[AlertStatus]] - code - src/lib/alerts/server.ts
-- [[BridgeStatusError]] - code - src/lib/bridge/paper-server.ts
-- [[BridgeStatusPayload]] - code - src/lib/bridge/paper-server.ts
+- [[AlertsPanel()]] - code - src/components/desk/alerts-panel.tsx
+- [[Database (server-only)]] - document - .grok/skills/neon/SKILL.md
 - [[EnableResult]] - code - src/lib/alerts/client.ts
+- [[Env vars — do not create a `.env` file]] - document - .grok/skills/neon/SKILL.md
 - [[MAX_PUSH_PLAINTEXT]] - code - src/lib/alerts/push-server.ts
-- [[NOTE this is the SERVER book. The desk UI's `listOpenPaperTrades` is a]] - rationale - src/lib/bridge/paper-server.ts
-- [[OpenPaperTrade]] - code - src/lib/bridge/paper-server.ts
-- [[PAPER_MODE]] - code - src/lib/bridge/paper-server.ts
-- [[PaperTradeRow]] - code - src/lib/bridge/paper-server.ts
+- [[Migrations]] - document - .grok/skills/neon/SKILL.md
+- [[Neon Postgres]] - document - .grok/skills/neon/SKILL.md
+- [[Preview ↔ production parity]] - document - .grok/skills/neon/SKILL.md
 - [[PushConfigState]] - code - src/lib/alerts/push-server.ts
 - [[PushSendResult]] - code - src/lib/alerts/push-server.ts
 - [[PushTarget]] - code - src/lib/alerts/push-server.ts
 - [[RFC-8188]] - concept - src/lib/alerts/push-server.ts
 - [[RFC-8291]] - concept - src/lib/alerts/push-server.ts
 - [[RFC-8292]] - concept - src/lib/alerts/push-server.ts
+- [[Raising alerts from the trading path]] - document - INTEGRATION-C.md
 - [[SERVICE_WORKER_URL]] - code - src/lib/alerts/client.ts
 - [[StoredSubscription]] - code - src/lib/alerts/store-server.ts
 - [[SubRow]] - code - src/lib/alerts/store-server.ts
@@ -42,7 +44,6 @@ members: 75
 - [[alertstypes.ts]] - code - src/lib/alerts/types.ts
 - [[b64url()]] - code - src/lib/alerts/push-server.ts
 - [[claimAlert()]] - code - src/lib/alerts/store-server.ts
-- [[countEngineEventsToday()]] - code - src/lib/bridge/ingest-server.ts
 - [[countSubscriptions()]] - code - src/lib/alerts/store-server.ts
 - [[deleteDeadEndpoint()]] - code - src/lib/alerts/store-server.ts
 - [[deleteSubscription()]] - code - src/lib/alerts/store-server.ts
@@ -50,31 +51,26 @@ members: 75
 - [[enablePushAlerts()]] - code - src/lib/alerts/client.ts
 - [[encryptPayload()]] - code - src/lib/alerts/push-server.ts
 - [[envValue()]] - code - src/lib/alerts/push-server.ts
-- [[etDay()]] - code - src/lib/alerts/send-server.ts
+- [[fmtTime()_1]] - code - src/components/desk/alerts-panel.tsx
 - [[fromB64url()]] - code - src/lib/alerts/push-server.ts
 - [[getAlertStatus]] - code - src/lib/alerts/server.ts
-- [[getBridgeStatus]] - code - src/lib/bridge/paper-server.ts
 - [[getSql()]] - code - src/lib/db.ts
-- [[haltHitAlert()]] - code - src/lib/alerts/send-server.ts
 - [[isAlertKind()]] - code - src/lib/alerts/types.ts
+- [[isPushEnabled()]] - code - src/lib/alerts/client.ts
 - [[keyToBase64Url()]] - code - src/lib/alerts/client.ts
 - [[listAlerts()]] - code - src/lib/alerts/store-server.ts
-- [[listOpenPaperTrades]] - code - src/lib/bridge/paper-server.ts
 - [[listRecentAlerts]] - code - src/lib/alerts/server.ts
 - [[listSubscriptions()]] - code - src/lib/alerts/store-server.ts
-- [[logEvent]] - code - src/lib/journal/server.ts
 - [[markDelivered()]] - code - src/lib/alerts/store-server.ts
-- [[num()_9]] - code - src/lib/bridge/paper-server.ts
-- [[paper-server.ts]] - code - src/lib/bridge/paper-server.ts
+- [[neonSKILL]] - document - .grok/skills/neon/SKILL.md
 - [[push-server.ts]] - code - src/lib/alerts/push-server.ts
 - [[pushConfig()]] - code - src/lib/alerts/push-server.ts
-- [[readEngineStatus()]] - code - src/lib/bridge/ingest-server.ts
+- [[pushSupport]] - code - src/lib/alerts/client.ts
 - [[recordDeliveryOutcome()]] - code - src/lib/alerts/store-server.ts
 - [[registration()]] - code - src/lib/alerts/client.ts
 - [[saveSubscription()]] - code - src/lib/alerts/store-server.ts
 - [[send-server.ts]] - code - src/lib/alerts/send-server.ts
 - [[sendPush()]] - code - src/lib/alerts/push-server.ts
-- [[setPaperEnabled()]] - code - src/lib/bridge/ingest-server.ts
 - [[store-server.ts]] - code - src/lib/alerts/store-server.ts
 - [[subscribeToAlerts]] - code - src/lib/alerts/server.ts
 - [[subscriptionSchema]] - code - src/lib/alerts/server.ts
@@ -94,33 +90,37 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 23 edges to [[_COMMUNITY_Community 14]]
-- 19 edges to [[_COMMUNITY_Community 31]]
+- 20 edges to [[_COMMUNITY_Community 14]]
+- 20 edges to [[_COMMUNITY_Community 31]]
 - 13 edges to [[_COMMUNITY_Community 23]]
-- 10 edges to [[_COMMUNITY_Community 65]]
-- 7 edges to [[_COMMUNITY_Community 95]]
-- 7 edges to [[_COMMUNITY_Community 43]]
-- 6 edges to [[_COMMUNITY_Community 189]]
-- 5 edges to [[_COMMUNITY_Community 87]]
-- 4 edges to [[_COMMUNITY_Community 8]]
+- 9 edges to [[_COMMUNITY_Community 95]]
+- 9 edges to [[_COMMUNITY_Community 87]]
+- 8 edges to [[_COMMUNITY_Community 43]]
+- 5 edges to [[_COMMUNITY_Community 8]]
+- 4 edges to [[_COMMUNITY_Community 105]]
 - 3 edges to [[_COMMUNITY_Community 1]]
-- 3 edges to [[_COMMUNITY_Community 147]]
+- 3 edges to [[_COMMUNITY_Community 122]]
+- 3 edges to [[_COMMUNITY_Community 34]]
 - 3 edges to [[_COMMUNITY_Community 195]]
 - 3 edges to [[_COMMUNITY_Community 93]]
 - 3 edges to [[_COMMUNITY_Community 125]]
-- 3 edges to [[_COMMUNITY_Community 149]]
-- 2 edges to [[_COMMUNITY_Community 122]]
 - 2 edges to [[_COMMUNITY_Community 123]]
-- 2 edges to [[_COMMUNITY_Community 97]]
+- 2 edges to [[_COMMUNITY_Community 65]]
+- 2 edges to [[_COMMUNITY_Community 44]]
+- 2 edges to [[_COMMUNITY_Community 285]]
 - 2 edges to [[_COMMUNITY_Community 155]]
+- 2 edges to [[_COMMUNITY_Community 149]]
 - 2 edges to [[_COMMUNITY_Community 4]]
-- 1 edge to [[_COMMUNITY_Community 9]]
-- 1 edge to [[_COMMUNITY_Community 77]]
-- 1 edge to [[_COMMUNITY_Community 70]]
+- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 173]]
+- 1 edge to [[_COMMUNITY_Community 40]]
+- 1 edge to [[_COMMUNITY_Community 222]]
+- 1 edge to [[_COMMUNITY_Community 94]]
+- 1 edge to [[_COMMUNITY_Community 235]]
 
 ## Top bridge nodes
-- [[getSql()]] - degree 89, connects to 22 communities
-- [[paper-server.ts]] - degree 20, connects to 4 communities
+- [[getSql()]] - degree 93, connects to 23 communities
 - [[alertsserver.ts]] - degree 21, connects to 3 communities
+- [[claimAlert()]] - degree 6, connects to 3 communities
 - [[send-server.ts]] - degree 26, connects to 2 communities
-- [[setPaperEnabled()]] - degree 4, connects to 2 communities
+- [[AlertsPanel()]] - degree 12, connects to 2 communities

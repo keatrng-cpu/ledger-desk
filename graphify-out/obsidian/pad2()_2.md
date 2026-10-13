@@ -12,7 +12,7 @@ tags:
 # pad2()
 
 ## Connections
-- [[etDateKey()]] - `calls` [EXTRACTED]
+- [[etDateKey()_1]] - `calls` [EXTRACTED]
 - [[etStamp()_1]] - `calls` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 

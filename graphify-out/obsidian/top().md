@@ -12,6 +12,7 @@ tags:
 # top()
 
 ## Connections
+- [[Useful Properties]] - `references` [INFERRED]
 - [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_90

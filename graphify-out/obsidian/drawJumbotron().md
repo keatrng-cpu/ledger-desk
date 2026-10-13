@@ -13,15 +13,15 @@ tags:
 
 ## Connections
 - [[dot-buildScreens()_1]] - `calls` [EXTRACTED]
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
 - [[dot-redraw()]] - `calls` [EXTRACTED]
+- [[dot-update()_10]] - `calls` [EXTRACTED]
 - [[categoryLabel()]] - `calls` [EXTRACTED]
 - [[edgeTag()]] - `calls` [EXTRACTED]
 - [[eventLabel()]] - `calls` [EXTRACTED]
-- [[fit()_5]] - `calls` [EXTRACTED]
+- [[fit()_7]] - `calls` [EXTRACTED]
 - [[knotBorder()]] - `calls` [EXTRACTED]
 - [[marketName()]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 - [[pct()_13]] - `calls` [EXTRACTED]
 - [[plate()]] - `calls` [EXTRACTED]

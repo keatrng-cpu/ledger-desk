@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/code-index.mjs"
 type: "code"
-community: "Community 53"
-location: "L130"
+community: "Community 304"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/Community_304
 ---
 
 # rows
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[code-index.mjs]] - `contains` [EXTRACTED]
+- [[exportsOf()]] - `calls` [EXTRACTED]
+- [[purpose()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/Community_304

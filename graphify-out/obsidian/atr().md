@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/trading/conditions.ts"
+source_file: "brainlab/legs.py"
 type: "code"
-community: "Community 40"
-location: "L15"
+community: "Community 146"
+location: "L8"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/Community_146
 ---
 
 # atr()
 
 ## Connections
-- [[assessConditions()]] - `calls` [EXTRACTED]
-- [[conditions.ts]] - `contains` [EXTRACTED]
+- [[DataFrame_1]] - `references` [EXTRACTED]
+- [[Series_1]] - `references` [EXTRACTED]
+- [[legs()]] - `calls` [EXTRACTED]
+- [[legs.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/Community_146

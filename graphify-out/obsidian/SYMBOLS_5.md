@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-history.mjs"
+source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 71"
-location: "L71"
+community: "Community 59"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/Community_59
 ---
 
 # SYMBOLS
 
 ## Connections
-- [[capture-history.mjs]] - `contains` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/Community_59

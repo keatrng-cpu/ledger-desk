@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-world.ts"
 type: "code"
 community: "Community 29"
-location: "L595"
+location: "L640"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # worldFromDesk()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[bookRead()]] - `calls` [EXTRACTED]
 - [[calendarRead()]] - `calls` [EXTRACTED]
 - [[cardRead()]] - `calls` [EXTRACTED]
@@ -22,6 +23,7 @@ tags:
 - [[freshnessOf()]] - `calls` [EXTRACTED]
 - [[globexOpenAt()]] - `calls` [EXTRACTED]
 - [[goalLite()]] - `calls` [EXTRACTED]
+- [[hallLiteNow()]] - `calls` [EXTRACTED]
 - [[labLite()]] - `calls` [EXTRACTED]
 - [[live-world.ts]] - `contains` [EXTRACTED]
 - [[liveTick()]] - `calls` [EXTRACTED]

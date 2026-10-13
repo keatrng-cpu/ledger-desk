@@ -12,6 +12,7 @@ tags:
 # MAKER_TAKER
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]
 

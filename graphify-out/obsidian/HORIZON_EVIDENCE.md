@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[factors.ts]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[limits-card.tsx]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_5

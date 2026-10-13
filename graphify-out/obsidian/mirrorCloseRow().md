@@ -12,6 +12,7 @@ tags:
 # mirrorCloseRow()
 
 ## Connections
+- [[Files_3]] - `references` [INFERRED]
 - [[backfillPaperTrades]] - `calls` [EXTRACTED]
 - [[computeTradePnl()]] - `calls` [EXTRACTED]
 - [[mirrorPaperClose]] - `calls` [EXTRACTED]

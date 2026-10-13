@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/detectors.ts"
 type: "code"
 community: "Community 39"
-location: "L608"
+location: "L958"
 tags:
   - graphify/code
   - graphify/EXTRACTED

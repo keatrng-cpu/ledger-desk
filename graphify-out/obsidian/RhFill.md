@@ -12,8 +12,12 @@ tags:
 # RhFill
 
 ## Connections
+- [[FirmInputs]] - `references` [EXTRACTED]
+- [[InvestInputs]] - `references` [EXTRACTED]
 - [[OvernightInput]] - `references` [EXTRACTED]
 - [[automation-state.ts]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[invest-office.ts]] - `imports` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 - [[overnight-swing.ts]] - `imports` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports` [EXTRACTED]

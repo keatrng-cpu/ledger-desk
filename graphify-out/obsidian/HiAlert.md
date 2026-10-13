@@ -16,7 +16,6 @@ tags:
 - [[SchoolKey]] - `references` [EXTRACTED]
 - [[Verdict_2]] - `references` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
-- [[hi-alert-panel.tsx]] - `imports` [EXTRACTED]
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_92

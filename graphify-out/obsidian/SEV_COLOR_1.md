@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 25"
-location: "L1237"
+community: "Community 299"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_299
 ---
 
 # SEV_COLOR
 
 ## Connections
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_299

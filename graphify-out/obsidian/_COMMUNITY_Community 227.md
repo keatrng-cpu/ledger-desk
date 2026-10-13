@@ -10,16 +10,16 @@ members: 11
 **Members:** 11 nodes
 
 ## Members
-- [[BARS_11]] - code - scripts/verify-replay-drills.mjs
-- [[FILE_3]] - code - scripts/verify-replay-drills.mjs
-- [[H_9]] - code - scripts/verify-replay-drills.mjs
-- [[ROOT_8]] - code - scripts/verify-replay-drills.mjs
+- [[BARS_13]] - code - scripts/verify-replay-drills.mjs
+- [[FILE_4]] - code - scripts/verify-replay-drills.mjs
+- [[H_10]] - code - scripts/verify-replay-drills.mjs
+- [[ROOT_7]] - code - scripts/verify-replay-drills.mjs
 - [[all()]] - code - scripts/verify-replay-drills.mjs
-- [[bandOf()]] - code - scripts/build-replay-drills.mjs
-- [[check()_39]] - code - scripts/verify-replay-drills.mjs
+- [[bandOf()_1]] - code - scripts/build-replay-drills.mjs
+- [[check()_50]] - code - scripts/verify-replay-drills.mjs
 - [[packSim()]] - code - scripts/verify-replay-drills.mjs
 - [[react_1]] - code - react
-- [[react-domserver]] - code - react-dom/server
+- [[react-dom]] - code - react-dom
 - [[verify-replay-drills.mjs]] - code - scripts/verify-replay-drills.mjs
 
 ## Live Query (requires Dataview plugin)
@@ -30,15 +30,19 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 11]]
-- 2 edges to [[_COMMUNITY_Community 20]]
-- 2 edges to [[_COMMUNITY_Community 6]]
 - 1 edge to [[_COMMUNITY_Community 53]]
 - 1 edge to [[_COMMUNITY_Community 126]]
-- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 179]]
+- 1 edge to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 277]]
+- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 6]]
+- 1 edge to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 270]]
 - 1 edge to [[_COMMUNITY_Community 99]]
 - 1 edge to [[_COMMUNITY_Community 72]]
 
 ## Top bridge nodes
-- [[verify-replay-drills.mjs]] - degree 21, connects to 7 communities
-- [[bandOf()]] - degree 2, connects to 1 community
+- [[verify-replay-drills.mjs]] - degree 21, connects to 11 communities
+- [[bandOf()_1]] - degree 2, connects to 1 community

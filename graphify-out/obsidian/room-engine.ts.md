@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 18"
+community: "Community 4"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/Community_4
 ---
 
 # room-engine.ts
@@ -25,6 +25,7 @@ tags:
 - [[MindState]] - `imports` [EXTRACTED]
 - [[NEWS_CALENDAR]] - `imports` [EXTRACTED]
 - [[NewsLite]] - `imports` [EXTRACTED]
+- [[PredictLite]] - `imports` [EXTRACTED]
 - [[RESEARCH_LINES]] - `contains` [EXTRACTED]
 - [[RH_AGENTIC_DESK_READ]] - `imports` [EXTRACTED]
 - [[ROOM_DEFAULT_CASH]] - `imports` [EXTRACTED]
@@ -36,7 +37,7 @@ tags:
 - [[RoomCycle]] - `imports` [EXTRACTED]
 - [[RoomDev]] - `contains` [EXTRACTED]
 - [[RoomState]] - `contains` [EXTRACTED]
-- [[TALK]] - `imports` [EXTRACTED]
+- [[TALK_1]] - `imports` [EXTRACTED]
 - [[TalkItem]] - `imports` [EXTRACTED]
 - [[TalkKind]] - `imports` [EXTRACTED]
 - [[TalkState]] - `imports` [EXTRACTED]
@@ -54,7 +55,7 @@ tags:
 - [[asGoal()]] - `imports` [EXTRACTED]
 - [[asLab()]] - `imports` [EXTRACTED]
 - [[asSeatBook()]] - `imports` [EXTRACTED]
-- [[atrOf()]] - `imports` [EXTRACTED]
+- [[atrOf()_1]] - `imports` [EXTRACTED]
 - [[audit.ts]] - `imports_from` [EXTRACTED]
 - [[backupRoom()]] - `imports` [EXTRACTED]
 - [[bookScreen()]] - `contains` [EXTRACTED]
@@ -92,6 +93,7 @@ tags:
 - [[exitWatchOf()]] - `imports` [EXTRACTED]
 - [[feedOf()]] - `imports` [EXTRACTED]
 - [[flattenBroker()]] - `contains` [EXTRACTED]
+- [[flattenRhNow()]] - `contains` [EXTRACTED]
 - [[floor-props.ts]] - `imports_from` [EXTRACTED]
 - [[floor-screens.ts]] - `imports_from` [EXTRACTED]
 - [[floorProps]] - `imports` [EXTRACTED]
@@ -100,10 +102,14 @@ tags:
 - [[freshTalkState()]] - `imports` [EXTRACTED]
 - [[freshnessOf()]] - `imports` [EXTRACTED]
 - [[fuelBrains()]] - `imports` [EXTRACTED]
+- [[getHall()]] - `imports` [EXTRACTED]
 - [[getNewsFeed]] - `imports` [EXTRACTED]
 - [[getPulse]] - `imports` [EXTRACTED]
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[goalLite()]] - `imports` [EXTRACTED]
+- [[hall-lite.ts]] - `imports_from` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
+- [[hall-store.ts]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-office-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-sources.ts]] - `imports_from` [EXTRACTED]
@@ -123,7 +129,6 @@ tags:
 - [[loadMinds()]] - `contains` [EXTRACTED]
 - [[loadRoomBook()]] - `imports` [EXTRACTED]
 - [[loadTalk()]] - `contains` [EXTRACTED]
-- [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports_from` [EXTRACTED]
 - [[markBook()]] - `imports` [EXTRACTED]
 - [[marketDataFromDesk()]] - `imports` [EXTRACTED]
@@ -138,7 +143,9 @@ tags:
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[paper-book.ts]] - `imports_from` [EXTRACTED]
+- [[predictLiteFromBoard()]] - `imports` [EXTRACTED]
 - [[propsSignature()]] - `imports` [EXTRACTED]
+- [[pullHall()]] - `imports` [EXTRACTED]
 - [[race-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[raceScreenOf()]] - `contains` [EXTRACTED]
@@ -151,8 +158,10 @@ tags:
 - [[research.ts]] - `imports_from` [EXTRACTED]
 - [[researchShelf()]] - `imports` [EXTRACTED]
 - [[restoreRoomIfRicher()]] - `imports` [EXTRACTED]
+- [[restoreTalkState()]] - `imports` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
-- [[rhCycleOnDesk()]] - `imports` [EXTRACTED]
+- [[rh-server.ts]] - `imports_from` [EXTRACTED]
+- [[rhBody()]] - `contains` [EXTRACTED]
 - [[richer()]] - `imports` [EXTRACTED]
 - [[rings_1]] - `contains` [EXTRACTED]
 - [[ringsAfter()]] - `imports` [EXTRACTED]
@@ -169,11 +178,15 @@ tags:
 - [[scannerCards()]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
 - [[seatsLite()]] - `imports` [EXTRACTED]
+- [[sendRh()]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot-sync.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot.ts]] - `imports_from` [EXTRACTED]
+- [[speakRh()]] - `contains` [EXTRACTED]
 - [[src_lib_room_live_talk_freshtalkstate]] - `imports` [EXTRACTED]
+- [[stepRhDesk]] - `imports` [EXTRACTED]
 - [[storyMoved()]] - `contains` [EXTRACTED]
+- [[subscribeHall()]] - `imports` [EXTRACTED]
 - [[talkTick()]] - `imports` [EXTRACTED]
 - [[toRoomInput()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
@@ -183,4 +196,4 @@ tags:
 - [[worldFromDesk()]] - `imports` [EXTRACTED]
 - [[zustand]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/Community_4

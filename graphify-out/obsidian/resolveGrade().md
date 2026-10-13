@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 158"
+community: "Community 46"
 location: "L190"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Community_46
 ---
 
 # resolveGrade()
@@ -16,4 +16,4 @@ tags:
 - [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
 - [[simulatePathTrade()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/Community_46

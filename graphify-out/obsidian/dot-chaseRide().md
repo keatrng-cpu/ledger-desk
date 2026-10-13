@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
 community: "Community 28"
-location: "L2476"
+location: "L2814"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -14,7 +14,8 @@ tags:
 ## Connections
 - [[dot-chestY()]] - `calls` [EXTRACTED]
 - [[dot-solidAlong()]] - `calls` [EXTRACTED]
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
+- [[Code map]] - `references` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[damp()]] - `calls` [EXTRACTED]
 

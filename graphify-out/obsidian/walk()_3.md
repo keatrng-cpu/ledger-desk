@@ -1,18 +1,21 @@
 ---
-source_file: "scripts/verify-option-math-oracle.mjs"
+source_file: "scripts/perfect-entry-backtest.py"
 type: "code"
-community: "Community 191"
-location: "L35"
+community: "Community 192"
+location: "L149"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/Community_192
 ---
 
 # walk()
 
 ## Connections
-- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
-- [[worst()_1]] - `calls` [EXTRACTED]
+- [[collect()_2]] - `calls` [EXTRACTED]
+- [[day_key()_2]] - `calls` [EXTRACTED]
+- [[main()_4]] - `calls` [EXTRACTED]
+- [[minute_of()_2]] - `calls` [EXTRACTED]
+- [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/Community_192

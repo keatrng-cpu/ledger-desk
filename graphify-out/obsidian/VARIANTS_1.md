@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-exit-plan.mjs"
+source_file: "scripts/measure-entry-location.mjs"
 type: "code"
-community: "Community 183"
-location: "L211"
+community: "Community 141"
+location: "L231"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_183
+  - community/Community_141
 ---
 
 # VARIANTS
 
 ## Connections
-- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
+- [[measure-entry-location.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_183
+#graphify/code #graphify/EXTRACTED #community/Community_141

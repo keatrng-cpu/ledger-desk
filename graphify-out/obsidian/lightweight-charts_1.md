@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 27"
-location: "L92"
+community: "Community 272"
+location: "L96"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_272
 ---
 
 # lightweight-charts
@@ -15,4 +15,4 @@ tags:
 - [[CandlestickPane()]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_27
+#graphify/concept #graphify/EXTRACTED #community/Community_272

@@ -13,9 +13,9 @@ tags:
 
 ## Connections
 - [[dot-buildNeon()]] - `calls` [EXTRACTED]
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
+- [[dot-update()_10]] - `calls` [EXTRACTED]
 - [[helmet()]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_41

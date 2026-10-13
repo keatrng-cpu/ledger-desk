@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-sources.ts"
 type: "code"
-community: "Community 49"
-location: "L35"
+community: "Community 100"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/Community_100
 ---
 
 # loadOtherIncome()
@@ -18,4 +18,4 @@ tags:
 - [[readInvestOffice()]] - `calls` [EXTRACTED]
 - [[valid()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/Community_100

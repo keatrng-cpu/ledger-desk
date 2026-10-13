@@ -12,7 +12,7 @@ tags:
 # ok()
 
 ## Connections
-- [[check()_14]] - `calls` [EXTRACTED]
+- [[check()_21]] - `calls` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_151

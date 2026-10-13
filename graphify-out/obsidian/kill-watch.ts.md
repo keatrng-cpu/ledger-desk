@@ -22,6 +22,7 @@ tags:
 - [[MAX_CITATIONS]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `imports_from` [EXTRACTED]
 - [[formatResult()]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[isDue()]] - `contains` [EXTRACTED]
 - [[isoDaysAgo()]] - `contains` [EXTRACTED]
 - [[kill-store.ts]] - `imports_from` [EXTRACTED]
@@ -34,6 +35,7 @@ tags:
 - [[summaryFor()]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-kill-watch.mjs]] - `dynamic_import` [EXTRACTED]
 

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-exit-plan.mjs"
+source_file: "scripts/blender/preview-glb.mjs"
 type: "code"
-community: "Community 183"
-location: "L252"
+community: "Community 189"
+location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_183
+  - community/Community_189
 ---
 
 # out
 
 ## Connections
-- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
+- [[preview-glb.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_183
+#graphify/code #graphify/EXTRACTED #community/Community_189

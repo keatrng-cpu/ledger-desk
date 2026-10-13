@@ -12,7 +12,7 @@ tags:
 # oddsFeatures()
 
 ## Connections
-- [[b()]] - `calls` [EXTRACTED]
+- [[b()_1]] - `calls` [EXTRACTED]
 - [[clamp()_4]] - `calls` [EXTRACTED]
 - [[geometryOf()]] - `calls` [EXTRACTED]
 - [[hit-odds.ts]] - `contains` [EXTRACTED]

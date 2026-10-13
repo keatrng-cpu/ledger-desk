@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
 community: "Community 25"
-location: "L199"
+location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -34,7 +34,9 @@ tags:
 - [[drawRndBoard()]] - `calls` [EXTRACTED]
 - [[drawScanner()]] - `calls` [EXTRACTED]
 - [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
 - [[drawVote()]] - `calls` [EXTRACTED]
+- [[fit()_5]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[invDark()]] - `calls` [EXTRACTED]
 - [[tapeBlock()]] - `calls` [EXTRACTED]

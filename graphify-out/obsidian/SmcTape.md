@@ -1,18 +1,17 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 56"
+community: "Community 40"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_40
 ---
 
 # SmcTape
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[ScoreCandidatesOptions]] - `references` [EXTRACTED]
 - [[SmcMasterInput]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
@@ -20,4 +19,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_40

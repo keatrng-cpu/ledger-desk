@@ -16,6 +16,6 @@ tags:
 - [[et()]] - `calls` [EXTRACTED]
 - [[load()_3]] - `calls` [EXTRACTED]
 - [[session_ok()]] - `calls` [EXTRACTED]
-- [[walk()_2]] - `calls` [EXTRACTED]
+- [[walk()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_156

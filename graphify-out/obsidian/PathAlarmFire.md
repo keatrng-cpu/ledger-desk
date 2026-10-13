@@ -12,6 +12,7 @@ tags:
 # PathAlarmFire
 
 ## Connections
+- [[Trigger model (Keaton 2026-10-06)]] - `references` [INFERRED]
 - [[floor-school-contracts.ts]] - `imports` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 - [[path-alarm.ts]] - `contains` [EXTRACTED]

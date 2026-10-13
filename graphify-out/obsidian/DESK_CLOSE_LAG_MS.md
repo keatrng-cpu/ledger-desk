@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/desk-cadence.ts"
 type: "code"
 community: "Community 8"
-location: "L19"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED

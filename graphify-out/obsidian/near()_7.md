@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-score-drivers.mjs"
+source_file: "scripts/verify-pm-signal-engine.mjs"
 type: "code"
-community: "Community 84"
-location: "L41"
+community: "Community 68"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/Community_68
 ---
 
 # near()
 
 ## Connections
-- [[ok()_28]] - `calls` [EXTRACTED]
-- [[verify-score-drivers.mjs]] - `contains` [EXTRACTED]
+- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/Community_68

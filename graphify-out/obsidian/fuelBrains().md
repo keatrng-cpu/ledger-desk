@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/brain-fuel.ts"
 type: "code"
-community: "Community 21"
-location: "L49"
+community: "Community 300"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/Community_300
 ---
 
 # fuelBrains()
 
 ## Connections
+- [[bookSentence()]] - `calls` [EXTRACTED]
 - [[brain-fuel.ts]] - `contains` [EXTRACTED]
 - [[freshPeople()]] - `calls` [EXTRACTED]
 - [[improveAtlas()]] - `calls` [EXTRACTED]
@@ -21,6 +22,6 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[saveAtlas()]] - `calls` [EXTRACTED]
-- [[savePeople()]] - `calls` [EXTRACTED]
+- [[savePeople()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/Community_300

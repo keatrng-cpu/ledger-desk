@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 39"
-location: "L326"
+community: "Community 92"
+location: "L355"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_92
 ---
 
 # schoolFactsFrom()
@@ -23,4 +23,4 @@ tags:
 - [[schoolsOf()]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_92

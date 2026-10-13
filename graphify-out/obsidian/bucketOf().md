@@ -17,7 +17,7 @@ tags:
 - [[emptyBucket()]] - `calls` [EXTRACTED]
 - [[groupBy()]] - `calls` [EXTRACTED]
 - [[journalanalytics.ts]] - `contains` [EXTRACTED]
-- [[round2()_1]] - `calls` [EXTRACTED]
+- [[round2()_2]] - `calls` [EXTRACTED]
 - [[round4()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_106

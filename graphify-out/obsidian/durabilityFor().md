@@ -15,6 +15,8 @@ tags:
 - [[ScreenTable()]] - `calls` [EXTRACTED]
 - [[durability.ts]] - `contains` [EXTRACTED]
 - [[durabilityLegs()]] - `calls` [EXTRACTED]
+- [[gradeLongCard()]] - `calls` [EXTRACTED]
+- [[long-board.ts]] - `imports` [EXTRACTED]
 - [[requiredVsDelivered]] - `calls` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[A clean BSL raid, then 26+ bars of drift with no displacement the raid expired.]] - `rationale_for` [EXTRACTED]
-- [[atr()_1]] - `calls` [EXTRACTED]
+- [[atr()_2]] - `calls` [EXTRACTED]
 - [[build-learn-figures.py]] - `contains` [EXTRACTED]
 - [[ny_am()]] - `calls` [EXTRACTED]
 - [[raid_at()]] - `calls` [EXTRACTED]

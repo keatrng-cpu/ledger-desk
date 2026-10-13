@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 140"
+community: "Community 18"
 location: "L468"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/Community_18
 ---
 
 # LeagueData
@@ -16,4 +16,4 @@ tags:
 - [[SeatRowLite]] - `references` [EXTRACTED]
 - [[live-voices-race.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/Community_18

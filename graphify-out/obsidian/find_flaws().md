@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[crew-year-backtest.py]] - `contains` [EXTRACTED]
-- [[half()]] - `calls` [EXTRACTED]
+- [[half()_1]] - `calls` [EXTRACTED]
 - [[main()_3]] - `calls` [EXTRACTED]
-- [[stats()_1]] - `calls` [EXTRACTED]
+- [[stats()_2]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_156

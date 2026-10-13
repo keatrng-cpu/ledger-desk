@@ -1,17 +1,22 @@
 ---
-source_file: "src/lib/auth/isolation.server.ts"
+source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 65"
-location: "L27"
+community: "Community 37"
+location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/Community_37
 ---
 
 # .constructor()
 
 ## Connections
-- [[CrossSiteRequestError]] - `method` [EXTRACTED]
+- [[dot-loop()_2]] - `calls` [EXTRACTED]
+- [[dot-resize()_1]] - `calls` [EXTRACTED]
+- [[dot-retag()]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `calls` [EXTRACTED]
+- [[MeadScene]] - `method` [EXTRACTED]
+- [[OwnerAvatar]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/Community_37

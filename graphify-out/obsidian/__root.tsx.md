@@ -12,10 +12,10 @@ tags:
 # __root.tsx
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[AuthProvider()]] - `imports` [EXTRACTED]
 - [[CreatedWithGrokBanner()]] - `imports` [EXTRACTED]
-- [[Route_10]] - `contains` [EXTRACTED]
+- [[Route_14]] - `contains` [EXTRACTED]
 - [[created-with-grok-banner.tsx]] - `imports_from` [EXTRACTED]
 - [[provider.tsx]] - `imports_from` [EXTRACTED]
 - [[ref_styles_css_url]] - `imports_from` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
 community: "Community 193"
-location: "L128"
+location: "L130"
 tags:
   - graphify/code
   - graphify/EXTRACTED

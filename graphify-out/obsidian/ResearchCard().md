@@ -2,7 +2,7 @@
 source_file: "src/components/invest/research-card.tsx"
 type: "code"
 community: "Community 5"
-location: "L33"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -32,7 +32,7 @@ tags:
 - [[sensitivity()]] - `calls` [EXTRACTED]
 - [[snapshotCapturedAt()]] - `calls` [EXTRACTED]
 - [[trendRead]] - `calls` [EXTRACTED]
-- [[verdictFor()]] - `calls` [EXTRACTED]
+- [[verdictFor()_1]] - `calls` [EXTRACTED]
 - [[weightInFund()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_5

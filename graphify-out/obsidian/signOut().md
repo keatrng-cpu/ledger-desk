@@ -12,7 +12,9 @@ tags:
 # signOut()
 
 ## Connections
+- [[Reading the user  protecting routes]] - `references` [INFERRED]
 - [[UserButton()]] - `calls` [EXTRACTED]
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
 - [[authclient.ts]] - `contains` [EXTRACTED]
 - [[gates.tsx]] - `imports` [EXTRACTED]
 - [[setBearerToken()]] - `calls` [EXTRACTED]

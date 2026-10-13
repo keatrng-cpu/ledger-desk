@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/limits.ts"
 type: "code"
-community: "Community 122"
+community: "Community 150"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/Community_150
 ---
 
 # limits.ts
@@ -33,7 +33,8 @@ tags:
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[verify-audit.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-paper-step.mjs]] - `imports_from` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/Community_150

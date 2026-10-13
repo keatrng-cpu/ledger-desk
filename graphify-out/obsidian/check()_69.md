@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/verify-source-check.mjs"
 type: "code"
-community: "Community 83"
-location: "L10"
+community: "Community 286"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/Community_286
 ---
 
 # check()
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/Community_286

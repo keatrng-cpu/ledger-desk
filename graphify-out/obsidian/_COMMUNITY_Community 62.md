@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.04
-members: 46
+members: 50
 ---
 
 # Community 62
 
 **Cohesion:** 0.04 - loosely connected
-**Members:** 46 nodes
+**Members:** 50 nodes
 
 ## Members
 - [[build]] - code - package.json
@@ -18,11 +18,15 @@ members: 46
 - [[dev]] - code - package.json
 - [[format]] - code - package.json
 - [[hooksinstall]] - code - package.json
+- [[labcheck]] - code - package.json
+- [[labcrosscheck]] - code - package.json
+- [[labsecurity]] - code - package.json
+- [[labsetup]] - code - package.json
 - [[learnbuild]] - code - package.json
 - [[learncapture]] - code - package.json
 - [[learnfigures]] - code - package.json
 - [[lint]] - code - package.json
-- [[log_1]] - code - package.json
+- [[log_2]] - code - package.json
 - [[measuretargets]] - code - package.json
 - [[prebuild]] - code - package.json
 - [[prepush]] - code - package.json
@@ -68,4 +72,4 @@ SORT file.name ASC
 - 1 edge to [[_COMMUNITY_Community 32]]
 
 ## Top bridge nodes
-- [[scripts_1]] - degree 46, connects to 1 community
+- [[scripts_1]] - degree 50, connects to 1 community

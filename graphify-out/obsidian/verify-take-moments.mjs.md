@@ -12,10 +12,10 @@ tags:
 # verify-take-moments.mjs
 
 ## Connections
-- [[T0_3]] - `contains` [EXTRACTED]
-- [[bar()_2]] - `contains` [EXTRACTED]
-- [[check()_13]] - `contains` [EXTRACTED]
-- [[short_1]] - `contains` [EXTRACTED]
+- [[T0_2]] - `contains` [EXTRACTED]
+- [[bar()_3]] - `contains` [EXTRACTED]
+- [[check()_18]] - `contains` [EXTRACTED]
+- [[short_2]] - `contains` [EXTRACTED]
 - [[take-moments.ts]] - `dynamic_import` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_145

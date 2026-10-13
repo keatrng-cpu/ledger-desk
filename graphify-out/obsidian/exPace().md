@@ -12,6 +12,7 @@ tags:
 # exPace()
 
 ## Connections
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices-race.ts]] - `contains` [EXTRACTED]

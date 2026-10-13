@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
-location: "L255"
+community: "Community 24"
+location: "L257"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/Community_24
 ---
 
 # DiscretionRule
@@ -19,4 +19,4 @@ tags:
 - [[manager-feed.ts]] - `contains` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/Community_24

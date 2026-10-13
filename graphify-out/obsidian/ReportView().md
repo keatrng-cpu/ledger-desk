@@ -20,7 +20,7 @@ tags:
 - [[StatTile()]] - `calls` [EXTRACTED]
 - [[StrategyBoard()]] - `calls` [EXTRACTED]
 - [[analytics-panel.tsx]] - `contains` [EXTRACTED]
-- [[money()_1]] - `calls` [EXTRACTED]
+- [[money()_2]] - `calls` [EXTRACTED]
 - [[pct()_7]] - `calls` [EXTRACTED]
 - [[rr()]] - `calls` [EXTRACTED]
 

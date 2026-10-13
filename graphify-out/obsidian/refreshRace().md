@@ -2,7 +2,7 @@
 source_file: "src/components/room/room-engine.ts"
 type: "code"
 community: "Community 4"
-location: "L550"
+location: "L650"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[asLab()]] - `calls` [EXTRACTED]
-- [[atrOf()]] - `calls` [EXTRACTED]
+- [[atrOf()_1]] - `calls` [EXTRACTED]
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[ensureSeats()]] - `calls` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `calls` [EXTRACTED]

@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/verify-paper-step.mjs"
+source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 143"
-location: "L32"
+community: "Community 142"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/Community_142
 ---
 
 # at()
 
 ## Connections
-- [[etWallToUtc()]] - `calls` [EXTRACTED]
-- [[mon()]] - `calls` [EXTRACTED]
-- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
+- [[QUIET]] - `calls` [EXTRACTED]
+- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/Community_142

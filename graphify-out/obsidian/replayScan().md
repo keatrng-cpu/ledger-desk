@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[analyzeStructure()]] - `calls` [EXTRACTED]
-- [[dayChangePct()_5]] - `calls` [EXTRACTED]
+- [[dayChangePct()_7]] - `calls` [EXTRACTED]
 - [[getSessionClock()]] - `calls` [EXTRACTED]
 - [[replay-server.ts]] - `imports` [EXTRACTED]
 - [[replay.ts]] - `contains` [EXTRACTED]

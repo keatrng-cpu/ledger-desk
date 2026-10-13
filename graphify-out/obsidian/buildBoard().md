@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 7"
+community: "Community 2"
 location: "L374"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_2
 ---
 
 # buildBoard()
@@ -21,4 +21,4 @@ tags:
 - [[predict-server.ts]] - `imports` [EXTRACTED]
 - [[read()_6]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_2

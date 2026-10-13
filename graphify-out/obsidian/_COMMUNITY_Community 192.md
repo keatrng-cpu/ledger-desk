@@ -25,8 +25,8 @@ members: 18
 - [[main()_4]] - code - scripts/perfect-entry-backtest.py
 - [[minute_of()_2]] - code - scripts/perfect-entry-backtest.py
 - [[perfect-entry-backtest.py]] - code - scripts/perfect-entry-backtest.py
-- [[stats()_2]] - code - scripts/perfect-entry-backtest.py
-- [[walk()_4]] - code - scripts/perfect-entry-backtest.py
+- [[stats()_3]] - code - scripts/perfect-entry-backtest.py
+- [[walk()_3]] - code - scripts/perfect-entry-backtest.py
 - [[year_of()_1]] - code - scripts/perfect-entry-backtest.py
 
 ## Live Query (requires Dataview plugin)
@@ -39,7 +39,7 @@ SORT file.name ASC
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 226]]
 - 1 edge to [[_COMMUNITY_Community 225]]
-- 1 edge to [[_COMMUNITY_Community 64]]
+- 1 edge to [[_COMMUNITY_Community 146]]
 - 1 edge to [[_COMMUNITY_Community 74]]
 
 ## Top bridge nodes

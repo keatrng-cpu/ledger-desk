@@ -1,13 +1,13 @@
 ---
 type: community
-cohesion: 0.21
-members: 24
+cohesion: 0.22
+members: 23
 ---
 
 # Community 156
 
-**Cohesion:** 0.21 - loosely connected
-**Members:** 24 nodes
+**Cohesion:** 0.22 - loosely connected
+**Members:** 23 nodes
 
 ## Members
 - [[dot-__init__()]] - code - scripts/crew-year-backtest.py
@@ -21,18 +21,17 @@ members: 24
 - [[day_key()_1]] - code - scripts/crew-year-backtest.py
 - [[et()]] - code - scripts/crew-year-backtest.py
 - [[find_flaws()]] - code - scripts/crew-year-backtest.py
-- [[half()]] - code - scripts/crew-year-backtest.py
+- [[half()_1]] - code - scripts/crew-year-backtest.py
 - [[load()_3]] - code - scripts/crew-year-backtest.py
 - [[main()_3]] - code - scripts/crew-year-backtest.py
 - [[minute_of()_1]] - code - scripts/crew-year-backtest.py
-- [[pct()_5]] - code - scripts/crew-year-backtest.py
-- [[random]] - concept
+- [[pct()_4]] - code - scripts/crew-year-backtest.py
 - [[scratch_limit_same_bar()]] - code - scripts/crew-year-backtest.py
 - [[session_ok()]] - code - scripts/crew-year-backtest.py
 - [[signals()]] - code - scripts/crew-year-backtest.py
-- [[stats()_1]] - code - scripts/crew-year-backtest.py
+- [[stats()_2]] - code - scripts/crew-year-backtest.py
 - [[swing()]] - code - scripts/crew-year-backtest.py
-- [[walk()_2]] - code - scripts/crew-year-backtest.py
+- [[walk()_1]] - code - scripts/crew-year-backtest.py
 - [[weekday()_1]] - code - scripts/crew-year-backtest.py
 
 ## Live Query (requires Dataview plugin)
@@ -44,12 +43,11 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 226]]
-- 1 edge to [[_COMMUNITY_Community 120]]
-- 1 edge to [[_COMMUNITY_Community 64]]
+- 2 edges to [[_COMMUNITY_Community 269]]
+- 1 edge to [[_COMMUNITY_Community 146]]
 - 1 edge to [[_COMMUNITY_Community 74]]
 
 ## Top bridge nodes
-- [[crew-year-backtest.py]] - degree 25, connects to 3 communities
-- [[main()_3]] - degree 12, connects to 1 community
+- [[crew-year-backtest.py]] - degree 25, connects to 4 communities
+- [[main()_3]] - degree 12, connects to 2 communities
 - [[load()_3]] - degree 5, connects to 1 community
-- [[random]] - degree 3, connects to 1 community

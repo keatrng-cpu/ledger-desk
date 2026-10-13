@@ -2,7 +2,7 @@
 source_file: "src/components/invest/screen-table.tsx"
 type: "code"
 community: "Community 5"
-location: "L59"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED

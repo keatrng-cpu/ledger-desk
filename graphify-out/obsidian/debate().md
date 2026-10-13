@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 104"
+community: "Community 3"
 location: "L390"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_3
 ---
 
 # debate()
@@ -23,15 +23,15 @@ tags:
 - [[prem()]] - `calls` [EXTRACTED]
 - [[priceText()]] - `calls` [EXTRACTED]
 - [[ptsTxt()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
+- [[px()_10]] - `calls` [EXTRACTED]
 - [[rebuttalFor()]] - `calls` [EXTRACTED]
-- [[say()]] - `calls` [EXTRACTED]
+- [[say()_1]] - `calls` [EXTRACTED]
 - [[signedCents()]] - `calls` [EXTRACTED]
 - [[strikeWhy()]] - `calls` [EXTRACTED]
 - [[tallyLine()]] - `calls` [EXTRACTED]
 - [[thesisOwner()]] - `calls` [EXTRACTED]
 - [[thesisText()]] - `calls` [EXTRACTED]
-- [[usd()_3]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 - [[vetoMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_3

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-attestation.mjs"
+source_file: "scripts/verify-freshness-gate.mjs"
 type: "code"
-community: "Community 61"
-location: "L28"
+community: "Community 245"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_245
 ---
 
 # check()
 
 ## Connections
-- [[verify-attestation.mjs]] - `contains` [EXTRACTED]
+- [[verify-freshness-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_245

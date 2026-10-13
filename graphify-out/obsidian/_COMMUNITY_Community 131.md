@@ -30,13 +30,13 @@ members: 28
 - [[one_stats()]] - code - scripts/direction-book.py
 - [[open_gaps()]] - code - scripts/direction-book.py
 - [[pack()]] - code - scripts/direction-book.py
-- [[row()]] - code - scripts/direction-book.py
+- [[row()_2]] - code - scripts/direction-book.py
 - [[rth_days()]] - code - scripts/direction-book.py
 - [[session_extreme()]] - code - scripts/direction-book.py
 - [[stats()]] - code - scripts/direction-book.py
 - [[swings()_1]] - code - scripts/direction-book.py
 - [[take_two()]] - code - scripts/direction-book.py
-- [[walk()_1]] - code - scripts/direction-book.py
+- [[walk()]] - code - scripts/direction-book.py
 - [[year_of()]] - code - scripts/direction-book.py
 
 ## Live Query (requires Dataview plugin)
@@ -48,10 +48,12 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 226]]
-- 1 edge to [[_COMMUNITY_Community 64]]
+- 1 edge to [[_COMMUNITY_Community 306]]
+- 1 edge to [[_COMMUNITY_Community 146]]
 - 1 edge to [[_COMMUNITY_Community 74]]
 
 ## Top bridge nodes
 - [[direction-book.py]] - degree 27, connects to 3 communities
 - [[main()_2]] - degree 7, connects to 1 community
 - [[load()_2]] - degree 3, connects to 1 community
+- [[row()_2]] - degree 3, connects to 1 community

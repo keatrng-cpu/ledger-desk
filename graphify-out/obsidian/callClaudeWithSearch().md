@@ -12,6 +12,7 @@ tags:
 # callClaudeWithSearch()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[askDeskDiscuss]] - `calls` [EXTRACTED]
 - [[claude-server.ts]] - `contains` [EXTRACTED]
 - [[httpError()]] - `calls` [EXTRACTED]

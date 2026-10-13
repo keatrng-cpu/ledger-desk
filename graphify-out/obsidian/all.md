@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-cases.mjs"
+source_file: "scripts/verify-curriculum.mjs"
 type: "code"
-community: "Community 11"
-location: "L27"
+community: "Community 118"
+location: "L119"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/Community_118
 ---
 
 # all
 
 ## Connections
-- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
+- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/Community_118

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 137"
-location: "L60"
+community: "Community 127"
+location: "L505"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/Community_127
 ---
 
 # hhmm()
 
 ## Connections
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[modelMayBeNamed()]] - `calls` [EXTRACTED]
+- [[smc-canon.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/Community_127

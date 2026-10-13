@@ -12,11 +12,11 @@ tags:
 # measure-amd-signals.mjs
 
 ## Connections
-- [[BARS_1]] - `contains` [EXTRACTED]
+- [[BARS_2]] - `contains` [EXTRACTED]
 - [[H_1]] - `contains` [EXTRACTED]
 - [[IS_YEARS_1]] - `contains` [EXTRACTED]
 - [[OOS_YEARS_1]] - `contains` [EXTRACTED]
-- [[b()]] - `indirect_call` [INFERRED]
+- [[b()_1]] - `indirect_call` [INFERRED]
 - [[bucket()_2]] - `contains` [EXTRACTED]
 - [[clustered()_1]] - `contains` [EXTRACTED]
 - [[corr()]] - `contains` [EXTRACTED]
@@ -31,7 +31,7 @@ tags:
 - [[r3()_2]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[result_1]] - `contains` [EXTRACTED]
-- [[rows_1]] - `contains` [EXTRACTED]
+- [[rows_2]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[show()_1]] - `contains` [EXTRACTED]
 - [[sim()_1]] - `contains` [EXTRACTED]

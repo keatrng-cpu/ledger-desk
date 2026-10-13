@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/live-says.ts"
 type: "code"
-community: "Community 20"
+community: "Community 164"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/Community_164
 ---
 
 # live-says.ts
@@ -27,4 +27,4 @@ tags:
 - [[printOf()]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/Community_164

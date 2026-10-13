@@ -1,24 +1,24 @@
 ---
 source_file: "src/lib/market/types.ts"
 type: "code"
-community: "Community 27"
+community: "Community 160"
 location: "L2"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_160
 ---
 
 # OhlcBar
 
 ## Connections
 - [[BacktestLayers]] - `references` [EXTRACTED]
+- [[BookShock]] - `references` [EXTRACTED]
 - [[BuildPlanInput]] - `references` [EXTRACTED]
 - [[CandlestickPaneProps]] - `references` [EXTRACTED]
 - [[CardTape]] - `references` [EXTRACTED]
 - [[ChartSeries]] - `references` [EXTRACTED]
 - [[CrossBook]] - `references` [EXTRACTED]
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[FailedHoldRead]] - `references` [EXTRACTED]
 - [[LadderInput_1]] - `references` [EXTRACTED]
 - [[LearnCase]] - `references` [EXTRACTED]
@@ -45,14 +45,19 @@ tags:
 - [[freshest.ts]] - `imports` [EXTRACTED]
 - [[ghost-book.ts]] - `imports` [EXTRACTED]
 - [[hi-alert.ts]] - `imports` [EXTRACTED]
+- [[htf-invalidation.ts]] - `imports` [EXTRACTED]
 - [[judas-window.ts]] - `imports` [EXTRACTED]
 - [[live-gateway.ts]] - `imports` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
+- [[live-lesson.ts]] - `imports` [EXTRACTED]
 - [[ltf-lead.ts]] - `imports` [EXTRACTED]
+- [[ltf-reaction.ts]] - `imports` [EXTRACTED]
 - [[market-narrative.ts]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `contains` [EXTRACTED]
 - [[month-ahead.ts]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[print-bars.ts]] - `imports` [EXTRACTED]
+- [[raid-pair.ts]] - `imports` [EXTRACTED]
 - [[replay.ts]] - `imports` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[session-event.ts]] - `imports` [EXTRACTED]
@@ -68,11 +73,13 @@ tags:
 - [[spot-cross.ts]] - `imports` [EXTRACTED]
 - [[structure.ts]] - `imports` [EXTRACTED]
 - [[take-moments.ts]] - `imports` [EXTRACTED]
+- [[tape-trust.ts]] - `imports` [EXTRACTED]
 - [[target-odds.ts]] - `imports` [EXTRACTED]
 - [[tf-ladder.ts]] - `imports` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[week-ahead.ts]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_160

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tradezella-analyze.ts"
 type: "code"
-community: "Community 114"
+community: "Community 46"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/Community_46
 ---
 
 # ConfluenceItem
@@ -15,4 +15,4 @@ tags:
 - [[ComponentKey]] - `references` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/Community_46

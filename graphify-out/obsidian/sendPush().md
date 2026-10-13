@@ -12,6 +12,7 @@ tags:
 # sendPush()
 
 ## Connections
+- [[4. Web Push (B4) — zero new dependencies]] - `references` [INFERRED]
 - [[encryptPayload()]] - `calls` [EXTRACTED]
 - [[push-server.ts]] - `contains` [EXTRACTED]
 - [[send-server.ts]] - `imports` [EXTRACTED]

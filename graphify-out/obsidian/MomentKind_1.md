@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/floor-race-replay.ts"
+source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 42"
-location: "L52"
+community: "Community 145"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_145
 ---
 
 # MomentKind
 
 ## Connections
-- [[floor-race-replay.ts]] - `contains` [EXTRACTED]
+- [[take-moments.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_145

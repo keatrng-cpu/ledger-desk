@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-world.ts"
 type: "code"
 community: "Community 29"
-location: "L354"
+location: "L394"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,13 +12,14 @@ tags:
 # scannerCards()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[applyLtf()]] - `calls` [EXTRACTED]
 - [[booksOf()]] - `calls` [EXTRACTED]
 - [[compareForBoard()]] - `indirect_call` [INFERRED]
 - [[isPathFire()]] - `calls` [EXTRACTED]
 - [[ladderBrief()]] - `calls` [EXTRACTED]
 - [[live-world.ts]] - `contains` [EXTRACTED]
-- [[planFor()]] - `calls` [EXTRACTED]
+- [[planFor()_1]] - `calls` [EXTRACTED]
 - [[raceScreenOf()]] - `calls` [EXTRACTED]
 - [[readEntry()]] - `calls` [EXTRACTED]
 - [[readLtfLead()]] - `calls` [EXTRACTED]

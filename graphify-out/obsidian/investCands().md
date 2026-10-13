@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
 community: "Community 103"
-location: "L1158"
+location: "L1187"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,8 @@ tags:
 # investCands()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
+- [[firmCands()]] - `calls` [EXTRACTED]
 - [[freshCatalysts()]] - `calls` [EXTRACTED]
 - [[investLooks()]] - `calls` [EXTRACTED]
 - [[live-talk.ts]] - `contains` [EXTRACTED]

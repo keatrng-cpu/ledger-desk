@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[checkScheduledJobs]] - `calls` [EXTRACTED]
-- [[etWindow]] - `calls` [EXTRACTED]
+- [[etWindow_1]] - `calls` [EXTRACTED]
 - [[fmtR()_2]] - `calls` [EXTRACTED]
 - [[fmtWr()]] - `calls` [EXTRACTED]
 - [[sendAlert()]] - `calls` [EXTRACTED]

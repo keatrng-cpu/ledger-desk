@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 25"
-location: "L1249"
+community: "Community 299"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/Community_299
 ---
 
 # pctSmall()
 
 ## Connections
-- [[drawGoalLadder()]] - `calls` [EXTRACTED]
-- [[drawGoalOdds()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[RacePanel()]] - `calls` [EXTRACTED]
+- [[RaceTrack()]] - `calls` [EXTRACTED]
+- [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/Community_299

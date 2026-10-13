@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[NewsTab()]] - `calls` [EXTRACTED]
+- [[UI map (categories)]] - `references` [INFERRED]
 - [[feed.ts]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 - [[news-tab.tsx]] - `imports` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/audit.ts"
 type: "code"
 community: "Community 18"
-location: "L75"
+location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # deskAudit()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[audit.ts]] - `contains` [EXTRACTED]
 - [[freshnessItems()]] - `calls` [EXTRACTED]
 - [[heartbeats()]] - `calls` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/meeting.ts"
 type: "code"
 community: "Community 3"
-location: "L736"
+location: "L737"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -20,12 +20,12 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[pick()_1]] - `calls` [EXTRACTED]
 - [[printLine()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
+- [[px()_10]] - `calls` [EXTRACTED]
 - [[qNote()]] - `calls` [EXTRACTED]
 - [[rhLiveMandateNote()]] - `calls` [EXTRACTED]
 - [[rhNoteOf()]] - `calls` [EXTRACTED]
-- [[say()]] - `calls` [EXTRACTED]
+- [[say()_1]] - `calls` [EXTRACTED]
 - [[scannerMandateNote()]] - `calls` [EXTRACTED]
-- [[usd()_3]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_3

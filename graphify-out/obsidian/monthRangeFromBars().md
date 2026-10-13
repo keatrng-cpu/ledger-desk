@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[barInMonth()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[month-ahead.ts]] - `contains` [EXTRACTED]
 - [[overlayMonthAhead()]] - `calls` [EXTRACTED]
 

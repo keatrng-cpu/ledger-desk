@@ -2,7 +2,7 @@
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
 community: "Community 113"
-location: "L247"
+location: "L248"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,8 @@ tags:
 - [[FloorSound]] - `method` [EXTRACTED]
 - [[assignVoices()]] - `calls` [EXTRACTED]
 - [[englishVoices()]] - `calls` [EXTRACTED]
+- [[isNaturalVoice()]] - `calls` [EXTRACTED]
 - [[saveCast()]] - `calls` [EXTRACTED]
+- [[setVoiceQuality()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_113

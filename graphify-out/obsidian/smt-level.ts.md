@@ -32,6 +32,7 @@ tags:
 - [[tradeDateOf()]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weekKey()_3]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_58

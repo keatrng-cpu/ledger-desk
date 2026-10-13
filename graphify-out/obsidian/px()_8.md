@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/trading/entry-ticket.ts"
+source_file: "src/lib/trading/school-ticket.ts"
 type: "code"
-community: "Community 26"
-location: "L67"
+community: "Community 231"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_231
 ---
 
 # px()
 
 ## Connections
-- [[buildEntryTicket()]] - `calls` [EXTRACTED]
-- [[entry-ticket.ts]] - `contains` [EXTRACTED]
-- [[ticketHeadline()]] - `calls` [EXTRACTED]
+- [[school-ticket.ts]] - `contains` [EXTRACTED]
+- [[schoolPlanPrices()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_231

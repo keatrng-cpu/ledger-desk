@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/fit-gauge.tsx"
 type: "code"
-community: "Community 69"
+community: "Community 39"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/Community_39
 ---
 
 # fit-gauge.tsx
@@ -20,4 +20,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/Community_39

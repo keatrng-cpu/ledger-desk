@@ -1,19 +1,17 @@
 ---
-source_file: "src/components/room/floor-fx.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 196"
-location: "L148"
+community: "Community 172"
+location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_196
+  - community/Community_172
 ---
 
 # .dispose()
 
 ## Connections
-- [[dot-dispose()_3]] - `calls` [EXTRACTED]
-- [[dot-dispose()_4]] - `calls` [EXTRACTED]
-- [[Confetti]] - `method` [EXTRACTED]
+- [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_196
+#graphify/code #graphify/EXTRACTED #community/Community_172

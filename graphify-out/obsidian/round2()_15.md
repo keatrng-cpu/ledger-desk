@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/measure-room-ev.mjs"
+source_file: "src/lib/invest/rh-bridge.ts"
 type: "code"
-community: "Community 91"
-location: "L158"
+community: "Community 86"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_91
+  - community/Community_86
 ---
 
 # round2()
 
 ## Connections
-- [[measure-room-ev.mjs]] - `contains` [EXTRACTED]
-- [[simOption()]] - `calls` [EXTRACTED]
+- [[rh-bridge.ts]] - `contains` [EXTRACTED]
+- [[rhMonthFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_91
+#graphify/code #graphify/EXTRACTED #community/Community_86

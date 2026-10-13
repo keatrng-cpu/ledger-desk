@@ -2,7 +2,7 @@
 source_file: "src/components/desk/hi-alert-panel.tsx"
 type: "code"
 community: "Community 92"
-location: "L19"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,10 +13,12 @@ tags:
 
 ## Connections
 - [[VeteranBrainPanel()]] - `calls` [EXTRACTED]
+- [[cn()]] - `calls` [EXTRACTED]
 - [[hi-alert-panel.tsx]] - `contains` [EXTRACTED]
+- [[ledgerExport()]] - `calls` [EXTRACTED]
+- [[ledgerStats]] - `calls` [EXTRACTED]
 - [[loadHiAlerts()]] - `calls` [EXTRACTED]
-- [[row()_3]] - `calls` [EXTRACTED]
+- [[onBeat()]] - `calls` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
-- [[when()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_92

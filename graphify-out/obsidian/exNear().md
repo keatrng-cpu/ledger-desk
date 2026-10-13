@@ -12,6 +12,10 @@ tags:
 # exNear()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-lvl()]] - `calls` [INFERRED]
+- [[dot-pts()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]

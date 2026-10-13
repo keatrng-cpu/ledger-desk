@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[JournalCard()]] - `calls` [EXTRACTED]
+- [[What shipped]] - `references` [INFERRED]
 - [[loadTrades()]] - `calls` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
 - [[predictjournal.ts]] - `contains` [EXTRACTED]

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-tf-tiers.mjs"
+source_file: "scripts/measure-judas.mjs"
 type: "code"
-community: "Community 170"
-location: "L127"
+community: "Community 160"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_170
+  - community/Community_160
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
+- [[measure-judas.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_170
+#graphify/code #graphify/EXTRACTED #community/Community_160

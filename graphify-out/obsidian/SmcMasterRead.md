@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
 community: "Community 10"
-location: "L115"
+location: "L149"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,6 @@ tags:
 # SmcMasterRead
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[SchoolModelHook]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[card-plan.ts]] - `imports` [EXTRACTED]

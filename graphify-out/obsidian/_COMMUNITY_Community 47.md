@@ -10,7 +10,7 @@ members: 53
 **Members:** 53 nodes
 
 ## Members
-- [[@electric-sqlpglite_1]] - code - package.json
+- [[@electric-sqlpglite_2]] - code - package.json
 - [[@hookformresolvers_1]] - code - package.json
 - [[@radix-uireact-accordion_1]] - code - package.json
 - [[@radix-uireact-alert-dialog_1]] - code - package.json
@@ -35,7 +35,7 @@ members: 53
 - [[@radix-uireact-tooltip_1]] - code - package.json
 - [[@tailwindcssvite_1]] - code - package.json
 - [[@tanstackreact-query_1]] - code - package.json
-- [[@tanstackreact-router_1]] - code - package.json
+- [[@tanstackreact-router]] - code - package.json
 - [[@tanstackreact-start]] - code - package.json
 - [[@tanstackreact-table_1]] - code - package.json
 - [[@tanstackrouter-plugin_1]] - code - package.json
@@ -44,14 +44,14 @@ members: 53
 - [[clsx_1]] - code - package.json
 - [[cmdk_1]] - code - package.json
 - [[date-fns_1]] - code - package.json
-- [[dependencies]] - code - package.json
+- [[dependencies_1]] - code - package.json
 - [[kysely_1]] - code - package.json
 - [[lightweight-charts_2]] - code - package.json
 - [[lucide-react]] - code - package.json
 - [[pg_2]] - code - package.json
 - [[react_2]] - code - package.json
 - [[react-day-picker_1]] - code - package.json
-- [[react-dom_1]] - code - package.json
+- [[react-dom_2]] - code - package.json
 - [[react-hook-form_1]] - code - package.json
 - [[react-resizable-panels_1]] - code - package.json
 - [[recharts_1]] - code - package.json
@@ -61,7 +61,7 @@ members: 53
 - [[three_1]] - code - package.json
 - [[tw-animate-css_1]] - code - package.json
 - [[vaul_1]] - code - package.json
-- [[zod]] - code - package.json
+- [[zod_1]] - code - package.json
 - [[zustand_1]] - code - package.json
 
 ## Live Query (requires Dataview plugin)
@@ -75,4 +75,4 @@ SORT file.name ASC
 - 1 edge to [[_COMMUNITY_Community 32]]
 
 ## Top bridge nodes
-- [[dependencies]] - degree 53, connects to 1 community
+- [[dependencies_1]] - degree 53, connects to 1 community

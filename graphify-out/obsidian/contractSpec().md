@@ -12,6 +12,7 @@ tags:
 # contractSpec()
 
 ## Connections
+- [[E1 — `OrderIntent`]] - `references` [INFERRED]
 - [[buildOrderIntent()]] - `calls` [EXTRACTED]
 - [[computeTradePnl()]] - `calls` [EXTRACTED]
 - [[order-intent.ts]] - `imports` [EXTRACTED]

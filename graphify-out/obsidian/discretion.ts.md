@@ -33,10 +33,12 @@ tags:
 - [[journalanalytics.ts]] - `imports_from` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
 - [[neutralDiscretion()]] - `contains` [EXTRACTED]
+- [[research-retain.ts]] - `imports_from` [EXTRACTED]
 - [[round2()_3]] - `contains` [EXTRACTED]
 - [[round4()_1]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[sumDefinedR()]] - `contains` [EXTRACTED]
+- [[verify-research-retain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_155

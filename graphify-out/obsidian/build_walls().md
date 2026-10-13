@@ -1,24 +1,20 @@
 ---
-source_file: "scripts/blender/build_floor.py"
+source_file: "scripts/blender/floor_ao.py"
 type: "code"
-community: "Community 246"
-location: "L581"
+community: "Community 140"
+location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_246
+  - community/Community_140
 ---
 
 # build_walls()
 
 ## Connections
-- [[Geo]] - `calls` [EXTRACTED]
-- [[P()]] - `contains` [EXTRACTED]
-- [[build_floor.py]] - `contains` [EXTRACTED]
-- [[build_office()]] - `calls` [EXTRACTED]
-- [[door_frame_at()]] - `calls` [EXTRACTED]
-- [[make_obj()]] - `calls` [EXTRACTED]
-- [[screens_on_wall()]] - `calls` [EXTRACTED]
-- [[wb()]] - `contains` [EXTRACTED]
+- [[Merge every large vertical face of the solid  low  window walls by the kd…]] - `rationale_for` [EXTRACTED]
+- [[bake()]] - `calls` [EXTRACTED]
+- [[floor_ao.py]] - `contains` [EXTRACTED]
+- [[refine_rect()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_246
+#graphify/code #graphify/EXTRACTED #community/Community_140

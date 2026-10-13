@@ -1,26 +1,25 @@
 ---
 type: community
-cohesion: 0.16
-members: 14
+cohesion: 0.18
+members: 13
 ---
 
 # Community 206
 
-**Cohesion:** 0.16 - loosely connected
-**Members:** 14 nodes
+**Cohesion:** 0.18 - loosely connected
+**Members:** 13 nodes
 
 ## Members
-- [[L()_2]] - code - scripts/verify-entry-alarm.mjs
-- [[NOW_6]] - code - scripts/verify-entry-alarm.mjs
-- [[R()]] - code - scripts/verify-entry-alarm.mjs
+- [[L()_3]] - code - scripts/verify-entry-alarm.mjs
+- [[NOW_7]] - code - scripts/verify-entry-alarm.mjs
+- [[R()_1]] - code - scripts/verify-entry-alarm.mjs
 - [[arm()]] - code - scripts/verify-entry-alarm.mjs
 - [[atEt()]] - code - scripts/verify-entry-alarm.mjs
-- [[book()_1]] - code - scripts/verify-entry-alarm.mjs
+- [[book()_2]] - code - scripts/verify-entry-alarm.mjs
 - [[constructor()]] - code - scripts/verify-entry-alarm.mjs
 - [[desk()]] - code - scripts/verify-entry-alarm.mjs
 - [[fails_3]] - code - scripts/verify-entry-alarm.mjs
-- [[nodeurl]] - code - node:url
-- [[ok()_16]] - code - scripts/verify-entry-alarm.mjs
+- [[ok()_17]] - code - scripts/verify-entry-alarm.mjs
 - [[state()_1]] - code - scripts/verify-entry-alarm.mjs
 - [[store]] - code - scripts/verify-entry-alarm.mjs
 - [[verify-entry-alarm.mjs]] - code - scripts/verify-entry-alarm.mjs
@@ -33,9 +32,10 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 217]]
+- 1 edge to [[_COMMUNITY_Community 20]]
+- 1 edge to [[_COMMUNITY_Community 308]]
 - 1 edge to [[_COMMUNITY_Community 48]]
 - 1 edge to [[_COMMUNITY_Community 82]]
 
 ## Top bridge nodes
-- [[verify-entry-alarm.mjs]] - degree 16, connects to 3 communities
+- [[verify-entry-alarm.mjs]] - degree 16, connects to 4 communities

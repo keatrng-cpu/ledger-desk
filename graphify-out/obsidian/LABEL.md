@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/bridge/bridge-status.tsx"
+source_file: "src/components/invest/funnel-card.tsx"
 type: "code"
-community: "Community 14"
-location: "L39"
+community: "Community 209"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_209
 ---
 
 # LABEL
 
 ## Connections
-- [[bridge-status.tsx]] - `contains` [EXTRACTED]
+- [[funnel-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_209

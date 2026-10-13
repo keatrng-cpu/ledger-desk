@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 56"
+community: "Community 130"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_130
 ---
 
 # entry-state.ts
@@ -20,7 +20,7 @@ tags:
 - [[EntryStateRead]] - `contains` [EXTRACTED]
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[SmcMasterBook]] - `imports` [EXTRACTED]
-- [[bookOf()_4]] - `contains` [EXTRACTED]
+- [[bookOf()_1]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[cardPhrase()]] - `contains` [EXTRACTED]
 - [[config.ts]] - `imports_from` [EXTRACTED]
@@ -29,12 +29,12 @@ tags:
 - [[detectConflicts()]] - `contains` [EXTRACTED]
 - [[entry-state.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
-- [[fit()_8]] - `contains` [EXTRACTED]
+- [[fit()_1]] - `contains` [EXTRACTED]
 - [[focusCard()]] - `contains` [EXTRACTED]
 - [[isHighProbPath()]] - `imports` [EXTRACTED]
 - [[killzoneEnd()]] - `contains` [EXTRACTED]
 - [[path-alarm.ts]] - `imports_from` [EXTRACTED]
-- [[px()_11]] - `contains` [EXTRACTED]
+- [[px()_5]] - `contains` [EXTRACTED]
 - [[resolveKillzone()]] - `imports` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
 - [[sessionLive()]] - `imports` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[vetoText()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_130

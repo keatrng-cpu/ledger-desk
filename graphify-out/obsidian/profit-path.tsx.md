@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[APLUS_PROBE_RISK]] - `imports` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
-- [[EVIDENCE_2]] - `imports` [EXTRACTED]
+- [[EVIDENCE_1]] - `imports` [EXTRACTED]
 - [[GradedTrade]] - `imports` [EXTRACTED]
 - [[IncomeGauge()]] - `contains` [EXTRACTED]
 - [[JournalTrade]] - `imports` [EXTRACTED]
@@ -35,7 +35,7 @@ tags:
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[listTrades]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[pct()_11]] - `contains` [EXTRACTED]
+- [[pct()_10]] - `contains` [EXTRACTED]
 - [[planIncome()]] - `imports` [EXTRACTED]
 - [[profit-path.ts]] - `imports_from` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]

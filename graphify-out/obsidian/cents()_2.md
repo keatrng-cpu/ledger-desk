@@ -1,8 +1,8 @@
 ---
-source_file: "src/lib/predict/math.ts"
+source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
 community: "Community 2"
-location: "L81"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # cents()
 
 ## Connections
-- [[math.ts]] - `contains` [EXTRACTED]
+- [[SideRow()]] - `calls` [EXTRACTED]
+- [[predict-parts.tsx]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_2

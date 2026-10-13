@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[board.ts]] - `contains` [EXTRACTED]
 - [[getPredictBoard]] - `calls` [EXTRACTED]
-- [[num()_13]] - `calls` [EXTRACTED]
+- [[num()_16]] - `calls` [EXTRACTED]
 - [[predict-server.ts]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_7

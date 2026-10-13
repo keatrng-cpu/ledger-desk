@@ -1,13 +1,13 @@
 ---
 type: community
 cohesion: 0.11
-members: 24
+members: 23
 ---
 
 # Community 159
 
 **Cohesion:** 0.11 - loosely connected
-**Members:** 24 nodes
+**Members:** 23 nodes
 
 ## Members
 - [[CLOSES_PER_MONTH]] - code - src/lib/trading/month-contract.ts
@@ -23,7 +23,6 @@ members: 24
 - [[entryCall()]] - code - src/lib/trading/month-contract.ts
 - [[good_1]] - code - scripts/verify-month-contract.mjs
 - [[month-contract.ts]] - code - src/lib/trading/month-contract.ts
-- [[monthContractLine()]] - code - src/lib/trading/month-contract.ts
 - [[monthDollars()]] - code - src/lib/trading/month-contract.ts
 - [[nextContracts()]] - code - src/lib/trading/month-contract.ts
 - [[sampleOf()]] - code - src/lib/trading/month-contract.ts
@@ -31,7 +30,7 @@ members: 24
 - [[stay]] - code - scripts/verify-month-contract.mjs
 - [[ticketForEquity()]] - code - src/lib/trading/month-contract.ts
 - [[two]] - code - scripts/verify-month-contract.mjs
-- [[up]] - code - scripts/verify-month-contract.mjs
+- [[up_1]] - code - scripts/verify-month-contract.mjs
 - [[verify-month-contract.mjs]] - code - scripts/verify-month-contract.mjs
 - [[winRateFor()]] - code - src/lib/trading/month-contract.ts
 
@@ -43,11 +42,12 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 39]]
-- 3 edges to [[_COMMUNITY_Community 73]]
+- 4 edges to [[_COMMUNITY_Community 39]]
 - 1 edge to [[_COMMUNITY_Community 78]]
+- 1 edge to [[_COMMUNITY_Community 73]]
 
 ## Top bridge nodes
 - [[month-contract.ts]] - degree 18, connects to 2 communities
-- [[monthContractLine()]] - degree 7, connects to 2 communities
 - [[verify-month-contract.mjs]] - degree 9, connects to 1 community
+- [[ticketForEquity()]] - degree 5, connects to 1 community
+- [[monthDollars()]] - degree 3, connects to 1 community

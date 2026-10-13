@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-timeframes.ts"
 type: "code"
-community: "Community 186"
+community: "Community 163"
 location: "L280"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/Community_163
 ---
 
 # TfMarkSpec
@@ -15,4 +15,4 @@ tags:
 - [[MarkKind]] - `references` [EXTRACTED]
 - [[chart-timeframes.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/Community_163

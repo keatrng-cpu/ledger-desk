@@ -12,7 +12,7 @@ tags:
 # target-odds.ts
 
 ## Connections
-- [[Expectancy]] - `contains` [EXTRACTED]
+- [[Expectancy_1]] - `contains` [EXTRACTED]
 - [[MIN_SESSIONS_FOR_ODDS]] - `contains` [EXTRACTED]
 - [[OhlcBar]] - `imports` [EXTRACTED]
 - [[RaceResult]] - `contains` [EXTRACTED]

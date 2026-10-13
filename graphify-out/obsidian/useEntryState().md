@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/use-entry-state.ts"
 type: "code"
-community: "Community 69"
+community: "Community 33"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/Community_33
 ---
 
 # useEntryState()
@@ -25,4 +25,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 - [[use-entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/Community_33

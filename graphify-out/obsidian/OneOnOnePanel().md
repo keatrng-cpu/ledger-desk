@@ -2,7 +2,7 @@
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
 community: "Community 51"
-location: "L591"
+location: "L624"
 tags:
   - graphify/code
   - graphify/EXTRACTED

@@ -12,6 +12,7 @@ tags:
 # getAnalytics
 
 ## Connections
+- [[dot-query()]] - `calls` [INFERRED]
 - [[AnalyticsPanel()]] - `calls` [EXTRACTED]
 - [[analytics-panel.tsx]] - `imports` [EXTRACTED]
 - [[analytics-server.ts]] - `contains` [EXTRACTED]

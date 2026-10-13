@@ -1,20 +1,19 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 56"
-location: "L155"
+community: "Community 40"
+location: "L279"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_40
 ---
 
 # pickCandidate()
 
 ## Connections
+- [[eligibleCandidates()]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
-- [[isHighProbPath()]] - `calls` [EXTRACTED]
-- [[isPathFire()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_40

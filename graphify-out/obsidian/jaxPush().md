@@ -12,7 +12,7 @@ tags:
 # jaxPush()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
 - [[blocked()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `imports` [EXTRACTED]

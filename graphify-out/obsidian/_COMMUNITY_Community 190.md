@@ -21,7 +21,7 @@ members: 18
 - [[dot-releaseConnection()]] - code - src/lib/auth/pglite-dialect.ts
 - [[dot-rollbackTransaction()]] - code - src/lib/auth/pglite-dialect.ts
 - [[dot-streamQuery()]] - code - src/lib/auth/pglite-dialect.ts
-- [[@electric-sqlpglite]] - concept - package.json
+- [[@electric-sqlpglite_1]] - concept - package.json
 - [[Client]] - code - src/lib/auth/pglite-dialect.ts
 - [[LazyPGliteDriver]] - code - src/lib/auth/pglite-dialect.ts
 - [[PGliteConnection]] - code - src/lib/auth/pglite-dialect.ts
@@ -39,10 +39,11 @@ SORT file.name ASC
 ## Connections to other communities
 - 2 edges to [[_COMMUNITY_Community 105]]
 - 2 edges to [[_COMMUNITY_Community 32]]
-- 1 edge to [[_COMMUNITY_Community 189]]
+- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 65]]
 
 ## Top bridge nodes
-- [[@electric-sqlpglite]] - degree 3, connects to 2 communities
+- [[@electric-sqlpglite_1]] - degree 4, connects to 3 communities
 - [[pglite-dialect.ts]] - degree 7, connects to 1 community
 - [[pgliteDialect()]] - degree 3, connects to 1 community
 - [[kysely]] - degree 2, connects to 1 community

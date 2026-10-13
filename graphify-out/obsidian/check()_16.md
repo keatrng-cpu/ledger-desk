@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-spot-cross.mjs"
+source_file: "scripts/verify-tooling-guards.mjs"
 type: "code"
-community: "Community 160"
+community: "Community 143"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/Community_143
 ---
 
 # check()
 
 ## Connections
-- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
+- [[verify-tooling-guards.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/Community_143

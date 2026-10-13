@@ -2,7 +2,7 @@
 source_file: "src/lib/market/fetch-dual.ts"
 type: "code"
 community: "Community 1"
-location: "L63"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -13,11 +13,7 @@ tags:
 
 ## Connections
 - [[fetch-dual.ts]] - `contains` [EXTRACTED]
-- [[fetchDatabentoBars()]] - `calls` [EXTRACTED]
 - [[fetchDualIndexes]] - `calls` [EXTRACTED]
-- [[fetchYahooBars()]] - `calls` [EXTRACTED]
-- [[hasDatabentoKey()]] - `calls` [EXTRACTED]
-- [[stitchLiveSession()]] - `calls` [EXTRACTED]
-- [[syntheticBars()]] - `calls` [EXTRACTED]
+- [[loadStructureSeries()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_1

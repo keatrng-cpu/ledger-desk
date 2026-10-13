@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 7"
+community: "Community 172"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_172
 ---
 
 # KALSHI_SOURCE_LABEL
@@ -17,4 +17,4 @@ tags:
 - [[prediction-market-feed.ts]] - `contains` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_172

@@ -1,19 +1,23 @@
 ---
-source_file: "src/lib/room/live-types.ts"
+source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 42"
-location: "L195"
+community: "Community 100"
+location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Community_100
 ---
 
 # BookRead
 
 ## Connections
-- [[floor-props.ts]] - `imports` [EXTRACTED]
-- [[live-types.ts]] - `contains` [EXTRACTED]
-- [[live-world.ts]] - `imports` [EXTRACTED]
+- [[FirmInputs]] - `references` [EXTRACTED]
+- [[InvestInputs]] - `references` [EXTRACTED]
+- [[book-card.tsx]] - `imports` [EXTRACTED]
+- [[book.ts]] - `contains` [EXTRACTED]
+- [[concentrationWarning()]] - `references` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[invest-office.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/Community_100

@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[DESK_CLOSE_LAG_MS]] - `contains` [EXTRACTED]
-- [[DESK_MID_MINUTE_MS]] - `contains` [EXTRACTED]
+- [[DESK_POLL_GAP_MS]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[msUntilNextDeskPoll()]] - `contains` [EXTRACTED]
 - [[verify-desk-cadence.mjs]] - `dynamic_import` [EXTRACTED]

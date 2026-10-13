@@ -63,23 +63,24 @@ SORT file.name ASC
 ## Connections to other communities
 - 29 edges to [[_COMMUNITY_Community 59]]
 - 21 edges to [[_COMMUNITY_Community 188]]
-- 5 edges to [[_COMMUNITY_Community 26]]
-- 5 edges to [[_COMMUNITY_Community 108]]
-- 3 edges to [[_COMMUNITY_Community 77]]
+- 6 edges to [[_COMMUNITY_Community 108]]
 - 3 edges to [[_COMMUNITY_Community 58]]
+- 2 edges to [[_COMMUNITY_Community 26]]
+- 2 edges to [[_COMMUNITY_Community 43]]
 - 2 edges to [[_COMMUNITY_Community 44]]
-- 2 edges to [[_COMMUNITY_Community 99]]
-- 1 edge to [[_COMMUNITY_Community 60]]
-- 1 edge to [[_COMMUNITY_Community 43]]
-- 1 edge to [[_COMMUNITY_Community 23]]
-- 1 edge to [[_COMMUNITY_Community 158]]
+- 2 edges to [[_COMMUNITY_Community 23]]
+- 2 edges to [[_COMMUNITY_Community 77]]
+- 2 edges to [[_COMMUNITY_Community 48]]
+- 1 edge to [[_COMMUNITY_Community 46]]
+- 1 edge to [[_COMMUNITY_Community 104]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 - 1 edge to [[_COMMUNITY_Community 243]]
 - 1 edge to [[_COMMUNITY_Community 50]]
+- 1 edge to [[_COMMUNITY_Community 99]]
 
 ## Top bridge nodes
+- [[apex-sim.ts]] - degree 94, connects to 10 communities
 - [[ContractKey]] - degree 17, connects to 9 communities
-- [[apex-sim.ts]] - degree 94, connects to 8 communities
 - [[buildDayPool()]] - degree 5, connects to 2 communities
 - [[runArm()]] - degree 9, connects to 1 community
 - [[loadEvidenceDist()]] - degree 4, connects to 1 community

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/meeting.ts"
 type: "code"
 community: "Community 3"
-location: "L675"
+location: "L676"
 tags:
   - graphify/code
   - graphify/EXTRACTED

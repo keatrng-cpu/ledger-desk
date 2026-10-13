@@ -1,0 +1,17 @@
+---
+source_file: "docs/code-index.md"
+type: "document"
+community: "Community 42"
+location: "L115"
+tags:
+  - graphify/document
+  - graphify/EXTRACTED
+  - community/Community_42
+---
+
+# src\components\desk\option-marks.tsx
+
+## Connections
+- [[Code index_1]] - `contains` [EXTRACTED]
+
+#graphify/document #graphify/EXTRACTED #community/Community_42

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/candlestick-pane.tsx"
 type: "code"
-community: "Community 27"
+community: "Community 272"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_272
 ---
 
 # candlestick-pane.tsx
@@ -21,7 +21,7 @@ tags:
 - [[SmcArray]] - `imports` [EXTRACTED]
 - [[TradePlan]] - `imports` [EXTRACTED]
 - [[arrayColor()]] - `contains` [EXTRACTED]
-- [[arrayName()]] - `contains` [EXTRACTED]
+- [[arrayName()_1]] - `contains` [EXTRACTED]
 - [[barTimeSec()]] - `contains` [EXTRACTED]
 - [[chart-overlay.ts]] - `imports_from` [EXTRACTED]
 - [[dual-index-charts.tsx]] - `imports_from` [EXTRACTED]
@@ -30,10 +30,10 @@ tags:
 - [[makeArrayPrimitive()]] - `contains` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
-- [[shortName()]] - `contains` [EXTRACTED]
+- [[shortName()_1]] - `contains` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[toCandleData()]] - `contains` [EXTRACTED]
 - [[toVolumeData()]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_272

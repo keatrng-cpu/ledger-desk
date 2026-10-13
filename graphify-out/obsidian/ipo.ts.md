@@ -1,25 +1,26 @@
 ---
 source_file: "src/lib/invest/ipo.ts"
 type: "code"
-community: "Community 184"
+community: "Community 86"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/Community_86
 ---
 
 # ipo.ts
 
 ## Connections
-- [[DOC_1]] - `contains` [EXTRACTED]
+- [[DOC_5]] - `contains` [EXTRACTED]
 - [[IpoDoc]] - `contains` [EXTRACTED]
 - [[IpoStage]] - `contains` [EXTRACTED]
 - [[LOCKUP_DAYS_DEFAULT]] - `contains` [EXTRACTED]
 - [[PricedIpo]] - `contains` [EXTRACTED]
 - [[TRACK_RECORD_DAYS]] - `contains` [EXTRACTED]
 - [[UpcomingIpo]] - `contains` [EXTRACTED]
-- [[addDays()_5]] - `contains` [EXTRACTED]
+- [[addDays()_6]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[ipo-card.tsx]] - `imports_from` [EXTRACTED]
 - [[ipoCapturedAt()]] - `contains` [EXTRACTED]
 - [[ipoEvidence]] - `contains` [EXTRACTED]
@@ -29,6 +30,7 @@ tags:
 - [[pricedIpos()]] - `contains` [EXTRACTED]
 - [[src_data_ipo_watch]] - `imports_from` [EXTRACTED]
 - [[upcomingIpos()]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-news-ipo.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/Community_86

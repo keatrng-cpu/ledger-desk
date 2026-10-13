@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
 community: "Community 84"
-location: "L166"
+location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED

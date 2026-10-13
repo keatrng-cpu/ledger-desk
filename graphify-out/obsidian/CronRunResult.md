@@ -16,6 +16,7 @@ tags:
 - [[cron.ts]] - `contains` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
 - [[review.ts]] - `imports` [EXTRACTED]
+- [[rh-manage.ts]] - `imports` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[weekly.ts]] - `imports` [EXTRACTED]
 

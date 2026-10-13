@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-agree.ts"
 type: "code"
-community: "Community 119"
+community: "Community 15"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/Community_15
 ---
 
 # resolveStandAgentAgree()
@@ -19,4 +19,4 @@ tags:
 - [[proposeRhFromPathFire()]] - `calls` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/Community_15

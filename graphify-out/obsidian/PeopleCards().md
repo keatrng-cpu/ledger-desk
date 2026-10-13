@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 3"
-location: "L840"
+community: "Community 51"
+location: "L873"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/Community_51
 ---
 
 # PeopleCards()
 
 ## Connections
-- [[Bar()_8]] - `calls` [EXTRACTED]
+- [[Bar()_10]] - `calls` [EXTRACTED]
 - [[MiniAvatar()]] - `calls` [EXTRACTED]
 - [[Portrait()]] - `calls` [EXTRACTED]
 - [[TradingFloorTab()]] - `calls` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[relationWord()]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/Community_51

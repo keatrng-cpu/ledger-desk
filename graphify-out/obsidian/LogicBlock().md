@@ -12,7 +12,7 @@ tags:
 # LogicBlock()
 
 ## Connections
-- [[Bar()_9]] - `calls` [EXTRACTED]
+- [[Bar()_11]] - `calls` [EXTRACTED]
 - [[FloorBrains()]] - `calls` [EXTRACTED]
 - [[floor-brains.tsx]] - `contains` [EXTRACTED]
 

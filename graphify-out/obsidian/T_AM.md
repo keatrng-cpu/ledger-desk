@@ -2,7 +2,7 @@
 source_file: "scripts/verify-live-talk.mjs"
 type: "code"
 community: "Community 142"
-location: "L42"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED

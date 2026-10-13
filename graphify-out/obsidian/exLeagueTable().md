@@ -12,6 +12,8 @@ tags:
 # exLeagueTable()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[anim()]] - `calls` [EXTRACTED]
 - [[boardMoves()]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]

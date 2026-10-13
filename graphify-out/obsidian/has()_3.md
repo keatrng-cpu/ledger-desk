@@ -1,21 +1,21 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 55"
-location: "L49"
+community: "Community 40"
+location: "L374"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/Community_40
 ---
 
 # has()
 
 ## Connections
-- [[atrAt()_2]] - `calls` [EXTRACTED]
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[oppsFor()]] - `calls` [EXTRACTED]
-- [[runAccount()]] - `calls` [EXTRACTED]
-- [[slice()]] - `calls` [EXTRACTED]
+- [[has()_3]] - `calls` [EXTRACTED]
+- [[modelMayBeNamed()]] - `calls` [EXTRACTED]
+- [[scoreCanonStack()]] - `calls` [EXTRACTED]
+- [[sequenceGaps()]] - `calls` [EXTRACTED]
+- [[smc-canon.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/Community_40

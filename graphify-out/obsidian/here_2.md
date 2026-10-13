@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-prediction-market-feed.mjs"
+source_file: "scripts/render-mead-attachments.mjs"
 type: "code"
-community: "Community 204"
-location: "L25"
+community: "Community 173"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_204
+  - community/Community_173
 ---
 
 # here
 
 ## Connections
-- [[verify-prediction-market-feed.mjs]] - `contains` [EXTRACTED]
+- [[render-mead-attachments.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_204
+#graphify/code #graphify/EXTRACTED #community/Community_173

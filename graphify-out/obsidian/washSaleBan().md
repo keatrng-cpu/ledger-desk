@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 100"
+community: "Community 5"
 location: "L246"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/Community_5
 ---
 
 # washSaleBan()
@@ -15,7 +15,9 @@ tags:
 - [[book.ts]] - `imports` [EXTRACTED]
 - [[buildBook()]] - `calls` [EXTRACTED]
 - [[canAdd()]] - `calls` [EXTRACTED]
+- [[gradeLongCard()]] - `calls` [EXTRACTED]
+- [[long-board.ts]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
-- [[verdictFor()]] - `calls` [EXTRACTED]
+- [[verdictFor()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/Community_5

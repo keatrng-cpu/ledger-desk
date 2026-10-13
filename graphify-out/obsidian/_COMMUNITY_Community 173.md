@@ -13,10 +13,10 @@ members: 21
 - [[C_1]] - code - scripts/render-mead-attachments.mjs
 - [[MARKETS]] - code - scripts/render-mead-attachments.mjs
 - [[SHOTS]] - code - scripts/render-mead-attachments.mjs
-- [[bar()_4]] - code - scripts/render-mead-attachments.mjs
+- [[bar()_5]] - code - scripts/render-mead-attachments.mjs
 - [[hailBanner()]] - code - scripts/render-mead-attachments.mjs
 - [[helm()]] - code - scripts/render-mead-attachments.mjs
-- [[here_1]] - code - scripts/render-mead-attachments.mjs
+- [[here_2]] - code - scripts/render-mead-attachments.mjs
 - [[ironFrame()]] - code - scripts/render-mead-attachments.mjs
 - [[jumbotron()]] - code - scripts/render-mead-attachments.mjs
 - [[label()]] - code - scripts/render-mead-attachments.mjs
@@ -40,7 +40,11 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 3 edges to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 19]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 277]]
+- 1 edge to [[_COMMUNITY_Community 11]]
 
 ## Top bridge nodes
-- [[render-mead-attachments.mjs]] - degree 23, connects to 1 community
+- [[render-mead-attachments.mjs]] - degree 23, connects to 3 communities
+- [[text()]] - degree 11, connects to 1 community

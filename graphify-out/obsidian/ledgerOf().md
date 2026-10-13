@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[cycle.ts]] - `imports` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[ledgerOfCounters()]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]

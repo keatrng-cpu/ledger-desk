@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/store.ts"
 type: "code"
-community: "Community 147"
+community: "Community 34"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/Community_34
 ---
 
 # emit()
@@ -15,4 +15,4 @@ tags:
 - [[store.ts]] - `contains` [EXTRACTED]
 - [[writeEntries()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/Community_34

@@ -2,7 +2,7 @@
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
 community: "Community 16"
-location: "L147"
+location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # SignalHallFeed
 
 ## Connections
-- [[dot-dispose()_1]] - `method` [EXTRACTED]
+- [[dot-dispose()_2]] - `method` [EXTRACTED]
 - [[dot-getState()]] - `method` [EXTRACTED]
 - [[dot-refresh()]] - `method` [EXTRACTED]
 - [[dot-subscribe()]] - `method` [EXTRACTED]

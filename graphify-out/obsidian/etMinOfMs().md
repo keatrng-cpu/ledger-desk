@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 104"
+community: "Community 3"
 location: "L358"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/Community_3
 ---
 
 # etMinOfMs()
@@ -16,4 +16,4 @@ tags:
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/Community_3

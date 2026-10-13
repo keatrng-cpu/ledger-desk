@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[ET()_2]] - `contains` [EXTRACTED]
 - [[FIGS]] - `contains` [EXTRACTED]
-- [[HIST_3]] - `contains` [EXTRACTED]
+- [[HIST_6]] - `contains` [EXTRACTED]
 - [[captions]] - `contains` [EXTRACTED]
-- [[dayChangePct()_4]] - `contains` [EXTRACTED]
-- [[dayKey()_10]] - `contains` [EXTRACTED]
+- [[dayChangePct()_6]] - `contains` [EXTRACTED]
+- [[dayKey()_11]] - `contains` [EXTRACTED]
 - [[etHM()]] - `contains` [EXTRACTED]
 - [[found]] - `contains` [EXTRACTED]
 - [[idxAt()]] - `contains` [EXTRACTED]

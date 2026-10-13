@@ -12,7 +12,7 @@ tags:
 # trading/evidence.ts
 
 ## Connections
-- [[EVIDENCE_2]] - `contains` [EXTRACTED]
+- [[EVIDENCE_1]] - `contains` [EXTRACTED]
 - [[EvidenceBucket]] - `contains` [EXTRACTED]
 - [[EvidenceLine]] - `contains` [EXTRACTED]
 - [[EvidencePack]] - `contains` [EXTRACTED]

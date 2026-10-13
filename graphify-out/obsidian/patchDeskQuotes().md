@@ -2,7 +2,7 @@
 source_file: "src/routes/index.tsx"
 type: "code"
 community: "Community 8"
-location: "L648"
+location: "L689"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,7 @@ tags:
 - [[applyQuoteToLastBar()]] - `calls` [EXTRACTED]
 - [[buildLiveSays()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `contains` [EXTRACTED]
+- [[keepFresher()]] - `calls` [EXTRACTED]
 - [[stampSeriesFromBars()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_8

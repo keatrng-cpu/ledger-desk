@@ -12,11 +12,11 @@ tags:
 # trace-session.mjs
 
 ## Connections
-- [[dayChangePct()_3]] - `contains` [EXTRACTED]
-- [[dayKey()_9]] - `contains` [EXTRACTED]
+- [[dayChangePct()_5]] - `contains` [EXTRACTED]
+- [[dayKey()_10]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[history_3]] - `contains` [EXTRACTED]
+- [[history_5]] - `contains` [EXTRACTED]
 - [[hm()]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `dynamic_import` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]

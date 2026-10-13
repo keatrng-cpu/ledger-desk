@@ -12,7 +12,9 @@ tags:
 # useCurrentUser()
 
 ## Connections
+- [[Reading the user  protecting routes]] - `references` [INFERRED]
 - [[UserButton()]] - `calls` [EXTRACTED]
+- [[What's pre-wired (`srclibauth`)]] - `references` [INFERRED]
 - [[gates.tsx]] - `imports` [EXTRACTED]
 - [[use-current-user.ts]] - `contains` [EXTRACTED]
 - [[useCurrentUserState()]] - `calls` [EXTRACTED]

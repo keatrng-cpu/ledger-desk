@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[drawBooth()]] - `calls` [EXTRACTED]
 - [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_41

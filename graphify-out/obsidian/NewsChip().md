@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/news-chip.tsx"
 type: "code"
-community: "Community 33"
+community: "Community 69"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/Community_69
 ---
 
 # NewsChip()
@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[SessionHud()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[countdown()]] - `calls` [EXTRACTED]
+- [[countdown()_1]] - `calls` [EXTRACTED]
 - [[news-chip.tsx]] - `contains` [EXTRACTED]
 - [[newsRead]] - `calls` [EXTRACTED]
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/Community_69

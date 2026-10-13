@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 81"
+community: "Community 0"
 location: "L192"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/Community_0
 ---
 
 # RoomEntryRead
@@ -28,4 +28,4 @@ tags:
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/Community_0

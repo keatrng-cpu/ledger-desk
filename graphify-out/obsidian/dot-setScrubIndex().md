@@ -12,6 +12,7 @@ tags:
 # .setScrubIndex()
 
 ## Connections
+- [[dot-setScrubIndex()_1]] - `calls` [INFERRED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_24

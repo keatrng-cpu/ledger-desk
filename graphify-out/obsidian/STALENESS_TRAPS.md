@@ -12,6 +12,7 @@ tags:
 # STALENESS_TRAPS
 
 ## Connections
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[investevidence.ts]] - `contains` [EXTRACTED]
 - [[limits-card.tsx]] - `imports` [EXTRACTED]
 

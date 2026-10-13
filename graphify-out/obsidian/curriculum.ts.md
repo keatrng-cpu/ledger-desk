@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/curriculum.ts"
 type: "code"
-community: "Community 132"
+community: "Community 26"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/Community_26
 ---
 
 # curriculum.ts
@@ -41,7 +41,7 @@ tags:
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[moduleById()]] - `contains` [EXTRACTED]
-- [[pct()_2]] - `contains` [EXTRACTED]
+- [[pct()_11]] - `contains` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[replay-drill.ts]] - `imports_from` [EXTRACTED]
 - [[shock.ts]] - `imports_from` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/Community_26

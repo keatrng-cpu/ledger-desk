@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 12"
+community: "Community 172"
 location: "L578"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/Community_172
 ---
 
 # stateFromKalshiResult()
@@ -18,4 +18,4 @@ tags:
 - [[prediction-market-feed.ts]] - `contains` [EXTRACTED]
 - [[topIdsFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/Community_172

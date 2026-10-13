@@ -13,6 +13,6 @@ tags:
 
 ## Connections
 - [[book.ts]] - `contains` [EXTRACTED]
-- [[verdictFor()]] - `calls` [EXTRACTED]
+- [[verdictFor()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_100

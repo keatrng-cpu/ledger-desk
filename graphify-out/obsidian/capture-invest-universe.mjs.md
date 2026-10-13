@@ -13,11 +13,11 @@ tags:
 
 ## Connections
 - [[ETF_MODE]] - `contains` [EXTRACTED]
-- [[args_1]] - `contains` [EXTRACTED]
+- [[args_3]] - `contains` [EXTRACTED]
 - [[bIdx]] - `contains` [EXTRACTED]
 - [[captureEtfProfiles()]] - `contains` [EXTRACTED]
 - [[doc_3]] - `contains` [EXTRACTED]
-- [[num()_10]] - `contains` [EXTRACTED]
+- [[num()_9]] - `contains` [EXTRACTED]
 - [[only_2]] - `contains` [EXTRACTED]
 - [[queue]] - `contains` [EXTRACTED]
 - [[readKey()_1]] - `contains` [EXTRACTED]

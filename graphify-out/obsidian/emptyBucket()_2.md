@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
 community: "Community 9"
-location: "L94"
+location: "L127"
 tags:
   - graphify/code
   - graphify/EXTRACTED

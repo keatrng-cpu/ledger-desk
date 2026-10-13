@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-timeframes.ts"
 type: "code"
-community: "Community 27"
+community: "Community 163"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/Community_163
 ---
 
 # ChartTf
@@ -19,4 +19,4 @@ tags:
 - [[setup-mini-chart.tsx]] - `imports` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/Community_163

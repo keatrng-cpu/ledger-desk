@@ -13,11 +13,11 @@ tags:
 
 ## Connections
 - [[build-desk.ts]] - `imports` [EXTRACTED]
-- [[fetch-dual.ts]] - `imports` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
 - [[load()]] - `calls` [EXTRACTED]
 - [[loadDaily()]] - `calls` [EXTRACTED]
 - [[loadMinute()]] - `calls` [EXTRACTED]
-- [[loadSymbol()]] - `calls` [EXTRACTED]
+- [[loadStructureSeries()]] - `calls` [EXTRACTED]
 - [[parseYahooChart()]] - `calls` [EXTRACTED]
 - [[replay-server.ts]] - `imports` [EXTRACTED]
 - [[runReplay]] - `calls` [EXTRACTED]

@@ -16,7 +16,7 @@ tags:
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[getSql()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
-- [[iso()_1]] - `calls` [EXTRACTED]
+- [[iso()_2]] - `calls` [EXTRACTED]
 - [[journal-panel.tsx]] - `imports` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 

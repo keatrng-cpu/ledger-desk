@@ -12,6 +12,7 @@ tags:
 # SWEEP_RATE_NEW
 
 ## Connections
+- [[funnel.ts]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_86

@@ -12,7 +12,7 @@ members: 7
 ## Members
 - [[FIX]] - code - scripts/verify-apex-sim.mjs
 - [[acct()]] - code - scripts/verify-apex-sim.mjs
-- [[check()_47]] - code - scripts/verify-apex-sim.mjs
+- [[check()_58]] - code - scripts/verify-apex-sim.mjs
 - [[fixture()]] - code - scripts/verify-apex-sim.mjs
 - [[near()_5]] - code - scripts/verify-apex-sim.mjs
 - [[verify-apex-sim.mjs]] - code - scripts/verify-apex-sim.mjs
@@ -27,7 +27,7 @@ SORT file.name ASC
 
 ## Connections to other communities
 - 3 edges to [[_COMMUNITY_Community 108]]
-- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 48]]
 - 1 edge to [[_COMMUNITY_Community 76]]
 - 1 edge to [[_COMMUNITY_Community 99]]
 

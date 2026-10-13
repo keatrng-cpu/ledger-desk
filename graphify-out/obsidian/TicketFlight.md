@@ -12,10 +12,10 @@ tags:
 # TicketFlight
 
 ## Connections
-- [[dot-constructor()_12]] - `method` [EXTRACTED]
-- [[dot-dispose()_4]] - `method` [EXTRACTED]
+- [[dot-constructor()_11]] - `method` [EXTRACTED]
+- [[dot-dispose()_5]] - `method` [EXTRACTED]
 - [[dot-react()]] - `calls` [EXTRACTED]
-- [[dot-update()_8]] - `method` [EXTRACTED]
+- [[dot-update()_6]] - `method` [EXTRACTED]
 - [[FloorScene]] - `references` [EXTRACTED]
 - [[floor-fx.ts]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `imports` [EXTRACTED]

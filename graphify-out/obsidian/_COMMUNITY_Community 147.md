@@ -1,41 +1,61 @@
 ---
 type: community
-cohesion: 0.17
-members: 26
+cohesion: 0.06
+members: 46
 ---
 
 # Community 147
 
-**Cohesion:** 0.17 - loosely connected
-**Members:** 26 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 46 nodes
 
 ## Members
-- [[Card()_2]] - code - src/components/invest/ui.tsx
-- [[DataCard()]] - code - src/components/invest/data-card.tsx
-- [[InvestEntry]] - code - src/lib/invest/ledger.ts
-- [[InvestExport]] - code - src/lib/invest/store.ts
-- [[LedgerPull]] - code - src/lib/invest/ledger-server.ts
-- [[LedgerPush]] - code - src/lib/invest/ledger-server.ts
-- [[SyncState]] - code - src/lib/invest/sync.ts
-- [[WriteResult]] - code - src/lib/invest/store.ts
-- [[appendInvestLedger]] - code - src/lib/invest/ledger-server.ts
-- [[data-card.tsx]] - code - src/components/invest/data-card.tsx
-- [[emit()_1]] - code - src/lib/invest/store.ts
-- [[exportLedger()]] - code - src/lib/invest/store.ts
-- [[importLedger()]] - code - src/lib/invest/store.ts
-- [[isEntry()]] - code - src/lib/invest/store.ts
-- [[ledger-server.ts]] - code - src/lib/invest/ledger-server.ts
-- [[listInvestLedger]] - code - src/lib/invest/ledger-server.ts
-- [[loadEntries()]] - code - src/lib/invest/store.ts
-- [[mergeEntries()]] - code - src/lib/invest/store.ts
-- [[num()_5]] - code - src/lib/invest/store.ts
-- [[replaceEntries()]] - code - src/lib/invest/store.ts
-- [[run()_1]] - code - src/lib/invest/sync.ts
-- [[same()]] - code - src/lib/invest/sync.ts
-- [[sync.ts]] - code - src/lib/invest/sync.ts
-- [[syncInvestLedger()]] - code - src/lib/invest/sync.ts
-- [[ui.tsx]] - code - src/components/invest/ui.tsx
-- [[writeEntries()]] - code - src/lib/invest/store.ts
+- [[BOUNDS_X1]] - code - scripts/build-mead-plan.mjs
+- [[Box]] - code - src/lib/room/mead-hall-layout.ts
+- [[CHECK]] - code - scripts/build-mead-plan.mjs
+- [[EAST]] - code - scripts/build-mead-plan.mjs
+- [[FILE_2]] - code - scripts/build-mead-plan.mjs
+- [[FLOOR_OVERVIEW]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_DOOR_FLOOR]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_NPCS]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_PLACES]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_PLAN_PREFIX]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_SCREENS]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_SPOTS]] - code - src/lib/room/mead-hall-layout.ts
+- [[HALL_WALL_Y]] - code - src/lib/room/mead-hall-layout.ts
+- [[HallCamera]] - code - src/lib/room/mead-hall-layout.ts
+- [[HallNpc]] - code - src/lib/room/mead-hall-layout.ts
+- [[HallPose]] - code - src/lib/room/mead-hall-layout.ts
+- [[HallScreenSpec]] - code - src/lib/room/mead-hall-layout.ts
+- [[HallSpot]] - code - src/lib/room/mead-hall-layout.ts
+- [[JUMBO_SIZE]] - code - src/lib/room/mead-hall-layout.ts
+- [[MEAD_PLAN_COUNTS]] - code - scripts/build-mead-plan.mjs
+- [[OWNED()]] - code - scripts/build-mead-plan.mjs
+- [[V2]] - code - src/lib/room/mead-hall-layout.ts
+- [[V3]] - code - src/lib/room/mead-hall-layout.ts
+- [[ix0, iz0]] - code - scripts/build-mead-plan.mjs
+- [[ix1, iz1]] - code - scripts/build-mead-plan.mjs
+- [[arr()]] - code - scripts/build-mead-plan.mjs
+- [[boxToFurniture()]] - code - src/lib/room/mead-hall-layout.ts
+- [[build-mead-plan.mjs]] - code - scripts/build-mead-plan.mjs
+- [[buildMeadPlan()]] - code - scripts/build-mead-plan.mjs
+- [[cameras]] - code - scripts/build-mead-plan.mjs
+- [[floorToHall()]] - code - src/lib/room/mead-hall-layout.ts
+- [[furniture]] - code - scripts/build-mead-plan.mjs
+- [[hallCameraToFloor()]] - code - src/lib/room/mead-hall-layout.ts
+- [[hallToFloor()]] - code - src/lib/room/mead-hall-layout.ts
+- [[here_1]] - code - scripts/build-mead-plan.mjs
+- [[inBlock()]] - code - src/lib/room/mead-hall-layout.ts
+- [[inHall()]] - code - src/lib/room/mead-hall-layout.ts
+- [[mead-hall-layout.ts]] - code - src/lib/room/mead-hall-layout.ts
+- [[patchSection()]] - code - scripts/build-mead-plan.mjs
+- [[r3()_4]] - code - scripts/build-mead-plan.mjs
+- [[rooms]] - code - scripts/build-mead-plan.mjs
+- [[screens]] - code - scripts/build-mead-plan.mjs
+- [[spots]] - code - scripts/build-mead-plan.mjs
+- [[wallN]] - code - scripts/build-mead-plan.mjs
+- [[wallS]] - code - scripts/build-mead-plan.mjs
+- [[wallW]] - code - scripts/build-mead-plan.mjs
 
 ## Live Query (requires Dataview plugin)
 
@@ -45,20 +65,23 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 31 edges to [[_COMMUNITY_Community 34]]
-- 11 edges to [[_COMMUNITY_Community 5]]
-- 9 edges to [[_COMMUNITY_Community 100]]
-- 7 edges to [[_COMMUNITY_Community 86]]
-- 3 edges to [[_COMMUNITY_Community 184]]
-- 3 edges to [[_COMMUNITY_Community 19]]
-- 3 edges to [[_COMMUNITY_Community 65]]
-- 2 edges to [[_COMMUNITY_Community 14]]
-- 1 edge to [[_COMMUNITY_Community 87]]
-- 1 edge to [[_COMMUNITY_Community 189]]
+- 18 edges to [[_COMMUNITY_Community 41]]
+- 4 edges to [[_COMMUNITY_Community 17]]
+- 2 edges to [[_COMMUNITY_Community 186]]
+- 2 edges to [[_COMMUNITY_Community 81]]
+- 2 edges to [[_COMMUNITY_Community 198]]
+- 1 edge to [[_COMMUNITY_Community 289]]
+- 1 edge to [[_COMMUNITY_Community 137]]
+- 1 edge to [[_COMMUNITY_Community 142]]
+- 1 edge to [[_COMMUNITY_Community 143]]
+- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 277]]
+- 1 edge to [[_COMMUNITY_Community 210]]
+- 1 edge to [[_COMMUNITY_Community 185]]
 
 ## Top bridge nodes
-- [[ui.tsx]] - degree 14, connects to 6 communities
-- [[Card()_2]] - degree 17, connects to 5 communities
-- [[ledger-server.ts]] - degree 15, connects to 5 communities
-- [[data-card.tsx]] - degree 13, connects to 4 communities
-- [[sync.ts]] - degree 15, connects to 2 communities
+- [[mead-hall-layout.ts]] - degree 42, connects to 9 communities
+- [[build-mead-plan.mjs]] - degree 37, connects to 5 communities
+- [[HALL_SPOTS]] - degree 4, connects to 2 communities
+- [[inHall()]] - degree 4, connects to 2 communities
+- [[floorToHall()]] - degree 4, connects to 1 community

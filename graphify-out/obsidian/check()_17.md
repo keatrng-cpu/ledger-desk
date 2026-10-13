@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-desk-enhancements.mjs"
+source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 164"
-location: "L30"
+community: "Community 144"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/Community_144
 ---
 
 # check()
 
 ## Connections
-- [[ok()_9]] - `calls` [EXTRACTED]
-- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
+- [[ok()_6]] - `calls` [EXTRACTED]
+- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/Community_144

@@ -1,18 +1,20 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 172"
+community: "Community 89"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/Community_89
 ---
 
 # loadRhSleeve()
 
 ## Connections
 - [[EntryTriggerPanel()]] - `calls` [EXTRACTED]
+- [[FourFactsBoard()]] - `calls` [EXTRACTED]
+- [[OptionTicket()]] - `calls` [EXTRACTED]
 - [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
 - [[OvernightBoard()]] - `calls` [EXTRACTED]
 - [[buildClaudeHandoff()]] - `calls` [EXTRACTED]
@@ -20,6 +22,8 @@ tags:
 - [[claude-handoff.ts]] - `imports` [EXTRACTED]
 - [[entry-trigger-panel.tsx]] - `imports` [EXTRACTED]
 - [[evaluateOptionsSwing()]] - `calls` [EXTRACTED]
+- [[four-facts-board.tsx]] - `imports` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-sleeve.ts]] - `contains` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
@@ -28,4 +32,4 @@ tags:
 - [[saveRhSleeve()]] - `calls` [EXTRACTED]
 - [[subscribeRhSleeve()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/Community_89

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 26"
+community: "Community 48"
 location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_48
 ---
 
 # riskDollars()
@@ -18,4 +18,4 @@ tags:
 - [[riskPctForGrade()]] - `calls` [EXTRACTED]
 - [[riskPctForScore()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_48

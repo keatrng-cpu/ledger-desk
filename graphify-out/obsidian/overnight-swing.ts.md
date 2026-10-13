@@ -51,7 +51,7 @@ tags:
 - [[rh-income.ts]] - `imports_from` [EXTRACTED]
 - [[rhTicketCapUsd()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_6]] - `contains` [EXTRACTED]
+- [[usd()_7]] - `contains` [EXTRACTED]
 - [[verify-overnight.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weekdayName()]] - `contains` [EXTRACTED]
 

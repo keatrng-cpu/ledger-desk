@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/session-backtest.ts"
+source_file: "scripts/agent-sync.mjs"
 type: "code"
-community: "Community 46"
-location: "L1440"
+community: "Community 282"
+location: "L156"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/Community_282
 ---
 
 # md
 
 ## Connections
-- [[session-backtest.ts]] - `contains` [EXTRACTED]
+- [[agent-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/Community_282

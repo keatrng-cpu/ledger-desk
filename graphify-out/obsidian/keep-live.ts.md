@@ -12,11 +12,12 @@ tags:
 # keep-live.ts
 
 ## Connections
-- [[Listener_2]] - `contains` [EXTRACTED]
+- [[Listener_1]] - `contains` [EXTRACTED]
 - [[WHY the quote poll, the desk rebuild, the room's 5-second tick, the paper…]] - `rationale_for` [EXTRACTED]
 - [[fire()]] - `contains` [EXTRACTED]
+- [[hi-alert-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
-- [[listeners_3]] - `contains` [EXTRACTED]
+- [[listeners_2]] - `contains` [EXTRACTED]
 - [[onBeat()]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[start()]] - `contains` [EXTRACTED]

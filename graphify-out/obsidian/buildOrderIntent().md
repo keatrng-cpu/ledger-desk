@@ -13,6 +13,7 @@ tags:
 
 ## Connections
 - [[OrderIntentError]] - `calls` [EXTRACTED]
+- [[Verified (real PGLite, `migrations.sql` 0001→0009 applied in order)]] - `references` [INFERRED]
 - [[apex-autofire.ts]] - `imports` [EXTRACTED]
 - [[buildTargets()]] - `calls` [EXTRACTED]
 - [[contractSpec()]] - `calls` [EXTRACTED]
@@ -22,7 +23,7 @@ tags:
 - [[order-intent.ts]] - `contains` [EXTRACTED]
 - [[orderIntentFromPaperLevels()]] - `calls` [EXTRACTED]
 - [[orderIntentFromPaperTrade()]] - `calls` [EXTRACTED]
-- [[round2()_11]] - `calls` [EXTRACTED]
+- [[round2()_10]] - `calls` [EXTRACTED]
 - [[round4()_4]] - `calls` [EXTRACTED]
 - [[toIso()_1]] - `calls` [EXTRACTED]
 - [[trimOrNull()]] - `calls` [EXTRACTED]

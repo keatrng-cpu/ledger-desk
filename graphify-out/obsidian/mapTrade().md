@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[closeTrade]] - `calls` [EXTRACTED]
-- [[iso()_1]] - `calls` [EXTRACTED]
+- [[iso()_2]] - `calls` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 - [[listTrades]] - `indirect_call` [INFERRED]
 - [[openTrade]] - `calls` [EXTRACTED]

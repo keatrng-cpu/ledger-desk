@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "scripts/verify-lab-constants.mjs"
 type: "code"
-community: "Community 7"
-location: "L62"
+community: "Community 335"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/Community_335
 ---
 
 # num()
 
 ## Connections
-- [[board.ts]] - `contains` [EXTRACTED]
-- [[parseEspnScoreboard()]] - `calls` [EXTRACTED]
-- [[parseKalshiEvents()]] - `calls` [EXTRACTED]
-- [[parsePolyMarket()]] - `calls` [EXTRACTED]
-- [[parseSummaryExtras()]] - `calls` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/Community_335

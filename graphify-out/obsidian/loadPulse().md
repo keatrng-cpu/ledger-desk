@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[cycle.ts]] - `imports` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[news-server.ts]] - `indirect_call` [INFERRED]
 - [[room-step.ts]] - `imports` [EXTRACTED]

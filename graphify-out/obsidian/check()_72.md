@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-plan.mjs"
+source_file: "scripts/verify-trade-plan.mjs"
 type: "code"
-community: "Community 99"
-location: "L26"
+community: "Community 295"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/Community_295
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-plan.mjs]] - `contains` [EXTRACTED]
+- [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/Community_295

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-account.ts"
 type: "code"
-community: "Community 9"
+community: "Community 44"
 location: "L105"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/Community_44
 ---
 
 # resetPaperAccount()
@@ -20,4 +20,4 @@ tags:
 - [[risk-panel.tsx]] - `imports` [EXTRACTED]
 - [[saveDeskMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/Community_44

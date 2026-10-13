@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/predict/predict-parts.tsx"
+source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 2"
-location: "L23"
+community: "Community 16"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/Community_16
 ---
 
 # cents()
 
 ## Connections
-- [[SideRow()]] - `calls` [EXTRACTED]
-- [[predict-parts.tsx]] - `contains` [EXTRACTED]
+- [[DeskPanel()]] - `calls` [EXTRACTED]
+- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/Community_16

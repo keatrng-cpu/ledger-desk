@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[Conflict]] - `imports` [EXTRACTED]
 - [[ConflictChip()]] - `contains` [EXTRACTED]
-- [[DIR_1]] - `contains` [EXTRACTED]
+- [[DIR_2]] - `contains` [EXTRACTED]
 - [[Plain()]] - `imports` [EXTRACTED]
 - [[entry-hero.tsx]] - `imports_from` [EXTRACTED]
 - [[entry-state.ts]] - `imports_from` [EXTRACTED]

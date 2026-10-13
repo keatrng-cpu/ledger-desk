@@ -13,7 +13,6 @@ tags:
 
 ## Connections
 - [[CardTape]] - `references` [EXTRACTED]
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[ladder-conflict.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]

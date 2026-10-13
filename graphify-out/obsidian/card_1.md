@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-desk-enhancements.mjs"
+source_file: "scripts/verify-hit-odds.mjs"
 type: "code"
-community: "Community 164"
-location: "L86"
+community: "Community 151"
+location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/Community_151
 ---
 
 # card
 
 ## Connections
-- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
+- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/Community_151

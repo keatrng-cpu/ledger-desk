@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-geometry.mjs"
+source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 158"
-location: "L26"
+community: "Community 125"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Community_125
 ---
 
 # near()
 
 ## Connections
-- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/Community_125

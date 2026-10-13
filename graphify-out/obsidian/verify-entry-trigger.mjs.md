@@ -12,8 +12,8 @@ tags:
 # verify-entry-trigger.mjs
 
 ## Connections
-- [[check()_68]] - `contains` [EXTRACTED]
+- [[check()_94]] - `contains` [EXTRACTED]
 - [[entry-trigger.ts]] - `dynamic_import` [EXTRACTED]
-- [[plan_2]] - `contains` [EXTRACTED]
+- [[plan_3]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_82

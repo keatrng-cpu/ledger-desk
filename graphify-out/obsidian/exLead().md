@@ -12,6 +12,8 @@ tags:
 # exLead()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices-race.ts]] - `contains` [EXTRACTED]

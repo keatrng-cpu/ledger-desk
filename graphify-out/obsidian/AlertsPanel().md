@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/alerts-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "Community 19"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/Community_19
 ---
 
 # AlertsPanel()
@@ -18,11 +18,11 @@ tags:
 - [[cn()]] - `calls` [EXTRACTED]
 - [[disablePushAlerts()]] - `calls` [EXTRACTED]
 - [[enablePushAlerts()]] - `calls` [EXTRACTED]
-- [[fmtTime()]] - `calls` [EXTRACTED]
+- [[fmtTime()_1]] - `calls` [EXTRACTED]
 - [[getAlertStatus]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[isPushEnabled()]] - `calls` [EXTRACTED]
 - [[listRecentAlerts]] - `calls` [EXTRACTED]
 - [[pushSupport]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/Community_19

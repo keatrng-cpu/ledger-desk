@@ -1,44 +1,69 @@
 ---
 type: community
-cohesion: 0.10
-members: 44
+cohesion: 0.06
+members: 77
 ---
 
 # Community 69
 
-**Cohesion:** 0.10 - loosely connected
-**Members:** 44 nodes
+**Cohesion:** 0.06 - loosely connected
+**Members:** 77 nodes
 
 ## Members
+- [[BookCard()_1]] - code - src/components/desk/market-narrative-panel.tsx
 - [[BookCol()_2]] - code - src/components/desk/price-path-board.tsx
 - [[COLOR_1]] - code - src/components/desk/viz/must-ring.tsx
-- [[ConflictChip()]] - code - src/components/desk/viz/conflict-chip.tsx
-- [[Countdown()_1]] - code - src/components/desk/entry-hero.tsx
-- [[DIR_1]] - code - src/components/desk/viz/conflict-chip.tsx
+- [[Conflict]] - code - src/lib/ui/entry-state.ts
+- [[DIR_2]] - code - src/components/desk/viz/conflict-chip.tsx
 - [[DrawLine()]] - code - src/components/desk/price-path-board.tsx
-- [[EntryHero()]] - code - src/components/desk/entry-hero.tsx
-- [[FitGauge()]] - code - src/components/desk/viz/fit-gauge.tsx
+- [[FeedToneKind]] - code - src/lib/ui/feed-tone.ts
 - [[GLOSSARY]] - code - src/lib/ui/plain-english.ts
 - [[GlossaryEntry]] - code - src/lib/ui/plain-english.ts
+- [[KNOWN_1]] - code - src/lib/ui/feed-tone.ts
 - [[LadderPlan]] - code - src/components/desk/viz/price-ladder.tsx
+- [[MarketNarrativePanel()]] - code - src/components/desk/market-narrative-panel.tsx
 - [[MustRing()]] - code - src/components/desk/viz/must-ring.tsx
+- [[NewsChip()]] - code - src/components/desk/news-chip.tsx
 - [[Plain()]] - code - src/components/desk/plain-text.tsx
 - [[PlainToggle()]] - code - src/components/desk/plain-text.tsx
 - [[PriceLadder()]] - code - src/components/desk/viz/price-ladder.tsx
 - [[PricePathBoard()]] - code - src/components/desk/price-path-board.tsx
+- [[QuoteChip()]] - code - src/components/desk/session-hud.tsx
+- [[SYNAPSE_TABS]] - code - src/components/desk/synapse-rail.tsx
+- [[SessionHud()]] - code - src/components/desk/session-hud.tsx
+- [[StateWord()]] - code - src/components/desk/state-word.tsx
+- [[SynapseChip()]] - code - src/components/desk/synapse-rail.tsx
+- [[SynapseRail()]] - code - src/components/desk/synapse-rail.tsx
+- [[SynapseTab]] - code - src/lib/trading/desk-synapse.ts
+- [[TAB_LABEL]] - code - src/components/desk/synapse-rail.tsx
 - [[TERMS]] - code - src/lib/ui/plain-english.ts
 - [[TERM_RE]] - code - src/lib/ui/plain-english.ts
-- [[allSeries()]] - code - src/lib/trading/chart-timeframes.ts
+- [[WORD_COLOR]] - code - src/lib/ui/state-words.ts
 - [[arc()]] - code - src/components/desk/viz/must-ring.tsx
 - [[bookForSymbol()]] - code - src/components/desk/price-path-board.tsx
+- [[classTone()]] - code - src/components/desk/market-narrative-panel.tsx
+- [[confTone()]] - code - src/components/desk/market-narrative-panel.tsx
 - [[conflict-chip.tsx]] - code - src/components/desk/viz/conflict-chip.tsx
-- [[entry-hero.tsx]] - code - src/components/desk/entry-hero.tsx
-- [[fit-gauge.tsx]] - code - src/components/desk/viz/fit-gauge.tsx
+- [[countdown()_1]] - code - src/components/desk/news-chip.tsx
+- [[displayLead()]] - code - src/lib/ui/state-words.ts
+- [[displayWord]] - code - src/lib/ui/state-words.ts
+- [[effectiveLagSec()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[feed-tone.ts]] - code - src/lib/ui/feed-tone.ts
+- [[feedDotTone]] - code - src/lib/ui/feed-tone.ts
+- [[feedTone]] - code - src/lib/ui/feed-tone.ts
 - [[fx()]] - code - src/components/desk/viz/price-ladder.tsx
 - [[getPlainEnglish()]] - code - src/lib/ui/plain-english.ts
 - [[ladderFrom()]] - code - src/components/desk/viz/price-ladder.tsx
-- [[listeners_2]] - code - src/lib/ui/plain-english.ts
+- [[lagWords()]] - code - src/lib/ui/feed-tone.ts
+- [[listeners_1]] - code - src/lib/ui/plain-english.ts
+- [[lucide-react_1]] - concept - package.json
+- [[market-narrative-panel.tsx]] - code - src/components/desk/market-narrative-panel.tsx
+- [[matchingGhost()]] - code - src/components/desk/session-hud.tsx
+- [[monthAheadFocusLine()]] - code - src/lib/trading/month-ahead.ts
 - [[must-ring.tsx]] - code - src/components/desk/viz/must-ring.tsx
+- [[narrativeCoachLines()]] - code - src/lib/trading/market-narrative.ts
+- [[news-chip.tsx]] - code - src/components/desk/news-chip.tsx
+- [[paint()]] - code - src/lib/ui/feed-tone.ts
 - [[plain-english.ts]] - code - src/lib/ui/plain-english.ts
 - [[plain-text.tsx]] - code - src/components/desk/plain-text.tsx
 - [[plainify()]] - code - src/lib/ui/plain-english.ts
@@ -47,13 +72,21 @@ members: 44
 - [[pricePathHudLine()]] - code - src/components/desk/price-path-board.tsx
 - [[pricePathVerdict()]] - code - src/components/desk/price-path-board.tsx
 - [[px()_12]] - code - src/components/desk/price-path-board.tsx
+- [[session-hud.tsx]] - code - src/components/desk/session-hud.tsx
+- [[setFlashOn()]] - code - src/lib/ui/flash-prefs.ts
 - [[setPlainEnglish()]] - code - src/lib/ui/plain-english.ts
+- [[shockSiren()]] - code - src/lib/alerts/path-alarm.ts
+- [[sourceTag()]] - code - src/lib/ui/feed-tone.ts
 - [[splitTerms()]] - code - src/lib/ui/plain-english.ts
+- [[state-word.tsx]] - code - src/components/desk/state-word.tsx
+- [[state-words.ts]] - code - src/lib/ui/state-words.ts
+- [[subscribeGhosts()]] - code - src/lib/trading/ghost-book.ts
 - [[subscribePlainEnglish()]] - code - src/lib/ui/plain-english.ts
+- [[synapse-rail.tsx]] - code - src/components/desk/synapse-rail.tsx
 - [[tone()_4]] - code - src/components/desk/price-path-board.tsx
-- [[useEntryState()]] - code - src/components/desk/use-entry-state.ts
 - [[usePlainEnglish()]] - code - src/components/desk/plain-text.tsx
 - [[usePlainify()]] - code - src/components/desk/plain-text.tsx
+- [[wordTitle()]] - code - src/lib/ui/state-words.ts
 
 ## Live Query (requires Dataview plugin)
 
@@ -63,32 +96,60 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 20 edges to [[_COMMUNITY_Community 33]]
-- 19 edges to [[_COMMUNITY_Community 14]]
-- 14 edges to [[_COMMUNITY_Community 56]]
-- 12 edges to [[_COMMUNITY_Community 39]]
-- 11 edges to [[_COMMUNITY_Community 8]]
-- 5 edges to [[_COMMUNITY_Community 44]]
-- 4 edges to [[_COMMUNITY_Community 130]]
-- 4 edges to [[_COMMUNITY_Community 163]]
-- 3 edges to [[_COMMUNITY_Community 214]]
-- 3 edges to [[_COMMUNITY_Community 27]]
-- 3 edges to [[_COMMUNITY_Community 48]]
+- 48 edges to [[_COMMUNITY_Community 14]]
+- 25 edges to [[_COMMUNITY_Community 33]]
+- 20 edges to [[_COMMUNITY_Community 8]]
+- 20 edges to [[_COMMUNITY_Community 9]]
+- 13 edges to [[_COMMUNITY_Community 39]]
+- 12 edges to [[_COMMUNITY_Community 44]]
+- 10 edges to [[_COMMUNITY_Community 130]]
+- 10 edges to [[_COMMUNITY_Community 48]]
+- 5 edges to [[_COMMUNITY_Community 40]]
+- 4 edges to [[_COMMUNITY_Community 179]]
+- 4 edges to [[_COMMUNITY_Community 153]]
+- 4 edges to [[_COMMUNITY_Community 20]]
 - 3 edges to [[_COMMUNITY_Community 58]]
-- 2 edges to [[_COMMUNITY_Community 139]]
-- 2 edges to [[_COMMUNITY_Community 51]]
-- 2 edges to [[_COMMUNITY_Community 1]]
-- 2 edges to [[_COMMUNITY_Community 26]]
+- 3 edges to [[_COMMUNITY_Community 25]]
+- 3 edges to [[_COMMUNITY_Community 163]]
+- 3 edges to [[_COMMUNITY_Community 152]]
+- 3 edges to [[_COMMUNITY_Community 1]]
+- 3 edges to [[_COMMUNITY_Community 23]]
+- 3 edges to [[_COMMUNITY_Community 78]]
+- 2 edges to [[_COMMUNITY_Community 100]]
 - 1 edge to [[_COMMUNITY_Community 229]]
-- 1 edge to [[_COMMUNITY_Community 9]]
-- 1 edge to [[_COMMUNITY_Community 20]]
-- 1 edge to [[_COMMUNITY_Community 40]]
-- 1 edge to [[_COMMUNITY_Community 72]]
-- 1 edge to [[_COMMUNITY_Community 78]]
+- 1 edge to [[_COMMUNITY_Community 272]]
+- 1 edge to [[_COMMUNITY_Community 108]]
+- 1 edge to [[_COMMUNITY_Community 109]]
+- 1 edge to [[_COMMUNITY_Community 127]]
+- 1 edge to [[_COMMUNITY_Community 134]]
+- 1 edge to [[_COMMUNITY_Community 16]]
+- 1 edge to [[_COMMUNITY_Community 160]]
+- 1 edge to [[_COMMUNITY_Community 161]]
+- 1 edge to [[_COMMUNITY_Community 167]]
+- 1 edge to [[_COMMUNITY_Community 2]]
+- 1 edge to [[_COMMUNITY_Community 222]]
+- 1 edge to [[_COMMUNITY_Community 232]]
+- 1 edge to [[_COMMUNITY_Community 26]]
+- 1 edge to [[_COMMUNITY_Community 299]]
+- 1 edge to [[_COMMUNITY_Community 31]]
+- 1 edge to [[_COMMUNITY_Community 32]]
+- 1 edge to [[_COMMUNITY_Community 34]]
+- 1 edge to [[_COMMUNITY_Community 41]]
+- 1 edge to [[_COMMUNITY_Community 46]]
+- 1 edge to [[_COMMUNITY_Community 5]]
+- 1 edge to [[_COMMUNITY_Community 51]]
+- 1 edge to [[_COMMUNITY_Community 54]]
+- 1 edge to [[_COMMUNITY_Community 59]]
+- 1 edge to [[_COMMUNITY_Community 95]]
+- 1 edge to [[_COMMUNITY_Community 82]]
+- 1 edge to [[_COMMUNITY_Community 89]]
+- 1 edge to [[_COMMUNITY_Community 93]]
+- 1 edge to [[_COMMUNITY_Community 79]]
+- 1 edge to [[_COMMUNITY_Community 86]]
 
 ## Top bridge nodes
-- [[price-path-board.tsx]] - degree 50, connects to 17 communities
-- [[pricePathVerdict()]] - degree 17, connects to 6 communities
-- [[allSeries()]] - degree 15, connects to 6 communities
-- [[entry-hero.tsx]] - degree 20, connects to 5 communities
-- [[EntryHero()]] - degree 12, connects to 3 communities
+- [[lucide-react_1]] - degree 63, connects to 36 communities
+- [[price-path-board.tsx]] - degree 50, connects to 15 communities
+- [[session-hud.tsx]] - degree 49, connects to 11 communities
+- [[pricePathVerdict()]] - degree 17, connects to 7 communities
+- [[SessionHud()]] - degree 26, connects to 6 communities

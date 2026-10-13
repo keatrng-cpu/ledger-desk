@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/grok-pwa-plugin.mjs"
 type: "code"
-community: "Community 230"
+community: "Community 135"
 location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_230
+  - community/Community_135
 ---
 
 # grokPwaPlugin()
@@ -16,4 +16,4 @@ tags:
 - [[injectGrokPwaHead()]] - `calls` [EXTRACTED]
 - [[vite.config.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_230
+#graphify/code #graphify/EXTRACTED #community/Community_135

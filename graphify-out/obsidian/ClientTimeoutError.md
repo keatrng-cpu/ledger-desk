@@ -12,7 +12,7 @@ tags:
 # ClientTimeoutError
 
 ## Connections
-- [[dot-constructor()_24]] - `method` [EXTRACTED]
+- [[dot-constructor()_27]] - `method` [EXTRACTED]
 - [[desk-fetch-guard.ts]] - `contains` [EXTRACTED]
 - [[withClientTimeout()]] - `calls` [EXTRACTED]
 

@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/aplus/sample-run.ts"
+source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 94"
-location: "L16"
+community: "Community 179"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/Community_179
 ---
 
 # Bias
 
 ## Connections
-- [[aplus-ops.tsx]] - `imports` [EXTRACTED]
-- [[sample-run.ts]] - `contains` [EXTRACTED]
+- [[BookSlice]] - `references` [EXTRACTED]
+- [[draw.ts]] - `imports` [EXTRACTED]
+- [[session-brief.ts]] - `imports` [EXTRACTED]
+- [[structure.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/Community_179

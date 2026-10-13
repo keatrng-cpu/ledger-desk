@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
+community: "Community 10"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/Community_10
 ---
 
 # SCHOOLS
@@ -19,4 +19,4 @@ tags:
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 - [[smc-playbook.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/Community_10

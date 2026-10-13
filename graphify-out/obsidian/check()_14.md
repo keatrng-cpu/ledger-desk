@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-hit-odds.mjs"
+source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 151"
-location: "L27"
+community: "Community 142"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_151
+  - community/Community_142
 ---
 
 # check()
 
 ## Connections
-- [[ok()_7]] - `calls` [EXTRACTED]
-- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_151
+#graphify/code #graphify/EXTRACTED #community/Community_142

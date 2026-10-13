@@ -12,7 +12,7 @@ tags:
 # verify-discipline.mjs
 
 ## Connections
-- [[check()_40]] - `contains` [EXTRACTED]
+- [[check()_51]] - `contains` [EXTRACTED]
 - [[discipline.ts]] - `dynamic_import` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_23

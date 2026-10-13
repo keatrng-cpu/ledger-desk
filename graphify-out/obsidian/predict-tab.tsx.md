@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[BTN]] - `imports` [EXTRACTED]
-- [[CARD_2]] - `imports` [EXTRACTED]
+- [[CARD_4]] - `imports` [EXTRACTED]
 - [[GameCard()]] - `imports` [EXTRACTED]
 - [[INTERVALS]] - `contains` [EXTRACTED]
 - [[JournalCard()]] - `imports` [EXTRACTED]

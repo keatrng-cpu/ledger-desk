@@ -12,6 +12,7 @@ tags:
 # sendAlert()
 
 ## Connections
+- [[Raising alerts from the trading path]] - `references` [INFERRED]
 - [[checklist.ts]] - `imports` [EXTRACTED]
 - [[claimAlert()]] - `calls` [EXTRACTED]
 - [[deleteDeadEndpoint()]] - `calls` [EXTRACTED]

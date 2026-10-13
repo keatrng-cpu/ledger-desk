@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
 community: "Community 127"
-location: "L636"
+location: "L805"
 tags:
   - graphify/code
   - graphify/EXTRACTED

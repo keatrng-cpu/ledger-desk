@@ -2,7 +2,7 @@
 source_file: "src/components/desk/invest-panel.tsx"
 type: "code"
 community: "Community 100"
-location: "L77"
+location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -15,10 +15,12 @@ tags:
 - [[BookCard()]] - `calls` [EXTRACTED]
 - [[DataCard()]] - `calls` [EXTRACTED]
 - [[ExposureCard()]] - `calls` [EXTRACTED]
+- [[FunnelCard()]] - `calls` [EXTRACTED]
 - [[HabitCard()]] - `calls` [EXTRACTED]
 - [[IpoCard()]] - `calls` [EXTRACTED]
 - [[KillWatchPanel()]] - `calls` [EXTRACTED]
 - [[LimitsCard()]] - `calls` [EXTRACTED]
+- [[LongBoard()]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[Note()]] - `calls` [EXTRACTED]
 - [[ResearchCard()]] - `calls` [EXTRACTED]

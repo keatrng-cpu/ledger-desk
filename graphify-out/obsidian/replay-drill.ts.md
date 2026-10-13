@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 6"
+community: "Community 270"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/Community_270
 ---
 
 # replay-drill.ts
@@ -15,7 +15,7 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BLOCKERS]] - `contains` [EXTRACTED]
 - [[BlockerId]] - `contains` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[CURVE_WINDOW]] - `contains` [EXTRACTED]
 - [[DECISION]] - `contains` [EXTRACTED]
 - [[DeskRecord]] - `contains` [EXTRACTED]
@@ -42,13 +42,13 @@ tags:
 - [[PAST_BARS]] - `contains` [EXTRACTED]
 - [[ProcessItem]] - `contains` [EXTRACTED]
 - [[REPEAT_EVERY]] - `contains` [EXTRACTED]
-- [[RULES_1]] - `contains` [EXTRACTED]
+- [[RULES_2]] - `contains` [EXTRACTED]
 - [[RULE_IDS]] - `contains` [EXTRACTED]
 - [[RuleCurve]] - `contains` [EXTRACTED]
 - [[RuleId]] - `contains` [EXTRACTED]
 - [[STATUSES_1]] - `contains` [EXTRACTED]
 - [[STORE_KEY]] - `contains` [EXTRACTED]
-- [[Side]] - `contains` [EXTRACTED]
+- [[Side_1]] - `contains` [EXTRACTED]
 - [[SimBar]] - `contains` [EXTRACTED]
 - [[SimOrder]] - `contains` [EXTRACTED]
 - [[SimResult_1]] - `contains` [EXTRACTED]
@@ -87,7 +87,7 @@ tags:
 - [[ruleCurves()]] - `contains` [EXTRACTED]
 - [[ruleLabel()]] - `contains` [EXTRACTED]
 - [[scoreProcess()]] - `contains` [EXTRACTED]
-- [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[shadow-book.ts]] - `re_exports` [EXTRACTED]
 - [[simulateOrder()]] - `contains` [EXTRACTED]
 - [[tagForRule()]] - `contains` [EXTRACTED]
 - [[tickOf()]] - `contains` [EXTRACTED]
@@ -100,4 +100,4 @@ tags:
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weakestRule()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/Community_270

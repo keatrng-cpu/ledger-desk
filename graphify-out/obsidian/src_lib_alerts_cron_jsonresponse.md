@@ -11,6 +11,7 @@ tags:
 # src_lib_alerts_cron_jsonresponse
 
 ## Connections
+- [[card.ts]] - `imports` [EXTRACTED]
 - [[checklist.ts]] - `imports` [EXTRACTED]
 - [[cycle.ts]] - `imports` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]

@@ -14,9 +14,12 @@ tags:
 ## Connections
 - [[daysBetween()]] - `calls` [EXTRACTED]
 - [[drawInvBoard()]] - `calls` [EXTRACTED]
+- [[exFirmMemo()]] - `calls` [EXTRACTED]
 - [[exInvCatalysts()]] - `calls` [EXTRACTED]
+- [[exStudyInvest()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `imports` [EXTRACTED]
 - [[invest-read.ts]] - `contains` [EXTRACTED]
+- [[live-voices-invest-firm.ts]] - `imports` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports` [EXTRACTED]
 - [[utcNoon()]] - `calls` [EXTRACTED]
 

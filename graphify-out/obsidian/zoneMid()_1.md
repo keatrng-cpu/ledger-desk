@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/trading/paper-manager.ts"
+source_file: "src/lib/trading/card-geometry.ts"
 type: "code"
-community: "Community 44"
-location: "L142"
+community: "Community 72"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/Community_72
 ---
 
 # zoneMid()
 
 ## Connections
-- [[buildPaperLevels()]] - `calls` [EXTRACTED]
-- [[paper-manager.ts]] - `contains` [EXTRACTED]
-- [[parseNums()]] - `calls` [EXTRACTED]
+- [[card-geometry.ts]] - `contains` [EXTRACTED]
+- [[readCardGeometry()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/Community_72

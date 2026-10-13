@@ -20,7 +20,7 @@ tags:
 - [[equal_in_front()]] - `calls` [EXTRACTED]
 - [[minute_of()_2]] - `calls` [EXTRACTED]
 - [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
-- [[walk()_4]] - `calls` [EXTRACTED]
+- [[walk()_3]] - `calls` [EXTRACTED]
 - [[year_of()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_192

@@ -2,7 +2,7 @@
 source_file: "src/components/desk/veteran-brain.tsx"
 type: "code"
 community: "Community 9"
-location: "L67"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,6 +16,7 @@ tags:
 - [[EvidenceTiles()]] - `calls` [EXTRACTED]
 - [[HiAlertPanel()]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
+- [[OptionMarksStrip()]] - `calls` [EXTRACTED]
 - [[SmcPlaybook()]] - `calls` [EXTRACTED]
 - [[StateWord()]] - `calls` [EXTRACTED]
 - [[brainLiveRisk]] - `calls` [EXTRACTED]
@@ -23,7 +24,7 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[loadDeskMemory()]] - `calls` [EXTRACTED]
 - [[pinNote()]] - `calls` [EXTRACTED]
-- [[remember()_1]] - `calls` [EXTRACTED]
+- [[remember()_2]] - `calls` [EXTRACTED]
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[stratStatusClass()]] - `calls` [EXTRACTED]
 - [[tabStatusClass()]] - `calls` [EXTRACTED]

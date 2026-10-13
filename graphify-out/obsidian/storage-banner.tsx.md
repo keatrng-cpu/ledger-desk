@@ -12,7 +12,7 @@ tags:
 # storage-banner.tsx
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[AccountChip()]] - `contains` [EXTRACTED]
 - [[BUILD_ID]] - `imports` [EXTRACTED]
 - [[SIGN_IN_PATH]] - `imports` [EXTRACTED]

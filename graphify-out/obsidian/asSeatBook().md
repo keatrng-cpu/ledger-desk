@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[ensureSeats()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[race.ts]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]

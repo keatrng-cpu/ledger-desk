@@ -2,7 +2,7 @@
 source_file: "scripts/blender/build_floor.py"
 type: "code"
 community: "Community 180"
-location: "L1315"
+location: "L1352"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,7 +12,7 @@ tags:
 # build_emissives()
 
 ## Connections
-- [[B()_1]] - `calls` [EXTRACTED]
+- [[B()]] - `calls` [EXTRACTED]
 - [[Geo]] - `calls` [EXTRACTED]
 - [[box()]] - `calls` [EXTRACTED]
 - [[build_floor.py]] - `contains` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
 community: "Community 103"
-location: "L196"
+location: "L225"
 tags:
   - graphify/code
   - graphify/EXTRACTED

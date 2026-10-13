@@ -12,7 +12,7 @@ tags:
 # assessConditions()
 
 ## Connections
-- [[atr()]] - `calls` [EXTRACTED]
+- [[atr()_1]] - `calls` [EXTRACTED]
 - [[conditions.ts]] - `contains` [EXTRACTED]
 - [[efficiencyRatio()]] - `calls` [EXTRACTED]
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[WHY the trader gave the desk its own description of ICT, TJR, PB Blake and PB…]] - `rationale_for` [EXTRACTED]
 - [[brain-feed.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_34]] - `contains` [EXTRACTED]
+- [[check()_47]] - `contains` [EXTRACTED]
 - [[desk-atlas.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-types.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-voices.ts]] - `dynamic_import` [EXTRACTED]

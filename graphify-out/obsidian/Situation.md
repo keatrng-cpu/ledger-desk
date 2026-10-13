@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
-location: "L371"
+community: "Community 0"
+location: "L406"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/Community_0
 ---
 
 # Situation
@@ -20,4 +20,4 @@ tags:
 - [[Urgency_1]] - `references` [EXTRACTED]
 - [[agents.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/Community_0

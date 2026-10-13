@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/desk-fetch-guard.ts"
+source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 8"
-location: "L57"
+community: "Community 7"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/Community_7
 ---
 
 # .constructor()
 
 ## Connections
-- [[ClientTimeoutError]] - `method` [EXTRACTED]
+- [[HttpError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/Community_7

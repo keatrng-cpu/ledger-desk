@@ -22,6 +22,6 @@ tags:
 - [[pct()_17]] - `calls` [EXTRACTED]
 - [[positionFromFills()]] - `calls` [EXTRACTED]
 - [[rhTicketCapUsd()]] - `calls` [EXTRACTED]
-- [[usd()_6]] - `calls` [EXTRACTED]
+- [[usd()_7]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_89

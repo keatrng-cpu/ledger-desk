@@ -15,7 +15,7 @@ tags:
 - [[byKey()]] - `calls` [EXTRACTED]
 - [[chop()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
-- [[n()]] - `calls` [EXTRACTED]
+- [[n()_1]] - `calls` [EXTRACTED]
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[researchShelf()]] - `calls` [EXTRACTED]
 

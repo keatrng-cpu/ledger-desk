@@ -13,7 +13,7 @@ tags:
 
 ## Connections
 - [[Bear structure into a sellside raid; then sweep-only  full signature  stale.]] - `rationale_for` [EXTRACTED]
-- [[atr()_1]] - `calls` [EXTRACTED]
+- [[atr()_2]] - `calls` [EXTRACTED]
 - [[bear_structure_before()]] - `calls` [EXTRACTED]
 - [[build-learn-figures.py]] - `contains` [EXTRACTED]
 - [[ny_am()]] - `calls` [EXTRACTED]

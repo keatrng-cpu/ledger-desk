@@ -12,6 +12,7 @@ tags:
 # blocked()
 
 ## Connections
+- [[4. News gate — mount the chip]] - `references` [INFERRED]
 - [[buildMeeting()]] - `calls` [EXTRACTED]
 - [[focusQuote()]] - `calls` [EXTRACTED]
 - [[hotTape()]] - `calls` [EXTRACTED]
@@ -21,7 +22,7 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[patternWarning()]] - `calls` [EXTRACTED]
 - [[printLine()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
-- [[say()]] - `calls` [EXTRACTED]
+- [[px()_10]] - `calls` [EXTRACTED]
+- [[say()_1]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_3

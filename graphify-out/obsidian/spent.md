@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-detectors.mjs"
 type: "code"
-community: "Community 175"
-location: "L35"
+community: "Community 165"
+location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/Community_165
 ---
 
 # spent
 
 ## Connections
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/Community_165

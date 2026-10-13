@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[dayPhrase()]] - `calls` [EXTRACTED]
 - [[daysBetween()]] - `calls` [EXTRACTED]
+- [[firmDay]] - `calls` [EXTRACTED]
 - [[invest-read.ts]] - `contains` [EXTRACTED]
 - [[plusDays()]] - `calls` [EXTRACTED]
 

@@ -12,6 +12,11 @@ tags:
 # exGoalNight()
 
 ## Connections
+- [[dot-int()]] - `calls` [INFERRED]
+- [[dot-pct()]] - `calls` [INFERRED]
+- [[dot-raw()]] - `calls` [INFERRED]
+- [[dot-usd()]] - `calls` [INFERRED]
+- [[dot-x()]] - `calls` [INFERRED]
 - [[boardMoves()]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]

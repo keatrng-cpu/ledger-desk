@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 39"
-location: "L377"
+community: "Community 92"
+location: "L408"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/Community_92
 ---
 
 # schoolReads()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[SetupCard()]] - `calls` [EXTRACTED]
 - [[explainHiAlert()]] - `calls` [EXTRACTED]
 - [[hi-alert.ts]] - `imports` [EXTRACTED]
@@ -23,4 +24,4 @@ tags:
 - [[schoolsOf()]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/Community_92

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/word-hysteresis.ts"
 type: "code"
-community: "Community 56"
+community: "Community 8"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_8
 ---
 
 # word-hysteresis.ts
@@ -28,4 +28,4 @@ tags:
 - [[stabilizeBook()]] - `contains` [EXTRACTED]
 - [[verify-word-hold.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_8

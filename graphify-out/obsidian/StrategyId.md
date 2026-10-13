@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 84"
-location: "L8"
+community: "Community 127"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/Community_127
 ---
 
 # StrategyId
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[CanonInput]] - `references` [EXTRACTED]
 - [[MarketNarrative]] - `references` [EXTRACTED]
+- [[ModelRequirement]] - `references` [EXTRACTED]
 - [[SetupCandidate]] - `references` [EXTRACTED]
 - [[SetupPlan]] - `references` [EXTRACTED]
 - [[StrategyMarketGrade]] - `references` [EXTRACTED]
@@ -28,4 +29,4 @@ tags:
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/Community_127

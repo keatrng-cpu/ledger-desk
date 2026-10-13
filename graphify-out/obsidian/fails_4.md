@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-take-census.mjs"
 type: "code"
-community: "Community 26"
+community: "Community 229"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/Community_229
 ---
 
 # fails
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-take-census.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/Community_229

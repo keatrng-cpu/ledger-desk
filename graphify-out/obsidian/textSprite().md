@@ -12,7 +12,7 @@ tags:
 # textSprite()
 
 ## Connections
-- [[dot-constructor()_12]] - `calls` [EXTRACTED]
+- [[dot-constructor()_11]] - `calls` [EXTRACTED]
 - [[floor-fx.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_196

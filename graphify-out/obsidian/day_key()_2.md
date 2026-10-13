@@ -15,6 +15,6 @@ tags:
 - [[collect()_2]] - `calls` [EXTRACTED]
 - [[main()_4]] - `calls` [EXTRACTED]
 - [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
-- [[walk()_4]] - `calls` [EXTRACTED]
+- [[walk()_3]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_192

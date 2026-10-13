@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 109"
+community: "Community 284"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/Community_284
 ---
 
 # src_data_earnings_calendar
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_109
+#graphify/concept #graphify/EXTRACTED #community/Community_284

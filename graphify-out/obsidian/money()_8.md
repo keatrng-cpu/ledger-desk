@@ -1,22 +1,20 @@
 ---
-source_file: "src/lib/room/paper-book.ts"
+source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 4"
-location: "L143"
+community: "Community 299"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/Community_299
 ---
 
 # money()
 
 ## Connections
-- [[applyCycle()]] - `calls` [EXTRACTED]
-- [[bookRealized()]] - `calls` [EXTRACTED]
-- [[equityOf()]] - `calls` [EXTRACTED]
-- [[markBook()]] - `calls` [EXTRACTED]
-- [[paper-book.ts]] - `contains` [EXTRACTED]
-- [[voidPosition()]] - `calls` [EXTRACTED]
+- [[RacePanel()]] - `calls` [EXTRACTED]
+- [[RaceTrack()]] - `calls` [EXTRACTED]
+- [[eventText()]] - `calls` [EXTRACTED]
+- [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/Community_299

@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
 community: "Community 73"
-location: "L734"
+location: "L1600"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -16,11 +16,11 @@ tags:
 - [[confidenceFloorFor()]] - `calls` [EXTRACTED]
 - [[contractsAfterEvent()]] - `calls` [EXTRACTED]
 - [[estimateSpot()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `calls` [EXTRACTED]
 - [[eventKind()]] - `calls` [EXTRACTED]
 - [[gapDirection]] - `calls` [EXTRACTED]
-- [[isJudasWindow()]] - `calls` [EXTRACTED]
+- [[liveCtxFor()]] - `calls` [EXTRACTED]
 - [[locationFights()]] - `calls` [EXTRACTED]
 - [[monthContractLine()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]

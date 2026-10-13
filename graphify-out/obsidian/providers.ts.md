@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[GROK_PROVIDERS]] - `contains` [EXTRACTED]
 - [[GrokProvider]] - `contains` [EXTRACTED]
-- [[authclient.ts]] - `imports_from` [EXTRACTED]
-- [[authserver.ts]] - `imports_from` [EXTRACTED]
+- [[authclient.ts]] - `re_exports` [EXTRACTED]
+- [[authserver.ts]] - `re_exports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_105

@@ -12,6 +12,7 @@ tags:
 # loadLedger()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[InvestPanel()]] - `calls` [EXTRACTED]
 - [[closedMonths()]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]

@@ -2,7 +2,7 @@
 source_file: "src/components/desk/veteran-brain.tsx"
 type: "code"
 community: "Community 9"
-location: "L53"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED

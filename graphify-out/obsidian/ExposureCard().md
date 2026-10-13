@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/exposure-card.tsx"
 type: "code"
-community: "Community 5"
+community: "Community 209"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/Community_209
 ---
 
 # ExposureCard()
@@ -22,6 +22,6 @@ tags:
 - [[pct()_15]] - `calls` [EXTRACTED]
 - [[profilesCapturedAt()]] - `calls` [EXTRACTED]
 - [[techOf()]] - `calls` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_6]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/Community_209

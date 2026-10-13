@@ -16,7 +16,7 @@ tags:
 - [[analytics-panel.tsx]] - `contains` [EXTRACTED]
 - [[cellLabel()]] - `calls` [EXTRACTED]
 - [[expCls()_1]] - `calls` [EXTRACTED]
-- [[money()_1]] - `calls` [EXTRACTED]
+- [[money()_2]] - `calls` [EXTRACTED]
 - [[pct()_7]] - `calls` [EXTRACTED]
 - [[rr()]] - `calls` [EXTRACTED]
 

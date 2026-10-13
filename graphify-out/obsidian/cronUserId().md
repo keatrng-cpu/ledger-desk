@@ -12,6 +12,8 @@ tags:
 # cronUserId()
 
 ## Connections
+- [[3.2 ITEM 19 — unattended live closing. The job already exists AND IT CAN OPEN, NOT ONLY CLOSE. This is the single most dangerous standing fact in the whole set and it is live right now.]] - `references` [INFERRED]
+- [[Where the Robinhood refresh token actually lives]] - `references` [INFERRED]
 - [[authorizeCronRequest()]] - `calls` [EXTRACTED]
 - [[cron.ts]] - `contains` [EXTRACTED]
 - [[envValue()_1]] - `calls` [EXTRACTED]

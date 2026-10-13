@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire.ts"
 type: "code"
-community: "Community 122"
-location: "L108"
+community: "Community 94"
+location: "L113"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/Community_94
 ---
 
 # rhLiveArmed()
@@ -17,7 +17,9 @@ tags:
 - [[exec-server.ts]] - `imports` [EXTRACTED]
 - [[handle()_1]] - `calls` [EXTRACTED]
 - [[rh-autofire.ts]] - `contains` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports` [EXTRACTED]
 - [[rhArmed()]] - `calls` [EXTRACTED]
 - [[rhAutofireFlagsFromEnv()]] - `calls` [EXTRACTED]
+- [[runRhDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/Community_94

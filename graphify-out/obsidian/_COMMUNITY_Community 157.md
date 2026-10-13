@@ -10,7 +10,7 @@ members: 24
 **Members:** 24 nodes
 
 ## Members
-- [[BARS_4]] - code - scripts/measure-inducement-news.mjs
+- [[BARS_6]] - code - scripts/measure-inducement-news.mjs
 - [[CALENDAR]] - code - scripts/measure-inducement-news.mjs
 - [[H_3]] - code - scripts/measure-inducement-news.mjs
 - [[HIGH_IMPACT_EPOCHS]] - code - scripts/measure-inducement-news.mjs
@@ -24,10 +24,10 @@ members: 24
 - [[inducementAt()]] - code - scripts/measure-inducement-news.mjs
 - [[measure-inducement-news.mjs]] - code - scripts/measure-inducement-news.mjs
 - [[minutesSinceNews()]] - code - scripts/measure-inducement-news.mjs
-- [[r3()_4]] - code - scripts/measure-inducement-news.mjs
+- [[r3()_5]] - code - scripts/measure-inducement-news.mjs
 - [[result_2]] - code - scripts/measure-inducement-news.mjs
-- [[rows_4]] - code - scripts/measure-inducement-news.mjs
-- [[show()_2]] - code - scripts/measure-inducement-news.mjs
+- [[rows_5]] - code - scripts/measure-inducement-news.mjs
+- [[show()_3]] - code - scripts/measure-inducement-news.mjs
 - [[sim()_3]] - code - scripts/measure-inducement-news.mjs
 - [[sims_2]] - code - scripts/measure-inducement-news.mjs
 - [[sweepCache_3]] - code - scripts/measure-inducement-news.mjs
@@ -43,8 +43,8 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 178]]
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 298]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 

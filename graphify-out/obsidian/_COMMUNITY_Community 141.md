@@ -11,12 +11,12 @@ members: 26
 
 ## Members
 - [[BAND]] - code - scripts/measure-entry-location.mjs
-- [[BARS_2]] - code - scripts/measure-entry-location.mjs
+- [[BARS_3]] - code - scripts/measure-entry-location.mjs
 - [[H_2]] - code - scripts/measure-entry-location.mjs
 - [[IS_YEARS_2]] - code - scripts/measure-entry-location.mjs
 - [[OOS_YEARS_2]] - code - scripts/measure-entry-location.mjs
 - [[Rc()]] - code - scripts/measure-entry-location.mjs
-- [[VARIANTS]] - code - scripts/measure-entry-location.mjs
+- [[VARIANTS_1]] - code - scripts/measure-entry-location.mjs
 - [[baseFills]] - code - scripts/measure-entry-location.mjs
 - [[cards]] - code - scripts/measure-entry-location.mjs
 - [[clusteredMean()]] - code - scripts/measure-entry-location.mjs
@@ -27,10 +27,10 @@ members: 26
 - [[mean()]] - code - scripts/measure-entry-location.mjs
 - [[measure-entry-location.mjs]] - code - scripts/measure-entry-location.mjs
 - [[oteLevel()]] - code - scripts/measure-entry-location.mjs
-- [[out_2]] - code - scripts/measure-entry-location.mjs
+- [[out]] - code - scripts/measure-entry-location.mjs
 - [[r3()_3]] - code - scripts/measure-entry-location.mjs
 - [[report()]] - code - scripts/measure-entry-location.mjs
-- [[rows_2]] - code - scripts/measure-entry-location.mjs
+- [[rows_3]] - code - scripts/measure-entry-location.mjs
 - [[sim()_2]] - code - scripts/measure-entry-location.mjs
 - [[stopThenTarget()]] - code - scripts/measure-entry-location.mjs
 - [[sweepCache_2]] - code - scripts/measure-entry-location.mjs
@@ -45,7 +45,7 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 11]]
+- 1 edge to [[_COMMUNITY_Community 143]]
 - 1 edge to [[_COMMUNITY_Community 35]]
 - 1 edge to [[_COMMUNITY_Community 20]]
 

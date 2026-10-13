@@ -12,13 +12,13 @@ tags:
 # render-setup-chart.mjs
 
 ## Connections
-- [[T0_8]] - `contains` [EXTRACTED]
-- [[bars_12]] - `contains` [EXTRACTED]
+- [[T0_12]] - `contains` [EXTRACTED]
+- [[bars_14]] - `contains` [EXTRACTED]
 - [[entryArray]] - `contains` [EXTRACTED]
 - [[markup]] - `contains` [EXTRACTED]
-- [[plan]] - `contains` [EXTRACTED]
+- [[plan_1]] - `contains` [EXTRACTED]
 - [[react]] - `imports_from` [EXTRACTED]
-- [[react-dom]] - `imports_from` [EXTRACTED]
+- [[react-dom_1]] - `imports_from` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rnd()_3]] - `contains` [EXTRACTED]
 - [[setup-chart.tsx]] - `dynamic_import` [EXTRACTED]

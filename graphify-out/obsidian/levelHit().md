@@ -2,7 +2,7 @@
 source_file: "src/lib/execution/rh-cycle.ts"
 type: "code"
 community: "Community 83"
-location: "L125"
+location: "L237"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # levelHit()
 
 ## Connections
+- [[3.3 Everything else that fights measured evidence]] - `references` [INFERRED]
 - [[decideRhCycle()]] - `calls` [EXTRACTED]
 - [[rh-cycle.ts]] - `contains` [EXTRACTED]
 

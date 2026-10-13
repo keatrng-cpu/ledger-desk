@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-room-snapshot.mjs"
+source_file: "scripts/verify-desk-cadence.mjs"
 type: "code"
-community: "Community 61"
-location: "L23"
+community: "Community 248"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/Community_248
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-snapshot.mjs]] - `contains` [EXTRACTED]
+- [[ok()_23]] - `calls` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/Community_248

@@ -59,6 +59,6 @@ tags:
 - [[trading-coach.tsx]] - `imports_from` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 - [[withTimeout()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_123

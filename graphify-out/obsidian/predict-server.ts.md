@@ -60,6 +60,7 @@ tags:
 - [[getPredictionMarketFeed]] - `contains` [EXTRACTED]
 - [[getPredictionSignals]] - `contains` [EXTRACTED]
 - [[getRhMcpUnavailableFeed()]] - `contains` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
 - [[historyFromCandles()]] - `imports` [EXTRACTED]
 - [[is429()]] - `contains` [EXTRACTED]
 - [[kalshiAdapterResult()]] - `imports` [EXTRACTED]
@@ -84,6 +85,6 @@ tags:
 - [[sleep()]] - `contains` [EXTRACTED]
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-prediction-market-feed.mjs]] - `dynamic_import` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_7

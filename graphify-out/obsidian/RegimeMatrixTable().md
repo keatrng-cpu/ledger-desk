@@ -18,7 +18,7 @@ tags:
 - [[analytics-panel.tsx]] - `contains` [EXTRACTED]
 - [[cellLabel()]] - `calls` [EXTRACTED]
 - [[kzLabel()]] - `calls` [EXTRACTED]
-- [[money()_1]] - `calls` [EXTRACTED]
+- [[money()_2]] - `calls` [EXTRACTED]
 - [[rr()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_167

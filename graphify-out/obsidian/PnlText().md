@@ -15,6 +15,6 @@ tags:
 - [[JournalPanel()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[journal-panel.tsx]] - `contains` [EXTRACTED]
-- [[money()_5]] - `calls` [EXTRACTED]
+- [[money()_6]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_23

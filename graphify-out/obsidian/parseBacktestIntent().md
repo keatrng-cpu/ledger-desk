@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[analyzeTradezellaChat]] - `calls` [EXTRACTED]
 - [[clampWindow()]] - `calls` [EXTRACTED]
-- [[etParts()_1]] - `calls` [EXTRACTED]
+- [[etParts()_2]] - `calls` [EXTRACTED]
 - [[isBacktestIntent()]] - `calls` [EXTRACTED]
 - [[normalizeBacktestQuery()]] - `calls` [EXTRACTED]
 - [[pad()]] - `calls` [EXTRACTED]

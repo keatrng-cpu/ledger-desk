@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
 community: "Community 1"
-location: "L218"
+location: "L225"
 tags:
   - graphify/code
   - graphify/EXTRACTED

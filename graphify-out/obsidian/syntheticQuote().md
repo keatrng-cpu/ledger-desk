@@ -13,8 +13,8 @@ tags:
 
 ## Connections
 - [[build-desk.ts]] - `imports` [EXTRACTED]
-- [[fetch-dual.ts]] - `imports` [EXTRACTED]
-- [[loadQuote()]] - `calls` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
+- [[loadLiveQuote()]] - `calls` [EXTRACTED]
 - [[quote()]] - `calls` [EXTRACTED]
 - [[yahoo.ts]] - `contains` [EXTRACTED]
 

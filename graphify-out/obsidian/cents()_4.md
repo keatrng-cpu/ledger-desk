@@ -1,18 +1,21 @@
 ---
-source_file: "src/lib/room/option-math.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 52"
-location: "L167"
+community: "Community 41"
+location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/Community_41
 ---
 
 # cents()
 
 ## Connections
-- [[option-math.ts]] - `contains` [EXTRACTED]
-- [[quoteOption()]] - `calls` [EXTRACTED]
+- [[MeadHallTab()]] - `calls` [EXTRACTED]
+- [[PaperTicket()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/Community_41

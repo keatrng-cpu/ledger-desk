@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/verify-entry-alarm.mjs"
+source_file: "scripts/lib/mead-world.mjs"
 type: "code"
-community: "Community 206"
-location: "L92"
+community: "Community 142"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_206
+  - community/Community_142
 ---
 
 # book()
 
 ## Connections
-- [[L()_2]] - `calls` [EXTRACTED]
-- [[R()]] - `calls` [EXTRACTED]
-- [[verify-entry-alarm.mjs]] - `contains` [EXTRACTED]
+- [[mead-world.mjs]] - `contains` [EXTRACTED]
+- [[mkWorld()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_206
+#graphify/code #graphify/EXTRACTED #community/Community_142

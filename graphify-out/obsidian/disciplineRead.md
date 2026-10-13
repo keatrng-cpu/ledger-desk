@@ -15,7 +15,7 @@ tags:
 - [[TradeLogRead]] - `references` [EXTRACTED]
 - [[compliant()]] - `calls` [EXTRACTED]
 - [[readTradeLog()]] - `calls` [EXTRACTED]
-- [[round2()_6]] - `calls` [EXTRACTED]
+- [[round2()_5]] - `calls` [EXTRACTED]
 - [[setup-memory.ts]] - `contains` [EXTRACTED]
 - [[trade-log.ts]] - `imports` [EXTRACTED]
 

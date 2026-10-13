@@ -17,11 +17,15 @@ tags:
 - [[core()]] - `calls` [EXTRACTED]
 - [[gate()]] - `calls` [EXTRACTED]
 - [[groupBy()_1]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[isoOrNull()]] - `calls` [EXTRACTED]
+- [[mead-record.ts]] - `imports` [EXTRACTED]
 - [[murphy()]] - `calls` [EXTRACTED]
 - [[paper-scorer.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 - [[preOutcome()]] - `calls` [EXTRACTED]
 - [[priceBinFor()]] - `calls` [EXTRACTED]
+- [[readHallRecord()_1]] - `calls` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_63

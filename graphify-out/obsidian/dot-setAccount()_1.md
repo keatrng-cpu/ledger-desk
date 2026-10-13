@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/room/manager-room-feed.ts"
+source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
-community: "Community 38"
-location: "L351"
+community: "Community 193"
+location: "L580"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/Community_193
 ---
 
 # .setAccount()
 
 ## Connections
-- [[ManagerRhAccount]] - `references` [EXTRACTED]
-- [[roomManagerFeed]] - `method` [EXTRACTED]
+- [[dot-applyManagerFeed()]] - `calls` [INFERRED]
+- [[ManagerAvatar]] - `method` [EXTRACTED]
+- [[drawPlate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/Community_193

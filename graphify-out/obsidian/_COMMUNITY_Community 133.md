@@ -11,7 +11,7 @@ members: 28
 
 ## Members
 - [[bears]] - code - scripts/verify-news-ipo.mjs
-- [[check()_7]] - code - scripts/verify-news-ipo.mjs
+- [[check()_11]] - code - scripts/verify-news-ipo.mjs
 - [[cpi]] - code - scripts/verify-news-ipo.mjs
 - [[cpiEv]] - code - scripts/verify-news-ipo.mjs
 - [[cut]] - code - scripts/verify-news-ipo.mjs
@@ -27,7 +27,7 @@ members: 28
 - [[nflSrc]] - code - scripts/verify-news-ipo.mjs
 - [[noW()]] - code - scripts/verify-news-ipo.mjs
 - [[nv]] - code - scripts/verify-news-ipo.mjs
-- [[ok()_4]] - code - scripts/verify-news-ipo.mjs
+- [[ok()_3]] - code - scripts/verify-news-ipo.mjs
 - [[parsed]] - code - scripts/verify-news-ipo.mjs
 - [[pf]] - code - scripts/verify-news-ipo.mjs
 - [[r1]] - code - scripts/verify-news-ipo.mjs
@@ -47,10 +47,10 @@ SORT file.name ASC
 ```
 
 ## Connections to other communities
-- 1 edge to [[_COMMUNITY_Community 109]]
 - 1 edge to [[_COMMUNITY_Community 116]]
 - 1 edge to [[_COMMUNITY_Community 129]]
-- 1 edge to [[_COMMUNITY_Community 184]]
+- 1 edge to [[_COMMUNITY_Community 86]]
+- 1 edge to [[_COMMUNITY_Community 284]]
 
 ## Top bridge nodes
 - [[verify-news-ipo.mjs]] - degree 31, connects to 4 communities

@@ -12,6 +12,7 @@ tags:
 # RH_SLEEVE_DEFAULT
 
 ## Connections
+- [[live-lesson.ts]] - `imports` [EXTRACTED]
 - [[options-sleeve.ts]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 

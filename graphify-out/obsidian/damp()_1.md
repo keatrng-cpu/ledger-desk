@@ -12,8 +12,8 @@ tags:
 # damp()
 
 ## Connections
+- [[dot-update()_3]] - `calls` [EXTRACTED]
 - [[dot-update()_4]] - `calls` [EXTRACTED]
-- [[dot-update()_5]] - `calls` [EXTRACTED]
 - [[floor-proto-avatars.ts]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_193

@@ -15,7 +15,7 @@ tags:
 - [[Slice July–August 2026 15m history into teaching figures. HARD RULE a figure…]] - `rationale_for` [EXTRACTED]
 - [[aligned()_1]] - `contains` [EXTRACTED]
 - [[assert_figure()]] - `contains` [EXTRACTED]
-- [[atr()_1]] - `contains` [EXTRACTED]
+- [[atr()_2]] - `contains` [EXTRACTED]
 - [[bear_structure_before()]] - `contains` [EXTRACTED]
 - [[datetime_2]] - `imports_from` [EXTRACTED]
 - [[et()_4]] - `contains` [EXTRACTED]

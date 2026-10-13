@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/measure-judas.mjs"
+source_file: "scripts/measure-news-bias.mjs"
 type: "code"
-community: "Community 239"
-location: "L59"
+community: "Community 228"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_239
+  - community/Community_228
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure-judas.mjs]] - `contains` [EXTRACTED]
+- [[measure()]] - `calls` [EXTRACTED]
+- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_239
+#graphify/code #graphify/EXTRACTED #community/Community_228

@@ -43,13 +43,14 @@ tags:
 - [[oldestAsOf()]] - `imports` [EXTRACTED]
 - [[pct()_15]] - `imports` [EXTRACTED]
 - [[qualityRead]] - `imports` [EXTRACTED]
+- [[react]] - `imports_from` [EXTRACTED]
 - [[requiredVsDelivered]] - `imports` [EXTRACTED]
 - [[sensitivity()]] - `imports` [EXTRACTED]
 - [[snapshotCapturedAt()]] - `imports` [EXTRACTED]
 - [[trendRead]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
-- [[verdictFor()]] - `imports` [EXTRACTED]
+- [[verdictFor()_1]] - `imports` [EXTRACTED]
 - [[weightInFund()]] - `imports` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_5

@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[JournalPanel()]] - `calls` [EXTRACTED]
 - [[getSql()]] - `calls` [EXTRACTED]
-- [[iso()_1]] - `calls` [EXTRACTED]
+- [[iso()_2]] - `calls` [EXTRACTED]
 - [[journal-panel.tsx]] - `imports` [EXTRACTED]
 - [[journalserver.ts]] - `contains` [EXTRACTED]
 

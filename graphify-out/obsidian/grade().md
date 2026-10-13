@@ -2,7 +2,7 @@
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
 community: "Community 40"
-location: "L243"
+location: "L315"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,7 @@ tags:
 # grade()
 
 ## Connections
+- [[1. `srccomponentsjournallog-setup-dialog.tsx` — feed the gate real facts]] - `references` [INFERRED]
 - [[scoreDirection()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 

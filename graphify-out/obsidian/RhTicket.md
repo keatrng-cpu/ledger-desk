@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 172"
-location: "L49"
+community: "Community 73"
+location: "L91"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/Community_73
 ---
 
 # RhTicket
@@ -16,4 +16,4 @@ tags:
 - [[SwingUnderlier]] - `references` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/Community_73

@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/room/agents.ts"
+source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 81"
-location: "L322"
+community: "Community 275"
+location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/Community_275
 ---
 
 # hash01()
 
 ## Connections
-- [[agents.ts]] - `contains` [EXTRACTED]
-- [[chooseFree()]] - `calls` [EXTRACTED]
-- [[freshMinds()]] - `calls` [EXTRACTED]
-- [[utility()]] - `calls` [EXTRACTED]
+- [[floor-voice.ts]] - `contains` [EXTRACTED]
+- [[naturalPlan()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/Community_275

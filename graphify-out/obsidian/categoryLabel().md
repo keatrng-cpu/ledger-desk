@@ -17,6 +17,7 @@ tags:
 - [[PaperTicket()]] - `calls` [EXTRACTED]
 - [[drawJumbotron()]] - `calls` [EXTRACTED]
 - [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
 - [[drawTv()]] - `calls` [EXTRACTED]
 - [[isNflMarket()]] - `calls` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]

@@ -21,8 +21,9 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[readRhAccount()]] - `calls` [EXTRACTED]
 - [[rh-account-strip.tsx]] - `contains` [EXTRACTED]
+- [[rhLinkStatus]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
-- [[usd()_4]] - `calls` [EXTRACTED]
+- [[usd()_5]] - `calls` [EXTRACTED]
 - [[useRhAccount()]] - `calls` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_33

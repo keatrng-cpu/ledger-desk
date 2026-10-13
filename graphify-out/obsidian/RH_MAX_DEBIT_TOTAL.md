@@ -12,8 +12,10 @@ tags:
 # RH_MAX_DEBIT_TOTAL
 
 ## Connections
+- [[live-lesson.ts]] - `imports` [EXTRACTED]
 - [[manager-account.ts]] - `imports` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 - [[research.ts]] - `imports` [EXTRACTED]

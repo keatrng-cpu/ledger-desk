@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/race.ts"
 type: "code"
-community: "Community 0"
+community: "Community 52"
 location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/Community_52
 ---
 
 # computeRace()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[asLab()]] - `calls` [EXTRACTED]
 - [[asSeatBook()]] - `calls` [EXTRACTED]
 - [[buildLadder()]] - `calls` [EXTRACTED]
@@ -31,4 +32,4 @@ tags:
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[strikeFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/Community_52

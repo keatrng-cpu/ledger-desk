@@ -38,7 +38,7 @@ tags:
 - [[tOne()_1]] - `contains` [EXTRACTED]
 - [[tTxt()]] - `contains` [EXTRACTED]
 - [[tWelch()]] - `contains` [EXTRACTED]
-- [[usd()_2]] - `contains` [EXTRACTED]
+- [[usd()_3]] - `contains` [EXTRACTED]
 - [[verdictKey()]] - `contains` [EXTRACTED]
 - [[verify-rnd.mjs]] - `dynamic_import` [EXTRACTED]
 

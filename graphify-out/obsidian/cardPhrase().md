@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 56"
+community: "Community 130"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/Community_130
 ---
 
 # cardPhrase()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[deriveEntryState()]] - `calls` [EXTRACTED]
 - [[entry-state.ts]] - `contains` [EXTRACTED]
-- [[fit()_8]] - `calls` [EXTRACTED]
+- [[fit()_1]] - `calls` [EXTRACTED]
 - [[vetoText()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/Community_130

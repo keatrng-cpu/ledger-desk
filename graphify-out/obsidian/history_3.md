@@ -1,8 +1,8 @@
 ---
-source_file: "scripts/trace-session.mjs"
+source_file: "scripts/diagnose-sequence.mjs"
 type: "code"
 community: "Community 20"
-location: "L14"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
@@ -12,6 +12,6 @@ tags:
 # history
 
 ## Connections
-- [[trace-session.mjs]] - `contains` [EXTRACTED]
+- [[diagnose-sequence.mjs]] - `contains` [EXTRACTED]
 
 #graphify/code #graphify/EXTRACTED #community/Community_20

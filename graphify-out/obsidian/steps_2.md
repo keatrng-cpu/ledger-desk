@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "scripts/verify-no-bot-entry.mjs"
 type: "code"
-community: "Community 45"
-location: "L378"
+community: "Community 237"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/Community_237
 ---
 
 # steps
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-no-bot-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/Community_237
