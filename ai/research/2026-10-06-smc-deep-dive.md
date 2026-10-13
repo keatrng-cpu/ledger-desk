@@ -49,7 +49,7 @@ This brief is a **full SMC/ICT taxonomy** grounded first in what the desk alread
 
 | Concept / stand | How the repo defines it | Path |
 |---|---|---|
-| A+ confluence floor 0.75 | Hard floor; config cannot lower | `CLAUDE.md` §3; `config.py` |
+| A+ confluence floor 0.75 (**Trading-Automation only**) | Hard floor; config cannot lower. Note: in ledger-desk, `src/lib/aplus/config.ts:22` `confluenceFloor` = 0.65 is the path/execute floor and 0.75 is only the A+ cutoff (`aPlusThreshold`, `config.ts:20`) | Trading-Automation `CLAUDE.md` §3; `config.py`; `knowledge/confluence.json:7` |
 | HTF absolute gate | Weekly+Daily `top_down_bias`; neutral = aside | `strategy/htf.py` |
 | Model sequence | HTF → killzone → significant sweep → displacement/MSS → retrace FVG/OB/propulsion/OTE → LTF confirm | `CLAUDE.md` §4 |
 | Killzones | London 02:00–05:00; NY AM **08:30–11:00**; Silver Bullet AM 10:00–11:00; NY PM 13:30–16:00 ET | `strategy/sessions.py` `KILLZONES` |
@@ -59,7 +59,7 @@ This brief is a **full SMC/ICT taxonomy** grounded first in what the desk alread
 | Order / breaker / mitigation / propulsion / rejection | Fresh-only retest; mitigated OBs do not score | `strategy/order_blocks.py`, `structure.py` |
 | Scanner weights (19 components) | mechanical_model, structure, mid_bias, ifvg, smt, sweep_significant, … sponsored, breaker, mitigation, rejection, propulsion, daily_bias | `strategy/scanner.py` `_RAW_WEIGHTS` |
 | Explicit gaps | OTE, BPR, void/vacuum, ICT macro windows **not implemented** | `CLAUDE.md` §8 scanner note |
-| Confluence knowledge | NQ Jan 2026 window: 843 candidates, best 0.635 vs floor 0.75, **cleared 0**; cold: mechanical_model, OB, breaker, mitigation, propulsion | `knowledge/confluence.json` |
+| Confluence knowledge | NQ Jan 2026 window: 843 candidates, best 0.635 vs Trading-Automation floor 0.75 (`knowledge/confluence.json:7`), **cleared 0**; cold: mechanical_model, OB, breaker, mitigation, propulsion | `knowledge/confluence.json` |
 
 ### 2.2 ledger-desk — PATH, Judas Window, canon, RH sleeve
 
@@ -366,7 +366,7 @@ This brief is a **full SMC/ICT taxonomy** grounded first in what the desk alread
 
 ### 7.5 PATH as desk confluence product
 - **HOW:** Not an ICT term — desk construct: strategy-complete template × fit band × gates (HTF, conditions, killzone) → actionable PATH fire.
-- **Evidence:** Process design; profitability pending sample (knowledge cleared 0 at 0.75 floor).
+- **Evidence:** Process design; profitability pending sample (Trading-Automation knowledge cleared 0 at its 0.75 floor; ledger-desk path floor is 0.65, `config.ts:22`).
 
 ---
 
@@ -520,9 +520,9 @@ This brief is a **full SMC/ICT taxonomy** grounded first in what the desk alread
 ## 10. Confluence-scoring framework
 
 ### 10.1 What the desk already scores
-Normalized weights from `scanner.py` (raw → fraction of 91): mechanical_model & structure & mid_bias & ifvg (8 each); smt (6); sweep_significant, htf2, weekly_pd, OB, cisd, displacement, mss, opening_bias (4); pd, sponsored, breaker, mitigation, rejection, propulsion, daily_bias (3). Floor 0.75. PATH adds strategy-completeness veto.
+Normalized weights from `scanner.py` (raw → fraction of 91): mechanical_model & structure & mid_bias & ifvg (8 each); smt (6); sweep_significant, htf2, weekly_pd, OB, cisd, displacement, mss, opening_bias (4); pd, sponsored, breaker, mitigation, rejection, propulsion, daily_bias (3). Trading-Automation floor 0.75 (`knowledge/confluence.json:7`). ledger-desk: `confluenceFloor` 0.65 (`src/lib/aplus/config.ts:22`), A+ cutoff `aPlusThreshold` 0.75 (`config.ts:20`). PATH adds strategy-completeness veto.
 
-**Empirical caution from `confluence.json`:** best score 0.635 < 0.75 over 843 candidates — floor held; hot components alone are traps; mechanical sequence rare.
+**Empirical caution from `confluence.json`:** best score 0.635 < Trading-Automation floor 0.75 over 843 candidates — floor held; hot components alone are traps; mechanical sequence rare.
 
 ### 10.2 Proposed measurable checklist (binary factors → logistic / ablation)
 
