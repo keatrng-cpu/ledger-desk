@@ -70,13 +70,21 @@ export function toolPayload(rpc: unknown): unknown {
   return result;
 }
 
-export function quoteFromPayload(body: unknown): { bid: number | null; ask: number | null } | null {
+/** Quote time from RH `updated_at` (live gate walk #9: asOfMs was Date.now(), i.e. fetch time). Null when absent/unparseable. */
+export function quoteTimeMs(row: Record<string, unknown> | null | undefined): number | null {
+  const t = row?.updated_at ?? row?.updatedAt;
+  if (typeof t !== "string") return null;
+  const ms = Date.parse(t);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+export function quoteFromPayload(body: unknown): { bid: number | null; ask: number | null; asOfMs: number | null } | null {
   const row = rowsOf(body)[0];
   if (!row) return null;
   const bid = num(row.bid_price ?? row.bid);
   const ask = num(row.ask_price ?? row.ask);
   if (bid == null && ask == null) return null;
-  return { bid, ask };
+  return { bid, ask, asOfMs: quoteTimeMs(row) };
 }
 
 export function positionsFromPayload(body: unknown): RhPos[] {
@@ -244,7 +252,8 @@ export function mcpTooling(accessToken: string, fetchImpl: FetchLike = fetch): R
       const body = await call("get_option_quotes", { instrument_ids: [optionId] });
       const q = quoteFromPayload(body);
       if (!q) return null;
-      const out: RhQuote = { bid: q.bid, ask: q.ask, asOfMs: Date.now() };
+      // RH quote time when present (else fetch time, the old behaviour).
+      const out: RhQuote = { bid: q.bid, ask: q.ask, asOfMs: q.asOfMs ?? Date.now() };
       return out;
     },
     async findOption(q) {

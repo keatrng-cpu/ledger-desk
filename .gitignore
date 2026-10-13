@@ -48,3 +48,7 @@ graphify-out/cache/
 graphify-out/obsidian/*
 !graphify-out/obsidian/brain/
 !graphify-out/obsidian/graph.canvas
+ai/.sessions.log
+graphify-out/.post-commit.log
+ai/.context.md
+ai/.context.md.tmp

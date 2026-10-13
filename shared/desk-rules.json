@@ -306,5 +306,419 @@
       "opt:spread",
       "exec_account"
     ]
+  },
+  "kzDisp": {
+    "_doc": "Kill-zone opening-displacement detector (Keaton 2026-10-13, items 1-50). Every item starts mode=shadow: logged as shadow:kz:* ok rows, never changes band/fire/plan. Promote only when tools/kz_backtest.py shows hit/R/freq not worse on 6-12 months; see tools/kz_backtest_report.json. Twin: watcher/killzone.py, desk src/lib/desk/kz-disp.ts.",
+    "items": {
+      "1": {
+        "name": "pools",
+        "mode": "shadow",
+        "pools": [
+          "asia",
+          "london",
+          "pdh",
+          "pdl",
+          "overnight",
+          "eqh",
+          "eql"
+        ],
+        "eqTolAtr": 0.1
+      },
+      "2": {
+        "name": "sweep",
+        "mode": "shadow",
+        "closeBackBars": [
+          1,
+          3
+        ]
+      },
+      "3": {
+        "name": "arrays",
+        "mode": "shadow",
+        "types": [
+          "ifvg",
+          "ob",
+          "rejection",
+          "gapCE",
+          "sponsoredEdge"
+        ]
+      },
+      "4": {
+        "name": "tapScore",
+        "mode": "shadow",
+        "weights": {
+          "sponsoredEdge": 1.0,
+          "gapCE": 0.9,
+          "ifvg": 0.8,
+          "rejection": 0.7,
+          "ob": 0.5
+        }
+      },
+      "5": {
+        "name": "displacement",
+        "mode": "shadow",
+        "bodyAtr": 1.5,
+        "bodyFrac": 0.7,
+        "needFvg": true
+      },
+      "6": {
+        "name": "earlyBonus",
+        "mode": "shadow",
+        "firstMin": 15,
+        "bonus": 0.02
+      },
+      "7": {
+        "name": "bosCisd",
+        "mode": "shadow",
+        "swingLookback": 15
+      },
+      "8": {
+        "name": "entryCE",
+        "mode": "shadow"
+      },
+      "9": {
+        "name": "sponsoredLimit",
+        "mode": "shadow"
+      },
+      "10": {
+        "name": "stop",
+        "mode": "shadow",
+        "minAtr15": 0.5
+      },
+      "11": {
+        "name": "targets",
+        "mode": "shadow",
+        "t1R": [
+          0.85,
+          1.0
+        ],
+        "t2": "externalPool"
+      },
+      "12": {
+        "name": "expiry",
+        "mode": "shadow",
+        "minutes": 20
+      },
+      "13": {
+        "name": "continuation",
+        "mode": "shadow"
+      },
+      "14": {
+        "name": "reversalIfvg",
+        "mode": "shadow"
+      },
+      "15": {
+        "name": "chop",
+        "mode": "shadow",
+        "overlap5m": 2
+      },
+      "16": {
+        "name": "htf",
+        "mode": "shadow",
+        "opposeCap": "A-"
+      },
+      "17": {
+        "name": "smt",
+        "mode": "shadow",
+        "pair": [
+          "NQ",
+          "ES"
+        ]
+      },
+      "18": {
+        "name": "volumeDelta",
+        "mode": "shadow",
+        "volMult": 1.5
+      },
+      "19": {
+        "name": "cbdrAsia",
+        "mode": "shadow",
+        "maxAsiaAtr15": 6
+      },
+      "20": {
+        "name": "judas",
+        "mode": "shadow",
+        "warnOnly": true
+      },
+      "21": {
+        "name": "newsGate",
+        "mode": "shadow",
+        "minutes": 15
+      },
+      "22": {
+        "name": "shadowLog",
+        "mode": "shadow"
+      },
+      "23": {
+        "name": "labels",
+        "mode": "shadow"
+      },
+      "24": {
+        "name": "fidelityBacktest",
+        "mode": "shadow",
+        "months": [
+          6,
+          12
+        ]
+      },
+      "25": {
+        "name": "feed15s",
+        "mode": "shadow",
+        "seconds": 15
+      },
+      "26": {
+        "name": "orBreak",
+        "mode": "shadow",
+        "orMin": 5
+      },
+      "27": {
+        "name": "gapCE",
+        "mode": "shadow"
+      },
+      "28": {
+        "name": "nwogNdog",
+        "mode": "shadow"
+      },
+      "29": {
+        "name": "openAnchors",
+        "mode": "shadow",
+        "anchors": [
+          "00:00",
+          "08:30"
+        ]
+      },
+      "30": {
+        "name": "silverBullet",
+        "mode": "shadow",
+        "windows": [
+          [
+            "10:00",
+            "11:00"
+          ],
+          [
+            "14:00",
+            "15:00"
+          ]
+        ]
+      },
+      "31": {
+        "name": "londonHandoff",
+        "mode": "shadow"
+      },
+      "32": {
+        "name": "poolCount",
+        "mode": "shadow"
+      },
+      "33": {
+        "name": "sweepDepth",
+        "mode": "shadow",
+        "minAtr": 0.5
+      },
+      "34": {
+        "name": "dispSpeed",
+        "mode": "shadow",
+        "ptsPerSec": null
+      },
+      "35": {
+        "name": "nonOverlapBars",
+        "mode": "shadow",
+        "min": 2
+      },
+      "36": {
+        "name": "fvgSize",
+        "mode": "shadow",
+        "minAtr": 0.3
+      },
+      "37": {
+        "name": "stackedFvg",
+        "mode": "shadow",
+        "min": 2
+      },
+      "38": {
+        "name": "bpr",
+        "mode": "shadow"
+      },
+      "39": {
+        "name": "breakerFlip",
+        "mode": "shadow"
+      },
+      "40": {
+        "name": "volImbalance",
+        "mode": "shadow"
+      },
+      "41": {
+        "name": "vix",
+        "mode": "shadow"
+      },
+      "42": {
+        "name": "dxyYields",
+        "mode": "shadow"
+      },
+      "43": {
+        "name": "dayOfWeek",
+        "mode": "shadow",
+        "mondayRangeSweep": true
+      },
+      "44": {
+        "name": "weeklyProfile",
+        "mode": "shadow"
+      },
+      "45": {
+        "name": "secondLeg",
+        "mode": "shadow",
+        "retrace": 0.5
+      },
+      "46": {
+        "name": "timeStop",
+        "mode": "shadow",
+        "minutes": 30,
+        "action": "breakeven"
+      },
+      "47": {
+        "name": "ivSkew",
+        "mode": "shadow",
+        "debitSpreadWhenIvHigh": true
+      },
+      "48": {
+        "name": "deltaSizing",
+        "mode": "shadow",
+        "riskUsd": 200
+      },
+      "49": {
+        "name": "floorSeat",
+        "mode": "shadow",
+        "seat": "Kill Zone",
+        "skeptic": true
+      },
+      "50": {
+        "name": "comboLearning",
+        "mode": "shadow",
+        "cutoffsOnlyRise": true
+      }
+    },
+    "killzones": {
+      "london": [
+        "02:00",
+        "05:00"
+      ],
+      "nyAm": [
+        "09:30",
+        "11:00"
+      ],
+      "nyPm": [
+        "13:30",
+        "15:00"
+      ]
+    }
+  },
+  "fireFix": {
+    "_doc": "Make-top-cards-fire fixes (Keaton 2026-10-13 evening). mode live = acts, shadow = logged as shadow:fx:* rows only. Restrictions and size-ups start shadow; promoted only when tools/replay_fx.py shows win rate, R, option PnL and fires/week not worse. Band edges are rise-only and unchanged here. Safety stops (account, position, working order, live quote, BP, tape, card age, news, entry cutoff, daily cap, weekly lock, rules parity, kill switch, flat-by) stay hard.",
+    "deadZone": {
+      "mode": "live",
+      "_doc": "q clamped by BAND_CEIL (qRaw > q) is not a near miss: no NEAR MISS alert; pre-clamp q logged as q_raw in gates.log."
+    },
+    "rulesPin": {
+      "mode": "live",
+      "_doc": "First card hash seen in a session is pinned; a card with a different hash later that day fails rules_pin (deploys land outside RTH)."
+    },
+    "soleBlocker": {
+      "mode": "live",
+      "_doc": "status.json and the desk Watcher tab show the single failing hard gate of the top card (or the count when several fail)."
+    },
+    "bplusWindow": {
+      "mode": "shadow",
+      "lastEt": "13:00",
+      "priority": [
+        "10:00",
+        "12:00"
+      ],
+      "_doc": "B+ entries refused at/after lastEt ET."
+    },
+    "riskCap": {
+      "mode": "shadow",
+      "equityPct": 0.25,
+      "stopLossFrac": 0.5,
+      "equityFallback": 1000,
+      "_doc": "Max debit = equity x equityPct / stopLossFrac (loss at the option stop <= 25% of equity). Equity = RH buying power + open cost."
+    },
+    "sizeToFit": {
+      "mode": "shadow",
+      "deltaStep": [
+        0.45,
+        0.5
+      ],
+      "nextExpiry": true,
+      "spread": true,
+      "spyForQqq": true,
+      "_doc": "Over the cap: delta 0.45-0.50, then next expiry, then a 1-wide debit spread, then SPY for QQQ; skip only if none fit."
+    },
+    "htfOneStep": {
+      "mode": "shadow",
+      "_doc": "ONE of 1h/4h opposing = caps of the next band down (A+ -> A caps, A -> A-, A- -> B+); BOTH opposing keeps loss.htf."
+    },
+    "upsize": {
+      "mode": "shadow",
+      "bands": [
+        "A-",
+        "B+"
+      ],
+      "maxDebit": 350,
+      "minT1Mult": 1.5,
+      "_doc": "A-/B+ cap rises to maxDebit when projected T1 option value >= minT1Mult x (theta to T1 + spread)."
+    },
+    "persistGrace": {
+      "mode": "shadow",
+      "maxDipCards": 1,
+      "_doc": "fast:persist hold survives one card whose q dips under minBand while price is still within entryAtr of entry."
+    },
+    "nearMissFire": {
+      "mode": "shadow",
+      "qMin": 0.58,
+      "contracts": 1,
+      "maxDebit": 250,
+      "_doc": "q in [qMin, B+ edge): fire 1 contract when fast, brain same side, Floor ARMED/WATCH not STAND, 1h+4h not both against."
+    },
+    "reentry": {
+      "mode": "shadow",
+      "minBand": "A",
+      "_doc": "After a clean stop (no trim), one re-entry same symbol/side if band >= minBand and the second-entry rule passes."
+    },
+    "restingLimit": {
+      "mode": "shadow",
+      "maxMin": 20,
+      "_doc": "Armed card: resting limit at FVG/OB entry, cancelled after maxMin. Shadow logs the would-fill only."
+    },
+    "bplusFloor": {
+      "mode": "shadow",
+      "minCap": 250,
+      "_doc": "B+ debit cap floor (B+ $150 is under ATM 1DTE SPY $189-214)."
+    },
+    "gateHand": {
+      "mode": "live",
+      "bands": [
+        "A+",
+        "A"
+      ],
+      "_doc": "Desk gateHand: brain/SMT/direction holds on A+/A hand to the watcher with sizeCut (one band step) instead of WATCH; B+/A- keep WATCH. Watcher: brain STAND/WAIT on A+/A = one-step size cut."
+    },
+    "costGate": {
+      "mode": "shadow",
+      "_doc": "Option cost gate = optExec.t1VsCost (T1 option value >= 2x theta+spread). Mode mirrored into optExec.t1VsCost."
+    },
+    "envelope": {
+      "maxDebit": 650,
+      "minDebit": 50,
+      "_doc": "ONE debit envelope for desk (RH_MAX_DEBIT_TOTAL) and watcher (A+ $650 band cap). Was $550 desk vs $650 watcher."
+    },
+    "dayLoss": {
+      "mode": "live",
+      "usd": 150,
+      "pctOfEquity": 0.15,
+      "_doc": "Strictest daily loss cap: min($usd, desk APLUS dailyLossLimitPct 0.15 x equity) of realized option PnL today -> no new entries (watcher day_loss, hard). Weekly -$300 loss lock (weekly.lossLock) stays live."
+    },
+    "oneLotT1": {
+      "mode": "live",
+      "_doc": "1 contract: full exit at T1 (watcher manage parity with paper-manager.ts)."
+    }
   }
 }

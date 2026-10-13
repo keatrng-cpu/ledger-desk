@@ -222,5 +222,12 @@
     "actual": "46.3",
     "vs": "exp ~47.6\u201348.0 / prev 48.1",
     "note": "UMich official prelim. Current conditions 44.7 (record low, prev 50.9). Expectations 47.3 (prev 46.3). 1y inflation 4.7% (prev 4.6%), 5-10y 3.5% (prev 3.4%). Soft. Not ISM/JOLTS/ADP/claims/NFP."
+  },
+  {
+    "date": "2026-10-13",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Tue post-holiday. Existing Home Sales 3.99M vs ~3.95M (beat); NFIB 97.9 vs ~98 (miss); ADP Weekly +24.75k. Not the stamp series. Next is CPI Wed 8:30."
   }
 ]

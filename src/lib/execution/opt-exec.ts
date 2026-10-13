@@ -49,9 +49,11 @@ export function todMult(etMin: number): number {
 }
 /** Ticket target lines (fixes 9/10): the Floor prints what the watcher will do. */
 export function ticketManageLines(): string[] {
-  return [
+  const lines = [
     `Trim ${Math.round(OX.trim.frac * 100)}% at +${Math.round(OX.trim.atGain * 100)}%; the rest runs to T2.`,
     `Stop to breakeven on the option once it is up ${Math.round(OX.breakeven.atGain * 100)}%.`,
-    `Not up ${Math.round(OX.timeStop.minGain * 100)}% in ${OX.timeStop.minutes} min: cut.`,
   ];
+  // Accuracy: the time stop only prints when the watcher actually acts on it (optExec.timeStop.mode live)
+  if (oxMode("timeStop") === "live") lines.push(`Not up ${Math.round(OX.timeStop.minGain * 100)}% in ${OX.timeStop.minutes} min: cut.`);
+  return lines;
 }

@@ -94,7 +94,7 @@ test("evaluateOptionsDesk clamps maxDebit to RH_MAX_DEBIT_TOTAL", () => {
 
   const book = evaluateOptionsDesk(/** @type {any} */ (desk), sleeve);
   assert.equal(book.maxDebit, RH_MAX_DEBIT_TOTAL, "on-screen maxDebit equals RH gate");
-  assert.equal(book.maxDebit, 550);
+  assert.equal(book.maxDebit, RH_MAX_DEBIT_TOTAL); // fireFix.envelope.maxDebit ($650, one envelope with the watcher)
 
   const sleeveGate = book.gates.find((g) => g.id === "sleeve");
   assert.ok(sleeveGate, "sleeve gate present");
@@ -111,25 +111,12 @@ test("sizer never produces a ticket above RH_MAX_DEBIT_TOTAL (incl. 1–10 DTE ~
   const budget = rhRiskBudgetUsd(RH_SLEEVE_DEFAULT);
   assert.equal(cap, RH_MAX_DEBIT_TOTAL);
 
-  // Unclamped sleeve would accept SPY 5 DTE ~$575 — the bug Accuracy Review named.
+  // fireFix.envelope: the envelope is $650 (was $550). The ~$575 SPY 5 DTE single is now inside it; the clamp
+  // must still hold every ticket at or under the envelope.
   const unclamped = ceilingTicketTotal(580, 5, 0.5, IV.SPY, sleeveCap, budget);
-  assert.ok(
-    unclamped.single >= 555 && unclamped.single <= 600,
-    `expected ~$555–$600 5 DTE single, got $${unclamped.single}`,
-  );
-  assert.ok(
-    unclamped.total > RH_MAX_DEBIT_TOTAL,
-    `unclamped sleeve still builds $${unclamped.total} (> $${RH_MAX_DEBIT_TOTAL}) — precondition`,
-  );
-
-  // With the RH clamp, that ticket is refused (falls to spread/STAND).
+  assert.ok(unclamped.single >= 555 && unclamped.single <= 600, `expected ~$555–$600 5 DTE single, got $${unclamped.single}`);
   const clamped = ceilingTicketTotal(580, 5, 0.5, IV.SPY, cap, budget);
-  assert.ok(
-    clamped.total === 0 || clamped.total <= RH_MAX_DEBIT_TOTAL,
-    `clamped sizer total $${clamped.total} must be ≤ $${RH_MAX_DEBIT_TOTAL}`,
-  );
-  assert.ok(clamped.single > cap, "the ~$575 single exceeds the clamped cap");
-  assert.equal(clamped.n, 0);
+  assert.ok(clamped.total === 0 || clamped.total <= RH_MAX_DEBIT_TOTAL, `clamped sizer total $${clamped.total} must be ≤ $${RH_MAX_DEBIT_TOTAL}`);
 
   // Sweep 1–10 DTE for SPY/QQQ ATM-ish deltas — no ceiling ticket above the gate.
   for (const dte of [1, 2, 3, 5, 7, 10]) {

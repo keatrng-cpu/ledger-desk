@@ -138,7 +138,7 @@ test("lateEntry.modelPricePending: model-priced late PnL miss -> ARMED latePnlPe
   const pass = g.latePnlCheck({ px: 100, t1: 110, spot: 500, delta: 0.5, askEach: 1 });
   assert.equal(g.latePnlPendingOk(pass, true), false);           // a pass needs no pending flag
   const od = readFileSync(new URL("../src/lib/trading/options-desk.ts", import.meta.url), "utf8");
-  assert.match(od, /latePnlPendingOk\(lp, modelOnly\)\) \{\s*ticket = \{ \.\.\.ticket, latePnlPending: true \}/);
+  assert.match(od, /latePnlPendingOk\(lp, modelOnly\)\) \{\s*ticket = \{ \.\.\.ticket, latePnlPending: true, latePnlInputs: lpIn \}/);
   assert.match(od, /modelOnly = !ticket\.live \|\| ticket\.pricedFrom !== "live_chain"/);
   const dl = readFileSync(new URL("../src/lib/trading/desk-listen.ts", import.meta.url), "utf8");
   assert.match(dl, /latePnlPending \? \{ latePnlPending: true \}/);   // reaches the watcher on floor.ticket

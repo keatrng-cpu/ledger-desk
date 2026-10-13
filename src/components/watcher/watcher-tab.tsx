@@ -13,6 +13,7 @@ type Fire = { at: number; signal: string; card: Record<string, unknown>; contrac
 type Skip = { at: number; signal: string; band?: string; q?: number; why: [string, string][] };
 type Status = {
   heartbeat: number; mode?: string; live: boolean; fire_enabled: boolean; stop_file: boolean; account: string; rules_version?: number;
+  rules_hash?: string; rules_pin?: string | null; sole_blocker?: { signal?: string; band?: string; q?: number; q_raw?: number | null; line: string; at?: number } | null;
   card: Record<string, unknown>; gates: Gate[]; gates_at?: number; position: Pos | null;
   day: { date: string; entries: number; cap: number; bplus_entries: number; lost: boolean; fires: Fire[]; skips: Skip[] };
   week?: { key?: string | null; pnl?: number | null; peak?: number | null; locked?: boolean | null; state?: string | null } | null;
@@ -42,12 +43,17 @@ export function WatcherTab() {
           <span className={r.stale ? "text-rose-400" : "text-emerald-400"}>● {r.stale ? "STALE" : "LIVE"} heartbeat {t(s.heartbeat)} ({n(r.heartbeatAgeS, 0)}s ago)</span>
           <span>mode {s.mode ?? "—"}</span><span>LIVE={String(s.live)}</span><span>FIRE={String(s.fire_enabled)}</span>
           <span className={s.stop_file ? "text-rose-400" : ""}>STOP file {s.stop_file ? "PRESENT" : "absent"}</span>
-          <span>acct {s.account}</span><span>rules v{s.rules_version ?? "—"}</span>
+          <span>acct {s.account}</span><span>rules v{s.rules_version ?? "—"} {s.rules_hash ?? ""}{s.rules_pin && s.rules_pin !== s.rules_hash ? ` (pin ${s.rules_pin})` : ""}</span>
         </div>
       </section>
       <section className="rounded border border-[var(--color-border)] p-3">
         <h3 className="mb-2 font-semibold">Card being evaluated</h3>
         <div className="mb-2">{String(c.symbol ?? "—")} {String(c.side ?? "")} · {String(c.band ?? "—")} q {n(c.q)} · entry {n(c.entry)} stop {n(c.stop_px)} T1 {n(c.first_target)} T2 {n(c.t2)} · R:R {n(c.card_rr)} · disp {n(c.disp_strength)} · floor {String(c.verdict ?? "—")} · brain {String(c.brain_word ?? "—")} · held {n(c.band_persist_s, 1)}s{c.size_cut ? " · size cut" : ""}</div>
+        {s.sole_blocker ? (
+          <div className="text-xs font-medium" data-testid="sole-blocker">
+            Top card {s.sole_blocker.band ?? "—"} q {s.sole_blocker.q ?? "—"}{s.sole_blocker.q_raw != null && s.sole_blocker.q_raw !== s.sole_blocker.q ? ` (pre-clamp ${s.sole_blocker.q_raw})` : ""}: {s.sole_blocker.line}
+          </div>
+        ) : null}
         <div className="text-xs text-[var(--color-muted)]">gates at {t(s.gates_at)}</div>
         <ul className="mt-1 space-y-0.5">
           {s.gates.map((g) => (<li key={g.name}><span className={cls(g.ok)}>{g.ok === true ? "PASS" : g.ok === false ? "FAIL" : "UNVERIFIED"}</span> <b>{g.name}</b> <span className="text-[var(--color-muted)]">{g.why}</span></li>))}

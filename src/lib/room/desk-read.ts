@@ -179,6 +179,9 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
     smcMissing: book.smc.missing,
     deskContracts: card.ticket?.contracts ?? null,
     sizedFrom: card.ticket?.sizedFrom ?? null,
+    latePnl: card.ticket?.latePnlPending
+      ? { pending: true, px: null, t1: null, spot: null, delta: null, ...(card.ticket.latePnlInputs ?? {}) }
+      : null,
     // The desk ticket's own delta band; without a ticket, the band its card
     // would have asked for (options-desk.ts toTicket calls).
     deltaMin: card.ticket?.deltaMin ?? 0.35,

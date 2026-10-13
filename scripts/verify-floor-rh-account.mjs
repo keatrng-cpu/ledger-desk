@@ -25,7 +25,7 @@ console.log("\nrhAccountNote / rhArmedPathNote lines");
 const note = research.rhAccountNote(SNAP).line;
 check("note names cash $984.12", note.includes("$984.12"), true);
 check("note names BP $11.56", note.includes("$11.56"), true);
-check("note names envelope $50–$550", note.includes("$50–$550"), true);
+check("note names envelope $50–$650", note.includes("$50–$650"), true);
 check("note says nothing can place", /nothing .* can place/.test(note), true);
 check("note carries today −$179.84 (−15.45%)", note.includes("$179.84") && note.includes("15.45%"), true);
 const armed = research.rhArmedPathNote(SNAP, SNAP.asOfMs).line;
@@ -33,7 +33,7 @@ check("armed path: shut on BP", /shut on BP/.test(armed) && armed.includes("$50"
 check("armed path: agent can't trade Individual", /can't trade that account/.test(armed), true);
 check("no account → refuses blind", /get_portfolio/.test(research.rhAccountNote(null).line), true);
 const funded = { ...SNAP, buyingPower: 900, optionsBuyingPower: null, unsettledFunds: 0, agenticAllowed: true, source: "get_portfolio" };
-check("funded note offers room up to $550", research.rhAccountNote(funded).line.includes("$550.00"), true);
+check("funded note offers room up to $650", research.rhAccountNote(funded).line.includes("$650.00"), true);
 
 console.log("\nresearch shelf: every seat carries the account");
 const shelf = research.researchShelf(SNAP, SNAP.asOfMs);

@@ -62,19 +62,19 @@ console.log("the bug: a ticket over the cap is shrunk, not vetoed");
   const feed = room.createRoomManagerFeed();
   const trace = structuredClone(steps[over].cycle.trace);
   trace.entry.quote.ask = 3.29;
-  trace.entry.qty = 2; // $658 at two contracts
+  trace.entry.qty = 2; // $658 at two contracts (over the $650 fireFix envelope)
   const out = structuredClone(steps[over].cycle.output);
   out.broker_action.contracts_quantity = 2;
   steps[over].cycle.output = out;
   const r = run(feed, over, { trace });
-  check("two contracts at $3.29 is $658 — over the $550 cap", Math.round(3.29 * 100 * 2) === 658 && 658 > gates.RH_MAX_DEBIT_TOTAL);
+  check("two contracts at $3.29 is $658 — over the $650 cap", Math.round(3.29 * 100 * 2) === 658 && 658 > gates.RH_MAX_DEBIT_TOTAL);
   check("the Stand agrees at ONE contract ($329), not a veto", r.st.call?.agentAgree === true && r.st.call?.contracts === 1 && r.st.call?.estDebitTotal === 329, JSON.stringify([r.st.call?.action, r.st.call?.contracts, r.st.call?.estDebitTotal]));
   check("…and the proposal places that one contract", r.p.mode === "live_when_armed" && r.p.ticket?.contracts === 1 && r.p.ticket?.maxDebitTotal === 329, `${r.p.mode} ${r.p.gated?.gate ?? ""}`);
   const feed2 = room.createRoomManagerFeed();
   const trace2 = structuredClone(trace);
-  trace2.entry.quote.ask = 6.0; // one contract is $600: still over the cap
+  trace2.entry.quote.ask = 6.6; // one contract is $660: still over the cap
   const r2 = run(feed2, over, { trace: trace2 });
-  check("when even ONE contract is over $550 the ticket still refuses (the cap is not loosened)", r2.st.call?.agentAgree !== true && r2.p.mode === "refused", JSON.stringify([r2.st.call?.action, r2.p.mode, r2.p.gated?.gate]));
+  check("when even ONE contract is over $650 the ticket still refuses (the cap is not loosened)", r2.st.call?.agentAgree !== true && r2.p.mode === "refused", JSON.stringify([r2.st.call?.action, r2.p.mode, r2.p.gated?.gate]));
 }
 
 console.log("the safety refusals still hold");

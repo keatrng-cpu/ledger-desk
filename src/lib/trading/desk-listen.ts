@@ -4,6 +4,17 @@ import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
+import { kzSeatNote } from "@/lib/desk/kz-disp";
+
+const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
+/** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
+export function wireBand(q: number | null | undefined, pathBand: string | null | undefined): string | null {
+  const qb = bandFromQ(q);
+  if (pathBand === "skip") return "C";
+  const pi = WIRE_BANDS.indexOf(pathBand as (typeof WIRE_BANDS)[number]);
+  if (qb == null || pi < 0) return qb;
+  return WIRE_BANDS[Math.max(pi, WIRE_BANDS.indexOf(qb as (typeof WIRE_BANDS)[number]))];
+}
 /**
  * The live scanner, floor, and brain, without the account.
  * The full handoff stays behind CRON_SECRET. This card does not.
@@ -163,6 +174,8 @@ export interface DeskWire {
     thesis: string;
     missing: string | null;
     htfReleased: boolean;
+    /** kzDisp item 49: Kill Zone seat note in the brain context (shadow: a note, never a vote). */
+    kzSeat?: string;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -173,6 +186,10 @@ export interface DeskWire {
   day?: { rToday: number | null; governor: "normal" | "A+ only"; closedToday: number; governorMode?: string };
   floor: {
     verdict: string;
+    /** kzDisp item 49: Floor "Kill Zone" seat line (shadow note, never a vote). */
+    kzSeat?: string;
+    /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
+    sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
     handTo?: "watcher" | null;
     blocks: string[];
@@ -264,8 +281,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           symbol: top.symbol,
           side: top.side,
           name: top.completeStrategy || top.strategyPrimary || "model",
-          // Band is strictly derived from the q on the wire (PATH bands).
-          band: bandFromQ(top.confluence),
+          // Band from q, never above the card's pathBand (live gate walk #2: a capped / skip card must not read higher).
+          band: wireBand(top.confluence, top.pathBand ?? null),
           pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
@@ -319,6 +336,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         }
       : null,
     brain: {
+      kzSeat: kzSeatNote(),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -350,6 +368,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : [],
     floor: {
       verdict,
+      kzSeat: kzSeatNote(),
+      sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: (shown?.blocks ?? []).slice(0, 4),
       ticket: shown?.ticket
@@ -411,7 +431,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       return {
         symbol: c.symbol,
         side: c.side,
-        band: bandFromQ(c.confluence),
+        band: wireBand(c.confluence, c.pathBand ?? null),
         pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
         actionable: c.actionable,
