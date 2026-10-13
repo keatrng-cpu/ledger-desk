@@ -1656,8 +1656,8 @@ function pathContinuation(
       blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
     }
     reasons.push("Internal or external is a note, not a filter. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold.");
-    if (c.entryPx == null || !Number.isFinite(c.entryPx)) {
-      reasons.push("No entry price. Price is not at the array, so this stays a watch.");
+    if (c.entryPx == null || !Number.isFinite(c.entryPx) || c.entryResting === true) {
+      reasons.push(c.entryResting ? `Resting limit ${c.entryPx?.toFixed(2)}. Price is not at the array, so this stays a watch.` : "No entry price. Price is not at the array, so this stays a watch.");
     }
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
@@ -1677,7 +1677,9 @@ function pathContinuation(
     }
   }
 
-  const noEntry = Boolean(c && (c.entryPx == null || !Number.isFinite(c.entryPx)));
+  // A resting limit (price not at the array) is a watch, exactly as before
+  // the scanner stopped nulling it (audit F1).
+  const noEntry = Boolean(c && (c.entryPx == null || !Number.isFinite(c.entryPx) || c.entryResting === true));
   const armed = blocks.length === 0 && Boolean(c) && !noEntry;
   const watch = Boolean(c) && (noEntry || blocks.every((b) => /NY AM|Judas|Event window|range-build|SMC WAIT/.test(b)));
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";

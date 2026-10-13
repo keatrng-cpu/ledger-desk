@@ -160,6 +160,12 @@ export interface SetupCandidate {
   stopSource?: "plan" | "structure" | "none";
   /** Numeric entry the card's zone resolves to (CE / OTE optimal / range half). */
   entryPx?: number | null;
+  /** The entry is a real array price but price is not at it (a resting limit). */
+  entryResting?: boolean;
+  /** R7 chop read for this book (discipline.ts isChop). */
+  chop?: boolean;
+  /** q before a band cap clamped it (discipline.ts sealBand). */
+  qRaw?: number;
   /** ATR(14) of the graded series — for the stop band on cards without a plan. */
   atr?: number | null;
   /**
@@ -638,12 +644,12 @@ function scoreDirection(
     "smt",
     smtHits,
     smtHits
-      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"}) — this book led the divergence`
+      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"}) — this book HELD while the other swept (the SMT holder is the trade)`
       : undefined,
   );
-  if (smtLevel?.present && smtLevel.atLevel && smtLed === false) {
+  if (smtLevel?.present && smtLevel.atLevel && smtLed === true) {
     notes.push(
-      `SMT at ${smtLevel.level}, but the OTHER index made the extreme — the laggard is not a second setup. Trade the book that led.`,
+      `SMT at ${smtLevel.level}: THIS index made the extreme and the other held — the holder is the trade, not this book.`,
     );
   }
 
@@ -1062,13 +1068,18 @@ function scoreDirection(
     ce != null && gap && near != null && far != null
       ? `${oteEntry != null ? `OTE ${oteEntry.toFixed(2)} · ` : ""}near ${near.toFixed(2)} · CE ${ce.toFixed(2)} · far ${far.toFixed(2)}${bodyClose != null ? ` · close ${bodyClose.toFixed(2)}` : ""}`
       : "await the array this displacement left";
-  if (!silverOk) {
-    entryPx = null;
-    entryZone = "not a silver bullet — the gap did not form in this hour";
-  } else if (entryPx != null && Number.isFinite(lastClose)) {
+  // AUDIT F1: this used to NULL the entry for every model from 10:00–11:00
+  // and 14:00–15:00 ET (the silver-bullet hours) unless the gap formed in
+  // that hour, and whenever price sat more than 2 gap heights away. That is
+  // why wire.strategy.entry was null on every card in the NY AM hour. The
+  // array price is real either way: it is kept, and the card says whether
+  // price is AT it (`entryResting: false`) or the limit is resting.
+  let entryResting = false;
+  if (!silverOk) entryZone = `${entryZone} · not a silver bullet (gap formed outside this hour)`;
+  if (entryPx != null && Number.isFinite(lastClose)) {
     const height = gap ? Math.max(gap.top - gap.bottom, 1) : 8;
     if (Math.abs(lastClose - entryPx) > Math.max(height * 2, 8)) {
-      entryPx = null;
+      entryResting = true;
       entryZone = `${entryZone} — resting, price is not at the array`;
     }
   }
@@ -1116,6 +1127,7 @@ function scoreDirection(
     structureScore,
     entryZone,
     entryPx: entryPx != null && Number.isFinite(entryPx) ? entryPx : null,
+    entryResting,
     invalidation: inv.text,
     stopSource: inv.source,
     /**
