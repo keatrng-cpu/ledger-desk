@@ -637,7 +637,7 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
     has(components, "ifvg", "order_block") && has(components, "ote") && pdHalf;
   // ITEM 11: false is "this book is the laggard". null/undefined is "no
   // divergence read", which must behave exactly as it did before.
-  const smtEarned = !SMT_TRADES_THE_LEADER.value || input.smtLed !== false;
+  const smtEarned = !SMT_TRADES_THE_LEADER.value || input.smtLed === false;
 
   const factors: CanonFactor[] = [
     {

@@ -6,6 +6,7 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { smtFightsContinuation } from "@/lib/smc/mtf-context";
 import { atr15Of, continuationArray, type ContinuationArray } from "@/lib/smc/mtf-arrays";
 import { poolArms } from "@/lib/smc/shared";
 import { reachTier } from "./entry-trigger";
@@ -180,6 +181,10 @@ export interface SmcMasterInput {
   shockFloorMs?: number | null;
   /** The shock's lean (shock.ts shockBias). A ranking nudge only, never a must. */
   shockLean?: "long" | "short" | null;
+  /** SMT fix 8: the book whose tape printed the shock. Lean nudges that book only. */
+  shockSymbol?: string | null;
+  /** Shared MTF context (mtf-context.ts). */
+  mtfContext?: import("@/lib/smc/mtf-context").MtfContext | null;
 }
 
 function factorState(
@@ -265,7 +270,7 @@ export function eligibleCandidates(
       c.htfOk ? 1 : 0,
       aligned ? 1 : 0,
       GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,
-      c.smtLevel?.led === true ? 1 : 0,
+      c.smtLevel?.led === false ? 1 : 0,
       sequenceComplete(c) ? 1 : 0,
       // Shock lean: after completeness, before the band. A nudge, not a must.
       shockLean != null && c.side === shockLean ? 1 : 0,
@@ -950,6 +955,16 @@ function gradeBook(
 export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
   const smtOn =
     desk.scan.smt.edge !== "none" || Boolean(desk.smtStack?.primary.active);
+  // SMT fix 8 + fix 2: the lean nudges only the shocked book, never the failing one.
+  const leanFor = (sym: string): "long" | "short" | null => {
+    const lean = desk.shockLean ?? null;
+    if (!lean) return null;
+    if (desk.shockSymbol && desk.shockSymbol !== sym) return null;
+    if (smtFightsContinuation(desk.mtfContext, sym, lean)) return null;
+    return lean;
+  };
+  const alignOf = (b: SmcMasterBook) =>
+    (b.side && desk.mtfContext?.books.find((x) => x.symbol === b.symbol)?.align[b.side]?.score) || 0;
   const left = gradeBook(
     desk.bias.left,
     desk.draws.left,
@@ -963,7 +978,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.left?.bars,
     desk.left?.minute,
-    desk.shockLean ?? null,
+    leanFor(desk.bias.left.symbol),
   );
   const right = gradeBook(
     desk.bias.right,
@@ -978,14 +993,21 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.right?.bars,
     desk.right?.minute,
-    desk.shockLean ?? null,
+    leanFor(desk.bias.right.symbol),
   );
 
   const ranked = [left, right].sort((a, b) => {
     const rank = (w: SmcMasterBook["word"]) =>
       w === "TAKE" ? 2 : w === "WAIT" ? 1 : 0;
     if (rank(a.word) !== rank(b.word)) return rank(b.word) - rank(a.word);
-    return b.mustPass - a.mustPass;
+    if (b.mustPass !== a.mustPass) return b.mustPass - a.mustPass;
+    // SMT fix 3: prefer the stronger book (the SMT leader in continuation, then MTF alignment).
+    const lead = desk.mtfContext?.smtLead;
+    if (lead) {
+      const strong = (x: SmcMasterBook) => (x.symbol === lead.leader ? 1 : 0);
+      if (strong(a) !== strong(b)) return strong(b) - strong(a);
+    }
+    return alignOf(b) - alignOf(a);
   });
   const oneBook = ranked[0] ?? null;
 
@@ -993,7 +1015,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     "ICT narrates; we price DOL. TJR is sweep→5m confirm — we add dealing-range + retrace + one book. Blake IFVG without the raid is B+. Sequence or STAND.";
 
   const thesis = oneBook
-    ? `${oneBook.word} ${oneBook.symbol} ${oneBook.side ?? ""} · ${oneBook.mustPass}/${oneBook.mustNeed} · ${oneBook.missing}`.trim()
+    ? `${oneBook.word} ${oneBook.symbol} ${oneBook.side ?? ""} · ${oneBook.mustPass}/${oneBook.mustNeed} · ${oneBook.missing}${oneBook.side && desk.mtfContext ? ` · MTF align ${alignOf(oneBook).toFixed(2)}` : ""}`.trim()
     : "STAND — map DOL and wait.";
 
   return { left, right, oneBook, thesis, vsSchools };

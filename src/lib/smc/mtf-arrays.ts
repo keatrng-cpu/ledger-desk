@@ -41,7 +41,7 @@ export interface ArrayRow {
 const cache = new Map<string, { bars: OhlcBar[]; gaps: FvgResult[] }>();
 const CACHE_MAX = 64;
 
-function rung(symbol: string, src: OhlcBar[], tf: ArrayTf): { bars: OhlcBar[]; gaps: FvgResult[] } {
+export function rung(symbol: string, src: OhlcBar[], tf: ArrayTf): { bars: OhlcBar[]; gaps: FvgResult[] } {
   if (!src.length) return { bars: [], gaps: [] };
   const key = `${symbol}:${tf}:${src[0]!.t}:${src[src.length - 1]!.t}:${src.length}:${src[src.length - 1]!.c}`;
   const hit = cache.get(key);

@@ -1,3 +1,4 @@
+import { wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 /**
  * The live scanner, floor, and brain, without the account.
  * The full handoff stays behind CRON_SECRET. This card does not.
@@ -77,6 +78,8 @@ export interface DeskWire {
     left: { symbol: string; price: number; source: string; lagSec: number };
     right: { symbol: string; price: number; source: string; lagSec: number };
   };
+  mtf?: ReturnType<typeof wireMtf> | null;
+  smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
   strategy: {
     symbol: string;
     side: string;
@@ -87,6 +90,12 @@ export interface DeskWire {
     entry: number | null;
     stop: string | null;
     draw: string | null;
+    /** A displacement leg (body ≥1×ATR, or left an FVG) is behind the setup. */
+    displacement: boolean;
+    /** T1 as a futures price. Null when no plan was priced (never invented). */
+    target: number | null;
+    /** ATR(14) of the setup's (15m) series. */
+    atr: number | null;
   } | null;
   brain: {
     word: string | null;
@@ -145,6 +154,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
     arrays,
+    mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
+    smt: desk.mtfContext ? { lead: desk.mtfContext.smtLead, all: desk.mtfContext.smt } : null,
     shock: sb
       ? {
           dir: sb.dir,
@@ -174,6 +185,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           entry: top.entryPx ?? null,
           stop: top.invalidation || null,
           draw: top.draw?.name ?? null,
+          displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy),
+          target: top.plan?.t1 ?? null,
+          atr: top.plan?.atr ?? null,
         }
       : null,
     brain: {

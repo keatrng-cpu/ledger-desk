@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
-import { applyDiscipline, shockLeanLive } from "@/lib/smc/discipline";
+import { applyDiscipline, capBand, shockLeanLive } from "@/lib/smc/discipline";
+import { buildMtfContext, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -140,6 +141,8 @@ export interface DeskPayload {
   liveSays: LiveSays;
   /** Live SMC sequence (priced DOL + sweep polarity + one book). */
   smcMaster: SmcMasterRead;
+  /** One MTF read (1m–4h, both books) for scanner, brain and Floor. */
+  mtfContext?: MtfContext;
   /** Key presence only — never the secret. Claude handoff reads this. */
   coach: { xai: boolean; anthropic: boolean };
   /**
@@ -775,29 +778,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // blocks). It used to set verdict "blackout", which the RH gate refuses
     // outright. Now it raises the bar one step while the shock candle is open
     // (shock.active ≈ the 15m lock) and cuts size through the tail.
-    const news: NewsRead = newsBase;// Card discipline R1–R8 (src/lib/smc/discipline.ts) — before the news/shock bar.
-    {
-      const atrOf = (b: OhlcBar[]) => {
-        const a = rollingAtr(b);
-        const v = a[a.length - 1];
-        return v != null && Number.isFinite(v) ? v : null;
-      };
-      const ctxFor = (sym: string) => {
-        const isL = sym === left.symbol;
-        const closed = isL ? closedL : closedR;
-        const b = isL ? biasL : biasR;
-        return {
-          price: (isL ? lq : rq)?.price ?? null,
-          atr15: atrOf(closed),
-          closed15: closed,
-          minute: isL ? minuteL : minuteR,
-          nowMs,
-          levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
-        };
-      };
-      for (const c of scan.candidates) applyDiscipline(c as never, ctxFor(c.symbol));
-    }
-        // News and a shock raise the confidence bar and cut size. They do not
+    const news: NewsRead = newsBase;    // News and a shock raise the confidence bar and cut size. They do not
     // take B+ and higher off the book when the bias and the score are there.
     const event = news.verdict === "blackout" || news.verdict === "caution" || shock.active;
     if (event) {
@@ -1098,8 +1079,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // judas-window.ts correctly refuses to release. Passing it here is what
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
+    const mtfContext = buildMtfContext(
+      { symbol: left.symbol, minute: minuteL, bars15: closedL },
+      { symbol: right.symbol, minute: minuteR, bars15: closedR },
+    );
     const smcMaster = gradeSmcMaster({
       ...payload,
+      mtfContext,
+      shockSymbol: shock.event?.symbol ?? null,
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
       shockFloorMs: shock.active ? shock.freshFloorMs : null,
@@ -1124,6 +1111,40 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
       [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
     });
+    // Card discipline R1–R8 (src/lib/smc/discipline.ts) — before the news/shock bar.
+    {
+      const atrOf = (b: OhlcBar[]) => {
+        const a = rollingAtr(b);
+        const v = a[a.length - 1];
+        return v != null && Number.isFinite(v) ? v : null;
+      };
+      const ctxFor = (sym: string) => {
+        const isL = sym === left.symbol;
+        const closed = isL ? closedL : closedR;
+        const b = isL ? biasL : biasR;
+        return {
+          price: (isL ? lq : rq)?.price ?? null,
+          atr15: atrOf(closed),
+          closed15: closed,
+          minute: isL ? minuteL : minuteR,
+          nowMs,
+          levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
+        };
+      };
+      for (const c of payload.scan.candidates) {
+        applyDiscipline(c as never, ctxFor(c.symbol));
+        // MTF context (one read for scanner, brain, Floor) + SMT fix 2.
+        const al = mtfContext.books.find((x) => x.symbol === c.symbol)?.align[c.side as "long" | "short"];
+        if (al) c.reasons.push(`MTF align ${al.score} (HTF ${al.htf ? "✓" : "·"} MTF ${al.mtf ? "✓" : "·"} LTF ${al.ltf ? "✓" : "·"})`);
+        const fight = smtFightsContinuation(mtfContext, c.symbol, c.side as "long" | "short");
+        if (fight) {
+          const before = c.pathBand;
+          c.pathBand = capBand(c.pathBand, "B") as never;
+          c.actionable = false;
+          c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
+        }
+      }
+    }
     const mtf = {
       left: { daily: dailyL, minute: minuteL },
       right: { daily: dailyR, minute: minuteR },
@@ -1174,6 +1195,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     return {
       ...payload,
       smcMaster,
+      mtfContext,
       coach,
       mtf,
       ladder,

@@ -1905,7 +1905,14 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     clock.killzone === "ny_am" || clock.killzone === "ny_pm" || sessionLive(clock);
   const book = desk.smcMaster.oneBook;
   const smtFuturesSide: "long" | "short" = side === "call" ? "long" : "short";
-  if (book?.word === "STAND") {
+  const lvlSmt = desk.mtfContext?.smtLead ?? null;
+  // SMT fix 7: a level SMT where the brain's own book is the FAILING one
+  // overrides "brain is standing" — the reversal is on the failing book.
+  const failingOverride = Boolean(
+    lvlSmt && book && lvlSmt.failing === book.symbol &&
+      ((lvlSmt.kind === "bearish" && smtFuturesSide === "short") || (lvlSmt.kind === "bullish" && smtFuturesSide === "long")),
+  );
+  if (book?.word === "STAND" && !failingOverride) {
     blocks.push("Brain is standing. SMT does not take the other book.");
   } else if (book?.side && book.side !== smtFuturesSide) {
     blocks.push(`Brain is ${book.side}. This SMT is ${smtFuturesSide}.`);
@@ -2177,6 +2184,20 @@ export function evaluateOptionsDesk(
   const swingBest = cards.filter((c) => c.horizon === "swing" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
   // The session sequence wins. A swing card does not take the fill away from a day setup that is already armed.
   const best = dayBest ?? swingBest;
+  // SMT fix 5: no conflicting dual tickets — same underlier opposite sides,
+  // or SPY and QQQ on the same side (one correlated bet twice).
+  if (best?.ticket) {
+    for (const c of cards) {
+      if (c === best || c.verdict !== "ARMED" || !c.ticket) continue;
+      const sameU = c.ticket.underlier === best.ticket.underlier;
+      const oppo = sameU && c.ticket.side !== best.ticket.side;
+      const twin = !sameU && c.ticket.side === best.ticket.side;
+      if (oppo || twin) {
+        c.verdict = "WATCH";
+        c.blocks = [...c.blocks, oppo ? `Conflicts with the armed ${best.ticket.underlier} ${best.ticket.side}.` : `Same-side duplicate of the armed ${best.ticket.underlier} ${best.ticket.side}.`].slice(0, 6);
+      }
+    }
+  }
   const day = cards.filter((c) => c.horizon === "day");
   const swing = cards.filter((c) => c.horizon === "swing");
 

@@ -633,7 +633,7 @@ function scoreDirection(
   void smt;
   void book;
   const smtLed = smtLevel?.led ?? null;
-  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel && smtLed !== false);
+  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel && smtLed === false);
   add(
     "smt",
     smtHits,
