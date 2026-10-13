@@ -1,4 +1,5 @@
-import { wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
+import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
+import { bandFromQ } from "@/lib/smc/discipline";
 /**
  * The live scanner, floor, and brain, without the account.
  * The full handoff stays behind CRON_SECRET. This card does not.
@@ -63,6 +64,8 @@ export interface DeskWire {
   arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
   shock?: {
+    /** True only inside the live shock window (tail reads are false). */
+    active: boolean;
     dir: "up" | "down";
     kind: "delivery" | "manipulation" | "pending";
     bias: "bull" | "bear" | "neutral";
@@ -79,6 +82,7 @@ export interface DeskWire {
     right: { symbol: string; price: number; source: string; lagSec: number };
   };
   mtf?: ReturnType<typeof wireMtf> | null;
+  htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
   strategy: {
     symbol: string;
@@ -90,6 +94,12 @@ export interface DeskWire {
     entry: number | null;
     stop: string | null;
     draw: string | null;
+    entryResting: boolean;
+    /** R7 chop on this book (15m overlap / range). */
+    chop: boolean;
+    qRaw: number | null;
+    bias1h: string | null;
+    bias4h: string | null;
     /** The scanner's own label, kept for audit; `band` is the q-derived one. */
     pathBand: string | null;
     /** A displacement leg (body ≥1×ATR, or left an FVG) is behind the setup. */
@@ -141,7 +151,12 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
   const verdict = shown?.verdict ?? "STAND";
   const handed = armed?.verdict === "ARMED" && Boolean(armed.ticket);
-  const top = desk.scan.candidates[0] ?? null;
+  // AUDIT F7: the card's strategy IS the brain's book when the brain has one
+  // on the board, so scanner, brain and Floor describe the same trade.
+  const bookCand = desk.smcMaster.oneBook?.side
+    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && c.pathBand !== "skip")
+    : undefined;
+  const top = bookCand ?? desk.scan.candidates[0] ?? null;
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
   const phase = handed ? "hand" : "look";
@@ -157,9 +172,11 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const wire: DeskWire = {
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
+    htf: top ? htfBiasOf(desk.mtfContext, top.symbol) : null,
     smt: desk.mtfContext ? { lead: desk.mtfContext.smtLead, all: desk.mtfContext.smt } : null,
     shock: sb
       ? {
+          active: Boolean(desk.shock?.active),
           dir: sb.dir,
           kind: sb.kind,
           bias: sb.bias,
@@ -186,7 +203,12 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
-          entry: top.entryPx ?? null,
+          entry: top.entryPx ?? top.plan?.entry ?? null,
+          entryResting: top.entryResting === true,
+          chop: top.chop === true,
+          qRaw: top.qRaw ?? null,
+          bias1h: htfBiasOf(desk.mtfContext, top.symbol)?.bias1h ?? null,
+          bias4h: htfBiasOf(desk.mtfContext, top.symbol)?.bias4h ?? null,
           stop: top.invalidation || null,
           draw: top.draw?.name ?? null,
           displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy),
@@ -198,11 +220,13 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       word: book?.word ?? null,
       thesis:
         top && book && (top.symbol !== book.symbol || top.side !== book.side)
-          ? `${book.word ?? "WAIT"} ${top.symbol} ${top.side} · same book · the other side is not this entry`
+          ? top.symbol !== book.symbol
+            ? `${book.word ?? "WAIT"} ${book.symbol} ${book.side ?? ""} is the brain's book · ${top.symbol} ${top.side} is not it`
+            : `${book.word ?? "WAIT"} ${top.symbol} ${top.side} · same book · the other side is not this entry`
           : desk.smcMaster.thesis,
       missing:
         top && book && (top.symbol !== book.symbol || top.side !== book.side)
-          ? "same book — brain was on the other side"
+          ? top.symbol !== book.symbol ? `brain is on ${book.symbol}` : "same book — brain was on the other side"
           : book?.missing ?? null,
       htfReleased,
     },
@@ -316,8 +340,3 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   };
 }
 
-/** PATH bands from q: A+ ≥0.75, A ≥0.68, A− ≥0.65, B+ ≥0.60, B ≥0.50, else C. */
-export function bandFromQ(q: number | null | undefined): string | null {
-  if (q == null || !Number.isFinite(q)) return null;
-  return q >= 0.75 ? "A+" : q >= 0.68 ? "A" : q >= 0.65 ? "A−" : q >= 0.6 ? "B+" : q >= 0.5 ? "B" : "C";
-}

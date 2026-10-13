@@ -18,6 +18,7 @@ export type Dir = "bull" | "bear";
 export const ALL_RUNGS: ArrayTf[] = [...LTF_RUNGS, ...HTF_RUNGS];
 const SWING_K = 2;
 const SWEEP_RECENT = 24;
+export const MTF_ARRAY_MAX_AGE = 30;
 
 export interface RungRead {
   tf: ArrayTf;
@@ -148,7 +149,9 @@ export function buildMtfContext(
       rungs.push(rungRead(b.symbol, tf, src));
     }
     for (const row of mtfArrays(b.symbol, b.minute, b.bars15)) {
-      if (row.mitigated) continue;
+      // AUDIT F9: count live, recent arrays only (the 15m rung counted 270+
+      // inverted gaps from the whole history — noise, not context).
+      if (row.mitigated || row.ageBars > MTF_ARRAY_MAX_AGE) continue;
       const r = rungs.find((x) => x.tf === row.tf);
       if (r) r.arrays[row.kind] += 1;
     }
@@ -191,4 +194,12 @@ export function wireMtf(ctx: MtfContext) {
     })),
     smt: ctx.smt,
   };
+}
+
+/** 1h/4h bias for one book, for the card (`wire.htf`). Null when unread. */
+export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
+  const b = ctx?.books.find((x) => x.symbol === symbol);
+  if (!b) return null;
+  const r = (tf: string) => b.rungs.find((x) => x.tf === tf)?.bias ?? null;
+  return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
