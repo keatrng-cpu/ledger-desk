@@ -724,7 +724,7 @@ function gradeBook(
     targetDetail = dol
       ? `No draw ahead of CE ${plan.entry.toFixed(2)} — ${dol.name} ${dol.price.toFixed(2)} sits ${side === "long" ? "below" : "above"} the entry. No target, no trade.`
       : `No draw priced ahead of CE ${plan.entry.toFixed(2)} — no target, no trade.`;
-  } else if (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr) {
+  } else if (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr && !(plan.t2 != null && plan.rr2 != null && plan.rr2 >= APLUS_RULES.minRr)) {
     targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} is ${plan.rr1.toFixed(2)}R from CE ${plan.entry.toFixed(2)} (stop ${plan.stop.toFixed(2)}, ${plan.riskPts.toFixed(2)}pt) — below the ${APLUS_RULES.minRr.toFixed(1)}:1 floor`;
   } else {
     targetState = "pass";
@@ -745,7 +745,9 @@ function gradeBook(
     // above, and this is labelled for the same reason the reach tier is —
     // it is a frequency from a small sample of recent sessions, not a
     // forecast. `headline` is null-safe and says "unpriced" below the floor.
+    const viaT2 = plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr;
     targetDetail =
+      (viaT2 ? `T1 ${plan.t1.toFixed(2)} is ${plan.rr1!.toFixed(2)}R — priced to T2 ${plan.t2!.toFixed(2)} ${plan.rr2!.toFixed(2)}R · ` : "") +
       `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
       `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
       ` · risk ${plan.riskPts.toFixed(2)}pt` +

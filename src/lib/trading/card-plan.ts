@@ -301,6 +301,21 @@ export function planStopText(
   }`;
 }
 
+/**
+ * AUDIT R2-3: the target the trade is actually priced to. T1 when it clears
+ * 1R; else T2 (the external draw) when that clears 1R; else T1 as-is (the
+ * brain will hold it below the floor). Never invented: null with no plan.
+ */
+export function primaryTarget(
+  p: { t1: number | null; t2: number | null; rr1: number | null; rr2: number | null } | null | undefined,
+  minRr = 1,
+): { price: number | null; rr: number | null; which: "t1" | "t2" | null } {
+  if (!p) return { price: null, rr: null, which: null };
+  if (p.t1 != null && p.rr1 != null && p.rr1 >= minRr) return { price: p.t1, rr: p.rr1, which: "t1" };
+  if (p.t2 != null && p.rr2 != null && p.rr2 >= minRr) return { price: p.t2, rr: p.rr2, which: "t2" };
+  return p.t1 != null ? { price: p.t1, rr: p.rr1, which: "t1" } : { price: null, rr: null, which: null };
+}
+
 export function raidOnStopSide(
   plan: Pick<TradePlan, "stop" | "sweep"> & Partial<Pick<TradePlan, "side" | "entry">>,
 ): boolean {
@@ -325,7 +340,7 @@ export function deskLevelsOf(
   const raid = p.raid?.price;
   if (raid != null && Number.isFinite(raid)) out.push({ kind: "raid", price: r2(raid), label: "raid wick" });
   out.push({ kind: "entry", price: r2(p.entry), label: "CE — rest the limit" });
-  out.push({ kind: "stop", price: r2(p.stop), label: "stop — beyond the raid" });
+  out.push({ kind: "stop", price: r2(p.stop), label: raidOnStopSide(p as never) ? "stop — beyond the raid" : "stop — beyond the entry array" });
   if (p.partial != null && Number.isFinite(p.partial)) {
     out.push({ kind: "partial", price: r2(p.partial), label: "partial — impulse EQ" });
   }
