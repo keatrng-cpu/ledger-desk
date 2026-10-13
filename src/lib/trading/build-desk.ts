@@ -4,10 +4,10 @@ import * as dayc from "@/lib/smc/day-context";
 import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
 import { loadMacro } from "@/lib/market/macro";
 import { loadOvernight5m } from "@/lib/market/overnight";
-import { rollingAtr as rollAtr } from "@/lib/trading/detectors";
+import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
-import { completePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -1503,6 +1503,44 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.actionable = false;
           c.reasons.push(`WATCH row, not a card: ${res.missing}`);
         }
+      }
+      // Keaton 2026-10-13: no fake stops, targets or R:R (exec-context sanePlan).
+      for (const c of payload.scan.candidates) {
+        if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
+        const pl = c.plan as { entry: number; stop: number; t1: number | null; t2: number | null; riskPts: number; rr1: number | null; rr2: number | null };
+        const entry = c.entryPx ?? pl.entry;
+        if (entry == null || pl.stop == null) continue;
+        const isL = c.symbol === left.symbol;
+        const b15 = isL ? closedL : closedR;
+        const m = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        const kind = c.side === "short" ? "high" : "low";
+        const swings = [...fractalSwings5(b5, 2), ...fractalSwings5(b15.filter((b) => b.t + 900_000 <= nowCtxPlan).slice(-40), 2)].filter((x) => x.kind === kind).map((x) => x.price);
+        const today = m.filter((b) => nowCtxPlan - b.t < 20 * 3_600_000);
+        const levels = [
+          ...rankDraws(isL ? payload.draws.left : payload.draws.right, b15).map((d) => d.price),
+          ...sdFor(isL).map((d) => d.price),
+          ...(today.length ? [Math.max(...today.map((b) => b.h)), Math.min(...today.map((b) => b.l))] : []),
+        ];
+        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels);
+        (c as { rrCheck?: unknown }).rrCheck = r;
+        if (r.widened) {
+          c.reasons.push(`Stop widened ${pl.stop} → ${r.stop} (was < ${0.5}×ATR15); R:R recomputed ${pl.rr1} → ${r.rr1}`);
+          pl.stop = r.stop; pl.riskPts = r.riskPts;
+          c.invalidation = `Stop ${r.stop.toFixed(2)} — beyond the structural swing (≥ 0.5×ATR15)`;
+        }
+        pl.rr1 = r.rr1; pl.rr2 = r.rr2;
+        // the brain's book plan is the same plan: same stop, same R:R
+        for (const bk of [smcMaster.left, smcMaster.right]) {
+          const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
+          if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = r.stop; bp.riskPts = r.riskPts; bp.rr1 = r.rr1; bp.rr2 = r.rr2; }
+        }
+        if (!r.ok) {
+          (c as { watchOnly?: boolean }).watchOnly = true;
+          (c as { watchWhy?: string | null }).watchWhy = r.why;
+          c.actionable = false;
+          c.reasons.push(`WATCH row, not a card: ${r.why}`);
+        } else if (r.flagged) c.reasons.push(r.why!);
       }
       // Full-plan cards first; if the lead was a watch row, the brain re-grades
       // the new lead's book so card, brain and Floor still name one trade.

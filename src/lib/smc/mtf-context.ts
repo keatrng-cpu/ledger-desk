@@ -10,6 +10,7 @@
  * 30m sweep or BOS for the side), LTF trigger (1–5m CHoCH/BOS for the side
  * or a continuation stack). Score = parts / 3. A read, never a gate.
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectSweeps, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { HTF_RUNGS, LTF_RUNGS, mtfArrays, rung, type ArrayTf } from "./mtf-arrays";
@@ -238,9 +239,9 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
 
-export let IFVG5_MAX_AGE = 6; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
-export let REJECT_WICK_FRAC = 0.5;
-export let DISP1_ATR = 1.0; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
+export let IFVG5_MAX_AGE = RULES.kill.ifvg5MaxAge; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
+export let REJECT_WICK_FRAC = RULES.kill.rejectWickFrac;
+export let DISP1_ATR = RULES.kill.disp1Atr; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
 export const DISP_LEG_BARS = 3;
 /** Replay tuning only (scripts/kill-tune.mts); the live desk never calls this. */
 export function setKillParams(p: { ifvg5MaxAge?: number; rejectWickFrac?: number; disp1Atr?: number }) {

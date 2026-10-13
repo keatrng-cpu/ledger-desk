@@ -14,6 +14,7 @@
  * HTF rungs come from the 15m series. Resamples are cached by
  * (symbol, tf, first t, last t, length).
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, rollingAtr, type FvgResult } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
@@ -23,7 +24,8 @@ export const LTF_RUNGS: ArrayTf[] = ["1m", "2m", "3m", "4m", "5m"];
 export const HTF_RUNGS: ArrayTf[] = ["15m", "30m", "1h", "4h"];
 const MIN: Record<ArrayTf, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
 export const SPONSORED_BODY_ATR = 1.5;
-export const MIN_STOP_ATR15 = 0.25;
+// parity audit 2026-10-13: was 0.25 — drifted from the 0.5×ATR15 stop floor everywhere else.
+export const MIN_STOP_ATR15 = RULES.minStopAtr;
 export const WIRE_ARRAYS_CAP = 30;
 
 export interface ArrayRow {

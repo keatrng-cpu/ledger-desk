@@ -3,6 +3,7 @@
  * displacement strength (fix 20), ranked draws (fix 7/8), exit plan (16–18).
  * Every number is read from bars the desk already loaded. No bars → null.
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
@@ -127,7 +128,7 @@ export function exitPlanOf(minute: OhlcBar[] | null | undefined, side: Side, pri
 }
 
 export const CONT_MIN_DISP = 0.6;
-export const CONT_MIN_STOP_ATR = 0.5;
+export const CONT_MIN_STOP_ATR = RULES.minStopAtr;
 
 export interface ContinuationPlan {
   symbol: string;
@@ -339,4 +340,46 @@ export function completePlan(i: CompleteInput): { plan: CompletedPlan | null; mi
   const p = planAt(i.symbol, side, { lo: z.lo, hi: z.hi, ce: entry }, ref, stopWhy, price, pool, atr, `entry ${z.src} CE ${entry}; target from ${targetSrc}`, targetSrc === "ranked draw" ? i.sd.filter(beyond) : []);
   if (!p) return { plan: null, missing: "plan did not price" };
   return { plan: { ...p, entrySrc: z.src, targetSrc }, missing: null };
+}
+
+/**
+ * Keaton 2026-10-13 (live 12:33 CT: MNQ short entry 30735.13, stop 30738.75
+ * = 3.6 pt vs ATR15 45.9 → "rr 13.12"): no fake stops, targets or R:R.
+ *  1. stop ≥ 0.5×ATR15 from entry; a tighter stop is widened to the nearest
+ *     real 5m swing beyond entry (or the 0.5×ATR floor) and R:R recomputed;
+ *  2. T1 must be a real level (ranked draw / SD projection / session H/L);
+ *     recomputed rr1 < 1.0 or an unreal T1 → not a card (watch row);
+ *  3. displayed R:R capped at RR_DISPLAY_MAX; above it the plan is flagged.
+ */
+export const RR_DISPLAY_MAX = RULES.rrDisplayMax;
+export const MIN_STOP_ATR = RULES.minStopAtr;
+export const RR_MIN = RULES.rrMin;
+export interface SaneResult {
+  ok: boolean; why: string | null; widened: boolean; flagged: boolean;
+  stop: number; riskPts: number; rr1: number | null; rr2: number | null; rrShown: number | null;
+}
+export function sanePlan(
+  p: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
+  atr: number | null, swings: number[], levels: number[], tick = 0.25,
+): SaneResult {
+  const short = p.side === "short";
+  let stop = p.stop, widened = false;
+  const bad = (why: string): SaneResult => ({ ok: false, why, widened, flagged: false, stop, riskPts: Math.abs(p.entry - stop), rr1: null, rr2: null, rrShown: null });
+  if (atr == null || !(atr > 0)) return bad("no ATR15 to check the stop");
+  if (short ? stop <= p.entry : stop >= p.entry) return bad("stop on the wrong side of entry");
+  const floor = short ? p.entry + MIN_STOP_ATR * atr : p.entry - MIN_STOP_ATR * atr;
+  if (Math.abs(stop - p.entry) < MIN_STOP_ATR * atr - 1e-9) {
+    const beyond = swings.filter((s) => (short ? s > p.entry : s < p.entry)).sort((a, b) => Math.abs(a - p.entry) - Math.abs(b - p.entry));
+    const sw = beyond.find((s) => Math.abs(s - p.entry) >= MIN_STOP_ATR * atr) ?? null;
+    stop = +(sw != null ? (short ? sw + tick : sw - tick) : floor).toFixed(2);
+    widened = true;
+  }
+  const riskPts = +Math.abs(p.entry - stop).toFixed(2);
+  const real = (t: number | null) => t != null && levels.some((l) => Math.abs(l - t) <= tick + 1e-9);
+  const rr = (t: number | null) => (t == null ? null : +((short ? p.entry - t : t - p.entry) / riskPts).toFixed(2));
+  if (!real(p.t1)) return { ...bad(`T1 ${p.t1} is not a real ranked level`), stop, riskPts };
+  const rr1 = rr(p.t1), rr2 = real(p.t2) ? rr(p.t2) : null;
+  if (rr1 == null || rr1 < RR_MIN) return { ok: false, why: `R:R ${rr1} < ${RR_MIN.toFixed(1)} after the stop check (stop ${stop}${widened ? ", widened" : ""})`, widened, flagged: false, stop, riskPts, rr1, rr2, rrShown: rr1 };
+  const flagged = rr1 > RR_DISPLAY_MAX;
+  return { ok: true, why: flagged ? `R:R ${rr1} above ${RR_DISPLAY_MAX} — shown capped, check the stop` : null, widened, flagged, stop, riskPts, rr1, rr2, rrShown: Math.min(rr1, RR_DISPLAY_MAX) };
 }

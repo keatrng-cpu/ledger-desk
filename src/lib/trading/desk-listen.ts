@@ -121,6 +121,10 @@ export interface DeskWire {
     targetWhich: "t1" | "t2" | null;
     /** R:R to `target`. */
     rr: number | null;
+    /** Uncapped R:R; `rr` is capped at 6 for display (Keaton 2026-10-13). */
+    rrRaw: number | null;
+    /** true when the R:R was above 6 or the stop was widened to ≥ 0.5×ATR15. */
+    rrFlag: boolean;
     rr1: number | null;
     rr2: number | null;
     t2: number | null;
@@ -280,7 +284,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,
-          rr: primaryTarget(top.plan).rr,
+          rr: (() => { const v = primaryTarget(top.plan).rr; return v == null ? null : Math.min(v, 6); })(),
+          rrRaw: primaryTarget(top.plan).rr,
+          rrFlag: Boolean((top as { rrCheck?: { flagged?: boolean; widened?: boolean } }).rrCheck?.flagged || (top as { rrCheck?: { widened?: boolean } }).rrCheck?.widened),
           rr1: top.plan?.rr1 ?? null,
           rr2: top.plan?.rr2 ?? null,
           t2: top.plan?.t2 ?? null,

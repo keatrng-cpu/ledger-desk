@@ -49,15 +49,15 @@ test("wire list is capped at 30, live gaps first", () => {
   if (firstMit >= 0) assert.ok(w.slice(firstMit).every((r) => r.mitigated));
 });
 
-test("continuation: ≥2 stacked bull 1m gaps after the raid; entry at the latest CE; stop ≥ 0.25×ATR15", () => {
+test("continuation: ≥2 stacked bull 1m gaps after the raid; entry at the latest CE; stop ≥ 0.5×ATR15 (shared rules)", () => {
   const { tape, raidT } = minuteTape();
-  const c = m.continuationArray("MNQ-c", tape, "bull", raidT, 40);
+  const c = m.continuationArray("MNQ-c", tape, "bull", raidT, 16); // 0.5×16 = 8 < origin distance
   assert.ok(c, "expected a stack");
   assert.ok(c.count >= 2);
   assert.ok(m.LTF_RUNGS.includes(c.tf));
-  assert.ok(c.entry - c.stop >= 0.25 * 40 - 1e-9, `stop distance ${c.entry - c.stop}`);
+  assert.ok(c.entry - c.stop >= 0.5 * 16 - 1e-9, `stop distance ${c.entry - c.stop}`);
   assert.equal(c.stop, 97); // beyond the stack's origin (the raid bar's low)
-  const wide = m.continuationArray("MNQ-c", tape, "bull", raidT, 100); // 0.25×100 = 25 > origin distance
+  const wide = m.continuationArray("MNQ-c", tape, "bull", raidT, 50); // 0.5×50 = 25 > origin distance
   assert.equal(wide.minStopApplied, true);
   assert.ok(Math.abs(wide.entry - wide.stop - 25) < 0.011);
   assert.equal(m.continuationArray("MNQ-c", tape, "bear", raidT, 40), null);

@@ -122,3 +122,7 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - Brain ring: displacement (≥ 0.5) and the live PD array are musts; premium/discount-for-side is a must again (no note demotion).
 - Learning loop may only RAISE band edges; never below 0.75 / 0.68 / 0.65 / 0.60 / 0.50.
 - (feat/full-plan-cards) The brain's "Draw on liquidity" layer reads the same ranked list as wire.draws and completePlan (`brainDrawPick`: best-ranked unswept draw beyond price on the side). Consequence: a ranked pool ahead of price can now pass the layer (and open the item-1 target gate) where `draw.primary` pointed the other way — a deliberate loosening for agreement, Keaton 2026-10-13.
+
+## 2026-10-13 — No fake stops/targets/R:R; one rules file (Keaton)
+- `sanePlan`: stop ≥ 0.5×ATR15 (widened to the nearest real 5m/15m swing beyond entry, else the floor; R:R recomputed); T1 must be a real level (ranked draw / OR SD / session H/L); rr1 < 1.0 or unreal T1 → watch row; displayed rr capped at 6 (`rrRaw`, `rrFlag`). The brain's book plan takes the same stop/R:R. Live case 12:33 CT MNQ short 30735.13 / 30738.75 / rr 13.12 → stop 30771.25, rr 1.32.
+- `shared/desk-rules.json` is the one source for band edges, ATR stop floor, entry zones, R:R rules, late entry, kill rules and fire timings. Desk TS imports it; desk-watcher carries a byte-identical copy; parity tests on both sides fail on drift. Drift found and fixed: continuation-array stop floor was 0.25×ATR15 (now 0.5); watcher stop_width used fixed points only (now also 0.5×ATR15).
