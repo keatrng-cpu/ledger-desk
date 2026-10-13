@@ -1,7 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 /** Public-safe guard for the desk-watcher status payload (Watcher tab). */
 const FORBIDDEN_KEYS = /"(password|token|access_token|refresh_token|mfa[a-z_]*|secret|buying_power|cash|equity|balance|portfolio_value)"\s*:/i;
-const LONG_DIGITS = /\d{7,}/; // any full account number (or anything that looks like one)
 
 export function safeWatcherStatus(raw: unknown): { ok: true; body: Record<string, unknown> } | { ok: false; why: string } {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, why: "not an object" };
@@ -12,7 +11,6 @@ export function safeWatcherStatus(raw: unknown): { ok: true; body: Record<string
   if (acct != null && !/^••••\d{4}$/.test(String(acct))) return { ok: false, why: "account not masked" };
   // digits in prices/timestamps are fine (heartbeat ms ≤ 13 digits) — only the account must never appear
   if (/995386158/.test(text)) return { ok: false, why: "unmasked account number" };
-  void LONG_DIGITS;
   return { ok: true, body: raw as Record<string, unknown> };
 }
 
