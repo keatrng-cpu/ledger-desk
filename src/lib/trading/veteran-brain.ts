@@ -1323,7 +1323,7 @@ export function runVeteranBrain(
   const readyStrats = strategyBoard.filter((s) => s.status === "ready");
   const autoActions: string[] = [
     rawBest
-      ? `Compose: scanner ${rawBest.symbol} ${rawBest.side}${rawBest.htfOk ? " · HTF agrees" : " · HTF split — not a take until the gate releases"}${rawBest.smtLevel?.led === true ? " · this book led the SMT" : rawBest.smtLevel?.led === false ? " · laggard — the other book led" : ""}`
+      ? `Compose: scanner ${rawBest.symbol} ${rawBest.side}${rawBest.htfOk ? " · HTF agrees" : " · HTF split — not a take until the gate releases"}${rawBest.smtLevel?.led === false ? " · this book held the SMT (the trade)" : rawBest.smtLevel?.led === true ? " · this book swept; the other held" : ""}`
       : "Compose: no card on the board",
     `Pace: ${counters.pathThisMonth}/${PATH_MONTH_CAP} PATH this month · target ${APLUS_RULES.targetTradesPerMonth.min}–${APLUS_RULES.targetTradesPerMonth.max}`,
     "Auto-scanned Trade · Path · Backtest · Tape · Risk · Lab",

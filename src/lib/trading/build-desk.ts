@@ -1,4 +1,12 @@
+import { primaryTarget } from "./card-plan";
+import * as setups from "@/lib/smc/setups";
+import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
+import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
+import { continuationPlan, planAt, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
+import { rollingAtr } from "./detectors";
+import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
+import { buildMtfContext, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -78,7 +86,7 @@ import { atrOf, drawOnLiquidity, type DrawRead } from "./draw";
 import { attachPlansToCards } from "./card-plan";
 import { newsRead, type NewsRead } from "./news";
 import { summarizeDetectors } from "./detectors";
-import { readShock, type ShockRead } from "./shock";
+import { readShock, shockLeanSide, type ShockRead } from "./shock";
 import {
   buildMarketNarrative,
   dualNarrativeSummary,
@@ -138,6 +146,10 @@ export interface DeskPayload {
   liveSays: LiveSays;
   /** Live SMC sequence (priced DOL + sweep polarity + one book). */
   smcMaster: SmcMasterRead;
+  /** One MTF read (1m–4h, both books) for scanner, brain and Floor. */
+  mtfContext?: MtfContext;
+  /** Fix 7/8: every priced draw, ranked (touches, age, scope). */
+  rankedDraws?: { left: RankedDraw[]; right: RankedDraw[] };
   /** Key presence only — never the secret. Claude handoff reads this. */
   coach: { xai: boolean; anthropic: boolean };
   /**
@@ -733,12 +745,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const dirR: "bull" | "bear" =
       raidDir(closedR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
     const narrL = applyLtfReaction(
-      buildMarketNarrative(biasL, detL, clock, dirL, left.bars),
+      buildMarketNarrative(biasL, detL, clock, dirL, left.bars, minuteL),
       minuteL,
       dirL,
     );
     const narrR = applyLtfReaction(
-      buildMarketNarrative(biasR, detR, clock, dirR, right.bars),
+      buildMarketNarrative(biasR, detR, clock, dirR, right.bars, minuteR),
       minuteR,
       dirR,
     );
@@ -769,17 +781,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
 
     // News gate: a scheduled high-impact release inside the risk window kills
     // actionability the same way bad data does — the engine skips these too.
-    const news: NewsRead =
-      shock.active
-        ? {
-            ...newsBase,
-            verdict: "blackout",
-            reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m — impulse is the news. B+ and higher still trade if the new sequence clears a higher bar, at a smaller size.`,
-          }
-        : newsBase;
-    // News and a shock raise the confidence bar and cut size. They do not
+    // A shock is NOT a news blackout (Keaton 2026-10-13: a shock never hard
+    // blocks). It used to set verdict "blackout", which the RH gate refuses
+    // outright. Now it raises the bar one step while the shock candle is open
+    // (shock.active ≈ the 15m lock) and cuts size through the tail.
+    const news: NewsRead = newsBase;    // News and a shock raise the confidence bar and cut size. They do not
     // take B+ and higher off the book when the bias and the score are there.
-    const event = news.verdict === "blackout" || news.verdict === "caution" || shock.tail;
+    const event = news.verdict === "blackout" || news.verdict === "caution" || shock.active;
     if (event) {
       let live = 0;
       for (const c of scan.candidates) {
@@ -1078,12 +1086,36 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // judas-window.ts correctly refuses to release. Passing it here is what
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
-    const smcMaster = gradeSmcMaster({
+    const DISP_NUDGE = 0.02;
+    const CHOP_CLEAR_DISP = 0.6;
+    const LTF_FLIP_MIN = 0.05;
+    const LTF_FLIP_MAX = 0.08;
+    const REVERSAL_NUDGE = 0.03;
+    const mtfContext = buildMtfContext(
+      { symbol: left.symbol, minute: minuteL, bars15: closedL },
+      { symbol: right.symbol, minute: minuteR, bars15: closedR },
+    );
+    const smcInput: Parameters<typeof gradeSmcMaster>[0] = {
       ...payload,
+      mtfContext,
+      shockSymbol: shock.event?.symbol ?? null,
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
-      shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null,
-    });
+      shockFloorMs: shock.active ? shock.freshFloorMs : null,
+      shockLean: shockLeanLive(
+        shockLeanSide(shock.bias),
+        shock.at,
+        shock.refPx ?? null,
+        (shock.event?.symbol === right.symbol ? rq : lq)?.price ?? null,
+        (() => {
+          const a = rollingAtr(shock.event?.symbol === right.symbol ? closedR : closedL);
+          const v = a[a.length - 1];
+          return v != null && Number.isFinite(v) ? v : null;
+        })(),
+        Date.now(),
+      ),
+    };
+    let smcMaster = gradeSmcMaster(smcInput);
     // One stop, everywhere (card-plan.ts): the card a book priced a plan
     // for now carries that plan, and its invalidation becomes the plan's
     // stop — so the ticket, the paper book and the Log dialog size off the
@@ -1092,6 +1124,259 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
       [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
     });
+    // Card discipline R1–R8 (src/lib/smc/discipline.ts) — before the news/shock bar.
+    {
+      const atrOf = (b: OhlcBar[]) => {
+        const a = rollingAtr(b);
+        const v = a[a.length - 1];
+        return v != null && Number.isFinite(v) ? v : null;
+      };
+      const ctxFor = (sym: string) => {
+        const isL = sym === left.symbol;
+        const closed = isL ? closedL : closedR;
+        const b = isL ? biasL : biasR;
+        return {
+          price: (isL ? lq : rq)?.price ?? null,
+          atr15: atrOf(closed),
+          closed15: closed,
+          minute: isL ? minuteL : minuteR,
+          nowMs,
+          levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
+        };
+      };
+      for (const c of payload.scan.candidates) {
+        applyDiscipline(c as never, ctxFor(c.symbol));
+        // MTF context (one read for scanner, brain, Floor) + SMT fix 2.
+        const al = mtfContext.books.find((x) => x.symbol === c.symbol)?.align[c.side as "long" | "short"];
+        if (al) c.reasons.push(`MTF align ${al.score} (HTF ${al.htf ? "✓" : "·"} MTF ${al.mtf ? "✓" : "·"} LTF ${al.ltf ? "✓" : "·"})`);
+        const fight = smtFightsContinuation(mtfContext, c.symbol, c.side as "long" | "short");
+        if (fight) {
+          const before = c.pathBand;
+          c.pathBand = capBand(c.pathBand, "B") as never;
+          c.actionable = false;
+          c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
+        }
+      }
+      // Keaton 10:33 ET: an LTF reversal (5m IFVG / 1m rejection + displacement)
+      // against a side caps that card at C and moves weight to the other side.
+      for (const c of payload.scan.candidates) {
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const own = book?.ltfReversals.find((r) => r.against === c.side);
+        const rev = own ?? book?.ltfReversal;
+        if (!rev) continue;
+        if (rev.against === c.side && rev.rearmed) {
+          c.pathBand = capBand(c.pathBand, "A-") as never;
+          c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
+        } else if (rev.against === c.side) {
+          c.pathBand = capBand(c.pathBand, "C") as never;
+          c.actionable = false;
+          c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
+          c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
+        } else if (!rev.rearmed) {
+          // Fix 29: a real boost, 0.05–0.08 weighted by this side's alignment.
+          const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
+          const boost = +(LTF_FLIP_MIN + (LTF_FLIP_MAX - LTF_FLIP_MIN) * al).toFixed(3);
+          c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
+          c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
+        }
+      }
+      // Fix 26/27: HTF sweep + LTF CHoCH releases the counter side (cap A-);
+      // 4+ of 1m–5m breaking one way is a reversal setup. Fix 28: these flags
+      // feed the brain's re-pick (the brain is re-graded after the seal).
+      for (const c of payload.scan.candidates) {
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const killed = book?.ltfReversals.some((r) => r.against === c.side && !r.rearmed) ?? false;
+        c.ltfKilled = killed;
+        const rs = reversalSetupOf(book).find((r) => r.side === c.side);
+        if (!rs || killed) continue;
+        c.setupRegime = "reversal";
+        if (rs.ltfBreaks >= LTF_BREAKS_FOR_REVERSAL) {
+          c.confluence = +Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4);
+        }
+        if (rs.htfRelease) {
+          c.htfOk = true;
+          c.htfDisrespected = true;
+          // The 1h/4h cap is what this sweep released: re-band from q under
+          // A- (chop still caps B+). Vetoed cards (skip) stay skip.
+          if (c.pathBand !== "skip") c.pathBand = capBand(bandFromQ(c.confluence) ?? "C", c.chop ? "B+" : "A-") as never;
+          if (c.pathBand && ["A-", "B+"].includes(c.pathBand) && !c.vetoes?.length) c.actionable = true;
+        }
+        c.reasons.push(`Reversal setup: ${rs.why.join("; ")}`);
+      }
+      // Fixes 32/35/37/38/39: regime label + setup detectors on closed 5m bars.
+      // A setup nudges (±0.02/0.03) only when it fits the card's regime.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const minute = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
+        const b5all = resample5(minute, 300_000);
+        const b5 = b5all.slice(0, -1);
+        const atr = atr15Of(isL ? closedL : closedR);
+        const regime = setups.regimeOf(c);
+        const tags: string[] = [];
+        (c as { regimeLabel?: string }).regimeLabel = regime;
+        if (b5.length < 10 || atr == null) { (c as { setups?: string[] }).setups = tags; continue; }
+        const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price }));
+        const ts = setups.turtleSoup(b5, levels);
+        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const br = setups.bosRetest(b5, atr, side);
+        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const sp = setups.sponsoredHold(mtfArrays(c.symbol, minute, []), minute, side);
+        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const legs = setups.legCount(b5, side);
+        (c as { legs?: number }).legs = legs;
+        if (regime === "trend" && legs >= 3) {
+          tags.push(`leg ${legs} — continuation decays`);
+          c.confluence = +Math.max(0, c.confluence - 0.03).toFixed(4);
+          if (c.pathBand && c.pathBand !== "skip") c.pathBand = capBand(c.pathBand as never, "A-") as never;
+        }
+        (c as { setups?: string[] }).setups = tags;
+        if (tags.length) c.reasons.push(`Setups (${regime}): ${tags.join("; ")}`);
+      }
+      // Fix 31: displacement ≥ 0.6 plus a BOS/CHoCH out of the range on 3m/5m
+      // in this side's direction clears chop (the range resolved).
+      for (const c of payload.scan.candidates) {
+        if (!c.chop) continue;
+        const side = c.side as "long" | "short";
+        const ds = displacementStrength(c.symbol === left.symbol ? minuteL : minuteR, side);
+        const want = side === "long" ? "bull" : "bear";
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const brk = book?.rungs.find((r) => (r.tf === "3m" || r.tf === "5m") && r.structure?.dir === want && r.structure.ageBars <= 10);
+        if (ds && ds.score >= CHOP_CLEAR_DISP && brk) {
+          c.chop = false;
+          c.reasons.push(`Chop cleared: displacement ${ds.score} + ${brk.tf} ${brk.structure!.kind} ${want} out of the range`);
+          if (c.setupRegime === "reversal" && c.htfDisrespected && c.pathBand !== "skip") {
+            c.pathBand = capBand(bandFromQ(c.confluence) ?? "C", "A-") as never;
+          }
+        }
+      }
+      // Fix 20/16–18: displacement strength (grades ±0.02) and the exit plan,
+      // from the same 1m tape every seat reads.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const minute = isL ? minuteL : minuteR;
+        const side = c.side as "long" | "short";
+        const ds = displacementStrength(minute, side);
+        c.dispStrength = ds;
+        if (ds) {
+          const nudge = +(DISP_NUDGE * (ds.score - 0.5) * 2).toFixed(4);
+          if (nudge !== 0) {
+            c.confluence = +Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4);
+            c.reasons.push(`Displacement strength ${ds.score} (${ds.bodyAtr}×ATR5${ds.leftFvg ? ", left an FVG" : ""}) ${nudge > 0 ? "+" : ""}${nudge}`);
+          }
+        }
+        const kill = mtfContext.books.find((x) => x.symbol === c.symbol)?.ltfReversals.find((r) => r.against === side && !r.rearmed) ?? null;
+        c.exitPlan = exitPlanOf(minute, side, (isL ? lq : rq)?.price ?? null, kill);
+      }
+      // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
+      for (const c of payload.scan.candidates) sealBand(c as never);
+      // AUDIT F2: the top card is the best card (actionable, band, q), so the
+      // wire, the Floor and the brain read the same first candidate.
+      const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+      payload.scan.candidates.sort(
+        (a, b) => Number(b.actionable) - Number(a.actionable) || bandRank(a.pathBand) - bandRank(b.pathBand) || b.confluence - a.confluence,
+      );
+    }
+    // AUDIT R2-4: the brain is graded AFTER discipline and the band seal, so
+    // its book reads the same capped, sealed cards as the wire and the Floor.
+    // The plans the cards already carry stay (discipline judged those).
+    // R3-b: ONE book. The brain grades the board's best card on its own book
+    // (that symbol's other cards are withheld from this pass), and that book
+    // is the brain's one book — so card, brain and Master name the same
+    // symbol and side, and the brain's word is its view of THAT card.
+    {
+      const lead = payload.scan.candidates[0];
+      if (lead) {
+        const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
+        smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+        const own = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
+        smcMaster.oneBook = own;
+      } else {
+        smcMaster = gradeSmcMaster(smcInput);
+      }
+      // R3-e: re-attach the plans the re-graded brain priced.
+      attachPlansToCards(payload.scan.candidates, smcMaster, {
+        [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
+        [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
+      });
+      // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
+      // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
+      for (const c of payload.scan.candidates) {
+        if (c.plan || c.entryPx != null || c.scannerSkip || c.setupRegime !== "reversal") continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const want = side === "long" ? "bull" : "bear";
+        const minute = (isL ? minuteL : minuteR) ?? [];
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const ch = book?.rungs.find((r) => ["1m", "3m", "5m"].includes(r.tf) && r.structure?.kind === "CHoCH" && r.structure.dir === want);
+        if (!ch || !minute.length) continue;
+        const rows = mtfArrays(c.symbol, minute, []);
+        const { first, second } = setups.reversalEntries(rows, side, ch.structure!.ageBars, ch.tf);
+        if (!first) continue;
+        const tfMin = Number(ch.tf.replace("m", ""));
+        const win = minute.slice(-(ch.structure!.ageBars * tfMin + 15), -1);
+        if (!win.length) continue;
+        const swept = side === "short" ? Math.max(...win.map((b) => b.h)) : Math.min(...win.map((b) => b.l));
+        const plan = planAt(c.symbol, side, first, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
+          (isL ? lq : rq)?.price ?? null, rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
+          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`);
+        if (!plan) continue;
+        c.entryPx = plan.entry; c.entryResting = plan.resting; c.plan = plan as never;
+        c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        (c as { addOn?: unknown }).addOn = second ? { tf: second.tf, entry: +second.ce.toFixed(2), zone: { top: second.hi, bottom: second.lo } } : null;
+        c.reasons.push(`Reversal entry (fix 33): ${plan.why}${second ? `; add-on at the 2nd gap CE ${second.ce}` : ""}`);
+      }
+      // Fix 34: a clean displacement leg with STACKED same-direction 1m/3m FVGs
+      // and no pullback plan gets one: entry at the newest gap's CE, stop
+      // beyond the last 3m swing (LH for a short) above that gap, never inside
+      // 0.5×ATR15; target the best-ranked draw beyond the entry.
+      for (const c of payload.scan.candidates) {
+        if (c.plan || c.entryPx != null || c.scannerSkip) continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const plan = continuationPlan(
+          c.symbol, side, isL ? minuteL : minuteR, isL ? closedL : closedR,
+          (isL ? lq : rq)?.price ?? null,
+          rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
+          c.dispStrength?.score ?? null,
+        );
+        if (!plan) continue;
+        c.entryPx = plan.entry;
+        c.entryResting = plan.resting;
+        c.plan = plan as never;
+        c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        c.reasons.push(`Continuation plan (fix 34): ${plan.why}`);
+      }
+      // R3-c: actionable needs a priced entry, stop and target.
+      for (const c of payload.scan.candidates) {
+        const entry = c.entryPx ?? c.plan?.entry ?? null;
+        const tgt = primaryTarget(c.plan).price;
+        if (c.actionable && (entry == null || c.plan?.stop == null || tgt == null)) {
+          c.actionable = false;
+          c.reasons.push("Not actionable: entry, stop and target must all be priced");
+        }
+      }
+    }
+    {
+      // The brain reads the same LTF reversal: its book on the reversed side stands.
+      for (const bk of [smcMaster.left, smcMaster.right]) {
+        const rev = mtfContext.books.find((x) => x.symbol === bk?.symbol)?.ltfReversals.find((r) => r.against === bk?.side);
+        if (bk && rev && !rev.rearmed && bk.side === rev.against && bk.word !== "STAND") {
+          bk.word = "STAND";
+          bk.missing = `LTF reversal against ${bk.side}: ${rev.why[0]}`;
+        }
+      }
+      if (smcMaster.oneBook) {
+        const ob = smcMaster.oneBook;
+        smcMaster.thesis = `${ob.word} ${ob.symbol} ${ob.side ?? ""} · ${ob.mustPass}/${ob.mustNeed} · ${ob.missing}`.trim();
+      }
+      // Re-sort after the actionable gate so candidates[0] stays the best card.
+      {
+        const br = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+        const lead0 = payload.scan.candidates[0];
+        payload.scan.candidates.sort((a, b) => Number(b === lead0) - Number(a === lead0) || Number(b.actionable) - Number(a.actionable) || br(a.pathBand) - br(b.pathBand) || b.confluence - a.confluence);
+      }
+    }
     const mtf = {
       left: { daily: dailyL, minute: minuteL },
       right: { daily: dailyR, minute: minuteR },
@@ -1142,6 +1427,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     return {
       ...payload,
       smcMaster,
+      mtfContext,
+      rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       coach,
       mtf,
       ladder,

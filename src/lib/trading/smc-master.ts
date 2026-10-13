@@ -6,6 +6,9 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { smtFightsContinuation } from "@/lib/smc/mtf-context";
+import { atr15Of, continuationArray, type ContinuationArray } from "@/lib/smc/mtf-arrays";
+import { poolArms } from "@/lib/smc/shared";
 import { reachTier } from "./entry-trigger";
 import { GATE, preferZone } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -142,6 +145,8 @@ export interface SmcMasterBook {
    * a tradable one; the word is then WAIT at best.
    */
   candidateComplete?: boolean;
+  /** Stacked LTF gaps after the raid that stand in for displacement + array (mtf-arrays.ts). */
+  continuation?: ContinuationArray | null;
   /** Which parts of the complete sequence this pick is missing. */
   candidateMissing?: string[];
 }
@@ -174,6 +179,12 @@ export interface SmcMasterInput {
   right?: { bars: OhlcBar[]; minute?: OhlcBar[] };
   /** Post-shock: arrays/sweeps before this ms don't count (fresh sequence only). */
   shockFloorMs?: number | null;
+  /** The shock's lean (shock.ts shockBias). A ranking nudge only, never a must. */
+  shockLean?: "long" | "short" | null;
+  /** SMT fix 8: the book whose tape printed the shock. Lean nudges that book only. */
+  shockSymbol?: string | null;
+  /** Shared MTF context (mtf-context.ts). */
+  mtfContext?: import("@/lib/smc/mtf-context").MtfContext | null;
 }
 
 function factorState(
@@ -245,6 +256,7 @@ export function eligibleCandidates(
   scan: ScanResult,
   bias: Pick<HtfBiasRead, "symbol" | "topDown">,
   narrative: MarketNarrative,
+  shockLean: "long" | "short" | null = null,
 ): SetupCandidate[] {
   const book = scan.candidates.filter((c) => c.symbol === bias.symbol);
   const need = bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null;
@@ -255,11 +267,15 @@ export function eligibleCandidates(
     // aligned — that is the one documented exception to the absolute gate.
     const aligned = need == null || c.side === need || c.htfDisrespected === true;
     return [
+      // Fix 28: a killed side never holds the book.
+      c.ltfKilled ? 0 : 1,
       c.htfOk ? 1 : 0,
       aligned ? 1 : 0,
       GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,
-      c.smtLevel?.led === true ? 1 : 0,
+      c.smtLevel?.led === false ? 1 : 0,
       sequenceComplete(c) ? 1 : 0,
+      // Shock lean: after completeness, before the band. A nudge, not a must.
+      shockLean != null && c.side === shockLean ? 1 : 0,
       isHighProbPath(c) ? 2 : isPathFire(c) ? 1 : 0,
     ];
   };
@@ -280,6 +296,7 @@ function pickCandidate(
   scan: ScanResult,
   bias: HtfBiasRead,
   narrative: MarketNarrative,
+  shockLean: "long" | "short" | null = null,
 ): SetupCandidate | undefined {
   // ITEM 10: completeness decides the pick. A higher fit with a missing must
   // LOSES to a complete sequence; when nothing is complete the nearest card is
@@ -289,7 +306,7 @@ function pickCandidate(
   // book with no cards at all. The old cascade (raid side -> aligned+PATH ->
   // aligned -> PATH -> best score) is now the first four keys of that sort,
   // with COMPLETENESS inserted ahead of the band — which is item 10.
-  return eligibleCandidates(scan, bias, narrative)[0];
+  return eligibleCandidates(scan, bias, narrative, shockLean)[0];
 }
 
 /**
@@ -355,8 +372,9 @@ function gradeBook(
   shockFloorMs: number | null,
   bars: OhlcBar[] | undefined,
   minute: OhlcBar[] | undefined,
+  shockLean: "long" | "short" | null = null,
 ): SmcMasterBook {
-  const cand = pickCandidate(scan, bias, narrative);
+  const cand = pickCandidate(scan, bias, narrative, shockLean);
   const side = cand?.side ?? null;
 
   // The range premium/discount is graded on. Impulse leg when the knob says
@@ -459,7 +477,6 @@ function gradeBook(
   // displaced against it — and only for the side that failed raid points at.
   // No sub-15m tape, no release. See JUDAS_MIN_CONFLUENCE below for the grade
   // it additionally has to carry.
-  const judas = judasRead.blocked;
   const retestReady =
     narrative.liquidity.lastSweep !== "none" &&
     (narrative.confirmation === "armed_entry" || narrative.confirmation === "confirmed");
@@ -672,8 +689,9 @@ function gradeBook(
     side,
     price: price ?? 0,
     entryArray: fresh ?? null,
-    sweepExtreme: narrative.liquidity.lastSweepExtreme,
-    sweepT: narrative.liquidity.lastSweepT,
+    // Only the raid that ARMS this side may anchor the stop (shared.ts poolArms).
+    sweepExtreme: poolArms(narrative.liquidity.lastSweep, side) ? narrative.liquidity.lastSweepExtreme : null,
+    sweepT: poolArms(narrative.liquidity.lastSweep, side) ? narrative.liquidity.lastSweepT : null,
     dol: pools.t1,
     range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
     arrays: tape?.arrays ?? [],
@@ -707,7 +725,7 @@ function gradeBook(
     targetDetail = dol
       ? `No draw ahead of CE ${plan.entry.toFixed(2)} — ${dol.name} ${dol.price.toFixed(2)} sits ${side === "long" ? "below" : "above"} the entry. No target, no trade.`
       : `No draw priced ahead of CE ${plan.entry.toFixed(2)} — no target, no trade.`;
-  } else if (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr) {
+  } else if (plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr && !(plan.t2 != null && plan.rr2 != null && plan.rr2 >= APLUS_RULES.minRr)) {
     targetDetail = `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} is ${plan.rr1.toFixed(2)}R from CE ${plan.entry.toFixed(2)} (stop ${plan.stop.toFixed(2)}, ${plan.riskPts.toFixed(2)}pt) — below the ${APLUS_RULES.minRr.toFixed(1)}:1 floor`;
   } else {
     targetState = "pass";
@@ -728,7 +746,9 @@ function gradeBook(
     // above, and this is labelled for the same reason the reach tier is —
     // it is a frequency from a small sample of recent sessions, not a
     // forecast. `headline` is null-safe and says "unpriced" below the floor.
+    const viaT2 = plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr;
     targetDetail =
+      (viaT2 ? `T1 ${plan.t1.toFixed(2)} is ${plan.rr1!.toFixed(2)}R — priced to T2 ${plan.t2!.toFixed(2)} ${plan.rr2!.toFixed(2)}R · ` : "") +
       `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
       `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
       ` · risk ${plan.riskPts.toFixed(2)}pt` +
@@ -837,7 +857,16 @@ function gradeBook(
    * Only ever downgrades TAKE -> WAIT. STAND is left alone, because a STAND
    * already carries a named failing must and that is the more useful sentence.
    */
-  const candGaps = cand ? sequenceGaps(cand) : null;
+  // CONTINUATION ARRAY (src/lib/smc/mtf-arrays.ts): two or more stacked
+  // same-direction LTF gaps after the raid are the displacement AND the array.
+  const contDir: "bull" | "bear" | null = side === "long" ? "bull" : side === "short" ? "bear" : null;
+  const continuation =
+    cand && contDir && narrative.liquidity.lastSweepT != null
+      ? continuationArray(bias.symbol, minute, contDir, narrative.liquidity.lastSweepT, atr15Of(bars))
+      : null;
+  const candGaps = cand
+    ? sequenceGaps(cand).filter((g) => !(continuation && (g === "displacement" || g === "array")))
+    : null;
   const candComplete = candGaps != null && candGaps.length === 0;
 
   let word: SmcMasterBook["word"] = "STAND";
@@ -855,7 +884,13 @@ function gradeBook(
   const missing =
     blocker?.label ??
     incompleteLabel ??
-    (!pathOk ? "No A+/A/A− PATH" : armed ? "Armed — limit at CE" : "Sequence complete");
+    (!pathOk
+      ? "No A+/A/A− PATH"
+      : armed
+        ? "Armed — limit at CE"
+        : continuation
+          ? `Sequence complete — ${continuation.tf} array ×${continuation.count}, CE ${continuation.entry.toFixed(2)}`
+          : "Sequence complete");
   const missingDetail =
     blocker?.detail ??
     (incompleteLabel && cand
@@ -916,12 +951,23 @@ function gradeBook(
     partial,
     candidateComplete: candComplete,
     candidateMissing: candGaps ?? [],
+    continuation,
   };
 }
 
 export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
   const smtOn =
     desk.scan.smt.edge !== "none" || Boolean(desk.smtStack?.primary.active);
+  // SMT fix 8 + fix 2: the lean nudges only the shocked book, never the failing one.
+  const leanFor = (sym: string): "long" | "short" | null => {
+    const lean = desk.shockLean ?? null;
+    if (!lean) return null;
+    if (desk.shockSymbol && desk.shockSymbol !== sym) return null;
+    if (smtFightsContinuation(desk.mtfContext, sym, lean)) return null;
+    return lean;
+  };
+  const alignOf = (b: SmcMasterBook) =>
+    (b.side && desk.mtfContext?.books.find((x) => x.symbol === b.symbol)?.align[b.side]?.score) || 0;
   const left = gradeBook(
     desk.bias.left,
     desk.draws.left,
@@ -935,6 +981,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.left?.bars,
     desk.left?.minute,
+    leanFor(desk.bias.left.symbol),
   );
   const right = gradeBook(
     desk.bias.right,
@@ -949,13 +996,21 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.right?.bars,
     desk.right?.minute,
+    leanFor(desk.bias.right.symbol),
   );
 
   const ranked = [left, right].sort((a, b) => {
     const rank = (w: SmcMasterBook["word"]) =>
       w === "TAKE" ? 2 : w === "WAIT" ? 1 : 0;
     if (rank(a.word) !== rank(b.word)) return rank(b.word) - rank(a.word);
-    return b.mustPass - a.mustPass;
+    if (b.mustPass !== a.mustPass) return b.mustPass - a.mustPass;
+    // SMT fix 3: prefer the stronger book (the SMT leader in continuation, then MTF alignment).
+    const lead = desk.mtfContext?.smtLead;
+    if (lead) {
+      const strong = (x: SmcMasterBook) => (x.symbol === lead.leader ? 1 : 0);
+      if (strong(a) !== strong(b)) return strong(b) - strong(a);
+    }
+    return alignOf(b) - alignOf(a);
   });
   const oneBook = ranked[0] ?? null;
 
@@ -963,7 +1018,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     "ICT narrates; we price DOL. TJR is sweep→5m confirm — we add dealing-range + retrace + one book. Blake IFVG without the raid is B+. Sequence or STAND.";
 
   const thesis = oneBook
-    ? `${oneBook.word} ${oneBook.symbol} ${oneBook.side ?? ""} · ${oneBook.mustPass}/${oneBook.mustNeed} · ${oneBook.missing}`.trim()
+    ? `${oneBook.word} ${oneBook.symbol} ${oneBook.side ?? ""} · ${oneBook.mustPass}/${oneBook.mustNeed} · ${oneBook.missing}${oneBook.side && desk.mtfContext ? ` · MTF align ${alignOf(oneBook).toFixed(2)}` : ""}`.trim()
     : "STAND — map DOL and wait.";
 
   return { left, right, oneBook, thesis, vsSchools };

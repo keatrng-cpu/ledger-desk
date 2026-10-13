@@ -16,7 +16,7 @@ import { PriceLadder, ladderFrom } from "@/components/desk/viz/price-ladder";
 import { Plain } from "@/components/desk/plain-text";
 import { isHighProbPath } from "@/lib/alerts/path-alarm";
 import { etWallParts, isJudasWindow, sessionLive} from "@/lib/trading/sessions";
-import { readJudas } from "@/lib/trading/judas-window";
+import { readJudas, JUDAS_BLOCKS } from "@/lib/trading/judas-window";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { bookTakenToday, listOpenPaperTrades } from "@/lib/trading/paper-manager";
 import { cn } from "@/lib/utils";
@@ -259,7 +259,8 @@ export function pricePathVerdict(
       readJudas(allSeries(desk.right?.bars ?? [], desk.mtf?.right?.minute ?? []), clockJ, null),
     ];
     const released = reads.find((r) => !r.blocked);
-    if (!released) {
+    // Warning only (JUDAS_BLOCKS = false): the board keeps reading the book.
+    if (!released && JUDAS_BLOCKS) {
       const left = 45 - wall.minute;
       return {
         word: "STAND",

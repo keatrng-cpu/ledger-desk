@@ -131,13 +131,12 @@ export interface SmtLevelRead {
   extreme: number | null;
   timeframe: string | null;
   /**
-   * ITEM 11 — did THIS book lead the divergence?
+   * Did THIS book make the divergence's new extreme?
    *
    * True when this symbol made the new extreme (it is `d.leader`), false when
-   * it is the laggard that held, null when there is no active divergence to
-   * lead. `thisLed` has been computed below since the file was written and was
-   * thrown away; the laggard is not a second setup on the same divergence, so
-   * the optional SMT factor is now only earned by the leader (smc-canon.ts).
+   * it HELD, null when there is no active divergence. The holder carries the
+   * reversal, so the optional SMT factor is earned only when this is false
+   * (smc-canon.ts SMT_CREDITS_THE_HOLDER; Addendum 2 fix 1).
    *
    * null is NOT a refusal: no divergence read behaves exactly as it does today.
    */

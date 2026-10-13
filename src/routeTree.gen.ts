@@ -21,6 +21,7 @@ import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
+import { Route as ApiDeskJournalRouteImport } from './routes/api/desk/journal'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
 import { Route as ApiRhCallbackRouteImport } from './routes/api/rh/callback'
@@ -87,6 +88,11 @@ const ApiDeskHandoffRoute = ApiDeskHandoffRouteImport.update({
   path: '/api/desk/handoff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeskJournalRoute = ApiDeskJournalRouteImport.update({
+  id: '/api/desk/journal',
+  path: '/api/desk/journal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEngineHeartbeatRoute = ApiEngineHeartbeatRouteImport.update({
   id: '/api/engine/heartbeat',
   path: '/api/engine/heartbeat',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
+  '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
+  '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
+  '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly'
     | '/api/desk/card'
     | '/api/desk/handoff'
+    | '/api/desk/journal'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly'
     | '/api/desk/card'
     | '/api/desk/handoff'
+    | '/api/desk/journal'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly'
     | '/api/desk/card'
     | '/api/desk/handoff'
+    | '/api/desk/journal'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -244,6 +256,7 @@ export interface RootRouteChildren {
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
   ApiDeskCardRoute: typeof ApiDeskCardRoute
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
+  ApiDeskJournalRoute: typeof ApiDeskJournalRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
   ApiRhCallbackRoute: typeof ApiRhCallbackRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeskHandoffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/desk/journal': {
+      id: '/api/desk/journal'
+      path: '/api/desk/journal'
+      fullPath: '/api/desk/journal'
+      preLoaderRoute: typeof ApiDeskJournalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/engine/heartbeat': {
       id: '/api/engine/heartbeat'
       path: '/api/engine/heartbeat'
@@ -388,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
   ApiDeskCardRoute: ApiDeskCardRoute,
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
+  ApiDeskJournalRoute: ApiDeskJournalRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
   ApiRhCallbackRoute: ApiRhCallbackRoute,

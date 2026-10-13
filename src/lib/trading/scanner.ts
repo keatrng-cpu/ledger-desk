@@ -3,6 +3,7 @@
  * + strategy catalog + conditions gate.
  */
 
+import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
@@ -18,7 +19,7 @@ import {
   type DetectorSummary,
   type FvgResult,
 } from "./detectors";
-import type { ComponentKey } from "./engine-weights";
+import { SCORE_KEYS, type ComponentKey } from "./engine-weights";
 import {
   buildImpulseLeg,
   isUsableLeg,
@@ -56,6 +57,7 @@ import {
   gradeAllStrategies,
   structureLayerScore,
   type StrategyMarketGrade,
+  templateFor,
 } from "./strategy-grade";
 import { sessionLive } from "@/lib/trading/sessions";
 import { applyTapeTrust, tapeTrust } from "@/lib/market/tape-trust";
@@ -158,6 +160,22 @@ export interface SetupCandidate {
   stopSource?: "plan" | "structure" | "none";
   /** Numeric entry the card's zone resolves to (CE / OTE optimal / range half). */
   entryPx?: number | null;
+  /** The entry is a real array price but price is not at it (a resting limit). */
+  entryResting?: boolean;
+  /** R7 chop read for this book (discipline.ts isChop). */
+  chop?: boolean;
+  /** The scanner said skip (sealBand exports it as C). */
+  scannerSkip?: boolean;
+  /** Fix 20. */
+  dispStrength?: import("@/lib/smc/exec-context").DisplacementStrength | null;
+  /** Fix 16–18. */
+  exitPlan?: import("@/lib/smc/exec-context").ExitPlan;
+  /** LTF kill live against this card (mtf-context ltfReversals). */
+  ltfKilled?: boolean;
+  /** Fix 39 label (reversal set by fix 26/27). */
+  setupRegime?: "trend" | "reversal" | "range";
+  /** q before a band cap clamped it (discipline.ts sealBand). */
+  qRaw?: number;
   /** ATR(14) of the graded series — for the stop band on cards without a plan. */
   atr?: number | null;
   /**
@@ -625,45 +643,39 @@ function scoreDirection(
    * the one-book pick.
    *
    * `smtLevel.led` is `thisLed` (smt-level.ts), which was already computed and
-   * discarded. `false` is the laggard and does not score. `null` is "no
-   * divergence", which cannot reach here anyway because `present` is false.
+   * discarded. `false` is the HOLDER (the other index swept) and scores —
+   * the SMT reversal is the book that held (Addendum 2 fix 1). `true` swept
+   * and does not score. `null` is "no divergence" (`present` is false).
    */
   void smt;
   void book;
   const smtLed = smtLevel?.led ?? null;
-  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel && smtLed !== false);
+  const smtHits = Boolean(smtLevel?.present && smtLevel.atLevel && smtLed === false);
   add(
     "smt",
     smtHits,
     smtHits
-      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"}) — this book led the divergence`
+      ? `smt at ${smtLevel!.level} (${smtLevel!.timeframe ?? "swing"} · ${read.symbol} ${smtLevel!.extreme?.toFixed(2) ?? "?"}) — this book HELD while the other swept (the SMT holder is the trade)`
       : undefined,
   );
-  if (smtLevel?.present && smtLevel.atLevel && smtLed === false) {
+  if (smtLevel?.present && smtLevel.atLevel && smtLed === true) {
     notes.push(
-      `SMT at ${smtLevel.level}, but the OTHER index made the extreme — the laggard is not a second setup. Trade the book that led.`,
+      `SMT at ${smtLevel.level}: THIS index made the extreme and the other held — the holder is the trade, not this book.`,
     );
   }
 
-  const detSweepOk = Boolean(
-    det.sweep.latest &&
-      det.sweep.latest.closeBackInside > 0 &&
-      ((direction === "bull" && det.sweep.latest.side === "sellside") ||
-        (direction === "bear" && det.sweep.latest.side === "buyside")),
-  );
-  // A pool "swept" flag only means price is beyond the level. A breakout
-  // does that. A sweep is a wick through the pool that closed back inside.
-  const sig =
-    detSweepOk ||
-    (det.mechanical.alive &&
-      det.mechanical.sweep != null &&
-      det.mechanical.sweep.closeBackInside > 0 &&
-      mechDir === direction);
+  // ONE raid read (src/lib/smc/shared.ts `armingRaid`): the newest real sweep
+  // of THIS side's polarity inside GATE.recentSweepBars, else Blake's live
+  // mechanical sweep. A later tag of the other pool no longer erases it —
+  // the same rule `polaritySweep`/`pairedDisplacement` use for displacement
+  // below and the brain uses through `raidReadForCard`.
+  const armed = armingRaid(cb, direction, det);
+  const sig = armed != null;
   add(
     "sweep_significant",
     sig,
     sig
-      ? `sweep_significant (${det.sweep.latest?.side ?? "det"})`
+      ? `sweep_significant (${armed!.sweep.side} · ${armed!.source})`
       : undefined,
   );
 
@@ -979,8 +991,10 @@ function scoreDirection(
     present.includes("mechanical_model");
   const hot = score >= 0.8 && directionOk && clock.isWeekday && g !== "skip";
   if (hot && !conditions.tradeable) reasons.push("Regime is quiet. Size is cut. A card at 0.80 is still read.");
+  // R1 (2026-10-13): the 0.80 `hot` shortcut no longer makes a card actionable
+  // on its own — an A+ with nothing to buy was printing actionable=true.
+  void hot;
   const actionable =
-    hot ||
     (g !== "skip" &&
     directionOk &&
     killzoneOk &&
@@ -1065,13 +1079,18 @@ function scoreDirection(
     ce != null && gap && near != null && far != null
       ? `${oteEntry != null ? `OTE ${oteEntry.toFixed(2)} · ` : ""}near ${near.toFixed(2)} · CE ${ce.toFixed(2)} · far ${far.toFixed(2)}${bodyClose != null ? ` · close ${bodyClose.toFixed(2)}` : ""}`
       : "await the array this displacement left";
-  if (!silverOk) {
-    entryPx = null;
-    entryZone = "not a silver bullet — the gap did not form in this hour";
-  } else if (entryPx != null && Number.isFinite(lastClose)) {
+  // AUDIT F1: this used to NULL the entry for every model from 10:00–11:00
+  // and 14:00–15:00 ET (the silver-bullet hours) unless the gap formed in
+  // that hour, and whenever price sat more than 2 gap heights away. That is
+  // why wire.strategy.entry was null on every card in the NY AM hour. The
+  // array price is real either way: it is kept, and the card says whether
+  // price is AT it (`entryResting: false`) or the limit is resting.
+  let entryResting = false;
+  if (!silverOk) entryZone = `${entryZone} · not a silver bullet (gap formed outside this hour)`;
+  if (entryPx != null && Number.isFinite(lastClose)) {
     const height = gap ? Math.max(gap.top - gap.bottom, 1) : 8;
     if (Math.abs(lastClose - entryPx) > Math.max(height * 2, 8)) {
-      entryPx = null;
+      entryResting = true;
       entryZone = `${entryZone} — resting, price is not at the array`;
     }
   }
@@ -1099,9 +1118,13 @@ function scoreDirection(
       ...(bestModel.complete
         ? []
         : bestModel.missing.map((m) => `${bestModel.label}:${m}`)),
-      ...missing
-        .filter((m) => !present.includes(m as ComponentKey))
-        .slice(0, 8),
+      // Only this card's own template may name a missing component; another
+      // model's key is optional confluence, never "still missing" (shared.ts).
+      ...ownTemplateMissing(
+        templateFor(String(bestModel.id)),
+        missing.filter((m) => !present.includes(m as ComponentKey)),
+        SCORE_KEYS,
+      ).slice(0, 8),
     ],
     components: present,
     strategies: stratIds,
@@ -1115,6 +1138,7 @@ function scoreDirection(
     structureScore,
     entryZone,
     entryPx: entryPx != null && Number.isFinite(entryPx) ? entryPx : null,
+    entryResting,
     invalidation: inv.text,
     stopSource: inv.source,
     /**

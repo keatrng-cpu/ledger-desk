@@ -1,3 +1,4 @@
+import { JUDAS_BLOCKS } from "./judas-window";
 /**
  * Auto paper — PATH A+/A/A− on the $100k book.
  * NY AM during the options window. After 11:00 ET the same book papers
@@ -192,7 +193,7 @@ export function autoPaperShouldTake(desk: DeskPayload): AutoPaperPick {
   }
 
   const band = String(candidate.pathBand || candidate.grade);
-  if (isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+" && band !== "A＋") {
+  if (JUDAS_BLOCKS && isJudasWindow(clock.etHour, clock.etMinute) && band !== "A+" && band !== "A＋") {
     return { take: null, skip: "Judas 9:30–9:45 — A+ only; clock does not veto a complete A+ sequence" };
   }
 

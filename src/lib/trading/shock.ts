@@ -82,6 +82,61 @@ export interface ShockRead {
   line: string;
   /** Headline, summary, direction, wick. Empty when no shock. */
   brief: ShockBrief | null;
+  /** Which way the shock leans the desk. A nudge, never a must or a block. */
+  bias: ShockBias | null;
+  /** Close of the shock bar (or null while forming) — the R9 counter-move reference. */
+  refPx?: number | null;
+}
+
+/**
+ * The shock's lean (Keaton 2026-10-13).
+ *   delivery      — the shock bar CLOSED through the prior bar: lean with it.
+ *   manipulation  — the close came back inside the prior bar: lean fade.
+ *   pending       — the bar is still forming (or no prior bar): no lean.
+ * `smt`: both books moved (macro / nq-led / es-led) or only one (single).
+ * Both books confirm a delivery; a single-index spike that wicks back is the
+ * classic manipulation. The confidence numbers are ORDINAL, unmeasured — they
+ * only order the lean; nothing sizes or gates from them.
+ * Headline tone is never inferred (news/feed.ts: a headline is data) — always
+ * "unknown" until a sanctioned classifier exists.
+ */
+export interface ShockBias {
+  dir: "up" | "down";
+  kind: "delivery" | "manipulation" | "pending";
+  bias: "bull" | "bear" | "neutral";
+  confidence: number;
+  smt: "both" | "single";
+  headline: string | null;
+  headlineTone: "unknown";
+}
+
+export function shockBiasFrom(
+  side: "up" | "down",
+  bar: OhlcBar | null,
+  prior: OhlcBar | null,
+  kind: ShockKind,
+  headline: string | null,
+): ShockBias {
+  const both = kind !== "single";
+  const down = side === "down";
+  let k: ShockBias["kind"] = "pending";
+  if (bar && prior) {
+    const backInside = bar.c <= prior.h && bar.c >= prior.l;
+    const through = down ? bar.c < prior.l : bar.c > prior.h;
+    k = backInside ? "manipulation" : through ? "delivery" : "delivery";
+  }
+  const withDir: ShockBias["bias"] = down ? "bear" : "bull";
+  const fade: ShockBias["bias"] = down ? "bull" : "bear";
+  const bias = k === "pending" ? "neutral" : k === "delivery" ? withDir : fade;
+  const confidence =
+    k === "pending" ? 0 : k === "delivery" ? (both ? 0.6 : 0.4) : both ? 0.4 : 0.6;
+  return { dir: side, kind: k, bias, confidence, smt: both ? "both" : "single", headline, headlineTone: "unknown" };
+}
+
+/** The side a shock leans, or null (pending / no shock). Used only as a ranking tiebreak. */
+export function shockLeanSide(b: ShockBias | null | undefined): "long" | "short" | null {
+  if (!b || b.bias === "neutral") return null;
+  return b.bias === "bull" ? "long" : "short";
 }
 
 const NONE: ShockRead = {
@@ -95,6 +150,7 @@ const NONE: ShockRead = {
   event: null,
   line: "",
   brief: null,
+  bias: null,
 };
 
 interface BookShock {
@@ -220,7 +276,7 @@ export function shockBrief(
       ? calendarName
       : "Unscheduled — not on the calendar. The cause is a headline the desk does not have a name for.",
     summary: `${lead.symbol} ${down ? "fell" : "rose"} ${fmtPts(lead.shock.pts)} points, ${lead.shock.atrMult.toFixed(1)} times its range. ${cause}`,
-    effect: `${impulse[0]!.toUpperCase()}${impulse.slice(1)} impulse. Stand the spike. Size is cut and the bar is higher until the tail ends. A new trade needs a raid and a later close after this candle, not a fade of the wick.`,
+    effect: `${impulse[0]!.toUpperCase()}${impulse.slice(1)} impulse. Do not chase the spike. Size is cut; the bar is one step higher only until the shock candle closes. A new trade needs a raid and a later close after this candle, not a fade of the wick.`,
     wick,
   };
 }
@@ -277,5 +333,7 @@ export function readShock(
     event: { at, symbol: lead.s, side: lead.b.side, pts: lead.b.pts, atrMult: lead.b.atrMult, kind },
     line,
     brief,
+    bias: shockBiasFrom(lead.b.side, lead.b.bar, lead.b.prior, kind, calendarName),
+    refPx: lead.b.bar?.c ?? null,
   };
 }

@@ -13,6 +13,9 @@
 
 import type { OhlcBar } from "../market/types";
 import {
+  barSpanMs,
+  fractalSwings,
+  MM_SWING_WIDTH,
   detectDisplacements,
   detectFvgs,
   detectOrderBlocks,
@@ -23,12 +26,52 @@ import {
 } from "./detectors";
 import { GATE } from "./gate-tuning";
 
-export function recentRealSweeps(bars: OhlcBar[]): SweepEvent[] {
+/**
+ * DATED SWEEPS (2026-10-13): a decay, not a cliff.
+ *
+ * Was: a raid older than GATE.recentSweepBars (24 × 15m = 6h) vanished on the
+ * next bar. On 2026-10-13 the London SSL raids (02:15–03:15 ET) sat at age
+ * 24–28 at the NY open and dropped off exactly while the 09:30 bar was
+ * forming, so the brain printed "No raid yet" over a swept book.
+ *
+ * Now: full weight to `recentSweepBars`, linear to zero at twice that, and a
+ * raid stays only while it is NOT invalidated — no close beyond its own wick
+ * (that is where the stop lives). The weight is on the event (`ageWeight`)
+ * for display/ranking; it does not enter q.
+ */
+export const SWEEP_DECAY = {
+  get fullBars() {
+    return GATE.recentSweepBars;
+  },
+  get maxBars() {
+    return 2 * GATE.recentSweepBars;
+  },
+};
+
+export function sweepAgeWeight(ageBars: number): number {
+  const full = SWEEP_DECAY.fullBars;
+  const max = SWEEP_DECAY.maxBars;
+  if (ageBars <= full) return 1;
+  if (ageBars >= max) return 0;
+  return +(1 - (ageBars - full) / (max - full)).toFixed(3);
+}
+
+/** A close beyond the raid's own wick after the raid bar kills it. */
+export function sweepInvalidated(bars: OhlcBar[], s: SweepEvent): boolean {
+  for (let i = s.index + 1; i < bars.length; i++) {
+    const c = bars[i]!.c;
+    if (s.side === "sellside" ? c < s.wickExtreme : c > s.wickExtreme) return true;
+  }
+  return false;
+}
+
+export function recentRealSweeps(bars: OhlcBar[]): (SweepEvent & { ageWeight: number })[] {
   if (bars.length < 20) return [];
   const last = bars.length - 1;
-  return detectSweeps(bars).filter(
-    (s) => s.closeBackInside > 0 && last - s.index <= GATE.recentSweepBars,
-  );
+  return detectSweeps(bars)
+    .filter((s) => s.closeBackInside > 0)
+    .map((s) => ({ ...s, ageWeight: sweepAgeWeight(last - s.index) }))
+    .filter((s) => s.ageWeight > 0 && !sweepInvalidated(bars, s));
 }
 
 /**
@@ -191,4 +234,64 @@ export function extensionAllows(bars: OhlcBar[], side: "long" | "short"): boolea
   if (ext === "bear" && side === "short") return true;
   const dir = side === "short" ? "bear" : "bull";
   return reversalInside(bars, dir, bars.length - 8);
+}
+
+
+/**
+ * PROVISIONAL RAID FROM THE 1-MINUTE TAPE (Keaton 2026-10-13).
+ *
+ * Before the 15m bar closes, a CLOSED 1m bar whose wick pierces this side's
+ * pool (the latest confirmed 15m swing) followed by a CLOSED 1m close back
+ * inside counts as the raid — marked `provisional: true`. The latest closed
+ * 1m bar must still be inside; a 1m close back beyond the level drops it.
+ * When the 15m bar closes, the normal 15m sweep takes over: a 15m close
+ * beyond the level is not a sweep, so the provisional raid simply disappears.
+ * Only closed 1m bars are evidence (nowMs >= t + span).
+ */
+export interface ProvisionalRaid extends SweepEvent {
+  provisional: true;
+}
+
+export function provisionalRaid(
+  bars: OhlcBar[],
+  minute: OhlcBar[] | null | undefined,
+  direction: "bull" | "bear",
+  nowMs: number = Date.now(),
+): ProvisionalRaid | null {
+  if (!minute || minute.length < 2 || bars.length < 20) return null;
+  const span = barSpanMs(bars);
+  const fine = barSpanMs(minute);
+  if (!Number.isFinite(span) || !Number.isFinite(fine) || fine <= 0 || fine >= span) return null;
+  const closed = bars.filter((b) => b.t + span <= nowMs);
+  if (closed.length < 20) return null;
+  const formingStart = closed[closed.length - 1]!.t + span;
+  if (nowMs >= formingStart + span) return null; // no forming bar in reach — stale tape
+  const n = closed.length;
+  const want = direction === "bull" ? "low" : "high";
+  let pool: { price: number } | null = null;
+  for (const sw of fractalSwings(closed, MM_SWING_WIDTH)) {
+    if (sw.kind !== want || sw.index + MM_SWING_WIDTH >= n) continue;
+    if (!pool || sw.index > (pool as { index?: number }).index!) pool = sw;
+  }
+  if (!pool) return null;
+  const lvl = pool.price;
+  const ones = minute.filter((b) => b.t >= formingStart && b.t + fine <= nowMs && b.t < formingStart + span);
+  if (!ones.length) return null;
+  const bull = direction === "bull";
+  const wickAt = ones.findIndex((b) => (bull ? b.l < lvl : b.h > lvl));
+  if (wickAt < 0) return null;
+  const back = ones.slice(wickAt).some((b) => (bull ? b.c > lvl : b.c < lvl));
+  const lastInside = bull ? ones[ones.length - 1]!.c > lvl : ones[ones.length - 1]!.c < lvl;
+  if (!back || !lastInside) return null;
+  const extreme = bull ? Math.min(...ones.slice(wickAt).map((b) => b.l)) : Math.max(...ones.slice(wickAt).map((b) => b.h));
+  const lastC = ones[ones.length - 1]!.c;
+  return {
+    index: n,
+    t: formingStart,
+    side: bull ? "sellside" : "buyside",
+    sweptLevel: lvl,
+    wickExtreme: extreme,
+    closeBackInside: +Math.abs(lastC - lvl).toFixed(2),
+    provisional: true,
+  };
 }

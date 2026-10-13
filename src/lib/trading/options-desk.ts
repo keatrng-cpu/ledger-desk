@@ -1350,6 +1350,11 @@ function rhLine(t: {
   return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · MODEL PRICE — not sendable until a live chain names the contract${tail}`;
 }
 
+/** The working-stop line must quote the ticket's own debit, not the cap (Accuracy 2026-10-13). */
+export function restampWorkingStop(targets: string[], debitTotal: number): string[] {
+  return targets.map((t) => t.replace(/^Working stop (?:\$\d+ \/ )?/, `Working stop $${rhWorkingStop(debitTotal)} / `));
+}
+
 function toTicket(
   underlier: SwingUnderlier,
   side: OptionSide,
@@ -1431,7 +1436,7 @@ function toTicket(
     riskPctOfSleeve: sized.total / sleeve.equity,
     hold,
     invalidation,
-    targets,
+    targets: restampWorkingStop(targets, sized.total),
     robinhood: rhLine({
       underlier,
       side,
@@ -1578,6 +1583,8 @@ function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
     estDebitTotal: total,
     maxLoss: total,
     workingStop,
+    targets: restampWorkingStop(t.targets, total),
+    cutRule: t.cutRule.replace(/\(\$\d+\)/, `($${workingStop})`),
     live,
     order,
     riskPctOfSleeve: t.estDebitTotal > 0 ? (t.riskPctOfSleeve * total) / t.estDebitTotal : t.riskPctOfSleeve,
@@ -1649,8 +1656,8 @@ function pathContinuation(
       blocks.push("Direction disagrees — the one-hour and four-hour gaps are not this side");
     }
     reasons.push("Internal or external is a note, not a filter. The 15-minute grade is the permission. The entry is the 1-minute or 5-minute inverse, or the hold.");
-    if (c.entryPx == null || !Number.isFinite(c.entryPx)) {
-      reasons.push("No entry price. Price is not at the array, so this stays a watch.");
+    if (c.entryPx == null || !Number.isFinite(c.entryPx) || c.entryResting === true) {
+      reasons.push(c.entryResting ? `Resting limit ${c.entryPx?.toFixed(2)}. Price is not at the array, so this stays a watch.` : "No entry price. Price is not at the array, so this stays a watch.");
     }
     const proxy = c.symbol.includes("ES") ? es : nq;
     if (locationFights(sideFromFutures(c.side), proxy.dealing?.zone)) {
@@ -1670,7 +1677,9 @@ function pathContinuation(
     }
   }
 
-  const noEntry = Boolean(c && (c.entryPx == null || !Number.isFinite(c.entryPx)));
+  // A resting limit (price not at the array) is a watch, exactly as before
+  // the scanner stopped nulling it (audit F1).
+  const noEntry = Boolean(c && (c.entryPx == null || !Number.isFinite(c.entryPx) || c.entryResting === true));
   const armed = blocks.length === 0 && Boolean(c) && !noEntry;
   const watch = Boolean(c) && (noEntry || blocks.every((b) => /NY AM|Judas|Event window|range-build|SMC WAIT/.test(b)));
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
@@ -1692,7 +1701,7 @@ function pathContinuation(
           "Sized off the chart. Clock and news only cut size.",
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
-            `Working stop $${rhWorkingStop(cap)} / −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
+            `Working stop −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
             "Trim 50% at one-to-one. The draw stays open — one-to-one is a partial, not the flatten.",
             "A close past the sweep stop ends it. The clock does not.",
           ],
@@ -1823,6 +1832,7 @@ function judasIfvg0dte(
 }
 
 function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard {
+  let smtSizeCut = false;
   const blocks: string[] = [];
   const reasons: string[] = [];
   const { es, nq, esPx, nqPx } = proxyPair(desk);
@@ -1856,7 +1866,10 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
       blocks.push("Both HTF still bull — SMT fade only, not a swing debit");
     }
     if (underlier === "QQQ" && locationFights("put", nq.dealing?.zone)) {
-      blocks.push(`NQ dealing ${nq.dealing?.zone} — wait premium for puts`);
+      // Was a hard block. The PATH ticket and the brain (halfNote) treat a
+      // fighting half as a size cut / note; the SMT ticket now agrees.
+      reasons.push(`NQ dealing ${nq.dealing?.zone} fights a put. Size is cut. The divergence still calls it.`);
+      smtSizeCut = true;
     }
     reasons.push(
       underlier === "QQQ"
@@ -1873,7 +1886,8 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
       blocks.push("Both HTF bear — no SMT call");
     }
     if (locationFights("call", (underlier === "QQQ" ? nq : es).dealing?.zone)) {
-      blocks.push("Call into premium — wait discount");
+      reasons.push("Call into premium. Size is cut. The divergence still calls it.");
+      smtSizeCut = true;
     }
   }
 
@@ -1896,16 +1910,41 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     clock.killzone === "ny_am" || clock.killzone === "ny_pm" || sessionLive(clock);
   const book = desk.smcMaster.oneBook;
   const smtFuturesSide: "long" | "short" = side === "call" ? "long" : "short";
-  if (book?.word === "STAND") {
+  const lvlSmt = desk.mtfContext?.smtLead ?? null;
+  // SMT fix 7: a level SMT where the brain's own book is the FAILING one
+  // overrides "brain is standing" — the reversal is on the failing book.
+  const failingOverride = Boolean(
+    lvlSmt && book && lvlSmt.failing === book.symbol &&
+      ((lvlSmt.kind === "bearish" && smtFuturesSide === "short") || (lvlSmt.kind === "bullish" && smtFuturesSide === "long")),
+  );
+  if (book?.word === "STAND" && !failingOverride) {
     blocks.push("Brain is standing. SMT does not take the other book.");
-  } else if (book?.side && book.side !== smtFuturesSide) {
-    blocks.push(`Brain is ${book.side}. This SMT is ${smtFuturesSide}.`);
+  } else if (
+    book?.side &&
+    book.side !== smtFuturesSide &&
+    book.word !== "STAND" &&
+    // Fix 30: the brain's own book is killed — its side no longer blocks the SMT.
+    !(desk.mtfContext?.books.find((x) => x.symbol === book.symbol)?.ltfReversals.some((r) => r.against === book.side && !r.rearmed))
+  ) {
+    blocks.push(`Brain is ${book.side} (${book.word}). This SMT is ${smtFuturesSide}.`);
   }
-  const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
-  const watch = (bearish || bullish) && blocks.length <= 1;
+  // Live 10:29 CT: this card read a stale single-timeframe SMT (long) while the
+  // weighted vote was 6 vs 5.5 (margin 0.04, no lead). An SMT card the weighted
+  // vote does not confirm STANDS — it is not traded, and it no longer sits on
+  // the Floor blocking the brain's released book with "This SMT is long".
+  const vote = desk.mtfContext?.smtVote ?? null;
+  const vLead = desk.mtfContext?.smtLead ?? null;
+  const voteConfirms = vLead != null && (vLead.kind === "bullish") === (smtFuturesSide === "long");
+  const smtUnconfirmed = desk.mtfContext != null && !voteConfirms;
+  if (smtUnconfirmed) {
+    for (let i = blocks.length - 1; i >= 0; i--) if (/^Brain is /.test(blocks[i]!)) blocks.splice(i, 1);
+    reasons.push(`Weighted SMT vote ${vote ? `${vote.bullish} bull / ${vote.bearish} bear, margin ${vote.margin}` : "unread"} does not confirm a ${smtFuturesSide} — this SMT card stands.`);
+  }
+  const armed = !smtUnconfirmed && blocks.length === 0 && (bearish || bullish) && sessionOk;
+  const watch = !smtUnconfirmed && (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
-  const ticket =
+  let ticket =
     verdict !== "STAND"
       ? toTicket(
           underlier,
@@ -1927,6 +1966,11 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
         )
       : null;
 
+  // Accuracy (f16601db note 2): "Size is cut" is now applied, not just said.
+  if (ticket && smtSizeCut) {
+    if (ticket.contracts > 1) ticket = shrinkTicket(ticket, Math.max(1, Math.floor(ticket.contracts / 2)), "SMT dealing-zone size cut (half)");
+    else reasons.push("Size cut wanted but the ticket is already 1 contract — 1 is the floor.");
+  }
   if (verdict !== "STAND" && !ticket) {
     blocks.push(`5 DTE ${underlier} too rich for $${cap} — would need a lottery Δ, skip`);
   }
@@ -2168,6 +2212,20 @@ export function evaluateOptionsDesk(
   const swingBest = cards.filter((c) => c.horizon === "swing" && c.verdict === "ARMED" && c.ticket).sort((a, b) => b.score - a.score)[0] ?? null;
   // The session sequence wins. A swing card does not take the fill away from a day setup that is already armed.
   const best = dayBest ?? swingBest;
+  // SMT fix 5: no conflicting dual tickets — same underlier opposite sides,
+  // or SPY and QQQ on the same side (one correlated bet twice).
+  if (best?.ticket) {
+    for (const c of cards) {
+      if (c === best || c.verdict !== "ARMED" || !c.ticket) continue;
+      const sameU = c.ticket.underlier === best.ticket.underlier;
+      const oppo = sameU && c.ticket.side !== best.ticket.side;
+      const twin = !sameU && c.ticket.side === best.ticket.side;
+      if (oppo || twin) {
+        c.verdict = "WATCH";
+        c.blocks = [...c.blocks, oppo ? `Conflicts with the armed ${best.ticket.underlier} ${best.ticket.side}.` : `Same-side duplicate of the armed ${best.ticket.underlier} ${best.ticket.side}.`].slice(0, 6);
+      }
+    }
+  }
   const day = cards.filter((c) => c.horizon === "day");
   const swing = cards.filter((c) => c.horizon === "swing");
 

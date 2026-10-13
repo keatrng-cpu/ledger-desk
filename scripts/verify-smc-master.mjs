@@ -41,7 +41,7 @@ const {
   modelMayBeNamed,
   inModelWindow,
   scoreCanonStack,
-  SMT_TRADES_THE_LEADER,
+  SMT_CREDITS_THE_HOLDER,
   SILVER_BULLET_EVIDENCE,
   OTE_SIZE_CUT_EVIDENCE,
 } = await import("../src/lib/trading/smc-canon.ts");
@@ -397,7 +397,7 @@ check("a card the HTF gate refuses never leads", orderedHtf[0].side, "short");
 /* ------------------------------------------------------------------ */
 console.log("\nitem 11 — SMT credits the index that inverted FIRST");
 
-ok("the leader rule is on", SMT_TRADES_THE_LEADER.value === true);
+ok("the holder rule is on", SMT_CREDITS_THE_HOLDER.value === true);
 
 // smt-level exposes `led`, which was computed and discarded before.
 const bars = Array.from({ length: 80 }, (_, i) => ({
@@ -422,8 +422,8 @@ check("the leader's read says led", leftRead.led, true);
 check("the laggard's read says not led", rightRead.led, false);
 check("no divergence reads null, not false", smtAtLevel({ divergence: null, isLeft: true, side: "short", bars }).led, null);
 
-// NEGATIVE CONTROL for this block: change `input.smtLed !== false` to `true`
-// in smc-canon.ts and the laggard's factor passes again.
+// NEGATIVE CONTROL for this block: change `input.smtLed === false` to `true`
+// in smc-canon.ts and the extreme-maker's factor passes again.
 const canonIn = (over) => ({
   side: "short",
   htf: "bear",
@@ -442,13 +442,17 @@ const ledStack = scoreCanonStack(canonIn({ smtLed: true }));
 const lagStack = scoreCanonStack(canonIn({ smtLed: false }));
 const blindStack = scoreCanonStack(canonIn({}));
 const smtFactor = (s) => s.factors.find((f) => f.id === "smt");
-check("the leader earns the SMT factor", smtFactor(ledStack).pass, true);
-check("the laggard does NOT", smtFactor(lagStack).pass, false);
-check("no divergence read behaves exactly as before", smtFactor(blindStack).pass, true);
-ok("the laggard is told which book to trade", /laggard is not a second setup/.test(smtFactor(lagStack).detail));
+// Holder semantics (Addendum 2 fix 1, SMT_CREDITS_THE_HOLDER): the book that
+// HELD (smtLed false) earns the factor; the book that made the extreme does
+// not; no level read (smtLed undefined) is NEUTRAL — no score either way.
+check("the holder earns the SMT factor", smtFactor(lagStack).pass, true);
+check("the book that made the extreme does NOT", smtFactor(ledStack).pass, false);
+check("smtLed undefined is neutral: no score", smtFactor(blindStack).pass, false);
+ok("neutral says so", /neutral, no score/.test(smtFactor(blindStack).detail));
+ok("the extreme-maker is told the holder is the trade", /holder is the trade/.test(smtFactor(ledStack).detail));
 // It is an OPTIONAL factor, so it can move the A+/A boundary and never the word.
 check("SMT is never a must", smtFactor(lagStack).must, false);
-check("the laggard loses an optional hit", ledStack.optionalHits - lagStack.optionalHits, 1);
+check("the extreme-maker loses an optional hit", lagStack.optionalHits - ledStack.optionalHits, 1);
 ok("both still clear every must", ledStack.mustHits === lagStack.mustHits);
 // A divergence in the middle of the range does not light the factor at all.
 const midRange = smtAtLevel({ divergence: div, isLeft: true, side: "short", bars, atr: 400 });

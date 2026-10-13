@@ -206,6 +206,8 @@ export interface TradePlan {
  * gained a ceiling (below).
  */
 export const MIN_RISK_ATR = 0.5;
+/** A raid wick farther than this × ATR from the entry gives way to the structural stop. */
+export const STRUCT_STOP_ATR = 2;
 
 /**
  * And the CEILING, which the original sweep never looked for.
@@ -401,8 +403,19 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
   // Stop: beyond the raid wick if there was one — that extreme is the level
   // the market already proved it would reject. Without a raid, beyond the far
   // edge of the array, which is the structural invalidation of the array.
-  const stopRaw =
-    sweepExtreme != null && Number.isFinite(sweepExtreme)
+  const atrEarly = input.bars && input.bars.length > 20 ? atrOf(input.bars, 14) : null;
+  const structural = long ? entryArray.bottom - pad : entryArray.top + pad;
+  // AUDIT R2-3: a raid wick more than STRUCT_STOP_ATR × ATR beyond the entry
+  // is not the trade's invalidation (live MNQ: 3.3×ATR, T1 at 0.28R). Then the
+  // stop is the entry array's far edge, never tighter than MIN_RISK_ATR × ATR.
+  const raidFar =
+    sweepExtreme != null && Number.isFinite(sweepExtreme) && atrEarly != null && atrEarly > 0 &&
+    Math.abs(entry - sweepExtreme) > STRUCT_STOP_ATR * atrEarly;
+  const stopRaw = raidFar
+    ? long
+      ? Math.min(structural, entry - MIN_RISK_ATR * atrEarly!)
+      : Math.max(structural, entry + MIN_RISK_ATR * atrEarly!)
+    : sweepExtreme != null && Number.isFinite(sweepExtreme)
       ? long
         ? Math.min(sweepExtreme, entryArray.bottom) - pad
         : Math.max(sweepExtreme, entryArray.top) + pad

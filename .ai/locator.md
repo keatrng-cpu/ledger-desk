@@ -47,3 +47,5 @@ Add a line here when a behavior gets a new owner. Do not paste the function.
 - The pull (scanner models into the signal engine) — `src/components/room/hall-read.ts` `loadHallBoard`
 - What the five say in the Mead Hall — `src/lib/room/live-voices-mead.ts` `meadBeats`
 - Where the five stand in the hall — `src/lib/room/agents.ts` `HALL_HABITS`, `hallSpotOf`
+- One SMC raid read for desk, brain and Floor — `src/lib/smc/shared.ts` `armingRaid`, `raidReadForCard`, `locationVerdict`
+- PD arrays on 1m–4h, the continuation stack — `src/lib/smc/mtf-arrays.ts` `mtfArrays`, `continuationArray`

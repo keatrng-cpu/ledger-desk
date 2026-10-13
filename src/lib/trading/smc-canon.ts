@@ -9,6 +9,7 @@
  * a single concept is never enough to TAKE.
  */
 
+import { raidReadForCard } from "@/lib/smc/shared";
 import type { StrategyId } from "./strategies";
 import type { ComponentKey } from "./engine-weights";
 import type { SetupCandidate } from "./scanner";
@@ -325,6 +326,10 @@ export interface CanonInput {
   mtf?: "bull" | "bear" | "neutral";
   dealingZone: "premium" | "discount" | "equilibrium" | null;
   swept: "bsl" | "ssl" | "none";
+  /** A raid that happened but arms the other side (narrative.liquidity.oppositeSweep). */
+  oppositeSweep?: "bsl" | "ssl" | "none";
+  /** The raid is the 1m provisional read on the forming 15m bar. */
+  sweptProvisional?: boolean;
   confirmation:
     | "none"
     | "sweep_only"
@@ -345,18 +350,19 @@ export interface CanonInput {
    */
   htfDisrespected?: boolean;
   /**
-   * ITEM 11 — did this book LEAD the divergence (smt-level.ts `led`)?
+   * Did this book make the divergence's extreme (smt-level.ts `led`)?
    *
-   * `false` is the laggard: the other index made the extreme and displaced, so
-   * this side is not a second setup on the same divergence and does not earn
-   * the optional SMT factor. `null`/`undefined` means no divergence read and
-   * behaves exactly as before.
+   * `false` is the HOLDER: the other index swept the extreme and this one
+   * held, so this book carries the SMT reversal and earns the optional SMT
+   * factor (Addendum 2 fix 1). `true` swept and does not earn it.
+   * `null`/`undefined` means no divergence read and behaves as before.
    */
   smtLed?: boolean | null;
 }
 
 /**
- * ITEM 11 — SMT credits the index that inverted FIRST.
+ * SMT credits the HOLDER — the index that did NOT make the new extreme
+ * (Addendum 2 fix 1, 2026-10-13; it used to credit the leader).
  *
  * Switchable for the same reason GATE is: nothing writes it at runtime, and a
  * sweep script can restore the pre-2026-10-08 behaviour (either book earns the
@@ -369,7 +375,7 @@ export interface CanonInput {
  * hard gate with no measurement behind it, so what ships is the removal of the
  * factor plus a named reason. Promoting it to a stand-down is the trader's call.
  */
-export const SMT_TRADES_THE_LEADER = { value: true };
+export const SMT_CREDITS_THE_HOLDER = { value: true };
 
 function has(comps: string[], ...keys: string[]): boolean {
   const set = new Set(comps);
@@ -539,8 +545,15 @@ export function canonInputForCandidate(
     htf: book.topDown,
     mtf: book.mid,
     dealingZone: book.dealing?.zone ?? null,
-    swept: narrative?.liquidity?.lastSweep ?? "none",
-    confirmation: narrative?.confirmation ?? "none",
+    // The card's own raid when the narrative's (other-direction) raid does
+    // not arm this side — src/lib/smc/shared.ts `raidReadForCard`.
+    ...(() => {
+      const r = raidReadForCard(c, {
+        swept: narrative?.liquidity?.lastSweep ?? "none",
+        confirmation: narrative?.confirmation ?? "none",
+      });
+      return { swept: r.swept, confirmation: r.confirmation, oppositeSweep: narrative?.liquidity?.oppositeSweep ?? "none", sweptProvisional: r.source === "narrative" && narrative?.liquidity?.lastSweepProvisional === true };
+    })(),
     inKillzone: clock.inTradeWindow,
     killzoneLabel: clock.killzoneLabel,
     smt: c.components.includes("smt"),
@@ -623,9 +636,9 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
    */
   const oteOverlap =
     has(components, "ifvg", "order_block") && has(components, "ote") && pdHalf;
-  // ITEM 11: false is "this book is the laggard". null/undefined is "no
-  // divergence read", which must behave exactly as it did before.
-  const smtEarned = !SMT_TRADES_THE_LEADER.value || input.smtLed !== false;
+  // false = this book HELD (the other swept) → it earns SMT. null/undefined =
+  // no divergence read, which behaves exactly as it did before.
+  const smtEarned = !SMT_CREDITS_THE_HOLDER.value || input.smtLed === false;
 
   const factors: CanonFactor[] = [
     {
@@ -644,15 +657,17 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       pass: sweepForSide && confirmation !== "none",
       detail:
         swept === "none"
-          ? "No raid yet — wait for SSL (long) or BSL (short)"
+          ? input.oppositeSweep && input.oppositeSweep !== "none"
+            ? `${input.oppositeSweep.toUpperCase()} raid arms ${input.oppositeSweep === "ssl" ? "LONG" : "SHORT"}, not ${side ?? "this side"} — no ${side === "long" ? "SSL" : "BSL"} raid for this side yet`
+            : "No raid yet — wait for SSL (long) or BSL (short)"
           : // The raid happened but on the wrong side for this trade. Name the
             // side it DOES arm — that is the actionable read, and the case
             // this desk missed on 2026-08-13 by silently passing it instead.
             !sweepForSide
             ? `${swept.toUpperCase()} raid arms ${swept === "ssl" ? "LONG" : "SHORT"}, not ${side ?? "this side"} — reversal is the other way`
             : confirmation === "sweep_only"
-              ? `${swept.toUpperCase()} swept — setup only, not entry`
-              : `${swept.toUpperCase()} swept · ${confirmation}`,
+              ? `${swept.toUpperCase()} raid${input.sweptProvisional ? " (1m, provisional)" : ""} — setup only, not entry`
+              : `${swept.toUpperCase()} swept${input.sweptProvisional ? " (1m, provisional)" : ""} · ${confirmation}`,
     },
     {
       id: "pd_half",
@@ -691,14 +706,16 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       id: "smt",
       label: "SMT (optional)",
       must: false,
-      // ITEM 11: the leader trades it. The laggard held — that is the same
-      // divergence seen from the other side, not a second setup.
+      // The HOLDER trades it (SMT_CREDITS_THE_HOLDER). smtLed undefined/null
+      // = no level read: neutral, no score.
       pass: smt && smtEarned,
       detail: !smt
         ? "No SMT — not required"
         : smtEarned
-          ? "Correlated pair failed to confirm extreme"
-          : "SMT present, but the OTHER index made the extreme and displaced. The laggard is not a second setup — trade the book that led.",
+          ? "This index HELD while the other made the extreme — the SMT reversal is this book"
+          : input.smtLed === true
+            ? "SMT present, but THIS index made the extreme — the holder is the trade, not this book."
+            : "SMT present but no level read for this book — neutral, no score.",
     },
     {
       id: "overlap",
