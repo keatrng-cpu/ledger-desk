@@ -39,6 +39,7 @@
     "chasePct": 0.08,
     "brainWaitS": 60,
     "quoteMaxAgeS": 3,
+    "chainMaxAgeS": 10,
     "orderReviewMaxAgeS": 1,
     "nearMissPct": 0.05,
     "secondEntryMinBand": "A"

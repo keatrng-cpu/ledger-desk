@@ -18,7 +18,7 @@ test("desk TS values come from shared/desk-rules.json (no drift)", async () => {
   assert.equal(d.bandFromQ(RULES.bandEdges["A-"]), "A-"); assert.equal(d.bandFromQ(RULES.bandEdges["A-"] - 0.001), "B+");
 });
 test("watcher copy of the rules is byte-identical (when the watcher checkout is on this box)", () => {
-  for (const p of [`${process.env.WATCHER_DIR ?? "/workspace/desk-watcher-next"}/watcher/desk-rules.json`]) {
+  for (const p of [`${process.env.WATCHER_DIR ?? "/workspace/desk-watcher"}/watcher/desk-rules.json`]) {
     if (!existsSync(p)) continue;
     assert.deepEqual(JSON.parse(readFileSync(p, "utf8")), RULES, `${p} drifted from shared/desk-rules.json`);
   }
@@ -29,6 +29,9 @@ test("RH gate quote ages come from shared rules (parity with the watcher)", asyn
   assert.equal(a.RH_LIVE_QUOTE_MAX_AGE_MS, RULES.fire.quoteMaxAgeS * 1000);
   assert.equal(a.RH_ORDER_REVIEW_MAX_AGE_MS, RULES.fire.orderReviewMaxAgeS * 1000);
   assert.equal(g.RH_PATH_FIRE_MAX_AGE_MS, RULES.fire.quoteMaxAgeS * 1000);
+  const od = await import("../src/lib/trading/options-desk.ts");
+  assert.equal(od.CHAIN_MAX_AGE_MS, RULES.fire.chainMaxAgeS * 1000);
+  assert.ok(RULES.fire.chainMaxAgeS >= RULES.fire.quoteMaxAgeS && RULES.fire.chainMaxAgeS <= 30, "chain window sane (quote..30s)");
 });
 test("rules hash: TS canonical hash == Python canonical hash", async () => {
   const { RULES_HASH } = await import("../src/lib/desk/rules-hash.ts");

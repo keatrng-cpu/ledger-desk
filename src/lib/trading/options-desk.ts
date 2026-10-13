@@ -13,6 +13,8 @@
  */
 
 import { isPathFire } from "@/lib/alerts/path-alarm";
+import RULES_DESK from "../../../shared/desk-rules.json";
+const RULES_FIRE = RULES_DESK.fire;
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
@@ -527,10 +529,11 @@ export interface LiveChain {
 }
 
 /**
- * Same window the live-quote gate uses (RH_LIVE_QUOTE_MAX_AGE_MS = 30s). A
- * 0-1 DTE ask older than that is not the ask.
+ * shared/desk-rules.json fire.chainMaxAgeS (10 s). A chain prices the ticket on the Floor; it is looser than the
+ * order gate on purpose: the order itself must still pass RH_LIVE_QUOTE_MAX_AGE_MS (fire.quoteMaxAgeS, 3 s) on the
+ * propose-time quote and RH_ORDER_REVIEW_MAX_AGE_MS (fire.orderReviewMaxAgeS, 1 s) on the quote re-read after review.
  */
-export const CHAIN_MAX_AGE_MS = 30_000;
+export const CHAIN_MAX_AGE_MS = RULES_FIRE.chainMaxAgeS * 1000;
 /** The one source whose quotes may price an order. */
 export const LIVE_CHAIN_SOURCE = "get_option_quotes";
 /** Widest bid/ask, as a share of the mid, that still prices a limit. */
