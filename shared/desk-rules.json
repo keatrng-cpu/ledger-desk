@@ -1,13 +1,67 @@
 {
   "_doc": "ONE source for scoring/setup/direction rules shared by desk (TS), brain, Floor and desk-watcher (Python). Parity tests on both sides fail on drift. Change here, then copy to desk-watcher/watcher/desk-rules.json.",
   "version": 1,
-  "bandEdges": { "A+": 0.75, "A": 0.68, "A-": 0.65, "B+": 0.60, "B": 0.50 },
+  "bandEdges": {
+    "A+": 0.75,
+    "A": 0.68,
+    "A-": 0.65,
+    "B+": 0.6,
+    "B": 0.5
+  },
   "minStopAtr": 0.5,
   "rrMin": 1.0,
   "rrDisplayMax": 6,
-  "entryZoneAtr": { "A+": 0.75, "A": 0.5, "A-": 0.35, "B+": 0.5 },
-  "lateEntry": { "rrMin": { "A+": 1.0, "A": 1.2, "A-": 1.2 }, "pnlMinPct": 0.75 },
-  "kill": { "disp1Atr": 1.0, "ifvg5MaxAge": 6, "rejectWickFrac": 0.5, "boost": 0.02, "boostMax": 0.04 },
-  "fire": { "persistS": 6, "chasePct": 0.08, "brainWaitS": 60, "quoteMaxAgeS": 3, "orderReviewMaxAgeS": 1, "nearMissPct": 0.05, "secondEntryMinBand": "A" },
-  "dispVsRr": [ { "minDisp": 0.7, "rrMin": 1.0 }, { "minDisp": 0.5, "rrMin": 1.5 }, { "minDisp": 0, "rrMin": 2.0 } ]
+  "entryZoneAtr": {
+    "A+": 0.75,
+    "A": 0.5,
+    "A-": 0.35,
+    "B+": 0.5
+  },
+  "lateEntry": {
+    "rrMin": {
+      "A+": 1.0,
+      "A": 1.2,
+      "A-": 1.2
+    },
+    "pnlMinPct": 0.75
+  },
+  "kill": {
+    "disp1Atr": 1.0,
+    "ifvg5MaxAge": 6,
+    "rejectWickFrac": 0.5,
+    "boost": 0.02,
+    "boostMax": 0.04,
+    "voidCloses5m": 2,
+    "maxAgeMin": 60
+  },
+  "fire": {
+    "persistS": 6,
+    "chasePct": 0.08,
+    "brainWaitS": 60,
+    "quoteMaxAgeS": 3,
+    "orderReviewMaxAgeS": 1,
+    "nearMissPct": 0.05,
+    "secondEntryMinBand": "A"
+  },
+  "dispVsRr": [
+    {
+      "minDisp": 0.7,
+      "rrMin": 1.0
+    },
+    {
+      "minDisp": 0.5,
+      "rrMin": 1.5
+    },
+    {
+      "minDisp": 0,
+      "rrMin": 2.0
+    }
+  ],
+  "session": {
+    "_doc": "RH blocks new 0DTE opens after 15:30 ET and force-closes 0DTE ~15:45 ET. From zeroDteCutoffEt only dte>=1 is picked; any 0DTE position is flattened by zeroDteFlatEt; everything is flat by flatByMaxEt (no overnight holds).",
+    "zeroDteCutoffEt": "15:25",
+    "zeroDteFlatEt": "15:40",
+    "flatByMaxEt": "15:50",
+    "noOvernight": true
+  }
 }
