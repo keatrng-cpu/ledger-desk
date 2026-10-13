@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-10-13)
 
 ## Corpus Check
-- 908 files · ~1,805,293 words
+- 908 files · ~1,805,773 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 18 file(s) not represented in the graph (top: (none) 8, .toml 3, .example 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `472cdb4c`
+- Built from commit: `d0d9c123`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
