@@ -1,5 +1,5 @@
 import { primaryTarget } from "./card-plan";
-import { displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import { continuationPlan, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -1084,6 +1084,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
     const DISP_NUDGE = 0.02;
+    const CHOP_CLEAR_DISP = 0.6;
     const LTF_FLIP_MIN = 0.05;
     const LTF_FLIP_MAX = 0.08;
     const REVERSAL_NUDGE = 0.03;
@@ -1199,6 +1200,23 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         c.reasons.push(`Reversal setup: ${rs.why.join("; ")}`);
       }
+      // Fix 31: displacement ≥ 0.6 plus a BOS/CHoCH out of the range on 3m/5m
+      // in this side's direction clears chop (the range resolved).
+      for (const c of payload.scan.candidates) {
+        if (!c.chop) continue;
+        const side = c.side as "long" | "short";
+        const ds = displacementStrength(c.symbol === left.symbol ? minuteL : minuteR, side);
+        const want = side === "long" ? "bull" : "bear";
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const brk = book?.rungs.find((r) => (r.tf === "3m" || r.tf === "5m") && r.structure?.dir === want && r.structure.ageBars <= 10);
+        if (ds && ds.score >= CHOP_CLEAR_DISP && brk) {
+          c.chop = false;
+          c.reasons.push(`Chop cleared: displacement ${ds.score} + ${brk.tf} ${brk.structure!.kind} ${want} out of the range`);
+          if (c.setupRegime === "reversal" && c.htfDisrespected && c.pathBand !== "skip") {
+            c.pathBand = capBand(bandFromQ(c.confluence) ?? "C", "A-") as never;
+          }
+        }
+      }
       // Fix 20/16–18: displacement strength (grades ±0.02) and the exit plan,
       // from the same 1m tape every seat reads.
       for (const c of payload.scan.candidates) {
@@ -1248,6 +1266,27 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
         [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
       });
+      // Fix 34: a clean displacement leg with STACKED same-direction 1m/3m FVGs
+      // and no pullback plan gets one: entry at the newest gap's CE, stop
+      // beyond the last 3m swing (LH for a short) above that gap, never inside
+      // 0.5×ATR15; target the best-ranked draw beyond the entry.
+      for (const c of payload.scan.candidates) {
+        if (c.plan || c.entryPx != null || c.scannerSkip) continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const plan = continuationPlan(
+          c.symbol, side, isL ? minuteL : minuteR, isL ? closedL : closedR,
+          (isL ? lq : rq)?.price ?? null,
+          rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
+          c.dispStrength?.score ?? null,
+        );
+        if (!plan) continue;
+        c.entryPx = plan.entry;
+        c.entryResting = plan.resting;
+        c.plan = plan as never;
+        c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        c.reasons.push(`Continuation plan (fix 34): ${plan.why}`);
+      }
       // R3-c: actionable needs a priced entry, stop and target.
       for (const c of payload.scan.candidates) {
         const entry = c.entryPx ?? c.plan?.entry ?? null;

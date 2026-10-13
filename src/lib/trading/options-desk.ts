@@ -1832,6 +1832,7 @@ function judasIfvg0dte(
 }
 
 function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCard {
+  let smtSizeCut = false;
   const blocks: string[] = [];
   const reasons: string[] = [];
   const { es, nq, esPx, nqPx } = proxyPair(desk);
@@ -1868,6 +1869,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
       // Was a hard block. The PATH ticket and the brain (halfNote) treat a
       // fighting half as a size cut / note; the SMT ticket now agrees.
       reasons.push(`NQ dealing ${nq.dealing?.zone} fights a put. Size is cut. The divergence still calls it.`);
+      smtSizeCut = true;
     }
     reasons.push(
       underlier === "QQQ"
@@ -1885,6 +1887,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     }
     if (locationFights("call", (underlier === "QQQ" ? nq : es).dealing?.zone)) {
       reasons.push("Call into premium. Size is cut. The divergence still calls it.");
+      smtSizeCut = true;
     }
   }
 
@@ -1925,11 +1928,23 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
   ) {
     blocks.push(`Brain is ${book.side} (${book.word}). This SMT is ${smtFuturesSide}.`);
   }
-  const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
-  const watch = (bearish || bullish) && blocks.length <= 1;
+  // Live 10:29 CT: this card read a stale single-timeframe SMT (long) while the
+  // weighted vote was 6 vs 5.5 (margin 0.04, no lead). An SMT card the weighted
+  // vote does not confirm STANDS — it is not traded, and it no longer sits on
+  // the Floor blocking the brain's released book with "This SMT is long".
+  const vote = desk.mtfContext?.smtVote ?? null;
+  const vLead = desk.mtfContext?.smtLead ?? null;
+  const voteConfirms = vLead != null && (vLead.kind === "bullish") === (smtFuturesSide === "long");
+  const smtUnconfirmed = desk.mtfContext != null && !voteConfirms;
+  if (smtUnconfirmed) {
+    for (let i = blocks.length - 1; i >= 0; i--) if (/^Brain is /.test(blocks[i]!)) blocks.splice(i, 1);
+    reasons.push(`Weighted SMT vote ${vote ? `${vote.bullish} bull / ${vote.bearish} bear, margin ${vote.margin}` : "unread"} does not confirm a ${smtFuturesSide} — this SMT card stands.`);
+  }
+  const armed = !smtUnconfirmed && blocks.length === 0 && (bearish || bullish) && sessionOk;
+  const watch = !smtUnconfirmed && (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
-  const ticket =
+  let ticket =
     verdict !== "STAND"
       ? toTicket(
           underlier,
@@ -1951,6 +1966,11 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
         )
       : null;
 
+  // Accuracy (f16601db note 2): "Size is cut" is now applied, not just said.
+  if (ticket && smtSizeCut) {
+    if (ticket.contracts > 1) ticket = shrinkTicket(ticket, Math.max(1, Math.floor(ticket.contracts / 2)), "SMT dealing-zone size cut (half)");
+    else reasons.push("Size cut wanted but the ticket is already 1 contract — 1 is the floor.");
+  }
   if (verdict !== "STAND" && !ticket) {
     blocks.push(`5 DTE ${underlier} too rich for $${cap} — would need a lottery Δ, skip`);
   }

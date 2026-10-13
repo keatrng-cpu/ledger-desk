@@ -284,7 +284,12 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         levels: lvl.items.slice(0, 6).map((item) => ({ name: poolLabel(item.name, item.price, px), price: item.price, side: px == null ? null : item.price > px ? "above" : "below" })),
       };
     }),
-    draws: top ? (desk.rankedDraws?.[top.symbol === desk.left.symbol ? "left" : "right"] ?? []).slice(0, 8) : [],
+    draws: top
+      ? (desk.rankedDraws?.[top.symbol === desk.left.symbol ? "left" : "right"] ?? []).slice(0, 8).map((d) => {
+          const px = top.symbol === desk.quotes.left.symbol ? desk.quotes.left.price : desk.quotes.right.price;
+          return { ...d, name: poolLabel(d.name, d.price, px), side: px == null ? d.side : d.price > px ? "above" : "below" };
+        })
+      : [],
     floor: {
       verdict,
       blocks: (shown?.blocks ?? []).slice(0, 4),

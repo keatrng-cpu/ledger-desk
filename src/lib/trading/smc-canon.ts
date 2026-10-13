@@ -706,14 +706,16 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       id: "smt",
       label: "SMT (optional)",
       must: false,
-      // ITEM 11: the leader trades it. The laggard held — that is the same
-      // divergence seen from the other side, not a second setup.
+      // The HOLDER trades it (SMT_CREDITS_THE_HOLDER). smtLed undefined/null
+      // = no level read: neutral, no score.
       pass: smt && smtEarned,
       detail: !smt
         ? "No SMT — not required"
         : smtEarned
-          ? "Correlated pair failed to confirm extreme"
-          : "SMT present, but the OTHER index made the extreme and displaced. The laggard is not a second setup — trade the book that led.",
+          ? "This index HELD while the other made the extreme — the SMT reversal is this book"
+          : input.smtLed === true
+            ? "SMT present, but THIS index made the extreme — the holder is the trade, not this book."
+            : "SMT present but no level read for this book — neutral, no score.",
     },
     {
       id: "overlap",

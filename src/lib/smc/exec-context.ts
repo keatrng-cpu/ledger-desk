@@ -6,6 +6,7 @@
 import type { OhlcBar } from "@/lib/market/types";
 import { fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
+import { mtfArrays } from "./mtf-arrays";
 import type { DrawRead, LiquidityTarget } from "@/lib/trading/draw";
 
 type Side = "long" | "short";
@@ -122,5 +123,76 @@ export function exitPlanOf(minute: OhlcBar[] | null | undefined, side: Side, pri
     timeStopTf: "5m",
     killExit: Boolean(kill),
     killWhy: kill?.why[0] ?? null,
+  };
+}
+
+export const CONT_MIN_DISP = 0.6;
+export const CONT_MIN_STOP_ATR = 0.5;
+
+export interface ContinuationPlan {
+  symbol: string;
+  side: Side;
+  entry: number;
+  entryZone: { top: number; bottom: number };
+  stop: number;
+  stopWhy: string;
+  riskPts: number;
+  t1: number | null;
+  t2: number | null;
+  rr1: number | null;
+  rr2: number | null;
+  atr: number | null;
+  resting: boolean;
+  why: string;
+}
+
+/**
+ * Fix 34. Needs: displacement ≥ 0.6, ≥ 2 live same-direction FVG/IFVG on
+ * 1m/3m (stacked), a ranked draw beyond the entry. Else null — never a guess.
+ */
+export function continuationPlan(
+  symbol: string,
+  side: Side,
+  minute: OhlcBar[] | null | undefined,
+  bars15: OhlcBar[],
+  price: number | null,
+  draws: RankedDraw[],
+  disp: number | null,
+): ContinuationPlan | null {
+  if (price == null || disp == null || disp < CONT_MIN_DISP || !minute?.length) return null;
+  const dir = side === "long" ? "bull" : "bear";
+  const rows = mtfArrays(symbol, minute, [])
+    .filter((r) => (r.tf === "1m" || r.tf === "3m") && r.dir === dir && !r.mitigated)
+    // a gap the price is still on the right side of (pullback INTO it is the entry)
+    .filter((r) => (side === "short" ? r.lo >= price : r.hi <= price))
+    .sort((a, b) => a.ageBars - b.ageBars);
+  if (rows.length < 2) return null;
+  const g = rows[0]!;
+  const atrs = rollingAtr(bars15);
+  const atr = atrs.length ? atrs[atrs.length - 1]! : null;
+  if (!(atr != null && atr > 0)) return null;
+  const entry = +g.ce.toFixed(2);
+  const m = minute.slice(0, -1);
+  const b3 = resampleMs(m, 180_000).slice(0, -1);
+  const sw = fractalSwings(b3, 2).filter((s) => (side === "short" ? s.kind === "high" && s.price > g.hi : s.kind === "low" && s.price < g.lo));
+  const swing = sw.length ? sw[sw.length - 1]!.price : null;
+  const edge = side === "short" ? g.hi : g.lo;
+  const structural = swing ?? edge;
+  const minStop = side === "short" ? entry + CONT_MIN_STOP_ATR * atr : entry - CONT_MIN_STOP_ATR * atr;
+  const stop = +(side === "short" ? Math.max(structural + 0.25, minStop) : Math.min(structural - 0.25, minStop)).toFixed(2);
+  const riskPts = +Math.abs(entry - stop).toFixed(2);
+  const ahead = draws
+    .filter((d) => (side === "short" ? d.price < entry : d.price > entry) && !d.swept)
+    .sort((a, b) => b.rank - a.rank);
+  const t1 = ahead[0]?.price ?? null;
+  const t2 = ahead.find((d) => (side === "short" ? d.price < (t1 ?? entry) : d.price > (t1 ?? entry)))?.price ?? null;
+  if (t1 == null) return null;
+  const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
+  const resting = Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr;
+  return {
+    symbol, side, entry, entryZone: { top: g.hi, bottom: g.lo }, stop,
+    stopWhy: swing != null ? `the last 3m swing ${side === "short" ? "high (LH)" : "low (HL)"} ${swing}` : `the ${g.tf} gap's far edge ${edge}`,
+    riskPts, t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2), resting,
+    why: `${rows.length} stacked ${dir} gaps on 1m/3m, newest ${g.tf} ${g.lo}–${g.hi} CE ${entry}; displacement ${disp}; T1 ${ahead[0]!.name} ${t1}`,
   };
 }
