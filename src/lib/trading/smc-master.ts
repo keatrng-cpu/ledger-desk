@@ -267,6 +267,8 @@ export function eligibleCandidates(
     // aligned — that is the one documented exception to the absolute gate.
     const aligned = need == null || c.side === need || c.htfDisrespected === true;
     return [
+      // Fix 28: a killed side never holds the book.
+      c.ltfKilled ? 0 : 1,
       c.htfOk ? 1 : 0,
       aligned ? 1 : 0,
       GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,

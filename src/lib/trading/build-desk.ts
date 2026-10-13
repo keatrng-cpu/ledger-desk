@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
-import { applyDiscipline, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
-import { buildMtfContext, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
+import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
+import { buildMtfContext, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -1079,7 +1079,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // judas-window.ts correctly refuses to release. Passing it here is what
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
-    const LTF_FLIP_NUDGE = 0.03;
+    const LTF_FLIP_MIN = 0.05;
+    const LTF_FLIP_MAX = 0.08;
+    const REVERSAL_NUDGE = 0.03;
     const mtfContext = buildMtfContext(
       { symbol: left.symbol, minute: minuteL, bars15: closedL },
       { symbol: right.symbol, minute: minuteR, bars15: closedR },
@@ -1162,9 +1164,35 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
           c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
         } else if (!rev.rearmed) {
-          c.confluence = +Math.min(0.99, c.confluence + LTF_FLIP_NUDGE).toFixed(4);
-          c.reasons.push(`LTF reversal favours ${c.side} (+${LTF_FLIP_NUDGE}): ${rev.why[0]}`);
+          // Fix 29: a real boost, 0.05–0.08 weighted by this side's alignment.
+          const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
+          const boost = +(LTF_FLIP_MIN + (LTF_FLIP_MAX - LTF_FLIP_MIN) * al).toFixed(3);
+          c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
+          c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
         }
+      }
+      // Fix 26/27: HTF sweep + LTF CHoCH releases the counter side (cap A-);
+      // 4+ of 1m–5m breaking one way is a reversal setup. Fix 28: these flags
+      // feed the brain's re-pick (the brain is re-graded after the seal).
+      for (const c of payload.scan.candidates) {
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const killed = book?.ltfReversals.some((r) => r.against === c.side && !r.rearmed) ?? false;
+        c.ltfKilled = killed;
+        const rs = reversalSetupOf(book).find((r) => r.side === c.side);
+        if (!rs || killed) continue;
+        c.setupRegime = "reversal";
+        if (rs.ltfBreaks >= LTF_BREAKS_FOR_REVERSAL) {
+          c.confluence = +Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4);
+        }
+        if (rs.htfRelease) {
+          c.htfOk = true;
+          c.htfDisrespected = true;
+          // The 1h/4h cap is what this sweep released: re-band from q under
+          // A- (chop still caps B+). Vetoed cards (skip) stay skip.
+          if (c.pathBand !== "skip") c.pathBand = capBand(bandFromQ(c.confluence) ?? "C", c.chop ? "B+" : "A-") as never;
+          if (c.pathBand && ["A-", "B+"].includes(c.pathBand) && !c.vetoes?.length) c.actionable = true;
+        }
+        c.reasons.push(`Reversal setup: ${rs.why.join("; ")}`);
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
       for (const c of payload.scan.candidates) sealBand(c as never);

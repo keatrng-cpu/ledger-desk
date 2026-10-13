@@ -401,3 +401,35 @@ export function weightedSmt(smt: SmtRead[]): { lead: SmtRead | null; vote: { bul
   const leader = [...pairW.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   return { lead: same.find((r) => r.leader === leader) ?? null, vote };
 }
+
+export interface ReversalSetup {
+  side: "long" | "short";
+  /** Fix 26: HTF (15m/30m/1h) sweep + LTF CHoCH the other way → release, cap A-. */
+  htfRelease: boolean;
+  /** Fix 27: how many of 1m–5m broke structure this way within 10 bars. */
+  ltfBreaks: number;
+  why: string[];
+}
+export const HTF_SWEEP_MAX_AGE = 3;
+export const LTF_BREAK_MAX_AGE = 10;
+export const LTF_BREAKS_FOR_REVERSAL = 4;
+
+/** Fix 26/27 for one book. */
+export function reversalSetupOf(b: BookMtf | null | undefined): ReversalSetup[] {
+  if (!b) return [];
+  const out: ReversalSetup[] = [];
+  for (const side of ["long", "short"] as const) {
+    const want: Dir = side === "long" ? "bull" : "bear";
+    const pool = side === "long" ? "sellside" : "buyside";
+    const ltf = b.rungs.filter((r) => LTF_RUNGS.includes(r.tf));
+    const breaks = ltf.filter((r) => r.structure && r.structure.dir === want && r.structure.ageBars <= LTF_BREAK_MAX_AGE);
+    const choch = breaks.some((r) => r.structure!.kind === "CHoCH");
+    const htfSweep = b.rungs.find((r) => (r.tf === "15m" || r.tf === "30m" || r.tf === "1h") && r.sweep?.side === pool && r.sweep.ageBars <= HTF_SWEEP_MAX_AGE);
+    const htfRelease = Boolean(htfSweep && choch);
+    const why: string[] = [];
+    if (htfRelease) why.push(`${htfSweep!.tf} ${pool === "buyside" ? "BSL" : "SSL"} sweep ${htfSweep!.sweep!.level} + LTF CHoCH ${want} — HTF released for the ${side} (cap A-)`);
+    if (breaks.length >= LTF_BREAKS_FOR_REVERSAL) why.push(`${breaks.length}/${ltf.length} of 1m–5m broke ${want} within ${LTF_BREAK_MAX_AGE} bars`);
+    if (why.length) out.push({ side, htfRelease, ltfBreaks: breaks.length, why });
+  }
+  return out;
+}

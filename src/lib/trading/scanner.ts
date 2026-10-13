@@ -164,6 +164,10 @@ export interface SetupCandidate {
   entryResting?: boolean;
   /** R7 chop read for this book (discipline.ts isChop). */
   chop?: boolean;
+  /** LTF kill live against this card (mtf-context ltfReversals). */
+  ltfKilled?: boolean;
+  /** Fix 39 label (reversal set by fix 26/27). */
+  setupRegime?: "trend" | "reversal" | "range";
   /** q before a band cap clamped it (discipline.ts sealBand). */
   qRaw?: number;
   /** ATR(14) of the graded series — for the stop band on cards without a plan. */

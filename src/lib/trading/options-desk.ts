@@ -1916,8 +1916,14 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
   );
   if (book?.word === "STAND" && !failingOverride) {
     blocks.push("Brain is standing. SMT does not take the other book.");
-  } else if (book?.side && book.side !== smtFuturesSide) {
-    blocks.push(`Brain is ${book.side}. This SMT is ${smtFuturesSide}.`);
+  } else if (
+    book?.side &&
+    book.side !== smtFuturesSide &&
+    book.word !== "STAND" &&
+    // Fix 30: the brain's own book is killed — its side no longer blocks the SMT.
+    !(desk.mtfContext?.books.find((x) => x.symbol === book.symbol)?.ltfReversals.some((r) => r.against === book.side && !r.rearmed))
+  ) {
+    blocks.push(`Brain is ${book.side} (${book.word}). This SMT is ${smtFuturesSide}.`);
   }
   const armed = blocks.length === 0 && (bearish || bullish) && sessionOk;
   const watch = (bearish || bullish) && blocks.length <= 1;
