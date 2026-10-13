@@ -10,7 +10,7 @@
 
 | Goal | Definition | Measurable success (90-day) |
 |---|---|---|
-| **Profitability** | Positive fee/slip-adjusted expectancy on PATH-eligible fills | PATH expectancy ≥ **+0.35R** (desk target in `profit-path.ts`); net after fees > 0 on walk-forward holdout; never lower confluence floor to manufacture clears (`confluence.json` cleared 0 @ 0.75) |
+| **Profitability** | Positive fee/slip-adjusted expectancy on PATH-eligible fills | PATH expectancy ≥ **+0.35R** (desk target in `profit-path.ts`); net after fees > 0 on walk-forward holdout; never lower floors to manufacture clears. Two different values apply: ledger-desk `src/lib/aplus/config.ts:22` `confluenceFloor` = 0.65 (path/execute floor), with `config.ts:20` `aPlusThreshold` = 0.75 (A+ cutoff); Trading-Automation `knowledge/confluence.json:7` `"floor": 0.75` (cleared 0 of 843 at that floor) |
 | **Probability** | Honest, calibrated odds — not narrative confidence | PATH journal **n ≥ 100**; per-stand WR with Wilson CI; Brier + Murphy REL/RES/UNC on any PM signals; Floor characters only cite pack/model numbers (`research.ts` contract) |
 | **Productivity** | Same pre-session work in less wall-clock, fewer misses | Pre-session checklist completion ≥ 90% of NY AM days; session brief auto-published by **08:00 ET**; Judas release false-positive rate logged; ≤1 open question on BP readiness before arm |
 | **Intelligence** | Detectors + confluences + calendar + PM scoring compound | Cold detectors diagnosed (bug vs scarce); ≥1 ablation showing optional factor ΔE[R] CI excl. 0 **or** explicit kill; calendar stratifies metrics; PM FLB monitor live for Kalshi bins |
@@ -50,7 +50,7 @@ Owner labels are **SUGGESTIONS for Dual Desk** (not assignments). S/M/L = rough 
 ### WS-C1 — Confluence ablation + walk-forward + FDR
 | | |
 |---|---|
-| **Build / land** | Harness extending `src/lib/aplus/confluence.ts` + Trading-Automation scanner weights; factor matrix from SMC §10.2; walk-forward folds; FDR / pre-registered optional list; do not lower 0.75 floor. |
+| **Build / land** | Harness extending `src/lib/aplus/confluence.ts` + Trading-Automation scanner weights; factor matrix from SMC §10.2; walk-forward folds; FDR / pre-registered optional list; do not lower either floor: ledger-desk `confluenceFloor` 0.65 (`src/lib/aplus/config.ts:22`; A+ cutoff `aPlusThreshold` 0.75 at `config.ts:20`) or Trading-Automation's 0.75 (`knowledge/confluence.json:7`). |
 | **Why** | SMC §10–11; pm-signal §3 scoring discipline (CI, walk-forward, no snooping). |
 | **Accept** | Report: per-factor ablation ΔE[R] + CI; hot components not up-weighted; published “keep / kill / needs-n” table committed under `ai/research/`. |
 | **Deps** | WS-D1 contracts for new factors; PATH journal (WS-P1) for live labels |
