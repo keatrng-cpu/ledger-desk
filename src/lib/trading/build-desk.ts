@@ -733,12 +733,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const dirR: "bull" | "bear" =
       raidDir(closedR) ?? (biasR.topDown === "bear" ? "bear" : "bull");
     const narrL = applyLtfReaction(
-      buildMarketNarrative(biasL, detL, clock, dirL, left.bars),
+      buildMarketNarrative(biasL, detL, clock, dirL, left.bars, minuteL),
       minuteL,
       dirL,
     );
     const narrR = applyLtfReaction(
-      buildMarketNarrative(biasR, detR, clock, dirR, right.bars),
+      buildMarketNarrative(biasR, detR, clock, dirR, right.bars, minuteR),
       minuteR,
       dirR,
     );

@@ -16,6 +16,7 @@ import {
   displacementLeftArray,
   pairedDisplacement,
   polaritySweep,
+  provisionalRaid,
 } from "./raid-pair";
 import type { OhlcBar } from "@/lib/market/types";
 import type { DetectorSummary } from "./detectors";
@@ -66,6 +67,8 @@ export interface LiquidityMap {
    * "No raid yet" over a swept book.
    */
   oppositeSweep?: LiquiditySide;
+  /** The raid is the 1m provisional read on a forming 15m bar (raid-pair.ts provisionalRaid). */
+  lastSweepProvisional?: boolean;
 }
 
 export interface DrawOnLiquidity {
@@ -437,6 +440,8 @@ export function buildMarketNarrative(
   clock: SessionClock,
   direction: "bull" | "bear",
   bars?: OhlcBar[],
+  minute?: OhlcBar[] | null,
+  nowMs: number = Date.now(),
 ): MarketNarrative {
   const liquidity = buildLiquidityMap(read, det);
   const ownRaid = bars && bars.length > 20 ? polaritySweep(bars, direction) : null;
@@ -459,8 +464,22 @@ export function buildMarketNarrative(
     liquidity.lastSweepExtreme = null;
     liquidity.lastSweepLabel = null;
   }
+  // No closed 15m raid for this side: the 1m tape may already show one on the
+  // forming bar. Provisional — the 15m close decides.
+  const prov =
+    !ownRaid && bars && minute ? provisionalRaid(bars, minute, direction, nowMs) : null;
+  if (prov) {
+    liquidity.lastSweep = prov.side === "buyside" ? "bsl" : "ssl";
+    liquidity.lastSweepT = prov.t;
+    liquidity.lastSweepLevel = prov.sweptLevel;
+    liquidity.lastSweepExtreme = prov.wickExtreme;
+    liquidity.lastSweepLabel = `${prov.side === "buyside" ? "BSL" : "SSL"} raid (1m, provisional)`;
+    liquidity.lastSweepProvisional = true;
+  }
   const cls = classifyNarrative(read, liquidity, direction);
-  const conf = confirmationState(det, direction, liquidity, bars);
+  const conf0 = confirmationState(det, direction, liquidity, bars);
+  // A provisional raid is the setup, not the entry: sweep_only at most.
+  const conf = prov && conf0 === "none" ? "sweep_only" : conf0;
   const entry = entryModel(det, direction, conf);
   const dol = withEmpiricalTarget(
     drawOnLiquidity(read, liquidity, cls),

@@ -328,6 +328,8 @@ export interface CanonInput {
   swept: "bsl" | "ssl" | "none";
   /** A raid that happened but arms the other side (narrative.liquidity.oppositeSweep). */
   oppositeSweep?: "bsl" | "ssl" | "none";
+  /** The raid is the 1m provisional read on the forming 15m bar. */
+  sweptProvisional?: boolean;
   confirmation:
     | "none"
     | "sweep_only"
@@ -549,7 +551,7 @@ export function canonInputForCandidate(
         swept: narrative?.liquidity?.lastSweep ?? "none",
         confirmation: narrative?.confirmation ?? "none",
       });
-      return { swept: r.swept, confirmation: r.confirmation, oppositeSweep: narrative?.liquidity?.oppositeSweep ?? "none" };
+      return { swept: r.swept, confirmation: r.confirmation, oppositeSweep: narrative?.liquidity?.oppositeSweep ?? "none", sweptProvisional: r.source === "narrative" && narrative?.liquidity?.lastSweepProvisional === true };
     })(),
     inKillzone: clock.inTradeWindow,
     killzoneLabel: clock.killzoneLabel,
@@ -663,8 +665,8 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
             !sweepForSide
             ? `${swept.toUpperCase()} raid arms ${swept === "ssl" ? "LONG" : "SHORT"}, not ${side ?? "this side"} — reversal is the other way`
             : confirmation === "sweep_only"
-              ? `${swept.toUpperCase()} swept — setup only, not entry`
-              : `${swept.toUpperCase()} swept · ${confirmation}`,
+              ? `${swept.toUpperCase()} raid${input.sweptProvisional ? " (1m, provisional)" : ""} — setup only, not entry`
+              : `${swept.toUpperCase()} swept${input.sweptProvisional ? " (1m, provisional)" : ""} · ${confirmation}`,
     },
     {
       id: "pd_half",

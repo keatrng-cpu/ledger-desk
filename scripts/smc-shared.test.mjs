@@ -250,3 +250,51 @@ test("DATED SWEEPS: brain names the erased other-side raid instead of 'No raid y
   assert.equal(f.pass, false);
   assert.match(f.detail, /SSL raid arms LONG, not short/);
 });
+
+const det2 = await import("../src/lib/trading/detectors.ts");
+function provFixture(lastClose) {
+  const closed = tape().slice(0, 60);
+  const n = closed.length;
+  const lows = det2.fractalSwings(closed, det2.MM_SWING_WIDTH).filter((s) => s.kind === "low" && s.index + det2.MM_SWING_WIDTH < n);
+  const lvl = lows[lows.length - 1].price;
+  const start = closed[n - 1].t + 15 * 60_000;
+  const m = (k, o, h, l, c) => ({ t: start + k * 60_000, o, h, l, c, v: 1 });
+  const minute = [
+    ...Array.from({ length: 30 }, (_, k) => ({ t: closed[n - 1].t + k * 60_000 - 15 * 60_000, o: 100, h: 100.2, l: 99.8, c: 100, v: 1 })),
+    m(0, lvl + 1, lvl + 1.2, lvl - 2, lvl - 1), // wick through the pool, closes outside
+    m(1, lvl - 1, lvl + 0.8, lvl - 2.5, lvl + 0.5), // close back inside
+    m(2, lvl + 0.5, lvl + 1, lvl + 0.2, lastClose(lvl)),
+  ];
+  return { closed, minute, lvl, nowMs: start + 3 * 60_000 + 1 };
+}
+
+test("PROVISIONAL: a 1m close back inside after the wick counts before the 15m close", () => {
+  const f = provFixture((l) => l + 0.8);
+  const r = rp.provisionalRaid(f.closed, f.minute, "bull", f.nowMs);
+  assert.equal(r?.provisional, true);
+  assert.equal(r.side, "sellside");
+  assert.equal(r.sweptLevel, f.lvl);
+  assert.equal(r.wickExtreme, f.lvl - 2.5);
+});
+
+test("PROVISIONAL: a 1m close back beyond the level drops it; no raid on the other side", () => {
+  const f = provFixture((l) => l - 0.5);
+  assert.equal(rp.provisionalRaid(f.closed, f.minute, "bull", f.nowMs), null);
+  const g = provFixture((l) => l + 0.8);
+  assert.equal(rp.provisionalRaid(g.closed, g.minute, "bear", g.nowMs), null);
+});
+
+test("PROVISIONAL: once the 15m bar closes beyond the wick it is not a sweep (dropped)", () => {
+  const f = provFixture((l) => l + 0.8);
+  const closedBar = { t: f.closed[f.closed.length - 1].t + 15 * 60_000, o: f.lvl + 1, h: f.lvl + 1.2, l: f.lvl - 3, c: f.lvl - 2.8, v: 1 };
+  const bars = [...f.closed, closedBar];
+  assert.equal(rp.provisionalRaid(bars, f.minute, "bull", closedBar.t + 15 * 60_000 + 1), null);
+  assert.ok(!rp.recentRealSweeps(bars).some((s) => s.index === bars.length - 1));
+});
+
+test("PROVISIONAL: brain text says 'SSL raid (1m, provisional)'", () => {
+  const input = canon.canonInputForCandidate(card({ components: ["ifvg"] }), book, { liquidity: { lastSweep: "ssl", lastSweepProvisional: true }, confirmation: "sweep_only" }, clock);
+  const f = canon.scoreCanonStack(input).factors.find((x) => x.id === "sweep");
+  assert.match(f.detail, /SSL raid \(1m, provisional\)/);
+  assert.equal(f.pass, true);
+});
