@@ -146,3 +146,14 @@ Fix: `killVoided` — a kill is void (treated like a re-arm, capped A-) after `k
 
 ## 2026-10-13 — auto-memory protocol adopted
 Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `ai/NOW.md` + a graph slice at task start and update NOW/DECISIONS at task end; graph refresh by post-commit hook and the `graphify-refresh` Action (writes only to the `graph` branch). Why: shared memory without being asked, low token use (graph query, not GRAPH_REPORT).
+
+### 2026-10-13 — fireFix live set, fixed $650 debit on every grade, spreads off, gateHand desk parity, fast:geometry
+- ADOPTED · Keaton (caps, spreads) + Accuracy Review (gateHand parity, geometry) · chat 2026-10-13; shared/desk-rules.json rulesHash e9662c550a50f449
+- Decision:
+  - **fireFix** (shared/desk-rules.json `fireFix`): items are live only when the fidelity replay (tools/replay_full.py, 19 days) shows fires up with no hit-rate/R drop; the rest stay shadow. Live: deadZone, rulesPin, soleBlocker, dayLoss ($150 / 15%), oneLotT1, gateHand, envelope.
+  - **Debit cap: a fixed $650 for EVERY grade** (`fireFix.envelope.maxDebit`, `fireFix.ladder` A+ 4 / A 2 / A- 1 / B+ 1 contracts, all $650). Replaces the per-band caps and the $550 envelope. $50 floor, $150/15% daily loss cap, −$300 weekly lock, BP gate and stop logic unchanged.
+  - **Spreads off:** `fastChain.spreadFallback=false`, `sizeToFit.spread=false` — single options only.
+  - **gateHand (live):** A+/A cards whose only holds are soft (brain standing / no book, SMT, direction, same-side ticket in the other book) stay ARMED, handed to the watcher at a one-step size cut. A ticket on the brain's OPPOSITE side is never soft (card goes WATCH). The cut (`rhSizeCutContracts`, loss.htf.sizeMult 0.5, min 1) is applied to desk-read `deskContracts`, so the desk dispatcher (room-step → runRhDesk) sizes the same as the watcher.
+  - **fast:geometry (hard):** refuse unless long stop<entry<T1(<T2) / short reversed, and the ticket's call/put matches the card side. Desk `cardEntry` takes the side from the plan's own geometry and blocks a side clash (Floor card 19:28 ET read "MNQ LONG" with short levels).
+- Why: replay showed per-band caps / spreads did not raise accurate fires; the geometry and gateHand gaps were wrong-side and full-size risks found in review.
+- Supersedes: the $50–$550 envelope and per-band debit caps.

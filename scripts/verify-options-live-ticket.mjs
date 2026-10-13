@@ -31,7 +31,7 @@
  *   - a leg must come off a live get_option_quotes chain, with its own bid,
  *     ask and delta, a checkable OCC symbol, and a limit equal to the ask;
  *   - size solves from the LIVE delta and the raid-wick distance, inside the
- *     $50-$550 broker band, and SKIPS rather than oversizing;
+ *     $50-$650 broker band, and SKIPS rather than oversizing;
  *   - nothing marketable leaves unless the futures are INSIDE the array;
  *   - sweep_displace + a live ltf_reaction arms a RESTING limit at the CE;
  *   - a working order is replaced at the new ask once, then cancelled, and a
@@ -150,7 +150,7 @@ const sizeArgs = (over = {}) => ({
   plan: plan(over.plan),
 });
 
-eq("the broker band is the $50-$550 one", [gates.RH_MIN_DEBIT_TOTAL, gates.RH_MAX_DEBIT_TOTAL], [50, 550]);
+eq("the broker band is the $50-$650 one (fixed, every grade — Keaton 2026-10-13)", [gates.RH_MIN_DEBIT_TOTAL, gates.RH_MAX_DEBIT_TOTAL], [50, 650]);
 
 const base = ss.sizeFromLiveContract(sizeArgs());
 // MNQ/40: a 48pt stop is 1.2 ETF points. At delta 0.41 that is $49.20 a
@@ -163,7 +163,7 @@ check("it names the raid wick", base.lines.some((l) => /raid wick 24944/.test(l)
 
 // THE DEFECT: a one-point wick and a twenty-point wick must not buy the same.
 // Isolated on the RISK bound — a cheap contract and a high contract cap, so
-// the $550 ceiling is not the thing deciding the count. (That the real $550
+// the $650 ceiling is not the thing deciding the count. (That the real $650
 // ceiling and the 4-contract cap do bind is checked separately below.)
 const geo = (riskPts, stop, sweep) =>
   ss.sizeFromLiveContract(sizeArgs({ askPerShare: 0.4, maxContracts: 20, plan: { riskPts, stop, sweep } }));
@@ -182,7 +182,7 @@ check("all three stay inside the budget", [geoBase, tight, wideStop].every((s) =
 eq("and RISK is what bound each of them", [geoBase.boundBy, tight.boundBy, wideStop.boundBy], ["risk", "risk", "risk"]);
 // The real band and cap DO bind, and the ticket says which.
 const ceilBound = ss.sizeFromLiveContract(sizeArgs({ plan: { riskPts: 12, stop: 24_912, sweep: 24_908 } }));
-eq("a tight wick on a $182 contract is bound by the $550 ceiling", ceilBound.boundBy, "debit_ceiling");
+eq("a tight wick on a $182 contract is bound by the $650 ceiling", ceilBound.boundBy, "debit_ceiling");
 eq("so it buys 3, not the 12 the geometry allowed", ceilBound.contracts, 3);
 check(
   "and the ticket says the ceiling bound it, not the geometry",
@@ -200,11 +200,11 @@ const lowDelta = ss.sizeFromLiveContract(sizeArgs({ delta: 0.2, askPerShare: 0.9
 check("half the delta buys more contracts at the same risk", lowDelta.contracts > base.contracts);
 
 console.log("\nITEM 9 — over the band is a SKIP, never a smaller guess");
-const over = ss.sizeFromLiveContract(sizeArgs({ askPerShare: 6.0 }));
-eq("one $600 contract is not bought", over.contracts, 0);
+const over = ss.sizeFromLiveContract(sizeArgs({ askPerShare: 7.0 }));
+eq("one $700 contract is not bought", over.contracts, 0);
 check("it is a skip", over.skip);
-check("and it says it is over the ceiling", /over the \$550 ticket ceiling/i.test(over.skipReason ?? ""), over.skipReason ?? "");
-check("the solved debit never exceeds the band", [base, tight, wideStop, geoBase, ceilBound].every((s) => s.debitUsd <= 550));
+check("and it says it is over the ceiling", /over the \$650 ticket ceiling/i.test(over.skipReason ?? ""), over.skipReason ?? "");
+check("the solved debit never exceeds the band", [base, tight, wideStop, geoBase, ceilBound].every((s) => s.debitUsd <= 650));
 
 const underFloor = ss.sizeFromLiveContract(sizeArgs({ askPerShare: 0.2, delta: 0.41, maxContracts: 1 }));
 eq("a $20 ticket under the $50 floor is not sent", underFloor.contracts, 0);

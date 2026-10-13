@@ -13,7 +13,7 @@
  * Live duty (Keaton 2026-10-06): every character stays aware of the live PATH
  * setup scanner, SMC research, and the Robinhood live-when-armed envelope. When a
  * card is on the board they cite the PATH band + confluence and the SMC sequence
- * (or what is missing). They also know live RH (when armed) is $50–$550 debit,
+ * (or what is missing). They also know live RH (when armed) is $50–$650 debit,
  * 1–4 contracts ATM/OTM_1, review_option_order then place, and Manager agentAgree
  * is the Stand bit. They watch the tape and do their own shelf research — they do
  * not ignore a live A+/A/A− setup because the room is mid-banter.

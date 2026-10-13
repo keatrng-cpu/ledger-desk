@@ -3,7 +3,7 @@
  * Production (Keaton 2026-10-06): live-when-armed. Triple: Floor ARMED + PATH A+/A/A-/B+ + Stand.
  * Primary place trigger = a PATH scanner FIRE (path-alarm.ts considerPathAlarm) — the
  * continuous Floor / Trade Now read is the eye; the fire is what starts review → place.
- * Envelope: debit $50-$550, 1-4 contracts, ATM or OTM_1 only.
+ * Envelope: debit $50-$650, 1-4 contracts, ATM or OTM_1 only.
  * Agent: review_option_order then place_option_order (no preview_option_order tool).
  * Buying-power hard gate (Keaton 2026-10-06): the agent MUST call get_portfolio
  * (account_number) before propose and again before place. Spendable =
@@ -27,7 +27,7 @@
  *  5. Floor ARMED + priced ticket · PATH actionable A+/A/A- >= 0.65 or B+ >= 0.60
  *     News / shock raises that bar by 0.05 and cuts one contract. It does not
  *     ban B+ and higher. B+ explicit gate (evaluateRhBplusGate): fit >= 0.60 · SEQ TAKE · no veto;
- *     B+ size exactly 1 contract (evaluateRhBandSize), still $50-$550.
+ *     B+ size exactly 1 contract (evaluateRhBandSize), still $50-$650.
  *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
 import RULES from "../../../shared/desk-rules.json";
@@ -139,7 +139,7 @@ export function evaluateRhBandSize(band: string | null | undefined, contracts: n
 export const RH_PATH_FIRE_MAX_AGE_MS = RULES.fire.quoteMaxAgeS * 1000;
 export const RH_MIN_DEBIT_TOTAL = 50;
 // Live gate walk #5: ONE envelope with the watcher (A+ $650), shared/desk-rules.json fireFix.envelope.maxDebit.
-export const RH_MAX_DEBIT_TOTAL = (RULES as { fireFix?: { envelope?: { maxDebit?: number } } }).fireFix?.envelope?.maxDebit ?? 550;
+export const RH_MAX_DEBIT_TOTAL = (RULES as { fireFix?: { envelope?: { maxDebit?: number } } }).fireFix?.envelope?.maxDebit ?? 650;
 export const RH_MIN_CONTRACTS = 1;
 export const RH_MAX_CONTRACTS = 4;
 
@@ -467,6 +467,17 @@ export function evaluateRhCircuitBreaker(c: Pick<RhAutofireCandidate, "lastPlace
     };
   }
   return { ok: true, why: "circuit breaker ok" };
+}
+
+/**
+ * fireFix.gateHand one-step size cut on the desk path (Accuracy 2026-10-13): same as the watcher's size_contracts
+ * cut (loss.htf.sizeMult, 0.5) — floor(n x mult), never below 1. A+ 4 -> 2, A 2 -> 1, 1 -> 1.
+ */
+export function rhSizeCutContracts(n: number | null | undefined, cut: boolean | null | undefined): number | null {
+  if (n == null || !Number.isFinite(n)) return n ?? null;
+  if (!cut) return n;
+  const mult = Number((RULES as { loss?: { htf?: { sizeMult?: number } } }).loss?.htf?.sizeMult ?? 0.5);
+  return Math.max(1, Math.floor(n * (mult > 0 && mult < 1 ? mult : 0.5)));
 }
 
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {

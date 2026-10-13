@@ -470,7 +470,7 @@ console.log("\nsource posture");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /fireFix\?\.envelope\?\.maxDebit \?\? 550/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /fireFix\?\.envelope\?\.maxDebit \?\? 650/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);
@@ -503,6 +503,28 @@ console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless lateP
   check("proposeRhLiveOption hands its liveQuote to the gate", /evaluateRhAutofireGates\(\{ \.\.\.args\.candidate, liveQuote: args\.liveQuote \?\? null \}/.test(read("src/lib/execution/rh-autofire.ts")), true);
   check("candidateFromFloorPathStand carries floor.latePnl", /latePnl: f\?\.latePnl \?\? null/.test(read("src/lib/execution/rh-autofire.ts")), true);
   check("manager feed + live loop carry latePnl from the Floor ticket", /latePnl: card\?\.latePnl/.test(read("src/lib/room/manager-room-feed.ts")) && /latePnl: manager\.floor\.latePnl/.test(read("src/lib/room/manager-live-loop.ts")) && /latePnl: candidate\.latePnl/.test(read("src/lib/room/manager-live-loop.ts")) && /card\.ticket\?\.latePnlPending/.test(read("src/lib/room/desk-read.ts")), true);
+}
+
+// fireFix.gateHand on the desk-side path (Accuracy 2026-10-13): opposite-side brain refuses; the one-step size cut
+// is carried into deskContracts so the desk dispatcher and the watcher size the same.
+{
+  const od = await import("../src/lib/trading/options-desk.ts");
+  console.log("\nfireFix.gateHand desk path");
+  check("gateHand: brain standing is soft", od.gateHandSoftHold("Brain is standing. no sweep"), true);
+  check("gateHand: brain has no book is soft", od.gateHandSoftHold("Brain has no book for this ticket."), true);
+  check("gateHand: same side other book is soft", od.gateHandSoftHold("Ticket is QQQ put. Brain is ES short."), true);
+  check("gateHand: put vs brain LONG is NOT soft (refuse)", od.gateHandSoftHold("Ticket is QQQ put. Brain is MNQ long."), false);
+  check("gateHand: call vs brain SHORT is NOT soft (refuse)", od.gateHandSoftHold("Ticket is SPY call. Brain is ES short."), false);
+  check("gateHand: an unrelated hold is not soft", od.gateHandSoftHold("No entry price. Price is not at the array."), false);
+  check("sizeCut A+ 4 -> 2", gates.rhSizeCutContracts(4, true), 2);
+  check("sizeCut A 2 -> 1", gates.rhSizeCutContracts(2, true), 1);
+  check("sizeCut 1 -> 1 (never 0)", gates.rhSizeCutContracts(1, true), 1);
+  check("no sizeCut keeps size", gates.rhSizeCutContracts(4, false), 4);
+  check("null contracts stay null", gates.rhSizeCutContracts(null, true), null);
+  const dr = read("src/lib/room/desk-read.ts");
+  check("desk-read deskContracts carries the sizeCut", /deskContracts: rhSizeCutContracts\(card\.ticket\?\.contracts \?\? null, card\.sizeCut === true\)/.test(dr), true);
+  const ods = read("src/lib/trading/options-desk.ts");
+  check("gateHand uses gateHandSoftHold", /const soft = gateHandSoftHold;/.test(ods), true);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

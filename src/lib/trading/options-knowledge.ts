@@ -69,7 +69,7 @@ export const OPTION_LESSONS: OptionLesson[] = [
   {
     id: "ev",
     title: "Return per dollar",
-    grade: "The winner is the highest expected return inside $50–$550, after the spread. Two contracts are used only to clear $50, never to inflate a worse strike.",
+    grade: "The winner is the highest expected return inside $50–$650, after the spread. Two contracts are used only to clear $50, never to inflate a worse strike.",
     body: "The number is the probability the target prints before the stop, times what the contract gains on that path, minus the probability of the stop, times what it loses, divided by the debit. The loss cannot exceed the debit. A higher dollar win on a contract that costs twice as much is a worse trade when the ratio is lower. Adding a second contract does not change the ratio. It changes how many dollars you can lose.",
   },
   {

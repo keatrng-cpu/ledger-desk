@@ -141,8 +141,8 @@ console.log("\nlive option quote REQUIRED (missing refuses; present can pass)");
   check("propose missing liveQuote refuses live_quote", [missingQ.mode, missingQ.gated.gate, missingQ.placeShape], ["refused", "live_quote", null]);
   const nullQ = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: null });
   check("propose null liveQuote refuses live_quote", [nullQ.mode, nullQ.gated.gate], ["refused", "live_quote"]);
-  const over = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(2.9) });
-  check("live debit $584 > $550 refuses debit_cap", [over.mode, over.gated.gate], ["refused", "debit_cap"]);
+  const over = rh.proposeRhLiveOption({ candidate: c, ticket, flags: FLAGS, liveQuote: q(3.5) });
+  check("live debit $704 > $650 refuses debit_cap", [over.mode, over.gated.gate], ["refused", "debit_cap"]);
   const thin = rh.proposeRhLiveOption({ candidate: { ...c, account: { ...FUNDED, buyingPower: 280 } }, ticket, flags: FLAGS, liveQuote: q(1.5) });
   check("live debit $304 > BP $280 refuses bp_ticket", [thin.mode, thin.gated.gate], ["refused", "bp_ticket"]);
   const base = {
@@ -155,7 +155,7 @@ console.log("\nlive option quote REQUIRED (missing refuses; present can pass)");
   check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, quantity: 2 }).ok, false);
   check("review with stale live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5, 60_000), quantity: 2 }).ok, false);
   check("review with null live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: null, quantity: 2 }).ok, false);
-  check("review live debit $584 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(2.9), quantity: 2 }).ok, false);
+  check("review live debit $704 > $650 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.5), quantity: 2 }).ok, false);
   check("review live debit vs BP $280 refuses", rh.mayPlaceAfterReview({ ...base, accountAtReview: { ...FUNDED, buyingPower: 280 }, liveQuote: q(1.5), quantity: 2 }).ok, false);
 }
 
@@ -173,7 +173,7 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
     liveQuote: { optionId: "opt-2", askPrice: 1.4, bidPrice: 1.37, asOfMs: NOW - 2_000, source: "get_option_quotes" }, ...extra,
   });
   const m = (a) => { const r = rh.proposeRhFromPathFire(a); return r.mode === "live_when_armed" ? "ok" : r.gated.gate; };
-  // B+ live: one contract, SEQ TAKE, no veto (1 × $1.62 = $162, inside $50-$550).
+  // B+ live: one contract, SEQ TAKE, no veto (1 × $1.62 = $162, inside $50-$650).
   const ticket1 = rh.ticketFromRhCard({
     underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM",
     contracts: 1, estDebitEach: 1.6, estDebitTotal: 160, decisionKey: "k3", reason: "fire B+",
@@ -194,7 +194,7 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
   check("Floor WATCH refuses", m(args(fire("A+", 0.78), { floor: { verdict: "WATCH", deskContracts: 2, band: "A+", confluence: 0.7 } })), "floor");
   check("Stand not agreeing refuses", m(args(fire("A+", 0.78), { agentAgree: false })), "agent");
   check("Manager disagree refuses", m(args(fire("A+", 0.78), { manager: { call: { agentAgree: false } } })), "agent");
-  // $50 BP floor (envelope $50-$550): $120 clears the floor but not this ticket's debit; $40 is under the floor
+  // $50 BP floor (envelope $50-$650): $120 clears the floor but not this ticket's debit; $40 is under the floor
   check("BP $120 refuses bp_ticket (over the $50 floor, under the debit)", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 120 } })), "bp_ticket");
   check("BP $40 refuses bp_floor ($50 floor)", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 40 } })), "bp_floor");
   check("BP unknown refuses", m(args(fire("A+", 0.78), { account: null })), "bp_unknown");

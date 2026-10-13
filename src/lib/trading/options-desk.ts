@@ -1274,7 +1274,7 @@ function liveCtxFor(
 /**
  * Solve the REAL leg: pick the contract off the chain, then size it from that
  * contract's own delta and the distance to the raid wick, inside the broker's
- * $50-$550 debit band. A refusal is a SKIP; it is never shrunk into the band.
+ * $50-$650 debit band. A refusal is a SKIP; it is never shrunk into the band.
  */
 function liveLegFor(
   underlier: SwingUnderlier,
@@ -1553,7 +1553,7 @@ function underlierSheet(
     menu: rows.map((r) => {
       const single = estimateDebitContract(spot, r.dte, r.delta, iv);
       const spread = estimateSpreadContract(spot, r.dte, iv, pickWidth(underlier, r.dte));
-      // Gate refuses above RH_MAX_DEBIT_TOTAL ($550). Fit the green "1-lot"
+      // Gate refuses above RH_MAX_DEBIT_TOTAL ($650). Fit the green "1-lot"
       // cell to the envelope, not the sleeve's $1,000 sizer cap.
       const gateCap = Math.min(cap, RH_MAX_DEBIT_TOTAL);
       return {
@@ -2213,7 +2213,19 @@ function deskTopBand(desk: DeskPayload): string | null {
   return pb && order.includes(pb) ? order[Math.max(order.indexOf(pb), order.indexOf(qb))] : qb;
 }
 
-function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
+/**
+ * fireFix.gateHand soft holds (Accuracy 2026-10-13): brain standing / no book, SMT, direction and a ticket on the
+ * brain's SAME side in the other book are caution notes on A+/A. A ticket on the brain's OPPOSITE side is never soft:
+ * the card goes WATCH, so the desk dispatcher (room-step -> runRhDesk) refuses it exactly as the watcher's fast:agree does.
+ */
+export function gateHandSoftHold(h: string): boolean {
+  if (h === MODEL_TICKET_HOLD) return true;
+  const m = /^Ticket is \S+ (call|put)\. Brain is \S+ (long|short)\./i.exec(h);
+  if (m) return (m[1]!.toLowerCase() === "call") === (m[2]!.toLowerCase() === "long");
+  return /^Brain (is standing|has no book)|SMT|direction/i.test(h);
+}
+
+export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   const holds = ticketHolds(desk, card);
   if (!holds.length) return card;
   // Bug 2026-10-13 (gate-funnel audit): the server never has a live chain, so EVERY armed card got this hold, the Floor
@@ -2225,7 +2237,7 @@ function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   // live = hand to the watcher (its fast chain still refuses a brain on the OPPOSITE side); shadow = annotate only.
   const gh = (RULES_DESK as { fireFix?: { gateHand?: { mode?: string; bands?: string[] } } }).fireFix?.gateHand;
   const band = deskTopBand(desk);
-  const soft = (h: string) => h === MODEL_TICKET_HOLD || /^Brain (is standing|has no book)|^Ticket is .* Brain is |SMT|direction/i.test(h);
+  const soft = gateHandSoftHold;
   if (gh && band && (gh.bands ?? []).includes(band) && holds.every(soft)) {
     if (gh.mode === "live") return { ...card, handTo: "watcher", holds, sizeCut: true };
     return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6), holds: [...holds, `shadow:fireFix.gateHand WOULD hand ${band} to the watcher`] };
@@ -2248,7 +2260,7 @@ export function evaluateOptionsDesk(
   // `floor(cap / single)` buys. It was $150, so every ticket was sized at a
   // sixth of the trader's stated $1,000 cap and most ATM rows read "too
   // rich". Clamp to RH_MAX_DEBIT_TOTAL so the sizer never builds a ticket the
-  // RH $550 gate refuses (e.g. a 5 DTE ~$575 single under a $1,000 sleeve).
+  // RH $650 gate refuses (e.g. a 5 DTE ~$575 single under a $1,000 sleeve).
   // The loss cap is a separate number — see rhRiskBudgetUsd.
   const cap = Math.min(rhTicketCapUsd(sleeve), RH_MAX_DEBIT_TOTAL);
   const swingSignal = evaluateOptionsSwing(desk);
@@ -2373,7 +2385,7 @@ export function optionsDeskPlaybook(): string[] {
     "QQQ ← NQ · SPY ← ES. Never both the same day. QQQ usually fits the cap; SPY ATM weeklies need a vertical.",
     "Live grade is the SMC sequence (DOL → sweep polarity → dealing-range → LTF shift → retrace). ICT/TJR/PB are schools inside it, not extra confluence to stack.",
     "Day default: 1–2 DTE PATH continuation. 0DTE is A+ after 9:45 with SMC TAKE, 1 contract. After 14:00 ET a same-day delta under 0.40 is charged for theta. After 15:00 a same-day delta under 0.45 is not taken.",
-    "The contract is the highest expected return inside $50–$550, delta 0.30–0.65, spread at most 8% of the ask, and only if the pool pays the debit. Exit at that pool. A model price is not a candidate.",
+    "The contract is the highest expected return inside $50–$650, delta 0.30–0.65, spread at most 8% of the ask, and only if the pool pays the debit. Exit at that pool. A model price is not a candidate.",
     "SMT lead 3–7 DTE when NQ and ES disagree. Event days: first impulse is the sweep; debit the second after 10:15.",
     "Trim 50% at +40–60% of debit, stop to BE. Time-stop day tickets 11:00 ET. Never average. Separate from the $100k futures paper book.",
   ];
