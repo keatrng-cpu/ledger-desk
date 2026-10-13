@@ -3,6 +3,7 @@
  * + strategy catalog + conditions gate.
  */
 
+import { armingRaid } from "@/lib/smc/shared";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
@@ -645,25 +646,18 @@ function scoreDirection(
     );
   }
 
-  const detSweepOk = Boolean(
-    det.sweep.latest &&
-      det.sweep.latest.closeBackInside > 0 &&
-      ((direction === "bull" && det.sweep.latest.side === "sellside") ||
-        (direction === "bear" && det.sweep.latest.side === "buyside")),
-  );
-  // A pool "swept" flag only means price is beyond the level. A breakout
-  // does that. A sweep is a wick through the pool that closed back inside.
-  const sig =
-    detSweepOk ||
-    (det.mechanical.alive &&
-      det.mechanical.sweep != null &&
-      det.mechanical.sweep.closeBackInside > 0 &&
-      mechDir === direction);
+  // ONE raid read (src/lib/smc/shared.ts `armingRaid`): the newest real sweep
+  // of THIS side's polarity inside GATE.recentSweepBars, else Blake's live
+  // mechanical sweep. A later tag of the other pool no longer erases it —
+  // the same rule `polaritySweep`/`pairedDisplacement` use for displacement
+  // below and the brain uses through `raidReadForCard`.
+  const armed = armingRaid(cb, direction, det);
+  const sig = armed != null;
   add(
     "sweep_significant",
     sig,
     sig
-      ? `sweep_significant (${det.sweep.latest?.side ?? "det"})`
+      ? `sweep_significant (${armed!.sweep.side} · ${armed!.source})`
       : undefined,
   );
 

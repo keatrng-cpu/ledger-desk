@@ -1856,7 +1856,9 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
       blocks.push("Both HTF still bull — SMT fade only, not a swing debit");
     }
     if (underlier === "QQQ" && locationFights("put", nq.dealing?.zone)) {
-      blocks.push(`NQ dealing ${nq.dealing?.zone} — wait premium for puts`);
+      // Was a hard block. The PATH ticket and the brain (halfNote) treat a
+      // fighting half as a size cut / note; the SMT ticket now agrees.
+      reasons.push(`NQ dealing ${nq.dealing?.zone} fights a put. Size is cut. The divergence still calls it.`);
     }
     reasons.push(
       underlier === "QQQ"
@@ -1873,7 +1875,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
       blocks.push("Both HTF bear — no SMT call");
     }
     if (locationFights("call", (underlier === "QQQ" ? nq : es).dealing?.zone)) {
-      blocks.push("Call into premium — wait discount");
+      reasons.push("Call into premium. Size is cut. The divergence still calls it.");
     }
   }
 

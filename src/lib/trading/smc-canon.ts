@@ -9,6 +9,7 @@
  * a single concept is never enough to TAKE.
  */
 
+import { raidReadForCard } from "@/lib/smc/shared";
 import type { StrategyId } from "./strategies";
 import type { ComponentKey } from "./engine-weights";
 import type { SetupCandidate } from "./scanner";
@@ -539,8 +540,15 @@ export function canonInputForCandidate(
     htf: book.topDown,
     mtf: book.mid,
     dealingZone: book.dealing?.zone ?? null,
-    swept: narrative?.liquidity?.lastSweep ?? "none",
-    confirmation: narrative?.confirmation ?? "none",
+    // The card's own raid when the narrative's (other-direction) raid does
+    // not arm this side — src/lib/smc/shared.ts `raidReadForCard`.
+    ...(() => {
+      const r = raidReadForCard(c, {
+        swept: narrative?.liquidity?.lastSweep ?? "none",
+        confirmation: narrative?.confirmation ?? "none",
+      });
+      return { swept: r.swept, confirmation: r.confirmation };
+    })(),
     inKillzone: clock.inTradeWindow,
     killzoneLabel: clock.killzoneLabel,
     smt: c.components.includes("smt"),
