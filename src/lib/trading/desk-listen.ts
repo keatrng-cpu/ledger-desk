@@ -299,7 +299,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         q: c.confluence,
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
-        entry: c.entryPx ?? null,
+        entry: c.entryPx ?? c.plan?.entry ?? null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),
