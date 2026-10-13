@@ -17,14 +17,29 @@ export interface GapBar {
 
 export type GapSide = "long" | "short";
 
+/**
+ * ONE HTF definition (2026-10-13): buckets anchored at 18:00 ET (the futures
+ * session open) and CLOSED candles only — the forming 1h/4h candle is dropped,
+ * so the Floor's gap block and the scanner's band read the same thing.
+ */
+function etOffsetMs(t: number): number {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(t));
+  const g = (k: string) => Number(parts.find((p) => p.type === k)!.value);
+  const asUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"));
+  return asUtc - Math.floor(t / 60_000) * 60_000;
+}
+
 export function resample(bars: GapBar[], minutes: number): GapBar[] {
   const span = minutes * 60 * 1000;
   const out: GapBar[] = [];
+  if (!bars.length) return out;
+  // 18:00 ET anchor: shift into ET wall time, then by −18h so buckets start at 18:00.
+  const off = etOffsetMs(bars[bars.length - 1]!.t) - 18 * 3600_000;
   let cur: GapBar | null = null;
   let key: number | null = null;
   for (const b of bars) {
     if (!(b.t > 0) || !(b.h >= b.l)) continue;
-    const k = Math.floor(b.t / span);
+    const k = Math.floor((b.t + off) / span);
     if (k !== key) {
       if (cur) out.push(cur);
       key = k;
@@ -35,7 +50,12 @@ export function resample(bars: GapBar[], minutes: number): GapBar[] {
       cur.c = b.c;
     }
   }
-  if (cur) out.push(cur);
+  // Closed only: the last bucket is complete when the input's last bar closes it.
+  if (cur && key != null) {
+    const step = bars.length > 1 ? bars[bars.length - 1]!.t - bars[bars.length - 2]!.t : 0;
+    const end = (key + 1) * span - off;
+    if (bars[bars.length - 1]!.t + step >= end) out.push(cur);
+  }
   return out;
 }
 

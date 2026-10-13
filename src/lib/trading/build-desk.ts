@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { rollingAtr } from "./detectors";
+import { applyDiscipline, shockLeanLive } from "@/lib/smc/discipline";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -773,7 +775,29 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // blocks). It used to set verdict "blackout", which the RH gate refuses
     // outright. Now it raises the bar one step while the shock candle is open
     // (shock.active ≈ the 15m lock) and cuts size through the tail.
-    const news: NewsRead = newsBase;    // News and a shock raise the confidence bar and cut size. They do not
+    const news: NewsRead = newsBase;// Card discipline R1–R8 (src/lib/smc/discipline.ts) — before the news/shock bar.
+    {
+      const atrOf = (b: OhlcBar[]) => {
+        const a = rollingAtr(b);
+        const v = a[a.length - 1];
+        return v != null && Number.isFinite(v) ? v : null;
+      };
+      const ctxFor = (sym: string) => {
+        const isL = sym === left.symbol;
+        const closed = isL ? closedL : closedR;
+        const b = isL ? biasL : biasR;
+        return {
+          price: (isL ? lq : rq)?.price ?? null,
+          atr15: atrOf(closed),
+          closed15: closed,
+          minute: isL ? minuteL : minuteR,
+          nowMs,
+          levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
+        };
+      };
+      for (const c of scan.candidates) applyDiscipline(c as never, ctxFor(c.symbol));
+    }
+        // News and a shock raise the confidence bar and cut size. They do not
     // take B+ and higher off the book when the bias and the score are there.
     const event = news.verdict === "blackout" || news.verdict === "caution" || shock.active;
     if (event) {
@@ -1079,7 +1103,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
       shockFloorMs: shock.active ? shock.freshFloorMs : null,
-      shockLean: shockLeanSide(shock.bias),
+      shockLean: shockLeanLive(
+        shockLeanSide(shock.bias),
+        shock.at,
+        shock.refPx ?? null,
+        (shock.event?.symbol === right.symbol ? rq : lq)?.price ?? null,
+        (() => {
+          const a = rollingAtr(shock.event?.symbol === right.symbol ? closedR : closedL);
+          const v = a[a.length - 1];
+          return v != null && Number.isFinite(v) ? v : null;
+        })(),
+        Date.now(),
+      ),
     });
     // One stop, everywhere (card-plan.ts): the card a book priced a plan
     // for now carries that plan, and its invalidation becomes the plan's

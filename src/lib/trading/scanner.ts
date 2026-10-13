@@ -974,8 +974,10 @@ function scoreDirection(
     present.includes("mechanical_model");
   const hot = score >= 0.8 && directionOk && clock.isWeekday && g !== "skip";
   if (hot && !conditions.tradeable) reasons.push("Regime is quiet. Size is cut. A card at 0.80 is still read.");
+  // R1 (2026-10-13): the 0.80 `hot` shortcut no longer makes a card actionable
+  // on its own — an A+ with nothing to buy was printing actionable=true.
+  void hot;
   const actionable =
-    hot ||
     (g !== "skip" &&
     directionOk &&
     killzoneOk &&

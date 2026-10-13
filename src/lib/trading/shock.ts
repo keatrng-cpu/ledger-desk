@@ -84,6 +84,8 @@ export interface ShockRead {
   brief: ShockBrief | null;
   /** Which way the shock leans the desk. A nudge, never a must or a block. */
   bias: ShockBias | null;
+  /** Close of the shock bar (or null while forming) — the R9 counter-move reference. */
+  refPx?: number | null;
 }
 
 /**
@@ -332,5 +334,6 @@ export function readShock(
     line,
     brief,
     bias: shockBiasFrom(lead.b.side, lead.b.bar, lead.b.prior, kind, calendarName),
+    refPx: lead.b.bar?.c ?? null,
   };
 }
