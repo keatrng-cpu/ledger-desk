@@ -201,7 +201,7 @@ for (const [path] of FLOORS) {
       // precisely how the corrected sleeve model sat unused behind a comment
       // claiming it was live. Only a real import/export specifier counts.
       const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const imported = new RegExp(
+      const imported = new RegExp(
         `(?:from|import\\s*\\(?|require\\()\\s*["'][^"']*?(?:^|/)${esc}(?:\\.tsx?)?["']`,
       ).test(src);
       if (imported) {
