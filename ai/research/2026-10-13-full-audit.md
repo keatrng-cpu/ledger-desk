@@ -45,3 +45,23 @@ The desk held an ES long while the 5m bull FVG had inverted into a bearish IFVG 
   - the brain's book on the killed side becomes STAND.
 - The kill is temporary. A long re-arms only when this happens in order: an SSL sweep (a bar takes every low since the kill and closes back above it), then a 1m body of at least 1 × ATR in the side's direction, then a close back through the far edge of the opposing array. A re-armed card is capped at A-; mirror rules apply for shorts.
 - Test fixture: `scripts/fixtures/card-2026-10-13-1033et.json`, the live card at 14:34Z. Tests in `scripts/ltf-reversal.test.mjs` cover kill → rebuild → A-.
+
+## Round 2 (shipped 5d971ee7..44abb71f)
+LTF kill tuned on a replay of today's ES 1m (fires 10:29–10:33 ET); IFVG age counted from the inversion; SMT lead is a weighted vote across timeframes; structural stop when the raid wick is >2×ATR away, and T2 becomes the target when T1 is under 1R (`rr` is on the card); brain graded after the seal; numeric `stopPx`; SMT flag renamed to `SMT_CREDITS_THE_HOLDER`.
+
+## Fixes 26–30 (ad46c813), today's MNQ BSL-sweep case
+26: an HTF sweep plus an LTF CHoCH releases the counter side, capped at A-. 27: 4+ LTF timeframes breaking the same way is a reversal setup. 28: a killed side can never hold the brain's book. 29: the opposite side of a kill gets +0.05–0.08, weighted by alignment. 30: the Floor drops "Brain is X" when the brain's book is killed or the brain is STAND.
+
+## Batch 1 of 1–25 plus Accuracy 1–4 and Judas (this commit)
+- 23/25 journal: `desk_card_journal` (migration 0023 plus an ensure-DDL). A-/A/A+ cards are journaled and outcomes are SAMPLED at card reads, not tick data. Each closed row gets the Master seat's review line. `/api/desk/journal` gives a 7-day band report; below n=30 it says "insufficient n — no change" and nothing is applied automatically.
+- 19 governor: after ±2R on the day it is A+ only. `rToday` comes from the journal and is null with no data. Shown as `wire.day`.
+- 20 displacement strength: 5m, 0–1, nudges q ±0.02. `wire.strategy.displacementStrength`; `displacement` is also true when body ≥1×ATR and the bar left an FVG.
+- 7/8 ranked draws: `wire.draws`, ranked by score, touches, age and internal/external scope.
+- 16–18 exit plan: `wire.strategy.exitPlan {trailRule, trailPx, timeStopBars, killExit}`.
+- 24 Master seat: `wire.master {verdict TAKE|PASS, narrative, checks, failed}` over the shared wire. It never relaxes an upstream gate.
+- Accuracy 1: a scanner skip (path or grade) is exported as C and never actionable (`scannerSkip`).
+- Accuracy 2: `rung()` drops the forming source bar and any unfinished resampled bucket, so wire arrays, MTF rungs and SMT read closed bars only. The provisional 1m sweep read is unchanged.
+- Accuracy 3: chart pool labels follow the level's side of price (`side` added).
+- Accuracy 4 / Judas: `JUDAS_BLOCKS = false`. The board, path alarm, auto-paper and the paper manager no longer block 09:30–09:45. `wire.strategy.judas` is a warning flag only. The existing Judas ritual badge stays on the board.
+- Extra: `wire.strategy` uses the brain's book only when that book is not graded below the best card (live 10:13 ET it showed MNQ short C while ES short B+ was actionable).
+- Extra: smc-master's `const judas = judasRead.blocked` is dead code (never read). Left as is; noted here.

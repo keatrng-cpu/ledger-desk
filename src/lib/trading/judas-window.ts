@@ -105,6 +105,13 @@ const out = (over: Partial<JudasRead>): JudasRead => ({
  * one the failed raid points at, because entering WITH the manipulation is
  * precisely the trade this window exists to prevent.
  */
+/**
+ * Keaton 2026-10-13: Judas 09:30–09:45 is TRADED. The window is a warning
+ * (wire.strategy.judas + a board badge), never a block. `readJudas` still
+ * says whether the open's raid resolved; callers only label with it.
+ */
+export const JUDAS_BLOCKS = false;
+
 export function readJudas(
   rungs: Partial<Record<ChartTf, TfSeries>> | null | undefined,
   clock: { etHour: number; etMinute: number },

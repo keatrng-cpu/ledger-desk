@@ -164,6 +164,12 @@ export interface SetupCandidate {
   entryResting?: boolean;
   /** R7 chop read for this book (discipline.ts isChop). */
   chop?: boolean;
+  /** The scanner said skip (sealBand exports it as C). */
+  scannerSkip?: boolean;
+  /** Fix 20. */
+  dispStrength?: import("@/lib/smc/exec-context").DisplacementStrength | null;
+  /** Fix 16–18. */
+  exitPlan?: import("@/lib/smc/exec-context").ExitPlan;
   /** LTF kill live against this card (mtf-context ltfReversals). */
   ltfKilled?: boolean;
   /** Fix 39 label (reversal set by fix 26/27). */

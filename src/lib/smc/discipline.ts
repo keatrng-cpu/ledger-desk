@@ -226,12 +226,20 @@ const BAND_CEIL: Record<Band, number> = { "A+": 0.99, A: 0.7499, "A-": 0.6799, "
  * `qRaw`), and a path label above q is lowered to q's band. `skip` stays skip.
  * Below B+ is never actionable (PATH floor).
  */
-export function sealBand<T extends { confluence: number; pathBand?: string | null; actionable: boolean; qRaw?: number }>(c: T): T {
-  const cap = (BANDS as readonly string[]).includes(String(c.pathBand)) ? (c.pathBand as Band) : null;
-  if (cap === "skip") {
+export function sealBand<T extends { confluence: number; pathBand?: string | null; grade?: string; actionable: boolean; qRaw?: number; scannerSkip?: boolean }>(c: T): T {
+  // Accuracy 1: the scanner's own skip (grade or path) exports as C, never
+  // actionable — the exported band can no longer read B over a skip.
+  if (c.pathBand === "skip" || c.grade === "skip") {
+    c.scannerSkip = true;
     c.actionable = false;
+    if (c.confluence > BAND_CEIL.C) {
+      c.qRaw = c.confluence;
+      c.confluence = BAND_CEIL.C;
+    }
+    c.pathBand = "C";
     return c;
   }
+  const cap = (BANDS as readonly string[]).includes(String(c.pathBand)) ? (c.pathBand as Band) : null;
   const qb = bandFromQ(c.confluence);
   if (!qb) return c;
   if (cap && idx(cap) > idx(qb)) {

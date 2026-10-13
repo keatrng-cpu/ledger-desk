@@ -12,7 +12,7 @@ import type { SmcMasterBook } from "@/lib/trading/smc-master";
 import type { SetupCandidate } from "@/lib/trading/scanner";
 import { etWallParts, isJudasWindow } from "@/lib/trading/sessions";
 import { readSession } from "@/lib/trading/session-event";
-import { readJudas } from "@/lib/trading/judas-window";
+import { readJudas, JUDAS_BLOCKS } from "@/lib/trading/judas-window";
 import { buildEntryTicket, ticketHeadline } from "@/lib/trading/entry-ticket";
 import { allSeries } from "@/lib/trading/chart-timeframes";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -294,6 +294,7 @@ export function considerPathAlarm(
   // Judas read on THIS card's own book. It always read the left (MNQ) tape,
   // so an ES card was released or muted by what MNQ's open did.
   if (
+    JUDAS_BLOCKS &&
     isJudasWindow(wall.hour, wall.minute) &&
     readJudas(bookRungs(desk, candidate.symbol), { etHour: wall.hour, etMinute: wall.minute }, candidate.side)
       .blocked
@@ -401,6 +402,7 @@ export function considerEntryAlarm(desk: DeskPayload): PathAlarmFire | null {
     // Judas per book, on this book's own minute tape (judas-window.ts). Fails
     // closed without minute tape, which is the old behaviour.
     if (
+      JUDAS_BLOCKS &&
       isJudasWindow(wall.hour, wall.minute) &&
       readJudas(bookRungs(desk, book.symbol), { etHour: wall.hour, etMinute: wall.minute }, book.side === "short" ? "short" : "long")
         .blocked

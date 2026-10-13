@@ -1,3 +1,4 @@
+import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
@@ -96,6 +97,16 @@ export interface DeskWire {
     stop: string | null;
     draw: string | null;
     entryResting: boolean;
+    /** Fix 20: 0..1, null without 5m tape. */
+    displacementStrength: number | null;
+    /** Judas 09:30–09:45 ET — a WARNING flag only, never a block. */
+    judas: boolean;
+    /** The scanner said skip (exported as C). */
+    scannerSkip: boolean;
+    ltfKilled: boolean;
+    regime: string | null;
+    /** Fix 16–18. */
+    exitPlan: { trailRule: string; trailPx: number | null; timeStopBars: number; timeStopTf: string; killExit: boolean; killWhy: string | null } | null;
     /** Which plan target `target` is (T1 unless T1 < 1R and T2 clears it). */
     targetWhich: "t1" | "t2" | null;
     /** R:R to `target`. */
@@ -121,11 +132,18 @@ export interface DeskWire {
   } | null;
   brain: {
     word: string | null;
+    book?: { symbol: string; side: string | null } | null;
     thesis: string;
     missing: string | null;
     htfReleased: boolean;
   };
-  chart: { symbol: string; levels: { name: string; price: number }[] }[];
+  chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
+  /** Fix 7/8: ranked draws for the strategy's book. */
+  draws?: import("@/lib/smc/exec-context").RankedDraw[];
+  /** Fix 24. */
+  master?: import("@/lib/smc/master-seat").MasterSeat;
+  /** Fix 19 (filled by the card route from the journal; null = no data). */
+  day?: { rToday: number | null; governor: "normal" | "A+ only"; closedToday: number };
   floor: {
     verdict: string;
     blocks: string[];
@@ -164,9 +182,13 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   // AUDIT F7: the card's strategy IS the brain's book when the brain has one
   // on the board, so scanner, brain and Floor describe the same trade.
   const bookCand = desk.smcMaster.oneBook?.side
-    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && c.pathBand !== "skip")
+    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && !c.scannerSkip)
     : undefined;
-  const top = bookCand ?? desk.scan.candidates[0] ?? null;
+  // The brain's book leads only when it is not graded BELOW the best card
+  // (live 10:13 ET: brain on MNQ short C while ES short B+ was actionable).
+  const rankOf = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+  const best = desk.scan.candidates[0] ?? null;
+  const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
   const phase = handed ? "hand" : "look";
@@ -221,7 +243,13 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           bias4h: htfBiasOf(desk.mtfContext, top.symbol)?.bias4h ?? null,
           stop: top.invalidation || null,
           draw: top.draw?.name ?? null,
-          displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy),
+          displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy) || (top.dispStrength != null && top.dispStrength.bodyAtr >= 1 && top.dispStrength.leftFvg),
+          displacementStrength: top.dispStrength?.score ?? null,
+          judas,
+          scannerSkip: top.scannerSkip === true,
+          ltfKilled: top.ltfKilled === true,
+          regime: top.setupRegime ?? null,
+          exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,
           rr: primaryTarget(top.plan).rr,
@@ -234,6 +262,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : null,
     brain: {
       word: book?.word ?? null,
+      book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
         top && book && (top.symbol !== book.symbol || top.side !== book.side)
           ? top.symbol !== book.symbol
@@ -246,10 +275,16 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           : book?.missing ?? null,
       htfReleased,
     },
-    chart: desk.levels.slice(0, 2).map((lvl) => ({
-      symbol: lvl.symbol,
-      levels: lvl.items.slice(0, 6).map((item) => ({ name: item.name, price: item.price })),
-    })),
+    // Accuracy 3: the pool side is where the level sits against live price —
+    // stops above price are BSL, below are SSL — whatever the source label said.
+    chart: desk.levels.slice(0, 2).map((lvl) => {
+      const px = lvl.symbol === desk.quotes.left.symbol ? desk.quotes.left.price : desk.quotes.right.price;
+      return {
+        symbol: lvl.symbol,
+        levels: lvl.items.slice(0, 6).map((item) => ({ name: poolLabel(item.name, item.price, px), price: item.price, side: px == null ? null : item.price > px ? "above" : "below" })),
+      };
+    }),
+    draws: top ? (desk.rankedDraws?.[top.symbol === desk.left.symbol ? "left" : "right"] ?? []).slice(0, 8) : [],
     floor: {
       verdict,
       blocks: (shown?.blocks ?? []).slice(0, 4),
@@ -269,6 +304,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     },
     execution: { phase, to: "grok", account: "agentic-6158", broker: "robinhood" },
   };
+  wire.master = masterSeat(masterInputOf(wire, desk.mtfContext ?? null, "normal"));
   const said = [
     {
       who: "Vince",
@@ -356,3 +392,41 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   };
 }
 
+
+/** Accuracy 3: SSL/BSL and low/high tags follow the level's side of price. */
+export function poolLabel(name: string, price: number, px: number | null | undefined): string {
+  if (px == null || !Number.isFinite(px)) return name;
+  const above = price > px;
+  let n = name.replace(/\b(SSL|BSL)\b/g, above ? "BSL" : "SSL");
+  if (above && /\b(low|PDL|PWL|EQL)\b/i.test(n) && !/BSL/.test(n)) n = `${n} (above price — BSL)`;
+  if (!above && /\b(high|PDH|PWH|EQH)\b/i.test(n) && !/SSL/.test(n)) n = `${n} (below price — SSL)`;
+  return n;
+}
+
+/** Fix 24: the Master seat reads the wire itself — the same fields every seat publishes. */
+export function masterInputOf(
+  wire: DeskWire,
+  ctx: import("@/lib/smc/mtf-context").MtfContext | null,
+  governor: "normal" | "A+ only",
+): MasterInput {
+  const s = wire.strategy;
+  const align = s && ctx ? (ctx.books.find((b) => b.symbol === s.symbol)?.align[s.side as "long" | "short"]?.score ?? null) : null;
+  return {
+    card: s
+      ? {
+          symbol: s.symbol, side: s.side, band: s.band, q: s.q, actionable: s.actionable, entry: s.entry,
+          entryResting: s.entryResting, stopPx: s.stopPx, target: s.target, rr: s.rr, chop: s.chop,
+          bias1h: s.bias1h, bias4h: s.bias4h, dispScore: s.displacementStrength, ltfKilled: s.ltfKilled,
+          reversal: s.regime === "reversal" ? "reversal setup (HTF released / LTF breaks)" : null,
+        }
+      : null,
+    brainWord: wire.brain.word,
+    brainBook: wire.brain.book ?? null,
+    floorVerdict: wire.floor.verdict,
+    align,
+    smtLead: wire.smt?.lead ?? null,
+    shockActive: wire.shock?.active === true,
+    topDraw: wire.draws?.[0] ? { name: wire.draws[0].name, price: wire.draws[0].price } : null,
+    governor,
+  };
+}

@@ -1,3 +1,4 @@
+import { displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -143,6 +144,8 @@ export interface DeskPayload {
   smcMaster: SmcMasterRead;
   /** One MTF read (1m–4h, both books) for scanner, brain and Floor. */
   mtfContext?: MtfContext;
+  /** Fix 7/8: every priced draw, ranked (touches, age, scope). */
+  rankedDraws?: { left: RankedDraw[]; right: RankedDraw[] };
   /** Key presence only — never the secret. Claude handoff reads this. */
   coach: { xai: boolean; anthropic: boolean };
   /**
@@ -1079,6 +1082,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // judas-window.ts correctly refuses to release. Passing it here is what
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
+    const DISP_NUDGE = 0.02;
     const LTF_FLIP_MIN = 0.05;
     const LTF_FLIP_MAX = 0.08;
     const REVERSAL_NUDGE = 0.03;
@@ -1194,6 +1198,24 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         c.reasons.push(`Reversal setup: ${rs.why.join("; ")}`);
       }
+      // Fix 20/16–18: displacement strength (grades ±0.02) and the exit plan,
+      // from the same 1m tape every seat reads.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const minute = isL ? minuteL : minuteR;
+        const side = c.side as "long" | "short";
+        const ds = displacementStrength(minute, side);
+        c.dispStrength = ds;
+        if (ds) {
+          const nudge = +(DISP_NUDGE * (ds.score - 0.5) * 2).toFixed(4);
+          if (nudge !== 0) {
+            c.confluence = +Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4);
+            c.reasons.push(`Displacement strength ${ds.score} (${ds.bodyAtr}×ATR5${ds.leftFvg ? ", left an FVG" : ""}) ${nudge > 0 ? "+" : ""}${nudge}`);
+          }
+        }
+        const kill = mtfContext.books.find((x) => x.symbol === c.symbol)?.ltfReversals.find((r) => r.against === side && !r.rearmed) ?? null;
+        c.exitPlan = exitPlanOf(minute, side, (isL ? lq : rq)?.price ?? null, kill);
+      }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
       for (const c of payload.scan.candidates) sealBand(c as never);
       // AUDIT F2: the top card is the best card (actionable, band, q), so the
@@ -1272,6 +1294,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       ...payload,
       smcMaster,
       mtfContext,
+      rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       coach,
       mtf,
       ladder,

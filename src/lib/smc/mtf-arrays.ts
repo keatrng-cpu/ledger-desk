@@ -42,13 +42,20 @@ export interface ArrayRow {
 const cache = new Map<string, { bars: OhlcBar[]; gaps: FvgResult[] }>();
 const CACHE_MAX = 64;
 
-export function rung(symbol: string, src: OhlcBar[], tf: ArrayTf): { bars: OhlcBar[]; gaps: FvgResult[] } {
+export function rung(symbol: string, src0: OhlcBar[], tf: ArrayTf, nowMs = Date.now()): { bars: OhlcBar[]; gaps: FvgResult[] } {
+  // Accuracy 2: CLOSED bars only. The source's own forming bar is dropped,
+  // and so is a resampled bucket that has not finished (a 5m bar built from
+  // 3 closed minutes is not a 5m close).
+  const srcMs = (LTF_RUNGS as readonly string[]).includes(tf) ? 60_000 : 900_000;
+  const src = src0.length && src0[src0.length - 1]!.t + srcMs > nowMs ? src0.slice(0, -1) : src0;
   if (!src.length) return { bars: [], gaps: [] };
   const key = `${symbol}:${tf}:${src[0]!.t}:${src[src.length - 1]!.t}:${src.length}:${src[src.length - 1]!.c}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const ms = MIN[tf] * 60_000;
-  const bars = tf === "1m" || tf === "15m" ? src : resampleMs(src, ms);
+  const lastEnd = src[src.length - 1]!.t + srcMs;
+  const rs = tf === "1m" || tf === "15m" ? src : resampleMs(src, ms);
+  const bars = rs.length && rs[rs.length - 1]!.t + ms > lastEnd ? rs.slice(0, -1) : rs;
   const out = { bars, gaps: detectFvgs(bars) };
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value!);
   cache.set(key, out);

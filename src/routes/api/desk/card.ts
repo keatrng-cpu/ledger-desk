@@ -8,7 +8,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/lib/alerts/cron";
 import { fetchTradingDesk } from "@/lib/trading/build-desk";
-import { deskListenCard, type DeskListenCard } from "@/lib/trading/desk-listen";
+import { deskListenCard, masterInputOf, type DeskListenCard } from "@/lib/trading/desk-listen";
+import { masterSeat } from "@/lib/smc/master-seat";
 import { attachGrokReport } from "@/lib/desk/grok-report";
 
 const FRESH_MS = 1_000;
@@ -24,6 +25,44 @@ async function withReport(card: DeskListenCard): Promise<DeskListenCard> {
   }
 }
 
+/**
+ * Fix 23/25/19/24: journal A-band cards, resolve open rows against the live
+ * prints, set wire.day from the journal and re-run the Master seat with the
+ * day governor. Any DB failure leaves the card as built and wire.day null —
+ * never an invented R.
+ */
+async function withJournal(card: DeskListenCard, ctx: Parameters<typeof masterInputOf>[1]): Promise<DeskListenCard> {
+  try {
+    const { getSql } = await import("@/lib/db");
+    const j = await import("@/lib/desk/card-journal");
+    const sql = await getSql();
+    const now = Date.now();
+    const w = card.wire;
+    const prices = { [card.quotes.left.symbol]: card.quotes.left.price, [card.quotes.right.symbol]: card.quotes.right.price };
+    await j.resolveJournal(sql, prices, now);
+    if (w.strategy) {
+      await j.journalCards(sql, [{
+        symbol: w.strategy.symbol, side: w.strategy.side, band: w.strategy.band, q: w.strategy.q,
+        entry: w.strategy.entry, stopPx: w.strategy.stopPx, target: w.strategy.target, rr: w.strategy.rr,
+        context: {
+          mtfAlign: ctx?.books.find((b) => b.symbol === w.strategy!.symbol)?.align[w.strategy.side as "long" | "short"]?.score ?? null,
+          chop: w.strategy.chop, ltfKill: w.strategy.exitPlan?.killWhy ?? null, dispStrength: w.strategy.displacementStrength,
+          smt: w.smt?.lead ? `${w.smt.lead.tf} ${w.smt.lead.kind} ${w.smt.lead.leader}/${w.smt.lead.failing}` : null,
+          master: w.master?.verdict ?? null, judas: w.strategy.judas,
+        },
+      }], now);
+    }
+    const rep = await j.journalReport(sql, now, 7);
+    const governor = j.governorOf(rep.rToday);
+    w.day = { rToday: rep.rToday, governor, closedToday: rep.closedToday };
+    if (governor === "A+ only" && w.strategy && w.strategy.band !== "A+") w.strategy.actionable = false;
+    w.master = masterSeat(masterInputOf(w, ctx, governor));
+  } catch (err) {
+    console.error("[desk] journal failed:", err);
+  }
+  return card;
+}
+
 async function handle(): Promise<Response> {
   const now = Date.now();
   try {
@@ -32,7 +71,7 @@ async function handle(): Promise<Response> {
     }
     const res = await fetchTradingDesk({ data: { left: "MNQ", right: "ES" } });
     if (!res.ok) return jsonResponse({ ok: false, error: res.error, desk: "unavailable" }, 503);
-    const card = deskListenCard(res);
+    const card = await withJournal(deskListenCard(res), res.mtfContext ?? null);
     cached = { at: now, card };
     return jsonResponse(await withReport(card), 200, { "cache-control": "no-store" });
   } catch (err) {

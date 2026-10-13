@@ -16,9 +16,12 @@ test("sealBand: a cap below q clamps q, keeps qRaw, band == bandFromQ(q)", () =>
   const c = d.sealBand({ confluence: 0.7373, pathBand: "B+", actionable: true });
   assert.equal(c.pathBand, "B+"); assert.equal(c.qRaw, 0.7373); assert.equal(d.bandFromQ(c.confluence), "B+"); assert.equal(c.actionable, true);
 });
-test("sealBand: skip stays skip and is never actionable", () => {
+test("sealBand: a scanner skip (path or grade) exports as C, never actionable", () => {
   const c = d.sealBand({ confluence: 0.9, pathBand: "skip", actionable: true });
-  assert.equal(c.pathBand, "skip"); assert.equal(c.actionable, false);
+  assert.equal(c.pathBand, "C"); assert.equal(c.actionable, false); assert.equal(c.scannerSkip, true);
+  assert.equal(d.bandFromQ(c.confluence), "C"); assert.equal(c.qRaw, 0.9);
+  const g = d.sealBand({ confluence: 0.55, pathBand: "B", grade: "skip", actionable: true });
+  assert.equal(g.pathBand, "C"); assert.equal(g.actionable, false);
 });
 test("htfBiasOf reads the 1h/4h rungs", () => {
   const ctx = { books: [{ symbol: "ES", rungs: [{ tf: "1h", bias: "bull" }, { tf: "4h", bias: "bear" }], align: {} }], smt: [], smtLead: null };

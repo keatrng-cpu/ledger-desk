@@ -41,7 +41,7 @@ import { FAILED_HOLD_ENABLED, failedHold } from "./exit-rules";
 import type { DrawRead } from "./draw";
 import type { NewsEvent } from "./news";
 import { getSessionClock, isJudasWindow } from "./sessions";
-import { readJudas } from "./judas-window";
+import { readJudas, JUDAS_BLOCKS } from "./judas-window";
 import { cardSizeRefusal } from "./card-plan";
 import { PROGRESS_R, retarget, shouldFlatten } from "./management";
 import { debriefPaper, pushDebrief, type TradeDebrief } from "./trade-debrief";
@@ -564,7 +564,7 @@ export function openPaperTradeInstant(
         { etHour: opts.et.hour, etMinute: opts.et.minute },
         c.side === "short" ? "short" : "long",
       );
-      if (j.blocked) {
+      if (j.blocked && JUDAS_BLOCKS) {
         return { ok: false, error: `${j.reason} (paper included).` };
       }
     }
