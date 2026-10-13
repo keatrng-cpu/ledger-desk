@@ -1,0 +1,30 @@
+# Forge Atlas Wave 1 H13: minimal CI. Install + existing checks only. No secrets, no deploy (Release Watch owns deploys).
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        continue-on-error: true  # 71 errors / 131 warnings on main today (measured 2026-10-13, scripts/*); make required once cleaned
+        run: npm run lint
+      - name: Test
+        run: npm test
