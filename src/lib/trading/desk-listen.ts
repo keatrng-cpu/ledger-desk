@@ -271,7 +271,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
             const ladder = z && z.top > z.bottom
               ? [{ px: top.side === "short" ? z.bottom : z.top, pct: 40 }, { px: +((z.top + z.bottom) / 2).toFixed(2), pct: 40 }, { px: top.side === "short" ? z.top : z.bottom, pct: 20 }]
               : dc.ladder ?? null;
-            return { ...dc, ladder, macroNote: "DXY/10y: no real feed wired into the desk — null, not synthesized (fix 5)." };
+            const { blocksAll: _b, ...rest } = dc as Record<string, unknown>;
+            const mr = rest.macroRisk as { risk?: string | null } | null;
+            return { ...rest, ladder, macroNote: mr?.risk != null ? "DXY: Yahoo DX-Y.NYB; 10y: Yahoo ^TNX (ZN=F fallback)." : "DXY/10y: no source answered — null, not synthesized." };
           })(),
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,

@@ -158,6 +158,7 @@ export function continuationPlan(
   price: number | null,
   draws: RankedDraw[],
   disp: number | null,
+  extra: RankedDraw[] = [],
 ): ContinuationPlan | null {
   if (price == null || disp == null || disp < CONT_MIN_DISP || !minute?.length) return null;
   const dir = side === "long" ? "bull" : "bear";
@@ -197,17 +198,20 @@ export function continuationPlan(
   const t2 = ahead.find((d) => (side === "short" ? d.price < (t1 ?? entry) : d.price > (t1 ?? entry)))?.price ?? null;
   if (t1 == null) return null;
   const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
+  const beyond = (d: RankedDraw, t: number) => (side === "short" ? d.price < t : d.price > t);
+  const ext0 = extra.filter((d) => beyond(d, t1));
   // Both under 1R: step out to the next EXTERNAL ranked draw beyond them
   // (PDL/PWL/session low…). A real level from the ranked list, or nothing.
   let tA = t1, tB = t2;
   if ((rr(tA) ?? 0) < 1 && (rr(tB) ?? 0) < 1) {
     const far = side === "short" ? Math.min(tA, tB ?? tA) : Math.max(tA, tB ?? tA);
-    const ext = ahead
+    const ext = [...ahead, ...ext0]
       .filter((d) => (side === "short" ? d.price < far : d.price > far))
       .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
       .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
     if (ext) { tB = tA; tA = ext.price; }
   }
+  if (tB == null && ext0.length) tB = [...ext0].sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price;
   const resting = Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr;
   return {
     symbol, side, entry, entryZone: { top: g.hi, bottom: g.lo }, stop,
@@ -224,7 +228,7 @@ export function continuationPlan(
  */
 export function planAt(
   symbol: string, side: Side, gap: { lo: number; hi: number; ce: number }, stopRef: number, stopWhy: string,
-  price: number | null, draws: RankedDraw[], atr: number | null, why: string,
+  price: number | null, draws: RankedDraw[], atr: number | null, why: string, extra: RankedDraw[] = [],
 ): ContinuationPlan | null {
   if (price == null || atr == null || !(atr > 0)) return null;
   const entry = +gap.ce.toFixed(2);
@@ -237,17 +241,26 @@ export function planAt(
   const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
   let t1 = ahead[0]!.price;
   let t2: number | null = ahead.find((d) => (side === "short" ? d.price < t1 : d.price > t1))?.price ?? null;
+  const ext0 = extra.filter((d) => (side === "short" ? d.price < t1 : d.price > t1));
   if ((rr(t1) ?? 0) < 1 && (rr(t2) ?? 0) < 1) {
     const far = side === "short" ? Math.min(t1, t2 ?? t1) : Math.max(t1, t2 ?? t1);
-    const ext = ahead
+    const ext = [...ahead, ...ext0]
       .filter((d) => (side === "short" ? d.price < far : d.price > far))
       .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
       .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
     if (ext) { t2 = t1; t1 = ext.price; }
   }
+  if (t2 == null && ext0.length) t2 = [...ext0].sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price;
   return {
     symbol, side, entry, entryZone: { top: gap.hi, bottom: gap.lo }, stop, stopWhy, riskPts,
     t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2),
     resting: Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr, why,
   };
+}
+
+/** Item 4: opening-range SD projections as EXTERNAL draws (used only beyond T1). */
+export function sdDraws(sd: { up2: number; up25: number; dn2: number; dn25: number } | null | undefined, price: number | null): RankedDraw[] {
+  if (!sd || price == null) return [];
+  const mk = (name: string, p: number): RankedDraw => ({ name, price: p, side: p > price ? "above" : "below", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.4 } as RankedDraw);
+  return [mk("OR +2 SD", sd.up2), mk("OR +2.5 SD", sd.up25), mk("OR −2 SD", sd.dn2), mk("OR −2.5 SD", sd.dn25)];
 }

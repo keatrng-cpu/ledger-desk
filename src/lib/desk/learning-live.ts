@@ -3,6 +3,7 @@ import type { Sql } from "@/lib/db";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { DeskListenCard } from "@/lib/trading/desk-listen";
 import { applyWeightScales } from "@/lib/trading/engine-weights";
+import { setKillBoostScale } from "@/lib/trading/config";
 import { BAND_EDGES_BASE, setBandEdges } from "@/lib/smc/discipline";
 import { atr15Of } from "@/lib/smc/mtf-arrays";
 import * as L from "./learning";
@@ -19,11 +20,12 @@ export async function applyCalibration(sql: Sql, nowMs: number): Promise<number>
   try {
     const a = await L.appliedCalibration(sql);
     applyWeightScales(a.weightScales as never);
+    setKillBoostScale((a.weightScales as Record<string, number>).killBoost ?? null);
     setBandEdges(a.bandEdges as never);
     appliedVersion = a.version;
   } catch (err) {
     console.error("[learning] calibration load failed — baseline:", err);
-    applyWeightScales(null); setBandEdges(null); appliedVersion = 0;
+    applyWeightScales(null); setBandEdges(null); setKillBoostScale(null); appliedVersion = 0;
   }
   return appliedVersion;
 }
@@ -59,7 +61,8 @@ export function snapCardsOf(desk: DeskPayload, card: DeskListenCard): L.SnapCard
       band: c.pathBand ?? null, q: c.confluence, qRaw: (x.qRaw as number) ?? null,
       price: (isL ? desk.quotes.left : desk.quotes.right)?.price ?? null, atr: isL ? atrL : atrR,
       entry: plan?.entry ?? c.entryPx ?? null, stop: plan?.stop ?? null, target: plan?.t1 ?? null,
-      present: [...(c.components ?? []), ...(((x.setups as string[]) ?? []).map((s) => `setup:${s.split(" ")[0]}`))],
+      // "killBoost" is a learnable factor: its scale recalibrates TUNABLES.killBoost (n ≥ 30).
+      present: [...(c.components ?? []), ...(((x.setups as string[]) ?? []).map((s) => `setup:${s.split(" ")[0]}`)), ...(x.killBoosted ? ["killBoost"] : [])],
       missing: c.missing ?? [],
       checklist: top && w.master ? w.master.checks.map((k) => ({ name: k.name, ok: k.ok })) : [
         { name: "actionable", ok: c.actionable }, { name: "killzone", ok: c.killzoneOk }, { name: "HTF ok", ok: c.htfOk },

@@ -111,3 +111,8 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - Every cell sits at 0.41–0.51 precision (n ≈ 100–170): the kill is roughly a coin flip at that horizon. Best: wick 0.5, disp 1.0 → 0.503 (n 149) vs old 1.25 → 0.481. DISP1_ATR 1.25 → 1.0. IFVG5_MAX_AGE stays 6 (4 is equal within noise and misses the 10:33 ES replay).
 - Journal failure modes: 3 graded losses so far, all "unclassified" (backfill rows lack chop/HTF fields); "LTF kill ignored" = 0. Too small to inform the thresholds; revisit at n ≥ 30.
 - Implication, not acted on: with ~50% precision the kill is a valid CAP but weak evidence for the opposite side; the fix-29 opposite boost (0.05–0.08, Keaton's spec) is kept, flagged for review once the journal has n.
+
+## 2026-10-13 — Kill boost 0.05–0.08 → 0.02 (Keaton)
+- Fix 29's opposite-side boost is now `TUNABLES.killBoost` in `src/lib/trading/config.ts`, base 0.02 (flat), bounded 0–0.04. Reason: the 5-session replay put LTF-kill precision at ≈0.50.
+- Learnable: snapshots that received the boost carry the factor `killBoost`; at n ≥ 30 graded the weekly calibration scales it (shrunk, ±20%/step), versioned and reversible like the weights.
+- Same batch: DXY (Yahoo DX-Y.NYB) and 10y (Yahoo ^TNX, ZN=F fallback) feed a ±0.01 macro risk flag inside the ±0.06 day-context cap; overnight 5m (Yahoo 5d/5m, cached per ET day) feeds the Asia/London read; OR ±2/±2.5 SD are external draws beyond T1; fix 12's OB/FVG +0.02 also applies to late plans (33/34).

@@ -41,3 +41,22 @@ test("13: OB closed through after its leg broke structure becomes a breaker", ()
   assert.ok(ks.includes("breaker") || ks.includes("mitigation"));
 });
 test("5: macro risk is never synthesized", () => assert.match(d.MACRO_RISK_NOTE, /null, not synthesized/));
+test("item 1: kill boost is 0.02 from config and learnable within bounds", async () => {
+  const c = await import("../src/lib/trading/config.ts");
+  assert.equal(c.TUNABLES.killBoost, 0.02);
+  c.setKillBoostScale(1.2); assert.equal(c.TUNABLES.killBoost, 0.024);
+  c.setKillBoostScale(10); assert.equal(c.TUNABLES.killBoost, 0.04);
+  c.setKillBoostScale(null); assert.equal(c.TUNABLES.killBoost, 0.02);
+});
+test("item 2: macro risk needs both DXY and 10y; never invented", async () => {
+  const m = await import("../src/lib/market/macro.ts");
+  assert.equal(m.macroRisk(0.4, 1.5), "risk-off"); assert.equal(m.macroRisk(-0.4, -2), "risk-on");
+  assert.equal(m.macroRisk(0.4, null), null); assert.equal(m.macroRisk(0.1, 2), "mixed");
+});
+test("item 4: SD draws extend a sub-1R plan only beyond T1", async () => {
+  const ex = await import("../src/lib/smc/exec-context.ts");
+  const sd = ex.sdDraws({ up2: 120, up25: 125, dn2: 80, dn25: 75 }, 100);
+  const near = [{ name: "Swing low (internal SSL)", price: 99, side: "below", scope: "internal", touches: 1, ageBars: 1, distanceAtr: 0.1, swept: false, rank: 0.8 }];
+  const p = ex.planAt("ES", "short", { lo: 100, hi: 102, ce: 101 }, 103, "x", 100, near, 4, "t", sd);
+  assert.equal(p.t1, 80); assert.equal(p.t2, 99);
+});

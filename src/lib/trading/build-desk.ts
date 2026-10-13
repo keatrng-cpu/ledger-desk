@@ -1,10 +1,13 @@
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
+import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
+import { loadMacro } from "@/lib/market/macro";
+import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
-import { continuationPlan, planAt, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import { continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -1090,8 +1093,6 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
     const DISP_NUDGE = 0.02;
     const CHOP_CLEAR_DISP = 0.6;
-    const LTF_FLIP_MIN = 0.05;
-    const LTF_FLIP_MAX = 0.08;
     const REVERSAL_NUDGE = 0.03;
     const mtfContext = buildMtfContext(
       { symbol: left.symbol, minute: minuteL, bars15: closedL },
@@ -1175,9 +1176,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
           c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
         } else if (!rev.rearmed) {
-          // Fix 29: a real boost, 0.05–0.08 weighted by this side's alignment.
+          // Fix 29 (retuned 2026-10-13): flat TUNABLES.killBoost (base 0.02,
+          // config.ts) — kill precision ≈ 0.50 on 5 sessions; the learning
+          // loop recalibrates it at n ≥ 30 graded kills.
           const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
-          const boost = +(LTF_FLIP_MIN + (LTF_FLIP_MAX - LTF_FLIP_MIN) * al).toFixed(3);
+          const boost = TUNABLES.killBoost;
+          (c as { killBoosted?: boolean }).killBoosted = true;
           c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
           c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
         }
@@ -1239,6 +1243,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Nudges are summed per card and capped at ±0.06 so context refines a
       // grade, never makes one. Every read is null without its bars.
       const nowCtx = Date.now();
+      const late = <T,>(p: Promise<T>, d: T) => withBudget(p.catch(() => d), 2_500, d);
+      const [macro, onL, onR] = await Promise.all([
+        late(loadMacro(nowCtx), null),
+        late(loadOvernight5m(left.symbol as never, nowCtx), [] as OhlcBar[]),
+        late(loadOvernight5m(right.symbol as never, nowCtx), [] as OhlcBar[]),
+      ]);
       const dayRead = (isL: boolean) => {
         const minute = (isL ? minuteL : minuteR) ?? [];
         const daily = (isL ? dailyL : dailyR) ?? [];
@@ -1246,11 +1256,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const px = (isL ? lq : rq)?.price ?? null;
         const m = minute.slice(0, -1);
         const b5 = resample5(m, 300_000).slice(0, -1);
+        // overnight 5m (Asia/London) under the live 1m window
+        const on = (isL ? onL : onR) ?? [];
+        const merged = [...on.filter((b) => !m.length || b.t + 300_000 <= m[0]!.t), ...m];
         return {
           minute: m, b5, px,
-          bias: dayc.dailyBias(daily, m, nowCtx),
+          bias: dayc.dailyBias(daily, merged, nowCtx),
           pd: dayc.premiumDiscount(px, daily, b15, nowCtx),
-          seq: dayc.sessionSequence(m, nowCtx),
+          seq: dayc.sessionSequence(merged, nowCtx),
           or: dayc.openingRange(m, nowCtx),
           stopRun: dayc.stopRun(m),
           blocks: dayc.blocks5m(b5),
@@ -1260,7 +1273,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       const dayL = dayRead(true), dayR = dayRead(false);
       (payload as { dayContext?: unknown }).dayContext = {
         left: { ...dayL, minute: undefined, b5: undefined }, right: { ...dayR, minute: undefined, b5: undefined },
-        macroRisk: null, macroNote: dayc.MACRO_RISK_NOTE,
+        macroRisk: macro, macroNote: macro?.risk == null ? dayc.MACRO_RISK_NOTE : "DXY: Yahoo DX-Y.NYB; 10y: Yahoo ^TNX (ZN=F fallback).",
       };
       for (const c of payload.scan.candidates) {
         const isL = c.symbol === left.symbol;
@@ -1295,6 +1308,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const sw5 = mtfContext.books.find((b) => b.symbol === c.symbol)?.rungs.find((r) => r.tf === "5m")?.sweep;
         const dec = dayc.ageDecay(sw5?.ageBars);
         if (dec) nudge(dec, `sweep is ${sw5!.ageBars} 5m bars old`);
+        if (macro?.risk === "risk-off" || macro?.risk === "risk-on") {
+          const good = (macro.risk === "risk-on") === (side === "long");
+          nudge(good ? MACRO_NUDGE : -MACRO_NUDGE, `macro ${macro.risk} (DXY ${macro.dxyPct}%, 10y ${macro.tnxPct}%)`);
+        }
         const qs = dayc.qSpread(c.strategyBoard as never);
         if (qs && qs.agree >= 3) nudge(0.01, `${qs.agree}/${qs.n} strategies within 0.05 of the best`);
         const total = Math.max(-0.06, Math.min(0.06, n));
@@ -1303,7 +1320,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           nudge: +total.toFixed(3), why, dailyBias: d.bias?.bias ?? null, pd: d.pd, sessionSeq: d.seq, pair,
           openingRange: d.or ? { high: d.or.high, low: d.or.low, read: d.or.read, sd: d.or.sd } : null,
           stopRun: d.stopRun, breakout: fs, ladder: dayc.entryLadder(side, zone), obFvg: Boolean(ob),
-          triggerTf: d.trig, ageDecay: dec, qSpread: qs, macroRisk: null, blocks: d.blocks.slice(-8),
+          triggerTf: d.trig, ageDecay: dec, qSpread: qs, macroRisk: macro, blocksAll: d.blocks, blocks: d.blocks.slice(-8),
         };
         if (why.length) c.reasons.push(`Day context (${total >= 0 ? "+" : ""}${total.toFixed(2)}): ${why.join("; ")}`);
       }
@@ -1373,6 +1390,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
         [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
       });
+      const dctx = (payload as { dayContext?: { left?: { or?: { sd?: never } | null }; right?: { or?: { sd?: never } | null } } }).dayContext;
+      const sdFor = (isL: boolean) => sdDraws((isL ? dctx?.left : dctx?.right)?.or?.sd ?? null, (isL ? lq : rq)?.price ?? null);
+      const latePlanned = new Set<object>();
       // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
       // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
       for (const c of payload.scan.candidates) {
@@ -1393,11 +1413,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const swept = side === "short" ? Math.max(...win.map((b) => b.h)) : Math.min(...win.map((b) => b.l));
         const plan = planAt(c.symbol, side, first, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
           (isL ? lq : rq)?.price ?? null, rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
-          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`);
+          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`,
+          sdFor(isL));
         if (!plan) continue;
         c.entryPx = plan.entry; c.entryResting = plan.resting; c.plan = plan as never;
         c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
         (c as { addOn?: unknown }).addOn = second ? { tf: second.tf, entry: +second.ce.toFixed(2), zone: { top: second.hi, bottom: second.lo } } : null;
+        latePlanned.add(c);
         c.reasons.push(`Reversal entry (fix 33): ${plan.why}${second ? `; add-on at the 2nd gap CE ${second.ce}` : ""}`);
       }
       // Fix 34: a clean displacement leg with STACKED same-direction 1m/3m FVGs
@@ -1413,13 +1435,33 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (isL ? lq : rq)?.price ?? null,
           rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
           c.dispStrength?.score ?? null,
+          sdFor(isL),
         );
         if (!plan) continue;
         c.entryPx = plan.entry;
         c.entryResting = plan.resting;
         c.plan = plan as never;
         c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        latePlanned.add(c);
         c.reasons.push(`Continuation plan (fix 34): ${plan.why}`);
+      }
+      // Item 5 (fix 12, late): OB/breaker overlapping a LATE plan's entry gap
+      // gets its +0.02 here, inside the ±0.06 day-context cap. The band only
+      // moves if it was q-derived (uncapped) — a cap stays a cap.
+      for (const c of latePlanned as Set<typeof payload.scan.candidates[number]>) {
+        const dc = (c as { dayCtx?: { nudge: number; obFvg: boolean; why: string[]; blocksAll?: { kind: string; dir: string; lo: number; hi: number }[] } }).dayCtx;
+        const zone = (c.plan as { entryZone?: { top: number; bottom: number } } | null)?.entryZone;
+        if (!dc || dc.obFvg || !zone) continue;
+        const want = c.side === "long" ? "bull" : "bear";
+        const ob = (dc.blocksAll ?? []).find((b) => (b.kind === "ob" || b.kind === "breaker") && b.dir === want && dayc.overlaps(b, zone));
+        if (!ob) continue;
+        const add = Math.min(0.02, 0.06 - dc.nudge);
+        if (!(add > 0)) continue;
+        const wasQBand = c.pathBand === bandFromQ(c.confluence);
+        c.confluence = +Math.min(0.99, c.confluence + add).toFixed(4);
+        if (wasQBand && c.pathBand !== "skip") c.pathBand = bandFromQ(c.confluence) as never;
+        dc.obFvg = true; dc.nudge = +(dc.nudge + add).toFixed(3); dc.why.push(`+${add.toFixed(2)} ${ob.kind} overlaps the entry gap (late plan)`);
+        c.reasons.push(`OB/FVG overlap on the late plan: +${add.toFixed(2)}`);
       }
       // R3-c: actionable needs a priced entry, stop and target.
       for (const c of payload.scan.candidates) {
