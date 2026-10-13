@@ -55,8 +55,10 @@ test("rankDraws: equal-high touches rank up", () => {
   assert.equal(r[0].name, "EQH ×2"); assert.equal(r[0].touches, 2); assert.equal(r[1].scope, "external");
 });
 test("poolLabel: side follows price", () => {
-  assert.equal(dl.poolLabel("Swing low (external SSL)", 110, 100), "Swing low (external BSL)");
-  assert.equal(dl.poolLabel("PDH (external BSL)", 90, 100), "PDH (external SSL)");
-  assert.equal(dl.poolLabel("PDL", 110, 100), "PDL (above price — BSL)");
+  assert.equal(dl.poolLabel("Swing low (external SSL)", 110, 100), "Swing low — above price (external BSL)");
+  assert.equal(dl.poolLabel("PDH (external BSL)", 90, 100), "PDH — below price (external SSL)");
+  assert.equal(dl.poolLabel("PDL", 110, 100), "PDL — above price (BSL)");
+  assert.equal(dl.poolLabel("PDL (external SSL) +2", 110, 100), "PDL +2 — above price (external BSL)");
+  assert.equal(dl.poolLabel("PDL (external SSL)", 90, 100), "PDL (external SSL)");
   assert.equal(dl.poolLabel("PDL", 90, null), "PDL");
 });

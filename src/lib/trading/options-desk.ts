@@ -1352,7 +1352,7 @@ function rhLine(t: {
 
 /** The working-stop line must quote the ticket's own debit, not the cap (Accuracy 2026-10-13). */
 export function restampWorkingStop(targets: string[], debitTotal: number): string[] {
-  return targets.map((t) => t.replace(/^Working stop \$\d+/, `Working stop $${rhWorkingStop(debitTotal)}`));
+  return targets.map((t) => t.replace(/^Working stop (?:\$\d+ \/ )?/, `Working stop $${rhWorkingStop(debitTotal)} / `));
 }
 
 function toTicket(
@@ -1701,7 +1701,7 @@ function pathContinuation(
           "Sized off the chart. Clock and news only cut size.",
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
-            `Working stop $${rhWorkingStop(cap)} / −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
+            `Working stop −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
             "Trim 50% at one-to-one. The draw stays open — one-to-one is a partial, not the flatten.",
             "A close past the sweep stop ends it. The clock does not.",
           ],

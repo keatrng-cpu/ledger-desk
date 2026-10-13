@@ -402,10 +402,18 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
 export function poolLabel(name: string, price: number, px: number | null | undefined): string {
   if (px == null || !Number.isFinite(px)) return name;
   const above = price > px;
-  let n = name.replace(/\b(SSL|BSL)\b/g, above ? "BSL" : "SSL");
-  if (above && /\b(low|PDL|PWL|EQL)\b/i.test(n) && !/BSL/.test(n)) n = `${n} (above price — BSL)`;
-  if (!above && /\b(high|PDH|PWH|EQH)\b/i.test(n) && !/SSL/.test(n)) n = `${n} (below price — SSL)`;
-  return n;
+  const pool = above ? "BSL" : "SSL";
+  // A low-type level above price (or high-type below) is still that level, but
+  // the resting liquidity sits on the other side: say so once, plainly — never
+  // "PDL (external BSL)".
+  const lowType = /\b(low|PDL|PWL|EQL)\b/i.test(name);
+  const highType = /\b(high|PDH|PWH|EQH)\b/i.test(name);
+  if ((above && lowType) || (!above && highType)) {
+    const scope = /\bexternal\b/i.test(name) ? "external " : /\binternal\b/i.test(name) ? "internal " : "";
+    const base = name.replace(/\s*\((?:external|internal)?\s*(?:SSL|BSL)\)/gi, "").replace(/\s*\((?:above|below) price[^)]*\)/gi, "").trim();
+    return `${base} — ${above ? "above" : "below"} price (${scope}${pool})`;
+  }
+  return name.replace(/\b(SSL|BSL)\b/g, pool);
 }
 
 /** Fix 24: the Master seat reads the wire itself — the same fields every seat publishes. */

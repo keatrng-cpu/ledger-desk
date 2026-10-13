@@ -143,7 +143,7 @@ test("trophies and scars: book wins/losses, graded vetoes and calls, ghost room;
   assert.equal(trophies[0].source, "memory");
   assert.equal(trophies[2].source, "ghost");
   assert.deepEqual(scars.map((p) => p.source), ["book", "memory"]);
-  assert.match(scars[1].title, /Jax called it wrong/);
+  assert.match(scars[1].title, /−0\.30% · Jax/); // title is "move · who" since the scar-title rewrite
   assert.equal(trophiesAndScars(closed, memories, lab, 2).trophies.length, 2);
   const empty = trophiesAndScars([], [], null);
   assert.deepEqual(empty, { trophies: [], scars: [] });

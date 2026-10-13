@@ -251,7 +251,12 @@ console.log("\nthe engine — a released window still needs the whole sequence")
       const g = gradeAt(i, false);
       if (g && (g.left.word === "TAKE" || g.right.word === "TAKE")) takesNoMinute++;
     }
-    check(`without minute tape, no TAKE across ${judasBars} Judas bars`, takesNoMinute, 0);
+    // JUDAS_BLOCKS = false (Keaton approved Judas trading, 2026-10-13): the
+    // window is a warning, so a TAKE inside it is allowed. Check the flag, and
+    // that the window still reads (it is surfaced as wire.strategy.judas).
+    const jw = await import("../src/lib/trading/judas-window.ts");
+    check("JUDAS_BLOCKS is off — Judas is a warning, not a block", jw.JUDAS_BLOCKS, false);
+    console.log(`  info  ${takesNoMinute} TAKE(s) across ${judasBars} Judas bars without minute tape (allowed: warning only)`);
     check("and there were Judas bars to test", judasBars > 10, true);
   }
 }
