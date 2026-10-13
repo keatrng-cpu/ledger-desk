@@ -105,6 +105,14 @@ export interface DeskWire {
     scannerSkip: boolean;
     ltfKilled: boolean;
     regime: string | null;
+    /** Fix 39: trend / reversal / range — the regime the card was graded in. */
+    regimeLabel: string | null;
+    /** Fixes 32/35/37/38: setup tags that fit the regime and moved the grade. */
+    setups: string[];
+    /** Fix 37: 5m legs in the side's direction since the last opposite break. */
+    legs: number | null;
+    /** Fix 36: add-on at the second LTF gap after a reversal confirms. */
+    addOn: { tf: string; entry: number; zone: { top: number; bottom: number } } | null;
     /** Fix 16–18. */
     exitPlan: { trailRule: string; trailPx: number | null; timeStopBars: number; timeStopTf: string; killExit: boolean; killWhy: string | null } | null;
     /** Which plan target `target` is (T1 unless T1 < 1R and T2 clears it). */
@@ -249,6 +257,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
           regime: top.setupRegime ?? null,
+          regimeLabel: (top as { regimeLabel?: string }).regimeLabel ?? null,
+          setups: (top as { setups?: string[] }).setups ?? [],
+          legs: (top as { legs?: number }).legs ?? null,
+          addOn: (top as { addOn?: DeskWireAddOn }).addOn ?? null,
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,
@@ -399,6 +411,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
 
 
 /** Accuracy 3: SSL/BSL and low/high tags follow the level's side of price. */
+type DeskWireAddOn = { tf: string; entry: number; zone: { top: number; bottom: number } };
+
 export function poolLabel(name: string, price: number, px: number | null | undefined): string {
   if (px == null || !Number.isFinite(px)) return name;
   const above = price > px;

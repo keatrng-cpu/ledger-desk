@@ -1,5 +1,8 @@
 import { primaryTarget } from "./card-plan";
-import { continuationPlan, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import * as setups from "@/lib/smc/setups";
+import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
+import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
+import { continuationPlan, planAt, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -1200,6 +1203,36 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         c.reasons.push(`Reversal setup: ${rs.why.join("; ")}`);
       }
+      // Fixes 32/35/37/38/39: regime label + setup detectors on closed 5m bars.
+      // A setup nudges (±0.02/0.03) only when it fits the card's regime.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const minute = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
+        const b5all = resample5(minute, 300_000);
+        const b5 = b5all.slice(0, -1);
+        const atr = atr15Of(isL ? closedL : closedR);
+        const regime = setups.regimeOf(c);
+        const tags: string[] = [];
+        (c as { regimeLabel?: string }).regimeLabel = regime;
+        if (b5.length < 10 || atr == null) { (c as { setups?: string[] }).setups = tags; continue; }
+        const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price }));
+        const ts = setups.turtleSoup(b5, levels);
+        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const br = setups.bosRetest(b5, atr, side);
+        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const sp = setups.sponsoredHold(mtfArrays(c.symbol, minute, []), minute, side);
+        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        const legs = setups.legCount(b5, side);
+        (c as { legs?: number }).legs = legs;
+        if (regime === "trend" && legs >= 3) {
+          tags.push(`leg ${legs} — continuation decays`);
+          c.confluence = +Math.max(0, c.confluence - 0.03).toFixed(4);
+          if (c.pathBand && c.pathBand !== "skip") c.pathBand = capBand(c.pathBand as never, "A-") as never;
+        }
+        (c as { setups?: string[] }).setups = tags;
+        if (tags.length) c.reasons.push(`Setups (${regime}): ${tags.join("; ")}`);
+      }
       // Fix 31: displacement ≥ 0.6 plus a BOS/CHoCH out of the range on 3m/5m
       // in this side's direction clears chop (the range resolved).
       for (const c of payload.scan.candidates) {
@@ -1266,6 +1299,33 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
         [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
       });
+      // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
+      // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
+      for (const c of payload.scan.candidates) {
+        if (c.plan || c.entryPx != null || c.scannerSkip || c.setupRegime !== "reversal") continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const want = side === "long" ? "bull" : "bear";
+        const minute = (isL ? minuteL : minuteR) ?? [];
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const ch = book?.rungs.find((r) => ["1m", "3m", "5m"].includes(r.tf) && r.structure?.kind === "CHoCH" && r.structure.dir === want);
+        if (!ch || !minute.length) continue;
+        const rows = mtfArrays(c.symbol, minute, []);
+        const { first, second } = setups.reversalEntries(rows, side, ch.structure!.ageBars, ch.tf);
+        if (!first) continue;
+        const tfMin = Number(ch.tf.replace("m", ""));
+        const win = minute.slice(-(ch.structure!.ageBars * tfMin + 15), -1);
+        if (!win.length) continue;
+        const swept = side === "short" ? Math.max(...win.map((b) => b.h)) : Math.min(...win.map((b) => b.l));
+        const plan = planAt(c.symbol, side, first, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
+          (isL ? lq : rq)?.price ?? null, rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
+          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`);
+        if (!plan) continue;
+        c.entryPx = plan.entry; c.entryResting = plan.resting; c.plan = plan as never;
+        c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        (c as { addOn?: unknown }).addOn = second ? { tf: second.tf, entry: +second.ce.toFixed(2), zone: { top: second.hi, bottom: second.lo } } : null;
+        c.reasons.push(`Reversal entry (fix 33): ${plan.why}${second ? `; add-on at the 2nd gap CE ${second.ce}` : ""}`);
+      }
       // Fix 34: a clean displacement leg with STACKED same-direction 1m/3m FVGs
       // and no pullback plan gets one: entry at the newest gap's CE, stop
       // beyond the last 3m swing (LH for a short) above that gap, never inside

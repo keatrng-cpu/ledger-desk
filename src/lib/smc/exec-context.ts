@@ -216,3 +216,38 @@ export function continuationPlan(
     why: `${rows.length} stacked ${dir} gaps on 1m/3m, newest ${g.tf} ${g.lo}–${g.hi} CE ${entry}; displacement ${disp}; T1 ${tA}${tA !== t1 ? ` (stepped out to external; ranked T1 ${t1} was < 1R)` : ""}`,
   };
 }
+
+/**
+ * Fix 33: price a plan from an entry gap and a structural stop reference
+ * (e.g. the swept high). Same stop floor (0.5×ATR) and target rules as the
+ * continuation plan. Null without a ranked draw beyond the entry.
+ */
+export function planAt(
+  symbol: string, side: Side, gap: { lo: number; hi: number; ce: number }, stopRef: number, stopWhy: string,
+  price: number | null, draws: RankedDraw[], atr: number | null, why: string,
+): ContinuationPlan | null {
+  if (price == null || atr == null || !(atr > 0)) return null;
+  const entry = +gap.ce.toFixed(2);
+  const minStop = side === "short" ? entry + CONT_MIN_STOP_ATR * atr : entry - CONT_MIN_STOP_ATR * atr;
+  const stop = +(side === "short" ? Math.max(stopRef + 0.25, minStop) : Math.min(stopRef - 0.25, minStop)).toFixed(2);
+  const riskPts = +Math.abs(entry - stop).toFixed(2);
+  if (!(riskPts > 0)) return null;
+  const ahead = draws.filter((d) => (side === "short" ? d.price < entry : d.price > entry) && !d.swept).sort((a, b) => b.rank - a.rank);
+  if (!ahead.length) return null;
+  const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
+  let t1 = ahead[0]!.price;
+  let t2: number | null = ahead.find((d) => (side === "short" ? d.price < t1 : d.price > t1))?.price ?? null;
+  if ((rr(t1) ?? 0) < 1 && (rr(t2) ?? 0) < 1) {
+    const far = side === "short" ? Math.min(t1, t2 ?? t1) : Math.max(t1, t2 ?? t1);
+    const ext = ahead
+      .filter((d) => (side === "short" ? d.price < far : d.price > far))
+      .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
+      .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
+    if (ext) { t2 = t1; t1 = ext.price; }
+  }
+  return {
+    symbol, side, entry, entryZone: { top: gap.hi, bottom: gap.lo }, stop, stopWhy, riskPts,
+    t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2),
+    resting: Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr, why,
+  };
+}
