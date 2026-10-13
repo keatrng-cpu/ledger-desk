@@ -337,6 +337,9 @@ export interface RhLatePnl {
  * (lateEntry.pnlMinPct, same formula as the watcher) to pass on a FRESH live option ask.
  * No / stale / bad live quote → refuse. Not pending → ok.
  */
+/** Same slip as rh-autofire RH_LIMIT_SLIP (kept local: rh-autofire imports this module). */
+export const LATE_PNL_LIMIT_SLIP = 0.02;
+
 export function evaluateRhLatePnl(
   c: Pick<RhAutofireCandidate, "latePnl" | "liveQuote">,
   nowMs: number,
@@ -350,10 +353,16 @@ export function evaluateRhLatePnl(
   if (!q || typeof ask !== "number" || !(ask > 0) || typeof at !== "number" || !Number.isFinite(at) || nowMs - at > maxAge || at - nowMs > 5_000) {
     return { ok: false, gate: "late_pnl", reason: "latePnlPending: no fresh live option quote — refuse (model price cannot clear the late PnL bar)." };
   }
-  const r = latePnlCheck({ px: lp.px, t1: lp.t1, spot: lp.spot, delta: lp.delta, askEach: ask });
+  // Accuracy 2026-10-13: judge the late PnL on the price we would PAY — the limit (ask + $0.02, or mid on a >15%
+  // spread), same rule as evaluateRhLiveQuote in rh-autofire.ts — not the raw ask.
+  const bid = typeof q.bidPrice === "number" && Number.isFinite(q.bidPrice) ? q.bidPrice : null;
+  const mid = bid != null && bid > 0 ? (bid + ask) / 2 : ask;
+  const spr = bid != null && bid > 0 && mid > 0 ? (ask - bid) / mid : 0;
+  const limit = Math.round((spr > 0.15 ? mid : ask + LATE_PNL_LIMIT_SLIP) * 100) / 100;
+  const r = latePnlCheck({ px: lp.px, t1: lp.t1, spot: lp.spot, delta: lp.delta, askEach: limit });
   return r.ok
-    ? { ok: true, why: `latePnlPending cleared on live ask ${ask}: ${r.why}` }
-    : { ok: false, gate: "late_pnl", reason: `latePnlPending on live ask ${ask}: ${r.why} — refuse.` };
+    ? { ok: true, why: `latePnlPending cleared on live limit ${limit} (ask ${ask}): ${r.why}` }
+    : { ok: false, gate: "late_pnl", reason: `latePnlPending on live limit ${limit} (ask ${ask}): ${r.why} — refuse.` };
 }
 
 export interface RhTicketEnvelope {

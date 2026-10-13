@@ -94,7 +94,7 @@ console.log("PATH floor, envelope, confirmation");
 {
   check("PATH floor is 0.65", gates.RH_PATH_FLOOR, 0.65);
   check("min debit $50", gates.RH_MIN_DEBIT_TOTAL, 50);
-  check("max debit $550", gates.RH_MAX_DEBIT_TOTAL, 550);
+  check("max debit $650 (fireFix.envelope)", gates.RH_MAX_DEBIT_TOTAL, 650);
   check("contracts 1–4", [gates.RH_MIN_CONTRACTS, gates.RH_MAX_CONTRACTS], [1, 4]);
   check("written confirmation is on (Keaton chat 2026-10-06)", gates.RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING, true);
 }
@@ -181,7 +181,7 @@ console.log("\nrisk / session / one-book");
   check("one book refuses", gates.evaluateRhAutofireGates({ ...QUALIFIED, oneBookBlocked: true }, ARMED_FLAGS).gate, "one_book");
 }
 
-console.log("\nticket envelope $50–$550 · 1–4 · ATM/OTM_1");
+console.log("\nticket envelope $50–$650 · 1–4 · ATM/OTM_1");
 {
   const okEnv = gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 400, strikeOffset: "ATM" });
   check("ATM $400 / 2ct ok", okEnv.ok, true);
@@ -190,7 +190,7 @@ console.log("\nticket envelope $50–$550 · 1–4 · ATM/OTM_1");
   check("OTM_1 $550 / 3ct ok", otm.ok, true);
 
   check("under $50 refuses", gates.evaluateRhTicketEnvelope({ contracts: 1, debitTotal: 49, strikeOffset: "ATM" }).gate, "debit_floor");
-  check("over $550 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 551, strikeOffset: "ATM" }).gate, "debit_cap");
+  check("over $650 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 651, strikeOffset: "ATM" }).gate, "debit_cap");
   check("0 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 0, debitTotal: 200, strikeOffset: "ATM" }).gate, "contracts");
   check("5 contracts refuses", gates.evaluateRhTicketEnvelope({ contracts: 5, debitTotal: 400, strikeOffset: "ATM" }).gate, "contracts");
   check("OTM_2 refuses", gates.evaluateRhTicketEnvelope({ contracts: 2, debitTotal: 300, strikeOffset: "OTM_2" }).gate, "strike_offset");
@@ -352,11 +352,11 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
 
   const overCap = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
-    ticket: { ...ticket, maxDebitTotal: 600 },
+    ticket: { ...ticket, maxDebitTotal: 700 },
     flags: ARMED_FLAGS,
     liveQuote,
   });
-  check("debit > $550 refuses", [overCap.gated.ok, overCap.gated.gate], [false, "debit_cap"]);
+  check("debit > $650 refuses", [overCap.gated.ok, overCap.gated.gate], [false, "debit_cap"]);
 
   const tooFar = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
@@ -470,7 +470,7 @@ console.log("\nsource posture");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /RH_MAX_DEBIT_TOTAL = 550/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /fireFix\?\.envelope\?\.maxDebit \?\? 550/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);

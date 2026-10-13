@@ -7,9 +7,9 @@ export async function verifyManagerAccount(rh, check) {
   const d = m.DEFAULT_MANAGER_ROOM_ACCOUNT;
   check("default account is funded Agentic read", [d.source, d.label, d.accountNumber, d.accountMaskLast4, d.isSnapshot, d.agenticAllowed, d.optionLevel], ["rh_live", "Agentic", "995386158", "6158", false, true, "option_level_2"]);
   check("default cash/BP is the funded read", [d.cashUsd, d.optionsBuyingPowerUsd], [996.12, 996.12]);
-  check("envelope 50/550", [d.envelopeMinUsd, d.envelopeMaxUsd], [50, 550]);
+  check("envelope 50/650 (fireFix.envelope)", [d.envelopeMinUsd, d.envelopeMaxUsd], [50, 650]);
   check("funded BP fills the envelope", d.canFillEnvelope, true);
-  check("monitor line shows buying power ready", m.managerAccountLine(d), "BP $996.12 · envelope $50–$550 ok");
+  check("monitor line shows buying power ready", m.managerAccountLine(d), "BP $996.12 · envelope $50–$650 ok");
   check("preferred account 995386158 / 6158 / Agentic", [m.RH_PREFERRED_ACCOUNT_NUMBER, m.RH_PREFERRED_ACCOUNT_MASK_LAST4, m.RH_PREFERRED_ACCOUNT_LABEL], ["995386158", "6158", "Agentic"]);
   const ind = m.RH_INDIVIDUAL_SNAPSHOT_2026_10_06;
   check("Individual snapshot kept display-only", [ind.accountNumber, ind.accountMaskLast4, ind.cashUsd, ind.optionsBuyingPowerUsd, ind.agenticAllowed, ind.isSnapshot], ["415577477", "7477", 984.12, 11.56, false, true]);

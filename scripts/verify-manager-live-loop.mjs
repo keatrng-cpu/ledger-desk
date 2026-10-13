@@ -78,7 +78,7 @@ export async function verifyManagerLiveLoop(check) {
   check("BP $40 is under the $50 floor", res(step(feed, { account: { ...FUNDED, buyingPower: 40 } })), "bp_floor");
   check("Individual 7477 → bp_wrong_account", res(step(feed, { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
   check("tape 45s refuses tape_stale", res(step(feed, { nowMs: NOW + 42_000, flags: { ...FLAGS, nowMs: NOW + 42_000 }, fire: fire("A", 0.7, { at: NOW + 40_000 }), liveQuote: { ...quote(), asOfMs: NOW + 40_000 } })), "tape_stale");
-  check("live debit over $550 → debit_cap", res(step(feed, { liveQuote: quote(2.9) })), "debit_cap");
+  check("live debit over $650 → debit_cap", res(step(feed, { liveQuote: quote(3.4) })), "debit_cap");
 
   console.log("\ndemo stub NEVER produces a live agentAgree");
   const stub = feedMod.createStubManagerFeed({ reportAutomation: false });
@@ -103,7 +103,7 @@ export async function verifyManagerLiveLoop(check) {
   f2.pushRoom(frame(), { ...CTX(), newsBlackout: true });
   check("news blackout does not take the ticket off", feedMod.standAgentAgree(f2), true);
   f2.pushRoom(frame({ ask: 3.0 }), CTX());
-  check("room ticket $600 at two contracts shrinks to one ($300) and agrees", [feedMod.standAgentAgree(f2), f2.getState().call?.contracts, f2.getState().call?.estDebitTotal], [true, 1, 300]);
+  check("room ticket $600 at two contracts fits the $650 envelope and agrees", [feedMod.standAgentAgree(f2), f2.getState().call?.contracts, f2.getState().call?.estDebitTotal], [true, 2, 600]);
   f2.pushRoom(frame({ c: card({ dte: 2 }) }), CTX(card({ dte: 2 })));
   check("DTE 2 → no agree", feedMod.standAgentAgree(f2), false);
   f2.pushRoom(frame({ c: card({ band: "A-", confluence: 0.63 }) }), CTX(card({ band: "A-", confluence: 0.63 })));
