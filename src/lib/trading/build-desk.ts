@@ -78,7 +78,7 @@ import { atrOf, drawOnLiquidity, type DrawRead } from "./draw";
 import { attachPlansToCards } from "./card-plan";
 import { newsRead, type NewsRead } from "./news";
 import { summarizeDetectors } from "./detectors";
-import { readShock, type ShockRead } from "./shock";
+import { readShock, shockLeanSide, type ShockRead } from "./shock";
 import {
   buildMarketNarrative,
   dualNarrativeSummary,
@@ -769,17 +769,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
 
     // News gate: a scheduled high-impact release inside the risk window kills
     // actionability the same way bad data does — the engine skips these too.
-    const news: NewsRead =
-      shock.active
-        ? {
-            ...newsBase,
-            verdict: "blackout",
-            reason: `${shock.line} · ${Math.ceil((shock.lockUntilMs! - nowMs) / 60_000)}m — impulse is the news. B+ and higher still trade if the new sequence clears a higher bar, at a smaller size.`,
-          }
-        : newsBase;
-    // News and a shock raise the confidence bar and cut size. They do not
+    // A shock is NOT a news blackout (Keaton 2026-10-13: a shock never hard
+    // blocks). It used to set verdict "blackout", which the RH gate refuses
+    // outright. Now it raises the bar one step while the shock candle is open
+    // (shock.active ≈ the 15m lock) and cuts size through the tail.
+    const news: NewsRead = newsBase;    // News and a shock raise the confidence bar and cut size. They do not
     // take B+ and higher off the book when the bias and the score are there.
-    const event = news.verdict === "blackout" || news.verdict === "caution" || shock.tail;
+    const event = news.verdict === "blackout" || news.verdict === "caution" || shock.active;
     if (event) {
       let live = 0;
       for (const c of scan.candidates) {
@@ -1082,7 +1078,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       ...payload,
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
-      shockFloorMs: shock.active || shock.tail ? shock.freshFloorMs : null,
+      shockFloorMs: shock.active ? shock.freshFloorMs : null,
+      shockLean: shockLeanSide(shock.bias),
     });
     // One stop, everywhere (card-plan.ts): the card a book priced a plan
     // for now carries that plan, and its invalidation becomes the plan's

@@ -175,6 +175,8 @@ export interface SmcMasterInput {
   right?: { bars: OhlcBar[]; minute?: OhlcBar[] };
   /** Post-shock: arrays/sweeps before this ms don't count (fresh sequence only). */
   shockFloorMs?: number | null;
+  /** The shock's lean (shock.ts shockBias). A ranking nudge only, never a must. */
+  shockLean?: "long" | "short" | null;
 }
 
 function factorState(
@@ -246,6 +248,7 @@ export function eligibleCandidates(
   scan: ScanResult,
   bias: Pick<HtfBiasRead, "symbol" | "topDown">,
   narrative: MarketNarrative,
+  shockLean: "long" | "short" | null = null,
 ): SetupCandidate[] {
   const book = scan.candidates.filter((c) => c.symbol === bias.symbol);
   const need = bias.topDown === "bull" ? "long" : bias.topDown === "bear" ? "short" : null;
@@ -261,6 +264,8 @@ export function eligibleCandidates(
       GATE.sideFromRaid && raidSide != null && c.side === raidSide ? 1 : 0,
       c.smtLevel?.led === true ? 1 : 0,
       sequenceComplete(c) ? 1 : 0,
+      // Shock lean: after completeness, before the band. A nudge, not a must.
+      shockLean != null && c.side === shockLean ? 1 : 0,
       isHighProbPath(c) ? 2 : isPathFire(c) ? 1 : 0,
     ];
   };
@@ -281,6 +286,7 @@ function pickCandidate(
   scan: ScanResult,
   bias: HtfBiasRead,
   narrative: MarketNarrative,
+  shockLean: "long" | "short" | null = null,
 ): SetupCandidate | undefined {
   // ITEM 10: completeness decides the pick. A higher fit with a missing must
   // LOSES to a complete sequence; when nothing is complete the nearest card is
@@ -290,7 +296,7 @@ function pickCandidate(
   // book with no cards at all. The old cascade (raid side -> aligned+PATH ->
   // aligned -> PATH -> best score) is now the first four keys of that sort,
   // with COMPLETENESS inserted ahead of the band — which is item 10.
-  return eligibleCandidates(scan, bias, narrative)[0];
+  return eligibleCandidates(scan, bias, narrative, shockLean)[0];
 }
 
 /**
@@ -356,8 +362,9 @@ function gradeBook(
   shockFloorMs: number | null,
   bars: OhlcBar[] | undefined,
   minute: OhlcBar[] | undefined,
+  shockLean: "long" | "short" | null = null,
 ): SmcMasterBook {
-  const cand = pickCandidate(scan, bias, narrative);
+  const cand = pickCandidate(scan, bias, narrative, shockLean);
   const side = cand?.side ?? null;
 
   // The range premium/discount is graded on. Impulse leg when the knob says
@@ -937,6 +944,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.left?.bars,
     desk.left?.minute,
+    desk.shockLean ?? null,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -951,6 +959,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.shockFloorMs ?? null,
     desk.right?.bars,
     desk.right?.minute,
+    desk.shockLean ?? null,
   );
 
   const ranked = [left, right].sort((a, b) => {

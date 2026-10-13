@@ -175,3 +175,43 @@ test("INDEPENDENCE: band/q come from the card's own template (unchanged by the m
   assert.equal(a.complete, true);
   assert.equal(a.fit, b.fit); // another model's key is not in ronan's template: no penalty, no bonus
 });
+
+const shock = await import("../src/lib/trading/shock.ts");
+const B = (o, h, l, c) => ({ t: 0, o, h, l, c, v: 1 });
+
+test("SHOCK bias: close through the prior bar is delivery — lean with it", () => {
+  const b = shock.shockBiasFrom("up", B(100, 140, 99, 138), B(98, 101, 97, 100), "macro", null);
+  assert.deepEqual([b.kind, b.bias, b.smt, b.headlineTone], ["delivery", "bull", "both", "unknown"]);
+  assert.equal(b.headline, null);
+});
+
+test("SHOCK bias: wick back inside is manipulation — lean fade; single-index raises the fade", () => {
+  const single = shock.shockBiasFrom("up", B(100, 140, 99, 100.5), B(98, 101, 97, 100), "single", null);
+  const both = shock.shockBiasFrom("up", B(100, 140, 99, 100.5), B(98, 101, 97, 100), "macro", null);
+  assert.deepEqual([single.kind, single.bias], ["manipulation", "bear"]);
+  assert.ok(single.confidence > both.confidence);
+});
+
+test("SHOCK bias: forming candle is pending — no lean, headline tone never invented", () => {
+  const b = shock.shockBiasFrom("down", null, null, "single", "CPI");
+  assert.deepEqual([b.kind, b.bias, b.confidence, b.headline, b.headlineTone], ["pending", "neutral", 0, "CPI", "unknown"]);
+  assert.equal(shock.shockLeanSide(b), null);
+});
+
+test("SHOCK never hard-blocks: build-desk no longer turns a shock into a news blackout", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  assert.ok(!/shock\.active\s*\?\s*\{\s*\.\.\.newsBase,\s*verdict:\s*"blackout"/.test(src));
+  assert.match(src, /shockFloorMs: shock\.active \? shock\.freshFloorMs : null/);
+});
+
+test("SHOCK lean is a ranking nudge: it orders two otherwise-equal cards, never removes one", () => {
+  const mk = (side) => ({ symbol: "MNQ", side, htfOk: true, components: ["sweep_significant", "displacement"], entryPx: 1, confluence: 0.7, pathBand: "A", actionable: true });
+  const scan = { candidates: [mk("long"), mk("short")] };
+  const bias = { symbol: "MNQ", topDown: "neutral" };
+  const narr = { liquidity: { lastSweep: "none" } };
+  const out = master.eligibleCandidates(scan, bias, narr, "short");
+  assert.equal(out.length, 2);
+  assert.equal(out[0].side, "short");
+  assert.equal(master.eligibleCandidates(scan, bias, narr, "long")[0].side, "long");
+});

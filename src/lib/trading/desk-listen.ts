@@ -57,6 +57,17 @@ export interface DeskListenCard {
 }
 
 export interface DeskWire {
+  /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
+  shock?: {
+    dir: "up" | "down";
+    kind: "delivery" | "manipulation" | "pending";
+    bias: "bull" | "bear" | "neutral";
+    confidence: number;
+    smt: "both" | "single";
+    headline?: string;
+    headlineTone: "unknown";
+    line: string;
+  } | null;
   tape: {
     feed: string;
     fresh: boolean;
@@ -120,7 +131,20 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
   const phase = handed ? "hand" : "look";
+  const sb = desk.shock?.active || desk.shock?.tail ? desk.shock.bias : null;
   const wire: DeskWire = {
+    shock: sb
+      ? {
+          dir: sb.dir,
+          kind: sb.kind,
+          bias: sb.bias,
+          confidence: sb.confidence,
+          smt: sb.smt,
+          ...(sb.headline ? { headline: sb.headline } : {}),
+          headlineTone: sb.headlineTone,
+          line: desk.shock.line,
+        }
+      : null,
     tape: {
       feed: desk.feed,
       fresh: tapeFresh,
