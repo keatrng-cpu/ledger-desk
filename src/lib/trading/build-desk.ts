@@ -1579,11 +1579,11 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           saneAll();
         }
       }
-      // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Run on the
-      // checked plan: buffered stop, ranked T1, chop / velocity q, late entry, 1h+4h, projected option net.
-      // Every outcome is a reason on the card; blocked cards are not actionable, so the Floor and the
-      // watcher read the same verdict, and the brain's book on a blocked card stands down below.
+      // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Per-rule mode:
+      // "live" acts; "shadow" only records what it WOULD do on c.guards.shadow (wire.strategy.guards) and changes
+      // nothing — q, band, size, stop, watch row, brain word and fire stay as before.
       const lossBlocked = new Map<string, string>();
+      const isLive = (m: string): boolean => String(m) === "live";
       for (const c of payload.scan.candidates) {
         if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
         const pl = c.plan as { entry: number; stop: number; t1: number | null; t2: number | null; riskPts: number; rr1: number | null; rr2: number | null };
@@ -1597,33 +1597,48 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const m = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
         const price = (isL ? lq : rq)?.price ?? null;
         const out = (c as { loss?: Record<string, unknown> }).loss = {} as Record<string, unknown>;
+        type Guards = { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] };
+        const guards: Guards = { live: [], shadow: [] };
+        (c as { guards?: Guards }).guards = guards;
+        const shadow = (rule: string, would: string) => guards.shadow.push({ rule, would });
         const watch = (why: string) => { (c as { watchOnly?: boolean }).watchOnly = true; (c as { watchWhy?: string | null }).watchWhy = why; c.actionable = false; c.reasons.push(`WATCH row, not a card: ${why}`); };
-        // 3) stop beyond the structural swing + buffer (floor max(minStopAtr, winners' MAE pct) × ATR15)
+        // 3) buffered stop
         const s2 = lossGuards.bufferedStop(side, entry, pl.stop, atr);
+        let t1 = pl.t1, t2 = pl.t2, rr1 = pl.rr1, rr2 = pl.rr2, stopUse = pl.stop;
         if (s2 !== pl.stop) {
           const risk = Math.abs(entry - s2);
           const rr = (t: number | null) => (t == null ? null : +((side === "short" ? entry - t : t - entry) / risk).toFixed(2));
-          c.reasons.push(`Stop buffered ${pl.stop} → ${s2} (beyond the swing + max(${LOSS_RULES.stop.bufferAtr}×ATR15, MAE p${LOSS_RULES.stop.maePct * 100})); R:R ${pl.rr1} → ${rr(pl.t1)}`);
-          pl.stop = s2; pl.riskPts = +risk.toFixed(2); pl.rr1 = rr(pl.t1); pl.rr2 = rr(pl.t2);
-          c.invalidation = `Stop ${s2.toFixed(2)} — beyond the structural swing + buffer`;
-          for (const bk of [smcMaster.left, smcMaster.right]) {
-            const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
-            if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = s2; bp.riskPts = pl.riskPts; bp.rr1 = pl.rr1; bp.rr2 = pl.rr2; }
-          }
+          const why = `stop ${pl.stop} → ${s2} (swing + max(${LOSS_RULES.stop.bufferAtr}×ATR15, MAE p${LOSS_RULES.stop.maePct * 100})); R:R ${pl.rr1} → ${rr(pl.t1)}`;
+          if (isLive(LOSS_RULES.stop.mode)) {
+            c.reasons.push(`Stop buffered ${why}`); guards.live.push({ rule: "stop", did: why });
+            pl.stop = s2; pl.riskPts = +risk.toFixed(2); pl.rr1 = rr(pl.t1); pl.rr2 = rr(pl.t2);
+            c.invalidation = `Stop ${s2.toFixed(2)} — beyond the structural swing + buffer`;
+            for (const bk of [smcMaster.left, smcMaster.right]) {
+              const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
+              if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = s2; bp.riskPts = pl.riskPts; bp.rr1 = pl.rr1; bp.rr2 = pl.rr2; }
+            }
+          } else { shadow("stop", why); stopUse = s2; rr1 = rr(pl.t1); rr2 = rr(pl.t2); }
         }
-        // 6a) T1 must be a ranked liquidity draw (SD / session fallbacks are T2 only)
-        const rk = lossGuards.rankedT1(pl.t1, pl.t2, rankDraws(isL ? payload.draws.left : payload.draws.right, b15));
-        if (rk.promoted) { pl.t1 = rk.t1; pl.rr1 = pl.rr2; pl.t2 = null; pl.rr2 = null; c.reasons.push(rk.why!); }
-        if (!rk.ok) { watch(rk.why!); continue; }
-        if (pl.rr1 == null || pl.rr1 < RR_MIN) { watch(`R:R ${pl.rr1} < ${RR_MIN} after the buffered stop`); continue; }
-        { const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
-        // 5) chop → band cap (watch row); 2b) slow expected velocity → q penalty
+        // 6a) ranked T1
+        const rk = lossGuards.rankedT1(t1, t2, rankDraws(isL ? payload.draws.left : payload.draws.right, b15));
+        if (rk.promoted) { t1 = rk.t1; rr1 = rr2; t2 = null; rr2 = null; }
+        const rrBad = rk.ok && (rr1 == null || rr1 < RR_MIN) ? `R:R ${rr1} < ${RR_MIN} with stop ${stopUse}` : null;
+        if (isLive(LOSS_RULES.target.mode)) {
+          if (rk.promoted) { pl.t1 = t1; pl.rr1 = rr1; pl.t2 = null; pl.rr2 = null; c.reasons.push(rk.why!); guards.live.push({ rule: "rankedT1", did: rk.why! }); }
+          if (!rk.ok) { watch(rk.why!); continue; }
+          { const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
+        } else {
+          if (rk.promoted) shadow("rankedT1", rk.why!);
+          if (!rk.ok) shadow("rankedT1", `watch row: ${rk.why}`);
+        }
+        if (rrBad) { if (isLive(LOSS_RULES.stop.mode)) { watch(rrBad); continue; } shadow("stop", `watch row: ${rrBad}`); }
+        // 5) chop; 2b) velocity
         const ch = lossGuards.chopRead(m, atr);
         out.chop = ch;
-        if (ch.chop) { c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); }
+        if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
         const v = lossGuards.velocityRead(m, entry, pl.t1);
         out.velocity = v;
-        if (v.penalty) { c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); }
+        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
         sealBand(c as never);
         // 1) 1h AND 4h both against the side
         const hb = htfBiasOf(mtfContext, c.symbol);
@@ -1632,24 +1647,29 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const disp = Boolean(c.displacement?.bodyQualified || c.displacement?.qualifiedBy) || (c.dispStrength != null && c.dispStrength.bodyAtr >= 1 && c.dispStrength.leftFvg);
         const hg = lossGuards.htfGuard(side, hb?.bias1h, hb?.bias4h, c.pathBand, sweep, disp);
         out.htf = { ...hg, sweep, displacement: disp, bias1h: hb?.bias1h ?? null, bias4h: hb?.bias4h ?? null };
-        (c as { sizeMult?: number }).sizeMult = hg.sizeMult;
-        if (hg.capBand) { c.pathBand = capBand(c.pathBand, hg.capBand as never) as never; sealBand(c as never); }
-        if (hg.why) c.reasons.push(hg.why);
-        if (hg.block) { c.actionable = false; lossBlocked.set(`${c.symbol}:${side}`, hg.why!); }
-        // 4) late: price already more than late.maxAtr past the entry level in the trade's direction
+        if (isLive(LOSS_RULES.htf.mode)) {
+          (c as { sizeMult?: number }).sizeMult = hg.sizeMult;
+          if (hg.capBand) { c.pathBand = capBand(c.pathBand, hg.capBand as never) as never; sealBand(c as never); }
+          if (hg.why) { c.reasons.push(hg.why); guards.live.push({ rule: "htf", did: hg.why }); }
+          if (hg.block) { c.actionable = false; lossBlocked.set(`${c.symbol}:${side}`, hg.why!); }
+        } else if (hg.why) shadow("htf", hg.why);
+        // 4) late entry (LIVE per Keaton 13:45 CT)
         const past = price == null ? null : side === "long" ? price - entry : entry - price;
         const rrFromPx = price == null || pl.t1 == null ? null : (side === "long" ? pl.t1 - price : price - pl.t1) / Math.abs(price - pl.stop);
         const lateMin = (RULES_ALL.lateEntry.rrMin as Record<string, number>)[String(c.pathBand)];
         const lg = lossGuards.lateGuard(past != null && past > 0 ? price : null, entry, atr, lateMin != null && rrFromPx != null && rrFromPx >= lateMin);
         out.late = lg;
-        if (lg.block) { c.actionable = false; c.reasons.push(lg.why!); lossBlocked.set(`${c.symbol}:${side}`, lg.why!); }
-        else if (lg.late) c.reasons.push(lg.why!);
-        // 7) projected option net at T1 (theta over the expected minutes + spread)
+        if (lg.block) {
+          if (isLive(LOSS_RULES.late.mode)) { c.actionable = false; c.reasons.push(lg.why!); guards.live.push({ rule: "late", did: lg.why! }); lossBlocked.set(`${c.symbol}:${side}`, lg.why!); }
+          else shadow("late", lg.why!);
+        } else if (lg.late) c.reasons.push(lg.why!);
+        // 7) projected option net at T1
         const on = pl.t1 == null ? null : lossGuards.optionNetAtT1(c.symbol, entry, pl.t1, v.expMin);
         out.option = on;
-        if (on && !on.ok) { c.actionable = false; c.reasons.push(`No fire: ${on.why}`); lossBlocked.set(`${c.symbol}:${side}`, on.why); }
-        // 2a / 6b) management the watcher and the Floor apply after the fill
-        out.manage = { earlyMin: LOSS_RULES.early.minutes, earlyMinR: LOSS_RULES.early.minR, beFrac: LOSS_RULES.target.beFrac };
+        if (on && !on.ok) { if (isLive(LOSS_RULES.option.mode)) { c.actionable = false; c.reasons.push(`No fire: ${on.why}`); guards.live.push({ rule: "option", did: on.why }); lossBlocked.set(`${c.symbol}:${side}`, on.why); } else shadow("option", `no fire: ${on.why}`); }
+        // 2a / 6b) management after the fill (watcher manage_action reads the modes)
+        out.manage = { earlyMin: LOSS_RULES.early.minutes, earlyMinR: LOSS_RULES.early.minR, earlyMode: LOSS_RULES.early.mode, beFrac: LOSS_RULES.target.beFrac, beMode: LOSS_RULES.target.beMode };
+        if (guards.shadow.length) c.reasons.push(`Shadow guards (no effect): ${guards.shadow.map((g) => `${g.rule}: ${g.would}`).join("; ")}`);
       }
       for (const bk of [smcMaster.left, smcMaster.right]) {
         const why = bk ? lossBlocked.get(`${bk.symbol}:${bk.side}`) : undefined;

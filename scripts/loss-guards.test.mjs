@@ -76,3 +76,24 @@ test("watcher (Python) mirrors the TS guards on the same inputs", () => {
     assert.deepEqual(r[band + (sw ? "True" : "False")], [t.block, !t.block && t.sizeMult < 1], `${band} sweep/disp=${sw}`);
   }
 });
+test("modes (Keaton 13:45 CT): late + breakeven live; htf, early, velocity, stop, chop, ranked T1, option shadow", () => {
+  const live = ["late"], shadowR = ["htf", "early", "velocity", "stop", "chop", "option", "target"];
+  for (const k of live) assert.equal(L[k].mode, "live", k);
+  for (const k of shadowR) assert.equal(L[k].mode, "shadow", k);
+  assert.equal(L.target.beMode, "live");
+  assert.ok(["block", "sizeCut"].includes(L.htf.legacyBothOppose));
+});
+test("desk build: shadow rules are recorded, never applied (source guard)", () => {
+  const src = readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  for (const r of ["stop", "chop", "velocity", "htf", "late", "option"]) assert.match(src, new RegExp(`isLive\\(LOSS_RULES\\.${r}\\.mode\\)`), r);
+  assert.match(src, /isLive\(LOSS_RULES\.target\.mode\)/);
+});
+test("watcher (Python) reads the same modes and keeps shadow rules out of the fire", () => {
+  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher-next", "/workspace/desk-watcher"].filter(Boolean)
+    .find((d) => existsSync(`${d}/watcher/gates.py`) && readFileSync(`${d}/watcher/gates.py`, "utf8").includes("def loss_mode"));
+  if (!dir) return;
+  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import gates\nprint(json.dumps({k: gates.loss_mode(k) for k in ["htf","early","velocity","stop","late","chop","target","option"]} | {"be": gates.loss_mode("target","beMode")}))`;
+  const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());
+  for (const k of ["htf", "early", "velocity", "stop", "late", "chop", "target", "option"]) assert.equal(r[k], L[k].mode, k);
+  assert.equal(r.be, L.target.beMode);
+});

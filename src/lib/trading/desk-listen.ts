@@ -112,6 +112,8 @@ export interface DeskWire {
     sizeMult: number;
     sweep: boolean | null;
     loss: Record<string, unknown> | null;
+    /** Per-rule guard outcomes: live = acted; shadow = would have acted (no effect). */
+    guards: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } | null;
     regime: string | null;
     /** Fix 39: trend / reversal / range — the regime the card was graded in. */
     regimeLabel: string | null;
@@ -279,6 +281,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
+          guards: (top as { guards?: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } }).guards ?? null,
           regime: top.setupRegime ?? null,
           regimeLabel: (top as { regimeLabel?: string }).regimeLabel ?? null,
           setups: (top as { setups?: string[] }).setups ?? [],

@@ -101,33 +101,40 @@
   "loss": {
     "_doc": "Loss-pattern guards (Keaton 2026-10-13, audit of 83 trades / 9 sessions). One source for desk, brain, Floor and watcher. See src/lib/smc/loss-guards.ts and watcher gates.loss_*.",
     "htf": {
-      "_doc": "1h AND 4h both oppose the side: below A blocks; A/A- fire at sizeMult; A+ stays A+ only with a 5m/15m sweep plus displacement, else capped to A (size cut).",
+      "mode": "shadow",
+      "_doc": "1h AND 4h both oppose the side: below A blocks; A/A- fire at sizeMult; A+ stays A+ only with a 5m/15m sweep plus displacement, else capped to A (size cut). While mode=shadow the watcher runs the legacy htf gate: one of 1h/4h opposing = size cut; both opposing = legacyBothOppose (\"block\" | \"sizeCut\"; audit: block +7.47R vs size cut +9.53R vs none +11.58R on 83 trades → sizeCut).",
       "sizeMult": 0.5,
       "minBand": "A",
-      "aPlusNeedsSweepDisp": true
+      "aPlusNeedsSweepDisp": true,
+      "legacyBothOppose": "sizeCut"
     },
     "early": {
+      "mode": "shadow",
       "_doc": "No minR of favourable excursion within minutes after the fill: cut at market.",
       "minR": 0.3,
       "minutes": 20
     },
     "velocity": {
+      "mode": "shadow",
       "_doc": "Expected minutes to T1 = |T1-entry| / (60m range / 60). Above maxMin: q penalty.",
       "lookbackMin": 60,
       "maxMin": 45,
       "qPenalty": 0.03
     },
     "stop": {
+      "mode": "shadow",
       "_doc": "Stop beyond the structural swing / sweep wick by bufferAtr x ATR15 OR the winners' MAE percentile (maePctAtr x ATR15), whichever is larger; the |entry-stop| floor stays minStopAtr.",
       "bufferAtr": 0.1,
       "maePctAtr": 0.42,
       "maePct": 0.9
     },
     "late": {
+      "mode": "live",
       "_doc": "Entry more than maxAtr x ATR15 past the trigger level is late: only the full lateEntry rule (A+/A/A-, ARMED, RR from price, option PnL) may fire it.",
       "maxAtr": 0.5
     },
     "chop": {
+      "mode": "shadow",
       "_doc": "60m range < rangeAtr x ATR15, 5m overlap > overlap, failed 5m breaks of the 60m range >= failedBreaks; needScore of 3 => chop: band capped at capBand (B = never fires; watch row).",
       "lookbackMin": 60,
       "rangeAtr": 2.0,
@@ -137,11 +144,14 @@
       "capBand": "B"
     },
     "target": {
-      "_doc": "T1 must be a ranked liquidity draw (rankDraws, rank >= minRank) — SD/session fallbacks are T2 only. At beFrac of the way to T1 the stop moves to breakeven.",
+      "mode": "shadow",
+      "beMode": "live",
+      "_doc": "T1 must be a ranked liquidity draw (rankDraws, rank >= minRank) — SD/session fallbacks are T2 only. At beFrac of the way to T1 the stop moves to breakeven. mode = the ranked-T1 rule (6a); beMode = the breakeven rule (6b).",
       "minRank": 0.0,
       "beFrac": 0.75
     },
     "option": {
+      "mode": "shadow",
       "_doc": "Projected option net at T1 = |delta| x move x ratio - theta/min x expected minutes - spread must be > minNet (premium $ per share). From preferDte1MinLeftMin minutes before session.zeroDteCutoffEt pick dte>=1. Never past session.flatByMaxEt.",
       "delta": 0.5,
       "thetaPerMin": 0.0015,
@@ -152,6 +162,7 @@
       },
       "minNet": 0.0,
       "preferDte1MinLeft": 60
-    }
+    },
+    "_modes": "Per-rule mode (Keaton 2026-10-13 13:45 CT): \"live\" acts; \"shadow\" computes and logs what it would do (card wire.strategy.guards.shadow, watcher gates.log shadow:* rows) and changes nothing (q, band, size, stop, watch row, brain word, fire)."
   }
 }
