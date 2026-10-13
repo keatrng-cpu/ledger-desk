@@ -98,3 +98,10 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 
 
 
+
+## 2026-10-13 — Learning loop (journal → calibration), Keaton
+- Every card with q or qRaw ≥ 0.65 is snapshotted once per (ET day, symbol, side, setup), plan or not, with checklist, components, MTF, SMT, regime, displacement, draws, brain, Floor and Master (`desk_card_snap`, migration 0024).
+- Graded on each card read against the desk's own 1m feed: plan → T1/stop first (same bar = loss), MFE/MAE in R, minutes; no plan → signed move at +30/+60/+120 min in ATR (right/wrong at ±0.25 ATR). No bars → `ungradable`; outcomes are never invented.
+- Weekly calibration: per-factor hit-rate lift → weight scale only at n ≥ 30, shrunk n/(n+50), step capped ±20%, total scale bounded ×0.8–×1.2; band edges move ±0.01 at n ≥ 30 per band, within ±20% of baseline. Each run is a version in `desk_calibration` with its prior state; `scripts/calibration.mts revert <v>` reverts it. Applied version + report at GET /api/desk/journal (`learning`).
+- Runtime cannot write this file: each version's entry is produced with `npx tsx scripts/calibration.mts decisions` and appended here when it is applied. v0 = baseline (RAW_WEIGHTS, bands 0.75/0.68/0.65/0.60/0.50).
+- Backfill: today's desk-watcher log snaps + saved card snapshots (5 unique cards ≥ 0.65), graded on Yahoo 1m (MNQ=F/ES=F): 3 wrong, 2 open (graded live once their +120 m closes). Fix 40 missed trades are the same rows: < A- that ran ≥ 2R / ≥ 1 ATR at +120 m.

@@ -69,9 +69,14 @@ async function handle(): Promise<Response> {
     if (cached && now - cached.at < FRESH_MS) {
       return jsonResponse(await withReport(cached.card), 200, { "cache-control": "no-store" });
     }
+    // Learning loop: the applied calibration (weights + band edges) is loaded
+    // into the engine BEFORE the build so this card grades on that version.
+    let sql: import("@/lib/db").Sql | null = null;
+    try { sql = await (await import("@/lib/db")).getSql(); await (await import("@/lib/desk/learning-live")).applyCalibration(sql, now); } catch { sql = null; }
     const res = await fetchTradingDesk({ data: { left: "MNQ", right: "ES" } });
     if (!res.ok) return jsonResponse({ ok: false, error: res.error, desk: "unavailable" }, 503);
     const card = await withJournal(deskListenCard(res), res.mtfContext ?? null);
+    if (sql) await (await import("@/lib/desk/learning-live")).learnOnRead(sql, res, card, now);
     cached = { at: now, card };
     return jsonResponse(await withReport(card), 200, { "cache-control": "no-store" });
   } catch (err) {
