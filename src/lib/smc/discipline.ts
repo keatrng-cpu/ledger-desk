@@ -175,6 +175,7 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
   }
   // R7
   const ch = isChop(ctx.closed15, atr);
+  (c as { chop?: boolean }).chop = ch.chop;
   if (ch.chop) {
     if (idx(band) < idx("B+")) note(`Chop (overlap ${ch.overlap}, range ${ch.rangeAtr}×ATR) — band capped at B+`);
     band = capBand(band, "B+");
@@ -208,4 +209,36 @@ export function shockLeanLive(
     if (counter >= atr15) return null;
   }
   return lean;
+}
+
+/** PATH bands from q: A+ ≥0.75, A ≥0.68, A- ≥0.65, B+ ≥0.60, B ≥0.50, else C. */
+export function bandFromQ(q: number | null | undefined): Band | null {
+  if (q == null || !Number.isFinite(q)) return null;
+  return q >= 0.75 ? "A+" : q >= 0.68 ? "A" : q >= 0.65 ? "A-" : q >= 0.6 ? "B+" : q >= 0.5 ? "B" : "C";
+}
+/** Highest q a band can carry (one tick under the next band's floor). */
+const BAND_CEIL: Record<Band, number> = { "A+": 0.99, A: 0.7499, "A-": 0.6799, "B+": 0.6499, B: 0.5999, C: 0.4999, skip: 0 };
+
+/**
+ * One band per card, everywhere: after every cap (path, vetoes, discipline,
+ * SMT, news), the band IS bandFromQ(q). A cap that lowered the band below
+ * what q reads clamps q to that band's ceiling (the pre-clamp value stays on
+ * `qRaw`), and a path label above q is lowered to q's band. `skip` stays skip.
+ * Below B+ is never actionable (PATH floor).
+ */
+export function sealBand<T extends { confluence: number; pathBand?: string | null; actionable: boolean; qRaw?: number }>(c: T): T {
+  const cap = (BANDS as readonly string[]).includes(String(c.pathBand)) ? (c.pathBand as Band) : null;
+  if (cap === "skip") {
+    c.actionable = false;
+    return c;
+  }
+  const qb = bandFromQ(c.confluence);
+  if (!qb) return c;
+  if (cap && idx(cap) > idx(qb)) {
+    c.qRaw = c.confluence;
+    c.confluence = Math.min(c.confluence, BAND_CEIL[cap]);
+  }
+  c.pathBand = bandFromQ(c.confluence)!;
+  if (idx(c.pathBand as Band) > idx("B+")) c.actionable = false;
+  return c;
 }

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
-import { applyDiscipline, capBand, shockLeanLive } from "@/lib/smc/discipline";
+import { applyDiscipline, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
 import { buildMtfContext, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
@@ -1144,6 +1144,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
         }
       }
+      // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
+      for (const c of payload.scan.candidates) sealBand(c as never);
+      // AUDIT F2: the top card is the best card (actionable, band, q), so the
+      // wire, the Floor and the brain read the same first candidate.
+      const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+      payload.scan.candidates.sort(
+        (a, b) => Number(b.actionable) - Number(a.actionable) || bandRank(a.pathBand) - bandRank(b.pathBand) || b.confluence - a.confluence,
+      );
     }
     const mtf = {
       left: { daily: dailyL, minute: minuteL },
