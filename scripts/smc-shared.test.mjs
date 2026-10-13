@@ -120,3 +120,20 @@ test("premium/discount: one verdict", () => {
   assert.equal(shared.locationVerdict("short", "discount", named), "note");
   assert.equal(shared.locationVerdict("short", "discount", bare), "fail");
 });
+
+const cardPlan = await import("../src/lib/trading/card-plan.ts");
+const desk = await import("../src/lib/trading/options-desk.ts");
+
+test("stop text names the raid only when it is on the stop side (card-plan.ts:288)", () => {
+  // live card 2026-10-13 09:33 ET shape: MNQ short, stop above.
+  assert.match(cardPlan.planStopText({ side: "short", entry: 30620, stop: 30698.5, sweep: { price: 30690, t: null } }), /beyond the raid 30690\.00/);
+  assert.match(cardPlan.planStopText({ side: "short", entry: 30620, stop: 30698.5, sweep: { price: 30580, t: null } }), /entry array's far edge/);
+  assert.match(cardPlan.planStopText({ side: "long", entry: 100, stop: 95, sweep: { price: 96, t: null } }), /beyond the raid 96\.00/);
+  assert.match(cardPlan.planStopText({ side: "long", entry: 100, stop: 95, sweep: { price: 104, t: null } }), /entry array's far edge/);
+});
+
+test("working stop is 25% of the ticket debit, not the cap (options-desk.ts:1695)", () => {
+  const out = desk.restampWorkingStop(["Working stop $138 / −25% of debit — not 1/3, not full", "Trim 50%"], 310);
+  assert.equal(out[0], "Working stop $78 / −25% of debit — not 1/3, not full");
+  assert.equal(out[1], "Trim 50%");
+});

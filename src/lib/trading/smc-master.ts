@@ -6,6 +6,7 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { poolArms } from "@/lib/smc/shared";
 import { reachTier } from "./entry-trigger";
 import { GATE, preferZone } from "./gate-tuning";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -672,8 +673,9 @@ function gradeBook(
     side,
     price: price ?? 0,
     entryArray: fresh ?? null,
-    sweepExtreme: narrative.liquidity.lastSweepExtreme,
-    sweepT: narrative.liquidity.lastSweepT,
+    // Only the raid that ARMS this side may anchor the stop (shared.ts poolArms).
+    sweepExtreme: poolArms(narrative.liquidity.lastSweep, side) ? narrative.liquidity.lastSweepExtreme : null,
+    sweepT: poolArms(narrative.liquidity.lastSweep, side) ? narrative.liquidity.lastSweepT : null,
     dol: pools.t1,
     range: dealing ? { high: dealing.high, low: dealing.low, eq: dealing.eq } : null,
     arrays: tape?.arrays ?? [],

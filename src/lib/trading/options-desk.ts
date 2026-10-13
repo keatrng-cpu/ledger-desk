@@ -1350,6 +1350,11 @@ function rhLine(t: {
   return `Robinhood: ${verb} ${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · DTE ${t.dte} · ${t.strikeNote} · pay ~$${t.total} ($${t.each}/ea) · MODEL PRICE — not sendable until a live chain names the contract${tail}`;
 }
 
+/** The working-stop line must quote the ticket's own debit, not the cap (Accuracy 2026-10-13). */
+export function restampWorkingStop(targets: string[], debitTotal: number): string[] {
+  return targets.map((t) => t.replace(/^Working stop \$\d+/, `Working stop $${rhWorkingStop(debitTotal)}`));
+}
+
 function toTicket(
   underlier: SwingUnderlier,
   side: OptionSide,
@@ -1431,7 +1436,7 @@ function toTicket(
     riskPctOfSleeve: sized.total / sleeve.equity,
     hold,
     invalidation,
-    targets,
+    targets: restampWorkingStop(targets, sized.total),
     robinhood: rhLine({
       underlier,
       side,
@@ -1578,6 +1583,8 @@ function shrinkTicket(t: RhTicket, n: number, note: string): RhTicket {
     estDebitTotal: total,
     maxLoss: total,
     workingStop,
+    targets: restampWorkingStop(t.targets, total),
+    cutRule: t.cutRule.replace(/\(\$\d+\)/, `($${workingStop})`),
     live,
     order,
     riskPctOfSleeve: t.estDebitTotal > 0 ? (t.riskPctOfSleeve * total) / t.estDebitTotal : t.riskPctOfSleeve,

@@ -284,11 +284,30 @@ export function applyRunnerPool(
   return { ...plan, t2, rr2, levels };
 }
 
-/** The stop, in the words a card prints. */
-export function planStopText(plan: Pick<TradePlan, "stop" | "sweep">): string {
+/**
+ * The stop, in the words a card prints.
+ *
+ * "Beyond the raid" only when the raid is actually on the stop side of the
+ * entry and inside the stop (a short's raid above entry, a long's below).
+ * Before 2026-10-13 any sweep extreme was named — including the other side's
+ * raid — so a card could print "beyond the raid" while the brain said the
+ * sweep for this side was missing (Accuracy, card-plan.ts:288-292).
+ */
+export function planStopText(
+  plan: Pick<TradePlan, "stop" | "sweep"> & Partial<Pick<TradePlan, "side" | "entry">>,
+): string {
   return `Stop ${plan.stop.toFixed(2)} — beyond ${
-    plan.sweep ? `the raid ${plan.sweep.price.toFixed(2)}` : "the entry array's far edge"
+    raidOnStopSide(plan) ? `the raid ${plan.sweep!.price.toFixed(2)}` : "the entry array's far edge"
   }`;
+}
+
+export function raidOnStopSide(
+  plan: Pick<TradePlan, "stop" | "sweep"> & Partial<Pick<TradePlan, "side" | "entry">>,
+): boolean {
+  const r = plan.sweep?.price;
+  if (r == null || !Number.isFinite(r)) return false;
+  if (plan.side == null || plan.entry == null) return true; // nothing to check against; old behaviour
+  return plan.side === "short" ? r >= plan.entry && r <= plan.stop : r <= plan.entry && r >= plan.stop;
 }
 
 /**
