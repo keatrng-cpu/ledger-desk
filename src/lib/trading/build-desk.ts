@@ -1084,7 +1084,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       { symbol: left.symbol, minute: minuteL, bars15: closedL },
       { symbol: right.symbol, minute: minuteR, bars15: closedR },
     );
-    const smcMaster = gradeSmcMaster({
+    const smcInput: Parameters<typeof gradeSmcMaster>[0] = {
       ...payload,
       mtfContext,
       shockSymbol: shock.event?.symbol ?? null,
@@ -1103,7 +1103,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         })(),
         Date.now(),
       ),
-    });
+    };
+    let smcMaster = gradeSmcMaster(smcInput);
     // One stop, everywhere (card-plan.ts): the card a book priced a plan
     // for now carries that plan, and its invalidation becomes the plan's
     // stop — so the ticket, the paper book and the Log dialog size off the
@@ -1165,6 +1166,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.reasons.push(`LTF reversal favours ${c.side} (+${LTF_FLIP_NUDGE}): ${rev.why[0]}`);
         }
       }
+      // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
+      for (const c of payload.scan.candidates) sealBand(c as never);
+      // AUDIT F2: the top card is the best card (actionable, band, q), so the
+      // wire, the Floor and the brain read the same first candidate.
+      const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+      payload.scan.candidates.sort(
+        (a, b) => Number(b.actionable) - Number(a.actionable) || bandRank(a.pathBand) - bandRank(b.pathBand) || b.confluence - a.confluence,
+      );
+    }
+    // AUDIT R2-4: the brain is graded AFTER discipline and the band seal, so
+    // its book reads the same capped, sealed cards as the wire and the Floor.
+    // The plans the cards already carry stay (discipline judged those).
+    smcMaster = gradeSmcMaster(smcInput);
+    {
       // The brain reads the same LTF reversal: its book on the reversed side stands.
       for (const bk of [smcMaster.left, smcMaster.right]) {
         const rev = mtfContext.books.find((x) => x.symbol === bk?.symbol)?.ltfReversals.find((r) => r.against === bk?.side);
@@ -1177,14 +1192,6 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const ob = smcMaster.oneBook;
         smcMaster.thesis = `${ob.word} ${ob.symbol} ${ob.side ?? ""} · ${ob.mustPass}/${ob.mustNeed} · ${ob.missing}`.trim();
       }
-      // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
-      for (const c of payload.scan.candidates) sealBand(c as never);
-      // AUDIT F2: the top card is the best card (actionable, band, q), so the
-      // wire, the Floor and the brain read the same first candidate.
-      const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
-      payload.scan.candidates.sort(
-        (a, b) => Number(b.actionable) - Number(a.actionable) || bandRank(a.pathBand) - bandRank(b.pathBand) || b.confluence - a.confluence,
-      );
     }
     const mtf = {
       left: { daily: dailyL, minute: minuteL },
