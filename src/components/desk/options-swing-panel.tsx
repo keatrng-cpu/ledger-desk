@@ -106,7 +106,7 @@ function QuoteSheet({ q, primary }: { q: UnderlierQuote; primary: boolean }) {
 
 /**
  * The sleeve as one budget bar: the debit ceiling, the loss cap inside it,
- * the RH envelope ($150–$550, Trading Stand's account block) and the current
+ * the RH envelope ($50–$550, Trading Stand's account block) and the current
  * buying power from ManagerRoomState.account (managerAccountLine). Display
  * only — the envelope and BP gates live in rh-autofire-gates.ts.
  */

@@ -50,9 +50,9 @@ export function reportRhAccount(next: ManagerRhAccount | null) {
 }
 
 export interface RhAccountRead {
-  /** canFillEnvelope false — the $150 minimum debit cannot fit, the arm is blocked. */
+  /** canFillEnvelope false — the $50 minimum debit cannot fit, the arm is blocked. */
   blocked: boolean;
-  /** managerAccountLine, e.g. "BP $11.56 · below $150 envelope, arm blocked". */
+  /** managerAccountLine, e.g. "BP $11.56 · below $50 envelope, arm blocked". */
   line: string;
   /** "Individual ••••7477" */
   who: string;

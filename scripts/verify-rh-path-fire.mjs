@@ -173,7 +173,7 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
     liveQuote: { optionId: "opt-2", askPrice: 1.4, bidPrice: 1.37, asOfMs: NOW - 2_000, source: "get_option_quotes" }, ...extra,
   });
   const m = (a) => { const r = rh.proposeRhFromPathFire(a); return r.mode === "live_when_armed" ? "ok" : r.gated.gate; };
-  // B+ live: one contract, SEQ TAKE, no veto (1 × $1.62 = $162, inside $150-$550).
+  // B+ live: one contract, SEQ TAKE, no veto (1 × $1.62 = $162, inside $50-$550).
   const ticket1 = rh.ticketFromRhCard({
     underlier: "QQQ", side: "put", dteTarget: 0, strikeNote: "ATM", strikeOffset: "ATM",
     contracts: 1, estDebitEach: 1.6, estDebitTotal: 160, decisionKey: "k3", reason: "fire B+",

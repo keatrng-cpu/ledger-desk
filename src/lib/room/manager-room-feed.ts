@@ -13,7 +13,7 @@
  * DESIGN_MANAGER_TRADING_STAND.md hold: Floor ARMED + desk ticket, PATH band
  * A+/A/A- >= 0.65 or B+ through the explicit B+ gate (fit >= 0.60, SEQ TAKE,
  * no veto), DTE 0/1, options session open, no blackout / halt / one-book,
- * envelope-shaped ticket ($150-$550, 1-4 ct — B+ 1 ct — ATM/OTM_1), live (not
+ * envelope-shaped ticket ($50-$550, 1-4 ct — B+ 1 ct — ATM/OTM_1), live (not
  * synthetic) desk feed, and no Owner veto / table / hand-off on this decision.
  * The bit only feeds candidateFromFloorPathStand; every hard gate (env arms,
  * BP on Agentic 995386158, Floor rules, envelope, live quote) still runs in
@@ -156,7 +156,7 @@ export function managerAgreeFromRoom(args: {
     estDebitEach = Number.isFinite(plan.quote?.ask) ? plan.quote.ask : null;
     // Shrink to fit the envelope instead of vetoing: the room sized 2 contracts at $3.29 ($658, over the $550 cap) and the Stand
     // vetoed it (debit_cap) although ONE contract ($329) is inside the envelope. Fewer contracts is less risk and is the Stand's
-    // job ("may only shrink"); the envelope itself ($150-$550, 1-4) is unchanged, and if even one contract is over the cap the
+    // job ("may only shrink"); the envelope itself ($50-$550, 1-4) is unchanged, and if even one contract is over the cap the
     // ticket still refuses with debit_cap.
     if (estDebitEach != null) while (contracts > 1 && Math.round(estDebitEach * 100 * contracts) > RH_MAX_DEBIT_TOTAL) contracts -= 1;
     estDebitTotal = estDebitEach != null ? Math.round(estDebitEach * 100 * contracts) : null;

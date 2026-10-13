@@ -5,8 +5,8 @@
  * from RH connector reads (get_accounts + get_portfolio with account_number).
  * PURE: no connector calls, no orders. Envelope comes from rh-autofire-gates.
  *
- * Soft gate: optionsBuyingPowerUsd < envelopeMinUsd ($150) → canFillEnvelope=false
- * ("BP $11.56 · below $150 envelope, arm blocked").
+ * Soft gate: optionsBuyingPowerUsd < envelopeMinUsd ($50) → canFillEnvelope=false
+ * ("BP $11.56 · below $50 envelope, arm blocked").
  *
  * Trade path (Keaton 2026-10-06, revised): Agentic ••••6158 (account_number 995386158),
  * option_level_2, limited_margin. Fresh get_portfolio 2026-10-06 09:46 ET:
@@ -16,7 +16,7 @@
  *
  * Hard BP gate (Accuracy): evaluateRhBuyingPower in rh-autofire-gates.ts on a fresh
  * get_portfolio read (mayPlaceAfterReview.accountAtReview). accountPlaceGate here is the
- * Manager-block side: wrong account / snapshot / unknown / < $150 BP all refuse.
+ * Manager-block side: wrong account / snapshot / unknown / < $50 BP all refuse.
  */
 import {
   RH_MAX_DEBIT_TOTAL,
@@ -36,7 +36,7 @@ export interface ManagerRhAccount {
   source: "rh_live";
   cashUsd: number;
   optionsBuyingPowerUsd: number;
-  envelopeMinUsd: number; // 150
+  envelopeMinUsd: number; // 50 (RH_MIN_DEBIT_TOTAL)
   envelopeMaxUsd: number; // 550
   /** optionsBuyingPowerUsd >= envelopeMinUsd */
   canFillEnvelope: boolean;
@@ -180,7 +180,7 @@ export const RH_AGENTIC_SNAPSHOT_2026_10_06: ManagerRhAccount = toManagerRhAccou
 /** Default ManagerRoomState.account — funded Agentic read until a newer connector read replaces it. */
 export const DEFAULT_MANAGER_ROOM_ACCOUNT: ManagerRhAccount = RH_AGENTIC_SNAPSHOT_2026_10_06;
 
-/** Monitor line, e.g. "BP $11.56 · below $150 envelope, arm blocked". */
+/** Monitor line, e.g. "BP $11.56 · below $50 envelope, arm blocked". */
 export function managerAccountLine(a: ManagerRhAccount | null | undefined): string {
   if (!a) return "RH account — no read";
   if (!Number.isFinite(a.optionsBuyingPowerUsd)) return "BP unknown · arm blocked";
@@ -194,7 +194,7 @@ export function managerAccountLine(a: ManagerRhAccount | null | undefined): stri
  * Account-side place gate. Refuses when the account block is missing, it is not
  * the Agentic trade account (account_number 995386158), the agent cannot act on
  * it, options level < 2, the block is a static snapshot, or BP is unknown /
- * < $150 / < ticket debit. Fail closed. Freshness is enforced by
+ * < $50 / < ticket debit. Fail closed. Freshness is enforced by
  * evaluateRhBuyingPower on accountAtReview in mayPlaceAfterReview.
  */
 export function accountPlaceGate(

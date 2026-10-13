@@ -10,7 +10,7 @@
  *
  * Fast (~600 ms) and pointer-events: none. prefers-reduced-motion gets a static
  * edge border instead of the fade. Header toggle: src/lib/ui/flash-prefs.ts.
- *   RH account (src/lib/ui/rh-account.ts): buying power drops below the $150
+ *   RH account (src/lib/ui/rh-account.ts): buying power drops below the $50
  *     envelope minimum → the veto red ("arm blocked")
  * Dev only: ?flash=stalking|armed|enter|veto|intrade|close-win|close-loss|close-flat|bp-low|bp-ok
  * previews a state (and holds it) for screenshots. Presentation only.

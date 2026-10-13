@@ -1,12 +1,12 @@
 /**
  * RH live proposal builder. Does NOT place.
  * Agent: review_option_order (preview — no preview_option_order) then place_option_order when armed.
- * Envelope $150-$550, 1-4 ct, ATM/OTM_1. Keaton 2026-10-06.
+ * Envelope $50-$550, 1-4 ct, ATM/OTM_1. Keaton 2026-10-06.
  * Primary trigger: PATH scanner fire (A+/A/A-/B+) → proposeRhFromPathFire →
  * review_option_order → mayPlaceAfterReview → place_option_order on Agentic 995386158.
  * Limit REQUIRES a live get_option_quotes ask + $0.02 (missing/stale/crossed → refuse); model priceHint cannot arm.
  * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
- * again before place (mayPlaceAfterReview.accountAtReview). BP < $150 → refused.
+ * again before place (mayPlaceAfterReview.accountAtReview). BP < $50 → refused.
  */
 import {
   evaluateRhAutofireGates,
@@ -170,11 +170,18 @@ export function evaluateRhLiveQuote(
   const spread = mid > 0 && bid != null && bid > 0 ? (ask - bid) / mid : 0;
   const walked = spread > 0.15 ? mid : ask + RH_LIMIT_SLIP;
   if (typeof q.asOfMs !== "number" || !Number.isFinite(q.asOfMs)) return { ok: false, reason: "Live quote time unknown — fail closed." };
-  if (nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
-    return { ok: false, reason: `Live quote is ${Math.round((nowMs - q.asOfMs) / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
+  const age = nowMs - q.asOfMs;
+  if (age < -RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS) {
+    return { ok: false, reason: `Live quote is stamped ${Math.round(-age / 1000)}s in the future (> ${RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS / 1000}s clock skew) — fail closed.` };
+  }
+  if (!(age >= -RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS && age <= RH_LIVE_QUOTE_MAX_AGE_MS)) {
+    return { ok: false, reason: `Live quote is ${Math.round(age / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
   }
   return { ok: true, ask, limit: Math.round(walked * 100) / 100 };
 }
+
+/** Max clock skew tolerated for a live quote stamped ahead of now. Beyond this → refuse. */
+export const RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS = 5_000;
 
 export interface RhReviewPlaceShape {
   optionId: string | null;
@@ -358,7 +365,7 @@ export function mayPlaceAfterReview(args: {
   }
   if (!args.agenticAllowed) return { ok: false, reason: "Robinhood account agentic_allowed=false — read-only." };
   if (!args.optionsLevelOk) return { ok: false, reason: "Options level < 2 — cannot buy calls/puts." };
-  // Fail closed: no Manager account block (Agentic 995386158, BP >= $150) → never place.
+  // Fail closed: no Manager account block (Agentic 995386158, BP >= $50) → never place.
   const acct = accountPlaceGate(args.account ?? null, { requiredDebitUsd: args.debitTotal ?? null });
   if (!acct.ok) return { ok: false, reason: acct.reason };
   // The trader authorized unattended place (2026-10-06). A review disclosure is not a click.
@@ -481,7 +488,7 @@ export interface RhPathFireTrigger {
  * review → place path. The continuous Floor / Trade Now read is the eye; the
  * fire is the trigger. Grades A+, A, A- (>= 0.65) and B+ (>= 0.60, its own
  * config band). Everything else is evaluateRhAutofireGates unchanged:
- * Floor ARMED + Stand agentAgree + hard BP (Agentic 995386158, >= $150) +
+ * Floor ARMED + Stand agentAgree + hard BP (Agentic 995386158, >= $50) +
  * Floor rules + envelope + env arms. Returns the review shape; never places.
  */
 export function proposeRhFromPathFire(args: {

@@ -337,7 +337,7 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     refIdHint: "test-ref-1",
   });
   check("propose missing liveQuote refuses", [noQuote.mode, noQuote.gated.gate, noQuote.placeShape], ["refused", "live_quote", null]);
-  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity]]) {
+  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity], ["-Infinity", -Infinity], ["string", String(NOW)], ["future +1h", NOW + 3_600_000], ["future +1y", NOW + 365 * 86_400_000], ["0", 0], ["negative", -1]]) {
     const noAsOf = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs } });
     check(`propose liveQuote asOfMs ${tag} refuses`, [noAsOf.mode, noAsOf.gated.gate, noAsOf.placeShape], ["refused", "live_quote", null]);
   }
@@ -394,7 +394,7 @@ console.log("\nmayPlaceAfterReview preflight");
   check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: undefined }).ok, false);
   const { liveQuote: _q, ...noQuote } = base;
   check("review omitted liveQuote refuses", rh.mayPlaceAfterReview(noQuote).ok, false);
-  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity]]) {
+  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity], ["-Infinity", -Infinity], ["string", String(NOW)], ["future +1h", NOW + 3_600_000], ["future +1y", NOW + 365 * 86_400_000], ["0", 0], ["negative", -1]]) {
     check(`review liveQuote asOfMs ${tag} refuses`, rh.mayPlaceAfterReview({ ...base, liveQuote: { ...base.liveQuote, asOfMs } }).ok, false);
   }
   const { account: _m, ...noManager } = base;

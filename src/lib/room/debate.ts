@@ -5,7 +5,7 @@
  * about the trade and not about who talks loudest. Thesis and challenges cite
  * live PATH scanner evidence (band / fit) and SMC sequence evidence from the
  * card — not vibes. Live RH when armed stays off-stage here but the shelf
- * (research.ts) carries $150–$550 / 1–4 ATM/OTM_1 / review→place / agentAgree.
+ * (research.ts) carries $50–$550 / 1–4 ATM/OTM_1 / review→place / agentAgree.
  * Distinct voices; clean turns.
  *
  *   thesis     the card's school owner states the setup in levels (+ PATH/SMC)

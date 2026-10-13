@@ -8,17 +8,17 @@
  * Buying-power hard gate (Keaton 2026-10-06): the agent MUST call get_portfolio
  * (account_number) before propose and again before place. Spendable =
  * buying_power.buying_power (never `cash` — unsettled proceeds on a cash account
- * are not spendable). Spendable < $150 → nothing in the envelope can place → refuse.
+ * are not spendable). Spendable < $50 → nothing in the envelope can place → refuse.
  * scripts/verify-rh-autofire-gates.mjs pins refusals.
  *
  * Accuracy: the arms default on. A fresh get_portfolio of Agentic 995386158
- * with spendable >= $150 is still required before any propose or place.
+ * with spendable >= $50 is still required before any propose or place.
  * Mirrors src/lib/room/exec/gates.ts: the broker's numbers; unknown BP = no.
  *
  * Gate checklist (evaluation order):
  *  1. env arms (RH_OPTIONS_AUTOFIRE_ENABLED, RH_LIVE_ARMED) + written confirmation
  *  2. hard BP gate (evaluateRhBuyingPower) — fresh get_portfolio, Agentic account
- *     number, agentic_allowed, option level 2 or 3 when reported, spendable >= $150
+ *     number, agentic_allowed, option level 2 or 3 when reported, spendable >= $50
  *  3. risk halt · news blackout · options session · one-book
  *  4. Floor rules (evaluateRhFloorRules): DTE 0/1 · tape (desk feed) <= 30s ·
  *     CE touch confirmed. Missing signal → refuse. The clock does not hard-refuse
@@ -216,7 +216,7 @@ export function rhSpendable(a: RhAccountSnapshot | null | undefined): number {
 
 /**
  * Hard BP gate. Fail closed: no read, stale read, non-live source, no access,
- * no options level, or spendable under the $150 envelope floor → refuse.
+ * no options level, or spendable under the $50 envelope floor → refuse.
  * With `debitTotal`, also refuses when spendable cannot cover that ticket.
  */
 export function evaluateRhBuyingPower(
