@@ -203,8 +203,22 @@ export class NavGrid {
     return true;
   }
 
+  /** floor-62 #30: A* results by start/goal cell (the grid is static after construction). */
+  private readonly pathCache = new Map<string, { pts: V2[]; found: boolean }>();
   /** A* from a to b; returns world waypoints ending exactly at b. */
   path(a: V2, b: V2): V2[] {
+    const key = `${this.cellOf(a[0], a[1]).join(",")}|${b[0].toFixed(2)},${b[1].toFixed(2)}`;
+    const hit = this.pathCache.get(key);
+    if (hit) {
+      this.lastFound = hit.found;
+      return hit.pts.length ? [...hit.pts.slice(0, -1), b] : [b];
+    }
+    const pts = this.pathRaw(a, b);
+    if (this.pathCache.size > 400) this.pathCache.clear();
+    this.pathCache.set(key, { pts, found: this.lastFound });
+    return pts;
+  }
+  private pathRaw(a: V2, b: V2): V2[] {
     const [si, sj] = this.nearestFree(...this.cellOf(a[0], a[1]));
     const [gi, gj] = this.nearestFree(...this.cellOf(b[0], b[1]));
     const N = this.nx * this.nz;

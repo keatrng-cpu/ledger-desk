@@ -998,6 +998,8 @@ export interface TalkState {
   recent: string[];
   /** floor-62: every line said today (normalised) — a line is never said twice in a day. */
   saidDay?: string[];
+  /** floor-62 #34: lines dropped by the number/repeat discipline (telemetry). */
+  droppedLines?: number;
   variant: Record<string, number>;
   spoke: Record<string, number[]>;
   newsSeen: string[];

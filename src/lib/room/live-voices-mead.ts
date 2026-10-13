@@ -343,10 +343,10 @@ export function exHallCrowd(cx: Ctx, h: HallLite): Ex | null {
   const up = m.velCph >= 0;
   const rx =
     reaction === "hail"
-      ? [() => `Hail! The whole hall is up on it!`, () => `That is a roar. Hail!`]
+      ? [() => `Hail! The whole hall is up on it, energy ${f.pct(energyPct)}!`, () => `That is a roar at ${f.pct(energyPct)} energy. Hail!`]
       : reaction === "cheer"
-        ? [() => `There it goes! Cheers all round!`, () => `The hall is cheering and I am with it.`]
-        : [() => `Ugh. The hall just groaned.`, () => `That is a groan. Everyone felt that one.`];
+        ? [() => `There it goes! Cheers all round, ${f.pct(energyPct)} energy!`, () => `The hall is cheering at ${f.pct(energyPct)} and I am with it.`]
+        : [() => `Ugh. The hall just groaned, ${f.pct(energyPct)} energy.`, () => `That is a groan at ${f.pct(energyPct)}. Everyone felt that one.`];
   const lines = compact([
     line("Vince", ANIM.Vince.watch!, pick(cx, "hall.crowd.vince", [
       () => `${subj(f, m)} is moving: ${c(f, Math.abs(m.velCph!))} an hour ${up ? "up" : "down"}${m.velHours != null ? `, over ${n(f, m.velHours)} hours` : ""}, from ${n(f, m.velPoints, 0)} hourly trade ${plural(m.velPoints, "point")}.`,
@@ -390,19 +390,19 @@ export function exHallClock(cx: Ctx, h: HallLite): Ex | null {
     const lines = compact([
       line("Gemma", ANIM.Gemma.explain!, pick(cx, h.rows.length === 0 ? "hall.clock.empty.gemma" : "hall.clock.old.gemma", h.rows.length === 0
         ? [
-            () => `The board has no priced market on it${h.reason ? `: ${t(f, h.reason, 90)}` : ""}.`,
-            () => `Nothing priced on the board${h.reason ? `. The note says ${t(f, h.reason, 90)}` : ""}.`,
+            () => `The board has no priced market on it, ${f.int(0)} rows${h.reason ? `: ${t(f, h.reason, 90)}` : ""}.`,
+            () => `Nothing priced on the board, ${f.int(0)} rows${h.reason ? `. The note says ${t(f, h.reason, 90)}` : ""}.`,
           ]
         : [
             () => `The last read is ${f.span(h.ageSec)} old. The engine calls a quote stale after ${n(f, h.staleSec, 0)} seconds, so nothing on the board is priced right now.`,
             () => `This board is ${f.span(h.ageSec)} old and the engine's limit is ${n(f, h.staleSec, 0)} seconds. We are looking at history.`,
           ])),
       line("Vince", ANIM.Vince.watch!, pick(cx, h.held ? "hall.clock.held.vince" : "hall.clock.old.vince", h.held
-        ? [() => `The last pull failed, so this is the board we kept.`, () => `A pull failed. The screens are holding the old board.`]
-        : [() => `No fresh pull has come in. I will not read cents off a stale board.`, () => `Nothing new has arrived. The cents on the screens are old.`])),
+        ? [() => `The last pull failed, so this is the board we kept, ${f.span(h.ageSec)} old.`, () => `A pull failed. The screens are holding the ${f.span(h.ageSec)}-old board.`]
+        : [() => `No fresh pull in ${f.span(h.ageSec)}. I will not read cents off a stale board.`, () => `Nothing new for ${f.span(h.ageSec)}. The cents on the screens are old.`])),
       line("Sterling", ANIM.Sterling.arms!, pick(cx, "hall.clock.old.sterling", [
-        () => `A stale price is history. We do not trade history, on paper or otherwise.`,
-        () => `Old prices are not prices. We wait for the next read.`,
+        () => `A ${f.span(h.ageSec)}-old price is history. We do not trade history, on paper or otherwise.`,
+        () => `Old prices are not prices; the limit is ${n(f, h.staleSec, 0)} seconds. We wait for the next read.`,
       ])),
     ]);
     return lines.length >= 2 ? { lines, moves: place(lines, AT_JUMBO) } : null;

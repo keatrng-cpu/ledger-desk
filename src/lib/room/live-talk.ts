@@ -1950,6 +1950,10 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
     }
     // floor-62 #7/#40: every line cites a live number and nothing said today is said again.
     const lines = disciplineLines(ex.lines, [...draft.recent, ...(draft.saidDay ?? [])]);
+    draft.droppedLines = (draft.droppedLines ?? 0) + (ex.lines.length - lines.length); // floor-62 #34
+    // A seat whose line was dropped is not walked anywhere to say nothing.
+    const speaking = new Set(lines.map((l) => l.character));
+    const moves = Object.fromEntries(Object.entries(ex.moves).filter(([who]) => speaking.has(who as Character))) as typeof ex.moves;
     if (!lines.length) {
       draft.suppressed += 1;
       st = draft;
@@ -1976,7 +1980,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
       label: c.label,
       urgency: c.urgency,
       lines,
-      moves: ex.moves,
+      moves,
       facts: f.list,
       estMs,
       ttlMs: TALK.ttlMs[c.urgency],
@@ -2024,9 +2028,16 @@ function skepticCands(w: TalkWorld, st: TalkState, out: Cand[]) {
               ? `fit ${f.raw(ch.value.toFixed(2))} clears the A-minus edge of ${f.raw((ch.edge ?? 0).toFixed(2))} by ${f.raw((ch.margin ?? 0).toFixed(2))}`
               : `the A-minus edge is ${f.raw((ch.edge ?? 0).toFixed(2))}`;
       const geoLine = geo.ok ? null : `And the plan is inverted: ${f.raw(geo.why)}. Nobody narrates it until it is fixed.`;
+      // floor-62 #38: the presenting seat answers with the card's own numbers.
+      const rr = k.entry != null && k.stop != null && k.t1 != null && k.entry !== k.stop ? Math.abs(k.t1 - k.entry) / Math.abs(k.entry - k.stop) : null;
+      const rebut =
+        geo.ok && k.entry != null
+          ? `Gemma: CE ${f.lvl(k.entry)}${k.stop != null ? `, stop ${f.lvl(k.stop)}` : ""}${rr != null ? `, ${f.raw(rr.toFixed(1))} to 1 on T1` : ""}. The grade holds only if that is touched.`
+          : null;
       const lines = [
         V.line("Sterling", "CROSSING_ARMS", `Skeptic: ${k.band} on ${k.futSymbol} ${k.futSide}, but ${what}.`),
         V.line("Sterling", "CHECKING_TABLET", geoLine),
+        rebut ? V.line("Gemma", "EXPLAINING", rebut.replace(/^Gemma: /, "")) : null,
       ];
       return { lines: V.compact(lines), moves: {} };
     },

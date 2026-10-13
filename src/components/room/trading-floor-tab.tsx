@@ -1376,7 +1376,7 @@ function DecisionStrip({
         </span>
       </button>
       <RhAccountStrip />
-      <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · rules ${RULES_HASH}`}>{kzSeatNote()}</div>
+      <div className="text-[11px] text-[var(--color-fg)] opacity-80 sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · rules ${RULES_HASH}`}>{kzSeatNote()}</div>
     </div>
   );
 }
@@ -1719,7 +1719,27 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             </button>
           </div>
         )}
-        <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-1">
+        {/* floor-62 #51/#52: on phones one compact camera picker replaces the three rows of buttons (no overlap with the state chip). */}
+        <div className="absolute right-2 top-2 sm:hidden">
+          <label className="sr-only" htmlFor="floor-cam-select">Camera</label>
+          <select
+            id="floor-cam-select"
+            value={camera}
+            onChange={(e) => {
+              const id = e.target.value as typeof camera;
+              if (camera === id) sceneRef.current?.setCamera(id);
+              else setCamera(id);
+            }}
+            className="rounded bg-black/70 px-2 py-1 text-[11px] text-slate-100"
+          >
+            {CAMERAS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="absolute right-2 top-2 hidden flex-wrap justify-end gap-1 sm:flex">
           {CAMERAS.map((c) => (
             <button
               key={c.id}

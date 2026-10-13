@@ -121,8 +121,8 @@ export function exTouchRound(c: Ctx, d: TouchRoundData): Ex | null {
     const why = f.raw(clip(b.why ?? "a rule holds it", 90));
     lines.push(
       line("Sterling", ANIM.Sterling.tablet!, pick(c, "seat.blocked", [
-        () => (b.seats.length >= 2 ? `${names} are blocked: ${stop(why)}` : `${names} is blocked — ${stop(why)}`),
-        () => `${names} can't take it: ${stop(why)} That's a rule, not an opinion.`,
+        () => (b.seats.length >= 2 ? `${names} are blocked: ${stop(why)} ${f.int(b.seats.length)} seats held at ${f.clock(c.now)}.` : `${names} is blocked — ${stop(why)} Held at ${f.clock(c.now)}.`),
+        () => `${names} can't take it: ${stop(why)} That's a rule, not an opinion — ${f.int(b.seats.length)} held at ${f.clock(c.now)}.`,
       ])),
     );
   }
@@ -136,7 +136,7 @@ export function exTouchRound(c: Ctx, d: TouchRoundData): Ex | null {
     );
   }
   if (!d.opens.length && !d.skips.length && d.blocked.length) {
-    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "seat.blocked.jax", [() => `Held by a rule again. I'd like it noted that I noticed.`, () => `Rules hold everyone the same. That's the only reason I tolerate them.`])));
+    lines.push(line("Jax", ANIM.Jax.point!, pick(c, "seat.blocked.jax", [() => `Held by a rule again, ${f.int(d.blocked.length)} of us. I'd like it noted that I noticed.`, () => `${f.int(d.blocked.length)} held by the same rule as everyone. That's the only reason I tolerate them.`])));
   }
   const opened = new Set(d.opens.map((e) => voice(e.seat)));
   if (d.opens.length && !opened.has("Jax")) {
@@ -182,8 +182,8 @@ export function exSeatClose(c: Ctx, d: SeatCloseData): Ex | null {
         })()))
       : null,
     who !== "Jax"
-      ? line("Jax", up ? ANIM.Jax.shout! : ANIM.Jax.point!, pick(c, up ? "seat.close.jax.up" : "seat.close.jax.dn", up ? [() => `Take the money and run. That's the sport.`, () => `See? Somebody gets it.`] : [() => `It happens. Next card.`, () => `That's why I size the next one bigger.`]))
-      : line("Sterling", ANIM.Sterling.arms!, pick(c, up ? "seat.close.sterling.up" : "seat.close.sterling.dn", up ? [() => `One ticket is a sample of one.`, () => `Noted. Don't let it change the size.`] : [() => `A stop is the system working.`, () => `A lottery ticket lost like a lottery ticket. The floor held.`])),
+      ? line("Jax", up ? ANIM.Jax.shout! : ANIM.Jax.point!, pick(c, up ? "seat.close.jax.up" : "seat.close.jax.dn", up ? [() => `Take the money and run. Number ${f.int(d.rank)} of ${f.int(d.of)} now. That's the sport.`, () => `See? Somebody gets it: ${f.int(d.rank)} of ${f.int(d.of)}.`] : [() => `It happens. ${f.int(d.rank)} of ${f.int(d.of)}. Next card.`, () => `${f.int(d.rank)} of ${f.int(d.of)}. That's why I size the next one bigger.`]))
+      : line("Sterling", ANIM.Sterling.arms!, pick(c, up ? "seat.close.sterling.up" : "seat.close.sterling.dn", up ? [() => `One ticket is a sample of ${f.int(1)}. Rank ${f.int(d.rank)} of ${f.int(d.of)} means little yet.`, () => `Noted, ${f.int(d.rank)} of ${f.int(d.of)}. Don't let it change the size.`] : [() => `A stop is the system working. ${f.int(d.rank)} of ${f.int(d.of)}.`, () => `A lottery ticket lost like a lottery ticket. ${f.int(d.rank)} of ${f.int(d.of)}; the floor held.`])),
   ]);
   return lines.length >= 2 ? { lines, moves: {} } : null;
 }
@@ -209,8 +209,8 @@ export function exLead(c: Ctx, d: LeadData): Ex | null {
           () => `New leader. ${name} at ${f.usd(d.equity)}, ${f.usd(d.margin)} clear.`,
         ])),
     who === "Jax"
-      ? line("Jax", ANIM.Jax.shout!, pick(c, "seat.lead.jax", [() => `Say it. Who's leading?`, () => `I want that written on the whiteboard in red.`]))
-      : line("Jax", ANIM.Jax.point!, pick(c, "seat.lead.rival", [() => `That won't last.`, () => `Lead's a loan. I'll collect.`])),
+      ? line("Jax", ANIM.Jax.shout!, pick(c, "seat.lead.jax", [() => `Say it. ${f.usd(d.equity)}. Who's leading?`, () => `${f.usd(d.margin)} clear. I want that written on the whiteboard in red.`]))
+      : line("Jax", ANIM.Jax.point!, pick(c, "seat.lead.rival", [() => `${f.usd(d.margin)}? That won't last.`, () => `A ${f.usd(d.margin)} lead's a loan. I'll collect.`])),
     line("Sterling", ANIM.Sterling.tablet!, pick(c, d.tickets === 0 ? "seat.lead.sterling.open" : "seat.lead.sterling", d.tickets === 0
       ? [() => `No ticket has closed yet. A lead on marks is not a result.`, () => `That's an open ticket's mark. Wait for it to close.`]
       : [
@@ -328,8 +328,8 @@ export function exCouncil(c: Ctx, d: CouncilData): Ex | null {
   if (pending) {
     lines.push(
       line("Sterling", ANIM.Sterling.tablet!, pick(c, "goal.council.sterling3", [
-        () => `And one is the trader's to set: ${f.raw(clip(pending.decision ?? "", 120))}`,
-        () => `That number isn't ours: ${f.raw(clip(pending.decision ?? "", 120))}`,
+        () => `And one is the trader's to set, as of ${f.clock(c.now)}: ${f.raw(clip(pending.decision ?? "", 120))}`,
+        () => `That number isn't ours, as of ${f.clock(c.now)}: ${f.raw(clip(pending.decision ?? "", 120))}`,
       ])),
     );
   }
@@ -340,14 +340,14 @@ export function exCouncil(c: Ctx, d: CouncilData): Ex | null {
           () => `${g.needed.pWin != null ? `${f.frac(g.needed.pWin)} winners` : "More winners"}${g.needed.lambdaMultiple != null ? ` or ${f.x(g.needed.lambdaMultiple)} the cards` : ""}. That's the ask. I'll take the biggest ticket the cap allows.`,
         ])
       : pick(c, "goal.council.jax.none", [
-          () => `No measured win rate walks us there by itself. We take every B+ the chart clears, and we size it.`,
-          () => `The wins aren't the holdup. Every card that clears the chart gets a ticket.`,
+          () => `No measured win rate walks us there by itself. ${f.int(g.ladder.n)} strikes on the ladder; we take every B+ the chart clears, and we size it.`,
+          () => `The wins aren't the holdup. ${f.int(g.ladder.n)} strikes to choose from; every card that clears the chart gets a ticket.`,
         ])),
   );
   const nq = d.b;
   const gem =
     d.weekTrade
-      ? pick(c, "goal.council.gemma.week", [() => `Today's plan, as written: ${f.raw(clip(d.weekTrade!, 120))}`, () => `The week's plan for today: ${f.raw(clip(d.weekTrade!, 120))}`])
+      ? pick(c, "goal.council.gemma.week", [() => `Today's plan, as written: ${f.raw(clip(d.weekTrade!, 120))}${nq ? ` ${nq.say} is ${f.lvl(nq.px)}.` : ` Read at ${f.clock(c.now)}.`}`, () => `The week's plan for today: ${f.raw(clip(d.weekTrade!, 120))}${nq ? ` ${nq.say} at ${f.lvl(nq.px)}.` : ` Read at ${f.clock(c.now)}.`}`])
       : nq?.draw
         ? pick(c, "goal.council.gemma.draw", [() => `${nq.say} is ${nq.htf === "bull" ? "bullish" : nq.htf === "bear" ? "bearish" : "undecided"} on the higher frames; the draw is ${f.raw(nq.draw!.name)} at ${f.lvl(nq.draw!.price)}.`, () => `Where price wants to go: ${f.raw(nq.draw!.name)}, ${f.lvl(nq.draw!.price)}. Everything else is noise on the way.`])
         : null;
