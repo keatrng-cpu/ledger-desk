@@ -15,6 +15,7 @@ import { ticketManageLines } from "@/lib/execution/opt-exec";
 
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import RULES_DESK from "../../../shared/desk-rules.json";
+import { latePnlCheck } from "@/lib/smc/loss-guards";
 const RULES_FIRE = RULES_DESK.fire;
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
@@ -1719,17 +1720,33 @@ function pathContinuation(
         )
       : null;
   // Loss guards (shared rules loss.htf): 1h+4h both oppose → the desk set sizeMult < 1 on the card; the Floor ticket applies it.
+  let guardDenied = false; // a loss guard (htf block / late PnL) took the ticket — not a sizing miss
   const lossMult = (c as { sizeMult?: number } | undefined)?.sizeMult ?? 1;
-  if (ticket && c && lossMult < 1) {
+  if (ticket && c && lossMult <= 0) {
+    // a block (sizeMult 0) is no ticket, never a 1-contract floor
+    blocks.push(`1h+4h oppose: size ×${lossMult} — no ticket`); ticket = null; guardDenied = true;
+  } else if (ticket && c && lossMult < 1) {
     const n = Math.max(1, Math.floor(ticket.contracts * lossMult));
     if (n < ticket.contracts) ticket = shrinkTicket(ticket, n, `1h+4h oppose size cut ×${lossMult}`);
     else reasons.push(`1h+4h oppose size cut ×${lossMult} wanted; ticket already at the 1-contract floor`);
+  }
+  // Full late rule, option half (lateEntry.pnlMinPct): a late card the desk let through (band + RR) is only
+  // ARMED when the option PnL at T1 clears the bar — the watcher checks the same before it fires.
+  const lateRead = (c as { loss?: { late?: { late?: boolean; block?: boolean; px?: number | null; t1?: number | null } } } | undefined)?.loss?.late;
+  if (ticket && c && lateRead?.late && !lateRead.block) {
+    const lp = latePnlCheck({
+      px: lateRead.px ?? null, t1: lateRead.t1 ?? null, spot,
+      delta: ticket.live?.delta ?? (ticket.deltaMin + ticket.deltaMax) / 2,
+      askEach: ticket.live?.ask ?? ticket.estDebitEach / 100,
+    });
+    if (lp.ok) reasons.push(lp.why);
+    else { blocks.push(lp.why); ticket = null; guardDenied = true; }
   }
   if (ticket && c && pressured) {
     const n = contractsAfterEvent(c.confluence, String(c.pathBand || c.grade), true);
     if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");
   }
-  if (c && verdict !== "STAND" && !ticket) {
+  if (c && verdict !== "STAND" && !ticket && !guardDenied) {
     blocks.push(
       liveInputs?.chains?.[underlier]
         ? `No live contract in the delta band could be sized inside $${RH_MIN_DEBIT_TOTAL}-$${RH_MAX_DEBIT_TOTAL} against the raid wick. SKIP — the ticket is not oversized to make one.`

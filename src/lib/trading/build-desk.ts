@@ -1633,13 +1633,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         if (rrBad) { if (isLive(LOSS_RULES.stop.mode)) { watch(rrBad); continue; } shadow("stop", `watch row: ${rrBad}`); }
         // 5) chop; 2b) velocity
+        let liveMut = false; // a LIVE chop/velocity changed band or q — only then re-seal
         const ch = lossGuards.chopRead(m, atr);
         out.chop = ch;
-        if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
+        if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { liveMut = true; c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
         const v = lossGuards.velocityRead(m, entry, pl.t1);
         out.velocity = v;
-        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
-        sealBand(c as never);
+        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
+        if (liveMut) sealBand(c as never);
         // 1) 1h AND 4h both against the side
         const hb = htfBiasOf(mtfContext, c.symbol);
         const pool = side === "long" ? "sellside" : "buyside";
@@ -1658,7 +1659,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const rrFromPx = price == null || pl.t1 == null ? null : (side === "long" ? pl.t1 - price : price - pl.t1) / Math.abs(price - pl.stop);
         const lateMin = (RULES_ALL.lateEntry.rrMin as Record<string, number>)[String(c.pathBand)];
         const lg = lossGuards.lateGuard(past != null && past > 0 ? price : null, entry, atr, lateMin != null && rrFromPx != null && rrFromPx >= lateMin);
-        out.late = lg;
+        // Desk half of the full late rule: band (A+/A/A-) + RR from price. The other half — Floor ARMED and
+        // lateEntry.pnlMinPct on the option — needs the ticket, so the Floor checks it (options-desk pathContinuation),
+        // the same two checks the watcher's entry_distance_check makes.
+        out.late = { ...lg, px: price, t1: pl.t1, needs: lg.late && !lg.block ? ["ARMED", "pnlMinPct"] : [] };
         if (lg.block) {
           if (isLive(LOSS_RULES.late.mode)) { c.actionable = false; c.reasons.push(lg.why!); guards.live.push({ rule: "late", did: lg.why! }); lossBlocked.set(`${c.symbol}:${side}`, lg.why!); }
           else shadow("late", lg.why!);

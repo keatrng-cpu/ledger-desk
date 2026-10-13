@@ -97,3 +97,32 @@ test("watcher (Python) reads the same modes and keeps shadow rules out of the fi
   for (const k of ["htf", "early", "velocity", "stop", "late", "chop", "target", "option"]) assert.equal(r[k], L[k].mode, k);
   assert.equal(r.be, L.target.beMode);
 });
+
+test("full late rule, option half: latePnlCheck = watcher entry_distance_check PnL (lateEntry.pnlMinPct), fail-closed", () => {
+  const min = RULES.lateEntry.pnlMinPct;
+  // px 100, T1 104, spot 500 → und move 20; delta 0.5 → $1000/ct; bar = min × ask × 100
+  assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 1000 / (min * 100) }).ok, true);
+  assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 1000 / (min * 100) + 0.01 }).ok, false);
+  for (const k of ["px", "t1", "spot", "delta", "askEach"]) assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 2, [k]: null }).ok, false, k);
+  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/gates.py`));
+  if (!dir) return;
+  const cases = [[100, 104, 500, 0.5, 13.3], [100, 104, 500, 0.5, 13.4], [7000, 7010, 600, 0.42, 0.5], [7000, 7010, 600, 0.42, 1.2]];
+  for (const [px, t1, spot, delta, ask] of cases) {
+    const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import gates\nsnap={"band":"A+","verdict":"ARMED","side":"long","first_target":${t1},"displacement":True}\nok,path,why=gates.entry_distance_check(snap, ${px}, ${px} - 50, 10, ${px} - 1, {"ask": ${ask}, "delta": ${delta}}, {"spot": ${spot}}, 1)\nprint(json.dumps(ok))`;
+    const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());
+    assert.equal(g.latePnlCheck({ px, t1, spot, delta, askEach: ask }).ok, r, JSON.stringify([px, t1, spot, delta, ask]));
+  }
+});
+
+test("Floor: htf sizeMult <= 0 is no ticket (not a 1-contract floor); late card needs latePnlCheck to stay ARMED", () => {
+  const od = readFileSync(new URL("../src/lib/trading/options-desk.ts", import.meta.url), "utf8");
+  assert.match(od, /lossMult <= 0\) \{[\s\S]{0,200}ticket = null/);
+  assert.match(od, /latePnlCheck\(\{[\s\S]{0,300}else \{ blocks\.push\(lp\.why\); ticket = null/);
+});
+
+test("sealBand in the loss loop only runs after a LIVE chop/velocity change (shadow stays a no-op)", () => {
+  const bd = readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  assert.match(bd, /if \(liveMut\) sealBand\(c as never\);\n\s*\/\/ 1\) 1h AND 4h/);
+  assert.match(bd, /isLive\(LOSS_RULES\.chop\.mode\)\) \{ liveMut = true;/);
+  assert.match(bd, /isLive\(LOSS_RULES\.velocity\.mode\)\) \{ liveMut = true;/);
+});

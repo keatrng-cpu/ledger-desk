@@ -65,6 +65,22 @@ export function lateGuard(price: number | null, level: number | null, atr: numbe
     why: late ? `price ${d.toFixed(2)}×ATR past the level (> ${LOSS.late.maxAtr})${fullLateRulePasses ? " — full late-entry rule passes" : " — late, blocked"}` : null };
 }
 
+/**
+ * 4b) the option leg of the full late-entry rule (lateEntry.pnlMinPct), same formula as the watcher's
+ * entry_distance_check: |delta| x |T1 - px| x spot/px x 100 >= pnlMinPct x ask x 100 (per contract).
+ * Missing inputs fail closed. The Floor applies it; ARMED is the Floor verdict the watcher also requires.
+ */
+export function latePnlCheck(o: { px: number | null; t1: number | null; spot: number | null; delta: number | null; askEach: number | null }) {
+  const min = (RULES as { lateEntry: { pnlMinPct: number } }).lateEntry.pnlMinPct;
+  const { px, t1, spot, delta, askEach } = o;
+  if (px == null || !(px > 0) || t1 == null || spot == null || !(spot > 0) || delta == null || !(askEach! > 0)) {
+    return { ok: false, pnl: null as number | null, why: `late entry: option PnL at T1 unknown (px=${px} t1=${t1} spot=${spot} delta=${delta} ask=${askEach})` };
+  }
+  const pnl = +(Math.abs(delta) * Math.abs(t1 - px) * spot / px * 100).toFixed(2);
+  const need = +(min * askEach! * 100).toFixed(2);
+  return { ok: pnl >= need, pnl, why: `late entry: option PnL@T1 $${pnl}/ct ${pnl >= need ? ">=" : "<"} ${Math.round(min * 100)}% of $${need / min}` };
+}
+
 /** 5) chop: range, 5m overlap and failed breaks of the prior range. */
 export function chopRead(m1closed: OhlcBar[], atr: number | null) {
   const w = m1closed.slice(-LOSS.chop.lookbackMin);
