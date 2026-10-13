@@ -142,3 +142,6 @@ Fix: `killVoided` — a kill is void (treated like a re-arm, capped A-) after `k
 ## 2026-10-13 — Chain window 10s; order-review age runs from a post-review quote re-read (Accuracy a10a66a7 / 7cc00057)
 - `fire.chainMaxAgeS` 10 → `CHAIN_MAX_AGE_MS` (was a hard-coded 30s in options-desk.ts), with a parity test. The quote window `fire.quoteMaxAgeS` stays 3s and the order-review window `fire.orderReviewMaxAgeS` stays 1s.
 - The RH dispatcher re-reads `get_option_quotes` after `review_option_order` and the account read, and stamps `readAtMs`. `mayPlaceAfterReview` (requireReviewQuote) refuses a quote with no review-time read or one older than 1s. The age is measured again right before `place_option_order`, after `ledger.claim`, so the 1s bound covers re-read → send. Propose time does not count: an MCP propose→review round trip is seconds long.
+
+## 2026-10-13 — auto-memory protocol adopted
+Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `ai/NOW.md` + a graph slice at task start and update NOW/DECISIONS at task end; graph refresh by post-commit hook and the `graphify-refresh` Action (writes only to the `graph` branch). Why: shared memory without being asked, low token use (graph query, not GRAPH_REPORT).
