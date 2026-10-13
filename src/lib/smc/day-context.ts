@@ -17,15 +17,16 @@ const hi = (b: OhlcBar[]) => Math.max(...b.map((x) => x.h));
 const lo = (b: OhlcBar[]) => Math.min(...b.map((x) => x.l));
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)]! : 0; };
 
-/** Session slices of today's (ET) minute bars. Asia 18:00–00:00 prior evening, London 02:00–05:00, overnight 18:00–09:30, OR 09:30–09:45. */
+/** Session slices of today's (ET) minute bars. Asia 20:00–00:00 prior evening, London 02:00–05:00, overnight 18:00–09:30, OR 09:30–09:45. */
 export function sessions(minute: OhlcBar[], nowMs: number) {
   const today = et(nowMs).day;
   const tag = minute.map((b) => ({ b, ...et(b.t) }));
   const td = tag.filter((x) => x.day === today);
   const prevEve = tag.filter((x) => x.day !== today && x.min >= 18 * 60 && nowMs - x.b.t < 20 * 3_600_000);
-  const asia = prevEve.map((x) => x.b);
+  // Asia 20:00–00:00 ET (Keaton's window); the overnight range still opens at 18:00
+  const asia = prevEve.filter((x) => x.min >= 20 * 60).map((x) => x.b);
   const london = td.filter((x) => x.min >= 120 && x.min < 300).map((x) => x.b);
-  const overnight = [...asia, ...td.filter((x) => x.min < 570).map((x) => x.b)];
+  const overnight = [...prevEve.map((x) => x.b), ...td.filter((x) => x.min < 570).map((x) => x.b)];
   const or = td.filter((x) => x.min >= 570 && x.min < 585).map((x) => x.b);
   const ny = td.filter((x) => x.min >= 570).map((x) => x.b);
   return { asia, london, overnight, or, ny };

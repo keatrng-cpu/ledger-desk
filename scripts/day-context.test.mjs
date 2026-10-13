@@ -16,7 +16,7 @@ test("6/14: opening range fakeout above → short; SD projections from OR", () =
   assert.equal(r.sd.up2, 110); assert.equal(r.sd.dn25, 88);
 });
 test("3: London sweeps the Asia high → NY favours short", () => {
-  const m = [mb(Date.UTC(2026, 9, 12, 23, 0), 100, 105, 95, 100), mb(at(3, 0), 100, 107, 99, 101)];
+  const m = [mb(Date.UTC(2026, 9, 13, 1, 0), 100, 105, 95, 100), mb(at(3, 0), 100, 107, 99, 101)];
   const r = d.sessionSequence(m, at(10, 0));
   assert.equal(r.londonSwept, "Asia high"); assert.equal(r.nyFavours, "short");
 });
