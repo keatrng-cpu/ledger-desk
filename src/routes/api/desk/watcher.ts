@@ -1,0 +1,49 @@
+/**
+ * /api/desk/watcher — the Watcher tab feed.
+ * GET: latest desk-watcher status (public-safe: account masked ••••6158, no balances, no credentials). Read only.
+ * POST: the watcher pushes its status with `Authorization: Bearer <CRON_SECRET>`; payload is re-checked server side.
+ * No order endpoints here — the tab is read-only.
+ */
+import { createFileRoute } from "@tanstack/react-router";
+import { authorizeCronRequest, jsonResponse } from "@/lib/alerts/cron";
+import { safeWatcherStatus, WATCHER_STALE_S } from "@/lib/desk/watcher-status";
+
+async function get(): Promise<Response> {
+  try {
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const rows = (await sql`select body, received_ms from desk_watcher_status where id = 1`) as { body: Record<string, unknown>; received_ms: number }[];
+    if (!rows.length) return jsonResponse({ ok: true, status: null, note: "watcher has not reported yet" }, 200, { "cache-control": "no-store" });
+    const r = rows[0];
+    const hb = Number((r.body as { heartbeat?: number }).heartbeat ?? 0) * 1000;
+    const ageS = hb ? (Date.now() - hb) / 1000 : null;
+    return jsonResponse({ ok: true, status: r.body, receivedMs: Number(r.received_ms), heartbeatAgeS: ageS, stale: ageS == null || ageS > WATCHER_STALE_S }, 200, { "cache-control": "no-store" });
+  } catch (err) {
+    console.error("[desk] watcher status read failed:", err);
+    return jsonResponse({ ok: false, error: "watcher status unavailable" }, 503);
+  }
+}
+
+async function post({ request }: { request: Request }): Promise<Response> {
+  const auth = authorizeCronRequest(request);
+  if (!auth.ok) return auth.response;
+  let raw: unknown;
+  try { raw = await request.json(); } catch { return jsonResponse({ ok: false, error: "bad json" }, 400); }
+  const s = safeWatcherStatus(raw);
+  if (!s.ok) return jsonResponse({ ok: false, error: `rejected: ${s.why}` }, 422);
+  try {
+    const { getSql } = await import("@/lib/db");
+    const sql = await getSql();
+    const body = JSON.stringify(s.body);
+    await sql`insert into desk_watcher_status (id, body, received_ms) values (1, ${body}::jsonb, ${Date.now()})
+              on conflict (id) do update set body = excluded.body, received_ms = excluded.received_ms`;
+    return jsonResponse({ ok: true }, 200);
+  } catch (err) {
+    console.error("[desk] watcher status write failed:", err);
+    return jsonResponse({ ok: false, error: "store failed" }, 503);
+  }
+}
+
+export const Route = createFileRoute("/api/desk/watcher")({
+  server: { handlers: { GET: get, POST: post } },
+});

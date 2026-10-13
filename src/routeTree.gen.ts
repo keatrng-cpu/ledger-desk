@@ -22,6 +22,7 @@ import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiDeskJournalRouteImport } from './routes/api/desk/journal'
+import { Route as ApiDeskWatcherRouteImport } from './routes/api/desk/watcher'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
 import { Route as ApiRhCallbackRouteImport } from './routes/api/rh/callback'
@@ -93,6 +94,11 @@ const ApiDeskJournalRoute = ApiDeskJournalRouteImport.update({
   path: '/api/desk/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeskWatcherRoute = ApiDeskWatcherRouteImport.update({
+  id: '/api/desk/watcher',
+  path: '/api/desk/watcher',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEngineHeartbeatRoute = ApiEngineHeartbeatRouteImport.update({
   id: '/api/engine/heartbeat',
   path: '/api/engine/heartbeat',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
+  '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
+  '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
+  '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/api/desk/card'
     | '/api/desk/handoff'
     | '/api/desk/journal'
+    | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/api/desk/card'
     | '/api/desk/handoff'
     | '/api/desk/journal'
+    | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/api/desk/card'
     | '/api/desk/handoff'
     | '/api/desk/journal'
+    | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
     | '/api/rh/callback'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   ApiDeskCardRoute: typeof ApiDeskCardRoute
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiDeskJournalRoute: typeof ApiDeskJournalRoute
+  ApiDeskWatcherRoute: typeof ApiDeskWatcherRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
   ApiRhCallbackRoute: typeof ApiRhCallbackRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeskJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/desk/watcher': {
+      id: '/api/desk/watcher'
+      path: '/api/desk/watcher'
+      fullPath: '/api/desk/watcher'
+      preLoaderRoute: typeof ApiDeskWatcherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/engine/heartbeat': {
       id: '/api/engine/heartbeat'
       path: '/api/engine/heartbeat'
@@ -409,6 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeskCardRoute: ApiDeskCardRoute,
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiDeskJournalRoute: ApiDeskJournalRoute,
+  ApiDeskWatcherRoute: ApiDeskWatcherRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
   ApiRhCallbackRoute: ApiRhCallbackRoute,

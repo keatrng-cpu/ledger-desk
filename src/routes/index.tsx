@@ -75,6 +75,7 @@ import { MarketNarrativePanel } from "@/components/desk/market-narrative-panel";
 import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
+import { WatcherTab } from "@/components/watcher/watcher-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
@@ -760,7 +761,8 @@ type DeskCategory =
   | "backtest"
   | "tape"
   | "risk"
-  | "lab";
+  | "lab"
+  | "watcher";
 
 type CategoryDef = {
   id: DeskCategory;
@@ -846,6 +848,13 @@ const CATEGORIES: CategoryDef[] = [
     short: "Inv",
     hint: "Shares · sweep · 2035",
     icon: Landmark,
+  },
+  {
+    id: "watcher",
+    label: "Watcher",
+    short: "Wch",
+    hint: "Live RH options from the desk · read-only",
+    icon: Crosshair,
   },
   {
     id: "predict",
@@ -1969,6 +1978,7 @@ function MasterplacePage() {
                   (SessionHud → SynapseChip) that expands into the same box. */}
 
               {cat === "learn" && <LearnTab desk={desk} />}
+              {cat === "watcher" && <WatcherTab />}
               {/* The kill-rule check now lives inside the panel, beside the
                   research it checks. */}
               {cat === "invest" && <InvestPanel />}
