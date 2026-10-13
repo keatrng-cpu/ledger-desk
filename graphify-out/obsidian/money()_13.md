@@ -1,19 +1,21 @@
 ---
-source_file: "src/lib/execution/rh-cycle.ts"
+source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 83"
-location: "L92"
+community: "seats.ts"
+location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/seatsts
 ---
 
 # money()
 
 ## Connections
-- [[closeOf()]] - `calls` [EXTRACTED]
-- [[decideRhCycle()]] - `calls` [EXTRACTED]
-- [[rh-cycle.ts]] - `contains` [EXTRACTED]
+- [[leagueRead]] - `calls` [EXTRACTED]
+- [[seatCash()]] - `calls` [EXTRACTED]
+- [[seatEquity()]] - `calls` [EXTRACTED]
+- [[seats.ts]] - `contains` [EXTRACTED]
+- [[stepSeats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/seatsts

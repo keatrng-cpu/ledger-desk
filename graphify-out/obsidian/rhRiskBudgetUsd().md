@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 172"
+community: "entry-trigger.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/entry-triggerts
 ---
 
 # rhRiskBudgetUsd()
@@ -21,4 +21,4 @@ tags:
 - [[toTicket()]] - `calls` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

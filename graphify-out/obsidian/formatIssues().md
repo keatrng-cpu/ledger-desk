@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/schema.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L125"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # formatIssues()
@@ -18,4 +18,4 @@ tags:
 - [[heartbeat.ts]] - `imports` [EXTRACTED]
 - [[schema.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

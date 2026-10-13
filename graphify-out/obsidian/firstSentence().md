@@ -1,0 +1,21 @@
+---
+source_file: "src/lib/room/invest-read.ts"
+type: "code"
+community: "invest-firm.ts"
+location: "L102"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/invest-firmts
+---
+
+# firstSentence()
+
+## Connections
+- [[boardOf()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[invest-read.ts]] - `contains` [EXTRACTED]
+- [[policyOf()_1]] - `calls` [EXTRACTED]
+- [[sentences()]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

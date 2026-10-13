@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/paper-scorer.ts"
 type: "code"
-community: "Community 63"
+community: "pm-analyzer.tsx"
 location: "L126"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/pm-analyzertsx
 ---
 
 # ScorerOptions
@@ -16,4 +16,4 @@ tags:
 - [[WalkForwardOptions]] - `inherits` [EXTRACTED]
 - [[paper-scorer.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

@@ -1,18 +1,20 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 227"
-location: "L171"
+community: "live-voices-mead.ts"
+location: "L278"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_227
+  - graphify/EXTRACTED
+  - community/live-voices-meadts
 ---
 
 # bandOf()
 
 ## Connections
-- [[build-replay-drills.mjs]] - `indirect_call` [INFERRED]
-- [[verify-replay-drills.mjs]] - `indirect_call` [INFERRED]
+- [[c()_2]] - `calls` [EXTRACTED]
+- [[exHallBins()]] - `calls` [EXTRACTED]
+- [[live-voices-mead.ts]] - `contains` [EXTRACTED]
+- [[n()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

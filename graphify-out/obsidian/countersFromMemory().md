@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 60"
+community: "veteran-brain.ts"
 location: "L553"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/veteran-braints
 ---
 
 # countersFromMemory()
@@ -16,10 +16,11 @@ tags:
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports` [EXTRACTED]
 - [[emptyBookCounters()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[monthKeyFromMs()]] - `calls` [EXTRACTED]
 - [[paperFillsForMonth()]] - `calls` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

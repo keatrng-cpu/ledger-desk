@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/must-ring.tsx"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # MustRing()
@@ -18,4 +18,4 @@ tags:
 - [[price-path-board.tsx]] - `imports` [EXTRACTED]
 - [[usePlainify()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

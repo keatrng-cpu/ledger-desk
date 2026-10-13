@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/capture-intrabar.mjs"
 type: "code"
-community: "Community 36"
-location: "L206"
+community: "capture-intrabar.mjs"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/capture-intrabarmjs
 ---
 
 # mb
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[capture-intrabar.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/capture-intrabarmjs

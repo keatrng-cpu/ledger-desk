@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-setup-anticipation.mjs"
 type: "code"
-community: "Community 252"
+community: "longAt"
 location: "L158"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_252
+  - community/longAt
 ---
 
 # shortAt()
@@ -17,4 +17,4 @@ tags:
 - [[seq()]] - `calls` [EXTRACTED]
 - [[verify-setup-anticipation.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_252
+#graphify/code #graphify/EXTRACTED #community/longAt

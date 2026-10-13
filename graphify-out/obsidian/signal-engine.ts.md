@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-engine.ts"
 type: "code"
-community: "Community 12"
+community: "signal-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/signal-enginets
 ---
 
 # signal-engine.ts
@@ -44,7 +44,7 @@ tags:
 - [[SIGNAL_GRADES]] - `contains` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
 - [[SettlementRead]] - `contains` [EXTRACTED]
-- [[Side_1]] - `contains` [EXTRACTED]
+- [[Side_5]] - `contains` [EXTRACTED]
 - [[SignalBoard]] - `contains` [EXTRACTED]
 - [[SignalGrade]] - `contains` [EXTRACTED]
 - [[SignalOptions]] - `contains` [EXTRACTED]
@@ -56,9 +56,9 @@ tags:
 - [[VenueId]] - `imports` [EXTRACTED]
 - [[better()]] - `contains` [EXTRACTED]
 - [[buildSignalBoard()]] - `contains` [EXTRACTED]
-- [[c()]] - `contains` [EXTRACTED]
+- [[c()_1]] - `contains` [EXTRACTED]
 - [[capTo()]] - `contains` [EXTRACTED]
-- [[clamp()_1]] - `contains` [EXTRACTED]
+- [[clamp()]] - `contains` [EXTRACTED]
 - [[computeSignal()]] - `contains` [EXTRACTED]
 - [[crowdFrom()]] - `contains` [EXTRACTED]
 - [[durationWords()]] - `contains` [EXTRACTED]
@@ -68,6 +68,9 @@ tags:
 - [[get()]] - `contains` [EXTRACTED]
 - [[gradeIdx()]] - `contains` [EXTRACTED]
 - [[gradeLabel()]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `imports_from` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
+- [[hall-store.ts]] - `imports_from` [EXTRACTED]
 - [[hallLayout]] - `contains` [EXTRACTED]
 - [[historyFromCandles()]] - `contains` [EXTRACTED]
 - [[impliedFor()]] - `contains` [EXTRACTED]
@@ -79,11 +82,12 @@ tags:
 - [[liquidityFor()]] - `contains` [EXTRACTED]
 - [[logScore()]] - `contains` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports_from` [EXTRACTED]
 - [[mead-scene.ts]] - `imports_from` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `imports_from` [EXTRACTED]
 - [[modelInputsFromScanRows()]] - `contains` [EXTRACTED]
 - [[moveFor()]] - `contains` [EXTRACTED]
-- [[num()_3]] - `contains` [EXTRACTED]
+- [[num()_1]] - `contains` [EXTRACTED]
 - [[openTradeFromCandles()]] - `contains` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
 - [[parseKalshiCandles()]] - `contains` [EXTRACTED]
@@ -91,13 +95,13 @@ tags:
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
 - [[priceBinFor()]] - `imports` [EXTRACTED]
-- [[r4()_1]] - `contains` [EXTRACTED]
+- [[r4()]] - `contains` [EXTRACTED]
 - [[rankIdx()]] - `contains` [EXTRACTED]
 - [[rankSignals()]] - `contains` [EXTRACTED]
 - [[sc()]] - `contains` [EXTRACTED]
 - [[settlementFor()]] - `contains` [EXTRACTED]
 - [[signal-evidence.ts]] - `imports_from` [EXTRACTED]
-- [[signals.ts]] - `imports_from` [EXTRACTED]
+- [[signals.ts]] - `re_exports` [EXTRACTED]
 - [[unitPrice()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/signal-enginets

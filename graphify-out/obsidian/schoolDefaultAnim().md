@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/school-contract.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L472"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # schoolDefaultAnim()
@@ -15,4 +15,4 @@ tags:
 - [[bodyLanguage()]] - `calls` [EXTRACTED]
 - [[school-contract.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

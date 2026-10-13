@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/race-panel.tsx"
+source_file: "src/components/room/invest-office-panel.tsx"
 type: "code"
-community: "Community 18"
-location: "L20"
+community: "book.ts"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/bookts
 ---
 
 # SECTIONS
 
 ## Connections
-- [[race-panel.tsx]] - `contains` [EXTRACTED]
+- [[invest-office-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/bookts

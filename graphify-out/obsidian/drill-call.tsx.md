@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/drill-call.tsx"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # drill-call.tsx
@@ -21,8 +21,8 @@ tags:
 - [[Word_1]] - `imports` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[learndrill.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[scoreCall()]] - `imports` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

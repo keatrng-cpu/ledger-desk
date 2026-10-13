@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room.mjs"
+source_file: "scripts/verify-room-snapshot.mjs"
 type: "code"
-community: "Community 22"
-location: "L29"
+community: "snapshot.ts"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/snapshotts
 ---
 
 # steps
 
 ## Connections
-- [[verify-room.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-snapshot.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/snapshotts

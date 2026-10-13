@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-news-coverage.mjs"
+source_file: "scripts/verify-kill-watch.mjs"
 type: "code"
-community: "Community 20"
-location: "L20"
+community: "verify-kill-watch.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/verify-kill-watchmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-news-coverage.mjs]] - `contains` [EXTRACTED]
+- [[ok()_12]] - `calls` [EXTRACTED]
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/verify-kill-watchmjs

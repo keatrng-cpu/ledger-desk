@@ -1,22 +1,19 @@
 ---
-source_file: "src/lib/predict/signal-engine.ts"
+source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 12"
-location: "L283"
+community: "rh-autofire.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/rh-autofirets
 ---
 
 # num()
 
 ## Connections
-- [[computeSignal()]] - `calls` [EXTRACTED]
-- [[liquidityFor()]] - `calls` [EXTRACTED]
-- [[moveFor()]] - `calls` [EXTRACTED]
-- [[openTradeFromCandles()]] - `calls` [EXTRACTED]
-- [[parseKalshiCandles()]] - `calls` [EXTRACTED]
-- [[signal-engine.ts]] - `contains` [EXTRACTED]
+- [[manager-account.ts]] - `contains` [EXTRACTED]
+- [[managerRhAccountFromConnector()]] - `calls` [EXTRACTED]
+- [[toManagerRhAccount()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

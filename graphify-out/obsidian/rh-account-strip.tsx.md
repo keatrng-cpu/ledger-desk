@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/rh-account-strip.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # rh-account-strip.tsx
@@ -19,13 +19,16 @@ tags:
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readRhAccount()]] - `imports` [EXTRACTED]
+- [[rh-server.ts]] - `imports_from` [EXTRACTED]
+- [[rhLinkStatus]] - `imports` [EXTRACTED]
 - [[src_lib_execution_manager_account_rh_preferred_account_mask_last4]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[uirh-account.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_4]] - `contains` [EXTRACTED]
+- [[usd()_3]] - `contains` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[useRhAccount()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

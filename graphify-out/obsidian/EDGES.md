@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L195"
+community: "desk-atlas.ts"
+location: "L198"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # EDGES
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

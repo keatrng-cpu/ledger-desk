@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-engine.mjs"
+source_file: "scripts/log-trade.mjs"
 type: "code"
-community: "Community 203"
-location: "L295"
+community: "log-trade.mjs"
+location: "L126"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_203
+  - community/log-trademjs
 ---
 
 # missing
 
 ## Connections
-- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
+- [[log-trade.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_203
+#graphify/code #graphify/EXTRACTED #community/log-trademjs

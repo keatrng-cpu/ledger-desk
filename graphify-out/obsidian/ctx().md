@@ -1,19 +1,23 @@
 ---
-source_file: "scripts/verify-room-exec.mjs"
+source_file: "scripts/measure-loss-patterns.mts"
 type: "code"
-community: "Community 171"
-location: "L61"
+community: "measure-loss-patterns.mts"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/measure-loss-patternsmts
 ---
 
 # ctx()
 
 ## Connections
-- [[account()]] - `calls` [EXTRACTED]
-- [[quote()_1]] - `calls` [EXTRACTED]
-- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
+- [[bars()]] - `calls` [EXTRACTED]
+- [[chopRead()]] - `calls` [EXTRACTED]
+- [[htfGuard()]] - `calls` [EXTRACTED]
+- [[lateGuard()]] - `calls` [EXTRACTED]
+- [[measure-loss-patterns.mts]] - `contains` [EXTRACTED]
+- [[optionNetAtT1()]] - `calls` [EXTRACTED]
+- [[velocityRead()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 210"
+community: "shock.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/shockts
 ---
 
 # shock.ts
@@ -14,11 +14,12 @@ tags:
 ## Connections
 - [[BookShock]] - `contains` [EXTRACTED]
 - [[NONE_1]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SHOCK_LOCK_MS]] - `contains` [EXTRACTED]
 - [[SHOCK_MIN_PTS]] - `contains` [EXTRACTED]
 - [[SHOCK_RANGE_MULT]] - `contains` [EXTRACTED]
 - [[SHOCK_TAIL_MS]] - `contains` [EXTRACTED]
+- [[ShockBias]] - `contains` [EXTRACTED]
 - [[ShockEvent]] - `contains` [EXTRACTED]
 - [[ShockKind]] - `contains` [EXTRACTED]
 - [[ShockRead]] - `contains` [EXTRACTED]
@@ -31,5 +32,9 @@ tags:
 - [[minPts()]] - `contains` [EXTRACTED]
 - [[readShock()]] - `contains` [EXTRACTED]
 - [[rollingAtr()]] - `imports` [EXTRACTED]
+- [[shockBiasFrom()]] - `contains` [EXTRACTED]
+- [[shockBrief]] - `contains` [EXTRACTED]
+- [[shockLeanSide()]] - `contains` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/shockts

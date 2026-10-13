@@ -1,18 +1,19 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L3282"
+community: "FloorScene"
+location: "L3758"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # .interactProximity()
 
 ## Connections
+- [[dot-getState()_3]] - `calls` [INFERRED]
 - [[dot-onKey()]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

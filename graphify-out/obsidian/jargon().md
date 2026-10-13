@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 96"
-location: "L253"
+community: "spoken-form.ts"
+location: "L255"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # jargon()
@@ -15,4 +15,4 @@ tags:
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 - [[spokenForm()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

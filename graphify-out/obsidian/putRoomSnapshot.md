@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot-server.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # putRoomSnapshot
@@ -19,4 +19,4 @@ tags:
 - [[snapshot-server.ts]] - `contains` [EXTRACTED]
 - [[snapshot-sync.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

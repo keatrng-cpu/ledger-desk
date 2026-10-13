@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/spot-cross.ts"
 type: "code"
-community: "Community 73"
+community: "evaluateOptionsDesk"
 location: "L173"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # etfFromFuture()
@@ -16,4 +16,4 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[spot-cross.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

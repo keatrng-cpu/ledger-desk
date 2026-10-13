@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 40"
-location: "L252"
+community: "trading/scanner.ts"
+location: "L300"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # primaryTag()
@@ -16,4 +16,4 @@ tags:
 - [[strategies.ts]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

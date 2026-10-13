@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/figures.ts"
 type: "code"
-community: "Community 148"
+community: "tape"
 location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/tape
 ---
 
 # FigureBar
@@ -18,4 +18,4 @@ tags:
 - [[tape]] - `references` [EXTRACTED]
 - [[tape.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/tape

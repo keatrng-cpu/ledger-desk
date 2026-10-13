@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 180"
-location: "L1315"
+community: "build_floor.py"
+location: "L1352"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # build_emissives()
 
 ## Connections
-- [[B()_1]] - `calls` [EXTRACTED]
+- [[B()]] - `calls` [EXTRACTED]
 - [[Geo]] - `calls` [EXTRACTED]
 - [[box()]] - `calls` [EXTRACTED]
 - [[build_floor.py]] - `contains` [EXTRACTED]
@@ -22,4 +22,4 @@ tags:
 - [[new_mat()]] - `calls` [EXTRACTED]
 - [[sphere()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_180
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

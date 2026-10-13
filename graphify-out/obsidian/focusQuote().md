@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # focusQuote()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
 - [[blocked()]] - `calls` [EXTRACTED]
 - [[chop()]] - `calls` [EXTRACTED]
 - [[contractName()]] - `calls` [EXTRACTED]
@@ -20,6 +20,6 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[postNews()]] - `calls` [EXTRACTED]
 - [[prem()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
+- [[px()_8]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

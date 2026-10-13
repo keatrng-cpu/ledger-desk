@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-debrief.ts"
 type: "code"
-community: "Community 44"
+community: "ghost-book.ts"
 location: "L113"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/ghost-bookts
 ---
 
 # debriefPaper()
@@ -19,4 +19,4 @@ tags:
 - [[trade-debrief-panel.tsx]] - `imports` [EXTRACTED]
 - [[trade-debrief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

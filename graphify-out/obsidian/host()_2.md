@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/kill-watch-panel.tsx"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # host()
@@ -15,4 +15,4 @@ tags:
 - [[KillWatchPanel()]] - `calls` [EXTRACTED]
 - [[kill-watch-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

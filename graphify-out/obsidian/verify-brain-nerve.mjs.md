@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-brain-nerve.mjs"
 type: "code"
-community: "Community 251"
+community: "verify-brain-nerve.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_251
+  - community/verify-brain-nervemjs
 ---
 
 # verify-brain-nerve.mjs
@@ -18,6 +18,6 @@ tags:
 - [[desk-atlas.ts]] - `dynamic_import` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rewrite]] - `contains` [EXTRACTED]
-- [[src_4]] - `contains` [EXTRACTED]
+- [[src_7]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_251
+#graphify/code #graphify/EXTRACTED #community/verify-brain-nervemjs

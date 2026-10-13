@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L140"
+community: "desk-atlas.ts"
+location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # SCHOOL_NAMES
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

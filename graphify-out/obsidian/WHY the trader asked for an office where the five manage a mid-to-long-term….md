@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-invest-office.mjs"
 type: "rationale"
-community: "Community 137"
+community: "verify-invest-office.mjs"
 location: "L7"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/verify-invest-officemjs
 ---
 
 # WHY: the trader asked for an office where the five manage a mid-to-long-term…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-invest-office.mjs]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_137
+#graphify/rationale #graphify/EXTRACTED #community/verify-invest-officemjs

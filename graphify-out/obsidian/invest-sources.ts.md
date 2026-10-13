@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-sources.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # invest-sources.ts
@@ -24,23 +24,31 @@ tags:
 - [[invest-office-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-office.ts]] - `imports_from` [EXTRACTED]
 - [[investReadProblem()]] - `contains` [EXTRACTED]
+- [[kill-store.ts]] - `imports_from` [EXTRACTED]
 - [[ledger.ts]] - `imports_from` [EXTRACTED]
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
+- [[loadKillJudgements()]] - `imports` [EXTRACTED]
+- [[loadLastRun()]] - `imports` [EXTRACTED]
 - [[loadLedger()]] - `imports` [EXTRACTED]
 - [[loadOtherIncome()]] - `contains` [EXTRACTED]
+- [[loadRhIncome()]] - `imports` [EXTRACTED]
 - [[nextBuy]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[rateLadder]] - `imports` [EXTRACTED]
 - [[readInvestOffice()]] - `contains` [EXTRACTED]
 - [[rebalanceCheck()]] - `imports` [EXTRACTED]
+- [[rh-income.ts]] - `imports_from` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[saveOtherIncome()]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[subscribeInvest()]] - `imports` [EXTRACTED]
+- [[subscribeKill()]] - `imports` [EXTRACTED]
 - [[subscribeOtherIncome()]] - `contains` [EXTRACTED]
+- [[subscribeRhIncome()]] - `imports` [EXTRACTED]
 - [[sweepFundedUsd()]] - `imports` [EXTRACTED]
+- [[tryRead()]] - `contains` [EXTRACTED]
 - [[valid()]] - `contains` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[wire()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

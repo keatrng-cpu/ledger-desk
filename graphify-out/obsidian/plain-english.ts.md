@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/plain-english.ts"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # plain-english.ts
@@ -17,7 +17,7 @@ tags:
 - [[TERMS]] - `contains` [EXTRACTED]
 - [[TERM_RE]] - `contains` [EXTRACTED]
 - [[getPlainEnglish()]] - `contains` [EXTRACTED]
-- [[listeners_2]] - `contains` [EXTRACTED]
+- [[listeners]] - `contains` [EXTRACTED]
 - [[plain-english.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[plain-text.tsx]] - `imports_from` [EXTRACTED]
 - [[plainify()]] - `contains` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[splitTerms()]] - `contains` [EXTRACTED]
 - [[subscribePlainEnglish()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-news-coverage.mjs"
 type: "code"
-community: "Community 185"
-location: "L173"
+community: "news.ts"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/newsts
 ---
 
 # ev()
 
 ## Connections
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-news-coverage.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/newsts

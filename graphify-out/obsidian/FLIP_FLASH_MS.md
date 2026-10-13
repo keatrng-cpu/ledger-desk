@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/use-bias-flip.ts"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # FLIP_FLASH_MS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[use-bias-flip.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

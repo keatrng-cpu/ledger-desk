@@ -1,12 +1,12 @@
 ---
 source_file: "src/router.tsx"
 type: "code"
-community: "Community 54"
+community: "routeTree.gen.ts"
 location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # getRouter()
@@ -17,4 +17,4 @@ tags:
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 - [[router.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

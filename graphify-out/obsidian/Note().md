@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/ui.tsx"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # Note()
@@ -36,4 +36,4 @@ tags:
 - [[sweep-card.tsx]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

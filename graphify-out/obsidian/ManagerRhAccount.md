@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 38"
+community: "rh-autofire.ts"
 location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/rh-autofirets
 ---
 
 # ManagerRhAccount
@@ -21,7 +21,8 @@ tags:
 - [[manager-feed.ts]] - `imports` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports` [EXTRACTED]
 - [[uirh-account.ts]] - `imports` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # quoteOption()
@@ -16,7 +16,7 @@ tags:
 - [[bidAt()]] - `calls` [EXTRACTED]
 - [[blackScholes()]] - `calls` [EXTRACTED]
 - [[buildLadder()]] - `calls` [EXTRACTED]
-- [[cents()_4]] - `calls` [EXTRACTED]
+- [[cents()_5]] - `calls` [EXTRACTED]
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[contract-ladder.ts]] - `imports` [EXTRACTED]
 - [[evaluateEntry()]] - `calls` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[stepGhost()]] - `calls` [EXTRACTED]
 - [[yearsToExpiry()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # isWatchable()
@@ -18,4 +18,4 @@ tags:
 - [[path-alarm.ts]] - `imports` [EXTRACTED]
 - [[take-moments.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

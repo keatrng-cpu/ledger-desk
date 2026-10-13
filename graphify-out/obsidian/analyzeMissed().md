@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 130"
+community: "ghost-book.ts"
 location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/ghost-bookts
 ---
 
 # analyzeMissed()
@@ -19,9 +19,9 @@ tags:
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
 - [[isJudasWindow()]] - `calls` [EXTRACTED]
 - [[parseZone()]] - `calls` [EXTRACTED]
-- [[px()_2]] - `calls` [EXTRACTED]
+- [[px()_1]] - `calls` [EXTRACTED]
 - [[rootSym()]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
 - [[tapeHitsForSide()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-geometry.ts"
 type: "code"
-community: "Community 158"
+community: "simulate-path-trade.ts"
 location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/simulate-path-tradets
 ---
 
 # readCardGeometry()
@@ -17,6 +17,6 @@ tags:
 - [[firstLevel()]] - `calls` [EXTRACTED]
 - [[maxRiskPtsFor()]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
-- [[zoneMid()]] - `calls` [EXTRACTED]
+- [[zoneMid()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

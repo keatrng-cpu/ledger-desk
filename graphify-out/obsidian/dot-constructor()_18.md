@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/auth/isolation.server.ts"
+source_file: "scripts/fidelity/replay-desk.mjs"
 type: "code"
-community: "Community 65"
-location: "L27"
+community: "replay-desk.mjs"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/replay-deskmjs
 ---
 
 # .constructor()
 
 ## Connections
-- [[CrossSiteRequestError]] - `method` [EXTRACTED]
+- [[SimDate]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/replay-deskmjs

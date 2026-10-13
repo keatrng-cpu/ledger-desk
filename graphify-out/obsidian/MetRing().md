@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/smc-playbook.tsx"
 type: "code"
-community: "Community 127"
+community: "smc-canon.ts"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # MetRing()
@@ -15,4 +15,4 @@ tags:
 - [[SmcPlaybook()]] - `calls` [EXTRACTED]
 - [[smc-playbook.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

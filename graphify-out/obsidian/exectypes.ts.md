@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/types.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # exec/types.ts
@@ -34,4 +34,4 @@ tags:
 - [[gates.ts]] - `imports_from` [EXTRACTED]
 - [[intent.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

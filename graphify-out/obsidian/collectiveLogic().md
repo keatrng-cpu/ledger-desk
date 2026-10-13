@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 88"
-location: "L494"
+community: "floor-brains.tsx"
+location: "L511"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # collectiveLogic()
@@ -17,4 +17,4 @@ tags:
 - [[floor-brains.tsx]] - `imports` [EXTRACTED]
 - [[nodeById()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

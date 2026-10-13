@@ -1,28 +1,24 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L371"
+community: "Avatar"
+location: "L740"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Avatar
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-buildBar()]] - `calls` [EXTRACTED]
-- [[dot-buildBooths()]] - `calls` [EXTRACTED]
-- [[dot-buildCrowd()]] - `calls` [EXTRACTED]
-- [[dot-buildNeon()]] - `calls` [EXTRACTED]
-- [[dot-buildPoolTable()]] - `calls` [EXTRACTED]
-- [[dot-buildRoom()]] - `calls` [EXTRACTED]
-- [[dot-buildScreens()_1]] - `calls` [EXTRACTED]
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
-- [[dot-resize()_1]] - `calls` [EXTRACTED]
-- [[dot-retag()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
-- [[OwnerAvatar]] - `calls` [EXTRACTED]
+- [[dot-accessory()]] - `calls` [EXTRACTED]
+- [[dot-hairMesh()]] - `calls` [EXTRACTED]
+- [[dot-makeTag()]] - `calls` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
+- [[Character]] - `references` [EXTRACTED]
+- [[contactBlob()]] - `calls` [EXTRACTED]
+- [[mat()]] - `calls` [EXTRACTED]
+- [[yawTo()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Avatar

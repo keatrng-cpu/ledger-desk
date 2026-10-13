@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-inducement-news.mjs"
+source_file: "scripts/measure-tf-tiers.mjs"
 type: "code"
-community: "Community 157"
-location: "L98"
+community: "measure-tf-tiers.mjs"
+location: "L127"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_157
+  - community/measure-tf-tiersmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
+- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_157
+#graphify/code #graphify/EXTRACTED #community/measure-tf-tiersmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-setup-anticipation.mjs"
 type: "code"
-community: "Community 66"
+community: "verify-setup-anticipation.mjs"
 location: "L239"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_66
+  - community/verify-setup-anticipationmjs
 ---
 
 # reachable
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-setup-anticipation.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_66
+#graphify/code #graphify/EXTRACTED #community/verify-setup-anticipationmjs

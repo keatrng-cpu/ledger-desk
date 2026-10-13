@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/shadow-order-review.tsx"
 type: "code"
-community: "Community 14"
+community: "react"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/react
 ---
 
 # fmtTime()
@@ -15,4 +15,4 @@ tags:
 - [[ShadowOrderReview()]] - `calls` [EXTRACTED]
 - [[shadow-order-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/react

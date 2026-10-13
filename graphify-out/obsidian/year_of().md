@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # year_of()
@@ -16,4 +16,4 @@ tags:
 - [[direction-book.py]] - `contains` [EXTRACTED]
 - [[dt()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

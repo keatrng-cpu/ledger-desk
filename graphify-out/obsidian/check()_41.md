@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-school-gate.mjs"
+source_file: "scripts/verify-discipline.mjs"
 type: "code"
-community: "Community 231"
-location: "L12"
+community: "journal/server.ts"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/journal/serverts
 ---
 
 # check()
 
 ## Connections
-- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
+- [[verify-discipline.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

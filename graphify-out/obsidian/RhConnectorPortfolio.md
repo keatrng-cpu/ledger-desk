@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L119"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # RhConnectorPortfolio
@@ -16,4 +16,4 @@ tags:
 - [[manager-account.ts]] - `contains` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

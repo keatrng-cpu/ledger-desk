@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/scenarios.ts"
 type: "code"
-community: "Community 148"
+community: "figures.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # Scenario
@@ -16,4 +16,4 @@ tags:
 - [[learn-tab.tsx]] - `imports` [EXTRACTED]
 - [[scenarios.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/figurests

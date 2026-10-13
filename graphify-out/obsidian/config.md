@@ -1,12 +1,12 @@
 ---
 source_file: "netlify/functions/exec-flatten.mjs"
 type: "code"
-community: "Community 258"
+community: "exec-flatten.mjs"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_258
+  - community/exec-flattenmjs
 ---
 
 # config
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[exec-flatten.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_258
+#graphify/code #graphify/EXTRACTED #community/exec-flattenmjs

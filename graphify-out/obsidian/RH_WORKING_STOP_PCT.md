@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # RH_WORKING_STOP_PCT
@@ -16,4 +16,4 @@ tags:
 - [[rh-income.ts]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

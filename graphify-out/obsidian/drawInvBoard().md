@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L1913"
+community: "floor-screens.ts"
+location: "L1964"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # drawInvBoard()
@@ -17,6 +17,9 @@ tags:
 - [[dayPhrase()]] - `calls` [EXTRACTED]
 - [[daysBetween()]] - `calls` [EXTRACTED]
 - [[drawScreen()]] - `calls` [EXTRACTED]
+- [[ell()]] - `calls` [EXTRACTED]
+- [[firmDay]] - `calls` [EXTRACTED]
+- [[firmWeek()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[freshCatalysts()]] - `calls` [EXTRACTED]
 - [[header()]] - `calls` [EXTRACTED]
@@ -25,4 +28,4 @@ tags:
 - [[money()_6]] - `calls` [EXTRACTED]
 - [[wrap()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

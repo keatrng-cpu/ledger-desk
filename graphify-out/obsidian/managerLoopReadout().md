@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-live-loop.ts"
 type: "code"
-community: "Community 15"
-location: "L148"
+community: "manager-live-loop.ts"
+location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/manager-live-loopts
 ---
 
 # managerLoopReadout()
@@ -20,4 +20,4 @@ tags:
 - [[rhCandidateFromManagerFeed()]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

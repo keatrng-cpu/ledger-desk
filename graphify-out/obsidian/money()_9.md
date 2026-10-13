@@ -1,19 +1,18 @@
 ---
-source_file: "src/components/room/invest-office-panel.tsx"
+source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 49"
-location: "L40"
+community: "audit.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/auditts
 ---
 
 # money()
 
 ## Connections
-- [[InvestOfficePanel()]] - `calls` [EXTRACTED]
-- [[OtherIncome()]] - `calls` [EXTRACTED]
-- [[invest-office-panel.tsx]] - `contains` [EXTRACTED]
+- [[audit.ts]] - `contains` [EXTRACTED]
+- [[deskAudit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/auditts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/automation-state.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # reportAutomation()
@@ -19,4 +19,4 @@ tags:
 - [[manager-feed.ts]] - `imports` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

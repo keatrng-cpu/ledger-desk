@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-calibration.mjs"
 type: "code"
-community: "Community 208"
-location: "L31"
+community: "calibration-panel.tsx"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/calibration-paneltsx
 ---
 
 # near()
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[ok()_10]] - `calls` [EXTRACTED]
+- [[verify-calibration.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

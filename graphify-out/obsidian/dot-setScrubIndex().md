@@ -1,17 +1,18 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 24"
+community: "FloorOverhaul"
 location: "L445"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/FloorOverhaul
 ---
 
 # .setScrubIndex()
 
 ## Connections
+- [[dot-setScrubIndex()_1]] - `calls` [INFERRED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

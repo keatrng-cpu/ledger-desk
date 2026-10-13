@@ -1,57 +1,101 @@
 ---
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
-community: "Community 1"
-location: "L474"
+community: "buildTradingDesk"
+location: "L556"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/buildTradingDesk
 ---
 
 # buildTradingDesk()
 
 ## Connections
 - [[analyzeStructure()]] - `calls` [EXTRACTED]
+- [[applyDiscipline()]] - `calls` [EXTRACTED]
+- [[applyLtfReaction()]] - `calls` [EXTRACTED]
 - [[applyQuoteToLastBar()]] - `calls` [EXTRACTED]
 - [[applySession()]] - `calls` [EXTRACTED]
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atr15Of()]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[attachPlansToCards()]] - `calls` [EXTRACTED]
+- [[bandFromQ()]] - `calls` [EXTRACTED]
+- [[bosRetest()]] - `calls` [EXTRACTED]
+- [[bufferedStop()]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `contains` [EXTRACTED]
 - [[buildLiveSays()]] - `calls` [EXTRACTED]
 - [[buildMarketNarrative()]] - `calls` [EXTRACTED]
+- [[buildMtfContext()]] - `calls` [EXTRACTED]
 - [[buildSessionBrief()]] - `calls` [EXTRACTED]
 - [[buildSmcTape()]] - `calls` [EXTRACTED]
 - [[buildTfLadder()]] - `calls` [EXTRACTED]
+- [[capBand()]] - `calls` [EXTRACTED]
+- [[chopRead()]] - `calls` [EXTRACTED]
 - [[closedBars()]] - `calls` [EXTRACTED]
+- [[completePlan()]] - `calls` [EXTRACTED]
+- [[continuationPlan]] - `calls` [EXTRACTED]
 - [[crossBoth()]] - `calls` [EXTRACTED]
+- [[displacementStrength]] - `calls` [EXTRACTED]
 - [[drawOnLiquidity()]] - `calls` [EXTRACTED]
 - [[dualNarrativeSummary()]] - `calls` [EXTRACTED]
+- [[exitPlanOf()]] - `calls` [EXTRACTED]
 - [[fetchTradingDesk]] - `calls` [EXTRACTED]
+- [[fits()]] - `calls` [EXTRACTED]
+- [[fractalSwings()]] - `calls` [EXTRACTED]
 - [[getSessionClock()]] - `calls` [EXTRACTED]
 - [[gradeSmcMaster()]] - `calls` [EXTRACTED]
 - [[hasDatabentoKey()]] - `calls` [EXTRACTED]
 - [[hitOdds]] - `calls` [EXTRACTED]
+- [[htfBiasOf()]] - `calls` [EXTRACTED]
+- [[htfGuard()]] - `calls` [EXTRACTED]
 - [[isDeskStaleBlocked()]] - `calls` [EXTRACTED]
 - [[ladderTags()]] - `calls` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
+- [[lateGuard()]] - `calls` [EXTRACTED]
+- [[legCount()]] - `calls` [EXTRACTED]
+- [[load()_1]] - `calls` [EXTRACTED]
 - [[loadDaily()]] - `calls` [EXTRACTED]
+- [[loadMacro()]] - `calls` [EXTRACTED]
 - [[loadMinute()]] - `calls` [EXTRACTED]
+- [[loadOvernight5m()]] - `calls` [EXTRACTED]
 - [[loadSpot()]] - `calls` [EXTRACTED]
+- [[mtfArrays()]] - `calls` [EXTRACTED]
+- [[namingSweep()]] - `calls` [EXTRACTED]
 - [[newsRead]] - `calls` [EXTRACTED]
+- [[optionNetAtT1()]] - `calls` [EXTRACTED]
 - [[overlayMonthAhead()]] - `calls` [EXTRACTED]
 - [[overlayWeekAhead()]] - `calls` [EXTRACTED]
+- [[planAt()]] - `calls` [EXTRACTED]
+- [[planTargetText()]] - `calls` [EXTRACTED]
+- [[primaryTarget()]] - `calls` [EXTRACTED]
 - [[quote()]] - `calls` [EXTRACTED]
+- [[rankDraws()]] - `calls` [EXTRACTED]
+- [[rankedT1()]] - `calls` [EXTRACTED]
 - [[readShock()]] - `calls` [EXTRACTED]
 - [[referenceLevels()]] - `calls` [EXTRACTED]
+- [[regimeOf()]] - `calls` [EXTRACTED]
+- [[resampleMs()]] - `calls` [EXTRACTED]
 - [[resolveMonthAhead()]] - `calls` [EXTRACTED]
 - [[resolveWeekAhead()]] - `calls` [EXTRACTED]
+- [[reversalEntries()]] - `calls` [EXTRACTED]
+- [[reversalSetupOf()]] - `calls` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `calls` [EXTRACTED]
+- [[rollingAtr()]] - `calls` [EXTRACTED]
+- [[sanePlan()]] - `calls` [EXTRACTED]
 - [[scanSetups()]] - `calls` [EXTRACTED]
+- [[sdDraws()]] - `calls` [EXTRACTED]
+- [[sealBand()]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
+- [[shockLeanLive()]] - `calls` [EXTRACTED]
+- [[shockLeanSide()]] - `calls` [EXTRACTED]
 - [[smtDivergenceStack()]] - `calls` [EXTRACTED]
+- [[smtFightsContinuation()]] - `calls` [EXTRACTED]
+- [[sponsoredHold()]] - `calls` [EXTRACTED]
 - [[stampSeriesFromBars()]] - `calls` [EXTRACTED]
 - [[summarizeBudget()]] - `calls` [EXTRACTED]
 - [[summarizeDetectors()]] - `calls` [EXTRACTED]
+- [[turtleSoup()]] - `calls` [EXTRACTED]
+- [[velocityRead()]] - `calls` [EXTRACTED]
+- [[withBudget()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

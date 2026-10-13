@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L338"
+community: "options-desk.ts"
+location: "L397"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # estimateSpreadContract()
@@ -17,4 +17,4 @@ tags:
 - [[sizeProduct()]] - `calls` [EXTRACTED]
 - [[underlierSheet()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

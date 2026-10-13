@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/week-ahead-panel.tsx"
 type: "code"
-community: "Community 134"
+community: "week-ahead.ts"
 location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # WeekAheadPanel()
@@ -18,4 +18,4 @@ tags:
 - [[premarket-panel.tsx]] - `imports` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

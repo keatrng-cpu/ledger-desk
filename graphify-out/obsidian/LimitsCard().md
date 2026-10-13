@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/limits-card.tsx"
 type: "code"
-community: "Community 100"
+community: "universe.ts"
 location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/universets
 ---
 
 # LimitsCard()
@@ -17,4 +17,4 @@ tags:
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[limits-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/universets

@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/shadow-book-server.ts"
+source_file: "src/lib/execution/shadow.ts"
 type: "code"
-community: "Community 149"
-location: "L89"
+community: "@tanstack/react-start"
+location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/tanstack/react-start
 ---
 
 # listSchema
 
 ## Connections
-- [[shadow-book-server.ts]] - `contains` [EXTRACTED]
+- [[shadow.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

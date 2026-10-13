@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/crew-years.ts"
 type: "code"
-community: "Community 21"
+community: "crew-years.ts"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/crew-yearsts
 ---
 
 # CrewHalf
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[crew-years.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/crew-yearsts

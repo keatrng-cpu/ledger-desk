@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-setup-memory.mjs"
+source_file: "brainlab/selfcheck.py"
 type: "code"
-community: "Community 144"
-location: "L23"
+community: "selfcheck.py"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_144
+  - community/selfcheckpy
 ---
 
 # check()
 
 ## Connections
-- [[ok()_6]] - `calls` [EXTRACTED]
-- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
+- [[selfcheck.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_144
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

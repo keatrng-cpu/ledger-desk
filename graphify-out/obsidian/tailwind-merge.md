@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 32"
-location: "L102"
+community: "package.json"
+location: "L106"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # tailwind-merge
@@ -15,4 +15,4 @@ tags:
 - [[package.json]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_32
+#graphify/concept #graphify/EXTRACTED #community/packagejson

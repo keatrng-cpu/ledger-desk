@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-manager-account.mjs"
 type: "code"
-community: "Community 119"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/rh-autofirets
 ---
 
 # verify-manager-account.mjs
@@ -16,4 +16,4 @@ tags:
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerAccount()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

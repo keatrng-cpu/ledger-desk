@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/race-panel.tsx"
+source_file: "src/components/room/exec-card.tsx"
 type: "code"
-community: "Community 18"
-location: "L31"
+community: "exec-card.tsx"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/exec-cardtsx
 ---
 
 # STATUS_COLOR
 
 ## Connections
-- [[race-panel.tsx]] - `contains` [EXTRACTED]
+- [[exec-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/exec-cardtsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 9"
-location: "L67"
+community: "veteran-brain.ts"
+location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # SetupCandidate
@@ -17,10 +17,12 @@ tags:
 - [[DayBacktestRow]] - `references` [EXTRACTED]
 - [[DeskSynapseState]] - `references` [EXTRACTED]
 - [[LiquidityTarget]] - `references` [EXTRACTED]
+- [[RhCycleDesk]] - `references` [EXTRACTED]
 - [[SmtLevelRead]] - `references` [EXTRACTED]
 - [[StrategyId]] - `references` [EXTRACTED]
 - [[StrategyMarketGrade]] - `references` [EXTRACTED]
 - [[VeteranBrief]] - `references` [EXTRACTED]
+- [[What shipped_1]] - `references` [INFERRED]
 - [[analysis-to-candidate.ts]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports` [EXTRACTED]
 - [[auto-paper.ts]] - `imports` [EXTRACTED]
@@ -34,6 +36,7 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports` [EXTRACTED]
+- [[manager-live-loop.ts]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[path-alarm.ts]] - `imports` [EXTRACTED]
@@ -50,8 +53,9 @@ tags:
 - [[simulate-path-trade.ts]] - `imports` [EXTRACTED]
 - [[smc-canon.ts]] - `imports` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

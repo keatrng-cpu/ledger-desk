@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 128"
-location: "L401"
+community: "invest-office.ts"
+location: "L416"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/invest-officets
 ---
 
 # InvestTier
@@ -18,4 +18,4 @@ tags:
 - [[invest-themes.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/invest-officets

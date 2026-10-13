@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-themes.ts"
 type: "code"
-community: "Community 128"
+community: "invest-office.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/invest-officets
 ---
 
 # ResearchTheme
@@ -17,4 +17,4 @@ tags:
 - [[invest-office.ts]] - `imports` [EXTRACTED]
 - [[invest-themes.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/invest-officets

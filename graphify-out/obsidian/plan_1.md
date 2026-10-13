@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-ticket.mjs"
+source_file: "scripts/render-setup-chart.mjs"
 type: "code"
-community: "Community 26"
-location: "L31"
+community: "render-setup-chart.mjs"
+location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/render-setup-chartmjs
 ---
 
 # plan
 
 ## Connections
-- [[verify-entry-ticket.mjs]] - `contains` [EXTRACTED]
+- [[render-setup-chart.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/render-setup-chartmjs

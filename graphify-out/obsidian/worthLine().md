@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 56"
-location: "L33"
+community: "smc-master.ts"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/smc-masterts
 ---
 
 # worthLine()
@@ -16,4 +16,4 @@ tags:
 - [[planHitOdds()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

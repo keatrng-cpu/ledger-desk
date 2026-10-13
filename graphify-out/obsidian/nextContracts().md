@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/month-contract.ts"
 type: "code"
-community: "Community 159"
+community: "month-contract.ts"
 location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_159
+  - community/month-contractts
 ---
 
 # nextContracts()
@@ -16,4 +16,4 @@ tags:
 - [[sampleOf()]] - `calls` [EXTRACTED]
 - [[ticketForEquity()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_159
+#graphify/code #graphify/EXTRACTED #community/month-contractts

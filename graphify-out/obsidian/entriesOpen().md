@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 57"
+community: "seats.ts"
 location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/seatsts
 ---
 
 # entriesOpen()
@@ -16,4 +16,4 @@ tags:
 - [[seats.ts]] - `imports` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/seatsts

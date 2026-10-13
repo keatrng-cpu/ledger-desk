@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/invest/format.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # invest/format.ts
 
 ## Connections
-- [[BUTTON_1]] - `contains` [EXTRACTED]
+- [[BUTTON]] - `contains` [EXTRACTED]
 - [[INPUT_2]] - `contains` [EXTRACTED]
 - [[InvestVerdict]] - `imports` [EXTRACTED]
 - [[LINK]] - `contains` [EXTRACTED]
@@ -23,13 +23,13 @@ tags:
 - [[habit-card.tsx]] - `imports_from` [EXTRACTED]
 - [[ipo-card.tsx]] - `imports_from` [EXTRACTED]
 - [[limits-card.tsx]] - `imports_from` [EXTRACTED]
-- [[pct()_15]] - `contains` [EXTRACTED]
+- [[pct()_14]] - `contains` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
 - [[screen-table.tsx]] - `imports_from` [EXTRACTED]
 - [[signed()_3]] - `contains` [EXTRACTED]
 - [[sweep-card.tsx]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_5]] - `contains` [EXTRACTED]
+- [[usd()_4]] - `contains` [EXTRACTED]
 - [[usd0()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

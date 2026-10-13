@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-setup-memory.mjs"
+source_file: "scripts/verify-brain-vault.mjs"
 type: "code"
-community: "Community 144"
-location: "L32"
+community: "ref_node_fs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_144
+  - community/ref_node_fs
 ---
 
 # book
 
 ## Connections
-- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_144
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

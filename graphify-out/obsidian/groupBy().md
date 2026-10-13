@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 106"
+community: "journal/analytics.ts"
 location: "L308"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_106
+  - community/journal/analyticsts
 ---
 
 # groupBy()
@@ -17,4 +17,4 @@ tags:
 - [[byStrategy()]] - `calls` [EXTRACTED]
 - [[journalanalytics.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_106
+#graphify/code #graphify/EXTRACTED #community/journal/analyticsts

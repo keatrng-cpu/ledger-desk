@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/factors.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # factors.ts
@@ -26,7 +26,9 @@ tags:
 - [[durability.ts]] - `imports_from` [EXTRACTED]
 - [[earningsYield]] - `contains` [EXTRACTED]
 - [[impliedGrowth]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[limits-card.tsx]] - `imports_from` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[pv()]] - `contains` [EXTRACTED]
 - [[qualityRead]] - `contains` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
@@ -35,6 +37,7 @@ tags:
 - [[trendRead]] - `contains` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[verify-invest-book.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

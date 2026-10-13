@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 76"
+community: "apex-sim.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_76
+  - community/apex-simts
 ---
 
 # src_data_evidence_dist
@@ -15,4 +15,4 @@ tags:
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[loadEvidenceDist()]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_76
+#graphify/concept #graphify/EXTRACTED #community/apex-simts

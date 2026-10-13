@@ -1,19 +1,20 @@
 ---
 source_file: "src/lib/trading/sleeve-sizing.ts"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # minDteFor()
 
 ## Connections
 - [[dailyDecayFrac()]] - `calls` [EXTRACTED]
+- [[sizeFromLiveContract()]] - `calls` [EXTRACTED]
 - [[sizeFromStop()]] - `calls` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-board-rank.mjs"
+source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 254"
-location: "L34"
+community: "store.ts"
+location: "L188"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/storets
 ---
 
 # order()
 
 ## Connections
-- [[compareForBoard()]] - `indirect_call` [INFERRED]
-- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
+- [[ledger.ts]] - `contains` [EXTRACTED]
+- [[replay()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/storets

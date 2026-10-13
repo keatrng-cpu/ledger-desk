@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 154"
+community: "alpaca.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/alpacats
 ---
 
 # alpaca.ts
@@ -26,9 +26,9 @@ tags:
 - [[alpacaBroker()]] - `contains` [EXTRACTED]
 - [[brokerFromEnv()]] - `contains` [EXTRACTED]
 - [[exectypes.ts]] - `imports_from` [EXTRACTED]
-- [[num()_7]] - `contains` [EXTRACTED]
+- [[num()_5]] - `contains` [EXTRACTED]
 - [[orderOf()]] - `contains` [EXTRACTED]
 - [[parseTs()]] - `contains` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/alpacats

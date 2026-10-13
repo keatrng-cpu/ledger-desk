@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 120"
-location: "L1686"
+community: "build_floor.py"
+location: "L1820"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # area()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[portrait_rig()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_120
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L579"
+community: "desk-atlas.ts"
+location: "L596"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # savePeople()
@@ -16,4 +16,4 @@ tags:
 - [[offerToBrains()]] - `calls` [EXTRACTED]
 - [[syncPeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

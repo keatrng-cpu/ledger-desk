@@ -1,19 +1,20 @@
 ---
 source_file: "src/lib/auth/verify.server.ts"
 type: "code"
-community: "Community 65"
+community: "auth/server.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/auth/serverts
 ---
 
 # UnauthorizedError
 
 ## Connections
-- [[dot-constructor()_19]] - `method` [EXTRACTED]
+- [[dot-constructor()]] - `method` [EXTRACTED]
+- [[Per-user data (server-side — mandatory)]] - `references` [INFERRED]
 - [[requireUserId()]] - `calls` [EXTRACTED]
 - [[verify.server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

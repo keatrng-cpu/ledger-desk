@@ -1,17 +1,18 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L194"
+community: "floor-screens.ts"
+location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # clear()
 
 ## Connections
+- [[4. News gate — mount the chip]] - `references` [INFERRED]
 - [[drawAudit()]] - `calls` [EXTRACTED]
 - [[drawCalendar()]] - `calls` [EXTRACTED]
 - [[drawCalibration()]] - `calls` [EXTRACTED]
@@ -27,7 +28,7 @@ tags:
 - [[drawInvPortfolio()]] - `calls` [EXTRACTED]
 - [[drawInvTheme()]] - `calls` [EXTRACTED]
 - [[drawLeague()]] - `calls` [EXTRACTED]
-- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
 - [[drawMarquee()]] - `calls` [EXTRACTED]
 - [[drawMonitor()]] - `calls` [EXTRACTED]
 - [[drawNeon()]] - `calls` [EXTRACTED]
@@ -37,9 +38,10 @@ tags:
 - [[drawRndBoard()]] - `calls` [EXTRACTED]
 - [[drawScanner()]] - `calls` [EXTRACTED]
 - [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
 - [[drawVote()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[tapeBlock()]] - `calls` [EXTRACTED]
 - [[textBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

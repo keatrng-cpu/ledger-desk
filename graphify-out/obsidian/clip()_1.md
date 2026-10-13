@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # clip()
@@ -18,7 +18,11 @@ tags:
 - [[exCouncil()]] - `calls` [EXTRACTED]
 - [[exDecision()]] - `calls` [EXTRACTED]
 - [[exEvidence()]] - `calls` [EXTRACTED]
+- [[exFirmBoard()]] - `calls` [EXTRACTED]
+- [[exFirmOps()]] - `calls` [EXTRACTED]
+- [[exFirmRisk()]] - `calls` [EXTRACTED]
 - [[exHtf()]] - `calls` [EXTRACTED]
+- [[exHuddle()]] - `calls` [EXTRACTED]
 - [[exInvBoard()]] - `calls` [EXTRACTED]
 - [[exInvCatalysts()]] - `calls` [EXTRACTED]
 - [[exInvFunnel()]] - `calls` [EXTRACTED]
@@ -31,11 +35,19 @@ tags:
 - [[exRndStandup()]] - `calls` [EXTRACTED]
 - [[exRndVerdict()]] - `calls` [EXTRACTED]
 - [[exSeatClose()]] - `calls` [EXTRACTED]
+- [[exStudyInvest()]] - `calls` [EXTRACTED]
+- [[exStudyOutsider()]] - `calls` [EXTRACTED]
+- [[exStudyPredict()]] - `calls` [EXTRACTED]
+- [[exStudyWatchNews()]] - `calls` [EXTRACTED]
 - [[exTomorrow()]] - `calls` [EXTRACTED]
 - [[exTouchRound()]] - `calls` [EXTRACTED]
 - [[exWeek()]] - `calls` [EXTRACTED]
+- [[live-voices-invest-firm.ts]] - `imports` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports` [EXTRACTED]
+- [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
+- [[t()_2]] - `calls` [EXTRACTED]
+- [[yesLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

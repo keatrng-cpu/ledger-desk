@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-keep-live.mjs"
+source_file: "scripts/verify-floor-rh-account.mjs"
 type: "code"
-community: "Community 71"
-location: "L19"
+community: "meeting.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/meetingts
 ---
 
 # check()
 
 ## Connections
-- [[verify-keep-live.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-rh-account.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 20"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/orchestratorts
 ---
 
 # sessions.ts
@@ -32,6 +32,7 @@ tags:
 - [[cases.ts]] - `imports_from` [EXTRACTED]
 - [[checklist.ts]] - `imports_from` [EXTRACTED]
 - [[claude-handoff.ts]] - `imports_from` [EXTRACTED]
+- [[desk-listen.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[diagnose-sequence.mjs]] - `dynamic_import` [EXTRACTED]
@@ -56,11 +57,13 @@ tags:
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[judas-window.ts]] - `imports_from` [EXTRACTED]
 - [[lab.ts]] - `imports_from` [EXTRACTED]
+- [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[live-says.ts]] - `imports_from` [EXTRACTED]
 - [[live-session.ts]] - `imports_from` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[management.ts]] - `imports_from` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
+- [[mead-world.mjs]] - `dynamic_import` [EXTRACTED]
 - [[measure-amd-signals.mjs]] - `dynamic_import` [EXTRACTED]
 - [[measure-entry-location.mjs]] - `dynamic_import` [EXTRACTED]
 - [[measure-exit-plan.mjs]] - `dynamic_import` [EXTRACTED]
@@ -91,9 +94,11 @@ tags:
 - [[replay.ts]] - `imports_from` [EXTRACTED]
 - [[resolveKillzone()]] - `contains` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
+- [[rh-manage.ts]] - `dynamic_import` [EXTRACTED]
 - [[risk.ts]] - `imports_from` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[roomdrill.ts]] - `imports_from` [EXTRACTED]
+- [[run()_3]] - `imports_from` [EXTRACTED]
 - [[safety-net.ts]] - `imports_from` [EXTRACTED]
 - [[school-contract.ts]] - `imports_from` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
@@ -125,9 +130,10 @@ tags:
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-shadow-book.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-spot-cross.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-tf-ladder.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

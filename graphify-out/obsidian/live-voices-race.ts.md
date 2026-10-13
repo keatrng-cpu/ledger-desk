@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 140"
+community: "live-types.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/live-typests
 ---
 
 # live-voices-race.ts
@@ -23,7 +23,7 @@ tags:
 - [[DecisionData]] - `contains` [EXTRACTED]
 - [[Ex]] - `imports` [EXTRACTED]
 - [[Exp]] - `contains` [EXTRACTED]
-- [[Facts_1]] - `imports` [EXTRACTED]
+- [[Facts]] - `imports` [EXTRACTED]
 - [[FinishData]] - `contains` [EXTRACTED]
 - [[GoalFinalData]] - `contains` [EXTRACTED]
 - [[GoalLite]] - `imports` [EXTRACTED]
@@ -32,7 +32,7 @@ tags:
 - [[LadderPlainData]] - `contains` [EXTRACTED]
 - [[LeadData]] - `contains` [EXTRACTED]
 - [[LeagueData]] - `contains` [EXTRACTED]
-- [[Line_1]] - `imports` [EXTRACTED]
+- [[Line]] - `imports` [EXTRACTED]
 - [[NEUTRAL]] - `imports` [EXTRACTED]
 - [[OFFICE()]] - `contains` [EXTRACTED]
 - [[PaceData]] - `contains` [EXTRACTED]
@@ -53,11 +53,11 @@ tags:
 - [[TouchRoundData]] - `contains` [EXTRACTED]
 - [[WeekLite]] - `imports` [EXTRACTED]
 - [[anim()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[audit.ts]] - `imports_from` [EXTRACTED]
 - [[boardMoves()]] - `contains` [EXTRACTED]
 - [[clip()_1]] - `imports` [EXTRACTED]
 - [[compact()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[exAudit()]] - `contains` [EXTRACTED]
 - [[exCouncil()]] - `contains` [EXTRACTED]
 - [[exDecision()]] - `contains` [EXTRACTED]
@@ -92,4 +92,4 @@ tags:
 - [[verify-audit.mjs]] - `dynamic_import` [EXTRACTED]
 - [[voice()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/live-typests

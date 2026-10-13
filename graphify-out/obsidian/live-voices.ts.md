@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 13"
+community: "live-voices.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/live-voicests
 ---
 
 # live-voices.ts
@@ -21,13 +21,14 @@ tags:
 - [[CalData]] - `contains` [EXTRACTED]
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
+- [[ClosedStudyData]] - `contains` [EXTRACTED]
 - [[Ctx]] - `contains` [EXTRACTED]
 - [[DealingData]] - `contains` [EXTRACTED]
 - [[DrawData]] - `contains` [EXTRACTED]
 - [[EXEC_LIMITS]] - `imports` [EXTRACTED]
 - [[EvidenceData]] - `contains` [EXTRACTED]
 - [[Ex]] - `contains` [EXTRACTED]
-- [[Facts_1]] - `imports` [EXTRACTED]
+- [[Facts]] - `imports` [EXTRACTED]
 - [[FeedData]] - `contains` [EXTRACTED]
 - [[GapData]] - `contains` [EXTRACTED]
 - [[GhostData]] - `contains` [EXTRACTED]
@@ -38,7 +39,7 @@ tags:
 - [[LessonHit]] - `contains` [EXTRACTED]
 - [[LevelData]] - `contains` [EXTRACTED]
 - [[LevelRef]] - `imports` [EXTRACTED]
-- [[Line_1]] - `imports` [EXTRACTED]
+- [[Line]] - `imports` [EXTRACTED]
 - [[MemData]] - `contains` [EXTRACTED]
 - [[MoodData]] - `contains` [EXTRACTED]
 - [[NEUTRAL]] - `contains` [EXTRACTED]
@@ -73,6 +74,7 @@ tags:
 - [[exAtEntry()]] - `contains` [EXTRACTED]
 - [[exBoard()]] - `contains` [EXTRACTED]
 - [[exCalendar()]] - `contains` [EXTRACTED]
+- [[exClosedStudy()]] - `contains` [EXTRACTED]
 - [[exDealing()]] - `contains` [EXTRACTED]
 - [[exDraw()]] - `contains` [EXTRACTED]
 - [[exEvidence()]] - `contains` [EXTRACTED]
@@ -88,6 +90,7 @@ tags:
 - [[exLesson()]] - `contains` [EXTRACTED]
 - [[exLevel()]] - `contains` [EXTRACTED]
 - [[exManage()]] - `contains` [EXTRACTED]
+- [[exMead()]] - `contains` [EXTRACTED]
 - [[exMemory()]] - `contains` [EXTRACTED]
 - [[exMood()]] - `contains` [EXTRACTED]
 - [[exNear()]] - `contains` [EXTRACTED]
@@ -116,7 +119,9 @@ tags:
 - [[line()]] - `contains` [EXTRACTED]
 - [[live-talk.ts]] - `imports_from` [EXTRACTED]
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
+- [[live-voices-invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports_from` [EXTRACTED]
+- [[live-voices-mead.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports_from` [EXTRACTED]
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
 - [[norm()]] - `imports` [EXTRACTED]
@@ -130,5 +135,6 @@ tags:
 - [[verify-hi-alert-brain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-school-brief.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/live-voicests

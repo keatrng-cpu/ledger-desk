@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-attestation.mjs"
+source_file: "scripts/verify-rnd.mjs"
 type: "code"
-community: "Community 61"
-location: "L28"
+community: "verify-rnd.mjs"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/verify-rndmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-attestation.mjs]] - `contains` [EXTRACTED]
+- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/verify-rndmjs

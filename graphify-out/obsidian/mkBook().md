@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 142"
-location: "L64"
+community: "verify-live-talk.mjs"
+location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-live-talkmjs
 ---
 
 # mkBook()
 
 ## Connections
 - [[levelsFor()]] - `calls` [EXTRACTED]
-- [[mkWorld()_1]] - `calls` [EXTRACTED]
+- [[mkWorld()_2]] - `calls` [EXTRACTED]
 - [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

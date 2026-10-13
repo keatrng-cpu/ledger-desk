@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/lib/spoken-check.mjs"
 type: "code"
-community: "Community 217"
+community: "verify-entry-alarm.mjs"
 location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/verify-entry-alarmmjs
 ---
 
 # MAX_PIECE_WORDS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[spoken-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

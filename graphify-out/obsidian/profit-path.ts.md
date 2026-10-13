@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 94"
+community: "profit-path.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/profit-pathts
 ---
 
 # profit-path.ts
@@ -28,6 +28,7 @@ tags:
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[StrategyBucketStats]] - `contains` [EXTRACTED]
 - [[aplusanalytics.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyProfitPathToCandidate()]] - `contains` [EXTRACTED]
 - [[bandIsPath()]] - `imports` [EXTRACTED]
 - [[bandToDisplayGrade()]] - `imports` [EXTRACTED]
@@ -35,7 +36,6 @@ tags:
 - [[bestStrategyGrade()]] - `imports` [EXTRACTED]
 - [[buildProfitPath()]] - `contains` [EXTRACTED]
 - [[computeMetrics()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[demoGradedTrades()]] - `contains` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
 - [[engine-weights.ts]] - `imports_from` [EXTRACTED]
@@ -62,4 +62,4 @@ tags:
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

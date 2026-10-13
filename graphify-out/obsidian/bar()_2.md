@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-take-moments.mjs"
+source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 145"
-location: "L23"
+community: "spot-cross.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/spot-crossts
 ---
 
 # bar()
 
 ## Connections
-- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
+- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

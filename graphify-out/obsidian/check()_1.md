@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-propfirm-score.mjs"
+source_file: "scripts/verify-invest.mjs"
 type: "code"
-community: "Community 108"
-location: "L18"
+community: "verify-invest.mjs"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/verify-investmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
+- [[ok()]] - `calls` [EXTRACTED]
+- [[verify-invest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/verify-investmjs

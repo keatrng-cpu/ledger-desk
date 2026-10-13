@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/marks-server.ts"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L72"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # getInvestMarks
@@ -19,4 +19,4 @@ tags:
 - [[parseDailyChart()]] - `calls` [EXTRACTED]
 - [[rangeFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

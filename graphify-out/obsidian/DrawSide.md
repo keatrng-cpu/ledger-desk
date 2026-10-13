@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # DrawSide
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[draw.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

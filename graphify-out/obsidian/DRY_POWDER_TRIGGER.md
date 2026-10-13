@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L477"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # DRY_POWDER_TRIGGER
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

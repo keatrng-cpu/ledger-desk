@@ -1,24 +1,20 @@
 ---
-source_file: "src/lib/trading/shadow-book.ts"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 126"
-location: "L158"
+community: "cases.ts"
+location: "L153"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/casests
 ---
 
 # etTime()
 
 ## Connections
-- [[Row()_1]] - `calls` [EXTRACTED]
-- [[applyRange()]] - `calls` [EXTRACTED]
-- [[close()]] - `calls` [EXTRACTED]
-- [[etWallParts]] - `calls` [EXTRACTED]
-- [[openShadows()]] - `calls` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
-- [[shadow-book.ts]] - `contains` [EXTRACTED]
-- [[tickShadow()]] - `calls` [EXTRACTED]
+- [[Snapshot]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[simulate()_1]] - `calls` [EXTRACTED]
+- [[simulateMarket()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/casests

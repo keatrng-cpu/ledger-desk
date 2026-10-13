@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 42"
+community: "floor-overhaul.ts"
 location: "L273"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-overhaults
 ---
 
 # Tile
@@ -15,4 +15,4 @@ tags:
 - [[floor-overhaul.ts]] - `imports` [EXTRACTED]
 - [[floor-props.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

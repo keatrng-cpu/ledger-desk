@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-tf-tiers.mjs"
 type: "code"
-community: "Community 170"
+community: "measure-tf-tiers.mjs"
 location: "L91"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_170
+  - community/measure-tf-tiersmjs
 ---
 
 # causalDaily()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_170
+#graphify/code #graphify/EXTRACTED #community/measure-tf-tiersmjs

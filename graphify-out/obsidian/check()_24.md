@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-kill-watch.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 197"
-location: "L23"
+community: "verify-mead-hall.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_197
+  - community/verify-mead-hallmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_13]] - `calls` [EXTRACTED]
-- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_197
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

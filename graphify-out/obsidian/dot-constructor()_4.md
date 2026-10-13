@@ -1,23 +1,17 @@
 ---
-source_file: "src/components/room/floor-scene.ts"
+source_file: "scripts/lib/mead-world.mjs"
 type: "code"
-community: "Community 17"
-location: "L620"
+community: "verify-live-talk.mjs"
+location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/verify-live-talkmjs
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-accessory()]] - `calls` [EXTRACTED]
-- [[dot-hairMesh()]] - `calls` [EXTRACTED]
-- [[dot-makeTag()]] - `calls` [EXTRACTED]
-- [[Avatar]] - `method` [EXTRACTED]
-- [[Character]] - `references` [EXTRACTED]
-- [[mat()]] - `calls` [EXTRACTED]
-- [[yawTo()]] - `calls` [EXTRACTED]
+- [[Sim]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

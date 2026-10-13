@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 168"
-location: "L124"
+community: "devDependencies"
+location: "L128"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_168
+  - community/devDependencies
 ---
 
 # lightningcss
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[devDependencies]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_168
+#graphify/code #graphify/EXTRACTED #community/devDependencies

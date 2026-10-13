@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/book-card.tsx"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L457"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # DividendForm()
@@ -18,6 +18,6 @@ tags:
 - [[etToday()]] - `calls` [EXTRACTED]
 - [[isDate()]] - `calls` [EXTRACTED]
 - [[recordDividend()]] - `calls` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-invest-book.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 30"
-location: "L112"
+community: "verify-options-live-ticket.mjs"
+location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_30
+  - community/verify-options-live-ticketmjs
 ---
 
 # over
 
 ## Connections
-- [[verify-invest-book.mjs]] - `contains` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_30
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

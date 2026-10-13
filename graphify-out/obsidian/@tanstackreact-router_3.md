@@ -1,17 +1,42 @@
 ---
-source_file: "src/routeTree.gen.ts"
-type: "code"
-community: "Community 54"
-location: "L189"
+source_file: "package.json"
+type: "concept"
+community: "routeTree.gen.ts"
+location: "L86"
 tags:
-  - graphify/code
+  - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # @tanstack/react-router
 
 ## Connections
-- [[routeTree.gen.ts]] - `contains` [EXTRACTED]
+- [[$.ts]] - `imports_from` [EXTRACTED]
+- [[__root.tsx]] - `imports_from` [EXTRACTED]
+- [[apideskfast.ts]] - `imports_from` [EXTRACTED]
+- [[callback.ts]] - `imports_from` [EXTRACTED]
+- [[card.ts]] - `imports_from` [EXTRACTED]
+- [[checklist.ts]] - `imports_from` [EXTRACTED]
+- [[connect.ts]] - `imports_from` [EXTRACTED]
+- [[cycle.ts]] - `imports_from` [EXTRACTED]
+- [[deskjournal.ts]] - `imports_from` [EXTRACTED]
+- [[enginejournal.ts]] - `imports_from` [EXTRACTED]
+- [[error-component.tsx]] - `imports_from` [EXTRACTED]
+- [[exec-flatten.ts]] - `imports_from` [EXTRACTED]
+- [[gates.tsx]] - `imports_from` [EXTRACTED]
+- [[handoff.ts]] - `imports_from` [EXTRACTED]
+- [[heartbeat.ts]] - `imports_from` [EXTRACTED]
+- [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[login.tsx]] - `imports_from` [EXTRACTED]
+- [[mcp.ts]] - `imports_from` [EXTRACTED]
+- [[package.json]] - `imports` [EXTRACTED]
+- [[review.ts]] - `imports_from` [EXTRACTED]
+- [[rh-manage.ts]] - `imports_from` [EXTRACTED]
+- [[room-step.ts]] - `imports_from` [EXTRACTED]
+- [[router.tsx]] - `imports_from` [EXTRACTED]
+- [[storage-banner.tsx]] - `imports_from` [EXTRACTED]
+- [[watcher.ts]] - `imports_from` [EXTRACTED]
+- [[weekly.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/concept #graphify/EXTRACTED #community/routeTreegents

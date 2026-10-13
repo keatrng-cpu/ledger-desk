@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-signals.mjs"
 type: "code"
-community: "Community 182"
+community: "capture-signals.mjs"
 location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_182
+  - community/capture-signalsmjs
 ---
 
 # layerIds()
@@ -15,4 +15,4 @@ tags:
 - [[capture-signals.mjs]] - `contains` [EXTRACTED]
 - [[record()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_182
+#graphify/code #graphify/EXTRACTED #community/capture-signalsmjs

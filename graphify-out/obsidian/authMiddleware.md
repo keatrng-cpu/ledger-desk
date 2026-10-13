@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/middleware.ts"
 type: "code"
-community: "Community 65"
+community: "@tanstack/react-start"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/tanstack/react-start
 ---
 
 # authMiddleware
@@ -30,6 +30,7 @@ tags:
 - [[paper-mirror.ts]] - `imports` [EXTRACTED]
 - [[paper-server.ts]] - `imports` [EXTRACTED]
 - [[replay-server.ts]] - `imports` [EXTRACTED]
+- [[rh-server.ts]] - `imports` [EXTRACTED]
 - [[shadow-book-server.ts]] - `imports` [EXTRACTED]
 - [[shadow.ts]] - `imports` [EXTRACTED]
 - [[snapshot-server.ts]] - `imports` [EXTRACTED]
@@ -38,4 +39,4 @@ tags:
 - [[trigger-server.ts]] - `imports` [EXTRACTED]
 - [[verify.server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

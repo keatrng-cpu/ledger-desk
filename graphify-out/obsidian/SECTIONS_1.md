@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/invest-office-panel.tsx"
+source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 49"
-location: "L29"
+community: "audit.ts"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/auditts
 ---
 
 # SECTIONS
 
 ## Connections
-- [[invest-office-panel.tsx]] - `contains` [EXTRACTED]
+- [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/auditts

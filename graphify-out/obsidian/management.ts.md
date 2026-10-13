@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 20"
+community: "news.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # management.ts
@@ -32,7 +32,7 @@ tags:
 - [[RetargetResult]] - `contains` [EXTRACTED]
 - [[SESSION_END_FLATTEN_LEAD_MIN]] - `contains` [EXTRACTED]
 - [[SessionClock]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[describeFlatten()]] - `contains` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
 - [[drawTargetsForSide()]] - `imports` [EXTRACTED]
@@ -49,4 +49,4 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[shouldFlatten()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

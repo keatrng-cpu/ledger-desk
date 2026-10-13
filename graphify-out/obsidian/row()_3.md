@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/desk/hi-alert-panel.tsx"
+source_file: "scripts/verify-rh-dispatch.mjs"
 type: "code"
-community: "Community 92"
-location: "L13"
+community: "verify-rh-desk-job.mjs"
+location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/verify-rh-desk-jobmjs
 ---
 
 # row()
 
 ## Connections
-- [[HiAlertPanel()]] - `calls` [EXTRACTED]
-- [[hi-alert-panel.tsx]] - `contains` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

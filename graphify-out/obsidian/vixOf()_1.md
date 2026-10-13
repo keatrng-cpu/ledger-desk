@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/room/meeting.ts"
+source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 3"
-location: "L127"
+community: "orchestrator.ts"
+location: "L824"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/orchestratorts
 ---
 
 # vixOf()
 
 ## Connections
-- [[greeksLine()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `contains` [EXTRACTED]
-- [[vixTxt()]] - `calls` [EXTRACTED]
+- [[orchestrator.ts]] - `contains` [EXTRACTED]
+- [[urgencyFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

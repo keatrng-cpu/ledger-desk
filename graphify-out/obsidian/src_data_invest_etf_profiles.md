@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 5"
+community: "invest-panel.tsx"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/invest-paneltsx
 ---
 
 # src_data_invest_etf_profiles
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[exposure.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_5
+#graphify/concept #graphify/EXTRACTED #community/invest-paneltsx

@@ -1,20 +1,20 @@
 ---
 source_file: "scripts/verify-focus-pick.mjs"
 type: "code"
-community: "Community 244"
+community: "verify-focus-pick.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_244
+  - community/verify-focus-pickmjs
 ---
 
 # verify-focus-pick.mjs
 
 ## Connections
-- [[L()_3]] - `contains` [EXTRACTED]
+- [[L()_4]] - `contains` [EXTRACTED]
 - [[WHY the Floor took the board's first card. On 2026-10-07 that was an ES short…]] - `rationale_for` [EXTRACTED]
-- [[check()_48]] - `contains` [EXTRACTED]
+- [[check()_72]] - `contains` [EXTRACTED]
 - [[focus-pick.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-types.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-voices.ts]] - `dynamic_import` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[spoken-check.mjs]] - `dynamic_import` [EXTRACTED]
 - [[stay0()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_244
+#graphify/code #graphify/EXTRACTED #community/verify-focus-pickmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/use-entry-state.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # useRhAccount()
@@ -23,4 +23,4 @@ tags:
 - [[subscribeRhAccount()]] - `indirect_call` [INFERRED]
 - [[use-entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

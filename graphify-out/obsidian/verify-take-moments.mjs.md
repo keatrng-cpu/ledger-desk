@@ -1,21 +1,21 @@
 ---
 source_file: "scripts/verify-take-moments.mjs"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # verify-take-moments.mjs
 
 ## Connections
-- [[T0_3]] - `contains` [EXTRACTED]
-- [[bar()_2]] - `contains` [EXTRACTED]
-- [[check()_13]] - `contains` [EXTRACTED]
-- [[short_1]] - `contains` [EXTRACTED]
+- [[T0_18]] - `contains` [EXTRACTED]
+- [[bar()_12]] - `contains` [EXTRACTED]
+- [[check()_92]] - `contains` [EXTRACTED]
+- [[short_5]] - `contains` [EXTRACTED]
 - [[take-moments.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

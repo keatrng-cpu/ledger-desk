@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-room-exec.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 171"
-location: "L31"
+community: "verify-card-freshness.mjs"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/verify-card-freshnessmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
+- [[ok()_11]] - `calls` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

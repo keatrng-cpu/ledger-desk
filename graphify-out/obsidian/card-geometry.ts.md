@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-geometry.ts"
 type: "code"
-community: "Community 158"
+community: "simulate-path-trade.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/simulate-path-tradets
 ---
 
 # card-geometry.ts
@@ -23,6 +23,6 @@ tags:
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[simulate-path-trade.ts]] - `imports_from` [EXTRACTED]
 - [[verify-card-geometry.mjs]] - `dynamic_import` [EXTRACTED]
-- [[zoneMid()]] - `contains` [EXTRACTED]
+- [[zoneMid()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

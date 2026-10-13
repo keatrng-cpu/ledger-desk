@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 157"
+community: "measure-inducement-news.mjs"
 location: "L247"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_157
+  - community/measure-inducement-newsmjs
 ---
 
 # clustered()
@@ -15,4 +15,4 @@ tags:
 - [[bucket()_3]] - `calls` [EXTRACTED]
 - [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_157
+#graphify/code #graphify/EXTRACTED #community/measure-inducement-newsmjs

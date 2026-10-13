@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/draw.ts"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 72"
-location: "L81"
+community: "gates.ts"
+location: "L250"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/gatests
 ---
 
 # median()
 
 ## Connections
-- [[draw.ts]] - `contains` [EXTRACTED]
-- [[drawOnLiquidity()]] - `calls` [EXTRACTED]
+- [[evidenceOf()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/gatests

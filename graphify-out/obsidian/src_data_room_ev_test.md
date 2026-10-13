@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 50"
+community: "goal.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/goalts
 ---
 
 # src_data_room_ev_test
@@ -15,4 +15,4 @@ tags:
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_50
+#graphify/concept #graphify/EXTRACTED #community/goalts

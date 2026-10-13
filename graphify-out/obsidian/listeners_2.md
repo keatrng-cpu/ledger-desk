@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/ui/plain-english.ts"
+source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 69"
-location: "L155"
+community: "react"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/react
 ---
 
 # listeners
 
 ## Connections
-- [[plain-english.ts]] - `contains` [EXTRACTED]
+- [[path-alarm.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/react

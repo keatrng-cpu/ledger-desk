@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/drill.ts"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # learn/drill.ts
@@ -24,11 +24,11 @@ tags:
 - [[figures.ts]] - `imports_from` [EXTRACTED]
 - [[layerMatch()]] - `contains` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
-- [[norm()_1]] - `contains` [EXTRACTED]
+- [[norm()_2]] - `contains` [EXTRACTED]
 - [[pickLayer()]] - `contains` [EXTRACTED]
 - [[scenarioCall()]] - `contains` [EXTRACTED]
 - [[scoreCall()]] - `contains` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports_from` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

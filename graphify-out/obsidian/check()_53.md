@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-board-rank.mjs"
+source_file: "scripts/verify-card-plan.mjs"
 type: "code"
-community: "Community 254"
-location: "L27"
+community: "smc-master.ts"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/smc-masterts
 ---
 
 # check()
 
 ## Connections
-- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

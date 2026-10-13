@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 88"
-location: "L486"
+community: "desk-atlas.ts"
+location: "L503"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/desk-atlasts
 ---
 
 # LogicRow
@@ -15,4 +15,4 @@ tags:
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 - [[floor-brains.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 234"
-location: "L1239"
+community: "build_floor.py"
+location: "L1276"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_234
+  - community/build_floorpy
 ---
 
 # depth()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[housing()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_234
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

@@ -1,23 +1,25 @@
 ---
 source_file: "src/lib/predict/signals.ts"
 type: "code"
-community: "Community 63"
+community: "verify-mead-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/verify-mead-talkmjs
 ---
 
 # signals.ts
 
 ## Connections
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
-- [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
+- [[paper-scorer.ts]] - `re_exports` [EXTRACTED]
 - [[pm-analyzer.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports_from` [EXTRACTED]
-- [[signal-engine.ts]] - `imports_from` [EXTRACTED]
-- [[signal-evidence.ts]] - `imports_from` [EXTRACTED]
+- [[signal-engine.ts]] - `re_exports` [EXTRACTED]
+- [[signal-evidence.ts]] - `re_exports` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

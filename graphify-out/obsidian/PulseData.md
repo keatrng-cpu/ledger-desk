@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 13"
-location: "L1063"
+community: "live-voices.ts"
+location: "L1066"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/live-voicests
 ---
 
 # PulseData
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/live-voicests

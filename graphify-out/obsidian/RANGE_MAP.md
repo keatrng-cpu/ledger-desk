@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/fetch-dual.ts"
 type: "code"
-community: "Community 1"
-location: "L30"
+community: "build-desk.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # RANGE_MAP
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[fetch-dual.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 33"
-location: "L1109"
+community: "trading-floor-tab.tsx"
+location: "L1142"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/trading-floor-tabtsx
 ---
 
 # TickerCrawl()
@@ -18,4 +18,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 - [[useAutomation()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

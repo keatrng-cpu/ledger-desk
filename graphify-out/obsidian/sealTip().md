@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/attest.ts"
 type: "code"
-community: "Community 97"
+community: "attest.ts"
 location: "L318"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_97
+  - community/attestts
 ---
 
 # sealTip()
@@ -18,4 +18,4 @@ tags:
 - [[sealUserChain()]] - `calls` [EXTRACTED]
 - [[verifyChain()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_97
+#graphify/code #graphify/EXTRACTED #community/attestts

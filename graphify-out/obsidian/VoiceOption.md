@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L53"
+community: "floor-voice.ts"
+location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/floor-voicets
 ---
 
 # VoiceOption
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

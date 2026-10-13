@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 7"
+community: "prediction-market-feed.ts"
 location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/prediction-market-feedts
 ---
 
 # .setLeague()
@@ -15,4 +15,4 @@ tags:
 - [[League]] - `references` [EXTRACTED]
 - [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

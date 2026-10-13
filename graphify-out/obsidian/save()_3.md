@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/predict/journal.ts"
+source_file: "src/lib/execution/rh-ledger.ts"
 type: "code"
-community: "Community 2"
-location: "L60"
+community: ".path"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/path
 ---
 
 # save()
 
 ## Connections
-- [[closeTrade()]] - `calls` [EXTRACTED]
-- [[deleteTrade()]] - `calls` [EXTRACTED]
-- [[logEntry()]] - `calls` [EXTRACTED]
-- [[predictjournal.ts]] - `contains` [EXTRACTED]
+- [[dot-path()]] - `indirect_call` [INFERRED]
+- [[fileLedger()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/path

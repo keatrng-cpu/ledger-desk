@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/ai-sync.ts"
 type: "code"
-community: "Community 161"
+community: "discuss-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_161
+  - community/discuss-tabtsx
 ---
 
 # ai-sync.ts
@@ -26,4 +26,4 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[verify-ai-sync.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_161
+#graphify/code #graphify/EXTRACTED #community/discuss-tabtsx

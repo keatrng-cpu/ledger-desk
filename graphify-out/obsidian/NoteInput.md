@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-note.ts"
 type: "code"
-community: "Community 229"
+community: "SmcMasterBook"
 location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/SmcMasterBook
 ---
 
 # NoteInput
@@ -16,4 +16,4 @@ tags:
 - [[TradePlan]] - `references` [EXTRACTED]
 - [[trade-note.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/SmcMasterBook

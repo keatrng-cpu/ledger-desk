@@ -1,22 +1,24 @@
 ---
 source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L208"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # scanBoard()
 
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 - [[predictscanner.ts]] - `contains` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 - [[scanSide()]] - `calls` [EXTRACTED]
+- [[scannerRows()]] - `calls` [EXTRACTED]
 - [[stateFromBoard()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

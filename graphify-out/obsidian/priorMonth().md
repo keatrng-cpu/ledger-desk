@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/sweep-card.tsx"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # priorMonth()
@@ -16,4 +16,4 @@ tags:
 - [[etMonth()]] - `calls` [EXTRACTED]
 - [[sweep-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

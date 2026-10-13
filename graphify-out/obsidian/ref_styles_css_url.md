@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 54"
+community: "routeTree.gen.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # ref_styles_css_url
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[__root.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_54
+#graphify/concept #graphify/EXTRACTED #community/routeTreegents

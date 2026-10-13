@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 210"
-location: "L94"
+community: "shock.ts"
+location: "L167"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/shockts
 ---
 
 # minPts()
@@ -15,4 +15,4 @@ tags:
 - [[detectBookShock()]] - `calls` [EXTRACTED]
 - [[shock.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/shockts

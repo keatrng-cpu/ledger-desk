@@ -1,22 +1,20 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 41"
-location: "L215"
+community: "floor-overhaul-war.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/floor-overhaul-warts
 ---
 
 # fit()
 
 ## Connections
-- [[drawBooth()]] - `calls` [EXTRACTED]
-- [[drawBubble()_1]] - `calls` [EXTRACTED]
-- [[drawJumbotron()]] - `calls` [EXTRACTED]
-- [[drawRuneBoard()]] - `calls` [EXTRACTED]
-- [[drawTv()]] - `calls` [EXTRACTED]
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[drawDiscretionBoard()]] - `calls` [EXTRACTED]
+- [[drawManagerArms()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
+- [[wrap()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

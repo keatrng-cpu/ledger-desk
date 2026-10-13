@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
-community: "Community 103"
-location: "L1624"
+community: "live-talk.ts"
+location: "L1880"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # talkTick()
 
 ## Connections
-- [[Facts_1]] - `calls` [EXTRACTED]
+- [[Facts]] - `calls` [EXTRACTED]
 - [[allowed()]] - `calls` [EXTRACTED]
 - [[bookCands()]] - `calls` [EXTRACTED]
 - [[calendarCands()]] - `calls` [EXTRACTED]
@@ -20,6 +20,7 @@ tags:
 - [[feedCands()]] - `calls` [EXTRACTED]
 - [[feedSentence()]] - `calls` [EXTRACTED]
 - [[goalCands()]] - `calls` [EXTRACTED]
+- [[hallCands()]] - `calls` [EXTRACTED]
 - [[heartbeatCand()]] - `calls` [EXTRACTED]
 - [[investCands()]] - `calls` [EXTRACTED]
 - [[lessonCands()]] - `calls` [EXTRACTED]
@@ -37,4 +38,4 @@ tags:
 - [[sessionCands()]] - `calls` [EXTRACTED]
 - [[tapeCands()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

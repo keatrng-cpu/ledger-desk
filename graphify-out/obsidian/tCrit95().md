@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 111"
+community: "discretion-memory.ts"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/discretion-memoryts
 ---
 
 # tCrit95()
@@ -15,4 +15,4 @@ tags:
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[meanInterval]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

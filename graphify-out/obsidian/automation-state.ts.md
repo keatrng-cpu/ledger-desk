@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/automation-state.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # automation-state.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[AutomationState]] - `contains` [EXTRACTED]
 - [[RhFill]] - `imports` [EXTRACTED]
-- [[SERVER]] - `contains` [EXTRACTED]
+- [[SERVER_1]] - `contains` [EXTRACTED]
 - [[bridgeRhFills()]] - `contains` [EXTRACTED]
 - [[fillLabel()]] - `contains` [EXTRACTED]
 - [[getAutomation()]] - `contains` [EXTRACTED]
@@ -24,10 +24,10 @@ tags:
 - [[reportAutomation()]] - `contains` [EXTRACTED]
 - [[rh-income.ts]] - `imports_from` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
-- [[state]] - `contains` [EXTRACTED]
-- [[subs]] - `contains` [EXTRACTED]
+- [[state_1]] - `contains` [EXTRACTED]
+- [[subs_1]] - `contains` [EXTRACTED]
 - [[subscribeAutomation()]] - `contains` [EXTRACTED]
 - [[subscribeRhIncome()]] - `imports` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

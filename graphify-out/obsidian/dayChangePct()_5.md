@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/trading/replay.ts"
+source_file: "scripts/diagnose-path.mjs"
 type: "code"
-community: "Community 58"
-location: "L207"
+community: "detectors.ts"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/detectorsts
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[etSessionKey()]] - `calls` [EXTRACTED]
-- [[replay.ts]] - `contains` [EXTRACTED]
-- [[replayScan()]] - `calls` [EXTRACTED]
+- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/detectorsts

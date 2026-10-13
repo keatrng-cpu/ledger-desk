@@ -1,21 +1,18 @@
 ---
-source_file: "src/components/desk/options-swing-panel.tsx"
+source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 153"
-location: "L50"
+community: "meeting.ts"
+location: "L139"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/meetingts
 ---
 
 # usd()
 
 ## Connections
-- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
-- [[QuoteSheet()]] - `calls` [EXTRACTED]
-- [[SleeveBudgetBar()]] - `calls` [EXTRACTED]
-- [[StrategyCard()]] - `calls` [EXTRACTED]
-- [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
+- [[challengeFor()]] - `calls` [EXTRACTED]
+- [[debate.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/meetingts

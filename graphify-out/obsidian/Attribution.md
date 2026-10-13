@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/room/quant.ts"
+source_file: "src/lib/trading/setup-memory.ts"
 type: "code"
-community: "Community 0"
-location: "L423"
+community: "setup-memory.ts"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/setup-memoryts
 ---
 
 # Attribution
 
 ## Connections
-- [[RoomClosedTrade]] - `references` [EXTRACTED]
-- [[paper-book.ts]] - `imports` [EXTRACTED]
-- [[quant.ts]] - `contains` [EXTRACTED]
+- [[setup-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/setup-memoryts

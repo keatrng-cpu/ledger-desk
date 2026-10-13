@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # datetime
@@ -18,4 +18,4 @@ tags:
 - [[rec_ts()]] - `references` [EXTRACTED]
 - [[window_closed_for_today()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

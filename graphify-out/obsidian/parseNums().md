@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L135"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # parseNums()
 
 ## Connections
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]
-- [[firstPrice()]] - `calls` [EXTRACTED]
+- [[firstPrice()_1]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
-- [[zoneMid()_1]] - `calls` [EXTRACTED]
+- [[zoneMid()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart-panel.tsx"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # setup-chart-panel.tsx
@@ -41,13 +41,14 @@ tags:
 - [[entry-trigger-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[evidenceFor()]] - `imports` [EXTRACTED]
-- [[fmtR()_1]] - `imports` [EXTRACTED]
+- [[fmtR()_2]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[managementLine()]] - `imports` [EXTRACTED]
 - [[pathStats]] - `imports` [EXTRACTED]
 - [[pickBook()_1]] - `contains` [EXTRACTED]
 - [[planRiskText()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[previewMarks()]] - `contains` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readEntry()]] - `imports` [EXTRACTED]
 - [[refusingLayer()]] - `imports` [EXTRACTED]
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
@@ -63,4 +64,4 @@ tags:
 - [[useShadowBook()]] - `imports` [EXTRACTED]
 - [[walkthrough()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

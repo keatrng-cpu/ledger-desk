@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/render-mead-attachments.mjs"
+source_file: "scripts/build-mead-plan.mjs"
 type: "code"
-community: "Community 173"
-location: "L14"
+community: "mead-hall-layout.ts"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_173
+  - community/mead-hall-layoutts
 ---
 
 # here
 
 ## Connections
-- [[render-mead-attachments.mjs]] - `contains` [EXTRACTED]
+- [[build-mead-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_173
+#graphify/code #graphify/EXTRACTED #community/mead-hall-layoutts

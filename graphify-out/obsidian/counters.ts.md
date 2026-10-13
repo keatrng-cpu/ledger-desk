@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/counters.ts"
 type: "code"
-community: "Community 57"
+community: "seats.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/seatsts
 ---
 
 # counters.ts
@@ -16,7 +16,7 @@ tags:
 - [[RoomLedger]] - `imports` [EXTRACTED]
 - [[Underlier]] - `imports` [EXTRACTED]
 - [[emptyCounters()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etMonthKey()]] - `imports` [EXTRACTED]
 - [[etWeekKey()]] - `imports` [EXTRACTED]
 - [[ledgerOfCounters()]] - `contains` [EXTRACTED]
@@ -28,4 +28,4 @@ tags:
 - [[seats.ts]] - `imports_from` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/seatsts

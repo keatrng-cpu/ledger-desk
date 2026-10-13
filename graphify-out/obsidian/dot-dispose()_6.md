@@ -1,17 +1,19 @@
 ---
-source_file: "src/components/mead/mead-feed.ts"
+source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 37"
-location: "L26"
+community: "Avatar"
+location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/Avatar
 ---
 
 # .dispose()
 
 ## Connections
-- [[MeadFeed]] - `method` [EXTRACTED]
+- [[dot-dispose()_6]] - `calls` [EXTRACTED]
+- [[dot-dispose()_7]] - `calls` [EXTRACTED]
+- [[Confetti]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/Avatar

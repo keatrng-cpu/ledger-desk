@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
-location: "L86"
+community: "mead-screens.ts"
+location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # VENUES
 
 ## Connections
+- [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
@@ -19,4 +20,4 @@ tags:
 - [[predictjournal.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

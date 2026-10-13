@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # Underlier
@@ -18,7 +18,7 @@ tags:
 - [[GhostPos]] - `references` [EXTRACTED]
 - [[GhostStepCtx]] - `references` [EXTRACTED]
 - [[LabStepArgs]] - `references` [EXTRACTED]
-- [[LadderInput]] - `references` [EXTRACTED]
+- [[LadderInput_1]] - `references` [EXTRACTED]
 - [[Memory]] - `references` [EXTRACTED]
 - [[MindState]] - `references` [EXTRACTED]
 - [[PlanWatch]] - `references` [EXTRACTED]
@@ -64,4 +64,4 @@ tags:
 - [[roomformat.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

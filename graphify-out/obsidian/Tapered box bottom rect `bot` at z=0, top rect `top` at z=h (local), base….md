@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 202"
-location: "L315"
+community: "build_floor.py"
+location: "L338"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/build_floorpy
 ---
 
 # Tapered box: bottom rect `bot` at z=0, top rect `top` at z=h (local), base…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[tbox()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
-community: "Community 27"
+community: "candlestick-pane.tsx"
 location: "L187"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/candlestick-panetsx
 ---
 
 # SetupChartProps
 
 ## Connections
 - [[ChartOverlay]] - `references` [EXTRACTED]
-- [[OhlcBar]] - `references` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
 - [[TradePlan]] - `references` [EXTRACTED]
 - [[setup-chart.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/candlestick-panetsx

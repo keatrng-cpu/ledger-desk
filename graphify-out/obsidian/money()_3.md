@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/audit.ts"
+source_file: "src/components/invest/funnel-card.tsx"
 type: "code"
-community: "Community 18"
-location: "L25"
+community: "invest-panel.tsx"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/invest-paneltsx
 ---
 
 # money()
 
 ## Connections
-- [[audit.ts]] - `contains` [EXTRACTED]
-- [[deskAudit()]] - `calls` [EXTRACTED]
+- [[Rows()]] - `calls` [EXTRACTED]
+- [[funnel-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

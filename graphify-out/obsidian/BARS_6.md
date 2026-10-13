@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-tf-tiers.mjs"
+source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 170"
-location: "L60"
+community: "measure-inducement-news.mjs"
+location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_170
+  - community/measure-inducement-newsmjs
 ---
 
 # BARS
 
 ## Connections
-- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
+- [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_170
+#graphify/code #graphify/EXTRACTED #community/measure-inducement-newsmjs

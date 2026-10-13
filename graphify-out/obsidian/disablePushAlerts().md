@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/client.ts"
 type: "code"
-community: "Community 19"
+community: "react"
 location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/react
 ---
 
 # disablePushAlerts()
@@ -17,4 +17,4 @@ tags:
 - [[alertsclient.ts]] - `contains` [EXTRACTED]
 - [[unsubscribeFromAlerts]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/react

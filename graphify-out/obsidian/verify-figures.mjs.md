@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-figures.mjs"
 type: "code"
-community: "Community 132"
+community: "curriculum.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/curriculumts
 ---
 
 # verify-figures.mjs
@@ -18,18 +18,18 @@ tags:
 - [[alias]] - `contains` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
 - [[figures.ts]] - `imports_from` [EXTRACTED]
-- [[file_1]] - `contains` [EXTRACTED]
+- [[file_4]] - `contains` [EXTRACTED]
 - [[getFigure()]] - `imports` [EXTRACTED]
 - [[hit]] - `contains` [EXTRACTED]
 - [[learndrill.ts]] - `imports_from` [EXTRACTED]
 - [[miss]] - `contains` [EXTRACTED]
-- [[ok()_3]] - `contains` [EXTRACTED]
+- [[ok()_23]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[scenarioCall()]] - `imports` [EXTRACTED]
 - [[scenarios.ts]] - `imports_from` [EXTRACTED]
 - [[scoreCall()]] - `imports` [EXTRACTED]
-- [[structureOf()_1]] - `imports` [EXTRACTED]
+- [[structureOf()_2]] - `imports` [EXTRACTED]
 - [[take]] - `contains` [EXTRACTED]
 - [[wordOnly]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/curriculumts

@@ -95,10 +95,6 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Decision:** Mouth shape, brow, blink, look, and the hand gesture come from the words the person is saying (`src/lib/room/floor-presence.ts`). The office stays the Blender GLB from `scripts/blender/build_floor.py`. ACE, Spline, ComfyUI, Tripo, and Godot are not installed on this host, and `bpy` needs Python 3.11, so none of them were faked. A gesture does not change a ticket.
 - **Why:** A cloud avatar engine that is not connected still has to be drawn by something. The something that is already on the floor is the five people.
 
-
-
-
-
 ## 2026-10-13 — Learning loop (journal → calibration), Keaton
 - Every card with q or qRaw ≥ 0.65 is snapshotted once per (ET day, symbol, side, setup), plan or not, with checklist, components, MTF, SMT, regime, displacement, draws, brain, Floor and Master (`desk_card_snap`, migration 0024).
 - Graded on each card read against the desk's own 1m feed: plan → T1/stop first (same bar = loss), MFE/MAE in R, minutes; no plan → signed move at +30/+60/+120 min in ATR (right/wrong at ±0.25 ATR). No bars → `ungradable`; outcomes are never invented.
@@ -131,3 +127,13 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 Found: during the bull surge, ES long and MNQ long sat at C (q 0.4999) because 12:56 CT 5m bear-IFVG kills never re-armed — Keaton's strict re-arm needs sweep → displacement → inversion, and a straight surge has no sweep — though price had already closed back above the kill levels (ES 7854 > 7849.25, MNQ 30762 > 30733.75). MNQ also carried a 12:41 CT kill on the short. The lead picker was not side-biased; both sides were built and scored, the longs were just capped.
 Fix: `killVoided` — a kill is void (treated like a re-arm, capped A-) after `kill.voidCloses5m` (2) closed 5m bars beyond its level in the killed side's favour, or after `kill.maxAgeMin` (60). Shared rules; watcher reads `ltfKilled` off the card.
 0DTE (watcher): from `session.zeroDteCutoffEt` 15:25 ET only dte ≥ 1; 0DTE flattened by 15:40 ET; flat_by capped at 15:50 ET, no overnight holds.
+
+### 2026-10-13 — Code graph refreshed at `b3d58e0f`; NOW.md marks WS-KG0 done
+- **Status:** PROPOSED (pending Accuracy Review → Release Watch → Design Atelier merge) · **Decided by:** Graph Keeper, following Keaton's standing graph workflow (flag and rebuild stale graphs) · **Source:** branch `graph/2026-10-13-refresh`.
+- **Decision:** The 2026-10-07 graph (built from `295bd7f1`) was 144 commits behind `main`. Rebuilt with the adopted 2026-10-07 steps: `graphify update .` (hash-cached, code only), `graphify cluster-only . --no-label --no-viz`, `graphify export obsidian`. Result: 11,719 nodes, 28,687 edges, 350 communities, still named "Community N". `scripts/export-brain-vault.mjs` was not re-run (no `node_modules` on the build host), so `graphify-out/obsidian/brain/` is unchanged. 22 `.sql` files add nothing because `tree_sitter_sql` is not installed. `ai/NOW.md` now says WS-KG0 is on `main` and WS-P1 is unblocked.
+- **Why:** NOW.md is read first every session and still said WS-KG0 was in flight on its branch and that the canon was not on `main`.
+
+### 2026-10-13 — Code graph re-synced to `main` @ `7cc00057`
+- **Status:** PROPOSED (pending Accuracy Review → Release Watch → Design Atelier merge) · **Decided by:** Graph Keeper, standing graph workflow (rebuild when main drifts) · **Source:** branch `graph/2026-10-13-refresh`.
+- **Decision:** Merged `origin/main` @ `7cc00057` (28 commits behind prior graph tip `0f7da878` / `66ce5b3d`) into this branch; resolved `ai/DECISIONS.md` by keeping both sides. Rebuilt with adopted steps: `graphify update .`, `graphify cluster-only . --no-label --no-viz`, `graphify export obsidian`. Result: 12,236 nodes, 30,005 edges, 354 communities. `scripts/export-brain-vault.mjs` not re-run (`node_modules` absent). 26 `.sql` files still contribute nothing without `tree_sitter_sql`. `ai/NOW.md` points at this build.
+- **Why:** Main moved through learning, loss guards, watcher, sanePlan, and Accuracy a10a66a7 fixes after the prior refresh; a stale graph would mislead Accuracy Review.

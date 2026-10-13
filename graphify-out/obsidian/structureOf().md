@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/trading/tf-ladder.ts"
+source_file: "src/lib/smc/mtf-context.ts"
 type: "code"
-community: "Community 101"
-location: "L338"
+community: "buildTradingDesk"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_101
+  - community/buildTradingDesk
 ---
 
 # structureOf()
 
 ## Connections
-- [[readRung()]] - `calls` [EXTRACTED]
-- [[swings()]] - `calls` [EXTRACTED]
-- [[tf-ladder.ts]] - `contains` [EXTRACTED]
+- [[RungRead]] - `calls` [EXTRACTED]
+- [[fractalSwings()]] - `calls` [EXTRACTED]
+- [[mtf-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_101
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

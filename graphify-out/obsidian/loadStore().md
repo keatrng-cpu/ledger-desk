@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 6"
+community: "replay-drill.ts"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/replay-drillts
 ---
 
 # loadStore()
@@ -17,4 +17,4 @@ tags:
 - [[parseStore()]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

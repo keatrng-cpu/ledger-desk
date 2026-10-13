@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-school-brief.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 217"
-location: "L29"
+community: "verify-exit-rules.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/verify-exit-rulesmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-school-brief.mjs]] - `contains` [EXTRACTED]
+- [[ok()_17]] - `calls` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/verify-exit-rulesmjs

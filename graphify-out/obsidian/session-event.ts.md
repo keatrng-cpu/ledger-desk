@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-event.ts"
 type: "code"
-community: "Community 115"
+community: "cases.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/casests
 ---
 
 # session-event.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[EVENT_SCORE_MIN]] - `contains` [EXTRACTED]
 - [[EVENT_VOL_MIN]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SHOCK_WARMUP]] - `contains` [EXTRACTED]
 - [[SessionRead]] - `contains` [EXTRACTED]
 - [[SessionSource]] - `contains` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
 - [[volumeRatio()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/casests

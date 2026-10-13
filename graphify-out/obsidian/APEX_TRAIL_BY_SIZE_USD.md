@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/execution-gate.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L198"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # APEX_TRAIL_BY_SIZE_USD
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[execution-gate.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

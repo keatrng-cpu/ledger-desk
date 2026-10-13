@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 32"
-location: "L72"
+community: "package.json"
+location: "L76"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # @radix-ui/react-separator
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_32
+#graphify/concept #graphify/EXTRACTED #community/packagejson

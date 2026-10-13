@@ -1,22 +1,18 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "src/lib/execution/rh-ledger.ts"
 type: "code"
-community: "Community 48"
-location: "L113"
+community: "sqlLedger"
+location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/sqlLedger
 ---
 
 # save()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[considerEntryAlarm()]] - `calls` [EXTRACTED]
-- [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[disarmPathAlarm()]] - `calls` [EXTRACTED]
-- [[mutePathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[dot-account()]] - `indirect_call` [INFERRED]
+- [[sqlLedger()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/sqlLedger

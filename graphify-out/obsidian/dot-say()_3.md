@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/room/floor-proto-avatars.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 193"
-location: "L553"
+community: "Avatar"
+location: "L1067"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/Avatar
 ---
 
 # .say()
 
 ## Connections
-- [[ManagerAvatar]] - `method` [EXTRACTED]
-- [[drawBubble()]] - `calls` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/Avatar

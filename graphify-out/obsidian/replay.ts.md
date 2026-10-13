@@ -1,30 +1,30 @@
 ---
 source_file: "src/lib/trading/replay.ts"
 type: "code"
-community: "Community 58"
+community: "structure.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # replay.ts
 
 ## Connections
 - [[BUCKET_EDGES]] - `contains` [EXTRACTED]
-- [[CalibrationBucket]] - `contains` [EXTRACTED]
+- [[CalibrationBucket_1]] - `contains` [EXTRACTED]
 - [[FLOOR_CANDIDATES]] - `contains` [EXTRACTED]
 - [[FloorRow]] - `contains` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[NumericPlan]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[ROutcome]] - `contains` [EXTRACTED]
 - [[ReplayOptions]] - `contains` [EXTRACTED]
 - [[ReplayOutcome]] - `contains` [EXTRACTED]
 - [[analyzeStructure()]] - `imports` [EXTRACTED]
 - [[calibrationReport]] - `contains` [EXTRACTED]
-- [[dayChangePct()_5]] - `contains` [EXTRACTED]
+- [[dayChangePct()_7]] - `contains` [EXTRACTED]
 - [[etSessionKey()]] - `imports` [EXTRACTED]
 - [[getSessionClock()]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[structure.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/structurets

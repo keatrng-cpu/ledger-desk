@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/figures.ts"
 type: "code"
-community: "Community 148"
+community: "figures.ts"
 location: "L184"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # smtLead()
@@ -16,4 +16,4 @@ tags:
 - [[hiOf()]] - `calls` [EXTRACTED]
 - [[series()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/figurests

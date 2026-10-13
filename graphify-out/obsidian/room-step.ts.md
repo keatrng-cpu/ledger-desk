@@ -1,25 +1,25 @@
 ---
 source_file: "src/routes/api/cron/room-step.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # room-step.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[CronRunResult]] - `imports` [EXTRACTED]
 - [[MAX_SNAPSHOT_BYTES]] - `imports` [EXTRACTED]
 - [[PAPER_STEP_CAS_SQL]] - `imports` [EXTRACTED]
 - [[PAPER_STEP_INSERT_SQL]] - `imports` [EXTRACTED]
 - [[PAPER_STEP_READ_SQL]] - `imports` [EXTRACTED]
 - [[RoomSnapshot]] - `imports` [EXTRACTED]
-- [[Route_5]] - `contains` [EXTRACTED]
+- [[Route_7]] - `contains` [EXTRACTED]
 - [[applyCycle()]] - `imports` [EXTRACTED]
 - [[applyLab()]] - `imports` [EXTRACTED]
 - [[asLab()]] - `imports` [EXTRACTED]
@@ -31,13 +31,14 @@ tags:
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[emptyBook()]] - `imports` [EXTRACTED]
-- [[etWindow]] - `imports` [EXTRACTED]
+- [[etWindow_1]] - `imports` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `imports` [EXTRACTED]
+- [[exec-sql.ts]] - `dynamic_import` [EXTRACTED]
 - [[exitWatchOf()]] - `imports` [EXTRACTED]
 - [[feedMayStep()]] - `imports` [EXTRACTED]
 - [[fetchTradingDesk]] - `imports` [EXTRACTED]
 - [[getSql()]] - `imports` [EXTRACTED]
-- [[handle()_2]] - `indirect_call` [INFERRED]
+- [[handle()_4]] - `indirect_call` [INFERRED]
 - [[isForced()]] - `imports` [EXTRACTED]
 - [[isSnapshot()]] - `imports` [EXTRACTED]
 - [[jsonResponse()]] - `imports` [EXTRACTED]
@@ -45,6 +46,7 @@ tags:
 - [[labRead]] - `imports` [EXTRACTED]
 - [[ledgerOf()]] - `imports` [EXTRACTED]
 - [[loadPulse()]] - `imports` [EXTRACTED]
+- [[manager-room-feed.ts]] - `dynamic_import` [EXTRACTED]
 - [[markBook()]] - `imports` [EXTRACTED]
 - [[marketDataFromDesk()]] - `imports` [EXTRACTED]
 - [[news-server.ts]] - `imports_from` [EXTRACTED]
@@ -56,6 +58,9 @@ tags:
 - [[paperStepDue()]] - `imports` [EXTRACTED]
 - [[rankOf()]] - `imports` [EXTRACTED]
 - [[readDeskForRoom()]] - `imports` [EXTRACTED]
+- [[rh-dispatch.ts]] - `dynamic_import` [EXTRACTED]
+- [[rh-ledger.ts]] - `dynamic_import` [EXTRACTED]
+- [[rh-mcp.ts]] - `dynamic_import` [EXTRACTED]
 - [[rollCounters()]] - `imports` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports_from` [EXTRACTED]
 - [[runRoomCycle()]] - `imports` [EXTRACTED]
@@ -65,4 +70,4 @@ tags:
 - [[src_lib_alerts_cron_jsonresponse]] - `imports` [EXTRACTED]
 - [[toRoomInput()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

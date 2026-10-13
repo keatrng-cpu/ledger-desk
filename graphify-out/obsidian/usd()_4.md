@@ -1,18 +1,29 @@
 ---
-source_file: "src/components/desk/rh-account-strip.tsx"
+source_file: "src/components/invest/format.ts"
 type: "code"
-community: "Community 33"
-location: "L12"
+community: "store.ts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/storets
 ---
 
 # usd()
 
 ## Connections
-- [[RhAccountStrip()]] - `calls` [EXTRACTED]
-- [[rh-account-strip.tsx]] - `contains` [EXTRACTED]
+- [[Activity()]] - `calls` [EXTRACTED]
+- [[BookCard()]] - `calls` [EXTRACTED]
+- [[BuyForm()]] - `calls` [EXTRACTED]
+- [[DividendForm()]] - `calls` [EXTRACTED]
+- [[ExposureCard()]] - `calls` [EXTRACTED]
+- [[HabitCard()]] - `calls` [EXTRACTED]
+- [[SellForm()]] - `calls` [EXTRACTED]
+- [[SweepCard()]] - `calls` [EXTRACTED]
+- [[book-card.tsx]] - `imports` [EXTRACTED]
+- [[exposure-card.tsx]] - `imports` [EXTRACTED]
+- [[habit-card.tsx]] - `imports` [EXTRACTED]
+- [[investformat.ts]] - `contains` [EXTRACTED]
+- [[sweep-card.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/storets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L1128"
+community: "MeadScene"
+location: "L233"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .setHover()
@@ -16,4 +16,4 @@ tags:
 - [[dot-onMove()_1]] - `calls` [EXTRACTED]
 - [[MeadScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

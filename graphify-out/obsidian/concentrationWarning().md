@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 128"
+community: "book.ts"
 location: "L312"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/bookts
 ---
 
 # concentrationWarning()
 
 ## Connections
-- [[BookRead]] - `references` [EXTRACTED]
+- [[BookRead_1]] - `references` [EXTRACTED]
 - [[book.ts]] - `imports` [EXTRACTED]
 - [[buildBook()]] - `calls` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
-location: "L223"
+community: "pm-analyzer.tsx"
+location: "L225"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # DeskPanel()
@@ -17,16 +17,16 @@ tags:
 - [[Stat()_1]] - `calls` [EXTRACTED]
 - [[addPaper()]] - `calls` [EXTRACTED]
 - [[categoryLabel()]] - `calls` [EXTRACTED]
-- [[cents()]] - `calls` [EXTRACTED]
+- [[cents()_4]] - `calls` [EXTRACTED]
 - [[clock()]] - `calls` [EXTRACTED]
 - [[durationWords()]] - `calls` [EXTRACTED]
 - [[eventLabel()]] - `calls` [EXTRACTED]
 - [[gradeLabel()]] - `calls` [EXTRACTED]
 - [[paperTicketFromSignal()]] - `calls` [EXTRACTED]
-- [[pct()_6]] - `calls` [EXTRACTED]
+- [[pct()_5]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 - [[signalToHallMarket()]] - `calls` [EXTRACTED]
 - [[signedC()_1]] - `calls` [EXTRACTED]
 - [[slotName()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

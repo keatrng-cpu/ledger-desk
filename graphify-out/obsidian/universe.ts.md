@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # universe.ts
@@ -39,6 +39,7 @@ tags:
 - [[fundSector()]] - `contains` [EXTRACTED]
 - [[fundamentalsFor()]] - `contains` [EXTRACTED]
 - [[incomeOverlayAvailable()]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-themes.ts]] - `imports_from` [EXTRACTED]
 - [[investevidence.ts]] - `imports_from` [EXTRACTED]
@@ -47,6 +48,7 @@ tags:
 - [[ledger.ts]] - `imports_from` [EXTRACTED]
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[oldestAsOf()]] - `contains` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports_from` [EXTRACTED]
@@ -60,4 +62,4 @@ tags:
 - [[washFamily()]] - `contains` [EXTRACTED]
 - [[washSaleBan()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

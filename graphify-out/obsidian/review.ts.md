@@ -1,25 +1,25 @@
 ---
 source_file: "src/routes/api/cron/review.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # review.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[CronRunResult]] - `imports` [EXTRACTED]
-- [[Route_4]] - `contains` [EXTRACTED]
+- [[Route_6]] - `contains` [EXTRACTED]
 - [[authorizeCronRequest()]] - `imports` [EXTRACTED]
 - [[cron-stats-server.ts]] - `imports_from` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
-- [[etWindow]] - `imports` [EXTRACTED]
-- [[fmtR()_2]] - `imports` [EXTRACTED]
+- [[etWindow_1]] - `imports` [EXTRACTED]
+- [[fmtR()_1]] - `imports` [EXTRACTED]
 - [[fmtWr()]] - `imports` [EXTRACTED]
 - [[handleReview()]] - `indirect_call` [INFERRED]
 - [[isForced()]] - `imports` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[tradingDayStart()]] - `imports` [EXTRACTED]
 - [[windowStats]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

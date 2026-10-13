@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 198"
-location: "L681"
+community: "compact"
+location: "L1112"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/compact
 ---
 
 # .add()
@@ -26,6 +26,6 @@ tags:
 - [[dot-span()]] - `calls` [EXTRACTED]
 - [[dot-usd()]] - `calls` [EXTRACTED]
 - [[dot-x()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/compact

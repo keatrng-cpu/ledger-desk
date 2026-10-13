@@ -1,18 +1,19 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L3079"
+community: ".constructor"
+location: "L3548"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/constructor
 ---
 
 # .getManagerState()
 
 ## Connections
+- [[dot-getState()_3]] - `calls` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[ManagerRoomState]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/constructor

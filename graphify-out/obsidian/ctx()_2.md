@@ -1,17 +1,23 @@
 ---
-source_file: "scripts/verify-hi-alert.mjs"
+source_file: "src/lib/desk/learning-stats.ts"
 type: "code"
-community: "Community 92"
-location: "L27"
+community: "learning-stats.ts"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/learning-statsts
 ---
 
 # ctx()
 
 ## Connections
-- [[verify-hi-alert.mjs]] - `contains` [EXTRACTED]
+- [[grokVsDesk()]] - `calls` [EXTRACTED]
+- [[learning-stats.ts]] - `contains` [EXTRACTED]
+- [[regimeFeatures()]] - `calls` [EXTRACTED]
+- [[shockStats()]] - `calls` [EXTRACTED]
+- [[targetStats()]] - `calls` [EXTRACTED]
+- [[tfVoteWeights()]] - `calls` [EXTRACTED]
+- [[vetoes()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/learning-statsts

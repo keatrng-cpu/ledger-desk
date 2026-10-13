@@ -1,19 +1,20 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L3120"
+community: "FloorScene"
+location: "L3594"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # .ownerEyes()
 
 ## Connections
+- [[dot-applyWalkBlend()]] - `calls` [EXTRACTED]
 - [[dot-startOwnerChase()]] - `calls` [EXTRACTED]
-- [[dot-tick()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

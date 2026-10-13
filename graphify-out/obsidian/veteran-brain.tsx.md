@@ -1,23 +1,24 @@
 ---
 source_file: "src/components/desk/veteran-brain.tsx"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # veteran-brain.tsx
 
 ## Connections
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[DeskMemoryState]] - `imports` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
 - [[DiscretionVerdict_1]] - `imports` [EXTRACTED]
 - [[EvidenceTiles()]] - `imports` [EXTRACTED]
 - [[HiAlertPanel()]] - `imports` [EXTRACTED]
+- [[OptionMarksStrip()]] - `imports` [EXTRACTED]
 - [[RiskFetchState]] - `imports` [EXTRACTED]
 - [[RiskState]] - `imports` [EXTRACTED]
 - [[SmcPlaybook()]] - `imports` [EXTRACTED]
@@ -36,9 +37,10 @@ tags:
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[loadDeskMemory()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
+- [[option-marks.tsx]] - `imports_from` [EXTRACTED]
 - [[pinNote()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
-- [[remember()_1]] - `imports` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
+- [[remember()_2]] - `imports` [EXTRACTED]
 - [[risk.ts]] - `imports_from` [EXTRACTED]
 - [[runVeteranBrain()]] - `imports` [EXTRACTED]
 - [[smc-playbook.tsx]] - `imports_from` [EXTRACTED]
@@ -51,4 +53,4 @@ tags:
 - [[verdictStyle()_1]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

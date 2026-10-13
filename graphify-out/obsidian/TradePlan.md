@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 27"
+community: "sleeve-sizing.ts"
 location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/sleeve-sizingts
 ---
 
 # TradePlan
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[CandlestickPaneProps]] - `references` [EXTRACTED]
 - [[LearnCase]] - `references` [EXTRACTED]
+- [[LiveSizeInput]] - `references` [EXTRACTED]
 - [[NoteInput]] - `references` [EXTRACTED]
 - [[RhDeskSlice]] - `references` [EXTRACTED]
 - [[SetupChartProps]] - `references` [EXTRACTED]
@@ -39,4 +40,4 @@ tags:
 - [[trade-note.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

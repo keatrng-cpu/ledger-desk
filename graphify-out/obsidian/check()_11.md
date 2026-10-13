@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-paper-step.mjs"
+source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 143"
-location: "L26"
+community: "verify-setup-memory.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-setup-memorymjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
+- [[ok()_5]] - `calls` [EXTRACTED]
+- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-setup-memorymjs

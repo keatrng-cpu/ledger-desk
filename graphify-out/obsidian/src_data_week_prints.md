@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 134"
+community: "week-ahead.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # src_data_week_prints
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_134
+#graphify/concept #graphify/EXTRACTED #community/week-aheadts

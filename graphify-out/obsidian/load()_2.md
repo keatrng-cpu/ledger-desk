@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/direction-book.py"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 131"
-location: "L52"
+community: "day-context.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/day-contextts
 ---
 
 # load()
 
 ## Connections
-- [[direction-book.py]] - `contains` [EXTRACTED]
-- [[json_1]] - `calls` [EXTRACTED]
-- [[main()_2]] - `calls` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
+- [[chunk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/day-contextts

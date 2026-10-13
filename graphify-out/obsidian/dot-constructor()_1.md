@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/learn/tape.ts"
+source_file: "src/lib/room/exec/exec-sql.ts"
 type: "code"
-community: "Community 124"
-location: "L61"
+community: "execStep"
+location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/execStep
 ---
 
 # .constructor()
 
 ## Connections
-- [[tape]] - `method` [EXTRACTED]
+- [[PgExecStore]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/execStep

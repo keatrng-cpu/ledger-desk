@@ -1,0 +1,78 @@
+---
+type: community
+cohesion: 0.06
+members: 48
+---
+
+# backtest-account.mjs
+
+**Cohesion:** 0.06 - loosely connected
+**Members:** 48 nodes
+
+## Members
+- [[ALL_YEARS]] - code - scripts/backtest-account.mjs
+- [[BARS_19]] - code - scripts/backtest-account.mjs
+- [[BASE_13]] - code - scripts/backtest-account.mjs
+- [[EXIT_AXES]] - code - scripts/backtest-account.mjs
+- [[H_16]] - code - scripts/backtest-account.mjs
+- [[IS_1]] - code - scripts/backtest-account.mjs
+- [[OOS_1]] - code - scripts/backtest-account.mjs
+- [[OUT_13]] - code - scripts/backtest-account.mjs
+- [[PIN]] - code - scripts/backtest-account.mjs
+- [[RISK]] - code - scripts/backtest-account.mjs
+- [[SESSIONS_1]] - code - scripts/backtest-account.mjs
+- [[SIGDIR_2]] - code - scripts/backtest-account.mjs
+- [[TOP_1]] - code - scripts/backtest-account.mjs
+- [[anyhour]] - code - scripts/backtest-account.mjs
+- [[argOf()_3]] - code - scripts/backtest-account.mjs
+- [[argv_4]] - code - scripts/backtest-account.mjs
+- [[armed()_1]] - code - scripts/backtest-account.mjs
+- [[atrAt()_3]] - code - scripts/backtest-account.mjs
+- [[atrCache]] - code - scripts/backtest-account.mjs
+- [[backtest-account.mjs]] - code - scripts/backtest-account.mjs
+- [[chosen_1]] - code - scripts/backtest-account.mjs
+- [[clearing]] - code - scripts/backtest-account.mjs
+- [[clockOnly()]] - code - scripts/backtest-account.mjs
+- [[dayKey()_13]] - code - scripts/backtest-account.mjs
+- [[eligible]] - code - scripts/backtest-account.mjs
+- [[exitVariants()]] - code - scripts/backtest-account.mjs
+- [[has()_4]] - code - scripts/backtest-account.mjs
+- [[isTake()]] - code - scripts/backtest-account.mjs
+- [[line()_3]] - code - scripts/backtest-account.mjs
+- [[monthKey()]] - code - scripts/backtest-account.mjs
+- [[oppCache]] - code - scripts/backtest-account.mjs
+- [[opportunities()]] - code - scripts/backtest-account.mjs
+- [[oppsFor()]] - code - scripts/backtest-account.mjs
+- [[pnlOver()]] - code - scripts/backtest-account.mjs
+- [[rows_20]] - code - scripts/backtest-account.mjs
+- [[runAccount()]] - code - scripts/backtest-account.mjs
+- [[runTrade()]] - code - scripts/backtest-account.mjs
+- [[s1]] - code - scripts/backtest-account.mjs
+- [[score()]] - code - scripts/backtest-account.mjs
+- [[shockScore()_1]] - code - scripts/backtest-account.mjs
+- [[slice()_1]] - code - scripts/backtest-account.mjs
+- [[sole()]] - code - scripts/backtest-account.mjs
+- [[stage1]] - code - scripts/backtest-account.mjs
+- [[stage2]] - code - scripts/backtest-account.mjs
+- [[volX()]] - code - scripts/backtest-account.mjs
+- [[weekKey()_3]] - code - scripts/backtest-account.mjs
+- [[worstYear()]] - code - scripts/backtest-account.mjs
+- [[yearOf()_9]] - code - scripts/backtest-account.mjs
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/backtest-accountmjs
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 2 edges to [[_COMMUNITY_day-context.ts]]
+- 2 edges to [[_COMMUNITY_ref_node_fs]]
+- 1 edge to [[_COMMUNITY_cases.ts]]
+- 1 edge to [[_COMMUNITY_aplusconfig.ts]]
+- 1 edge to [[_COMMUNITY_orchestrator.ts]]
+- 1 edge to [[_COMMUNITY_simulate-path-trade.ts]]
+
+## Top bridge nodes
+- [[backtest-account.mjs]] - degree 55, connects to 6 communities

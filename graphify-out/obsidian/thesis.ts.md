@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/thesis.ts"
 type: "code"
-community: "Community 129"
+community: "thesis-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/thesis-serverts
 ---
 
 # thesis.ts
@@ -27,4 +27,4 @@ tags:
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[verify-news-ipo.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/thesis-serverts

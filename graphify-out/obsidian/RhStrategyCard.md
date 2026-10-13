@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 153"
-location: "L85"
+community: "cn"
+location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/cn
 ---
 
 # RhStrategyCard
 
 ## Connections
 - [[desk-read.ts]] - `imports` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]
-- [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/cn

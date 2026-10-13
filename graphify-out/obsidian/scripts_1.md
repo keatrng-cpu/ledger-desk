@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 62"
+community: "scripts"
 location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_62
+  - community/scripts
 ---
 
 # scripts
@@ -20,11 +20,15 @@ tags:
 - [[dev]] - `contains` [EXTRACTED]
 - [[format]] - `contains` [EXTRACTED]
 - [[hooksinstall]] - `contains` [EXTRACTED]
+- [[labcheck]] - `contains` [EXTRACTED]
+- [[labcrosscheck]] - `contains` [EXTRACTED]
+- [[labsecurity]] - `contains` [EXTRACTED]
+- [[labsetup]] - `contains` [EXTRACTED]
 - [[learnbuild]] - `contains` [EXTRACTED]
 - [[learncapture]] - `contains` [EXTRACTED]
 - [[learnfigures]] - `contains` [EXTRACTED]
 - [[lint]] - `contains` [EXTRACTED]
-- [[log_1]] - `contains` [EXTRACTED]
+- [[log_2]] - `contains` [EXTRACTED]
 - [[measuretargets]] - `contains` [EXTRACTED]
 - [[package.json]] - `contains` [EXTRACTED]
 - [[prebuild]] - `contains` [EXTRACTED]
@@ -59,4 +63,4 @@ tags:
 - [[verifysleeve]] - `contains` [EXTRACTED]
 - [[verifytargets]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_62
+#graphify/code #graphify/EXTRACTED #community/scripts

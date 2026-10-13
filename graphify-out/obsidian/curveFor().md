@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/time-odds.ts"
 type: "code"
-community: "Community 52"
+community: "time-odds.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/time-oddsts
 ---
 
 # curveFor()
@@ -16,4 +16,4 @@ tags:
 - [[timeOddsMeasured()]] - `calls` [EXTRACTED]
 - [[windowOdds]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/time-oddsts

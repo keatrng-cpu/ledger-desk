@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-desk-enhancements.mjs"
 type: "code"
-community: "Community 164"
+community: "verify-desk-enhancements.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/verify-desk-enhancementsmjs
 ---
 
 # verify-desk-enhancements.mjs
@@ -16,8 +16,8 @@ tags:
 - [[agree]] - `contains` [EXTRACTED]
 - [[agreeing]] - `contains` [EXTRACTED]
 - [[blind]] - `contains` [EXTRACTED]
-- [[card_1]] - `contains` [EXTRACTED]
-- [[check()_17]] - `contains` [EXTRACTED]
+- [[card_2]] - `contains` [EXTRACTED]
+- [[check()_16]] - `contains` [EXTRACTED]
 - [[clash]] - `contains` [EXTRACTED]
 - [[clashing]] - `contains` [EXTRACTED]
 - [[clock]] - `contains` [EXTRACTED]
@@ -32,8 +32,9 @@ tags:
 - [[led]] - `contains` [EXTRACTED]
 - [[loose]] - `contains` [EXTRACTED]
 - [[many()]] - `contains` [EXTRACTED]
+- [[markettypes.ts]] - `dynamic_import` [EXTRACTED]
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
-- [[ok()_9]] - `contains` [EXTRACTED]
+- [[ok()_8]] - `contains` [EXTRACTED]
 - [[override-log.ts]] - `dynamic_import` [EXTRACTED]
 - [[pd]] - `contains` [EXTRACTED]
 - [[s4]] - `contains` [EXTRACTED]
@@ -44,6 +45,7 @@ tags:
 - [[stop-coherence.ts]] - `dynamic_import` [EXTRACTED]
 - [[structure.ts]] - `dynamic_import` [EXTRACTED]
 - [[swing_1]] - `contains` [EXTRACTED]
+- [[tape-trust.ts]] - `dynamic_import` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/verify-desk-enhancementsmjs

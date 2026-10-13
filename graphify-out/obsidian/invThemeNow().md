@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 49"
-location: "L1733"
+community: "floor-screens.ts"
+location: "L1772"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/floor-screensts
 ---
 
 # invThemeNow()
@@ -19,4 +19,4 @@ tags:
 - [[lookAt()]] - `calls` [EXTRACTED]
 - [[themeOfTheDay()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

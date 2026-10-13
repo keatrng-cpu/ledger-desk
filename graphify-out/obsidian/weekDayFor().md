@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 73"
-location: "L360"
+community: "evaluateOptionsDesk"
+location: "L481"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # weekDayFor()
@@ -16,6 +16,7 @@ tags:
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[buildSessionBrief()]] - `calls` [EXTRACTED]
 - [[eventSecond()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[judasIfvg0dte()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[pathContinuation()]] - `calls` [EXTRACTED]
@@ -23,4 +24,4 @@ tags:
 - [[smtLead()_1]] - `calls` [EXTRACTED]
 - [[week-ahead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

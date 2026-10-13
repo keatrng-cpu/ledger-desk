@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-evidence-pack.mjs"
+source_file: "scripts/verify-off-hours-study.mjs"
 type: "code"
-community: "Community 181"
-location: "L299"
+community: "live-talk.ts"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_181
+  - community/live-talkts
 ---
 
 # pack
 
 ## Connections
-- [[build-evidence-pack.mjs]] - `contains` [EXTRACTED]
+- [[verify-off-hours-study.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_181
+#graphify/code #graphify/EXTRACTED #community/live-talkts

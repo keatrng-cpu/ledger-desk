@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 90"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/detectorsts
 ---
 
 # market-narrative.ts
@@ -16,13 +16,13 @@ tags:
 - [[DetectorSummary]] - `imports` [EXTRACTED]
 - [[DrawOnLiquidity]] - `contains` [EXTRACTED]
 - [[EntryModel]] - `contains` [EXTRACTED]
-- [[GATE_3]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[LiquidityMap]] - `contains` [EXTRACTED]
 - [[LiquiditySide]] - `contains` [EXTRACTED]
 - [[MarketNarrative]] - `contains` [EXTRACTED]
 - [[NarrativeClass]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[RULES_2]] - `contains` [EXTRACTED]
 - [[SessionClock]] - `imports` [EXTRACTED]
 - [[StrategyId]] - `imports` [EXTRACTED]
@@ -37,15 +37,21 @@ tags:
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[diagnose-sequence.mjs]] - `dynamic_import` [EXTRACTED]
+- [[displacementLeftArray()]] - `imports` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
 - [[drawOnLiquidity()]] - `imports` [EXTRACTED]
 - [[dualNarrativeSummary()]] - `contains` [EXTRACTED]
 - [[gate-tuning.ts]] - `imports_from` [EXTRACTED]
+- [[ltf-reaction.ts]] - `imports_from` [EXTRACTED]
 - [[market-narrative-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[narrativeCoachLines()]] - `contains` [EXTRACTED]
+- [[pairedDisplacement()]] - `imports` [EXTRACTED]
+- [[polaritySweep()]] - `imports` [EXTRACTED]
 - [[preferredFor()]] - `contains` [EXTRACTED]
 - [[probe-closest.mjs]] - `dynamic_import` [EXTRACTED]
+- [[provisionalRaid]] - `imports` [EXTRACTED]
+- [[raid-pair.ts]] - `imports_from` [EXTRACTED]
 - [[session-brief.ts]] - `imports_from` [EXTRACTED]
 - [[sessionLive()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
@@ -57,7 +63,8 @@ tags:
 - [[trace-session.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[withEmpiricalTarget()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/detectorsts

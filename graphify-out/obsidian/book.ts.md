@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # book.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[BENCHMARK]] - `contains` [EXTRACTED]
 - [[BOOK_MEANINGFUL_USD]] - `contains` [EXTRACTED]
-- [[BookRead]] - `contains` [EXTRACTED]
+- [[BookRead_1]] - `contains` [EXTRACTED]
 - [[DRIFT_BAND]] - `contains` [EXTRACTED]
 - [[DRY_POWDER_TRIGGER]] - `contains` [EXTRACTED]
 - [[Dossier]] - `imports` [EXTRACTED]
@@ -40,6 +40,7 @@ tags:
 - [[excessVsBenchmark()]] - `contains` [EXTRACTED]
 - [[exposure-card.tsx]] - `imports_from` [EXTRACTED]
 - [[habit-card.tsx]] - `imports_from` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-office.ts]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-sources.ts]] - `imports_from` [EXTRACTED]
@@ -52,10 +53,10 @@ tags:
 - [[shadowBenchmark()]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
-- [[verdictFor()]] - `contains` [EXTRACTED]
+- [[verdictFor()_1]] - `contains` [EXTRACTED]
 - [[verify-invest-book.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[washSaleBan()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

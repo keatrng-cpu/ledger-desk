@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-model-claims.mjs"
 type: "code"
-community: "Community 117"
+community: "measure-model-claims.mjs"
 location: "L320"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_117
+  - community/measure-model-claimsmjs
 ---
 
 # bucket()
@@ -18,4 +18,4 @@ tags:
 - [[namedBreakdown]] - `calls` [EXTRACTED]
 - [[r3()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_117
+#graphify/code #graphify/EXTRACTED #community/measure-model-claimsmjs

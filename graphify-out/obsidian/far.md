@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-pm-signal-engine.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 68"
-location: "L116"
+community: "verify-mead-hall.mjs"
+location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_68
+  - community/verify-mead-hallmjs
 ---
 
 # far
 
 ## Connections
-- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
+- [[reach()_1]] - `calls` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_68
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

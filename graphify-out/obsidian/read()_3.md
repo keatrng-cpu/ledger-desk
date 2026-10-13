@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-autofire-gates.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 119"
-location: "L11"
+community: "verify-mead-hall.mjs"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/verify-mead-hallmjs
 ---
 
 # read()
 
 ## Connections
-- [[verify-rh-autofire-gates.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

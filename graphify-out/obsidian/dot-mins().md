@@ -1,18 +1,20 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 198"
-location: "L733"
+community: "compact"
+location: "L1164"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/compact
 ---
 
 # .mins()
 
 ## Connections
 - [[dot-add()_1]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
+- [[agoText()]] - `calls` [INFERRED]
+- [[exCalendar()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/compact

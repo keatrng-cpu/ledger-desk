@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # snapshot-review.tsx
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[BiasSection()]] - `contains` [EXTRACTED]
 - [[Block()]] - `contains` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CandidateCard()]] - `contains` [EXTRACTED]
 - [[Chip()]] - `contains` [EXTRACTED]
 - [[DeskSnapshotSummary]] - `imports` [EXTRACTED]
@@ -29,7 +29,7 @@ tags:
 - [[SnapshotDetail()]] - `contains` [EXTRACTED]
 - [[SnapshotReview()]] - `contains` [EXTRACTED]
 - [[SnapshotRow()]] - `contains` [EXTRACTED]
-- [[arr()_2]] - `contains` [EXTRACTED]
+- [[arr()_4]] - `contains` [EXTRACTED]
 - [[biasCls()]] - `contains` [EXTRACTED]
 - [[bool()_1]] - `contains` [EXTRACTED]
 - [[button.tsx]] - `imports_from` [EXTRACTED]
@@ -41,16 +41,16 @@ tags:
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[listSnapshots]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[num()_15]] - `contains` [EXTRACTED]
+- [[num()_20]] - `contains` [EXTRACTED]
 - [[obj()]] - `contains` [EXTRACTED]
 - [[pctOf()_1]] - `contains` [EXTRACTED]
-- [[px()_13]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[px()_16]] - `contains` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[score()_1]] - `contains` [EXTRACTED]
 - [[snapshots.ts]] - `imports_from` [EXTRACTED]
-- [[str()_1]] - `contains` [EXTRACTED]
+- [[str()_2]] - `contains` [EXTRACTED]
 - [[strList()]] - `contains` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[verdictCls()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 166"
-location: "L20"
+community: "verify-room-exec.mjs"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/verify-room-execmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_10]] - `calls` [EXTRACTED]
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

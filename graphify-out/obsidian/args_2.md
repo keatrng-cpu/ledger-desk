@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/check-research-sources.mjs"
+source_file: "scripts/blender/png-diff.mjs"
 type: "code"
-community: "Community 70"
-location: "L30"
+community: "preview-glb.mjs"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/preview-glbmjs
 ---
 
 # args
 
 ## Connections
-- [[check-research-sources.mjs]] - `contains` [EXTRACTED]
+- [[png-diff.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

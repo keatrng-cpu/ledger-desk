@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 111"
+community: "discretion-memory.ts"
 location: "L581"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/discretion-memoryts
 ---
 
 # liftsCaveat()
@@ -16,4 +16,4 @@ tags:
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[zTwoSided()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

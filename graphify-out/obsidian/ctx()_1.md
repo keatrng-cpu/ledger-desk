@@ -1,20 +1,19 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 48"
-location: "L133"
+community: "verify-room-exec.mjs"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/verify-room-execmjs
 ---
 
 # ctx()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
-- [[playAlarmTone()]] - `calls` [EXTRACTED]
-- [[shockSiren()]] - `calls` [EXTRACTED]
+- [[account()]] - `calls` [EXTRACTED]
+- [[quote()_1]] - `calls` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

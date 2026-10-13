@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/claude-server.ts"
 type: "code"
-community: "Community 123"
+community: "claude-server.ts"
 location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_123
+  - community/claude-serverts
 ---
 
 # contextSchema
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[claude-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_123
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

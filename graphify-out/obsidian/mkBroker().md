@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 171"
+community: "verify-room-exec.mjs"
 location: "L341"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/verify-room-execmjs
 ---
 
 # mkBroker()
@@ -15,4 +15,4 @@ tags:
 - [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 - [[world()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

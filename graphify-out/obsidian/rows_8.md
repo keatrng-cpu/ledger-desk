@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-signals.mjs"
+source_file: "scripts/build-evidence-pack.mjs"
 type: "code"
-community: "Community 182"
-location: "L166"
+community: "build-evidence-pack.mjs"
+location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_182
+  - community/build-evidence-packmjs
 ---
 
 # rows
 
 ## Connections
-- [[capture-signals.mjs]] - `contains` [EXTRACTED]
+- [[build-evidence-pack.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_182
+#graphify/code #graphify/EXTRACTED #community/build-evidence-packmjs

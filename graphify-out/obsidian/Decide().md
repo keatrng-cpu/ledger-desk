@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 6"
+community: "replay-drill.ts"
 location: "L339"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/replay-drillts
 ---
 
 # Decide()
@@ -17,8 +17,8 @@ tags:
 - [[Legend()]] - `calls` [EXTRACTED]
 - [[ReplayDrill()]] - `calls` [EXTRACTED]
 - [[f2()]] - `calls` [EXTRACTED]
-- [[num()_12]] - `calls` [EXTRACTED]
+- [[num()_17]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `contains` [EXTRACTED]
 - [[submit()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

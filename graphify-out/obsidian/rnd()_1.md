@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 208"
-location: "L62"
+community: "verify-goal.mjs"
+location: "L239"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/verify-goalmjs
 ---
 
 # rnd()
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[pickOf()]] - `calls` [EXTRACTED]
+- [[verify-goal.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/verify-goalmjs

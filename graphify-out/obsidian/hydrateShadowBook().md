@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-store.ts"
 type: "code"
-community: "Community 149"
+community: "shadow-store.ts"
 location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/shadow-storets
 ---
 
 # hydrateShadowBook()
@@ -21,4 +21,4 @@ tags:
 - [[shadow-store.ts]] - `contains` [EXTRACTED]
 - [[src_data_shadow_replay]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/shadow-storets

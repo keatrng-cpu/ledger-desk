@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # live-world.ts
@@ -14,13 +14,14 @@ tags:
 ## Connections
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[Beat]] - `imports` [EXTRACTED]
-- [[BookRead_1]] - `imports` [EXTRACTED]
+- [[BookRead]] - `imports` [EXTRACTED]
 - [[CalEvent_1]] - `imports` [EXTRACTED]
 - [[CalRead]] - `imports` [EXTRACTED]
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
 - [[FeedItem]] - `imports` [EXTRACTED]
 - [[GoalLite]] - `imports` [EXTRACTED]
+- [[HallLite]] - `imports` [EXTRACTED]
 - [[InvestLite]] - `imports` [EXTRACTED]
 - [[LabLite]] - `imports` [EXTRACTED]
 - [[LevelRef]] - `imports` [EXTRACTED]
@@ -30,6 +31,7 @@ tags:
 - [[NOMINAL_PER_ETF_PT]] - `contains` [EXTRACTED]
 - [[NewsLite]] - `imports` [EXTRACTED]
 - [[PositionRead]] - `imports` [EXTRACTED]
+- [[PredictLite]] - `imports` [EXTRACTED]
 - [[ROOM_MANDATE]] - `imports` [EXTRACTED]
 - [[Race]] - `imports` [EXTRACTED]
 - [[Rings]] - `contains` [EXTRACTED]
@@ -40,6 +42,7 @@ tags:
 - [[ScanCardLite]] - `imports` [EXTRACTED]
 - [[SeatsLite]] - `imports` [EXTRACTED]
 - [[SequenceCard]] - `imports` [EXTRACTED]
+- [[SmcArray]] - `imports` [EXTRACTED]
 - [[TalkWorld]] - `imports` [EXTRACTED]
 - [[TapeBook]] - `imports` [EXTRACTED]
 - [[TapeSample]] - `imports` [EXTRACTED]
@@ -49,10 +52,11 @@ tags:
 - [[WorldInput]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
 - [[applyLtf()]] - `imports` [EXTRACTED]
-- [[atrOf()]] - `contains` [EXTRACTED]
+- [[atrOf()_1]] - `contains` [EXTRACTED]
 - [[biasWord()]] - `contains` [EXTRACTED]
 - [[bookRead()]] - `contains` [EXTRACTED]
 - [[booksOf()]] - `imports` [EXTRACTED]
+- [[brain-precision.ts]] - `imports_from` [EXTRACTED]
 - [[brainSources()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[calendarRead()]] - `contains` [EXTRACTED]
@@ -71,7 +75,7 @@ tags:
 - [[emptyRings()]] - `contains` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[equityOf()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[evidenceHeadlines()]] - `imports` [EXTRACTED]
@@ -85,6 +89,8 @@ tags:
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[goalLite()]] - `contains` [EXTRACTED]
 - [[graded()]] - `contains` [EXTRACTED]
+- [[hall-store.ts]] - `imports_from` [EXTRACTED]
+- [[hallLiteNow()]] - `imports` [EXTRACTED]
 - [[hi-alert.ts]] - `imports_from` [EXTRACTED]
 - [[impactOf()]] - `imports` [EXTRACTED]
 - [[isPathFire()]] - `imports` [EXTRACTED]
@@ -96,11 +102,13 @@ tags:
 - [[ladderOf()]] - `contains` [EXTRACTED]
 - [[lessonOf()]] - `imports` [EXTRACTED]
 - [[levelsFor()_1]] - `contains` [EXTRACTED]
+- [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[live-talk.ts]] - `imports_from` [EXTRACTED]
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
 - [[loadHiAlerts()]] - `imports` [EXTRACTED]
 - [[ltf-lead.ts]] - `imports_from` [EXTRACTED]
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
+- [[mead-world.mjs]] - `dynamic_import` [EXTRACTED]
 - [[mindsRead()]] - `contains` [EXTRACTED]
 - [[news.ts]] - `imports_from` [EXTRACTED]
 - [[newsLiteFrom()]] - `contains` [EXTRACTED]
@@ -111,7 +119,8 @@ tags:
 - [[path-alarm.ts]] - `imports_from` [EXTRACTED]
 - [[pb-entries.ts]] - `imports_from` [EXTRACTED]
 - [[pickFocus()]] - `imports` [EXTRACTED]
-- [[planFor()]] - `contains` [EXTRACTED]
+- [[planFor()_1]] - `contains` [EXTRACTED]
+- [[precisionSentence()]] - `imports` [EXTRACTED]
 - [[pushPrint()]] - `imports` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[readEntry()]] - `imports` [EXTRACTED]
@@ -121,6 +130,7 @@ tags:
 - [[rndLite()]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[roomformat.ts]] - `imports_from` [EXTRACTED]
+- [[sayForMissing()]] - `imports` [EXTRACTED]
 - [[scannerCards()]] - `contains` [EXTRACTED]
 - [[school-brief.ts]] - `imports_from` [EXTRACTED]
 - [[schoolFactsFrom()]] - `imports` [EXTRACTED]
@@ -135,6 +145,10 @@ tags:
 - [[sessionBias()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[setupLine()]] - `imports` [EXTRACTED]
+- [[smc-board.ts]] - `imports_from` [EXTRACTED]
+- [[sponsored-gap.ts]] - `imports_from` [EXTRACTED]
+- [[sponsoredFor()]] - `contains` [EXTRACTED]
+- [[sponsoredRead]] - `imports` [EXTRACTED]
 - [[tagItem()]] - `imports` [EXTRACTED]
 - [[tapeBook()]] - `contains` [EXTRACTED]
 - [[tf-ladder.ts]] - `imports_from` [EXTRACTED]
@@ -147,4 +161,4 @@ tags:
 - [[weekRead()]] - `contains` [EXTRACTED]
 - [[worldFromDesk()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

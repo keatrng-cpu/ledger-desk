@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/predict/signal-evidence.ts"
 type: "code"
-community: "Community 63"
+community: "pm-analyzer.tsx"
 location: "L117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/pm-analyzertsx
 ---
 
 # TooFew
 
 ## Connections
-- [[CalibrationBucket_1]] - `references` [EXTRACTED]
+- [[CalibrationBucket]] - `references` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

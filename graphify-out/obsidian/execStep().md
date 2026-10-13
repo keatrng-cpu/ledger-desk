@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 110"
+community: "execStep"
 location: "L152"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_110
+  - community/execStep
 ---
 
 # execStep()
@@ -25,13 +25,13 @@ tags:
 - [[checkEntry()]] - `calls` [EXTRACTED]
 - [[checkExit()]] - `calls` [EXTRACTED]
 - [[checkRun()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[evidenceOf()]] - `calls` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
 - [[exec-server.ts]] - `imports` [EXTRACTED]
 - [[execStepFn]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `contains` [EXTRACTED]
-- [[handle()_1]] - `calls` [EXTRACTED]
+- [[handle()_2]] - `calls` [EXTRACTED]
 - [[liveReadiness]] - `calls` [EXTRACTED]
 - [[msg()]] - `calls` [EXTRACTED]
 - [[occSymbol()]] - `calls` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[rhSpendable()]] - `calls` [EXTRACTED]
 - [[rowPatchFromBroker()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_110
+#graphify/code #graphify/EXTRACTED #community/execStep

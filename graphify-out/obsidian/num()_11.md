@@ -1,18 +1,20 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "src/lib/execution/rh-mcp.ts"
 type: "code"
-community: "Community 59"
-location: "L110"
+community: "rh-mcp.ts"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/rh-mcpts
 ---
 
 # num()
 
 ## Connections
-- [[ApexSimPanel()]] - `calls` [EXTRACTED]
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[instrumentIdFrom()]] - `calls` [EXTRACTED]
+- [[positionsFromPayload()]] - `calls` [EXTRACTED]
+- [[quoteFromPayload()]] - `calls` [EXTRACTED]
+- [[rh-mcp.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/rh-mcpts

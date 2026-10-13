@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/auth/provider.tsx"
 type: "code"
-community: "Community 54"
+community: "routeTree.gen.ts"
 location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # AuthProvider()
 
 ## Connections
-- [[Route_10]] - `calls` [EXTRACTED]
+- [[Route_15]] - `calls` [EXTRACTED]
 - [[__root.tsx]] - `imports` [EXTRACTED]
 - [[provider.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

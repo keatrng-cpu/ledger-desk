@@ -1,0 +1,233 @@
+---
+type: community
+cohesion: 0.04
+members: 132
+---
+
+# build-desk.ts
+
+**Cohesion:** 0.04 - loosely connected
+**Members:** 132 nodes
+
+## Members
+- [[BAR_FRESH_MS]] - code - src/lib/market/live-gateway.ts
+- [[BarsRead]] - code - src/lib/trading/build-desk.ts
+- [[BudgetLeg]] - code - src/lib/market/desk-budget.ts
+- [[DATABENTO_QUOTE_FRESH_SEC]] - code - src/lib/market/freshest.ts
+- [[DESK_BUDGET_MS]] - code - src/lib/market/desk-budget.ts
+- [[DESK_COLD_CAP_MS]] - code - src/lib/market/desk-budget.ts
+- [[DeskBudgetRead]] - code - src/lib/market/desk-budget.ts
+- [[DeskError]] - code - src/lib/trading/build-desk.ts
+- [[DualIndexError]] - code - src/lib/market/types.ts
+- [[DualIndexPayload]] - code - src/lib/market/types.ts
+- [[Entry]] - code - src/lib/market/desk-budget.ts
+- [[Hard rules (do not drift)]] - document - CLAUDE.md
+- [[IndexSymbol]] - code - src/lib/market/types.ts
+- [[LegOptions]] - code - src/lib/market/desk-budget.ts
+- [[LegResult]] - code - src/lib/market/desk-budget.ts
+- [[LegStatus]] - code - src/lib/market/desk-budget.ts
+- [[LiveGatewayTick]] - code - src/lib/market/live-gateway.ts
+- [[LiveQuote]] - code - src/lib/market/types.ts
+- [[LiveQuotesPayload]] - code - src/lib/market/types.ts
+- [[MacroRead]] - code - src/lib/market/macro.ts
+- [[OverlayStructure]] - code - src/lib/trading/chart-overlay.ts
+- [[ProxySpot]] - code - src/lib/market/yahoo.ts
+- [[QUOTE_EXECUTION_MAX_LAG_SEC]] - code - src/lib/market/types.ts
+- [[QuoteInputs]] - code - src/lib/trading/build-desk.ts
+- [[RANGE_MAP]] - code - src/lib/market/fetch-dual.ts
+- [[SymbolSeries]] - code - src/lib/market/types.ts
+- [[TAPE_MAX_BARS_BEHIND]] - code - src/lib/market/tape-trust.ts
+- [[TICK_FRESH_MS]] - code - src/lib/market/live-gateway.ts
+- [[TICK_READ_WAIT_MS]] - code - src/lib/market/live-gateway.ts
+- [[TapeGatedCard]] - code - src/lib/market/tape-trust.ts
+- [[VALID_RANGE]] - code - src/lib/market/fetch-dual.ts
+- [[VALID_SYM]] - code - src/lib/market/fetch-dual.ts
+- [[YAHOO_HEADERS]] - code - src/lib/market/yahoo.ts
+- [[YAHOO_HOSTS]] - code - src/lib/market/yahoo.ts
+- [[YAHOO_MAP]] - code - src/lib/market/yahoo.ts
+- [[YahooChartResult]] - code - src/lib/market/yahoo.ts
+- [[YahooInterval]] - code - src/lib/market/yahoo.ts
+- [[YahooMeta]] - code - src/lib/market/yahoo.ts
+- [[YahooRange]] - code - src/lib/market/yahoo.ts
+- [[__lastGoodMax()]] - code - src/lib/market/desk-budget.ts
+- [[__lastGoodSize()]] - code - src/lib/market/desk-budget.ts
+- [[__resetDeskBudgetCache()]] - code - src/lib/market/desk-budget.ts
+- [[aggregateBars()]] - code - src/lib/market/freshest.ts
+- [[alignedReturnPairs()]] - code - src/lib/market/yahoo.ts
+- [[applyQuoteToLastBar()]] - code - src/lib/market/freshest.ts
+- [[blind()]] - code - src/lib/market/tape-trust.ts
+- [[budget.ts]] - code - src/lib/market/budget.ts
+- [[budgetedLeg()]] - code - src/lib/market/desk-budget.ts
+- [[build-desk.ts]] - code - src/lib/trading/build-desk.ts
+- [[buildComparisonNote()]] - code - src/lib/market/yahoo.ts
+- [[cache_1]] - code - src/lib/market/overnight.ts
+- [[chart-overlay.ts]] - code - src/lib/trading/chart-overlay.ts
+- [[chartInflight]] - code - src/lib/market/yahoo.ts
+- [[cloneBars()]] - code - src/lib/trading/build-desk.ts
+- [[cloneSeries()]] - code - src/lib/trading/build-desk.ts
+- [[closedBars()]] - code - src/lib/market/freshest.ts
+- [[closedTape()]] - code - src/lib/market/tape-trust.ts
+- [[dayPct()]] - code - src/lib/market/macro.ts
+- [[dbRange()]] - code - src/lib/market/live-ladder.ts
+- [[desk-budget.ts]] - code - src/lib/market/desk-budget.ts
+- [[etDay()]] - code - src/lib/market/overnight.ts
+- [[etMin()]] - code - src/lib/market/overnight.ts
+- [[fetch-dual.ts]] - code - src/lib/market/fetch-dual.ts
+- [[fetchDualIndexes]] - code - src/lib/market/fetch-dual.ts
+- [[fetchYahooBars()]] - code - src/lib/market/yahoo.ts
+- [[fetchYahooLiveQuote()]] - code - src/lib/market/yahoo.ts
+- [[fetchYahooSpot()]] - code - src/lib/market/yahoo.ts
+- [[freshest.ts]] - code - src/lib/market/freshest.ts
+- [[globexSessionStartMs()]] - code - src/lib/market/freshest.ts
+- [[hasDatabentoKey()]] - code - src/lib/market/databento.ts
+- [[inflight]] - code - src/lib/market/desk-budget.ts
+- [[intervalMs()]] - code - src/lib/market/freshest.ts
+- [[isDeskStaleBlocked()]] - code - src/lib/market/desk-budget.ts
+- [[isoDate()]] - code - src/lib/market/freshest.ts
+- [[lastGood]] - code - src/lib/market/desk-budget.ts
+- [[lastGood_1]] - code - src/lib/market/live-gateway.ts
+- [[lastLoggedAt]] - code - src/lib/market/live-gateway.ts
+- [[live-gateway.ts]] - code - src/lib/market/live-gateway.ts
+- [[live-ladder.ts]] - code - src/lib/market/live-ladder.ts
+- [[liveQuoteRank()]] - code - src/lib/market/freshest.ts
+- [[load()_1]] - code - src/lib/trading/build-desk.ts
+- [[loadDaily()]] - code - src/lib/trading/build-desk.ts
+- [[loadLiveQuote()]] - code - src/lib/market/live-ladder.ts
+- [[loadMacro()]] - code - src/lib/market/macro.ts
+- [[loadMinute()]] - code - src/lib/trading/build-desk.ts
+- [[loadOvernight5m()]] - code - src/lib/market/overnight.ts
+- [[loadSpot()]] - code - src/lib/trading/build-desk.ts
+- [[loadStructureSeries()]] - code - src/lib/market/live-ladder.ts
+- [[loadSymbol()]] - code - src/lib/market/fetch-dual.ts
+- [[logOnce()]] - code - src/lib/market/live-gateway.ts
+- [[macro.ts]] - code - src/lib/market/macro.ts
+- [[macroRisk()]] - code - src/lib/market/macro.ts
+- [[markettypes.ts]] - code - src/lib/market/types.ts
+- [[mergeNewerBars()]] - code - src/lib/market/freshest.ts
+- [[minutesOf()]] - code - src/lib/market/live-ladder.ts
+- [[minutesOf()_1]] - code - src/lib/trading/build-desk.ts
+- [[overnight.ts]] - code - src/lib/market/overnight.ts
+- [[parsePair()]] - code - src/lib/market/fetch-dual.ts
+- [[parseYahooChart()]] - code - src/lib/market/yahoo.ts
+- [[pearsonCorr()]] - code - src/lib/market/yahoo.ts
+- [[pickFreshestQuote()]] - code - src/lib/market/freshest.ts
+- [[priorSessionClose()]] - code - src/lib/market/freshest.ts
+- [[quote()]] - code - src/lib/trading/build-desk.ts
+- [[quoteFromDatabentoSeries()]] - code - src/lib/market/databento.ts
+- [[quoteFromLiveBar()]] - code - src/lib/market/live-gateway.ts
+- [[quoteFromLiveTick()]] - code - src/lib/market/live-gateway.ts
+- [[quoteStatusFromSeries()]] - code - src/lib/market/desk-budget.ts
+- [[readLiveBars()]] - code - src/lib/market/live-gateway.ts
+- [[readLiveTick()]] - code - src/lib/market/live-gateway.ts
+- [[readLiveTickFresh()]] - code - src/lib/market/live-gateway.ts
+- [[reageQuote()]] - code - src/lib/trading/build-desk.ts
+- [[reageSpot()]] - code - src/lib/trading/build-desk.ts
+- [[rebaseQuote()]] - code - src/lib/market/freshest.ts
+- [[remaining()]] - code - src/lib/market/desk-budget.ts
+- [[seriesReturns()]] - code - src/lib/market/yahoo.ts
+- [[setLastGood()]] - code - src/lib/market/desk-budget.ts
+- [[stampSeriesFromBars()]] - code - src/lib/market/freshest.ts
+- [[startFetch()]] - code - src/lib/market/desk-budget.ts
+- [[stitchLiveSession()]] - code - src/lib/market/freshest.ts
+- [[summarizeBudget()]] - code - src/lib/market/desk-budget.ts
+- [[syntheticBars()]] - code - src/lib/market/yahoo.ts
+- [[syntheticQuote()]] - code - src/lib/market/yahoo.ts
+- [[tape-trust.ts]] - code - src/lib/market/tape-trust.ts
+- [[tapeTrust]] - code - src/lib/market/tape-trust.ts
+- [[tickFromRow()]] - code - src/lib/market/live-gateway.ts
+- [[tickOrCached()]] - code - src/lib/market/live-gateway.ts
+- [[tickSymbol()]] - code - src/lib/market/live-gateway.ts
+- [[withBudget()]] - code - src/lib/market/budget.ts
+- [[within()]] - code - src/lib/market/live-ladder.ts
+- [[yahoo.ts]] - code - src/lib/market/yahoo.ts
+- [[yahooChart()]] - code - src/lib/market/yahoo.ts
+- [[yahooChartOnce()]] - code - src/lib/market/yahoo.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/build-deskts
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 45 edges to [[_COMMUNITY_buildTradingDesk]]
+- 24 edges to [[_COMMUNITY_OhlcBar]]
+- 19 edges to [[_COMMUNITY_smc-master.ts]]
+- 19 edges to [[_COMMUNITY_index.tsx]]
+- 17 edges to [[_COMMUNITY_dual-index-charts.tsx]]
+- 16 edges to [[_COMMUNITY_detectors.ts]]
+- 15 edges to [[_COMMUNITY_tradingscanner.ts]]
+- 14 edges to [[_COMMUNITY_react]]
+- 13 edges to [[_COMMUNITY_databento.ts]]
+- 13 edges to [[_COMMUNITY_smcdiscipline.ts]]
+- 8 edges to [[_COMMUNITY_room-engine.ts]]
+- 6 edges to [[_COMMUNITY_structure.ts]]
+- 6 edges to [[_COMMUNITY_veteran-brain.ts]]
+- 5 edges to [[_COMMUNITY_session-backtest.ts]]
+- 5 edges to [[_COMMUNITY_spot-cross.ts]]
+- 5 edges to [[_COMMUNITY_week-ahead.ts]]
+- 5 edges to [[_COMMUNITY_shock.ts]]
+- 5 edges to [[_COMMUNITY_getSql]]
+- 4 edges to [[_COMMUNITY_month-ahead.ts]]
+- 4 edges to [[_COMMUNITY_orchestrator.ts]]
+- 4 edges to [[_COMMUNITY_@tanstackreact-start]]
+- 4 edges to [[_COMMUNITY_aplusconfig.ts]]
+- 4 edges to [[_COMMUNITY_cases.ts]]
+- 4 edges to [[_COMMUNITY_cn]]
+- 4 edges to [[_COMMUNITY_paper-manager.ts]]
+- 4 edges to [[_COMMUNITY_ghost-book.ts]]
+- 4 edges to [[_COMMUNITY_use-entry-state.ts]]
+- 4 edges to [[_COMMUNITY_options-swing-panel.tsx]]
+- 3 edges to [[_COMMUNITY_live-world.ts]]
+- 3 edges to [[_COMMUNITY_hit-odds.ts]]
+- 3 edges to [[_COMMUNITY_session-brief.ts]]
+- 3 edges to [[_COMMUNITY_candlestick-pane.tsx]]
+- 3 edges to [[_COMMUNITY_setup-chart.tsx]]
+- 3 edges to [[_COMMUNITY_tf-ladder.ts]]
+- 3 edges to [[_COMMUNITY_shadow-book.ts]]
+- 3 edges to [[_COMMUNITY_setup-chart-panel.tsx]]
+- 3 edges to [[_COMMUNITY_rh-autofire.ts]]
+- 3 edges to [[_COMMUNITY_jsonResponse]]
+- 3 edges to [[_COMMUNITY_tsx]]
+- 3 edges to [[_COMMUNITY_live-lesson.ts]]
+- 3 edges to [[_COMMUNITY_entry-trigger.ts]]
+- 2 edges to [[_COMMUNITY_news.ts]]
+- 2 edges to [[_COMMUNITY_tf-ladder-panel.tsx]]
+- 2 edges to [[_COMMUNITY_manager-live-loop.ts]]
+- 2 edges to [[_COMMUNITY_verify-rh-desk-job.mjs]]
+- 2 edges to [[_COMMUNITY_verify-desk-enhancements.mjs]]
+- 2 edges to [[_COMMUNITY_chart-timeframes.ts]]
+- 2 edges to [[_COMMUNITY_day-context.ts]]
+- 2 edges to [[_COMMUNITY_measure-loss-patterns.mts]]
+- 2 edges to [[_COMMUNITY_learn-tab.tsx]]
+- 2 edges to [[_COMMUNITY_grok-report.ts]]
+- 2 edges to [[_COMMUNITY_rh-dispatch.ts]]
+- 1 edge to [[_COMMUNITY_SmcMasterBook]]
+- 1 edge to [[_COMMUNITY_SmcArray]]
+- 1 edge to [[_COMMUNITY_verify-sleeve-sizing.mjs]]
+- 1 edge to [[_COMMUNITY_verify-day-change.mjs]]
+- 1 edge to [[_COMMUNITY_verify-tape-trust.mjs]]
+- 1 edge to [[_COMMUNITY_floor-screens.ts]]
+- 1 edge to [[_COMMUNITY_learning.ts]]
+- 1 edge to [[_COMMUNITY_hi-alert.ts]]
+- 1 edge to [[_COMMUNITY_simulate-path-trade.ts]]
+- 1 edge to [[_COMMUNITY_verify-freshness-gate.mjs]]
+- 1 edge to [[_COMMUNITY_verify-research-retain.mjs]]
+- 1 edge to [[_COMMUNITY_ref_node_path]]
+- 1 edge to [[_COMMUNITY_meeting.ts]]
+- 1 edge to [[_COMMUNITY_discuss-tab.tsx]]
+- 1 edge to [[_COMMUNITY_trading-floor-tab.tsx]]
+- 1 edge to [[_COMMUNITY_options-desk.ts]]
+- 1 edge to [[_COMMUNITY_shadow-store.ts]]
+- 1 edge to [[_COMMUNITY_word-hysteresis.ts]]
+- 1 edge to [[_COMMUNITY_replay-desk.mjs]]
+- 1 edge to [[_COMMUNITY_verify-mead-talk.mjs]]
+- 1 edge to [[_COMMUNITY_CLAUDE.md — Ledger Desk (private MNQES masterplace)]]
+
+## Top bridge nodes
+- [[build-desk.ts]] - degree 245, connects to 53 communities
+- [[markettypes.ts]] - degree 80, connects to 38 communities
+- [[chart-overlay.ts]] - degree 16, connects to 10 communities
+- [[yahoo.ts]] - degree 41, connects to 8 communities
+- [[freshest.ts]] - degree 30, connects to 7 communities

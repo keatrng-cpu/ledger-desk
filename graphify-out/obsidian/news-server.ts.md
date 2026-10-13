@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/news/news-server.ts"
 type: "code"
-community: "Community 116"
+community: "feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_116
+  - community/feedts
 ---
 
 # news-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[CIK]] - `contains` [EXTRACTED]
 - [[FEEDS]] - `imports` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[room-step.ts]] - `imports_from` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_116
+#graphify/code #graphify/EXTRACTED #community/feedts

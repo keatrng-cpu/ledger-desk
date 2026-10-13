@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 111"
+community: "discretion-memory.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/discretion-memoryts
 ---
 
 # discretion-memory.ts
 
 ## Connections
-- [[Bucket_1]] - `contains` [EXTRACTED]
+- [[Bucket_2]] - `contains` [EXTRACTED]
 - [[CI_ALPHA]] - `contains` [EXTRACTED]
 - [[ENTRY_EVIDENCE]] - `contains` [EXTRACTED]
 - [[FeatureLift]] - `contains` [EXTRACTED]
@@ -43,8 +43,8 @@ tags:
 - [[entryEvidenceLine()]] - `contains` [EXTRACTED]
 - [[evidenceFor()]] - `contains` [EXTRACTED]
 - [[featureLifts()]] - `contains` [EXTRACTED]
-- [[fmtR()_1]] - `contains` [EXTRACTED]
-- [[fmtUsd()]] - `contains` [EXTRACTED]
+- [[fmtR()_2]] - `contains` [EXTRACTED]
+- [[fmtUsd()_1]] - `contains` [EXTRACTED]
 - [[invNormal()]] - `contains` [EXTRACTED]
 - [[isDecided()]] - `contains` [EXTRACTED]
 - [[killzoneLine()]] - `contains` [EXTRACTED]
@@ -54,7 +54,7 @@ tags:
 - [[meanInterval]] - `contains` [EXTRACTED]
 - [[paper-book-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[pathStats]] - `contains` [EXTRACTED]
-- [[pct()]] - `contains` [EXTRACTED]
+- [[pct()_1]] - `contains` [EXTRACTED]
 - [[reasonLine()]] - `contains` [EXTRACTED]
 - [[scoreOf()]] - `contains` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -63,8 +63,8 @@ tags:
 - [[splitByKillzone()]] - `contains` [EXTRACTED]
 - [[tCrit95()]] - `contains` [EXTRACTED]
 - [[tagFamily()]] - `contains` [EXTRACTED]
-- [[verdictFor()_1]] - `contains` [EXTRACTED]
+- [[verdictFor()]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[zTwoSided()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

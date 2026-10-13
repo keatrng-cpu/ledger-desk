@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/room/seats.ts"
+source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 57"
-location: "L83"
+community: "goal.ts"
+location: "L746"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/goalts
 ---
 
 # money()
 
 ## Connections
-- [[leagueRead]] - `calls` [EXTRACTED]
-- [[seatCash()]] - `calls` [EXTRACTED]
-- [[seatEquity()]] - `calls` [EXTRACTED]
-- [[seats.ts]] - `contains` [EXTRACTED]
-- [[stepSeats()]] - `calls` [EXTRACTED]
+- [[collisions()]] - `calls` [EXTRACTED]
+- [[goal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/goalts

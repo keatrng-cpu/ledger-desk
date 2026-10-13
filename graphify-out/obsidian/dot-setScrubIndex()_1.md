@@ -1,17 +1,18 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L3315"
+community: "FloorOverhaul"
+location: "L3791"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorOverhaul
 ---
 
 # .setScrubIndex()
 
 ## Connections
+- [[dot-setScrubIndex()]] - `calls` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

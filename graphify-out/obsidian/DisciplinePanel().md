@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/journal/discipline-panel.tsx"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # DisciplinePanel()
@@ -21,4 +21,4 @@ tags:
 - [[listTrades]] - `calls` [EXTRACTED]
 - [[money()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

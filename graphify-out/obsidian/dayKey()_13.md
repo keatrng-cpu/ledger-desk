@@ -1,17 +1,20 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "scripts/backtest-account.mjs"
 type: "code"
-community: "Community 45"
-location: "L93"
+community: "backtest-account.mjs"
+location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/backtest-accountmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[backtest-account.mjs]] - `contains` [EXTRACTED]
+- [[monthKey()]] - `calls` [EXTRACTED]
+- [[runAccount()]] - `calls` [EXTRACTED]
+- [[score()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/backtest-accountmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 126"
+community: "shadow-book.ts"
 location: "L137"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/shadow-bookts
 ---
 
 # MAX_PER_SYMBOL_DAY
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/shadow-bookts

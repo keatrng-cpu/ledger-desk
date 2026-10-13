@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/counters.ts"
 type: "code"
-community: "Community 57"
+community: "room-engine.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/room-enginets
 ---
 
 # ledgerOfCounters()
@@ -18,4 +18,4 @@ tags:
 - [[seats.ts]] - `imports` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/room-enginets

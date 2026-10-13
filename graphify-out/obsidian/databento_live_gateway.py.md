@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # databento_live_gateway.py
@@ -23,7 +23,7 @@ tags:
 - [[in_ny_am_window()]] - `contains` [EXTRACTED]
 - [[load_env_local()_1]] - `contains` [EXTRACTED]
 - [[logging]] - `imports` [EXTRACTED]
-- [[main()_6]] - `contains` [EXTRACTED]
+- [[main()_9]] - `contains` [EXTRACTED]
 - [[os]] - `imports` [EXTRACTED]
 - [[psycopg]] - `imports` [EXTRACTED]
 - [[rec_px()]] - `contains` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[window_label()]] - `contains` [EXTRACTED]
 - [[zoneinfo]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

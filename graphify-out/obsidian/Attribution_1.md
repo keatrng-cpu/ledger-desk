@@ -1,17 +1,19 @@
 ---
-source_file: "src/lib/trading/setup-memory.ts"
+source_file: "src/lib/room/quant.ts"
 type: "code"
-community: "Community 216"
-location: "L57"
+community: "orchestrator.ts"
+location: "L423"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_216
+  - community/orchestratorts
 ---
 
 # Attribution
 
 ## Connections
-- [[setup-memory.ts]] - `contains` [EXTRACTED]
+- [[RoomClosedTrade]] - `references` [EXTRACTED]
+- [[paper-book.ts]] - `imports` [EXTRACTED]
+- [[quant.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_216
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

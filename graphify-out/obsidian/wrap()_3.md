@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L216"
+community: "floor-screens.ts"
+location: "L226"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # wrap()
@@ -21,7 +21,7 @@ tags:
 - [[drawInvMonitor()]] - `calls` [EXTRACTED]
 - [[drawInvPortfolio()]] - `calls` [EXTRACTED]
 - [[drawInvTheme()]] - `calls` [EXTRACTED]
-- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
 - [[drawNews()]] - `calls` [EXTRACTED]
 - [[drawProposals()]] - `calls` [EXTRACTED]
 - [[drawRefusals()]] - `calls` [EXTRACTED]
@@ -30,4 +30,4 @@ tags:
 - [[invDark()]] - `calls` [EXTRACTED]
 - [[textBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

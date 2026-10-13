@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # pm-analyzer.tsx
@@ -30,12 +30,12 @@ tags:
 - [[PmAnalyzer]] - `imports_from` [EXTRACTED]
 - [[PmAnalyzer()]] - `contains` [EXTRACTED]
 - [[PredictTab()]] - `imports` [EXTRACTED]
-- [[REACT_COLOR]] - `contains` [EXTRACTED]
+- [[REACT_COLOR_1]] - `contains` [EXTRACTED]
 - [[Reaction]] - `imports` [EXTRACTED]
 - [[Record()]] - `contains` [EXTRACTED]
-- [[Ring()]] - `contains` [EXTRACTED]
+- [[Ring()_1]] - `contains` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
-- [[Side_1]] - `imports` [EXTRACTED]
+- [[Side_5]] - `imports` [EXTRACTED]
 - [[SignalBoard]] - `imports` [EXTRACTED]
 - [[SignalHallFeed]] - `imports` [EXTRACTED]
 - [[Stat()_1]] - `contains` [EXTRACTED]
@@ -44,33 +44,40 @@ tags:
 - [[addPaper()]] - `imports` [EXTRACTED]
 - [[calibrationScore()]] - `contains` [EXTRACTED]
 - [[categoryLabel()]] - `imports` [EXTRACTED]
-- [[cents()]] - `contains` [EXTRACTED]
+- [[cents()_4]] - `contains` [EXTRACTED]
 - [[clock()]] - `contains` [EXTRACTED]
 - [[createSignalHallFeed()]] - `imports` [EXTRACTED]
 - [[crowdLabel()]] - `imports` [EXTRACTED]
 - [[durationWords()]] - `imports` [EXTRACTED]
 - [[eventLabel()]] - `imports` [EXTRACTED]
+- [[floor-link.ts]] - `imports_from` [EXTRACTED]
 - [[getPredictionSignals]] - `imports` [EXTRACTED]
 - [[gradeLabel()]] - `imports` [EXTRACTED]
+- [[hallExtrasFrom()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `dynamic_import` [EXTRACTED]
 - [[loadPaper()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
+- [[mead-record.ts]] - `imports_from` [EXTRACTED]
 - [[mead-scene.ts]] - `imports_from` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `imports_from` [EXTRACTED]
 - [[modelInputsFromScanRows()]] - `imports` [EXTRACTED]
+- [[openFloorAt()]] - `imports` [EXTRACTED]
 - [[paperTicketFromSignal()]] - `imports` [EXTRACTED]
-- [[pct()_6]] - `contains` [EXTRACTED]
+- [[pct()_5]] - `contains` [EXTRACTED]
 - [[pm-paper-store.ts]] - `imports_from` [EXTRACTED]
 - [[predict-server.ts]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
+- [[readHallRecord()_1]] - `imports` [EXTRACTED]
 - [[scorePaper()]] - `imports` [EXTRACTED]
 - [[signalToHallMarket()]] - `imports` [EXTRACTED]
 - [[signals.ts]] - `imports_from` [EXTRACTED]
 - [[signedC()_1]] - `contains` [EXTRACTED]
 - [[slotName()]] - `contains` [EXTRACTED]
+- [[src_components_mead_mead_scene_reaction]] - `imports` [EXTRACTED]
+- [[src_components_mead_mead_scene_ticketside]] - `imports` [EXTRACTED]
 - [[src_lib_predict_signals_durationwords]] - `imports` [EXTRACTED]
 - [[src_lib_predict_signals_gradelabel]] - `imports` [EXTRACTED]
 - [[src_lib_predict_signals_marketsignal]] - `imports` [EXTRACTED]
@@ -87,7 +94,8 @@ tags:
 - [[src_lib_predict_signals_too_few]] - `imports` [EXTRACTED]
 - [[src_lib_predict_signals_walkforward]] - `imports` [EXTRACTED]
 - [[subscribePaper()]] - `imports` [EXTRACTED]
+- [[takePredictFocus()]] - `imports` [EXTRACTED]
 - [[useSignalHall()]] - `contains` [EXTRACTED]
 - [[walkForward()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

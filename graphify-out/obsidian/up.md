@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-month-contract.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 159"
-location: "L30"
+community: "verify-smc-master.mjs"
+location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_159
+  - community/verify-smc-mastermjs
 ---
 
 # up
 
 ## Connections
-- [[verify-month-contract.mjs]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_159
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

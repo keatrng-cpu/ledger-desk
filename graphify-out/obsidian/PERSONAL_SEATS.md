@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 57"
+community: "seats.ts"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/seatsts
 ---
 
 # PERSONAL_SEATS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[seats.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/seatsts

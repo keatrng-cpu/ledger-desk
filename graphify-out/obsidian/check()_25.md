@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-judas-window.mjs"
+source_file: "scripts/floor-checks.mjs"
 type: "code"
-community: "Community 20"
-location: "L28"
+community: "preview-glb.mjs"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/preview-glbmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-judas-window.mjs]] - `contains` [EXTRACTED]
+- [[floor-checks.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

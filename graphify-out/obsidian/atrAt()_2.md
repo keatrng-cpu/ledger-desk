@@ -1,19 +1,19 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "scripts/learning-backfill.mts"
 type: "code"
-community: "Community 55"
-location: "L115"
+community: "learning-backfill.mts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/learning-backfillmts
 ---
 
 # atrAt()
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[has()_3]] - `calls` [EXTRACTED]
-- [[runTrade()]] - `calls` [EXTRACTED]
+- [[add()_1]] - `calls` [EXTRACTED]
+- [[learning-backfill.mts]] - `contains` [EXTRACTED]
+- [[rollingAtr()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/learning-backfillmts

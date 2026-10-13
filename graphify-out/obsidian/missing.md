@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/log-trade.mjs"
+source_file: "scripts/verify-school-gate.mjs"
 type: "code"
-community: "Community 121"
-location: "L126"
+community: "school-brief.ts"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_121
+  - community/school-briefts
 ---
 
 # missing
 
 ## Connections
-- [[log-trade.mjs]] - `contains` [EXTRACTED]
+- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_121
+#graphify/code #graphify/EXTRACTED #community/school-briefts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/mead-hall.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # mead-hall.test.mjs
@@ -20,4 +20,4 @@ tags:
 - [[ref_node_test]] - `imports_from` [EXTRACTED]
 - [[tsx_1]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

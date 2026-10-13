@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 129"
+community: "predict-server.ts"
 location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/predict-serverts
 ---
 
 # americanToProb()
 
 ## Connections
 - [[board.ts]] - `imports` [EXTRACTED]
-- [[buildBoard()]] - `calls` [EXTRACTED]
+- [[buildBoard()_1]] - `calls` [EXTRACTED]
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[nflGames()]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

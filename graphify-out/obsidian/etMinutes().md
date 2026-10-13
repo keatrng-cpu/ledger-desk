@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-cases.mjs"
+source_file: "src/lib/desk/card-journal.ts"
 type: "code"
-community: "Community 11"
-location: "L29"
+community: "card-journal.ts"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/card-journalts
 ---
 
 # etMinutes()
 
 ## Connections
-- [[verify-cases.mjs]] - `contains` [EXTRACTED]
+- [[card-journal.ts]] - `contains` [EXTRACTED]
+- [[resolveJournal()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/card-journalts

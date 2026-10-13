@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 102"
-location: "L50"
+community: "school-brief.ts"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/school-briefts
 ---
 
 # BRIEF_AS_OF
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/school-briefts

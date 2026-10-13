@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 109"
+community: "invest-office.ts"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/invest-officets
 ---
 
 # timeline()
@@ -18,10 +18,12 @@ tags:
 - [[earningsImplication()]] - `calls` [EXTRACTED]
 - [[eventDensity()]] - `calls` [EXTRACTED]
 - [[fundProfile]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[invest-office.ts]] - `imports` [EXTRACTED]
 - [[macroImplication()]] - `calls` [EXTRACTED]
 - [[news-tab.tsx]] - `imports` [EXTRACTED]
+- [[nextReport()]] - `calls` [EXTRACTED]
 - [[schedule.ts]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/invest-officets

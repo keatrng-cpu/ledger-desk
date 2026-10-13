@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 59"
-location: "L106"
+community: "predict-server.ts"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/predict-serverts
 ---
 
 # pct()
 
 ## Connections
-- [[ResultsTable()]] - `calls` [EXTRACTED]
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[nflGames()]] - `calls` [EXTRACTED]
+- [[thesis-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

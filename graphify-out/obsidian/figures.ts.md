@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/figures.ts"
 type: "code"
-community: "Community 148"
+community: "figures.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # figures.ts
@@ -38,4 +38,4 @@ tags:
 - [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/figurests

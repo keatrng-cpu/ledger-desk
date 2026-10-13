@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 18"
-location: "L93"
+community: "room-engine.ts"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/room-enginets
 ---
 
 # saveMinds()
@@ -16,4 +16,4 @@ tags:
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/room-enginets

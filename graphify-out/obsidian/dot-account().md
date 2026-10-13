@@ -1,17 +1,19 @@
 ---
 source_file: "src/lib/room/exec/types.ts"
 type: "code"
-community: "Community 154"
+community: "sqlLedger"
 location: "L96"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_154
+  - graphify/INFERRED
+  - community/sqlLedger
 ---
 
 # .account()
 
 ## Connections
 - [[OptionsBroker]] - `method` [EXTRACTED]
+- [[load()_8]] - `indirect_call` [INFERRED]
+- [[save()_4]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/INFERRED #community/sqlLedger

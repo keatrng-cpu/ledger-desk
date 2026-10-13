@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/oracle/bs_oracle.py"
+source_file: "brainlab/intake.py"
 type: "code"
-community: "Community 226"
-location: "L83"
+community: "selfcheck.py"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/selfcheckpy
 ---
 
 # render()
 
 ## Connections
-- [[bs_oracle.py]] - `contains` [EXTRACTED]
-- [[build()_1]] - `calls` [EXTRACTED]
-- [[json_1]] - `calls` [EXTRACTED]
+- [[intake.py]] - `contains` [EXTRACTED]
+- [[main()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

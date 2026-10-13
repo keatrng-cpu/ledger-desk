@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "meeting.ts"
 location: "L101"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/meetingts
 ---
 
 # consensus()
@@ -17,4 +17,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[tallyLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/meetingts

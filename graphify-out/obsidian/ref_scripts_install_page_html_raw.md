@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 135"
+community: "grok-pwa-plugin.mjs"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_135
+  - community/grok-pwa-pluginmjs
 ---
 
 # ref_scripts_install_page_html_raw
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[grok-pwa.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_135
+#graphify/concept #graphify/EXTRACTED #community/grok-pwa-pluginmjs

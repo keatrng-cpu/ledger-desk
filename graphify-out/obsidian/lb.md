@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 36"
+community: "verify-predict.mjs"
 location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/verify-predictmjs
 ---
 
 # lb
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/verify-predictmjs

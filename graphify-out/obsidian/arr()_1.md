@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-trade-plan.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 85"
-location: "L45"
+community: "verify-options-live-ticket.mjs"
+location: "L239"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/verify-options-live-ticketmjs
 ---
 
 # arr()
 
 ## Connections
-- [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 115"
+community: "cases.ts"
 location: "L702"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/casests
 ---
 
 # BuildOptions
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[cases.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/casests

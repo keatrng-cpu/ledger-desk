@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/coach/claude-server.ts"
 type: "code"
-community: "Community 123"
+community: "claude-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_123
+  - community/claude-serverts
 ---
 
 # claude-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[CoachContext]] - `contains` [EXTRACTED]
 - [[CoachNarration]] - `contains` [EXTRACTED]
 - [[CoachVoice]] - `contains` [EXTRACTED]
@@ -59,6 +59,6 @@ tags:
 - [[trading-coach.tsx]] - `imports_from` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 - [[withTimeout()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_123
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

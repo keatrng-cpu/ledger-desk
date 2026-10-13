@@ -1,11 +1,11 @@
 ---
 source_file: "lightweight-charts"
 type: "code"
-community: "Community 27"
+community: "candlestick-pane.tsx"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/candlestick-panetsx
 ---
 
 # lightweight-charts
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[candlestick-pane.tsx]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/candlestick-panetsx

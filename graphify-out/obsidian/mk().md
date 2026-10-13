@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-micro-entry.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 199"
-location: "L169"
+community: "verify-smc-master.mjs"
+location: "L320"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_199
+  - community/verify-smc-mastermjs
 ---
 
 # mk()
 
 ## Connections
-- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_199
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

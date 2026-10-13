@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-setup-anticipation.mjs"
 type: "code"
-community: "Community 66"
+community: "verify-setup-anticipation.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_66
+  - community/verify-setup-anticipationmjs
 ---
 
 # verify-setup-anticipation.mjs
@@ -18,16 +18,16 @@ tags:
 - [[aArr]] - `contains` [EXTRACTED]
 - [[aDsp]] - `contains` [EXTRACTED]
 - [[aSweep]] - `contains` [EXTRACTED]
-- [[all_3]] - `contains` [EXTRACTED]
+- [[all_6]] - `contains` [EXTRACTED]
 - [[armedShort]] - `contains` [EXTRACTED]
 - [[arrPrinted]] - `contains` [EXTRACTED]
 - [[awaitedAll]] - `contains` [EXTRACTED]
-- [[bare_2]] - `contains` [EXTRACTED]
+- [[bare_3]] - `contains` [EXTRACTED]
 - [[bothWays]] - `contains` [EXTRACTED]
 - [[canonOf()]] - `contains` [EXTRACTED]
 - [[canonOnly]] - `contains` [EXTRACTED]
 - [[card()_3]] - `contains` [EXTRACTED]
-- [[check()_63]] - `contains` [EXTRACTED]
+- [[check()_78]] - `contains` [EXTRACTED]
 - [[deadOne]] - `contains` [EXTRACTED]
 - [[deadTwo]] - `contains` [EXTRACTED]
 - [[far0]] - `contains` [EXTRACTED]
@@ -35,12 +35,12 @@ tags:
 - [[farther0]] - `contains` [EXTRACTED]
 - [[goneLong]] - `contains` [EXTRACTED]
 - [[goneShort]] - `contains` [EXTRACTED]
-- [[halted_2]] - `contains` [EXTRACTED]
+- [[halted_3]] - `contains` [EXTRACTED]
 - [[hiEngine]] - `contains` [EXTRACTED]
 - [[hiProgress]] - `contains` [EXTRACTED]
 - [[inZone]] - `contains` [EXTRACTED]
 - [[judas]] - `contains` [EXTRACTED]
-- [[live_5]] - `contains` [EXTRACTED]
+- [[live_7]] - `contains` [EXTRACTED]
 - [[longAt()]] - `contains` [EXTRACTED]
 - [[longSweep]] - `contains` [EXTRACTED]
 - [[nearRare]] - `contains` [EXTRACTED]
@@ -51,7 +51,7 @@ tags:
 - [[noPrice_1]] - `contains` [EXTRACTED]
 - [[noZone]] - `contains` [EXTRACTED]
 - [[nullPrice]] - `contains` [EXTRACTED]
-- [[ok()_26]] - `contains` [EXTRACTED]
+- [[ok()_25]] - `contains` [EXTRACTED]
 - [[printedAll]] - `contains` [EXTRACTED]
 - [[reachable]] - `contains` [EXTRACTED]
 - [[seq()]] - `contains` [EXTRACTED]
@@ -63,4 +63,4 @@ tags:
 - [[tenMusts]] - `contains` [EXTRACTED]
 - [[unreachable]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_66
+#graphify/code #graphify/EXTRACTED #community/verify-setup-anticipationmjs

@@ -1,17 +1,17 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 180"
-location: "L217"
+community: "build_floor.py"
+location: "L240"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # three.js point -> Blender point.
 
 ## Connections
-- [[B()_1]] - `rationale_for` [EXTRACTED]
+- [[B()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_180
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

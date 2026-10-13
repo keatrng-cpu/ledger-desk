@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # manager-room-feed.ts
@@ -17,7 +17,7 @@ tags:
 - [[CallAction]] - `imports` [EXTRACTED]
 - [[DEFAULT_MANAGER_ROOM_ACCOUNT]] - `imports` [EXTRACTED]
 - [[DiscretionRule]] - `imports` [EXTRACTED]
-- [[Gate]] - `imports` [EXTRACTED]
+- [[Gate_1]] - `imports` [EXTRACTED]
 - [[Lens5]] - `contains` [EXTRACTED]
 - [[ManagerCall]] - `imports` [EXTRACTED]
 - [[ManagerFeed]] - `imports` [EXTRACTED]
@@ -48,6 +48,7 @@ tags:
 - [[evaluateRhBplusGate()]] - `imports` [EXTRACTED]
 - [[evaluateRhTicketEnvelope()]] - `imports` [EXTRACTED]
 - [[gateFailed()]] - `contains` [EXTRACTED]
+- [[handle()_4]] - `imports_from` [EXTRACTED]
 - [[isBplusBand()]] - `imports` [EXTRACTED]
 - [[isRoomManagerFeed()]] - `contains` [EXTRACTED]
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
@@ -63,12 +64,15 @@ tags:
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
+- [[room-step.ts]] - `dynamic_import` [EXTRACTED]
 - [[roomManagerFeed]] - `contains` [EXTRACTED]
 - [[school-ticket.ts]] - `imports_from` [EXTRACTED]
 - [[schoolTicket()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[verify-manager-live-loop.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

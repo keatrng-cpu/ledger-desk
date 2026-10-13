@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # floor-scene.ts
@@ -34,9 +34,13 @@ tags:
 - [[FloorEvent]] - `contains` [EXTRACTED]
 - [[FloorFrame]] - `imports` [EXTRACTED]
 - [[FloorLight]] - `imports` [EXTRACTED]
+- [[FloorMead]] - `imports` [EXTRACTED]
 - [[FloorOverhaul]] - `imports` [EXTRACTED]
 - [[FloorScene]] - `contains` [EXTRACTED]
 - [[FloorSceneOptions]] - `contains` [EXTRACTED]
+- [[HALL_LAYER]] - `imports` [EXTRACTED]
+- [[HALL_PLACES]] - `imports` [EXTRACTED]
+- [[HALL_SCREENS]] - `imports` [EXTRACTED]
 - [[LAYOUT]] - `contains` [EXTRACTED]
 - [[MOOD]] - `contains` [EXTRACTED]
 - [[ManagerAvatar]] - `imports` [EXTRACTED]
@@ -56,12 +60,13 @@ tags:
 - [[Target]] - `contains` [EXTRACTED]
 - [[TicketFlight]] - `imports` [EXTRACTED]
 - [[URGENCY_COLOR]] - `imports` [EXTRACTED]
-- [[V2]] - `contains` [EXTRACTED]
-- [[V3]] - `contains` [EXTRACTED]
+- [[V2_1]] - `contains` [EXTRACTED]
+- [[V3_1]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
 - [[ambientFor()]] - `contains` [EXTRACTED]
 - [[angleLerp()]] - `contains` [EXTRACTED]
 - [[basePose()]] - `contains` [EXTRACTED]
+- [[contactBlob()]] - `contains` [EXTRACTED]
 - [[createStubManagerFeed()]] - `imports` [EXTRACTED]
 - [[cuesOfFrame()]] - `imports` [EXTRACTED]
 - [[damp()]] - `contains` [EXTRACTED]
@@ -71,20 +76,27 @@ tags:
 - [[fallbackPiece()]] - `contains` [EXTRACTED]
 - [[floor-cues.ts]] - `imports_from` [EXTRACTED]
 - [[floor-fx.ts]] - `imports_from` [EXTRACTED]
+- [[floor-mead.ts]] - `imports_from` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
+- [[floor-presence.ts]] - `imports_from` [EXTRACTED]
 - [[floor-props.ts]] - `imports_from` [EXTRACTED]
 - [[floor-proto-avatars.ts]] - `imports_from` [EXTRACTED]
 - [[floor-screens.ts]] - `imports_from` [EXTRACTED]
 - [[floor-sound.ts]] - `imports_from` [EXTRACTED]
 - [[floor-voice.ts]] - `imports_from` [EXTRACTED]
 - [[floorProps]] - `imports` [EXTRACTED]
+- [[gestureFor()]] - `imports` [EXTRACTED]
 - [[heardBefore()]] - `imports` [EXTRACTED]
+- [[inHall()]] - `imports` [EXTRACTED]
 - [[loadSaid()]] - `imports` [EXTRACTED]
 - [[manager-feed.ts]] - `imports_from` [EXTRACTED]
 - [[managerBubbleText()]] - `imports` [EXTRACTED]
+- [[mead-hall-layout.ts]] - `imports_from` [EXTRACTED]
+- [[mead-signal-feed.ts]] - `dynamic_import` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[phaseToMoodTint()]] - `imports` [EXTRACTED]
 - [[poseFor()]] - `contains` [EXTRACTED]
+- [[presenceOf()]] - `imports` [EXTRACTED]
 - [[readRhAccount()]] - `imports` [EXTRACTED]
 - [[rememberSaid()]] - `imports` [EXTRACTED]
 - [[said-memory.ts]] - `imports_from` [EXTRACTED]
@@ -98,8 +110,12 @@ tags:
 - [[three]] - `imports_from` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[uirh-account.ts]] - `imports_from` [EXTRACTED]
+- [[use-mead-feed.ts]] - `imports_from` [EXTRACTED]
+- [[verify-floor-locomotion.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
+- [[visemeScale()]] - `imports` [EXTRACTED]
 - [[wingPose()]] - `contains` [EXTRACTED]
 - [[yawTo()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

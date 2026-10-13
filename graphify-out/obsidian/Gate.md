@@ -1,20 +1,17 @@
 ---
-source_file: "src/lib/room/orchestrator.ts"
+source_file: "src/components/watcher/watcher-tab.tsx"
 type: "code"
-community: "Community 0"
-location: "L319"
+community: "watcher-tab.tsx"
+location: "L4"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/watcher-tabtsx
 ---
 
 # Gate
 
 ## Connections
-- [[Facts]] - `references` [EXTRACTED]
-- [[manager-room-feed.ts]] - `imports` [EXTRACTED]
-- [[meeting.ts]] - `imports` [EXTRACTED]
-- [[orchestrator.ts]] - `contains` [EXTRACTED]
+- [[watcher-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/watcher-tabtsx

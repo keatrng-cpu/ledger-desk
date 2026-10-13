@@ -1,17 +1,20 @@
 ---
 source_file: "src/lib/room/manager-live-loop.ts"
 type: "code"
-community: "Community 15"
-location: "L106"
+community: "manager-live-loop.ts"
+location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/manager-live-loopts
 ---
 
 # proposeRhFromManagerFeed()
 
 ## Connections
+- [[Code]] - `references` [INFERRED]
+- [[Done this session (each has a test; the count is the list)]] - `references` [INFERRED]
+- [[Session checklist]] - `references` [INFERRED]
 - [[manager-live-loop.ts]] - `contains` [EXTRACTED]
 - [[proposeRhFromPathFire()]] - `calls` [EXTRACTED]
 - [[rhAutofireFlagsFromEnv()]] - `calls` [EXTRACTED]
@@ -19,4 +22,4 @@ tags:
 - [[rhCycleOnDesk()]] - `calls` [EXTRACTED]
 - [[ticketFromManagerState()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

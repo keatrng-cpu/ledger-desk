@@ -1,22 +1,22 @@
 ---
 source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # journal/server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BookCounters]] - `imports` [EXTRACTED]
 - [[BookCountersView]] - `contains` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[CloseTradeInput]] - `contains` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[DeskEvent]] - `contains` [EXTRACTED]
@@ -40,6 +40,7 @@ tags:
 - [[TradeRow]] - `contains` [EXTRACTED]
 - [[aPlusFullSizeUnlocked()]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[appendAttestation()]] - `imports` [EXTRACTED]
 - [[assertOpenAllowed()]] - `contains` [EXTRACTED]
 - [[attest-server.ts]] - `imports_from` [EXTRACTED]
@@ -51,11 +52,9 @@ tags:
 - [[computeLiveRiskState()]] - `contains` [EXTRACTED]
 - [[computeRiskFlags()]] - `imports` [EXTRACTED]
 - [[computeTradePnl()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[currentKillzoneWindow()]] - `imports` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[discipline-panel.tsx]] - `imports_from` [EXTRACTED]
-- [[discipline.ts]] - `imports_from` [EXTRACTED]
 - [[emptyBookCounters()]] - `imports` [EXTRACTED]
 - [[eventSchema]] - `contains` [EXTRACTED]
 - [[getBookCounters]] - `contains` [EXTRACTED]
@@ -66,9 +65,10 @@ tags:
 - [[haltHitAlert()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[isKnownSymbol()]] - `imports` [EXTRACTED]
-- [[iso()_1]] - `contains` [EXTRACTED]
+- [[iso()_3]] - `contains` [EXTRACTED]
 - [[isoTime]] - `contains` [EXTRACTED]
 - [[journal-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[journaldiscipline.ts]] - `imports_from` [EXTRACTED]
 - [[listEvents]] - `contains` [EXTRACTED]
 - [[listEventsSchema]] - `contains` [EXTRACTED]
 - [[listTrades]] - `contains` [EXTRACTED]
@@ -93,7 +93,7 @@ tags:
 - [[realFillSchema]] - `contains` [EXTRACTED]
 - [[recordRealFill]] - `contains` [EXTRACTED]
 - [[risk-panel.tsx]] - `imports_from` [EXTRACTED]
-- [[risk.ts]] - `imports_from` [EXTRACTED]
+- [[risk.ts]] - `re_exports` [EXTRACTED]
 - [[send-server.ts]] - `imports_from` [EXTRACTED]
 - [[sendAlert()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
@@ -109,6 +109,6 @@ tags:
 - [[tradingWeekStart()]] - `imports` [EXTRACTED]
 - [[updateEquity]] - `contains` [EXTRACTED]
 - [[updateEquitySchema]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

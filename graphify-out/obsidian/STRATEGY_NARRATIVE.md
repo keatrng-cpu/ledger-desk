@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 114"
-location: "L38"
+community: "smc-canon.ts"
+location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/smc-canonts
 ---
 
 # STRATEGY_NARRATIVE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[strategies.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

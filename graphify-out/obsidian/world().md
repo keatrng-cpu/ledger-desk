@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 171"
+community: "verify-room-exec.mjs"
 location: "L404"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/verify-room-execmjs
 ---
 
 # world()
@@ -18,4 +18,4 @@ tags:
 - [[query()]] - `indirect_call` [INFERRED]
 - [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

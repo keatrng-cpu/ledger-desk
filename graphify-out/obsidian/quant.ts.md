@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/quant.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # quant.ts
 
 ## Connections
-- [[Attribution]] - `contains` [EXTRACTED]
+- [[Attribution_1]] - `contains` [EXTRACTED]
 - [[BAR_MS]] - `imports` [EXTRACTED]
 - [[ContractChoice]] - `contains` [EXTRACTED]
 - [[HALF_SPREAD]] - `imports` [EXTRACTED]
@@ -27,7 +27,7 @@ tags:
 - [[ROOM_MANDATE]] - `imports` [EXTRACTED]
 - [[RoomPositionIn]] - `imports` [EXTRACTED]
 - [[Scenario_1]] - `contains` [EXTRACTED]
-- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[StrikeOffset_1]] - `imports` [EXTRACTED]
 - [[TimeOddsFile]] - `imports` [EXTRACTED]
 - [[UnderlierTape]] - `imports` [EXTRACTED]
 - [[attribute()_1]] - `contains` [EXTRACTED]
@@ -65,7 +65,7 @@ tags:
 - [[realizedForDecile()]] - `contains` [EXTRACTED]
 - [[repricedOdds()]] - `contains` [EXTRACTED]
 - [[roomformat.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_8]] - `contains` [EXTRACTED]
+- [[round2()_11]] - `contains` [EXTRACTED]
 - [[rrOf()]] - `contains` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
@@ -75,4 +75,4 @@ tags:
 - [[windowOdds]] - `imports` [EXTRACTED]
 - [[yearsToExpiry()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

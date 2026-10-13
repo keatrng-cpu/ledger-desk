@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/room/desk-atlas.ts"
+source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 21"
-location: "L342"
+community: "live-talk.ts"
+location: "L117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/live-talkts
 ---
 
 # tokens()
 
 ## Connections
-- [[desk-atlas.ts]] - `contains` [EXTRACTED]
-- [[improveAtlas()]] - `calls` [EXTRACTED]
-- [[recall()]] - `calls` [EXTRACTED]
+- [[linkScore()]] - `calls` [EXTRACTED]
+- [[off-hours-study.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/live-talkts

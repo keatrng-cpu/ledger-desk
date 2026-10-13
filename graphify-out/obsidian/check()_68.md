@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-trigger.mjs"
+source_file: "scripts/verify-option-math-oracle.mjs"
 type: "code"
-community: "Community 82"
-location: "L16"
+community: "verify-option-math-oracle.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/verify-option-math-oraclemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-entry-trigger.mjs]] - `contains` [EXTRACTED]
+- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/verify-option-math-oraclemjs

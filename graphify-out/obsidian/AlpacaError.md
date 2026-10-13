@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 154"
+community: "alpaca.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/alpacats
 ---
 
 # AlpacaError
 
 ## Connections
-- [[dot-constructor()_3]] - `method` [EXTRACTED]
+- [[dot-constructor()_6]] - `method` [EXTRACTED]
 - [[alpaca.ts]] - `contains` [EXTRACTED]
 - [[call()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/alpacats

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-no-bot-entry.mjs"
 type: "code"
-community: "Community 237"
+community: "verify-no-bot-entry.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_237
+  - community/verify-no-bot-entrymjs
 ---
 
 # verify-no-bot-entry.mjs
@@ -24,7 +24,7 @@ tags:
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `dynamic_import` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
-- [[run()_2]] - `contains` [EXTRACTED]
-- [[steps_1]] - `contains` [EXTRACTED]
+- [[run()_1]] - `contains` [EXTRACTED]
+- [[steps_3]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_237
+#graphify/code #graphify/EXTRACTED #community/verify-no-bot-entrymjs

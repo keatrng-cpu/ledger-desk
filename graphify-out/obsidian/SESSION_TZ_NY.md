@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/live-session.ts"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # SESSION_TZ_NY
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[live-session.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/rh-account.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # ui/rh-account.ts
@@ -20,7 +20,7 @@ tags:
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 - [[getRhAccount()]] - `contains` [EXTRACTED]
 - [[getRhAccountServer()]] - `contains` [EXTRACTED]
-- [[manager-account.ts]] - `imports_from` [EXTRACTED]
+- [[manager-account.ts]] - `re_exports` [EXTRACTED]
 - [[manager-feed-agree.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[managerAccountLine()]] - `imports` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -29,9 +29,9 @@ tags:
 - [[rh-account-strip.tsx]] - `imports_from` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
 - [[src_lib_execution_manager_account_rh_preferred_account_mask_last4]] - `imports` [EXTRACTED]
-- [[subs_2]] - `contains` [EXTRACTED]
+- [[subs_3]] - `contains` [EXTRACTED]
 - [[subscribeRhAccount()]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

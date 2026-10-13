@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ipo.ts"
 type: "code"
-community: "Community 184"
+community: "invest-firm.ts"
 location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/invest-firmts
 ---
 
 # isOperatingCompany()
@@ -16,4 +16,4 @@ tags:
 - [[pricedIpos()]] - `calls` [EXTRACTED]
 - [[upcomingIpos()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

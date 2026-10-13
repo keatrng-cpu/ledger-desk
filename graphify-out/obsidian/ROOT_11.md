@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/options-desk-cap.test.mjs"
+source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 78"
-location: "L28"
+community: "verify-rh-path-fire.mjs"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/verify-rh-path-firemjs
 ---
 
 # ROOT
 
 ## Connections
-- [[options-desk-cap.test.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/verify-rh-path-firemjs

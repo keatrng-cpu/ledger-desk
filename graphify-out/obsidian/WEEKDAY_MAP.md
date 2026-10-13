@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 20"
+community: "orchestrator.ts"
 location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/orchestratorts
 ---
 
 # WEEKDAY_MAP
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[sessions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

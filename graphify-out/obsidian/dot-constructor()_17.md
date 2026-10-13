@@ -1,20 +1,20 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L147"
+community: ".path"
+location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/path
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-add()_2]] - `calls` [EXTRACTED]
-- [[Person]] - `method` [EXTRACTED]
-- [[canvasTex()_1]] - `calls` [EXTRACTED]
-- [[mat()_1]] - `calls` [EXTRACTED]
+- [[dot-cellOf()]] - `calls` [EXTRACTED]
+- [[dot-center()]] - `calls` [EXTRACTED]
+- [[dot-markDisc()]] - `calls` [EXTRACTED]
+- [[NavGrid]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/path

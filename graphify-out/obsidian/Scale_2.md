@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
-community: "Community 27"
+community: "setup-chart.tsx"
 location: "L220"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/setup-charttsx
 ---
 
 # Scale
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[setup-chart.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/setup-charttsx

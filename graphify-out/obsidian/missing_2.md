@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-school-gate.mjs"
+source_file: "scripts/build-learn-engine.mjs"
 type: "code"
-community: "Community 231"
-location: "L20"
+community: "build-learn-engine.mjs"
+location: "L295"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/build-learn-enginemjs
 ---
 
 # missing
 
 ## Connections
-- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
+- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/build-learn-enginemjs

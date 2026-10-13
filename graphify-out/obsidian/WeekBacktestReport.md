@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 46"
+community: "tradezella-analyze.ts"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/tradezella-analyzets
 ---
 
 # WeekBacktestReport
@@ -17,4 +17,4 @@ tags:
 - [[session-backtest.ts]] - `contains` [EXTRACTED]
 - [[tradezella-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

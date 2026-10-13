@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/log-trade.mjs"
 type: "code"
-community: "Community 121"
+community: "log-trade.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_121
+  - community/log-trademjs
 ---
 
 # log-trade.mjs
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[KNOWN_LAYERS]] - `contains` [EXTRACTED]
 - [[bool()]] - `contains` [EXTRACTED]
-- [[contracts]] - `contains` [EXTRACTED]
+- [[contracts_1]] - `contains` [EXTRACTED]
 - [[doc]] - `contains` [EXTRACTED]
 - [[entryFill]] - `contains` [EXTRACTED]
 - [[exitFill]] - `contains` [EXTRACTED]
@@ -23,10 +23,10 @@ tags:
 - [[f]] - `contains` [EXTRACTED]
 - [[followedPlan]] - `contains` [EXTRACTED]
 - [[ladderAgreed]] - `contains` [EXTRACTED]
-- [[load()_1]] - `contains` [EXTRACTED]
-- [[missing]] - `contains` [EXTRACTED]
+- [[load()_3]] - `contains` [EXTRACTED]
+- [[missing_1]] - `contains` [EXTRACTED]
 - [[missingLayers]] - `contains` [EXTRACTED]
-- [[num()_4]] - `contains` [EXTRACTED]
+- [[num()_2]] - `contains` [EXTRACTED]
 - [[outcome_1]] - `contains` [EXTRACTED]
 - [[planEntry]] - `contains` [EXTRACTED]
 - [[planStop]] - `contains` [EXTRACTED]
@@ -45,4 +45,4 @@ tags:
 - [[violations]] - `contains` [EXTRACTED]
 - [[{ attribution, lesson }]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_121
+#graphify/code #graphify/EXTRACTED #community/log-trademjs

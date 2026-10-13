@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/sleeve-sizing.ts"
+source_file: "src/lib/journal/pnl.ts"
 type: "code"
-community: "Community 85"
-location: "L113"
+community: "order-intent.ts"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/order-intentts
 ---
 
 # round2()
 
 ## Connections
-- [[sizeFromStop()]] - `calls` [EXTRACTED]
-- [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
+- [[computeTradePnl()]] - `calls` [EXTRACTED]
+- [[pnl.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/order-intentts

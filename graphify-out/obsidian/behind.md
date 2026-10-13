@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 175"
-location: "L65"
+community: "verify-smc-master.mjs"
+location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/verify-smc-mastermjs
 ---
 
 # behind
 
 ## Connections
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

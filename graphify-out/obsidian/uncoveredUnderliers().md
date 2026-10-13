@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/rh-bridge.ts"
 type: "code"
-community: "Community 215"
+community: "invest-firm.ts"
 location: "L113"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/invest-firmts
 ---
 
 # uncoveredUnderliers()
@@ -18,4 +18,4 @@ tags:
 - [[recentUnderliersFrom()]] - `calls` [EXTRACTED]
 - [[rh-bridge.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

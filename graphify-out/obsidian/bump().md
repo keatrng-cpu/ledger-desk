@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
-community: "Community 9"
-location: "L137"
+community: "veteran-brain.ts"
+location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # bump()
@@ -18,4 +18,4 @@ tags:
 - [[ingestPaperFill()]] - `calls` [EXTRACTED]
 - [[rememberLiveSetup()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

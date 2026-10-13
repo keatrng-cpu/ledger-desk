@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/alerts/server.ts"
 type: "code"
-community: "Community 19"
+community: "alerts/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/alerts/serverts
 ---
 
 # alerts/server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[AlertRecord]] - `imports` [EXTRACTED]
 - [[AlertStatus]] - `contains` [EXTRACTED]
 - [[alerts-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -32,6 +32,6 @@ tags:
 - [[subscribeToAlerts]] - `contains` [EXTRACTED]
 - [[subscriptionSchema]] - `contains` [EXTRACTED]
 - [[unsubscribeFromAlerts]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/alerts/serverts

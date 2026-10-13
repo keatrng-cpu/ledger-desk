@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-repo-guards.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 11"
-location: "L42"
+community: "verify-mead-hall.mjs"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/verify-mead-hallmjs
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-take-moments.mjs"
+source_file: "scripts/verify-rh-autofire-gates.mjs"
 type: "code"
-community: "Community 145"
-location: "L15"
+community: "rh-autofire.ts"
+location: "L18"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_145
+  - graphify/INFERRED
+  - community/rh-autofirets
 ---
 
 # check()
 
 ## Connections
-- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-autofire-gates.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/INFERRED #community/rh-autofirets

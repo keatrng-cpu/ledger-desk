@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "scripts/measure-exit-plan.mjs"
 type: "code"
-community: "Community 45"
-location: "L100"
+community: "measure-exit-plan.mjs"
+location: "L125"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/measure-exit-planmjs
 ---
 
 # sim()
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[externalT2()]] - `calls` [EXTRACTED]
+- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/measure-exit-planmjs

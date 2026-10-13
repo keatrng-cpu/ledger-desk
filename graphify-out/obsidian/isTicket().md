@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/pm-paper-store.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # isTicket()
@@ -15,4 +15,4 @@ tags:
 - [[parsePaperBook()]] - `indirect_call` [INFERRED]
 - [[pm-paper-store.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

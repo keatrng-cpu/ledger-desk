@@ -1,25 +1,23 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
-location: "L863"
+community: "mead-hall-build.ts"
+location: "L653"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/mead-hall-buildts
 ---
 
 # .buildScreens()
 
 ## Connections
 - [[dot-box()]] - `calls` [EXTRACTED]
-- [[dot-constructor()_16]] - `calls` [EXTRACTED]
+- [[dot-constructor()_21]] - `calls` [EXTRACTED]
 - [[dot-emptyState()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
-- [[canvasTex()_1]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
 - [[drawJumbotron()]] - `calls` [EXTRACTED]
 - [[drawRuneBoard()]] - `calls` [EXTRACTED]
 - [[drawTv()]] - `calls` [EXTRACTED]
-- [[mat()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

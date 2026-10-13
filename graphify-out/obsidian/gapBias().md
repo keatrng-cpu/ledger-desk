@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/gap-direction.ts"
 type: "code"
-community: "Community 250"
-location: "L43"
+community: "gap-direction.ts"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_250
+  - community/gap-directionts
 ---
 
 # gapBias()
@@ -15,4 +15,4 @@ tags:
 - [[gap-direction.ts]] - `contains` [EXTRACTED]
 - [[gapDirection]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_250
+#graphify/code #graphify/EXTRACTED #community/gap-directionts

@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/lib/trading/entry-ticket.ts"
 type: "code"
-community: "Community 25"
-location: "L1269"
+community: "aplus/config.ts"
+location: "L67"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/aplus/configts
 ---
 
 # px()
 
 ## Connections
-- [[drawScanner()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[fmt()_3]] - `calls` [EXTRACTED]
+- [[buildEntryTicket()]] - `calls` [EXTRACTED]
+- [[entry-ticket.ts]] - `contains` [EXTRACTED]
+- [[ticketHeadline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

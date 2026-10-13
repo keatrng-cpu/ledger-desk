@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/exec-card.tsx"
 type: "code"
-community: "Community 222"
-location: "L40"
+community: "exec-card.tsx"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/exec-cardtsx
 ---
 
 # contractLabel()
@@ -16,4 +16,4 @@ tags:
 - [[exec-card.tsx]] - `contains` [EXTRACTED]
 - [[parseOcc()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/exec-cardtsx

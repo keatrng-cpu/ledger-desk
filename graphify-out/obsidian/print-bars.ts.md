@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/market/print-bars.ts"
 type: "code"
-community: "Community 8"
+community: "OhlcBar"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/OhlcBar
 ---
 
 # print-bars.ts
 
 ## Connections
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[barsFromPrints()]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
@@ -20,4 +20,4 @@ tags:
 - [[prints_1]] - `contains` [EXTRACTED]
 - [[recordPrint()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

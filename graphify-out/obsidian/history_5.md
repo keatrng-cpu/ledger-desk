@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/diagnose-path.mjs"
+source_file: "scripts/diagnose-sequence.mjs"
 type: "code"
-community: "Community 90"
-location: "L17"
+community: "detectors.ts"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/detectorsts
 ---
 
 # history
 
 ## Connections
-- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
+- [[diagnose-sequence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/detectorsts

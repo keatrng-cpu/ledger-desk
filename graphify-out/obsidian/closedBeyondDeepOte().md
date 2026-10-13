@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/fib.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # closedBeyondDeepOte()
@@ -15,4 +15,4 @@ tags:
 - [[fib.ts]] - `contains` [EXTRACTED]
 - [[retracementRatio()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "scripts/capture-learn-history.mjs"
 type: "code"
-community: "Community 59"
-location: "L68"
+community: "ref_node_path"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/ref_node_path
 ---
 
 # SYMBOLS
 
 ## Connections
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[capture-learn-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

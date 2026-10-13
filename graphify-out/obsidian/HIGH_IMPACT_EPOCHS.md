@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 157"
+community: "measure-inducement-news.mjs"
 location: "L142"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_157
+  - community/measure-inducement-newsmjs
 ---
 
 # HIGH_IMPACT_EPOCHS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_157
+#graphify/code #graphify/EXTRACTED #community/measure-inducement-newsmjs

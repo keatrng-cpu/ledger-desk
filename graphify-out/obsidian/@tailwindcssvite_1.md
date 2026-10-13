@@ -1,17 +1,17 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 47"
-location: "L80"
+community: "dependencies"
+location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/dependencies
 ---
 
 # @tailwindcss/vite
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/code #graphify/EXTRACTED #community/dependencies

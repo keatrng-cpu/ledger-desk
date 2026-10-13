@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 94"
-location: "L237"
+community: "profit-path.ts"
+location: "L238"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/profit-pathts
 ---
 
 # gradeFromScore()
@@ -16,4 +16,4 @@ tags:
 - [[metricsByGrade()]] - `calls` [EXTRACTED]
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

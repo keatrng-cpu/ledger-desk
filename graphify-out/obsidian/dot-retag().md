@@ -1,20 +1,19 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L948"
+community: "MeadScene"
+location: "L135"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .retag()
 
 ## Connections
-- [[dot-constructor()_16]] - `calls` [EXTRACTED]
-- [[dot-dispose()_7]] - `calls` [EXTRACTED]
+- [[dot-constructor()_20]] - `calls` [EXTRACTED]
+- [[dot-dispose()_8]] - `calls` [EXTRACTED]
 - [[MeadScene]] - `method` [EXTRACTED]
-- [[canvasTex()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

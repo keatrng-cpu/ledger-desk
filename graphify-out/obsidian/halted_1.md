@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 36"
-location: "L265"
+community: "verify-room.mjs"
+location: "L93"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/verify-roommjs
 ---
 
 # halted
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

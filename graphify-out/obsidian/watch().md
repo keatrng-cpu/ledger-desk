@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 208"
-location: "L56"
+community: "verify-room.mjs"
+location: "L251"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/verify-roommjs
 ---
 
 # watch()
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

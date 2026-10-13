@@ -1,23 +1,19 @@
 ---
-source_file: "src/lib/room/quant.ts"
+source_file: "src/lib/invest/funnel.ts"
 type: "code"
-community: "Community 52"
-location: "L102"
+community: "policy.ts"
+location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/policyts
 ---
 
 # round2()
 
 ## Connections
-- [[attribute()_1]] - `calls` [EXTRACTED]
-- [[backstopped()]] - `calls` [EXTRACTED]
-- [[breakevenSpot()]] - `calls` [EXTRACTED]
-- [[holdValue()]] - `calls` [EXTRACTED]
-- [[premiumStopOf()]] - `calls` [EXTRACTED]
-- [[priceOptionPlan()]] - `calls` [EXTRACTED]
-- [[quant.ts]] - `contains` [EXTRACTED]
+- [[funnel.ts]] - `contains` [EXTRACTED]
+- [[splitSweep()]] - `calls` [EXTRACTED]
+- [[workedMonth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/policyts

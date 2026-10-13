@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-fuel.mjs"
+source_file: "scripts/verify-day-change.mjs"
 type: "code"
-community: "Community 241"
-location: "L21"
+community: "verify-day-change.mjs"
+location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_241
+  - community/verify-day-changemjs
 ---
 
 # base
 
 ## Connections
-- [[verify-brain-fuel.mjs]] - `contains` [EXTRACTED]
+- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_241
+#graphify/code #graphify/EXTRACTED #community/verify-day-changemjs

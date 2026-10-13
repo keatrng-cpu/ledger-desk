@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/utils.ts"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # utils.ts
@@ -17,6 +17,7 @@ tags:
 - [[apex-sim-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports_from` [EXTRACTED]
 - [[bar-strip.tsx]] - `imports_from` [EXTRACTED]
+- [[brain-word.tsx]] - `imports_from` [EXTRACTED]
 - [[bridge-status.tsx]] - `imports_from` [EXTRACTED]
 - [[button.tsx]] - `imports_from` [EXTRACTED]
 - [[card.tsx]] - `imports_from` [EXTRACTED]
@@ -31,15 +32,19 @@ tags:
 - [[formatCurrency()]] - `contains` [EXTRACTED]
 - [[formatNumber()]] - `contains` [EXTRACTED]
 - [[formatPct()]] - `contains` [EXTRACTED]
+- [[four-facts-board.tsx]] - `imports_from` [EXTRACTED]
+- [[hi-alert-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[htf-bias-board.tsx]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[journal-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[liquidity-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[live-lessons.tsx]] - `imports_from` [EXTRACTED]
 - [[live-says-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
 - [[market-narrative-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[month-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[news-chip.tsx]] - `imports_from` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports_from` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[paper-book-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports_from` [EXTRACTED]
@@ -67,4 +72,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

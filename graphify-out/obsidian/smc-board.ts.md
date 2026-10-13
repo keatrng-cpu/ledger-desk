@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # smc-board.ts
 
 ## Connections
 - [[FvgResult]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OrderBlock]] - `imports` [EXTRACTED]
 - [[SmcAlert]] - `contains` [EXTRACTED]
 - [[SmcAlertKind]] - `contains` [EXTRACTED]
@@ -46,6 +46,7 @@ tags:
 - [[fractalSwings()]] - `imports` [EXTRACTED]
 - [[fvgState()]] - `contains` [EXTRACTED]
 - [[ghost-book.ts]] - `imports_from` [EXTRACTED]
+- [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[mid()]] - `contains` [EXTRACTED]
 - [[pad2()_4]] - `contains` [EXTRACTED]
@@ -58,6 +59,7 @@ tags:
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[smt-level.ts]] - `imports_from` [EXTRACTED]
+- [[sponsored-gap.ts]] - `imports_from` [EXTRACTED]
 - [[stampEt()]] - `contains` [EXTRACTED]
 - [[structure.ts]] - `imports_from` [EXTRACTED]
 - [[tapeHitsForSide()]] - `contains` [EXTRACTED]
@@ -68,5 +70,7 @@ tags:
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

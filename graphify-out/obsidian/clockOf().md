@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 150"
+community: "gates.ts"
 location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/gatests
 ---
 
 # clockOf()
@@ -17,4 +17,4 @@ tags:
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/gatests

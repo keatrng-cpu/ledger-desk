@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/feed.ts"
 type: "code"
-community: "Community 116"
+community: "feed.ts"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_116
+  - community/feedts
 ---
 
 # FeedItem
@@ -18,4 +18,4 @@ tags:
 - [[live-world.ts]] - `imports` [EXTRACTED]
 - [[news-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_116
+#graphify/code #graphify/EXTRACTED #community/feedts

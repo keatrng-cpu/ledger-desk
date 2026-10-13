@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L110"
+community: "floor-voice.ts"
+location: "L132"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/floor-voicets
 ---
 
 # forTheEar()
@@ -15,4 +15,4 @@ tags:
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 - [[phrasePlan()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-live-gateway.mjs"
 type: "code"
-community: "Community 61"
+community: "verify-rh-desk-job.mjs"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/verify-rh-desk-jobmjs
 ---
 
 # NOW
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

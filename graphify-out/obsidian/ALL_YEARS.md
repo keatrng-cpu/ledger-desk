@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/backtest-account.mjs"
 type: "code"
-community: "Community 55"
+community: "backtest-account.mjs"
 location: "L622"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/backtest-accountmjs
 ---
 
 # ALL_YEARS
@@ -15,4 +15,4 @@ tags:
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
 - [[yearOf()_9]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/backtest-accountmjs

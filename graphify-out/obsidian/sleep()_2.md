@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/desk-budget.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # sleep()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[desk-budget.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/journal.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L133"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # readJournal()
@@ -15,10 +15,14 @@ tags:
 - [[JournalCard()]] - `calls` [EXTRACTED]
 - [[MeadHallTab()]] - `calls` [EXTRACTED]
 - [[PredictTab()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-record.ts]] - `imports` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 - [[predictjournal.ts]] - `contains` [EXTRACTED]
+- [[readHallRecord()_1]] - `calls` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 - [[tradePnl()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 36"
-location: "L19"
+community: "verify-rh-desk-job.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/verify-rh-desk-jobmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_25]] - `calls` [EXTRACTED]
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

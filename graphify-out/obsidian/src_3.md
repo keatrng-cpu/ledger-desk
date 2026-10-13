@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-1m-history.mjs"
+source_file: "scripts/verify-long-board.mjs"
 type: "code"
-community: "Community 207"
-location: "L77"
+community: "ref_node_fs"
+location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_207
+  - community/ref_node_fs
 ---
 
 # src
 
 ## Connections
-- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
+- [[verify-long-board.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_207
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

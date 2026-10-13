@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 202"
-location: "L1068"
+community: "build_floor.py"
+location: "L1105"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/build_floorpy
 ---
 
 # f_coffee_machine()
@@ -16,4 +16,4 @@ tags:
 - [[build_floor.py]] - `indirect_call` [INFERRED]
 - [[cyl()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

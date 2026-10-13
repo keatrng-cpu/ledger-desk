@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L1168"
+community: "MeadScene"
+location: "L273"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .onDocDown()
@@ -15,4 +15,4 @@ tags:
 - [[dot-setFocused()_1]] - `calls` [EXTRACTED]
 - [[MeadScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

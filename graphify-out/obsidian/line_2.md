@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-school-gate.mjs"
 type: "code"
-community: "Community 231"
+community: "school-brief.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/school-briefts
 ---
 
 # line
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/school-briefts

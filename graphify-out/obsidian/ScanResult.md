@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 56"
-location: "L171"
+community: "smc-master.ts"
+location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/smc-masterts
 ---
 
 # ScanResult
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
+- [[A3 — one scorer]] - `references` [INFERRED]
 - [[MarketConditions]] - `references` [EXTRACTED]
 - [[SessionBriefInput]] - `references` [EXTRACTED]
 - [[SmcMasterInput]] - `references` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[smtRead()]] - `references` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

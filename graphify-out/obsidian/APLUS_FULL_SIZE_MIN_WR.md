@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 132"
+community: "curriculum.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/curriculumts
 ---
 
 # APLUS_FULL_SIZE_MIN_WR
@@ -15,4 +15,4 @@ tags:
 - [[curriculum.ts]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/curriculumts

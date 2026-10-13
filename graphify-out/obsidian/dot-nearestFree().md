@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 223"
-location: "L179"
+community: ".path"
+location: "L183"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/path
 ---
 
 # .nearestFree()
@@ -16,4 +16,4 @@ tags:
 - [[dot-path()]] - `calls` [EXTRACTED]
 - [[NavGrid]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/path

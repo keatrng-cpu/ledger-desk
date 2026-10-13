@@ -1,24 +1,26 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 4"
-location: "L887"
+community: "room-engine.ts"
+location: "L891"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # runRoomCycle()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
+- [[What was wrong]] - `references` [INFERRED]
 - [[buildMeeting()]] - `calls` [EXTRACTED]
 - [[cycle.ts]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[evaluateEntry()]] - `calls` [EXTRACTED]
 - [[focusFor()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[handlePost()]] - `calls` [EXTRACTED]
 - [[holdTicket()]] - `calls` [EXTRACTED]
@@ -37,4 +39,4 @@ tags:
 - [[urgencyFor()]] - `calls` [EXTRACTED]
 - [[validateInput()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

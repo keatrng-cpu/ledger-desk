@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/oracle/bs_oracle.py"
 type: "code"
-community: "Community 226"
+community: "json"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # npdf()
@@ -16,4 +16,4 @@ tags:
 - [[bs_oracle.py]] - `contains` [EXTRACTED]
 - [[math]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/json

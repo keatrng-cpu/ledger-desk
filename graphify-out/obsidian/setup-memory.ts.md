@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/setup-memory.ts"
 type: "code"
-community: "Community 216"
+community: "setup-memory.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_216
+  - community/setup-memoryts
 ---
 
 # setup-memory.ts
 
 ## Connections
 - [[Attributed]] - `contains` [EXTRACTED]
-- [[Attribution_1]] - `contains` [EXTRACTED]
+- [[Attribution]] - `contains` [EXTRACTED]
 - [[MIN_N_FOR_LESSON]] - `contains` [EXTRACTED]
 - [[SetupExpectation]] - `contains` [EXTRACTED]
 - [[SetupOutcome]] - `contains` [EXTRACTED]
@@ -29,7 +29,7 @@ tags:
 - [[log-trade.mjs]] - `dynamic_import` [EXTRACTED]
 - [[recallFor()]] - `contains` [EXTRACTED]
 - [[recallShapes()]] - `contains` [EXTRACTED]
-- [[round2()_6]] - `contains` [EXTRACTED]
+- [[round2()_5]] - `contains` [EXTRACTED]
 - [[shapeLabel()]] - `contains` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[trade-log-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-setup-memory.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_216
+#graphify/code #graphify/EXTRACTED #community/setup-memoryts

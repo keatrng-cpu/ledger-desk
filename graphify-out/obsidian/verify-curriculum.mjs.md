@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-curriculum.mjs"
 type: "code"
-community: "Community 118"
+community: "verify-curriculum.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/verify-curriculummjs
 ---
 
 # verify-curriculum.mjs
@@ -16,13 +16,13 @@ tags:
 - [[STATUSES]] - `contains` [EXTRACTED]
 - [[TAPE_MODULES]] - `contains` [EXTRACTED]
 - [[VERDICTS]] - `contains` [EXTRACTED]
-- [[all_1]] - `contains` [EXTRACTED]
+- [[all]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `dynamic_import` [EXTRACTED]
 - [[broke]] - `contains` [EXTRACTED]
 - [[canon.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_4]] - `contains` [EXTRACTED]
+- [[check()_3]] - `contains` [EXTRACTED]
 - [[clean]] - `contains` [EXTRACTED]
 - [[conceptModules]] - `contains` [EXTRACTED]
-- [[config.ts]] - `dynamic_import` [EXTRACTED]
 - [[curriculum.ts]] - `dynamic_import` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[drifted]] - `contains` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 - [[truthy()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/verify-curriculummjs

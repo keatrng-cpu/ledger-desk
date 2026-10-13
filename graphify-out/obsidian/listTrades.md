@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L1134"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # listTrades
@@ -22,4 +22,4 @@ tags:
 - [[mapTrade()]] - `indirect_call` [INFERRED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

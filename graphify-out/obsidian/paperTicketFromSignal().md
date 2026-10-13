@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/paper-scorer.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L522"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # paperTicketFromSignal()
@@ -17,4 +17,4 @@ tags:
 - [[paper-scorer.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

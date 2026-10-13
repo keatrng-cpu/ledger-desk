@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-history.mjs"
+source_file: "scripts/build-replay-drills.mjs"
 type: "code"
-community: "Community 71"
-location: "L36"
+community: "build-replay-drills.mjs"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/build-replay-drillsmjs
 ---
 
 # argv
 
 ## Connections
-- [[capture-history.mjs]] - `contains` [EXTRACTED]
+- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/build-replay-drillsmjs

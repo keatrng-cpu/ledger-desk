@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/predict/devig.ts"
 type: "code"
-community: "Community 7"
+community: "predict-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/predict-serverts
 ---
 
 # devig.ts
 
 ## Connections
 - [[DevigRead]] - `contains` [EXTRACTED]
-- [[bisect()_1]] - `contains` [EXTRACTED]
+- [[bisect()_2]] - `contains` [EXTRACTED]
 - [[board.ts]] - `imports_from` [EXTRACTED]
 - [[devig()]] - `contains` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

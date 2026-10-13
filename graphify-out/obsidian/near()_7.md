@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-score-drivers.mjs"
+source_file: "scripts/verify-card-geometry.mjs"
 type: "code"
-community: "Community 84"
-location: "L41"
+community: "simulate-path-trade.ts"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/simulate-path-tradets
 ---
 
 # near()
 
 ## Connections
-- [[ok()_28]] - `calls` [EXTRACTED]
-- [[verify-score-drivers.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

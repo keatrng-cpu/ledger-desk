@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/invest/rh-bridge.ts"
+source_file: "src/lib/trading/setup-memory.ts"
 type: "code"
-community: "Community 215"
-location: "L40"
+community: "setup-memory.ts"
+location: "L219"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/setup-memoryts
 ---
 
 # round2()
 
 ## Connections
-- [[rh-bridge.ts]] - `contains` [EXTRACTED]
-- [[rhMonthFrom()]] - `calls` [EXTRACTED]
+- [[disciplineRead]] - `calls` [EXTRACTED]
+- [[recallShapes()]] - `calls` [EXTRACTED]
+- [[setup-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/setup-memoryts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/score.ts"
 type: "code"
-community: "Community 188"
+community: "runApexSim"
 location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_188
+  - community/runApexSim
 ---
 
 # refuse()
@@ -17,4 +17,4 @@ tags:
 - [[score.ts]] - `contains` [EXTRACTED]
 - [[scorePropTrade()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_188
+#graphify/code #graphify/EXTRACTED #community/runApexSim

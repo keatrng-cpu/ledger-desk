@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # rSigned()
@@ -17,4 +17,4 @@ tags:
 - [[roomformat.ts]] - `contains` [EXTRACTED]
 - [[setupReview()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

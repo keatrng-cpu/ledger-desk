@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/yahoo.ts"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L618"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # formatUtcClock()
@@ -21,4 +21,4 @@ tags:
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

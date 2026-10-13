@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/check-research-sources.mjs"
+source_file: "scripts/measure-loss-patterns.mts"
 type: "code"
-community: "Community 70"
-location: "L32"
+community: "measure-loss-patterns.mts"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/measure-loss-patternsmts
 ---
 
 # opt()
 
 ## Connections
-- [[check-research-sources.mjs]] - `contains` [EXTRACTED]
+- [[measure-loss-patterns.mts]] - `contains` [EXTRACTED]
+- [[sum()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

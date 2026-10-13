@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/room/spoken-form.ts"
+source_file: "src/lib/execution/rh-cycle.ts"
 type: "code"
-community: "Community 96"
-location: "L166"
+community: "verify-rh-cycle.mjs"
+location: "L186"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/verify-rh-cyclemjs
 ---
 
 # money()
 
 ## Connections
-- [[moneyWords()]] - `calls` [EXTRACTED]
-- [[spoken-form.ts]] - `contains` [EXTRACTED]
-- [[spokenForm()]] - `calls` [EXTRACTED]
+- [[decideRhCycle()]] - `calls` [EXTRACTED]
+- [[rh-cycle.ts]] - `contains` [EXTRACTED]
+- [[sellOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/verify-rh-cyclemjs

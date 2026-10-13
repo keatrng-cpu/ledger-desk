@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "brainlab/rhread.py"
 type: "code"
-community: "Community 7"
-location: "L62"
+community: "rhread.py"
+location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/rhreadpy
 ---
 
 # num()
 
 ## Connections
-- [[board.ts]] - `contains` [EXTRACTED]
-- [[parseEspnScoreboard()]] - `calls` [EXTRACTED]
-- [[parseKalshiEvents()]] - `calls` [EXTRACTED]
-- [[parsePolyMarket()]] - `calls` [EXTRACTED]
-- [[parseSummaryExtras()]] - `calls` [EXTRACTED]
+- [[option_quote()]] - `contains` [EXTRACTED]
+- [[row()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/rhreadpy

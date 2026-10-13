@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L144"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # ManagerRoomState
@@ -19,6 +19,7 @@ tags:
 - [[FloorOverhaul]] - `references` [EXTRACTED]
 - [[FloorSceneOptions]] - `references` [EXTRACTED]
 - [[ManagerRhAccount]] - `references` [EXTRACTED]
+- [[RhDispatchArgs]] - `references` [EXTRACTED]
 - [[floor-overhaul-school.ts]] - `imports` [EXTRACTED]
 - [[floor-overhaul-war.ts]] - `imports` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports` [EXTRACTED]
@@ -27,7 +28,9 @@ tags:
 - [[manager-feed.ts]] - `contains` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports` [EXTRACTED]
+- [[rh-server.ts]] - `imports` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

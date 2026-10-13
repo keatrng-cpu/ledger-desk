@@ -1,0 +1,66 @@
+---
+type: community
+cohesion: 0.12
+members: 34
+---
+
+# tape
+
+**Cohesion:** 0.12 - loosely connected
+**Members:** 34 nodes
+
+## Members
+- [[dot-breakUp()]] - code - src/lib/learn/tape.ts
+- [[dot-chop()]] - code - src/lib/learn/tape.ts
+- [[dot-constructor()_2]] - code - src/lib/learn/tape.ts
+- [[dot-displaceDown()]] - code - src/lib/learn/tape.ts
+- [[dot-displaceUp()]] - code - src/lib/learn/tape.ts
+- [[dot-last()]] - code - src/lib/learn/tape.ts
+- [[dot-leg()]] - code - src/lib/learn/tape.ts
+- [[dot-length()]] - code - src/lib/learn/tape.ts
+- [[dot-pullbackTo()]] - code - src/lib/learn/tape.ts
+- [[dot-push()]] - code - src/lib/learn/tape.ts
+- [[dot-raidDown()]] - code - src/lib/learn/tape.ts
+- [[dot-raidUp()]] - code - src/lib/learn/tape.ts
+- [[dot-rnd()]] - code - src/lib/learn/tape.ts
+- [[dot-swingHigh()]] - code - src/lib/learn/tape.ts
+- [[dot-swingLow()]] - code - src/lib/learn/tape.ts
+- [[BIAS_TAPES]] - code - src/lib/learn/scenarios.ts
+- [[FigureBar]] - code - src/lib/learn/figures.ts
+- [[TapeMarks]] - code - src/lib/learn/tape.ts
+- [[Verdict]] - code - src/lib/learn/scenarios.ts
+- [[againstScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[biasScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[conflictScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[fig()]] - code - src/lib/learn/scenarios.ts
+- [[getFigure()]] - code - src/lib/learn/figures.ts
+- [[rangeScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[retraceScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[scenarios.ts]] - code - src/lib/learn/scenarios.ts
+- [[shiftScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[structureOf()_2]] - code - src/lib/learn/scenarios.ts
+- [[sweepScenarios()]] - code - src/lib/learn/scenarios.ts
+- [[swingMarks()]] - code - src/lib/learn/scenarios.ts
+- [[swingPoints()]] - code - src/lib/learn/scenarios.ts
+- [[tape]] - code - src/lib/learn/tape.ts
+- [[tape.ts]] - code - src/lib/learn/tape.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/tape
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 8 edges to [[_COMMUNITY_figures.ts]]
+- 5 edges to [[_COMMUNITY_learn-tab.tsx]]
+- 4 edges to [[_COMMUNITY_curriculum.ts]]
+- 1 edge to [[_COMMUNITY_verify-curriculum.mjs]]
+
+## Top bridge nodes
+- [[scenarios.ts]] - degree 26, connects to 4 communities
+- [[getFigure()]] - degree 6, connects to 3 communities
+- [[FigureBar]] - degree 5, connects to 1 community
+- [[tape.ts]] - degree 5, connects to 1 community
+- [[structureOf()_2]] - degree 3, connects to 1 community

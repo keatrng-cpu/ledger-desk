@@ -1,29 +1,28 @@
 ---
-source_file: "scripts/perfect-entry-backtest.py"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 192"
-location: "L284"
+community: "crew-year-backtest.py"
+location: "L423"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_192
+  - community/crew-year-backtestpy
 ---
 
 # main()
 
 ## Connections
-- [[already_swept()]] - `calls` [EXTRACTED]
-- [[atr_at()_1]] - `calls` [EXTRACTED]
-- [[bias()]] - `calls` [EXTRACTED]
-- [[day_key()_2]] - `calls` [EXTRACTED]
-- [[drift()]] - `calls` [EXTRACTED]
-- [[equal_in_front()]] - `calls` [EXTRACTED]
+- [[Book]] - `calls` [EXTRACTED]
+- [[choose_target()]] - `calls` [EXTRACTED]
+- [[collect()_1]] - `calls` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[find_flaws()]] - `calls` [EXTRACTED]
+- [[half()_1]] - `calls` [EXTRACTED]
 - [[json_1]] - `calls` [EXTRACTED]
-- [[load_rth()]] - `calls` [EXTRACTED]
-- [[minute_of()_2]] - `calls` [EXTRACTED]
-- [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
-- [[stats()_2]] - `calls` [EXTRACTED]
-- [[walk()_4]] - `calls` [EXTRACTED]
-- [[year_of()_1]] - `calls` [EXTRACTED]
+- [[load()_5]] - `calls` [EXTRACTED]
+- [[pct()_4]] - `calls` [EXTRACTED]
+- [[random]] - `calls` [EXTRACTED]
+- [[scratch_limit_same_bar()]] - `calls` [EXTRACTED]
+- [[stats()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_192
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

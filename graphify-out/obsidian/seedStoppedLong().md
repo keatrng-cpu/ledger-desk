@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-freshness-gate.mjs"
 type: "code"
-community: "Community 245"
+community: "verify-freshness-gate.mjs"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_245
+  - community/verify-freshness-gatemjs
 ---
 
 # seedStoppedLong()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-freshness-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_245
+#graphify/code #graphify/EXTRACTED #community/verify-freshness-gatemjs

@@ -1,21 +1,20 @@
 ---
-source_file: "src/lib/trading/shadow-book.ts"
+source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 126"
-location: "L147"
+community: "ghost-book.ts"
+location: "L178"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/ghost-bookts
 ---
 
 # px()
 
 ## Connections
-- [[analyzeShadow()]] - `calls` [EXTRACTED]
-- [[applyRange()]] - `calls` [EXTRACTED]
-- [[openShadows()]] - `calls` [EXTRACTED]
-- [[shadow-book.ts]] - `contains` [EXTRACTED]
-- [[tickShadow()]] - `calls` [EXTRACTED]
+- [[analyzeExpired()]] - `calls` [EXTRACTED]
+- [[analyzeMissed()]] - `calls` [EXTRACTED]
+- [[ghost-book.ts]] - `contains` [EXTRACTED]
+- [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

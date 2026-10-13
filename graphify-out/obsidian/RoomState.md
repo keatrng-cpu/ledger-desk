@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 18"
-location: "L291"
+community: "live-world.ts"
+location: "L294"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/live-worldts
 ---
 
 # RoomState
@@ -19,6 +19,7 @@ tags:
 - [[GoalSpec]] - `references` [EXTRACTED]
 - [[MindState]] - `references` [EXTRACTED]
 - [[NewsLite]] - `references` [EXTRACTED]
+- [[PredictLite]] - `references` [EXTRACTED]
 - [[Race]] - `references` [EXTRACTED]
 - [[RhCycle]] - `references` [EXTRACTED]
 - [[RoomBook]] - `references` [EXTRACTED]
@@ -27,4 +28,4 @@ tags:
 - [[floorProps]] - `references` [EXTRACTED]
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/live-worldts

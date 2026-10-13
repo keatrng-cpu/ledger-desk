@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/client.ts"
 type: "code"
-community: "Community 19"
+community: "alerts/server.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/alerts/serverts
 ---
 
 # enablePushAlerts()
@@ -21,4 +21,4 @@ tags:
 - [[subscribeToAlerts]] - `calls` [EXTRACTED]
 - [[urlBase64ToUint8Array()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/alerts/serverts

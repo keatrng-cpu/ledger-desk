@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/forming-bar.test.mjs"
+source_file: "scripts/measure-loss-patterns.mts"
 type: "code"
-community: "Community 78"
-location: "L17"
+community: "measure-loss-patterns.mts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/measure-loss-patternsmts
 ---
 
 # bars()
 
 ## Connections
-- [[forming-bar.test.mjs]] - `contains` [EXTRACTED]
+- [[ctx()]] - `calls` [EXTRACTED]
+- [[measure-loss-patterns.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

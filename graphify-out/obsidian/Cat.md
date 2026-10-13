@@ -1,23 +1,23 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
-location: "L1073"
+community: "floor-scene.ts"
+location: "L1255"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # Cat
 
 ## Connections
-- [[dot-constructor()_15]] - `calls` [EXTRACTED]
-- [[dot-constructor()_5]] - `method` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [EXTRACTED]
+- [[dot-constructor()_7]] - `method` [EXTRACTED]
 - [[dot-goTo()_1]] - `method` [EXTRACTED]
 - [[dot-update()_3]] - `method` [EXTRACTED]
 - [[dot-wantsTarget()]] - `method` [EXTRACTED]
 - [[Character]] - `references` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

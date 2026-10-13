@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-live-gateway.mjs"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 61"
-location: "L37"
+community: "verify-rh-desk-job.mjs"
+location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/verify-rh-desk-jobmjs
 ---
 
 # row()
 
 ## Connections
-- [[verify-attestation.mjs]] - `indirect_call` [INFERRED]
-- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

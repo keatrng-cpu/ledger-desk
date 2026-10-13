@@ -1,20 +1,18 @@
 ---
-source_file: "src/components/learn/replay-drill.tsx"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 6"
-location: "L98"
+community: "gates.ts"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/gatests
 ---
 
 # hhmm()
 
 ## Connections
-- [[CaseHeader()]] - `calls` [EXTRACTED]
-- [[DrillChart()]] - `calls` [EXTRACTED]
-- [[etWallParts]] - `calls` [EXTRACTED]
-- [[replay-drill.tsx]] - `contains` [EXTRACTED]
+- [[checkEntry()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/gatests

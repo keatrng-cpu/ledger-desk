@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # rh-autofire-gates.ts
@@ -23,6 +23,7 @@ tags:
 - [[RH_MAX_TAPE_AGE_SEC]] - `contains` [EXTRACTED]
 - [[RH_MIN_CONTRACTS]] - `contains` [EXTRACTED]
 - [[RH_MIN_DEBIT_TOTAL]] - `contains` [EXTRACTED]
+- [[RH_MIN_PLACE_GAP_MS]] - `contains` [EXTRACTED]
 - [[RH_NOT_CONFIRMED_REASON]] - `contains` [EXTRACTED]
 - [[RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING]] - `contains` [EXTRACTED]
 - [[RH_PATH_FIRE_MAX_AGE_MS]] - `contains` [EXTRACTED]
@@ -41,36 +42,52 @@ tags:
 - [[RhPathBand]] - `contains` [EXTRACTED]
 - [[RhStrikeOffset]] - `contains` [EXTRACTED]
 - [[RhTicketEnvelope]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[confidenceFloorFor()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contractsAfterEvent()]] - `contains` [EXTRACTED]
 - [[contractsForScore()]] - `contains` [EXTRACTED]
 - [[evaluateRhAutofireGates()]] - `contains` [EXTRACTED]
 - [[evaluateRhBandSize()]] - `contains` [EXTRACTED]
 - [[evaluateRhBplusGate()]] - `contains` [EXTRACTED]
 - [[evaluateRhBuyingPower()]] - `contains` [EXTRACTED]
+- [[evaluateRhCircuitBreaker()]] - `contains` [EXTRACTED]
 - [[evaluateRhFloorRules()]] - `contains` [EXTRACTED]
 - [[evaluateRhTicketEnvelope()]] - `contains` [EXTRACTED]
 - [[executionrh-account.ts]] - `imports_from` [EXTRACTED]
 - [[executor.ts]] - `imports_from` [EXTRACTED]
 - [[isBplusBand()]] - `contains` [EXTRACTED]
-- [[manager-account.ts]] - `imports_from` [EXTRACTED]
+- [[live-lesson.ts]] - `imports_from` [EXTRACTED]
+- [[manager-account.ts]] - `re_exports` [EXTRACTED]
+- [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports_from` [EXTRACTED]
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[normalizeBand()]] - `contains` [EXTRACTED]
 - [[normalizeOffset()]] - `contains` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports_from` [EXTRACTED]
 - [[options-desk-cap.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[research.ts]] - `imports_from` [EXTRACTED]
-- [[rh-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
+- [[rh-http.ts]] - `imports_from` [EXTRACTED]
+- [[rh-ledger.ts]] - `imports_from` [EXTRACTED]
+- [[rh-mcp.ts]] - `imports_from` [EXTRACTED]
+- [[rh-server.ts]] - `dynamic_import` [EXTRACTED]
+- [[rh-tools.ts]] - `imports_from` [EXTRACTED]
+- [[rhLinkStatus]] - `imports_from` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `contains` [EXTRACTED]
 - [[rhSpendable()]] - `contains` [EXTRACTED]
+- [[rules-parity.test.mjs]] - `imports_from` [EXTRACTED]
+- [[shared_desk_rules]] - `imports_from` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 140"
-location: "L339"
+community: "live-types.ts"
+location: "L352"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/live-typests
 ---
 
 # SeatEventLite
@@ -19,4 +19,4 @@ tags:
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[race-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/live-typests

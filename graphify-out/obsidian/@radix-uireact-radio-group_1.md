@@ -1,17 +1,17 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 47"
-location: "L69"
+community: "dependencies"
+location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/dependencies
 ---
 
 # @radix-ui/react-radio-group
 
 ## Connections
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/code #graphify/EXTRACTED #community/dependencies

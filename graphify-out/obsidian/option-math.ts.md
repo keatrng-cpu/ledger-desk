@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # option-math.ts
@@ -17,16 +17,16 @@ tags:
 - [[IV]] - `imports` [EXTRACTED]
 - [[OptionQuote]] - `contains` [EXTRACTED]
 - [[OptionType]] - `contains` [EXTRACTED]
-- [[StrikeOffset]] - `contains` [EXTRACTED]
+- [[StrikeOffset_1]] - `contains` [EXTRACTED]
 - [[Underlier]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
 - [[blackScholes()]] - `contains` [EXTRACTED]
-- [[cents()_4]] - `contains` [EXTRACTED]
+- [[cents()_5]] - `contains` [EXTRACTED]
 - [[contract-ladder.ts]] - `imports_from` [EXTRACTED]
 - [[counters.ts]] - `imports_from` [EXTRACTED]
 - [[decayToStop()]] - `contains` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
-- [[etDateOf()]] - `contains` [EXTRACTED]
+- [[etDateOf()_1]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[exec-server.ts]] - `imports_from` [EXTRACTED]
@@ -39,6 +39,7 @@ tags:
 - [[gates.ts]] - `imports_from` [EXTRACTED]
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[intent.ts]] - `imports_from` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[isWeekendDate()]] - `contains` [EXTRACTED]
 - [[isoPlusDays()]] - `contains` [EXTRACTED]
 - [[ivFor()]] - `contains` [EXTRACTED]
@@ -55,7 +56,7 @@ tags:
 - [[offsetAt()]] - `contains` [EXTRACTED]
 - [[offsetOf()]] - `contains` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
-- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
+- [[orchestrator.ts]] - `re_exports` [EXTRACTED]
 - [[paper-book.ts]] - `imports_from` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[quoteOption()]] - `contains` [EXTRACTED]
@@ -79,4 +80,4 @@ tags:
 - [[weekendMsBetween()]] - `contains` [EXTRACTED]
 - [[yearsToExpiry()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

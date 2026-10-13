@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # manager-feed.ts
@@ -42,7 +42,7 @@ tags:
 - [[RuleScope]] - `contains` [EXTRACTED]
 - [[STEER_LINES]] - `contains` [EXTRACTED]
 - [[SteerMove]] - `contains` [EXTRACTED]
-- [[StrikeOffset_1]] - `contains` [EXTRACTED]
+- [[StrikeOffset]] - `contains` [EXTRACTED]
 - [[StubManagerFeed]] - `contains` [EXTRACTED]
 - [[agentAgreeFromManagerRoomState()]] - `imports` [EXTRACTED]
 - [[automation-state.ts]] - `imports_from` [EXTRACTED]
@@ -53,7 +53,7 @@ tags:
 - [[floor-overhaul-war.ts]] - `imports_from` [EXTRACTED]
 - [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[isStubManagerFeed()]] - `contains` [EXTRACTED]
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
 - [[manager-agree.ts]] - `imports_from` [EXTRACTED]
@@ -68,6 +68,8 @@ tags:
 - [[mockOpen()]] - `contains` [EXTRACTED]
 - [[phaseToMoodTint()]] - `contains` [EXTRACTED]
 - [[reportAutomation()]] - `imports` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports_from` [EXTRACTED]
+- [[rh-server.ts]] - `imports_from` [EXTRACTED]
 - [[school-contract.ts]] - `imports_from` [EXTRACTED]
 - [[standAgentAgree()]] - `contains` [EXTRACTED]
 - [[stubReportsAutomation()]] - `contains` [EXTRACTED]
@@ -76,4 +78,4 @@ tags:
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/orchestrator.ts"
+source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 0"
-location: "L465"
+community: "hall-read.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/hall-readts
 ---
 
 # pctTxt()
 
 ## Connections
-- [[evaluateEntry()]] - `calls` [EXTRACTED]
-- [[orchestrator.ts]] - `contains` [EXTRACTED]
+- [[hallViewFor()]] - `calls` [EXTRACTED]
+- [[mead-signal-feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/hall-readts

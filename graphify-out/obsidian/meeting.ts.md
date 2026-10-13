@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # meeting.ts
@@ -19,19 +19,19 @@ tags:
 - [[AgentAct]] - `imports` [EXTRACTED]
 - [[Animation]] - `imports` [EXTRACTED]
 - [[Beat]] - `imports` [EXTRACTED]
-- [[CREW_3]] - `imports` [EXTRACTED]
+- [[CREW_2]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[DEFAULT_ANIM]] - `contains` [EXTRACTED]
 - [[DialogueLine]] - `imports` [EXTRACTED]
 - [[EntryPlan]] - `imports` [EXTRACTED]
-- [[ExitPlan]] - `imports` [EXTRACTED]
-- [[Facts]] - `contains` [EXTRACTED]
-- [[Gate]] - `imports` [EXTRACTED]
+- [[ExitPlan_1]] - `imports` [EXTRACTED]
+- [[Facts_1]] - `contains` [EXTRACTED]
+- [[Gate_1]] - `imports` [EXTRACTED]
 - [[HALF_SPREAD]] - `imports` [EXTRACTED]
 - [[HoldRead]] - `imports` [EXTRACTED]
 - [[JAX_ERRAND]] - `contains` [EXTRACTED]
 - [[Lenses]] - `imports` [EXTRACTED]
-- [[Line]] - `contains` [EXTRACTED]
+- [[Line_1]] - `contains` [EXTRACTED]
 - [[Meeting]] - `imports` [EXTRACTED]
 - [[MindState]] - `imports` [EXTRACTED]
 - [[OWNER_ANIM]] - `contains` [EXTRACTED]
@@ -52,11 +52,12 @@ tags:
 - [[VETO_WHY]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
 - [[aligned()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[attribute()_1]] - `imports` [EXTRACTED]
 - [[attributionLine()]] - `contains` [EXTRACTED]
 - [[bandNote()]] - `imports` [EXTRACTED]
 - [[baselineNote()]] - `imports` [EXTRACTED]
-- [[blind()]] - `contains` [EXTRACTED]
+- [[blind()_1]] - `contains` [EXTRACTED]
 - [[blocked()]] - `contains` [EXTRACTED]
 - [[brief()]] - `contains` [EXTRACTED]
 - [[buildMeeting()]] - `contains` [EXTRACTED]
@@ -64,7 +65,6 @@ tags:
 - [[chop()]] - `contains` [EXTRACTED]
 - [[clockEt()]] - `imports` [EXTRACTED]
 - [[closed()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contractName()]] - `imports` [EXTRACTED]
 - [[creed()]] - `contains` [EXTRACTED]
 - [[debate()]] - `contains` [EXTRACTED]
@@ -75,8 +75,8 @@ tags:
 - [[exitLines()]] - `contains` [EXTRACTED]
 - [[fill()]] - `contains` [EXTRACTED]
 - [[fillTierNote()]] - `imports` [EXTRACTED]
-- [[fit()_4]] - `contains` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[fit()_6]] - `contains` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[focusQuote()]] - `contains` [EXTRACTED]
 - [[gateRecord()]] - `imports` [EXTRACTED]
 - [[ghostDebrief()]] - `contains` [EXTRACTED]
@@ -109,7 +109,7 @@ tags:
 - [[priceText()]] - `contains` [EXTRACTED]
 - [[printLine()]] - `contains` [EXTRACTED]
 - [[ptsTxt()]] - `imports` [EXTRACTED]
-- [[px()_9]] - `imports` [EXTRACTED]
+- [[px()_8]] - `imports` [EXTRACTED]
 - [[qNote()]] - `imports` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[quoteOption()]] - `imports` [EXTRACTED]
@@ -129,7 +129,7 @@ tags:
 - [[rhLiveMandateNote()]] - `imports` [EXTRACTED]
 - [[rhNoteOf()]] - `contains` [EXTRACTED]
 - [[roomformat.ts]] - `imports_from` [EXTRACTED]
-- [[say()]] - `contains` [EXTRACTED]
+- [[say()_1]] - `contains` [EXTRACTED]
 - [[scannerMandateNote()]] - `imports` [EXTRACTED]
 - [[scoreboard()]] - `contains` [EXTRACTED]
 - [[sessionNote()]] - `imports` [EXTRACTED]
@@ -147,12 +147,12 @@ tags:
 - [[thesisText()]] - `contains` [EXTRACTED]
 - [[trendWord()]] - `contains` [EXTRACTED]
 - [[triggerWait()]] - `contains` [EXTRACTED]
-- [[usd()_3]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 - [[verify-floor-rh-account.mjs]] - `dynamic_import` [EXTRACTED]
 - [[vetoMemory()]] - `contains` [EXTRACTED]
 - [[vetoed()]] - `contains` [EXTRACTED]
-- [[vixOf()_1]] - `contains` [EXTRACTED]
+- [[vixOf()]] - `contains` [EXTRACTED]
 - [[vixTxt()]] - `contains` [EXTRACTED]
 - [[where()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

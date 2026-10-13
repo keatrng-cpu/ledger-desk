@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/backtest-account.mjs"
 type: "code"
-community: "Community 55"
+community: "backtest-account.mjs"
 location: "L642"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/backtest-accountmjs
 ---
 
 # oppsFor()
 
 ## Connections
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[has()_3]] - `calls` [EXTRACTED]
+- [[has()_4]] - `calls` [EXTRACTED]
 - [[opportunities()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/backtest-accountmjs

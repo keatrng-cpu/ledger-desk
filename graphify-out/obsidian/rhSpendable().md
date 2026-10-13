@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
-location: "L209"
+community: "meeting.ts"
+location: "L211"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/meetingts
 ---
 
 # rhSpendable()
@@ -23,4 +23,4 @@ tags:
 - [[rhAccountShort()]] - `calls` [EXTRACTED]
 - [[rhArmedPathNote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/meetingts

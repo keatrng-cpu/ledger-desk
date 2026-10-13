@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
-community: "Community 103"
-location: "L1585"
+community: "live-talk.ts"
+location: "L1841"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # rollDay()
@@ -15,4 +15,4 @@ tags:
 - [[live-talk.ts]] - `contains` [EXTRACTED]
 - [[talkTick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/engine/journal.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # handleJournal()
@@ -19,4 +19,4 @@ tags:
 - [[jsonResponse()]] - `calls` [EXTRACTED]
 - [[toDeskEvent()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

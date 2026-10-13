@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/market-narrative-panel.tsx"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # market-narrative-panel.tsx
@@ -24,4 +24,4 @@ tags:
 - [[narrativeCoachLines()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

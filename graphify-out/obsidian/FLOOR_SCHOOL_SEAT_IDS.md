@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-school-contracts.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # FLOOR_SCHOOL_SEAT_IDS
@@ -15,4 +15,4 @@ tags:
 - [[floor-school-contracts.ts]] - `contains` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

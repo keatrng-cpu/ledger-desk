@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/floor-overhaul.test.mjs"
 type: "code"
-community: "Community 78"
-location: "L178"
+community: "floor-school-contracts.ts"
+location: "L185"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/floor-school-contractsts
 ---
 
 # worldStub()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-overhaul.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

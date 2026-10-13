@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/school-ticket.ts"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 231"
-location: "L33"
+community: "floor-screens.ts"
+location: "L1301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/floor-screensts
 ---
 
 # px()
 
 ## Connections
-- [[school-ticket.ts]] - `contains` [EXTRACTED]
-- [[schoolPlanPrices()]] - `calls` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[fmt()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

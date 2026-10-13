@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-1m-history.mjs"
+source_file: "scripts/blender/preview-glb.mjs"
 type: "code"
-community: "Community 207"
-location: "L194"
+community: "preview-glb.mjs"
+location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_207
+  - community/preview-glbmjs
 ---
 
 # out
 
 ## Connections
-- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
+- [[preview-glb.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_207
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

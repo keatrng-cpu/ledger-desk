@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/evidence.ts"
 type: "code"
-community: "Community 99"
+community: "trading/evidence.ts"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/trading/evidencets
 ---
 
 # qBucket()
@@ -18,4 +18,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[tradingevidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/trading/evidencets

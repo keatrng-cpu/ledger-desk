@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ladder-conflict.ts"
 type: "code"
-community: "Community 242"
+community: "tf-ladder-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_242
+  - community/tf-ladder-paneltsx
 ---
 
 # ladder-conflict.ts
@@ -26,4 +26,4 @@ tags:
 - [[tf-ladder.ts]] - `imports_from` [EXTRACTED]
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_242
+#graphify/code #graphify/EXTRACTED #community/tf-ladder-paneltsx

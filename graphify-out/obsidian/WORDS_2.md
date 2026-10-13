@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/drill.ts"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # WORDS
@@ -15,4 +15,4 @@ tags:
 - [[drill-call.tsx]] - `imports` [EXTRACTED]
 - [[learndrill.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

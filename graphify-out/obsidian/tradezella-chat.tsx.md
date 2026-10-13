@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/tradezella-chat.tsx"
 type: "code"
-community: "Community 146"
+community: "react"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/react
 ---
 
 # tradezella-chat.tsx
@@ -15,7 +15,7 @@ tags:
 - [[AnalysisCard()]] - `contains` [EXTRACTED]
 - [[BacktestFillRecord]] - `imports` [EXTRACTED]
 - [[BiasPill()_1]] - `contains` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CHART_TIMEFRAMES]] - `imports` [EXTRACTED]
 - [[ChartShot]] - `imports` [EXTRACTED]
 - [[ChartTimeframe]] - `imports` [EXTRACTED]
@@ -46,8 +46,8 @@ tags:
 - [[ingestBacktestResult()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[markAllCharts()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
-- [[remember()_1]] - `imports` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
+- [[remember()_2]] - `imports` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
@@ -57,4 +57,4 @@ tags:
 - [[useDeskSynapse]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/react

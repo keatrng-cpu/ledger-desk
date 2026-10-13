@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 42"
+community: "floor-school-contracts.ts"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-school-contractsts
 ---
 
 # gateWord()
@@ -16,4 +16,4 @@ tags:
 - [[roomformat.ts]] - `contains` [EXTRACTED]
 - [[trophiesAndScars()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

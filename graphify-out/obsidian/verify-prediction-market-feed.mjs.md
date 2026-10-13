@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-prediction-market-feed.mjs"
 type: "code"
-community: "Community 204"
+community: "verify-prediction-market-feed.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_204
+  - community/verify-prediction-market-feedmjs
 ---
 
 # verify-prediction-market-feed.mjs
@@ -16,11 +16,11 @@ tags:
 - [[check()_29]] - `contains` [EXTRACTED]
 - [[fixture]] - `contains` [EXTRACTED]
 - [[fresh_2]] - `contains` [EXTRACTED]
-- [[here_2]] - `contains` [EXTRACTED]
+- [[here_4]] - `contains` [EXTRACTED]
 - [[live_4]] - `contains` [EXTRACTED]
 - [[longshot]] - `contains` [EXTRACTED]
 - [[noAsk1]] - `contains` [EXTRACTED]
-- [[ok()_15]] - `contains` [EXTRACTED]
+- [[ok()_14]] - `contains` [EXTRACTED]
 - [[old]] - `contains` [EXTRACTED]
 - [[predict-server.ts]] - `dynamic_import` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `dynamic_import` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[sameGrade]] - `contains` [EXTRACTED]
 - [[stamped]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_204
+#graphify/code #graphify/EXTRACTED #community/verify-prediction-market-feedmjs

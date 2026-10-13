@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/exec/exec-sql.ts"
 type: "code"
-community: "Community 110"
+community: "execStep"
 location: "L93"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_110
+  - community/execStep
 ---
 
 # .markNet()
 
 ## Connections
 - [[PgExecStore]] - `method` [EXTRACTED]
-- [[handle()_1]] - `calls` [INFERRED]
+- [[handle()_2]] - `calls` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_110
+#graphify/code #graphify/EXTRACTED #community/execStep

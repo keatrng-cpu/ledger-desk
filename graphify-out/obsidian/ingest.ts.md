@@ -1,24 +1,24 @@
 ---
 source_file: "src/lib/engine/ingest.ts"
 type: "code"
-community: "Community 65"
+community: "ingest.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/ingestts
 ---
 
 # ingest.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[DbRow]] - `contains` [EXTRACTED]
 - [[EngineRunKind]] - `contains` [EXTRACTED]
 - [[EngineRunMeta]] - `contains` [EXTRACTED]
 - [[EngineRunRow]] - `contains` [EXTRACTED]
 - [[JsonValue]] - `contains` [EXTRACTED]
-- [[KINDS]] - `contains` [EXTRACTED]
+- [[KINDS_1]] - `contains` [EXTRACTED]
 - [[LatestEngineRunResult]] - `contains` [EXTRACTED]
 - [[ListEngineRunsResult]] - `contains` [EXTRACTED]
 - [[SCHEMAS]] - `contains` [EXTRACTED]
@@ -41,6 +41,6 @@ tags:
 - [[toIso()]] - `contains` [EXTRACTED]
 - [[tradeSchema]] - `contains` [EXTRACTED]
 - [[uploadEngineRun]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/ingestts

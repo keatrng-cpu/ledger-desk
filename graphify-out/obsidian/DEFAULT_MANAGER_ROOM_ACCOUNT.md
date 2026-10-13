@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 119"
+community: "rh-autofire.ts"
 location: "L181"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/rh-autofirets
 ---
 
 # DEFAULT_MANAGER_ROOM_ACCOUNT
@@ -19,4 +19,4 @@ tags:
 - [[screen-flash.tsx]] - `imports` [EXTRACTED]
 - [[uirh-account.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

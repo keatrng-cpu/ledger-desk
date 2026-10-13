@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-no-bot-entry.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 237"
-location: "L31"
+community: "verify-room.mjs"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_237
+  - community/verify-roommjs
 ---
 
 # steps
 
 ## Connections
-- [[verify-no-bot-entry.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_237
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

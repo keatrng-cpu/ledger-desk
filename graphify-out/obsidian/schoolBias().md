@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 102"
-location: "L92"
+community: "school-brief.ts"
+location: "L93"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/school-briefts
 ---
 
 # schoolBias()
 
 ## Connections
 - [[dirOf()]] - `calls` [EXTRACTED]
-- [[rung()]] - `calls` [EXTRACTED]
+- [[rung()_1]] - `calls` [EXTRACTED]
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 - [[schoolRead]] - `calls` [EXTRACTED]
 - [[up()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/school-briefts

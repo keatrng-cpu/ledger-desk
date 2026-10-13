@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L422"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # .handle_ohlcv1s()
@@ -20,4 +20,4 @@ tags:
 - [[rec_px()]] - `calls` [EXTRACTED]
 - [[rec_ts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

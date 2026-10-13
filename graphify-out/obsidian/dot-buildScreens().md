@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L1976"
+community: ".constructor"
+location: "L2295"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/constructor
 ---
 
 # .buildScreens()
 
 ## Connections
-- [[dot-constructor()_15]] - `calls` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/constructor

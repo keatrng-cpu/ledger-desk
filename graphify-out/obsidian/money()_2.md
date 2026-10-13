@@ -1,20 +1,24 @@
 ---
-source_file: "src/components/room/race-panel.tsx"
+source_file: "src/components/journal/analytics-panel.tsx"
 type: "code"
-community: "Community 18"
-location: "L33"
+community: "analytics-panel.tsx"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/analytics-paneltsx
 ---
 
 # money()
 
 ## Connections
-- [[RacePanel()]] - `calls` [EXTRACTED]
-- [[RaceTrack()]] - `calls` [EXTRACTED]
-- [[eventText()]] - `calls` [EXTRACTED]
-- [[race-panel.tsx]] - `contains` [EXTRACTED]
+- [[BookCoverage()]] - `calls` [EXTRACTED]
+- [[BucketTable()]] - `calls` [EXTRACTED]
+- [[EquitySpark()]] - `calls` [EXTRACTED]
+- [[MatrixValue()]] - `calls` [EXTRACTED]
+- [[RegimeMatrixTable()]] - `calls` [EXTRACTED]
+- [[ReportView()]] - `calls` [EXTRACTED]
+- [[StrategyBoard()]] - `calls` [EXTRACTED]
+- [[analytics-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/analytics-paneltsx

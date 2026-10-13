@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/rules.ts"
 type: "code"
-community: "Community 108"
+community: "propfirm-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/propfirm-paneltsx
 ---
 
 # rules.ts
@@ -25,4 +25,4 @@ tags:
 - [[verify-apex-sim.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-propfirm-score.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

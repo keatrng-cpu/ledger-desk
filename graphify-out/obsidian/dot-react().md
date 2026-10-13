@@ -1,18 +1,19 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 196"
-location: "L2175"
+community: "Avatar"
+location: "L2498"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_196
+  - community/Avatar
 ---
 
 # .react()
 
 ## Connections
 - [[dot-apply()]] - `calls` [EXTRACTED]
+- [[dot-strike()]] - `calls` [INFERRED]
 - [[Confetti]] - `calls` [EXTRACTED]
 - [[FloorFrame]] - `references` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
@@ -20,4 +21,4 @@ tags:
 - [[WireLog()]] - `calls` [EXTRACTED]
 - [[cuesOfFrame()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_196
+#graphify/code #graphify/EXTRACTED #community/Avatar

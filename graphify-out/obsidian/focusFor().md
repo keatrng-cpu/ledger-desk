@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 0"
-location: "L854"
+community: "orchestrator.ts"
+location: "L858"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # focusFor()
@@ -20,4 +20,4 @@ tags:
 - [[runRoomCycle()]] - `calls` [EXTRACTED]
 - [[strikeFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

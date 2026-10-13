@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-overnight.mjs"
 type: "code"
-community: "Community 238"
+community: "options-swing-panel.tsx"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_238
+  - community/options-swing-paneltsx
 ---
 
 # FRI
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-overnight.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_238
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

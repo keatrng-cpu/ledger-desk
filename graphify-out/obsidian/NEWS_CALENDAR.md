@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 20"
-location: "L67"
+community: "room-engine.ts"
+location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/room-enginets
 ---
 
 # NEWS_CALENDAR
@@ -20,4 +20,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[session-brief.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/room-enginets

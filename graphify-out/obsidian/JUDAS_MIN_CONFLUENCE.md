@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 27"
+community: "react"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/react
 ---
 
 # JUDAS_MIN_CONFLUENCE
@@ -15,4 +15,4 @@ tags:
 - [[judas-window.ts]] - `contains` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/react

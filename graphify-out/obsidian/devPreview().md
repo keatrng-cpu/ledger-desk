@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/screen-flash.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # devPreview()
@@ -15,4 +15,4 @@ tags:
 - [[ScreenFlash()]] - `calls` [EXTRACTED]
 - [[screen-flash.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

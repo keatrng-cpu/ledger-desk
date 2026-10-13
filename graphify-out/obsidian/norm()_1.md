@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/learn/drill.ts"
+source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 67"
-location: "L41"
+community: "floor-ik.ts"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/floor-ikts
 ---
 
 # norm()
 
 ## Connections
-- [[layerMatch()]] - `calls` [EXTRACTED]
-- [[learndrill.ts]] - `contains` [EXTRACTED]
+- [[armAngles]] - `calls` [EXTRACTED]
+- [[floor-ik.ts]] - `contains` [EXTRACTED]
+- [[unit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/floor-ikts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/exposure-card.tsx"
 type: "code"
-community: "Community 5"
+community: "invest-panel.tsx"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/invest-paneltsx
 ---
 
 # ExposureCard()
@@ -19,9 +19,9 @@ tags:
 - [[exposure-card.tsx]] - `contains` [EXTRACTED]
 - [[fundProfile]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
-- [[pct()_15]] - `calls` [EXTRACTED]
+- [[pct()_14]] - `calls` [EXTRACTED]
 - [[profilesCapturedAt()]] - `calls` [EXTRACTED]
 - [[techOf()]] - `calls` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

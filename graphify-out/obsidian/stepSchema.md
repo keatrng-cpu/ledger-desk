@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/exec-schema.ts"
 type: "code"
-community: "Community 87"
+community: "exec-server.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/exec-serverts
 ---
 
 # stepSchema
@@ -15,4 +15,4 @@ tags:
 - [[exec-schema.ts]] - `contains` [EXTRACTED]
 - [[exec-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/exec-serverts

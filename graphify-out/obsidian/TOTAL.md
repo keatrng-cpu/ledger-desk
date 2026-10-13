@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/engine-weights.ts"
 type: "code"
-community: "Community 114"
-location: "L49"
+community: "strategy-grade.ts"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/strategy-gradets
 ---
 
 # TOTAL
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[engine-weights.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

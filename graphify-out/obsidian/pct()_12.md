@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/room/research.ts"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 3"
-location: "L48"
+community: "gates.ts"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/gatests
 ---
 
 # pct()
 
 ## Connections
-- [[fillTierNote()]] - `calls` [EXTRACTED]
-- [[oddsNote()]] - `calls` [EXTRACTED]
-- [[qNote()]] - `calls` [EXTRACTED]
-- [[research.ts]] - `contains` [EXTRACTED]
-- [[sessionNote()]] - `calls` [EXTRACTED]
+- [[checkEntry()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/gatests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-traffic.ts"
 type: "code"
-community: "Community 88"
+community: "floor-brains.tsx"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # nerves
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[brain-traffic.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

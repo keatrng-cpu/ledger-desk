@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/exec-sql.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # exec-sql.ts
@@ -27,9 +27,15 @@ tags:
 - [[exec-server.ts]] - `imports_from` [EXTRACTED]
 - [[exectypes.ts]] - `imports_from` [EXTRACTED]
 - [[executor.ts]] - `imports_from` [EXTRACTED]
+- [[handle()_4]] - `imports_from` [EXTRACTED]
 - [[json()]] - `contains` [EXTRACTED]
 - [[num()]] - `contains` [EXTRACTED]
+- [[rh-manage.ts]] - `dynamic_import` [EXTRACTED]
+- [[rh-server.ts]] - `dynamic_import` [EXTRACTED]
+- [[room-step.ts]] - `dynamic_import` [EXTRACTED]
 - [[rowOf()]] - `contains` [EXTRACTED]
+- [[run()_3]] - `imports_from` [EXTRACTED]
+- [[stepRhDesk]] - `imports_from` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

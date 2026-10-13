@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 18"
-location: "L130"
+community: "room-engine.ts"
+location: "L133"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/room-enginets
 ---
 
 # RESEARCH_LINES
@@ -15,4 +15,4 @@ tags:
 - [[researchShelf()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/room-enginets

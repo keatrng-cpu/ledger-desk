@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/shadow-book-panel.tsx"
+source_file: "src/lib/trading/sponsored-gap.ts"
 type: "code"
-community: "Community 187"
-location: "L29"
+community: "SmcArray"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/SmcArray
 ---
 
 # px()
 
 ## Connections
-- [[Row()_1]] - `calls` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `contains` [EXTRACTED]
+- [[sponsored-gap.ts]] - `contains` [EXTRACTED]
+- [[sponsoredRead]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/SmcArray

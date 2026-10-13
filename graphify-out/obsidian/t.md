@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-cases.mjs"
+source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 11"
-location: "L49"
+community: "verify-target-odds.mjs"
+location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/verify-target-oddsmjs
 ---
 
 # t
 
 ## Connections
-- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
+- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/verify-target-oddsmjs

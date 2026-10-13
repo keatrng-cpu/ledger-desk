@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/live/keep-live.ts"
 type: "code"
-community: "Community 71"
+community: "capture-history.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/capture-historymjs
 ---
 
 # keep-live.ts
@@ -15,6 +15,7 @@ tags:
 - [[Listener_2]] - `contains` [EXTRACTED]
 - [[WHY the quote poll, the desk rebuild, the room's 5-second tick, the paper…]] - `rationale_for` [EXTRACTED]
 - [[fire()]] - `contains` [EXTRACTED]
+- [[hi-alert-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[listeners_3]] - `contains` [EXTRACTED]
 - [[onBeat()]] - `contains` [EXTRACTED]
@@ -25,4 +26,4 @@ tags:
 - [[stopKeepLive()]] - `contains` [EXTRACTED]
 - [[verify-keep-live.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

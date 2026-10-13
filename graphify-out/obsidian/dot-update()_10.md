@@ -1,19 +1,18 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-extras.ts"
 type: "code"
-community: "Community 37"
-location: "L264"
+community: "mead-hall-build.ts"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/mead-hall-buildts
 ---
 
 # .update()
 
 ## Connections
-- [[dot-loop()_2]] - `calls` [EXTRACTED]
-- [[Person]] - `method` [EXTRACTED]
-- [[damp()_2]] - `calls` [EXTRACTED]
+- [[dot-update()_9]] - `calls` [INFERRED]
+- [[HallExtrasHandle]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

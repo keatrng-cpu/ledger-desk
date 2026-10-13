@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 39"
-location: "L181"
+community: "smc-master.ts"
+location: "L568"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/smc-masterts
 ---
 
 # firstNum()
@@ -15,4 +15,4 @@ tags:
 - [[card-plan.ts]] - `contains` [EXTRACTED]
 - [[cardRisk]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 120"
-location: "L1730"
+community: "build_floor.py"
+location: "L1864"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # composite_png()
@@ -16,4 +16,4 @@ tags:
 - [[build_floor.py]] - `contains` [EXTRACTED]
 - [[build_portraits()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_120
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

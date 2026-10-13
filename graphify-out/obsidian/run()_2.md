@@ -1,20 +1,17 @@
 ---
-source_file: "scripts/verify-no-bot-entry.mjs"
+source_file: "scripts/lab.mjs"
 type: "code"
-community: "Community 237"
-location: "L37"
+community: "ref_node_path"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_237
+  - community/ref_node_path
 ---
 
 # run()
 
 ## Connections
-- [[account()_1]] - `calls` [EXTRACTED]
-- [[armed()]] - `calls` [EXTRACTED]
-- [[quote()_2]] - `calls` [EXTRACTED]
-- [[verify-no-bot-entry.mjs]] - `contains` [EXTRACTED]
+- [[lab.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_237
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

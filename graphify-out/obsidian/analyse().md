@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/factors.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L428"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # analyse()
@@ -15,4 +15,4 @@ tags:
 - [[factors.ts]] - `contains` [EXTRACTED]
 - [[sensitivity()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

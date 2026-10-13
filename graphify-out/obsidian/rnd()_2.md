@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-goal.mjs"
+source_file: "scripts/render-setup-chart.mjs"
 type: "code"
-community: "Community 212"
-location: "L239"
+community: "render-setup-chart.mjs"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_212
+  - community/render-setup-chartmjs
 ---
 
 # rnd()
 
 ## Connections
-- [[pickOf()]] - `calls` [EXTRACTED]
-- [[verify-goal.mjs]] - `contains` [EXTRACTED]
+- [[render-setup-chart.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_212
+#graphify/code #graphify/EXTRACTED #community/render-setup-chartmjs

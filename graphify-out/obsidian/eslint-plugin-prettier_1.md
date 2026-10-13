@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 32"
-location: "L120"
+community: "package.json"
+location: "L124"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # eslint-plugin-prettier
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_32
+#graphify/concept #graphify/EXTRACTED #community/packagejson

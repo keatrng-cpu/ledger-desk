@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/exec-bridge.ts"
 type: "code"
-community: "Community 122"
+community: "exec-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/exec-serverts
 ---
 
 # exec-bridge.ts
@@ -46,4 +46,4 @@ tags:
 - [[why()]] - `contains` [EXTRACTED]
 - [[zustand]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/exec-serverts

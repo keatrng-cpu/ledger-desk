@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/exec/gates.ts"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 150"
-location: "L22"
+community: "crew-year-backtest.py"
+location: "L419"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/crew-year-backtestpy
 ---
 
 # pct()
 
 ## Connections
-- [[checkEntry()]] - `calls` [EXTRACTED]
-- [[gates.ts]] - `contains` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[main()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

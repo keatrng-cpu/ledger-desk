@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
-location: "L533"
+community: "hi-alert.ts"
+location: "L550"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/hi-alertts
 ---
 
 # PeopleBrains
@@ -21,4 +21,4 @@ tags:
 - [[floor-brains.tsx]] - `imports` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

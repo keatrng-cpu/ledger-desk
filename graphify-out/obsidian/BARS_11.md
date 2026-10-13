@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-replay-drills.mjs"
+source_file: "scripts/measure-exit-plan.mjs"
 type: "code"
-community: "Community 227"
-location: "L57"
+community: "measure-exit-plan.mjs"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/measure-exit-planmjs
 ---
 
 # BARS
 
 ## Connections
-- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/measure-exit-planmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 50"
+community: "floor-school-contracts.ts"
 location: "L526"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/floor-school-contractsts
 ---
 
 # PolicyDef
@@ -15,4 +15,4 @@ tags:
 - [[Character]] - `references` [EXTRACTED]
 - [[goal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

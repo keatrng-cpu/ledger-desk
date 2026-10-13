@@ -1,17 +1,19 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # PaperTrade
 
 ## Connections
+- [[2. `srcroutesindex.tsx` — pass the draw into the management tick (B3)]] - `references` [INFERRED]
+- [[3. `srccomponentsdeskpaper-book-panel.tsx` — surface the new fields]] - `references` [INFERRED]
 - [[ContractKey]] - `references` [EXTRACTED]
 - [[TradeDebrief]] - `references` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
@@ -21,4 +23,4 @@ tags:
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 - [[trade-debrief.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

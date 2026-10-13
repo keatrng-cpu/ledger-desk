@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # datetime
@@ -14,4 +14,4 @@ tags:
 - [[direction-book.py]] - `imports_from` [EXTRACTED]
 - [[dt()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

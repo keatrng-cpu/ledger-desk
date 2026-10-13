@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # policy.ts
@@ -29,12 +29,15 @@ tags:
 - [[contributionPath()]] - `contains` [EXTRACTED]
 - [[deployQueue]] - `contains` [EXTRACTED]
 - [[fullRateFromLog()]] - `contains` [EXTRACTED]
+- [[funnel.ts]] - `imports_from` [EXTRACTED]
 - [[habit-card.tsx]] - `imports_from` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-office-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-office.ts]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-sources.ts]] - `imports_from` [EXTRACTED]
 - [[ledger.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[missedMonths()]] - `contains` [EXTRACTED]
 - [[monthFromIndex()]] - `contains` [EXTRACTED]
 - [[monthIndex()]] - `contains` [EXTRACTED]
@@ -42,8 +45,8 @@ tags:
 - [[rateLadder]] - `contains` [EXTRACTED]
 - [[realizedNeededFor()]] - `contains` [EXTRACTED]
 - [[rentVsSweep()]] - `contains` [EXTRACTED]
-- [[rh-income.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_14]] - `contains` [EXTRACTED]
+- [[rh-income.ts]] - `re_exports` [EXTRACTED]
+- [[round2()_9]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sweep-card.tsx]] - `imports_from` [EXTRACTED]
 - [[sweepRate()]] - `contains` [EXTRACTED]
@@ -52,4 +55,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

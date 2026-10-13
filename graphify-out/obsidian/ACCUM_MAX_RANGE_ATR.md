@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/detectors.ts"
 type: "code"
-community: "Community 35"
-location: "L685"
+community: "detectors.ts"
+location: "L1161"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # ACCUM_MAX_RANGE_ATR
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[detectors.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

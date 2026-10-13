@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 46"
+community: "session-backtest.ts"
 location: "L159"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/session-backtestts
 ---
 
 # parseBacktestIntent()
@@ -21,4 +21,4 @@ tags:
 - [[session-backtest.ts]] - `contains` [EXTRACTED]
 - [[tradezella-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

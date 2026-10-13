@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/render-setup-chart.mjs"
+source_file: "scripts/capture-1m-history.mjs"
 type: "code"
-community: "Community 233"
-location: "L37"
+community: "capture-1m-history.mjs"
+location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_233
+  - community/capture-1m-historymjs
 ---
 
 # bars
 
 ## Connections
-- [[render-setup-chart.mjs]] - `contains` [EXTRACTED]
+- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_233
+#graphify/code #graphify/EXTRACTED #community/capture-1m-historymjs

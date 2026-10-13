@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 180"
-location: "L411"
+community: "build_floor.py"
+location: "L434"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # Front-facing (-Y) quad in the XZ plane, centred at the origin, CCW seen from…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[quad()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_180
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

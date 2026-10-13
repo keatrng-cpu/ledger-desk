@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-invest-universe.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 219"
-location: "L74"
+community: "day-context.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_219
+  - community/day-contextts
 ---
 
 # args
 
 ## Connections
-- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_219
+#graphify/code #graphify/EXTRACTED #community/day-contextts

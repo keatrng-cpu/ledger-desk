@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 9"
-location: "L51"
+community: "options-desk.ts"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/options-deskts
 ---
 
 # SwingSignal
@@ -18,4 +18,4 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/options-deskts

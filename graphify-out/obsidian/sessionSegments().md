@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 24"
+community: "FloorOverhaul"
 location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/FloorOverhaul
 ---
 
 # sessionSegments()
@@ -19,4 +19,4 @@ tags:
 - [[resolveKillzone()]] - `calls` [EXTRACTED]
 - [[sessionDial]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

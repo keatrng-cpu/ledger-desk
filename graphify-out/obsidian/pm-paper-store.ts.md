@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/pm-paper-store.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # pm-paper-store.ts
@@ -16,8 +16,10 @@ tags:
 - [[PM_PAPER_MAX]] - `contains` [EXTRACTED]
 - [[PaperTicket]] - `imports` [EXTRACTED]
 - [[addPaper()]] - `contains` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
 - [[isTicket()]] - `contains` [EXTRACTED]
 - [[loadPaper()]] - `contains` [EXTRACTED]
+- [[mead-record.ts]] - `imports_from` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
 - [[parsePaperBook()]] - `contains` [EXTRACTED]
 - [[pm-analyzer.test.mjs]] - `dynamic_import` [EXTRACTED]
@@ -29,4 +31,4 @@ tags:
 - [[subscribePaper()]] - `contains` [EXTRACTED]
 - [[withTicket()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

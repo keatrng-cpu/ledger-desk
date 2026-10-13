@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 1"
-location: "L521"
+community: "detectors.ts"
+location: "L572"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/detectorsts
 ---
 
 # dualNarrativeSummary()
@@ -16,4 +16,4 @@ tags:
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
 - [[market-narrative.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/detectorsts

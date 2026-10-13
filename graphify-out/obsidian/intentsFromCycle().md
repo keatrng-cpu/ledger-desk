@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/exec/intent.ts"
 type: "code"
-community: "Community 177"
+community: "intent.ts"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_177
+  - community/intentts
 ---
 
 # intentsFromCycle()
 
 ## Connections
 - [[entryKey()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports` [EXTRACTED]
 - [[execAfterCycle()]] - `calls` [EXTRACTED]
 - [[exitKey()]] - `calls` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[planKey()]] - `calls` [EXTRACTED]
 - [[reasonKey()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_177
+#graphify/code #graphify/EXTRACTED #community/intentts

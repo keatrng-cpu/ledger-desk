@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
-location: "L1491"
+community: "FloorScene"
+location: "L1684"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # FloorScene
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[dot-apply()]] - `method` [EXTRACTED]
 - [[dot-applyManagerFeed()]] - `method` [EXTRACTED]
+- [[dot-applyWalkBlend()]] - `method` [EXTRACTED]
 - [[dot-attachEmissives()]] - `method` [EXTRACTED]
 - [[dot-attachScreens()]] - `method` [EXTRACTED]
 - [[dot-buildFallback()]] - `method` [EXTRACTED]
@@ -25,10 +26,10 @@ tags:
 - [[dot-clearWalkKeys()]] - `method` [EXTRACTED]
 - [[dot-clockMs()]] - `method` [EXTRACTED]
 - [[dot-closeShot()]] - `method` [EXTRACTED]
-- [[dot-constructor()_15]] - `method` [EXTRACTED]
+- [[dot-constructor()_12]] - `method` [EXTRACTED]
 - [[dot-debugReach()]] - `method` [EXTRACTED]
 - [[dot-directorShot()]] - `method` [EXTRACTED]
-- [[dot-dispose()_2]] - `method` [EXTRACTED]
+- [[dot-dispose()_4]] - `method` [EXTRACTED]
 - [[dot-drawAll()]] - `method` [EXTRACTED]
 - [[dot-engageOwner()]] - `method` [EXTRACTED]
 - [[dot-flashKey()]] - `method` [EXTRACTED]
@@ -42,9 +43,13 @@ tags:
 - [[dot-heightAt()]] - `method` [EXTRACTED]
 - [[dot-interactProximity()]] - `method` [EXTRACTED]
 - [[dot-isWalkMode()]] - `method` [EXTRACTED]
+- [[dot-leaveWalk()]] - `method` [EXTRACTED]
 - [[dot-loadEnvironment()]] - `method` [EXTRACTED]
+- [[dot-lockPointer()]] - `method` [EXTRACTED]
 - [[dot-loop()_1]] - `method` [EXTRACTED]
+- [[dot-meadReacted()]] - `method` [EXTRACTED]
 - [[dot-moveKey()]] - `method` [EXTRACTED]
+- [[dot-onBlur()]] - `method` [EXTRACTED]
 - [[dot-onDocDown()]] - `method` [EXTRACTED]
 - [[dot-onDouble()]] - `method` [EXTRACTED]
 - [[dot-onDown()]] - `method` [EXTRACTED]
@@ -52,6 +57,7 @@ tags:
 - [[dot-onKeyUp()]] - `method` [EXTRACTED]
 - [[dot-onLeave()]] - `method` [EXTRACTED]
 - [[dot-onMove()]] - `method` [EXTRACTED]
+- [[dot-onPointerLock()]] - `method` [EXTRACTED]
 - [[dot-onUp()]] - `method` [EXTRACTED]
 - [[dot-onWheelCapture()]] - `method` [EXTRACTED]
 - [[dot-ownerChaseRide()]] - `method` [EXTRACTED]
@@ -64,16 +70,19 @@ tags:
 - [[dot-rayAt()]] - `method` [EXTRACTED]
 - [[dot-react()]] - `method` [EXTRACTED]
 - [[dot-releaseFocus()]] - `method` [EXTRACTED]
+- [[dot-renderFrame()]] - `method` [EXTRACTED]
 - [[dot-resize()]] - `method` [EXTRACTED]
+- [[dot-resolveCoplanar()]] - `method` [EXTRACTED]
 - [[dot-resolveWing()]] - `method` [EXTRACTED]
 - [[dot-revealWhiteboard()]] - `method` [EXTRACTED]
-- [[dot-say()_2]] - `method` [EXTRACTED]
+- [[dot-say()_1]] - `method` [EXTRACTED]
 - [[dot-screenAlong()]] - `method` [EXTRACTED]
 - [[dot-sendHome()]] - `method` [EXTRACTED]
 - [[dot-setCamera()]] - `method` [EXTRACTED]
-- [[dot-setEntryMood()_1]] - `method` [EXTRACTED]
+- [[dot-setEntryMood()]] - `method` [EXTRACTED]
 - [[dot-setFloorProps()]] - `method` [EXTRACTED]
 - [[dot-setFocused()]] - `method` [EXTRACTED]
+- [[dot-setHall()]] - `method` [EXTRACTED]
 - [[dot-setHover()]] - `method` [EXTRACTED]
 - [[dot-setPov()]] - `method` [EXTRACTED]
 - [[dot-setScrubIndex()_1]] - `method` [EXTRACTED]
@@ -87,10 +96,11 @@ tags:
 - [[dot-staticRoots()]] - `method` [EXTRACTED]
 - [[dot-stopOwnerChase()]] - `method` [EXTRACTED]
 - [[dot-targetFor()]] - `method` [EXTRACTED]
-- [[dot-tick()_1]] - `method` [EXTRACTED]
+- [[dot-tick()_2]] - `method` [EXTRACTED]
 - [[dot-tickOwnerManager()]] - `method` [EXTRACTED]
 - [[dot-toggleBalconySit()]] - `method` [EXTRACTED]
 - [[dot-typing()]] - `method` [EXTRACTED]
+- [[dot-unlockPointer()]] - `method` [EXTRACTED]
 - [[dot-updateEmotes()]] - `method` [EXTRACTED]
 - [[dot-updateProximity()]] - `method` [EXTRACTED]
 - [[dot-walkable()]] - `method` [EXTRACTED]
@@ -101,6 +111,7 @@ tags:
 - [[FloorCanvas()]] - `calls` [EXTRACTED]
 - [[FloorFrame]] - `references` [EXTRACTED]
 - [[FloorLight]] - `references` [EXTRACTED]
+- [[FloorMead]] - `references` [EXTRACTED]
 - [[FloorOverhaul]] - `references` [EXTRACTED]
 - [[ManagerAvatar]] - `references` [EXTRACTED]
 - [[ManagerFeed]] - `references` [EXTRACTED]
@@ -110,5 +121,6 @@ tags:
 - [[TicketFlight]] - `references` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
+- [[use-mead-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

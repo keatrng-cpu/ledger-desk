@@ -1,29 +1,18 @@
 ---
-source_file: "src/components/invest/format.ts"
+source_file: "src/components/desk/option-ticket.tsx"
 type: "code"
-community: "Community 34"
-location: "L16"
+community: "cn"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/cn
 ---
 
 # usd()
 
 ## Connections
-- [[Activity()]] - `calls` [EXTRACTED]
-- [[BookCard()]] - `calls` [EXTRACTED]
-- [[BuyForm()]] - `calls` [EXTRACTED]
-- [[DividendForm()]] - `calls` [EXTRACTED]
-- [[ExposureCard()]] - `calls` [EXTRACTED]
-- [[HabitCard()]] - `calls` [EXTRACTED]
-- [[SellForm()]] - `calls` [EXTRACTED]
-- [[SweepCard()]] - `calls` [EXTRACTED]
-- [[book-card.tsx]] - `imports` [EXTRACTED]
-- [[exposure-card.tsx]] - `imports` [EXTRACTED]
-- [[habit-card.tsx]] - `imports` [EXTRACTED]
-- [[investformat.ts]] - `contains` [EXTRACTED]
-- [[sweep-card.tsx]] - `imports` [EXTRACTED]
+- [[OptionTicket()]] - `calls` [EXTRACTED]
+- [[option-ticket.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/cn

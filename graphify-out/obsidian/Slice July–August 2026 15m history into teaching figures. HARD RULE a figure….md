@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "rationale"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L2"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # Slice July–August 2026 15m history into teaching figures. HARD RULE: a figure…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build-learn-figures.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_64
+#graphify/rationale #graphify/EXTRACTED #community/build-learn-figurespy

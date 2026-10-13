@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/snapshots.ts"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # captureSnapshot
@@ -17,4 +17,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[snapshots.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

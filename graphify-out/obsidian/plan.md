@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/render-setup-chart.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 233"
-location: "L74"
+community: "verify-mead-hall.mjs"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_233
+  - community/verify-mead-hallmjs
 ---
 
 # plan
 
 ## Connections
-- [[render-setup-chart.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_233
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 49"
+community: "live-voices-invest.ts"
 location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-investts
 ---
 
 # utcNoon()
@@ -14,7 +14,8 @@ tags:
 ## Connections
 - [[dayPhrase()]] - `calls` [EXTRACTED]
 - [[daysBetween()]] - `calls` [EXTRACTED]
+- [[firmDay]] - `calls` [EXTRACTED]
 - [[invest-read.ts]] - `contains` [EXTRACTED]
 - [[plusDays()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

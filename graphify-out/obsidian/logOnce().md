@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/live-gateway.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # logOnce()
@@ -16,4 +16,4 @@ tags:
 - [[readLiveBars()]] - `calls` [EXTRACTED]
 - [[readLiveTick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

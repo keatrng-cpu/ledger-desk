@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 120"
-location: "L483"
+community: "build_floor.py"
+location: "L506"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # Local-y sign of the side a desk's chair is on (-1 = front).
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[sitter_side()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_120
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

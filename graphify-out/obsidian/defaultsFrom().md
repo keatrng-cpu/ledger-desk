@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/journal/log-setup-dialog.tsx"
 type: "code"
-community: "Community 26"
+community: "journal/server.ts"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/journal/serverts
 ---
 
 # defaultsFrom()
@@ -16,4 +16,4 @@ tags:
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

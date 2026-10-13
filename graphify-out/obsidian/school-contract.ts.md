@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/school-contract.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # school-contract.ts
@@ -67,10 +67,10 @@ tags:
 - [[flattenChecklist()]] - `contains` [EXTRACTED]
 - [[floor-overhaul-school.ts]] - `imports_from` [EXTRACTED]
 - [[floor-overhaul.test.mjs]] - `dynamic_import` [EXTRACTED]
-- [[floor-overhaul.ts]] - `dynamic_import` [EXTRACTED]
+- [[floor-overhaul.ts]] - `imports_from` [EXTRACTED]
 - [[floor-props.ts]] - `imports_from` [EXTRACTED]
 - [[floor-race-replay.ts]] - `imports_from` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[floorSchoolSeatBundle]] - `imports` [EXTRACTED]
 - [[itemState()]] - `contains` [EXTRACTED]
 - [[labRead]] - `imports` [EXTRACTED]
@@ -97,4 +97,4 @@ tags:
 - [[widenMustFromSmcLayers()]] - `imports` [EXTRACTED]
 - [[widenSignatureFromSmc()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

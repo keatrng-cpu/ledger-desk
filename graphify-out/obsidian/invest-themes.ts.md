@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-themes.ts"
 type: "code"
-community: "Community 128"
+community: "invest-office.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/invest-officets
 ---
 
 # invest-themes.ts
@@ -18,7 +18,7 @@ tags:
 - [[RESEARCH]] - `contains` [EXTRACTED]
 - [[ResearchFile]] - `contains` [EXTRACTED]
 - [[ResearchTheme]] - `contains` [EXTRACTED]
-- [[TIERS_1]] - `contains` [EXTRACTED]
+- [[TIERS]] - `contains` [EXTRACTED]
 - [[ThemeCompetitor]] - `contains` [EXTRACTED]
 - [[ThemeDemand]] - `contains` [EXTRACTED]
 - [[ThemeVehicle]] - `contains` [EXTRACTED]
@@ -35,4 +35,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-source-check.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/invest-officets

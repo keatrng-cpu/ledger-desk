@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-alarm.mjs"
+source_file: "scripts/verify-mead-talk.mjs"
 type: "code"
-community: "Community 206"
-location: "L37"
+community: "verify-mead-talk.mjs"
+location: "L153"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_206
+  - community/verify-mead-talkmjs
 ---
 
 # NOW
 
 ## Connections
-- [[verify-entry-alarm.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_206
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

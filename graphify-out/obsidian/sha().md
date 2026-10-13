@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/gen-build-id.mjs"
 type: "code"
-community: "Community 191"
+community: "ref_node_url"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/ref_node_url
 ---
 
 # sha()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[gen-build-id.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

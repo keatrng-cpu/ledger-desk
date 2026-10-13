@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 49"
+community: "live-talk.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-talkts
 ---
 
 # themeOfTheDay()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[InvestOfficePanel()]] - `calls` [EXTRACTED]
 - [[exInvBoard()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `imports` [EXTRACTED]
@@ -22,5 +23,7 @@ tags:
 - [[investCands()]] - `calls` [EXTRACTED]
 - [[live-talk.ts]] - `imports` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports` [EXTRACTED]
+- [[off-hours-study.ts]] - `imports` [EXTRACTED]
+- [[studyPack]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-talkts

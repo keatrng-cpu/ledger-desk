@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 5"
+community: "universe.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # src_data_invest_durability
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[durability.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_5
+#graphify/concept #graphify/EXTRACTED #community/universets

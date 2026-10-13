@@ -1,14 +1,14 @@
 ---
 source_file: "public/sw.js"
 type: "code"
-community: "Community 266"
+community: "sw.js"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_266
+  - community/swjs
 ---
 
 # sw.js
 
-#graphify/code #graphify/EXTRACTED #community/Community_266
+#graphify/code #graphify/EXTRACTED #community/swjs

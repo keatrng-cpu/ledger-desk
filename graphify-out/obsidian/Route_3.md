@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/cron/exec-flatten.ts"
+source_file: "src/routes/api/desk/watcher.ts"
 type: "code"
-community: "Community 54"
-location: "L64"
+community: "api/desk/fast.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/api/desk/fastts
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[exec-flatten.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
+- [[watcher.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/api/desk/fastts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 114"
+community: "smc-canon.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/smc-canonts
 ---
 
 # strategies.ts
@@ -22,9 +22,9 @@ tags:
 - [[analysis-to-candidate.ts]] - `imports_from` [EXTRACTED]
 - [[classify()]] - `contains` [EXTRACTED]
 - [[componentsOf()]] - `contains` [EXTRACTED]
-- [[engine-weights.ts]] - `imports_from` [EXTRACTED]
+- [[engine-weights.ts]] - `re_exports` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
-- [[nyWindow()]] - `contains` [EXTRACTED]
+- [[modelMayBeNamed()]] - `imports` [EXTRACTED]
 - [[primaryTag()]] - `contains` [EXTRACTED]
 - [[scoreDirection()]] - `imports_from` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
@@ -33,8 +33,8 @@ tags:
 - [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
 - [[strategyLabel()]] - `contains` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
-- [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

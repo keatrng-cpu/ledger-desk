@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 26"
+community: "profit-path.ts"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/profit-pathts
 ---
 
 # PROFIT_TARGET_WR
@@ -18,4 +18,4 @@ tags:
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

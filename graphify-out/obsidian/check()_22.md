@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-desk-mcp.mjs"
 type: "code"
-community: "Community 185"
-location: "L37"
+community: "grok-report.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/grok-reportts
 ---
 
 # check()
 
 ## Connections
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-desk-mcp.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

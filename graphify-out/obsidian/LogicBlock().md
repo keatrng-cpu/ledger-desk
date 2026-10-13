@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/desk/floor-brains.tsx"
 type: "code"
-community: "Community 88"
+community: "floor-brains.tsx"
 location: "L378"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # LogicBlock()
 
 ## Connections
-- [[Bar()_9]] - `calls` [EXTRACTED]
+- [[Bar()_13]] - `calls` [EXTRACTED]
 - [[FloorBrains()]] - `calls` [EXTRACTED]
 - [[floor-brains.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

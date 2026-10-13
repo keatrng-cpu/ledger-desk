@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-synapse.ts"
 type: "code"
-community: "Community 214"
+community: "ghost-book.ts"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/ghost-bookts
 ---
 
 # SynapseTab
@@ -17,4 +17,4 @@ tags:
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[synapse-rail.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

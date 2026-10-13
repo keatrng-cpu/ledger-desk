@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 76"
+community: "apex-sim.ts"
 location: "L410"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_76
+  - community/apex-simts
 ---
 
 # weekdayOfOrdinal()
@@ -16,4 +16,4 @@ tags:
 - [[buildDayPool()]] - `calls` [EXTRACTED]
 - [[tradingDayOrdinal()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_76
+#graphify/code #graphify/EXTRACTED #community/apex-simts

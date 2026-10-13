@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # oddsNote()
@@ -17,10 +17,10 @@ tags:
 - [[exitLines()]] - `calls` [EXTRACTED]
 - [[fill()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
-- [[n()]] - `calls` [EXTRACTED]
-- [[pct()_12]] - `calls` [EXTRACTED]
+- [[n()_2]] - `calls` [EXTRACTED]
+- [[pct()_13]] - `calls` [EXTRACTED]
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[researchShelf()]] - `calls` [EXTRACTED]
 - [[restamp()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

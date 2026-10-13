@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/room/exec/gates.ts"
+source_file: "src/lib/trading/ltf-lead.ts"
 type: "code"
-community: "Community 150"
-location: "L75"
+community: "OhlcBar"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/OhlcBar
 ---
 
 # symbolOf()
 
 ## Connections
-- [[checkEntry()]] - `calls` [EXTRACTED]
-- [[checkExit()]] - `calls` [EXTRACTED]
-- [[gates.ts]] - `contains` [EXTRACTED]
-- [[occSymbol()]] - `calls` [EXTRACTED]
+- [[ltf-lead.ts]] - `contains` [EXTRACTED]
+- [[readLtfLead()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

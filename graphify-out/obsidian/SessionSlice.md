@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # SessionSlice
 
 ## Connections
-- [[OhlcBar]] - `references` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
 - [[draw.ts]] - `contains` [EXTRACTED]
 - [[target-odds.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,20 +1,19 @@
 ---
-source_file: "src/lib/trading/shadow-book.ts"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 187"
-location: "L149"
+community: "cases.ts"
+location: "L156"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/casests
 ---
 
 # etDayKey()
 
 ## Connections
-- [[ShadowBookPanel()]] - `calls` [EXTRACTED]
-- [[openShadows()]] - `calls` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
-- [[shadow-book.ts]] - `contains` [EXTRACTED]
+- [[buildCases()]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[dayChangePct()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/casests

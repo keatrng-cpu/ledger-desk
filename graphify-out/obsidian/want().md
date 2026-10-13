@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-exec.mjs"
+source_file: "scripts/measure-loss-patterns.mts"
 type: "code"
-community: "Community 171"
-location: "L414"
+community: "measure-loss-patterns.mts"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/measure-loss-patternsmts
 ---
 
 # want()
 
 ## Connections
-- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
+- [[measure-loss-patterns.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

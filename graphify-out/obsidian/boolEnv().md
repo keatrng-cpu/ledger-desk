@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/apex-autofire.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # boolEnv()
@@ -15,4 +15,4 @@ tags:
 - [[apex-autofire.ts]] - `contains` [EXTRACTED]
 - [[autofireEnabled()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

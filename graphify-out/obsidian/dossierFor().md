@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/dossiers.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L458"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # dossierFor()
@@ -16,6 +16,11 @@ tags:
 - [[ScreenTable()]] - `calls` [EXTRACTED]
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[dossiers.ts]] - `contains` [EXTRACTED]
+- [[gradeLongCard()]] - `calls` [EXTRACTED]
+- [[invest-firm.ts]] - `imports` [EXTRACTED]
+- [[long-board.ts]] - `imports` [EXTRACTED]
+- [[memoCandidates()]] - `calls` [EXTRACTED]
+- [[memoOf()]] - `calls` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

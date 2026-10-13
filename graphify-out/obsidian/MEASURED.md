@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/income-target.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # MEASURED
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[income-target.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

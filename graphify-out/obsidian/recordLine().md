@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 3"
-location: "L877"
+community: "meeting.ts"
+location: "L920"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # recordLine()
@@ -20,4 +20,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 - [[vetoed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

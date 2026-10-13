@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 190"
-location: "L57"
+community: "LazyPGliteDriver"
+location: "L61"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/LazyPGliteDriver
 ---
 
 # @electric-sql/pglite
@@ -15,5 +15,6 @@ tags:
 - [[createPgliteSql()]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
 - [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
+- [[verify-rh-oauth.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_190
+#graphify/concept #graphify/EXTRACTED #community/LazyPGliteDriver

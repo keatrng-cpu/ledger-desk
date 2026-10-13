@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/tape.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L222"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # tape
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[dot-breakUp()]] - `method` [EXTRACTED]
 - [[dot-chop()]] - `method` [EXTRACTED]
-- [[dot-constructor()_1]] - `method` [EXTRACTED]
+- [[dot-constructor()_2]] - `method` [EXTRACTED]
 - [[dot-displaceDown()]] - `method` [EXTRACTED]
 - [[dot-displaceUp()]] - `method` [EXTRACTED]
 - [[dot-last()]] - `method` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[tape]] - `calls` [EXTRACTED]
 - [[tape.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

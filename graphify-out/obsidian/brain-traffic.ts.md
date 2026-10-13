@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-traffic.ts"
 type: "code"
-community: "Community 88"
+community: "floor-brains.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # brain-traffic.ts
@@ -30,4 +30,4 @@ tags:
 - [[verify-brain-fuel.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-brain-nerve.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

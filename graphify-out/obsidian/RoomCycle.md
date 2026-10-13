@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 0"
+community: "live-world.ts"
 location: "L383"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/live-worldts
 ---
 
 # RoomCycle
@@ -24,4 +24,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/live-worldts

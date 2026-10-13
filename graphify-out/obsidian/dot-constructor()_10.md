@@ -1,17 +1,21 @@
 ---
-source_file: "src/components/room/floor-fx.ts"
+source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
-community: "Community 196"
-location: "L161"
+community: "floor-proto-avatars.ts"
+location: "L439"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_196
+  - community/floor-proto-avatarsts
 ---
 
 # .constructor()
 
 ## Connections
-- [[Bell]] - `method` [EXTRACTED]
+- [[ManagerAvatar]] - `method` [EXTRACTED]
+- [[makeBubble()]] - `calls` [EXTRACTED]
+- [[makePlate()]] - `calls` [EXTRACTED]
+- [[makeTag()]] - `calls` [EXTRACTED]
+- [[mat()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_196
+#graphify/code #graphify/EXTRACTED #community/floor-proto-avatarsts

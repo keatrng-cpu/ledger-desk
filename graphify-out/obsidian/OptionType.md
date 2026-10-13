@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # OptionType
@@ -15,7 +15,7 @@ tags:
 - [[BrokerAction]] - `references` [EXTRACTED]
 - [[CardRead]] - `references` [EXTRACTED]
 - [[GhostPos]] - `references` [EXTRACTED]
-- [[LadderInput]] - `references` [EXTRACTED]
+- [[LadderInput_1]] - `references` [EXTRACTED]
 - [[Memory]] - `references` [EXTRACTED]
 - [[PositionRead]] - `references` [EXTRACTED]
 - [[PriceArgs]] - `references` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[race.ts]] - `imports` [EXTRACTED]
 - [[roomformat.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

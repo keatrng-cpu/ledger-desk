@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-calibration.mjs"
 type: "code"
-community: "Community 174"
+community: "calibration-panel.tsx"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/calibration-paneltsx
 ---
 
 # fails
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-calibration.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

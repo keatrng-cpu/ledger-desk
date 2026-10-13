@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/news/thesis-card.tsx"
 type: "code"
-community: "Community 232"
+community: "news-tab.tsx"
 location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_232
+  - community/news-tabtsx
 ---
 
 # ThesisCard()
@@ -20,4 +20,4 @@ tags:
 - [[scrubEnv()]] - `calls` [EXTRACTED]
 - [[thesis-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_232
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

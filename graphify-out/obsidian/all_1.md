@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-curriculum.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 118"
-location: "L119"
+community: "day-context.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/day-contextts
 ---
 
 # all
 
 ## Connections
-- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/day-contextts

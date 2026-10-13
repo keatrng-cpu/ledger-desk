@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L522"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # exGoalFinal()
 
 ## Connections
+- [[dot-usd()]] - `calls` [INFERRED]
 - [[boardMoves()]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[line()]] - `calls` [EXTRACTED]
@@ -19,4 +20,4 @@ tags:
 - [[nameOf()]] - `calls` [EXTRACTED]
 - [[pick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

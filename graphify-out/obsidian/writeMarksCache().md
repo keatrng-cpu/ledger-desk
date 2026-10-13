@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/invest-panel.tsx"
 type: "code"
-community: "Community 100"
-location: "L69"
+community: "invest-panel.tsx"
+location: "L72"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-paneltsx
 ---
 
 # writeMarksCache()
@@ -15,4 +15,4 @@ tags:
 - [[InvestPanel()]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

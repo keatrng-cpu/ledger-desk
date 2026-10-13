@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/price-path-board.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # price-path-board.tsx
@@ -18,6 +18,7 @@ tags:
 - [[DrawRead]] - `imports` [EXTRACTED]
 - [[FitGauge()]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
+- [[JUDAS_BLOCKS]] - `imports` [EXTRACTED]
 - [[LiquidityTarget]] - `imports` [EXTRACTED]
 - [[MustRing()]] - `imports` [EXTRACTED]
 - [[Plain()]] - `imports` [EXTRACTED]
@@ -49,8 +50,8 @@ tags:
 - [[price-ladder.tsx]] - `imports_from` [EXTRACTED]
 - [[pricePathHudLine()]] - `contains` [EXTRACTED]
 - [[pricePathVerdict()]] - `contains` [EXTRACTED]
-- [[px()_12]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[px()_11]] - `contains` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readJudas()]] - `imports` [EXTRACTED]
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
 - [[sessionLive()]] - `imports` [EXTRACTED]
@@ -63,4 +64,4 @@ tags:
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

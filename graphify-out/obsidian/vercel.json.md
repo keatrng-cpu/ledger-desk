@@ -1,12 +1,12 @@
 ---
 source_file: "vercel.json"
 type: "code"
-community: "Community 255"
+community: "vercel.json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_255
+  - community/verceljson
 ---
 
 # vercel.json
@@ -16,4 +16,4 @@ tags:
 - [[crons]] - `contains` [EXTRACTED]
 - [[headers_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_255
+#graphify/code #graphify/EXTRACTED #community/verceljson

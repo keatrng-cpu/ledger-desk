@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L34"
+community: "floor-sound.ts"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/floor-soundts
 ---
 
 # VOICE_CAST
@@ -16,4 +16,4 @@ tags:
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/floor-soundts

@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/trading/target-odds.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # target-odds.ts
 
 ## Connections
-- [[Expectancy]] - `contains` [EXTRACTED]
+- [[Expectancy_1]] - `contains` [EXTRACTED]
 - [[MIN_SESSIONS_FOR_ODDS]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[RaceResult]] - `contains` [EXTRACTED]
 - [[SessionSlice]] - `imports` [EXTRACTED]
 - [[THIN_SESSIONS]] - `contains` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-target-odds.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

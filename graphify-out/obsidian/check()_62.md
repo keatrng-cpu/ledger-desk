@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-snapshot.mjs"
+source_file: "scripts/verify-floor-locomotion.mjs"
 type: "code"
-community: "Community 61"
-location: "L23"
+community: "verify-floor-locomotion.mjs"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/verify-floor-locomotionmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-snapshot.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-locomotion.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/verify-floor-locomotionmjs

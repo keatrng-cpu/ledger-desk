@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-news-ipo.mjs"
 type: "code"
-community: "Community 133"
+community: "verify-news-ipo.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_133
+  - community/verify-news-ipomjs
 ---
 
 # verify-news-ipo.mjs
 
 ## Connections
 - [[bears]] - `contains` [EXTRACTED]
-- [[check()_7]] - `contains` [EXTRACTED]
+- [[check()_6]] - `contains` [EXTRACTED]
 - [[cpi]] - `contains` [EXTRACTED]
 - [[cpiEv]] - `contains` [EXTRACTED]
 - [[cut]] - `contains` [EXTRACTED]
@@ -23,7 +23,7 @@ tags:
 - [[feed.ts]] - `dynamic_import` [EXTRACTED]
 - [[fomc]] - `contains` [EXTRACTED]
 - [[good]] - `contains` [EXTRACTED]
-- [[input]] - `contains` [EXTRACTED]
+- [[input_1]] - `contains` [EXTRACTED]
 - [[ipo]] - `contains` [EXTRACTED]
 - [[ipo.ts]] - `dynamic_import` [EXTRACTED]
 - [[items]] - `contains` [EXTRACTED]
@@ -31,7 +31,7 @@ tags:
 - [[nflSrc]] - `contains` [EXTRACTED]
 - [[noW()]] - `indirect_call` [INFERRED]
 - [[nv]] - `contains` [EXTRACTED]
-- [[ok()_4]] - `contains` [EXTRACTED]
+- [[ok()_2]] - `contains` [EXTRACTED]
 - [[parsed]] - `contains` [EXTRACTED]
 - [[pf]] - `contains` [EXTRACTED]
 - [[r1]] - `contains` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[visa2]] - `contains` [EXTRACTED]
 - [[w()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_133
+#graphify/code #graphify/EXTRACTED #community/verify-news-ipomjs

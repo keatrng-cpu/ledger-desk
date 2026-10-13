@@ -1,22 +1,19 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 45"
-location: "L281"
+community: "use-entry-state.ts"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/use-entry-statets
 ---
 
 # fit()
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
-- [[cvLambda()]] - `calls` [EXTRACTED]
-- [[rowOf()_1]] - `calls` [EXTRACTED]
-- [[scaler()]] - `calls` [EXTRACTED]
-- [[sig()_1]] - `calls` [EXTRACTED]
-- [[solve()]] - `calls` [EXTRACTED]
+- [[cardPhrase()]] - `calls` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

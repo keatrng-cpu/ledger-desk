@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "rationale"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L501"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # (pool, pierce) if bar i wicks through the prior pool and closes back inside.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[raid_at()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_64
+#graphify/rationale #graphify/EXTRACTED #community/build-learn-figurespy

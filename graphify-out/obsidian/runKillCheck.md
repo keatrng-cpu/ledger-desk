@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-watch-server.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L101"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # runKillCheck
@@ -22,4 +22,4 @@ tags:
 - [[parseXaiResponse()]] - `calls` [EXTRACTED]
 - [[summaryFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

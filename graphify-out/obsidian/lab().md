@@ -1,18 +1,19 @@
 ---
 source_file: "scripts/verify-audit.mjs"
 type: "code"
-community: "Community 235"
+community: "verify-audit.mjs"
 location: "L38"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_235
+  - graphify/INFERRED
+  - community/verify-auditmjs
 ---
 
 # lab()
 
 ## Connections
+- [[1. Mount the snapshot review (B6) — `srcroutesindex.tsx`]] - `references` [INFERRED]
 - [[verify-audit.mjs]] - `contains` [EXTRACTED]
 - [[verify-room-seats.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_235
+#graphify/code #graphify/INFERRED #community/verify-auditmjs

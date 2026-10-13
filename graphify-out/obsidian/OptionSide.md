@@ -1,19 +1,21 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 172"
-location: "L17"
+community: "options-desk.ts"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/options-deskts
 ---
 
 # OptionSide
 
 ## Connections
+- [[LiveOptionContract]] - `references` [EXTRACTED]
+- [[LiveTicketLeg]] - `references` [EXTRACTED]
 - [[RhTicket]] - `references` [EXTRACTED]
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/options-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 130"
+community: "ghost-book.ts"
 location: "L166"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/ghost-bookts
 ---
 
 # samePlan()
@@ -15,4 +15,4 @@ tags:
 - [[ghost-book.ts]] - `contains` [EXTRACTED]
 - [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

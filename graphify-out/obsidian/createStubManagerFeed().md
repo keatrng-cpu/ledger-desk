@@ -1,22 +1,22 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
-location: "L482"
+community: "manager-feed.ts"
+location: "L484"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # createStubManagerFeed()
 
 ## Connections
-- [[dot-constructor()_15]] - `calls` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [EXTRACTED]
 - [[buildState()]] - `calls` [EXTRACTED]
 - [[floor-scene.ts]] - `imports` [EXTRACTED]
 - [[manager-feed.ts]] - `contains` [EXTRACTED]
 - [[reportAutomation()]] - `calls` [EXTRACTED]
 - [[stubReportsAutomation()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

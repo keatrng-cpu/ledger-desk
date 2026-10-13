@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/log-trade.mjs"
+source_file: "src/lib/execution/rh-account.ts"
 type: "code"
-community: "Community 121"
-location: "L119"
+community: "rh-autofire.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_121
+  - community/rh-autofirets
 ---
 
 # num()
 
 ## Connections
-- [[log-trade.mjs]] - `contains` [EXTRACTED]
+- [[executionrh-account.ts]] - `contains` [EXTRACTED]
+- [[rhAccountFromPortfolio()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_121
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

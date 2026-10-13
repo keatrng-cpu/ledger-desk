@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 155"
+community: "claude-server.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/claude-serverts
 ---
 
 # public_data_bt_2024_summary
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[discretion-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_155
+#graphify/concept #graphify/EXTRACTED #community/claude-serverts

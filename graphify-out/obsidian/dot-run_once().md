@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L468"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # .run_once()
@@ -20,4 +20,4 @@ tags:
 - [[in_ny_am_window()]] - `calls` [EXTRACTED]
 - [[resolve_desk_symbol()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

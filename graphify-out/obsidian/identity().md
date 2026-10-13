@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 189"
+community: "getSql"
 location: "L109"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_189
+  - community/getSql
 ---
 
 # identity()
@@ -16,4 +16,4 @@ tags:
 - [[createPgliteSql()]] - `indirect_call` [INFERRED]
 - [[db.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_189
+#graphify/code #graphify/INFERRED #community/getSql

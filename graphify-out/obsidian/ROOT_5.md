@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-path-fire.mjs"
+source_file: "scripts/verify-all.mjs"
 type: "code"
-community: "Community 11"
-location: "L12"
+community: "verify-all.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/verify-allmjs
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
+- [[verify-all.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/verify-allmjs

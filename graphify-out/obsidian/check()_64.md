@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-pm-signal-engine.mjs"
+source_file: "scripts/verify-research-retain.mjs"
 type: "code"
-community: "Community 68"
-location: "L14"
+community: "verify-research-retain.mjs"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_68
+  - community/verify-research-retainmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_27]] - `calls` [EXTRACTED]
-- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
+- [[verify-research-retain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_68
+#graphify/code #graphify/EXTRACTED #community/verify-research-retainmjs

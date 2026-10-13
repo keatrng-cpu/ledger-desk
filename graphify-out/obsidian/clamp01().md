@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 42"
+community: "floor-school-contracts.ts"
 location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-school-contractsts
 ---
 
 # clamp01()
@@ -15,4 +15,4 @@ tags:
 - [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 - [[raceAnimFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

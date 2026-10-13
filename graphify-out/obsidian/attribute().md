@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-memory.ts"
 type: "code"
-community: "Community 216"
+community: "setup-memory.ts"
 location: "L158"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_216
+  - community/setup-memoryts
 ---
 
 # attribute()
@@ -15,4 +15,4 @@ tags:
 - [[recallShapes()]] - `calls` [EXTRACTED]
 - [[setup-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_216
+#graphify/code #graphify/EXTRACTED #community/setup-memoryts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/pm-paper-store.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # loadPaper()
@@ -14,11 +14,15 @@ tags:
 ## Connections
 - [[PmAnalyzer()]] - `calls` [EXTRACTED]
 - [[addPaper()]] - `calls` [EXTRACTED]
+- [[hall-read.ts]] - `imports` [EXTRACTED]
+- [[mead-record.ts]] - `imports` [EXTRACTED]
 - [[parsePaperBook()]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 - [[pm-paper-store.ts]] - `contains` [EXTRACTED]
+- [[readHallRecord()_1]] - `calls` [EXTRACTED]
+- [[readHallRecord()]] - `calls` [EXTRACTED]
 - [[removePaper()]] - `calls` [EXTRACTED]
 - [[resolvePaper()]] - `calls` [EXTRACTED]
 - [[store()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

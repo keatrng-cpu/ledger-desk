@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
-location: "L144"
+community: "pm-analyzer.tsx"
+location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # Record()
@@ -14,12 +14,12 @@ tags:
 ## Connections
 - [[DeskPanel()]] - `calls` [EXTRACTED]
 - [[PmAnalyzer()]] - `calls` [EXTRACTED]
-- [[Ring()]] - `calls` [EXTRACTED]
+- [[Ring()_1]] - `calls` [EXTRACTED]
 - [[calibrationScore()]] - `calls` [EXTRACTED]
-- [[pct()_6]] - `calls` [EXTRACTED]
+- [[pct()_5]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 - [[scorePaper()]] - `calls` [EXTRACTED]
 - [[signedC()_1]] - `calls` [EXTRACTED]
 - [[walkForward()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 202"
-location: "L267"
+community: "build_floor.py"
+location: "L290"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/build_floorpy
 ---
 
 # _xf()
@@ -20,4 +20,4 @@ tags:
 - [[tbox()]] - `calls` [EXTRACTED]
 - [[torus()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

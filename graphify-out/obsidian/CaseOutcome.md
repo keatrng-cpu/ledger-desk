@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # CaseOutcome
@@ -15,4 +15,4 @@ tags:
 - [[cases.ts]] - `contains` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

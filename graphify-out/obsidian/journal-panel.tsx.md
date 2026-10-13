@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/journal/journal-panel.tsx"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # journal-panel.tsx
 
 ## Connections
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CloseTradeRow()]] - `contains` [EXTRACTED]
 - [[ClosedTrade]] - `imports` [EXTRACTED]
 - [[EXIT_REASONS]] - `imports` [EXTRACTED]
@@ -29,19 +29,19 @@ tags:
 - [[closeTrade]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
 - [[computeMetrics()]] - `imports` [EXTRACTED]
-- [[discipline.ts]] - `imports_from` [EXTRACTED]
 - [[getSettings]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[journaldiscipline.ts]] - `imports_from` [EXTRACTED]
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[listTrades]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[metricsByGrade()]] - `imports` [EXTRACTED]
 - [[money()_5]] - `contains` [EXTRACTED]
 - [[profit-path.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[timeLabel()]] - `contains` [EXTRACTED]
 - [[toClosedTrade()]] - `contains` [EXTRACTED]
 - [[updateEquity]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/race.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # race.ts
@@ -30,7 +30,7 @@ tags:
 - [[clockEt()]] - `imports` [EXTRACTED]
 - [[computeRace()]] - `contains` [EXTRACTED]
 - [[contract-ladder.ts]] - `imports_from` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[expiryFor()]] - `imports` [EXTRACTED]
 - [[goal.ts]] - `imports_from` [EXTRACTED]
@@ -55,4 +55,4 @@ tags:
 - [[verify-race-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[viewGoal()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

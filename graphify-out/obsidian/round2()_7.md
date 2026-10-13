@@ -1,23 +1,18 @@
 ---
-source_file: "src/lib/invest/ledger.ts"
+source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 34"
-location: "L152"
+community: "OhlcBar"
+location: "L283"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/OhlcBar
 ---
 
 # round2()
 
 ## Connections
-- [[buyWashWarning()]] - `calls` [EXTRACTED]
-- [[heldPositions()]] - `calls` [EXTRACTED]
-- [[ledger.ts]] - `contains` [EXTRACTED]
-- [[replay()]] - `calls` [EXTRACTED]
-- [[sweepFundedUsd()]] - `calls` [EXTRACTED]
-- [[taxYear()]] - `calls` [EXTRACTED]
-- [[washFor()]] - `calls` [EXTRACTED]
+- [[buildTradePlan()]] - `calls` [EXTRACTED]
+- [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

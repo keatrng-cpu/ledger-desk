@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/feed.ts"
 type: "code"
-community: "Community 129"
+community: "thesis-server.ts"
 location: "L299"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/thesis-serverts
 ---
 
 # tagItem()
@@ -20,4 +20,4 @@ tags:
 - [[newsLiteFrom()]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/thesis-serverts

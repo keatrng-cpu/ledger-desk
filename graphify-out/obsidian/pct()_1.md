@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/news/thesis-server.ts"
+source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 129"
-location: "L49"
+community: "discretion-memory.ts"
+location: "L619"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/discretion-memoryts
 ---
 
 # pct()
 
 ## Connections
-- [[nflGames()]] - `calls` [EXTRACTED]
-- [[thesis-server.ts]] - `contains` [EXTRACTED]
+- [[discretion-memory.ts]] - `contains` [EXTRACTED]
+- [[pathStats]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-day-change.mjs"
+source_file: "scripts/verify-paper-step.mjs"
 type: "code"
-community: "Community 220"
-location: "L27"
+community: "verify-paper-step.mjs"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_220
+  - community/verify-paper-stepmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_19]] - `calls` [EXTRACTED]
-- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
+- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_220
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "hi-alert.ts"
 location: "L162"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/hi-alertts
 ---
 
 # idOf()
@@ -15,4 +15,4 @@ tags:
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
 - [[recordHiAlerts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

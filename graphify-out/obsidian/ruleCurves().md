@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 6"
+community: "replay-drill.ts"
 location: "L836"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/replay-drillts
 ---
 
 # ruleCurves()
@@ -17,4 +17,4 @@ tags:
 - [[replay-drill.tsx]] - `imports` [EXTRACTED]
 - [[weakestRule()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

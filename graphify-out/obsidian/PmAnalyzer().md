@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
-location: "L334"
+community: "pm-analyzer.tsx"
+location: "L336"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # PmAnalyzer()
@@ -18,10 +18,14 @@ tags:
 - [[Record()]] - `calls` [EXTRACTED]
 - [[clock()]] - `calls` [EXTRACTED]
 - [[crowdLabel()]] - `calls` [EXTRACTED]
+- [[hallExtrasFrom()]] - `calls` [EXTRACTED]
 - [[loadPaper()]] - `calls` [EXTRACTED]
 - [[modelInputsFromScanRows()]] - `calls` [EXTRACTED]
+- [[openFloorAt()]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
+- [[readHallRecord()_1]] - `calls` [EXTRACTED]
 - [[subscribePaper()]] - `calls` [EXTRACTED]
+- [[takePredictFocus()]] - `calls` [EXTRACTED]
 - [[useSignalHall()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

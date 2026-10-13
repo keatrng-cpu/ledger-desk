@@ -1,18 +1,19 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 56"
+community: "smc-master.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/smc-masterts
 ---
 
 # HtfBiasRead
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
+- [[1. Session-correct levels (already live, no wiring needed)]] - `references` [INFERRED]
+- [[3. Extending the scanner pre-score with detectors (future step)]] - `references` [INFERRED]
 - [[SessionBriefInput]] - `references` [EXTRACTED]
 - [[SmcMasterInput]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
@@ -30,4 +31,4 @@ tags:
 - [[structure.ts]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

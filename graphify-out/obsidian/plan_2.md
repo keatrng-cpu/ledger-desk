@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-trigger.mjs"
+source_file: "scripts/verify-entry-ticket.mjs"
 type: "code"
-community: "Community 82"
-location: "L23"
+community: "aplus/config.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/aplus/configts
 ---
 
 # plan
 
 ## Connections
-- [[verify-entry-trigger.mjs]] - `contains` [EXTRACTED]
+- [[verify-entry-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

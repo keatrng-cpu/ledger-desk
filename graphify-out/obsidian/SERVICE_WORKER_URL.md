@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/client.ts"
 type: "code"
-community: "Community 19"
+community: "alerts/server.ts"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/alerts/serverts
 ---
 
 # SERVICE_WORKER_URL
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[alertsclient.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/alerts/serverts

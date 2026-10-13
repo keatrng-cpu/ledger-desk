@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/session-hud.tsx"
 type: "code"
-community: "Community 33"
+community: "ghost-book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/ghost-bookts
 ---
 
 # session-hud.tsx
@@ -42,7 +42,7 @@ tags:
 - [[price-path-board.tsx]] - `imports_from` [EXTRACTED]
 - [[pricePathHudLine()]] - `imports` [EXTRACTED]
 - [[pricePathVerdict()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[risk.ts]] - `imports_from` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
 - [[setFlashOn()]] - `imports` [EXTRACTED]
@@ -62,4 +62,4 @@ tags:
 - [[weekAheadFocusLine()]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

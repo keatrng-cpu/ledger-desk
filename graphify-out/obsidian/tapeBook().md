@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 4"
-location: "L134"
+community: "live-world.ts"
+location: "L141"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/live-worldts
 ---
 
 # tapeBook()
@@ -19,4 +19,4 @@ tags:
 - [[volumeRatio()]] - `calls` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/live-worldts

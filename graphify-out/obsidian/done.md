@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 144"
+community: "verify-setup-memory.mjs"
 location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_144
+  - community/verify-setup-memorymjs
 ---
 
 # done
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_144
+#graphify/code #graphify/EXTRACTED #community/verify-setup-memorymjs

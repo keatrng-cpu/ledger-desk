@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
-community: "Community 193"
-location: "L326"
+community: "floor-proto-avatars.ts"
+location: "L344"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/floor-proto-avatarsts
 ---
 
 # MOOD_GLOW
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-proto-avatars.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/floor-proto-avatarsts

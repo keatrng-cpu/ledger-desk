@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/trade-debrief-panel.tsx"
+source_file: "src/components/desk/tf-ladder-panel.tsx"
 type: "code"
-community: "Community 44"
-location: "L19"
+community: "tf-ladder-panel.tsx"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/tf-ladder-paneltsx
 ---
 
 # tone()
 
 ## Connections
-- [[DebriefBody()]] - `calls` [EXTRACTED]
-- [[trade-debrief-panel.tsx]] - `contains` [EXTRACTED]
+- [[Rungs()]] - `calls` [EXTRACTED]
+- [[tf-ladder-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/tf-ladder-paneltsx

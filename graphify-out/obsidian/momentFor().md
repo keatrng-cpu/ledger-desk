@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L112"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # momentFor()
@@ -17,4 +17,4 @@ tags:
 - [[readEntry()]] - `calls` [EXTRACTED]
 - [[take-moments.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

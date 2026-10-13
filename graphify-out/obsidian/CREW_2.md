@@ -1,17 +1,19 @@
 ---
-source_file: "src/lib/room/floor-voice.ts"
+source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 75"
-location: "L43"
+community: "trading-floor-tab.tsx"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/trading-floor-tabtsx
 ---
 
 # CREW
 
 ## Connections
-- [[floor-voice.ts]] - `contains` [EXTRACTED]
+- [[agents.ts]] - `contains` [EXTRACTED]
+- [[meeting.ts]] - `imports` [EXTRACTED]
+- [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

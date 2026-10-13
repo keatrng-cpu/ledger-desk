@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/options-desk-cap.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # ceilingTicketTotal()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[options-desk-cap.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

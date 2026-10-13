@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-exit-plan.mjs"
+source_file: "scripts/capture-signals.mjs"
 type: "code"
-community: "Community 183"
-location: "L103"
+community: "capture-signals.mjs"
+location: "L166"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_183
+  - community/capture-signalsmjs
 ---
 
 # rows
 
 ## Connections
-- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
+- [[capture-signals.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_183
+#graphify/code #graphify/EXTRACTED #community/capture-signalsmjs

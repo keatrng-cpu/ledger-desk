@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 215"
+community: "invest-firm.ts"
 location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/invest-firmts
 ---
 
 # etMonthKey()
@@ -19,4 +19,4 @@ tags:
 - [[rhMonthFrom()]] - `calls` [EXTRACTED]
 - [[rollCountersOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

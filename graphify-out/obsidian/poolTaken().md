@@ -1,0 +1,20 @@
+---
+source_file: "src/lib/trading/desk-memory.ts"
+type: "code"
+community: "veteran-brain.ts"
+location: "L976"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/veteran-braints
+---
+
+# poolTaken()
+
+## Connections
+- [[desk-memory.ts]] - `contains` [EXTRACTED]
+- [[loadDeskMemory()]] - `calls` [EXTRACTED]
+- [[poolId()]] - `calls` [EXTRACTED]
+- [[px()_14]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

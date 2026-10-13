@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 60"
-location: "L30"
+community: "paper-manager.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/paper-managerts
 ---
 
 # listeners
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[auto-paper.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

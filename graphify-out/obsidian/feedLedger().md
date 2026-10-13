@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hi-alert-brain.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # feedLedger()
@@ -22,4 +22,4 @@ tags:
 - [[saveAtlas()]] - `calls` [EXTRACTED]
 - [[syncPeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

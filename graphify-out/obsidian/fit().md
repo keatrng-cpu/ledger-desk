@@ -1,25 +1,25 @@
 ---
-source_file: "src/components/room/floor-overhaul.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 24"
-location: "L85"
+community: "mead-screens.ts"
+location: "L215"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/mead-screensts
 ---
 
 # fit()
 
 ## Connections
-- [[drawKillzoneClock()]] - `calls` [EXTRACTED]
-- [[drawManagerBook()]] - `calls` [EXTRACTED]
-- [[drawManagerCall()]] - `calls` [EXTRACTED]
-- [[drawScars()]] - `calls` [EXTRACTED]
-- [[drawTickerWall()]] - `calls` [EXTRACTED]
-- [[drawTrack()]] - `calls` [EXTRACTED]
-- [[drawTrophies()]] - `calls` [EXTRACTED]
-- [[floor-overhaul.ts]] - `contains` [EXTRACTED]
-- [[wrap()_2]] - `calls` [EXTRACTED]
+- [[drawBooth()]] - `calls` [EXTRACTED]
+- [[drawBubble()]] - `calls` [EXTRACTED]
+- [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawLectern()]] - `calls` [EXTRACTED]
+- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
+- [[drawTv()]] - `calls` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

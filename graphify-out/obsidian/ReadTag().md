@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/discuss-tab.tsx"
 type: "code"
-community: "Community 161"
+community: "discuss-tab.tsx"
 location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_161
+  - community/discuss-tabtsx
 ---
 
 # ReadTag()
@@ -16,4 +16,4 @@ tags:
 - [[discuss-tab.tsx]] - `contains` [EXTRACTED]
 - [[parseDiscussRead()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_161
+#graphify/code #graphify/EXTRACTED #community/discuss-tabtsx

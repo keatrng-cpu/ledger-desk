@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/paper-book-panel.tsx"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # PaperBookPanel()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[closePaperTrade()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[managementLine()]] - `calls` [EXTRACTED]
 - [[paper-book-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

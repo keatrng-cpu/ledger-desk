@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 21"
-location: "L61"
+community: "hi-alert.ts"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/hi-alertts
 ---
 
 # SCHOOL_AVATAR
@@ -17,4 +17,4 @@ tags:
 - [[live-world.ts]] - `imports` [EXTRACTED]
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

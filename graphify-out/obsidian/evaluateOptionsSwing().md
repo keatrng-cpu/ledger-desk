@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 172"
-location: "L122"
+community: "veteran-brain.ts"
+location: "L144"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/veteran-braints
 ---
 
 # evaluateOptionsSwing()
@@ -18,6 +18,7 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 - [[rhRiskBudgetUsd()]] - `calls` [EXTRACTED]
+- [[sequenceGaps()]] - `calls` [EXTRACTED]
 - [[useDeskSynapse]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

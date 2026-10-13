@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/yahoo.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # yahoo.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[IndexSymbol]] - `imports` [EXTRACTED]
 - [[LiveQuote]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[ProxySpot]] - `contains` [EXTRACTED]
 - [[SymbolSeries]] - `imports` [EXTRACTED]
 - [[YAHOO_HEADERS]] - `contains` [EXTRACTED]
@@ -38,8 +38,11 @@ tags:
 - [[formatUtcClock()]] - `contains` [EXTRACTED]
 - [[forming-bar.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[live-ladder.ts]] - `imports_from` [EXTRACTED]
+- [[macro.ts]] - `imports_from` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[normalizedPct()]] - `contains` [EXTRACTED]
+- [[overnight.ts]] - `imports_from` [EXTRACTED]
 - [[parseYahooChart()]] - `contains` [EXTRACTED]
 - [[pearsonCorr()]] - `contains` [EXTRACTED]
 - [[replay-server.ts]] - `imports_from` [EXTRACTED]
@@ -51,4 +54,4 @@ tags:
 - [[yahooChart()]] - `contains` [EXTRACTED]
 - [[yahooChartOnce()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

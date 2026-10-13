@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/discretion-server.ts"
 type: "code"
-community: "Community 155"
+community: "claude-server.ts"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/claude-serverts
 ---
 
 # YearStratRow
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[discretion-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

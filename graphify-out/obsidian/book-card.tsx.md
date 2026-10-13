@@ -1,21 +1,21 @@
 ---
 source_file: "src/components/invest/book-card.tsx"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # book-card.tsx
 
 ## Connections
 - [[Activity()]] - `contains` [EXTRACTED]
-- [[BUTTON_1]] - `imports` [EXTRACTED]
+- [[BUTTON]] - `imports` [EXTRACTED]
 - [[BookCard()]] - `contains` [EXTRACTED]
-- [[BookRead]] - `imports` [EXTRACTED]
+- [[BookRead_1]] - `imports` [EXTRACTED]
 - [[BuyForm()]] - `contains` [EXTRACTED]
 - [[BuySource]] - `imports` [EXTRACTED]
 - [[Card()_2]] - `imports` [EXTRACTED]
@@ -47,9 +47,9 @@ tags:
 - [[longTermFrom()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[marks.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_15]] - `imports` [EXTRACTED]
+- [[pct()_14]] - `imports` [EXTRACTED]
 - [[previewSale()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[recordBuy()]] - `imports` [EXTRACTED]
 - [[recordDividend()]] - `imports` [EXTRACTED]
 - [[recordSell()]] - `imports` [EXTRACTED]
@@ -59,7 +59,7 @@ tags:
 - [[taxYear()]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_5]] - `imports` [EXTRACTED]
+- [[usd()_4]] - `imports` [EXTRACTED]
 - [[voidEntry()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

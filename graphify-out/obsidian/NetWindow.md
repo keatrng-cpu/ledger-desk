@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/safety-net.ts"
 type: "code"
-community: "Community 31"
+community: "orchestrator.ts"
 location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/orchestratorts
 ---
 
 # NetWindow
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[safety-net.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

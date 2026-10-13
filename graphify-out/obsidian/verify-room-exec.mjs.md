@@ -1,26 +1,26 @@
 ---
 source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 171"
+community: "verify-room-exec.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/verify-room-execmjs
 ---
 
 # verify-room-exec.mjs
 
 ## Connections
 - [[dot-x()]] - `indirect_call` [INFERRED]
-- [[@electric-sqlpglite_2]] - `dynamic_import` [EXTRACTED]
+- [[@electric-sqlpglite_1]] - `dynamic_import` [EXTRACTED]
 - [[T_2]] - `contains` [EXTRACTED]
 - [[account()]] - `contains` [EXTRACTED]
 - [[alpaca.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_20]] - `contains` [EXTRACTED]
+- [[check()_19]] - `contains` [EXTRACTED]
 - [[close()_2]] - `contains` [EXTRACTED]
 - [[codes()]] - `contains` [EXTRACTED]
-- [[ctx()]] - `contains` [EXTRACTED]
+- [[ctx()_1]] - `contains` [EXTRACTED]
 - [[db_1]] - `contains` [EXTRACTED]
 - [[exec-schema.ts]] - `dynamic_import` [EXTRACTED]
 - [[exec-sql.ts]] - `dynamic_import` [EXTRACTED]
@@ -40,9 +40,10 @@ tags:
 - [[quote()_1]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[safety-net.ts]] - `dynamic_import` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
-- [[want()]] - `contains` [EXTRACTED]
+- [[want()_1]] - `contains` [EXTRACTED]
 - [[world()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

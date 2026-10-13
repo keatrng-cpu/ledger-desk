@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/option-math.ts"
+source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 52"
-location: "L167"
+community: "pm-analyzer.tsx"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/pm-analyzertsx
 ---
 
 # cents()
 
 ## Connections
-- [[option-math.ts]] - `contains` [EXTRACTED]
-- [[quoteOption()]] - `calls` [EXTRACTED]
+- [[DeskPanel()]] - `calls` [EXTRACTED]
+- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

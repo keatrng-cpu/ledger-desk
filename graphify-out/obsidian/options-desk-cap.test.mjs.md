@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/options-desk-cap.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # options-desk-cap.test.mjs
 
 ## Connections
-- [[ROOT_11]] - `contains` [EXTRACTED]
+- [[ROOT_16]] - `contains` [EXTRACTED]
 - [[biasBook()]] - `contains` [EXTRACTED]
 - [[ceilingTicketTotal()]] - `contains` [EXTRACTED]
 - [[options-desk.ts]] - `dynamic_import` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `dynamic_import` [EXTRACTED]
 - [[tsx_1]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/premarket-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # premarket-panel.tsx
@@ -31,7 +31,7 @@ tags:
 - [[buildSessionBrief()]] - `imports` [EXTRACTED]
 - [[buildSmcTape()]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[fmt()_1]] - `contains` [EXTRACTED]
+- [[fmt()_4]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[month-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

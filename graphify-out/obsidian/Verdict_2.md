@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 92"
-location: "L345"
+community: "hi-alert.ts"
+location: "L376"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/hi-alertts
 ---
 
 # Verdict
@@ -16,4 +16,4 @@ tags:
 - [[hi-alert.ts]] - `imports` [EXTRACTED]
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/ui/card.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # CardHeader()
@@ -23,4 +23,4 @@ tags:
 - [[dual-index-charts.tsx]] - `imports` [EXTRACTED]
 - [[replay-report.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 12"
+community: "prediction-market-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/prediction-market-feedts
 ---
 
 # prediction-market-feed.ts
@@ -32,7 +32,7 @@ tags:
 - [[PriceBasis]] - `contains` [EXTRACTED]
 - [[RH_MCP_EMPTY_LABEL]] - `contains` [EXTRACTED]
 - [[RH_MCP_UNAVAILABLE_REASON]] - `contains` [EXTRACTED]
-- [[SCAN]] - `imports` [EXTRACTED]
+- [[SCAN_1]] - `imports` [EXTRACTED]
 - [[SOFT_GATE]] - `contains` [EXTRACTED]
 - [[ScanLayer]] - `imports` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
@@ -46,6 +46,7 @@ tags:
 - [[gradeFromGates()]] - `contains` [EXTRACTED]
 - [[gradeKalshiPublicMarket()]] - `contains` [EXTRACTED]
 - [[gradeRank()]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `imports_from` [EXTRACTED]
 - [[isNflMarket()]] - `contains` [EXTRACTED]
 - [[isStaleAsOf()]] - `contains` [EXTRACTED]
 - [[isoOrNull()]] - `contains` [EXTRACTED]
@@ -54,19 +55,21 @@ tags:
 - [[mapKalshiMarkets()]] - `contains` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
 - [[mead-feed.ts]] - `imports_from` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports_from` [EXTRACTED]
+- [[mead-hall-extras.ts]] - `imports_from` [EXTRACTED]
 - [[mead-hall-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[mead-hall.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[mead-scene.ts]] - `imports_from` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `imports_from` [EXTRACTED]
 - [[mockMarkets()]] - `contains` [EXTRACTED]
-- [[num()_2]] - `contains` [EXTRACTED]
+- [[num()_6]] - `contains` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
 - [[pickFeatured()]] - `contains` [EXTRACTED]
 - [[pm-analyzer.test.mjs]] - `imports_from` [EXTRACTED]
 - [[predict-server.ts]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[r4()]] - `contains` [EXTRACTED]
+- [[r4()_2]] - `contains` [EXTRACTED]
 - [[rankMarkets()]] - `contains` [EXTRACTED]
 - [[readiness]] - `imports` [EXTRACTED]
 - [[rhMcpUnavailableAdapter()]] - `contains` [EXTRACTED]
@@ -80,4 +83,4 @@ tags:
 - [[unitPrice()]] - `contains` [EXTRACTED]
 - [[verify-prediction-market-feed.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

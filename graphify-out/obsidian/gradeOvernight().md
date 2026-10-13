@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/overnight-swing.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L287"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # gradeOvernight()
@@ -22,6 +22,6 @@ tags:
 - [[pct()_17]] - `calls` [EXTRACTED]
 - [[positionFromFills()]] - `calls` [EXTRACTED]
 - [[rhTicketCapUsd()]] - `calls` [EXTRACTED]
-- [[usd()_6]] - `calls` [EXTRACTED]
+- [[usd()_7]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

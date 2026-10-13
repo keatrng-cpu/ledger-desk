@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 39"
-location: "L236"
+community: "cn"
+location: "L623"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # cardSizeRefusal()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[SetupCard()]] - `calls` [EXTRACTED]
 - [[SetupScanner()]] - `calls` [EXTRACTED]
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]
@@ -23,4 +24,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[signedR()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

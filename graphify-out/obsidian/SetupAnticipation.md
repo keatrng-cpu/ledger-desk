@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 186"
+community: "chart-timeframes.ts"
 location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/chart-timeframests
 ---
 
 # SetupAnticipation
@@ -16,4 +16,4 @@ tags:
 - [[setup-anticipation.ts]] - `contains` [EXTRACTED]
 - [[setup-mini-chart.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/predict/paper-scorer.ts"
+source_file: "src/lib/trading/replay.ts"
 type: "code"
-community: "Community 63"
-location: "L61"
+community: "structure.ts"
+location: "L302"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/structurets
 ---
 
 # CalibrationBucket
 
 ## Connections
-- [[TooFew]] - `references` [EXTRACTED]
-- [[paper-scorer.ts]] - `contains` [EXTRACTED]
+- [[replay.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/structurets

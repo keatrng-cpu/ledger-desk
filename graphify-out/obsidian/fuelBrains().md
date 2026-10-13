@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/brain-fuel.ts"
 type: "code"
-community: "Community 21"
-location: "L49"
+community: "desk-atlas.ts"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # fuelBrains()
 
 ## Connections
+- [[bookSentence()]] - `calls` [EXTRACTED]
 - [[brain-fuel.ts]] - `contains` [EXTRACTED]
 - [[freshPeople()]] - `calls` [EXTRACTED]
 - [[improveAtlas()]] - `calls` [EXTRACTED]
@@ -23,4 +24,4 @@ tags:
 - [[saveAtlas()]] - `calls` [EXTRACTED]
 - [[savePeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-live-gateway.mjs"
+source_file: "scripts/verify-source-check.mjs"
 type: "code"
-community: "Community 61"
-location: "L30"
+community: "source-check.ts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/source-checkts
 ---
 
 # check()
 
 ## Connections
-- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
+- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/source-checkts

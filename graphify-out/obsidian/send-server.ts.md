@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/send-server.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # send-server.ts
@@ -21,7 +21,7 @@ tags:
 - [[checklist.ts]] - `imports_from` [EXTRACTED]
 - [[claimAlert()]] - `imports` [EXTRACTED]
 - [[deleteDeadEndpoint()]] - `imports` [EXTRACTED]
-- [[etDay()]] - `contains` [EXTRACTED]
+- [[etDay()_1]] - `contains` [EXTRACTED]
 - [[haltHitAlert()]] - `contains` [EXTRACTED]
 - [[journalserver.ts]] - `imports_from` [EXTRACTED]
 - [[listSubscriptions()]] - `imports` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[trigger-server.ts]] - `imports_from` [EXTRACTED]
 - [[weekly.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

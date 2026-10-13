@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-entry-ticket.mjs"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L150"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # layers
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-entry-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

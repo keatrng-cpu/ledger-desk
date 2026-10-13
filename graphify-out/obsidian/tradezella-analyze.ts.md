@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tradezella-analyze.ts"
 type: "code"
-community: "Community 114"
+community: "tradezella-analyze.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/tradezella-analyzets
 ---
 
 # tradezella-analyze.ts
@@ -26,12 +26,12 @@ tags:
 - [[TimeframeBias]] - `contains` [EXTRACTED]
 - [[TradezellaAnalysis]] - `contains` [EXTRACTED]
 - [[TradezellaStats]] - `contains` [EXTRACTED]
-- [[WEIGHTS]] - `imports` [EXTRACTED]
+- [[WEIGHTS_1]] - `imports` [EXTRACTED]
 - [[analysis-to-candidate.ts]] - `imports_from` [EXTRACTED]
 - [[analysisToMarkdown()]] - `contains` [EXTRACTED]
 - [[analyzeTradezella()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[chart-markup.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[detectMentionedComponents()]] - `contains` [EXTRACTED]
 - [[detectStrategies()]] - `contains` [EXTRACTED]
 - [[engine-weights.ts]] - `imports_from` [EXTRACTED]
@@ -46,4 +46,4 @@ tags:
 - [[tradezella-chat.tsx]] - `imports_from` [EXTRACTED]
 - [[tradezella-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

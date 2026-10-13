@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-ai-sync.mjs"
+source_file: "scripts/verify-desk-cadence.mjs"
 type: "code"
-community: "Community 247"
-location: "L10"
+community: "verify-desk-cadence.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_247
+  - community/verify-desk-cadencemjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_20]] - `calls` [EXTRACTED]
-- [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
+- [[ok()_21]] - `calls` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_247
+#graphify/code #graphify/EXTRACTED #community/verify-desk-cadencemjs

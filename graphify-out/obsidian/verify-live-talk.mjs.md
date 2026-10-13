@@ -1,39 +1,43 @@
 ---
 source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 142"
+community: "verify-live-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-live-talkmjs
 ---
 
 # verify-live-talk.mjs
 
 ## Connections
 - [[dot-x()]] - `indirect_call` [INFERRED]
-- [[BASE_1]] - `contains` [EXTRACTED]
-- [[CREW5]] - `contains` [EXTRACTED]
-- [[NEEDS_1]] - `contains` [EXTRACTED]
+- [[BASE_2]] - `contains` [EXTRACTED]
+- [[CREW5_1]] - `contains` [EXTRACTED]
+- [[HALL_IDS_1]] - `contains` [EXTRACTED]
+- [[NEEDS_2]] - `contains` [EXTRACTED]
 - [[QUIET]] - `contains` [EXTRACTED]
 - [[SPOKEN_1]] - `contains` [EXTRACTED]
 - [[STATIC]] - `contains` [EXTRACTED]
-- [[Sim]] - `contains` [EXTRACTED]
+- [[Sim_1]] - `contains` [EXTRACTED]
 - [[T_AM]] - `contains` [EXTRACTED]
 - [[WHY the Floor looped — it opened on a scripted drill, replayed a three-variant…]] - `rationale_for` [EXTRACTED]
-- [[at()_1]] - `contains` [EXTRACTED]
-- [[check()_10]] - `contains` [EXTRACTED]
-- [[clockAt()_1]] - `contains` [EXTRACTED]
+- [[at()_2]] - `contains` [EXTRACTED]
+- [[check()_9]] - `contains` [EXTRACTED]
+- [[clockAt()_2]] - `contains` [EXTRACTED]
+- [[hallBoard()]] - `contains` [EXTRACTED]
 - [[legal()_1]] - `contains` [EXTRACTED]
 - [[levelsFor()]] - `contains` [EXTRACTED]
 - [[live-talk.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-types.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-world.ts]] - `dynamic_import` [EXTRACTED]
 - [[lv()]] - `contains` [EXTRACTED]
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
+- [[mead-hall-layout.ts]] - `dynamic_import` [EXTRACTED]
 - [[mkBook()]] - `contains` [EXTRACTED]
-- [[mkMinds()]] - `contains` [EXTRACTED]
-- [[mkWorld()_1]] - `contains` [EXTRACTED]
+- [[mkMinds()_1]] - `contains` [EXTRACTED]
+- [[mkWorld()_2]] - `contains` [EXTRACTED]
 - [[numbersOf()_1]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `dynamic_import` [EXTRACTED]
 - [[profit-rules.ts]] - `dynamic_import` [EXTRACTED]
@@ -43,4 +47,4 @@ tags:
 - [[unsourced()_1]] - `contains` [EXTRACTED]
 - [[walker()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

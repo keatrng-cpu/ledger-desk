@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/curriculum.ts"
 type: "code"
-community: "Community 132"
+community: "curriculum.ts"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/curriculumts
 ---
 
 # MODULE_ORDER
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[curriculum.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/curriculumts

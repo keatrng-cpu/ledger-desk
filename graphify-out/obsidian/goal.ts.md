@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 50"
+community: "goal.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/goalts
 ---
 
 # goal.ts
@@ -40,11 +40,11 @@ tags:
 - [[SimOutput]] - `contains` [EXTRACTED]
 - [[SimPolicy]] - `contains` [EXTRACTED]
 - [[TradeModel]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[arrivalPmf()]] - `contains` [EXTRACTED]
 - [[asGoal()]] - `contains` [EXTRACTED]
-- [[bisect()]] - `contains` [EXTRACTED]
+- [[bisect()_1]] - `contains` [EXTRACTED]
 - [[collisions()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contract-ladder.ts]] - `imports_from` [EXTRACTED]
 - [[contractsFor()]] - `contains` [EXTRACTED]
 - [[dateOf()]] - `contains` [EXTRACTED]
@@ -52,7 +52,7 @@ tags:
 - [[defaultGoal()]] - `contains` [EXTRACTED]
 - [[doneOut()]] - `contains` [EXTRACTED]
 - [[entriesOpen()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[goalClock]] - `contains` [EXTRACTED]
 - [[goalDp()]] - `contains` [EXTRACTED]
@@ -63,7 +63,7 @@ tags:
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
 - [[modelFromMean()]] - `contains` [EXTRACTED]
 - [[modelFromRung()]] - `contains` [EXTRACTED]
-- [[money()_10]] - `contains` [EXTRACTED]
+- [[money()_11]] - `contains` [EXTRACTED]
 - [[needed]] - `contains` [EXTRACTED]
 - [[opportunityRate()]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
@@ -102,4 +102,4 @@ tags:
 - [[weekdayOnOrAfter()]] - `contains` [EXTRACTED]
 - [[winsNeeded()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/goalts

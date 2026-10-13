@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 223"
-location: "L2557"
+community: ".path"
+location: "L2896"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/path
 ---
 
 # .debugReach()
@@ -15,4 +15,4 @@ tags:
 - [[dot-path()]] - `calls` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/path

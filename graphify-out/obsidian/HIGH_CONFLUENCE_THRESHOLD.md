@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 132"
-location: "L65"
+community: "curriculum.ts"
+location: "L78"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/curriculumts
 ---
 
 # HIGH_CONFLUENCE_THRESHOLD
@@ -17,4 +17,4 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/curriculumts

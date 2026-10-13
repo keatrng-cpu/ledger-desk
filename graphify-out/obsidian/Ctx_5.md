@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-overhaul-race.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 42"
-location: "L9"
+community: "floor-overhaul-war.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-overhaul-warts
 ---
 
 # Ctx
 
 ## Connections
-- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/shadow-book-panel.tsx"
 type: "code"
-community: "Community 187"
+community: "shadow-book-panel.tsx"
 location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/shadow-book-paneltsx
 ---
 
 # liveR()
 
 ## Connections
-- [[Row()_1]] - `calls` [EXTRACTED]
+- [[Row()_4]] - `calls` [EXTRACTED]
 - [[shadow-book-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/shadow-book-paneltsx

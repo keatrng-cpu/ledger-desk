@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/ingest-server.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # ingestEngineEvents()
@@ -17,4 +17,4 @@ tags:
 - [[handleJournal()]] - `calls` [EXTRACTED]
 - [[ingest-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

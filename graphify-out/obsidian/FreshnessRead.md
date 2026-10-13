@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-engine.ts"
 type: "code"
-community: "Community 12"
+community: "signal-engine.ts"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/signal-enginets
 ---
 
 # FreshnessRead
@@ -16,4 +16,4 @@ tags:
 - [[StaleReason]] - `references` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/signal-enginets

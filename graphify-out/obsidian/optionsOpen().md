@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 143"
+community: "verify-paper-step.mjs"
 location: "L129"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-paper-stepmjs
 ---
 
 # optionsOpen()
@@ -20,4 +20,4 @@ tags:
 - [[stepLab()]] - `calls` [EXTRACTED]
 - [[stepSeats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

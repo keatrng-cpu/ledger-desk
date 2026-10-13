@@ -1,22 +1,23 @@
 ---
 source_file: "src/lib/room/race.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # computeRace()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[asLab()]] - `calls` [EXTRACTED]
 - [[asSeatBook()]] - `calls` [EXTRACTED]
 - [[buildLadder()]] - `calls` [EXTRACTED]
 - [[clockEt()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etWallToEpochMs()]] - `calls` [EXTRACTED]
 - [[expiryFor()]] - `calls` [EXTRACTED]
 - [[ivFor()]] - `calls` [EXTRACTED]
@@ -31,4 +32,4 @@ tags:
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[strikeFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

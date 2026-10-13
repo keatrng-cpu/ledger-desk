@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-room-ev.mjs"
+source_file: "scripts/build-hit-odds.mjs"
 type: "code"
-community: "Community 91"
-location: "L124"
+community: "build-hit-odds.mjs"
+location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_91
+  - community/build-hit-oddsmjs
 ---
 
 # rows
 
 ## Connections
-- [[measure-room-ev.mjs]] - `contains` [EXTRACTED]
+- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_91
+#graphify/code #graphify/EXTRACTED #community/build-hit-oddsmjs

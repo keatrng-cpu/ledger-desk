@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/target-odds.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # MIN_SESSIONS_FOR_ODDS
@@ -15,4 +15,4 @@ tags:
 - [[target-odds.ts]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

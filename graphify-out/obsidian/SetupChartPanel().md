@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart-panel.tsx"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L147"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # SetupChartPanel()
@@ -29,6 +29,7 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[pickBook()_1]] - `calls` [EXTRACTED]
 - [[planRiskText()]] - `calls` [EXTRACTED]
+- [[previewMarks()]] - `calls` [EXTRACTED]
 - [[readEntry()]] - `calls` [EXTRACTED]
 - [[refusingLayer()]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `contains` [EXTRACTED]
@@ -36,4 +37,4 @@ tags:
 - [[useBiasFlip()]] - `calls` [EXTRACTED]
 - [[useShadowBook()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

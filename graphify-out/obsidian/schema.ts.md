@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/schema.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # schema.ts
@@ -31,6 +31,6 @@ tags:
 - [[journalBatchSchema]] - `contains` [EXTRACTED]
 - [[journalRowSchema_1]] - `contains` [EXTRACTED]
 - [[toDeskEvent()]] - `contains` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

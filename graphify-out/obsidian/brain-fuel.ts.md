@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-fuel.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # brain-fuel.ts
@@ -20,6 +20,8 @@ tags:
 - [[PEOPLE_KEY]] - `imports` [EXTRACTED]
 - [[PeopleBrains]] - `imports` [EXTRACTED]
 - [[SLOTS]] - `contains` [EXTRACTED]
+- [[bookSentence()]] - `imports` [EXTRACTED]
+- [[brain-read.ts]] - `imports_from` [EXTRACTED]
 - [[brain-traffic.ts]] - `imports_from` [EXTRACTED]
 - [[desk-atlas.ts]] - `imports_from` [EXTRACTED]
 - [[freshPeople()]] - `imports` [EXTRACTED]
@@ -33,4 +35,4 @@ tags:
 - [[savePeople()]] - `contains` [EXTRACTED]
 - [[verify-brain-fuel.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

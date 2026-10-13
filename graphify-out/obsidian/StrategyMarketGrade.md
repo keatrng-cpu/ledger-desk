@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 84"
-location: "L135"
+community: "veteran-brain.ts"
+location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/veteran-braints
 ---
 
 # StrategyMarketGrade
@@ -18,4 +18,4 @@ tags:
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

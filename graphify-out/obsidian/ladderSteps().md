@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/contract-ladder.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # ladderSteps()
@@ -21,4 +21,4 @@ tags:
 - [[seats.ts]] - `imports` [EXTRACTED]
 - [[strikeFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

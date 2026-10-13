@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/journal/discretion-server.ts"
 type: "code"
-community: "Community 155"
+community: "claude-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/claude-serverts
 ---
 
 # discretion-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[AnalyticsTrade]] - `imports` [EXTRACTED]
 - [[BacktestPrior]] - `imports` [EXTRACTED]
 - [[DiscretionPayload]] - `contains` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[readClosed()]] - `imports` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # lab.ts
 
 ## Connections
-- [[CREW]] - `contains` [EXTRACTED]
+- [[CREW_3]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[ExitPolicy]] - `imports` [EXTRACTED]
 - [[ExitWatch]] - `imports` [EXTRACTED]
@@ -32,7 +32,7 @@ tags:
 - [[RoomLab]] - `contains` [EXTRACTED]
 - [[RoomPositionIn]] - `imports` [EXTRACTED]
 - [[SeatBook]] - `imports` [EXTRACTED]
-- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[StrikeOffset_1]] - `imports` [EXTRACTED]
 - [[TrackRecord]] - `contains` [EXTRACTED]
 - [[Underlier]] - `imports` [EXTRACTED]
 - [[UnderlierTape]] - `imports` [EXTRACTED]
@@ -41,13 +41,13 @@ tags:
 - [[debate.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[emptyLab()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[exitFor()]] - `imports` [EXTRACTED]
 - [[exits.ts]] - `imports_from` [EXTRACTED]
 - [[expiryMs()]] - `imports` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[floor-screens.ts]] - `imports_from` [EXTRACTED]
 - [[ghostFrom()]] - `contains` [EXTRACTED]
 - [[holdReadFor()]] - `imports` [EXTRACTED]
@@ -57,7 +57,7 @@ tags:
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
-- [[money()_7]] - `contains` [EXTRACTED]
+- [[money()_12]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
 - [[optionsOpen()]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
@@ -82,4 +82,4 @@ tags:
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

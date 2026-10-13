@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/dossiers.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # dossiers.ts
@@ -21,11 +21,13 @@ tags:
 - [[book-card.tsx]] - `imports_from` [EXTRACTED]
 - [[dossierFor()]] - `contains` [EXTRACTED]
 - [[factors.ts]] - `imports_from` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-office.ts]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[investevidence.ts]] - `imports_from` [EXTRACTED]
 - [[kill-watch.ts]] - `imports_from` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[news-server.ts]] - `imports_from` [EXTRACTED]
 - [[news-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
@@ -38,4 +40,4 @@ tags:
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

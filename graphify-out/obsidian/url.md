@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/browser-smoke.mjs"
 type: "code"
-community: "Community 11"
+community: "ref_node_path"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_path
 ---
 
 # url
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[browser-smoke.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

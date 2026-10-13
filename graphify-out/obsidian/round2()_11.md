@@ -1,18 +1,23 @@
 ---
-source_file: "src/lib/execution/order-intent.ts"
+source_file: "src/lib/room/quant.ts"
 type: "code"
-community: "Community 77"
-location: "L476"
+community: "orchestrator.ts"
+location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/orchestratorts
 ---
 
 # round2()
 
 ## Connections
-- [[buildOrderIntent()]] - `calls` [EXTRACTED]
-- [[order-intent.ts]] - `contains` [EXTRACTED]
+- [[attribute()_1]] - `calls` [EXTRACTED]
+- [[backstopped()]] - `calls` [EXTRACTED]
+- [[breakevenSpot()]] - `calls` [EXTRACTED]
+- [[holdValue()]] - `calls` [EXTRACTED]
+- [[premiumStopOf()]] - `calls` [EXTRACTED]
+- [[priceOptionPlan()]] - `calls` [EXTRACTED]
+- [[quant.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

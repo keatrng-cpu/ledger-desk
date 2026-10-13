@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smt-level.ts"
 type: "code"
-community: "Community 58"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/trading/scannerts
 ---
 
 # smt-level.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[MajorLevel]] - `contains` [EXTRACTED]
 - [[NONE_2]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SMT_LEVEL_TOL_ATR]] - `contains` [EXTRACTED]
 - [[SmcArray]] - `imports` [EXTRACTED]
 - [[SmtDivergenceRead]] - `imports` [EXTRACTED]
@@ -32,6 +32,7 @@ tags:
 - [[tradeDateOf()]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
-- [[weekKey()_3]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
+- [[weekKey()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

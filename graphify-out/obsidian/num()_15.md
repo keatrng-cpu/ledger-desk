@@ -1,24 +1,17 @@
 ---
-source_file: "src/components/desk/snapshot-review.tsx"
+source_file: "scripts/verify-lab-constants.mjs"
 type: "code"
-community: "Community 93"
-location: "L60"
+community: "verify-lab-constants.mjs"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/verify-lab-constantsmjs
 ---
 
 # num()
 
 ## Connections
-- [[BiasSection()]] - `calls` [EXTRACTED]
-- [[CandidateCard()]] - `calls` [EXTRACTED]
-- [[DrawTarget()]] - `calls` [EXTRACTED]
-- [[DrawsSection()]] - `calls` [EXTRACTED]
-- [[LevelsSection()]] - `calls` [EXTRACTED]
-- [[NewsSection()]] - `calls` [EXTRACTED]
-- [[ScanSection()]] - `calls` [EXTRACTED]
-- [[snapshot-review.tsx]] - `contains` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/verify-lab-constantsmjs

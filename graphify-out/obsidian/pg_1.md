@@ -1,11 +1,11 @@
 ---
 source_file: "pg"
 type: "code"
-community: "Community 189"
+community: "getSql"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/getSql
 ---
 
 # pg
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[db.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_189
+#graphify/code #graphify/EXTRACTED #community/getSql

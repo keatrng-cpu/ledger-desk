@@ -1,18 +1,19 @@
 ---
-source_file: "scripts/probe-closest.mjs"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 20"
-location: "L28"
+community: "cases.ts"
+location: "L160"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/casests
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[dayKey()_8]] - `calls` [EXTRACTED]
-- [[probe-closest.mjs]] - `contains` [EXTRACTED]
+- [[Snapshot]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[etDayKey()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/casests

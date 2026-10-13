@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/pending-order.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L320"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # tickPending()
@@ -18,6 +18,6 @@ tags:
 - [[loadPending()]] - `calls` [EXTRACTED]
 - [[pending-order.ts]] - `contains` [EXTRACTED]
 - [[readPrint()]] - `calls` [EXTRACTED]
-- [[save()_6]] - `calls` [EXTRACTED]
+- [[save()_8]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

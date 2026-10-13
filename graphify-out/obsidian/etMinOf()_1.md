@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "scripts/measure-option-time.mjs"
 type: "code"
-community: "Community 137"
-location: "L56"
+community: "measure-option-time.mjs"
+location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/measure-option-timemjs
 ---
 
 # etMinOf()
 
 ## Connections
-- [[frameFor()]] - `calls` [EXTRACTED]
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[measure-option-time.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/measure-option-timemjs

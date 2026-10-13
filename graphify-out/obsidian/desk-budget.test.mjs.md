@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/desk-budget.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # desk-budget.test.mjs
@@ -19,4 +19,4 @@ tags:
 - [[sleep()_2]] - `contains` [EXTRACTED]
 - [[tsx_1]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/room/orchestrator.ts"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 0"
-location: "L467"
+community: "verify-invest-office.mjs"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/verify-invest-officemjs
 ---
 
 # etMinOf()
 
 ## Connections
-- [[etWallParts]] - `calls` [EXTRACTED]
-- [[evaluateEntry()]] - `calls` [EXTRACTED]
-- [[orchestrator.ts]] - `contains` [EXTRACTED]
+- [[frameFor()]] - `calls` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

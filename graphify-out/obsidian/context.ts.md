@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/context.ts"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # context.ts
@@ -21,4 +21,4 @@ tags:
 - [[discuss-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[trading-coach.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

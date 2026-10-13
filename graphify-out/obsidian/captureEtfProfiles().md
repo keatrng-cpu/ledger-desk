@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-invest-universe.mjs"
 type: "code"
-community: "Community 219"
+community: "capture-invest-universe.mjs"
 location: "L179"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_219
+  - community/capture-invest-universemjs
 ---
 
 # captureEtfProfiles()
@@ -15,4 +15,4 @@ tags:
 - [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
 - [[num()_10]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_219
+#graphify/code #graphify/EXTRACTED #community/capture-invest-universemjs

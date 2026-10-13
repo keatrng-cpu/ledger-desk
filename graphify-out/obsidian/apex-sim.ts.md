@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 76"
+community: "apex-sim.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_76
+  - community/apex-simts
 ---
 
 # apex-sim.ts
@@ -31,7 +31,7 @@ tags:
 - [[ApexSize]] - `contains` [EXTRACTED]
 - [[ApexSizeRules]] - `contains` [EXTRACTED]
 - [[CONFIDENCE_LABEL]] - `contains` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[DEFAULT_RISK_USD]] - `contains` [EXTRACTED]
 - [[DEFAULT_ROOM_BUFFER]] - `contains` [EXTRACTED]
@@ -50,7 +50,7 @@ tags:
 - [[RoomResult]] - `contains` [EXTRACTED]
 - [[RuleConfidence]] - `contains` [EXTRACTED]
 - [[RuleFigure]] - `contains` [EXTRACTED]
-- [[S()_2]] - `contains` [EXTRACTED]
+- [[S()_3]] - `contains` [EXTRACTED]
 - [[SIM_DEFAULT_PATHS]] - `contains` [EXTRACTED]
 - [[SIM_MAX_PATHS]] - `contains` [EXTRACTED]
 - [[SIM_MIN_PATHS]] - `contains` [EXTRACTED]
@@ -65,11 +65,11 @@ tags:
 - [[apex-sim-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[apexContracts()]] - `contains` [EXTRACTED]
 - [[apexRulesFor()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[binomCdf()]] - `contains` [EXTRACTED]
 - [[buildDayPool()]] - `contains` [EXTRACTED]
 - [[calibrateThinning()]] - `contains` [EXTRACTED]
 - [[clampTradesPerWeek()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[createEvalAccount()]] - `contains` [EXTRACTED]
 - [[defaultSimInput()]] - `contains` [EXTRACTED]
 - [[dllFor()]] - `contains` [EXTRACTED]
@@ -77,8 +77,8 @@ tags:
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[expectedPerSession()]] - `contains` [EXTRACTED]
 - [[fmtNum()]] - `contains` [EXTRACTED]
-- [[fmtPct()]] - `contains` [EXTRACTED]
-- [[fmtUsd()_1]] - `contains` [EXTRACTED]
+- [[fmtPct()_1]] - `contains` [EXTRACTED]
+- [[fmtUsd()]] - `contains` [EXTRACTED]
 - [[inclusionProbability()]] - `contains` [EXTRACTED]
 - [[isMicro()]] - `contains` [EXTRACTED]
 - [[loadEvidenceDist()]] - `contains` [EXTRACTED]
@@ -95,7 +95,7 @@ tags:
 - [[score.ts]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[sessionsInHorizon()]] - `contains` [EXTRACTED]
-- [[signedR()_2]] - `contains` [EXTRACTED]
+- [[signedR()_3]] - `contains` [EXTRACTED]
 - [[simCaveats()]] - `contains` [EXTRACTED]
 - [[simHonestyLine()]] - `contains` [EXTRACTED]
 - [[src_data_evidence_dist]] - `dynamic_import` [EXTRACTED]
@@ -107,4 +107,4 @@ tags:
 - [[weekdayOfOrdinal()]] - `contains` [EXTRACTED]
 - [[zeroEdgeControl()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_76
+#graphify/code #graphify/EXTRACTED #community/apex-simts

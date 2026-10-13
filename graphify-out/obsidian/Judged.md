@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/research-card.tsx"
 type: "code"
-community: "Community 5"
-location: "L27"
+community: "invest-panel.tsx"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/invest-paneltsx
 ---
 
 # Judged
@@ -15,4 +15,4 @@ tags:
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[research-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

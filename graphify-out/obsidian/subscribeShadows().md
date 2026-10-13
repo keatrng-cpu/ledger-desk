@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 149"
+community: "shadow-store.ts"
 location: "L726"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/shadow-storets
 ---
 
 # subscribeShadows()
@@ -16,4 +16,4 @@ tags:
 - [[shadow-store.ts]] - `imports` [EXTRACTED]
 - [[useShadowBook()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/shadow-storets

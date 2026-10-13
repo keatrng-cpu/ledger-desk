@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-geometry.mjs"
+source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 158"
-location: "L21"
+community: "spot-cross.ts"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/spot-crossts
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
+- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

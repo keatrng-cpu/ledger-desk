@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-synapse.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # desk-synapse.ts
@@ -28,12 +28,12 @@ tags:
 - [[SwingSignal]] - `imports` [EXTRACTED]
 - [[SynapseTab]] - `contains` [EXTRACTED]
 - [[VeteranBrief]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[brainLiveRisk]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildBoosts()]] - `contains` [EXTRACTED]
 - [[buildFeeds()]] - `contains` [EXTRACTED]
 - [[buildPosture()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[countersFromMemory()]] - `imports` [EXTRACTED]
 - [[describeProfitRules()]] - `imports` [EXTRACTED]
 - [[desk-fetch-guard.ts]] - `imports_from` [EXTRACTED]
@@ -68,4 +68,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[zustand]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

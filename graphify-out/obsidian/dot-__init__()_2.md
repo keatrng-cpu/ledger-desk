@@ -1,17 +1,18 @@
 ---
-source_file: "gateway/databento_live_gateway.py"
+source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 74"
-location: "L354"
+community: "json"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/json
 ---
 
 # .__init__()
 
 ## Connections
-- [[LiveGateway]] - `method` [EXTRACTED]
+- [[dot-_footprints()]] - `calls` [EXTRACTED]
+- [[Dress]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/json

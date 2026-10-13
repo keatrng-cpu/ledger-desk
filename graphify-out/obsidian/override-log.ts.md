@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/override-log.ts"
 type: "code"
-community: "Community 60"
+community: "trade-log.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/trade-logts
 ---
 
 # override-log.ts
@@ -22,10 +22,10 @@ tags:
 - [[crossCheck]] - `contains` [EXTRACTED]
 - [[overridePrompt()]] - `contains` [EXTRACTED]
 - [[overrideScorecard()]] - `contains` [EXTRACTED]
-- [[profit-rules.ts]] - `imports_from` [EXTRACTED]
+- [[profit-rules.ts]] - `re_exports` [EXTRACTED]
 - [[round2()_4]] - `contains` [EXTRACTED]
 - [[summarise()]] - `contains` [EXTRACTED]
 - [[trade-log.ts]] - `imports_from` [EXTRACTED]
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/trade-logts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 84"
-location: "L223"
+community: "strategy-grade.ts"
+location: "L259"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/strategy-gradets
 ---
 
 # gradeStrategyAgainstMarket()
@@ -22,4 +22,4 @@ tags:
 - [[templateFor()]] - `calls` [EXTRACTED]
 - [[verify-score-drivers.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

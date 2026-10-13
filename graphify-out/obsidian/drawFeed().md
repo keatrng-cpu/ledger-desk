@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L1477"
+community: "floor-screens.ts"
+location: "L1514"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # drawFeed()
@@ -20,4 +20,4 @@ tags:
 - [[header()]] - `calls` [EXTRACTED]
 - [[kvLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

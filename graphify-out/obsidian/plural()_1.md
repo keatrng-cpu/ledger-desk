@@ -1,20 +1,21 @@
 ---
-source_file: "src/lib/room/live-voices-invest.ts"
+source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 49"
-location: "L27"
+community: "live-voices-mead.ts"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-meadts
 ---
 
 # plural()
 
 ## Connections
-- [[exInvBoard()]] - `calls` [EXTRACTED]
-- [[exInvBook()]] - `calls` [EXTRACTED]
-- [[exInvFunnel()]] - `calls` [EXTRACTED]
-- [[live-voices-invest.ts]] - `contains` [EXTRACTED]
+- [[exHallCrowd()]] - `calls` [EXTRACTED]
+- [[exHallLectern()]] - `calls` [EXTRACTED]
+- [[exHallNoModel()]] - `calls` [EXTRACTED]
+- [[exHallRecord()]] - `calls` [EXTRACTED]
+- [[live-voices-mead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

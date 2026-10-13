@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # compact()
@@ -16,6 +16,7 @@ tags:
 - [[exAudit()]] - `calls` [EXTRACTED]
 - [[exBoard()]] - `calls` [EXTRACTED]
 - [[exCalendar()]] - `calls` [EXTRACTED]
+- [[exClosedStudy()]] - `calls` [EXTRACTED]
 - [[exCouncil()]] - `calls` [EXTRACTED]
 - [[exDealing()]] - `calls` [EXTRACTED]
 - [[exDecision()]] - `calls` [EXTRACTED]
@@ -24,10 +25,31 @@ tags:
 - [[exFeed()]] - `calls` [EXTRACTED]
 - [[exFill()]] - `calls` [EXTRACTED]
 - [[exFinish()]] - `calls` [EXTRACTED]
+- [[exFirmBoard()]] - `calls` [EXTRACTED]
+- [[exFirmCompliance()]] - `calls` [EXTRACTED]
+- [[exFirmDiligence()]] - `calls` [EXTRACTED]
+- [[exFirmFresh()]] - `calls` [EXTRACTED]
+- [[exFirmFunding()]] - `calls` [EXTRACTED]
+- [[exFirmMacro()]] - `calls` [EXTRACTED]
+- [[exFirmMemo()]] - `calls` [EXTRACTED]
+- [[exFirmOps()]] - `calls` [EXTRACTED]
+- [[exFirmPolicy()]] - `calls` [EXTRACTED]
+- [[exFirmRisk()]] - `calls` [EXTRACTED]
+- [[exFirmTax()]] - `calls` [EXTRACTED]
 - [[exGap()]] - `calls` [EXTRACTED]
 - [[exGhost()]] - `calls` [EXTRACTED]
 - [[exGoalFinal()]] - `calls` [EXTRACTED]
 - [[exGoalNight()]] - `calls` [EXTRACTED]
+- [[exHallBins()]] - `calls` [EXTRACTED]
+- [[exHallBoard()]] - `calls` [EXTRACTED]
+- [[exHallClock()]] - `calls` [EXTRACTED]
+- [[exHallCrowd()]] - `calls` [EXTRACTED]
+- [[exHallFee()]] - `calls` [EXTRACTED]
+- [[exHallLectern()]] - `calls` [EXTRACTED]
+- [[exHallModel()]] - `calls` [EXTRACTED]
+- [[exHallNews()]] - `calls` [EXTRACTED]
+- [[exHallNoModel()]] - `calls` [EXTRACTED]
+- [[exHallRecord()]] - `calls` [EXTRACTED]
 - [[exHot()]] - `calls` [EXTRACTED]
 - [[exHtf()]] - `calls` [EXTRACTED]
 - [[exHuddle()]] - `calls` [EXTRACTED]
@@ -46,6 +68,8 @@ tags:
 - [[exLesson()]] - `calls` [EXTRACTED]
 - [[exLevel()]] - `calls` [EXTRACTED]
 - [[exManage()]] - `calls` [EXTRACTED]
+- [[exMead()]] - `calls` [EXTRACTED]
+- [[exMead()_1]] - `calls` [EXTRACTED]
 - [[exMemory()]] - `calls` [EXTRACTED]
 - [[exMood()]] - `calls` [EXTRACTED]
 - [[exNear()]] - `calls` [EXTRACTED]
@@ -66,6 +90,10 @@ tags:
 - [[exSession()]] - `calls` [EXTRACTED]
 - [[exShelf()]] - `calls` [EXTRACTED]
 - [[exSmt()]] - `calls` [EXTRACTED]
+- [[exStudyInvest()]] - `calls` [EXTRACTED]
+- [[exStudyOutsider()]] - `calls` [EXTRACTED]
+- [[exStudyPredict()]] - `calls` [EXTRACTED]
+- [[exStudyWatchNews()]] - `calls` [EXTRACTED]
 - [[exSyndicateClosed()]] - `calls` [EXTRACTED]
 - [[exTape()]] - `calls` [EXTRACTED]
 - [[exTier()]] - `calls` [EXTRACTED]
@@ -74,8 +102,10 @@ tags:
 - [[exVol()]] - `calls` [EXTRACTED]
 - [[exWeek()]] - `calls` [EXTRACTED]
 - [[exWelcome()]] - `calls` [EXTRACTED]
+- [[live-voices-invest-firm.ts]] - `imports` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports` [EXTRACTED]
+- [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

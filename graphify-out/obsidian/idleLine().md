@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
-location: "L957"
+community: "meeting.ts"
+location: "L958"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # idleLine()
@@ -17,7 +17,7 @@ tags:
 - [[htfLine()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[printLine()]] - `calls` [EXTRACTED]
-- [[px()_9]] - `calls` [EXTRACTED]
+- [[px()_8]] - `calls` [EXTRACTED]
 - [[vixTxt()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

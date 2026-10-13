@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 76"
+community: "apex-sim.ts"
 location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_76
+  - community/apex-simts
 ---
 
 # ContractKey
@@ -15,12 +15,12 @@ tags:
 - [[ApexContractSizing]] - `references` [EXTRACTED]
 - [[ApexSimInput]] - `references` [EXTRACTED]
 - [[BuiltPaperLevels]] - `references` [EXTRACTED]
-- [[OrderIntent_1]] - `references` [EXTRACTED]
+- [[OrderIntent_2]] - `references` [EXTRACTED]
 - [[PaperTrade]] - `references` [EXTRACTED]
 - [[RoomInput_1]] - `references` [EXTRACTED]
 - [[apex-sim-panel.tsx]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `imports` [EXTRACTED]
-- [[config.ts]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `contains` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports` [EXTRACTED]
 - [[order-intent.ts]] - `imports` [EXTRACTED]
@@ -30,4 +30,4 @@ tags:
 - [[simulate-path-trade.ts]] - `imports` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_76
+#graphify/code #graphify/EXTRACTED #community/apex-simts

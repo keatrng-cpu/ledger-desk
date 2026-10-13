@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-mini-chart.tsx"
 type: "code"
-community: "Community 186"
+community: "chart-timeframes.ts"
 location: "L296"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/chart-timeframests
 ---
 
 # pickRows()
@@ -16,4 +16,4 @@ tags:
 - [[finite()]] - `calls` [EXTRACTED]
 - [[setup-mini-chart.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 12"
+community: "prediction-market-feed.ts"
 location: "L324"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/prediction-market-feedts
 ---
 
 # gradeKalshiPublicMarket()
@@ -16,9 +16,9 @@ tags:
 - [[isoOrNull()]] - `calls` [EXTRACTED]
 - [[labelsFor()]] - `calls` [EXTRACTED]
 - [[mapKalshiMarkets()]] - `calls` [EXTRACTED]
-- [[num()_2]] - `calls` [EXTRACTED]
+- [[num()_6]] - `calls` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `contains` [EXTRACTED]
-- [[r4()]] - `calls` [EXTRACTED]
+- [[r4()_2]] - `calls` [EXTRACTED]
 - [[unitPrice()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

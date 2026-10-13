@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-plan.mjs"
+source_file: "scripts/verify-focus-pick.mjs"
 type: "code"
-community: "Community 99"
-location: "L26"
+community: "verify-focus-pick.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/verify-focus-pickmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-plan.mjs]] - `contains` [EXTRACTED]
+- [[verify-focus-pick.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/verify-focus-pickmjs

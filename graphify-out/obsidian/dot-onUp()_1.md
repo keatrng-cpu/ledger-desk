@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L1103"
+community: "MeadScene"
+location: "L208"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .onUp()
 
 ## Connections
 - [[dot-screenHit()]] - `calls` [EXTRACTED]
-- [[dot-ticketFor()]] - `calls` [EXTRACTED]
+- [[dot-ticketFor()]] - `calls` [INFERRED]
 - [[MeadScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

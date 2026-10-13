@@ -1,17 +1,18 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 41"
-location: "L123"
+community: "mead-hall-build.ts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # PersonLook
 
 ## Connections
-- [[mead-scene.ts]] - `contains` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
+- [[mead-people.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

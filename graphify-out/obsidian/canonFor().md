@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/canon.ts"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L350"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # canonFor()
@@ -16,4 +16,4 @@ tags:
 - [[canon.ts]] - `contains` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

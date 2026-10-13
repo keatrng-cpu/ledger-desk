@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-trade-plan.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 85"
-location: "L119"
+community: "verify-card-freshness.mjs"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/verify-card-freshnessmjs
 ---
 
 # behind
 
 ## Connections
-- [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

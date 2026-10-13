@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/desk/evidence-tiles.tsx"
+source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 99"
-location: "L14"
+community: "apex-sim.ts"
+location: "L1085"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/apex-simts
 ---
 
 # signedR()
 
 ## Connections
-- [[MiniBar()]] - `calls` [EXTRACTED]
-- [[evidence-tiles.tsx]] - `contains` [EXTRACTED]
+- [[apex-sim.ts]] - `contains` [EXTRACTED]
+- [[simCaveats()]] - `calls` [EXTRACTED]
+- [[simHonestyLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/apex-simts

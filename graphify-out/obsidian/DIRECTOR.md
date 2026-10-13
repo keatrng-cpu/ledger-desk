@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
-location: "L289"
+community: "floor-school-contracts.ts"
+location: "L324"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/floor-school-contractsts
 ---
 
 # DIRECTOR
@@ -15,4 +15,4 @@ tags:
 - [[agents.ts]] - `contains` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

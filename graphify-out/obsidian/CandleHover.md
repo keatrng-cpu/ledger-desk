@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/candlestick-pane.tsx"
 type: "code"
-community: "Community 27"
+community: "candlestick-pane.tsx"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/candlestick-panetsx
 ---
 
 # CandleHover
@@ -15,4 +15,4 @@ tags:
 - [[candlestick-pane.tsx]] - `contains` [EXTRACTED]
 - [[dual-index-charts.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/candlestick-panetsx

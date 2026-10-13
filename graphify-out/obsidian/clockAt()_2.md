@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 185"
-location: "L64"
+community: "verify-live-talk.mjs"
+location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/verify-live-talkmjs
 ---
 
 # clockAt()
 
 ## Connections
-- [[drain()]] - `calls` [EXTRACTED]
 - [[mkWorld()_2]] - `calls` [EXTRACTED]
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

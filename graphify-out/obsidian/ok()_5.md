@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-target-odds.mjs"
+source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 138"
-location: "L27"
+community: "verify-setup-memory.mjs"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_138
+  - community/verify-setup-memorymjs
 ---
 
 # ok()
 
 ## Connections
-- [[check()_9]] - `calls` [EXTRACTED]
-- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[check()_11]] - `calls` [EXTRACTED]
+- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/EXTRACTED #community/verify-setup-memorymjs

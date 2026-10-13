@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "scripts/blender/glb-stats.mjs"
 type: "code"
-community: "Community 55"
-location: "L48"
+community: "glb-stats.mjs"
+location: "L104"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/glb-statsmjs
 ---
 
 # argv
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
+- [[glb-stats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/glb-statsmjs

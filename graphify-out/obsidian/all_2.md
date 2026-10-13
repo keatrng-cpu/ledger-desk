@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 137"
-location: "L313"
+community: "verify-invest-office.mjs"
+location: "L321"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/verify-invest-officemjs
 ---
 
 # all
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "meeting.ts"
 location: "L142"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/meetingts
 ---
 
 # challengeFor()
@@ -17,9 +17,9 @@ tags:
 - [[debate.ts]] - `contains` [EXTRACTED]
 - [[fillRate()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
-- [[pc()]] - `calls` [EXTRACTED]
+- [[pc()_3]] - `calls` [EXTRACTED]
 - [[realizedForDecile()]] - `calls` [EXTRACTED]
-- [[usd()]] - `calls` [EXTRACTED]
+- [[usd()_1]] - `calls` [EXTRACTED]
 - [[usdSigned()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/meetingts

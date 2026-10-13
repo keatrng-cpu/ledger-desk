@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 59"
+community: "apex-sim-panel.tsx"
 location: "L835"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/apex-sim-paneltsx
 ---
 
 # clampTradesPerWeek()
@@ -18,4 +18,4 @@ tags:
 - [[defaultSimInput()]] - `calls` [EXTRACTED]
 - [[restore()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

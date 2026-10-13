@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 104"
-location: "L135"
+community: "room-engine.ts"
+location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/room-enginets
 ---
 
 # etClockLabel()
@@ -16,4 +16,4 @@ tags:
 - [[frameFromCycle()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/room-enginets

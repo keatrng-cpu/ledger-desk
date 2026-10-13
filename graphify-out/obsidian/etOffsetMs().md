@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/journal/risk.ts"
+source_file: "src/lib/trading/gap-direction.ts"
 type: "code"
-community: "Community 31"
-location: "L19"
+community: "gap-direction.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/gap-directionts
 ---
 
 # etOffsetMs()
 
 ## Connections
-- [[etDateParts()]] - `calls` [EXTRACTED]
-- [[etWallToUtc()]] - `calls` [EXTRACTED]
-- [[risk.ts]] - `contains` [EXTRACTED]
+- [[gap-direction.ts]] - `contains` [EXTRACTED]
+- [[resample()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/gap-directionts

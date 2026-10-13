@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-school-contracts.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # floor-school-contracts.ts
@@ -25,7 +25,7 @@ tags:
 - [[FLOOR_SCHOOL_AVATAR]] - `contains` [EXTRACTED]
 - [[FLOOR_SCHOOL_FIELD_INVENTORY]] - `contains` [EXTRACTED]
 - [[FLOOR_SCHOOL_SEAT_IDS]] - `contains` [EXTRACTED]
-- [[Facts]] - `imports` [EXTRACTED]
+- [[Facts_1]] - `imports` [EXTRACTED]
 - [[FieldStatus]] - `contains` [EXTRACTED]
 - [[FloorSchoolDebateBriefing]] - `contains` [EXTRACTED]
 - [[FloorSchoolHitRateRank]] - `contains` [EXTRACTED]
@@ -63,33 +63,33 @@ tags:
 - [[TalkWorld]] - `imports` [EXTRACTED]
 - [[TrackRecord]] - `imports` [EXTRACTED]
 - [[VoiceCast]] - `imports` [EXTRACTED]
-- [[agents.ts]] - `imports_from` [EXTRACTED]
+- [[agents.ts]] - `re_exports` [EXTRACTED]
 - [[allFloorSchoolSeatBundles()]] - `contains` [EXTRACTED]
 - [[allFloorSchoolSeats()]] - `contains` [EXTRACTED]
-- [[debate.ts]] - `imports_from` [EXTRACTED]
+- [[debate.ts]] - `re_exports` [EXTRACTED]
 - [[debateBriefingStub()]] - `contains` [EXTRACTED]
 - [[floor-overhaul.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[floor-race-replay.ts]] - `imports_from` [EXTRACTED]
-- [[floor-voice.ts]] - `imports_from` [EXTRACTED]
+- [[floor-voice.ts]] - `re_exports` [EXTRACTED]
 - [[floorSchoolSeat()]] - `contains` [EXTRACTED]
 - [[floorSchoolSeatBundle]] - `contains` [EXTRACTED]
 - [[hitRateRankStub()]] - `contains` [EXTRACTED]
-- [[lab.ts]] - `imports_from` [EXTRACTED]
+- [[lab.ts]] - `re_exports` [EXTRACTED]
 - [[labRead]] - `imports` [EXTRACTED]
-- [[live-types.ts]] - `imports_from` [EXTRACTED]
-- [[manager-feed.ts]] - `imports_from` [EXTRACTED]
-- [[meeting.ts]] - `imports_from` [EXTRACTED]
+- [[live-types.ts]] - `re_exports` [EXTRACTED]
+- [[manager-feed.ts]] - `re_exports` [EXTRACTED]
+- [[meeting.ts]] - `re_exports` [EXTRACTED]
 - [[mustChecklistFromCanon()]] - `contains` [EXTRACTED]
-- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[path-alarm.ts]] - `imports_from` [EXTRACTED]
+- [[orchestrator.ts]] - `re_exports` [EXTRACTED]
+- [[path-alarm.ts]] - `re_exports` [EXTRACTED]
 - [[pathBand]] - `imports` [EXTRACTED]
-- [[school-contract.ts]] - `imports_from` [EXTRACTED]
+- [[school-contract.ts]] - `re_exports` [EXTRACTED]
 - [[seatInventory()]] - `contains` [EXTRACTED]
-- [[session-brief.ts]] - `imports_from` [EXTRACTED]
+- [[session-brief.ts]] - `re_exports` [EXTRACTED]
 - [[signatureLinesFromCanon()]] - `contains` [EXTRACTED]
-- [[smc-canon.ts]] - `imports_from` [EXTRACTED]
-- [[smc-master.ts]] - `imports_from` [EXTRACTED]
-- [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
+- [[smc-canon.ts]] - `re_exports` [EXTRACTED]
+- [[smc-master.ts]] - `re_exports` [EXTRACTED]
+- [[strategy-grade.ts]] - `re_exports` [EXTRACTED]
 - [[widenDebateFromLabLenses()]] - `contains` [EXTRACTED]
 - [[widenDebateFromManager()]] - `contains` [EXTRACTED]
 - [[widenHitRateFromLab()]] - `contains` [EXTRACTED]
@@ -98,4 +98,4 @@ tags:
 - [[widenMustFromSmcLayers()]] - `contains` [EXTRACTED]
 - [[widenSignatureFromSmc()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

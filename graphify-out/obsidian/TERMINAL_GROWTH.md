@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/factors.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # TERMINAL_GROWTH
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[factors.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

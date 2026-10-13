@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-detectors.mjs"
 type: "code"
-community: "Community 185"
-location: "L42"
+community: "verify-detectors.mjs"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/verify-detectorsmjs
 ---
 
 # at()
 
 ## Connections
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/verify-detectorsmjs

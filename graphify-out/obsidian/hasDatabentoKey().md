@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/databento.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # hasDatabentoKey()
@@ -15,11 +15,11 @@ tags:
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
 - [[databento.ts]] - `contains` [EXTRACTED]
-- [[fetch-dual.ts]] - `imports` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
-- [[loadSymbol()]] - `calls` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
+- [[load()_1]] - `calls` [EXTRACTED]
+- [[loadStructureSeries()]] - `calls` [EXTRACTED]
 - [[readApiKey()]] - `calls` [EXTRACTED]
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

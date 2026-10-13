@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/trading/month-ahead.ts"
 type: "code"
-community: "Community 152"
+community: "week-ahead.ts"
 location: "L461"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/week-aheadts
 ---
 
 # monthRangeFromBars()
 
 ## Connections
 - [[barInMonth()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[month-ahead.ts]] - `contains` [EXTRACTED]
 - [[overlayMonthAhead()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

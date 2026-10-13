@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # VenueId
@@ -22,4 +22,4 @@ tags:
 - [[predictjournal.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

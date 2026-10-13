@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/evidence-tiles.tsx"
 type: "code"
-community: "Community 99"
+community: "cn"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/cn
 ---
 
 # EvidenceTiles()
@@ -19,4 +19,4 @@ tags:
 - [[evidenceHeadlines()]] - `calls` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/cn

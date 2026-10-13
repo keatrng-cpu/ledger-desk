@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/popup.server.ts"
 type: "code"
-community: "Community 105"
+community: "auth/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/auth/serverts
 ---
 
 # popup.server.ts
@@ -21,4 +21,4 @@ tags:
 - [[handleAuthPopupRequest()]] - `contains` [EXTRACTED]
 - [[readCookie()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

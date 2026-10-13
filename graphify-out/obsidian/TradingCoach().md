@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/trading-coach.tsx"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # TradingCoach()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CopyClaudeHandoff()]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[VoiceCard()]] - `calls` [EXTRACTED]
@@ -22,4 +22,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[trading-coach.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

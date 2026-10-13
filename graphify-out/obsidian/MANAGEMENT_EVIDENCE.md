@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L702"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # MANAGEMENT_EVIDENCE
@@ -15,4 +15,4 @@ tags:
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

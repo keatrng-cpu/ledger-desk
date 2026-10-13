@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/take-moments.ts"
+source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 145"
-location: "L42"
+community: "floor-school-contracts.ts"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/floor-school-contractsts
 ---
 
 # MomentKind
 
 ## Connections
-- [[take-moments.ts]] - `contains` [EXTRACTED]
+- [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

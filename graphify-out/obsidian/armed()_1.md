@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/backtest-account.mjs"
 type: "code"
-community: "Community 55"
+community: "backtest-account.mjs"
 location: "L165"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/backtest-accountmjs
 ---
 
 # armed()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[backtest-account.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/backtest-accountmjs

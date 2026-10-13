@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/learn/curriculum.ts"
+source_file: "src/components/desk/trade-debrief-panel.tsx"
 type: "code"
-community: "Community 132"
-location: "L80"
+community: "ghost-book.ts"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/ghost-bookts
 ---
 
 # pct()
 
 ## Connections
-- [[curriculum.ts]] - `contains` [EXTRACTED]
+- [[DebriefBody()]] - `calls` [EXTRACTED]
+- [[trade-debrief-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

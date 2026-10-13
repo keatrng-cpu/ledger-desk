@@ -1,24 +1,21 @@
 ---
-source_file: "src/lib/trading/draw.ts"
+source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 72"
-location: "L62"
+community: "live-world.ts"
+location: "L175"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/live-worldts
 ---
 
 # atrOf()
 
 ## Connections
-- [[SetupCard()]] - `calls` [EXTRACTED]
-- [[build-desk.ts]] - `imports` [EXTRACTED]
-- [[buildTradePlan()]] - `calls` [EXTRACTED]
-- [[buildTradingDesk()]] - `calls` [EXTRACTED]
-- [[draw.ts]] - `contains` [EXTRACTED]
-- [[drawOnLiquidity()]] - `calls` [EXTRACTED]
-- [[setup-scanner.tsx]] - `imports` [EXTRACTED]
-- [[trade-plan.ts]] - `imports` [EXTRACTED]
+- [[booksOf()]] - `calls` [EXTRACTED]
+- [[live-world.ts]] - `contains` [EXTRACTED]
+- [[refreshRace()]] - `calls` [EXTRACTED]
+- [[room-engine.ts]] - `imports` [EXTRACTED]
+- [[runLiveCycle()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/live-worldts

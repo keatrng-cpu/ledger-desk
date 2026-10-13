@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-live-talk.mjs"
+source_file: "scripts/verify-brain-vault.mjs"
 type: "code"
-community: "Community 142"
-location: "L33"
+community: "ref_node_fs"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/ref_node_fs
 ---
 
 # check()
 
 ## Connections
-- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

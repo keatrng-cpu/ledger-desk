@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 73"
-location: "L72"
+community: "rh-autofire.ts"
+location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/rh-autofirets
 ---
 
 # confidenceFloorFor()
@@ -17,4 +17,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

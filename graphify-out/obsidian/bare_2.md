@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-setup-anticipation.mjs"
+source_file: "scripts/verify-kill-watch.mjs"
 type: "code"
-community: "Community 66"
-location: "L304"
+community: "verify-kill-watch.mjs"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_66
+  - community/verify-kill-watchmjs
 ---
 
 # bare
 
 ## Connections
-- [[verify-setup-anticipation.mjs]] - `contains` [EXTRACTED]
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_66
+#graphify/code #graphify/EXTRACTED #community/verify-kill-watchmjs

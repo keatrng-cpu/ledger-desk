@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 96"
-location: "L392"
+community: "spoken-form.ts"
+location: "L394"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # signsHeld()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

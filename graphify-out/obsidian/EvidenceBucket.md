@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/evidence.ts"
 type: "code"
-community: "Community 99"
+community: "cn"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/cn
 ---
 
 # EvidenceBucket
@@ -17,4 +17,4 @@ tags:
 - [[research.ts]] - `imports` [EXTRACTED]
 - [[tradingevidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/cn

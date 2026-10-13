@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/feed-tone.ts"
 type: "code"
-community: "Community 33"
+community: "ghost-book.ts"
 location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/ghost-bookts
 ---
 
 # feedTone
@@ -23,4 +23,4 @@ tags:
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[sourceTag()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

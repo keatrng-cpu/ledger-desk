@@ -1,18 +1,28 @@
 ---
-source_file: "src/lib/room/meeting.ts"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 3"
-location: "L882"
+community: "floor-screens.ts"
+location: "L1273"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/floor-screensts
 ---
 
 # fit()
 
 ## Connections
-- [[buildMeeting()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `contains` [EXTRACTED]
+- [[drawAudit()]] - `calls` [EXTRACTED]
+- [[drawCalendar()]] - `calls` [EXTRACTED]
+- [[drawLeague()]] - `calls` [EXTRACTED]
+- [[drawRndBoard()]] - `calls` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
+- [[drawVote()]] - `calls` [EXTRACTED]
+- [[drawWhiteboard()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[header()]] - `calls` [EXTRACTED]
+- [[tapeBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

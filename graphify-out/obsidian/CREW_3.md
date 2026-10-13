@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/room/agents.ts"
+source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 81"
-location: "L47"
+community: "orchestrator.ts"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/orchestratorts
 ---
 
 # CREW
 
 ## Connections
-- [[agents.ts]] - `contains` [EXTRACTED]
-- [[meeting.ts]] - `imports` [EXTRACTED]
-- [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
+- [[lab.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

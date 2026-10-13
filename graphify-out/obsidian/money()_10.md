@@ -1,18 +1,22 @@
 ---
-source_file: "src/lib/room/goal.ts"
+source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 50"
-location: "L746"
+community: "room-engine.ts"
+location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/room-enginets
 ---
 
 # money()
 
 ## Connections
-- [[collisions()]] - `calls` [EXTRACTED]
-- [[goal.ts]] - `contains` [EXTRACTED]
+- [[applyCycle()]] - `calls` [EXTRACTED]
+- [[bookRealized()]] - `calls` [EXTRACTED]
+- [[equityOf()]] - `calls` [EXTRACTED]
+- [[markBook()]] - `calls` [EXTRACTED]
+- [[paper-book.ts]] - `contains` [EXTRACTED]
+- [[voidPosition()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/room-enginets

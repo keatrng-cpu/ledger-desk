@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 1"
-location: "L69"
+community: "rh-autofire.ts"
+location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/rh-autofirets
 ---
 
 # RH_EVENT_CONFIDENCE_LIFT
@@ -15,4 +15,4 @@ tags:
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

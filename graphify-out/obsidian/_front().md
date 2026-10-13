@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/smoke_live.py"
 type: "code"
-community: "Community 225"
+community: "smoke_live.py"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/smoke_livepy
 ---
 
 # _front()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[smoke_live.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_225
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

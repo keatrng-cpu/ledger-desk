@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 179"
+community: "session-brief.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/session-briefts
 ---
 
 # session-brief.ts
 
 ## Connections
-- [[Bias]] - `imports` [EXTRACTED]
+- [[Bias_2]] - `imports` [EXTRACTED]
 - [[BookSlice]] - `contains` [EXTRACTED]
 - [[DayKind]] - `contains` [EXTRACTED]
 - [[DayVerdict]] - `contains` [EXTRACTED]
@@ -35,10 +35,10 @@ tags:
 - [[buildSessionBrief()]] - `contains` [EXTRACTED]
 - [[classifyDay()]] - `contains` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
-- [[etDateKey()]] - `contains` [EXTRACTED]
+- [[etDateKey()_1]] - `contains` [EXTRACTED]
 - [[etStamp()_1]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[fmt()_2]] - `contains` [EXTRACTED]
 - [[lastSwept()]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
@@ -60,4 +60,4 @@ tags:
 - [[weekDayFor()]] - `imports` [EXTRACTED]
 - [[windowForLabel()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/session-briefts

@@ -1,20 +1,19 @@
 ---
-source_file: "src/components/predict/pm-analyzer.tsx"
+source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 16"
-location: "L56"
+community: "chart-timeframes.ts"
+location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/chart-timeframests
 ---
 
 # pct()
 
 ## Connections
-- [[DeskPanel()]] - `calls` [EXTRACTED]
-- [[Record()]] - `calls` [EXTRACTED]
-- [[Ring()]] - `calls` [EXTRACTED]
-- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
+- [[anticipate()]] - `calls` [EXTRACTED]
+- [[setup-anticipation.ts]] - `contains` [EXTRACTED]
+- [[targetReachable()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

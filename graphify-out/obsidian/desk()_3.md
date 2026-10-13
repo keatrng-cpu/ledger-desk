@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/entry-state.test.mjs"
+source_file: "scripts/verify-word-hold.mjs"
 type: "code"
-community: "Community 78"
-location: "L51"
+community: "word-hysteresis.ts"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/word-hysteresists
 ---
 
 # desk()
 
 ## Connections
-- [[book()_4]] - `calls` [EXTRACTED]
-- [[card()_5]] - `calls` [EXTRACTED]
-- [[entry-state.test.mjs]] - `contains` [EXTRACTED]
+- [[book()_5]] - `calls` [EXTRACTED]
+- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/word-hysteresists

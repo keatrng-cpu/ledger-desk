@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # day_key()
@@ -18,4 +18,4 @@ tags:
 - [[rth_days()]] - `calls` [EXTRACTED]
 - [[walk()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

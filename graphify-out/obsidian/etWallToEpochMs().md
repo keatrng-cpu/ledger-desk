@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 4"
+community: "orchestrator.ts"
 location: "L118"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/orchestratorts
 ---
 
 # etWallToEpochMs()
@@ -47,4 +47,4 @@ tags:
 - [[tradeDateOf()]] - `calls` [EXTRACTED]
 - [[weekendMsBetween()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

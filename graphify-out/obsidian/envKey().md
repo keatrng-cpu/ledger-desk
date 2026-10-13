@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/claude-server.ts"
 type: "code"
-community: "Community 123"
+community: "claude-server.ts"
 location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_123
+  - community/claude-serverts
 ---
 
 # envKey()
@@ -16,4 +16,4 @@ tags:
 - [[claude-server.ts]] - `contains` [EXTRACTED]
 - [[grokKey()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_123
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

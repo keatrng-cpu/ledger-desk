@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 20"
+community: "news.ts"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # NewsEvent
@@ -19,4 +19,4 @@ tags:
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[session-brief.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

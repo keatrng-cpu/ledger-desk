@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 222"
-location: "L573"
+community: "exec-card.tsx"
+location: "L673"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/exec-cardtsx
 ---
 
 # flattenBroker()
@@ -16,6 +16,7 @@ tags:
 - [[applyVoids()]] - `indirect_call` [INFERRED]
 - [[exec-card.tsx]] - `imports` [EXTRACTED]
 - [[execFlatten()]] - `calls` [EXTRACTED]
+- [[flattenRhNow()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/exec-cardtsx

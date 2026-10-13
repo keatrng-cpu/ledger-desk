@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 73"
-location: "L94"
+community: "rh-autofire.ts"
+location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/rh-autofirets
 ---
 
 # contractsAfterEvent()
@@ -17,4 +17,4 @@ tags:
 - [[pathContinuation()]] - `calls` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

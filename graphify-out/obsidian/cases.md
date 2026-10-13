@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/verify-research-retain.mjs"
 type: "code"
-community: "Community 53"
-location: "L402"
+community: "verify-research-retain.mjs"
+location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/verify-research-retainmjs
 ---
 
 # cases
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
-- [[r2()_7]] - `calls` [EXTRACTED]
+- [[verify-research-retain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/verify-research-retainmjs

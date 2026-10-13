@@ -1,18 +1,19 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 45"
-location: "L180"
+community: "OhlcBar"
+location: "L309"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/OhlcBar
 ---
 
 # elapsedFractionOf()
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
-- [[inputsFor()_1]] - `calls` [EXTRACTED]
+- [[buildTradePlan()]] - `calls` [EXTRACTED]
+- [[medianOf()]] - `calls` [EXTRACTED]
+- [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

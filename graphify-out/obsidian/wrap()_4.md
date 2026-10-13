@@ -1,18 +1,20 @@
 ---
-source_file: "src/components/room/floor-overhaul-race.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 42"
+community: "floor-overhaul-war.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-overhaul-warts
 ---
 
 # wrap()
 
 ## Connections
-- [[drawScrubberBoard()]] - `calls` [EXTRACTED]
-- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
+- [[drawDiscretionBoard()]] - `calls` [EXTRACTED]
+- [[drawManagerArms()]] - `calls` [EXTRACTED]
+- [[fit()_5]] - `calls` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 119"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/rh-autofirets
 ---
 
 # manager-account.ts
@@ -34,19 +34,20 @@ tags:
 - [[manager-room-feed.ts]] - `imports_from` [EXTRACTED]
 - [[managerAccountLine()]] - `contains` [EXTRACTED]
 - [[managerRhAccountFromConnector()]] - `contains` [EXTRACTED]
-- [[num()_1]] - `contains` [EXTRACTED]
+- [[num()_3]] - `contains` [EXTRACTED]
 - [[numOrNaN()]] - `contains` [EXTRACTED]
 - [[rh-account-strip.tsx]] - `imports_from` [EXTRACTED]
-- [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
-- [[rh-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[rh-autofire-gates.ts]] - `re_exports` [EXTRACTED]
+- [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports_from` [EXTRACTED]
 - [[screen-flash.tsx]] - `imports_from` [EXTRACTED]
 - [[toManagerRhAccount()]] - `contains` [EXTRACTED]
-- [[uirh-account.ts]] - `imports_from` [EXTRACTED]
+- [[uirh-account.ts]] - `re_exports` [EXTRACTED]
 - [[verify-manager-account.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-manager-live-loop.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerAccount()]] - `imports_from` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 223"
-location: "L97"
+community: ".path"
+location: "L101"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/path
 ---
 
 # NavGrid
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[dot-cellOf()]] - `method` [EXTRACTED]
 - [[dot-center()]] - `method` [EXTRACTED]
-- [[dot-constructor()_13]] - `method` [EXTRACTED]
+- [[dot-constructor()_17]] - `method` [EXTRACTED]
 - [[dot-free()]] - `method` [EXTRACTED]
 - [[dot-lineFree()]] - `method` [EXTRACTED]
 - [[dot-markDisc()]] - `method` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[dot-set()]] - `method` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/path

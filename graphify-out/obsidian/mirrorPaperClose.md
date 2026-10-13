@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/paper-mirror.ts"
 type: "code"
-community: "Community 8"
+community: "paper-backfill.ts"
 location: "L256"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-backfillts
 ---
 
 # mirrorPaperClose
@@ -18,4 +18,4 @@ tags:
 - [[mirrorClosedPaperTrades()]] - `calls` [EXTRACTED]
 - [[paper-mirror.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-backfillts

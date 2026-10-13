@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/pglite-dialect.ts"
 type: "code"
-community: "Community 190"
+community: "LazyPGliteDriver"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/LazyPGliteDriver
 ---
 
 # pgliteDialect()
@@ -16,4 +16,4 @@ tags:
 - [[authserver.ts]] - `imports` [EXTRACTED]
 - [[pglite-dialect.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_190
+#graphify/code #graphify/EXTRACTED #community/LazyPGliteDriver

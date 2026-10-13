@@ -1,21 +1,21 @@
 ---
-source_file: "src/lib/learn/cases.ts"
+source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 115"
-location: "L170"
+community: "shadow-book.ts"
+location: "L147"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/shadow-bookts
 ---
 
 # px()
 
 ## Connections
-- [[Snapshot]] - `calls` [EXTRACTED]
-- [[buildSteps()]] - `calls` [EXTRACTED]
-- [[cases.ts]] - `contains` [EXTRACTED]
-- [[simulate()]] - `calls` [EXTRACTED]
-- [[simulateMarket()]] - `calls` [EXTRACTED]
+- [[analyzeShadow()]] - `calls` [EXTRACTED]
+- [[applyRange()]] - `calls` [EXTRACTED]
+- [[openShadows()]] - `calls` [EXTRACTED]
+- [[shadow-book.ts]] - `contains` [EXTRACTED]
+- [[tickShadow()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/shadow-bookts

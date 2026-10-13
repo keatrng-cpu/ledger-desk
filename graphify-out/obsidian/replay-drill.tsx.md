@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 6"
+community: "replay-drill.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/replay-drillts
 ---
 
 # replay-drill.tsx
@@ -36,7 +36,7 @@ tags:
 - [[OutcomeCell()]] - `contains` [EXTRACTED]
 - [[PAST_BARS]] - `imports` [EXTRACTED]
 - [[Progress()]] - `contains` [EXTRACTED]
-- [[RULES_1]] - `imports` [EXTRACTED]
+- [[RULES_3]] - `imports` [EXTRACTED]
 - [[ReplayDrill()]] - `contains` [EXTRACTED]
 - [[Reveal()]] - `contains` [EXTRACTED]
 - [[STATUS_STYLE]] - `contains` [EXTRACTED]
@@ -52,16 +52,16 @@ tags:
 - [[evidenceHeadlines()]] - `imports` [EXTRACTED]
 - [[expectedAction()]] - `imports` [EXTRACTED]
 - [[f2()]] - `contains` [EXTRACTED]
-- [[hhmm()_4]] - `contains` [EXTRACTED]
+- [[hhmm()_5]] - `contains` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[loadStore()]] - `contains` [EXTRACTED]
 - [[makeAttempt()]] - `imports` [EXTRACTED]
 - [[medianSeconds()]] - `imports` [EXTRACTED]
 - [[nextCaseId()]] - `imports` [EXTRACTED]
-- [[num()_12]] - `contains` [EXTRACTED]
+- [[num()_17]] - `contains` [EXTRACTED]
 - [[outcomeText()]] - `contains` [EXTRACTED]
 - [[parseStore()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[recordAttempt()]] - `imports` [EXTRACTED]
 - [[replay-drill.ts]] - `imports_from` [EXTRACTED]
 - [[ruleCurves()]] - `imports` [EXTRACTED]
@@ -76,4 +76,4 @@ tags:
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weakestRule()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

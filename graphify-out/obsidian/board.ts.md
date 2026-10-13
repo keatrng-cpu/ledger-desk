@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 7"
+community: "predict-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/predict-serverts
 ---
 
 # board.ts
@@ -31,7 +31,7 @@ tags:
 - [[PolyQuote]] - `contains` [EXTRACTED]
 - [[SideRead]] - `contains` [EXTRACTED]
 - [[americanToProb()]] - `imports` [EXTRACTED]
-- [[buildBoard()]] - `contains` [EXTRACTED]
+- [[buildBoard()_1]] - `contains` [EXTRACTED]
 - [[dateFromTicker()]] - `contains` [EXTRACTED]
 - [[devig()]] - `imports` [EXTRACTED]
 - [[devig.ts]] - `imports_from` [EXTRACTED]
@@ -43,8 +43,9 @@ tags:
 - [[inactivesLine()]] - `contains` [EXTRACTED]
 - [[lateUnderdog()]] - `contains` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
 - [[noVig()]] - `imports` [EXTRACTED]
-- [[num()_13]] - `contains` [EXTRACTED]
+- [[num()_18]] - `contains` [EXTRACTED]
 - [[p0()]] - `contains` [EXTRACTED]
 - [[parseAmerican()]] - `imports` [EXTRACTED]
 - [[parseEspnScoreboard()]] - `contains` [EXTRACTED]
@@ -59,11 +60,11 @@ tags:
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
 - [[qbFlag()]] - `contains` [EXTRACTED]
-- [[read()_6]] - `contains` [EXTRACTED]
+- [[read()_12]] - `contains` [EXTRACTED]
 - [[sideEdge()]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[threeWay()]] - `contains` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weatherFlag()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 154"
+community: "alpaca.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/alpacats
 ---
 
 # orderOf()
 
 ## Connections
 - [[alpaca.ts]] - `contains` [EXTRACTED]
-- [[num()_7]] - `calls` [EXTRACTED]
+- [[num()_5]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/alpacats

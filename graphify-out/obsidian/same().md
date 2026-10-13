@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/invest/sync.ts"
+source_file: "scripts/verify-source-check.mjs"
 type: "code"
-community: "Community 147"
-location: "L34"
+community: "source-check.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/source-checkts
 ---
 
 # same()
 
 ## Connections
-- [[run()_1]] - `calls` [EXTRACTED]
-- [[sync.ts]] - `contains` [EXTRACTED]
+- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/source-checkts

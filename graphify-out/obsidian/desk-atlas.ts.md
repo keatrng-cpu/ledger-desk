@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # desk-atlas.ts
@@ -21,7 +21,7 @@ tags:
 - [[AtlasPulse]] - `contains` [EXTRACTED]
 - [[AtlasRecall]] - `contains` [EXTRACTED]
 - [[AtlasShelf]] - `contains` [EXTRACTED]
-- [[BOOK_2]] - `imports` [EXTRACTED]
+- [[BOOK_5]] - `imports` [EXTRACTED]
 - [[BRAIN_CREW]] - `contains` [EXTRACTED]
 - [[BrainOffer]] - `contains` [EXTRACTED]
 - [[BrainWho]] - `contains` [EXTRACTED]
@@ -53,10 +53,12 @@ tags:
 - [[brain-feed.ts]] - `imports_from` [EXTRACTED]
 - [[brain-fuel.ts]] - `imports_from` [EXTRACTED]
 - [[brain-traffic.ts]] - `imports_from` [EXTRACTED]
-- [[clamp()_5]] - `contains` [EXTRACTED]
+- [[clamp()_4]] - `contains` [EXTRACTED]
 - [[cloneSeed()]] - `contains` [EXTRACTED]
 - [[collectiveLogic()]] - `contains` [EXTRACTED]
 - [[crew-years.ts]] - `imports_from` [EXTRACTED]
+- [[desk-memory.ts]] - `imports_from` [EXTRACTED]
+- [[export-brain-vault.mjs]] - `imports_from` [EXTRACTED]
 - [[floor-brains.tsx]] - `imports_from` [EXTRACTED]
 - [[freshPeople()]] - `contains` [EXTRACTED]
 - [[gradeAtlas()]] - `contains` [EXTRACTED]
@@ -83,10 +85,11 @@ tags:
 - [[sessionLine()]] - `contains` [EXTRACTED]
 - [[shelfOf()]] - `contains` [EXTRACTED]
 - [[syncPeople()]] - `contains` [EXTRACTED]
-- [[tokens()]] - `contains` [EXTRACTED]
+- [[tokens()_1]] - `contains` [EXTRACTED]
 - [[verify-brain-fuel.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-brain-nerve.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-desk-session.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-hi-alert-brain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-school-brief.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

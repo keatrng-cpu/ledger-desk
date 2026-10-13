@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/room/spoken-form.ts"
+source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 96"
-location: "L124"
+community: "apex-sim-panel.tsx"
+location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/apex-sim-paneltsx
 ---
 
 # num()
 
 ## Connections
-- [[moneyWords()]] - `calls` [EXTRACTED]
-- [[numbersOf()_3]] - `calls` [EXTRACTED]
-- [[plural()_2]] - `calls` [EXTRACTED]
-- [[spoken-form.ts]] - `contains` [EXTRACTED]
-- [[units()]] - `calls` [EXTRACTED]
+- [[ApexSimPanel()]] - `calls` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

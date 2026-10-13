@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 60"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/veteran-braints
 ---
 
 # profit-rules.ts
@@ -22,7 +22,7 @@ tags:
 - [[DeskMemoryState]] - `imports` [EXTRACTED]
 - [[MAX_CONSEC_LOSSES]] - `contains` [EXTRACTED]
 - [[MAX_SAME_SIDE_WEEK]] - `contains` [EXTRACTED]
-- [[PATH_BANDS]] - `contains` [EXTRACTED]
+- [[PATH_BANDS_1]] - `contains` [EXTRACTED]
 - [[PATH_MONTH_CAP]] - `contains` [EXTRACTED]
 - [[PRIMARY_STRATEGIES]] - `contains` [EXTRACTED]
 - [[PathGateReason]] - `contains` [EXTRACTED]
@@ -32,9 +32,9 @@ tags:
 - [[aPlusFullSizeUnlocked()]] - `contains` [EXTRACTED]
 - [[aPlusRiskPct()]] - `contains` [EXTRACTED]
 - [[allowedAfterCap()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
 - [[blakeLongRecovered()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[countersFromMemory()]] - `contains` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
 - [[describeProfitRules()]] - `contains` [EXTRACTED]
@@ -51,7 +51,7 @@ tags:
 - [[live-voices.ts]] - `imports_from` [EXTRACTED]
 - [[monthKeyFromMs()]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[override-log.ts]] - `imports_from` [EXTRACTED]
+- [[override-log.ts]] - `re_exports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[paperFillsForMonth()]] - `contains` [EXTRACTED]
 - [[pathCapReached()]] - `contains` [EXTRACTED]
@@ -72,4 +72,4 @@ tags:
 - [[verify-live-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

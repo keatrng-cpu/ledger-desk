@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/autofire-gates.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # AUTOFIRE_CONFLUENCE_FLOOR
@@ -16,4 +16,4 @@ tags:
 - [[autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

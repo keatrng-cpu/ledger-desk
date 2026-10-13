@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 32"
+community: "package.json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # package.json
@@ -38,8 +38,8 @@ tags:
 - [[@radix-uireact-tooltip]] - `imports` [EXTRACTED]
 - [[@tailwindcssvite]] - `imports` [EXTRACTED]
 - [[@tanstackreact-query]] - `imports` [EXTRACTED]
-- [[@tanstackreact-router]] - `imports` [EXTRACTED]
-- [[@tanstackreact-start_2]] - `imports` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports` [EXTRACTED]
 - [[@tanstackreact-table]] - `imports` [EXTRACTED]
 - [[@tanstackrouter-plugin]] - `imports` [EXTRACTED]
 - [[@typesnode_1]] - `imports` [EXTRACTED]
@@ -53,7 +53,7 @@ tags:
 - [[clsx]] - `imports` [EXTRACTED]
 - [[cmdk]] - `imports` [EXTRACTED]
 - [[date-fns]] - `imports` [EXTRACTED]
-- [[dependencies]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 - [[devDependencies]] - `contains` [EXTRACTED]
 - [[eslint_1]] - `imports` [EXTRACTED]
 - [[eslint-config-prettier_1]] - `imports` [EXTRACTED]
@@ -65,16 +65,16 @@ tags:
 - [[lightningcss_1]] - `imports` [EXTRACTED]
 - [[lightweight-charts_1]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports` [EXTRACTED]
-- [[name]] - `contains` [EXTRACTED]
+- [[name_1]] - `contains` [EXTRACTED]
 - [[nitro_1]] - `imports` [EXTRACTED]
 - [[overrides]] - `contains` [EXTRACTED]
 - [[pg]] - `imports` [EXTRACTED]
-- [[playwright]] - `imports` [EXTRACTED]
+- [[playwright_1]] - `imports` [EXTRACTED]
 - [[prettier_1]] - `imports` [EXTRACTED]
-- [[private]] - `contains` [EXTRACTED]
-- [[react]] - `imports` [EXTRACTED]
+- [[private_1]] - `contains` [EXTRACTED]
+- [[react_2]] - `imports` [EXTRACTED]
 - [[react-day-picker]] - `imports` [EXTRACTED]
-- [[react-dom]] - `imports` [EXTRACTED]
+- [[react-dom_1]] - `imports` [EXTRACTED]
 - [[react-hook-form]] - `imports` [EXTRACTED]
 - [[react-resizable-panels]] - `imports` [EXTRACTED]
 - [[recharts]] - `imports` [EXTRACTED]
@@ -86,12 +86,12 @@ tags:
 - [[three]] - `imports` [EXTRACTED]
 - [[tsx_1]] - `imports` [EXTRACTED]
 - [[tw-animate-css]] - `imports` [EXTRACTED]
-- [[type]] - `contains` [EXTRACTED]
+- [[type_1]] - `contains` [EXTRACTED]
 - [[typescript_1]] - `imports` [EXTRACTED]
 - [[typescript-eslint_1]] - `imports` [EXTRACTED]
 - [[vaul]] - `imports` [EXTRACTED]
 - [[vite_1]] - `imports` [EXTRACTED]
-- [[zod_1]] - `imports` [EXTRACTED]
+- [[zod]] - `imports` [EXTRACTED]
 - [[zustand]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_32
+#graphify/code #graphify/EXTRACTED #community/packagejson

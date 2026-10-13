@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # GoalSpec
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[RaceInput]] - `references` [EXTRACTED]
 - [[RoomState]] - `references` [EXTRACTED]
 - [[SeatBook]] - `references` [EXTRACTED]
@@ -24,4 +25,4 @@ tags:
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

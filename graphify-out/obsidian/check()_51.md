@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-desk-cadence.mjs"
+source_file: "scripts/verify-floor-cues.mjs"
 type: "code"
-community: "Community 248"
-location: "L19"
+community: "floor-screens.ts"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_248
+  - community/floor-screensts
 ---
 
 # check()
 
 ## Connections
-- [[ok()_21]] - `calls` [EXTRACTED]
-- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_248
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

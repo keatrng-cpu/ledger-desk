@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/entry-trigger-panel.tsx"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # EntryTriggerPanel()
@@ -28,4 +28,4 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 - [[subscribePending()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

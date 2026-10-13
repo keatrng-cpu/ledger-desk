@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/walkthroughs.tsx"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # Walkthroughs()
@@ -22,4 +22,4 @@ tags:
 - [[outcomeStyle()]] - `calls` [EXTRACTED]
 - [[walkthroughs.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

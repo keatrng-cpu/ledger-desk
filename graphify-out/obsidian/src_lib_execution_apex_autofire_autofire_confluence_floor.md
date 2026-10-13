@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 8"
+community: "index.tsx"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # src_lib_execution_apex_autofire_autofire_confluence_floor
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_8
+#graphify/concept #graphify/EXTRACTED #community/indextsx

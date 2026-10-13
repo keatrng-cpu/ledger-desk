@@ -1,20 +1,21 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 39"
-location: "L152"
+community: "smc-master.ts"
+location: "L526"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/smc-masterts
 ---
 
 # withOrderLevels()
 
 ## Connections
 - [[card-plan.ts]] - `contains` [EXTRACTED]
+- [[deskLevelsOf()]] - `calls` [EXTRACTED]
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
-- [[r2()_6]] - `calls` [EXTRACTED]
+- [[r2()_5]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

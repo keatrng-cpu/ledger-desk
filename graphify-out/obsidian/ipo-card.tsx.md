@@ -1,23 +1,25 @@
 ---
 source_file: "src/components/invest/ipo-card.tsx"
 type: "code"
-community: "Community 184"
+community: "invest-firm.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/invest-firmts
 ---
 
 # ipo-card.tsx
 
 ## Connections
 - [[Card()_2]] - `imports` [EXTRACTED]
+- [[DESK_WATCH]] - `contains` [EXTRACTED]
 - [[IpoCard()]] - `contains` [EXTRACTED]
 - [[LINK]] - `imports` [EXTRACTED]
 - [[LOCKUP_DAYS_DEFAULT]] - `imports` [EXTRACTED]
 - [[Note()]] - `imports` [EXTRACTED]
 - [[STAGE]] - `contains` [EXTRACTED]
+- [[WATCH_CLS]] - `contains` [EXTRACTED]
 - [[etToday()]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[investformat.ts]] - `imports_from` [EXTRACTED]
@@ -30,4 +32,4 @@ tags:
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[upcomingIpos()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

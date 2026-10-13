@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-prediction-market-feed.mjs"
 type: "code"
-community: "Community 204"
+community: "verify-prediction-market-feed.mjs"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_204
+  - community/verify-prediction-market-feedmjs
 ---
 
 # fixture
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-prediction-market-feed.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_204
+#graphify/code #graphify/EXTRACTED #community/verify-prediction-market-feedmjs

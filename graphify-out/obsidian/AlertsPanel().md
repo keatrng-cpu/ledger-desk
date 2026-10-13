@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/alerts-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "react"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/react
 ---
 
 # AlertsPanel()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[alerts-panel.tsx]] - `contains` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[listRecentAlerts]] - `calls` [EXTRACTED]
 - [[pushSupport]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/react

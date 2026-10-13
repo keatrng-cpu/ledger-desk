@@ -1,21 +1,18 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "src/lib/desk/mcp-server.ts"
 type: "code"
-community: "Community 55"
-location: "L822"
+community: "grok-report.ts"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/grok-reportts
 ---
 
 # slice()
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[has()_3]] - `calls` [EXTRACTED]
-- [[line()_3]] - `calls` [EXTRACTED]
-- [[monthKey()]] - `calls` [EXTRACTED]
-- [[score()]] - `calls` [EXTRACTED]
+- [[handleMcpMessage()]] - `calls` [EXTRACTED]
+- [[mcp-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

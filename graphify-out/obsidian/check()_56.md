@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-floor-rh-account.mjs"
+source_file: "scripts/verify-autofire-gates.mjs"
 type: "code"
-community: "Community 3"
-location: "L12"
+community: "ref_node_path"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/ref_node_path
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-rh-account.mjs]] - `contains` [EXTRACTED]
+- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

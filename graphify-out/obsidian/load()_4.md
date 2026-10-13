@@ -1,23 +1,19 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 48"
-location: "L90"
+community: "direction-book.py"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/direction-bookpy
 ---
 
 # load()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[considerEntryAlarm()]] - `calls` [EXTRACTED]
-- [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[disarmPathAlarm()]] - `calls` [EXTRACTED]
-- [[getPathAlarmState()]] - `calls` [EXTRACTED]
-- [[mutePathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[direction-book.py]] - `contains` [EXTRACTED]
+- [[json_1]] - `calls` [EXTRACTED]
+- [[main()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

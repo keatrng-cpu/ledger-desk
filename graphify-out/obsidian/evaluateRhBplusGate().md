@@ -1,17 +1,21 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
-location: "L112"
+community: "manager-live-loop.ts"
+location: "L113"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/manager-live-loopts
 ---
 
 # evaluateRhBplusGate()
 
 ## Connections
+- [[2026-10-06 — Merge path and standing guards]] - `references` [INFERRED]
+- [[B+ explicit gate (Accuracy + Keaton 2026-10-06) — `evaluateRhBplusGate`]] - `references` [INFERRED]
+- [[Hard rules (do not drift)]] - `references` [INFERRED]
+- [[Live constraints]] - `references` [INFERRED]
 - [[evaluateRhAutofireGates()]] - `calls` [EXTRACTED]
 - [[isBplusBand()]] - `calls` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports` [EXTRACTED]
@@ -21,4 +25,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

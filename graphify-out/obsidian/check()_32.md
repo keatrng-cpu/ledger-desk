@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-goal.mjs"
+source_file: "scripts/verify-spoken-form.mjs"
 type: "code"
-community: "Community 212"
-location: "L38"
+community: "verify-entry-alarm.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_212
+  - community/verify-entry-alarmmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-goal.mjs]] - `contains` [EXTRACTED]
+- [[verify-spoken-form.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_212
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

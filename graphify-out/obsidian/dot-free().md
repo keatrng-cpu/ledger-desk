@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 223"
-location: "L175"
+community: ".path"
+location: "L179"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/path
 ---
 
 # .free()
@@ -18,4 +18,4 @@ tags:
 - [[dot-walkable()]] - `calls` [INFERRED]
 - [[NavGrid]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/path

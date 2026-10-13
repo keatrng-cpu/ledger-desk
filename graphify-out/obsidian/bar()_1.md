@@ -1,21 +1,17 @@
 ---
-source_file: "scripts/verify-target-odds.mjs"
+source_file: "scripts/blender/floor_doors.py"
 type: "code"
-community: "Community 138"
-location: "L30"
+community: "floor_ao.py"
+location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_138
+  - community/floor_aopy
 ---
 
 # bar()
 
 ## Connections
-- [[down()]] - `calls` [EXTRACTED]
-- [[tie]] - `calls` [EXTRACTED]
-- [[trap]] - `calls` [EXTRACTED]
-- [[up()_1]] - `calls` [EXTRACTED]
-- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[build()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

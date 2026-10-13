@@ -1,46 +1,32 @@
 ---
-source_file: "src/routes/api/cron/room-step.ts"
+source_file: "src/routes/api/cron/exec-flatten.ts"
 type: "code"
-community: "Community 4"
-location: "L43"
+community: "jsonResponse"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/jsonResponse
 ---
 
 # handle()
 
 ## Connections
-- [[applyCycle()]] - `calls` [EXTRACTED]
-- [[applyLab()]] - `calls` [EXTRACTED]
-- [[asLab()]] - `calls` [EXTRACTED]
-- [[asSeatBook()]] - `calls` [EXTRACTED]
+- [[dot-markNet()]] - `calls` [INFERRED]
+- [[dot-state()]] - `calls` [INFERRED]
+- [[PgExecStore]] - `calls` [EXTRACTED]
 - [[authorizeCronRequest()]] - `calls` [EXTRACTED]
-- [[browserHoldsLease()]] - `calls` [EXTRACTED]
-- [[emptyBook()]] - `calls` [EXTRACTED]
-- [[etWindow]] - `calls` [EXTRACTED]
-- [[evaluateOptionsDesk()]] - `calls` [EXTRACTED]
-- [[exitWatchOf()]] - `calls` [EXTRACTED]
-- [[feedMayStep()]] - `calls` [EXTRACTED]
-- [[fetchTradingDesk]] - `calls` [EXTRACTED]
+- [[etWindow_1]] - `calls` [EXTRACTED]
+- [[exec-flatten.ts]] - `indirect_call` [INFERRED]
+- [[execStep()]] - `calls` [EXTRACTED]
 - [[getSql()]] - `calls` [EXTRACTED]
 - [[isForced()]] - `calls` [EXTRACTED]
-- [[isSnapshot()]] - `calls` [EXTRACTED]
 - [[jsonResponse()]] - `calls` [EXTRACTED]
-- [[labRead]] - `calls` [EXTRACTED]
-- [[ledgerOf()]] - `calls` [EXTRACTED]
-- [[loadPulse()]] - `calls` [EXTRACTED]
-- [[markBook()]] - `calls` [EXTRACTED]
-- [[marketDataFromDesk()]] - `calls` [EXTRACTED]
-- [[outputViolations()]] - `calls` [EXTRACTED]
-- [[paperStepDue()]] - `calls` [EXTRACTED]
-- [[rankOf()]] - `calls` [EXTRACTED]
-- [[readDeskForRoom()]] - `calls` [EXTRACTED]
-- [[rollCounters()]] - `calls` [EXTRACTED]
-- [[room-step.ts]] - `indirect_call` [INFERRED]
-- [[runRoomCycle()]] - `calls` [EXTRACTED]
-- [[savedAtMsOf()]] - `calls` [EXTRACTED]
-- [[toRoomInput()]] - `calls` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports_from` [EXTRACTED]
+- [[rh-ledger.ts]] - `imports_from` [EXTRACTED]
+- [[rh-mcp.ts]] - `imports_from` [EXTRACTED]
+- [[rhAutofireEnabled()]] - `calls` [EXTRACTED]
+- [[rhLiveArmed()]] - `calls` [EXTRACTED]
+- [[safetyNetDue()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

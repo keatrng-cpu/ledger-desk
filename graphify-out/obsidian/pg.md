@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 11"
-location: "L94"
+community: "ref_node_url"
+location: "L98"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_url
 ---
 
 # pg
@@ -18,4 +18,4 @@ tags:
 - [[package.json]] - `imports` [EXTRACTED]
 - [[seal-chain.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_11
+#graphify/concept #graphify/EXTRACTED #community/ref_node_url

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot-sync.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # snapshot-sync.ts
@@ -37,4 +37,4 @@ tags:
 - [[snapshot-server.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

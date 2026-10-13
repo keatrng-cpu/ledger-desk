@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-ai-sync.mjs"
 type: "code"
-community: "Community 247"
+community: "verify-ai-sync.mjs"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_247
+  - community/verify-ai-syncmjs
 ---
 
 # firstDue
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_247
+#graphify/code #graphify/EXTRACTED #community/verify-ai-syncmjs

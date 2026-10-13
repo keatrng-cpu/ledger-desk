@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 24"
+community: "floor-overhaul.ts"
 location: "L91"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/floor-overhaults
 ---
 
 # wrap()
@@ -16,7 +16,7 @@ tags:
 - [[drawManagerCall()]] - `calls` [EXTRACTED]
 - [[drawScars()]] - `calls` [EXTRACTED]
 - [[drawTrophies()]] - `calls` [EXTRACTED]
-- [[fit()]] - `calls` [EXTRACTED]
+- [[fit()_1]] - `calls` [EXTRACTED]
 - [[floor-overhaul.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # paper-manager.ts
@@ -15,18 +15,19 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BookCounters]] - `imports` [EXTRACTED]
 - [[BuiltPaperLevels]] - `contains` [EXTRACTED]
-- [[CONTRACTS_1]] - `imports` [EXTRACTED]
+- [[CONTRACTS]] - `imports` [EXTRACTED]
 - [[ContractKey]] - `imports` [EXTRACTED]
 - [[DEFAULT_MAX()]] - `contains` [EXTRACTED]
 - [[DeferredExit]] - `contains` [EXTRACTED]
 - [[DrawRead]] - `imports` [EXTRACTED]
 - [[FAILED_HOLD_ENABLED]] - `imports` [EXTRACTED]
+- [[JUDAS_BLOCKS]] - `imports` [EXTRACTED]
 - [[MAX_CLOSE_MOVE]] - `contains` [EXTRACTED]
 - [[MAX_RISK_PTS]] - `imports` [EXTRACTED]
 - [[ManageContext]] - `contains` [EXTRACTED]
 - [[ManagePrice]] - `contains` [EXTRACTED]
 - [[NewsEvent]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PAPER_START_EQUITY]] - `imports` [EXTRACTED]
 - [[PROGRESS_R]] - `imports` [EXTRACTED]
 - [[PaperStatus]] - `contains` [EXTRACTED]
@@ -36,6 +37,7 @@ tags:
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[TradeDebrief]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
 - [[bookRoot()]] - `contains` [EXTRACTED]
 - [[bookTakenToday()]] - `contains` [EXTRACTED]
@@ -46,7 +48,6 @@ tags:
 - [[closeOpenAtStructureLevel()]] - `contains` [EXTRACTED]
 - [[closePaperTrade()]] - `contains` [EXTRACTED]
 - [[commission()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[debriefPaper()]] - `imports` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
@@ -54,7 +55,7 @@ tags:
 - [[exit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[failedHold()]] - `imports` [EXTRACTED]
 - [[finalizeClose()]] - `contains` [EXTRACTED]
-- [[firstPrice()]] - `contains` [EXTRACTED]
+- [[firstPrice()_1]] - `contains` [EXTRACTED]
 - [[formatPaperTradeLine()]] - `contains` [EXTRACTED]
 - [[getPaperAccount()]] - `imports` [EXTRACTED]
 - [[getSessionClock()]] - `imports` [EXTRACTED]
@@ -79,7 +80,7 @@ tags:
 - [[paperAPlusCounters()]] - `contains` [EXTRACTED]
 - [[paperTradeHistory()]] - `contains` [EXTRACTED]
 - [[parseNums()]] - `contains` [EXTRACTED]
-- [[pointValue()_1]] - `contains` [EXTRACTED]
+- [[pointValue()]] - `contains` [EXTRACTED]
 - [[price-path-board.tsx]] - `imports_from` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[propfirm-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -108,6 +109,6 @@ tags:
 - [[verify-card-plan.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-freshness-gate.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
-- [[zoneMid()_1]] - `contains` [EXTRACTED]
+- [[zoneMid()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

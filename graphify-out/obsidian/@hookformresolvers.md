@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 32"
-location: "L58"
+community: "journal/server.ts"
+location: "L62"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/journal/serverts
 ---
 
 # @hookform/resolvers
@@ -15,4 +15,4 @@ tags:
 - [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_32
+#graphify/concept #graphify/EXTRACTED #community/journal/serverts

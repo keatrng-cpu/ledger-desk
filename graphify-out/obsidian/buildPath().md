@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 179"
+community: "session-brief.ts"
 location: "L219"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/session-briefts
 ---
 
 # buildPath()
@@ -19,4 +19,4 @@ tags:
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 - [[windowForLabel()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/session-briefts

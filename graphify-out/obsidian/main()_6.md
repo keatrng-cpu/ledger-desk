@@ -1,21 +1,19 @@
 ---
-source_file: "gateway/databento_live_gateway.py"
+source_file: "gateway/smoke_live.py"
 type: "code"
-community: "Community 74"
-location: "L550"
+community: "smoke_live.py"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/smoke_livepy
 ---
 
 # main()
 
 ## Connections
-- [[dot-run_forever()]] - `calls` [INFERRED]
-- [[LiveGateway]] - `calls` [EXTRACTED]
-- [[databento_live_gateway.py]] - `contains` [EXTRACTED]
-- [[load_env_local()_1]] - `calls` [EXTRACTED]
-- [[signal]] - `calls` [EXTRACTED]
+- [[load_env_local()]] - `calls` [EXTRACTED]
+- [[smoke_live.py]] - `contains` [EXTRACTED]
+- [[time]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

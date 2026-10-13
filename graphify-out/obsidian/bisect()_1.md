@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/predict/devig.ts"
+source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 7"
-location: "L28"
+community: "goal.ts"
+location: "L698"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/goalts
 ---
 
 # bisect()
 
 ## Connections
-- [[devig()]] - `calls` [EXTRACTED]
-- [[devig.ts]] - `contains` [EXTRACTED]
+- [[goal.ts]] - `contains` [EXTRACTED]
+- [[needed]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/goalts

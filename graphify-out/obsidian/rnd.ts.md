@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/rnd.ts"
 type: "code"
-community: "Community 194"
+community: "rnd.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/rndts
 ---
 
 # rnd.ts
@@ -38,8 +38,8 @@ tags:
 - [[tOne()_1]] - `contains` [EXTRACTED]
 - [[tTxt()]] - `contains` [EXTRACTED]
 - [[tWelch()]] - `contains` [EXTRACTED]
-- [[usd()_2]] - `contains` [EXTRACTED]
+- [[usd()]] - `contains` [EXTRACTED]
 - [[verdictKey()]] - `contains` [EXTRACTED]
 - [[verify-rnd.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/rndts

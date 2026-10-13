@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L70"
+community: "verify-floor-voice.mjs"
+location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/verify-floor-voicemjs
 ---
 
 # digitsHeld()
@@ -15,4 +15,4 @@ tags:
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/verify-floor-voicemjs

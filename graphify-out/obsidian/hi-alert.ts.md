@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "hi-alert.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/hi-alertts
 ---
 
 # hi-alert.ts
@@ -24,8 +24,9 @@ tags:
 - [[HiPlan]] - `contains` [EXTRACTED]
 - [[HiStatus]] - `contains` [EXTRACTED]
 - [[LadderLite]] - `imports` [EXTRACTED]
+- [[LedgerRow]] - `contains` [EXTRACTED]
 - [[OUTCOME_TEXT]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SCHOOL_SAY]] - `imports` [EXTRACTED]
 - [[SchoolFacts]] - `imports` [EXTRACTED]
 - [[SchoolKey]] - `imports` [EXTRACTED]
@@ -48,13 +49,15 @@ tags:
 - [[hi-alert-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[idOf()]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[ledgerExport()]] - `contains` [EXTRACTED]
+- [[ledgerStats]] - `contains` [EXTRACTED]
 - [[lessonOf()]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[loadHiAlerts()]] - `contains` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[memoList]] - `contains` [EXTRACTED]
 - [[pct()_18]] - `contains` [EXTRACTED]
-- [[r2()_9]] - `contains` [EXTRACTED]
+- [[r2()_12]] - `contains` [EXTRACTED]
 - [[recallHiAlerts()]] - `contains` [EXTRACTED]
 - [[recordHiAlerts()]] - `contains` [EXTRACTED]
 - [[saveHiAlerts()]] - `contains` [EXTRACTED]
@@ -63,8 +66,8 @@ tags:
 - [[schoolReads()]] - `imports` [EXTRACTED]
 - [[signed()_4]] - `contains` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
-- [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
+- [[tradingscanner.ts]] - `re_exports` [EXTRACTED]
 - [[verify-hi-alert-brain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-hi-alert.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

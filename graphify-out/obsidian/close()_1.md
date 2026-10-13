@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 160"
+community: "spot-cross.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/spot-crossts
 ---
 
 # close()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

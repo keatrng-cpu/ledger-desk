@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/journal/analytics-panel.tsx"
 type: "code"
-community: "Community 167"
+community: "analytics-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_167
+  - community/analytics-paneltsx
 ---
 
 # analytics-panel.tsx
@@ -16,9 +16,9 @@ tags:
 - [[AnalyticsPayload]] - `imports` [EXTRACTED]
 - [[AnalyticsReport]] - `imports` [EXTRACTED]
 - [[BookCoverage()]] - `contains` [EXTRACTED]
-- [[Bucket]] - `imports` [EXTRACTED]
+- [[Bucket_1]] - `imports` [EXTRACTED]
 - [[BucketTable()]] - `contains` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[EquitySpark()]] - `contains` [EXTRACTED]
 - [[MIN_MEANINGFUL_N]] - `imports` [EXTRACTED]
 - [[MIN_STRATEGY_N]] - `imports` [EXTRACTED]
@@ -47,11 +47,11 @@ tags:
 - [[journalanalytics.ts]] - `imports_from` [EXTRACTED]
 - [[kzLabel()]] - `contains` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[money()_1]] - `contains` [EXTRACTED]
+- [[money()_2]] - `contains` [EXTRACTED]
 - [[pct()_7]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[rr()]] - `contains` [EXTRACTED]
 - [[strategyVerdict]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_167
+#graphify/code #graphify/EXTRACTED #community/analytics-paneltsx

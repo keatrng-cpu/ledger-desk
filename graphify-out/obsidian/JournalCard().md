@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L291"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # JournalCard()
 
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
-- [[c()_1]] - `calls` [EXTRACTED]
+- [[c()]] - `calls` [EXTRACTED]
 - [[closeTrade()]] - `calls` [EXTRACTED]
 - [[deleteTrade()]] - `calls` [EXTRACTED]
 - [[feesFor()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[sideFee()]] - `calls` [EXTRACTED]
 - [[tradePnl()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

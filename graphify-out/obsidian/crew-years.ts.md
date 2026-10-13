@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/crew-years.ts"
 type: "code"
-community: "Community 21"
+community: "crew-years.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/crew-yearsts
 ---
 
 # crew-years.ts
@@ -33,4 +33,4 @@ tags:
 - [[src_data_crew_card_study]] - `imports_from` [EXTRACTED]
 - [[src_data_perfect_entry_book]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/crew-yearsts

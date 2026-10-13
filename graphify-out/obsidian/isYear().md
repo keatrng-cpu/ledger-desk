@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/lib/source-check.ts"
 type: "code"
-community: "Community 70"
+community: "source-check.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/source-checkts
 ---
 
 # isYear()
@@ -15,4 +15,4 @@ tags:
 - [[figureNumbers()]] - `calls` [EXTRACTED]
 - [[source-check.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/source-checkts

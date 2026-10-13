@@ -1,24 +1,29 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L832"
+community: "index.tsx"
+location: "L900"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # MasterplacePage()
 
 ## Connections
+- [[1 · Mount in `srcroutesindex.tsx`]] - `references` [INFERRED]
 - [[AlertsPanel()]] - `calls` [EXTRACTED]
 - [[AnalyticsPanel()]] - `calls` [EXTRACTED]
 - [[ApexSimPanel()]] - `calls` [EXTRACTED]
 - [[AplusOps()]] - `calls` [EXTRACTED]
+- [[BrainWord()]] - `calls` [EXTRACTED]
 - [[BridgeStatus()]] - `calls` [EXTRACTED]
-- [[Button]] - `calls` [EXTRACTED]
+- [[BuildingDesk()]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CalibrationPanel()]] - `calls` [EXTRACTED]
+- [[ChartMarks()]] - `calls` [EXTRACTED]
+- [[Code map]] - `references` [INFERRED]
 - [[DeskFold()]] - `calls` [EXTRACTED]
 - [[DisciplinePanel()]] - `calls` [EXTRACTED]
 - [[DiscussTab()]] - `calls` [EXTRACTED]
@@ -26,6 +31,7 @@ tags:
 - [[EntryHero()]] - `calls` [EXTRACTED]
 - [[EvidenceTable()]] - `calls` [EXTRACTED]
 - [[FloorBrains()]] - `calls` [EXTRACTED]
+- [[FourFactsBoard()]] - `calls` [EXTRACTED]
 - [[HaltBanner()]] - `calls` [EXTRACTED]
 - [[HtfBiasBoard()]] - `calls` [EXTRACTED]
 - [[InvestPanel()]] - `calls` [EXTRACTED]
@@ -38,6 +44,7 @@ tags:
 - [[MarketNarrativePanel()]] - `calls` [EXTRACTED]
 - [[MeadHallTab]] - `calls` [EXTRACTED]
 - [[NewsTab()]] - `calls` [EXTRACTED]
+- [[OptionTicket()]] - `calls` [EXTRACTED]
 - [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
 - [[OvernightBoard()]] - `calls` [EXTRACTED]
 - [[PaperBookPanel()]] - `calls` [EXTRACTED]
@@ -69,6 +76,7 @@ tags:
 - [[TradingCoach()]] - `calls` [EXTRACTED]
 - [[TradingFloorTab]] - `calls` [EXTRACTED]
 - [[VeteranBrainPanel()]] - `calls` [EXTRACTED]
+- [[WatcherTab()]] - `calls` [EXTRACTED]
 - [[applyWordHysteresis()]] - `calls` [EXTRACTED]
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[brainLiveRisk]] - `calls` [EXTRACTED]
@@ -87,6 +95,7 @@ tags:
 - [[fetchYearStudySeed()]] - `calls` [EXTRACTED]
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
 - [[formatUtcClock()]] - `calls` [EXTRACTED]
+- [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[getDeskSynapse()]] - `calls` [EXTRACTED]
 - [[getDiscretionState]] - `calls` [EXTRACTED]
 - [[getPaperAccount()]] - `calls` [EXTRACTED]
@@ -109,6 +118,7 @@ tags:
 - [[missingLayers()]] - `calls` [EXTRACTED]
 - [[msUntilNextDeskPoll()]] - `calls` [EXTRACTED]
 - [[noteAutoPaperSkip()]] - `calls` [EXTRACTED]
+- [[noteFuturesSession()]] - `calls` [EXTRACTED]
 - [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
 - [[observeShadowBook()]] - `calls` [EXTRACTED]
 - [[observeTakeMoments()]] - `calls` [EXTRACTED]
@@ -124,6 +134,8 @@ tags:
 - [[recordPrint()]] - `calls` [EXTRACTED]
 - [[releaseAutoPaperKey()]] - `calls` [EXTRACTED]
 - [[rememberAutoPaperKey()]] - `calls` [EXTRACTED]
+- [[rememberResearch()]] - `calls` [EXTRACTED]
+- [[researchRead]] - `calls` [EXTRACTED]
 - [[restPaperLimit()]] - `calls` [EXTRACTED]
 - [[restingFor()]] - `calls` [EXTRACTED]
 - [[riskEntryAllowed()]] - `calls` [EXTRACTED]
@@ -137,4 +149,4 @@ tags:
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 - [[withClientTimeout()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

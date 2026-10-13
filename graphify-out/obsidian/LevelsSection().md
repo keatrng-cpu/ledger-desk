@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L498"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # LevelsSection()
@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[Block()]] - `calls` [EXTRACTED]
 - [[SnapshotDetail()]] - `calls` [EXTRACTED]
-- [[arr()_2]] - `calls` [EXTRACTED]
-- [[num()_15]] - `calls` [EXTRACTED]
+- [[arr()_4]] - `calls` [EXTRACTED]
+- [[num()_20]] - `calls` [EXTRACTED]
 - [[obj()]] - `indirect_call` [INFERRED]
-- [[px()_13]] - `calls` [EXTRACTED]
+- [[px()_16]] - `calls` [EXTRACTED]
 - [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/paper-server.ts"
 type: "code"
-community: "Community 19"
+community: "getSql"
 location: "L113"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/getSql
 ---
 
 # getBridgeStatus
@@ -19,4 +19,4 @@ tags:
 - [[paper-server.ts]] - `contains` [EXTRACTED]
 - [[readEngineStatus()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/getSql

@@ -1,18 +1,21 @@
 ---
-source_file: "src/components/predict/pm-analyzer.tsx"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 16"
-location: "L57"
+community: "mead-screens.ts"
+location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/mead-screensts
 ---
 
 # cents()
 
 ## Connections
-- [[DeskPanel()]] - `calls` [EXTRACTED]
-- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
+- [[MeadHallTab()]] - `calls` [EXTRACTED]
+- [[PaperTicket()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

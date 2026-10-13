@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 111"
+community: "discretion-memory.ts"
 location: "L637"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/discretion-memoryts
 ---
 
 # pathStats
@@ -15,7 +15,7 @@ tags:
 - [[ExpectedPath()]] - `calls` [EXTRACTED]
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 - [[isDecided()]] - `calls` [EXTRACTED]
-- [[pct()]] - `calls` [EXTRACTED]
+- [[pct()_1]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

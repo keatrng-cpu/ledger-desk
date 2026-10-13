@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L165"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # markTakeAction()
@@ -15,7 +15,7 @@ tags:
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[loadMoments()]] - `calls` [EXTRACTED]
-- [[save()]] - `calls` [EXTRACTED]
+- [[save()_7]] - `calls` [EXTRACTED]
 - [[take-moments.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

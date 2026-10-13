@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/browser-guard.mjs"
+source_file: "src/lib/desk/mcp-server.ts"
 type: "code"
-community: "Community 11"
-location: "L49"
+community: "grok-report.ts"
+location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/grok-reportts
 ---
 
 # fail()
 
 ## Connections
-- [[browser-guard.mjs]] - `contains` [EXTRACTED]
-- [[checkedOutputPath()]] - `calls` [EXTRACTED]
-- [[checkedUrl()]] - `calls` [EXTRACTED]
+- [[handleMcpMessage()]] - `calls` [EXTRACTED]
+- [[mcp-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

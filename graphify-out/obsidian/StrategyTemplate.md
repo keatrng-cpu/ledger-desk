@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 84"
-location: "L20"
+community: "strategy-grade.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/strategy-gradets
 ---
 
 # StrategyTemplate
@@ -16,4 +16,4 @@ tags:
 - [[StrategyId]] - `references` [EXTRACTED]
 - [[strategy-grade.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

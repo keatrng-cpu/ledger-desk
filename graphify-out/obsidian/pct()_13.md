@@ -1,23 +1,21 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 41"
-location: "L99"
+community: "meeting.ts"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/meetingts
 ---
 
 # pct()
 
 ## Connections
-- [[MeadHallTab()]] - `calls` [EXTRACTED]
-- [[PaperTicket()]] - `calls` [EXTRACTED]
-- [[drawJumbotron()]] - `calls` [EXTRACTED]
-- [[drawRuneBoard()]] - `calls` [EXTRACTED]
-- [[drawTv()]] - `calls` [EXTRACTED]
-- [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[fillTierNote()]] - `calls` [EXTRACTED]
+- [[oddsNote()]] - `calls` [EXTRACTED]
+- [[qNote()]] - `calls` [EXTRACTED]
+- [[research.ts]] - `contains` [EXTRACTED]
+- [[sessionNote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/meetingts

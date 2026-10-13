@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-day-change.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 220"
-location: "L66"
+community: "verify-exit-rules.mjs"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_220
+  - community/verify-exit-rulesmjs
 ---
 
 # base
 
 ## Connections
-- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_220
+#graphify/code #graphify/EXTRACTED #community/verify-exit-rulesmjs

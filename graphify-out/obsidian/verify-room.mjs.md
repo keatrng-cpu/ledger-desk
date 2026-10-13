@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 22"
+community: "verify-room.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/verify-roommjs
 ---
 
 # verify-room.mjs
@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[dot-x()]] - `indirect_call` [INFERRED]
 - [[ERRAND]] - `contains` [EXTRACTED]
-- [[LAYOUT_2]] - `contains` [EXTRACTED]
+- [[LAYOUT_4]] - `contains` [EXTRACTED]
 - [[argsQ]] - `contains` [EXTRACTED]
-- [[at()_6]] - `contains` [EXTRACTED]
+- [[at()_10]] - `contains` [EXTRACTED]
 - [[atr8]] - `contains` [EXTRACTED]
 - [[bad_2]] - `contains` [EXTRACTED]
 - [[badEv]] - `contains` [EXTRACTED]
@@ -30,7 +30,7 @@ tags:
 - [[ceoDesk]] - `contains` [EXTRACTED]
 - [[chCal]] - `contains` [EXTRACTED]
 - [[chairsFace]] - `contains` [EXTRACTED]
-- [[check()_36]] - `contains` [EXTRACTED]
+- [[check()_38]] - `contains` [EXTRACTED]
 - [[chops]] - `contains` [EXTRACTED]
 - [[closedGhost()]] - `contains` [EXTRACTED]
 - [[cronSrc]] - `contains` [EXTRACTED]
@@ -54,8 +54,8 @@ tags:
 - [[g1000]] - `contains` [EXTRACTED]
 - [[g956]] - `contains` [EXTRACTED]
 - [[gHeld]] - `contains` [EXTRACTED]
-- [[glb]] - `contains` [EXTRACTED]
-- [[halted]] - `contains` [EXTRACTED]
+- [[glb_1]] - `contains` [EXTRACTED]
+- [[halted_1]] - `contains` [EXTRACTED]
 - [[inLounge()]] - `contains` [EXTRACTED]
 - [[lab.ts]] - `dynamic_import` [EXTRACTED]
 - [[labX]] - `contains` [EXTRACTED]
@@ -78,10 +78,11 @@ tags:
 - [[quoteQ]] - `contains` [EXTRACTED]
 - [[rel]] - `contains` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[staleTape()]] - `contains` [EXTRACTED]
 - [[step_1]] - `contains` [EXTRACTED]
-- [[steps]] - `contains` [EXTRACTED]
+- [[steps_1]] - `contains` [EXTRACTED]
 - [[stopped]] - `contains` [EXTRACTED]
 - [[t1m]] - `contains` [EXTRACTED]
 - [[t1x]] - `contains` [EXTRACTED]
@@ -99,8 +100,8 @@ tags:
 - [[w2]] - `contains` [EXTRACTED]
 - [[wFB]] - `contains` [EXTRACTED]
 - [[wH]] - `contains` [EXTRACTED]
-- [[watch()_1]] - `contains` [EXTRACTED]
+- [[watch()]] - `contains` [EXTRACTED]
 - [[weekend]] - `contains` [EXTRACTED]
 - [[withMark()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

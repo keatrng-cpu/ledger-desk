@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/marks.ts"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # marks.ts
@@ -18,10 +18,12 @@ tags:
 - [[Range]] - `contains` [EXTRACTED]
 - [[TickerMarks]] - `contains` [EXTRACTED]
 - [[book-card.tsx]] - `imports_from` [EXTRACTED]
+- [[funnel-card.tsx]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
-- [[marks-server.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.tsx]] - `imports_from` [EXTRACTED]
+- [[marks-server.ts]] - `re_exports` [EXTRACTED]
 - [[parseDailyChart()]] - `contains` [EXTRACTED]
 - [[rangeFor()]] - `contains` [EXTRACTED]
 - [[verify-invest-book.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

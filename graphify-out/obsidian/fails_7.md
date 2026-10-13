@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-sleeve-migration.mjs"
+source_file: "scripts/verify-score-drivers.mjs"
 type: "code"
-community: "Community 85"
-location: "L46"
+community: "strategy-grade.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/strategy-gradets
 ---
 
 # fails
 
 ## Connections
-- [[verify-sleeve-migration.mjs]] - `contains` [EXTRACTED]
+- [[verify-score-drivers.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

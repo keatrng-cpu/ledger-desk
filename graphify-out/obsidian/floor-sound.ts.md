@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 113"
+community: "floor-sound.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/floor-soundts
 ---
 
 # floor-sound.ts
@@ -23,7 +23,8 @@ tags:
 - [[assignVoices()]] - `imports` [EXTRACTED]
 - [[englishVoices()]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
-- [[floor-voice.ts]] - `imports_from` [EXTRACTED]
+- [[floor-voice.ts]] - `re_exports` [EXTRACTED]
+- [[isNaturalVoice()]] - `imports` [EXTRACTED]
 - [[loadBedMutes()]] - `contains` [EXTRACTED]
 - [[loadCast()]] - `contains` [EXTRACTED]
 - [[loadSoundPref()]] - `contains` [EXTRACTED]
@@ -32,6 +33,7 @@ tags:
 - [[saveBedMutes()]] - `contains` [EXTRACTED]
 - [[saveCast()]] - `contains` [EXTRACTED]
 - [[saveSoundPref()]] - `contains` [EXTRACTED]
+- [[setVoiceQuality()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/floor-soundts

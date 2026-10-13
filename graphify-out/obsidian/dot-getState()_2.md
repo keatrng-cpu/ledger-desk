@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/room/manager-feed.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 51"
-location: "L284"
+community: "prediction-market-feed.ts"
+location: "L168"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/prediction-market-feedts
 ---
 
 # .getState()
 
 ## Connections
-- [[ManagerFeed]] - `method` [EXTRACTED]
-- [[managerStateForAgree()]] - `calls` [EXTRACTED]
+- [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

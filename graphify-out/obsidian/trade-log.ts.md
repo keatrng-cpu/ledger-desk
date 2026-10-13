@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-log.ts"
 type: "code"
-community: "Community 176"
+community: "trade-log.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_176
+  - community/trade-logts
 ---
 
 # trade-log.ts
@@ -24,7 +24,7 @@ tags:
 - [[disciplineRead]] - `imports` [EXTRACTED]
 - [[fingerprint()]] - `imports` [EXTRACTED]
 - [[loggedRecords()]] - `contains` [EXTRACTED]
-- [[num()_8]] - `contains` [EXTRACTED]
+- [[num()_7]] - `contains` [EXTRACTED]
 - [[override-log.ts]] - `imports_from` [EXTRACTED]
 - [[overrideRecords()]] - `contains` [EXTRACTED]
 - [[overrideScorecard()]] - `imports` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[toRecord()]] - `contains` [EXTRACTED]
 - [[trade-log-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_176
+#graphify/code #graphify/EXTRACTED #community/trade-logts

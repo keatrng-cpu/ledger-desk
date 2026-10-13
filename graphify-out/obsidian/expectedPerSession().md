@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 188"
+community: "runApexSim"
 location: "L532"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_188
+  - community/runApexSim
 ---
 
 # expectedPerSession()
@@ -16,4 +16,4 @@ tags:
 - [[calibrateThinning()]] - `calls` [EXTRACTED]
 - [[inclusionProbability()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_188
+#graphify/code #graphify/EXTRACTED #community/runApexSim

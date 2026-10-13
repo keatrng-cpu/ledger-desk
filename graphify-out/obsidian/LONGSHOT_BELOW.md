@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
-location: "L238"
+community: "mead-screens.ts"
+location: "L242"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # LONGSHOT_BELOW
@@ -16,4 +16,4 @@ tags:
 - [[math.ts]] - `contains` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

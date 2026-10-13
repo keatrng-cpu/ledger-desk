@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
-location: "L257"
+community: "live-world.ts"
+location: "L282"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # schoolsOf()
@@ -21,4 +21,4 @@ tags:
 - [[schoolSentence()]] - `calls` [EXTRACTED]
 - [[sequenceLayers()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

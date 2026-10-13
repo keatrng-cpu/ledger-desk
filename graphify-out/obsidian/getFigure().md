@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/figures.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L263"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # getFigure()
@@ -19,4 +19,4 @@ tags:
 - [[scenarios.ts]] - `imports` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

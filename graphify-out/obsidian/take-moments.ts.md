@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # take-moments.ts
@@ -14,12 +14,12 @@ tags:
 ## Connections
 - [[LedgerSummary]] - `contains` [EXTRACTED]
 - [[MomentAction]] - `contains` [EXTRACTED]
-- [[MomentKind]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
-- [[PATH]] - `contains` [EXTRACTED]
+- [[MomentKind_1]] - `contains` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
+- [[PATH_4]] - `contains` [EXTRACTED]
 - [[SmcMasterBook]] - `imports` [EXTRACTED]
 - [[TakeMoment]] - `contains` [EXTRACTED]
-- [[dayKey()_3]] - `contains` [EXTRACTED]
+- [[dayKey()_14]] - `contains` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
@@ -31,7 +31,7 @@ tags:
 - [[observeTakeMoments()]] - `contains` [EXTRACTED]
 - [[readEntry()]] - `imports` [EXTRACTED]
 - [[resolveMoment()]] - `contains` [EXTRACTED]
-- [[save()]] - `contains` [EXTRACTED]
+- [[save()_7]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[subscribeMoments()]] - `contains` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[tickMomentOutcomes()]] - `contains` [EXTRACTED]
 - [[verify-take-moments.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

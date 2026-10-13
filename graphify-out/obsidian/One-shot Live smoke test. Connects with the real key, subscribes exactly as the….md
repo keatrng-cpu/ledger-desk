@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/smoke_live.py"
 type: "rationale"
-community: "Community 225"
+community: "smoke_live.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/smoke_livepy
 ---
 
 # One-shot Live smoke test. Connects with the real key, subscribes exactly as the…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[smoke_live.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_225
+#graphify/rationale #graphify/EXTRACTED #community/smoke_livepy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 177"
+community: "intent.ts"
 location: "L129"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_177
+  - community/intentts
 ---
 
 # blankRow()
@@ -16,4 +16,4 @@ tags:
 - [[execStep()]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_177
+#graphify/code #graphify/EXTRACTED #community/intentts

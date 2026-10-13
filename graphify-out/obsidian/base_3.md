@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-floor-cues.mjs"
+source_file: "scripts/verify-hit-odds.mjs"
 type: "code"
-community: "Community 165"
-location: "L15"
+community: "verify-hit-odds.mjs"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_165
+  - community/verify-hit-oddsmjs
 ---
 
 # base
 
 ## Connections
-- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
+- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_165
+#graphify/code #graphify/EXTRACTED #community/verify-hit-oddsmjs

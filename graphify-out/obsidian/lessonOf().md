@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 29"
+community: "hi-alert.ts"
 location: "L343"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/hi-alertts
 ---
 
 # lessonOf()
@@ -17,8 +17,9 @@ tags:
 - [[feedHiAlert()]] - `calls` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
+- [[ledgerExport()]] - `calls` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
-- [[r2()_9]] - `calls` [EXTRACTED]
+- [[r2()_12]] - `calls` [EXTRACTED]
 - [[signed()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

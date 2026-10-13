@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/measure-micro-entry.mjs"
+source_file: "src/lib/market/overnight.ts"
 type: "code"
-community: "Community 199"
-location: "L53"
+community: "build-desk.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_199
+  - community/build-deskts
 ---
 
 # etMin()
 
 ## Connections
-- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
-- [[simulate()_1]] - `calls` [EXTRACTED]
+- [[loadOvernight5m()]] - `calls` [EXTRACTED]
+- [[overnight.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_199
+#graphify/code #graphify/EXTRACTED #community/build-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 134"
-location: "L345"
+community: "week-ahead.ts"
+location: "L466"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # resolveWeekAhead()
@@ -15,10 +15,10 @@ tags:
 - [[addDays()_3]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
-- [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[stampPrints()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 - [[week-ahead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

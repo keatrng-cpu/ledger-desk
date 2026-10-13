@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exits.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # exits.ts
@@ -15,7 +15,7 @@ tags:
 - [[EVENT_EXIT_MIN]] - `contains` [EXTRACTED]
 - [[EXIT_RANK]] - `contains` [EXTRACTED]
 - [[ExitContext]] - `contains` [EXTRACTED]
-- [[ExitPlan]] - `imports` [EXTRACTED]
+- [[ExitPlan_1]] - `imports` [EXTRACTED]
 - [[ExitPolicy]] - `contains` [EXTRACTED]
 - [[HoldRead]] - `imports` [EXTRACTED]
 - [[MANDATE_POLICY]] - `contains` [EXTRACTED]
@@ -41,7 +41,7 @@ tags:
 - [[roomformat.ts]] - `imports_from` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
 - [[signedPct()]] - `imports` [EXTRACTED]
-- [[usd()_3]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

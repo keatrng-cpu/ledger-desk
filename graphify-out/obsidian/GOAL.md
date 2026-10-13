@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 208"
-location: "L34"
+community: "snapshot.ts"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/snapshotts
 ---
 
 # GOAL
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/snapshotts

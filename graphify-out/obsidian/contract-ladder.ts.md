@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/contract-ladder.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # contract-ladder.ts
@@ -14,12 +14,12 @@ tags:
 ## Connections
 - [[LADDER_MAX_STEPS]] - `contains` [EXTRACTED]
 - [[LadderCard]] - `contains` [EXTRACTED]
-- [[LadderInput]] - `contains` [EXTRACTED]
+- [[LadderInput_1]] - `contains` [EXTRACTED]
 - [[OptionEv]] - `imports` [EXTRACTED]
 - [[OptionType]] - `imports` [EXTRACTED]
 - [[Rung_1]] - `contains` [EXTRACTED]
 - [[RungPricing]] - `contains` [EXTRACTED]
-- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[StrikeOffset_1]] - `imports` [EXTRACTED]
 - [[Underlier]] - `imports` [EXTRACTED]
 - [[buildLadder()]] - `contains` [EXTRACTED]
 - [[etfAt()]] - `imports` [EXTRACTED]
@@ -31,7 +31,7 @@ tags:
 - [[priceOptionPlan()]] - `imports` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[quoteOption()]] - `imports` [EXTRACTED]
-- [[r2()]] - `contains` [EXTRACTED]
+- [[r2()_9]] - `contains` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[roomRungs()]] - `contains` [EXTRACTED]
 - [[seats.ts]] - `imports_from` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

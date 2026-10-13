@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 154"
+community: "alpaca.ts"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/alpacats
 ---
 
 # call()
@@ -15,4 +15,4 @@ tags:
 - [[AlpacaError]] - `calls` [EXTRACTED]
 - [[alpacaBroker()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/alpacats

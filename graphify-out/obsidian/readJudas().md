@@ -1,24 +1,26 @@
 ---
 source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 27"
-location: "L108"
+community: "react"
+location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/react
 ---
 
 # readJudas()
 
 ## Connections
+- [[Concept table (✗ = disagreement before this branch)]] - `references` [INFERRED]
+- [[Locator_1]] - `references` [INFERRED]
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[isJudasWindow()]] - `calls` [EXTRACTED]
 - [[judas-window.ts]] - `contains` [EXTRACTED]
 - [[openPaperTradeInstant()]] - `calls` [EXTRACTED]
-- [[out()]] - `calls` [EXTRACTED]
+- [[out()_1]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[path-alarm.ts]] - `imports` [EXTRACTED]
 - [[price-path-board.tsx]] - `imports` [EXTRACTED]
@@ -26,4 +28,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[summarizeDetectors()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/react

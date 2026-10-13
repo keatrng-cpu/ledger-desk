@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/learn/scenarios.ts"
+source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 67"
-location: "L25"
+community: "seats.ts"
+location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/seatsts
 ---
 
 # Verdict
 
 ## Connections
-- [[learn-tab.tsx]] - `imports` [EXTRACTED]
-- [[scenarios.ts]] - `contains` [EXTRACTED]
+- [[seats.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/seatsts

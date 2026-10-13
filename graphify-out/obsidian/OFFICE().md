@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # OFFICE()
@@ -17,4 +17,4 @@ tags:
 - [[exRndVerdict()]] - `calls` [EXTRACTED]
 - [[live-voices-race.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

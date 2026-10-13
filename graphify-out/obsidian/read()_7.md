@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/invest/kill-store.ts"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 80"
-location: "L46"
+community: "verify-rh-desk-job.mjs"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/verify-rh-desk-jobmjs
 ---
 
 # read()
 
 ## Connections
-- [[kill-store.ts]] - `contains` [EXTRACTED]
-- [[loadKillJudgements()]] - `calls` [EXTRACTED]
-- [[loadLastRun()]] - `calls` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

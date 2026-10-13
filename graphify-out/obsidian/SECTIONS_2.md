@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/evidence-table.tsx"
 type: "code"
-community: "Community 99"
+community: "cn"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/cn
 ---
 
 # SECTIONS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[evidence-table.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/cn

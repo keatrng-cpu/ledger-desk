@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/journal/attest-fn.ts"
 type: "code"
-community: "Community 97"
+community: "@tanstack/react-start"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_97
+  - community/tanstack/react-start
 ---
 
 # attest-fn.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[attest-server.ts]] - `imports_from` [EXTRACTED]
 - [[authMiddleware]] - `imports` [EXTRACTED]
 - [[chainHealth]] - `imports` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[getSql()]] - `imports` [EXTRACTED]
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_97
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

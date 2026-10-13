@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 210"
-location: "L155"
+community: "shock.ts"
+location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/shockts
 ---
 
 # readShock()
@@ -17,5 +17,6 @@ tags:
 - [[detectBookShock()]] - `calls` [EXTRACTED]
 - [[fmtPts()]] - `calls` [EXTRACTED]
 - [[shock.ts]] - `contains` [EXTRACTED]
+- [[shockBiasFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/shockts

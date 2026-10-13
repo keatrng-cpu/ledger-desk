@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
-location: "L367"
+community: "audit.ts"
+location: "L380"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # RndLite
@@ -20,4 +20,4 @@ tags:
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

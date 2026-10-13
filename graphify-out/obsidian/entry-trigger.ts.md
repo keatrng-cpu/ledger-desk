@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # entry-trigger.ts
@@ -25,8 +25,8 @@ tags:
 - [[TIER_GONE_ATR]] - `contains` [EXTRACTED]
 - [[TIER_LIVE_ATR]] - `contains` [EXTRACTED]
 - [[TradePlan]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[card-freshness.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[discretion-memory.ts]] - `imports_from` [EXTRACTED]
@@ -43,9 +43,10 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[take-moments.ts]] - `imports_from` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[touchKey()]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-entry-alarm.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-entry-trigger.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

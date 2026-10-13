@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
-location: "L399"
+community: "agents.ts"
+location: "L434"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # directorMeeting()
@@ -15,4 +15,4 @@ tags:
 - [[agents.ts]] - `contains` [EXTRACTED]
 - [[planAgents()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

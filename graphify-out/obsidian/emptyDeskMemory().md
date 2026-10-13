@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
-community: "Community 9"
-location: "L98"
+community: "index.tsx"
+location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/indextsx
 ---
 
 # emptyDeskMemory()
@@ -17,4 +17,4 @@ tags:
 - [[empty()_1]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "scripts/code-index.mjs"
 type: "code"
-community: "Community 55"
-location: "L86"
+community: "code-index.mjs"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/code-indexmjs
 ---
 
 # rows
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
+- [[code-index.mjs]] - `contains` [EXTRACTED]
+- [[exportsOf()]] - `calls` [EXTRACTED]
+- [[purpose()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/code-indexmjs

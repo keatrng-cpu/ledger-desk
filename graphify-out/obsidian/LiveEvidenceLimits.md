@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/limits.ts"
 type: "code"
-community: "Community 150"
+community: "gates.ts"
 location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/gatests
 ---
 
 # LiveEvidenceLimits
@@ -15,4 +15,4 @@ tags:
 - [[gates.ts]] - `imports` [EXTRACTED]
 - [[limits.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/gatests

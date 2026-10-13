@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-invest-book.mjs"
 type: "code"
-community: "Community 30"
+community: "verify-invest-book.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_30
+  - community/verify-invest-bookmjs
 ---
 
 # verify-invest-book.mjs
 
 ## Connections
 - [[B()_2]] - `contains` [EXTRACTED]
-- [[S()_1]] - `contains` [EXTRACTED]
+- [[S()_2]] - `contains` [EXTRACTED]
 - [[addEventListener()_1]] - `contains` [EXTRACTED]
 - [[again]] - `contains` [EXTRACTED]
 - [[allVti]] - `contains` [EXTRACTED]
@@ -22,8 +22,8 @@ tags:
 - [[book.ts]] - `dynamic_import` [EXTRACTED]
 - [[cap]] - `contains` [EXTRACTED]
 - [[chart_1]] - `contains` [EXTRACTED]
-- [[check()_57]] - `contains` [EXTRACTED]
-- [[clean_1]] - `contains` [EXTRACTED]
+- [[check()_67]] - `contains` [EXTRACTED]
+- [[clean_2]] - `contains` [EXTRACTED]
 - [[closesMap]] - `contains` [EXTRACTED]
 - [[dispatchEvent()_1]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `dynamic_import` [EXTRACTED]
@@ -43,27 +43,27 @@ tags:
 - [[marks.ts]] - `dynamic_import` [EXTRACTED]
 - [[mem_1]] - `contains` [EXTRACTED]
 - [[mix]] - `contains` [EXTRACTED]
-- [[mk()_1]] - `contains` [EXTRACTED]
-- [[months]] - `contains` [EXTRACTED]
+- [[mk()_2]] - `contains` [EXTRACTED]
+- [[months_1]] - `contains` [EXTRACTED]
 - [[msftEff]] - `contains` [EXTRACTED]
 - [[msftV]] - `contains` [EXTRACTED]
 - [[noComp]] - `contains` [EXTRACTED]
-- [[now_8]] - `contains` [EXTRACTED]
+- [[now_13]] - `contains` [EXTRACTED]
 - [[ok()_24]] - `contains` [EXTRACTED]
-- [[over_1]] - `contains` [EXTRACTED]
+- [[over_2]] - `contains` [EXTRACTED]
 - [[parsed_1]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `dynamic_import` [EXTRACTED]
 - [[prev]] - `contains` [EXTRACTED]
 - [[q_1]] - `contains` [EXTRACTED]
 - [[qqqP]] - `contains` [EXTRACTED]
 - [[qsum]] - `contains` [EXTRACTED]
-- [[r2()_5]] - `contains` [EXTRACTED]
-- [[r4()_2]] - `contains` [EXTRACTED]
+- [[r2()_7]] - `contains` [EXTRACTED]
+- [[r4()_3]] - `contains` [EXTRACTED]
 - [[rec()_2]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[removeEventListener()_1]] - `contains` [EXTRACTED]
 - [[rh-bridge.ts]] - `dynamic_import` [EXTRACTED]
-- [[series]] - `contains` [EXTRACTED]
+- [[series_3]] - `contains` [EXTRACTED]
 - [[sgov]] - `contains` [EXTRACTED]
 - [[sh]] - `contains` [EXTRACTED]
 - [[small_1]] - `contains` [EXTRACTED]
@@ -87,4 +87,4 @@ tags:
 - [[w7]] - `contains` [EXTRACTED]
 - [[w8]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_30
+#graphify/code #graphify/EXTRACTED #community/verify-invest-bookmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/news-server.ts"
 type: "code"
-community: "Community 109"
+community: "news-tab.tsx"
 location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/news-tabtsx
 ---
 
 # getNewsFeed
@@ -18,4 +18,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

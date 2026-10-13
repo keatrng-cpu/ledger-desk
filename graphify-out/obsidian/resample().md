@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/gap-direction.ts"
+source_file: "src/lib/backtest/engine.ts"
 type: "code"
-community: "Community 250"
-location: "L20"
+community: "day-context.ts"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_250
+  - community/day-contextts
 ---
 
 # resample()
 
 ## Connections
-- [[gap-direction.ts]] - `contains` [EXTRACTED]
-- [[gapDirection]] - `calls` [EXTRACTED]
+- [[dump-loss-features.mts]] - `imports` [EXTRACTED]
+- [[engine.ts]] - `contains` [EXTRACTED]
+- [[replayDay()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_250
+#graphify/code #graphify/EXTRACTED #community/day-contextts

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-news-ipo.mjs"
+source_file: "scripts/verify-cases.mjs"
 type: "code"
-community: "Community 133"
-location: "L25"
+community: "ref_node_fs"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_133
+  - community/ref_node_fs
 ---
 
 # ok()
 
 ## Connections
-- [[check()_7]] - `calls` [EXTRACTED]
-- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
+- [[verify-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_133
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

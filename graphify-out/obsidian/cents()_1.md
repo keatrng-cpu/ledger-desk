@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # cents()
@@ -15,4 +15,4 @@ tags:
 - [[SideRow()]] - `calls` [EXTRACTED]
 - [[predict-parts.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

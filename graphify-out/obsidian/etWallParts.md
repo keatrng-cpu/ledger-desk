@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 58"
+community: "room-engine.ts"
 location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/room-enginets
 ---
 
 # etWallParts
@@ -28,21 +28,22 @@ tags:
 - [[clockOf()]] - `calls` [EXTRACTED]
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[dayKey()_3]] - `calls` [EXTRACTED]
+- [[dayKey()_14]] - `calls` [EXTRACTED]
 - [[discuss-tab.tsx]] - `imports` [EXTRACTED]
 - [[dueAiSyncSlot()]] - `calls` [EXTRACTED]
 - [[entry-state.ts]] - `imports` [EXTRACTED]
 - [[etClockLabel()]] - `calls` [EXTRACTED]
-- [[etDateKey()]] - `calls` [EXTRACTED]
 - [[etDateKey()_1]] - `calls` [EXTRACTED]
+- [[etDateKey()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etDateOf()]] - `calls` [EXTRACTED]
 - [[etMinOf()_3]] - `calls` [EXTRACTED]
-- [[etMinOf()]] - `calls` [EXTRACTED]
+- [[etMinOf()_2]] - `calls` [EXTRACTED]
 - [[etMinOfMs()]] - `calls` [EXTRACTED]
 - [[etSessionKey()]] - `calls` [EXTRACTED]
 - [[etStamp()_1]] - `calls` [EXTRACTED]
 - [[etStampShort()]] - `calls` [EXTRACTED]
-- [[etTime()_1]] - `calls` [EXTRACTED]
+- [[etTime()]] - `calls` [EXTRACTED]
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
 - [[floor-props.ts]] - `imports` [EXTRACTED]
 - [[floor-screens.ts]] - `imports` [EXTRACTED]
@@ -54,7 +55,7 @@ tags:
 - [[goal.ts]] - `imports` [EXTRACTED]
 - [[goalClock]] - `calls` [EXTRACTED]
 - [[gradeOvernight()]] - `calls` [EXTRACTED]
-- [[hhmm()_4]] - `calls` [EXTRACTED]
+- [[hhmm()_5]] - `calls` [EXTRACTED]
 - [[inJudasMs()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[invest-office-panel.tsx]] - `imports` [EXTRACTED]
@@ -70,6 +71,7 @@ tags:
 - [[majorLevels()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
 - [[month-ahead.ts]] - `imports` [EXTRACTED]
+- [[news.ts]] - `imports` [EXTRACTED]
 - [[nextCheckpoint()]] - `calls` [EXTRACTED]
 - [[option-math.ts]] - `imports` [EXTRACTED]
 - [[optionsOpen()]] - `calls` [EXTRACTED]
@@ -81,6 +83,7 @@ tags:
 - [[pending-order.ts]] - `imports` [EXTRACTED]
 - [[price-path-board.tsx]] - `imports` [EXTRACTED]
 - [[pricePathVerdict()]] - `calls` [EXTRACTED]
+- [[releaseSlotNow()]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `imports` [EXTRACTED]
 - [[resampleSessionBars()]] - `calls` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports` [EXTRACTED]
@@ -107,7 +110,8 @@ tags:
 - [[tickPending()]] - `calls` [EXTRACTED]
 - [[tradeDateOf()]] - `calls` [EXTRACTED]
 - [[tradingDayOrdinal()]] - `calls` [EXTRACTED]
+- [[useRoomEngine()]] - `calls` [EXTRACTED]
 - [[week-ahead.ts]] - `imports` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/room-enginets

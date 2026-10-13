@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/room/desk-atlas.ts"
+source_file: "src/lib/room/floor-locomotion.ts"
 type: "code"
-community: "Community 21"
-location: "L250"
+community: "floor-locomotion.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/floor-locomotionts
 ---
 
 # clamp()
 
 ## Connections
-- [[desk-atlas.ts]] - `contains` [EXTRACTED]
-- [[gradeAtlas()]] - `calls` [EXTRACTED]
-- [[rewrite()]] - `calls` [EXTRACTED]
+- [[floor-locomotion.ts]] - `contains` [EXTRACTED]
+- [[smoothPath()]] - `calls` [EXTRACTED]
+- [[substep()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/floor-locomotionts

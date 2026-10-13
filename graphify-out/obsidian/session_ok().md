@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 156"
+community: "crew-year-backtest.py"
 location: "L108"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/crew-year-backtestpy
 ---
 
 # session_ok()
@@ -16,4 +16,4 @@ tags:
 - [[minute_of()_1]] - `calls` [EXTRACTED]
 - [[signals()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

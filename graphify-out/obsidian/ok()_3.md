@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-figures.mjs"
+source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 132"
-location: "L20"
+community: "verify-target-odds.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/verify-target-oddsmjs
 ---
 
 # ok()
 
 ## Connections
-- [[verify-figures.mjs]] - `contains` [EXTRACTED]
+- [[check()_8]] - `calls` [EXTRACTED]
+- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/verify-target-oddsmjs

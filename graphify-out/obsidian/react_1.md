@@ -1,16 +1,17 @@
 ---
-source_file: "react"
+source_file: "package.json"
 type: "code"
-community: "Community 227"
+community: "dependencies"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/dependencies
 ---
 
 # react
 
 ## Connections
-- [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/dependencies

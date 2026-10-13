@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-account.ts"
 type: "code"
-community: "Community 9"
+community: "aplus/config.ts"
 location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/aplus/configts
 ---
 
 # formatPaperChip()
@@ -17,4 +17,4 @@ tags:
 - [[paper-account.ts]] - `contains` [EXTRACTED]
 - [[risk-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

@@ -1,0 +1,236 @@
+---
+type: community
+cohesion: 0.04
+members: 128
+---
+
+# room-engine.ts
+
+**Cohesion:** 0.04 - loosely connected
+**Members:** 128 nodes
+
+## Members
+- [[AgendaEvent]] - code - src/lib/room/agents.ts
+- [[AgendaSetup]] - code - src/lib/room/agents.ts
+- [[B_PLUS]] - code - src/lib/room/drill.ts
+- [[DRILL_DATE]] - code - src/lib/room/drill.ts
+- [[DRILL_LABEL]] - code - src/lib/room/drill.ts
+- [[ES_PLAN]] - code - src/lib/room/drill.ts
+- [[ExitWatch]] - code - src/lib/room/desk-read.ts
+- [[GOAL_STORAGE]] - code - src/lib/room/goal.ts
+- [[GoalForm()]] - code - src/components/room/race-panel.tsx
+- [[HeldLevels]] - code - src/lib/room/orchestrator.ts
+- [[NEWS_CALENDAR]] - code - src/lib/trading/news.ts
+- [[NEXT_AFTER]] - code - src/lib/room/drill.ts
+- [[NQ_PLAN]] - code - src/lib/room/drill.ts
+- [[PLAN_B]] - code - src/lib/room/drill.ts
+- [[RELEASE]] - code - src/lib/room/drill.ts
+- [[RESEARCH_LINES]] - code - src/components/room/room-engine.ts
+- [[ROOM_BOOK_STORAGE]] - code - src/lib/room/paper-book.ts
+- [[ROOM_DEFAULT_CASH]] - code - src/lib/room/paper-book.ts
+- [[ROOM_DRILL_STORAGE]] - code - src/lib/room/paper-book.ts
+- [[RoomContext]] - code - src/lib/room/orchestrator.ts
+- [[RoomExitRead]] - code - src/lib/room/orchestrator.ts
+- [[RoomFut]] - code - src/lib/room/paper-book.ts
+- [[RoomInput]] - code - src/lib/room/orchestrator.ts
+- [[SETUP_BANDS_1]] - code - src/lib/room/desk-read.ts
+- [[TapeMeta]] - code - src/lib/room/desk-read.ts
+- [[What was wrong]] - document - docs/RH_LIVE_ROUTINE.md
+- [[ageOf()]] - code - src/components/room/room-engine.ts
+- [[applyCycle()]] - code - src/lib/room/paper-book.ts
+- [[applyLab()]] - code - src/lib/room/paper-book.ts
+- [[applyVoids()]] - code - src/components/room/room-engine.ts
+- [[asGoal()]] - code - src/lib/room/goal.ts
+- [[asLab()]] - code - src/lib/room/lab.ts
+- [[asSeatBook()]] - code - src/lib/room/seats.ts
+- [[bookRealized()]] - code - src/lib/room/paper-book.ts
+- [[bookScreen()]] - code - src/components/room/room-engine.ts
+- [[cardEntry()]] - code - src/lib/room/desk-read.ts
+- [[computeExits()]] - code - src/lib/room/desk-read.ts
+- [[computeHeld()]] - code - src/lib/room/desk-read.ts
+- [[cycle.ts]] - code - src/routes/api/room/cycle.ts
+- [[cycleWire()]] - code - src/components/room/room-engine.ts
+- [[defaultGoal()]] - code - src/lib/room/goal.ts
+- [[desk-read.ts]] - code - src/lib/room/desk-read.ts
+- [[drillDeskRead()]] - code - src/lib/room/drill.ts
+- [[drillFrames()]] - code - src/lib/room/drill.ts
+- [[drillMarket()]] - code - src/lib/room/drill.ts
+- [[drillNowMs()]] - code - src/lib/room/drill.ts
+- [[emptyBook()]] - code - src/lib/room/paper-book.ts
+- [[emptyCounters()]] - code - src/lib/room/counters.ts
+- [[emptyLab()]] - code - src/lib/room/lab.ts
+- [[emptyRings()]] - code - src/lib/room/live-world.ts
+- [[ensureSeats()]] - code - src/lib/room/seats.ts
+- [[equityOf()]] - code - src/lib/room/paper-book.ts
+- [[etClockLabel()]] - code - src/components/room/room-engine.ts
+- [[etWallParts]] - code - src/lib/trading/sessions.ts
+- [[exitWatchOf()]] - code - src/lib/room/paper-book.ts
+- [[fetchTradingDesk]] - code - src/lib/trading/build-desk.ts
+- [[flattenRhNow()]] - code - src/components/room/room-engine.ts
+- [[frameFromCycle()]] - code - src/components/room/room-engine.ts
+- [[frameIsEvent()]] - code - src/components/room/room-engine.ts
+- [[freshTalkState()]] - code - src/lib/room/live-types.ts
+- [[getHall()]] - code - src/lib/room/hall-store.ts
+- [[getPulse]] - code - src/lib/news/news-server.ts
+- [[handle()_4]] - code - src/routes/api/cron/room-step.ts
+- [[handleGet()]] - code - src/routes/api/room/cycle.ts
+- [[handlePost()]] - code - src/routes/api/room/cycle.ts
+- [[holdTicket()]] - code - src/lib/room/orchestrator.ts
+- [[judasCard()]] - code - src/lib/room/drill.ts
+- [[labRead]] - code - src/lib/room/lab.ts
+- [[labWatchList()]] - code - src/lib/room/lab.ts
+- [[ledgerOf()]] - code - src/lib/room/paper-book.ts
+- [[ledgerOfCounters()]] - code - src/lib/room/counters.ts
+- [[ledgerScreenOf()]] - code - src/components/room/room-engine.ts
+- [[liveTick()]] - code - src/components/room/room-engine.ts
+- [[loadEnabled()]] - code - src/components/room/room-engine.ts
+- [[loadGoal()]] - code - src/components/room/room-engine.ts
+- [[loadMinds()]] - code - src/components/room/room-engine.ts
+- [[loadPulse()]] - code - src/lib/news/news-server.ts
+- [[loadRoomBook()]] - code - src/lib/room/paper-book.ts
+- [[loadTalk()]] - code - src/components/room/room-engine.ts
+- [[markBook()]] - code - src/lib/room/paper-book.ts
+- [[marketDataFromDesk()]] - code - src/lib/room/desk-read.ts
+- [[minutesBetween()]] - code - src/lib/room/drill.ts
+- [[money()_10]] - code - src/lib/room/paper-book.ts
+- [[noteRh()]] - code - src/components/room/room-engine.ts
+- [[nqCard()]] - code - src/lib/room/drill.ts
+- [[oddsOn()]] - code - src/lib/room/drill.ts
+- [[outputViolations()]] - code - src/lib/room/orchestrator.ts
+- [[paper-book.ts]] - code - src/lib/room/paper-book.ts
+- [[pickDayCard()]] - code - src/lib/room/desk-read.ts
+- [[planBCard()]] - code - src/lib/room/drill.ts
+- [[planKey()]] - code - src/lib/room/orchestrator.ts
+- [[playDrill()]] - code - src/lib/room/drill.ts
+- [[pullHall()]] - code - src/components/room/hall-read.ts
+- [[pushEvent()]] - code - src/lib/room/paper-book.ts
+- [[readDeskForRoom()]] - code - src/lib/room/desk-read.ts
+- [[refreshRace()]] - code - src/components/room/room-engine.ts
+- [[releaseMove()]] - code - src/lib/room/desk-read.ts
+- [[restoreTalkState()]] - code - src/lib/room/live-talk.ts
+- [[rhBody()]] - code - src/components/room/room-engine.ts
+- [[rings_1]] - code - src/components/room/room-engine.ts
+- [[rollCounters()]] - code - src/lib/room/paper-book.ts
+- [[room-engine.ts]] - code - src/components/room/room-engine.ts
+- [[room-step.ts]] - code - src/routes/api/cron/room-step.ts
+- [[roomdrill.ts]] - code - src/lib/room/drill.ts
+- [[round3()]] - code - src/lib/room/lab.ts
+- [[rsiWilder()]] - code - src/lib/room/desk-read.ts
+- [[runDrillStep()]] - code - src/lib/room/drill.ts
+- [[runLiveCycle()]] - code - src/components/room/room-engine.ts
+- [[runRoomCycle()]] - code - src/lib/room/orchestrator.ts
+- [[saveGoal()]] - code - src/components/room/room-engine.ts
+- [[saveMinds()]] - code - src/components/room/room-engine.ts
+- [[saveRoomBook()]] - code - src/lib/room/paper-book.ts
+- [[saveTalk()]] - code - src/components/room/room-engine.ts
+- [[savedAtMsOf()]] - code - src/lib/room/paper-step.ts
+- [[sendRh()]] - code - src/components/room/room-engine.ts
+- [[speakRh()]] - code - src/components/room/room-engine.ts
+- [[spotSource()]] - code - src/lib/trading/options-desk.ts
+- [[src_lib_room_live_talk_freshtalkstate]] - concept
+- [[standCard()]] - code - src/lib/room/drill.ts
+- [[storyMoved()]] - code - src/components/room/room-engine.ts
+- [[subscribeHall()]] - code - src/lib/room/hall-store.ts
+- [[tierFill()]] - code - src/lib/room/drill.ts
+- [[toRoomInput()]] - code - src/lib/room/paper-book.ts
+- [[trendOf()]] - code - src/lib/room/desk-read.ts
+- [[underlierOfSymbol()]] - code - src/lib/room/desk-read.ts
+- [[useRoomEngine()]] - code - src/components/room/room-engine.ts
+- [[useRoomStore]] - code - src/components/room/room-engine.ts
+- [[voidPosition()]] - code - src/lib/room/paper-book.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/room-enginets
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 114 edges to [[_COMMUNITY_orchestrator.ts]]
+- 78 edges to [[_COMMUNITY_live-world.ts]]
+- 24 edges to [[_COMMUNITY_snapshot.ts]]
+- 24 edges to [[_COMMUNITY_seats.ts]]
+- 22 edges to [[_COMMUNITY_jsonResponse]]
+- 18 edges to [[_COMMUNITY_meeting.ts]]
+- 17 edges to [[_COMMUNITY_floor-school-contracts.ts]]
+- 12 edges to [[_COMMUNITY_verify-paper-step.mjs]]
+- 12 edges to [[_COMMUNITY_trading-floor-tab.tsx]]
+- 10 edges to [[_COMMUNITY_audit.ts]]
+- 10 edges to [[_COMMUNITY_getSql]]
+- 10 edges to [[_COMMUNITY_evaluateOptionsDesk]]
+- 9 edges to [[_COMMUNITY_react]]
+- 9 edges to [[_COMMUNITY_goal.ts]]
+- 9 edges to [[_COMMUNITY_index.tsx]]
+- 9 edges to [[_COMMUNITY_hall-read.ts]]
+- 8 edges to [[_COMMUNITY_exec-server.ts]]
+- 8 edges to [[_COMMUNITY_book.ts]]
+- 8 edges to [[_COMMUNITY_build-desk.ts]]
+- 7 edges to [[_COMMUNITY_news.ts]]
+- 6 edges to [[_COMMUNITY_live-types.ts]]
+- 6 edges to [[_COMMUNITY_manager-feed.ts]]
+- 6 edges to [[_COMMUNITY_agents.ts]]
+- 6 edges to [[_COMMUNITY_options-desk.ts]]
+- 6 edges to [[_COMMUNITY_routeTree.gen.ts]]
+- 5 edges to [[_COMMUNITY_floor-screens.ts]]
+- 5 edges to [[_COMMUNITY_discuss-tab.tsx]]
+- 5 edges to [[_COMMUNITY_options-swing-panel.tsx]]
+- 5 edges to [[_COMMUNITY_ghost-book.ts]]
+- 5 edges to [[_COMMUNITY_structure.ts]]
+- 5 edges to [[_COMMUNITY_rh-dispatch.ts]]
+- 5 edges to [[_COMMUNITY_live-talk.ts]]
+- 5 edges to [[_COMMUNITY_desk-atlas.ts]]
+- 5 edges to [[_COMMUNITY_feed.ts]]
+- 4 edges to [[_COMMUNITY_entry-trigger.ts]]
+- 4 edges to [[_COMMUNITY_session-brief.ts]]
+- 4 edges to [[_COMMUNITY_use-entry-state.ts]]
+- 4 edges to [[_COMMUNITY_exec-card.tsx]]
+- 3 edges to [[_COMMUNITY_rh-autofire.ts]]
+- 3 edges to [[_COMMUNITY_cn]]
+- 3 edges to [[_COMMUNITY_replay-drill.ts]]
+- 3 edges to [[_COMMUNITY_verify-rh-cycle.mjs]]
+- 3 edges to [[_COMMUNITY_apex-sim.ts]]
+- 3 edges to [[_COMMUNITY_detectors.ts]]
+- 3 edges to [[_COMMUNITY_tradingscanner.ts]]
+- 3 edges to [[_COMMUNITY_tf-ladder.ts]]
+- 3 edges to [[_COMMUNITY_week-ahead.ts]]
+- 3 edges to [[_COMMUNITY_buildTradingDesk]]
+- 3 edges to [[_COMMUNITY_hall-lite.ts]]
+- 3 edges to [[_COMMUNITY_intent.ts]]
+- 3 edges to [[_COMMUNITY_grok-report.ts]]
+- 3 edges to [[_COMMUNITY_floor-brains.tsx]]
+- 3 edges to [[_COMMUNITY_paper-manager.ts]]
+- 3 edges to [[_COMMUNITY_executor.ts]]
+- 2 edges to [[_COMMUNITY_rnd.ts]]
+- 2 edges to [[_COMMUNITY_OhlcBar]]
+- 2 edges to [[_COMMUNITY_setup-chart.tsx]]
+- 2 edges to [[_COMMUNITY_gates.ts]]
+- 2 edges to [[_COMMUNITY_month-ahead.ts]]
+- 2 edges to [[_COMMUNITY_shadow-book.ts]]
+- 2 edges to [[_COMMUNITY_thesis-server.ts]]
+- 2 edges to [[_COMMUNITY_news-tab.tsx]]
+- 2 edges to [[_COMMUNITY_veteran-brain.ts]]
+- 2 edges to [[_COMMUNITY_rh-mcp.ts]]
+- 2 edges to [[_COMMUNITY_verify-room-exec.mjs]]
+- 2 edges to [[_COMMUNITY_cases.ts]]
+- 2 edges to [[_COMMUNITY_verify-room.mjs]]
+- 1 edge to [[_COMMUNITY_floor-overhaul.ts]]
+- 1 edge to [[_COMMUNITY_smc-master.ts]]
+- 1 edge to [[_COMMUNITY_FloorOverhaul]]
+- 1 edge to [[_COMMUNITY_compact]]
+- 1 edge to [[_COMMUNITY_CLAUDE.md — Ledger Desk (private MNQES masterplace)]]
+- 1 edge to [[_COMMUNITY_invest-office.ts]]
+- 1 edge to [[_COMMUNITY_hit-odds.ts]]
+- 1 edge to [[_COMMUNITY_verify-race-talk.mjs]]
+- 1 edge to [[_COMMUNITY_verify-entry-alarm.mjs]]
+- 1 edge to [[_COMMUNITY_verify-goal.mjs]]
+- 1 edge to [[_COMMUNITY_verify-no-bot-entry.mjs]]
+- 1 edge to [[_COMMUNITY_package.json]]
+- 1 edge to [[_COMMUNITY_capture-history.mjs]]
+
+## Top bridge nodes
+- [[room-engine.ts]] - degree 183, connects to 39 communities
+- [[etWallParts]] - degree 101, connects to 36 communities
+- [[desk-read.ts]] - degree 65, connects to 18 communities
+- [[room-step.ts]] - degree 57, connects to 16 communities
+- [[roomdrill.ts]] - degree 70, connects to 13 communities

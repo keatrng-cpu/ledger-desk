@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/room/floor-props.ts"
+source_file: "scripts/floor-overhaul.test.mjs"
 type: "code"
-community: "Community 42"
-location: "L87"
+community: "floor-school-contracts.ts"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/floor-school-contractsts
 ---
 
 # inSeg()
 
 ## Connections
-- [[floor-props.ts]] - `contains` [EXTRACTED]
-- [[sessionDial]] - `calls` [EXTRACTED]
+- [[floor-overhaul.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_42
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

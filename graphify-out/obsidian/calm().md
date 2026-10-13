@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/discuss-tab.tsx"
 type: "code"
-community: "Community 161"
+community: "discuss-tab.tsx"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_161
+  - community/discuss-tabtsx
 ---
 
 # calm()
@@ -18,4 +18,4 @@ tags:
 - [[isConfigGap()]] - `calls` [EXTRACTED]
 - [[scrubEnv()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_161
+#graphify/code #graphify/EXTRACTED #community/discuss-tabtsx

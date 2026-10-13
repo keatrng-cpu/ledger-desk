@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/score.ts"
 type: "code"
-community: "Community 108"
+community: "propfirm-panel.tsx"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/propfirm-paneltsx
 ---
 
 # scorePropTrade()
@@ -17,4 +17,4 @@ tags:
 - [[refuse()]] - `calls` [EXTRACTED]
 - [[score.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/predict/predict-scanner.tsx"
+source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 2"
-location: "L16"
+community: "predict-tab.tsx"
+location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # pc()
 
 ## Connections
-- [[SetupSquare()]] - `calls` [EXTRACTED]
-- [[predict-scanner.tsx]] - `contains` [EXTRACTED]
+- [[predictscanner.ts]] - `contains` [EXTRACTED]
+- [[scanSide()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

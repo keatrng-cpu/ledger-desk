@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 20"
+community: "news.ts"
 location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # top
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

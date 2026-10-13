@@ -1,0 +1,17 @@
+---
+source_file: "scripts/install-hooks.mjs"
+type: "code"
+community: "ref_node_url"
+location: "L14"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/ref_node_url
+---
+
+# ROOT
+
+## Connections
+- [[install-hooks.mjs]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/news/news-tab.tsx"
 type: "code"
-community: "Community 109"
+community: "news-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/news-tabtsx
 ---
 
 # news-tab.tsx
@@ -47,7 +47,7 @@ tags:
 - [[news-timeline.tsx]] - `imports_from` [EXTRACTED]
 - [[offline.ts]] - `imports_from` [EXTRACTED]
 - [[orderItems()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 - [[scrubEnv()]] - `imports` [EXTRACTED]
 - [[sessionsAhead()]] - `contains` [EXTRACTED]
@@ -56,4 +56,4 @@ tags:
 - [[thesis-card.tsx]] - `imports_from` [EXTRACTED]
 - [[timeline()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

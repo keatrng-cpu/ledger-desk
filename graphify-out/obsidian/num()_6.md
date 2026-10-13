@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/execution/rh-account.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 15"
-location: "L13"
+community: "prediction-market-feed.ts"
+location: "L176"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/prediction-market-feedts
 ---
 
 # num()
 
 ## Connections
-- [[executionrh-account.ts]] - `contains` [EXTRACTED]
-- [[rhAccountFromPortfolio()]] - `calls` [EXTRACTED]
+- [[gradeKalshiPublicMarket()]] - `calls` [EXTRACTED]
+- [[prediction-market-feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

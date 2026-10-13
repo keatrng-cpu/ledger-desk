@@ -1,19 +1,34 @@
 ---
-source_file: "src/lib/trading/entry-ticket.ts"
+source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 26"
-location: "L67"
+community: "meeting.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/meetingts
 ---
 
 # px()
 
 ## Connections
-- [[buildEntryTicket()]] - `calls` [EXTRACTED]
-- [[entry-ticket.ts]] - `contains` [EXTRACTED]
-- [[ticketHeadline()]] - `calls` [EXTRACTED]
+- [[blind()_1]] - `calls` [EXTRACTED]
+- [[blocked()]] - `calls` [EXTRACTED]
+- [[brief()]] - `calls` [EXTRACTED]
+- [[chop()]] - `calls` [EXTRACTED]
+- [[closed()]] - `calls` [EXTRACTED]
+- [[debate()]] - `calls` [EXTRACTED]
+- [[evaluateEntry()]] - `calls` [EXTRACTED]
+- [[exitLines()]] - `calls` [EXTRACTED]
+- [[fill()]] - `calls` [EXTRACTED]
+- [[focusQuote()]] - `calls` [EXTRACTED]
+- [[holding()]] - `calls` [EXTRACTED]
+- [[idleLine()]] - `calls` [EXTRACTED]
+- [[meeting.ts]] - `imports` [EXTRACTED]
+- [[orchestrator.ts]] - `imports` [EXTRACTED]
+- [[roomformat.ts]] - `contains` [EXTRACTED]
+- [[setupReview()]] - `calls` [EXTRACTED]
+- [[thesisText()]] - `calls` [EXTRACTED]
+- [[triggerWait()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/meetingts

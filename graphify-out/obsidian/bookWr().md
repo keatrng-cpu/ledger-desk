@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
-community: "Community 9"
-location: "L127"
+community: "veteran-brain.ts"
+location: "L128"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # bookWr()
@@ -15,4 +15,4 @@ tags:
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

@@ -1,20 +1,21 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 134"
+community: "week-ahead.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # week-ahead.ts
 
 ## Connections
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PLANS]] - `contains` [EXTRACTED]
 - [[PRINTS]] - `contains` [EXTRACTED]
+- [[WEEK_OCT12_OCT16]] - `contains` [EXTRACTED]
 - [[WEEK_OCT5_OCT9]] - `contains` [EXTRACTED]
 - [[WEEK_SEP28_OCT2]] - `contains` [EXTRACTED]
 - [[WeekAheadRead]] - `contains` [EXTRACTED]
@@ -28,7 +29,7 @@ tags:
 - [[barDateKey()]] - `contains` [EXTRACTED]
 - [[barInWeek()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
-- [[etDateKey()_1]] - `contains` [EXTRACTED]
+- [[etDateKey()]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[isEs()]] - `contains` [EXTRACTED]
 - [[isNq()]] - `contains` [EXTRACTED]
@@ -38,6 +39,7 @@ tags:
 - [[overlayBook()]] - `contains` [EXTRACTED]
 - [[overlayWeekAhead()]] - `contains` [EXTRACTED]
 - [[pad2()]] - `contains` [EXTRACTED]
+- [[research-retain.ts]] - `imports_from` [EXTRACTED]
 - [[resolveWeekAhead()]] - `contains` [EXTRACTED]
 - [[session-brief.ts]] - `imports_from` [EXTRACTED]
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
@@ -50,4 +52,4 @@ tags:
 - [[weekDayFor()]] - `contains` [EXTRACTED]
 - [[weekRangeFromBars()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

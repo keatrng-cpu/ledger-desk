@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-seats.mjs"
+source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 221"
-location: "L33"
+community: "verify-room.mjs"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_221
+  - community/verify-roommjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
+- [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_221
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

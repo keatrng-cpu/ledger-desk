@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 109"
+community: "news-tab.tsx"
 location: "L181"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/news-tabtsx
 ---
 
 # eventDensity()
@@ -17,4 +17,4 @@ tags:
 - [[schedule.ts]] - `contains` [EXTRACTED]
 - [[timeline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

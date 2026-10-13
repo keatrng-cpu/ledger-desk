@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/replay.ts"
 type: "code"
-community: "Community 58"
+community: "structure.ts"
 location: "L127"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # simulate()
@@ -15,4 +15,4 @@ tags:
 - [[replay.ts]] - `contains` [EXTRACTED]
 - [[replayScan()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/structurets

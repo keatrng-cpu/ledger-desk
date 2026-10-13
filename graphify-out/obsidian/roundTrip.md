@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
-location: "L186"
+community: "mead-screens.ts"
+location: "L190"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # roundTrip
@@ -17,4 +17,4 @@ tags:
 - [[predict-parts.tsx]] - `imports` [EXTRACTED]
 - [[sideFee()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

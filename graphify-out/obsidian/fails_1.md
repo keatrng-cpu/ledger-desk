@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-chart-timeframes.mjs"
 type: "code"
-community: "Community 163"
+community: "chart-timeframes.ts"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/chart-timeframests
 ---
 
 # fails
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-chart-timeframes.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

@@ -1,19 +1,23 @@
 ---
-source_file: "src/lib/learn/cases.ts"
+source_file: "src/lib/desk/card-journal.ts"
 type: "code"
-community: "Community 115"
-location: "L156"
+community: "card-journal.ts"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/card-journalts
 ---
 
 # etDayKey()
 
 ## Connections
-- [[buildCases()]] - `calls` [EXTRACTED]
-- [[cases.ts]] - `contains` [EXTRACTED]
-- [[dayChangePct()]] - `calls` [EXTRACTED]
+- [[card-journal.ts]] - `contains` [EXTRACTED]
+- [[journalCards()]] - `calls` [EXTRACTED]
+- [[journalReport()]] - `calls` [EXTRACTED]
+- [[learning.ts]] - `imports` [EXTRACTED]
+- [[learningReport()]] - `indirect_call` [INFERRED]
+- [[resolveJournal()]] - `calls` [EXTRACTED]
+- [[snapshotCards()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/card-journalts

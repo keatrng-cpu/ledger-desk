@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-census.ts"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L345"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # recordPoll()
@@ -17,4 +17,4 @@ tags:
 - [[loadCensus()]] - `calls` [EXTRACTED]
 - [[take-census.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

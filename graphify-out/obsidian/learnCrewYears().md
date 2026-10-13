@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/crew-years.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # learnCrewYears()
@@ -21,4 +21,4 @@ tags:
 - [[offerToBrains()]] - `calls` [EXTRACTED]
 - [[saveAtlas()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

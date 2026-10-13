@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 5"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/invest-paneltsx
 ---
 
 # exposure.ts
 
 ## Connections
-- [[DOC_5]] - `contains` [EXTRACTED]
+- [[DOC_1]] - `contains` [EXTRACTED]
 - [[ExposureInput]] - `contains` [EXTRACTED]
 - [[ExposureRead]] - `contains` [EXTRACTED]
 - [[LookThroughName]] - `contains` [EXTRACTED]
@@ -25,19 +25,21 @@ tags:
 - [[fundProfile]] - `contains` [EXTRACTED]
 - [[fundSector()]] - `imports` [EXTRACTED]
 - [[fundamentalsFor()]] - `imports` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[lookThrough()]] - `contains` [EXTRACTED]
 - [[news-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[profilesCapturedAt()]] - `contains` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
-- [[round4()_3]] - `contains` [EXTRACTED]
+- [[round4()_2]] - `contains` [EXTRACTED]
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 - [[screen-table.tsx]] - `imports_from` [EXTRACTED]
 - [[src_data_invest_etf_profiles]] - `imports_from` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[verify-invest-book.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weightInFund()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

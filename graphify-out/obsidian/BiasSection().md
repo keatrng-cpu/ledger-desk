@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L240"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # BiasSection()
@@ -17,10 +17,10 @@ tags:
 - [[SnapshotDetail()]] - `calls` [EXTRACTED]
 - [[biasCls()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[num()_15]] - `calls` [EXTRACTED]
+- [[num()_20]] - `calls` [EXTRACTED]
 - [[obj()]] - `calls` [EXTRACTED]
 - [[pctOf()_1]] - `calls` [EXTRACTED]
-- [[px()_13]] - `calls` [EXTRACTED]
+- [[px()_16]] - `calls` [EXTRACTED]
 - [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

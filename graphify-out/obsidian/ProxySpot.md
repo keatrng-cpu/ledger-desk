@@ -1,20 +1,21 @@
 ---
 source_file: "src/lib/market/yahoo.ts"
 type: "code"
-community: "Community 160"
+community: "build-desk.ts"
 location: "L286"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/build-deskts
 ---
 
 # ProxySpot
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[DeskPayload]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[spot-cross.ts]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/build-deskts

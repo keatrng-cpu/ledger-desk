@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-focus-pick.mjs"
+source_file: "scripts/verify-sponsored-gap.mjs"
 type: "code"
-community: "Community 244"
-location: "L23"
+community: "SmcArray"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_244
+  - community/SmcArray
 ---
 
 # check()
 
 ## Connections
-- [[verify-focus-pick.mjs]] - `contains` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_244
+#graphify/code #graphify/EXTRACTED #community/SmcArray

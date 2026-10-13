@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/walkthroughs.tsx"
 type: "code"
-community: "Community 67"
+community: "learn-tab.tsx"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # CasesFile
@@ -15,4 +15,4 @@ tags:
 - [[LearnCase]] - `references` [EXTRACTED]
 - [[walkthroughs.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

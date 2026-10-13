@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/entry-hero.tsx"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # EntryHero()
@@ -25,4 +25,4 @@ tags:
 - [[useAutomation()]] - `calls` [EXTRACTED]
 - [[useEntryState()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

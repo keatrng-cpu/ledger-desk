@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-evidence.ts"
 type: "code"
-community: "Community 16"
+community: "hall-read.ts"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/hall-readts
 ---
 
 # PriceBinId
@@ -16,4 +16,4 @@ tags:
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/hall-readts

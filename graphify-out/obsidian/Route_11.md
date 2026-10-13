@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/login.tsx"
+source_file: "src/routes/api/desk/journal.ts"
 type: "code"
-community: "Community 79"
-location: "L22"
+community: "routeTree.gen.ts"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/routeTreegents
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[login.tsx]] - `contains` [EXTRACTED]
+- [[deskjournal.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

@@ -1,20 +1,20 @@
 ---
-source_file: "src/lib/trading/take-moments.ts"
+source_file: "src/lib/predict/journal.ts"
 type: "code"
-community: "Community 145"
-location: "L93"
+community: "mead-screens.ts"
+location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/mead-screensts
 ---
 
 # save()
 
 ## Connections
-- [[markTakeAction()]] - `calls` [EXTRACTED]
-- [[observeTakeMoments()]] - `calls` [EXTRACTED]
-- [[take-moments.ts]] - `contains` [EXTRACTED]
-- [[tickMomentOutcomes()]] - `calls` [EXTRACTED]
+- [[closeTrade()]] - `calls` [EXTRACTED]
+- [[deleteTrade()]] - `calls` [EXTRACTED]
+- [[logEntry()]] - `calls` [EXTRACTED]
+- [[predictjournal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/floor-brains.tsx"
 type: "code"
-community: "Community 88"
+community: "floor-brains.tsx"
 location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # FloorBrains()
@@ -32,4 +32,4 @@ tags:
 - [[recentNerves()]] - `calls` [EXTRACTED]
 - [[shelfOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

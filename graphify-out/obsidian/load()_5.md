@@ -1,23 +1,21 @@
 ---
-source_file: "src/lib/trading/auto-paper.ts"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 60"
-location: "L32"
+community: "crew-year-backtest.py"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/crew-year-backtestpy
 ---
 
 # load()
 
 ## Connections
-- [[auto-paper.ts]] - `contains` [EXTRACTED]
-- [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
-- [[getAutoPaperState()]] - `calls` [EXTRACTED]
-- [[noteAutoPaperSkip()]] - `calls` [EXTRACTED]
-- [[releaseAutoPaperKey()]] - `calls` [EXTRACTED]
-- [[rememberAutoPaperKey()]] - `calls` [EXTRACTED]
-- [[setAutoPaper()]] - `calls` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[json_1]] - `calls` [EXTRACTED]
+- [[main()_4]] - `calls` [EXTRACTED]
+- [[minute_of()_1]] - `calls` [EXTRACTED]
+- [[weekday()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

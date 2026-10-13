@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 205"
+community: "chart-timeframes.ts"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/chart-timeframests
 ---
 
 # UNREACHABLE_MAX_REACH
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[setup-anticipation.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_205
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

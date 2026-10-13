@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # APLUS_RULES
@@ -15,10 +15,10 @@ tags:
 - [[analytics-server.ts]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `imports` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[cases.ts]] - `imports` [EXTRACTED]
 - [[claude-handoff.ts]] - `imports` [EXTRACTED]
-- [[config.ts]] - `contains` [EXTRACTED]
 - [[curriculum.ts]] - `imports` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports` [EXTRACTED]
 - [[entry-state.ts]] - `imports` [EXTRACTED]
@@ -31,6 +31,7 @@ tags:
 - [[income-target.ts]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
+- [[live-lesson.ts]] - `imports` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports` [EXTRACTED]
 - [[management.ts]] - `imports` [EXTRACTED]
@@ -46,6 +47,7 @@ tags:
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `imports` [EXTRACTED]
 - [[replay-drill.ts]] - `imports` [EXTRACTED]
+- [[research-retain.ts]] - `imports` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports` [EXTRACTED]
 - [[risk-panel.tsx]] - `imports` [EXTRACTED]
 - [[risk.ts]] - `imports` [EXTRACTED]
@@ -57,9 +59,10 @@ tags:
 - [[simulate-path-trade.ts]] - `imports` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports` [EXTRACTED]
+- [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[verify-take-census.mjs]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

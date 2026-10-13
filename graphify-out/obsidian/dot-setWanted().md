@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/exec-sql.ts"
 type: "code"
-community: "Community 110"
+community: "execStep"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_110
+  - community/execStep
 ---
 
 # .setWanted()
@@ -15,4 +15,4 @@ tags:
 - [[ExecPhase]] - `references` [EXTRACTED]
 - [[PgExecStore]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_110
+#graphify/code #graphify/EXTRACTED #community/execStep

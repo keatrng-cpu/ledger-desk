@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 79"
-location: "L86"
+community: "auth/client.ts"
+location: "L90"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # better-auth
@@ -16,4 +16,4 @@ tags:
 - [[authserver.ts]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_79
+#graphify/concept #graphify/EXTRACTED #community/auth/clientts

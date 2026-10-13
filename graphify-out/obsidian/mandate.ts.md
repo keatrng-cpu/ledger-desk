@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/mandate.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # mandate.ts
@@ -29,12 +29,13 @@ tags:
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[measure-room-ev.mjs]] - `dynamic_import` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
-- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
+- [[orchestrator.ts]] - `re_exports` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[roomformat.ts]] - `imports_from` [EXTRACTED]
 - [[safety-net.ts]] - `imports_from` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

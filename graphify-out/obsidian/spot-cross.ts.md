@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/spot-cross.ts"
 type: "code"
-community: "Community 160"
+community: "spot-cross.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/spot-crossts
 ---
 
 # spot-cross.ts
@@ -18,7 +18,7 @@ tags:
 - [[DEFAULT_RATIO]] - `contains` [EXTRACTED]
 - [[FUT_LIVE_MAX_LAG_SEC]] - `contains` [EXTRACTED]
 - [[FutureNow]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PRINT_FRESH_SEC]] - `contains` [EXTRACTED]
 - [[PRINT_MAX_AGE_SEC]] - `contains` [EXTRACTED]
 - [[ProxySpot]] - `imports` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[verify-spot-cross.mjs]] - `dynamic_import` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

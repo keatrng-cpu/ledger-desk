@@ -1,0 +1,17 @@
+---
+source_file: "scripts/verify-floor-feet.mjs"
+type: "code"
+community: "verify-floor-feet.mjs"
+location: "L22"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/verify-floor-feetmjs
+---
+
+# CORNERS
+
+## Connections
+- [[verify-floor-feet.mjs]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/verify-floor-feetmjs

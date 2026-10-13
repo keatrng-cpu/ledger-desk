@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/race.ts"
 type: "code"
-community: "Community 50"
+community: "orchestrator.ts"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/orchestratorts
 ---
 
 # memoView()
@@ -17,4 +17,4 @@ tags:
 - [[race.ts]] - `contains` [EXTRACTED]
 - [[viewGoal()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

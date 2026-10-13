@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/ui/button.tsx"
 type: "code"
-community: "Community 14"
+community: "react"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/react
 ---
 
 # button.tsx
 
 ## Connections
-- [[Button]] - `contains` [EXTRACTED]
+- [[Button_1]] - `contains` [EXTRACTED]
 - [[ButtonProps]] - `contains` [EXTRACTED]
 - [[alerts-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[analytics-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -27,7 +27,7 @@ tags:
 - [[log-setup-dialog.tsx]] - `imports_from` [EXTRACTED]
 - [[paper-book-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[replay-report.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[shadow-order-review.tsx]] - `imports_from` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/react

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 109"
+community: "invest-office.ts"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/invest-officets
 ---
 
 # BLACKOUT_MIN
@@ -15,4 +15,4 @@ tags:
 - [[live-voices.ts]] - `imports` [EXTRACTED]
 - [[schedule.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/invest-officets

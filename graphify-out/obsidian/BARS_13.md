@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "scripts/verify-replay-drills.mjs"
 type: "code"
-community: "Community 45"
-location: "L72"
+community: "verify-replay-drills.mjs"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/verify-replay-drillsmjs
 ---
 
 # BARS
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/verify-replay-drillsmjs

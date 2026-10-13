@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 22"
+community: "verify-room.mjs"
 location: "L139"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/verify-roommjs
 ---
 
 # flatQ
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

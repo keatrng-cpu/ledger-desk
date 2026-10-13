@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-exit-rules.mjs"
+source_file: "scripts/verify-desk-mcp.mjs"
 type: "code"
-community: "Community 211"
-location: "L63"
+community: "grok-report.ts"
+location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_211
+  - community/grok-reportts
 ---
 
 # card
 
 ## Connections
-- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
+- [[verify-desk-mcp.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_211
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

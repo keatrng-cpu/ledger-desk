@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/options-swing-panel.tsx"
 type: "code"
-community: "Community 153"
-location: "L42"
+community: "options-swing-panel.tsx"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # verdictClass()
 
 ## Connections
-- [[StrategyCard()]] - `calls` [EXTRACTED]
+- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

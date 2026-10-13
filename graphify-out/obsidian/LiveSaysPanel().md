@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/live-says-panel.tsx"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # LiveSaysPanel()
@@ -17,4 +17,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[live-says-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

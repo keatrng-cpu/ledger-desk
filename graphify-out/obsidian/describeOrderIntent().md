@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 77"
+community: "order-intent.ts"
 location: "L415"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/order-intentts
 ---
 
 # describeOrderIntent()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[order-intent.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/order-intentts

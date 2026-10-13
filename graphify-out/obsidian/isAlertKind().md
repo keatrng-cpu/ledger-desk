@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/types.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # isAlertKind()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[alertstypes.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

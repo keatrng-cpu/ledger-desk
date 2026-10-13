@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/cron/checklist.ts"
+source_file: "src/routes/api/desk/fast.ts"
 type: "code"
-community: "Community 54"
-location: "L133"
+community: "api/desk/fast.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/api/desk/fastts
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[checklist.ts]] - `contains` [EXTRACTED]
+- [[apideskfast.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/api/desk/fastts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "src/lib/smc/mtf-arrays.ts"
 type: "code"
-community: "Community 45"
-location: "L217"
+community: "buildTradingDesk"
+location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/buildTradingDesk
 ---
 
 # cache
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[mtf-arrays.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

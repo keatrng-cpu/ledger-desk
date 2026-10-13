@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # veteran-brain.ts
@@ -31,6 +31,7 @@ tags:
 - [[TabRead]] - `contains` [EXTRACTED]
 - [[VeteranBrief]] - `contains` [EXTRACTED]
 - [[answerVeteranQuestion()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[bookWr()]] - `contains` [EXTRACTED]
 - [[bucketExpectancy()]] - `imports` [EXTRACTED]
 - [[bucketWr()]] - `imports` [EXTRACTED]
@@ -39,14 +40,13 @@ tags:
 - [[canonCoachLines()]] - `imports` [EXTRACTED]
 - [[canonInputForCandidate()]] - `imports` [EXTRACTED]
 - [[clamp01()_2]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[countersFromMemory()]] - `imports` [EXTRACTED]
 - [[describeProfitRules()]] - `imports` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
 - [[discretion-memory.ts]] - `imports_from` [EXTRACTED]
 - [[discretion.ts]] - `imports_from` [EXTRACTED]
-- [[fmtR()_1]] - `imports` [EXTRACTED]
+- [[fmtR()_2]] - `imports` [EXTRACTED]
 - [[getAllShadows()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[isBlakeLongDemoted()]] - `imports` [EXTRACTED]
@@ -65,6 +65,8 @@ tags:
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[rateCardForSetup()]] - `imports` [EXTRACTED]
 - [[recentByKind()]] - `imports` [EXTRACTED]
+- [[research-retain.ts]] - `imports_from` [EXTRACTED]
+- [[researchRead]] - `imports` [EXTRACTED]
 - [[resolveMonthAhead()]] - `imports` [EXTRACTED]
 - [[resolveWeekAhead()]] - `imports` [EXTRACTED]
 - [[runVeteranBrain()]] - `contains` [EXTRACTED]
@@ -82,4 +84,4 @@ tags:
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 - [[weekAheadFocusLine()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

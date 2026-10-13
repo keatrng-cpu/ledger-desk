@@ -1,12 +1,12 @@
 ---
 source_file: "startup.sh"
 type: "code"
-community: "Community 264"
+community: "startup.sh"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_264
+  - community/startupsh
 ---
 
 # startup.sh
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[startup.sh script]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_264
+#graphify/code #graphify/EXTRACTED #community/startupsh

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 83"
-location: "L59"
+community: "verify-card-freshness.mjs"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/verify-card-freshnessmjs
 ---
 
 # look
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

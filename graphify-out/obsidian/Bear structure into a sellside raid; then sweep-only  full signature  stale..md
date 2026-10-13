@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "rationale"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L667"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # Bear structure into a sellside raid; then sweep-only / full signature / stale.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[find_against()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_64
+#graphify/rationale #graphify/EXTRACTED #community/build-learn-figurespy

@@ -1,34 +1,19 @@
 ---
-source_file: "src/lib/room/format.ts"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 3"
-location: "L11"
+community: "use-entry-state.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/use-entry-statets
 ---
 
 # px()
 
 ## Connections
-- [[blind()]] - `calls` [EXTRACTED]
-- [[blocked()]] - `calls` [EXTRACTED]
-- [[brief()]] - `calls` [EXTRACTED]
-- [[chop()]] - `calls` [EXTRACTED]
-- [[closed()]] - `calls` [EXTRACTED]
-- [[debate()]] - `calls` [EXTRACTED]
-- [[evaluateEntry()]] - `calls` [EXTRACTED]
-- [[exitLines()]] - `calls` [EXTRACTED]
-- [[fill()]] - `calls` [EXTRACTED]
-- [[focusQuote()]] - `calls` [EXTRACTED]
-- [[holding()]] - `calls` [EXTRACTED]
-- [[idleLine()]] - `calls` [EXTRACTED]
-- [[meeting.ts]] - `imports` [EXTRACTED]
-- [[orchestrator.ts]] - `imports` [EXTRACTED]
-- [[roomformat.ts]] - `contains` [EXTRACTED]
-- [[setupReview()]] - `calls` [EXTRACTED]
-- [[thesisText()]] - `calls` [EXTRACTED]
-- [[triggerWait()]] - `calls` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[detectConflicts()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

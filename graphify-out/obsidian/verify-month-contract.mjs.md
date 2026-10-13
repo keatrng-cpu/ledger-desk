@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-month-contract.mjs"
 type: "code"
-community: "Community 159"
+community: "month-contract.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_159
+  - community/month-contractts
 ---
 
 # verify-month-contract.mjs
@@ -20,6 +20,6 @@ tags:
 - [[small]] - `contains` [EXTRACTED]
 - [[stay]] - `contains` [EXTRACTED]
 - [[two]] - `contains` [EXTRACTED]
-- [[up]] - `contains` [EXTRACTED]
+- [[up_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_159
+#graphify/code #graphify/EXTRACTED #community/month-contractts

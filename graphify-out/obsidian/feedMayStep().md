@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/room/paper-step.ts"
 type: "code"
-community: "Community 143"
+community: "verify-paper-step.mjs"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-paper-stepmjs
 ---
 
 # feedMayStep()
 
 ## Connections
 - [[decidePaperStep()]] - `calls` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[paper-step.ts]] - `contains` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[verify-paper-step.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

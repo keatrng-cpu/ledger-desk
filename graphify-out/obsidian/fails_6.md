@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-score-drivers.mjs"
+source_file: "scripts/verify-take-census.mjs"
 type: "code"
-community: "Community 84"
-location: "L31"
+community: "index.tsx"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/indextsx
 ---
 
 # fails
 
 ## Connections
-- [[verify-score-drivers.mjs]] - `contains` [EXTRACTED]
+- [[verify-take-census.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/indextsx

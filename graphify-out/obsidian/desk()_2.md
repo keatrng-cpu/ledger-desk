@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-word-hold.mjs"
+source_file: "scripts/verify-rh-dispatch.mjs"
 type: "code"
-community: "Community 56"
-location: "L39"
+community: "verify-rh-desk-job.mjs"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/verify-rh-desk-jobmjs
 ---
 
 # desk()
 
 ## Connections
-- [[book()_3]] - `calls` [EXTRACTED]
-- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

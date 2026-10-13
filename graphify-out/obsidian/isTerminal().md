@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 149"
+community: "shadow-book.ts"
 location: "L671"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/shadow-bookts
 ---
 
 # isTerminal()
@@ -17,4 +17,4 @@ tags:
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 - [[tickShadow()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/shadow-bookts

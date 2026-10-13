@@ -1,18 +1,17 @@
 ---
 source_file: "package.json"
-type: "concept"
-community: "Community 11"
-location: "L126"
+type: "code"
+community: "devDependencies"
+location: "L130"
 tags:
-  - graphify/concept
+  - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/devDependencies
 ---
 
 # playwright
 
 ## Connections
-- [[browser-smoke.mjs]] - `imports_from` [EXTRACTED]
-- [[package.json]] - `imports` [EXTRACTED]
+- [[devDependencies]] - `contains` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/devDependencies

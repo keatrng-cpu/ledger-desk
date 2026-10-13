@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 34"
+community: "book.ts"
 location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/bookts
 ---
 
 # Sleeve
@@ -30,4 +30,4 @@ tags:
 - [[store.ts]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "meeting.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/meetingts
 ---
 
 # debate.ts
@@ -25,10 +25,10 @@ tags:
 - [[RoomEntryRead]] - `imports` [EXTRACTED]
 - [[calibratedP()]] - `imports` [EXTRACTED]
 - [[challengeFor()]] - `contains` [EXTRACTED]
-- [[clamp()]] - `contains` [EXTRACTED]
+- [[clamp()_9]] - `contains` [EXTRACTED]
 - [[consensus()]] - `contains` [EXTRACTED]
 - [[fillRate()]] - `contains` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[floor-screens.ts]] - `imports_from` [EXTRACTED]
 - [[gateRecord()]] - `contains` [EXTRACTED]
 - [[hit-odds-model.ts]] - `imports_from` [EXTRACTED]
@@ -38,7 +38,7 @@ tags:
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[offsetWord()]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[pc()]] - `contains` [EXTRACTED]
+- [[pc()_3]] - `contains` [EXTRACTED]
 - [[preMortem()]] - `contains` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[realizedForDecile()]] - `imports` [EXTRACTED]
@@ -51,8 +51,8 @@ tags:
 - [[tallyLine()]] - `contains` [EXTRACTED]
 - [[thesisOwner()]] - `contains` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
-- [[usd()]] - `contains` [EXTRACTED]
+- [[usd()_1]] - `contains` [EXTRACTED]
 - [[usdSigned()]] - `contains` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/meetingts

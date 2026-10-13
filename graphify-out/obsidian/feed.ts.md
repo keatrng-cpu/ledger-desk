@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/feed.ts"
 type: "code"
-community: "Community 116"
+community: "feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_116
+  - community/feedts
 ---
 
 # feed.ts
@@ -42,4 +42,4 @@ tags:
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[verify-news-ipo.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_116
+#graphify/code #graphify/EXTRACTED #community/feedts

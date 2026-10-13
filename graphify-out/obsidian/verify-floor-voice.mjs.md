@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-floor-voice.mjs"
 type: "code"
-community: "Community 75"
+community: "verify-floor-voice.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/verify-floor-voicemjs
 ---
 
 # verify-floor-voice.mjs
@@ -16,11 +16,12 @@ tags:
 - [[again_1]] - `contains` [EXTRACTED]
 - [[assignVoices()]] - `imports` [EXTRACTED]
 - [[cast]] - `contains` [EXTRACTED]
-- [[check()_67]] - `contains` [EXTRACTED]
+- [[check()_91]] - `contains` [EXTRACTED]
 - [[deskVoices]] - `contains` [EXTRACTED]
 - [[digitsHeld()]] - `imports` [EXTRACTED]
 - [[floor-voice.ts]] - `imports_from` [EXTRACTED]
 - [[installed]] - `contains` [EXTRACTED]
+- [[isNaturalVoice()]] - `imports` [EXTRACTED]
 - [[jax]] - `contains` [EXTRACTED]
 - [[malesOnly]] - `contains` [EXTRACTED]
 - [[nameOf()_1]] - `contains` [EXTRACTED]
@@ -35,11 +36,11 @@ tags:
 - [[speakable()]] - `imports` [EXTRACTED]
 - [[spoken_3]] - `contains` [EXTRACTED]
 - [[sterling]] - `contains` [EXTRACTED]
-- [[stop]] - `contains` [EXTRACTED]
+- [[stop_1]] - `contains` [EXTRACTED]
 - [[structure]] - `contains` [EXTRACTED]
 - [[tab_2]] - `contains` [EXTRACTED]
 - [[toneOf()_1]] - `imports` [EXTRACTED]
 - [[voiceGender()]] - `imports` [EXTRACTED]
 - [[womenShutOut]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/verify-floor-voicemjs

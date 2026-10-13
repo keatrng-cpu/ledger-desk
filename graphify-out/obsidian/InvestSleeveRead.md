@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 34"
-location: "L403"
+community: "live-types.ts"
+location: "L418"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/live-typests
 ---
 
 # InvestSleeveRead
@@ -15,4 +15,4 @@ tags:
 - [[Sleeve]] - `references` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/live-typests

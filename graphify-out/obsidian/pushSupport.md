@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/client.ts"
 type: "code"
-community: "Community 14"
+community: "react"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/react
 ---
 
 # pushSupport
@@ -16,4 +16,4 @@ tags:
 - [[alerts-panel.tsx]] - `imports` [EXTRACTED]
 - [[alertsclient.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/react

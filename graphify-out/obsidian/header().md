@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L199"
+community: "floor-screens.ts"
+location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # header()
@@ -27,17 +27,19 @@ tags:
 - [[drawInvPortfolio()]] - `calls` [EXTRACTED]
 - [[drawInvTheme()]] - `calls` [EXTRACTED]
 - [[drawLeague()]] - `calls` [EXTRACTED]
-- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
 - [[drawNews()]] - `calls` [EXTRACTED]
 - [[drawProposals()]] - `calls` [EXTRACTED]
 - [[drawRefusals()]] - `calls` [EXTRACTED]
 - [[drawRndBoard()]] - `calls` [EXTRACTED]
 - [[drawScanner()]] - `calls` [EXTRACTED]
 - [[drawSeatLeague()]] - `calls` [EXTRACTED]
+- [[drawSwing()]] - `calls` [EXTRACTED]
 - [[drawVote()]] - `calls` [EXTRACTED]
+- [[fit()_4]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[invDark()]] - `calls` [EXTRACTED]
 - [[tapeBlock()]] - `calls` [EXTRACTED]
 - [[textBlock()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

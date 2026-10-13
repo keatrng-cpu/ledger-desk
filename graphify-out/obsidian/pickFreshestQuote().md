@@ -1,21 +1,24 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
-location: "L50"
+community: "build-desk.ts"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # pickFreshestQuote()
 
 ## Connections
 - [[build-desk.ts]] - `imports` [EXTRACTED]
-- [[fetch-dual.ts]] - `imports` [EXTRACTED]
 - [[freshest.ts]] - `contains` [EXTRACTED]
-- [[loadQuote()]] - `calls` [EXTRACTED]
+- [[index.tsx]] - `imports` [EXTRACTED]
+- [[keepFresher()]] - `calls` [EXTRACTED]
+- [[live-ladder.ts]] - `imports` [EXTRACTED]
+- [[liveQuoteRank()]] - `calls` [EXTRACTED]
+- [[loadLiveQuote()]] - `calls` [EXTRACTED]
 - [[quote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

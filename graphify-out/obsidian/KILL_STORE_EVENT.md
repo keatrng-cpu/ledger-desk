@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-store.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # KILL_STORE_EVENT
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[kill-store.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

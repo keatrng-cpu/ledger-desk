@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 18"
+community: "audit.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # MACRO_RUNWAY_DAYS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[audit.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

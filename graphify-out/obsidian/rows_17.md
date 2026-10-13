@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 90"
-location: "L61"
+community: "verify-predict.mjs"
+location: "L258"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/verify-predictmjs
 ---
 
 # rows
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/verify-predictmjs

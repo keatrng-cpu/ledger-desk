@@ -1,20 +1,19 @@
 ---
-source_file: "src/components/room/race-panel.tsx"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 18"
-location: "L34"
+community: "floor-screens.ts"
+location: "L1023"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/floor-screensts
 ---
 
 # signed()
 
 ## Connections
-- [[RacePanel()]] - `calls` [EXTRACTED]
-- [[RaceTrack()]] - `calls` [EXTRACTED]
-- [[eventText()]] - `calls` [EXTRACTED]
-- [[race-panel.tsx]] - `contains` [EXTRACTED]
+- [[drawGhosts()]] - `calls` [EXTRACTED]
+- [[drawLedger()_1]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

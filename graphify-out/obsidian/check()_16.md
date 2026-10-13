@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-spot-cross.mjs"
+source_file: "scripts/verify-desk-enhancements.mjs"
 type: "code"
-community: "Community 160"
-location: "L23"
+community: "verify-desk-enhancements.mjs"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/verify-desk-enhancementsmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
+- [[ok()_8]] - `calls` [EXTRACTED]
+- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/verify-desk-enhancementsmjs

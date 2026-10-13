@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 119"
+community: "rh-autofire.ts"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/rh-autofirets
 ---
 
 # canFillRhEnvelope()
@@ -16,4 +16,4 @@ tags:
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 - [[toManagerRhAccount()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

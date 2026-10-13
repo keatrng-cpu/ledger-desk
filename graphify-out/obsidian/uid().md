@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/tradezella-chat.tsx"
 type: "code"
-community: "Community 146"
+community: "react"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/react
 ---
 
 # uid()
@@ -15,4 +15,4 @@ tags:
 - [[TradezellaChat()]] - `calls` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/react

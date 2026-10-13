@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 4"
-location: "L435"
+community: "room-engine.ts"
+location: "L441"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # runLiveCycle()
@@ -16,7 +16,7 @@ tags:
 - [[applyLab()]] - `calls` [EXTRACTED]
 - [[applyVoids()]] - `indirect_call` [INFERRED]
 - [[asLab()]] - `calls` [EXTRACTED]
-- [[atrOf()]] - `calls` [EXTRACTED]
+- [[atrOf()_1]] - `calls` [EXTRACTED]
 - [[backupRoom()]] - `calls` [EXTRACTED]
 - [[booksOf()]] - `calls` [EXTRACTED]
 - [[brainSources()]] - `calls` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[toRoomInput()]] - `calls` [EXTRACTED]
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

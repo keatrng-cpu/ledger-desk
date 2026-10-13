@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 51"
+community: "trading-floor-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/trading-floor-tabtsx
 ---
 
 # trading-floor-tab.tsx
@@ -14,11 +14,11 @@ tags:
 ## Connections
 - [[BEAT_WORD]] - `contains` [EXTRACTED]
 - [[BED_LAYERS]] - `imports` [EXTRACTED]
-- [[Bar()_8]] - `contains` [EXTRACTED]
+- [[Bar()_10]] - `contains` [EXTRACTED]
 - [[BedLayer]] - `imports` [EXTRACTED]
-- [[CAMERAS]] - `contains` [EXTRACTED]
-- [[COLOR]] - `contains` [EXTRACTED]
-- [[CREW_3]] - `imports` [EXTRACTED]
+- [[CAMERAS_1]] - `contains` [EXTRACTED]
+- [[COLOR_1]] - `contains` [EXTRACTED]
+- [[CREW_2]] - `imports` [EXTRACTED]
 - [[CameraPreset]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[DecisionStrip()]] - `contains` [EXTRACTED]
@@ -40,6 +40,7 @@ tags:
 - [[LAYOUT]] - `imports` [EXTRACTED]
 - [[LedgerPanel()]] - `contains` [EXTRACTED]
 - [[LiveBadge()]] - `contains` [EXTRACTED]
+- [[MEAD_VIEWS]] - `contains` [EXTRACTED]
 - [[ManagerPanel()]] - `contains` [EXTRACTED]
 - [[ManagerRoomState]] - `imports` [EXTRACTED]
 - [[ManagerSteer]] - `imports` [EXTRACTED]
@@ -60,7 +61,7 @@ tags:
 - [[STEER_CHIPS]] - `contains` [EXTRACTED]
 - [[SessionMoment]] - `imports` [EXTRACTED]
 - [[SteerMove]] - `imports` [EXTRACTED]
-- [[TALK]] - `imports` [EXTRACTED]
+- [[TALK_1]] - `imports` [EXTRACTED]
 - [[TRAITS]] - `imports` [EXTRACTED]
 - [[TickerCrawl()]] - `contains` [EXTRACTED]
 - [[TradingFloorTab]] - `imports_from` [EXTRACTED]
@@ -74,9 +75,10 @@ tags:
 - [[beatWord()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[displayEntry]] - `imports` [EXTRACTED]
-- [[etTime()_5]] - `contains` [EXTRACTED]
+- [[etTime()_3]] - `contains` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exec-card.tsx]] - `imports_from` [EXTRACTED]
+- [[floor-link.ts]] - `imports_from` [EXTRACTED]
 - [[floor-props.ts]] - `imports_from` [EXTRACTED]
 - [[floor-race-replay.ts]] - `imports_from` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
@@ -98,12 +100,14 @@ tags:
 - [[manager-room-feed.ts]] - `imports_from` [EXTRACTED]
 - [[managerLoopReadout()]] - `imports` [EXTRACTED]
 - [[managerStubRequested()]] - `imports` [EXTRACTED]
+- [[openPredictAt()]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[paper-book.ts]] - `imports_from` [EXTRACTED]
 - [[pc()_5]] - `contains` [EXTRACTED]
+- [[playedStories]] - `contains` [EXTRACTED]
 - [[race-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[rankTitle()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[recordLine()]] - `imports` [EXTRACTED]
 - [[relationWord()]] - `imports` [EXTRACTED]
 - [[reportRhAccount()]] - `imports` [EXTRACTED]
@@ -117,14 +121,17 @@ tags:
 - [[src_data_room_ev_test]] - `imports_from` [EXTRACTED]
 - [[standAgentAgree()]] - `imports` [EXTRACTED]
 - [[storyChanged()]] - `contains` [EXTRACTED]
+- [[takeFloorCamera()]] - `imports` [EXTRACTED]
 - [[uirh-account.ts]] - `imports_from` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
+- [[use-mead-feed.ts]] - `imports_from` [EXTRACTED]
 - [[useAutomation()]] - `imports` [EXTRACTED]
 - [[useEntryState()]] - `imports` [EXTRACTED]
 - [[useExecStore]] - `imports` [EXTRACTED]
+- [[useMeadFloorFeed()]] - `imports` [EXTRACTED]
 - [[useRoomStore]] - `imports` [EXTRACTED]
 - [[useWirePins()]] - `imports` [EXTRACTED]
 - [[useWireReactions()]] - `imports` [EXTRACTED]
 - [[wire-chat.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

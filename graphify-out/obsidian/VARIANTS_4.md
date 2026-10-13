@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/sweep-regimes.mjs"
 type: "code"
-community: "Community 90"
-location: "L31"
+community: "sweep-regimes.mjs"
+location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/sweep-regimesmjs
 ---
 
 # VARIANTS
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/sweep-regimesmjs

@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/verify-gateway-window.mjs"
 type: "code"
-community: "Community 200"
+community: "verify-gateway-window.mjs"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_200
+  - community/verify-gateway-windowmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_14]] - `calls` [EXTRACTED]
+- [[ok()_13]] - `calls` [EXTRACTED]
 - [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_200
+#graphify/code #graphify/EXTRACTED #community/verify-gateway-windowmjs

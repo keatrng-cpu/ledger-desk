@@ -1,20 +1,19 @@
 ---
 source_file: "src/lib/trading/month-ahead.ts"
 type: "code"
-community: "Community 152"
+community: "month-ahead.ts"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/month-aheadts
 ---
 
 # MonthAheadRead
 
 ## Connections
-- [[DeskPayload]] - `references` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[month-ahead-panel.tsx]] - `imports` [EXTRACTED]
 - [[month-ahead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/month-aheadts

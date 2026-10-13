@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/news-chip.tsx"
 type: "code"
-community: "Community 33"
+community: "ghost-book.ts"
 location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/ghost-bookts
 ---
 
 # countdown()
@@ -15,4 +15,4 @@ tags:
 - [[NewsChip()]] - `calls` [EXTRACTED]
 - [[news-chip.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

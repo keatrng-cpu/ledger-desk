@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-watch.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # kill-watch.ts
@@ -22,6 +22,7 @@ tags:
 - [[MAX_CITATIONS]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `imports_from` [EXTRACTED]
 - [[formatResult()]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[isDue()]] - `contains` [EXTRACTED]
 - [[isoDaysAgo()]] - `contains` [EXTRACTED]
 - [[kill-store.ts]] - `imports_from` [EXTRACTED]
@@ -34,7 +35,8 @@ tags:
 - [[summaryFor()]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-kill-watch.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

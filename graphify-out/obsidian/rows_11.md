@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-regimes.mjs"
+source_file: "scripts/sweep-gates.mjs"
 type: "code"
-community: "Community 240"
-location: "L103"
+community: "cases.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/casests
 ---
 
 # rows
 
 ## Connections
-- [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
+- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_240
+#graphify/code #graphify/EXTRACTED #community/casests

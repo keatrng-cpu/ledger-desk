@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
-location: "L2059"
+community: ".apply"
+location: "L2382"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/apply
 ---
 
 # .apply()
@@ -24,4 +24,4 @@ tags:
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[cuesOfFrame()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/apply

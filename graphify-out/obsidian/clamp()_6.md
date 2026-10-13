@@ -1,18 +1,22 @@
 ---
-source_file: "src/lib/room/floor-voice.ts"
+source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 75"
-location: "L93"
+community: "floor-feet.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/floor-feetts
 ---
 
 # clamp()
 
 ## Connections
-- [[floor-voice.ts]] - `contains` [EXTRACTED]
-- [[phrasePlan()]] - `calls` [EXTRACTED]
+- [[armSwing()]] - `calls` [EXTRACTED]
+- [[floor-feet.ts]] - `contains` [EXTRACTED]
+- [[footAt()]] - `calls` [EXTRACTED]
+- [[legAngles]] - `calls` [EXTRACTED]
+- [[minJerk()]] - `calls` [EXTRACTED]
+- [[smooth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

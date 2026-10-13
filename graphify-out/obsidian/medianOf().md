@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 72"
-location: "L285"
+community: "OhlcBar"
+location: "L287"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # medianOf()
 
 ## Connections
-- [[elapsedFractionOf()_1]] - `calls` [EXTRACTED]
+- [[elapsedFractionOf()]] - `calls` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

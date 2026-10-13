@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-steps.ts"
 type: "code"
-community: "Community 229"
+community: "SmcMasterBook"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/SmcMasterBook
 ---
 
 # setup-steps.ts
@@ -25,4 +25,4 @@ tags:
 - [[verify-setup-memory.mjs]] - `dynamic_import` [EXTRACTED]
 - [[walkthrough()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/SmcMasterBook

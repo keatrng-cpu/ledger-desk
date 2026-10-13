@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/ui/automation-state.ts"
+source_file: "scripts/agent-sync.mjs"
 type: "code"
-community: "Community 33"
-location: "L37"
+community: "agent-sync.mjs"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/agent-syncmjs
 ---
 
 # state
 
 ## Connections
-- [[automation-state.ts]] - `contains` [EXTRACTED]
+- [[agent-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/agent-syncmjs

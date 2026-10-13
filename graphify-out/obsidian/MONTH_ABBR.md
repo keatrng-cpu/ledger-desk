@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/spoken-form.ts"
+source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 96"
-location: "L19"
+community: "hall-lite.ts"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/hall-litets
 ---
 
 # MONTH_ABBR
 
 ## Connections
-- [[spoken-form.ts]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/hall-litets

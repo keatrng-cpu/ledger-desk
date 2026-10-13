@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/gen-build-id.mjs"
+source_file: "scripts/install-netlify-cron.mjs"
 type: "code"
-community: "Community 191"
-location: "L21"
+community: "ref_node_path"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/ref_node_path
 ---
 
 # root
 
 ## Connections
-- [[gen-build-id.mjs]] - `contains` [EXTRACTED]
+- [[install-netlify-cron.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

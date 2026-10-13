@@ -1,20 +1,20 @@
 ---
 source_file: "src/routes/api/engine/journal.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # engine/journal.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[MAX_EVENTS_PER_BATCH]] - `imports` [EXTRACTED]
-- [[Route_13]] - `contains` [EXTRACTED]
+- [[Route_21]] - `contains` [EXTRACTED]
 - [[auth-server.ts]] - `imports_from` [EXTRACTED]
 - [[authorizeBridgeRequest()]] - `imports` [EXTRACTED]
 - [[formatIssues()]] - `imports` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[schema.ts]] - `imports_from` [EXTRACTED]
 - [[toDeskEvent()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

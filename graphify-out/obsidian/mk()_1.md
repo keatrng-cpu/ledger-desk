@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-invest-book.mjs"
+source_file: "scripts/measure-micro-entry.mjs"
 type: "code"
-community: "Community 30"
-location: "L203"
+community: "measure-micro-entry.mjs"
+location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_30
+  - community/measure-micro-entrymjs
 ---
 
 # mk()
 
 ## Connections
-- [[clean_1]] - `calls` [EXTRACTED]
-- [[verify-invest-book.mjs]] - `contains` [EXTRACTED]
+- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_30
+#graphify/code #graphify/EXTRACTED #community/measure-micro-entrymjs

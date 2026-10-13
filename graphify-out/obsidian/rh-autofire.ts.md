@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # rh-autofire.ts
@@ -28,6 +28,7 @@ tags:
 - [[RH_LIMIT_SLIP]] - `contains` [EXTRACTED]
 - [[RH_LIVE_DISARMED_REASON]] - `re_exports` [EXTRACTED]
 - [[RH_LIVE_QUOTE_MAX_AGE_MS]] - `contains` [EXTRACTED]
+- [[RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS]] - `contains` [EXTRACTED]
 - [[RH_MAX_CONTRACTS]] - `re_exports` [EXTRACTED]
 - [[RH_MAX_DEBIT_TOTAL]] - `re_exports` [EXTRACTED]
 - [[RH_MAX_TAPE_AGE_SEC]] - `re_exports` [EXTRACTED]
@@ -35,6 +36,7 @@ tags:
 - [[RH_MIN_DEBIT_TOTAL]] - `re_exports` [EXTRACTED]
 - [[RH_NOT_CONFIRMED_REASON]] - `re_exports` [EXTRACTED]
 - [[RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING]] - `re_exports` [EXTRACTED]
+- [[RH_ORDER_REVIEW_MAX_AGE_MS]] - `contains` [EXTRACTED]
 - [[RH_PATH_FIRE_MAX_AGE_MS]] - `re_exports` [EXTRACTED]
 - [[RH_PATH_FLOOR]] - `re_exports` [EXTRACTED]
 - [[RH_PATH_FLOOR_BPLUS]] - `re_exports` [EXTRACTED]
@@ -70,10 +72,10 @@ tags:
 - [[evaluateRhTicketEnvelope()]] - `re_exports` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports_from` [EXTRACTED]
 - [[exec-server.ts]] - `imports_from` [EXTRACTED]
-- [[executionrh-account.ts]] - `imports_from` [EXTRACTED]
+- [[executionrh-account.ts]] - `re_exports` [EXTRACTED]
 - [[isBplusBand()]] - `re_exports` [EXTRACTED]
-- [[manager-account.ts]] - `imports_from` [EXTRACTED]
-- [[manager-agree.ts]] - `imports_from` [EXTRACTED]
+- [[manager-account.ts]] - `re_exports` [EXTRACTED]
+- [[manager-agree.ts]] - `re_exports` [EXTRACTED]
 - [[manager-feed-agree.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[managerAccountLine()]] - `re_exports` [EXTRACTED]
@@ -83,9 +85,10 @@ tags:
 - [[proposeRhFromPathFire()]] - `contains` [EXTRACTED]
 - [[proposeRhLiveOption()]] - `contains` [EXTRACTED]
 - [[resolveStandAgentAgree()]] - `re_exports` [EXTRACTED]
-- [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
+- [[rh-autofire-gates.ts]] - `re_exports` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
-- [[rh-floor-signals.ts]] - `imports_from` [EXTRACTED]
+- [[rh-dispatch.ts]] - `imports_from` [EXTRACTED]
+- [[rh-floor-signals.ts]] - `re_exports` [EXTRACTED]
 - [[rhAccountFromPortfolio()]] - `re_exports` [EXTRACTED]
 - [[rhAutofireEnabled()]] - `contains` [EXTRACTED]
 - [[rhAutofireFlagsFromEnv()]] - `contains` [EXTRACTED]
@@ -95,11 +98,14 @@ tags:
 - [[rhPathFloorForBand()]] - `re_exports` [EXTRACTED]
 - [[rhSpendable()]] - `re_exports` [EXTRACTED]
 - [[rhTapeAgeSec()]] - `re_exports` [EXTRACTED]
+- [[rules-parity.test.mjs]] - `imports_from` [EXTRACTED]
+- [[shared_desk_rules]] - `imports_from` [EXTRACTED]
 - [[ticketFromRhCard()]] - `contains` [EXTRACTED]
 - [[toManagerRhAccount()]] - `re_exports` [EXTRACTED]
 - [[verify-manager-live-loop.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-tooling-guards.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

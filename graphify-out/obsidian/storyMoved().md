@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 4"
-location: "L415"
+community: "room-engine.ts"
+location: "L421"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # storyMoved()
@@ -15,4 +15,4 @@ tags:
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

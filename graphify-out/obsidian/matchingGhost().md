@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/session-hud.tsx"
 type: "code"
-community: "Community 33"
+community: "ghost-book.ts"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/ghost-bookts
 ---
 
 # matchingGhost()
@@ -15,4 +15,4 @@ tags:
 - [[SessionHud()]] - `calls` [EXTRACTED]
 - [[session-hud.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

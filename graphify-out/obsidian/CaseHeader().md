@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 6"
+community: "replay-drill.ts"
 location: "L297"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_6
+  - community/replay-drillts
 ---
 
 # CaseHeader()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[Decide()]] - `calls` [EXTRACTED]
 - [[Reveal()]] - `calls` [EXTRACTED]
-- [[hhmm()_4]] - `calls` [EXTRACTED]
+- [[hhmm()_5]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_6
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

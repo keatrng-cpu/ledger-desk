@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/print-bars.ts"
 type: "code"
-community: "Community 8"
+community: "OhlcBar"
 location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/OhlcBar
 ---
 
 # barsFromPrints()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[print-bars.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

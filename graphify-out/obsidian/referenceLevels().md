@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 1"
+community: "structure.ts"
 location: "L1037"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/structurets
 ---
 
 # referenceLevels()
@@ -16,4 +16,4 @@ tags:
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
 - [[structure.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/structurets

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-shadow-book.mjs"
+source_file: "scripts/verify-news-ipo.mjs"
 type: "code"
-community: "Community 126"
-location: "L18"
+community: "verify-news-ipo.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/verify-news-ipomjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
+- [[ok()_2]] - `calls` [EXTRACTED]
+- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/verify-news-ipomjs

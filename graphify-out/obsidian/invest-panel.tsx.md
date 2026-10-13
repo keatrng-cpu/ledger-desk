@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/invest-panel.tsx"
 type: "code"
-community: "Community 100"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-paneltsx
 ---
 
 # invest-panel.tsx
@@ -16,13 +16,16 @@ tags:
 - [[BookCard()]] - `imports` [EXTRACTED]
 - [[DataCard()]] - `imports` [EXTRACTED]
 - [[ExposureCard()]] - `imports` [EXTRACTED]
+- [[FunnelCard()]] - `imports` [EXTRACTED]
 - [[HabitCard()]] - `imports` [EXTRACTED]
 - [[InvestMarks]] - `imports` [EXTRACTED]
 - [[InvestPanel()]] - `contains` [EXTRACTED]
 - [[IpoCard()]] - `imports` [EXTRACTED]
 - [[Judged]] - `imports` [EXTRACTED]
 - [[KillWatchPanel()]] - `imports` [EXTRACTED]
+- [[LONG_NAMES]] - `imports` [EXTRACTED]
 - [[LimitsCard()]] - `imports` [EXTRACTED]
+- [[LongBoard()]] - `imports` [EXTRACTED]
 - [[MARKS_MAX_TICKERS]] - `imports` [EXTRACTED]
 - [[Note()]] - `imports` [EXTRACTED]
 - [[Position]] - `imports` [EXTRACTED]
@@ -40,6 +43,7 @@ tags:
 - [[etToday()]] - `imports` [EXTRACTED]
 - [[exposure-card.tsx]] - `imports_from` [EXTRACTED]
 - [[exposure.ts]] - `imports_from` [EXTRACTED]
+- [[funnel-card.tsx]] - `imports_from` [EXTRACTED]
 - [[getInvestMarks]] - `imports` [EXTRACTED]
 - [[habit-card.tsx]] - `imports_from` [EXTRACTED]
 - [[heldPositions()]] - `imports` [EXTRACTED]
@@ -51,6 +55,8 @@ tags:
 - [[ledger.ts]] - `imports_from` [EXTRACTED]
 - [[limits-card.tsx]] - `imports_from` [EXTRACTED]
 - [[loadLedger()]] - `imports` [EXTRACTED]
+- [[long-board.ts]] - `imports_from` [EXTRACTED]
+- [[long-board.tsx]] - `imports_from` [EXTRACTED]
 - [[lookThrough()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[marks-server.ts]] - `imports_from` [EXTRACTED]
@@ -58,7 +64,7 @@ tags:
 - [[nextBuy]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[rateLadder]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readMarksCache()]] - `contains` [EXTRACTED]
 - [[rebalanceCheck()]] - `imports` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
@@ -78,4 +84,4 @@ tags:
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[writeMarksCache()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

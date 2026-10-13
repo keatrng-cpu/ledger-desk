@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "scripts/verify-funnel.mjs"
 type: "code"
-community: "Community 166"
-location: "L75"
+community: "ref_node_fs"
+location: "L2"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/ref_node_fs
 ---
 
 # src
 
 ## Connections
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[verify-funnel.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

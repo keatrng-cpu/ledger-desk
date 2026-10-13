@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/dual-index-charts.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # SymbolHeader()
@@ -20,4 +20,4 @@ tags:
 - [[fmtPrice()]] - `calls` [EXTRACTED]
 - [[formatPct()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

@@ -1,12 +1,12 @@
 ---
-source_file: "src/components/mead/mead-scene.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
-location: "L978"
+community: "mead-hall-build.ts"
+location: "L733"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/mead-hall-buildts
 ---
 
 # .setFeed()
@@ -14,7 +14,9 @@ tags:
 ## Connections
 - [[dot-react()_1]] - `calls` [EXTRACTED]
 - [[dot-redraw()]] - `calls` [EXTRACTED]
-- [[MeadScene]] - `method` [EXTRACTED]
+- [[dot-setFeed()_1]] - `calls` [INFERRED]
+- [[dot-setFeed()_2]] - `calls` [INFERRED]
+- [[MeadHall]] - `method` [EXTRACTED]
 - [[PredictionMarketFeedState]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

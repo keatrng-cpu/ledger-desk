@@ -1,24 +1,20 @@
 ---
-source_file: "src/lib/invest/sync.ts"
+source_file: "scripts/verify-no-bot-entry.mjs"
 type: "code"
-community: "Community 147"
-location: "L38"
+community: "verify-no-bot-entry.mjs"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/verify-no-bot-entrymjs
 ---
 
 # run()
 
 ## Connections
-- [[appendInvestLedger]] - `calls` [EXTRACTED]
-- [[listInvestLedger]] - `calls` [EXTRACTED]
-- [[loadEntries()]] - `calls` [EXTRACTED]
-- [[mergeEntries()]] - `calls` [EXTRACTED]
-- [[replaceEntries()]] - `calls` [EXTRACTED]
-- [[same()]] - `calls` [EXTRACTED]
-- [[sync.ts]] - `contains` [EXTRACTED]
-- [[syncInvestLedger()]] - `calls` [EXTRACTED]
+- [[account()_1]] - `calls` [EXTRACTED]
+- [[armed()]] - `calls` [EXTRACTED]
+- [[quote()_2]] - `calls` [EXTRACTED]
+- [[verify-no-bot-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/verify-no-bot-entrymjs

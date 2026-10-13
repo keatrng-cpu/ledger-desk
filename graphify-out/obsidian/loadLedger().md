@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/invest/store.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # loadLedger()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[InvestPanel()]] - `calls` [EXTRACTED]
 - [[closedMonths()]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
@@ -26,4 +27,4 @@ tags:
 - [[store.ts]] - `contains` [EXTRACTED]
 - [[totalSwept()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

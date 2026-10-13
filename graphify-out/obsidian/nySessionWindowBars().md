@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 46"
+community: "session-backtest.ts"
 location: "L380"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/session-backtestts
 ---
 
 # nySessionWindowBars()
@@ -15,4 +15,4 @@ tags:
 - [[etParts()_1]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

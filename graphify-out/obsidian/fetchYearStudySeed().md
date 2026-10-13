@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/bt-seed.ts"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L125"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # fetchYearStudySeed()
@@ -16,4 +16,4 @@ tags:
 - [[bt-seed.ts]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

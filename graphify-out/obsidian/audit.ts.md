@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 18"
+community: "audit.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # audit.ts
@@ -20,6 +20,7 @@ tags:
 - [[EXEC_FLAGS]] - `imports` [EXTRACTED]
 - [[FeedRead]] - `imports` [EXTRACTED]
 - [[GoalLite]] - `imports` [EXTRACTED]
+- [[INVEST_REFRESH]] - `contains` [EXTRACTED]
 - [[LabLite]] - `imports` [EXTRACTED]
 - [[MACRO_RUNWAY_DAYS]] - `contains` [EXTRACTED]
 - [[ORDER]] - `contains` [EXTRACTED]
@@ -36,9 +37,10 @@ tags:
 - [[live-talk.ts]] - `imports_from` [EXTRACTED]
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-race.ts]] - `imports_from` [EXTRACTED]
-- [[money()_3]] - `contains` [EXTRACTED]
+- [[money()_9]] - `contains` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[verify-audit.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

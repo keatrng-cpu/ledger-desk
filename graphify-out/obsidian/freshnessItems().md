@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 18"
-location: "L42"
+community: "audit.ts"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # freshnessItems()
@@ -16,4 +16,4 @@ tags:
 - [[audit.ts]] - `contains` [EXTRACTED]
 - [[deskAudit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

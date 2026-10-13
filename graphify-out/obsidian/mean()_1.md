@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/calibration.ts"
 type: "code"
-community: "Community 174"
+community: "calibration-panel.tsx"
 location: "L135"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/calibration-paneltsx
 ---
 
 # mean()
 
 ## Connections
 - [[calibration.ts]] - `contains` [EXTRACTED]
-- [[expectancy_1]] - `calls` [EXTRACTED]
+- [[expectancy]] - `calls` [EXTRACTED]
 - [[reliability]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

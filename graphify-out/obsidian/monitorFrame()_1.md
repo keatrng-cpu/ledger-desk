@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 24"
+community: "floor-overhaul-war.ts"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/floor-overhaul-warts
 ---
 
 # monitorFrame()
@@ -15,4 +15,4 @@ tags:
 - [[drawManagerArms()]] - `calls` [EXTRACTED]
 - [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

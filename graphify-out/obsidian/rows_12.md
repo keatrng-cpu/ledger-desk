@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/calibration.mts"
 type: "code"
-community: "Community 36"
-location: "L258"
+community: "getSql"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/getSql
 ---
 
 # rows
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[calibration.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/getSql

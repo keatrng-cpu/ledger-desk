@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L215"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # VenuePicker()
@@ -16,4 +16,4 @@ tags:
 - [[predict-parts.tsx]] - `contains` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

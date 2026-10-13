@@ -1,22 +1,18 @@
 ---
-source_file: "scripts/build-learn-figures.py"
+source_file: "src/lib/trading/conditions.ts"
 type: "code"
-community: "Community 64"
-location: "L493"
+community: "trading/scanner.ts"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/trading/scannerts
 ---
 
 # atr()
 
 ## Connections
-- [[build-learn-figures.py]] - `contains` [EXTRACTED]
-- [[find_against()]] - `calls` [EXTRACTED]
-- [[find_shift_clean()]] - `calls` [EXTRACTED]
-- [[find_shift_early()]] - `calls` [EXTRACTED]
-- [[find_shift_wick()]] - `calls` [EXTRACTED]
-- [[find_sweep_stale()]] - `calls` [EXTRACTED]
+- [[assessConditions()]] - `calls` [EXTRACTED]
+- [[conditions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

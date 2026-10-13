@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/invest/exposure.ts"
+source_file: "src/lib/invest/ipo.ts"
 type: "code"
-community: "Community 5"
-location: "L59"
+community: "invest-firm.ts"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/invest-firmts
 ---
 
 # DOC
 
 ## Connections
-- [[exposure.ts]] - `contains` [EXTRACTED]
+- [[ipo.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/learn/learn-tab.tsx"
+source_file: "src/components/learn/live-lessons.tsx"
 type: "code"
-community: "Community 67"
-location: "L32"
+community: "live-lesson.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/live-lessonts
 ---
 
 # readDone()
 
 ## Connections
-- [[learn-tab.tsx]] - `contains` [EXTRACTED]
-- [[useDone()]] - `calls` [EXTRACTED]
+- [[LiveLessonBoard()]] - `calls` [EXTRACTED]
+- [[live-lessons.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_67
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

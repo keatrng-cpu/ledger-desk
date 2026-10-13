@@ -1,29 +1,17 @@
 ---
-source_file: "src/routes/api/cron/exec-flatten.ts"
+source_file: "src/routes/api/auth/$.ts"
 type: "code"
-community: "Community 31"
-location: "L24"
+community: "auth/server.ts"
+location: "L33"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_31
+  - graphify/INFERRED
+  - community/auth/serverts
 ---
 
 # handle()
 
 ## Connections
-- [[dot-markNet()]] - `calls` [INFERRED]
-- [[dot-state()]] - `calls` [INFERRED]
-- [[PgExecStore]] - `calls` [EXTRACTED]
-- [[authorizeCronRequest()]] - `calls` [EXTRACTED]
-- [[etWindow]] - `calls` [EXTRACTED]
-- [[exec-flatten.ts]] - `indirect_call` [INFERRED]
-- [[execStep()]] - `calls` [EXTRACTED]
-- [[getSql()]] - `calls` [EXTRACTED]
-- [[isForced()]] - `calls` [EXTRACTED]
-- [[jsonResponse()]] - `calls` [EXTRACTED]
-- [[rhAutofireEnabled()]] - `calls` [EXTRACTED]
-- [[rhLiveArmed()]] - `calls` [EXTRACTED]
-- [[safetyNetDue()]] - `calls` [EXTRACTED]
+- [[$.ts]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/INFERRED #community/auth/serverts

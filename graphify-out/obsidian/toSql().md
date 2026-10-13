@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 189"
+community: "getSql"
 location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/getSql
 ---
 
 # toSql()
@@ -16,4 +16,4 @@ tags:
 - [[createPgliteSql()]] - `calls` [EXTRACTED]
 - [[db.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_189
+#graphify/code #graphify/EXTRACTED #community/getSql

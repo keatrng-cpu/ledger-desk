@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/desk/profit-path.tsx"
+source_file: "src/lib/learn/curriculum.ts"
 type: "code"
-community: "Community 26"
-location: "L52"
+community: "curriculum.ts"
+location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/curriculumts
 ---
 
 # pct()
 
 ## Connections
-- [[ProfitPathPanel()]] - `calls` [EXTRACTED]
-- [[profit-path.tsx]] - `contains` [EXTRACTED]
+- [[curriculum.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/curriculumts

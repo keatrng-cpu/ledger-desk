@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-intrabar.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 98"
-location: "L48"
+community: "day-context.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/day-contextts
 ---
 
 # days
 
 ## Connections
-- [[capture-intrabar.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/day-contextts

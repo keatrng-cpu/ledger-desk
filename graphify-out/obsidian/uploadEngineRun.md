@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/engine/ingest.ts"
 type: "code"
-community: "Community 65"
+community: "dual-index-charts.tsx"
 location: "L256"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/dual-index-chartstsx
 ---
 
 # uploadEngineRun
@@ -18,4 +18,4 @@ tags:
 - [[ingest.ts]] - `contains` [EXTRACTED]
 - [[toIso()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

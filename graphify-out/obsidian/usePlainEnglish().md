@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/plain-text.tsx"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # usePlainEnglish()
@@ -19,4 +19,4 @@ tags:
 - [[subscribePlainEnglish()]] - `indirect_call` [INFERRED]
 - [[usePlainify()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

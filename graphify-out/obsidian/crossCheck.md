@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/override-log.ts"
 type: "code"
-community: "Community 60"
+community: "trade-log.ts"
 location: "L162"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/trade-logts
 ---
 
 # crossCheck
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[override-log.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/trade-logts

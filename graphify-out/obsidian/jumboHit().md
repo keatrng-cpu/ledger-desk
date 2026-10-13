@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 37"
+community: "MeadScene"
 location: "L366"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # jumboHit()
 
 ## Connections
 - [[dot-ticketFor()]] - `calls` [EXTRACTED]
-- [[mead-scene.ts]] - `imports` [EXTRACTED]
+- [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

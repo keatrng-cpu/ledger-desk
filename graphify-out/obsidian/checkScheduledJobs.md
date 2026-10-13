@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/trigger-server.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L219"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # checkScheduledJobs
@@ -19,4 +19,4 @@ tags:
 - [[runWeekly()]] - `calls` [EXTRACTED]
 - [[trigger-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

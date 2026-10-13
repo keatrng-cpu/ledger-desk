@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/durability.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # durabilityFor()
@@ -15,7 +15,9 @@ tags:
 - [[ScreenTable()]] - `calls` [EXTRACTED]
 - [[durability.ts]] - `contains` [EXTRACTED]
 - [[durabilityLegs()]] - `calls` [EXTRACTED]
+- [[gradeLongCard()]] - `calls` [EXTRACTED]
+- [[long-board.ts]] - `imports` [EXTRACTED]
 - [[requiredVsDelivered]] - `calls` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

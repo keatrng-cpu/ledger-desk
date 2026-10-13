@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L233"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # RoomDeskRead
@@ -15,7 +15,7 @@ tags:
 - [[Agenda]] - `references` [EXTRACTED]
 - [[DrillStep]] - `references` [EXTRACTED]
 - [[ExitContext]] - `references` [EXTRACTED]
-- [[Facts]] - `references` [EXTRACTED]
+- [[Facts_1]] - `references` [EXTRACTED]
 - [[GhostStepCtx]] - `references` [EXTRACTED]
 - [[LabStepArgs]] - `references` [EXTRACTED]
 - [[RaceInput]] - `references` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

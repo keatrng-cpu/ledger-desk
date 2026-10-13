@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 172"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/options-swing-paneltsx
 ---
 
 # options-sleeve.ts
@@ -19,7 +19,10 @@ tags:
 - [[clampSleeve()]] - `contains` [EXTRACTED]
 - [[claude-handoff.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger-panel.tsx]] - `imports_from` [EXTRACTED]
+- [[four-facts-board.tsx]] - `imports_from` [EXTRACTED]
+- [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[loadRhSleeve()]] - `contains` [EXTRACTED]
+- [[option-ticket.tsx]] - `imports_from` [EXTRACTED]
 - [[options-desk-cap.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -33,4 +36,4 @@ tags:
 - [[verify-overnight.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

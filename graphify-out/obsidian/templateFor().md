@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 84"
-location: "L149"
+community: "strategy-grade.ts"
+location: "L185"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/strategy-gradets
 ---
 
 # templateFor()
@@ -16,8 +16,10 @@ tags:
 - [[isStrategyComplete()]] - `calls` [EXTRACTED]
 - [[missingDrivers()]] - `calls` [EXTRACTED]
 - [[score-drivers.ts]] - `imports` [EXTRACTED]
+- [[scoreDirection()]] - `calls` [EXTRACTED]
 - [[scoreDrivers()]] - `calls` [EXTRACTED]
 - [[scoreGap]] - `calls` [EXTRACTED]
 - [[strategy-grade.ts]] - `contains` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

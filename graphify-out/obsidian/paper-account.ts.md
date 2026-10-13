@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-account.ts"
 type: "code"
-community: "Community 9"
+community: "aplus/config.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/aplus/configts
 ---
 
 # paper-account.ts
@@ -16,8 +16,8 @@ tags:
 - [[DeskMemoryState]] - `imports` [EXTRACTED]
 - [[PAPER_START_EQUITY]] - `contains` [EXTRACTED]
 - [[PaperAccountSnapshot]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyPaperPnl()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
 - [[formatPaperChip()]] - `contains` [EXTRACTED]
 - [[getPaperAccount()]] - `contains` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[trade-debrief.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

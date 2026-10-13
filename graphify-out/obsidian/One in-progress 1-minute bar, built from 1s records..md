@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "rationale"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L261"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # One in-progress 1-minute bar, built from 1s records.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[MinuteAgg]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_74
+#graphify/rationale #graphify/EXTRACTED #community/databento_live_gatewaypy

@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/score-drivers.ts"
+source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 84"
-location: "L101"
+community: "verify-live-lesson.mjs"
+location: "L135"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/verify-live-lessonmjs
 ---
 
 # LABELS
 
 ## Connections
-- [[score-drivers.ts]] - `contains` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/verify-live-lessonmjs

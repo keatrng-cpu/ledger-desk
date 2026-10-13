@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 58"
+community: "detectors.ts"
 location: "L772"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/detectorsts
 ---
 
 # resampleSessionBars()
@@ -20,4 +20,4 @@ tags:
 - [[smtDivergenceStack()]] - `calls` [EXTRACTED]
 - [[structure.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/detectorsts

@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/engine/journal.ts"
+source_file: "src/routes/api/room/cycle.ts"
 type: "code"
-community: "Community 95"
-location: "L87"
+community: "routeTree.gen.ts"
+location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/routeTreegents
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[enginejournal.ts]] - `contains` [EXTRACTED]
+- [[cycle.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

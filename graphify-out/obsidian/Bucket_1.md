@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/discretion-memory.ts"
+source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 111"
-location: "L201"
+community: "journal/analytics.ts"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/journal/analyticsts
 ---
 
 # Bucket
 
 ## Connections
-- [[LegScore]] - `inherits` [EXTRACTED]
-- [[discretion-memory.ts]] - `contains` [EXTRACTED]
+- [[StrategyScore]] - `inherits` [EXTRACTED]
+- [[analytics-panel.tsx]] - `imports` [EXTRACTED]
+- [[journalanalytics.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/journal/analyticsts

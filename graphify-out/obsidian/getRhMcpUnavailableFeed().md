@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 7"
+community: "prediction-market-feed.ts"
 location: "L614"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/prediction-market-feedts
 ---
 
 # getRhMcpUnavailableFeed()
@@ -15,4 +15,4 @@ tags:
 - [[predict-server.ts]] - `contains` [EXTRACTED]
 - [[rhMcpUnavailableAdapter()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

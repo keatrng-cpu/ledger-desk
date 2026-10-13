@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ltf-lead.ts"
 type: "code"
-community: "Community 29"
+community: "OhlcBar"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/OhlcBar
 ---
 
 # ltf-lead.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[LiquidityTarget]] - `imports` [EXTRACTED]
 - [[LtfLead]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PbRead]] - `imports` [EXTRACTED]
 - [[RUNGS]] - `contains` [EXTRACTED]
 - [[Rung]] - `contains` [EXTRACTED]
@@ -30,7 +30,7 @@ tags:
 - [[pb-entries.ts]] - `imports_from` [EXTRACTED]
 - [[readLtfLead()]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
-- [[symbolOf()_1]] - `contains` [EXTRACTED]
+- [[symbolOf()]] - `contains` [EXTRACTED]
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

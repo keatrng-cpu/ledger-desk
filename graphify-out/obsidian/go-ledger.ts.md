@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/go-ledger.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # go-ledger.ts
@@ -20,8 +20,12 @@ tags:
 - [[board.ts]] - `imports_from` [EXTRACTED]
 - [[feePerContract()]] - `imports` [EXTRACTED]
 - [[goStats]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `imports_from` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
 - [[loadGo()]] - `contains` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
+- [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
+- [[mead-record.ts]] - `imports_from` [EXTRACTED]
 - [[predict-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
@@ -31,4 +35,4 @@ tags:
 - [[settle()]] - `contains` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

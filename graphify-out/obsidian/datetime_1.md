@@ -1,17 +1,17 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 156"
+community: "crew-year-backtest.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/crew-year-backtestpy
 ---
 
 # datetime
 
 ## Connections
 - [[crew-year-backtest.py]] - `imports_from` [EXTRACTED]
-- [[et()]] - `references` [EXTRACTED]
+- [[et()_1]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

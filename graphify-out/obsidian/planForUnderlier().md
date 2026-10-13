@@ -1,23 +1,23 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L149"
+community: "evaluateOptionsDesk"
+location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # planForUnderlier()
 
 ## Connections
 - [[eventSecond()]] - `calls` [EXTRACTED]
-- [[htfSwingCard()]] - `calls` [EXTRACTED]
 - [[judasIfvg0dte()]] - `calls` [EXTRACTED]
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[pathContinuation()]] - `calls` [EXTRACTED]
 - [[smtLead()_1]] - `calls` [EXTRACTED]
+- [[swingSpanCards()]] - `calls` [EXTRACTED]
 - [[underlierOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

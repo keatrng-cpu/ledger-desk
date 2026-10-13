@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 24"
+community: "floor-overhaul.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/floor-overhaults
 ---
 
 # floor-overhaul.ts
@@ -54,7 +54,7 @@ tags:
 - [[drawTickerWall()]] - `contains` [EXTRACTED]
 - [[drawTrack()]] - `contains` [EXTRACTED]
 - [[drawTrophies()]] - `contains` [EXTRACTED]
-- [[fit()]] - `contains` [EXTRACTED]
+- [[fit()_1]] - `contains` [EXTRACTED]
 - [[floor-overhaul-race.ts]] - `imports_from` [EXTRACTED]
 - [[floor-overhaul-school.ts]] - `imports_from` [EXTRACTED]
 - [[floor-overhaul-war.ts]] - `imports_from` [EXTRACTED]
@@ -62,7 +62,7 @@ tags:
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 - [[floorProps]] - `imports` [EXTRACTED]
 - [[fmtMin()]] - `contains` [EXTRACTED]
-- [[hash()_1]] - `contains` [EXTRACTED]
+- [[hash()_2]] - `contains` [EXTRACTED]
 - [[liquidityTrack]] - `imports` [EXTRACTED]
 - [[makeSign()]] - `contains` [EXTRACTED]
 - [[manager-feed.ts]] - `imports_from` [EXTRACTED]
@@ -72,11 +72,11 @@ tags:
 - [[readRhAccount()]] - `imports` [EXTRACTED]
 - [[relToneColor()]] - `imports` [EXTRACTED]
 - [[rod()]] - `contains` [EXTRACTED]
-- [[school-contract.ts]] - `dynamic_import` [EXTRACTED]
+- [[school-contract.ts]] - `imports_from` [EXTRACTED]
 - [[sessionDial]] - `imports` [EXTRACTED]
 - [[sessionSegments()]] - `imports` [EXTRACTED]
 - [[three]] - `imports_from` [EXTRACTED]
 - [[uirh-account.ts]] - `imports_from` [EXTRACTED]
 - [[wrap()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

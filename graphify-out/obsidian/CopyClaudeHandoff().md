@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/copy-claude-handoff.tsx"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # CopyClaudeHandoff()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[PathAlarmBar()]] - `calls` [EXTRACTED]
 - [[TradingCoach()]] - `calls` [EXTRACTED]
 - [[buildClaudeHandoff()]] - `calls` [EXTRACTED]
@@ -20,4 +20,4 @@ tags:
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 - [[trading-coach.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

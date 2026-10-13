@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/debate.ts"
+source_file: "src/lib/room/rnd.ts"
 type: "code"
-community: "Community 104"
-location: "L139"
+community: "rnd.ts"
+location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/rndts
 ---
 
 # usd()
 
 ## Connections
-- [[challengeFor()]] - `calls` [EXTRACTED]
-- [[debate.ts]] - `contains` [EXTRACTED]
+- [[rnd.ts]] - `contains` [EXTRACTED]
+- [[rndRead]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/rndts

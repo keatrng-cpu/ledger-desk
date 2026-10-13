@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
-location: "L110"
+community: "build-desk.ts"
+location: "L126"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # intervalMs()
@@ -15,5 +15,7 @@ tags:
 - [[applyQuoteToLastBar()]] - `calls` [EXTRACTED]
 - [[closedBars()]] - `calls` [EXTRACTED]
 - [[freshest.ts]] - `contains` [EXTRACTED]
+- [[tape-trust.ts]] - `imports` [EXTRACTED]
+- [[tapeTrust]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

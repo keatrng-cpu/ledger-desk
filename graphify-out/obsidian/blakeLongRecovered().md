@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 60"
+community: "veteran-brain.ts"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/veteran-braints
 ---
 
 # blakeLongRecovered()
@@ -15,4 +15,4 @@ tags:
 - [[isBlakeLongDemoted()]] - `calls` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

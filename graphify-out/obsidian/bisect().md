@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/goal.ts"
+source_file: "scripts/fidelity/replay-desk.mjs"
 type: "code"
-community: "Community 50"
-location: "L698"
+community: "replay-desk.mjs"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/replay-deskmjs
 ---
 
 # bisect()
 
 ## Connections
-- [[goal.ts]] - `contains` [EXTRACTED]
-- [[needed]] - `calls` [EXTRACTED]
+- [[replay-desk.mjs]] - `contains` [EXTRACTED]
+- [[series()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/replay-deskmjs

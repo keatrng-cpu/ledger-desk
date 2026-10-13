@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/verify-desk-cadence.mjs"
 type: "code"
-community: "Community 83"
-location: "L16"
+community: "verify-desk-cadence.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/verify-desk-cadencemjs
 ---
 
 # at()
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/verify-desk-cadencemjs

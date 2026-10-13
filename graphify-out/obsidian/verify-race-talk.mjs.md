@@ -1,35 +1,38 @@
 ---
 source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 185"
+community: "verify-race-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/verify-race-talkmjs
 ---
 
 # verify-race-talk.mjs
 
 ## Connections
+- [[HALL_IDS_2]] - `contains` [EXTRACTED]
 - [[MORNING]] - `contains` [EXTRACTED]
 - [[SPOKEN_2]] - `contains` [EXTRACTED]
 - [[TRANSCRIPT_1]] - `contains` [EXTRACTED]
 - [[WHY the trader asked the five to be agents with one goal — $1,000 → $5,000 —…]] - `rationale_for` [EXTRACTED]
-- [[at()_3]] - `contains` [EXTRACTED]
+- [[at()_4]] - `contains` [EXTRACTED]
 - [[bookOf()_2]] - `contains` [EXTRACTED]
-- [[check()_22]] - `contains` [EXTRACTED]
-- [[clockAt()_2]] - `contains` [EXTRACTED]
+- [[check()_23]] - `contains` [EXTRACTED]
+- [[clockAt()_3]] - `contains` [EXTRACTED]
 - [[drain()]] - `contains` [EXTRACTED]
-- [[ev()]] - `contains` [EXTRACTED]
+- [[ev()_1]] - `contains` [EXTRACTED]
+- [[hallBoard()_1]] - `contains` [EXTRACTED]
 - [[kinds()]] - `contains` [EXTRACTED]
 - [[legal()_2]] - `contains` [EXTRACTED]
 - [[live-talk.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-types.ts]] - `dynamic_import` [EXTRACTED]
 - [[live-world.ts]] - `dynamic_import` [EXTRACTED]
+- [[mead-hall-layout.ts]] - `dynamic_import` [EXTRACTED]
 - [[mkGoal()]] - `contains` [EXTRACTED]
 - [[mkSeats()]] - `contains` [EXTRACTED]
-- [[mkWorld()_2]] - `contains` [EXTRACTED]
+- [[mkWorld()_3]] - `contains` [EXTRACTED]
 - [[numbersOf()_2]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `dynamic_import` [EXTRACTED]
 - [[orchestrator.ts]] - `dynamic_import` [EXTRACTED]
@@ -40,4 +43,4 @@ tags:
 - [[textOf()_2]] - `contains` [EXTRACTED]
 - [[unsourced()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/verify-race-talkmjs

@@ -1,25 +1,21 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
-location: "L1227"
+community: "MeadScene"
+location: "L328"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_37
+  - graphify/INFERRED
+  - community/MeadScene
 ---
 
 # .loop()
 
 ## Connections
-- [[dot-add()_2]] - `calls` [EXTRACTED]
-- [[dot-constructor()_16]] - `calls` [EXTRACTED]
-- [[dot-emptyState()]] - `calls` [EXTRACTED]
-- [[dot-flashArg()]] - `calls` [EXTRACTED]
-- [[dot-update()_10]] - `calls` [EXTRACTED]
+- [[dot-constructor()_20]] - `calls` [EXTRACTED]
+- [[dot-tryMove()]] - `calls` [INFERRED]
+- [[dot-update()_5]] - `calls` [INFERRED]
+- [[dot-update()_9]] - `calls` [INFERRED]
 - [[MeadScene]] - `method` [EXTRACTED]
-- [[damp()_2]] - `calls` [EXTRACTED]
-- [[drawJumbotron()]] - `calls` [EXTRACTED]
-- [[drawNeon()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/INFERRED #community/MeadScene

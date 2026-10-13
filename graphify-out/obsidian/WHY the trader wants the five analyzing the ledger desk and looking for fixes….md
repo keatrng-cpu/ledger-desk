@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-audit.mjs"
 type: "rationale"
-community: "Community 235"
+community: "verify-audit.mjs"
 location: "L6"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_235
+  - community/verify-auditmjs
 ---
 
 # WHY: the trader wants the five "analyzing the ledger desk and looking for fixes…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-audit.mjs]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_235
+#graphify/rationale #graphify/EXTRACTED #community/verify-auditmjs

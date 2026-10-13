@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/sweep-regimes.mjs"
 type: "code"
-community: "Community 240"
+community: "sweep-regimes.mjs"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/sweep-regimesmjs
 ---
 
 # YEARS
@@ -15,4 +15,4 @@ tags:
 - [[sweep-regimes.mjs]] - `contains` [EXTRACTED]
 - [[yearOf()_7]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_240
+#graphify/code #graphify/EXTRACTED #community/sweep-regimesmjs

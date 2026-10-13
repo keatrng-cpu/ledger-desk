@@ -1,17 +1,31 @@
 ---
-source_file: "src/lib/predict/predict-server.ts"
+source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 7"
-location: "L50"
+community: "mead-hall-build.ts"
+location: "L132"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/mead-hall-buildts
 ---
 
 # .constructor()
 
 ## Connections
-- [[HttpError]] - `method` [EXTRACTED]
+- [[dot-add()_2]] - `calls` [EXTRACTED]
+- [[dot-box()]] - `calls` [EXTRACTED]
+- [[dot-buildBar()]] - `calls` [EXTRACTED]
+- [[dot-buildBooths()]] - `calls` [EXTRACTED]
+- [[dot-buildCrowd()]] - `calls` [EXTRACTED]
+- [[dot-buildNeon()]] - `calls` [EXTRACTED]
+- [[dot-buildPoolTable()]] - `calls` [EXTRACTED]
+- [[dot-buildRoom()]] - `calls` [EXTRACTED]
+- [[dot-buildScreens()_1]] - `calls` [EXTRACTED]
+- [[dot-redraw()]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `method` [EXTRACTED]
+- [[bakeStatic()]] - `calls` [EXTRACTED]
+- [[buildHallExtras()]] - `calls` [EXTRACTED]
+- [[keepLive()]] - `calls` [EXTRACTED]
+- [[setLayer()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

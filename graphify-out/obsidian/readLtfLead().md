@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ltf-lead.ts"
 type: "code"
-community: "Community 29"
+community: "OhlcBar"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/OhlcBar
 ---
 
 # readLtfLead()
@@ -20,6 +20,6 @@ tags:
 - [[ltf-lead.ts]] - `contains` [EXTRACTED]
 - [[scannerCards()]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
-- [[symbolOf()_1]] - `calls` [EXTRACTED]
+- [[symbolOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # mayPush()
@@ -16,4 +16,4 @@ tags:
 - [[snapshot-sync.ts]] - `imports` [EXTRACTED]
 - [[snapshot.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

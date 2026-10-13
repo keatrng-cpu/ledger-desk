@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/limits.ts"
 type: "code"
-community: "Community 122"
+community: "exec-server.ts"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/exec-serverts
 ---
 
 # EXEC_LIMITS
@@ -25,4 +25,4 @@ tags:
 - [[paper-step.ts]] - `imports` [EXTRACTED]
 - [[verify-paper-step.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/exec-serverts

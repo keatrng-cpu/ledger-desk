@@ -1,21 +1,23 @@
 ---
-source_file: "src/lib/execution/order-intent.ts"
+source_file: "brainlab/gate.py"
 type: "code"
-community: "Community 77"
-location: "L78"
+community: "smoke_live.py"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/smoke_livepy
 ---
 
 # OrderIntent
 
 ## Connections
-- [[ContractKey]] - `references` [EXTRACTED]
-- [[ShadowOrder]] - `references` [EXTRACTED]
-- [[order-intent.ts]] - `contains` [EXTRACTED]
-- [[shadow.ts]] - `imports` [EXTRACTED]
-- [[tradovate-orders.ts]] - `imports` [EXTRACTED]
+- [[dot-debit_at_ask()]] - `method` [EXTRACTED]
+- [[dot-debit_at_limit()]] - `method` [EXTRACTED]
+- [[dot-desk_gates()]] - `method` [EXTRACTED]
+- [[dot-limit_px()]] - `method` [EXTRACTED]
+- [[BaseModel]] - `inherits` [EXTRACTED]
+- [[gate.py]] - `contains` [EXTRACTED]
+- [[review()]] - `uses` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

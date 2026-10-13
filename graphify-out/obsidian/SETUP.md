@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 16"
-location: "L35"
+community: "hall-read.ts"
+location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/hall-readts
 ---
 
 # SETUP
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[mead-signal-feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/hall-readts

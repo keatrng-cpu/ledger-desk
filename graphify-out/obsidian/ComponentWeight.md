@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/confluence.ts"
 type: "code"
-community: "Community 114"
+community: "strategy-grade.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/strategy-gradets
 ---
 
 # ComponentWeight
@@ -15,4 +15,4 @@ tags:
 - [[ComponentKey]] - `references` [EXTRACTED]
 - [[confluence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

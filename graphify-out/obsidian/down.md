@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 166"
-location: "L107"
+community: "verify-smc-master.mjs"
+location: "L152"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/verify-smc-mastermjs
 ---
 
 # down
 
 ## Connections
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

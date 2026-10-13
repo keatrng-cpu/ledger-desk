@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-propfirm-score.mjs"
 type: "code"
-community: "Community 108"
+community: "propfirm-panel.tsx"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/propfirm-paneltsx
 ---
 
 # run()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

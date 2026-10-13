@@ -1,19 +1,19 @@
 ---
 source_file: "src/routes/api/desk/handoff.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # handoff.ts
 
 ## Connections
-- [[@tanstackreact-router]] - `imports_from` [EXTRACTED]
-- [[Route_7]] - `contains` [EXTRACTED]
+- [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
+- [[Route_10]] - `contains` [EXTRACTED]
 - [[authorizeCronRequest()]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildClaudeHandoff()]] - `imports` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[src_lib_alerts_cron_jsonresponse]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

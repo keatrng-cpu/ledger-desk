@@ -1,18 +1,25 @@
 ---
-source_file: "src/components/desk/trade-debrief-panel.tsx"
+source_file: "src/components/invest/format.ts"
 type: "code"
-community: "Community 44"
-location: "L15"
+community: "universe.ts"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/universets
 ---
 
 # pct()
 
 ## Connections
-- [[DebriefBody()]] - `calls` [EXTRACTED]
-- [[trade-debrief-panel.tsx]] - `contains` [EXTRACTED]
+- [[BookCard()]] - `calls` [EXTRACTED]
+- [[ExposureCard()]] - `calls` [EXTRACTED]
+- [[ResearchCard()]] - `calls` [EXTRACTED]
+- [[ScreenTable()]] - `calls` [EXTRACTED]
+- [[book-card.tsx]] - `imports` [EXTRACTED]
+- [[exposure-card.tsx]] - `imports` [EXTRACTED]
+- [[investformat.ts]] - `contains` [EXTRACTED]
+- [[research-card.tsx]] - `imports` [EXTRACTED]
+- [[screen-table.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/universets

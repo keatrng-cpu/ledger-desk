@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 129"
+community: "invest-panel.tsx"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/invest-paneltsx
 ---
 
 # fundProfile
@@ -25,4 +25,4 @@ tags:
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 - [[timeline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

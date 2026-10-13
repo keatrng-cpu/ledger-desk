@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
-community: "Community 39"
-location: "L1675"
+community: "cn"
+location: "L1724"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # CANON_SORT_BONUS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[setup-scanner.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 44"
+community: "ghost-book.ts"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/ghost-bookts
 ---
 
 # GhostTrade
@@ -17,4 +17,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[trade-debrief.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 162"
+community: "orchestrator.ts"
 location: "L205"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/orchestratorts
 ---
 
 # CardRead
@@ -27,4 +27,4 @@ tags:
 - [[live-voices.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

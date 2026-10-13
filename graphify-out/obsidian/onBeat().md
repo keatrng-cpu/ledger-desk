@@ -1,22 +1,25 @@
 ---
 source_file: "src/lib/live/keep-live.ts"
 type: "code"
-community: "Community 8"
+community: "veteran-brain.ts"
 location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/veteran-braints
 ---
 
 # onBeat()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
+- [[HiAlertPanel()]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
+- [[hi-alert-panel.tsx]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[keep-live.ts]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[start()]] - `calls` [EXTRACTED]
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

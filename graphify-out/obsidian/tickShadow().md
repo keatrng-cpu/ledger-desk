@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 126"
+community: "shadow-book.ts"
 location: "L554"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/shadow-bookts
 ---
 
 # tickShadow()
@@ -14,11 +14,11 @@ tags:
 ## Connections
 - [[applyRange()]] - `calls` [EXTRACTED]
 - [[close()]] - `calls` [EXTRACTED]
-- [[etTime()_1]] - `calls` [EXTRACTED]
+- [[etTime()]] - `calls` [EXTRACTED]
 - [[etWallToEpochMs()]] - `calls` [EXTRACTED]
 - [[isTerminal()]] - `calls` [EXTRACTED]
 - [[observeShadows()]] - `calls` [EXTRACTED]
-- [[px()_1]] - `calls` [EXTRACTED]
+- [[px()]] - `calls` [EXTRACTED]
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/shadow-bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/evidence.ts"
 type: "code"
-community: "Community 99"
+community: "trading/evidence.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/trading/evidencets
 ---
 
 # trading/evidence.ts
@@ -52,4 +52,4 @@ tags:
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weekdayBucket()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/trading/evidencets

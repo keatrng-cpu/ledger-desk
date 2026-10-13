@@ -1,28 +1,30 @@
 ---
 source_file: "src/lib/auth/verify.server.ts"
 type: "code"
-community: "Community 65"
+community: "auth/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/auth/serverts
 ---
 
 # verify.server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[DEV_USER_ID]] - `contains` [EXTRACTED]
 - [[UnauthorizedError]] - `contains` [EXTRACTED]
 - [[VerifiedUser]] - `contains` [EXTRACTED]
 - [[auth]] - `imports` [EXTRACTED]
-- [[authserver.ts]] - `imports_from` [EXTRACTED]
+- [[authserver.ts]] - `re_exports` [EXTRACTED]
 - [[authConfigured]] - `imports` [EXTRACTED]
 - [[authMiddleware]] - `imports_from` [EXTRACTED]
+- [[callback.ts]] - `imports_from` [EXTRACTED]
+- [[connect.ts]] - `imports_from` [EXTRACTED]
 - [[databaseConfigured]] - `contains` [EXTRACTED]
 - [[getSessionUser()]] - `contains` [EXTRACTED]
 - [[middleware.ts]] - `dynamic_import` [EXTRACTED]
 - [[requireUserId()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

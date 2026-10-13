@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 49"
-location: "L477"
+community: "audit.ts"
+location: "L889"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/auditts
 ---
 
 # CATALYST_MAX_AGE_DAYS
@@ -17,4 +17,4 @@ tags:
 - [[invest-read.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/auditts

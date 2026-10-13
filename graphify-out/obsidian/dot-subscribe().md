@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 16"
-location: "L149"
+community: "hall-read.ts"
+location: "L150"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/hall-readts
 ---
 
 # .subscribe()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[SignalHallFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/hall-readts

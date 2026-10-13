@@ -1,18 +1,16 @@
 ---
-source_file: "package.json"
-type: "concept"
-community: "Community 233"
-location: "L97"
+source_file: "react-dom"
+type: "code"
+community: "verify-replay-drills.mjs"
 tags:
-  - graphify/concept
+  - graphify/code
   - graphify/EXTRACTED
-  - community/Community_233
+  - community/verify-replay-drillsmjs
 ---
 
 # react-dom
 
 ## Connections
-- [[package.json]] - `imports` [EXTRACTED]
-- [[render-setup-chart.mjs]] - `imports_from` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_233
+#graphify/code #graphify/EXTRACTED #community/verify-replay-drillsmjs

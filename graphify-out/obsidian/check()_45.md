@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-overnight.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 238"
-location: "L18"
+community: "verify-options-live-ticket.mjs"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_238
+  - community/verify-options-live-ticketmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-overnight.mjs]] - `contains` [EXTRACTED]
+- [[eq()_2]] - `calls` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_238
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

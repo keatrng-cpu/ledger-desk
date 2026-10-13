@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/use-entry-state.ts"
 type: "code"
-community: "Community 41"
+community: "use-entry-state.ts"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/use-entry-statets
 ---
 
 # ENTRY_STYLE
@@ -15,4 +15,4 @@ tags:
 - [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
 - [[use-entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

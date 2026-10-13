@@ -1,17 +1,17 @@
 ---
-source_file: "package.json"
+source_file: "brainlab/probot/package.json"
 type: "code"
-community: "Community 32"
+community: "probot/package.json"
 location: "L3"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/probot/packagejson
 ---
 
 # private
 
 ## Connections
-- [[package.json]] - `contains` [EXTRACTED]
+- [[probotpackage.json]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_32
+#graphify/code #graphify/EXTRACTED #community/probot/packagejson

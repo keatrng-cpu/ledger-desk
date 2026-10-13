@@ -1,24 +1,24 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 58"
+community: "structure.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # structure.ts
 
 ## Connections
-- [[Bias]] - `contains` [EXTRACTED]
+- [[Bias_2]] - `contains` [EXTRACTED]
 - [[DealingRange]] - `contains` [EXTRACTED]
 - [[EMPTY_SESSION_LEVELS]] - `contains` [EXTRACTED]
 - [[HtfBiasRead]] - `contains` [EXTRACTED]
 - [[LiquidityPool]] - `contains` [EXTRACTED]
 - [[NO_DIVERGENCE]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[ReversalAlert]] - `contains` [EXTRACTED]
 - [[SessionLevels]] - `contains` [EXTRACTED]
 - [[SmtDivergenceRead]] - `contains` [EXTRACTED]
@@ -76,6 +76,7 @@ tags:
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[voteBias()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/structurets

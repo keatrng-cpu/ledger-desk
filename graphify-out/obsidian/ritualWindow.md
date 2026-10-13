@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/live-session.ts"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # ritualWindow
@@ -22,4 +22,4 @@ tags:
 - [[partsIn()]] - `calls` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

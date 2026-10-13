@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/measure-entry-location.mjs"
 type: "code"
-community: "Community 141"
+community: "measure-entry-location.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_141
+  - community/measure-entry-locationmjs
 ---
 
 # measure-entry-location.mjs
 
 ## Connections
-- [[BAND]] - `contains` [EXTRACTED]
-- [[BARS_2]] - `contains` [EXTRACTED]
+- [[BAND_1]] - `contains` [EXTRACTED]
+- [[BARS_3]] - `contains` [EXTRACTED]
 - [[H_2]] - `contains` [EXTRACTED]
 - [[IS_YEARS_2]] - `contains` [EXTRACTED]
 - [[OOS_YEARS_2]] - `contains` [EXTRACTED]
@@ -24,7 +24,7 @@ tags:
 - [[clusteredMean()]] - `contains` [EXTRACTED]
 - [[dayKey()_2]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
-- [[gate_1]] - `contains` [EXTRACTED]
+- [[gate_2]] - `contains` [EXTRACTED]
 - [[halves()]] - `contains` [EXTRACTED]
 - [[inBand]] - `contains` [EXTRACTED]
 - [[mean()]] - `contains` [EXTRACTED]
@@ -41,4 +41,4 @@ tags:
 - [[sweepsFor()_2]] - `contains` [EXTRACTED]
 - [[unpairedDiff()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_141
+#graphify/code #graphify/EXTRACTED #community/measure-entry-locationmjs

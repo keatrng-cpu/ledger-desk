@@ -1,0 +1,17 @@
+---
+source_file: "scripts/verify-all.mjs"
+type: "code"
+community: "verify-all.mjs"
+location: "L64"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/verify-allmjs
+---
+
+# knownRed
+
+## Connections
+- [[verify-all.mjs]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/verify-allmjs

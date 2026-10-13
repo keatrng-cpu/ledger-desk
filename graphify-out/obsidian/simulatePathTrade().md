@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 158"
+community: "simulate-path-trade.ts"
 location: "L218"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/simulate-path-tradets
 ---
 
 # simulatePathTrade()
@@ -15,11 +15,11 @@ tags:
 - [[hitStop()]] - `calls` [EXTRACTED]
 - [[hitTarget()]] - `calls` [EXTRACTED]
 - [[parseFirstPrice()]] - `calls` [EXTRACTED]
-- [[pointValue()]] - `calls` [EXTRACTED]
+- [[pointValue()_1]] - `calls` [EXTRACTED]
 - [[resolveGrade()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
 - [[sizeContracts()]] - `calls` [EXTRACTED]
 - [[takePathTrade()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

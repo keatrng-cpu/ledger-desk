@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/gate-tuning.ts"
 type: "code"
-community: "Community 90"
-location: "L168"
+community: "detectors.ts"
+location: "L197"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/detectorsts
 ---
 
 # setGate()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[gate-tuning.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/detectorsts

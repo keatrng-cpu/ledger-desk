@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 9"
+community: "aplus/config.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/aplus/configts
 ---
 
 # APLUS_PROBE_RISK
@@ -18,4 +18,4 @@ tags:
 - [[risk-panel.tsx]] - `imports` [EXTRACTED]
 - [[shadow-book.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

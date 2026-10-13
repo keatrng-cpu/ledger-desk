@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/durability.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # pc()
@@ -16,4 +16,4 @@ tags:
 - [[durabilityLegs()]] - `calls` [EXTRACTED]
 - [[requiredVsDelivered]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

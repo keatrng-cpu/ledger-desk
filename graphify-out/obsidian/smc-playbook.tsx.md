@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/smc-playbook.tsx"
 type: "code"
-community: "Community 127"
+community: "smc-canon.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # smc-playbook.tsx
@@ -26,10 +26,10 @@ tags:
 - [[cn()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[smc-canon.ts]] - `imports_from` [EXTRACTED]
 - [[stepStates()]] - `contains` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

@@ -1,20 +1,21 @@
 ---
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
-community: "Community 39"
-location: "L466"
+community: "cn"
+location: "L476"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # SetupCard()
 
 ## Connections
+- [[2 · Trigger on scanner cards (`srccomponentsdesksetup-scanner.tsx`)]] - `references` [INFERRED]
 - [[BarStrip()]] - `calls` [EXTRACTED]
 - [[BlockerStrip()]] - `calls` [EXTRACTED]
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CanonBadge()]] - `calls` [EXTRACTED]
 - [[DiscretionBadge()]] - `calls` [EXTRACTED]
 - [[FitGauge()]] - `calls` [EXTRACTED]
@@ -27,7 +28,7 @@ tags:
 - [[allSeries()]] - `calls` [EXTRACTED]
 - [[anticipate()]] - `calls` [EXTRACTED]
 - [[applyLtf()]] - `calls` [EXTRACTED]
-- [[atrOf()_1]] - `calls` [EXTRACTED]
+- [[atrOf()]] - `calls` [EXTRACTED]
 - [[autoTf()]] - `calls` [EXTRACTED]
 - [[cardEvidence()]] - `calls` [EXTRACTED]
 - [[cardFreshness()]] - `calls` [EXTRACTED]
@@ -58,4 +59,4 @@ tags:
 - [[topDrivers()]] - `calls` [EXTRACTED]
 - [[useGhost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

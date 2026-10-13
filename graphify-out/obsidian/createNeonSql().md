@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 189"
+community: "getSql"
 location: "L129"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/getSql
 ---
 
 # createNeonSql()
@@ -19,4 +19,4 @@ tags:
 - [[pg]] - `imports_from` [EXTRACTED]
 - [[toSql()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_189
+#graphify/code #graphify/EXTRACTED #community/getSql

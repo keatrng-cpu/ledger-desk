@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/auth/verify.server.ts"
+source_file: "src/lib/auth/isolation.server.ts"
 type: "code"
-community: "Community 65"
-location: "L38"
+community: "@tanstack/react-start"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/tanstack/react-start
 ---
 
 # .constructor()
 
 ## Connections
-- [[UnauthorizedError]] - `method` [EXTRACTED]
+- [[CrossSiteRequestError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

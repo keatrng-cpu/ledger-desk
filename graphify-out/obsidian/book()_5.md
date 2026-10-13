@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/floor-overhaul.test.mjs"
+source_file: "scripts/verify-word-hold.mjs"
 type: "code"
-community: "Community 78"
-location: "L88"
+community: "word-hysteresis.ts"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/word-hysteresists
 ---
 
 # book()
 
 ## Connections
-- [[floor-overhaul.test.mjs]] - `contains` [EXTRACTED]
+- [[desk()_3]] - `calls` [EXTRACTED]
+- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/word-hysteresists

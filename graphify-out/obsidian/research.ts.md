@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # research.ts
@@ -30,9 +30,9 @@ tags:
 - [[inducementNote()]] - `contains` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[mitigationNote()]] - `contains` [EXTRACTED]
-- [[n()]] - `contains` [EXTRACTED]
+- [[n()_2]] - `contains` [EXTRACTED]
 - [[oddsNote()]] - `contains` [EXTRACTED]
-- [[pct()_12]] - `contains` [EXTRACTED]
+- [[pct()_13]] - `contains` [EXTRACTED]
 - [[pick()_1]] - `contains` [EXTRACTED]
 - [[qNote()]] - `contains` [EXTRACTED]
 - [[r()_1]] - `contains` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[usd2()]] - `contains` [EXTRACTED]
 - [[verify-floor-rh-account.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

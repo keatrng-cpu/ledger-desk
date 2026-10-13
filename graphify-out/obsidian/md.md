@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/session-backtest.ts"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 46"
-location: "L1440"
+community: "day-context.ts"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/day-contextts
 ---
 
 # md
 
 ## Connections
-- [[session-backtest.ts]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/day-contextts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 75"
-location: "L123"
+community: "floor-voice.ts"
+location: "L145"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/floor-voicets
 ---
 
 # phrasePlan()
@@ -14,13 +14,14 @@ tags:
 ## Connections
 - [[dot-say()]] - `calls` [EXTRACTED]
 - [[chunkSpoken()]] - `calls` [EXTRACTED]
-- [[clamp()_6]] - `calls` [EXTRACTED]
+- [[clamp()_7]] - `calls` [EXTRACTED]
 - [[floor-sound.ts]] - `imports` [EXTRACTED]
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 - [[forTheEar()]] - `calls` [EXTRACTED]
+- [[naturalPlan()]] - `calls` [EXTRACTED]
 - [[speakHoldSec()]] - `calls` [EXTRACTED]
 - [[spokenDigest()]] - `calls` [EXTRACTED]
 - [[toneOf()_1]] - `calls` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

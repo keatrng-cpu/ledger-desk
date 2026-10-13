@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/trading/ghost-book.ts"
+source_file: "src/components/desk/week-ahead-panel.tsx"
 type: "code"
-community: "Community 130"
-location: "L178"
+community: "week-ahead.ts"
+location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/week-aheadts
 ---
 
 # px()
 
 ## Connections
-- [[analyzeExpired()]] - `calls` [EXTRACTED]
-- [[analyzeMissed()]] - `calls` [EXTRACTED]
-- [[ghost-book.ts]] - `contains` [EXTRACTED]
-- [[observeAndTickGhosts()]] - `calls` [EXTRACTED]
+- [[BookCol()]] - `calls` [EXTRACTED]
+- [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

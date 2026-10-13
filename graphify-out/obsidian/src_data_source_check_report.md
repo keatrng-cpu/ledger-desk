@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 18"
+community: "invest-office.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/invest-officets
 ---
 
 # src_data_source_check_report
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[data-fresh.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_18
+#graphify/concept #graphify/EXTRACTED #community/invest-officets

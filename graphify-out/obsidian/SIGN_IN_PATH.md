@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/gates.tsx"
 type: "code"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # SIGN_IN_PATH
@@ -15,4 +15,4 @@ tags:
 - [[gates.tsx]] - `contains` [EXTRACTED]
 - [[storage-banner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/auth/clientts

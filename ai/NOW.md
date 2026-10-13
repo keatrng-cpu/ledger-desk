@@ -1,7 +1,7 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `graph/2026-10-06-ws-kg0-knowledge-spine` (not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
+**As of:** 2026-10-13 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**On `main`:** yes. WS-KG0 (`8ced8f4` + review fixes `6265a7b`) is in `main`'s history; PR #8 was closed without a GitHub merge. This refresh: branch `graph/2026-10-13-refresh`.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
 > Keep this file under 150 lines. It states what is true now, not history. History goes in `ai/DECISIONS.md`.
@@ -11,7 +11,7 @@
 ## Read order (every session)
 
 1. `ai/NOW.md` — this file
-2. `graphify-out/GRAPH_REPORT.md` — code map from a real Graphify run (`graphify extract . --code-only`, 2026-10-07). Open `graphify-out/obsidian/` as a vault. The trading book is `graphify-out/obsidian/brain/`. The older import ranking is `graphify-out/SEED_REPORT.md`.
+2. `graphify-out/GRAPH_REPORT.md` — code map from Graphify. First full run 2026-10-07 (built from `295bd7f1`, 8,943 nodes). On 2026-10-13: incremental updates at `main` @ `b3d58e0f` (11,719 nodes) and `66ce5b3d` (11,940 nodes); then merged `main` @ `7cc00057` (28 more commits: learning loop, loss guards, watcher tab, fast-move shadow, sanePlan, Accuracy a10a66a7 #1–#6) and re-ran `graphify update .` + `cluster-only --no-label --no-viz` + `export obsidian`: 12,236 nodes, 30,005 edges, 354 communities. Report "Built from" is the merge commit `af964158` (code equals `main` @ `7cc00057`). Open `graphify-out/obsidian/` as a vault. The trading book is `graphify-out/obsidian/brain/` (not re-exported; `node_modules` absent). Older import ranking: `graphify-out/SEED_REPORT.md`.
 3. `ai/DECISIONS.md` — append-only decision log + open locks
 4. `ai/HANDOFF.md` — Dual Desk's current packet (today only on branch `coord/2026-10-06-desk-assignments` @ `ceb62b7`)
 5. Then file search (`CLAUDE.md` code map, `ai/research/INDEX.md`, source)
@@ -28,8 +28,8 @@ Fold the Research Desk implementation plan (`09aad4b`) into ledger-desk with one
 
 | Slot | Workstream | Owner | State |
 |---|---|---|---|
-| ▶ 1 | **WS-KG0 Knowledge spine** | Graph Keeper | This branch: `ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md`, `graphify-out/GRAPH_REPORT.md` — Accuracy Review passed @ `8ced8f4`, nothing blocking (per Dual Desk; review note `reviews/2026-10-06-ws-kg0-8ced8f4.md` not found on any branch at 06:15 UTC); Dual Desk fixes S1–S4 on top; next Release Watch → Design Atelier |
-| next | WS-P1 PATH journal → n ≥ 100 | Trading Stand | Queued; starts when KG0 is accepted or parked by Dual Desk |
+| done | **WS-KG0 Knowledge spine** | Graph Keeper | On `main` (`8ced8f4`, `6265a7b`). Graph refreshed 2026-10-13 at `main` @ `7cc00057` (12,236 nodes). |
+| next | WS-P1 PATH journal → n ≥ 100 | Trading Stand | Unblocked by KG0 landing. No WS-P1 commit found on any branch as of 2026-10-13; Dual Desk to confirm start. |
 
 Full queue (15 items) lives in issue #7 and `ai/HANDOFF.md`; not duplicated here.
 

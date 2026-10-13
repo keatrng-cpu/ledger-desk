@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/evidence.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # invest/evidence.ts
@@ -21,11 +21,13 @@ tags:
 - [[dossiers.ts]] - `imports_from` [EXTRACTED]
 - [[evidenceFor()_1]] - `contains` [EXTRACTED]
 - [[evidenceSummary()]] - `contains` [EXTRACTED]
+- [[invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[limits-card.tsx]] - `imports_from` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
 - [[strictGate]] - `contains` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[unsourced]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

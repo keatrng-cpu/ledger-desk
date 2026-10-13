@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 132"
+community: "curriculum.ts"
 location: "L133"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_132
+  - community/curriculumts
 ---
 
 # FILL_WINDOW_BARS
@@ -17,4 +17,4 @@ tags:
 - [[replay-drill.ts]] - `imports` [EXTRACTED]
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_132
+#graphify/code #graphify/EXTRACTED #community/curriculumts

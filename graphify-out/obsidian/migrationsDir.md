@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/migrate.mjs"
 type: "code"
-community: "Community 11"
+community: "ref_node_url"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_url
 ---
 
 # migrationsDir
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[migrate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

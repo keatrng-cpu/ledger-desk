@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 112"
-location: "L1014"
+community: "build_floor.py"
+location: "L1051"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_112
+  - community/build_floorpy
 ---
 
 # f_meeting_chair()
@@ -18,4 +18,4 @@ tags:
 - [[build_floor.py]] - `indirect_call` [INFERRED]
 - [[cyl()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_112
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

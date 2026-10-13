@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-replay-drills.mjs"
+source_file: "scripts/verify-day-change.mjs"
 type: "code"
-community: "Community 227"
-location: "L45"
+community: "verify-day-change.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/verify-day-changemjs
 ---
 
 # check()
 
 ## Connections
-- [[all()]] - `calls` [EXTRACTED]
-- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[ok()_19]] - `calls` [EXTRACTED]
+- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/verify-day-changemjs

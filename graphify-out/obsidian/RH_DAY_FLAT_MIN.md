@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-cycle.ts"
 type: "code"
-community: "Community 83"
-location: "L17"
+community: "verify-rh-cycle.mjs"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/verify-rh-cyclemjs
 ---
 
 # RH_DAY_FLAT_MIN
@@ -15,4 +15,4 @@ tags:
 - [[rh-cycle.ts]] - `contains` [EXTRACTED]
 - [[verify-rh-cycle.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/verify-rh-cyclemjs

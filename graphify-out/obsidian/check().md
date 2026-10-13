@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-invest.mjs"
+source_file: "scripts/verify-school-gate.mjs"
 type: "code"
-community: "Community 107"
-location: "L30"
+community: "school-brief.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_107
+  - community/school-briefts
 ---
 
 # check()
 
 ## Connections
-- [[ok()]] - `calls` [EXTRACTED]
-- [[verify-invest.mjs]] - `contains` [EXTRACTED]
+- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_107
+#graphify/code #graphify/EXTRACTED #community/school-briefts

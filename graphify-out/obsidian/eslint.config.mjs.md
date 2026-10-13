@@ -1,12 +1,12 @@
 ---
 source_file: "eslint.config.mjs"
 type: "code"
-community: "Community 32"
+community: "package.json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # eslint.config.mjs
@@ -19,4 +19,4 @@ tags:
 - [[globals_1]] - `imports_from` [EXTRACTED]
 - [[typescript-eslint_1]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_32
+#graphify/code #graphify/EXTRACTED #community/packagejson

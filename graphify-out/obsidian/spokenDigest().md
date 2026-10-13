@@ -1,17 +1,18 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 96"
-location: "L348"
+community: "spoken-form.ts"
+location: "L350"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # spokenDigest()
 
 ## Connections
+- [[Code map]] - `references` [INFERRED]
 - [[digestOf()]] - `calls` [EXTRACTED]
 - [[floor-voice.ts]] - `imports` [EXTRACTED]
 - [[hasRungGrid()]] - `calls` [EXTRACTED]
@@ -19,4 +20,4 @@ tags:
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 - [[spokenForm()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

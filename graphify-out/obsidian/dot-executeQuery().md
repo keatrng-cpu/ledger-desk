@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/pglite-dialect.ts"
 type: "code"
-community: "Community 190"
+community: "LazyPGliteDriver"
 location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/LazyPGliteDriver
 ---
 
 # .executeQuery()
@@ -17,4 +17,4 @@ tags:
 - [[dot-rollbackTransaction()]] - `calls` [EXTRACTED]
 - [[PGliteConnection]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_190
+#graphify/code #graphify/EXTRACTED #community/LazyPGliteDriver

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-trade-plan.mjs"
 type: "code"
-community: "Community 85"
+community: "verify-trade-plan.mjs"
 location: "L201"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/verify-trade-planmjs
 ---
 
 # scale
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/verify-trade-planmjs

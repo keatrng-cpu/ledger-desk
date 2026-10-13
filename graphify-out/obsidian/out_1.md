@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-learn-history.mjs"
+source_file: "scripts/kill-tune.mts"
 type: "code"
-community: "Community 11"
-location: "L35"
+community: "buildTradingDesk"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/buildTradingDesk
 ---
 
 # out
 
 ## Connections
-- [[capture-learn-history.mjs]] - `contains` [EXTRACTED]
+- [[kill-tune.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

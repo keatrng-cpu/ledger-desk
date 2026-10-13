@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/sync.ts"
 type: "code"
-community: "Community 147"
+community: "invest-panel.tsx"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/invest-paneltsx
 ---
 
 # SyncState
@@ -16,4 +16,4 @@ tags:
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[sync.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

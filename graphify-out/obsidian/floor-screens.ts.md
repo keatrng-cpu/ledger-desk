@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # floor-screens.ts
@@ -16,9 +16,9 @@ tags:
 - [[AgentAct]] - `imports` [EXTRACTED]
 - [[AuditItem]] - `imports` [EXTRACTED]
 - [[BAND_COLOR]] - `contains` [EXTRACTED]
-- [[C_2]] - `contains` [EXTRACTED]
+- [[C_3]] - `contains` [EXTRACTED]
 - [[CATALYST_MAX_AGE_DAYS]] - `imports` [EXTRACTED]
-- [[CREW_COLOR]] - `contains` [EXTRACTED]
+- [[CREW_COLOR_1]] - `contains` [EXTRACTED]
 - [[CREW_ORDER_1]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[ChartSeries]] - `contains` [EXTRACTED]
@@ -28,6 +28,7 @@ tags:
 - [[FloorScreens]] - `contains` [EXTRACTED]
 - [[GoalLite]] - `imports` [EXTRACTED]
 - [[INV_SLEEVE_COLOR]] - `contains` [EXTRACTED]
+- [[INV_SLEEVE_LONG]] - `contains` [EXTRACTED]
 - [[INV_SLEEVE_NAME]] - `contains` [EXTRACTED]
 - [[INV_TIER_COLOR]] - `contains` [EXTRACTED]
 - [[InvestLite]] - `imports` [EXTRACTED]
@@ -35,14 +36,14 @@ tags:
 - [[LedgerScreen]] - `contains` [EXTRACTED]
 - [[Lenses]] - `imports` [EXTRACTED]
 - [[MindState]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PLATE]] - `contains` [EXTRACTED]
 - [[RaceScreen]] - `contains` [EXTRACTED]
 - [[RndLite]] - `imports` [EXTRACTED]
 - [[RoomOutput]] - `imports` [EXTRACTED]
 - [[RoomTrace]] - `imports` [EXTRACTED]
-- [[SEV_COLOR_1]] - `contains` [EXTRACTED]
-- [[STATUS_COLOR_2]] - `contains` [EXTRACTED]
+- [[SEV_COLOR]] - `contains` [EXTRACTED]
+- [[STATUS_COLOR_1]] - `contains` [EXTRACTED]
 - [[ScanCardLite]] - `imports` [EXTRACTED]
 - [[SeatsLite]] - `imports` [EXTRACTED]
 - [[URGENCY_COLOR]] - `contains` [EXTRACTED]
@@ -53,6 +54,7 @@ tags:
 - [[boardAgenda()]] - `imports` [EXTRACTED]
 - [[clear()]] - `contains` [EXTRACTED]
 - [[cuesOfFrame()]] - `contains` [EXTRACTED]
+- [[dateSay()]] - `imports` [EXTRACTED]
 - [[dayPhrase()]] - `imports` [EXTRACTED]
 - [[daysBetween()]] - `imports` [EXTRACTED]
 - [[debate.ts]] - `imports_from` [EXTRACTED]
@@ -75,8 +77,9 @@ tags:
 - [[drawInvTheme()]] - `contains` [EXTRACTED]
 - [[drawKillzoneClock()_1]] - `contains` [EXTRACTED]
 - [[drawLeague()]] - `contains` [EXTRACTED]
-- [[drawLedger()]] - `contains` [EXTRACTED]
+- [[drawLedger()_1]] - `contains` [EXTRACTED]
 - [[drawMarquee()]] - `contains` [EXTRACTED]
+- [[drawMead()]] - `contains` [EXTRACTED]
 - [[drawMonitor()]] - `contains` [EXTRACTED]
 - [[drawNeon()]] - `contains` [EXTRACTED]
 - [[drawNews()]] - `contains` [EXTRACTED]
@@ -89,6 +92,7 @@ tags:
 - [[drawScanner()]] - `contains` [EXTRACTED]
 - [[drawScreen()]] - `contains` [EXTRACTED]
 - [[drawSeatLeague()]] - `contains` [EXTRACTED]
+- [[drawSwing()]] - `contains` [EXTRACTED]
 - [[drawVote()]] - `contains` [EXTRACTED]
 - [[drawWhiteboard()]] - `contains` [EXTRACTED]
 - [[drawWindow()]] - `contains` [EXTRACTED]
@@ -97,7 +101,9 @@ tags:
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[feed-tone.ts]] - `imports_from` [EXTRACTED]
 - [[feedTone]] - `imports` [EXTRACTED]
-- [[fit()_3]] - `contains` [EXTRACTED]
+- [[firmDay]] - `imports` [EXTRACTED]
+- [[firmWeek()]] - `imports` [EXTRACTED]
+- [[fit()_4]] - `contains` [EXTRACTED]
 - [[floor-cues.ts]] - `imports_from` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 - [[floorCues]] - `imports` [EXTRACTED]
@@ -118,16 +124,17 @@ tags:
 - [[lookAt()]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[money()_6]] - `contains` [EXTRACTED]
+- [[opsHealth()]] - `imports` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_10]] - `contains` [EXTRACTED]
-- [[pctSmall()_1]] - `contains` [EXTRACTED]
+- [[pct()_9]] - `contains` [EXTRACTED]
+- [[pctSmall()]] - `contains` [EXTRACTED]
 - [[planPrice()]] - `contains` [EXTRACTED]
-- [[px()_7]] - `contains` [EXTRACTED]
+- [[px()_6]] - `contains` [EXTRACTED]
 - [[race-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
-- [[signed()_2]] - `contains` [EXTRACTED]
+- [[signed()_1]] - `contains` [EXTRACTED]
 - [[tapeBlock()]] - `contains` [EXTRACTED]
 - [[textBlock()]] - `contains` [EXTRACTED]
 - [[themeOfTheDay()]] - `imports` [EXTRACTED]
@@ -136,4 +143,4 @@ tags:
 - [[watchHit]] - `imports` [EXTRACTED]
 - [[wrap()_3]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # agents.ts
@@ -20,15 +20,18 @@ tags:
 - [[AgentAct]] - `contains` [EXTRACTED]
 - [[AgentPlan]] - `contains` [EXTRACTED]
 - [[Beat]] - `imports` [EXTRACTED]
-- [[CREW_3]] - `contains` [EXTRACTED]
+- [[CREW_2]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[DESK_1]] - `contains` [EXTRACTED]
 - [[DIRECTOR]] - `contains` [EXTRACTED]
 - [[DeskAtlas]] - `imports` [EXTRACTED]
 - [[EntryPlan]] - `imports` [EXTRACTED]
 - [[GemmaZone]] - `imports` [EXTRACTED]
+- [[HALL_HABITS]] - `contains` [EXTRACTED]
+- [[HALL_SPOTS]] - `imports` [EXTRACTED]
+- [[HALL_SPOT_IDS]] - `contains` [EXTRACTED]
 - [[JaxZone]] - `imports` [EXTRACTED]
-- [[LOUNGE]] - `contains` [EXTRACTED]
+- [[LOUNGE_1]] - `contains` [EXTRACTED]
 - [[MIN_DWELL_MIN]] - `contains` [EXTRACTED]
 - [[Meeting]] - `contains` [EXTRACTED]
 - [[MeetingKind]] - `contains` [EXTRACTED]
@@ -64,19 +67,24 @@ tags:
 - [[floor-overhaul.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[floor-props.ts]] - `imports_from` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
-- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
 - [[floor-screens.ts]] - `imports_from` [EXTRACTED]
 - [[freshMinds()]] - `contains` [EXTRACTED]
-- [[hash01()]] - `contains` [EXTRACTED]
+- [[gamesOn()]] - `imports` [EXTRACTED]
+- [[hallSpotOf()]] - `contains` [EXTRACTED]
+- [[hash01()_1]] - `contains` [EXTRACTED]
 - [[hhmm()_3]] - `contains` [EXTRACTED]
 - [[improveAtlas()]] - `imports` [EXTRACTED]
 - [[ivFor()]] - `imports` [EXTRACTED]
 - [[jobsFor()]] - `imports` [EXTRACTED]
 - [[lastScored()]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
+- [[marketClosed()]] - `imports` [EXTRACTED]
+- [[mead-hall-layout.ts]] - `imports_from` [EXTRACTED]
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[meetingStillOn()]] - `contains` [EXTRACTED]
 - [[nudge()]] - `contains` [EXTRACTED]
+- [[off-hours.ts]] - `imports_from` [EXTRACTED]
 - [[offerToBrains()]] - `imports` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
@@ -99,6 +107,7 @@ tags:
 - [[syncPeople()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[utility()]] - `contains` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[zoneFor()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

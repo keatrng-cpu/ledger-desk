@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/auth/middleware.ts"
 type: "code"
-community: "Community 65"
+community: "@tanstack/react-start"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/tanstack/react-start
 ---
 
 # middleware.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[alertsserver.ts]] - `imports_from` [EXTRACTED]
 - [[analytics-server.ts]] - `imports_from` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
@@ -31,6 +31,7 @@ tags:
 - [[paper-mirror.ts]] - `imports_from` [EXTRACTED]
 - [[paper-server.ts]] - `imports_from` [EXTRACTED]
 - [[replay-server.ts]] - `imports_from` [EXTRACTED]
+- [[rh-server.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book-server.ts]] - `imports_from` [EXTRACTED]
 - [[shadow.ts]] - `imports_from` [EXTRACTED]
 - [[snapshot-server.ts]] - `imports_from` [EXTRACTED]
@@ -39,4 +40,4 @@ tags:
 - [[trigger-server.ts]] - `imports_from` [EXTRACTED]
 - [[verify.server.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

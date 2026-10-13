@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/calibration-panel.tsx"
 type: "code"
-community: "Community 174"
-location: "L33"
+community: "calibration-panel.tsx"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/calibration-paneltsx
 ---
 
 # rOf()
@@ -15,4 +15,4 @@ tags:
 - [[CalibrationPanel()]] - `calls` [EXTRACTED]
 - [[calibration-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/income-target.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # income-target.ts
@@ -24,11 +24,11 @@ tags:
 - [[TRADING_WEEKS_PER_YEAR]] - `contains` [EXTRACTED]
 - [[WEEKLY_MAX]] - `contains` [EXTRACTED]
 - [[WEEKLY_MIN]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[incomeLadder()]] - `contains` [EXTRACTED]
 - [[planIncome()]] - `contains` [EXTRACTED]
 - [[profit-path.tsx]] - `imports_from` [EXTRACTED]
 - [[readCadence()]] - `contains` [EXTRACTED]
 - [[verify-income-target.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

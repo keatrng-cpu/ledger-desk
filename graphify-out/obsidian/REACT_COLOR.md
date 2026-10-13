@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/predict/pm-analyzer.tsx"
+source_file: "src/components/mead/mead-hall-tab.tsx"
 type: "code"
-community: "Community 16"
-location: "L53"
+community: "mead-screens.ts"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/mead-screensts
 ---
 
 # REACT_COLOR
 
 ## Connections
-- [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
+- [[mead-hall-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

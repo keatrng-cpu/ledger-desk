@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 7"
+community: "predict-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/predict-serverts
 ---
 
 # predict-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[BoardGame]] - `imports` [EXTRACTED]
 - [[FEED_PARTIAL_CACHE_MS]] - `contains` [EXTRACTED]
 - [[FeedDeadlineError]] - `contains` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[anySignal()]] - `contains` [EXTRACTED]
 - [[board.ts]] - `imports_from` [EXTRACTED]
 - [[boardCache]] - `contains` [EXTRACTED]
-- [[buildBoard()]] - `imports` [EXTRACTED]
+- [[buildBoard()_1]] - `imports` [EXTRACTED]
 - [[buildSignalBoard()]] - `imports` [EXTRACTED]
 - [[extrasCache]] - `contains` [EXTRACTED]
 - [[extrasFor()]] - `contains` [EXTRACTED]
@@ -60,6 +60,7 @@ tags:
 - [[getPredictionMarketFeed]] - `contains` [EXTRACTED]
 - [[getPredictionSignals]] - `contains` [EXTRACTED]
 - [[getRhMcpUnavailableFeed()]] - `contains` [EXTRACTED]
+- [[hall-read.ts]] - `imports_from` [EXTRACTED]
 - [[historyFromCandles()]] - `imports` [EXTRACTED]
 - [[is429()]] - `contains` [EXTRACTED]
 - [[kalshiAdapterResult()]] - `imports` [EXTRACTED]
@@ -84,6 +85,6 @@ tags:
 - [[sleep()]] - `contains` [EXTRACTED]
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-prediction-market-feed.mjs]] - `dynamic_import` [EXTRACTED]
-- [[zod_1]] - `imports_from` [EXTRACTED]
+- [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

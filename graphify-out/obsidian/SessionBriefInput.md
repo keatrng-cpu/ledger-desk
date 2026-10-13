@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 56"
+community: "smc-master.ts"
 location: "L67"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/smc-masterts
 ---
 
 # SessionBriefInput
@@ -21,4 +21,4 @@ tags:
 - [[newsRead]] - `references` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

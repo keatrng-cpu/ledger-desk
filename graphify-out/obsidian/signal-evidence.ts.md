@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-evidence.ts"
 type: "code"
-community: "Community 63"
+community: "hall-lite.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/hall-litets
 ---
 
 # signal-evidence.ts
@@ -22,9 +22,10 @@ tags:
 - [[PriceBinId]] - `contains` [EXTRACTED]
 - [[TOO_FEW]] - `contains` [EXTRACTED]
 - [[TooFew]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `imports_from` [EXTRACTED]
 - [[paper-scorer.ts]] - `imports_from` [EXTRACTED]
 - [[priceBinFor()]] - `contains` [EXTRACTED]
 - [[signal-engine.ts]] - `imports_from` [EXTRACTED]
-- [[signals.ts]] - `imports_from` [EXTRACTED]
+- [[signals.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/hall-litets

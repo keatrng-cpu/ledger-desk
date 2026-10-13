@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-option-math-oracle.mjs"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 191"
-location: "L27"
+community: "verify-race-talk.mjs"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-race-talkmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-race-talkmjs

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-path-fire.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 11"
-location: "L29"
+community: "verify-invest-office.mjs"
+location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/verify-invest-officemjs
 ---
 
 # NOW
 
 ## Connections
-- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

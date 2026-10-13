@@ -1,23 +1,26 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 19"
+community: "getSql"
 location: "L309"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/getSql
 ---
 
 # getSql()
 
 ## Connections
+- [[Database (server-only)]] - `references` [INFERRED]
+- [[Preview ↔ production parity]] - `references` [INFERRED]
 - [[analytics-server.ts]] - `imports` [EXTRACTED]
 - [[apexAccountRisk]] - `calls` [EXTRACTED]
 - [[appendInvestLedger]] - `calls` [EXTRACTED]
 - [[attest-fn.ts]] - `imports` [EXTRACTED]
 - [[backfillPaperTrades]] - `calls` [EXTRACTED]
 - [[buildLoopContext()]] - `calls` [EXTRACTED]
+- [[calibration.mts]] - `imports` [EXTRACTED]
 - [[captureSnapshot]] - `calls` [EXTRACTED]
 - [[claimAlert()]] - `calls` [EXTRACTED]
 - [[claude-server.ts]] - `imports` [EXTRACTED]
@@ -46,8 +49,8 @@ tags:
 - [[getRoomSnapshot]] - `calls` [EXTRACTED]
 - [[getSettings]] - `calls` [EXTRACTED]
 - [[getSnapshot]] - `calls` [EXTRACTED]
-- [[handle()_1]] - `calls` [EXTRACTED]
 - [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[ingest-server.ts]] - `imports` [EXTRACTED]
 - [[ingest.ts]] - `imports` [EXTRACTED]
 - [[ingestEngineEvents()]] - `calls` [EXTRACTED]
@@ -86,6 +89,7 @@ tags:
 - [[recordRealFill]] - `calls` [EXTRACTED]
 - [[recordShadowOrder]] - `calls` [EXTRACTED]
 - [[replay-server.ts]] - `imports` [EXTRACTED]
+- [[rhLinkStatus]] - `calls` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[runReplay]] - `calls` [EXTRACTED]
 - [[saveSubscription()]] - `calls` [EXTRACTED]
@@ -94,6 +98,7 @@ tags:
 - [[shadow.ts]] - `imports` [EXTRACTED]
 - [[snapshot-server.ts]] - `imports` [EXTRACTED]
 - [[snapshots.ts]] - `imports` [EXTRACTED]
+- [[stepRhDesk]] - `calls` [EXTRACTED]
 - [[store-server.ts]] - `imports` [EXTRACTED]
 - [[storeFor()]] - `calls` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports` [EXTRACTED]
@@ -102,4 +107,4 @@ tags:
 - [[upsertShadowTrades]] - `calls` [EXTRACTED]
 - [[windowStats]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/getSql

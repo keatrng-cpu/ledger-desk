@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/room/manager-feed.ts"
+source_file: "src/components/mead/mead-feed.ts"
 type: "code"
-community: "Community 224"
-location: "L285"
+community: "prediction-market-feed.ts"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_224
+  - community/prediction-market-feedts
 ---
 
 # .subscribe()
 
 ## Connections
-- [[ManagerFeed]] - `method` [EXTRACTED]
+- [[MeadFeed]] - `method` [EXTRACTED]
+- [[PredictionMarketFeedState]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_224
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

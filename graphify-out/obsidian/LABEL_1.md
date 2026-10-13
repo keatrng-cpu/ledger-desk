@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/market/databento.ts"
+source_file: "src/components/bridge/bridge-status.tsx"
 type: "code"
-community: "Community 98"
-location: "L48"
+community: "cn"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/cn
 ---
 
 # LABEL
 
 ## Connections
-- [[databento.ts]] - `contains` [EXTRACTED]
+- [[bridge-status.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/cn

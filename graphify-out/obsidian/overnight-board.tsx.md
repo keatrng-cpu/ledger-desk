@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/overnight-board.tsx"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # overnight-board.tsx
@@ -35,11 +35,11 @@ tags:
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[options-sleeve.ts]] - `imports_from` [EXTRACTED]
 - [[overnight-swing.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[rh-income.ts]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[subscribeRhIncome()]] - `imports` [EXTRACTED]
 - [[subscribeRhSleeve()]] - `imports` [EXTRACTED]
 - [[wordTone()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

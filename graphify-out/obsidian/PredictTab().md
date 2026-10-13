@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-tab.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L76"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # PredictTab()
@@ -32,4 +32,4 @@ tags:
 - [[subscribePredict()]] - `calls` [EXTRACTED]
 - [[tone()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx
