@@ -86,3 +86,71 @@ The only `src/` change is the 2-line guard; everything else is docs, the baselin
 
 ### Merge
 `git merge-tree --write-tree origin/main 8fabe05f` is clean (tree 7d68995f677007a2f520b41211b7be5498b9e0d2). origin/main is still 0a9b8a3a.
+
+## Re-check 024f8ed (024f8edd3168ca1c7e2a04a4cc4473b7f540ed47)
+
+### Verdict: CHANGES (docs only)
+The code fix is correct and approvable. `CLAUDE.md:55` misstates how the live RH gate treats news. See (c).
+
+### Quote-time gate: verified
+`src/lib/execution/rh-autofire.ts`:
+- :173 `const age = nowMs - q.asOfMs`
+- :174-176 refuse when `age < -RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS`, with its own reason: "Live quote is stamped Ns in the future (> 5s clock skew) — fail closed."
+- :177-179 refuse unless `age >= -5000 && age <= RH_LIVE_QUOTE_MAX_AGE_MS`
+- :184 `RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS = 5_000`. It is declared after the function, but at module scope and only read at call time, so it is safe.
+
+Direct calls (now = 1.76e12):
+
+| asOfMs vs now | Result |
+|---|---|
+| +4s | ok |
+| +5s | ok |
+| +5.001s | refused (future) |
+| +6s | refused (future) |
+| +1h | refused (future) |
+| +1y | refused (future) |
+| -29s | ok |
+| -30s | ok |
+| -31s | refused (31s old) |
+
+### New gate cases: verified
+- They sit at both propose (`scripts/verify-rh-autofire-gates.mjs:340`) and review (`:397`): -Infinity, string, future +1h, future +1y, 0 and -1.
+- **Mutation:** I removed the skew check, restoring the old one-sided `age > MAX`. Result: 277 pass / 4 fail, exactly the future +1h/+1y cases at propose and review. Reverted, and the tree is clean.
+- -Infinity, string, 0 and -1 are refused by the type/finite guard at :172 or the age check. They are regression pins, not skew-specific, and they all pass.
+
+### (b) The TS $150 edits are comment-only
+`git diff -U0 8fabe05f..024f8edd -- '*.ts' '*.tsx'` with comment lines filtered out leaves only:
+- the guard change in `rh-autofire.ts`
+- `manager-account.ts:39`, where only the trailing `// 150` comment becomes `// 50 (RH_MIN_DEBIT_TOTAL)`
+
+### brainlab MIN_DEBIT
+- `brainlab/gate.py:25` `MIN_DEBIT = 150.0` is real code, used at `gate.py:107` (`cost < MIN_DEBIT`).
+- brainlab is the offline Python/Streamlit lab: `streamlit run brainlab/app.py`. Per CLAUDE.md:237 it has "no order path in Python". Nothing in `src/` imports or calls it; src only mentions it in comments.
+- **So the mismatch does not affect live trading.** It does make `verify-lab-constants` fail: "debit floor ($): Python 150 = TypeScript 50" (21/1). That failure is already in the baseline as "lab-constants failing 1, not yet diagnosed", so the cause is now known.
+- **Fix:** set `MIN_DEBIT = 50.0`, then update `brainlab/selfcheck.py:80,106`.
+
+### (c) The CLAUDE.md:55 rewrite matches ad9d7a02, but not the current live gate
+- **The clock part is true.** There are no `aplus_after_10` / `after_11` refusals left anywhere in `src/`.
+- **The +0.05 lift and the one-contract cut exist:**
+  - `rh-autofire-gates.ts:69` `RH_EVENT_CONFIDENCE_LIFT = 0.05`
+  - `:72-76` `confidenceFloorFor`
+  - `:94-97` `contractsAfterEvent` → `Math.max(1, n - 1)`
+  - Callers are only in the desk card: `options-desk.ts:1633` (reason text, "Size is cut") and `:1705` (`shrinkTicket` when `pressured` = news, shock-tail, clock or day card).
+- **The news part is false for the live gate.** `rh-autofire-gates.ts:438-440` hard-refuses on `newsBlackout` with "News / session blackout — stand down". 2ea6f3b8 ("the $150–$550 envelope is enforced again") restored that refusal after ad9d7a02. It is pinned by `verify-rh-autofire-gates.mjs:177-178`: "blackout refuses an A+ too". So "news does not refuse B+ and higher" is wrong for the RH live path. The raised bar and the size cut apply only on the desk card.
+- **Fix:** reword CLAUDE.md:55 to say the live RH gate refuses on a news blackout (`rh-autofire-gates.ts:438`), and that the clock no longer refuses. The +0.05 bar and the one-contract cut apply to the desk ticket (`options-desk.ts:1633,1705`).
+
+### No other behavior change
+Since 8fabe05f, the only code change is the skew/age guard.
+
+### Tests
+- tsc: 0 errors.
+- rh-autofire-gates: 281/0.
+- manager-live-loop: 58/0.
+- rh-dispatch: 39/0.
+- rh-cycle: 79/0.
+- repo-guards: 56/1 (Judas).
+- session-event: 35/1 (Judas).
+- lab-constants: 21/1 (MIN_DEBIT, already in the baseline).
+
+### Merge
+`git merge-tree --write-tree origin/main 024f8edd` is clean (tree 322a9c5848d5b091404f74ac2888fe7186f2da97). origin/main is still 0a9b8a3a.
