@@ -1,12 +1,12 @@
 /**
  * /api/desk/watcher — the Watcher tab feed.
  * GET: latest desk-watcher status (public-safe: account masked ••••6158, no balances, no credentials). Read only.
- * POST: the watcher pushes its status with `Authorization: Bearer <CRON_SECRET>`; payload is re-checked server side.
+ * POST: the watcher pushes its status with `Authorization: Bearer <WATCHER_STATUS_TOKEN>` (CRON_SECRET fallback); payload is re-checked server side.
  * No order endpoints here — the tab is read-only.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { authorizeCronRequest, jsonResponse } from "@/lib/alerts/cron";
-import { safeWatcherStatus, WATCHER_STALE_S } from "@/lib/desk/watcher-status";
+import { jsonResponse } from "@/lib/alerts/cron";
+import { safeWatcherStatus, watcherAuthorized, WATCHER_STALE_S } from "@/lib/desk/watcher-status";
 
 async function get(): Promise<Response> {
   try {
@@ -25,8 +25,8 @@ async function get(): Promise<Response> {
 }
 
 async function post({ request }: { request: Request }): Promise<Response> {
-  const auth = authorizeCronRequest(request);
-  if (!auth.ok) return auth.response;
+  if (!watcherAuthorized(request.headers.get("authorization")))
+    return jsonResponse({ ok: false, error: "Unauthorized" }, 401, { "www-authenticate": "Bearer" });
   let raw: unknown;
   try { raw = await request.json(); } catch { return jsonResponse({ ok: false, error: "bad json" }, 400); }
   const s = safeWatcherStatus(raw);

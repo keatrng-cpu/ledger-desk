@@ -11,3 +11,10 @@ test("watcher status: masked account passes; raw account, balances, tokens rejec
   assert.equal(safeWatcherStatus({ account: "••••6158", x: { token: "abc" } }).ok, false);
   assert.equal(safeWatcherStatus([]).ok, false);
 });
+test("watcher POST auth: dedicated key, CRON_SECRET fallback, nothing else", async () => {
+  const { watcherAuthorized: a } = await import("../src/lib/desk/watcher-status.ts");
+  const env = { WATCHER_STATUS_TOKEN: "k1", CRON_SECRET: "c1" };
+  assert.equal(a("Bearer k1", env), true); assert.equal(a("Bearer c1", env), true);
+  assert.equal(a("Bearer nope", env), false); assert.equal(a(null, env), false); assert.equal(a("Bearer ", env), false);
+  assert.equal(a("Bearer k1", { CRON_SECRET: "c1" }), false); assert.equal(a("Bearer x", {}), false);
+});

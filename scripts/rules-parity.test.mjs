@@ -23,3 +23,10 @@ test("watcher copy of the rules is byte-identical (when the watcher checkout is 
     assert.deepEqual(JSON.parse(readFileSync(p, "utf8")), RULES, `${p} drifted from shared/desk-rules.json`);
   }
 });
+test("RH gate quote ages come from shared rules (parity with the watcher)", async () => {
+  const a = await import("../src/lib/execution/rh-autofire.ts");
+  const g = await import("../src/lib/execution/rh-autofire-gates.ts");
+  assert.equal(a.RH_LIVE_QUOTE_MAX_AGE_MS, RULES.fire.quoteMaxAgeS * 1000);
+  assert.equal(a.RH_ORDER_REVIEW_MAX_AGE_MS, RULES.fire.orderReviewMaxAgeS * 1000);
+  assert.equal(g.RH_PATH_FIRE_MAX_AGE_MS, RULES.fire.quoteMaxAgeS * 1000);
+});

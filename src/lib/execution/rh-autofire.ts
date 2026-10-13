@@ -8,6 +8,7 @@
  * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
  * again before place (mayPlaceAfterReview.accountAtReview). BP < $50 → refused.
  */
+import RULES from "../../../shared/desk-rules.json";
 import {
   evaluateRhAutofireGates,
   evaluateRhBuyingPower,
@@ -153,7 +154,10 @@ export interface RhLiveOptionQuote {
   source: "get_option_quotes" | string;
 }
 
-export const RH_LIVE_QUOTE_MAX_AGE_MS = 30_000;
+// shared/desk-rules.json fire.quoteMaxAgeS (was 30 s; parity with the watcher)
+export const RH_LIVE_QUOTE_MAX_AGE_MS = RULES.fire.quoteMaxAgeS * 1000;
+/** Re-read right before the order is sent (fire.orderReviewMaxAgeS). */
+export const RH_ORDER_REVIEW_MAX_AGE_MS = RULES.fire.orderReviewMaxAgeS * 1000;
 export const RH_LIMIT_SLIP = 0.02;
 
 export function evaluateRhLiveQuote(

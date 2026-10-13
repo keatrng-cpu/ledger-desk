@@ -1505,6 +1505,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
       }
       // Keaton 2026-10-13: no fake stops, targets or R:R (exec-context sanePlan).
+      // Accuracy 7d6b3575 note 1: a function so it re-runs after the brain re-grade below.
+      const saneAll = (): void => {
       for (const c of payload.scan.candidates) {
         if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
         const pl = c.plan as { entry: number; stop: number; t1: number | null; t2: number | null; riskPts: number; rr1: number | null; rr2: number | null };
@@ -1542,6 +1544,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.reasons.push(`WATCH row, not a card: ${r.why}`);
         } else if (r.flagged) c.reasons.push(r.why!);
       }
+      };
+      saneAll();
       // Full-plan cards first; if the lead was a watch row, the brain re-grades
       // the new lead's book so card, brain and Floor still name one trade.
       {
@@ -1555,6 +1559,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
           smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
           attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
+          // the new book and any plan attached just now go through the same sanity check
+          saneAll();
         }
       }
       // R3-c: actionable needs a priced entry, stop and target.

@@ -1,4 +1,5 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
@@ -127,6 +128,9 @@ export interface DeskWire {
     rrFlag: boolean;
     rr1: number | null;
     rr2: number | null;
+    /** uncapped R:R (rr1/rr2 are capped at RR_DISPLAY_MAX; rrFlag set when either was above it) */
+    rr1Raw: number | null;
+    rr2Raw: number | null;
     t2: number | null;
     /** The plan's stop as a number (the text stays on `stop`). Null without a plan. */
     stopPx: number | null;
@@ -284,11 +288,13 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,
-          rr: (() => { const v = primaryTarget(top.plan).rr; return v == null ? null : Math.min(v, 6); })(),
+          rr: (() => { const v = primaryTarget(top.plan).rr; return v == null ? null : Math.min(v, RR_DISPLAY_MAX); })(),
           rrRaw: primaryTarget(top.plan).rr,
-          rrFlag: Boolean((top as { rrCheck?: { flagged?: boolean; widened?: boolean } }).rrCheck?.flagged || (top as { rrCheck?: { widened?: boolean } }).rrCheck?.widened),
-          rr1: top.plan?.rr1 ?? null,
-          rr2: top.plan?.rr2 ?? null,
+          rrFlag: [top.plan?.rr1, top.plan?.rr2, primaryTarget(top.plan).rr].some((v) => v != null && v > RR_DISPLAY_MAX) || Boolean((top as { rrCheck?: { flagged?: boolean; widened?: boolean } }).rrCheck?.flagged || (top as { rrCheck?: { widened?: boolean } }).rrCheck?.widened),
+          rr1: top.plan?.rr1 == null ? null : Math.min(top.plan.rr1, RR_DISPLAY_MAX),
+          rr2: top.plan?.rr2 == null ? null : Math.min(top.plan.rr2, RR_DISPLAY_MAX),
+          rr1Raw: top.plan?.rr1 ?? null,
+          rr2Raw: top.plan?.rr2 ?? null,
           t2: top.plan?.t2 ?? null,
           stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,

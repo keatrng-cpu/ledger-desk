@@ -677,6 +677,10 @@ function gradeBook(
   /**
    * ITEM 1 — THE TARGET IS A POOL, NOT A LOCATION.
    *
+   * (2026-10-13: the brain's "Draw on liquidity" CHECK now reads the shared ranked
+   * draws via brainDrawPick, like completePlan and the Floor. The pool logic below
+   * only prices this plan's T1/T2, and build-desk's sanePlan re-validates them.)
+   *
    * `dol` is `draw.primary`: the highest-SCORING magnet, where the score mixes
    * excursion rate, kind weight and HTF alignment. On a trending tape that is
    * routinely the equilibrium of the 80-bar box — a level this file's own
