@@ -114,3 +114,21 @@ export function locationVerdict(
   if (good) return "pass";
   return named.raid && named.displacement ? "note" : "fail";
 }
+
+/**
+ * STRATEGY INDEPENDENCE (Keaton 2026-10-13): each model is its own strategy.
+ * A card's "still missing" list names only ITS OWN template's musts. Another
+ * model's key (mechanical_model, blake_swing, opening_raid, or_raid, htf_gap,
+ * smt …) that the card does not carry is not missing — it is an optional
+ * confluence the card simply does not have.
+ *
+ * Keeps every non-component string (vetoes, gates, prose) untouched.
+ */
+export function ownTemplateMissing(
+  template: { must: readonly string[]; mustAnyOf?: readonly (readonly string[])[] } | null | undefined,
+  missing: readonly string[],
+  componentKeys: ReadonlySet<string>,
+): string[] {
+  const own = new Set<string>([...(template?.must ?? []), ...(template?.mustAnyOf ?? []).flat()]);
+  return missing.filter((m) => !componentKeys.has(m) || own.has(m));
+}

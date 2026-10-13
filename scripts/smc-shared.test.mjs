@@ -137,3 +137,41 @@ test("working stop is 25% of the ticket debit, not the cap (options-desk.ts:1695
   assert.equal(out[0], "Working stop $78 / −25% of debit — not 1/3, not full");
   assert.equal(out[1], "Trim 50%");
 });
+
+const sg = await import("../src/lib/trading/strategy-grade.ts");
+const ew = await import("../src/lib/trading/engine-weights.ts");
+
+test("INDEPENDENCE: a ronan card is complete without mechanical_model", () => {
+  const r = sg.isStrategyComplete("ronan", ["ifvg", "displacement", "mid_bias"]);
+  assert.equal(r.complete, true, r.note);
+  assert.ok(!r.missing.includes("mechanical_model"));
+});
+
+test("INDEPENDENCE: a TJR card is complete without mechanical_model", () => {
+  const r = sg.isStrategyComplete("tjr", ["sweep_significant", "ifvg", "mss"]);
+  assert.equal(r.complete, true, r.note);
+});
+
+test("INDEPENDENCE: Blake's mechanical card still requires mechanical_model", () => {
+  const r = sg.isStrategyComplete("mechanical", ["sweep_significant", "ifvg", "mss"]);
+  assert.equal(r.complete, false);
+  assert.ok(r.missing.includes("mechanical_model"));
+});
+
+test("INDEPENDENCE: 'still missing' names only the card's own template musts", () => {
+  const raw = ["mechanical_model", "blake_swing", "or_raid", "htf_gap", "smt", "HTF top-down gate"];
+  const ronan = shared.ownTemplateMissing(sg.templateFor("ronan"), raw, ew.SCORE_KEYS);
+  assert.deepEqual(ronan, ["HTF top-down gate"]);
+  const mech = shared.ownTemplateMissing(sg.templateFor("mechanical"), raw, ew.SCORE_KEYS);
+  assert.ok(mech.includes("mechanical_model"));
+  const smt = shared.ownTemplateMissing(sg.templateFor("smt"), raw, ew.SCORE_KEYS);
+  assert.ok(smt.includes("smt") && smt.includes("mechanical_model")); // smt's own any-of group lists it
+});
+
+test("INDEPENDENCE: band/q come from the card's own template (unchanged by the missing filter)", () => {
+  const comps = ["ifvg", "displacement", "mid_bias", "structure"];
+  const a = sg.gradeStrategyAgainstMarket("ronan", comps, { htfOk: true });
+  const b = sg.gradeStrategyAgainstMarket("ronan", [...comps, "mechanical_model"], { htfOk: true });
+  assert.equal(a.complete, true);
+  assert.equal(a.fit, b.fit); // another model's key is not in ronan's template: no penalty, no bonus
+});

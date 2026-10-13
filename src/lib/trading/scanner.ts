@@ -3,7 +3,7 @@
  * + strategy catalog + conditions gate.
  */
 
-import { armingRaid } from "@/lib/smc/shared";
+import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
@@ -19,7 +19,7 @@ import {
   type DetectorSummary,
   type FvgResult,
 } from "./detectors";
-import type { ComponentKey } from "./engine-weights";
+import { SCORE_KEYS, type ComponentKey } from "./engine-weights";
 import {
   buildImpulseLeg,
   isUsableLeg,
@@ -57,6 +57,7 @@ import {
   gradeAllStrategies,
   structureLayerScore,
   type StrategyMarketGrade,
+  templateFor,
 } from "./strategy-grade";
 import { sessionLive } from "@/lib/trading/sessions";
 import { applyTapeTrust, tapeTrust } from "@/lib/market/tape-trust";
@@ -1093,9 +1094,13 @@ function scoreDirection(
       ...(bestModel.complete
         ? []
         : bestModel.missing.map((m) => `${bestModel.label}:${m}`)),
-      ...missing
-        .filter((m) => !present.includes(m as ComponentKey))
-        .slice(0, 8),
+      // Only this card's own template may name a missing component; another
+      // model's key is optional confluence, never "still missing" (shared.ts).
+      ...ownTemplateMissing(
+        templateFor(String(bestModel.id)),
+        missing.filter((m) => !present.includes(m as ComponentKey)),
+        SCORE_KEYS,
+      ).slice(0, 8),
     ],
     components: present,
     strategies: stratIds,
