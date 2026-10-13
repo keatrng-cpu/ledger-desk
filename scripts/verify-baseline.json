@@ -28,11 +28,6 @@
       "why": "Red before this work order (8 failing on both sides of the wave-1 merge). Not yet diagnosed.",
       "since": "2026-10-08"
     },
-    "rh-path-fire": {
-      "failing": 3,
-      "why": "Grok lowered RH_MIN_DEBIT_TOTAL from 150 to 50 (commit 270f36b, \"lower the options debit floor to $50\") and the three checks still encode the old $150 envelope. The code matches the trader's $50-$550 band, so the TESTS are stale. Item 9 settles it. Do not rewrite a money gate's tests just to go green.",
-      "since": "2026-10-08"
-    },
     "room-exec": {
       "failing": 1,
       "why": "Red before this work order. Not yet diagnosed.",
