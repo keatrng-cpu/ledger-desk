@@ -337,6 +337,10 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     refIdHint: "test-ref-1",
   });
   check("propose missing liveQuote refuses", [noQuote.mode, noQuote.gated.gate, noQuote.placeShape], ["refused", "live_quote", null]);
+  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity]]) {
+    const noAsOf = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs } });
+    check(`propose liveQuote asOfMs ${tag} refuses`, [noAsOf.mode, noAsOf.gated.gate, noAsOf.placeShape], ["refused", "live_quote", null]);
+  }
 
   const overCap = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
@@ -390,6 +394,9 @@ console.log("\nmayPlaceAfterReview preflight");
   check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: undefined }).ok, false);
   const { liveQuote: _q, ...noQuote } = base;
   check("review omitted liveQuote refuses", rh.mayPlaceAfterReview(noQuote).ok, false);
+  for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity]]) {
+    check(`review liveQuote asOfMs ${tag} refuses`, rh.mayPlaceAfterReview({ ...base, liveQuote: { ...base.liveQuote, asOfMs } }).ok, false);
+  }
   const { account: _m, ...noManager } = base;
   check("no Manager account key refuses place (fail closed)", rh.mayPlaceAfterReview(noManager).ok, false);
   check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);

@@ -169,7 +169,8 @@ export function evaluateRhLiveQuote(
   const mid = bid != null && Number.isFinite(bid) && bid > 0 ? (bid + ask) / 2 : ask;
   const spread = mid > 0 && bid != null && bid > 0 ? (ask - bid) / mid : 0;
   const walked = spread > 0.15 ? mid : ask + RH_LIMIT_SLIP;
-  if (typeof q.asOfMs === "number" && Number.isFinite(q.asOfMs) && nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
+  if (typeof q.asOfMs !== "number" || !Number.isFinite(q.asOfMs)) return { ok: false, reason: "Live quote time unknown — fail closed." };
+  if (nowMs - q.asOfMs > RH_LIVE_QUOTE_MAX_AGE_MS) {
     return { ok: false, reason: `Live quote is ${Math.round((nowMs - q.asOfMs) / 1000)}s old (> ${RH_LIVE_QUOTE_MAX_AGE_MS / 1000}s).` };
   }
   return { ok: true, ask, limit: Math.round(walked * 100) / 100 };

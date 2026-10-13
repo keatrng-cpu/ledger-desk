@@ -21,7 +21,7 @@ The old "stay disarmed / do not arm / do not place" line is withdrawn. The buyin
 - **The place trigger:** a **PATH scanner FIRE** (`considerPathAlarm` → `PathAlarmFire`, `isPathFire`), or the live print already in the array. A fresh fire (≤ 30 s) starts `proposeRhFromPathFire`. With no fire, the place still starts when the Stand agrees, the Floor is **ARMED**, and price is in the array (`ceTouch` or a live desk). A stale fire with no touch and no desk refuses `path_fire_stale`. Then **`review_option_order`** → `mayPlaceAfterReview` → **`place_option_order`**. There is no five-minute place timer.
 - **Grades accepted on the LIVE path:** **A+, A, A−, and B+** (`RH_PATH_GRADES` = `APLUS_RULES.profitPath.onlyExecuteGrades`). B+ is live, not paper-only. B / C / skip never fire.
 - **Account:** **Agentic ••6158 (`995386158`) only.** Individual ••7477 is display-only.
-- **Funding:** Keaton funds the Agentic account **~09:30 ET**; until `get_portfolio(995386158)` shows BP ≥ $150 every place refuses (`bp_floor`).
+- **Funding:** Keaton funds the Agentic account **~09:30 ET**; until `get_portfolio(995386158)` shows BP ≥ $50 every place refuses (`bp_floor`).
 
 ## Triple agreement (all required)
 
@@ -40,17 +40,17 @@ RH_PATH_FLOOR stays **0.65** for A+/A/A−; B+ never lowers it. A B+ ticket need
 | `path_floor` | fit (confluence) **≥ 0.60** (`APLUS_RULES.profitPath.bPlusLive.fitFloor`) |
 | `bplus_seq` | SMC sequence **TAKE** on the PATH book's side (`candidate.seqTake === true`; unknown → refuse) |
 | `bplus_veto` | **no veto** — room beat not `vetoed`, Stand call not `VETO`, no Owner `DECLARE_VETO` (`candidate.vetoed === false`; unknown → refuse) |
-| shared | CE touch · tape ≤ 30 s · DTE 0\|1 · BP ≥ $150 (Agentic 995386158, fresh) |
+| shared | CE touch · tape ≤ 30 s · DTE 0\|1 · BP ≥ $50 (Agentic 995386158, fresh) |
 | `bplus_size` | **exactly 1 contract** (`RH_BPLUS_MAX_CONTRACTS`), checked in `proposeRhLiveOption` and again in `mayPlaceAfterReview({ pathBand, quantity })` |
 
-B+ debit stays inside the normal **$150–$550** envelope (1 contract must cost ≥ $150 or it refuses `debit_floor`).
+B+ debit stays inside the normal **$50–$550** envelope (1 contract must cost ≥ $50 or it refuses `debit_floor`).
 
 Plus: options session open, no news blackout, no risk halt, one-book clear.
 
 ## Manager feed → live loop (Design Atelier, Keaton-approved 2026-10-06)
 
 - **Real feed:** `roomManagerFeed()` (`createRoomManagerFeed`). `room-engine.ts runLiveCycle` pushes every live room cycle (beat, Sterling's gates, `broker_action`, entry plan, lenses, room P) via `pushRoom`. The Floor scene uses it by default; the demo stub only on dev `?manager=stub`.
-- **agentAgree** (`managerAgreeFromRoom`) is true **only** on a room **BUY_OPEN fill** (every room gate passed, CE touched) where: Floor ARMED + desk ticket · PATH A+/A/A− ≥ 0.65 or B+ via the explicit B+ gate · DTE 0/1 · session open · no blackout · live (not synthetic) feed · envelope-shaped ticket ($150–$550, 1–4 ct, B+ 1 ct, ATM/OTM_1; the Stand may only shrink the room's qty) · no Owner veto / table / hand-off on that decision. Owner chips can only remove agreement; `DECLARE_AGREE` never forces it.
+- **agentAgree** (`managerAgreeFromRoom`) is true **only** on a room **BUY_OPEN fill** (every room gate passed, CE touched) where: Floor ARMED + desk ticket · PATH A+/A/A− ≥ 0.65 or B+ via the explicit B+ gate · DTE 0/1 · session open · no blackout · live (not synthetic) feed · envelope-shaped ticket ($50–$550, 1–4 ct, B+ 1 ct, ATM/OTM_1; the Stand may only shrink the room's qty) · no Owner veto / table / hand-off on that decision. Owner chips can only remove agreement; `DECLARE_AGREE` never forces it.
 - **Wiring point:** `managerStateForAgree(feed)` (`manager-feed.ts`) → real feed `feed.getState()`, **stub / no feed → `null` → agentAgree false**.
 - **Loop:** `proposeRhFromManagerFeed({ feed, fire, account, liveQuote, desk?, env })` (`src/lib/room/manager-live-loop.ts`) → `candidateFromFloorPathStand({ manager: managerStateForAgree(feed), ceTouch, tapeAgeSec, dte, seqTake, vetoed, ... })` → `proposeRhFromPathFire` → `proposeRhLiveOption`. Signals come from the same room cycle (`ManagerRoomState.signals`: CE = room `trigger` gate, tape = now − frame time, DTE = card, SEQ = card SMC word, veto = room/Stand/Owner). Returns a shape; it does not place. `runRhDesk` (`src/lib/execution/rh-dispatch.ts`) is the sender.
 - **Account:** `feed.setAccountFromConnector({ account: get_accounts row, portfolio: get_portfolio data })` → `managerRhAccountFromConnector` → `ManagerRoomState.account`. Until injected, it is the Agentic $0 **snapshot** (can never authorize).
@@ -59,7 +59,7 @@ Plus: options session open, no news blackout, no risk halt, one-book clear.
 
 | Rule | Bound |
 |------|--------|
-| Total debit | **$150 min – $550 max** |
+| Total debit | **$50 min – $550 max** |
 | Contracts | **1–4** |
 | Strike | **ATM or 1 strike OTM only** (`ATM` / `OTM_1`) |
 
@@ -98,12 +98,12 @@ The agent **must call `get_portfolio` (account_number) before `proposeRhLiveOpti
 | `bp_stale` | read older than 5 min |
 | `account_access` | `agentic_allowed` not `true` (unknown = no) |
 | `options_level` | a reported options level that is not 2 or 3. A level that was not reported (`null`) does not refuse. |
-| `bp_floor` | spendable < **$150** — nothing in the $150–$550 envelope can place |
+| `bp_floor` | spendable < **$50** — nothing in the $50–$550 envelope can place |
 | `bp_ticket` | spendable < this ticket's debit |
 
 Spendable = `buying_power.buying_power` (and options BP when reported) — **never `cash`**: on a cash account unsettled proceeds sit in cash but are not spendable.
 
-**Manager block side:** `mayPlaceAfterReview` now **requires** `account` (`ManagerRoomState.account`) — omitting it refuses (was fail-open). `accountPlaceGate` refuses: no block · not account 995386158 · not agent-accessible · level < 2 · static snapshot (`bp_snapshot`) · BP unknown · BP < $150 (recomputed, `canFillEnvelope` not trusted) · BP < ticket debit.
+**Manager block side:** `mayPlaceAfterReview` now **requires** `account` (`ManagerRoomState.account`) — omitting it refuses (was fail-open). `accountPlaceGate` refuses: no block · not account 995386158 · not agent-accessible · level < 2 · static snapshot (`bp_snapshot`) · BP unknown · BP < $50 (recomputed, `canFillEnvelope` not trusted) · BP < ticket debit.
 
 ### Floor rules on the RH path (`evaluateRhFloorRules`, fail closed)
 
@@ -135,14 +135,14 @@ The arms are already on. Do not flip them off at the close. Set either env var t
 
 1. Desk and Floor up. PATH scanner live. Manager `agentAgree` wired.
 2. Agentic 995386158 is the account the agent can trade, option level ≥ 2, and `get_portfolio` shows buying power that can carry the ticket.
-3. Envelope still **$150–$550**, **1–4** contracts, **ATM / OTM_1**. Review, then place. No click.
+3. Envelope still **$50–$550**, **1–4** contracts, **ATM / OTM_1**. Review, then place. No click.
 4. On a PATH fire: `get_accounts` + `get_portfolio(995386158)` → Floor ARMED + Manager agree + buying power → `get_option_quotes` → `proposeRhFromManagerFeed` → `review_option_order` → `mayPlaceAfterReview` → `place_option_order` on Agentic 995386158. If a gate fails, do not place that ticket.
 
 ## Agent send path (user-Robinhood-xai)
 
 There is **no** `preview_option_order` tool. Use **`review_option_order`** as the preview.
 
-1. Build candidate + ticket (ATM/OTM_1, 1–4 ct, $150–$550); set `agentAgree` only when Stand agrees.
+1. Build candidate + ticket (ATM/OTM_1, 1–4 ct, $50–$550); set `agentAgree` only when Stand agrees.
 2. `proposeRhLiveOption(...)` — if `mode !== "live_when_armed"`, stop.
 3. `get_accounts` — require `agentic_allowed` and option level ≥ 2.
 4. `get_option_chains` → `get_option_instruments` — fill `option_id`.

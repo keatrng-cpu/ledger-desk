@@ -43,6 +43,11 @@
       "why": "Red before this work order. Not yet diagnosed.",
       "since": "2026-10-08"
     },
+    "session-event": {
+      "failing": 1,
+      "why": "Same cause as the repo-guards Judas entry: 'no TAKE inside Judas across 151 real Judas bars' gets 1 TAKE because fd86b3d1 deliberately changed the Judas clean-layer behaviour (trader-asked). Guard is stale against that change; do not weaken it here.",
+      "since": "2026-10-12"
+    },
     "trade-plan": {
       "failing": 9,
       "why": "Red on fd57236 before the 25-item work order began. The stop/raid-wick and R assertions. Items 1 and 16 rewrite exactly this area, so it is expected to go green there rather than be patched here.",
