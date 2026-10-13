@@ -512,7 +512,10 @@ function gradeBook(
       !f.pass;
     const htfNote = f.id === "htf" && sweepNamed && !f.pass;
     const timeNote = f.id === "time";
-    const note = mtfNote || halfNote || htfNote || timeNote;
+    // Keaton 2026-10-13: premium/discount-for-side COUNTS in the ring (q
+    // already scores it), so the half is a must again — no note demotion.
+    const note = mtfNote || htfNote || timeNote;
+    void halfNote;
     const noteLine = halfNote
       ? `${f.detail} The raid and the displacement named ${side}. The half is a note, not a halt.`
       : htfNote
@@ -773,10 +776,20 @@ function gradeBook(
     price: fresh?.mid,
   });
 
+  // Keaton 2026-10-13: the ring counts what q counts — displacement and the
+  // entry array are musts, so 7/7 can no longer sit on a 0.60 card.
+  const dispScore = (cand as { dispStrength?: { score?: number } | null } | undefined)?.dispStrength?.score ?? null;
+  layers.push({
+    id: "displacement",
+    label: "Displacement behind the side",
+    must: true,
+    state: dispScore == null ? "wait" : dispScore >= 0.5 ? "pass" : "wait",
+    detail: dispScore == null ? "Displacement not read yet" : `Displacement strength ${dispScore}${dispScore >= 0.5 ? "" : " — below 0.5, wait for a real leg"}`,
+  });
   layers.push({
     id: "array",
     label: "Live PD array",
-    must: false,
+    must: true,
     state: fresh ? "pass" : "wait",
     detail: fresh
       ? `${fresh.tf} ${fresh.kind} ${fresh.label}${mss ? ` · ${mss.kind}` : ""}`

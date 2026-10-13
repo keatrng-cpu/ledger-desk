@@ -113,7 +113,7 @@ export interface DeskWire {
     legs: number | null;
     /** Fix 36: add-on at the second LTF gap after a reversal confirms. */
     addOn: { tf: string; entry: number; zone: { top: number; bottom: number } } | null;
-    /** Fixes 1–4, 6, 9–15, 21, 22 (day-context.ts); macroRisk always null (fix 5, no feed). */
+    /** Fixes 1–4, 6, 9–15, 21, 22 (day-context.ts); macroRisk = DXY/10y read (market/macro.ts), null when no source answers. */
     context: Record<string, unknown> | null;
     /** Fix 16–18. */
     exitPlan: { trailRule: string; trailPx: number | null; timeStopBars: number; timeStopTf: string; killExit: boolean; killWhy: string | null } | null;
@@ -192,12 +192,14 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   // AUDIT F7: the card's strategy IS the brain's book when the brain has one
   // on the board, so scanner, brain and Floor describe the same trade.
   const bookCand = desk.smcMaster.oneBook?.side
-    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && !c.scannerSkip)
+    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && !c.scannerSkip && !(c as { watchOnly?: boolean }).watchOnly)
     : undefined;
   // The brain's book leads only when it is not graded BELOW the best card
   // (live 10:13 ET: brain on MNQ short C while ES short B+ was actionable).
   const rankOf = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
-  const best = desk.scan.candidates[0] ?? null;
+  // Keaton 2026-10-13: only full-plan cards are cards; watch rows never lead.
+  const isWatch = (c: unknown) => Boolean((c as { watchOnly?: boolean }).watchOnly);
+  const best = desk.scan.candidates.find((c) => !isWatch(c)) ?? null;
   const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
@@ -383,6 +385,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
         entry: c.entryPx ?? c.plan?.entry ?? null,
+        /** "card" carries a complete plan; "watch" is a row without one (watchWhy says what is missing). */
+        kind: (c as { watchOnly?: boolean }).watchOnly ? "watch" : "card",
+        watchWhy: (c as { watchWhy?: string | null }).watchWhy ?? null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),

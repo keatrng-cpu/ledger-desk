@@ -214,7 +214,7 @@ export function shockLeanLive(
 /**
  * PATH bands from q. Baseline A+ ≥0.75, A ≥0.68, A- ≥0.65, B+ ≥0.60, B ≥0.50,
  * else C. The learning loop (desk/learning.ts) may move an edge — versioned,
- * ±20% max, n ≥ 30 — through setBandEdges; BAND_EDGES_BASE never changes.
+ * raise-only (never below baseline), +20% max, n ≥ 30 — through setBandEdges; BAND_EDGES_BASE never changes.
  */
 export const BAND_EDGES_BASE = { "A+": 0.75, A: 0.68, "A-": 0.65, "B+": 0.6, B: 0.5 } as const;
 export type BandEdges = { "A+": number; A: number; "A-": number; "B+": number; B: number };
@@ -222,6 +222,8 @@ export const BAND_EDGES: BandEdges = { ...BAND_EDGES_BASE };
 const BAND_CEIL: Record<Band, number> = { "A+": 0.99, A: 0.7499, "A-": 0.6799, "B+": 0.6499, B: 0.5999, C: 0.4999, skip: 0 };
 export function setBandEdges(e: Partial<BandEdges> | null): void {
   Object.assign(BAND_EDGES, BAND_EDGES_BASE, e ?? {});
+  // Keaton 2026-10-13: a calibration may only RAISE an edge.
+  for (const k of Object.keys(BAND_EDGES_BASE) as (keyof BandEdges)[]) BAND_EDGES[k] = Math.max(BAND_EDGES_BASE[k], BAND_EDGES[k]);
   BAND_CEIL.A = +(BAND_EDGES["A+"] - 0.0001).toFixed(4);
   BAND_CEIL["A-"] = +(BAND_EDGES.A - 0.0001).toFixed(4);
   BAND_CEIL["B+"] = +(BAND_EDGES["A-"] - 0.0001).toFixed(4);

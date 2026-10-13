@@ -1,8 +1,9 @@
 /**
  * Fixes 1–4, 6, 9–15, 21, 22: day/session context and setup refinements.
  * Pure, closed bars only; every read is null when its bars are not there.
- * Fix 5 (DXY / 10y): no real feed is wired into the desk — `macroRisk`
- * is always null with that note. Never synthesized.
+ * Fix 5 (DXY / 10y) lives in market/macro.ts (Yahoo DX-Y.NYB + ^TNX, ZN=F
+ * fallback); build-desk applies it as a ±0.01 risk flag. Null when no source
+ * answers — never synthesized.
  */
 import type { OhlcBar } from "@/lib/market/types";
 import { fractalSwings } from "@/lib/trading/detectors";
@@ -196,4 +197,5 @@ export function qSpread(board: { id: string; structureQ: number; modelQ: number;
   return { best: best.id, bestQ: best.q, worstQ: worst.q, spread: +(best.q - worst.q).toFixed(3), agree, n: qs.length };
 }
 
-export const MACRO_RISK_NOTE = "DXY/10y: no real feed wired into the desk — null, not synthesized (fix 5).";
+/** Shown only when market/macro.ts got no answer from any source. */
+export const MACRO_RISK_NOTE = "DXY/10y: no source answered (Yahoo DX-Y.NYB / ^TNX / ZN=F) — null, not synthesized (fix 5).";

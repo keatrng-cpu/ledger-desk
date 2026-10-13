@@ -264,3 +264,79 @@ export function sdDraws(sd: { up2: number; up25: number; dn2: number; dn25: numb
   const mk = (name: string, p: number): RankedDraw => ({ name, price: p, side: p > price ? "above" : "below", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.4 } as RankedDraw);
   return [mk("OR +2 SD", sd.up2), mk("OR +2.5 SD", sd.up25), mk("OR −2 SD", sd.dn2), mk("OR −2.5 SD", sd.dn25)];
 }
+
+/**
+ * Keaton 2026-10-13: every displayed card carries a COMPLETE plan, or it is a
+ * watch row. Fallback chain, each step a real level or nothing:
+ *   entry  — nearest unfilled same-direction 1m–15m array (FVG/IFVG/sponsored
+ *            CE, or OB/breaker CE) on the pullback side; else the 5m BOS
+ *            retest level; else the opening-range edge on the pullback side.
+ *   stop   — beyond the origin swing (the 1m extreme of the candles that
+ *            formed the array / the nearest 5m swing beyond the level), ≥ 0.5×ATR15.
+ *   target — best-ranked unswept draw beyond entry; else an OR SD projection;
+ *            else the session (overnight + today) high/low.
+ */
+export interface CompleteInput {
+  symbol: string; side: Side; price: number | null; atr: number | null;
+  minute: OhlcBar[]; bars15: OhlcBar[]; draws: RankedDraw[]; sd: RankedDraw[];
+  blocks: { kind: string; dir: string; lo: number; hi: number }[];
+  bosLevel: number | null; orRange: { high: number; low: number } | null;
+  sessionHL: { high: number; low: number } | null;
+}
+export interface CompletedPlan extends ContinuationPlan { entrySrc: string; targetSrc: string }
+
+export function completePlan(i: CompleteInput): { plan: CompletedPlan | null; missing: string | null } {
+  const { side, price, atr } = i;
+  if (price == null) return { plan: null, missing: "no live price" };
+  if (atr == null || !(atr > 0)) return { plan: null, missing: "no ATR15" };
+  const dir = side === "long" ? "bull" : "bear";
+  const pull = (lo: number, hi: number) => (side === "short" ? hi >= price : lo <= price); // zone at/above price for a short
+  type Z = { lo: number; hi: number; ce: number; src: string; createdT?: number; tf?: string };
+  const zones: Z[] = [];
+  for (const r of mtfArrays(i.symbol, i.minute, i.bars15)) {
+    if (r.dir !== dir || r.mitigated || !pull(r.lo, r.hi)) continue;
+    if (!["1m", "2m", "3m", "4m", "5m", "15m"].includes(r.tf)) continue; // Keaton: 1m–15m
+    zones.push({ lo: r.lo, hi: r.hi, ce: r.ce, src: `${r.tf} ${r.kind}`, createdT: r.createdT, tf: r.tf });
+  }
+  for (const b of i.blocks) {
+    if ((b.kind !== "ob" && b.kind !== "breaker") || b.dir !== dir || !pull(b.lo, b.hi)) continue;
+    zones.push({ lo: b.lo, hi: b.hi, ce: +((b.lo + b.hi) / 2).toFixed(2), src: `5m ${b.kind}` });
+  }
+  const dist = (z: Z) => Math.abs(z.ce - price);
+  zones.sort((a, b) => dist(a) - dist(b));
+  let z: Z | null = zones[0] ?? null;
+  if (!z && i.bosLevel != null && pull(i.bosLevel, i.bosLevel)) z = { lo: i.bosLevel, hi: i.bosLevel, ce: i.bosLevel, src: "5m BOS retest" };
+  if (!z && i.orRange) {
+    const edge = side === "short" ? i.orRange.high : i.orRange.low;
+    if (pull(edge, edge)) z = { lo: edge, hi: edge, ce: edge, src: `opening-range ${side === "short" ? "high" : "low"}` };
+  }
+  if (!z) return { plan: null, missing: "no entry level on the pullback side (no array, BOS retest or OR edge)" };
+  const entry = +z.ce.toFixed(2);
+  // origin swing
+  const m = i.minute.slice(0, -1);
+  let origin: number | null = null;
+  if (z.createdT != null) {
+    const tfMs = (Number(String(z.tf).replace(/[mh]/, "")) || 1) * (String(z.tf).endsWith("h") ? 3_600_000 : 60_000);
+    const o = m.filter((b) => b.t >= z!.createdT! - 2 * tfMs && b.t < z!.createdT! + tfMs);
+    if (o.length) origin = side === "short" ? Math.max(...o.map((b) => b.h)) : Math.min(...o.map((b) => b.l));
+  }
+  if (origin == null || (side === "short" ? origin < z.hi : origin > z.lo)) {
+    const b5 = resampleMs(m, 300_000).slice(0, -1);
+    const sw = fractalSwings(b5, 2).filter((s) => (side === "short" ? s.kind === "high" && s.price > z!.hi : s.kind === "low" && s.price < z!.lo));
+    origin = sw.length ? sw.sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price : null;
+  }
+  const ref = origin ?? (side === "short" ? z.hi : z.lo);
+  const stopWhy = origin != null ? `the origin swing ${origin}` : `the ${z.src} far edge`;
+  const sess: RankedDraw[] = i.sessionHL
+    ? [{ name: "Session high", price: i.sessionHL.high, side: "above", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.3 } as RankedDraw,
+       { name: "Session low", price: i.sessionHL.low, side: "below", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.3 } as RankedDraw]
+    : [];
+  const beyond = (d: RankedDraw) => (side === "short" ? d.price < entry : d.price > entry) && !d.swept;
+  let pool = i.draws.filter(beyond), targetSrc = "ranked draw";
+  if (!pool.length) { pool = i.sd.filter(beyond); targetSrc = "OR SD projection"; }
+  if (!pool.length) { pool = sess.filter(beyond); targetSrc = "session high/low"; }
+  if (!pool.length) return { plan: null, missing: "no target beyond the entry (no ranked draw, SD projection or session extreme)" };
+  const p = planAt(i.symbol, side, { lo: z.lo, hi: z.hi, ce: entry }, ref, stopWhy, price, pool, atr, `entry ${z.src} CE ${entry}; target from ${targetSrc}`, targetSrc === "ranked draw" ? i.sd.filter(beyond) : []);
+  if (!p) return { plan: null, missing: "plan did not price" };
+  return { plan: { ...p, entrySrc: z.src, targetSrc }, missing: null };
+}

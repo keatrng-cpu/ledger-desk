@@ -7,7 +7,7 @@ import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
-import { continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import { completePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
@@ -1393,6 +1393,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       const dctx = (payload as { dayContext?: { left?: { or?: { sd?: never } | null }; right?: { or?: { sd?: never } | null } } }).dayContext;
       const sdFor = (isL: boolean) => sdDraws((isL ? dctx?.left : dctx?.right)?.or?.sd ?? null, (isL ? lq : rq)?.price ?? null);
       const latePlanned = new Set<object>();
+      const nowCtxPlan = Date.now();
       // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
       // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
       for (const c of payload.scan.candidates) {
@@ -1462,6 +1463,59 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (wasQBand && c.pathBand !== "skip") c.pathBand = bandFromQ(c.confluence) as never;
         dc.obFvg = true; dc.nudge = +(dc.nudge + add).toFixed(3); dc.why.push(`+${add.toFixed(2)} ${ob.kind} overlaps the entry gap (late plan)`);
         c.reasons.push(`OB/FVG overlap on the late plan: +${add.toFixed(2)}`);
+      }
+      // Keaton 2026-10-13: every displayed card carries a complete plan.
+      // Candidates still missing entry/stop/target after the brain's plan,
+      // fix 33 and fix 34 run the fallback chain (exec-context completePlan);
+      // a card it cannot price is a WATCH row — never shown as a card.
+      for (const c of payload.scan.candidates) {
+        const has = (c.entryPx ?? c.plan?.entry) != null && c.plan?.stop != null && primaryTarget(c.plan).price != null;
+        if (has) continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const minute = ((isL ? minuteL : minuteR) ?? []);
+        const b15 = isL ? closedL : closedR;
+        const m = minute.slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        const dc = (c as { dayCtx?: { blocksAll?: { kind: string; dir: string; lo: number; hi: number }[]; openingRange?: { high: number; low: number } | null } }).dayCtx;
+        const atr = atr15Of(b15);
+        const today = m.filter((b) => nowCtxPlan - b.t < 20 * 3_600_000);
+        const res = completePlan({
+          symbol: c.symbol, side, price: (isL ? lq : rq)?.price ?? null, atr,
+          minute, bars15: b15,
+          draws: rankDraws(isL ? payload.draws.left : payload.draws.right, b15),
+          sd: sdFor(isL), blocks: dc?.blocksAll ?? [],
+          bosLevel: atr != null ? setups.bosRetest(b5, atr, side)?.level ?? null : null,
+          orRange: dc?.openingRange ? { high: dc.openingRange.high, low: dc.openingRange.low } : null,
+          sessionHL: today.length ? { high: Math.max(...today.map((b) => b.h)), low: Math.min(...today.map((b) => b.l)) } : null,
+        });
+        if (res.plan) {
+          c.entryPx = res.plan.entry;
+          c.entryResting = res.plan.resting;
+          c.plan = res.plan as never;
+          c.invalidation = `Stop ${res.plan.stop.toFixed(2)} — beyond ${res.plan.stopWhy}`;
+          c.reasons.push(`Plan completed (${res.plan.entrySrc} → ${res.plan.targetSrc}): ${res.plan.why}`);
+        } else {
+          (c as { watchOnly?: boolean }).watchOnly = true;
+          (c as { watchWhy?: string | null }).watchWhy = res.missing;
+          c.actionable = false;
+          c.reasons.push(`WATCH row, not a card: ${res.missing}`);
+        }
+      }
+      // Full-plan cards first; if the lead was a watch row, the brain re-grades
+      // the new lead's book so card, brain and Floor still name one trade.
+      {
+        const was = payload.scan.candidates[0];
+        const w = (c: unknown) => Number(Boolean((c as { watchOnly?: boolean }).watchOnly));
+        payload.scan.candidates.sort((a, b) => w(a) - w(b));
+        const lead = payload.scan.candidates.find((c) => !w(c));
+        if (lead && lead !== was) {
+          const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
+          const keep = new Map(payload.scan.candidates.map((c) => [c, c.plan]));
+          smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+          smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
+          attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
+        }
       }
       // R3-c: actionable needs a priced entry, stop and target.
       for (const c of payload.scan.candidates) {

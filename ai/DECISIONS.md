@@ -116,3 +116,8 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - Fix 29's opposite-side boost is now `TUNABLES.killBoost` in `src/lib/trading/config.ts`, base 0.02 (flat), bounded 0–0.04. Reason: the 5-session replay put LTF-kill precision at ≈0.50.
 - Learnable: snapshots that received the boost carry the factor `killBoost`; at n ≥ 30 graded the weekly calibration scales it (shrunk, ±20%/step), versioned and reversible like the weights.
 - Same batch: DXY (Yahoo DX-Y.NYB) and 10y (Yahoo ^TNX, ZN=F fallback) feed a ±0.01 macro risk flag inside the ±0.06 day-context cap; overnight 5m (Yahoo 5d/5m, cached per ET day) feeds the Asia/London read; OR ±2/±2.5 SD are external draws beyond T1; fix 12's OB/FVG +0.02 also applies to late plans (33/34).
+
+## 2026-10-13 — Complete plans or watch rows; ring counts what q counts; raise-only band edges (Keaton) — branch feat/full-plan-cards
+- Every displayed card carries entry, stop and target. Fallback chain (exec-context `completePlan`): entry = nearest unfilled same-direction 1m–15m array (FVG/IFVG/sponsored CE, OB/breaker CE) on the pullback side → 5m BOS retest → OR edge; stop = beyond the origin swing, ≥ 0.5×ATR15; target = ranked draw → OR SD projection → session high/low. No level → `watchOnly` row (`scanner[].kind = "watch"`, `watchWhy`), never the wire card, never a Floor card.
+- Brain ring: displacement (≥ 0.5) and the live PD array are musts; premium/discount-for-side is a must again (no note demotion).
+- Learning loop may only RAISE band edges; never below 0.75 / 0.68 / 0.65 / 0.60 / 0.50.

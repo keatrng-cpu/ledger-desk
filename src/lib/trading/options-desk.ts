@@ -264,7 +264,8 @@ function afterSecondImpulse(clock: DeskPayload["clock"]): boolean {
 
 /** One A- or better per index. QQQ follows MNQ, SPY follows ES. The first hit on each side is the card. */
 function pathCandidates(desk: DeskPayload): SetupCandidate[] {
-  const hits = desk.scan.candidates.filter((c) => isPathFire(c));
+  // Keaton 2026-10-13: a watch row (no complete plan) is never a Floor card.
+  const hits = desk.scan.candidates.filter((c) => !(c as { watchOnly?: boolean }).watchOnly && isPathFire(c));
   const picked: SetupCandidate[] = [];
   const seen = new Set<string>();
   for (const c of hits) {

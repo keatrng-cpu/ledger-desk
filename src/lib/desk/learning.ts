@@ -142,7 +142,7 @@ export function factorLifts(rows: { present: string[]; win: boolean }[], current
   });
 }
 
-/** Pure: band edge nudges (±0.01, within ±20% of baseline) at n ≥ 30 per band. */
+/** Pure: band edge nudges (±0.01) at n ≥ 30 per band; never below baseline, at most +20%. */
 export function bandEdgeMoves(rows: { band: string; win: boolean; r: number | null }[], edges: Record<string, number>, baseline: Record<string, number>) {
   const out: Record<string, { n: number; winRate: number | null; avgR: number | null; from: number; to: number; note: string }> = {};
   for (const band of Object.keys(edges)) {
@@ -155,9 +155,10 @@ export function bandEdgeMoves(rows: { band: string; win: boolean; r: number | nu
     let note = `n ${n} < ${LEARN_MIN_N}: unchanged`;
     if (n >= LEARN_MIN_N && wr != null) {
       if (wr < 0.45 && (avgR ?? 0) < 0) { to += 0.01; note = "underperforming: edge up 0.01"; }
-      else if (wr > 0.6 && (avgR ?? 0) > 0.5) { to -= 0.01; note = "outperforming: edge down 0.01"; }
+      // Keaton 2026-10-13: edges may only RISE — never below the baseline.
+      else if (wr > 0.6 && (avgR ?? 0) > 0.5) { to -= 0.01; note = "outperforming: edge down 0.01 (floored at baseline)"; }
       else note = "within tolerance: unchanged";
-      const lo = baseline[band]! * 0.8, hi = Math.min(0.99, baseline[band]! * 1.2);
+      const lo = baseline[band]!, hi = Math.min(0.99, baseline[band]! * 1.2);
       to = +Math.max(lo, Math.min(hi, to)).toFixed(4);
     }
     out[band] = { n, winRate: wr == null ? null : +wr.toFixed(3), avgR: avgR == null ? null : +avgR.toFixed(2), from: edges[band]!, to, note };
