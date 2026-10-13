@@ -154,10 +154,28 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
   const c = desk.scan.candidates.find((x) => isHighProbPath(x));
   const underlier: Underlier = card.ticket?.underlier ?? (c ? underlierOfSymbol(c.symbol) : "QQQ");
   const book = books[underlier];
-  const futSide: "long" | "short" = c?.side === "short" ? "short" : c ? "long" : book.bias.topDown === "bear" ? "short" : "long";
-  const type: OptionType = card.ticket ? (card.ticket.side === "put" ? "PUT" : "CALL") : futSide === "short" ? "PUT" : "CALL";
   const dte: 0 | 1 = card.id === "judas_ifvg_0dte" ? 0 : 1;
-  const plan = book.smc.plan;
+  const plan0 = book.smc.plan;
+  // Floor review 2026-10-13 19:28 ET: the plan card read "MNQ LONG" with short levels — futSide came from the scan
+  // candidate while the levels came from the book's own SMC plan (its own side), and the option type from the
+  // ticket (202 longs with puts). The plan's geometry now decides the side; a plan whose geometry is not a clean
+  // stop<entry<T1 (long) / stop>entry>T1 (short) is not shown as priced, and a ticket on the other side blocks.
+  const geomSide = (p: typeof plan0): "long" | "short" | null => {
+    if (!p || p.stop == null || p.entry == null) return null;
+    const L = p.stop < p.entry;
+    if (p.t1 != null && !(L ? p.t1 > p.entry : p.t1 < p.entry)) return null;
+    if (p.t1 != null && p.t2 != null && !(L ? p.t2 > p.t1 : p.t2 < p.t1)) return null;
+    return L ? "long" : "short";
+  };
+  const planSide = geomSide(plan0);
+  const plan = planSide ? plan0 : null;
+  const futSide: "long" | "short" = planSide ?? (c?.side === "short" ? "short" : c ? "long" : book.bias.topDown === "bear" ? "short" : "long");
+  const type: OptionType = card.ticket ? (card.ticket.side === "put" ? "PUT" : "CALL") : futSide === "short" ? "PUT" : "CALL";
+  const sideClash = card.ticket != null && (type === "PUT") !== (futSide === "short");
+  const geomBlocks = [
+    ...(plan0 && !planSide ? [`Plan levels are not one side (stop ${plan0.stop} / entry ${plan0.entry} / T1 ${plan0.t1}) — not priced.`] : []),
+    ...(sideClash ? [`Ticket is a ${type.toLowerCase()} but the plan is ${futSide} — refuse.`] : []),
+  ];
   const read = plan ? readEntry(plan, book.quote.price, book.draw.atr || null) : null;
   const inversion =
     book.smc.layers.some((l) => l.id === "retrace" && l.state === "pass" && l.detail.startsWith("5m IFVG inverted")) &&
@@ -166,8 +184,8 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
   return {
     card: card.id === "judas_ifvg_0dte" ? "judas_ifvg_0dte" : "path_continuation",
     name: card.name,
-    verdict: card.verdict,
-    blocks: card.blocks,
+    verdict: geomBlocks.length && card.verdict === "ARMED" ? "WATCH" : card.verdict,
+    blocks: [...card.blocks, ...geomBlocks],
     underlier,
     type,
     dte,

@@ -280,11 +280,12 @@
     "firstTargetR": 0.85,
     "trimFrac": 0.5,
     "beAfterTrim": true,
-    "spreadFallback": true,
+    "spreadFallback": false,
     "hard": [
       "band",
       "fast:persist",
       "fast:plan",
+      "fast:geometry",
       "fast:entry",
       "fast:agree",
       "fast:velocity",
@@ -305,7 +306,8 @@
       "buying_power",
       "opt:spread",
       "exec_account"
-    ]
+    ],
+    "geometryDoc": "fast:geometry (Floor review 19:28 ET 2026-10-13): long needs stop<entry<T1(<T2), short stop>entry>T1(>T2), on the plan stop AND the management stop; traded ticket type/ETF = card side/symbol; a desk Floor ticket whose call/put disagrees with the card side refuses."
   },
   "kzDisp": {
     "_doc": "Kill-zone opening-displacement detector (Keaton 2026-10-13, items 1-50). Every item starts mode=shadow: logged as shadow:kz:* ok rows, never changes band/fire/plan. Promote only when tools/kz_backtest.py shows hit/R/freq not worse on 6-12 months; see tools/kz_backtest_report.json. Twin: watcher/killzone.py, desk src/lib/desk/kz-disp.ts.",
@@ -648,7 +650,7 @@
         0.5
       ],
       "nextExpiry": true,
-      "spread": true,
+      "spread": false,
       "spyForQqq": true,
       "_doc": "Over the cap: delta 0.45-0.50, then next expiry, then a 1-wide debit spread, then SPY for QQQ; skip only if none fit."
     },
@@ -719,6 +721,25 @@
     "oneLotT1": {
       "mode": "live",
       "_doc": "1 contract: full exit at T1 (watcher manage parity with paper-manager.ts)."
+    },
+    "ladder": {
+      "A+": [
+        4,
+        650
+      ],
+      "A": [
+        2,
+        650
+      ],
+      "A-": [
+        1,
+        650
+      ],
+      "B+": [
+        1,
+        650
+      ],
+      "_doc": "Keaton 2026-10-13 18:29 CT: debit cap $650 for EVERY grade (desk RH_MAX_DEBIT_TOTAL = envelope.maxDebit 650); max contracts stay the grade ladder (A+ 4 / A 2 / A- 1 / B+ 1). Single options only (fastChain.spreadFallback=false, sizeToFit.spread=false). $50 floor, BP gate, daily loss cap and -$300 weekly lock unchanged."
     }
   }
 }

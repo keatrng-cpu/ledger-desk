@@ -10,6 +10,7 @@ const rank = (b: string | null | undefined) => BANDS.indexOf(String(b ?? ""));
 export interface FastSnap {
   band?: string | null; symbol?: string | null; side?: string | null; entry?: number | null; stop_px?: number | null; first_target?: number | null;
   px?: number | null; atr?: number | null; brain_symbol?: string | null; brain_side?: string | null; bias1h?: string | null; bias4h?: string | null; expMin?: number | null;
+  t2?: number | null; desk_ticket_side?: string | null;
 }
 /** [name, ok] in the watcher's order (persistence needs the clock and is checked by the watcher). */
 export function fastSetupRows(s: FastSnap): [string, boolean][] {
@@ -25,6 +26,12 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const want = side === "long" ? "bull" : "bear";
   const both = s.bias1h != null && s.bias4h != null && s.bias1h !== want && s.bias4h !== want;
   r.push(["fast:agree", !opposite && !both]);
+  // fast:geometry (twin of watcher geometry_row; Floor review 2026-10-13 19:28 ET): long stop<entry<T1(<T2) / short reversed, desk ticket side = card side.
+  const L = side === "long";
+  const ord = (side === "long" || side === "short") && e != null && st != null && t1 != null && (L ? st < e && e < t1 : st > e && e > t1);
+  const t2ok = s.t2 == null || t1 == null || (L ? s.t2 > t1 : s.t2 < t1);
+  const dsOk = s.desk_ticket_side == null || s.desk_ticket_side === (L ? "call" : "put");
+  r.push(["fast:geometry", Boolean(ord && t2ok && dsOk)]);
   r.push(["fast:velocity", s.expMin != null && s.expMin <= FC.maxMinutesToT1]);
   return r;
 }
