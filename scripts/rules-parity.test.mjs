@@ -18,7 +18,7 @@ test("desk TS values come from shared/desk-rules.json (no drift)", async () => {
   assert.equal(d.bandFromQ(RULES.bandEdges["A-"]), "A-"); assert.equal(d.bandFromQ(RULES.bandEdges["A-"] - 0.001), "B+");
 });
 test("watcher copy of the rules is byte-identical (when the watcher checkout is on this box)", () => {
-  for (const p of ["/workspace/desk-watcher-next/watcher/desk-rules.json"]) {
+  for (const p of [`${process.env.WATCHER_DIR ?? "/workspace/desk-watcher-next"}/watcher/desk-rules.json`]) {
     if (!existsSync(p)) continue;
     assert.deepEqual(JSON.parse(readFileSync(p, "utf8")), RULES, `${p} drifted from shared/desk-rules.json`);
   }
