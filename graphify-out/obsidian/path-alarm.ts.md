@@ -1,0 +1,86 @@
+---
+source_file: "src/lib/alerts/path-alarm.ts"
+type: "code"
+community: "Community 48"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_48
+---
+
+# path-alarm.ts
+
+## Connections
+- [[APLUS_RULES]] - `imports` [EXTRACTED]
+- [[DeskPayload]] - `imports` [EXTRACTED]
+- [[HIGH_PROB]] - `contains` [EXTRACTED]
+- [[Listener]] - `contains` [EXTRACTED]
+- [[PATH_ALARM_EVENT]] - `contains` [EXTRACTED]
+- [[PATH_ALARM_STORAGE]] - `contains` [EXTRACTED]
+- [[PATH_FIRE_BANDS]] - `contains` [EXTRACTED]
+- [[PATH_FIRE_FLOOR]] - `contains` [EXTRACTED]
+- [[PATH_FIRE_FLOOR_BPLUS]] - `contains` [EXTRACTED]
+- [[PathAlarmFire]] - `contains` [EXTRACTED]
+- [[PathAlarmState]] - `contains` [EXTRACTED]
+- [[SetupCandidate]] - `imports` [EXTRACTED]
+- [[SmcMasterBook]] - `imports` [EXTRACTED]
+- [[alarmKey()]] - `contains` [EXTRACTED]
+- [[allSeries()]] - `imports` [EXTRACTED]
+- [[armPathAlarm()]] - `contains` [EXTRACTED]
+- [[auto-paper.ts]] - `imports_from` [EXTRACTED]
+- [[bookRungs()]] - `contains` [EXTRACTED]
+- [[build-desk.ts]] - `imports_from` [EXTRACTED]
+- [[buildEntryTicket()]] - `imports` [EXTRACTED]
+- [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
+- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[considerEntryAlarm()]] - `contains` [EXTRACTED]
+- [[considerPathAlarm()]] - `contains` [EXTRACTED]
+- [[ctx()_1]] - `contains` [EXTRACTED]
+- [[desk-read.ts]] - `imports_from` [EXTRACTED]
+- [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
+- [[disarmPathAlarm()]] - `contains` [EXTRACTED]
+- [[entry-state.ts]] - `imports_from` [EXTRACTED]
+- [[entry-ticket.ts]] - `imports_from` [EXTRACTED]
+- [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
+- [[etDay()_1]] - `contains` [EXTRACTED]
+- [[etWallParts]] - `imports` [EXTRACTED]
+- [[fireBand()]] - `contains` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[getPathAlarmState()]] - `contains` [EXTRACTED]
+- [[ghost-book.ts]] - `imports_from` [EXTRACTED]
+- [[index.tsx]] - `imports_from` [EXTRACTED]
+- [[isHighProbPath()]] - `contains` [EXTRACTED]
+- [[isJudasWindow()]] - `imports` [EXTRACTED]
+- [[isPathFire()]] - `contains` [EXTRACTED]
+- [[isWatchable()]] - `imports` [EXTRACTED]
+- [[judas-window.ts]] - `imports_from` [EXTRACTED]
+- [[listeners]] - `contains` [EXTRACTED]
+- [[live-world.ts]] - `imports_from` [EXTRACTED]
+- [[load()_4]] - `contains` [EXTRACTED]
+- [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
+- [[mutePathAlarm()]] - `contains` [EXTRACTED]
+- [[options-desk.ts]] - `imports_from` [EXTRACTED]
+- [[path-alarm-bar.tsx]] - `imports_from` [EXTRACTED]
+- [[playAlarmTone()]] - `contains` [EXTRACTED]
+- [[price-path-board.tsx]] - `imports_from` [EXTRACTED]
+- [[readEntry()]] - `imports` [EXTRACTED]
+- [[readJudas()]] - `imports` [EXTRACTED]
+- [[readSession()]] - `imports` [EXTRACTED]
+- [[save()_4]] - `contains` [EXTRACTED]
+- [[session-event.ts]] - `imports_from` [EXTRACTED]
+- [[session-hud.tsx]] - `imports_from` [EXTRACTED]
+- [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[shockSiren()]] - `contains` [EXTRACTED]
+- [[showOsNote()]] - `contains` [EXTRACTED]
+- [[smc-master.ts]] - `imports_from` [EXTRACTED]
+- [[subscribePathAlarm()]] - `contains` [EXTRACTED]
+- [[testPathAlarm()]] - `contains` [EXTRACTED]
+- [[ticketHeadline()]] - `imports` [EXTRACTED]
+- [[touchKey()]] - `imports` [EXTRACTED]
+- [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
+- [[verify-entry-alarm.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_48

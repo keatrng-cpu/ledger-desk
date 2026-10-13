@@ -1,0 +1,85 @@
+---
+source_file: "src/lib/room/lab.ts"
+type: "code"
+community: "Community 0"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Community_0
+---
+
+# lab.ts
+
+## Connections
+- [[CREW]] - `contains` [EXTRACTED]
+- [[Character]] - `imports` [EXTRACTED]
+- [[ExitPolicy]] - `imports` [EXTRACTED]
+- [[ExitWatch]] - `imports` [EXTRACTED]
+- [[GhostFut]] - `contains` [EXTRACTED]
+- [[GhostPos]] - `contains` [EXTRACTED]
+- [[GhostStepCtx]] - `contains` [EXTRACTED]
+- [[LabStepArgs]] - `contains` [EXTRACTED]
+- [[MANDATE_POLICY]] - `imports` [EXTRACTED]
+- [[MIN_TRACK]] - `contains` [EXTRACTED]
+- [[OptionType]] - `imports` [EXTRACTED]
+- [[PlanWatch]] - `contains` [EXTRACTED]
+- [[ROOM_CLOCK]] - `imports` [EXTRACTED]
+- [[ROOM_POLICY]] - `imports` [EXTRACTED]
+- [[RoomCycle]] - `imports` [EXTRACTED]
+- [[RoomDeskRead]] - `imports` [EXTRACTED]
+- [[RoomEntryRead]] - `imports` [EXTRACTED]
+- [[RoomLab]] - `contains` [EXTRACTED]
+- [[RoomPositionIn]] - `imports` [EXTRACTED]
+- [[SeatBook]] - `imports` [EXTRACTED]
+- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[TrackRecord]] - `contains` [EXTRACTED]
+- [[Underlier]] - `imports` [EXTRACTED]
+- [[UnderlierTape]] - `imports` [EXTRACTED]
+- [[asLab()]] - `contains` [EXTRACTED]
+- [[clockEt()]] - `imports` [EXTRACTED]
+- [[debate.ts]] - `imports_from` [EXTRACTED]
+- [[desk-read.ts]] - `imports_from` [EXTRACTED]
+- [[emptyLab()]] - `contains` [EXTRACTED]
+- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etWallParts]] - `imports` [EXTRACTED]
+- [[etWallToEpochMs()]] - `imports` [EXTRACTED]
+- [[exitFor()]] - `imports` [EXTRACTED]
+- [[exits.ts]] - `imports_from` [EXTRACTED]
+- [[expiryMs()]] - `imports` [EXTRACTED]
+- [[floor-school-contracts.ts]] - `imports_from` [EXTRACTED]
+- [[floor-screens.ts]] - `imports_from` [EXTRACTED]
+- [[ghostFrom()]] - `contains` [EXTRACTED]
+- [[holdReadFor()]] - `imports` [EXTRACTED]
+- [[ivFor()]] - `imports` [EXTRACTED]
+- [[labRead]] - `contains` [EXTRACTED]
+- [[labWatchList()]] - `contains` [EXTRACTED]
+- [[live-world.ts]] - `imports_from` [EXTRACTED]
+- [[mandate.ts]] - `imports_from` [EXTRACTED]
+- [[meeting.ts]] - `imports_from` [EXTRACTED]
+- [[money()_7]] - `contains` [EXTRACTED]
+- [[option-math.ts]] - `imports_from` [EXTRACTED]
+- [[optionsOpen()]] - `contains` [EXTRACTED]
+- [[orchestrator.ts]] - `imports_from` [EXTRACTED]
+- [[paper-book.ts]] - `imports_from` [EXTRACTED]
+- [[paper-step.ts]] - `imports_from` [EXTRACTED]
+- [[planKeyOf()]] - `contains` [EXTRACTED]
+- [[quant.ts]] - `imports_from` [EXTRACTED]
+- [[quoteOption()]] - `imports` [EXTRACTED]
+- [[race.ts]] - `imports_from` [EXTRACTED]
+- [[resolveWatch()]] - `contains` [EXTRACTED]
+- [[rnd.ts]] - `imports_from` [EXTRACTED]
+- [[room-engine.ts]] - `imports_from` [EXTRACTED]
+- [[room-step.ts]] - `imports_from` [EXTRACTED]
+- [[roomdrill.ts]] - `imports_from` [EXTRACTED]
+- [[roomformat.ts]] - `imports_from` [EXTRACTED]
+- [[round3()]] - `contains` [EXTRACTED]
+- [[seats.ts]] - `imports_from` [EXTRACTED]
+- [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[stepGhost()]] - `contains` [EXTRACTED]
+- [[stepLab()]] - `contains` [EXTRACTED]
+- [[verify-rnd.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Community_0
